@@ -32,7 +32,7 @@ struct Param {
 void
 errorcode(Dev *d, int term)
 {
-	uchar val;
+	u8 val;
 	char *str[] = {
 		"No error",
 		"Not ready",
@@ -44,7 +44,7 @@ errorcode(Dev *d, int term)
 		"Invalid Request",
 		"Invalid value within range"
 	};
-	if(usbcmd(d, 0xA1, GET_CUR, VC_REQUEST_ERROR_CODE_CONTROL << 8, (uchar)term, &val, 1) <= 0)
+	if(usbcmd(d, 0xA1, GET_CUR, VC_REQUEST_ERROR_CODE_CONTROL << 8, (u8)term, &val, 1) <= 0)
 		return;
 	if(val < nelem(str))
 		werrstr("%s", str[val]);
@@ -53,7 +53,7 @@ errorcode(Dev *d, int term)
 int
 infocheck(Cam *c, int term, Param *p)
 {
-	uchar val;
+	u8 val;
 
 	if(usbcmd(c->dev, 0xA1, GET_INFO, p->cs << 8, term, &val, 1) <= 0){ errorcode(c->dev, term); return -1; }
 	if((val & 1) == 0){
@@ -66,7 +66,7 @@ infocheck(Cam *c, int term, Param *p)
 char *
 pboolread(Cam *c, int term, Param *p)
 {
-	uchar val;
+	u8 val;
 	Dev *d;
 
 	d = c->dev;
@@ -80,7 +80,7 @@ pboolread(Cam *c, int term, Param *p)
 int
 pboolwrite(Cam *c, int term, Param *p, char **f, int nf)
 {
-	uchar v0, v1;
+	u8 v0, v1;
 
 	if(nf != 1)
 		return -1;
@@ -95,7 +95,7 @@ pboolwrite(Cam *c, int term, Param *p, char **f, int nf)
 char *
 pintread(Cam *c, int term, Param *p)
 {
-	uchar cur[4], min[4], max[4], res[4];
+	u8 cur[4], min[4], max[4], res[4];
 	Dev *d;
 
 	d = c->dev;
@@ -106,7 +106,8 @@ pintread(Cam *c, int term, Param *p)
 	if(usbcmd(d, 0xA1, GET_MAX, p->cs << 8, term, max, p->len) < p->len){ errorcode(d, term); return nil; }
 	switch(p->len){
 	case 1: return smprint("%d %d/%d/%d", (char)cur[0], (char)min[0], (char)res[0], (char)max[0]);
-	case 2: return smprint("%d %d/%d/%d", (short)GET2(cur), (short)GET2(min), (short)GET2(res), (short)GET2(max));
+	case 2: return smprint("%d %d/%d/%d", (i16)GET2(cur), (i16)GET2(min),
+			       (i16)GET2(res), (i16)GET2(max));
 	case 4: return smprint("%d %d/%d/%d", (int)GET4(cur), (int)GET4(min), (int)GET4(res), (int)GET4(max));
 	}
 	werrstr("pintread: unimplemented length %d", p->len);
@@ -118,7 +119,7 @@ pintwrite(Cam *c, int term, Param *p, char **f, int nf)
 {
 	int v;
 	char *sp;
-	uchar buf[4];
+	u8 buf[4];
 	
 	if(nf != 1) return -1;
 	v = strtol(f[0], &sp, 0);
@@ -134,7 +135,7 @@ pintwrite(Cam *c, int term, Param *p, char **f, int nf)
 char *
 puintread(Cam *c, int term, Param *p)
 {
-	uchar cur[4], min[4], max[4], res[4];
+	u8 cur[4], min[4], max[4], res[4];
 	Dev *d;
 
 	d = c->dev;
@@ -144,8 +145,10 @@ puintread(Cam *c, int term, Param *p)
 	if(usbcmd(d, 0xA1, GET_RES, p->cs << 8, term, res, p->len) < p->len){ errorcode(d, term); return nil; }
 	if(usbcmd(d, 0xA1, GET_MAX, p->cs << 8, term, max, p->len) < p->len){ errorcode(d, term); return nil; }
 	switch(p->len){
-	case 1: return smprint("%ud %ud/%ud/%ud", (uchar)cur[0], (uchar)min[0], (uchar)res[0], (uchar)max[0]);
-	case 2: return smprint("%ud %ud/%ud/%ud", (ushort)GET2(cur), (ushort)GET2(min), (ushort)GET2(res), (ushort)GET2(max));
+	case 1: return smprint("%ud %ud/%ud/%ud", (u8)cur[0], (u8)min[0],
+			       (u8)res[0], (u8)max[0]);
+	case 2: return smprint("%ud %ud/%ud/%ud", (u16)GET2(cur),
+			       (u16)GET2(min), (u16)GET2(res), (u16)GET2(max));
 	case 4: return smprint("%ud %ud/%ud/%ud", (uint)GET4(cur), (uint)GET4(min), (uint)GET4(res), (uint)GET4(max));
 	}
 	werrstr("pintread: unimplemented length %d", p->len);
@@ -157,7 +160,7 @@ puintwrite(Cam *c, int term, Param *p, char **f, int nf)
 {
 	uint v;
 	char *sp;
-	uchar buf[4];
+	u8 buf[4];
 	
 	if(nf != 1) return -1;
 	v = strtoul(f[0], &sp, 0);
@@ -173,7 +176,7 @@ puintwrite(Cam *c, int term, Param *p, char **f, int nf)
 char *
 penumread(Cam *c, int term, Param *p)
 {
-	uchar cur[4];
+	u8 cur[4];
 	uint val;
 
 	if(infocheck(c, term, p) < 0) return nil;
@@ -195,7 +198,7 @@ int
 penumwrite(Cam *c, int term, Param *p, char **f, int nf)
 {
 	uint i;
-	uchar buf[4];
+	u8 buf[4];
 
 	if(nf != 1) return -1;
 	for(i = 0; i < p->auxi; i++)
@@ -398,7 +401,7 @@ static Param params[] = {
 };
 
 int
-unittype(int i, uchar **ctlp)
+unittype(int i, u8 **ctlp)
 {
 	if(unit[i] == nil)
 		return -1;
@@ -423,7 +426,7 @@ ctlread(Cam *c)
 	int i;
 	int ut;
 	Param *p;
-	uchar *bmControls;
+	u8 *bmControls;
 	int ifid;
 	char *str;
 	
@@ -482,7 +485,7 @@ int
 ctlwrite(Cam *c, char *msg)
 {
 	char *f[10], *sp;
-	uchar *bmControls;
+	u8 *bmControls;
 	Param *p;
 	int aut;
 	int nf;

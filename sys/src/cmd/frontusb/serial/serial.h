@@ -13,8 +13,8 @@ struct Serialops {
 	int	(*modemctl)(Serialport*, int);
 	int	(*setbreak)(Serialport*, int);
 	int	(*readstatus)(Serialport*);
-	int	(*wait4data)(Serialport*, uchar *, int);
-	int	(*wait4write)(Serialport*, uchar *, int);
+	int	(*wait4data)(Serialport*, u8 *, int);
+	int	(*wait4write)(Serialport*, u8 *, int);
 };
 
 enum {
@@ -32,7 +32,7 @@ struct Serialport {
 	Dev	*epin;
 	Dev	*epout;
 
-	uchar	ctlstate;
+	u8	ctlstate;
 
 	/* serial parameters */
 	uint	baud;
@@ -49,7 +49,7 @@ struct Serialport {
 	int	dtr;
 	int	rlsd;
 
-	vlong	timer;
+	i64	timer;
 	int	blocked;	/* for sw flow ctl. BUG: not implemented yet */
 	int	nbreakerr;
 	int	ring;
@@ -63,7 +63,7 @@ struct Serialport {
 	Channel *w4data;
 	Channel *gotdata;
 	int	ndata;
-	uchar	data[DataBufSz];
+	u8	data[DataBufSz];
 
 	Reqqueue *rq;
 	Reqqueue *wq;

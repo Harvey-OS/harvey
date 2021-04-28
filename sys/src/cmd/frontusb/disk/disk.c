@@ -34,7 +34,7 @@ struct Dirtab
 	int	mode;
 };
 
-ulong ctlmode = 0664;
+u32 ctlmode = 0664;
 
 /*
  * Partition management (adapted from disk/partfs)
@@ -67,7 +67,7 @@ freepart(Umsc *lun)
 }
 
 int
-addpart(Umsc *lun, char *name, vlong start, vlong end, ulong mode)
+addpart(Umsc *lun, char *name, i64 start, i64 end, u32 mode)
 {
 	Part *p;
 
@@ -116,7 +116,7 @@ delpart(Umsc *lun, char *s)
 }
 
 void
-fixlength(Umsc *lun, vlong blocks)
+fixlength(Umsc *lun, i64 blocks)
 {
 	Part *part, *p;
 	
@@ -171,7 +171,7 @@ ctlstring(Umsc *lun)
 static int
 ctlparse(Umsc *lun, char *msg)
 {
-	vlong start, end;
+	i64 start, end;
 	char *argv[16];
 	int argc;
 	
@@ -211,7 +211,7 @@ int diskdebug;
 static int
 getmaxlun(void)
 {
-	uchar max;
+	u8 max;
 	int r;
 
 	max = 0;
@@ -253,7 +253,7 @@ umsrecover(void)
 }
 
 static int
-ispow2(uvlong ul)
+ispow2(u64 ul)
 {
 	return (ul & (ul - 1)) == 0;
 }
@@ -308,7 +308,7 @@ umsready(Umsc *lun)
 static int
 umscapacity(Umsc *lun)
 {
-	uchar data[32];
+	u8 data[32];
 
 	lun->blocks = 0;
 	lun->capacity = 0;
@@ -330,12 +330,12 @@ umscapacity(Umsc *lun)
 			return -1;
 		}else{
 			lun->lbsize = GETBELONG(data + 8);
-			lun->blocks = (uvlong)GETBELONG(data)<<32 |
+			lun->blocks = (u64)GETBELONG(data)<<32 |
 				GETBELONG(data + 4);
 		}
 	}
 	lun->blocks++; /* SRcapacity returns LBA of last block */
-	lun->capacity = (vlong)lun->blocks * lun->lbsize;
+	lun->capacity = (i64)lun->blocks * lun->lbsize;
 	fixlength(lun, lun->blocks);
 	if(diskdebug)
 		fprint(2, "disk: logical block size %lud, # blocks %llud\n",
@@ -346,7 +346,7 @@ umscapacity(Umsc *lun)
 static int
 umsinit(void)
 {
-	uchar i;
+	u8 i;
 	Umsc *lun;
 	int some;
 
@@ -396,7 +396,7 @@ umsinit(void)
 /*
  * called by SR*() commands provided by scuzz's scsireq
  */
-long
+i32
 umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	Cbw cbw;
@@ -563,7 +563,7 @@ dostat(Umsc *lun, int path, Dir *d)
 	d->qid.vers = p->vers;
 	d->qid.type =p->mode >> 24;
 	d->mode = p->mode;
-	d->length = (vlong) p->length * lun->lbsize;
+	d->length = (i64) p->length * lun->lbsize;
 	d->name = strdup(p->name);
 	d->uid = strdup(getuser());
 	d->gid = strdup(d->uid);
@@ -635,7 +635,7 @@ dstat(Req *req)
 static void
 dopen(Req *req)
 {
-	ulong path;
+	u32 path;
 	Umsc *lun;
 
 	if(req->ofcall.qid.path == 0){
@@ -662,10 +662,10 @@ dopen(Req *req)
  * since we don't need general division nor its cost.
  */
 static int
-setup(Umsc *lun, Part *p, char *data, int count, vlong offset)
+setup(Umsc *lun, Part *p, char *data, int count, i64 offset)
 {
-	long nb, lbsize, lbshift, lbmask;
-	uvlong bno;
+	i32 nb, lbsize, lbshift, lbmask;
+	u64 bno;
 
 	if(count < 0 || lun->lbsize <= 0 && umscapacity(lun) < 0 ||
 	    lun->lbsize == 0)
@@ -705,16 +705,16 @@ setup(Umsc *lun, Part *p, char *data, int count, vlong offset)
 static void
 dread(Req *req)
 {
-	long n;
-	ulong path;
+	i32 n;
+	u32 path;
 	char buf[64];
 	char *s;
 	Part *p;
 	Umsc *lun;
 	Qid q;
-	long count;
+	i32 count;
 	void *data;
-	vlong offset;
+	i64 offset;
 	Srv *srv;
 
 	q = req->fid->qid;
@@ -818,15 +818,15 @@ dread(Req *req)
 static void
 dwrite(Req *req)
 {
-	long len, ocount;
-	ulong path;
-	uvlong bno;
+	i32 len, ocount;
+	u32 path;
+	u64 bno;
 	Part *p;
 	Umsc *lun;
 	char *s;
-	long count;
+	i32 count;
 	void *data;
-	vlong offset;
+	i64 offset;
 	Srv *srv;
 
 	lun = ums->lun + (req->fid->qid.path >> 16) - 1;
@@ -952,7 +952,7 @@ findendpoints(Ums *ums)
 {
 	Ep *ep;
 	Usbdev *ud;
-	ulong csp, sc;
+	u32 csp, sc;
 	int i, epin, epout;
 
 	epin = epout = -1;

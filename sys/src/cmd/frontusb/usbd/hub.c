@@ -28,7 +28,7 @@ hubfeature(Hub *h, int port, int f, int on)
 static int
 configusb2hub(Hub *h, DHub *dd, int nr)
 {
-	uchar *PortPwrCtrlMask;
+	u8 *PortPwrCtrlMask;
 	int i, offset, mask, nmap;
 	Port *pp;
 
@@ -93,7 +93,7 @@ configusb3hub(Hub *h, DSSHub *dd, int nr)
 static int
 confighub(Hub *h)
 {
-	uchar buf[128];	/* room for extra descriptors */
+	u8 buf[128];	/* room for extra descriptors */
 	int i, dt, dl, nr;
 	Usbdev *d;
 	void *dd;
@@ -268,12 +268,12 @@ closehub(Hub *h)
 	free(h);
 }
 
-static u32int
+static u32
 portstatus(Hub *h, int p)
 {
 	Dev *d;
-	uchar buf[4];
-	u32int sts;
+	u8 buf[4];
+	u32 sts;
 	int t;
 	int dbg;
 
@@ -326,7 +326,7 @@ stsstr(int sts, int isusb3)
 static int
 getmaxpkt(Dev *d, int islow)
 {
-	uchar buf[64];	/* More room to try to get device-specific descriptors */
+	u8 buf[64];	/* More room to try to get device-specific descriptors */
 	DDev *dd;
 
 	if(d->isusb3)
@@ -345,7 +345,7 @@ getmaxpkt(Dev *d, int islow)
  * BUG: does not consider max. power avail.
  */
 static Dev*
-portattach(Hub *h, int p, u32int sts)
+portattach(Hub *h, int p, u32 sts)
 {
 	Dev *d;
 	Port *pp;
@@ -537,7 +537,7 @@ portresetwanted(Hub *h, int p)
 static void
 portreset(Hub *h, int p)
 {
-	u32int sts;
+	u32 sts;
 	Dev *d, *nd;
 	Port *pp;
 
@@ -586,7 +586,7 @@ Fail:
 }
 
 static int
-portgone(Port *pp, u32int sts)
+portgone(Port *pp, u32 sts)
 {
 	if(sts == -1)
 		return 1;
@@ -602,7 +602,7 @@ portgone(Port *pp, u32int sts)
 static int
 enumhub(Hub *h, int p)
 {
-	u32int sts;
+	u32 sts;
 	Dev *d;
 	Port *pp;
 	int onhubs;

@@ -192,7 +192,7 @@ struct Dev
 struct Usbdev
 {
 	int	ver;		/* usb version */
-	ulong	csp;		/* USB class/subclass/proto */
+	u32	csp;		/* USB class/subclass/proto */
 	int	vid;		/* vendor id */
 	int	did;		/* product (device) id */
 	int	dno;		/* device release number */
@@ -211,11 +211,11 @@ struct Usbdev
 
 struct Ep
 {
-	uchar	addr;		/* endpt address, 0-15 (|0x80 if Ein) */
-	uchar	dir;		/* direction, Ein/Eout */
-	uchar	type;		/* Econtrol, Eiso, Ebulk, Eintr */
-	uchar	isotype;	/* Eunknown, Easync, Eadapt, Esync */
-	uchar	isousage;	/* Edata, Efeedback, Eimplicit */
+	u8	addr;		/* endpt address, 0-15 (|0x80 if Ein) */
+	u8	dir;		/* direction, Ein/Eout */
+	u8	type;		/* Econtrol, Eiso, Ebulk, Eintr */
+	u8	isotype;	/* Eunknown, Easync, Eadapt, Esync */
+	u8	isousage;	/* Edata, Efeedback, Eimplicit */
 	
 	int	id;
 	int	maxpkt;		/* max. packet size */
@@ -236,7 +236,7 @@ struct Altc
 struct Iface
 {
 	int 	id;		/* interface number */
-	ulong	csp;		/* USB class/subclass/proto */
+	u32	csp;		/* USB class/subclass/proto */
 	Altc*	altc[Naltc];
 	Ep*	ep[Nep];
 	void*	aux;		/* for the driver program */
@@ -258,9 +258,9 @@ struct Conf
  */
 struct DDesc
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bbytes[1];
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	bbytes[1];
 	/* extra bytes allocated here to keep the rest of it */
 };
 
@@ -278,55 +278,55 @@ struct Desc
  */
 struct DDev
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bcdUSB[2];
-	uchar	bDevClass;
-	uchar	bDevSubClass;
-	uchar	bDevProtocol;
-	uchar	bMaxPacketSize0;
-	uchar	idVendor[2];
-	uchar	idProduct[2];
-	uchar	bcdDev[2];
-	uchar	iManufacturer;
-	uchar	iProduct;
-	uchar	iSerialNumber;
-	uchar	bNumConfigurations;
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	bcdUSB[2];
+	u8	bDevClass;
+	u8	bDevSubClass;
+	u8	bDevProtocol;
+	u8	bMaxPacketSize0;
+	u8	idVendor[2];
+	u8	idProduct[2];
+	u8	bcdDev[2];
+	u8	iManufacturer;
+	u8	iProduct;
+	u8	iSerialNumber;
+	u8	bNumConfigurations;
 };
 
 struct DConf
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	wTotalLength[2];
-	uchar	bNumInterfaces;
-	uchar	bConfigurationValue;
-	uchar	iConfiguration;
-	uchar	bmAttributes;
-	uchar	MaxPower;
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	wTotalLength[2];
+	u8	bNumInterfaces;
+	u8	bConfigurationValue;
+	u8	iConfiguration;
+	u8	bmAttributes;
+	u8	MaxPower;
 };
 
 struct DIface
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bInterfaceNumber;
-	uchar	bAlternateSetting;
-	uchar	bNumEndpoints;
-	uchar	bInterfaceClass;
-	uchar	bInterfaceSubClass;
-	uchar	bInterfaceProtocol;
-	uchar	iInterface;
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	bInterfaceNumber;
+	u8	bAlternateSetting;
+	u8	bNumEndpoints;
+	u8	bInterfaceClass;
+	u8	bInterfaceSubClass;
+	u8	bInterfaceProtocol;
+	u8	iInterface;
 };
 
 struct DEp
 {
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bEndpointAddress;
-	uchar	bmAttributes;
-	uchar	wMaxPacketSize[2];
-	uchar	bInterval;
+	u8	bLength;
+	u8	bDescriptorType;
+	u8	bEndpointAddress;
+	u8	bmAttributes;
+	u8	wMaxPacketSize[2];
+	u8	bInterval;
 };
 
 #define Class(csp)	((csp) & 0xff)
@@ -352,7 +352,7 @@ char*	classname(int c);
 void	closedev(Dev *d);
 int	configdev(Dev *d);
 int	devctl(Dev *dev, char *fmt, ...);
-void*	emallocz(ulong size, int zero);
+void*	emallocz(u32 size, int zero);
 char*	estrdup(char *s);
 char*	hexstr(void *a, int n);
 int	loaddevconf(Dev *d, int n);
@@ -361,11 +361,12 @@ char*	loaddevstr(Dev *d, int sid);
 Dev*	opendev(char *fn);
 int	opendevdata(Dev *d, int mode);
 Dev*	openep(Dev *d, int id);
-int	parseconf(Usbdev *d, Conf *c, uchar *b, int n);
-int	parsedesc(Usbdev *d, Conf *c, uchar *b, int n);
-int	parsedev(Dev *xd, uchar *b, int n);
+int	parseconf(Usbdev *d, Conf *c, u8 *b, int n);
+int	parsedesc(Usbdev *d, Conf *c, u8 *b, int n);
+int	parsedev(Dev *xd, u8 *b, int n);
 int	unstall(Dev *dev, Dev *ep, int dir);
-int	usbcmd(Dev *d, int type, int req, int value, int index, uchar *data, int count);
+int	usbcmd(Dev *d, int type, int req, int value, int index, u8 *data,
+		  int count);
 Dev*	getdev(char *devid);
 
 extern int usbdebug;	/* more messages for bigger values */
