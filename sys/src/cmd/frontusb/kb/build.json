@@ -1,0 +1,16 @@
+[
+	{
+		"Name": "kb",
+		"Cflags": [
+			"-I../lib/"
+		],
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/frontusb",
+		"Program": "kb",
+		"SourceFiles": [
+			"kb.c"
+		]
+	}
+]

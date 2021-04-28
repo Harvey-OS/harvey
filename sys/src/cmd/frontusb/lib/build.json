@@ -1,0 +1,18 @@
+[
+	{
+		"Name": "libfrontusbcmd",
+		"#Cflags": [
+			"-I../"
+		],
+		"Include": [
+			"../../../lib.json"
+		],
+		"Install": "/sys/src/cmd/frontusb/lib/",
+		"Library": "libfrontusbcmd.a",
+		"SourceFiles": [
+			"dev.c",
+			"dump.c",
+			"parse.c"
+		]
+	}
+]

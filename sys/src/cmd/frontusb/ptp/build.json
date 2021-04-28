@@ -1,0 +1,16 @@
+[
+	{
+		"Name": "ptp",
+		"Cflags": [
+			"-I../lib/"
+		],
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/frontusb",
+		"Program": "ptp",
+		"SourceFiles": [
+			"ptp.c"
+		]
+	}
+]

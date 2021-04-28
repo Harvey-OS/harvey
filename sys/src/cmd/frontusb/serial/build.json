@@ -1,0 +1,21 @@
+[
+	{
+		"Name": "serial",
+		"Cflags": [
+			"-I../lib/"
+		],
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/frontusb",
+		"Program": "serial",
+		"SourceFiles": [
+			"ch340.c",
+			"ftdi.c",
+			"prolific.c",
+			"serial.c",
+			"silabs.c",
+			"ucons.c"
+		]
+	}
+]
