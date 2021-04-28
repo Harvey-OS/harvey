@@ -1,0 +1,18 @@
+[
+	{
+		"Name": "usbd",
+		"Cflags": [
+			"-I../lib/"
+		],
+		"Include": [
+			"../../cmd.json"
+		],
+		"Install": "/$ARCH/bin/frontusb",
+		"Program": "usbd",
+		"SourceFiles": [
+			"hname.c",
+			"hub.c",
+			"usbd.c"
+		]
+	}
+]
