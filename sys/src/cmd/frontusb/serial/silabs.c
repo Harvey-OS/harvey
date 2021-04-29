@@ -84,7 +84,7 @@ slinit(Serialport *p)
 	slops.getparam(p);
 
 	/* p gets freed by closedev, the process has a reference */
-	incref(ser->dev);
+	incref(&ser->dev->ref);
 	return 0;
 }
 
