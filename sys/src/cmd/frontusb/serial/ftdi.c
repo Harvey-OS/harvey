@@ -1450,7 +1450,7 @@ static int
 ftinit(Serialport *p)
 {
 	Serial *ser;
-	uint timerval;
+	u32 timerval;
 	int res;
 
 	ser = p->s;

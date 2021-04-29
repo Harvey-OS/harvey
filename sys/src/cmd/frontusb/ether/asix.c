@@ -93,7 +93,7 @@ enum
 
 };
 
-static uint asixphy;
+static u32 asixphy;
 
 static int
 asixset(Dev *d, int c, int v)
@@ -210,7 +210,7 @@ static int
 asixreceive(Dev *ep)
 {
 	Block *b;
-	uint hd;
+	u32 hd;
 	int n;
 
 	b = allocb(Maxpkt+4);
@@ -240,7 +240,7 @@ asixreceive(Dev *ep)
 static void
 asixtransmit(Dev *ep, Block *b)
 {
-	uint hd;
+	u32 hd;
 	int n;
 
 	n = BLEN(b);

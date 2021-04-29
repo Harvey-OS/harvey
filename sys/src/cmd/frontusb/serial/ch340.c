@@ -47,7 +47,7 @@ chprobe(Serial *ser)
 }
 
 static int
-chin(Serialport *p, uint req, uint val, uint index, void *buf, int len)
+chin(Serialport *p, u32 req, u32 val, u32 index, void *buf, int len)
 {
 	Serial *ser;
 
@@ -56,7 +56,7 @@ chin(Serialport *p, uint req, uint val, uint index, void *buf, int len)
 }
 
 static int
-chout(Serialport *p, uint req, uint val, uint index)
+chout(Serialport *p, u32 req, u32 val, u32 index)
 {
 	Serial *ser;
 
@@ -96,7 +96,7 @@ chinit(Serialport *p)
 static int
 chsetbaud(Serialport *p)
 {
-	uint factor, divisor, a;
+	u32 factor, divisor, a;
 
 	factor = 1532620800 / p->baud;
 	divisor = 3;
@@ -118,7 +118,7 @@ chsetbaud(Serialport *p)
 static int
 chsetparam(Serialport *p)
 {
-	uint lcr;
+	u32 lcr;
 
 	if(p->baud > 0)
 		chsetbaud(p);
