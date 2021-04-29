@@ -166,7 +166,7 @@ static int
 auereceive(Dev *ep)
 {
 	Block *b;
-	uint hd;
+	u32 hd;
 	int n;
 
 	b = allocb(Maxpkt+4);

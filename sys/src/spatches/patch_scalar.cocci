@@ -25,6 +25,13 @@ typedef u32;
 +u32
 
 @@
+typedef uint;
+typedef u32;
+@@
+-uint
++u32
+
+@@
 typedef ulong;
 @@
 -ulong
