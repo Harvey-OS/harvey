@@ -385,7 +385,7 @@ kbstart(Dev *d, Ep *ep, void (*f)(void*))
 	KDev *kd;
 
 	kd = emallocz(sizeof(KDev), 1);
-	incref(d);
+	incref(&d->ref);
 	kd->dev = d;
 	if(setproto(kd, ep->id) < 0){
 		fprint(2, "%s: %s: setproto: %r\n", argv0, d->dir);

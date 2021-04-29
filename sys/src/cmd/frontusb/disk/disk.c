@@ -984,7 +984,7 @@ findendpoints(Ums *ums)
 		return -1;
 	}
 	if(epout == epin){
-		incref(ums->epin);
+		incref(&ums->epin->ref);
 		ums->epout = ums->epin;
 	}else
 		ums->epout = openep(dev, epout);
