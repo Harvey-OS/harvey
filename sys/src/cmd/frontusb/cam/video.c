@@ -53,14 +53,15 @@ pushframe(Cam *c, VFrame *v)
 	*l = v;
 	while(c->delreq != nil && c->actl != nil){
 		r = c->delreq;
-		c->delreq = (Req*)r->qu.next;
+		// TODO requires 9pqueue
+		//c->delreq = (Req*)r->qu.next;
 		videoread(r, c, 0);
 	}
 	qunlock(&c->qulock);
 }
 
 void
-yuy2convert(Format *, VSUncompressedFrame *g, u8 *in, VFrame *out)
+yuy2convert(Format *fmt, VSUncompressedFrame *g, u8 *in, VFrame *out)
 {
 	int y, x, w, h;
 	double Y0, Y1, U, V, R, G, B;
@@ -321,7 +322,7 @@ videoread(Req *r, Cam *c, int lock)
 {
 	VFrame *v;
 	int n;
-	Req **rp;
+	//Req **rp;
 
 	if(lock) qlock(&c->qulock);
 	if(c->active == 0 || c->abort){
@@ -336,11 +337,12 @@ videoread(Req *r, Cam *c, int lock)
 		respond(r, nil);
 		return;
 	}
+	// TODO requires 9pqueue
 	if(c->actl == nil){
-		for(rp = &c->delreq; *rp != nil; rp = (Req**)&(*rp)->qu.next)
+		/*for(rp = &c->delreq; *rp != nil; rp = (Req**)&(*rp)->qu.next)
 			;
 		r->qu.next = nil;
-		*rp = r;
+		*rp = r;*/
 		if(lock) qunlock(&c->qulock);
 		return;
 	}
@@ -364,7 +366,8 @@ videoread(Req *r, Cam *c, int lock)
 void
 videoflush(Req *r, Cam *c)
 {
-	Req **rp;
+	// TODO requires 9pqueue
+	/*Req **rp;
 
 	qlock(&c->qulock);
 	for(rp = &c->delreq; *rp != nil; rp = (Req**)&(*rp)->qu.next)
@@ -373,5 +376,5 @@ videoflush(Req *r, Cam *c)
 			respond(r, "interrupted");
 			break;
 		}
-	qunlock(&c->qulock);
+	qunlock(&c->qulock);*/
 }
