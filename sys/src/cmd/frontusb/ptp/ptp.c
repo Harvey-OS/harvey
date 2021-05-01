@@ -1055,7 +1055,7 @@ threadmain(int argc, char **argv)
 
 	snprint(name, sizeof name, "sdU%s", d->hname);
 	snprint(desc, sizeof desc, "%d.ptp", d->id);
-	threadpostsharesrv(&fs, nil, name, desc);
+	//threadpostsharesrv(&fs, nil, name, desc);
 
 	threadexits(0);
 }

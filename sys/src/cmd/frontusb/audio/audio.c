@@ -170,7 +170,7 @@ Setup:
 		}
 		closedev(d);
 		if(audioepin != nil && audioepin != audioepout){
-			if(d = setupep(audiodev, audioepin, speed))
+			if((d = setupep(audiodev, audioepin, speed)) != 0)
 				closedev(d);
 		}
 		audiofreq = speed;
@@ -264,7 +264,7 @@ main(int argc, char *argv[])
 	createfile(fs.tree->root, "volume", user, 0666, nil);
 
 	snprint(buf, sizeof buf, "%d.audio", audiodev->id);
-	postsharesrv(&fs, nil, "usb", buf);
+	//postsharesrv(&fs, nil, "usb", buf);
 
 	exits(0);
 }

@@ -344,8 +344,8 @@ struct DEp
 #define dprint if(usbdebug)fprint
 #define ddprint if(usbdebug > 1)fprint
 
-#pragma	varargck	type  "U"	Dev*
-#pragma	varargck	argpos	devctl	2
+//#pragma	varargck	type  "U"	Dev*
+//#pragma	varargck	argpos	devctl	2
 
 int	Ufmt(Fmt *f);
 char*	classname(int c);

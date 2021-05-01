@@ -232,7 +232,7 @@ fsread(Req *req)
 	}
 	f = req->fid->file;
 	c = f->aux;
-	if(req->fid->aux == nil || req->ifcall.offset == 0)
+	if(req->fid->aux == nil || req->ifcall.offset == 0) {
 		if(f == c->formatsfile)
 			strread(req, formatread(c), -1);
 		else if(f == c->ctlfile)
@@ -243,6 +243,7 @@ fsread(Req *req)
 			videoread(req, c, 1);
 			return;
 		}
+	}
 	if((rs = req->fid->aux) == nil){
 		respond(req, "the front fell off");
 		return;
@@ -382,6 +383,6 @@ threadmain(int argc, char* argv[])
 	for(c = cams; c != nil; c = c->next)
 		createfiles(fs.tree->root, d->hname, c);
 	snprint(buf, sizeof buf, "%d.cam", d->id);
-	threadpostsharesrv(&fs, nil, "usb", buf);
+	//threadpostsharesrv(&fs, nil, "usb", buf);
 	threadexits(nil);
 }

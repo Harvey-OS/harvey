@@ -80,18 +80,18 @@ yuy2convert(Format *, VSUncompressedFrame *g, u8 *in, VFrame *out)
 			R = Y0 + V;
 			B = Y0 + U;
 			G = Y0 - 0.509 * V - 0.194 * U;
-			if(R < 0) R = 0; if(R > 1) R = 1;
-			if(G < 0) G = 0; if(G > 1) G = 1;
-			if(B < 0) B = 0; if(B > 1) B = 1;
+			if(R < 0) { R = 0; } if(R > 1) { R = 1; }
+			if(G < 0) { G = 0; } if(G > 1) { G = 1; }
+			if(B < 0) { B = 0; } if(B > 1) { B = 1; }
 			*op++ = R * 255;
 			*op++ = G * 255;
 			*op++ = B * 255;
 			R = Y1 + V;
 			B = Y1 + U;
 			G = Y1 - 0.509 * V - 0.194 * U;
-			if(R < 0) R = 0; if(R > 1) R = 1;
-			if(G < 0) G = 0; if(G > 1) G = 1;
-			if(B < 0) B = 0; if(B > 1) B = 1;
+			if(R < 0) { R = 0; } if(R > 1) { R = 1; }
+			if(G < 0) { G = 0; } if(G > 1) { G = 1; }
+			if(B < 0) { B = 0; } if(B > 1) { B = 1; }
 			*op++ = R * 255;
 			*op++ = G * 255;
 			*op++ = B * 255;

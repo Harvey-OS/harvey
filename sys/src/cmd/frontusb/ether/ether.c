@@ -977,7 +977,7 @@ threadmain(int argc, char **argv)
 	tab[Qiface].name = smprint("etherU%s", epctl->hname);
 	snprint(s, sizeof(s), "%d.ether", epctl->id);
 
-	threadpostsharesrv(&fs, nil, "usbnet", s);
+	//threadpostsharesrv(&fs, nil, "usbnet", s);
 
 	threadexits(0);
 }
