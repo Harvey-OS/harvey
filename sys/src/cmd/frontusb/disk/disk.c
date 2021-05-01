@@ -1041,14 +1041,14 @@ notreallyums(Dev *dev)
 	}
 }
 
-static Srv diskfs = {
+/*static Srv diskfs = {
 	.attach = dattach,
 	.walk1 = dwalk,
 	.open =	 dopen,
 	.read =	 dread,
 	.write = dwrite,
 	.stat =	 dstat,
-};
+};*/
 
 void
 main(int argc, char **argv)

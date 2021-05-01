@@ -6,7 +6,6 @@
  * scsireq.h is also included by usb/disk and cdfs.
  */
 typedef struct Umsc Umsc;
-#pragma incomplete Umsc
 
 enum {					/* fundamental constants/defaults */
 	MaxDirData	= 255,		/* max. direct data returned */

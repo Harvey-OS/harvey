@@ -67,7 +67,7 @@ struct Part
 
 struct Umsc
 {
-	ScsiReq;
+	ScsiReq	scsiReq;
 	char name[40];
 	u64	blocks;
 	i64	capacity;
@@ -77,7 +77,7 @@ struct Umsc
 	i32	off;		/* offset within a block */
 	i32	nb;		/* byte count */
 
-	QLock;
+	QLock	qlock;
 
 	/* partitions */
 	Part part[Maxparts];
