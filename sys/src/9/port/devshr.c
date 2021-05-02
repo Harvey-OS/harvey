@@ -288,7 +288,7 @@ shrwalk(Chan *c, Chan *nc, char **name, int nname)
 					continue;
 				if(waserror())
 					continue;
-				wq2 = devtab[m->to->type]->walk(m->to, nil, name + j, nname - j);
+				wq2 = m->to->dev->walk(m->to, nil, name + j, nname - j);
 				poperror();
 			}
 			runlock(&h->lock);
@@ -313,6 +313,7 @@ shrwalk(Chan *c, Chan *nc, char **name, int nname)
 static int
 shrgen(Chan *c, char *name, Dirtab *tab, int ntab, int s, Dir *dp)
 {
+	Proc *up = externup();
 	Mpt *mpt;
 	Sch *sch;
 	Shr *shr;
@@ -431,7 +432,7 @@ shropen(Chan *c, int omode)
 			error(Eshutdown);
 		}
 		nc = mpt->m.to->mchan;
-		incref(&nc->ref);
+		incref(&nc->r);
 		runlock(&shr->umh.lock);
 		if(mode != nc->mode){
 			cclose(nc);
@@ -450,7 +451,7 @@ shropen(Chan *c, int omode)
 Chan* createdir(Chan *c, Mhead *m);
 
 static Chan*
-shrcreate(Chan *c, char *name, int omode, u32 perm)
+shrcreate(Chan *c, char *name, int omode, int perm)
 {
 	Proc *up = externup();
 	Sch *sch;
@@ -473,7 +474,7 @@ shrcreate(Chan *c, char *name, int omode, u32 perm)
 	default:
 		error(Eperm);
 	case Qshr:
-		incref(&c.ref);
+		incref(&c->r);
 		if(waserror()){
 			cclose(c);
 			nexterror();
@@ -484,7 +485,7 @@ shrcreate(Chan *c, char *name, int omode, u32 perm)
 			cclose(nc);
 			nexterror();
 		}
-		nc = devtab[nc->type]->create(nc, name, omode, perm);
+		nc = nc->dev->create(nc, name, omode, perm);
 		poperror();
 		cclose(c);
 		return nc;	
@@ -670,7 +671,7 @@ shrwstat(Chan *c, u8 *dp, int n)
 	default:
 		error(Eperm);
 	case Qcshr:
-		ent = sch->shr;
+		ent = &sch->shr->ent;
 		qlock(&shrslk);
 		if(waserror()){
 			qunlock(&shrslk);
@@ -678,7 +679,7 @@ shrwstat(Chan *c, u8 *dp, int n)
 		}
 		break;
 	case Qcmpt:
-		ent = sch->mpt;
+		ent = &sch->mpt->ent;
 		h = &sch->shr->umh;
 		wlock(&h->lock);
 		if(waserror()){
