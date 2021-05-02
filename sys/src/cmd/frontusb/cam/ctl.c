@@ -216,7 +216,7 @@ penumwrite(Cam *c, int term, Param *p, char **f, int nf)
 }
 
 char *
-pformatread(Cam *c, int term, Param *param)
+pformatread(Cam *c, int _term, Param *_param)
 {
 	Format *f;
 	VSUncompressedFrame *g;
@@ -288,7 +288,7 @@ findres(Cam *c, int w, int h, int fr)
 }
 
 int
-pformatwrite(Cam *c, int term, Param *param, char **args, int nargs)
+pformatwrite(Cam *c, int _term, Param *_param, char **args, int nargs)
 {
 	int w, h, bpp;
 	char *p;
@@ -340,7 +340,7 @@ pformatwrite(Cam *c, int term, Param *param, char **args, int nargs)
 }
 
 char *
-pfpsread(Cam *c, int term, Param *param)
+pfpsread(Cam *c, int _term, Param *_param)
 {
 	if(GET4(c->pc.dwFrameInterval) == 0)
 		return smprint("?");
@@ -348,7 +348,7 @@ pfpsread(Cam *c, int term, Param *param)
 }
 
 int
-pfpswrite(Cam *c, int term, Param *param, char **args, int nargs)
+pfpswrite(Cam *c, int _term, Param *_param, char **args, int nargs)
 {
 	double d, t;
 	char *sp;

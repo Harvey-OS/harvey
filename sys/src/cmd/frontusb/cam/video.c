@@ -61,7 +61,7 @@ pushframe(Cam *c, VFrame *v)
 }
 
 void
-yuy2convert(Format *fmt, VSUncompressedFrame *g, u8 *in, VFrame *out)
+yuy2convert(Format *_fmt, VSUncompressedFrame *g, u8 *in, VFrame *out)
 {
 	int y, x, w, h;
 	double Y0, Y1, U, V, R, G, B;

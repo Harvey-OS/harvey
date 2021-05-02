@@ -281,7 +281,7 @@ SRread(ScsiReq *rp, void *buf, i32 nbytes)
 	n = rp->data.count;
 	if (!rp->readblock++ || debug)
 		fprint(2, "SRread: tape data count %ld%s\n", n,
-			(rp->sense[2] & Sd2ili? " with IQLockLI": ""));
+			(rp->sense[2] & Sd2ili? " with ILI": ""));
 	rp->status = STok;
 	rp->offset += n / rp->lbsize;
 	return n;

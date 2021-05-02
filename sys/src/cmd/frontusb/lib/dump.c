@@ -12,10 +12,6 @@ static char* cnames[] =
 	"none", "audio", "comms", "hid", "",
 	"", "", "printer", "storage", "hub", "data"
 };
-/*static char* devstates[] =
-{
-	"detached", "attached", "enabled", "assigned", "configured"
-};*/
 
 char*
 classname(int c)
