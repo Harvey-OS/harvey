@@ -499,10 +499,10 @@ v9pclose(Chan *c)
 	mdevtab->close(c);
 }
 
-static void
+static Chan*
 v9pcreate(Chan *c, char *name, int omode, int perm)
 {
-	mdevtab->create(c, name, omode, perm);
+	return mdevtab->create(c, name, omode, perm);
 }
 
 static void
@@ -568,10 +568,11 @@ phclose(Chan *c)
 	error(Edonotcall(__FUNCTION__));
 }
 
-static void
+static Chan*
 phcreate(Chan *c, char *name, int omode, int perm)
 {
 	error(Edonotcall(__FUNCTION__));
+	return nil;
 }
 
 static void
