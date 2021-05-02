@@ -487,7 +487,7 @@ Return:
 	return c;
 }
 
-void
+Chan*
 devcreate(Chan *c, char *d, int i, int n)
 {
 	if(0)
@@ -495,6 +495,7 @@ devcreate(Chan *c, char *d, int i, int n)
 	error(Eperm);
 	if(0)
 		print_func_exit();
+	return nil;
 }
 
 Block *

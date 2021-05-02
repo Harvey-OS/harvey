@@ -429,7 +429,7 @@ ramwrite(Chan *c, void *v, i32 n, i64 off)
 	return total;
 }
 
-void
+static Chan*
 ramcreate(Chan *c, char *name, int omode, int perm)
 {
 	Proc *up = externup();
@@ -471,6 +471,8 @@ ramcreate(Chan *c, char *name, int omode, int perm)
 	qunlock(&ramlock);
 
 	poperror();
+
+	return c;
 }
 
 void

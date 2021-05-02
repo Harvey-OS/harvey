@@ -551,10 +551,10 @@ mntopen(Chan *c, int omode)
 	return mntopencreate(Topen, c, nil, omode, 0);
 }
 
-static void
+static Chan*
 mntcreate(Chan *c, char *name, int omode, int perm)
 {
-	mntopencreate(Tcreate, c, name, omode, perm);
+	return mntopencreate(Tcreate, c, name, omode, perm);
 }
 
 static void
