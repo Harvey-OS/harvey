@@ -79,6 +79,8 @@ static Shr	*shrs;
 static int	shrid;
 static int	mptid;
 
+Chan *mntchan(void);
+
 static Mpt*
 tompt(Mount *m)
 {
@@ -788,7 +790,19 @@ shrwrite(Chan *c, void *va, i32 n, i64 off)
 		cclose(bc);
 		nexterror();
 	}
-	c0 = mntattach(bc, nil, aname, 0);
+
+	struct {
+		Chan *chan;
+		Chan *authchan;
+		char *spec;
+		int flags;
+	} bogus;
+	bogus.chan = bc;
+	bogus.authchan = nil;
+	bogus.spec = aname;
+	bogus.flags = 0;
+
+	c0 = mntattachversion((char *)&bogus, "9p2000", Tattach, mntchan);
 	poperror();
 	cclose(bc);
 	poperror();
@@ -820,24 +834,24 @@ shrclose(Chan *c)
 }
 
 Dev shrdevtab = {
-	L'σ',
-	"shr",
+	.dc = L'σ',
+	.name = "shr",
 
-	devreset,
-	shrinit,	
-	devshutdown,
-	shrattach,
-	shrwalk,
-	shrstat,
-	shropen,
-	shrcreate,
-	shrclose,
-	shrread,
-	devbread,
-	shrwrite,
-	devbwrite,
-	shrremove,
-	shrwstat,
+	.reset = devreset,
+	.init = shrinit,
+	.shutdown = devshutdown,
+	.attach = shrattach,
+	.walk = shrwalk,
+	.stat = shrstat,
+	.open = shropen,
+	.create = shrcreate,
+	.close = shrclose,
+	.read = shrread,
+	.bread = devbread,
+	.write = shrwrite,
+	.bwrite = devbwrite,
+	.remove = shrremove,
+	.wstat = shrwstat,
 };
 
 static void
