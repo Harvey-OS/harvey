@@ -46,7 +46,7 @@ kbfatal(KDev *kd, char *sts)
 	threadexits(sts);
 }
 
-static int debug, kbd;
+static int debug;
 
 static int
 signext(int v, int bits)
@@ -260,7 +260,7 @@ struct Joy
 };
 
 static void
-joyparse(int t, int f, int g[], int l[], int, void *a)
+joyparse(int t, int f, int g[], int l[], int _c, void *a)
 {
 	int v, i;
 	Joy *p = a;
@@ -299,17 +299,6 @@ joyparse(int t, int f, int g[], int l[], int, void *a)
 		}
 	}
 	p->o += g[RepSize];
-}
-
-static int
-kbdbusy(u8 * buf, int n)
-{
-	int i;
-
-	for(i = 1; i < n; i++)
-		if(buf[i] == 0 || buf[i] != buf[0])
-			return 0;
-	return 1;
 }
 
 static void
