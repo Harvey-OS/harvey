@@ -503,6 +503,6 @@ main(int argc, char **argv)
 		sysfatal("no hubs");
 
 	busyfd = create("/env/usbbusy", ORCLOSE, 0600);
-	//postsharesrv(&usbdsrv, nil, "usb", "usbd");
+	postsharesrv(&usbdsrv, nil, "usb", "usbd");
 	exits(nil);
 }

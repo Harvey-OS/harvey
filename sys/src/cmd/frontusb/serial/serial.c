@@ -784,6 +784,6 @@ threadmain(int argc, char* argv[])
 	qunlock(ser);
 
 	snprint(buf, sizeof buf, "%d.serial", dev->id);
-	//threadpostsharesrv(&serialfs, nil, "usb", buf);
+	threadpostsharesrv(&serialfs, nil, "usb", buf);
 	threadexits(nil);
 }

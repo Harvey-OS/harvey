@@ -1097,6 +1097,6 @@ main(int argc, char **argv)
 		makeparts(lun);
 	}
 	snprint(buf, sizeof buf, "%d.disk", dev->id);
-	//postsharesrv(&diskfs, nil, "usb", buf);
+	postsharesrv(&diskfs, nil, "usb", buf);
 	exits(nil);
 }

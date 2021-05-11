@@ -383,6 +383,6 @@ threadmain(int argc, char* argv[])
 	for(c = cams; c != nil; c = c->next)
 		createfiles(fs.tree->root, d->hname, c);
 	snprint(buf, sizeof buf, "%d.cam", d->id);
-	//threadpostsharesrv(&fs, nil, "usb", buf);
+	threadpostsharesrv(&fs, nil, "usb", buf);
 	threadexits(nil);
 }
