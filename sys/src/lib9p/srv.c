@@ -709,6 +709,9 @@ srv(Srv *srv)
 	srv->fpool->srv = srv;
 	srv->rpool->srv = srv;
 
+	if(srv->start)
+		srv->start(srv);
+
 	while((r = getreq(srv)) != nil){
 		if(r->error){
 			respond(r, r->error);

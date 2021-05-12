@@ -197,6 +197,7 @@ struct Srv {
 	Tree*	tree;
 	void	(*destroyfid)(Fid*);
 	void	(*destroyreq)(Req*);
+	void	(*start)(Srv*);
 	void	(*end)(Srv*);
 	void*	aux;
 
