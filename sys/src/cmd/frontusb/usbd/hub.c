@@ -11,8 +11,6 @@ static int nhubs;
 static int mustdump;
 static int pollms = Pollms;
 
-static char *dsname[] = { "disabled", "attached", "configed" };
-
 static int
 hubfeature(Hub *h, int port, int f, int on)
 {

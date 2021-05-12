@@ -140,7 +140,7 @@ pushevent(Dev *d, char *data)
 }
 
 static int
-dirgen(int n, Dir *d, void *)
+dirgen(int n, Dir *d, void *_aux)
 {
 	if(n >= Qmax - 1)
 		return -1;
@@ -330,7 +330,7 @@ usbdflush(Req *req)
 }
 
 static void
-usbdstart(Srv*)
+usbdstart(Srv *_srv)
 {
 	switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
 	case -1: sysfatal("rfork: %r");
@@ -339,7 +339,7 @@ usbdstart(Srv*)
 }
 
 static void
-usbdend(Srv*)
+usbdend(Srv *_srv)
 {
 	postnote(PNGROUP, getpid(), "shutdown");
 }

@@ -379,11 +379,11 @@ setproto(Hiddev *f, int eid)
 	return usbcmd(f->dev, Rh2d|Rclass|Riface, Setproto, proto, iface->id, nil, 0);
 }
 
-static int
+/*static int
 setleds(Hiddev* f, int, u8 leds)
 {
 	return usbcmd(f->dev, Rh2d|Rclass|Riface, Setreport, Reportout, 0, &leds, 1);
-}
+}*/
 
 static void
 hdfree(Hiddev *f)
@@ -448,7 +448,7 @@ putscan(Hiddev *f, u8 sc, u8 up)
 
 	if(sc == 0)
 		return;
-	s[1] = up | sc&Keymask;
+	s[1] = up | (sc&Keymask);
 	if(isext(sc))
 		write(f->kinfd, s, 2);
 	else
@@ -526,7 +526,7 @@ startrepeat(Hiddev *f, u8 sc)
 }
 
 static void
-hidparse(int t, int f, int g[], int l[], int, void *a)
+hidparse(int t, int f, int g[], int l[], int _c, void *a)
 {
 	Hidreport *p = a;
 	Hidslot *s = &p->s[p->ns];
@@ -558,7 +558,7 @@ hidparse(int t, int f, int g[], int l[], int, void *a)
 		if(!s->valid || s->usage != l[Usage])
 			return;
 		/* if out of range or touchscreen finger not touching, ignore the slot */
-		if(s->oor || s->usage == 0x0D0022 && s->b == 0)
+		if(s->oor || ((s->usage == 0x0D0022) && (s->b == 0)))
 			s->valid = 0;
 		return;
 	default:
