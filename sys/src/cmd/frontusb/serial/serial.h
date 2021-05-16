@@ -75,7 +75,7 @@ struct Serial {
 
 	int	type;		/* serial model subtype */
 	int	recover;	/* # of non-fatal recovery tries */
-	Serialops;
+	Serialops	ops;
 
 	int	hasepintr;
 

@@ -31,13 +31,14 @@ static Cinfo slinfo[] = {
 
 static Serialops slops;
 
+int
 slprobe(Serial *ser)
 {
 	Usbdev *ud = ser->dev->usb;
 
 	if(matchid(slinfo, ud->vid, ud->did) == nil)
 		return -1;
-	ser->Serialops = slops;
+	ser->ops = slops;
 	return 0;
 }
 

@@ -1166,7 +1166,7 @@ ftgettype(Serial *ser)
 	ser->baudbase = baudbase;
 	ser->outhdrsz = outhdrsz;
 	ser->inhdrsz = 2;
-	ser->Serialops = ftops;
+	ser->ops = ftops;
 
 	dsprint (2, "serial: detected type: %#x\n", ser->type);
 }

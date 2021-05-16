@@ -52,8 +52,8 @@ serialdrain(Serialport *p)
 		pipesize = ser->maxwtrans;
 	/* wait for the at least 256-byte pipe to clear */
 	sleep(10 + pipesize/((1 + baud)*1000));
-	if(ser->clearpipes != nil)
-		ser->clearpipes(p);
+	if(ser->ops.clearpipes != nil)
+		ser->ops.clearpipes(p);
 }
 
 int
@@ -68,8 +68,8 @@ serialreset(Serial *ser)
 		p = &ser->p[i];
 		serialdrain(p);
 	}
-	if(ser->reset != nil)
-		res = ser->reset(ser, nil);
+	if(ser->ops.reset != nil)
+		res = ser->ops.reset(ser, nil);
 	return res;
 }
 
@@ -77,12 +77,13 @@ serialreset(Serial *ser)
 int
 serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err)
 {
-	if(p != nil)
+	if(p != nil) {
 		dprint(2, "serial[%d], %s: %s, level %d\n", p->interfc,
 			p->name, err, ser->recover);
-	else
+	} else {
 		dprint(2, "serial[%s], global error, level %d\n",
 			ser->p[0].name, ser->recover);
+	}
 	ser->recover++;
 	if(strstr(err, "detached") != nil)
 		return -1;
@@ -110,7 +111,7 @@ serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err)
 	if(ser->recover > 4 && ser->recover < 8)
 		serialfatal(ser);
 	if(ser->recover > 8){
-		ser->reset(ser, p);
+		ser->ops.reset(ser, p);
 		return 0;
 	}
 	if(serialreset(ser) < 0)
@@ -131,8 +132,8 @@ serialctl(Serialport *p, char *cmd)
 	nf = tokenize(cmd, f, nelem(f));
 	for(i = 0; i < nf; i++){
 		if(strncmp(f[i], "break", 5) == 0){
-			if(ser->setbreak != nil)
-				ser->setbreak(p, 1);
+			if(ser->ops.setbreak != nil)
+				ser->ops.setbreak(p, 1);
 			continue;
 		}
 
@@ -174,9 +175,9 @@ serialctl(Serialport *p, char *cmd)
 			break;
 		case 'k':
 			drain++;
-			ser->setbreak(p, 1);
+			ser->ops.setbreak(p, 1);
 			sleep(n);
-			ser->setbreak(p, 0);
+			ser->ops.setbreak(p, 0);
 			break;
 		case 'l':
 			drain++;
@@ -185,8 +186,8 @@ serialctl(Serialport *p, char *cmd)
 			break;
 		case 'm':
 			drain++;
-			if(ser->modemctl != nil)
-				ser->modemctl(p, n);
+			if(ser->ops.modemctl != nil)
+				ser->ops.modemctl(p, n);
 			if(n == 0)
 				p->cts = 0;
 			break;
@@ -238,8 +239,8 @@ serialctl(Serialport *p, char *cmd)
 				x = CTLS;
 			else
 				x = CTLQ;
-			if(ser->wait4write != nil)
-				nw = ser->wait4write(p, &x, 1);
+			if(ser->ops.wait4write != nil)
+				nw = ser->ops.wait4write(p, &x, 1);
 			else
 				nw = write(p->epout->dfd, &x, 1);
 			if(nw != 1){
@@ -259,10 +260,10 @@ serialctl(Serialport *p, char *cmd)
 	if(drain)
 		serialdrain(p);
 	if(lines && !set){
-		if(ser->sendlines != nil && ser->sendlines(p) < 0)
+		if(ser->ops.sendlines != nil && ser->ops.sendlines(p) < 0)
 			return -1;
 	} else if(set){
-		if(ser->setparam != nil && ser->setparam(p) < 0)
+		if(ser->ops.setparam != nil && ser->ops.setparam(p) < 0)
 			return -1;
 	}
 	ser->recover = 0;
@@ -322,10 +323,10 @@ serinit(Serialport *p)
 
 	ser = p->s;
 
-	if(ser->init != nil)
-		res = ser->init(p);
-	if(ser->getparam != nil)
-		ser->getparam(p);
+	if(ser->ops.init != nil)
+		res = ser->ops.init(p);
+	if(ser->ops.getparam != nil)
+		ser->ops.getparam(p);
 	p->nframeerr = p->nparityerr = p->nbreakerr = p->novererr = 0;
 
 	return res;
@@ -340,7 +341,7 @@ dattach(Req *req)
 }
 
 static int
-dirgen(int n, Dir *d, void *)
+dirgen(int n, Dir *d, void *v)
 {
 	if(n >= nports * 2)
 		return -1;
@@ -430,8 +431,8 @@ Again:
 	qlock(&ser->lock);
 	if(count > ser->maxread)
 		count = ser->maxread;
-	if(ser->wait4data != nil) {
-		rcount = ser->wait4data(p, data, count);
+	if(ser->ops.wait4data != nil) {
+		rcount = ser->ops.wait4data(p, data, count);
 		qunlock(&ser->lock);
 	} else {
 		dfd = p->epin->dfd;
@@ -465,8 +466,8 @@ procwrite(Req *req)
 	data = req->ifcall.data;
 	count = req->ifcall.count;
 	qlock(&ser->lock);
-	if(ser->wait4write != nil) {
-		wcount = ser->wait4write(p, data, count);
+	if(ser->ops.wait4write != nil) {
+		wcount = ser->ops.wait4write(p, data, count);
 		qunlock(&ser->lock);
 	} else {
 		dfd = p->epout->dfd;
@@ -596,8 +597,8 @@ openeps(Serialport *p, int epin, int epout, int epintr)
 		devctl(p->epintr, "timeout 1000");
 	}
 
-	if(ser->seteps != nil)
-		ser->seteps(p);
+	if(ser->ops.seteps != nil)
+		ser->ops.seteps(p);
 	if(p->epin == p->epout)
 		opendevdata(p->epin, ORDWR);
 	else {
@@ -694,7 +695,7 @@ usage(void)
 }
 
 static void
-dend(Srv*)
+dend(Srv *srv)
 {
 	threadexitsall(nil);
 }
@@ -762,11 +763,11 @@ threadmain(int argc, char* argv[])
 			p->isjtag++;
 		if(findendpoints(ser, i) < 0)
 			sysfatal("no endpoints found for ifc %d", i);
-		p->w4data  = chancreate(sizeof(ulong), 0);
-		p->gotdata = chancreate(sizeof(ulong), 0);
+		p->w4data  = chancreate(sizeof(u32), 0);
+		p->gotdata = chancreate(sizeof(u32), 0);
 	}
 
-	qlock(ser);
+	qlock(&ser->lock);
 	serialreset(ser);
 	for(i = 0; i < ser->nifcs; i++){
 		p = &ser->p[i];
@@ -781,7 +782,7 @@ threadmain(int argc, char* argv[])
 		ports = realloc(ports, (nports + 1) * sizeof(Serialport*));
 		ports[nports++] = p;
 	}
-	qunlock(ser);
+	qunlock(&ser->lock);
 
 	snprint(buf, sizeof buf, "%d.serial", dev->id);
 	threadpostsharesrv(&serialfs, nil, "usb", buf);

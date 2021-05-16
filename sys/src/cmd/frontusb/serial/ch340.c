@@ -42,7 +42,7 @@ chprobe(Serial *ser)
 
 	if(matchid(chinfo, ud->vid, ud->did) == nil)
 		return -1;
-	ser->Serialops = chops;
+	ser->ops = chops;
 	return 0;
 }
 

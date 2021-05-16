@@ -11,13 +11,13 @@
 			"cam/build.json",
 			"joy/build.json",
 			"kb/build.json",
+			"serial/build.json",
 			"usbd/build.json"
 		],
 		"#NotYetProjects": [
 			"disk/build.json",
 			"ether/build.json",
-			"ptp/build.json",
-			"serial/build.json"
+			"ptp/build.json"
 		]
 	}
 ]
