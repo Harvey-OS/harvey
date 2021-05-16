@@ -1229,9 +1229,9 @@ wait4data(Serialport *p, u8 *data, int count)
 
 	ser = p->s;
 
-	qunlock(ser);
+	qunlock(&ser->lock);
 	d = sendul(p->w4data, 1);
-	qlock(ser);
+	qlock(&ser->lock);
 	if(d <= 0)
 		return -1;
 	if(p->ndata >= count)
@@ -1261,9 +1261,9 @@ wait4write(Serialport *p, u8 *data, int count)
 	memmove(b+off, data, count);
 
 	fd = p->epout->dfd;
-	qunlock(ser);
+	qunlock(&ser->lock);
 	count = write(fd, b, count+off);
-	qlock(ser);
+	qlock(&ser->lock);
 	free(b);
 	return count;
 }
@@ -1328,9 +1328,9 @@ epreader(void *u)
 	c = a->c;
 	free(a);
 
-	qlock(ser);	/* this makes the reader wait end of initialization too */
+	qlock(&ser->lock);	/* this makes the reader wait end of initialization too */
 	dfd = p->epin->dfd;
-	qunlock(ser);
+	qunlock(&ser->lock);
 
 	ntries = 0;
 	pk = nil;
@@ -1346,9 +1346,9 @@ Eagain:
 		if(rcount < 0){
 			if(ntries++ > 100)
 				break;
-			qlock(ser);
+			qlock(&ser->lock);
 			recov = serialrecover(ser, p, nil, "epreader: bulkin error");
-			qunlock(ser);
+			qunlock(&ser->lock);
 			if(recov >= 0)
 				goto Eagain;
 		}
@@ -1369,9 +1369,9 @@ Eagain:
 				}
 			}else
 				free(pk);
-			qlock(ser);
+			qlock(&ser->lock);
 			ser->recover = 0;
-			qunlock(ser);
+			qunlock(&ser->lock);
 			ntries = 0;
 			pk = nil;
 		}

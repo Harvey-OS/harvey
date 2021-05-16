@@ -455,9 +455,9 @@ plinit(Serialport *p)
 		vendorwrite(p, Dcr2Idx|DcrSet, Dcr2InitH);
 
 	plgetparam(p);
-	qunlock(ser);
+	qunlock(&ser->lock);
 	free(buf);
-	qlock(ser);
+	qlock(&ser->lock);
 	if(serialdebug){
 		st = emallocz(255, 1);
 		serdumpst(p, st, 255);
@@ -546,15 +546,15 @@ plreadstatus(Serialport *p)
 
 	ser = p->s;
 
-	qlock(ser);
+	qlock(&ser->lock);
 	dfd = p->epintr->dfd;
-	qunlock(ser);
+	qunlock(&ser->lock);
 	nr = read(dfd, buf, sizeof buf);
-	qlock(ser);
+	qlock(&ser->lock);
 	rerrstr(err, sizeof err);
 	if(nr < 0 && strstr(err, "timed out") == nil){
 		if(serialrecover(ser, nil, nil, err) < 0){
-			qunlock(ser);
+			qunlock(&ser->lock);
 			return -1;
 		}
 	}
@@ -574,7 +574,7 @@ plreadstatus(Serialport *p)
 			p->novererr++;
 	} else
 		dsprint(2, "serial: bad status read %d\n", nr);
-	qunlock(ser);
+	qunlock(&ser->lock);
 	return 0;
 }
 

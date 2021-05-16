@@ -427,15 +427,15 @@ procread(Req *req)
 	data = req->ofcall.data;
 	count = req->ifcall.count;
 Again:
-	qlock(ser);
+	qlock(&ser->lock);
 	if(count > ser->maxread)
 		count = ser->maxread;
 	if(ser->wait4data != nil) {
 		rcount = ser->wait4data(p, data, count);
-		qunlock(ser);
+		qunlock(&ser->lock);
 	} else {
 		dfd = p->epin->dfd;
-		qunlock(ser);
+		qunlock(&ser->lock);
 		rcount = read(dfd, data, count);
 	}
 	if(rcount < 0) {
@@ -464,13 +464,13 @@ procwrite(Req *req)
 	ser = p->s;
 	data = req->ifcall.data;
 	count = req->ifcall.count;
-	qlock(ser);
+	qlock(&ser->lock);
 	if(ser->wait4write != nil) {
 		wcount = ser->wait4write(p, data, count);
-		qunlock(ser);
+		qunlock(&ser->lock);
 	} else {
 		dfd = p->epout->dfd;
-		qunlock(ser);
+		qunlock(&ser->lock);
 		wcount = write(dfd, data, count);
 	}
 	if(wcount != count) {
@@ -478,9 +478,9 @@ procwrite(Req *req)
 		errstr(err, sizeof err);
 		respond(req, err);
 
-		qlock(ser);
+		qlock(&ser->lock);
 		serialrecover(p->s, p, p->epout, err);
-		qunlock(ser);
+		qunlock(&ser->lock);
 	} else {
 		req->ofcall.count = wcount;
 		respond(req, nil);
@@ -503,7 +503,7 @@ dread(Req *req)
 
 	p = ports[(path - 1) / 2];
 	ser = p->s;
-	qlock(ser);
+	qlock(&ser->lock);
 	switch((path - 1) % 2){
 	case 0:
 		req->aux = p;
@@ -519,7 +519,7 @@ dread(Req *req)
 		respond(req, nil);
 		break;
 	}
-	qunlock(ser);
+	qunlock(&ser->lock);
 }
 
 static void
@@ -533,7 +533,7 @@ dwrite(Req *req)
 	path = req->fid->qid.path;
 	p = ports[(path-1) / 2];
 	ser = p->s;
-	qlock(ser);
+	qlock(&ser->lock);
 	switch((path-1) % 2){
 	case 0:
 		req->aux = p;
@@ -549,7 +549,7 @@ dwrite(Req *req)
 			memmove(cmd, buf, count);
 			cmd[count] = 0;
 			if(serialctl(p, cmd) < 0){
-				qunlock(ser);
+				qunlock(&ser->lock);
 				free(cmd);
 				respond(req, "bad control request");
 				return;
@@ -560,7 +560,7 @@ dwrite(Req *req)
 		respond(req, nil);
 		break;
 	}
-	qunlock(ser);
+	qunlock(&ser->lock);
 }
 
 static int

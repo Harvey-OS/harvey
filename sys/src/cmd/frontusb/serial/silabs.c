@@ -118,10 +118,10 @@ wait4data(Serialport *p, u8 *data, int count)
 {
 	int n;
 
-	qunlock(p->s);
+	qunlock(&p->s->lock);
 	while ((n = read(p->epin->dfd, data, count)) == 0)
 		;
-	qlock(p->s);
+	qlock(&p->s->lock);
 	return n;
 }
 

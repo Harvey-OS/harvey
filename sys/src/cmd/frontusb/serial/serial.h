@@ -70,7 +70,7 @@ struct Serialport {
 };
 
 struct Serial {
-	QLock;
+	QLock	lock;
 	Dev	*dev;		/* usb device*/
 
 	int	type;		/* serial model subtype */
