@@ -145,11 +145,11 @@ puintread(Cam *c, int term, Param *p)
 	if(usbcmd(d, 0xA1, GET_RES, p->cs << 8, term, res, p->len) < p->len){ errorcode(d, term); return nil; }
 	if(usbcmd(d, 0xA1, GET_MAX, p->cs << 8, term, max, p->len) < p->len){ errorcode(d, term); return nil; }
 	switch(p->len){
-	case 1: return smprint("%ud %ud/%ud/%ud", (u8)cur[0], (u8)min[0],
+	case 1: return smprint("%u %u/%u/%u", (u8)cur[0], (u8)min[0],
 			       (u8)res[0], (u8)max[0]);
-	case 2: return smprint("%ud %ud/%ud/%ud", (u16)GET2(cur),
+	case 2: return smprint("%u %u/%u/%u", (u16)GET2(cur),
 			       (u16)GET2(min), (u16)GET2(res), (u16)GET2(max));
-	case 4: return smprint("%ud %ud/%ud/%ud", (u32)GET4(cur),
+	case 4: return smprint("%u %u/%u/%u", (u32)GET4(cur),
 			       (u32)GET4(min), (u32)GET4(res), (u32)GET4(max));
 	}
 	werrstr("pintread: unimplemented length %d", p->len);

@@ -338,7 +338,7 @@ umscapacity(Umsc *lun)
 	lun->capacity = (i64)lun->blocks * lun->lbsize;
 	fixlength(lun, lun->blocks);
 	if(diskdebug)
-		fprint(2, "disk: logical block size %lud, # blocks %llud\n",
+		fprint(2, "disk: logical block size %lu, # blocks %llu\n",
 			lun->lbsize, lun->blocks);
 	return 0;
 }

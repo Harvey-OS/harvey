@@ -855,7 +855,7 @@ dirdevopen(ScsiReq *rp)
 	rp->lbsize = GETBELONG(data+4);
 	blocks =     GETBELONG(data);
 	if(debug)
-		fprint(2, "disk: dirdevopen: 10-byte logical block size %lud, "
+		fprint(2, "disk: dirdevopen: 10-byte logical block size %lu, "
 			"# blocks %llud\n", rp->lbsize, blocks);
 	if(blocks == 0xffffffff){
 		if(SRrcapacity16(rp, data) == -1)
@@ -864,7 +864,7 @@ dirdevopen(ScsiReq *rp)
 		blocks = (i64)GETBELONG(data)<<32 | GETBELONG(data + 4);
 		if(debug)
 			fprint(2, "disk: dirdevopen: 16-byte logical block size"
-				" %lud, # blocks %llud\n", rp->lbsize, blocks);
+				" %lu, # blocks %llu\n", rp->lbsize, blocks);
 	}
 	/* some newer dev's don't support 6-byte commands */
 	if(blocks > Max24off && !force6bytecmds)
@@ -883,7 +883,7 @@ seqdevopen(ScsiReq *rp)
 		rp->flags |= Fbfixed;
 		rp->lbsize = limits[4]<<8 | limits[5];
 		if(debug)
-			fprint(2, "disk: seqdevopen: 10-byte logical block size %lud\n",
+			fprint(2, "disk: seqdevopen: 10-byte logical block size %lu\n",
 				rp->lbsize);
 		return 0;
 	}
@@ -943,7 +943,7 @@ wormdevopen(ScsiReq *rp)
 		/* last 3 bytes of block 0 descriptor */
 		rp->lbsize = GETBE24(list+13);
 	if(debug)
-		fprint(2, "disk: wormdevopen: 10-byte logical block size %lud\n",
+		fprint(2, "disk: wormdevopen: 10-byte logical block size %lu\n",
 			rp->lbsize);
 	return status;
 }

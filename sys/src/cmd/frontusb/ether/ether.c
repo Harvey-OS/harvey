@@ -41,7 +41,7 @@ Tab tab[] =
 	"clone",	0666,
 	"stats",	0666,
 	"addr",	0444,
-	"%ud",	DMDIR|0555,
+	"%u",	DMDIR|0555,
 	"ctl",		0666,
 	"data",	0666,
 	"type",	0444,

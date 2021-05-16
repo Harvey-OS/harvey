@@ -1667,7 +1667,7 @@ parsersdptr(void)
 		      *(u64 *)rsd->xaddr, rsd->xchecksum);
 
 	if(v)
-		print("acpi: RSD PTR@ %#p, physaddr $%p length %ud %#llx rev %d\n",
+		print("acpi: RSD PTR@ %#p, physaddr $%p length %u %#llx rev %d\n",
 		      rsd, l32get(rsd->raddr), l32get(rsd->length),
 		      l64get(rsd->xaddr), rsd->revision);
 
