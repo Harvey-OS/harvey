@@ -9,7 +9,7 @@ ufspid=$!
 export machineflag=q35
 if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
 	export kvmflag='-enable-kvm'
-	export machineflag='pc,accel=kvm'
+	export machineflag='q35,accel=kvm'
 	if [ ! -w /dev/kvm ]; then
 		# we don't have access as a regular user
 		export kvmdo=sudo
