@@ -43,7 +43,7 @@ echo $i...
 	}
 	if not if(test -d /sys/src/cmd/$i && @{cd /sys/src/cmd/$i && mk 8.$b}){
 		cd /sys/src/cmd/$i
-		rm 8.out
+		rm 8.$b
 		files=`{mk 8.$b | getfiles}
 	}
 	if not if(test -d /sys/src/cmd/$d && @{cd /sys/src/cmd/$d && mk 8.$b}){
