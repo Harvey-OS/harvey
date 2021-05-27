@@ -9,7 +9,7 @@ hredirected(HConnect *c, char *how, char *uri)
 	Hio *hout;
 	char *s, *ss, *scheme, *host;
 	char sayport[NETPATHLEN];
-	int n;
+	int n, nb;
 
 	scheme = c->scheme? c->scheme: "http";
 	host = c->head.host;
@@ -19,8 +19,9 @@ hredirected(HConnect *c, char *how, char *uri)
 		s = strrchr(c->req.uri, '/');
 		if(s != nil)
 			*s = '\0';
-		ss = halloc(c, strlen(c->req.uri) + strlen(uri) + 2 + UTFmax);
-		sprint(ss, "%s/%s", c->req.uri, uri);
+		nb = strlen(c->req.uri) + strlen(uri) + 2 + UTFmax;
+		ss = halloc(c, nb);
+		snprint(ss, nb, "%s/%s", c->req.uri, uri);
 		uri = ss;
 		if(s != nil)
 			*s = '/';
