@@ -258,11 +258,11 @@ compile(char *file, char **defs, int ndef)
 			/* 1999 ANSI C requires recognising // comments */
 			av[i++] = strdup("-+");
 			for(c = 0; c < ndef; c++) {
-				sprint(opt, "-D%s", defs[c]);
+				snprint(opt, sizeof opt, "-D%s", defs[c]);
 				av[i++] = strdup(opt);
 			}
 			for(c = 0; c < ninclude; c++) {
-				sprint(opt, "-I%s", include[c]);
+				snprint(opt, sizeof opt, "-I%s", include[c]);
 				av[i++] = strdup(opt);
 			}
 			if(strcmp(file, "stdin") != 0)
@@ -1386,19 +1386,19 @@ Tconv(Fmt *fp)
 		if(str[0])
 			strcat(str, " ");
 		if(t->garb&~GINCOMPLETE) {
-			sprint(s, "%s ", gnames[t->garb&~GINCOMPLETE]);
+			snprint(s, sizeof s, "%s ", gnames[t->garb&~GINCOMPLETE]);
 			if(strlen(str) + strlen(s) < STRINGSZ)
 				strcat(str, s);
 		}
-		sprint(s, "%s", tnames[et]);
+		snprint(s, sizeof s, "%s", tnames[et]);
 		if(strlen(str) + strlen(s) < STRINGSZ)
 			strcat(str, s);
 		if(et == TFUNC && (t1 = t->down)) {
-			sprint(s, "(%T", t1);
+			snprint(s, sizeof s, "(%T", t1);
 			if(strlen(str) + strlen(s) < STRINGSZ)
 				strcat(str, s);
 			while(t1 = t1->down) {
-				sprint(s, ", %T", t1);
+				snprint(s, sizeof s, ", %T", t1);
 				if(strlen(str) + strlen(s) < STRINGSZ)
 					strcat(str, s);
 			}
@@ -1409,12 +1409,12 @@ Tconv(Fmt *fp)
 			n = t->width;
 			if(t->link && t->link->width)
 				n /= t->link->width;
-			sprint(s, "[%ld]", n);
+			snprint(s, sizeof s, "[%ld]", n);
 			if(strlen(str) + strlen(s) < STRINGSZ)
 				strcat(str, s);
 		}
 		if(t->nbits) {
-			sprint(s, " %d:%d", t->shift, t->nbits);
+			snprint(s, sizeof s, " %d:%d", t->shift, t->nbits);
 			if(strlen(str) + strlen(s) < STRINGSZ)
 				strcat(str, s);
 		}

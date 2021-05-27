@@ -1008,7 +1008,7 @@ complex:
 |	LSTRUCT sbody
 	{
 		taggen++;
-		sprint(symb, "_%d_", taggen);
+		snprint(symb, sizeof symb, "_%d_", taggen);
 		$$ = dotag(lookup(), TSTRUCT, autobn);
 		$$->link = $2;
 		sualign($$);
@@ -1033,7 +1033,7 @@ complex:
 |	LUNION sbody
 	{
 		taggen++;
-		sprint(symb, "_%d_", taggen);
+		snprint(symb, sizeof symb, "_%d_", taggen);
 		$$ = dotag(lookup(), TUNION, autobn);
 		$$->link = $2;
 		sualign($$);

@@ -262,7 +262,7 @@ dclfunct(Type *t, Sym *s)
 		o = ftabinit[i].op;
 		if(o == OXXX)
 			break;
-		sprint(str, "%s_%s_", t->tag->name, ftabinit[i].name);
+		snprint(str, sizeof str, "%s_%s_", t->tag->name, ftabinit[i].name);
 		n = new(ONAME, Z, Z);
 		n->sym = slookup(str);
 		f->sym[o] = n->sym;
@@ -296,7 +296,7 @@ dclfunct(Type *t, Sym *s)
 		/*
 		 * OCAST types T1 _T2_T1_(T2)
 		 */
-		sprint(str, "_%s%s_", gtabinit[i].name, t->tag->name);
+		snprint(str, sizeof str, "_%s%s_", gtabinit[i].name, t->tag->name);
 		n = new(ONAME, Z, Z);
 		n->sym = slookup(str);
 		f->castto[o] = n->sym;
@@ -305,7 +305,7 @@ dclfunct(Type *t, Sym *s)
 		f1->down = types[o];
 		dodecl(xdecl, CEXTERN, f1, n);
 
-		sprint(str, "%s_%s_", t->tag->name, gtabinit[i].name);
+		snprint(str, sizeof str, "%s_%s_", t->tag->name, gtabinit[i].name);
 		n = new(ONAME, Z, Z);
 		n->sym = slookup(str);
 		f->castfr[o] = n->sym;
