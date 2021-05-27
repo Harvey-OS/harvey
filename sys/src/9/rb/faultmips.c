@@ -226,10 +226,10 @@ faultmips(Ureg *ur, int user, int code)
 }
 
 /*
- * called in syscallfmt.c, sysfile.c, sysproc.c
+ * called in sysfile.c
  */
 void
-validalign(uintptr addr, unsigned align)
+validalign(ulong addr, ulong align)
 {
 	/*
 	 * Plan 9 is a 32-bit O/S, and the hardware it runs on

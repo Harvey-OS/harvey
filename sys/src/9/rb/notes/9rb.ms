@@ -1,11 +1,16 @@
+.nr PS 11
+.nr VS 13
 .FP palatino
+.
 .TM
+.DA 23 July 2013
 .TL
 Plan 9 on the Mikrotik RB450G Routerboard
 .AU
 Geoff Collyer
 .AI
 .MH
+.
 .NH 1
 Motivation
 .LP
@@ -57,7 +62,7 @@ to generate a NOP before every third consecutive store.
 The fix could be better, in particular the technique for
 keeping stores out of branch delay slots.
 .NH 2
-Driver for Undocumented Ethernet Controller
+Driver for Undocumented Atheros 7161 Ethernet Controller
 .LP
 The FreeBSD Atheros
 .I arge
@@ -151,11 +156,6 @@ we'll just live with the absurdly-high number of TLB faults
 (around 20k–30k per second).
 It probably doesn't help that one 16K page is half of the L1 data cache
 and one quarter of the L1 instruction cache.
-.LP
-Page size is controlled by
-.CW BIGPAGES
-in
-.CW mem.h .
 .NH 3
 Combined TLB Pool
 .LP
@@ -179,11 +179,3 @@ There's some kludgey stuff in
 .CW uarti8250.c
 that makes output work most of the time
 (characters do sometimes get dropped).
-.LP
-The Ethernet driver currently does not
-dig out the MAC addresses from the hardware,
-so you'll need to edit the
-.CW rb
-configuration file for each Routerboard; the format should be obvious.
-I don't have the stomach to dig the MAC address out of the hardware
-via SPI or whatever vile interface it requires.

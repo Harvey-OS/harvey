@@ -534,7 +534,26 @@ countpagerefs(ulong*, int)
 ulong
 cankaddr(ulong pa)
 {
-	if(pa >= KZERO || pa >= MEMSIZE)
+	if(pa >= KZERO || pa >= memsize)
 		return 0;
-	return MEMSIZE - pa;
+	return memsize - pa;
+}
+
+/*
+ * although needed by the pc port, this mapping can be trivial on our mips systems,
+ * which have less memory.
+ */
+void*
+vmap(uintptr pa, usize)
+{
+	return UINT2PTR(KSEG0|pa);
+}
+
+void
+vunmap(void* v, usize size)
+{
+	/*
+	upafree(PADDR(v), size);
+	 */
+	USED(v, size);
 }

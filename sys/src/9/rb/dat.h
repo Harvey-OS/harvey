@@ -11,6 +11,7 @@ typedef struct MMU	MMU;
 typedef struct Notsave	Notsave;
 typedef struct Pcidev	Pcidev;
 typedef struct PMMU	PMMU;
+typedef struct Rbconf	Rbconf;
 typedef struct Softtlb	Softtlb;
 typedef struct Ureg	Ureg;
 typedef struct Proc	Proc;
@@ -60,6 +61,7 @@ struct Conf
 	ulong	nmach;		/* processors */
 	ulong	nproc;		/* processes */
 	Confmem	mem[1];
+	/* npage may exclude kernel pages */
 	ulong	npage;		/* total physical pages of memory */
 	ulong	upages;		/* user page pool */
 	ulong	nimage;		/* number of page cache image headers */
@@ -69,6 +71,14 @@ struct Conf
 	ulong	ialloc;		/* bytes available for interrupt-time allocation */
 	ulong	pipeqsize;	/* size in bytes of pipe queues */
 	int	nuart;		/* number of uart devices */
+};
+
+struct Rbconf {
+	char	*ether0mac;
+	char	*memsize;
+	char	*hz;
+	char	*console;
+	char	*null;		/* act as end of argv when rebooting */
 };
 
 /*
@@ -211,7 +221,11 @@ struct Softtlb
 struct
 {
 	Lock;
-	long	machs;		/* bitmap of processors */
+	union {
+		uvlong	machs;		/* bitmap of active CPUs */
+		ulong	machsmap[(MAXMACH+BI2WD-1)/BI2WD];
+	};
+	int	nmachs;			/* number of bits set in machs(map) */
 	short	exiting;
 	int	ispanic;
 }active;
@@ -223,3 +237,5 @@ extern register Proc	*up;
 extern FPsave initfp;
 
 extern	int normalprint;
+extern ulong memsize;
+extern Rbconf rbconf;

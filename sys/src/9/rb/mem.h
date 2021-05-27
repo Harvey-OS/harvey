@@ -14,23 +14,15 @@
 #define MAXBY2PG (16*1024) /* rounding for UTZERO in executables; see mkfile */
 #define UTROUND(t)	ROUNDUP((t), MAXBY2PG)
 
-#ifndef BIGPAGES
 #define	BY2PG		4096			/* bytes per page */
 #define	PGSHIFT		12			/* log2(BY2PG) */
 #define	PGSZ		PGSZ4K
 #define MACHSIZE	(2*BY2PG)
-#else
-/* 16K pages work very poorly */
-#define	BY2PG		(16*1024)		/* bytes per page */
-#define	PGSHIFT		14			/* log2(BY2PG) */
-#define PGSZ		PGSZ16K
-#define MACHSIZE	BY2PG
-#endif
 
 #define	KSTACK		8192			/* Size of kernel stack */
 #define	WD2PG		(BY2PG/BY2WD)		/* words per page */
 
-#define	MAXMACH		1   /* max # cpus system can run; see active.machs */
+#define	MAXMACH		1 		  /* max # cpus system can run */
 #define STACKALIGN(sp)	((sp) & ~7)		/* bug: assure with alloc */
 #define	BLOCKALIGN	16
 #define CACHELINESZ	32			/* mips24k */
@@ -261,16 +253,10 @@
 #define PHYSCONS	(KSEG1|0x18020000)		/* i8250 uart */
 
 #define PIDXSHFT	12
-#ifndef BIGPAGES
+/* future ref.: no cache aliases are possible with pages of 16K or larger */
 #define NCOLOR		8
 #define PIDX		((NCOLOR-1)<<PIDXSHFT)
 #define getpgcolor(a)	(((ulong)(a)>>PIDXSHFT) % NCOLOR)
-#else
-/* no cache aliases are possible with pages of 16K or larger */
-#define NCOLOR		1
-#define PIDX		0
-#define getpgcolor(a)	0
-#endif
 #define KMAPSHIFT	15
 
 #define	PTEGLOBL	(1<<0)
@@ -294,10 +280,10 @@
 #define	PTEPID(n)	(n)
 #define PTEMAPMEM	(1024*1024)
 #define	PTEPERTAB	(PTEMAPMEM/BY2PG)
-#define SEGMAPSIZE	512
+#define SEGMAPSIZE	(ROUND(USTKTOP, PTEMAPMEM) / PTEMAPMEM)
 #define SSEGMAPSIZE	16
 
-#define STLBLOG		15
+#define STLBLOG		16	/* was 15 */
 #define STLBSIZE	(1<<STLBLOG)	/* entries in the soft TLB */
 /* page # bits that don't fit in STLBLOG bits */
 #define HIPFNBITS	(BI2WD - (PGSHIFT+1) - STLBLOG)
@@ -316,6 +302,7 @@
 /*
  * Address spaces
  */
+#define PHYSDRAM 0
 #define	UZERO	KUSEG			/* base of user address space */
 #define	UTZERO	(UZERO+MAXBY2PG)	/* 1st user text address; see mkfile */
 #define	USTKTOP	(KZERO-BY2PG)		/* byte just beyond user stack */
@@ -324,5 +311,4 @@
 #define TSTKSIZ (1024*1024/BY2PG)	/* can be at most UTSKSIZE/BY2PG */
 #define	KZERO	KSEG0			/* base of kernel address space */
 #define	KTZERO	(KZERO+0x20000)		/* first address in kernel text */
-#define MEMSIZE	(256*MB)		/* fixed memory on routerboard */
 #define PCIMEM	0x10000000		/* on rb450g */

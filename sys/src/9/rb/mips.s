@@ -7,6 +7,8 @@
 #define	SP	R29
 
 #define NOP	NOR R0, R0, R0
+/* a SPECIAL2 op-code from MIPS32 */
+#define CLZ(rs,rd) WORD $(0x70000020 | (rs)<<21 | (rd)<<16 | (rd)<<11)
 
 #define	CONST(x,r) MOVW $((x)&0xffff0000), r; OR  $((x)&0xffff), r
 
@@ -42,24 +44,6 @@
 /* same but return to KSEG1 */
 #define UBARRIERS(r, Reg, label) \
 	SYNC; EHB; MOVW $ret(SB), Reg; OR $KSEG1, Reg; JALRHB(r)
-
-/* alternative definitions using labels */
-#ifdef notdef
-/* all barriers, clears all hazards; clobbers r/Reg */
-#define BARRIERS(r, Reg, label) \
-	SYNC; EHB; \
-	MOVW	$label(SB), Reg; \
-	JRHB(r); \
-TEXT label(SB), $-4; \
-	NOP
-#define UBARRIERS(r, Reg, label) \
-	SYNC; EHB; \
-	MOVW	$label(SB), Reg; \
-	OR	$KSEG1, Reg; \
-	JRHB(r); \
-TEXT label(SB), $-4; \
-	NOP
-#endif
 
 #define PUTC(c, r1, r2)	CONST(PHYSCONS, r1); MOVW $(c), r2; MOVW r2, (r1); NOP
 

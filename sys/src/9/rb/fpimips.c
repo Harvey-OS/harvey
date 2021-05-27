@@ -37,9 +37,9 @@
 #define dbgstuck _dbgstuck
 #else
 #define DBG(bits) (0)
-#define internsane(i, ur)	do { USED(ur); } while(0)
-#define intpr(i, reg, fmt, ufp)	do {} while(0)
-#define dbgstuck(pc, ur, ufp)	do {} while(0)
+#define internsane(i, ur)	do { USED(i, ur); } while(0)
+#define intpr(i, reg, fmt, ufp)	do { USED(i, reg, fmt, ufp); } while(0)
+#define dbgstuck(pc, ur, ufp)	do { USED(pc, ur, ufp); } while(0)
 #endif
 
 #define	OFR(memb) (uintptr)&((Ureg*)0)->memb	/* offset into Ureg of memb */
@@ -306,19 +306,15 @@ frnd(Internal *m, Internal *d)
 
 /* debugging: print internal representation of an fp reg */
 static void
-_intpr(Internal *i, int reg, int fmt, FPsave *ufp)
+_intpr(Internal *i, uint reg, int fmt, FPsave *)
 {
-	USED(i);
+	USED(i, reg, fmt);
 	if (!(DBG(Dbgregs)))
 		return;
-	if (fmt == Fdouble && reg < 31)
-		iprint("\tD%02d: l %08lux h %08lux =\ts %d e %04d h %08lux l %08lux\n",
-			reg, FREG(ufp, reg), FREG(ufp, reg+1),
-			i->s, i->e, i->h, i->l);
-	else
-		iprint("\tF%02d: %08lux =\ts %d e %04d h %08lux l %08lux\n",
-			reg, FREG(ufp, reg),
-			i->s, i->e, i->h, i->l);
+	if (reg < Nfpregs)
+		iprint("\t%c%02d: %c e %04d %08lux%08lux\n",
+			(fmt == Fdouble || fmt == Fvlong? 'D': 'F'), reg,
+			(i->s? '-': '+'), i->e, i->h, i->l);
 	delay(75);
 }
 
@@ -364,27 +360,25 @@ fcvtd(int fmt, int rm, int rd, Ureg *ur, FPsave *ufp)
 	switch (fmt) {
 	case Ffloat:
 		fpis2i(&intrn, &FREG(ufp, rm));
-		internsane(&intrn, ur);
-		fpii2d(&d, &intrn);
 		break;
 	case Fdouble:
 		dreg2dbl(&d, rm, ufp);
 		break;
 	case Flong:
 		fpiw2i(&intrn, &FREG(ufp, rm));
-		internsane(&intrn, ur);
-		fpii2d(&d, &intrn);
 		break;
 	case Fvlong:
 		vreg2dbl(&d, rm, ufp);
 		fpiv2i(&intrn, &d);
-		internsane(&intrn, ur);
-		fpii2d(&d, &intrn);
 		break;
 	}
+	if (fmt != Fdouble) {
+		if (DBG(Dbgregs))
+			intpr(&intrn, rd, Fdouble, ufp);
+		internsane(&intrn, ur);
+		fpii2d(&d, &intrn);
+	}
 	dbl2dreg(rd, &d, ufp);
-	if (fmt != Fdouble && DBG(Dbgregs))
-		intpr(&intrn, rm, Fdouble, ufp);
 }
 
 /* convert fmt (rm) to single (rd) */
@@ -412,7 +406,7 @@ fcvts(int fmt, int rm, int rd, Ureg *ur, FPsave *ufp)
 	}
 	if (fmt != Ffloat) {
 		if(DBG(Dbgregs))
-			intpr(&intrn, rm, Ffloat, ufp);
+			intpr(&intrn, rd, Ffloat, ufp);
 		internsane(&intrn, ur);
 		fpii2s(&FREG(ufp, rd), &intrn);
 	}
@@ -443,7 +437,7 @@ fcvtw(int fmt, int rm, int rd, Ureg *ur, FPsave *ufp)
 	}
 	if (fmt != Flong) {
 		if(DBG(Dbgregs))
-			intpr(&intrn, rm, Flong, ufp);
+			intpr(&intrn, rd, Flong, ufp);
 		internsane(&intrn, ur);
 		fpii2w((long *)&FREG(ufp, rd), &intrn);
 	}
@@ -474,7 +468,7 @@ fcvtv(int fmt, int rm, int rd, Ureg *ur, FPsave *ufp)
 	}
 	if (fmt != Fvlong) {
 		if(DBG(Dbgregs))
-			intpr(&intrn, rm, Fvlong, ufp);
+			intpr(&intrn, rd, Fvlong, ufp);
 		internsane(&intrn, ur);
 		fpii2v((vlong *)&FREG(ufp, rd), &intrn);
 	}
@@ -525,7 +519,7 @@ static void
 fld(int d, ulong ea, int n, FPsave *ufp)
 {
 	if(DBG(Dbgmoves))
-		iprint("MOV%c #%lux, F%d\n", n==8? 'D': 'F', ea, d);
+		iprint("MOV%c\t%#lux, F%d\n", n==8? 'D': 'F', ea, d);
 	if (n == 4)
 		memmove(&FREG(ufp, d), (void *)ea, 4);
 	else if (n == 8){
@@ -541,7 +535,7 @@ static void
 fst(ulong ea, int s, int n, FPsave *ufp)
 {
 	if(DBG(Dbgmoves))
-		iprint("MOV%c	F%d,#%lux\n", n==8? 'D': 'F', s, ea);
+		iprint("MOV%c\tF%d,%#lux\n", n==8? 'D': 'F', s, ea);
 	if (n == 4)
 		memmove((void *)ea, &FREG(ufp, s), 4);
 	else if (n == 8){
@@ -837,7 +831,7 @@ fpwatch(Ureg *ur)			/* called on watch-point trap */
 	qunlock(&watchlock);
 
 	ur->pc = ufp->fpdelaypc;	/* pc of fp branch */
-	ur->cause &= BD;		/* take no chances */
+	ur->cause &= ~BD;		/* take no chances */
 	ufp->fpstatus = ufp->fpdelaysts;
 	followbr(ur);			/* sets ur->pc to fp branch target */
 	if (DBG(Dbgdelay))
@@ -1213,7 +1207,7 @@ fpimips(ulong pc, ulong op, Ureg *ur, FPsave *ufp)
 }
 
 static FPsave *
-fpinit(Ureg *ur)
+fpinit(Ureg *)
 {
 	int i, n;
 	Double d;
@@ -1241,7 +1235,6 @@ fpinit(Ureg *ur)
 			else
 				i = n;
 			tmp = fpconst[i];
-			internsane(&tmp, ur);
 			fpii2d(&d, &tmp);
 			dbl2dreg(n, &d, ufp);
 		}

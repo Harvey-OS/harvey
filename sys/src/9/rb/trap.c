@@ -548,7 +548,7 @@ fpexcname(Ureg *ur, ulong fcr31, char *buf, uint size)
 	return buf;
 }
 
-#define KERNPC(x) (KTZERO <= (ulong)(x) && (ulong)(x) < (ulong)&etext)
+// #define KERNPC(x) (KTZERO <= (ulong)(x) && (ulong)(x) < (ulong)&etext)
 
 void
 kernfault(Ureg *ur, int code)

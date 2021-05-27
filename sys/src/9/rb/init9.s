@@ -5,4 +5,4 @@ TEXT	_main(SB), $8
 	MOVW	R1, 4(R29)
 	MOVW	R2, 8(R29)
 	JAL	startboot(SB)
-
+	  NOP

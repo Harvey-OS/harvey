@@ -22,7 +22,7 @@ perf ctl 1: 0x0
 ll/sc target memory must be cached.
 
 1 uart		8250 (actually 16550ish)
-2 ethers	arge[01] ar71xx, 2nd has 4 ports & a bridge
+2 ethers	arge[01] ar7161, 2nd has 4 ports & a bridge
 pci bus(es)
 no video
 no disk but has flash, alas
@@ -44,8 +44,8 @@ devices; access by KSEG1|addr
 irqs
 2	pci
 3	ehci
-4	arge1 ar71xx @ 0x19:: + ar8316 switch
-5	arge0 ar71xx @ 0x1a::
+4	arge1 ar7161 @ 0x19:: + ar8316 switch
+5	arge0 ar7161 @ 0x1a::
 6	uart
 7	clock
 

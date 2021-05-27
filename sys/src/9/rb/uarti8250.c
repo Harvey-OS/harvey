@@ -118,7 +118,7 @@ enum {					/* Mdr */
 
 
 typedef struct Ctlr {
-	u32int*	io;
+	ulong*	io;
 	int	irq;
 	int	tbdf;
 	int	iena;
@@ -135,7 +135,7 @@ typedef struct Ctlr {
 extern PhysUart i8250physuart;
 
 static Ctlr i8250ctlr[] = {
-{	.io	= (u32int*)PHYSCONS,
+{	.io	= (ulong*)PHYSCONS,
 	.irq	= ILduart0,
 	.tbdf	= -1,
 	.poll	= 0, },
@@ -396,7 +396,7 @@ i8250bits(Uart* uart, int bits)
 static int
 i8250baud(Uart* uart, int baud)
 {
-#ifdef notdef				/* don't change the speed */
+#ifdef CHANGE_SPEED
 	ulong bgc;
 	Ctlr *ctlr;
 	extern int i8250freq;	/* In the config file */

@@ -1,15 +1,11 @@
 /*
- * Atheros 71xx ethernets for rb450g.
+ * Atheros 7161 & 8316 ethernets for rb450g.
+ * second 7161 has the 8316 switch with 4 ports on it.
  *
- * all 5 PHYs are accessible only through first ether's register space.
+ * all 5 PHYs are accessible only through first 7161's register space.
  *
- * TODO:
- *	promiscuous mode.
- *	make ether1 work: probably needs mii/phy initialisation,
+ * TODO: make second 7161 work: probably needs mii/phy initialisation,
  *	maybe needs 8316 switch code too (which requires mdio, phy, etc. glop).
- * to maybe do some day:
- *	dig mac addresses out & config phy/mii via spi or other grot and swill
- *	(instead of editing rb config file).
  */
 #include	"u.h"
 #include	"../port/lib.h"
@@ -31,9 +27,6 @@ enum {
 	Bufalign= 4,
 	Rbsz	= ETHERMAXTU + 4,	/* 4 for CRC */
 };
-
-extern uchar arge0mac[Eaddrlen];	/* see rb config file */
-extern uchar arge1mac[Eaddrlen];
 
 typedef struct Arge Arge;
 typedef struct Ctlr Ctlr;
@@ -282,9 +275,7 @@ struct Ctlr {
 
 	/* receiver */
 	Rendez	rrendez;
-	uint	rintr;			/* count */
 	int	pktstoread;		/* flag */
-	int	discard;
 	/* rx descriptors */
 	Desc*	rdba;			/* base address */
 	Block**	rd;
@@ -294,7 +285,6 @@ struct Ctlr {
 
 	/* transmitter */
 	Rendez	trendez;
-	uint	tintr;			/* count */
 	int	pktstosend;		/* flag */
 	int	ntq;
 	/* tx descriptors */
@@ -302,18 +292,22 @@ struct Ctlr {
 	Block**	td;
 	uint	tdh;			/* head */
 	uint	tdt;			/* tail */
+
+	/* stats */
+	uint	rintr;			/* count */
+	int	discard;
+	uint	tintr;			/* count */
 };
 
 struct Etherif {
 	uintptr	regs;
 	int	irq;
-	uchar	*mac;
 	int	phymask;
 };
 
 static Etherif etherifs[] = {
-	{ 0x1a000000, ILenet0, arge0mac, 1<<4 },
-	{ 0x19000000, ILenet1, arge1mac, MASK(4) },
+	{ 0x1a000000, ILenet0, 1<<4 },
+	{ 0x19000000, ILenet1, MASK(4) },
 };
 
 static Ether *etherxx[MaxEther];
@@ -381,7 +375,7 @@ enum {
 		Swglobalmtumask	= 0x7fff,
 };
 
-#ifdef NOTYET
+#ifdef INIT_SWITCH
 void *
 devicegetparent(int)
 {
@@ -1051,17 +1045,14 @@ athcfg(Ether *ether, int phymask)
 		delay(100);
 	}
 
-	/*
-	 * Set all Ethernet address registers to the same initial values
-	 * set all four addresses to 66-88-aa-cc-dd-ee
-	 */
 	eaddr = ether->ea;
 	arge->staaddr1 = eaddr[2]<<24 | eaddr[3]<<16 | eaddr[4]<<8  | eaddr[5];
 	arge->staaddr2 = eaddr[0]<< 8 | eaddr[1];
 
-	arge->fifocfg[0] = Fifocfg0all << Fifocfg0enshift; /* undocumented magic */
-	arge->fifocfg[1] = 0x0fff0000;	/* undocumented magic */
-	arge->fifocfg[2] = 0x00001fff;	/* undocumented magic */
+	/* undocumented magic */
+	arge->fifocfg[0] = Fifocfg0all << Fifocfg0enshift;
+	arge->fifocfg[1] = 0x0fff0000;
+	arge->fifocfg[2] = 0x00001fff;
 
 	arge->fiforxfiltmatch = Ffmatchdflt;
 	arge->fiforxfiltmask  = Ffmaskdflt;
@@ -1121,11 +1112,14 @@ athattach(Ether *ether)
 
 /*
  * strategy: RouterBOOT has initialised arge0, try to leave it alone.
+ * sadly, staaddr[12] seem to have been tampered with.
  * copy arge0 registers to arge1, with a few exceptions.
  */
 static int
 athreset(Ether *ether)
 {
+	char *p;
+	uchar zeromac[Eaddrlen];
 	Arge *arge;
 	Ctlr *ctlr;
 	Etherif *ep;
@@ -1146,7 +1140,13 @@ athreset(Ether *ether)
 
 		ether->port = (uint)arge;
 		ether->irq = ep->irq;
-		memmove(ether->ea, ep->mac, Eaddrlen);
+		if (rbconf.ether0mac && (p = strchr(rbconf.ether0mac, '=')))
+			parseether(ether->ea, p+1);
+		if(memcmp(ether->ea, zeromac, sizeof zeromac) == 0)
+			panic("ether%d: no mac", ether->ctlrno);
+		ether->ea[5] += ether->ctlrno;
+		if (ether->ea[5] == 0)
+			ether->ea[4]++;
 		ether->ifstat = ifstat;
 		ether->promiscuous = promiscuous;
 		ether->multicast = multicast;
@@ -1155,6 +1155,9 @@ athreset(Ether *ether)
 	athhwreset(ether);
 	return 0;
 }
+
+extern	int	sprint(char*, char*, ...);
+#pragma	varargck	argpos	sprint		2
 
 static Ether*
 etherprobe(int ctlrno)
