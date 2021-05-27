@@ -303,6 +303,21 @@ scsiexec(SDunit* unit, int write, uchar* cmd, int clen, void* data, int* dlen)
 	return status;
 }
 
+/* extract lba and count from scsi command block cmd of clen bytes */
+void
+scsilbacount(uchar *cmd, int clen, uvlong *lbap, ulong *countp)
+{
+	if (clen == 16) {
+		*lbap = (uvlong)cmd[4]<<40 | (uvlong)cmd[5]<<32 |
+			   cmd[6]<<24 |  cmd[7]<<16 |  cmd[8]<<8 | cmd[9];
+		*countp = cmd[10]<<24 | cmd[11]<<16 | cmd[12]<<8 | cmd[13];
+	} else if (clen == 10) {
+		*lbap  = cmd[2]<<24 | cmd[3]<<16 | cmd[4]<<8 | cmd[5];
+		*countp = cmd[7]<<8 | cmd[8];
+	} else
+		panic("scsilbacount: command len %d unexpected", clen);
+}
+
 static void
 scsifmt10(SDreq *r, int write, int lun, ulong nb, uvlong bno)
 {
