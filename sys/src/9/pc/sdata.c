@@ -1503,17 +1503,17 @@ atagenio(Drive* drive, uchar* cmd, int clen)
 	 * Fail any command with a LUN except INQUIRY which
 	 * will return 'logical unit not supported'.
 	 */
-	if((cmd[1]>>5) && cmd[0] != 0x12)
+	if((cmd[1]>>5) && cmd[0] != ScmdInq)
 		return atasetsense(drive, SDcheck, 0x05, 0x25, 0);
 
 	switch(cmd[0]){
 	default:
 		return atasetsense(drive, SDcheck, 0x05, 0x20, 0);
 
-	case 0x00:			/* test unit ready */
+	case ScmdTur:			/* test unit ready */
 		return SDok;
 
-	case 0x03:			/* request sense */
+	case ScmdRsense:		/* request sense */
 		if(cmd[4] < sizeof(drive->sense))
 			len = cmd[4];
 		else
@@ -1524,7 +1524,7 @@ atagenio(Drive* drive, uchar* cmd, int clen)
 		}
 		return SDok;
 
-	case 0x12:			/* inquiry */
+	case ScmdInq:			/* inquiry */
 		if(cmd[4] < sizeof(drive->inquiry))
 			len = cmd[4];
 		else
@@ -1535,14 +1535,14 @@ atagenio(Drive* drive, uchar* cmd, int clen)
 		}
 		return SDok;
 
-	case 0x1B:			/* start/stop unit */
+	case ScmdStart:			/* start/stop unit */
 		/*
 		 * NOP for now, can use the power management feature
 		 * set later.
 		 */
 		return SDok;
 
-	case 0x25:			/* read capacity */
+	case ScmdRcapacity:			/* read capacity */
 		if((cmd[1] & 0x01) || cmd[2] || cmd[3])
 			return atasetsense(drive, SDcheck, 0x05, 0x24, 0);
 		if(drive->data == nil || drive->dlen < 8)
@@ -1564,7 +1564,7 @@ atagenio(Drive* drive, uchar* cmd, int clen)
 		drive->data += 8;
 		return SDok;
 
-	case 0x9E:			/* long read capacity */
+	case ScmdRcapacity16:
 		if((cmd[1] & 0x01) || cmd[2] || cmd[3])
 			return atasetsense(drive, SDcheck, 0x05, 0x24, 0);
 		if(drive->data == nil || drive->dlen < 8)
@@ -1590,14 +1590,14 @@ atagenio(Drive* drive, uchar* cmd, int clen)
 		drive->data += 12;
 		return SDok;
 
-	case 0x28:			/* read (10) */
-	case 0x88:			/* long read (16) */
-	case 0x2a:			/* write (10) */
-	case 0x8a:			/* long write (16) */
-	case 0x2e:			/* write and verify (10) */
+	case ScmdExtread:
+	case ScmdExtwrite:
+	case ScmdExtwritever:
+	case ScmdRead16:
+	case ScmdWrite16:
 		break;
 
-	case 0x5A:
+	case ScmdMsense10:
 		return atamodesense(drive, cmd);
 	}
 
@@ -1690,8 +1690,8 @@ atario(SDreq* r)
 	 * effort. Read/write(6) are easy.
 	 */
 	switch(r->cmd[0]){
-	case 0x08:			/* read */
-	case 0x0A:			/* write */
+	case ScmdRead:
+	case ScmdWrite:
 		cmdp = cmd10;
 		memset(cmdp, 0, sizeof(cmd10));
 		cmdp[0] = r->cmd[0]|0x20;

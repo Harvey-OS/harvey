@@ -1526,7 +1526,7 @@ ahcibuild(Drive *d, uchar *cmd, void *data, int n, vlong lba)
 	static uchar tab[2][2] = { 0xc8, 0x25, 0xca, 0x35, };
 
 	pm = &d->portm;
-	dir = *cmd != 0x28;
+	dir = *cmd != ScmdExtread;
 	llba = pm->feat&Dllba? 1: 0;
 	acmd = tab[dir][llba];
 	qlock(pm);
@@ -1772,10 +1772,10 @@ retry:
 		case SDperworm:
 		case SDpercd:
 			switch(cmd[0]){
-			case 0x0a:		/* write (6?) */
-			case 0x2a:		/* write (10) */
-			case 0x8a:		/* long write (16) */
-			case 0x2e:		/* write and verify (10) */
+			case ScmdWrite:
+			case ScmdExtwrite:
+			case ScmdExtwritever:
+			case ScmdWrite16:
 				wormwrite = 1;
 				break;
 			}
@@ -1822,7 +1822,7 @@ iario(SDreq *r)
 	name = d->unit->name;
 	p = d->port;
 
-	if(r->cmd[0] == 0x35 || r->cmd[0] == 0x91){
+	if(*cmd == ScmdSynccache || *cmd == ScmdSynccache16){
 		if(flushcache(d) == 0)
 			return sdsetsense(r, SDok, 0, 0, 0);
 		return sdsetsense(r, SDcheck, 3, 0xc, 2);
@@ -1833,7 +1833,7 @@ iario(SDreq *r)
 		return i;
 	}
 
-	if(*cmd != 0x28 && *cmd != 0x2a){
+	if(*cmd != ScmdExtread && *cmd != ScmdExtwrite){
 		print("%s: bad cmd %.2#ux\n", name, cmd[0]);
 		r->status = SDcheck;
 		return SDcheck;

@@ -20,7 +20,6 @@
 #include	"../port/netif.h"
 #include	"../port/sd.h"
 #include	"dosfs.h"
-#include	<disk.h>
 
 long	biosread0(Bootfs *, void *, long);
 vlong	biosseek(Bootfs *fs, vlong off);
