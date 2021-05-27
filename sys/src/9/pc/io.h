@@ -214,6 +214,23 @@ enum {					/* type 2 pre-defined header */
 	PciCBLMBAR	= 0x44,		/* legacy mode base address */
 };
 
+/* capabilities */
+enum {
+	PciCapPMG	= 0x01,		/* power management */
+	PciCapAGP	= 0x02,
+	PciCapVPD	= 0x03,		/* vital product data */
+	PciCapSID	= 0x04,		/* slot id */
+	PciCapMSI	= 0x05,
+	PciCapCHS	= 0x06,		/* compact pci hot swap */
+	PciCapPCIX	= 0x07,
+	PciCapHTC	= 0x08,		/* hypertransport irq conf */
+	PciCapVND	= 0x09,		/* vendor specific information */
+	PciCapPCIe	= 0x10,
+	PciCapMSIX	= 0x11,
+	PciCapSATA	= 0x12,
+	PciCapHSW	= 0x0c,		/* hot swap */
+};
+
 typedef struct Pcisiz Pcisiz;
 struct Pcisiz
 {

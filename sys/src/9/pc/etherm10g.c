@@ -239,21 +239,6 @@ typedef struct Ctlr {
 static Ctlr 	*ctlrs;
 
 enum {
-	PciCapPMG	 = 0x01,	/* power management */
-	PciCapAGP	 = 0x02,
-	PciCapVPD	 = 0x03,	/* vital product data */
-	PciCapSID	 = 0x04,	/* slot id */
-	PciCapMSI	 = 0x05,
-	PciCapCHS	 = 0x06,	/* compact pci hot swap */
-	PciCapPCIX	 = 0x07,
-	PciCapHTC	 = 0x08,	/* hypertransport irq conf */
-	PciCapVND	 = 0x09,	/* vendor specific information */
-	PciCapHSW	 = 0x0C,	/* hot swap */
-	PciCapPCIe	 = 0x10,
-	PciCapMSIX	 = 0x11,
-};
-
-enum {
 	PcieAERC = 1,
 	PcieVC,
 	PcieSNC,
@@ -269,31 +254,6 @@ enum {
 	PcieLCR	= 12,
 	PcieMRD	= 0x7000,	/* maximum read size */
 };
-
-static int
-pcicap(Pcidev *p, int cap)
-{
-	int i, c, off;
-
-	pcicapdbg("pcicap: %x:%d\n", p->vid, p->did);
-	off = 0x34;			/* 0x14 for cardbus */
-	for(i = 48; i--; ){
-		pcicapdbg("\t" "loop %x\n", off);
-		off = pcicfgr8(p, off);
-		pcicapdbg("\t" "pcicfgr8 %x\n", off);
-		if(off < 0x40)
-			break;
-		off &= ~3;
-		c = pcicfgr8(p, off);
-		pcicapdbg("\t" "pcicfgr8 %x\n", c);
-		if(c == 0xff)
-			break;
-		if(c == cap)
-			return off;
-		off++;
-	}
-	return 0;
-}
 
 /*
  * this function doesn't work because pcicgr32 doesn't have access

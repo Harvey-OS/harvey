@@ -1404,50 +1404,36 @@ pciclrmwi(Pcidev* p)
 	pcicfgw16(p, PciPCR, p->pcr);
 }
 
-static int
-pcigetpmrb(Pcidev* p)
+int
+pcicap(Pcidev* p, int cap)
 {
-	int ptr;
+	int i, c, off;
 
-	if(p->pmrb != 0)
-		return p->pmrb;
-	p->pmrb = -1;
-
-	/*
-	 * If there are no extended capabilities implemented,
-	 * (bit 4 in the status register) assume there's no standard
-	 * power management method.
-	 * Find the capabilities pointer based on PCI header type.
-	 */
-	if(!(pcicfgr16(p, PciPSR) & 0x0010))
+	/* status register bit 4 has capabilities */
+	if((pcicfgr16(p, PciPSR) & 1<<4) == 0)
 		return -1;
-	switch(pcicfgr8(p, PciHDT)){
+	switch(pcicfgr8(p, PciHDT) & 0x7f){
 	default:
 		return -1;
 	case 0:					/* all other */
 	case 1:					/* PCI to PCI bridge */
-		ptr = 0x34;
+		off = 0x34;
 		break;
 	case 2:					/* CardBus bridge */
-		ptr = 0x14;
+		off = 0x14;
 		break;
 	}
-	ptr = pcicfgr32(p, ptr);
-
-	while(ptr != 0){
-		/*
-		 * Check for validity.
-		 * Can't be in standard header and must be double
-		 * word aligned.
-		 */
-		if(ptr < 0x40 || (ptr & ~0xFC))
-			return -1;
-		if(pcicfgr8(p, ptr) == 0x01){
-			p->pmrb = ptr;
-			return ptr;
-		}
-
-		ptr = pcicfgr8(p, ptr+1);
+	for(i = 48; i--;){
+		off = pcicfgr8(p, off);
+		if(off < 0x40 || (off & 3))
+			break;
+		off &= ~3;
+		c = pcicfgr8(p, off);
+		if(c == 0xff)
+			break;
+		if(c == cap)
+			return off;
+		off++;
 	}
 
 	return -1;
@@ -1458,7 +1444,7 @@ pcigetpms(Pcidev* p)
 {
 	int pmcsr, ptr;
 
-	if((ptr = pcigetpmrb(p)) == -1)
+	if((ptr = pcicap(p, PciCapPMG)) == -1)
 		return -1;
 
 	/*
@@ -1480,7 +1466,7 @@ pcisetpms(Pcidev* p, int state)
 {
 	int ostate, pmc, pmcsr, ptr;
 
-	if((ptr = pcigetpmrb(p)) == -1)
+	if((ptr = pcicap(p, PciCapPMG)) == -1)
 		return -1;
 
 	pmc = pcicfgr16(p, ptr+2);
