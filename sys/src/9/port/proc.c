@@ -1152,13 +1152,13 @@ pexit(char *exitstr, int freemem)
 			p->time[TCUser] += utime;
 			p->time[TCSys] += stime;
 			/*
-			 * If there would be more than 128 wait records
+			 * If there would be more than 2000 wait records
 			 * processes for my parent, then don't leave a wait
 			 * record behind.  This helps prevent badly written
 			 * daemon processes from accumulating lots of wait
 			 * records.
 		 	 */
-			if(p->nwait < 128) {
+			if(p->nwait < 2000) {
 				wq->next = p->waitq;
 				p->waitq = wq;
 				p->nwait++;
