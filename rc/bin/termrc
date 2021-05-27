@@ -42,8 +42,8 @@ if(test -e /cfg/$sysname/termrc)
 #
 # If your site provides DHCP service,
 #
-#if(! test -e /net/ipifc/0/ctl)
-#	ip/ipconfig
+if(! test -e /net/ipifc/0/ctl)
+	ip/ipconfig
 #
 # Otherwise, see /cfg/$sysname/termrc (/cfg/example/termrc is an example).
 
