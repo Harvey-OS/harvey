@@ -1116,7 +1116,7 @@ pexit(char *exitstr, int freemem)
 	 * if not a kernel process and have a parent,
 	 * do some housekeeping.
 	 */
-	if(up->kp == 0) {
+	if(up->kp == 0 && up->parentpid != 0) {
 		p = up->parent;
 		if(p == 0) {
 			if(exitstr == 0)
