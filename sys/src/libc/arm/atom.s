@@ -1,3 +1,4 @@
+#define DMB	MCR 15, 0, R0, C7, C10, 5
 #define	CLREX		WORD	$0xf57ff01f
 #define	LDREX(a,r)	WORD	$(0xe<<28|0x01900f9f | (a)<<16 | (r)<<12)
 /* `The order of operands is from left to right in dataflow order' - asm man */
@@ -18,11 +19,14 @@ spincas:
 	STREX(2,0,4)	/*	STREX	0(R0),R2,R4	*/
 	CMP.S	$0, R4
 	BNE	spincas
+	MOVW	$0, R0
+	DMB
 	MOVW	$1, R0
 	RET
 fail:
 	CLREX
 	MOVW	$0, R0
+	DMB
 	RET
 
 TEXT _xinc(SB), $0	/* void	_xinc(long *); */
@@ -33,6 +37,8 @@ spinainc:
 	STREX(3,0,4)	/*	STREX	0(R0),R3,R4	*/
 	CMP.S	$0, R4
 	BNE	spinainc
+	MOVW	$0, R0
+	DMB
 	MOVW	R3, R0
 	RET
 
@@ -44,6 +50,8 @@ spinadec:
 	STREX(3,0,4)	/*	STREX	0(R0),R3,R4	*/
 	CMP.S	$0, R4
 	BNE	spinadec
+	MOVW	$0, R0
+	DMB
 	MOVW	R3, R0
 	RET
 
@@ -53,6 +61,8 @@ TEXT loadlinked(SB), $0	/* long loadlinked(long *); */
 
 TEXT storecond(SB), $0	/* int storecond(long *, long); */
 	MOVW	ov+4(FP), R3
-	STREX(3,0,0)	/*	STREX	0(R0),R3,R0	*/
-	RSB	$1, R0
+	STREX(3,0,4)	/*	STREX	0(R0),R3,R4	*/
+	MOVW	$0, R0
+	DMB
+	RSB	$1, R4, R0
 	RET

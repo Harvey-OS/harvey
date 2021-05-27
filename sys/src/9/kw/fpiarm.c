@@ -468,6 +468,14 @@ casemu(ulong pc, ulong op, Ureg *ur)
 	spllo();
 }
 
+void
+dmb(ulong pc, ulong op, Ureg *ur)
+{
+	USED(pc);
+	USED(op);
+	USED(ur);
+}
+
 int ldrexvalid;
 
 void
@@ -533,6 +541,7 @@ struct {
 	{ 0x01800f90, 0x0ff00ff0, strex },
 	{ 0xf57ff01f, 0xffffffff, clrex },
 	{ 0x0ed00100, 0x0ef08100, casemu },
+	{ 0xee070fba, 0xffffffff, dmb },
 	{ 0x00000000, 0x00000000, nil }
 };
 
