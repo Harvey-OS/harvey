@@ -385,8 +385,8 @@ dialicmp(uchar *dst, int dport, int *ctlfd)
 int
 ip6cfg(int autoconf)
 {
-	int dupfound = 0, n;
-	char *p;
+	int dupfound = 0, n, nf;
+	char *p, *fields[4];
 	char buf[256];
 	uchar ethaddr[6];
 	Biobuf *bp;
@@ -433,7 +433,8 @@ ip6cfg(int autoconf)
 	snprint(buf, sizeof buf, "%I", conf.laddr);
 	while(p = Brdline(bp, '\n')){
 		p[Blinelen(bp)-1] = 0;
-		if(cistrstr(p, buf) != 0) {
+		nf = tokenize(p, fields, nelem(fields));
+		if(nf >= 4 && cistrcmp(fields[2], buf) == 0) {
 			warning("found dup entry in arp cache");
 			dupfound = 1;
 			break;
