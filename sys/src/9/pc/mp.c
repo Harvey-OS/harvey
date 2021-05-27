@@ -417,7 +417,7 @@ squidboy(Apic* apic)
 	fpoff();
 
 	lock(&active);
-	active.machs |= 1<<m->machno;
+	cpuactive(m->machno);
 	unlock(&active);
 
 	while(!active.thunderbirdsarego)
@@ -920,7 +920,7 @@ mpshutdown(void)
 
 	if(active.rebooting)
 		return;
-	print("apshutdown: active = %#8.8ux\n", active.machs);
+	print("apshutdown: %d active cpus\n", active.nmachs);
 	delay(1000);
 	splhi();
 	arch->resetothers();

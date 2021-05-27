@@ -683,7 +683,7 @@ vunmap(void *v, int size)
 	for(i=0; i<conf.nmach; i++)
 		if(i != m->machno) {
 			nm = MACHP(i);
-			while((active.machs&(1<<nm->machno)) && nm->flushmmu)
+			while(iscpuactive(nm->machno) && nm->flushmmu)
 				;
 		}
 }

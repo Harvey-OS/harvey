@@ -589,6 +589,43 @@ canpage(Proc *p)
 	return ok;
 }
 
+/*
+ * these assume that active.Lock is held when needed.
+ */
+
+void
+cpuactive(uint cpu)
+{
+#ifdef MACHS_BITMAP
+	active.machsmap[cpu / BI2WD] |= 1ULL << (cpu % BI2WD);
+	active.nmachs++;
+#else
+	active.machs |= 1ULL << cpu;
+#endif
+}
+
+void
+cpuinactive(uint cpu)
+{
+#ifdef MACHS_BITMAP
+	active.machsmap[cpu / BI2WD] &= ~(1ULL << (cpu % BI2WD));
+	active.nmachs--;
+#else
+	active.machs &= ~(1ULL << cpu);
+#endif
+}
+
+int
+iscpuactive(uint cpu)
+{
+#ifdef MACHS_BITMAP
+	return (active.machsmap[cpu / BI2WD] & (1ULL << (cpu % BI2WD))) != 0;
+#else
+	return (active.machs & (1ULL << cpu)) != 0;
+#endif
+}
+
+
 void
 noprocpanic(char *msg)
 {
@@ -598,7 +635,7 @@ noprocpanic(char *msg)
 	 * on this processor.
 	 */
 	lock(&active);
-	active.machs &= ~(1<<m->machno);
+	cpuinactive(m->machno);
 	active.exiting = 1;
 	unlock(&active);
 

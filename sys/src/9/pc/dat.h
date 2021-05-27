@@ -282,7 +282,11 @@ void	kunmap(KMap*);
 struct
 {
 	Lock;
-	int	machs;			/* bitmap of active CPUs */
+	union {
+		uvlong	machs;		/* bitmap of active CPUs */
+		ulong	machsmap[(MAXMACH+BI2WD-1)/BI2WD];
+	};
+	int	nmachs;			/* number of bits set in machs(map) */
 	int	exiting;		/* shutdown */
 	int	ispanic;		/* shutdown in response to a panic */
 	int	thunderbirdsarego;	/* lets the added processors continue to schedinit */

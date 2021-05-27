@@ -397,8 +397,8 @@ trap(Ureg* ureg)
 		if(0)print("cpu%d: spurious interrupt %d, last %d\n",
 			m->machno, vno, m->lastintr);
 		if(0)if(conf.nmach > 1){
-			for(i = 0; i < 32; i++){
-				if(!(active.machs & (1<<i)))
+			for(i = 0; i < MAXMACH; i++){
+				if(!iscpuactive(i))
 					continue;
 				mach = MACHP(i);
 				if(m->machno == mach->machno)

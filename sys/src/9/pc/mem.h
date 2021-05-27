@@ -18,11 +18,11 @@
 #define FPalign		16			/* required for FXSAVE */
 
 /*
- * In 32-bit mode, the MAXMACH limit is 32 without
- * changing the way active.machs is defined and used
- * (unfortunately, it is also used in the port code).
+ * Must define MACHS_BITMAP in ports that support MAXMACH > 64;
+ * optional otherwise.
  */
-#define	MAXMACH		32			/* max # cpus system can run */
+#define	MAXMACH		64			/* max # cpus system can run */
+#define MACHS_BITMAP
 #define	KSTACK		4096			/* Size of kernel stack */
 
 /*
