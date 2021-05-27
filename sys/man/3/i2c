@@ -1,0 +1,85 @@
+.TH I2C 3
+.SH NAME
+i2c \- basic I2C interface
+.SH SYNOPSIS
+.B bind -a
+.BI #J n
+.B /dev
+.PP
+.BI /dev/i2c. n .ctl
+. br
+.BI /dev/i2c. n .data
+.fi
+.SH DESCRIPTION
+.I I2c
+serves a one-level directory with two files
+that give access to the target device with address
+.I n
+(given in hexadecimal)
+on the system's I2C bus.
+.I N
+is usually determined by the I2C device manufacturer.
+I2C gives address 0 special meaning as the `general call' address.
+See an I2C specification for details.
+.PP
+The control file
+.BI i2c. n .ctl
+accepts commands to set the valid address range and
+subaddressing mode for the corresponding data file.
+The following control messages can be written to it:
+.TP
+.B a10
+Force 10-bit addressing instead of 7-bit addressing.
+Otherwise 10-bit addressing is used only if the device address
+.I n
+is bigger than 255.
+.TP
+.BI size " nbytes"
+.br
+Set the logical size of the target device to
+.IR nbytes .
+(By default when opened, it is 256 bytes, enough for most small I2C devices.)
+IO requests will be kept within this limit.
+This value is also returned by
+.B Sys->stat
+as the length of the data file.
+.TP
+.BI subaddress " \fR[\fP n \fR]\fP"
+.br
+Cause subsequent reads and writes
+on the data file to use I2C subaddressing
+with
+.I n
+byte subaddresses (default: 1 byte).
+.I N
+must be no larger than 4.
+The target device must support subaddressing.
+By default, the device is not subaddressed.
+Setting
+.I n
+to zero switches off subaddressing.
+.PP
+When read,
+the control file displays the current settings.
+.PP
+The data file
+.BI i2c. n .data
+can be read or written to
+exchange data with the slave device with address
+.I n
+(where
+.I n
+is given in hexadecimal).
+Each write request transmits the given data
+to the device.
+Each read request sends a receive
+request to the device and returns the resulting data.
+If the I2C target is subaddressed, the current file offset
+is used as the subaddress;
+otherwise the file offset is ignored, and the device typically starts at 0 for each transfer request.
+Read and write requests are trimmed to the declared
+size of the device.
+.SH SOURCE
+.B /sys/src/9/bcm/devi2c.c
+.br
+.B /sys/src/9/bcm/i2c.c

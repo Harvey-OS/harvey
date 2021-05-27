@@ -1,0 +1,66 @@
+.TH SPI 3
+.SH NAME
+spi \- access to the main Raspberry Pi SPI interface
+.SH SYNOPSIS
+.B bind -a #π /dev
+.PP
+.B /dev/spictl
+.br
+.B /dev/spi0
+.br
+.B /dev/spi1
+.SH DESCRIPTION
+The Broadcom SoC on the Raspberry Pi has three SPI interfaces:
+the main SPI interface, designated SPI0, and two auxiliary SPI
+interfaces, designated SPI1 and SPI2.
+On the first generation Pis, only SPI0 was brought out to the
+header on the board.
+For the B+ and Pi2 models, SPI0 and SPI1 are available.
+The driver described in this man page only supports SPI0.
+.PP
+Reads and writes to the files
+.B spi0
+and
+.B spi1
+transfer data over the SPI bus.
+Accesses to
+.B spi0
+cause the transfers to take place with the CE0\_0 line asserted
+low.
+Similarly, transfers to
+.B spi1
+are carried out with CE1\_0 asserted low.
+.PP
+The
+.B spictl
+file is used to set various control parameters.
+It accepts the following commands:
+.TP
+.BI clock " freq"
+Set the frequency of the SPI clock.
+The clock from which the SPI clock is derived runs at 250MHz,
+and the divisor must be a multiple of 2.
+(The Broadcom documentation incorrectly says "power of 2".)
+The driver sets the divisor to the highest multiple of 2 that results
+in a clock rate that is less than or equal to the
+.I freq
+parameter in MHz.
+.TP
+.BI mode " n"
+Treats
+.I n
+as a two-bit number specifying the settings for the clock phase
+and clock polarity.
+The default value of 0 matches the polarity and phase requirements
+of most peripheral devices.
+.TP
+.B lossi
+Enable a bidirectional mode where the MOSI line is used for both
+reads and writes.
+.SH SOURCE
+.B /sys/src/9/bcm/devspi.c
+.br
+.B /sys/src/9/bcm/spi.c
+.SH BUGS
+The various SPI modes are untested and the LoSSI support is
+unimplemented.

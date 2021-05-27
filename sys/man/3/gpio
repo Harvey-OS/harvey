@@ -1,0 +1,99 @@
+.TH GPIO 3
+.SH NAME
+gpio \- access to Raspberry Pi GPIO pins
+.SH SYNOPSIS
+.B bind -a #G /dev
+.PP
+.B /dev/gpio
+.fi
+.SH DESCRIPTION
+.I Gpio
+serves a single file that provides access to the GPIO pins on the
+Raspberry Pi.
+Reads from the file receive a 16-character hexadecimal string
+representing a
+.B vlong
+giving the values of up to 64 GPIO lines.
+(The processor on both the first and second generation Pis provides
+54 actual GPIO lines.)
+The proper method for sampling GPIO 27 is as follows:
+.IP
+.B read(gfd, buf, 16);
+.br
+.B buf[16] = 0;
+.br
+.B gvals = strtoull(buf, nil, 16);
+.br
+.B "pin27 = gvals & (1 << 27);"
+.PP
+Writes to
+.B gpio
+control the characteristics and output values of GPIO lines.
+The exact operation is specified by one of the following commands:
+.TP
+.BI function " pin f"
+Set the function of GPIO
+.I pin
+to
+.I f.
+The valid values for
+.I f
+are:
+.BR in ,
+.BR out ,
+.BR alt0 ,
+.BR alt1 ,
+.BR alt2 ,
+.BR alt3 ,
+.BR alt4 ,
+.BR atl5 ,
+and
+.BR pulse .
+The functions
+.B in
+and
+.B out
+set the specified GPIO line to be a general purpose input
+and output, respectively.
+The various
+.BI alt n
+functions are as specified in the Broadcom documentation and
+differ on a per-pin basis.
+The
+.B pulse
+function is somewhat specialized.
+It causes the pin to be set to an output for
+2μS and then to be set to a input.
+With the value of the line set to 0 and a pullup resistor on the
+line, this operation provides a short low pulse suitable for bit-banging
+a 1-wire interface.
+.TP
+.BI pullup " pin"
+Enables the internal pullup resistor for the specified GPIO pin.
+.TP
+.BI pulldown " pin"
+Enables the internal pulldown resistor for the specified GPIO pin.
+.TP
+.BI float " pin"
+Disables both internal pullup and pulldown resistors for the specified
+GPIO pin.
+.TP
+.BI set " pin value"
+For GPIO pins set to the output function, this command sets the output
+value for the pin.
+The
+.I value
+should be either 0 or 1.
+.SH NOTES
+All pin number references are according to the SoC documentation.
+These GPIO signal numbers do
+.I not
+match the pin numbers on the header on the Pi board.
+Reads sample the external signal values.
+As a result, the values read for output pins might not match
+the value written to them if externally they are driven harder
+than the SoC drives them.
+.SH SOURCE
+.B /sys/src/9/bcm/devgpio.c
+.br
+.B /sys/src/9/bcm/gpio.c
