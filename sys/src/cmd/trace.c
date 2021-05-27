@@ -538,7 +538,7 @@ doevent(Task *t, Traceevent *ep)
 		}
 		break;
 	case SDead:
-print("task died %ld %t %s\n", event->pid, event->time, schedstatename[event->etype & 0xffff]);
+print("task died %d %U %s\n", event->pid, event->time, schedstatename[event->etype & 0xffff]);
 		free(t->events);
 		free(t->name);
 		ntasks--;
@@ -695,12 +695,12 @@ drawtrace(void)
 				nevents = n / sizeof(Traceevent);
 				for (ep = eventbuf; ep < eventbuf + nevents; ep++){
 					if ((ep->etype & 0xffff) >= Nevent){
-						print("%ld %t Illegal event %ld\n",
+						print("%d %U Illegal event %d\n",
 							ep->pid, ep->time, ep->etype & 0xffff);
 						continue;
 					}
 					if (verbose)
-						print("%ld %t %s\n",
+						print("%d %U %s\n",
 							ep->pid, ep->time, schedstatename[ep->etype & 0xffff]);
 
 					for(i = 0; i < ntasks; i++)
