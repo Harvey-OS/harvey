@@ -1526,7 +1526,7 @@ ahcibuild(Drive *d, uchar *cmd, void *data, int n, vlong lba)
 	static uchar tab[2][2] = { 0xc8, 0x25, 0xca, 0x35, };
 
 	pm = &d->portm;
-	dir = *cmd != ScmdExtread;
+	dir = *cmd == ScmdExtwrite || *cmd == ScmdWrite16;
 	llba = pm->feat&Dllba? 1: 0;
 	acmd = tab[dir][llba];
 	qlock(pm);
