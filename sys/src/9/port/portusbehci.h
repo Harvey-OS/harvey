@@ -1,5 +1,5 @@
 /*
- * ECHI portable hardware definitions
+ * EHCI portable hardware definitions
  */
 
 typedef struct Ecapio Ecapio;
@@ -61,7 +61,7 @@ enum
 	Sherr		= 0x00010,	/* host system error */
 	Sfrroll		= 0x00008,	/* frame list roll over */
 	Sportchg	= 0x00004,	/* port change detect */
-	Serrintr	= 0x00002,		/* error interrupt */
+	Serrintr	= 0x00002,	/* error interrupt */
 	Sintr		= 0x00001,	/* interrupt */
 	Sintrs		= 0x0003F,	/* interrupts status */
 
