@@ -3,7 +3,7 @@
 LIB=/$objtype/lib/libsec.a
 
 CFILES = des.c desmodes.c desECB.c desCBC.c des3ECB.c des3CBC.c\
-	aes.c blowfish.c \
+	aes.c blowfish.c chacha.c \
 	hmac.c md5.c md5block.c md4.c sha1.c sha1block.c\
 	sha2_64.c sha2_128.c sha2block64.c sha2block128.c\
 	sha1pickle.c md5pickle.c\

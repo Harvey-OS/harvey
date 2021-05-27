@@ -1,0 +1,97 @@
+.TH CHACHA 2
+.SH NAME
+setupChachastate, chacha_setblock, chacha_encrypt, chacha_encrypt2  - chacha encryption
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
+.B #include <mp.h>
+.br
+.B #include <libsec.h>
+.PP
+.B
+void setupChachastate(Chachastate *s, uchar key[],
+.B
+			int keylen, uchar *nonce, int rounds)
+.PP
+.B
+void chacha_encrypt(uchar *data, int len, Chachastate *s)
+.PP
+.B
+void chacha_encrypt2(uchar *src, uchar *dst, int len, Chachastate *s)
+.PP
+.B
+void chacha_setblock(Chachastate *s, u32int blockno)
+.SH DESCRIPTION
+.PP
+Chacha is D J Berstein's symmetric stream cipher, as modified by RFC7539. It uses
+keys of 256 bits (128 bits is supported here for special purposes). It has an underlying block size of 64 bytes
+(named as constant
+.BR ChachaBsize ).
+It is a potential replacement for
+.IR rc4 (2).
+.PP
+.I SetupChachastate
+takes a reference to a
+.B Chachastate
+structure, a
+.I key
+of
+.I keylen
+bytes, which should normally be
+.BR ChachaKeylen ,
+a
+.I nonce
+or initialisation vector of
+.B ChachaIVlen
+bytes (set to all zeros if the argument is nil),
+and the number of
+.I rounds
+(set to the default of 20 if the argument is zero).
+With a keylength of 256 bits (32 bytes) and 20
+.IR rounds ,
+the function implements the Chacha20 encryption function of RFC7539.
+.PP
+.I Chacha_encrypt
+encrypts
+.I len
+bytes of
+.I buf
+in place using the
+.B Chachastate
+in
+.IR s .
+.I Len
+can be any byte length.
+Encryption and decryption are the same operation given the same starting state
+.IR s .
+.PP
+.I Chacha_encrypt2
+is similar, but encrypts
+.I len
+bytes of
+.I src
+into
+.I dst
+without modifying
+.IR src .
+.PP
+.I Chacha_setblock
+sets the Chacha block counter for the next encryption to
+.IR blockno ,
+allowing seeking in an encrypted stream.
+.SH SOURCE
+.B /sys/src/libsec
+.SH SEE ALSO
+.IR mp (2),
+.IR aes (2),
+.IR blowfish (2),
+.IR des (2),
+.IR dsa (2),
+.IR elgamal (2),
+.IR rc4 (2),
+.IR rsa (2),
+.IR sechash (2),
+.IR prime (2),
+.IR rand (2)
