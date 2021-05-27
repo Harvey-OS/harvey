@@ -1082,6 +1082,58 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 	}
 }
 
+int
+sdfakescsirw(SDreq *r, uvlong *llba, int *nsec, int *rwp)
+{
+	uchar *c;
+	int rw, count;
+	uvlong lba;
+
+	c = r->cmd;
+	rw = 0;
+	if((c[0] & 0xf) == 0xa)
+		rw = 1;
+	switch(c[0]){
+	case 0x08:	/* read6 */
+	case 0x0a:
+		lba = (c[1] & 0xf)<<16 | c[2]<<8 | c[3];
+		count = c[4];
+		break;
+	case 0x28:	/* read10 */
+	case 0x2a:
+		lba = c[2]<<24 | c[3]<<16 | c[4]<<8 | c[5];
+		count = c[7]<<8 | c[8];
+		break;
+	case 0xa8:	/* read12 */
+	case 0xaa:
+		lba = c[2]<<24 | c[3]<<16 | c[4]<<8 | c[5];
+		count = c[6]<<24 | c[7]<<16 | c[8]<<8 | c[9];
+		break;
+	case 0x88:	/* read16 */
+	case 0x8a:
+		/* ata commands only go to 48-bit lba */
+		if(c[2] || c[3])
+			return sdsetsense(r, SDcheck, 3, 0xc, 2);
+		lba = (uvlong)c[4]<<40 | (uvlong)c[5]<<32;
+		lba |= c[6]<<24 | c[7]<<16 | c[8]<<8 | c[9];
+		count = c[10]<<24 | c[11]<<16 | c[12]<<8 | c[13];
+		break;
+	default:
+		print("%s: bad cmd 0x%.2ux\n", r->unit->name, c[0]);
+		r->status  = sdsetsense(r, SDcheck, 0x05, 0x20, 0);
+		return SDcheck;
+	}
+	if(r->data == nil)
+		return SDok;
+	if(r->dlen < count * r->unit->secsize)
+		count = r->dlen/r->unit->secsize;
+	if(rwp)
+		*rwp = rw;
+	*llba = lba;
+	*nsec = count;
+	return SDnostatus;
+}
+
 static long
 sdread(Chan *c, void *a, long n, vlong off)
 {
