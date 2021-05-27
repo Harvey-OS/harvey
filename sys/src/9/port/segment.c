@@ -486,7 +486,7 @@ ibrk(ulong addr, int seg)
 		ns = up->seg[i];
 		if(ns == 0 || ns == s)
 			continue;
-		if(newtop >= ns->base && newtop < ns->top) {
+		if(newtop > ns->base && s->base < ns->top) {
 			qunlock(&s->lk);
 			error(Esoverlap);
 		}
@@ -588,8 +588,7 @@ isoverlap(Proc *p, ulong va, int len)
 		ns = p->seg[i];
 		if(ns == 0)
 			continue;
-		if((newtop > ns->base && newtop <= ns->top) ||
-		   (va >= ns->base && va < ns->top))
+		if(newtop > ns->base && va < ns->top)
 			return ns;
 	}
 	return nil;
