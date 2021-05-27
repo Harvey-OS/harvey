@@ -38,8 +38,8 @@ enum {			/* Packet Types */
 	TimestampReply	= 14,
 	InfoRequest	= 15,
 	InfoReply	= 16,
-	AddrMaskRequest = 17,
-	AddrMaskReply   = 18,
+	AddrMaskRequest	= 17,
+	AddrMaskReply	= 18,
 
 	Maxtype		= 18,
 };
@@ -63,7 +63,7 @@ char *icmpnames[Maxtype+1] =
 [InfoRequest]		"InfoRequest",
 [InfoReply]		"InfoReply",
 [AddrMaskRequest]	"AddrMaskRequest",
-[AddrMaskReply  ]	"AddrMaskReply  ",
+[AddrMaskReply]	"AddrMaskReply",
 };
 
 enum {
@@ -302,7 +302,7 @@ mkechoreply(Block *bp)
 	q->vihl = IP_VER4;
 	memmove(ip, q->src, sizeof(q->dst));
 	memmove(q->src, q->dst, sizeof(q->src));
-	memmove(q->dst, ip,  sizeof(q->dst));
+	memmove(q->dst, ip, sizeof(q->dst));
 	q->type = EchoReply;
 	memset(q->cksum, 0, sizeof(q->cksum));
 	hnputs(q->cksum, ptclcsum(bp, ICMP_IPSIZE, blocklen(bp) - ICMP_IPSIZE));

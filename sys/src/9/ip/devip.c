@@ -44,10 +44,10 @@ enum
 
 	Nfs=		128,
 };
-#define TYPE(x) 	( ((ulong)(x).path) & Masktype )
-#define CONV(x) 	( (((ulong)(x).path) >> Shiftconv) & Maskconv )
-#define PROTO(x) 	( (((ulong)(x).path) >> Shiftproto) & Maskproto )
-#define QID(p, c, y) 	( ((p)<<(Shiftproto)) | ((c)<<Shiftconv) | (y) )
+#define TYPE(x)	( ((ulong)(x).path) & Masktype )
+#define CONV(x)	( (((ulong)(x).path) >> Shiftconv) & Maskconv )
+#define PROTO(x)	( (((ulong)(x).path) >> Shiftproto) & Maskproto )
+#define QID(p, c, y)	( ((p)<<(Shiftproto)) | ((c)<<Shiftconv) | (y) )
 
 static char network[] = "network";
 
@@ -435,7 +435,7 @@ ipopen(Chan* c, int omode)
 		if((perm & (cv->perm>>6)) != perm) {
 			if(strcmp(ATTACHER(c), cv->owner) != 0)
 				error(Eperm);
-		 	if((perm & cv->perm) != perm)
+			if((perm & cv->perm) != perm)
 				error(Eperm);
 
 		}
@@ -453,7 +453,7 @@ ipopen(Chan* c, int omode)
 		if((perm & (cv->perm>>6)) != perm) {
 			if(strcmp(ATTACHER(c), cv->owner) != 0)
 				error(Eperm);
-		 	if((perm & cv->perm) != perm)
+			if((perm & cv->perm) != perm)
 				error(Eperm);
 
 		}

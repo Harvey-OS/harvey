@@ -27,7 +27,7 @@ enum
 	TcptimerOFF	= 0,
 	TcptimerON	= 1,
 	TcptimerDONE	= 2,
-	MAX_TIME 	= (1<<20),	/* Forever */
+	MAX_TIME	= (1<<20),	/* Forever */
 	TCP_ACK		= 50,		/* Timed ack sequence in ms */
 	MAXBACKMS	= 9*60*1000,	/* longest backoff time (ms) before hangup */
 
@@ -93,9 +93,9 @@ enum
 /* Must correspond to the enumeration above */
 char *tcpstates[] =
 {
-	"Closed", 	"Listen", 	"Syn_sent", "Syn_received",
-	"Established", 	"Finwait1",	"Finwait2", "Close_wait",
-	"Closing", 	"Last_ack", 	"Time_wait"
+	"Closed",	"Listen",	"Syn_sent", "Syn_received",
+	"Established",	"Finwait1",	"Finwait2", "Close_wait",
+	"Closing",	"Last_ack",	"Time_wait"
 };
 
 typedef struct Tcptimer Tcptimer;
@@ -383,7 +383,7 @@ typedef struct Tcppriv Tcppriv;
 struct Tcppriv
 {
 	/* List of active timers */
-	QLock 	tl;
+	QLock	tl;
 	Tcptimer *timers;
 
 	/* hash table for matching conversations */
@@ -764,7 +764,7 @@ tcpackproc(void *a)
 			if(loop++ > 10000)
 				panic("tcpackproc1");
 			tp = t->next;
- 			if(t->state == TcptimerON) {
+			if(t->state == TcptimerON) {
 				t->count--;
 				if(t->count == 0) {
 					timerstate(priv, t, TcptimerDONE);
@@ -1719,7 +1719,7 @@ tcpincoming(Conv *s, Tcp *segp, uchar *src, uchar *dst, uchar version)
 			src, segp->source, lp->raddr, lp->rport,
 			dst, segp->dest, lp->laddr, lp->lport,
 			version, lp->version
- 		);
+		);
 
 		if(lp->lport != segp->dest || lp->rport != segp->source || lp->version != version)
 			continue;

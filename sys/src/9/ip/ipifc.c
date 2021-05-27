@@ -1236,7 +1236,7 @@ findlocalip(Fs *f, uchar *local, uchar *remote)
 	USED(atypel);
 	qlock(f->ipifc);
 	r = v6lookup(f, remote, nil);
- 	version = (memcmp(remote, v4prefix, IPv4off) == 0)? V4: V6;
+	version = (memcmp(remote, v4prefix, IPv4off) == 0)? V4: V6;
 
 	if(r != nil){
 		ifc = r->ifc;
@@ -1481,7 +1481,7 @@ ipifcremmulti(Conv *c, uchar *ma, uchar *ia)
 
 	multi = *l;
 	if(multi == nil)
-		return; 	/* we don't have it open */
+		return;	/* we don't have it open */
 
 	*l = multi->next;
 

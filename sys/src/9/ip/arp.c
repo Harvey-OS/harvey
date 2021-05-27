@@ -40,16 +40,16 @@ struct Arp
 	Arpent	*rxmt;
 	Proc	*rxmitp;	/* neib sol re-transmit proc */
 	Rendez	rxmtq;
-	Block 	*dropf, *dropl;
+	Block	*dropf, *dropl;
 };
 
 char *Ebadarp = "bad arp";
 
 #define haship(s) ((s)[IPaddrlen-1]%NHASH)
 
-extern int 	ReTransTimer = RETRANS_TIMER;
+extern int	ReTransTimer = RETRANS_TIMER;
 
-static void 	rxmitproc(void *v);
+static void	rxmitproc(void *v);
 
 void
 arpinit(Fs *f)
@@ -578,11 +578,11 @@ rxmitsols(Arp *arp)
 	a = arp->rxmt;
 	if(a==nil){
 		nrxt = 0;
-		goto dodrops; 		/* return nrxt; */
+		goto dodrops;		/* return nrxt; */
 	}
 	nrxt = a->rtime - NOW;
 	if(nrxt > 3*ReTransTimer/4)
-		goto dodrops; 		/* return nrxt; */
+		goto dodrops;		/* return nrxt; */
 
 	for(; a; a = a->nextrxt){
 		ifc = a->ifc;

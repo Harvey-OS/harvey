@@ -56,7 +56,7 @@ char *ftname[] =
 {
 [Tproto]	"proto",
 [Tdata]		"data",
-[Tiph]	 	"iph",
+[Tiph]		"iph",
 [Tdst]		"dst",
 [Tsrc]		"src",
 [Tifc]		"ifc",

@@ -10,7 +10,7 @@
 
 enum
 {
-	IP6FHDR		= 8, 		/* sizeof(Fraghdr6) */
+	IP6FHDR		= 8,		/* sizeof(Fraghdr6) */
 };
 
 #define IPV6CLASS(hdr)	(((hdr)->vcf[0]&0x0F)<<2 | ((hdr)->vcf[1]&0xF0)>>2)

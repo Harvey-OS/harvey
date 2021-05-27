@@ -191,7 +191,7 @@ set_cksum(Block *bp)
 {
 	IPICMP *p = (IPICMP *)(bp->rp);
 
-	hnputl(p->vcf, 0);  	/* borrow IP header as pseudoheader */
+	hnputl(p->vcf, 0);	/* borrow IP header as pseudoheader */
 	hnputs(p->ploadlen, blocklen(bp) - IP6HDR);
 	p->proto = 0;
 	p->ttl = ICMPv6;	/* ttl gets set later */
@@ -339,9 +339,9 @@ mkechoreply6(Block *bp, Ipifc *ifc)
 
 /*
  * sends out an ICMPv6 neighbor solicitation
- * 	suni == SRC_UNSPEC or SRC_UNI,
+ *	suni == SRC_UNSPEC or SRC_UNI,
  *	tuni == TARG_MULTI => multicast for address resolution,
- * 	and tuni == TARG_UNI => neighbor reachability.
+ *	and tuni == TARG_UNI => neighbor reachability.
  */
 extern void
 icmpns(Fs *f, uchar* src, int suni, uchar* targ, int tuni, uchar* mac)

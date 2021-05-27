@@ -564,7 +564,7 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 		/* connection oriented rudp */
 		if(ipcmp(c->raddr, IPnoaddr) == 0){
 			/* save the src address in the conversation */
-		 	ipmove(c->raddr, raddr);
+			ipmove(c->raddr, raddr);
 			c->rport = rport;
 
 			/* reply with the same ip address (if not broadcast) */

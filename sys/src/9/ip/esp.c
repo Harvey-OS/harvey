@@ -145,7 +145,7 @@ struct Espcb
 
 struct Algorithm
 {
-	char 	*name;
+	char	*name;
 	int	keylen;		/* in bits */
 	void	(*init)(Espcb*, char* name, uchar *key, unsigned keylen);
 };

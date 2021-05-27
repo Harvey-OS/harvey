@@ -63,7 +63,7 @@ ip_init_6(Fs *f)
 
 	v6p->hp.rxmithost	= 1000;		/* v6 RETRANS_TIMER */
 
-	v6p->cdrouter 		= -1;
+	v6p->cdrouter		= -1;
 
 	f->v6p			= v6p;
 }

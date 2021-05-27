@@ -555,7 +555,7 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 		break;
 	default:
 		panic("udpadvise: version %d", version);
-		return;  /* to avoid a warning */
+		return;	/* to avoid a warning */
 	}
 
 	/* Look for a connection */

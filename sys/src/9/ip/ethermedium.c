@@ -196,7 +196,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 		ifc->mbps = 100;
 
 	/*
- 	 *  open arp conversation
+	 *  open arp conversation
 	 */
 	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);	/* ETARP */
 	achan = chandial(addr, nil, nil, nil);
@@ -308,7 +308,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 	memmove(eh->s, ifc->mac, sizeof(eh->s));
 	memmove(eh->d, mac, sizeof(eh->d));
 
- 	switch(version){
+	switch(version){
 	case V4:
 		eh->t[0] = 0x08;
 		eh->t[1] = 0x00;
@@ -701,14 +701,14 @@ multicastea(uchar *ea, uchar *ip)
 		ea[4] = ip[14];
 		ea[5] = ip[15];
 		break;
- 	case V6:
- 		ea[0] = 0x33;
- 		ea[1] = 0x33;
- 		ea[2] = ip[12];
+	case V6:
+		ea[0] = 0x33;
+		ea[1] = 0x33;
+		ea[2] = ip[12];
 		ea[3] = ip[13];
- 		ea[4] = ip[14];
- 		ea[5] = ip[15];
- 		break;
+		ea[4] = ip[14];
+		ea[5] = ip[15];
+		break;
 	}
 	return x;
 }
