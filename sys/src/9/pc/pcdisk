@@ -68,6 +68,7 @@ link
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
+	ethervirtio		pci
 
 	ethermedium
 	pcmciamodem

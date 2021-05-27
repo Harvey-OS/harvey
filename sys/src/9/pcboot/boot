@@ -39,6 +39,7 @@ link
 	etherwavelan	wavelan devi82365 cis pci
 	etherm10g
 	ether82598	pci
+	ethervirtio	pci
 
 	ethermedium
 
