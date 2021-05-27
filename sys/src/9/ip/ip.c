@@ -189,14 +189,14 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		runlock(ifc);
 		nexterror();
 	}
-	if(ifc->m == nil)
+	if(ifc->medium == nil)
 		goto raise;
 
 	/* If we dont need to fragment just send it */
 	if(c && c->maxfragsize && c->maxfragsize < ifc->maxtu)
-		medialen = c->maxfragsize - ifc->m->hsize;
+		medialen = c->maxfragsize - ifc->medium->hsize;
 	else
-		medialen = ifc->maxtu - ifc->m->hsize;
+		medialen = ifc->maxtu - ifc->medium->hsize;
 	if(len <= medialen) {
 		if(!gating)
 			hnputs(eh->id, incref(&ip->id4));
@@ -209,7 +209,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		eh->cksum[1] = 0;
 		hnputs(eh->cksum, ipcsum(&eh->vihl));
 		assert(bp->next == nil);
-		ifc->m->bwrite(ifc, bp, V4, gate);
+		ifc->medium->bwrite(ifc, bp, V4, gate);
 		runlock(ifc);
 		poperror();
 		return 0;
@@ -294,7 +294,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		feh->cksum[0] = 0;
 		feh->cksum[1] = 0;
 		hnputs(feh->cksum, ipcsum(&feh->vihl));
-		ifc->m->bwrite(ifc, nb, V4, gate);
+		ifc->medium->bwrite(ifc, nb, V4, gate);
 		ip->stats[FragCreates]++;
 	}
 	ip->stats[FragOKs]++;

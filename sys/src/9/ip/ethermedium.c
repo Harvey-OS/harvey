@@ -280,7 +280,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 	a = arpget(er->f->arp, bp, version, ifc, ip, mac);
 	if(a){
 		/* check for broadcast or multicast */
-		bp = multicastarp(er->f, a, ifc->m, mac);
+		bp = multicastarp(er->f, a, ifc->medium, mac);
 		if(bp==nil){
 			switch(version){
 			case V4:
@@ -297,7 +297,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 	}
 
 	/* make it a single block with space for the ether header */
-	bp = padblock(bp, ifc->m->hsize);
+	bp = padblock(bp, ifc->medium->hsize);
 	if(bp->next)
 		bp = concatblock(bp);
 	if(BLEN(bp) < ifc->mintu)
@@ -354,7 +354,7 @@ etherread4(void *a)
 			nexterror();
 		}
 		ifc->in++;
-		bp->rp += ifc->m->hsize;
+		bp->rp += ifc->medium->hsize;
 		if(ifc->lifc == nil)
 			freeb(bp);
 		else
@@ -393,7 +393,7 @@ etherread6(void *a)
 			nexterror();
 		}
 		ifc->in++;
-		bp->rp += ifc->m->hsize;
+		bp->rp += ifc->medium->hsize;
 		if(ifc->lifc == nil)
 			freeb(bp);
 		else
@@ -553,8 +553,8 @@ sendgarp(Ipifc *ifc, uchar *ip)
 		return;
 
 	n = sizeof(Etherarp);
-	if(n < ifc->m->mintu)
-		n = ifc->m->mintu;
+	if(n < ifc->medium->mintu)
+		n = ifc->medium->mintu;
 	bp = allocb(n);
 	memset(bp->rp, 0, n);
 	e = (Etherarp*)bp->rp;

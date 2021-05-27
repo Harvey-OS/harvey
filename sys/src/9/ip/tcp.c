@@ -861,12 +861,12 @@ tcpmtu(Proto *tcp, uchar *addr, int version, uint *scale)
 	case V4:
 		mtu = DEF_MSS;
 		if(ifc != nil)
-			mtu = ifc->maxtu - ifc->m->hsize - (TCP4_PKT + TCP4_HDRSIZE);
+			mtu = ifc->maxtu - ifc->medium->hsize - (TCP4_PKT + TCP4_HDRSIZE);
 		break;
 	case V6:
 		mtu = DEF_MSS6;
 		if(ifc != nil)
-			mtu = ifc->maxtu - ifc->m->hsize - (TCP6_PKT + TCP6_HDRSIZE);
+			mtu = ifc->maxtu - ifc->medium->hsize - (TCP6_PKT + TCP6_HDRSIZE);
 		break;
 	}
 	/*

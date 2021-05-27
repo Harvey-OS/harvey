@@ -161,7 +161,7 @@ igmpproc(void *a)
 			if(mp){
 				/* do a single report and try again */
 				hnputl(ip, mp->addr);
-				igmpsendreport(rp->m, ip);
+				igmpsendreport(rp->medium, ip);
 				free(mp);
 				continue;
 			}
@@ -209,7 +209,7 @@ igmpiput(Medium *m, Ipifc *, Block *bp)
 		 */
 		stats.inqueries++;
 		for(rp = igmpalloc.reports; rp; rp = rp->next)
-			if(rp->m == m)
+			if(rp->medium == m)
 				break;
 		if(rp != nil)
 			break;	/* already reporting */
@@ -222,7 +222,7 @@ igmpiput(Medium *m, Ipifc *, Block *bp)
 		if(rp == nil)
 			break;
 
-		rp->m = m;
+		rp->medium = m;
 		rp->multi = mp;
 		rp->ticks = 0;
 		for(; mp; mp = mp->next)
@@ -240,7 +240,7 @@ igmpiput(Medium *m, Ipifc *, Block *bp)
 		stats.inreports++;
 		lrp = &igmpalloc.reports;
 		for(rp = *lrp; rp; rp = *lrp){
-			if(rp->m == m)
+			if(rp->medium == m)
 				break;
 			lrp = &rp->next;
 		}
