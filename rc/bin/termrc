@@ -92,8 +92,11 @@ if(test -f /dev/mousectl){
 		aux/mouse $mouseport
 		# parse vgasize into fields
 		vgasize=`{echo $vgasize}
-		if(! ~ $"monitor '' && ! ~ `{cat /dev/user} none)
+		if(! ~ $"monitor '' && ! ~ `{cat /dev/user} none){
+			if(~ $monitor vesa)
+				aux/realemu
 			aux/vga -l $vgasize
+		}
 		if(~ $accupoint 1)
 			pipefile -dr /bin/aux/accupoint /dev/mouse
 	}
