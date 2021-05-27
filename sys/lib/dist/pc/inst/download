@@ -1,6 +1,6 @@
 #!/bin/rc
 
-# prereq: mountfs
+# prereq: mountfs confignet
 # desc: download or continue to download the distribution archives
 
 switch($1) {

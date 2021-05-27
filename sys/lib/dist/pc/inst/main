@@ -18,9 +18,9 @@ tasks=(\
 	mountfs\
 	configdist\
 	confignet\
+	download\
 	mountdist\
 	fmtventi\
-	download\
 	copydist\
 	bootsetup finish stop\
 	stopether stopppp\
