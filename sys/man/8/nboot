@@ -1,0 +1,164 @@
+.TH 9BOOT 8
+.SH NAME
+9bootfat, 9bootiso, 9bootpxe, bootia32.efi, bootx64.efi, efiboot.fat \- PC bootloader for FAT, ISO and PXE network booting
+.SH SYNOPSIS
+Started by PC BIOS/EFI or chainloaded by partition bootsector
+.SH DESCRIPTION
+9boot is the bootloader used on PCs to start the Plan 9 kernel.
+Its task is to read and parse the
+.IR plan9.ini (8)
+configuration file, gather some basic system information like
+the amount of usable system memory, do some basic system
+initialization and load the kernel from the boot media into memory.
+
+After reading the configuration, the loader will automatically 
+attempt to boot the kernel that was specified by the
+.B bootfile=
+parameter. If there is no such parameter, a key
+gets pressed on the keyboard or the kernel file was not
+found then the loader enters the interactive
+boot console.
+
+The syntax of the boot console is the same as in the
+.IR plan9.ini (8)
+file with
+.IB key = value
+pairs setting boot parameters. In addition a few command
+words are recognized that are intended for interactive use:
+.TP
+.BI clear [prefix]
+can be used to remove parameters from the configuration.
+If a
+.IR prefix
+is specified, the first parameter that matches the prefix
+is removed. If the
+.IR prefix
+argument is omitted, the whole configuration will be reset.
+.TP
+.B show
+displays the current configuration in memory.
+.TP
+.B wait
+will return to the console prompt after processing the
+configuration file preventing automatic boot.
+.TP
+.B boot
+will end the console and attempt booting the kernel.
+.SS
+There are many ways to boot a PC so
+.IR 9boot
+was split into a number of distinct programs one for each boot
+method.
+.SH FAT BOOTING
+When booting Plan 9 from a harddisk or USB pen drive, a
+FAT16/32 partition
+.IR (9fat) 
+is used to store the kernel and 
+.IR plan9.ini (8)
+configuration. Due to size limitations, instead of loading
+the kernel directly, the bootsector
+.IR (pbs)
+of the FAT partition loads
+a 2nd stage bootloader 
+.IR (9bootfat)
+from the root directory of the filesystem.
+.SH CD-ROM BOOTING
+Booting from CD-ROM requires only the 
+.IR 9bootiso
+bootloader to be included in the ISO-9660 image under
+.BR /386/9bootiso ,
+set as a non-emulation bootblock (see
+.B -B
+in
+.IR mk9660 (8)).
+Boot parameters are read from
+.BR /cfg/plan9.ini .
+.SH NETWORK BOOTING
+With a PXE capable BIOS and network card one can download
+.IR 9bootpxe
+and boot the kernel from a TFTP server (see
+.IR dhcpd (8)
+and
+.IR ndb (6)
+for details). Once started,
+.IR 9bootpxe
+will read the file
+.B /cfg/pxe/$ether
+or, if this file is not present,
+.B /cfg/pxe/default
+from the tftp server, where
+.B $ether
+is the MAC address of the client's network card
+in lower case hex, and uses this as its
+.IR plan9.ini (8)
+file.
+.SH EFI BOOTING
+EFI firmware looks for the files
+.I bootia32.efi
+(for 386)
+or
+.I bootx64.efi
+(for amd64)
+in the boot media and executes them.
+For local disk media, these files are located in the directory
+.B /efi/boot
+of the 
+.B FAT
+formated boot partition.
+For 
+.B CD-ROM
+media, the boot partition is provided
+as a embedded 
+.B FAT
+filesystem image
+.I efiboot.fat
+(see
+.B -E
+in
+.IR mk9660 (8)).
+In the network boot case, the
+.I bootia32.efi
+or
+.I bootx64.efi
+files are used as the
+.B BSP
+program instead of
+.IR 9bootpxe .
+Once started, the boot media 
+.RB ( PXE ,
+.BR ISO ,
+.BR FAT )
+is discovered and
+.IR plan9.ini (8)
+configuration is read from it in the same way as
+with the BIOS-based
+.I 9boot*
+loaders.
+
+.SH FILES
+.B /386/pbs
+.br
+.B /386/9bootfat
+.br
+.B /386/9bootiso
+.br
+.B /386/9bootpxe
+.br
+.B /386/bootia32.efi
+.br
+.B /386/bootx64.efi
+.br
+.B /386/efiboot.fat
+.SH SOURCE
+.BR /sys/src/boot/pc
+.br
+.BR /sys/src/boot/efi
+.br
+.SH "SEE ALSO"
+.IR plan9.ini (8),
+.IR mk9660 (8),
+.IR dhcpd (8),
+.IR ndb (6)
+.SH HISTORY
+9boot first appeared in 9front (April, 2011).
+EFI support first appeared in 9front (Oct, 2014).

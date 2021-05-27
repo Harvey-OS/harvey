@@ -1,0 +1,89 @@
+objtype=386
+</$objtype/mkfile
+BIN=/386
+
+TARG=9bootiso 9bootpxe 9bootfat mbr pbs
+
+HFILES=mem.h fns.h x16.h
+
+all: 9bootiso 9bootpxe 9bootfat mbr pbs
+	
+clean:V:
+	rm -rf $TARG *.$O test.* tmp
+
+liso.$O: l.s
+	$AS -DISO -o $target l.s
+
+lpxe.$O: l.s
+	$AS -DPXE -o $target l.s
+
+lfat.$O: l.s
+	$AS -DFAT -o $target l.s
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	$HFILES
+
+mbr:	mbr.$O
+	$LD -o $target -H3 -T0x0600 -l $prereq
+	ls -l $target
+
+pbs:	pbs.$O
+	$LD -o $target -H3 -T0x0800 -l $prereq
+	ls -l $target
+
+9boot&:	l%.$O %.$O sub.$O apm.$O e820.$O a20.$O uart.$O
+	$LD -o $target -H3 -T0x7c00 -l $prereq
+	ls -l $target
+
+install:V:
+	for (i in $TARG)
+		mk $MKFLAGS $i.install
+
+%.install:V:	$BIN/%
+	
+
+$BIN/%:	%
+	cp $stem $BIN/$stem
+
+
+test.iso: 9bootiso
+	rm -fr tmp $target
+	mkdir tmp
+	mkdir tmp/386
+	mkdir tmp/cfg
+	cp 9bootiso tmp/386
+	cp /386/9pcf tmp/386
+	cp /sys/lib/dist/cfg/plan9.ini tmp/cfg/plan9.ini
+	echo wait >>tmp/cfg/plan9.ini
+	disk/mk9660 -B 386/9bootiso -p /sys/lib/sysconfig/proto/allproto -s tmp $target
+	rm -fr tmp
+
+test.dsk: 9bootfat mbr pbs test.iso
+	rm -fr tmp $target
+	mkdir tmp
+	cp test.iso 9bootfat tmp
+	mkdir tmp/386
+	cp /386/9pcf tmp/386
+	echo 'bootfile=/386/9pcf' >tmp/plan9.ini
+	dd -if /dev/zero -of $target -bs 512 -count 32768
+	disk/partfs -m /n/$target $target
+	disk=/n/$target/sdXX
+	disk/mbr -m mbr $disk/data
+	disk/fdisk -baw $disk/data
+	disk/prep -bw -a 9fat $disk/plan9
+	disk/format -b pbs -d -r 2 $disk/9fat
+	s=$target.dos
+	m=/n/$target.9fat
+	rm -f /srv/$s
+	dossrv -f $disk/9fat $s
+	mount -c /srv/$s $m
+	@{cd tmp; tar c .} | @{cd $m; tar xv}
+	unmount $m
+	rm -f /srv/$s
+	unmount /n/$target
+	rm -fr tmp
