@@ -680,10 +680,12 @@ read(ulong *arg, vlong *offp)
 	}else
 		nnn = nn = devtab[c->type]->read(c, p, n, off);
 
-	lock(c);
-	c->devoffset += nn;
-	c->offset += nnn;
-	unlock(c);
+	if(c->qid.type & QTDIR || offp == nil){
+		lock(c);
+		c->devoffset += nn;
+		c->offset += nnn;
+		unlock(c);
+	}
 
 	poperror();
 	cclose(c);
