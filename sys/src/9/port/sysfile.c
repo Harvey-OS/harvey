@@ -1234,8 +1234,8 @@ packoldstat(uchar *buf, Dir *d)
 	p += 28;
 	strncpy((char*)p, d->gid, 28);
 	p += 28;
-	q = d->qid.path & ~DMDIR;	/* make sure doesn't accidentally look like directory */
-	if((ulong)d->qid.type & QTDIR)	/* this is the real test of a new directory */
+	q = d->qid.path & ~(uvlong)DMDIR;	/* make sure doesn't accidentally look like directory */
+	if(d->qid.type & QTDIR)	/* this is the real test of a new directory */
 		q |= DMDIR;
 	PBIT32(p, q);
 	p += BIT32SZ;
