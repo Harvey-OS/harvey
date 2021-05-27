@@ -358,8 +358,8 @@ tlsServer(int fd, TLSconn *conn)
 		return -1;
 	}
 	buf[n] = 0;
-	sprint(conn->dir, "#a/tls/%s", buf);
-	sprint(dname, "#a/tls/%s/hand", buf);
+	snprint(conn->dir, sizeof conn->dir, "#a/tls/%s", buf);
+	snprint(dname, sizeof dname, "#a/tls/%s/hand", buf);
 	hand = open(dname, ORDWR);
 	if(hand < 0){
 		close(ctl);
@@ -367,7 +367,7 @@ tlsServer(int fd, TLSconn *conn)
 	}
 	fprint(ctl, "fd %d 0x%x", fd, ProtocolVersion);
 	tls = tlsServer2(ctl, hand, conn->cert, conn->certlen, conn->trace, conn->chain);
-	sprint(dname, "#a/tls/%s/data", buf);
+	snprint(dname, sizeof dname, "#a/tls/%s/data", buf);
 	data = open(dname, ORDWR);
 	close(fd);
 	close(hand);
@@ -413,14 +413,14 @@ tlsClient(int fd, TLSconn *conn)
 		return -1;
 	}
 	buf[n] = 0;
-	sprint(conn->dir, "#a/tls/%s", buf);
-	sprint(dname, "#a/tls/%s/hand", buf);
+	snprint(conn->dir, sizeof conn->dir, "#a/tls/%s", buf);
+	snprint(dname, sizeof dname, "#a/tls/%s/hand", buf);
 	hand = open(dname, ORDWR);
 	if(hand < 0){
 		close(ctl);
 		return -1;
 	}
-	sprint(dname, "#a/tls/%s/data", buf);
+	snprint(dname, sizeof dname, "#a/tls/%s/data", buf);
 	data = open(dname, ORDWR);
 	if(data < 0) {
 		close(hand);
