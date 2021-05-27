@@ -126,7 +126,7 @@ screenputc(char *buf)
 	static int *xp;
 	static int xbuf[256];
 
-	if(xp < xbuf || xp >= &xbuf[sizeof(xbuf)])
+	if(xp < xbuf || xp >= &xbuf[nelem(xbuf)])
 		xp = xbuf;
 
 	switch(buf[0]) {
