@@ -73,7 +73,7 @@ typedef struct TlsConnection{
 	int state;		// must be set using setstate
 
 	// input buffer for handshake messages
-	uchar buf[MaxChunk+2048];
+	uchar buf[MaxChunk+8*1024];
 	uchar *rp, *ep;
 
 	uchar crandom[RandomSize];	// client random
@@ -403,8 +403,11 @@ tlsClient(int fd, TLSconn *conn)
 	}
 	sprint(dname, "#a/tls/%s/data", buf);
 	data = open(dname, ORDWR);
-	if(data < 0)
+	if(data < 0) {
+		close(hand);
+		close(ctl);
 		return -1;
+	}
 	fprint(ctl, "fd %d 0x%x", fd, ProtocolVersion);
 	tls = tlsClient2(ctl, hand, conn->sessionID, conn->sessionIDlen, conn->trace);
 	close(fd);
@@ -1249,6 +1252,7 @@ msgClear(Msg *m)
 	case HClientHello:
 		freebytes(m->u.clientHello.sid);
 		freeints(m->u.clientHello.ciphers);
+		m->u.clientHello.ciphers = nil;
 		freebytes(m->u.clientHello.compressors);
 		break;
 	case HServerHello:
@@ -1435,7 +1439,7 @@ tlsConnectionFree(TlsConnection *c)
 	tlsSecClose(c->sec);
 	freebytes(c->sid);
 	freebytes(c->cert);
-	memset(c, 0, sizeof(c));
+	memset(c, 0, sizeof *c);
 	free(c);
 }
 
@@ -1546,12 +1550,14 @@ initCiphers(void)
 	j = open("#a/tls/encalgs", OREAD);
 	if(j < 0){
 		werrstr("can't open #a/tls/encalgs: %r");
+		unlock(&ciphLock);
 		return 0;
 	}
 	n = read(j, s, MaxAlgF-1);
 	close(j);
 	if(n <= 0){
 		werrstr("nothing in #a/tls/encalgs: %r");
+		unlock(&ciphLock);
 		return 0;
 	}
 	s[n] = 0;
@@ -1570,12 +1576,14 @@ initCiphers(void)
 	j = open("#a/tls/hashalgs", OREAD);
 	if(j < 0){
 		werrstr("can't open #a/tls/hashalgs: %r");
+		unlock(&ciphLock);
 		return 0;
 	}
 	n = read(j, s, MaxAlgF-1);
 	close(j);
 	if(n <= 0){
 		werrstr("nothing in #a/tls/hashalgs: %r");
+		unlock(&ciphLock);
 		return 0;
 	}
 	s[n] = 0;
@@ -1899,6 +1907,11 @@ tlsSecFinished(TlsSec *sec, HandHash hs, uchar *fin, int nfin, int isclient)
 	}
 	hs.md5.malloced = 0;
 	hs.sha1.malloced = 0;
+	if(sec->setFinished == nil ){
+		sec->ok = -1;
+		werrstr("nil sec->setFinished in tlsSecFinished");
+		return -1;
+	}
 	(*sec->setFinished)(sec, hs, fin, isclient);
 	return 1;
 }
@@ -1951,6 +1964,8 @@ setVers(TlsSec *sec, int v)
 		break;
 	default:
 		werrstr("invalid version");
+		sec->setFinished = nil;
+		sec->prf = nil;
 		return -1;
 	}
 	sec->vers = v;
@@ -1967,6 +1982,10 @@ setVers(TlsSec *sec, int v)
 static void
 setSecrets(TlsSec *sec, uchar *kd, int nkd)
 {
+	if (sec->prf == nil) {
+		werrstr("nil sec->prf in setSecrets");
+		return;
+	}
 	(*sec->prf)(kd, nkd, sec->sec, MasterSecretSize, "key expansion",
 			sec->srandom, RandomSize, sec->crandom, RandomSize);
 }
@@ -2086,6 +2105,10 @@ tlsSetFinished(TlsSec *sec, HandHash hs, uchar *finished, int isClient)
 		label = "client finished";
 	else
 		label = "server finished";
+	if (sec->prf == nil) {
+		werrstr("nil sec->prf in tlsSetFinished");
+		return;
+	}
 	(*sec->prf)(finished, TLSFinishedLen, sec->sec, MasterSecretSize, label, h0, MD5dlen, h1, SHA1dlen);
 }
 
@@ -2262,7 +2285,8 @@ pkcs1_decrypt(TlsSec *sec, uchar *epm, int nepm)
 		if(i < modlen - 1)
 			ans = makebytes(eb->data+i+1, modlen-(i+1));
 	}
-	freebytes(eb);
+	if (eb != ans)			/* not freed above? */
+		freebytes(eb);
 	return ans;
 }
 
