@@ -11,6 +11,14 @@ pow(double x, double y) /* return x ^ y (exponentiation) */
 	if(y == 0.0)
 		return 1.0;
 
+	/* prevent infinite loop */
+	if(isNaN(x) || isNaN(y))
+		return NaN();
+	if(isInf(x, 0))
+		return x;
+	if(isInf(y, 0))
+		return x == 0 || x == 1? x: y;
+
 	flip = 0;
 	if(y < 0.){
 		y = -y;
