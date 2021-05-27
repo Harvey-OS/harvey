@@ -17,6 +17,7 @@ CFILES = des.c desmodes.c desECB.c desCBC.c des3ECB.c des3CBC.c\
 	egsign.c egverify.c \
 	dsagen.c dsaalloc.c dsaprivtopub.c dsasign.c dsaverify.c \
 	tlshand.c thumb.c readcert.c \
+	pbkdf2.c\
 
 ALLOFILES=${CFILES:%.c=%.$O}
 
