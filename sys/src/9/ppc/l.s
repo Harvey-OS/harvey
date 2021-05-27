@@ -361,7 +361,7 @@ tas0:
 	SYNC
 	RETURN
 
-TEXT _xinc(SB), $0			/* void _xinc(long *); */
+TEXT ainc(SB), $0			/* long ainc(long *); */
 	MOVW	R3, R4
 xincloop:
 	DCBF	(R4)			/* fix for 603x bug */
@@ -371,7 +371,7 @@ xincloop:
 	BNE	xincloop
 	RETURN
 
-TEXT _xdec(SB), $0			/* long _xdec(long *); */
+TEXT adec(SB), $0			/* long adec(long *); */
 	MOVW	R3, R4
 xdecloop:
 	DCBF	(R4)			/* fix for 603x bug */

@@ -259,22 +259,22 @@ TEXT tas(SB), $0
 	XCHGL	AX, (BX)			/* lock->key */
 	RET
 
-TEXT _xinc(SB), $0				/* void _xinc(long*); */
+TEXT ainc(SB), $0				/* void ainc(long*); */
 	MOVL	l+0(FP), AX
 	LOCK;	INCL 0(AX)
 	RET
 
-TEXT _xdec(SB), $0				/* long _xdec(long*); */
+TEXT adec(SB), $0				/* long adec(long*); */
 	MOVL	l+0(FP), BX
 	XORL	AX, AX
 	LOCK;	DECL 0(BX)
-	JLT	_xdeclt
-	JGT	_xdecgt
+	JLT	adeclt
+	JGT	adecgt
 	RET
-_xdecgt:
+adecgt:
 	INCL	AX
 	RET
-_xdeclt:
+adeclt:
 	DECL	AX
 	RET
 

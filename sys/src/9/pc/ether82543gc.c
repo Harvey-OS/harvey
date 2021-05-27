@@ -761,7 +761,7 @@ gc82543allocb(Ctlr* ctlr)
 	if((bp = *(ctlr->freehead)) != nil){
 		*(ctlr->freehead) = bp->next;
 		bp->next = nil;
-		_xinc(&bp->ref);	/* prevent bp from being freed */
+		ainc(&bp->ref);	/* prevent bp from being freed */
 	}
 	iunlock(&freelistlock);
 	return bp;

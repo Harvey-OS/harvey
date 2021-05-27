@@ -861,7 +861,7 @@ i82563rballoc(void)
 	if((bp = i82563rbpool) != nil){
 		i82563rbpool = bp->next;
 		bp->next = nil;
-		_xinc(&bp->ref);	/* prevent bp from being freed */
+		ainc(&bp->ref);	/* prevent bp from being freed */
 	}
 	iunlock(&i82563rblock);
 

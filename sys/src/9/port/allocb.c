@@ -52,7 +52,7 @@ mem2block(void *buf, ulong usable, int malloced)
 	b->flag = 0;
 	b->ref = 0;
 	b->magic = Bmagic;
-	_xinc(&b->ref);
+	ainc(&b->ref);
 
 	/* align start of data portion by rounding up */
 	b->base = (uchar*)ALIGNUP((ulong)b + sizeof(Block));
@@ -151,7 +151,7 @@ freeb(Block *b)
 		panic("freeb: bad magic %#lux in Block %#p; caller pc %#p",
 			b->magic, b, getcallerpc(&b));
 
-	if((ref = _xdec(&b->ref)) > 0)
+	if((ref = adec(&b->ref)) > 0)
 		return;
 	if(ref < 0){
 		dumpstack();

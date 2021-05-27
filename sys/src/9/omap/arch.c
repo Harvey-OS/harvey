@@ -183,30 +183,9 @@ userureg(Ureg* ureg)
  */
 
 long
-_xdec(long *p)
+ainc(long *p)
 {
-	int s, v;
-
-	s = splhi();
-	v = --*p;
-	splx(s);
-	return v;
-}
-
-void
-_xinc(long *p)
-{
-	int s;
-
-	s = splhi();
-	++*p;
-	splx(s);
-}
-
-int
-ainc(int *p)
-{
-	int s, v;
+	long s, v;
 
 	s = splhi();
 	v = ++*p;
@@ -214,10 +193,10 @@ ainc(int *p)
 	return v;
 }
 
-int
-adec(int *p)
+long
+adec(long *p)
 {
-	int s, v;
+	long s, v;
 
 	s = splhi();
 	v = --*p;

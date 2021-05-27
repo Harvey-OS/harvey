@@ -34,7 +34,7 @@ _ucallocb(int size)
 	b->free = 0;
 	b->flag = 0;
 	b->ref = 0;
-	_xinc(&b->ref);
+	ainc(&b->ref);
 
 	/* align start of data portion by rounding up */
 	addr = (ulong)b;
@@ -119,7 +119,7 @@ ucfreeb(Block *b)
 	void *dead = (void*)Bdead;
 	long ref;
 
-	if(b == nil || (ref = _xdec(&b->ref)) > 0)
+	if(b == nil || (ref = adec(&b->ref)) > 0)
 		return;
 
 	if(ref < 0){

@@ -836,7 +836,7 @@ tas1:
 	NOP
 	RETURN
 
-TEXT	_xinc(SB), $0
+TEXT	ainc(SB), $0
 	MOVW	R1, R2		/* address of counter */
 loop:
 	MOVW	$1, R3
@@ -850,7 +850,7 @@ loop:
 	NOP
 	RETURN
 
-TEXT	_xdec(SB), $0
+TEXT	adec(SB), $0
 	SYNC
 	MOVW	R1, R2		/* address of counter */
 loop1:
