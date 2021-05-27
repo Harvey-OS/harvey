@@ -343,9 +343,12 @@ _ctlrunestr(char *s)
 char*
 _ctlstrrune(Rune *r)
 {
+	int nb;
 	char *s;
-	s = ctlmalloc(runestrlen(r)*UTFmax+1);
-	sprint(s, "%S", r);
+
+	nb = runestrlen(r)*UTFmax+1;
+	s = ctlmalloc(nb);
+	snprint(s, nb, "%S", r);
 	return s;
 }
 
