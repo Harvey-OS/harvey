@@ -680,7 +680,7 @@ m3mouseputc(Queue*, int c)
 int
 m5mouseputc(Queue*, int c)
 {
-	static uchar msg[3];
+	static uchar msg[4];
 	static int nb;
 	static ulong lasttick;
 	ulong m;
