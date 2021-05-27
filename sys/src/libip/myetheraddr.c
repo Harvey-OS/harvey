@@ -9,9 +9,9 @@ myetheraddr(uchar *to, char *dev)
 	char buf[256];
 
 	if(*dev == '/')
-		sprint(buf, "%s/addr", dev);
+		snprint(buf, sizeof buf, "%s/addr", dev);
 	else
-		sprint(buf, "/net/%s/addr", dev);
+		snprint(buf, sizeof buf, "/net/%s/addr", dev);
 
 	fd = open(buf, OREAD);
 	if(fd < 0)
