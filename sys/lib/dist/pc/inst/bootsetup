@@ -24,6 +24,7 @@ case go
 			sfs=`{echo $fs | sed 's;/dev;#S;'}
 			if(~ $fstype fossil fossil+venti){
 				echo bootfile'='$bootfat!9pcf
+				echo 'nobootprompt=local!'^$sfs
 				echo 'bootargs=local!'^$sfs
 				echo 'bootdisk=local!'^$sfs
 			}
@@ -42,6 +43,7 @@ case go
 			echo 'mouseport='^$mouseport
 			echo 'monitor='^$monitor
 			echo 'vgasize='^$vgasize
+			echo 'user=glenda'
 		} >/tmp/plan9.ini
 	}
 	if(! test -f /tmp/plan9ini.bak)
