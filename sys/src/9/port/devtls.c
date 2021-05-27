@@ -180,7 +180,7 @@ static TlsErrs tlserrs[] = {
 enum
 {
 	/* max. open tls connections */
-	MaxTlsDevs	= 1024
+	MaxTlsDevs	= 16*1024
 };
 
 static	Lock	tdlock;
