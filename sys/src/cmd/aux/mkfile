@@ -53,7 +53,8 @@ DIRS=mnihongo\
 	flashfs\
 	gps\
 	na\
-	vga
+	vga\
+	realemu
 
 all:V:	$DIRS
 

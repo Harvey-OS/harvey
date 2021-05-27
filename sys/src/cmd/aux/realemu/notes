@@ -1,0 +1,22 @@
+realmode emulator. binds itself over /dev and provides /dev/realmode
+and /dev/realmodemem to be used with aux/vga -m vesa ...
+
+the command option -t enables instruction tracing to stderr.
+
+requires a updated vgavesa driver to use /dev/realmode instead of
+a direct realmode() call.
+
+patch can be found at: /n/sources/patch/vesa-softscreen-resize
+
+a list with graphics cards that have been successfully enabled
+with the aux/vga and realemu can be found in the vgalist file.
+
+bug reports / suggestions or failed attempts email to:
+
+cinap_lenrek AT gmx DOT de
+
+contributors:
+
+i stole some code from rsc's 8i /n/sources/contrib/rsc/8i, so thanks russ! :)
+
+patient testers from irc: sl, Fish-
