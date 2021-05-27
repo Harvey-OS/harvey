@@ -290,21 +290,17 @@ okaddr(ulong addr, ulong len, int write)
 {
 	Segment *s;
 
-	if((long)len >= 0) {
-		for(;;) {
-			s = seg(up, addr, 0);
-			if(s == 0 || (write && (s->type&SG_RONLY)))
-				break;
-
-			if(addr+len > s->top) {
-				len -= s->top - addr;
-				addr = s->top;
-				continue;
-			}
-			return 1;
+	/* second test is paranoia only needed on 64-bit systems */
+	if((long)len >= 0 && addr+len >= addr)
+		while ((s = seg(up, addr, 0)) != nil &&
+		    (!write || !(s->type&SG_RONLY))) {
+			if((uvlong)addr+len <= s->top)
+				return 1;
+			len -= s->top - addr;
+			addr = s->top;
 		}
-	}
-	pprint("suicide: invalid address %#lux/%lud in sys call pc=%#lux\n", addr, len, userpc());
+	pprint("suicide: invalid address %#lux/%lud in sys call pc=%#lux\n",
+		addr, len, userpc());
 	return 0;
 }
 
