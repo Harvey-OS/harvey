@@ -2538,7 +2538,7 @@ X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen)
 	RSApub *pk = rsaprivtopub(priv);
 	Bytes *certbytes, *pkbytes, *certinfobytes, *sigbytes;
 	Elem e, certinfo, issuer, subject, pubkey, validity, sig;
-	uchar digest[MD5dlen], *buf;
+	uchar digest[SHA2_256dlen], *buf;
 	int buflen;
 	mpint *pkcs1;
 
@@ -2560,7 +2560,7 @@ X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen)
 		nil)));
 	certinfo = mkseq(
 		mkel(mkint(serial),
-		mkel(mkalg(ALG_md5WithRSAEncryption),
+		mkel(mkalg(ALG_sha256WithRSAEncryption),
 		mkel(issuer,
 		mkel(validity,
 		mkel(subject,
@@ -2568,11 +2568,11 @@ X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen)
 		nil)))))));
 	if(encode(certinfo, &certinfobytes) != ASN_OK)
 		goto errret;
-	md5(certinfobytes->data, certinfobytes->len, digest, 0);
+	sha2_256(certinfobytes->data, certinfobytes->len, digest, 0);
 	freebytes(certinfobytes);
 	sig = mkseq(
-		mkel(mkalg(ALG_md5),
-		mkel(mkoctet(digest, MD5dlen),
+		mkel(mkalg(ALG_sha256),
+		mkel(mkoctet(digest, SHA2_256dlen),
 		nil)));
 	if(encode(sig, &sigbytes) != ASN_OK)
 		goto errret;
@@ -2583,7 +2583,7 @@ X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen)
 	mpfree(pkcs1);
 	e = mkseq(
 		mkel(certinfo,
-		mkel(mkalg(ALG_md5WithRSAEncryption),
+		mkel(mkalg(ALG_sha256WithRSAEncryption),
 		mkel(mkbits(buf, buflen),
 		nil))));
 	free(buf);
@@ -2606,7 +2606,7 @@ X509req(RSApriv *priv, char *subj, int *certlen)
 	RSApub *pk = rsaprivtopub(priv);
 	Bytes *certbytes, *pkbytes, *certinfobytes, *sigbytes;
 	Elem e, certinfo, subject, pubkey, sig;
-	uchar digest[MD5dlen], *buf;
+	uchar digest[SHA2_256dlen], *buf;
 	int buflen;
 	mpint *pkcs1;
 
@@ -2628,11 +2628,11 @@ X509req(RSApriv *priv, char *subj, int *certlen)
 		nil))));
 	if(encode(certinfo, &certinfobytes) != ASN_OK)
 		goto errret;
-	md5(certinfobytes->data, certinfobytes->len, digest, 0);
+	sha2_256(certinfobytes->data, certinfobytes->len, digest, 0);
 	freebytes(certinfobytes);
 	sig = mkseq(
-		mkel(mkalg(ALG_md5),
-		mkel(mkoctet(digest, MD5dlen),
+		mkel(mkalg(ALG_sha256),
+		mkel(mkoctet(digest, SHA2_256dlen),
 		nil)));
 	if(encode(sig, &sigbytes) != ASN_OK)
 		goto errret;
@@ -2643,7 +2643,7 @@ X509req(RSApriv *priv, char *subj, int *certlen)
 	mpfree(pkcs1);
 	e = mkseq(
 		mkel(certinfo,
-		mkel(mkalg(ALG_md5),
+		mkel(mkalg(ALG_sha256),
 		mkel(mkbits(buf, buflen),
 		nil))));
 	free(buf);
@@ -2773,7 +2773,7 @@ X509dump(uchar *cert, int ncert)
 	pk = decode_rsapubkey(c->publickey);
 	print("pubkey e=%B n(%d)=%B\n", pk->ek, mpsignif(pk->n), pk->n);
 
-	print("sigalg=%d digest=%.*H\n", c->signature_alg, MD5dlen, digest);
+	print("sigalg=%d digest=%.*H\n", c->signature_alg, SHA2_256dlen, digest);
 	e = verify_signature(c->signature, pk, digest, &sigalg);
 	if(e==nil){
 		e = "nil (meaning ok)";
