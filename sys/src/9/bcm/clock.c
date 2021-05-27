@@ -1,11 +1,13 @@
 /*
- * bcm2835 timers
+ * bcm283[56] timers
  *	System timers run at 1MHz (timers 1 and 2 are used by GPU)
  *	ARM timer usually runs at 250MHz (may be slower in low power modes)
  *	Cycle counter runs at 700MHz (unless overclocked)
  *    All are free-running up-counters
+ *  Cortex-a7 has local generic timers per cpu (which we run at 1MHz)
  *
  * Use system timer 3 (64 bits) for hzclock interrupts and fastticks
+ *   For smp on bcm2836, use local generic timer for interrupts on cpu1-3
  * Use ARM timer (32 bits) for perfticks
  * Use ARM timer to force immediate interrupt
  * Use cycle counter for cycles()
@@ -17,14 +19,21 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
+#include "ureg.h"
+#include "arm.h"
 
 enum {
 	SYSTIMERS	= VIRTIO+0x3000,
 	ARMTIMER	= VIRTIO+0xB400,
 
+	Localctl	= 0x00,
+	Prescaler	= 0x08,
+	Localintpending	= 0x60,
+
 	SystimerFreq	= 1*Mhz,
 	MaxPeriod	= SystimerFreq / HZ,
-	MinPeriod	= SystimerFreq / (100*HZ),
+	MinPeriod	= 10,
+
 };
 
 typedef struct Systimers Systimers;
@@ -64,6 +73,11 @@ enum {
 	TmrPrescale256	= 0x02<<2,
 	CntWidth16	= 0<<1,
 	CntWidth32	= 1<<1,
+
+	/* generic timer (cortex-a7) */
+	Enable	= 1<<0,
+	Imask	= 1<<1,
+	Istatus = 1<<2,
 };
 
 static void
@@ -71,9 +85,21 @@ clockintr(Ureg *ureg, void *)
 {
 	Systimers *tn;
 
+	if(m->machno != 0)
+		panic("cpu%d: unexpected system timer interrupt", m->machno);
 	tn = (Systimers*)SYSTIMERS;
 	/* dismiss interrupt */
+	tn->c3 = tn->clo - 1;
 	tn->cs = 1<<3;
+	timerintr(ureg, 0);
+}
+
+static void
+localclockintr(Ureg *ureg, void *)
+{
+	if(m->machno == 0)
+		panic("cpu0: Unexpected local generic timer interrupt");
+	cpwrtimerphysctl(Imask|Enable);
 	timerintr(ureg, 0);
 }
 
@@ -84,7 +110,10 @@ clockshutdown(void)
 
 	tm = (Armtimer*)ARMTIMER;
 	tm->ctl = 0;
-	wdogoff();
+	if(cpuserver)
+		wdogfeed();
+	else
+		wdogoff();
 }
 
 void
@@ -94,11 +123,18 @@ clockinit(void)
 	Armtimer *tm;
 	u32int t0, t1, tstart, tend;
 
-	tn = (Systimers*)SYSTIMERS;
-	tm = (Armtimer*)ARMTIMER;
-	tm->load = 0;
-	tm->ctl = TmrPrescale1|CntEnable|CntWidth32;
+	if(((cprdfeat1() >> 16) & 0xF) != 0) {
+		/* generic timer supported */
+		if(m->machno == 0){
+			/* input clock is 19.2MHz or 54MHz crystal */
+			*(ulong*)(ARMLOCAL + Localctl) = 0;
+			/* divide by (2^31/Prescaler) for 1Mhz */
+			*(ulong*)(ARMLOCAL + Prescaler) = (((uvlong)SystimerFreq<<31)/soc.oscfreq)&~1UL;
+		}
+		cpwrtimerphysctl(Imask);
+	}
 
+	tn = (Systimers*)SYSTIMERS;
 	tstart = tn->clo;
 	do{
 		t0 = lcycles();
@@ -111,25 +147,36 @@ clockinit(void)
 	m->cpuhz = 100 * t1;
 	m->cpumhz = (m->cpuhz + Mhz/2 - 1) / Mhz;
 	m->cyclefreq = m->cpuhz;
-
-	tn->c3 = tn->clo - 1;
-	intrenable(IRQtimer3, clockintr, nil, 0, "clock");
+	if(m->machno == 0){
+		tn->c3 = tn->clo - 1;
+		tm = (Armtimer*)ARMTIMER;
+		tm->load = 0;
+		tm->ctl = TmrPrescale1|CntEnable|CntWidth32;
+		intrenable(IRQtimer3, clockintr, nil, 0, "clock");
+	}else
+		intrenable(IRQcntpns, localclockintr, nil, 0, "clock");
 }
 
 void
 timerset(uvlong next)
 {
 	Systimers *tn;
-	vlong now, period;
+	uvlong now;
+	long period;
 
-	tn = (Systimers*)SYSTIMERS;
 	now = fastticks(nil);
-	period = next - fastticks(nil);
+	period = next - now;
 	if(period < MinPeriod)
-		next = now + MinPeriod;
+		period = MinPeriod;
 	else if(period > MaxPeriod)
-		next = now + MaxPeriod;
-	tn->c3 = (ulong)next;
+		period = MaxPeriod;
+	if(m->machno > 0){
+		cpwrtimerphysval(period);
+		cpwrtimerphysctl(Enable);
+	}else{
+		tn = (Systimers*)SYSTIMERS;
+		tn->c3 = tn->clo + period;
+	}
 }
 
 uvlong
@@ -137,16 +184,17 @@ fastticks(uvlong *hz)
 {
 	Systimers *tn;
 	ulong lo, hi;
+	uvlong now;
 
-	tn = (Systimers*)SYSTIMERS;
 	if(hz)
 		*hz = SystimerFreq;
+	tn = (Systimers*)SYSTIMERS;
 	do{
 		hi = tn->chi;
 		lo = tn->clo;
 	}while(tn->chi != hi);
-	m->fastclock = (uvlong)hi<<32 | lo;
-	return m->fastclock;
+	now = (uvlong)hi<<32 | lo;
+	return now;
 }
 
 ulong
@@ -179,7 +227,7 @@ ulong
 {
 	if(SystimerFreq != 1*Mhz)
 		return fastticks2us(fastticks(nil));
-	return fastticks(nil);
+	return ((Systimers*)SYSTIMERS)->clo;
 }
 
 void
@@ -188,8 +236,8 @@ microdelay(int n)
 	Systimers *tn;
 	u32int now, diff;
 
-	tn = (Systimers*)SYSTIMERS;
 	diff = n + 1;
+	tn = (Systimers*)SYSTIMERS;
 	now = tn->clo;
 	while(tn->clo - now < diff)
 		;

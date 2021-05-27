@@ -25,7 +25,7 @@
 enum {
 	Nchan		= 7,		/* number of dma channels */
 	Regsize		= 0x100,	/* size of regs for each chan */
-	Cbalign		= 32,		/* control block byte alignment */
+	Cbalign		= 64,		/* control block byte alignment (allow for 64-byte cache on bcm2836) */
 	Dbg		= 0,
 	
 	/* registers for each dma controller */
@@ -97,6 +97,20 @@ struct Cb {
 static Ctlr dma[Nchan];
 static u32int *dmaregs = (u32int*)DMAREGS;
 
+uintptr
+dmaaddr(void *va)
+{
+	if(PTR2UINT(va)&0x40000000)
+		panic("dma address %#p (from%#p)\n", va, getcallerpc(&va));
+	return soc.busdram | (PTR2UINT(va) & ~KSEGM);
+}
+
+static uintptr
+dmaioaddr(void *va)
+{
+	return soc.busio | (PTR2UINT(va) & ~VIRTIO);
+}
+
 static void
 dump(char *msg, uchar *p, int n)
 {
@@ -158,21 +172,21 @@ dmastart(int chan, int dev, int dir, void *src, void *dst, int len)
 	case DmaD2M:
 		cachedwbinvse(dst, len);
 		ti = Srcdreq | Destinc;
-		cb->sourcead = DMAIO(src);
-		cb->destad = DMAADDR(dst);
+		cb->sourcead = dmaioaddr(src);
+		cb->destad = dmaaddr(dst);
 		break;
 	case DmaM2D:
 		cachedwbse(src, len);
 		ti = Destdreq | Srcinc;
-		cb->sourcead = DMAADDR(src);
-		cb->destad = DMAIO(dst);
+		cb->sourcead = dmaaddr(src);
+		cb->destad = dmaioaddr(dst);
 		break;
 	case DmaM2M:
 		cachedwbse(src, len);
-		cachedwbinvse(dst, len);
+		cachedinvse(dst, len);
 		ti = Srcinc | Destinc;
-		cb->sourcead = DMAADDR(src);
-		cb->destad = DMAADDR(dst);
+		cb->sourcead = dmaaddr(src);
+		cb->destad = dmaaddr(dst);
 		break;
 	}
 	cb->ti = ti | dev<<Permapshift | Inten;
@@ -182,15 +196,15 @@ dmastart(int chan, int dev, int dir, void *src, void *dst, int len)
 	cachedwbse(cb, sizeof(Cb));
 	ctlr->regs[Cs] = 0;
 	microdelay(1);
-	ctlr->regs[Conblkad] = DMAADDR(cb);
+	ctlr->regs[Conblkad] = dmaaddr(cb);
 	DBG print("dma start: %ux %ux %ux %ux %ux %ux\n",
 		cb->ti, cb->sourcead, cb->destad, cb->txfrlen,
 		cb->stride, cb->nextconbk);
 	DBG print("intstatus %ux\n", dmaregs[Intstatus]);
 	dmaregs[Intstatus] = 0;
 	ctlr->regs[Cs] = Int;
-	microdelay(1);
 	coherence();
+	microdelay(1);
 	DBG dumpdregs("before Active", ctlr->regs);
 	ctlr->regs[Cs] = Active;
 	DBG dumpdregs("after Active", ctlr->regs);

@@ -1,5 +1,5 @@
 /*
- * arm-specific definitions for armv6
+ * arm-specific definitions for armv6 (arm11), armv7 (cortex-a8 and -a7)
  * these are used in C and assembler
  */
 
@@ -12,6 +12,7 @@
 #define PsrMsvc		0x00000013	/* `protected mode for OS' */
 #define PsrMmon		0x00000016	/* `secure monitor' (trustzone hyper) */
 #define PsrMabt		0x00000017
+#define PsrMhyp		0x0000001A
 #define PsrMund		0x0000001B
 #define PsrMsys		0x0000001F	/* `privileged user mode for OS' (trustzone) */
 #define PsrMask		0x0000001F
@@ -52,7 +53,17 @@
 #define CpTLD		10			/* TLB Lockdown, with op2 */
 #define CpVECS		12			/* vector bases, op1==0, Crm==0, op2s (cortex) */
 #define	CpPID		13			/* Process ID */
+#define	CpTIMER		14			/* Generic timer (cortex-a7) */
 #define CpSPM		15			/* system performance monitor (arm1176) */
+
+/*
+ * CpTIMER op1==0 Crm and opcode2 registers (cortex-a7)
+ */
+#define	CpTIMERcntfrq	0
+#define CpTIMERphys		2
+
+#define CpTIMERphysval	0
+#define CpTIMERphysctl	1
 
 /*
  * CpTTB op1==0, Crm==0 opcode2 values.
@@ -71,6 +82,7 @@
  * CpID Secondary (CRm) registers.
  */
 #define CpIDidct	0
+#define	CpIDfeat	1
 
 /*
  * CpID op1==0 opcode2 fields.
@@ -80,6 +92,7 @@
 #define CpIDct		1			/* cache type */
 #define CpIDtlb		3			/* tlb type (cortex) */
 #define CpIDmpid	5			/* multiprocessor id (cortex) */
+#define	CpIDrevid	6			/* extra revision ID */
 
 /* CpIDid op1 values */
 #define CpIDcsize	1			/* cache size (cortex) */
@@ -133,6 +146,10 @@
 #define CpACasa			(1<<4)	/* enable speculative accesses */
 #define CpACl1pe		(1<<3)	/* l1 cache parity enable */
 #define CpACl2en		(1<<1)	/* l2 cache enable; default 1 */
+
+/* cortex-a7 and cortex-a9 */
+#define CpACsmp			(1<<6)	/* SMP l1 caches coherence; needed for ldrex/strex */
+#define CpACl1pctl		(3<<13)	/* l1 prefetch control */
 /*
  * CpCONTROL Secondary (CRm) registers and opcode2 fields.
  */
@@ -151,9 +168,9 @@
 #define CpCACHEinvd	6			/* data or unified */
 #define CpCACHEinvu	7			/* unified (not on cortex) */
 #define CpCACHEva2pa	8			/* va -> pa translation (cortex) */
-#define CpCACHEwb	10			/* writeback */
-#define CpCACHEinvdse	11			/* data or unified by mva */
-#define CpCACHEwbi	14			/* writeback+invalidate */
+#define CpCACHEwb	10			/* writeback to PoC */
+#define CpCACHEwbu	11			/* writeback to PoU */
+#define CpCACHEwbi	14			/* writeback+invalidate (to PoC) */
 
 #define CpCACHEall	0			/* entire (not for invd nor wb(i) on cortex) */
 #define CpCACHEse	1			/* single entry */
@@ -223,7 +240,7 @@
 #define CpVECSmon	1			/* secure monitor base addr */
 
 /*
- * CpSPM Secondary (CRm) registers and opcode2 fields.
+ * CpSPM Secondary (CRm) registers and opcode2 fields (armv6)
  */
 #define CpSPMperf	12			/* various counters */
 
@@ -239,6 +256,21 @@
 #define CpCACHERANGEdwbi	14		/* writeback+invalidate */
 
 /*
+ * CpTTB cache control bits
+ */
+#define CpTTBnos	(1<<5)	/* only Inner cache shareable */
+#define CpTTBinc	(0<<0|0<<6)	/* inner non-cacheable */
+#define CpTTBiwba	(0<<0|1<<6)	/* inner write-back write-allocate */
+#define CpTTBiwt	(1<<0|0<<6)	/* inner write-through */
+#define CpTTBiwb	(1<<0|1<<6)	/* inner write-back no write-allocate */
+#define CpTTBonc	(0<<3)	/* outer non-cacheable */
+#define CpTTBowba	(1<<3)	/* outer write-back write-allocate */
+#define CpTTBowt	(2<<3)	/* outer write-through */
+#define CpTTBowb	(3<<3)	/* outer write-back no write-allocate */
+#define CpTTBs	(1<<1)	/* page table in shareable memory */
+#define CpTTBbase	~0x7F		/* mask off control bits */
+
+/*
  * MMU page table entries.
  * Mbz (0x10) bit is implementation-defined and must be 0 on the cortex.
  */
@@ -248,6 +280,7 @@
 #define Coarse		(Mbz|1)			/* L1 */
 #define Section		(Mbz|2)			/* L1 1MB */
 #define Fine		(Mbz|3)			/* L1 */
+#define Super		(1<<18)			/* L1 16MB */
 
 #define Large		0x00000001		/* L2 64KB */
 #define Small		0x00000002		/* L2 4KB */
@@ -255,6 +288,16 @@
 #define Buffered	0x00000004		/* L[12]: write-back not -thru */
 #define Cached		0x00000008		/* L[12] */
 #define Dom0		0
+
+#define L1wralloc	(1<<12)			/* L1 TEX */
+#define L1sharable	(1<<16)
+#define	L1noexec	(1<<4)
+#define L2wralloc	(1<<6)			/* L2 TEX (small pages) */
+#define L2sharable	(1<<10)
+
+/* attributes for memory containing locks -- differs between armv6 and armv7 */
+//#define L1ptedramattrs	(Cached | Buffered | L1wralloc | L1sharable)
+//#define L2ptedramattrs	(Cached | Buffered | L2wralloc | L2sharable)
 
 #define Noaccess	0			/* AP, DAC */
 #define Krw		1			/* AP */
@@ -267,7 +310,7 @@
 #define F(v, o, w)	(((v) & ((1<<(w))-1))<<(o))
 #define AP(n, v)	F((v), ((n)*2)+4, 2)
 #define L1AP(ap)	(AP(3, (ap)))
-#define L2AP(ap) (AP(3, (ap))|AP(2, (ap))|AP(1, (ap))|AP(0, (ap))) /* pre-armv7 */
+/* L2AP differs between armv6 and armv7 -- see l2ap in arch*.c */
 #define DAC(n, v)	F((v), (n)*2, 2)
 
 #define HVECTORS	0xffff0000

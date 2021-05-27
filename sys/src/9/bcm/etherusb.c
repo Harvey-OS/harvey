@@ -8,6 +8,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
+#include "ureg.h"
 #include "../port/error.h"
 #include "../port/netif.h"
 
@@ -29,6 +30,8 @@ enum {
 	SmscRxerror	= 0x8000,
 	SmscTxfirst	= 0x2000,
 	SmscTxlast	= 0x1000,
+	Lan78Rxerror = 0x00400000,
+	Lan78Txfcs	= 1<<22,
 };
 
 typedef struct Ctlr Ctlr;
@@ -63,15 +66,18 @@ static Cmdtab cmds[] = {
 	{ Unbind,	"unbind",	0, },
 };
 
-static Unpackfn unpackcdc, unpackasix, unpacksmsc;
-static Transmitfn transmitcdc, transmitasix, transmitsmsc;
+static Unpackfn unpackcdc, unpackasix, unpacksmsc, unpacklan78;
+static Transmitfn transmitcdc, transmitasix, transmitsmsc, transmitlan78;
 
 static Udev udevtab[] = {
 	{ "cdc",	unpackcdc,	transmitcdc, },
 	{ "asix",	unpackasix,	transmitasix, },
 	{ "smsc",	unpacksmsc,	transmitsmsc, },
+	{ "lan78xx",	unpacklan78, transmitlan78, },
 	{ nil },
 };
+
+static char nullea[Eaddrlen];
 
 static void
 dump(int c, Block *b)
@@ -175,6 +181,33 @@ unpacksmsc(Ether *edev, Block *b)
 	return 0;
 }
 
+static int
+unpacklan78(Ether *edev, Block *b)
+{
+	ulong hd;
+	int m;
+
+	if(BLEN(b) < 10)
+		return -1;
+	hd = GET4(b->rp);
+	b->rp += 10;
+	m = hd & 0x3FFF;
+	if(m < 6 || m > BLEN(b))
+		return -1;
+	if(hd & Lan78Rxerror){
+		edev->frames++;
+		b->rp += m;
+		if(BLEN(b) == 0){
+			freeb(b);
+			return 1;
+		}
+	}else if(unpack(edev, b, m) == 1)
+		return 1;
+	if(BLEN(b) > 0)
+		b->rp = (uchar*)((((uintptr)b->rp)+3)&~3);
+	return 0;
+}
+
 static void
 transmit(Ctlr *ctlr, Block *b)
 {
@@ -198,10 +231,10 @@ transmitasix(Ctlr *ctlr, Block *b)
 
 	n = BLEN(b) & 0xFFFF;
 	n |= ~n << 16;
-	padblock(b, 4);
+	b = padblock(b, 4);
 	PUT4(b->rp, n);
 	if(BLEN(b) % ctlr->maxpkt == 0){
-		padblock(b, -4);
+		b = padblock(b, -4);
 		PUT4(b->wp, 0xFFFF0000);
 		b->wp += 4;
 	}
@@ -214,8 +247,20 @@ transmitsmsc(Ctlr *ctlr, Block *b)
 	int n;
 
 	n = BLEN(b) & 0x7FF;
-	padblock(b, 8);
+	b = padblock(b, 8);
 	PUT4(b->rp, n | SmscTxfirst | SmscTxlast);
+	PUT4(b->rp+4, n);
+	transmit(ctlr, b);
+}
+
+static void
+transmitlan78(Ctlr *ctlr, Block *b)
+{
+	int n;
+
+	n = BLEN(b) & 0xFFFFF;
+	b = padblock(b, 8);
+	PUT4(b->rp, n | Lan78Txfcs);
 	PUT4(b->rp+4, n);
 	transmit(ctlr, b);
 }
@@ -263,6 +308,7 @@ bind(Ctlr *ctlr, Udev *udev, Cmdbuf *cb)
 	Chan *inchan, *outchan;
 	char *buf;
 	uint bufsize, maxpkt;
+	uchar ea[Eaddrlen];
 
 	qlock(ctlr);
 	inchan = outchan = nil;
@@ -288,10 +334,12 @@ bind(Ctlr *ctlr, Udev *udev, Cmdbuf *cb)
 	inchan = namec(cb->f[2], Aopen, OREAD, 0);
 	outchan = namec(cb->f[3], Aopen, OWRITE, 0);
 	assert(inchan != nil && outchan != nil);
-	if(parsemac(ctlr->edev->ea, cb->f[4], Eaddrlen) != Eaddrlen)
+	if(parsemac(ea, cb->f[4], Eaddrlen) != Eaddrlen)
 		cmderror(cb, "bad etheraddr");
-	memmove(ctlr->edev->addr, ctlr->edev->ea, Eaddrlen);
-	print("\netherusb %s: %E\n", udev->name, ctlr->edev->addr);
+	if(memcmp(ctlr->edev->ea, nullea, Eaddrlen) == 0)
+		memmove(ctlr->edev->ea, ea, Eaddrlen);
+	else if(memcmp(ctlr->edev->ea, ea, Eaddrlen) != 0)
+		cmderror(cb, "wrong ether address");
 	ctlr->buf = buf;
 	ctlr->inchan = inchan;
 	ctlr->outchan = outchan;
@@ -299,6 +347,8 @@ bind(Ctlr *ctlr, Udev *udev, Cmdbuf *cb)
 	ctlr->maxpkt = maxpkt;
 	ctlr->udev = udev;
 	kproc("etherusb", etherusbproc, ctlr->edev);
+	memmove(ctlr->edev->addr, ea, Eaddrlen);
+	print("\netherusb %s: %E\n", udev->name, ctlr->edev->addr);
 	poperror();
 	qunlock(ctlr);
 }
@@ -397,12 +447,32 @@ etherusbctl(Ether* edev, void* buf, long n)
 }
 
 static void
+etherusbmulticast(void*, uchar*, int)
+{
+	/* nothing to do, we allow all multicast packets in */
+}
+
+static void
+etherusbshutdown(Ether*)
+{
+}
+
+static void
 etherusbattach(Ether* edev)
 {
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
-	ctlr->edev = edev;
+	if(ctlr->edev == 0){
+		/*
+		 * Don't let boot process access etherusb until
+		 * usbether driver has assigned an address.
+		 */
+		if(up->pid == 1 && strcmp(up->text, "boot") == 0)
+			while(memcmp(edev->ea, nullea, Eaddrlen) == 0)
+				tsleep(&up->sleep, return0, 0, 100);
+		ctlr->edev = edev;
+	}
 }
 
 static int
@@ -427,8 +497,8 @@ etherusbpnp(Ether* edev)
 	edev->arg = edev;
 	/* TODO: promiscuous, multicast (for ipv6), shutdown (for reboot) */
 //	edev->promiscuous = etherusbpromiscuous;
-//	edev->shutdown = etherusbshutdown;
-//	edev->multicast = etherusbmulticast;
+	edev->shutdown = etherusbshutdown;
+	edev->multicast = etherusbmulticast;
 
 	return 0;
 }

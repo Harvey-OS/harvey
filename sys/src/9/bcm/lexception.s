@@ -27,6 +27,7 @@ TEXT vtable(SB), 1, $-4
 	WORD	$_vfiq(SB)		/* FIQ, switch to svc mode */
 
 TEXT _vsvc(SB), 1, $-4			/* SWI */
+	CLREX
 	MOVW.W	R14, -4(R13)		/* ureg->pc = interrupted PC */
 	MOVW	SPSR, R14		/* ureg->psr = SPSR */
 	MOVW.W	R14, -4(R13)		/* ... */
@@ -39,9 +40,16 @@ TEXT _vsvc(SB), 1, $-4			/* SWI */
 
 	MOVW	$setR12(SB), R12	/* Make sure we've got the kernel's SB loaded */
 
-//	MOVW	$(KSEG0+16*KiB-MACHSIZE), R10	/* m */
-	MOVW	$(MACHADDR), R10	/* m */
-	MOVW	8(R10), R9		/* up */
+	/* get R(MACH) for this cpu */
+	CPUID(R1)
+	SLL	$2, R1			/* convert to word index */
+	MOVW	$machaddr(SB), R2
+	ADD	R1, R2
+	MOVW	(R2), R(MACH)		/* m = machaddr[cpuid] */
+	CMP	$0, R(MACH)
+	MOVW.EQ	$MACHADDR, R0		/* paranoia: use MACHADDR if 0 */
+
+	MOVW	8(R(MACH)), R(USER)		/* up */
 
 	MOVW	R13, R0			/* first arg is pointer to ureg */
 	SUB	$8, R13			/* space for argument+link */
@@ -81,6 +89,7 @@ TEXT _virq(SB), 1, $-4			/* IRQ */
 	 *  we'll switch to SVC mode and then call trap.
 	 */
 _vswitch:
+	CLREX
 	MOVW	SPSR, R1		/* save SPSR for ureg */
 	MOVW	R14, R2			/* save interrupted pc for ureg */
 	MOVW	R13, R3			/* save pointer to where the original [R0-R4] are */
@@ -119,7 +128,16 @@ _vswitch:
 
 	BL	trap(SB)
 
+	MOVW	$setR12(SB), R12	/* reload kernel's SB (ORLY?) */
 	ADD	$(4*2+4*15), R13	/* make r13 point to ureg->type */
+	/*
+	 * if we interrupted a previous trap's handler and are now
+	 * returning to it, we need to propagate the current R(MACH) (R10)
+	 * by overriding the saved one on the stack, since we may have
+	 * been rescheduled and be on a different processor now than
+	 * at entry.
+	 */
+	MOVW	R(MACH), (-(15-MACH)*4)(R13) /* restore current cpu's MACH */
 	MOVW	8(R13), R14		/* restore link */
 	MOVW	4(R13), R0		/* restore SPSR */
 	MOVW	R0, SPSR		/* ... */
@@ -140,9 +158,16 @@ _userexcep:
 
 	MOVW	$setR12(SB), R12	/* Make sure we've got the kernel's SB loaded */
 
-//	MOVW	$(KSEG0+16*KiB-MACHSIZE), R10	/* m */
-	MOVW	$(MACHADDR), R10	/* m */
-	MOVW	8(R10), R9		/* up */
+	/* get R(MACH) for this cpu */
+	CPUID(R1)
+	SLL	$2, R1			/* convert to word index */
+	MOVW	$machaddr(SB), R2
+	ADD	R1, R2
+	MOVW	(R2), R(MACH)		/* m = machaddr[cpuid] */
+	CMP	$0, R(MACH)
+	MOVW.EQ	$MACHADDR, R(MACH)		/* paranoia: use MACHADDR if 0 */
+
+	MOVW	8(R(MACH)), R(USER)		/* up */
 
 	MOVW	R13, R0			/* first arg is pointer to ureg */
 	SUB	$(4*2), R13		/* space for argument+link (for debugger) */
@@ -158,14 +183,24 @@ _userexcep:
 	RFE				/* MOVM.IA.S.W (R13), [R15] */
 
 TEXT _vfiq(SB), 1, $-4			/* FIQ */
+	CLREX
 	MOVW	$PsrMfiq, R8		/* trap type */
 	MOVW	SPSR, R9		/* interrupted psr */
 	MOVW	R14, R10		/* interrupted pc */
 	MOVM.DB.W [R8-R10], (R13)	/* save in ureg */
-	MOVM.DB.W.S [R0-R14], (R13)	/* save interrupted regs */
+	MOVM.DB.S [R0-R14], (R13)	/* save interrupted regs */
+	SUB	$(15*4), R13
 	MOVW	$setR12(SB), R12	/* Make sure we've got the kernel's SB loaded */
-	MOVW	$(MACHADDR), R10	/* m */
-	MOVW	8(R10), R9		/* up */
+	/* get R(MACH) for this cpu */
+	CPUID(R1)
+	SLL	$2, R1			/* convert to word index */
+	MOVW	$machaddr(SB), R2
+	ADD	R1, R2
+	MOVW	(R2), R(MACH)		/* m = machaddr[cpuid] */
+	CMP	$0, R(MACH)
+	MOVW.EQ	$MACHADDR, R(MACH)		/* paranoia: use MACHADDR if 0 */
+
+	MOVW	8(R(MACH)), R(USER)		/* up */
 	MOVW	R13, R0			/* first arg is pointer to ureg */
 	SUB	$(4*2), R13		/* space for argument+link (for debugger) */
 
@@ -187,6 +222,7 @@ TEXT setr13(SB), 1, $-4
 
 	MOVW	CPSR, R2
 	BIC	$PsrMask, R2, R3
+	ORR	$(PsrDirq|PsrDfiq), R3
 	ORR	R0, R3
 	MOVW	R3, CPSR		/* switch to new mode */
 

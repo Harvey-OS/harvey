@@ -1,0 +1,14 @@
+raspberry pi 4 -- work in progress!
+
+broadcom 2838 SoC (based on 2711)
+4 x cortex-a72 (1500Mhz, out-of-order pipeline)
+
+Needs firmware from 5 July 2019 or later.
+
+config.txt for pi4 should include 'core_freq=250' for
+the mini-uart console, and 'device_tree=' to ensure that
+the loader passes an ATAG list to the kernel instead of
+a device tree.
+
+On a 4GB (or 2GB) pi4, a little less than 2GB will be
+used.  (0x7D000000 bytes to be precise.)

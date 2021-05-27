@@ -15,6 +15,7 @@ enum {
 typedef struct Conf	Conf;
 typedef struct Confmem	Confmem;
 typedef struct FPsave	FPsave;
+typedef struct I2Cdev	I2Cdev;
 typedef struct ISAConf	ISAConf;
 typedef struct Label	Label;
 typedef struct Lock	Lock;
@@ -27,6 +28,7 @@ typedef struct PhysUart	PhysUart;
 typedef struct PMMU	PMMU;
 typedef struct Proc	Proc;
 typedef u32int		PTE;
+typedef struct Soc	Soc;
 typedef struct Uart	Uart;
 typedef struct Ureg	Ureg;
 typedef uvlong		Tval;
@@ -105,7 +107,7 @@ struct Conf
 {
 	ulong	nmach;		/* processors */
 	ulong	nproc;		/* processes */
-	Confmem	mem[1];		/* physical memory */
+	Confmem	mem[2];		/* physical memory */
 	ulong	npage;		/* total physical pages of memory */
 	usize	upages;		/* user page pool */
 	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
@@ -118,6 +120,28 @@ struct Conf
 	ulong	mhz;
 	int	monitor;	/* flag */
 };
+
+struct I2Cdev {
+	int	salen;
+	int	addr;
+	int	tenbit;
+};
+
+/*
+ * GPIO
+ */
+enum {
+	Input	= 0x0,
+	Output	= 0x1,
+	Alt0	= 0x4,
+	Alt1	= 0x5,
+	Alt2	= 0x6,
+	Alt3	= 0x7,
+	Alt4	= 0x3,
+	Alt5	= 0x2,
+};
+
+
 
 /*
  *  things saved in the Proc structure during a notify
@@ -135,16 +159,20 @@ struct MMMU
 	int	mmul1lo;
 	int	mmul1hi;
 	int	mmupid;
+	PTE*	kmapl2;		/* l2 for section containing kmap area and vectors */
 };
 
 /*
  *  MMU stuff in proc
  */
 #define NCOLOR	1		/* 1 level cache, don't worry about VCE's */
+#define NKMAPS	4
 struct PMMU
 {
 	Page*	mmul2;
 	Page*	mmul2cache;	/* free mmu pages */
+	int	nkmap;
+	PTE	kmaptab[NKMAPS];
 };
 
 #include "../port/portdat.h"
@@ -216,8 +244,9 @@ struct Mach
  */
 typedef void		KMap;
 #define	VA(k)		((uintptr)(k))
-#define	kmap(p)		(KMap*)((p)->pa|kseg0)
-#define	kunmap(k)
+//#define	kmap(p)		(KMap*)((p)->pa|kseg0)
+extern KMap* kmap(Page*);
+extern void kunmap(KMap*);
 
 struct
 {
@@ -284,3 +313,14 @@ struct DevConf
 	Devport	*ports;			/* The ports themselves */
 };
 
+struct Soc {			/* SoC dependent configuration */
+	ulong	dramsize;
+	uintptr	physio;
+	uintptr	busdram;
+	uintptr	busio;
+	uintptr	armlocal;
+	uint	oscfreq;
+	u32int	l1ptedramattrs;
+	u32int	l2ptedramattrs;
+};
+extern Soc soc;

@@ -33,10 +33,12 @@ ip
 	ipmux
 
 misc
-	uartmini
+	armv6
+	trap
+	uartmini	gpio
 	sdmmc	emmc
 	dma
-	vfp3	coproc
+	vfp3
 
 port
 	int cpuserver = 0;

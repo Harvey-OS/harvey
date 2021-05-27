@@ -1,5 +1,5 @@
-CONF=pi
-CONFLIST=pi picpu pifat
+CONF=pi2
+CONFLIST=pi picpu pifat pi2 pi2cpu pi4 pi4cpu piwifi pi2wifi pi4wifi
 EXTRACOPIES=
 
 loadaddr=0x80008000
@@ -8,7 +8,7 @@ objtype=arm
 </$objtype/mkfile
 p=9
 
-DEVS=`{rc ../port/mkdevlist $CONF}
+DEVS=`{rc ../port/mkdevlist $CONF|sort}
 
 PORT=\
 	alarm.$O\
@@ -29,6 +29,7 @@ PORT=\
 	proc.$O\
 	qio.$O\
 	qlock.$O\
+	random.$O\
 	rdb.$O\
 	rebootcmd.$O\
 	segment.$O\
@@ -51,15 +52,15 @@ OBJ=\
 	fpimem.$O\
 	main.$O\
 	mmu.$O\
-	random.$O\
 	syscall.$O\
-	trap.$O\
-	$CONF.root.$O\
-	$CONF.rootc.$O\
+#	trap.$O\
 	$DEVS\
 	$PORT\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
 
-# HFILES=
+HFILES=\
+	arm.h
 
 LIB=\
 	/$objtype/lib/libmemlayer.a\
@@ -75,7 +76,7 @@ LIB=\
 $p$CONF:DQ:	$CONF.c $OBJ $LIB mkfile
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 	echo '# linking raw kernel'	# H6: no headers, data segment aligned
-	$LD -l -o $target -H6 -R4096 -T$loadaddr $OBJ $CONF.$O $LIB
+	$LD -s -l -o $target -H6 -R4096 -T$loadaddr $OBJ $CONF.$O $LIB
 
 s$p$CONF:DQ:	$CONF.$O $OBJ $LIB
 	echo '# linking kernel with symbols'
@@ -101,17 +102,17 @@ install:V: /$objtype/$p$CONF
 <../port/portmkfile
 <|../port/mkbootrules $CONF
 
-arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O syscall.$O trap.$O: \
+arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O syscall.$O trap.$O trap4.$O: \
 	/$objtype/include/ureg.h
 
-archbcm.$O devether.$0: etherif.h ../port/netif.h
-archbcm.$O: ../port/flashif.h
+archbcm.$O archbcm2.$O devether.$0 etherusb.$O: etherif.h ../port/netif.h
 fpi.$O fpiarm.$O fpimem.$O: ../port/fpi.h
-l.$O lexception.$O lproc.$O mmu.$O: arm.s mem.h
+l.$O lexception.$O lproc.$O armv6.$O armv7.$O: arm.s
+armv7.$O: cache.v7.s
 main.$O: errstr.h init.h reboot.h
-devmouse.$O mouse.$O screen.$O: screen.h
-devusb.$O: ../port/usb.h
-usbehci.$O usbohci.$O usbuhci.$O: ../port/usb.h usbehci.h uncached.h
+mouse.$O screen.$O: screen.h
+devusb.$O usbdwc.$O: ../port/usb.h
+usbdwc.$O: dwcotg.h
 
 init.h:D:	../port/initcode.c init9.s
 	$CC ../port/initcode.c
@@ -125,7 +126,7 @@ init.h:D:	../port/initcode.c init9.s
 reboot.h:D:	rebootcode.s arm.s arm.h mem.h
 	$AS rebootcode.s
 	# -lc is only for memmove.  -T arg is PADDR(REBOOTADDR)
-	$LD -l -s -T0x3400 -R4 -o reboot.out rebootcode.$O -lc
+	$LD -l -s -T0x1800 -R4 -o reboot.out rebootcode.$O -lc
 	{echo 'uchar rebootcode[]={'
 	 xd -1x reboot.out |
 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'

@@ -1,0 +1,11 @@
+raspberry pi 2 -- differences from raspberry pi
+
+broadcom 2836 SoC (based on 2709)
+4 x cortex-a7 (v7 arch) 900Mhz cpu, dual-issue, vfpv3+
+
+integral l2 cache
+
+1GB of dram at physical address 0
+
+peripherals   at 0x3F000000
+gpu/dma space at 0xC0000000

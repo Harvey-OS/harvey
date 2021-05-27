@@ -220,6 +220,7 @@ fld(void (*f)(Internal*, void*), int d, ulong ea, int n, FPsave *ufp)
 {
 	void *mem;
 
+	validaddr(ea, n, 0);
 	mem = (void*)ea;
 	(*f)(&FR(ufp, d), mem);
 	if(fpemudebug)
@@ -232,6 +233,7 @@ fst(void (*f)(void*, Internal*), ulong ea, int s, int n, FPsave *ufp)
 	Internal tmp;
 	void *mem;
 
+	validaddr(ea, n, 1);
 	mem = (void*)ea;
 	tmp = FR(ufp, s);
 	if(fpemudebug)

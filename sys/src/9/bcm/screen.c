@@ -37,10 +37,11 @@ Cursor	arrow = {
 };
 
 Memimage *gscreen;
+Lcd	*lcd;
 
 static Memdata xgdata;
 
-static Memimage xgscreen =
+/*static*/ Memimage xgscreen =
 {
 	{ 0, 0, Wid, Ht },	/* r */
 	{ 0, 0, Wid, Ht },	/* clipr */
@@ -287,18 +288,24 @@ hwdraw(Memdrawparam *par)
 	if(mask->data->bdata == xgdata.bdata)
 		swcursoravoid(par->mr);
 
+	if(lcd)
+		lcd->draw(par->r);
+
 	return 0;
 }
 
 static int
 screensize(void)
 {
-	char *p;
+	char *p, buf[32];
 	char *f[3];
 	int width, height, depth;
 
 	p = getconf("vgasize");
-	if(p == nil || getfields(p, f, nelem(f), 0, "x") != nelem(f) ||
+	if(p == nil || memccpy(buf, p, '\0', sizeof buf) == nil)
+		return -1;
+
+	if(getfields(buf, f, nelem(f), 0, "x") != nelem(f) ||
 	    (width = atoi(f[0])) < 16 ||
 	    (height = atoi(f[1])) <= 0 ||
 	    (depth = atoi(f[2])) <= 0)
@@ -312,16 +319,23 @@ void
 screeninit(void)
 {
 	uchar *fb;
-	int set;
+	char *p;
+	int set, rgbswap;
 	ulong chan;
 
 	set = screensize() == 0;
 	fb = fbinit(set, &xgscreen.r.max.x, &xgscreen.r.max.y, &xgscreen.depth);
 	if(fb == nil){
+		xgscreen.r.max = Pt(640, 480);
+		xgscreen.depth = 16;
+		fb = fbinit(set, &xgscreen.r.max.x, &xgscreen.r.max.y, &xgscreen.depth);
+	}
+	if(fb == nil){
 		print("can't initialise %dx%dx%d framebuffer \n",
 			xgscreen.r.max.x, xgscreen.r.max.y, xgscreen.depth);
 		return;
 	}
+	rgbswap = ((p = getconf("bcm2708_fb.fbswap")) != nil && *p == '1');
 	xgscreen.clipr = xgscreen.r;
 	switch(xgscreen.depth){
 	default:
@@ -332,10 +346,10 @@ screeninit(void)
 		chan = RGB16;
 		break;
 	case 24:
-		chan = BGR24;
+		chan = rgbswap? RGB24 : BGR24;
 		break;
 	case 32:
-		chan = ARGB32;
+		chan = rgbswap? XRGB32 : XBGR32;
 		break;
 	}
 	memsetchan(&xgscreen, chan);
@@ -385,6 +399,8 @@ void
 blankscreen(int blank)
 {
 	fbblank(blank);
+	if(lcd)
+		lcd->blank(blank);
 }
 
 static void
@@ -471,9 +487,13 @@ scroll(void)
 	p = Pt(window.min.x, window.min.y+o);
 	memimagedraw(gscreen, r, gscreen, p, nil, p, S);
 	flushmemscreen(r);
+	if(lcd)
+		lcd->draw(r);
 	r = Rpt(Pt(window.min.x, window.max.y-o), window.max);
 	memimagedraw(gscreen, r, back, ZP, nil, ZP, S);
 	flushmemscreen(r);
+	if(lcd)
+		lcd->draw(r);
 
 	curpos.y -= o;
 }

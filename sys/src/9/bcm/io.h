@@ -8,10 +8,25 @@ enum {
 	IRQdma0		= 16,
 #define IRQDMA(chan)	(IRQdma0+(chan))
 	IRQaux		= 29,
+	IRQi2c		= 53,
+	IRQspi		= 54,
+	IRQsdhost	= 56,
 	IRQmmc		= 62,
 
 	IRQbasic	= 64,
 	IRQtimerArm	= IRQbasic + 0,
+
+	IRQpci		= 84,
+	IRQether	= 93,
+
+	IRQlocal	= 96,
+	IRQcntps	= IRQlocal + 0,
+	IRQcntpns	= IRQlocal + 1,
+	IRQmbox0	= IRQlocal + 4,
+	IRQmbox1	= IRQlocal + 5,
+	IRQmbox2	= IRQlocal + 6,
+	IRQmbox3	= IRQlocal + 7,
+	IRQlocaltmr	= IRQlocal + 11,
 
 	IRQfiq		= IRQusb,	/* only one source can be FIQ */
 
@@ -20,7 +35,14 @@ enum {
 	DmaM2M		= 2,		/* memory to memory */
 
 	DmaChanEmmc	= 4,		/* can only use 2-5, maybe 0 */
+	DmaChanSdhost	= 5,
+	DmaChanSpiTx= 2,
+	DmaChanSpiRx= 0,
+
+	DmaDevSpiTx	= 6,
+	DmaDevSpiRx	= 7,
 	DmaDevEmmc	= 11,
+	DmaDevSdhost	= 13,
 
 	PowerSd		= 0,
 	PowerUart0,

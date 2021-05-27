@@ -1,0 +1,70 @@
+#!/boot/rc -m /boot/rcmain
+
+wifi=/net/ether1
+
+fn need {
+	while (~ $#$1 0) {
+		echo -n $1': '
+		$1=`{read}
+	}
+}
+
+fn joinwifi {
+	need essid
+	echo essid $essid >$wifi/clone
+	need wificrypt
+	wifip=p
+	if (! ~ $#wifipass 0) {
+		factotum -g 'proto=wpapsk essid='$essid' !password='$wifipass
+		wifip=''
+	}
+	switch ($wificrypt) {
+		case wep
+			echo crypt wep >$wifi/clone
+			need wep_password
+			echo key0 $wep_password >$wifi/clone
+			rm /env/wep_password
+		case wpa wpa1
+			wpa -1p $wifi
+		case wpa2
+			wpa -2$wifip $wifi
+	}
+}
+
+path=(/bin /boot)
+bind '#p' /proc
+bind '#d' /fd
+bind -a '#P' /dev
+bind -a '#t' /dev
+bind -a '#S' /dev
+bind -a '#I' /net
+bind -a '#l0' /net
+bind -a '#l1' /net || wifi=/net/ether0
+
+usbd
+
+need fs
+need auth
+
+factotum -u -s factotum -a $auth
+joinwifi
+ipconfig ether $wifi
+srv tcp!$fs!564 boot
+
+rootdir=/root
+rootspec=''
+mount -c /srv/boot /root
+bind -ac $rootdir /
+bind -ac $rootdir/mnt /mnt
+
+bind /$cputype/bin /bin
+bind -a /rc/bin /bin
+path=(. /bin)
+
+if (! ~ $#init 0)
+	exec `{echo $init}
+if (~ $service cpu)
+	exec /$cputype/init -c
+if not
+	exec /$cputype/init -t
+exec /boot/rc -m/boot/rcmain -i

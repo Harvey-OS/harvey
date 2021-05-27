@@ -1,8 +1,15 @@
 typedef struct Cursor Cursor;
 typedef struct Cursorinfo Cursorinfo;
+typedef struct Lcd Lcd;
+
 struct Cursorinfo {
 	Cursor;
 	Lock;
+};
+
+struct Lcd {
+	void	(*draw)(Rectangle);
+	void	(*blank)(int);
 };
 
 /* devmouse.c */

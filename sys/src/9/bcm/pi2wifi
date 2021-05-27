@@ -1,0 +1,79 @@
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	arch
+	ssl
+	tls
+	cap
+	fs
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+	draw	screen
+	mouse	mouse
+	kbmap
+	kbin	kbd latin1
+	uart
+	gpio	gpio
+	spi		spi
+	i2c		i2c
+
+	fakertc
+#	rtc3231		i2c
+	ether	netif
+	sd
+	usb
+
+link
+	archbcm2
+	loopbackmedium
+	ethermedium
+	sdhost
+	usbdwc
+	etherusb
+	ether4330 emmc
+	pitft
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	ipmux
+
+misc
+	armv7
+	trap
+	uartmini	gpio
+	sdmmc	emmc
+	dma
+	vcore
+	vfp3
+
+port
+	int cpuserver = 0;
+
+boot boot #S/sdM0/
+	local
+	tcp
+
+bootdir
+	bootwifi.rc			boot
+	/arm/bin/rc
+	/rc/lib/rcmain
+	/arm/bin/usb/usbd
+	/arm/bin/auth/factotum
+	/arm/bin/srv
+	/arm/bin/aux/wpa wpa
+	/arm/bin/ip/ipconfig
+	/arm/bin/mount
+	/arm/bin/bind
+	/arm/bin/echo
+	/arm/bin/read
+	/sys/lib/firmware/brcmfmac43430-sdio.bin
+	/sys/lib/firmware/brcmfmac43430-sdio.txt
