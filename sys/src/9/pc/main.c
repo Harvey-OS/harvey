@@ -913,53 +913,6 @@ isaconfig(char *class, int ctlrno, ISAConf *isa)
 	return 1;
 }
 
-int
-cistrcmp(char *a, char *b)
-{
-	int ac, bc;
-
-	for(;;){
-		ac = *a++;
-		bc = *b++;
-	
-		if(ac >= 'A' && ac <= 'Z')
-			ac = 'a' + (ac - 'A');
-		if(bc >= 'A' && bc <= 'Z')
-			bc = 'a' + (bc - 'A');
-		ac -= bc;
-		if(ac)
-			return ac;
-		if(bc == 0)
-			break;
-	}
-	return 0;
-}
-
-int
-cistrncmp(char *a, char *b, int n)
-{
-	unsigned ac, bc;
-
-	while(n > 0){
-		ac = *a++;
-		bc = *b++;
-		n--;
-
-		if(ac >= 'A' && ac <= 'Z')
-			ac = 'a' + (ac - 'A');
-		if(bc >= 'A' && bc <= 'Z')
-			bc = 'a' + (bc - 'A');
-
-		ac -= bc;
-		if(ac)
-			return ac;
-		if(bc == 0)
-			break;
-	}
-
-	return 0;
-}
-
 /*
  *  put the processor in the halt state if we've no processes to run.
  *  an interrupt will get us going again.
