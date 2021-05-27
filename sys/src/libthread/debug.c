@@ -42,7 +42,7 @@ _threadassert(char *s)
 
 	p = _threadgetproc();
 	if(p && p->thread)
-		n = sprint(buf, "%d.%d ", p->pid, p->thread->id);
+		n = snprint(buf, sizeof buf, "%d.%d ", p->pid, p->thread->id);
 	else
 		n = 0;
 	snprint(buf+n, sizeof(buf)-n, "%s: assertion failed\n", s);
