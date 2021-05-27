@@ -1548,7 +1548,7 @@ ahcibuild(Drive *d, uchar *cmd, void *data, int n, vlong lba)
 
 	c[8] = lba >> 24;	/* sector (exp)		lba 	31:24 */
 	c[9] = lba >> 32;	/* cylinder low (exp)	lba	39:32 */
-	c[10] = lba >> 48;	/* cylinder hi (exp)	lba	48:40 */
+	c[10] = lba >> 40;	/* cylinder hi (exp)	lba	47:40 */
 	c[11] = 0;		/* features (exp); */
 
 	c[12] = n;		/* sector count */
