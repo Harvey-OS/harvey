@@ -7,7 +7,7 @@ fn autotype {
 	if(~ $fstype fossil)
 		echo -a 9fat -a nvram -a fossil -a swap
 	if(~ $fstype fossil+venti)
-		echo -a 9fat -a nvram -a arenas -a isect -a fossil -a swap # -a other
+		echo -a 9fat -a nvram -a arenas -a isect -a bloom -a fossil -a swap # -a other
 }
 
 switch($1) {

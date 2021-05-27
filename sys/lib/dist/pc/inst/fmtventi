@@ -10,9 +10,9 @@ case checkready checkdone
 		export fmtventi
 		exit
 	}
-	if(! test -e /bin/venti/fmtarenas || ! test -e /bin/venti/fmtisect || ! test -e /bin/venti/fmtindex){
+	if(! test -e /bin/venti/fmtarenas || ! test -e /bin/venti/fmtisect || ! test -e /bin/venti/fmtindex || ! test -e /bin/venti/fmtbloom){
 		bind -a /n/dist/386/bin/venti /bin/venti
-		if(! test -e /bin/venti/fmtarenas || ! test -e /bin/venti/fmtisect || ! test -e /bin/venti/fmtindex){
+		if(! test -e /bin/venti/fmtarenas || ! test -e /bin/venti/fmtisect || ! test -e /bin/venti/fmtindex || ! test -e /bin/venti/fmtbloom){
 			fmtventi=notdone
 			export fmtventi
 			exit
@@ -105,6 +105,38 @@ case go
 	ventiindex=$aa
 	export ventiindex
 
+	hh=`{ls /dev/sd*/bloom* /dev/fs/bloom* >[2]/dev/null}
+	if(~ $#hh 0){
+		echo 'You need to create a partition or partitions to hold the Venti bloom.'
+		echo 'The bloom partition names must begin with "bloom".'
+		echo
+		fmtventi=notdone
+		export fmtventi
+		exit
+	}
+	default=(-d $"hh)
+	if(! ~ $#ventibloom 0){
+		default=(-d $"ventibloom)
+	}
+
+	echo You have the following Venti bloom partitions.
+	ls -l $hh
+	echo
+
+	prompt $default 'Venti bloom partitions to use'
+	aa=`{echo $rd}
+	bad=no
+	for(a in $aa){
+		if(! ~ $a $hh){
+			echo 'Bad venti bloom partition' $a
+			fmtventi=notdone
+			export fmtventi
+			exit
+		}
+	}
+	ventibloom=$aa
+	export ventibloom
+
 	n=-1
 	fmta=()
 	for(a in $ventiarena){
@@ -133,11 +165,25 @@ case go
 			fmti=($fmti isect$n:$a)
 	}
 
+	n=-1
+	fmtb=()
+	for(a in $ventibloom){
+		do=yes
+		n=`{hoc -e 1+$n}
+		if(isventibloom $a){
+			echo File $a is already formatted as a Venti bloom section.
+			prompt -d no 'Reformat '$a yes no
+			do=$rd
+		}
+		if(~ $do yes)
+			fmtb=($fmtb bloom$n:$a)
+	}
+
 	echo Formatting Venti arenas and indices (this takes a while).
 	# do each disk in parallel
 	echo good >/tmp/fmt
 	dd=()
-	for(a in $fmta $fmti){
+	for(a in $fmta $fmti $fmtb){
 		d=`{echo $a | sed 's!.*:(/.*/).*!\1!'}
 		if(! ~ $d $dd)
 			dd=($dd $d)
@@ -160,6 +206,24 @@ case go
 					echo done with $i(3)
 				}
 			}
+			for(a in $fmtb){
+				i=`{echo $a | sed 's!(.*):(/.*/)(.*)!\1 \2 \2\3!'}
+				pgsize=`{grep pagesize /dev/swap | sed 's/^([0-9]+) .*$/\1/'}
+				userused=`{grep user /dev/swap | sed 's/^([0-9]+)\/([0-9]+) .*$/\1/'}
+				userpgs=`{grep user /dev/swap | sed 's/^([0-9]+)\/([0-9]+) .*$/\2/'}
+				userfree=`{hoc -e '('$userpgs-$userused')'*$pgsize}
+				bloomsize=`{hoc -e 2'^(int(log('$userfree/1024/1024*20/100*1/3')/log(2)))'}
+				partsize=`{ls -l $i(3) | awk '{print int($6/1024/1024)}' | hoc}
+				if(test $bloomsize -gt $partsize)
+					bloomsize=$partsize
+				if(test $bloomsize -lt 1)
+					bloomsize=1
+				if(~ $i(2) $d){
+					echo $i(3) ...
+					venti/fmtbloom -s $bloomsize^m $i(3) || echo bad >/tmp/fmt
+					echo done with $i(3)
+				}
+			}
 		} &
 	}
 	wait
@@ -178,6 +242,8 @@ case go
 		echo index main
 		for(i in $ventiindex)
 			echo isect $i
+		for(b in $ventibloom)
+			echo bloom $b
 		for(a in $ventiarena)
 			echo arenas $a
 	} | venti/conf -w $v
