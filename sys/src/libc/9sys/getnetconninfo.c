@@ -77,7 +77,7 @@ getnetconninfo(char *dir, int fd)
 	/* figure out bind spec */
 	d = dirstat(nci->dir);
 	if(d != nil){
-		sprint(spec, "#%C%d", d->type, d->dev);
+		snprint(spec, sizeof spec, "#%C%d", d->type, d->dev);
 		nci->spec = strdup(spec);
 	}
 	if(nci->spec == nil)
