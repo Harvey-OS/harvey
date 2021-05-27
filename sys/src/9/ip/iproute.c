@@ -817,6 +817,9 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 		nexterror();
 	}
 
+	if(cb->nf < 1)
+		error("short control request");
+
 	if(strcmp(cb->f[0], "flush") == 0){
 		tag = cb->f[1];
 		for(h = 0; h < nelem(f->v4root); h++)
@@ -880,7 +883,8 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 			print("no route\n");
 		else
 			printroute(q);
-	}
+	} else
+		error(Ebadctl);
 
 	poperror();
 	free(cb);
