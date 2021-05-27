@@ -2091,7 +2091,6 @@ atapnp(void)
 		case (0x24D1<<16)|0x8086:	/* 82801EB/ER (ICH5 High-End) */
 		case (0x24DB<<16)|0x8086:	/* 82801EB (ICH5) */
 		case (0x25A3<<16)|0x8086:	/* 6300ESB (E7210) */
-		case (0x2653<<16)|0x8086:	/* 82801FBM (ICH6M) */
 		case (0x266F<<16)|0x8086:	/* 82801FB (ICH6) */
 		case (0x27DF<<16)|0x8086:	/* 82801G SATA (ICH7) */
 		case (0x27C0<<16)|0x8086:	/* 82801GB SATA AHCI (ICH7) */

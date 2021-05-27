@@ -1964,6 +1964,7 @@ didtype(Pcidev *p)
 		 */
 		if (p->did == 0x1e02 ||			/* c210 */
 		    p->did == 0x24d1 ||			/* 82801eb/er */
+		    p->did == 0x2653 ||			/* 82801fbm */
 		    (p->did & 0xfffb) == 0x27c1 ||	/* 82801g[bh]m ich7 */
 		    p->did == 0x2821 ||			/* 82801h[roh] */
 		    (p->did & 0xfffe) == 0x2824 ||	/* 82801h[b] */
