@@ -25,7 +25,7 @@ dmamode=ask
 adisk=/dev/sdD0/cdboot
 cdboot=yes
 installurl=http://148.251.6.120/plan9/download
-# console=0
+console=0 b115200
 # baud=9600
 
 [install]
