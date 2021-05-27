@@ -281,7 +281,7 @@ udpannounce(char *mntpt)
 	static int whined;
 
 	/* get a udp port */
-	sprint(datafile, "%s/udp!*!dns", mntpt);
+	snprint(datafile, sizeof datafile, "%s/udp!*!dns", mntpt);
 	ctl = announce(datafile, dir);
 	if(ctl < 0){
 		if(!whined++)

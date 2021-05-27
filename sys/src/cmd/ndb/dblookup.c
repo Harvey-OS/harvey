@@ -1064,7 +1064,7 @@ createv4ptrs(void)
 			net[IPv4off+1] = atoi(f[2]);
 			net[IPv4off+2] = atoi(f[1]);
 			net[IPv4off+3] = atoi(f[0]);
-			sprint(ipa, "%I", net);
+			snprint(ipa, sizeof ipa, "%I", net);
 			t = ndbipinfo(db, "ip", ipa, attribs, 1);
 			if(t == nil)	/* could be a reverse with no forward */
 				continue;
