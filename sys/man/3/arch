@@ -7,6 +7,7 @@ arch \- architecture-specific information and control
 .sp 0.3v
 .B /dev/archctl
 .B /dev/cputype
+.B /dev/cputemp
 .B /dev/ioalloc
 .B /dev/iob
 .B /dev/iol
@@ -19,6 +20,11 @@ user-level control of the I/O ports on x86-class machines.
 Reads from
 .I cputype
 recover the processor type and clock rate in MHz.
+Reads from
+.I cputemp
+recover one line containing per processor containing
+two fields: the processor temperature and precision
+in degrees Celsius.
 Reads from
 .I archctl
 yield at least data of this form:

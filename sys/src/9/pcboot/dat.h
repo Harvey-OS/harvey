@@ -329,6 +329,7 @@ enum {
 	Pge	= 1<<13,	/* page global extension */
 	Pse2	= 1<<17,	/* more page size extensions */
 	Clflush = 1<<19,
+	Acpif	= 1<<22,
 	Mmx	= 1<<23,
 	Fxsr	= 1<<24,	/* have SSE FXSAVE/FXRSTOR */
 	Sse	= 1<<25,	/* thus sfence instr. */
