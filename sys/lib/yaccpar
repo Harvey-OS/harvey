@@ -16,7 +16,7 @@ int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
 
 extern	int	fprint(int, char*, ...);
-extern	int	sprint(char*, char*, ...);
+extern	int	snprint(char*, int, char*, ...);
 
 char*
 yytokname(int yyc)
@@ -26,7 +26,7 @@ yytokname(int yyc)
 	if(yyc > 0 && yyc <= sizeof(yytoknames)/sizeof(yytoknames[0]))
 	if(yytoknames[yyc-1])
 		return yytoknames[yyc-1];
-	sprint(x, "<%d>", yyc);
+	snprint(x, sizeof x, "<%d>", yyc);
 	return x;
 }
 
@@ -38,7 +38,7 @@ yystatname(int yys)
 	if(yys >= 0 && yys < sizeof(yystates)/sizeof(yystates[0]))
 	if(yystates[yys])
 		return yystates[yys];
-	sprint(x, "<%d>\n", yys);
+	snprint(x, sizeof x, "<%d>\n", yys);
 	return x;
 }
 
