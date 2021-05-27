@@ -133,6 +133,10 @@ passwords in the clear.
 .IR vnc (1)'s
 challenge/response.
 .TP
+.B wpapsk
+the WPA-PSK challenge/response protocol used in wireless networks
+(client side only).
+.TP
 .B wep
 WEP passwords for wireless ethernet cards.
 .PD
@@ -321,6 +325,14 @@ attribute set to
 .BR sshserve ,
 or
 .BR tls .
+.PP
+.B Wpapsk
+requires a key with
+.B proto=wpapsk
+and attributes
+.B essid
+and
+.BR !password .
 .PP
 .B Wep
 requires a

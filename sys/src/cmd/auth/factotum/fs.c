@@ -40,6 +40,7 @@ prototab[] =
 	&rsa,
 	&vnc,
 	&wep,
+	&wpapsk,
 	nil,
 };
 
