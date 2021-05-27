@@ -39,6 +39,7 @@ enum
 	CacheLook=	5,		// how many cache entries to examine
 	CacheSize=	(CacheHash+CacheLook-1),
 	CacheTimeout=	5*60,		// timeout for cache entry in seconds
+	MaxMTU=	IP_MAX,	// allow for jumbo frames and large UDP
 
 	TcpMssMax = 1300,		// max desirable Tcp MSS value
 	TunnelMtu = 1400,
@@ -109,9 +110,9 @@ struct Bridge
 
 struct Port
 {
+	Ref;
 	int	id;
 	Bridge	*bridge;
-	int	ref;
 	int	closed;
 
 	Chan	*data[2];	// channel to data
@@ -291,15 +292,21 @@ bridgeread(Chan *c, void *a, long n, vlong off)
 	USED(off);
 	switch(TYPE(c->qid)) {
 	default:
-		error(Eperm);
+		error(Egreg);
 	case Qtopdir:
 	case Qbridgedir:
 	case Qportdir:
 		return devdirread(c, a, n, 0, 0, bridgegen);
 	case Qlog:
 		return logread(b, a, off, n);
+	case Qlocal:
+		return 0;	/* TO DO */
 	case Qstatus:
 		qlock(b);
+		if(waserror()){
+			qunlock(b);
+			nexterror();
+		}
 		port = b->port[PORT(c->qid)];
 		if(port == 0)
 			strcpy(buf, "unbound\n");
@@ -318,16 +325,15 @@ bridgeread(Chan *c, void *a, long n, vlong off)
 			}
 			ingood = port->in - port->inmulti - port->inunknown;
 			outgood = port->out - port->outmulti - port->outunknown;
-			i += snprint(buf+i, sizeof(buf)-i,
+			snprint(buf+i, sizeof(buf)-i,
 				"in=%d(%d:%d:%d) out=%d(%d:%d:%d:%d)\n",
 				port->in, ingood, port->inmulti, port->inunknown,
 				port->out, outgood, port->outmulti,
 				port->outunknown, port->outfrag);
-			USED(i);
 		}
-		n = readstr(off, a, n, buf);
+		poperror();
 		qunlock(b);
-		return n;
+		return readstr(off, a, n, buf);
 	case Qbctl:
 		snprint(buf, sizeof(buf), "%s tcpmss\ndelay %ld %ld\n",
 			b->tcpmss ? "set" : "clear", b->delay0, b->delayn);
@@ -513,7 +519,7 @@ portbind(Bridge *b, int argc, char *argv[])
 	Chan *ctl;
 	int type = 0, i, n;
 	ulong ownhash;
-	char *dev, *dev2 = nil, *p;
+	char *dev, *dev2 = nil;
 	char buf[100], name[KNAMELEN], path[8*KNAMELEN];
 	static char usage[] = "usage: bind ether|tunnel name ownhash dev [dev2]";
 
@@ -574,11 +580,9 @@ portbind(Bridge *b, int argc, char *argv[])
 		// check addr?
 
 		// get directory name
-		n = devtab[ctl->type]->read(ctl, buf, sizeof(buf), 0);
+		n = devtab[ctl->type]->read(ctl, buf, sizeof(buf)-1, 0);
 		buf[n] = 0;
-		for(p = buf; *p == ' '; p++)
-			;
-		snprint(path, sizeof(path), "%s/%lud/data", dev, strtoul(p, 0, 0));
+		snprint(path, sizeof(path), "%s/%lud/data", dev, strtoul(buf, 0, 0));
 
 		// setup connection to be promiscuous
 		snprint(buf, sizeof(buf), "connect -1");
@@ -613,8 +617,9 @@ portbind(Bridge *b, int argc, char *argv[])
 		b->nport = port->id+1;
 
 	// assumes kproc always succeeds
-	kproc("etherread", etherread, port);	// poperror must be next
-	port->ref++;
+	incref(port);
+	snprint(buf, sizeof(buf), "bridge:%s", dev);
+	kproc(buf, etherread, port);
 }
 
 // assumes b is locked
@@ -816,21 +821,14 @@ cachedump(Bridge *b)
 
 
 
-// assumes b is locked
+// assumes b is locked, no error return
 static void
 ethermultiwrite(Bridge *b, Block *bp, Port *port)
 {
 	Port *oport;
-	Block *bp2;
 	Etherpkt *ep;
 	int i, mcast;
 
-	if(waserror()) {
-		if(bp)
-			freeb(bp);
-		nexterror();
-	}
-	
 	ep = (Etherpkt*)bp->rp;
 	mcast = ep->d[0] & 1;		/* multicast bit of ethernet address */
 
@@ -850,26 +848,16 @@ ethermultiwrite(Bridge *b, Block *bp, Port *port)
 		// delay one so that the last write does not copy
 		if(oport != nil) {
 			b->copy++;
-			bp2 = copyblock(bp, blocklen(bp));
-			if(!waserror()) {
-				etherwrite(oport, bp2);
-				poperror();
-			}
+			etherwrite(oport, copyblock(bp, blocklen(bp)));
 		}
 		oport = b->port[i];
 	}
 
 	// last write free block
-	if(oport) {
-		bp2 = bp; bp = nil; USED(bp);
-		if(!waserror()) {
-			etherwrite(oport, bp2);
-			poperror();
-		}
-	} else
+	if(oport)
+		etherwrite(oport, bp);
+	else
 		freeb(bp);
-
-	poperror();
 }
 
 static void
@@ -963,10 +951,10 @@ etherread(void *a)
 {
 	Port *port = a;
 	Bridge *b = port->bridge;
-	Block *bp, *bp2;
+	Block *bp;
 	Etherpkt *ep;
 	Centry *ce;
-	long md;
+	long md, n;
 	
 	qlock(b);
 	port->readp = up;	/* hide identity under a rock for unbind */
@@ -979,64 +967,56 @@ etherread(void *a)
 			qlock(b);
 			break;
 		}
-		if(0)
-			print("devbridge: etherread: reading\n");
-		bp = devtab[port->data[0]->type]->bread(port->data[0],
-			ETHERMAXTU, 0);
-		if(0)
-			print("devbridge: etherread: blocklen = %d\n",
-				blocklen(bp));
+		bp = devtab[port->data[0]->type]->bread(port->data[0], MaxMTU, 0);
 		poperror();
 		qlock(b);
-		if(bp == nil || port->closed)
+		if(bp == nil)
 			break;
-		if(waserror()) {
-//			print("etherread bridge error\n");
-			if(bp)
-				freeb(bp);
+		n = blocklen(bp);
+		if(port->closed || n < ETHERMINTU){
+			freeb(bp);
 			continue;
 		}
-		if(blocklen(bp) < ETHERMINTU)
-			error("short packet");
+		if(waserror()) {
+//			print("etherread bridge error\n");
+			freeb(bp);
+			continue;
+		}
 		port->in++;
 
 		ep = (Etherpkt*)bp->rp;
 		cacheupdate(b, ep->s, port->id);
 		if(b->tcpmss)
-			tcpmsshack(ep, BLEN(bp));
+			tcpmsshack(ep, n);
 
 		/*
 		 * delay packets to simulate a slow link
 		 */
-		if(b->delay0 || b->delayn){
-			md = b->delay0 + b->delayn * BLEN(bp);
+		if(b->delay0 != 0 || b->delayn != 0){
+			md = b->delay0 + b->delayn * n;
 			if(md > 0)
 				microdelay(md);
 		}
+
+		poperror();	/* must now dispose of bp */
 
 		if(ep->d[0] & 1) {
 			log(b, Logmcast, "multicast: port=%d src=%E dst=%E type=%#.4ux\n",
 				port->id, ep->s, ep->d, ep->type[0]<<8|ep->type[1]);
 			port->inmulti++;
-			bp2 = bp; bp = nil;
-			ethermultiwrite(b, bp2, port);
+			ethermultiwrite(b, bp, port);
 		} else {
 			ce = cachelookup(b, ep->d);
 			if(ce == nil) {
 				b->miss++;
 				port->inunknown++;
-				bp2 = bp; bp = nil;
-				ethermultiwrite(b, bp2, port);
+				ethermultiwrite(b, bp, port);
 			}else if(ce->port != port->id){
 				b->hit++;
-				bp2 = bp; bp = nil;
-				etherwrite(b->port[ce->port], bp2);
-			}
+				etherwrite(b->port[ce->port], bp);
+			}else
+				freeb(bp);
 		}
-
-		poperror();
-		if(bp)
-			freeb(bp);
 	}
 //	print("etherread: trying to exit\n");
 	port->readp = nil;
@@ -1070,7 +1050,6 @@ fragment(Etherpkt *epkt, int n)
 	return 1;
 }
 
-
 static void
 etherwrite(Port *port, Block *bp)
 {
@@ -1084,13 +1063,16 @@ etherwrite(Port *port, Block *bp)
 	epkt = (Etherpkt*)bp->rp;
 	n = blocklen(bp);
 	if(port->type != Ttun || !fragment(epkt, n)) {
-		devtab[port->data[1]->type]->bwrite(port->data[1], bp, 0);
+		if(!waserror()){
+			devtab[port->data[1]->type]->bwrite(port->data[1], bp, 0);
+			poperror();
+		}
 		return;
 	}
 	port->outfrag++;
 	if(waserror()){
 		freeblist(bp);	
-		nexterror();
+		return;
 	}
 
 	seglen = (TunnelMtu - ETHERHDRSIZE - IPHDR) & ~7;
@@ -1161,10 +1143,7 @@ etherwrite(Port *port, Block *bp)
 static void
 portfree(Port *port)
 {
-	port->ref--;
-	if(port->ref < 0)
-		panic("portfree: bad ref");
-	if(port->ref > 0)
+	if(decref(port) != 0)
 		return;
 
 	if(port->data[0])
