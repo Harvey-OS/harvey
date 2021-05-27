@@ -368,7 +368,7 @@ setenv(char *name, char *val)
 	char ename[ANAMELEN+6];
 	long s;
 
-	sprint(ename, "#e/%s", name);
+	snprint(ename, sizeof ename, "#e/%s", name);
 	f = create(ename, OWRITE, 0664);
 	if(f < 0)
 		return -1;
