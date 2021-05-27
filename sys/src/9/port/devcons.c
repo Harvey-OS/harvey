@@ -523,7 +523,7 @@ int
 kbdputc(Queue*, int ch)
 {
 	int i, n;
-	char buf[3];
+	char buf[UTFmax];
 	Rune r;
 	char *next;
 
