@@ -94,7 +94,7 @@ vtThreadSetName(char *name)
 	int fd;
 	char buf[32];
 
-	sprint(buf, "/proc/%d/args", getpid());
+	snprint(buf, sizeof buf, "/proc/%d/args", getpid());
 	if((fd = open(buf, OWRITE)) >= 0){
 		write(fd, name, strlen(name));
 		close(fd);
