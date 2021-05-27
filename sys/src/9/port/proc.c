@@ -419,7 +419,12 @@ ready(Proc *p)
 		return;
 	}
 
-	if(up != p && (p->wired == nil || p->wired == m))
+	/*
+	 * since the 386 is short of registers, m always contains the constant
+	 * MACHADDR, not MACHP(m->machno); see ../pc/dat.h.  so we can't just 
+	 * compare addresses with m.
+	 */
+	if(up != p && (p->wired == nil || p->wired == MACHP(m->machno)))
 		m->readied = p;	/* group scheduling */
 
 	updatecpu(p);
@@ -504,8 +509,13 @@ runproc(void)
 	start = perfticks();
 
 	/* cooperative scheduling until the clock ticks */
+	/*
+	 * since the 386 is short of registers, m always contains the constant
+	 * MACHADDR, not MACHP(m->machno); see ../pc/dat.h.  so we can't just 
+	 * compare addresses with m.
+	 */
 	if((p=m->readied) && p->mach==0 && p->state==Ready
-	&& (p->wired == nil || p->wired == m)
+	&& (p->wired == nil || p->wired == MACHP(m->machno))
 	&& runq[Nrq-1].head == nil && runq[Nrq-2].head == nil){
 		skipscheds++;
 		rq = &runq[p->priority];

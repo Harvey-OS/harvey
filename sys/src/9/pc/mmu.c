@@ -671,18 +671,21 @@ vunmap(void *v, int size)
 		if(p != up)
 			p->newtlb = 1;
 	}
-	for(i=0; i<conf.nmach; i++){
-		nm = MACHP(i);
-		if(nm != m)
-			nm->flushmmu = 1;
-	}
+	/*
+	 * since the 386 is short of registers, m always contains the constant
+	 * MACHADDR, not MACHP(m->machno); see ../pc/dat.h.  so we can't just 
+	 * compare addresses with m.
+	 */
+	for(i=0; i<conf.nmach; i++)
+		if(i != m->machno)
+			MACHP(i)->flushmmu = 1;
 	flushmmu();
-	for(i=0; i<conf.nmach; i++){
-		nm = MACHP(i);
-		if(nm != m)
+	for(i=0; i<conf.nmach; i++)
+		if(i != m->machno) {
+			nm = MACHP(i);
 			while((active.machs&(1<<nm->machno)) && nm->flushmmu)
 				;
-	}
+		}
 }
 
 /*
