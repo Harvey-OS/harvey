@@ -1803,8 +1803,9 @@ retry:
 static int
 iario(SDreq *r)
 {
-	int i, n, count, try, max, flag, task;
-	vlong lba;
+	int i, n, try, max, flag, task;
+	ulong count;
+	uvlong lba;
 	char *name;
 	uchar *cmd, *data;
 	Aport *p;
@@ -1833,14 +1834,17 @@ iario(SDreq *r)
 		return i;
 	}
 
-	if(*cmd != ScmdExtread && *cmd != ScmdExtwrite){
+	if(*cmd == ScmdRead16 || *cmd == ScmdWrite16){
+		/* ata commands only go to 48-bit lba */
+		if(cmd[2] || cmd[3])
+			return sdsetsense(r, SDcheck, 3, 0xc, 2);
+	}else if(*cmd != ScmdExtread && *cmd != ScmdExtwrite){
 		print("%s: bad cmd %.2#ux\n", name, cmd[0]);
 		r->status = SDcheck;
 		return SDcheck;
 	}
+	scsilbacount(cmd, r->clen, &lba, &count);
 
-	lba   = cmd[2]<<24 | cmd[3]<<16 | cmd[4]<<8 | cmd[5];
-	count = cmd[7]<<8 | cmd[8];
 	if(r->data == nil)
 		return SDok;
 	if(r->dlen < count * unit->secsize)
