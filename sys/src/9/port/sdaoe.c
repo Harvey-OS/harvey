@@ -431,7 +431,8 @@ aoeonline(SDunit *u)
 static int
 aoerio(SDreq *r)
 {
-	int i, count;
+	int i;
+	ulong count;
 	uvlong lba;
 	char *name;
 	uchar *cmd;
@@ -479,16 +480,11 @@ aoerio(SDreq *r)
 		return SDok;
 
 	if(r->clen == 16){
+		/* ata commands only go to 48-bit lba */
 		if(cmd[2] || cmd[3])
 			return sdsetsense(r, SDcheck, 3, 0xc, 2);
-		lba = (uvlong)cmd[4]<<40 | (uvlong)cmd[5]<<32;
-		lba |=   cmd[6]<<24 |  cmd[7]<<16 |  cmd[8]<<8 | cmd[9];
-		count = cmd[10]<<24 | cmd[11]<<16 | cmd[12]<<8 | cmd[13];
-	}else{
-		lba  = cmd[2]<<24 | cmd[3]<<16 | cmd[4]<<8 | cmd[5];
-		count = cmd[7]<<8 | cmd[8];
 	}
-
+	scsilbacount(cmd, r->clen, &lba, &count);
 	count *= Aoesectsz;
 
 	if(r->dlen < count)
