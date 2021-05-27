@@ -195,7 +195,7 @@ asctime_r(const struct tm *t, char *buf)
 	ct_numb(buf+17, t->tm_sec+100);
 	if(t->tm_year >= 100) {
 		buf[20] = '2';
-		buf[21] = '0';
+		buf[21] = t->tm_year >= 200? '1': '0';  
 	}
 	ct_numb(buf+22, t->tm_year+100);
 	return buf;

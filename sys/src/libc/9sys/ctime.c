@@ -182,7 +182,7 @@ asctime(Tm *t)
 	cbuf[22] = *ncp;
 	if(t->year >= 100) {
 		cbuf[24] = '2';
-		cbuf[25] = '0';
+		cbuf[25] = t->year >= 200? '1': '0';  
 	}
 	ct_numb(cbuf+26, t->year+100);
 	return cbuf;
