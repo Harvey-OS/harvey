@@ -76,6 +76,7 @@ misc
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
 	sdiahci		pci sdscsi
+	sdvirtio	pci sdscsi
 
 	uarti8250
 

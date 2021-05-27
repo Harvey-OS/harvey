@@ -87,6 +87,7 @@ misc
 	sdmylex		pci sdscsi
 	sdiahci		pci sdscsi
 	sdaoe
+	sdvirtio	pci sdscsi
 
 	uarti8250
 	uartpci		pci

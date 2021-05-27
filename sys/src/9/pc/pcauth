@@ -48,6 +48,7 @@ misc
 	realmode
 	mtrr
 	sdata		pci sdscsi
+	sdvirtio	pci sdscsi
 
 	uarti8250
 	uartpci

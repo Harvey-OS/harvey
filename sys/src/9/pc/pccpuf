@@ -88,6 +88,7 @@ misc
 	sdmylex		pci sdscsi
 	sdiahci		pci sdscsi
 	sdaoe
+	sdvirtio	pci sdscsi
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur

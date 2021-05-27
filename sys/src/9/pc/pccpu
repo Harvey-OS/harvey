@@ -90,6 +90,7 @@ misc
 	sdmylex		pci sdscsi
 	sdiahci		pci sdscsi
 	sdaoe		sdscsi
+	sdvirtio	pci sdscsi
 
 ip
 	tcp
