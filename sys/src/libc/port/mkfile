@@ -12,6 +12,7 @@ CFILES=\
 	atof.c\
 	atol.c\
 	atoll.c\
+	beget.c\
 	cistrcmp.c\
 	cistrncmp.c\
 	cistrstr.c\
@@ -32,6 +33,7 @@ CFILES=\
 	getuser.c\
 	hangup.c\
 	hypot.c\
+	leget.c\
 	lnrand.c\
 	lock.c\
 	log.c\

@@ -1,0 +1,104 @@
+.TH LEGET 2
+le16get, le24get, le32get, le64get, le16put, le24put, le32put, le64put, be16get, be24get, be32get, be64get, be16put, be24put, be32put, be64put\- integer marshalling
+.SH SYNOPSIS
+.ta +\w'\fLuvlong 'u
+.PP
+.nf
+.B
+u16int	le16get(uchar *t,  uchar **r)
+.PP
+.nf
+.B
+u32int	le24get(uchar *t,  uchar **r)
+.PP
+.nf
+.B
+u32int	le32get(uchar *t,  uchar **r)
+.PP
+.nf
+.B
+u64int	le64get(uchar *t,  uchar **r)
+.PP
+.nf
+.B
+uchar*	le16put(uchar *t, u16int i)
+.PP
+.nf
+.B
+uchar*	le24put(uchar *t, u32int i)
+.PP
+.nf
+.B
+uchar*	le32put(uchar *t, u32int i)
+.PP
+.nf
+.B
+uchar*	le64put(uchar *t, u64int i)
+.PP
+.nf
+.B
+u16int	be16get(uchar *t,  uchar **r)
+.PP
+.nf
+.B
+u32int	be24get(uchar *t,  uchar **r)
+.PP
+.nf
+.B
+u32int	be32get(uchar *t,  uchar **r)
+.PP
+.nf
+.B
+u64int	be64get(uchar *t,  uchar **r)
+.PP
+.nf
+.B
+uchar*	be16put(uchar *t, u16int i)
+.PP
+.nf
+.B
+uchar*	be24put(uchar *t, u32int i)
+.PP
+.nf
+.B
+uchar*	be32put(uchar *t, u32int i)
+.PP
+.nf
+.B
+uchar*	be64put(uchar *t, u64int i)
+.PP
+.SH DESCRIPTION
+These functions marshal a 2- to 8-byte integer to
+or from little- or big-endian formats. The
+.I put
+functions return the
+pointer to the first byte after the integer. The
+.I get
+functions return  the value, and if
+.B r
+is not
+.I nil
+they set
+.B *r
+to point at the first byte after the integer.
+.SH SOURCE
+.B /sys/src/libc/port/beget.c
+.br
+.B /sys/src/libc/port/leget.c
+.SH "SEE ALSO"
+.IR fcall (2),
+.IR ip (2)
+.SH BUGS
+.IR GBIT *
+and 
+.IR PBIT *
+(from
+.IR fcall (2))
+provide similar functionality for little-endian integers.
+The
+.IR nhget *
+and
+.IR nhput *
+functions from
+.IR ip (2)
+provide similar functionality  for big-endian integers.
