@@ -26,7 +26,7 @@ readcolmap(Display *d, RGB *colmap)
 
 	USED(screen);
 
-	sprint(buf, "/dev/draw/%d/colormap", d->dirno);
+	snprint(buf, sizeof buf, "/dev/draw/%d/colormap", d->dirno);
 	b = Bopen(buf, OREAD);
 	if(b == 0)
 		drawerror(d, "rdcolmap: can't open colormap device");

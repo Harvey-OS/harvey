@@ -66,7 +66,7 @@ writeimage(int fd, Image *i, int dolock)
 		if(nb != dy*bpl)
 			goto ErrOut;
 	}
-	sprint(hdr, "compressed\n%11s %11d %11d %11d %11d ",
+	snprint(hdr, sizeof hdr, "compressed\n%11s %11d %11d %11d %11d ",
 		chantostr(cbuf, i->chan), r.min.x, r.min.y, r.max.x, r.max.y);
 	if(write(fd, hdr, 11+5*12) != 11+5*12)
 		goto ErrOut;
@@ -172,7 +172,7 @@ writeimage(int fd, Image *i, int dolock)
 		if(loutp == outbuf)
 			goto ErrOut;
 		n = loutp-outbuf;
-		sprint(hdr, "%11d %11ld ", r.max.y, n);
+		snprint(hdr, sizeof hdr, "%11d %11ld ", r.max.y, n);
 		write(fd, hdr, 2*12);
 		write(fd, outbuf, n);
 		r.min.y = r.max.y;

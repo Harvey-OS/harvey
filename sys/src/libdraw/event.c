@@ -434,7 +434,7 @@ emoveto(Point pt)
 	char buf[2*12+2];
 	int n;
 
-	n = sprint(buf, "m%d %d", pt.x, pt.y);
+	n = snprint(buf, sizeof buf, "m%d %d", pt.x, pt.y);
 	write(mousefd, buf, n);
 }
 

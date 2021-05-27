@@ -220,7 +220,7 @@ initdisplay(char *dev, char *win, void(*error)(Display*, char*))
 	if(t == nil)
 		return nil;
 
-	sprint(buf, "%s/draw/new", dev);
+	snprint(buf, sizeof buf, "%s/draw/new", dev);
 	ctlfd = open(buf, ORDWR|OCEXEC);
 	if(ctlfd < 0){
 		if(bind("#i", dev, MAFTER) < 0){
@@ -244,11 +244,11 @@ initdisplay(char *dev, char *win, void(*error)(Display*, char*))
 	isnew = 0;
 	if(n < NINFO)	/* this will do for now, we need something better here */
 		isnew = 1;
-	sprint(buf, "%s/draw/%d/data", dev, atoi(info+0*12));
+	snprint(buf, sizeof buf, "%s/draw/%d/data", dev, atoi(info+0*12));
 	datafd = open(buf, ORDWR|OCEXEC);
 	if(datafd < 0)
 		goto Error2;
-	sprint(buf, "%s/draw/%d/refresh", dev, atoi(info+0*12));
+	snprint(buf, sizeof buf, "%s/draw/%d/refresh", dev, atoi(info+0*12));
 	reffd = open(buf, OREAD|OCEXEC);
 	if(reffd < 0){
     Error3:

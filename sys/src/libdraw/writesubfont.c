@@ -27,7 +27,7 @@ writesubfont(int fd, Subfont *f)
 	uchar *data;
 	int nb;
 
-	sprint(hdr, "%11d %11d %11d ", f->n, f->height, f->ascent);
+	snprint(hdr, sizeof hdr, "%11d %11d %11d ", f->n, f->height, f->ascent);
 	if(write(fd, hdr, 3*12) != 3*12){
    Err:
 		werrstr("writesubfont: bad write: %r");

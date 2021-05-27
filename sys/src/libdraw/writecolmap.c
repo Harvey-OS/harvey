@@ -15,7 +15,7 @@ writecolmap(Display *d, RGB *m)
 	char buf[64], *t;
 	ulong r, g, b;
 
-	sprint(buf, "/dev/draw/%d/colormap", d->dirno);
+	snprint(buf, sizeof buf, "/dev/draw/%d/colormap", d->dirno);
 	fd = open(buf, OWRITE);
 	if(fd < 0)
 		drawerror(d, "writecolmap: open colormap failed");
