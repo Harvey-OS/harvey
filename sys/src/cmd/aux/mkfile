@@ -35,6 +35,7 @@ TARG=\
 	trampoline\
 	usage\
 	watchdog\
+	wpa\
 	write\
 	zerotrunc\
 

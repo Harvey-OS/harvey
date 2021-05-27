@@ -1,0 +1,72 @@
+.TH WPA 8
+.SH NAME
+wpa \- Wi-Fi Protected Access setup
+.SH SYNOPSIS
+.B aux/wpa
+[
+.B -dp12
+] [
+.B -s
+.I essid
+]
+.I dev
+.SH DESCRIPTION
+.I Wpa
+handles the authentication and key exchange with WPA
+protected wireless networks.
+.PP
+The
+.I dev
+parameter specifies the network interface that needs
+to be setup with WPA.
+The
+.I essid
+can be set with the
+.I -s
+option. Otherwise, the previously configured essid
+on the interface will be used.
+The
+.B -p
+option will prompt and install the preshared key or
+pap/chap credentials into factotum, otherwise the key has to be
+already present in factotum or an interactive key prompter like
+auth/fgui (see
+.IR factotum (4))
+needs to provide it.
+.PP
+The authentication protocol is initiated by the
+wireless access point so
+.I wpa
+will background itself after the keyprompt and establish
+the encryption automatically as needed.
+The optional
+.B -1
+or
+.B -2
+arguments can be used to select between WPA1/TKIP
+(default) or WPA2/CCMP encryption with WPA PSK.
+.PP
+The
+.B -d
+option enables debugging and causes
+.I wpa
+to stay in foreground writing protocol messages to
+standard error.
+.SH EXAMPLES
+Setup wireless encryption:
+.EX
+% bind -a '#l1' /net
+% aux/wpa -s 9HAL -p /net/ether1
+!Adding key: proto=wpapsk essid=9HAL
+password: *****
+!
+% ip/ipconfig ether /net/ether1
+.EE
+.SH SOURCE
+.B /sys/src/cmd/aux/wpa.c
+.SH SEE ALSO
+.IR factotum (4),
+.IR ipconfig (8)
+.SH HISTORY
+.I Wpa
+first appeared in 9front (March, 2013).
