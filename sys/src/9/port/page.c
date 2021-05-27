@@ -64,7 +64,7 @@ pageinit(void)
 	print("%ldM swap\n", vkb/1024);
 }
 
-static void
+void
 pageunchain(Page *p)
 {
 	if(canlock(&palloc))
