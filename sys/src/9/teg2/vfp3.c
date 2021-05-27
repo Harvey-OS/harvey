@@ -163,7 +163,10 @@ fpcfg(void)
 	static int printed;
 
 	/* clear pending exceptions; no traps in vfp3; all v7 ops are scalar */
-	m->fpscr = Dn | Fz | FPRNR | (FPINVAL | FPZDIV | FPOVFL) & ~Alltraps;
+	m->fpscr = Dn | FPRNR | (FPINVAL | FPZDIV | FPOVFL) & ~Alltraps;
+	/* VFPv2 needs software support for underflows, so force them to zero */
+	if(m->havefp == VFPv2)
+		m->fpscr |= Fz;
 	fpwr(Fpscr, m->fpscr);
 	m->fpconfiged = 1;
 
@@ -305,7 +308,7 @@ fpuprocsave(Proc *p)
 {
 	if(p->fpstate == FPactive){
 		if(p->state == Moribund)
-			fpclear();
+			fpoff();
 		else{
 			/*
 			 * Fpsave() stores without handling pending
@@ -399,7 +402,7 @@ mathemu(Ureg *)
 		up->fpstate = FPactive;
 		break;
 	case FPactive:
-		error("illegal instruction: bad vfp fpu opcode");
+		error("sys: illegal instruction: bad vfp fpu opcode");
 		break;
 	}
 	fpclear();
@@ -475,6 +478,7 @@ fpuemu(Ureg* ureg)
 {
 	int s, nfp, cop, op;
 	uintptr pc;
+	static int already;
 
 	if(waserror()){
 		postnote(up, 1, up->errstr, NDebug);
@@ -487,16 +491,14 @@ fpuemu(Ureg* ureg)
 	nfp = 0;
 	pc = ureg->pc;
 	validaddr(pc, 4, 0);
-	if(!condok(ureg->psr, *(ulong*)pc >> 28))
-		iprint("fpuemu: conditional instr shouldn't have got here\n");
 	op  = (*(ulong *)pc >> 24) & MASK(4);
 	cop = (*(ulong *)pc >>  8) & MASK(4);
 	if(m->fpon)
 		fpstuck(pc);		/* debugging; could move down 1 line */
 	if (ISFPAOP(cop, op)) {		/* old arm 7500 fpa opcode? */
-//		iprint("fpuemu: fpa instr %#8.8lux at %#p\n", *(ulong *)pc, pc);
-//		error("illegal instruction: old arm 7500 fpa opcode");
 		s = spllo();
+		if(!already++)
+			pprint("warning: emulated arm7500 fpa instr %#8.8lux at %#p\n", *(ulong *)pc, pc);
 		if(waserror()){
 			splx(s);
 			nexterror();
@@ -506,7 +508,7 @@ fpuemu(Ureg* ureg)
 			m->fppc = m->fpcnt = 0;
 		splx(s);
 		poperror();
-	} else if (ISVFPOP(cop, op)) {	/* if vfp, fpu must be off */
+	} else if (ISVFPOP(cop, op)) {	/* if vfp, fpu off or unsupported instruction */
 		mathemu(ureg);		/* enable fpu & retry */
 		nfp = 1;
 	}
