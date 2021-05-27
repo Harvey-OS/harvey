@@ -28,7 +28,6 @@ extern void cacheiinv(void);
 extern void cacheuwbinv(void);
 extern uintptr cankaddr(uintptr pa);
 extern void clockshutdown(void);
-extern int clz(ulong);
 int	cmpswap(long*, long, long);
 
 #define coherence barriers
@@ -47,7 +46,6 @@ extern u32int dacget(void);
 extern void dacput(u32int);
 extern u32int farget(void);
 extern u32int fsrget(void);
-extern int ispow2(uvlong);
 extern void l1cachesoff(void);
 extern void l1cacheson(void);
 extern void l2cachecfgoff(void);
@@ -60,7 +58,6 @@ extern void l2cacheuwbinv(void);
 extern void l2cacheuwbinvse(void*, int);
 extern void l2cacheuwbse(void*, int);
 extern void lastresortprint(char *buf, long bp);
-extern int log2(ulong);
 extern void mmuidmap(uintptr phys, int mbs);
 extern void mmuinvalidate(void);		/* 'mmu' or 'tlb'? */
 extern void mmuinvalidateaddr(u32int);		/* 'mmu' or 'tlb'? */

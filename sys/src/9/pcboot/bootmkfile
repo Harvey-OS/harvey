@@ -19,6 +19,7 @@ PORT=\
 	dev.$O\
 	edf.$O\
 	latin1.$O\
+	logpow.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\

@@ -1,17 +1,11 @@
 /*
- * arm arch v7 routines other than cache-related ones.
- *
- * calling this arch-v7.c would confuse the mk scripts,
- * to which a filename arch*.c is magic.
+ * log2 and pow2 routines.
  */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "../port/error.h"
-#include "io.h"
-#include "arm.h"
 
 /*
  * these routines should be cheap enough that there will
@@ -20,13 +14,9 @@
  * once 5c in-lines vlong ops, just use the vlong versions.
  */
 
-/* see Hacker's Delight if this isn't obvious */
-#define ISPOW2(i) (((i) & ((i) - 1)) == 0)
-
 int
 ispow2(uvlong uvl)
 {
-	/* see Hacker's Delight if this isn't obvious */
 	return ISPOW2(uvl);
 }
 

@@ -25,6 +25,7 @@ PORT=\
 	latin1.$O\
 	mul64fract.$O\
 	rebootcmd.$O\
+	logpow.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\

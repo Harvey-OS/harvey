@@ -540,6 +540,13 @@ TEXT islo(SB), $0
 	RET
 
 /*
+ * Miscellany
+ */
+TEXT bsr(SB), $0
+	BSRL	word+0(FP), AX			/* count leading zeros */
+	RET
+
+/*
  *  basic timing loop to determine CPU frequency
  */
 TEXT	aamloop(SB),$0

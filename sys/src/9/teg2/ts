@@ -57,7 +57,6 @@ misc
 	pci
 	rdb
 	coproc
-	v7-arch
 	caches
 	caches-v7
 	cache-l2-pl310

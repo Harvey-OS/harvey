@@ -227,27 +227,6 @@ praddrmap(void)
 		praddrwin(&map->win[i], i);
 }
 
-int
-ispow2(uvlong ul)
-{
-	/* see Hacker's Delight if this isn't obvious */
-	return (ul & (ul - 1)) == 0;
-}
-
-/*
- * return exponent of smallest power of 2 ≥ n
- */
-int
-log2(ulong n)
-{
-	int i;
-
-	i = 31 - clz(n);
-	if (!ispow2(n) || n == 0)
-		i++;
-	return i;
-}
-
 void
 cacheinfo(int level, int kind, Memcache *cp)		/* l1 only */
 {

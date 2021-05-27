@@ -878,6 +878,13 @@ TEXT islo(SB), $0
 	RET
 
 /*
+ * Miscellany
+ */
+TEXT bsr(SB), $0
+	BSRL	word+0(FP), AX		/* return bit index of leftmost 1 bit */
+	RET
+
+/*
  * Test-And-Set
  */
 TEXT tas(SB), $0

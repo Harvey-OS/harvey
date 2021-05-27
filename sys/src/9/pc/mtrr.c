@@ -131,12 +131,6 @@ sanity(Mtrreg *mtrr)
 	mtrr->mask &= Paerange - 1;
 }
 
-static int
-ispow2(uvlong ul)
-{
-	return (ul & (ul - 1)) == 0;
-}
-
 /* true if mtrr is valid */
 static int
 mtrrdec(Mtrreg *mtrr, uvlong *ptr, uvlong *size, int *type)
