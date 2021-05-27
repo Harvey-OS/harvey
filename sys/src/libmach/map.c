@@ -93,7 +93,7 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 	else
 		regs = "regs";
 	if (mach->regsize) {
-		sprint(buf, "/proc/%d/%s", pid, regs);
+		snprint(buf, sizeof buf, "/proc/%d/%s", pid, regs);
 		fd = open(buf, ORDWR);
 		if(fd < 0)
 			fd = open(buf, OREAD);
@@ -104,7 +104,7 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 		setmap(map, fd, 0, mach->regsize, 0, "regs");
 	}
 	if (mach->fpregsize) {
-		sprint(buf, "/proc/%d/fpregs", pid);
+		snprint(buf, sizeof buf, "/proc/%d/fpregs", pid);
 		fd = open(buf, ORDWR);
 		if(fd < 0)
 			fd = open(buf, OREAD);

@@ -84,7 +84,7 @@ powerexcep(Map *map, Rgetter rget)
 	c = (*rget)(map, "CAUSE") >> 8;
 	if(c < nelem(excname))
 		return excname[c];
-	sprint(buf, "unknown trap #%lx", c);
+	snprint(buf, sizeof buf, "unknown trap #%lx", c);
 	return buf;
 }
 
@@ -357,7 +357,7 @@ branch(Opcode *o, Instr *i)
 	if(bo==4 || bo==12 || bo==20) {	/* simple forms */
 		if(bo != 20) {
 			bi = i->bi&3;
-			sprint(buf, "B%s%%L", bo==12? tcrbits[bi]: fcrbits[bi]);
+			snprint(buf, sizeof buf, "B%s%%L", bo==12? tcrbits[bi]: fcrbits[bi]);
 			format(buf, i, nil);
 			bprint(i, "\t");
 			if(i->bi > 4)

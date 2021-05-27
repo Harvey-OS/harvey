@@ -636,7 +636,7 @@ armshiftval(Map *map, Rgetter rget, Instr *i)
 		ulong v;
 		ulong s = (i->w & BITS(7,11)) >> 7;
 
-		sprint(buf, "R%ld", i->w & 0xf);
+		snprint(buf, sizeof buf, "R%ld", i->w & 0xf);
 		v = rget(map, buf);
 
 		switch((i->w & BITS(4, 6)) >> 4) {
@@ -644,14 +644,14 @@ armshiftval(Map *map, Rgetter rget, Instr *i)
 		case 0:					/* LSLIMM */
 			return v << s;
 		case 1:					/* LSLREG */
-			sprint(buf, "R%lud", s >> 1);
+			snprint(buf, sizeof buf, "R%lud", s >> 1);
 			s = rget(map, buf) & 0xFF;
 			if(s >= 32) return 0;
 			return v << s;
 		case 2:					/* LSRIMM */
 			return LSR(v, s);
 		case 3:					/* LSRREG */
-			sprint(buf, "R%ld", s >> 1);
+			snprint(buf, sizeof buf, "R%ld", s >> 1);
 			s = rget(map, buf) & 0xFF;
 			if(s >= 32) return 0;
 			return LSR(v, s);
@@ -663,7 +663,7 @@ armshiftval(Map *map, Rgetter rget, Instr *i)
 			}
 			return ASR(v, s);
 		case 5:					/* ASRREG */
-			sprint(buf, "R%ld", s >> 1);
+			snprint(buf, sizeof buf, "R%ld", s >> 1);
 			s = rget(map, buf) & 0xFF;
 			if(s >= 32) {
 				if((v & (1U<<31)) == 0)
@@ -679,7 +679,7 @@ armshiftval(Map *map, Rgetter rget, Instr *i)
 			}
 			return ROR(v, s);
 		case 7:					/* RORREG */
-			sprint(buf, "R%ld", (s>>1)&0xF);
+			snprint(buf, sizeof buf, "R%ld", (s>>1)&0xF);
 			s = rget(map, buf);
 			if(s == 0 || (s & 0xF) == 0)
 				return v;
@@ -711,7 +711,7 @@ armmaddr(Map *map, Rgetter rget, Instr *i)
 	ulong rn;
 
 	rn = (i->w >> 16) & 0xf;
-	sprint(buf,"R%ld", rn);
+	snprint(buf, sizeof buf, "R%ld", rn);
 
 	v = rget(map, buf);
 	nb = nbits(i->w & ((1 << 15) - 1));
@@ -746,7 +746,7 @@ armaddr(Map *map, Rgetter rget, Instr *i)
 		uchar c;
 		uchar rm;
 
-		sprint(buf, "R%ld", i->w & 0xf);
+		snprint(buf, sizeof buf, "R%ld", i->w & 0xf);
 		rm = rget(map, buf);
 
 		switch((i->w & BITS(5,6)) >> 5) {
@@ -779,7 +779,7 @@ armfadd(Map *map, Rgetter rget, Instr *i, uvlong pc)
 		return pc+4;
 
 	r = (i->w >> 16) & 0xf;
-	sprint(buf, "R%d", r);
+	snprint(buf, sizeof buf, "R%d", r);
 
 	return rget(map, buf) + armshiftval(map, rget, i);
 }
@@ -793,7 +793,7 @@ armfbx(Map *map, Rgetter rget, Instr *i, uvlong pc)
 	if(!armcondpass(map, rget, (i->w>>28)&0xf))
 		return pc+4;
 	r = (i->w >> 0) & 0xf;
-	sprint(buf, "R%d", r);
+	snprint(buf, sizeof buf, "R%d", r);
 	return rget(map, buf);
 }
 

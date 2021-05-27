@@ -1084,7 +1084,7 @@ fline(char *str, int n, long line, Hist *base, Hist **ret)
 	else {
 		k = fileelem(fnames, (uchar*)start->name, str, n);
 		if(k+8 < n)
-			sprint(str+k, ":%ld", line);
+			snprint(str+k, n-k, ":%ld", line);
 	}
 /**********Remove comments for complete back-trace of include sequence
  *	if(start != base) {
@@ -1095,7 +1095,7 @@ fline(char *str, int n, long line, Hist *base, Hist **ret)
  *		}
  *		k += fileelem(fnames, (uchar*) base->name, str+k, n-k);
  *		if(k+10 < n)
- *			sprint(str+k, ":%ld}", start->line-delta);
+ *			snprint(str+k, n-k, ":%ld}", start->line-delta);
  *	}
  ********************/
 	return 0;

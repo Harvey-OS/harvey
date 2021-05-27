@@ -56,9 +56,9 @@ excname(ulong tbr)
 	if(tbr < sizeof trapname/sizeof(char*))
 		return trapname[tbr];
 	if(tbr >= 130)
-		sprint(buf, "trap instruction %ld", tbr-128);
+		snprint(buf, sizeof buf, "trap instruction %ld", tbr-128);
 	else if(17<=tbr && tbr<=31)
-		sprint(buf, "interrupt level %ld", tbr-16);
+		snprint(buf, sizeof buf, "interrupt level %ld", tbr-16);
 	else switch(tbr){
 	case 36:
 		return "cp disabled";
@@ -69,7 +69,7 @@ excname(ulong tbr)
 	case 129:
 		return "breakpoint";
 	default:
-		sprint(buf, "unknown trap %ld", tbr);
+		snprint(buf, sizeof buf, "unknown trap %ld", tbr);
 	}
 	return buf;
 }
@@ -678,7 +678,7 @@ moveinstr(int op3, char *m)
 		s = "";
 		if((op3&11)==1 || (op3&11)==2)
 			s="U";
-		sprint(buf, "MOV%c%s", c, s);
+		snprint(buf, sizeof buf, "MOV%c%s", c, s);
 		return buf;
 	}
 	return m;
@@ -1035,12 +1035,12 @@ sparcfoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
 	}
 
 	if((w&0xC1F80000) == 0x81C00000){	/* JMPL */
-		sprint(buf, "R%ld", (w>>14)&0xF);
+		snprint(buf, sizeof buf, "R%ld", (w>>14)&0xF);
 		r1 = (*rget)(map, buf);
 		if(w & 0x2000)			/* JMPL R1+simm13 */
 			r2 = i.simm13;
 		else{				/* JMPL R1+R2 */
-			sprint(buf, "R%ld", w&0xF);
+			snprint(buf, sizeof buf, "R%ld", w&0xF);
 			r2 = (*rget)(map, buf);
 		}
 		foll[0] = r1 + r2;
