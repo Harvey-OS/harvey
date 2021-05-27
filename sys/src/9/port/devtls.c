@@ -1,5 +1,5 @@
 /*
- *  devtls - record layer for transport layer security 1.0 and secure sockets layer 3.0
+ *  devtls - record layer for transport layer security 1.0, 1.1, 1.2 and secure sockets layer 3.0
  */
 #include	"u.h"
 #include	"../port/lib.h"
@@ -21,12 +21,13 @@ enum {
 	MaxRecLen		= 1<<14,	/* max payload length of a record layer message */
 	MaxCipherRecLen	= MaxRecLen + 2048,
 	RecHdrLen		= 5,
-	MaxMacLen		= SHA1dlen,
+	MaxMacLen		= SHA2_256dlen,
 
 	/* protocol versions we can accept */
-	TLSVersion		= 0x0301,
 	SSL3Version		= 0x0300,
-	ProtocolVersion	= 0x0301,	/* maximum version we speak */
+	TLS10Version		= 0x0301,
+	TLS11Version		= 0x0302,
+	TLS12Version		= 0x0303,
 	MinProtoVersion	= 0x0300,	/* limits on version we accept */
 	MaxProtoVersion	= 0x03ff,
 
@@ -73,6 +74,7 @@ enum {
 	EInternalError 			= 80,
 	EUserCanceled 			= 90,
 	ENoRenegotiation 		= 100,
+	EUnrecognizedName		= 112,
 
 	EMAX = 256
 };
@@ -800,6 +802,17 @@ if(tr->debug) pprint("consumed unprocessed %d\n", len);
 		/* to avoid Canvel-Hiltgen-Vaudenay-Vuagnoux attack, all errors here
 		        should look alike, including timing of the response. */
 		unpad_len = (*in->sec->dec)(in->sec, p, len);
+
+		/* excplicit iv */
+		if(tr->version >= TLS11Version){
+			len -= in->sec->block;
+			if(len < 0)
+				rcvError(tr, EDecodeError, "runt record message");
+
+			unpad_len -= in->sec->block;
+			p += in->sec->block;
+		}
+
 		if(unpad_len >= in->sec->maclen)
 			len = unpad_len - in->sec->maclen;
 if(tr->debug) pprint("decrypted %d\n", unpad_len);
@@ -814,7 +827,8 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 			rcvError(tr, EBadRecordMac, "short record mac");
 		if(memcmp(hmac, p+len, in->sec->maclen) != 0)
 			rcvError(tr, EBadRecordMac, "record mac mismatch");
-		b->wp = b->rp + len;
+		b->rp = p;
+		b->wp = p+len;
 	}
 	qunlock(&in->seclock);
 	poperror();
@@ -850,18 +864,25 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 		/*
 		 * propate non-fatal alerts to handshaker
 		 */
-		if(p[1] == ECloseNotify) {
+		switch(p[1]){
+		case ECloseNotify:
 			tlsclosed(tr, SRClose);
 			if(tr->opened)
 				error("tls hungup");
 			error("close notify");
-		}
-		if(p[1] == ENoRenegotiation)
+			break;
+		case ENoRenegotiation:
 			alertHand(tr, "no renegotiation");
-		else if(p[1] == EUserCanceled)
+			break;
+		case EUserCanceled:
 			alertHand(tr, "handshake canceled by user");
-		else
+			break;
+		case EUnrecognizedName:
+			/* happens in response to SNI, can be ignored. */
+			break;
+		default:
 			rcvError(tr, EIllegalParameter, "invalid alert code");
+		}
 		break;
 	case RHandshake:
 		/*
@@ -1202,6 +1223,13 @@ tlsread(Chan *c, void *a, long n, vlong off)
 	return n;
 }
 
+static void
+randfill(uchar *buf, int len)
+{
+	while(len-- > 0)
+		*buf++ = nrand(256);
+}
+
 /*
  *  write a block in tls records
  */
@@ -1212,7 +1240,7 @@ tlsrecwrite(TlsRec *tr, int type, Block *b)
 	Block *nb;
 	uchar *p, seq[8];
 	OneWay *volatile out;
-	int n, maclen, pad, ok;
+	int n, ivlen, maclen, pad, ok;
 
 	out = &tr->out;
 	bb = b;
@@ -1245,21 +1273,24 @@ if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
 		qlock(&out->seclock);
 		maclen = 0;
 		pad = 0;
+		ivlen = 0;
 		if(out->sec != nil){
 			maclen = out->sec->maclen;
 			pad = maclen + out->sec->block;
+			if(tr->version >= TLS11Version)
+				ivlen = out->sec->block;
 		}
 		n = BLEN(bb);
 		if(n > MaxRecLen){
 			n = MaxRecLen;
-			nb = allocb(n + pad + RecHdrLen);
-			memmove(nb->wp + RecHdrLen, bb->rp, n);
+			nb = allocb(RecHdrLen + ivlen + n + pad);
+			memmove(nb->wp + RecHdrLen + ivlen, bb->rp, n);
 			bb->rp += n;
 		}else{
 			/*
 			 * carefully reuse bb so it will get freed if we're out of memory
 			 */
-			bb = padblock(bb, RecHdrLen);
+			bb = padblock(bb, RecHdrLen + ivlen);
 			if(pad)
 				nb = padblock(bb, -pad);
 			else
@@ -1275,8 +1306,14 @@ if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
 		if(out->sec != nil){
 			put64(seq, out->seq);
 			out->seq++;
-			(*tr->packMac)(out->sec, out->sec->mackey, seq, p, p + RecHdrLen, n, p + RecHdrLen + n);
+			(*tr->packMac)(out->sec, out->sec->mackey, seq, p, p + RecHdrLen + ivlen, n, p + RecHdrLen + ivlen + n);
 			n += maclen;
+
+			/* explicit iv */
+			if(ivlen > 0){
+				randfill(p + RecHdrLen, ivlen);
+				n += ivlen;
+			}
 
 			/* encrypt */
 			n = (*out->sec->enc)(out->sec, p + RecHdrLen, n);
@@ -1380,11 +1417,22 @@ initsha1key(Hashalg *ha, int version, Secret *s, uchar *p)
 	memmove(s->mackey, p, ha->maclen);
 }
 
+static void
+initsha2_256key(Hashalg *ha, int version, Secret *s, uchar *p)
+{
+	if(version == SSL3Version)
+		error("sha256 cannot be used with SSL");
+	s->maclen = ha->maclen;
+	s->mac = hmac_sha2_256;
+	memmove(s->mackey, p, ha->maclen);
+}
+
 static Hashalg hashtab[] =
 {
 	{ "clear", 0, initclearmac, },
 	{ "md5", MD5dlen, initmd5key, },
 	{ "sha1", SHA1dlen, initsha1key, },
+	{ "sha256", SHA2_256dlen, initsha2_256key, },
 	{ 0 }
 };
 
@@ -1555,12 +1603,12 @@ tlswrite(Chan *c, void *a, long n, vlong off)
 		if(tr->verset)
 			error("version already set");
 		m = strtol(cb->f[1], nil, 0);
+		if(m < MinProtoVersion || m > MaxProtoVersion)
+			error("unsupported version");
 		if(m == SSL3Version)
 			tr->packMac = sslPackMac;
-		else if(m == TLSVersion)
-			tr->packMac = tlsPackMac;
 		else
-			error("unsupported version");
+			tr->packMac = tlsPackMac;
 		tr->verset = 1;
 		tr->version = m;
 	}else if(strcmp(cb->f[0], "secret") == 0){

@@ -17,7 +17,8 @@ tls \- TLS1 and SSL3 record layer
 .fi
 .SH DESCRIPTION
 The TLS device implements the record layer protocols
-of Transport Layer Security version 1.0 and Secure Sockets Layer version 3.0.
+of Transport Layer Security versions 1.[0-2] and
+Secure Sockets Layer version 3.0.
 It does not implement the handshake protocols, which are responsible for
 mutual authentication and key exchange.
 The
@@ -54,9 +55,14 @@ Initially, outgoing messages use version
 format records, but incoming messages of either version are accepted.
 Valid versions are
 .B 0x300
-for SSLv3.0 and
+for SSLv3.0,
 .B 0x301
-for TLSv1.0 (which could be known as SSLv3.01.)
+for TLSv1.0,
+.B 0x302
+for TLSv1.1,
+and
+.B 0x303
+for TLSv1.2.
 This command must be issued before any other command
 and before reading or writing any messages;
 it may only be executed once.
@@ -265,9 +271,10 @@ Currently implemented encryption algorithms are
 and
 .BR 'aes_256_cbc' .
 Currently implemented hashing algorithms are
-.B 'md5'
+.BR "md5" ,
+.BR "sha1" ,
 and
-.BR 'sha1' .
+.BR "sha2_256" .
 .SH "SEE ALSO"
 .IR listen (8),
 .IR dial (2),
