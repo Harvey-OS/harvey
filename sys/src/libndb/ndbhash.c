@@ -86,7 +86,7 @@ hfopen(Ndb *db, char *attr)
 
 	/* compare it to the database file */
 	strncpy(hf->attr, attr, sizeof(hf->attr)-1);
-	sprint(buf, "%s.%s", db->file, hf->attr);
+	snprint(buf, sizeof buf, "%s.%s", db->file, hf->attr);
 	hf->fd = open(buf, OREAD);
 	if(hf->fd >= 0){
 		hf->len = 0;
