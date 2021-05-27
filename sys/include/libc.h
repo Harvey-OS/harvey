@@ -403,6 +403,7 @@ extern	void	notejmp(void*, jmp_buf, int);
 extern	void	perror(char*);
 extern	int	postnote(int, int, char *);
 extern	double	pow10(int);
+extern	void	procsetname(char*, ...);
 extern	int	putenv(char*, char*);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
 extern	int	setjmp(jmp_buf);

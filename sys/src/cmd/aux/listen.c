@@ -53,7 +53,7 @@ usage(void)
  * based on libthread's threadsetname, but drags in less library code.
  * actually just sets the arguments displayed.
  */
-static void
+void
 procsetname(char *fmt, ...)
 {
 	int fd;
