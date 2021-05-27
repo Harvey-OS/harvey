@@ -12,24 +12,48 @@
 #include "../port/netif.h"
 #include "etherif.h"
 
+enum{
+	CMea = 0,
+	CMmtu
+};
+
+static Cmdtab sinkcmds[] = {
+	{CMea,	"ea",		2},
+	{CMmtu,	"mtu",	2},
+};
+
 static long
 ctl(Ether *ether, void *buf, long n)
 {
 	uchar ea[Eaddrlen];
 	Cmdbuf *cb;
+	Cmdtab *ct;
+	long mtu;
 
 	cb = parsecmd(buf, n);
-	if(cb->nf >= 2
-	&& strcmp(cb->f[0], "ea")==0
-	&& parseether(ea, cb->f[1]) == 0){
+	if(waserror()){
 		free(cb);
+		nexterror();
+	}
+	ct = lookupcmd(cb, sinkcmds, nelem(sinkcmds));
+	switch(ct->index){
+	case CMea:
+		if(parseether(ea, cb->f[1]) < 0)
+			cmderror(cb, "invalid ea");
 		memmove(ether->ea, ea, Eaddrlen);
 		memmove(ether->addr, ether->ea, Eaddrlen);
-		return 0;
+		break;
+	case CMmtu:
+		mtu = strtol(cb->f[1], nil, 0);
+		if(mtu < ETHERMINTU || mtu > 9000)
+			cmderror(cb, "invalid mtu");
+		ether->maxmtu = mtu;
+		ether->mtu = mtu;
+		break;
 	}
+	poperror();
 	free(cb);
-	error(Ebadctl);
-	return -1;	/* not reached */
+	return n;
 }
 
 static void
@@ -37,17 +61,20 @@ nop(Ether*)
 {
 }
 
+static void
+discard(Ether* ether)
+{
+	qflush(ether->oq);
+}
+
 static int
 reset(Ether* ether)
 {
-	uchar ea[Eaddrlen];
-
 	if(ether->type==nil)
 		return -1;
-	memset(ea, 0, sizeof ea);
 	ether->mbps = 1000;
 	ether->attach = nop;
-	ether->transmit = nop;
+	ether->transmit = discard;
 	ether->irq = -1;
 	ether->interrupt = nil;
 	ether->ifstat = nil;
