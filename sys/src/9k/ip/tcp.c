@@ -1774,11 +1774,13 @@ tcpincoming(Conv *s, Tcp *segp, uchar *src, uchar *dst, uchar version)
 	tcb->flgcnt = 0;
 	tcb->flags |= SYNACK;
 
+	/* set desired mss and scale */
+	tcb->mss = tcpmtu(s->p, dst, s->ipversion, &tcb->scale);
+
 	/* our sending max segment size cannot be bigger than what he asked for */
-	if(lp->mss != 0 && lp->mss < tcb->mss) {
+	if(lp->mss != 0 && lp->mss < tcb->mss)
 		tcb->mss = lp->mss;
-		tpriv->stats[Mss] = tcb->mss;
-	}
+	tpriv->stats[Mss] = tcb->mss;
 
 	/* window scaling */
 	tcpsetscale(new, tcb, lp->rcvscale, lp->sndscale);
