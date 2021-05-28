@@ -334,13 +334,13 @@ indent(int ind)
 char*	trans[] =
 {
 	"386",		"8.out",
-	"68020",		"2.out",
-	"alpha",		"7.out",
+	"68020",	"2.out",
+	"alpha",	"7.out",
 	"amd64",	"6.out",
 	"arm",		"5.out",
 	"mips",		"v.out",
-	"power",		"q.out",
-	"sparc",		"k.out",
+	"power",	"q.out",
+	"sparc",	"k.out",
 	"spim",		"0.out",
 	0,0
 };
