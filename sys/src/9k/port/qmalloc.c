@@ -639,10 +639,10 @@ morecore(uint nunits)
 	 * Pump it up when you don't really need it.
 	 * Pump it up until you can feel it.
 	 */
-	if(nunits > availnunits)
-		return 0;
-	if(availnunits >= NUNITS(128*KiB))
+	if(nunits < NUNITS(128*KiB))
 		nunits = NUNITS(128*KiB);
+ 	if(nunits > availnunits)
+		nunits = availnunits;
 	availnunits -= nunits;
 
 	return nunits;
