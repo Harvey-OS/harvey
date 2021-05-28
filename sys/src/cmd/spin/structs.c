@@ -1,13 +1,10 @@
 /***** spin: structs.c *****/
 
-/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ */
 
 #include "spin.h"
 #include "y.tab.h"
@@ -27,7 +24,8 @@ static UType *Unames = 0;
 static UType *Pnames = 0;
 
 static Lextok	*cpnn(Lextok *, int, int, int);
-extern void	sr_mesg(FILE *, int, int);
+extern void	sr_mesg(FILE *, int, int, const char *);
+extern void	Done_case(char *, Symbol *);
 
 void
 setuname(Lextok *n)
@@ -104,7 +102,8 @@ setutype(Lextok *p, Symbol *t, Lextok *vis)	/* user-defined types */
 	{	lineno = n->ln;
 		Fname = n->fn;
 		if (n->sym->type)
-			fatal("redeclaration of '%s'", n->sym->name);
+		{	fatal("redeclaration of '%s'", n->sym->name);
+		}
 
 		if (n->sym->nbits > 0)
 			non_fatal("(%s) only an unsigned can have width-field",
@@ -240,12 +239,18 @@ Cnt_flds(Lextok *m)
 {	Lextok *fp, *tl, *n;
 	int cnt = 0;
 
+	if (!m)
+	{	return 0;
+	}
+
 	if (m->ntyp == ',')
 	{	n = m;
 		goto is_lst;
 	}
-	if (!m->sym || m->ntyp != STRUCT)
-		return 1;
+	if (!m->sym
+	||  m->ntyp != STRUCT)
+	{	return 1;
+	}
 
 	n = getuname(m->sym);
 is_lst:
@@ -316,7 +321,7 @@ ini_struct(Symbol *s)
 
 static Lextok *
 cpnn(Lextok *s, int L, int R, int S)
-{	Lextok *d; extern int Nid;
+{	Lextok *d; extern int Nid_nr;
 
 	if (!s) return ZN;
 
@@ -334,7 +339,7 @@ cpnn(Lextok *s, int L, int R, int S)
 	{	d->sym = (Symbol *) emalloc(sizeof(Symbol));
 		memcpy(d->sym, s->sym, sizeof(Symbol));
 		if (d->sym->type == CHAN)
-			d->sym->Nid = ++Nid;
+			d->sym->Nid = ++Nid_nr;
 	}
 	if (s->sq || s->sl)
 		fatal("cannot happen cpnn", (char *) 0);
@@ -409,14 +414,14 @@ walk2_struct(char *s, Symbol *z)
 {	Lextok *fp, *tl;
 	char eprefix[128];
 	int ix;
-	extern void Done_case(char *, Symbol *);
 
+	memset(eprefix, 0, sizeof(eprefix));
 	ini_struct(z);
 	if (z->nel == 1 && z->isarray == 0)
-		sprintf(eprefix, "%s%s.", s, z->name);
+		snprintf(eprefix, sizeof(eprefix)-1, "%s%s.", s, z->name);
 	for (ix = 0; ix < z->nel; ix++)
 	{	if (z->nel > 1 || z->isarray == 1)
-			sprintf(eprefix, "%s%s[%d].", s, z->name, ix);
+			snprintf(eprefix, sizeof(eprefix)-1, "%s%s[%d].", s, z->name, ix);
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)
@@ -432,12 +437,13 @@ walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c
 	char eprefix[128];
 	int ix;
 
+	memset(eprefix, 0, sizeof(eprefix));
 	ini_struct(z);
 	if (z->nel == 1 && z->isarray == 0)
-		sprintf(eprefix, "%s%s.", s, z->name);
+		snprintf(eprefix, sizeof(eprefix)-1, "%s%s.", s, z->name);
 	for (ix = 0; ix < z->nel; ix++)
 	{	if (z->nel > 1 || z->isarray == 1)
-			sprintf(eprefix, "%s%s[%d].", s, z->name, ix);
+			snprintf(eprefix, sizeof(eprefix)-1, "%s%s[%d].", s, z->name, ix);
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)
@@ -501,15 +507,22 @@ dump_struct(Symbol *z, char *prefix, RunList *r)
 			{	if (tl->sym->type == CHAN)
 					doq(tl->sym, jx, r);
 				else
-				{	printf("\t\t");
+				{	char *s = 0;
+					printf("\t\t");
 					if (r)
 					printf("%s(%d):", r->n->name, r->pid);
 					printf("%s.%s", eprefix, tl->sym->name);
 					if (tl->sym->nel > 1 || tl->sym->isarray == 1)
 						printf("[%d]", jx);
 					printf(" = ");
+
+					if (tl->sym->type == MTYPE
+					&&  tl->sym->mtype_name)
+					{	s = tl->sym->mtype_name->name;
+					}
+
 					sr_mesg(stdout, tl->sym->val[jx],
-						tl->sym->type == MTYPE);
+						tl->sym->type == MTYPE, s);
 					printf("\n");
 		}	}	}
 	}

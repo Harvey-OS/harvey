@@ -1,16 +1,13 @@
 /***** tl_spin: tl_cache.c *****/
 
-/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
-
-/* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
-/* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ *
+ * Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper,
+ * presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.
+ */
 
 #include "tl.h"
 
@@ -24,9 +21,10 @@ typedef struct Cache {
 static Cache	*stored = (Cache *) 0;
 static unsigned long	Caches, CacheHits;
 
-static int	ismatch(Node *, Node *);
+static int ismatch(Node *, Node *);
+static int sameform(Node *, Node *);
+
 extern void fatal(char *, char *);
-int	sameform(Node *, Node *);
 
 void
 ini_cache(void)
@@ -190,7 +188,7 @@ sametrees(int ntyp, Node *a, Node *b)
 	return all_lfts(ntyp, b, a);
 }
 
-int	/* a better isequal() */
+static int	/* a better isequal() */
 sameform(Node *a, Node *b)
 {
 	if (!a && !b) return 1;
@@ -214,6 +212,7 @@ sameform(Node *a, Node *b)
 #ifdef NXT
 	case NEXT:
 #endif
+	case CEXPR:
 		return sameform(a->lft, b->lft);
 	case U_OPER:
 	case V_OPER:

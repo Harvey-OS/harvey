@@ -1,31 +1,31 @@
 /***** spin: run.c *****/
 
-/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ */
 
 #include <stdlib.h>
 #include "spin.h"
 #include "y.tab.h"
 
-extern RunList	*X, *run;
+extern RunList	*X_lst, *run_lst;
 extern Symbol	*Fname;
 extern Element	*LastStep;
-extern int	Rvous, lineno, Tval, interactive, MadeChoice;
+extern int	Rvous, lineno, Tval, interactive, MadeChoice, Priority_Sum;
 extern int	TstOnly, verbose, s_trail, xspin, jumpsteps, depth;
-extern int	analyze, nproc, nstop, no_print, like_java;
+extern int	analyze, nproc, nstop, no_print, like_java, old_priority_rules;
+extern short	Have_claim;
 
 static long	Seed = 1;
 static int	E_Check = 0, Escape_Check = 0;
 
 static int	eval_sync(Element *);
 static int	pc_enabled(Lextok *n);
-extern void	sr_buf(int, int);
+static int	get_priority(Lextok *n);
+static void	set_priority(Lextok *n, Lextok *m);
+extern void	sr_buf(int, int, const char *);
 
 void
 Srand(unsigned int s)
@@ -42,15 +42,14 @@ Rand(void)
 
 Element *
 rev_escape(SeqList *e)
-{	Element *r;
+{	Element *r = (Element *) 0;
 
-	if (!e)
-		return (Element *) 0;
+	if (e)
+	{	if ((r = rev_escape(e->nxt)) == ZE) /* reversed order */
+		{	r = eval_sub(e->this->frst);
+	}	}
 
-	if ((r = rev_escape(e->nxt)) != ZE) /* reversed order */
-		return r;
-
-	return eval_sub(e->this->frst);		
+	return r;		
 }
 
 Element *
@@ -235,7 +234,7 @@ eval_sub(Element *e)
 		} else
 		{	SeqList *x;
 			if (!(e->status & (D_ATOM))
-			&&  e->esc && verbose&32)
+			&&  e->esc && (verbose&32))
 			{	printf("Stmnt [");
 				comment(stdout, e->n, 0);
 				printf("] has escape(s): ");
@@ -261,7 +260,11 @@ eval_sub(Element *e)
 				if (like_java)
 				{	if ((g = rev_escape(e->esc)) != ZE)
 					{	if (verbose&4)
-							printf("\tEscape taken\n");
+						{	printf("\tEscape taken (-J) ");
+							if (g->n && g->n->fn)
+								printf("%s:%d", g->n->fn->name, g->n->ln);
+							printf("\n");
+						}
 						Escape_Check--;
 						return g;
 					}
@@ -279,12 +282,14 @@ eval_sub(Element *e)
 				}	}	}
 				Escape_Check--;
 			}
-		
 			switch (e->n->ntyp) {
+			case ASGN:
+				if (check_track(e->n) == STRUCT) { break; }
+				/* else fall thru */
 			case TIMEOUT: case RUN:
 			case PRINT: case PRINTM:
 			case C_CODE: case C_EXPR:
-			case ASGN: case ASSERT:
+			case ASSERT:
 			case 's': case 'r': case 'c':
 				/* toplevel statements only */
 				LastStep = e;
@@ -335,7 +340,8 @@ assign(Lextok *now)
 		t = Sym_typ(now->rgt);
 		break;
 	}
-	typ_ck(Sym_typ(now->lft), t, "assignment"); 
+	typ_ck(Sym_typ(now->lft), t, "assignment");
+
 	return setval(now->lft, eval(now->rgt));
 }
 
@@ -343,7 +349,7 @@ static int
 nonprogress(void)	/* np_ */
 {	RunList	*r;
 
-	for (r = run; r; r = r->nxt)
+	for (r = run_lst; r; r = r->nxt)
 	{	if (has_lab(r->pc, 4))	/* 4=progress */
 			return 0;
 	}
@@ -352,7 +358,8 @@ nonprogress(void)	/* np_ */
 
 int
 eval(Lextok *now)
-{
+{	int temp;
+
 	if (now) {
 	lineno = now->ln;
 	Fname  = now->fn;
@@ -367,11 +374,19 @@ eval(Lextok *now)
 	case  UMIN: return -eval(now->lft);
 	case   '~': return ~eval(now->lft);
 
-	case   '/': return (eval(now->lft) / eval(now->rgt));
+	case   '/': temp = eval(now->rgt);
+		    if (temp == 0)
+		    {	fatal("division by zero", (char *) 0);
+		    }
+		    return (eval(now->lft) / temp);
 	case   '*': return (eval(now->lft) * eval(now->rgt));
 	case   '-': return (eval(now->lft) - eval(now->rgt));
 	case   '+': return (eval(now->lft) + eval(now->rgt));
-	case   '%': return (eval(now->lft) % eval(now->rgt));
+	case   '%': temp = eval(now->rgt);
+		    if (temp == 0)
+		    {	fatal("taking modulo of zero", (char *) 0);
+		    }
+		    return (eval(now->lft) % temp);
 	case    LT: return (eval(now->lft) <  eval(now->rgt));
 	case    GT: return (eval(now->lft) >  eval(now->rgt));
 	case   '&': return (eval(now->lft) &  eval(now->rgt));
@@ -398,7 +413,22 @@ eval(Lextok *now)
 	case  NEMPTY: return (qlen(now)>0);
 	case ENABLED: if (s_trail) return 1;
 		      return pc_enabled(now->lft);
-	case    EVAL: return eval(now->lft);
+
+	case GET_P: return get_priority(now->lft);
+	case SET_P: set_priority(now->lft->lft, now->lft->rgt); return 1;
+
+	case    EVAL:	if (now->lft->ntyp == ',')
+			{	Lextok *fix = now->lft;
+				do {					/* new */
+					if (eval(fix->lft) == 0)	/* usertype6 */
+					{	return 0;
+					}
+					fix = fix->rgt;
+				} while (fix && fix->ntyp == ',');
+				return 1;
+			}
+			return eval(now->lft);
+
 	case  PC_VAL: return pc_value(now->lft);
 	case NONPROGRESS: return nonprogress();
 	case    NAME: return getval(now);
@@ -411,7 +441,9 @@ eval(Lextok *now)
 	case   'c': return eval(now->lft);	/* condition    */
 	case PRINT: return TstOnly?1:interprint(stdout, now);
 	case PRINTM: return TstOnly?1:printm(stdout, now);
-	case  ASGN: return assign(now);
+	case  ASGN:
+		if (check_track(now) == STRUCT) { return 1; }
+		return assign(now);
 
 	case C_CODE: if (!analyze)
 		     {	printf("%s:\t", now->sym->name);
@@ -438,6 +470,11 @@ eval(Lextok *now)
 	case   '.': return 1;	/* return label for compound */
 	case   '@': return 0;	/* stop state */
 	case  ELSE: return 1;	/* only hit here in guided trails */
+
+	case ',':	/* reached through option -A with array initializer */
+	case 0:
+		    return 0;	/* not great, but safe */
+
 	default   : printf("spin: bad node type %d (run)\n", now->ntyp);
 		    if (s_trail) printf("spin: trail file doesn't match spec?\n");
 		    fatal("aborting", 0);
@@ -447,18 +484,26 @@ eval(Lextok *now)
 
 int
 printm(FILE *fd, Lextok *n)
-{	extern char Buf[];
+{	extern char GBuf[];
+	char *s = 0;
 	int j;
 
-	Buf[0] = '\0';
+	GBuf[0] = '\0';
 	if (!no_print)
-	if (!s_trail || depth >= jumpsteps) {
+	if (!s_trail || depth >= jumpsteps)
+	{
+		if (n->lft->sym
+		&&  n->lft->sym->mtype_name)
+		{	s = n->lft->sym->mtype_name->name;
+		}
+
 		if (n->lft->ismtyp)
-			j = n->lft->val;
-		else
-			j = eval(n->lft);
-		sr_buf(j, 1);
-		dotag(fd, Buf);
+		{	j = n->lft->val;
+		} else	/* constant */
+		{	j = eval(n->lft);
+		}
+		sr_buf(j, 1, s);
+		dotag(fd, GBuf);
 	}
 	return 1;
 }
@@ -466,12 +511,12 @@ printm(FILE *fd, Lextok *n)
 int
 interprint(FILE *fd, Lextok *n)
 {	Lextok *tmp = n->lft;
-	char c, *s = n->sym->name;
+	char c, *s = n->sym->name, *t = 0;
 	int i, j; char lbuf[512]; /* matches value in sr_buf() */
-	extern char Buf[];	/* global, size 4096 */
-	char tBuf[4096];	/* match size of global Buf[] */
+	extern char GBuf[];	/* global, size 4096 */
+	char tBuf[4096];	/* match size of global GBuf[] */
 
-	Buf[0] = '\0';
+	GBuf[0] = '\0';
 	if (!no_print)
 	if (!s_trail || depth >= jumpsteps) {
 	for (i = 0; i < (int) strlen(s); i++)
@@ -479,14 +524,14 @@ interprint(FILE *fd, Lextok *n)
 		case '\"': break; /* ignore */
 		case '\\':
 			 switch(s[++i]) {
-			 case 't': strcat(Buf, "\t"); break;
-			 case 'n': strcat(Buf, "\n"); break;
+			 case 't': strcat(GBuf, "\t"); break;
+			 case 'n': strcat(GBuf, "\n"); break;
 			 default:  goto onechar;
 			 }
 			 break;
 		case  '%':
 			 if ((c = s[++i]) == '%')
-			 {	strcat(Buf, "%"); /* literal */
+			 {	strcat(GBuf, "%"); /* literal */
 				break;
 			 }
 			 if (!tmp)
@@ -494,16 +539,26 @@ interprint(FILE *fd, Lextok *n)
 				break;
 			 }
 			 j = eval(tmp->lft);
+
+			 if (c == 'e'
+			 &&  tmp->lft
+			 &&  tmp->lft->sym
+			 &&  tmp->lft->sym->mtype_name)
+			 {	t = tmp->lft->sym->mtype_name->name;
+			 }
+
 			 tmp = tmp->rgt;
 			 switch(c) {
 			 case 'c': sprintf(lbuf, "%c", j); break;
 			 case 'd': sprintf(lbuf, "%d", j); break;
 
-			 case 'e': strcpy(tBuf, Buf);	/* event name */
-				   Buf[0] = '\0';
-				   sr_buf(j, 1);
-				   strcpy(lbuf, Buf);
-				   strcpy(Buf, tBuf);
+			 case 'e': strcpy(tBuf, GBuf);	/* event name */
+				   GBuf[0] = '\0';
+
+				   sr_buf(j, 1, t);
+
+				   strcpy(lbuf, GBuf);
+				   strcpy(GBuf, tBuf);
 				   break;
 
 			 case 'o': sprintf(lbuf, "%o", j); break;
@@ -515,12 +570,12 @@ interprint(FILE *fd, Lextok *n)
 			 goto append;
 		default:
 onechar:		 lbuf[0] = s[i]; lbuf[1] = '\0';
-append:			 strcat(Buf, lbuf);
+append:			 strcat(GBuf, lbuf);
 			 break;
 		}
-		dotag(fd, Buf);
+		dotag(fd, GBuf);
 	}
-	if (strlen(Buf) >= 4096) fatal("printf string too long", 0);
+	if (strlen(GBuf) >= 4096) fatal("printf string too long", 0);
 	return 1;
 }
 
@@ -542,6 +597,7 @@ Enabled1(Lextok *n)
 		verbose = v;
 		return i;
 
+	case SET_P:
 	case C_CODE: case C_EXPR:
 	case PRINT: case PRINTM:
 	case   ASGN: case ASSERT:
@@ -580,8 +636,9 @@ Enabled0(Element *e)
 
 	switch (e->n->ntyp) {
 	case '@':
-		return X->pid == (nproc-nstop-1);
+		return X_lst->pid == (nproc-nstop-1);
 	case '.':
+	case SET_P:
 		return 1;
 	case GOTO:
 		if (Rvous) return 0;
@@ -618,16 +675,99 @@ pc_enabled(Lextok *n)
 	int result = 0;
 	RunList *Y, *oX;
 
-	if (pid == X->pid)
-		fatal("used: enabled(pid=thisproc) [%s]", X->n->name);
+	if (pid == X_lst->pid)
+		fatal("used: enabled(pid=thisproc) [%s]", X_lst->n->name);
 
-	for (Y = run; Y; Y = Y->nxt)
+	for (Y = run_lst; Y; Y = Y->nxt)
 		if (--i == pid)
-		{	oX = X; X = Y;
-			result = Enabled0(Y->pc);
-			X = oX;
+		{	oX = X_lst; X_lst = Y;
+			result = Enabled0(X_lst->pc);
+			X_lst = oX;
 			break;
 		}
 	return result;
 }
 
+int
+pc_highest(Lextok *n)
+{	int i = nproc - nstop;
+	int pid = eval(n);
+	int target = 0, result = 1;
+	RunList *Y, *oX;
+
+	if (X_lst->prov && !eval(X_lst->prov))
+	{	return 0; /* can't be highest unless fully enabled */
+	}
+
+	for (Y = run_lst; Y; Y = Y->nxt)
+	{	if (--i == pid)
+		{	target = Y->priority;
+			break;
+	}	}
+if (0) printf("highest for pid %d @ priority = %d\n", pid, target);
+
+	oX = X_lst;
+	i = nproc - nstop;
+	for (Y = run_lst; Y; Y = Y->nxt)
+	{	i--;
+if (0) printf("	pid %d @ priority %d\t", Y->pid, Y->priority);
+		if (Y->priority > target)
+		{	X_lst = Y;
+if (0) printf("enabled: %s\n", Enabled0(X_lst->pc)?"yes":"nope");
+if (0) printf("provided: %s\n", eval(X_lst->prov)?"yes":"nope");
+			if (Enabled0(X_lst->pc) && (!X_lst->prov || eval(X_lst->prov)))
+			{	result = 0;
+				break;
+		}	}
+else
+if (0) printf("\n");
+	}
+	X_lst = oX;
+
+	return result;
+}
+
+int
+get_priority(Lextok *n)
+{	int i = nproc - nstop;
+	int pid = eval(n);
+	RunList *Y;
+
+	if (old_priority_rules)
+	{	return 1;
+	}
+
+	for (Y = run_lst; Y; Y = Y->nxt)
+	{	if (--i == pid)
+		{	return Y->priority;
+	}	}
+	return 0;
+}
+
+void
+set_priority(Lextok *n, Lextok *p)
+{	int i = nproc - nstop - Have_claim;
+	int pid = eval(n);
+	RunList *Y;
+
+	if (old_priority_rules)
+	{	return;
+	}
+	for (Y = run_lst; Y; Y = Y->nxt)
+	{	if (--i == pid)
+		{	Priority_Sum -= Y->priority;
+			Y->priority = eval(p);
+			Priority_Sum += Y->priority;
+			if (1)
+			{	printf("%3d: setting priority of proc %d (%s) to %d\n",
+					depth, pid, Y->n->name, Y->priority);
+	}	}	}
+	if (verbose&32)
+	{	printf("\tPid\tName\tPriority\n");
+		for (Y = run_lst; Y; Y = Y->nxt)
+		{	printf("\t%d\t%s\t%d\n",
+				Y->pid,
+				Y->n->name,
+				Y->priority);
+	}	}
+}

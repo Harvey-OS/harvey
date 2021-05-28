@@ -1,19 +1,16 @@
 /***** spin: flow.c *****/
 
-/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ */
 
 #include "spin.h"
 #include "y.tab.h"
 
 extern Symbol	*Fname;
-extern int	nr_errs, lineno, verbose, in_for;
+extern int	nr_errs, lineno, verbose, in_for, old_scope_rules, s_trail;
 extern short	has_unless, has_badelse, has_xu;
 extern char CurScope[MAXSCOPESZ];
 
@@ -21,6 +18,7 @@ Element *Al_El = ZE;
 Label	*labtab = (Label *) 0;
 int	Unique = 0, Elcnt = 0, DstepStart = -1;
 int	initialization_ok = 1;
+short	has_accept;
 
 static Lbreak	*breakstack = (Lbreak *) 0;
 static Lextok	*innermost;
@@ -39,12 +37,15 @@ void
 open_seq(int top)
 {	SeqList *t;
 	Sequence *s = (Sequence *) emalloc(sizeof(Sequence));
+	s->minel = -1;
 
 	t = seqlist(s, cur_s);
 	cur_s = t;
 	if (top)
 	{	Elcnt = 1;
 		initialization_ok = 1;
+	} else
+	{	initialization_ok = 0;
 	}
 }
 
@@ -89,6 +90,7 @@ cross_dsteps(Lextok *a, Lextok *b)
 	&&  a->indstep != b->indstep)
 	{	lineno = a->ln;
 		Fname  = a->fn;
+		if (!s_trail)
 		fatal("jump into d_step sequence", (char *) 0);
 	}
 }
@@ -156,7 +158,7 @@ close_seq(int nottop)
 	{	initialization_ok = 1;
 	}
 
-	if (nottop > 0 && (z = has_lab(s->frst, 0)))
+	if (nottop > 0 && s->frst && (z = has_lab(s->frst, 0)))
 	{	printf("error: (%s:%d) label %s placed incorrectly\n",
 			(s->frst->n)?s->frst->n->fn->name:"-",
 			(s->frst->n)?s->frst->n->ln:0,
@@ -192,12 +194,12 @@ close_seq(int nottop)
 			printf("\"Label: { statement ... }\"\n");
 			break;
 		case 6:
-			printf("=====>instead of\n");
+			printf("=====> instead of\n");
 			printf("	do (or if)\n");
 			printf("	:: ...\n");
 			printf("	:: Label: statement\n");
 			printf("	od (of fi)\n");
-			printf("=====>always use\n");
+			printf("=====> use\n");
 			printf("Label:	do (or if)\n");
 			printf("	:: ...\n");
 			printf("	:: statement\n");
@@ -207,8 +209,9 @@ close_seq(int nottop)
 			printf("cannot happen - labels\n");
 			break;
 		}
-		alldone(1);
-	}
+		if (nottop != 6)
+		{	alldone(1);
+	}	}
 
 	if (nottop == 4
 	&& !Rjumpslocal(s->frst, s->last))
@@ -226,13 +229,14 @@ Lextok *
 do_unless(Lextok *No, Lextok *Es)
 {	SeqList *Sl;
 	Lextok *Re = nn(ZN, UNLESS, ZN, ZN);
+
 	Re->ln = No->ln;
 	Re->fn = No->fn;
-
 	has_unless++;
+
 	if (Es->ntyp == NON_ATOMIC)
-		Sl = Es->sl;
-	else
+	{	Sl = Es->sl;
+	} else
 	{	open_seq(0); add_seq(Es);
 		Sl = seqlist(close_seq(1), 0);
 	}
@@ -357,6 +361,31 @@ loose_ends(void)	/* properly tie-up ends of sub-sequences */
 	}	}
 }
 
+void
+popbreak(void)
+{
+	if (!breakstack)
+		fatal("cannot happen, breakstack", (char *) 0);
+
+	breakstack = breakstack->nxt;	/* pop stack */
+}
+
+static Lbreak *ob = (Lbreak *) 0;
+
+void
+safe_break(void)
+{
+	ob = breakstack;
+	popbreak();
+}
+
+void
+restore_break(void)
+{
+	breakstack = ob;
+	ob = (Lbreak *) 0;
+}
+
 static Element *
 if_seq(Lextok *n)
 {	int	tok = n->ntyp;
@@ -410,13 +439,13 @@ if_seq(Lextok *n)
 	e->n = nn(n, tok, ZN, ZN);
 	e->n->sl = s;			/* preserve as info only */
 	e->sub = s;
-	for (z = s; z; prev_z = z, z = z->nxt)
+	for (z = s; z; z = z->nxt)
 		add_el(t, z->this);	/* append target */
 	if (tok == DO)
 	{	add_el(t, cur_s->this); /* target upfront */
 		t = new_el(nn(n, BREAK, ZN, ZN)); /* break target */
 		set_lab(break_dest(), t);	/* new exit  */
-		breakstack = breakstack->nxt;	/* pop stack */
+		popbreak();
 	}
 	add_el(e, cur_s->this);
 	add_el(t, cur_s->this);
@@ -575,13 +604,6 @@ add_seq(Lextok *n)
 }
 
 void
-show_lab(void)
-{	Label *l;
-	for (l = labtab; l; l = l->nxt)
-		printf("label %s\n", l->s->name);
-}
-
-void
 set_lab(Symbol *s, Element *e)
 {	Label *l; extern Symbol *context;
 	int cur_uiid = is_inline();
@@ -591,10 +613,16 @@ set_lab(Symbol *s, Element *e)
 	for (l = labtab; l; l = l->nxt)
 	{	if (strcmp(l->s->name, s->name) == 0
 		&&  l->c == context
+		&&  (old_scope_rules || strcmp((const char *) s->bscp, (const char *) l->s->bscp) == 0)
 		&&  l->uiid == cur_uiid)
 		{	non_fatal("label %s redeclared", s->name);
 			break;
 	}	}
+
+	if (strncmp(s->name, "accept", 6) == 0
+	&&  strncmp(s->name, "accept_all", 10) != 0)
+	{	has_accept = 1;
+	}
 
 	l = (Label *) emalloc(sizeof(Label));
 	l->s = s;
@@ -608,22 +636,41 @@ set_lab(Symbol *s, Element *e)
 static Label *
 get_labspec(Lextok *n)
 {	Symbol *s = n->sym;
-	Label *l, *anymatch = (Label *) 0;
-	int cur_uiid = n->uiid;
+	Label  *l, *anymatch = (Label *) 0;
+	int ln;
 	/*
-	 * try to find a label with the same uiid
-	 * but if it doesn't exist, return any other
-	 * that is defined within the same scope
+	 * try to find a label with the same inline id (uiid)
+	 * but if it doesn't exist, return any other match
+	 * within the same scope
 	 */
 	for (l = labtab; l; l = l->nxt)
-	{	if (strcmp(s->name, l->s->name) == 0
-		&&  s->context == l->s->context)
-		{	anymatch = l;
-			if (cur_uiid == l->uiid) /* best match */
-			{	return l;
+	{	if (strcmp(l->s->name, s->name) == 0	/* labelname matches */
+		&&  s->context == l->s->context)	/* same scope */
+		{
+#if 0
+			if (anymatch && n->uiid == anymatch->uiid)
+			{	if (0) non_fatal("label %s re-declared", s->name);
+			}
+			if (0)
+			{	printf("Label %s uiid now::then %d :: %d bcsp %s :: %s\n",
+					s->name, n->uiid, l->uiid, s->bscp, l->s->bscp);
+				printf("get_labspec match on %s %s (bscp goto %s - label %s)\n",
+					s->name, s->context->name,  s->bscp, l->s->bscp);
+			}
+#endif
+			/* same block scope */
+			if (strcmp((const char *) s->bscp, (const char *) l->s->bscp) == 0)
+			{	return l;	/* definite match */
+			}
+			/* higher block scope */
+			ln = strlen((const char *) l->s->bscp);
+			if (strncmp((const char *) s->bscp, (const char *) l->s->bscp, ln) == 0)
+			{	anymatch = l;	/* possible match */
+			} else if (!anymatch)
+			{	anymatch = l;	/* somewhere else in same context */
 	}	}	}
 
-	return anymatch; /* likely to be 0 */
+	return anymatch; /* return best match */
 }
 
 Element *
@@ -639,7 +686,6 @@ get_lab(Lextok *n, int md)
 		Fname  = n->fn;
 		fatal("undefined label %s", n->sym->name);
 	}
-
 	return ZE;
 }
 
@@ -720,21 +766,46 @@ fix_dest(Symbol *c, Symbol *a)		/* c:label name, a:proctype name */
 	}
 	l->e->status |= CHECK2;	/* treat as if global */
 	if (l->e->status & (ATOM | L_ATOM | D_ATOM))
-	{	non_fatal("cannot reference label inside atomic or d_step (%s)",
-			c->name);
+	{	printf("spin: %s:%d, warning, reference to label ",
+			Fname->name, lineno);
+		printf("from inside atomic or d_step (%s)\n", c->name);
 	}
 }
 
 int
 find_lab(Symbol *s, Symbol *c, int markit)
-{	Label *l;
+{	Label *l, *pm = (Label *) 0, *apm = (Label *) 0;
+	int ln;
 
+	/* generally called for remote references in never claims */
 	for (l = labtab; l; l = l->nxt)
-	{	if (strcmp(s->name, l->s->name) == 0
+	{
+		if (strcmp(s->name, l->s->name) == 0
 		&&  strcmp(c->name, l->c->name) == 0)
-		{	l->visible |= markit;
-			return (l->e->seqno);
-	}	}
+		{	ln = strlen((const char *) l->s->bscp);
+			if (0)
+			{	printf("want '%s' in context '%s', scope ref '%s' - label '%s'\n",
+					s->name, c->name, s->bscp, l->s->bscp);
+			}
+			/* same or higher block scope */
+			if (strcmp((const char *)  s->bscp, (const char *) l->s->bscp) == 0)
+			{	pm = l;	/* definite match */
+				break;
+			}
+			if (strncmp((const char *) s->bscp, (const char *) l->s->bscp, ln) == 0)
+			{	pm = l;	/* possible match */
+			} else
+			{	apm = l;	/* remote */
+	}	}	}
+
+	if (pm)
+	{	pm->visible |= markit;
+		return pm->e->seqno;
+	}
+	if (apm)
+	{	apm->visible |= markit;
+		return apm->e->seqno;
+	} /* else printf("Not Found\n"); */
 	return 0;
 }
 
@@ -822,7 +893,7 @@ dump_sym(Symbol *z, char *s)
 
 	if (z->type == CHAN)
 	{	if (z->ini && z->ini->rgt && z->ini->rgt->sym)
-		{	// dump_sym(z->ini->rgt->sym, "\n:I:"); /* could also be longer list */
+		{	/* dump_sym(z->ini->rgt->sym, "\n:I:"); -- could also be longer list */
 			if (z->ini->rgt->rgt
 			|| !z->ini->rgt->sym)
 			fatal("chan %s in for should have only one field (a typedef)", z->name);
@@ -851,12 +922,12 @@ match_struct(Symbol *s, Symbol *t)
 	||  !t->ini->rgt
 	||  !t->ini->rgt->sym
 	||   t->ini->rgt->rgt)
-	{	fatal("chan %s in for should have only one field (a typedef)", t->name);
+	{	fatal("chan %s in for should have only one field (a typedef)", t?t->name:"--");
 	}
 	/* we already know that s is a STRUCT */
 	if (0)
-	{	printf("index type %s %p ==\n", s->Snm->name, s->Snm);
-		printf("chan type  %s %p --\n\n", t->ini->rgt->sym->name, t->ini->rgt->sym);
+	{	printf("index type %s %p ==\n", s->Snm->name, (void *) s->Snm);
+		printf("chan type  %s %p --\n\n", t->ini->rgt->sym->name, (void *) t->ini->rgt->sym);
 	}
 
 	return (s->Snm == t->ini->rgt->sym);
@@ -893,7 +964,7 @@ Lextok *
 for_index(Lextok *a3, Lextok *a5)
 {	Lextok *z0, *z1, *z2, *z3;
 	Symbol *tmp_cnt;
-	char tmp_nm[MAXSCOPESZ];
+	char tmp_nm[MAXSCOPESZ+16];
 	/* for ( a3 in a5 ) { ... } */
 
 	if (a3->ntyp != NAME)
@@ -947,12 +1018,22 @@ for_index(Lextok *a3, Lextok *a5)
 		in_for = 1;
 		return z3;
 	} else
-	{	if (a5->sym->isarray == 0
-		||  a5->sym->nel <= 0)
-		{	fatal("bad arrayname %s", a5->sym->name);
+	{	Lextok *leaf = a5;
+		if (leaf->sym->type == STRUCT)	// find leaf node, which should be an array
+		{	while (leaf->rgt
+			&&     leaf->rgt->ntyp == '.')
+			{	leaf = leaf->rgt;
+			}
+			leaf = leaf->lft;
+			// printf("%s %d\n", leaf->sym->name, leaf->sym->isarray);
+		}
+
+		if (leaf->sym->isarray == 0
+		||  leaf->sym->nel <= 0)
+		{	fatal("bad arrayname %s", leaf->sym->name);
 		}
 		z1 = nn(ZN, CONST, ZN, ZN); z1->val = 0;
-		z2 = nn(ZN, CONST, ZN, ZN); z2->val = a5->sym->nel - 1;
+		z2 = nn(ZN, CONST, ZN, ZN); z2->val = leaf->sym->nel - 1;
 		for_setup(a3, z1, z2);
 		return a3;
 	}
@@ -966,8 +1047,6 @@ for_body(Lextok *a3, int with_else)
 	rv = nn(ZN,  '+', a3, rv);
 	rv = nn(a3, ASGN, a3, rv);
 	add_seq(rv);	/* initial increment */
-
-	pushbreak();
 
 	/* completed loop body, main sequence */
 	t1 = nn(ZN, 0, ZN, ZN);
@@ -988,6 +1067,7 @@ for_body(Lextok *a3, int with_else)
 
 	rv = nn(ZN, DO, ZN, ZN);
 	rv->sl = t0->sl;
+
 	return rv;
 }
 
@@ -1002,6 +1082,7 @@ sel_index(Lextok *a3, Lextok *a5, Lextok *a7)
 	open_seq(0);
 	add_seq(nn(ZN, 'c', nn(a3, LT, a3, a7), ZN));	/* condition */
 
+	pushbreak(); /* new 6.2.1 */
 	return for_body(a3, 0);	/* no else, just a non-deterministic break */
 }
 
@@ -1017,7 +1098,7 @@ walk_atomic(Element *a, Element *b, int added)
 		switch (f->n->ntyp) {
 		case ATOMIC:
 			if (verbose&32)
-			  printf("spin: warning, %s:%d, atomic inside %s (ignored)\n",
+			  printf("spin: %s:%d, warning, atomic inside %s (ignored)\n",
 			  f->n->fn->name, f->n->ln, (added)?"d_step":"atomic");
 			goto mknonat;
 		case D_STEP:
@@ -1025,7 +1106,7 @@ walk_atomic(Element *a, Element *b, int added)
 			{	if (added) goto mknonat;
 				break;
 			}
-			printf("spin: warning, %s:%d, d_step inside ",
+			printf("spin: %s:%d, warning, d_step inside ",
 			 f->n->fn->name, f->n->ln);
 			if (added)
 			{	printf("d_step (ignored)\n");
@@ -1062,8 +1143,12 @@ dumplabels(void)
 		{	printf("label	%s	%d	",
 				l->s->name, l->e->seqno);
 			if (l->uiid == 0)
-				printf("<%s>\n", l->c->name);
+				printf("<%s>", l->c->name);
 			else
-				printf("<%s i%d>\n", l->c->name, l->uiid);
+				printf("<%s i%d>", l->c->name, l->uiid);
+			if (!old_scope_rules)
+			{	printf("\t{scope %s}", l->s->bscp);
+			}
+			printf("\n");
 		}
 }

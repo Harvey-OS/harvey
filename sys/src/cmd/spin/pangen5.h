@@ -1,15 +1,12 @@
 /***** spin: pangen5.h *****/
 
-/* Copyright (c) 1997-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ */
 
-static char *Xpt[] = {
+static const char *Xpt[] = {
 	"#if defined(MA) && (defined(W_XPT) || defined(R_XPT))",
 	"static Vertex	**temptree;",
 	"static char	wbuf[4096];",
@@ -30,7 +27,7 @@ static char *Xpt[] = {
 	"}",
 	"",
 	"static void",
-	"wclose(fd)",
+	"wclose(int fd)",
 	"{",
 	"	if (wcnt > 0)",
 	"		write(fd, wbuf, wcnt);",
@@ -136,7 +133,7 @@ static char *Xpt[] = {
 	"	stacker[dfa_depth-1] = 0; r = dfa_store(stacker);",
 	"	stacker[dfa_depth-1] = 4; j = dfa_member(dfa_depth-1);",
 	"	if (r != 1 || j != 0)",
-	"	{	printf(\"%%d: \", stackcnt);",
+	"	{	printf(\"%%lu: \", stackcnt);",
 	"		for (i = 0; i < dfa_depth; i++)",
 	"			printf(\"%%d,\", stacker[i]);",
 	"		printf(\" -- not a stackstate <o:%%d,4:%%d>\\n\", r, j);",
@@ -416,7 +413,7 @@ static char *Xpt[] = {
 	"	x_cleanup(d);",
 	"	close(fd);",
 	"",
-	"	printf(\"pan: removed %%d stackstates\\n\", stackcnt);",
+	"	printf(\"pan: removed %%lu stackstates\\n\", stackcnt);",
 	"	nstates -= (double) stackcnt;",
 	"}",
 	"#endif",

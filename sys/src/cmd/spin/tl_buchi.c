@@ -1,21 +1,19 @@
 /***** tl_spin: tl_buchi.c *****/
 
-/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
-
-/* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
-/* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ *
+ * Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper,
+ * presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.
+ */
 
 #include "tl.h"
 
 extern int tl_verbose, tl_clutter, Total, Max_Red;
 extern char *claim_name;
+extern void  put_uform(void);
 
 FILE	*tl_out;	/* if standalone: = stdout; */
 
@@ -66,6 +64,7 @@ Prune(Node *p)
 #ifdef NXT
 	case NEXT:
 #endif
+	case CEXPR:
 		return p;
 	case OR:
 		p->lft = Prune(p->lft);
@@ -553,10 +552,22 @@ rev_trans(Transition *t) /* print transitions  in reverse order... */
 	rev_trans(t->nxt);
 
 	if (t->redundant && !tl_verbose) return;
-	fprintf(tl_out, "\t:: (");
-	if (dump_cond(t->cond, t->cond, 1))
-		fprintf(tl_out, "1");
-	fprintf(tl_out, ") -> goto %s\n", t->name->name);
+
+	if (strcmp(t->name->name, "accept_all") == 0)	/* 6.2.4 */
+	{	/* not d_step because there may be remote refs */
+		fprintf(tl_out, "\t:: atomic { (");
+		if (dump_cond(t->cond, t->cond, 1))
+			fprintf(tl_out, "1");
+		fprintf(tl_out, ") -> assert(!(");
+		if (dump_cond(t->cond, t->cond, 1))
+			fprintf(tl_out, "1");
+		fprintf(tl_out, ")) }\n");
+	} else
+	{	fprintf(tl_out, "\t:: (");
+		if (dump_cond(t->cond, t->cond, 1))
+			fprintf(tl_out, "1");
+		fprintf(tl_out, ") -> goto %s\n", t->name->name);
+	}
 	tcnt++;
 }
 
@@ -578,11 +589,11 @@ printstate(State *b)
 	&&  Max_Red == 0)
 		fprintf(tl_out, "T0%s:\n", &(b->name->name[6]));
 
-	fprintf(tl_out, "\tif\n");
+	fprintf(tl_out, "\tdo\n");
 	tcnt = 0;
 	rev_trans(b->trans);
 	if (!tcnt) fprintf(tl_out, "\t:: false\n");
-	fprintf(tl_out, "\tfi;\n");
+	fprintf(tl_out, "\tod;\n");
 	Total++;
 }
 
@@ -629,7 +640,6 @@ clr_reach(void)
 void
 fsm_print(void)
 {	State *b; int cnt1, cnt2=0;
-	extern void put_uform(void);
 
 	if (tl_clutter) clutter();
 

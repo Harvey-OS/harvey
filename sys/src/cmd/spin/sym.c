@@ -1,13 +1,10 @@
 /***** spin: sym.c *****/
 
-/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ */
 
 #include "spin.h"
 #include "y.tab.h"
@@ -20,13 +17,13 @@ extern char	CurScope[MAXSCOPESZ];
 
 Symbol	*context = ZS;
 Ordered	*all_names = (Ordered *)0;
-int	Nid = 0;
+int	Nid_nr = 0;
 
-Lextok *Mtype = (Lextok *) 0;
+Mtypes_t	*Mtypes;
+Lextok		*runstmnts = ZN;
 
 static Ordered	*last_name = (Ordered *)0;
 static Symbol	*symtab[Nhash+1];
-static Lextok *runstmnts = ZN;
 
 static int
 samename(Symbol *a, Symbol *b)
@@ -36,12 +33,12 @@ samename(Symbol *a, Symbol *b)
 	return !strcmp(a->name, b->name);
 }
 
-int
-hash(char *s)
-{	int h=0;
+unsigned int
+hash(const char *s)
+{	unsigned int h = 0;
 
 	while (*s)
-	{	h += *s++;
+	{	h += (unsigned int) *s++;
 		h <<= 1;
 		if (h&(Nhash+1))
 			h |= 1;
@@ -53,29 +50,41 @@ void
 disambiguate(void)
 {	Ordered *walk;
 	Symbol *sp;
+	char *n, *m;
 
 	if (old_scope_rules)
 		return;
 
-	/* if the same name appears in two different scopes,
-	   prepend the scope_prefix to the names */
+	/* prepend the scope_prefix to the names */
 
 	for (walk = all_names; walk; walk = walk->next)
 	{	sp = walk->entry;
 		if (sp->type != 0
 		&&  sp->type != LABEL
 		&&  strlen((const char *)sp->bscp) > 1)
-		{	char *n = (char *) emalloc(strlen((const char *)sp->name)
+		{	if (sp->context)
+			{	m = (char *) emalloc(strlen((const char *)sp->bscp) + 1);
+				sprintf(m, "_%d_", sp->context->sc);
+				if (strcmp((const char *) m, (const char *) sp->bscp) == 0)
+				{	continue;
+				/* 6.2.0: only prepend scope for inner-blocks,
+				   not for top-level locals within a proctype
+				   this means that you can no longer use the same name
+				   for a global and a (top-level) local variable
+				 */
+			}	}
+
+			n = (char *) emalloc(strlen((const char *)sp->name)
 				+ strlen((const char *)sp->bscp) + 1);
 			sprintf(n, "%s%s", sp->bscp, sp->name);
-			sp->name = n;	/* discord the old memory */
+			sp->name = n;	/* discard the old memory */
 	}	}
 }
 
 Symbol *
 lookup(char *s)
 {	Symbol *sp; Ordered *no;
-	int h = hash(s);
+	unsigned int h = hash(s);
 
 	if (old_scope_rules)
 	{	/* same scope - global refering to global or local to local */
@@ -222,7 +231,7 @@ trackchanuse(Lextok *m, Lextok *w, int t)
 }
 
 void
-setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
+setptype(Lextok *mtype_name, Lextok *n, int t, Lextok *vis)	/* predefined types */
 {	int oln = lineno, cnt = 1; extern int Expand_Ok;
 
 	while (n)
@@ -233,11 +242,31 @@ setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
 		}
 		n->sym->type = (short) t;
 
+		if (mtype_name && t != MTYPE)
+		{	lineno = n->ln; Fname = n->fn;
+			fatal("missing semi-colon after '%s'?",
+				mtype_name->sym->name);
+			lineno = oln;
+		}
+
+		if (mtype_name && n->sym->mtype_name
+		&& strcmp(mtype_name->sym->name, n->sym->mtype_name->name) != 0)
+		{	fprintf(stderr, "spin: %s:%d, Error: '%s' is type '%s' but assigned type '%s'\n",
+				n->fn->name, n->ln,
+				n->sym->name,
+				mtype_name->sym->name,
+				n->sym->mtype_name->name);
+			non_fatal("type error", (char *) 0);
+		}
+
+		n->sym->mtype_name = mtype_name?mtype_name->sym:0; /* if mtype, else 0 */
+
 		if (Expand_Ok)
 		{	n->sym->hidden |= (4|8|16); /* formal par */
 			if (t == CHAN)
 			setaccess(n->sym, ZS, cnt, 'F');
 		}
+
 		if (t == UNSIGNED)
 		{	if (n->sym->nbits < 0 || n->sym->nbits >= 32)
 			fatal("(%s) has invalid width-field", n->sym->name);
@@ -249,6 +278,7 @@ setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
 		{	non_fatal("(%s) only an unsigned can have width-field",
 				n->sym->name);
 		}
+
 		if (vis)
 		{	if (strncmp(vis->sym->name, ":hide:", (size_t) 6) == 0)
 			{	n->sym->hidden |= 1;
@@ -262,9 +292,10 @@ setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
 			{	n->sym->hidden |= 64;
 			}
 		}
+
 		if (t == CHAN)
-			n->sym->Nid = ++Nid;
-		else
+		{	n->sym->Nid = ++Nid_nr;
+		} else
 		{	n->sym->Nid = 0;
 			if (n->sym->ini
 			&&  n->sym->ini->ntyp == CHAN)
@@ -272,13 +303,14 @@ setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
 				lineno = n->ln;
 				fatal("chan initializer for non-channel %s",
 				n->sym->name);
-			}
-		}
+		}	}
+
 		if (n->sym->nel <= 0)
-		{ lineno = n->ln; Fname = n->fn;
-		  non_fatal("bad array size for '%s'", n->sym->name);
-		  lineno = oln;
+		{	lineno = n->ln; Fname = n->fn;
+			non_fatal("bad array size for '%s'", n->sym->name);
+			lineno = oln;
 		}
+
 		n = n->rgt; cnt++;
 	}
 }
@@ -321,7 +353,7 @@ setxus(Lextok *p, int t)
 	has_xu = 1;
 
 	if (m_loss && t == XS)
-	{	printf("spin: warning, %s:%d, xs tag not compatible with -m (message loss)\n",
+	{	printf("spin: %s:%d, warning, xs tag not compatible with -m (message loss)\n",
 			(p->fn != NULL) ? p->fn->name : "stdin", p->ln);
 	}
 
@@ -354,18 +386,46 @@ setxus(Lextok *p, int t)
 	}
 }
 
+Lextok **
+find_mtype_list(const char *s)
+{	Mtypes_t *lst;
+
+	for (lst = Mtypes; lst; lst = lst->nxt)
+	{	if (strcmp(lst->nm, s) == 0)
+		{	return &(lst->mt);
+	}	}
+
+	/* not found, create it */
+	lst = (Mtypes_t *) emalloc(sizeof(Mtypes_t));
+	lst->nm = (char *) emalloc(strlen(s)+1);
+	strcpy(lst->nm, s);
+	lst->nxt = Mtypes;
+	Mtypes = lst;
+	return &(lst->mt);
+}
+
 void
-setmtype(Lextok *m)
-{	Lextok *n;
+setmtype(Lextok *mtype_name, Lextok *m)
+{	Lextok **mtl;	/* mtype list */
+	Lextok *n, *Mtype;
 	int cnt, oln = lineno;
+	char *s = "_unnamed_";
 
 	if (m) { lineno = m->ln; Fname = m->fn; }
 
+	if (mtype_name && mtype_name->sym)
+	{	s = mtype_name->sym->name;
+	}
+
+	mtl = find_mtype_list(s);
+	Mtype = *mtl;
+
 	if (!Mtype)
-		Mtype = m;
-	else
+	{	*mtl = Mtype = m;
+	} else
 	{	for (n = Mtype; n->rgt; n = n->rgt)
-			;
+		{	;
+		}
 		n->rgt = m;	/* concatenate */
 	}
 
@@ -382,24 +442,45 @@ setmtype(Lextok *m)
 			n->lft->sym->ini = nn(ZN,CONST,ZN,ZN);
 			n->lft->sym->ini->val = cnt;
 		} else if (n->lft->sym->ini->val != cnt)
-			non_fatal("name %s appears twice in mtype declaration",
+		{	non_fatal("name %s appears twice in mtype declaration",
 				n->lft->sym->name);
-	}
+	}	}
+
 	lineno = oln;
 	if (cnt > 256)
-		fatal("too many mtype elements (>255)", (char *)0);
+	{	fatal("too many mtype elements (>255)", (char *) 0);
+	}
+}
+
+char *
+which_mtype(const char *str) /* which mtype is str, 0 if not an mtype at all  */
+{	Mtypes_t *lst;
+	Lextok *n;
+
+	for (lst = Mtypes; lst; lst = lst->nxt)
+	for (n = lst->mt; n; n = n->rgt)
+	{	if (strcmp(str, n->lft->sym->name) == 0)
+		{	return lst->nm;
+	}	}
+
+	return (char *) 0;
 }
 
 int
 ismtype(char *str)	/* name to number */
-{	Lextok *n;
-	int cnt = 1;
+{	Mtypes_t *lst;
+	Lextok *n;
+	int cnt;
 
-	for (n = Mtype; n; n = n->rgt)
-	{	if (strcmp(str, n->lft->sym->name) == 0)
-			return cnt;
-		cnt++;
-	}
+	for (lst = Mtypes; lst; lst = lst->nxt)
+	{	cnt = 1;
+		for (n = lst->mt; n; n = n->rgt)
+		{	if (strcmp(str, n->lft->sym->name) == 0)
+			{	return cnt;
+			}
+			cnt++;
+	}	}
+
 	return 0;
 }
 
@@ -484,7 +565,9 @@ symvar(Symbol *sp)
 		}
 	}
 
-if (1)	printf("\t{scope %s}", sp->bscp);
+	if (!old_scope_rules)
+	{	printf("\t{scope %s}", sp->bscp);
+	}
 
 	printf("\n");
 }
@@ -507,7 +590,7 @@ chname(Symbol *sp)
 	printf("\t");
 }
 
-static struct X {
+static struct X_lkp {
 	int typ; char *nm;
 } xx[] = {
 	{ 'A', "exported as run parameter" },
@@ -536,11 +619,16 @@ chan_check(Symbol *sp)
 		return;
 report:
 	chname(sp);
-	for (i = d = 0; i < (int) (sizeof(xx)/sizeof(struct X)); i++)
+	for (i = d = 0; i < (int) (sizeof(xx)/sizeof(struct X_lkp)); i++)
 	{	b = 0;
 		for (a = sp->access; a; a = a->lnk)
-			if (a->typ == xx[i].typ) b++;
-		if (b == 0) continue; d++;
+		{	if (a->typ == xx[i].typ)
+			{	b++;
+		}	}
+		if (b == 0)
+		{	continue;
+		}
+		d++;
 		printf("\n\t%s by: ", xx[i].nm);
 		for (a = sp->access; a; a = a->lnk)
 		  if (a->typ == xx[i].typ)
@@ -583,14 +671,14 @@ chanaccess(void)
 
 			if (!(verbose&32) || has_code) continue;
 
-			printf("spin: warning, %s, ", Fname->name);
+			printf("spin: %s:0, warning, ", Fname->name);
 			sputtype(buf, walk->entry->type);
 			if (walk->entry->context)
 				printf("proctype %s",
 					walk->entry->context->name);
 			else
 				printf("global");
-			printf(", '%s%s' variable is never used\n",
+			printf(", '%s%s' variable is never used (other than in print stmnts)\n",
 				buf, walk->entry->name);
 	}	}
 }

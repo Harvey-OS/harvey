@@ -1,16 +1,13 @@
 /***** tl_spin: tl_trans.c *****/
 
-/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
-
-/* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
-/* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ *
+ * Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper,
+ * presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.
+ */
 
 #include "tl.h"
 
@@ -23,7 +20,10 @@ static Mapping	*Mapped = (Mapping *) 0;
 static Graph	*Nodes_Set = (Graph *) 0;
 static Graph	*Nodes_Stack = (Graph *) 0;
 
-static char	dumpbuf[2048];
+static char	*dumpbuf = NULL;
+static size_t dumpbuf_size = 0;
+static size_t dumpbuf_capacity = 0;
+
 static int	Red_cnt  = 0;
 static int	Lab_cnt  = 0;
 static int	Base     = 0;
@@ -52,6 +52,20 @@ static void	push_stack(Graph *);
 static void	sdump(Node *);
 
 void
+append_to_dumpbuf(char* s)
+{
+    size_t len = strlen(s);
+    size_t size_needed = dumpbuf_size + len + 1;
+    if (size_needed > dumpbuf_capacity) {
+        dumpbuf = tl_erealloc(dumpbuf, size_needed, dumpbuf_capacity);
+        dumpbuf_capacity = size_needed;
+    }
+
+    strncpy(&(dumpbuf[dumpbuf_size]), s, len + 1);
+    dumpbuf_size += len;
+}
+
+void
 ini_trans(void)
 {
 	Stack_mx = 0;
@@ -62,7 +76,10 @@ ini_trans(void)
 	Nodes_Set = (Graph *) 0;
 	Nodes_Stack = (Graph *) 0;
 
-	memset(dumpbuf, 0, sizeof(dumpbuf));
+	dumpbuf_capacity = 4096;
+	dumpbuf = tl_emalloc(dumpbuf_capacity);
+	dumpbuf_size = 0;
+	memset(dumpbuf, 0, dumpbuf_capacity);
 	Red_cnt  = 0;
 	Lab_cnt  = 0;
 	Base     = 0;
@@ -149,6 +166,8 @@ static void
 mk_grn(Node *n)
 {	Graph *p;
 
+	if (!n) return;
+
 	n = right_linked(n);
 more:
 	for (p = Nodes_Set; p; p = p->nxt)
@@ -168,6 +187,8 @@ more:
 static void
 mk_red(Node *n)
 {	Graph *p;
+
+	if (!n) return;
 
 	n = right_linked(n);
 	for (p = Nodes_Set; p; p = p->nxt)
@@ -256,6 +277,15 @@ dump_cond(Node *pp, Node *r, int first)
 
 	q = dupnode(pp);
 	q = rewrite(q);
+
+	if (q->ntyp == CEXPR)
+	{	if (!frst) fprintf(tl_out, " && ");
+		fprintf(tl_out, "c_expr { ");
+		dump_cond(q->lft, r, 1);
+		fprintf(tl_out, " } ");
+		frst = 0;
+		return frst;
+	}
 
 	if (q->ntyp == PREDICATE
 	||  q->ntyp == NOT
@@ -437,13 +467,16 @@ catSlist(Symbol *a, Symbol *b)
 	/* remove duplicates from b */
 	for (p1 = a; p1; p1 = p1->next)
 	{	p3 = ZS;
-		for (p2 = b; p2; p2 = p2->next)
-		{	if (strcmp(p1->name, p2->name))
+		p2 = b;
+		while (p2)
+		{ if (strcmp(p1->name, p2->name))
 			{	p3 = p2;
+				p2 = p2->next;
 				continue;
 			}
 			tmp = p2->next;
 			tfree((void *) p2);
+			p2 = tmp;
 			if (p3)
 				p3->next = tmp;
 			else
@@ -469,9 +502,11 @@ fixinit(Node *orig)
 
 	ng(tl_lookup("init"), ZS, ZN, ZN, ZN);
 	p1 = pop_stack();
-	p1->nxt = Nodes_Set;
-	p1->Other = p1->Old = orig;
-	Nodes_Set = p1;
+	if (p1)
+	{	p1->nxt = Nodes_Set;
+		p1->Other = p1->Old = orig;
+		Nodes_Set = p1;
+	}
 
 	for (g = Nodes_Set; g; g = g->nxt)
 	{	for (q1 = g->incoming; q1; q1 = q2)
@@ -533,29 +568,33 @@ static void
 sdump(Node *n)
 {
 	switch (n->ntyp) {
-	case PREDICATE:	strcat(dumpbuf, n->sym->name);
+	case PREDICATE:	append_to_dumpbuf(n->sym->name);
 			break;
-	case U_OPER:	strcat(dumpbuf, "U");
+	case U_OPER:	append_to_dumpbuf("U");
 			goto common2;
-	case V_OPER:	strcat(dumpbuf, "V");
+	case V_OPER:	append_to_dumpbuf("V");
 			goto common2;
-	case OR:	strcat(dumpbuf, "|");
+	case OR:	append_to_dumpbuf("|");
 			goto common2;
-	case AND:	strcat(dumpbuf, "&");
+	case AND:	append_to_dumpbuf("&");
 common2:		sdump(n->rgt);
 common1:		sdump(n->lft);
 			break;
 #ifdef NXT
-	case NEXT:	strcat(dumpbuf, "X");
+	case NEXT:	append_to_dumpbuf("X");
 			goto common1;
 #endif
-	case NOT:	strcat(dumpbuf, "!");
+	case CEXPR:	append_to_dumpbuf("c_expr {");
+			sdump(n->lft);
+			append_to_dumpbuf("}");
+			break;
+	case NOT:	append_to_dumpbuf("!");
 			goto common1;
-	case TRUE:	strcat(dumpbuf, "T");
+	case TRUE:	append_to_dumpbuf("T");
 			break;
-	case FALSE:	strcat(dumpbuf, "F");
+	case FALSE:	append_to_dumpbuf("F");
 			break;
-	default:	strcat(dumpbuf, "?");
+	default:	append_to_dumpbuf("?");
 			break;
 	}
 }
@@ -568,9 +607,15 @@ DoDump(Node *n)
 	if (n->ntyp == PREDICATE)
 		return n->sym;
 
-	dumpbuf[0] = '\0';
-	sdump(n);
-	return tl_lookup(dumpbuf);
+    if (dumpbuf) {
+        dumpbuf[0] = '\0';
+        dumpbuf_size = 0;
+        sdump(n);
+        return tl_lookup(dumpbuf);
+    }
+
+    sdump(n);
+    return tl_lookup("");
 }
 
 static int
@@ -735,6 +780,7 @@ out:
 		break;
 	case PREDICATE:
 	case NOT:
+	case CEXPR:
 		if (can_release) releasenode(1, now);
 		push_stack(g);
 		break;

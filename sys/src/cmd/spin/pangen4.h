@@ -1,24 +1,21 @@
 /***** spin: pangen4.h *****/
 
-/* Copyright (c) 1997-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ *
+ * The DFA code below was written by Anuj Puri and Gerard J. Holzmann in
+ * May 1997, and was inspired by earlier work on data compression using
+ * sharing tree data structures and graph-encoded sets by J-Ch. Gregoire
+ * (INRS Telecom, Quebec, Canada) and D.Zampunieris (Univ.Namur, Belgium)
+ * The splay routine code included here is based on the public domain
+ * version written by D. Sleator <sleator@cs.cmu.edu> in 1992.
+ */
 
-/* The DFA code below was written by Anuj Puri and Gerard J. Holzmann in  */
-/* May 1997, and was inspired by earlier work on data compression using   */
-/* sharing tree data structures and graph-encoded sets by J-Ch. Gregoire  */
-/* (INRS Telecom, Quebec, Canada) and D.Zampunieris (Univ.Namur, Belgium) */
-
-/* The splay routine code included here is based on the public domain     */
-/* version written by D. Sleator <sleator@cs.cmu.edu> in 1992.            */
-
-static char *Dfa[] = {
+static const char *Dfa[] = {
 	"#ifdef MA",
+#if 0
 	"/*",
 	"#include <stdio.h>",
 	"#define uchar	unsigned char",
@@ -26,6 +23,7 @@ static char *Dfa[] = {
 	"#define ulong	unsigned long",
 	"#define ushort	unsigned short",
 	"",
+#endif
 	"#define TWIDTH		256",
 	"#define HASH(y,n)	(n)*(((long)y))",
 	"#define INRANGE(e,h)	((h>=e->From && h<=e->To)||(e->s==1 && e->S==h))",
@@ -466,7 +464,7 @@ static char *Dfa[] = {
 	"	for (j = 0; j < TWIDTH; j++)",
 	"	for (i = 0; i < dfa_depth+1; i++)",
 	"		cnt += tree_stats(layers[i*TWIDTH+j]);",
-	"	printf(\"Minimized Automaton:\t%%6d nodes and %%6g edges\\n\",",
+	"	printf(\"Minimized Automaton:\t%%6lu nodes and %%6g edges\\n\",",
 	"		nr_states, cnt);",
 	"}",
 	"",

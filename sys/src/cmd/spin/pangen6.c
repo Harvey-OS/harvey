@@ -1,20 +1,10 @@
 /***** spin: pangen6.c *****/
 
-/* Copyright (c) 2000-2003 by Lucent Technologies, Bell Laboratories.     */
-/* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
-
-/* Abstract syntax tree analysis / slicing (spin option -A) */
-/* AST_store stores the fsms's for each proctype            */
-/* AST_track keeps track of variables used in properties    */
-/* AST_slice starts the slicing algorithm                   */
-/*      it first collects more info and then calls          */
-/*      AST_criteria to process the slice criteria          */
+/*
+ * This file is part of the public release of Spin. It is subject to the
+ * terms in the LICENSE file that is included in this source directory.
+ * Tool documentation is available at http://spinroot.com
+ */
 
 #include "spin.h"
 #include "y.tab.h"
@@ -22,7 +12,7 @@
 extern Ordered	 *all_names;
 extern FSM_use   *use_free;
 extern FSM_state **fsm_tbl;
-extern FSM_state *fsm;
+extern FSM_state *fsmx;
 extern int	 verbose, o_max;
 
 static FSM_trans *cur_t;
@@ -201,9 +191,18 @@ def_use(Lextok *now, int code)
 	case '~':
 	case 'c':
 	case ENABLED:
+	case SET_P:
+	case GET_P:
 	case ASSERT:
-	case EVAL:
 		def_use(now->lft, USE|code);
+		break;
+
+	case EVAL:
+		if (now->lft->ntyp == ',')
+		{	def_use(now->lft->lft, USE|code);
+		} else
+		{	def_use(now->lft, USE|code);
+		}
 		break;
 
 	case LEN:
@@ -265,18 +264,25 @@ def_use(Lextok *now, int code)
 		def_use(now->lft, DEREF_DEF|DEREF_USE|USE|code);
 		for (v = now->rgt; v; v = v->rgt)
 		{	if (v->lft->ntyp == EVAL)
-				def_use(v->lft, code);	/* will add USE */
-			else if (v->lft->ntyp != CONST)
-				def_use(v->lft, DEF|code);
-		}
+			{	if (v->lft->ntyp == ',')
+				{	def_use(v->lft->lft, code);	/* will add USE */
+				} else
+				{	def_use(v->lft, code);	/* will add USE */
+				}
+			} else if (v->lft->ntyp != CONST)
+			{	def_use(v->lft, DEF|code);
+		}	}
 		break;
 
 	case 'R':
 		def_use(now->lft, DEREF_USE|USE|code);
 		for (v = now->rgt; v; v = v->rgt)
 		{	if (v->lft->ntyp == EVAL)
-				def_use(v->lft, code); /* will add USE */
-		}
+			{	if (v->lft->ntyp == ',')
+				{	def_use(v->lft->lft, code); /* will add USE */
+				} else
+				{	def_use(v->lft, code); /* will add USE */
+		}	}	}
 		break;
 
 	case '?':
@@ -1011,7 +1017,8 @@ name_AST_track(Lextok *n, int code)
 	printf(" -- %d\n", code);
 #endif
 	if (in_recv && (code&DEF) && (code&USE))
-	{	printf("spin: error: DEF and USE of same var in rcv stmnt: ");
+	{	printf("spin: %s:%d, error: DEF and USE of same var in rcv stmnt: ",
+			n->fn->name, n->ln);
 		AST_var(n, n->sym, 1);
 		printf(" -- %d\n", code);
 		nr_errs++;
@@ -1060,18 +1067,24 @@ AST_track(Lextok *now, int code)	/* called from main.c */
 	case '~':
 	case 'c':
 	case ENABLED:
+	case SET_P:
+	case GET_P:
 	case ASSERT:
 		AST_track(now->lft, USE|code);
 		break;
 
 	case EVAL:
-		AST_track(now->lft, USE|(code&(~DEF)));
+		if (now->lft->ntyp == ',')
+		{	AST_track(now->lft->lft, USE|(code&(~DEF)));
+		} else
+		{	AST_track(now->lft, USE|(code&(~DEF)));
+		}
 		break;
 
 	case NAME:
 		name_AST_track(now, code);
 		if (now->sym->nel > 1 || now->sym->isarray)
-			AST_track(now->lft, USE|code);	/* index */
+			AST_track(now->lft, USE);	/* index, was USE|code */
 		break;
 
 	case 'R':
@@ -1728,11 +1741,11 @@ AST_store(ProcList *p, int start_state)
 		n_ast->p = p;
 		n_ast->i_st = start_state;
 		n_ast->relevant = 0;
-		n_ast->fsm = fsm;
+		n_ast->fsm = fsmx;
 		n_ast->nxt = ast;
 		ast = n_ast;
 	}
-	fsm = (FSM_state *) 0;	/* hide it from FSM_DEL */
+	fsmx = (FSM_state *) 0;	/* hide it from FSM_DEL */
 }
 
 static void
@@ -1983,7 +1996,7 @@ subgraph(AST *a, FSM_state *f, int out)
 	h = fsm_tbl[out];
 
 	i = f->from / BPW;
-	j = f->from % BPW;
+	j = f->from % BPW; /* assert(j <= 32); else lshift undefined? */
 	g = h->mod;
 
 	if (verbose&32)
@@ -2011,28 +2024,30 @@ act_dom(AST *a)
 		d. the dominator is reachable, and not equal to this node
 #endif
 		for (t = f->p, i = 0; t; t = t->nxt)
-			i += fsm_tbl[t->to]->seen;
-		if (i <= 1) continue;					/* a. */
-
+		{	i += fsm_tbl[t->to]->seen;
+		}
+		if (i <= 1)
+		{	continue;					/* a. */
+		}
 		for (cnt = 1; cnt < a->nstates; cnt++)	/* 0 is endstate */
 		{	if (cnt == f->from
 			||  !fsm_tbl[cnt]->seen)
-				continue;				/* c. */
-
+			{	continue;				/* c. */
+			}
 			i = cnt / BPW;
-			j = cnt % BPW;
+			j = cnt % BPW;	/* assert(j <= 32); */
 			if (!(f->dom[i]&(1<<j)))
-				continue;
-
+			{	continue;
+			}
 			for (t = fsm_tbl[cnt]->t, i = 0; t; t = t->nxt)
-				i += fsm_tbl[t->to]->seen;
+			{	i += fsm_tbl[t->to]->seen;
+			}
 			if (i <= 1)
-				continue;				/* b. */
-
+			{	continue;				/* b. */
+			}
 			if (f->mod)			/* final check in 2nd phase */
-				subgraph(a, f, cnt);	/* possible entry-exit pair */
-		}
-	}
+			{	subgraph(a, f, cnt);	/* possible entry-exit pair */
+	}	}	}
 }
 
 static void
@@ -2166,27 +2181,26 @@ init_dom(AST *a)
 	for (f = a->fsm; f; f = f->nxt)
 	{	if (!f->seen) continue;
 
-		f->dom = (ulong *)
-			emalloc(a->nwords * sizeof(ulong));
+		f->dom = (ulong *) emalloc(a->nwords * sizeof(ulong));
 
 		if (f->from == a->i_st)
 		{	i = a->i_st / BPW;
-			j = a->i_st % BPW;
+			j = a->i_st % BPW; /* assert(j <= 32); */
 			f->dom[i] = (1<<j);			/* (1) */
 		} else						/* (2) */
 		{	for (i = 0; i < a->nwords; i++)
-				f->dom[i] = (ulong) ~0;			/* all 1's */
-
+			{	f->dom[i] = (ulong) ~0;		/* all 1's */
+			}
 			if (a->nstates % BPW)
 			for (i = (a->nstates % BPW); i < (int) BPW; i++)
-				f->dom[a->nwords-1] &= ~(1<<i);	/* clear tail */
-
+			{	f->dom[a->nwords-1] &= ~(1<< ((ulong) i)); /* clear tail */
+			}
 			for (cnt = 0; cnt < a->nstates; cnt++)
-				if (!fsm_tbl[cnt]->seen)
+			{	if (!fsm_tbl[cnt]->seen)
 				{	i = cnt / BPW;
-					j = cnt % BPW;
-					f->dom[i] &= ~(1<<j);
-	}	}		}
+					j = cnt % BPW; /* assert(j <= 32); */
+					f->dom[i] &= ~(1<< ((ulong) j));
+	}	}	}	}
 }
 
 static int
@@ -2214,7 +2228,7 @@ dom_perculate(AST *a, FSM_state *f)
 	}
 
 	i = f->from / BPW;
-	j = f->from % BPW;
+	j = f->from % BPW;	/* assert(j <= 32); */
 	ndom[i] |= (1<<j);			/* (5a) */
 
 	for (i = 0; i < a->nwords; i++)

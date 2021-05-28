@@ -8,6 +8,7 @@ SPIN_OS=\
 	guided.$O\
 	main.$O\
 	mesg.$O\
+	msc_tcl.$O\
 	pangen1.$O\
 	pangen2.$O\
 	pangen3.$O\
@@ -15,8 +16,6 @@ SPIN_OS=\
 	pangen5.$O\
 	pangen6.$O\
 	pangen7.$O\
-	pc_zpp.$O\
-	ps_msc.$O\
 	reprosrc.$O\
 	run.$O\
 	sched.$O\
