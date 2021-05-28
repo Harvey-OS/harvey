@@ -41,6 +41,8 @@ threadid,
 threadpid,
 threadsetgrp,
 threadsetname,
+threadspawn,
+threadspawnl,
 threadwaitchan,
 yield \- thread and proc management
 .SH SYNOPSIS
@@ -128,6 +130,8 @@ int	chanprint(Channel *c, char *fmt, ...)
 int	chanclose(Channel *c);
 int	chanclosing(Channel *c);
 .XX
+int	threadspawnl(int fd[3], char *file, ...)
+int	threadspawn(int fd[3], char *file, char *args[])
 void	procexecl(Channel *cpid, char *file, ...)
 void	procexec(Channel *cpid, char *file, char *args[])
 Channel*	threadwaitchan(void)
@@ -237,6 +241,7 @@ Calls that do this are
 .IR procexec ,
 .IR procexecl ,
 .IR threadexits ,
+.IR threadspawn ,
 .IR alt ,
 .IR send ,
 and
@@ -361,6 +366,17 @@ Note that the mount point
 must exist;
 .I procexec(l)
 mount pipes there.
+.PP
+.I Threadspawnl
+and
+.I threadspawn
+are like
+.I threadexecl
+and
+.I threadexec
+but do not replace the current thread.
+They return the pid of the invoked program on success, or
+\-1 on error.
 .PP
 .I Threadwaitchan
 returns a channel of pointers to
