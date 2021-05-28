@@ -25,6 +25,7 @@ dev +dev
 	draw		drawalloc screen vga vgax
 	mouse		mouse
 	vga
+	kbmap
 
 sd +dev
 	sdata		pci sdscsi
