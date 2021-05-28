@@ -440,7 +440,7 @@ restart:
 	/*
 	 * Make sure the packet does not go away.
 	 */
-	_xinc(&bp->ref);
+	ainc(&bp->ref);
 	assert(bp->ref == 2);
 
 	ipoput4(c->p->f, bp, 0, gre->ttl - 1, gre->tos, nil);
@@ -803,7 +803,7 @@ grectldlresume(Conv *c, int, char **)
 		/*
 		 * Make sure the packet does not go away.
 		 */
-		_xinc(&bp->ref);
+		ainc(&bp->ref);
 		assert(bp->ref == 2);
 
 		ipoput4(c->p->f, bp, 0, gre->ttl - 1, gre->tos, nil);
