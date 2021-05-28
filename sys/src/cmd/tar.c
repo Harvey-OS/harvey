@@ -1133,8 +1133,9 @@ copyfromar(int ar, int fd, char *fname, ulong blksleft, Off bytes)
 			"%s not fully extracted\n", argv0, bytes, arname, fname);
 }
 
+/* update fd's metadata.  called after writing all data to it. */
 static void
-wrmeta(int fd, Hdr *hp, long mtime, int mode)		/* update metadata */
+wrmeta(int fd, int ustar, char *user, char *group, long mtime, int mode)
 {
 	Dir nd;
 
@@ -1142,12 +1143,15 @@ wrmeta(int fd, Hdr *hp, long mtime, int mode)		/* update metadata */
 	nd.mtime = mtime;
 	nd.mode = mode;
 	dirfwstat(fd, &nd);
-	if (isustar(hp)) {
+	if (ustar) {
 		nulldir(&nd);
-		nd.gid = hp->gname;
+		nd.gid = group;
+		/* needs extracting user to be in gname, often fails */
 		dirfwstat(fd, &nd);
+
 		nulldir(&nd);
-		nd.uid = hp->uname;
+		nd.uid = user;
+		/* needs permissions off, very often fails */
 		dirfwstat(fd, &nd);
 	}
 }
@@ -1159,11 +1163,12 @@ wrmeta(int fd, Hdr *hp, long mtime, int mode)		/* update metadata */
 static void
 extract1(int ar, Hdr *hp, char *fname)
 {
-	int fd = -1, dir = 0;
+	int fd = -1, dir = 0, ustar;
 	long mtime = strtol(hp->mtime, nil, 8);
 	ulong mode = strtoul(hp->mode, nil, 8) & 0777;
 	Off bytes = hdrsize(hp);		/* for printing */
 	ulong blksleft = BYTES2TBLKS(arsize(hp));
+	char *user, *group;
 
 	/* fiddle name, figure out mode and blocks */
 	if (isdir(hp)) {
@@ -1196,6 +1201,16 @@ extract1(int ar, Hdr *hp, char *fname)
 	} else
 		print("%s\n", fname);
 
+	/*
+	 * copyfromar may read into tpblks, so save user & group from Hdr first,
+	 * iff settime and this is a US-tar archive.
+	 */
+	ustar = isustar(hp);
+	user = group = nil;
+	if (ustar && settime) {
+		user  = hp->uname? strdup(hp->uname): nil;
+		group = hp->gname? strdup(hp->gname): nil;
+	}
 	copyfromar(ar, fd, fname, blksleft, bytes);
 
 	/* touch up meta data and close */
@@ -1205,9 +1220,11 @@ extract1(int ar, Hdr *hp, char *fname)
 		 * creating files in them, but we don't do that.
 		 */
 		if (settime)
-			wrmeta(fd, hp, mtime, mode);
+			wrmeta(fd, ustar, user, group, mtime, mode);
 		close(fd);
 	}
+	free(user);
+	free(group);
 }
 
 static char *
