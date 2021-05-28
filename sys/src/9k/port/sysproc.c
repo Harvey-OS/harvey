@@ -388,7 +388,7 @@ sysexec(Ar0* ar0, va_list list)
 
 	/*
 	 * As the pass is made over the arguments and they are pushed onto
-	 * the temporary stack, make a good faith copy in args for up->args. 
+	 * the temporary stack, make a good faith copy in args for up->args.
 	 */
 	args = smalloc(128);
 	if(waserror()){

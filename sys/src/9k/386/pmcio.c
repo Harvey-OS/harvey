@@ -36,7 +36,7 @@ enum {
 	 * section 2.16 and 3.14
 	*/
 	PeK10,
-	
+
 };
 
 enum {
@@ -53,7 +53,7 @@ enum {						/* MSRs */
 };
 
 enum {						/* HW Performance Counters Event Selector */
-    				 
+
 	PeHo		= 0x0000020000000000ull,/* Host only */
 	PeGo		= 0x0000010000000000ull,/* Guest only */
 	PeEvMskH	= 0x0000000f00000000ull,/* Event mask H */
@@ -232,7 +232,7 @@ pmcconfigure(void)
 	int i, j, isrecog;
 
 	isrecog = 0;
-	
+
 	if(memcmp(&m->cpuinfo[0][1], "AuthcAMDenti", 12) == 0){
 		isrecog++;
 		cfg.ctrbase = PerfCtrbaseAmd;
@@ -327,7 +327,7 @@ pmctrans(PmcCtl *p)
 }
 
 //PeHo|PeGo
-#define PeAll	(PeOS|PeUsr)	
+#define PeAll	(PeOS|PeUsr)
 #define SetEvMsk(v, e) ((v)|(((e)&PeEvMskL)|(((e)<<(PeEvMsksh-8))&PeEvMskH)))
 #define SetUMsk(v, u) ((v)|(((u)<<8ull)&PeUnMsk))
 
