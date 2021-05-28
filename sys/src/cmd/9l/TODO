@@ -1,0 +1,22 @@
+x	ADDIS
+	must not be used for constant formation of unsigned values
+x	LCON, UCON
+x	D_DCONST
+x	shift and RLWIMI, RLD etc
+-	dynld
+-	9db from qdb.c (or same)
+x	MOVD
+x	MOVW/MOVWZ in macro forms for register-register move with sign-extension or zero extension
+	-> EXTSW or RLWNM to and
+x	CMP vs CMPW/CMPWU
+x	getmask -> uvlong
+x	32-bit special registers require MOVW/MOVWZ; others require MOVD
+
+notes
+ZCON	0
+SCON	16-bit signed
+UCON	low 16-bits zero
+ADDCON	-8000<= v < 0
+ANDCON	0 <= v <= 0xFFFF
+LCON	other
+LECON	will be 64 bits
