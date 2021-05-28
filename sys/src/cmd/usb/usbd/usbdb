@@ -5,6 +5,7 @@ embed
 	disk	class=storage			args=
 	ether	class=255 csp=0x00ffff vid=0x0b95		args=
 	ether	class=255 csp=0xff00ff vid=0x0424 did=0xec00	args=
+	ether	class=255 csp=0xff00ff vid=0x0424 did=0x7800 	args=
 	ether	class=255 csp=0x000602 vid=0x0bda did=0x8152	args=
 	serial	class=255 csp=0xffffff vid=0x9e88 did=0x9e8f	args=
 	serial	class=255 csp=0xffffff vid=0x0403		args=

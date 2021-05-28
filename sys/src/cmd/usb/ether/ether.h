@@ -14,6 +14,7 @@ enum
 	A88179,
 	A88772,
 	S95xx,		/* SMSC */
+	S78xx,
 
 	Eaddrlen = 6,
 	Epktlen = 1514,
@@ -114,6 +115,7 @@ struct Etherpkt
 int	ethermain(Dev *dev, int argc, char **argv);
 int	asixreset(Ether*);
 int smscreset(Ether*);
+int lan78xxreset(Ether*);
 int	cdcreset(Ether*);
 int	parseaddr(uchar *m, char *s);
 void	dumpframe(char *tag, void *p, int n);

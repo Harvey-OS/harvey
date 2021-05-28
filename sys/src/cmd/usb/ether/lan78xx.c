@@ -1,5 +1,6 @@
 /*
- * SMSC LAN95XX
+ * Microchip (ex SMSC) LAN78XX
+ *	 Also used as ethernet core in LAN7515 usb hub + ethernet
  */
 
 #include <u.h>
@@ -14,69 +15,79 @@ enum {
 	Doburst		= 1,
 	Resettime	= 1000,
 	E2pbusytime	= 1000,
-	Afcdefault	= 0xF830A1,
-	Hsburst		= 24,
-	Fsburst		= 129,
+	Hsburst		= 32,
 	Defbulkdly	= 1000,
+	Rxfifosize	= (12*1024),
+	Txfifosize	= (12*1024),
 
-	Ethp8021q	= 0x8100,
 	MACoffset 	= 1,
 	PHYinternal	= 1,
-	Rxerror		= 0x8000,
-	Txfirst		= 0x2000,
-	Txlast		= 0x1000,
+	Rxerror		= 0x00400000,
+	Txfcs		= 1<<22,
 
 	/* USB vendor requests */
 	Writereg	= 0xA0,
 	Readreg		= 0xA1,
 
 	/* device registers */
-	Intsts		= 0x08,
-	Txcfg		= 0x10,
-		Txon	= 1<<2,
-	Hwcfg		= 0x14,
-		Bir	= 1<<12,
-		Rxdoff	= 3<<9,
-		Mef	= 1<<5,
-		Lrst	= 1<<3,
-		Bce	= 1<<1,
-	Pmctrl		= 0x20,
+	Idrev		= 0x00,
+	Intsts		= 0x0C,
+	Hwcfg		= 0x10,
+		Led0en	= 1<<20,
+		Led1en	= 1<<21,
+		Mef	= 1<<4,
+		Lrst	= 1<<1,
+	Pmctrl		= 0x14,
+		Ready	= 1<<7,
 		Phyrst	= 1<<4,
-	Ledgpio		= 0x24,
-		Ledspd	= 1<<24,
-		Ledlnk	= 1<<20,
-		Ledfdx	= 1<<16,
-	Afccfg		= 0x2C,
-	E2pcmd		= 0x30,
+	Gpiocfg0	= 0x18,
+	Gpiocfg1	= 0x1C,
+	E2pcmd		= 0x40,
 		Busy	= 1<<31,
 		Timeout	= 1<<10,
+		Loaded	= 1<<9,
 		Read	= 0,
-	E2pdata		= 0x34,
-	Burstcap	= 0x38,
-	Intepctl	= 0x68,
-		Phyint	= 1<<15,
-	Bulkdelay	= 0x6C,
+	E2pdata		= 0x44,
+	Burstcap	= 0x90,
+	Intepctl	= 0x98,
+		Phyint	= 1<<17,
+	Bulkdelay	= 0x94,
+	Rfectl		= 0xB0,
+		Rxcoe	= 0xF<<11,
+		Ab		= 1<<10,
+		Am		= 1<<9,
+		Au		= 1<<8,
+		Dpf		= 1<<1,
+	Usbcfg0		= 0x80,
+		Bir	= 1<<6,
+		Bce	= 1<<5,
+	Usbcfg1		= 0x84,
+	Rxfifoctl		= 0xC0,
+		Rxen	= 1<<31,	
+	Txfifoctl		= 0xC4,
+		Txen	= 1<<31,
+	Rxfifo		= 0xC8,
+	Txfifo		= 0xCc,
+	Fctflow		= 0xD0,
 	Maccr		= 0x100,
-		Mcpas	= 1<<19,
-		Prms	= 1<<18,
-		Hpfilt	= 1<<13,
-		Txen	= 1<<3,
-		Rxen	= 1<<2,
-	Addrh		= 0x104,
-	Addrl		= 0x108,
-	Hashh		= 0x10C,
-	Hashl		= 0x110,
-	MIIaddr		= 0x114,
+		Add		= 1<<12,
+		Asd		= 1<<11,
+	Macrx		= 0x104,
+		Macfcs	= 1<<4,
+		Macrxen	= 1<<0,
+	Mactx		= 0x108,
+		Mactxen	= 1<<0,
+	Addrh		= 0x118,
+	Addrl		= 0x11C,
+	MIIaddr		= 0x120,
 		MIIwrite= 1<<1,
 		MIIread	= 0<<1,
 		MIIbusy	= 1<<0,
-	MIIdata		= 0x118,
-	Flow		= 0x11C,
-	Vlan1		= 0x120,
-	Coecr		= 0x130,
-		Txcoe	= 1<<16,
-		Rxcoemd	= 1<<1,
-		Rxcoe	= 1<<0,
+	MIIdata		= 0x124,
+	Flow		= 0x10C,
+	Addrfilth	= 0x400,
+		Afvalid	= 1<<31,
+	Addrfiltl	= 0x404,
 
 	/* MII registers */
 	Bmcr		= 0,
@@ -85,6 +96,7 @@ enum {
 		Anenable= 1<<12,
 		Anrestart= 1<<9,
 		Fulldpx	= 1<<8,
+		Speed1000= 1<<6,
 	Bmsr		= 1,
 	Advertise	= 4,
 		Adcsma	= 0x0001,
@@ -95,10 +107,18 @@ enum {
 		Adpause	= 0x0400,
 		Adpauseasym= 0x0800,
 		Adall	= Ad10h|Ad10f|Ad100h|Ad100f,
-	Phyintsrc	= 29,
-	Phyintmask	= 30,
-		Anegcomp= 1<<6,
-		Linkdown= 1<<4,
+	Lpa		= 5,
+	Ctrl1000	= 9,
+		Ad1000h = 0x0400,
+		Ad1000f = 0x0200,
+	Ledmodes	= 29,
+		Led0shift = 0,
+		Led1shift = 4,
+		Linkact = 0x0,
+		Link1000 = 0x1,
+	Phyintmask	= 25,
+		Anegcomp= 1<<10,
+		Linkchg = 1<<13,
 };
 
 static int burstcap = Hsburst, bulkdelay = Defbulkdly;
@@ -134,7 +154,7 @@ miird(Dev *d, int idx)
 {
 	while(rr(d, MIIaddr) & MIIbusy)
 		;
-	wr(d, MIIaddr, PHYinternal<<11 | idx<<6 | MIIread);
+	wr(d, MIIaddr, PHYinternal<<11 | idx<<6 | MIIread | MIIbusy);
 	while(rr(d, MIIaddr) & MIIbusy)
 		;
 	return rr(d, MIIdata);
@@ -146,7 +166,7 @@ miiwr(Dev *d, int idx, int val)
 	while(rr(d, MIIaddr) & MIIbusy)
 		;
 	wr(d, MIIdata, val);
-	wr(d, MIIaddr, PHYinternal<<11 | idx<<6 | MIIwrite);
+	wr(d, MIIaddr, PHYinternal<<11 | idx<<6 | MIIwrite | MIIbusy);
 	while(rr(d, MIIaddr) & MIIbusy)
 		;
 }
@@ -184,9 +204,9 @@ phyinit(Dev *d)
 		sleep(10);
 	}
 	miiwr(d, Advertise, Adcsma|Adall|Adpause|Adpauseasym);
-//	miiwr(d, Advertise, Adcsma|Ad10f|Ad10h|Adpause|Adpauseasym);
-	miird(d, Phyintsrc);
-	miiwr(d, Phyintmask, Anegcomp|Linkdown);
+	miiwr(d, Ctrl1000, Ad1000f);
+	miiwr(d, Phyintmask, 0);
+	miiwr(d, Ledmodes, (Linkact<<Led1shift) | (Link1000<<Led0shift));
 	miiwr(d, Bmcr, miird(d, Bmcr)|Anenable|Anrestart);
 }
 
@@ -223,126 +243,156 @@ getmac(Dev *d, uchar buf[])
 }
 
 static int
-smscinit(Ether *ether)
+lan78xxinit(Ether *ether)
 {
 	Dev *d;
+	u32int a;
+	int i;
 
-	if(ether->cid != S95xx)
+	if(ether->cid != S78xx)
 		return -1;
 	d = ether->dev;
-	deprint(2, "%s: setting up SMSC95XX\n", argv0);
+	deprint(2, "%s: setting up LAN78XX\n", argv0);
+	deprint(2, "chip id/rev = %8.8ux\n", rr(d, Idrev));
 	if(!doreset(d, Hwcfg, Lrst) || !doreset(d, Pmctrl, Phyrst))
 		return -1;
-	if(getmac(d, ether->addr) < 0)
+	for(i = 0; i < Resettime/10; i++){
+		 if(rr(d, Pmctrl) & Ready)
+			break;
+		sleep(10);
+	}
+	if((rr(d, Pmctrl) & Ready) == 0){
+		deprint(2, "%s: device not ready after reset\n", argv0);
 		return -1;
-	wr(d, Addrl, GET4(ether->addr));
-	wr(d, Addrh, GET2(ether->addr+4));
+	}
+	if(getmac(d, ether->addr) < 0)
+		deprint(2, "%s: can't read etheraddr from EEPROM\n", argv0);
+	a = GET4(ether->addr);
+	wr(d, Addrl, a);
+	wr(d, Addrfiltl, a);
+	a = GET2(ether->addr+4);
+	wr(d, Addrh, a);
+	wr(d, Addrfilth, a|Afvalid);
+	deprint(2, "Address filter %8.8ux %8.8ux\n", rr(d, Addrfilth), rr(d, Addrfiltl));
+
+	wr(d, Usbcfg0, rr(d, Usbcfg0) | Bir);
 	if(Doburst){
-		wr(d, Hwcfg, (rr(d,Hwcfg)&~Rxdoff)|Bir|Mef|Bce);
+		wr(d, Hwcfg, rr(d, Hwcfg)|Mef);
+		wr(d, Usbcfg0, rr(d, Usbcfg0)|Bce);
 		wr(d, Burstcap, burstcap);
 		wr(d, Bulkdelay, bulkdelay);
 	}else{
-		wr(d, Hwcfg, (rr(d,Hwcfg)&~(Rxdoff|Mef|Bce))|Bir);
+		wr(d, Hwcfg, rr(d, Hwcfg)&~Mef);
+		wr(d, Usbcfg0, rr(d, Usbcfg0)&~Bce);
 		wr(d, Burstcap, 0);
 		wr(d, Bulkdelay, 0);
 	}
+	wr(d, Rxfifo, (Rxfifosize-512)/512);
+	wr(d, Txfifo, (Txfifosize-512)/512);
 	wr(d, Intsts, ~0);
-	wr(d, Ledgpio, Ledspd|Ledlnk|Ledfdx);
+	wr(d, Hwcfg, rr(d, Hwcfg) | Led0en|Led1en);
 	wr(d, Flow, 0);
-	wr(d, Afccfg, Afcdefault);
-	wr(d, Vlan1, Ethp8021q);
-	wr(d, Coecr, rr(d,Coecr)&~(Txcoe|Rxcoe)); /* TODO could offload checksums? */
-
-	wr(d, Hashh, 0);
-	wr(d, Hashl, 0);
-	wr(d, Maccr, rr(d,Maccr)&~(Prms|Mcpas|Hpfilt));
+	wr(d, Fctflow, 0);
+	wr(d, Rfectl, (rr(d, Rfectl) & ~Rxcoe) | Ab|Dpf); /* TODO could offload checksums? */
 
 	phyinit(d);
 
+	wr(d, Maccr, rr(d,Maccr)|Add|Asd);
+
 	wr(d, Intepctl, rr(d, Intepctl)|Phyint);
-	wr(d, Maccr, rr(d, Maccr)|Txen|Rxen);
-	wr(d, Txcfg, Txon);
+	wr(d, Mactx, Mactxen);
+	wr(d, Macrx, rr(d, Macrx) | Macfcs|Macrxen);
+	wr(d, Txfifoctl, Txen);
+	wr(d, Rxfifoctl, Rxen);
 
 	return 0;
 }
 
 static long
-smscbread(Ether *e, Buf *bp)
+lan78xxbread(Ether *e, Buf *bp)
 {
 	uint hd;
 	int n, m;
 	Buf *rbp;
 
 	rbp = e->aux;
-	if(rbp->ndata < 4){
+	if(rbp->ndata < 10){
 		rbp->rp = rbp->data;
 		rbp->ndata = read(e->epin->dfd, rbp->rp, Doburst? burstcap*512:
 			Maxpkt);
 		if(rbp->ndata < 0)
 			return -1;
 	}
-	if(rbp->ndata < 4){
+	if(rbp->ndata < 10){
 		werrstr("short frame");
-		fprint(2, "smsc short frame %d bytes\n", rbp->ndata);
+		fprint(2, "lan78xx short frame %d bytes\n", rbp->ndata);
+		sleep(1000);
 		return 0;
 	}
 	hd = GET4(rbp->rp);
-	rbp->rp += 4;
-	rbp->ndata -= 4;
-	n = hd >> 16;
+	n = hd & 0x3FFF;
+	rbp->rp += 10;
+	rbp->ndata -= 10;
 	if(n < 6 || n > rbp->ndata){
 		werrstr("frame length");
-		fprint(2, "smsc length error packet %d buf %d\n", n, rbp->ndata);
+		fprint(2, "lan78xx length error packet %d buf %d\n", n, rbp->ndata);
 		rbp->ndata = 0;
 		return 0;
 	}
-	m = n;
-	if(rbp->ndata - m < 4)
-		m = rbp->ndata;
 	if(hd & Rxerror){
-		fprint(2, "smsc rx error %8.8ux\n", hd);
+		fprint(2, "lan78xx rx error %8.8ux\n", hd);
 		n = 0;
 	}else{
 		bp->rp = bp->data + Hdrsize;
 		memmove(bp->rp, rbp->rp, n);
 	}
 	bp->ndata = n;
-	rbp->rp += m;
-	rbp->ndata -= m;
+	rbp->rp += n;
+	rbp->ndata -= n;
+	if(rbp->ndata > 0){
+		m = rbp->rp - rbp->data;
+		if(m&3){
+			m = 4 - (m&3);
+			rbp->rp += m;
+			rbp->ndata -= m;
+		}
+	}
 	return n;
 }
 
 static long
-smscbwrite(Ether *e, Buf *bp)
+lan78xxbwrite(Ether *e, Buf *bp)
 {
 	int n;
 
-	n = bp->ndata & 0x7FF;
+	n = bp->ndata & 0xFFFFF;
 	bp->rp -= 8;
 	bp->ndata += 8;
-	PUT4(bp->rp, n | Txfirst | Txlast);
-	PUT4(bp->rp+4, n);
+	PUT4(bp->rp, n | Txfcs);
+	PUT4(bp->rp+4, 0);
 	n = write(e->epout->dfd, bp->rp, bp->ndata);
+	if(n != bp->ndata)
+		deprint(2, "bwrite %d: %r\n", n);
 	return n;
 }
 
 static int
-smscpromiscuous(Ether *e, int on)
+lan78xxpromiscuous(Ether *e, int on)
 {
 	Dev *d;
 	int rxctl;
 
 	d = e->dev;
-	rxctl = rr(d, Maccr);
+	rxctl = rr(d, Rfectl);
 	if(on)
-		rxctl |= Prms;
+		rxctl |= Am|Au;
 	else
-		rxctl &= ~Prms;
-	return wr(d, Maccr, rxctl);
+		rxctl &= ~(Am|Au);
+	return wr(d, Rfectl, rxctl);
 }
 
 static int
-smscmulticast(Ether *e, uchar *addr, int on)
+lan78xxmulticast(Ether *e, uchar *addr, int on)
 {
 	int rxctl;
 	Dev *d;
@@ -350,24 +400,24 @@ smscmulticast(Ether *e, uchar *addr, int on)
 	USED(addr, on);
 	/* BUG: should write multicast filter */
 	d = e->dev;
-	rxctl = rr(d, Maccr);
+	rxctl = rr(d, Rfectl);
 	if(e->nmcasts != 0)
-		rxctl |= Mcpas;
+		rxctl |= Am;
 	else
-		rxctl &= ~Mcpas;
-	deprint(2, "%s: smscmulticast %d\n", argv0, e->nmcasts);
-	return wr(d, Maccr, rxctl);
+		rxctl &= ~Am;
+	deprint(2, "%s: lan78xxmulticast %d\n", argv0, e->nmcasts);
+	return wr(d, Rfectl, rxctl);
 }
 
 static void
-smscfree(Ether *ether)
+lan78xxfree(Ether *ether)
 {
 	free(ether->aux);
 	ether->aux = nil;
 }
 
 int
-smscreset(Ether *ether)
+lan78xxreset(Ether *ether)
 {
 	Cinfo *ip;
 	Dev *dev;
@@ -376,12 +426,12 @@ smscreset(Ether *ether)
 	for(ip = cinfo; ip->vid != 0; ip++)
 		if(ip->vid == dev->usb->vid && ip->did == dev->usb->did){
 			ether->cid = ip->cid;
-			if(smscinit(ether) < 0){
-				deprint(2, "%s: smsc init failed: %r\n", argv0);
+			if(lan78xxinit(ether) < 0){
+				deprint(2, "%s: lan78xx init failed: %r\n", argv0);
 				return -1;
 			}
-			deprint(2, "%s: smsc reset done\n", argv0);
-			ether->name = "smsc";
+			deprint(2, "%s: lan78xx reset done\n", argv0);
+			ether->name = "lan78xx";
 			if(Doburst){
 				ether->bufsize = burstcap*512;
 				ether->aux = emallocz(sizeof(Buf) +
@@ -390,11 +440,11 @@ smscreset(Ether *ether)
 				ether->bufsize = Maxpkt;
 				ether->aux = emallocz(sizeof(Buf), 1);
 			}
-			ether->free = smscfree;
-			ether->bread = smscbread;
-			ether->bwrite = smscbwrite;
-			ether->promiscuous = smscpromiscuous;
-			ether->multicast = smscmulticast;
+			ether->free = lan78xxfree;
+			ether->bread = lan78xxbread;
+			ether->bwrite = lan78xxbwrite;
+			ether->promiscuous = lan78xxpromiscuous;
+			ether->multicast = lan78xxmulticast;
 			ether->mbps = 100;	/* BUG */
 			return 0;
 		}

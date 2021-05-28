@@ -82,6 +82,9 @@ Cinfo cinfo[] =
 	{0x0424, 0x9505, S95xx},
 	{0x0424, 0x9E00, S95xx},
 	{0x0424, 0x9E01, S95xx},
+	/* LAN78xx family - gigabit ethernet
+	 */
+	{0x0424, 0x7800, S78xx},	/* raspberry pi 3 B+ */
 	{0, 0, 0},
 };
 
@@ -121,6 +124,7 @@ Resetf ethers[] =
 {
 	asixreset,
 	smscreset,
+	lan78xxreset,
 	cdcreset,	/* keep last */
 };
 
