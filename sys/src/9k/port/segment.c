@@ -154,6 +154,7 @@ dupseg(Segment **seg, int segno, int share)
 		n->image = s->image;
 		n->fstart = s->fstart;
 		n->flen = s->flen;
+		n->lg2pgsize = s->lg2pgsize;
 		break;
 	}
 	size = s->mapsize;
