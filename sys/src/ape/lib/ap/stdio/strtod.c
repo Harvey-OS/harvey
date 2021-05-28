@@ -219,6 +219,8 @@ strtod(CONST char *s00, char **se)
 	long L;
 	unsigned long y, z;
 	Bigint *bb, *bb1, *bd, *bd0, *bs, *delta;
+
+	bb = bd = bs = delta = 0;
 	sign = nz0 = nz = 0;
 	rv.d = 0.;
 	for(s = s00;;s++) switch(*s) {

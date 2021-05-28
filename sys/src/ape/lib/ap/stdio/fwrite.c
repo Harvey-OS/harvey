@@ -24,7 +24,7 @@ size_t fwrite(const void *p, size_t recl, size_t nrec, FILE *f){
 				d=f->wp-f->buf;
 				if(d>0){
 					if(f->flags&APPEND)
-						lseek(f->fd, 0L, SEEK_END);
+						lseek(f->fd, 0, SEEK_END);
 					if(write(f->fd, f->buf, d)!=d){
 						f->state=ERR;
 						goto ret;
@@ -32,7 +32,7 @@ size_t fwrite(const void *p, size_t recl, size_t nrec, FILE *f){
 					f->wp=f->rp=f->buf;
 				}
 				if(f->flags&APPEND)
-					lseek(f->fd, 0L, SEEK_END);
+					lseek(f->fd, 0, SEEK_END);
 				d=write(f->fd, s, n);
 				if(d<=0){
 					f->state=ERR;

@@ -89,6 +89,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 	static int result_k;
 	Dul d;
 
+	mlo = 0;
 	d.d = darg;
 	if (result) {
 		result->k = result_k;
@@ -230,6 +231,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 		try_quick = 0;
 		}
 	leftright = 1;
+	ilim = ilim1 = -1;
 	switch(mode) {
 		case 0:
 		case 1:
@@ -463,7 +465,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 		S = pow5mult(S, s5);
 
 	/* Check for special case that d is a normalized power of 2. */
-
+	spec_case = 0;
 	if (mode < 2) {
 		if (!word1(d) && !(word0(d) & Bndry_mask)
 #ifndef Sudden_Underflow

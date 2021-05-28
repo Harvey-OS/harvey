@@ -21,7 +21,7 @@ FILE *fdopen(const int fd, const char *mode){
 		return NULL;
 	f->fd=fd;
 	if(mode[0]=='a')
-		lseek(f->fd, 0L, 2);
+		lseek(f->fd, 0, SEEK_END);
 	if(f->fd==-1) return NULL;
 	f->flags=0;
 	f->state=OPEN;

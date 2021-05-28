@@ -2,7 +2,6 @@
  * pANS stdio -- sclose
  */
 #include "iolib.h"
-#include <stdlib.h>
 
 char *_IO_sclose(FILE *f){
 	switch(f->state){
@@ -33,5 +32,5 @@ char *_IO_sclose(FILE *f){
 	}
 	f->state=CLOSED;
 	f->flags=0;
-	return f->buf;
+	return (char *)f->buf;
 }

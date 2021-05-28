@@ -11,7 +11,7 @@ FILE *sopenr(const char *s){
 		qunlock(&_stdiolk);
 		return NULL;
 	}
-	f->buf=f->rp=(char *)s;	/* what an annoyance const is */
+	f->buf=f->rp=(uchar *)s;	/* what an annoyance const is */
 	f->bufl=strlen(s);
 	f->wp=f->buf+f->bufl;
 	f->state=RD;

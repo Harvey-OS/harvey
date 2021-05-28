@@ -27,7 +27,7 @@ int ftoa(double f, char *bp){
 		e1=e/2;
 		e2=e-e1;
 		p=f*pow10(e2);
-		while((g=p*pow10(e1))<1.) e1++;
+		while(p*pow10(e1)<1.) e1++;
 		while((g=p*pow10(e1))>=10.) --e1;
 		e=e1+e2;
 		f=g;

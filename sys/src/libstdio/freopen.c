@@ -40,7 +40,7 @@ FILE *freopen(const char *name, const char *mode, FILE *f){
 		f->fd=open(name, m);
 		if(f->fd<0)
 			f->fd=create(name, m, 0666);
-		seek(f->fd, 0LL, 2);
+		seek(f->fd, 0, SEEK_END);
 		break;
 	}
 

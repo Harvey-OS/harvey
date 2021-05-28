@@ -146,12 +146,14 @@ static int nprint;
 QLock _stdiolk;
 
 int
-vfprintf(FILE *f, const char *s, va_list args)
+vfprintf(FILE *f, const char *as, va_list args)
 {
 	int flags, width, precision;
+	uchar *s;
 
 	qlock(&_stdiolk);
 
+	s = (uchar *)as;
 	nprint = 0;
 	while(*s){
 		if(*s != '%'){
@@ -161,7 +163,7 @@ vfprintf(FILE *f, const char *s, va_list args)
 		}
 		s++;
 		flags = 0;
-		while(lflag[*s&_IO_CHMASK]) flags |= lflag[*s++&_IO_CHMASK];
+		while(lflag[*s]) flags |= lflag[*s++];
 		if(*s == '*'){
 			width = va_arg(args, int);
 			s++;
@@ -187,7 +189,7 @@ vfprintf(FILE *f, const char *s, va_list args)
 		}
 		else
 			precision = -1;
-		while(tflag[*s&_IO_CHMASK]) flags |= tflag[*s++&_IO_CHMASK];
+		while(tflag[*s]) flags |= tflag[*s++];
 		if(ocvt[*s]) nprint += (*ocvt[*s++])(f, &args, flags, width, precision);
 		else if(*s){
 			putc(*s++, f);
@@ -210,9 +212,9 @@ vfprintf(FILE *f, const char *s, va_list args)
 static int
 ocvt_c(FILE *f, va_list *args, int flags, int width, int precision)
 {
-#pragma ref precision
 	int i;
 
+	USED(precision);
 	if(!(flags&LEFT)) for(i=1; i<width; i++) putc(' ', f);
 	putc((unsigned char)va_arg(*args, int), f);
 	if(flags&LEFT) for(i=1; i<width; i++) putc(' ', f);
@@ -259,9 +261,7 @@ ocvt_s(FILE *f, va_list *args, int flags, int width, int precision)
 static int
 ocvt_n(FILE *f, va_list *args, int flags, int width, int precision)
 {
-#pragma ref f
-#pragma ref width
-#pragma ref precision
+	USED(precision, width, f);
 	if(flags&SHORT)
 		*va_arg(*args, short *) = nprint;
 	else if(flags&LONG)
@@ -293,7 +293,7 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 	int nout, npad, nlzero;
 
 	if(sgned){
-		if(flags&PTR) snum = (long)va_arg(*args, void *);
+		if(flags&PTR) snum = (uintptr)va_arg(*args, void *);
 		else if(flags&SHORT) snum = va_arg(*args, short);
 		else if(flags&LONG) snum = va_arg(*args, long);
 		else snum = va_arg(*args, int);
@@ -308,7 +308,7 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 		}
 	} else {
 		sign = "";
-		if(flags&PTR) num = (long)va_arg(*args, void *);
+		if(flags&PTR) num = (uintptr)va_arg(*args, void *);
 		else if(flags&SHORT) num = va_arg(*args, unsigned short);
 		else if(flags&LONG) num = va_arg(*args, unsigned long);
 		else num = va_arg(*args, unsigned int);
@@ -456,6 +456,7 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 	fmt = afmt;
 	d = va_arg(*args, double);
 	if(precision < 0) precision = 6;
+	digits = 0;			/* silence used and not set */
 	switch(fmt){
 	case 'f':
 		digits = dtoa(d, 3, precision, &exponent, &sign, &edigits);
@@ -512,6 +513,7 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 	if(fmt=='f' && exponent>0) nout += exponent;	/* digits before decimal point */
 	else nout++;					/* there's always at least one */
 	if(sign || flags&(SPACE|SIGN)) nout++;		/* sign */
+	eptr = nil;				/* silence used and not set */
 	if(fmt != 'f'){					/* exponent */
 		eptr = ebuf;
 		for(i=exponent<=0?1-exponent:exponent-1; i; i/=10)

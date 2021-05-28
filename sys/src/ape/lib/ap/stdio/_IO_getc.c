@@ -3,7 +3,7 @@
  */
 #include "iolib.h"
 int _IO_getc(FILE *f){
-	int cnt, n;
+	int cnt;
 	switch(f->state){
 	default:	/* CLOSED, WR, ERR, EOF */
 		return EOF;
@@ -12,11 +12,7 @@ int _IO_getc(FILE *f){
 	case RDWR:
 	case RD:
 		if(f->flags&STRING) return EOF;
-		if(f->buf == f->unbuf)
-			n = 1;
-		else
-			n = f->bufl;
-		cnt=read(f->fd, f->buf, n);
+		cnt=read(f->fd, f->buf, f->buf==f->unbuf?1:f->bufl);
 		switch(cnt){
 		case -1: f->state=ERR; return EOF;
 		case 0: f->state=END; return EOF;
@@ -24,7 +20,7 @@ int _IO_getc(FILE *f){
 			f->state=RD;
 			f->rp=f->buf;
 			f->wp=f->buf+cnt;
-			return (*f->rp++)&_IO_CHMASK;
+			return *f->rp++;
 		}
 	}
 }

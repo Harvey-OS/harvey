@@ -30,5 +30,5 @@ char *sclose(FILE *f){
 	}
 	f->state=CLOSED;
 	f->flags=0;
-	return f->buf;
+	return (char *)f->buf;
 }

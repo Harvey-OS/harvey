@@ -50,7 +50,7 @@ FILE *freopen(const char *name, const char *mode, FILE *f){
 				f->fd=open(name, O_RDWR);
 			}
 		}
-		lseek(f->fd, 0L, 2);
+		lseek(f->fd, 0, SEEK_END);
 		break;
 	}
 

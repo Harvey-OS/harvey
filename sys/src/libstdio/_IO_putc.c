@@ -56,7 +56,7 @@ int _IO_putc(int c, FILE *f){
 	else if(f->flags&LINEBUF){
 		if(f->lp==f->rp){
 			cnt=f->lp-f->buf;
-			if(f->flags&APPEND) seek(f->fd, 0L, 2);
+			if(f->flags&APPEND) seek(f->fd, 0, SEEK_END);
 			if(cnt!=0 && write(f->fd, f->buf, cnt)!=cnt){
 				f->state=ERR;
 				return EOF;
@@ -66,7 +66,7 @@ int _IO_putc(int c, FILE *f){
 		*f->lp++=c;
 		if(c=='\n'){
 			cnt=f->lp-f->buf;
-			if(f->flags&APPEND) seek(f->fd, 0L, 2);
+			if(f->flags&APPEND) seek(f->fd, 0, SEEK_END);
 			if(cnt!=0 && write(f->fd, f->buf, cnt)!=cnt){
 				f->state=ERR;
 				return EOF;
@@ -76,7 +76,7 @@ int _IO_putc(int c, FILE *f){
 	}
 	else if(f->buf==f->unbuf){
 		f->unbuf[0]=c;
-		if(f->flags&APPEND) seek(f->fd, 0L, 2);
+		if(f->flags&APPEND) seek(f->fd, 0, SEEK_END);
 		if(write(f->fd, f->buf, 1)!=1){
 			f->state=ERR;
 			return EOF;
@@ -85,7 +85,7 @@ int _IO_putc(int c, FILE *f){
 	else{
 		if(f->wp==f->rp){
 			cnt=f->wp-f->buf;
-			if(f->flags&APPEND) seek(f->fd, 0L, 2);
+			if(f->flags&APPEND) seek(f->fd, 0, SEEK_END);
 			if(cnt!=0 && write(f->fd, f->buf, cnt)!=cnt){
 				f->state=ERR;
 				return EOF;

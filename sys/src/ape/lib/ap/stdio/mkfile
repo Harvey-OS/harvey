@@ -65,5 +65,4 @@ OFILES=\
 
 </sys/src/cmd/mksyslib
 
-# -w draws lots of "result of operation not used" warnings
-CFLAGS=-c -D_POSIX_SOURCE -FTV
+CFLAGS=-c -D_POSIX_SOURCE -FTVw

@@ -20,7 +20,7 @@ int _IO_getc(FILE *f){
 			f->state=RD;
 			f->rp=f->buf;
 			f->wp=f->buf+cnt;
-			return (*f->rp++)&_IO_CHMASK;
+			return *f->rp++;
 		}
 	}
 }

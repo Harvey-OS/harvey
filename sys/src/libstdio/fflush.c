@@ -6,10 +6,9 @@
  * pANS stdio -- data (put here, since loader won't load a separate file)
  */
 FILE _IO_stream[]={
-/*	fd	flags	state	buf	rp	wp	lp	bufl	unbuf */
-	0,	0,	OPEN,	0,	0,	0,	0,	0,	0,
-	1,	0,	OPEN,	0,	0,	0,	0,	0,	0,
-	2,	0,	OPEN,	0,	0,	0,	0,	0,	0,
+	{ .fd 0, .state OPEN, },
+	{ .fd 1, .state OPEN, },
+	{ .fd 2, .state OPEN, },
 };
 
 int _fflush(FILE *f){

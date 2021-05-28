@@ -2,7 +2,7 @@
  * pANS stdio -- setvbuf
  */
 #include "iolib.h"
-int setvbuf(FILE *f, char *buf, int mode, long size){
+int setvbuf(FILE *f, void *buf, int mode, long size){
 	if(f->state!=OPEN){
 		f->state=ERR;
 		return -1;
