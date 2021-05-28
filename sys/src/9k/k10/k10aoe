@@ -55,7 +55,7 @@ link +dev
 
 misc +dev
 	nocache
-	mp		apic ioapic pci sipi
+	mp		apic ioapic pci sipi mpacpi
 
 #
 #boot cpu
