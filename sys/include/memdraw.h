@@ -173,6 +173,7 @@ extern	Memcmap	*memdefcmap;
  * Kernel interface
  */
 void		memimagemove(void*, void*);
+void		memdrawallocinit(void);
 
 /*
  * Kernel cruft

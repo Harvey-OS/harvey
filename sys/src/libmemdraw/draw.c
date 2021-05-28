@@ -2,9 +2,7 @@
 #include <libc.h>
 #include <draw.h>
 #include <memdraw.h>
-#include <pool.h>
 
-extern Pool* imagmem;
 int drawdebug;
 static int	tablesbuilt;
 
@@ -52,8 +50,7 @@ memimageinit(void)
 
 	didinit = 1;
 
-	if(strcmp(imagmem->name, "Image") == 0 || strcmp(imagmem->name, "image") == 0)
-		imagmem->move = memimagemove;
+	memdrawallocinit();
 
 	mktables();
 	_memmkcmap();

@@ -4,6 +4,15 @@
 #include <memdraw.h>
 #include <pool.h>
 
+extern Pool* imagmem;
+
+void
+memdrawallocinit(void)
+{
+	if(strcmp(imagmem->name, "Image") == 0 || strcmp(imagmem->name, "image") == 0)
+		imagmem->move = memimagemove;
+}
+
 void
 memimagemove(void *from, void *to)
 {
@@ -122,80 +131,4 @@ freememimage(Memimage *i)
 		free(i->data);
 	}
 	free(i);
-}
-
-/*
- * Wordaddr is deprecated.
- */
-ulong*
-wordaddr(Memimage *i, Point p)
-{
-	return (ulong*) ((uintptr)byteaddr(i, p) & ~(sizeof(ulong)-1));
-}
-
-uchar*
-byteaddr(Memimage *i, Point p)
-{
-	uchar *a;
-
-	a = i->data->bdata+i->zero+sizeof(ulong)*p.y*i->width;
-
-	if(i->depth < 8){
-		/*
-		 * We need to always round down,
-		 * but C rounds toward zero.
-		 */
-		int np;
-		np = 8/i->depth;
-		if(p.x < 0)
-			return a+(p.x-np+1)/np;
-		else
-			return a+p.x/np;
-	}
-	else
-		return a+p.x*(i->depth/8);
-}
-
-int
-memsetchan(Memimage *i, ulong chan)
-{
-	int d;
-	int t, j, k;
-	ulong cc;
-	int bytes;
-
-	if((d = chantodepth(chan)) == 0) {
-		werrstr("bad channel descriptor");
-		return -1;
-	}
-
-	i->depth = d;
-	i->chan = chan;
-	i->flags &= ~(Fgrey|Falpha|Fcmap|Fbytes);
-	bytes = 1;
-	for(cc=chan, j=0, k=0; cc; j+=NBITS(cc), cc>>=8, k++){
-		t=TYPE(cc);
-		if(t < 0 || t >= NChan){
-			werrstr("bad channel string");
-			return -1;
-		}
-		if(t == CGrey)
-			i->flags |= Fgrey;
-		if(t == CAlpha)
-			i->flags |= Falpha;
-		if(t == CMap && i->cmap == nil){
-			i->cmap = memdefcmap;
-			i->flags |= Fcmap;
-		}
-
-		i->shift[t] = j;
-		i->mask[t] = (1<<NBITS(cc))-1;
-		i->nbits[t] = NBITS(cc);
-		if(NBITS(cc) != 8)
-			bytes = 0;
-	}
-	i->nchan = k;
-	if(bytes)
-		i->flags |= Fbytes;
-	return 0;
 }
