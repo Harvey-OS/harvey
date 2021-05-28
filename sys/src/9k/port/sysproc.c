@@ -478,7 +478,7 @@ sysexec(Ar0* ar0, va_list list)
 	 */
 	p = UINT2PTR(stack);
 	stack = sysexecstack(stack, argc);
-	if(stack-(argc+1)*sizeof(char**)-PGSZ < TSTKTOP-USTKSIZE)
+	if(stack-(argc+1)*sizeof(char**)-segpgsize(up->seg[ESEG]) < TSTKTOP-USTKSIZE)
 		error(Ebadexec);
 
 	argv = (char**)stack;
