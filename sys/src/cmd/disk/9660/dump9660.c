@@ -24,7 +24,7 @@ usage(void)
 {
 	if(mk9660)
 		fprint(2, "usage: disk/mk9660 [-D:] [-9cjr] "
-			"[-[bB] bootfile] [-o offset blocksize] "
+			"[-[bB] bootfile] [-o offset blocksize] [-n now] "
 			"[-p proto] [-s src] cdimage\n");
 	else
 		fprint(2, "usage: disk/dump9660 [-D:] [-9cjr] "
@@ -135,7 +135,7 @@ main(int argc, char **argv)
 	if(info.flags & CDpbs && !(info.flags & CDbootnoemu))
 		usage();
 
-	if(mk9660 && (fix || now || maxsize))
+	if(mk9660 && (fix || maxsize))
 		usage();
 
 	if(argc != 1)

@@ -33,6 +33,10 @@ dump9660, mk9660 \- create an ISO-9660 CD image
 .B -v
 .I volume
 ]
+[
+.B -n
+.I now
+]
 .I image
 .PP
 .B disk/dump9660
