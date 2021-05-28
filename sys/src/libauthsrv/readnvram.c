@@ -135,6 +135,21 @@ typedef struct {
 
 static char *nvrfile = nil, *cputype = nil;
 
+static int
+openrd(char *file)
+{
+	int fd;
+
+	if(nvramdebug)
+		fprint(2, "nvram at %s?...", file);
+	fd = open(file, ORDWR);
+	if (fd < 0)
+		fd = open(file, OREAD);
+	if(nvramdebug)
+		fprint(2, "%s\n", fd >= 0? "yes": "no");
+	return fd;
+}
+
 /* returns with *locp filled in and locp->fd open, if possible */
 static void
 findnvram(Nvrwhere *locp)
@@ -169,11 +184,7 @@ findnvram(Nvrwhere *locp)
 			v[0] = "";
 			v[1] = nil;
 		}
-		if(nvramdebug)
-			fprint(2, "nvram at %s?...", v[0]);
-		fd = open(v[0], ORDWR);
-		if (fd < 0)
-			fd = open(v[0], OREAD);
+		fd = openrd(v[0]);
 		safelen = sizeof(Nvrsafe);
 		if(strstr(v[0], "/9fat") == nil)
 			safeoff = 0;
@@ -201,10 +212,7 @@ findnvram(Nvrwhere *locp)
 		for(i=0; i<nelem(nvtab); i++){
 			if(strcmp(cputype, nvtab[i].cputype) != 0)
 				continue;
-			if(nvramdebug)
-				fprint(2, "nvram at %s?...", nvtab[i].file);
-			if((fd = open(nvtab[i].file, ORDWR)) < 0 &&
-			   (fd = open(nvtab[i].file, OREAD)) < 0)
+			if((fd = openrd(nvtab[i].file)) < 0)
 				continue;
 			safeoff = nvtab[i].off;
 			safelen = nvtab[i].len;
