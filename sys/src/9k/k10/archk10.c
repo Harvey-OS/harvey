@@ -373,3 +373,16 @@ millidelay(int millisecs)
 	for(t = r + m->cpumhz*1000ull*millisecs; r < t; r = rdtsc())
 		pause();
 }
+
+int
+isdmaok(void *a, usize len, int range)
+{
+	uintmem pa;
+
+	if(!iskaddr(a) || (char*)a < etext)
+		return 0;
+	pa = mmuphysaddr(PTR2UINT(a));
+	if(pa == 0 || pa == ~(uintmem)0)
+		return 0;
+	return range > 32 || pa+len <= 0xFFFFFFFFULL;
+}

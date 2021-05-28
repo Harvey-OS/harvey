@@ -1171,7 +1171,7 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 	if(off + len > d->bsize)
 		len = d->bsize - off;
 	copy = 0;
-	if(iskaddr(db)){
+	if(isdmaok(db, len, 32)){
 		srb = srbkalloc(db, len);
 		copy = 1;
 	}else
