@@ -1,7 +1,7 @@
 /*
  * SIMD Floating Point.
  * Note: for x87 instructions which have both a 'wait' and 'nowait' version,
- * 8a only knows the 'wait' mnemonic but does NOT insert the WAIT prefix byte
+ * 6a only knows the 'wait' mnemonic but does NOT insert the WAIT prefix byte
  * (i.e. they act like their FNxxx variations) so WAIT instructions must be
  * explicitly placed in the code if necessary.
  */
