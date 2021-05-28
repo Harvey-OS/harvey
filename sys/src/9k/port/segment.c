@@ -52,11 +52,11 @@ putseg(Segment *s)
 	Pte **pp, **emap;
 	Image *i;
 
-	if(s == 0)
+	if(s == nil)
 		return;
 
 	i = s->image;
-	if(i != 0) {
+	if(i != nil) {
 		lock(i);
 		lock(s);
 		if(i->s == s && s->ref == 1)
@@ -79,13 +79,13 @@ putseg(Segment *s)
 
 	emap = &s->map[s->mapsize];
 	for(pp = s->map; pp < emap; pp++)
-		if(*pp)
+		if(*pp != nil)
 			freepte(s, *pp);
 
 	qunlock(&s->lk);
 	if(s->map != s->ssegmap)
 		free(s->map);
-	if(s->profile != 0)
+	if(s->profile != nil)
 		free(s->profile);
 	free(s);
 }
@@ -158,7 +158,7 @@ dupseg(Segment **seg, int segno, int share)
 	}
 	size = s->mapsize;
 	for(i = 0; i < size; i++)
-		if(pte = s->map[i])
+		if((pte = s->map[i]) != nil)
 			n->map[i] = ptecpy(pte);
 
 	n->flushme = s->flushme;
@@ -268,7 +268,7 @@ isoverlap(Proc* p, uintptr va, usize len)
 	newtop = va+len;
 	for(i = 0; i < NSEG; i++) {
 		ns = p->seg[i];
-		if(ns == 0)
+		if(ns == nil)
 			continue;
 		if(newtop > ns->base && va < ns->top)
 			return ns;
@@ -282,7 +282,7 @@ segclock(uintptr pc)
 	Segment *s;
 
 	s = up->seg[TSEG];
-	if(s == 0 || s->profile == 0)
+	if(s == nil || s->profile == nil)
 		return;
 
 	s->profile[0] += TK2MS(1);

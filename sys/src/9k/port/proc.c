@@ -70,7 +70,7 @@ schedinit(void)		/* never returns */
 		if((e = up->edf) && (e->flags & Admitted))
 			edfrecord(up);
 		updatecpu(up);
-		m->proc = 0;
+		m->proc = nil;
 		switch(up->state) {
 		case Running:
 			ready(up);
@@ -159,7 +159,7 @@ sched(void)
 	}
 	if(p != m->readied)
 		m->schedticks = m->ticks + HZ/10;
-	m->readied = 0;
+	m->readied = nil;
 	up = p;
 	up->state = Running;
 	up->mach = m;
@@ -373,11 +373,11 @@ dequeueproc(Schedq *rq, Proc *tp)
 	/*
 	 *  p->mach==0 only when process state is saved
 	 */
-	if(p == 0 || p->mach){
+	if(p == nil || p->mach){
 		unlock(runq);
 		return nil;
 	}
-	if(p->rnext == 0)
+	if(p->rnext == nil)
 		rq->tail = l;
 	if(l)
 		l->rnext = p->rnext;
@@ -584,16 +584,16 @@ newproc(void)
 
 	p->state = Scheding;
 	p->psstate = "New";
-	p->mach = 0;
-	p->qnext = 0;
+	p->mach = nil;
+	p->qnext = nil;
 	p->nchild = 0;
 	p->nwait = 0;
-	p->waitq = 0;
-	p->parent = 0;
-	p->pgrp = 0;
-	p->egrp = 0;
-	p->fgrp = 0;
-	p->rgrp = 0;
+	p->waitq = nil;
+	p->parent = nil;
+	p->pgrp = nil;
+	p->egrp = nil;
+	p->fgrp = nil;
+	p->rgrp = nil;
 	p->pdbg = 0;
 	p->kp = 0;
 	if(up != nil && up->procctl == Proc_tracesyscall)
@@ -602,7 +602,7 @@ newproc(void)
 		p->procctl = 0;
 	p->syscalltrace = nil;
 	p->notepending = 0;
-	p->ureg = 0;
+	p->ureg = nil;
 	p->privatemem = 0;
 	p->errstr = p->errbuf0;
 	p->syserrstr = p->errbuf1;
@@ -622,12 +622,12 @@ newproc(void)
 	p->noteid = incref(&noteidalloc);
 	if(p->pid <= 0 || p->noteid <= 0)
 		panic("pidalloc");
-	if(p->kstack == 0)
+	if(p->kstack == nil)
 		p->kstack = smalloc(KSTACK);
 
 	/* sched params */
-	p->mp = 0;
-	p->wired = 0;
+	p->mp = nil;
+	p->wired = nil;
 	procpriority(p, PriNormal, 0);
 	p->cpu = 0;
 	p->lastupdate = sys->ticks*Scaling;
@@ -650,7 +650,7 @@ procwired(Proc *p, int bm)
 	if(bm < 0){
 		/* pick a machine to wire to */
 		memset(nwired, 0, sizeof(nwired));
-		p->wired = 0;
+		p->wired = nil;
 		for(i=0; (pp = psincref(i)) != nil; i++){
 			wm = pp->wired;
 			if(wm && pp->pid)
@@ -871,7 +871,7 @@ postnote(Proc *p, int dolock, char *n, int flag)
 	if(dolock)
 		qlock(&p->debug);
 
-	if(flag != NUser && (p->notify == 0 || p->notified))
+	if(flag != NUser && (p->notify == nil || p->notified))
 		p->nnote = 0;
 
 	ret = 0;
@@ -1051,8 +1051,8 @@ pexit(char *exitstr, int freemem)
 	 */
 	if(up->kp == 0) {
 		p = up->parent;
-		if(p == 0) {
-			if(exitstr == 0)
+		if(p == nil) {
+			if(exitstr == nil)
 				exitstr = "unknown";
 			panic("boot process died: %s", exitstr);
 		}
@@ -1136,7 +1136,7 @@ pexit(char *exitstr, int freemem)
 	qunlock(&up->debug);
 
 	edfstop(up);
-	if(up->edf){
+	if(up->edf != nil){
 		free(up->edf);
 		up->edf = nil;
 	}
@@ -1174,7 +1174,7 @@ pwait(Waitmsg *w)
 	}
 
 	lock(&up->exl);
-	if(up->nchild == 0 && up->waitq == 0) {
+	if(up->nchild == 0 && up->waitq == nil) {
 		unlock(&up->exl);
 		error(Enochild);
 	}
@@ -1205,7 +1205,7 @@ dumpaproc(Proc *p)
 	uintptr bss;
 	char *s;
 
-	if(p == 0)
+	if(p == nil)
 		return;
 
 	bss = 0;
@@ -1213,7 +1213,7 @@ dumpaproc(Proc *p)
 		bss = p->seg[BSEG]->top;
 
 	s = p->psstate;
-	if(s == 0)
+	if(s == nil)
 		s = statename[p->state];
 	print("%3d:%10s pc %#p dbgpc %#p  %8s (%s) ut %ld st %ld bss %#p qpc %#p nl %d nd %lud lpc %#p pri %lud\n",
 		p->pid, p->text, p->pc, dbgpc(p), s, statename[p->state],
@@ -1227,7 +1227,7 @@ procdump(void)
 	int i;
 	Proc *p;
 
-	if(up)
+	if(up != nil)
 		print("up %d\n", up->pid);
 	else
 		print("no current process\n");
@@ -1333,8 +1333,8 @@ kproc(char *name, void (*func)(void *), void *arg)
 	p->notified = 0;
 	p->lastnote = up->lastnote;
 	p->notify = up->notify;
-	p->ureg = 0;
-	p->dbgreg = 0;
+	p->ureg = nil;
+	p->dbgreg = nil;
 
 	procpriority(p, PriKproc, 0);
 
@@ -1342,7 +1342,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 
 	kstrdup(&p->user, eve);
 	kstrdup(&p->text, name);
-	if(kpgrp == 0)
+	if(kpgrp == nil)
 		kpgrp = newpgrp();
 	p->pgrp = kpgrp;
 	incref(kpgrp);
@@ -1442,7 +1442,7 @@ killbig(char *why)
 		l = 0;
 		for(i=1; i<NSEG; i++) {
 			s = p->seg[i];
-			if(s != nil)
+			if(s != 0)
 				l += s->top - s->base;
 		}
 		if(l > max && ((p->procmode&0222) || strcmp(eve, p->user)!=0)) {
@@ -1507,7 +1507,7 @@ accounttime(void)
 	static ulong nrun;
 
 	p = m->proc;
-	if(p) {
+	if(p != nil) {
 		nrun++;
 		p->time[p->insyscall]++;
 	}

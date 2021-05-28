@@ -197,7 +197,7 @@ mmuput(uintptr va, uintmem pa, Page*)
 				break;
 		}
 		if(page == nil){
-			if(up->mmuptp[0] == 0){
+			if(up->mmuptp[0] == nil){
 				page = mmuptpalloc();
 			}
 			else {

@@ -65,7 +65,7 @@ ibrk(uintptr addr, int seg)
 	Pte **map;
 
 	s = up->seg[seg];
-	if(s == 0)
+	if(s == nil)
 		error(Ebadarg);
 
 	if(addr == 0)
@@ -79,7 +79,7 @@ ibrk(uintptr addr, int seg)
 
 	/* We may start with the bss overlapping the data */
 	if(addr < s->base) {
-		if(seg != BSEG || up->seg[DSEG] == 0 || addr < up->seg[DSEG]->base)
+		if(seg != BSEG || up->seg[DSEG] == nil || addr < up->seg[DSEG]->base)
 			error(Enovmem);
 		addr = s->base;
 	}
@@ -106,7 +106,7 @@ ibrk(uintptr addr, int seg)
 
 	for(i = 0; i < NSEG; i++) {
 		ns = up->seg[i];
-		if(ns == 0 || ns == s)
+		if(ns == nil || ns == s)
 			continue;
 		if(newtop > ns->base && s->base < ns->top)
 			error(Esoverlap);

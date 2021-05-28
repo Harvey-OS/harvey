@@ -39,7 +39,7 @@ authentication(int cpuflag)
 		av[ac++] = "-a";
 		av[ac++] = authaddr;
 	}
-	av[ac] = 0;
+	av[ac] = nil;
 	switch(fork()){
 	case -1:
 		fatal("starting factotum");

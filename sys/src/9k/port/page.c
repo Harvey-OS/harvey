@@ -101,8 +101,8 @@ if(pm->limit > 600*MiB)
 		}
 	}
 	palloc.tail = p - 1;
-	palloc.head->prev = 0;
-	palloc.tail->next = 0;
+	palloc.head->prev = nil;
+	palloc.tail->next = nil;
 
 	palloc.user = p - palloc.pages;
 
@@ -149,10 +149,10 @@ pagechaintail(Page *p)
 	}
 	else {
 		palloc.head = p;
-		p->prev = 0;
+		p->prev = nil;
 	}
 	palloc.tail = p;
-	p->next = 0;
+	p->next = nil;
 	palloc.freecount++;
 }
 
@@ -167,10 +167,10 @@ pagechainhead(Page *p)
 	}
 	else {
 		palloc.tail = p;
-		p->next = 0;
+		p->next = nil;
 	}
 	palloc.head = p;
-	p->prev = 0;
+	p->prev = nil;
 	palloc.freecount++;
 }
 
@@ -234,7 +234,7 @@ newpage(int clear, Segment *s, uintptr va, int locked)
 			break;
 
 	ct = PG_NOFLUSH;
-	if(p == 0) {
+	if(p == nil) {
 		p = palloc.head;
 		p->color = color;
 		ct = PG_NEWCOL;
@@ -290,7 +290,7 @@ putpage(Page *p)
 	else
 		pagechainhead(p);
 
-	if(palloc.r.p != 0)
+	if(palloc.r.p != nil)
 		wakeup(&palloc.r);
 
 	unlock(p);
@@ -307,7 +307,7 @@ auxpage(void)
 	if(palloc.freecount <= highwater) {
 		/* memory's tight, don't use it for file cache */
 		unlock(&palloc);
-		return 0;
+		return nil;
 	}
 	pageunchain(p);
 
@@ -383,7 +383,7 @@ retry:
 			break;
 
 	/* No page of the correct color */
-	if(np == 0) {
+	if(np == nil) {
 		unlock(&palloc);
 		uncachepage(p);
 		return 1;
@@ -437,12 +437,12 @@ uncachepage(Page *p)			/* Always called with a locked page */
 {
 	Page **l, *f;
 
-	if(p->image == 0)
+	if(p->image == nil)
 		return;
 
 	lock(&palloc.hashlock);
 	l = &pghash(p->daddr);
-	for(f = *l; f; f = f->hash) {
+	for(f = *l; f != nil; f = f->hash) {
 		if(f == p) {
 			*l = p->hash;
 			break;
@@ -451,7 +451,7 @@ uncachepage(Page *p)			/* Always called with a locked page */
 	}
 	unlock(&palloc.hashlock);
 	putimage(p->image);
-	p->image = 0;
+	p->image = nil;
 	p->daddr = 0;
 }
 
@@ -484,13 +484,13 @@ cachedel(Image *i, ulong daddr)
 
 	lock(&palloc.hashlock);
 	l = &pghash(daddr);
-	for(f = *l; f; f = f->hash) {
+	for(f = *l; f != nil; f = f->hash) {
 		if(f->image == i && f->daddr == daddr) {
 			lock(f);
 			if(f->image == i && f->daddr == daddr){
 				*l = f->hash;
 				putimage(f->image);
-				f->image = 0;
+				f->image = nil;
 				f->daddr = 0;
 			}
 			unlock(f);
@@ -507,7 +507,7 @@ lookpage(Image *i, ulong daddr)
 	Page *f;
 
 	lock(&palloc.hashlock);
-	for(f = pghash(daddr); f; f = f->hash) {
+	for(f = pghash(daddr); f != nil; f = f->hash) {
 		if(f->image == i && f->daddr == daddr) {
 			unlock(&palloc.hashlock);
 
@@ -528,7 +528,7 @@ lookpage(Image *i, ulong daddr)
 	}
 	unlock(&palloc.hashlock);
 
-	return 0;
+	return nil;
 }
 
 uvlong
@@ -545,7 +545,7 @@ pagereclaim(int npages)
 	 * end of the list (see putpage) so start there and work
 	 * backward.
 	 */
-	for(p = palloc.tail; p && p->image && npages > 0; p = p->prev) {
+	for(p = palloc.tail; p != nil && p->image != nil && npages > 0; p = p->prev) {
 		if(p->ref == 0 && canlock(p)) {
 			if(p->ref == 0) {
 				npages--;
@@ -608,16 +608,16 @@ freepte(Segment *s, Pte *p)
 		ptop = &p->pages[PTEPERTAB];
 		if(fn) {
 			for(pg = p->pages; pg < ptop; pg++) {
-				if(*pg == 0)
+				if(*pg == nil)
 					continue;
 				(*fn)(*pg);
-				*pg = 0;
+				*pg = nil;
 			}
 			break;
 		}
 		for(pg = p->pages; pg < ptop; pg++) {
 			pt = *pg;
-			if(pt == 0)
+			if(pt == nil)
 				continue;
 			lock(pt);
 			ref = --pt->ref;
@@ -628,9 +628,9 @@ freepte(Segment *s, Pte *p)
 		break;
 	default:
 		for(pg = p->first; pg <= p->last; pg++)
-			if(*pg) {
+			if(*pg != nil) {
 				putpage(*pg);
-				*pg = 0;
+				*pg = nil;
 			}
 	}
 	free(p);

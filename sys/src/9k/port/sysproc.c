@@ -113,7 +113,7 @@ sysrfork(Ar0* ar0, va_list list)
 		nexterror();
 	}
 	for(i = 0; i < NSEG; i++)
-		if(up->seg[i])
+		if(up->seg[i] != nil)
 			p->seg[i] = dupseg(up->seg, i, n);
 	qunlock(&p->seglock);
 	poperror();
@@ -200,7 +200,7 @@ sysrfork(Ar0* ar0, va_list list)
 	p->fixedpri = up->fixedpri;
 	p->mp = up->mp;
 	wm = up->wired;
-	if(wm)
+	if(wm != nil)
 		procwired(p, wm->machno);
 	if(p->trace && (pt = proctrace) != nil){
 		strncpy((char*)&ptarg, p->text, sizeof ptarg);
