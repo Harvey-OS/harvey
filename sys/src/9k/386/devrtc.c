@@ -161,7 +161,8 @@ rtctime(void)
 	/* loop till we get two reads in a row the same */
 	t = rtcextract();
 	for(i = 0; i < 100; i++){
-		ot = rtcextract();
+		ot = t;
+		t = rtcextract();
 		if(ot == t)
 			break;
 	}
