@@ -36,8 +36,8 @@ THIS SOFTWARE.
 
 struct xx
 {	int token;
-	char *name;
-	char *pname;
+	const char *name;
+	const char *pname;
 } proc[] = {
 	{ PROGRAM, "program", NULL },
 	{ BOR, "boolop", " || " },
@@ -102,17 +102,17 @@ struct xx
 	{ CALL, "call", "call" },
 	{ ARG, "arg", "arg" },
 	{ VARNF, "getnf", "NF" },
-	{ GETLINE, "getline", "getline" },
+	{ GETLINE, "awkgetline", "getline" },
 	{ 0, "", "" },
 };
 
 #define SIZE	(LASTTOKEN - FIRSTTOKEN + 1)
-char *table[SIZE];
+const char *table[SIZE];
 char *names[SIZE];
 
 int main(int argc, char *argv[])
 {
-	struct xx *p;
+	const struct xx *p;
 	int i, n, tok;
 	char c;
 	FILE *fp;
@@ -135,8 +135,8 @@ int main(int argc, char *argv[])
 		if (c != '#' || (n != 4 && strcmp(def,"define") != 0))	/* not a valid #define */
 			continue;
 		if (tok < FIRSTTOKEN || tok > LASTTOKEN) {
-			fprintf(stderr, "maketab funny token %d %s\n", tok, buf);
-			exit(1);
+			/* fprintf(stderr, "maketab funny token %d %s ignored\n", tok, buf); */
+			continue;
 		}
 		names[tok-FIRSTTOKEN] = (char *) malloc(strlen(name)+1);
 		strcpy(names[tok-FIRSTTOKEN], name);

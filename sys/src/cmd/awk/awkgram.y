@@ -52,7 +52,7 @@ Node	*arglist = 0;	/* list of args for current function */
 %token	<i>	NL ',' '{' '(' '|' ';' '/' ')' '}' '[' ']'
 %token	<i>	ARRAY
 %token	<i>	MATCH NOTMATCH MATCHOP
-%token	<i>	FINAL DOT ALL CCL NCCL CHAR OR STAR QUEST PLUS
+%token	<i>	FINAL DOT ALL CCL NCCL CHAR OR STAR QUEST PLUS EMPTYRE
 %token	<i>	AND BOR APPEND EQ GE GT LE LT NE IN
 %token	<i>	ARG BLTIN BREAK CLOSE CONTINUE DELETE DO EXIT FOR FUNC 
 %token	<i>	SUB GSUB IF INDEX LSUBSTR MATCHFCN NEXT NEXTFILE
@@ -176,8 +176,8 @@ pa_pat:
 pa_stat:
 	  pa_pat			{ $$ = stat2(PASTAT, $1, stat2(PRINT, rectonode(), NIL)); }
 	| pa_pat lbrace stmtlist '}'	{ $$ = stat2(PASTAT, $1, $3); }
-	| pa_pat ',' pa_pat		{ $$ = pa2stat($1, $3, stat2(PRINT, rectonode(), NIL)); }
-	| pa_pat ',' pa_pat lbrace stmtlist '}'	{ $$ = pa2stat($1, $3, $5); }
+	| pa_pat ',' opt_nl pa_pat		{ $$ = pa2stat($1, $4, stat2(PRINT, rectonode(), NIL)); }
+	| pa_pat ',' opt_nl pa_pat lbrace stmtlist '}'	{ $$ = pa2stat($1, $4, $6); }
 	| lbrace stmtlist '}'		{ $$ = stat2(PASTAT, NIL, $2); }
 	| XBEGIN lbrace stmtlist '}'
 		{ beginloc = linkum(beginloc, $3); $$ = 0; }
@@ -318,7 +318,6 @@ st:
 stmt:
 	  BREAK st		{ if (!inloop) SYNTAX("break illegal outside of loops");
 				  $$ = stat1(BREAK, NIL); }
-	| CLOSE pattern st	{ $$ = stat1(CLOSE, $2); }
 	| CONTINUE st		{  if (!inloop) SYNTAX("continue illegal outside of loops");
 				  $$ = stat1(CONTINUE, NIL); }
 	| do {inloop++;} stmt {--inloop;} WHILE '(' pattern ')' st
@@ -367,6 +366,7 @@ term:
 	| BLTIN				{ $$ = op2(BLTIN, itonp($1), rectonode()); }
 	| CALL '(' ')'			{ $$ = op2(CALL, celltonode($1,CVAR), NIL); }
 	| CALL '(' patlist ')'		{ $$ = op2(CALL, celltonode($1,CVAR), $3); }
+	| CLOSE term			{ $$ = op1(CLOSE, $2); }
 	| DECR var			{ $$ = op1(PREDECR, $2); }
 	| INCR var			{ $$ = op1(PREINCR, $2); }
 	| var DECR			{ $$ = op1(POSTDECR, $1); }

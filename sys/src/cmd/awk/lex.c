@@ -38,7 +38,7 @@ int	brackcnt  = 0;
 int	parencnt = 0;
 
 typedef struct Keyword {
-	char	*word;
+	const char *word;
 	int	sub;
 	int	type;
 } Keyword;
@@ -90,12 +90,7 @@ Keyword keywords[] ={	/* keep sorted: binary searched */
 	{ "while",	WHILE,		WHILE },
 };
 
-#define DEBUG
-#ifdef	DEBUG
 #define	RET(x)	{ if(dbg)printf("lex %s\n", tokname(x)); return(x); }
-#else
-#define	RET(x)	return(x)
-#endif
 
 int peek(void)
 {
@@ -106,7 +101,7 @@ int peek(void)
 
 int gettok(char **pbuf, int *psz)	/* get next input token */
 {
-	int c;
+	int c, retc;
 	char *buf = *pbuf;
 	int sz = *psz;
 	char *bp = buf;
@@ -123,7 +118,7 @@ int gettok(char **pbuf, int *psz)	/* get next input token */
 	if (isalpha(c) || c == '_') {	/* it's a varname */
 		for ( ; (c = input()) != 0; ) {
 			if (bp-buf >= sz)
-				if (!adjbuf(&buf, &sz, bp-buf+2, 100, &bp, 0))
+				if (!adjbuf(&buf, &sz, bp-buf+2, 100, &bp, "gettok"))
 					FATAL( "out of space for name %.10s...", buf );
 			if (isalnum(c) || c == '_')
 				*bp++ = c;
@@ -133,12 +128,14 @@ int gettok(char **pbuf, int *psz)	/* get next input token */
 				break;
 			}
 		}
-	} else {	/* it's a number */
+		*bp = 0;
+		retc = 'a';	/* alphanumeric */
+	} else {	/* maybe it's a number, but could be . */
 		char *rem;
 		/* read input until can't be a number */
 		for ( ; (c = input()) != 0; ) {
 			if (bp-buf >= sz)
-				if (!adjbuf(&buf, &sz, bp-buf+2, 100, &bp, 0))
+				if (!adjbuf(&buf, &sz, bp-buf+2, 100, &bp, "gettok"))
 					FATAL( "out of space for number %.10s...", buf );
 			if (isdigit(c) || c == 'e' || c == 'E' 
 			  || c == '.' || c == '+' || c == '-')
@@ -150,12 +147,19 @@ int gettok(char **pbuf, int *psz)	/* get next input token */
 		}
 		*bp = 0;
 		strtod(buf, &rem);	/* parse the number */
-		unputstr(rem);		/* put rest back for later */
-		rem[0] = 0;
+		if (rem == buf) {	/* it wasn't a valid number at all */
+			buf[1] = 0;	/* return one character as token */
+			retc = buf[0];	/* character is its own type */
+			unputstr(rem+1); /* put rest back for later */
+		} else {	/* some prefix was a number */
+			unputstr(rem);	/* put rest back for later */
+			rem[0] = 0;	/* truncate buf after number part */
+			retc = '0';	/* type is number */
+		}
 	}
 	*pbuf = buf;
 	*psz = sz;
-	return buf[0];
+	return retc;
 }
 
 int	word(char *);
@@ -168,7 +172,7 @@ int yylex(void)
 {
 	int c;
 	static char *buf = 0;
-	static int bufsize = 500;
+	static int bufsize = 5; /* BUG: setting this small causes core dump! */
 
 	if (buf == 0 && (buf = (char *) malloc(bufsize)) == NULL)
 		FATAL( "out of space in yylex" );
@@ -186,7 +190,7 @@ int yylex(void)
 			return 0;
 		if (isalpha(c) || c == '_')
 			return word(buf);
-		if (isdigit(c) || c == '.') {
+		if (isdigit(c)) {
 			yylval.cp = setsymtab(buf, tostring(buf), atof(buf), CON|NUM, symtab);
 			/* should this also have STR set? */
 			RET(NUMBER);
@@ -295,20 +299,25 @@ int yylex(void)
 				input(); yylval.i = POWEQ; RET(ASGNOP);
 			} else
 				RET(POWER);
-	
+
 		case '$':
 			/* BUG: awkward, if not wrong */
 			c = gettok(&buf, &bufsize);
-			if (c == '(' || c == '[' || (infunc && isarg(buf) >= 0)) {
-				unputstr(buf);
-				RET(INDIRECT);
-			} else if (isalpha(c)) {
+			if (isalpha(c)) {
 				if (strcmp(buf, "NF") == 0) {	/* very special */
 					unputstr("(NF)");
 					RET(INDIRECT);
 				}
+				c = peek();
+				if (c == '(' || c == '[' || (infunc && isarg(buf) >= 0)) {
+					unputstr(buf);
+					RET(INDIRECT);
+				}
 				yylval.cp = setsymtab(buf, "", 0.0, STR|NUM, symtab);
 				RET(IVAR);
+			} else if (c == 0) {	/*  */
+				SYNTAX( "unexpected end of input after $" );
+				RET(';');
 			} else {
 				unputstr(buf);
 				RET(INDIRECT);
@@ -356,7 +365,7 @@ int string(void)
 	if (buf == 0 && (buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of space for strings");
 	for (bp = buf; (c = input()) != '"'; ) {
-		if (!adjbuf(&buf, &bufsz, bp-buf+2, 500, &bp, 0))
+		if (!adjbuf(&buf, &bufsz, bp-buf+2, 500, &bp, "string"))
 			FATAL("out of space for string %.10s...", buf);
 		switch (c) {
 		case '\n':
@@ -364,6 +373,8 @@ int string(void)
 		case 0:
 			SYNTAX( "non-terminated string %.10s...", buf );
 			lineno++;
+			if (c == 0)	/* hopeless */
+				FATAL( "giving up" );
 			break;
 		case '\\':
 			c = input();
@@ -401,7 +412,7 @@ int string(void)
 				}
 				*px = 0;
 				unput(c);
-	  			sscanf(xbuf, "%x", &n);
+	  			sscanf(xbuf, "%x", (unsigned int *) &n);
 				*bp++ = n;
 				break;
 			    }
@@ -448,12 +459,13 @@ int word(char *w)
 	int c, n;
 
 	n = binsearch(w, keywords, sizeof(keywords)/sizeof(keywords[0]));
+/* BUG: this ought to be inside the if; in theory could fault (daniel barrett) */
 	kp = keywords + n;
 	if (n != -1) {	/* found in table */
 		yylval.i = kp->sub;
 		switch (kp->type) {	/* special handling */
-		case FSYSTEM:
-			if (safe)
+		case BLTIN:
+			if (kp->sub == FSYSTEM && safe)
 				SYNTAX( "system is unsafe" );
 			RET(kp->type);
 		case FUNC:
@@ -485,7 +497,7 @@ int word(char *w)
 	}
 }
 
-void startreg(void)	/* next call to yyles will return a regular expression */
+void startreg(void)	/* next call to yylex will return a regular expression */
 {
 	reg = 1;
 }
@@ -501,7 +513,7 @@ int regexpr(void)
 		FATAL("out of space for rex expr");
 	bp = buf;
 	for ( ; (c = input()) != '/' && c != 0; ) {
-		if (!adjbuf(&buf, &bufsz, bp-buf+3, 500, &bp, 0))
+		if (!adjbuf(&buf, &bufsz, bp-buf+3, 500, &bp, "regexpr"))
 			FATAL("out of space for reg expr %.10s...", buf);
 		if (c == '\n') {
 			SYNTAX( "newline in regular expression %.10s...", buf ); 
@@ -515,6 +527,8 @@ int regexpr(void)
 		}
 	}
 	*bp = 0;
+	if (c == 0)
+		SYNTAX("non-terminated regular expression %.10s...", buf);
 	yylval.s = tostring(buf);
 	unput('/');
 	RET(REGEXPR);
@@ -534,9 +548,9 @@ int input(void)	/* get next lexical input character */
 	extern char *lexprog;
 
 	if (yysptr > yysbuf)
-		c = *--yysptr;
+		c = (uschar)*--yysptr;
 	else if (lexprog != NULL) {	/* awk '...' */
-		if ((c = *lexprog) != 0)
+		if ((c = (uschar)*lexprog) != 0)
 			lexprog++;
 	} else				/* awk -f ... */
 		c = pgetc();
@@ -560,7 +574,7 @@ void unput(int c)	/* put lexical character back on input */
 		ep = ebuf + sizeof(ebuf) - 1;
 }
 
-void unputstr(char *s)	/* put a string back on input */
+void unputstr(const char *s)	/* put a string back on input */
 {
 	int i;
 
