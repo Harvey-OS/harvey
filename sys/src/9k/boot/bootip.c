@@ -30,7 +30,7 @@ configip(int bargc, char **bargv, int needfs)
 
 	argc = bargc;
 	argv = arg;
-	strcpy(mpoint, "/net");
+	strncpy(mpoint, "/net", sizeof mpoint);
 	ARGBEGIN {
 	case 'x':
 		p = ARGF();
