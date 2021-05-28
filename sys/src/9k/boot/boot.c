@@ -87,7 +87,7 @@ partinit(void)
 	char *rdparts;
 
 	rdparts = getenv("readparts");
-	if(rdparts)
+	if(rdparts == nil || strcmp(rdparts, "0") != 0)
 		readparts();
 	free(rdparts);
 }
