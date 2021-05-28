@@ -14,8 +14,8 @@
 typedef struct Etherhdr Etherhdr;
 struct Etherhdr
 {
-	uchar	d[6];
-	uchar	s[6];
+	uchar	d[Eaddrlen];
+	uchar	s[Eaddrlen];
 	uchar	t[2];
 };
 
@@ -46,10 +46,10 @@ static void	etherpref2addr(uchar *pref, uchar *ea);
 Medium ethermedium =
 {
 .name=		"ether",
-.hsize=		14,
-.mintu=		60,
-.maxtu=		1514,
-.maclen=	6,
+.hsize=		ETHERHDRSIZE,
+.mintu=		ETHERMINTU,
+.maxtu=		ETHERMAXTU,
+.maclen=	Eaddrlen,
 .bind=		etherbind,
 .unbind=	etherunbind,
 .bwrite=	etherbwrite,
@@ -63,10 +63,10 @@ Medium ethermedium =
 Medium gbemedium =
 {
 .name=		"gbe",
-.hsize=		14,
-.mintu=		60,
+.hsize=		ETHERHDRSIZE,
+.mintu=		ETHERMINTU,
 .maxtu=		9014,
-.maclen=	6,
+.maclen=	Eaddrlen,
 .bind=		etherbind,
 .unbind=	etherunbind,
 .bwrite=	etherbwrite,
@@ -103,18 +103,18 @@ enum
 typedef struct Etherarp Etherarp;
 struct Etherarp
 {
-	uchar	d[6];
-	uchar	s[6];
+	uchar	d[Eaddrlen];
+	uchar	s[Eaddrlen];
 	uchar	type[2];
 	uchar	hrd[2];
 	uchar	pro[2];
 	uchar	hln;
 	uchar	pln;
 	uchar	op[2];
-	uchar	sha[6];
-	uchar	spa[4];
-	uchar	tha[6];
-	uchar	tpa[4];
+	uchar	sha[Eaddrlen];
+	uchar	spa[IPv4addrlen];
+	uchar	tha[Eaddrlen];
+	uchar	tpa[IPv4addrlen];
 };
 
 static char *nbmsg = "nonblocking";
@@ -275,7 +275,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 {
 	Etherhdr *eh;
 	Arpent *a;
-	uchar mac[6];
+	uchar mac[Eaddrlen];
 	Etherrock *er = ifc->arg;
 
 	/* get mac address of destination */
@@ -312,13 +312,13 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 
 	switch(version){
 	case V4:
-		eh->t[0] = 0x08;
-		eh->t[1] = 0x00;
+		eh->t[0] = ETIP4>>8;
+		eh->t[1] = ETIP4;
 		er->mchan4->dev->bwrite(er->mchan4, bp, 0);
 		break;
 	case V6:
-		eh->t[0] = 0x86;
-		eh->t[1] = 0xDD;
+		eh->t[0] = ETIP6>>8;
+		eh->t[1] = ETIP6;
 		er->mchan6->dev->bwrite(er->mchan6, bp, 0);
 		break;
 	default:
@@ -408,7 +408,7 @@ etherread6(void *a)
 static void
 etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
 {
-	uchar mac[6];
+	uchar mac[Eaddrlen];
 	char buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
@@ -430,7 +430,7 @@ etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
 static void
 etherremmulti(Ipifc *ifc, uchar *a, uchar *)
 {
-	uchar mac[6];
+	uchar mac[Eaddrlen];
 	char buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
