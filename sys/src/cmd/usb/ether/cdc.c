@@ -48,13 +48,29 @@ getmac(Ether *ether)
 int
 cdcreset(Ether *ether)
 {
+	Usbdev *ud;
+	Ep *ep;
+	int i;
+
 	/*
 	 * Assume that all communication devices are going to
 	 * be std. ethernet communication devices. Specific controllers
 	 * must have been probed first.
-	 * NB: This ignores unions.
 	 */
-	if(ether->dev->usb->class == Clcomms)
+	ud = ether->dev->usb;
+	if(ud->class == Clcomms)
 		return getmac(ether);
+	if(getmac(ether) == 0){
+		for(i = 0; i < Nep; i++){
+			ep = ud->ep[i];
+			if(ep == nil)
+				continue;
+			if(ep->iface == nil || !okclass(ep->iface))
+				continue;
+			if(ep->conf->cval != 1)
+				usbcmd(ether->dev, Rh2d|Rstd|Rdev, Rsetconf, ep->conf->cval, 0, nil, 0);
+			return 0;
+		}
+	}
 	return -1;
 }

@@ -148,7 +148,7 @@ int
 loaddevconf(Dev *d, int n)
 {
 	uchar *buf;
-	int nr;
+	int l, nr;
 	int type;
 
 	if(n >= nelem(d->usb->conf)){
@@ -158,11 +158,22 @@ loaddevconf(Dev *d, int n)
 	}
 	buf = emallocz(Maxdevconf, 0);
 	type = Rd2h|Rstd|Rdev;
-	nr = usbcmd(d, type, Rgetdesc, Dconf<<8|n, 0, buf, Maxdevconf);
+	nr = usbcmd(d, type, Rgetdesc, Dconf<<8|n, 0, buf, Dconflen);
 	if(nr < Dconflen){
 		free(buf);
 		return -1;
 	}
+	l = GET2(((DConf*)buf)->wTotalLength);
+	if(l > Maxdevconf){
+		free(buf);
+		return -1;
+	}
+	nr = usbcmd(d, type, Rgetdesc, Dconf<<8|n, 0, buf, l);
+	if(nr < l){
+		free(buf);
+		return -1;
+	}
+	
 	if(d->usb->conf[n] == nil)
 		d->usb->conf[n] = emallocz(sizeof(Conf), 1);
 	nr = parseconf(d->usb, d->usb->conf[n], buf, nr);
@@ -188,6 +199,8 @@ mkstr(uchar *b, int n)
 	char *s;
 	char *e;
 
+	if(n > b[0])
+		n = b[0];
 	if(n <= 2 || (n & 1) != 0)
 		return strdup("none");
 	n = (n - 2)/2;
@@ -204,42 +217,37 @@ mkstr(uchar *b, int n)
 char*
 loaddevstr(Dev *d, int sid)
 {
-	uchar buf[128];
-	int type;
-	int nr;
+	uchar buf[256];
+	int type, langid, nr;
 
 	if(sid == 0)
 		return estrdup("none");
 	type = Rd2h|Rstd|Rdev;
-	nr=usbcmd(d, type, Rgetdesc, Dstr<<8|sid, 0, buf, sizeof(buf));
+	nr = usbcmd(d, type, Rgetdesc, Dstr<<8|sid, 0, buf, sizeof(buf));
+	if(nr < 4)
+		langid = 0x0409;		/* english */
+	else
+		langid = buf[3]<<8 | buf[2];
+	nr = usbcmd(d, type, Rgetdesc, Dstr<<8|sid, langid, buf, sizeof(buf));
+
 	return mkstr(buf, nr);
 }
 
 int
 loaddevdesc(Dev *d)
 {
-	uchar buf[Ddevlen+255];
+	uchar buf[Ddevlen];
 	int nr;
 	int type;
 	Ep *ep0;
 
 	type = Rd2h|Rstd|Rdev;
-	nr = sizeof(buf);
 	memset(buf, 0, Ddevlen);
-	if((nr=usbcmd(d, type, Rgetdesc, Ddev<<8|0, 0, buf, nr)) < 0)
+	if((nr = usbcmd(d, type, Rgetdesc, Ddev<<8|0, 0, buf, Ddevlen)) < 0)
 		return -1;
-	/*
-	 * Several hubs are returning descriptors of 17 bytes, not 18.
-	 * We accept them and leave number of configurations as zero.
-	 * (a get configuration descriptor also fails for them!)
-	 */
 	if(nr < Ddevlen){
-		print("%s: %s: warning: device with short descriptor\n",
-			argv0, d->dir);
-		if(nr < Ddevlen-1){
-			werrstr("short device descriptor (%d bytes)", nr);
-			return -1;
-		}
+		werrstr("short device descriptor (%d bytes)", nr);
+		return -1;
 	}
 	d->usb = emallocz(sizeof(Usbdev), 1);
 	ep0 = mkep(d->usb, 0);
@@ -254,6 +262,8 @@ loaddevdesc(Dev *d)
 			d->usb->serial = loaddevstr(d, d->usb->ssid);
 		}
 	}
+	else
+		print("usbd: desc error: %r");
 	return nr;
 }
 
