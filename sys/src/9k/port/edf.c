@@ -7,7 +7,7 @@
 #include	"../port/error.h"
 
 #include	"../port/edf.h"
-#include	<trace.h>
+#include	<ptrace.h>
 
 /* debugging */
 enum {
@@ -138,7 +138,7 @@ deadlineintr(Ureg*, Timer *t)
 	/* Proc reached deadline */
 	extern int panicking;
 	Proc *p;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	if(panicking || active.exiting)
 		return;
@@ -155,7 +155,7 @@ deadlineintr(Ureg*, Timer *t)
 	 */
 	if(p == up){
 		if(up->trace && (pt = proctrace))
-			pt(up, SInts, 0);
+			pt(up, SInts, 0, 0);
 		up->delaysched++;
 		delayedscheds++;
 	}
@@ -166,7 +166,7 @@ release(Proc *p)
 {
 	/* Called with edflock held */
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 	long n;
 	vlong nowns;
 
@@ -199,8 +199,8 @@ release(Proc *p)
 			now, p->pid, statename[p->state], e->r, e->d, e->t, e->S);
 		if(pt = proctrace){
 			nowns = todget(nil);
-			pt(p, SRelease, nowns);
-			pt(p, SDeadline, nowns + 1000LL*e->D);
+			pt(p, SRelease, nowns, 0);
+			pt(p, SDeadline, nowns + 1000LL*e->D, 0);
 		}
 	}else{
 		DPRINT("%lud release %d[%s], too late t=%lud, called from %#p\n",
@@ -273,7 +273,7 @@ edfrecord(Proc *p)
 {
 	long used;
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	if((e = edflock(p)) == nil)
 		return;
@@ -285,7 +285,7 @@ edfrecord(Proc *p)
 	if(e->S > 0){
 		if(e->S <= used){
 			if(pt = proctrace)
-				pt(p, SSlice, 0);
+				pt(p, SSlice, 0, 0);
 			DPRINT("%lud edfrecord slice used up\n", now);
 			e->d = now;
 			e->S = 0;
@@ -300,7 +300,7 @@ void
 edfrun(Proc *p, int edfpri)
 {
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 	long tns;
 
 	e = p->edf;
@@ -327,7 +327,7 @@ edfrun(Proc *p, int edfpri)
 			DPRINT("v");
 		}
 		if(p->trace && (pt = proctrace))
-			pt(p, SInte, todget(nil) + e->tns);
+			pt(p, SInte, todget(nil) + e->tns, 0);
 		e->tmode = Trelative;
 		e->tf = deadlineintr;
 		e->ta = p;
@@ -345,7 +345,7 @@ edfadmit(Proc *p)
 	Edf *e;
 	int i;
 	Proc *r;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 	long tns;
 
 	e = p->edf;
@@ -374,7 +374,7 @@ edfadmit(Proc *p)
 	edflock(p);
 
 	if(p->trace && (pt = proctrace))
-		pt(p, SAdmit, 0);
+		pt(p, SAdmit, 0, 0);
 
 	/* Look for another proc with the same period to synchronize to */
 	for(i=0; (r = psincref(i)) != nil; i++) {
@@ -440,12 +440,12 @@ void
 edfstop(Proc *p)
 {
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	if(e = edflock(p)){
 		DPRINT("%lud edfstop %d[%s]\n", now, p->pid, statename[p->state]);
 		if(p->trace && (pt = proctrace))
-			pt(p, SExpel, 0);
+			pt(p, SExpel, 0, 0);
 		e->flags &= ~Admitted;
 		if(e->tt)
 			timerdel(e);
@@ -465,13 +465,13 @@ edfyield(void)
 {
 	/* sleep until next release */
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 	long n;
 
 	if((e = edflock(up)) == nil)
 		return;
 	if(up->trace && (pt = proctrace))
-		pt(up, SYield, 0);
+		pt(up, SYield, 0, 0);
 	if((n = now - e->t) > 0){
 		if(n < e->T)
 			e->t += e->T;
@@ -503,7 +503,7 @@ edfready(Proc *p)
 	Edf *e;
 	Schedq *rq;
 	Proc *l, *pp;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 	long n;
 
 	if((e = edflock(p)) == nil)
@@ -588,7 +588,7 @@ edfready(Proc *p)
 	p->state = Ready;
 	unlock(runq);
 	if(p->trace && (pt = proctrace))
-		pt(p, SReady, 0);
+		pt(p, SReady, 0, 0);
 	return 1;
 }
 

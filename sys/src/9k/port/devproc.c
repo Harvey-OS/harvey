@@ -157,7 +157,6 @@ static Traceevent *tevents;
 static Lock tlock;
 static int topens;
 static int tproduced, tconsumed;
-void (*proctrace)(Proc*, int, vlong);
 
 static void
 profclock(Ureg *ur, Timer *)
@@ -269,7 +268,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 }
 
 static void
-_proctrace(Proc* p, Tevent etype, vlong ts)
+_proctrace(Proc* p, Tevent etype, vlong ts, vlong)
 {
 	Traceevent *te;
 
@@ -1373,7 +1372,7 @@ procctlreq(Proc *p, char *va, int n)
 	Cmdtab *ct;
 	vlong time;
 	char *e;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	if(p->kp)	/* no ctl requests to kprocs */
 		error(Eperm);
@@ -1536,7 +1535,7 @@ procctlreq(Proc *p, char *va, int n)
 	case CMevent:
 		pt = proctrace;
 		if(up->trace && pt)
-			pt(up, SUser, 0);
+			pt(up, SUser, 0, 0);
 		break;
 	}
 

@@ -6,6 +6,13 @@
 #include	"../port/error.h"
 #include	"netif.h"
 
+/*
+ * NB: To be used with 6l -e so tracein/out are called upon
+ * function entry and exit.
+ * There's no trace(3) man page, look at write source to see the
+ * commands.
+ */
+
 #pragma profile 0
 
 typedef struct Trace Trace;

@@ -231,7 +231,7 @@ void		procrestore(Proc*);
 void		procsave(Proc*);
 Proc*		psincref(int);
 void		psdecref(Proc*);
-void		(*proctrace)(Proc*, int, vlong);
+void		(*proctrace)(Proc*, int, vlong, vlong);
 void		procwired(Proc*, int);
 Pte*		ptealloc(void);
 Pte*		ptecpy(Pte*);

@@ -9,6 +9,7 @@
 #include "/sys/src/libc/9syscall/sys.h"
 
 #include <tos.h>
+#include <ptrace.h>
 
 #include "amd64.h"
 #include "ureg.h"
@@ -206,6 +207,7 @@ syscall(int scallnr, Ureg* ureg)
 	int i, s;
 	Ar0 ar0;
 	static Ar0 zar0;
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);
@@ -216,6 +218,9 @@ syscall(int scallnr, Ureg* ureg)
 	up->insyscall = 1;
 	up->pc = ureg->ip;
 	up->dbgreg = ureg;
+
+	if(up->trace && (pt = proctrace) != nil)
+		pt(up, STrap, todget(nil), STrapSC|scallnr);
 
 	if(up->procctl == Proc_tracesyscall){
 		up->procctl = Proc_stopme;

@@ -7,7 +7,7 @@
 
 #include	"../port/edf.h"
 #include	"errstr.h"
-#include	<trace.h>
+#include	<ptrace.h>
 
 int	nrdy;
 Ref	noteidalloc;
@@ -404,7 +404,7 @@ ready(Proc *p)
 	Mreg s;
 	int pri;
 	Schedq *rq;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	s = splhi();
 	if(edfready(p)){
@@ -423,7 +423,7 @@ ready(Proc *p)
 	queueproc(rq, p);
 	pt = proctrace;
 	if(pt)
-		pt(p, SReady, 0);
+		pt(p, SReady, 0, 0);
 	splx(s);
 }
 
@@ -491,7 +491,7 @@ runproc(void)
 	Proc *p;
 	ulong start, now;
 	int i;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	start = perfticks();
 
@@ -551,7 +551,7 @@ found:
 	}
 	pt = proctrace;
 	if(pt)
-		pt(p, SRun, 0);
+		pt(p, SRun, 0, 0);
 	return p;
 }
 
@@ -701,7 +701,7 @@ void
 sleep(Rendez *r, int (*f)(void*), void *arg)
 {
 	Mreg s;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	s = splhi();
 
@@ -739,7 +739,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		 */
 		pt = proctrace;
 		if(pt)
-			pt(up, SSleep, 0);
+			pt(up, SSleep, 0, 0);
 		up->state = Wakeme;
 		up->r = r;
 
@@ -1008,7 +1008,7 @@ pexit(char *exitstr, int freemem)
 	Rgrp *rgrp;
 	Pgrp *pgrp;
 	Chan *dot;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	if(up->syscalltrace != nil)
 		free(up->syscalltrace);
@@ -1018,7 +1018,7 @@ pexit(char *exitstr, int freemem)
 		timerdel(up);
 	pt = proctrace;
 	if(pt)
-		pt(up, SDead, 0);
+		pt(up, SDead, 0, 0);
 
 	/* nil out all the resources under lock (free later) */
 	qlock(&up->debug);

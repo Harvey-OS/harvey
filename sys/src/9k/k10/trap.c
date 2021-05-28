@@ -6,6 +6,7 @@
 #include	"../port/error.h"
 
 #include	<tos.h>
+#include	<ptrace.h>
 #include	"ureg.h"
 
 #include	"amd64.h"
@@ -281,6 +282,7 @@ trap(Ureg* ureg)
 	int clockintr, vno, user;
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	m->perf.intrts = perfticks();
 	user = userureg(ureg);
@@ -300,7 +302,9 @@ trap(Ureg* ureg)
 			m->intr++;
 			if(vno >= IdtPIC && vno != IdtSYSCALL)
 				m->lastintr = ctl->irq;
-		}
+		}else if(user && up->trace && (pt = proctrace) != nil)
+			if(vno != IdtPF)
+				pt(up, STrap, 0, vno);
 
 		if(ctl->isr)
 			ctl->isr(vno);
@@ -519,9 +523,10 @@ unexpected(Ureg* ureg, void*)
 static void
 faultamd64(Ureg* ureg, void*)
 {
-	u64int addr;
+	u64int addr, arg;
 	int read, user, insyscall;
 	char buf[ERRMAX];
+	void (*pt)(Proc*, int, vlong, vlong);
 
 	addr = cr2get();
 	user = userureg(ureg);
@@ -538,6 +543,14 @@ faultamd64(Ureg* ureg, void*)
 			ureg->ip, addr);
 	}
 	read = !(ureg->error & 2);
+
+	if(up->trace && (pt = proctrace) != nil){
+		if(read)
+			arg = STrapRPF | (addr&STrapMask);
+		else
+			arg = STrapWPF | (addr&STrapMask);
+		pt(up, STrap, 0, arg);
+	}
 
 	insyscall = up->insyscall;
 	up->insyscall = 1;
