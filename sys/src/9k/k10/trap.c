@@ -325,7 +325,7 @@ trap(Ureg* ureg)
 		snprint(buf, sizeof buf, "sys: trap: %s", excname[vno]);
 		postnote(up, 1, buf, NDebug);
 	}
-	else{
+	else if(vno != 39){
 		if(vno == IdtNMI){
 			/*
 			 * Don't re-enable, it confuses the crash dumps.
@@ -346,9 +346,7 @@ trap(Ureg* ureg)
 		panic("unknown trap/intr: %d", vno);
 #else
 		iprint("vno %d: buggeration @ %#p...\n", vno, ureg->ip);
-		/* We get this one and didn't track it down yet */
-		if(vno != 39)
-			i8042reset();
+		i8042reset();
 #endif /* notdef */
 	}
 	splhi();
