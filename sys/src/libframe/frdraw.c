@@ -14,9 +14,8 @@ _frdrawtext(Frame *f, Point pt, Image *text, Image *back)
 
 	for(nb=0,b=f->box; nb<f->nbox; nb++, b++){
 		_frcklinewrap(f, &pt, b);
-		if(b->nrune >= 0){
+		if(!f->noredraw && b->nrune >= 0)
 			stringbg(f->b, pt, text, ZP, f->font, (char*)b->ptr, back, ZP);
-		}
 		pt.x += b->wid;
 	}
 }
