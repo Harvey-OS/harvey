@@ -19,9 +19,9 @@ struct Fid
 Fid	*fids;			/* linked list of fids */
 char	errstring[128];		/* error to return */
 int	mfd;			/* fd for 9fs */
-int	messagesize = 4*1024*IOHDRSZ;
-uchar	mdata[8*1024*IOHDRSZ];
-uchar	mbuf[8*1024*IOHDRSZ];
+int	messagesize = 4*1024+IOHDRSZ;
+uchar	mdata[8*1024+IOHDRSZ];
+uchar	mbuf[8*1024+IOHDRSZ];
 Fcall	rhdr;
 Fcall	thdr;
 int	debug;
