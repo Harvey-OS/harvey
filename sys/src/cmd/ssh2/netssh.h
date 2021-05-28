@@ -318,6 +318,7 @@ struct MBox {
 };
 
 extern Cipher cipheraes128, cipheraes192, cipheraes256;
+extern Cipher cipheraes128ctr, cipheraes192ctr, cipheraes256ctr;
 extern Cipher cipherblowfish, cipher3des, cipherrc4;
 extern int debug;
 extern int sshkeychan[];
