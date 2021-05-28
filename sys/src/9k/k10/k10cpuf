@@ -78,6 +78,7 @@ rootdir
 	/amd64/bin/ip/ipconfig ipconfig
 	/amd64/bin/fossil/fossil fossil
 	/amd64/bin/venti/venti venti
+	../root/nvram nvram
 
 conf
 	int cpuserver = 1;

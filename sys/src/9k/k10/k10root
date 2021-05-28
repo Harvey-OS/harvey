@@ -71,6 +71,7 @@ rootdir
 	/amd64/bin/rc
 	../root/rcmain
 	./root/k10root.rc boot
+	../root/nvram nvram
 
 conf
 	int cpuserver = 1;
