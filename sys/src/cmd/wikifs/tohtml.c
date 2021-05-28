@@ -285,7 +285,7 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 		case Wman:
 			sprint(tmp, "%d", w->section);
 			s = s_appendlist(s, 
-				"<a href=\"http://plan9.bell-labs.com/magic/man2html/",
+				"<a href=\"/magic/man2html/",
 				tmp, "/", w->text, "\"><i>", w->text, "</i>(",
 				tmp, ")</a>", nil);
 			break;
