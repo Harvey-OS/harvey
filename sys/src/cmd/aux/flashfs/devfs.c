@@ -61,8 +61,8 @@ initdata(char *f, int)
 		n = tokenize(buf, fld, nelem(fld));
 		if(n < 7)
 			sysfatal("bad flash geometry");
-		nsects = atoi(fld[5]);
 		sectsize = atoi(fld[6]);
+		nsects = (atoi(fld[5])-atoi(fld[4]))/sectsize;
 		if(nsects < 8)
 			sysfatal("unreasonable value for nsects: %lud", nsects);
 		if(sectsize < 512)
