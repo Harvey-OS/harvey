@@ -42,7 +42,6 @@ int	qidcnt;
 int	qfreecnt;
 int	ncollision;
 
-int	netfd;				/* initially stdin */
 int	srvfd = -1;
 int	nonone = 1;
 char	*filterp;
@@ -51,13 +50,13 @@ char	*aanfilter = "/bin/aan";
 int	encproto = Encnone;
 int	readonly;
 
-static void	mksecret(char *, uchar *);
-static int localread9pmsg(int, void *, uint, ulong *);
+static void mksecret(char *, uchar *);
+static int localread9pmsg(int, void *, uint, void *);
 static char *anstring  = "tcp!*!0";
 
 char *netdir = "", *local = "", *remote = "";
 
-int	filter(int, char *);
+void	filter(int, char *, char *);
 
 void
 usage(void)
@@ -74,23 +73,22 @@ noteconn(int fd)
 	NetConnInfo *nci;
 
 	nci = getnetconninfo(nil, fd);
-	if (nci == nil)
+	if(nci == nil)
 		return;
-	netdir = strdup(nci->dir);
-	local = strdup(nci->lsys);
-	remote = strdup(nci->rsys);
+	netdir = estrdup(nci->dir);
+	local = estrdup(nci->lsys);
+	remote = estrdup(nci->rsys);
 	freenetconninfo(nci);
 }
 
 void
 main(int argc, char **argv)
 {
-	char buf[ERRMAX], ebuf[ERRMAX], *srvfdfile;
-	Fsrpc *r;
-	int doauth, n, fd;
+	char buf[ERRMAX], ebuf[ERRMAX], initial[4], *ini, *srvfdfile;
 	char *dbfile, *srv, *na, *nsfile, *keyspec;
+	int doauth, n, fd;
 	AuthInfo *ai;
-	ulong initial;
+	Fsrpc *r;
 
 	dbfile = "/tmp/exportdb";
 	srv = nil;
@@ -166,7 +164,7 @@ main(int argc, char **argv)
 		break;
 
 	case 'S':
-		if(srvfdfile)
+		if(srvfdfile != nil)
 			usage();
 		srvfdfile = EARGF(usage());
 		break;
@@ -176,7 +174,7 @@ main(int argc, char **argv)
 	}ARGEND
 	USED(argc, argv);
 
-	if(doauth){
+	if(na == nil && doauth){
 		/*
 		 * We use p9any so we don't have to visit this code again, with the
 		 * cost that this code is incompatible with the old world, which
@@ -193,23 +191,23 @@ main(int argc, char **argv)
 		putenv("service", "exportfs");
 	}
 
-	if(srvfdfile){
+	if(srvfdfile != nil){
 		if((srvfd = open(srvfdfile, ORDWR)) < 0)
-			sysfatal("open '%s': %r", srvfdfile);
+			fatal("open %s: %r", srvfdfile);
 	}
 
-	if(na){
+	if(na != nil){
 		if(srv == nil)
-			sysfatal("-B requires -s");
+			fatal("-B requires -s");
 
 		local = "me";
 		remote = na;
 		if((fd = dial(netmkaddr(na, 0, "importfs"), 0, 0, 0)) < 0)
-			sysfatal("can't dial %s: %r", na);
+			fatal("can't dial %s: %r", na);
 	
 		ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client %s", keyspec);
 		if(ai == nil)
-			sysfatal("%r: %s", na);
+			fatal("%r: %s", na);
 
 		dup(fd, 0);
 		dup(fd, 1);
@@ -224,24 +222,20 @@ main(int argc, char **argv)
 		close(n);
 	}
 
-	if(srvfd >= 0 && srv){
+	if(srvfd >= 0 && srv != nil){
 		fprint(2, "exportfs: -S cannot be used with -r or -s\n");
 		usage();
 	}
 
 	DEBUG(DFD, "exportfs: started\n");
 
-	rfork(RFNOTEG);
+	rfork(RFNOTEG|RFREND);
 
 	if(messagesize == 0){
-		messagesize = iounit(netfd);
+		messagesize = iounit(0);
 		if(messagesize == 0)
 			messagesize = 8192+IOHDRSZ;
 	}
-
-	Workq = emallocz(sizeof(Fsrpc)*Nr_workbufs);
-//	for(i=0; i<Nr_workbufs; i++)
-//		Workq[i].buf = emallocz(messagesize);
 	fhash = emallocz(sizeof(Fid*)*FHASHSIZE);
 
 	fmtinstall('F', fcallfmt);
@@ -253,7 +247,7 @@ main(int argc, char **argv)
 	if(srvfd != -1) {
 		/* do nothing */
 	}
-	else if(srv) {
+	else if(srv != nil) {
 		if(chdir(srv) < 0) {
 			errstr(ebuf, sizeof ebuf);
 			fprint(0, "chdir(\"%s\"): %s\n", srv, ebuf);
@@ -264,7 +258,7 @@ main(int argc, char **argv)
 		strncpy(buf, srv, sizeof buf);
 	}
 	else {
-		noteconn(netfd);
+		noteconn(0);
 		buf[0] = 0;
 		n = read(0, buf, sizeof(buf)-1);
 		if(n < 0) {
@@ -290,114 +284,121 @@ main(int argc, char **argv)
 	if(srv == nil && srvfd == -1 && write(0, "OK", 2) != 2)
 		fatal("open ack write");
 
-	if (readn(netfd, &initial, sizeof(ulong)) < sizeof(ulong))
-		fatal("can't read initial string: %r\n");
+	ini = initial;
+	n = readn(0, initial, sizeof(initial));
+	if(n == 0)
+		fatal(nil);	/* port scan or spurious open/close on exported /srv file (unmount) */
+	if(n < sizeof(initial))
+		fatal("can't read initial string: %r");
 
-	if (strncmp((char *)&initial, "impo", sizeof(ulong)) == 0) {
+	if(memcmp(ini, "impo", 4) == 0) {
 		char buf[128], *p, *args[3];
 
-		/* New import.  Read import's parameters... */
-		initial = 0;
-
+		ini = nil;
 		p = buf;
-		while (p - buf < sizeof buf) {
-			if ((n = read(netfd, p, 1)) < 0)
-				fatal("can't read impo arguments: %r\n");
-
-			if (n == 0)
-				fatal("connection closed while reading arguments\n");
-
-			if (*p == '\n') 
+		for(;;){
+			if((n = read(0, p, 1)) < 0)
+				fatal("can't read impo arguments: %r");
+			if(n == 0)
+				fatal("connection closed while reading arguments");
+			if(*p == '\n') 
 				*p = '\0';
-			if (*p++ == '\0')
+			if(*p++ == '\0')
 				break;
+			if(p >= buf + sizeof(buf))
+				fatal("import parameters too long");
 		}
 		
-		if (tokenize(buf, args, nelem(args)) != 2)
-			fatal("impo arguments invalid: impo%s...\n", buf);
+		if(tokenize(buf, args, nelem(args)) != 2)
+			fatal("impo arguments invalid: impo%s...", buf);
 
-		if (strcmp(args[0], "aan") == 0)
+		if(strcmp(args[0], "aan") == 0)
 			filterp = aanfilter;
-		else if (strcmp(args[0], "nofilter") != 0)
-			fatal("import filter argument unsupported: %s\n", args[0]);
+		else if(strcmp(args[0], "nofilter") != 0)
+			fatal("import filter argument unsupported: %s", args[0]);
 
-		if (strcmp(args[1], "ssl") == 0)
+		if(strcmp(args[1], "ssl") == 0)
 			encproto = Encssl;
-		else if (strcmp(args[1], "tls") == 0)
+		else if(strcmp(args[1], "tls") == 0)
 			encproto = Enctls;
-		else if (strcmp(args[1], "clear") != 0)
-			fatal("import encryption proto unsupported: %s\n", args[1]);
+		else if(strcmp(args[1], "clear") != 0)
+			fatal("import encryption proto unsupported: %s", args[1]);
 
-		if (encproto == Enctls)
-			sysfatal("%s: tls has not yet been implemented", argv[0]);
+		if(encproto == Enctls)
+			fatal("%s: tls has not yet been implemented", argv[0]);
 	}
 
-	if (encproto != Encnone && ealgs && ai) {
-		uchar key[16];
-		uchar digest[SHA1dlen];
+	if(encproto != Encnone && ealgs != nil && ai != nil) {
+		uchar key[16], digest[SHA1dlen];
 		char fromclientsecret[21];
 		char fromserversecret[21];
 		int i;
 
-		memmove(key+4, ai->secret, ai->nsecret);
+		if(ai->nsecret < 8)
+			fatal("secret too small for ssl");
+		memmove(key+4, ai->secret, 8);
 
 		/* exchange random numbers */
 		srand(truerand());
 		for(i = 0; i < 4; i++)
 			key[i+12] = rand();
 
-		if (initial) 
-			fatal("Protocol botch: old import\n");
-		if(readn(netfd, key, 4) != 4)
-			fatal("can't read key part; %r\n");
+		if(ini != nil) 
+			fatal("Protocol botch: old import");
+		if(readn(0, key, 4) != 4)
+			fatal("can't read key part; %r");
 
-		if(write(netfd, key+12, 4) != 4)
-			fatal("can't write key part; %r\n");
+		if(write(0, key+12, 4) != 4)
+			fatal("can't write key part; %r");
 
 		/* scramble into two secrets */
 		sha1(key, sizeof(key), digest, nil);
 		mksecret(fromclientsecret, digest);
 		mksecret(fromserversecret, digest+10);
 
-		if (filterp)
-			netfd = filter(netfd, filterp);
+		if(filterp != nil)
+			filter(0, filterp, na);
 
-		switch (encproto) {
+		switch(encproto) {
 		case Encssl:
-			netfd = pushssl(netfd, ealgs, fromserversecret, 
-						fromclientsecret, nil);
+			fd = pushssl(0, ealgs, fromserversecret, fromclientsecret, nil);
+			if(fd < 0)
+				fatal("can't establish ssl connection: %r");
+			if(fd != 0){
+				dup(fd, 0);
+				close(fd);
+			}
 			break;
 		case Enctls:
 		default:
-			fatal("Unsupported encryption protocol\n");
+			fatal("Unsupported encryption protocol");
 		}
+	}
+	else if(filterp != nil) {
+		if(ini != nil)
+			fatal("Protocol botch: don't know how to deal with this");
+		filter(0, filterp, na);
+	}
+	dup(0, 1);
 
-		if(netfd < 0)
-			fatal("can't establish ssl connection: %r");
-	}
-	else if (filterp) {
-		if (initial) 
-			fatal("Protocol botch: don't know how to deal with this\n");
-		netfd = filter(netfd, filterp);
-	}
+	if(ai != nil)
+		auth_freeAI(ai);
 
 	/*
 	 * Start serving file requests from the network
 	 */
 	for(;;) {
 		r = getsbuf();
-		if(r == 0)
-			fatal("Out of service buffers");
-			
-		n = localread9pmsg(netfd, r->buf, messagesize, &initial);
-		if(n <= 0)
+		while((n = localread9pmsg(0, r->buf, messagesize, ini)) == 0)
+			;
+		if(n < 0)
 			fatal(nil);
-
 		if(convM2S(r->buf, n, &r->work) == 0)
 			fatal("convM2S format error");
 
 		DEBUG(DFD, "%F\n", &r->work);
 		(fcalls[r->work.type])(r);
+		ini = nil;
 	}
 }
 
@@ -407,7 +408,7 @@ main(int argc, char **argv)
  * cpu relies on this (which needs to be fixed!) -- pb.
  */
 static int
-localread9pmsg(int fd, void *abuf, uint n, ulong *initial)
+localread9pmsg(int fd, void *abuf, uint n, void *ini)
 {
 	int m, len;
 	uchar *buf;
@@ -415,11 +416,8 @@ localread9pmsg(int fd, void *abuf, uint n, ulong *initial)
 	buf = abuf;
 
 	/* read count */
-	assert(BIT32SZ == sizeof(ulong));
-	if (*initial) {
-		memcpy(buf, initial, BIT32SZ);
-		*initial = 0;
-	}
+	if(ini != nil)
+		memcpy(buf, ini, BIT32SZ);
 	else {
 		m = readn(fd, buf, BIT32SZ);
 		if(m != BIT32SZ){
@@ -448,7 +446,7 @@ reply(Fcall *r, Fcall *t, char *err)
 
 	t->tag = r->tag;
 	t->fid = r->fid;
-	if(err) {
+	if(err != nil) {
 		t->type = Rerror;
 		t->ename = err;
 	}
@@ -461,10 +459,10 @@ reply(Fcall *r, Fcall *t, char *err)
 	if(data == nil)
 		fatal(Enomem);
 	n = convS2M(t, data, messagesize);
-	if(write(netfd, data, n)!=n)
-{syslog(0, "exportfs", "short write: %r");
-		fatal("mount write");
-}
+	if(write(0, data, n) != n){
+		/* not fatal, might have got a note due to flush */
+		fprint(2, "exportfs: short write in reply: %r\n");
+	}
 	free(data);
 }
 
@@ -473,11 +471,11 @@ getfid(int nr)
 {
 	Fid *f;
 
-	for(f = fidhash(nr); f; f = f->next)
+	for(f = fidhash(nr); f != nil; f = f->next)
 		if(f->nr == nr)
 			return f;
 
-	return 0;
+	return nil;
 }
 
 int
@@ -487,18 +485,18 @@ freefid(int nr)
 	char buf[128];
 
 	l = &fidhash(nr);
-	for(f = *l; f; f = f->next) {
+	for(f = *l; f != nil; f = f->next) {
 		if(f->nr == nr) {
 			if(f->mid) {
-				sprint(buf, "/mnt/exportfs/%d", f->mid);
+				snprint(buf, sizeof(buf), "/mnt/exportfs/%d", f->mid);
 				unmount(0, buf);
 				psmap[f->mid] = 0;
 			}
-			if(f->f) {
+			if(f->f != nil) {
 				freefile(f->f);
 				f->f = nil;
 			}
-			if(f->dir){
+			if(f->dir != nil){
 				free(f->dir);
 				f->dir = nil;
 			}
@@ -520,17 +518,17 @@ newfid(int nr)
 	int i;
 
 	l = &fidhash(nr);
-	for(new = *l; new; new = new->next)
+	for(new = *l; new != nil; new = new->next)
 		if(new->nr == nr)
-			return 0;
+			return nil;
 
-	if(fidfree == 0) {
+	if(fidfree == nil) {
 		fidfree = emallocz(sizeof(Fid) * Fidchunk);
 
 		for(i = 0; i < Fidchunk-1; i++)
 			fidfree[i].next = &fidfree[i+1];
 
-		fidfree[Fidchunk-1].next = 0;
+		fidfree[Fidchunk-1].next = nil;
 	}
 
 	new = fidfree;
@@ -546,41 +544,45 @@ newfid(int nr)
 	return new;	
 }
 
+static struct {
+	Lock;
+	Fsrpc	*free;
+
+	/* statistics */
+	int	nalloc;
+	int	nfree;
+}	sbufalloc;
+
 Fsrpc *
 getsbuf(void)
 {
-	static int ap;
-	int look, rounds;
-	Fsrpc *wb;
-	int small_instead_of_fast = 1;
+	Fsrpc *w;
 
-	if(small_instead_of_fast)
-		ap = 0;	/* so we always start looking at the beginning and reuse buffers */
-
-	for(rounds = 0; rounds < 10; rounds++) {
-		for(look = 0; look < Nr_workbufs; look++) {
-			if(++ap == Nr_workbufs)
-				ap = 0;
-			if(Workq[ap].busy == 0)
-				break;
-		}
-
-		if(look == Nr_workbufs){
-			sleep(10 * rounds);
-			continue;
-		}
-
-		wb = &Workq[ap];
-		wb->pid = 0;
-		wb->canint = 0;
-		wb->flushtag = NOTAG;
-		wb->busy = 1;
-		if(wb->buf == nil)	/* allocate buffers dynamically to keep size down */
-			wb->buf = emallocz(messagesize);
-		return wb;
+	lock(&sbufalloc);
+	w = sbufalloc.free;
+	if(w != nil){
+		sbufalloc.free = w->next;
+		w->next = nil;
+		sbufalloc.nfree--;
+		unlock(&sbufalloc);
+	} else {
+		sbufalloc.nalloc++;
+		unlock(&sbufalloc);
+		w = emallocz(sizeof(*w) + messagesize);
 	}
-	fatal("No more work buffers");
-	return nil;
+	w->flushtag = NOTAG;
+	return w;
+}
+
+void
+putsbuf(Fsrpc *w)
+{
+	w->flushtag = NOTAG;
+	lock(&sbufalloc);
+	w->next = sbufalloc.free;
+	sbufalloc.free = w;
+	sbufalloc.nfree++;
+	unlock(&sbufalloc);
 }
 
 void
@@ -588,30 +590,25 @@ freefile(File *f)
 {
 	File *parent, *child;
 
-Loop:
-	f->ref--;
-	if(f->ref > 0)
-		return;
-	freecnt++;
-	if(f->ref < 0) abort();
-	DEBUG(DFD, "free %s\n", f->name);
-	/* delete from parent */
-	parent = f->parent;
-	if(parent->child == f)
-		parent->child = f->childlist;
-	else{
-		for(child=parent->child; child->childlist!=f; child=child->childlist)
-			if(child->childlist == nil)
-				fatal("bad child list");
-		child->childlist = f->childlist;
+	while(--f->ref == 0){
+		freecnt++;
+		DEBUG(DFD, "free %s\n", f->name);
+		/* delete from parent */
+		parent = f->parent;
+		if(parent->child == f)
+			parent->child = f->childlist;
+		else{
+			for(child = parent->child; child->childlist != f; child = child->childlist) {
+				if(child->childlist == nil)
+					fatal("bad child list");
+			}
+			child->childlist = f->childlist;
+		}
+		freeqid(f->qidt);
+		free(f->name);
+		free(f);
+		f = parent;
 	}
-	freeqid(f->qidt);
-	free(f->name);
-	f->name = nil;
-	free(f);
-	f = parent;
-	if(f != nil)
-		goto Loop;
 }
 
 File *
@@ -633,7 +630,7 @@ file(File *parent, char *name)
 	if(dir == nil)
 		return nil;
 
-	for(f = parent->child; f; f = f->childlist)
+	for(f = parent->child; f != nil; f = f->childlist)
 		if(strcmp(name, f->name) == 0)
 			break;
 
@@ -694,7 +691,7 @@ initroot(void)
 	free(dir);
 
 	psmpt = file(psmpt, "mnt");
-	if(psmpt == 0)
+	if(psmpt == nil)
 		return;
 	psmpt = file(psmpt, "exportfs");
 }
@@ -711,9 +708,7 @@ makepath(File *p, char *name)
 		seg[i] = p->name;
 		n += strlen(p->name)+1;
 	}
-	path = malloc(n);
-	if(path == nil)
-		fatal("out of memory");
+	path = emallocz(n);
 	s = path;
 
 	while(i--) {
@@ -747,8 +742,7 @@ freeqid(Qidtab *q)
 	ulong h;
 	Qidtab *l;
 
-	q->ref--;
-	if(q->ref > 0)
+	if(--q->ref)
 		return;
 	qfreecnt++;
 	h = qidhash(q->path);
@@ -815,10 +809,8 @@ uniqueqid(Dir *d)
 		path |= newqid<<48;
 		DEBUG(DFD, "assign qid %.16llux\n", path);
 	}
-	q = mallocz(sizeof(Qidtab), 1);
-	if(q == nil)
-		fatal("no memory for qid table");
 	qidcnt++;
+	q = emallocz(sizeof(Qidtab));
 	q->ref = 1;
 	q->type = d->type;
 	q->dev = d->dev;
@@ -837,20 +829,20 @@ fatal(char *s, ...)
 	va_list arg;
 	Proc *m;
 
-	if (s) {
+	if(s != nil) {
 		va_start(arg, s);
 		vsnprint(buf, ERRMAX, s, arg);
 		va_end(arg);
 	}
 
 	/* Clear away the slave children */
-	for(m = Proclist; m; m = m->next)
+	for(m = Proclist; m != nil; m = m->next)
 		postnote(PNPROC, m->pid, "kill");
 
-	DEBUG(DFD, "%s\n", buf);
-	if (s) 
+	if(s != nil) {
+		DEBUG(DFD, "%s\n", buf);
 		sysfatal("%s", buf);	/* caution: buf could contain '%' */
-	else
+	} else
 		exits(nil);
 }
 
@@ -862,6 +854,7 @@ emallocz(uint n)
 	p = mallocz(n, 1);
 	if(p == nil)
 		fatal(Enomem);
+	setmalloctag(p, getcallerpc(&n));
 	return p;
 }
 
@@ -873,65 +866,81 @@ estrdup(char *s)
 	t = strdup(s);
 	if(t == nil)
 		fatal(Enomem);
+	setmalloctag(t, getcallerpc(&s));
 	return t;
 }
 
-/* Network on fd1, mount driver on fd0 */
-int
-filter(int fd, char *cmd)
+void
+filter(int fd, char *cmd, char *host)
 {
-	int p[2], lfd, len, nb, argc;
-	char newport[128], buf[128], devdir[40], *s, *file, *argv[16];
+	char addr[128], buf[256], *s, *file, *argv[16];
+	int lfd, p[2], len, argc;
 
-	/* Get a free port and post it to the client. */
-	if (announce(anstring, devdir) < 0)
-		sysfatal("filter: Cannot announce %s: %r", anstring);
+	if(host == nil){
+		/* Get a free port and post it to the client. */
+		if (announce(anstring, addr) < 0)
+			fatal("filter: Cannot announce %s: %r", anstring);
 
-	snprint(buf, sizeof(buf), "%s/local", devdir);
-	buf[sizeof buf - 1] = '\0';
-	if ((lfd = open(buf, OREAD)) < 0)
-		sysfatal("filter: Cannot open %s: %r", buf);
-	if ((len = read(lfd, newport, sizeof newport - 1)) < 0)
-		sysfatal("filter: Cannot read %s: %r", buf);
-	close(lfd);
-	newport[len] = '\0';
+		snprint(buf, sizeof(buf), "%s/local", addr);
+		if ((lfd = open(buf, OREAD)) < 0)
+			fatal("filter: Cannot open %s: %r", buf);
+		if ((len = read(lfd, buf, sizeof buf - 1)) < 0)
+			fatal("filter: Cannot read %s: %r", buf);
+		close(lfd);
+		buf[len] = '\0';
+		if ((s = strchr(buf, '\n')) != nil)
+			len = s - buf;
+		if (write(fd, buf, len) != len) 
+			fatal("filter: cannot write port; %r");
+	} else {
+		/* Read address string from connection */
+		if ((len = read(fd, buf, sizeof buf - 1)) < 0)
+			sysfatal("filter: cannot write port; %r");
+		buf[len] = '\0';
 
-	if ((s = strchr(newport, '\n')) != nil)
-		*s = '\0';
+		if ((s = strrchr(buf, '!')) == nil)
+			sysfatal("filter: illegally formatted port %s", buf);
+		strecpy(addr, addr+sizeof(addr), netmkaddr(host, "tcp", s+1));
+		strecpy(strrchr(addr, '!'), addr+sizeof(addr), s);
+	}
 
-	if ((nb = write(fd, newport, len)) < 0) 
-		sysfatal("getport; cannot write port; %r");
-	assert(nb == len);
+	DEBUG(DFD, "filter: %s\n", addr);
 
-	argc = tokenize(cmd, argv, nelem(argv)-2);
+	snprint(buf, sizeof(buf), "%s", cmd);
+	argc = tokenize(buf, argv, nelem(argv)-3);
 	if (argc == 0)
 		sysfatal("filter: empty command");
-	argv[argc++] = buf;
+
+	if(host != nil)
+		argv[argc++] = "-c";
+	argv[argc++] = addr;
 	argv[argc] = nil;
+
 	file = argv[0];
-	if (s = strrchr(argv[0], '/'))
+	if((s = strrchr(argv[0], '/')) != nil)
 		argv[0] = s+1;
 
 	if(pipe(p) < 0)
-		fatal("pipe");
+		sysfatal("pipe: %r");
 
-	switch(rfork(RFNOWAIT|RFPROC|RFFDG)) {
+	switch(rfork(RFNOWAIT|RFPROC|RFMEM|RFFDG|RFREND)) {
 	case -1:
-		fatal("rfork record module");
+		fatal("filter: rfork; %r\n");
 	case 0:
+		close(fd);
 		if (dup(p[0], 1) < 0)
-			fatal("filter: Cannot dup to 1; %r\n");
+			fatal("filter: Cannot dup to 1; %r");
 		if (dup(p[0], 0) < 0)
-			fatal("filter: Cannot dup to 0; %r\n");
+			fatal("filter: Cannot dup to 0; %r");
 		close(p[0]);
 		close(p[1]);
 		exec(file, argv);
-		fatal("exec record module");
+		fatal("filter: exec; %r");
 	default:
-		close(fd);
+		dup(p[1], fd);
 		close(p[0]);
+		close(p[1]);
 	}
-	return p[1];	
 }
 
 static void
