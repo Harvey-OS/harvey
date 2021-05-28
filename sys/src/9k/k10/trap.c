@@ -21,13 +21,13 @@ static void unexpected(Ureg*, void*);
 static void dumpstackwithureg(Ureg*);
 
 static Lock vctllock;
-static Vctl *vctl[256];
+static Vctl *vctl[IdtMAX+1];
 
 enum
 {
 	Ntimevec = 20		/* number of time buckets for each intr */
 };
-ulong intrtimes[256][Ntimevec];
+ulong intrtimes[IdtMAX+1][Ntimevec];
 
 void*
 intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
@@ -140,7 +140,7 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 {
 	Vctl *v;
 
-	if(vno < 0 || vno >= 256)
+	if(vno < 0 || vno > IdtMAX)
 		panic("trapenable: vno %d", vno);
 	v = malloc(sizeof(Vctl));
 	v->tbdf = BUSUNKNOWN;
