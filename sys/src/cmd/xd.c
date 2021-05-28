@@ -2,8 +2,12 @@
 #include <libc.h>
 #include <bio.h>
 
-uchar		odata[16];
-uchar		data[32];
+enum {
+	Nsee = 4*4,  /* process this many bytes at a time; see swizz */
+};
+
+uchar		odata[Nsee];
+uchar		data[2*Nsee];
 int		ndata;
 int		nread;
 ulong		addr;
@@ -11,9 +15,11 @@ int		repeats;
 int		swizzle;
 int		flush;
 int		abase=2;
+
 int		xd(char *, int);
 void		xprint(char *, ...);
 void		initarg(void), swizz(void);
+
 enum{
 	Narg=10,
 
@@ -25,7 +31,7 @@ typedef struct Arg Arg;
 typedef void fmtfn(char *);
 struct Arg
 {
-	int	chartype;		/* TNone, TAscii, TRunes */
+	int	chartype;	/* TNone, TAscii, TRunes */
 	int	loglen;		/* 0==1, 1==2, 2==4, 3==8 */
 	int	base;		/* 0==8, 1==10, 2==16 */
 	fmtfn	*fn;		/* function to call with data */
@@ -203,12 +209,35 @@ initarg(void)
 	ap->afmt = afmt[narg>1][abase];
 }
 
+/*
+ * format the first ndata bytes in data[] (at most Nsee bytes).
+ * increment addr to account for them.
+ */
+void
+fmtdata(void)
+{
+	Arg *ap;
+
+	for(ap=arg; ap<&arg[narg]; ap++){
+		xprint(ap->afmt, addr);
+		(*ap->fn)(ap->fmt);
+		xprint("\n", 0);
+		if(flush)
+			Bflush(&bout);
+	}
+	addr += ndata;
+	if(ndata<Nsee){			/* short read? print fragment */
+		xprint(afmt[0][abase], addr);
+		xprint("\n", 0);
+		if(flush)
+			Bflush(&bout);
+	}
+}
+
 int
 xd(char *name, int title)
 {
-	int fd;
-	int i, star, nsee, nleft;
-	Arg *ap;
+	int fd, star, nleft, doprint;
 	Biobuf *bp;
 
 	fd = 0;
@@ -226,56 +255,39 @@ xd(char *name, int title)
 		xprint("%s\n", name);
 	addr = 0;
 	star = 0;
-	nsee = 16;
 	nleft = 0;
-	/* read 32 but see only 16 so that runes are happy */
-	while((ndata=Bread(bp, data + nleft, 32 - nleft)) >= 0){
+	/* read 2*Nsee but see only Nsee so that runes are happy */
+	while((ndata=Bread(bp, data + nleft, 2*Nsee - nleft)) >= 0){
 		ndata += nleft;
 		nleft = 0;
 		nread = ndata;
-		if(ndata>nsee)
-			ndata = nsee;
-		else if(ndata<nsee)
-			for(i=ndata; i<nsee; i++)
-				data[i] = 0;
+		if(ndata>Nsee)
+			ndata = Nsee;
+		else if(ndata<Nsee)
+			memset(data + ndata, '\0', Nsee - ndata);
 		if(swizzle)
 			swizz();
-		if(ndata==nsee && repeats){
-			if(addr>0 && data[0]==odata[0]){
-				for(i=1; i<nsee; i++)
-					if(data[i] != odata[i])
-						break;
-				if(i == nsee){
-					addr += nsee;
-					if(star == 0){
-						star++;
-						xprint("*\n", 0);
-					}
-					continue;
+		doprint = 1;
+		if(ndata==Nsee && repeats)
+			if(addr>0 && memcmp(odata, data, Nsee) == 0){
+				doprint = 0;
+				if(star == 0){
+					star++;
+					xprint("*\n", 0);
 				}
+			} else {	/* not a repetition */
+				memmove(odata, data, Nsee);
+				star = 0;
 			}
-			for(i=0; i<nsee; i++)
-				odata[i] = data[i];
-			star = 0;
-		}
-		for(ap=arg; ap<&arg[narg]; ap++){
-			xprint(ap->afmt, addr);
-			(*ap->fn)(ap->fmt);
-			xprint("\n", 0);
-			if(flush)
-				Bflush(&bout);
-		}
-		addr += ndata;
-		if(ndata<nsee){
-			xprint(afmt[0][abase], addr);
-			xprint("\n", 0);
-			if(flush)
-				Bflush(&bout);
+		if (doprint)
+			fmtdata();	/* also increments addr */
+		else
+			addr += Nsee;
+		if(ndata<Nsee)		/* short read? done */
 			break;
-		}
-		if(nread>nsee){
-			nleft = nread - nsee;
-			memmove(data, data + nsee, nleft);
+		if(nread>Nsee){
+			nleft = nread - Nsee;
+			memmove(data, data + Nsee, nleft);
 		}
 	}
 	Bterm(bp);
@@ -287,11 +299,11 @@ swizz(void)
 {
 	uchar *p, *q;
 	int i;
-	uchar swdata[16];
+	uchar swdata[Nsee];
 
 	p = data;
 	q = swdata;
-	for(i=0; i<16; i++)
+	for(i=0; i<Nsee; i++)
 		*q++ = *p++;
 	p = data;
 	q = swdata;
