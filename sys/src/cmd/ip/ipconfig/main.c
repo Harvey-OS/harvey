@@ -39,6 +39,7 @@ enum
 	Tushort,
 	Tulong,
 	Tvec,
+	Tshortaddrs,
 };
 
 typedef struct Option Option;
@@ -129,6 +130,7 @@ Option option[256] =
 [ODclientid]		{ "clientid",		Tvec },
 [ODtftpserver]		{ "tftp",		Taddr },
 [ODbootfile]		{ "bootfile",		Tstr },
+[ODcstaticroutes]	{ "staticroutes",	Tshortaddrs },
 };
 
 uchar defrequested[] = {
@@ -176,6 +178,7 @@ char *verbs[] = {
 };
 
 void	adddefroute(char*, uchar*);
+void	addroute(char*, char*, char*, char*);
 int	addoption(char*);
 void	binddevice(void);
 void	bootprequest(void);
@@ -204,6 +207,7 @@ uchar*	optadd(uchar*, int, void*, int);
 uchar*	optaddulong(uchar*, int, ulong);
 uchar*	optaddvec(uchar*, int, uchar*, int);
 int	optgetaddrs(uchar*, int, uchar*, int);
+int	optgetshortaddrs(uchar*, int, uchar*, int);
 int	optgetp9addrs(uchar*, int, uchar*, int);
 int	optgetaddr(uchar*, int, uchar*);
 int	optgetbyte(uchar*, int);
@@ -717,6 +721,18 @@ dounbind(void)
 void
 adddefroute(char *mpoint, uchar *gaddr)
 {
+	char buf[40];
+
+	snprint(buf, sizeof buf, "%I", gaddr);
+	if(isv4(gaddr))
+		addroute(mpoint, "0", "0", buf);
+	else
+		addroute(mpoint, "::", "/0", buf);
+}
+
+void
+addroute(char *mpoint, char *addr, char *mask, char *gaddr)
+{
 	char buf[256];
 	int cfd;
 
@@ -725,10 +741,7 @@ adddefroute(char *mpoint, uchar *gaddr)
 	if(cfd < 0)
 		return;
 
-	if(isv4(gaddr))
-		fprint(cfd, "add 0 0 %I", gaddr);
-	else
-		fprint(cfd, "add :: /0 %I", gaddr);
+	fprint(cfd, "add %s %s %s", addr, mask, gaddr);
 	close(cfd);
 }
 
@@ -822,6 +835,8 @@ ip4cfg(void)
 {
 	char buf[256];
 	int n;
+	uchar *p, *e;
+	char addr[16], mask[16], gaddr[16];
 
 	if(!validip(conf.laddr))
 		return -1;
@@ -853,6 +868,15 @@ ip4cfg(void)
 		}
 	}
 
+	e = conf.iproutes + sizeof conf.iproutes;
+	for(p = conf.iproutes; p < e; p += IPaddrlen*3){
+		if(ipcmp(p, IPnoaddr) == 0)
+			break;
+		snprint(addr, sizeof addr, "%I", p+IPaddrlen);
+		snprint(mask, sizeof mask, "%M", p);
+		snprint(gaddr, sizeof gaddr, "%I", p+IPaddrlen*2);
+		addroute(conf.mpoint, addr, mask, gaddr);
+	}
 	if(beprimary==1 && validip(conf.gaddr))
 		adddefroute(conf.mpoint, conf.gaddr);
 
@@ -1285,6 +1309,11 @@ dhcprecv(void)
 		/* get anything else we asked for */
 		getoptions(bp->optdata);
 
+		/* get static routes */
+		n = optgetshortaddrs(bp->optdata, ODcstaticroutes, conf.iproutes, 6);
+		for(i = 0; i < n; i++)
+			DEBUG("iproutes=%I ", conf.iproutes + i*IPaddrlen);
+
 		/* get plan9-specific options */
 		n = optgetvec(bp->optdata, OBvendorinfo, vopts, sizeof vopts-1);
 		if(n > 0 && parseoptions(vopts, n) == 0){
@@ -1533,6 +1562,39 @@ optgetaddrs(uchar *p, int op, uchar *ip, int n)
 	for(i = 0; i < len; i++)
 		v4tov6(&ip[i*IPaddrlen], &p[i*IPv4addrlen]);
 	return i;
+}
+
+int
+optgetshortaddrs(uchar *p, int op, uchar *ip, int n)
+{
+	int len, i, l;
+	uchar buf[IPv4addrlen];
+	char mask[5];
+
+	len = 5;
+	p = optget(p, op, &len);
+	if(p == nil)
+		return 0;
+	n /= 3;
+	for(i = 0; i < n; i++){
+		l = (*p+7) / 8;
+		snprint(mask, sizeof mask, "/%d", 96 + *p++);
+		parseipmask(ip, mask);
+		ip += IPaddrlen;
+
+		memset(buf, 0, sizeof buf);
+		memmove(buf, p, l);
+		v4tov6(ip, buf);
+		ip += IPaddrlen;
+		p += l;
+
+		v4tov6(ip, p);
+		ip += IPaddrlen;
+		p += IPv4addrlen;
+	}
+	if(i > n)
+		i = n;
+	return i * 3;
 }
 
 /* expect at most n addresses; ip[] only has room for that many */
@@ -1930,7 +1992,11 @@ optgetx(uchar *p, uchar opt)
 			s = smprint("%s=%I", o->name, ip);
 		break;
 	case Taddrs:
-		n = optgetaddrs(p, opt, ips, 16);
+	case Tshortaddrs:
+		if(o->type == Taddrs)
+			n = optgetaddrs(p, opt, ips, 16);
+		else
+			n = optgetshortaddrs(p, opt, ips, 16);
 		if(n > 0)
 			s = smprint("%s=%I", o->name, ips);
 		for(i = 1; i < n; i++){
