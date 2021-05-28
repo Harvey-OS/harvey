@@ -294,11 +294,14 @@ asmb(void)
 		OFFSET = rnd(HEADR+textsize, 4096);
 		seek(cout, OFFSET, 0);
 		break;
+	case 6:
+		OFFSET = rnd(HEADR+textsize, INITRND);
+		seek(cout, OFFSET, 0);
+		break;
 	case 1:
 	case 2:
 	case 3:
 	case 5:
-	case 6:
 	case 7:
 		OFFSET = HEADR+textsize;
 		seek(cout, OFFSET, 0);
@@ -323,11 +326,14 @@ asmb(void)
 			OFFSET = rnd(HEADR+textsize, 4096)+datsize;
 			seek(cout, OFFSET, 0);
 			break;
+		case 6:
+			OFFSET = rnd(HEADR+textsize, INITRND)+datsize;
+			seek(cout, OFFSET, 0);
+			break;
 		case 3:
 		case 2:
 		case 1:
 		case 5:
-		case 6:
 		case 7:
 			OFFSET = HEADR+textsize+datsize;
 			seek(cout, OFFSET, 0);
