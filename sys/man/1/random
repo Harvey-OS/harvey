@@ -1,0 +1,24 @@
+.TH RANDOM 1
+.SH NAME
+random - print truly random probability or string
+.SH SYNOPSIS
+.B random
+[
+.B -s
+chars
+]
+.SH DESCRIPTION
+.I Random
+normally prints a truly random number between 0 and 1.
+Given
+.BR -s ,
+it instead prints a base-64-encoded truly random string of
+.I chars
+characters.
+.SH SOURCE
+.B /sys/src/cmd/random.c
+.SH SEE ALSO
+.IR rand (2),
+.B /dev/random
+in
+.IR cons (3)
