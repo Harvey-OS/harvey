@@ -8,8 +8,8 @@ typedef struct Ether Ether;
 #pragma incomplete Dma
 
 void	addconf(char*, char*);
-int	adec(long*);
-int	ainc(long*);
+long	adec(long*);
+long	ainc(long*);
 void	archetherspeed(int, int);
 void	archinit(void);
 uint	archmiiport(int);

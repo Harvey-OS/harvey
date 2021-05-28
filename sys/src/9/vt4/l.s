@@ -440,8 +440,8 @@ tas0:
 	ISYNC
 	RETURN
 
-TEXT _xinc(SB), 1, $-4			/* int _xinc(int*); */
-TEXT ainc(SB), 1, $-4			/* int ainc(int*); */
+TEXT _xinc(SB), 1, $-4			/* long _xinc(long*); */
+TEXT ainc(SB), 1, $-4			/* long ainc(long*); */
 	MOVW	R3, R4
 _ainc:
 	DCBF	(R4)			/* fix for 603x bug */
@@ -459,8 +459,8 @@ _trap:
 _return:
 	RETURN
 
-TEXT _xdec(SB), 1, $-4			/* int _xdec(int*); */
-TEXT adec(SB), 1, $-4			/* int adec(int*); */
+TEXT _xdec(SB), 1, $-4			/* long _xdec(long*); */
+TEXT adec(SB), 1, $-4			/* long adec(long*); */
 	MOVW	R3, R4
 _adec:
 	DCBF	(R4)			/* fix for 603x bug */
