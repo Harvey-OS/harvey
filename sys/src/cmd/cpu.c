@@ -592,7 +592,11 @@ p9auth(int fd)
 	ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s", p9authproto, keyspec);
 	if(ai == nil)
 		return -1;
-	memmove(key+4, ai->secret, ai->nsecret);
+	if(ai->nsecret < 8){
+		werrstr("negotiated secret too short");
+		return -1;
+	}
+	memmove(key+4, ai->secret, 8);
 	if(ealgs == nil)
 		return fd;
 
@@ -663,7 +667,11 @@ srvp9auth(int fd, char *user)
 	if(auth_chuid(ai, nil) < 0)
 		return -1;
 	strecpy(user, user+MaxStr, ai->cuid);
-	memmove(key+4, ai->secret, ai->nsecret);
+	if(ai->nsecret < 8){
+		werrstr("negotiated secret too short");
+		return -1;
+	}
+	memmove(key+4, ai->secret, 8);
 
 	if(ealgs == nil)
 		return fd;
