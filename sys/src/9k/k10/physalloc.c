@@ -143,16 +143,13 @@ S1:
 	 * Combine with buddy.
 	 * This removes block P from the avail list.
 	 */
-	if(p->prev != 0){
+	if(p->prev != 0)
 		blocks[BLOCK(b,p->prev)].next = p->next;
-		p->prev = 0;
-	}
 	else
-		avail[p->kval].next = 0;
-	if(p->next != 0){
+		avail[p->kval].next = p->next;
+	if(p->next != 0)
 		blocks[BLOCK(b,p->next)].prev = p->prev;
-		p->next = 0;
-	}
+	p->next = p->prev = 0;
 	p->tag = Used;
 
 	/*
@@ -305,7 +302,8 @@ xphysalloc(Bal *b, u64int size, void *tag)
 	DBG("bsr: block @ i %d BLOCK(b,i) %d kval %d next %d %s\n",
 		i, BLOCK(b,i), l->kval, l->next, l->tag?"avail":"used");
 	avail[j].next = l->next;
-	blocks[avail[j].next].prev = 0;
+	if(avail[j].next != 0)
+		blocks[BLOCK(b,avail[j].next)].prev = 0;
 	l->prev = l->next = 0;
 	l->tag = Used;
 	l->kval = k;
