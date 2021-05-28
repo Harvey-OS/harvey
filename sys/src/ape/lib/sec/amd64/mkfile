@@ -3,10 +3,21 @@ APE=/sys/src/ape
 
 LIB=/$objtype/lib/ape/libsec.a
 
-OFILES=	\
+FILES=\
+	md5block\
+	sha1block\
 
 HFILES=/sys/include/ape/libsec.h
 
-UPDATE=mkfile
+SFILES=${FILES:%=%.s}
+
+OFILES=${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$SFILES\
 
 </sys/src/cmd/mksyslib
+
+%.$O:	../../../../libsec/amd64/%.s
+	$AS ../../../../libsec/amd64/$stem.s
