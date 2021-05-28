@@ -421,7 +421,7 @@ etherprobe(int cardno, int ctlrno)
 	 * If ether->irq is <0, it is a hack to indicate no interrupt
 	 * used by ethersink.
 	 * Or perhaps the driver has some other way to configure
-	 * interrups for intself, e.g. HyperTransport MSI.
+	 * interrupts for itself, e.g. HyperTransport MSI.
 	 */
 	if(ether->irq >= 0)
 		intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
