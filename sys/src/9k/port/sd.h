@@ -178,6 +178,7 @@ extern int scsiverify(SDunit*);
 extern int scsionline(SDunit*);
 extern long scsibio(SDunit*, int, int, void*, long, uvlong);
 extern SDev* scsiid(SDev*, SDifc*);
+extern void scsilbacount(uchar *, int, uvlong*, ulong*);
 
 /*
  *  hardware info about a device
