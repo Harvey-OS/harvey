@@ -522,7 +522,8 @@ transmit(Ether *e)
 			break;
 		assert(ctlr->tdba != nil);
 		t = ctlr->tdba + tdt;
-		t->addr[0] = PCIWADDR(b->rp);
+		t->addr[0] = PCIWADDRL(b->rp);
+		t->addr[1] = PCIWADDRH(b->rp);
 		t->length = BLEN(b);
 		t->cmd = Ifcs | Teop;
 		if (!Goslow)
@@ -590,8 +591,8 @@ rxinit(Ctlr *ctlr)
 	ctlr->reg[Srrctl] = (ctlr->rbsz + 1024 - 1) / 1024;
 	ctlr->reg[Mhadd] = ctlr->rbsz << 16;
 
-	ctlr->reg[Rbal] = PCIWADDR(ctlr->rdba);
-	ctlr->reg[Rbah] = 0;
+	ctlr->reg[Rbal] = PCIWADDRL(ctlr->rdba);
+	ctlr->reg[Rbah] = PCIWADDRH(ctlr->rdba);
 	ctlr->reg[Rdlen] = ctlr->nrd*sizeof(Rd); /* must be multiple of 128 */
 	ctlr->reg[Rdh] = 0;
 	ctlr->reg[Rdt] = ctlr->rdt = 0;
@@ -650,7 +651,8 @@ replenish(Ctlr *ctlr, uint rdh)
 			break;
 		}
 		ctlr->rb[rdt] = b;
-		r->addr[0] = PCIWADDR(b->rp);
+		r->addr[0] = PCIWADDRL(b->rp);
+		r->addr[1] = PCIWADDRH(b->rp);
 		r->status = 0;
 		ctlr->rdfree++;
 		i++;
@@ -933,8 +935,8 @@ txinit(Ctlr *ctlr)
 
 	assert(ctlr->tdba != nil);
 	memset(ctlr->tdba, 0, ctlr->ntd * sizeof(Td));
-	ctlr->reg[Tdbal] = PCIWADDR(ctlr->tdba);
-	ctlr->reg[Tdbah] = 0;
+	ctlr->reg[Tdbal] = PCIWADDRL(ctlr->tdba);
+	ctlr->reg[Tdbah] = PCIWADDRH(ctlr->tdba);
 	ctlr->reg[Tdlen] = ctlr->ntd*sizeof(Td); /* must be multiple of 128 */
 	ctlr->reg[Tdh] = 0;
 	ctlr->tdh = ctlr->ntd - 1;

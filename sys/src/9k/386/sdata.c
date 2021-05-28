@@ -1093,7 +1093,7 @@ atadmasetup(Drive* drive, int len)
 	int bmiba, bmisx, count, i, span;
 
 	ctlr = drive->ctlr;
-	pa = PCIWADDR(drive->data);
+	pa = PCIWADDR32(drive->data);
 	if(pa & 0x03)
 		return -1;
 
@@ -1127,7 +1127,7 @@ atadmasetup(Drive* drive, int len)
 		(prd-1)->count |= PrdEOT;
 
 	bmiba = ctlr->bmiba;
-	outl(bmiba+Bmidtpx, PCIWADDR(ctlr->prdt));
+	outl(bmiba+Bmidtpx, PCIWADDR32(ctlr->prdt));
 	if(drive->write)
 		outb(ctlr->bmiba+Bmicx, 0);
 	else

@@ -514,8 +514,8 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	dtcc = ctlr->dtcc;
 	assert(dtcc);
-	csr32w(ctlr, Dtccr+4, 0);
-	csr32w(ctlr, Dtccr, PCIWADDR(dtcc)|Cmd);
+	csr32w(ctlr, Dtccr+4, PCIWADDRH(ctlr->dtcc));
+	csr32w(ctlr, Dtccr, PCIWADDRL(ctlr->dtcc)|Cmd);
 	for(timeo = 0; timeo < 1000; timeo++){
 		if(!(csr32r(ctlr, Dtccr) & Cmd))
 			break;
@@ -645,8 +645,8 @@ rtl8169replenish(Ctlr* ctlr)
 				break;
 			}
 			ctlr->rb[rdt] = bp;
-			d->addrlo = PCIWADDR(bp->rp);
-			d->addrhi = 0;
+			d->addrlo = PCIWADDRL(bp->rp);
+			d->addrhi = PCIWADDRH(bp->rp);
 			coherence();
 		}
 		else
@@ -792,10 +792,10 @@ rtl8169init(Ether* edev)
 	 */
 	csr32w(ctlr, Mpc, 0);
 	csr8w(ctlr, Etx, 0x3f);			/* magic */
-	csr32w(ctlr, Tnpds+4, 0);
-	csr32w(ctlr, Tnpds, PCIWADDR(ctlr->td));
-	csr32w(ctlr, Rdsar+4, 0);
-	csr32w(ctlr, Rdsar, PCIWADDR(ctlr->rd));
+	csr32w(ctlr, Tnpds+4, PCIWADDRH(ctlr->td));
+	csr32w(ctlr, Tnpds, PCIWADDRL(ctlr->td));
+	csr32w(ctlr, Rdsar+4, PCIWADDRH(ctlr->rd));
+	csr32w(ctlr, Rdsar, PCIWADDRL(ctlr->rd));
 	csr16w(ctlr, Rms, 16383);		/* was Mps; see above comment */
 	r = csr16r(ctlr, Mulint) & 0xF000;	/* no early rx interrupts */
 	csr16w(ctlr, Mulint, r);
@@ -959,8 +959,8 @@ rtl8169transmit(Ether* edev)
 			break;
 
 		d = &ctlr->td[x];
-		d->addrlo = PCIWADDR(bp->rp);
-		d->addrhi = 0;
+		d->addrlo = PCIWADDRL(bp->rp);
+		d->addrhi = PCIWADDRH(bp->rp);
 		ctlr->tb[x] = bp;
 		coherence();
 		d->control |= Own|Fs|Ls|((BLEN(bp)<<TxflSHIFT) & TxflMASK);
