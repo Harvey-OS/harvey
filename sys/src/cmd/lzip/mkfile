@@ -1,0 +1,21 @@
+# mkfile for lzip - LZMA lossless data compressor
+</$objtype/mkfile
+
+TARG=lzip
+OFILES=decoder.$O \
+	encoder.$O \
+	encoder_base.$O \
+	fast_encoder.$O \
+	main.$O
+
+HFILES=decoder.h \
+	encoder.h \
+	encoder_base.h \
+	fast_encoder.h \
+	lzip.h \
+
+BIN=/$objtype/bin
+
+</sys/src/cmd/mkone
+
+# CFLAGS=$CFLAGS -DUSE_BSTDIO

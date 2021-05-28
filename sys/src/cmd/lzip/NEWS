@@ -1,0 +1,21 @@
+Changes in version 1.9:
+
+The option '-l, --list' has been ported from lziprecover.
+
+It is now an error to specify two or more different operations in the
+command line (--decompress, --list or --test).
+
+Compression time of option '-0' has been reduced by 6%.
+
+Compression time of options '-1' to '-9' has been reduced by 1%.
+
+Decompression time has been reduced by 7%.
+
+In test mode, clzip now continues checking the rest of the files if any
+input file is a terminal.
+
+Trailing data are now shown both in hexadecimal and as a string of
+printable ASCII characters.
+
+Three missing chapters have been added to the manual, which now contains
+all the chapters of the lzip manual.

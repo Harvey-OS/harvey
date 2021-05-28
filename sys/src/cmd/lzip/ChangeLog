@@ -1,0 +1,115 @@
+2017-04-13  Antonio Diaz Diaz  <antonio@gnu.org>
+
+	* Version 1.9 released.
+	* The option '-l, --list' has been ported from lziprecover.
+	* Don't allow mixing different operations (-d, -l or -t).
+	* Compression time of option '-0' has been reduced by 6%.
+	* Compression time of options -1 to -9 has been reduced by 1%.
+	* Decompression time has been reduced by 7%.
+	* main.c: Continue testing if any input file is a terminal.
+	* main.c: Show trailing data in both hexadecimal and ASCII.
+	* file_index.c: Improve detection of bad dict and trailing data.
+	* lzip.h: Unified messages for bad magic, trailing data, etc.
+	* clzip.texi: Added missing chapters from lzip.texi.
+
+2016-05-13  Antonio Diaz Diaz  <antonio@gnu.org>
+
+	* Version 1.8 released.
+	* main.c: Added new option '-a, --trailing-error'.
+	* main.c (decompress): Print up to 6 bytes of trailing data
+	  when '-vvvv' is specified.
+	* decoder.c (LZd_verify_trailer): Removed test of final code.
+	* main.c (main): Delete '--output' file if infd is a terminal.
+	* main.c (main): Don't use stdin more than once.
+	* clzip.texi: Added chapter 'Trailing data'.
+	* configure: Avoid warning on some shells when testing for gcc.
+	* Makefile.in: Detect the existence of install-info.
+	* testsuite/check.sh: A POSIX shell is required to run the tests.
+	* testsuite/check.sh: Don't check error messages.
+
+2015-07-07  Antonio Diaz Diaz  <antonio@gnu.org>
+
+	* Version 1.7 released.
+	* Ported fast encoder and option '-0' from lzip.
+	* Makefile.in: Added new targets 'install*-compress'.
+
+2014-08-28  Antonio Diaz Diaz  <antonio@gnu.org>
+
+	* Version 1.6 released.
+	* Compression ratio of option '-9' has been slightly increased.
+	* main.c (close_and_set_permissions): Behave like 'cp -p'.
+	* clzip.texinfo: Renamed to clzip.texi.
+	* License changed to GPL version 2 or later.
+
+2013-09-17  Antonio Diaz Diaz  <antonio@gnu.org>
+
+	* Version 1.5 released.
+	* Show progress of compression at verbosity level 2 (-vv).
+	* main.c (show_header): Don't show header version.
+	* Ignore option '-n, --threads' for compatibility with plzip.
+	* configure: Options now accept a separate argument.
+
+2013-02-18  Antonio Diaz Diaz  <ant_diaz@teleline.es>
+
+	* Version 1.4 released.
+	* Multi-step trials have been implemented.
+	* Compression ratio has been slightly increased.
+	* Compression time has been reduced by 10%.
+	* Decompression time has been reduced by 8%.
+	* Makefile.in: Added new target 'install-as-lzip'.
+	* Makefile.in: Added new target 'install-bin'.
+	* main.c: Use 'setmode' instead of '_setmode' on Windows and OS/2.
+	* main.c: Define 'strtoull' to 'strtoul' on Windows.
+
+2012-02-25  Antonio Diaz Diaz  <ant_diaz@teleline.es>
+
+	* Version 1.3 released.
+	* main.c (close_and_set_permissions): Inability to change output
+	  file attributes has been downgraded from error to warning.
+	* encoder.c (Mf_init): Return false if out of memory instead of
+	  calling cleanup_and_fail.
+	* Small change in '--help' output and man page.
+	* Changed quote characters in messages as advised by GNU Standards.
+	* configure: 'datadir' renamed to 'datarootdir'.
+
+2011-05-18  Antonio Diaz Diaz  <ant_diaz@teleline.es>
+
+	* Version 1.2 released.
+	* main.c: Added new option '-F, --recompress'.
+	* main.c (decompress): Print only one status line for each
+	  multimember file when only one '-v' is specified.
+	* encoder.h (Lee_update_prices): Update high length symbol prices
+	  independently of the value of 'pos_state'. This gives better
+	  compression for large values of '--match-length' without being
+	  slower.
+	* encoder.h encoder.c: Optimize pair price calculations. This
+	  reduces compression time for large values of '--match-length'
+	  by up to 6%.
+
+2011-01-11  Antonio Diaz Diaz  <ant_diaz@teleline.es>
+
+	* Version 1.1 released.
+	* Code has been converted to 'C89 + long long' from C99.
+	* main.c: Fixed warning about fchown return value being ignored.
+	* decoder.c: '-tvvvv' now shows compression ratio.
+	* main.c: Match length limit set by options -1 to -8 has been
+	  reduced to extend range of use towards gzip. Lower numbers now
+	  compress less but faster. (-1 now takes 43% less time for only
+	  20% larger compressed size).
+	* Compression ratio of option '-9' has been slightly increased.
+	* main.c (open_instream): Don't show the message
+	  " and '--stdout' was not specified" for directories, etc.
+	* New examples have been added to the manual.
+
+2010-04-05  Antonio Diaz Diaz  <ant_diaz@teleline.es>
+
+	* Version 1.0 released.
+	* Initial release.
+	* Translated to C from the C++ source of lzip 1.10.
+
+
+Copyright (C) 2010-2017 Antonio Diaz Diaz.
+
+This file is a collection of facts, and thus it is not copyrightable,
+but just in case, you have unlimited permission to copy, distribute and
+modify it.

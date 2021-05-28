@@ -1,12 +1,12 @@
 .TH GZIP 1
 .SH NAME
-gzip, gunzip, bzip2, bunzip2, compress, uncompress, zip, unzip \- compress and expand data
+gzip, gunzip, bzip2, bunzip2, lzip, lunzip, compress, uncompress, zip, unzip \- compress and expand data
 .SH SYNOPSIS
 .B gzip
 .RB [ -cvD [ 1-9 ]]
 .RI [ file
 .BR ... ]
-.PP
+.br
 .B gunzip
 .RB [ -ctTvD ]
 .RI [ file
@@ -16,8 +16,18 @@ gzip, gunzip, bzip2, bunzip2, compress, uncompress, zip, unzip \- compress and e
 .RB [ -cvD [ 1-9 ]]
 .RI [ file
 .BR ... ]
-.PP
+.br
 .B bunzip2
+.RB [ -cvD ]
+.RI [ file
+.BR ... ]
+.PP
+.B lzip
+.RB [ -cvD [ 1-9 ]]
+.RI [ file
+.BR ... ]
+.br
+.B lunzip
 .RB [ -cvD ]
 .RI [ file
 .BR ... ]
@@ -29,7 +39,7 @@ gzip, gunzip, bzip2, bunzip2, compress, uncompress, zip, unzip \- compress and e
 .I file
 .B ...
 ]
-.PP
+.br
 .B uncompress
 [
 .B -cv
@@ -44,7 +54,7 @@ gzip, gunzip, bzip2, bunzip2, compress, uncompress, zip, unzip \- compress and e
 .IR zipfile ]
 .I file
 .RB [ ... ]
-.PP
+.br
 .B unzip
 .RB [ -cistTvD ]
 .RB [ -f
@@ -86,7 +96,9 @@ are similar in interface to
 and
 .IR gunzip ,
 but use a modified Burrows-Wheeler block sorting
-compression algorithm.
+compression algorithm,
+which often produces smaller compressed files than
+.IR gzip .
 The default suffix for output files is
 .BR .bz2 ,
 with
@@ -98,6 +110,32 @@ recognizes the extension
 .B .tbz2
 as a synonym for
 .BR .tbz .
+.PP
+.I Lzip
+and
+.I lunzip
+are also similar in interface to
+.I gzip
+and
+.IR gunzip ,
+but use a specific LZMA (Lempel-Ziv-Markov) compression algorithm,
+which often produces smaller compressed files than
+.IR bzip2 .
+The default suffix for output files is
+.BR .lz ,
+with
+.B .tar.lz
+becoming
+.BR .tlz .
+Note that the popular
+.I xz
+compression program uses different LZMA compression algorithms
+and so files compressed by it will not be understood by
+.I lunzip
+and vice versa
+(and may not even be understood by other
+.I xz
+implementations).
 .PP
 .I Compress
 and
@@ -130,7 +168,8 @@ None of these programs removes the original files.
 If the process fails, the faulty output files are removed.
 .PP
 The options are:
-.TP 0.6i
+.\" .TP 0.6i
+.TP 0.3i
 .B -a
 Automaticialy creates directories as needed, needed for zip files
 created by broken implementations which omit directories.
@@ -183,9 +222,7 @@ prints the names of files on standard error as they are compressed or decompress
 .B -D
 Produce debugging output.
 .SH SOURCE
-.B /sys/src/cmd/gzip
-.br
-.B /sys/src/cmd/bzip2
+.B /sys/src/cmd/*zip*
 .br
 .B /sys/src/cmd/compress
 .SH SEE ALSO
