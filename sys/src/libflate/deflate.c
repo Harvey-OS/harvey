@@ -56,7 +56,7 @@ enum
 						 * assumes 8 bits for len, 5+10 for offset
 						 * DONT CHANGE WITHOUT CHANGING LZPARSE CONSTANTS
 						 */
-	HistSlop	= 512,			/* must be at lead MaxMatch */
+	HistSlop	= 512,			/* must be at least MaxMatch */
 	HistBlock	= 64*1024,
 	HistSize	= HistBlock + HistSlop,
 
