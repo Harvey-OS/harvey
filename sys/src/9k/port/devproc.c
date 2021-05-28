@@ -1577,7 +1577,7 @@ procctlmemio(Proc *p, uintptr offset, int n, void *va, int read)
 			s->steal--;
 			nexterror();
 		}
-		if(fixfault(s, offset, read, 0) == 0)
+		if(fixfault(s, offset, read, 0, s->color) == 0)
 			break;
 		poperror();
 		s->steal--;

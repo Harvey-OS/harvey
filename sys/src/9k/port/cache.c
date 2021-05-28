@@ -356,7 +356,7 @@ cchain(uchar *buf, ulong offset, int len, Extent **tail)
 		if(e == 0)
 			break;
 
-		p = auxpage();
+		p = auxpage(PGSHFT);
 		if(p == 0) {
 			extentfree(e);
 			break;

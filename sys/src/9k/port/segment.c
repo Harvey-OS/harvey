@@ -155,6 +155,7 @@ dupseg(Segment **seg, int segno, int share)
 		n->fstart = s->fstart;
 		n->flen = s->flen;
 		n->lg2pgsize = s->lg2pgsize;
+		n->color = s->color;
 		break;
 	}
 	size = s->mapsize;
@@ -182,6 +183,9 @@ segpage(Segment *s, Page *p)
 	Pte **pte;
 	uintptr soff;
 	Page **pg;
+
+	if(s->color == NOCOLOR)
+		s->color = p->color;
 
 	if(p->va < s->base || p->va >= s->top)
 		panic("segpage");

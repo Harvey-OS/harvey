@@ -247,6 +247,7 @@ struct Sys {
 			u64int	pmstart;	/* physical memory */
 			u64int	pmoccupied;	/* how much is occupied */
 			u64int	pmend;		/* total span */
+			u64int	pmpaged;	/* how much assigned to page pool */
 
 			uintptr	vmstart;	/* base address for malloc */
 			uintptr	vmunused;	/* 1st unused va */

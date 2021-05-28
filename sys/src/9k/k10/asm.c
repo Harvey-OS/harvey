@@ -287,10 +287,9 @@ asmmeminit(void)
 {
 	Asm* asm;
 	PTE *pte;
-	int i, j, l;
+	int i, l;
 	uintptr n, va;
 	uintmem hi, lo, mem, nextmem, pa;
-	Pallocmem *pm;
 
 	/*
 	 * to do here (done?):
@@ -371,26 +370,22 @@ asmmeminit(void)
 	}
 
 	n = sys->vmend - sys->vmstart;			/* close enough */
-	if(n > 3*600ull*MiB)
-		n = 3*600ull*MiB;
-	ialloclimit(n/2);
+	if(n > 600ull*MiB)
+		n = 600ull*MiB;
+	ialloclimit(n/3);
+}
 
-	pm = palloc.mem;
-	j = 0;
+void
+asmumeminit(void)
+{
+	Asm *asm;
+	extern void physallocdump(void);
+
 	for(asm = asmlist; asm != nil; asm = asm->next){
-		if(asm->limit == asm->base)
+		if(asm->type != AsmMEMORY)
 			continue;
-		if(pm >= palloc.mem+nelem(palloc.mem)){
-			print("asmmeminit: losing %#P pages\n",
-				(asm->limit - asm->base)/PGSZ);
-			continue;
-		}
-		pm->base = asm->base;
-		pm->limit = asm->limit;
-
-		DBG("asm pm%d: base %#P limit %#P npage %llud\n",
-			j, pm->base, pm->limit, (pm->limit - pm->base)/PGSZ);
-		j++;
-		pm++;
+		physinit(asm->addr, asm->size);
+		sys->pmpaged += ROUNDDN(asm->limit, 2*MiB) - ROUNDUP(asm->base, 2*MiB);
 	}
+	physallocdump();
 }

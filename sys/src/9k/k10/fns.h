@@ -131,6 +131,7 @@ void	tssrsp0(u64int);
 void	trapenable(int, void (*)(Ureg*, void*), void*, char*);
 void	trapinit(void);
 int	userureg(Ureg*);
+void	umeminit(void);
 void*	vmap(uintmem, usize);
 void	vsvminit(int);
 void	vunmap(void*, usize);

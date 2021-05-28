@@ -17,3 +17,11 @@ meminit(void)
 
 	asmmeminit();
 }
+
+void
+umeminit(void)
+{
+	extern void asmumeminit(void);
+
+	asmumeminit();
+}

@@ -4,107 +4,43 @@
 #include	"dat.h"
 #include	"fns.h"
 
+enum
+{
+	Nfreepgs = 0, // 1*GiB/PGSZ
+};
+
 #define pghash(daddr)	palloc.hash[(daddr>>PGSHFT)&(PGHSIZE-1)]
 
 struct	Palloc palloc;
 
 static	uint	highwater;	/* TO DO */
 
-/*
- * Split palloc.mem[i] if it's not all of the same color and we can.
- * Return the new end of the known banks.
- */
-static int
-splitbank(int i, int e)
+char*
+seprintpagestats(char *s, char *e)
 {
-	Pallocmem *pm;
-	uintmem psz;
+	Pallocpg *pg;
+	int i;
 
-	if(e == nelem(palloc.mem))
-		return 0;
-	pm = &palloc.mem[i];
-	pm->color  = memcolor(pm->base, &psz);
-	if(pm->color < 0){
-		pm->color = 0;
-		if(i > 0)
-			pm->color = pm[-1].color;
-		return 0;
+	lock(&palloc);
+	for(i = 0; i < nelem(palloc.avail); i++){
+		pg = &palloc.avail[i];
+		if(pg->freecount != 0)
+			s = seprint(s, e, "%lud/%lud %dK user pages avail\n",
+				pg->freecount,
+				pg->count, (1<<i)/KiB);
 	}
-
-	if(psz <= PGSZ || psz >= (pm->limit - pm->base))
-		return 0;
-	if(i+1 < e)
-		memmove(pm+2, pm+1, (e-i-1)*sizeof(Pallocmem));
-	pm[1].base = pm->base + psz;
-	pm[1].limit = pm->limit;
-	pm->limit = pm[1].base;
-	DBG("palloc split[%d] col %d %#P %#P -> %#P\n",
-		i, pm->color, pm->base, pm[1].limit, pm->limit);
-
-	return 1;
+	unlock(&palloc);
+	return s;
 }
 
 void
 pageinit(void)
 {
-	int e, i, j;
-	Page *p;
-	Pallocmem *pm;
-	uintmem np, pkb, kkb, kmkb, mkb;
+	uintmem avail;
+	uvlong pkb, kkb, kmkb, mkb;
 
-	for(e = 0; e < nelem(palloc.mem); e++){
-		if(palloc.mem[e].base == palloc.mem[e].limit)
-			break;
-	}
-
-	/*
-	 * Split banks if not of the same color
-	 * and the array can hold another item.
-	 */
-	np = 0;
-	for(i=0; i<e; i++){
-		pm = &palloc.mem[i];
-		if(splitbank(i, e))
-			e++;
-
-		print("palloc[%d] col %d %#P %#P\n",
-			i, pm->color, pm->base, pm->limit);
-
-/* BUG; can't handle it all right now */
-if(pm->base > 3*600ull*MiB){
-	pm->limit = pm->base;
-	continue;
-}
-if(pm->limit > 3*600ull*MiB)
-	pm->limit = 3*600ull*MiB;
-
-		np += (pm->limit - pm->base)/PGSZ;
-	}
-
-	palloc.pages = malloc(np*sizeof(Page));
-	if(palloc.pages == nil)
-		panic("pageinit");
-
-	palloc.head = palloc.pages;
-	p = palloc.head;
-	for(i=0; i<e; i++){
-		pm = &palloc.mem[i];
-		np = (pm->limit - pm->base)/PGSZ;
-		for(j=0; j<np; j++){
-			p->prev = p-1;
-			p->next = p+1;
-			p->pa = pm->base+j*PGSZ;
-			p->lg2size = PGSHFT;
-			p->color = pm->color;
-			palloc.freecount++;
-			p++;
-		}
-	}
-	palloc.tail = p - 1;
-	palloc.head->prev = nil;
-	palloc.tail->next = nil;
-
-	palloc.user = p - palloc.pages;
+	avail = sys->pmpaged;
+	palloc.user = avail/PGSZ;
 
 	/* user, kernel, kernel malloc area, memory */
 	pkb = palloc.user*PGSZ/KiB;
@@ -118,60 +54,109 @@ if(pm->limit > 3*600ull*MiB)
 		highwater = 64*MiB/PGSZ;
 
 	print("%lldM memory: %lldK+%lldM kernel, %lldM user, %lldM lost\n",
-		mkb/KiB, kkb, kmkb/KiB, pkb/KiB, (mkb-kkb-kmkb-pkb)/KiB);
+		mkb/KiB, kkb, kmkb/KiB, pkb/KiB, (vlong)(mkb-kkb-kmkb-pkb)/KiB);
 }
 
-static void
+Page*
+pgalloc(uint lg2size, int color)
+{
+	Page *pg;
+
+	if((pg = malloc(sizeof(Page))) == nil){
+		DBG("pgalloc: malloc failed\n");
+		return nil;
+	}
+	memset(pg, 0, sizeof *pg);
+	if((pg->pa = physalloc(1<<lg2size, &color, pg)) == 0){
+		DBG("pgalloc: physalloc failed: size %#ux color %d\n", 1<<lg2size, color);
+		free(pg);
+		return nil;
+	}
+	pg->lg2size = lg2size;
+	palloc.avail[pg->lg2size].count++;
+	pg->color = color;
+	return pg;
+}
+
+void
+pgfree(Page* pg)
+{
+	palloc.avail[pg->lg2size].count--;
+	physfree(pg->pa, pagesize(pg));
+	free(pg);
+}
+
+void
 pageunchain(Page *p)
 {
+	Pallocpg *pg;
+
 	if(canlock(&palloc))
 		panic("pageunchain (palloc %#p)", &palloc);
+	pg = &palloc.avail[p->lg2size];
 	if(p->prev)
 		p->prev->next = p->next;
 	else
-		palloc.head = p->next;
+		pg->head = p->next;
 	if(p->next)
 		p->next->prev = p->prev;
 	else
-		palloc.tail = p->prev;
+		pg->tail = p->prev;
 	p->prev = p->next = nil;
-	palloc.freecount--;
+	pg->freecount--;
 }
 
 void
 pagechaintail(Page *p)
 {
+	Pallocpg *pg;
+
 	if(canlock(&palloc))
 		panic("pagechaintail");
-	if(palloc.tail) {
-		p->prev = palloc.tail;
-		palloc.tail->next = p;
+	pg = &palloc.avail[p->lg2size];
+	if(pg->tail) {
+		p->prev = pg->tail;
+		pg->tail->next = p;
 	}
 	else {
-		palloc.head = p;
+		pg->head = p;
 		p->prev = nil;
 	}
-	palloc.tail = p;
+	pg->tail = p;
 	p->next = nil;
-	palloc.freecount++;
+	pg->freecount++;
 }
 
 void
 pagechainhead(Page *p)
 {
+	Pallocpg *pg;
+
 	if(canlock(&palloc))
 		panic("pagechainhead");
-	if(palloc.head) {
-		p->next = palloc.head;
-		palloc.head->prev = p;
+	pg = &palloc.avail[p->lg2size];
+	if(pg->head) {
+		p->next = pg->head;
+		pg->head->prev = p;
 	}
 	else {
-		palloc.tail = p;
+		pg->tail = p;
 		p->next = nil;
 	}
-	palloc.head = p;
+	pg->head = p;
 	p->prev = nil;
-	palloc.freecount++;
+	pg->freecount++;
+}
+
+static Page*
+findpg(Page *pl, int color)
+{
+	Page *p;
+
+	for(p = pl; p != nil; p = p->next)
+		if(color == NOCOLOR || p->color == color)
+			return p;
+	return nil;
 }
 
 /*
@@ -179,21 +164,36 @@ pagechainhead(Page *p)
  * return nil iff s was locked on entry and had to be unlocked to wait for memory.
  */
 Page*
-newpage(int clear, Segment *s, uintptr va, int locked)
+newpage(int clear, Segment *s, uintptr va, uint lg2pgsize, int color, int locked)
 {
 	Page *p;
 	KMap *k;
 	uchar ct;
-	int i, hw, dontalloc, color;
+	Pallocpg *pg;
+	int i, hw, dontalloc;
+	static int once;
 
 	lock(&palloc);
-	color = getpgcolor(va);
+	pg = &palloc.avail[lg2pgsize];
 	hw = highwater;
-	for(;;) {
-		if(palloc.freecount > hw)
+	for(i = 0;; i++) {
+		if(pg->freecount > hw)
 			break;
-		if(up->kp && palloc.freecount > 0)
+		if(up != nil && up->kp && pg->freecount > 0)
 			break;
+
+		if(i > 3)
+			color = NOCOLOR;
+
+		p = findpg(pg->head, color);
+		if(p != nil)
+			break;
+
+		p = pgalloc(lg2pgsize, color);
+		if(p != nil){
+			pagechainhead(p);
+			break;
+		}
 
 		unlock(&palloc);
 		dontalloc = 0;
@@ -207,10 +207,8 @@ newpage(int clear, Segment *s, uintptr va, int locked)
 		while(waserror())	/* Ignore interrupts */
 			;
 
-		print("out of physical memory\n");
-		pagereclaim(highwater/2);
-
-		tsleep(&palloc.r, ispages, 0, 1000);
+		kickpager(lg2pgsize, color);
+		tsleep(&palloc.r, ispages, pg, 1000);
 
 		poperror();
 
@@ -229,13 +227,13 @@ newpage(int clear, Segment *s, uintptr va, int locked)
 	}
 
 	/* First try for our colour */
-	for(p = palloc.head; p; p = p->next)
-		if(p->color == color)
+	for(p = pg->head; p; p = p->next)
+		if(color == NOCOLOR || p->color == color)
 			break;
 
 	ct = PG_NOFLUSH;
 	if(p == nil) {
-		p = palloc.head;
+		p = pg->head;
 		p->color = color;
 		ct = PG_NEWCOL;
 	}
@@ -264,14 +262,17 @@ newpage(int clear, Segment *s, uintptr va, int locked)
 }
 
 int
-ispages(void*)
+ispages(void *a)
 {
-	return palloc.freecount > highwater;
+	return ((Pallocpg*)a)->freecount > highwater;
 }
 
 void
 putpage(Page *p)
 {
+	Pallocpg *pg;
+	int rlse;
+
 	lock(&palloc);
 	lock(p);
 
@@ -284,26 +285,39 @@ putpage(Page *p)
 		return;
 	}
 
+	rlse = 0;
 	if(p->image != nil)
 		pagechaintail(p);
-	else
-		pagechainhead(p);
+	else{
+		/*
+		 * Free pages if we have plenty in the free list.
+		 */
+		pg = &palloc.avail[p->lg2size];
+		if(pg->freecount > Nfreepgs)
+			rlse = 1;
+		else
+			pagechainhead(p);
+	}
 
 	if(palloc.r.p != nil)
 		wakeup(&palloc.r);
 
 	unlock(p);
+	if(rlse)
+		pgfree(p);
 	unlock(&palloc);
 }
 
 Page*
-auxpage(void)
+auxpage(uint lg2size)
 {
 	Page *p;
+	Pallocpg *pg;
 
 	lock(&palloc);
-	p = palloc.head;
-	if(palloc.freecount <= highwater) {
+	pg = &palloc.avail[lg2size];
+	p = pg->head;
+	if(pg->freecount <= highwater) {
 		/* memory's tight, don't use it for file cache */
 		unlock(&palloc);
 		return nil;
@@ -326,6 +340,7 @@ static int dupretries = 15000;
 int
 duppage(Page *p)				/* Always call with p locked */
 {
+	Pallocpg *pg;
 	Page *np;
 	int color;
 	int retries;
@@ -369,15 +384,16 @@ retry:
 		goto retry;
 	}
 
+	pg = &palloc.avail[p->lg2size];
 	/* No freelist cache when memory is relatively low */
-	if(palloc.freecount <= highwater) {
+	if(pg->freecount <= highwater) {
 		unlock(&palloc);
 		uncachepage(p);
 		return 1;
 	}
 
-	color = getpgcolor(p->va);
-	for(np = palloc.head; np; np = np->next)
+	color = p->color;
+	for(np = pg->head; np; np = np->next)
 		if(np->color == color)
 			break;
 
@@ -535,6 +551,7 @@ pagereclaim(int npages)
 {
 	Page *p;
 	uvlong ticks;
+	int i;
 
 	lock(&palloc);
 	ticks = fastticks(nil);
@@ -544,15 +561,17 @@ pagereclaim(int npages)
 	 * end of the list (see putpage) so start there and work
 	 * backward.
 	 */
-	for(p = palloc.tail; p != nil && p->image != nil && npages > 0; p = p->prev) {
-		if(p->ref == 0 && canlock(p)) {
-			if(p->ref == 0) {
-				npages--;
-				uncachepage(p);
-				pageunchain(p);
-				pagechainhead(p);
+	for(i = 0; i < nelem(palloc.avail); i++) {
+		for(p = palloc.avail[i].tail; p != nil && p->image != nil && npages > 0; p = p->prev) {
+			if(p->ref == 0 && canlock(p)) {
+				if(p->ref == 0) {
+					npages--;
+					uncachepage(p);
+					pageunchain(p);
+					pagechainhead(p);
+				}
+				unlock(p);
 			}
-			unlock(p);
 		}
 	}
 	ticks = fastticks(nil) - ticks;

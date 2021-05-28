@@ -101,7 +101,7 @@ imagechanreclaim(void)
 }
 
 Image*
-attachimage(int type, Chan *c, uintptr base, uintptr top)
+attachimage(int type, Chan *c, int color, uintptr base, uintptr top)
 {
 	Image *i, **l;
 
@@ -150,6 +150,7 @@ attachimage(int type, Chan *c, uintptr base, uintptr top)
 	i->qid = c->qid;
 	i->mqid = c->mqid;
 	i->mchan = c->mchan;
+	i->color = color;
 	l = &ihash(c->qid.path);
 	i->hash = *l;
 	*l = i;
@@ -164,6 +165,7 @@ found:
 		}
 		i->s = newseg(type, base, top);
 		i->s->image = i;
+		i->s->color = color;
 		i->ref++;
 		poperror();
 	}

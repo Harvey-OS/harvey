@@ -213,6 +213,7 @@ main(u32int ax, u32int bx)
 	meminit();
 	archinit();
 	mallocinit();
+	umeminit();
 	trapinit();
 
 	/*
@@ -392,7 +393,7 @@ userinit(void)
 	 */
 	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKTOP);
 	p->seg[SSEG] = s;
-	pg = newpage(1, s, USTKTOP-segpgsize(s), 0);
+	pg = newpage(1, s, USTKTOP-segpgsize(s), PGSHFT, -1, 0);
 	segpage(s, pg);
 	k = kmap(pg);
 	bootargs(VA(k));
@@ -404,7 +405,7 @@ userinit(void)
 	s = newseg(SG_TEXT, UTZERO, UTZERO+PGSZ);
 	s->flushme++;
 	p->seg[TSEG] = s;
-	pg = newpage(1, s, UTZERO, 0);
+	pg = newpage(1, s, UTZERO, PGSHFT, -1, 0);
 	mmucachectl(pg, PG_TXTFLUSH);
 	segpage(s, pg);
 	k = kmap(s->map[0]->pages[0]);

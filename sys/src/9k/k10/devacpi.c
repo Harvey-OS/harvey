@@ -870,6 +870,20 @@ acpislit(uchar *p, int len)
 	return nil;	/* can be unmapped once parsed */
 }
 
+uintmem
+acpimblocksize(uintmem addr, int *dom)
+{
+	Srat *sl;
+
+	for(sl = srat; sl != nil; sl = sl->next)
+		if(sl->type == SRmem)
+		if(sl->mem.addr <= addr && sl->mem.addr + sl->mem.len > addr){
+			*dom = sl->mem.dom;
+			return sl->mem.len - (addr - sl->mem.addr);
+		}
+	return 0;
+}
+
 /*
  * Return a number identifying a color for the memory at
  * the given address (color identifies locality) and fill *sizep

@@ -143,6 +143,7 @@ port
 	image
 	latin1
 	page
+	pager
 	parse
 	pgrp
 	portclock
