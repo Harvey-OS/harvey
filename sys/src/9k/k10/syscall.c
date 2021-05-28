@@ -273,7 +273,7 @@ syscall(int scallnr, Ureg* ureg)
 	/*
 	 * Put return value in frame.
 	 * Which element of Ar0 to use is based on specific
-	 * knowldge of the architecture.
+	 * knowledge of the architecture.
 	 */
 	ureg->ax = ar0.p;
 
