@@ -77,6 +77,7 @@ setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec)
 		keybytes = AESmaxkey;
 	memmove(s->key, key, keybytes);
 	s->keybytes = keybytes;
+	s->ctrsz = 4;	/* default counter size from rfc3686 */
 	s->rounds = aes_setup(s->ekey, s->dkey, s->key, keybytes * 8);
 	if(ivec != nil)
 		memmove(s->ivec, ivec, AESbsize);
@@ -230,12 +231,23 @@ static void
 incrementCTR(uchar *p, uint ctrsz)
 {
 	int len;
+	ulong c;
 	uchar *ctr;
 	mpint *mpctr, *mpctrsz;
 
 	ctr = p + AESbsize - ctrsz;
+	if(ctrsz == 4){
+		/*
+		 * If counter is 32 bits (as in rfc3686 and ssh2) there's
+		 * no need to use extended precision.
+		 */
+		c = 1 + (ctr[0]<<24 | ctr[1]<<16 | ctr[2]<<8 | ctr[3]);
+		ctr[0] = c>>24; ctr[1] = c>>16; ctr[2] = c>>8; ctr[3] = c;
+		return;
+	}
 	mpctr = betomp(ctr, ctrsz, nil);
-	mpctrsz = itomp(1 << (ctrsz*8), nil);
+	mpctrsz = mpnew(ctrsz*8 + 1);
+	mpleft(mpone, ctrsz*8, mpctrsz);
 	mpadd(mpctr, mpone, mpctr);
 	mpmod(mpctr, mpctrsz, mpctr);
 	len = mptobe(mpctr, ctr, ctrsz, nil);
