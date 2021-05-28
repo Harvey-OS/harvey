@@ -190,7 +190,7 @@ segattach(Proc* p, int attr, char* name, uintptr va, usize len)
 	uintptr pgsize;
 
 	/* BUG: Only ok for now */
-	if((va != 0 && va < UTZERO) || (va & KZERO) == KZERO)
+	if((va != 0 && va < UTZERO) || iskaddr(va))
 		error("virtual address in kernel");
 
 	vmemchr(name, 0, ~0);

@@ -104,3 +104,6 @@
 
 /* this can go when the arguments to mmuput change */
 #define PPN(x)		((x) & ~(PGSZ-1))		/* GAK */
+
+#define	KVATOP	(KSEG0&KSEG1&KSEG2)
+#define	iskaddr(a)	(((uintptr)(a)&KVATOP) == KVATOP)

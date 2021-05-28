@@ -1604,7 +1604,7 @@ validname0(char *aname, int slashok, int dup, uintptr pc)
 	Rune r;
 
 	name = aname;
-	if((PTR2UINT(name) & KZERO) != KZERO){		/* hmmmm */
+	if(!iskaddr(name)){
 		if(!dup)
 			print("warning: validname* called from %#p with user pointer", pc);
 		ename = vmemchr(name, 0, (1<<16));
