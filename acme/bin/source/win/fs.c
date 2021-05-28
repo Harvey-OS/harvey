@@ -44,13 +44,13 @@ fsflush(Req *r)
 static void
 fswrite(Req *r)
 {
-	static Event *e[4];
+	static Event *e[4];	/* ours, not the one from event.h */
+	static int n, partial;
 	Event *ep;
 	int i, j, ei, nb, wid, pid;
 	Rune rune;
 	char *s;
 	char tmp[UTFmax], *t;
-	static int n, partial;
 
 	if(r->fid->file == devnew){
 		if(r->fid->aux){
@@ -84,8 +84,14 @@ fswrite(Req *r)
 
 	ep = e[n];
 	n = (n+1)%nelem(e);
-	assert(r->ifcall.count <= 8192);	/* is this guaranteed by lib9p? */
+	/*
+	 * lib9p ensures that r->ifcall.count is <= srv->msize - IOHDRSZ,
+	 * where srv == &fs.
+	 */
+	assert((int)r->ifcall.count >= 0);
 	nb = r->ifcall.count;
+	if (partial + nb >= sizeof ep->b)
+		sysfatal("EVENTSIZE < MAXRPC; increase EVENTSIZE & recompile");
 	memmove(ep->b+partial, r->ifcall.data, nb);
 	nb += partial;
 	ep->b[nb] = '\0';
@@ -97,12 +103,12 @@ fswrite(Req *r)
 		nb = j;
 		t[j] = '\0';
 	}
-	ei = nb>8192? 8192 : nb;
+	ei = nb>EVENTSIZE? EVENTSIZE: nb;
 	/* process bytes into runes, transferring terminal partial runes into next buffer */
 	for(i=j=0; i<ei && fullrune(ep->b+i, ei-i); i+=wid,j++)
 		wid = chartorune(&rune, ep->b+i);
 	memmove(tmp, ep->b+i, nb-i);
-	partial = nb-i;
+//	partial = nb-i;			/* redundant */
 	ep->nb = i;
 	ep->nr = j;
 	ep->b[i] = '\0';

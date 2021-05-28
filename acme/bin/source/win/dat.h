@@ -9,7 +9,7 @@ enum
 	NPIPEDATA	= 8000,
 	NPIPE		= NPIPEDATA+32,
 	/* EVENTSIZE is really 256 in acme, but we use events internally and want bigger buffers */
-	EVENTSIZE	= 8192,
+	EVENTSIZE	= 16*1024,
 	NEVENT		= 5,
 };
 
