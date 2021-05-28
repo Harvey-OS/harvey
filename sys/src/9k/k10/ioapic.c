@@ -12,6 +12,7 @@ typedef struct Rdt Rdt;
 
 struct Rbus {
 	Rbus	*next;
+	int	bustype;
 	int	devno;
 	Rdt	*rdt;
 };
@@ -90,7 +91,7 @@ rdtlookup(Apic *apic, int intin)
 }
 
 void
-ioapicintrinit(int busno, int apicno, int intin, int devno, u32int lo)
+ioapicintrinit(int bustype, int busno, int apicno, int intin, int devno, u32int lo)
 {
 	Rbus *rbus;
 	Rdt *rdt;
@@ -114,8 +115,12 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, u32int lo)
 		rdt->lo = lo;
 	}else{
 		if(lo != rdt->lo){
-			print("multiple irq botch bus %d %d/%d/%d lo %.8ux vs %.8ux\n",
-				busno, apicno, intin, devno, lo, rdt->lo);
+			if(bustype == BusISA && intin < 16 && lo == (Im|IPhigh|TMedge)){
+				DBG("override: isa %d %.8ux\n", intin, rdt->lo);
+				return;	/* expected; default was overridden*/
+			}
+			print("multiple irq botch type %d bus %d %d/%d/%d lo %.8ux vs %.8ux\n",
+				bustype, busno, apicno, intin, devno, lo, rdt->lo);
 			return;
 		}
 		DBG("dup rdt %d %d %d %d %.8ux\n", busno, apicno, intin, devno, lo);
@@ -123,6 +128,7 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, u32int lo)
 	rdt->ref++;
 	rbus = malloc(sizeof(*rbus));
 	rbus->rdt = rdt;
+	rbus->bustype = bustype;
 	rbus->devno = devno;
 	rbus->next = rdtbus[busno];
 	rdtbus[busno] = rbus;
@@ -281,7 +287,7 @@ ioapicintrenable(Vctl* v)
 	Rbus *rbus;
 	Rdt *rdt;
 	u32int hi, lo;
-	int busno, devno, vecno;
+	int bustype, busno, devno, vecno;
 
 	/*
 	 * Bridge between old and unspecified new scheme,
@@ -304,10 +310,11 @@ ioapicintrenable(Vctl* v)
 			if(mpisabusno == -1)
 				panic("no ISA bus allocated");
 			busno = mpisabusno;
-			devno = v->irq<<2;
+			devno = v->irq;
+			bustype = BusISA;
 		}
 	}
-	else if(BUSTYPE(v->tbdf) == BusPCI){
+	else if((bustype = BUSTYPE(v->tbdf)) == BusPCI){
 		/*
 		 * PCI.
 		 * Make a devno from BUSDNO(tbdf) and pcidev->intp.
@@ -330,7 +337,7 @@ ioapicintrenable(Vctl* v)
 
 	rdt = nil;
 	for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next)
-		if(rbus->devno == devno){
+		if(rbus->devno == devno && rbus->bustype == bustype){
 			rdt = rbus->rdt;
 			break;
 		}
