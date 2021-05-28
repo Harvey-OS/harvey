@@ -15,7 +15,7 @@
 #define UNO		((uintmem)1)
 
 enum {
-	BKmin		= 21,			/* Minimum lg2 */
+	BKmin		= 12,			/* Minimum lg2 */
 	BKmax		= 30,			/* Maximum lg2 */
 
 	Ndoms = 16,				/* Max # of domains */
