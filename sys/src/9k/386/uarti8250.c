@@ -3,6 +3,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "../port/error.h"
 
 /*
  * 8250 UART and compatibles.
@@ -160,8 +161,10 @@ i8250status(Uart* uart, void* buf, long n, long offset)
 	Ctlr *ctlr;
 	uchar ier, lcr, mcr, msr;
 
-	ctlr = uart->regs;
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
+	ctlr = uart->regs;
 	mcr = ctlr->sticky[Mcr];
 	msr = csr8r(ctlr, Msr);
 	ier = ctlr->sticky[Ier];
@@ -566,7 +569,7 @@ i8250enable(Uart* uart, int ie)
 	 * the transmitter is really empty.
 	 * Also, reading the Iir outwith i8250interrupt()
 	 * can be dangerous, but this should only happen
-	 * once, before interrupts are enabled.
+	 * once before interrupts are enabled.
 	 */
 	ilock(ctlr);
 	if(!ctlr->checkfifo){
@@ -787,7 +790,8 @@ i8250console(char* cfg)
 //	if(csr8r(ctlr, Scr) != 0x55)
 //		return nil;
 
-	(*uart->phys->enable)(uart, 0);
+	if(!uart->enabled)
+		(*uart->phys->enable)(uart, 0);
 	uartctl(uart, "b9600 l8 pn s1 i1");
 	if(*cmd != '\0')
 		uartctl(uart, cmd);

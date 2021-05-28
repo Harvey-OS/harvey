@@ -1,3 +1,6 @@
+/*
+ * keyboard input
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -51,10 +54,14 @@ enum {
 	Scroll=		KF|21,
 
 	Nscan=	128,
+
+	Int=	0,			/* kbscans indices */
+	Ext,
+	Nscans,
 };
 
 /*
- * The codes at 0x79 and 0x81 are produed by the PFU Happy Hacking keyboard.
+ * The codes at 0x79 and 0x7b are produced by the PFU Happy Hacking keyboard.
  * A 'standard' keyboard doesn't produce anything above 0x58.
  */
 Rune kbtab[Nscan] =
@@ -137,7 +144,7 @@ Rune kbtabaltgr[Nscan] =
 [0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
 };
 
-Rune kbtabctrl[] =
+Rune kbtabctrl[Nscan] =
 {
 [0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'',
 [0x08]	'', 	'', 	'', 	'', 	'', 	'', 	'\b',	'\t',
@@ -172,11 +179,11 @@ static Queue *kbdq;
 
 int mouseshifted;
 void (*kbdmouse)(int);
-static int nokbd = 1;
 
 static Lock i8042lock;
 static uchar ccc;
 static void (*auxputc)(int, int);
+static int nokbd = 1;			/* flag: no PS/2 keyboard */
 
 /*
  *  wait for output no longer busy
@@ -211,18 +218,30 @@ inready(void)
 }
 
 /*
+ *  ask 8042 to enable the use of address bit 20
+ */
+void
+i8042a20(void)
+{
+	outready();
+	outb(Cmd, 0xD1);
+	outready();
+	outb(Data, 0xDF);
+	outready();
+}
+
+/*
  *  ask 8042 to reset the machine
  */
 void
 i8042reset(void)
 {
-	ushort *s = KADDR(0x472);
 	int i, x;
 
 	if(nokbd)
 		return;
 
-	*s = 0x1234;		/* BIOS warm-boot flag */
+	*((ushort*)KADDR(0x472)) = 0x1234;	/* BIOS warm-boot flag */
 
 	/*
 	 *  newer reset the machine command
@@ -250,7 +269,10 @@ i8042auxcmd(int cmd)
 {
 	unsigned int c;
 	int tries;
+	static int badkbd;
 
+	if(badkbd)
+		return -1;
 	c = 0;
 	tries = 0;
 
@@ -274,6 +296,7 @@ i8042auxcmd(int cmd)
 
 	if(c != 0xFA){
 		print("i8042: %2.2ux returned to the %2.2ux command\n", c, cmd);
+		badkbd = 1;	/* don't keep trying; there might not be one */
 		return -1;
 	}
 	return 0;
@@ -297,20 +320,234 @@ i8042auxcmds(uchar *cmd, int ncmd)
 	return i;
 }
 
-struct {
-	int esc1;
-	int esc2;
-	int alt;
-	int altgr;
-	int caps;
-	int ctl;
-	int num;
-	int shift;
-	int collecting;
-	int nk;
-	Rune kc[5];
-	int buttons;
-} kbscan;
+typedef struct Kbscan Kbscan;
+struct Kbscan {
+	int	esc1;
+	int	esc2;
+	int	alt;
+	int	altgr;
+	int	caps;
+	int	ctl;
+	int	num;
+	int	shift;
+	int	collecting;
+	int	nk;
+	Rune	kc[5];
+	int	buttons;
+};
+
+Kbscan kbscans[Nscans];	/* kernel and external scan code state */
+
+static int kdebug;
+
+/*
+ * set keyboard's leds for lock states (scroll, numeric, caps).
+ *
+ * at least one keyboard (from Qtronics) also sets its numeric-lock
+ * behaviour to match the led state, though it has no numeric keypad,
+ * and some BIOSes bring the system up with numeric-lock set and no
+ * setting to change that.  this combination steals the keys for these
+ * characters and makes it impossible to generate them: uiolkjm&*().
+ * thus we'd like to be able to force the numeric-lock led (and behaviour) off.
+ */
+static void
+setleds(Kbscan *kbscan)
+{
+	int leds;
+
+	if(nokbd || kbscan != &kbscans[Int])
+		return;
+	leds = 0;
+	if(kbscan->num)
+		leds |= 1<<1;
+	if(0 && kbscan->caps)		/* we don't implement caps lock */
+		leds |= 1<<2;
+
+	ilock(&i8042lock);
+	outready();
+	outb(Data, 0xed);		/* `reset keyboard lock states' */
+	if(inready() == 0)
+		inb(Data);
+
+	outready();
+	outb(Data, leds);
+	if(inready() == 0)
+		inb(Data);
+
+	outready();
+	iunlock(&i8042lock);
+}
+
+/*
+ * Scan code processing
+ */
+void
+kbdputsc(int c, int external)
+{
+	int i, keyup;
+	Kbscan *kbscan;
+
+	if(external)
+		kbscan = &kbscans[Ext];
+	else
+		kbscan = &kbscans[Int];
+
+	if(kdebug)
+		print("sc %x ms %d\n", c, mouseshifted);
+	/*
+	 *  e0's is the first of a 2 character sequence, e1 the first
+	 *  of a 3 character sequence (on the safari)
+	 */
+	if(c == 0xe0){
+		kbscan->esc1 = 1;
+		return;
+	} else if(c == 0xe1){
+		kbscan->esc2 = 2;
+		return;
+	}
+
+	keyup = c & 0x80;
+	c &= 0x7f;
+	if(c > sizeof kbtab){
+		c |= keyup;
+		if(c != 0xFF)	/* these come fairly often: CAPSLOCK U Y */
+			print("unknown key %ux\n", c);
+		return;
+	}
+
+	if(kbscan->esc1){
+		c = kbtabesc1[c];
+		kbscan->esc1 = 0;
+	} else if(kbscan->esc2){
+		kbscan->esc2--;
+		return;
+	} else if(kbscan->shift)
+		c = kbtabshift[c];
+	else if(kbscan->altgr)
+		c = kbtabaltgr[c];
+	else if(kbscan->ctl)
+		c = kbtabctrl[c];
+	else
+		c = kbtab[c];
+
+	if(kbscan->caps && c<='z' && c>='a')
+		c += 'A' - 'a';
+
+	/*
+	 *  keyup only important for shifts
+	 */
+	if(keyup){
+		switch(c){
+		case Latin:
+			kbscan->alt = 0;
+			break;
+		case Shift:
+			kbscan->shift = 0;
+			mouseshifted = 0;
+			if(kdebug)
+				print("shiftclr\n");
+			break;
+		case Ctrl:
+			kbscan->ctl = 0;
+			break;
+		case Altgr:
+			kbscan->altgr = 0;
+			break;
+		case Kmouse|1:
+		case Kmouse|2:
+		case Kmouse|3:
+		case Kmouse|4:
+		case Kmouse|5:
+			kbscan->buttons &= ~(1<<(c-Kmouse-1));
+			if(kbdmouse)
+				kbdmouse(kbscan->buttons);
+			break;
+		}
+		return;
+	}
+
+	/*
+	 *  normal character
+	 */
+	if(!(c & (Spec|KF))){
+		if(kbscan->ctl)
+			if(kbscan->alt && c == Del)
+				exit(0);
+		if(!kbscan->collecting){
+			kbdputc(kbdq, c);
+			return;
+		}
+		kbscan->kc[kbscan->nk++] = c;
+		c = latin1(kbscan->kc, kbscan->nk);
+		if(c < -1)	/* need more keystrokes */
+			return;
+		if(c != -1)	/* valid sequence */
+			kbdputc(kbdq, c);
+		else	/* dump characters */
+			for(i=0; i<kbscan->nk; i++)
+				kbdputc(kbdq, kbscan->kc[i]);
+		kbscan->nk = 0;
+		kbscan->collecting = 0;
+		return;
+	} else {
+		switch(c){
+		case Caps:
+			kbscan->caps ^= 1;
+			return;
+		case Num:
+			kbscan->num ^= 1;
+			if(!external)
+				setleds(kbscan);
+			return;
+		case Shift:
+			kbscan->shift = 1;
+			if(kdebug)
+				print("shift\n");
+			mouseshifted = 1;
+			return;
+		case Latin:
+			kbscan->alt = 1;
+			/*
+			 * VMware and Qemu use Ctl-Alt as the key combination
+			 * to make the VM give up keyboard and mouse focus.
+			 * This has the unfortunate side effect that when you
+			 * come back into focus, Plan 9 thinks you want to type
+			 * a compose sequence (you just typed alt).
+			 *
+			 * As a clumsy hack around this, we look for ctl-alt
+			 * and don't treat it as the start of a compose sequence.
+			 */
+			if(!kbscan->ctl){
+				kbscan->collecting = 1;
+				kbscan->nk = 0;
+			}
+			return;
+		case Ctrl:
+			kbscan->ctl = 1;
+			return;
+		case Altgr:
+			kbscan->altgr = 1;
+			return;
+		case Kmouse|1:
+		case Kmouse|2:
+		case Kmouse|3:
+		case Kmouse|4:
+		case Kmouse|5:
+			kbscan->buttons |= 1<<(c-Kmouse-1);
+			if(kbdmouse)
+				kbdmouse(kbscan->buttons);
+			return;
+		case KF|11:
+			print("kbd debug on, F12 turns it off\n");
+			kdebug = 1;
+			break;
+		case KF|12:
+			kdebug = 0;
+			break;
+		}
+	}
+	kbdputc(kbdq, c);
+}
 
 /*
  *  keyboard interrupt
@@ -318,8 +555,7 @@ struct {
 static void
 i8042intr(Ureg*, void*)
 {
-	int s, c, i;
-	int keyup;
+	int s, c;
 
 	/*
 	 *  get status
@@ -342,150 +578,11 @@ i8042intr(Ureg*, void*)
 	 */
 	if(s & Minready){
 		if(auxputc != nil)
-			auxputc(c, kbscan.shift);
+			auxputc(c, kbscans[Int].shift);
 		return;
 	}
 
-	/*
-	 *  e0's is the first of a 2 character sequence, e1 the first
-	 *  of a 3 character sequence (on the safari)
-	 */
-	if(c == 0xe0){
-		kbscan.esc1 = 1;
-		return;
-	} else if(c == 0xe1){
-		kbscan.esc2 = 2;
-		return;
-	}
-
-	keyup = c&0x80;
-	c &= 0x7f;
-	if(c > sizeof kbtab){
-		c |= keyup;
-		if(c != 0xFF)	/* these come fairly often: CAPSLOCK U Y */
-			print("unknown key %ux\n", c);
-		return;
-	}
-
-	if(kbscan.esc1){
-		c = kbtabesc1[c];
-		kbscan.esc1 = 0;
-	} else if(kbscan.esc2){
-		kbscan.esc2--;
-		return;
-	} else if(kbscan.shift)
-		c = kbtabshift[c];
-	else if(kbscan.altgr)
-		c = kbtabaltgr[c];
-	else if(kbscan.ctl)
-		c = kbtabctrl[c];
-	else
-		c = kbtab[c];
-
-	if(kbscan.caps && c<='z' && c>='a')
-		c += 'A' - 'a';
-
-	/*
-	 *  keyup only important for shifts
-	 */
-	if(keyup){
-		switch(c){
-		case Latin:
-			kbscan.alt = 0;
-			break;
-		case Shift:
-			kbscan.shift = 0;
-			mouseshifted = 0;
-			break;
-		case Ctrl:
-			kbscan.ctl = 0;
-			break;
-		case Altgr:
-			kbscan.altgr = 0;
-			break;
-		case Kmouse|1:
-		case Kmouse|2:
-		case Kmouse|3:
-		case Kmouse|4:
-		case Kmouse|5:
-			kbscan.buttons &= ~(1<<(c-Kmouse-1));
-			if(kbdmouse)
-				kbdmouse(kbscan.buttons);
-			break;
-		}
-		return;
-	}
-
-	/*
-	 *  normal character
-	 */
-	if(!(c & (Spec|KF))){
-		if(kbscan.ctl)
-			if(kbscan.alt && c == Del)
-				exit(0);
-		if(!kbscan.collecting){
-			kbdputc(kbdq, c);
-			return;
-		}
-		kbscan.kc[kbscan.nk++] = c;
-		c = latin1(kbscan.kc, kbscan.nk);
-		if(c < -1)	/* need more keystrokes */
-			return;
-		if(c != -1)	/* valid sequence */
-			kbdputc(kbdq, c);
-		else	/* dump characters */
-			for(i=0; i<kbscan.nk; i++)
-				kbdputc(kbdq, kbscan.kc[i]);
-		kbscan.nk = 0;
-		kbscan.collecting = 0;
-		return;
-	} else {
-		switch(c){
-		case Caps:
-			kbscan.caps ^= 1;
-			return;
-		case Num:
-			kbscan.num ^= 1;
-			return;
-		case Shift:
-			kbscan.shift = 1;
-			mouseshifted = 1;
-			return;
-		case Latin:
-			kbscan.alt = 1;
-			/*
-			 * VMware and Qemu use Ctl-Alt as the key combination
-			 * to make the VM give up keyboard and mouse focus.
-			 * This has the unfortunate side effect that when you
-			 * come back into focus, Plan 9 thinks you want to type
-			 * a compose sequence (you just typed alt).
-			 *
-			 * As a clumsy hack around this, we look for ctl-alt
-			 * and don't treat it as the start of a compose sequence.
-			 */
-			if(!kbscan.ctl){
-				kbscan.collecting = 1;
-				kbscan.nk = 0;
-			}
-			return;
-		case Ctrl:
-			kbscan.ctl = 1;
-			return;
-		case Altgr:
-			kbscan.altgr = 1;
-			return;
-		case Kmouse|1:
-		case Kmouse|2:
-		case Kmouse|3:
-		case Kmouse|4:
-		case Kmouse|5:
-			kbscan.buttons |= 1<<(c-Kmouse-1);
-			if(kbdmouse)
-				kbdmouse(kbscan.buttons);
-			return;
-		}
-	}
-	kbdputc(kbdq, c);
+	kbdputsc(c, Int);
 }
 
 void
@@ -506,7 +603,7 @@ i8042auxenable(void (*putc)(int, int))
 	outb(Data, ccc);
 	if(outready() < 0)
 		print(err);
-	outb(Cmd, 0xA8);			/* auxilliary device enable */
+	outb(Cmd, 0xA8);			/* auxiliary device enable */
 	if(outready() < 0){
 		iunlock(&i8042lock);
 		return;
@@ -535,7 +632,7 @@ kbdinit(void)
 	int c, try;
 
 	/* wait for a quiescent controller */
-	try = 1000;
+	try = 500;
 	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
 		if(c & Inready)
 			inb(Data);
@@ -567,6 +664,12 @@ kbdinit(void)
 	/* disable mouse */
 	if (outbyte(Cmd, 0x60) < 0 || outbyte(Data, ccc) < 0)
 		print("i8042: kbdinit mouse disable failed\n");
+
+	/* see http://www.computer-engineering.org/ps2keyboard for codes */
+	if(getconf("*typematic") != nil)
+		/* set typematic rate/delay (0 -> delay=250ms & rate=30cps) */
+		if(outbyte(Data, 0xf3) < 0 || outbyte(Data, 0) < 0)
+			print("i8042: kbdinit set typematic rate failed\n");
 }
 
 void
@@ -582,6 +685,9 @@ kbdenable(void)
 	ioalloc(Cmd, 1, 0, "kbd");
 
 	intrenable(IrqKBD, i8042intr, 0, BUSUNKNOWN, "kbd");
+
+	kbscans[Int].num = 0;
+	setleds(&kbscans[Int]);
 }
 
 void
@@ -611,12 +717,12 @@ kbdputmap(ushort m, ushort scanc, Rune r)
 }
 
 int
-kbdgetmap(int offset, int *t, int *sc, Rune *r)
+kbdgetmap(uint offset, int *t, int *sc, Rune *r)
 {
+	if ((int)offset < 0)
+		error(Ebadarg);
 	*t = offset/Nscan;
 	*sc = offset%Nscan;
-	if(*t < 0 || *sc < 0)
-		error(Ebadarg);
 	switch(*t) {
 	default:
 		return 0;

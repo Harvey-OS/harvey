@@ -452,7 +452,7 @@ enum {
 };
 
 typedef struct Ctlr Ctlr;
-typedef struct Ctlr {
+struct Ctlr {
 	u32int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
@@ -467,7 +467,7 @@ typedef struct Ctlr {
 	void*	alloc;			/* receive/transmit descriptors */
 	int	nrd;
 	int	ntd;
-	int	nrb;			/* how many this Ctlr has in the pool */
+	int	nrb;			/* # bufs this Ctlr has in the pool */
 
 	u32int*	nic;
 	Lock	imlock;
@@ -496,7 +496,7 @@ typedef struct Ctlr {
 
 	Rendez	rrendez;
 	int	rim;
-	int	rdfree;
+	int	rdfree;			/* rx descriptors awaiting packets */
 	Rd*	rdba;			/* receive descriptor base address */
 	Block**	rb;			/* receive buffers */
 	int	rdh;			/* receive descriptor head */
@@ -504,7 +504,6 @@ typedef struct Ctlr {
 	int	rdtr;			/* receive delay timer ring value */
 
 	Lock	tlock;
-	int	tbusy;
 	int	tdfree;
 	Td*	tdba;			/* transmit descriptor base address */
 	Block**	tb;			/* transmit buffers */
@@ -514,7 +513,7 @@ typedef struct Ctlr {
 	int	txcw;
 	int	fcrtl;
 	int	fcrth;
-} Ctlr;
+};
 
 #define csr32r(c, r)	(*((c)->nic+((r)/4)))
 #define csr32w(c, r, v)	(*((c)->nic+((r)/4)) = (v))
@@ -1144,12 +1143,15 @@ igberproc(void* arg)
 			 * an indication of whether the checksums were
 			 * calculated and valid.
 			 */
+			/* ignore checksum offload as it has known bugs. */
+			rd->errors &= ~(Ipe | Tcpe);
 			if((rd->status & Reop) && rd->errors == 0){
 				bp = ctlr->rb[rdh];
 				ctlr->rb[rdh] = nil;
 				bp->wp += rd->length;
 				bp->next = nil;
-				if(!(rd->status & Ixsm)){
+				/* ignore checksum offload as it has known bugs. */
+				if(0 && !(rd->status & Ixsm)){
 					ctlr->ixsm++;
 					if(rd->status & Ipcs){
 						/*
