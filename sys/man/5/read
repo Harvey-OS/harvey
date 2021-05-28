@@ -48,7 +48,14 @@ reply message.
 The
 .I count
 field in the reply indicates the number of bytes returned.
-This may be less than the requested amount.
+This may be less than the requested amount,
+if the requested amount is not all currently available.
+However, servers should try to avoid returning less data than
+requested if possible.
+In particular, merely crossing a storage block boundary is not
+sufficient reason to return a short count;
+.IR exec (2)
+in particular relies upon this property.
 If the
 .I offset
 field is greater than or equal to the number of bytes in the file,
