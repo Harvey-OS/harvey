@@ -1,7 +1,7 @@
-#include <ctype.h>
 #define	EXTERN
 #include "a.h"
 #include "y.tab.h"
+#include <ctype.h>
 
 void
 main(int argc, char *argv[])
@@ -10,7 +10,7 @@ main(int argc, char *argv[])
 	int nout, nproc, status, i, c;
 
 	thechar = '4';
-	thestring = "mips2";
+	thestring = "mips64";
 	memset(debug, 0, sizeof(debug));
 	cinit();
 	outfile = 0;
@@ -35,6 +35,10 @@ main(int argc, char *argv[])
 	case 'I':
 		p = ARGF();
 		setinclude(p);
+		break;
+	case  'L':			/* for little-endian mips */
+		thechar = 'x';	/* XXX the char unknown */
+		thestring = "spim64";
 		break;
 	} ARGEND
 	if(*argv == 0) {
@@ -318,9 +322,9 @@ struct
 	"SRA",		LTYPE1, ASRA,
 
 	"ADDV",		LTYPE1, AADDV,
-	"ADDVU",	LTYPE1, AADDVU,
+	"ADDVU",		LTYPE1, AADDVU,
 	"SUBV",		LTYPE1, ASUBV,	/* converted to ADD(-) in loader */
-	"SUBVU",	LTYPE1, ASUBVU,
+	"SUBVU",		LTYPE1, ASUBVU,
 	"SLLV",		LTYPE1, ASLLV,
 	"SRLV",		LTYPE1, ASRLV,
 	"SRAV",		LTYPE1, ASRAV,
@@ -357,9 +361,9 @@ struct
 	"MUL",		LTYPE6, AMUL,
 	"MULU",		LTYPE6, AMULU,
 	"DIVV",		LTYPE6, ADIVV,
-	"DIVVU",	LTYPE6, ADIVVU,
+	"DIVVU",		LTYPE6, ADIVVU,
 	"MULV",		LTYPE6, AMULV,
-	"MULVU",	LTYPE6, AMULVU,
+	"MULVU",		LTYPE6, AMULVU,
 
 	"RFE",		LTYPE7, ARFE,
 	"JMP",		LTYPE7, AJMP,
@@ -454,7 +458,7 @@ cinit(void)
 		s->value = itab[i].value;
 	}
 
-	pathname = alloc(100);
+	pathname = allocn(pathname, 0, 100);
 	if(mygetwd(pathname, 99) == 0) {
 		pathname = allocn(pathname, 100, 900);
 		if(mygetwd(pathname, 999) == 0)
@@ -559,7 +563,7 @@ zaddr(Gen *a, int s)
 		break;
 
 	case D_VCONST:
-		v = a->vval;
+		v = a->offset;
 		Bputc(&obuf, v);
 		Bputc(&obuf, v>>8);
 		Bputc(&obuf, v>>16);
@@ -650,12 +654,17 @@ outhist(void)
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
+		/* on windows skip drive specifier in pathname */
+		if(systemtype(Windows) && p && p[1] == ':'){
+			p += 2;
+			c = *p;
+		}
 		if(p && p[0] != c && h->offset == 0 && pathname){
 			/* on windows skip drive specifier in pathname */
-			if(systemtype(Windows) && pathname[2] == c) {
+			if(systemtype(Windows) && pathname[1] == ':') {
 				op = p;
 				p = pathname+2;
-				*p = '/';
+				c = *p;
 			} else if(pathname[0] == c){
 				op = p;
 				p = pathname;
@@ -665,8 +674,10 @@ outhist(void)
 			q = strchr(p, c);
 			if(q) {
 				n = q-p;
-				if(n == 0)
+				if(n == 0){
 					n = 1;	/* leading "/" */
+					*p = '/';	/* don't emit "\" on windows */
+				}
 				q++;
 			} else {
 				n = strlen(p);
@@ -699,6 +710,6 @@ outhist(void)
 	}
 }
 
-#include "lexbody"
+#include "../cc/lexbody"
 #include "../cc/macbody"
 #include "../cc/compat"

@@ -1,6 +1,5 @@
 #include	"l.h"
 
-#ifdef notdef
 /*
  * fake malloc
  */
@@ -37,15 +36,30 @@ calloc(ulong m, ulong n)
 }
 
 void*
-realloc(void *p, ulong n)
+realloc(void*, ulong)
 {
-	fprint(2, "realloc(0x%p %ld) called\n", p, n);
+	fprint(2, "realloc called\n");
 	abort();
 	return 0;
 }
-#endif
+
 void*
 mysbrk(ulong size)
 {
 	return sbrk(size);
+}
+
+void
+setmalloctag(void *v, ulong pc)
+{
+	USED(v, pc);
+}
+
+int
+fileexists(char *s)
+{
+	uchar dirbuf[400];
+
+	/* it's fine if stat result doesn't fit in dirbuf, since even then the file exists */
+	return stat(s, dirbuf, sizeof(dirbuf)) >= 0;
 }

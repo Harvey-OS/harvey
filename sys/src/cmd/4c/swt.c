@@ -1,62 +1,17 @@
 #include "gc.h"
 
-int
-swcmp(const void *a1, const void *a2)
-{
-	C1 *p1, *p2;
-
-	p1 = (C1*)a1;
-	p2 = (C1*)a2;
-	if(p1->val < p2->val)
-		return -1;
-	return  p1->val > p2->val;
-}
-
 void
-doswit(Node *n)
+swit1(C1 *q, int nc, long def, Node *n)
 {
-	Case *c;
-	C1 *q, *iq;
-	long def, nc, i;
 	Node tn;
 
-	def = 0;
-	nc = 0;
-	for(c = cases; c->link != C; c = c->link) {
-		if(c->def) {
-			if(def)
-				diag(n, "more than one default in switch");
-			def = c->label;
-			continue;
-		}
-		nc++;
-	}
-
-	iq = alloc(nc*sizeof(C1));
-	q = iq;
-	for(c = cases; c->link != C; c = c->link) {
-		if(c->def)
-			continue;
-		q->label = c->label;
-		q->val = c->val;
-		q++;
-	}
-	qsort(iq, nc, sizeof(C1), swcmp);
-	if(debug['W'])
-		for(i=0; i<nc; i++)
-			print("case %2ld: = %.8lux\n", i, iq[i].val);
-	if(def == 0)
-		def = breakpc;
-	for(i=0; i<nc-1; i++)
-		if(iq[i].val == iq[i+1].val)
-			diag(n, "duplicate cases in switch %ld", iq[i].val);
 	regalloc(&tn, &regnode, Z);
-	swit1(iq, nc, def, n, &tn);
+	swit2(q, nc, def, n, &tn);
 	regfree(&tn);
 }
 
 void
-swit1(C1 *q, int nc, long def, Node *n, Node *tn)
+swit2(C1 *q, int nc, long def, Node *n, Node *tn)
 {
 	C1 *r;
 	int i;
@@ -64,8 +19,8 @@ swit1(C1 *q, int nc, long def, Node *n, Node *tn)
 
 	if(nc < 5) {
 		for(i=0; i<nc; i++) {
-			if(debug['W'])
-				print("case = %.8lux\n", q->val);
+			if(debug['K'])
+				print("case = %.8llux\n", q->val);
 			gmove(nodconst(q->val), tn);
 			gopcode(OEQ, n, tn, Z);
 			patch(p, q->label);
@@ -77,29 +32,19 @@ swit1(C1 *q, int nc, long def, Node *n, Node *tn)
 	}
 	i = nc / 2;
 	r = q+i;
-	if(debug['W'])
-		print("case > %.8lux\n", r->val);
+	if(debug['K'])
+		print("case > %.8llux\n", r->val);
 	gmove(nodconst(r->val), tn);
 	gopcode(OLT, tn, n, Z);
 	sp = p;
 	gopcode(OEQ, n, tn, Z);
 	patch(p, r->label);
-	swit1(q, i, def, n, tn);
+	swit2(q, i, def, n, tn);
 
-	if(debug['W'])
-		print("case < %.8lux\n", r->val);
+	if(debug['K'])
+		print("case < %.8llux\n", r->val);
 	patch(sp, pc);
-	swit1(r+1, nc-i-1, def, n, tn);
-}
-
-void
-cas(void)
-{
-	Case *c;
-
-	c = alloc(sizeof(*c));
-	c->link = cases;
-	cases = c;
+	swit2(r+1, nc-i-1, def, n, tn);
 }
 
 void
@@ -179,6 +124,8 @@ outstring(char *s, long n)
 {
 	long r;
 
+	if(suppress)
+		return nstring;
 	r = nstring;
 	while(n) {
 		string[mnstring] = *s++;
@@ -193,31 +140,6 @@ outstring(char *s, long n)
 			mnstring = 0;
 		}
 		n--;
-	}
-	return r;
-}
-
-long
-outlstring(ushort *s, long n)
-{
-	char buf[2];
-	int c;
-	long r;
-
-	while(nstring & 1)
-		outstring("", 1);
-	r = nstring;
-	while(n > 0) {
-		c = *s++;
-		if(align(0, types[TCHAR], Aarg1)) {
-			buf[0] = c>>8;
-			buf[1] = c;
-		} else {
-			buf[0] = c;
-			buf[1] = c>>8;
-		}
-		outstring(buf, 2);
-		n -= sizeof(ushort);
 	}
 	return r;
 }
@@ -314,41 +236,20 @@ loop:
 }
 
 void
-nullwarn(Node *l, Node *r)
-{
-	warn(Z, "result of operation not used");
-	if(l != Z)
-		cgen(l, Z);
-	if(r != Z)
-		cgen(r, Z);
-}
-
-void
-sextern(Sym *s, Node *a, long o, long w)
-{
-	long e, lw;
-
-	for(e=0; e<w; e+=NSNAME) {
-		lw = NSNAME;
-		if(w-e < lw)
-			lw = w-e;
-		gpseudo(ADATA, s, nodconst(0));
-		p->from.offset += o+e;
-		p->reg = lw;
-		p->to.type = D_SCONST;
-		memmove(p->to.sval, a->cstring+e, lw);
-	}
-}
-
-void
 gextern(Sym *s, Node *a, long o, long w)
 {
 
 	if(a->op == OCONST && typev[a->type->etype]) {
-		gpseudo(ADATA, s, nodconst(a->vconst>>32));
+		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
+			gpseudo(ADATA, s, nod32const(a->vconst>>32));
+		else
+			gpseudo(ADATA, s, nod32const(a->vconst));
 		p->from.offset += o;
 		p->reg = 4;
-		gpseudo(ADATA, s, nodconst(a->vconst));
+		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
+			gpseudo(ADATA, s, nod32const(a->vconst));
+		else
+			gpseudo(ADATA, s, nod32const(a->vconst>>32));
 		p->from.offset += o + 4;
 		p->reg = 4;
 		return;
@@ -360,7 +261,7 @@ gextern(Sym *s, Node *a, long o, long w)
 		p->to.type = D_CONST;
 }
 
-void	zname(Biobuf*, char*, int, int);
+void	zname(Biobuf*, Sym*, int);
 char*	zaddr(char*, Adr*, int);
 void	zwrite(Biobuf*, Prog*, int, int);
 void	outhist(Biobuf*);
@@ -417,8 +318,8 @@ outcode(void)
 			if(h[sf].type == t)
 			if(h[sf].sym == s)
 				break;
-			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
+			zname(&outbuf, s, t);
 			h[sym].sym = s;
 			h[sym].type = t;
 			sf = sym;
@@ -437,8 +338,8 @@ outcode(void)
 			if(h[st].type == t)
 			if(h[st].sym == s)
 				break;
-			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
+			zname(&outbuf, s, t);
 			h[sym].sym = s;
 			h[sym].type = t;
 			st = sym;
@@ -469,12 +370,17 @@ outhist(Biobuf *b)
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
+		/* on windows skip drive specifier in pathname */
+		if(systemtype(Windows) && p && p[1] == ':'){
+			p += 2;
+			c = *p;
+		}
 		if(p && p[0] != c && h->offset == 0 && pathname){
 			/* on windows skip drive specifier in pathname */
-			if(systemtype(Windows) && pathname[2] == c) {
+			if(systemtype(Windows) && pathname[1] == ':') {
 				op = p;
 				p = pathname+2;
-				*p = '/';
+				c = *p;
 			} else if(pathname[0] == c){
 				op = p;
 				p = pathname;
@@ -484,8 +390,10 @@ outhist(Biobuf *b)
 			q = utfrune(p, c);
 			if(q) {
 				n = q-p;
-				if(n == 0)
+				if(n == 0){
 					n = 1;	/* leading "/" */
+					*p = '/';	/* don't emit "\" on windows */
+				}
 				q++;
 			} else {
 				n = strlen(p);
@@ -516,24 +424,44 @@ outhist(Biobuf *b)
 }
 
 void
-zname(Biobuf *b, char *n, int t, int s)
+zname(Biobuf *b, Sym *s, int t)
 {
-	char bf[3];
+	char *n, bf[7];
+	ulong sig;
 
-	bf[0] = ANAME;
-	bf[1] = t;	/* type */
-	bf[2] = s;	/* sym */
-	Bwrite(b, bf, 3);
+	n = s->name;
+	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
+		sig = sign(s);
+		bf[0] = ASIGNAME;
+		bf[1] = sig;
+		bf[2] = sig>>8;
+		bf[3] = sig>>16;
+		bf[4] = sig>>24;
+		bf[5] = t;
+		bf[6] = s->sym;
+		Bwrite(b, bf, 7);
+		s->sig = SIGDONE;
+	}
+	else{
+		bf[0] = ANAME;
+		bf[1] = t;	/* type */
+		bf[2] = s->sym;	/* sym */
+		Bwrite(b, bf, 3);
+	}
 	Bwrite(b, n, strlen(n)+1);
 }
 
 char*
 zaddr(char *bp, Adr *a, int s)
 {
-	vlong v;
 	long l;
 	Ieee e;
 
+	if(a->type == D_CONST) {
+		l = a->offset;
+		if((vlong)l != a->offset)
+			a->type = D_VCONST;
+	}
 	bp[0] = a->type;
 	bp[1] = a->reg;
 	bp[2] = s;
@@ -552,8 +480,8 @@ zaddr(char *bp, Adr *a, int s)
 	case D_HI:
 		break;
 
-	case D_CONST:
 	case D_OREG:
+	case D_CONST:
 	case D_BRANCH:
 		l = a->offset;
 		bp[0] = l;
@@ -585,48 +513,21 @@ zaddr(char *bp, Adr *a, int s)
 		break;
 
 	case D_VCONST:
-		v = a->vval;
-		bp[0] = v;
-		bp[1] = v>>8;
-		bp[2] = v>>16;
-		bp[3] = v>>24;
-		bp[4] = v>>32;
-		bp[5] = v>>40;
-		bp[6] = v>>48;
-		bp[7] = v>>56;
-		bp += 8;
+		l = a->offset;
+		bp[0] = l;
+		bp[1] = l>>8;
+		bp[2] = l>>16;
+		bp[3] = l>>24;
+		bp += 4;
+		l = a->offset>>32;
+		bp[0] = l;
+		bp[1] = l>>8;
+		bp[2] = l>>16;
+		bp[3] = l>>24;
+		bp += 4;
 		break;
 	}
 	return bp;
-}
-
-void
-ieeedtod(Ieee *ieee, double native)
-{
-	double fr, ho, f;
-	int exp;
-
-	if(native < 0) {
-		ieeedtod(ieee, -native);
-		ieee->h |= 0x80000000L;
-		return;
-	}
-	if(native == 0) {
-		ieee->l = 0;
-		ieee->h = 0;
-		return;
-	}
-	fr = frexp(native, &exp);
-	f = 2097152L;		/* shouldnt use fp constants here */
-	fr = modf(fr*f, &ho);
-	ieee->h = ho;
-	ieee->h &= 0xfffffL;
-	ieee->h |= (exp+1022L) << 20;
-	f = 65536L;
-	fr = modf(fr*f, &ho);
-	ieee->l = ho;
-	ieee->l <<= 16;
-	ieee->l |= (long)(fr*f);
 }
 
 long
@@ -645,6 +546,8 @@ align(long i, Type *t, int op)
 
 	case Asu2:	/* padding at end of a struct */
 		w = SZ_VLONG;
+		if(packflg)
+			w = packflg;
 		break;
 
 	case Ael1:	/* initial allign of struct element */
@@ -653,6 +556,8 @@ align(long i, Type *t, int op)
 		w = ewidth[v->etype];
 		if(w <= 0 || w >= SZ_VLONG)
 			w = SZ_VLONG;
+		if(packflg)
+			w = packflg;
 		break;
 
 	case Ael2:	/* width of a struct element */
@@ -672,13 +577,14 @@ align(long i, Type *t, int op)
 			w = SZ_VLONG;
 			break;
 		}
-		o += SZ_LONG - w;	/* big endian adjustment */
+		if(thechar == '4')
+			o += SZ_VLONG - w;	/* big endian adjustment */
 		w = 1;
 		break;
 
 	case Aarg2:	/* width of a parameter */
 		o += t->width;
-		w = SZ_LONG;
+		w = SZ_VLONG;
 		break;
 
 	case Aaut3:	/* total allign of automatic */
@@ -695,8 +601,8 @@ align(long i, Type *t, int op)
 long
 maxround(long max, long v)
 {
-	v += SZ_VLONG-1;
+	v = round(v, SZ_VLONG);
 	if(v > max)
-		max = round(v, SZ_VLONG);
+		return v;
 	return max;
 }

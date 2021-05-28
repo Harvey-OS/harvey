@@ -16,8 +16,8 @@ struct machtab
 	Machdata	*machdata;		/* machine functions */
 };
 
-extern	Mach		mmips, msparc, m68020, mi386, mamd64,
-			marm, mmips2be, mmips2le, mpower, mpower64, malpha, msparc64;
+extern	Mach		mmips, mmips64, msparc, m68020, mi386, mamd64,
+			marm, /* mmips2be, mmips2le, */ mpower, mpower64, malpha, msparc64;
 extern	Machdata	mipsmach, mipsmachle, sparcmach, m68020mach, i386mach,
 			armmach, mipsmach2le, powermach, alphamach, sparc64mach;
 
@@ -40,11 +40,11 @@ Machtab	machines[] =
 		A68020,
 		&m68020,
 		&m68020mach,	},
-	{	"mips2LE",			/*plan 9 mips2 little endian*/
+	{	"mips64LE",			/*plan 9 mips64 little endian*/
 		FMIPS2LE,
 		0,
 		AMIPS,
-		&mmips2le,
+		&mmips64,
 		&mipsmach2le, 	},
 	{	"mipsLE",				/*plan 9 mips little endian*/
 		FMIPSLE,
@@ -58,11 +58,11 @@ Machtab	machines[] =
 		AMIPS,
 		&mmips,
 		&mipsmach, 	},
-	{	"mips2",			/*plan 9 mips2*/
+	{	"mips64",			/*plan 9 mips64*/
 		FMIPS2BE,
 		FMIPSB,
 		AMIPS,
-		&mmips2be,
+		&mmips64,
 		&mipsmach, 	},		/* shares debuggers with native mips */
 	{	"mipsco",			/*native mips - must follow plan 9*/
 		FMIPS,

@@ -1,0 +1,40 @@
+objtype=spim64
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+SFILES=\
+	argv0.s\
+	atom.s\
+	c_fcr0.s\
+	getcallerpc.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memccpy.s\
+	memchr.s\
+#	memcmp.s\
+	memmove.s\
+	memset.s\
+	setjmp.s\
+	strchr.s\
+	strcmp.s\
+	strcpy.s\
+	tas.s\
+
+CFILES=\
+	_nsec.c\
+	_seek.c\
+	cycles.c\
+	notejmp.c\
+	sqrt.c\
+
+HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib

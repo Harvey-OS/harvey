@@ -12,24 +12,21 @@ OFILES=\
 	span.$O\
 	enam.$O\
 	compat.$O\
+	elf.$O\
 
 HFILES=\
 	l.h\
-	../vc/v.out.h\
+	../4c/4.out.h\
+	../8l/elf.h\
 
 BIN=/$objtype/bin
-
-UPDATE=\
-	mkfile\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-
+CFLAGS=$CFLAGS -. -I.
 </sys/src/cmd/mkone
 
-#LDFLAGS=$LDFLAGS -p
-
-enam.c:	../vc/v.out.h
-	rc ../vc/mkenam
+enam.$O:	../4c/enam.c
+	$CC $CFLAGS ../4c/enam.c
+elf.$O:	../8l/elf.c
+	$CC $CFLAGS ../8l/elf.c
 
 test:V:	$O.out
 	rm -f xxx

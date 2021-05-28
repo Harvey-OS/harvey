@@ -164,6 +164,8 @@ defn setuptruss() {
 	while lst do
 	{
 		name = head lst;
+		if objtype == "mips64" && name == "seek" then
+			name = "_seek";
 		lst = tail lst;
 		addr = addressof(name);
 		if addr then
@@ -198,7 +200,7 @@ defn new() {
 }
 
 defn truss() {
-	local pc, lst, offset, prevpc, pcspret, ret;
+	local pc, lst, offset, prevpc, pcspret, ret, dataoffset;
 
 	offset = trapoffset();
 
@@ -206,6 +208,11 @@ defn truss() {
 	_stoprunning = 0;
 	setuptruss();
 	pcspret = UPCSPRET();
+
+	if objtype == "mips64" then
+		dataoffset = 8;
+	else
+		dataoffset = 4;
 
 	while !_stoprunning do {
 		cont();
@@ -229,11 +236,11 @@ defn truss() {
 			print("\treturn value: ", ret\D, "\n");
 			if (ret>=0) && (match(prevpc, readPC)>=0) then {
 				print("\tdata: ");
-				printtextordata(*((eval pcspret[1])+4), ret);
+				printtextordata(*((eval pcspret[1])+dataoffset), ret);
 				print("\n");
 			}
 			if (ret>=0) && (match(prevpc, fd2pathPC)>=0) then {
-				print("\tdata: \"", *(*((eval pcspret[1])+4)\s), "\"\n");
+				print("\tdata: \"", *(*((eval pcspret[1])+dataoffset)\s), "\"\n");
 			}
 			if (ret>=0) && (match(prevpc, errstrPC)>=0) then {
 				print("\tdata: \"", *(*(eval pcspret[1])\s), "\"\n");

@@ -361,13 +361,11 @@ freg:
 ximm:	'$' con
 	{
 		$$ = nullgen;
-		if(isvconst($2)) {
+		if(isvconst($2))
 			$$.type = D_VCONST;
-			$$.vval = $2;
-		} else {
+		else
 			$$.type = D_CONST;
-			$$.offset = $2;
-		}
+		$$.offset = $2;
 	}
 |	'$' oreg
 	{
@@ -462,15 +460,11 @@ imr:
 imm:	'$' con
 	{
 		$$ = nullgen;
-		if(isvconst($2)) {
-			fprint(2, "imm: vconst: 0x%llx\n", $2);
+		if(isvconst($2))
 			$$.type = D_VCONST;
-			$$.vval = $2;
-		} else {
-			fprint(2, "imm: const: 0x%lx\n", (long)$2);
+		else
 			$$.type = D_CONST;
-			$$.offset = $2;
-		}
+		$$.offset = $2;
 	}
 
 reg:
@@ -604,10 +598,8 @@ expr:
 int
 isvconst(vlong con)
 {
-	vlong v;
+	long l;
 
-	v = con >> 32;
-	if(v != 0 && v != -1)
-		return 1;
-	return 0;
+	l = con;
+	return (vlong)l != con;
 }

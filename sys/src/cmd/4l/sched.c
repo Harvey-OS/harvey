@@ -144,8 +144,7 @@ sched(Prog *p0, Prog *pe)
 		}
 		if(debug['X'])
 			Bprint(&bso, "?l%P\n", &s->p);
-		if(s->p.mark & BRANCH)
-			s->nop = 1;
+		s->nop = 1;
 		if(debug['v']) {
 			if(s->p.mark & LOAD) {
 				nop.load.count++;

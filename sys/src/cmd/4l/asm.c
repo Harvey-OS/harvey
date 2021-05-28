@@ -1,5 +1,12 @@
 #include	"l.h"
 
+/* can't include a.out.h due to name clashes, but these are taken from it */
+#define	_MAGIC(f, b)	((f)|((((4*(b))+0)*(b))+7))
+#define	V_MAGIC		_MAGIC(0, 16)		/* mips 3000 BE */
+#define	M_MAGIC		_MAGIC(0, 18)		/* mips 4000 BE */
+#define	N_MAGIC		_MAGIC(0, 22)		/* mips 4000 LE */
+#define	P_MAGIC		_MAGIC(0, 24)		/* mips 3000 LE */
+
 long	OFFSET;
 /*
 long	BADOFFSET	=	-1;
@@ -13,7 +20,31 @@ long	BADOFFSET	=	-1;
 		OFFSET++;\
 */
 
-#define VPUT(c)\
+#define VPUT(v) { \
+		if (little) { \
+			VLEPUT(v); \
+		} else { \
+			VBEPUT(v); \
+		} \
+	}
+
+#define VLEPUT(c)\
+	{\
+		cbp[0] = (c);\
+		cbp[1] = (c)>>8;\
+		cbp[2] = (c)>>16;\
+		cbp[3] = (c)>>24;\
+		cbp[4] = (c)>>32;\
+		cbp[5] = (c)>>40;\
+		cbp[6] = (c)>>48;\
+		cbp[7] = (c)>>56;\
+		cbp += 8;\
+		cbc -= 8;\
+		if(cbc <= 0)\
+			cflush();\
+	}
+
+#define VBEPUT(c)\
 	{\
 		cbp[0] = (c)>>56;\
 		cbp[1] = (c)>>48;\
@@ -29,7 +60,27 @@ long	BADOFFSET	=	-1;
 			cflush();\
 	}
 
-#define	LPUT(c)\
+#define LPUT(l) { \
+		if (little) { \
+			LLEPUT(l); \
+		} else { \
+			LBEPUT(l); \
+		} \
+	}
+
+#define	LLEPUT(c)\
+	{\
+		cbp[0] = (c);\
+		cbp[1] = (c)>>8;\
+		cbp[2] = (c)>>16;\
+		cbp[3] = (c)>>24;\
+		cbp += 4;\
+		cbc -= 4;\
+		if(cbc <= 0)\
+			cflush();\
+	}
+
+#define	LBEPUT(c)\
 	{\
 		cbp[0] = (c)>>24;\
 		cbp[1] = (c)>>16;\
@@ -41,6 +92,35 @@ long	BADOFFSET	=	-1;
 			cflush();\
 	}
 
+#define HPUT(h) { \
+		if (little) { \
+			HLEPUT(h); \
+		} else { \
+			HBEPUT(h); \
+		} \
+	}
+
+#define	HLEPUT(c)\
+	{\
+		cbp[0] = (c);\
+		cbp[1] = (c)>>8;\
+		cbp += 2;\
+		cbc -= 2;\
+		if(cbc <= 0)\
+			cflush();\
+	}
+
+#define	HBEPUT(c)\
+	{\
+		cbp[0] = (c)>>8;\
+		cbp[1] = (c);\
+		cbp += 2;\
+		cbc -= 2;\
+		if(cbc <= 0)\
+			cflush();\
+	}
+
+
 #define	CPUT(c)\
 	{\
 		cbp[0] = (c);\
@@ -50,7 +130,75 @@ long	BADOFFSET	=	-1;
 			cflush();\
 	}
 
-u64int
+void
+cput(long l)
+{
+	CPUT(l);
+}
+
+void
+objput(long l)	/* emit long in byte order appropriate to object machine */
+{
+	LPUT(l);
+}
+
+void
+objhput(short s)
+{
+	HPUT(s);
+}
+
+void
+wput(long l)
+{
+
+	cbp[0] = l>>8;
+	cbp[1] = l;
+	cbp += 2;
+	cbc -= 2;
+	if(cbc <= 0)
+		cflush();
+}
+
+void
+wputl(long l)
+{
+
+	cbp[0] = l;
+	cbp[1] = l>>8;
+	cbp += 2;
+	cbc -= 2;
+	if(cbc <= 0)
+		cflush();
+}
+
+void
+lput(long l)		/* emit long in big-endian byte order */
+{
+	LBEPUT(l);
+}
+
+void
+lputl(long l)		/* emit long in big-endian byte order */
+{
+	LLEPUT(l);
+}
+
+void
+llput(vlong v)
+{
+	lput(v>>32);
+	lput(v);
+}
+
+void
+llputl(vlong v)
+{
+	lputl(v);
+	lputl(v>>32);
+}
+
+vlong
 entryvalue(void)
 {
 	char *a;
@@ -58,20 +206,84 @@ entryvalue(void)
 
 	a = INITENTRY;
 	if(*a >= '0' && *a <= '9')
-		return (u64int)atovlwhex(a);
+		return atolwhex(a);
 	s = lookup(a, 0);
 	if(s->type == 0)
 		return INITTEXT;
 	if(s->type != STEXT && s->type != SLEAF)
 		diag("entry not text: %s", s->name);
-	return (u64int)s->value;
+	return s->value;
+}
+
+static void
+plan9bootimage(ulong sects, ulong submagicvers, ulong tm,
+	ulong hdrtxtsz, ulong textsz, ulong textva, ulong lcsize)
+{
+	lput(0x160L<<16|sects);		/* magic and sections */
+	lput(tm);			/* time and date */
+	lput(hdrtxtsz+datsize);		/* offset to symbol table */
+	lput(symsize);			/* size of symbol table */
+	lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
+	lput(submagicvers);		/* magic and version */
+
+	lput(textsz);			/* segment sizes */
+	lput(datsize);
+	lput(bsssize);
+
+	lput(entryvalue());		/* va of entry */
+	lput(textva);			/* va of base of text */
+	lput(INITDAT);			/* va of base of data */
+	lput(INITDAT+datsize);		/* va of base of bss */
+
+	lput(~0);			/* gp reg mask */
+	lput(lcsize);			/* pcsize / cprmask[0] */
+	lput(0);			/* coproc reg masks[1⋯3] */
+	lput(0);
+	lput(0);
+	lput(~0);			/* gp value ?? */
+}
+
+static void
+symhdrs(ulong hdrtxtsz)
+{
+	strnput(".text", 8);		/* text segment */
+	lput(INITTEXT);			/* address */
+	lput(INITTEXT);
+	lput(textsize);
+	lput(HEADR);
+	lput(0);
+	lput(HEADR+textsize+datsize+symsize);
+	lput(lcsize);			/* line number size */
+	lput(0x20);			/* flags */
+
+	strnput(".data", 8);		/* data segment */
+	lput(INITDAT);			/* address */
+	lput(INITDAT);
+	lput(datsize);
+	lput(hdrtxtsz);
+	lput(0);
+	lput(0);
+	lput(0);
+	lput(0x40);			/* flags */
+
+	strnput(".bss", 8);		/* bss segment */
+	lput(INITDAT+datsize);		/* address */
+	lput(INITDAT+datsize);
+	lput(bsssize);
+	lput(0);
+	lput(0);
+	lput(0);
+	lput(0);
+	lput(0x80);			/* flags */
 }
 
 void
 asmb(void)
 {
 	Prog *p;
-	long t;
+	long tm;
+	ulong rndtxtsz;
+	vlong t, etext;
 	Optab *o;
 
 	if(debug['v'])
@@ -86,8 +298,7 @@ asmb(void)
 			autosize = p->to.offset + 8;
 		}
 		if(p->pc != pc) {
-			diag("phase error %lux sb %lux",
-				p->pc, pc);
+			diag("phase error %llux sb %llux", p->pc, pc);
 			if(!debug['a'])
 				prasm(curp);
 			pc = p->pc;
@@ -102,6 +313,17 @@ asmb(void)
 	}
 	if(debug['a'])
 		Bprint(&bso, "\n");
+	Bflush(&bso);
+	cflush();
+
+	etext = INITTEXT + textsize;
+	for(t = pc; t < etext; t += sizeof(buf)-100) {
+		if(etext-t > sizeof(buf)-100)
+			datblk(t, sizeof(buf)-100, 1);
+		else
+			datblk(t, etext-t, 1);
+	}
+
 	Bflush(&bso);
 	cflush();
 
@@ -124,9 +346,9 @@ asmb(void)
 	}
 	for(t = 0; t < datsize; t += sizeof(buf)-100) {
 		if(datsize-t > sizeof(buf)-100)
-			datblk(t, sizeof(buf)-100);
+			datblk(t, sizeof(buf)-100, 0);
 		else
-			datblk(t, datsize-t);
+			datblk(t, datsize-t, 0);
 	}
 
 	symsize = 0;
@@ -166,54 +388,26 @@ asmb(void)
 	Bflush(&bso);
 	OFFSET = 0;
 	seek(cout, OFFSET, 0);
+
+	rndtxtsz = rnd(HEADR+textsize, (INITRND > 0? INITRND: 4096));
+	tm = time(0);
 	switch(HEADTYPE) {
 	case 0:
-		lput(0x160L<<16);		/* magic and sections */
-		lput(0L);			/* time and date */
-		lput(rnd(HEADR+textsize, 4096)+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-		lput((0413<<16)|0437L);		/* magic and version */
-		lput(rnd(HEADR+textsize, 4096));	/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT-HEADR);		/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
+		/* 0413: plan 9 boot image, text segment rounded (to 4KB) */
+		plan9bootimage(0, 0413<<16|0437, 0, rndtxtsz, rndtxtsz,
+			INITTEXT-HEADR, 0);
 		break;
 	case 1:
-		lput(0x160L<<16);		/* magic and sections */
-		lput(0L);			/* time and date */
-		lput(HEADR+textsize+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-
-		lput((0407<<16)|0437L);		/* magic and version */
-		lput(textsize);			/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT);			/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(lcsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
-		lput(0L);			/* complete mystery */
+		/* 0407: plan 9 boot image, extra word */
+		plan9bootimage(0, 0407<<16|0437, 0, HEADR+textsize, textsize,
+			INITTEXT, lcsize);
+		lput(0);			/* extra; complete mystery */
 		break;
-	case 2:
-		t = 18;
-		lput(((((4*t)+0)*t)+7));	/* magic */
+	case 2:				/* plan 9 mips 4000 format */
+		if (little)
+			lput(N_MAGIC);		/* mips 4000 LE */
+		else
+			lput(M_MAGIC);		/* mips 4000 BE */
 		lput(textsize);			/* sizes */
 		lput(datsize);
 		lput(bsssize);
@@ -223,156 +417,25 @@ asmb(void)
 		lput(lcsize);
 		break;
 	case 3:
-		lput((0x160L<<16)|3L);		/* magic and sections */
-		lput(time(0));			/* time and date */
-		lput(HEADR+textsize+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-
-		lput((0407<<16)|0437L);		/* magic and version */
-		lput(textsize);			/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT);			/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(lcsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
-
-		strnput(".text", 8);		/* text segment */
-		lput(INITTEXT);			/* address */
-		lput(INITTEXT);
-		lput(textsize);
-		lput(HEADR);
-		lput(0L);
-		lput(HEADR+textsize+datsize+symsize);
-		lput(lcsize);			/* line number size */
-		lput(0x20L);			/* flags */
-
-		strnput(".data", 8);		/* data segment */
-		lput(INITDAT);			/* address */
-		lput(INITDAT);
-		lput(datsize);
-		lput(HEADR+textsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x40L);			/* flags */
-
-		strnput(".bss", 8);		/* bss segment */
-		lput(INITDAT+datsize);		/* address */
-		lput(INITDAT+datsize);
-		lput(bsssize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x80L);			/* flags */
+		/* 0407: plan 9 mips 4k boot image with symbols */
+		plan9bootimage(3, 0407<<16|0437, tm, HEADR+textsize, textsize,
+			INITTEXT, lcsize);
+		symhdrs(HEADR+textsize);
 		break;
 	case 4:
-
-		lput((0x160L<<16)|3L);		/* magic and sections */
-		lput(time(0));			/* time and date */
-		lput(rnd(HEADR+textsize, 4096)+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-
-		lput((0413<<16)|01012L);	/* magic and version */
-		lput(textsize);			/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT);			/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(lcsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
-
-		strnput(".text", 8);		/* text segment */
-		lput(INITTEXT);			/* address */
-		lput(INITTEXT);
-		lput(textsize);
-		lput(HEADR);
-		lput(0L);
-		lput(HEADR+textsize+datsize+symsize);
-		lput(lcsize);			/* line number size */
-		lput(0x20L);			/* flags */
-
-		strnput(".data", 8);		/* data segment */
-		lput(INITDAT);			/* address */
-		lput(INITDAT);
-		lput(datsize);
-		lput(rnd(HEADR+textsize, 4096));	/* sizes */
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x40L);			/* flags */
-
-		strnput(".bss", 8);		/* bss segment */
-		lput(INITDAT+datsize);		/* address */
-		lput(INITDAT+datsize);
-		lput(bsssize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x80L);			/* flags */
+		/* 0413: plan 9 mips 4k boot image with symbols */
+		plan9bootimage(3, 0413<<16|01012, tm, rndtxtsz, textsize,
+			INITTEXT, lcsize);
+		symhdrs(rndtxtsz);
 		break;
 	case 5:
-		strnput("\177ELF", 4);		/* e_ident */
-		CPUT(1);			/* class = 32 bit */
-		CPUT(2);			/* data = MSB */
-		CPUT(1);			/* version = CURRENT */
-		strnput("", 9);
-		lput((2L<<16)|8L);		/* type = EXEC; machine = MIPS */
-		lput(1L);			/* version = CURRENT */
-		lput(entryvalue());		/* entry vaddr */
-		lput(52L);			/* offset to first phdr */
-		lput(0L);			/* offset to first shdr */
-		lput(0L);			/* flags = MIPS */
-		lput((52L<<16)|32L);		/* Ehdr & Phdr sizes*/
-		lput((3L<<16)|0L);		/* # Phdrs & Shdr size */
-		lput((0L<<16)|0L);		/* # Shdrs & shdr string size */
-
-		lput(1L);			/* text - type = PT_LOAD */
-		lput(0L);			/* file offset */
-		lput(INITTEXT-HEADR);		/* vaddr */
-		lput(INITTEXT-HEADR);		/* paddr */
-		lput(HEADR+textsize);		/* file size */
-		lput(HEADR+textsize);		/* memory size */
-		lput(0x05L);			/* protections = RX */
-		lput(0x10000L);			/* alignment code?? */
-
-		lput(1L);			/* data - type = PT_LOAD */
-		lput(HEADR+textsize);		/* file offset */
-		lput(INITDAT);			/* vaddr */
-		lput(INITDAT);			/* paddr */
-		lput(datsize);			/* file size */
-		lput(datsize+bsssize);		/* memory size */
-		lput(0x06L);			/* protections = RW */
-		lput(0x10000L);			/* alignment code?? */
-
-		lput(0L);			/* data - type = PT_NULL */
-		lput(HEADR+textsize+datsize);	/* file offset */
-		lput(0L);
-		lput(0L);
-		lput(symsize);			/* symbol table size */
-		lput(lcsize);			/* line number size */
-		lput(0x04L);			/* protections = R */
-		lput(0x04L);			/* alignment code?? */
+		elf32(MIPS, little? ELFDATA2LSB: ELFDATA2MSB, 0, nil);
 		break;
-	case 6:
-		t = 16;
-		lput(((((4*t)+0)*t)+7));	/* magic */
+	case 6:					/* plan 9 mips 3000 format */
+		if (little)
+			lput(P_MAGIC);		/* mips 3000 LE */
+		else
+			lput(V_MAGIC);		/* mips 3000 BE */
 		lput(textsize);			/* sizes */
 		lput(datsize);
 		lput(bsssize);
@@ -382,38 +445,7 @@ asmb(void)
 		lput(lcsize);
 		break;
 	case 7:
-		strnput("\177ELF", 4);		/* e_ident */
-		CPUT(2);			/* class = 64 bit */
-		CPUT(2);			/* data = MSB */
-		CPUT(1);			/* version = CURRENT */
-		strnput("", 9);
-		lput((2L<<16)|8L);		/* type = EXEC; machine = MIPS */
-		lput(1L);			/* version = CURRENT */
-		VPUT(entryvalue());		/* entry vaddr */
-		VPUT(64LL);			/* offset to first phdr */
-		VPUT(0LL);			/* offset to first shdr */
-		lput(0L);			/* flags = MIPS */
-		lput((64L<<16)|56L);		/* Ehdr & Phdr sizes*/
-		lput((2L<<16)|0L);		/* # Phdrs & Shdr size */
-		lput((0L<<16)|0L);		/* # Shdrs & shdr string size */
-
-		lput(1L);			/* text - type = PT_LOAD */
-		lput(0x05L);			/* protections = RX */
-		VPUT(0x10000ULL);		/* file offset */
-		VPUT(INITTEXT);			/* vaddr */
-		VPUT(INITTEXT);			/* paddr */
-		VPUT((vlong)textsize);		/* file size */
-		VPUT((vlong)HEADR+textsize);	/* memory size */
-		VPUT(0x10000ULL);		/* alignment code?? */
-
-		lput(1L);			/* data - type = PT_LOAD */
-		lput(0x06L);			/* protections = RW */
-		VPUT((vlong)HEADR+textsize);	/* file offset */
-		VPUT(INITDAT);			/* vaddr */
-		VPUT(INITDAT);			/* paddr */
-		VPUT((vlong)datsize);		/* file size */
-		VPUT((vlong)datsize+bsssize);	/* memory size */
-		VPUT(0x10000LL);		/* alignment code?? */
+		elf64(MIPSR4K, little? ELFDATA2LSB: ELFDATA2MSB, 0, nil);
 		break;
 	}
 	cflush();
@@ -428,13 +460,6 @@ strnput(char *s, int n)
 	}
 	for(; n > 0; n--)
 		CPUT(0);
-}
-
-void
-lput(long l)
-{
-
-	LPUT(l);
 }
 
 void
@@ -475,6 +500,10 @@ asmsym(void)
 			switch(s->type) {
 			case SCONST:
 				putsymb(s->name, 'D', s->value, s->version);
+				continue;
+
+			case SSTRING:
+				putsymb(s->name, 'T', s->value, s->version);
 				continue;
 
 			case SDATA:
@@ -523,13 +552,19 @@ asmsym(void)
 }
 
 void
-putsymb(char *s, int t, long v, int ver)
+putsymb(char *s, int t, vlong v, int ver)
 {
 	int i, f;
+	long l;
 
 	if(t == 'f')
 		s++;
-	LPUT(v);
+	if(HEADTYPE == 2) {
+		l = v >> 32;
+		LBEPUT(l);
+	}
+	l = v;
+	LBEPUT(l);
 	if(ver)
 		t += 'a' - 'A';
 	CPUT(t+0x80);			/* 0x80 is variable length */
@@ -550,10 +585,12 @@ putsymb(char *s, int t, long v, int ver)
 		CPUT(0);
 	}
 	symsize += 4 + 1 + i + 1;
+	if(HEADTYPE == 2)
+		symsize += 4;
 
 	if(debug['n']) {
 		if(t == 'z' || t == 'Z') {
-			Bprint(&bso, "%c %.8lux ", t, v);
+			Bprint(&bso, "%c %.8llux ", t, v);
 			for(i=1; s[i] != 0 || s[i+1] != 0; i+=2) {
 				f = ((s[i]&0xff) << 8) | (s[i+1]&0xff);
 				Bprint(&bso, "/%x", f);
@@ -562,9 +599,9 @@ putsymb(char *s, int t, long v, int ver)
 			return;
 		}
 		if(ver)
-			Bprint(&bso, "%c %.8lux %s<%d>\n", t, v, s, ver);
+			Bprint(&bso, "%c %.8llux %s<%d>\n", t, v, s, ver);
 		else
-			Bprint(&bso, "%c %.8lux %s\n", t, v, s);
+			Bprint(&bso, "%c %.8llux %s\n", t, v, s);
 	}
 }
 
@@ -572,9 +609,9 @@ putsymb(char *s, int t, long v, int ver)
 void
 asmlc(void)
 {
-	long oldpc, oldlc;
+	long oldlc, v, s;
+	vlong oldpc;
 	Prog *p;
-	long v, s;
 
 	oldpc = INITTEXT;
 	oldlc = 0;
@@ -582,12 +619,11 @@ asmlc(void)
 		if(p->line == oldlc || p->as == ATEXT || p->as == ANOP) {
 			if(p->as == ATEXT)
 				curtext = p;
-			if(debug['L'])
-				Bprint(&bso, "%6llux %P\n",
-					p->pc, p);
+			if(debug['V'])
+				Bprint(&bso, "%6llux %P\n", p->pc, p);
 			continue;
 		}
-		if(debug['L'])
+		if(debug['V'])
 			Bprint(&bso, "\t\t%6ld", lcsize);
 		v = (p->pc - oldpc) / MINLC;
 		while(v) {
@@ -595,7 +631,7 @@ asmlc(void)
 			if(v < 127)
 				s = v;
 			CPUT(s+128);	/* 129-255 +pc */
-			if(debug['L'])
+			if(debug['V'])
 				Bprint(&bso, " pc+%ld*%d(%ld)", s, MINLC, s+128);
 			v -= s;
 			lcsize++;
@@ -609,32 +645,29 @@ asmlc(void)
 			CPUT(s>>16);
 			CPUT(s>>8);
 			CPUT(s);
-			if(debug['L']) {
+			if(debug['V']) {
 				if(s > 0)
 					Bprint(&bso, " lc+%ld(%d,%ld)\n",
 						s, 0, s);
 				else
 					Bprint(&bso, " lc%ld(%d,%ld)\n",
 						s, 0, s);
-				Bprint(&bso, "%6llux %P\n",
-					p->pc, p);
+				Bprint(&bso, "%6llux %P\n", p->pc, p);
 			}
 			lcsize += 5;
 			continue;
 		}
 		if(s > 0) {
 			CPUT(0+s);	/* 1-64 +lc */
-			if(debug['L']) {
+			if(debug['V']) {
 				Bprint(&bso, " lc+%ld(%ld)\n", s, 0+s);
-				Bprint(&bso, "%6llux %P\n",
-					p->pc, p);
+				Bprint(&bso, "%6llux %P\n", p->pc, p);
 			}
 		} else {
 			CPUT(64-s);	/* 65-128 -lc */
-			if(debug['L']) {
+			if(debug['V']) {
 				Bprint(&bso, " lc%ld(%ld)\n", s, 64-s);
-				Bprint(&bso, "%6llux %P\n",
-					p->pc, p);
+				Bprint(&bso, "%6llux %P\n", p->pc, p);
 			}
 		}
 		lcsize++;
@@ -644,22 +677,25 @@ asmlc(void)
 		CPUT(s);
 		lcsize++;
 	}
-	if(debug['v'] || debug['L'])
+	if(debug['v'] || debug['V'])
 		Bprint(&bso, "lcsize = %ld\n", lcsize);
 	Bflush(&bso);
 }
 
 void
-datblk(long s, long n)
+datblk(long s, long n, int str)
 {
 	Prog *p;
 	char *cast;
-	long l, fl, j, d;
+	long l, fl, j;
+	vlong d;
 	int i, c;
 
 	memset(buf.dbuf, 0, n+100);
 	for(p = datap; p != P; p = p->link) {
 		curp = p;
+		if(str != (p->from.sym->type == SSTRING))
+			continue;
 		l = p->from.sym->value + p->from.offset - s;
 		c = p->reg;
 		i = 0;
@@ -686,14 +722,6 @@ datblk(long s, long n)
 			diag("unknown mode in initialization\n%P", p);
 			break;
 
-		case D_VCONST:
-			cast = (char*)p->to.ieee;
-			for(; i<c; i++) {
-				buf.dbuf[l] = cast[fnuxi8[i]];
-				l++;
-			}
-			break;
-
 		case D_FCONST:
 			switch(c) {
 			default:
@@ -701,7 +729,7 @@ datblk(long s, long n)
 				fl = ieeedtof(p->to.ieee);
 				cast = (char*)&fl;
 				for(; i<c; i++) {
-					buf.dbuf[l] = cast[fnuxi8[i+4]];
+					buf.dbuf[l] = cast[fnuxi4[i]];
 					l++;
 				}
 				break;
@@ -725,13 +753,17 @@ datblk(long s, long n)
 		case D_CONST:
 			d = p->to.offset;
 			if(p->to.sym) {
-				if(p->to.sym->type == STEXT ||
-				   p->to.sym->type == SLEAF)
+				switch(p->to.sym->type) {
+				case STEXT:
+				case SLEAF:
+				case SSTRING:
 					d += p->to.sym->value;
-				if(p->to.sym->type == SDATA)
+					break;
+				case SDATA:
+				case SBSS:
 					d += p->to.sym->value + INITDAT;
-				if(p->to.sym->type == SBSS)
-					d += p->to.sym->value + INITDAT;
+					break;
+				}
 			}
 			cast = (char*)&d;
 			switch(c) {
@@ -753,6 +785,12 @@ datblk(long s, long n)
 			case 4:
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi4[i]];
+					l++;
+				}
+				break;
+			case 8:
+				for(; i<c; i++) {
+					buf.dbuf[l] = cast[inuxi8[i]];
 					l++;
 				}
 				break;
@@ -790,6 +828,8 @@ datblk(long s, long n)
 	(SP(2,1)|(20<<21)|((x)<<3)|((y)<<0))
 #define	FPV(x,y)\
 	(SP(2,1)|(21<<21)|((x)<<3)|((y)<<0))
+
+int vshift(int);
 
 int
 asmout(Prog *p, Optab *o, int aflag)
@@ -847,7 +887,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
-		a = AADDU;
+		a = AADDVU;
 		if(o->a1 == C_ANDCON)
 			a = AOR;
 		o1 = OP_IRR(opirr(a), v, r, p->to.reg);
@@ -881,10 +921,10 @@ asmout(Prog *p, Optab *o, int aflag)
 				else
 					v = (p->cond->pc+4 - pc-4) >> 2;
 				if(((v << 16) >> 16) != v)
-					diag("short branch too far: %d\n%P", v, p);
+					diag("short branch too far: %lld\n%P", v, p);
 				o1 = OP_IRR(opirr(p->as+ALAST), v, p->from.reg, p->reg);
 				if(debug['a'])
-					Bprint(&bso, " %.8llux: %.8lux %.8lux\t%P\n",
+					Bprint(&bso, " %.16llux: %.8lux %.8lux\t%P\n",
 						p->pc, o1, o2, p);
 				LPUT(o1);
 				LPUT(o2);
@@ -896,7 +936,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		else
 			v = (p->cond->pc - pc-4) >> 2;
 		if(((v << 16) >> 16) != v)
-			diag("short branch too far: %d\n%P", v, p);
+			diag("short branch too far: %lld\n%P", v, p);
 		o1 = OP_IRR(opirr(p->as), v, p->from.reg, p->reg);
 		break;
 
@@ -951,7 +991,7 @@ asmout(Prog *p, Optab *o, int aflag)
 			if(o2) {
 				o1 += 1;
 				if(debug['a'])
-					Bprint(&bso, " %.8llux: %.8lux %.8lux%P\n",
+					Bprint(&bso, " %.16llux: %.8lux %.8lux%P\n",
 						p->pc, o1, o2, p);
 				LPUT(o1);
 				LPUT(o2);
@@ -978,7 +1018,10 @@ asmout(Prog *p, Optab *o, int aflag)
 	case 14:	/* movwu r,r */
 		v = 32-32;
 		o1 = OP_SRR(opirr(ASLLV+ALAST), v, p->from.reg, p->to.reg);
-		o2 = OP_SRR(opirr(ASRLV+ALAST), v, p->to.reg, p->to.reg);
+		if(p->as == AMOVWU)
+			o2 = OP_SRR(opirr(ASRLV+ALAST), v, p->to.reg, p->to.reg);
+		else
+			o2 = OP_SRR(opirr(ASRAV+ALAST), v, p->to.reg, p->to.reg);
 		break;
 
 	case 16:	/* sll $c,[r1],r2 */
@@ -986,7 +1029,9 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
-		if(v >= 32)
+
+		/* OP_SRR will use only the low 5 bits of the shift value */
+		if(v >= 32 && vshift(p->as))
 			o1 = OP_SRR(opirr(p->as+ALAST), v-32, r, p->to.reg);
 		else
 			o1 = OP_SRR(opirr(p->as), v, r, p->to.reg);
@@ -1060,7 +1105,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
-		o3 = OP_RRR(oprrr(AADDU), REGTMP, r, p->to.reg);
+		o3 = OP_RRR(oprrr(AADDVU), REGTMP, r, p->to.reg);
 		break;
 
 	case 27:		/* mov [sl]ext/auto/oreg,fr ==> lwc1 o(r) */
@@ -1076,7 +1121,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		case 16:
 			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 			o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-			o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
+			o3 = OP_RRR(oprrr(AADDVU), r, REGTMP, REGTMP);
 			o4 = OP_IRR(o4, 0, REGTMP, p->to.reg);
 			break;
 		case 4:
@@ -1100,7 +1145,7 @@ asmout(Prog *p, Optab *o, int aflag)
 				diag("cant synthesize large constant\n%P", p);
 			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 			o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-			o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
+			o3 = OP_RRR(oprrr(AADDVU), r, REGTMP, REGTMP);
 			o4 = OP_IRR(o4, 0, REGTMP, p->from.reg);
 			break;
 		case 4:
@@ -1155,7 +1200,7 @@ asmout(Prog *p, Optab *o, int aflag)
 			diag("cant synthesize large constant\n%P", p);
 		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-		o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
+		o3 = OP_RRR(oprrr(AADDVU), r, REGTMP, REGTMP);
 		o4 = OP_IRR(opirr(p->as), 0, REGTMP, p->from.reg);
 		break;
 
@@ -1168,7 +1213,7 @@ asmout(Prog *p, Optab *o, int aflag)
 			diag("cant synthesize large constant\n%P", p);
 		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-		o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
+		o3 = OP_RRR(oprrr(AADDVU), r, REGTMP, REGTMP);
 		o4 = OP_IRR(opirr(p->as+ALAST), 0, REGTMP, p->to.reg);
 		break;
 
@@ -1206,6 +1251,31 @@ asmout(Prog *p, Optab *o, int aflag)
 
 	case 42:	/* movw fcr,r */
 		o1 = OP_RRR(SP(2,1)|(2<<21), p->to.reg, 0, p->from.reg);/* mfcc1 */
+		break;
+
+	case 45:	/* case r */
+		if(p->link == P)
+			v = p->pc+28;
+		else
+			v = p->link->pc;
+		if(v & (1<<15))
+			o1 = OP_IRR(opirr(ALAST), (v>>16)+1, REGZERO, REGTMP);
+		else
+			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
+		o2 = OP_SRR(opirr(ASLL), 2, p->from.reg, p->from.reg);
+		o3 = OP_RRR(oprrr(AADD), p->from.reg, REGTMP, REGTMP);
+		o4 = OP_IRR(opirr(AMOVW+ALAST), v, REGTMP, REGTMP);
+		o5 = OP_RRR(oprrr(ANOR), REGZERO, REGZERO, REGZERO);
+		o6 = OP_RRR(oprrr(AJMP), 0, REGTMP, REGZERO);
+		o7 = OP_RRR(oprrr(ANOR), REGZERO, REGZERO, REGZERO);
+		break;
+
+	case 46:	/* bcase $con,lbra */
+		if(p->cond == P)
+			v = p->pc;
+		else
+			v = p->cond->pc;
+		o1 = v;
 		break;
 
 	case 47:	/* movv r,fr */
@@ -1473,5 +1543,16 @@ opirr(int a)
 		diag("bad irr %A+ALAST", a-ALAST);
 	else
 		diag("bad irr %A", a);
+	return 0;
+}
+
+int
+vshift(int a)
+{
+	switch(a){
+	case ASLLV:		return 1;
+	case ASRLV:		return 1;
+	case ASRAV:		return 1;
+	}
 	return 0;
 }

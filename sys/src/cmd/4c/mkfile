@@ -5,38 +5,46 @@ OFILES=\
 	cgen.$O\
 	enam.$O\
 	list.$O\
+	machcap.$O\
+	mul.$O\
 	peep.$O\
+	pgen.$O\
+	pswt.$O\
 	reg.$O\
 	sgen.$O\
 	swt.$O\
 	txt.$O\
-	mul.$O\
 
 HFILES=\
 	gc.h\
-	../vc/v.out.h\
+	4.out.h\
 	../cc/cc.h\
 
 LIB=../cc/cc.a$O
 
 BIN=/$objtype/bin
-
-UPDATE=\
-	mkfile\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-
 </sys/src/cmd/mkone
 
-enam.$O:	../vc/enam.c
-	$CC $CFLAGS ../vc/enam.c
+enam.c:	4.out.h
+	rc mkenam
 
 $LIB:
-	cd ../cc
+	rfork
+	bind lex.c ../cc/lex.c	# hack
+	builtin cd ../cc		# for acme
 	mk install
 	mk clean
+
+%.$O: ../cc/%.c
+	$CC $CFLAGS ../cc/$stem.c
 
 t:V:	$O.out
 	$O.out -S t
 	$LD -o t.out t.$O
 	t.out
+
+# XXX
+clean:	cleanlib
+
+cleanlib:
+	rm -f ../cc/cc.a[$OS]

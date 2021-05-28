@@ -1,0 +1,9 @@
+</sys/src/mkfile.proto
+
+OS=04589qvx
+CPUS=$CPUS mips64
+
+CC=4c
+LD=4l
+O=4
+AS=4a

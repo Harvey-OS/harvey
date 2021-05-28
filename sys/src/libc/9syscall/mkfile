@@ -44,6 +44,28 @@ install:V:
 				MOVW R1,4(R5)'
 			}
 			echo RET
+		case mips64
+			if(~ $i seek || ~ $i nsec)
+				echo TEXT _$i'(SB)', 1, '$0'
+			if not
+				echo TEXT $i'(SB)', 1, '$0'
+			echo MOVV R1, '0(FP)'
+			echo MOVW '$'$n, R1
+			echo ADDV '$8',R29
+			echo SYSCALL
+			echo ADDV '$-8',R29
+			echo RET
+		case spim64
+			if(~ $i seek || ~ $i nsec)
+				echo TEXT _$i'(SB)', 1, '$0'
+			if not
+				echo TEXT $i'(SB)', 1, '$0'
+			echo MOVV R1, '0(FP)'
+			echo MOVW '$'$n, R1
+			echo ADDV '$8',R29
+			echo SYSCALL
+			echo ADDV '$-8',R29
+			echo RET
 		case 386
 			echo TEXT $i'(SB)', 1, '$0'
 			echo MOVL '$'$n, AX

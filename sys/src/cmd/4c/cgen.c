@@ -200,13 +200,13 @@ cgen(Node *n, Node *nn)
 		if(l->op == OBIT)
 			goto asbitop;
 		if(r->op == OCONST)
+		if(!typefd[r->type->etype])
 		if(!typefd[n->type->etype]) {
 			if(l->addable < INDEXED)
 				reglcgen(&nod2, l, Z);
 			else
 				nod2 = *l;
-
-			regalloc(&nod, n, nn);
+			regalloc(&nod, r, nn);
 			gopcode(OAS, &nod2, Z, &nod);
 			gopcode(o, r, Z, &nod);
 			gopcode(OAS, &nod, Z, &nod2);
@@ -497,6 +497,8 @@ cgen(Node *n, Node *nn)
 		} else
 			gopcode(OADD, nodconst(v), Z, &nod);
 		gopcode(OAS, &nod, Z, &nod2);
+		if(nn && l->op == ONAME)	/* in x=++i, emit USED(i) */
+			gins(ANOP, l, Z);
 
 		regfree(&nod);
 		if(l->addable < INDEXED)

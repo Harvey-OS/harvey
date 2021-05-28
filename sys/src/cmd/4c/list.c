@@ -4,7 +4,6 @@
 void
 listinit(void)
 {
-
 	fmtinstall('A', Aconv);
 	fmtinstall('P', Pconv);
 	fmtinstall('S', Sconv);
@@ -153,7 +152,7 @@ Dconv(Fmt *fp)
 		break;
 
 	case D_VCONST:
-		sprint(str, "$0x%llux", a->vval);
+		sprint(str, "$0x%llux", a->offset);
 		break;
 	}
 	return fmtstrcpy(fp, str);
@@ -216,7 +215,7 @@ Nconv(Fmt *fp)
 	a = va_arg(fp->args, Adr*);
 	s = a->sym;
 	if(s == S) {
-		sprint(str, "%ld", a->offset);
+		sprint(str, "%lld", a->offset);
 		goto out;
 	}
 	switch(a->name) {
@@ -225,23 +224,23 @@ Nconv(Fmt *fp)
 		break;
 
 	case D_NONE:
-		sprint(str, "%ld", a->offset);
+		sprint(str, "%lld", a->offset);
 		break;
 
 	case D_EXTERN:
-		sprint(str, "%s+%ld(SB)", s->name, a->offset);
+		sprint(str, "%s+%lld(SB)", s->name, a->offset);
 		break;
 
 	case D_STATIC:
-		sprint(str, "%s<>+%ld(SB)", s->name, a->offset);
+		sprint(str, "%s<>+%lld(SB)", s->name, a->offset);
 		break;
 
 	case D_AUTO:
-		sprint(str, "%s-%ld(SP)", s->name, -a->offset);
+		sprint(str, "%s-%lld(SP)", s->name, -a->offset);
 		break;
 
 	case D_PARAM:
-		sprint(str, "%s+%ld(FP)", s->name, a->offset);
+		sprint(str, "%s+%lld(FP)", s->name, a->offset);
 		break;
 	}
 out:

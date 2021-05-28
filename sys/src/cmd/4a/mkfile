@@ -6,20 +6,13 @@ OFILES=\
 	lex.$O\
 
 HFILES=\
-	../vc/v.out.h\
+	../4c/4.out.h\
 	y.tab.h\
 	a.h\
 
 YFILES=a.y\
 
 BIN=/$objtype/bin
-
-UPDATE=\
-	mkfile\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-	$YFILES\
-
 < /sys/src/cmd/mkone
 YFLAGS=-D1 -d
 

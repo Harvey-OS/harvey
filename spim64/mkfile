@@ -1,0 +1,9 @@
+</sys/src/mkfile.proto
+
+OS=04589qvx
+CPUS=$CPUS spim64
+
+CC=xc
+LD=xl
+O=x
+AS=xa

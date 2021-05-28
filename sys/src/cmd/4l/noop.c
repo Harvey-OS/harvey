@@ -194,7 +194,7 @@ noops(void)
 					Bprint(&bso, "odd stack in: %s\n",
 						curtext->from.sym->name);
 				q = prg();
-				q->as = AADD;
+				q->as = AADDV;
 				q->line = p->line;
 				q->from.type = D_CONST;
 				q->from.offset = -autosize;
@@ -219,7 +219,7 @@ noops(void)
 			}
 
 			q1 = prg();
-			q1->as = AMOVW;
+			q1->as = AMOVV;
 			q1->line = p->line;
 			q1->from.type = D_REG;
 			q1->from.reg = REGLINK;
@@ -246,7 +246,7 @@ noops(void)
 					break;
 				}
 
-				p->as = AADD;
+				p->as = AADDV;
 				p->from.type = D_CONST;
 				p->from.offset = autosize;
 				p->to.type = D_REG;
@@ -264,7 +264,7 @@ noops(void)
 				p->link = q;
 				break;
 			}
-			p->as = AMOVW;
+			p->as = AMOVV;
 			p->from.type = D_OREG;
 			p->from.offset = 0;
 			p->from.reg = REGSP;
@@ -274,7 +274,7 @@ noops(void)
 			q = p;
 			if(autosize) {
 				q = prg();
-				q->as = AADD;
+				q->as = AADDV;
 				q->line = p->line;
 				q->from.type = D_CONST;
 				q->from.offset = autosize;
@@ -310,7 +310,7 @@ noops(void)
 				q->mark |= BRANCH;
 				p->link = q;
 
-				p->as = AADD;
+				p->as = AADDV;
 				p->from = zprg.from;
 				p->from.type = D_CONST;
 				p->from.offset = autosize;
@@ -332,7 +332,7 @@ noops(void)
 
 			q = prg();
 			q->line = p->line;
-			q->as = AADD;
+			q->as = AADDV;
 			q->from.type = D_CONST;
 			q->from.offset = autosize;
 			q->to.type = D_REG;
@@ -340,7 +340,7 @@ noops(void)
 			q->link = p->link;
 			p->link = q;
 
-			p->as = AMOVW;
+			p->as = AMOVV;
 			p->from = zprg.from;
 			p->from.type = D_OREG;
 			p->from.offset = 0;

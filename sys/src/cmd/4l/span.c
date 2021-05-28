@@ -1,13 +1,43 @@
 #include	"l.h"
 
 void
+pagebug(Prog *p)
+{
+	Prog *q;
+
+	switch(p->as) {
+	case ABGEZAL:
+	case ABLTZAL:
+	case AJAL:
+	case ABEQ:
+	case ABGEZ:
+	case ABGTZ:
+	case ABLEZ:
+	case ABLTZ:
+	case ABNE:
+	case ABFPT:
+	case ABFPF:
+	case AJMP:
+		q = prg();
+		*q = *p;
+		p->link = q;
+		p->as = ANOR;
+		p->optab = 0;
+		p->from = zprg.from;
+		p->from.type = D_REG;
+		p->from.reg = REGZERO;
+		p->to = p->from;
+	}
+}
+
+void
 span(void)
 {
 	Prog *p, *q;
-	Sym *setext;
+	Sym *setext, *s;
 	Optab *o;
-	int m, bflag;
-	vlong c, otxt;
+	int m, bflag, i;
+	vlong c, otxt, v;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f span\n", cputime());
@@ -17,6 +47,9 @@ span(void)
 	c = INITTEXT;
 	otxt = c;
 	for(p = firstp; p != P; p = p->link) {
+		/* bug in early 4000 chips delayslot on page boundary */
+		if((c&(0x1000-1)) == 0xffc)
+			pagebug(p);
 		p->pc = c;
 		o = oplook(p);
 		m = o->size;
@@ -50,6 +83,9 @@ span(void)
 		bflag = 0;
 		c = INITTEXT;
 		for(p = firstp; p != P; p = p->link) {
+			/* bug in early 4000 chips delayslot on page boundary */
+			if((c&(0x1000-1)) == 0xffc)
+				pagebug(p);
 			p->pc = c;
 			o = oplook(p);
 			if(o->type == 6 && p->cond) {
@@ -90,6 +126,24 @@ span(void)
 			c += m;
 		}
 	}
+
+	if(debug['t']) {
+		/*
+		 * add strings to text segment
+		 */
+		c = rnd(c, 8);
+		for(i=0; i<NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			if(s->type != SSTRING)
+				continue;
+			v = s->value;
+			while(v & 3)
+				v++;
+			s->value = c;
+			c += v;
+		}
+	}
+
 	c = rnd(c, 8);
 
 	setext = lookup("etext", 0);
@@ -100,12 +154,12 @@ span(void)
 	if(INITRND)
 		INITDAT = rnd(c, INITRND);
 	if(debug['v'])
-		Bprint(&bso, "tsize = %lux\n", textsize);
+		Bprint(&bso, "tsize = %llux\n", textsize);
 	Bflush(&bso);
 }
 
 void
-xdefine(char *p, int t, long v)
+xdefine(char *p, int t, vlong v)
 {
 	Sym *s;
 
@@ -123,6 +177,24 @@ regoff(Adr *a)
 	instoffset = 0;
 	aclass(a);
 	return instoffset;
+}
+
+int
+isint32(vlong v)
+{
+	long l;
+
+	l = v;
+	return (vlong)l == v;
+}
+
+int
+isuint32(uvlong v)
+{
+	ulong l;
+
+	l = v;
+	return (uvlong)l == v;
 }
 
 int
@@ -212,7 +284,6 @@ aclass(Adr *a)
 
 	case D_CONST:
 		switch(a->name) {
-
 		case D_NONE:
 			instoffset = a->offset;
 		consize:
@@ -221,7 +292,7 @@ aclass(Adr *a)
 					return C_SCON;
 				if(instoffset <= 0xffff)
 					return C_ANDCON;
-				if((instoffset & 0xffff) == 0)
+				if((instoffset & 0xffff) == 0 && isuint32(instoffset))
 					return C_UCON;
 				return C_LCON;
 			}
@@ -229,7 +300,7 @@ aclass(Adr *a)
 				return C_ZCON;
 			if(instoffset >= -0x8000)
 				return C_ADDCON;
-			if((instoffset & 0xffff) == 0)
+			if((instoffset & 0xffff) == 0 && isint32(instoffset))
 				return C_UCON;
 			return C_LCON;
 
@@ -283,7 +354,7 @@ aclass(Adr *a)
 Optab*
 oplook(Prog *p)
 {
-	int a1, a2, a3, r, t;
+	int a1, a2, a3, r;
 	char *c1, *c3;
 	Optab *o, *e;
 
@@ -308,10 +379,10 @@ oplook(Prog *p)
 	r = p->as;
 	o = oprange[r].start;
 	if(o == 0) {
-		t = opcross[repop[r]][a1][a2][a3];
-		if(t) {
-			p->optab = t+1;
-			return optab+t;
+		a1 = opcross[repop[r]][a1][a2][a3];
+		if(a1) {
+			p->optab = a1+1;
+			return optab+a1;
 		}
 		o = oprange[r].stop; /* just generate an error */
 	}
@@ -326,7 +397,7 @@ oplook(Prog *p)
 			return o;
 		}
 	diag("illegal combination %A %d %d %d",
-		p->as, a1, a2, a3);
+		p->as, p->from.class-1, a2, a3);
 	if(!debug['a'])
 		prasm(p);
 	o = optab;
@@ -595,10 +666,7 @@ buildrep(int x, int as)
 	Optab *e, *s, *o;
 	int a1, a2, a3, n;
 
-	if(C_NONE != 0 ||
-	   C_REG != 1 ||
-	   C_GOK >= 32 ||
-	   x >= nelem(opcross)) {
+	if(C_NONE != 0 || C_REG != 1 || C_GOK >= 32 || x >= nelem(opcross)) {
 		diag("assumptions fail in buildrep");
 		errorexit();
 	}

@@ -58,8 +58,9 @@ typedef struct Exectable{
 } ExecTable;
 
 extern	Mach	mmips;
-extern	Mach	mmips2le;
-extern	Mach	mmips2be;
+//extern	Mach	mmips2le;
+//extern	Mach	mmips2be;
+extern	Mach	mmips64;
 extern	Mach	msparc;
 extern	Mach	msparc64;
 extern	Mach	m68020;
@@ -90,21 +91,21 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		adotout },
-	{ M_MAGIC,			/* Mips 4.out */
-		"mips 4k plan 9 executable BE",
-		"mips 4k plan 9 dlm BE",
+	{ M_MAGIC,			/* Mips64 4.out */
+		"mips64 plan 9 executable BE",
+		"mips64 plan 9 dlm BE",
 		FMIPS2BE,
 		1,
-		&mmips2be,
+		&mmips64,
 		sizeof(Exec),
 		beswal,
 		adotout },
-	{ N_MAGIC,			/* Mips 0.out */
-		"mips 4k plan 9 executable LE",
-		"mips 4k plan 9 dlm LE",
+	{ N_MAGIC,			/* Mips64 x.out */
+		"mips64 plan 9 executable LE",
+		"mips64 plan 9 dlm LE",
 		FMIPS2LE,
 		1,
-		&mmips2le,
+		&mmips64,
 		sizeof(Exec),
 		beswal,
 		adotout },
@@ -122,7 +123,7 @@ ExecTable exectab[] =
 		nil,
 		FMIPSB,
 		0,
-		&mmips2be,
+		&mmips64,
 		sizeof(struct mips4kexec),
 		beswal,
 		mips4kboot },

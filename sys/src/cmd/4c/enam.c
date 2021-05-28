@@ -58,6 +58,7 @@ char*	anames[] =
 	"MULF",
 	"MULU",
 	"MULW",
+	"NAME32",
 	"NAME",
 	"NEGD",
 	"NEGF",
@@ -117,5 +118,6 @@ char*	anames[] =
 	"MOVDV",
 	"MOVVF",
 	"MOVVD",
+	"SIGNAME",
 	"LAST",
 };

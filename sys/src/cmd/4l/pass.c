@@ -26,6 +26,17 @@ dodata(void)
 				s->value, s->name, p);
 	}
 
+	if(debug['t']) {
+		/*
+		 * pull out string constants
+		 */
+		for(p = datap; p != P; p = p->link) {
+			s = p->from.sym;
+			if(p->to.type == D_SCONST)
+				s->type = SSTRING;
+		}
+	}
+
 	/*
 	 * pass 1
 	 *	assign 'small' variables to data segment
@@ -126,9 +137,10 @@ dodata(void)
 				continue;
 			/* size should be 19 max */
 			if(strlen(s->name) >= 10)	/* has loader address */
-				sprint(literal, "$%lux.%lux", (long)s, p->from.offset);
+				sprint(literal, "$%p.%llux", s, p->from.offset);
 			else
-				sprint(literal, "$%s.%d.%lux", s->name, s->version, p->from.offset);
+				sprint(literal, "$%s.%d.%llux", s->name,
+					s->version, p->from.offset);
 		} else {
 			if(p->from.name != D_NONE)
 				continue;
@@ -371,7 +383,7 @@ patch(void)
 			q = q->link;
 		}
 		if(q == P) {
-			diag("branch out of range %ld\n%P", c, p);
+			diag("branch out of range %lld\n%P", c, p);
 			p->to.type = D_NONE;
 		}
 		p->cond = q;
@@ -442,10 +454,10 @@ brloop(Prog *p)
 	return P;
 }
 
-long
+vlong
 atolwhex(char *s)
 {
-	long n;
+	vlong n;
 	int f;
 
 	n = 0;
@@ -523,9 +535,9 @@ atovlwhex(char *s)
 }
 
 vlong
-rnd(vlong v, vlong r)
+rnd(vlong v, long r)
 {
-	vlong c;
+	long c;
 
 	if(r <= 0)
 		return v;

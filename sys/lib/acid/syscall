@@ -57,10 +57,10 @@ defn printsyscall(name, fmt, arg) {
 			print(argl);
 		} else if (fmt[i] == 'Z') && (~*a == 0) then {
 			print("-1");
-			a++;	// advance extra word for quadword
+			if fmtsize(a) != 8 then a++;	// advance extra word for quadword
 		} else if (fmt[i] == 'Y') || (fmt[i] == 'V') then {
 			print(fmt(*a, fmt[i]));
-			a++;	// advance extra word for quadword
+			if fmtsize(a) != 8 then a++;	// advance extra word for quadword
 		} else if (fmt[i] == 'T') then {
 			if *a == 0 then
 				print("nil");
@@ -152,6 +152,8 @@ defn UPCSPRET() {
 		return { code(*(*PC-4)), code(*SP+4), code(*AX) };
 	if (objtype == "mips") || (objtype == "mips2") then
 		return { code(*(*PC-4) & 0xffff), code(*SP+4), code(*R1) };
+	if objtype == "mips64" then
+		return { code(*(*PC-8) & 0xffff), code(*SP), code(*R1) };
 	if objtype == "arm" then
 		return { code(*(*PC-4) & 0xffff), code(*SP+4), code(*R0) };	// untested
 	if objtype == "alpha" then
@@ -163,15 +165,17 @@ defn trapoffset() {
 	if objtype == "386" then return 5;
 	if objtype == "mips" then return 8;
 	if objtype == "mips2" then return 8;
+	if objtype == "mips64" then return 12;
 	if objtype == "arm" then return 8;	// untested
 	if objtype == "alpha" then return 8;	// untested
-}	
+}
 
 defn trapreason() {
 	// return reason for trap
 	if objtype == "386" then return reason(*TRAP);
 	if objtype == "mips" then return reason(*CAUSE);
 	if objtype == "mips2" then return reason(*CAUSE);
+	if objtype == "mips64" then return reason(*CAUSE);
 	if objtype == "arm" then return "unknown trap";	// untested
 	if objtype == "alpha" then return reason(cause);	// untested
 }

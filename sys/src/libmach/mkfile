@@ -14,7 +14,8 @@ FILES=\
 	k\
 	sparc64\
 	q\
-	0\
+#	0\
+	4\
 	68020\
 	5\
 	6\
@@ -39,6 +40,7 @@ FILES=\
 	8obj\
 	9obj\
 	qobj\
+	4obj\
 	vcodas\
 
 HFILES=/sys/include/mach.h elf.h obj.h
@@ -57,6 +59,7 @@ UPDATE=mkfile\
 CFLAGS=$CFLAGS -I/sys/src/cmd
 
 68020obj.$O: 68020/2.out.h
+4obj.$O: 4c/4.out.h
 5obj.$O: /sys/src/cmd/5c/5.out.h
 6obj.$O: /sys/src/cmd/6c/6.out.h
 alphaobj.$O: alpha/7.out.h
