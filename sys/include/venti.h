@@ -134,7 +134,8 @@ enum
 	_VtEntryDir = 1<<1,		/* a directory */
 	_VtEntryDepthShift = 2,		/* shift for pointer depth */
 	_VtEntryDepthMask = 7<<2,	/* mask for pointer depth */
-	VtEntryLocal = 1<<5		/* for local storage only */
+	VtEntryLocal = 1<<5,		/* for local storage only */
+	VtEntryNoArchive = 1<<6		/* for local storage only */
 };
 enum
 {
