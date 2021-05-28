@@ -100,7 +100,7 @@
 #define PTLX(v, l)	(((v)>>(((l)*PTSHFT)+PGSHFT)) & ((1<<PTSHFT)-1))
 #define PGLSZ(l)	(1<<(((l)*PTSHFT)+PGSHFT))
 
-#define TMFM		(64*MiB)			/* GAK kernel memory */
+#define TMFM		((256-32)*MiB)			/* GAK kernel memory */
 
 /* this can go when the arguments to mmuput change */
 #define PPN(x)		((x) & ~(PGSZ-1))		/* GAK */
