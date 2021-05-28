@@ -920,6 +920,7 @@ fileSetQidSpace(File *f, u64int offset, u64int max)
 	f->dir.qidSpace = 1;
 	f->dir.qidOffset = offset;
 	f->dir.qidMax = max;
+	f->dirty = 1;
 	ret = fileMetaFlush2(f, nil)>=0;
 	fileMetaUnlock(f);
 	fileUnlock(f);
