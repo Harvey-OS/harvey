@@ -6,6 +6,7 @@ TARG = 	6in4\
 	gping\
 	hogports\
 	httpfile\
+	iscsisrv\
 	linklocal\
 	ping\
 	pppoe\

@@ -1,0 +1,71 @@
+.TH ISCSISRV 8
+.SH NAME
+iscsisrv \- iSCSI target: provide remote access via iSCSI
+.SH SYNOPSIS
+.B ip/iscsisrv
+[
+.B -dr
+] [
+.B -l
+.I len
+] [
+.B -a
+.I dialstring
+]
+.I target
+.SH DESCRIPTION
+.I Iscsisrv
+presents the file
+.I target
+by speaking a restricted form of the iSCSI protocol.
+It defaults to communicating on file descriptors 0 and 1,
+assumed to be a network connection as passed from
+.IR listen (8)
+via
+.BR /bin/service/tcp3260 .
+If the
+.B -a
+option is supplied, it will instead listen for connections on
+the specified dialstring.
+.P
+Changes are written through to
+.I target
+unless the
+.B -r
+option is given.
+If
+.B -l
+is supplied,
+.I iscsisrv
+will claim that
+.I target
+is
+.I len
+bytes long.
+.SH EXAMPLES
+Export a target,
+.LR /dev/sdC0/iscsi-test :
+.IP
+.EX
+disk/iscsisrv /dev/sdC0/iscsi-test
+.EE
+.PP
+Export a dummy target over TCP:
+.IP
+.EX
+disk/iscsisrv -rl 10240000 -a tcp!*!3260 /dev/zero
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ip/iscsisrv.c
+.SH SEE ALSO
+.IR iscsifs (4)
+.SH BUGS
+Does not authenticate incoming connections.
+.PP
+Implements only one connection per session.
+.PP
+Implements only lun 0.
+.PP
+Implements immediate execution, whether requested or not.
+.PP
+Trusts TCP, so does not implement framing (FIM) nor CRCs (digests).
