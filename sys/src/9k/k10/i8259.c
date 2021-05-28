@@ -195,6 +195,7 @@ i8259irqenable(Vctl* v)
 		v->isr = i8259isr;
 	iunlock(&i8259lock);
 
+	v->type = "8259";
 	return IdtPIC+irq;
 }
 

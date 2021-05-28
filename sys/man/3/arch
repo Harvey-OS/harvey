@@ -114,9 +114,9 @@ last address, name of device.
 Reads from
 .I irqalloc
 return the enabled interrupts, one line per
-interrupt.  Each line contains three fields separated by white space:
-the trap number, the IRQ it is assigned to, and the name of
-the device using it.
+interrupt.  Each line contains four fields separated by white space:
+the trap number, the IRQ it is assigned to, the type of interrupt,
+and the name of the device using it.
 .PP
 Reads and writes to
 .IR iob ,

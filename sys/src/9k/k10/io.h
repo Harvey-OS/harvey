@@ -41,6 +41,7 @@ typedef struct Vctl {
 	void*	a;			/* argument to call it with */
 	int	tbdf;
 	char	name[KNAMELEN];		/* of driver */
+	char	*type;
 
 	int	(*isr)(int);		/* get isr bit for this irq */
 	int	(*eoi)(int);		/* eoi */

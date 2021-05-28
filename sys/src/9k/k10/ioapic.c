@@ -297,6 +297,7 @@ ioapicintrenable(Vctl* v)
 		if(v->irq >= IdtLINT0 && v->irq <= IdtSPURIOUS){
 			if(v->irq != IdtSPURIOUS)
 				v->isr = apiceoi;
+			v->type = "lapic";
 			return v->irq;
 		}
 		else{
@@ -402,6 +403,7 @@ ioapicintrenable(Vctl* v)
 	v->isr = apicisr;
 	v->eoi = apiceoi;
 	v->vno = vecno;
+	v->type = "ioapic";
 
 	return vecno;
 }

@@ -105,7 +105,7 @@ intrdisable(void* vector)
 static long
 irqallocread(Chan*, void *vbuf, long n, vlong offset)
 {
-	char *buf, *p, str[2*(11+1)+KNAMELEN+1+1];
+	char *buf, *p, str[2*(11+1)+(8+1)+KNAMELEN+1+1];
 	int ns, vno;
 	long oldn;
 	Vctl *v;
@@ -117,7 +117,8 @@ irqallocread(Chan*, void *vbuf, long n, vlong offset)
 	buf = vbuf;
 	for(vno=0; vno<nelem(vctl); vno++){
 		for(v=vctl[vno]; v; v=v->next){
-			ns = snprint(str, sizeof str, "%11d %11d %.*s\n", vno, v->irq, KNAMELEN, v->name);
+			ns = snprint(str, sizeof str, "%11d %11d %-*.*s %.*s\n",
+				vno, v->irq, 8, 8, v->type, KNAMELEN, v->name);
 			if(ns <= offset)	/* if do not want this, skip entry */
 				offset -= ns;
 			else{
@@ -149,6 +150,7 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	if(vno < 0 || vno > IdtMAX)
 		panic("trapenable: vno %d", vno);
 	v = malloc(sizeof(Vctl));
+	v->type = "trap";
 	v->tbdf = BUSUNKNOWN;
 	v->f = f;
 	v->a = a;
