@@ -47,7 +47,6 @@ void	devtabshutdown(void);
 void	dump(void *, int);
 void	eieio(void);
 void	etherclock(void);
-void	evenaddr(uintptr);
 void	fifoinit(Ether *);
 void	firmware(int);
 int	fpipower(Ureg*);
@@ -184,6 +183,7 @@ void	uartlputs(char *s);
 void	uncinit(void);
 void	uncinitwait(void);
 #define	userureg(ur)	(((ur)->status & MSR_PR) != 0)
+void	validalign(uintptr, unsigned);
 void	verifyproc(Proc *);
 void	verifymach(Mach *);
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
