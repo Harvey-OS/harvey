@@ -21,7 +21,7 @@ case other
 case juke					# ye olde file server
 	srv -q il!jukefs && mount /srv/il!jukefs /n/juke
 case sources
-	srv -nq tcp!sources.cs.bell-labs.com sources /n/sources
+	srv -nq tcp!9p.io sources /n/sources
 case sourcesdump
 	9fs sources
 	mount -n /srv/sources /n/sourcesdump main/archive
@@ -44,7 +44,7 @@ case *.vac
 	}
 	vacfs -m /n/`{basename $1 .vac} `{cat $score}
 case wiki
-	srv -m 'net!plan9.bell-labs.com!wiki' wiki /mnt/wiki
+	srv -m 'net!9p.io!wiki' wiki /mnt/wiki
 case *
 	switch($#*){
 	case 1
