@@ -39,10 +39,7 @@ Menu menu =
 	buttons,
 };
 
-Menu lmenu =
-{
-	levelnames,
-};
+Menu lmenu;
 
 void
 buildmenu(void)
