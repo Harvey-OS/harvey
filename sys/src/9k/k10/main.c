@@ -130,7 +130,7 @@ squidboy(int apicno)
 		 * used by the spinning core.
 		 */
 		while(!m->online)
-			;
+			pause();
 		apictimerenable();
 		apictprput(0);
 

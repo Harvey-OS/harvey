@@ -521,7 +521,7 @@ archreset(void)
 	outb(0xcf9, i|0x06);				/* RST_CPU transition */
 
 	for(;;)
-		;
+		pause();
 }
 
 /*

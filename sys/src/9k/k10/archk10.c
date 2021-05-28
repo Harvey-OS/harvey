@@ -361,7 +361,7 @@ microdelay(int microsecs)
 
 	r = rdtsc();
 	for(t = r + m->cpumhz*microsecs; r < t; r = rdtsc())
-		;
+		pause();
 }
 
 void
@@ -371,5 +371,5 @@ millidelay(int millisecs)
 
 	r = rdtsc();
 	for(t = r + m->cpumhz*1000ull*millisecs; r < t; r = rdtsc())
-		;
+		pause();
 }
