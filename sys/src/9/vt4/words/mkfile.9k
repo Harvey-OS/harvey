@@ -1,0 +1,74 @@
+CONF=vt4cpu
+CONFLIST=vt4cpu
+
+loadaddr=0x80100020
+pagesize=0x100000
+
+objtype=power
+</$objtype/mkfile
+p=9
+
+default:V: 9k
+
+9k:V:	$p$CONF $p$CONF.elf
+
+<| awk -f ../mk/parse $CONF
+<../mk/bootmkfile
+<../mk/portmkfile
+
+OBJ=$MACH $CONF.root.$O $DEVS $PORT
+CFLAGS=-. -I../port -I../ip -I../boot $CFLAGS
+HFILES=`{ls -d *.h ../port/*.h ../ip/*.h | grep -v '^(errstr|init)\.h$'}
+
+$p$CONF:DQ:	$CONF.c $OBJ $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	echo '# linking normal kernel'
+	$LD -a -R$pagesize -T$loadaddr -o $target -l $OBJ $CONF.$O $LIB >$target.list
+	size $target
+
+$p$CONF.elf:DQ:	$CONF.$O $OBJ $LIB
+	echo '# linking elf kernel'
+	$LD -H5 -s -R$pagesize -T$loadaddr -o $target -l $OBJ $CONF.$O $LIB
+
+$p$CONF.gz:D:	$p$CONF
+	gzip -9 <$p$CONF >$target
+
+$OBJ: $HFILES
+
+install:V: /$objtype/$p$CONF
+
+/$objtype/$p$CONF:D: $p$CONF $p$CONF.elf
+	cp -x $p$CONF $p$CONF.elf /$objtype
+	{ 9fs lookout && cp -x $p$CONF $p$CONF.elf /n/lookout/$objtype } &
+	{ 9fs piestand && cp -x $p$CONF $p$CONF.elf /n/piestand/$objtype } &
+	{ 9fs slocum && cp -x $p$CONF.list /n/slocum/home/rae/hbsr/ml410_ddr2 } &
+	wait
+	touch $target
+
+init.out:D:	init9.$O initcode.$O /$objtype/lib/libc.a
+	$LD -l -R4 -o init.out init9.$O initcode.$O -lc
+
+reboot.h:D:	rebootcode.s
+	$AS rebootcode.s
+	# -lc is only for memmove.  -T arg is PADDR(REBOOTADDR)
+	$LD -l -a -s -T0x2640 -R4 -o reboot.out rebootcode.$O -lc >reboot.list
+	{echo 'uchar rebootcode[]={'
+	 xd -1x reboot.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > reboot.h
+
+archvt4.$O:	io.h
+devboot.$O:	../port/error.h
+devether.$O:	../port/error.h ../port/netif.h etherif.h
+ethertemac.$O:	 ../port/ethermii.h ../port/netif.h etherif.h io.h
+etherplbtemac.$O:	 ../port/ethermii.h ../port/netif.h etherif.h io.h
+fpi.$O:		fpi.h
+fpimem.$O:	fpi.h
+fpipower.$O:	/$objtype/include/ureg.h fpi.h
+fpu.$O:		/$objtype/include/ureg.h
+main.$O:	/sys/include/pool.h /sys/include/tos.h init.h reboot.h
+random.$O:	../port/error.h
+syscall.$O:	../port/error.h
+syscall.$O:	/sys/include/tos.h /$objtype/include/ureg.h
+trap.$O:	/sys/include/tos.h /$objtype/include/ureg.h io.h
+uartlite.$O:	../port/error.h io.h

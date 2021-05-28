@@ -1,0 +1,726 @@
+Only in .: 9k-9.diffs
+diff /sys/src/9k/vt4/archvt4.c ./archvt4.c
+40,68d39
+< #ifndef incref
+< int
+< incref(Ref *r)
+< {
+< 	int x;
+< 
+< 	lock(r);
+< 	x = ++r->ref;
+< 	unlock(r);
+< 	return x;
+< }
+< #endif /* incref */
+< 
+< #ifndef decref
+< int
+< decref(Ref *r)
+< {
+< 	int x;
+< 
+< 	lock(r);
+< 	x = --r->ref;
+< 	unlock(r);
+< 	if(x < 0)
+< 		panic("decref pc=%#p", getcallerpc(&r));
+< 
+< 	return x;
+< }
+< #endif /* decref */
+< 
+88a60,70
+> void
+> archvt4link(void)
+> {
+> }
+> 
+> int
+> cmpswap(long *addr, long old, long new)
+> {
+> 	return cas32(addr, old, new);
+> }
+> 
+254c236
+< reboot(void *entry, void *code, long size)
+---
+> reboot(void *entry, void *code, ulong size)
+diff /sys/src/9k/vt4/clock.c ./clock.c
+126a127,132
+> 
+> long
+> lcycles(void)
+> {
+> 	return perfticks();
+> }
+diff /sys/src/9k/vt4/dat.h ./dat.h
+9c9
+< typedef struct PFPU	PFPU;
+---
+> typedef struct FPsave	FPsave;
+11c11
+< typedef struct PNOTIFY	PNOTIFY;
+---
+> typedef struct Notsave	Notsave;
+14a15
+> typedef uvlong		Tval;
+87c88
+< struct PFPU
+---
+> struct FPsave
+101c102
+<  * PFPU.status
+---
+>  * FPsave.status
+146c147
+< struct PNOTIFY
+---
+> struct Notsave
+148c149
+< 	void	emptiness;
+---
+> 	int	emptiness;
+216c217
+< 	int	mmuflush;		/* make current proc flush its mmu state */
+---
+> 	int	flushmmu;		/* make current proc flush its mmu state */
+280c281
+< #define DBG(...)	if(DBGFLG) dbgprint(__VA_ARGS__)
+---
+> // #define DBG(...)	if(DBGFLG) dbgprint(__VA_ARGS__)
+diff /sys/src/9k/vt4/devarch.c ./devarch.c
+80,81c80,81
+< static long
+< archstat(Chan* c, uchar* dp, long n)
+---
+> static int
+> archstat(Chan* c, uchar* dp, int n)
+diff /sys/src/9k/vt4/devether.c ./devether.c
+11a12,15
+> /* 9k compatibility */
+> #define devno dev
+> #define iq in
+> 
+50,51c54,55
+< static long
+< etherstat(Chan* chan, uchar* dp, long n)
+---
+> static int
+> etherstat(Chan* chan, uchar* dp, int n)
+63c67
+< ethercreate(Chan*, char*, int, int)
+---
+> ethercreate(Chan*, char*, int, ulong)
+95c99
+< etherbread(Chan* chan, long n, vlong offset)
+---
+> etherbread(Chan* chan, long n, ulong offset)
+100,101c104,105
+< static long
+< etherwstat(Chan* chan, uchar* dp, long n)
+---
+> static int
+> etherwstat(Chan* chan, uchar* dp, int n)
+294c298
+< etherbwrite(Chan* chan, Block* bp, vlong)
+---
+> etherbwrite(Chan* chan, Block* bp, ulong)
+532c536
+< 	print("inpkts %d outpkts %d errs %d\n",
+---
+> 	print("inpkts %lld outpkts %lld errs %d\n",
+Only in .: devtab.c
+diff /sys/src/9k/vt4/etherif.h ./etherif.h
+3,8c3
+< 	Eaddrlen	= 6,
+< 	ETHERMINTU	= 60,		/* minimum transmit size */
+< 	ETHERMAXTU	= 1514,		/* maximum transmit size */
+< 	ETHERHDRSIZE	= 14,		/* size of an ethernet header */
+< 
+< 	MaxEther	= 4,
+---
+> 	MaxEther	= 2,
+17d11
+< //	int	tbdf;			/* type+busno+devno+funcno */
+51,59d44
+< };
+< 
+< typedef struct Etherpkt Etherpkt;
+< struct Etherpkt
+< {
+< 	uchar	d[Eaddrlen];
+< 	uchar	s[Eaddrlen];
+< 	uchar	type[2];
+< 	uchar	data[1500];		/* ETHERMAXTU - ETHERHDRSIZE */
+diff /sys/src/9k/vt4/etherlltemac.c ./etherlltemac.c
+19c19
+< #include "ip.h"			/* to declare ethermedium */
+---
+> #include "../ip/ip.h"		/* to declare ethermedium */
+21c21
+< #include "../port/ethermii.h"
+---
+> #include "ethermii.h"
+Only in .: ethermii.h
+diff /sys/src/9k/vt4/fns.h ./fns.h
+0a1,3
+> #define checkmmu(a, b)
+> #define countpagerefs(a, b)
+> 
+7a11,12
+> int	adec(long*);
+> int	ainc(long*);
+14a20
+> uintptr	cankaddr(uintptr pa);
+18a25
+> int	cmpswap(long*, long, long);
+22a30
+> #define cycles(ip) *(ip) = lcycles()
+25c33
+< #define decref(r)	adec(&(r)->ref)
+---
+> long	decref(Ref*);
+30a39,43
+> Dev*	devtabget(int, int);
+> void	devtabinit(void);
+> void	devtabreset(void);
+> long	devtabread(Chan*, void*, long, vlong);
+> void	devtabshutdown(void);
+72c85
+< #define incref(r)	ainc(&(r)->ref)
+---
+> long	incref(Ref*);
+116a130
+> void	procsetup(Proc*);
+141d154
+< void*	sysexecregs(uintptr, ulong, ulong);
+143a157
+> #define tas tas32
+190c204
+< void	sysrforkret(void);
+---
+> void	forkret(void);
+diff /sys/src/9k/vt4/fpipower.c ./fpipower.c
+75c75
+< 	PFPU*	ufp;
+---
+> 	FPsave*	ufp;
+801c801
+< 	PFPU *ufp;
+---
+> 	FPsave *ufp;
+804c804
+< 	ufp = &up->PFPU;	/* because all the state is in PFPU, it need not be saved/restored */
+---
+> 	ufp = &up->fpsave; /* because all the state is in FPsave, it need not be saved/restored */
+817c817
+< 		validaddr((void *)ur->pc, 4, 0);
+---
+> 		validaddr(ur->pc, 4, 0);
+diff /sys/src/9k/vt4/intr.c ./intr.c
+9c9
+< #include "../port/ethermii.h"
+---
+> #include "ethermii.h"
+diff /sys/src/9k/vt4/l.s ./l.s
+440a441
+> TEXT _xinc(SB), 1, $-4			/* int _xinc(int*); */
+458a460
+> TEXT _xdec(SB), 1, $-4			/* int _xdec(int*); */
+831c833
+< TEXT sysrforkret(SB), 1, $-4
+---
+> TEXT forkret(SB), 1, $-4
+diff /sys/src/9k/vt4/main.c ./main.c
+123c123
+< 	mallocinit();
+---
+> 	xinit();			/* xinit would print if it could */
+144,145c144,145
+< 	psinit(conf.nproc);
+< 	initimage();
+---
+> 	procinit0();
+> 	initseg();
+148c148
+< 	devtabreset();
+---
+> 	chandevreset();
+165a166
+> 	panic("schedinit returned");
+311c312
+< 	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr));
+---
+> 	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->s.args)-sizeof(uintptr));
+357a359,367
+> }
+> 
+> /*
+>  *  set mach dependent process state for a new process
+>  */
+> void
+> procsetup(Proc* p)
+> {
+> 	fpusysprocsetup(p);
+diff /sys/src/9k/vt4/mem.h ./mem.h
+27a28
+> #define	ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
+diff /sys/src/9k/vt4/mkfile ./mkfile
+11c11
+< default:V: 9k
+---
+> DEVS=`{rc ../port/mkdevlist $CONF}
+13c13,40
+< 9k:V:	$p$CONF $p$CONF.elf
+---
+> PORT=\
+> 	alarm.$O\
+> 	alloc.$O\
+> 	allocb.$O\
+> 	auth.$O\
+> 	cache.$O\
+> 	chan.$O\
+> 	dev.$O\
+> 	devtab.$O\
+> 	edf.$O\
+> 	fault.$O\
+> 	latin1.$O\
+> 	rebootcmd.$O\
+> 	page.$O\
+> 	parse.$O\
+> 	pgrp.$O\
+> 	portclock.$O\
+> 	print.$O\
+> 	proc.$O\
+> 	qio.$O\
+> 	qlock.$O\
+> 	segment.$O\
+> 	swap.$O\
+> 	sysfile.$O\
+> 	sysproc.$O\
+> 	taslock.$O\
+> 	tod.$O\
+> 	xalloc.$O\
+15,17c42,61
+< <| awk -f ../mk/parse $CONF
+< <../mk/bootmkfile
+< <../mk/portmkfile
+---
+> OBJ=\
+> 	l.$O\
+> 	tlb.$O\
+> 	clock.$O\
+> 	dcr.$O\
+> 	fpi.$O\
+> 	fpimem.$O\
+> 	fpipower.$O\
+> 	intr.$O\
+> 	main.$O\
+> 	mmu.$O\
+> 	ppcmul64fract.$O\
+> #	fakeqtm.$O\
+> 	qtm.$O\
+> 	random.$O\
+> 	trap.$O\
+> 	$CONF.root.$O\
+> 	$CONF.rootc.$O\
+> 	$DEVS\
+> 	$PORT\
+19,21c63,69
+< OBJ=$MACH $CONF.root.$O $DEVS $PORT
+< CFLAGS=-. -I../port -I../ip -I../boot $CFLAGS
+< HFILES=`{ls -d *.h ../port/*.h ../ip/*.h | grep -v '^(errstr|init)\.h$'}
+---
+> LIB=\
+> 	/$objtype/lib/libmemlayer.a\
+> 	/$objtype/lib/libmemdraw.a\
+> 	/$objtype/lib/libdraw.a\
+> 	/$objtype/lib/libip.a\
+> 	/$objtype/lib/libsec.a\
+> 	/$objtype/lib/libc.a\
+22a71,72
+> 9:V: $p$CONF $p$CONF.elf
+> 
+48,49c98,100
+< init.out:D:	init9.$O initcode.$O /$objtype/lib/libc.a
+< 	$LD -l -R4 -o init.out init9.$O initcode.$O -lc
+---
+> <../boot/bootmkfile
+> <../port/portmkfile
+> <|../port/mkbootrules $CONF
+51,59d101
+< reboot.h:D:	rebootcode.s
+< 	$AS rebootcode.s
+< 	# -lc is only for memmove.  -T arg is PADDR(REBOOTADDR)
+< 	$LD -l -a -s -T0x2640 -R4 -o reboot.out rebootcode.$O -lc >reboot.list
+< 	{echo 'uchar rebootcode[]={'
+< 	 xd -1x reboot.out |
+< 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+< 	 echo '};'} > reboot.h
+< 
+63,64c105,106
+< ethertemac.$O:	 ../port/ethermii.h ../port/netif.h etherif.h io.h
+< etherplbtemac.$O:	 ../port/ethermii.h ../port/netif.h etherif.h io.h
+---
+> ethertemac.$O:	 ../port/netif.h etherif.h io.h
+> etherplbtemac.$O:	 ../port/netif.h etherif.h io.h
+74a117,142
+> 
+> init.h:D:	../port/initcode.c init9.s
+> 	$CC ../port/initcode.c
+> 	$AS init9.s
+> 	$LD -l -R1 -s -o init.out init9.$O initcode.$O /$objtype/lib/libc.a
+> 	{echo 'uchar initcode[]={'
+> 	 xd -1x <init.out |
+> 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+> 	 echo '};'} > init.h
+> 
+> init.out:D:	init9.$O initcode.$O /$objtype/lib/libc.a
+> 	$LD -l -R4 -o init.out init9.$O initcode.$O -lc
+> 
+> reboot.h:D:	rebootcode.s
+> 	$AS rebootcode.s
+> 	# -lc is only for memmove.  -T arg is PADDR(REBOOTADDR)
+> 	$LD -l -a -s -T0x2640 -R4 -o reboot.out rebootcode.$O -lc >reboot.list
+> 	{echo 'uchar rebootcode[]={'
+> 	 xd -1x reboot.out |
+> 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+> 	 echo '};'} > reboot.h
+> errstr.h:D:	../port/mkerrstr ../port/error.h
+> 	rc ../port/mkerrstr > errstr.h
+> 
+> $CONF.clean:
+> 	rm -rf $p$CONF $p$CONF.elf $CONF.c boot$CONF.c ../boot/libboot.aq
+Only in .: mkfile.9k
+diff /sys/src/9k/vt4/mmu.c ./mmu.c
+112c112
+< mmuflush(void)
+---
+> flushmmu(void)
+148c148
+< mmuput(uintptr va, uintptr pa, Page* page)
+---
+> putmmu(uintptr va, uintptr pa, Page* page)
+368a369,380
+> }
+> 
+> /*
+>  * Return the number of bytes that can be accessed via KADDR(pa).
+>  * If pa is not a valid argument to KADDR, return 0.
+>  */
+> uintptr
+> cankaddr(uintptr pa)
+> {
+> 	if( /* pa >= PHYSDRAM && */ pa < PHYSDRAM + 512*MiB)
+> 		return PHYSDRAM + 512*MiB - pa;
+> 	return 0;
+diff /sys/src/9k/vt4/rebootcmd.c ./rebootcmd.c
+28c28
+< 		nn = c->dev->read(c, p, n, c->offset);
+---
+> 		nn = devtab[c->type]->read(c, p, n, c->offset);
+diff /sys/src/9k/vt4/syscall.c ./syscall.c
+6d5
+< 
+8c7
+< #include "/sys/src/libc/9syscall/sys.h"
+---
+> #include "../port/systab.h"
+192c191
+< 	Ar0 ar0;
+---
+> 	u32int s;
+194,195c193,194
+< 	int i, s, scallnr;
+< 	static Ar0 zar0;
+---
+> 	long ret;
+> 	int i, scallnr;
+196a196,197
+> 	cycles(&up->kentry);
+> 
+215c216
+< 	ar0 = zar0;
+---
+> 	ret = -1;
+217c218
+< 		if(scallnr >= nsyscall || systab[scallnr].f == nil){
+---
+> 		if(scallnr >= nsyscall){
+224,225c225,226
+< 		if(sp < (USTKTOP-BY2PG) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
+< 			validaddr((void *)sp, sizeof(up->arg)+BY2SE, 0);
+---
+> 		if(sp < (USTKTOP-BY2PG) || sp > (USTKTOP-sizeof(Sargs)-BY2WD))
+> 			validaddr(sp, sizeof(Sargs)+BY2WD, 0);
+227,228c228,229
+< 		memmove(up->arg, UINT2PTR(sp+BY2SE), sizeof(up->arg));
+< 		up->psstate = systab[scallnr].n;
+---
+> 		up->s = *((Sargs*)(sp+BY2WD));
+> 		up->psstate = sysctab[scallnr];
+230c231
+< 		systab[scallnr].f(&ar0, (va_list)up->arg);
+---
+> 		ret = systab[scallnr](up->s.args);
+237,240d237
+< 		if(0 && vflag && up->pid == 1)
+< 			iprint("%s: syscall %s error %s\n",
+< 				up->text, systab[scallnr].n, up->syserrstr);
+< 		ar0 = systab[scallnr].r;
+253c250
+< 	ureg->r3 = ar0.p;
+---
+> 	ureg->r3 = ret;
+312,313c309,310
+< void*
+< sysexecregs(uintptr entry, ulong ssize, ulong nargs)
+---
+> long
+> execregs(ulong entry, ulong ssize, ulong nargs)
+318c315
+< 	sp = (uintptr*)(USTKTOP - ssize);
+---
+> 	sp = (ulong*)(USTKTOP - ssize);
+322c319
+< 	ureg->usp = PTR2UINT(sp);
+---
+> 	ureg->usp = (ulong)sp;
+324c321
+< 	ureg->srr1 &= ~MSR_FP;			/* disable floating point */
+---
+> //	ureg->srr1 &= ~MSR_FP;			/* TODO disable floating point */
+330c327
+< 	return UINT2PTR(USTKTOP-sizeof(Tos));
+---
+> 	return USTKTOP-sizeof(Tos);
+338a336,340
+> /* 
+>  *  Craft a return frame which will cause the child to pop out of
+>  *  the scheduler in user mode with the return register zero.  Set
+>  *  pc to point to a l.s return function.
+>  */
+340c342
+< sysrforkchild(Proc* child, Proc* parent)
+---
+> forkchild(Proc *p, Ureg *ureg)
+344,347c346,348
+< 	/*
+< 	 */
+< 	child->sched.sp = PTR2UINT(child->kstack+KSTACK-(UREGSIZE+2*BY2SE));
+< 	child->sched.pc = PTR2UINT(sysrforkret);
+---
+> //print("%lud setting up for forking child %lud\n", up->pid, p->pid);
+> 	p->sched.sp = (ulong)p->kstack+KSTACK-sizeof(Ureg);
+> 	p->sched.pc = (ulong)forkret;
+349,350c350,351
+< 	cureg = (Ureg*)(child->sched.sp+2*BY2SE);
+< 	memmove(cureg, parent->dbgreg, sizeof(Ureg));
+---
+> 	cureg = (Ureg*)(p->sched.sp);
+> 	memmove(cureg, ureg, sizeof(Ureg));
+352,355c353
+< 	/* Things from bottom of syscall which were never executed */
+< 	child->psstate = 0;
+< 	child->insyscall = 0;
+< 
+---
+> 	/* syscall returns 0 for child */
+358c356,358
+< 	fpusysrforkchild(child, cureg, parent);
+---
+> 	/* Things from bottom of syscall which were never executed */
+> 	p->psstate = 0;
+> 	p->insyscall = 0;
+diff /sys/src/9k/vt4/trap.c ./trap.c
+383a384,387
+> /*
+>  * Fill in enough of Ureg to get a stack trace, and call a function.
+>  * Used by debugging interface rdb.
+>  */
+384a389,398
+> callwithureg(void (*fn)(Ureg*))
+> {
+> 	Ureg ureg;
+> 
+> 	ureg.pc = getcallerpc(&fn);
+> 	ureg.sp = PTR2UINT(&fn);
+> 	fn(&ureg);
+> }
+> 
+> void
+413c427
+< 		iprint("cpu%d: registers for %s %d\n",
+---
+> 		iprint("cpu%d: registers for %s %ld\n",
+447c461
+< userpc(Ureg* ureg)
+---
+> userpc(void)
+449,450c463
+< 	if(ureg == nil)
+< 		ureg = up->dbgreg;
+---
+> 	Ureg *ureg = up->dbgreg;
+diff /sys/src/9k/vt4/uartlite.c ./uartlite.c
+246d245
+< 	int s;
+252,254c251
+< 	while(!(urp->status & Rxfifohasdata)) {
+< //		idlehands();
+< //		s = spllo();
+---
+> 	while(!(urp->status & Rxfifohasdata))
+256,258d252
+< //		splx(s);
+< //		sleep(&ctlr->rcvrend, canread, &urp->status);
+< 	}
+344c338
+< 	.poll		= litepoll,
+---
+> //	.poll		= litepoll,
+diff /sys/src/9k/vt4/vt4cpu ./vt4cpu
+2,33c2
+< power +dev
+< 	l
+< 	tlb
+< 	clock
+< 	fpi
+< 	fpimem
+< 	fpipower
+< 	main
+< 	mmu
+< 	ppcmul64fract
+< 	random
+< 	softfpu
+< 	syscall
+< 	trap
+< 	intr
+< 	dcr
+< #	fakeqtm
+< 	qtm
+< 
+< boot cpu
+< 	tcp
+< 
+< rootdir
+< 	bootvt4cpu.out boot
+< 	/power/bin/ip/ipconfig ipconfig
+< 	/power/bin/auth/factotum factotum
+< 	nvram
+< 
+< conf
+< 	int cpuserver = 1;
+< 
+< dev +dev
+---
+> dev
+35c4
+< 	cons		archvt4
+---
+> 	cons
+41a11
+> #	rtc
+47,49c17,18
+< 	uart
+< 	sd
+< 	aoe
+---
+> #	aoe
+> #	sd
+52c21
+< 	ip		arp chandial ip ipv6 ipaux iproute netif netlog nullmedium pktmedium ptclbsum inferno
+---
+> 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+54,55c23
+< uart +dev
+< 	uartlite
+---
+> 	uart
+57c25,32
+< ip +dev
+---
+> link
+> 	archvt4
+> 	ethermedium
+> 	etherlltemac
+> 	loopbackmedium
+> 	netdevmedium
+> 
+> ip
+62a38
+> 	ipmux
+64,68c40,47
+< link +dev
+< 	etherlltemac	ethermii dma
+< 	ethermedium
+< 	netdevmedium
+< 	loopbackmedium
+---
+> misc
+> 	dma
+> 	rdb
+> #	sdaoe		sdscsi
+> 	softfpu
+> 	syscall
+> 	uartlite
+> #	ucalloc
+70,77d48
+< misc +dev
+< 	cache
+< 
+< sd +dev
+< 	sdaoe		sdscsi
+< 
+< dir
+< 	ip
+78a50,51
+> 	int cpuserver = 1;
+> 	int i8250freq = 3686000;
+80,83c53,54
+< lib
+< 	libc
+< 	libip
+< 	libsec
+---
+> boot cpu
+> 	tcp
+85,115c56,60
+< port
+< 	alarm
+< 	alloc
+< 	allocb
+< 	chan
+< 	dev
+< 	devtab
+< 	edf
+< 	fault
+< 	image
+< 	latin1
+< 	page
+< 	parse
+< 	pgrp
+< 	portclock
+< 	print
+< 	proc
+< 	ps
+< 	qio
+< 	qlock
+< 	rebootcmd
+< 	segment
+< 	swap
+< 	sysauth
+< 	sysfile
+< 	sysproc
+< 	sysseg
+< 	systab
+< 	taslock
+< 	tod
+< 	xalloc
+---
+> bootdir
+> 	boot$CONF.out boot
+> 	/power/bin/ip/ipconfig	ipconfig
+> 	/power/bin/auth/factotum factotum
+> 	nvram

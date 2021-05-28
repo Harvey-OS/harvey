@@ -1,0 +1,42 @@
+void	mmuinit(void)
+	setup
+
+void	mmuflush(void)
+	flush all mmu info for current process (up).  nearly always
+		s = splhi();
+		up->newtlb = 1;
+		mmuswitch(up);
+		splx(s);
+
+void	mmuswitch(Proc *p)
+	mmu is now owned by p
+	check p->newtlb and flush p's mappings if needed
+
+void	mmurelease(Proc *p)
+	discard mmu mapping for p, which is now Moribund
+
+void	mmuput(ulong va, ulong pa, Page *pg)
+	make mmu mapping for up make va refer to pa, which has (low-order) PTEVALID and one or more of
+			PTEWRITE or PTERONLY (mutually exclusive, and one or the other is set)
+			PTEUNCACHED
+	pg is the relevant Page value
+	check pg->cachectl[m->machno]
+		PG_NOFLUSH
+		PG_TXTFLUSH
+		PG_NEWCOL
+		-- reset to PG_NOFLUSH after action (flush data to memory, flush icache, for PG_TXTFLUSH)
+
+KMap*	kmap(Page *p)
+	map p into the kernel address space (if necessary), and return the map's description
+
+void	kunmap(KMap *k)
+	remove the mapping k
+
+KMap is platform-dependent
+
+if all physical memory can be mapped by the kernel, one can use
+	typedef void KMap;
+	#define	kmap(pg)		((KMap*)KADDR((pg)->pa))
+	#define	kunmap(k)
+
+also relevant: PADDR and KADDR
