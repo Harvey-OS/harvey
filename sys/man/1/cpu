@@ -29,8 +29,6 @@ cpu \- connection to CPU server
 .B cpu
 [
 .B -R
-|
-.B -O
 ]
 .SH DESCRIPTION
 .I Cpu
@@ -170,12 +168,6 @@ flag causes
 to run the server (remote) side of the protocol.
 It is run from service files such as
 .BR /bin/service/tcp17010 .
-The
-.B -O
-flag is similar but simulates the pre-9P2000 version
-of the 
-.I cpu
-protocol.
 .SH FILES
 The name space of the terminal side of the
 .I cpu
