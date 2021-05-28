@@ -253,6 +253,7 @@ tcp=9fs port=564
 tcp=whoami port=565
 tcp=guard port=566
 tcp=ticket port=567
+tcp=submission port=587
 tcp=ldaps port=636
 tcp=fmclient port=729
 tcp=iscsi-system port=860
