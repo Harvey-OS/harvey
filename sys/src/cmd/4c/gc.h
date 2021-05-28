@@ -120,7 +120,7 @@ struct	Reg
 };
 #define	R	((Reg*)0)
 
-#define	NRGN	1000		/* was 600; raised for paranoia.c */
+#define	NRGN	1000
 struct	Rgn
 {
 	Reg*	enter;
