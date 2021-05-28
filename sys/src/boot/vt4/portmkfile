@@ -1,0 +1,16 @@
+%.$O:		%.s
+	$AS $AFLAGS $stem.s
+
+%.$O:		%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:		include.h
+%.$O:		/$objtype/include/u.h
+%.$O:		libc.h
+%.$O:		define.h
+%.$O:		data.h portdata.h
+%.$O:		prototype.h portprototype.h
+%.$O:		glue.h
+
+clean:V:
+	rm -f *.[$OS] *.out *.m *.acid $p$CONF *.elf

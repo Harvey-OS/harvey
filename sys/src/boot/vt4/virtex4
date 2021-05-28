@@ -1,0 +1,26 @@
+# rae's virtex4 ml410 boot
+power
+	l
+	load
+	trap
+	clock
+	archvt4
+	intr
+	uart
+	ethertemac
+	llfifo
+	fakeqtm
+# port stuff
+	portclock
+	malloc
+	print
+	console
+	taslock
+	ether
+	boot
+	fs
+	bootp
+
+lib
+	libip
+	libc

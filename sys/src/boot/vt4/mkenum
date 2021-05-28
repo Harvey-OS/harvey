@@ -1,0 +1,55 @@
+#!/bin/rc
+
+awk '
+BEGIN{
+	oargc = 0;
+	for(argc = 1; argc < ARGC; argc++){
+		if(ARGV[argc] !~ /^-.+/ || ARGV[argc] ~ /--/)
+			break;
+		if(ARGV[argc] != "-D")
+			oargv[ARGV[argc]] = oargc++;
+		else
+			DEBUG = 1;
+		ARGV[argc] = "";
+	}
+}
+
+/^enum([ \t]*{|$)/{
+	inenum = 1;
+	if(DEBUG)
+		printf "inenum = 1\n";
+	next;
+}
+
+inenum && /^};$/{
+	if(DEBUG)
+		printf "inenum = 0\n";
+	inenum = 0;
+}
+
+inenum && $0 ~ /^[ \t]+[_A-Za-z][_0-9A-Za-z]+[ \t]+=[ \t]+[0-9A-Z_a-z()<> ]+,/{
+	tab = "\t";
+	if(length($1) < 8)
+		sep = tab tab;
+	else
+		sep = tab;
+	split($3, a, ",");
+	printf "#define %s%s%s", $1, sep, a[1];
+	if(match($0, /\/\*.*\*\/$/)){
+		len = length(a[1]);
+		sep = "";
+		while(len < 24){
+			sep = sep tab;
+			len += 8;
+		}
+		printf "%s%s", sep, substr($0, RSTART);
+	}
+	printf "\n"
+}
+
+/^$/{
+	printf "\n";
+}
+
+END{
+}' $*

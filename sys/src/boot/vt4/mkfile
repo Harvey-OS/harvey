@@ -1,0 +1,56 @@
+CONF=virtex4
+CONFLIST=virtex4
+BASE=0xfffe2100		# first location after vectors; see PHYSSRAM
+
+objtype=power
+</$objtype/mkfile
+p=b
+
+CFLAGS=$CFLAGS -I.
+AFLAGS=	-I.
+HFILES=\
+	data.h\
+	define.h\
+	etherif.h\
+	fs.h\
+	include.h\
+	ip.h\
+	libc.h\
+	mem.h\
+	physmem.h\
+	portdata.h\
+	portprototype.h\
+	ppc405.h\
+	prototype.h\
+	qtm.h\
+
+all:VQ:	$p$CONF
+
+<| awk -f parse $CONF
+<portmkfile
+
+OBJ=$MACH $DEVS $PORT
+
+${p}$CONF:D:	$OBJ mkfile $CONF
+	$LD -o $target.elf -aH6 -l -T$BASE -R4 $OBJ $LIB >$target.list
+	$LD -o $target		-l -T$BASE -R4 $OBJ $LIB
+	size $target
+	nm -n $target | tail -5
+	nm -n $target >$target.names
+
+$OBJ: $HFILES
+
+${objtype}a.h:D:	$objtype.h
+	rc mkenum $objtype.h > $target
+
+install:V:	$p$CONF
+	cp -x $p$CONF $p$CONF.elf /power
+	{ 9fs lookout  && cp -x $p$CONF $p$CONF.elf /n/lookout/power } &
+	{ 9fs piestand && cp -x $p$CONF $p$CONF.elf /n/piestand/power } &
+	{ 9fs slocum &&
+	cp $p$CONF^* /n/slocum/home/rae/hbsr/ml410_ddr2 &&
+	cp $p$CONF^* /n/slocum/home/rae/hbsr/ml410_qtm } &
+	wait
+
+nuke clean:V:
+	rm -f *.[$OS] *.out *.acid *.elf $p$CONF^*

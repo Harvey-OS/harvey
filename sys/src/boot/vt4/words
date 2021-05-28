@@ -1,0 +1,18 @@
+This bootstrap is intended to load a Plan 9 kernel via bootp and tftp
+into a Xilinx Virtex 4 ML410 board.  It shares code with the ML510
+boot in ../vt5.  The mkfile generates an elf file which is then fed
+into the Xilinx CAD tool to generate a bitstream for loading into the
+FPGA on the ML410.
+
+This bootstrap will almost certainly not work for you without some
+changes.  In particular, the addresses of the I/O registers in
+physmem.h will have to be changed to match yours and you'll need to
+make sure that they are mapped if you have more than 512K of them.
+
+This bootstrap does not use dma but in principle it could, by
+replacing calls to fifocpy with calls to dmacpy.  dma is one more
+thing that could go wrong, so we ended up using the cpu to copy words
+to and from ethernet fifos.
+
+This code runs in high memory (above 0xfffe0000) and its global data
+is thus in sram.  On the Virtex 4, the bootstrap runs with the MMU off.
