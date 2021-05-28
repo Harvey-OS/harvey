@@ -396,10 +396,36 @@ looknode(Route **cur, Route *r)
 	}
 }
 
+static void
+del1route(Fs *f, Route **root, Route *rtp, int h, int dolock)
+{
+	Route **r, *p;
+
+	if(dolock)
+		wlock(&routelock);
+	r = looknode(&root[h], rtp);
+	if(r) {
+		p = *r;
+		if(--(p->ref) == 0){
+			*r = 0;
+			addqueue(&f->queue, p->left);
+			addqueue(&f->queue, p->mid);
+			addqueue(&f->queue, p->right);
+			freeroute(p);
+			while(p = f->queue) {
+				f->queue = p->mid;
+				walkadd(f, &root[h], p->left);
+				freeroute(p);
+			}
+		}
+	}
+	if(dolock)
+		wunlock(&routelock);
+}
+
 void
 v4delroute(Fs *f, uchar *a, uchar *mask, int dolock)
 {
-	Route **r, *p;
 	Route rt;
 	int h, eh;
 	ulong m;
@@ -410,28 +436,8 @@ v4delroute(Fs *f, uchar *a, uchar *mask, int dolock)
 	rt.type = Rv4;
 
 	eh = V4H(rt.v4.endaddress);
-	for(h=V4H(rt.v4.address); h<=eh; h++) {
-		if(dolock)
-			wlock(&routelock);
-		r = looknode(&f->v4root[h], &rt);
-		if(r) {
-			p = *r;
-			if(--(p->ref) == 0){
-				*r = 0;
-				addqueue(&f->queue, p->left);
-				addqueue(&f->queue, p->mid);
-				addqueue(&f->queue, p->right);
-				freeroute(p);
-				while(p = f->queue) {
-					f->queue = p->mid;
-					walkadd(f, &f->v4root[h], p->left);
-					freeroute(p);
-				}
-			}
-		}
-		if(dolock)
-			wunlock(&routelock);
-	}
+	for(h=V4H(rt.v4.address); h<=eh; h++)
+		del1route(f, f->v4root, &rt, h, dolock);
 	v4routegeneration++;
 
 	ipifcremroute(f, Rv4, a, mask);
@@ -440,7 +446,6 @@ v4delroute(Fs *f, uchar *a, uchar *mask, int dolock)
 void
 v6delroute(Fs *f, uchar *a, uchar *mask, int dolock)
 {
-	Route **r, *p;
 	Route rt;
 	int h, eh;
 	ulong x, y;
@@ -454,28 +459,8 @@ v6delroute(Fs *f, uchar *a, uchar *mask, int dolock)
 	rt.type = 0;
 
 	eh = V6H(rt.v6.endaddress);
-	for(h=V6H(rt.v6.address); h<=eh; h++) {
-		if(dolock)
-			wlock(&routelock);
-		r = looknode(&f->v6root[h], &rt);
-		if(r) {
-			p = *r;
-			if(--(p->ref) == 0){
-				*r = 0;
-				addqueue(&f->queue, p->left);
-				addqueue(&f->queue, p->mid);
-				addqueue(&f->queue, p->right);
-				freeroute(p);
-				while(p = f->queue) {
-					f->queue = p->mid;
-					walkadd(f, &f->v6root[h], p->left);
-					freeroute(p);
-				}
-			}
-		}
-		if(dolock)
-			wunlock(&routelock);
-	}
+	for(h=V6H(rt.v6.address); h<=eh; h++)
+		del1route(f, f->v6root, &rt, h, dolock);
 	v6routegeneration++;
 
 	ipifcremroute(f, 0, a, mask);
