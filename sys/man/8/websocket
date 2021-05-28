@@ -1,0 +1,51 @@
+.TH WEBSOCKET 8
+.SH NAME
+websocket \- tunnel 9P over WebSocket
+.SH SYNOPSIS
+.B websocket
+.I "magic parameters" ...
+.PP
+.B
+new WebSocket("http://server.example/magic/websocket", "9p");
+.SH DESCRIPTION
+.I Websocket
+is an
+.IR httpd (8)
+.I magic
+program that tunnels a 9P connection over a WebSocket, allowing
+JavaScript programs in a web browser to interact with Plan 9 services.
+.PP
+Currently, it always mounts the connection over
+.B /dev/
+and launches
+.IR acme ,
+which expects the
+.B /dev/draw
+provided by
+.IR 9webdraw .
+.SH SOURCE
+.B /sys/src/cmd/ip/httpd/websocket.c
+.PP
+.B https://bitbucket.org/dhoskin/weebsocket/
+.SH "SEE ALSO"
+.IR intro (5),
+.IR httpd (8)
+.PP
+.B https://bitbucket.org/dhoskin/9webdraw
+.SH BUGS
+The command
+.B /bin/acme
+is hardcoded.
+.PP
+No authentication is performed, and raw 9P is used rather than
+.IR cpu (1)'s
+protocol.
+.PP
+Rather than hardcoding 9P, plugins for different protocols could
+be chosen using the WebSocket subprotocol header.
+.PP
+Rather than running under
+.IR httpd (8),
+.I websocket
+could present a standard network connection directory in
+.BR /net/websocket .
