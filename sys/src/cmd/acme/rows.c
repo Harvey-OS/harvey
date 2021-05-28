@@ -102,7 +102,7 @@ rowresize(Row *row, Rectangle r)
 	row->r = r;
 	r1 = r;
 	r1.max.y = r1.min.y + font->height;
-	textresize(&row->tag, r1);
+	textresize(&row->tag, r1, TRUE);
 	r1.min.y = r1.max.y;
 	r1.max.y += Border;
 	draw(screen, r1, display->black, nil, ZP);
@@ -271,6 +271,13 @@ rowtype(Row *row, Rune r, Point p)
 		else{
 			winlock(w, 'K');
 			wintype(w, t, r);
+			/* Expand tag if necessary */
+			if(t->what == Tag){
+				t->w->tagsafe = FALSE;
+				if(r == '\n')
+					t->w->tagexpand = TRUE;
+				winresize(w, w->r, TRUE, TRUE);
+			}
 			winunlock(w);
 		}
 	}

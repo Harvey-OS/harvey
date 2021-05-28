@@ -1170,7 +1170,7 @@ tab(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 	if(tab > 0){
 		if(w->body.tabstop != tab){
 			w->body.tabstop = tab;
-			winresize(w, w->r, 1);
+			winresize(w, w->r, FALSE, TRUE);
 		}
 	}else
 		warning(nil, "%.*S: Tab %d\n", w->body.file->nname, w->body.file->name, w->body.tabstop);
