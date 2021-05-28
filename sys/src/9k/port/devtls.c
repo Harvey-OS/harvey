@@ -324,7 +324,7 @@ tlsgen(Chan *c, char*, Dirtab *, int, int s, Dir *dp)
 			nm = eve;
 		if((name = trnames[s]) == nil){
 			name = trnames[s] = smalloc(16);
-			sprint(name, "%d", s);
+			snprint(name, 16, "%d", s);
 		}
 		devdir(c, q, name, 0, nm, 0555, dp);
 		unlock(&tdlock);

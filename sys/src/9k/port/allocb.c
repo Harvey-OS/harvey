@@ -8,6 +8,7 @@ enum
 {
 	Hdrspc		= 64,		/* leave room for high-level headers */
 	Bdead		= 0x51494F42,	/* "QIOB" */
+	Bmagic		= 0x0910b10c,
 };
 
 struct
@@ -35,6 +36,7 @@ _allocb(int size)
 	b->list = nil;
 	b->free = 0;
 	b->flag = 0;
+	b->magic = Bmagic;
 
 	/* align base and bounds of data */
 	b->lim = (uchar*)(PTR2UINT(b) & ~(BLOCKALIGN-1));
@@ -59,10 +61,13 @@ allocb(int size)
 	 * Can still error out of here, though.
 	 */
 	if(up == nil)
-		panic("allocb without up: %#p\n", getcallerpc(&size));
+		panic("allocb without up: %#p", getcallerpc(&size));
 	if((b = _allocb(size)) == nil){
+		splhi();
 		mallocsummary();
-		panic("allocb: no memory for %d bytes\n", size);
+		delay(500);
+		panic("allocb: no memory for %d bytes; caller %#p", size,
+			getcallerpc(&size));
 	}
 
 	return b;
@@ -120,6 +125,9 @@ freeb(Block *b)
 
 	if(b == nil)
 		return;
+	if(Bmagic && b->magic != Bmagic)
+		panic("freeb: bad magic %#lux in Block %#p; caller pc %#p",
+			b->magic, b, getcallerpc(&b));
 
 	/*
 	 * drivers which perform non cache coherent DMA manage their own buffer
@@ -143,6 +151,7 @@ freeb(Block *b)
 	b->wp = dead;
 	b->lim = dead;
 	b->base = dead;
+	b->magic = 0;
 
 	free(p);
 }
@@ -159,9 +168,10 @@ checkb(Block *b, char *msg)
 		print("checkb: base %#p lim %#p next %#p\n",
 			b->base, b->lim, b->next);
 		print("checkb: rp %#p wp %#p\n", b->rp, b->wp);
-		panic("checkb dead: %s\n", msg);
+		panic("checkb dead: %s", msg);
 	}
-
+	if(Bmagic && b->magic != Bmagic)
+		panic("checkb: bad magic %#lux in Block %#p", b->magic, b);
 	if(b->base > b->lim)
 		panic("checkb 0 %s %#p %#p", msg, b->base, b->lim);
 	if(b->rp < b->base)

@@ -29,10 +29,10 @@ dupgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 		return 0;
 	if(s & 1){
 		p = 0400;
-		sprint(up->genbuf, "%dctl", s/2);
+		snprint(up->genbuf, sizeof up->genbuf, "%dctl", s/2);
 	}else{
 		p = perm[f->mode&3];
-		sprint(up->genbuf, "%d", s/2);
+		snprint(up->genbuf, sizeof up->genbuf, "%d", s/2);
 	}
 	mkqid(&q, s+1, 0, QTFILE);
 	devdir(c, q, up->genbuf, 0, eve, p, dp);

@@ -58,10 +58,10 @@ todinit(void)
 	if(tod.init)
 		return;
 	ilock(&tod);
+	tod.init = 1;			/* prevent reentry via fastticks */
 	tod.last = fastticks((uvlong *)&tod.hz);
 	iunlock(&tod);
 	todsetfreq(tod.hz);
-	tod.init = 1;
 	addclock0link(todfix, 100);
 }
 
@@ -71,6 +71,8 @@ todinit(void)
 void
 todsetfreq(vlong f)
 {
+	if (f <= 0)
+		panic("todsetfreq: freq %lld <= 0", f);
 	ilock(&tod);
 	tod.hz = f;
 
@@ -106,7 +108,11 @@ todset(vlong t, vlong delta, int n)
 			n = -delta;
 		if(delta > 0 && n > delta)
 			n = delta;
-		delta = delta/n;
+		if (n == 0) {
+			iprint("todset: n == 0, delta == %lld\n", delta);
+			delta = 0;
+		} else
+			delta /= n;
 		tod.sstart = sys->ticks;
 		tod.send = tod.sstart + n;
 		tod.delta = delta;
@@ -198,7 +204,7 @@ todfix(void)
 
 		/* convert to epoch */
 		mul64fract(&x, diff, tod.multiplier);
-if(x > 30000000000ULL) print("todfix %llud\n", x);
+if(x > 30000000000ULL) iprint("todfix %llud\n", x);
 		x += tod.off;
 
 		/* protect against overflows */
@@ -212,13 +218,7 @@ if(x > 30000000000ULL) print("todfix %llud\n", x);
 long
 seconds(void)
 {
-	vlong x;
-	int i;
-
-	x = todget(nil);
-	x = x/TODFREQ;
-	i = x;
-	return i;
+	return (vlong)todget(nil) / TODFREQ;
 }
 
 uvlong

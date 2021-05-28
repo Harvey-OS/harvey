@@ -15,8 +15,6 @@
 extern Dev sddevtab;
 extern SDifc* sdifc[];
 
-static char Echange[] = "media or partition has changed";
-
 static char devletters[] = "0123456789"
 	"abcdefghijklmnopqrstuvwxyz"
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -485,7 +483,8 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, 0, Qtopdir), 0, QTDIR);
-			sprint(up->genbuf, "#%C", sddevtab.dc);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C",
+				sddevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
@@ -533,7 +532,8 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 	case Qunitdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, 0, Qtopdir), 0, QTDIR);
-			sprint(up->genbuf, "#%C", sddevtab.dc);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C",
+				sddevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}

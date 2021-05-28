@@ -1350,13 +1350,6 @@ kproc(char *name, void (*func)(void *), void *arg)
 	memset(p->time, 0, sizeof(p->time));
 	p->time[TReal] = sys->ticks;
 	ready(p);
-	/*
-	 *  since the bss/data segments are now shareable,
-	 *  any mmu info about this process is now stale
-	 *  and has to be discarded.
-	 */
-	p->newtlb = 1;
-	mmuflush();
 }
 
 /*
@@ -1426,7 +1419,7 @@ exhausted(char *resource)
 {
 	char buf[ERRMAX];
 
-	sprint(buf, "no free %s", resource);
+	snprint(buf, sizeof buf, "no free %s", resource);
 	iprint("%s\n", buf);
 	error(buf);
 }

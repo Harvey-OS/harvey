@@ -18,6 +18,7 @@ typedef u64int PTE;
 typedef struct Proc Proc;
 typedef struct Sys Sys;
 typedef u64int uintmem;				/* horrible name */
+typedef vlong Tval;
 typedef struct Ureg Ureg;
 typedef struct Vctl Vctl;
 

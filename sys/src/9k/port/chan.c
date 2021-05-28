@@ -1166,7 +1166,7 @@ namelenerror(char *aname, int len, char *err)
 			if(name <= aname)
 				panic("bad math in namelenerror");
 			/* walk out of current UTF sequence */
-			for(i=0; (*name&0xC0)==0x80 && i<3; i++)
+			for(i=0; (*name&0xC0)==0x80 && i<UTFmax; i++)
 				name++;
 		}
 		snprint(up->genbuf, sizeof up->genbuf, "...%.*s",

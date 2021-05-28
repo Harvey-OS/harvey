@@ -73,15 +73,15 @@ struct Dstate
 enum
 {
 	Maxdmsg=	1<<16,
-	Maxdstate=	128,	/* must be a power of 2 */
+	Maxdstate=	512,	/* max. open ssl conn's; must be a power of 2 */
 };
 
-Lock	dslock;
-int	dshiwat;
-char	*dsname[Maxdstate];
-Dstate	*dstate[Maxdstate];
-char	*encalgs;
-char	*hashalgs;
+static	Lock	dslock;
+static	int	dshiwat;
+static	char	*dsname[Maxdstate];
+static	Dstate	*dstate[Maxdstate];
+static	char	*encalgs;
+static	char	*hashalgs;
 
 enum{
 	Qtopdir		= 1,	/* top level directory */
@@ -168,7 +168,7 @@ sslgen(Chan *c, char*, Dirtab *d, int nd, int s, Dir *dp)
 			else
 				nm = eve;
 			if(dsname[s] == nil){
-				sprint(name, "%d", s);
+				snprint(name, sizeof name, "%d", s);
 				kstrdup(&dsname[s], name);
 			}
 			devdir(c, q, dsname[s], 0, nm, 0555, dp);
@@ -672,7 +672,7 @@ sslread(Chan *c, void *a, long n, vlong off)
 		error(Ebadusefd);
 	case Qctl:
 		ft = CONV(c->qid);
-		sprint(buf, "%d", ft);
+		snprint(buf, sizeof buf, "%d", ft);
 		return readstr(offset, a, n, buf);
 	case Qdata:
 		b = sslbread(c, n, offset);
@@ -761,7 +761,7 @@ sslput(Dstate *s, Block * volatile b)
 
 	if(waserror()){
 		if(b != nil)
-			free(b);
+			freeb(b);
 		nexterror();
 	}
 
@@ -894,6 +894,8 @@ initDESkey_40(OneWay *w)
 	}
 
 	w->state = malloc(sizeof(DESstate));
+	if(w->state == nil)
+		error(Enomem);
 	if(w->slen >= 16)
 		setupDESstate(w->state, key, w->secret+8);
 	else if(w->slen >= 8)
@@ -930,6 +932,8 @@ initRC4key_40(OneWay *w)
 		w->slen = 5;
 
 	w->state = malloc(sizeof(RC4state));
+	if(w->state == nil)
+		error(Enomem);
 	setupRC4state(w->state, w->secret, w->slen);
 }
 
@@ -949,6 +953,8 @@ initRC4key_128(OneWay *w)
 		w->slen = 16;
 
 	w->state = malloc(sizeof(RC4state));
+	if(w->state == nil)
+		error(Enomem);
 	setupRC4state(w->state, w->secret, w->slen);
 }
 
@@ -1050,6 +1056,7 @@ sslwrite(Chan *c, void *a, long n, vlong)
 	char *p, *np, *e, buf[128];
 	uchar *x;
 
+	x = nil;
 	s = dstate[CONV(c->qid)];
 	if(s == 0)
 		panic("sslwrite");
@@ -1125,6 +1132,10 @@ sslwrite(Chan *c, void *a, long n, vlong)
 	if(p)
 		*p++ = 0;
 
+	if(waserror()){
+		free(x);
+		nexterror();
+	}
 	if(strcmp(buf, "fd") == 0){
 		s->c = buftochan(p);
 
@@ -1144,9 +1155,8 @@ sslwrite(Chan *c, void *a, long n, vlong)
 
 		s->state = Sclear;
 		s->maxpad = s->max = (1<<15) - s->diglen - 1;
-		if(strcmp(p, "clear") == 0){
-			goto out;
-		}
+		if(strcmp(p, "clear") == 0)
+			goto outx;
 
 		if(s->in.secret && s->out.secret == 0)
 			setsecret(&s->out, s->in.secret, s->in.slen);
@@ -1187,17 +1197,21 @@ sslwrite(Chan *c, void *a, long n, vlong)
 		l = (strlen(p)*3)/2;
 		x = smalloc(l);
 		t = dec64(x, l, p, strlen(p));
+		if(t <= 0)
+			error(Ebadarg);
 		setsecret(&s->in, x, t);
-		free(x);
 	} else if(strcmp(buf, "secretout") == 0 && p != 0) {
 		l = (strlen(p)*3)/2 + 1;
 		x = smalloc(l);
 		t = dec64(x, l, p, strlen(p));
+		if(t <= 0)
+			error(Ebadarg);
 		setsecret(&s->out, x, t);
-		free(x);
 	} else
 		error(Ebadarg);
-
+outx:
+	free(x);
+	poperror();
 out:
 	qunlock(&s->in.ctlq);
 	qunlock(&s->out.q);

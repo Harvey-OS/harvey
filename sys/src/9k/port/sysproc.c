@@ -215,7 +215,7 @@ vl2be(uvlong v)
 	      |((uvlong)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
 }
 
-static ulong
+ulong
 l2be(long l)
 {
 	uchar *cp;
