@@ -5,20 +5,18 @@
 #include "boot.h"
 
 static	uchar	fsip[IPaddrlen];
-	uchar	auip[IPaddrlen];
+static	uchar	auip[IPaddrlen];
 static	char	mpoint[32];
 
 static int isvalidip(uchar*);
-static void netndb(char*, uchar*);
-static void netenv(char*, uchar*);
-
+static void getndbvar(char *name, uchar *var, char *prompt);
 
 void
 configip(int bargc, char **bargv, int needfs)
 {
 	Waitmsg *w;
 	int argc, pid;
-	char **arg, **argv, buf[32], *p;
+	char **arg, **argv, *p;
 
 	fmtinstall('I', eipfmt);
 	fmtinstall('M', eipfmt);
@@ -48,31 +46,38 @@ configip(int bargc, char **bargv, int needfs)
 		break;
 	} ARGEND;
 
-	/* bind in an ip interface */
+	/* bind in an ip interface or two */
+	dprint("bind #I...");
 	if(bind("#I", mpoint, MAFTER) < 0)
-		fatal("bind #I\n");
+		fatal("bind #I");
+	dprint("bind #l0...");
 	if(access("#l0", 0) == 0 && bind("#l0", mpoint, MAFTER) < 0)
-		print("bind #l0: %r\n");
+		warning("bind #l0");
+	dprint("bind #l1...");
 	if(access("#l1", 0) == 0 && bind("#l1", mpoint, MAFTER) < 0)
-		print("bind #l1: %r\n");
+		warning("bind #l1");
+	dprint("bind #l2...");
 	if(access("#l2", 0) == 0 && bind("#l2", mpoint, MAFTER) < 0)
-		print("bind #l2: %r\n");
+		warning("bind #l2");
+	dprint("bind #l3...");
 	if(access("#l3", 0) == 0 && bind("#l3", mpoint, MAFTER) < 0)
-		print("bind #l3: %r\n");
+		warning("bind #l3");
 	werrstr("");
 
-	/* let ipconfig configure the ip interface */
+	/* let ipconfig configure the first ip interface */
 	switch(pid = fork()){
 	case -1:
-		fatal("fork configuring ip");
+		fatal("fork configuring ip: %r");
 	case 0:
+		dprint("starting ipconfig...");
 		exec("/boot/ipconfig", arg);
-		fatal("execing /ipconfig");
+		fatal("execing /boot/ipconfig: %r");
 	default:
 		break;
 	}
 
 	/* wait for ipconfig to finish */
+	dprint("waiting for dhcp...");
 	for(;;){
 		w = wait();
 		if(w != nil && w->pid == pid){
@@ -84,29 +89,11 @@ configip(int bargc, char **bargv, int needfs)
 			fatal("configuring ip");
 		free(w);
 	}
+	dprint("\n");
 
-	if(!needfs)
-		return;
-
-	/* if we didn't get a file and auth server, query user */
-	netndb("fs", fsip);
-	if(!isvalidip(fsip))
-		netenv("fs", fsip);
-	while(!isvalidip(fsip)){
-		buf[0] = 0;
-		outin("filesystem IP address", buf, sizeof(buf));
-		if (parseip(fsip, buf) == -1)
-			fprint(2, "configip: can't parse fs ip %s\n", buf);
-	}
-
-	netndb("auth", auip);
-	if(!isvalidip(auip))
-		netenv("auth", auip);
-	while(!isvalidip(auip)){
-		buf[0] = 0;
-		outin("authentication server IP address", buf, sizeof(buf));
-		if (parseip(auip, buf) == -1)
-			fprint(2, "configip: can't parse auth ip %s\n", buf);
+	if(needfs) {  /* if we didn't get a file and auth server, query user */
+		getndbvar("fs", fsip, "filesystem IP address");
+		getndbvar("auth", auip, "authentication server IP address");
 	}
 }
 
@@ -122,7 +109,9 @@ setauthaddr(char *proto, int port)
 void
 configtcp(Method*)
 {
+	dprint("configip...");
 	configip(bargc, bargv, 1);
+	dprint("setauthaddr...");
 	setauthaddr("tcp", 567);
 }
 
@@ -133,6 +122,7 @@ connecttcp(void)
 	char buf[64];
 
 	snprint(buf, sizeof buf, "tcp!%I!564", fsip);
+	dprint("dial %s...", buf);
 	fd = dial(buf, 0, 0, 0);
 	if (fd < 0)
 		werrstr("dial %s: %r", buf);
@@ -162,6 +152,7 @@ netenv(char *attr, uchar *ip)
 		return;
 
 	n = read(fd, buf, sizeof(buf)-1);
+	close(fd);
 	if(n <= 0)
 		return;
 	buf[n] = 0;
@@ -199,5 +190,20 @@ netndb(char *attr, uchar *ip)
 			return;
 		}
 	}
-	return;
+}
+
+static void
+getndbvar(char *name, uchar *var, char *prompt)
+{
+	char buf[64];
+
+	netndb(name, var);
+	if(!isvalidip(var))
+		netenv(name, var);
+	while(!isvalidip(var)){
+		buf[0] = 0;
+		outin(prompt, buf, sizeof buf);
+		if (parseip(var, buf) == -1)
+			fprint(2, "configip: can't parse %s ip %s\n", name, buf);
+	}
 }
