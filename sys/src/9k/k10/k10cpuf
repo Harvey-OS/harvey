@@ -140,6 +140,7 @@ amd64 +dev
 	syscall
 	trap
 	vsvm
+	physalloc
 
 port
 	alarm

@@ -212,6 +212,11 @@ ulong		perfticks(void);
 void		pexit(char*, int);
 void		pgrpcpy(Pgrp*, Pgrp*);
 void		pgrpnote(ulong, char*, long, int);
+uintmem		physalloc(u64int, int*, void*);
+void		physdump(void);
+void		physfree(uintmem, u64int);
+void		physinit(uintmem, u64int);
+void*		phystag(uintmem);
 int		psindex(int);
 void		pio(Segment*, uintptr, uintptr, Page**);
 #define		poperror()		up->nerrlab--
