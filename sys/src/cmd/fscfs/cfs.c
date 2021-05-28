@@ -80,7 +80,7 @@ static Auth*	authlist;
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-a netaddr | -F srv] [-dknS] [mntpt]\n", argv0);
+	fprint(2, "usage: %s [-a netaddr | -F srv] [-dknS] [mntpt] [spec]\n", argv0);
 	threadexitsall("usage");
 }
 
@@ -88,11 +88,12 @@ void
 threadmain(int argc, char *argv[])
 {
 	int std;
-	char *server, *mtpt;
+	char *server, *mtpt, *aname;
 
 	std = 0;
 	server = "net!$server";
 	mtpt = "/n/remote";
+	aname = "";
 
 	ARGBEGIN{
 	case 'a':
@@ -125,6 +126,8 @@ threadmain(int argc, char *argv[])
 	}ARGEND
 	if(argc && *argv)
 		mtpt = *argv;
+	if(argc > 1 && argv[1])
+		aname = argv[1];
 
 	quotefmtinstall();
 	if(debug){
@@ -139,7 +142,7 @@ threadmain(int argc, char *argv[])
 		c.fd[0] = c.fd[1] = 1;
 		s.fd[0] = s.fd[1] = 0;
 	}else
-		mountinit(server, mtpt);
+		mountinit(server, mtpt, aname);
 
 	switch(fork()){
 	case 0:
@@ -156,7 +159,7 @@ threadmain(int argc, char *argv[])
  * TO DO: need to use libthread variants
  */
 void
-mountinit(char *server, char *mountpoint)
+mountinit(char *server, char *mountpoint, char *aname)
 {
 	int err;
 	int p[2];
@@ -187,9 +190,9 @@ mountinit(char *server, char *mountpoint)
 		rfork(RFFDG);
 		close(p[0]);
 		if(noauth)
-			err = mount(p[1], -1, mountpoint, MREPL|MCREATE|MCACHE, "");
+			err = mount(p[1], -1, mountpoint, MREPL|MCREATE|MCACHE, aname);
 		else
-			err = amount(p[1], mountpoint, MREPL|MCREATE|MCACHE, "");
+			err = amount(p[1], mountpoint, MREPL|MCREATE|MCACHE, aname);
 		if(err < 0)
 			error("mount failed: %r");
 		_exits(0);
@@ -352,6 +355,10 @@ rwalk(Fcall *t)
 		return;
 	if(mf->path){
 		DPRINT(2, "walk from  %p %q + %d\n", mf, pathstr(mf->path), t->nwname);
+	}
+	if(mf->path->inval){
+		sendreply(mf->path->inval);
+		return;
 	}
 	nmf = nil;
 	if(t->newfid != t->fid){
@@ -908,6 +915,7 @@ rwstat(Fcall *t)
 				p = mf->path;
 				free(p->name);
 				p->name = strdup(d->name);
+				freeinval(p);
 			}
 			if(d->mode != ~0){
 				qt = d->mode>>24;
@@ -1495,6 +1503,26 @@ newpath(Path *parent, char *name, Qid qid)
 		parent->child = p;
 	}
 	return p;
+}
+
+void
+freeinval(Path *p)
+{
+	Path *q, **r;
+
+	for(r = &p->parent->child; (q = *r) != nil; r = &q->next){
+		if(q == p)
+			continue;
+		if(strcmp(q->name, p->name) == 0 && q->inval != nil){
+			if(q->ref > 1){
+				*r = q->next;
+				q->next = p->next;
+				p->next = q;
+			}
+			freepath(q);
+			break;
+		}
+	}
 }
 
 void
