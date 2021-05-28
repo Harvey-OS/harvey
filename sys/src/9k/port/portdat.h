@@ -990,3 +990,4 @@ enum
 #pragma	varargck	type	"M"	uchar*
 
 #pragma	varargck	type	"m"	Mreg
+#pragma	varargck	type	"P"	uintmem
