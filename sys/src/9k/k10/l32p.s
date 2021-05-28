@@ -70,16 +70,16 @@ _endofheader:
  * to paging mode. There's an assumption here that the creation and later
  * removal of the identity map will not interfere with the KZERO mappings;
  * the conditions for clearing the identity map are
- *	clear PML4 entry when (KZER0 & 0x0000ff8000000000) != 0;
- *	clear PDP entry when (KZER0 & 0x0000007fc0000000) != 0;
- *	don't clear PD entry when (KZER0 & 0x000000003fe00000) == 0;
+ *	clear PML4 entry when (KZERO & 0x0000ff8000000000) != 0;
+ *	clear PDP entry when (KZERO & 0x0000007fc0000000) != 0;
+ *	don't clear PD entry when (KZERO & 0x000000003fe00000) == 0;
  * the code below assumes these conditions are met.
  *
  * Assume a recent processor with Page Size Extensions
  * and use two 2MiB entries.
  */
 /*
- * The layout is decribed in data.h:
+ * The layout is decribed in dat.h:
  *	_protected:	start of kernel text
  *	- 4*KiB		unused
  *	- 4*KiB		unused
@@ -195,17 +195,17 @@ TEXT _start64v<>(SB), 1, $-4
 	MOVQ	AX, SP				/* set stack */
 
 _zap0pml4:
-	CMPQ	DX, $PML4O(KZERO)		/* KZER0 & 0x0000ff8000000000 */
+	CMPQ	DX, $PML4O(KZERO)		/* KZERO & 0x0000ff8000000000 */
 	JEQ	_zap0pdp
 	MOVQ	DX, PML4O(0)(AX) 		/* zap identity map PML4E */
 _zap0pdp:
 	ADDQ	$PTSZ, AX			/* PDP at PML4 + PTSZ */
-	CMPQ	DX, $PDPO(KZERO)		/* KZER0 & 0x0000007fc0000000 */
+	CMPQ	DX, $PDPO(KZERO)		/* KZERO & 0x0000007fc0000000 */
 	JEQ	_zap0pd
 	MOVQ	DX, PDPO(0)(AX)			/* zap identity map PDPE */
 _zap0pd:
 	ADDQ	$PTSZ, AX			/* PD at PML4 + 2*PTSZ */
-	CMPQ	DX, $PDO(KZERO)			/* KZER0 & 0x000000003fe00000 */
+	CMPQ	DX, $PDO(KZERO)			/* KZERO & 0x000000003fe00000 */
 	JEQ	_zap0done
 	MOVQ	DX, PDO(0)(AX)			/* zap identity map PDE */
 _zap0done:
