@@ -198,3 +198,8 @@ typically around 409,600 bytes.
 The kernel constant
 .B TSTKSIZ
 controls this.
+.PP
+Both functions rely upon the system's demand paging,
+which in turn expects to be able to read full pages in a single
+.I read
+operation, no matter what the underlying file server is.
