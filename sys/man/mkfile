@@ -5,7 +5,7 @@ LIB=/sys/lib/man
 default:V: check
 
 indices:V:
-	for (i in [0-8]){
+	for (i in [0-9]){
 		$LIB/secindex $i > $i/INDEX
 		$LIB/mkhtmlindex $i > $i/INDEX.html
 	}
@@ -18,7 +18,7 @@ permind:V:
 		echo .am TH
 		echo .tm '\\$1' '\\$2' '\\n%'
 		echo ..
-		for (i in [0-8]){
+		for (i in [0-9]){
 			builtin cd $i
 			for(j in [a-z0-9]*)
 				switch($i/$j){
@@ -41,18 +41,18 @@ permind:V:
 	mk out > /dev/null >[2] /dev/null
 
 old-check:V: checksource
-	awk -f $LIB/checkman.awk [0-8]/* | sed '/\/(cda|av|midi|pub|weather|service\.9net|isdn)(\/|\))/d'
+	awk -f $LIB/checkman.awk [0-9]/* | sed '/\/(cda|av|midi|pub|weather|service\.9net|isdn)(\/|\))/d'
 
 punccheck:
 	grep -n '^\.[IB][^PRIB].+[.;,:]$' [0-9]/* | grep -v '\.\.\.'
 
 check:V: indices checksource
-	awk -f $LIB/checkman.awk [0-8]/*
+	awk -f $LIB/checkman.awk [0-9]/*
 
 checksource:QV:
 	sam -d >[2]/dev/null <<'!'
 	f input
-	< cat [0-8]/[0-9a-z]*
+	< cat [0-9]/[0-9a-z]*
 	B output
 	b input
 	,x/^\.SH SOURCE/ .,/^\.SH/ x g/^\.B/t "output
@@ -80,7 +80,7 @@ print.out:V: permind
 		{echo -n $FONTS; cat $LIB/preface} | troff -ms
 		{echo -n $FONTS; echo ' '} | troff
 		{
-			for (i in [0-8]){
+			for (i in [0-9]){
 				builtin cd $i
 				for(j in [a-z0-9]*)
 					switch($i/$j){

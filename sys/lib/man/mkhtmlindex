@@ -23,6 +23,8 @@ case 7
 	echo -n Databases
 case 8
 	echo -n System Administration
+case 9
+	echo -n Kernel Functions
 }
 echo '</H2>'
 echo '<HR>'
