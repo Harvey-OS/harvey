@@ -736,6 +736,7 @@ rwstat(Fid *f)
 		if(r->ndata < dir.length)
 			memset(r->data+r->ndata, 0, dir.length-r->ndata);
 		r->ndata = dir.length;
+		r->qid.vers++;
 	}
 	ram[r->parent].mtime = time(0);
 	return 0;
