@@ -782,7 +782,7 @@ struct Proc
 
 	void	*ureg;		/* User registers for notes */
 	void	*dbgreg;	/* User registers for devproc */
-	Notsave;
+/*	Notsave;		/* not used since 1st ed.; now use ureg above */
 
 	/*
 	 *  machine specific MMU

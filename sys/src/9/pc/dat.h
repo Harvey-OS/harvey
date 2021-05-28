@@ -10,7 +10,6 @@ typedef struct Label	Label;
 typedef struct Lock	Lock;
 typedef struct MMU	MMU;
 typedef struct Mach	Mach;
-typedef struct Notsave	Notsave;
 typedef struct PCArch	PCArch;
 typedef struct Pcidev	Pcidev;
 typedef struct PCMmap	PCMmap;
@@ -159,16 +158,6 @@ struct PMMU
 	Page*	kmaptable;		/* page table used by kmap */
 	uint	lastkmap;		/* last entry used by kmap */
 	int	nkmap;			/* number of current kmaps */
-};
-
-/*
- *  things saved in the Proc structure during a notify
- */
-struct Notsave
-{
-	ulong	svflags;
-	ulong	svcs;
-	ulong	svss;
 };
 
 #include "../port/portdat.h"

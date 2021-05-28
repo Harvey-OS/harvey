@@ -8,7 +8,6 @@ typedef u32int Mreg;				/* Msr - bloody UART */
 typedef struct Page	Page;
 typedef struct FPsave	FPsave;
 typedef struct PMMU	PMMU;
-typedef struct Notsave	Notsave;
 typedef struct Proc	Proc;
 typedef struct Softtlb	Softtlb;
 typedef struct Sys	Sys;
@@ -142,14 +141,6 @@ struct Conf
 struct PMMU
 {
 	int	mmupid;
-};
-
-/*
- *  things saved in the Proc structure during a notify
- */
-struct Notsave
-{
-	int	emptiness;
 };
 
 /* debugging */

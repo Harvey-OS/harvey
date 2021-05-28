@@ -22,7 +22,6 @@ typedef struct Lock	Lock;
 typedef struct Memcache	Memcache;
 typedef struct MMMU	MMMU;
 typedef struct Mach	Mach;
-typedef struct Notsave	Notsave;
 typedef struct Page	Page;
 typedef struct PhysUart	PhysUart;
 typedef struct PMMU	PMMU;
@@ -139,15 +138,6 @@ enum {
 	Alt3	= 0x7,
 	Alt4	= 0x3,
 	Alt5	= 0x2,
-};
-
-
-
-/*
- *  things saved in the Proc structure during a notify
- */
-struct Notsave {
-	int	emptiness;
 };
 
 /*

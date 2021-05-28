@@ -5,7 +5,6 @@ typedef struct ISAConf	ISAConf;
 typedef struct Label	Label;
 typedef struct Lock	Lock;
 typedef struct Mach	Mach;
-typedef struct Notsave	Notsave;
 typedef struct Page	Page;
 typedef struct PCArch	PCArch;
 typedef struct Pcidev	Pcidev;
@@ -104,14 +103,6 @@ struct Conf
 struct PMMU
 {
 	int	mmupid;
-};
-
-/*
- *  things saved in the Proc structure during a notify
- */
-struct Notsave
-{
-	ulong	UNUSED;
 };
 
 #include "../port/portdat.h"

@@ -33,7 +33,6 @@ typedef struct Memcache	Memcache;
 typedef struct MMMU	MMMU;
 typedef struct Mach	Mach;
 typedef u32int Mreg;				/* Msr - bloody UART */
-typedef struct Notsave	Notsave;
 typedef struct Page	Page;
 typedef struct Pcisiz Pcisiz;
 typedef struct Pcidev Pcidev;
@@ -133,13 +132,6 @@ struct Conf
 	ulong	hz;		/* processor cycle freq */
 	ulong	mhz;
 	int	monitor;	/* flag */
-};
-
-/*
- *  things saved in the Proc structure during a notify
- */
-struct Notsave {
-	int	emptiness;
 };
 
 /*

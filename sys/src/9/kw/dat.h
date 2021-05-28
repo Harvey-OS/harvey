@@ -7,7 +7,6 @@ typedef struct Lock	Lock;
 typedef struct Memcache	Memcache;
 typedef struct MMMU	MMMU;
 typedef struct Mach	Mach;
-typedef struct Notsave	Notsave;
 typedef struct Page	Page;
 typedef struct Pcidev	Pcidev;
 typedef struct PhysUart	PhysUart;
@@ -95,13 +94,6 @@ struct Conf
 	int	nswppo;		/* max # of pageouts per segment pass */
 //	ulong	hz;		/* processor cycle freq */
 //	ulong	mhz;
-};
-
-/*
- *  things saved in the Proc structure during a notify
- */
-struct Notsave {
-	int	emptiness;
 };
 
 /*
