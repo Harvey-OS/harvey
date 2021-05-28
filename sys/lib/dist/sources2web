@@ -1,0 +1,56 @@
+#!/bin/rc
+# sources2web source-file - massage source file into html
+rfork e
+contrib=`{cat /sys/lib/dist/contrib.note}
+contrib=`{echo $contrib | sed 's;/;\\/;g'}
+ifs='
+'
+file=$1
+safefile=`{cleanname -d `{pwd} $file | sed 's;/;\\/;g'}	# safe for sed
+if(! ~ $safefile *contrib*)
+	contrib=''
+
+fn html {
+	echo Content-Type: text/html
+	echo 
+}
+fn head {
+	sed -n '1,/END HEADER/p' /usr/web/plan9/sources.html | translate
+}
+fn tail {
+	sed -n '/BEGIN TAIL/,$p' /usr/web/plan9/sources.html | translate
+}
+fn translate {
+	sed 's/PATH/'$safefile'/g; s/CONTRIB/'$"contrib'/g;' $*
+}
+
+if(test -f $1){
+	type=`{file -m $1}
+	if(! ~ $type text/*){
+		len=`{ls -l $1 | awk '{print $6}'}
+		echo Content-Type: $type
+		echo Content-Length: $len
+		echo 
+		cat $1
+		exit 0
+	}
+	html
+	head
+	cat $1 | aux/htmlsanitize
+	tail
+	exit 0
+}
+if(test -d $1){
+	html
+	head
+	# exclude stuff that we don't want to publish with grep -v
+	ls -lp $1 | grep -v ' _| snap$| (9k|nix|pac)' |
+		sed 's/ . [0-9]+ / /' |
+		aux/htmlsanitize |
+		sed 's; ([^ /]+)$; <a href="\1">\1</a>;'
+	tail
+	exit 0
+}
+
+echo not found
+exit 0
