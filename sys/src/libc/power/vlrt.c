@@ -178,6 +178,34 @@ _modv(Vlong *r, Vlong n, Vlong d)
 }
 
 void
+_vasaddd(Vlong *ret, Vlong *lv, double rv)
+{
+	_d2v(lv, _v2d(*lv)+rv);
+	*ret = *lv;
+}
+
+void
+_vassubd(Vlong *ret, Vlong *lv, double rv)
+{
+	_d2v(lv, _v2d(*lv)-rv);
+	*ret = *lv;
+}
+
+void
+_vasmuld(Vlong *ret, Vlong *lv, double rv)
+{
+	_d2v(lv, _v2d(*lv)*rv);
+	*ret = *lv;
+}
+
+void
+_vasdivd(Vlong *ret, Vlong *lv, double rv)
+{
+	_d2v(lv, _v2d(*lv)/rv);
+	*ret = *lv;
+}
+
+void
 _vasop(Vlong *ret, void *lv, void fn(Vlong*, Vlong, Vlong), int type, Vlong rv)
 {
 	Vlong t, u;
