@@ -51,8 +51,9 @@ struct	Prog
 	Adr	to;
 	Prog*	link;
 	long	lineno;
-	char	as;
+	uchar	as;
 	char	reg;
+	char	reghi;	/* for long multiply, double loads */
 	uchar	scond;
 };
 #define	P	((Prog*)0)
@@ -126,7 +127,7 @@ struct	Reg
 };
 #define	R	((Reg*)0)
 
-#define	NRGN	1000		/* was 600; raised for paranoia.c */
+#define	NRGN	1000
 struct	Rgn
 {
 	Reg*	enter;
@@ -172,6 +173,8 @@ EXTERN	int	suppress;
 #define	STORE(r)	(~r->calbehind.b[z] & r->calahead.b[z])
 
 #define	bset(a,n)	((a).b[(n)/32]&(1L<<(n)%32))
+
+#define	isbigendian()	align(0, types[TCHAR], Aarg1)
 
 #define	CLOAD	4
 #define	CREF	5
@@ -344,6 +347,7 @@ int	predicable(Prog *p);
 int	modifiescpsr(Prog *p); 
 
 #pragma	varargck	type	"A"	int
+#pragma	varargck	type	"A"	uint
 #pragma	varargck	type	"B"	Bits
 #pragma	varargck	type	"D"	Adr*
 #pragma	varargck	type	"N"	Adr*

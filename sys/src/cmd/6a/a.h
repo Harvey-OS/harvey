@@ -156,6 +156,7 @@ void	zname(char*, int, int);
 void	ieeedtod(Ieee*, double);
 int	filbuf(void);
 Sym*	getsym(void);
+int	isxyreg(int);
 void	domacro(void);
 void	macund(void);
 void	macdef(void);

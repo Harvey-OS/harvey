@@ -93,8 +93,6 @@ enum	as
 	AMULD,
 	ADIVF,
 	ADIVD,
-//	ASQRTF,
-//	ASQRTD,
 
 	ASRL,
 	ASRA,
@@ -146,7 +144,6 @@ enum	as
 
 	ASIGNAME,
 
-	/* moved here to preserve values of older identifiers */
 	ASQRTF,
 	ASQRTD,
 
@@ -155,6 +152,54 @@ enum	as
 	
 	ALDREXD,
 	ASTREXD,
+
+	AERET,
+	AWFE,
+	AWFI,
+
+	ACPS,
+	ACPSID,
+	ACPSIE,
+
+	ADMB,
+	ADSB,
+	AISB,
+
+	ACLZ,
+
+	ACLREX,
+	ALDREXB,
+	ASTREXB,
+	ALDREXH,
+	ASTREXH,
+
+	AABSF,
+	AABSD,
+	ANEGF,
+	ANEGD,
+
+	AMLAF,
+	AMLAD,
+	AMLSF,
+	AMLSD,
+	ANMULF,
+	ANMULD,
+	ANMLAF,
+	ANMLAD,
+	ANMLSF,
+	ANMLSD,
+
+	AMOVWFU,
+	AMOVWDU,
+	AMOVFWU,
+	AMOVDWU,
+
+	AMOVMF,
+	AMOVMD,
+	APOPF,
+	APOPD,
+	APUSHF,
+	APUSHD,
 
 	ALAST,
 };
@@ -179,7 +224,7 @@ enum	as
 #define	D_SCONST	(D_NONE+9)
 #define	D_PSR		(D_NONE+10)
 #define	D_REG		(D_NONE+12)
-#define	D_FREG		(D_NONE+13)
+#define	D_FREG		(D_NONE+13)		/* Fn = S(2*n) or Dn depending on op */
 #define	D_FILE		(D_NONE+16)
 #define	D_OCONST	(D_NONE+17)
 #define	D_FILE1		(D_NONE+18)
@@ -188,6 +233,9 @@ enum	as
 #define	D_FPCR		(D_NONE+20)
 #define	D_REGREG	(D_NONE+21)
 #define	D_ADDR		(D_NONE+22)
+#define	D_VFPCR		(D_NONE+23)
+#define	D_SFREG		(D_NONE+24)		/* single-precision register Sn */
+#define	D_QREG		(D_NONE+25)
 
 /* name */
 #define	D_EXTERN	(D_NONE+3)

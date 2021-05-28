@@ -2,7 +2,8 @@
 
 /* default, like old cc */
 int
-machcap(Node*)
+machcap(Node *n)
 {
+	USED(n);
 	return 0;
 }

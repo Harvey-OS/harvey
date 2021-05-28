@@ -99,8 +99,10 @@ dodata(void)
 		s->value = bsssize + datsize;
 		bsssize += t;
 	}
+	xdefine("bdata", SDATA, 0L);
 	xdefine("edata", SBSS, datsize);
 	xdefine("end", SBSS, bsssize + datsize);
+	/* etext is defined in span.c */
 }
 
 Prog*
@@ -157,7 +159,7 @@ loop:
 			if(q == lastp)
 				break;
 			a = q->as;
-			if(a == ANOP) {
+			if(a == ANOP || a == ATEXT) {
 				i--;
 				continue;
 			}
@@ -229,11 +231,19 @@ loop:
 	if(a == AJMP || a == ARET || a == AIRETL || a == AIRETQ || a == AIRETW ||
 	   a == ARETFL || a == ARETFQ || a == ARETFW)
 		return;
+	if(a == ATEXT) {
+		xfol(p->link);
+		q = p->pcond;
+		if(q == P || q->mark)
+			return;
+		p = q;
+		goto loop;
+	}
 	if(p->pcond != P)
 	if(a != ACALL) {
 		q = brchain(p->link);
 		if(q != P && q->mark)
-		if(a != ALOOP) {
+		if(a != ALOOP && a != ATEXT) {
 			p->as = relinv(a);
 			p->link = p->pcond;
 			p->pcond = q;
@@ -326,7 +336,8 @@ patch(void)
 					Bprint(&bso, "%s calls %s\n", TNAME, s->name);
 				switch(s->type) {
 				default:
-					diag("undefined: %s in %s", s->name, TNAME);
+					/* diag prints TNAME first */
+					diag("undefined: %s", s->name);
 					s->type = STEXT;
 					s->value = vexit;
 					break;	/* or fall through to set offset? */
@@ -656,7 +667,8 @@ import(void)
 				if(s->value != 0)
 					diag("value != 0 on SXREF");
 				undefsym(s);
-				Bprint(&bso, "IMPORT: %s sig=%lux v=%lld\n", s->name, s->sig, s->value);
+				if(debug['X'])
+					Bprint(&bso, "IMPORT: %s sig=%lux v=%lld\n", s->name, s->sig, s->value);
 				if(debug['S'])
 					s->sig = 0;
 			}
@@ -701,14 +713,14 @@ export(void)
 	n = 0;
 	for(i = 0; i < NHASH; i++)
 		for(s = hash[i]; s != S; s = s->link)
-			if(s->sig != 0 && s->type != SXREF && s->type != SUNDEF && (nexports == 0 || s->subtype == SEXPORT))
+			if(s->type != SXREF && s->type != SUNDEF && (nexports == 0 && s->sig != 0 || s->subtype == SEXPORT || allexport))
 				n++;
 	esyms = malloc(n*sizeof(Sym*));
 	ne = n;
 	n = 0;
 	for(i = 0; i < NHASH; i++)
 		for(s = hash[i]; s != S; s = s->link)
-			if(s->sig != 0 && s->type != SXREF && s->type != SUNDEF && (nexports == 0 || s->subtype == SEXPORT))
+			if(s->type != SXREF && s->type != SUNDEF && (nexports == 0 && s->sig != 0 || s->subtype == SEXPORT || allexport))
 				esyms[n++] = s;
 	for(i = 0; i < ne-1; i++)
 		for(j = i+1; j < ne; j++)

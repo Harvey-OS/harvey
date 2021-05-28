@@ -16,16 +16,16 @@
 %left	'+' '-'
 %left	'*' '/' '%'
 %token	<lval>	LTYPE0 LTYPE1 LTYPE2 LTYPE3 LTYPE4
-%token	<lval>	LTYPEC LTYPED LTYPEN LTYPER LTYPET LTYPES LTYPEM LTYPEI LTYPEXC LTYPEX LTYPERT
+%token	<lval>	LTYPEC LTYPED LTYPEN LTYPER LTYPET LTYPES LTYPEM LTYPEI LTYPEG LTYPEXC LTYPEX LTYPEY LTYPERT
 %token	<lval>	LCONST LFP LPC LSB
-%token	<lval>	LBREG LLREG LSREG LFREG LMREG LXREG
+%token	<lval>	LBREG LLREG LSREG LFREG LMREG LXREG LYREG
 %token	<dval>	LFCONST
 %token	<sval>	LSCONST LSP
 %token	<sym>	LNAME LLAB LVAR
 %type	<lval>	con expr pointer offset
 %type	<gen>	mem imm reg nam rel rem rim rom omem nmem
-%type	<gen2>	nonnon nonrel nonrem rimnon rimrem remrim spec10
-%type	<gen2>	spec1 spec2 spec3 spec4 spec5 spec6 spec7 spec8 spec9
+%type	<gen2>	nonnon nonrel nonrem rimnon rimrem remrim
+%type	<gen2>	spec1 spec2 spec3 spec4 spec5 spec6 spec7 spec8 spec9 spec10 spec11 spec12
 %%
 prog:
 |	prog line
@@ -75,7 +75,9 @@ inst:
 |	LTYPEI spec7	{ outcode($1, &$2); }
 |	LTYPEXC spec8	{ outcode($1, &$2); }
 |	LTYPEX spec9	{ outcode($1, &$2); }
-|	LTYPERT spec10	{ outcode($1, &$2); }
+|	LTYPEG spec10	{ outcode($1, &$2); }
+|	LTYPEY spec11	{ outcode($1, &$2); }
+|	LTYPERT spec12	{ outcode($1, &$2); }
 
 nonnon:
 	{
@@ -229,8 +231,17 @@ spec8:	/* CMPPS/CMPPD */
 		$$.to = $3;
 		$$.from.offset = $5;
 	}
+|	reg ',' reg ',' rem ',' con	/* VCMPPS/VCMPPD */
+	{
+		$$.from = $1;
+		if(!isxyreg($3.type))
+			yyerror("second source operand must be X/Y register");
+		$$.from.index = $3.type;
+		$$.to = $5;
+		$$.from.offset = $7;
+	}
 
-spec9:	/* shufl */
+spec9:	/* SHUFL */
 	imm ',' rem ',' reg
 	{
 		$$.from = $3;
@@ -239,8 +250,47 @@ spec9:	/* shufl */
 			yyerror("illegal constant");
 		$$.to.offset = $1.offset;
 	}
+|	imm ',' rem ',' reg ',' reg
+	{
+		$$.from = $3;
+		$$.to = $7;
+		if($1.type != D_CONST)
+			yyerror("illegal constant");
+		$$.to.offset = $1.offset;
+		if(!isxyreg($5.type))
+			yyerror("second source operand must be X/Y register");
+		$$.to.index = $5.type;
+	}
 
-spec10:	/* RET/RETF */
+spec10:	/* GLOBL */
+	mem ',' imm
+	{
+		$$.from = $1;
+		$$.to = $3;
+	}
+|	mem ',' con ',' imm
+	{
+		$$.from = $1;
+		$$.from.scale = $3;
+		$$.to = $5;
+	}
+
+spec11:
+	rimrem
+|	rim ',' reg ',' rem
+	{
+		$$.from = $1;
+		$$.to = $5;
+		if(isxyreg($3.type)) {
+			if(isxyreg($1.type))
+				$$.from.index = $3.type;
+			else if(isxyreg($5.type))
+				$$.to.index = $3.type;
+		} else
+			yyerror("second source operand must be X or Y register");
+	}
+
+spec12:	/* RET/RETF */
 	{
 		$$.from = nullgen;
 		$$.to = nullgen;
@@ -268,6 +318,7 @@ rom:
 	}
 |	reg
 |	omem
+|	imm
 
 rim:
 	rem
@@ -329,6 +380,11 @@ reg:
 		$$.type = $1;
 	}
 |	LXREG
+	{
+		$$ = nullgen;
+		$$.type = $1;
+	}
+|	LYREG
 	{
 		$$ = nullgen;
 		$$.type = $1;
@@ -427,6 +483,12 @@ omem:
 	{
 		$$ = nullgen;
 		$$.type = D_INDIR+D_SP;
+	}
+|	con '(' LSREG ')'
+	{
+		$$ = nullgen;
+		$$.type = D_INDIR+$3;
+		$$.offset = $1;
 	}
 |	'(' LLREG '*' con ')'
 	{

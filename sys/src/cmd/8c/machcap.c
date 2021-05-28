@@ -18,7 +18,7 @@ machcap(Node *n)
 		if(typev[n->type->etype]) {
 //		if(typev[n->type->etype] && n->right->op == OCONST) {
 //			if(hi64v(n->right) == 0)
-				return 1;
+				return !mixedasop(n->type, n->right->type);
 		}
 		break;
 
@@ -58,10 +58,13 @@ machcap(Node *n)
 
 	case OASADD:
 	case OASSUB:
+		return !mixedasop(n->type, n->right->type);
+
 	case OASAND:
 	case OASOR:
 	case OASXOR:
 		return 1;
+
 
 	case OASASHL:
 	case OASASHR:

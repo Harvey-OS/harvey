@@ -1,5 +1,7 @@
 #include "gc.h"
 
+static void genasop(int, Node*, Node*, Node*);
+
 void
 cgen(Node *n, Node *nn)
 {
@@ -217,6 +219,8 @@ cgen(Node *n, Node *nn)
 				regfree(&nod2);
 			break;
 		}
+		genasop(o, l, r, nn);
+		break;
 
 	case OASLMUL:
 	case OASLDIV:
@@ -226,29 +230,7 @@ cgen(Node *n, Node *nn)
 	case OASMOD:
 		if(l->op == OBIT)
 			goto asbitop;
-		if(l->complex >= r->complex) {
-			if(l->addable < INDEXED)
-				reglcgen(&nod2, l, Z);
-			else
-				nod2 = *l;
-			regalloc(&nod, n, nn);
-			cgen(r, &nod);
-		} else {
-			regalloc(&nod, n, nn);
-			cgen(r, &nod);
-			if(l->addable < INDEXED)
-				reglcgen(&nod2, l, Z);
-			else
-				nod2 = *l;
-		}
-		regalloc(&nod1, n, Z);
-		gopcode(OAS, &nod2, Z, &nod1);
-		gopcode(o, &nod, &nod1, &nod);
-		gopcode(OAS, &nod, Z, &nod2);
-		regfree(&nod);
-		regfree(&nod1);
-		if(l->addable < INDEXED)
-			regfree(&nod2);
+		genasop(o, l, r, nn);
 		break;
 
 	asbitop:
@@ -515,6 +497,43 @@ cgen(Node *n, Node *nn)
 		break;
 	}
 	cursafe = curs;
+}
+
+static void
+genasop(int o, Node *l, Node *r, Node *nn)
+{
+	Node nod, nod1, nod2;
+	int hardleft;
+
+	hardleft = l->addable < INDEXED || l->complex >= FNX;
+	if(l->complex >= r->complex) {
+		if(hardleft)
+			reglcgen(&nod2, l, Z);
+		else
+			nod2 = *l;
+		regalloc(&nod1, r, Z);
+		cgen(r, &nod1);
+	} else {
+		regalloc(&nod1, r, Z);
+		cgen(r, &nod1);
+		if(hardleft)
+			reglcgen(&nod2, l, Z);
+		else
+			nod2 = *l;
+	}
+	if(nod1.type == nod2.type || !typefd[nod1.type->etype])
+		regalloc(&nod, &nod2, nn);
+	else
+		regalloc(&nod, &nod1, Z);
+	gmove(&nod2, &nod);
+	gopcode(o, &nod1, Z, &nod);
+	gmove(&nod, &nod2);
+	if(nn != Z)
+		gmove(&nod2, nn);
+	regfree(&nod);
+	regfree(&nod1);
+	if(hardleft)
+		regfree(&nod2);
 }
 
 void
@@ -835,12 +854,12 @@ sugen(Node *n, Node *nn, long w)
 
 	case OSTRUCT:
 		/*
-		 * rewrite so lhs has no fn call
+		 * rewrite so lhs has no side effects
 		 */
-		if(nn != Z && nn->complex >= FNX) {
+		if(nn != Z && side(nn)) {
 			nod1 = *n;
 			nod1.type = typ(TIND, n->type);
-			regret(&nod2, &nod1);
+			regalloc(&nod2, &nod1, Z);
 			lcgen(nn, &nod2);
 			regsalloc(&nod0, &nod1);
 			gopcode(OAS, &nod2, Z, &nod0);

@@ -122,7 +122,7 @@ struct	Renv
 	Node*	scope;
 };
 
-#define	NRGN	600
+#define	NRGN	1000
 struct	Rgn
 {
 	Reg*	enter;
@@ -157,7 +157,7 @@ EXTERN	char	string[NSNAME];
 EXTERN	Sym*	symrathole;
 EXTERN	Node	znode;
 EXTERN	Prog	zprog;
-EXTERN	int	reg[D_NONE];
+EXTERN	int	reg[D_XREG];
 EXTERN	long	exregoffset;
 EXTERN	long	exfregoffset;
 EXTERN	uchar	typechlpv[NTYPE];
@@ -334,9 +334,6 @@ long	RtoB(int);
 long	FtoB(int);
 int	BtoR(long);
 int	BtoF(long);
-
-#define	D_HI	D_NONE
-#define	D_LO	D_NONE
 
 #define	isregtype(t)	((t)>= D_AX && (t)<=D_R15)
 

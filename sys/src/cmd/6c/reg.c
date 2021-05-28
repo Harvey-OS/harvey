@@ -183,6 +183,7 @@ regopt(Prog *p)
 		case AMOVWLZX:
 		case AMOVWQSX:
 		case AMOVWQZX:
+		case AMOVQL:
 
 		case AMOVSS:
 		case AMOVSD:
@@ -731,6 +732,7 @@ mkvar(Reg *r, Adr *a)
 	r->regu |= doregbits(t);
 	r->regu |= doregbits(a->index);
 
+	s = a->sym;
 	switch(t) {
 	default:
 		goto none;
@@ -743,12 +745,13 @@ mkvar(Reg *r, Adr *a)
 		goto none;
 	case D_EXTERN:
 	case D_STATIC:
+		if(s->type != nil && s->type->garb & GVOLATILE)
+			goto none;
 	case D_PARAM:
 	case D_AUTO:
 		n = t;
 		break;
 	}
-	s = a->sym;
 	if(s == S)
 		goto none;
 	if(s->name[0] == '.')

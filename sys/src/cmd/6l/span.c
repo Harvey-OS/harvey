@@ -1,6 +1,7 @@
 #include	"l.h"
 
 static int	rexflag;
+static int	vexbytes;
 static int	asmode;
 
 void
@@ -321,12 +322,30 @@ asmlc(void)
 }
 
 int
+prefixof(Adr *a)
+{
+	switch(a->type) {
+	case D_INDIR+D_CS:
+		return 0x2e;
+	case D_INDIR+D_DS:
+		return 0x3e;
+	case D_INDIR+D_ES:
+		return 0x26;
+	case D_INDIR+D_FS:
+		return 0x64;
+	case D_INDIR+D_GS:
+		return 0x65;
+	}
+	return 0;
+}
+
+int
 oclass(Adr *a)
 {
 	vlong v;
 	long l;
 
-	if(a->type >= D_INDIR || a->index != D_NONE) {
+	if(a->type < D_CONST2 && (a->type >= D_INDIR || !isxyreg(a->type) && a->index != D_NONE)) {
 		if(a->index != D_NONE && a->scale == 0) {
 			if(a->type == D_ADDR) {
 				switch(a->index) {
@@ -401,6 +420,7 @@ oclass(Adr *a)
 	case D_DI:
 		return Yrl;
 
+/*
 	case D_F0+0:
 		return	Yf0;
 
@@ -412,6 +432,7 @@ oclass(Adr *a)
 	case D_F0+6:
 	case D_F0+7:
 		return	Yrf;
+*/
 
 	case D_M0+0:
 	case D_M0+1:
@@ -440,6 +461,24 @@ oclass(Adr *a)
 	case D_X0+14:
 	case D_X0+15:
 		return	Yxr;
+
+	case D_Y0+0:
+	case D_Y0+1:
+	case D_Y0+2:
+	case D_Y0+3:
+	case D_Y0+4:
+	case D_Y0+5:
+	case D_Y0+6:
+	case D_Y0+7:
+	case D_Y0+8:
+	case D_Y0+9:
+	case D_Y0+10:
+	case D_Y0+11:
+	case D_Y0+12:
+	case D_Y0+13:
+	case D_Y0+14:
+	case D_Y0+15:
+		return	Yyr;
 
 	case D_NONE:
 		return Ynone;
@@ -674,11 +713,14 @@ asmandsz(Adr *a, int r, int rex, int m64)
 	int t;
 	Adr aa;
 
+	if(r == -1)
+		diag("asmandsz: immedate instead of register");
+
 	rex &= (0x40 | Rxr);
 	v = a->offset;
 	t = a->type;
-	if(a->index != D_NONE) {
-		if(t >= D_INDIR) {
+	if(a->index != D_NONE && !isxyreg(t)) {
+		if(t >= D_INDIR && t < D_CONST2) {
 			t -= D_INDIR;
 			rexflag |= (regrex[a->index] & Rxx) | (regrex[t] & Rxb) | rex;
 			if(t == D_NONE) {
@@ -721,17 +763,26 @@ asmandsz(Adr *a, int r, int rex, int m64)
 		asmandsz(&aa, r, rex, m64);
 		return;
 	}
-	if(t >= D_AL && t <= D_X0+15) {
+	if(t >= D_AL && t <= D_BH) {
 		if(v)
 			goto bad;
 		*andptr++ = (3 << 6) | (reg[t] << 0) | (r << 3);
 		rexflag |= (regrex[t] & (0x40 | Rxb)) | rex;
 		return;
 	}
-	if(t >= D_INDIR) {
+	if(t >= D_X0 && t <= D_X15 || t >= D_Y0 && t <= D_Y15) {
+		if(v)
+			goto bad;
+		*andptr++ = (3 << 6) | (reg[t] << 0) | (r << 3);
+		if(t >= D_Y0 && t <= D_Y15)
+			vexbytes |= Vexl;
+		rexflag |= (regrex[t] & (0x40 | Rxb)) | rex;
+		return;
+	}
+	if(t >= D_INDIR && t < D_CONST2) {
 		t -= D_INDIR;
 		rexflag |= (regrex[t] & Rxb) | rex;
-		if(t == D_NONE) {
+		if(t == D_NONE || D_CS <= t && t <= D_GS) {
 			if(asmode != 64){
 				*andptr++ = (0 << 6) | (5 << 0) | (r << 3);
 				put4(v);
@@ -799,6 +850,29 @@ bad:
 	return;
 }
 
+int
+isxyreg(int t)
+{
+	return t >= D_X0 && t <= D_X15 || t >= D_Y0 && t <= D_Y15;
+}
+
+static void
+vexreg(Adr *a)
+{
+	int t;
+
+	t = a->type;
+	if(t >= D_Y0 && t <= D_Y15) {
+		vexbytes |= Vexl;
+	} else if(t >= D_X0 && t <= D_X15) {
+		if(vexed)
+			vexbytes |= Vexr;	/* force vex prefix */
+	} else
+		return;
+	if(a->index != D_NONE)
+		vexbytes |= a->index << 8;
+}
+
 void
 asmand(Adr *a, Adr *ra)
 {
@@ -806,9 +880,57 @@ asmand(Adr *a, Adr *ra)
 }
 
 void
+asmandg(Adr *a, Adr *r, int o, int rdest, int prefix)
+{
+	Adr aa, rr;
+
+	if(isxyreg(a->type)) {
+		if(isxyreg(a->index) && r->type == D_CONST) {
+			/*
+			 * convert sse instructions with immediate like
+			 * AESKEYGENASSIST $32, X1, X2 from
+			 * a=X1(X2*0); r=$32 to a=X1, r=X2.  the
+			 * caller adds the immediate byte.  vex is not required
+			 */
+			rr.offset = 0;
+			rr.sym = a->sym;
+			rr.type = a->index;
+			rr.index = D_NONE;
+			rr.scale = 0;
+			r = &rr;
+
+			aa = *a;
+			aa.index = D_NONE;
+			a = &aa;
+		}
+	}
+	vexreg(a);
+	if(isxyreg(a->type)) {
+		if(a->index != D_NONE) {
+			aa = *a;
+			aa.index = D_NONE;
+			a = &aa;
+		}
+	}
+	if(r == nil) {
+		asmandsz(a, o, 0, 0);
+		return;
+	}
+	vexreg(r);
+	if(rdest && (prefix&P2) == 0 && vexbytes != 0 && (vexbytes>>8) == 0) {
+		/* copy destination register as second source register */
+		if(isxyreg(r->type)) {
+			vexbytes |= r->type << 8;
+			rexflag |= regrex[r->type] & Rxx;
+		}
+	}
+	asmand(a, r);
+}
+
+void
 asmando(Adr *a, int o)
 {
-	asmandsz(a, o, 0, 0);
+	asmandg(a, nil, o, 0, 0);
 }
 
 static void
@@ -996,6 +1118,13 @@ static int
 mediaop(Optab *o, int op, int osize, int z)
 {
 	switch(op){
+	case Pm38:
+	case Pm3a:
+		*andptr++ = Pm;	/* 0f */
+		*andptr++ = op;	/* 38 | 3a */
+		op = o->op[++z];
+		break;
+
 	case Pm:
 	case Pe:
 	case Pf2:
@@ -1005,6 +1134,10 @@ mediaop(Optab *o, int op, int osize, int z)
 				*andptr++ = op;
 			*andptr++ = Pm;
 			op = o->op[++z];
+			if(op == Pm38 || op == Pm3a) {
+				*andptr++ = op;
+				op = o->op[++z];
+			}
 			break;
 		}
 	default:
@@ -1023,8 +1156,16 @@ doasm(Prog *p)
 	Prog *q, pp;
 	uchar *t;
 	Movtab *mo;
-	int z, op, ft, tt, xo, l;
+	int z, op, ft, tt, xo, l, pre;
 	vlong v;
+	Adr vmi;
+
+	pre = prefixof(&p->from);
+	if(pre)
+		*andptr++ = pre;
+	pre = prefixof(&p->to);
+	if(pre)
+		*andptr++ = pre;
 
 	o = opindex[p->as];
 	if(o == nil) {
@@ -1038,7 +1179,7 @@ doasm(Prog *p)
 		diag("asmins: noproto %P", p);
 		return;
 	}
-	xo = o->op[0] == 0x0f;
+	xo = o->op[0] == Pm;
 	for(z=0; *t; z+=t[3]+xo,t+=4)
 		if(ycover[ft+t[0]])
 		if(ycover[tt+t[1]])
@@ -1046,7 +1187,7 @@ doasm(Prog *p)
 	goto domov;
 
 found:
-	switch(o->prefix) {
+	switch(o->prefix & 0xFF) {
 	case Pq:	/* 16 bit escape and opcode escape */
 		*andptr++ = Pe;
 		*andptr++ = Pm;
@@ -1054,7 +1195,7 @@ found:
 
 	case Pf2:	/* xmm opcode escape */
 	case Pf3:
-		*andptr++ = o->prefix;
+		*andptr++ = o->prefix & 0xFF;
 		*andptr++ = Pm;
 		break;
 
@@ -1111,36 +1252,36 @@ found:
 		/* fall through */
 	case Zm_r:
 		*andptr++ = op;
-		asmand(&p->from, &p->to);
+		asmandg(&p->from, &p->to, 0, 1, o->prefix);
 		break;
 
 	case Zm_r_xm:
 		mediaop(o, op, t[3], z);
-		asmand(&p->from, &p->to);
+		asmandg(&p->from, &p->to, 0, 1, o->prefix);
 		break;
 
 	case Zm_r_xm_nr:
 		rexflag = 0;
 		mediaop(o, op, t[3], z);
-		asmand(&p->from, &p->to);
+		asmandg(&p->from, &p->to, 0, 1, o->prefix);
 		break;
 
 	case Zm_r_i_xm:
 		mediaop(o, op, t[3], z);
-		asmand(&p->from, &p->to);
+		asmandg(&p->from, &p->to, 0, 1, o->prefix);
 		*andptr++ = p->to.offset;
 		break;
 
 	case Zm_r_3d:
 		*andptr++ = 0x0f;
 		*andptr++ = 0x0f;
-		asmand(&p->from, &p->to);
+		asmandg(&p->from, &p->to, 0, 1, o->prefix);
 		*andptr++ = op;
 		break;
 
 	case Zibm_r:
 		*andptr++ = op;
-		asmand(&p->from, &p->to);
+		asmandg(&p->from, &p->to, 0, 1, o->prefix);
 		*andptr++ = p->to.offset;
 		break;
 
@@ -1167,18 +1308,18 @@ found:
 
 	case Zr_m_xm:
 		mediaop(o, op, t[3], z);
-		asmand(&p->to, &p->from);
+		asmandg(&p->to, &p->from, 0, 0, o->prefix);
 		break;
 
 	case Zr_m_xm_nr:
 		rexflag = 0;
 		mediaop(o, op, t[3], z);
-		asmand(&p->to, &p->from);
+		asmandg(&p->to, &p->from, 0, 0, o->prefix);
 		break;
 
 	case Zr_m_i_xm:
 		mediaop(o, op, t[3], z);
-		asmand(&p->to, &p->from);
+		asmandg(&p->to, &p->from, 0, 0, o->prefix);
 		*andptr++ = p->from.offset;
 		break;
 
@@ -1206,8 +1347,13 @@ found:
 		break;
 
 	case Zibo_m_xm:
+		vmi = p->to;
+		if(p->to.index != D_NONE) {	/* VMI has "non-destructive dest" with dest in Vex.vvvv */
+			vmi.type = p->to.index;
+			vmi.index = p->to.type;
+		}
 		z = mediaop(o, op, t[3], z);
-		asmando(&p->to, o->op[z+1]);
+		asmando(&vmi, o->op[z+1]);
 		*andptr++ = v;
 		break;
 
@@ -1472,6 +1618,10 @@ bad:
 			return;
 		}
 	}
+	if(0) {
+		int ft = oclass(&p->from), tt = oclass(&p->to); extern char* yclname[];
+		fprint(2, "ft=%d [%s] tt=%d [%s]\n", ft, yclname[ft], tt, yclname[tt]);
+	}
 	diag("doasm: notfound from=%ux to=%ux %P", p->from.type, p->to.type, p);
 	return;
 
@@ -1566,37 +1716,123 @@ mfound:
 			break;
 		}
 		break;
+
+	case 7: /* imul rm,r */
+		*andptr++ = t[4];
+		*andptr++ = t[5];
+		asmand(&p->from, &p->to);
+		break;
 	}
 }
 
 void
 asmins(Prog *p)
 {
-	int n, np, c;
+	int n, np, o, c, t, v1, v2, vexlen;
 
+	vexbytes = 0;
 	rexflag = 0;
 	andptr = and;
 	asmode = p->mode;
 	doasm(p);
-	if(rexflag){
-		/*
-		 * as befits the whole approach of the architecture,
-		 * the rex prefix must appear before the first opcode byte
-		 * (and thus after any 66/67/f2/f3/26/2e/3e prefix bytes, but
-		 * before the 0f opcode escape!), or it might be ignored.
-		 * note that the handbook often misleadingly shows 66/f2/f3 in `opcode'.
-		 */
-		if(p->mode != 64)
-			diag("asmins: illegal in mode %d: %P", p->mode, p);
-		n = andptr - and;
-		for(np = 0; np < n; np++) {
-			c = and[np];
-			if(c != 0xf2 && c != 0xf3 && (c < 0x64 || c > 0x67) && c != 0x2e && c != 0x3e && c != 0x26)
-				break;
+	if(vexbytes == 0) {
+		if(rexflag) {
+			if(0) fprint(2, "rexflag=%#ux %P\n", rexflag, p);
+			/*
+			 * the rex prefix must appear before the first opcode byte
+			 * and thus after any 66/67/f2/f3/26/2e/3e prefix bytes, but
+			 * before the 0f opcode escape.
+			 * note that the handbook often misleadingly shows 66/f2/f3 in `opcode'.
+			 */
+			if(p->mode != 64)
+				diag("asmins: illegal in mode %d: %P", p->mode, p);
+			n = andptr - and;
+			for(np = 0; np < n; np++) {
+				c = and[np];
+				if(c != 0xf2 && c != 0xf3 && (c < 0x64 || c > 0x67) && c != 0x2e && c != 0x3e && c != 0x26)
+					break;
+			}
+			memmove(and+np+1, and+np, n-np);
+			and[np] = 0x40 | rexflag;
+			andptr++;
 		}
-		memmove(and+np+1, and+np, n-np);
-		and[np] = 0x40 | rexflag;
-		andptr++;
+		return;
+	}
+	if(0) if(rexflag||vexbytes)fprint(2, "rexflag=%#ux vexbytes=%#ux %P\n", rexflag, vexbytes, p);
+	n = andptr - and;
+//vex if need vvvv register or W or L. never need R X B (must be 1 in 32-bit)
+//note: 4th register encoding in immediate byte
+	/* media/sse/vex: seg* (66|F3|F2)? 0F (38|3A)? op -> seg* vex2|vex3 op */
+	for(np = 0; np < n; np++) {	/* seg* */
+		c = and[np];
+		if(c != 0x2e && c != 0x3e && c != 0x26 && c != 0x64 && c != 0x65)
+			break;
+	}
+	o = np;
+	if(np+1 < n) {
+		v1 = 0;
+		v2 = (vexbytes & Vexl) | Vexp0;
+		switch(and[np]) {
+		case 0x66:
+			v2 |= Vexp66;
+			np++;
+			break;
+		case 0xF3:
+			v2 |= Vexpf3;
+			np++;
+			break;
+		case 0xF2:
+			v2 |= Vexpf2;
+			np++;
+			break;
+		}
+		c = and[np];
+		if(c == Vex2 || c == Vex3)
+			return;	/* already vexed */
+		if(and[np] != 0x0F) {
+			diag("internal: inconsistent vex state: %P", p);
+			return;
+		}
+		np++;
+		if(np < n) {
+			switch(and[np]) {
+			case 0x38:
+				v1 = Vex0f38;
+				np++;
+				break;
+			case 0x3a:
+				v1 = Vex0f3a;
+				np++;
+				break;
+			default:
+				if(rexflag & (Rxw|Rxx|Rxb))
+					v1 = Vex0f;	/* force 3-byte vex */
+				break;
+			}
+		}
+		t = vexbytes >> 8;
+		if(t >= D_Y0 && t <= D_Y15)
+			t -= D_Y0;
+		else if(t >= D_X0 && t <= D_X15)
+			t -= D_X0;
+		v2 |= (~t & 0xF) << 3;
+		vexlen = 2;
+		if(v1 != 0)
+			vexlen = 3;
+		if(o+vexlen != np) {
+			memmove(and+o+vexlen, and+np, n-np);
+			andptr = and+(o+vexlen)+(n-np);
+		}
+		if(vexlen == 2) {
+			and[o] = Vex2;
+			and[o+1] = v2 | ((~rexflag<<5) & Vexr);
+		} else {
+			and[o] = Vex3;
+			and[o+1] = v1 | ((~rexflag<<5) & (Vexr | Vexx | Vexb));
+			if(rexflag & Rxw)
+				v2 |= Vexw;
+			and[o+2] = v2;
+		}
 	}
 }
 
@@ -1752,3 +1988,74 @@ asmdyn()
 		Bprint(&bso, "export table entries = %d\n", exports);
 	}
 }
+
+char*	yclname[] ={
+	[Yxxx] "Yxxx",
+	[Ynone] "Ynone",
+	[Yi0] "Yi0",
+	[Yi1] "Yi1",
+	[Yi8] "Yi8",
+	[Ys32] "Ys32",
+	[Yi32] "Yi32",
+	[Yi64] "Yi64",
+	[Yiauto] "Yiauto",
+	[Yal] "Yal",
+	[Ycl] "Ycl",
+	[Yax] "Yax",
+	[Ycx] "Ycx",
+	[Yrb] "Yrb",
+	[Yrl] "Yrl",
+	[Yrf] "Yrf",
+	[Yf0] "Yf0",
+	[Yrx] "Yrx",
+	[Ymb] "Ymb",
+	[Yml] "Yml",
+	[Ym] "Ym",
+	[Ybr] "Ybr",
+	[Ycol] "Ycol",
+	[Ycs] "Ycs",
+	[Yss] "Yss",
+	[Yds] "Yds",
+	[Yes] "Yes",
+	[Yfs] "Yfs",
+	[Ygs] "Ygs",
+	[Ygdtr] "Ygdtr",
+	[Yidtr] "Yidtr",
+	[Yldtr] "Yldtr",
+	[Ymsw] "Ymsw",
+	[Ytask] "Ytask",
+	[Ycr0] "Ycr0",
+	[Ycr1] "Ycr1",
+	[Ycr2] "Ycr2",
+	[Ycr3] "Ycr3",
+	[Ycr4] "Ycr4",
+	[Ycr5] "Ycr5",
+	[Ycr6] "Ycr6",
+	[Ycr7] "Ycr7",
+	[Ycr8] "Ycr8",
+	[Ydr0] "Ydr0",
+	[Ydr1] "Ydr1",
+	[Ydr2] "Ydr2",
+	[Ydr3] "Ydr3",
+	[Ydr4] "Ydr4",
+	[Ydr5] "Ydr5",
+	[Ydr6] "Ydr6",
+	[Ydr7] "Ydr7",
+	[Ytr0] "Ytr0",
+	[Ytr1] "Ytr1",
+	[Ytr2] "Ytr2",
+	[Ytr3] "Ytr3",
+	[Ytr4] "Ytr4",
+	[Ytr5] "Ytr5",
+	[Ytr6] "Ytr6",
+	[Ytr7] "Ytr7",
+	[Yrl32] "Yrl32",
+	[Yrl64] "Yrl64",
+	[Ymr] "Ymr",
+	[Ymm] "Ymm",
+	[Yxr] "Yxr",
+	[Yxm] "Yxm",
+	[Yyr] "Yyr",
+	[Yxyr] "Yxyr",
+	[Ymax] "Ymax",
+};

@@ -306,6 +306,7 @@ subprop(Reg *r0)
 		case AAND:
 		case AEOR:
 		case AMUL:
+		case AMULU:
 		case ADIV:
 		case ADIVU:
 
@@ -977,6 +978,7 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case AAND:
 	case AEOR:
 	case AMUL:
+	case AMULU:
 	case ADIV:
 	case ADIVU:
 	case AADDF:
@@ -1112,6 +1114,7 @@ a2type(Prog *p)
 	case AAND:
 	case AEOR:
 	case AMUL:
+	case AMULU:
 	case ADIV:
 	case ADIVU:
 		return D_REG;

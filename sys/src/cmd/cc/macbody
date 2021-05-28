@@ -18,29 +18,47 @@ getnsn(void)
 	return n;
 }
 
-Sym*
-getsym(void)
+static void
+nextsym(int c)
 {
-	int c;
+	int c1;
 	char *cp;
 
-	c = getnsc();
-	if(!isalpha(c) && c != '_' && c < Runeself) {
-		unget(c);
-		return S;
-	}
 	for(cp = symb;;) {
-		if(cp <= symb+NSYMB-4)
-			*cp++ = c;
+		if(c >= Runeself) {
+			for(c1=0;;) {
+				if(cp <= symb+NSYMB-UTFmax)
+					cp[c1++] = c;
+				if(fullrune(cp, c1))
+					break;
+				c = getc();
+			}
+			cp += c1;
+		}else
+			if(cp <= symb+NSYMB-UTFmax)
+				*cp++ = c;
 		c = getc();
-		if(isalnum(c) || c == '_' || c >= Runeself)
+		if(c >= Runeself || isalnum(c) || c == '_')
 			continue;
 		unget(c);
 		break;
 	}
 	*cp = 0;
-	if(cp > symb+NSYMB-4)
+	if(cp > symb+NSYMB-UTFmax)
 		yyerror("symbol too large: %s", symb);
+}
+
+Sym*
+getsym(void)
+{
+	int c;
+
+	c = getnsc();
+	if(c < Runeself && !isalpha(c) && c != '_') {
+		unget(c);
+		return S;
+	}
+	nextsym(c);
 	return lookup();
 }
 
@@ -193,7 +211,7 @@ void
 macdef(void)
 {
 	Sym *s, *a;
-	char *args[NARG], *np, *base;
+	char *args[NARG], *base;
 	int n, i, c, len, dots;
 	int ischr;
 
@@ -235,15 +253,9 @@ macdef(void)
 	len = 1;
 	ischr = 0;
 	for(;;) {
-		if(isalpha(c) || c == '_') {
-			np = symb;
-			*np++ = c;
+		if(c >= Runeself || isalpha(c) || c == '_') {
+			nextsym(c);
 			c = getc();
-			while(isalnum(c) || c == '_') {
-				*np++ = c;
-				c = getc();
-			}
-			*np = 0;
 			for(i=0; i<n; i++)
 				if(strcmp(symb, args[i]) == 0)
 					break;
@@ -295,7 +307,7 @@ macdef(void)
 							c = getc();
 							break;
 						}
-						if(c == '\n') {
+						if(0 && c == '\n') {
 							yyerror("comment and newline in define: %s", s->name);
 							break;
 						}
@@ -390,7 +402,7 @@ macexpand(Sym *s, char *b)
 		unget(c);
 		l = 0;
 		cp = buf;
-		ecp = cp + sizeof(buf)-4;
+		ecp = cp + sizeof(buf)-UTFmax;
 		arg[n++] = cp;
 		for(;;) {
 			if(cp >= ecp)

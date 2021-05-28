@@ -46,6 +46,28 @@ indexshift(Node *n)
 	}
 }
 
+static int
+indexing(Node *n)
+{
+	for(; n != nil; n = n->left)
+	switch(n->op){
+	case OSIGN:
+	case OSIZE:
+	case OCONST:
+	case OSTRING:
+	case OLSTRING:
+	case ONAME:
+	case OREGPAIR:
+	case OREGISTER:
+	case OINDREG:
+		return 0;
+	case OINDEX:
+		return 1;
+	}
+	return 0;
+}
+
+
 /*
  *	calculate addressability as follows
  *		NAME ==> 10/11		name+value(SB/SP)
@@ -163,7 +185,7 @@ xcom(Node *n)
 				n->addable = 8;
 			break;
 		}
-		if(n->addable == 8 && !side(n)) {
+		if(n->addable == 8 && !indexing(n) && !side(n)){
 			indx(n);
 			l = new1(OINDEX, idx.basetree, idx.regtree);
 			l->scale = idx.scale;

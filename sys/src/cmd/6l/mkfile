@@ -15,7 +15,7 @@ OFILES=\
 HFILES=\
 	l.h\
 	../6c/6.out.h\
-	../8l/elf.h\
+	../ld/elf.h\
 
 BIN=/$objtype/bin
 CFLAGS=$CFLAGS -. -I.
@@ -31,5 +31,5 @@ UPDATE=\
 
 enam.$O:	../6c/enam.c
 	$CC $CFLAGS ../6c/enam.c
-elf.$O:	../8l/elf.c
-	$CC $CFLAGS ../8l/elf.c
+elf.$O:	../ld/elf.c
+	$CC $CFLAGS ../ld/elf.c

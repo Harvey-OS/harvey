@@ -84,7 +84,10 @@ Pconv(Fmt *fp)
 	if(p->reg == NREG)
 		snprint(str, sizeof(str), "	%A%s	%D,%D", a, sc, &p->from, &p->to);
 	else
-	if(p->from.type != D_FREG)
+	if(p->reghi != NREG)
+		snprint(str, sizeof(str), "	%A%s	%D,R%d,%D,R%d", a, sc, &p->from, p->reg, &p->to, p->reghi);
+	else
+	if(p->from.type != D_FREG && p->from.type != D_SFREG && p->from.type != D_FCONST)
 		snprint(str, sizeof(str), "	%A%s	%D,R%d,%D", a, sc, &p->from, p->reg, &p->to);
 	else
 		snprint(str, sizeof(str), "	%A%s	%D,F%d,%D", a, sc, &p->from, p->reg, &p->to);
@@ -158,6 +161,18 @@ Dconv(Fmt *fp)
 
 	case D_FREG:
 		snprint(str, sizeof(str), "F%d", a->reg);
+		if(a->name != D_NONE || a->sym != S)
+			snprint(str, sizeof(str), "%N(R%d)(REG)", a, a->reg);
+		break;
+
+	case D_SFREG:
+		snprint(str, sizeof(str), "S%d", a->reg);
+		if(a->name != D_NONE || a->sym != S)
+			snprint(str, sizeof(str), "%N(R%d)(REG)", a, a->reg);
+		break;
+
+	case D_QREG:
+		snprint(str, sizeof(str), "Q%d", a->reg);
 		if(a->name != D_NONE || a->sym != S)
 			snprint(str, sizeof(str), "%N(R%d)(REG)", a, a->reg);
 		break;

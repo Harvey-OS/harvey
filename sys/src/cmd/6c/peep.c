@@ -117,6 +117,7 @@ loop1:
 		case AMOVWLZX:
 		case AMOVBLSX:
 		case AMOVWLSX:
+		case AMOVQL:
 			if(regtyp(&p->to)) {
 				r1 = rnops(uniqs(r));
 				if(r1 != R) {
@@ -347,8 +348,13 @@ subprop(Reg *r0)
 		case ACDQ:
 		case ACQO:
 
+		case ASTOSB:
+		case ASTOSL:
+		case ASTOSQ:
+		case AMOVSB:
 		case AMOVSL:
 		case AMOVSQ:
+		case AMOVQL:
 			return 0;
 
 		case AMOVL:
@@ -547,6 +553,7 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case AMOVWLZX:
 	case AMOVWQSX:
 	case AMOVWQZX:
+	case AMOVQL:
 
 	case AMOVSS:
 	case AMOVSD:
@@ -725,11 +732,23 @@ copyu(Prog *p, Adr *v, Adr *s)
 			return 2;
 		goto caseread;
 
-	case AMOVSL:
-	case AMOVSQ:
 	case AREP:
 	case AREPN:
-		if(v->type == D_CX || v->type == D_DI || v->type == D_SI)
+		if(v->type == D_CX)
+			return 2;
+		goto caseread;
+
+	case AMOVSB:
+	case AMOVSL:
+	case AMOVSQ:
+		if(v->type == D_DI || v->type == D_SI)
+			return 2;
+		goto caseread;
+
+	case ASTOSB:
+	case ASTOSL:
+	case ASTOSQ:
+		if(v->type == D_AX || v->type == D_DI)
 			return 2;
 		goto caseread;
 

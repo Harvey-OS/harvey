@@ -32,7 +32,7 @@ typedef	Rune	TRune;	/* target system type */
 #define	NTERM		10
 #define	MAXALIGN	7
 
-#define	SIGN(n)		(1ULL<<(n-1))
+#define	SIGN(n)		((uvlong)1<<(n-1))
 #define	MASK(n)		(SIGN(n)|(SIGN(n)-1))
 
 #define	BITS	5
@@ -450,8 +450,8 @@ EXTERN	Type*	lastdcl;
 EXTERN	long	lastfield;
 EXTERN	Type*	lasttype;
 EXTERN	long	lineno;
-EXTERN	long	nearln;
 EXTERN	int	maxinclude;
+EXTERN	long	nearln;
 EXTERN	int	nerrors;
 EXTERN	int	newflag;
 EXTERN	long	nhunk;
@@ -665,6 +665,7 @@ void	dclfunct(Type*, Sym*);
  * sub.c
  */
 void	arith(Node*, int);
+int	castucom(Node*);
 int	deadheads(Node*);
 Type*	dotsearch(Sym*, Type*, Node*, long*);
 long	dotoffset(Type*, Type*, Node*);

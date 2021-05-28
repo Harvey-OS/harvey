@@ -2,12 +2,12 @@
 
 static char *kwd[] =
 {
-	"$adt", "$aggr", "$append", "$complex", "$defn",
+	"$adt", "$aggr", "$append", "$builtin", "$complex", "$defn",
 	"$delete", "$do", "$else", "$eval", "$head", "$if",
 	"$local", "$loop", "$return", "$tail", "$then",
 	"$union", "$whatis", "$while",
 };
-static char picklestr[] = "\tpickle(s, un, ";
+static char picklestr[] = "\tbp = pickle(bp, ep, un, ";
 
 static char*
 pmap(char *s)
@@ -153,10 +153,10 @@ picklemember(Type *t, long off)
 		if(s1 == S)
 			break;
 		if(s == S) {
-			Bprint(&outbuf, "\tpickle_%s(s, un, (%s*)((char*)addr+%ld+_i*%ld));\n",
+			Bprint(&outbuf, "\tbp = pickle_%s(bp, ep, un, (%s*)((char*)addr+%ld+_i*%ld));\n",
 				pmap(s1->name), pmap(s1->name), t->offset+off, t->width);
 		} else {
-			Bprint(&outbuf, "\tpickle_%s(s, un, &addr->%s);\n",
+			Bprint(&outbuf, "\tbp = pickle_%s(bp, ep, un, &addr->%s);\n",
 				pmap(s1->name), pmap(s->name));
 		}
 		break;
@@ -195,10 +195,10 @@ pickletype(Type *t)
 			goto asmstr;
 		an = pmap(s->name);
 
-		Bprint(&outbuf, "void\npickle_%s(void *s, int un, %s *addr)\n{\n\tint _i = 0;\n\n\tUSED(_i);\n", an, an);
+		Bprint(&outbuf, "uchar*\npickle_%s(uchar *bp, uchar *ep, int un, %s *addr)\n{\n\tint _i = 0;\n\n\tUSED(_i);\n", an, an);
 		for(l = t->link; l != T; l = l->down)
 			picklemember(l, 0);
-		Bprint(&outbuf, "}\n\n");
+		Bprint(&outbuf, "\treturn bp;\n}\n\n");
 		break;
 	asmstr:
 		if(s == S)

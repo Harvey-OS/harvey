@@ -312,6 +312,11 @@ mulgen1(ulong v, Node *n)
 	Mparam *p;
 	Node nod, nods;
 
+	if(v == 0){
+		zeroregm(n);
+		return 1;
+	}
+
 	for(i = 0; i < nelem(multab); i++) {
 		p = &multab[i];
 		if(p->value == v)

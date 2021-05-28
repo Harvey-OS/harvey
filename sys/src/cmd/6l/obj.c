@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 		break;
 	} ARGEND
 	USED(argc);
-	if(*argv == 0)
+	if(*argv == nil)
 		usage();
 	if(!debug['9'] && !debug['U'] && !debug['B'])
 		debug[DEFAULT] = 1;
@@ -223,9 +223,8 @@ main(int argc, char *argv[])
 	ycover[Yax*Ymax + Yrb] = 1;
 	ycover[Ycx*Ymax + Yrb] = 1;
 	ycover[Yrx*Ymax + Yrb] = 1;
-	ycover[Yrl*Ymax + Yrb] = 1;
-
-	ycover[Ycl*Ymax + Ycx] = 1;
+	ycover[Yrl*Ymax + Yrb] = 1;	// 8l disables this
+	ycover[Ycl*Ymax + Ycx] = 1;	// 8l disables this
 
 	ycover[Yax*Ymax + Yrx] = 1;
 	ycover[Ycx*Ymax + Yrx] = 1;
@@ -242,7 +241,7 @@ main(int argc, char *argv[])
 	ycover[Ycx*Ymax + Ymb] = 1;
 	ycover[Yrx*Ymax + Ymb] = 1;
 	ycover[Yrb*Ymax + Ymb] = 1;
-	ycover[Yrl*Ymax + Ymb] = 1;
+	ycover[Yrl*Ymax + Ymb] = 1;	// 8l disables this
 	ycover[Ym*Ymax + Ymb] = 1;
 
 	ycover[Yax*Ymax + Yml] = 1;
@@ -264,6 +263,10 @@ main(int argc, char *argv[])
 	ycover[Yrl*Ymax + Yxm] = 1;
 	ycover[Ym*Ymax + Yxm] = 1;
 	ycover[Yxr*Ymax + Yxm] = 1;
+	ycover[Yxr*Ymax + Yxyr] = 1;
+
+	ycover[Yyr*Ymax + Yxm] = 1;
+	ycover[Yyr*Ymax + Yxyr] = 1;
 
 	for(i=0; i<D_NONE; i++) {
 		reg[i] = -1;
@@ -281,13 +284,20 @@ main(int argc, char *argv[])
 			if(i >= D_R8)
 				regrex[i] = Rxr | Rxx | Rxb;
 		}
+/*
 		if(i >= D_F0 && i <= D_F0+7)
 			reg[i] = (i-D_F0) & 7;
+*/
 		if(i >= D_M0 && i <= D_M0+7)
 			reg[i] = (i-D_M0) & 7;
 		if(i >= D_X0 && i <= D_X0+15) {
 			reg[i] = (i-D_X0) & 7;
 			if(i >= D_X0+8)
+				regrex[i] = Rxr | Rxx | Rxb;
+		}
+		if(i >= D_Y0 && i <= D_Y0+15) {
+			reg[i] = (i-D_Y0) & 7;
+			if(i >= D_Y0+8)
 				regrex[i] = Rxr | Rxx | Rxb;
 		}
 		if(i >= D_CR+8 && i <= D_CR+15) 
@@ -535,8 +545,7 @@ objfile(char *file)
 			l |= (e[3] & 0xff) << 16;
 			l |= (e[4] & 0xff) << 24;
 			seek(f, l, 0);
-			/* need readn to read the dumps (at least) */
-			l = readn(f, &arhdr, SAR_HDR);
+			l = read(f, &arhdr, SAR_HDR);
 			if(l != SAR_HDR)
 				goto bad;
 			if(strncmp(arhdr.fmag, ARFMAG, sizeof(arhdr.fmag)))
@@ -579,10 +588,6 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 	}
 	a->offset = 0;
 	if(t & T_OFFSET) {
-		/*
-		 * Hack until Charles fixes the compiler.
-		a->offset = (long)(p[c] | (p[c+1]<<8) | (p[c+2]<<16) | (p[c+3]<<24));
-		 */
 		l = p[c] | (p[c+1]<<8) | (p[c+2]<<16) | (p[c+3]<<24);
 		a->offset = l;
 		c += 4;

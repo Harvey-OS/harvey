@@ -24,18 +24,25 @@ Pconv(Fmt *fp)
 	switch(p->as) {
 	case ATEXT:
 		if(p->from.scale) {
-			sprint(str, "(%ld)	%A	%D,%d,%D",
+			snprint(str, sizeof(str), "(%ld)	%A	%D,%d,%D",
 				p->line, p->as, &p->from, p->from.scale, &p->to);
 			break;
 		}
 	default:
-		sprint(str, "(%ld)	%A	%D,%D",
-			p->line, p->as, &p->from, &p->to);
+		if(isxyreg(p->to.type) && p->to.index != D_NONE)
+			snprint(str, sizeof(str), "(%ld)	V%A	%D,%R,%R",
+				p->line, p->as, &p->from, p->to.index, p->to.type);
+		else if(isxyreg(p->from.type) && p->from.index != D_NONE)
+			snprint(str, sizeof(str), "(%ld)	V%A	%R,%R,%D",
+				p->line, p->as, p->from.type, p->from.index, &p->to);
+		else
+			snprint(str, sizeof(str), "(%ld)	%A	%D,%D",
+				p->line, p->as, &p->from, &p->to);
 		break;
 	case ADATA:
 	case AINIT:
 	case ADYNT:
-		sprint(str, "(%ld)	%A	%D/%d,%D",
+		snprint(str, sizeof(str), "(%ld)	%A	%D/%d,%D",
 			p->line, p->as, &p->from, p->from.scale, &p->to);
 		break;
 	}
@@ -55,26 +62,26 @@ Aconv(Fmt *fp)
 int
 Dconv(Fmt *fp)
 {
-	char str[40], s[20];
+	char str[STRINGSZ+40], s[20];
 	Adr *a;
 	int i;
 
 	a = va_arg(fp->args, Adr*);
 	i = a->type;
-	if(i >= D_INDIR) {
+	if(i >= D_INDIR && i < D_CONST2) {
 		if(a->offset)
-			sprint(str, "%lld(%R)", a->offset, i-D_INDIR);
+			snprint(str, sizeof(str), "%lld(%R)", a->offset, i-D_INDIR);
 		else
-			sprint(str, "(%R)", i-D_INDIR);
+			snprint(str, sizeof(str), "(%R)", i-D_INDIR);
 		goto brk;
 	}
 	switch(i) {
 
 	default:
 		if(a->offset)
-			sprint(str, "$%lld,%R", a->offset, i);
+			snprint(str, sizeof(str), "$%lld,%R", a->offset, i);
 		else
-			sprint(str, "%R", i);
+			snprint(str, sizeof(str), "%R", i);
 		break;
 
 	case D_NONE:
@@ -84,57 +91,57 @@ Dconv(Fmt *fp)
 	case D_BRANCH:
 		if(bigP != P && bigP->pcond != P)
 			if(a->sym != S)
-				sprint(str, "%llux+%s", bigP->pcond->pc,
+				snprint(str, sizeof(str), "%llux+%s", bigP->pcond->pc,
 					a->sym->name);
 			else
-				sprint(str, "%llux", bigP->pcond->pc);
+				snprint(str, sizeof(str), "%llux", bigP->pcond->pc);
 		else
-			sprint(str, "%lld(PC)", a->offset);
+			snprint(str, sizeof(str), "%lld(PC)", a->offset);
 		break;
 
 	case D_EXTERN:
-		sprint(str, "%s+%lld(SB)", a->sym->name, a->offset);
+		snprint(str, sizeof(str), "%s+%lld(SB)", a->sym->name, a->offset);
 		break;
 
 	case D_STATIC:
-		sprint(str, "%s<%d>+%lld(SB)", a->sym->name,
+		snprint(str, sizeof(str), "%s<%d>+%lld(SB)", a->sym->name,
 			a->sym->version, a->offset);
 		break;
 
 	case D_AUTO:
-		sprint(str, "%s+%lld(SP)", a->sym->name, a->offset);
+		snprint(str, sizeof(str), "%s+%lld(SP)", a->sym->name, a->offset);
 		break;
 
 	case D_PARAM:
 		if(a->sym)
-			sprint(str, "%s+%lld(%s)", a->sym->name, a->offset, paramspace);
+			snprint(str, sizeof(str), "%s+%lld(%s)", a->sym->name, a->offset, paramspace);
 		else
-			sprint(str, "%lld(%s)", a->offset, paramspace);
+			snprint(str, sizeof(str), "%lld(%s)", a->offset, paramspace);
 		break;
 
 	case D_CONST:
-		sprint(str, "$%lld", a->offset);
+		snprint(str, sizeof(str), "$%lld", a->offset);
 		break;
 
 	case D_FCONST:
-		sprint(str, "$(%.8lux,%.8lux)", a->ieee.h, a->ieee.l);
+		snprint(str, sizeof(str), "$(%.8lux,%.8lux)", a->ieee.h, a->ieee.l);
 		break;
 
 	case D_SCONST:
-		sprint(str, "$\"%S\"", a->scon);
+		snprint(str, sizeof(str), "$\"%S\"", a->scon);
 		break;
 
 	case D_ADDR:
 		a->type = a->index;
 		a->index = D_NONE;
-		sprint(str, "$%D", a);
+		snprint(str, sizeof(str), "$%D", a);
 		a->index = a->type;
 		a->type = D_ADDR;
 		goto conv;
 	}
 brk:
-	if(a->index != D_NONE) {
-		sprint(s, "(%R*%d)", a->index, a->scale);
+	if(a->index != D_NONE && !isxyreg(a->type)) {
+		snprint(s, sizeof(s), "(%R*%d)", a->index, a->scale);
 		strcat(str, s);
 	}
 conv:
@@ -182,23 +189,23 @@ char*	regstr[] =
 	"DH",
 	"BH",
 
-	"F0",		/* [D_F0] */
-	"F1",
-	"F2",
-	"F3",
-	"F4",
-	"F5",
-	"F6",
-	"F7",
+	"Y0",		/* [D_Y0] */
+	"Y1",
+	"Y2",
+	"Y3",
+	"Y4",
+	"Y5",
+	"Y6",
+	"Y7",
 
-	"M0",
-	"M1",
-	"M2",
-	"M3",
-	"M4",
-	"M5",
-	"M6",
-	"M7",
+	"Y8",
+	"Y9",
+	"Y10",
+	"Y11",
+	"Y12",
+	"Y13",
+	"Y14",
+	"Y15",
 
 	"X0",
 	"X1",
@@ -276,9 +283,13 @@ Rconv(Fmt *fp)
 
 	r = va_arg(fp->args, int);
 	if(r >= D_AL && r <= D_NONE)
-		sprint(str, "%s", regstr[r-D_AL]);
+		snprint(str, sizeof(str), "%s", regstr[r-D_AL]);
+	else if(r >= D_Y0 && r <= D_Y15)
+		snprint(str, sizeof(str), "Y%d", r-D_Y0);
+	else if(r >= D_M0 && r <= D_M7)
+		snprint(str, sizeof(str), "Y%d", r-D_M0);
 	else
-		sprint(str, "gok(%d)", r);
+		snprint(str, sizeof(str), "gok(%d)", r);
 
 	return fmtstrcpy(fp, str);
 }
@@ -343,7 +354,7 @@ diag(char *fmt, ...)
 	print("%s: %s\n", tn, buf);
 
 	nerrors++;
-	if(nerrors > 20) {
+	if(nerrors > 20 && !debug['A']) {
 		print("too many errors\n");
 		errorexit();
 	}

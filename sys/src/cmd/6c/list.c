@@ -47,13 +47,13 @@ Pconv(Fmt *fp)
 
 	p = va_arg(fp->args, Prog*);
 	if(p->as == ADATA)
-		sprint(str, "	%A	%D/%d,%D",
+		snprint(str, sizeof(str), "	%A	%D/%d,%D",
 			p->as, &p->from, p->from.scale, &p->to);
 	else if(p->as == ATEXT)
-		sprint(str, "	%A	%D,%d,%D",
+		snprint(str, sizeof(str), "	%A	%D,%d,%D",
 			p->as, &p->from, p->from.scale, &p->to);
 	else
-		sprint(str, "	%A	%D,%D",
+		snprint(str, sizeof(str), "	%A	%D,%D",
 			p->as, &p->from, &p->to);
 	return fmtstrcpy(fp, str);
 }
@@ -76,20 +76,20 @@ Dconv(Fmt *fp)
 
 	a = va_arg(fp->args, Adr*);
 	i = a->type;
-	if(i >= D_INDIR) {
+	if(i >= D_INDIR && i < D_CONST2) {
 		if(a->offset)
-			sprint(str, "%lld(%R)", a->offset, i-D_INDIR);
+			snprint(str, sizeof(str), "%lld(%R)", a->offset, i-D_INDIR);
 		else
-			sprint(str, "(%R)", i-D_INDIR);
+			snprint(str, sizeof(str), "(%R)", i-D_INDIR);
 		goto brk;
 	}
 	switch(i) {
 
 	default:
 		if(a->offset)
-			sprint(str, "$%lld,%R", a->offset, i);
+			snprint(str, sizeof(str), "$%lld,%R", a->offset, i);
 		else
-			sprint(str, "%R", i);
+			snprint(str, sizeof(str), "%R", i);
 		break;
 
 	case D_NONE:
@@ -97,53 +97,54 @@ Dconv(Fmt *fp)
 		break;
 
 	case D_BRANCH:
-		sprint(str, "%lld(PC)", a->offset-pc);
+		snprint(str, sizeof(str), "%lld(PC)", a->offset-pc);
 		break;
 
 	case D_EXTERN:
-		sprint(str, "%s+%lld(SB)", a->sym->name, a->offset);
+		snprint(str, sizeof(str), "%s+%lld(SB)", a->sym->name, a->offset);
 		break;
 
 	case D_STATIC:
-		sprint(str, "%s<>+%lld(SB)", a->sym->name,
+		snprint(str, sizeof(str), "%s<>+%lld(SB)", a->sym->name,
 			a->offset);
 		break;
 
 	case D_AUTO:
-		sprint(str, "%s+%lld(SP)", a->sym->name, a->offset);
+		snprint(str, sizeof(str), "%s+%lld(SP)", a->sym->name, a->offset);
 		break;
 
 	case D_PARAM:
 		if(a->sym)
-			sprint(str, "%s+%lld(FP)", a->sym->name, a->offset);
+			snprint(str, sizeof(str), "%s+%lld(FP)", a->sym->name, a->offset);
 		else
-			sprint(str, "%lld(FP)", a->offset);
+			snprint(str, sizeof(str), "%lld(FP)", a->offset);
 		break;
 
 	case D_CONST:
-		sprint(str, "$%lld", a->offset);
+		snprint(str, sizeof(str), "$%lld", a->offset);
 		break;
 
 	case D_FCONST:
-		sprint(str, "$(%.17e)", a->dval);
+		snprint(str, sizeof(str), "$(%.17e)", a->dval);
 		break;
 
 	case D_SCONST:
-		sprint(str, "$\"%S\"", a->sval);
+		snprint(str, sizeof(str), "$\"%S\"", a->sval);
 		break;
 
 	case D_ADDR:
 		a->type = a->index;
 		a->index = D_NONE;
-		sprint(str, "$%D", a);
+		snprint(str, sizeof(str), "$%D", a);
 		a->index = a->type;
 		a->type = D_ADDR;
 		goto conv;
 	}
 brk:
 	if(a->index != D_NONE) {
-		sprint(s, "(%R*%d)", (int)a->index, (int)a->scale);
-		strcat(str, s);
+		fmtstrcpy(fp, str);
+		snprint(s, sizeof(s), "(%R*%d)", (int)a->index, (int)a->scale);
+		return fmtstrcpy(fp, s);
 	}
 conv:
 	return fmtstrcpy(fp, str);
@@ -190,23 +191,23 @@ char*	regstr[] =
 	"DH",
 	"BH",
 
-	"F0",		/* [D_F0] */
-	"F1",
-	"F2",
-	"F3",
-	"F4",
-	"F5",
-	"F6",
-	"F7",
+	"Y0",		/* [D_Y0] */
+	"Y1",
+	"Y2",
+	"Y3",
+	"Y4",
+	"Y5",
+	"Y6",
+	"Y7",
 
-	"M0",
-	"M1",
-	"M2",
-	"M3",
-	"M4",
-	"M5",
-	"M6",
-	"M7",
+	"Y8",
+	"Y9",
+	"Y10",
+	"Y11",
+	"Y12",
+	"Y13",
+	"Y14",
+	"Y15",
 
 	"X0",
 	"X1",
@@ -284,9 +285,13 @@ Rconv(Fmt *fp)
 
 	r = va_arg(fp->args, int);
 	if(r >= D_AL && r <= D_NONE)
-		sprint(str, "%s", regstr[r-D_AL]);
+		snprint(str, sizeof(str), "%s", regstr[r-D_AL]);
+	else if(r >= D_Y0 && r <= D_Y15)
+		snprint(str, sizeof(str), "Y%d", r-D_Y0);
+	else if(r >= D_M0 && r <= D_M7)
+		snprint(str, sizeof(str), "M%d", r-D_M0);
 	else
-		sprint(str, "gok(%d)", r);
+		snprint(str, sizeof(str), "gok(%d)", r);
 
 	return fmtstrcpy(fp, str);
 }
