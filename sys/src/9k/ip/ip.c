@@ -215,7 +215,8 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		return 0;
 	}
 
-if((eh->frag[0] & (IP_DF>>8)) && !gating) print("%V: DF set\n", eh->dst);
+	if((eh->frag[0] & (IP_DF>>8)) && !gating)
+		print("%V: DF set\n", eh->dst);
 
 	if(eh->frag[0] & (IP_DF>>8)){
 		ip->stats[FragFails]++;
