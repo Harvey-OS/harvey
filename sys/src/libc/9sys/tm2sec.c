@@ -1,10 +1,12 @@
 #include <u.h>
 #include <libc.h>
 
-#define	TZSIZE	150
+#define	TZSIZE	((136*2)+10)		/* 1970-2106; match tm2sec.c */
+
 static	void	readtimezone(void);
 static	int	rd_name(char**, char*);
 static	int	rd_long(char**, long*);
+
 static
 struct
 {
@@ -12,12 +14,12 @@ struct
 	char	dlname[4];
 	long	stdiff;
 	long	dldiff;
-	long	dlpairs[TZSIZE];
+	ulong	dlpairs[TZSIZE];
 } timezone;
 
-#define SEC2MIN 60L
-#define SEC2HOUR (60L*SEC2MIN)
-#define SEC2DAY (24L*SEC2HOUR)
+#define SEC2MIN 60UL
+#define SEC2HOUR (60UL*SEC2MIN)
+#define SEC2DAY (24UL*SEC2HOUR)
 
 /*
  *  days per month plus days/year
@@ -50,7 +52,7 @@ yrsize(int y)
 long
 tm2sec(Tm *tm)
 {
-	long secs;
+	ulong secs;
 	int i, yday, year, *d2m;
 
 	if(strcmp(tm->zone, "GMT") != 0 && timezone.stname[0] == 0)
@@ -95,8 +97,6 @@ tm2sec(Tm *tm)
 		secs -= timezone.stdiff;
 	else if(strcmp(tm->zone, timezone.dlname) == 0)
 		secs -= timezone.dldiff;
-	if(secs < 0)
-		secs = 0;
 	return secs;
 }
 
@@ -124,12 +124,12 @@ readtimezone(void)
 	if(rd_long(&p, &timezone.dldiff))
 		goto error;
 	for(i=0; i<TZSIZE; i++) {
-		if(rd_long(&p, &timezone.dlpairs[i]))
+		if(rd_long(&p, (long *)&timezone.dlpairs[i]))
 			goto error;
 		if(timezone.dlpairs[i] == 0)
 			return;
 	}
-
+	/* array too small for input */
 error:
 	timezone.stdiff = 0;
 	strcpy(timezone.stname, "GMT");

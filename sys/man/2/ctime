@@ -121,9 +121,15 @@ GMT 0
 .SH BUGS
 The return values point to static data
 whose content is overwritten by each call.
-.br
+.PP
 Daylight Savings Time is ``normal'' in the Southern hemisphere.
-.br
+.PP
 These routines are not equipped to handle non-\c
 .SM ASCII
 text, and are provincial anyway.
+.PP
+These interfaces are fixed, but all occurrences of
+.B long
+in the above should be manipulated as
+.BR ulong ;
+this extends the range of valid times into the year 2106.

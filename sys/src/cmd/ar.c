@@ -731,11 +731,11 @@ armove(Biobuf *b, Arfile *ap, Armember *bp)
 	for (cp = strchr(bp->hdr.name, 0);		/* blank pad on right */
 		cp < bp->hdr.name+sizeof(bp->hdr.name); cp++)
 			*cp = ' ';
-	sprint(bp->hdr.date, "%-12ld", d->mtime);
+	sprint(bp->hdr.date, "%-12lud", d->mtime);
 	sprint(bp->hdr.uid, "%-6d", 0);
 	sprint(bp->hdr.gid, "%-6d", 0);
 	sprint(bp->hdr.mode, "%-8lo", d->mode);
-	sprint(bp->hdr.size, "%-10lld", d->length);
+	sprint(bp->hdr.size, "%-10llud", d->length);
 	strncpy(bp->hdr.fmag, ARFMAG, 2);
 	bp->size = d->length;
 	arread(b, bp, bp->size);
@@ -829,11 +829,11 @@ rl(int fd)
 	len = symdefsize;
 	if(len&01)
 		len++;
-	sprint(a.date, "%-12ld", time(0));
+	sprint(a.date, "%-12lud", time(0));
 	sprint(a.uid, "%-6d", 0);
 	sprint(a.gid, "%-6d", 0);
 	sprint(a.mode, "%-8lo", 0644L);
-	sprint(a.size, "%-10ld", len);
+	sprint(a.size, "%-10lud", len);
 	strncpy(a.fmag, ARFMAG, 2);
 	strcpy(a.name, symdef);
 	for (cp = strchr(a.name, 0);		/* blank pad on right */
@@ -988,7 +988,7 @@ longt(Armember *bp)
 
 	pmode(strtoul(bp->hdr.mode, 0, 8));
 	Bprint(&bout, "%3ld/%1ld", strtol(bp->hdr.uid, 0, 0), strtol(bp->hdr.gid, 0, 0));
-	Bprint(&bout, "%7ld", bp->size);
+	Bprint(&bout, "%7lud", bp->size);
 	cp = ctime(bp->date);
 	Bprint(&bout, " %-12.12s %-4.4s ", cp+4, cp+24);
 }

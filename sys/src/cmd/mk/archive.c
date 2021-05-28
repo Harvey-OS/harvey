@@ -67,7 +67,7 @@ atouch(char *name)
 			if(strcmp(member, h.name) == 0){
 				t = SARNAME-sizeof(h);	/* ughgghh */
 				LSEEK(fd, t, 1);
-				fprint(fd, "%-12ld", time(0));
+				fprint(fd, "%-12lud", time(0));
 				break;
 			}
 			t = atol(h.size);

@@ -30,7 +30,7 @@ typedef struct {
 	int	existed;	/* these two are distinct to cope with errors */
 	int	created;
 	int	noperm;
-	long	mtime;		/* mod time, iff it already existed */
+	ulong	mtime;		/* mod time, iff it already existed */
 } Greysts;
 
 static char whitelist[] = "/mail/grey/whitelist";
@@ -218,7 +218,7 @@ addgreylist(char *file, Greysts *gsp)
 static int
 recentcall(Greysts *gsp)
 {
-	long delay = time(0) - gsp->mtime;
+	ulong delay = (ulong)time(0) - gsp->mtime;
 
 	if (!gsp->existed)
 		return 0;
