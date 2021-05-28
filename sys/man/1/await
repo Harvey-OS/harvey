@@ -1,0 +1,29 @@
+.TH AWAIT 1
+.SH NAME
+await - wait at most some seconds for a command to complete
+.SH SYNOPSIS
+.B await
+.I max-secs
+.I cmd
+\&...
+.SH DESCRIPTION
+Run
+.I cmd
+with any following arguments,
+with standard input from
+.BR /dev/null .
+Wait at most
+.IR max-secs ;
+if
+.I cmd
+is then still running,
+exit but leave it running.
+.PP
+Useful in start-up scripts that must not get stuck.
+.SH EXAMPLES
+.B
+await 5 auth/secstore -s p9auth -n -G factotum >/mnt/factotum/ctl
+.SH SOURCE
+.B /rc/bin/await
+.SH SEE ALSO
+.IR wait (2)

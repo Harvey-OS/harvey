@@ -1,0 +1,21 @@
+#!/bin/rc
+# await secs cmd ... - wait at most secs for cmd to complete, but don't kill it.
+#	cmd's stdin will be /dev/null.
+switch ($#*) {
+case 0 1
+	echo usage: $0: 'maxsecs cmd ...' >[1=2]
+	exit usage
+}
+
+rfork e
+secs=$1
+shift
+
+$* &
+cmdpid=$apid
+
+for (s in `{seq $secs})
+	if (test -e /proc/$cmdpid)
+		sleep 1
+if (test -e /proc/$cmdpid)
+	echo $0: $"*: still running >[1=2]
