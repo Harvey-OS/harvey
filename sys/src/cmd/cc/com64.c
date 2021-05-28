@@ -63,6 +63,11 @@ Node*	nodppv;
 Node*	nodvmm;
 Node*	nodmmv;
 
+Node*	nodaddd;
+Node*	nodsubd;
+Node*	nodmuld;
+Node*	noddivd;
+
 Node*	nodvasop;
 
 char	etconv[NTYPE];	/* for _vasop */
@@ -159,6 +164,11 @@ com64init(void)
 	nodppv = fvn("_ppv", TVLONG);
 	nodvmm = fvn("_vmm", TVLONG);
 	nodmmv = fvn("_mmv", TVLONG);
+
+	nodaddd = fvn("_vasaddd", TVLONG);
+	nodsubd = fvn("_vassubd", TVLONG);
+	nodmuld = fvn("_vasmuld", TVLONG);
+	noddivd = fvn("_vasdivd", TVLONG);
 
 	nodvasop = fvn("_vasop", TVLONG);
 
@@ -524,30 +534,54 @@ setbool:
 	return 1;
 
 setasop:
-	if(l->op == OFUNC) {
+	while(l->op == OFUNC)
 		l = l->right;
-		goto setasop;
+
+	if(mixedasop(n->left->type, n->right->type)) {
+		if(n->right->type->etype != TDOUBLE) {
+			r = new(OCAST, r, 0);
+			r->type = types[TDOUBLE];
+		}
+
+		t = new(OADDR, l, 0);
+		t->type = typ(TIND, l->type);
+		t->complex = l->complex;
+		r = new(OLIST, t, r);
+
+		switch(n->op) {
+		case OASADD:	a = nodaddd; break;
+		case OASSUB:	a = nodsubd; break;
+		case OASMUL:	a = nodmuld; break;
+		case OASDIV:	a = noddivd; break;
+		default:	diag(n, "bad vasop %O", n->op); a = nodaddd; break;
+		}
+
+		n->left = a;
+		n->right = r;
+		n->complex = FNX;
+		n->op = OFUNC;
+
+	} else {
+		t = new(OCONST, 0, 0);
+		t->vconst = etconv[l->type->etype];
+		t->type = types[TLONG];
+		t->addable = 20;
+		r = new(OLIST, t, r);
+
+		t = new(OADDR, a, 0);
+		t->type = typ(TIND, a->type);
+		r = new(OLIST, t, r);
+
+		t = new(OADDR, l, 0);
+		t->type = typ(TIND, l->type);
+		t->complex = l->complex;
+		r = new(OLIST, t, r);
+
+		n->left = nodvasop;
+		n->right = r;
+		n->complex = FNX;
+		n->op = OFUNC;
 	}
-
-	t = new(OCONST, 0, 0);
-	t->vconst = etconv[l->type->etype];
-	t->type = types[TLONG];
-	t->addable = 20;
-	r = new(OLIST, t, r);
-
-	t = new(OADDR, a, 0);
-	t->type = typ(TIND, a->type);
-	r = new(OLIST, t, r);
-
-	t = new(OADDR, l, 0);
-	t->type = typ(TIND, l->type);
-	t->complex = l->complex;
-	r = new(OLIST, t, r);
-
-	n->left = nodvasop;
-	n->right = r;
-	n->complex = FNX;
-	n->op = OFUNC;
 
 	return 1;
 }
