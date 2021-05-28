@@ -1,6 +1,6 @@
 #!/bin/rc
 # terminal startup
-TIMESYNCARGS=(-rLa1000000)
+TIMESYNCARGS=(-ra1000000)
 NDBFILE=/lib/ndb/local
 
 mntgen -s slashn && chmod 666 /srv/slashn
