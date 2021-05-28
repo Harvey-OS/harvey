@@ -360,6 +360,7 @@ enum
 	SG_SHARED	= 04,
 	SG_PHYSICAL	= 05,
 
+	SG_CACHED	= 0020,		/* Physseg can be cached */
 	SG_RONLY	= 0040,		/* Segment is read only */
 	SG_CEXEC	= 0100,		/* Detach at exec */
 };
