@@ -40,17 +40,16 @@ void
 main(int argc, char *argv[])
 {
 	int fd;
-	long i, j, k, n;
-	char *name;
+	long delta, i, j, k, n;
+	ulong sum;
 	ulong *data;
 	vlong tbase;
-	ulong sum;
-	long delta;
-	Symbol s;
+	char *name;
 	Biobuf outbuf;
+	struct COUNTER *cp;
 	Fhdr f;
 	Dir *d;
-	struct COUNTER *cp;
+	Symbol s;
 
 	if(argc != 3)
 		error(0, "usage: kprof text data");
@@ -87,18 +86,22 @@ main(int argc, char *argv[])
 	close(fd);
 	for(i=0; i<n; i++)
 		data[i] = beswal(data[i]);
+
 	delta = data[0]-data[1];
 	print("total: %ld	in kernel text: %ld	outside kernel text: %ld\n",
 		data[0], delta, data[1]);
 	if(data[0] == 0)
 		exits(0);
+	/* get text symbol with lowest address */
 	if (!textsym(&s, 0))
 		error(0, "no text symbols");
 
 	tbase = mach->kbase;
-	if(tbase != s.value & ~0xFFF)
+ 	if(tbase != (s.value & ~0xFFF)) {
 		print("warning: kbase %.8llux != tbase %.8llux\n",
 			tbase, s.value&~0xFFF);
+		tbase = s.value;
+	}
 	print("KTZERO %.8llux PGSIZE %dKb\n", tbase, mach->pgsize/1024);
 	/*
 	 * Accumulate counts for each function
