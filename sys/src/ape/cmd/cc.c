@@ -26,6 +26,7 @@ typedef struct Objtype {
 /* sync with /sys/src/cmd/pcc.c */
 Objtype objtype[] = {
 	{"spim",	"0c", "0l", "0", "0.out"},
+	{"mips64",	"4c", "4l", "4", "4.out"},
 	{"arm",		"5c", "5l", "5", "5.out"},
 	{"amd64",	"6c", "6l", "6", "6.out"},
 	{"386",		"8c", "8l", "8", "8.out"},
@@ -33,6 +34,7 @@ Objtype objtype[] = {
 	{"sparc",	"kc", "kl", "k", "k.out"},
 	{"power",	"qc", "ql", "q", "q.out"},
 	{"mips",	"vc", "vl", "v", "v.out"},
+	{"spim64",	"xc", "xl", "x", "x.out"},
 };
 char	*allos = "05689kqv";
 
