@@ -3,6 +3,7 @@ objtype=amd64
 <$APE/config
 LIB=/$objtype/lib/ape/libap.a
 OFILES=\
+	atom.$O\
 	_seek.$O\
 	cycles.$O\
 	lock.$O\
