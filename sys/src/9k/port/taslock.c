@@ -61,6 +61,7 @@ lock(Lock *l)
 		l->pc = pc;
 		l->p = up;
 		l->isilock = 0;
+		l->m = m;
 #ifdef LOCKCYCLES
 		cycles(&l->lockcycles);
 #endif
@@ -96,6 +97,7 @@ lock(Lock *l)
 			l->pc = pc;
 			l->p = up;
 			l->isilock = 0;
+			l->m = m;
 #ifdef LOCKCYCLES
 			cycles(&l->lockcycles);
 #endif
