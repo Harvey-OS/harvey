@@ -61,11 +61,13 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 		return nil;
 	}
 	if(vctl[vno]){
-		iunlock(&vctllock);
-		panic("vno %d for %s already allocated by %s",
-			vno, v->name, vctl[vno]->name);
+		if(vctl[v->vno]->isr != v->isr || vctl[v->vno]->eoi != v->eoi)
+			panic("intrenable: handler: %s %s %#p %#p %#p %#p",
+				vctl[v->vno]->name, v->name,
+				vctl[v->vno]->isr, v->isr, vctl[v->vno]->eoi, v->eoi);
 	}
 	v->vno = vno;
+	v->next = vctl[vno];
 	vctl[vno] = v;
 	iunlock(&vctllock);
 
@@ -80,15 +82,19 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 int
 intrdisable(void* vector)
 {
-	Vctl *v;
+	Vctl *v, **vl;
 	extern int ioapicintrdisable(int);
 
 	ilock(&vctllock);
 	v = vector;
-	if(v == nil || vctl[v->vno] != v)
+	for(vl = &vctl[v->vno]; *vl != nil; vl = &(*vl)->next)
+		if(*vl == v)
+			break;
+	if(*vl == nil)
 		panic("intrdisable: v %#p", v);
+	v->f(nil, v->a);
+	*vl = v->next;
 	ioapicintrdisable(v->vno);
-	vctl[v->vno] = nil;
 	iunlock(&vctllock);
 
 	free(v);

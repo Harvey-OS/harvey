@@ -7,15 +7,23 @@
 #include "apic.h"
 #include "io.h"
 
+typedef struct Rbus Rbus;
 typedef struct Rdt Rdt;
-typedef struct Rdt {
-	Apic*	apic;
+
+struct Rbus {
+	Rbus	*next;
 	int	devno;
+	Rdt	*rdt;
+};
+
+struct Rdt {
+	Apic*	apic;
 	int	intin;
 	u32int	lo;
 
-	Rdt*	next;				/* on this bus */
-} Rdt;
+	int	ref;				/* could map to multiple busses */
+	int	enabled;			/* times enabled */
+};
 
 enum {						/* IOAPIC registers */
 	Ioregsel	= 0x00,			/* indirect register address */
@@ -33,7 +41,7 @@ enum {						/* IOAPIC registers */
 static Rdt rdtarray[Nrdt];
 static int nrdtarray;
 static int gsib;
-static Rdt* rdtbus[Nbus];
+static Rbus* rdtbus[Nbus];
 static Rdt* rdtvecno[IdtMAX+1];
 
 static Lock idtnolock;
@@ -67,9 +75,24 @@ rtblput(Apic* apic, int sel, u32int hi, u32int lo)
 	*(apic->addr+Iowin) = lo;
 }
 
+Rdt*
+rdtlookup(Apic *apic, int intin)
+{
+	int i;
+	Rdt *r;
+
+	for(i = 0; i < nrdtarray; i++){
+		r = rdtarray + i;
+		if(apic == r->apic && intin == r->intin)
+			return r;
+	}
+	return nil;
+}
+
 void
 ioapicintrinit(int busno, int apicno, int intin, int devno, u32int lo)
 {
+	Rbus *rbus;
 	Rdt *rdt;
 	Apic *apic;
 
@@ -79,13 +102,30 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, u32int lo)
 	if(!apic->useable || intin >= apic->nrdt)
 		return;
 
-	rdt = &rdtarray[nrdtarray++];
-	rdt->apic = apic;
-	rdt->devno = devno;
-	rdt->intin = intin;
-	rdt->lo = lo;
-	rdt->next = rdtbus[busno];
-	rdtbus[busno] = rdt;
+	rdt = rdtlookup(apic, intin);
+	if(rdt == nil){
+		if(nrdtarray == nelem(rdtarray)){
+			print("ioapic: intrinit: rdtarray too small\n");
+			return;
+		}
+		rdt = &rdtarray[nrdtarray++];
+		rdt->apic = apic;
+		rdt->intin = intin;
+		rdt->lo = lo;
+	}else{
+		if(lo != rdt->lo){
+			print("multiple irq botch bus %d %d/%d/%d lo %.8ux vs %.8ux\n",
+				busno, apicno, intin, devno, lo, rdt->lo);
+			return;
+		}
+		DBG("dup rdt %d %d %d %d %.8ux\n", busno, apicno, intin, devno, lo);
+	}
+	rdt->ref++;
+	rbus = malloc(sizeof(*rbus));
+	rbus->rdt = rdt;
+	rbus->devno = devno;
+	rbus->next = rdtbus[busno];
+	rdtbus[busno] = rbus;
 }
 
 void
@@ -125,6 +165,7 @@ void
 ioapicdump(void)
 {
 	int i, n;
+	Rbus *rbus;
 	Rdt *rdt;
 	Apic *apic;
 	u32int hi, lo;
@@ -146,14 +187,15 @@ ioapicdump(void)
 		}
 	}
 	for(i = 0; i < Nbus; i++){
-		if((rdt = rdtbus[i]) == nil)
+		if((rbus = rdtbus[i]) == nil)
 			continue;
 		DBG("iointr bus %d:\n", i);
-		while(rdt != nil){
-			DBG(" apic %ld devno %#ux (%d %d) intin %d lo %#ux\n",
-				rdt->apic-ioapic, rdt->devno, rdt->devno>>2,
-				rdt->devno & 0x03, rdt->intin, rdt->lo);
-			rdt = rdt->next;
+		while(rbus != nil){
+			rdt = rbus->rdt;
+			DBG(" apic %ld devno %#ux (%d %d) intin %d lo %#ux ref %d\n",
+				rdt->apic-ioapic, rbus->devno, rbus->devno>>2,
+				rbus->devno & 0x03, rdt->intin, rdt->lo, rdt->ref);
+			rbus = rbus->next;
 		}
 	}
 }
@@ -236,6 +278,7 @@ ioapicintrdd(u32int* hi, u32int* lo)
 int
 ioapicintrenable(Vctl* v)
 {
+	Rbus *rbus;
 	Rdt *rdt;
 	u32int hi, lo;
 	int busno, devno, vecno;
@@ -285,10 +328,12 @@ ioapicintrenable(Vctl* v)
 		panic("unknown tbdf %#8.8ux\n", v->tbdf);
 	}
 
-	for(rdt = rdtbus[busno]; rdt != nil; rdt = rdt->next){
-		if(rdt->devno == devno)
+	rdt = nil;
+	for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next)
+		if(rbus->devno == devno){
+			rdt = rbus->rdt;
 			break;
-	}
+		}
 	if(rdt == nil){
 		extern int mpisabusno;
 
@@ -301,9 +346,11 @@ ioapicintrenable(Vctl* v)
 		if((busno = mpisabusno) == -1)
 			return -1;
 		devno = v->irq<<2;
-		for(rdt = rdtbus[busno]; rdt != nil; rdt = rdt->next){
-			if(rdt->devno == devno)
+		for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next){
+			if(rbus->devno == devno){
+				rdt = rbus->rdt;
 				break;
+			}
 		}
 		DBG("isa: tbdf %#8.8ux busno %d devno %d %#p\n",
 			v->tbdf, busno, devno, rdt);
@@ -336,6 +383,7 @@ ioapicintrenable(Vctl* v)
 		rdtvecno[vecno] = rdt;
 	}
 
+	rdt->enabled++;
 	lo = (rdt->lo & ~Im);
 	ioapicintrdd(&hi, &lo);
 	rtblput(rdt->apic, rdt->intin, hi, lo);
@@ -374,7 +422,9 @@ ioapicintrdisable(int vecno)
 	}
 
 	lock(rdt->apic);
-	rtblput(rdt->apic, rdt->intin, 0, rdt->lo);
+	rdt->enabled--;
+	if(rdt->enabled == 0)
+		rtblput(rdt->apic, rdt->intin, 0, rdt->lo);
 	unlock(rdt->apic);
 
 	return 0;
