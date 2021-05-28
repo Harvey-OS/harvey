@@ -282,26 +282,20 @@ this ensures that wakeups are not missed.
 .SH SEE ALSO
 .I rfork
 in
-.IR fork (2)
+.IR fork (2),
+.IR semacquire (2)
 .SH BUGS
 .B Locks
-are not strictly spin locks.
-After each unsuccessful attempt,
+are not actually spin locks.
+After one unsuccessful attempt,
 .I lock
 calls
-.B sleep(0)
-to yield the CPU; this handles the common case
-where some other process holds the lock.
-After a thousand unsuccessful attempts,
-.I lock
-sleeps for 100ms between attempts.
-After another thousand unsuccessful attempts,
-.I lock
-sleeps for a full second between attempts.
+.I semacquire
+repeatedly (thus yielding the CPU)
+until it succeeds in acquiring a semaphore internal to the
+.BR Lock .
 .B Locks
 are not intended to be held for long periods of time.
-The 100ms and full second sleeps are only heuristics to
-avoid tying up the CPU when a process deadlocks.
 As discussed above,
 if a lock is to be held for much more than a few instructions,
 the queueing lock types should be almost always be used.
