@@ -17,12 +17,12 @@ enum
 
 struct Fid
 {
-	short busy;
-	short open;
-	int fid;
-	char *user;
-	Qid qid;
-	VacFile *file;
+	char	busy;
+	char	open;
+	int	fid;
+	char	*user;
+	Qid	qid;
+	VacFile	*file;
 	VacDirEnum *vde;
 	Fid	*next;
 };
@@ -42,7 +42,7 @@ uchar	*data;
 int	mfd[2];
 int	srvfd = -1;
 char	*user;
-uchar	mdata[8192+IOHDRSZ];
+uchar	mdata[16*1024+IOHDRSZ];
 int messagesize = sizeof mdata;
 Fcall	rhdr;
 Fcall	thdr;
@@ -492,10 +492,9 @@ rread(Fid *f)
 {
 	char *buf;
 	vlong off;
-	int cnt;
+	int n, tot, cnt, zrds;
 	VacFile *vf;
 	char err[80];
-	int n;
 
 	if(!f->busy)
 		return vtstrdup(Enotexist);
@@ -512,8 +511,26 @@ rread(Fid *f)
 		return vtstrdup("symbolic link");
 	else if(vacfilegetmode(f->file)&ModeNamedPipe)
 		return vtstrdup("named pipe");
-	else
-		n = vacfileread(vf, buf, cnt, off);
+	else {
+		/*
+		 * Empirically, we can get a short read if it attempts to
+		 * cross a venti block boundary, so keep trying, so that
+		 * our clients get expected behaviour.  We might get a
+		 * zero-length read before actual end of file; stop after a few.
+		 */
+		tot = n = zrds = 0;
+		while (tot < cnt && zrds < 10 &&
+		   (n = vacfileread(vf, buf + tot, cnt - tot, off + tot)) >= 0){
+			tot += n;	/* read some bytes, if not cnt-tot */
+			if (n == 0)
+				zrds++;
+			else
+				zrds = 0;
+		}
+		if (tot > 0)		/* read something? */
+			n = tot;	/* return that much */
+		/* else first (& last) read was eof | error, so leave n alone */
+	}
 	if(n < 0) {
 		rerrstr(err, sizeof err);
 		return vtstrdup(err);
@@ -785,4 +802,3 @@ vacshutdown(void)
 	vacfsclose(fs);
 	vthangup(conn);
 }
-

@@ -2101,4 +2101,3 @@ sha1matches(VacFile *f, ulong b, uchar *buf, int n)
 		return 1;
 	return 0;
 }
-
