@@ -261,7 +261,7 @@ pio(Segment *s, uintptr addr, uintptr soff, Page **p)
 		putpage(new);
 
 	if(s->flushme)
-		memset((*p)->cachectl, PG_TXTFLUSH, sizeof((*p)->cachectl));
+		mmucachectl(*p, PG_TXTFLUSH);
 }
 
 /*

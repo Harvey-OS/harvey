@@ -617,6 +617,13 @@ pte[PTLX(KSEG1PML4, 3)] = m->pml4->pa|PteRW|PteP;
 	mmuphysaddr(PTR2UINT(end));
 }
 
+void
+mmucachectl(Page *p, uint why)
+{
+	if(!pagedout(p))
+		memset(p->cachectl, why, sizeof(p->cachectl));
+}
+
 /*
  * Double-check the user MMU.
  * Error checking only.

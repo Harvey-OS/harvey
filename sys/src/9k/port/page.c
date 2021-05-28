@@ -250,8 +250,7 @@ newpage(int clear, Segment *s, uintptr va, int locked)
 	p->ref++;
 	p->va = va;
 	p->modref = 0;
-	for(i = 0; i < MACHMAX; i++)
-		p->cachectl[i] = ct;
+	mmucachectl(p, ct);
 	unlock(p);
 	unlock(&palloc);
 

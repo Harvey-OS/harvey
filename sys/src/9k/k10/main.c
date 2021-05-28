@@ -405,7 +405,7 @@ userinit(void)
 	s->flushme++;
 	p->seg[TSEG] = s;
 	pg = newpage(1, s, UTZERO, 0);
-	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
+	mmucachectl(pg, PG_TXTFLUSH);
 	segpage(s, pg);
 	k = kmap(s->map[0]->pages[0]);
 	memmove(UINT2PTR(VA(k)), initcode, sizeof initcode);
