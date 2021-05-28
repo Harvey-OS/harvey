@@ -1,0 +1,105 @@
+.TH QLOCK 9
+.SH NAME
+qlock, qunlock, canqlock, rlock, runlock, wlock, wunlock \- serial synchronisation
+.SH SYNOPSIS
+.ta \w'\fLvoid 'u
+.B
+void	qlock(QLock *l)
+.PP
+.B
+void	qunlock(QLock *l)
+.PP
+.B
+int	canqlock(QLock *l)
+.PP
+.B
+void	rlock(RWlock *l)
+.PP
+.B
+void	runlock(RWlock *l)
+.PP
+.B
+int	canrlock(RWlock *l)
+.PP
+.B
+void	wlock(RWlock *l)
+.PP
+.B
+void	wunlock(RWlock *l)
+.SH DESCRIPTION
+The primitive locking functions described in
+.IR lock (9)
+guarantee mutual exclusion, but they implement spin locks,
+and should not be used if the process might
+.IR sleep (9)
+within a critical section.
+The following functions serialise access to a resource by forming an orderly
+queue of processes.
+.PP
+Each resource to be controlled is given an associated
+.B QLock
+structure; it is usually most straightforward to put the
+.B QLock
+in the structure that represents the resource.
+It must be initialised to zero before use
+(as guaranteed for global variables and for structures allocated by
+.IR malloc ).
+.PP
+On return from
+.IR qlock ,
+the process has acquired the lock
+.IR l ,
+and can assume exclusive access to the associated resource.
+If the lock is not immediately available, the requesting process is placed on a
+FIFO queue of processes that have requested the lock.
+Processes on this list are blocked in the
+.L Queueing
+state.
+.PP
+.I Qunlock
+unlocks
+.I l
+and schedules the first process queued for it (if any).
+.PP
+.I Canqlock
+is a non-blocking form of
+.IR qlock .
+It tries to obtain the lock
+.I l
+and returns true if successful, and 0 otherwise;
+it always returns immediately.
+.PP
+.B RWlock
+is a form of lock for resources that have distinct readers and writers.
+It allows concurrent readers but gives each writer exclusive access.
+A caller announces its read or write intentions by choice of lock (and unlock) function;
+the system assumes the caller will not modify a structure accessed under read lock.
+.PP
+.I Rlock
+acquires
+.I l
+for reading.
+The holder can read but agrees not to modify the resource.
+There may be several concurrent readers.
+.I Canrlock
+is non-blocking: it returns non-zero if it successfully acquired the lock immediately,
+and 0 if the resource was unavailable.
+.PP
+.I Runlock
+returns a read lock;
+the last reader out enables the first writer waiting (if any).
+.PP
+.I Wlock
+acquires a write lock.
+The holder of such a lock may assume exclusive access to the resource,
+and is allowed to modify it.
+.PP
+.I Wunlock
+returns a write lock.
+The next pending process, whether reader or writer, is scheduled.
+.SH SOURCE
+.B /sys/src/9/port/qlock.c
+.br
+.SH SEE ALSO
+.IR lock (9),
+.IR splhi (9)

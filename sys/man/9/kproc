@@ -1,0 +1,131 @@
+.TH KPROC 9
+.SH NAME
+kproc, pexit, postnote \- kernel process creation, termination and interrupt
+.SH SYNOPSIS
+.ta \w'\fLchar* 'u
+.B
+void	kproc(char *name, void (*func)(void*), void *arg)
+.PP
+.B
+void	pexit(char *note, int freemem)
+.PP
+.B
+void	postnote(Proc *p, int dolock, char *n, int flag)
+.SH DESCRIPTION
+.I Kproc
+creates a new kernel process
+to run the function
+.IR func ,
+which is invoked as 
+.BR "(*func)(arg)" .
+The string
+.I name
+is copied into the
+.B text
+field of the
+.B Proc
+structure of the new process; this value is the name of the kproc in
+the output of
+.IR ps (1).
+The process is made runnable; it
+will run when selected by the scheduler
+.IR sched (9).
+The process is created with base and current priorities set to
+.BR PriKproc .
+It shares the kernel process group and thus name space.
+.PP
+A kernel process terminates only when it calls
+.IR pexit ,
+thereby terminating itself.
+There is no mechanism for one process to force the termination of another,
+although it can send a software interrupt using
+.IR postnote .
+.I Note
+is a null string on normal termination, or
+the cause of 
+If
+.I freemem
+is non-zero,
+any memory allocated by the process is discarded;
+it should normally be non-zero for any process created
+by
+.IR kproc .
+Use the following to terminate a kernel process normally:
+.IP
+.EX
+pexit("", 1);
+.EE
+.PP
+to terminate a kernel process normally.
+.PP
+.I Postnote
+sends a software interrupt to process
+.IR p ,
+causing it, if necessary, to wake from
+.IR sleep (9)
+or break out of a
+.IR rendezvous (2),
+with an
+.IR error (9)
+`interrupted'.
+Up to
+.B NNOTE
+notes can be pending at once (currently 5);
+if more than that arrive, the process is forced
+out of
+.I sleep
+and
+.IR rendezvous ,
+but the message itself is discarded.
+.I Postnote
+returns non-zero iff the note has been
+delivered successfully.
+If
+.I dolock
+is non-zero,
+.I postnote
+synchronises delivery of the note with the debugger
+and other operations of
+.IR proc (3).
+.I Flag
+is zero, or one of the following
+.TP
+.B NDebug
+Print the note message on the user's standard error.
+Furthermore, suspend the process in a
+.B Broken
+state, preserving its memory, for later debugging.
+.TP
+.B NExit
+Deliver the note quietly.
+.TP
+.B NUser
+The note comes from another process, not the system.
+.PP
+The kernel uses
+.I postnote
+to signal processes that commit grave faults,
+and to implement the note and kill functions of
+.IR proc (3).
+A device driver should use
+.I postnote
+only to tell a service process,
+previously started by the driver using
+.I kproc ,
+that it should stop;
+the note will cause that process to raise an
+.IR error (9).
+For example, a process started to read packets from a network device could
+be stopped as follows when the interface is unbound:
+.IP
+.EX
+postnote(readp, 1, "unbind", 0);
+.EE
+.PP
+where
+.I readp
+points to the appropriate
+.BR Proc .
+The text of the message is typically irrelevant.
+.SH SOURCE
+.B /sys/src/9/port/proc.c

@@ -1,0 +1,57 @@
+.TH SPLHI 9
+.SH NAME
+splhi, spllo, splx, islo \- enable and disable interrupts
+.SH SYNOPSIS
+.ta \w'\fLvoid 'u
+.B
+int	spllo(void)
+.PP
+.B
+int	splhi(void)
+.PP
+.B
+void	splx(int x)
+.PP
+.B
+int	islo(void)
+.SH DESCRIPTION
+These primitives enable and disable maskable interrupts on the current
+processor.
+Generally, device drivers should use
+.I ilock
+(see
+.IR lock (9)),
+.IR sleep (9),
+or the functions in
+.IR qio (9)
+to control interaction between processes and interrupt handlers.
+Those routines (but not these) provide correct synchronisation on multiprocessors.
+.PP
+.I Spllo
+enables interrupts and returns a flag representing the previous interrupt enable state.
+It must not normally be called from interrupt level.
+.PP
+.I Splhi
+disables all maskable interrupts and returns the previous interrupt enable state.
+The period during which interrupts are disabled had best be short,
+or real-time applications will suffer.
+.PP
+.I Splx
+restores the interrupt enable state
+state to
+.IR x ,
+which must be a value returned
+by a previous call to
+.I splhi
+or
+.IR spllo .
+.PP
+.I Islo
+returns true (non-zero) if interrupts are currently enabled, and 0 otherwise.
+.SH SOURCE
+.B /sys/src/9/*/l.s
+.SH SEE ALSO
+.IR lock (9),
+.IR qio (9),
+.IR sleep (9),
+.IR intrenable (9)

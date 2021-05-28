@@ -1,0 +1,93 @@
+.TH SECONDS 9
+.SH NAME
+seconds, ticks, fastticks, HZ, MS2HZ, MS2TK, TK2MS, TK2SEC \- kernel times and time conversions
+.SH SYNOPSIS
+.ta \w'\fL#define 'u
+.B
+long	seconds(void)
+.PP
+.B
+m->ticks
+.br
+MACHP(0)->ticks
+.PP
+.B
+vlong   	fastticks(uvlong *hz)
+.PP
+.EX
+#define	HZ          ...
+#define	MS2HZ(t)    ...
+#define	TK2SEC(t)   ...
+#define	TK2MS(t)    ...
+#define	MS2TK(m)    ...
+.EE
+.SH DESCRIPTION
+.I Seconds
+returns the system's idea of the current time as the number of seconds
+since the start of the epoch
+(00:00:00 GMT, January 1, 1970).
+.PP
+The
+.B ticks
+field of the
+.B Mach
+structure pointed to by
+.B m
+returns the number of system-dependent clock ticks on the
+given processor since system boot.
+On a multiprocessor,
+.B MACHP(0)
+is sometimes used to provide a reference time, since the tick value
+might vary slightly across processors.
+.PP
+.I Fastticks
+returns the number of ticks since boot as measured by the
+fastest clock provided by the platform.
+The frequency of the clock, in ticks per second,
+is returned through
+.IR hz ,
+unless it is nil.
+.PP
+The system clock frequencies are platform-dependent.
+Several symbolic constants and macro functions are defined by
+the file
+.B mem.h
+to convert between different time units:
+.TF TK2SEC(t)
+.PD
+.TP
+.B HZ
+The number of clock ticks per second.
+.TP
+.B MS2HZ
+Milliseconds per clock tick.
+.TP
+.BI TK2SEC( t )
+Convert
+.I t
+clock ticks to seconds and return the result (truncating not rounding).
+.TP
+.BI TK2MS( t )
+Convert
+.I t
+clock ticks to milliseconds and return the result.
+.TP
+.BI MS2TK( m )
+Convert
+.I m
+milliseconds to clock ticks and return the result (truncating).
+.PP
+The functions are often used to calculate delays for timing functions,
+for instance:
+.IP
+.EX
+if(atactlrwait(dp->cp, DHmagic, 0, MS2TK(100))){
+	...
+}
+.EE
+.SH SOURCE
+.B /sys/src/9/*/mem.h
+.br
+.B /sys/src/9/*/clock.c
+.br
+.B /sys/src/9/port/tod.c

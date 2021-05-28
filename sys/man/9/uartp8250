@@ -1,0 +1,77 @@
+.TH UARTP8250 9
+.SH NAME
+uartp8250 \- portable 8250-style uarts
+.SH SYNOPSIS
+.EX
+#include "../port/uartp8250.h"
+
+typedef struct Ctlr Ctlr;
+struct Ctlr {
+	void	*reg;
+	uint	(*get)(void*, int);
+	void	(*set)(void*, int, uint);
+	int	(*itr)(Uart*, int);
+
+	int	irq;
+	int	tbdf;
+	int	iena;
+
+	uchar	sticky[8];
+
+	Lock;
+	int	hasfifo;
+	int	checkfifo;
+	int	fena;
+};
+.EE
+.PP
+.ta \w'\fLPhysUart 'u
+.PP
+.B
+PhysUart		p8250physuart;
+.PP
+.B
+void	i8250interrupt(Ureg*, void*);
+.SH DESCRIPTION
+P8250 provides a portable interface for 8250-style uarts.
+All necessary functions are provided except for 
+.BR get ,
+.BR set ,
+and
+.BR itr .
+These functions get or set an 8250 register or enable
+or disable the interrupt, respectively.  Since the
+.B PhysUart
+structure is required for device discovery, a dummy
+version needs to be provided
+.IP
+.EX
+PhysUart myphysuart = {
+	.name		= "myuart",
+	.pnp		= mypnp,
+};
+.EE
+.PP
+On entry of the pnp function, the
+.B PhysUart
+can be filled out:
+.EX
+	memmove(&myphysuart, &p8250physuart, sizeof(PhysUart));
+	myphysuart.name = "myuart";
+	myphysuart.pnp = mypnp;
+.EE
+.PP
+as can the
+.B Ctlr
+structure, which is assigned to
+.BR "uart->regs" .
+.SH SOURCE
+.B /sys/src/9/port/uartp8250.h
+.br
+.B /sys/src/9/port/uartp8250.c
+.SH "SEE ALSO"
+.IR uart (3).
+.SH BUGS
+The
+.B PhysUart
+is uncomfortable to use for device discovery.

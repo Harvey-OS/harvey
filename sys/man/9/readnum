@@ -1,0 +1,58 @@
+.TH READNUM 9
+.SH NAME
+readnum, readstr \- return values from read from device
+.SH SYNOPSIS
+.ta \w'\fLchar* 'u
+.B
+int readstr(ulong off, char *buf, ulong n, char *str)
+.PP
+.B
+int readnum(ulong off, char *buf, ulong n, ulong val, int size)
+.SH DESCRIPTION
+.I Readstr
+and
+.I readnum
+simplify the return of strings and numbers from device
+.I read
+routines,
+because they deal with any buffering and boundary cases.
+Several parameters to the read call are often handed on directly
+to these functions:
+the file offset, as
+.IR off ;
+the address of the user's buffer, as
+.IR buf ;
+and the number of bytes requested, as
+.IR n .
+Both functions return the number of bytes they have stored in
+.IR buf ,
+and which can often be returned directly from the device read routine.
+.PP
+.I Readstr
+satisfies a read by copying data into
+.I buf
+from the NUL-terminated string in
+.IR str .
+The data transferred is selected and limited by
+.IR off ,
+.I n
+and the length of
+.IR str .
+.PP
+.I Readnum
+converts the unsigned integer
+.I val
+to a decimal representation in
+.IR buf .
+The value is right-justified in a field of
+.IR size "-1"
+places and is followed by a blank.
+.I Size
+can be the global constant
+.L NUMSIZE
+for 32-bit integers;
+the largest
+.I size
+allowed is 64 bytes. 
+.SH SOURCE
+.B /sys/src/9/port/devcons.c
