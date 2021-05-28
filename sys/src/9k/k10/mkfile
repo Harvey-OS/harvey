@@ -14,6 +14,8 @@ p=9
 
 OBJ=$MACH $CONF.root.$O $DEVS $PORT
 
+CFLAGS=-FVw
+
 $p$CONF:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 	$LD -o $target -T0xfffffffff0110000 -R4096 -l $OBJ $CONF.$O $LIB
