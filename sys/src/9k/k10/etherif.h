@@ -33,6 +33,7 @@ struct Ether {
 	void	(*power)(Ether*, int);	/* power on/off */
 	void	(*shutdown)(Ether*);	/* shutdown hardware before reboot */
 	void	*ctlr;
+	void	*vector;
 
 	int	scan[Ntypes];		/* base station scanning interval */
 	int	nscan;			/* number of base station scanners */

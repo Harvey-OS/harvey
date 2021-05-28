@@ -424,7 +424,7 @@ etherprobe(int cardno, int ctlrno)
 	 * interrupts for itself, e.g. HyperTransport MSI.
 	 */
 	if(ether->irq >= 0)
-		intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
+		ether->vector = intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 
 	i = sprint(buf, "#l%d: %s: ", ctlrno, cards[cardno].type);
 	if(ether->mbps >= 1000)
@@ -504,6 +504,8 @@ ethershutdown(void)
 		ether = etherxx[i];
 		if(ether == nil)
 			continue;
+		if(ether->irq >= 0)
+			intrdisable(ether->vector);
 		if(ether->shutdown == nil) {
 			print("#l%d: no shutdown function\n", i);
 			continue;
