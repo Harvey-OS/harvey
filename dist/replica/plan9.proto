@@ -37,11 +37,17 @@ arm	- sys sys
 	+	- sys sys
 mips	- sys sys
 	+	- sys sys
+mips64	- sys sys
+	+	- sys sys
 power	- sys sys
 	+	- sys sys
 power64	- sys sys
 	+	- sys sys
 sparc	- sys sys
+	+	- sys sys
+spim	- sys sys
+	+	- sys sys
+spim64	- sys sys
 	+	- sys sys
 
 # everything else is owned by sys
