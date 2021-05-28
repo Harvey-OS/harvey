@@ -54,7 +54,7 @@ confighub(Hub *h)
 {
 	int type;
 	uchar buf[128];	/* room for extra descriptors */
-	int i;
+	int i, dt, dl;
 	Usbdev *d;
 	DHub *dd;
 	Port *pp;
@@ -65,22 +65,62 @@ confighub(Hub *h)
 	int mask;
 
 	d = h->dev->usb;
+	if(h->dev->isusb3){
+		dt = Dsshub;
+		dl = Dsshublen;
+	} else {
+		dt = Dhub;
+		dl = Dhublen;
+	}
 	for(i = 0; i < nelem(d->ddesc); i++)
 		if(d->ddesc[i] == nil)
 			break;
-		else if(d->ddesc[i]->data.bDescriptorType == Dhub){
+		else if(d->ddesc[i]->data.bDescriptorType == dt){
 			dd = (DHub*)&d->ddesc[i]->data;
-			nr = Dhublen;
+			nr = d->ddesc[i]->data.bLength;
 			goto Config;
 		}
 	type = Rd2h|Rclass|Rdev;
-	nr = usbcmd(h->dev, type, Rgetdesc, Dhub<<8|0, 0, buf, sizeof buf);
-	if(nr < Dhublen){
+	nr = usbcmd(h->dev, type, Rgetdesc, dt<<8|0, 0, buf, sizeof buf);
+	if(nr < 0){
 		dprint(2, "%s: %s: getdesc hub: %r\n", argv0, h->dev->dir);
 		return -1;
 	}
 	dd = (DHub*)buf;
 Config:
+	if(nr < dl){
+		fprint(2, "%s: %s: hub descriptor too small (%d < %d)\n", argv0, h->dev->dir, nr, dl);
+		return -1;
+	}
+	if(h->dev->isusb3){
+		DSSHub *ds;
+		ds = (DSSHub*)dd;
+		h->nport = ds->bNbrPorts;
+		nmap = 1 + h->nport/8;
+		if(nr < 10 + nmap){
+			fprint(2, "%s: %s: descr. too small\n", argv0, h->dev->dir);
+			return -1;
+		}
+		h->port = emallocz((h->nport+1)*sizeof(Port), 1);
+		h->pwrms = ds->bPwrOn2PwrGood*2;
+		if(h->pwrms < Powerdelay)
+			h->pwrms = Powerdelay;
+		h->maxcurrent = ds->bHubContrCurrent;
+		h->pwrmode = ds->wHubCharacteristics[0] & 3;
+		h->compound = (ds->wHubCharacteristics[0] & (1<<2))!=0;
+		h->leds = (ds->wHubCharacteristics[0] & (1<<7)) != 0;
+		for(i = 1; i <= h->nport; i++){
+			pp = &h->port[i];
+			offset = i/8;
+			mask = 1<<(i%8);
+			pp->removable = (ds->DeviceRemovable[offset] & mask) != 0;
+		}
+		if(usbcmd(h->dev, Rh2d|Rclass|Rdev, Rsethubdepth, h->dev->depth, 0, nil, 0) < 0){
+			fprint(2, "%s: %s: sethubdepth: %r\n", argv0, h->dev->dir);
+			return -1;
+		}
+		return 0;
+	}
 	h->nport = dd->bNbrPorts;
 	nmap = 1 + h->nport/8;
 	if(nr < 7 + 2*nmap){
@@ -110,7 +150,7 @@ static void
 configroothub(Hub *h)
 {
 	Dev *d;
-	char buf[128];
+	char buf[1024];
 	char *p;
 	int nr;
 
@@ -123,6 +163,7 @@ configroothub(Hub *h)
 		goto Done;
 	buf[nr] = 0;
 
+	d->isusb3 = strstr(buf, "speed super") != nil;
 	p = strstr(buf, "ports ");
 	if(p == nil)
 		fprint(2, "%s: %s: no port information\n", argv0, d->dir);
@@ -144,6 +185,9 @@ newhub(char *fn, Dev *d)
 	Hub *h;
 	int i;
 	Usbdev *ud;
+	int usbpower;
+	static int firsttime;
+	char *p;
 
 	h = emallocz(sizeof(Hub), 1);
 	h->isroot = (d == nil);
@@ -157,6 +201,7 @@ newhub(char *fn, Dev *d)
 			fprint(2, "%s: opendevdata: %s: %r\n", argv0, fn);
 			goto Fail;
 		}
+		h->dev->depth = -1;
 		configroothub(h);	/* never fails */
 	}else{
 		h->dev = d;
@@ -177,6 +222,13 @@ newhub(char *fn, Dev *d)
 	else{
 		devctl(h->dev, "info hub csp %#08ulx ports %d %q %q",
 			ud->csp, h->nport, ud->vendor, ud->product);
+		if(!firsttime++ && (p = getenv("usbpower")) != nil){
+			usbpower = atoi(p);
+			for(i = 1; i <= h->nport; i++)
+				if(hubfeature(h, i, Fportpower, 0) < 0)
+					fprint(2, "%s: %s: power: %r\n", argv0, fn);
+			sleep(usbpower);
+		}
 		for(i = 1; i <= h->nport; i++)
 			if(hubfeature(h, i, Fportpower, 1) < 0)
 				fprint(2, "%s: %s: power: %r\n", argv0, fn);
@@ -267,26 +319,28 @@ portstatus(Hub *h, int p)
 }
 
 static char*
-stsstr(int sts)
+stsstr(int sts, int isusb3)
 {
 	static char s[80];
 	char *e;
 
 	e = s;
-	if(sts&PSsuspend)
-		*e++ = 'z';
+	if(!isusb3){
+		if(sts&PSsuspend)
+			*e++ = 'z';
+		if(sts&PSslow)
+			*e++ = 'l';
+		if(sts&PShigh)
+			*e++ = 'h';
+		if(sts&PSchange)
+			*e++ = 'c';
+		if(sts&PSstatuschg)
+			*e++ = 's';
+	}
 	if(sts&PSreset)
 		*e++ = 'r';
-	if(sts&PSslow)
-		*e++ = 'l';
-	if(sts&PShigh)
-		*e++ = 'h';
-	if(sts&PSchange)
-		*e++ = 'c';
 	if(sts&PSenable)
 		*e++ = 'e';
-	if(sts&PSstatuschg)
-		*e++ = 's';
 	if(sts&PSpresent)
 		*e++ = 'p';
 	if(e == s)
@@ -332,30 +386,40 @@ portattach(Hub *h, int p, int sts)
 	pp->state = Pattached;
 	dprint(2, "%s: %s: port %d attach sts %#ux\n", argv0, d->dir, p, sts);
 	sleep(Connectdelay);
-	if(hubfeature(h, p, Fportenable, 1) < 0)
-		dprint(2, "%s: %s: port %d: enable: %r\n", argv0, d->dir, p);
-	sleep(Enabledelay);
-	if(hubfeature(h, p, Fportreset, 1) < 0){
-		dprint(2, "%s: %s: port %d: reset: %r\n", argv0, d->dir, p);
-		goto Fail;
-	}
-	sleep(Resetdelay);
-	sts = portstatus(h, p);
-	if(sts < 0)
-		goto Fail;
-	if((sts & PSenable) == 0){
-		dprint(2, "%s: %s: port %d: not enabled?\n", argv0, d->dir, p);
-		hubfeature(h, p, Fportenable, 1);
+	if(h->dev->isusb3){
+		sleep(Enabledelay);
 		sts = portstatus(h, p);
-		if((sts & PSenable) == 0)
+		if(sts == -1)
 			goto Fail;
+		if((sts & PSenable) == 0){
+			dprint(2, "%s: %s: port %d: not enabled?\n", argv0, d->dir, p);
+			goto Fail;
+		}
+		sp = "super";
+	} else {
+		sleep(Enabledelay);
+		if(hubfeature(h, p, Fportreset, 1) < 0){
+			dprint(2, "%s: %s: port %d: reset: %r\n", argv0, d->dir, p);
+			goto Fail;
+		}
+		sleep(Resetdelay);
+		sts = portstatus(h, p);
+		if(sts < 0)
+			goto Fail;
+		if((sts & PSenable) == 0){
+			dprint(2, "%s: %s: port %d: not enabled?\n", argv0, d->dir, p);
+			hubfeature(h, p, Fportenable, 1);
+			sts = portstatus(h, p);
+			if((sts & PSenable) == 0)
+				goto Fail;
+		}
+		sp = "full";
+		if(sts & PSslow)
+			sp = "low";
+		if(sts & PShigh)
+			sp = "high";
+		dprint(2, "%s: %s: port %d: attached status %#ux\n", argv0, d->dir, p, sts);
 	}
-	sp = "full";
-	if(sts & PSslow)
-		sp = "low";
-	if(sts & PShigh)
-		sp = "high";
-	dprint(2, "%s: %s: port %d: attached status %#ux\n", argv0, d->dir, p, sts);
 
 	if(devctl(d, "newdev %s %d", sp, p) < 0){
 		fprint(2, "%s: %s: port %d: newdev: %r\n", argv0, d->dir, p);
@@ -378,6 +442,8 @@ portattach(Hub *h, int p, int sts)
 		fprint(2, "%s: %s: port %d: opendev: %r\n", argv0, d->dir, p);
 		goto Fail;
 	}
+	nd->depth = h->dev->depth+1;
+	nd->isusb3 = h->dev->isusb3;
 	if(usbdebug > 2)
 		devctl(nd, "debug 1");
 	if(opendevdata(nd, ORDWR) < 0){
@@ -401,7 +467,7 @@ portattach(Hub *h, int p, int sts)
 		dprint(2, "%s; %s: port %d: maxpkt %d\n", argv0, d->dir, p, mp);
 		devctl(nd, "maxpkt %d", mp);
 	}
-	if((sts & PSslow) != 0 && strcmp(sp, "full") == 0)
+	if(!h->dev->isusb3 && (sts & PSslow) != 0 && strcmp(sp, "full") == 0)
 		dprint(2, "%s: %s: port %d: %s is full speed when port is low\n",
 			argv0, d->dir, p, nd->dir);
 	if(configdev(nd) < 0){
@@ -427,7 +493,8 @@ Fail:
 	pp->sts = 0;
 	if(pp->hub != nil)
 		pp->hub = nil;	/* hub closed by enumhub */
-	hubfeature(h, p, Fportenable, 0);
+	if(!h->dev->isusb3)
+		hubfeature(h, p, Fportenable, 0);
 	if(nd != nil)
 		devctl(nd, "detach");
 	closedev(nd);
@@ -504,7 +571,7 @@ portresetwanted(Hub *h, int p)
 static void
 portreset(Hub *h, int p)
 {
-	int sts;
+	int i, sts;
 	Dev *d, *nd;
 	Port *pp;
 
@@ -516,10 +583,16 @@ portreset(Hub *h, int p)
 		dprint(2, "%s: %s: port %d: reset: %r\n", argv0, d->dir, p);
 		goto Fail;
 	}
-	sleep(Resetdelay);
-	sts = portstatus(h, p);
-	if(sts < 0)
-		goto Fail;
+	sts = 0;
+	for(i = 0; i < 10; i++){
+		sleep(Resetdelay);
+		sts = portstatus(h, p);
+		if(sts < 0)
+			goto Fail;
+		if((sts & PSreset) == 0)
+			break;
+	}
+	dprint(2, "%s: %s: port %d sts %x after %d ms\n", argv0, d->dir, p, sts, (i+1)*Resetdelay);
 	if((sts & PSenable) == 0){
 		dprint(2, "%s: %s: port %d: not enabled?\n", argv0, d->dir, p);
 		hubfeature(h, p, Fportenable, 1);
@@ -528,7 +601,10 @@ portreset(Hub *h, int p)
 			goto Fail;
 	}
 	nd = pp->dev;
-	opendevdata(nd, ORDWR);
+	if(opendevdata(nd, ORDWR) < 0){
+		fprint(2, "%s: %s: opendevdata: %r\n", argv0, nd->dir);
+		goto Fail;
+	}
 	if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetaddress, nd->id, 0, nil, 0) < 0){
 		dprint(2, "%s: %s: port %d: setaddress: %r\n", argv0, d->dir, p);
 		goto Fail;
@@ -574,7 +650,7 @@ portgone(Port *pp, int sts)
 static int
 enumhub(Hub *h, int p)
 {
-	int sts;
+	int sts, sts0;
 	Dev *d;
 	Port *pp;
 	int onhubs;
@@ -592,12 +668,13 @@ enumhub(Hub *h, int p)
 	}
 	pp = &h->port[p];
 	onhubs = nhubs;
-	if((sts & PSsuspend) != 0){
+	if(!h->dev->isusb3 && (sts & PSsuspend) != 0){
 		if(hubfeature(h, p, Fportenable, 1) < 0)
 			dprint(2, "%s: %s: port %d: enable: %r\n", argv0, d->dir, p);
 		sleep(Enabledelay);
+		sts0 = sts;
 		sts = portstatus(h, p);
-		fprint(2, "%s: %s: port %d: resumed (sts %#ux)\n", argv0, d->dir, p, sts);
+		fprint(2, "%s: %s: port %d: resumed (sts %#ux -> %#ux)\n", argv0, d->dir, p, sts0, sts);
 	}
 	if((pp->sts & PSpresent) == 0 && (sts & PSpresent) != 0){
 		if(portattach(h, p, sts) != nil)
@@ -609,8 +686,8 @@ enumhub(Hub *h, int p)
 		portreset(h, p);
 	else if(pp->sts != sts){
 		dprint(2, "%s: %s port %d: sts %s %#x ->",
-			argv0, d->dir, p, stsstr(pp->sts), pp->sts);
-		dprint(2, " %s %#x\n",stsstr(sts), sts);
+			argv0, d->dir, p, stsstr(pp->sts, h->dev->isusb3), pp->sts);
+		dprint(2, " %s %#x\n",stsstr(sts, h->dev->isusb3), sts);
 	}
 	pp->sts = sts;
 	if(onhubs != nhubs)

@@ -49,6 +49,10 @@ enum {
 	Rsetiface	= 11,
 	Rsynchframe	= 12,
 
+	/* standard requests (USB3.0) */
+	Rsethubdepth	= 12,
+	Rgetporterrcnt	= 13,
+
 	Rgetcur	= 0x81,
 	Rgetmin	= 0x82,
 	Rgetmax	= 0x83,
@@ -169,6 +173,8 @@ struct Dev
 	int	id;		/* usb id for device or ep. number */
 	int	dfd;		/* descriptor for the data file */
 	int	cfd;		/* descriptor for the control file */
+	int	isusb3;		/* this is a usb3 device */
+	int	depth;		/* hub depth for usb3 hubs */
 	int	maxpkt;		/* cached from usb description */
 	Ref	nerrs;		/* number of errors in requests */
 	Usbdev*	usb;		/* USB description */
