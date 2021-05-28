@@ -1,0 +1,29 @@
+# root
+mount -a $rootsrv /root $rootspec
+bind -a /root /
+bind -c /root/mnt /mnt
+
+# kernel devices
+bind #c /dev
+bind #d /fd
+bind -c #e /env
+bind #p /proc
+bind -c #s /srv
+
+# mount points
+
+# authentication
+mount -a /srv/factotum /mnt
+
+# standard bin
+bind /root/$cputype/bin /bin
+bind -a /root/rc/bin /bin
+
+# networks
+bind -a #I /net
+bind -a #l0 /net
+#mount -a /srv/cs /net
+#mount -a /srv/dns /net
+
+bind -c /usr/$user/tmp /tmp
+cd /usr/$user

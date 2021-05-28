@@ -1,0 +1,36 @@
+#
+# rcmain
+# Plan 9 initial boot environment version
+#
+home=/
+ifs=' 	
+'
+prompt=('# ' '	')
+path=(. /bin)
+
+finit
+fn sigexit
+fn ps {@{
+	cd /proc;
+	for(i in `{echo [1-9] [1-9][0-9] [1-9][0-9][0-9] [1-9][0-9][0-9][0-9] [1-9][0-9][0-9][0-9][0-9] [1-9][0-9][0-9][0-9][0-9]*|sed 's/\[.*\][ \*]//'}){
+		for(f in $i^/status $i^/args)
+			>[2]/dev/null sed '' $f
+	}|sed -e '$!N;s/([^ 	])$/\1/;ta' -e 'P;D;b' -e ':a;s/\n//' \
+	 |sed 's/ +/ /g;s/^([^ ]+) +([^ ]+) +([^ ]+) +([^ ]+ +[^ ]+ +[^ ]+ +[^ ]+ +[^ ]+ +[^ ]+) +([^ ]+)+ ([^ ]+ +[^ ]+)(.*)/\2	'^$i^'	\5K	\3	\1	\7/'
+}}
+fn netstat {@{
+	for(p in tcp udp){
+		cd /net/$p;
+		for(i in `{echo [0-9] [1-9][0-9] [1-9][0-9][0-9] [1-9][0-9][0-9]*|sed 's/\[.*\][ \*]//'}){
+			echo -n $p'	'$i'	*owner*	';
+			cat $i/status $i/local $i/remote \
+			| sed -n -e :a -e '$!N; s/ .*//; s/!/	/; s/\n/	/; ta;
+				s/([^	]+)	([^	]+)	([^	]+)	([^	]+)	([^	]+)/\1	\3	\5 \4/p'
+		}			
+	}
+}}
+
+status=''
+if(! ~ $#* 0) . $*
+. -i '#d/0'
+exit $status

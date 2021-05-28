@@ -1,0 +1,114 @@
+#!/boot/rc -m /boot/rcmain
+flag x +
+
+cputype=amd64
+objtype=$cputype
+service=cpu
+authid=bootes
+rootdir=/root
+rootspec=''
+rootsrv=boot
+
+beetroot=k10root.rr
+authentication='nvram=/boot/adm/nvram auth/factotum -sfactotum -S'	# -a ...
+# test xyzip=(0 0 0 104.9.33)
+# test fsaddr='tcp!135.$xyzip(4)^!564'
+ip=(135.104.9.32 255.255.255.0 135.104.9.0 135.104.9.1)
+
+#
+# Post the read-only filesystem in #s/$beetroot
+# and mount it on /boot so the commands in /boot/$cputype/bin
+# are available to create the namespace (namespaces like to
+# mount #s/boot on / and that should not be the read-only
+# filesystem).
+# Must set hostowner to be that of the owner of the nvram file
+# before paqfs starts otherwise factotum will not be able to
+# open it.
+#
+/boot/echo -n sys > '#c/hostowner'
+/boot/paqfs -p -S $beetroot -m /boot -q /boot/$beetroot
+cd /boot/$cputype/bin
+bind '#c' /dev
+bind '#d' /fd
+bind -c '#e' /env
+bind '#p' /proc
+bind -c '#s' /srv
+
+#
+# Configure the networks.
+#
+bind -a '#I' /net
+bind -a '#l0' /net
+
+if(~ $#ip 4 && ! ~ $ip(1) '10.-1.-1.-1'){
+	i=`{sed '' /net/ipifc/clone}
+	echo bind ether /net/ether0 > /net/ipifc/$i/ctl
+	echo add $ip(1) $ip(2) $ip(3) > /net/ipifc/$i/ctl
+	echo add 0 0 $ip(4) >>/net/iproute
+	echo I am $ip(1)^, default route $ip(4)
+}
+i=`{sed '' /net/ipifc/clone}
+echo bind loopback /dev/null > /net/ipifc/$i/ctl
+echo add 127.0.0.1 255.0.0.0 127.0.0.0 > /net/ipifc/$i/ctl
+
+#
+# Set up authentication if necessary.
+# Factotum has to be allowed to mount on /mnt here because
+# auth_proxy (called by mount) will look for it there.
+# Normally, factotum will set '#c/hostowner'; if not, do it
+# by hand.
+#
+if(! ~ $authentication '')
+	eval `{echo $authentication}
+if(~ `{sed '' '#c/hostowner'} sys)
+	echo -n $authid > '#c/hostowner'
+
+#
+# Attach to the remote filesystem and mount it.
+# If this fails, set $root(dir|srv) and continue,
+# there's enough in the read-only filesystem to run
+# listen and telnet; at least cat /dev/kmesg might
+# then give a clue as to the problem.
+# Must check for the presence of expected files after
+# the mount because srv/mount do not always return
+# proper status.
+# $rootsrv is used in /lib/namespace because the
+# root might not be served from the usual #s/boot.
+#
+if(! ~ $fsaddr '' && ! eval srv -c -m $fsaddr $rootsrv $rootdir)
+	echo srv -c -m $fsaddr $rootsrv $rootdir fails: $status
+if(! test -d $rootdir/$cputype){
+	rootdir=/boot
+	rootspec=''
+	rootsrv=$beetroot
+}
+rootsrv='#s/'$rootsrv
+echo root is on $rootdir, root is served from $rootsrv
+
+#
+# Finish the namespace setup.
+#
+bind -a $rootdir /
+bind -c -b $rootdir/mnt /mnt
+bind $rootdir/$cputype/bin /bin
+bind -a $rootdir/rc/bin /bin
+cd /
+
+#
+# Finish environment setup and start services.
+# Listen is run trusted if there is no factotum running,
+# as 'cpu -R' with no authentication needs to be able to
+# open '#¤/caphash' in order to change the owner and
+# that can only be done if running as '#c/hostowner'.
+#
+sysname=cpu-$ip(1)
+prompt=($sysname'# ' '	') 
+bind /boot/rc/bin/service /bin/service
+if(test -d /mnt/factotum)
+	aux/listen -q tcp
+if not
+	aux/listen -t /bin/service tcp
+
+flag x -
+while(echo Hello Squidboy)
+	. -i '#d/0'

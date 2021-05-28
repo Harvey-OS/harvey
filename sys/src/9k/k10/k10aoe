@@ -1,0 +1,176 @@
+dev +dev
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	cap
+	kprof
+	acpi
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
+
+	uart
+
+	sd
+#	aoe
+
+sd +dev
+	sdiahci		pci sdscsi
+#	sdaoe		sdscsi
+
+uart +dev
+	uarti8250
+	uartpci		pci
+
+ip +dev
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+
+link +dev
+	ether8169	pci ethermii
+	ether82557	pci
+	ether82563	pci
+	etherigbe	pci ethermii
+	ethermedium
+	loopbackmedium
+	netdevmedium
+
+#	acpi		hpet
+#	ht
+
+misc +dev
+	nocache
+	mp		apic ioapic pci sipi
+
+#
+#boot cpu
+#	int cpuflag = 1;
+#boot cpu boot $3
+#	int cpuflag = 1;
+#	char* bootdisk = "$3";
+#boot rootdir $3
+#	char* rootdir = "$3";
+#boot (bboot|romboot|dosboot)
+#	int cpuflag = 1;
+#	char* bootprog = $2;
+#boot boot $3
+#	char* bootdisk = "$3";
+#
+boot cpu
+	tcp
+
+rootdir
+	bootk10aoe.out boot
+	/amd64/bin/auth/factotum factotum
+	/amd64/bin/ip/ipconfig ipconfig
+
+conf
+	int cpuserver = 1;
+
+#
+#dbgflg
+#	chan		'c'
+#	apic		'A'
+#	acpi		'C'
+#	hpet		'H'
+#	ht		'H'
+#	ioapic		'I'
+#	mp		'M'
+#	pci		'P'
+#	arch		'V'
+#
+dbgflg
+	apic		'A'
+	acpi		'C'
+	hpet		'H'
+	ht		'H'
+	ioapic		'I'
+	mp		'M'
+	arch		'V'
+	archk10		'V'
+	sysproc		'E'
+	main		'x'
+	mmu		'm'
+	asm		'a'
+	sipi		'y'
+
+amd64 +dev
+	l32p
+	l64v
+	l64idt
+	l64syscall
+	l64fpu
+	l64cpuid
+	arch
+	archk10
+	asm
+	cga
+	crap
+	fpu
+	i8254
+	i8259
+	kbd
+	main
+	map
+	memory
+	mmu
+	multiboot
+	qmalloc
+	random
+	syscall
+	trap
+	vsvm
+
+port
+	alarm
+	allocb
+	chan
+	dev
+	devtab
+	edf
+	fault
+	image
+	latin1
+	page
+	parse
+	pgrp
+	portclock
+	print
+	proc
+	ps
+	qio
+	qlock
+	rebootcmd
+	segment
+	sysauth
+	sysfile
+	sysproc
+	sysseg
+	systab
+	taslock
+	tod
+
+#
+#dir
+# pc		-.I.
+#
+dir
+	386
+	ip
+	port
+
+lib
+	libc
+	libip
+	libsec

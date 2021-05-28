@@ -1,0 +1,79 @@
+adm d775 sys sys /tmp/empty
+	nvram 400 sys sys ./root/nvram
+	timezone d775 sys sys /tmp/empty
+lib d775 sys sys /tmp/empty
+	namespace 664 sys sys ./root/k10root.namespace
+	profile 664 sys sys ../root/profile
+mnt d775 sys sys /tmp/empty
+	cons d775 sys sys /tmp/empty
+		cons d775 sys sys /tmp/empty
+		consctl d775 sys sys /tmp/empty
+	exportfs d775 sys sys /tmp/empty
+		0 d775 sys sys /tmp/empty
+		1 d775 sys sys /tmp/empty
+		2 d775 sys sys /tmp/empty
+		3 d775 sys sys /tmp/empty
+		4 d775 sys sys /tmp/empty
+		5 d775 sys sys /tmp/empty
+		6 d775 sys sys /tmp/empty
+		7 d775 sys sys /tmp/empty
+		8 d775 sys sys /tmp/empty
+		9 d775 sys sys /tmp/empty
+		10 d775 sys sys /tmp/empty
+		11 d775 sys sys /tmp/empty
+		12 d775 sys sys /tmp/empty
+		13 d775 sys sys /tmp/empty
+		14 d775 sys sys /tmp/empty
+		15 d775 sys sys /tmp/empty
+		16 d775 sys sys /tmp/empty
+	keys d775 sys sys /tmp/empty
+	temp d775 sys sys /tmp/empty
+	term d775 sys sys /tmp/empty
+n d775 sys sys /tmp/empty
+	dump d775 sys sys /tmp/empty
+	fs d775 sys sys /tmp/empty
+	io d775 sys sys /tmp/empty
+	mnt d775 sys sys /tmp/empty
+rc d775 sys sys /tmp/empty
+	bin d775 sys sys /tmp/empty
+		service d775 sys sys /tmp/empty
+			tcp23 775 sys sys ../root/tcp23
+			tcp17007 775 sys sys /bin/service/tcp17007
+			tcp17010 775 sys sys ./root/tcp17010
+	lib d775 sys sys /tmp/empty
+		rcmain 775 sys sys
+tmp d775 sys sys /tmp/empty
+usr d775 sys sys /tmp/empty
+	glenda d775 sys sys /tmp/empty
+		lib d775 sys sys /tmp/empty
+			profile 664 sys sys ../root/profile
+
+amd64 d775 sys sys /tmp/empty
+	bin d775 sys sys /tmp/empty
+		# used by k10cpu.rc to get off the ground
+		bind 775 sys sys
+		echo 775 sys sys
+		rc 775 sys sys
+		sed 775 sys sys
+		srv 775 sys sys
+		telnet 775 sys sys
+		test 775 sys sys
+
+		# used to provide standalone service
+		auth d775 sys sys /tmp/empty
+			factotum 775 sys sys
+		aux d775 sys sys /tmp/empty
+			listen 775 sys sys
+		ip d775 sys sys /tmp/empty
+			telnetd 775 sys sys
+		ndb d775 sys sys /tmp/empty
+			cs 775 sys sys
+
+		cpu 775 sys sys ./root/6.cpu
+		exportfs 775 sys sys
+
+		# used for debugging
+
+	include d775 sys sys /tmp/empty
+	lib d775 sys sys /tmp/empty
+	mkfile 775 sys sys

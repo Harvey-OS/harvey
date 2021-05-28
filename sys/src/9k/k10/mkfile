@@ -1,0 +1,92 @@
+ARCH=k10
+CONF=${ARCH}cpu
+CONFLIST=${ARCH}aoe ${ARCH}cpu ${ARCH}root
+
+objtype=amd64
+</$objtype/mkfile
+p=9
+
+9k:V:	$p$CONF
+
+<| awk -f ../mk/parse $CONF
+<../mk/bootmkfile
+<../mk/portmkfile
+
+OBJ=$MACH $CONF.root.$O $DEVS $PORT
+
+$p$CONF:	$CONF.c $OBJ $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -T0xfffffffff0110000 -R4096 -l $OBJ $CONF.$O $LIB
+#	$LD -o $target.elf -H5 -E0x00110000 -P0x00110000 -8 -T0xfffffffff0110000 -l $OBJ $CONF.$O $LIB
+	size $target
+
+install:QV:	$p$CONF
+	cp $p$CONF /$objtype
+	ls -l /$objtype/$p$CONF
+
+l32p.$O:	${objtype}l.h
+l64idt.$O:	${objtype}l.h
+l64syscall.$O:	${objtype}l.h
+l64v.$O:	${objtype}l.h
+l64sipi.$O:	${objtype}l.h
+
+apic.$O:	apic.h io.h
+devarch.$O:	../port/error.h /$objtype/include/ureg.h
+fpu.$O:		amd64.h
+fpu.$O:		/$objtype/include/ureg.h
+ioapic.$O:	apic.h io.h
+main.$O:	amd64.h io.h init.h
+memory.$O:	amd64.h
+mmu.$O:		amd64.h
+mp.$O:		apic.h
+sipi.$O:	apic.h sipi.h
+svm.$O:		amd64.h
+svm.$O:		/$objtype/include/ureg.h
+syscall.$O:	../port/error.h /sys/src/libc/9syscall/sys.h
+syscall.$O:	/sys/include/tos.h /$objtype/include/ureg.h
+syscall.$O:	amd64.h
+trap.$O:	../port/error.h io.h
+trap.$O:	/sys/include/tos.h /$objtype/include/ureg.h
+
+devether.$O:	../port/error.h ../port/netif.h etherif.h
+devpmc.$O:	../port/error.h ../386/pmc.h
+devrtc.$O:	../port/error.h
+ether8169.$O:	../port/error.h ../port/ethermii.h ../port/netif.h
+ether8169.$O:	etherif.h
+ether82557.$O:	../port/netif.h
+ether82557.$O:	etherif.h io.h
+etherigbe.$O:	../port/error.h ../port/ethermii.h ../port/netif.h
+etherigbe.$O:	etherif.h io.h
+etherm10g.$O:	../port/error.h ../port/netif.h
+etherm10g.$O:	etherif.h io.h
+etherm10g.$O:	../386/etherm10g2k.i ../386/etherm10g4k.i
+i8259.$O:	io.h
+kbd.$O:		../port/error.h io.h
+pci.$O:		io.h
+pmc.$O:		../port/error.h amd64.h ../386/pmc.h
+sdiahci.$O:	../386/ahci.h
+
+random.$O:	../port/error.h
+
+${objtype}l.h:DQ:	$objtype.h
+	rc ../mk/mkenum $objtype.h > $target
+
+sipi.h:		l64sipi.$O mkfile
+	$LD -o l64sipi.out -T0xfffffffff0003000 -R4 -l -s l64sipi.$O
+	{echo 'uchar sipihandler[]={'
+	 xd -1x l64sipi.out |
+	 sed -e 's/^[0-9a-f]+ //'				\
+	     -e '1,2d' -e '3s/^ .. .. .. .. .. .. .. ..//'	\
+	     -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > $target
+
+$CONF.rr:	../mk/mkrr $CONF ./root/$CONF.proto
+	../mk/mkrr $CONF ./root/$CONF.proto
+
+$CONF.rr:	./root/$O.cpu
+
+$ARCH.clean:V:
+	rm -f $ARCH^*.c [9bz]$ARCH^* [9bz]$ARCH^*.gz boot$ARCH^*.*
+
+$ARCH.nuke:V:
+	rm -f $objtype^l.h sipi.h

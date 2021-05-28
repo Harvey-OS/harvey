@@ -1,0 +1,15 @@
+#!/bin/rc
+
+rfork e
+echo mkroot $*
+if(! ~ $#* 2){
+	echo usage: mkroot path name >[2=1]
+	exit 1
+}
+n=`{basename $1}
+cp $1 $2.out
+t=`{file $2.out}
+if(~ $"t *executable*)
+	strip $2.out
+aux/data2s $2 < $2.out > $2.root.s
+echo mkroot $* done

@@ -1,0 +1,45 @@
+#!/bin/rc
+
+rfork en
+
+switch($#*){
+case 1
+	PROTO=$1.proto
+case 2
+	PROTO=$2
+case *
+	echo $0: usage: $0 conf [proto]
+	exit "usage"
+}
+
+ramfs -S ramfs.$pid
+mount -c /srv/ramfs.$pid /tmp
+mkdir /tmp/mnt /tmp/empty
+
+# clean up files and procs on exit
+fn sigexit {
+	echo sync>>/srv/flcons.$pid
+	unmount /tmp/mnt
+	unmount /tmp
+	echo halt>>/srv/flcons.$pid
+	rm -f /srv/*.$pid
+	kill ramfs fossil|rc
+}
+
+{syscall seek 1 8388608 0; echo} >>/tmp/fldisk |[0=2] grep -v 'no error$'
+fossil/flfmt -b 4096 -y /tmp/fldisk
+
+fossil/conf -w /tmp/fldisk <<CONF-EOF
+fsys main config /tmp/fldisk
+fsys main open -AWPV
+fsys main 
+srv -p flcons.$pid
+srv fldisk.$pid
+uname bootes :bootes
+uname sys +bootes
+users -w
+CONF-EOF
+fossil/fossil -f /tmp/fldisk && mount -c /srv/fldisk.$pid /tmp/mnt
+
+disk/mkfs -d /tmp/mnt -U $PROTO
+mkpaqfs -l $1.rr -o ./$1.rr /tmp/mnt
