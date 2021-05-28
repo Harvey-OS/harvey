@@ -622,22 +622,28 @@ wait4data(Serialport *p, uchar *data, int count)
 static int
 wait4write(Serialport *p, uchar *data, int count)
 {
-	int off, fd;
+	int off, fd, nleft, n;
 	uchar *b;
 	Serial *ser;
 
 	ser = p->s;
 
-	b = emallocz(count+ser->outhdrsz, 1);
-	off = ftsetouthdr(p, b, count);
-	memmove(b+off, data, count);
-
+	b = emallocz(ser->maxwtrans, 1);
 	fd = p->epout->dfd;
 	qunlock(ser);
-	count = write(fd, b, count+off);
+	for(nleft = count; nleft > 0; data += n, nleft -= n){
+		n = ser->maxwtrans - ser->outhdrsz;
+		if(n > nleft)
+			n = nleft;
+		off = ftsetouthdr(p, b, n);
+		memmove(b+off, data, n);
+		n = write(fd, b, n+off);
+		if(n <= 0)
+			break;
+	}
 	qlock(ser);
 	free(b);
-	return count;
+	return count - nleft;
 }
 
 typedef struct Packser Packser;
