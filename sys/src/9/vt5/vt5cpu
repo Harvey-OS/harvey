@@ -1,0 +1,60 @@
+# rae's virtex4 ppc405 fpga cpu server
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+#	rtc
+	arch
+	ssl
+	tls
+	cap
+	kprof
+#	aoe
+#	sd
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+
+	uart
+
+link
+	archvt5
+	ethermedium
+	etherlltemac
+	loopbackmedium
+	netdevmedium
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	ipmux
+
+misc
+	dma
+	rdb
+#	sdaoe		sdscsi
+	softfpu
+	syscall
+	uartlite
+#	ucalloc
+
+port
+	int cpuserver = 1;
+	int i8250freq = 3686000;
+
+boot cpu
+	tcp
+
+bootdir
+	boot$CONF.out boot
+	/power/bin/ip/ipconfig	ipconfig
+	/power/bin/auth/factotum factotum
+	nvram
