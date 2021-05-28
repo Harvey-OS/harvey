@@ -11,7 +11,7 @@ rob@plan9.bell-labs.com
 Machines
 .PP
 There is an assembler for each of the MIPS, SPARC, Intel 386, AMD64,
-Power PC, and ARM.
+Power PC, ARM, and RISC-V.
 The 68020 assembler,
 .CW 2a ,
 (no longer distributed)
@@ -1369,3 +1369,175 @@ Conversion instructions are also specified by moves:
 .CW MOVFD ,
 and
 .CW MOVDF .
+.SH
+RISC-V
+.PP
+The riscv and riscv64 assemblers support RV32GC and RV64GC instruction sets,
+conforming as usual to Plan 9 syntax rather than the form described
+in the RISC-V specification.
+.PP
+Registers are
+.CW R0
+through
+.CW R31 ,
+with
+.CW R1
+used as the link register,
+.CW R2
+as stack pointer,
+.CW R3
+as static base,
+.CW R8
+used for the first function argument and function return value, and
+.CW R4
+as the loader temporary.
+These register conventions are different from the usual Plan 9 model,
+for compatibility with the
+compressed instruction set extension. For example, the compressed
+form of the
+.CW JAL
+instruction assumes that the link register is
+.CW R1 .
+There are no separate opcode mnemonics for compressed instructions.
+The loader will generate the compressed (2 byte) form of instructions
+where possible, unless it is invoked with the
+.CW -c
+option.
+.PP
+Three-operand logical and arithmetic instructions are written in the order
+.P1
+	op	rs2, rs1, rd
+.P2
+where
+.I rs2
+may be omitted if it's the same as
+.I rd .
+For all but multiply and divide instructions,
+.I rs2
+may be replaced by a constant
+.I $con
+to obtain the immediate form of the instruction (without appending
+.CW I
+to the opcode).
+.PP
+Three-operand conditional branches are written in similar order
+.P1
+	Bcond	rs2, rs1, dest
+.P2
+where
+.I rs2
+may be omitted to indicate comparison with
+.CW R0
+(which always contains zero).
+For example:
+.P1
+	SUB	R1, R2, R3	/* R3 = R2 - R1 */
+	SUB	$1, R2, R3	/* R3 = R2 - 1 */
+	ADD	R4, R3		/* R3 += R4 */
+	BLT	R1, R3, done	/* if (R3 < R1) goto done */
+	BNE	R1, done	/* if (R1 != 0) goto done */
+.P2
+Mnemonics for conditional branches (some of which are pseudo-ops) are
+as in the RISC-V specification:
+.CW BEQ ,
+.CW BNE ,
+.CW BGT ,
+.CW BGE ,
+.CW BLT ,
+.CW BLE ,
+.CW BGTU ,
+.CW BGEU ,
+.CW BLTU ,
+and
+.CW BLEU .
+The function call instruction
+.CW JAL
+uses an explicit link register operand, but the
+.CW RET
+pseudo-op assumes the link register is
+.CW 1 .
+The unconditional branch is
+.CW JMP ,
+which generates a
+.CW JAL
+with
+.CW R0
+as the link register.
+To branch to an address in a register use
+.CW JMP
+with indirect addressing mode.
+.PP
+To allow for common source code files to be used with both riscv and riscv64
+assemblers, the built-in constant
+.CW XLEN
+represents the register width in bytes (4 or 8),
+and some opcode mnemonics will generate different machine instructions
+for each instruction set architecture. For data movement (loads, stores and
+register transfers), the
+.CW MOV
+opcode always denotes the native register width. When used with a memory
+operand it will generate an
+.CW lw
+or
+.CW sw
+instruction for riscv, and an
+.CW ld
+or
+.CW sd
+instruction for riscv64.
+.CW MOV
+should also be used to load a constant or copy one register to another.
+On the other hand,
+.CW MOVW
+on either architecture
+will move a 32-bit word. With a memory operand it will generate
+.CW lw
+or
+.CW sw .
+When used to load a constant or copy between registers,
+.CW MOVW
+on riscv is a synonym for
+.CW MOV ;
+on riscv64 will generate code for a 32-bit move with sign extension.
+The mnemonic
+.CW MOVWU
+can be used for a 32-bit move with zero extension on riscv64;
+on riscv it is another synonym for
+.CW MOV .
+.PP
+Some other opcodes also have native-width and 32-bit variants:
+.CW ADDW ,
+.CW SUBW ,
+.CW SLLW ,
+.CW SRLW ,
+.CW SRAW ,
+.CW MULW ,
+.CW DIVW ,
+and
+.CW REMW
+will each generate an instruction which performs a 32-bit operation with
+sign or zero extension for riscv64 (which would cause
+an illegal instruction trap on riscv), and generate the corresponding
+register-width instruction
+.CW ADD ,
+.CW SUB
+etc
+for riscv.
+.PP
+Loads and stores of [unsigned] halfword and byte operands use the opcodes
+.CW MOVH[U]
+and
+.CW MOVB[U] ,
+which generate the same machine instructions on both architectures.
+.PP
+If
+.CW MOV
+is used with a constant source operand to load a value which doesn't
+fit into the 12-bit signed immediate field, the loader will generate
+a two instruction sequence to construct the value if possible,
+otherwise will generate a load instruction and place a literal value
+in the data segment.
+.PP
+Atomic instructions are not yet implemented; they need to be
+constructed by hand using
+.CW WORD .

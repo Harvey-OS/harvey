@@ -1,0 +1,45 @@
+</$objtype/mkfile
+
+TARG=il
+TARG64=jl
+
+OFILES=\
+	asm.$O\
+	compress.$O\
+	list.$O\
+	noop.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	enam.$O\
+	compat.$O\
+	elf.$O\
+
+HFILES=\
+	l.h\
+	../ic/i.out.h\
+	../8l/elf.h\
+
+BIN=/$objtype/bin
+CFLAGS=$CFLAGS -. -I.
+</sys/src/cmd/mkone
+
+enam.$O:	../ic/enam.c
+	$CC $CFLAGS ../ic/enam.c
+elf.$O:	../8l/elf.c
+	$CC $CFLAGS ../8l/elf.c
+
+x:V:	$O.out
+	$O.out -la -o/dev/null x.i
+
+test:V:	$O.out
+	rm -f xxx
+	mv $O.out xxx
+	./xxx $OFILES
+	cmp $O.out xxx
+
+install:V:	$BIN/$TARG64
+
+$BIN/$TARG64:	$O.out
+	cp $prereq $target

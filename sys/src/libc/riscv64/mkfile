@@ -1,0 +1,41 @@
+objtype=riscv64
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+SFILES=\
+	argv0.s\
+	atom.s\
+#	cycles.s\
+	getcallerpc.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+#	memccpy.s\
+#	memchr.s\
+#	memcmp.s\
+#	memmove.s\
+#	memset.s\
+#	setsb.s\
+	setjmp.s\
+#	strchr.s\
+#	strcmp.s\
+#	strcpy.s\
+	tas.s\
+
+CFILES=\
+	_seek.c\
+#	malloc.c\
+	notejmp.c\
+#	poolalloc.c\
+#	sqrt.c\
+
+HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib

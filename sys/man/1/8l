@@ -1,6 +1,6 @@
 .TH 8L 1 
 .SH NAME
-0l, 5l, 6l, 8l, 9l, kl, ql, vl \- loaders
+0l, 5l, 6l, 8l, 9l, il, jl, kl, ql, vl \- loaders
 .SH SYNOPSIS
 .B 8l
 [
@@ -164,6 +164,14 @@ Without this option,
 .I 5l
 generates arm7500 floating-point
 instructions which are emulated in the kernel.
+.TP
+.B -c
+(\c
+.I il
+and
+.I jl
+only)
+don't generate compressed instructions
 .br
 .ne 6
 .TP

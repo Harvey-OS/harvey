@@ -22,6 +22,8 @@ FILES=\
 	alpha\
 	8\
 	9\
+	i\
+	j\
 	vdb\
 	kdb\
 	sparc64db\
@@ -30,6 +32,7 @@ FILES=\
 	5db\
 	alphadb\
 	8db\
+	idb\
 	vobj\
 	kobj\
 	sparc64obj\
@@ -40,6 +43,7 @@ FILES=\
 	8obj\
 	9obj\
 	qobj\
+	iobj\
 	4obj\
 	vcodas\
 

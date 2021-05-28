@@ -8,11 +8,13 @@ install:V: genall gencall
 
 # ugh. sources's build process can't hack absolute path names.
 # we're in /sys/src/ape/lib/ap/syscall.
-gencall:D: ../../../../libc/9syscall/mkfile	# /sys/src/libc/9syscall/mkfile
+SRC=../../../../libc/9syscall # /sys/src/libc/9syscall
+gencall:D: $SRC/mkfile $SRC/sys.h
 	{
+		sed '/^#define._X[123]/d' $SRC/sys.h
 		echo '#!/bin/rc'
-		sed -n -e 's/seek/_SEEK/g' -e '/switch/,/\$AS /p' $prereq
-	} >$target
+		sed -n -e '/switch/,/\$AS /p' $SRC/mkfile
+	} | awk -f upper.awk >$target
 	chmod +x $target
 
 nuke clean:V:

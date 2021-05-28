@@ -16,9 +16,9 @@ struct machtab
 	Machdata	*machdata;		/* machine functions */
 };
 
-extern	Mach		mmips, mmips64, msparc, m68020, mi386, mamd64,
+extern	Mach		mmips, mmips64, msparc, m68020, mi386, mamd64, mriscv, mriscv64,
 			marm, /* mmips2be, mmips2le, */ mpower, mpower64, malpha, msparc64;
-extern	Machdata	mipsmach, mipsmachle, sparcmach, m68020mach, i386mach,
+extern	Machdata	mipsmach, mipsmachle, sparcmach, m68020mach, i386mach, riscvmach, riscv64mach,
 			armmach, mipsmach2le, powermach, alphamach, sparc64mach;
 
 /*
@@ -130,6 +130,18 @@ Machtab	machines[] =
 		ASPARC64,
 		&msparc64,
 		&sparc64mach,	},
+	{	"riscv",
+		FRISCV,
+		FRISCVB,
+		ARISCV,
+		&mriscv,
+		&riscvmach,	},
+	{	"riscv64",
+		FRISCV64,
+		FRISCV64B,
+		ARISCV64,
+		&mriscv64,
+		&riscv64mach,	},
 	{	0		},		/*the terminator*/
 };
 

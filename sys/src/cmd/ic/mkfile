@@ -1,0 +1,58 @@
+</$objtype/mkfile
+
+TARG=ic
+TARG64=jc
+
+OFILES=\
+	cgen.$O\
+	enam.$O\
+	list.$O\
+	mul.$O\
+	peep.$O\
+	pgen.$O\
+	pswt.$O\
+	reg.$O\
+	sgen.$O\
+	swt.$O\
+	txt.$O\
+	lex.$O\
+	machcap.$O\
+
+HFILES=\
+	gc.h\
+	i.out.h\
+	../cc/cc.h\
+
+#LIB=../cc/cc.a$O $home/lib9pclient/lib9pclient.a $home/riscv/lib9/lib9pclient.a
+LIB=../cc/cc.a$O
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+$LIB:
+	cd ../cc
+	mk install
+	mk clean
+
+../cc/y.tab.h: ../cc/cc.y
+	cd ../cc
+	mk y.tab.h
+
+lex.$O: ../cc/lex.c ../cc/y.tab.h
+	$CC -Dmain'='ccmain $CFLAGS ../cc/lex.c
+
+%.$O: ../cc/%.c
+	$CC ../cc/$stem.c
+
+$TARG.bin:	l.$O $OFILES $LIB
+	$LD -l -o $target -R4 l.$O $OFILES $LIB -lbio $home/lib9pclient/lib9pclient.a -lc $home/lib9pclient/lib9pclient.a 
+
+$TARG.hex: $TARG.bin
+	echo @1000 >$target
+	strip -o /fd/1 $prereq | xd -1x  | sed 's/^[^ ]+ +//' >>$target
+	dd -if /dev/zero -bs 1 -count 1 >>$target
+
+install:V:	$BIN/$TARG64
+
+$BIN/$TARG64:	$O.out
+	cp $prereq $target

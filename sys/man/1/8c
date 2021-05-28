@@ -1,6 +1,6 @@
 .TH 8C 1
 .SH NAME
-0c, 5c, 6c, 8c, 9c, kc, qc, vc \- C compilers
+0c, 5c, 6c, 8c, 9c, ic, jc, kc, qc, vc \- C compilers
 .SH SYNOPSIS
 .B 8c
 [
@@ -41,6 +41,12 @@ Intel i386, i486, Pentium, etc.
 .B "9c power64
 64-bit PowerPC
 .TP
+.B "ic riscv
+32-bit RISC-V
+.TP
+.B "jc riscv64
+64-bit RISC-V
+.TP
 .B "kc sparc
 Sun (now Oracle) SPARC
 .TP
@@ -62,6 +68,8 @@ Let the first letter of the compiler name be
 .BR 6 ,
 .BR 8 ,
 .BR 9 ,
+.BR i ,
+.BR j ,
 .BR k ,
 .BR q ,
 or

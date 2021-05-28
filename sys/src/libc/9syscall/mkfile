@@ -141,6 +141,52 @@ install:V:
 			echo MOVW '$'$n, R3
 			echo SYSCALL
 			echo RETURN
+		case riscv
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R8, '0(FP)'
+			echo MOVW '$'$n, R8
+			echo ECALL
+			if(~ $i seek) {
+				echo 'MOVW $-1, R9
+				BNE R8, R9, 4(PC)
+				MOVW a+0(FP),R9
+				MOVW R8,0(R9)
+				MOVW R8,4(R9)'
+			}
+			if(~ $i nsec) {
+				echo 'MOVW a+0(FP),R10
+				MOVW R8,0(R10)
+				MOVW R9,4(R10)'
+			}
+			echo RET
+		case riscv64
+			if(~ $i seek)
+				echo TEXT _seek'(SB)', 1, '$0'
+			if not
+				echo TEXT $i'(SB)', 1, '$0'
+			#
+			# For architectures which pass the first argument
+			# in a register, if the system call takes no arguments
+			# there will be no 'a0+0(FP)' reserved on the stack.
+			#
+			# jc doesn't widen longs to vlongs when pushing them.
+			# so we have to be careful here to only push longs
+			# for first arguments, where appropriate.
+			#
+			switch ($i) {
+			case nsec
+				;
+			case bind chdir exec _exits segbrk open create \
+			    brk_ remove notify pipe seek segdetach segfree \
+			    segflush rendezvous unmount semacquire \
+			    semrelease errstr stat wstat await tsemacquire
+				echo MOV R8, '0(FP)'
+			case *
+				echo MOVW R8, '0(FP)'
+			}
+			echo MOV '$'$n, R8
+			echo ECALL
+			echo RET
 		}} > $i.s
 		$AS $i.s
 	}
