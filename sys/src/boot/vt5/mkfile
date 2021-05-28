@@ -41,7 +41,7 @@ $OBJ: $HFILES
 ${objtype}a.h:D:	$objtype.h
 	rc mkenum $objtype.h > $target
 
-install:V:	$p$CONF $p$CONF.elf microboot.elf
+install:V:	$p$CONF microboot.elf
 	cp -x $prereq /power
 	{ 9fs lookout  && cp -x $prereq /n/lookout/power } &
 	{ 9fs piestand && cp -x $prereq /n/piestand/power } &
