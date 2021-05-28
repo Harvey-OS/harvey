@@ -84,7 +84,7 @@ ibrk(uintptr addr, int seg)
 		addr = s->base;
 	}
 
-	pgsize = 1<<s->lg2pgsize;
+	pgsize = segpgsize(s);
 	newtop = ROUNDUP(addr, pgsize);
 	newsize = (newtop-s->base)/pgsize;
 	if(newtop < s->top) {
@@ -400,7 +400,7 @@ syssegflush(Ar0* ar0, va_list list)
 			error(Ebadarg);
 
 		s->flushme = 1;
-		pgsize = 1<<s->lg2pgsize;
+		pgsize = segpgsize(s);
 	more:
 		l = len;
 		if(addr+l > s->top)

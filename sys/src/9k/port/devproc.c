@@ -1590,7 +1590,7 @@ procctlmemio(Proc *p, uintptr offset, int n, void *va, int read)
 	if(pagedout(pg))
 		panic("procctlmemio1");
 
-	pgsize = 1<<s->lg2pgsize;
+	pgsize = segpgsize(s);
 	l = pgsize - (offset&(pgsize-1));
 	if(n > l)
 		n = l;

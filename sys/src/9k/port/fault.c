@@ -76,7 +76,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput)
 	Page *(*fn)(Segment*, uintptr);
 	uintptr mmuphys, pgsize, soff;
 
-	pgsize = 1<<s->lg2pgsize;
+	pgsize = segpgsize(s);
 	addr &= ~(pgsize-1);
 	soff = addr-s->base;
 	p = &s->map[soff/s->ptemapmem];
@@ -201,7 +201,7 @@ pio(Segment *s, uintptr addr, uintptr soff, Page **p)
 	Page *loadrec;
 	uintptr pgsize;
 
-	pgsize = 1<<s->lg2pgsize;
+	pgsize = segpgsize(s);
 	loadrec = *p;
 	if(!pagedout(*p) || loadrec != nil)
 		return;
@@ -363,7 +363,7 @@ checkpages(void)
 		if(s == nil)
 			continue;
 		qlock(&s->lk);
-		pgsize = 1<<s->lg2pgsize;
+		pgsize = segpgsize(s);
 		for(addr=s->base; addr<s->top; addr+=pgsize){
 			off = addr - s->base;
 			p = s->map[off/s->ptemapmem];
