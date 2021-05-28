@@ -42,7 +42,7 @@ main(int argc, char *argv[])
 	ream = 0;
 	newbufsize = 0;
 	nocheck = 0;
-	wrenfile = "/dev/sdC0/fs";
+	wrenfile = "/dev/sdE0/fs";
 
 	pid = getpid();
 	snprint(buf, sizeof buf, "/proc/%d/ctl", pid);

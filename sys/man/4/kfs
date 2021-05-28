@@ -70,7 +70,7 @@ Use
 .I file
 as the disk.
 The default is 
-.BR /dev/sdC0/fs .
+.BR /dev/sdE0/fs .
 .TP
 .BI "n " name
 Use
@@ -113,9 +113,9 @@ and mount it on
 .EE
 .PP
 .SH FILES
-.TF /dev/sdC0/fs
+.TF /dev/sdE0/fs
 .TP
-.B /dev/sdC0/fs
+.B /dev/sdE0/fs
 Default file holding blocks.
 .SH SOURCE
 .B /sys/src/cmd/disk/kfs
