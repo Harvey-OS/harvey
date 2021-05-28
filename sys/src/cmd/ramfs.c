@@ -492,7 +492,7 @@ rcreate(Fid *f)
 	f->open = 1;
 	if(thdr.mode & ORCLOSE)
 		f->rclose = 1;
-	r->open++;
+	r->open = 1;
 	return 0;
 }
 
