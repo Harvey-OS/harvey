@@ -1,0 +1,28 @@
+# rae's virtex5 ml510 boot
+power
+	l
+	tlb
+	load
+	trap
+	archvt5
+	clock
+	intr
+	uart
+	ethertemac
+	llfifo
+	fakeqtm
+# port stuff
+	portclock
+	malloc
+	print
+	console
+	taslock
+	ether
+	boot
+	fs
+	bootp
+dir
+	vt4
+lib
+	libip
+	libc

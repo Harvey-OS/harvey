@@ -1,0 +1,56 @@
+CONF=vt5load
+CONFLIST=vt5load
+BASE=0xfffe2100		# first location after vectors; see PHYSSRAM
+
+objtype=power
+</$objtype/mkfile
+p=9
+
+CFLAGS=$CFLAGS -. -I.
+AFLAGS=$AFLAGS -. -I.
+HFILES=\
+	data.h\
+	define.h\
+	etherif.h\
+	fs.h\
+	include.h\
+	ip.h\
+	libc.h\
+	mem.h\
+	physmem.h\
+	portdata.h\
+	portprototype.h\
+	prototype.h\
+
+all:VQ:	$p$CONF microboot.elf
+
+<| awk -f parse $CONF
+<portmkfile
+
+OBJ=$MACH $DEVS $PORT
+
+$p$CONF:D:	$OBJ mkfile $CONF
+	$LD -o $target.elf -aH5 -l -T$BASE -R4 $OBJ $LIB >$target.list
+	$LD -o $target		-l -T$BASE -R4 $OBJ $LIB
+	size $target
+	nm -n $target | tail -5
+	nm -n $target >$target.names
+
+$OBJ: $HFILES
+
+${objtype}a.h:D:	$objtype.h
+	rc mkenum $objtype.h > $target
+
+install:V:	$p$CONF $p$CONF.elf microboot.elf
+	cp -x $prereq /power
+	{ 9fs lookout  && cp -x $prereq /n/lookout/power } &
+	{ 9fs piestand && cp -x $prereq /n/piestand/power } &
+	{ 9fs slocum && cp $prereq /n/slocum/home/rae/hbsr/ml510 } &
+	wait
+
+microboot.hex microboot.elf: microboot.q
+	# ignore "_main: odd branch target address"
+	$LD -a -o microboot.elf -s -l -H5 -T0xfffffee8 -R4 $prereq >microboot.hex
+
+nuke clean:V:
+	rm -f *.[$OS] *.out *.acid *.elf $p$CONF^* $O.*

@@ -1,0 +1,536 @@
+BEGIN{
+	oargc = 0;
+	for(argc = 1; argc < ARGC; argc++){
+		if(ARGV[argc] !~ /^-.+/ || ARGV[argc] ~ /--/)
+			break;
+		if(ARGV[argc] != "-D")
+			oargv[ARGV[argc]] = oargc++;
+		else
+			DEBUG = 1;
+		ARGV[argc] = "";
+	}
+
+	objtype = ENVIRON["objtype"];
+
+	while(getline > 0){
+		if(/^[ \t]*$/ || /^#/)
+			continue;
+
+		if(/^[^ \t]/){
+			#section[$1] = 0;
+			tag = $1;
+		}
+		if(!tag)
+			continue;
+		sub(/^[ \t]*/, "");
+		line[tag, section[tag]++] = $0;
+	}
+
+	o = "";
+	if(!oargc || ("-mkdevlist" in oargv)){
+		s = mkdevlist();
+		if(!("-mkdevlist" in oargv) || (oargc > 1))
+			s = "DEVS=" s;
+		o = o s "\n";
+	}
+	if((!oargc || ("-mkmach" in oargv)) && (objtype in section)){
+		s = mkmach();
+		if(!("-mkmach" in oargv) || (oargc > 1))
+			s = "MACH=" s;
+		o = o s "\n";
+	}
+	if((!oargc || ("-mklib" in oargv)) && ("lib" in section)){
+		s = mklib();
+		if(!("-mklib" in oargv) || (oargc > 1))
+			s = "LIB=" s;
+		o = o s "\n";
+	}
+	if((!oargc || ("-mkport" in oargv) ) && ("port" in section)){
+		s = mkport();
+		if(!("-mkport" in oargv) || (oargc > 1))
+			s = "PORT=" s;
+		o = o s "\n";
+	}
+	if("dbgflg" in section){
+		for(i = 1; i < section["dbgflg"]; i++){
+			n = split(line["dbgflg", i], a);
+			if(n < 2 || n > 4 || a[2] !~ /'[a-zA-Z]'/)
+				continue;
+			if(n > 2 && a[3] !~ /'[a-zA-Z]'/)
+				continue;
+			if(n == 4 && (a[4] < 1 || a[4] >= 128))
+				continue;
+			dbgc[a[1]] = a[2];
+			if(n == 4)
+				dbgflg[a[3]] = a[4];
+			else if(n == 3)
+				dbgflg[a[3]] = 1;
+		}
+	}
+	if((!oargc || ("-mkrules" in oargv)) && ("dir" in section)){
+		o = o mkrules(".", exists, a, c, "-I.");
+		for(i = 1; i < section["dir"]; i++){
+			n = split(line["dir", i], a);
+			dir = "../" a[1];
+			if(n == 1)
+				a[2] = "-I.";
+			s = a[2];
+			o = o mkrules(dir, exists, a, c, s);
+			l = listolate(a, "|");
+			if(l != ""){
+				o = o "^(" l ")\\.$O:R:	" dir "/\\1.s\n";
+				o = o "\t$AS $AFLAGS " s " " dir "/$stem1.s\n";
+			}
+			l = listolate(c, "|");
+			if(l != ""){
+				o = o "^(" l ")\\.$O:R:	" dir "/\\1.c\n";
+				o = o "\t$CC $CFLAGS " s " " dir "/$stem1.c\n";
+			}
+		}
+	}
+	if((!oargc || ("-mkrootrules" in oargv)) && ("rootdir" in section)){
+		mkrootrules(name, cname, src);
+		s = ARGV[argc] ".root.s:D:";
+		for(i = 1; i < section["rootdir"]; i++)
+			s = s " " src[i];
+		s = s "\n\tmkrootall\\\n";
+		for(i = 1; i < section["rootdir"]; i++)
+			s = s "\t\t" name[i] " " cname[i] " " src[i] "\\\n";
+		s = s "\t>$target\n";
+		if(section["rootdir"] > 1)
+			o = o s;
+	}
+	if((!oargc || ("-mkrrrules" in oargv)) && ("rr" in section)){
+		n = split(line["rr", 0], a);
+		if(n == 1)
+			a[2] = ARGV[argc] ".proto";
+		s = "$CONF.rr:\tmkrr $CONF " a[2] "\n";
+		s = s "\tmkrr $CONF " a[2] "\n";
+		for(i = 1; i < section["rr"]; i++)
+			s = s "$CONF.rr:\t" line["rr", i] "\n";
+		o = o s;
+	}
+	if("-mkdevc" in oargv)
+		o = o mkdevc();
+	if("-mkerrstr" in oargv)
+		o = o mkerrstr();
+	if("-mksystab" in oargv)
+		o = o mksystab();
+	if("-mkbootconf" in oargv)
+		o = o mkbootconf();
+
+	#
+	# to do:
+	#	bootmkfile
+	#	mkrootall (can it be done at all?)
+	#
+	printf o;
+
+	exit 0;
+}
+
+function mkbootconf(				a, n, s, t, u, c, d, p, r){
+	s = "#include <u.h>\n";
+	s = s "#include <libc.h>\n\n";
+	s = s "#include \"../boot/boot.h\"\n\n";
+	s = s "Method method[] = {\n";
+
+	c = "0";
+	d = "#S/sdC0/";
+	p = "boot";
+	r = "/root";
+
+	for(i = 0; i < section["boot"]; i++){		# NOTE: start at 0
+		n = split(line["boot", i], a);
+		if(a[1] == "boot"){
+			if(a[2] == "cpu"){
+				c = "1";
+				if(n == 4 && a[3] == "boot")
+					d = a[4];
+			}
+			else if(a[2] == "rootdir" && n == 3)
+				r = a[3];
+			else if(a[2] ~ /^(bboot|dosboot|romboot)$/){
+				c = "1";
+				p = a[2];
+			}
+			else if(a[2] == "boot" && n == 3)
+				d = a[3];
+			continue;
+		}
+		s = s "\t{ \"" a[1] "\", config" a[1] ", connect" a[1] ", ";
+		t = "nil";
+		if(n > 1){
+			u = line["boot", i];
+			if(sub(/^[_A-Za-z][_A-Za-z0-9]*[ \t]*/, "", u)){
+				if(match(u, /^".*"$/))
+					u = substr(u, RSTART+1, RLENGTH-2);
+				t = "\"" u "\"";
+			}
+		}
+		s = s t ", },\n";
+	}
+	s = s "\t{ nil },\n};\n\n";
+	s = s "int cpuflag = " c ";\n";
+	s = s "char* rootdir = \"" r "\";\n";
+	s = s "char* bootdisk = \"" d "\";\n";
+	s = s "extern void " p "(int, char**);\n\n";
+	s = s "void\nmain(int argc, char **argv)\n";
+	s = s "{\n\t" p "(argc, argv);\n}\n"
+
+	t = "int (*cfs)(int) = 0;\n";
+	for(i = 1; i < section["rootdir"]; i++){
+		if($1 !~ /\/bin\/cfs$/)
+			continue;
+		t = "int (*cfs)(int) = cache;\n";
+		break;
+	}
+	s = s t;
+
+	return s;
+}
+
+function mksystab(					a, i, f, n, s, t){
+	s = "#include \"/sys/src/libc/9syscall/sys.h\"\n\n";
+	s = s "typedef void Syscall(Ar0*, va_list);\n\n";
+
+	t = "";
+	while(getline < "/sys/src/libc/9syscall/sys.h"){
+		if($1 != "#define" || NF != 3)
+			continue;
+
+		f = "sys" tolower($2);
+		if($2 == "SYSR1")
+			f = "sysr1";
+		if($2 == "RENDEZVOUS")
+			n = "Rendez";
+		else if($2 == "BRK_")
+			n = "Brk";
+		else
+			n = substr($2, 1, 1) tolower(substr($2, 2));
+
+		s = s "Syscall " f ";\n";
+		t = t "\t[" $2 "]\t";
+		if(length($2) < 6)
+			t = t "\t";
+		t = t "{ \"" n "\", " f ", ";
+		#
+		# if($1 ~ "(FVERSION|FSTAT|STAT)")
+		#	t = t "{ .u = 0 } },\n";
+		# else
+		#
+		if($1 ~ "(BIND|MOUNT|FWSTAT|WSTAT)")
+			t = t "{ .l = 0 } },\n";
+		else if($1 ~ "(EXEC|RENDEZVOUS|SEGBRK|SEGATTACH)")
+			t = t "{ .v = (void*)-1 } },\n";
+		else
+			t = t "{ .i = -1 } },\n";
+	}
+	if("syscall" in section){
+		for(i = 1; i < section["syscall"]; i++){
+			if(split(line["syscall", i], a) != 8)
+				continue;
+			if(line["syscall", i] !~ /#define.*{ \.[ilpuv] = .* }$/)
+				continue;
+
+			f = "sys" tolower(a[2]);
+			n = substr(a[2], 1, 1) tolower(substr(a[2], 2));
+
+			s = s "\nSyscall " f ";\n";
+			t = t a[1] " " a[2] "\t" a[3] "\n\t[" a[2] "]\t";
+			if(length(a[2]) < 6)
+				t = t "\t";
+			split(line["syscall", i], a, "{");
+			t = t "{ \"" n "\", " f ", {" a[2] " },\n";
+		}
+	}
+	s = s "struct {\n\tchar*\tn;\n\tSyscall*f;\n\tAr0\tr;\n}";
+	s = s " systab[] = {\n" t "};\n\nint nsyscall = nelem(systab);\n";
+
+	return s;
+}
+
+function mkerrstr(					a, s){
+	FS="[ \t;]+";
+	while(getline < "error.h"){
+		split($0, a, /\/\* | \*\//);
+		s = s $2 " " $3 " = \"" a[2] "\";\n";
+	}
+	FS=" ";
+
+	return s;
+}
+
+function mkdevc(		a, d, i, m, n, s, t, u, name, cname){
+	s = "#include \"u.h\"\n";
+	s = s "#include \"lib.h\"\n";
+	s = s "#include \"mem.h\"\n";
+	s = s "#include \"dat.h\"\n";
+	s = s "#include \"fns.h\"\n";
+	s = s "#include \"error.h\"\n\n";
+	s = s "#include \"io.h\"\n\n";
+
+	t = "";
+	for(i = 1; i < section["dev"]; i++){
+		split(line["dev", i], a);
+		s = s "extern Dev " a[1] "devtab;\n";
+		t = t "\t&" a[1] "devtab,\n";
+		d[a[1]]++;
+	}
+	s = s "Dev* devtab[] = {\n" t "\tnil,\n};\n\n";
+
+	mkrootrules(name, cname, m);
+	t = "";
+	for(i = 1; i < section["rootdir"]; i++){
+		s = s "extern uchar " cname[i] "code[];\n";
+		s = s "extern usize " cname[i] "len;\n";
+		t = t "\taddbootfile(\"" name[i] "\", " cname[i] "code, " cname[i] "len);\n";
+	}
+	for(i = 1; i < section["link"]; i++){
+		split(line["link", i], a);
+		s = s "extern void " a[1] "link(void);\n";
+		t = t "\t" a[1] "link();\n";
+	}
+	s = s "void\nlinks(void)\n{\n" t "}\n\n";
+
+	if("ip" in d && "ip" in section){
+		t = "";
+		s = s "#include \"../ip/ip.h\"\n";
+		for(i = 1; i < section["ip"]; i++){
+			split(line["ip", i], a);
+			s = s "extern void " a[1] "init(Fs*);\n";
+			t = t "\t" a[1] "init,\n";
+		}
+		s = s "void (*ipprotoinit[])(Fs*) = {\n" t "\tnil,\n};\n\n";
+	}
+
+	if("sd" in d && "sd" in section){
+		t = "";
+		s = s "#include \"sd.h\"\n";
+		for(i = 1; i < section["sd"]; i++){
+			split(line["sd", i], a);
+			s = s "extern SDifc " a[1] "ifc;\n";
+			t = t  "\t&" a[1] "ifc,\n";
+		}
+		s = s "SDifc* sdifc[] = {\n" t "\tnil,\n};\n\n";
+	}
+
+	if("uart" in d && "uart" in section){
+		t = "";
+		for(i = 1; i < section["uart"]; i++){
+			split(line["uart", i], a);
+			a[1] = substr(a[1], 5, length(a[1])-4) "physuart";
+			s = s "extern PhysUart " a[1] ";\n";
+			t = t  "\t&" a[1] ",\n";
+		}
+		s = s "PhysUart* physuart[] = {\n" t "\tnil,\n};\n\n";
+	}
+
+	t = "";
+	n = 0;
+	if("physseg" in section){
+		for(i = 1; i < section["physseg"]; i++){
+			u = line["physseg", i];
+			if(u ~ /^\.[_A-Za-z][_A-Za-z0-9]*/)
+				t = t "\t";
+			t = t "\t" u "\n";
+			if(sub(/.*\.pgalloc.*=[^_A-Za-z]*/, "", u)){
+				if(match(u, /^[_A-Za-z][_A-Za-z0-9]*/)){
+					u = substr(u, RSTART, RLENGTH);
+					s = s "extern Page *(*" u ")(Segment*, uintptr);\n";
+				}
+			}
+			else if(sub(/.*\.pgfree.*=[^_A-Za-z]*/, "", u)){
+				if(match(u, /^[_A-Za-z][_A-Za-z0-9]*/)){
+					u = substr(u, RSTART, RLENGTH);
+					s = s "extern void (*" u ")(Page*);\n";
+				}
+			}
+			if(match(u, /}/))
+				n++;
+		}
+	}
+	s = s "Physseg physseg[" n+8 "] = {\n";
+	s = s "\t{\t.attr\t= SG_SHARED,\n";
+	s = s "\t\t.name\t= \"shared\",\n";
+	s = s "\t\t.size\t= SEGMAXSIZE,\n\t},\n";
+	s = s "\t{\t.attr\t= SG_BSS,\n";
+	s = s "\t\t.name\t= \"memory\",\n";
+	s = s "\t\t.size\t= SEGMAXSIZE,\n\t},\n";
+	s = s t "};\nint nphysseg = " n+8 ";\n\n";
+
+	s = s "char dbgflg[256]";
+	t = "";
+	for(u in dbgflg)
+		t = t "\t[" u "]\t" dbgflg[u] ",\n";
+	if(t != "")
+		s = s " = {\n" t "}";
+	s = s ";\n\n";
+
+	for(i in m)
+		delete m[i];
+
+	for(i = 1; i < section["misc"]; i++){
+		split(line["misc", i], a);
+		m[a[1]] = line["misc", i];
+	}
+	if("cache" in m){
+		s = s "extern void cinit(void);\n";
+		s = s "extern void copen(Chan*);\n";
+		s = s "extern int cread(Chan*, uchar*, int, vlong);\n";
+		s = s "extern void cupdate(Chan*, uchar*, int, vlong);\n";
+		s = s "extern void cwrite(Chan*, uchar*, int, vlong);\n\n";
+		s = s "void (*mfcinit)(void) = cinit;\n";
+		s = s "void (*mfcopen)(Chan*) = copen;\n";
+		s = s "int (*mfcread)(Chan*, uchar*, int, vlong) = cread;\n";
+		s = s "void (*mfcupdate)(Chan*, uchar*, int, vlong) = cupdate;\n";
+		s = s "void (*mfcwrite)(Chan*, uchar*, int, vlong) = cwrite;\n\n";
+	}
+	else{
+		s = s "void (*mfcinit)(void) = nil;\n";
+		s = s "void (*mfcopen)(Chan*) = nil;\n";
+		s = s "int (*mfcread)(Chan*, uchar*, int, vlong) = nil;\n";
+		s = s "void (*mfcupdate)(Chan*, uchar*, int, vlong) = nil;\n";
+		s = s "void (*mfcwrite)(Chan*, uchar*, int, vlong) = nil;\n\n";
+	}
+	if(!("rdb" in misc)){
+		s = s "void\n";
+		s = s "rdb(void)\n";
+		s = s "{\n";
+		s = s "\tsplhi();\n";
+		s = s "\tiprint(\"rdb...not installed\\n\");\n";
+		s = s "\tfor(;;);\n";
+		s = s "}\n\n";
+	}
+
+	if("conf" in section){
+		for(i = 1; i < section["conf"]; i++)
+			s = s line["conf", i] "\n";
+		s = s "\n";
+	}
+	t = ".";
+	while("pwd" | getline > 0){
+		if($0 ~ /^\//)
+			t = $0;
+	}
+	s = s "char* conffile = \"" t "/" ARGV[argc] "\";\n";
+	s = s "ulong kerndate = KERNDATE;\n";
+
+	return s;
+}
+
+function mkrootrules(name, cname, src,			a, i, n){
+	for(i = 1; i < section["rootdir"]; i++){
+		n = split(line["rootdir", i], a);
+		if(n >= 2)
+			name[i] = a[2];
+		else
+			name[i] = a[1];
+		sub(/.*\//, "", name[i]);
+		cname[i] = a[1];
+		gsub(/[^a-zA-Z0-9_]/, "_", cname[i]);
+		src[i] = a[1];
+	}
+}
+
+function mkrules(dir, exists, ameta, cmeta, flags,		f, i, s, t){
+	for(i in ameta)
+		delete ameta[i];
+	for(i in cmeta)
+		delete cmeta[i];
+
+	s = "";
+	while("cd " dir "; /bin/ls *.[cs]" | getline > 0){
+		if($0 !~ /^[A-Za-z0-9]*\.[cs]$/)
+			continue;
+		f = $0;
+		if(!sub(/\.[cs]$/, ""))
+			continue;
+		if($0 in exists)
+			continue;
+		exists[$0] = dir;
+		if(f ~ /\.c$/){
+			if(!($0 in dbgc)){
+				cmeta[$0]++;
+				continue;
+			}
+			t = "$CC $CFLAGS " flags;
+		}
+		else{
+			if(!($0 in dbgc)){
+				ameta[$0]++;
+				continue;
+			}
+			t = "$AS $AFLAGS " flags;
+		}
+		s = s $0 ".$O:\t" dir "/" f "\n";
+		s = s "\t" t " -D'_DBGC_='" dbgc[$0] "'' " dir "/" f "\n";
+	}
+	return s;
+}
+
+function mkport(					array){
+	arrayify(array, "port", "", ".$O", 1);
+
+	return listolate(array, " ");
+}
+
+function mklib(						array){
+	arrayify(array, "lib", "/$objtype/lib/", ".a", 1);
+
+	return listolate(array," ");
+}
+
+function mkmach(					a, i, s){
+	s = "";
+	for(i = 1; i < section[objtype]; i++){
+		if(!split(line[objtype, i], a))
+			continue;
+		if(s == "")
+			s = a[1] ".$O";
+		else
+			s = s " " a[1] ".$O";
+	}
+
+	return s;
+}
+
+function mkdevlist(					a, array, i, j, n, s){
+	for(s in section){
+		if(line[s, 0] !~ /[ \t]\+dev[^_A-Za-z0-9]*/)
+			continue;
+		if(s == "dev")
+			arrayify(array, s, "dev", ".$O", 1);
+		else if(s == objtype)
+			arrayify(array, s, "", ".$O", 0);
+		else
+			arrayify(array, s, "", ".$O", 1);
+	}
+
+	return listolate(array, " ");
+}
+
+function listolate(array, sep,				a, s){
+	s = "";
+	for(a in array){
+		if(s == "")
+			s = a;
+		else
+			s = a sep s;
+	}
+
+	return s;
+}
+
+function arrayify(array, tag, prefix, suffix, one,	a, i, j, n){
+	for(i = 1; i < section[tag]; i++){
+		n = split(line[tag, i], a);
+		if(one)
+			array[prefix a[1] suffix]++;
+		for(j = 2; j <= n; j++){
+			if(a[$j] ~ /[+=-].*/)
+				continue;
+			array[a[j] suffix]++;
+		}
+	}
+}
