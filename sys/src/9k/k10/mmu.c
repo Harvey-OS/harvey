@@ -91,8 +91,9 @@ mmuptpfree(Proc* proc, int release)
 static Page*
 mmuptpalloc(void)
 {
-	void* va;
 	Page *page;
+	uintmem pa;
+	int color;
 
 	/*
 	 * Do not really need a whole Page structure,
@@ -104,16 +105,19 @@ mmuptpalloc(void)
 
 		return nil;
 	}
-	if((va = mallocalign(PTSZ, PTSZ, 0, 0)) == nil){
-		print("mmuptpalloc va\n");
+	color = NOCOLOR;
+	if((pa = physalloc(PTSZ, &color, page)) == 0){
+		print("mmuptpalloc pa\n");
 		free(page);
 
 		return nil;
 	}
 
-	page->va = PTR2UINT(va);
-	page->pa = PADDR(va);
+	page->va = PTR2UINT(KADDR(pa));
+	page->pa = pa;
 	page->ref = 1;
+	page->color = color;
+	memset(UINT2PTR(page->va), 0, PTSZ);
 
 	return page;
 }
@@ -160,7 +164,7 @@ mmurelease(Proc* proc)
 		next = page->next;
 		if(--page->ref)
 			panic("mmurelease: page->ref %d\n", page->ref);
-		free(UINT2PTR(page->va));
+		physfree(page->pa, PTSZ);
 		free(page);
 	}
 	if(proc->mmuptp[0] && palloc.r.p)
@@ -244,7 +248,8 @@ pdmap(uintmem pa, int attr, uintptr va, usize size)
 {
 	uintmem pae;
 	PTE *pd, *pde, *pt, *pte;
-	int pdx, pgsz;
+	uintmem pdpa;
+	int pdx, pgsz, color;
 
 	pd = (PTE*)(PDMAP+PDX(PDMAP)*4096);
 
@@ -263,27 +268,16 @@ pdmap(uintmem pa, int attr, uintptr va, usize size)
 			pgsz = PGLSZ(1);
 		}
 		else{
+			pt = (PTE*)(PDMAP+pdx*PTSZ);
 			if(*pde == 0){
-				/*
-				 * Need a PTSZ physical allocator here.
-				 * Because space will never be given back
-				 * (see vunmap below), just malloc it so
-				 * Ron can prove a point.
-				*pde = pmalloc(PTSZ)|PteRW|PteP;
-				 */
-				void *alloc;
-
-				alloc = mallocalign(PTSZ, PTSZ, 0, 0);
-				if(alloc != nil){
-					*pde = PADDR(alloc)|PteRW|PteP;
-//print("*pde %#llux va %#p\n", *pde, va);
-					memset((PTE*)(PDMAP+pdx*4096), 0, 4096);
-
-				}
+				color = NOCOLOR;
+				pdpa = physalloc(PTSZ, &color, nil);
+				if(pdpa == 0)
+					panic("pdmap");
+				*pde = pdpa|PteRW|PteP;
+				memset(pt, 0, PTSZ);
 			}
-			assert(*pde != 0);
 
-			pt = (PTE*)(PDMAP+pdx*4096);
 			pte = &pt[PTX(va)];
 			assert(!(*pte & PteP));
 			*pte = pa|attr|PteP;
