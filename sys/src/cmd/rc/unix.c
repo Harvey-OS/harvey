@@ -6,7 +6,6 @@
 #include "rc.h"
 #include "io.h"
 #include "exec.h"
-#include "getflags.h"
 #include <errno.h>
 
 char *Rcmain = "/usr/lib/rcmain";
@@ -431,11 +430,6 @@ char *buf;
 {
 	return read(fd, buf, cnt);
 }
-Seek(fd, cnt, whence)
-long cnt;
-{
-	return lseek(fd, cnt, whence);
-}
 Executable(file)
 char *file;
 {
@@ -487,6 +481,15 @@ void
 Abort()
 {
 	abort();
+}
+
+int
+octal(char *s)
+{
+	int n = 0;
+	while(*s==' ' || *s=='\t' || *s=='\n') s++;
+	while('0'<=*s && *s<='7') n = n*8+*s++-'0';
+	return n;
 }
 
 void
@@ -549,6 +552,12 @@ int
 rfork(int bits)
 {
 	return fork();
+}
+
+void
+unixclsexec(int fd)
+{
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
 }
 
 int *waitpids;

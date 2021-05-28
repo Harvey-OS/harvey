@@ -7,11 +7,6 @@
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
-#include "getflags.h"
-
-enum {
-	Maxenvname = 256,	/* undocumented limit */
-};
 
 char *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
@@ -63,27 +58,28 @@ execnewpgrp(void)
 		break;
 	case 2:
 		arg = 0;
-		for(s = runq->argv->words->next->word;*s;s++) switch(*s){
-		default:
-			goto Usage;
-		case 'n':
-			arg|=RFNAMEG;  break;
-		case 'N':
-			arg|=RFCNAMEG;
-			break;
-		case 'm':
-			arg|=RFNOMNT;  break;
-		case 'e':
-			arg|=RFENVG;   break;
-		case 'E':
-			arg|=RFCENVG;  break;
-		case 's':
-			arg|=RFNOTEG;  break;
-		case 'f':
-			arg|=RFFDG;    break;
-		case 'F':
-			arg|=RFCFDG;   break;
-		}
+		for(s = runq->argv->words->next->word;*s;s++)
+			switch(*s){
+			default:
+				goto Usage;
+			case 'n':
+				arg|=RFNAMEG;  break;
+			case 'N':
+				arg|=RFCNAMEG;
+				break;
+			case 'm':
+				arg|=RFNOMNT;  break;
+			case 'e':
+				arg|=RFENVG;   break;
+			case 'E':
+				arg|=RFCENVG;  break;
+			case 's':
+				arg|=RFNOTEG;  break;
+			case 'f':
+				arg|=RFFDG;    break;
+			case 'F':
+				arg|=RFCFDG;   break;
+			}
 		break;
 	default:
 	Usage:
@@ -101,12 +97,40 @@ execnewpgrp(void)
 	poplist();
 }
 
+int
+openenv(char *shortname)
+{
+	int f;
+	io *envname;
+
+	envname = openstr();
+	pfmt(envname, "/env/%s", shortname);
+	f = open((char *)envname->strp, OREAD);
+	closeio(envname);
+	return f;
+}
+
+int
+createenv(char *pfx, char *shortname)
+{
+	int f;
+	io *envname;
+
+	envname = openstr();
+	pfmt(envname, "/env/%s%s", pfx, shortname);
+	f = Creat((char *)envname->strp);
+	if (f < 0)
+		pfmt(err, "rc: can't create %s: %r\n", (char *)envname->strp);
+	closeio(envname);
+	return f;
+}
+
 void
 Vinit(void)
 {
 	int dir, f, len, i, n, nent;
-	char *buf, *s;
-	char envname[Maxenvname];
+	char *buf, *s, *name;
+	var *namevar;
 	word *val;
 	Dir *ent;
 
@@ -116,52 +140,52 @@ Vinit(void)
 		return;
 	}
 	ent = nil;
-	for(;;){
-		nent = dirread(dir, &ent);
-		if(nent <= 0)
-			break;
+	while ((nent = dirread(dir, &ent)) > 0) {
 		for(i = 0; i<nent; i++){
 			len = ent[i].length;
-			if(len && strncmp(ent[i].name, "fn#", 3)!=0){
-				snprint(envname, sizeof envname, "/env/%s", ent[i].name);
-				if((f = open(envname, 0))>=0){
-					buf = emalloc(len+1);
-					n = readn(f, buf, len);
-					if (n <= 0)
-						buf[0] = '\0';
-					else
-						buf[n] = '\0';
-					val = 0;
-					/* Charitably add a 0 at the end if need be */
-					if(buf[len-1])
-						buf[len++]='\0';
-					s = buf+len-1;
-					for(;;){
-						while(s!=buf && s[-1]!='\0') --s;
-						val = newword(s, val);
-						if(s==buf)
-							break;
-						--s;
-					}
-					setvar(ent[i].name, val);
-					vlook(ent[i].name)->changed = 0;
-					close(f);
-					efree(buf);
-				}
+			name = ent[i].name;
+			if(len <= 0 || strncmp(name, "fn#", 3) == 0)
+				continue;
+			if((f = openenv(name)) < 0)
+				continue;
+			buf = emalloc(len+1);
+			n = readn(f, buf, len);
+			if (n <= 0)
+				buf[0] = '\0';
+			else
+				buf[n] = '\0';
+			val = 0;
+			/* Charitably add a 0 at the end if need be */
+			if(buf[len-1])
+				buf[len++]='\0';
+			s = buf+len-1;
+			for(;;){
+				while(s!=buf && s[-1]!='\0')
+					--s;
+				val = newword(s, val);
+				if(s==buf)
+					break;
+				--s;
 			}
+			setvar(name, val);
+			namevar = vlook(name);
+			assert(namevar != nil);
+			namevar->changed = 0;
+			close(f);
+			efree(buf);
 		}
 		free(ent);
 	}
 	close(dir);
 }
+
 int envdir;
 
 void
 Xrdfn(void)
 {
-	int f, len;
+	int f;
 	Dir *e;
-	char envname[Maxenvname];
 	static Dir *ent, *allocent;
 	static int nent;
 
@@ -176,10 +200,8 @@ Xrdfn(void)
 		while(nent){
 			e = ent++;
 			nent--;
-			len = e->length;
-			if(len && strncmp(e->name, "fn#", 3)==0){
-				snprint(envname, sizeof envname, "/env/%s", e->name);
-				if((f = open(envname, 0))>=0){
+			if(e->length && strncmp(e->name, "fn#", 3)==0){
+				if((f = openenv(e->name)) >= 0){
 					execcmds(openfd(f));
 					return;
 				}
@@ -189,6 +211,7 @@ Xrdfn(void)
 	close(envdir);
 	Xreturn();
 }
+
 union code rdfns[4];
 
 void
@@ -222,6 +245,9 @@ Waitfor(int pid, int)
 		return 0;
 
 	while((w = wait()) != nil){
+		/* this would otherwise go unreported by rc */
+		if(strstr(w->msg, "error in demand load") != nil)
+			pfmt(err, "rc: %s\n", w->msg);
 		delwaitpid(w->pid);
 		if(w->pid==pid){
 			setstatus(w->msg);
@@ -254,27 +280,20 @@ mkargv(word *a)
 void
 addenv(var *v)
 {
-	char envname[Maxenvname];
 	word *w;
 	int f;
 	io *fd;
 	if(v->changed){
 		v->changed = 0;
-		snprint(envname, sizeof envname, "/env/%s", v->name);
-		if((f = Creat(envname))<0)
-			pfmt(err, "rc: can't open %s: %r\n", envname);
-		else{
+		if((f = createenv("", v->name)) >= 0) {
 			for(w = v->val;w;w = w->next)
-				write(f, w->word, strlen(w->word)+1L);
+				write(f, w->word, strlen(w->word)+1);
 			close(f);
 		}
 	}
 	if(v->fnchanged){
 		v->fnchanged = 0;
-		snprint(envname, sizeof envname, "/env/fn#%s", v->name);
-		if((f = Creat(envname))<0)
-			pfmt(err, "rc: can't open %s: %r\n", envname);
-		else{
+		if((f = createenv("fn#", v->name)) >= 0) {
 			if(v->fn){
 				fd = openfd(f);
 				pfmt(fd, "fn %q %s\n", v->name, v->fn[v->pc-1].s);
@@ -339,43 +358,48 @@ void
 Execute(word *args, word *path)
 {
 	char **argv = mkargv(args);
-	char file[1024], errstr[1024];
+	char file[1024], errstr[ERRMAX+1];
 	int nc;
 
 	Updenv();
 	errstr[0] = '\0';
 	for(;path;path = path->next){
 		nc = strlen(path->word);
-		if(nc < sizeof file - 1){	/* 1 for / */
-			strcpy(file, path->word);
-			if(file[0]){
-				strcat(file, "/");
-				nc++;
-			}
-			if(nc + strlen(argv[1]) < sizeof file){
-				strcat(file, argv[1]);
-				exec(file, argv+1);
-				rerrstr(errstr, sizeof errstr);
-				/*
-				 * if file exists and is executable, exec should
-				 * have worked, unless it's a directory or an
-				 * executable for another architecture.  in
-				 * particular, if it failed due to lack of
-				 * swap/vm (e.g., arg. list too long) or other
-				 * allocation failure, stop searching and print
-				 * the reason for failure.
-				 */
-				if (strstr(errstr, " allocat") != nil ||
-				    strstr(errstr, " full") != nil)
-					break;
-			}
-			else werrstr("command name too long");
+		if(nc >= sizeof file - 1){	/* 1 for / */
+			werrstr("path component too long");
+			continue;
 		}
+		strcpy(file, path->word);
+		if(file[0]){
+			strcat(file, "/");
+			nc++;
+		}
+		if(nc + strlen(argv[1]) >= sizeof file){
+			werrstr("command name too long");
+			continue;
+		}
+		strcat(file, argv[1]);
+		exec(file, argv+1);
+		/*
+		 * if file exists and is executable, exec should have worked,
+		 * unless it's a directory or an executable for another
+		 * architecture.  in particular, if it failed due to lack of
+		 * swap/vm (e.g., arg. list too long) or other allocation or
+		 * i/o failure, stop searching and print the reason for failure.
+		 */
+		rerrstr(errstr, sizeof errstr);
+		if (strstr(errstr, " allocat") != nil ||
+		    strstr(errstr, " full") != nil ||
+		    strstr(errstr, "i/o error") != nil)
+			break;
 	}
+	if(errstr[0] == '\0')		/* pick up any werrstr "too long"s */
+		rerrstr(errstr, sizeof errstr);
 	pfmt(err, "%s: %s\n", argv[1], errstr);
 	efree((char *)argv);
 }
-#define	NDIR	256		/* shoud be a better way */
+
+#define	NDIR	256		/* should be a better way */
 
 int
 Globsize(char *p)
@@ -438,7 +462,7 @@ trimdirs(Dir *d, int nd)
  * onlydirs is advisory -- it means you only
  * need to return the directories.  it's okay to
  * return files too (e.g., on unix where you can't
- * tell during the readdir), but that just makes 
+ * tell during the readdir), but that just makes
  * the globber work harder.
  */
 int
@@ -458,7 +482,7 @@ Again:
 				n = trimdirs(dir[f].dbuf, n);
 				if(n == 0)
 					goto Again;
-			}	
+			}
 			dir[f].n = n;
 		}else
 			dir[f].n = 0;
@@ -482,24 +506,29 @@ Closedir(int f)
 	}
 	close(f);
 }
+
 int interrupted = 0;
+
 void
 notifyf(void*, char *s)
 {
 	int i;
-	for(i = 0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
-		if(strncmp(s, "sys: ", 5)!=0) interrupted = 1;
-		goto Out;
-	}
+
+	for (i = 0; syssigname[i]; i++)
+		if (strncmp(s, syssigname[i], strlen(syssigname[i])) == 0) {
+			if (strncmp(s, "sys: ", 5) != 0)
+				interrupted = 1;
+			goto Out;
+		}
 	pfmt(err, "rc: note: %s\n", s);
 	noted(NDFLT);
 	return;
 Out:
-	if(strcmp(s, "interrupt")!=0 || trap[i]==0){
+	if (strcmp(s, "interrupt") != 0 || trap[i] == 0) {
 		trap[i]++;
 		ntrap++;
 	}
-	if(ntrap>=32){	/* rc is probably in a trap loop */
+	if (ntrap >= 32) {	/* rc is probably in a trap loop */
 		pfmt(err, "rc: Too many traps (trap %s), aborting\n", s);
 		abort();
 	}
@@ -530,12 +559,6 @@ Read(int fd, void *buf, long cnt)
 	return read(fd, buf, cnt);
 }
 
-long
-Seek(int fd, long cnt, long whence)
-{
-	return seek(fd, cnt, whence);
-}
-
 int
 Executable(char *file)
 {
@@ -553,7 +576,7 @@ Executable(char *file)
 int
 Creat(char *file)
 {
-	return create(file, 1, 0666L);
+	return create(file, 1, 0666);
 }
 
 int
@@ -640,7 +663,7 @@ void
 delwaitpid(int pid)
 {
 	int r, w;
-	
+
 	for(r=w=0; r<nwaitpids; r++)
 		if(waitpids[r] != pid)
 			waitpids[w++] = waitpids[r];

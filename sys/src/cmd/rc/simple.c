@@ -2,7 +2,6 @@
  * Maybe `simple' is a misnomer.
  */
 #include "rc.h"
-#include "getflags.h"
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
@@ -10,7 +9,8 @@
  * Search through the following code to see if we're just going to exit.
  */
 int
-exitnext(void){
+exitnext(void)
+{
 	union code *c=&runq->code[runq->pc];
 	while(c->f==Xpopredir) c++;
 	return c->f==Xexit;
@@ -146,7 +146,7 @@ dochdir(char *word)
 		if(wdirfd==-2)	/* try only once */
 			wdirfd = open("/dev/wdir", OWRITE|OCEXEC);
 		if(wdirfd>=0) {
-			fcntl(wdirfd, F_SETFD, FD_CLOEXEC);
+			unixclsexec(wdirfd);
 			write(wdirfd, word, strlen(word));
 		}
 	}
@@ -261,15 +261,6 @@ execshift(void)
 	}
 	setstatus("");
 	poplist();
-}
-
-int
-octal(char *s)
-{
-	int n = 0;
-	while(*s==' ' || *s=='\t' || *s=='\n') s++;
-	while('0'<=*s && *s<='7') n = n*8+*s++-'0';
-	return n;
 }
 
 int
@@ -447,7 +438,8 @@ execflag(void)
 }
 
 void
-execwhatis(void){	/* mildly wrong -- should fork before writing */
+execwhatis(void)	/* mildly wrong -- should fork before writing */
+{
 	word *a, *b, *path;
 	var *v;
 	struct builtin *bp;

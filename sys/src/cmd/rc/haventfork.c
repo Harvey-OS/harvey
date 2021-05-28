@@ -1,5 +1,4 @@
 #include "rc.h"
-#include "getflags.h"
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
@@ -47,7 +46,7 @@ Xasync(void)
 	}
 
 	runq->pc++;
-	sprint(buf, "%d", pid);
+	snprint(buf, sizeof buf, "%d", pid);
 	setvar("apid", newword(buf, (word *)0));
 }
 

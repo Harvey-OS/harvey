@@ -1,34 +1,7 @@
 /*
  * Assume plan 9 by default; if Unix is defined, assume unix.
- * Please don't litter the code with ifdefs.  The five below should be enough.
+ * Please don't litter the code with ifdefs.  The three below should be enough.
  */
-
-#ifndef Unix
-/* plan 9 */
-#include <u.h>
-#include <libc.h>
-
-#define	NSIG	32
-#define	SIGINT	2
-#define	SIGQUIT	3
-
-#define fcntl(fd, op, arg)	/* unix compatibility */
-#define F_SETFD
-#define FD_CLOEXEC
-#else
-#include "unix.h"
-#endif
-
-#ifndef ERRMAX
-#define ERRMAX 128
-#endif
-
-#define	YYMAXDEPTH	500
-#ifndef YYPREFIX
-#ifndef PAREN
-#include "x.tab.h"
-#endif
-#endif
 
 typedef struct tree tree;
 typedef struct word word;
@@ -40,9 +13,31 @@ typedef struct redir redir;
 typedef struct thread thread;
 typedef struct builtin builtin;
 
+#define isdigit(c) ((c) >= '0' && (c) <= '9')	/* NB: unsafe macro */
+
 #ifndef Unix
+/* plan 9 */
+#include <u.h>
+#include <libc.h>
+
 #pragma incomplete word
 #pragma incomplete io
+
+/* unix compatibility */
+#define unixclsexec(wdirfd)
+
+#define	NSIG	32
+#define	SIGINT	2
+#define	SIGQUIT	3
+#else
+#include "unix.h"
+#endif
+
+#define	YYMAXDEPTH	500
+#ifndef YYPREFIX
+#ifndef PAREN
+#include "x.tab.h"
+#endif
 #endif
 
 struct tree{
@@ -147,5 +142,10 @@ char *Rcmain, *Fdprefix;
  */
 int ndot;
 char *getstatus(void);
-int lastc;
+Rune lastc;
 int lastword;
+
+#define	NFLAG	128		/* limited to ascii */
+
+extern char *flag[NFLAG];
+extern char flagset[];

@@ -111,47 +111,21 @@ glob(void *ap)
 	else
 		globsort(globv, svglobv);
 }
-
 /*
  * Do p and q point at equal utf codes
  */
+
 int
-equtf(uchar *p, uchar *q)
+equtf(char *p, char *q)
 {
 	Rune pr, qr;
+
 	if(*p!=*q)
 		return 0;
-	
-	chartorune(&pr, (char*)p);
-	chartorune(&qr, (char*)q);
+	chartorune(&pr, p);
+	chartorune(&qr, q);
 	return pr == qr;
 }
-
-/*
- * Return a pointer to the next utf code in the string,
- * not jumping past nuls in broken utf codes!
- */
-
-uchar*
-nextutf(uchar *p)
-{
-	Rune dummy;
-	return p + chartorune(&dummy, (char*)p);
-}
-
-/*
- * Convert the utf code at *p to a unicode value
- */
-
-int
-unicode(uchar *p)
-{
-	Rune r;
-
-	chartorune(&r, (char*)p);
-	return r;
-}
-
 /*
  * Does the string s match the pattern p
  * . and .. are only matched by patterns starting with .
@@ -173,10 +147,11 @@ matchfn(void *as, void *ap)
 int
 match(void *as, void *ap, int stop)
 {
-	int compl, hit, lo, hi, t, c;
-	uchar *s = as, *p = ap;
+	int compl, hit;
+	Rune c, lo, hi, t;
+	char *s = as, *p = ap, *q;
 
-	for(; *p!=stop && *p!='\0'; s = nextutf(s), p = nextutf(p)){
+	for(; *p!=stop && *p!='\0'; s += chartorune(&t, s), p += chartorune(&t, p)){
 		if(*p!=GLOB){
 			if(!equtf(p, s)) return 0;
 		}
@@ -186,12 +161,12 @@ match(void *as, void *ap, int stop)
 				return 0;
 			break;
 		case '*':
-			for(;;){
-				if(match(s, nextutf(p), stop)) return 1;
-				if(!*s)
+			/* set q to next utf seq after p */
+			for(q = p + chartorune(&t, p); ; s += chartorune(&t, s))
+				if(match(s, q, stop))
+					return 1;
+				else if(*s == '\0')
 					break;
-				s = nextutf(s);
-			}
 			return 0;
 		case '?':
 			if(*s=='\0')
@@ -200,7 +175,7 @@ match(void *as, void *ap, int stop)
 		case '[':
 			if(*s=='\0')
 				return 0;
-			c = unicode(s);
+			chartorune(&c, s);
 			p++;
 			compl=*p=='~';
 			if(compl)
@@ -209,16 +184,14 @@ match(void *as, void *ap, int stop)
 			while(*p!=']'){
 				if(*p=='\0')
 					return 0;		/* syntax error */
-				lo = unicode(p);
-				p = nextutf(p);
+				p += chartorune(&lo, p);
 				if(*p!='-')
 					hi = lo;
 				else{
 					p++;
 					if(*p=='\0')
 						return 0;	/* syntax error */
-					hi = unicode(p);
-					p = nextutf(p);
+					p += chartorune(&hi, p);
 					if(hi<lo){ t = lo; lo = hi; hi = t; }
 				}
 				if(lo<=c && c<=hi)

@@ -23,7 +23,7 @@ pfmt(io *f, char *fmt, ...)
 		if(*++fmt == '\0')		/* "blah%"? */
 			break;
 		switch(*fmt){
-		case 'c':
+		case 'c':			/* char, not Rune */
 			pchr(f, va_arg(ap, int));
 			break;
 		case 'd':
@@ -64,7 +64,7 @@ pfmt(io *f, char *fmt, ...)
 }
 
 void
-pchr(io *b, int c)
+pchr(io *b, int c)			/* print a char, not a Rune */
 {
 	if(b->bufp==b->ebuf)
 		fullbuf(b, c);
@@ -79,31 +79,39 @@ rchr(io *b)
 	return *b->bufp++;
 }
 
+/*
+ * read next utf sequence from b into buf, and convert it to Rune *r.
+ * return EOF or number of bytes consumed.
+ */
 int
 rutf(io *b, char *buf, Rune *r)
 {
-	int n, i, c;
+	int i, c;
 
 	c = rchr(b);
-	if(c == EOF)
+	if(c == EOF) {
+		buf[0] = 0;
+		*r = EOF;
 		return EOF;
+	}
 	*buf = c;
-	if(c < Runesync){
+	if(c < Runeself){			/* ascii? */
+		buf[1] = 0;
 		*r = c;
 		return 1;
 	}
-	for(i = 1; (c = rchr(b)) != EOF; ){
+
+	/* multi-byte utf sequence */
+	for(i = 1; i <= UTFmax && (c = rchr(b)) != EOF && c >= Runeself; ){
 		buf[i++] = c;
 		buf[i] = 0;
-		if(fullrune(buf, i)){
-			n = chartorune(r, buf);
-			b->bufp -= i - n;	/* push back unconsumed bytes */
-			assert(b->fd == -1 || b->bufp > b->buf);
-			return n;
-		}
+		if(fullrune(buf, i))
+			return chartorune(r, buf);
 	}
-	/* at eof */
-	b->bufp -= i - 1;			/* consume 1 byte */
+
+	/* bad utf sequence: too long, or unexpected ascii or EOF */
+	if (c != EOF && c < Runeself && b->bufp > b->buf)
+		b->bufp--;			/* push back ascii */
 	*r = Runeerror;
 	return runetochar(buf, r);
 }
@@ -123,10 +131,14 @@ void
 pwrd(io *f, char *s)
 {
 	char *t;
-	for(t = s;*t;t++) if(*t >= 0 && needsrcquote(*t)) break;
-	if(t==s || *t)
+
+	for (t = s; *t; t++)
+		if (*(uchar *)t < Runeself && needsrcquote(*t))
+			break;
+	if (t == s || *t)
 		pquo(f, s);
-	else pstr(f, s);
+	else
+		pstr(f, s);
 }
 
 void
@@ -134,12 +146,14 @@ pptr(io *f, void *v)
 {
 	int n;
 	uintptr p;
+	static char uphex[] = "0123456789ABCDEF";
 
 	p = (uintptr)v;
-	if(sizeof(uintptr) == sizeof(uvlong) && p>>32)
-		for(n = 60;n>=32;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
-
-	for(n = 28;n>=0;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
+	if (sizeof(uintptr) == sizeof(uvlong) && p >> 32)
+		for (n = 60; n >= 32; n -= 4)
+			pchr(f, uphex[(p>>n)&0xF]);
+	for (n = 28; n >= 0; n -= 4)
+		pchr(f, uphex[(p>>n)&0xF]);
 }
 
 void
@@ -244,6 +258,7 @@ openstr(void)
 	f->fd = -1;
 	f->bufp = f->strp = emalloc(Stralloc+1);
 	f->ebuf = f->bufp + Stralloc;
+	f->output = 1;
 	memset(f->bufp, '\0', Stralloc+1);
 	return f;
 }
@@ -261,6 +276,7 @@ opencore(char *s, int len)
 	f->fd = -1 /*open("/dev/null", 0)*/;
 	f->bufp = f->strp = buf;
 	f->ebuf = buf+len;
+	f->output = 0;
 	Memcpy(buf, s, len);
 	return f;
 }
@@ -268,11 +284,13 @@ opencore(char *s, int len)
 void
 rewind(io *io)
 {
-	if(io->fd==-1)
+	if(io->fd==-1) {
 		io->bufp = io->strp;
-	else{
+		if (io->output)
+			memset(io->strp, 0, io->ebuf - io->strp);
+	}else{
 		io->bufp = io->ebuf = io->buf;
-		Seek(io->fd, 0L, 0);
+		seek(io->fd, 0, 0);
 	}
 }
 
@@ -290,7 +308,9 @@ int
 emptybuf(io *f)
 {
 	int n;
-	if(f->fd==-1 || (n = Read(f->fd, f->buf, NBUF))<=0) return EOF;
+
+	if(f->fd == -1 || (n = Read(f->fd, f->buf, NBUF))<=0)
+		return EOF;
 	f->bufp = f->buf;
 	f->ebuf = f->buf + n;
 	return *f->bufp++;
