@@ -5,6 +5,7 @@
 #include "fns.h"
 
 #include "apic.h"
+#include "mp.h"
 
 /*
  * MultiProcessor Specification Version 1.[14].
@@ -92,7 +93,7 @@ mpmkintr(u8int* p)
 		default:
 			mpintrprint("INTIN botch", p);
 			return 0;
-		case 3:				/* IOINTR */
+		case PcmpIOINTR:
 			apic = &ioapic[p[6]];
 			if(!apic->useable){
 				mpintrprint("unuseable APIC", p);
@@ -103,7 +104,7 @@ mpmkintr(u8int* p)
 				return 0;
 			}
 			break;
-		case 4:				/* LINTR */
+		case PcmpLINTR:
 			apic = &xapic[p[6]];
 			if(!apic->useable){
 				mpintrprint("unuseable APIC", p);
@@ -117,7 +118,7 @@ mpmkintr(u8int* p)
 		}
 	}
 	n = l16get(p+2);
-	if((polarity = (n & 0x03)) == 2 || (trigger = ((n>>2) & 0x03)) == 2){
+	if((polarity = (n & PcmpPOMASK)) == 2 || (trigger = ((n>>2) & PcmpPOMASK)) == 2){
 		mpintrprint("invalid polarity/trigger", p);
 		return 0;
 	}
@@ -135,15 +136,15 @@ mpmkintr(u8int* p)
 	default:
 		mpintrprint("invalid type", p);
 		return 0;
-	case 0:					/* INT */
+	case PcmpINT:
 		switch(polarity){
 		case 0:
 			v |= mpbus[p[4]]->polarity;
 			break;
-		case 1:
+		case PcmpHIGH:
 			v |= IPhigh;
 			break;
-		case 3:
+		case PcmpLOW:
 			v |= IPlow;
 			break;
 		}
@@ -151,21 +152,21 @@ mpmkintr(u8int* p)
 		case 0:
 			v |= mpbus[p[4]]->trigger;
 			break;
-		case 1:
+		case PcmpHIGH:
 			v |= TMedge;
 			break;
-		case 3:
+		case PcmpLOW:
 			v |= TMlevel;
 			break;
 		}
 		break;
-	case 1:					/* NMI */
+	case PcmpNMI:
 		v |= TMedge|IPhigh|MTnmi;
 		break;
-	case 2:					/* SMI */
+	case PcmpSMI:
 		v |= TMedge|IPhigh|MTsmi;
 		break;
-	case 3:					/* ExtINT */
+	case PcmpExtINT:
 		v |= TMedge|IPhigh|MTei;
 		break;
 	}
@@ -193,7 +194,7 @@ mpparse(PCMP* pcmp)
 		}
 		print("\n");
 		break;
-	case 0:					/* processor */
+	case PcmpPROCESSOR:
 		/*
 		 * Initialise the APIC if it is enabled (p[3] & 0x01).
 		 * p[1] is the APIC ID, the memory mapped address comes
@@ -207,7 +208,7 @@ mpparse(PCMP* pcmp)
 			apicinit(p[1], l32get(pcmp->apicpa), p[3] & 0x02);
 		p += 20;
 		break;
-	case 1:					/* bus */
+	case PcmpBUS:
 		DBG("mpparse: bus: %d type %6.6s\n", p[1], (char*)p+2);
 		if(mpbus[p[1]] != nil){
 			print("mpparse: bus %d already allocated\n", p[1]);
@@ -234,7 +235,7 @@ mpparse(PCMP* pcmp)
 
 		p += 8;
 		break;
-	case 2:					/* IOAPIC */
+	case PcmpIOAPIC:
 		/*
 		 * Initialise the IOAPIC if it is enabled (p[3] & 0x01).
 		 * p[1] is the APIC ID, p[4-7] is the memory mapped address.
@@ -246,7 +247,7 @@ mpparse(PCMP* pcmp)
 
 		p += 8;
 		break;
-	case 3:					/* IOINTR */
+	case PcmpIOINTR:
 		/*
 		 * p[1] is the interrupt type;
 		 * p[2-3] contains the polarity and trigger mode;
@@ -281,7 +282,7 @@ mpparse(PCMP* pcmp)
 
 		p += 8;
 		break;
-	case 4:					/* LINTR */
+	case PcmpLINTR:
 		/*
 		 * Format is the same as IOINTR above.
 		 */
@@ -326,19 +327,19 @@ mpparse(PCMP* pcmp)
 		}
 		print("\n");
 		break;
-	case 128:
+	case PcmpSASM:
 		DBG("address space mapping\n");
 		DBG(" bus %d type %d base %#llux length %#llux\n",
 			p[2], p[3], l64get(p+4), l64get(p+12));
 		p += p[1];
 		break;
-	case 129:
+	case PcmpHIERARCHY:
 		DBG("bus hierarchy descriptor\n");
 		DBG(" bus %d sd %d parent bus %d\n",
 			p[2], p[3], p[4]);
 		p += p[1];
 		break;
-	case 130:
+	case PcmpCBASM:
 		DBG("compatibility bus address space modifier\n");
 		DBG(" bus %d pr %d range list %d\n",
 			p[2], p[3], l32get(p+4));
