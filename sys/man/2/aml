@@ -1,0 +1,287 @@
+.TH AML 2
+.SH NAME
+amltag, amlval, amlint, amllen, amlnew, amlinit, amlexit, amlload, amlwalk, amleval, amlenum, amltake, amldrop - ACPI machine language interpreter
+.SH SYNOPSIS
+.\" .ta 0.75i 1.5i 2.25i 3i 3.75i 4.5i
+.ta 0.7i +0.7i +0.7i +0.7i +0.7i +0.7i +0.7i
+.EX
+#include <u.h>
+#include <libc.h>
+#include <aml.h>
+
+int	amltag(void *);
+void*	amlval(void *);
+uvlong	amlint(void *);
+int	amllen(void *);
+
+void*	amlnew(char tag, int len);
+
+void	amlinit(void);
+void	amlexit(void);
+
+int	amlload(uchar *data, int len);
+void*	amlwalk(void *dot, char *name);
+int	amleval(void *dot, char *fmt, ...);
+void	amlenum(void *dot, char *seg, int (*proc)(void *, void *), void *arg);
+
+void	amltake(void *);
+void	amldrop(void *);
+
+void*	amlroot;
+int	amldebug;
+.EE
+.SH DESCRIPTION
+The aml library implements an interpreter for the ACPI machine language
+byte code.
+.TP
+\f5amlinit() \f5amlexit()
+The interpreter runtime state is initialized by calling
+.I amlinit
+and frees all the resources when
+.I amlexit
+is called.
+The runtime state consists of objects organized in a global
+namespace. The name object referred to by
+.I amlroot
+is the root of that namespace.
+.TP
+.BI amlload( data , len )
+.I Amlload
+populates the namespace with objects parsed from the
+definition block of 
+.I len
+byte size read from
+.IR data .
+The pc kernel provides access to the ACPI tables through the
+.B /dev/acpitbls
+file (see
+.IR arch (3)
+for further details).
+.TP
+.BI amltag( p )
+Objects are dynamically allocated and typed and are passed as
+.B void*
+pointers. The type tag of an object can be determined with the
+.I amltag
+function. The following table shows the defined tags and ther
+underlying type:
+.EX
+/*
+ *	b	uchar*	buffer		amllen() returns number of bytes
+ *	s	char*	string		amllen() is strlen()
+ *	n	char*	undefined name	amllen() is strlen()
+ *	i	uvlong*	integer
+ *	p	void**	package		amllen() is # of elements
+ *	r	void*	region
+ *	f	void*	field
+ *	u	void*	bufferfield
+ *	N	void*	name
+ *	R	void*	reference
+ */
+.EE
+.TP
+.BI amlwalk( dot , name )
+.I Amlwalk
+takes a path string (relative to
+.IR dot )
+in
+.I name
+and returns the final name object of the walk; or
+.B nil
+if not found.
+.TP
+\f5amlenum(\fIdot\f5,\fIseg\f5,\fIproc\f5,\fIarg\f5)
+.I Amlenum
+recursively enumerates all child name objects of
+.I dot
+that have
+.I seg
+as name; or any name if
+.I seg
+is
+.BR nil ;
+calling
+.I proc
+for each one passing
+.IR dot .
+When
+.I proc
+returns zero, enumeration will continue recursively down
+for the current dot.
+.TP
+.BI amlval( p )
+.I Amlval
+returns the value of a name, reference or field object.
+Calling
+.I amlval
+on any other object yields the same object.
+.TP
+.BI amllen( p )
+.I Amllen
+is defined for variable length objects like buffers, strings and packages.
+For strings, the number of characters (not including the terminating null byte)
+is returned. For buffers, the size of the buffer in bytes is returned.
+For packages (arrays), the number of elements is returned. For any other
+object types, the return value is undefined.
+.TP
+.BI amlint( p )
+.I Amlint
+returns the integer value of an object. For strings, the string is interpreted
+as an hexadecimal number. For buffers and buffer fields, the binary value is returned.
+Integers just return their value. Any other object types yield zero.
+.TP
+.BI amlnew( tag , len )
+Integer, buffer, string and package objects can be created with the
+.I amlnew
+function. The 
+.I tag
+specific definition of the
+.I len
+parameter is the same as in
+.I amllen
+(see above).
+.TP
+\f5amleval(\fIdot\f5,\fIfmt\f5,\fI...\f5)
+.I Amleval
+evaluates the name object
+.IR dot .
+For method evaluation, the
+.I fmt
+string parameter describes the arguments passed to the evaluated
+method. Each character in
+.I fmt
+represents a tag for an method argument taken from the
+variable argument list of
+.I amleval
+and passed to the method.
+The fmt tags
+.BR I ,
+.B i
+and
+.B s
+take
+.BR uvlong ,
+.B int
+and
+.B char*
+from the variable argument list and create object copies to
+be passed.
+The tags
+.BR b ,
+.B p
+and
+.B *
+take
+.B void*
+from the variable argument list and pass them as objects
+by reference (without conversion or copies).
+The last variable argument is a pointer to the result
+object location. When the last parameter is
+.B nil
+the result is discarded.
+.TP
+\f5amltake(\fIp\f5) \f5amldrop(\fIp\f5)
+Objects returned by
+.IR amlval ,
+.I amleval
+and
+.I amlnew
+are subject to garbage collection during method evaluation
+unless previously maked to be excluded from collection with
+.IR amltake .
+To remark an object for collection,
+.I amldrop
+needs be called.
+Objects stay valid as long as they are reachable from
+.IR amlroot .
+.bp
+.PP
+The aml library can be linked into userspace programs
+and the kernel which have different means of hardware access
+and memory constraints.
+.PP
+The
+.I Amlio
+data structure defines access to a hardware space.
+.EX
+
+enum {
+	MemSpace	= 0x00,
+	IoSpace		= 0x01,
+	PcicfgSpace	= 0x02,
+	EbctlSpace	= 0x03,
+	SmbusSpace	= 0x04,
+	CmosSpace	= 0x05,
+	PcibarSpace	= 0x06,
+	IpmiSpace	= 0x07,
+};
+
+typedef struct Amlio Amlio;
+struct Amlio
+{
+	int	space;
+	uvlong	off;
+	uvlong	len;
+	void	*name;
+	uchar	*va;
+
+	void	*aux;
+	int	(*read)(Amlio *io, void *data, int len, int off);
+	int	(*write)(Amlio *io, void *data, int len, int off);
+};
+
+.EE
+The
+members
+.IR space ,
+.IR off ,
+.I len
+and
+.I name
+are initialized by the interpreter and describe the I/O region
+it needs access to. For memory regions,
+.I va
+can to be set to the virtual address mapping base by the
+mapping function.
+The interpreter will call the
+.I read
+and
+.I write
+function pointers with a relative offset to the regions
+base offset.
+The
+.I aux
+pointer can be used freely by the map function to attach its own
+resources to the I/O region and allows it to free these resources
+on
+.IR amlunmapio .
+.TP
+\f5amlmapio(\fIio\f5) \f5amlunmapio(\fIio\f5)
+The interpreter calls
+.I amlmapio
+with a
+.I Amlio
+data structure that is to be filled out. When finished, the
+interpreter calls
+.I amlunmapio
+with the same data structure to allow freeing resources.
+.TP
+.BI amldelay( µs )
+.I Amldelay
+is called by the interpreter with the number of microseconds
+to sleep.
+.TP
+\f5amlalloc(\fIn\f5) \f5amlfree(\fIp\f5)
+.I Amlalloc
+and
+.I amlfree
+can be optionally defined to control dynamic memory allocation 
+providing a way to limit or pool the memory allocated by acpi.
+If not provided, the library will use the functions
+defined in
+.IR malloc (2)
+for dynamic allocation.
+.SH SOURCE
+.B /sys/src/libaml
+.SH "SEE ALSO"
+.IR arch (3)

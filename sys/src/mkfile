@@ -3,6 +3,7 @@
 LIBS=\
 	lib9p\
 	libString\
+	libaml\
 	libauth\
 	libauthsrv\
 	libavl\
