@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+TARG=4a
+OFILES=\
+	y.tab.$O\
+	lex.$O\
+
+HFILES=\
+	../vc/v.out.h\
+	y.tab.h\
+	a.h\
+
+YFILES=a.y\
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	$YFILES\
+
+< /sys/src/cmd/mkone
+YFLAGS=-D1 -d
+
+lex.$O:	../cc/macbody ../cc/lexbody ../cc/compat

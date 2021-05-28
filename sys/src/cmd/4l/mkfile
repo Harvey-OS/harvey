@@ -1,0 +1,38 @@
+</$objtype/mkfile
+
+TARG=4l
+OFILES=\
+	asm.$O\
+	list.$O\
+	noop.$O\
+	sched.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	enam.$O\
+	compat.$O\
+
+HFILES=\
+	l.h\
+	../vc/v.out.h\
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone
+
+#LDFLAGS=$LDFLAGS -p
+
+enam.c:	../vc/v.out.h
+	rc ../vc/mkenam
+
+test:V:	$O.out
+	rm -f xxx
+	mv $O.out xxx
+	./xxx $OFILES
+	cmp $O.out xxx
