@@ -382,7 +382,7 @@ oprint(char *format, ...)
 }
 #endif
 
-#include "sd53c8xx.i"
+#include "sd53c8xx.h"
 
 /*
  * We used to use a linked list of Dsas with nil as the terminator,

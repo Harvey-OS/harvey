@@ -119,7 +119,7 @@ devfloppy.$O: 			floppy.h
 archmp.$O mp.$O:		apbootstrap.h
 apic.$O archmp.$O mp.$O:	mp.h
 $SDEV:				../port/sd.h
-sd53c8xx.$O:			sd53c8xx.i
+sd53c8xx.$O:			sd53c8xx.h
 sdiahci.$O:			ahci.h
 devaoe.$O sdaoe.$O:		../port/aoe.h
 main.$O:			init.h reboot.h
@@ -127,8 +127,8 @@ wavelan.$O:			wavelan.c ../pc/wavelan.c ../pc/wavelan.h
 etherwavelan.$O:		etherwavelan.c ../pc/wavelan.h
 devusb.$O usbuhci.$O usbohci.$O usbehci.$O: ../port/usb.h
 trap.$O:			/sys/include/tos.h
-uartaxp.$O:			uartaxp.i
-etherm10g.$O:			etherm10g2k.i etherm10g4k.i
+uartaxp.$O:			uartaxp.h
+etherm10g.$O:			etherm10g2k.h etherm10g4k.h
 
 init.h:D:		../port/initcode.c init9.c
 	$CC ../port/initcode.c
@@ -155,10 +155,10 @@ apbootstrap.h:	apbootstrap.s mem.h
 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > $target
 
-sd53c8xx.i:	sd53c8xx.n
+sd53c8xx.h:	sd53c8xx.n
 	aux/na $prereq > $target
 
-uartaxp.i:	a100p.cp
+uartaxp.h:	a100p.cp
 	{echo 'static uchar uartaxpcp[] = {'
 	 xd -1x $prereq |
 		sed -e 's/^[0-9a-f]+ //' -e '/^$/d' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'

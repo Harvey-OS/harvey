@@ -102,7 +102,7 @@ devcons.$O:	/sys/include/authsrv.h
 devfloppy.$O:	floppy.h
 inflate.$O:	/sys/include/flate.h
 main.$O:	reboot.h
-sd53c8xx.$O:	sd53c8xx.i
+sd53c8xx.$O:	sd53c8xx.h
 sdiahci.$O:	ahci.h
 trap.$O:	/sys/include/tos.h
 

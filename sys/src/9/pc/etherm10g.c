@@ -28,8 +28,8 @@
 #define	pcicapdbg(...)
 #define malign(n)	mallocalign((n), 4*KiB, 0, 0)
 
-#include "etherm10g2k.i"
-#include "etherm10g4k.i"
+#include "etherm10g2k.h"
+#include "etherm10g4k.h"
 
 static int 	debug		= 0;
 static char	Etimeout[]	= "timeout";

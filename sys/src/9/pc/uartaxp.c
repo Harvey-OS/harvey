@@ -9,7 +9,7 @@
 #include "io.h"
 #include "../port/error.h"
 
-#include "uartaxp.i"
+#include "uartaxp.h"
 
 typedef struct Cc Cc;
 typedef struct Ccb Ccb;
