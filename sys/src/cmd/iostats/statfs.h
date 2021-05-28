@@ -10,7 +10,7 @@
 #define fidhash(s)	fhash[s%FHASHSIZE]
 
 enum{
-	Maxfdata	= 8192,	/* max size of data in 9P message */
+	Maxfdata	= 16*1024,	/* max size of data in 9P message */
 	Maxrpc		= 20000,/* number of RPCs we'll log */
 };
 

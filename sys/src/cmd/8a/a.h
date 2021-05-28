@@ -17,7 +17,7 @@ typedef	struct	Gen2 	Gen2;
 #define	MAXALIGN	7
 #define	FPCHIP		1
 #define	NSYMB		500
-#define	BUFSIZ		8192
+#define	BUFSIZ		(16*1024)
 #define	HISTSZ		20
 #define	NINCLUDE	10
 #define	NHUNK		10000

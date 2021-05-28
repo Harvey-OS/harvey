@@ -1,6 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#define	DEFB	(8*1024)
+#define	DEFB	(16*1024)
 #define	Nwork	16
 
 int	failed;

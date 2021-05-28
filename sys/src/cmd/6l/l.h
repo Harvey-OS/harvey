@@ -122,7 +122,7 @@ enum
 	MINSIZ		= 8,
 	STRINGSZ	= 200,
 	MINLC		= 1,
-	MAXIO		= 8192,
+	MAXIO		= (16*1024),
 	MAXHIST		= 20,				/* limit of path elements for history symbols */
 
 	Yxxx		= 0,

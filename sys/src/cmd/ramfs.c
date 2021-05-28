@@ -15,7 +15,7 @@ enum
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
 	Nram	= 1024,
 	Maxsize	= 768*1024*1024,
-	Maxfdata	= 8192,
+	Maxfdata	= 16*1024,
 	Maxulong= (1ULL << 32) - 1,
 };
 

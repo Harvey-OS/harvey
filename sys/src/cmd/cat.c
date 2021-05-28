@@ -4,7 +4,7 @@
 void
 cat(int f, char *s)
 {
-	char buf[8192];
+	char buf[16*1024];
 	long n;
 
 	while((n=read(f, buf, (long)sizeof buf))>0)

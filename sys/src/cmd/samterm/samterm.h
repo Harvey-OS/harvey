@@ -2,7 +2,7 @@
 
 #define	RUNESIZE	sizeof(Rune)
 #define	MAXFILES	256
-#define	READBUFSIZE 8192
+#define	READBUFSIZE (16*1024)
 #define	NL	5
 
 enum{

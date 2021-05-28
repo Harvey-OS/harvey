@@ -23,7 +23,7 @@ typedef	struct	Bits	Bits;
 typedef	Rune	TRune;	/* target system type */
 
 #define	NHUNK		50000L
-#define	BUFSIZ		8192
+#define	BUFSIZ		16*1024
 #define	NSYMB		1500
 #define	NHASH		1024
 #define	STRINGSZ	200

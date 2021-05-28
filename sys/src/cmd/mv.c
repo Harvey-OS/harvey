@@ -167,7 +167,7 @@ mv1(char *from, Dir *dirb, char *todir, char *toelem)
 int
 copy1(int fdf, int fdt, char *from, char *to)
 {
-	char buf[8192];
+	char buf[16*1024];
 	long n, n1;
 
 	while ((n = read(fdf, buf, sizeof buf)) > 0) {

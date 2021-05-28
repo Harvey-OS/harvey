@@ -200,7 +200,7 @@ enum
 	NHUNK		= 100000,
 	MINSIZ		= 64,
 	NENT		= 100,
-	MAXIO		= 8192,
+	MAXIO		= (16*1024),
 	MAXHIST		= 20,	/* limit of path elements for history symbols */
 
 	Roffset	= 22,		/* no. bits for offset in relocation address */

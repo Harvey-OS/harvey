@@ -695,7 +695,7 @@ srv(Srv *srv)
 	if(srv->rpool == nil)
 		srv->rpool = allocreqpool(srv->destroyreq);
 	if(srv->msize == 0)
-		srv->msize = 8192+IOHDRSZ;
+		srv->msize = 16*1024+IOHDRSZ;
 
 	changemsize(srv, srv->msize);
 
