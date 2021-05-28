@@ -249,6 +249,7 @@ void			hokheaders(HConnect *c);
 int			hparseheaders(HConnect*, int timeout);
 HSPairs			*hparsequery(HConnect *c, char *search);
 int			hparsereq(HConnect *c, int timeout);
+int			hparseuri(HConnect*, char*);
 int			hprint(Hio*, char*, ...);
 int			hputc(Hio*, int);
 void			*hreadbuf(Hio *h, void *vsave);
