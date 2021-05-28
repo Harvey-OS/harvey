@@ -1,0 +1,59 @@
+lemote fuloong-2e mini-computer
+
+cpu: loongson 2e, mips le, 64 bit
+(kernel is 32 bit)
+
+fpu
+256mb ram (default)
+mmu 64 tlbs
+l1 i-cache 4 ways, 512 sets, 32 bytes per line = 64K
+l1 d-cache 4 ways, 512 sets, 32 bytes per line = 64K
+l2 cache 4 ways, 32 bytes per line, 512K, write back
+config: 0x0003093b
+no config1, 2, 3, etc.
+
+1 uart		8250 (actually 16550ish)
+pci bus(es)
+ether		rtl 8139			00:07.0
+video		ati radeon 515a		00:06.0
+ide disk	via82cxxx			00:05.1
+usb			2 ohci, 2 uhci		00:05.2-3, 00:08.0-1
+audio		via82c686 ac97		00:05.5
+isa bridge	via82c686			00:05.0
+
+
+addresses
+
+devices; access by KSEG1|addr
+0x10000000	pci memory space
+0x14000000	vga fb		32M
+0x16020000	vga			64K
+0x16030000	usb ohci	4K
+0x16031000	usb ohci	4K
+0x16032000	usb ehci	256
+0x16032100	ether		256
+0x1fd00000	io ports
+      03f8	uart
+      a000	ether		256
+      a100	vga			256
+      a300	audio		256
+      a400	usb uhci	32
+	  a420	usb uhci	32
+      a440	ide			16
+	  a450	audio		4+4
+
+0x80100000	virtual start addr (linux)
+0xbfc00000	prom
+
+irqs
+2	pci
+3	unused/unknown
+4	uart
+5	8259
+6	perf counter
+7	clock
+
+pci sub-irqs
+26	ether
+26	usb ohci
+27	usb ohci

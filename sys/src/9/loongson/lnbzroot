@@ -1,0 +1,68 @@
+dev
+	root
+	cons
+	arch
+	cap
+	dup
+	env
+	fs
+	kprof
+	mnt
+	pipe
+	pnp		pci
+	proc
+	rtc
+	sd
+	srv
+	ssl
+	tls
+	uart
+
+	ether	netif
+	ip		arp chandial inferno ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
+
+	draw	screen
+	kbin	kbd latin1
+	kbmap
+	mouse	mouse
+
+	usb
+
+link
+	loopbackmedium
+	ethermedium
+	ether8139		pci
+#	usbohci			pci
+
+misc
+	uarti8250
+	sdata			pci sdscsi
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	gre
+	ipmux
+	esp
+
+port
+	int cpuserver = 0;
+	int screenwid = 640;
+	int screenht = 480;
+	int screendepth = 16;
+	ulong cpufreq = 667*Mhz;
+
+boot boot
+	local
+	tcp
+
+bootdir
+	boot$CONF.out boot
+	/sys/lib/dist/bin/spim/bzfs kfs
+	/sys/lib/dist/loongson/root.bz2 bzroot
+	/spim/bin/ip/ipconfig
+	/spim/bin/auth/factotum
+	/spim/bin/usb/usbd

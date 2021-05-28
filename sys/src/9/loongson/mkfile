@@ -1,0 +1,127 @@
+CONF=lnbzroot
+CONFLIST=lnbzroot lncpu
+EXTRACOPIES=
+
+objtype=spim
+</$objtype/mkfile
+
+CFLAGS=$CFLAGS
+AFLAGS=$AFLAGS
+
+p=9
+# must match mem.h
+KTZERO=0x80100000
+UTZERO=0x4020
+BY2PG=16384
+MAXBY2PG=16384
+REBOOTADDR=0x80003000
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	edf.$O\
+	fault.$O\
+	mul64fract.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	random.$O\
+	rdb.$O\
+	rebootcmd.$O\
+	segment.$O\
+	swap.$O\
+	syscallfmt.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	archln.$O\
+	clock.$O\
+	faultmips.$O\
+	i8259.$O\
+	main.$O\
+	mmu.$O\
+	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
+	$DEVS\
+	$PORT\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libsec.a\
+	/$objtype/lib/libmp.a\
+	/$objtype/lib/libip.a\
+	/$objtype/lib/libc.a\
+
+$p$CONF:Q:	$OBJ $CONF.c $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	echo linking kernel
+	# -H5 generates ELF for PMON, -a for debugging
+	$LD -a -l -H5 -T$KTZERO -R$BY2PG -o $target $OBJ $CONF.$O $LIB >$target.list
+	size $target
+
+install:V:	$p$CONF
+	cp $p$CONF /$objtype/
+	for(i in $EXTRACOPIES)
+		{ 9fs $i && cp $p$CONF /n/$i/$objtype/ && echo -n $i... & }
+	wait
+	echo
+
+<../boot/bootmkfile
+<../port/portmkfile
+<|../port/mkbootrules $CONF
+
+init.h:	init9.s ../port/initcode.c $objtype.s /sys/src/libc/9syscall/sys.h mkfile
+	$AS init9.s
+	$CC ../port/initcode.c
+	$LD -a -T$UTZERO -R4 -o init.out init9.$O initcode.$O >initcode.list
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+reboot.h:	initreboot.s rebootcode.c mem.h $objtype.s /$objtype/lib/libc.a
+	$AS $AFLAGS initreboot.s
+	$CC $CFLAGS rebootcode.c
+	# -lc is only for memmove
+	$LD -l -a -s -T$REBOOTADDR -R4 -o reboot.out initreboot.$O rebootcode.$O -lc >reboot.list
+	{echo 'uchar rebootcode[]={'
+	 xd -1x reboot.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > reboot.h
+
+l.$O:	$objtype.s
+main.$O:	errstr.h init.h reboot.h
+devether.$O:	../port/netif.h etherif.h
+archln.$O clock.$O faultmips.$O mmu.$O trap.$O:	/$objtype/include/ureg.h
+
+%.clean:V:
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.* *.list
+
+# override ../port/portmkfile
+# create /boot/boot
+boot$CONF.out:	$CONF print.$O $BOOTDIR/boot.c $BOOTLIB
+	$BOOTDIR/mkboot $CONF > boot$CONF.c
+	$CC $CFLAGS boot$CONF.c
+	$CC $CFLAGS ../boot/printstub.c
+	$AS c_fcr0.s
+	$LD -a -o boot$CONF.out -T$UTZERO -R$MAXBY2PG boot$CONF.$O $BOOTLIB printstub.$O c_fcr0.$O > boot$CONF.list
