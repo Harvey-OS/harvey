@@ -1,0 +1,1 @@
+#include "../loongson/devrtc.c"

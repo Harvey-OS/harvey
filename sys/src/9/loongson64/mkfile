@@ -1,0 +1,112 @@
+CONF=ln64
+CONFLIST=ln64
+EXTRACOPIES=
+
+objtype=spim64
+</$objtype/mkfile
+
+CFLAGS=$CFLAGS
+AFLAGS=$AFLAGS
+
+p=9
+# must match mem.h
+KTZERO=0xffffffff80100000
+UTZERO=0x4020
+BY2PG=16384
+MAXBY2PG=16384
+REBOOTADDR=0xffffffff80003000
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	edf.$O\
+	fault.$O\
+	mul64fract.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	random.$O\
+	rdb.$O\
+	rebootcmd.$O\
+	segment.$O\
+	swap.$O\
+	syscallfmt.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	clock.$O\
+	faultmips.$O\
+	i8259.$O\
+	main.$O\
+	mmu.$O\
+	trap.$O\
+	tmp.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
+	$DEVS\
+	$PORT\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libsec.a\
+	/$objtype/lib/libmp.a\
+	/$objtype/lib/libip.a\
+	/$objtype/lib/libc.a\
+
+$p$CONF:Q:	$OBJ $CONF.c $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	echo linking kernel
+	# -H5 generates ELF for PMON, -a for debugging
+	$LD -a -l -H5 -T$KTZERO -R$BY2PG -o $target $OBJ $CONF.$O $LIB >$target.list
+	size $target
+
+<../boot/bootmkfile
+<../port/portmkfile
+<|../port/mkbootrules $CONF
+
+l.$O:	$objtype.s
+
+init.h:	init9.s initcode.c $objtype.s /sys/src/libc/9syscall/sys.h mkfile
+	$AS init9.s
+	$CC initcode.c
+	$LD -a -T$UTZERO -R8 -o init.out init9.$O initcode.$O >initcode.list
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+l.$O:	$objtype.s
+main.$O:	errstr.h init.h #reboot.h
+devether.$O:	../port/netif.h etherif.h
+clock.$O faultmips.$O mmu.$O trap.$O tmp.$O:	/$objtype/include/ureg.h
+
+%.clean:V:
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.* *.list
+
+# override ../port/portmkfile
+# create /boot/boot
+boot$CONF.out:	$CONF print.$O $BOOTDIR/boot.c $BOOTLIB
+	$BOOTDIR/mkboot $CONF > boot$CONF.c
+	$CC $CFLAGS boot$CONF.c
+	$CC $CFLAGS ../boot/printstub.c
+	$AS c_fcr0.s
+	$LD -a -o boot$CONF.out -T$UTZERO -R$MAXBY2PG boot$CONF.$O $BOOTLIB printstub.$O c_fcr0.$O > boot$CONF.list

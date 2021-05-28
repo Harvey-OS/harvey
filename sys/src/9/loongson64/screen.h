@@ -1,0 +1,1 @@
+#include "../loongson/screen.h"
