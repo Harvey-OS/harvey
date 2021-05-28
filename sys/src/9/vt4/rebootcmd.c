@@ -7,17 +7,7 @@
 
 #include	<a.out.h>
 
-static ulong
-l2be(long l)
-{
-	uchar *cp;
-
-	cp = (uchar*)&l;
-	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
-}
-
-
-static void
+void
 readn(Chan *c, void *vp, long n)
 {
 	char *p;
