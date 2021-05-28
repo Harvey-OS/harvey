@@ -1,0 +1,225 @@
+.TH PTRACE 1
+.SH NAME
+ptrace, tron, pm \- trace processes
+.SH SYNOPSIS
+.B ptrace
+[
+.B -dgpw
+]
+.I file
+.PP
+.B tron
+[
+.B -f
+.I file
+]
+[
+.B -o
+.I ofile
+]
+.I cmd
+[
+.I arg...
+]
+.PP
+.B pm
+[
+.B -p
+.I nproc
+]
+[
+.B -r
+.I nround
+]
+[
+.B -c
+.I ncpu
+]
+[
+.B -i
+.I nio
+]
+[
+.B -s
+.I nstk
+]
+[
+.B -w
+.I sleep
+]
+.SH DESCRIPTION
+.I Ptrace
+plots and dumps generic process traces previously retrieved from
+.IR ptrace (3).
+Unlike with
+.IR trace (1)
+and
+.IR trace (3),
+the tracing and traced machines can be of different architectures,
+and tracing is designed for processes in general, and not just real-time ones.
+.PP
+Events are retrieved from
+.IR file ,
+which is a text file with trace events. Flag
+.B -d
+indicates that
+.I file
+uses the raw format provided by the
+.IR ptrace (3)
+device.
+But note that
+.I ptrace
+stops reading upon EOF, which makes it unsuitable for reading
+.IR ptrace (3)
+directly.
+.PP
+By default, the program prints events to standard output in a readable format.
+The output can be used later as input.
+.PP
+Under flag
+.B -g
+the program draws a plot that can be inspected using the mouse and
+the keyboard. 
+A new window
+is used to plot the diagram if
+.B -w
+is given, otherwise, the program uses the window it runs on.
+It is advisable to use
+.B -w
+if commands causing prints are also used.
+Flag
+.B -p
+makes the program print events even when
+.B -g
+is given.
+.PP
+Typing
+.LR q
+makes the program quit.
+.PP
+In the plot, the left column shows pids and the machine they are running
+on. Red lines indicate waiting processes, green lines ready processes, and
+blue lines running processes. Traps and faults are shown below the process line
+and system calls are shown above.
+.PP
+The plot scale reflects actual time. You might have too zoom in to
+see some interesting events otherwise merged due to the scale.
+Placing the mouse near a process line updates the
+status information shown, including time.
+.PP
+Arrow keys can be used 
+to zoom in (up), out (down), and to move left (left) and right (right).
+A click on the left (or right) part of the top line with the mouse
+moves left (or right).
+A sweep with mouse button 1 zooms into the time window selected.
+.PP
+The
+.LR Esc
+key restarts the plot using the original position and scale.
+.PP
+A sweep with button 2 saves the events selected in the file
+.BR ptrace.out .
+A sweep with button 3
+prints on the standard output
+the events in the rectangle selected (excluding
+processes out of the rectangle). Horizontal sweeps select the process
+where the sweep happens.
+.PP
+A click with the mouse
+button 3 plumbs the clicked event to the editor.
+The file name used is
+.B ptrace.out
+when the input uses a device format.
+.PP
+The
+.LR space
+key freezes the statistics reported when moving the mouse.
+.PP
+The
+.LR p
+key prints the events currently shown in the window. Those too small
+to be individually plotted are also printed.
+.PP
+The
+.LR s
+key saves the events shown into the file named
+.BR ptrace.out .
+.PP
+.I Tron
+is a helper to collect traces for commands. It executes
+.I cmd
+with
+.I args
+activating the trace for it (and descendant processes).
+Flag
+.B -f
+selects an alternate tracing device.
+.PP
+Flag
+.B -o
+causes
+.I tron
+to read events from the trace device and dump the output to
+.I file
+in the format used by the device. Such output file can later be used
+with
+.I ptrace
+to inspect what happen, and also to convert it to a textual format.
+The program ceases collecting events one second
+after the traced command exits.
+.PP
+.I Pm
+is a profile-me program generating a deterministic load with the given numbers
+of processes, rounds, etc.
+.SH EXAMPLE
+Capture a trace for a compilation:
+.EX
+term% troff -o tr.out mk all
+.EE
+.LP
+Print the events contained in the trace.
+.EX
+term% ptrace -d tr.out
+	00048526953    121 06 mk   Ready  Ready       4 0x0
+	00048537030    121 04 mk   Run    Run         3 0x0
+	...
+.EE
+.LP
+This output can be saved and later used as input for
+.IR 
+.PP
+Convert the dump to a textual format and run
+.I ptrace
+on it
+using a different window, so we can
+still use standard output for printing:
+.EX
+term% ptrace -d tr.out >tr.txt
+term% ptrace -wg tr.txt
+.EE
+.SH FILES
+.TF /sys/include/ptrace.h
+.TP
+.B /dev/ptrace
+trace event file
+.TP
+.B /sys/include/ptrace.h
+trace event data structures.
+.TP
+.B ptrace.out
+output for save command.
+.PD
+.SH SOURCE
+.B /sys/src/cmd/ptrace
+.SH SEE ALSO
+.IR proc (3),
+.IR trace (1).
+.SH BUGS
+To avoid extra interference from the tracing tools, the device
+does not block the reader, and thus the tools must poll the device.
+.PP
+To honor the plot scale, some events do not show up unless you
+zoom enough; although the picture is still accurate.
+.PP
+Should probably replace
+.IR trace (1).

@@ -1,0 +1,48 @@
+.TH UART 3 
+.SH NAME
+ptrace \- process scheduling traces
+.SH SYNOPSIS
+.nf
+.B bind -a #σ /dev
+
+.B /dev/ptrace
+.B /dev/ptracectl
+.fi
+.SH DESCRIPTION
+.PP
+The process trace device is a replacement for the trace facility in
+.IR proc (3)
+to report more information about process events.
+.PP
+The
+.B ptracectl
+admits the following requests:
+.TP
+.BI size " n
+Set the size of the buffer to
+.I n
+entries. Before issuing this request tracing is not enabled.
+.TP
+.BI trace " pid value"
+Set the trace on or off for the process with the given pid.
+.PP
+The
+.B ptrace
+file reports an integral number of events when read. To avoid
+too much interference with scheduling, it does not block readers.
+When no more events are available the read returns an EOF indication,
+but the program is expected to poll the device for further events.
+This behavior mimics what
+.IR proc (3)
+does with the trace interface.
+.SH SOURCE
+.B /sys/src/9/port/devptrace.c
+.br
+.B /sys/src/9k/port/devptrace.c
+.SH "SEE ALSO
+.IR ptrace (1),
+.IR ptrace (2).
+.SH BUGS
+If the buffer size is too small, events will be discarded.
+.PP
+The reader must poll the trace device.

@@ -1,0 +1,31 @@
+</$objtype/mkfile
+
+TARG=\
+	ptrace\
+	tron\
+	pm\
+
+PTOFILES=\
+	systab.$O\
+	st.$O\
+
+HFILES=all.h\
+	/sys/include/ptrace.h\
+	/sys/src/libc/9syscall/sys.h\
+
+BIN=/$objtype/bin
+
+</sys/src/cmd/mkmany
+
+CLEANFILES=\
+	systab.c\
+	T.out\
+
+$O.ptrace: $PTOFILES
+
+systab.c: /sys/src/libc/9syscall/sys.h
+	tr A-Z a-z <$prereq | awk -f mksystab  >$target
+
+T:V:
+	$O.ptrace -d T.dev >T.out
+	cmp T.txt T.out && rm -f T.out

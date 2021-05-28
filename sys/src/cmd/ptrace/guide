@@ -1,0 +1,59 @@
+Example from T.txt (mk all)
+trace for pid 195
+>awk '$2 == 195'
+
+number of page faults
+>awk '$2 == 195 && $6 == "pfault"' | wc -l
+500
+
+number of sleeps
+>awk '$2 == 195 && $5 == "Sleep"' | wc -l
+197
+
+number of core switches
+awk 'BEGIN{nsw = 0; last = -3;}
+	$2 == 195 {if($3 != last) nsw++; last=$3} 
+	END{print nsw}' <T.txt
+217
+
+number of acpi domain switches
+awk 'BEGIN{nsw = 0; last = -3;}
+	$2 == 195 {if($3%8 != last%8) nsw++; last=$3} 
+	END{print nsw}' <T.txt
+188
+
+times from ready to run
+awk 'BEGIN{nsw = 0; last = -3;}
+	$2 != 195 {next}
+	$6 == "Ready" {stime = $0; ln = NR}
+	$6 == "Run" {if(stime) print $0 - stime, ln, NR; stime = 0} ' <ptrace.out |
+ sort -nr
+69695 T.txt:918 930
+43670 15110 15111
+38796 324 325
+36930 2172 2173
+
+which gives
+  0s 287m 326µ 512n     195 00 mk   Ready  Ready     	4 287326512 0x0
+  0s 287m 370µ 182n     195 21 mk   Run    Run       	3 287370182 0x0
+as the top.
+i.e. core 0 makes it ready, and core 21 picks it 69.695µs laters.
+
+times for sleeps, and line numbers in the trace for the sleep and wakeup
+sorted
+awk 'BEGIN{nsw = 0; last = -3;}
+	$2 != 195 {next}
+	$5 == "Sleep" {stime = $0; ln = NR}
+	$5 == "Ready" {print $0 - stime, ln, NR} ' <T.txt | sort -nr
+
+This gives:
+381601037 15175 19811	
+140216350 10518 15064
+58225471 6569 9619
+...
+
+which is
+  0s 288m 716µ 164n     195 03 mk   Sleep      await    ...
+  0s 288m 717µ 848n     195 03 mk   Sleep      Wakeme pc 0xfffffff017e1ac ...
+
+Thus most of the time it's waiting for children, as expected.

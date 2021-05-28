@@ -1,0 +1,4 @@
+BEGIN{ printf("char* scname[] = {\n"); max = 0}
+{ printf("[%d]\t\"%s\",\n", $3, $2); if(max < $3) max = $3}
+END{ printf("};\nint maxscval = %d;\n", max); }
+

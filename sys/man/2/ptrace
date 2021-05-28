@@ -1,0 +1,96 @@
+.TH PTRACE 2
+.SH NAME
+ptrace \- interface for the process trace device
+.SH SYNOPSIS
+.EX
+#include <u.h>
+#include <libc.h>
+#include <ptrace.h>
+.sp
+typedef enum {
+	CHANEND,
+	CHANSND,
+	CHANRCV,
+	CHANNOP,
+	CHANNOBLK,
+} ChanOp;
+.sp
+typedef enum PTevent {
+	SAdmit = 0,	/* Edf admit */
+	SRelease,		/* Edf release, waiting to be scheduled */
+	SEdf,		/* running under EDF */
+	SRun,		/* running best effort */
+	SReady,		/* runnable but not running  */
+	SSleep,		/* blocked */
+	SYield,		/* blocked waiting for release */
+	SSlice,		/* slice exhausted */
+	SDeadline,	/* proc's deadline */
+	SExpel,		/* Edf expel */
+	SDead,		/* proc dies */
+	SInts,		/* Interrupt start */
+	SInte,		/* Interrupt end */
+	STrap,		/* fault */
+	SUser,		/* user event */
+	SName,		/* used to report names for pids */
+	Nevent,
+} Tevent;
+.sp
+enum {
+	PTsize = 4 + 4 + 4 + 8 + 8,
+
+	/* STrap arg flags */
+	STrapRPF = 0x1000000000000000ULL,	/* page fault (read) STrap arg */
+	STrapWPF = 0x1000000000000000ULL,	/* page fault (write) STrap arg */
+	STrapSC  = 0x2000000000000000ULL,	/* sys call STrap arg */
+	STrapMask = 0x0FFFFFFFFFFFFFFFULL,	/* bits available in arg */
+};
+.sp
+typedef struct PTraceevent	PTraceevent;
+struct PTraceevent {
+	u32int	pid;	/* for the process */
+	u32int	etype;	/* Event type */
+	u32int	machno;	/* where the event happen */
+	vlong	time;	/* time stamp  */
+	u64int	arg;	/* for this event type */
+};
+.EE
+.SH DESCRIPTION
+This include file documents the format of the
+.IR ptrace (3)
+device. The device reports trace events for processes with the
+fields documented in the
+.B PTraceevent
+structure. Events are read using little endian format for all
+values. The type of event is one of those in
+.BR PTevent .
+.PP
+Traps report also system calls made. They have set in the
+.B arg
+field the
+.B STrapRPF
+or
+.B STrapWPF
+bit if they correspond to a read or write page fault, and the
+.B STrapSC
+bit if they correspond to a system call (OR'ed with the
+system call number). For page faults, the
+.B STrapMask
+bits are set to the faulting address using the
+endianness of the faulting system.
+Otherwise the argument is the trap number.
+.PP
+The
+.B SName
+event uses the space of the argument to store up to 8 characters
+with the process name for the pid reported in the event.
+.PP
+The
+.B SSleep
+state reports as its argument both the scheduling state for the
+sleep (in the low byte) and the program counter for the kernel
+(upper bytes, shifted).
+.SH SOURCE
+.B /sys/src/9/port/devptrace.c
+.SH SEE ALSO
+.IR ptrace (3),
+.IR ptrace (1).

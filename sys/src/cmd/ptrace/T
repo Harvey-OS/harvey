@@ -1,0 +1,6 @@
+#!/bin/rc
+cd /sys/src/cmd/ptrace
+test -e /dev/ptracectl || bind -a '#σ' /dev
+mk clean
+tron -s 32 -o Tpm.dev pm
+ptrace -d Tpm.dev>Tpm.txt
