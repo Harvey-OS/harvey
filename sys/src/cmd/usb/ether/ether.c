@@ -1145,29 +1145,34 @@ etherinit(Ether *e, int *ei, int *eo)
 static int
 kernelproxy(Ether *e)
 {
-	int ctlfd, n;
+	int ctlfd, n, i;
+	char ename[20];
 	char eaddr[13];
 
-	ctlfd = open("#l0/ether0/clone", ORDWR);
-	if(ctlfd < 0){
-		deprint(2, "%s: etherusb bind #l0: %r\n", argv0);
-		return -1;
-	}
 	close(e->epin->dfd);
 	close(e->epout->dfd);
-	seprintaddr(eaddr, eaddr+sizeof(eaddr), e->addr);
-	n = fprint(ctlfd, "bind %s #u/usb/ep%d.%d/data #u/usb/ep%d.%d/data %s %d %d",
-		e->name, e->dev->id, e->epin->id, e->dev->id, e->epout->id,
-		eaddr, e->bufsize, e->epout->maxpkt);
-	if(n < 0){
-		deprint(2, "%s: etherusb bind #l0: %r\n", argv0);
-		opendevdata(e->epin, OREAD);
-		opendevdata(e->epout, OWRITE);
+	for(i = 0; i < 10; i++){
+		sprint(ename, "#l%d/ether%d/clone", i, i);
+		ctlfd = open(ename, ORDWR);
+		if(ctlfd < 0){
+			deprint(2, "%s: etherusb bind %.3s: %r\n", argv0, ename);
+			break;
+		}
+		seprintaddr(eaddr, eaddr+sizeof(eaddr), e->addr);
+		n = fprint(ctlfd, "bind %s #u/usb/ep%d.%d/data #u/usb/ep%d.%d/data %s %d %d",
+			e->name, e->dev->id, e->epin->id, e->dev->id, e->epout->id,
+			eaddr, e->bufsize, e->epout->maxpkt);
+		if(n < 0){
+			deprint(2, "%s: etherusb bind %.3s: %r\n", argv0, ename);
+			close(ctlfd);
+			continue;
+		}
 		close(ctlfd);
-		return -1;
+		return 0;
 	}
-	close(ctlfd);
-	return 0;
+	opendevdata(e->epin, OREAD);
+	opendevdata(e->epout, OWRITE);
+	return -1;
 }
 
 int
@@ -1222,8 +1227,18 @@ ethermain(Dev *dev, int argc, char **argv)
 
 	if(openeps(e, epin, epout) < 0)
 		return -1;
-	if(kernelproxy(e) == 0)
+	if(kernelproxy(e) == 0){
+		if(e->multicast != nil){
+			/*
+			 * Until there is an interface for the kernel etherusb driver
+			 * to write to usb/ether ctl file, multicast needs to be on
+			 * by default so ipv6 will work.
+			 */
+			e->nmcasts++;
+			e->multicast(e, nil, 1);
+		}
 		return 0;
+	}
 	e->fs = etherfs;
 	snprint(e->fs.name, sizeof(e->fs.name), "etherU%d", devid);
 	e->fs.dev = dev;
