@@ -1,0 +1,199 @@
+dev +dev
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	tls
+	cap
+	kprof
+	acpi
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
+
+	uart
+
+	sd
+
+	draw		drawalloc screen vga vgax
+	mouse		mouse
+	vga
+
+sd +dev
+	sdata		pci sdscsi
+	sdiahci		pci sdscsi
+	sdvirtio	pci sdscsi
+
+uart +dev
+	uarti8250
+	uartpci		pci
+
+vga +dev
+	vgavesa
+
+ip +dev
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+
+link +dev
+	ether8139	pci
+	ether8169	pci ethermii
+	ether82557	pci
+	ether82563	pci
+	ether82598	pci
+	etherigbe	pci ethermii
+#	etherm10g	pci
+	ethervirtio	pci
+	ethermedium
+	loopbackmedium
+	netdevmedium
+
+#	acpi		hpet
+#	ht
+
+	realmode
+
+misc +dev
+	cache
+	mp		apic ioapic pci sipi mpacpi
+
+#
+#boot cpu
+#	int cpuflag = 1;
+#boot cpu boot $3
+#	int cpuflag = 1;
+#	char* bootdisk = "$3";
+#boot rootdir $3
+#	char* rootdir = "$3";
+#boot (bboot|romboot|dosboot)
+#	int cpuflag = 1;
+#	char* bootprog = $2;
+#boot boot $3
+#	char* bootdisk = "$3";
+#
+boot
+	tcp
+	local
+
+rootdir
+	bootk10f.out boot
+	/amd64/bin/auth/factotum factotum
+	/amd64/bin/ip/ipconfig ipconfig
+	/amd64/bin/fossil/fossil fossil
+	/amd64/bin/venti/venti venti
+	../root/nvram nvram
+
+conf
+	int cpuserver = 0;
+
+#
+#dbgflg
+#	chan		'c'
+#	apic		'A'
+#	acpi		'C'
+#	hpet		'H'
+#	ht		'H'
+#	ioapic		'I'
+#	mp		'M'
+#	pci		'P'
+#	arch		'V'
+#
+dbgflg
+	apic		'A'
+	devacpi		'C'
+	hpet		'H'
+	ht		'H'
+	ioapic		'I'
+	mp		'M'
+	arch		'V'
+	archk10		'V'
+	sysproc		'E'
+	main		'x'
+	mmu		'm'
+	asm		'a'
+	sipi		'y'
+
+amd64 +dev
+	l32p
+	l64v
+	l64idt
+	l64syscall
+	l64fpu
+	l64cpuid
+	arch
+	archk10
+	asm
+	cga
+	crap
+	fpu
+	i8254
+	i8259
+	kbd
+	main
+	map
+	memory
+	mmu
+	multiboot
+	qmalloc
+	random
+	syscall
+	trap
+	vsvm
+
+port
+	alarm
+	allocb
+	chan
+	dev
+	devtab
+	edf
+	fault
+	image
+	latin1
+	page
+	parse
+	pgrp
+	portclock
+	print
+	proc
+	ps
+	qio
+	qlock
+	rebootcmd
+	segment
+	sysauth
+	sysfile
+	sysproc
+	sysseg
+	systab
+	taslock
+	tod
+	watermarks
+
+#
+#dir
+# pc		-.I.
+#
+dir
+	386
+	ip
+	port
+
+lib
+	libmemlayer
+	libmemdraw
+	libdraw
+	libip
+	libsec
+	libmp
+	libc

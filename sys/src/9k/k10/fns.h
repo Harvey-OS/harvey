@@ -41,6 +41,8 @@ void	i8042auxenable(void (*)(int, int));
 void	i8042reset(void);
 Uart*	i8250console(char*);
 void*	i8250alloc(int, int, int);
+void	i8250mouse(char*, int (*)(Queue*, int), int);
+void	i8250setmouseputc(char*, int (*)(Queue*, int));
 vlong	i8254hz(u32int[2][4]);
 void	idlehands(void);
 void	idthandlers(void);

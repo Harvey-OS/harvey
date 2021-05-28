@@ -349,6 +349,27 @@ function mkdevc(		a, d, i, m, n, s, t, u, name, cname){
 		s = s "PhysUart* physuart[] = {\n" t "\tnil,\n};\n\n";
 	}
 
+	if("vga" in d && "vga" in section){
+		s = s "#define	Image	IMAGE\n"
+		s = s "#include <draw.h>\n"
+		s = s "#include <memdraw.h>\n"
+		s = s "#include <cursor.h>\n"
+		s = s "#include \"screen.h\"\n"
+
+		t = "";
+		for(i = 1; i < section["vga"]; i++){
+			split(line["vga", i], a);
+			s = s "extern VGAdev " a[1]"dev;\n";
+			t = t  "\t&" a[1] "dev,\n";
+		}
+		s = s "VGAdev *vgadev[] = {\n" t "\tnil,\n};\n\n"
+
+		t = "	&swcursor, \n"
+		s = s "extern VGAcur swcursor;\n";
+		s = s "VGAcur *vgacur[] = {\n" t "\tnil,\n};\n\n"
+
+	}
+
 	t = "";
 	n = 0;
 	if("physseg" in section){

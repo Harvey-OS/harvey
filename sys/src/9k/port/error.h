@@ -38,6 +38,7 @@ extern char Econinuse[];	/* connection in use */
 extern char Eintr[];		/* interrupted */
 extern char Enomem[];		/* kernel allocate failed */
 extern char Esoverlap[];	/* segments overlap */
+extern char Emouseset[];	/* mouse type already set */
 extern char Eshort[];		/* i/o count too small */
 extern char Egreg[];		/* jmk added reentrancy for threads */
 extern char Ebadspec[];		/* bad attach specifier */
