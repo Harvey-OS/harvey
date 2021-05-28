@@ -1,0 +1,44 @@
+.TH PHYSALLOC 9
+.SH NAME
+physalloc, physfree, phystag, physinit, physallocdump \- kernel buddy allocator for physical addresses
+.SH SYNOPSIS
+.ta \w'\fLuintmem 'u
+.de PB
+.PP
+.ft L
+.nf
+..
+.PB
+void	physinit(uintmem pa, u64int size)
+.PB
+uintmem	physalloc(u64int size, int *colorp, void *tag)
+.PB
+void*	phystag(uintmem pa)
+.PB
+void	physfree(uintmem pa, u64int size)
+.PB
+char*	seprintphysstats(char *s,  char *e)
+.SH DESCRIPTION
+The kernel contains a buddy allocator to hand out large chunks of
+memory outside the kernel heap.  The buddy allocator does not
+assign virtual addresses. The map is populated by one or more calls to
+.IR physinit .
+.I Physalloc
+allocates a region of the given color with the given tag.  If the color
+is -1, then any memory color may be used, otherwise only memory
+of the given color will be allocated.  The
+.B tag
+is user-defined.  Calls to
+.I phystag
+map addresses in the allocation back to
+.BR tag .
+Allocated regions are freed with
+.IR physfree .
+Stats may be put in a buffer with
+.IR seprintstats ,
+which takes a pointer to a buffer and its end as
+.IR seprint .
+.SH SOURCE
+.B /sys/src/9k/k10/physalloc.c
+.SH "SEE ALSO"
+.IR qmalloc (9k),

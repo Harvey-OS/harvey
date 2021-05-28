@@ -1,0 +1,184 @@
+.TH QMALLOC 9
+.SH NAME
+qmalloc \- quickfit malloc
+malloc, mallocz, smalloc, realloc, calloc, free, msize, setmalloctag, setrealloctag, getmalloctag, getrealloctag, mallocinit, mallocsummary \- quickfit kernel memory allocator
+.SH SYNOPSIS
+.ta \w'\fLvoid* 'u
+.B
+void*	malloc(usize size)
+.PP
+.B
+void*	mallocalign(usize size, usize align, long offset, usize span)
+.PP
+.B
+void*	mallocz(usize size, int clr)
+.PP
+.B
+void*	smalloc(usize size)
+.PP
+.B
+void*	realloc(void *p, usize size)
+.PP
+.B
+void*	calloc(ulong n, usize szelem)
+.PP
+.B
+void	free(void *ptr)
+.PP
+.B
+ulong	msize(void *ptr)
+.PP
+.B
+void	setmalloctag(void *ptr, ulong tag)
+.PP
+.B
+ulong	getmalloctag(void *ptr)
+.PP
+.B
+void	setrealloctag(void *ptr, ulong tag)
+.PP
+.B
+ulong	getrealloctag(void *ptr)
+.PP
+.B
+void	mallocinit(void)
+.B
+void	mallocsummary(void)
+.PP
+.SH DESCRIPTION
+These are kernel versions of the functions in
+.IR malloc (2).
+They allocate memory with Quickfit with an allocator
+from Kernighan & Ritchie.
+The allocation is currently fixed, but could call
+.IR physalloc (9k)
+in the future.
+All but
+.I smalloc
+(which calls
+.IR sleep (9))
+may safely be called by interrupt handlers.
+.PP
+.I Malloc
+returns a pointer to a block of at least
+.I size
+bytes, initialised to zero.
+The block is suitably aligned for storage of any type of object.
+The call
+.B malloc(0)
+returns a valid pointer rather than null.
+.I Mallocz
+is similar, but only clears the memory if
+.I clr
+is non-zero.
+.PP
+.I Smalloc
+returns a pointer to a block of
+.I size
+bytes, initialised to zero.
+If the memory is not immediately available,
+.I smalloc
+retries every 100 milliseconds until the memory is acquired.
+.PP
+.I Mallocalign
+allocates a block of at least 
+.I n
+bytes of memory respecting alignment contraints.
+If
+.I align
+is non-zero,
+the returned pointer is aligned to be equal to
+.I offset
+modulo
+.IR align .
+If
+.I span
+is non-zero,
+the
+.I n
+byte block allocated will not span a
+.IR span -byte
+boundary.
+.PP
+.I Realloc
+changes the size of the block pointed to by
+.I p
+to
+.I size
+bytes,
+if possible without moving the data,
+and returns a pointer to the block.
+The contents are unchanged up to the lesser of old and new sizes,
+and any new space allocated is initialised to zero.
+.I Realloc
+takes on special meanings when one or both arguments are zero:
+.TP
+.B "realloc(0,\ size)
+means
+.LR malloc(size) ;
+returns a pointer to the newly-allocated memory
+.TP
+.B "realloc(ptr,\ 0)
+means
+.LR free(ptr) ;
+returns null
+.TP
+.B "realloc(0,\ 0)
+no-op; returns null
+.PD
+.PP
+.I Calloc
+returns a pointer to a block of memory of at least
+.I "n*szelem"
+bytes, initialised to zero.
+New code should use
+.I mallocz
+instead.
+.PP
+The argument to
+.I free
+is a pointer to a block of memory allocated by one of the routines above, which
+is returned to the allocation pool, or a null pointer, which is ignored.
+.PP
+When a block is allocated, sometimes there is some extra unused space at the end.
+.I Msize
+grows the block to encompass this unused space and returns the new number
+of bytes that may be used.
+.PP
+The memory allocator does not maintain ``malloc tag'' and the ``realloc tag'',
+but the functions 
+.IR setmalloctag ,
+.IR getmalloctag ,
+.IR setrealloctag ,
+and
+.IR getrealloctag 
+are provided for compaibility with the
+.IR pool (2)
+library.
+.PP
+.I Mallocinit
+must be called before
+.I malloc
+is used.
+.I Mallocsummary
+prints a short summary of the allocator's state on the console.
+.SH SOURCE
+.B /sys/src/9/port/qmalloc.c
+.br
+.B /sys/src/9k/port/qmalloc.c
+.SH DIAGNOSTICS
+All functions except
+.I smalloc
+return a null pointer if space is unavailable.
+.SH SEE ALSO
+.IR "The C Programming Language" ,
+2ed, Brian Kernighan and Dennis Ritchie,
+chapter 8 §7: Example—Storage Allocator.
+.br
+.I "Quickfit: An efficient algorithm"
+.I for heap storage allocation" ,
+Charles B. Weinstock and William A. Wulf. 
+ACM SIGPLAN Notices, 23(10):141—144, October 1988.
+.br
+.IR pool (2),
+.IR physalloc (9k)

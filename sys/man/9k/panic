@@ -1,0 +1,62 @@
+.TH PANIC 9k
+.SH NAME
+archreset, exit, panic, ndnr \- abandon hope
+.SH SYNOPSIS
+.ta \w'\fLchar* 'u
+.B
+void	archreset(void)
+.br
+.B
+void	exit(int ispanic)
+.br
+.B
+void	ndnr(void)
+.br
+.B
+void	panic(char *fmt, ...)
+.SH DESCRIPTION
+.PP
+.I Archreset
+reboots the machine.
+.PP
+Depending on configuration settings, the platform-dependent
+.I exit
+might reboot the system.  If
+.I ispanic
+is set,
+.I panic
+is called.
+.PP
+.I Ndnr
+(no deposit, no return)
+disables all
+interrupt sources and halts the current processor.
+.PP
+.I Panic
+writes a message to the console and
+causes the system to give up the ghost.
+It disables interrupts, dumps the kernel stack,
+and halts the current processor;
+if more than one, others will gradually come to a halt.
+A subsequent
+.I panic
+on a different processor will halt that processor with
+.IR ndnr;
+a recursive
+.I panic
+will reboot the machine with
+.IR archreset.
+.PP
+The format
+.I fmt
+and associated arguments are the same as those for
+.IR print (9).
+.I Panic
+adds a prefix
+.L "panic: cpu\fIn\fP:"
+and a trailing newline.
+.SH "SEE ALSO"
+.IR panic (9)
+.SH BUGS
+Note the differences with
+.IR panic (9).
