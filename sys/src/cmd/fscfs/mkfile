@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+TARG=fscfs
+COMMONOBJ=
+
+OFILES=cfs.$O $COMMONOBJ
+
+HFILES=\
+	dat.h\
+	fns.h\
+	stats.h\
+
+CFILES=${OFILES:%.$O=%.c}
+
+UPDATE=mkfile\
+	/386/bin/$TARG\
+	$HFILES\
+	$CFILES\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+cfs.$O:		$HFILES
+
+clean:V:
+	rm -f *.[$OS] [$OS].*

@@ -1,0 +1,94 @@
+- file length (to avoid having to forward reads to detect end of file)
+
+- virtual directories, reading a directory wipes out the
+ virtual directory. virtual property in the inode.
+
+- inode contains the qid, inuse, pointers, and virtual
+ property.  one pointer each for 3 levels.
+
+? reserve version == -1 to mean a virtual file? makes
+ some things easier.
+
+- first inode is always the root.
+
+- adding any virtual entry to a directory makes the
+ whole directory virtual.
+
+? how do we resolve access to missing parts when running
+ remotely?
+
+? what are default properties of files (ones we haven't
+ stat'd)?
+
+- local walk won't move fid remotely: must later walk fid if it's needed at the server,
+   or hold a local clone (perhaps in special fid space) representing the result of the walk
+
+- why not use exportfs's scheme (turn them back into system calls as needed)?
+    after all, currently the clients actually use exportfs connection
+	- auth?
+- why not just add cache to exportfs?
+	- need shared cache
+
+- QTEXCL should pass through (ok for cfs because opens already do)
+- permission checks on open?
+
+- shared writable files?
+
+- cfs assumes T -> R in order
+
+- could re-use tag of incoming op (probably assumes in order, or put client id in high-order bits)
+
+x String hash table
+
+- auth interaction, and attach
+
+- fid management different for input from clients and output to server
+
+- if any client has fid to file, server has fid to file
+- if no client has fid to file, server might have fid to file (LRU)
+- if any client has fid open, server has fid open (BUT: modes, auth)
+- if no client has fid open, server will not have fid open (for now)
+	- OREAD, OWRITE, ORDWR, OEXEC(!)
+	- OTRUNC [if not QTAPPEND]
+	- OEXCL
+	- ORCLOSE
+	- OCEXEC (not in protocol)
+- initially it's probably adequate to cache only OREAD
+
+fid walk
+- Path has optional SFid
+- root has SFid from Tattach
+	- must not be lost, in case of later attaches
+- all local attach fids are bound to root.sfid
+- if not localwalk, allocate SFid and walk that
+	- if walks to Path with SFid, clunk and substitute
+	(in non-concurrent system, can't happen? because localwalk would have returned it)
+
+attach and auth handling
+- attach can't be done until successful Tauth
+- Tauth just introduces a fid for Tread/Twrite[/Tclunk]
+	- need to assume that existing Attach with similar parameters is adequate authentication
+	(obviously wrong, because another incoming connection saying Tauth might not represent the
+	same principal. with one connection, it hardly matters, because if it's shared,
+	spoofing could occur by fid substitution if the connection can't be trusted.
+	also, in this particular application, it's usually safe to assume that every connection is either the
+	same principal or "none". trust lies in the authentication of the connection, and the associated "speaks for"
+	relationship.)
+
+- private sfid in ropen/rcreate for isdirect files; must clunk
+
+- Path's SFid is only walkable; Fid must have separate path to (possibly shared) SFid for IO
+
+- I/O fids should be shared (unless impossible)
+	- can't share QTEXCL, or QTDIR [offset clashes]
+	- for QTDIR, could read whole directory and cache that, with purely local fid,
+		or read and accumulate contents incrementally
+	- need a way to find the shared fid
+		- stored in File? as at present [one for each possible mode]
+		- map [hash] qid.path x (mode&3) x rclose -> SFid
+		- first open in given mode -> clone Path's SFid (as at present)
+	- have Fid.open: SFid -> shared fid once located?
+		- also private SFid when needed (eg, isdirect, ORCLOSE)
+	- Qid changes on open (eg, clone)
+		- might detect change of qid.path on first open and mark File as volatile
+		    (enough to discard File reference from Path)
