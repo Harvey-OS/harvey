@@ -371,8 +371,8 @@ asmmeminit(void)
 	}
 
 	n = sys->vmend - sys->vmstart;			/* close enough */
-	if(n > 600*MiB)
-		n = 600*MiB;
+	if(n > 3*600ull*MiB)
+		n = 3*600ull*MiB;
 	ialloclimit(n/2);
 
 	pm = palloc.mem;

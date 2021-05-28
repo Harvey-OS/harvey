@@ -71,12 +71,12 @@ pageinit(void)
 			i, pm->color, pm->base, pm->limit);
 
 /* BUG; can't handle it all right now */
-if(pm->base > 600*MiB){
+if(pm->base > 3*600ull*MiB){
 	pm->limit = pm->base;
 	continue;
 }
-if(pm->limit > 600*MiB)
-	pm->limit = 600*MiB;
+if(pm->limit > 3*600ull*MiB)
+	pm->limit = 3*600ull*MiB;
 
 		np += (pm->limit - pm->base)/PGSZ;
 	}
