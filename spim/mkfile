@@ -1,0 +1,9 @@
+</sys/src/mkfile.proto
+
+OS=0$OS
+CPUS=$CPUS spim
+
+CC=0c
+LD=0l
+O=0
+AS=0a

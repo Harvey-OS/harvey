@@ -42,7 +42,7 @@ Machdata mipsmach =
 
 Machdata mipsmachle =
 {
-	{0, 0, 0, 0xD},		/* break point */
+	{0xD, 0, 0, 0},		/* break point */
 	4,			/* break point size */
 
 	leswab,			/* short to local byte order */
@@ -65,7 +65,7 @@ Machdata mipsmachle =
  */
 Machdata mipsmach2le =
 {
-	{0, 0, 0, 0xD},		/* break point */
+	{0xD, 0, 0, 0},		/* break point */
 	4,			/* break point size */
 
 	leswab,			/* short to local byte order */

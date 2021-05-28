@@ -1,0 +1,21 @@
+objtype=spim
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libmp.a
+# can't use this mpdigdiv.s on mips32 cpus
+SFILES=\
+	mpvecadd.s\
+	mpvecsub.s\
+	mpvecdigmuladd.s\
+	mpvecdigmulsub.s\
+#	mpdigdiv.s\
+
+HFILES=/$objtype/include/u.h /sys/include/mp.h ../port/dat.h
+
+OFILES=${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib

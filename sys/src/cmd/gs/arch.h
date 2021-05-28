@@ -4,6 +4,8 @@
 #include "386.h"
 #elif Tmips
 #include "mips.h"
+#elif Tspim
+#include "spim.h"
 #elif Tpower
 #include "mips.h"
 #elif Talpha
