@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libdynld.a
+
+OFILES=\
+	dynld-$objtype.$O\
+	dynloadfd.$O\
+	dynld.$O\
+
+</sys/src/cmd/mksyslib

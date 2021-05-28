@@ -1,0 +1,287 @@
+.TH DYNLD 2
+.SH NAME
+dynfindsym, dynfreeimport, dynloadfd, dynloadgen, dynobjfree, dyntabsize \- load object file dynamically
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <a.out.h>
+.br
+.B #include <dynld.h>
+.PP
+.ta \w'\fLDynsym*** 'u
+.B
+Dynsym*	dynfindsym(char *name, Dynsym *syms, int nsym)
+.PP
+.B
+Dynobj*	dynloadfd(int fd, Dynsym *exports, int nexport,
+.br
+.B
+	  ulong maxsize)
+.PP
+.B
+Dynobj*	dynloadgen(void *file, long (*read)(void*,void*,long),
+.br
+.B
+	  vlong (*seek)(void*,vlong,int), void (*err)(char*),
+.br
+.B
+	  Dynsym *exports, int nexport, ulong maxsize)
+.PP
+.B
+void*	dynimport(Dynobj *o, char *name, ulong sig)
+.PP
+.B
+void	dynfreeimport(Dynobj *o)
+.PP
+.B
+void	dynobjfree(Dynobj *o)
+.PP
+.B
+int	dyntabsize(Dynsym *t)
+.PP
+.B
+extern Dynsym  _exporttab[];
+.DT
+.SH DESCRIPTION
+These functions allow a process to load further code and data
+into the currently executing image.
+A dynamically-loadable file, called a
+.I module
+here, is a variant of the
+.IR a.out (10.6)
+executable format with some extra components.
+The loader for the architecture
+(see
+.IR 8l (1))
+creates a module file from component object file(s) when given the
+.B -u
+option.
+A module contains text and data sections, an import table, an export table,
+and relocation data.
+The import table lists the symbols the module needs from the loading program;
+the export table lists symbols the module provides when loaded.
+A program that loads a module provides a table of its own symbols to match
+the symbols in the module's import table.
+.PP
+A symbol entry in a symbol table names a global function or data item, and has an associated
+.I signature
+value representing the type of the corresponding function or data in the source code.
+The
+.B Dynsym
+structure defines a symbol:
+.IP
+.EX
+typedef struct {
+	ulong	sig;
+	ulong	addr;
+	char*	name;
+} Dynsym;
+.EE
+.PP
+The structure is known to the loaders
+.IR 8l (1).
+.I Name
+is the linkage name of the function or data.
+.I Addr
+is its address, which is relative to the start of the module before loading,
+and an address in the current address space after loading.
+The signature
+.I sig
+is the value produced by the C compiler's
+.B signof
+operator applied to the type.
+Symbol tables must be sorted by
+.IR name .
+.PP
+An executable that wishes to load modules will normally be linked using the
+.B -x
+option to the appropriate loader
+.IR 8l (1).
+The resulting executable contains an export table
+.B _exporttab
+that lists all the exported symbols of the program (by default, all external symbols).
+A nil name marks the end of the table.
+See
+.IR 8l (1)
+for details.
+The table can be given to the functions below to allow a loaded module
+to access those symbols.
+.PP
+A loaded module is described by a
+.B Dynobj
+structure:
+.IP
+.EX
+typedef struct {
+	ulong	size;	/* total size in bytes */
+	ulong	text;	/* bytes of text */
+	ulong	data;	/* bytes of data */
+	ulong	bss;		/* bytes of bss */
+	uchar*	base;	/* start of text, data, bss */
+	int		nexport;
+	Dynsym*	export;	/* export table */
+	int		nimport;
+	Dynsym**	import;	/* import table */
+} Dynobj;
+.EE
+.PP
+Several fields give sizes of the module's components, as noted in comments above.
+.I Base
+gives the address at which the module has been loaded.
+All its internal
+references have been adjusted where needed to reflect its current address.
+.I Export
+points to a symbol table listing the symbols exported by the module;
+.I nexport
+gives the table's length.
+.I Import
+points to a list of symbols imported by the module;
+note that each entry actually points to an entry in a symbol table
+provided by the program that loaded the module (see below).
+.I Nimport
+gives the import table's length.
+If the import table is not required, call
+.I dynfreeimport
+on the module pointer to free it.
+.PP
+.I Dynfindysm
+looks up the entry for the given
+.I name
+in symbol table
+.I syms
+(of length
+.IR nsym ).
+It returns a pointer to the entry if found; nil otherwise.
+The symbol table must be sorted by name in ascending order.
+.PP
+.I Dyntabsize
+returns the length of symbol table
+.IR t ,
+defined to be the number of
+.B Dynsym
+values starting at
+.I t
+that have non-nil
+.I name
+fields.
+It is used to find the length of
+.BR _exporttab .
+.PP
+.I Dynloadfd
+loads a module from the file open for reading on
+.IR fd ,
+and returns the resulting module pointer on success,
+or nil on error.
+If
+.I maxsize
+is non-zero
+the size of the dynamically-loaded module's code and data
+is limited to
+.I maxsize
+bytes.
+.I Exports
+is an array of
+.I nexport
+symbols in the current program that can be imported by the current module.
+It uses
+.IR read (2)
+and
+.IR seek (2)
+to access
+.IR fd ,
+and calls
+.I werrstr
+(see
+.IR errstr (2))
+to set the error string if necessary.
+.PP
+.I Dynloadgen
+is a more general function that can load a module from an
+arbitrary source, not just an open file descriptor.
+(In particular, it can be
+called by the kernel using functions internal to the kernel
+instead of making system calls.)
+.IR Exports ,
+.I nexport
+and
+.I maxsize
+are just as for
+.IR dynloadfd .
+.I File
+is a pointer to a structure defined by the caller that represents the file
+containing the module.
+It is passed to
+.I read
+and
+.IR seek .
+.I Read
+is invoked as
+.BI (*read)( file , buf ,\ \fInbytes\fP)\fR.\fP
+.I Read
+should read
+.I nbytes
+of data from
+.I file
+into
+.I buf
+and return the number of bytes transferred.
+It should return -1 on error.
+.I Seek
+is invoked as
+.BI (*seek)( file , n ,\ \fItype\fP)
+where
+.I n
+and
+.I type
+are just as for
+.IR seek (2);
+it should seek to the requested offset in
+.IR file ,
+or return -1 on error.
+.I Dynloadgen
+returns a pointer to the loaded module on success.
+On error,
+it returns nil after calling its
+.I err
+parameter to set the error string.
+.PP
+.I Dynimport
+returns a pointer to the value of the symbol
+.I name
+in loaded module
+.IR o ,
+or
+.I nil
+if
+.I o
+does not export a symbol with the given
+.IR name .
+If
+.I sig
+is non-zero, the exported symbol's signature must equal
+.IR sig ,
+or
+.I dynimport
+again returns nil.
+For example:
+.IP
+.EX
+Dev *d;
+d = dynimport(obj, "XXXdevtab", signof(*d));
+if(d == nil)
+	error("not a dynamically-loadable driver");
+.EE
+.PP
+.I Dynobjfree
+frees the module
+.IR o .
+There is no reference counting: it is the caller's responsibility to decide whether
+a module is no longer needed.
+.SH SEE ALSO
+.IR 8l (1),
+.\".IR mach (2),
+.IR a.out (6)
+.SH DIAGNOSTICS
+Functions that return pointers return nil on error.
+.I Dynloadfd
+sets the error string and returns nil.
