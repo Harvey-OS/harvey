@@ -18,7 +18,7 @@
 #define LOG "9down"
 
 #ifndef OUTSIDE
-#define OUTSIDE 1		/* paranoid by default */
+#define OUTSIDE 0
 #endif
 
 static	Hio	houtb;
@@ -77,9 +77,9 @@ main(int argc, char **argv)
 
 	file = strdup(connect->req.uri);
 
-	dir = "/sys/lib/dist/web.protect";
+	dir = "/usr/web";
 	if(sources)
-		dir = "/sys/src";
+		dir = "/usr/web/sources";
 	if(chdir(dir) < 0)
 		interr("cd %s: %r", dir);
 
@@ -206,9 +206,9 @@ cat(char *file, int trailingslash)
 			hprint(hout, "Date: %D\r\n", time(nil));
 			hprint(hout, "Connection: close\r\n");
 			if(strcmp(file, ".") == 0)
-				hprint(hout, "Location: /sys/src/\r\n");
+				hprint(hout, "Location: /sources/\r\n");
 			else
-				hprint(hout, "Location: /sys/src/%s/\r\n", file);
+				hprint(hout, "Location: /sources/%s/\r\n", file);
 			hprint(hout, "\r\n");
 			hflush(hout);
 			exits(0);
