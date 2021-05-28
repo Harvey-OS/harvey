@@ -446,7 +446,6 @@ dumpstackwithureg(Ureg* ureg)
 	extern ulong etext;
 	int x;
 
-if(ureg != nil) dumpregs(ureg); return;
 	if(getconf("*nodumpstack")){
 		iprint("dumpstack disabled\n");
 		return;
