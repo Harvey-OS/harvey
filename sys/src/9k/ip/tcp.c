@@ -539,6 +539,44 @@ tcpannounce(Conv *c, char **argv, int argc)
 	return nil;
 }
 
+static void
+tcpclosestate(Conv *c, Tcpctl *tcb, int state)
+{
+	tcb->flgcnt++;
+	tcb->snd.nxt++;
+	tcpsetstate(c, state);
+	tcpoutput(c);
+}
+
+/* close the output half of a tcp connection */
+static char *
+tcpxmitclose(Conv *c)
+{
+	Tcpctl *tcb;
+
+	qhangup(c->wq, nil);
+
+	tcb = (Tcpctl*)c->ptcl;
+	switch(tcb->state) {
+	case Listen:
+		/*
+		 *  reset any incoming calls to this listener
+		 */
+		Fsconnected(c, "Hangup");
+		/* fall through */
+	case Closed:
+	case Syn_sent:
+		localclose(c, nil);
+		break;
+	case Syn_received:
+	case Established:
+	case Close_wait:
+		tcpclosestate(c, tcb, tcb->state);
+		break;
+	}
+	return nil;
+}
+
 /*
  *  tcpclose is always called with the q locked
  */
@@ -560,25 +598,17 @@ tcpclose(Conv *c)
 		 *  reset any incoming calls to this listener
 		 */
 		Fsconnected(c, "Hangup");
-
-		localclose(c, nil);
-		break;
+		/* fall through */
 	case Closed:
 	case Syn_sent:
 		localclose(c, nil);
 		break;
 	case Syn_received:
 	case Established:
-		tcb->flgcnt++;
-		tcb->snd.nxt++;
-		tcpsetstate(c, Finwait1);
-		tcpoutput(c);
+		tcpclosestate(c, tcb, Finwait1);
 		break;
 	case Close_wait:
-		tcb->flgcnt++;
-		tcb->snd.nxt++;
-		tcpsetstate(c, Last_ack);
-		tcpoutput(c);
+		tcpclosestate(c, tcb, Last_ack);
 		break;
 	}
 }
@@ -3291,6 +3321,8 @@ tcpctl(Conv* c, char** f, int n)
 {
 	if(n == 1 && strcmp(f[0], "hangup") == 0)
 		return tcphangup(c);
+	if(n == 1 && strcmp(f[0], "hangupxmit") == 0)
+		return tcpxmitclose(c);
 	if(n >= 1 && strcmp(f[0], "keepalive") == 0)
 		return tcpstartka(c, f, n);
 	if(n >= 1 && strcmp(f[0], "checksum") == 0)
