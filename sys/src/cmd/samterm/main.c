@@ -104,6 +104,10 @@ threadmain(int argc, char *argv[])
 					scroll(which, 3);
 				else
 					menu3hit();
+			}else if((mousep->buttons&8)){
+				scroll(which, 4);
+			}else if((mousep->buttons&16)){
+				scroll(which, 5);
 			}
 			mouseunblock();
 		}
@@ -432,6 +436,7 @@ flushtyping(int clearesc)
 #define	PAGEUP	Kpgup
 #define	RIGHTARROW	Kright
 #define	SCROLLKEY	Kdown
+#define Kstx		0x02
 
 int
 nontypingkey(int c)
@@ -447,6 +452,7 @@ nontypingkey(int c)
 	case PAGEUP:
 	case RIGHTARROW:
 	case SCROLLKEY:
+	case Kstx:
 		return 1;
 	}
 	return 0;
@@ -604,6 +610,19 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 				}
 			}
 		}
+	}else if((mousep->buttons&8)){
+		scroll(which, 4);
+	}else if((mousep->buttons&16)){
+		scroll(which, 5);
+	}else if(c == Kstx){
+		t = &cmd;
+		for(l=t->l; l->textfn==0; l++)
+			;
+		current(l);
+		flushtyping(0);
+		a = t->rasp.nrunes;
+		flsetselect(l, a, a);
+		center(l, a);
 	}else{
 		if(c==ESC && typeesc>=0){
 			l->p0 = typeesc;
