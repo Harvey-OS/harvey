@@ -4,14 +4,19 @@
 rfork nes
 kern=()
 kerncopy=()
+loadkern=yes
 reboot=no
 fn usage {
-	echo usage: $1 '[-r] [new-kernel]' >[1=2]
+	echo usage: $1 '[-r] [-R] [new-kernel]' >[1=2]
 	exit usage
 }
 if (! ~ $#* 0)
 	switch ($1) {
 	case -r
+		reboot=yes
+		shift
+	case -R
+		loadkern=no
 		reboot=yes
 		shift
 	case -*
@@ -53,7 +58,8 @@ fn usekernel {
 }
 
 # make a copy of the right kernel
-if (~ $reboot yes) {
+if (~ $reboot yes)
+if (~ $loadkern yes) {
 	if (~ $#kern 0)
 		kern=`{echo $terminal |
 			sed 's;^([^ ]+) .*/([^/ ]+).*$;/n/boot/'$cputype'/9\2;'}

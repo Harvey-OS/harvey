@@ -6,6 +6,8 @@ fshalt, reboot \- halt any local file systems and optionally reboot the system
 [
 .B -r
 ] [
+.B -R
+] [
 .I new-kernel
 ]
 .br
@@ -26,7 +28,9 @@ servers.
 If given
 .BR -r ,
 .I fshalt
-will then reboot the machine.
+will then reboot the machine by loading a new kernel. Specifying
+.BR -R
+will bypass loading a new kernel and restart the machine.
 If
 .I new-kernel
 is given, it will be loaded as the new kernel rather than
