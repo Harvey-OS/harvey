@@ -17,12 +17,12 @@ OBJ=$MACH $CONF.root.$O $DEVS $PORT
 $p$CONF:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 	$LD -o $target -T0xfffffffff0110000 -R4096 -l $OBJ $CONF.$O $LIB
-#	$LD -o $target.elf -H5 -E0x00110000 -P0x00110000 -8 -T0xfffffffff0110000 -l $OBJ $CONF.$O $LIB
+	$LD -o $target.elf -H5 -E0x00110000 -P0x00110000 -8 -T0xfffffffff0110000 -l $OBJ $CONF.$O $LIB
 	size $target
 
 install:QV:	$p$CONF
-	cp $p$CONF /$objtype
-	ls -l /$objtype/$p$CONF
+	cp $p$CONF $p$CONF.elf /$objtype
+	ls -l /$objtype/$p$CONF /$objtype/$p$CONF.elf
 
 l32p.$O:	${objtype}l.h
 l64idt.$O:	${objtype}l.h
