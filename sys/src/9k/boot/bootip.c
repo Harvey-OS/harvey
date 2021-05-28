@@ -51,16 +51,16 @@ configip(int bargc, char **bargv, int needfs)
 	if(bind("#I", mpoint, MAFTER) < 0)
 		fatal("bind #I");
 	dprint("bind #l0...");
-	if(access("#l0", 0) == 0 && bind("#l0", mpoint, MAFTER) < 0)
+	if(access("#l0", AEXIST) == 0 && bind("#l0", mpoint, MAFTER) < 0)
 		warning("bind #l0");
 	dprint("bind #l1...");
-	if(access("#l1", 0) == 0 && bind("#l1", mpoint, MAFTER) < 0)
+	if(access("#l1", AEXIST) == 0 && bind("#l1", mpoint, MAFTER) < 0)
 		warning("bind #l1");
 	dprint("bind #l2...");
-	if(access("#l2", 0) == 0 && bind("#l2", mpoint, MAFTER) < 0)
+	if(access("#l2", AEXIST) == 0 && bind("#l2", mpoint, MAFTER) < 0)
 		warning("bind #l2");
 	dprint("bind #l3...");
-	if(access("#l3", 0) == 0 && bind("#l3", mpoint, MAFTER) < 0)
+	if(access("#l3", AEXIST) == 0 && bind("#l3", mpoint, MAFTER) < 0)
 		warning("bind #l3");
 	werrstr("");
 
