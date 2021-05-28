@@ -1,0 +1,202 @@
+.TH JTAGFS 4
+.SH NAME
+jtagfs \- jtag kernel debugging file system
+.SH SYNOPSIS
+.B jtagfs
+[
+.B -d
+.I debugstr
+]
+[
+.B -b
+.I motherbname
+]
+[
+.B -t
+.I text
+]
+[
+.B -m
+.I mountpoint
+]
+[
+.B -s
+.I srvfile
+]
+.I jtagfile
+.SH DESCRIPTION
+.I Jjagfs
+presents in 
+.BI /n/jtagfs/ctl
+a set of process files for debugging
+a kernel running on an arm over a jtag
+.I device
+in a manner similarly to
+.IR rdbfs (4)
+but without any need for the kernel collaborating.
+In debug mode an arm stops and isolates itself from the
+surroundings and can be probed and instructions injected
+at will.
+There are a number of options:
+.TP
+.B  -d
+Can be used to set the debug string, see below.
+.TP
+.B  -m
+and
+.B -s
+Set the mount point and srv name respectively. By default
+the mount point is
+.BI /n/jtagfs/ctl .
+.TP
+.B  -b
+Motherboard kind jtagfs is going to be run against. Valid parameters
+are
+.B sheeva,
+which stands for the Feroceon Guruplug and the sheevaplug and is the default and
+.B gurudisp
+which stands for the Armada Guru Display.
+.TP
+.B  -t
+The 
+.B text
+file presented is just a copy of
+.I text
+(default
+.BR /arm/s9plug ).
+It can usually be ignored, since
+the debuggers open kernel
+files directly rather than
+using
+.BI /proc/ n /text\fR.
+.PP
+Kernels can be remotely debugged  only when they are
+stopped and put in debug mode. This can be done
+through instruction breakpoints, vector catching (on entry
+to interrupts) or on demand using
+.B stop().
+.PP
+An acid library to use with the most common operations
+called jtag is provided to make most common operations
+simpler. In particular
+.B start(),
+.B stop()
+and
+.B waitstop()
+have jtag specific variants
+(for example
+.B sheevastart()
+)
+which disable and reenable the watchdog.
+Other than this functions and the symbol translations, this
+program can be used to debug kernels from other operating systems.
+.PP
+The function
+.B veccatch(str)
+can be used to set a vectorcatch, which stops the processor right after
+an interrupt. The string describes which interrupts to cacth.
+Each caracter represents a type of interrupt:
+.sp
+.EX
+.ta 4n +6n 
+ 'R'	Reset
+ 'S'	SWI
+ 'P'	PAbort
+ 'D'	DAbort
+ 'I'	Irq
+ 'F'	Fiq
+.fi
+.EE
+.PP
+The function
+.B debug(str)
+can be used to set different levels of debug. Each character on
+the string represent a different software layer:
+.PP
+.EX
+.ta 6n +2n +4n +4n +4n +4n +4n
+.sp
+DFile	  	= 'f',		/* Reads, writes, flushes*/
+DPath  	= 'p',		/* path for state transitions for tap debugging */
+DState  	= 's',		/* state calculation and changes on tap interface */
+Dinst  	= 'i',		/* mpsse instruction assembling debug */
+Dassln  	= 'a',		/* print instructions before assembling */
+Dmach  	= 'm',		/* print mpsse machine code and op results */
+Djtag  	= 'j',		/* print jtag level operations */
+Dice	  	= 'e',		/* print icert level operations */
+Dchain  	= 'h',		/* print icert chains */
+Dmmu  	= 'u',		/* print MMU ops */
+Dctxt  	= 'c',		/* dump context in and out */
+Darm  	= 'w',		/* standard insts and so */
+Dmem  	= 'y',		/* memory ops */
+Dfs	  	= 'k',		/* filesystem ops */
+DAll	  	= 'A'
+.fi
+.EE
+.SH EXAMPLES
+.EX
+jtagfs /dev/eiaU*/jtag
+bind /n/jtagfs /proc/1
+term% acid -l jtag -k 1 /arm/s9plug
+/arm/s9plug:ARM plan 9 boot image
+/sys/lib/acid/port
+/sys/lib/acid/arm
+acid: reset()
+acid: sheevastop()
+ID: 0x20a023d3
+Must be 1: 1
+Manufacturer id: 0x1e9
+Part no: 0xa02
+Version: 0x2
+1: SVC/SWI Exception	0xc02e1094	no instruction
+acid: dump(0xc02e1094, 4, "Xi")
+0xc02e1094: 0x1204e0ff CMP.S	$#0x100,R0 
+0xc02e109c: 0xe0266003 B.NE	etext+0x5fa536bc 
+0xc02e10a4: 0xe20c2040 AND	$#0x8,R12,R0 
+0xc02e10ac: 0xe20e1080 AND	$#0x1,R14,R3 
+0xc02e10b4: 0xe1811002 ORR	(R0<<4),R3,R3 
+acid: regs()
+R0	0x5e20a2dc R1	0xf5518723 R2	0x001d1d00
+R3	0x369244e0 R4	0x2b9244fd R5	0xbbc54739
+R6	0x5e20a2dc R7	0x00000eb0 R8	0xdfd7ceb0
+R9	0x00000006 R10	0xc08c1f20 R11	0xc08c1f04
+R12	0x1d00001d R13	0xc08c1ea0 R14	0x00000000
+R15	0xc031fa8c
+acid: sheevastart()
+.EE
+.SH SOURCE
+.B /sys/src/cmd/jtag
+.br
+.B /sys/lib/acid/jtag
+.SH "SEE ALSO"
+.IR acid (1),
+.IR db (1).
+.br
+``ARM9E-S Technical Reference Manual''.
+.br
+``ARM7TDMI-S Core Technical Reference Manual".
+.br
+``Application note 205 "Writing JTAG Sequences for Arm 9 Processors".
+.br
+``Design and Implementation of an On-Chip Debug for Embedded Target Systems",
+Dominic Rath.
+.br
+``IEEE Standard 1149-1-2001 Test Access Port and Boundary Scan Architecture",
+JTag IEEE standard.
+.br
+``AN2232C-01 Command Processor for MPSSE and MCU Host Bus Emulation Modes",
+Future Technology Devices International Ltd.
+.SH BUGS
+After a while of the machine being on, the jtag will stop
+working; maybe an autentication register needs to be set.
+If this is the case
+.B cpuid()
+will return error.
+Reset always works.
+Reading and writing from memory is slow.
+The filesystems needs a lot of cleaning.
+Only the feroceon cpu and sheeva/guruplug boards are
+supported, though more can be added.
+Error report is sparse.
+Jtagfs should be rewritten using the 9p library and it would shrink
+to half.

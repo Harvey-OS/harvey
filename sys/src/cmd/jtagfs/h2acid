@@ -1,0 +1,30 @@
+#!/bin/awk -f
+
+#	cat /sys/src/9/kw/mem.h /sys/src/9/kw/arm.h|h2acid|grep -v define
+
+BEGIN{
+	isparen=0
+}
+
+
+/#define ?[^ 	\(]+\(/{
+	isparen=1
+	fullname=$0
+	sub(/\/\*.*\*\//, "", fullname)
+	sub(/\/\/.*/, "", fullname)
+	sub(/[ 	]+$/, "", fullname);
+	name=$2
+	sub(/\(.*/, "", name);
+	params=fullname
+	sub(/[^\(]+\(/, "", params)
+	sub(/\).*/, "", params);
+	val=fullname
+	sub(/[^\)]+\)/, "", val);
+	print("\ndefn", name"("params")", " {\n\t"name "res = " val ";\n}\n")
+}
+
+/#define.*/ && !isparen{
+	print($2 " = " $3 ";");
+}
+
+/.*/{ isparen = 0}

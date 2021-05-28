@@ -1,0 +1,10 @@
+#!/bin/rc
+
+./8.mpssetest -t <examples xdg >[2] errors
+xd -c -bx xdg
+
+#this should all error:
+./8.mpssetest -t < examplesbad  xdb >[2] errors
+cat errors
+xd -c -bx xdb
+

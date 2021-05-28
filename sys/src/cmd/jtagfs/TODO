@@ -1,0 +1,36 @@
+
+Use openocd on a fake GURU to see reset
+Unknown
+
+Fix start
+
+Fix the sheeva nsrst must be asserted while stopping/cpuiding
+but this is just for the feroceon, an extra reset state before
+cpuid/request. The order is strictly this:
+
+- UNTESTED
+reset 0 1
+cpuid
+set DBGRQ
+reset 0 0
+wait halt
+
+It may work to break it into:
+reset 0 1
+cpuid
+reset 0 0
+
+and
+
+reset 0 1
+set DBGRQ
+reset 0 0
+
+
+Put currentch inside the tap description in an Armtap state.
+
+Add a ctl to identify the motherboard, not sure how to call initmpsse...
+break it in two pieces maybe.
+Identify which part is board dependant.
+
+Get more info about the GURU display.

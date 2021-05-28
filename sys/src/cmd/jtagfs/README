@@ -1,0 +1,33 @@
+To install
+
+cp acidjtag /sys/lib/acid/jtag
+cp acidarm /sys/lib/acid/arm
+cp jtagfs.man /sys/man/4/jtagfs
+mkdir /sys/src/cmd/jtagfs
+cp * /sys/src/cmd/jtagfs
+cd /sys/src/cmd/jtagfs
+mk install
+
+change attachproc in libmach so that we can modify the kernel
+registers.
+
+/sys/src/libmach/map.c:94
+< 		mode = ORDWR;
+---
+> 		mode = OREAD;
+recompile libmach and acid
+It could also be done through acid using map(), but in this case
+it is better this way.
+
+The armada implementation has never been run even once.
+
+
+Byte endianness. As it is now, it depends on endianness of ARM being the
+same as 386. Specifically, the /proc served is in the machine where it runs
+order (i.e. in a little endian machine it would not work). This should be
+changed on jtagfs, just before serving them.
+
+MMU state is served after the Uregs (there is no floating point, if not, it would
+be after the floating point too). A map has been added to map it in read only.
+h2acid for constants and macros
+

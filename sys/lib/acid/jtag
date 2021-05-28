@@ -1,0 +1,245 @@
+include("/sys/lib/acid/arm");
+
+// feroceon memory definitions
+TmrWDenable=1<<4;
+PHYSIO=0xf1000000;
+TIMERREG=0xf1020300;
+PsrMsvc=0x00000013;
+timerctl=0;
+KZERO=0x60000000;
+
+ureg = 0;
+complex Ureg ureg;
+uregtypeaddr=60;	//kludge
+
+//generated from 8c -a
+sizeofMMURegs = 32;
+aggr MMURegs
+{
+	'U' 0 cpid;
+	'U' 4 control;
+	'U' 8 ttb;
+	'U' 12 dac;
+	'U' 16 fsr;
+	'U' 20 far;
+	'U' 24 ct;
+	'U' 28 pid;
+};
+
+defn
+remapdata()
+{
+	mps = map();
+	
+	while mps do {
+		m = head mps;
+		name = head m;
+		if name == "*data" then {
+			dend = head tail tail m;
+			map({"*data", KZERO, dend, KZERO});
+		}
+		mps = tail mps;
+	}
+}
+//I want to be able to access MACH and other stuff
+remapdata();
+memmap=map();
+//TO DO is there any arm with fpregs?
+map({"regs", 0, sizeofUreg+sizeofMMURegs, 0});
+
+defn
+MMURegs(addr) {
+	complex MMURegs addr;
+	print("	cpid	", addr.cpid\X, "\n");
+	print("	control	", addr.control\X, "\n");
+	print("	ttb	", addr.ttb\X, "\n");
+	print("	dac	", addr.dac\X, "\n");
+	print("	fsr	", addr.fsr\X, "\n");
+	print("	far	", addr.far\X, "\n");
+	print("	ct	", addr.ct\X, "\n");
+	print("	pid	", addr.pid\X, "\n");
+};
+
+complex MMURegs mmuregs;
+mmuregs=sizeofUreg; // plus size of floating point registers
+
+defn
+mmuregs()
+{
+	MMURegs(mmuregs);
+}
+
+defn
+stopwdog()
+{
+	// change to svc mode to be able to access the address
+	stype = ureg.type;
+	*uregtypeaddr=PsrMsvc;
+	timerctl=*TIMERREG;
+	*TIMERREG = ~TmrWDenable&*TIMERREG;
+	*uregtypeaddr=stype;
+}
+
+defn
+startwdog()
+{
+	stype = ureg.type;
+	*uregtypeaddr=PsrMsvc;
+	*TIMERREG = TmrWDenable|timerctl;
+	*uregtypeaddr=stype;
+}
+
+defn
+hwbpset(addr, mask)
+{
+	printto("/proc/"+itoa(pid)+"/ctl", "breakpoint ", itoa(addr), " ", itoa(mask));
+}
+
+defn
+veccatch(vecstr)
+{
+	printto("/proc/"+itoa(pid)+"/ctl", "veccatch ", vecstr);
+}
+
+defn
+reset()
+{
+	printto("/proc/"+itoa(pid)+"/ctl", "reset ");
+}
+
+defn
+debug(dbstr)
+{
+	printto("/proc/"+itoa(pid)+"/ctl", "debug ", dbstr);
+}
+
+defn
+cpuid()
+{
+	printto("/proc/"+itoa(pid)+"/ctl", "cpuid");
+}
+
+defn
+jtaginfo()
+{
+	rc("cat /proc/"+itoa(pid)+"/ctl");
+}
+
+defn
+sheevastop()
+{
+	stop(pid);
+	stopwdog();
+}
+
+defn
+sheevastart()
+{
+	startwdog();
+	start(pid);
+}
+
+defn
+sheevawaitstop()
+{
+	waitstop(pid);
+	stopwdog();
+}
+
+// FROM here down on, UNTRIED BUG BUG BUG!!!!!
+
+//CpCONTROL, h2acid
+CpCmmu = 0x00000001;
+CpCalign = 0x00000002;
+CpCdcache = 0x00000004;
+CpCwb = 0x00000008;
+CpCi32 = 0x00000010;
+CpCd32 = 0x00000020;
+CpCbe = 0x00000080;
+CpCsystem = 0x00000100;
+CpCrom = 0x00000200;
+CpCicache = 0x00001000;
+CpChv = 0x00002000;
+
+//MMU definitions, h2acid
+KB=1024;
+MB=1024*1024;
+Mbo = 0x10;
+Coarse = (Mbo|1);
+Section = (Mbo|2);
+Fine = (Mbo|3);
+
+defn
+ismmuon()
+{
+	mmu = mmuregs;
+	complex MMURegs mmu;
+	return mmu.control&CpCmmu;
+}
+
+defn
+l1x(vaddr)
+{
+	return ((vaddr>>20) & 0x0fff)<<2;
+}
+
+defn
+l2x(vaddr)
+{
+	return ((vaddr>>12) & 0xff)<<2;
+}
+
+defn
+pgsz(type)
+{
+	if type == Fine then {
+		return KB;
+	} else if type == Section then {
+		return MB;
+	} else if type == Coarse then {
+		return 4*KB;
+	}
+	return 4*KB;
+}
+
+defn
+kaddr(vaddr)
+{
+	return KZERO|vaddr;	//very non portable
+}
+
+defn
+ttbpaddr(ttb, vaddr)
+{
+	if ! ismmuon() then {
+		print("paddr: mmu is off\n");
+		return 0;
+	}
+	l1idx = l1x(vaddr);
+	l2idx = l2x(vaddr);
+	pte1 = *((kaddr(ttb)&~0x1fff) + l1idx);
+	if pte1 == 0 then {
+		return 0;
+	}
+	type = pte1 & (Fine|Section|Coarse);
+	sz = pgsz(type);
+	if type == Section then {
+		return (pte1 & ~(sz - 1)) + (vaddr & (sz - 1));
+	}
+
+	l2addr = pte1 & ~(sz - 1);
+	if l2addr == 0 then {
+		return 0;
+	}
+	pte2 = *(kaddr(l2addr) + l2idx);
+	return  (pte2 & ~(sz - 1)) + (vaddr & (sz - 1));
+}
+
+defn
+paddr(vaddr)
+{
+	mmu = mmuregs;
+	complex MMURegs mmu;
+	return ttbpaddr(mmu.ttb, vaddr);
+}
+

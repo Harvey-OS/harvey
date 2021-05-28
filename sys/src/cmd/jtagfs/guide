@@ -1,0 +1,85 @@
+hwbpset(0x60800c28, 0x3ff)
+hwbpset(_vpabt, 0x0)
+hwbpset(_vsvc, 0x0)
+hwbpset(_vdabt, 0x0)
+hwbpset(_vund, 0x0)
+hwbpset(_virq, 0x0)
+veccatch("SPDIF")
+
+dump(_vrst, 30, "Xi")
+
+usb/serial
+
+echo b115200 s15 l8 pn > /dev/eiaU3.1/eiaUctl
+window -m
+window -m
+con /dev/eiaU3.1/eiaU
+
+echo debug . > /n/jtagfs/ctl
+
+window -scroll -r 0 5 700 369 plug
+
+
+kill 8.tagfs|rc
+/usr/paurea/src/jtag/8.jtagfs /dev/jtag*/jtag
+echo reset > /n/jtagfs/ctl
+
+#start the jtag
+echo cpuid > /n/jtagfs/ctl
+echo breakpoint 0xc02dc244 0x0 > /n/jtagfs/ctl
+
+echo breakpoint 0x0062822c 0x00000000 > /n/jtagfs/ctl
+ echo breakpoint 0xc0208124 0xffff0000  > /n/jtagfs/ctl
+
+#see debug.h for the string
+echo debugstr kc> /n/jtagfs/ctl
+
+BR 9 , pcadjust -5 works well
+BR 6, 2 works well
+
+cat /n/jtagfs/ctl
+echo stop > /n/jtagfs/ctl
+echo start > /n/jtagfs/ctl
+
+ echo debustr ew > /n/jtagfs/ctl
+#/n/jtagfs/mem can be used to read raw memory at an arbitrary offset
+
+
+#	set entry on exceptions
+#	changed so that turn it is turn on in debug state
+#	
+
+#wait for entry in debug state (with timeout)
+
+
+echo veccatch D > /n/jtagfs/ctl
+
+echo waitstop > /n/jtagfs/ctl
+echo start > /n/jtagfs/ctl
+
+
+window -scroll -r 0 5 700 369 plug
+
+bind /n/jtagfs /proc/1
+echo stop > /n/jtagfs/ctl
+echo debug ky > /proc/1/ctl
+acid -l /usr/paurea/src/jtag/acidjtag -k 1 /arm/s9plug
+
+_tiki:
+	//B	_tiki
+dump(*R15, 4, "X")
+dump(*R15, 4, "Xi")
+dump(0xc03207fc, 4, "X")
+mem(0x00621120, "X")
+regs()
+troff -man jtagfs.man|page -w
+
+bootcmd=bootp ; bootp; tftp 0x1000 /srv/tftp/plugini ; bootp ; tftp 0x800000 /srv/tftp/9plug ; go 0x800000
+
+
+
+boot linux:
+
+setenv bootargs $(bootargs) $(mtdpartitions) $(bootargs_root);
+nand read.e 0x00800000 0x00100000 0x00400000;
+bootm 0x00800000;

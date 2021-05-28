@@ -1,0 +1,62 @@
+</$objtype/mkfile
+BIN=/$objtype/bin
+
+#bad bad...
+Oo=`{cat /$cputype/mkfile|grep '^O'|sed 's/.*=//g'}
+
+TARG=mpssetest\
+	jtagfs\
+
+CLEANFILES=*.genrtab\
+	errors\
+	rtab.c\
+	xdb\
+	xdg\
+
+OFILES=\
+	bebo.$O\
+	chain.$O\
+	debug.$O\
+	icert.$O\
+	jtag.$O\
+	lebo.$O\
+	ma.$O\
+	mmu.$O\
+	mpsse.$O\
+	rtab.$O\
+	tap.$O\
+
+HFILES=\
+	bebo.h\
+	debug.h\
+	icert.h\
+	lebo.h\
+	mmu.h\
+	mpsse.h\
+	tap.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkmany
+
+$O.out:	/$objtype/lib/libregexp.a
+
+rtab.c: genrtab.c
+	$Oo^c -FVw genrtab.c && $Oo^l -o $Oo.genrtab genrtab.$Oo
+	./$Oo.genrtab > rtab.c
+
+rtest:V: all
+	./test
+
+pubfiles=`{ls}
+
+
+/usr/paurea/src/jtag/jtag.tgz: $pubfiles
+	cd /usr/paurea/src/jtag/ &&  tar cv jtag/^$pubfiles|gzip > jtag.tgz
+
+dist:V: /usr/paurea/src/jtag/jtag.tgz
+	mk all && mk clean && 9fs sources  && cp ../jtag.tgz /n/sources/contrib/paurea
+	
