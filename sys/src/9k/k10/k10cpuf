@@ -25,6 +25,7 @@ dev +dev
 sd +dev
 	sdata		pci sdscsi
 	sdiahci		pci sdscsi
+	sdvirtio	pci sdscsi
 
 uart +dev
 	uarti8250
