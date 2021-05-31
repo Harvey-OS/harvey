@@ -704,7 +704,7 @@ shrwstat(Chan *c, u8 *dp, int n)
 	}
 	if(d.uid != nil && *d.uid)
 		kstrdup(&ent->owner, d.uid);
-	if(d.mode != ~0U)
+	if(d.mode != ~0UL)
 		ent->perm = d.mode & 0777;
 
 	switch(sch->level){
