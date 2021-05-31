@@ -33,23 +33,7 @@ typedef struct Filelist	Filelist;
 typedef struct Tree	Tree;
 typedef struct Readdir	Readdir;
 typedef struct Srv 	Srv;
-typedef struct Reqqueue Reqqueue;
-typedef struct Queueelem Queueelem;
 
-struct Queueelem
-{
-	Queueelem *prev, *next;
-	void (*f)(Req *);
-};
-
-struct Reqqueue
-{
-	QLock;
-	Rendez;
-	Queueelem;
-	int pid, flush;
-	Req *cur;
-};
 
 struct Fid
 {
@@ -272,8 +256,3 @@ void	authdestroy(Fid*);
 int	authattach(Req*);
 
 extern void (*_forker)(void (*)(void*), void*, int);
-
-Reqqueue*	reqqueuecreate(void);
-void		reqqueuepush(Reqqueue*, Req*, void (*)(Req *));
-void		reqqueueflush(Reqqueue*, Req*);
-void		reqqueuefree(Reqqueue*);
