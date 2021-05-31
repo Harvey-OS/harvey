@@ -881,7 +881,7 @@ hdsetup(Dev *d, Ep *ep)
 	f = emallocz(sizeof(Hiddev), 1);
 	f->minfd = -1;
 	f->kinfd = -1;
-	incref(&d->ref);
+	incref(d);
 	f->dev = d;
 	if(setproto(f, ep->id) < 0){
 		fprint(2, "%s: %s: setproto: %r\n", argv0, d->dir);

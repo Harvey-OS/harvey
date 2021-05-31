@@ -89,7 +89,7 @@ chinit(Serialport *p)
 	chops.setparam(p);
 
 	/* p gets freed by closedev, the process has a reference */
-	incref(&ser->dev->ref);
+	incref(ser->dev);
 	return 0;
 }
 

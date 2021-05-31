@@ -465,7 +465,7 @@ plinit(Serialport *p)
 		free(st);
 	}
 	/* p gets freed by closedev, the process has a reference */
-	incref(&ser->dev->ref);
+	incref(ser->dev);
 	proccreate(statusreader, p, 8*1024);
 	return 0;
 }

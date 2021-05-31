@@ -575,7 +575,7 @@ openeps(Serialport *p, int epin, int epout, int epintr)
 		return -1;
 	}
 	if(epin == epout){
-		incref(&p->epin->ref);
+		incref(p->epin);
 		p->epout = p->epin;
 	} else
 		p->epout = openep(ser->dev, epout);
