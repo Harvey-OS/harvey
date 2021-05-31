@@ -240,7 +240,7 @@ frameinterval(Cam *c, VSUncompressedFrame *f, double t)
 {
 	double δ, minδ;
 	int i, mini;
-	u32 min, max, step, val;
+	uint min, max, step, val;
 
 	if(f->bFrameIntervalType == 0){
 		min = GET4(f->dwFrameInterval[0]);
@@ -258,7 +258,7 @@ frameinterval(Cam *c, VSUncompressedFrame *f, double t)
 	}else{
 		mini = -1;
 		for(i = 0; i < f->bFrameIntervalType; i++){
-			δ = fabs(((u32)GET4(f->dwFrameInterval[i])) - t);
+			δ = fabs(((u32int)GET4(f->dwFrameInterval[i])) - t);
 			if(mini < 0 || δ < minδ){
 				mini = i;
 				minδ = δ;
