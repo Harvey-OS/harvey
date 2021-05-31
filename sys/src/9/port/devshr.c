@@ -150,7 +150,7 @@ shrattach(char *spec)
 	
 	if(!((spec[0] == 'c' && spec[1] == 0) || spec[0] == 0))
 		error(Enoattach);
-	c = devattach('h', spec);
+	c = devattach(L'σ', spec);
 
 	sch = smalloc(sizeof(*sch));
 	sch->level = spec[0] == 'c' ? Qcroot : Qroot;
@@ -375,10 +375,10 @@ shrstat(Chan *c, u8 *db, int n)
 	default:
 		error(Egreg);
 	case Qroot:
-		devdir(c, c->qid, "#h", 0, eve, 0555, &dir);
+		devdir(c, c->qid, "#σ", 0, eve, 0555, &dir);
 		break;
 	case Qcroot:
-		devdir(c, c->qid, "#hc", 0, eve, 0777, &dir);
+		devdir(c, c->qid, "#σc", 0, eve, 0777, &dir);
 		break;
 	case Qshr:
 		devdir(c, c->qid, sch->shr->ent.name, 0, sch->shr->ent.owner, sch->shr->ent.perm & ~0222, &dir);
@@ -835,7 +835,7 @@ shrclose(Chan *c)
 }
 
 Dev shrdevtab = {
-	.dc = 'h',	// Note was 'σ' on 9front
+	.dc = L'σ',
 	.name = "shr",
 
 	.reset = devreset,
