@@ -12,9 +12,6 @@ mntgen -s slashn && chmod 666 /srv/slashn
 for(i in t m v C)
 	/bin/bind -a '#'^$i /dev >/dev/null >[2=1]
 
-# devshr
-/bin/bind '#h' /shr
-
 # set up any partitions
 diskparts
 
