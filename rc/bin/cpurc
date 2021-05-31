@@ -13,9 +13,6 @@ if (test -e /boot/uroot) {
 # cpu server start up
 date > /env/boottime
 
-# devshr
-/bin/bind '#h' /shr
-
 # mount points
 mntgen -s slashn && chmod 666 /srv/slashn
 
