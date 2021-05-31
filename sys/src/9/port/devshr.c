@@ -198,7 +198,6 @@ shrclunk(Chan *c)
 static Walkqid*
 shrwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	Proc *up = externup();
 	Walkqid *wq, *wq2;
 	int alloc, j;
 	char *nam;
@@ -452,7 +451,6 @@ Chan* createdir(Chan *c, Mhead *m);
 static Chan*
 shrcreate(Chan *c, char *name, int omode, u32 perm)
 {
-	Proc *up = externup();
 	Sch *sch;
 	Shr *shr;
 	Mpt *mpt;
@@ -576,7 +574,6 @@ shrcreate(Chan *c, char *name, int omode, u32 perm)
 static void
 shrremove(Chan *c)
 {
-	Proc *up = externup();
 	Mount *m, **ml;
 	Shr *shr, **sl;
 	Sch *sch;
@@ -648,7 +645,6 @@ shrremove(Chan *c)
 static int
 shrwstat(Chan *c, u8 *dp, int n)
 {
-	Proc *up = externup();
 	char *strs;
 	Mhead *h;
 	Sch *sch;
@@ -723,7 +719,6 @@ shrwstat(Chan *c, u8 *dp, int n)
 static i32
 shrread(Chan *c, void *va, i32 n, i64 off)
 {
-	Proc *up = externup();
 	Mhead *omh;
 	Sch *sch;
 
@@ -752,7 +747,6 @@ shrread(Chan *c, void *va, i32 n, i64 off)
 static i32
 shrwrite(Chan *c, void *va, i32 n, i64 off)
 {
-	Proc *up = externup();
 	Sch *sch;
 	char *buf, *p, *aname;
 	int fd;
