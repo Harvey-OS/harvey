@@ -128,7 +128,7 @@ pushevent(Dev *d, char *data)
 	qlock(&evlock);
 	e = evlast;
 	evlast = emallocz(sizeof(Event), 1);
-	incref(&d->ref);
+	incref(d);
 	e->dev = d;
 	e->data = data;
 	e->len = strlen(data);
@@ -247,7 +247,7 @@ enumerate(Event **l)
 			if(d == nil || d->usb == nil || p->hub != nil)
 				continue;
 			e = emallocz(sizeof(Event), 1);
-			incref(&d->ref);
+			incref(d);
 			e->dev = d;
 			e->data = formatdev(d, 0);
 			e->len = strlen(e->data);

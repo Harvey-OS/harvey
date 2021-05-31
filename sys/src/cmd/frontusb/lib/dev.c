@@ -94,7 +94,7 @@ opendev(char *fn)
 	if(access("/dev/usb", AEXIST) < 0 && bind("#u", "/dev", MBEFORE) < 0)
 		return nil;
 	d = emallocz(sizeof(Dev), 1);
-	incref(&d->ref);
+	incref(d);
 
 	l = strlen(fn);
 	d->dfd = -1;
@@ -309,7 +309,7 @@ closedev(Dev *d)
 	int i;
 	Usbdev *ud;
 
-	if(d==nil || decref(&d->ref) != 0)
+	if(d==nil || decref(d) != 0)
 		return;
 	dprint(2, "%s: closedev %#p %s\n", argv0, d, d->dir);
 	if(d->cfd >= 0)

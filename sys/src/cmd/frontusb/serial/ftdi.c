@@ -1407,7 +1407,7 @@ statusreader(void *u)
 	a = emallocz(sizeof(Areader), 1);
 	a->p = p;
 	a->c = c;
-	incref(&ser->dev->ref);
+	incref(ser->dev);
 	proccreate(epreader, a, 16*1024);
 
 	while((pk = recvp(c)) != nil){
@@ -1474,7 +1474,7 @@ ftinit(Serialport *p)
 		/* 0xb is the mask for lines. plug dependant? */
 		ftdiwrite(p, BMMPSSE|0x0b, 0, FTSETBITMODE);
 	}
-	incref(&ser->dev->ref);
+	incref(ser->dev);
 	proccreate(statusreader, p, 8*1024);
 	return 0;
 }
