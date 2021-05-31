@@ -106,7 +106,7 @@ wr(Dev *d, int reg, int val)
 	int ret;
 
 	ret = usbcmd(d, Rh2d|Rvendor|Rdev, Writereg, 0, reg,
-		(u8*)&val, sizeof(val));
+		(uchar*)&val, sizeof(val));
 	if(ret < 0)
 		fprint(2, "%s: wr(%x, %x): %r", argv0, reg, val);
 	return ret;
@@ -118,7 +118,7 @@ rr(Dev *d, int reg)
 	int ret, rval;
 
 	ret = usbcmd(d, Rd2h|Rvendor|Rdev, Readreg, 0, reg,
-		(u8*)&rval, sizeof(rval));
+		(uchar*)&rval, sizeof(rval));
 	if(ret < 0){
 		fprint(2, "%s: rr(%x): %r", argv0, reg);
 		return 0;
@@ -149,7 +149,7 @@ miiwr(Dev *d, int idx, int val)
 }
 
 static int
-eepromr(Dev *d, int off, u8 *buf, int len)
+eepromr(Dev *d, int off, uchar *buf, int len)
 {
 	int i, v;
 
@@ -263,7 +263,7 @@ smscpromiscuous(Dev *d, int on)
 }
 
 static int
-smscmulticast(Dev *d, u8 *, int)
+smscmulticast(Dev *d, uchar *, int)
 {
 	int rxctl;
 

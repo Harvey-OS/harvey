@@ -54,14 +54,14 @@ cdcinit(Dev *d)
 {
 	int i;
 	Usbdev *ud;
-	u8 *b;
+	uchar *b;
 	Desc *dd;
 	char *mac;
 
 	ud = d->usb;
 	for(i = 0; i < nelem(ud->ddesc); i++)
 		if((dd = ud->ddesc[i]) != nil){
-			b = (u8*)&dd->data;
+			b = (uchar*)&dd->data;
 			if(b[1] == Dfunction && b[2] == Fnether){
 				mac = loaddevstr(d, b[3]);
 				if(mac != nil && strlen(mac) != 12){

@@ -160,14 +160,10 @@ formatread(Cam *c)
 			if((g = f->frame[j]) == nil) continue;
 			fmtprint(&fmt, "%dx%dx%d-%s ", GET2(g->wWidth), GET2(g->wHeight), f->desc->bBitsPerPixel, buf);
 			if(g->bFrameIntervalType == 0)
-				fmtprint(&fmt, "%.2f-%.2f\n",
-					 10e6 / (u32)GET4(g->dwFrameInterval[0]),
-					 10e6 / (u32)GET4(g->dwFrameInterval[1]));
+				fmtprint(&fmt, "%.2f-%.2f\n", 10e6 / (u32int)GET4(g->dwFrameInterval[0]), 10e6 / (u32int)GET4(g->dwFrameInterval[1]));
 			else
 				for(k = 0; k < g->bFrameIntervalType; k++)
-					fmtprint(&fmt, "%.2f%c",
-						 10e6 / (u32)GET4(g->dwFrameInterval[k]),
-						 k == g->bFrameIntervalType - 1 ? '\n' : ',');
+					fmtprint(&fmt, "%.2f%c", 10e6 / (u32int)GET4(g->dwFrameInterval[k]), k == g->bFrameIntervalType - 1 ? '\n' : ',');
 		}
 	}
 	return fmtstrflush(&fmt);

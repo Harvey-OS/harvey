@@ -145,7 +145,7 @@ enum
 int
 loaddevconf(Dev *d, int n)
 {
-	u8 *buf;
+	uchar *buf;
 	int nr;
 	int type;
 
@@ -179,7 +179,7 @@ mkep(Usbdev *d, int id)
 }
 
 static char*
-mkstr(u8 *b, int n)
+mkstr(uchar *b, int n)
 {
 	Rune r;
 	char *us;
@@ -203,7 +203,7 @@ mkstr(u8 *b, int n)
 char*
 loaddevstr(Dev *d, int sid)
 {
-	u8 buf[256-2];	/* keep size < 256 */
+	uchar buf[256-2];	/* keep size < 256 */
 	int langid;
 	int type;
 	int nr;
@@ -230,7 +230,7 @@ loaddevstr(Dev *d, int sid)
 int
 loaddevdesc(Dev *d)
 {
-	u8 buf[Ddevlen];
+	uchar buf[Ddevlen];
 	int nr;
 	int type;
 	Ep *ep0;
@@ -375,11 +375,11 @@ reqstr(int type, int req)
 }
 
 static int
-cmdreq(Dev *d, int type, int req, int value, int index, u8 *data, int count)
+cmdreq(Dev *d, int type, int req, int value, int index, uchar *data, int count)
 {
 	int ndata, n;
-	u8 *wp;
-	u8 buf[8];
+	uchar *wp;
+	uchar buf[8];
 	char *hd, *rs;
 
 	assert(d != nil);
@@ -431,7 +431,7 @@ cmdrep(Dev *d, void *buf, int nb)
 }
 
 int
-usbcmd(Dev *d, int type, int req, int value, int index, u8 *data, int count)
+usbcmd(Dev *d, int type, int req, int value, int index, uchar *data, int count)
 {
 	int i, r, nerr;
 	char err[64];

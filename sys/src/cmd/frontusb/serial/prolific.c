@@ -245,7 +245,7 @@ plprobe(Serial *ser)
 static void	statusreader(void *u);
 
 static void
-dumpbuf(u8 *buf, int bufsz)
+dumpbuf(uchar *buf, int bufsz)
 {
 	int i;
 
@@ -255,7 +255,7 @@ dumpbuf(u8 *buf, int bufsz)
 }
 
 static int
-vendorread(Serialport *p, int val, int index, u8 *buf)
+vendorread(Serialport *p, int val, int index, uchar *buf)
 {
 	int res;
 	Serial *ser;
@@ -310,7 +310,7 @@ plmodemctl(Serialport *p, int set)
 static int
 plgetparam(Serialport *p)
 {
-	u8 buf[ParamReqSz];
+	uchar buf[ParamReqSz];
 	int res;
 	Serial *ser;
 
@@ -353,7 +353,7 @@ plgetparam(Serialport *p)
 static int
 plsetparam(Serialport *p)
 {
-	u8 buf[ParamReqSz];
+	uchar buf[ParamReqSz];
 	int res;
 	Serial *ser;
 
@@ -386,7 +386,7 @@ plsetparam(Serialport *p)
 }
 
 static int
-revid(u32 devno)
+revid(ulong devno)
 {
 	switch(devno){
 	case RevH:
@@ -402,7 +402,7 @@ revid(u32 devno)
 
 /* linux driver says the release id is not always right */
 static int
-heuristicid(u32 csp, u32 maxpkt)
+heuristicid(ulong csp, ulong maxpkt)
 {
 	if(Class(csp) == 0x02)
 		return TypeH;
@@ -420,8 +420,8 @@ static int
 plinit(Serialport *p)
 {
 	char *st;
-	u8 *buf;
-	u32 csp, maxpkt, dno;
+	uchar *buf;
+	ulong csp, maxpkt, dno;
 	Serial *ser;
 
 	ser = p->s;
@@ -502,7 +502,7 @@ plclearpipes(Serialport *p)
 }
 
 static int
-setctlline(Serialport *p, u8 val)
+setctlline(Serialport *p, uchar val)
 {
 	Serial *ser;
 
@@ -541,7 +541,7 @@ plreadstatus(Serialport *p)
 {
 	int nr, dfd;
 	char err[ERRMAX];
-	u8 buf[VendorReqSz];
+	uchar buf[VendorReqSz];
 	Serial *ser;
 
 	ser = p->s;

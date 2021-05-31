@@ -3,11 +3,11 @@ struct Block
 {
 	Block	*next;
 
-	u8	*rp;
-	u8	*wp;
-	u8	*lim;
+	uchar	*rp;
+	uchar	*wp;
+	uchar	*lim;
 
-	u8	base[];
+	uchar	base[];
 };
 
 #define BLEN(s)	((s)->wp - (s)->rp)
@@ -25,17 +25,17 @@ enum {
 typedef struct Macent Macent;
 struct Macent
 {
-	u8	ea[Eaddrlen];
-	u16	port;
+	uchar	ea[Eaddrlen];
+	ushort	port;
 };
 
 typedef struct Etherpkt Etherpkt;
 struct Etherpkt
 {
-	u8	d[Eaddrlen];
-	u8	s[Eaddrlen];
-	u8	type[2];
-	u8	data[1500];
+	uchar	d[Eaddrlen];
+	uchar	s[Eaddrlen];
+	uchar	type[2];
+	uchar	data[1500];
 };
 
 enum
@@ -50,10 +50,10 @@ int setmac;
 
 int nprom;
 int nmulti;
-u8 multiaddr[32][Eaddrlen];
+uchar multiaddr[32][Eaddrlen];
 
 /* to be filled in by *init() */
-u8 macaddr[Eaddrlen];
+uchar macaddr[Eaddrlen];
 
 Macent mactab[127];
 
@@ -62,4 +62,4 @@ void	etheriq(Block*);
 int	(*epreceive)(Dev*);
 void	(*eptransmit)(Dev*, Block*);
 int 	(*eppromiscuous)(Dev*, int);
-int	(*epmulticast)(Dev*, u8*, int);
+int	(*epmulticast)(Dev*, uchar*, int);

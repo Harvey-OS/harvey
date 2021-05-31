@@ -70,10 +70,10 @@ static char *scmdnames[256] = {
 [Scmdgetconf]	"getconf",
 };
 
-i32
+long
 SRready(ScsiReq *rp)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	rp->cmd.p = cmd;
@@ -84,10 +84,10 @@ SRready(ScsiReq *rp)
 	return SRrequest(rp);
 }
 
-i32
+long
 SRrewind(ScsiReq *rp)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdRewind;
@@ -103,12 +103,12 @@ SRrewind(ScsiReq *rp)
 	return -1;
 }
 
-i32
+long
 SRreqsense(ScsiReq *rp)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 	ScsiReq req;
-	i32 status;
+	long status;
 
 	if(rp->status == Status_SD){
 		rp->status = STok;
@@ -136,10 +136,10 @@ SRreqsense(ScsiReq *rp)
 	return status;
 }
 
-i32
+long
 SRformat(ScsiReq *rp)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdFormat;
@@ -151,10 +151,10 @@ SRformat(ScsiReq *rp)
 	return SRrequest(rp);
 }
 
-i32
-SRrblimits(ScsiReq *rp, u8 *list)
+long
+SRrblimits(ScsiReq *rp, uchar *list)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdRblimits;
@@ -167,9 +167,9 @@ SRrblimits(ScsiReq *rp, u8 *list)
 }
 
 static int
-dirdevrw(ScsiReq *rp, u8 *cmd, i32 nbytes)
+dirdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 {
-	i32 n;
+	long n;
 
 	n = nbytes / rp->lbsize;
 	if(rp->offset <= Max24off && n <= 256 && (rp->flags & Frw10) == 0){
@@ -208,9 +208,9 @@ dirdevrw(ScsiReq *rp, u8 *cmd, i32 nbytes)
 }
 
 static int
-seqdevrw(ScsiReq *rp, u8 *cmd, i32 nbytes)
+seqdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 {
-	i32 n;
+	long n;
 
 	/* don't set Cmd1sili; we want the ILI bit instead of a fatal error */
 	cmd[1] = rp->flags&Fbfixed? Cmd1fixed: 0;
@@ -222,11 +222,11 @@ seqdevrw(ScsiReq *rp, u8 *cmd, i32 nbytes)
 
 extern int diskdebug;
 
-i32
-SRread(ScsiReq *rp, void *buf, i32 nbytes)
+long
+SRread(ScsiReq *rp, void *buf, long nbytes)
 {
-	u8 cmd[16];
-	i32 n;
+	uchar cmd[16];
+	long n;
 
 	if(rp->lbsize == 0 || (nbytes % rp->lbsize) || nbytes > Maxiosize){
 		if(diskdebug)
@@ -286,11 +286,11 @@ SRread(ScsiReq *rp, void *buf, i32 nbytes)
 	return n;
 }
 
-i32
-SRwrite(ScsiReq *rp, void *buf, i32 nbytes)
+long
+SRwrite(ScsiReq *rp, void *buf, long nbytes)
 {
-	u8 cmd[16];
-	i32 n;
+	uchar cmd[16];
+	long n;
 
 	if(rp->lbsize == 0 || (nbytes % rp->lbsize) || nbytes > Maxiosize){
 		if(diskdebug)
@@ -336,10 +336,10 @@ SRwrite(ScsiReq *rp, void *buf, i32 nbytes)
 	return n;
 }
 
-i32
-SRseek(ScsiReq *rp, i64 offset, int type)
+long
+SRseek(ScsiReq *rp, vlong offset, int type)
 {
-	u8 cmd[16];
+	uchar cmd[16];
 
 	switch(type){
 
@@ -391,10 +391,10 @@ SRseek(ScsiReq *rp, i64 offset, int type)
 	return -1;
 }
 
-i32
-SRfilemark(ScsiReq *rp, u32 howmany)
+long
+SRfilemark(ScsiReq *rp, ulong howmany)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdFmark;
@@ -407,10 +407,10 @@ SRfilemark(ScsiReq *rp, u32 howmany)
 	return SRrequest(rp);
 }
 
-i32
-SRspace(ScsiReq *rp, u8 code, i32 howmany)
+long
+SRspace(ScsiReq *rp, uchar code, long howmany)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdSpace;
@@ -427,10 +427,10 @@ SRspace(ScsiReq *rp, u8 code, i32 howmany)
 	return SRrequest(rp);
 }
 
-i32
+long
 SRinquiry(ScsiReq *rp)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdInq;
@@ -449,10 +449,10 @@ SRinquiry(ScsiReq *rp)
 	return -1;
 }
 
-i32
-SRmodeselect6(ScsiReq *rp, u8 *list, i32 nbytes)
+long
+SRmodeselect6(ScsiReq *rp, uchar *list, long nbytes)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdMselect6;
@@ -467,10 +467,10 @@ SRmodeselect6(ScsiReq *rp, u8 *list, i32 nbytes)
 	return SRrequest(rp);
 }
 
-i32
-SRmodeselect10(ScsiReq *rp, u8 *list, i32 nbytes)
+long
+SRmodeselect10(ScsiReq *rp, uchar *list, long nbytes)
 {
-	u8 cmd[10];
+	uchar cmd[10];
 
 	memset(cmd, 0, sizeof cmd);
 	if((rp->flags & Finqok) && (rp->inquiry[2] & 0x07) >= 2)
@@ -486,10 +486,10 @@ SRmodeselect10(ScsiReq *rp, u8 *list, i32 nbytes)
 	return SRrequest(rp);
 }
 
-i32
-SRmodesense6(ScsiReq *rp, u8 page, u8 *list, i32 nbytes)
+long
+SRmodesense6(ScsiReq *rp, uchar page, uchar *list, long nbytes)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdMsense6;
@@ -503,10 +503,10 @@ SRmodesense6(ScsiReq *rp, u8 page, u8 *list, i32 nbytes)
 	return SRrequest(rp);
 }
 
-i32
-SRmodesense10(ScsiReq *rp, u8 page, u8 *list, i32 nbytes)
+long
+SRmodesense10(ScsiReq *rp, uchar page, uchar *list, long nbytes)
 {
-	u8 cmd[10];
+	uchar cmd[10];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdMsense10;
@@ -521,10 +521,10 @@ SRmodesense10(ScsiReq *rp, u8 page, u8 *list, i32 nbytes)
 	return SRrequest(rp);
 }
 
-i32
-SRstart(ScsiReq *rp, u8 code)
+long
+SRstart(ScsiReq *rp, uchar code)
 {
-	u8 cmd[6];
+	uchar cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdStart;
@@ -537,10 +537,10 @@ SRstart(ScsiReq *rp, u8 code)
 	return SRrequest(rp);
 }
 
-i32
-SRrcapacity(ScsiReq *rp, u8 *data)
+long
+SRrcapacity(ScsiReq *rp, uchar *data)
 {
-	u8 cmd[10];
+	uchar cmd[10];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = ScmdRcapacity;
@@ -552,10 +552,10 @@ SRrcapacity(ScsiReq *rp, u8 *data)
 	return SRrequest(rp);
 }
 
-i32
-SRrcapacity16(ScsiReq *rp, u8 *data)
+long
+SRrcapacity16(ScsiReq *rp, uchar *data)
 {
-	u8 cmd[16];
+	uchar cmd[16];
 	uint i;
 
 	i = 32;
@@ -583,10 +583,10 @@ scsidebug(int d)
 		fprint(2, "scsidebug on\n");
 }
 
-static i32
+static long
 request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
-	i32 n, r;
+	long n, r;
 	char buf[16];
 
 	/* this was an experiment but it seems to be a good idea */
@@ -671,7 +671,7 @@ seprintcmd(char *s, char* e, char *cmd, int count, int args)
 }
 
 static char*
-seprintdata(char *s, char *se, u8 *p, int count)
+seprintdata(char *s, char *se, uchar *p, int count)
 {
 	int i;
 
@@ -787,10 +787,10 @@ SRdumpErr(ScsiReq *rp)
 	print("\t%s status: %s\n", buf, scsierr(rp));
 }
 
-i32
+long
 SRrequest(ScsiReq *rp)
 {
-	i32 n;
+	long n;
 	int status;
 
 retry:
@@ -844,8 +844,8 @@ SRclose(ScsiReq *rp)
 static int
 dirdevopen(ScsiReq *rp)
 {
-	u64 blocks;
-	u8 data[8+4+20];	/* 16-byte result: lba, blksize, reserved */
+	uvlong blocks;
+	uchar data[8+4+20];	/* 16-byte result: lba, blksize, reserved */
 
 	memset(data, 0, sizeof data);
 	if(SRstart(rp, 1) == -1 || SRrcapacity(rp, data) == -1)
@@ -859,7 +859,7 @@ dirdevopen(ScsiReq *rp)
 		if(SRrcapacity16(rp, data) == -1)
 			return -1;
 		rp->lbsize = GETBELONG(data + 8);
-		blocks = (i64)GETBELONG(data)<<32 | GETBELONG(data + 4);
+		blocks = (vlong)GETBELONG(data)<<32 | GETBELONG(data + 4);
 		if(debug)
 			fprint(2, "disk: dirdevopen: 16-byte logical block size"
 				" %lud, # blocks %llud\n", rp->lbsize, blocks);
@@ -873,7 +873,7 @@ dirdevopen(ScsiReq *rp)
 static int
 seqdevopen(ScsiReq *rp)
 {
-	u8 mode[16], limits[6];
+	uchar mode[16], limits[6];
 
 	if(SRrblimits(rp, limits) == -1)
 		return -1;
@@ -926,8 +926,8 @@ seqdevopen(ScsiReq *rp)
 static int
 wormdevopen(ScsiReq *rp)
 {
-	i32 status;
-	u8 list[MaxDirData];
+	long status;
+	uchar list[MaxDirData];
 
 	if (SRstart(rp, 1) == -1 ||
 	    (status = SRmodesense10(rp, Allmodepages, list, sizeof list)) == -1)

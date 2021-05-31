@@ -22,7 +22,7 @@ struct KDev
 
 	/* report descriptor */
 	int	nrep;
-	u8	rep[512];
+	uchar	rep[512];
 };
 
 static void
@@ -60,7 +60,7 @@ signext(int v, int bits)
 }
 
 static int
-getbits(u8 *p, u8 *e, int bits, int off)
+getbits(uchar *p, uchar *e, int bits, int off)
 {
 	int v, m;
 
@@ -90,9 +90,9 @@ enum {
 	Nu	= 256,
 };
 
-static u8 *
-repparse1(u8 *d, u8 *e, int g[], int l[], int c,
-	  void (*f)(int t, int v, int g[], int l[], int c, void *a), void *a)
+static uchar*
+repparse1(uchar *d, uchar *e, int g[], int l[], int c,
+	void (*f)(int t, int v, int g[], int l[], int c, void *a), void *a)
 {
 	int z, k, t, v, i;
 
@@ -188,8 +188,8 @@ repparse1(u8 *d, u8 *e, int g[], int l[], int c,
  * data packet.
  */
 static void
-repparse(u8 *d, u8 *e,
-	 void (*f)(int t, int v, int g[], int l[], int c, void *a), void *a)
+repparse(uchar *d, uchar *e,
+	void (*f)(int t, int v, int g[], int l[], int c, void *a), void *a)
 {
 	int l[Nl+Nu], g[Ng];
 
@@ -252,11 +252,11 @@ struct Joy
 {
 	int axes[Maxaxes];
 	int oldaxes[Maxaxes];
-	u64 btns;
+	u64int btns;
 	
 	int	o;
-	u8	*e;
-	u8	p[128];
+	uchar	*e;
+	uchar	p[128];
 };
 
 static void
@@ -264,7 +264,7 @@ joyparse(int t, int f, int g[], int l[], int, void *a)
 {
 	int v, i;
 	Joy *p = a;
-	u64 m;
+	u64int m;
 
 	if(t != Input)
 		return;
@@ -302,7 +302,7 @@ joyparse(int t, int f, int g[], int l[], int, void *a)
 }
 
 static int
-kbdbusy(u8 * buf, int n)
+kbdbusy(uchar* buf, int n)
 {
 	int i;
 
@@ -319,7 +319,7 @@ joywork(void *a)
 	int	i, c, nerrs;
 	KDev*	f = a;
 	Joy	p;
-	u64 lastb;
+	u64int lastb;
 
 	threadsetname("joy %s", f->ep->dir);
 	sethipri();
@@ -369,7 +369,7 @@ static void
 quirks(Dev *d)
 {
 	int ret;
-	u8 buf[17];
+	uchar buf[17];
 
 	/* sony dualshock 3 (ps3) controller requires special enable command */
 	if(d->usb->vid == 0x054c && d->usb->did == 0x0268){
