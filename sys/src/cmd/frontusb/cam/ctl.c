@@ -149,8 +149,7 @@ puintread(Cam *c, int term, Param *p)
 			       (u8)res[0], (u8)max[0]);
 	case 2: return smprint("%ud %ud/%ud/%ud", (u16)GET2(cur),
 			       (u16)GET2(min), (u16)GET2(res), (u16)GET2(max));
-	case 4: return smprint("%ud %ud/%ud/%ud", (u32)GET4(cur),
-			       (u32)GET4(min), (u32)GET4(res), (u32)GET4(max));
+	case 4: return smprint("%ud %ud/%ud/%ud", (uint)GET4(cur), (uint)GET4(min), (uint)GET4(res), (uint)GET4(max));
 	}
 	werrstr("pintread: unimplemented length %d", p->len);
 	return nil;
@@ -159,7 +158,7 @@ puintread(Cam *c, int term, Param *p)
 int
 puintwrite(Cam *c, int term, Param *p, char **f, int nf)
 {
-	u32 v;
+	uint v;
 	char *sp;
 	u8 buf[4];
 	
@@ -178,7 +177,7 @@ char *
 penumread(Cam *c, int term, Param *p)
 {
 	u8 cur[4];
-	u32 val;
+	uint val;
 
 	if(infocheck(c, term, p) < 0) return nil;
 	if(usbcmd(c->dev, 0xA1, GET_CUR, p->cs << 8, term, cur, p->len) < p->len){ errorcode(c->dev, term); return nil; }
@@ -198,7 +197,7 @@ penumread(Cam *c, int term, Param *p)
 int
 penumwrite(Cam *c, int term, Param *p, char **f, int nf)
 {
-	u32 i;
+	uint i;
 	u8 buf[4];
 
 	if(nf != 1) return -1;
@@ -511,7 +510,7 @@ ctlwrite(Cam *c, char *msg)
 		p = findparam(f[1]);
 		if(p == nil)
 			return -1;
-		if(p->type != PARAMSPEC && ((u32)uid >= nunit || unit[uid] == nil)){
+		if(p->type != PARAMSPEC && ((uint)uid >= nunit || unit[uid] == nil)){
 			werrstr("no such unit");
 			return -1;
 		}

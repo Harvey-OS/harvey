@@ -229,7 +229,7 @@ static int
 lan78xxreceive(Dev *ep)
 {
 	Block *b;
-	u32 hd;
+	uint hd;
 	int n;
 
 	n = Doburst? burstcap*512: Maxpkt;

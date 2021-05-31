@@ -35,7 +35,7 @@ struct Serialport {
 	u8	ctlstate;
 
 	/* serial parameters */
-	u32	baud;
+	uint	baud;
 	int	stop;
 	int	mctl;
 	int	parity;

@@ -556,7 +556,7 @@ i32
 SRrcapacity16(ScsiReq *rp, u8 *data)
 {
 	u8 cmd[16];
-	u32 i;
+	uint i;
 
 	i = 32;
 	memset(cmd, 0, sizeof cmd);
@@ -642,7 +642,7 @@ request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 static char*
 seprintcmd(char *s, char* e, char *cmd, int count, int args)
 {
-	u32 c;
+	uint c;
 
 	if(count < 6)
 		return seprint(s, e, "<short cmd>");

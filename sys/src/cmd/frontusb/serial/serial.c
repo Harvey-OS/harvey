@@ -39,7 +39,7 @@ static void
 serialdrain(Serialport *p)
 {
 	Serial *ser;
-	u32 baud, pipesize;
+	uint baud, pipesize;
 
 	ser = p->s;
 	baud = p->baud;

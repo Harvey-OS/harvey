@@ -794,8 +794,8 @@ readerproc(void* a)
 				if((s->abs & 3) == 3)
 					fprint(2, "ptr[%d]: id=%x b=%x m=%x x=%f y=%f z=%d\n",
 						i, s->id, s->b, s->m,
-						(u32)s->x / 2147483648.0,
-						(u32)s->y / 2147483648.0,
+						(uint)s->x / 2147483648.0,
+						(uint)s->y / 2147483648.0,
 						s->z);
 				else
 					fprint(2, "ptr[%d]: id=%x b=%x m=%x x=%d y=%d z=%d\n",
