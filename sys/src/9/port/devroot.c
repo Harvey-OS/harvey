@@ -111,7 +111,6 @@ rootreset(void)
 	addrootdir("net.alt");
 	addrootdir("proc");
 	addrootdir("root");
-	addrootdir("shr");
 	addrootdir("srv");
 	addrootdir("uroot");
 }
