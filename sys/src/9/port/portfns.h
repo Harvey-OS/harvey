@@ -71,7 +71,7 @@ Block *devbread(Chan *, i32, i64);
 i32 devbwrite(Chan *, Block *, i64);
 Chan *devclone(Chan *);
 int devconfig(int, char *, DevConf *);
-Chan *devcreate(Chan *, char *, int, int);
+void devcreate(Chan *, char *, int, int);
 void devdir(Chan *, Qid, char *, i64, char *, i32, Dir *);
 i32 devdirread(Chan *, char *, i32, Dirtab *, int, Devgen *);
 Devgen devgen;

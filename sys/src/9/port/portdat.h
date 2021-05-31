@@ -251,7 +251,7 @@ struct Dev {
 	Walkqid *(*walk)(Chan *, Chan *, char **, int);
 	i32 (*stat)(Chan *, unsigned char *, i32);
 	Chan *(*open)(Chan *, int);
-	Chan *(*create)(Chan *, char *, int, int);
+	void (*create)(Chan *, char *, int, int);
 	void (*close)(Chan *);
 	i32 (*read)(Chan *, void *, i32, i64);
 	Block *(*bread)(Chan *, i32, i64);
