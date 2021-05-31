@@ -4,9 +4,6 @@
 		"Cflags": [
 			"-I../lib/"
 		],
-		"Oflags": [
-			"../lib/libfrontusbcmd.a"
-		],
 		"Include": [
 			"../../cmd.json"
 		],
