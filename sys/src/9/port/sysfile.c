@@ -402,7 +402,7 @@ sysclose(Ar0 *ar0, ...)
 	ar0->i = 0;
 }
 
-i32
+static i32
 unionread(Chan *c, void *va, i32 n)
 {
 	Proc *up = externup();

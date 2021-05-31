@@ -402,7 +402,6 @@ void uartrecv(Uart *, char);
 int uartstageoutput(Uart *);
 void unbreak(Proc *);
 void uncachepage(Page *);
-i32 unionread(Chan *, void *, i32);
 void unlock(Lock *);
 void userinit(void);
 usize userpc(Ureg *);
