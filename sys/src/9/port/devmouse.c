@@ -215,11 +215,10 @@ mouseopen(Chan *c, int omode)
 	return c;
 }
 
-static Chan*
+static void
 mousecreate(Chan *c, char *j, int i, int u)
 {
 	error(Eperm);
-	return nil;
 }
 
 static void

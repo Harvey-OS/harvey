@@ -513,11 +513,10 @@ ipopen(Chan *c, int omode)
 	return c;
 }
 
-static Chan*
+static void
 ipcreate(Chan *c, char *n, int i, int m)
 {
 	error(Eperm);
-	return nil;
 }
 
 static void

@@ -152,7 +152,7 @@ srvopen(Chan *c, int omode)
 	return sp->chan;
 }
 
-static Chan*
+static void
 srvcreate(Chan *c, char *name, int omode, int perm)
 {
 	Proc *up = externup();
@@ -195,7 +195,6 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 
 	c->flag |= COPEN;
 	c->mode = OWRITE;
-	return c;
 }
 
 static void

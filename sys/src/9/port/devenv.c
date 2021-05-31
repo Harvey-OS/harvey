@@ -145,7 +145,7 @@ envopen(Chan *c, int omode)
 	return c;
 }
 
-static Chan*
+static void
 envcreate(Chan *c, char *name, int omode, int i)
 {
 	Proc *up = externup();
@@ -192,7 +192,6 @@ envcreate(Chan *c, char *name, int omode, int i)
 	c->offset = 0;
 	c->mode = omode;
 	c->flag |= COPEN;
-	return c;
 }
 
 static void

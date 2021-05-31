@@ -71,11 +71,9 @@ etheropen(Chan *chan, int omode)
 	return netifopen(&etherxx[chan->devno]->Netif, chan, omode);
 }
 
-static Chan*
+static void
 ethercreate(Chan *c, char *d, int i, int n)
 {
-	error(Eperm);
-	return nil;
 }
 
 static void
