@@ -171,7 +171,6 @@ shrclone(Chan *c)
 
 	och = tosch(c);
 	nc = devclone(c);
-	nc->dev = c->dev;
 	sch = smalloc(sizeof(*sch));
 	memmove(sch, och, sizeof(*sch));
 	if(sch->shr != nil)
