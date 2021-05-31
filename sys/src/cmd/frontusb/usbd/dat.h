@@ -73,13 +73,13 @@ enum
 
 struct Hub
 {
-	u8	pwrmode;
-	u8	compound;
-	u8	pwrms;		/* time to wait in ms */
-	u8	maxcurrent;	/*    after powering port*/
+	uchar	pwrmode;
+	uchar	compound;
+	uchar	pwrms;		/* time to wait in ms */
+	uchar	maxcurrent;	/*    after powering port*/
 	int	leds;		/* has port indicators? */
 	int	maxpkt;
-	u8	nport;
+	uchar	nport;
 	Port	*port;
 	int	failed;		/* I/O error while enumerating */
 	int	isroot;		/* set if root hub */
@@ -90,9 +90,9 @@ struct Hub
 struct Port
 {
 	int	state;		/* state of the device */
-	u32	sts;		/* old port status */
-	u8	removable;
-	u8	pwrctl;
+	u32int	sts;		/* old port status */
+	uchar	removable;
+	uchar	pwrctl;
 	Dev	*dev;		/* attached device (if non-nil) */
 	Hub	*hub;		/* non-nil if hub attached */
 };
@@ -100,27 +100,27 @@ struct Port
 /* USB HUB descriptor */
 struct DHub
 {
-	u8	bLength;
-	u8	bDescriptorType;
-	u8	bNbrPorts;
-	u8	wHubCharacteristics[2];
-	u8	bPwrOn2PwrGood;
-	u8	bHubContrCurrent;
-	u8	DeviceRemovable[1];	/* variable length */
+	uchar	bLength;
+	uchar	bDescriptorType;
+	uchar	bNbrPorts;
+	uchar	wHubCharacteristics[2];
+	uchar	bPwrOn2PwrGood;
+	uchar	bHubContrCurrent;
+	uchar	DeviceRemovable[1];	/* variable length */
 };
 
 /* Superspeed HUB descriptor */
 struct DSSHub
 {
-	u8	bLength;
-	u8	bDescriptorType;
-	u8	bNbrPorts;
-	u8	wHubCharacteristics[2];
-	u8	bPwrOn2PwrGood;
-	u8	bHubContrCurrent;
-	u8	bHubHdrDecLat;
-	u8	wHubDelay[2];
-	u8	DeviceRemovable[1];	/* variable length */
+	uchar	bLength;
+	uchar	bDescriptorType;
+	uchar	bNbrPorts;
+	uchar	wHubCharacteristics[2];
+	uchar	bPwrOn2PwrGood;
+	uchar	bHubContrCurrent;
+	uchar	bHubHdrDecLat;
+	uchar	wHubDelay[2];
+	uchar	DeviceRemovable[1];	/* variable length */
 };
 
 extern Hub *hubs;

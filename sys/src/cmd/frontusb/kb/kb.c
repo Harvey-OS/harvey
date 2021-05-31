@@ -47,7 +47,7 @@ struct Hiddev
 	 * use odd size as some devices ignore the high byte of
 	 * wLength in control transfer reads.
 	 */
-	u8	rep[512-1];
+	uchar	rep[512-1];
 };
 
 typedef struct Hidreport Hidreport;
@@ -78,11 +78,11 @@ struct Hidreport
 	Hidslot	s[16];
 
 	int	nk;
-	u8	k[64];
+	uchar	k[64];
 
 	int	o;
-	u8	*e;
-	u8	p[128];
+	uchar	*e;
+	uchar	p[128];
 };
 
 /*
@@ -141,7 +141,7 @@ static char sctab[256] =
 [0xf8]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
 };
 
-static u8 kbdbootrep[] = {
+static uchar kbdbootrep[] = {
 0x05, 0x01, 0x09, 0x06, 0xa1, 0x01, 0x05, 0x07,
 0x19, 0xe0, 0x29, 0xe7, 0x15, 0x00, 0x25, 0x01,
 0x75, 0x01, 0x95, 0x08, 0x81, 0x02, 0x95, 0x01,
@@ -152,7 +152,7 @@ static u8 kbdbootrep[] = {
 0x19, 0x00, 0x29, 0x65, 0x81, 0x00, 0xc0,
 };
 
-static u8 ptrbootrep[] = {
+static uchar ptrbootrep[] = {
 0x05, 0x01, 0x09, 0x02, 0xa1, 0x01, 0x09, 0x01, 
 0xa1, 0x00, 0x05, 0x09, 0x19, 0x01, 0x29, 0x03, 
 0x15, 0x00, 0x25, 0x01, 0x95, 0x03, 0x75, 0x01, 
@@ -178,7 +178,7 @@ signext(int v, int bits)
 }
 
 static int
-getbits(u8 *p, u8 *e, int bits, int off)
+getbits(uchar *p, uchar *e, int bits, int off)
 {
 	int v, m;
 
@@ -208,9 +208,9 @@ enum {
 	Nu	= 256,
 };
 
-static u8 *
-repparse1(u8 *d, u8 *e, int g[], int l[], int c,
-	  void (*f)(int t, int v, int g[], int l[], int c, void *a), void *a)
+static uchar*
+repparse1(uchar *d, uchar *e, int g[], int l[], int c,
+	void (*f)(int t, int v, int g[], int l[], int c, void *a), void *a)
 {
 	int z, k, t, v, i;
 
@@ -312,8 +312,8 @@ repparse1(u8 *d, u8 *e, int g[], int l[], int c,
  * data packet.
  */
 static void
-repparse(u8 *d, u8 *e,
-	 void (*f)(int t, int v, int g[], int l[], int c, void *a), void *a)
+repparse(uchar *d, uchar *e,
+	void (*f)(int t, int v, int g[], int l[], int c, void *a), void *a)
 {
 	int l[Nl+Nu], g[Ng];
 
@@ -380,7 +380,7 @@ setproto(Hiddev *f, int eid)
 }
 
 static int
-setleds(Hiddev* f, int, u8 leds)
+setleds(Hiddev* f, int, uchar leds)
 {
 	return usbcmd(f->dev, Rh2d|Rclass|Riface, Setreport, Reportout, 0, &leds, 1);
 }
@@ -442,9 +442,9 @@ Resetdone:
 }
 
 static void
-putscan(Hiddev *f, u8 sc, u8 up)
+putscan(Hiddev *f, uchar sc, uchar up)
 {
-	u8 s[2] = {SCesc1, 0};
+	uchar s[2] = {SCesc1, 0};
 
 	if(sc == 0)
 		return;
@@ -472,14 +472,14 @@ repeatproc(void* arg)
 {
 	Hiddev *f = arg;
 	Channel *repeatc, *sleepc;
-	u32 l, t;
-	u8 sc;
+	ulong l, t;
+	uchar sc;
 	Alt a[3];
 
 	repeatc = f->repeatc;
 	threadsetname("repeatproc");
 	
-	sleepc = chancreate(sizeof(u32), 0);
+	sleepc = chancreate(sizeof(ulong), 0);
 	if(sleepc != nil)
 		proccreate(sleepproc, sleepc, Stack);
 
@@ -520,7 +520,7 @@ stoprepeat(Hiddev *f)
 }
 
 static void
-startrepeat(Hiddev *f, u8 sc)
+startrepeat(Hiddev *f, uchar sc)
 {
 	sendul(f->repeatc, sc);
 }
@@ -643,14 +643,14 @@ hidparse(int t, int f, int g[], int l[], int, void *a)
 
 		case 0x010030:
 			if((f & (Fabs|Frel)) == Fabs){
-				v = ((i64)(v - g[LogiMin]) << 31) / (g[LogiMax] - g[LogiMin]);
+				v = ((vlong)(v - g[LogiMin]) << 31) / (g[LogiMax] - g[LogiMin]);
 				s->abs |= 1;
 			}
 			s->x = v;
 			break;
 		case 0x010031:
 			if((f & (Fabs|Frel)) == Fabs){
-				v = ((i64)(v - g[LogiMin]) << 31) / (g[LogiMax] - g[LogiMin]);
+				v = ((vlong)(v - g[LogiMin]) << 31) / (g[LogiMax] - g[LogiMin]);
 				s->abs |= 2;
 			}
 			s->y = v;
@@ -683,7 +683,7 @@ static void
 readerproc(void* a)
 {
 	char	err[ERRMAX], mbuf[80];
-	u8	lastk[64], uk, dk;
+	uchar	lastk[64], uk, dk;
 	int	i, c, nerrs, bpress, lastb, nlastk;
 	int	abs, x, y, z, b;
 	Hidreport p;
@@ -741,7 +741,7 @@ readerproc(void* a)
 				if(f->kinfd < 0)
 					hdfatal(f, "open /dev/kbin");
 
-				f->repeatc = chancreate(sizeof(u32), 0);
+				f->repeatc = chancreate(sizeof(ulong), 0);
 				if(f->repeatc == nil)
 					hdfatal(f, "chancreate failed");
 				proccreate(repeatproc, f, Stack);

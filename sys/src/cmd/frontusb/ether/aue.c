@@ -83,7 +83,7 @@ static int
 csr8r(Dev *d, int reg)
 {
 	int rc;
-	u8 v;
+	uchar v;
 
 	rc = usbcmd(d, Rd2h|Rvendor|Rdev, Readreg,
 		0, reg, &v, sizeof v);
@@ -99,7 +99,7 @@ static int
 csr16r(Dev *d, int reg)
 {
 	int rc;
-	u8 v[2];
+	uchar v[2];
 
 	rc = usbcmd(d, Rd2h|Rvendor|Rdev, Readreg,
 		0, reg, v, sizeof v);
@@ -115,7 +115,7 @@ static int
 csr8w(Dev *d, int reg, int val)
 {
 	int rc;
-	u8 v;
+	uchar v;
 	
 	v = val;
 	rc = usbcmd(d, Rh2d|Rvendor|Rdev, Writereg,
@@ -216,7 +216,7 @@ auepromiscuous(Dev *d, int on)
 }
 
 static int
-auemulticast(Dev *d, u8*, int)
+auemulticast(Dev *d, uchar*, int)
 {
 	int r;
 
@@ -232,7 +232,7 @@ int
 aueinit(Dev *d)
 {
 	int i, v;
-	u8 *p;
+	uchar *p;
 
 	reset(d);
 	for(i = 0, p = macaddr; i < 3; i++, p += 2) {

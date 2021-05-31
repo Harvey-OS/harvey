@@ -41,11 +41,11 @@ typedef struct Node Node;
 
 struct Ptprpc
 {
-	u8	length[4];
-	u8	type[2];
-	u8	code[2];
-	u8	transid[4];
-	u8	d[500];
+	uchar	length[4];
+	uchar	type[2];
+	uchar	code[2];
+	uchar	transid[4];
+	uchar	d[500];
 };
 
 struct Node
@@ -74,7 +74,7 @@ enum {
 static Dev *usbep[Setup+1];
 
 static int debug = 0;
-static u32 time0;
+static ulong time0;
 static int maxpacket = 64;
 static int sessionId = 1;
 static int transId = 1;
@@ -87,12 +87,12 @@ static Channel *iochan;
 char Eperm[] = "permission denied";
 char Einterrupt[] = "interrupted";
 
-#define PATH(type, n)		((u64)(type)|((u64)(n)<<4))
+#define PATH(type, n)		((uvlong)(type)|((uvlong)(n)<<4))
 #define TYPE(path)			((int)((path)&0xF))
 #define NUM(path)			((int)((path)>>4))
 
 static void
-hexdump(char *prefix, u8 *p, int n)
+hexdump(char *prefix, uchar *p, int n)
 {
 	char *s;
 	int i;
@@ -209,7 +209,7 @@ vptprpc(Ioproc *io, int code, int flags, va_list a)
 {
 	Ptprpc rpc;
 	int np, n, t, i, l;
-	u8 *b, *p, *e;
+	uchar *b, *p, *e;
 
 	np = flags & 0xF;
 	n = 4+2+2+4+4*np;
@@ -225,7 +225,7 @@ vptprpc(Ioproc *io, int code, int flags, va_list a)
 		PUT4(rpc.d + i*4, x);
 	}
 	if(debug)
-		hexdump("req>", (u8*)&rpc, n);
+		hexdump("req>", (uchar*)&rpc, n);
 	werrstr("");
 	if(iowrite(io, usbep[Out]->dfd, &rpc, n) != n){
 		wasinterrupt();
@@ -239,7 +239,7 @@ vptprpc(Ioproc *io, int code, int flags, va_list a)
 		sdata = va_arg(a, void*);
 		sdatalen = va_arg(a, int);
 
-		b = (u8*)sdata;
+		b = (uchar*)sdata;
 		p = b;
 		e = b + sdatalen;
 
@@ -254,7 +254,7 @@ vptprpc(Ioproc *io, int code, int flags, va_list a)
 		n += (4+2+2+4);
 
 		if(debug)
-			hexdump("data>", (u8*)&rpc, n);
+			hexdump("data>", (uchar*)&rpc, n);
 		if(iowrite(io, usbep[Out]->dfd, &rpc, n) != n){
 			wasinterrupt();
 			return -1;
@@ -342,7 +342,7 @@ vptprpc(Ioproc *io, int code, int flags, va_list a)
 	}
 Resp1:
 	if(debug)
-		hexdump("resp<", (u8*)&rpc, n);
+		hexdump("resp<", (uchar*)&rpc, n);
 	if(ptpcheckerr(&rpc, 3, t, n))
 		return -1;
 	if(flags & OutParam){
@@ -404,7 +404,7 @@ ptprpc(Req *r, int code, int flags, ...)
 }
 
 static int*
-ptparray4(u8 *d, u8 *e)
+ptparray4(uchar *d, uchar *e)
 {
 	int *a, i, n;
 
@@ -424,7 +424,7 @@ ptparray4(u8 *d, u8 *e)
 }
 
 static char*
-ptpstring2(u8 *d, u8 *e)
+ptpstring2(uchar *d, uchar *e)
 {
 	int n, i;
 	char *s, *p;
@@ -474,7 +474,7 @@ copydir(Dir *d, Dir *s)
 }
 
 static Node*
-cachednode(u64 path, Node ***pf)
+cachednode(uvlong path, Node ***pf)
 {
 	Node *x;
 	int i;
@@ -494,10 +494,10 @@ cachednode(u64 path, Node ***pf)
 }
 
 static Node*
-getnode(Req *r, u64 path)
+getnode(Req *r, uvlong path)
 {
 	Node *x, *y, **f;
-	u8 *p;
+	uchar *p;
 	int np;
 	char *s;
 
@@ -650,7 +650,7 @@ readchilds(Req *r, Node *nod)
 {
 	int e, i;
 	int *a;
-	u8 *p;
+	uchar *p;
 	int np;
 	Node *x, **xx;
 
@@ -758,7 +758,7 @@ static char*
 fswalk1(Req *r, char *name, Qid *qid)
 {
 	static char buf[ERRMAX];
-	u64 path;
+	uvlong path;
 	Node *nod;
 	Fid *fid;
 
@@ -816,9 +816,9 @@ fswalk(Req *r)
 static void
 fsread(Req *r)
 {
-	u64 path;
+	uvlong path;
 	Node *nod;
-	u8 *p;
+	uchar *p;
 	int np;
 
 	np = 0;
@@ -889,7 +889,7 @@ static void
 fsremove(Req *r)
 {
 	Node *nod;
-	u64 path;
+	uvlong path;
 
 	path = r->fid->qid.path;
 	if(nod = getnode(r, path)){
@@ -935,7 +935,7 @@ static void
 fsdestroyfid(Fid *fid)
 {
 	Node *nod;
-	u64 path;
+	uvlong path;
 
 	path = fid->qid.path;
 	switch(TYPE(path)){

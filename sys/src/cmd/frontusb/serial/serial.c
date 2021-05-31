@@ -124,7 +124,7 @@ serialctl(Serialport *p, char *cmd)
 	Serial *ser;
 	int c, i, n, nf, nop, nw, par, drain, set, lines;
 	char *f[16];
-	u8 x;
+	uchar x;
 
 	ser = p->s;
 	drain = set = lines = 0;
@@ -492,7 +492,7 @@ dread(Req *req)
 {
 	Serial *ser;
 	Serialport *p;
-	u32 path;
+	ulong path;
 	
 	path = req->fid->qid.path;
 	if(path == 0){
@@ -527,7 +527,7 @@ dwrite(Req *req)
 {
 	Serial *ser;
 	Serialport *p;
-	u32 path;
+	ulong path;
 	int count;
 
 	path = req->fid->qid.path;
@@ -669,7 +669,7 @@ dflush(Req *req)
 {
 	Serialport *p;
 	Req *old;
-	u32 path;
+	ulong path;
 
 	old = req->oldreq;
 	path = old->fid->qid.path;

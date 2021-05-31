@@ -157,7 +157,7 @@ enum { /* receive header */
 	Mpm = 0x8000 /* multicast packet mask */
 };
 
-static int mem(Dev *, int, int, u8 *, int);
+static int mem(Dev *, int, int, uchar *, int);
 static int csr8r(Dev *, int);
 static int csr16r(Dev *, int);
 static int csr8w(Dev *, int, int);
@@ -167,7 +167,7 @@ static void reset(Dev *);
 int urlinit(Dev *);
 
 static int
-mem(Dev *d, int cmd, int off, u8 *buf, int len)
+mem(Dev *d, int cmd, int off, uchar *buf, int len)
 {
 	int r, rc;
 
@@ -189,7 +189,7 @@ mem(Dev *d, int cmd, int off, u8 *buf, int len)
 static int
 csr8r(Dev *d, int reg)
 {
-	u8 v;
+	uchar v;
 
 	v = 0;
 	if(mem(d, Crm, reg, &v, sizeof v) < 0)
@@ -200,7 +200,7 @@ csr8r(Dev *d, int reg)
 static int
 csr16r(Dev *d, int reg)
 {
-	u8 v[2];
+	uchar v[2];
 
 	PUT2(v, 0);
 	if(mem(d, Crm, reg, v, sizeof v) < 0)
@@ -211,7 +211,7 @@ csr16r(Dev *d, int reg)
 static int
 csr8w(Dev *d, int reg, int val)
 {
-	u8 v;
+	uchar v;
 
 	v = val;
 	if(mem(d, Cwm, reg, &v, sizeof v) < 0)
@@ -222,7 +222,7 @@ csr8w(Dev *d, int reg, int val)
 static int
 csr16w(Dev *d, int reg, int val)
 {
-	u8 v[2];
+	uchar v[2];
 
 	PUT2(v, val);
 	if(mem(d, Cwm, reg, v, sizeof v) < 0)
@@ -233,7 +233,7 @@ csr16w(Dev *d, int reg, int val)
 static int
 csr32w(Dev *d, int reg, int val)
 {
-	u8 v[4];
+	uchar v[4];
 
 	PUT4(v, val);
 	if(mem(d, Cwm, reg, v, sizeof v) < 0)
@@ -317,7 +317,7 @@ urlpromiscuous(Dev *d, int on)
 }
 
 static int
-urlmulticast(Dev *d, u8*, int)
+urlmulticast(Dev *d, uchar*, int)
 {
 	int r;
 

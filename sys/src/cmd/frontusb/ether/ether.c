@@ -31,7 +31,7 @@ enum
 struct Tab
 {
 	char *name;
-	u32 mode;
+	ulong mode;
 };
 
 Tab tab[] =
@@ -79,7 +79,7 @@ struct Stats
 	int		out;
 };
 
-u8 bcast[Eaddrlen] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uchar bcast[Eaddrlen] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 Stats stats;
 Conn conn[32];
@@ -92,7 +92,7 @@ Dev *epctl;
 Dev *epin;
 Dev *epout;
 
-u32 time0;
+ulong time0;
 static char *uname;
 
 #define PATH(type, n)		((type)|((n)<<8))
@@ -101,7 +101,7 @@ static char *uname;
 #define NUMCONN(c)		(((uintptr)(c)-(uintptr)&conn[0])/sizeof(conn[0]))
 
 static void
-fillstat(Dir *d, u64 path)
+fillstat(Dir *d, uvlong path)
 {
 	Tab *t;
 
@@ -182,7 +182,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i, n;
 	char buf[32];
-	u32 path;
+	ulong path;
 
 	path = fid->qid.path;
 	if(!(fid->qid.type&QTDIR))
@@ -311,7 +311,7 @@ fsread(Req *r)
 {
 	char buf[200];
 	char e[ERRMAX];
-	u32 path;
+	ulong path;
 
 	path = r->fid->qid.path;
 
@@ -372,7 +372,7 @@ fsread(Req *r)
 }
 
 static int
-activemulti(u8 *ea)
+activemulti(uchar *ea)
 {
 	int i;
 
@@ -386,7 +386,7 @@ static void
 fswrite(Req *r)
 {
 	char e[ERRMAX];
-	u32 path;
+	ulong path;
 	char *p;
 	int n;
 
@@ -406,7 +406,7 @@ fswrite(Req *r)
 					(*eppromiscuous)(epctl, 1);
 			}
 		} else if(n >= 9+12 && (memcmp(p, "addmulti ", 9)==0 || memcmp(p, "remmulti ", 9)==0)){
-			u8 ea[Eaddrlen];
+			uchar ea[Eaddrlen];
 			int i;
 
 			if(parseether(ea, p+9) < 0){
@@ -457,7 +457,7 @@ static void
 fsopen(Req *r)
 {
 	static int need[4] = { 4, 2, 6, 1 };
-	u32 path;
+	ulong path;
 	int i, n;
 	Tab *t;
 	Dq *d;
@@ -723,7 +723,7 @@ etherrtrace(Conn *c, Etherpkt *pkt, int len)
 	bp = allocb(64);
 	memmove(bp->wp, pkt, len < 64 ? len : 64);
 	if(c->type != -2){
-		u32 ms = nsec()/1000000LL;
+		u32int ms = nsec()/1000000LL;
 		bp->wp[58] = len>>8;
 		bp->wp[59] = len;
 		bp->wp[60] = ms>>24;
@@ -736,9 +736,9 @@ etherrtrace(Conn *c, Etherpkt *pkt, int len)
 }
 
 static Macent*
-macent(u8 *ea)
+macent(uchar *ea)
 {
-	u32 h = (ea[0] | ea[1]<<8 | ea[2]<<16 | ea[3]<<24) ^ (ea[4] | ea[5]<<8);
+	u32int h = (ea[0] | ea[1]<<8 | ea[2]<<16 | ea[3]<<24) ^ (ea[4] | ea[5]<<8);
 	return &mactab[h % nelem(mactab)];
 }
 

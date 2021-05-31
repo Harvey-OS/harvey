@@ -60,11 +60,11 @@ pushframe(Cam *c, VFrame *v)
 }
 
 void
-yuy2convert(Format *, VSUncompressedFrame *g, u8 *in, VFrame *out)
+yuy2convert(Format *, VSUncompressedFrame *g, uchar *in, VFrame *out)
 {
 	int y, x, w, h;
 	double Y0, Y1, U, V, R, G, B;
-	u8 *ip, *op;
+	uchar *ip, *op;
 	
 	w = GET2(g->wWidth);
 	h = GET2(g->wHeight);
@@ -100,8 +100,8 @@ yuy2convert(Format *, VSUncompressedFrame *g, u8 *in, VFrame *out)
 }
 
 struct Converter {
-	u8 guid[16];
-	void (*fn)(Format *, VSUncompressedFrame *, u8 *, VFrame *);
+	uchar guid[16];
+	void (*fn)(Format *, VSUncompressedFrame *, uchar *, VFrame *);
 } converters[] = {
 	{{0x59,0x55,0x59,0x32, 0x00,0x00,0x10,0x00, 0x80,0x00,0x00,0xAA, 0x00,0x38,0x9B,0x71}, yuy2convert},
 };
@@ -110,7 +110,7 @@ struct Converter *
 getconverter(Format *f)
 {
 	struct Converter *c;
-	u8 *guid;
+	uchar *guid;
 	
 	guid = f->desc->guidFormat;
 	for(c = converters; c < converters + nelem(converters); c++)
@@ -143,10 +143,10 @@ cvtproc(void *v)
 	Cam *c;
 	Format *f;
 	VSUncompressedFrame *g;
-	u8 *fbuf;
+	uchar *fbuf;
 	int n;
 	int rc;
-	u8 buf[3*1024];
+	uchar buf[3*1024];
 	struct Converter *cvt;
 	int bufn;
 	int ob;
@@ -201,7 +201,7 @@ static Altc *
 selaltc(Cam *c, ProbeControl *pc)
 {
 	int k;
-	u64 bw, bw1, minbw;
+	uvlong bw, bw1, minbw;
 	int mink;
 	Format *fo;
 	VSUncompressedFrame *f;
@@ -212,7 +212,7 @@ selaltc(Cam *c, ProbeControl *pc)
 		werrstr("selaltc: PROBE_CONTROL returned invalid bFormatIndex,bFrameIndex=%d,%d", pc->bFormatIndex, pc->bFrameIndex);
 		return nil;
 	}
-	bw = (u64)GET2(f->wWidth) * GET2(f->wHeight) * fo->desc->bBitsPerPixel * 10e6 / GET4(c->pc.dwFrameInterval);
+	bw = (uvlong)GET2(f->wWidth) * GET2(f->wHeight) * fo->desc->bBitsPerPixel * 10e6 / GET4(c->pc.dwFrameInterval);
 	iface = c->iface;
 	mink = -1;
 	for(k = 0; k < nelem(iface->altc); k++){
@@ -249,7 +249,7 @@ mkframes(Cam *c)
 	for(i = 0; i < NFrames; i++){
 		v = emallocz(sizeof(VFrame) + 60 + frsz, 1);
 		sprint((char*)&v[1], "%11s %11d %11d %11d %11d ", "b8g8r8", 0, 0, GET2(f->wWidth), GET2(f->wHeight));
-		v->d = (u8*)&v[1];
+		v->d = (uchar*)&v[1];
 		v->sz = frsz;
 		v->n = 60;
 		v->next = c->freel;
@@ -279,9 +279,9 @@ err:
 	if(getconverter(f) == nil) goto err;
 	d = c->dev;
 	if(usbcmd(d, 0x01, Rsetiface, 0, c->iface->id, nil, 0) < 0) goto err;
-	if(usbcmd(d, 0x21, SET_CUR, VS_PROBE_CONTROL << 8, c->iface->id, (u8 *) &c->pc, sizeof(ProbeControl)) < sizeof(ProbeControl)) goto err;
-	if(usbcmd(d, 0xA1, GET_CUR, VS_PROBE_CONTROL << 8, c->iface->id, (u8 *) &c->pc, sizeof(ProbeControl)) < 0) goto err;
-	if(usbcmd(d, 0x21, SET_CUR, VS_COMMIT_CONTROL << 8, c->iface->id, (u8 *) &c->pc, sizeof(ProbeControl)) < sizeof(ProbeControl)) goto err;
+	if(usbcmd(d, 0x21, SET_CUR, VS_PROBE_CONTROL << 8, c->iface->id, (uchar *) &c->pc, sizeof(ProbeControl)) < sizeof(ProbeControl)) goto err;
+	if(usbcmd(d, 0xA1, GET_CUR, VS_PROBE_CONTROL << 8, c->iface->id, (uchar *) &c->pc, sizeof(ProbeControl)) < 0) goto err;
+	if(usbcmd(d, 0x21, SET_CUR, VS_COMMIT_CONTROL << 8, c->iface->id, (uchar *) &c->pc, sizeof(ProbeControl)) < sizeof(ProbeControl)) goto err;
 	altc = selaltc(c, &c->pc);
 	if(altc == nil)
 		goto err;

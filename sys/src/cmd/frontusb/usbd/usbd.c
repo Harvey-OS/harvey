@@ -193,7 +193,7 @@ usbdwalk(Fid *fid, char *name, Qid *qid)
 static void
 usbdread(Req *req)
 {
-	switch((i32)req->fid->qid.path){
+	switch((long)req->fid->qid.path){
 	case Qroot:
 		dirread9p(req, dirgen, nil);
 		respond(req, nil);
