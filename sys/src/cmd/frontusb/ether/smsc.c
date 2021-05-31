@@ -207,7 +207,7 @@ static int
 smscreceive(Dev *ep)
 {
 	Block *b;
-	u32 hd;
+	uint hd;
 	int n;
 
 	n = Doburst? Hsburst*512 : Maxpkt+4;
