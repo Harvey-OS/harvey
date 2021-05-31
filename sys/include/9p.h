@@ -38,17 +38,17 @@ typedef struct Queueelem Queueelem;
 
 struct Queueelem
 {
-	Queueelem	*prev, *next;
-	void		(*f)(Req *);
+	Queueelem *prev, *next;
+	void (*f)(Req *);
 };
 
 struct Reqqueue
 {
-	QLock		lock;
-	Rendez		rendez;
-	Queueelem	queue;
-	int		pid, flush;
-	Req		*cur;
+	QLock;
+	Rendez;
+	Queueelem;
+	int pid, flush;
+	Req *cur;
 };
 
 struct Fid
@@ -70,7 +70,7 @@ struct Fid
 
 struct Req
 {
-	u32		tag;
+	u32	tag;
 	void*		aux;
 	Fcall		ifcall;
 	Fcall		ofcall;
@@ -81,13 +81,11 @@ struct Req
 	Fid*		newfid;
 	Srv*		srv;
 
-	Queueelem	qu;
-
 /* below is implementation-specific; don't use */
 	QLock		lk;
 	Ref		ref;
 	Reqpool*	pool;
-	u8 *		buf;
+	u8 *	buf;
 	u8		type;
 	u8		responded;
 	char*		error;
