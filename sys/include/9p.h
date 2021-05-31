@@ -33,23 +33,7 @@ typedef struct Filelist	Filelist;
 typedef struct Tree	Tree;
 typedef struct Readdir	Readdir;
 typedef struct Srv 	Srv;
-typedef struct Reqqueue Reqqueue;
-typedef struct Queueelem Queueelem;
 
-struct Queueelem
-{
-	Queueelem	*prev, *next;
-	void		(*f)(Req *);
-};
-
-struct Reqqueue
-{
-	QLock		lock;
-	Rendez		rendez;
-	Queueelem	queue;
-	int		pid, flush;
-	Req		*cur;
-};
 
 struct Fid
 {
@@ -70,7 +54,7 @@ struct Fid
 
 struct Req
 {
-	u32		tag;
+	u32	tag;
 	void*		aux;
 	Fcall		ifcall;
 	Fcall		ofcall;
@@ -81,13 +65,11 @@ struct Req
 	Fid*		newfid;
 	Srv*		srv;
 
-	Queueelem	qu;
-
 /* below is implementation-specific; don't use */
 	QLock		lk;
 	Ref		ref;
 	Reqpool*	pool;
-	u8 *		buf;
+	u8 *	buf;
 	u8		type;
 	u8		responded;
 	char*		error;
@@ -237,8 +219,6 @@ struct Srv {
 void		srv(Srv*);
 void		postmountsrv(Srv*, char*, char*, int);
 void		_postmountsrv(Srv*, char*, char*, int);
-void		postsharesrv(Srv*, char*, char*, char*);
-void		_postsharesrv(Srv*, char*, char*, char*);
 void		listensrv(Srv*, char*);
 void		_listensrv(Srv*, char*);
 int 		postfd(char*, int);
@@ -246,7 +226,6 @@ int		chatty9p;
 void		respond(Req*, char*);
 void		responderror(Req*);
 void		threadpostmountsrv(Srv*, char*, char*, int);
-void		threadpostsharesrv(Srv*, char*, char*, char*);
 void		threadlistensrv(Srv *s, char *addr);
 
 /*
@@ -274,8 +253,3 @@ void	authdestroy(Fid*);
 int	authattach(Req*);
 
 extern void (*_forker)(void (*)(void*), void*, int);
-
-Reqqueue*	reqqueuecreate(void);
-void		reqqueuepush(Reqqueue*, Req*, void (*)(Req *));
-void		reqqueueflush(Reqqueue*, Req*);
-void		reqqueuefree(Reqqueue*);

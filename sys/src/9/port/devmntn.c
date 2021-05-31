@@ -394,10 +394,10 @@ mntopen(Chan *c, int omode)
 	return mntopencreate(Tlopen, c, nil, omode, 0);
 }
 
-static Chan*
+static void
 mntcreate(Chan *c, char *name, int omode, int perm)
 {
-	return mntopencreate(Tlcreate, c, name, omode, perm);
+	mntopencreate(Tlcreate, c, name, omode, perm);
 }
 
 static void

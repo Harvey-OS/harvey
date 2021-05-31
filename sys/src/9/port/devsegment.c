@@ -294,7 +294,7 @@ segmentclose(Chan *c)
 		putgseg(c->aux);
 }
 
-static Chan*
+static void
 segmentcreate(Chan *c, char *name, int omode, int perm)
 {
 	Proc *up = externup();
@@ -359,8 +359,6 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 	c->mode = OWRITE;
 
 	DBG("segmentcreate(%s, %#o %#x)\n", name, omode, perm);
-
-	return c;
 }
 
 enum { PTRSIZE = 19 }; /* "0x1234567812345678 " */
