@@ -10,8 +10,6 @@ jobs:
         working-directory: build
     steps:
     - uses: actions/checkout@v2
-      with:
-        lfs: 'true'
     - name: install deps
       run: |
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y # see https://wiki.ubuntu.com/ToolChain
