@@ -18,6 +18,7 @@ var (
 	network = flag.String("net", "tcp4", "Default network type")
 	netaddr = flag.String("addr", ":5641", "Network address")
 	debug   = flag.Int("debug", 0, "Print debug messages")
+	pkg     = flag.String("package", "", "tar.gz package to open")
 )
 
 // Constant error messages to match those found in the linux 9p source.
@@ -318,25 +319,17 @@ func newTmpfs(arch *tmpfs.Archive, opts ...protocol.ListenerOpt) (*protocol.List
 	return l, nil
 }
 
-var usage = func() {
-	fmt.Fprintf(flag.CommandLine.Output(), "Usage: tmpfs [options] <tarfile>\n")
-	flag.PrintDefaults()
-	os.Exit(1)
-}
-
 func main() {
-	flag.Usage = usage
 	flag.Parse()
 
-	a := flag.Args()
-	// TODO: serve more than one archive.
-	if len(a) != 1 {
+	if *pkg == "" {
 		flag.Usage()
+		os.Exit(1)
 	}
-	pkg := a[0]
-	pkfFile, err := os.Open(pkg)
+
+	pkfFile, err := os.Open(*pkg)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Couldn't open package %v error %v", *pkg, err)
 	}
 	defer pkfFile.Close()
 
