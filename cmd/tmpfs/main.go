@@ -1,3 +1,11 @@
+// Binary p9ufs provides a local 9P2000.L server for the p9 package.
+//
+// To use, first start the server:
+//     htmpfs xxx.tgz
+//
+// Then, connect using the Linux 9P filesystem:
+//     mount -t 9p -o trans=tcp,port=5641 127.0.0.1 /mnt
+
 package main
 
 import (
@@ -10,19 +18,16 @@ import (
 	"sync"
 
 	"github.com/Harvey-OS/go/internal/tmpfs"
-	"github.com/Harvey-OS/ninep/pkg/debugfs"
-	"github.com/Harvey-OS/ninep/protocol"
+	"github.com/harvey-os/ninep/protocol"
 )
 
 var (
 	networktype = flag.String("ntype", "tcp4", "Default network type")
 	netaddr     = flag.String("addr", ":5641", "Network address")
-	debug       = flag.Int("debug", 0, "Print debug messages")
+	debug       = flag.Int("debug", 0, "print debug messages")
 )
 
 type fileServer struct {
-	Versioned bool
-
 	archive    *tmpfs.Archive
 	filesMutex sync.Mutex
 	files      map[protocol.FID]tmpfs.Entry
@@ -205,20 +210,17 @@ func (fs *fileServer) clunk(fid protocol.FID) (tmpfs.Entry, error) {
 }
 
 func newTmpfs(arch *tmpfs.Archive, opts ...protocol.ListenerOpt) (*protocol.Listener, error) {
-	if arch == nil {
-		return nil, fmt.Errorf("No archive")
-	}
-
 	nsCreator := func() protocol.NineServer {
 		fs := &fileServer{archive: arch}
 		fs.files = make(map[protocol.FID]tmpfs.Entry)
 		fs.ioUnit = 8192
 
-		var ns protocol.NineServer = fs
-		if *debug != 0 {
-			ns = &debugfs.DebugFileServer{FileServer: fs}
-		}
-		return ns
+		// any opts for the ufs layer can be added here too ...
+		var d protocol.NineServer = fs
+		/*if *debug != 0 {
+			d = &debugFileServer{f}
+		}*/
+		return d
 	}
 
 	l, err := protocol.NewListener(nsCreator, opts...)

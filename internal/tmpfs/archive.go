@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Harvey-OS/ninep/protocol"
+	"github.com/harvey-os/ninep/protocol"
 )
 
 type Archive struct {
