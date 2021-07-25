@@ -66,7 +66,10 @@ func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string,
 	}
 
 	root := fs.archive.Root()
-	fs.setFile(fid, root, uname)
+
+	fs.Lock()
+	defer fs.Unlock()
+	fs.files[fid] = newFidEntry(root, uname)
 
 	return root.Qid(), nil
 }
@@ -86,7 +89,14 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 
 	if len(paths) == 0 {
 		// Clone fid - point to same entry
-		fs.setFile(newfid, parentEntry.Entry, parentEntry.uname)
+		fs.Lock()
+		defer fs.Unlock()
+		_, ok := fs.files[newfid]
+		if ok {
+			return nil, fmt.Errorf("FID in use: clone walk, fid %d newfid %d", fid, newfid)
+		}
+
+		fs.files[newfid] = newFidEntry(parentEntry.Entry, parentEntry.uname)
 		return []protocol.QID{}, nil
 	}
 
@@ -127,7 +137,15 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 		walkQids[i] = currEntry.Qid()
 	}
 
-	fs.setFile(newfid, currEntry, parentEntry.uname)
+	fs.Lock()
+	defer fs.Unlock()
+	// this is quite unlikely, which is why we don't bother checking for it first.
+	if fid != newfid {
+		if _, ok := fs.files[newfid]; ok {
+			return nil, fmt.Errorf("FID in use: walk to %v, fid %v, newfid %v", paths, fid, newfid)
+		}
+	}
+	fs.files[newfid] = newFidEntry(currEntry, parentEntry.uname)
 	return walkQids, nil
 }
 
@@ -260,24 +278,13 @@ func (fs *fileServer) getFile(fid protocol.FID) (*FidEntry, error) {
 	return f, nil
 }
 
-// Associate newfid with the entry, assuming newfid isn't already in use
-func (fs *fileServer) setFile(newfid protocol.FID, entry tmpfs.Entry, uname string) error {
-	fs.Lock()
-	defer fs.Unlock()
-	if _, ok := fs.files[newfid]; ok {
-		return fmt.Errorf("FID in use: newfid %v", newfid)
-	}
-	fs.files[newfid] = newFidEntry(entry, uname)
-	return nil
-}
-
 func (fs *fileServer) clunk(fid protocol.FID) (tmpfs.Entry, error) {
 	fs.Lock()
 	defer fs.Unlock()
 
 	f, ok := fs.files[fid]
 	if !ok {
-		return nil, fmt.Errorf("clunk: FID does not exist: fid %v", fid)
+		return nil, fmt.Errorf("does not exist")
 	}
 	delete(fs.files, fid)
 
