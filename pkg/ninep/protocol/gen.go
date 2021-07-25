@@ -32,7 +32,7 @@ import (
 	"reflect"
 	"text/template"
 
-	"harvey-os.org/pkg/ninep/protocol"
+	"harvey-os.org/go/pkg/ninep/protocol"
 )
 
 const (
