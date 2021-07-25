@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"harvey-os.org/ninep"
-	"harvey-os.org/ninep/protocol"
+	"harvey-os.org/sys/src/pkg/ninep"
+	"harvey-os.org/sys/src/pkg/ninep/protocol"
 )
 
 type file struct {

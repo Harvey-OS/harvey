@@ -11,7 +11,7 @@ package ufs
 import (
 	"os"
 
-	"harvey-os.org/ninep/protocol"
+	"harvey-os.org/sys/src/pkg/ninep/protocol"
 )
 
 func fileInfoToQID(d os.FileInfo) protocol.QID {
