@@ -13,7 +13,7 @@ import (
 
 	"github.com/u-root/u-root/pkg/cpio"
 	"github.com/u-root/u-root/pkg/uio"
-	"harvey-os.org/ninep/protocol"
+	"harvey-os.org/pkg/ninep/protocol"
 )
 
 // Debug can be used to print debug messages.

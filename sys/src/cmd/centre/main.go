@@ -27,8 +27,8 @@ import (
 	"github.com/insomniacslk/dhcp/dhcpv4/server4"
 	"github.com/insomniacslk/dhcp/dhcpv6"
 	"github.com/insomniacslk/dhcp/dhcpv6/server6"
-	"harvey-os.org/ninep/protocol"
-	"harvey-os.org/ninep/ufs"
+	"harvey-os.org/pkg/ninep/protocol"
+	"harvey-os.org/pkg/ninep/ufs"
 	"pack.ag/tftp"
 )
 
