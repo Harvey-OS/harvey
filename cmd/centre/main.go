@@ -216,35 +216,33 @@ func main() {
 		}()
 	}
 
-	if *inf != "" {
-		centre, err := net.LookupIP("centre")
-		if err != nil {
-			log.Printf("No centre entry found via LookupIP: not serving DHCP")
-		} else if *ipv4 {
-			ip := centre[0].To4()
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				s := &dserver4{
-					self:         ip,
-					bootfilename: *bootfilename,
-					rootpath:     *rootpath,
-				}
+	centre, err := net.LookupIP("centre")
+	if err != nil {
+		log.Printf("No centre entry found via LookupIP: not serving DHCP")
+	} else if *ipv4 {
+		ip := centre[0].To4()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			s := &dserver4{
+				self:         ip,
+				bootfilename: *bootfilename,
+				rootpath:     *rootpath,
+			}
 
-				laddr := &net.UDPAddr{Port: dhcpv4.ServerPort}
-				server, err := server4.NewServer(*inf, laddr, s.dhcpHandler)
-				if err != nil {
-					log.Fatal(err)
-				}
-				if err := server.Serve(); err != nil {
-					log.Fatal(err)
-				}
-			}()
-		}
+			laddr := &net.UDPAddr{Port: dhcpv4.ServerPort}
+			server, err := server4.NewServer(*inf, laddr, s.dhcpHandler)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if err := server.Serve(); err != nil {
+				log.Fatal(err)
+			}
+		}()
 	}
 
 	// not yet.
-	if false && *ipv6 && *inf != "" {
+	if false && *ipv6 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
