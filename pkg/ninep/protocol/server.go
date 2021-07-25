@@ -19,8 +19,7 @@ const DefaultAddr = ":5640"
 
 type NsCreator func() NineServer
 
-// NetListener is a struct used to control how we listen for remote connections.
-type NetListener struct {
+type Listener struct {
 	nsCreator NsCreator
 
 	// TCP address to listen on, default is DefaultAddr
@@ -46,16 +45,14 @@ type Server struct {
 	Versioned bool
 }
 
-// conn has a listener in it, and I don't recall why.
 type conn struct {
-	listener *NetListener
+	listener *Listener
 
 	// server on which the connection arrived.
 	server *Server
 
-	io.Reader
-	io.Writer
-	io.Closer
+	// rwc is the underlying network connection.
+	rwc net.Conn
 
 	// remoteAddr is rwc.RemoteAddr().String(). See note in net/http/server.go.
 	remoteAddr string
@@ -65,17 +62,10 @@ type conn struct {
 
 	// dead is set to true when we finish reading packets.
 	dead bool
-
-	logger func(string, ...interface{})
 }
 
-// this is getting icky, but the plan is to deprecate this whole thing in favor of p9.
-// So it's ok.
-var Debug = func(string, ...interface{}) {}
-
-// NewNetListener returns a NetListener, on which new sessions may be established.
-func NewNetListener(nsCreator NsCreator, opts ...NetListenerOpt) (*NetListener, error) {
-	l := &NetListener{
+func NewListener(nsCreator NsCreator, opts ...ListenerOpt) (*Listener, error) {
+	l := &Listener{
 		nsCreator: nsCreator,
 	}
 
@@ -88,43 +78,22 @@ func NewNetListener(nsCreator NsCreator, opts ...NetListenerOpt) (*NetListener, 
 	return l, nil
 }
 
-func (l *NetListener) newConn(rwc net.Conn) (*conn, error) {
+func (l *Listener) newConn(rwc net.Conn) (*conn, error) {
 	ns := l.nsCreator()
 	server := &Server{NS: ns, D: Dispatch}
 
 	c := &conn{
-		server:     server,
-		listener:   l,
-		Reader:     rwc,
-		Writer:     rwc,
-		Closer:     rwc,
-		replies:    make(chan RPCReply, NumTags),
-		remoteAddr: rwc.RemoteAddr().String(),
-		logger:     l.logf,
+		server:   server,
+		listener: l,
+		rwc:      rwc,
+		replies:  make(chan RPCReply, NumTags),
 	}
 
 	return c, nil
 }
 
-// ServeFromRWC runs a server from an io.ReadWriteCloser
-// This can be used on Plan 9 for files in #s (i.e. /srv)
-func ServeFromRWC(rwc io.ReadWriteCloser, fs NineServer, n string) {
-
-	c := &conn{
-		server:     &Server{NS: fs, D: Dispatch},
-		Reader:     rwc,
-		Writer:     rwc,
-		Closer:     rwc,
-		replies:    make(chan RPCReply, NumTags),
-		remoteAddr: n,
-		logger:     Debug,
-	}
-
-	c.serve()
-}
-
-// trackNetListener from http.Server
-func (l *NetListener) trackNetListener(ln net.Listener, add bool) {
+// trackListener from http.Server
+func (l *Listener) trackListener(ln net.Listener, add bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -139,8 +108,8 @@ func (l *NetListener) trackNetListener(ln net.Listener, add bool) {
 	}
 }
 
-// closeNetListenersLocked from http.Server
-func (l *NetListener) closeNetListenersLocked() error {
+// closeListenersLocked from http.Server
+func (l *Listener) closeListenersLocked() error {
 	var err error
 	for ln := range l.listeners {
 		if cerr := ln.Close(); cerr != nil && err == nil {
@@ -151,15 +120,15 @@ func (l *NetListener) closeNetListenersLocked() error {
 	return err
 }
 
-// Serve accepts incoming connections on the NetListener and calls e.Accept on
+// Serve accepts incoming connections on the Listener and calls e.Accept on
 // each connection.
-func (l *NetListener) Serve(ln net.Listener) error {
+func (l *Listener) Serve(ln net.Listener) error {
 	defer ln.Close()
 
 	var tempDelay time.Duration // how long to sleep on accept failure
 
-	l.trackNetListener(ln, true)
-	defer l.trackNetListener(ln, false)
+	l.trackListener(ln, true)
+	defer l.trackListener(ln, false)
 
 	// from http.Server.Serve
 	for {
@@ -190,7 +159,7 @@ func (l *NetListener) Serve(ln net.Listener) error {
 
 // Accept a new connection, typically called via Serve but may be called
 // directly if there's a connection from an exotic listener.
-func (l *NetListener) Accept(conn net.Conn) error {
+func (l *Listener) Accept(conn net.Conn) error {
 	c, err := l.newConn(conn)
 	if err != nil {
 		return err
@@ -202,19 +171,19 @@ func (l *NetListener) Accept(conn net.Conn) error {
 
 // Shutdown closes all active listeners. It does not close all active
 // connections but probably should.
-func (l *NetListener) Shutdown() error {
+func (l *Listener) Shutdown() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	return l.closeNetListenersLocked()
+	return l.closeListenersLocked()
 }
 
-func (l *NetListener) String() string {
+func (l *Listener) String() string {
 	// TODO
 	return ""
 }
 
-func (l *NetListener) logf(format string, args ...interface{}) {
+func (l *Listener) logf(format string, args ...interface{}) {
 	if l.Trace != nil {
 		l.Trace(format, args...)
 	}
@@ -226,19 +195,24 @@ func (c *conn) String() string {
 
 func (c *conn) logf(format string, args ...interface{}) {
 	// prepend some info about the conn
-	if c.logger != nil {
-		c.logger("[%v] "+format, append([]interface{}{c.remoteAddr}, args...)...)
-	}
+	c.listener.logf("[%v] "+format, append([]interface{}{c.remoteAddr}, args...)...)
 }
 
 func (c *conn) serve() {
-	defer c.Close()
+	if c.rwc == nil {
+		c.dead = true
+		return
+	}
+
+	c.remoteAddr = c.rwc.RemoteAddr().String()
+
+	defer c.rwc.Close()
 
 	c.logf("Starting readNetPackets")
 
 	for !c.dead {
 		l := make([]byte, 7)
-		if n, err := c.Read(l); err != nil || n < 7 {
+		if n, err := c.rwc.Read(l); err != nil || n < 7 {
 			c.logf("readNetPackets: short read: %v", err)
 			c.dead = true
 			return
@@ -246,7 +220,7 @@ func (c *conn) serve() {
 		sz := int64(l[0]) + int64(l[1])<<8 + int64(l[2])<<16 + int64(l[3])<<24
 		t := MType(l[4])
 		b := bytes.NewBuffer(l[5:])
-		r := io.LimitReader(c.Reader, sz-7)
+		r := io.LimitReader(c.rwc, sz-7)
 		if _, err := io.Copy(b, r); err != nil {
 			c.logf("readNetPackets: short read: %v", err)
 			c.dead = true
@@ -259,7 +233,7 @@ func (c *conn) serve() {
 			c.logf("%v: %v", RPCNames[MType(l[4])], err)
 		}
 		c.logf("readNetPackets: Write %v back", b)
-		amt, err := c.Write(b.Bytes())
+		amt, err := c.rwc.Write(b.Bytes())
 		if err != nil {
 			c.logf("readNetPackets: write error: %v", err)
 			c.dead = true
