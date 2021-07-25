@@ -65,10 +65,7 @@ func createTestImage() *bytes.Buffer {
 }
 
 func TestReadArchive(t *testing.T) {
-	arch, err := ReadImage(createTestImage())
-	if err != nil {
-		t.Fatal(err)
-	}
+	arch := ReadImage(createTestImage())
 
 	// Read root
 	root := arch.Root()

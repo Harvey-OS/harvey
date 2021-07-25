@@ -8,9 +8,9 @@ import (
 	"os"
 	"sync"
 
-	"harvey-os.org/ninep/protocol"
-	"harvey-os.org/ninep/tmpfs"
-	"harvey-os.org/sys"
+	"harvey-os.org/internal/tmpfs"
+	"harvey-os.org/pkg/ninep/protocol"
+	"harvey-os.org/pkg/sys"
 )
 
 var (

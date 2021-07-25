@@ -8,7 +8,7 @@ import (
 	"log"
 	"testing"
 
-	"harvey-os.org/ninep/tmpfs"
+	"harvey-os.org/internal/tmpfs"
 )
 
 // Lots of tests shamelessly lifted from the ninep/ufs code
