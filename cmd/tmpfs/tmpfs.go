@@ -34,9 +34,6 @@ type fileServer struct {
 type FidEntry struct {
 	tmpfs.Entry
 
-	// Username to be used for all entries in this hierarchy
-	uname string
-
 	// We can't know how big a serialized dentry is until we serialize it.
 	// At that point it might be too big. We save it here if that happens,
 	// and on the next directory read we start with that.
@@ -46,8 +43,8 @@ type FidEntry struct {
 	nextChildIdx int
 }
 
-func newFidEntry(entry tmpfs.Entry, uname string) *FidEntry {
-	return &FidEntry{Entry: entry, uname: uname, oflow: nil, nextChildIdx: -1}
+func newFidEntry(entry tmpfs.Entry) *FidEntry {
+	return &FidEntry{Entry: entry, oflow: nil, nextChildIdx: -1}
 }
 
 func (fs *fileServer) Rversion(msize protocol.MaxSize, version string) (protocol.MaxSize, string, error) {
@@ -72,7 +69,7 @@ func (fs *fileServer) Rattach(fid protocol.FID, afid protocol.FID, uname string,
 
 	root := fs.archive.Root()
 	fs.filesMutex.Lock()
-	fs.files[fid] = newFidEntry(root, uname)
+	fs.files[fid] = newFidEntry(root)
 	fs.filesMutex.Unlock()
 
 	return root.Qid(), nil
@@ -98,7 +95,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 			return nil, fmt.Errorf("FID in use: clone walk, fid %d newfid %d", fid, newfid)
 		}
 
-		fs.files[newfid] = newFidEntry(parentEntry.Entry, parentEntry.uname)
+		fs.files[newfid] = newFidEntry(parentEntry.Entry)
 		return []protocol.QID{}, nil
 	}
 
@@ -149,7 +146,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 			return nil, fmt.Errorf("FID in use: walk to %v, fid %v, newfid %v", paths, fid, newfid)
 		}
 	}
-	fs.files[newfid] = newFidEntry(currEntry, parentEntry.uname)
+	fs.files[newfid] = newFidEntry(currEntry)
 	return walkQids, nil
 }
 
@@ -183,9 +180,7 @@ func (fs *fileServer) Rstat(fid protocol.FID) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-
-	d := f.P9Dir(f.uname)
-
+	d := f.P9Dir()
 	var b bytes.Buffer
 	protocol.Marshaldir(&b, *d)
 	return b.Bytes(), nil
@@ -231,7 +226,7 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 			if f.nextChildIdx >= dir.NumChildren() {
 				return b.Bytes(), nil
 			}
-			d9p := dir.Child(f.nextChildIdx).P9Dir(f.uname)
+			d9p := dir.Child(f.nextChildIdx).P9Dir()
 			protocol.Marshaldir(b, *d9p)
 
 			// Seen on linux clients: sometimes the math is wrong and
@@ -277,7 +272,6 @@ func (fs *fileServer) getFile(fid protocol.FID) (*FidEntry, error) {
 func (fs *fileServer) clunk(fid protocol.FID) (tmpfs.Entry, error) {
 	fs.filesMutex.Lock()
 	defer fs.filesMutex.Unlock()
-
 	f, ok := fs.files[fid]
 	if !ok {
 		return nil, fmt.Errorf("does not exist")
