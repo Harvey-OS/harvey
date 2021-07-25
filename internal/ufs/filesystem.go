@@ -440,7 +440,7 @@ func (e *FileServer) Rwrite(fid protocol.FID, o protocol.Offset, b []byte) (prot
 	return protocol.Count(n), err
 }
 
-func NewUFS(root string, debug int, opts ...protocol.NetListenerOpt) (*protocol.NetListener, error) {
+func NewUFS(root string, debug int, opts ...protocol.ListenerOpt) (*protocol.Listener, error) {
 	nsCreator := func() protocol.NineServer {
 		f := &FileServer{}
 		f.files = make(map[protocol.FID]*file)
@@ -455,7 +455,7 @@ func NewUFS(root string, debug int, opts ...protocol.NetListenerOpt) (*protocol.
 		return d
 	}
 
-	l, err := protocol.NewNetListener(nsCreator, opts...)
+	l, err := protocol.NewListener(nsCreator, opts...)
 	if err != nil {
 		return nil, err
 	}
