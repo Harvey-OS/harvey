@@ -1,4 +1,5 @@
 // decompress is a tool for decompressing compressed files
+
 package main
 
 import (
@@ -19,7 +20,7 @@ var (
 	}
 )
 
-func decompress(infile io.Reader, outfile io.Writer) error {
+func decompress(infile *os.File, outfile *os.File) error {
 	r, err := lzma.NewReader(infile)
 	if err != nil {
 		return fmt.Errorf("couldn't open lzma file: %w", err)
