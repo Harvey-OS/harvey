@@ -46,13 +46,13 @@ var dry = flag.Bool("dryrun", true, "don't really do it")
 
 func gencode(w io.Writer, n, t string, m []byte, start, end uint64) {
 	fmt.Fprintf(os.Stderr, "Write %v %v start %v end %v\n", n, t, start, end)
-	fmt.Fprintf(w, "u64 %v_%v_start = %#x;\n", n, t, start)
-	fmt.Fprintf(w, "u64 %v_%v_end = %#x;\n", n, t, end)
-	fmt.Fprintf(w, "u64 %v_%v_len = %#x;\n", n, t, end-start)
-	fmt.Fprintf(w, "u8 %v_%v_out[] = {\n", n, t)
+	fmt.Fprintf(w, "int %v_%v_start = %v;\n", n, t, start)
+	fmt.Fprintf(w, "int %v_%v_end = %v;\n", n, t, end)
+	fmt.Fprintf(w, "int %v_%v_len = %v;\n", n, t, end-start)
+	fmt.Fprintf(w, "uint8_t %v_%v_out[] = {\n", n, t)
 	for i := uint64(start); i < end; i += 16 {
 		for j := uint64(0); i+j < end && j < 16; j++ {
-			fmt.Fprintf(w, "%#02x, ", m[j+i])
+			fmt.Fprintf(w, "0x%02x, ", m[j+i])
 		}
 		fmt.Fprintf(w, "\n")
 	}
