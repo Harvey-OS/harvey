@@ -135,38 +135,19 @@ func (a *Archive) Root() *Directory {
 
 func (a *Archive) addFile(filepath string, file *File) error {
 	filecmps := strings.Split(filepath, "/")
-	//fmt.Println(filecmps)
-
-	isFile := !file.hdr.FileInfo().IsDir()
-	var dirCmps []string
-	if isFile {
-		dirCmps = filecmps[:len(filecmps)-1]
-	} else {
-		dirCmps = filecmps
-	}
-
-	dir, err := a.getOrCreateDir(a.root, dirCmps)
-	if err != nil {
+	if dir, err := a.getOrCreateDir(a.root, filecmps[:len(filecmps)-1]); err != nil {
 		return err
-	}
-
-	if isFile {
+	} else {
 		return a.createFile(dir, filecmps[len(filecmps)-1], file)
 	}
-	return nil
 }
 
 func (a *Archive) getOrCreateDir(d *Directory, cmps []string) (*Directory, error) {
 	if len(cmps) == 0 {
 		return d, nil
 	}
-	//fmt.Println(cmps)
 
 	cmpname := cmps[0]
-	if cmpname == "" {
-		return d, nil
-	}
-
 	if entry, exists := d.nameToEntryMap[cmpname]; exists {
 		if dir, ok := entry.(*Directory); ok {
 			return a.getOrCreateDir(dir, cmps[1:])
@@ -174,8 +155,7 @@ func (a *Archive) getOrCreateDir(d *Directory, cmps []string) (*Directory, error
 			return nil, fmt.Errorf("File already exists with name %s", cmpname)
 		}
 	} else {
-		newDir := newDirectory(cmpname, d, a.openTime, uint64(len(a.dirs)))
-		fmt.Printf("Adding newDirectory: %v cmps: %v\n", newDir.name, cmpname)
+		newDir := newDirectory(strings.Join(cmps, "/"), d, a.openTime, uint64(len(a.dirs)))
 		a.dirs = append(a.dirs, newDir)
 
 		// Add the child dir to the parent
@@ -202,21 +182,6 @@ func (a *Archive) createFile(d *Directory, filename string, file *File) error {
 	return nil
 }
 
-func (a *Archive) DumpEntry(e Entry, parentPath string) {
-	if dir, isDir := e.(*Directory); isDir {
-		parentPath = path.Join(parentPath, dir.name)
-		for _, child := range dir.entries {
-			a.DumpEntry(child, parentPath)
-		}
-	} else if file, isFile := e.(*File); isFile {
-		log.Printf("%v\n", path.Join(parentPath, file.name))
-	}
-}
-
-func (a *Archive) DumpArchive() {
-	a.DumpEntry(a.root, "")
-}
-
 // ReadImage reads a compressed tar to produce a file hierarchy
 func ReadImage(r io.Reader) *Archive {
 	gzr, err := gzip.NewReader(r)
@@ -241,15 +206,12 @@ func ReadImage(r io.Reader) *Archive {
 			log.Fatal(err)
 		}
 
-		//fmt.Println(hdr.Name)
 		file := newFile(hdr, uint64(id), uint64(hdr.Size))
 		if _, err := io.ReadFull(tr, file.data); err != nil {
 			log.Fatal(err)
 		}
 
-		if err = fs.addFile(hdr.Name, file); err != nil {
-			log.Fatal(err)
-		}
+		fs.addFile(hdr.Name, file)
 	}
 
 	return fs
