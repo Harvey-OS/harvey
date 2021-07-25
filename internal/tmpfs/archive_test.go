@@ -57,7 +57,7 @@ func TestReadArchive(t *testing.T) {
 
 	// Read root
 	root := arch.Root()
-	if root.Name() != "" {
+	if root.FullName() != "" {
 		t.Fatal("incorrect root name")
 	}
 
