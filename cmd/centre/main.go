@@ -9,7 +9,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -70,9 +69,9 @@ type dserver4 struct {
 	hostFile     string
 }
 
-// lookupIP looks up an IP address corresponding to the given name.
-// It also returns a slice of other hostnames it found for the same IP.
-func lookupIP(hostFile string, addr string) (net.IP, []string, error) {
+// lookupIP looks up an IP address corresponding to the given address
+// for mac address, prefix a "u", e.g. "u00:11:22:33:44:55"
+func lookupIP(hostFile string, addr string) ([]net.IP, error) {
 	var err error
 	// First try the override
 	if hostFile != `` {
@@ -80,38 +79,59 @@ func lookupIP(hostFile string, addr string) (net.IP, []string, error) {
 		// We do this so you can update the file without restarting the server
 		var f *os.File
 		if f, err = os.Open(hostFile); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		// We're going to be real simple-minded. We take each line to consist of
-		// one IP, followed by one or more whitespace-separated hostnames, with
-		// the mac address at the end:
-		// <ip> <hostname>... <mac>
+		// one IP, followed by one or more whitespace-separated hostnames
 		scan := bufio.NewScanner(f)
 		for scan.Scan() {
 			fields := strings.Fields(scan.Text())
-			if len(fields) < 2 || strings.HasPrefix(fields[0], "#") {
+			if len(fields) < 2 {
 				continue
 			}
-			var hostnames []string
-			for _, fld := range fields[1:] {
+			for _, fld := range fields {
 				if strings.ToLower(fld) == strings.ToLower(addr) {
-					return net.ParseIP(fields[0]), hostnames, nil
+					return []net.IP{net.ParseIP(fields[0])}, nil
 				}
-				hostnames = append(hostnames, fld)
 			}
 		}
 	}
 	// Now just do a regular lookup since we didn't find it in the override
-	ips, err := net.LookupIP(addr)
-	if err != nil {
-		return nil, nil, err
+	return net.LookupIP(addr)
+}
+
+func lookupHostname(hostFile string, ip net.IP) (string, error) {
+	var err error
+	// First try the override
+	if hostFile != `` {
+		// Read the file and walk each line looking for a match.
+		// We do this so you can update the file without restarting the server
+		var f *os.File
+		if f, err = os.Open(hostFile); err != nil {
+			return "", err
+		}
+		// We're going to be real simple-minded. We take each line to consist of
+		// one IP, followed by one or more whitespace-separated hostnames
+		scan := bufio.NewScanner(f)
+		for scan.Scan() {
+			fields := strings.Fields(scan.Text())
+			// You have to have at least 3 fields: <ip> <hostname>... <mac addr>
+			if len(fields) < 3 {
+				continue
+			}
+			if fields[0] != ip.String() {
+				continue
+			}
+			// just return the first hostname given
+			return fields[1], nil
+		}
 	}
-	if len(ips) == 0 {
-		return nil, nil, errors.New("No IP found")
-	}
-	ip := ips[0]
+	// Now just do a regular lookup since we didn't find it in the override
 	names, err := net.LookupAddr(ip.String())
-	return ip, names, err
+	if len(names) == 0 {
+		return "", nil
+	}
+	return names[0], nil
 }
 
 func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
@@ -128,20 +148,21 @@ func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHC
 		return
 	}
 
-	ip, hostnames, err := lookupIP(s.hostFile, fmt.Sprintf("u%s", m.ClientHWAddr))
-	if err != nil || ip.IsUnspecified() {
+	i, err := lookupIP(s.hostFile, fmt.Sprintf("u%s", m.ClientHWAddr))
+	if err != nil {
 		log.Printf("Not responding to DHCP request for mac %s", m.ClientHWAddr)
 		log.Printf("You can create a host entry of the form 'a.b.c.d [names] u%s' 'ip6addr [names] u%s'if you wish", m.ClientHWAddr, m.ClientHWAddr)
 		return
 	}
 
 	// Since this is dserver4, we force it to be an ip4 address.
-	ip = ip.To4()
+	ip := i[0].To4()
 
-	// We're just going to use the first hostname for now
-	var hostname string
-	if len(hostnames) > 0 {
-		hostname = hostnames[0]
+	// get the hostname
+	hostname, err := lookupHostname(s.hostFile, ip)
+	if err != nil {
+		log.Printf("Failure in trying to look up hostname: %v", err)
+		return
 	}
 
 	modifiers := []dhcpv4.Modifier{
@@ -315,11 +336,11 @@ func main() {
 	}
 
 	if *inf != "" {
-		centre, _, err := lookupIP(*hostFile, "centre")
+		centre, err := lookupIP(*hostFile, "centre")
 		if err != nil {
 			log.Printf("No centre entry found via LookupIP: not serving DHCP")
 		} else if *ipv4 {
-			ip := centre.To4()
+			ip := centre[0].To4()
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
