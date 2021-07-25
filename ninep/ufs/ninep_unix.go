@@ -4,7 +4,7 @@
 // This code is imported from the old ninep repo,
 // with some changes.
 
-// +build !windows,!plan9
+// +build !windows
 
 package ufs
 
