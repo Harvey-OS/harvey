@@ -89,8 +89,7 @@ func TestReadArchive(t *testing.T) {
 	}
 	seanFile := sean.(*File)
 	seanData := string(seanFile.Data())
-	expectedData := "lorem ipshum."
-	if seanData != expectedData {
-		t.Fatalf("sean.txt didn't contain expected string. expected '%s', found '%s'", expectedData, seanData)
+	if seanData != "lorem ipshum." {
+		t.Fatalf("sean.txt didn't contain expected string - found '%s'", seanData)
 	}
 }

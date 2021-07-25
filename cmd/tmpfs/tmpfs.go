@@ -95,7 +95,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 			return nil, fmt.Errorf("FID in use: clone walk, fid %d newfid %d", fid, newfid)
 		}
 
-		fs.files[newfid] = newFidEntry(parentEntry.Entry)
+		fs.files[newfid] = newFidEntry(parentEntry)
 		return []protocol.QID{}, nil
 	}
 
@@ -205,7 +205,6 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 	}
 
 	if dir, ok := f.Entry.(*tmpfs.Directory); ok {
-		fmt.Printf("read dir\n")
 		if o == 0 {
 			f.oflow = nil
 		}
@@ -241,14 +240,12 @@ func (fs *fileServer) Rread(fid protocol.FID, o protocol.Offset, c protocol.Coun
 				log.Printf("Warning: Server bug? %v, need %d bytes;count is %d: skipping", d9p, b.Len(), c)
 				return nil, nil
 			}
-			// TODO handle more than one entry at a time
 			// We're not quite doing the array right.
 			// What does work is returning one thing so, for now, do that.
 			return b.Bytes(), nil
 		}
 
 	} else if file, ok := f.Entry.(*tmpfs.File); ok {
-		fmt.Printf("read file\n")
 
 		// N.B. even if they ask for 0 bytes on some file systems it is important to pass
 		// through a zero byte read (not Unix, of course).
