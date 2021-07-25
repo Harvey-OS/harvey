@@ -3,6 +3,7 @@ package main
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"fmt"
 	"log"
 	"testing"
@@ -20,7 +21,14 @@ func print(f string, args ...interface{}) {
 func createTestImage(t *testing.T, base int) *bytes.Buffer {
 	var buf bytes.Buffer
 
-	tw := tar.NewWriter(&buf)
+	gztw := gzip.NewWriter(&buf)
+	defer func() {
+		if err := gztw.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	tw := tar.NewWriter(gztw)
 	defer func() {
 		if err := tw.Close(); err != nil {
 			log.Fatal(err)
@@ -60,7 +68,7 @@ func createTestImage(t *testing.T, base int) *bytes.Buffer {
 
 func TestReadImage(t *testing.T) {
 	tmpfs.Debug = t.Logf
-	_, err := tmpfs.ReadImageTar(createTestImage(t, 0))
+	_, err := tmpfs.ReadImage(createTestImage(t, 0))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +76,7 @@ func TestReadImage(t *testing.T) {
 
 func TestReadImageBig(t *testing.T) {
 	tmpfs.Debug = t.Logf
-	_, err := tmpfs.ReadImageTar(createTestImage(t, 1048576))
+	_, err := tmpfs.ReadImage(createTestImage(t, 1048576))
 	if err != nil {
 		t.Fatal(err)
 	}

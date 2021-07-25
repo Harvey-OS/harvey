@@ -3,6 +3,7 @@ package tmpfs
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"log"
 	"os"
 	"strings"
@@ -13,7 +14,14 @@ import (
 func createTestImage() *bytes.Buffer {
 	var buf bytes.Buffer
 
-	tw := tar.NewWriter(&buf)
+	gztw := gzip.NewWriter(&buf)
+	defer func() {
+		if err := gztw.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	tw := tar.NewWriter(gztw)
 	defer func() {
 		if err := tw.Close(); err != nil {
 			log.Fatal(err)
@@ -57,7 +65,7 @@ func createTestImage() *bytes.Buffer {
 }
 
 func TestReadArchive(t *testing.T) {
-	arch, err := ReadImageTar(createTestImage())
+	arch, err := ReadImage(createTestImage())
 	if err != nil {
 		t.Fatal(err)
 	}
