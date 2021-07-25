@@ -7,7 +7,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
@@ -15,7 +14,6 @@ import (
 	"math"
 	"net"
 	"net/http"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -42,7 +40,6 @@ var (
 	raspi        = flag.Bool("raspi", false, "Configure to boot Raspberry Pi")
 	dnsServers   = flag.String("dns", "", "Comma-separated list of DNS servers for DHCPv4")
 	gateway      = flag.String("gw", "", "Optional gateway IP for DHCPv4")
-	hostFile     = flag.String("hostfile", "", "Optional additional hosts file for DHCPv4")
 
 	// DHCPv6-specific
 	ipv6           = flag.Bool("6", false, "DHCPv6 server")
@@ -66,38 +63,6 @@ type dserver4 struct {
 	bootfilename string
 	rootpath     string
 	dns          []net.IP
-	hostFile     string
-}
-
-// lookupIP looks up an IP address corresponding to the given address
-// for mac address, prefix a "u", e.g. "u00:11:22:33:44:55"
-func lookupIP(hostFile string, addr string) ([]net.IP, error) {
-	var err error
-	// First try the override
-	if hostFile != `` {
-		// Read the file and walk each line looking for a match.
-		// We do this so you can update the file without restarting the server
-		var f *os.File
-		if f, err = os.Open(hostFile); err != nil {
-			return nil, err
-		}
-		// We're going to be real simple-minded. We take each line to consist of
-		// one IP, followed by one or more whitespace-separated hostnames
-		scan := bufio.NewScanner(f)
-		for scan.Scan() {
-			fields := strings.Fields(scan.Text())
-			if len(fields) < 2 {
-				continue
-			}
-			for _, fld := range fields {
-				if strings.ToLower(fld) == strings.ToLower(addr) {
-					return []net.IP{net.ParseIP(fields[0])}, nil
-				}
-			}
-		}
-	}
-	// Now just do a regular lookup since we didn't find it in the override
-	return net.LookupIP(addr)
 }
 
 func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHCPv4) {
@@ -114,7 +79,7 @@ func (s *dserver4) dhcpHandler(conn net.PacketConn, peer net.Addr, m *dhcpv4.DHC
 		return
 	}
 
-	i, err := lookupIP(s.hostFile, fmt.Sprintf("u%s", m.ClientHWAddr))
+	i, err := net.LookupIP(fmt.Sprintf("u%s", m.ClientHWAddr))
 	if err != nil {
 		log.Printf("Not responding to DHCP request for mac %s", m.ClientHWAddr)
 		log.Printf("You can create a host entry of the form 'a.b.c.d [names] u%s' 'ip6addr [names] u%s'if you wish", m.ClientHWAddr, m.ClientHWAddr)
@@ -291,7 +256,7 @@ func main() {
 	}
 
 	if *inf != "" {
-		centre, err := lookupIP(*hostFile, "centre")
+		centre, err := net.LookupIP("centre")
 		if err != nil {
 			log.Printf("No centre entry found via LookupIP: not serving DHCP")
 		} else if *ipv4 {
@@ -305,7 +270,6 @@ func main() {
 					rootpath:     *rootpath,
 					submask:      ip.DefaultMask(),
 					dns:          dns,
-					hostFile:     *hostFile,
 				}
 
 				laddr := &net.UDPAddr{Port: dhcpv4.ServerPort}
