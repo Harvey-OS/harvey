@@ -1,5 +1,3 @@
-// +build go1.14
-
 package main
 
 import (
@@ -143,11 +141,7 @@ func (fs *fileServer) Rwalk(fid protocol.FID, newfid protocol.FID, paths []strin
 
 // Ropen opens the file associated with fid
 func (fs *fileServer) Ropen(fid protocol.FID, mode protocol.Mode) (protocol.QID, protocol.MaxSize, error) {
-	if mode&(protocol.OTRUNC|protocol.ORCLOSE|protocol.OAPPEND) != 0 {
-		return protocol.QID{}, 0, fmt.Errorf(ErrorReadOnlyFs)
-	}
-	switch mode & 3 {
-	case protocol.OWRITE, protocol.ORDWR:
+	if mode&(protocol.OWRITE|protocol.ORDWR|protocol.OTRUNC|protocol.ORCLOSE|protocol.OAPPEND) != 0 {
 		return protocol.QID{}, 0, fmt.Errorf(ErrorReadOnlyFs)
 	}
 
