@@ -16,6 +16,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y rc qemu go-dep qemu-utils expect qemu-system-x86
         go get harvey-os.org/cmd/ufs
+    - name: install source we build into the image
+      run: |
+        git clone --depth 1 --branch go1.16.6 https://github.com/golang/go.git
     - name: bootstrap and run
       env:
         ARCH: amd64
