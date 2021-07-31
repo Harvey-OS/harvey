@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <math.h>
 #include "pic.h"
 #include "y.tab.h"
@@ -95,8 +93,6 @@ obj *linegen(int type)
 				dx[ndxy] = dy[ndxy] = some = 0;
 			}
 			ppos = attr[i].a_val.o;
-			if (ppos == NULL)
-				ERROR "no tag defined for `to'" FATAL;
 			dx[ndxy] = ppos->o_x - nx;
 			dy[ndxy] = ppos->o_y - ny;
 			some++;
@@ -109,8 +105,6 @@ obj *linegen(int type)
 				dx[ndxy] = dy[ndxy] = some = 0;
 			}
 			ppos = ap->a_val.o;
-			if (ppos == NULL)
-				ERROR "no tag defined for `by'" FATAL;
 			dx[ndxy] = ppos->o_x;
 			dy[ndxy] = ppos->o_y;
 			some++;
@@ -126,8 +120,6 @@ obj *linegen(int type)
 		case FROM:
 		case AT:
 			ppos = ap->a_val.o;
-			if (ppos == NULL)
-				ERROR "no tag defined for `from' or `at'" FATAL;
 			nx = curx = ppos->o_x;
 			ny = cury = ppos->o_y;
 			break;

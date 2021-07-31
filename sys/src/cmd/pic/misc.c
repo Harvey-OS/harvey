@@ -207,8 +207,6 @@ int whatpos(obj *p, int corner, double *px, double *py)	/* what is the position 
 {
 	double x, y, x1, y1;
 
-	if (p == NULL)
-		ERROR "null object" FATAL;
 	dprintf("whatpos %o %d %d\n", p, p->o_type, corner);
 	x = p->o_x;
 	y = p->o_y;
