@@ -5,6 +5,7 @@ TARG = 	dhcpclient\
 	gping\
 	hogports\
 	httpfile\
+	ipconfig\
 	linklocal\
 	ping\
 	pppoe\
