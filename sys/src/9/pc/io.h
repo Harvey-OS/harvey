@@ -183,14 +183,10 @@ struct Pcidev
 	ushort	vid;			/* vendor ID */
 	ushort	did;			/* device ID */
 
-	ushort	pcr;
-
 	uchar	rid;
 	uchar	ccrp;
 	uchar	ccru;
 	uchar	ccrb;
-	uchar	cls;
-	uchar	ltr;
 
 	struct {
 		ulong	bar;		/* base address */
@@ -211,8 +207,7 @@ struct Pcidev
 		ulong	bar;
 		int	size;
 	} ioa, mema;
-
-	int	pmrb;			/* power management register block */
+	ulong	pcr;
 };
 
 #define PCIWINDOW	0

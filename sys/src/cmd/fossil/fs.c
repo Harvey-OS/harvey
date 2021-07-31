@@ -80,7 +80,7 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 			vtSetError("cacheLocalData: %R");
 			goto Err;
 		}
-		if(b->l.epoch == fs->ehi){
+		if(!(b->l.state&BsClosed) && b->l.epoch == fs->ehi){
 			blockPut(b);
 			vtSetError("bad root source block");
 			goto Err;
@@ -100,7 +100,6 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 		blockDependency(bs, b, 0, oscore, nil);
 		blockPut(b);
 		blockDirty(bs);
-		blockRemoveLink(bs, globalToLocal(oscore), BtDir, RootTag, 0);
 		blockPut(bs);
 		fs->source = sourceRoot(fs, super.active, mode);
 		if(fs->source == nil){
@@ -196,7 +195,7 @@ superGet(Cache *c, Super* super)
 }
 
 void
-superWrite(Block* b, Super* super, int forceWrite)
+superPut(Block* b, Super* super, int forceWrite)
 {
 	superPack(super, b->data);
 	blockDirty(b);
@@ -217,6 +216,7 @@ superWrite(Block* b, Super* super, int forceWrite)
 		 * we really care about.  (specifically, epochHigh; see fsSnapshot).
 		 */
 	}
+	blockPut(b);
 }
 
 /*
@@ -387,8 +387,7 @@ fsEpochLow(Fs *fs, u32int low)
 
 	super.epochLow = low;
 	fs->elo = low;
-	superWrite(bs, &super, 1);
-	blockPut(bs);
+	superPut(bs, &super, 1);
 	vtUnlock(fs->elk);
 
 	return 1;
@@ -468,9 +467,7 @@ bumpEpoch(Fs *fs, int doarchive)
 	 * super.active to disk.  It will be the address of the most recent root that has
 	 * gone to disk.
 	 */
-	superWrite(bs, &super, 1);
-	blockRemoveLink(bs, globalToLocal(oscore), BtDir, RootTag, 0);
-	blockPut(bs);
+	superPut(bs, &super, 1);
 
 	return 1;
 }
@@ -523,13 +520,12 @@ fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
 
 	/*
 	 * It is important that we maintain the invariant that:
-	 *	if both b and bb are marked as Active with start epoch e
+	 *	if both b and bb are marked as Active with epoch e
 	 *	and b points at bb, then no other pointers to bb exist.
-	 * 
-	 * When bb is unlinked from b, its close epoch is set to b's epoch.
-	 * A block with epoch == close epoch is
-	 * treated as free by cacheAllocBlock; this aggressively
-	 * reclaims blocks after they have been stored to Venti.
+	 *
+	 * The archiver uses this property to aggressively reclaim
+	 * such blocks once they have been stored on Venti, and
+	 * blockCleanup knows about this property as well.
 	 *
 	 * Let's say src->source is block sb, and src->msource is block
 	 * mb.  Let's also say that block b holds the Entry structures for
@@ -554,13 +550,20 @@ fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
 	 *	sb	Active w/ epoch e.
 	 *	mb	Active w/ epoch e.
 	 *
-	 * In this state, it's perfectly okay to make more pointers to sb and mb.
+	 * In this state, it's perfectly okay to add pointers to dst, which
+	 * will live in a block marked Active with epoch e+1.
+	 *
+	 * Of course, we need to make sure that the copied path makes
+	 * it out to disk before the new dst block; if the dst block goes out
+	 * first and then we crash, the invariant is violated.  Rather than
+	 * deal with the dependencies, we just sync the file system to disk
+	 * right now.
 	 */
 	if(!bumpEpoch(fs, 0) || !fileWalkSources(src))
 		goto Err;
 
 	/*
-	 * Sync to disk.  I'm not sure this is necessary, but better safe than sorry.
+	 * Sync to disk.
 	 */
 	cacheFlush(fs->cache, 1);
 
@@ -628,7 +631,7 @@ fsVac(Fs *fs, char *name, uchar score[VtScoreSize])
 		return 0;
 	}
 
-	if(!fileGetSources(f, &e, &ee) || !fileGetDir(f, &de)){
+	if(!fileGetSources(f, &e, &ee, 0) || !fileGetDir(f, &de)){
 		fileDecRef(f);
 		vtRUnlock(fs->elk);
 		return 0;
@@ -774,8 +777,7 @@ fsNextQid(Fs *fs, u64int *qid)
 	 * since fileMetaAlloc will record a dependency between the
 	 * block holding this qid and the super block.  See file.c:/^fileMetaAlloc.
 	 */
-	superWrite(b, &super, 0);
-	blockPut(b);
+	superPut(b, &super, 0);
 	return 1;
 }
 
@@ -811,7 +813,7 @@ fsEsearch1(File *f, char *path, u32int savetime, u32int *plo)
 			break;
 		if(de.mode & ModeSnapshot){
 			if((ff = fileWalk(f, de.elem)) != nil){
-				if(fileGetSources(ff, &e, &ee))
+				if(fileGetSources(ff, &e, &ee, 0))
 					if(de.mtime >= savetime && e.snap != 0)
 						if(e.snap < *plo)
 							*plo = e.snap;
@@ -1051,13 +1053,6 @@ snapInit(Fs *fs)
 void
 snapGetTimes(Snap *s, u32int *arch, u32int *snap, u32int *snaplen)
 {
-	if(s == nil){
-		*snap = -1;
-		*arch = -1;
-		*snaplen = -1;
-		return;
-	}
-
 	vtLock(s->lk);
 	*snap = s->snapMinutes;
 	*arch = s->archMinute;
@@ -1068,9 +1063,6 @@ snapGetTimes(Snap *s, u32int *arch, u32int *snap, u32int *snaplen)
 void
 snapSetTimes(Snap *s, u32int arch, u32int snap, u32int snaplen)
 {
-	if(s == nil)
-		return;
-
 	vtLock(s->lk);
 	s->snapMinutes = snap;
 	s->archMinute = arch;

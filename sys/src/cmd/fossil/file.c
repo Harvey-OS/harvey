@@ -1680,10 +1680,44 @@ fileWAccess(File* f, char *mid)
 */
 }
 
-static int
-getEntry(Source *r, Entry *e, int checkepoch)
+static void
+markCopied(Block *b)
 {
-	u32int epoch;
+	Block *lb;
+	Label l;
+
+	if(globalToLocal(b->score) == NilBlock)
+		return;
+
+	if(!(b->l.state & BsCopied)){
+		/*
+		 * We need to record that there are now pointers in
+		 * b that are not unique to b.  We do this by marking
+		 * b as copied.  Since we don't return the label block,
+		 * the caller can't get the dependencies right.  So we have
+		 * to flush the block ourselves.  This is a rare occurrence.
+		 */
+		l = b->l;
+		l.state |= BsCopied;
+		lb = _blockSetLabel(b, &l);
+	WriteAgain:
+		while(!blockWrite(lb)){
+			fprint(2, "getEntry: could not write label block\n");
+			sleep(10*1000);
+		}
+		while(lb->iostate != BioClean && lb->iostate != BioDirty){
+			assert(lb->iostate == BioWriting);
+			vtSleep(lb->ioready);
+		}
+		if(lb->iostate == BioDirty)
+			goto WriteAgain;
+		blockPut(lb);
+	}
+}
+
+static int
+getEntry(Source *r, Entry *e, int mark)
+{
 	Block *b;
 
 	if(r == nil){
@@ -1698,19 +1732,10 @@ getEntry(Source *r, Entry *e, int checkepoch)
 		blockPut(b);
 		return 0;
 	}
-	epoch = b->l.epoch;
+
+	if(mark)
+		markCopied(b);
 	blockPut(b);
-
-	if(checkepoch){
-		b = cacheGlobal(r->fs->cache, e->score, entryType(e), e->tag, OReadOnly);
-		if(b){
-			if(b->l.epoch >= epoch)
-				fprint(2, "warning: entry %p epoch not older %#.8ux/%d %V/%d in getEntry\n",
-					r, b->addr, b->l.epoch, r->score, epoch);
-			blockPut(b);
-		}
-	}
-
 	return 1;
 }
 
@@ -1733,6 +1758,7 @@ setEntry(Source *r, Entry *e)
 
 	/* BUG b should depend on the entry pointer */
 
+	markCopied(b);
 	blockDirty(b);
 	blockPut(b);
 	return 1;
@@ -1759,29 +1785,21 @@ fileSnapshot(File *dst, File *src, u32int epoch, int doarchive)
 }
 
 int
-fileGetSources(File *f, Entry *e, Entry *ee)
+fileGetSources(File *f, Entry *e, Entry *ee, int mark)
 {
-	if(!getEntry(f->source, e, 0)
-	|| !getEntry(f->msource, ee, 0))
+	if(!getEntry(f->source, e, mark)
+	|| !getEntry(f->msource, ee, mark))
 		return 0;
 	return 1;
 }	
 
-/*
- * Walk down to the block(s) containing the Entries
- * for f->source and f->msource, copying as we go.
- */
 int
 fileWalkSources(File *f)
 {
-	if(f->mode == OReadOnly){
-		fprint(2, "readonly in fileWalkSources\n");
+	if(f->mode == OReadOnly)
 		return 1;
-	}
-	if(!sourceLock2(f->source, f->msource, OReadWrite)){
-		fprint(2, "sourceLock2 failed in fileWalkSources\n");
+	if(!sourceLock2(f->source, f->msource, OReadWrite))
 		return 0;
-	}
 	sourceUnlock(f->source);
 	sourceUnlock(f->msource);
 	return 1;
