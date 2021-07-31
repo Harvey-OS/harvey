@@ -1,4 +1,0 @@
-TEXT _SEEK(SB), 1, $0
-MOVL $16, R0
-TRAP $0
-RTS

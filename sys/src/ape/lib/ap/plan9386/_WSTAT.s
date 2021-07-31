@@ -1,4 +1,0 @@
-TEXT _WSTAT(SB), $0
-MOVL $26, AX
-INT $64
-RET

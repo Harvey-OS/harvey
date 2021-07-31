@@ -1,5 +1,0 @@
-*
-*   For FAX output, we set 200 dpi, FAX mode.
-*
-D 200
-M FAX

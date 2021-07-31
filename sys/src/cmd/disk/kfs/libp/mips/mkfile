@@ -1,8 +1,0 @@
-BUILTINS=
-</$objtype/mkfile
-
-LIB = libp.a
-OFILES=lock.$O\
-	tas.$O\
-
-</sys/src/cmd/mklib

@@ -1,4 +1,0 @@
-#include "tex.h"
-erase()
-{
-}

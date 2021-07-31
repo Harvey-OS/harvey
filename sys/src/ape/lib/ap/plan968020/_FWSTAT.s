@@ -1,4 +1,0 @@
-TEXT _FWSTAT(SB), 1, $0
-MOVL $27, R0
-TRAP $0
-RTS

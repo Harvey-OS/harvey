@@ -1,5 +1,0 @@
-#!/bin/rc
-
-disk/kfscmd allow
-disk/mkfs /lib/proto/usrproto
-disk/kfscmd sync

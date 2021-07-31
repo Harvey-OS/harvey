@@ -1,4 +1,0 @@
-TEXT _SYSR1(SB), $0
-MOVL $0, AX
-INT $64
-RET

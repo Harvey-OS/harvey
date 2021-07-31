@@ -1,3 +1,0 @@
-# change $.$ back to space
-s/\$\.\$/ /g
-

@@ -1,4 +1,0 @@
-#!/bin/rc
-ps | sed '/Broken/d
-/Exiting/d
-s% .*$%%' | sort -u

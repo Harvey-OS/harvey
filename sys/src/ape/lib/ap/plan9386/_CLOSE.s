@@ -1,4 +1,0 @@
-TEXT _CLOSE(SB), $0
-MOVL $4, AX
-INT $64
-RET

@@ -1,4 +1,0 @@
-TEXT _BIND(SB), $0
-MOVL $2, AX
-INT $64
-RET

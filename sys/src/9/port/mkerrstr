@@ -1,3 +1,0 @@
-#!/bin/rc
-
-sed 's/extern //;s,;.*/\* (.*) \*/, = "\1";,' < ../port/error.h

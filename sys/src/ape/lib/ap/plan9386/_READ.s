@@ -1,4 +1,0 @@
-TEXT _READ(SB), $0
-MOVL $15, AX
-INT $64
-RET

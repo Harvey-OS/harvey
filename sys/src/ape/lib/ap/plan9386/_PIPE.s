@@ -1,4 +1,0 @@
-TEXT _PIPE(SB), $0
-MOVL $21, AX
-INT $64
-RET

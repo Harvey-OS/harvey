@@ -1,7 +1,0 @@
-#!/bin/rc
-# Usage: install srcfile dstfile owner group mode
-if (! test -f $2 || ! cmp -s $1 $2) {
-	cp $1 $2
-	chmod $5 $2
-}
-exit 0

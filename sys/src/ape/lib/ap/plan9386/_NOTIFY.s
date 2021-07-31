@@ -1,4 +1,0 @@
-TEXT _NOTIFY(SB), $0
-MOVL $28, AX
-INT $64
-RET

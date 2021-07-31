@@ -1,3 +1,0 @@
-#!/bin/rc
-# the -G flag is gone!
-/$objtype/bin/grep $*

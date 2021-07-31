@@ -1,4 +1,0 @@
-starting
-getmydir: /sys/src/cmd/cda/place
-call_host helix.exec
-rcv: z 7a
