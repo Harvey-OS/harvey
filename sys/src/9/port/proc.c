@@ -476,6 +476,8 @@ another:
 		p = rq->head;
 		if(p == nil)
 			continue;
+		if(p->mp != MACHP(m->machno))
+			continue;
 		if(pri == p->basepri)
 			continue;
 		updatecpu(p);
