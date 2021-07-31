@@ -7,7 +7,7 @@
 #include	"../ip/ip.h"
 
 enum {
-	Nlog		= 16*1024,
+	Nlog		= 4*1024,
 };
 
 /*
