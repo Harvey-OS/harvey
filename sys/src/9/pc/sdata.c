@@ -979,7 +979,6 @@ atadmasetup(Drive* drive, int len)
 	 */
 	if(prd == nil){
 		drive->dmactl = 0;
-		print("disabling dma: not on a busmastering controller\n");
 		return -1;
 	}
 
@@ -1284,10 +1283,9 @@ atageniostart(Drive* drive, int lba)
 static int
 atagenioretry(Drive* drive)
 {
-	if(drive->dmactl){
+	if(drive->dmactl)
 		drive->dmactl = 0;
-		print("atagenioretry: disabling dma\n");
-	}else if(drive->rwmctl)
+	else if(drive->rwmctl)
 		drive->rwmctl = 0;
 	else
 		return atasetsense(drive, SDcheck, 4, 8, drive->error);
@@ -1718,7 +1716,6 @@ atapnp(void)
 		case (0x248A<<16)|0x8086:	/* 82801BAM ICH2-M */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */
-		case (0x24CB<<16)|0x8086:	/* 945 ?? */
 			break;
 		}
 
