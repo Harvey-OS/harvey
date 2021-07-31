@@ -88,8 +88,8 @@ main(int argc, char **argv)
 		doauth = 1;
 		break;
 
-	case 'd':
-		dbg++;
+	case 'k':
+		keyspec = EARGF(usage());
 		break;
 
 	case 'e':
@@ -98,12 +98,22 @@ main(int argc, char **argv)
 			ealgs = nil;
 		break;
 
+	case 'S':
+		if(srvfdfile)
+			usage();
+		srvfdfile = EARGF(usage());
+		break;
+
+	case 'd':
+		dbg++;
+		break;
+
 	case 'f':
 		dbfile = EARGF(usage());
 		break;
 
-	case 'k':
-		keyspec = EARGF(usage());
+	case 'F':
+		/* accepted but ignored, for backwards compatibility */
 		break;
 
 	case 'm':
@@ -114,6 +124,10 @@ main(int argc, char **argv)
 		nonone = 0;
 		break;
 
+	case 'N':
+		nsfile = EARGF(usage());
+		break;
+
 	case 'r':
 		srv = EARGF(usage());
 		break;
@@ -122,34 +136,20 @@ main(int argc, char **argv)
 		srv = "/";
 		break;
 
-	case 'A':
-		anstring = EARGF(usage());
-		break;
-
-	case 'B':
-		na = EARGF(usage());
-		break;
-
-	case 'F':
-		/* accepted but ignored, for backwards compatibility */
-		break;
-
-	case 'N':
-		nsfile = EARGF(usage());
-		break;
-
 	case 'P':
 		patternfile = EARGF(usage());
+		break;
+
+	case 'A':
+		anstring = EARGF(usage());
 		break;
 
 	case 'R':
 		readonly = 1;
 		break;
 
-	case 'S':
-		if(srvfdfile)
-			usage();
-		srvfdfile = EARGF(usage());
+	case 'B':
+		na = EARGF(usage());
 		break;
 
 	default:
