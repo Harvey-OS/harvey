@@ -68,8 +68,7 @@ debuginit(int argc, char **argv)
 		print("%#p %s ", argv[fd], argv[fd]);
 	print("\n");
 #endif	/* DEBUG */
-	SET(fd);
-	USED(argc, argv, fd);
+	SET(fd, argc, argv); USED(fd, argc, argv);
 }
 
 /*

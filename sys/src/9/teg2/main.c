@@ -718,7 +718,7 @@ bootargs(uintptr base)
 	 * of the argument list checked in syscall.
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BY2PG - Ustkheadroom - i));
+	p = UINT2PTR(STACKALIGN(base + BY2PG - Ustkheadroom));
 	memmove(p, oargb, i);
 
 	/*

@@ -51,10 +51,8 @@ _dwbinv0:
 	/* drain L1 write buffer, also drains L2 eviction buffer on sheeva */
 	BARRIERS
 
-	/* make the l2 cache pay attention and disable resets */
+	/* make the l2 cache pay attention */
 	MOVW	$(PHYSIO+0x20100), R1	/* CPUCSREG */
-	MOVW	$0, R0
-	MOVW	R0, 8(R1)		/* cpu->rstout = 0; */
 	MOVW	(4*10)(R1), R2
 	ORR	$(1<<3), R2		/* cpu->l2cfg |= L2exists */
 	MOVW	R2, (4*10)(R1)
@@ -79,14 +77,7 @@ _dwbinv1:
 	BARRIERS
 
 PUTC('\r')
-	/* turn off watchdog; see clock.c */
-	MOVW	$(PHYSIO+0x20300), R1	/* tmr = (TimerReg *)soc.clock; */
-	MOVW	$0, R0
-	MOVW	R0, 0(R1)		/* tmr->ctl = 0; */
-	BARRIERS
-
 	/* clear Mach */
-	MOVW	$0, R0
 	MOVW	$PADDR(MACHADDR), R4		/* address of Mach */
 _machZ:
 	MOVW	R0, (R4)
@@ -142,7 +133,7 @@ _ptekrw:					/* set PTEs for 512MiB */
 	/*
 	 * set up a temporary stack; avoid data & bss segments
 	 */
-	MOVW	$(PHYSDRAM | (400*1024*1024)), R13
+	MOVW	$(PHYSDRAM | (128*1024*1024)), R13
 
 PUTC('P')
 	/* set the domain access control */
@@ -177,7 +168,7 @@ PUTC('a')
 	 * set up temporary stack again, in case we've just switched
 	 * to a new register set.
 	 */
-	MOVW	$(KZERO|(400*1024*1024)), R13
+	MOVW	$(KZERO|(128*1024*1024)), R13
 
 	/* can now execute arbitrary C code */
 
@@ -205,6 +196,7 @@ PUTC(' ')
 	MOVW	R0, R13
 	ADD	$(MACHSIZE), R13		/* stack pointer */
 	SUB	$4, R13				/* space for link register */
+
 	BL	main(SB)			/* void main(Mach*) */
 	/* fall through */
 
