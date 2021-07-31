@@ -5,39 +5,19 @@ if(! test -d /n/sources/patch){
 	9fs sources
 }
 
-pref=''
 cd /n/sources/patch
-if(~ $1 sorry applied){
-	pref=$1^'/'
-	shift
-}
 if(~ $#* 0)
-	*=(`{if(~ $pref *?*) cd $pref; ls -t | grep -v '^(sorry|applied)$'})
+	*=(`{ls -t})
 
-trunc=(sed 5q)
-if(~ $#* 1)
-	trunc=cat
-
-
-{
 for(i in $*){
-	i=$pref^$i
-	if(test -f $i/origls)
-		cat $i/origls | awk '{$NF="'$i'"; print}'
-	if not
-		ls -ld $i
+	ls -ld $i
 	if(patch/okay $i){
 		cat $i/files | awk '{print "	" $1}'
-		cat $i/readme | sed 's/^/	/' | $trunc
+		cat $i/readme | sed 's/^/	/;5q'
 		if(test -f $i/notes)
 			cat $i/notes
 	}
 	if not
 		echo '	'bad patch: $status >[2=1]
-	echo
 }
 
-} >/tmp/patchtmp.$pid
-
-cat /tmp/patchtmp.$pid
-rm -f /tmp/patchtmp.$pid

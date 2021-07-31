@@ -70,15 +70,14 @@ main(int argc, char **argv)
 	char buf[ERRMAX], ebuf[ERRMAX];
 	Fsrpc *r;
 	int n, fd;
-	char *dbfile, *srv, *file, *na, *nsfile;
+	char *dbfile, *srv, *file, *na;
 	AuthInfo *ai;
 	ulong initial;
 
 	dbfile = "/tmp/exportdb";
 	srv = nil;
 	srvfd = -1;
-	na = nil;
-	nsfile = nil;
+	na = 0;
 
 	ai = nil;
 	ARGBEGIN{
@@ -94,8 +93,10 @@ main(int argc, char **argv)
 			fatal("auth_proxy: %r");
 		if(nonone && strcmp(ai->cuid, "none") == 0)
 			fatal("exportfs by none disallowed");
-		if(auth_chuid(ai, nsfile) < 0)
+		if(auth_chuid(ai, nil) < 0)
 			fatal("auth_chuid: %r");
+		if(newns(ai->cuid, 0) < 0)
+			fatal("newns");
 		putenv("service", "exportfs");
 		break;
 
@@ -133,10 +134,6 @@ main(int argc, char **argv)
 
 	case 'n':
 		nonone = 0;
-		break;
-
-	case 'N':
-		nsfile = EARGF(usage());
 		break;
 
 	case 'r':

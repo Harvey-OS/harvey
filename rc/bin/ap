@@ -24,16 +24,15 @@ if ( ~ $#* 0 )
 			s = "";
 			for (i = 1; i < NF; i++)
 				s = s " " $i;
-			printf("ap %-40s # %s\n", $NF, s);
+			printf("%-40s %s\n", $NF, s);
 		}'
 
 if not
 	hget $wire/^$1^.story |
 		htmlfmt |
 		sed '
+			1,/^By Associated Press$/d
 			s/\| Article licensing.*$//
 			/^Copyright ©/p
 			/^Copyright ©/,$d
-			1,/^Top Stories$/d
-			/^$/,/^$/d
-		'
+			'

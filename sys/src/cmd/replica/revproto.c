@@ -384,13 +384,13 @@ loop:
 		return nil;
 
 	if(!*f->uid)
-		f->uid = "-";		/* LEAK */
+		strcpy(f->uid, "-");
 	p = getname(mkaux, p, &f->gid);	/* LEAK */
 	if(p == nil)
 		return nil;
 
 	if(!*f->gid)
-		f->gid = "-";		/* LEAK */
+		strcpy(f->gid, "-");
 	f->old = getpath(mkaux, p);
 	if(f->old && strcmp(f->old, "-") == 0){
 		free(f->old);
