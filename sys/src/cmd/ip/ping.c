@@ -185,6 +185,7 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 		alarm(0);
 		now = nsec();
 		if(n <= 0){	/* read interrupted - time to go */
+fprint(2, "clean\n");
 			clean(0, now+MINUTE, nil);
 			continue;
 		}
