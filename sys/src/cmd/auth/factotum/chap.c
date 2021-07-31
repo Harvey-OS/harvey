@@ -124,6 +124,18 @@ chapclose(Fsstate *fss)
 	free(s);
 }
 
+void
+dmpkey(char *s, void *v, int n)
+{
+	int i;
+	char *p = v;
+
+	print("%s", s);
+	for (i = 0; i < n; i++)
+		print("%02x ", *p++);
+	print("\n");
+}
+
 
 static int
 chapwrite(Fsstate *fss, void *va, uint n)
@@ -185,7 +197,6 @@ chapwrite(Fsstate *fss, void *va, uint n)
 			memmove(&cr, va, sizeof cr);
 			ocr.id = cr.id;
 			memmove(ocr.resp, cr.resp, sizeof ocr.resp);
-			memset(omcr.uid, 0, sizeof(omcr.uid));
 			strecpy(ocr.uid, ocr.uid+sizeof ocr.uid, s->user);
 			reply = &ocr;
 			nreply = sizeof ocr;
@@ -196,10 +207,12 @@ chapwrite(Fsstate *fss, void *va, uint n)
 			memmove(&mcr, va, sizeof mcr);
 			memmove(omcr.LMresp, mcr.LMresp, sizeof omcr.LMresp);
 			memmove(omcr.NTresp, mcr.NTresp, sizeof omcr.NTresp);
-			memset(omcr.uid, 0, sizeof(omcr.uid));
 			strecpy(omcr.uid, omcr.uid+sizeof omcr.uid, s->user);
 			reply = &omcr;
 			nreply = sizeof omcr;
+print("%s\n", omcr.uid);
+dmpkey("LM ", omcr.LMresp, 24);
+dmpkey("NT ", omcr.NTresp, 24);
 			break;
 		}
 		if(doreply(s, reply, nreply) < 0)
@@ -227,8 +240,7 @@ chapread(Fsstate *fss, void *va, uint *n)
 	case CHaveResp:
 		switch(s->astype){
 		default:
-			phaseerror(fss, "write");
-			break;
+			abort();
 		case AuthMSchap:
 			if(*n > sizeof(MSchapreply))
 				*n = sizeof(MSchapreply);
@@ -376,15 +388,17 @@ hash(uchar pass[16], uchar c8[ChapChallen], uchar p24[MSchapResplen])
 static void
 doNTchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
 {
-	Rune r;
 	int i, n;
-	uchar digest[MD4dlen];
 	uchar *w, unipass[256];
+	uchar digest[MD4dlen];
+
+	Rune r;
 
 	// Standard says unlimited length, experience says 128 max
 	if ((n = strlen(pass)) > 128)
 		n = 128;
 
+	memset(unipass, 0, sizeof unipass);
 	for(i=0, w=unipass; i < n; i++) {
 		pass += chartorune(&r, pass);
 		*w++ = r & 0xff;
@@ -392,8 +406,7 @@ doNTchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
 	}
 
 	memset(digest, 0, sizeof digest);
-	md4(unipass, w-unipass, digest, nil);
-	memset(unipass, 0, sizeof unipass);
+	md4(unipass, w - unipass, digest, nil);
 	hash(digest, chal, reply);
 }
 
@@ -419,7 +432,6 @@ doLMchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
 		block_cipher(schedule, p16+i*8, 0);
 	}
 
-	memset(p14, 0, sizeof p14);
 	hash(p16, chal, reply);
 }
 
@@ -430,10 +442,7 @@ dochap(char *pass, int id, char chal[ChapChallen], uchar resp[ChapResplen])
 	int n = strlen(pass);
 
 	*buf = id;
-	if (n > MAXNAMELEN)
-		n = MAXNAMELEN-1;
-	memset(buf, 0, sizeof buf);
-	strncpy(buf+1, pass, n);
+	strcpy(buf+1, pass);
 	memmove(buf+1+n, chal, ChapChallen);
 	md5((uchar*)buf, 1+n+ChapChallen, resp, nil);
 }
