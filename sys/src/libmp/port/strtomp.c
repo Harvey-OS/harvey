@@ -144,12 +144,9 @@ from32(char *a, mpint *b)
 	mpbits(b, n*5);
 	p = malloc(n);
 	if(p == nil)
-		return buf;
+		return a;
 	m = dec32(p, n, buf, n);
-	if(m == -1)
-		a = buf;
-	else
-		betomp(p, m, b);
+	betomp(p, m, b);
 	free(p);
 	return a;
 }

@@ -53,6 +53,13 @@ static RMap rmapupa = {
 	&mapupa[nelem(mapupa)-1],
 };
 
+static Map xmapupa[16];
+static RMap xrmapupa = {
+	"unbacked physical memory",
+	xmapupa,
+	&xmapupa[nelem(xmapupa)-1],
+};
+
 static Map mapram[16];
 static RMap rmapram = {
 	"physical memory",
@@ -255,7 +262,7 @@ umbexclude(void)
 static void
 umbscan(void)
 {
-	uchar o[2], *p;
+	uchar *p;
 
 	/*
 	 * Scan the Upper Memory Blocks (0xA0000->0xF0000) for pieces
@@ -274,31 +281,31 @@ umbscan(void)
 	p = KADDR(0xD0000);
 	while(p < (uchar*)KADDR(0xE0000)){
 		/*
-		 * Check for the ROM signature, skip if valid.
+		 * Test for 0x55 0xAA before poking obtrusively,
+		 * some machines (e.g. Thinkpad X20) seem to map
+		 * something dynamic here (cardbus?) causing weird
+		 * problems if it is changed.
 		 */
 		if(p[0] == 0x55 && p[1] == 0xAA){
 			p += p[2]*512;
 			continue;
 		}
 
-		/*
-		 * Is it writeable? If yes, then stick it in
-		 * the UMB device memory map. A floating bus will
-		 * return 0xff, so add that to the map of the
-		 * UMB space available for allocation.
-		 * If it is neither of those, ignore it.
-		 */
-		o[0] = p[0];
 		p[0] = 0xCC;
-		o[1] = p[2*KB-1];
 		p[2*KB-1] = 0xCC;
-		if(p[0] == 0xCC && p[2*KB-1] == 0xCC){
-			p[0] = o[0];
-			p[2*KB-1] = o[1];
-			mapfree(&rmapumbrw, PADDR(p), 2*KB);
+		if(p[0] != 0xCC || p[2*KB-1] != 0xCC){
+			p[0] = 0x55;
+			p[1] = 0xAA;
+			p[2] = 4;
+			if(p[0] == 0x55 && p[1] == 0xAA){
+				p += p[2]*512;
+				continue;
+			}
+			if(p[0] == 0xFF && p[1] == 0xFF)
+				mapfree(&rmapumb, PADDR(p), 2*KB);
 		}
-		else if(p[0] == 0xFF && p[1] == 0xFF)
-			mapfree(&rmapumb, PADDR(p), 2*KB);
+		else
+			mapfree(&rmapumbrw, PADDR(p), 2*KB);
 		p += 2*KB;
 	}
 
@@ -814,7 +821,7 @@ ulong
 umbrwmalloc(ulong addr, int size, int align)
 {
 	ulong a;
-	uchar o[2], *p;
+	uchar *p;
 
 	if(a = mapalloc(&rmapumbrw, addr, size, align))
 		return(ulong)KADDR(a);
@@ -826,15 +833,10 @@ umbrwmalloc(ulong addr, int size, int align)
 	if((a = umbmalloc(addr, size, align)) == 0)
 		return 0;
 	p = (uchar*)a;
-	o[0] = p[0];
 	p[0] = 0xCC;
-	o[1] = p[size-1];
 	p[size-1] = 0xCC;
-	if(p[0] == 0xCC && p[size-1] == 0xCC){
-		p[0] = o[0];
-		p[size-1] = o[1];
+	if(p[0] == 0xCC && p[size-1] == 0xCC)
 		return a;
-	}
 	umbfree(a, size);
 
 	return 0;
