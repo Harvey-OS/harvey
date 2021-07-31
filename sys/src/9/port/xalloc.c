@@ -84,7 +84,7 @@ xinit(void)
 			pm++;
 		}
 	}
-//	xsummary();			/* call it from main if desired */
+	xsummary();
 }
 
 void*
