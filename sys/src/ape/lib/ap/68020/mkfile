@@ -1,0 +1,28 @@
+APE=/sys/src/ape
+<$APE/config
+LIB=/$objtype/lib/ape/libap.a
+OFILES=\
+	cycles.$O\
+	lock.$O\
+	main9.$O\
+	main9p.$O\
+	memchr.$O\
+	memcmp.$O\
+	memcpy.$O\
+	memmove.$O\
+	memset.$O\
+	notetramp.$O\
+	setjmp.$O\
+	strcat.$O\
+	strchr.$O\
+	strcmp.$O\
+	strcpy.$O\
+	strlen.$O\
+	tas.$O\
+	vlop.$O\
+	vlrt.$O\
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c -D_POSIX_SOURCE -D_PLAN9_SOURCE
+
