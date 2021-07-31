@@ -53,7 +53,7 @@ fpusysrfork(Ureg*)
 }
 
 void
-fpusysrforkchild(Proc*, Ureg*, Proc*)
+fpusysrforkchild(Proc*, Proc*)
 {
 	/*
 	 * Called later in sysrfork() via the machine-dependent
