@@ -34,7 +34,7 @@ void  setnetmtpt(char *to, int tolen, char *from)
 NetConnInfo*  getnetconninfo(char *conndir, int fd)
 .PP
 .B
-void freenetconninfo(NetConnInfo*)
+void freenetconninfo(NetConnINfo*)
 .SH DESCRIPTION
 For these routines,
 .I addr

@@ -105,7 +105,6 @@ main(int argc, char *argv[])
 		err = convM2DNS(buf, len, &reqmsg, &rcode);
 		if(err){
 			dnslog("server: input error: %s from %s", err, caller);
-			free(err);
 			break;
 		}
 		if (rcode == 0)
