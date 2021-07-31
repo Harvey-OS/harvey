@@ -23,9 +23,6 @@ HFILES=cc.h\
 
 YFILES=cc.y\
 
-CURCC=6c 8c qc vc
-OTHERCC=1c 2c 5c 7c kc
-
 </sys/src/cmd/mklib
 
 install:V:	$LIB
@@ -38,13 +35,13 @@ mac.$O:	macbody
 
 everything:V:
 	# mk the current compilers
-	for(DIR in cc $CURCC){
+	for(DIR in cc 8c vc qc){
 		cd ../$DIR
 		mk nuke
 		mk install
 	}
 	# mk all the others with those
-	for(DIR in cc $CURCC $OTHERCC){
+	for(DIR in cc 1c 2c 5c 7c 8c kc qc vc){
 		cd ../$DIR
 		mk nuke
 		mk installall

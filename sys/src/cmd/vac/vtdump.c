@@ -132,7 +132,7 @@ void
 sourcePrint(Source *s, int indent, int entry)
 {
 	int i;
-	uvlong size, dsize;
+	uvlong size;
 	int ne;
 
 	for(i=0; i<indent; i++)
@@ -141,15 +141,8 @@ sourcePrint(Source *s, int indent, int entry)
 	if(s->active) {
 		/* dir size in directory entries */
 		if(s->dir) {
-			dsize = s->dsize;
-			if (dsize <= 0) {
-				fprint(2, "%s: non-positive dsize %d in dir %V\n",
-					argv0, s->dsize, s->score);
-				dsize = 1;	/* don't divide by zero */
-			}
 			ne = s->dsize/VtEntrySize;
-			size = ne*(s->size/dsize) +
-				(s->size%dsize)/VtEntrySize;
+			size = ne*(s->size/s->dsize) + (s->size%s->dsize)/VtEntrySize;
 		} else 
 			size = s->size;
 		if(cmp) {
@@ -185,13 +178,14 @@ parse(Source *s, uchar *p)
 	s->active = 1;
 	s->gen = dir.gen;
 	s->psize = dir.psize;
-	s->dsize = dir.dsize;
+	s->dsize = dir.size;
 	s->size = dir.size;
 	memmove(s->score, dir.score, VtScoreSize);
 	if(dir.flags & VtEntryDir)
 		s->dir = 1;
 	s->depth = dir.depth;
 	return 1;
+
 }
 
 int
@@ -205,7 +199,6 @@ sourceRead(Source *s, ulong block, uchar *p, int n)
 	memmove(score, s->score, VtScoreSize);
 
 	np = s->psize/VtScoreSize;
-	assert(np > 0);
 	for(i=0; i<s->depth; i++) {
 		elem[i] = block % np;
 		block /= np;
@@ -253,11 +246,6 @@ dumpFileContents(Source *s)
 	nb = (s->size + s->dsize - 1)/s->dsize;
 	lb = s->size%s->dsize;
 	for(i=0; i<nb; i++) {
-		if (s->dsize > sizeof buf) {
-			fprint(2, "%s: implausibly large s->dsize %d for %V\n",
-				argv0, s->dsize, s->score);
-			continue;
-		}
 		memset(buf, 0, s->dsize);
 		n = sourceRead(s, i, buf, s->dsize);
 		if(n < 0) {	
@@ -280,11 +268,6 @@ dumpFile(Source *s, int indent)
 
 	nb = (s->size + s->dsize - 1)/s->dsize;
 	for(i=0; i<nb; i++) {
-		if (s->dsize > sizeof buf) {
-			fprint(2, "%s: implausibly large s->dsize %d for %V\n",
-				argv0, s->dsize, s->score);
-			continue;
-		}
 		memset(buf, 0, s->dsize);
 		n = sourceRead(s, i, buf, s->dsize);
 		if(n < 0) {	
@@ -305,20 +288,12 @@ dumpDir(Source *s, int indent)
 	uchar buf[VtMaxLumpSize];
 	Source ss;
 
-	if (s->dsize <= 0) {
-		fprint(2, "%s: dumpDir %V: non-positive s->dsize %d\n",
-			argv0, s->score, s->dsize);
-		return 1;
-	}
+	if (s->dsize == 0)
+		sysfatal("dumpDir: zero s->dsize");
 	pb = s->dsize/VtEntrySize;
 	ne = pb*(s->size/s->dsize) + (s->size%s->dsize)/VtEntrySize;
 	nb = (s->size + s->dsize - 1)/s->dsize;
 	for(i=0; i<nb; i++) {
-		if (s->dsize > sizeof buf) {
-			fprint(2, "%s: implausibly large s->dsize %d for %V\n",
-				argv0, s->dsize, s->score);
-			continue;
-		}
 		memset(buf, 0, s->dsize);
 		n = sourceRead(s, i, buf, s->dsize);
 		if(n < 0) {	

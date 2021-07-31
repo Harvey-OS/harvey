@@ -92,12 +92,7 @@ main(int argc, char *argv[])
 	}
 	if(argc > 1 && !systemtype(Windows)) {
 		nproc = 1;
-		/*
-		 * if we're writing acid to standard output, don't compile
-		 * concurrently, to avoid interleaving output.
-		 */
-		if(((!debug['a'] && !debug['Z']) || debug['n']) &&
-		    (p = getenv("NPROC")) != nil)
+		if(p = getenv("NPROC"))
 			nproc = atol(p);	/* */
 		c = 0;
 		nout = 0;
@@ -153,7 +148,6 @@ compile(char *file, char **defs, int ndef)
 	char ofile[400], incfile[20];
 	char *p, *av[100], opt[256];
 	int i, c, fd[2];
-	static int first = 1;
 
 	strcpy(ofile, file);
 	p = utfrrune(ofile, pathchar());
@@ -193,18 +187,11 @@ compile(char *file, char **defs, int ndef)
 			setinclude("/sys/include");
 		}
 	}
-	if (first)
-		Binit(&diagbuf, 1, OWRITE);
-	/*
-	 * if we're writing acid to standard output, don't keep scratching
-	 * outbuf.
-	 */
+	Binit(&diagbuf, 1, OWRITE);
 	if((debug['a'] || debug['Z']) && !debug['n']) {
-		if (first) {
-			outfile = 0;
-			Binit(&outbuf, dup(1, -1), OWRITE);
-			dup(2, 1);
-		}
+		outfile = 0;
+		Binit(&outbuf, dup(1, -1), OWRITE);
+		dup(2, 1);
 	} else {
 		c = mycreat(outfile, 0664);
 		if(c < 0) {
@@ -215,7 +202,6 @@ compile(char *file, char **defs, int ndef)
 		Binit(&outbuf, c, OWRITE);
 	}
 	newio();
-	first = 0;
 
 	/* Use an ANSI preprocessor */
 	if(debug['p']) {
