@@ -523,8 +523,8 @@ align(long i, Type *t, int op)
 long
 maxround(long max, long v)
 {
-	v = round(v, SZ_VLONG);
+	v += SZ_VLONG-1;
 	if(v > max)
-		return v;
+		max = round(v, SZ_VLONG);
 	return max;
 }
