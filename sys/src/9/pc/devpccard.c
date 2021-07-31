@@ -705,7 +705,7 @@ powerup(Cardbus *cb)
 		wrreg(cb, Rigc, Fnotreset);
 		delay(500);
 
-//		return 1;
+		return 1;
 	}
 
 	if (state & SS_CCD)
@@ -738,10 +738,7 @@ powerup(Cardbus *cb)
 	pcicfgw16(cb->pci, PciBCR, bcr);
 	delay(100);
 
-	if (state & SS_PC16)
-		cb->type = PC16;
-	else
-		cb->type = PC32;
+	cb->type = PC32;
 
 	return 1;
 }
@@ -1871,12 +1868,6 @@ i82365probe(Cardbus *cb, int lindex, int ldata)
 		} else {
 			cb->ltype = Tpd6710;
 		}
-
-		/* low power mode */
-		outb(cb->lindex, Rmisc2 + (dev<<7));
-		c = inb(cb->ldata);
-		outb(cb->ldata, c & ~Flowpow);
-		break;
 		break;
 	}
 
