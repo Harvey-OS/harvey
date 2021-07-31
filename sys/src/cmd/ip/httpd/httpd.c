@@ -398,10 +398,8 @@ send(HConnect *c)
 	char *w, *w2, *p, *masque;
 	int fd, fd1, n, force301, ok;
 
-/*
 	if(c->req.search)
 		return hfail(c, HNoSearch, c->req.uri);
- */
 	if(strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0)
 		return hunallowed(c, "GET, HEAD");
 	if(c->head.expectother || c->head.expectcont)
