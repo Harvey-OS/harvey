@@ -468,7 +468,7 @@ mdiow(Ctlr* ctlr, int bits, int n)
 }
 
 static int
-dp83820miimir(Mii* mii, int pa, int ra)
+miimir(Mii* mii, int pa, int ra)
 {
 	int data;
 	Ctlr *ctlr;
@@ -492,8 +492,8 @@ dp83820miimir(Mii* mii, int pa, int ra)
 	return data & 0xFFFF;
 }
 
-static int
-dp83820miimiw(Mii* mii, int pa, int ra, int data)
+static void
+miimiw(Mii* mii, int pa, int ra, int data)
 {
 	Ctlr *ctlr;
 
@@ -510,7 +510,6 @@ dp83820miimiw(Mii* mii, int pa, int ra, int data)
 	data &= 0xFFFF;
 	data |= (0x05<<(5+5+2+16))|(pa<<(5+2+16))|(ra<<(2+16))|(0x02<<16);
 	mdiow(ctlr, data, 32);
-	return data & 0xFFFF;	/* TODO: what's the caller expect here? */
 }
 
 /*
@@ -747,8 +746,8 @@ err:
 		if((ctlr->mii = malloc(sizeof(Mii))) == nil)
 			error(Enomem);
 		ctlr->mii->ctlr = ctlr;
-		ctlr->mii->mir = dp83820miimir;
-		ctlr->mii->miw = dp83820miimiw;
+		ctlr->mii->mir = miimir;
+		ctlr->mii->miw = miimiw;
 		if(mii(ctlr->mii, ~0) == 0)
 			error("no PHY");
 		ctlr->cfg |= Dupstsien|Lnkstsien|Spdstsien;
@@ -767,7 +766,12 @@ err:
 	 * allocate receive Blocks+buffers, add all to receive Block+buffer pool
 	 */
 	for(ctlr->nrb = 0; ctlr->nrb < Nrb; ctlr->nrb++){
-		bp = iallocb(Rbsz);
+		if((bp = iallocb(Rbsz)) == nil) {
+			print(
+		"dp83820attach: iallocb failed with %d rcv bufs allocated\n",
+				ctlr->nrb);
+			error(Enomem);
+		}
 #ifdef FS
 		bp->flags |= Mbrcvbuf;
 #endif
@@ -972,13 +976,12 @@ dp83820ifstat(Ether* edev, void* a, long n, ulong offset)
 	}
 	l += snprint(p+l, READSTR-l, "\n");
 
-	if(0 && ctlr->mii != nil && (phy = ctlr->mii->curphy) != nil){
+	if(ctlr->mii != nil && (phy = ctlr->mii->curphy) != nil){
 		l += snprint(p+l, READSTR, "phy:");
 		for(i = 0; i < NMiiPhyr; i++){
 			if(i && ((i & 0x07) == 0))
 				l += snprint(p+l, READSTR-l, "\n    ");
-			/* phy->r no longer exists */
-			// l += snprint(p+l, READSTR-l, " %4.4uX", phy->r[i]);
+			l += snprint(p+l, READSTR-l, " %4.4uX", phy->r[i]);
 		}
 		snprint(p+l, READSTR-l, "\n");
 	}
@@ -1018,6 +1021,7 @@ reread:
 		else
 			r &= ~Eedi;
 		csr32w(ctlr, Mear, r);
+		microdelay(1);
 		csr32w(ctlr, Mear, Eeclk|r);
 		microdelay(1);
 		csr32w(ctlr, Mear, r);
@@ -1140,14 +1144,6 @@ print("cfg %8.8ux pcicfg %8.8ux\n", ctlr->cfg, pcicfgr32(ctlr->pcidev, PciPCR));
 	return 0;
 }
 
-// from pci.c
-enum {
-	Pcinetctlr = 0x02,		/* network controller */
-//	PciCCRp	= 0x09,			/* programming interface class code */
-//	PciCCRu	= 0x0A,			/* sub-class code */
-//	PciCCRb	= 0x0B,			/* base class code */
-};
-
 static void
 dp83820pci(void)
 {
@@ -1157,9 +1153,13 @@ dp83820pci(void)
 
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){
-		/* ccru is a short in the FS kernel, thus the cast to uchar */
-		if(p->ccrb != Pcinetctlr || (uchar)p->ccru != 0)
+#ifdef FS
+		if(p->ccru != ((0x02<<8)|0x00))
+#else
+		if(p->ccrb != 0x02 || p->ccru != 0)
+#endif
 			continue;
+
 		switch((p->did<<16)|p->vid){
 		default:
 			continue;

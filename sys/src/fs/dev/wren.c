@@ -4,9 +4,9 @@ typedef	struct	Wren	Wren;
 struct	Wren
 {
 	long	block;			/* size of a block -- from config */
-	Devsize	nblock;			/* number of blocks -- from config */
+	long	nblock;			/* number of blocks -- from config */
 	long	mult;			/* multiplier to get physical blocks */
-	Devsize	max;			/* number of logical blocks */
+	long	max;			/* number of logical blocks */
 };
 
 void
@@ -51,15 +51,15 @@ loop:
 	dr->max =
 		(dr->nblock + 1) / dr->mult;
 	print("	drive %Z:\n", d);
-	print("		%lld blocks at %ld bytes each\n",
-		(Wideoff)dr->nblock, dr->block);
-	print("		%lld logical blocks at %d bytes each\n",
-		(Wideoff)dr->max, RBUFSIZE);
+	print("		%ld blocks at %ld bytes each\n",
+		dr->nblock, dr->block);
+	print("		%ld logical blocks at %d bytes each\n",
+		dr->max, RBUFSIZE);
 	print("		%ld multiplier\n",
 		dr->mult);
 }
 
-Devsize
+long
 wrensize(Device *d)
 {
 	Wren *dr;
@@ -69,19 +69,19 @@ wrensize(Device *d)
 }
 
 int
-wreniocmd(Device *d, int io, Off b, void *c)
+wreniocmd(Device *d, int io, long b, void *c)
 {
-	Off l, m;
+	long l, m;
 	uchar cmd[10];
 	Wren *dr;
 
 	dr = d->private;
 	if(d == 0) {
-		print("wreniocmd: no drive - a=%Z b=%lld\n", d, (Wideoff)b);
+		print("wreniocmd: no drive - a=%Z b=%ld\n", d, b);
 		return 0x40;
 	}
 	if(b >= dr->max) {
-		print("wreniocmd out of range a=%Z b=%lld\n", d, (Wideoff)b);
+		print("wreniocmd out of range a=%Z b=%ld\n", d, b);
 		return 0x40;
 	}
 
@@ -104,13 +104,13 @@ wreniocmd(Device *d, int io, Off b, void *c)
 }
 
 int
-wrenread(Device *d, Off b, void *c)
+wrenread(Device *d, long b, void *c)
 {
 	int s;
 
 	s = wreniocmd(d, SCSIread, b, c);
 	if(s) {
-		print("wrenread: %Z(%lld) bad status %.4x\n", d, (Wideoff)b, s);
+		print("wrenread: %Z(%ld) bad status %.4x\n", d, b, s);
 		cons.nwormre++;
 		return 1;
 	}
@@ -118,13 +118,13 @@ wrenread(Device *d, Off b, void *c)
 }
 
 int
-wrenwrite(Device *d, Off b, void *c)
+wrenwrite(Device *d, long b, void *c)
 {
 	int s;
 
 	s = wreniocmd(d, SCSIwrite, b, c);
 	if(s) {
-		print("wrenwrite: %Z(%lld) bad status %.4x\n", d, (Wideoff)b, s);
+		print("wrenwrite: %Z(%ld) bad status %.4x\n", d, b, s);
 		cons.nwormwe++;
 		return 1;
 	}

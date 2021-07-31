@@ -67,7 +67,6 @@ struct Fmt{
 };
 
 extern	int	print(char*, ...);
-extern	char*	seprint(char*, char*, char*, ...);
 extern	char*	vseprint(char*, char*, char*, va_list);
 extern	int	snprint(char*, int, char*, ...);
 extern	int	sprint(char*, char*, ...);
@@ -79,7 +78,6 @@ extern	int	fmtstrcpy(Fmt *f, char *s);
 
 #pragma	varargck	argpos	fmtit	2
 #pragma	varargck	argpos	print	1
-#pragma	varargck	argpos	seprint	3
 #pragma	varargck	argpos	snprint	3
 #pragma	varargck	argpos	sprint	2
 
@@ -99,20 +97,11 @@ extern	int	fmtstrcpy(Fmt *f, char *s);
 #pragma	varargck	type	"x"	uint
 #pragma	varargck	type	"c"	uint
 #pragma	varargck	type	"C"	uint
-/* no floating-point verbs */
 #pragma	varargck	type	"s"	char*
-#pragma	varargck	type	"q"	char*
 #pragma	varargck	type	"S"	Rune*
-#pragma	varargck	type	"Q"	Rune*
 #pragma	varargck	type	"r"	void
 #pragma	varargck	type	"%"	void
-#pragma	varargck	type	"n"	int*
 #pragma	varargck	type	"p"	void*
-#pragma	varargck	flag	','
-#pragma varargck	type	"<" void*
-#pragma varargck	type	"[" void*
-#pragma varargck	type	"H" void*
-#pragma varargck	type	"lH" void*
 
 /*
  * one-of-a-kind

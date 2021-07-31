@@ -13,34 +13,35 @@
 int FIXEDSIZE = 1;
 
 #ifndef	DATE
-#define	DATE	1094098624L
+#define	DATE	568011600L+4*3600
 #endif
 
-Timet	mktime		= DATE;				/* set by mkfile */
+ulong	mktime		= DATE;				/* set by mkfile */
 Startsb	startsb[] =
 {
-/*	"main",		2,	*/
-	"main",		810988,	/* discontinuity before sb @ 696262 */
+	"main",		2,
 	0
 };
 
 Dos dos;
 
-static struct
+static
+struct
 {
 	char	*name;
-	Off	(*read)(int, void*, long);
-	Devsize	(*seek)(int, Devsize);
-	Off	(*write)(int, void*, long);
+	long	(*read)(int, void*, long);
+	vlong	(*seek)(int, vlong);
+	long	(*write)(int, void*, long);
 	int	(*part)(int, char*);
-} nvrdevs[] = {
+} nvrdevs[] =
+{
 	{ "fd", floppyread, floppyseek, floppywrite, 0, },
 	{ "hd", ataread,   ataseek,   atawrite,   setatapart, },
-	/* { "sd", scsiread,   scsiseek,   scsiwrite,   setscsipart, },  */
+	/*
+	{ "sd", scsiread,   scsiseek,   scsiwrite,   setscsipart, },
+	 */
 	{ 0, },
 };
-
-void apcinit(void);
 
 void
 otherinit(void)
@@ -52,7 +53,6 @@ otherinit(void)
 	printcpufreq();
 	etherinit();
 	scsiinit();
-	apcinit();
 
 	s = spllo();
 	nhd = atainit();
@@ -159,23 +159,18 @@ touser(void)
 void
 localconfinit(void)
 {
-	/* conf.nfile = 60000; */	/* from emelie */
-	conf.nodump = 0;
-	conf.dumpreread = 1;
-	if (0)
-		conf.idedma = 0; /* for old machines */
-	conf.firstsb = 0;	/* time- & jukebox-dependent optimisation */
-	conf.recovsb = 0;	/* 971531 is 24 june 2003, before w3 died */
+	conf.nfile = 5000;
+	conf.nodump = 1;
+	conf.firstsb = 0;
+	conf.recovsb = 0;
 	conf.ripoff = 1;
-	conf.nlgmsg = 1100;	/* @8576 bytes, for packets */
-	conf.nsmmsg = 500;	/* @128 bytes */
 
-	conf.minuteswest = 8*60;
+	conf.minuteswest = 5*60;
 	conf.dsttime = 1;
 }
 
 int (*fsprotocol[])(Msgbuf*) = {
-	serve9p1,		/* do we still need 9P1? */
+	serve9p1,
 	serve9p2,
 	nil,
 };

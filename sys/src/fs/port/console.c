@@ -89,7 +89,7 @@ con_open(int fid, int mode)
 }
 
 int
-con_read(int fid, char *data, Off offset, int count)
+con_read(int fid, char *data, long offset, int count)
 {
 	Fcall in, ou;
 
@@ -105,7 +105,7 @@ con_read(int fid, char *data, Off offset, int count)
 }
 
 int
-con_write(int fid, char *data, Off offset, int count)
+con_write(int fid, char *data, long offset, int count)
 {
 	Fcall in, ou;
 
@@ -226,17 +226,15 @@ f_fstat(Chan *cp, Fcall *in, Fcall *ou)
 	if(d == 0)
 		goto out;
 
-	print("name = %.*s\n", NAMELEN, d->name);
+	print("name = %.28s\n", d->name);
 	print("uid = %d; gid = %d; muid = %d\n", d->uid, d->gid, d->muid);
-	print("size = %lld; qid = %llux/%lux\n", (Wideoff)d->size,
-		(Wideoff)d->qid.path, d->qid.version);
+	print("size = %ld; qid = %lux/%lux\n", d->size, d->qid.path, d->qid.version);
 	print("atime = %ld; mtime = %ld\n", d->atime, d->mtime);
 	print("dblock =");
 	for(i=0; i<NDBLOCK; i++)
-		print(" %lld", (Wideoff)d->dblock[i]);
-	for (i = 0; i < NIBLOCK; i++)
-		print("; iblocks[%d] = %lld", i, (Wideoff)d->iblocks[i]);
-	print("\n\n");
+		print(" %ld", d->dblock[i]);
+	print("; iblock = %ld; diblock = %ld\n", d->iblock, d->diblock);
+	print("\n");
 
 out:
 	if(p)

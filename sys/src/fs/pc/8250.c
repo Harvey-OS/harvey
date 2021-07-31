@@ -3,12 +3,6 @@
 #include "ureg.h"
 #include "io.h"
 
-enum {
-	Development = 1,		/* i.e., debugging */
-	DLE = 0x10,			/* ^p == DLE */
-	Asciimask = 0x7f,
-};
-
 /*
  *  INS8250 uart
  */
@@ -79,9 +73,6 @@ struct Uart
 	ulong	frame;
 	ulong	overrun;
 };
-
-/* externally-visible console-on-a-uart flag */
-int	uartcons;
 
 Uart	uart[2];
 
@@ -155,7 +146,7 @@ uartfifo(Uart *up, int n)
 		uartrdreg(up, Istat);
 		uartrdreg(up, Data);
 	}
-
+  
 	/* turn on fifo */
 	if(n){
 		uartwrreg(up, Fifoctl, Fena|Ftrig);
@@ -189,16 +180,18 @@ uartintr(Ureg *ur, void *arg)
 			if(l & Oerror)
 				up->overrun++;
 			break;
-
+	
 		case 4:	/* received data available */
 		case 12:
 			ch = inb(up->port+Data);
-			if (Development && (ch & Asciimask) == DLE)
+#ifndef nohacks
+			if((ch & 0x7F) == 0x10)
 				firmware();
+#endif /* nohacks */
 			if(up->rx)
-				(*up->rx)(ch & Asciimask);
+				(*up->rx)(ch & 0x7F);
 			break;
-
+	
 		case 2:	/* transmitter empty */
 			ch = -1;
 			if(up->tx)
@@ -206,11 +199,11 @@ uartintr(Ureg *ur, void *arg)
 			if(ch != -1)
 				outb(up->port+Data, ch);
 			break;
-
+	
 		case 0:	/* modem status */
 			uartrdreg(up, Mstat);
 			break;
-
+	
 		default:
 			if(s&1)
 				return;
@@ -287,7 +280,6 @@ uartspecial(int port, void (*rx)(int), int (*tx)(void), int baud)
 	uartenable(up);
 	if(baud)
 		uartsetbaud(up, baud);
-	uartcons = 1;
 }
 
 int

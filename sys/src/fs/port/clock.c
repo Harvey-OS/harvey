@@ -136,7 +136,7 @@ void
 checkalarms(void)
 {
 	User *p;
-	Timet now;
+	ulong now;
 
 	if(talarm.list == 0 || canlock(&talarm) == 0)
 		return;
@@ -185,7 +185,7 @@ processfilt(int n)
 }
 
 void
-clock(Timet n, ulong pc)
+clock(ulong n, ulong pc)
 {
 	int i;
 	Alarm *a;

@@ -1,10 +1,9 @@
-/*
- * The most fundamental constant.
- * The code will not compile with RBUFSIZE made a variable;
- * for one thing, RBUFSIZE determines FEPERBUF, which determines
- * the number of elements in a free-list-block array.
- */
 #define RBUFSIZE	(16*1024)	/* raw buffer size */
+/*
+ * verify that the kernel reports the right size when you
+ * first boot this kernel.
+ */
+/* #define	DSIZE		(79563-1)	/* worm size */
 
 #include "../port/portdat.h"
 

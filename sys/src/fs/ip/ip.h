@@ -43,11 +43,11 @@ struct	Ilp
 	ulong	rstart;		/* remote start id */
 	ulong	acksent;	/* Last packet acked */
 
-	Timet	lastxmit;	/* time of last xmit */
-	Timet	lastrecv;	/* time of last recv */
-	Timet	timeout;	/* time out counter */
-	Timet	acktime;	/* acknowledge timer */
-	Timet	querytime;	/* Query timer */
+	ulong	lastxmit;	/* time of last xmit */
+	ulong	lastrecv;	/* time of last recv */
+	ulong	timeout;	/* time out counter */
+	ulong	acktime;	/* acknowledge timer */
+	ulong	querytime;	/* Query timer */
 
 	ulong	delay;		/* Average of the fixed rtt delay */
 	ulong	rate;		/* Average byte rate */

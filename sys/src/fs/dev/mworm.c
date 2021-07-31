@@ -22,11 +22,11 @@ mcatinit(Device *d)
 	}
 }
 
-Devsize
+long
 mcatsize(Device *d)
 {
 	Device *x;
-	Devsize l, m;
+	long l, m;
 
 	l = 0;
 	for(x=d->cat.first; x; x=x->link) {
@@ -41,10 +41,10 @@ mcatsize(Device *d)
 }
 
 int
-mcatread(Device *d, Off b, void *c)
+mcatread(Device *d, long b, void *c)
 {
 	Device *x;
-	Devsize l, m;
+	long l, m;
 
 	l = 0;
 	for(x=d->cat.first; x; x=x->link) {
@@ -57,15 +57,15 @@ mcatread(Device *d, Off b, void *c)
 			return devread(x, b-l, c);
 		l += m;
 	}
-	print("mcatread %lld %lld\n", (Wideoff)b, (Wideoff)l);
+	print("mcatread %ld %ld\n", b, l);
 	return 1;
 }
 
 int
-mcatwrite(Device *d, Off b, void *c)
+mcatwrite(Device *d, long b, void *c)
 {
 	Device *x;
-	Devsize l, m;
+	long l, m;
 
 	l = 0;
 	for(x=d->cat.first; x; x=x->link) {
@@ -78,7 +78,7 @@ mcatwrite(Device *d, Off b, void *c)
 			return devwrite(x, b-l, c);
 		l += m;
 	}
-	print("mcatwrite %lld %lld\n", (Wideoff)b, (Wideoff)l);
+	print("mcatwrite %ld %ld\n", b, l);
 	return 1;
 }
 
@@ -95,12 +95,12 @@ mlevinit(Device *d)
 		x->size = devsize(x);
 }
 
-Devsize
+long
 mlevsize(Device *d)
 {
 	Device *x;
 	int n;
-	Devsize m, min;
+	long m, min;
 
 	min = 0;
 	n = 0;
@@ -118,7 +118,7 @@ mlevsize(Device *d)
 }
 
 int
-mlevread(Device *d, Off b, void *c)
+mlevread(Device *d, long b, void *c)
 {
 	int n;
 	Device **list;
@@ -129,7 +129,7 @@ mlevread(Device *d, Off b, void *c)
 }
 
 int
-mlevwrite(Device *d, Off b, void *c)
+mlevwrite(Device *d, long b, void *c)
 {
 	int n;
 	Device **list;
@@ -150,10 +150,10 @@ partinit(Device *d)
 	d->part.d->size = devsize(d->part.d);
 }
 
-Devsize
+long
 partsize(Device *d)
 {
-	Devsize size, l;
+	long size, l;
 
 	l = d->part.d->size / 100;
 	size = d->part.size * l;
@@ -163,9 +163,9 @@ partsize(Device *d)
 }
 
 int
-partread(Device *d, Off b, void *c)
+partread(Device *d, long b, void *c)
 {
-	Devsize base, size, l;
+	long base, size, l;
 
 	l = d->part.d->size / 100;
 	base = d->part.base * l;
@@ -174,14 +174,14 @@ partread(Device *d, Off b, void *c)
 		size = l*100;
 	if(b < size)
 		return devread(d->part.d, base+b, c);
-	print("partread %lld %lld\n", (Wideoff)b, (Wideoff)size);
+	print("partread %ld %ld\n", b, size);
 	return 1;
 }
 
 int
-partwrite(Device *d, Off b, void *c)
+partwrite(Device *d, long b, void *c)
 {
-	Devsize base, size, l;
+	long base, size, l;
 
 	l = d->part.d->size / 100;
 	base = d->part.base * l;
@@ -190,7 +190,7 @@ partwrite(Device *d, Off b, void *c)
 		size = l*100;
 	if(b < size)
 		return devwrite(d->part.d, base+b, c);
-	print("partwrite %lld %lld\n", (Wideoff)b, (Wideoff)size);
+	print("partwrite %ld %ld\n", b, size);
 	return 1;
 }
 
@@ -207,12 +207,12 @@ mirrinit(Device *d)
 		x->size = devsize(x);
 }
 
-Devsize
+long
 mirrsize(Device *d)
 {
 	Device *x;
 	int n;
-	Devsize m, min;
+	long m, min;
 
 	min = 0;
 	n = 0;
@@ -230,7 +230,7 @@ mirrsize(Device *d)
 }
 
 int
-mirrread(Device *d, Off b, void *c)
+mirrread(Device *d, long b, void *c)
 {
 	Device *x;
 
@@ -241,7 +241,7 @@ mirrread(Device *d, Off b, void *c)
 			return 0;
 	}
 	// DANGER WILL ROBINSON - all copies of this block were bad
-	print("mirrread %Z error at block %lld\n", d, (Wideoff)b);
+	print("mirrread %Z error at block %ld\n", d, b);
 	return 1;
 }
 
@@ -254,19 +254,19 @@ mirrread(Device *d, Off b, void *c)
  * implemented at higher levels.
  */
 static int
-ewrite(Device *x, Off b, void *c)
+ewrite(Device *x, long b, void *c)
 {
 	if(x->size == 0)
 		x->size = devsize(x);
 	if (devwrite(x, b, c) != 0) {
-		print("mirrwrite %Z error at block %lld\n", x, (Wideoff)b);
+		print("mirrwrite %Z error at block %ld\n", x, b);
 		return 1;
 	}
 	return 0;
 }
 
 static int
-wrmirrs1st(Device *x, Off b, void *c)	// write any mirrors of x, then x
+wrmirrs1st(Device *x, long b, void *c)	// write any mirrors of x, then x
 {
 	int e;
 
@@ -277,7 +277,7 @@ wrmirrs1st(Device *x, Off b, void *c)	// write any mirrors of x, then x
 }
 
 int
-mirrwrite(Device *d, Off b, void *c)
+mirrwrite(Device *d, long b, void *c)
 {
 	return wrmirrs1st(d->cat.first, b, c);
 }

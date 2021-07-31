@@ -18,16 +18,6 @@ enum {					/* configuration mechanism #1 */
 	MaxUBN		= 255,
 };
 
-enum
-{					/* command register */
-	IOen		= (1<<0),
-	MEMen		= (1<<1),
-	MASen		= (1<<2),
-	MemWrInv	= (1<<4),
-	PErrEn		= (1<<6),
-	SErrEn		= (1<<8),
-};
-
 static Lock pcicfglock;
 static Lock pcicfginitlock;
 static int pcicfgmode = -1;
@@ -104,15 +94,8 @@ pciscan(int bno, Pcidev** list)
 				pcilist = p;
 			pcitail = p;
 
-			p->rid = pcicfgr8(p, PciRID);
-			p->ccrp = pcicfgr8(p, PciCCRp);
-			p->ccrb = pcicfgr8(p, PciCCRb);
-			p->pcr = pcicfgr32(p, PciPCR);
-			/* ccru is uchar in cpu kernel */
-			/* p->ccru = pcicfgr8(p, PciCCRu); */
-			p->ccru = pcicfgr16(p, PciCCRu);
-
 			p->intl = pcicfgr8(p, PciINTL);
+			p->ccru = pcicfgr16(p, PciCCRu);
 
 			/*
 			 * If the device is a multi-function device adjust the
@@ -523,8 +506,6 @@ vid2name(int vid)
 		return "sis";
 	case 0x104b:
 		return "mylex";
-	case 0x105a:
-		return "promise";
 	case 0x105d:
 		return "number9";
 	case 0x10a9:
@@ -618,11 +599,4 @@ pcisetbme(Pcidev* p)
 	pcr = pcicfgr16(p, PciPCR);
 	pcr |= 0x04;
 	pcicfgw16(p, PciPCR, pcr);
-}
-
-void
-pciclrbme(Pcidev* p)
-{
-	p->pcr &= ~MASen;
-	pcicfgw16(p, PciPCR, p->pcr);
 }
