@@ -340,7 +340,6 @@ char*	trans[] =
 	"arm",		"5.out",
 	"mips",		"v.out",
 	"power",	"q.out",
-	"power64",	"9.out",
 	"sparc",	"k.out",
 	"spim",		"0.out",
 	0,0
