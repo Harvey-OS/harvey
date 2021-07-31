@@ -190,7 +190,7 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 		break;
 	}
 	if(len == 0 && isdefault)
-		strncpy(buf, def, size);
+		strcpy(buf, def);
 	return 0;
 }
 

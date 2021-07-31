@@ -78,11 +78,7 @@ fakeintrs(Alarm *)
 	alarm(TK2MS(1), fakeintrs, nil);
 }
 
-/*
- * terrible temporary hack for 82575.
- * if we do actually get the right interrupts, this quickly floods
- * the alarm table and we panic, so use with caution.
- */
+/* terrible temporary hack for 82575 */
 static void
 startfakeintrs(void)
 {

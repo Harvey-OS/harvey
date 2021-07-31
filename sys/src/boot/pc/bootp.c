@@ -223,7 +223,7 @@ nak(int ctlrno, Netaddr *a, int code, char *msg, int report)
 	buf[1] = Tftp_ERROR;
 	buf[2] = 0;
 	buf[3] = code;
-	strncpy(buf+4, msg, sizeof buf - 4);
+	strcpy(buf+4, msg);
 	n = strlen(msg) + 4 + 1;
 	udpsend(ctlrno, a, buf, n);
 	if(report)
@@ -461,7 +461,7 @@ bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 	filename = 0;
 	sysname = 0;
 	if(file && *file){
-		strncpy(name, file, sizeof name);
+		strcpy(name, file);
 		if(filename = strchr(name, '!')){
 			sysname = name;
 			*filename++ = 0;
