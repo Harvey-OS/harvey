@@ -34,8 +34,6 @@ main(int argc, char **argv)
 	case 'v':
 		verbose++;
 		break;
-	default:
-		usage();
 	}ARGEND
 
 	if(argc == 0){
