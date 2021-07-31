@@ -301,7 +301,7 @@ kexit(Ureg*)
 void
 trap(Ureg* ureg)
 {
-	int clockintr, i, vno, user;
+	int i, vno, user;
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 	Mach *mach;
@@ -333,10 +333,7 @@ trap(Ureg* ureg)
 		if(ctl->isintr){
 			intrtime(m, vno);
 
-			if(ctl->irq == IrqCLOCK || ctl->irq == IrqTIMER)
-				clockintr = 1;
-
-			if(up && !clockintr)
+			if(up && ctl->irq != IrqTIMER && ctl->irq != IrqCLOCK)
 				preempted();
 		}
 	}
@@ -414,7 +411,7 @@ trap(Ureg* ureg)
 	splhi();
 
 	/* delaysched set because we held a lock or because our quantum ended */
-	if(up && up->delaysched && clockintr){
+	if(up && up->delaysched){
 		sched();
 		splhi();
 	}

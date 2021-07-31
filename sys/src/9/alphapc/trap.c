@@ -247,7 +247,7 @@ intr(Ureg *ur)
 		if(ctl->eoi)
 			ctl->eoi(vno);
 
-		if(ctl->isintr && up)
+		if(ctl->isintr)
 			preempted();
 	}
 	else if(vno >= VectorPIC && vno <= MaxVectorPIC){
@@ -283,7 +283,7 @@ void
 trap(Ureg *ur)
 {
 	char buf[ERRMAX];
-	int clockintr, user, x;
+	int user, x;
 
 	user = ur->status&UMODE;
 
@@ -291,7 +291,6 @@ trap(Ureg *ur)
 		up = m->proc;
 		up->dbgreg = ur;
 	}
-	clockintr = 0;
 	switch ((int)ur->type) {
 	case 1:	/* arith */
 		fptrap(ur);
@@ -307,7 +306,6 @@ trap(Ureg *ur)
 			panic("interprocessor intr");
 			break;
 		case 1:	/* clock */
-			clockintr = 1;
 			clock(ur);
 			break;
 		case 2:	/* machine check */
@@ -348,7 +346,7 @@ trap(Ureg *ur)
 	splhi();
 
 	/* delaysched set because we held a lock or because our quantum ended */
-	if(up && up->delaysched && clockintr){
+	if(up && up->delaysched){
 		sched();
 		splhi();
 	}
