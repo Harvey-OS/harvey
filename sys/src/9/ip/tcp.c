@@ -1317,7 +1317,7 @@ tcphangup(Conv *s)
 	tcb = (Tcpctl*)s->ptcl;
 	if(waserror())
 		return commonerror();
-	if(ipcmp(s->raddr, IPnoaddr) != 0) {
+	if(s->raddr != 0) {
 		if(!waserror()){
 			seg.flags = RST | ACK;
 			seg.ack = tcb->rcv.nxt;
