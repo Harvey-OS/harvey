@@ -158,10 +158,10 @@ They are:
 .TF dnsdomain
 .TP
 .B sys
-system name (a short name)
+system name
 .TP
 .B dom
-Internet fully-qualified domain name
+Internet domain name
 .TP
 .B ip
 Internet address,
