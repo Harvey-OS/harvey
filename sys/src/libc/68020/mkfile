@@ -1,0 +1,53 @@
+objtype=68020
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+SFILES=\
+	argv0.s\
+	getcallerpc.$O\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memccpy.s\
+	memchr.s\
+	memcmp.s\
+	memcpy.s\
+	memmove.s\
+	memset.s\
+	scale.s\
+	setjmp.s\
+	sqrt.s\
+	strcat.s\
+	strchr.s\
+	strcmp.s\
+	strcpy.s\
+	strlen.s\
+	tas.s\
+	vlop.s\
+
+CFILES=\
+	cycles.c\
+	notejmp.c\
+	vlrt.c\
+
+HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib
+
+install:V:	install.68881
+installall:V:
+	mk install
+clean:V:	clean.68881
+nuke:V:		clean.68881
+update:V:		update.68881
+
+%.68881:V:
+	cd 68881
+	mk $stem
