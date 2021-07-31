@@ -925,8 +925,7 @@ Turn off header mode.
 The directory
 .B /net/ipmux
 looks like another protocol directory.
-It is a packet filter built on top of IP
-(currently IPv4 only).  Each numbered
+It is a packet filter built on top of IP.  Each numbered
 subdirectory represents a different filter.
 The connect messages written to the
 .I ctl
