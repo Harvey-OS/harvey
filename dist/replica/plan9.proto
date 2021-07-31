@@ -60,8 +60,6 @@ cfg	- sys sys
 cron	d777 sys sys
 	upas	- upas sys
 		+	- upas sys
-	sys	- sys sys
-		+	- sys sys
 fd	- sys sys
 	+	- sys sys
 env	- sys sys
