@@ -64,9 +64,7 @@ char *okheaders[] =
 
 char *extraheaders[] =
 {
-	"Resent-From:",
-	"Resent-To:",
-	"Sort:",
+	"Resent-",
 	nil,
 };
 
