@@ -21,13 +21,8 @@ echo -n venti...
 venti/sync >[2]/dev/null
 
 for (i in $k){
-	echo -n $i... 
-	switch($i){
-	case /srv/kfs.cmd
-		disk/kfscmd sync
-	case *
-		disk/kfscmd -n `{echo $i | sed -n 's%/srv/kfs.(.*).cmd%\1%p'} sync
-	}
+	echo -n $i
+	disk/kfscmd -n `{echo $i | sed 's%/srv/kfs.(.*).cmd%\1%'} sync
 	sleep 2
 }
 
@@ -53,13 +48,8 @@ for(i in $f){
 }
 
 for (i in $k){
-	echo -n $i... 
-	switch($i){
-	case /srv/kfs.cmd
-		kfscmd halt
-	case *
-		kfscmd -n `{echo $i | sed -n 's%/srv/kfs.(.*).cmd%\1%p'} halt
-	}
+	echo -n $i...
+	kfscmd -n `{echo $i | sed 's%/srv/kfs.(.*).cmd%\1%'} halt
 }
 echo
 echo done

@@ -479,7 +479,7 @@ icmpinit(Fs *fs)
 	icmp->advise = icmpadvise;
 	icmp->gc = nil;
 	icmp->ipproto = IP_ICMPPROTO;
-	icmp->nc = 128;
+	icmp->nc = 16;
 	icmp->ptclsize = 0;
 
 	Fsproto(fs, icmp);
