@@ -79,7 +79,7 @@ static char* ttab[] = {
 static int
 p_seprint(Msg *m)
 {
-	char *s, *p, buf[4];
+	char *s, buf[4];
 	Hdr *h;
 
 	if(m->pe - m->ps < Hsize)
@@ -97,10 +97,8 @@ p_seprint(Msg *m)
 		s = buf;
 	}
 
-	p = (char*)m->ps;
 	m->p = seprint(m->p, m->e, "type=%s conn=%d seq=%d len=%d %.*s",
-		s, h->conn, h->seq, h->len,
-		(int)utfnlen(p, h->len), p);
+		s, h->conn, h->seq, h->len, h->len, (char*)m->ps);
 	return 0;
 }
 
