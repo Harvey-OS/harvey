@@ -21,8 +21,6 @@ char	*obuf;
 vlong	skip;
 vlong	oseekn;
 vlong	iseekn;
-vlong	oseekb;
-vlong	iseekb;
 vlong	count;
 
 long	files	= 1;
@@ -125,14 +123,6 @@ main(int argc, char *argv[])
 		}
 		if(iskey("iseek")) {
 			iseekn = number(VBIG);
-			continue;
-		}
-		if(iskey("iseekb")) {
-			iseekb = number(VBIG);
-			continue;
-		}
-		if(iskey("oseekb")) {
-			oseekb = number(VBIG);
 			continue;
 		}
 		if(iskey("count")) {
@@ -250,10 +240,6 @@ main(int argc, char *argv[])
 */
 	seek(obf, obs*oseekn, 1);
 	seek(ibf, ibs*iseekn, 1);
-	if(iseekb)
-		seek(ibf, iseekb, 0);
-	if(oseekb)
-		seek(obf, oseekb, 0);
 	while(skip) {
 		read(ibf, ibuf, ibs);
 		skip--;

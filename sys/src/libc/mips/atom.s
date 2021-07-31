@@ -12,8 +12,7 @@ TEXT _xinc(SB), 1, $-4			/* void _xinc(long *); */
 loop:	MOVW	$1, R3
 	LL(2, 1)
 	NOOP
-	ADDU	R1, R3
-	MOVW	R3, R1			/* return new value */
+	ADD	R1,R3,R3
 	SC(2, 3)
 	NOOP
 	BEQ	R3,loop
@@ -25,8 +24,8 @@ TEXT _xdec(SB), 1, $-4			/* long _xdec(long *); */
 loop1:	MOVW	$-1, R3
 	LL(2, 1)
 	NOOP
-	ADDU	R1, R3
-	MOVW	R3, R1			/* return new value */
+	ADD	R1,R3,R3
+	MOVW	R3, R1
 	SC(2, 3)
 	NOOP
 	BEQ	R3,loop1
