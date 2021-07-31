@@ -258,7 +258,6 @@ notably the
 .B -c
 option to
 .BR open .
-30% is a reasonable choice.
 .PD
 .PP
 .I Flchk
