@@ -617,18 +617,3 @@ pte[PTLX(KSEG1PML4, 3)] = m->pml4->pa|PteRW|PteP;
 
 	mmuphysaddr(PTR2UINT(end));
 }
-
-/*
- * Double-check the user MMU.
- * Error checking only.
- */
-void
-checkmmu(uintptr va, uintmem pa)
-{
-	uintmem mpa;
-
-	mpa = mmuphysaddr(va);
-	if(mpa != ~(uintmem)0 && mpa != pa)
-		print("%d %s: va=%#p pa=%#P mmupa=%#P\n",
-			up->pid, up->text, va, pa, mpa);
-}
