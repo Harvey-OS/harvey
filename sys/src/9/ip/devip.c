@@ -15,6 +15,7 @@ enum
 	Qndb,
 	Qiproute,
 	Qipselftab,
+	Qipgate6,
 	Qlog,
 
 	Qprotodir,			/* directory for a protocol */
@@ -158,6 +159,10 @@ ip1gen(Chan *c, int i, Dir *dp)
 		p = "ipselftab";
 		prot = 0444;
 		break;
+	case Qipgate6:
+		p = "ipgate6";
+		prot = 0444;
+		break;
 	case Qlog:
 		p = "log";
 		break;
@@ -200,6 +205,7 @@ ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	case Qlog:
 	case Qiproute:
 	case Qipselftab:
+	case Qipgate6:
 		return ip1gen(c, TYPE(c->qid), dp);
 	case Qprotodir:
 		if(s == DEVDOTDOT){
@@ -387,6 +393,7 @@ ipopen(Chan* c, int omode)
 	case Qstats:
 	case Qbootp:
 	case Qipselftab:
+	case Qipgate6:
 		if(omode != OREAD)
 			error(Eperm);
 		break;
@@ -630,6 +637,8 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		return routeread(f, a, offset, n);
 	case Qipselftab:
 		return ipselftabread(f, a, offset, n);
+	case Qipgate6:
+		return ipgateread6(f, a, offset, n);
 	case Qlog:
 		return netlogread(f, a, offset, n);
 	case Qctl:

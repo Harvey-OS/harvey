@@ -137,10 +137,6 @@ main(int argc, char **argv)
 	case 'P':
 		patternfile = EARGF(usage());
 		break;
-	case 'u':
-		user = EARGF(usage());
-		keyspec = smprint("user=%s", user);
-		break;
 	default:
 		usage();
 	}ARGEND;

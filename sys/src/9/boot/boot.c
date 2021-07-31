@@ -308,26 +308,20 @@ kbmap(void)
 	if(f == nil)
 		return;
 	in = open(f, OREAD);
-	if(in < 0){
-		warning("can't open kbd map");
+	if(in < 0)
 		return;
-	}
 	if(bind("#κ", "/dev", MAFTER) < 0){
-		warning("can't bind #κ");
 		close(in);
 		return;
 	}
-	out = open("/dev/kbmap", OWRITE);
+	out = open(f, OREAD);
 	if(out < 0){
-		warning("can't open  /dev/kbmap");
-		close(out);
+		close(in);
 		return;
 	}
 	while((n = read(in, buf, sizeof(buf))) > 0)
-		if(write(out, buf, n) != n){
-			warning("write to /dev/kbmap failed");
+		if(write(out, buf, n) != n)
 			break;
-		}
 	close(in);
 	close(out);
 }
