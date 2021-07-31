@@ -1,20 +1,22 @@
 /* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gdevtfax.c,v 1.10 2005/04/08 23:31:24 dan Exp $ */
+/*$Id: gdevtfax.c,v 1.4 2000/09/19 19:00:23 lpd Exp $ */
 /* TIFF and TIFF/fax devices */
 #include "gdevprn.h"
 #include "gdevtifs.h"
@@ -39,8 +41,6 @@ struct gx_device_tfax_s {
     gx_prn_device_common;
     gx_fax_device_common;
     long MaxStripSize;		/* 0 = no limit, other is UNCOMPRESSED limit */
-                                /* The type and range of FillOrder follows TIFF 6 spec  */
-    int  FillOrder;             /* 1 = lowest column in the high-order bit, 2 = reverse */
     gdev_tiff_state tiff;	/* for TIFF output only */
 };
 typedef struct gx_device_tfax_s gx_device_tfax;
@@ -53,8 +53,7 @@ private const gx_device_procs gdev_tfax_std_procs =
 #define TFAX_DEVICE(dname, print_page)\
 {\
     FAX_DEVICE_BODY(gx_device_tfax, gdev_tfax_std_procs, dname, print_page),\
-    0				/* unlimited strip size byte count */,\
-    1                           /* lowest column in the high-order bit */\
+    0				/* unlimited strip size byte count */\
 }
 
 const gx_device_tfax gs_tiffcrle_device =
@@ -76,10 +75,8 @@ tfax_get_params(gx_device * dev, gs_param_list * plist)
     gx_device_tfax *const tfdev = (gx_device_tfax *)dev;
     int code = gdev_fax_get_params(dev, plist);
     int ecode = code;
-    
+
     if ((code = param_write_long(plist, "MaxStripSize", &tfdev->MaxStripSize)) < 0)
-        ecode = code;
-    if ((code = param_write_int(plist, "FillOrder", &tfdev->FillOrder)) < 0)
         ecode = code;
     return ecode;
 }
@@ -90,7 +87,6 @@ tfax_put_params(gx_device * dev, gs_param_list * plist)
     int ecode = 0;
     int code;
     long mss = tfdev->MaxStripSize;
-    int fill_order = tfdev->FillOrder;
     const char *param_name;
 
     switch (code = param_read_long(plist, (param_name = "MaxStripSize"), &mss)) {
@@ -110,19 +106,6 @@ tfax_put_params(gx_device * dev, gs_param_list * plist)
 	    break;
     }
 
-    /* Following TIFF spec, FillOrder is integer */ 
-    switch (code = param_read_int(plist, (param_name = "FillOrder"), &fill_order)) {
-        case 0:
-	    if (fill_order == 1 || fill_order == 2)
-	        break;
-	    code = gs_error_rangecheck;
-	default:
-	    ecode = code;
-	    param_signal_error(plist, param_name, ecode);
-	case 1:
-	    break;
-    }
-
     if (ecode < 0)
 	return ecode;
     code = gdev_fax_put_params(dev, plist);
@@ -130,7 +113,6 @@ tfax_put_params(gx_device * dev, gs_param_list * plist)
 	return code;
 
     tfdev->MaxStripSize = mss;
-    tfdev->FillOrder = fill_order;
     return code;
 }
 
@@ -230,15 +212,15 @@ private const tiff_mono_directory dir_mono_template =
     {TIFFTAG_BitsPerSample, TIFF_SHORT, 1, 1},
     {TIFFTAG_Compression, TIFF_SHORT, 1, Compression_CCITT_T4},
     {TIFFTAG_Photometric, TIFF_SHORT, 1, Photometric_min_is_white},
-    {TIFFTAG_FillOrder, TIFF_SHORT, 1, FillOrder_MSB2LSB},
+    {TIFFTAG_FillOrder, TIFF_SHORT, 1, FillOrder_LSB2MSB},
     {TIFFTAG_SamplesPerPixel, TIFF_SHORT, 1, 1},
     {TIFFTAG_T4Options, TIFF_LONG, 1, 0},
 	/* { TIFFTAG_CleanFaxData,      TIFF_SHORT, 1, CleanFaxData_clean }, */
 };
 
 /* Forward references */
-private int tfax_begin_page(gx_device_tfax *, FILE *,
-			    const tiff_mono_directory *, int);
+private int tfax_begin_page(P4(gx_device_tfax *, FILE *,
+			       const tiff_mono_directory *, int));
 
 /* Print a fax-encoded page. */
 private int
@@ -248,9 +230,8 @@ tifff_print_page(gx_device_printer * dev, FILE * prn_stream,
     gx_device_tfax *const tfdev = (gx_device_tfax *)dev;
     int code;
 
-    pdir->FillOrder.value = tfdev->FillOrder;
     tfax_begin_page(tfdev, prn_stream, pdir, pstate->Columns);
-    pstate->FirstBitLowOrder = tfdev->FillOrder == 2;
+    pstate->FirstBitLowOrder = true;	/* decoders prefer this */
     code = gdev_fax_print_page_stripped(dev, prn_stream, pstate, tfdev->tiff.rows);
     gdev_tiff_end_page(&tfdev->tiff, prn_stream);
     return code;
@@ -332,7 +313,7 @@ tifflzw_print_page(gx_device_printer * dev, FILE * prn_stream)
     state.InitialCodeLength = 8;
     state.FirstBitLowOrder = false;
     state.BlockData = false;
-    state.EarlyChange = 1;	/* PLRM is sort of confusing, but this is correct */
+    state.EarlyChange = 0;	/****** CHECK THIS ******/
     code = gdev_stream_print_page(dev, prn_stream, &s_LZWE_template,
 				  (stream_state *) & state);
     gdev_tiff_end_page(&tfdev->tiff, prn_stream);

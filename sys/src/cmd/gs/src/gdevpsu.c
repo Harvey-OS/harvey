@@ -1,45 +1,42 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gdevpsu.c,v 1.19 2005/03/02 18:08:38 raph Exp $ */
+/*$Id: gdevpsu.c,v 1.7 2001/05/10 17:41:23 igorm Exp $ */
 /* PostScript-writing utilities */
 #include "math_.h"
 #include "time_.h"
-#include "stat_.h"
-#include "unistd_.h"
 #include "gx.h"
 #include "gscdefs.h"
 #include "gxdevice.h"
 #include "gdevpsu.h"
 #include "spprint.h"
 #include "stream.h"
-#include "gserrors.h"
 
 /* ---------------- Low level ---------------- */
 
 /* Write a 0-terminated array of strings as lines. */
-int
+void
 psw_print_lines(FILE *f, const char *const lines[])
 {
     int i;
-    for (i = 0; lines[i] != 0; ++i) {
-	if (fprintf(f, "%s\n", lines[i]) < 0)
-            return_error(gs_error_ioerror);
-    }
-    return 0;
+
+    for (i = 0; lines[i] != 0; ++i)
+	fprintf(f, "%s\n", lines[i]);
 }
 
 /* Write the ProcSet name. */
@@ -60,7 +57,6 @@ psw_print_procset_name(FILE *f, const gx_device *dev,
     byte buf[100];		/* arbitrary */
     stream s;
 
-    s_init(&s, dev->memory);
     swrite_file(&s, f, buf, sizeof(buf));
     psw_put_procset_name(&s, dev, pdpc);
     sflush(&s);
@@ -117,7 +113,7 @@ private const char *const psw_ps_procset[] = {
          "{ PageSize dup  1",  /* x y /a4 [  ] [  ] 1   */
            "5 -1 roll put 0 "  /* x /a4 [ y] 0          */
            "4 -1 roll put "    /* /a4                   */
-           "dup null eq {false} {dup where} ifelse"
+           "dup where"        
              "{ exch get exec" /* -                     */
              "}",
              "{ pop"           /* -                     */
@@ -147,24 +143,11 @@ private const char *const psw_end_prolog[] = {
     0
 };
 
-/* Return true when the file is seekable.
- * On Windows NT ftell() returns some non-EOF value when used on pipes.
- */
-private bool
-is_seekable(FILE *f)
-{ 
-    struct stat buf;
-
-    if(fstat(fileno(f), &buf))
-      return 0;
-    return S_ISREG(buf.st_mode);
-}
-
 /*
  * Write the file header, up through the BeginProlog.  This must write to a
  * file, not a stream, because it may be called during finalization.
  */
-int
+void
 psw_begin_file_header(FILE *f, const gx_device *dev, const gs_rect *pbbox,
 		      gx_device_pswrite_common_t *pdpc, bool ascii)
 {
@@ -172,7 +155,7 @@ psw_begin_file_header(FILE *f, const gx_device *dev, const gs_rect *pbbox,
     if (pbbox) {
 	psw_print_bbox(f, pbbox);
 	pdpc->bbox_position = 0;
-    } else if (!is_seekable(f)) {	/* File is not seekable. */
+    } else if (ftell(f) < 0) {	/* File is not seekable. */
 	pdpc->bbox_position = -1;
 	fputs("%%BoundingBox: (atend)\n", f);
 	fputs("%%HiResBoundingBox: (atend)\n", f);
@@ -202,59 +185,46 @@ psw_begin_file_header(FILE *f, const gx_device *dev, const gs_rect *pbbox,
     psw_print_lines(f, psw_begin_prolog);
     fprintf(f, "%% %s\n", gs_copyright);
     fputs("%%BeginResource: procset ", f);
-    fflush(f);
     psw_print_procset_name(f, dev, pdpc);
     fputs("\n/", f);
-    fflush(f);
     psw_print_procset_name(f, dev, pdpc);
     fputs(" 80 dict dup begin\n", f);
     psw_print_lines(f, psw_ps_procset);
-    fflush(f);
-    if (ferror(f))
-        return_error(gs_error_ioerror);
-    return 0;
 }
 
 /*
  * End the file header.
  */
-int
+void
 psw_end_file_header(FILE *f)
 {
-    return psw_print_lines(f, psw_end_prolog);
+    psw_print_lines(f, psw_end_prolog);
 }
 
 /*
  * End the file.
  */
-int
+void
 psw_end_file(FILE *f, const gx_device *dev,
 	     const gx_device_pswrite_common_t *pdpc, const gs_rect *pbbox,
-             int /* should be long */ page_count)
+             int page_count)
 {
     if (f == NULL)
-        return 0;	/* clients should be more careful */
-    fprintf(f, "%%%%Trailer\n%%%%Pages: %ld\n", (long)page_count);
-    if (ferror(f))
-        return_error(gs_error_ioerror);
+        return;		/* clients should be more careful */
+    fprintf(f, "%%%%Trailer\n%%%%Pages: %ld\n", page_count);
     if (dev->PageCount > 0 && pdpc->bbox_position != 0) {
 	if (pdpc->bbox_position >= 0) {
 	    long save_pos = ftell(f);
 
 	    fseek(f, pdpc->bbox_position, SEEK_SET);
 	    psw_print_bbox(f, pbbox);
-            fputc('%', f);
-            if (ferror(f))
-                return_error(gs_error_ioerror);
-            fseek(f, save_pos, SEEK_SET);
+	    fputc('%', f);
+	    fseek(f, save_pos, SEEK_SET);
 	} else
 	    psw_print_bbox(f, pbbox);
     }
     if (!pdpc->ProduceEPS)
 	fputs("%%EOF\n", f);
-    if (ferror(f))
-        return_error(gs_error_ioerror);
-    return 0;
 }
 
 /* ---------------- Page level ---------------- */
@@ -262,10 +232,10 @@ psw_end_file(FILE *f, const gx_device *dev,
 /*
  * Write the page header.
  */
-int
+void
 psw_write_page_header(stream *s, const gx_device *dev,
                       const gx_device_pswrite_common_t *pdpc,
-                      bool do_scale, long page_ord, int dictsize)
+                      bool do_scale, long page_ord)
 {
     long page = dev->PageCount + 1;
 
@@ -306,29 +276,22 @@ psw_write_page_header(stream *s, const gx_device *dev,
 	pprintd2(s, "%d %d ", width, height);
 	pprints1(s, "%s setpagesize\n", p->size_name);
     }
-    pprintd1(s, "/pagesave save store %d dict begin\n", dictsize);
+    stream_puts(s, "/pagesave save store 100 dict begin\n");
     if (do_scale)
 	pprintg2(s, "%g %g scale\n",
 		 72.0 / dev->HWResolution[0], 72.0 / dev->HWResolution[1]);
     stream_puts(s, "%%EndPageSetup\ngsave mark\n");
-    if (s->end_status == ERRC)
-        return_error(gs_error_ioerror);
-    return 0;
 }
 
 /*
  * Write the page trailer.  We do this directly to the file, rather than to
  * the stream, because we may have to do it during finalization.
  */
-int
+void
 psw_write_page_trailer(FILE *f, int num_copies, int flush)
 {
-    fprintf(f, "cleartomark end end pagesave restore\n");
     if (num_copies != 1)
 	fprintf(f, "userdict /#copies %d put\n", num_copies);
-    fprintf(f, " %s\n%%%%PageTrailer\n", (flush ? "showpage" : "copypage"));
-    fflush(f);
-    if (ferror(f))
-        return_error(gs_error_ioerror);
-    return 0;
+    fprintf(f, "cleartomark end end pagesave restore %s\n%%%%PageTrailer\n",
+	    (flush ? "showpage" : "copypage"));
 }

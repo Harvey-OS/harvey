@@ -4,19 +4,15 @@
  * For ICC profile version 3.4
  *
  * Author:  Graeme W. Gill
- * Date:    2002/04/22
- * Version: 2.02
+ * Date:    2001/02/08
+ * Version: 2.00
  *
- * Copyright 1997 - 2002 Graeme W. Gill
+ * Copyright 1997, 1998, 1999, 2000, 2001 Graeme W. Gill
  * See Licence.txt file for conditions of use.
  */
 
 /*
  * TTBD:
- *
- *      Add a "warning mode" to file reading, in which file format
- *      errors are ignored where possible, rather than generating
- *      a fatal error (see ICM_STRICT #define).
  *
  *      NameColor Dump doesn't handle device space correctly - 
  *	    should use appropriate interpretation in case device is Lab etc.
@@ -25,7 +21,7 @@
  *      Should generate it on writing too ?
  *
  *		Should fix all write_number failure errors to indicate failed value.
- *		(Partially implemented - need to check all write_number functions)
+ *		(Partially implimented - need to check all write_number functions)
  *
  *		Make write fail error messages be specific on which element failed.
  *
@@ -37,11 +33,9 @@
  *      so that the base library doesn't need to be modified (ie. VideoCardGamma) ?
  *
  *		Need to add DeviceSettings and OutputResponse tags to bring up to
- *		ICC.1:1998-09 [started but not complete]
+ *		ICC.1:1998-09 [started]
  *
  */
-
-#undef ICM_STRICT	/* Not fully implimented - switch off strict checking of file format */
 
 /* Trial: Make the default grid points of the Lab clut be symetrical about */
 /*        a/b 0.0, and also make L = 100.0 fall on a grid point. */
@@ -52,27 +46,6 @@
 /*
  * Change History:
  * 
- * 2.02
- *      Merged rename of [u]int64 to icm[Ui][I]nt64 (to work around
- *      AIX 5.1L portability bug) from Raph Levien.
- *
- *      Fixed stray , in icmLookupOrder structure definition (from Dan Coby)
- *
- * 2.01
- *		Change TextDescription code to not barf if #undef ICM_STRICT and
- *      Apple scriptcode not padded to 67 bytes.
- *
- *      Add get_ranges() method to all Lu types, not just LuLut.
- *      Fix bug in PCS overide logic that was causing
- *		reverse conversions to apply the wrong conversion.
- *
- *      Added Delta E convenience functions icmLabDE() and
- *      icmCIE94() etc.
- *
- *		Merged Raph Levien's cleanups, to quiet gcc warnings.
- *
- *      Merged another couple of warning cleanups from Jouk Jansen.
- *
  * 2.00
  *      Change absolute conversion to be white point only, and use
  *      Bradford transform by default. (ie. we are now ignoring the
@@ -127,7 +100,7 @@
  *      it is more friendly to systems with a limited stack. (Thanks to Dave White)
  *
  * 1.22	99/11/11 Snapshot of current code.
- *      Added more hooks to support inherited implementation of
+ *      Added more hooks to support inherited implimentation of
  *      color conversion, used in Argyll to support reversing
  *      multi-dimentional table lookups.
  *      Cleaned up color conversion code to make it easier to follow.
@@ -136,7 +109,7 @@
  *      Fixed endian problem with Unicode on read and write.
  *      Expanded icmTextDescription_dump() to do hex dump of Unicode and ScriptCode.
  *      Changed over to ICC.1:1998-09 .h file.
- *      Started implementing ICC.1:1998-09, but not complete yet!
+ *      Started implimenting ICC.1:1998-09, but not complete yet!
  *
  * 1.21	99/2/14
  *     	After re-reading Michael Bourgoin's 1998 SIGGRAPH notes,
@@ -169,7 +142,7 @@
 #include "icc.h"
 
 /* ========================================================== */
-/* Default system interface object implementations */
+/* Default system interface object implimentations */
 
 /* Standard Stream file I/O icmFile compatible class */
 /* Note that this uses malloc, so replace class if */
@@ -356,6 +329,8 @@ size_t count
 static int icmFileMem_flush(
 icmFile *pp
 ) {
+	icmFileMem *p = (icmFileMem *)pp;
+
 	return 0;
 }
 
@@ -397,6 +372,8 @@ static void *icmAllocStd_malloc(
 struct _icmAlloc *pp,
 size_t size
 ) {
+	icmAllocStd *p = (icmAllocStd *)pp;
+
 	return malloc(size);
 }
 
@@ -405,14 +382,18 @@ struct _icmAlloc *pp,
 size_t num,
 size_t size
 ) {
+	icmAllocStd *p = (icmAllocStd *)pp;
+
 	return calloc(num, size);
 }
 
-static void *icmAllocStd_realloc(
+void *icmAllocStd_realloc(
 struct _icmAlloc *pp,
 void *ptr,
 size_t size
 ) {
+	icmAllocStd *p = (icmAllocStd *)pp;
+
 	return realloc(ptr, size);
 }
 
@@ -421,6 +402,8 @@ static void icmAllocStd_free(
 struct _icmAlloc *pp,
 void *ptr
 ) {
+	icmAllocStd *p = (icmAllocStd *)pp;
+
 	free(ptr);
 }
 
@@ -498,7 +481,7 @@ static int write_UInt32Number(unsigned int d, char *p) {
 	return 0;
 }
 
-static void read_UInt64Number(icmUint64 *d, char *p) {
+static void read_UInt64Number(uint64 *d, char *p) {
 	d->h = 16777216 * (unsigned int)((ORD8 *)p)[0]
 	     +    65536 * (unsigned int)((ORD8 *)p)[1]
 	     +      256 * (unsigned int)((ORD8 *)p)[2]
@@ -509,7 +492,7 @@ static void read_UInt64Number(icmUint64 *d, char *p) {
 	     +            (unsigned int)((ORD8 *)p)[7];
 }
 
-static int write_UInt64Number(icmUint64 *d, char *p) {
+static int write_UInt64Number(uint64 *d, char *p) {
 	((ORD8 *)p)[0] = (ORD8)(d->h >> 24);
 	((ORD8 *)p)[1] = (ORD8)(d->h >> 16);
 	((ORD8 *)p)[2] = (ORD8)(d->h >> 8);
@@ -566,12 +549,10 @@ static int write_U16Fixed16Number(double d, char *p) {
 }
 
 
-#ifdef NEVER	/* Not currently used anywhere */
-
 /* Signed numbers */
 static int read_SInt8Number(char *p) {
 	int rv;
-	rv = (int)((INR8 *)p)[0];
+	rv = (int)((INT8 *)p)[0];
 	return rv;
 }
 
@@ -580,13 +561,13 @@ static int write_SInt8Number(int d, char *p) {
 		return 1;
 	else if (d < -128)
 		return 1;
-	((INR8 *)p)[0] = (INR8)d;
+	((INT8 *)p)[0] = (INT8)d;
 	return 0;
 }
 
 static int read_SInt16Number(char *p) {
 	int rv;
-	rv = 256 * (int)((INR8 *)p)[0]
+	rv = 256 * (int)((INT8 *)p)[0]
 	   +       (int)((ORD8 *)p)[1];
 	return rv;
 }
@@ -596,16 +577,14 @@ static int write_SInt16Number(int d, char *p) {
 		return 1;
 	else if (d < -32768)
 		return 1;
-	((INR8 *)p)[0] = (INR8)(d >> 8);
+	((INT8 *)p)[0] = (INT8)(d >> 8);
 	((ORD8 *)p)[1] = (ORD8)(d);
 	return 0;
 }
 
-#endif /* NEVER */
-
 static int read_SInt32Number(char *p) {
 	int rv;
-	rv = 16777216 * (int)((INR8 *)p)[0]
+	rv = 16777216 * (int)((INT8 *)p)[0]
 	   +    65536 * (int)((ORD8 *)p)[1]
 	   +      256 * (int)((ORD8 *)p)[2]
 	   +            (int)((ORD8 *)p)[3];
@@ -613,17 +592,15 @@ static int read_SInt32Number(char *p) {
 }
 
 static int write_SInt32Number(int d, char *p) {
-	((INR8 *)p)[0] = (INR8)(d >> 24);
+	((INT8 *)p)[0] = (INT8)(d >> 24);
 	((ORD8 *)p)[1] = (ORD8)(d >> 16);
 	((ORD8 *)p)[2] = (ORD8)(d >> 8);
 	((ORD8 *)p)[3] = (ORD8)(d);
 	return 0;
 }
 
-#ifdef NEVER /* Not currently used anywhere */
-
-static void read_SInt64Number(icmInt64 *d, char *p) {
-	d->h = 16777216 * (int)((INR8 *)p)[0]
+static void read_SInt64Number(int64 *d, char *p) {
+	d->h = 16777216 * (int)((INT8 *)p)[0]
 	     +    65536 * (int)((ORD8 *)p)[1]
 	     +      256 * (int)((ORD8 *)p)[2]
 	     +            (int)((ORD8 *)p)[3];
@@ -633,8 +610,8 @@ static void read_SInt64Number(icmInt64 *d, char *p) {
 	     +            (unsigned int)((ORD8 *)p)[7];
 }
 
-static int write_SInt64Number(icmInt64 *d, char *p) {
-	((INR8 *)p)[0] = (INR8)(d->h >> 24);
+static int write_SInt64Number(int64 *d, char *p) {
+	((INT8 *)p)[0] = (INT8)(d->h >> 24);
 	((ORD8 *)p)[1] = (ORD8)(d->h >> 16);
 	((ORD8 *)p)[2] = (ORD8)(d->h >> 8);
 	((ORD8 *)p)[3] = (ORD8)(d->h);
@@ -645,26 +622,24 @@ static int write_SInt64Number(icmInt64 *d, char *p) {
 	return 0;
 }
 
-#endif /* NEVER */
-
 static double read_S15Fixed16Number(char *p) {
-	INR32 i32;
-	i32 = 16777216 * (INR32)((INR8 *)p)[0]		/* Read big endian 32 bit signed */
-        +    65536 * (INR32)((ORD8 *)p)[1]
-	    +      256 * (INR32)((ORD8 *)p)[2]
-	    +            (INR32)((ORD8 *)p)[3];
+	INT32 i32;
+	i32 = 16777216 * (INT32)((INT8 *)p)[0]		/* Read big endian 32 bit signed */
+        +    65536 * (INT32)((ORD8 *)p)[1]
+	    +      256 * (INT32)((ORD8 *)p)[2]
+	    +            (INT32)((ORD8 *)p)[3];
 	return (double)i32/65536.0;
 }
 
 static int write_S15Fixed16Number(double d, char *p) {
-	INR32 i32;
+	INT32 i32;
 	d = ceil(d * 65536.0);		/* Beware! (int)(d + 0.5) doesn't work! */
 	if (d >= 2147483648.0)
 		return 1;
 	if (d < -2147483648.0)
 		return 1;
-	i32 = (INR32)d;
-	((INR8 *)p)[0] = (INR8)((i32) >> 24);		/* Write big endian 32 bit signed */
+	i32 = (INT32)d;
+	((INT8 *)p)[0] = (INT8)((i32) >> 24);		/* Write big endian 32 bit signed */
 	((ORD8 *)p)[1] = (ORD8)((i32) >> 16);
 	((ORD8 *)p)[2] = (ORD8)((i32) >> 8);
 	((ORD8 *)p)[3] = (ORD8)((i32));
@@ -693,8 +668,6 @@ static int write_PCSXYZ16Number(double d, char *p) {
 	((ORD8 *)p)[1] = (ORD8)((o32));
 	return 0;
 }
-
-#ifdef NEVER /* Not currently used */
 
 /* L part of 8 bit Lab - value range 0.0 - 100.0 */
 static double read_PCSL8Number(char *p) {
@@ -733,8 +706,6 @@ static int write_PCSab8Number(double d, char *p) {
 	((ORD8 *)p)[0] = (ORD8)((o32));
 	return 0;
 }
-
-#endif /* NEVER */
 
 /* L part of 16 bit Lab - value range 0.0 - 100.0 */
 static double read_PCSL16Number(char *p) {
@@ -852,7 +823,7 @@ char *tag2str(
 
 /* Auiliary function - return a tag created from a string */
 int str2tag(
-	const char *str
+	char *str
 ) {
 	unsigned long tag;
 	tag = (((unsigned long)str[0]) << 24)
@@ -948,9 +919,8 @@ static unsigned int number_ColorSpaceSignature(icColorSpaceSignature sig) {
 			return 14;
 		case icSig15colorData:
 			return 15;
-		default:
-			return 0;
 	}
+	return 0;
 }
 
 /* ------------------------------------------------------- */
@@ -1058,7 +1028,7 @@ static char *string_AsciiOrBinaryData(unsigned long flags) {
 /* before buffers get reused if type is unknown. */
 
 /* public tags and sizes */
-static const char *string_TagSignature(icTagSignature sig) {
+static char *string_TagSignature(icTagSignature sig) {
 	static char buf[80];
 	switch(sig) {
 		case icSigAToB0Tag:
@@ -1149,14 +1119,13 @@ static const char *string_TagSignature(icTagSignature sig) {
 			return "Viewing Condition Description";
 		case icSigViewingConditionsTag:
 			return "Viewing Condition Paramaters";
-		default:
-			sprintf(buf,"Unrecognized - %s",tag2str(sig));
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - %s",tag2str(sig));
+	return buf;
 }
 
 /* technology signature descriptions */
-static const char *string_TechnologySignature(icTechnologySignature sig) {
+static char *string_TechnologySignature(icTechnologySignature sig) {
 	static char buf[80];
 	switch(sig) {
 		case icSigDigitalCamera:
@@ -1203,14 +1172,13 @@ static const char *string_TechnologySignature(icTechnologySignature sig) {
 			return "Silkscreen";
 		case icSigFlexography:
 			return "Flexography";
-		default:
-			sprintf(buf,"Unrecognized - %s",tag2str(sig));
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - %s",tag2str(sig));
+	return buf;
 }
 
 /* type signatures */
-static const char *string_TypeSignature(icTagTypeSignature sig) {
+static char *string_TypeSignature(icTagTypeSignature sig) {
 	static char buf[80];
 	switch(sig) {
 		case icSigCurveType:
@@ -1261,14 +1229,13 @@ static const char *string_TypeSignature(icTagTypeSignature sig) {
 			return "Named Color 2";
 		case icSigCrdInfoType:
 			return "CRD Info";
-		default:
-			sprintf(buf,"Unrecognized - %s",tag2str(sig));
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - %s",tag2str(sig));
+	return buf;
 }
 
 /* Color Space Signatures */
-static const char *string_ColorSpaceSignature(icColorSpaceSignature sig) {
+static char *string_ColorSpaceSignature(icColorSpaceSignature sig) {
 	static char buf[80];
 	switch(sig) {
 		case icSigXYZData:
@@ -1325,10 +1292,9 @@ static const char *string_ColorSpaceSignature(icColorSpaceSignature sig) {
 			return "14 Color";
 		case icSig15colorData:
 			return "15 Color";
-		default:
-			sprintf(buf,"Unrecognized - %s",tag2str(sig));
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - %s",tag2str(sig));
+	return buf;
 }
 
 #ifdef NEVER
@@ -1340,7 +1306,7 @@ char *ColorSpaceSignature2str(icColorSpaceSignature sig) {
 
 
 /* profileClass enumerations */
-static const char *string_ProfileClassSignature(icProfileClassSignature sig) {
+static char *string_ProfileClassSignature(icProfileClassSignature sig) {
 	static char buf[80];
 	switch(sig) {
 		case icSigInputClass:
@@ -1357,14 +1323,13 @@ static const char *string_ProfileClassSignature(icProfileClassSignature sig) {
 			return "Color Space";
 		case icSigNamedColorClass:
 			return "Named Color";
-		default:
-			sprintf(buf,"Unrecognized - %s",tag2str(sig));
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - %s",tag2str(sig));
+	return buf;
 }
 
 /* Platform Signatures */
-static const char *string_PlatformSignature(icPlatformSignature sig) {
+static char *string_PlatformSignature(icPlatformSignature sig) {
 	static char buf[80];
 	switch(sig) {
 		case icSigMacintosh:
@@ -1377,14 +1342,13 @@ static const char *string_PlatformSignature(icPlatformSignature sig) {
 			return "SGI";
 		case icSigTaligent:
 			return "Taligent";
-		default:
-			sprintf(buf,"Unrecognized - %s",tag2str(sig));
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - %s",tag2str(sig));
+	return buf;
 }
 
 /* Measurement Geometry, used in the measurmentType tag */
-static const char *string_MeasurementGeometry(icMeasurementGeometry sig) {
+static char *string_MeasurementGeometry(icMeasurementGeometry sig) {
 	static char buf[30];
 	switch(sig) {
 		case icGeometryUnknown:
@@ -1393,32 +1357,30 @@ static const char *string_MeasurementGeometry(icMeasurementGeometry sig) {
 			return "0/45 or 45/0";
 		case icGeometry0dord0:
 			return "0/d or d/0";
-		default:
-			sprintf(buf,"Unrecognized - 0x%x",sig);
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - 0x%x",sig);
+	return buf;
 }
 
 /* Rendering Intents, used in the profile header */
-static const char *string_RenderingIntent(icRenderingIntent sig) {
+static char *string_RenderingIntent(icRenderingIntent sig) {
 	static char buf[30];
 	switch(sig) {
 		case icPerceptual:
 			return "Perceptual";
-		case icRelativeColorimetric:
-	    		return "Relative Colorimetric";
-		case icSaturation:
-	    		return "Saturation";
-		case icAbsoluteColorimetric:
-	    		return "Absolute Colorimetric";
-		default:
-			sprintf(buf,"Unrecognized - 0x%x",sig);
-			return buf;
+	    case icRelativeColorimetric:
+	    	return "Relative Colorimetric";
+	    case icSaturation:
+	    	return "Saturation";
+	    case icAbsoluteColorimetric:
+	    	return "Absolute Colorimetric";
 	}
+	sprintf(buf,"Unrecognized - 0x%x",sig);
+	return buf;
 }
 
 /* Different Spot Shapes currently defined, used for screeningType */
-static const char *string_SpotShape(icSpotShape sig) {
+static char *string_SpotShape(icSpotShape sig) {
 	static char buf[30];
 	switch(sig) {
 		case icSpotShapeUnknown:
@@ -1437,14 +1399,13 @@ static const char *string_SpotShape(icSpotShape sig) {
 			return "Square";
 		case icSpotShapeCross:
 			return "Cross";
-		default:
-			sprintf(buf,"Unrecognized - 0x%x",sig);
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - 0x%x",sig);
+	return buf;
 }
 
 /* Standard Observer, used in the measurmentType tag */
-static const char *string_StandardObserver(icStandardObserver sig) {
+static char *string_StandardObserver(icStandardObserver sig) {
 	static char buf[30];
 	switch(sig) {
 		case icStdObsUnknown:
@@ -1453,14 +1414,13 @@ static const char *string_StandardObserver(icStandardObserver sig) {
 			return "1931 Two Degrees";
 		case icStdObs1964TenDegrees:
 			return "1964 Ten Degrees";
-		default:
-			sprintf(buf,"Unrecognized - 0x%x",sig);
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - 0x%x",sig);
+	return buf;
 }
 
 /* Pre-defined illuminants, used in measurement and viewing conditions type */
-static const char *string_Illuminant(icIlluminant sig) {
+static char *string_Illuminant(icIlluminant sig) {
 	static char buf[30];
 	switch(sig) {
 		case icIlluminantUnknown:
@@ -1481,14 +1441,13 @@ static const char *string_Illuminant(icIlluminant sig) {
 			return "Equi-Power(E)";
 		case icIlluminantF8:
 			return "F8";
-		default:
-			sprintf(buf,"Unrecognized - 0x%x",sig);
-			return buf;
 	}
+	sprintf(buf,"Unrecognized - 0x%x",sig);
+	return buf;
 }
 
 /* Return a text abreviation of a color lookup algorithm */
-static const char *string_LuAlg(icmLuAlgType alg) {
+static char *string_LuAlg(icmLuAlgType alg) {
 	static char buf[80];
 
 	switch(alg) {
@@ -1502,15 +1461,14 @@ static const char *string_LuAlg(icmLuAlgType alg) {
 			return "MatrixBwd";
     	case icmLutType:
 			return "Lut";
-	default:
-		sprintf(buf,"Unrecognized - %d",alg);
-		return buf;
 	}
+	sprintf(buf,"Unrecognized - %d",alg);
+	return buf;
 }
 
 /* Return a string description of the given enumeration value */
 /* Public: */
-const char *icm2str(icmEnumType etype, int enumval) {
+char *icm2str(icmEnumType etype, int enumval) {
 
 	switch(etype) {
 	    case icmScreenEncodings:
@@ -1545,9 +1503,8 @@ const char *icm2str(icmEnumType etype, int enumval) {
 			return string_Illuminant((icIlluminant) enumval);
 		case icmLuAlg:
 			return string_LuAlg((icmLuAlgType) enumval);
-		default:
-			return "enum2str got unknown type";
 	}
+	return "enum2str got unknown type";
 }
 
 /* ========================================================== */
@@ -1680,11 +1637,11 @@ static void icmUInt8Array_dump(
 		return;
 
 	fprintf(op,"UInt8Array:\n");
-	fprintf(op,"  No. elements = %lu\n",p->size);
+	fprintf(op,"  No. elements = %u\n",p->size);
 	if (verb >= 2) {
 		unsigned long i;
 		for (i = 0; i < p->size; i++)
-			fprintf(op,"    %lu:  %u\n",i,p->data[i]);
+			fprintf(op,"    %u:  %u\n",i,p->data[i]);
 	}
 }
 
@@ -1867,11 +1824,11 @@ static void icmUInt16Array_dump(
 		return;
 
 	fprintf(op,"UInt16Array:\n");
-	fprintf(op,"  No. elements = %lu\n",p->size);
+	fprintf(op,"  No. elements = %u\n",p->size);
 	if (verb >= 2) {
 		unsigned long i;
 		for (i = 0; i < p->size; i++)
-			fprintf(op,"    %lu:  %u\n",i,p->data[i]);
+			fprintf(op,"    %u:  %u\n",i,p->data[i]);
 	}
 }
 
@@ -2054,11 +2011,11 @@ static void icmUInt32Array_dump(
 		return;
 
 	fprintf(op,"UInt32Array:\n");
-	fprintf(op,"  No. elements = %lu\n",p->size);
+	fprintf(op,"  No. elements = %u\n",p->size);
 	if (verb >= 2) {
 		unsigned long i;
 		for (i = 0; i < p->size; i++)
-			fprintf(op,"    %lu:  %u\n",i,p->data[i]);
+			fprintf(op,"    %u:  %u\n",i,p->data[i]);
 	}
 }
 
@@ -2241,11 +2198,11 @@ static void icmUInt64Array_dump(
 		return;
 
 	fprintf(op,"UInt64Array:\n");
-	fprintf(op,"  No. elements = %lu\n",p->size);
+	fprintf(op,"  No. elements = %u\n",p->size);
 	if (verb >= 2) {
 		unsigned long i;
 		for (i = 0; i < p->size; i++)
-			fprintf(op,"    %lu:  h=%lu, l=%lu\n",i,p->data[i].h,p->data[i].l);
+			fprintf(op,"    %u:  h=%u, l=%u\n",i,p->data[i].h,p->data[i].l);
 	}
 }
 
@@ -2259,7 +2216,7 @@ static int icmUInt64Array_allocate(
 	if (p->size != p->_size) {
 		if (p->data != NULL)
 			icp->al->free(icp->al, p->data);
-		if ((p->data = (icmUint64 *) icp->al->malloc(icp->al, p->size * sizeof(icmUint64))) == NULL) {
+		if ((p->data = (uint64 *) icp->al->malloc(icp->al, p->size * sizeof(uint64))) == NULL) {
 			sprintf(icp->err,"icmUInt64Array_alloc: malloc() of icmUInt64Array data failed");
 			return icp->errc = 2;
 		}
@@ -2428,11 +2385,11 @@ static void icmU16Fixed16Array_dump(
 		return;
 
 	fprintf(op,"U16Fixed16Array:\n");
-	fprintf(op,"  No. elements = %lu\n",p->size);
+	fprintf(op,"  No. elements = %u\n",p->size);
 	if (verb >= 2) {
 		unsigned long i;
 		for (i = 0; i < p->size; i++)
-			fprintf(op,"    %lu:  %f\n",i,p->data[i]);
+			fprintf(op,"    %u:  %f\n",i,p->data[i]);
 	}
 }
 
@@ -2615,11 +2572,11 @@ static void icmS15Fixed16Array_dump(
 		return;
 
 	fprintf(op,"S15Fixed16Array:\n");
-	fprintf(op,"  No. elements = %lu\n",p->size);
+	fprintf(op,"  No. elements = %u\n",p->size);
 	if (verb >= 2) {
 		unsigned long i;
 		for (i = 0; i < p->size; i++)
-			fprintf(op,"    %lu:  %f\n",i,p->data[i]);
+			fprintf(op,"    %u:  %f\n",i,p->data[i]);
 	}
 }
 
@@ -2844,11 +2801,11 @@ static void icmXYZArray_dump(
 		return;
 
 	fprintf(op,"XYZArray:\n");
-	fprintf(op,"  No. elements = %lu\n",p->size);
+	fprintf(op,"  No. elements = %u\n",p->size);
 	if (verb >= 2) {
 		unsigned long i;
 		for (i = 0; i < p->size; i++) {
-			fprintf(op,"    %lu:  %s\n",i,string_XYZNumber_and_Lab(&p->data[i]));
+			fprintf(op,"    %u:  %s\n",i,string_XYZNumber_and_Lab(&p->data[i]));
 			
 		}
 	}
@@ -2986,8 +2943,8 @@ static int icmTable_setup_bwd(
 	/* Assign each output value range bucket lists it intersects */
 	for (i = 0; i < (rt->size-1); i++) {
 		int s, e, j;	/* Start and end indexes (inclusive) */
-		s = (int)((rt->data[i] - rt->rmin) * rt->qscale);
-		e = (int)((rt->data[i+1] - rt->rmin) * rt->qscale);
+		s = ((rt->data[i] - rt->rmin) * rt->qscale);
+		e = ((rt->data[i+1] - rt->rmin) * rt->qscale);
 		if (s > e) {	/* swap */
 			int t;
 			t = s; s = e; e = t;
@@ -3320,11 +3277,11 @@ static void icmCurve_dump(
 	} else if (p->flag == icmCurveGamma) {
 		fprintf(op,"  Curve is gamma of %f\n",p->data[0]);
 	} else {
-		fprintf(op,"  No. elements = %lu\n",p->size);
+		fprintf(op,"  No. elements = %u\n",p->size);
 		if (verb >= 2) {
 			unsigned long i;
 			for (i = 0; i < p->size; i++)
-				fprintf(op,"    %3lu:  %f\n",i,p->data[i]);
+				fprintf(op,"    % 3u:  %f\n",i,p->data[i]);
 		}
 	}
 }
@@ -3528,7 +3485,7 @@ static int icmData_write(
 
 	if (p->data != NULL) {
 		if (p->flag == icmDataASCII) {
-			if ((rv = check_null_string((char *)p->data, p->size)) != 0) {
+			if ((rv = check_null_string((char*)p->data, p->size)) != 0) {	/* RSC added cast */
 				sprintf(icp->err,"icmData_write: ASCII is not null terminated");
 				icp->al->free(icp->al, buf);
 				return icp->errc = 1;
@@ -3555,7 +3512,7 @@ static void icmData_dump(
 	int   verb		/* Verbosity level */
 ) {
 	icmData *p = (icmData *)pp;
-	unsigned long i, r, c, size = 0;
+	unsigned long i, r, c, size;
 
 	if (verb <= 0)
 		return;
@@ -3570,12 +3527,8 @@ static void icmData_dump(
 			fprintf(op,"  Binary data\n");
 			size = p->size;
 			break;
-		case icmDataUndef:
-			fprintf(op,"  Undefined data\n");
-			size = p->size;
-			break;
 	}
-	fprintf(op,"  No. elements = %lu\n",p->size);
+	fprintf(op,"  No. elements = %u\n",p->size);
 
 	i = 0;
 	for (r = 1;; r++) {		/* count rows */
@@ -3588,7 +3541,7 @@ static void icmData_dump(
 			break;			/* Print 1 row if not verbose */
 		}
 		c = 1;
-		fprintf(op,"    0x%04lx: ",i);
+		fprintf(op,"    0x%04x: ",i);
 		c += 10;
 		while (i < size && c < 75) {
 			if (p->flag == icmDataASCII) {
@@ -3793,7 +3746,7 @@ static void icmText_dump(
 		return;
 
 	fprintf(op,"Text:\n");
-	fprintf(op,"  No. chars = %lu\n",p->size);
+	fprintf(op,"  No. chars = %u\n",p->size);
 
 	size = p->size > 0 ? p->size-1 : 0;
 	i = 0;
@@ -3807,7 +3760,7 @@ static void icmText_dump(
 			break;			/* Print 1 row if not verbose */
 		}
 		c = 1;
-		fprintf(op,"    0x%04lx: ",i);
+		fprintf(op,"    0x%04x: ",i);
 		c += 10;
 		while (i < size && c < 75) {
 			if (isprint(p->data[i])) {
@@ -3939,8 +3892,8 @@ static int read_DateTimeNumber(icmDateTimeNumber *p, char *d) {
 
 /* Return a string that shows the given date and time */
 static char *string_DateTimeNumber(icmDateTimeNumber *p) {
-	static const char *mstring[13] = {"Bad", "Jan","Feb","Mar","Apr","May","Jun",
-					  "Jul","Aug","Sep","Oct","Nov","Dec"};
+	static char *mstring[13] = {"Bad", "Jan","Feb","Mar","Apr","May","Jun",
+	                                "Jul","Aug","Sep","Oct","Nov","Dec"};
 	static char buf[80];
 
 	sprintf(buf,"%d %s %4d, %d:%02d:%02d", 
@@ -3969,6 +3922,7 @@ static void setcur_DateTimeNumber(icmDateTimeNumber *p) {
 static unsigned int icmDateTimeNumber_get_size(
 	icmBase *pp
 ) {
+	icmDateTimeNumber *p = (icmDateTimeNumber *)pp;
 	unsigned int len = 0;
 	len += 8;			/* 8 bytes for tag and padding */
 	len += 12;			/* 12 bytes for Date & Time */
@@ -4089,6 +4043,8 @@ static void icmDateTimeNumber_dump(
 static int icmDateTimeNumber_allocate(
 	icmBase *pp
 ) {
+	icmDateTimeNumber *p = (icmDateTimeNumber *)pp;
+
 	/* Nothing to do */
 	return 0;
 }
@@ -4128,7 +4084,7 @@ static icmBase *new_icmDateTimeNumber(
 /* icmLut object */
 
 /* Utility function - raise one integer to an integer power */
-static unsigned int uipow(unsigned int a, unsigned int b) {
+unsigned int uipow(unsigned int a, unsigned int b) {
 	unsigned int rv = 1;
 	for (; b > 0; b--)
 		rv *= a;
@@ -4154,11 +4110,11 @@ static int icmLut_nu_matrix(
 
 /* return the locations of the minimum and */
 /* maximum values of the given channel, in the clut */
-static void icmLut_min_max(
+void icmLut_min_max(
 	icmLut *p,		/* Pointer to Lut object */
 	double *minp,	/* Return position of min/max */
 	double *maxp,
-	int chan		/* Channel, -1 for average of all */
+	int chan		/* Chanel, -1 for average of all */
 ) {
 	double *tp;
 	double minv, maxv;	/* Values */
@@ -4275,7 +4231,7 @@ double *in		/* Input array[outputChan] */
 	}
 
 	/* We are using an n-linear (ie. Trilinear for 3D input) interpolation. */
-	/* The implementation here uses more multiplies that some other schemes, */
+	/* The implimentation here uses more multiplies that some other schemes, */
 	/* (for instance, see "Tri-Linear Interpolation" by Steve Hill, */
 	/* Graphics Gems IV, page 521), but has less involved bookeeping, */
 	/* needs less local storage for intermediate output values, does fewer */
@@ -4602,7 +4558,7 @@ void (*outfunc)(void *cbctx, double *out, double *in)
 								/* Output transfer function, outspace'->outspace (NULL = deflt) */
 ) {
 	icc *icp = p->icp;
-	int n, e;
+	int j, n, e;
 	int ii[MAX_CHAN];		/* Index value */
 	psh counter;			/* Pseudo-Hilbert counter */
 	double _iv[2 * MAX_CHAN], *iv = &_iv[MAX_CHAN];	/* Real index value/table value */
@@ -5357,6 +5313,7 @@ static icmBase *new_icmLut(
 static unsigned int icmMeasurement_get_size(
 	icmBase *pp
 ) {
+	icmMeasurement *p = (icmMeasurement *)pp;
 	unsigned int len = 0;
 	len += 8;			/* 8 bytes for tag and padding */
 	len += 4;			/* 4 for standard observer */
@@ -5422,7 +5379,7 @@ static int icmMeasurement_read(
 	p->flare = read_U16Fixed16Number(bp + 28);
 
 	/* Read the encoded standard illuminant */
-	p->illuminant = (icIlluminant)read_SInt32Number(bp + 32);
+	p->illuminant = (icMeasurementFlare)read_SInt32Number(bp + 32);
 
 	icp->al->free(icp->al, buf);
 	return 0;
@@ -5523,6 +5480,8 @@ static void icmMeasurement_dump(
 static int icmMeasurement_allocate(
 	icmBase *pp
 ) {
+	icmMeasurement *p = (icmMeasurement *)pp;
+
 	/* Nothing to do */
 	return 0;
 }
@@ -6011,7 +5970,7 @@ static void icmNamedColor_dump(
 		icmNamedColorVal *vp;
 		for (i = 0; i < p->count; i++) {
 			vp = p->data + i;
-			fprintf(op,"    Color %lu:\n",i);
+			fprintf(op,"    Color %u:\n",i);
 			fprintf(op,"      Name root = '%s'\n",vp->root);
 
 			if (p->ttype == icSigNamedColor2Type) {
@@ -6127,11 +6086,7 @@ static int icmTextDescription_read(
 	int rv;
 	char *bp, *buf, *end;
 
-#ifdef ICM_STRICT
-	if (len < (8 + 4 + 8 + 3 /* + 67 */)) {
-#else
-	if (len < (8 + 4 + 8 + 3)) {
-#endif
+	if (len < 90) {
 		sprintf(icp->err,"icmTextDescription_read: Tag too small to be legal");
 		return icp->errc = 1;
 	}
@@ -6182,8 +6137,7 @@ static int icmTextDescription_core_read(
 	/* Read type descriptor from the buffer */
 	if (((icTagTypeSignature)read_SInt32Number(bp)) != p->ttype) {
 		*bpp = bp;
-		sprintf(icp->err,"icmTextDescription_read: Wrong tag type ('%s') for icmTextDescription",
-		        tag2str((icTagTypeSignature)read_SInt32Number(bp)));
+		sprintf(icp->err,"icmTextDescription_read: Wrong tag type for icmTextDescription");
 		return icp->errc = 1;
 	}
 	bp = bp + 8;
@@ -6403,7 +6357,7 @@ static int icmTextDescription_core_write(
 			sprintf(icp->err,"icmTextDescription_write: ScriptCode string too long");
 			return icp->errc = 1;
 		}
-		if (check_null_string((char *)p->scDesc,p->scSize)) {
+		if (check_null_string((char*)p->scDesc,p->scSize)) {	/* RSC added cast */
 			*bpp = bp;
 			sprintf(icp->err,"icmTextDescription_write: ScriptCode string is not terminated");
 			return icp->errc = 1;
@@ -6434,7 +6388,7 @@ static void icmTextDescription_dump(
 
 	if (p->size > 0) {
 		unsigned long size = p->size > 0 ? p->size-1 : 0;
-		fprintf(op,"  ASCII data, length %lu chars:\n",p->size);
+		fprintf(op,"  ASCII data, length %u chars:\n",p->size);
 
 		i = 0;
 		for (r = 1;; r++) {		/* count rows */
@@ -6447,7 +6401,7 @@ static void icmTextDescription_dump(
 				break;			/* Print 1 row if not verbose */
 			}
 			c = 1;
-			fprintf(op,"    0x%04lx: ",i);
+			fprintf(op,"    0x%04x: ",i);
 			c += 10;
 			while (i < size && c < 75) {
 				if (isprint(p->desc[i])) {
@@ -6469,7 +6423,7 @@ static void icmTextDescription_dump(
 	/* Can't dump Unicode or ScriptCode as text with portable code */
 	if (p->ucSize > 0) {
 		unsigned long size = p->ucSize;
-		fprintf(op,"  Unicode Data, Language code 0x%x, length %lu chars\n",
+		fprintf(op,"  Unicode Data, Language code 0x%x, length %u chars\n",
 		        p->ucLangCode, p->ucSize);
 		i = 0;
 		for (r = 1;; r++) {		/* count rows */
@@ -6482,7 +6436,7 @@ static void icmTextDescription_dump(
 				break;			/* Print 1 row if not verbose */
 			}
 			c = 1;
-			fprintf(op,"    0x%04lx: ",i);
+			fprintf(op,"    0x%04x: ",i);
 			c += 10;
 			while (i < size && c < 75) {
 				fprintf(op,"%04x ",p->ucDesc[i]);
@@ -6497,7 +6451,7 @@ static void icmTextDescription_dump(
 	}
 	if (p->scSize > 0) {
 		unsigned long size = p->scSize;
-		fprintf(op,"  ScriptCode Data, Code 0x%x, length %lu chars\n",
+		fprintf(op,"  ScriptCode Data, Code 0x%x, length %u chars\n",
 		        p->scCode, p->scSize);
 		i = 0;
 		for (r = 1;; r++) {		/* count rows */
@@ -6510,7 +6464,7 @@ static void icmTextDescription_dump(
 				break;			/* Print 1 row if not verbose */
 			}
 			c = 1;
-			fprintf(op,"    0x%04lx: ",i);
+			fprintf(op,"    0x%04x: ",i);
 			c += 10;
 			while (i < size && c < 75) {
 				fprintf(op,"%02x ",p->scDesc[i]);
@@ -6554,7 +6508,7 @@ static int icmTextDescription_allocate(
 }
 
 /* Free all variable sized elements */
-static void icmTextDescription_unallocate(
+void icmTextDescription_unallocate(
 	icmTextDescription *p
 ) {
 	icc *icp = p->icp;
@@ -6978,6 +6932,7 @@ static icmBase *new_icmProfileSequenceDesc(
 static unsigned int icmSignature_get_size(
 	icmBase *pp
 ) {
+	icmSignature *p = (icmSignature *)pp;
 	unsigned int len = 0;
 	len += 8;			/* 8 bytes for tag and padding */
 	len += 4;			/* 4 for signature */
@@ -7091,6 +7046,8 @@ static void icmSignature_dump(
 static int icmSignature_allocate(
 	icmBase *pp
 ) {
+	icmSignature *p = (icmSignature *)pp;
+
 	/* Nothing to do */
 	return 0;
 }
@@ -7297,7 +7254,7 @@ static void icmScreening_dump(
 	if (verb >= 2) {
 		unsigned long i;
 		for (i = 0; i < p->channels; i++) {
-			fprintf(op,"    %lu:\n",i);
+			fprintf(op,"    %u:\n",i);
 			fprintf(op,"      Frequency:  %f\n",p->data[i].frequency);
 			fprintf(op,"      Angle:      %f\n",p->data[i].angle);
 			fprintf(op,"      Spot shape: %s\n", string_SpotShape(p->data[i].spotShape));
@@ -7602,7 +7559,7 @@ static void icmUcrBg_dump(
 		if (verb >= 2) {
 			unsigned long i;
 			for (i = 0; i < p->UCRcount; i++)
-				fprintf(op,"  %3lu:  %f\n",i,p->UCRcurve[i]);
+				fprintf(op,"  % 3u:  %f\n",i,p->UCRcurve[i]);
 		}
 	}
 	if (p->BGcount == 0) {
@@ -7614,14 +7571,14 @@ static void icmUcrBg_dump(
 		if (verb >= 2) {
 			unsigned long i;
 			for (i = 0; i < p->BGcount; i++)
-				fprintf(op,"  %3lu:  %f\n",i,p->BGcurve[i]);
+				fprintf(op,"  % 3u:  %f\n",i,p->BGcurve[i]);
 		}
 	}
 
 	{
 		unsigned long i, r, c, size;
 		fprintf(op,"  Description:\n");
-		fprintf(op,"    No. chars = %lu\n",p->size);
+		fprintf(op,"    No. chars = %u\n",p->size);
 	
 		size = p->size > 0 ? p->size-1 : 0;
 		i = 0;
@@ -7635,7 +7592,7 @@ static void icmUcrBg_dump(
 				break;			/* Print 1 row if not verbose */
 			}
 			c = 1;
-			fprintf(op,"      0x%04lx: ",i);
+			fprintf(op,"      0x%04x: ",i);
 			c += 10;
 			while (i < size && c < 73) {
 				if (isprint(p->string[i])) {
@@ -7798,7 +7755,7 @@ static int icmVideoCardGamma_read(
 	p->tagType = read_UInt32Number(bp+8);
 
 	/* Read remaining gamma data based on format */
-	switch ((int)p->tagType) {
+	switch (p->tagType) {
 	case icmVideoCardGammaTableType:
 		p->u.table.channels   = read_UInt16Number(bp+12);
 		p->u.table.entryCount = read_UInt16Number(bp+14);
@@ -7893,7 +7850,7 @@ static int icmVideoCardGamma_write(
 	}
 
 	/* Write remaining gamma data based on format */
-	switch ((int)p->tagType) {
+	switch (p->tagType) {
 	case icmVideoCardGammaTableType:
 		if ((rv = write_UInt16Number(p->u.table.channels,bp+12)) != 0) {
 			sprintf(icp->err,"icmVideoCardGamma_write: write_UInt16Number() failed");
@@ -8005,7 +7962,7 @@ static void icmVideoCardGamma_dump(
 	if (verb <= 0)
 		return;
 
-	switch ((int)p->tagType) {
+	switch (p->tagType) {
 	case icmVideoCardGammaTableType:
 		fprintf(op,"VideoCardGammaTable:\n");
 		fprintf(op,"  channels  = %d\n", p->u.table.channels);
@@ -8028,15 +7985,15 @@ static void icmVideoCardGamma_dump(
 		break;
 	case icmVideoCardGammaFormulaType:
 		fprintf(op,"VideoCardGammaFormula:\n");
-		fprintf(op,"  red gamma   = %f\n", p->u.formula.redGamma);
-		fprintf(op,"  red min     = %f\n", p->u.formula.redMin);
-		fprintf(op,"  red max     = %f\n", p->u.formula.redMax);
-		fprintf(op,"  green gamma = %f\n", p->u.formula.greenGamma);
-		fprintf(op,"  green min   = %f\n", p->u.formula.greenMin);
-		fprintf(op,"  green max   = %f\n", p->u.formula.greenMax);
-		fprintf(op,"  blue gamma  = %f\n", p->u.formula.blueGamma);
-		fprintf(op,"  blue min    = %f\n", p->u.formula.blueMin);
-		fprintf(op,"  blue max    = %f\n", p->u.formula.blueMax);
+		fprintf(op,"  red gamma   = %lf\n", p->u.formula.redGamma);
+		fprintf(op,"  red min     = %lf\n", p->u.formula.redMin);
+		fprintf(op,"  red max     = %lf\n", p->u.formula.redMax);
+		fprintf(op,"  green gamma = %lf\n", p->u.formula.greenGamma);
+		fprintf(op,"  green min   = %lf\n", p->u.formula.greenMin);
+		fprintf(op,"  green max   = %lf\n", p->u.formula.greenMax);
+		fprintf(op,"  blue gamma  = %lf\n", p->u.formula.blueGamma);
+		fprintf(op,"  blue min    = %lf\n", p->u.formula.blueMin);
+		fprintf(op,"  blue max    = %lf\n", p->u.formula.blueMax);
 		break;
 	default:
 		fprintf(op,"  Unknown tag format\n");
@@ -8121,6 +8078,7 @@ static icmBase *new_icmVideoCardGamma(
 static unsigned int icmViewingConditions_get_size(
 	icmBase *pp
 ) {
+	icmViewingConditions *p = (icmViewingConditions *)pp;
 	unsigned int len = 0;
 	len += 8;			/* 8 bytes for tag and padding */
 	len += 12;			/* 12 for XYZ of illuminant */
@@ -8267,6 +8225,8 @@ static void icmViewingConditions_dump(
 static int icmViewingConditions_allocate(
 	icmBase *pp
 ) {
+	icmViewingConditions *p = (icmViewingConditions *)pp;
+
 	/* Nothing to do */
 	return 0;
 }
@@ -8389,7 +8349,7 @@ static int icmCrdInfo_read(
 	/* CRD names for the four rendering intents */
 	for (t = 0; t < 4; t++) {	/* For all 4 intents */
 		if ((bp + 4) > end) {
-			sprintf(icp->err,"icmCrdInfo_read: Data too short to read CRD%ld name",t);
+			sprintf(icp->err,"icmCrdInfo_read: Data too short to read CRD%d name",t);
 			icp->al->free(icp->al, buf);
 			return icp->errc = 1;
 		}
@@ -8397,12 +8357,12 @@ static int icmCrdInfo_read(
 		bp += 4;
 		if (p->crdsize[t] > 0) {
 			if ((bp + p->crdsize[t]) > end) {
-				sprintf(icp->err,"icmCrdInfo_read: Data to short to read CRD%ld string",t);
+				sprintf(icp->err,"icmCrdInfo_read: Data to short to read CRD%d string",t);
 				icp->al->free(icp->al, buf);
 				return icp->errc = 1;
 			}
 			if (check_null_string(bp,p->crdsize[t])) {
-				sprintf(icp->err,"icmCrdInfo_read: CRD%ld name is not terminated",t);
+				sprintf(icp->err,"icmCrdInfo_read: CRD%d name is not terminated",t);
 				icp->al->free(icp->al, buf);
 				return icp->errc = 1;
 			}
@@ -8475,7 +8435,7 @@ static int icmCrdInfo_write(
 		bp += 4;
 		if (p->ppsize > 0) {
 			if ((rv = check_null_string(p->crdname[t],p->crdsize[t])) != 0) {
-				sprintf(icp->err,"icmCrdInfo_write: CRD%ld name is not terminated",t);
+				sprintf(icp->err,"icmCrdInfo_write: CRD%d name is not terminated",t);
 				icp->al->free(icp->al, buf);
 				return icp->errc = 1;
 			}
@@ -8510,7 +8470,7 @@ static void icmCrdInfo_dump(
 	fprintf(op,"PostScript Product name and CRD names:\n");
 
 	fprintf(op,"  Product name:\n");
-	fprintf(op,"    No. chars = %lu\n",p->ppsize);
+	fprintf(op,"    No. chars = %u\n",p->ppsize);
 	
 	size = p->ppsize > 0 ? p->ppsize-1 : 0;
 	i = 0;
@@ -8524,7 +8484,7 @@ static void icmCrdInfo_dump(
 			break;			/* Print 1 row if not verbose */
 		}
 		c = 1;
-		fprintf(op,"      0x%04lx: ",i);
+		fprintf(op,"      0x%04x: ",i);
 		c += 10;
 		while (i < size && c < 73) {
 			if (isprint(p->ppname[i])) {
@@ -8541,8 +8501,8 @@ static void icmCrdInfo_dump(
 	}
 
 	for (t = 0; t < 4; t++) {	/* For all 4 intents */
-		fprintf(op,"  CRD%ld name:\n",t);
-		fprintf(op,"    No. chars = %lu\n",p->crdsize[t]);
+		fprintf(op,"  CRD%d name:\n",t);
+		fprintf(op,"    No. chars = %u\n",p->crdsize[t]);
 		
 		size = p->crdsize[t] > 0 ? p->crdsize[t]-1 : 0;
 		i = 0;
@@ -8556,7 +8516,7 @@ static void icmCrdInfo_dump(
 				break;			/* Print 1 row if not verbose */
 			}
 			c = 1;
-			fprintf(op,"      0x%04lx: ",i);
+			fprintf(op,"      0x%04x: ",i);
 			c += 10;
 			while (i < size && c < 73) {
 				if (isprint(p->crdname[t][i])) {
@@ -9661,11 +9621,9 @@ static int icc_find_tag(
 }
 
 /* Read the tag element data, and return a pointer to the object */
-/**
- * Returns NULL if error - icc->errc will contain:
- * 1 if found but not handled type
- * 2 if not found
- **/
+/* Returns NULL if error - icc->errc will contain
+/* 1 if found but not handled type */
+/* 2 if not found */
 /* NOTE: we don't handle tag duplication - you'll always get the first in the file */
 static icmBase *icc_read_tag(
 	icc *p,
@@ -9734,6 +9692,8 @@ static int icc_rename_tag(
     icTagSignature sig,			/* Existing Tag signature - may be unknown */
     icTagSignature sigNew		/* New Tag signature - may be unknown */
 ) {
+	int rv;
+	icmBase *nob;
 	int i, j, k, ok = 1;
 
 	/* Search for signature */
@@ -9779,6 +9739,8 @@ static int icc_unread_tag(
 	icc *p,
     icTagSignature sig		/* Tag signature - may be unknown */
 ) {
+	int rv;
+	icmBase *nob;
 	int i;
 
 	/* Search for signature */
@@ -9812,6 +9774,8 @@ static int icc_delete_tag(
 	icc *p,
     icTagSignature sig		/* Tag signature - may be unknown */
 ) {
+	int rv;
+	icmBase *nob;
 	int i;
 
 	/* Search for signature */
@@ -10219,83 +10183,6 @@ static int getNormFunc(
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - */
-/* Colorspace ranges - used instead of norm/denorm by Mono & Matrix */
-
-/* Function table - match ranges to color spaces. */
-/* Anything not here, we don't know how to convert. */
-/* (ie. YCbCr) */
-static struct {
-	icColorSpaceSignature csig;
-	int same;				/* Non zero if first entry applies to all channels */
-	double min[15];			/* Minimum value for this colorspace */
-	double max[15];			/* Maximum value for this colorspace */
-} colorrangetable[] = {
-	{icSigXYZData,     1, { 0.0 } , { 1.0 + 32767.0/32768.0 } },
-	{icSigLabData,     0, { 0.0, -128.0, -128.0 },
-	                      { 100.0 + 25500.0/65280.0, 127.0 + 255.0/256.0, 127.0 + 255.0/256.0 } }, 
-	{icSigLuvData,     0, { 0.0, -128.0, -128.0 },
-	                      { 100.0, 127.0 + 255.0/256.0, 127.0 + 255.0/256.0 } }, 
-	{icSigYxyData,     1, { 0.0 }, { 1.0 } },
-	{icSigRgbData,     1, { 0.0 }, { 1.0 } },
-	{icSigGrayData,    1, { 0.0 }, { 1.0 } },
-	{icSigHsvData,     1, { 0.0 }, { 1.0 } },
-	{icSigHlsData,     1, { 0.0 }, { 1.0 } },
-	{icSigCmykData,    1, { 0.0 }, { 1.0 } },
-	{icSigCmyData,     1, { 0.0 }, { 1.0 } },
-	{icSigMch6Data,    1, { 0.0 }, { 1.0 } },
-	{icSig2colorData,  1, { 0.0 }, { 1.0 } },
-	{icSig3colorData,  1, { 0.0 }, { 1.0 } },
-	{icSig4colorData,  1, { 0.0 }, { 1.0 } },
-	{icSig5colorData,  1, { 0.0 }, { 1.0 } },
-	{icSig6colorData,  1, { 0.0 }, { 1.0 } },
-	{icSig7colorData,  1, { 0.0 }, { 1.0 } },
-	{icSig8colorData,  1, { 0.0 }, { 1.0 } },
-	{icSig9colorData,  1, { 0.0 }, { 1.0 } },
-	{icSig10colorData, 1, { 0.0 }, { 1.0 } },
-	{icSig11colorData, 1, { 0.0 }, { 1.0 } },
-	{icSig12colorData, 1, { 0.0 }, { 1.0 } },
-	{icSig13colorData, 1, { 0.0 }, { 1.0 } },
-	{icSig14colorData, 1, { 0.0 }, { 1.0 } },
-	{icSig15colorData, 1, { 0.0 }, { 1.0 } },
-	{icMaxEnumData     }
-};
-	
-/* Find appropriate typical encoding ranges for a */
-/* colorspace given the color space. */
-/* Return 0 on success, 1 on match failure */
-static int getRange(
-	icColorSpaceSignature csig, 
-	double *min, double *max
-) {
-	int i, e, ee;
-	for (i = 0; colorrangetable[i].csig != icMaxEnumData; i++) {
-		if (colorrangetable[i].csig == csig)
-			break;	/* Found it */
-	}
-	if (colorrangetable[i].csig == icMaxEnumData) {	/* Oops */
-		return 1;
-	}
-	ee = number_ColorSpaceSignature(csig);		/* Get number of components */
-
-	if (colorrangetable[i].same) {		/* All channels are the same */
-		for (e = 0; e < ee; e++) {
-			if (min != NULL)
-				min[e] = colorrangetable[i].min[0];
-			if (max != NULL)
-				max[e] = colorrangetable[i].max[0];
-		}
-	} else {
-		for (e = 0; e < ee; e++) {
-			if (min != NULL)
-				min[e] = colorrangetable[i].min[e];
-			if (max != NULL)
-				max[e] = colorrangetable[i].max[e];
-		}
-	}
-	return 0;
-}
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* 
 	Matrix Inversion
@@ -10323,7 +10210,7 @@ static int getRange(
 
 #define det2x2(a, b, c, d) (a * d - b * c)
 
-static void adjoint(
+void adjoint(
 double out[3][3],
 double in[3][3]
 ) {
@@ -10362,7 +10249,7 @@ double in[3][3]
  *     | a3,  b3,  c3 |
  */
 
-static double det3x3(double in[3][3]) {
+double det3x3(double in[3][3]) {
     double a1, a2, a3, b1, b2, b3, c1, c2, c3;
     double ans;
 
@@ -10388,7 +10275,7 @@ static double det3x3(double in[3][3]) {
  */
 
 /* Return non-zero if not invertable */
-static int inverse3x3(
+int inverse3x3(
 double out[3][3],
 double in[3][3]
 ) {
@@ -10499,133 +10386,10 @@ icmXYZNumber icmD50 = { 		/* Profile illuminant - D50 */
     0.9642, 1.0000, 0.8249
 };
 
-/* available D65 Illuminant */
-icmXYZNumber icmD65 = { 		/* Profile illuminant - D65 */
-	0.9505, 1.0000, 1.0890
-};
-
 /* Default black point */
 icmXYZNumber icmBlack = {
     0.0000, 0.0000, 0.0000
 };
-
-/* Return the normal Delta E given two Lab values */
-double icmLabDE(double *Lab1, double *Lab2) {
-	double rv = 0.0, tt;
-
-	tt = Lab1[0] - Lab2[0];
-	rv += tt * tt;
-	tt = Lab1[1] - Lab2[1];
-	rv += tt * tt;
-	tt = Lab1[2] - Lab2[2];
-	rv += tt * tt;
-	
-	return sqrt(rv);
-}
-
-/* Return the normal Delta E squared, given two Lab values */
-double icmLabDEsq(double *Lab1, double *Lab2) {
-	double rv = 0.0, tt;
-
-	tt = Lab1[0] - Lab2[0];
-	rv += tt * tt;
-	tt = Lab1[1] - Lab2[1];
-	rv += tt * tt;
-	tt = Lab1[2] - Lab2[2];
-	rv += tt * tt;
-	
-	return rv;
-}
-
-/* Return the CIE94 Delta E color difference measure */
-double icmCIE94(double Lab1[3], double Lab2[3]) {
-	double desq, dhsq;
-	double dlsq, dcsq;
-	double c12;
-
-	{
-		double dl, da, db;
-		dl = Lab1[0] - Lab2[0];
-		dlsq = dl * dl;		/* dl squared */
-		da = Lab1[1] - Lab2[1];
-		db = Lab1[2] - Lab2[2];
-
-		/* Compute normal Lab delta E squared */
-		desq = dlsq + da * da + db * db;
-	}
-
-	{
-		double c1, c2, dc;
-
-		/* Compute chromanance for the two colors */
-		c1 = sqrt(Lab1[1] * Lab1[1] + Lab1[2] * Lab1[2]);
-		c2 = sqrt(Lab2[1] * Lab2[1] + Lab2[2] * Lab2[2]);
-		c12 = sqrt(c1 * c2);	/* Symetric chromanance */
-
-		/* delta chromanance squared */
-		dc = c2 - c1;
-		dcsq = dc * dc;
-	}
-
-	/* Compute delta hue squared */
-	if ((dhsq = desq - dlsq - dcsq) < 0.0)
-		dhsq = 0.0;
-
-	{
-		double sc, sh;
-
-		/* Weighting factors for delta chromanance & delta hue */
-		sc = 1.0 + 0.048 * c12;
-		sh = 1.0 + 0.014 * c12;
-	
-		return sqrt(dlsq + dcsq/(sc * sc) + dhsq/(sh * sh));
-	}
-}
-
-/* Return the CIE94 Delta E color difference measure, squared */
-double icmCIE94sq(double Lab1[3], double Lab2[3]) {
-	double desq, dhsq;
-	double dlsq, dcsq;
-	double c12;
-
-	{
-		double dl, da, db;
-		dl = Lab1[0] - Lab2[0];
-		dlsq = dl * dl;		/* dl squared */
-		da = Lab1[1] - Lab2[1];
-		db = Lab1[2] - Lab2[2];
-
-		/* Compute normal Lab delta E squared */
-		desq = dlsq + da * da + db * db;
-	}
-
-	{
-		double c1, c2, dc;
-
-		/* Compute chromanance for the two colors */
-		c1 = sqrt(Lab1[1] * Lab1[1] + Lab1[2] * Lab1[2]);
-		c2 = sqrt(Lab2[1] * Lab2[1] + Lab2[2] * Lab2[2]);
-		c12 = sqrt(c1 * c2);	/* Symetric chromanance */
-
-		/* delta chromanance squared */
-		dc = c2 - c1;
-		dcsq = dc * dc;
-	}
-
-	/* Compute delta hue squared */
-	if ((dhsq = desq - dlsq - dcsq) < 0.0)
-		dhsq = 0.0;
-
-	{
-		double sc, sh;
-
-		/* Weighting factors for delta chromanance & delta hue */
-		sc = 1.0 + 0.048 * c12;
-		sh = 1.0 + 0.014 * c12;
-	
-		return dlsq + dcsq/(sc * sc) + dhsq/(sh * sh);
-	}
-}
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -10742,7 +10506,7 @@ icmLuSpaces(
 	int *outn,						/* Return number of output components */
 	icmLuAlgType *alg,				/* Return type of lookup algorithm used */
     icRenderingIntent *intt,		/* Return the intent being implented */
-    icmLookupFunc *fnc,				/* Return the profile function being implemented */
+    icmLookupFunc *fnc,				/* Return the profile function being implimented */
 	icColorSpaceSignature *pcs		/* Return the profile effective PCS */
 ) {
 	if (ins != NULL)
@@ -10781,21 +10545,6 @@ icmXYZNumber *blk
 
 	if (blk != NULL)
 		*blk = p->blackPoint;	/* Structure copy */
-}
-
-/* Get the effective (externally visible) ranges for the Monochrome or Matrix profile */
-/* Arguments may be NULL */
-static void
-icmLu_get_ranges (
-	struct _icmLuBase *p,
-	double *inmin, double *inmax,		/* Return maximum range of inspace values */
-	double *outmin, double *outmax		/* Return maximum range of outspace values */
-) {
-	/* Hmm. we have no way of handlin an error from getRange. */
-	/* It shouldn't ever return one unless there is a mismatch between */
-	/* getRange and Lu creation... */
-	getRange(p->e_inSpace, inmin, inmax);
-	getRange(p->e_outSpace, outmin, outmax);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -10837,7 +10586,7 @@ double *in			/* Vector of input values (native space) */
 	out[0] = p->pcswht.X;
 	out[1] = p->pcswht.Y;
 	out[2] = p->pcswht.Z;
-	if (p->pcs == icSigLabData)
+	if (p->outSpace == icSigLabData)
 		icmXYZ2Lab(&p->pcswht, out, out);	/* in Lab */
 
 	/* Scale linearized device level to PCS white */
@@ -10866,21 +10615,21 @@ double *in			/* Vector of input values in Native PCS */
 	/* Do absolute conversion */
 	if (p->intent == icAbsoluteColorimetric) {
 
-		if (p->pcs == icSigLabData) 	/* Convert L to Y */
+		if (p->outSpace == icSigLabData) 	/* Convert L to Y */
 			icmLab2XYZ(&p->pcswht, out, out);
 		
 		/* Convert from Relative to Absolute colorometric */
 		icmMulBy3x3(out, p->toAbs, out);
 		
-		if (p->e_pcs == icSigLabData)
+		if (p->e_outSpace == icSigLabData)
 			icmXYZ2Lab(&p->pcswht, out, out);
 
 	} else {
 
 		/* Convert from Native to Effective output space */
-		if (p->pcs == icSigLabData && p->e_pcs == icSigXYZData)
+		if (p->outSpace == icSigLabData && p->e_outSpace == icSigXYZData)
 			icmLab2XYZ(&p->pcswht, out, out);
-		else if (p->pcs == icSigXYZData && p->e_pcs == icSigLabData)
+		else if (p->outSpace == icSigXYZData && p->e_outSpace == icSigLabData)
 			icmXYZ2Lab(&p->pcswht, out, out);
 	}
 
@@ -10922,7 +10671,7 @@ double *in			/* Vector of input values in Effective PCS */
 	}
 
 	/* Force to monochrome locus in correct space */
-	if (p->e_pcs == icSigLabData) {
+	if (p->e_inSpace == icSigLabData) {
 		double wp[3];
 
 		if (p->intent == icAbsoluteColorimetric) {
@@ -10951,21 +10700,21 @@ double *in			/* Vector of input values in Effective PCS */
 	/* Do absolute conversion to */
 	if (p->intent == icAbsoluteColorimetric) {
 
-		if (p->e_pcs == icSigLabData)
+		if (p->e_inSpace == icSigLabData)
 			icmLab2XYZ(&p->pcswht, out, out);
 
 		icmMulBy3x3(out, p->fromAbs, out);
 
 		/* Convert from Effective to Native input space */
-		if (p->pcs == icSigLabData)
+		if (p->inSpace == icSigLabData)
 			icmXYZ2Lab(&p->pcswht, out, out);
 
 	} else {
 
 		/* Convert from Effective to Native input space */
-		if (p->e_pcs == icSigLabData && p->pcs == icSigXYZData)
+		if (p->e_inSpace == icSigLabData && p->inSpace == icSigXYZData)
 			icmLab2XYZ(&p->pcswht, out, out);
-		else if (p->e_pcs == icSigXYZData && p->pcs == icSigLabData)
+		else if (p->e_inSpace == icSigXYZData && p->inSpace == icSigLabData)
 			icmXYZ2Lab(&p->pcswht, out, out);
 	}
 
@@ -10979,17 +10728,17 @@ icmLuMono *p,		/* This */
 double *out,		/* Output value */
 double *in			/* Vector of input values (native space) */
 ) {
-	int rv = 0;
+	int i, rv = 0;
 	double pcsw[3];
 
 	pcsw[0] = p->pcswht.X;
 	pcsw[1] = p->pcswht.Y;
 	pcsw[2] = p->pcswht.Z;
-	if (p->pcs == icSigLabData)
+	if (p->inSpace == icSigLabData)
 		icmXYZ2Lab(&p->pcswht, pcsw, pcsw);	/* in Lab (should be 100.0!) */
 
 	/* Divide linearized device level into PCS white luminence */
-	if (p->pcs == icSigLabData)
+	if (p->inSpace == icSigLabData)
 		out[0] = in[0]/pcsw[0];
 	else
 		out[0] = in[1]/pcsw[1];
@@ -11005,7 +10754,7 @@ double *out,		/* Output value */
 double *in			/* Input value */
 ) {
 	icc *icp = p->icp;
-	int rv = 0;
+	int i, rv = 0;
 
 	/* Convert to device value through curve */
 	if ((rv = p->grayCurve->lookup_bwd(p->grayCurve,&out[0],&in[0])) > 1) {
@@ -11058,6 +10807,7 @@ new_icmLuMono(
 	int dir								/* 0 = fwd, 1 = bwd */
 ) {
 	icmLuMono *p;
+	icmXYZArray *redColrnt, *greenColrnt, *blueColrnt;
 
 	if ((p = (icmLuMono *) icp->al->calloc(icp->al,1,sizeof(icmLuMono))) == NULL)
 		return NULL;
@@ -11065,7 +10815,6 @@ new_icmLuMono(
 	p->del      = icmLuMono_delete;
 	p->lutspaces= icmLutSpaces;
 	p->spaces   = icmLuSpaces;
-	p->get_ranges = icmLu_get_ranges;
 	p->wh_bk_points = icmLuWh_bk_points;
 	p->fwd_lookup = icmLuMonoFwd_lookup;
 	p->fwd_curve  = icmLuMonoFwd_curve;
@@ -11219,8 +10968,8 @@ double *in			/* Vector of input values */
 		icmMulBy3x3(out, p->toAbs, out);
 	}
 
-	/* If e_pcs is Lab, then convert XYZ to Lab */
-	if (p->e_pcs == icSigLabData)
+	/* If e_outSpace is Lab (==e_PCS), then convert XYZ to Lab */
+	if (p->e_outSpace == icSigLabData)
 		icmXYZ2Lab(&p->pcswht, out, out);
 
 	return rv;
@@ -11258,8 +11007,8 @@ double *in			/* Vector of input values */
 			out[i] = in[i];
 	}
 
-	/* If e_pcs is Lab, then convert Lab to XYZ */
-	if (p->e_pcs == icSigLabData)
+	/* If e_inSpace is Lab (==PCS), then convert Lab to XYZ */
+	if (p->e_inSpace == icSigLabData)
 		icmLab2XYZ(&p->pcswht, out, out);
 
 	/* If required, convert from Absolute to Relative colorometric */
@@ -11360,7 +11109,6 @@ new_icmLuMatrix(
 	p->del      = icmLuMatrix_delete;
 	p->lutspaces= icmLutSpaces;
 	p->spaces   = icmLuSpaces;
-	p->get_ranges = icmLu_get_ranges;
 	p->wh_bk_points = icmLuWh_bk_points;
 	p->fwd_lookup = icmLuMatrixFwd_lookup;
 	p->fwd_curve  = icmLuMatrixFwd_curve;
@@ -11477,7 +11225,7 @@ new_icmLuMatrixBwd(
 /* Return 0 on success, 1 if clipping occured, 2 on other error */
 
 /* Components of overall lookup, in order */
-static int icmLuLut_in_abs(icmLuLut *p, double *out, double *in) {
+int icmLuLut_in_abs(icmLuLut *p, double *out, double *in) {
 	icmLut *lut = p->lut;
 	int rv = 0;
 
@@ -11513,7 +11261,7 @@ static int icmLuLut_in_abs(icmLuLut *p, double *out, double *in) {
 }
 
 /* Possible matrix lookup */
-static int icmLuLut_matrix(icmLuLut *p, double *out, double *in) {
+int icmLuLut_matrix(icmLuLut *p, double *out, double *in) {
 	icmLut *lut = p->lut;
 	int rv = 0;
 
@@ -11528,7 +11276,7 @@ static int icmLuLut_matrix(icmLuLut *p, double *out, double *in) {
 }
 
 /* Do input -> input' lookup */
-static int icmLuLut_input(icmLuLut *p, double *out, double *in) {
+int icmLuLut_input(icmLuLut *p, double *out, double *in) {
 	icmLut *lut = p->lut;
 	int rv = 0;
 
@@ -11539,7 +11287,7 @@ static int icmLuLut_input(icmLuLut *p, double *out, double *in) {
 }
 
 /* Do input'->output' lookup */
-static int icmLuLut_clut(icmLuLut *p, double *out, double *in) {
+int icmLuLut_clut(icmLuLut *p, double *out, double *in) {
 	icmLut *lut = p->lut;
 	double temp[MAX_CHAN];
 	int rv = 0;
@@ -11551,7 +11299,7 @@ static int icmLuLut_clut(icmLuLut *p, double *out, double *in) {
 }
 
 /* Do output'->output lookup */
-static int icmLuLut_output(icmLuLut *p, double *out, double *in) {
+int icmLuLut_output(icmLuLut *p, double *out, double *in) {
 	icmLut *lut = p->lut;
 	int rv = 0;
 
@@ -11561,7 +11309,7 @@ static int icmLuLut_output(icmLuLut *p, double *out, double *in) {
 	return rv;
 }
 
-static int icmLuLut_out_abs(icmLuLut *p, double *out, double *in) {
+int icmLuLut_out_abs(icmLuLut *p, double *out, double *in) {
 	icmLut *lut = p->lut;
 	int rv = 0;
 
@@ -11603,7 +11351,7 @@ icmLuBase *pp,		/* This */
 double *out,		/* Vector of output values */
 double *in			/* Vector of input values */
 ) {
-	int rv = 0;
+	int i, rv = 0;
 	icmLuLut *p = (icmLuLut *)pp;
 	icmLut *lut = p->lut;
 	double temp[MAX_CHAN];
@@ -11649,7 +11397,7 @@ double *in			/* Vector of input values */
 /* Some components of inverse lookup, in order */
 /* ~~ should these be in icmLut (like all the fwd transforms)? */
 
-static int icmLuLut_inv_out_abs(icmLuLut *p, double *out, double *in) {
+int icmLuLut_inv_out_abs(icmLuLut *p, double *out, double *in) {
 	icmLut *lut = p->lut;
 	int rv = 0;
 
@@ -11686,7 +11434,7 @@ static int icmLuLut_inv_out_abs(icmLuLut *p, double *out, double *in) {
 }
 
 /* Do output->output' inverse lookup */
-static int icmLuLut_inv_output(icmLuLut *p, double *out, double *in) {
+int icmLuLut_inv_output(icmLuLut *p, double *out, double *in) {
 	icc *icp = p->icp;
 	icmLut *lut = p->lut;
 	int rv = 0;
@@ -11709,7 +11457,7 @@ static int icmLuLut_inv_output(icmLuLut *p, double *out, double *in) {
 /* This is non-trivial ! */
 
 /* Do input' -> input inverse lookup */
-static int icmLuLut_inv_input(icmLuLut *p, double *out, double *in) {
+int icmLuLut_inv_input(icmLuLut *p, double *out, double *in) {
 	icc *icp = p->icp;
 	icmLut *lut = p->lut;
 	int rv = 0;
@@ -11729,7 +11477,7 @@ static int icmLuLut_inv_input(icmLuLut *p, double *out, double *in) {
 }
 
 /* Possible inverse matrix lookup */
-static int icmLuLut_inv_matrix(icmLuLut *p, double *out, double *in) {
+int icmLuLut_inv_matrix(icmLuLut *p, double *out, double *in) {
 	icc *icp = p->icp;
 	icmLut *lut = p->lut;
 	int rv = 0;
@@ -11757,7 +11505,8 @@ static int icmLuLut_inv_matrix(icmLuLut *p, double *out, double *in) {
 	return rv;
 }
 
-static int icmLuLut_inv_in_abs(icmLuLut *p, double *out, double *in) {
+int icmLuLut_inv_in_abs(icmLuLut *p, double *out, double *in) {
+	icmHeader *header = p->icp->header;
 	icmLut *lut = p->lut;
 	int rv = 0;
 
@@ -11855,27 +11604,14 @@ icmLuLut_get_lutranges (
 	}
 }
 
-/* Get the effective (externally visible) ranges for the LuLut */
-/* Arguments may be NULL */
+/* Get the effective ranges for the LuLut */
 static void
 icmLuLut_get_ranges (
-	struct _icmLuBase *pp,
+	struct _icmLuLut *p,
 	double *inmin, double *inmax,		/* Return maximum range of inspace values */
 	double *outmin, double *outmax		/* Return maximum range of outspace values */
 ) {
-	icmLuLut *p = (icmLuLut *)pp;
-	double tinmin[MAX_CHAN], tinmax[MAX_CHAN], toutmin[MAX_CHAN], toutmax[MAX_CHAN];
 	int i;
-
-	/* fudge NULL arguments so that they don't bomb */
-	if (inmin == NULL)
-		inmin = tinmin;
-	if (inmax == NULL)
-		inmax = tinmax;
-	if (outmin == NULL)
-		outmin = toutmin;
-	if (outmax == NULL)
-		outmax = toutmax;
 
 	for (i = 0; i < p->lut->inputChan; i++) {
 		inmin[i] = 0.0;	/* Normalized range of input space values */
@@ -12071,7 +11807,7 @@ new_icmLuLut(
 
 	/* Determine appropriate clut lookup algorithm */
 	{
-		int use_sx;				/* -1 = undecided, 0 = N-linear, 1 = Simplex lookup */
+		int use_sx = -1;			/* -1 = undecided, 0 = N-linear, 1 = Simplex lookup */
 		icColorSpaceSignature ins, outs;	/* In and out Lut color spaces */
 		int inn, outn;		/* in and out number of Lut components */
 
@@ -12092,7 +11828,7 @@ new_icmLuLut(
 				use_sx = 1;		/* Simplex interpolation is appropriate */
 				break;
 
-			/* A single channel carries the luminence information */
+			/* A single chanel carries the luminence information */
 			case icSigLabData:
 			case icSigLuvData:
 			case icSigYCbCrData:
@@ -12102,9 +11838,6 @@ new_icmLuLut(
 			case icSigHsvData:
 				use_sx = 0;		/* N-linear interpolation is appropriate */
 				break;
-			default:
-				use_sx = -1;		/* undecided */
-			    	break;
 		}
 
 		/* If we couldn't figure it out from the input space, */
@@ -12122,10 +11855,10 @@ new_icmLuLut(
 				case icSigCmykData:
 				case icSigCmyData:
 				case icSigMch6Data:
-					lc = -1;		/* Average all channels */
+					lc = -1;		/* Average all chanels */
 					break;
 
-				/* A single channel carries the luminence information */
+				/* A single chanel carries the luminence information */
 				case icSigLabData:
 				case icSigLuvData:
 				case icSigYCbCrData:
@@ -12156,7 +11889,7 @@ new_icmLuLut(
 				int n;
 
 				/* Determine input space location of min and max of */
-				/* given output channel (chan = -1 means average of all) */
+				/* given output chanel (chan = -1 means average of all) */
 				p->lut->min_max(p->lut, tout1, tout2, lc);
 				
 				/* Convert to vector and then calculate normalized */
@@ -12198,7 +11931,7 @@ new_icmLuLut(
 
 /* Return an appropriate lookup object */
 /* Return NULL on error, and detailed error in icc */
-static icmLuBase* icc_get_luobj (
+icmLuBase* icc_get_luobj (
 	icc *p,						/* ICC */
 	icmLookupFunc func,			/* Conversion functionality */
 	icRenderingIntent intent,	/* Rendering intent, including icmAbsoluteColorimetricXYZ */
@@ -12667,7 +12400,7 @@ static icmLuBase* icc_get_luobj (
 			/* Expect Name -> Device, Optional PCS */
 			/* and a reverse lookup would be useful */
 			/* (ie. PCS or Device coords to closest named color) */
-			/* ~~ to be implemented ~~ */
+			/* ~~ to be implimented ~~ */
 
 			/* ~~ Absolute intent is valid for processing of */
 			/* PCS from named Colors. Also allow for e_pcs */

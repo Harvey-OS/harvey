@@ -10,8 +10,6 @@
 #include "alpha.h"
 #elif Tarm
 #include "arm.h"
-#elif Tamd64
-#include "amd64.h"
 #else
 	I do not know about your architecture.
 	Update switch in arch.h with new architecture.

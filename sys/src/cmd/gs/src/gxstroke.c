@@ -1,20 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gxstroke.c,v 1.18 2005/08/17 14:40:11 igor Exp $ */
+/*$Id: gxstroke.c,v 1.2 2000/09/19 19:00:40 lpd Exp $ */
 /* Path stroking procedures for Ghostscript library */
 #include "math_.h"
 #include "gx.h"
@@ -33,7 +35,6 @@
 #include "gzpath.h"
 #include "gzcpath.h"
 #include "gxpaint.h"
-#include "vdtrace.h"
 
 /*
  * We don't really know whether it's a good idea to take fill adjustment
@@ -85,7 +86,7 @@
  * check and covers many common cases.  Clients that care always have the
  * option of using strokepath to get an exact result.
  */
-private float join_expansion_factor(const gs_imager_state *, gs_line_join);
+private float join_expansion_factor(P2(const gs_imager_state *, gs_line_join));
 int
 gx_stroke_path_expansion(const gs_imager_state * pis, const gx_path * ppath,
 			 gs_fixed_point * ppt)
@@ -209,19 +210,18 @@ typedef partial_line *pl_ptr;
   ((pp)->x = (p).x, (pp)->y = (p).y)
 
 /* Other forward declarations */
-private bool width_is_thin(pl_ptr);
-private void adjust_stroke(pl_ptr, const gs_imager_state *, bool);
-private int line_join_points(const gx_line_params * pgs_lp,
-			     pl_ptr plp, pl_ptr nplp,
-			     gs_fixed_point * join_points,
-			     const gs_matrix * pmat, gs_line_join join,
-			     bool reflected);
-private void compute_caps(pl_ptr);
-private int add_points(gx_path *, const gs_fixed_point *,
-		       int, bool);
-private int add_round_cap(gx_path *, const_ep_ptr);
-private int cap_points(gs_line_cap, const_ep_ptr,
-		       gs_fixed_point * /*[3] */ );
+private bool width_is_thin(P1(pl_ptr));
+private void adjust_stroke(P3(pl_ptr, const gs_imager_state *, bool));
+private int line_join_points(P6(const gx_line_params * pgs_lp,
+				pl_ptr plp, pl_ptr nplp,
+				gs_fixed_point * join_points,
+				const gs_matrix * pmat, gs_line_join join));
+private void compute_caps(P1(pl_ptr));
+private int add_points(P4(gx_path *, const gs_fixed_point *,
+			  int, bool));
+private int add_round_cap(P2(gx_path *, const_ep_ptr));
+private int cap_points(P3(gs_line_cap, const_ep_ptr,
+			  gs_fixed_point * /*[3] */ ));
 
 /* Define the default implementation of the device stroke_path procedure. */
 int
@@ -241,7 +241,7 @@ gx_default_stroke_path(gx_device * dev, const gs_imager_state * pis,
   if(to_path==&stroke_path_body && !gx_path_is_void(&stroke_path_body)) {\
     fill_params.adjust.x = STROKE_ADJUSTMENT(thin, pis, x);\
     fill_params.adjust.y = STROKE_ADJUSTMENT(thin, pis, y);\
-    code = gx_fill_path_only(to_path, dev, pis, &fill_params, pdevc, pcpath);\
+    code = gx_fill_path_only(to_path, dev, pis, &fill_params, pdevc, NULL);\
     gx_path_free(&stroke_path_body, "fill_stroke_path");\
     if ( code < 0 ) goto exit;\
     gx_path_init_local(&stroke_path_body, ppath->memory);\
@@ -255,10 +255,10 @@ gx_default_stroke_path(gx_device * dev, const gs_imager_state * pis,
  * with an appropriate cap.
  */
 #define stroke_line_proc(proc)\
-  int proc(gx_path *, int, pl_ptr, pl_ptr, const gx_device_color *,\
-	   gx_device *, const gs_imager_state *,\
-	   const gx_stroke_params *, const gs_fixed_rect *, int,\
-	   gs_line_join, bool)
+  int proc(P11(gx_path *, int, pl_ptr, pl_ptr, const gx_device_color *,\
+	       gx_device *, const gs_imager_state *,\
+	       const gx_stroke_params *, const gs_fixed_rect *, int,\
+	       gs_line_join))
 typedef stroke_line_proc((*stroke_line_proc_t));
 
 private stroke_line_proc(stroke_add);
@@ -279,8 +279,8 @@ typedef enum {
  * the clipping path, as for to_path == NULL.  This is almost never
  * what is wanted.
  */
-private int
-gx_stroke_path_only_aux(gx_path * ppath, gx_path * to_path, gx_device * pdev,
+int
+gx_stroke_path_only(gx_path * ppath, gx_path * to_path, gx_device * pdev,
 	       const gs_imager_state * pis, const gx_stroke_params * params,
 		 const gx_device_color * pdevc, const gx_clip_path * pcpath)
 {
@@ -337,20 +337,12 @@ gx_stroke_path_only_aux(gx_path * ppath, gx_path * to_path, gx_device * pdev,
 #endif
     gs_line_join curve_join =
 	(pgs_lp->curve_join >= 0 ? (gs_line_join)pgs_lp->curve_join :
-	 pgs_lp->join == gs_join_none || pgs_lp->join == gs_join_round ? 
-	    gs_join_bevel : pgs_lp->join);
+	 pgs_lp->join == gs_join_none ? gs_join_bevel : pgs_lp->join);
     float line_width = pgs_lp->half_width;	/* (*half* the line width) */
     bool always_thin;
-    double line_width_and_scale;
-    double device_line_width_scale = 0; /* Quiet compiler. */
+    double line_width_and_scale, device_line_width_scale;
     double device_dot_length = pgs_lp->dot_length * fixed_1;
     const subpath *psub;
-    gs_matrix initial_matrix;
-    bool initial_matrix_reflected;
-
-    (*dev_proc(pdev, get_initial_matrix)) (pdev, &initial_matrix);
-    initial_matrix_reflected = initial_matrix.xy * initial_matrix.yx > 
-			       initial_matrix.xx * initial_matrix.yy;
 
 #ifdef DEBUG
     if (gs_debug_c('o')) {
@@ -566,18 +558,14 @@ gx_stroke_path_only_aux(gx_path * ppath, gx_path * to_path, gx_device * pdev,
 		}
 		/*
 		 * The entire subpath is degenerate, but it includes
-		 * more than one point.  If the dot length is non-zero,
-		 * draw the caps, otherwise do nothing.
+		 * more than one point.  If we are using round caps or
+		 * the dot length is non-zero, draw the caps, otherwise
+		 * do nothing.
 		 */
-		if (pgs_lp->dot_length != 0)
+		if (!(pgs_lp->cap == gs_cap_round ||
+		      pgs_lp->dot_length != 0)
+		    )
 		    break;
-		if (pgs_lp->cap != gs_cap_round) {
-		    /* From PLRM, stroke operator :
-		       If a subpath is degenerate (consists of a single-point closed path 
-		       or of two or more points at the same coordinates), 
-		       stroke paints it only if round line caps have been specified */
-		    break;
-		}
 		/*
 		 * Orient the dot according to the previous segment if
 		 * any, or else the next segment if any, or else
@@ -642,18 +630,16 @@ gx_stroke_path_only_aux(gx_path * ppath, gx_path * to_path, gx_device * pdev,
 		if (uniform != 0) {
 		    /* We can save a lot of work in this case. */
 		    /* We know orient != orient_other. */
-		    double dpx = udx, dpy = udy;
-		    double wl = device_line_width_scale /
+		    float dpx = udx, dpy = udy;
+		    float wl = device_line_width_scale /
 		    hypot(dpx, dpy);
 
 		    pl.e.cdelta.x = (fixed) (dpx * wl);
 		    pl.e.cdelta.y = (fixed) (dpy * wl);
 		    /* The width is the cap delta rotated by */
 		    /* 90 degrees. */
-		    if (initial_matrix_reflected)
-			pl.width.x = pl.e.cdelta.y, pl.width.y = -pl.e.cdelta.x;
-		    else
-			pl.width.x = -pl.e.cdelta.y, pl.width.y = pl.e.cdelta.x;
+		    pl.width.x = -pl.e.cdelta.y,
+			pl.width.y = pl.e.cdelta.x;
 		    pl.thin = false;	/* if not always_thin, */
 		    /* then never thin. */
 
@@ -685,7 +671,7 @@ gx_stroke_path_only_aux(gx_path * ppath, gx_path * to_path, gx_device * pdev,
 		    if (orient != orient_portrait)
 			pl.e.cdelta.x += (fixed) (dpt.y * yx),
 			    pl.e.cdelta.y += (fixed) (dpt.x * xy);
-		    if (!reflected ^ initial_matrix_reflected)
+		    if (!reflected)
 			dpt.x = -dpt.x, dpt.y = -dpt.y;
 		    pl.width.x = (fixed) (dpt.y * xx),
 			pl.width.y = -(fixed) (dpt.x * yy);
@@ -717,7 +703,7 @@ gx_stroke_path_only_aux(gx_path * ppath, gx_path * to_path, gx_device * pdev,
 		}
 		code = (*line_proc) (to_path, first, &pl_prev, lptr,
 				     pdevc, dev, pis, params, &cbox,
-				     uniform, join, initial_matrix_reflected);
+				     uniform, join);
 		if (code < 0)
 		    goto exit;
 		FILL_STROKE_PATH(always_thin);
@@ -738,8 +724,7 @@ gx_stroke_path_only_aux(gx_path * ppath, gx_path * to_path, gx_device * pdev,
 		 (pl_ptr) 0 : (pl_ptr) & pl_first);
 
 	    code = (*line_proc) (to_path, index - 1, &pl_prev, lptr, pdevc,
-				 dev, pis, params, &cbox, uniform, join, 
-				 initial_matrix_reflected);
+				 dev, pis, params, &cbox, uniform, join);
 	    if (code < 0)
 		goto exit;
 	    FILL_STROKE_PATH(always_thin);
@@ -754,28 +739,6 @@ gx_stroke_path_only_aux(gx_path * ppath, gx_path * to_path, gx_device * pdev,
   exf:
     if (ppath->curve_count)
 	gx_path_free(&fpath, "gx_stroke_path exit(flattened path)");
-    return code;
-}
-
-int
-gx_stroke_path_only(gx_path * ppath, gx_path * to_path, gx_device * pdev,
-	       const gs_imager_state * pis, const gx_stroke_params * params,
-		 const gx_device_color * pdevc, const gx_clip_path * pcpath)
-{
-    int code;
-
-    if (vd_allowed('S')) {
-	vd_get_dc('S');
-	if (vd_enabled) {
-	    vd_set_shift(0, 100);
-	    vd_set_scale(0.03);
-	    vd_set_origin(0, 0);
-	    vd_erase(RGB(192, 192, 192));
-	}
-    }
-    code = gx_stroke_path_only_aux(ppath, to_path, pdev, pis, params, pdevc, pcpath);
-    if (vd_allowed('S'))
-	vd_release_dc;
     return code;
 }
 
@@ -851,10 +814,7 @@ adjust_stroke(pl_ptr plp, const gs_imager_state * pis, bool thin)
     /* Note that just rounding the larger component */
     /* may not produce the correct result. */
     w = *pw;
-    if (w > 0)
-	w2 = fixed_rounded(w << 1);	/* full line width */
-    else
-	w2 = -fixed_rounded(-w << 1);	/* full line width */
+    w2 = fixed_rounded(w << 1);	/* full line width */
     if (w2 == 0 && *pw != 0) {
 	/* Make sure thin lines don't disappear. */
 	w2 = (*pw < 0 ? -fixed_1 + adj2 : fixed_1 - adj2);
@@ -890,11 +850,11 @@ line_intersect(
 		  p_ptr pi)
 {				/* return intersection here */
     /* We don't have to do any scaling, the factors all work out right. */
-    double u1 = pd1->x, v1 = pd1->y;
-    double u2 = pd2->x, v2 = pd2->y;
+    float u1 = pd1->x, v1 = pd1->y;
+    float u2 = pd2->x, v2 = pd2->y;
     double denom = u1 * v2 - u2 * v1;
-    double xdiff = pp2->x - pp1->x;
-    double ydiff = pp2->y - pp1->y;
+    float xdiff = pp2->x - pp1->x;
+    float ydiff = pp2->y - pp1->y;
     double f1;
     double max_result = any_abs(denom) * (double)max_fixed;
 
@@ -949,8 +909,7 @@ private int
 stroke_fill(gx_path * ppath, int first, register pl_ptr plp, pl_ptr nplp,
 	    const gx_device_color * pdevc, gx_device * dev,
 	    const gs_imager_state * pis, const gx_stroke_params * params,
-	    const gs_fixed_rect * pbbox, int uniform, gs_line_join join,
-	    bool reflected)
+	    const gs_fixed_rect * pbbox, int uniform, gs_line_join join)
 {
     const fixed lix = plp->o.p.x;
     const fixed liy = plp->o.p.y;
@@ -986,7 +945,7 @@ stroke_fill(gx_path * ppath, int first, register pl_ptr plp, pl_ptr nplp,
 	    else
 		code = line_join_points(pgs_lp, plp, nplp, points + npoints,
 					(uniform ? (gs_matrix *) 0 :
-					 &ctm_only(pis)), join, reflected);
+					 &ctm_only(pis)), join);
 	    if (code < 0)
 		goto general;
 	    /* Make sure the parallelogram fill won't overflow. */
@@ -1041,7 +1000,7 @@ stroke_fill(gx_path * ppath, int first, register pl_ptr plp, pl_ptr nplp,
     /* General case: construct a path for the fill algorithm. */
  general:
     return stroke_add(ppath, first, plp, nplp, pdevc, dev, pis, params,
-		      pbbox, uniform, join, reflected);
+		      pbbox, uniform, join);
 }
 
 /* Add a segment to the path.  This handles all the complex cases. */
@@ -1049,8 +1008,7 @@ private int
 stroke_add(gx_path * ppath, int first, pl_ptr plp, pl_ptr nplp,
 	   const gx_device_color * pdevc, gx_device * dev,
 	   const gs_imager_state * pis, const gx_stroke_params * params,
-	   const gs_fixed_rect * ignore_pbbox, int uniform, gs_line_join join,
-	   bool reflected)
+	   const gs_fixed_rect * ignore_pbbox, int uniform, gs_line_join join)
 {
     const gx_line_params *pgs_lp = gs_currentlineparams_inline(pis);
     gs_fixed_point points[8];
@@ -1067,7 +1025,6 @@ stroke_add(gx_path * ppath, int first, pl_ptr plp, pl_ptr nplp,
     }
     /* Create an initial cap if desired. */
     if (first == 0 && pgs_lp->cap == gs_cap_round) {
-	vd_moveto(plp->o.co.x, plp->o.co.y);
 	if ((code = gx_path_add_point(ppath, plp->o.co.x, plp->o.co.y)) < 0 ||
 	    (code = add_round_cap(ppath, &plp->o)) < 0
 	    )
@@ -1082,7 +1039,6 @@ stroke_add(gx_path * ppath, int first, pl_ptr plp, pl_ptr nplp,
 	/* Add a final cap. */
 	if (pgs_lp->cap == gs_cap_round) {
 	    ASSIGN_POINT(&points[npoints], plp->e.co);
-	    vd_lineto(points[npoints].x, points[npoints].y);
 	    ++npoints;
 	    if ((code = add_points(ppath, points, npoints, moveto_first)) < 0)
 		return code;
@@ -1092,7 +1048,6 @@ stroke_add(gx_path * ppath, int first, pl_ptr plp, pl_ptr nplp,
 	code = cap_points(pgs_lp->cap, &plp->e, points + npoints);
     } else if (join == gs_join_round) {
 	ASSIGN_POINT(&points[npoints], plp->e.co);
-	vd_lineto(points[npoints].x, points[npoints].y);
 	++npoints;
 	if ((code = add_points(ppath, points, npoints, moveto_first)) < 0)
 	    return code;
@@ -1103,14 +1058,13 @@ stroke_add(gx_path * ppath, int first, pl_ptr plp, pl_ptr nplp,
     else			/* non-round join */
 	code = line_join_points(pgs_lp, plp, nplp, points + npoints,
 				(uniform ? (gs_matrix *) 0 : &ctm_only(pis)),
-				join, reflected);
+				join);
     if (code < 0)
 	return code;
     code = add_points(ppath, points, npoints + code, moveto_first);
   done:
     if (code < 0)
 	return code;
-    vd_closepath;
     return gx_path_close_subpath(ppath);
 }
 
@@ -1119,21 +1073,14 @@ private int
 add_points(gx_path * ppath, const gs_fixed_point * points, int npoints,
 	   bool moveto_first)
 {
-    int code;
-
-    vd_setcolor(0);
-    vd_setlinewidth(0);
     if (moveto_first) {
-	code = gx_path_add_point(ppath, points[0].x, points[0].y);
-	vd_moveto(points[0].x, points[0].y);
+	int code = gx_path_add_point(ppath, points[0].x, points[0].y);
+
 	if (code < 0)
 	    return code;
-	vd_lineto_multi(points + 1, npoints - 1);
 	return gx_path_add_lines(ppath, points + 1, npoints - 1);
-    } else {
-	vd_lineto_multi(points, npoints);
+    } else
 	return gx_path_add_lines(ppath, points, npoints);
-    }
 }
 
 /* ---------------- Join computation ---------------- */
@@ -1145,7 +1092,7 @@ add_points(gx_path * ppath, const gs_fixed_point * points, int npoints,
 private int
 line_join_points(const gx_line_params * pgs_lp, pl_ptr plp, pl_ptr nplp,
 		 gs_fixed_point * join_points, const gs_matrix * pmat,
-		 gs_line_join join, bool reflected)
+		 gs_line_join join)
 {
 #define jp1 join_points[0]
 #define np1 join_points[1]
@@ -1182,10 +1129,7 @@ line_join_points(const gx_line_params * pgs_lp, pl_ptr plp, pl_ptr nplp,
     bool ccw =
 	(double)(plp->width.x) /* x1 */ * (nplp->width.y) /* y2 */ >
 	(double)(nplp->width.x) /* x2 */ * (plp->width.y) /* y1 */;
-    bool ccw0 = ccw;
     p_ptr outp, np;
-
-    ccw ^= reflected;
 
     /* Initialize for a bevel join. */
     ASSIGN_POINT(&jp1, plp->e.co);
@@ -1253,18 +1197,13 @@ line_join_points(const gx_line_params * pgs_lp, pl_ptr plp, pl_ptr nplp,
 	double u1 = plp->e.cdelta.y, v1 = plp->e.cdelta.x;
 	double u2 = nplp->o.cdelta.y, v2 = nplp->o.cdelta.x;
 	double num, denom;
-	int code;
 
 	if (pmat) {
 	    gs_point pt;
 
-	    code = gs_distance_transform_inverse(v1, u1, pmat, &pt);
-	    if (code < 0)
-		return code;
+	    gs_distance_transform_inverse(v1, u1, pmat, &pt);
 	    v1 = pt.x, u1 = pt.y;
-	    code = gs_distance_transform_inverse(v2, u2, pmat, &pt);
-	    if (code < 0)
-		return code;
+	    gs_distance_transform_inverse(v2, u2, pmat, &pt);
 	    v2 = pt.x, u2 = pt.y;
 	    /*
 	     * We need to recompute ccw according to the
@@ -1275,7 +1214,7 @@ line_join_points(const gx_line_params * pgs_lp, pl_ptr plp, pl_ptr nplp,
 	     * from the intuitive one (for historical reasons),
 	     * we actually have to do the test backwards.
 	     */
-	    ccw0 = v1 * u2 < v2 * u1;
+	    ccw = v1 * u2 < v2 * u1;
 #ifdef DEBUG
 	    {
 		double a1 = atan2(u1, v1), a2 = atan2(u2, v2), dif = a1 - a2;
@@ -1284,7 +1223,7 @@ line_join_points(const gx_line_params * pgs_lp, pl_ptr plp, pl_ptr nplp,
 		    dif += 2 * M_PI;
 		else if (dif >= 2 * M_PI)
 		    dif -= 2 * M_PI;
-		if (dif != 0 && (dif < M_PI) != ccw0)
+		if (dif != 0 && (dif < M_PI) != ccw)
 		    lprintf8("ccw wrong: tan(a1=%g)=%g/%g, tan(a2=%g)=%g,%g, dif=%g, ccw=%d\n",
 			     a1, u1, v1, a2, u2, v2, dif, ccw);
 	    }
@@ -1297,7 +1236,7 @@ line_join_points(const gx_line_params * pgs_lp, pl_ptr plp, pl_ptr nplp,
 	 * depending on the orientations of the lines.
 	 * Fortunately we know the relative orientations already.
 	 */
-	if (!ccw0)		/* have plp - nplp, want vice versa */
+	if (!ccw)		/* have plp - nplp, want vice versa */
 	    num = -num;
 #ifdef DEBUG
 	if (gs_debug_c('O')) {
@@ -1406,7 +1345,6 @@ add_round_cap(gx_path * ppath, const_ep_ptr endp)
 	(code = gx_path_add_line(ppath, xe, ye)) < 0
 	)
 	return code;
-    vd_lineto(xe, ye);
     return 0;
 }
 

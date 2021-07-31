@@ -1,20 +1,22 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gdevvec.c,v 1.27 2005/08/23 11:26:26 igor Exp $ */
+/*$Id: gdevvec.c,v 1.12.2.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Utilities for "vector" devices */
 #include "math_.h"
 #include "memory_.h"
@@ -74,7 +76,7 @@ gdev_vector_dopath(gx_device_vector *vdev, const gx_path * ppath,
      * which requires (untransformed) device coordinates.
      */
     if (rtype != prt_none &&
-	(!(type & gx_path_type_stroke) || rtype == prt_closed) &&
+	!((type & gx_path_type_stroke) && rtype == prt_open) &&
 	(pmat == 0 || is_xxyy(pmat) || is_xyyx(pmat)) &&
 	(state.scale_mat.xx == 1.0 && state.scale_mat.yy == 1.0 &&
 	 is_xxyy(&state.scale_mat) &&
@@ -252,10 +254,10 @@ gdev_vector_reset(gx_device_vector * vdev)
     {gs_imager_state_initial(1)};
 
     vdev->state = state_initial;
-    gx_hld_saved_color_init(&vdev->saved_fill_color);
-    gx_hld_saved_color_init(&vdev->saved_stroke_color);
+    color_unset(&vdev->fill_color);
+    color_unset(&vdev->stroke_color);
     vdev->clip_path_id =
-	vdev->no_clip_path_id = gs_next_ids(vdev->memory, 1);
+	vdev->no_clip_path_id = gs_next_ids(1);
 }
 
 /* Open the output file and stream. */
@@ -316,8 +318,7 @@ gdev_vector_open_file_options(gx_device_vector * vdev, uint strmbuf_size,
      */
     vdev->strm->procs.close = vdev->strm->procs.flush;
     if (vdev->bbox_device) {
-	gx_device_bbox_init(vdev->bbox_device, NULL, vdev->v_memory);
-        rc_increment(vdev->bbox_device);
+	gx_device_bbox_init(vdev->bbox_device, NULL);
 	gx_device_set_resolution((gx_device *) vdev->bbox_device,
 				 vdev->HWResolution[0],
 				 vdev->HWResolution[1]);
@@ -343,6 +344,19 @@ gdev_vector_stream(gx_device_vector * vdev)
     return vdev->strm;
 }
 
+/* Compare two drawing colors. */
+/* Right now we don't attempt to handle non-pure colors. */
+private bool
+drawing_color_eq(const gx_drawing_color * pdc1, const gx_drawing_color * pdc2)
+{
+    return (gx_dc_is_pure(pdc1) ?
+	    gx_dc_is_pure(pdc2) &&
+	    gx_dc_pure_color(pdc1) == gx_dc_pure_color(pdc2) :
+	    gx_dc_is_null(pdc1) ?
+	    gx_dc_is_null(pdc2) :
+	    false);
+}
+
 /* Update the logical operation. */
 int
 gdev_vector_update_log_op(gx_device_vector * vdev, gs_logical_operation_t lop)
@@ -359,47 +373,27 @@ gdev_vector_update_log_op(gx_device_vector * vdev, gs_logical_operation_t lop)
     return 0;
 }
 
-/* Update color (fill or stroke). */
-private int
-gdev_vector_update_color(gx_device_vector * vdev,
-			      const gs_imager_state * pis,
-			      const gx_drawing_color * pdcolor,
-			      gx_hl_saved_color *sc,
-			      int (*setcolor) (gx_device_vector * vdev, 
-			                       const gs_imager_state * pis, 
-					       const gx_drawing_color * pdc))
-{
-    gx_hl_saved_color temp;
-    int code;
-    bool hl_color = (*vdev_proc(vdev, can_handle_hl_color)) (vdev, pis, pdcolor);
-    const gs_imager_state *pis_for_hl_color = (hl_color ? pis : NULL);
-    
-    gx_hld_save_color(pis_for_hl_color, pdcolor, &temp);
-    if (gx_hld_saved_color_equal(&temp, sc))
-	return 0;
-    code = (*setcolor) (vdev, pis_for_hl_color, pdcolor);
-    if (code < 0)
-	return code;
-    *sc = temp;
-    return 0;
-}
-
 /* Update the fill color. */
 int
 gdev_vector_update_fill_color(gx_device_vector * vdev,
-			      const gs_imager_state * pis,
 			      const gx_drawing_color * pdcolor)
 {
-    return gdev_vector_update_color(vdev, pis, pdcolor, &vdev->saved_fill_color, 
-                                    vdev_proc(vdev, setfillcolor));
+    if (!drawing_color_eq(pdcolor, &vdev->fill_color)) {
+	int code = (*vdev_proc(vdev, setfillcolor)) (vdev, pdcolor);
+
+	if (code < 0)
+	    return code;
+	vdev->fill_color = *pdcolor;
+    }
+    return 0;
 }
 
 /* Update the state for filling a region. */
 private int
-update_fill(gx_device_vector * vdev, const gs_imager_state * pis, 
-	    const gx_drawing_color * pdcolor, gs_logical_operation_t lop)
+update_fill(gx_device_vector * vdev, const gx_drawing_color * pdcolor,
+	    gs_logical_operation_t lop)
 {
-    int code = gdev_vector_update_fill_color(vdev, pis, pdcolor);
+    int code = gdev_vector_update_fill_color(vdev, pdcolor);
 
     if (code < 0)
 	return code;
@@ -418,7 +412,7 @@ gdev_vector_prepare_fill(gx_device_vector * vdev, const gs_imager_state * pis,
 	    return code;
 	vdev->state.flatness = params->flatness;
     }
-    return update_fill(vdev, pis, pdcolor, pis->log_op);
+    return update_fill(vdev, pdcolor, pis->log_op);
 }
 
 /* Compare two dash patterns. */
@@ -517,11 +511,13 @@ gdev_vector_prepare_stroke(gx_device_vector * vdev,
 	}
     }
     if (pdcolor) {
-	int code = gdev_vector_update_color(vdev, pis, pdcolor, 
-		    &vdev->saved_stroke_color, vdev_proc(vdev, setstrokecolor));
+	if (!drawing_color_eq(pdcolor, &vdev->stroke_color)) {
+	    int code = (*vdev_proc(vdev, setstrokecolor)) (vdev, pdcolor);
 
-	if (code < 0)
-	    return code;
+	    if (code < 0)
+		return code;
+	    vdev->stroke_color = *pdcolor;
+	}
     }
     return 0;
 }
@@ -622,36 +618,28 @@ gdev_vector_dopath_segment(gdev_vector_dopath_state_t *state, int pe_op,
 
     switch (pe_op) {
 	case gs_pe_moveto:
-	    code = gs_point_transform_inverse(fixed2float(vs[0].x),
+	    gs_point_transform_inverse(fixed2float(vs[0].x),
 				       fixed2float(vs[0].y), pmat, &vp[0]);
-	    if (code < 0)
-		return code;
 	    if (state->first)
 		state->start = vp[0], state->first = false;
 	    code = vdev_proc(vdev, moveto)
-		(vdev, 0/*unused*/, 0/*unused*/, vp[0].x, vp[0].y,
+		(vdev, state->prev.x, state->prev.y, vp[0].x, vp[0].y,
 		 state->type);
 	    state->prev = vp[0];
 	    break;
 	case gs_pe_lineto:
-	    code = gs_point_transform_inverse(fixed2float(vs[0].x),
+	    gs_point_transform_inverse(fixed2float(vs[0].x),
 				       fixed2float(vs[0].y), pmat, &vp[0]);
-	    if (code < 0)
-		return code;
 	    code = vdev_proc(vdev, lineto)
 		(vdev, state->prev.x, state->prev.y, vp[0].x, vp[0].y,
 		 state->type);
 	    state->prev = vp[0];
 	    break;
 	case gs_pe_curveto:
-	    code = gs_point_transform_inverse(fixed2float(vs[0].x),
+	    gs_point_transform_inverse(fixed2float(vs[0].x),
 				       fixed2float(vs[0].y), pmat, &vp[0]);
-	    if (code < 0)
-		return code;
-	    code = gs_point_transform_inverse(fixed2float(vs[1].x),
+	    gs_point_transform_inverse(fixed2float(vs[1].x),
 				       fixed2float(vs[1].y), pmat, &vp[1]);
-	    if (code < 0)
-		return code;
 	    gs_point_transform_inverse(fixed2float(vs[2].x),
 				       fixed2float(vs[2].y), pmat, &vp[2]);
 	    code = vdev_proc(vdev, curveto)
@@ -814,8 +802,7 @@ gdev_vector_close_file(gx_device_vector * vdev)
     vdev->file = 0;
     err = ferror(f);
     /* We prevented sclose from closing the file. */
-    if (gx_device_close_output_file((gx_device *)vdev, vdev->fname, f) != 0 
-	|| err != 0)
+    if (fclose(f) != 0 || err != 0)
 	return_error(gs_error_ioerror);
     return 0;
 }
@@ -855,7 +842,7 @@ gdev_vector_begin_image(gx_device_vector * vdev,
 	(code = gdev_vector_update_clip_path(vdev, pcpath)) < 0 ||
 	((pim->ImageMask ||
 	  (pim->CombineWithColor && rop3_uses_T(pis->log_op))) &&
-	 (code = gdev_vector_update_fill_color(vdev, pis, pdcolor)) < 0) ||
+	 (code = gdev_vector_update_fill_color(vdev, pdcolor)) < 0) ||
 	(vdev->bbox_device &&
 	 (code = (*dev_proc(vdev->bbox_device, begin_image))
 	  ((gx_device *) vdev->bbox_device, pis, pim, format, prect,
@@ -1007,6 +994,7 @@ gdev_vector_put_params(gx_device * dev, gs_param_list * plist)
 						 vdev->open_options);
 	}
     }
+    gdev_vector_load_cache(vdev);	/* in case color mapping changed */
     return 0;
 }
 
@@ -1021,18 +1009,15 @@ gdev_vector_fill_rectangle(gx_device * dev, int x, int y, int w, int h,
     /* Ignore the initial fill with white. */
     if (!vdev->in_page && color == vdev->white)
 	return 0;
-    /*
-     * The original colorspace and client color are unknown so use
-     * set_nonclient_dev_color instead of color_set_pure.
-     */
-    set_nonclient_dev_color(&dcolor, color);
+    color_set_pure(&dcolor, color);
     {
-	/* Make sure we aren't being clipped. */
-	int code = gdev_vector_update_clip_path(vdev, NULL);
+	int code = update_fill(vdev, &dcolor, rop3_T);
 
 	if (code < 0)
 	    return code;
-	if ((code = update_fill(vdev, NULL, &dcolor, rop3_T)) < 0)
+	/* Make sure we aren't being clipped. */
+	code = gdev_vector_update_clip_path(vdev, NULL);
+	if (code < 0)
 	    return code;
     }
     if (vdev->bbox_device) {
@@ -1115,7 +1100,7 @@ gdev_vector_fill_trapezoid(gx_device * dev, const gs_fixed_edge * left,
 
 #define y0 ybot
 #define y1 ytop
-    int code = update_fill(vdev, NULL, pdevc, lop);
+    int code = update_fill(vdev, pdevc, lop);
     gs_fixed_point points[4];
 
     if (code < 0)
@@ -1155,7 +1140,7 @@ gdev_vector_fill_parallelogram(gx_device * dev,
 		  const gx_device_color * pdevc, gs_logical_operation_t lop)
 {
     fixed pax = px + ax, pay = py + ay;
-    int code = update_fill(vdev, NULL, pdevc, lop);
+    int code = update_fill(vdev, pdevc, lop);
     gs_fixed_point points[4];
 
     if (code < 0)
@@ -1185,7 +1170,7 @@ gdev_vector_fill_triangle(gx_device * dev,
 		 fixed px, fixed py, fixed ax, fixed ay, fixed bx, fixed by,
 		  const gx_device_color * pdevc, gs_logical_operation_t lop)
 {
-    int code = update_fill(vdev, NULL, pdevc, lop);
+    int code = update_fill(vdev, pdevc, lop);
     gs_fixed_point points[3];
 
     if (code < 0)

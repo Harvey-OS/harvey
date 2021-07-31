@@ -104,7 +104,8 @@ inferno_device far_data gs_inferno_device =
  * rgb and color map entries
  */
 private gx_color_index 
-inferno_rgb2cmap(gx_device *dev, gx_color_value rgb[3]) {
+inferno_rgb2cmap(P4(gx_device *dev, gx_color_value r,
+  gx_color_value g, gx_color_value b)) {
 	int shift;
 	inferno_device *idev;
 	ulong red, green, blue;
@@ -112,9 +113,9 @@ inferno_rgb2cmap(gx_device *dev, gx_color_value rgb[3]) {
 	idev = (inferno_device*) dev;
 
 	shift = gx_color_value_bits - Nbits;
-	red = rgb[0] >> shift;
-	green = rgb[1] >> shift;
-	blue = rgb[2] >> shift;
+	red = r >> shift;
+	green = g >> shift;
+	blue = b >> shift;
 
 	/*
 	 * we keep track of what ldepth bitmap this is by watching
@@ -143,8 +144,8 @@ inferno_rgb2cmap(gx_device *dev, gx_color_value rgb[3]) {
 }
 
 private int 
-inferno_cmap2rgb(gx_device *dev, gx_color_index color,
-  gx_color_value rgb[3]) {
+inferno_cmap2rgb(P3(gx_device *dev, gx_color_index color,
+  gx_color_value rgb[3])) {
 	int shift, i;
 	inferno_device *idev;
 
@@ -264,7 +265,7 @@ void init_p9color(void)		/* init at run time since p9color[] is so big */
  * there's not much to do.
  */
 private int
-inferno_open(gx_device *dev)
+inferno_open(P1(gx_device *dev))
 {
 	int code;
 	inferno_device *idev;
@@ -275,6 +276,7 @@ inferno_open(gx_device *dev)
 
 //	printf("inferno_open gs_inferno_device.dither = %d idev->dither = %d\n",
 //		gs_inferno_device.dither, idev->dither);
+	setbuf(stderr, 0);
 	init_p9color();
 
 	return gdev_prn_open(dev);
@@ -286,7 +288,7 @@ inferno_open(gx_device *dev)
  * worry about that).
  */
 private int
-inferno_print_page(gx_device_printer *pdev, FILE *f)
+inferno_print_page(P2(gx_device_printer *pdev, FILE *f))
 {
 	uchar *buf;	/* [8192*3*8/Nbits] BUG: malloc this */
 	uchar *p;
@@ -304,11 +306,12 @@ inferno_print_page(gx_device_printer *pdev, FILE *f)
 	inferno_device *idev;
 	ulong r, g, b;
 
+	setbuf(stderr, 0);
 	gsbpl = gdev_prn_raster(pdev);
-	buf = gs_malloc(pdev->memory, gsbpl, 1, "inferno_print_page");
+	buf = gs_malloc(gsbpl, 1, "inferno_print_page");
 
 	if(buf == nil) {
-		errprintf("out of memory\n");
+		fprintf(stderr, "out of memory\n");
 		return_error(gs_error_Fatal);
 	}
 
@@ -332,7 +335,7 @@ inferno_print_page(gx_device_printer *pdev, FILE *f)
 	bpl = bytesperline(rect, ldepth);
 	w = initwriteimage(f, rect, ldepth);
 	if(w == nil) {
-		errprintf("initwriteimage failed\n");
+		fprintf(stderr, "initwriteimage failed\n");
 		return_error(gs_error_Fatal);
 	}
 
@@ -383,16 +386,16 @@ inferno_print_page(gx_device_printer *pdev, FILE *f)
 		if(xmod)
 			p[(x-1)/ppb[ldepth]] <<= ((ppb[ldepth]-xmod)*bpp[ldepth]);
 		if(writeimageblock(w, p, bpl) == ERROR) {
-			gs_free(pdev->memory, buf, gsbpl, 1, "inferno_print_page");
+			gs_free(buf, gsbpl, 1, "inferno_print_page");
 			return_error(gs_error_Fatal);
 		}
 	}
 	if(writeimageblock(w, nil, 0) == ERROR) {
-		gs_free(pdev->memory, buf, gsbpl, 1, "inferno_print_page");
+		gs_free(buf, gsbpl, 1, "inferno_print_page");
 		return_error(gs_error_Fatal);
 	}
 
-	gs_free(pdev->memory, buf, gsbpl, 1, "inferno_print_page");
+	gs_free(buf, gsbpl, 1, "inferno_print_page");
 	return 0;
 }
 
@@ -481,7 +484,7 @@ addbuf(WImage *w, uchar *buf, int nbuf)
 	int n;
 	if(buf == nil || w->outp+nbuf > w->eout) {
 		if(w->loutp==w->outbuf){	/* can't really happen -- we checked line length above */
-			errprintf("buffer too small for line\n");
+			fprintf(stderr, "buffer too small for line\n");
 			return ERROR;
 		}
 		n=w->loutp-w->outbuf;
@@ -685,7 +688,7 @@ initwriteimage(FILE *f, Rectangle r, int ldepth)
 
 	bpl = bytesperline(r, ldepth);
 	if(r.max.y <= r.min.y || r.max.x <= r.min.x || bpl <= 0) {
-		errprintf("bad rectangle, ldepth");
+		fprintf(stderr, "bad rectangle, ldepth");
 		return nil;
 	}
 
@@ -725,7 +728,7 @@ writeimageblock(WImage *w, uchar *data, int ndata)
 				return ERROR;
 		addbuf(w, nil, 0);
 		if(w->r.min.y != w->origr.max.y) {
-			errprintf("not enough data supplied to writeimage\n");
+			fprintf(stderr, "not enough data supplied to writeimage\n");
 		}
 		free(w);
 		return 0;

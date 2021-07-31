@@ -1,20 +1,22 @@
 /* Copyright (C) 2001 artofcode LLC.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gp_msprn.c,v 1.4 2004/07/07 09:07:35 ghostgum Exp $ */
+/*$Id: gp_msprn.c,v 1.1 2001/03/26 11:28:20 ghostgum Exp $ */
 /* %printer% IODevice */
 
 #include "windows_.h"
@@ -151,7 +153,6 @@ mswin_printer_fopen(gx_io_device * iodev, const char *fname, const char *access,
     HANDLE hprinter;
     int pipeh[2];
     unsigned long tid;
-    HANDLE hthread;
     char pname[gp_file_name_sizeof];
     unsigned long *ptid = &((tid_t *)(iodev->state))->tid;
 
@@ -165,6 +166,9 @@ mswin_printer_fopen(gx_io_device * iodev, const char *fname, const char *access,
 	return_error(gs_error_invalidfileaccess);
     ClosePrinter(hprinter);
 
+    if (iodev->state == NULL)
+	return_error(gs_error_invalidfileaccess);
+
     /* Create a pipe to connect a FILE pointer to a Windows printer. */
     if (_pipe(pipeh, 4096, _O_BINARY) != 0)
 	return_error(gs_fopen_errno_to_code(errno));
@@ -177,23 +181,12 @@ mswin_printer_fopen(gx_io_device * iodev, const char *fname, const char *access,
     }
 
     /* start a thread to read the pipe */
-    tid = _beginthread(&mswin_printer_thread, 32768, pipeh[0]);
-    if (tid == -1) {
+    *ptid = _beginthread(&mswin_printer_thread, 32768, pipeh[0]);
+    if (*ptid == -1) {
 	fclose(*pfile);
 	close(pipeh[0]);
 	return_error(gs_error_invalidfileaccess);
     }
-    /* Duplicate thread handle so we can wait on it
-     * even if original handle is closed by CRTL
-     * when the thread finishes.
-     */
-    if (!DuplicateHandle(GetCurrentProcess(), (HANDLE)tid,
-	GetCurrentProcess(), &hthread, 
-	0, FALSE, DUPLICATE_SAME_ACCESS)) {
-	fclose(*pfile);
-	return_error(gs_error_invalidfileaccess);
-    }
-    *ptid = (unsigned long)hthread;
 
     /* Give the name of the printer to the thread by writing
      * it to the pipe.  This is avoids elaborate thread 
@@ -211,7 +204,7 @@ mswin_printer_fclose(gx_io_device * iodev, FILE * file)
     unsigned long *ptid = &((tid_t *)(iodev->state))->tid;
     HANDLE hthread;
     fclose(file);
-    if (*ptid != -1) {
+    if ((iodev->state != NULL) && (*ptid != -1)) {
 	/* Wait until the print thread finishes before continuing */
 	hthread = (HANDLE)*ptid;
 	WaitForSingleObject(hthread, 60000);

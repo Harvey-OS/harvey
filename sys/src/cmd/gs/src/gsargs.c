@@ -1,20 +1,22 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gsargs.c,v 1.9 2004/08/04 23:33:29 stefan Exp $ */
+/*$Id: gsargs.c,v 1.4 2001/03/13 06:51:39 ghostgum Exp $ */
 /* Command line argument list management */
 #include "ctype_.h"
 #include "stdio_.h"
@@ -22,12 +24,12 @@
 #include "gsexit.h"
 #include "gsmemory.h"
 #include "gsargs.h"
-#include "gserrors.h"
+#include "errors.h"
 
 /* Initialize an arg list. */
 void
 arg_init(arg_list * pal, const char **argv, int argc,
-	 FILE * (*arg_fopen) (const char *fname, void *fopen_data),
+	 FILE * (*arg_fopen) (P2(const char *fname, void *fopen_data)),
 	 void *fopen_data)
 {
     pal->expand_ats = true;
@@ -108,8 +110,8 @@ arg_next(arg_list * pal, int *code)
 	if (c == endc) {
 	    if (in_quote) {
 		cstr[i] = 0;
-		errprintf("Unterminated quote in @-file: %s\n", cstr);
-		*code = gs_error_Fatal;
+		outprintf("Unterminated quote in @-file: %s\n", cstr);
+		*code = e_Fatal;
 		return NULL;
 	    }
 	    if (i == 0) {
@@ -160,8 +162,8 @@ arg_next(arg_list * pal, int *code)
 	    /* This is different from the Unix shells. */
 	    if (i == arg_str_max - 1) {
 		cstr[i] = 0;
-		errprintf("Command too long: %s\n", cstr);
-		*code = gs_error_Fatal;
+		outprintf("Command too long: %s\n", cstr);
+		*code = e_Fatal;
 		return NULL;
 	    }
 	    cstr[i++] = '\\';
@@ -171,8 +173,8 @@ arg_next(arg_list * pal, int *code)
 	/* c will become part of the argument */
 	if (i == arg_str_max - 1) {
 	    cstr[i] = 0;
-	    errprintf("Command too long: %s\n", cstr);
-	    *code = gs_error_Fatal;
+	    outprintf("Command too long: %s\n", cstr);
+	    *code = e_Fatal;
 	    return NULL;
 	}
 	/* If input is coming from an @-file, allow quotes */
@@ -190,14 +192,14 @@ arg_next(arg_list * pal, int *code)
   at:if (pal->expand_ats && result[0] == '@') {
 	if (pal->depth == arg_depth_max) {
 	    lprintf("Too much nesting of @-files.\n");
-	    *code = gs_error_Fatal;
+	    *code = e_Fatal;
 	    return NULL;
 	}
 	result++;		/* skip @ */
 	f = (*pal->arg_fopen) (result, pal->fopen_data);
 	if (f == NULL) {
-	    errprintf("Unable to open command line file %s\n", result);
-	    *code = gs_error_Fatal;
+	    outprintf("Unable to open command line file %s\n", result);
+	    *code = e_Fatal;
 	    return NULL;
 	}
 	pal->depth++;

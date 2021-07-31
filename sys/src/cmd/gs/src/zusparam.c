@@ -1,21 +1,23 @@
 
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: zusparam.c,v 1.13 2004/08/04 19:36:13 stefan Exp $ */
+/*$Id: zusparam.c,v 1.3.6.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* User and system parameter operators */
 #include "memory_.h"
 #include "string_.h"
@@ -54,8 +56,8 @@ typedef struct param_def_s {
 typedef struct long_param_def_s {
     param_def_common;
     long min_value, max_value;
-    long (*current)(i_ctx_t *);
-    int (*set)(i_ctx_t *, long);
+    long (*current)(P1(i_ctx_t *));
+    int (*set)(P2(i_ctx_t *, long));
 } long_param_def_t;
 
 #if arch_sizeof_long > arch_sizeof_int
@@ -66,14 +68,14 @@ typedef struct long_param_def_s {
 
 typedef struct bool_param_def_s {
     param_def_common;
-    bool (*current)(i_ctx_t *);
-    int (*set)(i_ctx_t *, bool);
+    bool (*current)(P1(i_ctx_t *));
+    int (*set)(P2(i_ctx_t *, bool));
 } bool_param_def_t;
 
 typedef struct string_param_def_s {
     param_def_common;
-    void (*current)(i_ctx_t *, gs_param_string *);
-    int (*set)(i_ctx_t *, gs_param_string *);
+    void (*current)(P2(i_ctx_t *, gs_param_string *));
+    int (*set)(P2(i_ctx_t *, gs_param_string *));
 } string_param_def_t;
 
 /* Define a parameter set (user or system). */
@@ -87,9 +89,9 @@ typedef struct param_set_s {
 } param_set;
 
 /* Forward references */
-private int setparams(i_ctx_t *, gs_param_list *, const param_set *);
-private int currentparams(i_ctx_t *, const param_set *);
-private int currentparam1(i_ctx_t *, const param_set *);
+private int setparams(P3(i_ctx_t *, gs_param_list *, const param_set *));
+private int currentparams(P2(i_ctx_t *, const param_set *));
+private int currentparam1(P2(i_ctx_t *, const param_set *));
 
 /* ------ Passwords ------ */
 
@@ -102,7 +104,7 @@ zcheckpassword(i_ctx_t *i_ctx_p)
     array_param_list list;
     gs_param_list *const plist = (gs_param_list *)&list;
     int result = 0;
-    int code = name_ref(imemory, (const byte *)"Password", 8, &params[0], 0);
+    int code = name_ref((const byte *)"Password", 8, &params[0], 0);
     password pass;
 
     if (code < 0)
@@ -412,28 +414,6 @@ set_MinScreenLevels(i_ctx_t *i_ctx_p, long val)
     gs_setminscreenlevels((uint) val);
     return 0;
 }
-private long
-current_AlignToPixels(i_ctx_t *i_ctx_p)
-{
-    return gs_currentaligntopixels(ifont_dir);
-}
-private int
-set_AlignToPixels(i_ctx_t *i_ctx_p, long val)
-{
-    gs_setaligntopixels(ifont_dir, (uint)val);
-    return 0;
-}
-private long
-current_GridFitTT(i_ctx_t *i_ctx_p)
-{
-    return gs_currentgridfittt(ifont_dir);
-}
-private int
-set_GridFitTT(i_ctx_t *i_ctx_p, long val)
-{
-    gs_setgridfittt(ifont_dir, (uint)val);
-    return 0;
-}
 private const long_param_def_t user_long_params[] =
 {
     {"JobTimeout", 0, MAX_UINT_PARAM,
@@ -458,11 +438,7 @@ private const long_param_def_t user_long_params[] =
      current_WaitTimeout, set_WaitTimeout},
     /* Extensions */
     {"MinScreenLevels", 0, MAX_UINT_PARAM,
-     current_MinScreenLevels, set_MinScreenLevels},
-    {"AlignToPixels", 0, 1,
-     current_AlignToPixels, set_AlignToPixels},
-    {"GridFitTT", 0, 3, 
-     current_GridFitTT, set_GridFitTT}
+     current_MinScreenLevels, set_MinScreenLevels}
 };
 
 /* Boolean values */
@@ -475,18 +451,6 @@ private int
 set_AccurateScreens(i_ctx_t *i_ctx_p, bool val)
 {
     gs_setaccuratescreens(val);
-    return 0;
-}
-/* Boolean values */
-private bool
-current_UseWTS(i_ctx_t *i_ctx_p)
-{
-    return gs_currentusewts();
-}
-private int
-set_UseWTS(i_ctx_t *i_ctx_p, bool val)
-{
-    gs_setusewts(val);
     return 0;
 }
 private bool
@@ -506,7 +470,6 @@ set_LockFilePermissions(i_ctx_t *i_ctx_p, bool val)
 private const bool_param_def_t user_bool_params[] =
 {
     {"AccurateScreens", current_AccurateScreens, set_AccurateScreens},
-    {"UseWTS", current_UseWTS, set_UseWTS},
     {"LockFilePermissions", current_LockFilePermissions, set_LockFilePermissions}
 };
 
@@ -699,7 +662,7 @@ currentparam1(i_ctx_t *i_ctx_p, const param_set * pset)
 
     check_type(*op, t_name);
     check_ostack(2);
-    name_string_ref(imemory, (const ref *)op, &sref);
+    name_string_ref((const ref *)op, &sref);
     code = current_param_list(i_ctx_p, pset, &sref);
     if (code < 0)
 	return code;

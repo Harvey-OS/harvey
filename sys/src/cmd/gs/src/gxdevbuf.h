@@ -1,20 +1,22 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gxdevbuf.h,v 1.5 2002/06/16 08:45:43 lpd Exp $ */
+/*$Id: gxdevbuf.h,v 1.2 2000/09/19 19:00:35 lpd Exp $ */
 /* Definitions for device buffer management */
 
 #ifndef gxdevbuf_INCLUDED
@@ -59,9 +61,9 @@ typedef struct gx_device_buf_procs_s {
      */
 
 #define dev_proc_create_buf_device(proc)\
-  int proc(gx_device **pbdev, gx_device *target,\
-	   const gx_render_plane_t *render_plane, gs_memory_t *mem,\
-	   bool for_band)
+  int proc(P5(gx_device **pbdev, gx_device *target,\
+	      const gx_render_plane_t *render_plane, gs_memory_t *mem,\
+	      bool for_band))
 
     dev_proc_create_buf_device((*create_buf_device));
 
@@ -70,9 +72,9 @@ typedef struct gx_device_buf_procs_s {
      */
 
 #define dev_proc_size_buf_device(proc)\
-  int proc(gx_device_buf_space_t *space, gx_device *target,\
-	   const gx_render_plane_t *render_plane,\
-	   int height, bool for_band)
+  int proc(P5(gx_device_buf_space_t *space, gx_device *target,\
+	      const gx_render_plane_t *render_plane,\
+	      int height, bool for_band))
 
     dev_proc_size_buf_device((*size_buf_device));
 
@@ -90,9 +92,9 @@ typedef struct gx_device_buf_procs_s {
      */
 
 #define dev_proc_setup_buf_device(proc)\
-  int proc(gx_device *bdev, byte *buffer, int bytes_per_line,\
-	   byte **line_ptrs /*[height]*/, int y, int setup_height,\
-	   int full_height)
+  int proc(P7(gx_device *bdev, byte *buffer, int bytes_per_line,\
+	      byte **line_ptrs /*[height]*/, int y, int setup_height,\
+	      int full_height))
 
     dev_proc_setup_buf_device((*setup_buf_device));
 
@@ -102,7 +104,7 @@ typedef struct gx_device_buf_procs_s {
      */
 
 #define dev_proc_destroy_buf_device(proc)\
-  void proc(gx_device *bdev)
+  void proc(P1(gx_device *bdev))
 
     dev_proc_destroy_buf_device((*destroy_buf_device));
 

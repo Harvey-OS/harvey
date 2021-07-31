@@ -1,20 +1,22 @@
 /* Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gspaint.c,v 1.10 2005/10/12 17:59:55 leonardo Exp $ */
+/*$Id: gspaint.c,v 1.2 2000/09/19 19:00:30 lpd Exp $ */
 /* Painting procedures for Ghostscript library */
 #include "math_.h"		/* for fabs */
 #include "gx.h"
@@ -31,7 +33,6 @@
 #include "gxdevice.h"
 #include "gxdevmem.h"
 #include "gzcpath.h"
-#include "gxhldevc.h"
 
 /* Define the nominal size for alpha buffers. */
 #define abuf_nominal_SMALL 500
@@ -68,28 +69,17 @@ int
 gs_fillpage(gs_state * pgs)
 {
     gx_device *dev;
-    int code = 0;
+    int code;
     gs_logical_operation_t save_lop;
-    bool hl_color_available = gx_hld_is_hl_color_available((gs_imager_state *)pgs, 
-						    pgs->dev_color);
+
     gx_set_dev_color(pgs);
     dev = gs_currentdevice(pgs);
     /* Fill the page directly, ignoring clipping. */
     /* Use the default RasterOp. */
     save_lop = pgs->log_op;
     gs_init_rop(pgs);
-    if (hl_color_available) {
-	gs_fixed_rect rect;
-
-	rect.p.x = rect.p.y = 0;
-	rect.q.x = int2fixed(dev->width);
-	rect.q.y = int2fixed(dev->height);
-	code = dev_proc(pgs->device, fill_rectangle_hl_color)(pgs->device, 
-		&rect, (const gs_imager_state *)pgs, pgs->dev_color, NULL);
-    }
-    if (!hl_color_available || code == gs_error_rangecheck)
-	code = gx_fill_rectangle(0, 0, dev->width, dev->height,
-				 pgs->dev_color, pgs);
+    code = gx_fill_rectangle(0, 0, dev->width, dev->height,
+			     pgs->dev_color, pgs);
     pgs->log_op = save_lop;
     if (code < 0)
 	return code;
@@ -261,11 +251,7 @@ fill_with_rule(gs_state * pgs, int rule)
     if (pgs->in_charpath)
 	code = gx_path_add_char_path(pgs->show_gstate->path, pgs->path,
 				     pgs->in_charpath);
-    else if (gs_is_null_device(pgs->device)) {
-	/* Handle separately to prevent gs_state_color_load - bug 688308. */
-	gs_newpath(pgs);
-	code = 0;
-    } else {
+    else {
 	int abits, acode;
 
 	gx_set_dev_color(pgs);
@@ -325,10 +311,6 @@ gs_stroke(gs_state * pgs)
 	}
 	code = gx_path_add_char_path(pgs->show_gstate->path, pgs->path,
 				     pgs->in_charpath);
-    } else if (gs_is_null_device(pgs->device)) {
-	/* Handle separately to prevent gs_state_color_load. */
-	gs_newpath(pgs);
-	code = 0;
     } else {
 	int abits, acode;
 
@@ -345,7 +327,7 @@ gs_stroke(gs_state * pgs)
 	     */
 	    float xxyy = fabs(pgs->ctm.xx) + fabs(pgs->ctm.yy);
 	    float xyyx = fabs(pgs->ctm.xy) + fabs(pgs->ctm.yx);
-	    float scale = (float)(1 << (abits / 2));
+	    float scale = 1 << (abits / 2);
 	    float orig_width = gs_currentlinewidth(pgs);
 	    float new_width = orig_width * scale;
 	    fixed extra_adjust =
@@ -397,15 +379,11 @@ gs_strokepath(gs_state * pgs)
     gx_path spath;
     int code;
 
-    gx_path_init_local(&spath, pgs->path->memory);
+    gx_path_init_local(&spath, pgs->memory);
     code = gx_stroke_add(pgs->path, &spath, pgs);
     if (code < 0) {
 	gx_path_free(&spath, "gs_strokepath");
 	return code;
     }
-    code = gx_path_assign_free(pgs->path, &spath);
-    if (code < 0)
-	return code;
-    gx_setcurrentpoint(pgs, fixed2float(spath.position.x), fixed2float(spath.position.y));
-    return 0;
+    return gx_path_assign_free(pgs->path, &spath);
 }

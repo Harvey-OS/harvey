@@ -1,20 +1,22 @@
 /* Copyright (C) 1992, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: scfe.c,v 1.5 2002/06/16 03:58:14 lpd Exp $ */
+/*$Id: scfe.c,v 1.2 2000/09/19 19:00:48 lpd Exp $ */
 /* CCITTFax encoding filter */
 #include "stdio_.h"		/* includes std.h */
 #include "memory_.h"
@@ -113,7 +115,7 @@ cf_put_long_run(stream_CFE_state * ss, byte * q, int lenv, const cf_runs * prt)
 
 private_st_CFE_state();
 
-private void s_CFE_release(stream_state *);
+private void s_CFE_release(P1(stream_state *));
 
 /* Set default parameter values. */
 private void
@@ -190,10 +192,10 @@ s_CFE_release(stream_state * st)
 }
 
 /* Flush the buffer */
-private void cf_encode_1d(stream_CFE_state *, const byte *,
-			  stream_cursor_write *);
-private void cf_encode_2d(stream_CFE_state *, const byte *,
-			  stream_cursor_write *, const byte *);
+private void cf_encode_1d(P3(stream_CFE_state *, const byte *,
+			     stream_cursor_write *));
+private void cf_encode_2d(P4(stream_CFE_state *, const byte *,
+			     stream_cursor_write *, const byte *));
 private int
 s_CFE_process(stream_state * st, stream_cursor_read * pr,
 	      stream_cursor_write * pw, bool last)

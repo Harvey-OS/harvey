@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: unix-lpr.sh,v 1.5 2004/08/04 00:55:46 giles Exp $
+# $Id: unix-lpr.sh,v 1.1 2000/03/09 08:40:40 lpd Exp $
 #
 # Unix lpr filter. The default setup sends output directly to a pipe,
 # which requires the Ghostscript process to fork, and thus may cause 
@@ -15,10 +15,6 @@
 # but it may be restored by commenting out the lines referring to
 # 'gsoutput' and uncommenting the lines referring to 'gspipe'.
 #
-
-# This definition is changed on install to match the
-# executable name set in the makefile
-GS_EXECUTABLE=gs
 
 PBMPLUSPATH=/usr/local/bin
 PSFILTERPATH=/usr/local/lib/ghostscript
@@ -88,9 +84,9 @@ fi
 # Information for the logfile
 #
 lock=`dirname ${acctfile}`/lock
-cf=`sed -n '$p' ${lock}`
-job=`sed -n 's/^J//p' ${cf}`
- 
+cf=`tail -1 ${lock}`
+job=`egrep '^J' ${cf} | tail +2c`
+
 echo "gsbanner: ${host}:${user}  Job: ${job}  Date: `date`"
 echo "gsif: ${host}:${user} ${fdevname} start - `date`"
 
@@ -153,8 +149,7 @@ echo "\
     } { pop } ifelse
   } if
 quit"
-) | $GS_EXECUTABLE -q -dNOPAUSE -sDEVICE=${device} \
-		-dBitsPerPixel=${bpp} $colorspec \
+) | gs -q -dNOPAUSE -sDEVICE=${device} -dBitsPerPixel=${bpp} $colorspec \
 		-sOutputFile=\|"${gsoutput}" -
 #		-sOutputFile=${gspipe} -
 

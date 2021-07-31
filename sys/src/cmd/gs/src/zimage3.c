@@ -1,20 +1,22 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: zimage3.c,v 1.7 2004/08/04 19:36:13 stefan Exp $ */
+/*$Id: zimage3.c,v 1.3 2000/09/19 19:00:54 lpd Exp $ */
 /* LanguageLevel 3 ImageTypes (3 & 4 - masked images) */
 #include "memory_.h"
 #include "ghost.h"
@@ -28,7 +30,7 @@
 #include "idparam.h"
 #include "igstate.h"
 #include "iimage.h"
-#include "ialloc.h"
+#include "iimage2.h"
 
 /* <dict> .image3 - */
 private int
@@ -56,9 +58,8 @@ zimage3(i_ctx_t *i_ctx_p)
 	return_error(e_rangecheck);
     if ((code = pixel_image_params(i_ctx_p, pDataDict,
 				   (gs_pixel_image_t *)&image, &ip_data,
-				   12, false)) < 0 ||
-	(mcode = code = data_image_params(imemory, pMaskDict, &image.MaskDict,
-				   &ip_mask, false, 1, 12, false)) < 0 ||
+				   12)) < 0 ||
+	(mcode = code = data_image_params(pMaskDict, &image.MaskDict, &ip_mask, false, 1, 12)) < 0 ||
 	(code = dict_int_param(pDataDict, "ImageType", 1, 1, 0, &ignored)) < 0 ||
 	(code = dict_int_param(pMaskDict, "ImageType", 1, 1, 0, &ignored)) < 0
 	)
@@ -98,7 +99,7 @@ zimage4(i_ctx_t *i_ctx_p)
 
     gs_image4_t_init(&image, NULL);
     code = pixel_image_params(i_ctx_p, op, (gs_pixel_image_t *)&image, &ip,
-			      12, false);
+			      12);
     if (code < 0)
 	return code;
     code = dict_int_array_check_param(op, "MaskColor", num_components * 2,

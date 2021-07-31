@@ -1,20 +1,22 @@
 /* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gxiscale.c,v 1.9 2005/06/20 08:59:23 igor Exp $ */
+/*$Id: gxiscale.c,v 1.2.6.1 2001/12/14 19:16:04 rayjj Exp $ */
 /* Interpolated image procedures */
 #include "gx.h"
 #include "math_.h"
@@ -68,22 +70,11 @@ gs_image_class_0_interpolate(gx_image_enum * penum)
     if (!penum->interpolate) 
 	return 0;
     if (penum->use_mask_color || penum->posture != image_portrait ||
-    	penum->masked || penum->alpha ||
-	(penum->dev->color_info.num_components == 1 &&
-	 penum->dev->color_info.max_gray < 15) ||
-        (penum->dev->color_info.num_components > 1 &&
-         penum->dev->color_info.max_color < 15)
-       ) {
+    	penum->masked || penum->alpha) {
 	/* We can't handle these cases yet.  Punt. */
 	penum->interpolate = false;
 	return 0;
     }
-/*
- * USE_CONSERVATIVE_INTERPOLATION_RULES is normally NOT defined since
- * the MITCHELL digital filter seems OK as long as we are going out to
- * a device that can produce > 15 shades.
- */
-#if defined(USE_MITCHELL_FILTER) && defined(USE_CONSERVATIVE_INTERPOLATION_RULES)
     /*
      * We interpolate using a digital filter, rather than Adobe's
      * spatial interpolation algorithm: this produces very bad-looking
@@ -94,6 +85,7 @@ gs_image_class_0_interpolate(gx_image_enum * penum)
      * If we used Adobe's spatial interpolation approach, we wouldn't need
      * to do this, but the spatial interpolation filter doesn't work yet.
      */
+#ifdef USE_MITCHELL_FILTERX
     if (penum->bps < 4 || penum->bps * penum->spp < 8 ||
 	(fabs(penum->matrix.xx) <= 5 && fabs(penum->matrix.yy <= 5))
 	) {
@@ -129,7 +121,7 @@ gs_image_class_0_interpolate(gx_image_enum * penum)
     {
 	uint out_size =
 	    iss.WidthOut * max(iss.Colors * (iss.BitsPerComponentOut / 8),
-			       arch_sizeof_color_index);
+			       sizeof(gx_color_index));
 
 	line = gs_alloc_bytes(mem, in_size + out_size,
 			      "image scale src+dst line");
@@ -164,7 +156,7 @@ gs_image_class_0_interpolate(gx_image_enum * penum)
     }
     penum->xyi.y = fixed2int_pixround(dda_current(penum->dda.pixel0.y));
     if_debug0('b', "[b]render=interpolate\n");
-    return &image_render_interpolate;
+    return image_render_interpolate;
 }
 
 /* ------ Rendering for interpolated images ------ */
@@ -273,7 +265,7 @@ image_render_interpolate(gx_image_enum * penum, const byte * buffer,
 	    DECLARE_LINE_ACCUM_COPY(out, bpp, xo);
 
 	    w.limit = out + width *
-		max(c * sizeofPixelOut, arch_sizeof_color_index) - 1;
+		max(c * sizeofPixelOut, sizeof(gx_color_index)) - 1;
 	    w.ptr = w.limit - width * c * sizeofPixelOut;
 	    psrc = (const frac *)(w.ptr + 1);
 	    status = (*pss->template->process)
@@ -296,7 +288,7 @@ image_render_interpolate(gx_image_enum * penum, const byte * buffer,
 		    }
 #endif
 		    code = (*pconcs->type->remap_concrete_color)
-			(psrc, pcs, &devc, pis, dev, gs_color_select_source);
+			(psrc, &devc, pis, dev, gs_color_select_source);
 		    if (code < 0)
 			return code;
 		    if (color_is_pure(&devc)) {

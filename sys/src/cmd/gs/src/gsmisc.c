@@ -1,20 +1,22 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This software is provided AS-IS with no warranty, either express or
-  implied.
+  This file is part of AFPL Ghostscript.
   
-  This software is distributed under license and may not be copied,
-  modified or distributed except as expressly authorized under the terms
-  of the license contained in the file LICENSE in this distribution.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  For more information about licensing, please refer to
-  http://www.ghostscript.com/licensing/. For information on
-  commercial licensing, go to http://www.artifex.com/licensing/ or
-  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gsmisc.c,v 1.22 2004/12/08 21:35:13 stefan Exp $ */
+/*$Id: gsmisc.c,v 1.12 2001/06/16 19:02:32 igorm Exp $ */
 /* Miscellaneous utilities for Ghostscript library */
 
 /*
@@ -49,12 +51,16 @@ orig_sqrt(double x)
 #include "gxfarith.h"
 #include "gxfixed.h"
 
+/* Define private replacements for stdin, stdout, and stderr. */
+FILE *gs_stdio[3];
+
+
 /* ------ Redirected stdout and stderr  ------ */
 
 #include <stdarg.h>
 #define PRINTF_BUF_LENGTH 1024
 
-int outprintf(const gs_memory_t *mem, const char *fmt, ...)
+int outprintf(const char *fmt, ...)
 {
     int count;
     char buf[PRINTF_BUF_LENGTH];
@@ -63,12 +69,12 @@ int outprintf(const gs_memory_t *mem, const char *fmt, ...)
     va_start(args, fmt);
 
     count = vsprintf(buf, fmt, args);
-    outwrite(mem, buf, count);
+    outwrite(buf, count);
     if (count >= PRINTF_BUF_LENGTH) {
 	count = sprintf(buf, 
 	    "PANIC: printf exceeded %d bytes.  Stack has been corrupted.\n", 
 	    PRINTF_BUF_LENGTH);
-	outwrite(mem, buf, count);
+	outwrite(buf, count);
     }
     va_end(args);
     return count;
@@ -154,14 +160,14 @@ dprintf_file_only(const char *file)
 }
 #endif
 void
-printf_program_ident(const gs_memory_t *mem, const char *program_name, long revision_number)
+printf_program_ident(const char *program_name, long revision_number)
 {
     if (program_name)
-        outprintf(mem, (revision_number ? "%s " : "%s"), program_name);
+	outprintf((revision_number ? "%s " : "%s"), program_name);
     if (revision_number) {
 	int fpart = revision_number % 100;
 
-	outprintf(mem, "%d.%02d", (int)(revision_number / 100), fpart);
+	outprintf("%d.%02d", (int)(revision_number / 100), fpart);
     }
 }
 void
@@ -210,12 +216,12 @@ gs_log_error(int err, const char *file, int line)
 
 /* Check for interrupts before a return. */
 int
-gs_return_check_interrupt(const gs_memory_t *mem, int code)
+gs_return_check_interrupt(int code)
 {
     if (code < 0)
 	return code;
     {
-	int icode = gp_check_interrupts(mem);
+	int icode = gp_check_interrupts();
 
 	return (icode == 0 ? code :
 		gs_note_error((icode > 0 ? gs_error_interrupt : icode)));
@@ -531,7 +537,7 @@ ilog2(int n)
     while (m >= 16)
 	m >>= 4, l += 4;
     return
-	(m <= 1 ? l :
+	(m <= 1 ? 0 :
 	 "\000\000\001\001\002\002\002\002\003\003\003\003\003\003\003\003"[m] + l);
 }
 
@@ -1137,16 +1143,10 @@ gs_sincos_degrees(double ang, gs_sincos_t * psincos)
 static const int isincos[5] =
 {0, 1, 0, -1, 0};
 
-/* GCC with -ffast-math compiles ang/90. as ang*(1/90.), losing precission.
- * This doesn't happen when the numeral is replaced with a non-const variable.
- * So we define the variable to work around the GCC problem. 
- */
-static double const_90_degrees = 90.;
-
 double
 gs_sin_degrees(double ang)
 {
-    double quot = ang / const_90_degrees;
+    double quot = ang / 90;
 
     if (floor(quot) == quot) {
 	/*
@@ -1161,7 +1161,7 @@ gs_sin_degrees(double ang)
 double
 gs_cos_degrees(double ang)
 {
-    double quot = ang / const_90_degrees;
+    double quot = ang / 90;
 
     if (floor(quot) == quot) {
 	/* See above re the following line. */
@@ -1173,7 +1173,7 @@ gs_cos_degrees(double ang)
 void
 gs_sincos_degrees(double ang, gs_sincos_t * psincos)
 {
-    double quot = ang / const_90_degrees;
+    double quot = ang / 90;
 
     if (floor(quot) == quot) {
 	/* See above re the following line. */

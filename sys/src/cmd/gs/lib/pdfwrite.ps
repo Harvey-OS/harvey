@@ -1,19 +1,21 @@
 %    Copyright (C) 1999, 2000, 2001 Aladdin Enterprises.  All rights reserved.
 % 
-% This software is provided AS-IS with no warranty, either express or
-% implied.
+% This file is part of AFPL Ghostscript.
 % 
-% This software is distributed under license and may not be copied,
-% modified or distributed except as expressly authorized under the terms
-% of the license contained in the file LICENSE in this distribution.
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
 % 
-% For more information about licensing, please refer to
-% http://www.ghostscript.com/licensing/. For information on
-% commercial licensing, go to http://www.artifex.com/licensing/ or
-% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
-% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
 
-% $Id: pdfwrite.ps,v 1.11 2003/05/20 13:46:22 alexcher Exp $
+% $Id: pdfwrite.ps,v 1.7 2001/07/30 07:16:32 lpd Exp $
 % Writer for transmuting PDF files.
 
 % NOTES:
@@ -29,89 +31,27 @@
 /.setlanguagelevel where { pop 2 .setlanguagelevel } if
 .currentglobal true .setglobal
 
-/PDFWRDEBUG where { pop } { /PDFWRDEBUG false def } ifelse
-
-% ======== Long dictionary support =============== %
-
-% The key must be a non-negative iteger.
-
-/ld_dict {          % <len> ld_dict <ldict>
-  pop << 0 <<>> >>
-} bind def
-
-/ld_length {        % <ldict> ld_length <length>
-  0 exch { exch pop length add } forall
-} bind def
-
-/ld_get {           % <ldict> <key> ld_get <any>
-  dup 3 1 roll -15 bitshift get exch get
-} bind def
-
-/ld_put {           % <ldict> <key> <any> ld_put -
-  3 1 roll dup               % any ldict key key
-  4 1 roll -15 bitshift      % key any ldict key>>15
-  2 copy known {
-    get                      % key any subdict
-    3 1 roll put             % -
-  } {
-    64 dict dup 6 1 roll     % <<>> key any ldict key>>15 <<>>
-    put put
-  } ifelse                   % -
-} bind def
-                    
-/ld_known {         % <ldict> <key> ld_known <bool>
-  dup 3 1 roll -15 bitshift  % key <<>> key<<15
-  2 copy known {
-    get exch known
-  } {
-    pop pop pop //false
-  } ifelse
-} bind def
-                             
-/ld_knownget {      % <ldict> <key> ld_known false | <any> true
-  dup 3 1 roll -15 bitshift  % key <<>> key<<15
-  2 copy known {
-    get exch .knownget
-  } {
-    pop pop pop //false
-  } ifelse
-} bind def
-
-/ld_def {           % <key> <any> ld_def -
-  currentdict 3 1 roll ld_put
-} bind def
-
-/ld_forall {        % <ldict> <proc} ld_forall -
-  { forall exch pop } aload pop
-  4 2 roll 4 packedarray cvx forall
-} bind def
-
-/ld_clone {         % <ldict> ld_clone <ldict copy>
-  << exch { dup length dict copy } forall >>
-} bind def
+/PDEBUG where { pop } { /PDEBUG false def } ifelse
 
 % ================ Object mapping ================ %
 
 % Initialize the object number and location map.
 /omapinit {		% - omapinit -
-  /RMap 100 ld_dict def
-  /XRef 100 ld_dict def
-  PDFWRDEBUG { (omapinit) = } if
-} bind def
+  /RMap 100 dict def
+  /XRef 100 dict def
+  PDEBUG { (omapinit) = } if
+} def
 
 % Map an object number.
 /omapnew {		% <oldobj#> omap <newobj#> <isnew>
-  RMap 1 index ld_knownget {
-    exch pop //false
+  RMap 1 index .knownget {
+    exch pop false
   } {
-    PDFWRDEBUG { (omap\() print dup =only } if
-    RMap dup ld_length 1 add   % old# <<>> len+1
-    2 index exch dup           % old# <<>> old# len+1 len+1
-    5 1 roll                   % len+1 old# <<>> old# len+1
-    ld_put pop //true          % len+1 true
-    PDFWRDEBUG { (\) = ) print 1 index = } if
+    PDEBUG { (omap\() print dup =only } if
+    RMap dup length 1 add 2 index exch dup 5 1 roll put pop true
+    PDEBUG { (\) = ) print 1 index = } if
   } ifelse
-} bind def
+} def
 /omap {			% <oldobj#> omap <newobj#>
   omapnew pop
 } bind def
@@ -120,16 +60,16 @@
 % Note that currentomap either returns a copy or calls omapinit.
 /currentomap {		% <copy> currentomap <omap>
   {
-    [RMap ld_clone XRef ld_clone]
+    [RMap dup length dict copy XRef dup length dict copy]
   } {
     [RMap XRef] omapinit
   } ifelse
 } bind def
 /setomap {		% <omap> setomap -
   aload pop /XRef exch def /RMap exch def
-  PDFWRDEBUG {
-    (setomap: #Xref = ) print XRef ld_length =only
-    (, #RMap = ) print RMap ld_length =
+  PDEBUG {
+    (setomap: #Xref = ) print XRef length =only
+    (, #RMap = ) print RMap length =
   } if
 } bind def
 
@@ -140,7 +80,7 @@
 % Write a string on the output file.
 /ows {			% <string> ows -
   OFile exch writestring
-} bind def
+} def
 
 % ---------------- Scalars ---------------- %
 
@@ -163,7 +103,7 @@ readonly def
       dup 0 (#) 0 get put
     } ifelse ows
   } forall
-} bind def
+} def
 
 % ---------------- Composite objects ---------------- %
 
@@ -179,7 +119,7 @@ readonly def
 	% we have to include some whitespace after the opening [ (!).
     ([ ) ows { pdfwritevalue (\n) ows } forall (]) ows
   } ifelse
-} bind def
+} def
 
 /pdfwritedict {		% <dict> pdfwritedict -
   dup xcheck {
@@ -189,13 +129,13 @@ readonly def
       exch pdfwritevalue ( ) ows pdfwritevalue (\n) ows
     } forall (>>) ows
   } ifelse
-} bind def
+} def
 
 % ---------------- References ---------------- %
 
 /pdfwritenewref {	% <newobj#> pdfwritenewref -
   OFile exch write=only ( 0 R) ows
-} bind def
+} def
 
 /pdfwriteref {		% <obj#> <gen#> pdfwriteref -
   1 index omapnew {
@@ -204,7 +144,7 @@ readonly def
     exch pop exch pop
   } ifelse
   pdfwritenewref
-} bind def
+} def
 
 /pdfcopystring 200 string def
 /pdfwritestream {	% <streamdict> pdfwritestream -
@@ -218,7 +158,7 @@ readonly def
   } if
   exch dup /File get dup 3 -1 roll /FilePosition get setfileposition
   pdfcopystream
-} bind def
+} def
 
 % We put copying the stream contents in separate procedures so that we
 % can replace this function if desired.
@@ -229,48 +169,48 @@ readonly def
     3 index exch readstring 3 1 roll
     3 index 1 index writestring length sub exch not { exit } if
   } loop pop pop pop
-} bind def
+} def
 /pdfcopystream {	% <newstreamdict> <file> pdfcopystream -
 			%   (file has been positioned)
   1 index pdfwritevalue (stream\n) ows
   exch /Length get OFile exch pdfcopybytes
   (endstream) ows
-} bind def
+} def
 
 % ---------------- General values/objects ---------------- %
 
 /pdfwritetypes mark
 	% Scalars
-  /nulltype { pop (null) ows } bind
-  /integertype { =string cvs ows } bind
+  /nulltype { pop (null) ows }
+  /integertype { =string cvs ows }
   /booleantype 1 index
-  /realtype { OFile exch write===only } bind
+  /realtype { OFile exch write===only }
   /stringtype 1 index
-  /nametype { pdfwritename } bind
+  /nametype { pdfwritename }
 	% Composite/reference objects
-  /arraytype { pdfwritearray } bind
+  /arraytype { pdfwritearray }
   /packedarraytype 1 index
-  /dicttype { pdfwritedict } bind
+  /dicttype { pdfwritedict }
 .dicttomark readonly def
 
 /pdfwritevalue {	% <obj> pdfwritevalue -
-  PDFWRDEBUG { (****Writing: ) print dup === flush } if
+  PDEBUG { (****Writing: ) print dup === flush } if
   //pdfwritetypes 1 index type get exec
-} bind def
+} def
 
 % We make pdfwriteobjdef a separate procedure for external use.
 /pdfwriteobjheader {	% <newobj#> pdfwriteobjheader -
-  XRef 1 index OFile .fileposition ld_put
-  PDFWRDEBUG { (XRef\() print dup =only (\) = ) print XRef 1 index ld_get = } if
+  XRef 1 index OFile .fileposition put
+  PDEBUG { (XRef\() print dup =only (\) = ) print XRef 1 index get = } if
   OFile exch write=only ( 0 obj\n) ows
-} bind def
+} def
 /pdfwriteobjdef {	% <newobj#> <value> pdfwriteobjdef -
   exch pdfwriteobjheader
   pdfwritevalue (\nendobj\n) ows
-} bind def
+} def
 /pdfwriteobj {		% <obj#> <gen#> pdfwriteobj -
   1 index exch resolveR exch omap exch pdfwriteobjdef
-} bind def
+} def
 
 % ---------------- File-level entities ---------------- %
 
@@ -289,7 +229,7 @@ readonly def
     dup 0 eq {
       pop (0000000000 65535 f \n) ows
     } {
-      XRef exch ld_get 1000000000 add =string cvs
+      XRef exch get 1000000000 add =string cvs
       dup 0 (0) 0 get put
       ows ( 00000 n \n) ows
     } ifelse
@@ -334,12 +274,12 @@ readonly def
 	% Write the xref table and trailer.
 
   /xref OFile fileposition def
-  0 XRef ld_length 1 add pdfwritexref
+  0 XRef length 1 add pdfwritexref
   trailer dup length 1 add dict copy
-  dup /Size XRef ld_length 1 add put pdfwritetrailer
+  dup /Size XRef length 1 add put pdfwritetrailer
   xref pdfwritestartxref
 
   end
-} bind def
+} def
 
 .setglobal
