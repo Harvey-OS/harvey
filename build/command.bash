@@ -31,24 +31,6 @@ send "9fs tcp!10.0.2.2!5640 /n/harvey\n"
 expect -exact "term% "
 send "ls -l /n/harvey/\n"
 
-expect -exact "term% "
-send "ls -l /n/harvey/build\n"
-
-expect -exact "term% "
-send "ls -l /n/harvey/build/go\n"
-
-# make go available in the image
-expect -exact "term% "
-# this will make a /go appear, along with all the other stuff we don't want,
-# but hey ...
-# one option is to great build/go/go and build in there, and then bind that
-# in /n/harvey/build/go in /, in which case there will be a /go.
-send "bind -a /n/harvey/build /\n"
-expect -exact "term% "
-send "ls -l /\n"
-expect -exact "term% "
-send "ls -l /go\n"
-
 # and shut down
 expect -exact "term% "
 send "fshalt\n"

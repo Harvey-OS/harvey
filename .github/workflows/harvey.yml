@@ -19,15 +19,17 @@ jobs:
     - name: install source we build into the image
       run: |
         git clone --depth 1 --branch go1.16.6 https://github.com/golang/go.git
+        export GOBIN=`pwd`/amd64/go/bin
+        echo $GOBIN
+        mkdir -p $GOBIN
+        ls -R $GOBIN
         cd go/src
         GOOS=plan9 GOARCH=amd64 ./make.bash
+        ls -R $GOBIN
     - name: bootstrap and run
       env:
         ARCH: amd64
         OS: linux
       run: |
-        # ensure there is a go directory in the image
-        # not needed for long
-        mkdir -p ../go
         ~/go/bin/ufs -root .. -user glenda &
         bash command.bash # run a command
