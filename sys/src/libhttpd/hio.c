@@ -4,7 +4,6 @@
 
 static	char	hstates[] = "nrewE";
 static	char	hxfers[] = " x";
-static int _hflush(Hio*, int, int);
 
 int
 hinit(Hio *h, int fd, int mode)
@@ -158,12 +157,10 @@ hreadbuf(Hio *h, void *vsave)
 			memmove(h->start + cpy, hh->pos, in);
 			hh->pos += in;
 		}
-	}else if(in){
-		if((in = read(h->fd, h->start + cpy, in)) < 0){
-			h->state = Herr;
-			h->pos = h->stop;
-			return nil;
-		}
+	}else if(in && (in = read(h->fd, h->start + cpy, in)) < 0){
+		h->state = Herr;
+		h->pos = h->stop;
+		return nil;
 	}
 	if(in == 0)
 		h->state = Hend;
@@ -279,12 +276,12 @@ hload(Hio *h, char *buf)
 
 	s = strchr(hstates, buf[0]);
 	if(s == nil)
-		return -1;
+		return 0;
 	h->state = s - hstates;
 
 	s = strchr(hxfers, buf[1]);
 	if(s == nil)
-		return -1;
+		return 0;
 	h->xferenc = s - hxfers;
 
 	t = h->start;
@@ -298,13 +295,13 @@ hload(Hio *h, char *buf)
 		}
 		*t++ = c;
 		if(t >= stop)
-			return -1;
+			return 0;
 	}
 	*t = '\0';
 	h->pos = h->start;
 	h->stop = t;
 	h->seek = 0;
-	return 0;
+	return 1;
 }
 
 void
@@ -327,7 +324,7 @@ hxferenc(Hio *h, int on)
 {
 	if(h->xferenc && !on && h->pos != h->start)
 		hflush(h);
-	if(_hflush(h, 1, 0) < 0)
+	if(hflush(h) < 0)
 		return -1;
 	h->xferenc = !!on;
 	return 0;
@@ -376,8 +373,8 @@ hvprint(Hio *h, char *fmt, va_list args)
 	f.flush = fmthflush;
 	f.farg = h;
 	f.nfmt = 0;
-//	fmtlocaleinit(&f, nil, nil, nil);
-	n = fmtvprint(&f, fmt, args);
+	f.args = args;
+	n = dofmt(&f, fmt);
 	h->pos = f.to;
 	return n;
 }
@@ -395,7 +392,7 @@ hprint(Hio *h, char *fmt, ...)
 }
 
 static int
-_hflush(Hio *h, int force, int dolength)
+_hflush(Hio* h, int dolength)
 {
 	uchar *s;
 	int w;
@@ -407,8 +404,6 @@ _hflush(Hio *h, int force, int dolength)
 	}
 	s = h->start;
 	w = h->pos - s;
-	if(w == 0 && !force)
-		return 0;
 	if(h->xferenc){
 		*--s = '\n';
 		*--s = '\r';
@@ -420,7 +415,7 @@ _hflush(Hio *h, int force, int dolength)
 		h->pos[1] = '\n';
 		w = &h->pos[2] - s;
 	}
-	if(dolength)
+	if (dolength)
 		fprint(h->fd, "Content-Length: %d\r\n\r\n", w);
 	if(write(h->fd, s, w) != w){
 		h->state = Herr;
@@ -435,19 +430,19 @@ _hflush(Hio *h, int force, int dolength)
 int
 hflush(Hio *h)
 {
-	return _hflush(h, 0, 0);
+	return _hflush(h, 0);
 }
 
 int
 hlflush(Hio* h)
 {
-	return _hflush(h, 0, 1);
+	return _hflush(h, 1);
 }
 
 int
 hwrite(Hio *h, void *vbuf, int len)
 {
-	uchar *buf;
+	uchar *pos, *buf;
 	int n, m;
 
 	buf = vbuf;
@@ -457,30 +452,36 @@ hwrite(Hio *h, void *vbuf, int len)
 		h->stop = h->pos;
 		return -1;
 	}
-	if(h->pos + n >= h->stop){
-		if(h->start != h->pos)
-			if(hflush(h) < 0)
-				return -1;
-		while(h->pos + n >= h->stop){
-			m = h->stop - h->pos;
-			if(h->xferenc){
-				memmove(h->pos, buf, m);
-				h->pos += m;
-				if(hflush(h) < 0)
-					return -1;
-			}else{
-				if(write(h->fd, buf, m) != m){
-					h->state = Herr;
-					h->stop = h->pos;
-					return -1;
-				}
-				h->seek += m;
+	pos = h->pos;
+	if(pos + n >= h->stop){
+		m = pos - h->start;
+		if(m){
+			m = Hsize - m;
+			if(m){
+				memmove(pos, buf, m);
+				buf += m;
+				n -= m;
 			}
-			n -= m;
-			buf += m;
+			if(write(h->fd, h->start, Hsize) != Hsize){
+				h->state = Herr;
+				h->stop = h->pos;
+				return -1;
+			}
+			h->seek += Hsize;
 		}
+		m = n % Hsize;
+		n -= m;
+		if(n != 0 && write(h->fd, buf, n) != n){
+			h->state = Herr;
+			h->stop = h->pos;
+			return -1;
+		}
+		h->seek += n;
+		buf += n;
+		pos = h->pos = h->start;
+		n = m;
 	}
-	memmove(h->pos, buf, n);
-	h->pos += n;
+	memmove(pos, buf, n);
+	h->pos = pos + n;
 	return len;
 }
