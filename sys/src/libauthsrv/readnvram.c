@@ -208,7 +208,6 @@ readnvram(Nvrsafe *safep, int flag)
 	Nvrwhere loc;
 
 	err = 0;
-	safe = (Nvrsafe*)buf;
 	memset(&loc, 0, sizeof loc);
 	findnvram(&loc);
 	if (loc.safelen < 0)
@@ -219,13 +218,10 @@ readnvram(Nvrsafe *safep, int flag)
 		fprint(2, "readnvram: couldn't find nvram\n");
 		if(!(flag&NVwritemem))
 			memset(safep, 0, sizeof(*safep));
-		safe = safep;
-		/*
-		 * allow user to type the data for authentication,
-		 * even if there's no nvram to store it in.
-		 */
+		return -1;
 	}
 
+	safe = (Nvrsafe*)buf;
 	if(flag&NVwritemem)
 		safe = safep;
 	else {
