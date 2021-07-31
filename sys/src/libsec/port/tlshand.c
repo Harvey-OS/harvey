@@ -1196,10 +1196,8 @@ msgRecv(TlsConnection *c, Msg *m)
 		goto Short;
 Ok:
 	if(c->trace){
-		char *buf;
-		buf = emalloc(8000);
-		c->trace("recv %s", msgPrint(buf, 8000, m));
-		free(buf);
+		char buf[8000];
+		c->trace("recv %s", msgPrint(buf, sizeof buf, m));
 	}
 	return 1;
 Short:
