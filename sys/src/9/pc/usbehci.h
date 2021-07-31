@@ -66,7 +66,6 @@ enum
 	Cpse		= 0x00010,	/* periodic sched. enable */
 	Case		= 0x00020,	/* async sched. enable */
 	Ciasync		= 0x00040,	/* interrupt on async advance doorbell */
-	Citcmask	= 0xff << 16,
 	Citc1		= 0x10000,	/* interrupt threshold ctl. 1 µframe */
 	Citc4		= 0x40000,	/* same. 2 µframes */
 	/* ... */

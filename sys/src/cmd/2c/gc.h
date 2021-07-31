@@ -83,7 +83,7 @@ struct	Txt
 
 struct	Cases
 {
-	vlong	val;
+	long	val;
 	long	label;
 	uchar	def;
 	Case*	link;
@@ -147,7 +147,7 @@ struct	Multab
 
 struct	C1
 {
-	vlong	val;
+	long	val;
 	long	label;
 };
 

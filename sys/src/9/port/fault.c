@@ -8,7 +8,6 @@
 int
 fault(ulong addr, int read)
 {
-	int tries;
 	Segment *s;
 	char *sps;
 
@@ -22,7 +21,7 @@ fault(ulong addr, int read)
 	spllo();
 
 	m->pfault++;
-	for(tries = 200; tries > 0; tries--) {	/* TODO: reset to 20 */
+	for(;;) {
 		s = seg(up, addr, 1);		/* leaves s->lk qlocked if seg != nil */
 		if(s == 0) {
 			up->psstate = sps;
@@ -35,17 +34,9 @@ fault(ulong addr, int read)
 			return -1;
 		}
 
-		if(fixfault(s, addr, read, 1) == 0)	/* qunlocks s->lk */
+		if(fixfault(s, addr, read, 1) == 0)
 			break;
 	}
-	/*
-	 * if we loop more than a few times, we're probably stuck on
-	 * an unfixable address, almost certainly due to a bug
-	 * elsewhere (e.g., bad page tables) so there's no point
-	 * in spinning forever.
-	 */
-	if (tries <= 0)
-		panic("faultarm: fault stuck on va %#8.8p read %d\n", addr, read);
 
 	up->psstate = sps;
 	return 0;
@@ -142,19 +133,22 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 			ref = lkp->ref + swapcount(lkp->daddr);
 		else
 			ref = lkp->ref;
-		if(ref == 1 && lkp->image){
-			/* save a copy of the original for the image cache */
-			duppage(lkp);
-			ref = lkp->ref;
-		}
-		unlock(lkp);
-		if(ref > 1){
+		if(ref > 1) {
+			unlock(lkp);
+
 			new = newpage(0, &s, addr);
 			if(s == 0)
 				return -1;
 			*pg = new;
 			copypage(lkp, *pg);
 			putpage(lkp);
+		}
+		else {
+			/* save a copy of the original for the image cache */
+			if(lkp->image)
+				duppage(lkp);
+
+			unlock(lkp);
 		}
 		mmuphys = PPN((*pg)->pa) | PTEWRITE | PTEVALID;
 		(*pg)->modref = PG_MOD|PG_REF;
