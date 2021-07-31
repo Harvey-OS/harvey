@@ -312,7 +312,7 @@ dirgen(int off, Dir *d, void*)
 			continue;
 		if(n == off){
 			d->name = estrdup9p(tab[j].name);
-			d->length = tab[j].length*sectsize;
+			d->length = tab[j].length;
 			d->mode = tab[j].mode;
 			d->qid.path = Qpart+j;
 			d->qid.vers = tab[j].vers;

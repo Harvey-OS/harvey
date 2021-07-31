@@ -105,7 +105,6 @@ struct Fid {
 	AuthRpc* rpc;
 	char*	cuname;
 
-	Fid*	sort;				/* sorted by uname in cmdWho */
 	Fid*	hash;			/* lookup by fidno */
 	Fid*	next;			/* clunk session with Tversion */
 	Fid*	prev;
@@ -203,7 +202,6 @@ extern int groupWriteMember(char*);
 extern char* unameByUid(char*);
 extern char* uidByUname(char*);
 extern int usersInit(void);
-extern int usersFileRead(char*);
 extern int validUserName(char*);
 
 extern char* uidadm;

@@ -26,6 +26,7 @@ typedef struct User {
 typedef struct Ubox {
 	User*	head;
 	User*	tail;
+	char*	name;
 	int	nuser;
 	int	len;
 
@@ -508,11 +509,13 @@ uboxFree(Ubox* box)
 		next = u->next;
 		userFree(u);
 	}
+	if(box->name != nil)
+		vtMemFree(box->name);
 	vtMemFree(box);
 }
 
 static int
-uboxInit(char* users, int len)
+uboxInit(char* name, char* users, int len)
 {
 	User *g, *u;
 	Ubox *box, *obox;
@@ -562,9 +565,11 @@ uboxInit(char* users, int len)
 	fprint(2, "nuser %d\n", nuser);
 
 	/*
-	 * Everything is updated in a local Ubox until verified.
+	 * Everything us updated in a local Ubox until verified.
 	 */
 	box = vtMemAllocZ(sizeof(Ubox));
+	if(name != nil)
+		box->name = vtStrDup(name);
 
 	/*
 	 * First pass - check format, check for duplicates
@@ -654,6 +659,11 @@ uboxInit(char* users, int len)
 	}
 
 	vtLock(ubox.lock);
+	if(name != nil && usersFileWrite(box) == 0){
+		/*
+		 * What to do here? How much whining?
+		 */
+	}
 	obox = ubox.box;
 	ubox.box = box;
 	vtUnlock(ubox.lock);
@@ -664,7 +674,7 @@ uboxInit(char* users, int len)
 	return 1;
 }
 
-int
+static int
 usersFileRead(char* path)
 {
 	char *p;
@@ -677,9 +687,6 @@ usersFileRead(char* path)
 		return 0;
 	fsysFsRlock(fsys);
 
-	if(path == nil)
-		path = "/active/adm/users";
-
 	r = 0;
 	if((file = fileOpen(fsysGetFs(fsys), path)) != nil){
 		if(fileGetSize(file, &size)){
@@ -687,7 +694,7 @@ usersFileRead(char* path)
 			p = vtMemAlloc(size+1);
 			if(fileRead(file, p, len, 0) == len){
 				p[len] = '\0';
-				r = uboxInit(p, len);
+				r = uboxInit(path, p, len);
 			}
 		}
 		fileDecRef(file);
@@ -888,11 +895,9 @@ cmdUsers(int argc, char* argv[])
 {
 	Ubox *box;
 	int dflag, r, wflag;
-	char *file;
-	char *usage = "usage: users [-d | -r file] [-w]";
+	char *usage = "usage: users [-dw] [file]";
 
 	dflag = wflag = 0;
-	file = nil;
 
 	ARGBEGIN{
 	default:
@@ -900,38 +905,42 @@ cmdUsers(int argc, char* argv[])
 	case 'd':
 		dflag = 1;
 		break;
-	case 'r':
-		file = ARGF();
-		if(file == nil)
-			return cliError(usage);
-		break;
 	case 'w':
 		wflag = 1;
 		break;
 	}ARGEND
 
-	if(argc)
+	switch(argc){
+	default:
 		return cliError(usage);
-
-	if(dflag && file)
-		return cliError("cannot use -d and -r together");
-
-	if(dflag)
-		uboxInit(usersDefault, sizeof(usersDefault));
-	else if(file){
-		if(usersFileRead(file) == 0)
+	case 0:
+		if(dflag)
+			uboxInit(nil, usersDefault, sizeof(usersDefault));
+		vtRLock(ubox.lock);
+		box = ubox.box;
+		if(box->name != nil)
+			consPrint("\tfile %s\n", box->name);
+		else
+			consPrint("\tno file\n");
+		consPrint("\tnuser %d len %d\n", box->nuser, box->len);
+		vtRUnlock(ubox.lock);
+		break;
+	case 1:
+		if(dflag)
+			return cliError(usage);
+		if(usersFileRead(argv[0]) == 0)
 			return 0;
+		break;
 	}
 
-	vtRLock(ubox.lock);
-	box = ubox.box;
-	consPrint("\tnuser %d len %d\n", box->nuser, box->len);
+	if(wflag){
+		vtRLock(ubox.lock);
+		r = usersFileWrite(ubox.box);
+		vtRUnlock(ubox.lock);
+		return r;
+	}
 
-	r = 1;
-	if(wflag)
-		r = usersFileWrite(box);
-	vtRUnlock(ubox.lock);
-	return r;
+	return 1;
 }
 
 int
@@ -940,7 +949,7 @@ usersInit(void)
 	fmtinstall('U', userFmt);
 
 	ubox.lock = vtLockAlloc();
-	uboxInit(usersDefault, sizeof(usersDefault));
+	uboxInit(nil, usersDefault, sizeof(usersDefault));
 
 	cliAddCmd("users", cmdUsers);
 	cliAddCmd("uname", cmdUname);
