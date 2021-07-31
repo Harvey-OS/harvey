@@ -28,7 +28,6 @@ int	setamalg(char*);
 char *keyspec = "";
 
 int 	notechan;
-int	exportpid;
 char	*system;
 int	cflag;
 int	dbg;
@@ -71,7 +70,7 @@ int setam(char*);
 void
 usage(void)
 {
-	fprint(2, "usage: cpu [-h system] [-u user] [-a authmethod] [-e 'crypt hash'] [-k keypattern] [-P patternfile] [-c cmd args ...]\n");
+	fprint(2, "usage: cpu [-h system] [-a authmethod] [-e 'crypt hash'] [-k keypattern] [-p patternfile] [-c cmd args ...]\n");
 	exits("usage");
 }
 int fdd;
@@ -734,7 +733,6 @@ struct Fid
 {
 	int	fid;
 	int	file;
-	int	omode;
 };
 Fid fids[Nfid];
 
@@ -899,7 +897,7 @@ void
 notefs(int fd)
 {
 	uchar buf[IOHDRSZ+Maxfdata];
-	int i, j, n, ncpunote;
+	int i, j, n;
 	char err[ERRMAX];
 	Fcall f;
 	Fid *fid, *nfid;
@@ -908,12 +906,9 @@ notefs(int fd)
 	rfork(RFNOTEG);
 	fmtinstall('F', fcallfmt);
 
-	for(n = 0; n < Nfid; n++){
+	for(n = 0; n < Nfid; n++)
 		fids[n].file = -1;
-		fids[n].omode = -1;
-	}
 
-	ncpunote = 0;
 	for(;;){
 		n = read9pmsg(fd, buf, sizeof(buf));
 		if(n <= 0){
@@ -1004,9 +999,6 @@ nofids:
 				f.type = Rerror;
 				f.ename = Eperm;
 			}
-			fid->omode = f.mode;
-			if(fid->file == Qcpunote)
-				ncpunote++;
 			f.qid = fstab[fid->file].qid;
 			break;
 		case Tcreate:
@@ -1023,13 +1015,7 @@ nofids:
 			f.ename = Eperm;
 			break;
 		case Tclunk:
-			if(fid->omode != -1 && fid->file == Qcpunote){
-				ncpunote--;
-				if(ncpunote == 0)	/* remote side is done */
-					goto err;
-			}
 			fid->file = -1;
-			fid->omode = -1;
 			break;
 		case Tremove:
 			f.type = Rerror;
@@ -1052,10 +1038,6 @@ nofids:
 err:
 	if(dbg)
 		fprint(2, "notefs exiting: %r\n");
-	werrstr("success");
-	postnote(PNGROUP, exportpid, "hangup");
-	if(dbg)
-		fprint(2, "postnote PNGROUP %d: %r\n", exportpid);
 	close(fd);
 }
 
@@ -1080,10 +1062,10 @@ catcher(void*, char *text)
 void
 lclnoteproc(int netfd)
 {
+	int exportfspid;
 	Waitmsg *w;
 	Note *np;
 	int pfd[2];
-	int pid;
 
 	if(pipe(pfd) < 0){
 		fprint(2, "cpu: can't start note proc: pipe: %r\n");
@@ -1091,10 +1073,7 @@ lclnoteproc(int netfd)
 	}
 
 	/* new proc mounts and returns to start exportfs */
-	switch(pid = rfork(RFPROC|RFNAMEG|RFFDG|RFMEM)){
-	default:
-		exportpid = pid;
-		break;
+	switch(exportfspid = rfork(RFPROC|RFNAMEG|RFFDG|RFMEM)){
 	case -1:
 		fprint(2, "cpu: can't start note proc: rfork: %r\n");
 		return;
@@ -1142,7 +1121,7 @@ lclnoteproc(int netfd)
 				kick(pfd[0]);
 			}
 			unlock(&nfs);
-		} else if(w->pid == exportpid)
+		} else if(w->pid == exportfspid)
 			break;
 	}
 

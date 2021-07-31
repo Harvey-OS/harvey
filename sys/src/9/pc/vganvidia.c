@@ -165,9 +165,13 @@ nvidiaenable(VGAscr* scr)
 	}
 
 	/* find video memory size */
-	switch (scr->id & 0x0ff0) {
-	case 0x0020:
-	case 0x00A0:
+	if (scr->id & 0x0F00) {
+		q = KADDR(scr->io + Pfb +  0x020C);
+		tmp = (*q >> 20) & 0xFF;
+		if (tmp == 0)
+			tmp = 16;
+		scr->storage =  tmp*1024*1024;
+	} else {
 		q = KADDR(scr->io + Pfb);
 		tmp = *q;
 		if (tmp & 0x0100) {
@@ -179,24 +183,6 @@ nvidiaenable(VGAscr* scr)
 			else
 				scr->storage = 1024*1024*32;
 		}
-		break;
-	case 0x01A0:
-		p = pcimatchtbdf(MKBUS(BusPCI, 0, 0, 1));
-		tmp = pcicfgr32(p, 0x7C);
-		scr->storage = (((tmp >> 6) & 31) + 1) * 1024 * 1024;
-		break;
-	case 0x01F0:
-		p = pcimatchtbdf(MKBUS(BusPCI, 0, 0, 1));
-		tmp = pcicfgr32(p, 0x84);
-		scr->storage = (((tmp >> 4) & 127) + 1) * 1024 * 1024;
-		break;
-	default:
-		q = KADDR(scr->io + Pfb +  0x020C);
-		tmp = (*q >> 20) & 0xFF;
-		if (tmp == 0)
-			tmp = 16;
-		scr->storage =  tmp*1024*1024;
-		break;
 	}
 }
 
@@ -223,15 +209,10 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 
 	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) & ~0x01);
 
-	switch (scr->id & 0x0ff0) {
-	case 0x0020:
-	case 0x00A0:
-		p = KADDR(scr->io + Pramin + 0x1E00 * 4);
-		break;
-	default:
+	if (scr->id & 0x0F00)
 		p = KADDR(scr->aperture + scr->storage - 96*1024);
-		break;
-	}
+	else
+		p = KADDR(scr->io + Pramin + 0x1E00 * 4);
 
 	for(i=0; i<16; i++) {
 		c = (curs->clr[2 * i] << 8) | curs->clr[2 * i+1];
