@@ -1,0 +1,433 @@
+% eepic Version 1.0 < August 14, 1988 >
+%	Written by Conrad Kwok
+%
+% Internet : kwok@iris.ucdavis.edu
+% csnet    : kwok@ucd.csnet
+% csnet    : kwok%iris.ucdavis.edu@csnet.relay
+% UUCP	   : ...!ucbvax!ucdavis!iris!kwok
+%
+% The macros are in public domain.
+% You may distribute or modify it in any ways you like.
+% Please report any bugs, enhancements, comments, suggestions, etc.
+%
+% This style file modify some of the commands in epic[1] and LaTeX[2] such
+% that \special commands will be generated in drawing lines if approriate.
+% The \special commands generated is the subset of the \specials used
+% by tpic[3].
+%
+% [1] epic is written by Sunil Podar. Please read epic.sty for the
+%     copyright notice.
+% [2] LaTeX is written by Leslie Lamport. Please read the book LaTeX
+% [3] tpic is modified from pic by Tim Morgan
+%
+%% This file contains extensions of the following epic commands:
+%%	\dottedline	\dashline	\drawline
+%%	\jput
+%%
+%% It also contains extensions of the following LaTeX commands:
+%%	\circle		\line
+%%
+%% New commands include:
+%%	\Thicklines	\arc		\ellipse
+%%	\path		\spline
+%%
+%% For documentation, please see the accompanying manual
+%%
+\makeatletter
+\typeout{%
+Extension to Epic and LaTeX. Version 1.0 - Release August 14, 1988}
+%
+\newcount\@gphlinewidth
+\newcount\@eepictcnt
+\newdimen\@tempdimc
+\@gphlinewidth\@wholewidth \divide\@gphlinewidth 4736
+
+%% Redefine \thinlines, \thicklines
+%% See also latex.tex
+\def\thinlines{\let\@linefnt\tenln \let\@circlefnt\tencirc
+    \@wholewidth\fontdimen8\tenln \@halfwidth .5\@wholewidth
+    \@gphlinewidth\@wholewidth \divide\@gphlinewidth 4736\relax}
+\def\thicklines{\let\@linefnt\tenlnw \let\@circlefnt\tencircw
+    \@wholewidth\fontdimen8\tenlnw \@halfwidth .5\@wholewidth
+    \@gphlinewidth\@wholewidth \divide\@gphlinewidth 4736
+    \advance\@gphlinewidth\@ne   % Make the output looks better
+    \relax}
+%%
+%% To indicate whether the dot character is defined in the dotted join
+%%     environment or not (\@ifnodotdef)
+\newif\if@nodotdef \global\@nodotdeftrue
+%%
+%% Redefine \dottedjoin
+\def\dottedjoin{\global\@jointhemtrue \global\@joinkind=0\relax
+  \bgroup\@ifnextchar[{\global\@nodotdeffalse\@idottedjoin}%
+                      {\global\@nodotdeftrue\@idottedjoin[\@empty]}}
+%%----------------------------------------------------------------------
+%% Redefine \jput
+\long\def\jput(#1,#2)#3{\@killglue\raise#2\unitlength\hbox to \z@{\hskip
+#1\unitlength #3\hss}%
+\if@jointhem \if@firstpoint \gdef\x@one{#1} \gdef\y@one{#2} \global\@firstpointfalse
+ \else\ifcase\@joinkind
+    \if@nodotdef
+        \@spdottedline{\dotgap@join\unitlength}%
+(\x@one\unitlength ,\y@one\unitlength)(#1\unitlength,#2\unitlength)
+    \else
+	\@dottedline[\dotchar@join]{\dotgap@join\unitlength}%
+(\x@one\unitlength,\y@one\unitlength)(#1\unitlength,#2\unitlength)
+    \fi
+	\or\@dashline[\dashlinestretch]{\dashlen@join\unitlength}[\dotgap@join]%
+(\x@one,\y@one)(#1,#2)
+	\else\@drawline[\drawlinestretch](\x@one,\y@one)(#1,#2)\fi
+    \gdef\x@one{#1}\gdef\y@one{#2}%
+ \fi
+\fi\ignorespaces}
+%%
+%% Redefine \dottedline to generate special whenever possible.
+\def\dottedline{\@ifnextchar [{\@idottedline}{\@ispdottedline}}
+%% Similar to \@idottedline but it generate \special
+\def\@ispdottedline#1(#2,#3){\@ifnextchar (%
+{\@iispdottedline{#1}(#2,#3)}{\relax}}
+\def\@iispdottedline#1(#2,#3)(#4,#5){\@spdottedline{#1\unitlength}%
+(#2\unitlength,#3\unitlength)(#4\unitlength,#5\unitlength)%
+\@ispdottedline{#1}(#4,#5)}
+%
+\def\@spdottedline#1(#2,#3)(#4,#5){%
+    \@tempcnta \@gphlinewidth\relax
+    \advance\@tempcnta by 2     % solely for better output
+    \special{pn \the\@tempcnta}%
+    \@tempdimc=#2\relax
+    \@tempcnta \@tempdimc\relax \advance\@tempcnta 2368 \divide\@tempcnta 4736
+    \@tempdimc=#3\relax
+    \@tempcntb -\@tempdimc\relax\advance\@tempcntb -2368 \divide\@tempcntb 4736
+    \@paspecial{\the\@tempcnta}{\the\@tempcntb}%
+    \@tempdimc=#4\relax
+    \@tempcnta \@tempdimc\relax \advance\@tempcnta 2368 \divide\@tempcnta 4736
+    \@tempdimc=#5\relax
+    \@tempcntb -\@tempdimc\relax\advance\@tempcntb -2368 \divide\@tempcntb 4736
+    \@paspecial{\the\@tempcnta}{\the\@tempcntb}%
+    \@tempdimc=#1\relax
+%%
+%% Generate the pen width in terms of inch with 3 decimal digit.
+    \@tempcnta \@tempdimc\relax \advance\@tempcnta 2368 \divide\@tempcnta 4736
+%% \@tempcnta contain the pen width in terms of thousandth of a inch
+%% Then it is converted back to inch. I know the way I use is dumb but
+%% I cannot think of any better method
+    \@tempcntb \@tempcnta\relax \divide\@tempcntb 1000
+    \multiply \@tempcntb 1000 \advance\@tempcnta -\@tempcntb
+    \divide\@tempcntb 1000
+    \ifnum\@tempcnta < 10
+        \special{dt \the\@tempcntb.00\the\@tempcnta}%
+    \else\ifnum\@tempcnta < 100
+        \special{dt \the\@tempcntb.0\the\@tempcnta}%
+    \else
+        \special{dt \the\@tempcntb.\the\@tempcnta}%
+    \fi\fi
+    \ignorespaces
+}
+%
+\def\@iiidashline[#1]#2[#3](#4,#5)(#6,#7){%
+\@dashline[#1]{#2\unitlength}[#3](#4,#5)(#6,#7)%
+\@iidashline[#1]{#2}[#3](#6,#7)}
+%
+%% Redefine \@dashline
+\long\def\@dashline[#1]#2[#3](#4,#5)(#6,#7){{%
+\x@diff=#6\unitlength \advance\x@diff by -#4\unitlength
+\y@diff=#7\unitlength \advance\y@diff by -#5\unitlength
+%% correction to get actual width since the dash-length as taken in arguement
+%% is the center-to-center of the end-points.
+\@tempdima=#2\relax \advance\@tempdima -\@wholewidth
+\sqrtandstuff{\x@diff}{\y@diff}{\@tempdima}%
+\ifnum\num@segments <3 \num@segments=3\fi% min number of dashes I can plot
+% is 2, 1 at either end, thus min num@segments is 3 (including 'empty dash').
+\@tempdima=\x@diff \@tempdimb=\y@diff
+\divide\@tempdimb by\num@segments
+\divide\@tempdima by\num@segments
+%% ugly if-then-else. If optional dotgap specified, then use it otherwise
+%% make a solid dash.
+{\ifx#3\@empty \relax
+    \ifdim\@tempdima < 0pt \x@diff=-\@tempdima\else\x@diff=\@tempdima\fi
+    \ifdim\@tempdimb < 0pt \y@diff=-\@tempdimb\else\y@diff=\@tempdimb\fi
+    \global\setbox\@dotbox\hbox{%
+                \@absspdrawline(0pt,0pt)(\@tempdima,\@tempdimb)}%
+    \else\global\setbox\@dotbox\hbox{%
+        \@spdottedline{#3\unitlength}(0pt,0pt)(\@tempdima,\@tempdimb)}%
+    \fi}%
+\advance\x@diff by -\@tempdima % both have same sign
+\advance\y@diff by -\@tempdimb
+%
+%%here we correct the number of dashes to be put by reducing them
+%%appropriately. (num@segments*\@wholewidth) is in some way the slack we
+%%have,and division by dash-length gives the reduction. reduction =
+%%(2*num@segments*\@wholewidth)/dash-length
+%% (num@segments includes empty ones)
+\@tempdima=\num@segments\@wholewidth \@tempdima=2\@tempdima
+\@tempcnta\@tempdima\relax \@tempdima=#2\relax \@tempdimb=0.5\@tempdima
+\@tempcntb\@tempdimb\relax \advance\@tempcnta by \@tempcntb % round-off error
+\divide\@tempcnta by\@tempdima \advance\num@segments by -\@tempcnta
+%
+\ifnum #1=0 \relax\else\ifnum #1 < -100
+  \typeout{***dashline: reduction > -100 percent implies blankness!***}
+\else\num@segmentsi=#1 \advance\num@segmentsi by 100
+     \multiply\num@segments by\num@segmentsi \divide\num@segments by 100
+\fi\fi
+%
+\divide\num@segments by 2 % earlier num@segments included 'empty dashes' too.
+\ifnum\num@segments >0 % if =0 then don't divide => \x@diff & \y@diff
+ \divide\x@diff by\num@segments%   remain same.
+ \divide\y@diff by\num@segments
+ \advance\num@segments by\@ne %for the last segment for which I subtracted
+	 		     %\@tempdima & \@tempdimb from \x@diff & \y@diff
+ \else\num@segments=2 % one at each end.
+\fi
+%%\typeout{num@segments finally = \the\num@segments}
+%% equiv to \multiput(#4,#5)(\x@diff,\y@diff){\num@segments}{\copy\@dotbox}
+%% with arguements in absolute dimensions.
+\@xdim=#4\unitlength \@ydim=#5\unitlength
+\@killglue
+\loop \ifnum\num@segments > 0
+\unskip\raise\@ydim\hbox to\z@{\hskip\@xdim \copy\@dotbox\hss}%
+\advance\num@segments \m@ne\advance\@xdim\x@diff\advance\@ydim\y@diff%
+\repeat}%
+\ignorespaces}
+%% redefine \@drawline
+%
+\def\@drawline[#1](#2,#3)(#4,#5){{%
+\@drawitfalse\@horvlinefalse
+\ifnum#1 <0 \relax\else\@horvlinetrue\fi
+\if@horvline
+ \@spdrawline(#2,#3)(#4,#5)
+\else\@drawittrue\fi
+%%-------------------------------
+\if@drawit
+\ifnum #1=0 \relax \else\ifnum #1 < -99
+  \typeout{***drawline: reduction <= -100 percent implies blankness!***}%
+\else\num@segmentsi=#1 \advance\num@segmentsi by 50
+     \multiply\num@segmentsi 2
+\fi\fi
+\@dashline[\num@segmentsi]{10pt}[\@empty](#2,#3)(#4,#5)
+\fi}\ignorespaces}% for \if@drawit
+%
+\def\@spdrawline(#1,#2)(#3,#4){%
+   \@absspdrawline(#1\unitlength,#2\unitlength)(#3\unitlength,#4\unitlength)
+   \ignorespaces
+}
+\def\@absspdrawline(#1,#2)(#3,#4){%
+    \special{pn \the\@gphlinewidth}%
+    \@tempdimc=#1\relax
+    \@tempcnta \@tempdimc\relax \advance\@tempcnta 2368 \divide\@tempcnta 4736
+    \@tempdimc=#2\relax
+    \@tempcntb -\@tempdimc\relax \advance\@tempcntb -2368 \divide\@tempcntb 4736
+    \@paspecial{\the\@tempcnta}{\the\@tempcntb}%
+    \@tempdimc=#3\relax
+    \@tempcnta\@tempdimc\relax \advance\@tempcnta 2368 \divide\@tempcnta 4736
+    \@tempdimc=#4\relax
+    \@tempcntb -\@tempdimc\relax \advance\@tempcntb -2368 \divide\@tempcntb 4736
+    \@paspecial{\the\@tempcnta}{\the\@tempcntb}%
+    \special{fp}%
+    \ignorespaces
+}
+%%----------------------------------------------------------------------
+\def\@paspecial#1#2{%
+    \special{pa #1 #2}%
+}
+%%
+%% Functions below modify the LaTeX commands and some additional commands
+%% are not supported by LaTeX nor epic such as ThickLines and arc.
+%%
+%% The macros are for use with LaTeX picture environment
+%% By including the macro file, you can draw
+%%   1) \line in any slope
+%%   2) \circle with any radius
+%%   3) \ellipse with any x-axis and y-axis length
+%%   4) Circular \arc by giving starting and ending angle (in radius)
+%%
+%% Furthermore you may draw lines in any thickness.
+%%
+%%
+%% Redefine \thinlines, \thicklines and define \Thickline
+%% See also latex.tex
+\def\Thicklines{\let\@linefnt\tenlnw \let\@circlefnt\tencircw
+    \@wholewidth\fontdimen8\tenlnw \@wholewidth 1.5\@wholewidth
+    \@halfwidth .5\@wholewidth
+    \@gphlinewidth\@wholewidth \divide\@gphlinewidth 4736\relax}
+%%
+%% Generate the \special command for drawing arc
+\def\@circlespecial#1#2#3#4{%
+	      \special{pn \the\@gphlinewidth}%
+	      \special{ar 0 0 #1 #2 #3 #4}
+}
+%%
+%% Command for drawing an arc. Elliptical arc command can be generated
+%% but all iptex program I saw so far does not support that.
+\def\@arc#1#2#3#4{%
+%% convert TeX dimension to length in terms thousandth of an inch
+	\@tempdima #1\unitlength
+	\@tempdimb #2\unitlength
+        \@tempcnta\@tempdima \advance\@tempcnta 4736 \divide\@tempcnta 9473
+	\@tempcntb\@tempdimb \advance\@tempcntb 4736 \divide\@tempcntb 9473
+	\setbox\@tempboxa\hbox{%
+	    \@circlespecial{\the\@tempcnta}{\the\@tempcntb}{#3}{#4}}%
+        \wd\@tempboxa\z@ \box\@tempboxa}
+%%
+%% Command for drawing Circle and Ellipse in terms of \@arc
+%% replace original \circle
+\def\circle{%
+    \@ifstar{\special{bk}\@circle}{\@circle}}
+\def\@circle#1{\@arc{#1}{#1}{0}{6.2832}}
+\def\ellipse{%
+    \@ifstar{\special{bk}\@ellipse}{\@ellipse}}
+\def\@ellipse#1#2{{\@arc{#1}{#2}{0}{6.2832}}}
+\def\arc#1#2#3{\@arc{#1}{#1}{#2}{#3}}
+%%
+%% Generate \special commands for drawing line
+\def\@linespecial#1#2{%
+	      \special{pn \the\@gphlinewidth}%
+	      \special{pa 0 0}%
+	      \special{pa #1 #2}%
+	      \special{fp}%
+}
+%%
+%% Replace original \@sline
+%% For description, see latex.tex
+\def\@sline{%
+	\ifnum\@xarg< 0
+	  \@negargtrue \@xarg -\@xarg \@tempdima -\@linelen
+	\else
+	  \@negargfalse \@tempdima\@linelen
+	\fi
+%% truncation is used in arithmetic
+	\@tempcnta\@linelen \divide\@tempcnta 4736
+        \@yyarg -\@yarg \multiply\@yyarg \@tempcnta \divide\@yyarg\@xarg
+ 	\if@negarg
+	    \@tempcnta -\@tempcnta
+	\fi
+	\setbox\@linechar\hbox{\@linespecial{\the\@tempcnta}{\the\@yyarg}}%
+	\wd\@linechar\@tempdima
+	\@clnht\@linelen
+        \multiply\@clnht\@yarg
+        \divide\@clnht\@xarg
+	\ifnum\@yarg< 0
+	  \@clnht -\@clnht
+	  \ht\@linechar\z@ \dp\@linechar\@clnht
+	\else
+	  \ht\@linechar\@clnht \dp\@linechar\z@
+	\fi
+	\box\@linechar
+%% Codes below (till end of the command) is only necessary
+%% when used with \@svector
+	\if@negarg
+	  \@yyarg -\@yarg
+	\else
+	  \@yyarg \@yarg
+	\fi
+	\setbox\@linechar\hbox{\@linefnt\@getlinechar(\@xarg,\@yyarg)}%
+	\ifnum\@yarg> 0
+	  \let\@upordown\raise
+	  \advance\@clnht -\ht\@linechar
+	\else
+	  \let\@upordown\lower
+	\fi
+	\if@negarg \kern\wd\@linechar \fi
+}
+%%
+\def\spline(#1,#2){%
+    \special{pn \the\@gphlinewidth}%
+    \@spline(#1,#2)%
+}
+\def\@spline(#1,#2){%
+    \@tempdima #1\unitlength
+    \@tempdimb #2\unitlength
+    \@tempcnta \@tempdima \advance\@tempcnta 2368 \divide\@tempcnta 4736
+    \@tempcntb -\@tempdimb \advance\@tempcntb -2368 \divide\@tempcntb 4736
+    \@paspecial{\the\@tempcnta}{\the\@tempcntb}%
+    \@ifnextchar ({\@spline}{\special{sp}}%
+}
+\def\path(#1,#2){%
+    \special{pn \the\@gphlinewidth}%
+    \@path(#1,#2)%
+}
+\def\@path(#1,#2){%
+    \@tempdima #1\unitlength
+    \@tempdimb #2\unitlength
+    \@tempcnta \@tempdima \advance\@tempcnta 2368 \divide\@tempcnta 4736
+    \@tempcntb -\@tempdimb \advance\@tempcntb -2368 \divide\@tempcntb 4736
+    \@paspecial{\the\@tempcnta}{\the\@tempcntb}%
+    \@ifnextchar ({\@path}{\special{fp}}%
+}
+
+%%%%%%%%%% Beginning of \oval %%%%%%%%%%%%%%%
+\newdimen\maxovaldiam \maxovaldiam 40pt\relax
+
+\def\@oval(#1,#2)[#3]{\begingroup\boxmaxdepth \maxdimen
+  \@ovttrue \@ovbtrue \@ovltrue \@ovrtrue
+  \@tfor\@tempa :=#3\do{\csname @ov\@tempa false\endcsname}\@ovxx
+  #1\unitlength \@ovyy #2\unitlength
+  \@tempdimb \ifdim \@ovyy >\@ovxx \@ovxx\else \@ovyy \fi
+  \@ovro \ifdim \@tempdimb>\maxovaldiam \maxovaldiam\else\@tempdimb\fi\relax
+  \divide \@ovro \tw@
+  \@ovdx\@ovxx \divide\@ovdx \tw@
+  \@ovdy\@ovyy \divide\@ovdy \tw@
+  \setbox\@tempboxa \hbox{%
+  \if@ovr \@ovverta\fi
+  \if@ovl \kern \@ovxx \@ovvertb\kern -\@ovxx \fi
+  \if@ovt \@ovhorz \kern -\@ovxx \fi
+  \if@ovb \raise \@ovyy \@ovhorz \fi}
+  \ht\@tempboxa\z@ \dp\@tempboxa\z@
+  \@put{-\@ovdx}{-\@ovdy}{\box\@tempboxa}%
+  \endgroup}
+
+\def\@qcirc#1#2#3#4{%
+    \special{pn \the\@gphlinewidth}%
+    \@eepictcnt \@gphlinewidth \divide\@eepictcnt 2
+    \@tempcnta #1 
+      \advance\@tempcnta 2368 \divide\@tempcnta 4736
+      \advance\@tempcnta\@eepictcnt
+    \@tempcntb #2 \divide\@tempcntb 4736 \advance\@tempcntb 2
+    \hbox{%
+        \@qcircspecial{\the\@tempcnta}{-\the\@eepictcnt}{\the\@tempcntb}{#3}{#4}}%
+}
+\def\@qcircspecial#1#2#3#4#5{\special{ar #1 #2 #3 #3 #4 #5}}
+
+\def\@ovverta{\vbox to \@ovyy{%
+    \if@ovb
+        \kern \@ovro
+        \@qcirc{\@ovro}{\@ovro}{3.1416}{4.7124}\nointerlineskip
+    \else
+        \kern \@ovdy
+    \fi
+    \leaders\vrule width \@wholewidth\vfil \nointerlineskip
+    \if@ovt
+        \@qcirc{\@ovro}{\@ovro}{1.5708}{3.1416}\nointerlineskip
+        \kern \@ovro
+    \else
+        \kern \@ovdy
+    \fi
+}\kern -\@wholewidth}
+
+\def\@ovvertb{\vbox to \@ovyy{%
+    \if@ovb
+        \kern \@ovro
+        \@qcirc{-\@ovro}{\@ovro}{4.6124}{6.2832}\nointerlineskip
+    \else
+        \kern \@ovdy
+    \fi
+    \leaders\vrule width \@wholewidth\vfil \nointerlineskip
+    \if@ovt
+        \@qcirc{-\@ovro}{\@ovro}{0}{1.6708}\nointerlineskip
+        \kern \@ovro
+    \else
+        \kern \@ovdy
+    \fi
+}\kern -\@wholewidth}
+
+\def\@ovhorz{\hbox to \@ovxx{%
+    \if@ovr \kern \@ovro\else \kern \@ovdx \fi
+    \leaders \hrule height \@wholewidth \hfil
+    \if@ovl \kern \@ovro\else \kern \@ovdx \fi
+    }}
+%%%%%%%%% End of \oval %%%%%%%%%%%%%%
+
+\def\allinethickness#1{\let\@linefnt\tenlnw \let\@circlefnt\tencircw
+    \@wholewidth #1 \@halfwidth .5\@wholewidth
+    \@gphlinewidth\@wholewidth \divide\@gphlinewidth 4736\relax}
+\makeatother
+

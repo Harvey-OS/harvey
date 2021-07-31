@@ -1,6 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include <lock.h>
+#include "lock.h"
 
 /*
  *  mutex malloc
@@ -32,6 +32,12 @@ static Lock mlock;
 
 #define datoff		((int)((Bucket*)0)->data)
 #define nil		((void*)0)
+
+void
+paralloc(void)
+{
+	lockinit(&mlock);
+}
 
 void*
 malloc(long size)

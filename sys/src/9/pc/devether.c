@@ -15,11 +15,34 @@
  *	handle multiple controllers
  *	much tidying
  *	set ethernet address
- *	need a ctl file passed down to card drivers
- *	  so we can set options.
  */
+extern Board ether8003;
+extern Board ether503;
+extern Board ether2000;
+extern Board ether509;
 
-struct Ctlr *softctlr;
+/*
+ * The ordering here is important for those boards
+ * using the DP8390 (WD8003, 3COM503 and NE2000) as
+ * attempting to determine if a board is a NE2000
+ * cannot be done passively, so it must be last to
+ * prevent scrogging one of the others.
+ */
+static Board *boards[] = {
+	&ether8003,
+	&ether503,
+	&ether2000,
+
+	&ether509,
+	0
+};
+
+enum {
+	NCtlr		= 1,
+};
+
+static struct Ctlr *softctlr[NCtlr];
+static int nctlr;
 
 Chan*
 etherclone(Chan *c, Chan *nc)
@@ -30,19 +53,19 @@ etherclone(Chan *c, Chan *nc)
 int
 etherwalk(Chan *c, char *name)
 {
-	return netwalk(c, name, &softctlr->net);
+	return netwalk(c, name, &softctlr[0]->net);
 }
 
 void
 etherstat(Chan *c, char *dp)
 {
-	netstat(c, dp, &softctlr->net);
+	netstat(c, dp, &softctlr[0]->net);
 }
 
 Chan*
 etheropen(Chan *c, int omode)
 {
-	return netopen(c, omode, &softctlr->net);
+	return netopen(c, omode, &softctlr[0]->net);
 }
 
 void
@@ -62,7 +85,7 @@ etherclose(Chan *c)
 long
 etherread(Chan *c, void *a, long n, ulong offset)
 {
-	return netread(c, a, n, offset, &softctlr->net);
+	return netread(c, a, n, offset, &softctlr[0]->net);
 }
 
 long
@@ -82,7 +105,7 @@ etherremove(Chan *c)
 void
 etherwstat(Chan *c, char *dp)
 {
-	netwstat(c, dp, &softctlr->net);
+	netwstat(c, dp, &softctlr[0]->net);
 }
 
 static int
@@ -100,15 +123,12 @@ etheroput(Queue *q, Block *bp)
 	Type *type;
 	Etherpkt *pkt;
 	RingBuf *ring;
-	int len, n, s;
+	int len, n;
 	Block *nbp;
-	uchar ea[6];
-	char *err;
 
 	type = q->ptr;
 	ctlr = type->ctlr;
 	if(bp->type == M_CTL){
-		err = 0;
 		qlock(ctlr);
 		if(streamparse("connect", bp)){
 			if(type->type == -1)
@@ -118,39 +138,13 @@ etheroput(Queue *q, Block *bp)
 				ctlr->all++;
 		}
 		else if(streamparse("promiscuous", bp)) {
-			if(type->prom)
-				goto ctlout;
-			if(type->filter){
-				err = "address already set";
-				goto ctlout;
-			}
 			type->prom = 1;
 			ctlr->prom++;
-			if(ctlr->prom+ctlr->filter == 1)
-				(*ctlr->card.mode)(ctlr, 1);
+			if(ctlr->prom == 1)
+				(*ctlr->board->mode)(ctlr, 1);
 		}
-		else if(streamparse("address", bp)) {
-			if(type->prom){
-				err = "already promiscuous";
-				goto ctlout;
-			}
-			if(parseether(ea, bp->rptr) < 0){
-				err = "bad ether address";
-				goto ctlout;
-			}
-			memmove(type->ea, ea, sizeof(ea));
-			if(!type->filter){
-				type->filter = 1;
-				ctlr->filter++;
-				if(ctlr->filter == 1)
-					(*ctlr->card.mode)(ctlr, 3);
-			}
-		}
-	ctlout:
 		qunlock(ctlr);
 		freeb(bp);
-		if(err)
-			error(err);
 		return;
 	}
 
@@ -161,7 +155,7 @@ etheroput(Queue *q, Block *bp)
 	if(BLEN(bp) < ETHERHDRSIZE && (bp = pullup(bp, ETHERHDRSIZE)) == 0)
 		return;
 	pkt = (Etherpkt*)bp->rptr;
-	memmove(pkt->s, type->ea, sizeof(type->ea));
+	memmove(pkt->s, ctlr->ea, sizeof(ctlr->ea));
 	if(memcmp(ctlr->ea, pkt->d, sizeof(ctlr->ea)) == 0){
 		len = blen(bp);
 		if(bp = expandb(bp, len >= ETHERMINTU ? len: ETHERMINTU)){
@@ -185,8 +179,8 @@ etheroput(Queue *q, Block *bp)
 	 */
 	qlock(&ctlr->tlock);
 	if(waserror()){
-		qunlock(&ctlr->tlock);
 		freeb(bp);
+		qunlock(&ctlr->tlock);
 		nexterror();
 	}
 
@@ -194,15 +188,7 @@ etheroput(Queue *q, Block *bp)
 	 * Wait till we get an output buffer.
 	 * should try to restart.
 	 */
-	if(isobuf(ctlr) == 0){
-		tsleep(&ctlr->tr, isobuf, ctlr, 3*1000);
-		if(isobuf(ctlr) == 0){
-			qunlock(&ctlr->tlock);
-			freeb(bp);
-			poperror();
-			return;
-		}
-	}
+	sleep(&ctlr->tr, isobuf, ctlr);
 
 	ring = &ctlr->tb[ctlr->th];
 
@@ -231,16 +217,14 @@ etheroput(Queue *q, Block *bp)
 	 * Set up the transmit buffer and 
 	 * start the transmission.
 	 */
-	s = splhi();
+	ctlr->outpackets++;
 	ring->len = len;
 	ring->owner = Interface;
 	ctlr->th = NEXT(ctlr->th, ctlr->ntb);
-	(*ctlr->card.transmit)(ctlr);
-	ctlr->outpackets++;
-	splx(s);
+	(*ctlr->board->transmit)(ctlr);
 
-	qunlock(&ctlr->tlock);
 	freeb(bp);
+	qunlock(&ctlr->tlock);
 	poperror();
 }
 
@@ -250,7 +234,7 @@ etheroput(Queue *q, Block *bp)
 static void
 etherstopen(Queue *q, Stream *s)
 {
-	Ctlr *ctlr = softctlr;
+	Ctlr *ctlr = softctlr[0];
 	Type *type;
 
 	type = &ctlr->type[s->id];
@@ -258,7 +242,6 @@ etherstopen(Queue *q, Stream *s)
 	type->type = 0;
 	type->q = RD(q);
 	type->inuse = 1;
-	memmove(type->ea, ctlr->ea, sizeof(type->ea));
 	type->ctlr = ctlr;
 }
 
@@ -283,15 +266,8 @@ etherstclose(Queue *q)
 	if(type->prom){
 		qlock(ctlr);
 		ctlr->prom--;
-		if(ctlr->prom+ctlr->filter == 0)
-			(*ctlr->card.mode)(ctlr, 0);
-		qunlock(ctlr);
-	}
-	if(type->filter){
-		qlock(ctlr);
-		ctlr->filter--;
-		if(ctlr->filter == 0)
-			(*ctlr->card.mode)(ctlr, ctlr->prom ? 1 : 0);
+		if(ctlr->prom == 0)
+			(*ctlr->board->mode)(ctlr, 0);
 		qunlock(ctlr);
 	}
 	if(type->type == -1){
@@ -313,7 +289,6 @@ etherstclose(Queue *q)
 
 	type->type = 0;
 	type->prom = 0;
-	type->filter = 0;
 	type->inuse = 0;
 	netdisown(type);
 	type->ctlr = 0;
@@ -330,7 +305,7 @@ static Qinfo info = {
 static int
 clonecon(Chan *c)
 {
-	Ctlr *ctlr = softctlr;
+	Ctlr *ctlr = softctlr[0];
 	Type *type;
 
 	USED(c);
@@ -341,7 +316,6 @@ clonecon(Chan *c)
 			continue;
 		}
 		type->inuse = 1;
-		memmove(type->ea, ctlr->ea, sizeof(type->ea));
 		netown(type, u->p->user, 0);
 		qunlock(type);
 		return type - ctlr->type;
@@ -353,7 +327,7 @@ clonecon(Chan *c)
 static void
 statsfill(Chan *c, char *p, int n)
 {
-	Ctlr *ctlr = softctlr;
+	Ctlr *ctlr = softctlr[0];
 	char buf[256];
 
 	USED(c);
@@ -371,23 +345,9 @@ typefill(Chan *c, char *p, int n)
 	char buf[16];
 	Type *type;
 
-	type = &softctlr->type[STREAMID(c->qid.path)];
+	type = &softctlr[0]->type[STREAMID(c->qid.path)];
 	sprint(buf, "%d", type->type);
 	strncpy(p, buf, n);
-}
-
-int
-eaddrmatch(Ctlr *ctlr, uchar *ea)
-{
-	Type *type;
-
-	for(type = &ctlr->type[0]; type < &ctlr->type[NType]; type++){
-		if(type->q == 0 || ea[0] != type->ea[0])
-			continue;
-		if(memcmp(ea, type->ea, sizeof(type->ea)) == 0)
-			return 1;
-	}
-	return 0;
 }
 
 static void
@@ -405,7 +365,7 @@ etherup(Ctlr *ctlr, Etherpkt *pkt, int len)
 		 */
 		if(type->q == 0)
 			continue;
-		if(t != type->type && type->type >= 0)
+		if(t != type->type && type->type != -1)
 			continue;
 		if(type->q->next->len > Streamhi)
 			continue;
@@ -414,7 +374,7 @@ etherup(Ctlr *ctlr, Etherpkt *pkt, int len)
 		 * Only a trace channel gets packets destined for other machines.
 		 */
 		if(type->type != -1 && pkt->d[0] != 0xFF
-		  && (*pkt->d != *type->ea || memcmp(pkt->d, type->ea, sizeof(pkt->d))))
+		  && (*pkt->d != *ctlr->ea || memcmp(pkt->d, ctlr->ea, sizeof(pkt->d))))
 			continue;
 
 		if(waserror() == 0){
@@ -447,8 +407,8 @@ etherkproc(void *arg)
 	if(waserror()){
 		print("%s noted\n", ctlr->name);
 		/* fix
-		if(ctlr->card.reset)
-			(*ctlr->card.reset)(ctlr);
+		if(ctlr->board->reset)
+			(*ctlr->board->reset)(ctlr);
 		 */
 		ctlr->kproc = 0;
 		nexterror();
@@ -456,8 +416,8 @@ etherkproc(void *arg)
 
 	for(;;){
 		tsleep(&ctlr->rr, isinput, ctlr, 500);
-		if(ctlr->card.watch)
-			(*ctlr->card.watch)(ctlr);
+		if(ctlr->board->watch)
+			(*ctlr->board->watch)(ctlr);
 
 		/*
 		 * Process any internal loopback packets.
@@ -495,18 +455,43 @@ etherkproc(void *arg)
 }
 
 static void
-etherintr(Ureg *ur, void *a)
+etherintr(Ureg *ur)
 {
-	Ctlr *ctlr = softctlr;
+	Ctlr *ctlr = softctlr[0];
 
-	USED(ur, a);
-	(*ctlr->card.intr)(ctlr);
+	USED(ur);
+	(*ctlr->board->intr)(ctlr);
 }
 
-static void
-reset(Ctlr *ctlr)
+void
+etherreset(void)
 {
+	Ctlr *ctlr;
+	Board **board;
 	int i;
+
+	if(softctlr[nctlr] == 0)
+		softctlr[nctlr] = xalloc(sizeof(Ctlr));
+	ctlr = softctlr[nctlr];
+	for(board = boards; *board; board++){
+		ctlr->board = *board;
+		if((*ctlr->board->reset)(ctlr) == 0){
+			ctlr->present = 1;
+
+			/*
+			 * IRQ2 doesn't really exist, it's used to gang the interrupt
+			 * controllers together. A device set to IRQ2 will appear on
+			 * the second interrupt controller as IRQ9.
+			 */
+			if(ctlr->board->irq == 2)
+				ctlr->board->irq = 9;
+			setvec(Int0vec + ctlr->board->irq, etherintr);
+			break;
+		}
+	}
+	if(ctlr->present == 0)
+		return;
+	nctlr++;
 
 	if(ctlr->nrb == 0)
 		ctlr->nrb = Nrb;
@@ -532,80 +517,11 @@ reset(Ctlr *ctlr)
 		netadd(&ctlr->net, &ctlr->type[i], i);
 }
 
-extern int wd8003reset(Ctlr*);
-extern int ne2000reset(Ctlr*);
-extern int ccc509reset(Ctlr*);
-extern int nsciareset(Ctlr*);
-extern int ne2000PCMreset(Ctlr*);
-
-#define NCARD 32
-struct {
-	char	*type;
-	int	(*reset)(Ctlr*);
-} cards[NCARD+1];
-
-void
-addethercard(char *t, int (*r)(Ctlr*))
-{
-	static int ncard;
-
-	if(ncard == NCARD)
-		panic("too many ether cards");
-	cards[ncard].type = t;
-	cards[ncard].reset = r;
-	ncard++;
-}
-
-void
-etherreset(void)
-{
-	Ctlr *ctlr;
-	int i, n, ctlrno;
-
-	if(softctlr == 0)
-		softctlr = xalloc(sizeof(Ctlr));
-	else
-		memset(softctlr, 0, sizeof(Ctlr));
-	ctlr = softctlr;
-
-	for(ctlrno = i = 0; isaconfig("ether", i, &ctlr->card); i++){
-		for(n = 0; cards[n].type; n++){
-			if(strcmp(cards[n].type, ctlr->card.type))
-				continue;
-			ctlr->ctlrno = ctlrno;
-			memmove(ctlr->ea, ctlr->card.ea, sizeof(ctlr->ea));
-			if((*cards[n].reset)(ctlr))
-				break;
-
-			/*ctlrno++;*/
-			ctlr->present = 1;
-			/*
-			 * IRQ2 doesn't really exist, it's used to gang the interrupt
-			 * controllers together. A device set to IRQ2 will appear on
-			 * the second interrupt controller as IRQ9.
-			 */
-			if(ctlr->card.irq == 2)
-				ctlr->card.irq = 9;
-			setvec(Int0vec + ctlr->card.irq, etherintr, 0);
-
-			print("ether%d:%s: port %lux irq %d addr %lux size %d width %d:",
-				ctlr->ctlrno, ctlr->card.type, ctlr->card.port, ctlr->card.irq,
-				ctlr->card.mem, ctlr->card.size, ctlr->card.bit16 ? 16: 8);
-			for(i = 0; i < sizeof(ctlr->ea); i++)
-				print("%2.2ux", ctlr->ea[i]);
-			print("\n");
-
-			reset(ctlr);
-			return;
-		}
-		memset(softctlr, 0, sizeof(Ctlr));
-	}
-}
-
 void
 etherinit(void)
 {
-	Ctlr *ctlr = softctlr;
+	int ctlrno = 0;
+	Ctlr *ctlr = softctlr[ctlrno];
 	int i;
 
 	if(ctlr->present == 0)
@@ -625,7 +541,8 @@ etherinit(void)
 Chan*
 etherattach(char *spec)
 {
-	Ctlr *ctlr = softctlr;
+	int ctlrno = 0;
+	Ctlr *ctlr = softctlr[ctlrno];
 
 	if(ctlr->present == 0)
 		error(Enodev);
@@ -634,9 +551,9 @@ etherattach(char *spec)
 	 * Enable the interface
 	 * and start the kproc.
 	 */	
-	(*ctlr->card.attach)(ctlr);
+	(*ctlr->board->attach)(ctlr);
 	if(ctlr->kproc == 0){
-		sprint(ctlr->name, "ether%dkproc", 0);
+		sprint(ctlr->name, "ether%dkproc", ctlrno);
 		ctlr->kproc = 1;
 		kproc(ctlr->name, etherkproc, ctlr);
 	}

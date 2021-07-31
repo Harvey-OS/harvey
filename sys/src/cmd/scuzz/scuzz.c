@@ -6,7 +6,6 @@
 
 #define MIN(a, b)	((a) < (b) ? (a): (b))
 
-int bus;
 Biobuf bin, bout;
 static char rwbuf[MaxIOsize];
 static int verbose = 1;
@@ -146,7 +145,6 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 		}
 		break;
 	}
-	print("bsize=%d\n", rp->lbsize);
 	total = 0;
 	while(nbytes){
 		n = MIN(nbytes, iosize);
@@ -956,20 +954,19 @@ tokenise(char *s, char **start, char **end)
 static int
 parse(char *s, char *fields[], int nfields)
 {
-	int c, argc;
+	int argc;
 	char *start, *end;
 
 	argc = 0;
-	c = *s;
-	while(c){
+	while(*s){
 		s = tokenise(s, &start, &end);
-		c = *s++;
 		if(*start == 0)
 			break;
 		if(argc >= nfields-1)
 			return -1;
 		*end = 0;
 		fields[argc++] = start;
+		s++;
 	}
 	fields[argc] = 0;
 	return argc;
@@ -978,7 +975,7 @@ parse(char *s, char *fields[], int nfields)
 static void
 usage(void)
 {
-	fprint(2, "%s: usage: %s [-b bus] [-q] [scsi-id]\n", argv0, argv0);
+	fprint(2, "%s: usage: %s [-q] [scsi-id]\n", argv0, argv0);
 	exits("usage");
 }
 
@@ -992,9 +989,6 @@ main(int argc, char *argv[])
 	long status;
 
 	ARGBEGIN {
-	case 'b':
-		bus = atoi(ARGF());
-		break;
 
 	case 'q':
 		verbose = 0;
@@ -1016,7 +1010,7 @@ main(int argc, char *argv[])
 
 	while(ap = Brdline(&bin, '\n')){
 		ap[BLINELEN(&bin)-1] = 0;
-		switch(ac = parse(ap, av, nelem(av))){
+		switch(ac = parse(ap, av, 50)){
 
 		default:
 			for(cp = scsicmd; cp->name; cp++){

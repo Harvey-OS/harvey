@@ -1,0 +1,1116 @@
+This file is a log of changes made to the "new generation" of Computer Modern
+fonts, after the first output proofs were ready. I had a great deal of
+advice from Neenie Billawala, Matthew Carter, and Richard Southall while
+I was making these revisions.
+
+Entries are in chronological order; thus the most recent news appears
+at the bottom of the file.
+
+-------------------------------------------------------------------------------
+Changes based on the proofsheets of April 26, 1985
+ACCENT.MF:
+ lower the idots, umlauts, and tilde (MC)
+ Polish ell cross: longer stroke in bold
+CMBASE.MF:
+COMLIG.MF:
+ double quotes too close together in bold (MC)
+CSCSPU.MF:
+ SS made from two S's
+GREEKU.MF:
+ Gamma: .25u longer arm
+ Lambda: too narrow (MC,NB)
+ Xi: 1u wider; shorten middle serifs (MC)
+  top and bottom strokes to be arms (NB)
+ Psi: more super; thin the lower curve (MC)
+  add points 3' and 7' for crisp sans
+ Omega: redo the bottom, curl 0 becomes vertical (MC)
+  thin from hair to vair at points 3 and 5
+PUNCT.MF:
+ Monospace period, comma, colon, semicolon made heavier (MC)
+ROMAN.MF:
+ ligs=2 gets ff, fi, etc.; ligs=1 gets only --, '', etc.
+ II kerning introduced
+ kern between a and ' in csc
+ROMAND.MF:
+ 0: med_curve decreased to curve; y2l and y4l raised
+ 1: cap_bar changed to bar in the top stroke
+  sans-serif serifs also use bar as the slab height
+ 2: lighten cap_curve and cap_stem slightly (RS)
+  move point 3 down by .5vair (MC)
+ 4: thin the diagonal still more (NB)
+  bar line moves up one pixel when there's a serif below it
+ 6: move bulb to the right (MC)
+  make the lower left curve more_super (RS,NB)
+ 9: make the upper right curve more_super (RS,NB)
+ROMANL.MF:
+ a: bulb positioned by its center rather than the left (MC)
+ c: right terminals moved closer to the edge (MC,NB)
+  more pull on the inside left (RS)
+ e: less left sidebar in monospace (MC)
+  bold versions to be wider (MC)
+  more pull on inside left (MC,RS)
+ g: lower edge of loop goes one pixel lower
+ varg: point 6 raised above baseline (MC)
+  y0 calculated so that it works when x7l=stem_edge
+  lower arc goes one pixel lower
+ i: monospace version gets more left sidebar (MC)
+  dot moves slightly right (NB)
+  stem'' increased to stem' (MC,RS,NB)
+  slab replaces tiny in correction for dot-too-close
+ j: diminish monospace sidebars (MC)
+  shift slightly to right (MC)
+ k: serif right_jut decreased .8 to .6
+  bug fixed in alpha2 (had y1 not y11)(MC,RS,NB)
+  decreased diagonal weights
+  "if abs(angle(z3-z4)-45)<2:y4:=y3-(x3-x4);fi" rejected; moves y4 down too much
+ n: omit pull inside the arch (MC,RS)
+  introduce stem_shift, shifts this character and others slightly right (MC)
+ o: raise y2l and y4l (RS)
+ s: reduced sidebearing in sans (MC)
+  increased thickness at edges (.35 to .5) (RS)
+  changed to super_arc, and made it more_super (RS)
+  raised the top of upper barb to equal top of the character (RS)
+  removed typo (`tiny' for `fine')
+  reduced flare in upper terminal of sans, and rounded it properly
+ t: width to grow in bold case
+  height made independent of bar_height
+  slightly longer bar (MC)
+ v: decreased left stem (RS)
+ w: decreased stems (MC,RS)
+  monospace version drops middle from 2/3 to .6 and lengthens inner serifs
+ x: decreased left stem
+ y: decreased left stem
+ z: lighter diagonal, longer upper arm (MC,RS,NB)
+ROMANP.MF:
+ $: tau eliminated
+ROMANU.MF:
+ A: decrease right stem (MC)
+  make the bar thinner (MC,NB)
+  bar position based on y0 rather than bar_height
+ C: use cap_band instead of vair' at top and bottom (RS)
+  correct typo: x2l to be reset, not y2l
+ E: middle arm .35u longer, but beak reduced from .7 to .6 (MC)
+ F: top arm .25u longer; middle arm as E (MC)
+ G: same as C; also the bar is raised one pixel
+ J: slightly longer upper left serif
+ K: lower diagonal thinned and moved outward
+ M: monospace version raised still more in middle
+ N: diagonal thinned (MC,RS)
+ O: y2l and y4l raised
+ R: tail should move to the right (MC,RS,NB)
+  bold case gets wider (RS,NB)
+ S: changed as s (RS)
+ V: took stem_corr off the left stem (MC)
+ W: monospace version takes center down from 2/3 to .6, lengthens inner jut
+ X: took stem_corr off the left stem (MC)
+ Y: took stem_corr off the left stem (MC)
+ Z: diagonal made lighter in sans (MC)
+  upper arm made longer (MC,RS)
+ROMLIG.MF:
+ equalize stem weights (RS,NB)
+ROMSPL.MF:
+ ae, oe: incorporate changes of a and e and o
+ ss: more stem weight, less curve weight, less bulb (MC,NB)
+ dotless i,j: see i,j
+ROMSPU.MF:
+ AE: middle arm changes as E (MC)
+  if hefty and monospace, avoid the serif on middle arm
+  bars not aligned if hefty
+  if monospace, middle stem moves to right
+ OE: middle arm changes as in AE (MC)
+  middle stem lightened
+ROMSUB.MF:
+ blankspace: not so close to sides
+SYM.MF:
+CMR10.MF etc:
+ bar_height raised in the quote and bold fonts (MC,NB)
+ comma_depth in cmtt10 increased from 40 to 50 (MC)
+ cap_notch_cut decreased in cmsc10, cmsx10
+ apex_o decreased in cmr10, cmb10, cmbx10, cmbx5, cmcsc10, cmtt10
+ o decreased in cmb10
+ cap_jut decreased from 39 to 34 in cmb10; cap_serif_fit increased 5 to 6
+ cmbx5 gets smaller beak, fudge, cap_ess; more apex_corr
+GENERAL:
+ "robustness" added when points like x8r of "a" are calculated
+  (this affects a,b,d,varg,j,p,q,t,u,dj,ae,6,9,f_stroke)
+ "robustness" also added to avoid curl at end of paths
+  (this affects c,e,s,C,G,S,1,5,ae,oe,breve,parens)
+ "term" subroutine adds robustness for sans-serif terminals
+  (this affects C,G,J,S,f_stroke,j,ss,ae,oe,2,3,5,6,9,$,&,?,@)
+ code revised to use "pos" instead of "penpos" when possible
+Changes based on the proofsheets of May and June, 1985
+ROMAND.MF:
+ 1: use o instead of apex_o
+ 4: bar line height shouldn't depend on bar_height
+ 5: sans-serif lower terminal position raised; depends on upper left edge
+    bug in arm at top (0 for 90) made all hefty arms too small
+ 9: disappears at link
+ROMANU.MF:
+ B: middle bar positioned by its middle, not its bottom (RS)
+    serifed lobes thickened slightly at bottom (RS)
+ C: lower terminal is tilted the other way
+ C,G: upper terminal in sans-serif is tilted slightly
+    upper barb is darkened
+ J: tilt the lower terminal
+ K: lighten the main diagonal (serif case) (RS)
+    lighten the upper diagonal (sans-serif case) (RS)
+ M: remove apex_corr (RS)
+ N: lighten the diagonal
+ P: too light below counter (RS)
+ Q: sharpen upper right corner of sans-serif tail (RS)
+    top of tail thickened and moved slightly left
+ S: less super at upper left and lower right (MC)
+    barb to go below baseline
+    barbs darkened
+    add weight at top, bottom in sans_serif version (RS)
+    tilt the lower terminal like the upper one
+    top weight needs to be maxed with fine.breadth
+ W: top middle stems allowed to overlap in serifed case
+    second inner serif made no longer than left outer serif (MC)
+    ceiling must become floor, to ensure that x5r>=x4r-mid_corr
+ Z: diagonal still too heavy, because previous change was ineffective
+    beaks made darker
+    better positioning of y2 and y3 when tiny is zero
+CSCSPU.MF:
+ J,SS: changes from J and S
+ROMANL.MF:
+ a: inappropriate uses of "fine" are removed
+    bh introduced to guard against "wild" bar heights
+    thin_join introduced at point 9
+    robustness logic changed so that x8l-x8r<=u
+ c: too much weight constrast between strokes in sans_serif (RS)
+    top terminal lowered to match a
+    bottom terminal tilted the other way
+ d: fine.breadth should have been thin_join as in b, p, q
+ e: 1+xpart changed to xpart
+    bottom terminal tilted the other way
+ g: sans-serif ear to use z0l and z0r
+ h,m,n: left inner serifs stay at jut length
+ i,l: mod_width for better fit at lowres
+ j: reposition stem for better fit (use .5w+2.5u, not w-2.5u)
+    remove bug in "pos" change
+ k: upper diagonal serif lengthened from 1.2jut to 1.4jut (RS)
+    diagonals made still lighter
+ r: thin_join introduced
+ s: barb to go below baseline
+    barbs darkened
+    add weight at top, bottom in sans_serif version (RS)
+    tilt the lower terminal like the upper one (RS)
+    top weight needs to be maxed with fine.breadth
+ t: bar extended still more at right (RS)
+ v: decreased the width by .25width_adj#
+ w: overlap allowed as in W
+    second inner serif made no longer than left outer serif (MC)
+    ceiling must become floor, to ensure that x5r>=x4r-mid_corr
+ x: decreased the width by .5width_adj# (RS)
+ y: sans-serif tail curls up too far (RS)
+ z: beaks too light; decrease the diagonal to compensate (RS)
+    better positioning of y2 and y3 when tiny is zero
+ROMSPL.MF:
+ dotless i and j: as i and j
+ ae and oe: bottom terminal tilted the other way
+ ae: corrected as a
+ROMSPU.MF:
+ AE: x12 based on x1l rather than x1, works better in bold cases (RS)
+ OE: left curve not to be pulled
+GREEKU.MF:
+ Phi and Psi: middle parts must keep away from the serifs
+ROMANP.MF:
+ $: strengthened the terminals in sans-serif case, and tilted them
+ &: opened the eye by moving point 8 left .5u (RS)
+ ?: tilted the sans-serif terminal and moved it down a little more
+PUNCT.MF:
+ %: move the diagonal a bit left at the top
+ ( and ): 3.5( changed to 3(.
+ [ and ]: round changed to ceiling and floor, avoids disappearing brackets
+ @: inner a placed by its edges instead of its stem centers (RS)
+ITALL.MF:
+ f: lower bulb moved left; .5 changed to .6 between bulb and stem
+ k: bug in lower right stroke (missing e's)
+ l: bug in italic correction for math fitting (u not u#)
+ m: avoid hooks in monospace version
+ p: lengthed left serif at bottom from .5jut to .75jut
+ x: bulbs moved .25u further out; .5 used between bulb and stem
+ w: avoid hook in monospace version
+ITALIG.MF:
+ all five: changed like f
+ fi: made 1u less wide
+ fl,ffl: made .5u less wide, bulb now touches the l stem
+ ffi: made .75u less wide
+GREEKL.MF:
+ beta, gamma, zeta, xi, omega, varepsilon: +eps at the tight turns
+ gamma: final diagonal should be more slanted (MC)
+ zeta: as tall as xi, shallower diagonal slant (MC)
+ kappa: bug in lower right stroke (missing e's)
+ xi: raise the bottom diagonal and distort arc slightly (MC)
+ chi: introduce slight curve in main diagonal stroke
+ varphi: too wide at right half bowl (MC)
+ITALMS.MF:
+ wp: bulb smaller, bottom a little more open
+ITALD.MF:
+ 5: changed like 5 in ROMAND
+OLDDIG.MF:
+ 2: top a bit narrower, bottom a bit wider (MC)
+ 5: changed like 5 in ROMAND
+SYM.MF:
+ plus-minus: shift depends on u not asc_height
+SYMBOL.MF:
+ minus-plus: shift depends on u not asc_height
+ up-and-down arrows (characters '154 and '155): taller and deeper
+ clubsuit: wider
+ spadesuit: y1+1 changed to y1+.75 (also in clubsuit)
+ROMAN.MF:
+ eliminated kerning between L and O,C,G,Q,U (also in TEXTIT and CSC)
+MATHEX.MF:
+ font_x_height needed to be set, for positioning of accents
+CMB10.MF:
+ dishing is too much (on all bold fonts)
+CMR5.MF:
+ letter_fit decreased 10 to 5
+CMBX5.MF:
+ fudge should be 1 (cap_stem 8=:7 in aps mode was too much)
+ decrease letter_fit drastically; this means f-ligatures must come back
+ lowercase parameters increased by 2/36
+CMBI10.MF:
+ lowercase serifs too short. (same change to all the italic fonts)
+CMSX10.MF:
+ decrease `ess' (RS)
+CMTC10.MF:
+ fudge is too much in lowercase
+CMCC10.MF:
+ lowercase more extended
+ much less letterspace in caps
+ increase lower.cap_curve, decrease lower.o
+CMSQI8.MF:
+ slope shouldn't be so much (RS)
+ increase `ess' (RS)
+
+GENERAL:
+ serif-abutment corrections changed to +1 instead of +2
+ vround used for vertical rounding
+
+CMBASE.MF:
+ new way to set shrink_fit (0,1,2) for monotonicity with letter_fit
+ letter_fit not included in mono_charwd
+ fine must be positive (else we lose barbs)
+ thin_join must be positive (else h_stroke gives a bad pos)
+Changes based on the `version 0' test fonts of July 12
+[not showing hundreds of changes to the `typography' of the programs]
+
+Driver files in general:
+Frequency info (from MANUAL.TEX[tex,dek]) was used to order the ligtables
+font_xheight changed to font_x_height (a change to PLAIN.MF)
+
+Program files in general:
+ use `hround' instead of `round' wherever granularity might be wanted
+ less_rounded was taken out; autorounded occasionally put in
+ arm($,$$,...), the value of y$$ was adjusted by eps (lower) or -eps (upper)
+
+Parameter files in general:
+ new 12pt and 17+pt fonts; more sans serif fonts
+ new comment at bottom of all parameter files: `switch to the driver file'
+
+ACCENT.MF:
+ ^: eps subtracted from y1 (helps avoid degenerate equations in ultralowres)
+ '`: eps added to y1
+
+ROMAN.MF:
+ kern entry for gj had the wrong sign
+ kerns for v removed in sans serif
+ new kern for aj in serif case
+ new kern for ar in sans serif
+
+ROMAND.MF:
+ 3: pos3 needed to be maxed with fine.breadth
+    y1r,y9r needed to be adjusted by eps
+ 6,9: keep x1 on the correct side of x2 at lowlowres
+    (this change also affects OLDDIG, ITALD, and ITALMS partial sign)
+
+ROMANP.MF:
+ $: less_tense bulbs
+
+ROMSPL.MF:
+ ss: ensure x5 not > x4l at low resolutions
+
+ROMLIG.MF:
+ itc shouldn't include the slant...
+
+COMLIG.MF:
+ em dash should be one em wide (add letter_fit# to the adjustments)
+
+BIGOP.MF:
+ \displaystyle coproduct sign had 1.2bracket instead of 1.8bracket
+ charlist syntax changed from commas to colons
+
+BIGDEL.MF:
+ extensible double arrow: position wasn't computed as in top and bottom
+ charlist syntax changed from commas to colons
+
+BIGACC.MF:
+ charlist syntax changed from commas to colons
+
+ITALL.MF:
+ c: point 1 made definitely greater than point 2, for lowlowres
+ q: x4 increased by eps, for lowlowres path intersection
+ r: x4 based on w, not 5u
+ s: max(ess,fine.breadth)
+    add eps and 2eps for lowlowres case (cmmi6 at 100/in)
+
+ITALMS.MF:
+ wp: x6r must not be less than x1r at lowlowres
+
+TSETSL.MF:
+ gamma: last time's bugfix from GREEKL needs to be here too
+
+GREEKL.MF:
+ omega: add 2eps to x4-x6
+ lambda: make sure that y3>y4 at lowlowres
+ zeta: make sure that x2>x0 at lowlowres
+ varsigma: make sure that x1>x2 at lowlowres
+
+CMFIB8.MF:
+ decreased serif_fit, cap_serif_fit; increased curve, cap_curve
+
+CMBASE.MF:
+ l,r made newinternals
+ serif darkness and skew switches now done with boolean variables
+ comma and ammoc: 2eps addedto/subtractedfrom position of x@2
+ mod_width now called change_width
+ ess and cap_ess initialized to preserve ratios with stem and cap_stem
+ mode="string" had to be handled properly
+ ^ and ! changed to t_ and o_, as per new PLAIN conventions
+ make cmchar "outer"
+ t_ is now `relaxed' if it is useless
+ soft is now softjoin in PLAIN (we must set join_radius:=u)
+ eps is now in PLAIN
+ vair is vrounded but at least 1; also slab, etc.
+ cal nibs, yscaled by cap_hair not vair
+ autorounding and smoothing turned off
+
+ROMANL.MF:
+ a: `footed' version is .25u tighter at the right
+ b,d,varg,p,q: x4l position relative to .5(w-serif_fit) not 5u
+ e: testpath uses .r not .l (because of cmss10)
+ f: added 1 at right for monospace lowres versions
+ varg: robust sans-serif terminal at tail
+ m: missing `round' in r adjustment caused noninteger chardx
+ r: x4 based on w, not 5.25u
+ s: watch out that ess isn't so small that badpos error occurs (also ROMANU)
+    barbs made longer; based on middle stroke not just h
+ t: sans-serif terminal made more robust in extreme cases
+ w: in non-monospace hefty serif case, the middle point comes to .8h not h
+ y: robust sans-serif terminal at tail
+
+ROMANU.MF:
+ E: good.y used in y9
+
+PUNCT.MF:
+ []: side_thickness needed to be maxed with crisp.breadth
+     +1 or -1 makes lowres versions more distinctive
+ #: tricky part lost at low resolution
+
+SYMBOL.MF:
+ angle brackets: +1 and -1 to make lowres versions more distinctive
+ aleph: eps added so that y5 will be well defined at lowlowres
+
+SYM.MF:
+ integral sign: bulbs need to be in right direction at lowlowres
+
+CALU.MF:
+ A: apex moved slightly down
+ D: less flat at top, slightly lower lobe
+ F: u less right sidebar
+ H: soft corner at upper left
+ I: middle stroke more like J, upper bar a little further right
+ K: introduce t_ in case of aspect_ratio
+ L: darker
+ M: lighter first diagonal; clean the joins
+ N: lighter diagonal; clean bottom right; .5u less right sidebar
+ O: shortened the inner stroke
+ P: stem comes lower
+ Q: tail not so long at left
+ R: not so flat at top; diagonal less tense; tail less high
+ T: narrower, also changed like I, .5u less right sidebar,
+     heavier, not so high at right
+ U: less extreme curve at lower left
+ V: cleaned up at bottom; lighter first diagonal; slightly wider
+ W: changed like V, but double
+ X: new design, less rigid
+ Y: new design based more on V than U
+ Z: tighter at right, heavier at top and bottom
+
+CMSS10.MF:
+ decreased notch_cut and bar_height
+
+%Note: The following can presumably be deleted; I removed it from CMBASE because
+%  I don't think it is used any more:
+vardef parallel_pos(expr d,u,v,w) = % point at distance $d$ from $u$,
+  % on the line through $w$ that's parallel to |u..v|
+ pair p_; p_=w+whatever*(u-v)=u+whatever*(u-v) rotated 90;
+ numeric d_; d_=length(u-p_);  % distance from $w$ to |u..v|
+ if d_>=d: p_ else: p_+(d+-+d_)*unitvector(v-u) fi enddef;
+Changes subsequent to `Version 1' as released on October 7, 1985.
+
+1. thin_join should be subject to blacker:
+@x in CMBASE.MF, the font_setup routine
+ define_whole_pixels(letter_fit,thin_join,fine,crisp,tiny);
+ define_whole_vertical_pixels(body_height,asc_height,
+  cap_height,fig_height,x_height,comma_depth,desc_depth,serif_drop);
+ define_whole_blacker_pixels(hair,stem,curve,flare,
+@y
+ define_whole_pixels(letter_fit,fine,crisp,tiny);
+ define_whole_vertical_pixels(body_height,asc_height,
+  cap_height,fig_height,x_height,comma_depth,desc_depth,serif_drop);
+ define_whole_blacker_pixels(thin_join,hair,stem,curve,flare,
+@z
+@x
+ if thin_join=0: thin_join:=1; fi
+@y
+@z
+[Note, December 11: My first correction also introduced the statement
+ if fine<thin_join: fine:=thin_join; fi
+in place of
+ if fine=0: fine:=1; fi
+but I can't understand why I would do such a stupid thing!]
+
+2. A new subroutine needed in CMBASE.MF (for cases with aspect_ratio<>1):
+vardef Vround primary y = y_:=vround y;
+ if y_<min_Vround: min_Vround else: y_ fi enddef;
+newinternal y_,min_Vround;
+
+@x related changes to the font_setup routine (in CMBASE.MF):
+ forsuffixes $=vair,bar,slab,cap_bar,cap_band:
+  $:=vround($.#*hppp+blacker); if $<=1: $:=1; fi endfor
+@y
+ define_whole_vertical_blacker_pixels(vair,bar,slab,cap_bar,cap_band);
+@z
+@x
+ vair':=max(1,vround(vair+vair_corr));
+ vstem:=max(1,vround .8[vair,stem]);
+ cap_vstem:=max(1,vround .8[vair,cap_stem]);
+@y
+ vair':=vround(vair+vair_corr);
+ vstem:=vround .8[vair,stem]; cap_vstem:=vround .8[vair,cap_stem];
+@z
+@x
+ pickup pencircle scaled rule_thickness; rule.nib:=savepen;
+@y
+ min_Vround:=max(fine.breadth,crisp.breadth,tiny.breadth);
+ forsuffixes $=vair,bar,slab,cap_bar,cap_band,vair',vstem,cap_vstem:
+  if $<min_Vround: $:=min_Vround; fi endfor
+ pickup pencircle scaled rule_thickness; rule.nib:=savepen;
+@z
+
+The Vround routine is substituted for vround in the programs for
+  Macron, line 6 (in ACCENT.MF)
+  Variant epsilon, line 5 (in GREEKL.MF)
+  Sigma, line 6 (in GREEKU.MF)
+  Omega, line 14 (in GREEKU.MF)
+  2, line 6 (in OLDDIG.MF and ROMAND.MF)
+  7, lines 6 and 8 (in OLDDIG.MF and ROMAND.MF)
+  g, lines 6 and 8 (in ROMANL.MF)
+  s, line 6 (in ROMANL.MF)
+  y, line 9 (in ROMANL.MF)
+  z, line 6 (in ROMANL.MF)
+  &, line 39 (in ROMANP.MF)
+  ?, line 18 (in ROMANP.MF)
+  Spanish open ?, line 17 (in ROMANP.MF)
+  Z, line 6 (in ROMANU.MF)
+  smile and frown, line 4 (in ROMMS.MF)
+
+3. Typo in program for oe ligature.
+@x in file ROMSPL.MF
+else: left_curve=max(tiny.breadth,hround(curve-2stem_corr));
+@y
+else: left_curve=max(fine.breadth,hround(curve-2stem_corr));
+@z
+
+4. Forgotten update to program for SS.
+@x in file CSCSPU.MF
+pickup fine.nib; pos2(max(fine.breadth,s_slab-vround vair_corr),-90);
+pos0(cap_ess,theta); pos7(s_slab,-90);
+x2+x7=2x0=w; x7-x2=if serifs: u else: 0 fi; top y2l=h+o; bot y7r=-o;
+y0=.52h; lft x3l=hround u; rt x6r=hround(w-u);
+x3r-x3l=x6r-x6l=hround .5[s_slab,cap_ess] -fine;
+@y
+numeric ess'; ess'=max(fine.breadth,cap_ess);
+pickup fine.nib; pos2(max(fine.breadth,s_slab-vround vair_corr),-90);
+pos0(ess',theta); pos7(s_slab,-90);
+x2+x7=2x0=w; x7-x2=if serifs: u else: 0 fi; top y2l=h+o; bot y7r=-o;
+y0=.52h; lft x3l=hround u; rt x6r=hround(w-u);
+x3r-x3l=x6r-x6l=hround .5[s_slab,ess']-fine;
+@z
+
+5. Hairline in `k' was overcorrected. (Pavel Curtis)
+@x in file ROMANL.MF
+stem3=max(tiny.breadth,hround(fudged.hair-4stem_corr));
+@y
+stem3=max(tiny.breadth,hround(fudged.hair if hefty:-\\4stem_corr fi));
+@z
+
+6. Too much kerning in "We", etc., in sans-serif fonts
+@x in file ROMAN.MF and TEXSET.MF
+ ligtable "F": "V": "W": "o" kern kk#, "e" kern kk#, "u" kern kk#,
+   "r" kern kk#, "a" kern kk#, "A" kern kkk#,
+@y
+ ligtable "F": "V": "W": if serifs: "o" kern kk#, "e" kern kk#, "u" kern kk#,
+    "r" kern kk#, "a" kern kk#, "A" kern kkk#,
+   else: "o" kern k#, "e" kern k#, "u" kern k#,
+    "r" kern k#, "a" kern k#, "A" kern kk#, fi
+@z
+@x in file TITLE.MF
+ ligtable "F": "V": "W": "A" kern kkk#,
+@y
+ ligtable "F": "V": "W": "A" kern if serifs: kkk# else: kk#\\fi,
+@z
+@x in file CSC.MF
+ ligtable "F": "V": "W": "a" kern kkk#, "A" kern kkk#,
+@y
+ ligtable "F": "V": "W": if serifs: "a" kern kkk#, "A" kern kkk#,
+  else: "a" kern kk#, "A" kern kk#, fi
+@z
+@x in file CSC.MF
+ ligtable "f": "v": "w": "a" kern kkk#,
+@y
+ ligtable "f": "v": "w": "a" kern if serifs: kkk# else: kk#\\fi,
+@z
+
+7. dish serifs need to be more robust when dishing is very small.
+@x in file CMBASE.MF
+  if y$<y$$: dish_out=bot y$; dish_in=dish_out+dish;
+  else: dish_out=top y$; dish_in=dish_out-dish; fi
+  erase fill\\(x@1,dish_out)..(x$,dish_in){right}..(x@@1,dish_out)--cycle;
+@y
+  if y$<y$$: dish_out=bot y$; dish_in=dish_out+dish; let rev_=reverse;
+  else: dish_out=top y$; dish_in=dish_out-dish; let rev_=relax; fi
+  erase fill rev_
+   ((x@1,dish_out)..(x$,dish_in){right}..(x@@1,dish_out)--cycle);
+@z
+
+8. more robustness in case thin_join is too big
+@x in file ROMANL.MF, program for "b"
+pos4(vair,90); pos5(curve,0);
+pos6(vair,-90); penpos7(x3l-x3r,-180);
+rt x3l=1/3[rt x2,edge]; y3=1/8[bar_height,x_height];
+@y
+pos4(vair,90); pos5(curve,0); pos6(vair,-90); penpos7(x3l-x3r,-180);
+rt x3l=max(rt x3l-(lft x3r-tiny.lft x2l),1/3[rt x2,edge]);
+y3=1/8[bar_height,x_height];
+@z
+@x ibid, program for "d"
+pos4(vair,90); pos5(curve,180);
+pos6(vair,270); penpos7(x3r-x3l,360);
+lft x3l=1/3[lft x2,edge]; y3=1/8[bar_height,x_height];
+@y
+pos4(vair,90); pos5(curve,180); pos6(vair,270); penpos7(x3r-x3l,360);
+lft x3l=min(lft x3l-(rt x3r-tiny.rt x2r),1/3[lft x2,edge]);
+y3=1/8[bar_height,x_height];
+@z
+@x ibid, program for variant "g"
+pos4(vair,90); pos5(curve,180);
+pos6(vair,270); penpos7(x3r-x3l,360);
+lft x3l=2/3[lft x2,edge]; y3=bar_height;
+@y
+pos4(vair,90); pos5(curve,180); pos6(vair,270); penpos7(x3r-x3l,360);
+lft x3l=min(lft x3l-(rt x3r-tiny.rt x2r),2/3[lft x2,edge]); y3=bar_height;
+@z
+@x ibid, program for "p"
+rt x3l=1/3[rt x2,edge]; y3=1/8[bar_height,x_height];
+@y
+rt x3l=max(rt x3l-(lft x3r-tiny.lft x2l), 1/3[rt x2,edge]);
+y3=1/8[bar_height,x_height];
+@z
+@x ibid, program for "q"
+lft x3l=2/3[lft x2,edge]; y3=bar_height;
+@y
+lft x3l=min(lft x3l-(rt x3r-tiny.rt x2r),2/3[lft x2,edge]); y3=bar_height;
+@z
+@x ibid, proram for "q"
+x6l=x4l-.2u; bot y6r=-oo;
+lft x7l=1/3[lft x2,edge]; y7=min(y3,y6+y4-y3+.6vair);
+@y
+x6l=x4l-.2u; bot y6r=-oo; y7=min(y3,y6+y4-y3+.6vair);
+lft x7l=min(lft x7l-(rt x7r-tiny.rt x2r),1/3[lft x2,edge]);
+@z
+
+9. More robust "c" and "e" and "C"
+@x in file ROMANL.MF, program for "c"
+ (x,y4l)=whatever[z4r,z5l]; x4l:=x;
+@y
+ (x,y4l)=whatever[z4r,z5l]; x4l:=min(x,x4l+.5u);
+@z
+@x ibid, program for "e"
+ (x,y4l)=whatever[z4r,z5]; x4l:=x;
+@y
+ (x,y4l)=whatever[z4r,z5]; x4l:=min(x,x4l+.5u);
+@z
+@x in file ROMSPL.MF, programs for "ae" and "oe"
+ (x,y14l)=whatever[z14r,z15]; x14l:=x;
+@y
+ (x,y14l)=whatever[z14r,z15]; x14l:=min(x,x14l+.5u);
+@z
+@x in file ROMANU.MF, programs for "C" and "G"
+ (x2l',y2l)=whatever[z2r,z1l]; x2l:=x2l';
+ (x4l',y4l)=whatever[z4r,z5l]; x4l:=x4l';
+@y
+ (x2l',y2l)=whatever[z2r,z1l]; x2l:=min(x2l',x2l+.5u);
+ (x4l',y4l)=whatever[z4r,z5l]; x4l:=min(x4l',x4l+.5u);
+@z
+
+10. More robust foot in "a"
+@x in file ROMANL.MF
+  filldraw stroke z5'e---z10e...z11e{right};  % foot
+@y
+  pos12(shaved_stem,0); x11=x12; top y12=slab+eps;
+  filldraw z5'l---z10l...z11l{right}--z11r
+   --z12r{left}...z10r+.75(z12-z11)---z5'r--cycle;  % foot
+@z
+
+11. Barbs less sharp
+@x in file ROMANU.MF, programs for "C" and "G"
+ x6=x1r; top y6=h+o; x1r-x1'=2cap_curve-fine; y1'=y1;
+ path upper_arc; upper_arc=z1{x2-x1,10(y2-y1)}..z2{left};
+ numeric t; t=xpart(upper_arc intersectiontimes (z6--z1'));
+ filldraw z1r--z6--subpath(t,0) of upper_arc--cycle; % barb
+@y [actually "G" had something similar but not identical]
+ pos6(.3[fine.breadth,cap_hair],0); x6r=x1r; top y6=h+o;
+ x1r-x1'=2cap_curve-fine; y1'=y1;
+ path upper_arc; upper_arc=z1{x2-x1,10(y2-y1)}..z2{left};
+ numeric t; t=xpart(upper_arc intersectiontimes (z6l--z1'));
+ filldraw z1r--z6r--z6l--subpath(t,0) of upper_arc--cycle; % barb
+@z
+@x ibid, program for "S"
+ x10=x1l; top y10=top y2l; x9=x8r; bot y9=bot y7r;
+ x1l-x1'=x8'-x8r=1.6cap_curve-fine; y1'=y1; y8'=y8;
+ numeric t; t=xpart(upper_arc intersectiontimes(z10--z1'));
+ filldraw z1l--z10--subpath(t,0) of upper_arc--cycle;  % upper barb
+ t:=xpart(lower_arc intersectiontimes(z9--z8'));
+ filldraw z8r--z9--subpath(t,1) of lower_arc--cycle;  % lower barb
+@y
+ pos10(.3[fine.breadth,cap_hair],0); pos9(.3[fine.breadth,cap_hair],0);
+ x10r=x1l; top y10=top y2l; x9l=x8r; bot y9=bot y7r;
+ x1l-x1'=x8'-x8r=1.6cap_curve-fine; y1'=y1; y8'=y8;
+ numeric t; t=xpart(upper_arc intersectiontimes(z10l--z1'));
+ filldraw z1l--z10r--z10l--subpath(t,0) of upper_arc--cycle;  % upper barb
+ t:=xpart(lower_arc intersectiontimes(z9r--z8'));
+ filldraw z8r--z9l--z9r--subpath(t,1) of lower_arc--cycle;  % lower barb
+@z [the same change goes into file CSCSPU.MF, the program for two S's]
+@x in file ROMANL.MF, program for "s"
+ x10=x1l; top y10=top y2l; x9=x8r; bot y9=bot y7r;
+ x1l-x1'=x8'-x8r=1.6curve-fine; y1'=y1; y8'=y8;
+ numeric t; t=xpart(upper_arc intersectiontimes(z10--z1'));
+ filldraw z1l--z10--subpath(t,0) of upper_arc--cycle;  % upper barb
+ t:=xpart(lower_arc intersectiontimes(z9--z8'));
+ filldraw z8r--z9--subpath(t,1) of lower_arc--cycle;  % lower barb
+@y
+ pos10(.3[fine.breadth,cap_hair],0); pos9(.3[fine.breadth,cap_hair],0);
+ x10r=x1l; top y10=top y2l; x9l=x8r; bot y9=bot y7r;
+ x1l-x1'=x8'-x8r=1.6cap_curve-fine; y1'=y1; y8'=y8;
+ numeric t; t=xpart(upper_arc intersectiontimes(z10l--z1'));
+ filldraw z1l--z10r--z10l--subpath(t,0) of upper_arc--cycle;  % upper barb
+ t:=xpart(lower_arc intersectiontimes(z9r--z8'));
+ filldraw z8r--z9l--z9r--subpath(t,1) of lower_arc--cycle;  % lower barb
+@z
+
+12. Italic ampersand more robust
+@x in file ITALP
+ & pulled_arc.e(9,10)...{dir(theta+90)}z11e;  % bowls, loop, and stem
+@y
+ & {{interim superness:=more_super; pulled_arc.e(9,10)}}
+ ..tension .9 and 1..{dir(theta+100)}z11e;  % bowls, loop, and stem
+@z
+
+13. h_stroke more robust (esp in case of typewriter-style m)
+@x in file CMBASE
+ pickup fine.nib; pos@0(thin_join,180);
+@y
+ penpos@0(min(rt x$r-lft x$l,thin_join)-fine,180); pickup fine.nib;
+@z
+
+14. eliminate dishing in conflict with arm.
+Put a new subroutine into CMBASE.MF:
+def nodish_serif(suffix $,$$,@)(expr left_darkness,left_jut)
+  (suffix @@)(expr right_darkness,right_jut) suffix modifier =
+ serif($,$$,@,left_darkness,-left_jut) modifier;
+ serif($,$$,@@,right_darkness,right_jut) modifier; enddef;
+
+Now use this instead of dish_serif in the following places:
+GREEKU:  Gamma, upper serif
+  Pi, both upper serifs (fix erroneous comments!)
+SYMBOL:  Amalgamation, both lower serifs (fix erroneous comments!)
+ROMANU:  B, both serifs
+  D, both serifs
+  E, both serifs
+  F, upper serif
+  L, lower serif
+  P, upper serif
+  R, upper serif
+  T, upper bracketing
+ROMSPU: AE, upper and lower middle serifs
+
+15. Change #2 wasn't quite good enough!
+@x in CMBASE
+ min_Vround:=max(fine.breadth,crisp.breadth,tiny.breadth);
+@y
+ min_Vround:=max(fine.breadth,crisp.breadth,tiny.breadth);
+ if min_Vround<vround min_Vround: min_Vround:=vround min_Vround; fi
+ if flare<vround flare: flare:=vround flare; fi
+@z
+
+16. body_depth# is now called paren_depth#, since body_depth is
+computed differently. (This is a cosmetic change only; it affects
+files CMBASE, PUNCT, SYM, SYMBOL, and ROMMS.)
+
+17. more robust Sigma
+@x in GREEKU, page 9
+top y1=h; bot y2=h-slab; bot y4=0; x3l-x1l=4/11(w-2u); y3=.5h;
+@y
+top y1=h; bot y2=h-slab-eps; bot y4=0; x3l-x1l=4/11(w-2u); y3=.5h;
+@z
+@x in BIGOP, page 7
+top_arm_thickness=rule_thickness;
+@y
+top_arm_thickness=Vround rule_thickness;
+@z
+@x in BIGOP, page 7 (this change needed twice)
+top y1=0; bot y2=-top_arm_thickness; bot y4=-d; y3=-.5d;
+@y
+top y1=0; bot y2=-top_arm_thickness-eps; bot y4=-d; y3=-.5d;
+@z
+
+18. yet another refinement of change #2
+@x in CMBASE
+ forsuffixes $=vair,bar,slab,cap_bar,cap_band,vair',vstem,cap_vstem:
+@y
+ forsuffixes $=vair,bar,slab,cap_bar,cap_band,vair',vstem,cap_vstem,bold:
+@z
+
+19. slightly more robust `k'
+@x in ROMANL
+top y3=x_height; rt x3r=hround(r-letter_fit-.7u-right_jut);
+bot y6=0; rt x6r=hround(r-letter_fit-.3u-right_jut);
+@y
+top y3=x_height; rt x3r=hround(r-letter_fit-.7u-right_jut)+eps;
+bot y6=0; rt x6r=hround(r-letter_fit-.3u-right_jut)+eps;
+@z
+
+20. small parameter changes for consistency
+@x in CMBX6
+dish#:=.9/36pt#;    % amount erased at top or bottom of serifs
+@y
+dish#:=.8/36pt#;    % amount erased at top or bottom of serifs
+@z
+@x in CMBX5
+dish#:=.75/36pt#;    % amount erased at top or bottom of serifs
+@y
+dish#:=.7/36pt#;    % amount erased at top or bottom of serifs
+@z
+@x in CMSS9 and CMSSI9 [these two lines are not consecutive in the files!]
+notch_cut#:=23/36pt#;    % maximum breadth above or below notches
+cap_notch_cut#:=29/36pt#;  % max breadth above/below uppercase notches
+@y
+notch_cut#:=17/36pt#;    % maximum breadth above or below notches
+cap_notch_cut#:=24/36pt#;  % max breadth above/below uppercase notches
+@z
+@x in CMSS8 and CMSSI8 [these two lines are not consecutive in the files!]
+notch_cut#:=21/36pt#;    % maximum breadth above or below notches
+cap_notch_cut#:=27/36pt#;  % max breadth above/below uppercase notches
+@y
+notch_cut#:=16/36pt#;    % maximum breadth above or below notches
+cap_notch_cut#:=22/36pt#;  % max breadth above/below uppercase notches
+@z
+@x in CMTI9
+cap_hair#:=10/36pt#;    % uppercase hairline breadth
+@y
+cap_hair#:=11/36pt#;    % uppercase hairline breadth
+@z
+@x in CMTI8
+cap_hair#:=9.5/36pt#;    % uppercase hairline breadth
+@y
+cap_hair#:=11/36pt#;    % uppercase hairline breadth
+@z
+@x in CMTI7
+cap_hair#:=9/36pt#;    % uppercase hairline breadth
+@y
+cap_hair#:=10.5/36pt#;    % uppercase hairline breadth
+@z
+@x in CMTCSC10
+lower.cap_notch_cut#:=24pt#;  % max breadth above/below uppercase notches
+@y
+lower.cap_notch_cut#:=24/36pt#;  % max breadth above/below uppercase notches
+@z
+
+21. New parameter file CMFI10 was added; font_identifier is "CMFI".
+Also changed the name `cmit10' to `cmitt10'; font_identifier is "CMITT".
+
+22. Still more changes for robustness (based on resolution h120 x v108).
+@x in ROMAND and ITALD, "5"
+bot y5=vround(.53h-vair); top y6r=vround .61803h+o;
+@y
+bot y5=vround(.53h-vair); top y6r=max(vround .61803h+o,top y6r+y5+eps-y6l);
+@z
+@x in OLDDIG, "5"
+bot y5=vround(.53[-d,h]-vair); top y6r=(vround .61803[-d,h])+o;
+@y
+bot y5=vround(.53[-d,h]-vair);
+top y6r=max((vround .61803[-d,h])+o,top y6r+y5+eps-y6l);
+@z
+@x in ROMANU, "C"
+ bot y1=vround max(.6h,x_height-.5vair); y5=good.y .95(h-y1);
+@y
+ bot y1=min(vround max(.6h,x_height-.5vair),bot y2l-eps);
+ y5=max(good.y .95(h-y1),y4l+eps);
+@z
+@x in ROMANU, "G"
+ bot y1=vround max(.6h,x_height-.5vair);
+@y
+ bot y1=min(vround max(.6h,x_height-.5vair),bot y2l-eps);
+@z
+@x in GREEKL page 6 and TSETSL page 8
+y1=.9h; top y2l=h+oo; top y8r=x_height+oo; y4=y8;
+@y
+top y2l=h+oo; y1=min(.9h,y2r-eps); top y8r=x_height+oo; y4=y8;
+@z
+@x in GREEKL page 16
+x6=x7=w-2u; x8=.5w+.5u; y6=-.3d; y8=-3/4d-oo; bot y7r=-d-oo;
+@y
+x6=x7=w-2u; x8=.5w+.5u; y6=-.3d; bot y7r=-d-oo; y8=max(-3/4d-oo,y7l);
+@z
+@x in ITALL page 12, ITALMS page 6, ITALSP page 4
+lft x5r=hround-.5u; x4=1/3(w-u);
+@y
+x4=1/3(w-u); lft x5r=min(hround-.5u,lft x5r+x4-x5l-eps);
+@z
+@x in ROMANL, "g"
+x11=x13=.5w; bot y13r=-d-oo-1; x14=w-x12; z10'l=z10l;
+@y
+x11=x13=max(.5w,x10+eps); bot y13r=-d-oo-1; x14=w-x12; z10'l=z10l;
+@z
+@x in ROMANL, "s"
+ filldraw stroke z1e..tension.9..{left}z2e;  % upper arc and terminal
+ filldraw stroke z7e{left}..z8e; fi  % lower arc and terminal
+@y
+ filldraw stroke term.e(2,1,right,.9,4);  % upper arc and terminal
+ filldraw stroke term.e(7,8,left,1,4); fi  % lower arc and terminal
+@z
+@x in ROMANL, "c"
+ filldraw stroke pulled_super_arc.e(2,3)(.7superpull)
+  & pulled_super_arc.e(3,4)(.5superpull)
+  ..tension .9 and 1..z5e; fi  % arc and lower terminal
+@y
+ forsuffixes e=l,r: path p.e; p.e=z4e{right}..tension .9 and 1..z5e;
+  if angle direction 1 of p.e>75:
+   p.e:=z4e{right}..tension atleast.9 and 1..{dir 75}z5e; fi endfor
+ filldraw stroke pulled_super_arc.e(2,3)(.7superpull)
+  & pulled_super_arc.e(3,4)(.5superpull) & p.e; fi  % arc and lower terminal
+@z
+@x in ROMSPL, page 5
+lft x8r=hround(stem_edge+.5u+1); x7=max(x8l+eps,.4[lft x8r,x6]);
+@y
+lft x8r=min(hround(stem_edge+.5u+1),lft x8r+x6r-2eps-x8l);
+x7=max(x8l+eps,.4[lft x8r,x6]);
+@z
+@x in ROMAND and OLDDIG, "2"
+ lft x1r=hround .75u; bot y1l=vround .7h; y1r:=good.y y1r; x1l:=good.x x1l;
+@y
+ lft x1r=hround .75u; bot y1l=vround .7h; y1r:=good.y y1r+eps; x1l:=good.x x1l;
+@z
+@x in SYMBOL, page 42 (Fraktur R)
+z=(z20{up}...{right}z21)intersectionpoint(z22l--z22l+(h,0) rotated theta);
+@y
+path p; p=z20{up}...(z21--(w,y21));
+z=p intersectionpoint(z22l--z22l+(h,0) rotated theta);
+@z
+
+23. Another consequence of change 2:
+"vround" should be "Vround" in the BIGDEL programs for extensible arrows
+(five times).
+Also five times in the BIGOP programs for summation, product, coproduct.
+
+24. Cosmetic change to bring CMBASE in line with PLAIN.
+@x in CMBASE.MF
+def pickup secondary q =
+ if numeric q: currentpen:=pen_[q];
+  pen_top:=pen_top_[q];  pen_bot:=pen_bot_[q];
+  pen_lft:=pen_lft_[q];  pen_rt:=pen_rt_[q];
+  currentpen_path:=pen_path_[q];
+  if known breadth_[q]: currentbreadth:=breadth_[q]; fi
+ else: currentpen:=q yscaled aspect_ratio;
+  pen_top:=(ypart penoffset left of currentpen)_o_;
+  pen_bot:=(ypart penoffset right of currentpen)_o_;
+  pen_lft:=xpart penoffset down of currentpen;
+  pen_rt:=xpart penoffset up of currentpen;
+  path currentpen_path;
+ fi enddef;
+@y
+def numeric_pickup_ primary q =
+ currentpen:=pen_[q];
+ pen_lft:=pen_lft_[q];  pen_rt:=pen_rt_[q];
+ pen_top:=pen_top_[q];  pen_bot:=pen_bot_[q];
+ currentpen_path:=pen_path_[q];
+ if known breadth_[q]: currentbreadth:=breadth_[q]; fi enddef;
+@z
+
+25. false italic correction in lambda of texset fonts (Feb 25, 1986)
+@x in TEXSET
+mode_setup; font_setup;
+@y
+mode_setup; font_setup; mono_charic#:=0;
+@z
+@x ibid
+slant:=mono_charic#:=0;  % the remaining characters will not be slanted
+@y
+slant:=0;  % the remaining characters will not be slanted
+@z
+[now remove the occurrences of `charic:=0;' in TSETSL, as they are unnecessary]
+
+*** The above changes are incorporated into the published book,
+*** Computer Modern Typefaces; this is "Version 2" (released March 5, 1986).
+Changes subsequent to `Version 2' as published in C&T, Volume E:
+
+@x in GREEKU
+numeric shaved_stem; shaved_stem=hround .9[vair,.85cap_stem];
+@y
+numeric shaved_stem; shaved_stem=hround .9[vair,.85cap_stem];
+if shaved_stem<crisp.breadth: shaved_stem:=crisp.breadth; fi
+@z
+
+@x in CMSS9 [this affects the TFM file to a small extent!]
+fig_height#:=236/36pt#;    % height of numerals
+@y
+fig_height#:=212/36pt#;    % height of numerals
+@z
+
+@x in CMSSI9 [this affects the TFM file in ten hts and eleven italcorrs]
+fig_height#:=236/36pt#;    % height of numerals
+@y
+fig_height#:=212/36pt#;    % height of numerals
+@z
+
+@x in CMR17 [no change to TFM file]
+curve#:=41/36pt#;    % lowercase curve breadth
+@y
+curve#:=40/36pt#;    % lowercase curve breadth
+@z
+@x
+cap_stem#:=40/36pt#;    % uppercase stem breadth
+cap_curve#:=48/36pt#;    % uppercase curve breadth
+@y
+cap_stem#:=41/36pt#;    % uppercase stem breadth
+cap_curve#:=47/36pt#;    % uppercase curve breadth
+@z
+@x
+serif_drop#:=17/36pt#;    % vertical drop of sloped serifs
+@y
+serif_drop#:=7/36pt#;    % vertical drop of sloped serifs
+@z
+
+@x in ROMAND [this fixes the `disappearing hairline' in some lowres 8's]
+ lower_side=hround(.5[hair,stem]+stem_corr);
+@y
+ lower_side=hround(.5[hair,stem]+stem_corr);
+ if lower_side>1.2upper_side: upper_side:=lower_side; fi
+@z
+% Note: the SAME change should also be made in files ITALD and OLDDIG
+
+@x in ITALL [this fixes italic ell especially at low resolutions]
+top y1=h; x1=x2; filldraw stroke z1e--z2e;  % stem
+@y
+top y1=h; x1=x2; filldraw stroke z1e--z2'e;  % stem
+@z
+
+@x in SYM, the plus-or-minus character
+x1=x2=.5w; lft x3=lft=x5=hround u-eps; x4=x6=w-x3;
+@y
+x1=x2=.5w; lft x3=lft x5=hround u-eps; x4=x6=w-x3;
+@z actually the code worked but it was "infelicitous"
+
+@x in SYMBOL, the minus-or-plus character
+x1=x2=.5w; lft x3=lft=x5=hround u-eps; x4=x6=w-x3;
+@y
+x1=x2=.5w; lft x3=lft x5=hround u-eps; x4=x6=w-x3;
+@z actually the code worked but it was "infelicitous"
+
+@x in ROMANU, letter J [fixes a bug if dish=0 and crisp<tiny and serifs]
+ bulb(3,4,5);  % bulb
+@y
+ pickup tiny.nib; bulb(3,4,5);  % bulb
+@z
+
+@x in ROMANL, letter w [makes notch_cut more useful]
+ else: fill diag_end(6r,5r,1,1,5l,6l)--.5[z5l,z6l]
+   --.5[z5r,z6r]--cycle;% middle stem
+@y
+ else: fill diag_end(6r,5r,1,1,5l,6l)--.9[z5l,z6l]
+   ..{z5-z6}.1[z5r,z6r]--cycle; % middle stem
+@z the same change applies also to letter W in ROMANU
+
+@x in CMBASE, makes lowres types (especially TT) look better
+ define_blacker_pixels(notch_cut,cap_notch_cut);
+@y
+ define_blacker_pixels(notch_cut,cap_notch_cut);
+ forsuffixes $=notch_cut,cap_notch_cut: if $<3: $:=3; fi endfor
+@z
+
+@x in BIGOP, the \displaystyle coproduct sign
+lft x11=hround u; x1l-x11=x2l-x12=x22-x2r=hround cap_jut;
+@y
+lft x11=hround u; x1l-x11=x2l-x12=x22-x2r=hround 1.6cap_jut;
+@z
+
+@x in ROMANL, the letter m
+lft x1l=hround(2.5u-.5stem); x1l=x1'l=x2l=x2'l;
+lft x3l=hround(.5w-.5stem); x5-x3=x3-x1;
+if not monospace: r:=hround(x5+x1)-l; fi  % change width for better fit
+@y
+lft x1l=hround(2.5u-.5stem); x1l=x1'l=x2l=x2'l; % stem, sic
+lft x3l=hround(.5w-.5mfudged.stem); x5-x3=x3-x1;
+if not monospace: r:=hround(x5+x1)+r-w; fi  % change width for better fit
+@z
+
+@x a new routine for CMBASE, following change_width
+@y
+def center_on(expr x) = if not monospace: % change width for symmetric fit
+ r:=r+2x-w; w:=2x; fi enddef;
+@z
+@x in SYMBOL, the elementary division operator
+x3-.5dot_size=hround(.5w-.5dot_size); w:=r:=2x3;
+@y
+x3-.5dot_size=hround(.5w-.5dot_size); center_on(x3);
+@z
+Similarly, whenever the construction "w:=r:=2x*" appears, change it to
+"center_on(x*)". This happens in the programs for elementary division operator
+(as noted above), large triangle, large inverted triangle, lattice top,
+lattice bottom, dagger mark, double dagger mark, club/diamond/heart/spade suit
+(all in SYMBOL), plus the diamond operator and universal quantifier in SYM.
+The following additional change needs to be made in the programs
+for lattice top and lattice bottom:
+@x
+x1=x2=good.x .5w; center_on(x1); lft x3=hround u; x4=r-x3;
+@y
+x1=x2=good.x .5w; center_on(x1); lft x3=hround u; x4=w-x3;
+@z
+
+@x in SYMBOL, at end of zero-width slash
+labels(1,2); zero_width; endchar;
+@y
+labels(5,6); zero_width; endchar;
+@z
+
+@x in ROMANU, the letter Q (this change simply labels point 8 on proofs)
+math_fit(-.3cap_height#*slant-.5u#,ic#); penlabels(1,2,3,4,5,6,7); endchar;
+@y
+math_fit(-.3cap_height#*slant-.5u#,ic#);
+penlabels(1,2,3,4,5,6,7,8); endchar;
+@z
+
+@x in ROMANL, the letter i (this change by Jonathan Kew makes the dot rounder)
+if serifs: x3r=max(x1r,x1+.5(dot_diam-tiny)-.2jut) else: x3=x1-.5 fi;
+@y
+if serifs: x3r=max(x1r,hround(x1+.5dot_diam-.2jut)-.5tiny)
+else: x3=x1-.5 fi;
+@z
+
+-----------Here I draw the line with respect to further changes
+
+(I sincerely hope there won't be any more!)

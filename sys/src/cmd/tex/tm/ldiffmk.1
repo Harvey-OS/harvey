@@ -1,0 +1,84 @@
+.deTH
+.PD
+.nrIN \\n()Mu
+.ift .ds ]H \\$1\^(\^\\$2\^)
+.ifn .ds ]H \\$1(\\$2)
+.if\\n()s .ds ]D
+.if\\n()t .ds ]D UNIX System V
+.ifn .ds ]D UNIX System V
+.ds]L
+.if!\\$3 .ds ]L (\^\\$3\^)
+.if!\\$4 .ds ]D \\$4
+.wh0 }H
+.wh-\\n(:mu }F
+.em}M
+.if\\n(nl .bp
+.nr)I \\n()Mu
+.nr)R 0
+.}E
+.DT
+.ifn \{.na
+.nh\}
+.ift \{.bd S 3 3
+.hy14 \}
+..
+.if t .ds ' \h@.05m@\s+4\v@.333m@\'\v@-.333m@\s-4\h@.05m@
+.if n .ds ' '
+.if t .ds ` \h@.05m@\s+4\v@.333m@\`\v@-.333m@\s-4\h@.05m@
+.if n .ds ` `
+.TH LDIFFMK 1
+.SH NAME
+ldiffmk \- mark differences between files -- LaTeX version
+.SH SYNOPSIS
+.B ldiffmk
+name1 name2 name3
+.SH DESCRIPTION
+.I Ldiffmk\^
+compares two versions of a file and creates a
+third file that includes ``change mark'' commands for
+.IR LaTeX
+.I Name1\^
+and
+.I name2\^
+are the old and new versions of the file.
+.I Ldiffmk\^
+generates
+.IR name3 ,
+which contains the lines of
+.I name2\^
+plus inserted formatter ``change mark''
+requests.
+When
+.I name3\^
+is formatted,
+changed or inserted text is shown by `T' (actually a symbol not
+available with troff) at the right
+margin of the first changed line and an upside down `T' at the right
+margin of the last changed line.  If the change is a single line the
+upside down `T' may occur on the following line.
+The position of deleted text is shown by a single
+.BR \(*d .
+.PP
+The change marks are actually inserted as marginal notes, using
+calls to \emarginpar.
+If the characters `T', upside down `T' and
+.B \(*d
+are inappropriate,
+a copy of
+.I ldiffmk\^
+can be edited to change them
+.RI ( ldiffmk\^
+is a shell procedure).
+.SH SEE ALSO
+diffmk(1), diff(1), nroff(1), troff(1).
+.SH BUGS
+Aesthetic considerations may dictate manual adjustment of some output.
+File differences involving only formatting requests may produce undesirable
+output, i.e., replacing a single space by two spaces will
+produce a ``change mark'' on the preceding or following line of output.
+.PP
+Differences outside of standard vertical mode may be ignored, such
+as in footnotes, ...  Differences in text read by macros, such as in
+abstracts, bibliography, ... causes LaTeX errors and must be
+manually removed.
+.\"	@(#)diffmk.1	6.2 of 8/13/87

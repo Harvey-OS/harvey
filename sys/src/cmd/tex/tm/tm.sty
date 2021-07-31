@@ -1,0 +1,1146 @@
+\def\tmversiondate{1991-Nov-13}
+\typeout{Document Style `TM' (Technical Memorandum).  
+Release \tmversiondate .}
+\typeout{   * Comments/suggestions/bug reports on TM related styles to} 
+\typeout{   * Terry Anderson at tla@bartok.att.com or 908 580-4428.}
+%
+% Changes:
+% bibliographic style set in /makehead -- wolf 87-Dec-21
+% **removed 89-Sep-05 due to newer bibtex not allowing redef of bibsty
+%
+%---------------------------------
+%
+%  COPY FROM ARTICLE.STY (with changes by tla)
+%	87-Apr-29	remove typeout for 'article'
+%	87-Apr-29	change l@section, TOC style for section 
+%       87-Jun-10 	change endthebibliography to allow capture
+%			  of the number of references
+%	87-Jun-12	change \tableofcontents add newpage to beginning
+%	87-Jun-12	change \listoffigures add newpage to beginning
+%	87-Jun-12	change \listoftables add newpage to beginning
+%	87-Jun-12	change \thebibliography add newpage to beginning
+%	88-Feb-03	add \thebibliography* to suppress the newpage
+%	88-May-25	redefine bibitem to count reference
+%			  remove change to endthebibliography
+%	88-???-??	added copytocov & copytohere
+%	88-Nov-02	added support for copyto lists longer than 1 pg
+%	88-Nov-??	added makefacesignature
+%	88-Dec-27	added labeled type list env
+%	89-Jan-17	LaTeX extension that are of interest in other
+%			  tm related styles moved to tmaddon.sty
+%	89-Jan-20	fixed makeautherhead to allow for author's
+%			  names that will not fit on one line.
+%	89-Jan-20	fixed error for coversheet when no
+%			  documentno's specified
+%	89-Jan-25	added memo for file style coversheet, mffcoversheet
+%	89-Jan-25	fixed bug in makesignature that removed parindent
+%	89-Feb-28	fixed bug; undef tm@keywords if keywords not called
+%	89-Mar-24	changed \topnumber from 2 to 5
+%			changed \bottomnumber from 1 to 5
+%			changed \totalnumber from 3 to 10
+%			to allow more figures and tables per page
+%	89-Apr-10	fixed bug(?) in tm*.sty (is also in art*.sty)
+%			 that causes \part to clear even user heads 
+%			 with markright in ps@myhead and ps@headandfoot.
+%
+%	89-May-19	fixed a bug in covereheet printing of document
+%			 when two authors from same dept but diff 
+%			 document numbers (esp first with none)
+%	89-May-19	fixed abstract to allow it to extend across
+%			 page break on first page.
+%	89-May-19	input localpatch.sty at end to allow local
+%			 variants
+%	89-Sep-05	removed call to \bibstyle in \makehead since
+%			 newer (>0.98) versions of bibtex do not
+%			 tolerate redefining.
+%	89-Sep-12	fixed bug in number of pages when restofcopyto...
+%	89-Oct-11	added additional ITDS locations
+%	89-Oct-11	changed makeauthorhead to better handle long
+%			 names and eaddresses
+%	89-Oct-11	touched up coversheet spaces for names,eaddr
+%	89-Oct-12	simplified makesignature
+%       89-Nov-21       make facesignature autoload bitmap.sty
+%       89-Dec-13       moved \@cite redef to tmaddon
+%       89-Dec-19       fixed \title*
+%       90-Jan-15       fixed wrong quote mark on coversheet
+%       90-Jan-16       broke up coversheet into smaller pieces (ideas
+%                        from Peter F. Patel-Schneider)
+%       90-Jan-16       fixed coversheet font size regardless of
+%                        document font size (ideas from pfps)
+%       90-Jan-23       minor changes to appearence of cover sheet
+%       90-Feb-11       added bibliography* to allow use of bibtex
+%                        with thebibliography* (no new page)
+%       90-Feb-15       shortened pan line on 2nd pg of coversheet
+%       90-Feb-22       fixed marginparwidth in tm*.sty
+%       90-Apr-05       fixed the spacing of facesig's with null faces
+%       90-Sep-11       changed to new ``from'' format
+%       90-Oct-26       add extrapages macro to add to page count
+%                        without effecting page numbering.
+%       90-Nov-29       start coversheet with clearpage rather than newpage
+%       91-Feb-05       made \date{\today} a default.
+%       91-Apr-08       fixed raggedright in makehead esp subject
+%       91-May-31       added \marknone to cancel propr marks etc
+%       91-Jul-11       added settextpages, settotalpages, setfigures,
+%                         settables and setreferences to override automatic
+%                         values on coversheet
+%       91-Nov-13       change coversheet to support more approval
+%                         sigs and add \approver to give names
+%
+%
+
+
+% TO FIX:
+%  1	coversheet still uses document's fonts sizes for proprietary
+%        mark and distribution lists
+%  2    \regnotice does not print regbox properly when called in abstract
+%  3    fix page numbering so that \mffcoversheet can be printed at
+%	beginning. 
+%------------------
+% article.sty  4-Sep-86
+%
+% Page dimension parameters
+%
+\def\@ptsize{0} \@namedef{ds@11pt}{\def\@ptsize{1}}
+\@namedef{ds@12pt}{\def\@ptsize{2}} 
+% old ptsize maintained for compatiblity by tm@ptsize used so that 
+% sizes not starting with 1 are supported.
+\def\tm@ptsize{10} \@namedef{ds@11pt}{\def\tm@ptsize{11}}
+\@namedef{ds@12pt}{\def\tm@ptsize{12}} 
+\@namedef{ds@9pt}{\def\tm@ptsize{9}} 
+\@namedef{ds@8pt}{\def\tm@ptsize{8}} 
+\def\ds@twoside{\@twosidetrue \@mparswitchtrue} \def\ds@draft{\overfullrule
+5pt} 
+\@options
+\input tm\tm@ptsize.sty\relax
+
+
+\def\labelenumi{\arabic{enumi}.} 
+\def\theenumi{\arabic{enumi}} 
+\def\labelenumii{(\alph{enumii})}
+\def\theenumii{\alph{enumii}}
+\def\p@enumii{\theenumi}
+\def\labelenumiii{\roman{enumiii}.}
+\def\theenumiii{\roman{enumiii}}
+\def\p@enumiii{\theenumi(\theenumii)}
+\def\labelenumiv{\Alph{enumiv}.}
+\def\theenumiv{\Alph{enumiv}} 
+\def\p@enumiv{\p@enumiii\theenumiii}
+
+\def\labelitemi{$\bullet$}
+\def\labelitemii{\bf --}
+\def\labelitemiii{$\ast$}
+\def\labelitemiv{$\cdot$}
+
+\def\verse{\let\\=\@centercr 
+ \list{}{\itemsep\z@ \itemindent -1.5em\listparindent \itemindent 
+ \rightmargin\leftmargin\advance\leftmargin 1.5em}\item[]}
+\let\endverse\endlist
+\def\quotation{\list{}{\listparindent 1.5em
+ \itemindent\listparindent
+ \rightmargin\leftmargin \parsep 0pt plus 1pt}\item[]}
+\let\endquotation=\endlist
+\def\quote{\list{}{\rightmargin\leftmargin}\item[]}
+\let\endquote=\endlist
+
+\def\descriptionlabel#1{\hspace\labelsep \bf #1}
+\def\description{\list{}{\labelwidth\z@ \itemindent-\leftmargin
+ \let\makelabel\descriptionlabel}}
+\let\enddescription\endlist
+
+
+\def\theequation{\arabic{equation}}
+
+
+\def\titlepage{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
+ \else \newpage \fi \thispagestyle{empty}\c@page\z@}
+\def\endtitlepage{\if@restonecol\twocolumn \else \newpage \fi}
+
+\arraycolsep 5pt \tabcolsep 6pt \arrayrulewidth .4pt \doublerulesep 2pt 
+\tabbingsep \labelsep 
+
+\skip\@mpfootins = \skip\footins
+\fboxsep = 3pt \fboxrule = .4pt 
+
+\newcounter{part}
+\newcounter {section}
+\newcounter {subsection}[section]
+\newcounter {subsubsection}[subsection]
+\newcounter {paragraph}[subsubsection]
+\newcounter {subparagraph}[paragraph]
+
+\def\thepart{\Roman{part}} \def\thesection {\arabic{section}}
+\def\thesubsection {\thesection.\arabic{subsection}}
+\def\thesubsubsection {\thesubsection .\arabic{subsubsection}}
+\def\theparagraph {\thesubsubsection.\arabic{paragraph}}
+\def\thesubparagraph {\theparagraph.\arabic{subparagraph}}
+
+\def\@pnumwidth{1.55em}
+\def\@tocrmarg {2.55em}
+\def\@dotsep{4.5}
+\setcounter{tocdepth}{3}
+
+\def\tableofcontents{\setcounter{tm@totalpages}{\c@page}\newpage
+\pagenumbering{roman}\parskip=0pt%
+ \section*{Contents\@mkboth{CONTENTS}{CONTENTS}}
+ \@starttoc{toc}}
+\def\l@part#1#2{\addpenalty{\@secpenalty}
+ \addvspace{2.25em plus 1pt} \begingroup
+ \@tempdima 3em \parindent \z@ \rightskip \@pnumwidth \parfillskip
+-\@pnumwidth 
+ {\large \bf \leavevmode #1\hfil \hbox to\@pnumwidth{\hss #2}}\par
+ \nobreak \endgroup}
+% changed to make section like subsection -- tla
+% \def\l@section#1#2{\addpenalty{\@secpenalty} \addvspace{1.0em plus 1pt}
+% \@tempdima 1.5em \begingroup
+%  \parindent \z@ \rightskip \@pnumwidth 
+%  \parfillskip -\@pnumwidth 
+%  \bf \leavevmode #1\hfil \hbox to\@pnumwidth{\hss #2}\par
+%  \endgroup}
+\def\l@section{\addpenalty{\@secpenalty} \addvspace{1.0em plus 1pt}
+   \@dottedtocline{1}{0em}{1.5em}}
+\def\l@subsection{\@dottedtocline{2}{1.5em}{2.3em}}
+\def\l@subsubsection{\@dottedtocline{3}{3.8em}{3.2em}}
+\def\l@paragraph{\@dottedtocline{4}{7.0em}{4.1em}}
+\def\l@subparagraph{\@dottedtocline{5}{10em}{5em}}
+\def\listoffigures{\newpage\section*{List of Figures\@mkboth
+ {LIST OF FIGURES}{LIST OF FIGURES}}\@starttoc{lof}}
+\def\l@figure{\@dottedtocline{1}{1.5em}{2.3em}}
+\def\listoftables{\newpage\section*{List of Tables\@mkboth
+ {LIST OF TABLES}{LIST OF TABLES}}\@starttoc{lot}}
+\let\l@table\l@figure
+
+
+
+\def\tm@thebibliography#1{\section*{References\@mkboth
+ {REFERENCES}{REFERENCES}\addcontentsline{toc}{section}{REFERENCES}}\list
+ {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+ \advance\leftmargin\labelsep
+ \usecounter{enumi}}
+ \setcounter{tm@references}{0}
+ \def\newblock{\hskip .11em plus .33em minus -.07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax}
+\newif\if@bibonnewpage\@bibonnewpagetrue
+\def\thebibliography{\if@bibonnewpage\clearpage\else\relax\fi%
+  \tm@thebibliography}
+\@namedef{thebibliography*}{\tm@thebibliography}
+\def\endthebibliography{\endlist}
+\@namedef{endthebibliography*}{\endthebibliography} 
+\def\bibliography{%
+  \@ifstar{\@bibonnewpagefalse\tm@bibliography}{\tm@bibliography}}%  
+\def\tm@bibliography#1{\if@filesw\immediate\write\@auxout{\string\bibdata{#1}}%
+    \fi\@input{\jobname.bbl}}
+%
+% bibitem redefined to count all items -- enumi only counts those
+%   with default label
+%
+\def\bibitem{\global\advance\c@tm@references by1%
+  \@ifnextchar[{\@lbibitem}{\@bibitem}}
+ 
+
+\newif\if@restonecol
+\def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+\columnseprule \z@
+\columnsep 35pt\twocolumn[\section*{Index}]
+ \@mkboth{INDEX}{INDEX}\thispagestyle{plain}\parindent\z@
+ \parskip\z@ plus .3pt\relax\let\item\@idxitem}
+\def\@idxitem{\par\hangindent 40pt}
+\def\subitem{\par\hangindent 40pt \hspace*{20pt}}
+\def\subsubitem{\par\hangindent 40pt \hspace*{30pt}}
+\def\endtheindex{\if@restonecol\onecolumn\else\clearpage\fi}
+\def\indexspace{\par \vskip 10pt plus 5pt minus 3pt\relax}
+
+\def\footnoterule{\kern-3\p@ 
+ \hrule width .4\columnwidth 
+ \kern 2.6\p@} 
+
+\long\def\@makefntext#1{\parindent 1em\noindent 
+ \hbox to 1.8em{\hss$^{\@thefnmark}$}#1}
+
+
+\setcounter{topnumber}{5}
+\def\topfraction{.7}
+\setcounter{bottomnumber}{5}
+\def\bottomfraction{.3}
+\setcounter{totalnumber}{10}
+\def\textfraction{.2}
+\def\floatpagefraction{.5}
+\setcounter{dbltopnumber}{2}
+\def\dbltopfraction{.7}
+\def\dblfloatpagefraction{.5}
+
+\long\def\@makecaption#1#2{
+ \vskip 10pt 
+ \setbox\@tempboxa\hbox{#1: #2}
+ \ifdim \wd\@tempboxa >\hsize #1: #2\par \else \hbox
+to\hsize{\hfil\box\@tempboxa\hfil} 
+ \fi}
+
+
+\newcounter{figure}
+\def\thefigure{\@arabic\c@figure}
+\def\fps@figure{tbp}
+\def\ftype@figure{1}
+\def\ext@figure{lof}
+\def\fnum@figure{Figure \thefigure}
+\def\figure{\@float{figure}}
+\let\endfigure\end@float
+\@namedef{figure*}{\@dblfloat{figure}}
+\@namedef{endfigure*}{\end@dblfloat}
+\newcounter{table}
+\def\thetable{\@arabic\c@table}
+\def\fps@table{tbp}
+\def\ftype@table{2}
+\def\ext@table{lot}
+\def\fnum@table{Table \thetable}
+\def\table{\@float{table}}
+\let\endtable\end@float
+\@namedef{table*}{\@dblfloat{table}}
+\@namedef{endtable*}{\end@dblfloat}
+
+
+\def\maketitle{\par
+ \begingroup
+ \def\thefootnote{\fnsymbol{footnote}}
+ \def\@makefnmark{\hbox 
+ to 0pt{$^{\@thefnmark}$\hss}} 
+ \if@twocolumn 
+ \twocolumn[\@maketitle] 
+ \else \newpage
+ \global\@topnum\z@ \@maketitle \fi\thispagestyle{plain}\@thanks
+ \endgroup
+ \setcounter{footnote}{0}
+ \let\maketitle\relax
+ \let\@maketitle\relax
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+\def\@maketitle{\newpage
+ \null
+ \vskip 2em \begin{center}
+ {\LARGE \@title \par} \vskip 1.5em {\large \lineskip .5em
+\begin{tabular}[t]{c}\@author 
+ \end{tabular}\par} 
+ \vskip 1em {\large \@date} \end{center}
+ \par
+ \vskip 1.5em} 
+\def\abstract{\if@twocolumn
+\section*{Abstract}
+\else \small 
+\begin{center}
+{\bf Abstract\vspace{-.5em}\vspace{0pt}} 
+\end{center}
+\quotation 
+\fi}
+\def\endabstract{\if@twocolumn\else\endquotation\fi}
+
+\mark{{}{}} 
+
+\if@twoside \def\ps@headings{\let\@mkboth\markboth
+\def\@oddfoot{}\def\@evenfoot{}\def\@evenhead{\rm \thepage\hfil \sl
+\leftmark}\def\@oddhead{\hbox{}\sl \rightmark \hfil
+\rm\thepage}\def\sectionmark##1{\markboth {\uppercase{\ifnum \c@secnumdepth
+>\z@
+ \thesection\hskip 1em\relax \fi ##1}}{}}\def\subsectionmark##1{\markright
+{\ifnum \c@secnumdepth >\@ne
+ \thesubsection\hskip 1em\relax \fi ##1}}}
+\else \def\ps@headings{\let\@mkboth\markboth
+\def\@oddfoot{}\def\@evenfoot{}\def\@oddhead{\hbox {}\sl \rightmark \hfil
+\rm\thepage}\def\sectionmark##1{\markright {\uppercase{\ifnum \c@secnumdepth
+>\z@
+ \thesection\hskip 1em\relax \fi ##1}}}}
+\fi
+
+\def\today{\ifcase\month\or
+ January\or February\or March\or April\or May\or June\or
+ July\or August\or September\or October\or November\or December\fi
+ \space\number\day, \number\year}
+
+\ps@plain \pagenumbering{arabic} \onecolumn \if@twoside\else\raggedbottom\fi 
+
+%------------------
+%  END OF MATERIAL FROM ARTICLE.STY
+
+\input local.sty %contains local page positioning parameters
+% 
+% replace macros
+%
+% example of how to define optional parameters
+%\def\parbox{\@ifnextchar [{\@iparbox}{\@iparbox[c]}}
+%\long\def\@iparbox[#1]#2#3{\leavevmode \@pboxswfalse
+%   \if #1b\vbox 
+%     \else \if #1t\vtop 
+%              \else \ifmmode \vcenter 
+%                        \else \@pboxswtrue $\vcenter
+%                     \fi
+%           \fi
+%    \fi{\hsize #2\@parboxrestore #3}\if@pboxsw $\fi}
+%
+% input LaTeX extentions
+%
+\input tmaddon.sty		
+
+%
+% Appendices
+%
+\def\appendices{\newpage\appendix%
+  \section*{Appendices\@mkboth{APPENDICES}{APPENDICES}
+  \addcontentsline{toc}{section}{APPENDICES}}}
+% set to null so can test if set by user
+\def\tm@null{}
+\def\title{\@ifstar{\tm@notoptitle}{\tm@title}}
+\def\tm@title#1{\gdef\tm@covtitle{#1}\gdef\tm@titlepagetitle{#1}%
+  \markright{#1}}
+\def\tm@notoptitle#1{\gdef\tm@covtitle{#1}\gdef\tm@titlepagetitle{#1}%
+  \markright{}}
+\def\titlepagetitle#1{\gdef\tm@titlepagetitle{#1}}
+\def\covtitle#1{\gdef\tm@covtitle{#1}}
+\def\memotype#1{\gdef\tm@memotype{#1}}
+\def\date#1{\gdef\tm@date{#1}}
+\date{\today} % sets today as default date
+%
+% approver stuff
+%
+\newcount\approvernumber\approvernumber=0
+\def\approver#1{\orgapprovaltrue%
+  \global\advance\approvernumber by1 \expandafter\gdef\csname 
+     tm@approver\romannumeral\the\approvernumber\endcsname{#1}}
+%
+% author stuff
+%
+\newcount\authornumber\authornumber=0
+\def\author#1{\global\advance\authornumber by1 \expandafter\gdef\csname 
+     tm@author\romannumeral\the\authornumber\endcsname{#1}}%
+\def\signatureextra#1{\expandafter\gdef\csname 
+   tm@signatureextra\romannumeral\the\authornumber\endcsname{#1}}%
+\def\typistinitials#1{\def\tm@typistinitials{#1}}%
+\def\initials#1{\expandafter\gdef\csname 
+   tm@initials\romannumeral\the\authornumber\endcsname{#1}}%
+\def\eaddress#1{\expandafter\gdef\csname 
+   tm@eaddress\romannumeral\the\authornumber\endcsname{#1}}%
+\def\company#1{\expandafter\gdef\csname 
+   tm@company\romannumeral\the\authornumber\endcsname{#1}}%
+\def\maddress#1{\expandafter\gdef\csname
+   tm@maddress\romannumeral\the\authornumber\endcsname{#1}}%
+\def\department#1{\expandafter\gdef\csname 
+   tm@department\romannumeral\the\authornumber\endcsname{#1}}%
+\def\location#1#2#3{%
+   \expandafter\gdef\csname tm@location\romannumeral\the\authornumber\endcsname{#1}%
+   \expandafter\gdef\csname tm@office\romannumeral\the\authornumber\endcsname{#2}%
+   \expandafter\gdef\csname tm@phone\romannumeral\the\authornumber\endcsname{#3}}%
+\def\locationextra#1{\expandafter\gdef\csname 
+   tm@locationextra\romannumeral\the\authornumber\endcsname{#1}}
+\def\documentno#1#2#3{%
+   \expandafter\def\csname tm@documentdate\romannumeral\the\authornumber\endcsname{#1}%
+   \expandafter\def\csname tm@documentseq\romannumeral\the\authornumber\endcsname{#2}%
+   \expandafter\def\csname tm@documentcat\romannumeral\the\authornumber\endcsname{#3}}%
+\def\previousdocument#1{\def\tm@prevdoc{#1}}\def\tm@prevdoc{\relax}
+%
+\newcount\filecasenumber\filecasenumber=0
+\def\filecase#1{\advance\filecasenumber by1\relax%
+   \expandafter\def\csname 
+   tm@filecase\romannumeral\the\filecasenumber\endcsname{#1}}
+\newcount\chargecasenumber\chargecasenumber=0
+\def\chargecase#1{\advance\chargecasenumber by1\relax%
+   \expandafter\def\csname 
+   tm@chargecase\romannumeral\the\chargecasenumber\endcsname{#1}}
+\def\tm@keywords{}
+\def\keywords#1{\def\tm@keywords{#1}}
+\newcount\mercurynumber\mercurynumber=0
+\def\mercurycode#1{\advance\mercurynumber by1\relax%
+   \expandafter\def\csname tm@mercury\romannumeral\the\mercurynumber\endcsname{#1}}
+\def\cityaddr#1{\def\tm@cityaddr{#1}}
+\def\companyname#1{\def\tm@companyname{#1}}
+\def\capcompanyname#1{\def\tm@capcompanyname{#1}}
+\def\tm@companyname{AT\&T Bell Laboratories}
+\def\tm@capcompanyname{AT\&T BELL LABORATORIES}
+\newcounter{tm@textpages}
+\newcounter{tm@otherpages}
+\newcounter{tm@totalpages}\setcounter{tm@totalpages}{0}
+\newcounter{tm@references}
+\newcounter{tm@extrapages}\setcounter{tm@extrapages}{0}
+\def\extrapages#1{\setcounter{tm@extrapages}{#1}}
+%\newdimen\abstrwidth
+%\newdimen\csabstrwidth\csabstrwidth=7in
+\long\def\abstract#1{%
+  \long\def\tm@abstr{#1}
+%  \abstrwidth\textwidth\advance\abstrwidth -.7in%
+%   \newsavebox{\tm@abstr}\setbox\tm@abstr%
+%   \hbox{#1}%
+%    \hbox{\begin{minipage}{\abstrwidth}{#1}\end{minipage}}
+%  \newsavebox{\tm@csabstr}\setbox\tm@csabstr%
+%    \hbox{\begin{minipage}{\csabstrwidth}{#1}\end{minipage}}
+  }
+\def\makeabstract{%
+    \smallskip%
+    {\parindent=0pt%
+    \leftskip0.37in\rightskip0.38in%
+    \tm@abstr\par\bigskip}%
+  }
+%  \unhbox\tm@abstr\par\bigskip}}
+\def\his#1{\csname #1\romannumeral\the\authornumber\endcsname}
+\def\approve#1{\csname #1\romannumeral\the\approvernumber\endcsname}
+\def\hisorblank#1{\if\relax\his{#1}\ \else\his{#1}\fi}%
+\def\case#1{\csname #1\romannumeral\the\casenumber\endcsname}
+%\def\makeauthorhead{%
+%     {\bf\raggedright\parbox[t]{9.7em}{\raggedright\hyphenpenalty10000%
+%	\exhyphenpenalty10000\his{tm@author}\strut}
+%     \if\relax\his{tm@company}\relax\else\\ \his{tm@company}\fi%
+%     \if\relax\his{tm@maddress}\relax\else\\ \his{tm@maddress}\fi%
+%     \if\relax\his{tm@location}\relax\else\\ \his{tm@location}\enskip\fi%
+%     \if\relax\his{tm@department}\relax\else\his{tm@department}\fi
+%     \if\relax\his{tm@office}\relax\else\\ \his{tm@office}\enskip\fi%
+%     \if\relax\his{tm@phone}\relax\else x\his{tm@phone}\fi
+%     \if\relax\his{tm@eaddress}\relax\else\\ \his{tm@eaddress}\fi%
+%     \if\relax\his{tm@locationextra}\relax%
+%       \else\\ \his{tm@locationextra}\fi%
+%     \if\relax\his{tm@documentdate}%
+%        \else\\ \his{tm@department}-\his{tm@documentdate}%
+%        -\his{tm@documentseq}\his{tm@documentcat}\fi}}
+%
+% NEW AUTHORHEAD LAYOUT for mm summer 1990
+%
+%              - The appearance of the author's information in the "from"
+%                block on memoranda has changed. Also, the "x" extension
+%                prefix has been removed; the complete phone number (with
+%                area code) should be supplied as the 5th argument to the
+%                .AU macro.  Given the author information:
+%
+%                .AU NAME [INIT] [LOC] [DEPT] [PHONE] [ROOM] [EMAIL] [ARG]
+%                [ARG]
+%                the "from" block for each author looks like:
+%
+%                NAME
+%                Dept. DEPT
+%                LOC ROOM
+%                PHONE
+%                EMAIL
+%                ARG8
+%                ARG9
+\def\makeauthorhead{%
+     {\bf\raggedright\parbox[t]{9.7em}{\raggedright\hyphenpenalty10000%
+	\exhyphenpenalty10000\his{tm@author}\strut}
+     \if\relax\his{tm@company}\relax\else\\ \his{tm@company}\fi%
+     \if\relax\his{tm@maddress}\relax\else\\ \his{tm@maddress}\fi%
+     \if\relax\his{tm@department}\relax\else\\ Dept. \his{tm@department}\fi
+     \if\relax\his{tm@location}\relax\else\\ \his{tm@location}\enskip\fi%
+     \if\relax\his{tm@office}\relax\else\his{tm@office}\enskip\fi%
+     \if\relax\his{tm@phone}\relax\else\\ \his{tm@phone}\fi
+     \if\relax\his{tm@eaddress}\relax\else\\ \his{tm@eaddress}\fi%
+     \if\relax\his{tm@locationextra}\relax%
+       \else\\ \his{tm@locationextra}\fi%
+     \if\relax\his{tm@documentdate}%
+        \else\\ \his{tm@department}-\his{tm@documentdate}%
+        -\his{tm@documentseq}\his{tm@documentcat}\fi}}
+\newif\ifmoreauthors
+
+\def\forallauthors#1{%
+  \authornumber=1 #1%
+  \loop
+    \advance\authornumber by1
+    \if\relax\his{tm@author}\relax%
+      \moreauthorsfalse\else\moreauthorstrue\fi
+    \ifmoreauthors #1\repeat}
+\newif\ifmoreapprovers
+\def\forallapprovers#1{%
+  \approvernumber=1 #1%
+  \loop
+    \advance\approvernumber by1
+    \if\relax\approve{tm@approver}\relax%
+      \moreapproversfalse\else\moreapproverstrue\fi
+    \ifmoreapprovers #1\repeat}
+\newcount\casenumber
+\newif\ifmorecases
+\def\forallfilecases#1{%
+  \global\casenumber=0%
+  \loop
+    \global\advance\casenumber by1
+    \if\relax\case{tm@filecase}\relax%
+      \morecasesfalse\else\morecasestrue\fi
+    \ifmorecases #1\repeat}
+\def\forallchargecases#1{%
+  \global\casenumber=0%
+  \loop
+    \global\advance\casenumber by1
+    \if\relax\case{tm@chargecase}\relax%
+      \morecasesfalse\else\morecasestrue\fi
+    \ifmorecases #1\repeat}
+
+%
+\def\makehead{
+   % write out bibliography style
+   %\if@filesw\immediate\write\@auxout{\string\bibstyle{unsrt}}\fi%
+   % remove call to bibstyle since bibtex .99 no longer tolerates
+   % redefining.
+   % now make the header
+   \if N\proprietarylevel\makeproprietarymark{}{}{}{}\fi
+   \newpage{\parskip=0pt\ \vskip-48pt%
+   \font\attlogofont=att36
+     \hfill\parbox{36pt}{\attlogofont L}
+     \parbox{86pt}{{\attlogofont AT\&T}}
+   \vskip16pt
+   \hrule
+   \vskip6pt
+   \noindent{\sf\tm@companyname}
+
+   \vskip4pt%
+   \hskip-5pt\parbox[t]{3.5in}{\raggedright%
+   \begin{itemize}
+     \item[{\footnotesize subject:}]{%
+           \bf\tm@titlepagetitle%
+     \forallchargecases{%
+       \expandafter\ifnum\the\casenumber=1{\\ Work Project No. }%
+        \else{, }\fi\case{tm@chargecase}} 
+     \forallfilecases{%
+       \expandafter\ifnum\the\casenumber=1{\\ File Case }\else{, }\fi\case{tm@filecase}}%
+     }
+     \end{itemize}}
+   \hfill%
+   \parbox[t]{14em}{\raggedright%
+     \begin{itemize}
+     \item[{\footnotesize date:}]{\bf\tm@date}
+     \forallauthors{\item[{\expandafter\ifnum\the\authornumber=1%
+       \footnotesize from:\fi}]\makeauthorhead}
+     \end{itemize}}
+   \vskip30pt
+   \expandafter\if\csname tm@memotype\endcsname\relax{}%
+     \else{\it\hfill\tm@memotype\hfill} \vskip24pt\fi
+   \thispagestyle{onlyfoot}}%
+   }
+\def\makesignature{{\parindent=0pt\par%
+   \parbox[b]{3in}{\tm@locationi -\tm@departmenti 
+   -\forallauthors{\expandafter\ifnum\the\authornumber=1{}\else/\fi%
+      \his{tm@initials}}%
+      \expandafter\if\csname tm@typistinitials\endcsname\relax{}%
+         \else /\tm@typistinitials\fi}\hfill%
+   \parbox[b]{3in}{\vskip-5pt\forallauthors{
+%     \hfill\\ \hbox{\vbox to34pt{}\hfill}\\{\bf \his{tm@author}
+     \vskip31pt{\bf \his{tm@author}
+       \if\his{tm@signatureextra}\relax{}\else\\ 
+         \his{tm@signatureextra}\fi}}}
+   \vskip12pt\setcounter{tm@textpages}{\c@page}}}
+\def\makefacesignature#1{{\parindent=0pt\par%
+   \@ifundefined{initbitmap}{\input bitmap.sty}{}
+   \vskip-5pt\forallauthors{
+     \vskip11pt
+     \xdef\tm@facefile{#1/\his{tm@initials}/face}%
+     \parbox[b]{3in}{\vbox{}\hskip2in\hbox{\vrule height48pt
+        depth3.5pt width0pt}\input \tm@facefile
+        \hfill}%
+     \parbox[b]{3in}{{\bf \his{tm@author}
+       \if\his{tm@signatureextra}\relax{}\else\\ 
+         \his{tm@signatureextra}\fi}}}%
+
+   \parbox[b]{3in}{\tm@locationi -\tm@departmenti 
+   -\forallauthors{\expandafter\ifnum\the\authornumber=1{}\else/\fi%
+      \his{tm@initials}}%
+      \expandafter\if\csname tm@typistinitials\endcsname\relax{}%
+         \else /\tm@typistinitials\fi}\hfill%
+   \vskip12pt\setcounter{tm@textpages}{\c@page}}}
+
+%\vbox{}\hskip3.5in\input /usr/banc/tla/face/tla/face.tex\hskip 
+%.5in\input /usr/banc/tla/face/bala/face.tex
+
+
+%\newenvironment{copyto}{\parskip=0pt\parindent=0pt
+%    \obeylines\hbox{Copy to}}{\vskip.5in}
+\long\def\copyto#1{%
+   {\obeylines\parskip=0pt\parindent=0pt%WHY DOES obeylines NOT WORK
+   \hbox{Copy to}\par\nobreak #1\par}
+%   \par\noindent
+%   \parbox[t]{\textwidth}{\@hangfrom{\rm Copy to: }\ignorespaces #1\strut}\par
+   \newsavebox{\copytobox}\sbox{\copytobox}{\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+   \setcounter{tm@textpages}{\c@page}}
+%
+\long\def\restofcopyto#1{%
+   {\obeylines\parskip=0pt\parindent=0pt%WHY DOES obeylines NOT WORK
+   \par #1\par\ \medskip}
+   \newsavebox{\restofcopytobox}\sbox{\restofcopytobox}%
+     {\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+   \setcounter{tm@textpages}{\c@page}}
+
+\long\def\copytohere#1{%
+   {\obeylines\parskip=0pt\parindent=0pt%WHY DOES obeylines NOT WORK
+   \hbox{Copy to}\par #1\par\ \medskip}
+   \setcounter{tm@textpages}{\c@page}}
+
+\long\def\copytocov#1{%
+   \newsavebox{\copytobox}\sbox{\copytobox}{\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+   \setcounter{tm@textpages}{\c@page}}
+
+\long\def\restofcopytocov#1{%
+   \newsavebox{\restofcopytobox}\sbox{\restofcopytobox}%
+     {\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+   \setcounter{tm@textpages}{\c@page}}
+
+\long\def\coverto#1{%
+   \newsavebox{\covertobox}\sbox{\covertobox}{\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+}
+\long\def\restofcoverto#1{%
+   \newsavebox{\restofcovertobox}\sbox{\restofcovertobox}%
+   {\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+}
+\def\endoftext{\setcounter{tm@textpages}{\c@page}}
+%
+% Coversheet macros
+%
+\font\LARGEsf=cmss17
+\newif\iforgapproval\orgapprovalfalse
+\def\organizationalapproval{\orgapprovaltrue}
+\newif\ifclassified\classifiedfalse
+\def\classified#1{\classifiedtrue\def\classification{#1}}
+\newif\ifitdsrelease\itdsreleasetrue
+\def\itdsrestrict{\itdsreleasefalse}
+\def\tm@stop{@}
+\newif\ifitssame\newif\ifitsnew\newcount\tempcount\newtoks\tm@str
+\def\cmp#1#2*#3#4*{%
+   \itssametrue\if#1#3\if\tm@stop#1\else\cmp#2*#4\tm@stop*\fi%
+   \else\itssamefalse\fi}% compares str1*str2*
+\def\compare#1#2{% string compare
+  \edef\str{#1\tm@stop*#2\tm@stop*}% expand args before passing
+  \expandafter\cmp\str}
+\def\seeifnewdocnum{\tempcount=1\itsnewtrue%
+  {\loop\ifnum\the\tempcount<\the\authornumber%
+    \compare{\his{tm@department}\his{tm@documentdate}}{\csname 
+      tm@department\romannumeral\the\tempcount\endcsname\csname 
+      tm@documentdate\romannumeral\the\tempcount\endcsname}
+    \ifitssame\global\itsnewfalse\fi\advance\tempcount by1\repeat}}
+% The following are to allow an if comparison of string
+%   I can't find a more direct way.
+\let\CHM=a\let\CMM=b\let\MAN=c\let\CMP=d\let\ELC=e
+\let\LFS=f\let\STD=g\let\MAS=h\let\PHY=i\let\MKT=j
+\def\bigbox#1#2{\vbox{\hrule height\thinrule\hbox{\vrule width\thinrule%
+  \vbox to#1{\hbox to\hsize{#2}}\vrule width\thinrule}\hrule height\fatrule}}
+\def\cbox#1{\hbox to\hsize{\strut\hfill#1\hfill}}
+\def\tm@mercurytitle#1{%
+  \cbox{#1%
+  \compare{CHM}{#1}\ifitssame -- Chemistry and Materials\fi 
+  \compare{CMM}{#1}\ifitssame -- Communications\fi
+  \compare{MAN}{#1}\ifitssame -- Manufacturing\fi
+  \compare{CMP}{#1}\ifitssame -- Computing\fi
+  \compare{ELC}{#1}\ifitssame -- Electronics\fi
+  \compare{LFS}{#1}\ifitssame -- Life Sciences\fi
+  \compare{STD}{#1}\ifitssame -- Standards\fi
+  \compare{MAS}{#1}\ifitssame -- Math and Statistics\fi
+  \compare{PHY}{#1}\ifitssame -- Physics\fi
+  \compare{MKT}{#1}\ifitssame -- Marketing\fi
+  }}
+%
+
+\def\coversheet{
+  \cover@setsizes
+  \cover@genmacros
+  \cover@head         \cover@sep
+  \cover@title        \cover@sep
+  \cover@authors      \cover@sep
+  \cover@documentno   \cover@sep
+  \cover@keywords     \cover@sep
+  \cover@mercury      \cover@sep
+  \cover@abstract     \cover@sep
+  \cover@pagecount    \vskip8pt
+  \cover@maillabel    \newpage
+  \cover@pagetwohead  \cover@sep
+  \cover@distrlists   \vfill
+  \ifclassified\cover@sep\cover@classified\fi \cover@sep
+  \cover@futuredistribution \cover@sep 
+  \cover@signature    
+  \if R\proprietarylevel{\cover@sep\cover@approval}
+    \else\if G\proprietarylevel{\cover@sep\cover@approval}
+      \else\iforgapproval{\cover@sep\cover@approval}\fi\fi\fi  \cover@sep
+  \cover@ordering
+  % Continued copyto pages if needed
+  \@ifundefined{tm@restof}{}{\cover@thirdpage}
+  }
+
+\def\cover@setsizes{%
+  \coversheetsize \hsize=7.5in \vsize=10.25in \textheight 10.25in
+  \clearpage
+  \hoffset-50pt\voffset-60pt
+  \pagestyle{empty}
+  \font\attlogofont=att36
+  \parindent=0pt
+  \newdimen\fatrule\fatrule=2pt
+  \newdimen\thinrule\thinrule=1.5pt
+}
+
+\def\coversheetsize{%
+  \def\@normalsize{\@setsize\normalsize{12pt}\xpt\@xpt
+    \abovedisplayskip 10pt plus2pt minus5pt\belowdisplayskip \abovedisplayskip
+    \abovedisplayshortskip \z@ plus3pt\belowdisplayshortskip 6pt plus3pt 
+    minus3pt}
+  \def\small{\@setsize\small{11pt}\ixpt\@ixpt
+    \abovedisplayskip 8.5pt plus 3pt minus 4pt\belowdisplayskip 
+    \abovedisplayskip \abovedisplayshortskip \z@
+    plus2pt\belowdisplayshortskip
+    4pt plus2pt minus 2pt
+    \def\@listi{\topsep 4pt plus 2pt minus 2pt\parsep 2pt plus 1pt minus 1pt
+      \itemsep \parsep}}
+  \def\footnotesize{\@setsize\footnotesize{9.5pt}\viiipt\@viiipt
+    \abovedisplayskip 6pt plus 2pt minus 4pt\belowdisplayskip 
+    \abovedisplayskip \abovedisplayshortskip \z@
+    plus1pt\belowdisplayshortskip
+    3pt plus1pt minus 2pt
+    \def\@listi{\topsep 3pt plus 1pt minus 1pt\parsep 2pt plus 1pt minus 1pt
+      \itemsep \parsep}}
+  \def\scriptsize{\@setsize\scriptsize{8pt}\viipt\@viipt}
+  \def\tiny{\@setsize\tiny{6pt}\vpt\@vpt}
+  \def\large{\@setsize\large{14pt}\xiipt\@xiipt}
+  \def\Large{\@setsize\Large{18pt}\xivpt\@xivpt}
+  \def\LARGE{\@setsize\LARGE{22pt}\xviipt\@xviipt}
+  \def\huge{\@setsize\huge{25pt}\xxpt\@xxpt}
+  \def\Huge{\@setsize\Huge{30pt}\xxvpt\@xxvpt}
+  \@normalsize\normalsize
+  }
+
+\def\cover@genmacros{%
+  \def\tm@TM{TECHNICAL MEMORANDUM}
+  \def\tm@tm{Technical Memorandum}
+  \def\tm@IM{INTERNAL MEMORANDUM}
+  \def\tm@im{Internal Memorandum}
+  \def\tm@TC{TECHNICAL CORRESPONDENCE}
+  \def\tm@tc{Technical Correspondence}
+  \def\cover@sep{\medskip\hrule height\thinrule\medskip}
+  \def\squarebox{%
+    \vbox{\hrule\hbox{\vrule\vbox to 5pt{\hbox to 5pt{\hfill}\vfil}%
+      \vrule}\hrule}\relax}}
+
+\def\cover@head{%
+  \hbox to \hsize{%
+    \vtop{\hsize=130pt\parbox{40pt}{\attlogofont L}
+      \parbox{86pt}{{\attlogofont AT\&T}}}
+    \hfill
+    \vtop{\hsize=160pt%
+      \hbox{\hfill\LARGEsf Document Cover Sheet\hfill}
+      \vskip4pt
+      \ifx\tm@memotype\tm@tm{\hbox{\hfill\LARGEsf for Technical Memorandum}}\fi
+      \ifx\tm@memotype\tm@TM{\hbox{\hfill\LARGEsf for Technical Memorandum}}\fi
+      \ifx\tm@memotype\tm@im{\hbox{\hfill\LARGEsf for Internal Memorandum}}\fi
+      \ifx\tm@memotype\tm@IM{\hbox{\hfill\LARGEsf for Internal Memorandum}}\fi
+      \ifx\tm@memotype\tm@tc{\hbox{\hfill\LARGEsf for Technical 
+        Correspondence}}\fi
+      \ifx\tm@memotype\tm@TC{\hbox{\hfill\LARGEsf for Technical 
+        Correspondence}}\fi
+      }}}
+
+\def\cover@title{%
+  \hbox to \hsize{%
+    \vtop{\hsize=.5in{\strut\bf Title:\hfill}}%
+    \parbox{6.75in}{\strut\tm@covtitle}\hfill}}
+
+\def\cover@authors{%
+  \hbox to 7.5in{%
+    \vtop{\hsize=130pt%
+      \cbox{{\bf Author\ifnum\authornumber>1 s\fi}}
+      \cbox{\vbox{\forallauthors{\hbox{\strut\his{tm@author}\hfill}}}}}
+    \hskip4pt%
+    \vtop{\hsize=118pt%
+      \cbox{{\bf Electronic Address}}
+      \cbox{\vbox{\forallauthors{\hbox{\strut\his{tm@eaddress}\hfill}}}}}
+    \hskip4pt%
+    \vtop{\hsize=60pt%
+      \cbox{{\bf Location}}
+      \cbox{\vbox{\forallauthors{\hbox{\strut\his{tm@location}\ 
+        \his{tm@office}\hfill}}}}}
+    \hskip4pt%
+    \vtop{\hsize=57pt%
+      \cbox{{\bf Phone}}
+      \forallauthors{\cbox{\his{tm@phone}}}}
+    \hskip4pt%
+    \vtop{\hsize=150pt%
+      \cbox{{\bf Company {\footnotesize (if other than AT\&T--BL)}}}
+      \cbox{\vbox{\forallauthors{\hbox{\strut\his{tm@company}\hfill}}}}}
+    \hfil
+    }}  
+
+\def\cover@documentno{%
+  \hbox{%
+    \vtop{\hsize=210pt%
+      \cbox{{\bf Document No.}}
+      \forallauthors{\seeifnewdocnum\ifitsnew%
+        \if\relax\his{tm@documentdate}\relax\else%
+        \cbox{\his{tm@department}-\his{tm@documentdate}% print if defined
+        -\his{tm@documentseq}\his{tm@documentcat}}\fi\fi}}
+    \vtop{\hsize=132pt%
+      \cbox{{\bf Filing Case No.}}
+      \forallfilecases{\cbox{\case{tm@filecase}}}}
+    \vtop{\hsize=164pt%
+      \cbox{{\bf Work Project No.}}
+      \forallchargecases{\cbox{\case{tm@chargecase}}}}
+    \hskip12pt%
+    \hfil
+    }
+  \if\relax\tm@prevdoc\relax\else
+  This document supersedes or amends document number: \tm@prevdoc\fi
+  }
+
+\def\cover@keywords{{\bf Keywords:}\hfill\break
+  \medskip
+  \hskip.25in\tm@keywords}
+
+\def\cover@mercury{%
+  {\bf MERCURY Announcement Bulletin Sections}\hfill\break
+  \medskip
+  %\def\footnotesize\relax
+  \hbox{\footnotesize%  
+    \vtop{\hsize=2.25in%
+      \expandafter\if\csname tm@mercuryi\endcsname\relax{}\else
+      \tm@mercurytitle{\tm@mercuryi}\fi}
+    \hfill
+    \vtop{\hsize=2.25in%
+      \expandafter\if\csname tm@mercuryii\endcsname\relax{}\else
+      \tm@mercurytitle{\tm@mercuryii}\fi}
+    \hfill
+    \vtop{\hsize=2.25in%
+      \expandafter\if\csname tm@mercuryiii\endcsname\relax{}\else
+      \tm@mercurytitle{\tm@mercuryiii}\fi}
+    }}
+
+\def\cover@abstract{{\bf Abstract}\hfill\break
+  \medskip
+  %{\parindent=0pt%
+  %  \leftskip0.25in\rightskip0.25in\tm@abstr\par\medskip
+  %  }
+  \newdimen\csabstrwidth\csabstrwidth=7in
+  \begin{center}
+    \begin{minipage}{\csabstrwidth}{\parskip\medskipamount\tm@abstr}\end{minipage}
+  %\usebox{\tm@csabstr}
+  \end{center}
+  \vfill}
+
+\def\cover@pagecount{%
+  \@ifundefined{restofcopytobox}{\@ifundefined{restofcovertobox}%
+    {}{\def\tm@restof{y}}}{\def\tm@restof{y}}
+  \@ifundefined{mantextpages}{}{\c@tm@textpages\mantextpages}
+  {\footnotesize Pages of Text\quad}\thetm@textpages\quad%
+  \addtocounter{tm@totalpages}{\c@page}%
+  \ifnum\thetm@extrapages>0\addtocounter{tm@totalpages}{\thetm@extrapages}\fi%
+  \@ifundefined{tm@restof}% 1 or 2 more pages beyond here
+    {\addtocounter{tm@totalpages}{1}}%
+    {\addtocounter{tm@totalpages}{2}}%
+    \@ifundefined{mantotalpages}{}{\c@tm@totalpages\mantotalpages}
+  \setcounter{tm@otherpages}{\thetm@totalpages}%
+  \addtocounter{tm@otherpages}{-\thetm@textpages}%
+  {\footnotesize Other Pages\quad}\thetm@otherpages\quad%
+  {\footnotesize Total\quad}\thetm@totalpages\\
+  {\footnotesize No. Figs.\quad}\@ifundefined{manfigures}{\thefigure}{\manfigures}\quad%
+  {\footnotesize No. Tables\quad}\@ifundefined{mantables}{\thetable}{\mantables}\quad%
+  {\footnotesize No. Refs.\quad}\@ifundefined{manreferences}{\thetm@references}{\manreferences}
+  \par}
+\def\settextpages#1{\gdef\mantextpages{#1}}
+\def\settotalpages#1{\gdef\mantotalpages{#1}}
+\def\setfigures#1{\gdef\manfigures{#1}}
+\def\settables#1{\gdef\mantables{#1}}
+\def\setreferences#1{\gdef\manreferences{#1}}
+
+\def\cover@maillabel{%
+  \hfill {\bf Mailing Label}\hskip90pt\ %
+  \par\vskip22pt
+  \@ifundefined{tm@propmark}{}{\hskip.5in\usebox{\tm@propmark}}
+  \vskip47pt
+  {\footnotesize tm.sty (\tmversiondate )}\hfill
+  {\sf\tm@capcompanyname}}
+
+\def\cover@pagetwohead{%
+  {\bf Initial Distribution Specifications\hfill%
+     \authornumber=1\loop%
+       \if\relax\his{tm@author}\relax%
+        \moreauthorsfalse\else\moreauthorstrue\fi
+       \ifmoreauthors\relax\else\authornumber=1%
+         \def\tm@documentdatei{No Document Number}\fi%
+       \if\relax\his{tm@documentdate}%
+         \advance\authornumber by1\repeat% find first document number
+    \his{tm@department}-\his{tm@documentdate}%
+    \if\relax\his{tm@documentseq}\relax\else-\his{tm@documentseq}%
+       \his{tm@documentcat}\fi}%
+    {\enskip\it (page ii of 
+    \@ifundefined{tm@restof}{ii}{iii})}}
+
+\def\cover@distrlists{%
+  \hfill {\bf Complete Copy}\hfill\hfill{\bf Cover Sheet Only}\hfill\ 
+
+  \bigskip
+  \hbox to \hsize{%
+    \hskip.25in
+    \@ifundefined{copytobox}{}{\usebox{\copytobox}}%
+    \hfill%
+    \@ifundefined{covertobox}{}{\usebox{\covertobox}}
+    \hskip.25in\ }}
+\def\cover@classified{%
+  {\bf Government Security Classification}\hfill\classification}
+
+\def\cover@futuredistribution{{\bf Future AT\&T Distribution by ITDS}\hfill%
+  \ifitdsrelease\hfill Release to any AT\&T employee (excluding contract employees)%
+    \else\penalty-1\hbox{}\nobreak\hfill\nobreak%
+      \hbox{Do not release to any AT\&T employee without obtaining
+          appropriate approval}%
+    \fi\par}
+
+\def\makeapproval{%
+  \medskip\hrule height\thinrule\medskip
+  {\bf Proprietary Classification or Other Organizational Approval:} (Department Head)
+
+  \bigskip
+  \hbox to \hsize{\@ifundefined{tm@propmark}{}{\usebox{\tm@propmark}}%
+     \hfill\vbox{\hrule width 3.5in\vskip20pt\hrule}}}
+
+\def\cover@signature{%
+  {\forallauthors{\relax}%to set authornumber to numberofauthors+1
+   \bf Author Signature\ifnum\authornumber>2 s\fi}
+
+  \vskip22pt
+  \hbox to \hsize{%
+  \vbox{\hsize2.25in\hrule\smallskip\hfill\strut\tm@authori\hfill\ }
+  \nobreak\hfill
+  \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+    \expandafter\if\csname tm@authorii\endcsname\relax{}\else\tm@authorii\fi\hfill\ }
+  \nobreak\hfill
+  \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+    \expandafter\if\csname tm@authoriii\endcsname\relax{}\else\tm@authoriii\fi\hfill\ }}
+  \expandafter\if\csname tm@authoriv\endcsname\relax{}\else%
+    \vskip22pt
+    \hbox to \hsize{%
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut\tm@authoriv\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@authorv\endcsname\relax{}\else\tm@authorv\fi\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@authorvi\endcsname\relax{}\else\tm@authorvi\fi\hfill\ }}\fi
+  \expandafter\if\csname tm@authorvii\endcsname\relax{}\else%
+    \vskip22pt
+    \hbox to \hsize{%
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut\tm@authorvii\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@authorviii\endcsname\relax{}\else\tm@authorviii\fi\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@authorix\endcsname\relax{}\else\tm@authorix\fi\hfill\ }}\fi
+  }
+
+\def\cover@approval{%
+  {\forallapprovers{\relax}%to set approver number to numberofapprovers+1
+\typeout{\the\approvernumber}
+   \bf Organizational Approval\ifnum\approvernumber>2 s\fi}
+
+  \vskip22pt
+  \hbox to \hsize{%
+  \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+    \expandafter\if\csname tm@approveri\endcsname\relax{}\else\tm@approveri\fi\hfill\ }
+  \nobreak\hfill
+  \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+    \expandafter\if\csname tm@approverii\endcsname\relax{}\else\tm@approverii\fi\hfill\ }
+  \nobreak\hfill
+  \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+    \expandafter\if\csname tm@approveriii\endcsname\relax{}\else\tm@approveriii\fi\hfill\ }}
+  \expandafter\if\csname tm@approveriv\endcsname\relax{}\else%
+    \vskip22pt
+    \hbox to \hsize{%
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut\tm@approveriv\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@approverv\endcsname\relax{}\else\tm@approverv\fi\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@approvervi\endcsname\relax{}\else\tm@approvervi\fi\hfill\ }}\fi
+  \expandafter\if\csname tm@approvervii\endcsname\relax{}\else%
+    \vskip22pt
+    \hbox to \hsize{%
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut\tm@approvervii\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@approverviii\endcsname\relax{}\else\tm@approverviii\fi\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@approverix\endcsname\relax{}\else\tm@approverix\fi\hfill\ }}\fi
+  }
+
+\def\cover@ordering{{\bf For Use by Recipient of Cover Sheet:}
+
+  \medskip
+
+  {\scriptsize
+  \hbox to \hsize{%
+  \vbox to .7in{\hsize300pt%
+  \hbox{\hskip4pt\vbox{\hsize240pt%
+  \hbox{Computing network users may order copies via the {\it library -1} command;\hfill}
+  \hbox{\hskip4pt for information, type {\it man library} after the
+  UNIX\regmark\ system prompt.\hfill}}}
+  \vfill
+  \hbox{\hskip4pt\vbox{\hsize305pt%
+  \hbox{Otherwise:\hfill}
+  \hbox to\hsize{\hskip4pt Enter PAN if AT\&T--BL (or SS\# if non-AT\&T--BL).
+  \vbox{\hrule width104pt}\hfill}
+%  \hbox{2 Fold this sheet in half with this side out.\hfill}
+%  \hbox{3 Check the address of your local Internal Technical Document Service\hfill}
+%  \hbox{\hskip7pt if listed; otherwise, use HO 4F-112.  Use no envelope.\hfill}
+%  \hbox{4 Indicate whether microfiche or paper copy is desired.}
+  \hbox{\hskip4pt Return this sheet to any ITDS location.\par}
+  }}}
+  \hfill
+  \vbox to .7in{\hsize3in%
+  Internal Technical Document Service\hfill
+
+  \vfill{
+  \begin{tabbing}
+  ( )\hskip.72in\=( )\hskip.72in\=( )\hskip.72in\=\kill
+  
+  ( ) AK 2H-28	\>( ) IH 7M-103	\>( ) DR 2F-19\>( ) NW-ITDS\\
+  ( ) ALC 1B-102	\>( ) MV 3L-19	\>( ) INH 1C-114\>( ) PR 5-2120\\
+  ( ) CB 3O-2011  \>( ) WH 3E-204	\>( ) IW 2Z-156\\
+  ( ) HO 4F-112   \>		\>( ) MT 3B-117
+  \end{tabbing}}\vskip -8pt}%
+%  Please send a complete \squarebox\ microfiche \squarebox\ paper copy
+%  of this document to the address shown on the other side.
+%  \par}}
+  }
+  }}
+
+\def\cover@thirdpage{%
+  \newpage
+  {\hfill\bf%
+     \authornumber=1\loop%     
+       \if\relax\his{tm@author}\relax%
+        \moreauthorsfalse\else\moreauthorstrue\fi
+       \ifmoreauthors\relax\else\authornumber=1%
+         \def\tm@documentdatei{No Document Number}\fi%
+       \if\relax\his{tm@documentdate}%
+         \advance\authornumber by1\repeat% find first document number
+    \his{tm@department}-\his{tm@documentdate}%
+    \if\relax\his{tm@documentseq}\relax\else-\his{tm@documentseq}%
+       \his{tm@documentcat}\fi}%
+    {\enskip\it (page iii of iii)}
+  \medskip\hrule height\thinrule\medskip
+  \hbox to \hsize{%
+    \vtop{\hsize=.5in{\strut\bf Title:\hfill}}%
+    \parbox{6.75in}{\strut\tm@covtitle}\hfill}
+  \medskip\hrule height\thinrule\medskip
+  \hfill {\bf Complete Copy (continued)}\hfill%
+  \hfill{\bf Cover Sheet Only (continued)}\hfill\ 
+
+  \bigskip
+  \hbox to \hsize{%
+    \hskip.25in
+    \@ifundefined{restofcopytobox}{}{\usebox{\restofcopytobox}}%
+    \hfill%
+    \@ifundefined{restofcovertobox}{}{\usebox{\restofcovertobox}}
+    \hskip.25in\ }
+  \medskip\hrule height\thinrule\medskip
+  \vfill
+  }% end of continued copyto page
+
+% Memorandum for File type coversheet
+\def\mffcoversheet{%
+\makehead
+\makeabstract
+\newpage
+}%
+% end of memorandum for File type coversheet
+\pagestyle{headandfoot}
+\parskip\medskipamount
+\input localpatch.sty
+%%%%%%%%%%%%%%%%%%%%%%%%%%% THE END %%%%%%%%%%%%%%%%%%%%%%%%%

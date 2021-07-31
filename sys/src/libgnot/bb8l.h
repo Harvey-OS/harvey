@@ -8,6 +8,7 @@
  * This is a totally littleendian bitblt, so the bytes will
  * have to be bit-reversed before putting them on the screen.
  */
+#define LENDIAN
 typedef	uchar	Type;
 
 /*
@@ -284,14 +285,6 @@ void
 prprog(void)
 {
 	abort();	/* use db */
-}
-
-void
-bbexec(void (*memstart)(void), int len, int onstack)
-{
-	memstart();
-	if(!onstack)
-		bbfree(memstart, len);
 }
 
 #endif

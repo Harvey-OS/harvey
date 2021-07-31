@@ -24,7 +24,6 @@ e3:  literal | charclass | '.' | '^' | '$' | '(' e0 ')'
 
 e2:  e3
   |  e2 REP
-
 REP: '*' | '+' | '?'
 
 e1:  e2
@@ -36,9 +35,9 @@ e0:  e1
 .PP
 A
 .B literal
-is any non-metacharacter, or a metacharacter
+is any non-metacharacter or a metacharacter
 (one of
-.BR .*+?[]()|\e^$ ),
+.BR .*+?[]()|\e^$ )
 or the delimiter
 preceded by 
 .LR \e .
@@ -52,11 +51,11 @@ bracketed
 (or
 .BI [^ s\| ]\fR);
 it matches any character in (or not in)
-.IR s .
+.I s.
 A negated character class never
 matches newline.
 A substring 
-.IB a - b\f1,
+.IB a - b ,
 with
 .I a
 and
@@ -69,7 +68,7 @@ characters between
 and
 .IR b .
 In 
-.IR s ,
+.I s,
 the metacharacters
 .LR - ,
 .LR ] ,

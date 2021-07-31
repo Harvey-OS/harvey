@@ -1,0 +1,31 @@
+Frank Sheeran
+Dept. of Computer Science
+University of Kansas, USA
+
+sheeran@hawk.cs.ukans.edu
+
+JIS INDEX
+
+These two files hold the JIS X 0208-1990 codes indexed by classical radical
+and stroke count, level 1 (2,965 kanji) and level 2 (3,390 kanji).  Level one
+holds the more common characters. They JIS codes are mapped to kuten codes
+(区点コ−ド番号).  To convert:
+
+kuten =  jis  / 256 * 100 +  jis  % 256 - 3232
+ jis  = kuten / 100 * 256 + kuten % 100 + 8224
+
+I believe that kuten was devoloped so office ladies could enter by number
+rare kanji looked up in a kuten dictionary.  Kuten codes are always written
+as a four digit number from 0101 for <SP> through 8406.
+
+The format of each file in bnf is
+
+( 0 <cr> ( [kuten] <cr> [stroke count] <cr> )* )^214
+
+In other words, 214 repetitions of 0 on a line, followed by any number of
+pairs of kuten and stroke count on their own lines.  Characters in the first
+group are classically listed under radical #1 (一), etc.
+
+Let me know if you are finishing up an application using these files.
+
+Frank Sheeran

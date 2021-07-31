@@ -1,0 +1,1856 @@
+This file has been updated periodically ever since METAFONT84 was born.
+What you are about to read is "authentic source material" from the
+early days before the program converged. Module numbers on the first
+entries may bear little relation to those in Volume D.
+
+Entries are in chronological order; thus the most recent news appears
+at the bottom of the file.
+
+-------------------------------------------------------------------------------
+
+(rough list of all bugs found in MF after it passed syntax check)
+Starting with Version -100.0: [Mar 27, first run, about 00:30]
+1. fix_date_and_time was badly patched in INIMF.
+2. cur_tok function forgot "cur_tok:=p" at the end; PASCAL doesn't catch that.
+3. "multiletter control sequences" msgs should say "symbolic tokens".
+Version -99.0: [still Mar 27, done while waiting for WEAVE/TeX output]
+4. do_statement should initialize cur_type:=vacuous.
+5. find_variable has misplaced p:=equiv(p).
+6. one-character primitives shouldn't decrease str_ptr.
+7. clear_symbol had "q" at end where I meant to say "p".
+8. help message for extra token flushing improved.
+9. "buffer[k]" should be "buffer[j]" for 1-character id_lookup.
+10. def_delims forgot to get_next afterwards.
+11. type_command at beginning of statement wasn't diverted.
+12. menu always came out after help message.
+13. forgot to return after getting num/str token from token list.
+Version -98.0: [March 28]
+14. scan_declared_variable flushes too much.
+15. ordered pairs: one level of indirection was forgotten.
+16. type declarations must add "unknown" bit.
+17. semicolon+ added to do_statement cases.
+18. base_ident should get max_str_ref.
+19. "internal[...]" missing in date for base_ident.
+20. do_binary(p,c) should be do_binary(p,d) after continue_path
+21. in scan_def after get_clear_symbol I need to get_next.
+22. get_next needed at end of scan_def.
+23. get_next needed at end of mode_command processing.
+24. randomseed missing error typo: `;' for `:='.
+25. print_nl("") at beginning of show.
+26. refcounts on macro calls were incremented twice.
+27. forgot to advance loc after getting num/str token from token list.
+28. "/" has the wrong command code.
+29. get_x_next needed after, e.g., "1/2" in scan_primary.
+30. take_fraction should be make_fraction in call of frac_mult.
+31. v:=dep_list(v) forgotten in dep+dep branch of add_or_subtract.
+32. q:=link(q) etc misplaced and omitted in p_plus_fq and p_plus_q.
+33. dep_finish recycled a dependency list twice.
+34. call of dep_finish should use null not cur_exp.
+35. decided that "3 3" shouldn't equal 9.
+[also put in new code for the addto command]
+Version -97.0: [March 29]
+36. forget to set q:=qq in scan_expression.
+37. first line of print_path: forgot print_ln.
+38. typo in set_controls: right_y should be left_y.
+39. toss_knot_list forgot that it has a circular list to toss.
+40. print_exp shows big nodes backwards.
+41. angle brackets didn't look good in print_exp; took them out.
+42. left_brace must be between min_tertiary and max_tertiary.
+43. prev_dep should point back to tail, not head, of previous list.
+  (that error was in encapsulate and <Copy the big node>)
+44. nonlinear_eq should leave node p vacant, sometimes.
+45. conditional routine forgot that get_boolean starts with get_x_next.
+46. forgot get_x_next in processing of else.
+47. str_ref not initialized by make_string.
+48. param_start not initialized properly.
+49. "%EXPR" didn't look good in token list.
+50. "{loop}" not necessary in forever loops; there's already enough.
+51. macro name didn't come out right when tracing macros.
+52. macro parameters weren't shown when tracing macros.
+53. quote marks missing when displaying strings.
+54. parameter names on macro call trace should look nicer.
+55. statement beginning with bad token: error message needed.
+56. `->' desired in context lines of macro.
+57. forgot q:=loop_list_loc(s) in begin_iteration.
+[also put in new code for shipout]
+Version -96.0: [March 30]
+58. forgot loop_type(s):=null in begin_iteration.
+59. forgot value(p):=null after type(p):=type(pp) in find_variable.
+60. forgot to delete_pen_ref after filling a contour.
+61. check that it's a cycle before calling make_spec.
+62. "if tracing_stats>0" should be "if internal[tracing_stats]>0"!
+63. forgot get_next after showdependencies.
+64. forgot link(r):=p at end of dependency list addition.
+65. extra `get_x_next' in <Scan a direction...>.
+66. typos in last half of <Remove open types...>: mind the p's and q's.
+67. take_fraction should be make_fraction in simple case of two givens.
+68. in print_exp of unknown type, stop if v=null.
+69. showtoken forgot to stop; also should be consistent with TeX.
+70. "continue" label needed in error routine, after all.
+71. id_lookup should treat length-one identifiers by simpler method.
+  (in particular, this allows it to find unprintable ones!)
+72. need psi[n+1]:=psi[1] in cyclic case of make_choices.
+73. tension/controls take primaries as arguments, not expressions.
+74. print_spec didn't initialize octant.
+75. print_spec: break lines into two, since they are quite long.
+76. smooth_moves not called in fill_spec.
+77. typo < for > in edge_prep.
+78. edge tracing misses half the corners, and forgot to set trace_y.
+79. edge_prep needs extra logic when rover=head.
+80. make_good should compute cur_d based on good values, not original values;
+  but we sometimes need the other alternative too.
+81. valid_sum: the test was backwards.
+82. print_weight blunder: ho(q) should be ho(info(q)).
+83. forgot init_gf in shipout.
+84. typo in <Finish the GF file>: if total_chars<>1 then print("s").
+85. initializations of ww, prev_w, and m were forgotten in ship_out.
+86. typos in initialization of prev_m and gf_min_x.
+87. forgot to update prev_n in ship_out.
+88. relax becomes "expandable".
+89. internal[x]>1 should be internal[x]>unity!
+90. forgot to restore normal scanner_status in pass_text.
+91. (end occurred when if...) was inevitable.
+[also put in new code for openwindow, display]
+Version -95.0: [April 1]
+92. forgot to unscale the window numbers in that new code.
+93. had w<0 test instead of w<=0 in <Record a possible transition...>.
+94. prev_w:=w should be done in all cases of <Record a possible...>.
+95. forgot get_x_next after scanning `1/2'.
+96. in do_assignment, after recycle_value(p) I need to set type(p):=something.
+97. omit `.' after the equivalent in showtoken.
+98. in <Copy the big node p>, I said "until q=p"; I meant "until q=value(p)".
+99. print_macro_name said "info(link(a))"; meant "text(info(info(link(a))))".
+100. forgot get_x_next after macro_call in scan_primary.
+101. scan_primary installed dependent components badly (data structure error).
+102. new_structure failed in case of generic_subscript (data structure error).
+103. param_type case of print_cmd_mod had bad if/else nesting (language error).
+104. null_path forgot to return a value (language error).
+105. p_with_x_becoming_q had typos (q and f for x).
+106. <Copy the big node...> should end with cur_exp:=t, not r.
+107. subscripted definitions: out of sync; scan_primary loop needs revision.
+108. secondarydef went through scan_def instead of make_op_def.
+109. make_op_def forgot the final get_next.
+110. make_op_def also forgot to insert the general_macro preface.
+111. showvar shows too much of macro variables.
+Version -94.0: [April 4]
+112. single_dependency needs to take account of the scale factor.
+113. add_or_subtract starts out with wrong v value. [bug 31 was fixed wrong]
+114. print_exp needs a case for t=independent.
+115. also numeric_type, and case v=null of pair_type, transform_type.
+116. end_token_list thought identity_macro and insertions had ref counts.
+117. disp_var should display also in case of generic subscripts.
+118. find_var should put value(pp):=null when it sets type(pp):=numeric_type.
+119. yet another problem in <Copy the big...>: copy_dep_list(dep_list(q)).
+120. scan_primary should flush_node_list(q) before make_exp_copy(p).
+121. make_scaled arguments reversed in p_over_v.
+[also added code for new internals: smoothing, autorounding]
+[also added code for showstats]
+Version -90.0: [April 5]
+122. Should check range of variables when they become known.
+123. <Exclaim about...> should include begin...end (WEB language error).
+124. forever should be followed by a colon.
+125. dangling else problem in make_eq: "abc"="abc" considered false.
+126. showstats, showtoken should read the semicolon before stopping.
+127. print_variable_name balked at, e.g., xpart of a capsule.
+Version -89.0: [April 6]
+128. after &foo, shouldn't assume there's an input file present.
+129. forever forgot get_next.
+130. pair=path and path=pair should coerce the pair to be a path.
+131. similarly in the operand to `addto'.
+[added new code for cull command]
+[minor revision of internal quantities; e.g., labeling is out, fontmaking is in]
+Version -88.0: [April 7]
+132. "string" operator is renamed "str".
+133. min/max coordinates added to boc command.
+134. labeling_command removed; it will be implemented in macros.
+135. info(p) should be attr_loc(p) in flush_variable.
+136. make_spec didn't realize the need for xh and yh.
+137. gf_new_row parameters had sign reversed.
+138. the "numeric" case was left out of recycle_value.
+[added new code for special/numspecial]
+Version -87.0: [April 13]
+139. q:=qq should apply also after <Splice...>, in scan_expr.
+140. param_size: better defined than a constant.
+141. surprise: back_input fails when cur_cmd=expr_arg, as it changes limit.
+142. <Subdivide...second time wrt x'-y'> forgot to change right_type(r).
+143. show <path> shows the whole path.
+144. expr like 0..1 leads to <Determine the path join...> with q undefined.
+145. typos in <Decide...clockwise>, clobbered dx2 and used right_type(p) twice.
+146. need to adjust expr_arg when macro is inside a macro!
+147. expr_arg forbidden to be in a text argument.
+148. frozen_relax added to prevent premature termination.
+[I took out the code used for debugging the screen interface]
+[added "cycle", a unary operator taking path to boolean]
+[added the code for concatenation and for str and for xpart..yypart]
+Version -86.0: [April 25]
+149. not_scolded_yet was never set false after scolding.
+150. Missing "q:=s" at the end of <Make variable q known>.
+151. In @<Worry...@>, add get_next after back_error.
+152. New xpart routine didn't recycle other components of the big node.
+[added the "hard_times" case of multiplication]
+[added the complete set of boolean expressions]
+[added the eight transformations, applied to three kinds of expressions]
+[added the save command]
+[added the interim command]
+[added the let command]
+[added the pen operations]
+153. Incomplete help message on "Not a variable".
+154. forgot begin...end in the last section of materialize_pen.
+155. blunder <Insert a new line...>: length(p,s,q) should be length(s,q,r).
+156. <Construct the offset...>: forgot begin...end here too.
+157. "(newly created)" shd be " (newly created)".
+158. path_trans: forgot to unstash the capsule p.
+159. set_up_trans: transform_type should be transformed_by, in one place.
+160. <Install sines...>: had p instead of q, in several places.
+161. edges_trans: an edges variable isn't in a capsule.
+Version -85.0: [May 2]
+162. begingroup ... endgroup should be allowed as compound statement.
+163. pausing shouldn't clobber "showit". (WAITS version only)
+164. Improved help message for isolated expressions.
+165. Bad error recovery after "Not a variable" in showvar.
+166. Typo in clear_symbol: name_type(p) instead of name_type(q).
+167. "%" and ";" to be left out of file names being input.
+168. dep_finish used v for two purposes; wrong declared type.
+169. autorounding 2 suppresses correction when the derivative isn't critical.
+170. tab characters should be changed to spaces on input. (WAITS version)
+171. harmful goto: Forgot to |return| after path_trans and edge_trans.
+[added ord, hex, oct, length, char, decimal, and jobname]
+Version -80.0: [May 4]
+172. showvar still screwed up.
+173. don't clobber screen for prompt_input (WAITS only).
+174. length of non-cyclic path is one too high.
+175. <Evoke an error message...> evoked the wrong message.
+176. better error message needed on `Equation cannot be performed'.
+177. ">> " inserted before expression displays.
+178. <Finish linking...> should dup_offset also when n=0.
+179. pencircle was a factor of 2 too big.
+180. cosine of 180 should be -1 exactly.
+181. ord "" should be -1.
+182. shipout should allow expressions as well as variables.
+183. "mod outer_tag" needed in various tests on eq_type.
+184. merge_edges forgot to adjust for changes in m_offsets.
+185. typo, ww for w in print_pen.
+186. typo, "outer" for "errhelp" in print_cmd_mod (message case).
+[added "also"]
+[added "message", "errmessage", "errhelp"]
+[added "outer", "inner"]
+[added "readterminal", "readstring"]
+Version -79.0: [May 6]
+187. read_toks forgot to include the general_macro token.
+188. offset_prep should treat n=0 like n=1.
+189. cusp transitions (from change 169) must be suppressed in envelope case.
+190. <Record a line segment...> shouldn't change xp or yp.
+191. <Find the initial slope...> was used too late.
+192. <Find the index...> had a redundant test (a relic of old code).
+193. <Compute test coeff...> wastefully made the same fraction three times.
+194. doublepath <cycle> should split the cycle.
+195. `if k=0' in fin_offset_prep should have been `if k=1'.
+196. `done:' misplaced in <Make the envelope moves...>.
+197. also move[move_ptr] should be initialized to 1 there, not 0.
+198. skew is used with p=q in fill_envelope.
+199. it's no use tracing subdivision for offsets, since everything is skewed.
+200. in <Record a line...>, round_unscaled should be floor_unscaled.
+201. unskewing: wrong formula (x was .5 too large).
+202. elliptical pens: better correction for the case gamma<=abs(alpha).
+203. dual env_move was updated badly, in both <Transfer...> and <Record...>.
+204. dual env_move to move: subscripts were off by 1.
+205. <Insert...dually...> should set ww:=knil(link(h)), not link(h).
+[added ++]
+Version -70.0: [May 9]
+206. suppressed cusp rounding in envelope case too.
+207. `show' should use `>> ' when it shows an expression.
+208. streamlined the test for bad lambda and mu in |skew|.
+209. after linear_eq, must check if type(cur_exp)=known.
+210. print_spec surprise: contours might never travel toward the first octant!
+211. t0,t1,t2 sign was reversed in <Complete the offset splitting...>.
+Version -69.0: [May 10]
+212. "showvar" changed to "showvariable".
+213. typo: r for r_delim in <Scan a text parameter...>.
+214. "newinternal" feature added.
+215. <Record a line...dually...> needs to update envmove at end of loop.
+216. smooth_moves shouldn't affect the extreme points.
+217. floor(unity*(n-1)/n) is unity when n is large; need to be more careful.
+218. major improvements to rounding, based on new theory of (x+eps,y+eps^2).
+219. pen offsets made symmetrical about the origin.
+220. p:=half(p+q) overflow problem in take_fraction, take_scaled.
+221. cull_edges now updates the max/min values too.
+222. make_spec needs to be more bullet-proof to rounding errors; added `dest's.
+223. xmult/ymult/zmult changed to xscaled/yscaled/zscaled.
+224. elliptical pens improved by temporarily allowing zero-length lines.
+[added edge transposition algorithm]
+Version -67.0: [May 17]
+225. copy can encounter a vacuous expression, e.g. in a parameter.
+226. xy_swap_edges mustn't change w when inserting a large weight.
+227. in #222, had typo pp for r in <split ... second time ... x'-y'>.
+228. in #222, incorrectly assumed local max = global max of cubic.
+Version -66.0: [May 19]
+229. bad_binary(c,p) should have been bad_binary(p,c).
+230. enabled comparison of unknown strings.
+231. fixed ring_delete to avoid unexpected scolding.
+232. should store character width info even when proofing<0.
+[added all the TFM commands and output routines]
+[added the `substring' operation]
+[added `point', `precontrol', `postcontrol'; deleted `direction']
+Version -65.0: [May 24]
+233. Change error message `(t)point(u)' to `point(t)of(u)'.
+234. newinternal to allow a list of tokens.
+235. In <Feed...>, should check for overflow before begin_token_list.
+236. scan_def didn't allow for the case warning_info=null.
+Version -60.0: [May 25]
+237. increased param_size.
+238. added <boolean><relation><boolean>.
+239. <Remove dead cubics> stopped too early if the first cubic was dead.
+240. bad_unary, bad_binary should distinguish pair from unknown pair.
+241. yet another "m<env_move[move_ptr]" test needs to be inserted.
+242. newinternal names need to go in the dump file.
+243. delete_mac_ref(v) should be delete_mac_ref(value(p)) in recycle_value.
+244. constant in <Decide...clockwise> was scaled instead of fraction.
+Version -59.0: [May 27]
+245. break up initialize routine into two parts (cf init_prim in TeX)
+Version -58.0: [May 28]
+246. do_ship_out should scan_expression, not scan_primary.
+247. offset_prep might clobber node q, so we need to search for q again.
+248. pair "1" = true! (blunder in type_test)
+249. allow strings x in `def f(expr x)=def g=x enddef enddef'.
+250. allow exprs in text parameters, in sufficiently easy cases.
+251. check right delimiters in macro_call.
+252. "Bad window number" message gave unscaled value.
+253. turnaround feature improves automatic rounding slightly.
+254. primaries changed to expressions in window and cull commands.
+255. scan_expression should make (0,0){0,0} a path, not a future path.
+256. showvariable and showtoken to allow lists; all shows made consistent.
+257. new internal quantity "windingcheck".
+258. delete warning message about edges never used.
+259. vardef: group the righthand side.
+260. show commands stop once each.
+261. cur_type should be vacuous after equation or assignment on outer level.
+Version -57.0: [June 4]
+262. added xyzzy diagnostic about effect of autorounding.
+263. make_moves now puts xi_corr,eta_corr into halving.
+[otherwise "draw (0,0)..(9,-.00002)" and "draw (0,-.00002)..(9,0)" fail badly!]
+Version -56.0: [June 6]
+264. smooth_moves changed completely; now is LR symmetric, cleaner.
+265. changed "unknown" to "known".
+266. pair to path conversion now done on length, makepen, reverse, etc.
+267. cycle now defined on arguments of any type.
+268. (re 218) sign was flipped in ceiling correction of <insert downward...>.
+[added union, subpath, penoffset, directiontime, intersectiontimes]
+
+Note: the first two draw statements in PENS.mf show an interesting effect.
+With autorounding, the curves are noticeably better, esp the small one.
+But there are two "holes", because of tiny discrepancies that I believe
+are unavoidable.
+Added later: Actually these are avoided by the new smooth_moves, but
+certain others will not be.
+Version -50.0 [June 30]
+269. smoothing to be shut off at the retrograde transitions
+270. more care needed in the rootfinding part of find_direction_time.
+271. improved error recovery after "Isolated expression".
+Version -40.0 [July 3] --- the first version to be "complete"!
+272. trivial change in <Exit...if the derivative $B(x_1,x_2,x_3;t)$...>.
+273. check that halfwords are large enough to hold edge/weight data.
+274. `path reverse (0,1)' should be true.
+275. xy_swap_edges might empty the structure; then x_reflect will fail!
+276. fix_offset was being done too often, due to improper range test.
+277. parameters come out even when tracingonline=0.
+278. step-until wasted r and didn't check syntax carefully.
+279. <Scan a group...> had typo: `line' for `group_line'.
+280. "You can't dump in a group" error was impossible.
+281. need better ETC cutoff in showmacro.
+282. print_exp needs to handle independents, because it's used by disp_var.
+283. suppress `#### xpart %CAPSULEnnnn' printouts.
+[added code for everyjob; this version wasn't complete after all!]
+Version -30.0 [July 9]
+284. need better error/help after ` if s1=s2' when the strings are unknown.
+285. removed autorounding>2; it was leading to more glitches than it was worth.
+286. envelope filling of a cycle to be done by two calls of fill_envelope.
+287. "null" changed to "vacuous".
+288. cyclic path inserted in another path should retain its last arc.
+289. introduce several dozen "put_get" errors for improved recovery.
+290. suppress "with autorounding" when autorounding hasn't been set.
+291. {loop value} came out even when tracingonline=0.
+292. show commands should wake up the terminal before showing their output.
+293. forgot error message in `if true else'.
+Version -20.0 [July 14]
+294. need to catch pens that are too large.
+295. make_eq dassn't change lhs (because this clobbers the memory links later).
+296. string usage is reported too high by showstats.
+297. bilin1 and add_mult_dep can call p_plus_fq with type(q)=proto_dependent.
+298. <Transform a known big node> forgot to recycle pp.
+299. in change number 286, the weight of the two paths should be the same.
+300. print_ln sometimes changed to print_nl("") in order to avoid blank lines.
+301. xyzzy to be combined with tracingedges.
+302. good3 entries should be 1 and 2 (not 1 and 0), to give desired symmetry.
+Version -10.0 [July 17]
+303. had to add `new_if_limit' to `conditional'.
+304. `else' can be incomplete as well as `if' and `elseif'.
+305. new help "You can't redefine a parameter."
+306. print_edges should use cur_edges, because print_weight does.
+307. cull shouldn't round; it should use ordinary inequalities.
+308. obliterated variable left `0' token hanging in scan_primary.
+309. forgot recycle_value(p) in <Evoke...>.
+310. forgot to check improper culling amounts.
+311. `on' to be changed to `inwindow'.
+312. >=max_tfm_dimen should be simply >.
+Version -9.0 [July 19]
+313. max_tfm_dimen needs to be decreased by design_size div 2^21.
+314. merge test data reporting into the screen display routines.
+315. use @# in printout at time of macro expansion tracing.
+316. bad recovery after "Incomplete string" error.
+317. @ should be usable as a parameter.
+318. spacing bad on `missing of' and `too many parameters' errors messages.
+319. keep track of largest str_ptr and pool_ptr values; showstats on two lines.
+Version -8.0 [July 26] [introduced new test routines to study memory usage]
+320. make_pen doesn't recycle the knots
+321. flush_below often says free_node(2) on node of size 3.
+322. make_eq should recycle and free; do_equation shouldn't
+323. re #298 and #309: should also free the value nodes!
+324. the replacement text of a bad_var definition should be recycled.
+325. token lists left unrecycled in error recovery of addto, cull, display.
+Version -7.0 [July 27]
+326. showall to put "(see the transcript file)" after >> if not tracingonline.
+327. remove redundant code: hex in print_the_digs; second l=1 in idlookup.
+328. procedures never called: b_open_in; round_scaled.
+329. need to zero cur_mod after back_expr in <Put the left bracket...>.
+330. <Print the coefficient...> now catches also numbers that round to 1.0.
+331. known_pair logic was obsolete; now it is massively simpler.
+332. fix_check_sum now zeroes the negative bytes; this simplifies other code.
+333. show_dependencies not to show parts of capsules.
+334. forgot to set fix_needed:=false!
+335. move fix_needed from add_or_subtract to dep_finish.
+336. test fix_needed in bilin1 and add_mult_dep.
+337. after back_expr in <Scan a mediation...>, forgot to unstash p.
+Version 0.0 [July 28] [Hurray! The preliminary TRAP test is fully passed.]
+338. corrected blunder in definition of trans_spec type. (found by Karney)
+339. less extreme starting values of gf_min_x and its cousins.
+340. uninitialized left_curl was possible. (found by John Hobby)
+341. In <Reduce...straight line...>, need to test sign before the `div 3' ops.
+342. In pyth_add, remove `+2' when dividing by 4, to prevent overflow.
+343. "Not a variable" changed to "Not a suitable variable".
+344. known_pair forgot to reset cur_type.
+345. round and floor procedures need to work in the presence of huge arguments.
+346. major revision to allow independent variables to disappear silently:
+346a. delete null_path and <Declare the null value routines>.
+346b. delete the hard part of ring_delete, and delete <Scold...for using...>.
+346c. stash/unstash/flush_cur_exp routines to allow independent type.
+346d. print_exp to allow a ring that contains only capsules.
+346e. <Zero out...> becomes <Recycle an independent variable> (major new code).
+346f. stash_in needs code to handle the case cur_type=independent.
+346g. negation needs code to handle the case cur_type=independent.
+346h. take_part needs code to handle the case cur_type=independent.
+346i. do_binary needs code to handle either or both operands independent.
+346j. frac_mult needs code to handle the case cur_type=independent.
+346k. make_eq and try_eq too.
+346l. linear_eq needs to check if cur_exp=x and cur_type=independent.
+346m. linear_eq displays new dependency only when lhs is interesting.
+347. minor improvement for coding style/brevity: the "interesting" function.
+348. test `if t<independent' had been left out of print_exp (was dirty PASCAL).
+349. (begingroup save x;x+1000 endgroup,0) caused subtle bug during unsave.
+350. print_type(known) changed to "known numeric" for consistency.
+351. In <Change...to proto_dependent>, didn't watch for coefficients zeroed.
+352. check_mem now checks also the links in the dependency lists.
+353. null_pen initialization belongs in <Initialize tab...>, not <Set init...>.
+354. fix_dependencies has to worry about coefficients dropping to zero.
+355. add tracing to frac_mult.
+356. need cur_sym>0 at the time of end_read_terminal. (found by S Robinson)
+Version 0.1 [August 30]
+357. Don't complain about winding_number<=0 when doing a doublepath.
+358. Need to test for max_coef=0 in offset_prep.
+359. Cusp detection should allow for more rounding error.
+360. Major change to path syntax, allowing {dir}..{dir} path joins.
+360a. `Fragments' disappear; new_fragment becomes new_knot.
+360b. print_path has simpler conventions.
+360c. future_path type disappears.
+360d. left_brace renumbered and removed from scan_tertiary.
+360e. some scan_tertiary code moves to new subroutine scan_direction.
+360f. scan_expression has a bunch of new code.
+361. scan_expression shouldn't have returned after cycle_hit.
+362. abort_path, scrap_knot logic removed from scan_expression.
+Version 0.2 [September 12]
+363. new operator: makepath <pen primary>.
+364. define point/precontrol/postcontrol at endpoints and beyond. (JDH)
+365. union replaced by +; negation and subtraction allowed on edges.
+366. another new operator: totalweight <edges primary>. (JDH's idea)
+367. undelimited parameters may be preceded by an optional = or :=.
+368. base_area_length was wrong. (affects CH files)(found by Pavel)
+369. internal names to be allowable in suffixes.
+370. label not_found was misplaced in do_add_to. (found by PasMESA translator)
+371. progress report should be given at time of shipout.
+372. procedures make_choices, make_spec,fill_envelope split into shorter pieces.
+373. locals of cubic_intersection made global so that people could split it.
+Version 0.3 [September 27]
+374. allow <future pen> ::= <pen> <transform>
+375. equation that's off by .0001 shouldn't be called inconsistent.
+376. bug in skew: must compute x_coord(q) and y_coord(q) exactly.
+377. right/left/up/down to be assigned to octants 1/5/2/6; was 1/4/2/7.
+378. boundedness to be allowed with any tension, and one-sidedly.
+379. eliminate coordinate nodes in path lists by passing angles instead (JDH).
+380. known_pair to free cur_exp after error msgs that might showdependencies.
+381. scan_primary sometimes accessed num before it had a value (found by Pavel).
+382. invalid characters should cause error message (suggested by PMB).
+Version 0.4 [October 12]
+383. allow `0' in response to error prompts.
+384. put loop value on error context lines.
+385. change `ord' to `ASCII'.
+386. scantokens <string primary> to be permitted; readterminal goes away.
+387. expandafter <token> to be permitted.
+388. improved overflow conventions on make_fraction, make_scaled.
+389. variable=<value over 4096> should get its own error message.
+390. nice_pair first argument can be any integer.
+391. new feature, shortshow commands that don't pause.
+392. "harmless" bug in negate_edges, the sorted list can get out of sorts.
+393. ni too skimpy (15 instead of 63). (JDH)
+394. loop_ptr not initialized. (found by Paul Richards)
+395. bug in <Find the approximate type...>, q=null should goto done1. (Richards)
+396. empty_edges macro added for readability.
+397. x_reflect_edges might as well fix the offset as it goes.
+398. blunder: frozen_bad_vardef had the wrong eq_type.
+399. "name" changed to "tag".
+400. check_arith inserted after division of numeric tokens.
+401. stop_bit was not initialized in <Compile a ligature/kern...>.
+402. char 127 to be a string of length 1; slow_print added (therefore).
+403. pyth_sub added to the repertoire.
+404. minor change to calls on "confusion" in make_fraction, make_scaled. (JJW)
+Version 0.5 [November 9]
+405. 4095.999999 should be erroneous.
+406. length <pair> to give the absolute value; argd changed to "angle".
+407. get_next changed to get_x_next wherever possible.
+408. z1..z2{curl 0} should be equivalent to z1..{curl 0}z2.
+409. scantokens "" should be fast.
+410. allow undelimited suffix and text parameters.
+411. warningcheck to allow large variable values passed over silently.
+412. "edges" changed to "picture".
+413. "winding" changed to "turning".
+414. <If consecutive knots...> had typo, "p" for "q".
+415. elliptical pens should have axis symmetry.
+416. slow_add introduced to catch arithmetic overflow on addition.
+417. add a turningnumber primitive.
+418. no carriage return between ">>" and "Edge structure...".
+419. install new memory management routines (from TeX version 1.3).
+420. generalized cull command. (suggested by Bruce Leban)
+421. bad goto: `x..' reports that x is vacuous, loses value of x.
+422. shortshows replaced by an internal variable "showstopping".
+423. major change, capsule tokens: lots of code and restrictions gone! (JDH)
+424. substring(a,b), subpath(a,b) to reverse the result when a>b.
+425. new GF format: z goes away. (suggested by ALS)
+426. another GF mod: chardw replaced by chardx/chardy, which are scaled. (PMB)
+427. make `&' have the same precedence always (not different for strings).
+428. wrong error message for 2"s" (bug introduced in change 369).
+429. variable l in show_context has to be declared type integer.
+430. bug in chop_path when both limits are large.
+Version 0.6 [December 10]
+431. xoffset and yoffset to be added by shipout. [this affects GF comments]
+432. wake_up_terminal, not t_open_out, before "Ouch..." (Scott Robinson)
+433. undelimited suffix parameters to allow an optional delimiter, disallow =.
+434. showall... to be eliminated; tracingcapsules added.
+435. allow undelimited parameters after delimited ones.
+436. nullpen test in addto should test for any one-point pen.
+437. granularity parameter to affect autorounding (Bruce Leban)
+[this leads to major improvements suggested by JDH; lots of code changes!]
+[basically, make_spec is now responsible for autorounding; fill_spec just fills]
+438. node_size overflow problem must be prevented. (Paul Richards)
+439. allow unary + with a picture.
+440. nullpen should transform quickly to itself, if not shifted.
+441. print_edges should skip over null rows, if it doesn't already.
+442. open_base_file improved (following TeX's change number 302).
+443. output initialization improved (following TeX's change number 303).
+444. operators shouldn't fail because future pen isn't a pen. (JDH)
+445. intersection routine to quit in hard cases. (DRF)
+446. angle routine was off by epsilon on negative arguments. (Karney)
+447. octant assignment should look ahead further in ambiguous cases. (JDH)
+448. <Compute the incoming...> forgot that right_type(r)=endpoint could happen.
+449. turning_number calculated directly, not times 8.
+450. floor_scaled made more efficient by trading subtraction for multiplication.
+451. doublepath autorounding to compromise between east and west. (JDH)
+452. codes of picture_type and path_type interchanged, to simplify a "case".
+Version 0.7 [January 17, 1985]
+453. def to allow both := and =. (NB)
+454. "keeping" and "dropping" instead of "including" and "excluding". (HWT)
+455. (see the transcript...): why, when tracingonline>0?
+456. dead cubics need to be removed also before xy_round. (NB)
+457. [re 433] I said get_x_next twice; a blunder.
+Version 0.75 [January 23, 1985]
+458. Abbreviated boc command makes GF format more attractive for lowres. (GusF)
+Version 0.76 [February 2]
+459. known and unknown might as well both be primitive.
+460. ab_vs_cd(a-d,b,c-b,d) simplifies to ab_vs_cd(a,b,c,d). (JDH)
+461. (from change 435) <Absorb undelimited...> must use k, not n.
+462. (from change 458) max_new_row added, since 165 wasn't updated to 164.
+Version 0.77 [February 16]
+463. abbreviated version of tracingspecs is desired for turning number errors.
+464. improved octant number in pathological cases of quadrant_subdivide (JDH)
+465. xoffset,yoffset communicated to GF file when proofing>0.
+466. Poirot changed to Marple.
+467. reverse<cycle> starts the reversed path at the wrong time.
+468. Extra help given after `undefined coordinate' errors.
+469. Keep segment numbers from overflowing max_halfword. (JDH)
+470. Ditto for pen offset slope numbers.
+471. n_magic had min_halfword with wrong sign. (John Johnson)
+Version 0.80 [April 1]
+472. In errhelp, % means <return>, %% means %. (BPL)
+473. tracing of envelopes should give symbolic octant names.
+474. (-x mod y) should be ((-x) mod y) in good_val.
+475. crossingpoint could overflow on 32-bit machines. (BPL)
+476. Improvements to abbreviated format of number 463.
+Version 0.81 [April 4]
+477. `I hide(showdependencies)' in hint to become `I ???'.
+478. print_strange shouldn't wake up the terminal in scroll mode. (cf 463)
+479. flush_list procedure made a bit faster. (DRF)
+480. bounded velocities to be multiplied by .999 for safety.
+481. Detect error in declaration that tries to extend a vardef.
+482. print_strange puts turns in parentheses (cf 463).
+483. make_name_string shouldn't ever cause string space overflow.
+484. allow <picture primary> xscaled m yscaled n.
+485. checksum should consider values relative to designsize. (DRF)
+[I also increased max_strings to 2000.]
+
+[Note: Neenie found a case where missing pixels can occur, due to
+inconsistent rounding between left-to-right and right-to-left subdivision:
+pickup pencircle; draw
+(0,126)..controls (130.29451,126) and (288,126.00002)
+ ..(288,36)..controls (288,143.99998) and (132.97438,144)
+ ..(0,144)..controls (0,138) and (0,132)
+ ..cycle;
+The "right" way to fix this would be to develop a make_spec routine for
+non-cycles, and to copy a reversed spec, so that double paths would be
+guaranteed self-inverse. However, my later experiments showed that
+autorounding wasn't nearly as useful as I had expected it to be, hence I
+decided not to waste time beefing up this routine; no satisfactory
+automatic approach to rounding occurs to me.]
+Version 0.90 [May 10]
+486. 180-degree turns to be clockwise for half of doublepath cycles.
+487. introduce fillin parameter.
+488. `numeric_type' moved before `known', so that print_exp works (Richards).
+489. numeric_type as unary op should include independent in its range (cf 346).
+Version 0.91 [May 13]
+490. show_token_list gets null_tally parameter.
+491. if bad>0, change the code as in TeX changes 315, 316.
+492. batchmode change as in TeX 317.
+493. "and double autorounding" to be traced, if appropriate.
+494. introduce tracingrestores.
+         *`restoring a bad variable'?
+495. put decimal number into gf extension
+496. mediation put into scan_primary, so that round .5[a,b] works properly.
+497. cubic_intersection now has |tol| to compensate for rounding errors.
+498. find_direction_time needs to worry about degenerate case x3=y3=0.
+499. crossing_point(a,b,0) now yields fraction_one if a,b>0.
+500. diag_round shouldn't insist that b-a is even (see below).
+501. macro_call will show_macro with much larger limit.
+502. TFM file statistics are logged too.
+
+* Here's an example (found by Neenie) explaining bugfix 500:
+autorounding:=2; draw
+(7.03159,-9.31831)..controls (12.14732,-9.4386) and (17.4299,-6.82948)
+ ..(21.60132,0)..controls (27.47417,9.61507) and (37.87402,15.58647)
+ ..(43.74687,25.20154)..controls (51.16223,37.34201) and (57.31,50.171)
+ ..(63.45776,63.00002) withpen pencircle;
+The missing pixels are due to the following curious circumstances: (1) the
+middle cubic splits into three, when subdividing into octants; (2) the reverse
+curve splits too but with slightly different rounding, off by 1; (3) the old
+diag_round routine, when it ensures that b-a is even, computes aa=a+1 on
+one side of the curve, but aa=a-1 on the other side, thus making the
+rounding "safe" on only one side. (Namely, on one side we have consecutive
+values
+  b=1317666 a=1310720
+  b=1329617 a=1310721
+and on the other side,
+  b=-1329618 a=-1310720
+  b=-1317667 a=-1310721.)
+
+* Here's an example (by JDH) showing the necessary of bugfix 497:
+path p[];
+p1 = (1,0)..controls (1,0.10493) and (0.98347,0.20921)
+     ..(0.95105,0.30902)..controls (0.91862,0.40881) and (0.8707,0.50288)
+     ..(0.80902,0.58778);
+p2 = (0,0)..controls (0.63403,0.20601) and (1.26807,0.41203)
+     ..(1.9021,0.61804);
+show p1 intersectiontimes p2;    % (-1,-1), without `tol'
+pickup pencircle;
+currenttransform := identity scaled 150;
+draw p1; draw p2;
+showit;          % but they clearly intersect
+Version 0.95 [Aug 12]
+503. `Se' changed to `SSE', etc. (suggested by RFS)
+504. Inconsisting diagonal rounding was introduced in bugfix 500.
+
+[the following lines from @<Determine the before...@> in diag_round:
+    if aa>bb then cc:=dd-half(aa-bb-1)@+else cc:=dd-half(aa-bb+1)
+  if a>b then c:=d-half(a-b-1)@+else c:=d-half(a-b+1)
+were replaced respectively by:
+    if right_type(p)>switch_x_and_y then cc:=dd-half(aa-bb+1)
+    else cc:=dd-half(aa-bb-1)
+  if right_type(p)>switch_x_and_y then c:=d-half(a-b-1)
+  else c:=d-half(a-b+1)
+in order to make the rounding consistent on adjacent octants;
+the following command caused `this can't happen':
+fill (33,7)..controls (32.63094,5.70827) and (32.06163,3.716)
+ ..(31.59488,3.36667)..controls (31.10509,3.00009) and (29.14824,3)
+ ..(27.85318,3)..controls (27.85286,3) and (23.84952,3)
+ ..(23.8492,3)..controls (23.73282,2) and (23.61646,1)
+ ..(23.50008,0)..controls (26.66672,0) and (29.83336,0)
+ ..(33,0)..controls (33.66667,2.33333) and (34.33333,4.66667)
+ ..(35,7)..controls (34.33333,7) and (33.66667,7)
+ ..cycle;]
+Version 0.96 [Aug 17]
+505. allow comparison of transforms. [test by trying t=t when t is new...]
+506. {restoring...} shouldn't get through when tracingonline=0.
+507. better error message needed on `interim alpha:=0', `interim 0:=0'.
+508. make_op_def should put parameters in the other order.
+509. <Worry about...> should say get_x_next, not get_next.
+510. unif_rand to allow negative x, save on error messages.
+511. tidy up chop_string when b<0 and/or a>l.
+512. randomseed is automatically logged.
+513. change 495 messed up if gf file couldn't be opened. (found by DRF)
+[In INIMF.CH, 3-character extensions now have 0--9 or A--Z as leading digit.]
+Version 0.97 [Sep 5]
+514. a[b,c] to be tried only if a is numeric type.
+515. simplified the code for length_op(string_type).
+516. citations of `Chapter xx' now replaced by correct references.
+517. <Log the subfile sizes...> to be in stat...tats version only.
+518. remove extra space after <insert> and <scantokens>.
+519. offsets should be included in the tracingoutput output.
+520. a vacuous expression should be considered known.
+521. charlist syntax changed from commas to colons.
+[also the WAITS version command-line reader was fixed to handle `^^W']
+Version 0.99 [Sep 24]
+522. vardef's begingroup...endgroup should be accessible.
+523. allow an empty expression in for loops.
+Version 0.999 [Oct 1]
+524. "charfam" changed to "charext".
+525. variable tt makes get_node slightly faster. (PROFILE suggests this)
+526. cur_cmd<=max should be tested before cur_cmd>=min. (PROFILE)
+527. fast_get_avail used in cur_tok and scan_primary. (PROFILE)
+Version 0.9999 [Oct 27]
+528. Major change to representation of independent variables
+ ("serial number" added so that MF's equation solving doesn't depend
+ on vagaries of storage allocation)
+ [module number change: new module between old 585 and 586]
+ [in terms of new numbering, modules 232, 585--587, 589, 594, 597,
+    601, 608, 610, 816--817, 855, 1198--1199 were affected]
+[I also reordered some of the cases in print_op, module 189,
+so that the program could be condensed in published version]
+Version 0.99999 [Nov 13]
+529. forgot to decrease three_l in change 497!
+530. cubic_intersection to give approximation if max_patience exceeded.
+[the following example, found by NB, motivated this change:
+ show (
+  (36.00104,26.99951)..controls (36.00131,26.99979) and (36.00146,27.00017)
+   ..(36.00146,27.00055)
+   )intersectiontimes(
+  (36,27.00055)..controls (45.17148,21.12364) and (55.83588,18)
+   ..(66.72873,18)
+  );]
+Version 0.999999 [Dec 2]
+531. hold_head needed (scan_toks calls cur_tok calls copy_edges). (D. Kosower)
+Version 1.0 [January 4, 1986]
+532. Optimization in module 1174, suggested by LER (3 Feb 86)
+@x
+  if delta=0 then gf_out(skip0)
+  else  begin gf_out(skip1); gf_out(delta);
+    end
+@y
+  begin gf_out(skip1); gf_out(delta);
+  end
+@z
+*** Late copies of version 1.0 include this correction;
+in particular, the program listing in Volume D was updated (with scissors)!
+Changes subsequent to `Version 1.0' as published in C&T, Volume D:
+533. Inconsistent punctuation in user messages (found by Karl Berry, June 86)
+@x module 1134
+print_nl("Font metrics written on "); print(metric_file_name);
+@y
+print_nl("Font metrics written on "); print(metric_file_name); print_char(".");
+@z (that was installed in version 1.1)
+
+534. Possible arithmetic overflows (found by Klaus Guntermann, July 86)
+@x module 496
+while max_coef<fraction_one do
+@y
+while max_coef<fraction_half do
+@z (that was installed in version 1.2)
+
+535. Possible loop in nonstopmode (found by Chris Thompson, July 86)
+@x module 1206
+    @<Finish the \.{TFM} file@>;
+@y
+    internal[fontmaking]:=0; {avoid loop in case of fatal error}
+    @<Finish the \.{TFM} file@>;
+@z (that too was installed in version 1.2)
+
+536. Double rounding error should be avoided in make_ellipse (JDH, 22 Nov 86)
+@x module 533
+d:=take_fraction(d,delta);
+alpha:=abs(u); beta:=abs(v);
+if alpha<beta then
+  begin delta:=alpha; alpha:=beta; beta:=delta;
+  end; {now $\alpha=\max(\vert u\vert,\vert v\vert)$,
+      $\beta=\min(\vert u\vert,\vert v\vert)$}
+if internal[fillin]<>0 then d:=d-take_fraction(internal[fillin],beta+beta);
+d:=(d+4) div 8; alpha:=alpha div half_unit;
+@y
+alpha:=abs(u); beta:=abs(v);
+if alpha<beta then
+  begin alpha:=abs(v); beta:=abs(u);
+  end; {now $\alpha=\max(\vert u\vert,\vert v\vert)$,
+      $\beta=\min(\vert u\vert,\vert v\vert)$}
+if internal[fillin]<>0 then
+  d:=d-take_fraction(internal[fillin],make_fraction(beta+beta,delta));
+d:=take_fraction((d+4) div 8,delta); alpha:=alpha div half_unit;
+@z (That was the reason for version 1.3)
+
+537. Trivial change to a help message (version number is still 1.3).
+@x module 1086
+  ("Pretend that you're Miss Marple, examine all clues,")@/
+@y
+  ("Pretend that you're Miss Marple: Examine all clues,")@/
+@z
+
+538. Storage allocation can be more elegant and efficient (4/21/87)
+@x module 169
+if r=p then if ((rlink(p)<>rover) or (llink(p)<>rover)) then
+@y
+if r=p then if rlink(p)<>p then
+@z
+
+539. Unused variables can be eliminated. (Found by John Sauter, 5/5/87)
+@x module 158
+@<Glob...@>=
+@!temp_ptr:pointer; {a pointer variable for occasional emergency use}
+
+@y (I used it only in my change file!)
+@z
+@x module 280
+@!r,@!s,@!t:pointer; {registers for list traversal}
+@y
+@!s,@!t:pointer; {registers for list traversal}
+@z
+@x module 284
+@!sine,@!cosine:fraction; {trig functions of various angles}
+@y (the declarations in module 281 are correct, but in 284 they're superfluous)
+@z
+@x module 497
+var @!q,@!ww:pointer; {for list manipulation}
+@!du,@!dv:scaled; {for slope calculation}
+@!t0,@!t1,@!t2:integer; {test coefficients}
+@!t:fraction; {place where the derivative passes a critical slope}
+@!s:fraction; {slope or reciprocal slope}
+@!v:integer; {intermediate value for updating |x0..y2|}
+begin loop
+  begin q:=link(p); right_type(p):=k;
+@y
+var @!ww:pointer; {for list manipulation}
+@!du,@!dv:scaled; {for slope calculation}
+@!t0,@!t1,@!t2:integer; {test coefficients}
+@!t:fraction; {place where the derivative passes a critical slope}
+@!s:fraction; {slope or reciprocal slope}
+@!v:integer; {intermediate value for updating |x0..y2|}
+begin loop
+  begin right_type(p):=k;
+@z
+@x module 652
+@!s:0..param_size; {value of |param_start| on the current level}
+@y who knows why that line was there?
+@z
+@x module 862
+var @!p,@!q,@!r:pointer; {for list manipulation}
+@y
+var @!p:pointer; {for list manipulation}
+@z
+@x module 985
+@!vv:scaled; {initial value of |v|}
+@!q:pointer; {successor of |p|}
+begin vv:=v; p:=cur_exp;@/
+@y
+@!q:pointer; {successor of |p|}
+begin p:=cur_exp;@/
+@z
+@x module 1059
+@!t:small_number; {variant of |with_option|}
+@y
+@z
+
+540. Typo suppresses an error detection (Chris Thompson, 2May88)
+@x module 963
+ if txy mod unity=0 then if tyy mod unity=0 then
+@y
+ if txx mod unity=0 then if tyy mod unity=0 then
+@z
+
+541. get_x_token can lose a scanned declared variable (Chris Thompson, 4May88)
+@x module 1011
+if equiv(x)=null then new_root(x);
+@y
+@z
+@x module 1011
+done:scan_declared_variable:=h;
+@y
+done: if eq_type(x)<>tag_token then clear_symbol(x,false);
+if equiv(x)=null then new_root(x);
+scan_declared_variable:=h;
+@z
+
+542. Avoid negative divisor rounding upward (Chris Thompson, fixed 19Jun88)
+@x module 168
+else t:=(lo_mem_max+hi_mem_min+2) div 2; {|lo_mem_max+2<=t<hi_mem_min|}
+@y
+else t:=lo_mem_max+1+(hi_mem_min-lo_mem_max)div 2; {|lo_mem_max+2<=t<hi_mem_min|}
+@z
+
+543. Better strategy when near memory overflow (Chris Thompson)
+@x module 168
+begin if lo_mem_max+1000<hi_mem_min then t:=lo_mem_max+1000
+@y
+begin if hi_mem_min-lo_mem_max>=1998 then t:=lo_mem_max+1000
+@z
+
+544. Avoid fatal_error after terminal eof (Tim Morgan, reported 25Oct88)
+@x module 66 [serious problem occurred if this was called in open_log_file]
+if not input_ln(term_in,true) then fatal_error("End of file on the terminal!");
+@y
+if not input_ln(term_in,true) then t_open_in;
+@z
+
+545. Force terminal output when open_log_file aborts (6Nov88)
+@x module 789
+  begin print_err("I can't write on file `");
+@y
+  begin selector:=term_only; print_err("I can't write on file `");
+@z
+
+546. By popular request, undo #544 and fix the bug a more complex way.
+@x module 66 [this undoes change #544]
+if not input_ln(term_in,true) then t_open_in;
+@y
+if not input_ln(term_in,true) then fatal_error("End of file on the terminal!");
+@z
+@x module 87 [now we get to the new stuff]
+begin if job_name>0 then selector:=term_and_log
+@y
+begin if log_opened then selector:=term_and_log
+@z
+@x module 88
+  error;
+@y
+  if log_opened then error;
+@z
+@x module 782
+@!job_name:str_number; {principal file name}
+@y
+@!job_name:str_number; {principal file name}
+@!log_opened:boolean; {has the transcript file been opened?}
+@z
+@x module 783
+@<Initialize the output...@>=job_name:=0;
+@y
+@<Initialize the output...@>=job_name:=0; log_opened:=false;
+@z
+@x module 788
+selector:=log_only;
+@y
+selector:=log_only; log_opened:=true;
+@z
+@x module 789
+begin if interaction<scroll_mode then {bypass |fatal_error|}
+  begin selector:=term_only; print_err("I can't write on file `");
+@.I can't write on file x@>
+  print_file_name(cur_name,cur_area,cur_ext); print("'.");@/
+  job_name:=0; history:=fatal_error_stop; jump_out;
+  end; {abort the program without a log file}
+@y
+begin selector:=term_only;
+@z
+@x module 1023 [this change is optional, but it's a slight improvement]
+  if job_name<>0 then selector:=selector+2;
+@y
+  if log_opened then selector:=selector+2;
+@z
+@x module 1205
+if job_name>0 then
+@y
+if log_opened then
+@z
+@x module 1208
+if job_name>0 then {the log file is open}
+@y
+if log_opened then
+@z
+
+547. String startup problems corresponding to TeX change 355 (17 Jul 89)
+@x module 30 (Warning: This affects most change files!)
+        overflow("buffer size",buf_size);
+@:METAFONT capacity exceeded buffer size}{\quad buffer size@>
+@y
+        @<Report overflow of the input buffer, and abort@>;
+@z
+@x module 34
+consist of the remainder of the command line, after the part that invoked \MF.
+@y
+consist of the remainder of the command line, after the part that invoked \MF.
+
+The first line is special also because it may be read before \MF\ has
+input a base file. In such cases, normal error messages cannot yet
+be given. The following code uses concepts that will be explained later.
+
+@<Report overflow of the input buffer, and abort@>=
+if base_ident=0 then
+  begin write_ln(term_out,'Buffer size exceeded!'); goto final_end;
+@.Buffer size exceeded@>
+  end
+else begin cur_input.loc_field:=first; cur_input.limit_field:=last-1;
+  overflow("buffer size",buf_size);
+@:METAFONT capacity exceeded buffer size}{\quad buffer size@>
+  end
+@z
+@x module 1193
+k:=pool_ptr-4; undump_four_ASCII
+@y
+k:=pool_ptr-4; undump_four_ASCII;
+init_str_ptr:=str_ptr; init_pool_ptr:=pool_ptr;@/
+max_str_ptr:=str_ptr; max_pool_ptr:=pool_ptr
+@z
+@x module 1204
+tini@/
+@y
+init_str_ptr:=str_ptr; init_pool_ptr:=pool_ptr;@/
+max_str_ptr:=str_ptr; max_pool_ptr:=pool_ptr; fix_date_and_time;
+tini@/
+@z
+@x module 1204
+init_str_ptr:=str_ptr; init_pool_ptr:=pool_ptr;@/
+max_str_ptr:=str_ptr; max_pool_ptr:=pool_ptr;@/
+@y
+@z
+
+548. Major changes to allow 8-bit input, cf. TeX82 #359 (11 Sep 89).
+@x module 18
+@!ASCII_code=0..127; {seven-bit numbers}
+@y
+@!ASCII_code=0..255; {eight-bit numbers}
+@z
+@x module 19
+@d last_text_char=127 {ordinal number of the largest element of |text_char|}
+
+@<Local variables for init...@>=
+@!i:0..last_text_char;
+@y
+@d last_text_char=255 {ordinal number of the largest element of |text_char|}
+
+@<Local variables for init...@>=
+@!i:integer;
+@z
+@x module 21
+xchr[0]:=' '; xchr[@'177]:=' ';
+  {ASCII codes 0 and |@'177| do not appear in text}
+@y
+@z
+@x module 22
+for i:=1 to @'37 do xchr[i]:=' ';
+@y changing ' ' to chr(i) here will allow all 8-bit characters to get in
+for i:=0 to @'37 do xchr[i]:=' ';
+for i:=@'177 to @'377 do xchr[i]:=' ';
+@z
+@x module 23
+for i:=1 to @'176 do xord[xchr[i]]:=i;
+@y
+for i:=@'200 to @'377 do xord[xchr[i]]:=i;
+for i:=0 to @'176 do xord[xchr[i]]:=i;
+@z
+@x module 37
+@<Types...@>=
+@!pool_pointer = 0..pool_size; {for variables that point into |str_pool|}
+@!str_number = 0..max_strings; {for variables that point into |str_start|}
+
+@ @<Glob...@>=
+@!str_pool:packed array[pool_pointer] of ASCII_code; {the characters}
+@y [OK to make si(#)==#-128 and so(#)==#+128 (without parens) in change files]
+Some \PASCAL\ compilers won't pack integers into a single byte unless the
+integers lie in the range |-128..127|. To accommodate such systems
+we access the string pool only via macros that can easily be redefined.
+
+@d si(#) == # {convert from |ASCII_code| to |packed_ASCII_code|}
+@d so(#) == # {convert from |packed_ASCII_code| to |ASCII_code|}
+
+@<Types...@>=
+@!pool_pointer = 0..pool_size; {for variables that point into |str_pool|}
+@!str_number = 0..max_strings; {for variables that point into |str_start|}
+@!packed_ASCII_code = 0..255; {elements of |str_pool| array}
+
+@ @<Glob...@>=
+@!str_pool:packed array[pool_pointer] of packed_ASCII_code; {the characters}
+@z
+@x module 41
+begin str_pool[pool_ptr]:=#; incr(pool_ptr);
+@y
+begin str_pool[pool_ptr]:=si(#); incr(pool_ptr);
+@z
+@x module 45
+  begin if str_pool[j]<>buffer[k] then
+@y
+  begin if so(str_pool[j])<>buffer[k] then
+@z
+@x module 47
+var k,@!l:0..127; {small indices or counters}
+@y
+var k,@!l:0..255; {small indices or counters}
+@z
+@x module 47
+@<Make the first 128 strings@>;
+@y
+@<Make the first 256 strings@>;
+@z
+@x module 48
+@ @<Make the first 128...@>=
+for k:=0 to 127 do
+  begin if (@<Character |k| cannot be printed@>) then
+    begin append_char("^"); append_char("^");
+    if k<@'100 then append_char(k+@'100)
+    else append_char(k-@'100);
+@y
+@ @d app_lc_hex(#)==l:=#;
+  if l<10 then append_char(l+"0)@+else append_char(l-10+"a")
+
+@<Make the first 256...@>=
+for k:=0 to 255 do
+  begin if (@<Character |k| cannot be printed@>) then
+    begin append_char("^"); append_char("^");
+    if k<@'100 then append_char(k+@'100)
+    else if k<@'200 then append_char(k-@'100)
+    else begin app_lc_hex(k div 16); app_lc_hex(k mod 16);
+      end;
+@z
+@x module 59
+  begin print_char(str_pool[j]); incr(j);
+@y
+  begin print_char(so(str_pool[j])); incr(j);
+@z
+@x module 60
+  begin print(str_pool[j]); incr(j);
+@y
+  begin print(so(str_pool[j])); incr(j);
+@z
+@x module 85
+  begin if str_pool[j]<>"%" then print(str_pool[j])
+  else if j+1=str_start[err_help+1] then print_ln
+  else if str_pool[j+1]<>"%" then print_ln
+@y
+  begin if str_pool[j]<>si("%") then print(so(str_pool[j]))
+  else if j+1=str_start[err_help+1] then print_ln
+  else if str_pool[j+1]<>si("%") then print_ln
+@z
+@x module 199
+char_class[127]:=invalid_class;
+@y
+for k:=127 to 255 do char_class[k]:=invalid_class;
+@z
+@x module 200
+@d hash_is_full == (hash_used=1) {test if all positions are occupied}
+@d eq_type(#) == eqtb[#].lh {the current ``meaning'' of a symbolic token}
+@d equiv(#) == eqtb[#].rh {parametric part of a token's meaning}
+@d hash_base=129 {hashing actually starts here}
+@y [incidentally I fixed a bug re hash overflow here]
+@d eq_type(#) == eqtb[#].lh {the current ``meaning'' of a symbolic token}
+@d equiv(#) == eqtb[#].rh {parametric part of a token's meaning}
+@d hash_base=257 {hashing actually starts here}
+@d hash_is_full == (hash_used=hash_base) {are all positions occupied?}
+@z
+@x module 210
+for j:=0 to l-1 do buffer[j]:=str_pool[k+j];
+cur_sym:=id_lookup(0,l);@/
+if s>=128 then {we don't want to have the string twice}
+@y
+for j:=0 to l-1 do buffer[j]:=so(str_pool[k+j]);
+cur_sym:=id_lookup(0,l);@/
+if s>=256 then {we don't want to have the string twice}
+@z
+@x module 223
+begin c:=char_class[str_pool[str_start[r]]];
+@y
+begin c:=char_class[so(str_pool[str_start[r]])];
+@z
+@x module 717
+  begin buffer[first]:=str_pool[j]; incr(j); incr(first);
+@y
+  begin buffer[first]:=so(str_pool[j]); incr(j); incr(first);
+@z
+@x module 774
+for j:=str_start[a] to str_start[a+1]-1 do append_to_name(str_pool[j]);
+for j:=str_start[n] to str_start[n+1]-1 do append_to_name(str_pool[j]);
+for j:=str_start[e] to str_start[e+1]-1 do append_to_name(str_pool[j]);
+@y
+for j:=str_start[a] to str_start[a+1]-1 do append_to_name(so(str_pool[j]));
+for j:=str_start[n] to str_start[n+1]-1 do append_to_name(so(str_pool[j]));
+for j:=str_start[e] to str_start[e+1]-1 do append_to_name(so(str_pool[j]));
+@z
+@x module 912
+  else  begin cur_exp:=round_unscaled(cur_exp) mod 128; cur_type:=string_type;
+    if cur_exp<0 then cur_exp:=cur_exp+128;
+@y
+  else  begin cur_exp:=round_unscaled(cur_exp) mod 256; cur_type:=string_type;
+    if cur_exp<0 then cur_exp:=cur_exp+256;
+@z
+@x module 913
+  else n:=str_pool[str_start[cur_exp]]
+@y
+  else n:=so(str_pool[str_start[cur_exp]])
+@z
+@x ibid
+    begin m:=str_pool[k];
+@y
+    begin m:=so(str_pool[k]);
+@z
+@x module 976
+for k:=str_start[a] to str_start[a+1]-1 do append_char(str_pool[k]);
+for k:=str_start[b] to str_start[b+1]-1 do append_char(str_pool[k]);
+@y
+for k:=str_start[a] to str_start[a+1]-1 do append_char(so(str_pool[k]));
+for k:=str_start[b] to str_start[b+1]-1 do append_char(so(str_pool[k]));
+@z
+@x module 977
+  for k:=str_start[s]+b-1 downto str_start[s]+a do append_char(str_pool[k])
+else for k:=str_start[s]+a to str_start[s]+b-1 do append_char(str_pool[k]);
+@y
+  for k:=str_start[s]+b-1 downto str_start[s]+a do append_char(so(str_pool[k]))
+else for k:=str_start[s]+a to str_start[s]+b-1 do append_char(so(str_pool[k]));
+@z
+@x module 1103
+  begin c:=str_pool[str_start[cur_exp]]; goto found;
+@y
+  begin c:=so(str_pool[str_start[cur_exp]]); goto found;
+@z
+@x module 1160
+  for k:=str_start[s] to str_start[s+1]-1 do gf_out(str_pool[k]);
+  end;
+if t<>0 then for k:=str_start[t] to str_start[t+1]-1 do gf_out(str_pool[k]);
+@y
+  for k:=str_start[s] to str_start[s+1]-1 do gf_out(so(str_pool[k]));
+  end;
+if t<>0 then for k:=str_start[t] to str_start[t+1]-1 do gf_out(so(str_pool[k]));
+@z
+@x module 1192
+  w.b0:=str_pool[k]; w.b1:=str_pool[k+1];
+  w.b2:=str_pool[k+2]; w.b3:=str_pool[k+3];
+@y [often qi(so(x))=x, but not e.g. when "quarterwords" are two bytes]
+  w.b0:=qi(so(str_pool[k])); w.b1:=qi(so(str_pool[k+1]));
+  w.b2:=qi(so(str_pool[k+2])); w.b3:=qi(so(str_pool[k+3]));
+@z
+@x module 1193
+  str_pool[k]:=w.b0; str_pool[k+1]:=w.b1;
+  str_pool[k+2]:=w.b2; str_pool[k+3]:=w.b3
+@y
+  str_pool[k]:=si(qo(w.b0)); str_pool[k+1]:=si(qo(w.b1));
+  str_pool[k+2]:=si(qo(w.b2)); str_pool[k+3]:=si(qo(w.b3))
+@z
+
+549. Make ".base" more easily switchable (see TeX82 log #369).
+@x module 775 gets a new definition
+@y
+@d base_extension=".base" {the extension, as a \.{WEB} constant}
+@z now replace ".base" by base_extension in modules 784 and 1200.
+
+550. "This can't happen" happened because of nonmonotonic rounding
+ (bug found by Mark Eklof, fixed 7 Oct 89)
+@x module 411
+left_x(r):=x_coord(r);
+@y
+left_x(r):=x_coord(r);
+if right_x(p)>x_coord(r) then right_x(p):=x_coord(r);
+ {we always have |x_coord(p)<=right_x(p)|}
+@z
+@x ibid
+else if x_coord(r)>dest_x then x_coord(r):=dest_x;
+@y
+else begin if x_coord(r)>dest_x then
+    begin x_coord(r):=dest_x; left_x(r):=-x_coord(r); right_x(r):=x_coord(r);
+    end;
+  if left_x(q)>dest_x then left_x(q):=dest_x
+  else if left_x(q)<x_coord(r) then left_x(q):=x_coord(r);
+  end;
+@z
+@x module 412
+left_x(s):=x_coord(s);
+negate(x_coord(s)); right_x(s):=x_coord(s);
+negate(left_x(q));
+@y
+left_x(s):=x_coord(s); {now |x_coord(r)=right_x(r)<=left_x(s)|}
+if left_x(q)<dest_x then left_x(q):=-dest_x
+else if left_x(q)>x_coord(s) then left_x(q):=-x_coord(s)
+else negate(left_x(q));
+negate(x_coord(s)); right_x(s):=x_coord(s);
+@z
+@x module 415
+if x_coord(r)>dest_x then x_coord(r):=dest_x
+else if x_coord(r)<x_coord(pp) then x_coord(r):=x_coord(pp);
+if y_coord(r)<y_coord(pp) then y_coord(r):=y_coord(pp);
+left_y(r):=y_coord(r);
+@y
+if y_coord(r)<y_coord(pp) then y_coord(r):=y_coord(pp);
+left_y(r):=y_coord(r);
+if right_y(pp)>y_coord(r) then right_y(pp):=y_coord(r);
+ {we always have |y_coord(pp)<=right_y(pp)|}
+@z
+@x ibid
+else if y_coord(r)>dest_y then y_coord(r):=dest_y;
+@y
+else begin if y_coord(r)>dest_y then
+    begin y_coord(r):=dest_y; left_y(r):=-y_coord(r); right_y(r):=y_coord(r);
+    end;
+  if left_y(qq)>dest_y then left_y(qq):=dest_y
+  else if left_y(qq)<y_coord(r) then left_y(qq):=y_coord(r);
+  end;
+@z
+@x module 416
+if x_coord(s)>dest_x then x_coord(s):=dest_x
+else if x_coord(s)<x_coord(r) then x_coord(s):=x_coord(r);
+if y_coord(s)<dest_y then y_coord(s):=dest_y;
+if y_coord(s)<y_coord(r) then y_coord(s):=y_coord(r);
+right_type(s):=right_type(pp);
+left_y(s):=y_coord(s);
+negate(y_coord(s)); right_y(s):=y_coord(s);
+negate(left_y(qq));
+@y
+if y_coord(s)<dest_y then y_coord(s):=dest_y;
+if y_coord(s)<y_coord(r) then y_coord(s):=y_coord(r);
+right_type(s):=right_type(pp);
+left_y(s):=y_coord(s); {now |y_coord(r)=right_y(r)<=left_y(s)|}
+if left_y(qq)<dest_y then left_y(qq):=-dest_y
+else if left_y(qq)>y_coord(s) then left_y(qq):=-y_coord(s)
+else negate(left_y(qq));
+negate(y_coord(s)); right_y(s):=y_coord(s);
+@z
+@x module 424
+if y_coord(r)>dest_y then y_coord(r):=dest_y
+else if y_coord(r)<y_coord(p) then y_coord(r):=y_coord(p);
+if x_coord(r)<x_coord(p) then x_coord(r):=x_coord(p);
+left_x(r):=x_coord(r);@/
+y_coord(r):=y_coord(r)+x_coord(r); negate(x_coord(r));@/
+right_x(r):=x_coord(r); right_y(r):=right_y(r)-right_x(r);@/
+left_y(q):=left_y(q)+left_x(q); negate(left_x(q));@/
+dest_y:=dest_y+dest_x; negate(dest_x);
+@y
+if x_coord(p)+y_coord(r)>dest_x+dest_y then
+  begin y_coord(r):=dest_x+dest_y-x_coord(p);
+  if left_y(r)>y_coord(r) then
+    begin left_y(r):=y_coord(r);
+    if right_y(p)>y_coord(r) then right_y(p):=y_coord(r);
+    end;
+  end;
+if x_coord(r)<x_coord(p) then x_coord(r):=x_coord(p)
+else if x_coord(r)+y_coord(r)>dest_x+dest_y then
+  x_coord(r):=dest_x+dest_y-y_coord(r);
+left_x(r):=x_coord(r);
+if right_x(p)>x_coord(r) then right_x(p):=x_coord(r);
+ {we always have |x_coord(p)<=right_x(p)|}
+y_coord(r):=y_coord(r)+x_coord(r); right_y(r):=right_y(r)+x_coord(r);@/
+negate(x_coord(r)); right_x(r):=x_coord(r);@/
+left_y(q):=left_y(q)+left_x(q); negate(left_x(q));@/
+dest_y:=dest_y+dest_x; negate(dest_x);
+if right_y(r)>dest_y then right_y(r):=dest_y;
+if left_y(q)>dest_y then left_y(q):=dest_y
+else if left_y(q)<y_coord(r) then left_y(q):=y_coord(r);
+if right_y(r)>left_y(q) then right_y(r):=left_y(q);
+@z
+@x ibid
+else if x_coord(r)>dest_x then x_coord(r):=dest_x
+@y
+else begin if x_coord(r)>dest_x then
+    begin x_coord(r):=dest_x; left_x(r):=-x_coord(r); right_x(r):=x_coord(r);
+    end;
+  if left_x(q)>dest_x then left_x(q):=dest_x
+  else if left_x(q)<x_coord(r) then left_x(q):=x_coord(r);
+  end;
+@z
+@x module 425 is entirely replace
+@y by the following code:
+@ @<Subdivide the cubic a second time with respect to $x'-y'$@>=
+begin split_cubic(r,t,dest_x,dest_y); s:=link(r);@/
+if x_coord(r)+y_coord(s)>dest_x+dest_y then
+  begin y_coord(s):=dest_x+dest_y-x_coord(r);
+  if left_y(s)>y_coord(s) then
+    begin left_y(s):=y_coord(s);
+    if right_y(r)>y_coord(s) then right_y(r):=y_coord(s);
+    end;
+  end;
+if x_coord(s)+y_coord(s)>dest_x+dest_y then x_coord(s):=dest_x+dest_y-y_coord(s)
+else begin if x_coord(s)<dest_x then x_coord(s):=dest_x;
+  if x_coord(s)<x_coord(r) then x_coord(s):=x_coord(r);
+  end;
+right_type(s):=right_type(p);
+left_x(s):=x_coord(s); {now |x_coord(r)=right_x(r)<=left_x(s)|}
+if left_x(q)<dest_x then
+  begin left_y(q):=left_y(q)+dest_x; left_x(q):=-dest_x;@+end
+else if left_x(q)>x_coord(s) then
+  begin left_y(q):=left_y(q)+x_coord(s); left_x(q):=-x_coord(s);@+end
+else begin left_y(q):=left_y(q)+left_x(q); negate(left_x(q));@+end;
+y_coord(s):=y_coord(s)+x_coord(s); right_y(s):=right_y(s)+x_coord(s);@/
+negate(x_coord(s)); right_x(s):=x_coord(s);@/
+dest_y:=dest_y+dest_x;
+if right_y(s)>dest_y then right_y(s):=dest_y;
+if left_y(q)>dest_y then left_y(q):=dest_y
+else if left_y(q)<y_coord(s) then left_y(q):=y_coord(s);
+if right_y(s)>left_y(q) then right_y(s):=left_y(q);
+end
+@z
+
+551. Major change for extended ligatures.
+@x module 11 (this may affect change files)
+@!lig_table_size=300; {maximum number of ligature/kern steps}
+@y
+@!lig_table_size=5000; {maximum number of ligature/kern steps, must be
+  at least 255 and at most 32510}
+@!max_kerns=500; {maximum number of distinct kern amounts}
+@z
+@x module 14 gets a new line of code
+@y
+if(lig_table_size<255)or(lig_table_size>32510)then bad:=7;
+@z
+@x module 186
+@d lig_kern_token=76 {the operators `\&{kern}' and `\.{=:}'}
+@d assignment=77 {the operator `\.{:=}'}
+@d colon=78 {the operator `\.:'}
+@#
+@d comma=79 {the operator `\.,'}
+@d end_of_statement==cur_cmd>comma
+@d semicolon=80 {the operator `\.;', must be |comma+1|}
+@d end_group=81 {end a group (\&{endgroup}), must be |semicolon+1|}
+@d stop=82 {end a job (\&{end}, \&{dump}), must be |end_group+1|}
+@y
+@d lig_kern_token=76
+  {the operators `\&{kern}' and `\.{=:}' and `\.{=:\char'174}, etc.}
+@d assignment=77 {the operator `\.{:=}'}
+@d skip_to=78 {the operation `\&{skipto}'}
+@d bchar_label=79 {the operator `\.{\char'174\char'174:}'}
+@d double_colon=80 {the operator `\.{::}'}
+@d colon=81 {the operator `\.:'}
+@#
+@d comma=82 {the operator `\.,', must be |colon+1|}
+@d end_of_statement==cur_cmd>comma
+@d semicolon=83 {the operator `\.;', must be |comma+1|}
+@d end_group=84 {end a group (\&{endgroup}), must be |semicolon+1|}
+@d stop=85 {end a job (\&{end}, \&{dump}), must be |end_group+1|}
+@z
+@x module 190
+@d max_given_internal=warning_check
+@y
+@d boundary_char=41 {the right boundary character for ligatures}
+@d max_given_internal=41
+@z
+@x module 192 gets two new lines of code
+@y
+primitive("boundarychar",internal_quantity,boundary_char);@/
+@!@:boundary_char_}{\&{boundarychar} primitive@>
+@z
+@x and module 193 gets one too
+@y
+int_name[boundary_char]:="boundarychar";
+@z
+@x and module 211 gets several
+@y (to be inserted in appropriate places)
+primitive("::",double_colon,0);
+@!@::: }{\.{::} primitive@>
+primitive("||:",bchar_label,0);
+@!@:::: }{\.{\char'174\char'174:} primitive@>
+primitive("skipto",skip_to,0);@/
+@!@:skip_to_}{\&{skipto} primitive@>
+@z
+@x as does module 212
+@y
+bchar_label:print("||:");
+double_colon:print("::");
+skip_to:print("skipto");
+@z
+@x module 1093 has new text (see TeX change 362 for module 545) and also this:
+@d stop_bit(#)==lig_kern[#].b0
+@d next_char(#)==lig_kern[#].b1
+@d op_bit(#)==lig_kern[#].b2
+@y
+@d skip_byte(#)==lig_kern[#].b0
+@d next_char(#)==lig_kern[#].b1
+@d op_byte(#)==lig_kern[#].b2
+@z
+@x module 1096 gets a new definition
+@y
+@d undefined_label==lig_table_size {an undefined local label}
+@z
+@x ...and some changed declarations
+@!char_remainder:array[eight_bits] of eight_bits; {the |remainder| byte}
+@!header_byte:array[1..header_size] of -1..255;
+  {bytes of the \.{TFM} header, or $-1$ if unset}
+@!lig_kern:array[0..lig_table_size] of four_quarters; {the ligature/kern table}
+@!nl:0..lig_table_size; {the number of ligature/kern steps so far}
+@!kern:array[eight_bits] of scaled; {distinct kerning amounts}
+@!nk:0..256; {the number of distinct kerns so far}
+@y
+@!char_remainder:array[eight_bits] of 0..lig_table_size; {the |remainder| byte}
+@!header_byte:array[1..header_size] of -1..255;
+  {bytes of the \.{TFM} header, or $-1$ if unset}
+@!lig_kern:array[0..lig_table_size] of four_quarters; {the ligature/kern table}
+@!nl:0..32767-256; {the number of ligature/kern steps so far}
+@!kern:array[0..max_kerns] of scaled; {distinct kerning amounts}
+@!nk:0..max_kerns; {the number of distinct kerns so far}
+@z
+@x ...and some new declarations
+@y
+@!skip_table:array[eight_bits] of 0..lig_table_size; {local label status}
+@!lk_started:boolean; {has there been a lig/kern step in this command yet?}
+@!bchar:integer; {right boundary character}
+@!bch_label:0..lig_table_size; {left boundary starting location}
+@!ll,@!lll:0..lig_table_size; {registers used for lig/kern processing}
+@!label_loc:array[0..256] of -1..lig_table_size; {lig/kern starting addresses}
+@!label_char:array[1..256] of eight_bits; {characters for |label_loc|}
+@!label_ptr:0..256; {highest position occupied in |label_loc|}
+@z
+@x module 1097
+  end;
+for k:=1 to header_size do header_byte[k]:=-1;
+bc:=255; ec:=0; nl:=0; nk:=0; ne:=0; np:=0;
+@y
+  skip_table[k]:=undefined_label;
+  end;
+for k:=1 to header_size do header_byte[k]:=-1;
+bc:=255; ec:=0; nl:=0; nk:=0; ne:=0; np:=0;@/
+internal[boundary_char]:=-unity;
+bch_label:=undefined_label;@/
+label_loc[0]:=-1; label_ptr:=0;
+@z
+@x module 1104
+procedure set_tag(@!c:eight_bits;@!t:small_number;@!r:eight_bits);
+begin if char_tag[c]=no_tag then
+  begin char_tag[c]:=t; char_remainder[c]:=r;
+@y
+procedure set_tag(@!c:halfword;@!t:small_number;@!r:halfword);
+begin if char_tag[c]=no_tag then
+  begin char_tag[c]:=t; char_remainder[c]:=r;
+  if t=lig_tag then
+    begin incr(label_ptr); label_loc[label_ptr]:=r; label_char[label_ptr]:=c;
+    end;
+@z
+@x module  1105
+if (c>" ")and(c<128) then print(c)
+@y
+if (c>" ")and(c<127) then print(c)
+else if c=256 then print("||")
+@z
+@x module 1106
+label continue;
+var @!c,@!cc:eight_bits; {character codes}
+@!k:0..256; {index into the |kern| array}
+@y
+label continue,done;
+var @!c,@!cc:0..256; {character codes}
+@!k:0..max_kerns; {index into the |kern| array}
+@z
+% also the previous code of module 1107 is inserted into 1106
+@x modules 1107--1111 are completely replaced
+@y by the following new code:
+@ @<Store a list of ligature/kern steps@>=
+begin lk_started:=false;
+continue: get_x_next;
+if(cur_cmd=skip_to)and lk_started then
+ @<Process a |skip_to| command and |goto done|@>;
+if cur_cmd=bchar_label then
+  begin c:=256; cur_cmd:=colon;@+end
+else begin back_input; c:=get_code;@+end;
+if(cur_cmd=colon)or(cur_cmd=double_colon)then
+  @<Record a label in a lig/kern subprogram and |goto continue|@>;
+if cur_cmd=lig_kern_token then @<Compile a ligature/kern command@>
+else  begin print_err("Illegal ligtable step");
+@.Illegal ligtable step@>
+  help1("I was looking for `=:' or `kern' here.");
+  back_error; next_char(nl):=qi(0); op_byte(nl):=qi(0); rem_byte(nl):=qi(0);@/
+  skip_byte(nl):=stop_flag+1; {this specifies an unconditional stop}
+  end;
+if nl=lig_table_size then overflow("ligtable size",lig_table_size);
+@:METAFONT capacity exceeded ligtable size}{\quad ligtable size@>
+incr(nl);
+if cur_cmd=comma then goto continue;
+if skip_byte(nl-1)<stop_flag then skip_byte(nl-1):=stop_flag;
+done:end
+
+@ @<Put each...@>=
+primitive("=:",lig_kern_token,0);
+@!@:=:_}{\.{=:} primitive@>
+primitive("=:|",lig_kern_token,1);
+@!@:=:/_}{\.{=:\char'174} primitive@>
+primitive("=:|>",lig_kern_token,5);
+@!@:=:/>_}{\.{=:\char'174>} primitive@>
+primitive("|=:",lig_kern_token,2);
+@!@:=:/_}{\.{\char'174=:} primitive@>
+primitive("|=:>",lig_kern_token,6);
+@!@:=:/>_}{\.{\char'174=:>} primitive@>
+primitive("|=:|",lig_kern_token,3);
+@!@:=:/_}{\.{\char'174=:\char'174} primitive@>
+primitive("|=:|>",lig_kern_token,7);
+@!@:=:/>_}{\.{\char'174=:\char'174>} primitive@>
+primitive("|=:|>>",lig_kern_token,11);
+@!@:=:/>_}{\.{\char'174=:\char'174>>} primitive@>
+primitive("kern",lig_kern_token,128);
+@!@:kern_}{\&{kern} primitive@>
+  
+@ @<Cases of |print_cmd...@>=
+lig_kern_token: case m of
+0:print("=:");
+1:print("=:|");
+2:print("|=:");
+3:print("|=:|");
+5:print("=:|>");
+6:print("|=:>");
+7:print("|=:|>");
+11:print("|=:|>>");
+othercases print("kern")
+endcases;
+  
+@ Local labels are implemented by maintaining the |skip_table| array,
+where |skip_table[c]| is either |undefined_label| or the address of the
+most recent lig/kern instruction that skips to local label~|c|. In the
+latter case, the |skip_byte| in that instruction will (temporarily)
+be zero if there were no prior skips to this label, or it will be the
+distance to the prior skip.
+
+We may need to cancel skips that span more than 127 lig/kern steps.
+
+@d cancel_skips(#)==ll:=#;
+  repeat lll:=qo(skip_byte(ll)); skip_byte(ll):=stop_flag; ll:=ll-lll;
+  until lll=0
+@d skip_error(#)==begin print_err("Too far to skip");
+@.Too far to skip@>
+  help1("At most 127 lig/kern steps can separate skipto1 from 1::.");
+  error; cancel_skips(#);
+  end
+
+@<Process a |skip_to| command and |goto done|@>=
+begin c:=get_code;
+if nl-skip_table[c]>128 then {|skip_table[c]<<nl<=undefined_label|}
+  begin skip_error(skip_table[c]); skip_table[c]:=undefined_label;
+  end;
+if skip_table[c]=undefined_label then skip_byte(nl-1):=qi(0)
+else skip_byte(nl-1):=qi(nl-skip_table[c]-1);
+skip_table[c]:=nl-1; goto done;
+end
+
+@ @<Record a label in a lig/kern subprogram and |goto continue|@>=
+begin if cur_cmd=colon then
+  if c=256 then bch_label:=nl
+  else set_tag(c,lig_tag,nl)
+else if skip_table[c]<undefined_label then
+  begin ll:=skip_table[c]; skip_table[c]:=undefined_label;
+  repeat lll:=qo(skip_byte(ll));
+  if nl-ll>128 then
+    begin skip_error(ll); goto continue;
+    end;
+  skip_byte(ll):=qi(nl-ll-1); ll:=ll-lll;
+  until lll=0;
+  end;
+goto continue;
+end
+@x module 1112
+next_char(nl):=qi(c); op_bit(nl):=qi(cur_mod); stop_bit(nl):=qi(0);
+if cur_mod=0 then rem_byte(nl):=qi(get_code)
+@y
+begin next_char(nl):=qi(c); skip_byte(nl):=qi(0);
+if cur_mod<128 then {ligature op}
+  begin op_byte(nl):=qi(cur_mod); rem_byte(nl):=qi(get_code);
+  end
+@z
+@x ibid
+    begin if nk=256 then overflow("kern",256);
+@:METAFONT capacity exceeded kern}{\quad kern@>
+    incr(nk);
+    end;
+  rem_byte(nl):=qi(k);
+  end
+@y
+    begin if nk=max_kerns then overflow("kern",max_kerns);
+@:METAFONT capacity exceeded kern}{\quad kern@>
+    incr(nk);
+    end;
+  op_byte(nl):=kern_flag+(k div 256);
+  rem_byte(nl):=qi((k mod 256));
+  end;
+lk_started:=true;
+end
+@z
+@x module 1135
+tfm_two(6+lh+(ec-bc+1)+nw+nh+nd+ni+nl+nk+ne+np);
+  {this is the total number of file words that will be output}
+tfm_two(lh); tfm_two(bc); tfm_two(ec); tfm_two(nw); tfm_two(nh);
+tfm_two(nd); tfm_two(ni); tfm_two(nl); tfm_two(nk); tfm_two(ne); tfm_two(np);
+@y
+@<Compute the ligature/kern program offset and implant the
+  left boundary label@>;
+tfm_two(6+lh+(ec-bc+1)+nw+nh+nd+ni+nl+lk_offset+nk+ne+np);
+  {this is the total number of file words that will be output}
+tfm_two(lh); tfm_two(bc); tfm_two(ec); tfm_two(nw); tfm_two(nh);
+tfm_two(nd); tfm_two(ni); tfm_two(nl+lk_offset); tfm_two(nk); tfm_two(ne);
+tfm_two(np);
+@z
+% modules 1137&1138 are combined into a single module
+% and so are modules 1140--1141, to make room for two new modules.
+@x module 1136 is moved to after old module 1141
+@y and changed to the following code:
+@ @<Log the subfile sizes of the \.{TFM} file@>=
+if bch_label<undefined_label then decr(nl);
+wlog_ln('(You used ',nw:1,'w,',@| nh:1,'h,',@| nd:1,'d,',@| ni:1,'i,',@|
+ nl:1,'l,',@| nk:1,'k,',@| ne:1,'e,',@|
+ np:1,'p metric file positions');
+wlog_ln('  out of ',@| '256w,16h,16d,64i,',@|
+ lig_table_size:1,'l,',max_kerns:1,'k,256e,',@|
+ max_font_dimen:1,'p)');
+end
+@z
+@x module 1139 is completely replaced
+@y by the following three modules:
+@ We need to output special instructions at the beginning of the
+|lig_kern| array in order to specify the right boundary character
+and/or to handle starting addresses that exceed 255. The |label_loc|
+and |label_char| arrays have been set up to record all the
+starting addesses; we have $-1=|label_loc|[0]<|label_loc|[1]\le\cdots
+\le|label_loc|[|label_ptr]|$.
+
+@<Compute the ligature/kern program offset...@>=
+bchar:=round_unscaled(internal[boundary_char]);
+if(bchar<0)or(bchar>255)then
+  begin bchar:=-1; lk_started:=false; lk_offset:=0;@+end
+else begin lk_started:=true; lk_offset:=1;@+end;
+@<Find the minimum |lk_offset| and adjust all remainders@>;
+if bch_label<undefined_label then
+  begin skip_byte(nl):=qi(255); next_char(nl):=qi(0);
+  op_byte(nl):=qi(((bch_label+lk_offset)div 256));
+  rem_byte(nl):=qi(((bch_label+lk_offset)mod 256));
+  incr(nl); {possibly |nl=lig_table_size+1|}
+  end
+
+@ @<Find the minimum |lk_offset|...@>=
+k:=label_ptr; {pointer to the largest unallocated label}
+if label_loc[k]+lk_offset>255 then
+  begin lk_offset:=0; lk_started:=false; {location 0 can do double duty}
+  repeat char_remainder[label_char[k]]:=lk_offset;
+  while label_loc[k-1]=label_loc[k] do
+    begin decr(k); char_remainder[label_char[k]]:=lk_offset;
+    end;
+  incr(lk_offset); decr(k);
+  until lk_offset+label_loc[k]<256;
+    {N.B.: |lk_offset=256| satisfies this when |k=0|}
+  end;
+if lk_offset>0 then
+  while k>0 do
+    begin char_remainder[label_char[k]]
+     :=char_remainder[label_char[k]]+lk_offset;
+    decr(k);
+    end
+
+@ @<Output the ligature/kern program@>=
+for k:=0 to 255 do if skip_table[k]<undefined_label then
+  begin print_nl("(local label "); print_int(k); print(":: was missing)");
+@.local label l:: was missing@>
+  cancel_skips(skip_table[k]);
+  end;
+if lk_started then {|lk_offset=1| for the special |bchar|}
+  begin tfm_out(255); tfm_out(bchar); tfm_two(0);
+  end
+else for k:=1 to lk_offset do {output the redirection specs}
+  begin ll:=label_loc[label_ptr];
+  if bchar<0 then
+    begin tfm_out(254); tfm_out(0);
+    end
+  else begin tfm_out(255); tfm_out(bchar);
+    end;
+  tfm_two(ll+lk_offset);
+  repeat decr(label_ptr);
+  until label_loc[label_ptr]<ll;
+  end;
+for k:=0 to nl-1 do tfm_qqqq(lig_kern[k]);
+for k:=0 to nk-1 do tfm_four(dimen_out(kern[k]))
+@z
+@x module 1205 gets a new declaration
+@y
+@!lk_offset:0..256; {extra words inserted at beginning of |lig_kern| array}
+@z
+
+552. Improved the covering/shortening routines. (18 Dec 89)
+@x module 1119 gets a new global variable
+@y
+@!excess:halfword; {the list is this much too long}
+@z
+@x module 1120 gives it a value
+begin if min_cover(0)<=m then threshold:=0
+@y
+begin excess:=min_cover(0)-m;
+if excess<=0 then threshold:=0
+@z
+@x and module 1122 uses it
+begin repeat p:=link(p); info(p):=m;
+@y
+begin repeat p:=link(p); info(p):=m;
+decr(excess);@+if excess=0 then d:=0;
+@z
+@x and module 1122 also avoids overflow/ambiguous halving
+v:=half(l+value(p));
+@y
+v:=l+half(value(p)-l);
+@z
+
+553. Global variable used prematurely in do_add_to (Alan Jeffrey, 9 Feb 90)
+@x module 403
+@!cur_path_type:double_path_code..also_code; {likewise}
+@y
+@!cur_path_type:double_path_code..contour_code; {likewise}
+@z
+@x module 1059
+begin get_x_next; var_flag:=thing_to_add; scan_primary;
+if cur_type<>token_list then
+  @<Abandon edges command because there's no variable@>
+else  begin lhs:=cur_exp; cur_path_type:=cur_mod;@/
+  cur_type:=vacuous; get_x_next; scan_expression;
+  if cur_path_type=also_code then @<Augment some edges by others@>
+@y
+@!add_to_type:double_path_code..also_code; {modifier of \&{addto}}
+begin get_x_next; var_flag:=thing_to_add; scan_primary;
+if cur_type<>token_list then
+  @<Abandon edges command because there's no variable@>
+else  begin lhs:=cur_exp; add_to_type:=cur_mod;@/
+  cur_type:=vacuous; get_x_next; scan_expression;
+  if add_to_type=also_code then @<Augment some edges by others@>
+@z
+@x module 1064
+else  begin lhs:=null;
+@y
+else  begin lhs:=null; cur_path_type:=add_to_type;
+@z
+
+554. Balance the parens showing on the terminal (for Lispers).
+@x module 631
+@!in_open : 0..max_in_open; {the number of lines in the buffer, less one}
+@y
+@!in_open : 0..max_in_open; {the number of lines in the buffer, less one}
+@!open_parens : 0..max_in_open; {the number of open text files}
+@z
+@x module 657
+in_open:=0; max_buf_stack:=0;
+@y
+in_open:=0; open_parens:=0; max_buf_stack:=0;
+@z
+@x module 681
+  begin print_char(")"); force_eof:=false;
+  update_terminal; {show user that file has been read}
+@y
+  begin print_char(")"); decr(open_parens);
+  update_terminal; {show user that file has been read}
+  force_eof:=false;
+@z
+@x module 793
+print_char("("); print(name); update_terminal;
+@y
+print_char("("); incr(open_parens); print(name); update_terminal;
+@z
+@x module 1209
+if job_name=0 then open_log_file;
+@y
+if job_name=0 then open_log_file;
+while open_parens>0 do
+  begin print(" )"); decr(open_parens);
+  end;
+@z
+
+-----------Here I draw the line with respect to further changes
+
+555. (I sincerely hope that there won't be any more)

@@ -158,6 +158,9 @@ struct	C1
 enum
 {
 	OTST = OEND+1,
+	OBITI,
+	ONEG,
+	OCOM,
 	OINDEX,
 	OFAS,
 
@@ -359,10 +362,3 @@ int	bany(Bits*);
 int	bnum(Bits);
 Bits	blsh(unsigned);
 int	beq(Bits, Bits);
-
-/*
- * com64
- */
-int	com64(Node*);
-void	com64init(void);
-void	bool64(Node*);

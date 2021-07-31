@@ -1,6 +1,7 @@
 #pragma	lib	"../cc/cc.a$O"
 
 typedef	struct	Sym	Sym;
+typedef	struct	Ref	Ref;
 typedef	struct	Gen	Gen;
 typedef	struct	Io	Io;
 typedef	struct	Hist	Hist;
@@ -40,13 +41,19 @@ typedef	struct	Hist	Hist;
 struct	Sym
 {
 	Sym*	link;
+	Ref*	ref;
 	char*	macro;
 	long	value;
 	ushort	type;
-	char	*name;
+	char	name[NNAME];
 	char	sym;
 };
 #define	S	((Sym*)0)
+
+struct	Ref
+{
+	int	class;
+};
 
 struct
 {
@@ -101,8 +108,6 @@ enum
 
 char	debug[256];
 Sym*	hash[NHASH];
-char*	Dlist[30];
-int	nDlist;
 Hist*	ehist;
 int	newflag;
 Hist*	hist;
@@ -115,11 +120,9 @@ int	lineno;
 int	nerrors;
 long	nhunk;
 int	ninclude;
-int	nosched;
 Gen	nullgen;
 char*	outfile;
 int	pass;
-char*	pathname;
 long	pc;
 int	peekc;
 int	sym;

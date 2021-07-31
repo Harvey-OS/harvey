@@ -1,11 +1,9 @@
 #include <libg.h>
 
-typedef unsigned char uchar;
-
 void
 bitblt(Bitmap *d, Point p, Bitmap *s, Rectangle r, Fcode f)
 {
-	uchar *buf;
+	unsigned char *buf;
 
 	buf = bneed(31);
 	buf[0] = 'b';

@@ -324,9 +324,6 @@ halfempty(void *arg)
 	return addr->csr & XHF;
 }
 
-ulong xxx;
-#define DELAY for(xxx=0; xxx<16; xxx++)
-
 /*
  *  output a block
  *
@@ -343,7 +340,6 @@ hsoput(Queue *q, Block *bp)
 	int chan;
 	int ctl;
 	int n;
-	Block *tofree;
 
 	if(bp->type != M_DATA){
 		freeb(bp);
@@ -390,7 +386,6 @@ hsoput(Queue *q, Block *bp)
 /*	print("->%.2uo\n", CHNO|chan);/**/
 	addr->data = CHNO|chan;
 	burst = Maxburst;
-	tofree = 0;
 	while(bp){
 		if(burst == 0){
 			addr->data = TXEOD;
@@ -408,13 +403,13 @@ hsoput(Queue *q, Block *bp)
 		while(n--){
 /*			print("->%.2uo\n", *bp->rptr); /**/
 			addr->data = *bp->rptr++;
-			DELAY;
 		}
 		if(bp->rptr >= bp->wptr){
-			bp->next = tofree;
-			tofree = bp;
-			if(bp->flags & S_DELIM)
+			if(bp->flags & S_DELIM){
+				freeb(bp);
 				break;
+			}
+			freeb(bp);
 			bp = getq(q);
 		}
 	}
@@ -425,7 +420,6 @@ hsoput(Queue *q, Block *bp)
 	if(ctl){
 /*		print("->%.2uo\n", CTL|ctl); /**/
 		addr->data = CTL|ctl;
-		DELAY;
 	}
 
 	/*
@@ -433,9 +427,6 @@ hsoput(Queue *q, Block *bp)
 	 */
 /*	print("->%.2uo\n", TXEOD); /**/
 	addr->data = TXEOD;
-
-	if(tofree)
-		freeb(tofree);
 
 	qunlock(&hp->xmit);
 	poperror();

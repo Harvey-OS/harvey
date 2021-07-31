@@ -3,8 +3,6 @@
 void	addportintr(int (*)(void));
 void	bootargs(ulong);
 void	clearmmucache(void);
-void	clock(Ureg*);
-void	dspclock(void);
 void	duartclock(void);
 void	duartinit(void);
 void	duartstarttimer(void);
@@ -28,7 +26,6 @@ KMap*	kmap(Page*);
 void	kmapinit(void);
 void	kunmap(KMap*);
 void	mmuinit(void);
-#define	mmunewpage(x)
 void	mousebuttons(int);
 void	mouseclock(void);
 int	portprobe(char*, int, int, int, long);
@@ -48,7 +45,6 @@ uchar*	scsixmit(uchar *);
 int	spl1(void);
 void	spldone(void);
 int	splduart(void);
-long	syscall(Ureg*);
 int	tas(char*);
 void	touser(void*);
 #define	waserror()	(u->nerrlab++, setlabel(&u->errlab[u->nerrlab-1]))

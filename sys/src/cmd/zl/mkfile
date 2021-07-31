@@ -1,0 +1,25 @@
+</$objtype/mkfile
+
+TARG=zl
+OFILES=\
+	asm.$O\
+	list.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	enam.$O\
+
+HFILES=\
+	l.h\
+	../zc/z.out.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+enam.$O:	../zc/enam.c
+	$CC $CFLAGS ../zc/enam.c
+
+test:	$O.out x.s
+	za x.s
+	$O.out -la x.z

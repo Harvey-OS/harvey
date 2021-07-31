@@ -12,22 +12,16 @@ static Jmps *contstack;
 static Jmps *brkstack;
 static Jmps *retstack;
 static Jmps *rescues;
-static Node *lstmnt;
 
 /* Compile a function */
 void
 fungen(Node *code, Node *args)
 {
-	int l;
 	Type *t;
 	Node n1;
 	ulong rpc;
 	Inst *fcode;
 
-	l = line;
-	fcode = ipc;
-
-	iter(code, 1);
 	typechk(code, 0);
 	rewrite(code);
 
@@ -45,15 +39,11 @@ fungen(Node *code, Node *args)
 	labels = 0;
 	gotos = 0;
 	rescues = 0;
-	iline = code->srcline;
+	fcode = ipc;
 
 	if(opt('q') == 0 && nerr == 0) {
 		t = curfunc->t->next;
 		switch(t->type) {
-		case TPOLY:
-			curfunc = dupn(curfunc);
-			curfunc->t = at(TFUNC, polyshape);
-			/* No Break */
 		case TADT:
 		case TUNION:
 		case TAGGREGATE:
@@ -62,17 +52,10 @@ fungen(Node *code, Node *args)
 			rnode = stknode(n1.t);
 			assign(&n1, rnode);
 			regfree(&n1);
-			becomentry = ipc;
 		}
 
-		lstmnt = nil;
 		if(code)
 			stmnt(code);
-
-		if(t->type != TVOID)
-		if(lstmnt == 0 ||
-		  (lstmnt->type != ORET && lstmnt->type != OBECOME))
-			diag(lstmnt, "typed function has no return");
 
 		rpc = ipc->pc+1;
 		/* Improve optimiser by using non return register */
@@ -109,18 +92,6 @@ fungen(Node *code, Node *args)
 
 	if(opt('N') || opt('R') || opt('P'))
 		regopt(fcode);
-
-	line = l;
-}
-
-void
-bstmnt(Node *n)
-{
-	Node *tmp;
-
-	tmp = lstmnt;
-	stmnt(n);
-	lstmnt = tmp;
 }
 
 /* Compile code for a statement */
@@ -138,10 +109,6 @@ stmnt(Node *n)
 	r = n->right;
 
 	iline = n->srcline;
-	com.srcline = n->srcline;
-	n1.srcline = n->srcline;
-
-	lstmnt = n;
 
 	switch(n->type) {
 	default:
@@ -158,10 +125,6 @@ stmnt(Node *n)
 		break;
 
 	case OLBLOCK:
-		if(l == ZeroN) {
-			warn(n, "empty guarded block");
-			break;
-		}
 		lblock(l);
 		break;
 
@@ -200,7 +163,7 @@ stmnt(Node *n)
 	case OIF:
 		gencond(l, ZeroN, True);
 		false = ipc;
-		if(r && r->type == OELSE) {
+		if(r->type == OELSE) {
 			stmnt(r->left);
 			truedone = instruction(AJMP, ZeroN, ZeroN, ZeroN);
 			label(false, ipc->pc+1);
@@ -233,7 +196,6 @@ stmnt(Node *n)
 			case TUNION:
 			case TAGGREGATE:
 				com.type = OASGN;
-				com.srcline = l->srcline;
 				com.t = l->t;
 				com.left = an(OIND, rnode, ZeroN);
 				com.left->t = rnode->t->next;
@@ -310,6 +272,7 @@ stmnt(Node *n)
 		pushjmp(&contstack);
 		instruction(AJMP, ZeroN, ZeroN, ZeroN); /* Break */
 		pushjmp(&brkstack);
+		loop = ipc;
 		label(enter, ipc->pc+1);
 
 		if(l->left) {				/* Cond */
@@ -323,7 +286,7 @@ stmnt(Node *n)
 			genexp(l->right, ZeroN);
 
 		instruction(AJMP, ZeroN, ZeroN, ZeroN);
-		label(ipc, enter->pc);
+		label(ipc, loop->next->pc);
 		label(brkstack->i, ipc->pc+1);
 		popjmp(&contstack);
 		popjmp(&brkstack);
@@ -354,9 +317,11 @@ stmnt(Node *n)
 			setlabel(l, ipc->pc+1);
 			l = l->left;
 		}
+		pushjmp(&rescues);
+		rescues->par = inpar;
+		rescues->crit = incrit;
 		stmnt(l);
 		label(enter, ipc->pc+1);
-		pushlab(&rescues, enter);
 		break;
 
 	case OBREAK:
@@ -368,10 +333,6 @@ stmnt(Node *n)
 			p = p->next;
 		}
 		if(p) {
-			if(p->par != inpar)
-				diag(n, "break breaks join in par");
-			if(p->crit != incrit)
-				diag(n, "break breaks critical section");
 			instruction(AJMP, ZeroN, ZeroN, ZeroN);
 			label(ipc, p->i->pc);
 			break;
@@ -388,10 +349,6 @@ stmnt(Node *n)
 			p = p->next;
 		}
 		if(p) {
-			if(p->par != inpar)
-				diag(n, "continue breaks join in par");
-			if(p->crit != incrit)
-				diag(n, "continue breaks critical section");
 			instruction(AJMP, ZeroN, ZeroN, ZeroN);
 			label(ipc, p->i->pc);
 			break;
@@ -404,13 +361,7 @@ stmnt(Node *n)
 int
 cascmp(Node **a, Node **b)
 {
-	int av, bv;
-
-	av = (*a)->left->ival;
-	bv = (*b)->left->ival;
-	if(av < bv)
-		return -1;
-	return  av > bv;
+	return (*a)->left->ival - (*b)->left->ival;
 }
 
 void
@@ -437,26 +388,18 @@ casecount(Node *n, Node **vec)
 void
 switchcode(Node *n)
 {
-	long defpc;
-	Inst *enter;
-	Node val, com;
 	int i, r, safe;
 	Node **cases, *defl, *c, *il;
-
-	val.srcline = n->srcline;
-	com.srcline = n->srcline;
-
-	c = n->right;
-	if(c == ZeroN) {
-		warn(n, "empty switch statement");
-		return;
-	}
+	Node val, com;
+	Inst *enter;
+	long defpc;
 
 	instruction(AJMP, ZeroN, ZeroN, ZeroN);		/* Entry */
 	enter = ipc;
 	instruction(AJMP, ZeroN, ZeroN, ZeroN); 	/* Break */
 	pushjmp(&brkstack);
 
+	c = n->right;
 	safe = 0;
 	if(c->type == OLBLOCK) {
 		incrit++;
@@ -560,85 +503,29 @@ gcom(Node *n)
 {
 	Node *l;
 
-	if(n == 0)
-		return ZeroN;
-
-	switch(n->type) {
-	case ORECV:
+	if(n->type == ORECV)
 		return n;
-	case OCALL:
-		if(issend(n->left))
-			return n;
-		/* Fall through */
-	default:
+	if(n->left) {
 		l = gcom(n->left);
-		if(l != 0)
+		if(l)
 			return l;
-		return gcom(n->right);
 	}
-}
-
-int
-regcode(Node **cases, int cnt)
-{
-	int i, var;
-	Node *l, *c;
-
-	var = 0;
-	for(i = 0; i < cnt; i++) {
-		c = cases[i];
-		switch(c->type) {
-		case OCASE:
-			l = gcom(c->left);
-			if(l == 0) {
-				diag(c, "case expr needs send/receive");
-				cases[i] = ZeroN;
-				break;
-			}
-			if(l->t->variant)
-				var++;
-			switch(l->type) {
-			default:		/* Catch the send rewrites */
-				if(var)
-					diag(c, "send illegal in variant alt");
-				l->left = selsend;
-				c->t = l->t;
-				l->t = builtype[TVOID];
-				break;
-			case ORECV:
-			case OCRCV:
-				c->left = l;
-				l->type = OCALL;
-				c->t = l->t;
-				l->t = builtype[TVOID];
-				l->left = selrecv;
-				break;
-			}
-			/* Only the channel argument */
-			while(l->right->type == OLIST)
-				l->right = l->right->left;
-			break;
-		case ODEFAULT:
-			diag(c, "alt already has default");
-			cases[i] = ZeroN;
-			break;
-		}
+	if(n->right) {
+		l = gcom(n->right);
+		if(l)
+			return l;
 	}
-	return var;
+	return ZeroN;
 }
 
 void
 selcode(Node *n)
 {
-	Inst *enter;
+	int i, safe;
+	Node **cases, *c, *l, *il;
 	Node val, com;
-	int i, x, safe, var;
-	Node **cases, *c, *il;
-
-	safe = 0;
-
-	val.srcline = n->srcline;
-	com.srcline = n->srcline;
+	Inst *enter;
+	Type *t;
 
 	instruction(AJMP, ZeroN, ZeroN, ZeroN);		/* Entry */
 	enter = ipc;
@@ -646,8 +533,7 @@ selcode(Node *n)
 	pushjmp(&brkstack);
 
 	c = n->left;
-	if(c == nil)
-		return;
+	safe = 0;
 	if(c->type == OLBLOCK) {
 		incrit++;
 		safe = 1;
@@ -664,8 +550,31 @@ selcode(Node *n)
 	veccnt = 0;
 	casecount(n->left, cases);
 
-	/* Convert expression to register channels for select */
-	var = regcode(cases, veccnt);
+	for(i = 0; i < veccnt; i++) {
+		c = cases[i];
+		switch(c->type) {
+		case OCASE:
+			l = gcom(c->left);
+			if(l) {
+				c->left = l;
+				l->type = OCALL;
+				t = abt(0);
+				*t = *(l->t);
+				t->next = builtype[TVOID];
+				l->t = t;
+				l->left = selrecv;
+				break;
+			}
+			diag(c, "case expr needs send/receive");
+			cases[i] = ZeroN;
+			break;
+
+		case ODEFAULT:
+			diag(c, "default illegal in alt");
+			cases[i] = ZeroN;
+			break;
+		}
+	}
 
 	for(i = 0; i < veccnt; i++) {
 		if(cases[i] == ZeroN) {
@@ -692,39 +601,13 @@ selcode(Node *n)
 		stmnt(&com);
 	}
 
-	/* Assign values */
 	for(i = 0; i < veccnt; i++) {
 		c = cases[i];
-		x = i;
-		if(var)
-			x = typesig(c->t);
-		c->left->ival = x;
+		genexp(c->left, ZeroN);
+		c->left->ival = i;
 	}
 
-	/* Sort if type match */
-	if(var)
-		qsort(cases, veccnt, sizeof(Node*), cascmp);
-
-	/* Detect type clashes */
-	for(i = 0; i < veccnt-1; i++) {
-		c = cases[i];
-		if(c->left->ival == cases[i+1]->left->ival)
-			diag(c, "duplicate variant type %V", c->t);
-	}
-
-	/* Code the selsend/selrecv expressions */
-	for(i = 0; i < veccnt; i++)
-		genexp(cases[i]->left, ZeroN);
-
-	com.type = OCALL;
-	com.t = builtype[TVOID];
-	com.left = doselect;
-	if(var)
-		com.left = varselect;
-	com.right = ZeroN;
-	sucalc(&com);
-	stmnt(&com);
-
+	instruction(AJAL, ZeroN, ZeroN, doselect);
 	regret(&val, builtype[TINT]);
 	gencmps(cases, veccnt, -1, &val);
 	regfree(&val);
@@ -735,6 +618,7 @@ selcode(Node *n)
 		com.t = builtype[TVOID];
 		com.left = gonode;
 		com.right = il;
+
 		sucalc(&com);
 		stmnt(&com);
 		incrit--;
@@ -818,9 +702,6 @@ parcode(Node *n)
 	Node *barrier, **slist, com, retr, atmp;
 	Node *stv, *stvp, *oatv, *p;
 
-	com.srcline = n->srcline;
-	retr.srcline = n->srcline;
-
 	veccnt = 0;
 	listcount(n, 0);
 	slist = malloc(sizeof(Node*)*veccnt);
@@ -844,31 +725,30 @@ parcode(Node *n)
 	oatv = atv;
 	cnt = veccnt;
 
-	/*
-	 * This slime is Parrend in the runtime
-	 */
-	t = at(TAGGREGATE, 0);
-	t->size = SZPAREND*builtype[TINT]->size;
-	barrier = an(OADDR, stknode(t), ZeroN);
-	barrier->t = at(TIND, t);
+	barrier = stknode(builtype[TINT]);
+	com.type = OASGN;
+	com.t = barrier->t;
+	com.left = barrier;
+	com.right = con(veccnt-1);
+	sucalc(&com);
+	genexp(&com, ZeroN);
 
 	/*
 	 * Build activation vector
 	 */
 	t = at(TIND, builtype[TIND]);
-	t->size = t->next->size*cnt;	
+	t->size = t->next->size * cnt;	
 	stv = stknode(t);
-	stv->ti->t = at(TARRAY, 0);
 
 	/*
-	 * craft: pid = pfork(cnt, stv, &barrier)
+	 * craft: pid = pfork(cnt, stv)
 	 */
 	com.type = OCALL;
 	com.t = builtype[TINT];
 	com.left = pforknode;
 	stvp = an(OADDR, stv, ZeroN);
 	stvp->t = builtype[TIND];
-	com.right = an(OLIST, con(veccnt-1), an(OLIST, stvp, barrier));
+	com.right = an(OLIST, con(veccnt-1), stvp);
 
 	sucalc(&com);
 	genexp(&com, ZeroN);
@@ -890,9 +770,9 @@ parcode(Node *n)
 		 * find the largest frame in this activation
 		 */
 		frs = framefind(slist[i]);
-		/* ensure enough space for ALEF_pexit args */
-		if(frs < 2*builtype[TIND]->size) {
-			frs = 2*builtype[TIND]->size;
+		/* ensure enough space for pointer to barrier passed to ALEF_pexit */
+		if(frs < builtype[TIND]->size) {
+			frs = builtype[TIND]->size;
 			frs = align(frs, builtype[TIND]);
 		}
 		if(opt('O'))
@@ -908,8 +788,8 @@ parcode(Node *n)
 		p = an(OIND, p, ZeroN);
 		p->t = t;
 		/*
-		 * 2*sizeof(*) is enough for save SP at activation top plus
-		 * hole for the saved activation pc
+		 * 2*sizeof(*) is enough for save SP at activation top plus hole
+		 * for the saved activation pc
 		 */
 		p = an(OSUB, p, con(frs+2*builtype[TIND]->size));
 		p->t = t;
@@ -928,7 +808,8 @@ parcode(Node *n)
 		com.type = OCALL;
 		com.t = builtype[TVOID];
 		com.left = pexitnode;
-		com.right = barrier;
+		com.right = an(OADDR, barrier, ZeroN);
+		com.right->t = at(TIND, barrier->t);
 
 		sucalc(&com);
 		stmnt(&com);
@@ -947,7 +828,9 @@ parcode(Node *n)
 	com.left = pdonenode;
 	stvp = an(OADDR, stv, ZeroN);
 	stvp->t = builtype[TIND];
-	com.right = an(OLIST, barrier, stvp);
+	p = an(OADDR, barrier, 0);
+	p->t = builtype[TIND];
+	com.right = an(OLIST, p, stvp);
 
 	sucalc(&com);
 	stmnt(&com);
@@ -959,8 +842,6 @@ void
 lblock(Node *n)
 {
 	Node com, *i;
-
-	com.srcline = n->srcline;
 
 	i = internnode(builtype[TIND]);
 	i = an(OADDR, i, ZeroN);
@@ -975,7 +856,7 @@ lblock(Node *n)
 
 	incrit++;
 	stmnt(n);
-	incrit--;
+	incrit++;
 
 	com.type = OCALL;
 	com.t = builtype[TVOID];
@@ -998,12 +879,6 @@ sucalc(Node *n)
 
 	/* Addressability */
 	switch(n->type) {
-	case OBECOME:
-		sucalc(l);
-		if(l->type == OCALL)
-			n->right = paramdep(l->right);
-		return;
-
 	case OCONST:
 		n->islval = 20;
 		return;
@@ -1041,17 +916,17 @@ sucalc(Node *n)
 	case OADD:
 		sucalc(l);
 		sucalc(r);
-		if(l->islval == 20) {
-			if(r->islval == 2)
-				n->islval = 2;
-			if(r->islval == 3)
-				n->islval = 3;
+		if(l->ival == 20) {
+			if(r->ival == 2)
+				n->ival = 2;
+			if(r->ival == 3)
+				n->ival = 3;
 		}
-		if(r->islval == 20) {
-			if(l->islval == 2)
-				n->islval = 2;
-			if(l->islval == 3)
-				n->islval = 3;
+		if(r->ival == 20) {
+			if(l->ival == 2)
+				n->ival = 2;
+			if(l->ival == 3)
+				n->ival = 3;
 		}
 		break;
 
@@ -1145,9 +1020,9 @@ resolvegoto(void)
 		}
 
 		if(g->par != l->par)
-			diag(g->n, "goto breaks join from par");
+			diag(g->n, "raise/goto breaks join from par");
 		if(g->crit != l->crit)
-			diag(g->n, "goto breaks critical section");
+			diag(g->n, "raise/goto breaks critical section");
 
 		label(g->i, l->pc);
 	}

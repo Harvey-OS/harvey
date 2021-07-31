@@ -11,15 +11,14 @@ dev
 	ether	l
 	scc	t
 	scsi	S	scsi scsibuf
-	nextfloppy	f
+	floppy	f
 	iproute	P
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
 	arp	a
 	rtc	r
 	dk	k
-	audio	A
+	vid	v
 	kprof	T
-	icmp	Q
 stream
 	urp
 	async
@@ -28,6 +27,9 @@ stream
 port
 	int cpuserver = 0;
 	void consdebug(void){}
+	void audiodmaintr(void){}
+	long cfslen = 0; ulong cfscode[1];
+	long fslen = 0; ulong fscode[1];
 	/*
 	 *  port interrupts just generate traps
 	 */
@@ -36,6 +38,6 @@ port
 		extern void trap(void*);
 		trap(ur);
 	}
-boot terminal #w1/sd1
+boot terminal #w1/hd1
 	il
 	tcp

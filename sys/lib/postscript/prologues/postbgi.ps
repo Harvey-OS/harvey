@@ -1,0 +1,135 @@
+%
+% Version 3.3.2 prologue for BGI files - STARE or PRISM.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/fixlinewidth true def
+/fixscreen false def
+/font /Courier def
+/formsperpage 1 def
+/landscape false def
+/linewidth 0 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/prism false def
+/resolution 128 def
+/rotation 1 def
+/scaletodevice false def
+/screenheight 1280 def
+/screenwidth 1024 def
+/xoffset 0 def
+/yoffset 0 def
+
+/devres 72 0 matrix defaultmatrix dtransform dup mul exch dup mul add sqrt def
+
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/kshow {kshow} bind def		% so later references don't bind
+/show {show} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	prism {/fixscreen true def /scaletodevice true def} if
+	prism linewidth 0 eq and {/linewidth .3 def} if
+	fixscreen {devres 4 div orientation currentscreen 3 1 roll pop pop setscreen} if
+
+	pagedimensions
+	/scaling
+		scaletodevice
+			{devres resolution div truncate 72 mul devres div dup}
+			{height margin sub screenheight div width margin sub screenwidth div}
+		ifelse
+	min def
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	xoffset inch yoffset inch translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+	screenwidth 2 div neg screenheight 2 div neg translate
+
+	tietodevicespace
+	linewidth scaling div setlinewidth
+	1 setlinecap
+	newpath
+} def
+
+/pagedimensions {
+	useclippath {
+		/pagebbox [clippath pathbbox newpath] def
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/pagesetup {/page exch def} bind def
+
+/tietodevicespace {
+	fixlinewidth linewidth 0 gt and linewidth 1 lt and {
+		/moveto {
+			2 copy /Y exch def /X exch def
+			transform round exch round exch itransform
+			moveto
+		} bind def
+		/lineto {
+			2 copy /Y exch def /X exch def
+			transform round exch round exch itransform
+			lineto
+		} bind def
+		/rlineto {Y add exch X add exch lineto} bind def
+		/v V 0 get bind def
+	} if
+} def
+
+/V [{moveto counttomark 2 idiv {rlineto} repeat stroke}] def
+/v V 0 get bind def
+/p {linewidth 2 div 0 360 arc fill} bind def
+/pp {/ch exch def counttomark 2 idiv {moveto xc yc rmoveto ch show} repeat} bind def
+
+/l {{scaling div} forall counttomark array astore 0 setdash} bind def
+/c {setrgbcolor} bind def
+
+/T {newpath moveto rlineto rlineto rlineto closepath eofill} bind def
+
+/R {
+	newpath moveto 1 index 0 rlineto 0 exch rlineto neg 0 rlineto closepath
+	0 eq {stroke} {eofill} ifelse
+} bind def
+
+/f {
+	dup dup
+	/charwidth exch 6 mul def
+	/xc exch -2.5 mul def
+	/yc exch -3.5 mul def
+	font findfont charwidth .6 div scalefont setfont
+} bind def
+
+/t {
+	/str exch def
+	gsave
+	translate rotate
+	xc yc moveto
+	currentpoint
+	{
+		pop pop
+		exch charwidth add exch
+		moveto currentpoint
+	} str kshow
+	pop pop
+	grestore
+} bind def
+
+/done {/lastpage where {pop lastpage} if} def

@@ -1,0 +1,26 @@
+.de RT		\" `Rotate Text'
+.br
+.nr dn 0	\" clear diversion vertical size
+.di dV		\" squirrel it away
+\&\\$1
+.br
+.di		\" end diversion
+.mk vv		\" mark current vertical position on page
+.fl		\" paranoia
+.nr zz 2u*\\n(.vu		\" margin around bitmap
+.\"		divert to bitmap in driver ('{ name dx dy margin')
+\X'{ RT0 \\n(dl \\n(dn \\n(zz'
+.sp -1
+.nr 01 \\n(.u
+.nf
+.dV		\" set the text
+.if \\n(01 .fi
+.fl
+\X'}'		\" bitmap is done
+.sp -1
+.fl
+.sp |\\n(vvu
+.\"		rotate bitmap, delete original
+\X': R RT RT0'\X': D RT0'
+.sp -1
+..

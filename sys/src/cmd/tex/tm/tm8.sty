@@ -1,0 +1,112 @@
+% tm8.sty  18-Jan-88 tla
+
+\lineskip 1pt \normallineskip 1pt
+\def\baselinestretch{1}
+
+\def\@normalsize{\@setsize\normalsize{9.5pt}\viiipt\@viiipt
+\abovedisplayskip 8pt plus2pt minus4pt\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \z@ plus3pt\belowdisplayshortskip 5.5pt plus3pt minus3pt}
+\def\small{\@setsize\small{8.5pt}\viipt\@viipt
+\abovedisplayskip 7.5pt plus 3pt minus 3pt\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \z@ plus2pt\belowdisplayshortskip 3pt plus2pt minus 2pt
+\def\@listi{\topsep 3pt plus 2pt minus 2pt\parsep 2pt plus 1pt minus 1pt
+\itemsep \parsep}}
+\def\footnotesize{\@setsize\footnotesize{7.5pt}\vipt\@vipt
+\abovedisplayskip 6pt plus 2pt minus 4pt\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \z@ plus 1pt\belowdisplayshortskip 2pt plus 1pt minus
+1pt
+\def\@listi{\topsep 2pt plus 1pt minus 1pt\parsep 2pt plus 1pt minus 1pt
+\itemsep \parsep}}
+\def\scriptsize{\@setsize\scriptsize{6.5pt}\vpt\@vpt}
+\def\tiny{\@setsize\tiny{6pt}\vpt\@vpt}
+\def\large{\@setsize\large{12pt}\xpt\@xpt}
+\def\Large{\@setsize\Large{14pt}\xiipt\@xiipt}
+\def\LARGE{\@setsize\LARGE{18pt}\xivpt\@xivpt}
+\def\huge{\@setsize\huge{22pt}\xviipt\@xviipt}
+\def\Huge{\@setsize\Huge{25pt}\xxpt\@xxpt}
+\normalsize 
+
+\if@twoside \oddsidemargin 0t \evensidemargin 36pt \marginparwidth 77pt
+\else \oddsidemargin 18pt \evensidemargin 18pt
+ \marginparwidth 60pt 
+\fi
+\marginparsep 8pt 
+ \topmargin 27pt \headheight 12pt \headsep 25pt \footskip 30pt 
+
+%\textheight = 54\baselineskip
+%\advance\textheight by \topskip
+\textheight=8.7in
+\textwidth 6in \columnsep 10pt \columnseprule 0pt 
+
+\footnotesep 5.5pt 
+\skip\footins 7.5pt plus 3pt minus 2pt 
+\floatsep 10pt plus 2pt minus 2pt \textfloatsep 20pt plus 2pt minus 4pt
+\intextsep 10pt plus 2pt minus 2pt \@maxsep 20pt \dblfloatsep 10pt plus 2pt
+minus 2pt \dbltextfloatsep 20pt plus 2pt minus 4pt \@dblmaxsep 20pt 
+\@fptop 0pt plus 1fil \@fpsep 7pt plus 2fil \@fpbot 0pt plus 1fil 
+\@dblfptop 0pt plus 1fil \@dblfpsep 7pt plus 2fil \@dblfpbot 0pt plus 1fil
+\marginparpush 5pt 
+
+\parskip 0pt plus 1pt \parindent 12pt \topsep 6pt plus 1pt minus 3pt
+\partopsep 2pt plus 1pt minus 1pt \itemsep 3.5pt plus 2pt minus 1pt 
+\@lowpenalty 51 \@medpenalty 151 \@highpenalty 301 
+\@beginparpenalty -\@lowpenalty \@endparpenalty -\@lowpenalty \@itempenalty
+-\@lowpenalty 
+
+
+\def\part{\par \addvspace{4ex} \@afterindentfalse \secdef\@part\@spart} 
+\def\@part[#1]#2{\ifnum \c@secnumdepth >\m@ne \refstepcounter{part}
+\addcontentsline{toc}{part}{\thepart \hspace{1em}#1}\else
+\addcontentsline{toc}{part}{#1}\fi { \parindent 0pt \raggedright 
+ \ifnum \c@secnumdepth >\m@ne \Large \bf Part \thepart \par \nobreak \fi \huge
+  \bf #2\sectionmark{}\subsectionmark{}\par } \nobreak \vskip 3ex
+  \@afterheading }  
+\def\@spart#1{{\parindent 0pt \raggedright 
+ \huge \bf 
+ #1\par} \nobreak \vskip 3ex \@afterheading } 
+\def\section{\@startsection {section}{1}{\z@}{-3.5ex plus -1ex minus 
+ -.2ex}{2.3ex plus .2ex}{\Large\bf}}
+\def\subsection{\@startsection{subsection}{2}{\z@}{-3.25ex plus -1ex minus 
+ -.2ex}{1.5ex plus .2ex}{\large\bf}}
+\def\subsubsection{\@startsection{subsubsection}{3}{\z@}{-3.25ex plus 
+-1ex minus -.2ex}{1.5ex plus .2ex}{\normalsize\bf}}
+\def\paragraph{\@startsection
+ {paragraph}{4}{\z@}{3.25ex plus 1ex minus .2ex}{-1em}{\normalsize\bf}}
+\def\subparagraph{\@startsection
+ {subparagraph}{4}{\parindent}{3.25ex plus 1ex minus 
+ .2ex}{-1em}{\normalsize\bf}}
+
+
+\setcounter{secnumdepth}{3}
+
+\def\appendix{\par
+ \setcounter{section}{0}
+ \setcounter{subsection}{0}
+ \def\thesection{\Alph{section}}}
+
+
+\leftmargini 2.5em
+\leftmarginii 2.2em \leftmarginiii 1.87em \leftmarginiv 1.7em \leftmarginv 1em
+\leftmarginvi 1em
+\leftmargin\leftmargini
+\labelsep .5em
+\labelwidth\leftmargini\advance\labelwidth-\labelsep
+\parsep 3.5pt plus 1.5pt minus 1pt
+\def\@listi{\leftmargin\leftmargini}
+\def\@listii{\leftmargin\leftmarginii
+ \labelwidth\leftmarginii\advance\labelwidth-\labelsep
+ \topsep 3.5pt plus 1.5pt minus 1pt
+ \parsep 2pt plus 1pt minus 1pt
+ \itemsep \parsep}
+\def\@listiii{\leftmargin\leftmarginiii
+ \labelwidth\leftmarginiii\advance\labelwidth-\labelsep
+ \topsep 2pt plus 1pt minus 1pt 
+ \parsep \z@ \partopsep 1pt plus 0pt minus 1pt
+ \itemsep \topsep}
+\def\@listiv{\leftmargin\leftmarginiv
+ \labelwidth\leftmarginiv\advance\labelwidth-\labelsep}
+\def\@listv{\leftmargin\leftmarginv
+ \labelwidth\leftmarginv\advance\labelwidth-\labelsep}
+\def\@listvi{\leftmargin\leftmarginvi
+ \labelwidth\leftmarginvi\advance\labelwidth-\labelsep}
+

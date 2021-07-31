@@ -4,9 +4,9 @@ async \- framing for a serial line to Datakit
 .SH SYNOPSIS
 .nf
 .B
-ctlfd = open(".../ctl", ORDWR);
+Fctlfd = open(".../ctl", ORDWR);
 .B
-write(ctlfd, "push async", 10);
+Fwrite(ctlfd, "push async", 10);
 .fi
 .SH DESCRIPTION
 .PP
@@ -67,5 +67,3 @@ specifiers.
 .IR stream (3),
 .IR cons (3),
 .IR dk (3)
-.SH SOURCE
-.B /sys/src/9/port/stasync.c

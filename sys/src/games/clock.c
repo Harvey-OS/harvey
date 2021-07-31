@@ -40,10 +40,6 @@ main(void)
 	notify(ignore);
 
 	f = open("/dev/mouse", OREAD);
-	if(f < 0){
-		fprint(2, "can't open /dev/mouse: %r\n");
-		exits(0);
-	}
 	alarm(1000*60);
 	for(;;) {
 		n = read(f, buf, sizeof(buf));
@@ -51,7 +47,6 @@ main(void)
 		if(n < 0) {
 			errstr(buf);
 			if(strcmp(buf, "interrupted") != 0)
-			if(strcmp(buf, "no error") != 0)
 				exits(buf);
 			buf[0] = 'm';
 			buf[1] = 0x80;
@@ -60,8 +55,7 @@ main(void)
 			continue;
 
 		r = bscreenrect(0);
-		screen.r = r;
-		clipr(&screen, screen.r);
+		clipr(&screen, r);
 		d = balloc(r, 0);
 		tv = localtime(time(0));
 		if(tv->hour > 12)

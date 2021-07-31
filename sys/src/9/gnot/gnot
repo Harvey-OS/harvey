@@ -11,6 +11,7 @@ dev
 	dup	d
 	bit	b
 	duart	t
+	kprof	T
 
 stream
 	urp
@@ -19,9 +20,10 @@ stream
 
 port
 	int cpuserver = 0;
+	long cfslen = 0; ulong cfscode[1];
+	long fslen = 0; ulong fscode[1];
 	void consdebug(void){}
 	void confinit1(int mul){ USED(mul); }
-	void kproftimer(ulong pc) { USED(pc); }
 	/*
 	 *  port interrupts just generate traps
 	 */
@@ -30,7 +32,12 @@ port
 		extern void trap(void*);
 		trap(ur);
 	}
-	void dspclock(void) { }
+	/*
+	 * null routine if configured without kernel profiling
+	 */
+	/*
+	void kproftimer(ulong pc) { USED(pc); }
+	*/
 
 boot
 	incon "config 1 16 restart dk"

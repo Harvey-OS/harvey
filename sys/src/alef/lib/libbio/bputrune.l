@@ -6,7 +6,7 @@ Biobufhdr.putrune(Biobufhdr *bp, int c)
 {
 	int n;
 	Rune rune;
-	byte str[4];
+	char str[4];
 
 	rune = c;
 	if(rune < Runeself) {

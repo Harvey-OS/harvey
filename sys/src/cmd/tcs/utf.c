@@ -1,34 +1,12 @@
-#ifdef PLAN9
 #include	<u.h>
 #include	<libc.h>
 #include	<bio.h>
-#else
-#include	<sys/types.h>
-#include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>
-#include	<unistd.h>
-#include	<errno.h>
-#include	"plan9.h"
-#endif
 #include	"hdr.h"
 
-/*
-	the our_* routines are implementations for the corresponding library
-	routines. for a while, i tried to actually name them wctomb etc
-	but stopped that after i found a system which made wchar_t an
-	unsigned char.
-*/
-
-#ifdef PLAN9
 long getrune(Biobuf *);
 long getisorune(Biobuf *);
-#else
-long getrune(FILE *);
-long getisorune(FILE *);
-#endif
-int our_wctomb(char *s, unsigned long wc);
-int our_mbtowc(unsigned long *p, char *s, unsigned n);
+int wctomb(char *s, ulong wc);
+int mbtowc(ulong *p, char *s, unsigned n);
 int runetoisoutf(char *str, Rune *rune);
 int fullisorune(char *str, int n);
 int isochartorune(Rune *rune, char *str);
@@ -36,37 +14,24 @@ int isochartorune(Rune *rune, char *str);
 void
 utf_in(int fd, long *notused, struct convert *out)
 {
-#ifndef PLAN9
-	FILE *fp;
-#else /* PLAN9 */
 	Biobuf b;
-#endif /* PLAN9 */
 	Rune *r;
 	long l;
 
 	USED(notused);
-#ifndef PLAN9
-	if((fp = fdopen(fd, "r")) == NULL){
-		EPR "%s: input setup error: %s\n", argv0, strerror(errno));
-#else /* PLAN9 */
 	if(Binit(&b, fd, OREAD) < 0){
-		EPR "%s: input setup error: %r\n", argv0);
-#endif /* PLAN9 */
-		EXIT(1, "input error");
+		fprint(2, "%s: input setup error: %r\n", argv0);
+		exits("input error");
 	}
 	r = runes;
 	for(;;)
-#ifndef PLAN9
-		switch(l = getrune(fp))
-#else /* PLAN9 */
 		switch(l = getrune(&b))
-#endif /* PLAN9 */
 		{
 		case -1:
 			goto done;
 		case -2:
 			if(squawk)
-				EPR "%s: bad UTF sequence near byte %ld in input\n", argv0, ninput);
+				fprint(2, "%s: bad UTF sequence near byte %ld in input\n", argv0, ninput);
 			if(clean)
 				continue;
 			nerrors++;
@@ -91,9 +56,8 @@ utf_out(Rune *base, int n, long *notused)
 
 	USED(notused);
 	nrunes += n;
-	for(r = base, p = obuf; n-- > 0; r++){
-		p += our_wctomb(p, *r);
-	}
+	for(r = base, p = obuf; n-- > 0; r++)
+		p += wctomb(p, *r);
 	noutput += p-obuf;
 	write(1, obuf, p-obuf);
 }
@@ -101,37 +65,24 @@ utf_out(Rune *base, int n, long *notused)
 void
 isoutf_in(int fd, long *notused, struct convert *out)
 {
-#ifndef PLAN9
-	FILE *fp;
-#else /* PLAN9 */
 	Biobuf b;
-#endif /* PLAN9 */
 	Rune *r;
 	long l;
 
 	USED(notused);
-#ifndef PLAN9
-	if((fp = fdopen(fd, "r")) == 0){
-		EPR "%s: input setup error: %s\n", argv0, strerror(errno));
-#else /* PLAN9 */
 	if(Binit(&b, fd, OREAD) < 0){
-		EPR "%s: input setup error: %r\n", argv0);
-#endif /* PLAN9 */
-		EXIT(1, "input error");
+		fprint(2, "%s: input setup error: %r\n", argv0);
+		exits("input error");
 	}
 	r = runes;
 	for(;;)
-#ifndef PLAN9
-		switch(l = getisorune(fp))
-#else /* PLAN9 */
 		switch(l = getisorune(&b))
-#endif /* PLAN9 */
 		{
 		case -1:
 			goto done;
 		case -2:
 			if(squawk)
-				EPR "%s: bad UTF sequence near byte %ld in input\n", argv0, ninput);
+				fprint(2, "%s: bad UTF sequence near byte %ld in input\n", argv0, ninput);
 			if(clean)
 				continue;
 			nerrors++;
@@ -163,28 +114,20 @@ isoutf_out(Rune *base, int n, long *notused)
 }
 
 long
-#ifndef PLAN9
-getrune(FILE *fp)
-#else /* PLAN9 */
 getrune(Biobuf *bp)
-#endif /* PLAN9 */
 {
 	int c, i;
 	char str[UTFmax];	/* MB_LEN_MAX really */
-	unsigned long l;
+	ulong l;
 	int n;
 
 	for(i = 0;;){
-#ifndef PLAN9
-		c = getc(fp);
-#else /* PLAN9 */
 		c = Bgetc(bp);
-#endif /* PLAN9 */
 		if(c < 0)
 			return(c);
 		ninput++;
 		str[i++] = c;
-		n = our_mbtowc(&l, str, i);
+		n = mbtowc(&l, str, i);
 		if(n == -1)
 			return(-2);
 		if(n > 0)
@@ -193,22 +136,14 @@ getrune(Biobuf *bp)
 }
 
 long
-#ifndef PLAN9
-getisorune(FILE *fp)
-#else /* PLAN9 */
 getisorune(Biobuf *bp)
-#endif /* PLAN9 */
 {
 	int c, i;
 	Rune rune;
 	char str[UTFmax];	/* MB_LEN_MAX really */
 
 	for(i = 0;;){
-#ifndef PLAN9
-		c = getc(fp);
-#else /* PLAN9 */
 		c = Bgetc(bp);
-#endif /* PLAN9 */
 		if(c < 0)
 			return(c);
 		ninput++;
@@ -228,7 +163,7 @@ enum
 	Char21	= 0xA1,		Rune21	= 0x0100,
 	Char22	= 0xF6,		Rune22	= 0x4016,
 	Char3	= 0xFC,		Rune3	= 0x10000,	/* really 0x38E2E */
-	Esc	= 0xBE,		Bad	= Runeerror
+	Esc	= 0xBE,		Bad	= Runeerror,
 };
 
 static	uchar	U[256];
@@ -241,13 +176,13 @@ mktable(void)
 	int i, u;
 
 	for(i=0; i<256; i++) {
-		u = i + (0x5E - 0xA0);
+		u = i + (0x5E-0xA0);
 		if(i < 0xA0)
-			u = i + (0xDF - 0x7F);
+			u = i + (0xDF-0x7F);
 		if(i < 0x7F)
-			u = i + (0x00 - 0x21);
+			u = i + (0x00-0x21);
 		if(i < 0x21)
-			u = i + (0xBE - 0x00);
+			u = i + (0xBE-0x00);
 		U[i] = u;
 		T[u] = i;
 	}
@@ -386,9 +321,10 @@ fullisorune(char *str, int n)
 	return 0;
 }
 
-#ifdef PLAN9
+typedef	ulong		wchar_t;
+typedef	unsigned	size_t;
+
 int	errno;
-#endif
 
 enum
 {
@@ -416,20 +352,17 @@ enum
 	Mask5	= (1<<Bit5)-1,
 	Mask6	= (1<<Bit6)-1,
 
-	Wchar1	= (1UL<<Bit1)-1,
-	Wchar2	= (1UL<<(Bit2+Bitx))-1,
-	Wchar3	= (1UL<<(Bit3+2*Bitx))-1,
-	Wchar4	= (1UL<<(Bit4+3*Bitx))-1,
-	Wchar5	= (1UL<<(Bit5+4*Bitx))-1
+	Wchar1	= (1<<Bit1)-1,
+	Wchar2	= (1<<(Bit2+Bitx))-1,
+	Wchar3	= (1<<(Bit3+2*Bitx))-1,
+	Wchar4	= (1<<(Bit4+3*Bitx))-1,
+	Wchar5	= (1<<(Bit5+4*Bitx))-1,
 
-#ifndef	EILSEQ
-	, /* we hate ansi c's comma rules */
 	EILSEQ	= 123
-#endif /* PLAN9 */
 };
 
 int
-our_wctomb(char *s, unsigned long wc)
+wctomb(char *s, wchar_t wc)
 {
 	if(s == 0)
 		return 0;		/* no shift states */
@@ -479,11 +412,11 @@ our_wctomb(char *s, unsigned long wc)
 }
 
 int
-our_mbtowc(unsigned long *p, char *s, unsigned n)
+mbtowc(wchar_t *p, char *s, size_t n)
 {
 	uchar *us;
 	int c0, c1, c2, c3, c4, c5;
-	unsigned long wc;
+	wchar_t wc;
 
 	if(s == 0)
 		return 0;		/* no shift states */
@@ -579,3 +512,4 @@ bad:
 badlen:
 	return -2;
 }
+

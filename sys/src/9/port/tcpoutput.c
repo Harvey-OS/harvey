@@ -5,7 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include 	"arp.h"
-#include 	"../port/ipdat.h"
+#include 	"ipdat.h"
 
 #define DPRINT if(tcpdbg) print
 
@@ -46,9 +46,10 @@ tcpoutput(Ipconv *s)
 		 */
 		if(tcb->snd.wnd == 0){
 			if(sent != 0) {
-				if ((tcb->flags&FORCE) == 0)
+				if (tcb->flags&FORCE)
+						tcb->snd.ptr = tcb->snd.una;
+				else
 					break;
-				tcb->snd.ptr = tcb->snd.una;
 			}
 			usable = 1;
 		}
@@ -91,9 +92,8 @@ tcpoutput(Ipconv *s)
 			}
 			break;
 		}
-		tcb->last_ack = tcb->rcv.nxt;
 		seg.seq = tcb->snd.ptr;
-		seg.ack = tcb->rcv.nxt;
+		seg.ack = tcb->last_ack = tcb->rcv.nxt;
 		seg.wnd = tcb->rcv.wnd;
 
 		/* Pull out data to send */
@@ -112,7 +112,7 @@ tcpoutput(Ipconv *s)
 		/*
 		 * keep track of balance of resent data */
 		if(tcb->snd.ptr < tcb->snd.nxt)
-			tcb->resent += MIN(tcb->snd.nxt - tcb->snd.ptr,(int)ssize);
+			tcb->resent += MIN((int)tcb->snd.nxt - (int)tcb->snd.ptr,(int)ssize);
 
 		tcb->snd.ptr += ssize;
 
@@ -122,9 +122,7 @@ tcpoutput(Ipconv *s)
 
 		/* Fill in fields of pseudo IP header */
 		hnputl(ph.tcpdst, s->dst);
-		if(s->src == 0)
-			s->src = ipgetsrc(ph.tcpdst);
-		hnputl(ph.tcpsrc, s->src);
+		hnputl(ph.tcpsrc, Myip[Myself]);
 		hnputs(ph.tcpsport, s->psrc);
 		hnputs(ph.tcpdport, s->pdst);
 
@@ -149,55 +147,8 @@ tcpoutput(Ipconv *s)
 				tcb->rttseq = tcb->snd.ptr;
 			}
 		}
-		ipmuxoput(0, hbp);
+		PUTNEXT(Ipoutput, hbp);
 	}
-}
-
-/*
- *  the BSD convention (hack?) for keep alives.  resend last byte acked.
- */
-void
-tcpkeepalive(Ipconv *s)
-{
-	Tcp seg;
-	Tcphdr ph;
-	Tcpctl *tcb;
-	Block *hbp,*dbp;
-
-	tcb = &s->tcpctl;
-
-	dbp = 0;
-	seg.up = 0;
-	seg.source = s->psrc;
-	seg.dest = s->pdst;
-	seg.flags = ACK|PSH; 	
-	seg.mss = 0;
-	seg.seq = tcb->snd.una-1;
-	seg.ack = tcb->rcv.nxt;
-	seg.wnd = tcb->rcv.wnd;
-	tcb->last_ack = tcb->rcv.nxt;
-	if(tcb->state == Finwait2){
-		seg.flags |= FIN;
-	} else {
-		dbp = allocb(1);
-		dbp->wptr++;
-	}
-
-	/* Fill in fields of pseudo IP header */
-	hnputl(ph.tcpdst, s->dst);
-	if(s->src == 0)
-		s->src = ipgetsrc(ph.tcpdst);
-	hnputl(ph.tcpsrc, s->src);
-	hnputs(ph.tcpsport, s->psrc);
-	hnputs(ph.tcpdport, s->pdst);
-
-	/* Build header, link data and compute cksum */
-	if((hbp = htontcp(&seg, dbp, &ph)) == 0) {
-		freeb(dbp);
-		return;
-	}
-
-	ipmuxoput(0, hbp);
 }
 
 void
@@ -233,31 +184,14 @@ tcptimeout(void *arg)
 	default:
 		tcb->backoff++;
 		if (tcb->backoff >= MAXBACKOFF && tcb->snd.wnd > 0) {
-			qlock(tcb);
 			localclose(s, Etimedout);
-			qunlock(tcb);
 			break;
 		}
 		tcprxmit(s);
 		break;
 
-	case Finwait2:
-		if(--(tcb->kacounter) == 0){
-			qlock(tcb);
-			localclose(s, Etimedout);
-			qunlock(tcb);
-		} else {
-			qlock(tcb);
-			tcpkeepalive(s);
-			qunlock(tcb);
-			tcpgo(&tcb->timer);
-		}
-		break;
-
 	case Time_wait:
-		qlock(tcb);
 		localclose(s, 0);
-		qunlock(tcb);
 		break;
 	}
 }
@@ -268,10 +202,10 @@ backoff(int n)
 	if(tcptimertype == 1) 
 		return n+1;
 
-	if(n <= 6)
+	if(n <= 4)
 		return 1 << n;
 
-	return 64;
+	return n*n;
 }
 
 void

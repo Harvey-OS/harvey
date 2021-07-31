@@ -2,13 +2,12 @@
 enum
 {
 	Eof		= -1,
-	Strsize		= 4096,
+	Strsize		= 1024,
 	Hashsize	= 128,
-	Maxarg		= 512,
+	Maxarg		= 10,
 	NFD		= 100,
 	Maxproc		= 50,
 	Maxval		= 10,
-	Mempergc	= 1024*1024,
 };
 
 typedef struct Node	Node;
@@ -22,40 +21,34 @@ typedef struct Rplace	Rplace;
 typedef struct Ptab	Ptab;
 typedef struct Value	Value;
 typedef struct Type	Type;
-typedef struct Frtype	Frtype;
 
-Extern int	remote;
 Extern int	text;
-Extern int	silent;
 Extern Fhdr	fhdr;
 Extern int	line;
-Extern Biobuf*	bout;
-Extern Biobuf*	io[32];
-Extern int	iop;
+Extern Biobuf	*bin;
+Extern Biobuf	*bout;
 Extern char	symbol[Strsize];
 Extern int	interactive;
-Extern Node*	code;
+Extern Node	*code;
 Extern int	na;
 Extern int	wtflag;
-Extern Map*	cormap;
-Extern Map*	symmap;
-Extern Lsym*	hash[Hashsize];
+Extern Map	*cormap;
+Extern Map	*symmap;
+Extern Machdata	*machdata;
+Extern ulong	dot;
+Extern ulong	dotinc;
+Extern int	xprint;
+Extern char	asmbuf[Strsize];
+Extern Lsym	*hash[Hashsize];
 Extern long	dogc;
-Extern Rplace*	ret;
-Extern char*	filename;
-Extern char*	aout;
+Extern Rplace	*ret;
+Extern char	*filename;
+Extern char	*aout;
 Extern int	gotint;
-Extern long	flen;
-Extern Gc*	gcl;
+Extern int	flen;
+Extern Gc	*gcl;
 Extern int	stacked;
 Extern jmp_buf	err;
-Extern Node*	prnt;
-Extern Node*	fomt;
-Extern List*	tracelist;
-Extern int	initialising;
-Extern int	quiet;
-extern void	(*expop[])(Node*, Node*);
-#define expr(n, r) (r)->comt=0; (*expop[(n)->op])(n, r);
 
 enum
 {
@@ -63,25 +56,16 @@ enum
 	TFLOAT,
 	TSTRING,
 	TLIST,
-	TCODE,
 };
 
 struct Type
 {
-	Type*	next;
+	Type	*next;
+	Type	*down;
 	int	offset;
 	char	fmt;
-	char	depth;
-	Lsym*	type;
-	Lsym*	tag;
-	Lsym*	base;
-};
-
-struct Frtype
-{
-	Lsym*	var;
-	Type*	type;
-	Frtype*	next;
+	char	type[32];
+	char	name[32];
 };
 
 struct Ptab
@@ -94,35 +78,43 @@ Extern Ptab	ptab[Maxproc];
 struct Rplace
 {
 	jmp_buf	rlab;
-	Node*	stak;
-	Node*	val;
-	Lsym*	local;
-	Lsym**	tail;
+	Node	*val;
+	Lsym	*local;
+	Lsym	**tail;
 };
+
+struct Strc		/* Rock to hide things under to communicate with */
+{			/* machdata routines */
+	ulong	pc;
+	ulong	sp;
+	List	*l;
+	ulong	cause;
+	char	*excep;
+};
+Extern Strc strc;
 
 struct Gc
 {
 	char	gcmark;
-	Gc*	gclink;
+	Gc	*gclink;
 };
 
 struct Store
 {
 	char	fmt;
-	Type*	comt;
+	Type	*comt;
 	union {
 		int	ival;
 		double	fval;
-		String*	string;
-		List*	l;
-		Node*	cc;
+		String	*string;
+		List	*l;
 	};
 };
 
 struct List
 {
 	Gc;
-	List*	next;
+	List	*next;
 	char	type;
 	Store;
 };
@@ -132,20 +124,19 @@ struct Value
 	char	set;
 	char	type;
 	Store;
-	Value*	pop;
-	Lsym*	scope;
-	Rplace*	ret;
+	Value	*pop;
+	Lsym	*scope;
+	Rplace	*ret;
 };
 
 struct Lsym
 {
-	char*	name;
+	char	*name;
 	int	lexval;
-	Lsym*	hash;
-	Value*	v;
-	Type*	lt;
-	Node*	proc;
-	Frtype*	local;
+	Lsym	*hash;
+	Value	*v;
+	Type	*lt;
+	Node	*proc;
 	void	(*builtin)(Node*, Node*);
 };
 
@@ -154,9 +145,9 @@ struct Node
 	Gc;
 	char	op;
 	char	type;
-	Node*	left;
-	Node*	right;
-	Lsym*	sym;
+	Node	*left;
+	Node	*right;
+	Lsym	*sym;
 	Store;
 };
 #define ZN	(Node*)0
@@ -181,66 +172,67 @@ void	cmd(void);
 Node*	con(int);
 List*	construct(Node*);
 void	ctrace(int);
-void	decl(Node*);
-void	defcomplex(Node*, Node*);
+void	decl(Lsym*, Lsym*);
 void	deinstall(int);
 void	delete(List*, int n, Node*);
+void	dodot(Node*, Node*);
 void	dostop(int);
+void	dprint(char*, ...);
 Lsym*	enter(char*, int);
 void	error(char*, ...);
 void	execute(Node*);
+void	expr(Node*, Node*);
 void	fatal(char*, ...);
 ulong	findframe(ulong);
 void	flatten(Node**, Node*);
-void	gc(void);
-char*	getstatus(int);
+int	get1(Map*, ulong, int, uchar*, int);
+int	get2(Map*, ulong, int, ushort*);
+int	get4(Map*, ulong, int, long*);
 void*	gmalloc(long);
+char*	ieeedtos(char*, ulong, ulong);
+char*	ieeeftos(char*, ulong);
 void	indir(Map*, ulong, char, Node*);
+void	install(int);
 void	installbuiltin(void);
 void	kinit(void);
-int	Lconv(void*, Fconv*);
 int	listcmp(List*, List*);
-int	listlen(List*);
+List*	listlocals(Symbol*, ulong);
+List*	listparams(Symbol*, ulong);
 List*	listvar(char*, long);
-void	loadmodule(char*);
-void	loadvars(void);
+int	loadmodule(char*);
+void	localaddr(Lsym*, Lsym*, Node*);
 Lsym*	look(char*);
 void	ltag(char*);
-void	marklist(List*);
+void	machinit(void);
 Lsym*	mkvar(char*);
 void	msg(int, char*);
 void	notes(int);
 int	nproc(char**);
 void	nthelem(List*, int, Node*);
 int	numsym(char);
-void	odot(Node*, Node*);
 void	pcode(Node*, int);
 void	pexpr(Node*);
-int	popio(void);
 void	pstr(String*);
-void	pushfile(char*);
-void	pushstr(Node*);
+void	psymoff(ulong, int, char*);
+int	put1(Map*, ulong, int, uchar*, int);
+int	put2(Map*, ulong, int, ushort);
+int	put4(Map*, ulong, int, long);
 ulong	raddr(char*);
 void	readtext(char*);
-void	restartio(void);
-ulong	rget(Map*, char*);
-String	*runenode(Rune*);
+long	rget(char*);
 int	scmp(String*, String*);
 void	sproc(int);
 String*	stradd(String*, String*);
 String*	strnode(char*);
-String*	strnodlen(char*, int);
-void	trlist(Map*, ulong, ulong, Symbol*);
 void	unwind(void);
-void	userinit(void);
 void	varreg(void);
 void	varsym(void);
-char*	waitfor(int);
 void	whatis(Lsym*);
-void	windir(Map*, Node*, Node*, Node*);
+void	windir(Map *m, Node*, Node*, Node*);
 void	yyerror(char*, ...);
 int	yylex(void);
 int	yyparse(void);
+void	gc(void);
 
 enum
 {
@@ -289,8 +281,4 @@ enum
 	OFRAME,
 	OCOMPLEX,
 	ODELETE,
-	OCAST,
-	OFMT,
-	OEVAL,
-	OWHAT,
 };

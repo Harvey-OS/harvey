@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 	case 'D':
 		p = ARGF();
 		if(p)
-			Dlist[nDlist++] = p;
+			dodefine(p);
 		break;
 
 	case 'I':
@@ -122,8 +122,6 @@ child:
 
 	pass = 1;
 	pinit(*argv);
-	for(i=0; i<nDlist; i++)
-		dodefine(Dlist[i]);
 	yyparse();
 	if(nerrors) {
 		cclean();
@@ -133,8 +131,6 @@ child:
 	pass = 2;
 	outhist();
 	pinit(*argv);
-	for(i=0; i<nDlist; i++)
-		dodefine(Dlist[i]);
 	yyparse();
 	cclean();
 	if(nerrors)
@@ -272,7 +268,6 @@ struct
 	"DIVB",		LTYPE2,	ADIVB,
 	"DIVL",		LTYPE2,	ADIVL,
 	"DIVW",		LTYPE2,	ADIVW,
-	"END",		LTYPE0,	AEND,
 	"ENTER",	LTYPE2,	AENTER,
 	"GLOBL",	LTYPET,	AGLOBL,
 	"HLT",		LTYPE0,	AHLT,
@@ -352,9 +347,9 @@ struct
 	"LEAVEL",	LTYPE0,	ALEAVEL,
 	"LEAVEW",	LTYPE0,	ALEAVEW,
 	"LOCK",		LTYPE0,	ALOCK,
-	"LODSB",	LTYPE0,	ALODSB,
-	"LODSL",	LTYPE0,	ALODSL,
-	"LODSW",	LTYPE0,	ALODSW,
+	"LODSB",	LTYPE2,	ALODSB,
+	"LODSL",	LTYPE2,	ALODSL,
+	"LODSW",	LTYPE2,	ALODSW,
 	"LONG",		LTYPE2,	ALONG,
 	"LOOP",		LTYPER,	ALOOP,
 	"LOOPEQ",	LTYPER,	ALOOPEQ,
@@ -613,13 +608,6 @@ cinit(void)
 		s->type = itab[i].type;
 		s->value = itab[i].value;
 	}
-
-	ALLOCN(pathname, 0, 100);
-	if(getwd(pathname, 99) == 0) {
-		ALLOCN(pathname, 100, 900);
-		if(getwd(pathname, 999) == 0)
-			strcpy(pathname, "/???");
-	}
 }
 
 void
@@ -811,17 +799,13 @@ outhist(void)
 {
 	Gen g;
 	Hist *h;
-	char *p, *q, *op;
+	char name[NNAME], *p, *q;
 	int n;
 
 	g = nullgen;
+	name[0] = '<';
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
-		op = 0;
-		if(p && p[0] != '/' && h->offset == 0 && pathname && pathname[0] == '/') {
-			op = p;
-			p = pathname;
-		}
 		while(p) {
 			q = strchr(p, '/');
 			if(q) {
@@ -833,20 +817,14 @@ outhist(void)
 				n = strlen(p);
 				q = 0;
 			}
+			if(n >= NNAME-1)
+				n = NNAME-2;
 			if(n) {
-				Bputc(&obuf, ANAME);
-				Bputc(&obuf, ANAME>>8);
-				Bputc(&obuf, D_FILE);	/* type */
-				Bputc(&obuf, 1);	/* sym */
-				Bputc(&obuf, '<');
-				Bwrite(&obuf, p, n);
-				Bputc(&obuf, 0);
+				memmove(name+1, p, n);
+				name[n+1] = 0;
+				zname(name, D_FILE, 1);
 			}
 			p = q;
-			if(p == 0 && op) {
-				p = op;
-				op = 0;
-			}
 		}
 		g.offset = h->offset;
 

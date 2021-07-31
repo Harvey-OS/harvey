@@ -1,0 +1,4 @@
+.o div3@t clk
+ 1:1
+.o div3@b div3 div0 div1 div2
+ 3:15 14:14

@@ -1,34 +1,31 @@
+#include <string.h>
 #include <libg.h>
 
-typedef unsigned char uchar;
-typedef unsigned short ushort;
-
 Point
-string(Bitmap *d, Point p, Font *f, char *s, Fcode fc)
+string(Bitmap *d, Point p, Font *ft, char *s, Fcode f)
 {
-	int n, wid;
-	uchar *b;
-	enum { Max = 128 };
-	ushort cbuf[Max], *c, *ec;
+	unsigned char *buf;
+	char *q;
+	int n;
 
 	while(*s){
-		n = cachechars(f, &s, cbuf, Max, &wid);
-		b = bneed(17+2*n);
-		b[0] = 's';
-		BPSHORT(b+1, d->id);
-		BPLONG(b+3, p.x);
-		BPLONG(b+7, p.y);
-		BPSHORT(b+11, f->id);
-		BPSHORT(b+13, fc);
-		BPSHORT(b+15, n);
-		b += 17;
-		ec = &cbuf[n];
-		for(c=cbuf; c<ec; c++){
-			BPSHORT(b, *c);
-			b += 2;
-		}
-		p.x += wid;
-		agefont(f);
+		buf = bneed(15+1024);
+		buf[0] = 's';
+		BPSHORT(buf+1, d->id);
+		BPLONG(buf+7, p.y);
+		BPSHORT(buf+11, ft->id);
+		BPSHORT(buf+13, f);
+		BPLONG(buf+3, p.x);
+		q = memchr(s, 0, 1024);
+		if(q){
+			n = q - s;
+			bneed((n+1)-1024);	/* trim */
+		}else
+			n = 1023;
+		memmove(buf+15, s, n);
+		buf[15+n] = 0;
+		p.x += strwidth(ft, (char*)buf+15);
+		s += n;
 	}
 	return p;
 }

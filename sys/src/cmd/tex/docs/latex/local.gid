@@ -1,0 +1,17 @@
+
+               HOW TO RUN LaTeX AT SRC
+
+                  24 September 1985
+
+
+To run LaTeX on the file named  foo.tex  type:
+ 
+    latex foo
+
+This produces an output file named  foo.dvi .
+
+To print file  foo.dvi  on the Imagen printer, which is located on the
+third floor near Jane's desk, type the following command:
+
+    iptex foo.dvi
+

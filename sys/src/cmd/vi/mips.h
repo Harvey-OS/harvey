@@ -187,16 +187,16 @@ void		delbpt(char*);
 void		breakpoint(char*, char*);
 char*		nextc(char*);
 ulong		expr(char*);
-void		initmap(void);
-void		inithdr(int);
-void		initstk(int, char**);
+void		init(int, char**);
 void		reset(void);
 void		dobplist(void);
-int		_mipscoinst(Map*, ulong, char*, int);
+int		mipscoprintins(void);
 void		procinit(int);
 void		printsource(long);
 void		printparams(Symbol *, ulong);
+void		psymoff(ulong, int, char *);
 void		printlocals(Symbol *, ulong);
+ulong		findframe(ulong);
 void		stktrace(int);
 void		iprofile(void);
 
@@ -223,8 +223,7 @@ extern		char *file;
 Extern		Biobuf *bioout;
 Extern		Biobuf *bin;
 Extern		ulong *iprof;
-extern		int datasize;
-Extern		Map *symmap;		
+extern		int datasize;		
 
 /* Plan9 Kernel constants */
 #define	BY2PG		4096

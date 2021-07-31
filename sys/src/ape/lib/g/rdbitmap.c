@@ -1,18 +1,14 @@
-#include <stdlib.h>
 #include <unistd.h>
 #include <libg.h>
 
-typedef unsigned char uchar;
-typedef unsigned long ulong;
-
-#define	CHUNK	8000
+#define	CHUNK	6000
 
 void
-rdbitmap(Bitmap *b, int miny, int maxy, uchar *data)
+rdbitmap(Bitmap *b, int miny, int maxy, unsigned char *data)
 {
 	long dy, px;
-	ulong l, t, n;
-	uchar hdr[11];
+	unsigned long l, t, n;
+	unsigned char hdr[11];
 
 	bneed(0);
 	hdr[0] = 'r';
@@ -26,8 +22,6 @@ rdbitmap(Bitmap *b, int miny, int maxy, uchar *data)
 		t = (t/px)*px;
 		l = (t+b->r.max.x+px-1)/px;
 	}
-	if(l == 0)
-		return;
 	while(maxy > miny){
 		dy = maxy - miny;
 		if(dy*l > CHUNK)
@@ -35,8 +29,6 @@ rdbitmap(Bitmap *b, int miny, int maxy, uchar *data)
 		BPLONG(hdr+3, miny);
 		BPLONG(hdr+7, miny+dy);
 		n = dy*l;
-		if(n == 0)
-			berror("rdbitmap read too large");
 		if(write(bitbltfd, (char *)hdr, 11) != 11)
 			berror("rdbitmap write");
 		if(read(bitbltfd, (char *)data, n) != n)

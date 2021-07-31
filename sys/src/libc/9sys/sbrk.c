@@ -5,31 +5,28 @@ extern	char	end[];
 static	char	*bloc = { end };
 extern	int	brk_(void*);
 
-enum
-{
-	Round	= 7
-};
-
 int
 brk(void *p)
 {
-	ulong bl;
+	ulong n;
 
-	bl = ((ulong)p + Round) & ~Round;
-	if(brk_((void*)bl) < 0)
+	n = (ulong)p;
+	n += 3;
+	n &= ~3;
+	if(brk_((void*)n) < 0)
 		return -1;
-	bloc = (char*)bl;
+	bloc = (char *)n;
 	return 0;
 }
 
 void*
 sbrk(ulong n)
 {
-	ulong bl;
 
-	bl = ((ulong)bloc + Round) & ~Round;
-	if(brk_((void*)(bl+n)) < 0)
+	n += 3;
+	n &= ~3;
+	if(brk_((void*)(bloc+n)) < 0)
 		return (void*)-1;
-	bloc = (char*)bl + n;
-	return (void*)bl;
+	bloc += n;
+	return (void*)(bloc-n);
 }

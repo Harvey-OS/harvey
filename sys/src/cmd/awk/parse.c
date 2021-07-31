@@ -17,7 +17,7 @@ actual or intended publication of such source code.
 
 Node *nodealloc(int n)
 {
-	Node *x;
+	register Node *x;
 
 	x = (Node *) malloc(sizeof(Node) + (n-1)*sizeof(Node *));
 	if (x == NULL)
@@ -35,8 +35,7 @@ Node *exptostat(Node *a)
 
 Node *node1(int a, Node *b)
 {
-	Node *x;
-
+	register Node *x;
 	x = nodealloc(1);
 	x->nobj = a;
 	x->narg[0]=b;
@@ -45,8 +44,7 @@ Node *node1(int a, Node *b)
 
 Node *node2(int a, Node *b, Node *c)
 {
-	Node *x;
-
+	register Node *x;
 	x = nodealloc(2);
 	x->nobj = a;
 	x->narg[0] = b;
@@ -56,8 +54,7 @@ Node *node2(int a, Node *b, Node *c)
 
 Node *node3(int a, Node *b, Node *c, Node *d)
 {
-	Node *x;
-
+	register Node *x;
 	x = nodealloc(3);
 	x->nobj = a;
 	x->narg[0] = b;
@@ -68,8 +65,7 @@ Node *node3(int a, Node *b, Node *c, Node *d)
 
 Node *node4(int a, Node *b, Node *c, Node *d, Node *e)
 {
-	Node *x;
-
+	register Node *x;
 	x = nodealloc(4);
 	x->nobj = a;
 	x->narg[0] = b;
@@ -79,64 +75,41 @@ Node *node4(int a, Node *b, Node *c, Node *d, Node *e)
 	return(x);
 }
 
-Node *stat1(int a, Node *b)
-{
-	Node *x;
-
-	x = node1(a,b);
-	x->ntype = NSTAT;
-	return(x);
-}
-
-Node *stat2(int a, Node *b, Node *c)
-{
-	Node *x;
-
-	x = node2(a,b,c);
-	x->ntype = NSTAT;
-	return(x);
-}
-
 Node *stat3(int a, Node *b, Node *c, Node *d)
 {
-	Node *x;
-
+	register Node *x;
 	x = node3(a,b,c,d);
 	x->ntype = NSTAT;
 	return(x);
 }
 
-Node *stat4(int a, Node *b, Node *c, Node *d, Node *e)
-{
-	Node *x;
-
-	x = node4(a,b,c,d,e);
-	x->ntype = NSTAT;
-	return(x);
-}
-
-Node *op1(int a, Node *b)
-{
-	Node *x;
-
-	x = node1(a,b);
-	x->ntype = NEXPR;
-	return(x);
-}
-
 Node *op2(int a, Node *b, Node *c)
 {
-	Node *x;
-
+	register Node *x;
 	x = node2(a,b,c);
 	x->ntype = NEXPR;
 	return(x);
 }
 
+Node *op1(int a, Node *b)
+{
+	register Node *x;
+	x = node1(a,b);
+	x->ntype = NEXPR;
+	return(x);
+}
+
+Node *stat1(int a, Node *b)
+{
+	register Node *x;
+	x = node1(a,b);
+	x->ntype = NSTAT;
+	return(x);
+}
+
 Node *op3(int a, Node *b, Node *c, Node *d)
 {
-	Node *x;
-
+	register Node *x;
 	x = node3(a,b,c,d);
 	x->ntype = NEXPR;
 	return(x);
@@ -144,16 +117,31 @@ Node *op3(int a, Node *b, Node *c, Node *d)
 
 Node *op4(int a, Node *b, Node *c, Node *d, Node *e)
 {
-	Node *x;
-
+	register Node *x;
 	x = node4(a,b,c,d,e);
 	x->ntype = NEXPR;
 	return(x);
 }
 
+Node *stat2(int a, Node *b, Node *c)
+{
+	register Node *x;
+	x = node2(a,b,c);
+	x->ntype = NSTAT;
+	return(x);
+}
+
+Node *stat4(int a, Node *b, Node *c, Node *d, Node *e)
+{
+	register Node *x;
+	x = node4(a,b,c,d,e);
+	x->ntype = NSTAT;
+	return(x);
+}
+
 Node *valtonode(Cell *a, int b)
 {
-	Node *x;
+	register Node *x;
 
 	a->ctype = OCELL;
 	a->csub = b;
@@ -162,8 +150,9 @@ Node *valtonode(Cell *a, int b)
 	return(x);
 }
 
-Node *rectonode(void)	/* make $0 into a Node */
+Node *rectonode(void)
 {
+	/* return valtonode(lookup("$0", symtab), CFLD); */
 	return valtonode(recloc, CFLD);
 }
 
@@ -184,10 +173,9 @@ Node *makearr(Node *p)
 	return p;
 }
 
-Node *pa2stat(Node *a, Node *b, Node *c)	/* pat, pat {...} */
+Node *pa2stat(Node *a, Node *b, Node *c)
 {
-	Node *x;
-
+	register Node *x;
 	x = node4(PASTAT2, a, b, c, (Node *) paircnt);
 	paircnt++;
 	x->ntype = NSTAT;
@@ -196,22 +184,21 @@ Node *pa2stat(Node *a, Node *b, Node *c)	/* pat, pat {...} */
 
 Node *linkum(Node *a, Node *b)
 {
-	Node *c;
+	register Node *c;
 
 	if (errorflag)	/* don't link things that are wrong */
 		return a;
-	if (a == NULL)
-		return(b);
-	else if (b == NULL)
-		return(a);
+	if (a == NULL) return(b);
+	else if (b == NULL) return(a);
 	for (c = a; c->nnext != NULL; c = c->nnext)
 		;
 	c->nnext = b;
 	return(a);
 }
 
-void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
-{					/*   body of function, arglist */
+void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition */
+					/* body of function, arglist */
+{
 	Node *p;
 	int n;
 
@@ -228,8 +215,8 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 	dprintf( ("defining func %s (%d args)\n", v->nval, n) );
 }
 
-isarg(uchar *s)		/* is s in argument list for current function? */
-{			/* return -1 if not, otherwise arg # */
+isarg(uchar *s)	/* is s in argument list for current function? */
+{
 	extern Node *arglist;
 	Node *p = arglist;
 	int n;

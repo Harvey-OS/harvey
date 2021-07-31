@@ -1,0 +1,23 @@
+\begin{thebibliography}{1}
+
+\bibitem{chicago}
+{\em The Chicago Manual of Style}, pages 400--401.
+\newblock University of Chicago Press, thirteenth edition, 1982.
+
+\bibitem{latex}
+Leslie Lamport.
+\newblock {\em {\LaTeX \rm:} {A} Document Preparation System}.
+\newblock Addison-Wesley, 1986.
+
+\bibitem{btxhak}
+Oren Patashnik.
+\newblock Designing {\BibTeX} styles.
+\newblock The part of \BibTeX's documentation that's not meant for general
+  users, 8~February 1988.
+
+\bibitem{van-leunen}
+Mary-Claire van Leunen.
+\newblock {\em A Handbook for Scholars}.
+\newblock Knopf, 1979.
+
+\end{thebibliography}

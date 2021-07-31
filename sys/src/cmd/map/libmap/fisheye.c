@@ -1,13 +1,13 @@
 #include "map.h"
 /* refractive fisheye, not logarithmic */
 
-static double n;
+static float n;
 
 static int
-Xfisheye(struct place *place, double *x, double *y)
+Xfisheye(struct place *place, float *x, float *y)
 {
-	double r;
-	double u = sin(PI/4-place->nlat.l/2)/n;
+	float r;
+	float u = sin(PI/4-place->nlat.l/2)/n;
 	if(fabs(u) > .97)
 		return -1;
 	r = tan(asin(u));
@@ -17,7 +17,7 @@ Xfisheye(struct place *place, double *x, double *y)
 }
 
 proj
-fisheye(double par)
+fisheye(float par)
 {
 	n = par;
 	return n<.1? 0: Xfisheye;

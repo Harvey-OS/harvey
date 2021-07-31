@@ -15,8 +15,7 @@ graph(char *target)
 	Node *node;
 	char *cnt;
 
-	cnt = rulecnt();
-	node = applyrules(target, cnt);
+	node = applyrules(target, cnt = rulecnt());
 	free(cnt);
 	cyclechk(node);
 	node->flags |= PROBABLE;	/* make sure it doesn't get deleted */
@@ -38,9 +37,10 @@ applyrules(char *target, char *cnt)
 	Resub rmatch[NREGEXP];
 
 /*	print("applyrules(%ld='%s')\n", target, target);/**/
-	sym = symlook(target, S_NODE, (char *)0);
-	if(sym)
-		return (Node *)(sym->value);
+	if(sym = symlook(target, S_NODE, (char *)0)){
+		node = (Node *)(sym->value);
+		return(node);
+	}
 	target = strdup(target);
 	node = newnode(target);
 	head.n = 0;
@@ -49,18 +49,16 @@ applyrules(char *target, char *cnt)
 	for(r = sym? (Rule *)(sym->value):0; r; r = r->chain){
 		if(r->attr&META) continue;
 		if(strcmp(target, r->target)) continue;
-		if((!r->recipe || !*r->recipe) && (!r->tail || !r->tail->s || !*r->tail->s)) continue;	/* no effect; ignore */
 		if(cnt[r->rule] >= nreps) continue;
 		cnt[r->rule]++;
 		node->flags |= PROBABLE;
-
 /*		if(r->attr&VIR)
- *			node->flags |= VIRTUAL;
- *		if(r->attr&NOREC)
- *			node->flags |= NORECIPE;
- *		if(r->attr&DEL)
- *			node->flags |= DELETE;
- */
+			node->flags |= VIRTUAL;
+		if(r->attr&NOREC)
+			node->flags |= NORECIPE;
+		if(r->attr&DEL)
+			node->flags |= DELETE;
+*/
 		if(!r->tail || !r->tail->s || !*r->tail->s) {
 			a->next = newarc((Node *)0, r, "", rmatch);
 			a = a->next;
@@ -73,7 +71,6 @@ applyrules(char *target, char *cnt)
 		head.n = node;
 	}
 	for(r = metarules; r; r = r->next){
-		if((!r->recipe || !*r->recipe) && (!r->tail || !r->tail->s || !*r->tail->s)) continue;	/* no effect; ignore */
 		if ((r->attr&NOVIRT) && a != &head && (a->r->attr&VIR))
 			continue;
 		if(r->attr&REGEXP){
@@ -87,15 +84,13 @@ applyrules(char *target, char *cnt)
 		}
 		if(cnt[r->rule] >= nreps) continue;
 		cnt[r->rule]++;
-
 /*		if(r->attr&VIR)
- *			node->flags |= VIRTUAL;
- *		if(r->attr&NOREC)
- *			node->flags |= NORECIPE;
- *		if(r->attr&DEL)
- *			node->flags |= DELETE;
- */
-
+			node->flags |= VIRTUAL;
+		if(r->attr&NOREC)
+			node->flags |= NORECIPE;
+		if(r->attr&DEL)
+			node->flags |= DELETE;
+*/
 		if(!r->tail || !r->tail->s || !*r->tail->s) {
 			a->next = newarc((Node *)0, r, strdup(stem), rmatch);
 			a = a->next;

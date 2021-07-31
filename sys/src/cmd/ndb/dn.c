@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
-#include <lock.h>
 #include "dns.h"
+#include "lock.h"
 
 /*
  *  Hash table for domain names.  The hash is based only on the
@@ -33,7 +33,6 @@ char *rrtname[] =
 [Tminfo]	"minfo",
 [Tmx]		"mx",
 [Ttxt]		"txt",
-[Tall]		"all",
 		0,
 };
 
@@ -67,7 +66,12 @@ dninit(void)
 	fmtinstall('E', eipconv);
 	fmtinstall('I', eipconv);
 	fmtinstall('R', rrconv);
+
+	paralloc();
+	lockinit(&dnlock);
 }
+
+
 
 /*
  *  hash for a domain name
@@ -92,6 +96,7 @@ dnlookup(char *name, int class, int enter)
 {
 	DN **l;
 	DN *dp;
+	ulong now;
 
 	l = &ht[dnhash(name)];
 	now = time(0);
@@ -111,47 +116,17 @@ dnlookup(char *name, int class, int enter)
 		return 0;
 	}
 	dp = malloc(sizeof(DN));
-	if(dp == 0){
-		unlock(&dnlock);
+	if(dp == 0)
 		fatal("dnlookup");
-	}
 	dp->name = strdup(name);
-	if(dp->name == 0){
-		unlock(&dnlock);
+	if(dp->name == 0)
 		fatal("dnlookup");
-	}
 	dp->class = class;
 	dp->rr = 0;
 	dp->next = 0;
 	*l = dp;
 	unlock(&dnlock);
 	return dp;
-}
-
-/*
- *  dump the cache
- */
-void
-dndump(char *file)
-{
-	DN *dp;
-	int i, fd;
-	RR *rp;
-
-	fd = open(file, OWRITE);
-	if(fd < 0)
-		return;
-	lock(&dnlock);
-	for(i = 0; i < HTLEN; i++){
-		for(dp = ht[i]; dp; dp = dp->next){
-			fprint(fd, "%s\n", dp->name);
-			for(rp = dp->rr; rp; rp = rp->next)
-				fprint(fd, "	%R %c%c %s", rp, rp->auth?'A':'U',
-					rp->db?'D':'N', ctime(rp->ttl));
-		}
-	}
-	unlock(&dnlock);
-	close(fd);
 }
 
 /*
@@ -300,7 +275,7 @@ rrfreelist(RR *rp)
 
 	for(; rp; rp = next){
 		next = rp->next;
-		rrfree(rp);
+		free(rp);
 	}
 }
 
@@ -314,7 +289,7 @@ rrlookup(DN *dp, int type)
 	RR *rp;
 
 	for(rp = dp->rr; rp; rp = rp->next){
-		if(tsame(type, rp->type))
+		if(rp->type == type)
 			break;
 	}
 	return rp;
@@ -328,7 +303,7 @@ rrtype(char *atype)
 {
 	int i;
 
-	for(i = 0; i <= Tall; i++)
+	for(i = 0; i < Thigh; i++)
 		if(rrtname[i] && strcmp(rrtname[i], atype) == 0)
 			return i;
 	return atoi(atype);
@@ -343,22 +318,13 @@ rrname(int type, char *buf)
 	char *t;
 
 	t = 0;
-	if(type <= Tall)
+	if(type <= 255)
 		t = rrtname[type];
 	if(t==0){
 		sprint(buf, "%d", type);
 		t = buf;
 	}
 	return t;
-}
-
-/*
- *  compare 2 types
- */
-int
-tsame(int t1, int t2)
-{
-	return t1 == t2 || t1 == Tall;
 }
 
 /*
@@ -377,7 +343,7 @@ rrcat(RR **start, RR *rp, int type)
 	while(*last)
 		last = &(*last)->next;
 
-	for(;rp && tsame(type, rp->type); rp = next){
+	for(;rp && rp->type == type; rp = next){
 		next = rp->next;
 		if(rp->db)
 			np = rp;
@@ -410,11 +376,6 @@ rrconv(void *v, Fconv *f)
 	char buf[3*Domlen];
 
 	rp = *((RR**)v);
-	if(rp == 0){
-		strcpy(buf, "<null>");
-		goto out;
-	}
-
 	n = snprint(buf, sizeof(buf), "%s %s", rp->owner->name, rrname(rp->type, buf));
 
 	switch(rp->type){
@@ -452,7 +413,6 @@ rrconv(void *v, Fconv *f)
 	default:
 		break;
 	}
-out:
 	strconv(buf, f);
 	return sizeof(RR*);
 }

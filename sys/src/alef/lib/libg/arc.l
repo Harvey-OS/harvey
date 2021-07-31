@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 intern Point nearby(Point, Point);
 
@@ -13,6 +13,14 @@ sgn(int x)
 	if(x == 0)
 		return 0;
 	return 1;
+}
+
+intern int
+abs(int x)
+{
+	if(x < 0)
+		return -x;
+	return x;
 }
 
 /*	Draw an approximate arc centered at x0,y0 of an

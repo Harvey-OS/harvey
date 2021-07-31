@@ -252,7 +252,7 @@ void setdraw(void)	/* generate internal cookies for a drawing function */
 	if (ismot(c = getch()))
 		return;
 	delim = cbits(c);
-	numerr.escarg = type = cbits(getch());
+	type = cbits(getch());
 	if (type == '~')	/* head off the .tr ~ problem */
 		type = 's';
 	for (i = 0; i < NPAIR ; i++) {
@@ -265,10 +265,6 @@ void setdraw(void)	/* generate internal cookies for a drawing function */
 		else if (dx[i] < -MAXMOT)
 			dx[i] = -MAXMOT;
 		skip();
-		if (type == 'c') {
-			dy[i] = 0;
-			goto eat;
-		}
 		vflag = 1;
 		dfact = lss;
 		dy[i] = quant(atoi0(), VERT);
@@ -276,7 +272,6 @@ void setdraw(void)	/* generate internal cookies for a drawing function */
 			dy[i] = MAXMOT;
 		else if (dy[i] < -MAXMOT)
 			dy[i] = -MAXMOT;
-eat:
 		if (cbits(c = getch()) != ' ') {	/* must be the end */
 			if (cbits(c) != delim) {
 				drawch = cbits(c);
@@ -339,7 +334,6 @@ Tchar setfield(int x)
 	int savfc, savtc, savlc;
 	Tchar rchar;
 	int savepos;
-	static Tchar wbuf[] = { WORDSP, 0};
 
 	if (x == tabch) 
 		rchar = tabc | chbits;
@@ -350,7 +344,7 @@ Tchar setfield(int x)
 	savtc = tabch;
 	savlc = ldrch;
 	tabch = ldrch = fc = IMP;
-	savepos = numtabp[HP].val;
+	savepos = numtab[HP].val;
 	gchtab[tabch] &= ~TABBIT;
 	gchtab[ldrch] &= ~LDRBIT;
 	gchtab[fc] &= ~FCBIT;
@@ -362,7 +356,7 @@ Tchar setfield(int x)
 			jj = 0;
 			goto rtn;
 		}
-		if ((length = ((tabtab[j] & TABMASK) - numtabp[HP].val)) > 0 )
+		if ((length = ((tabtab[j] & TABMASK) - numtab[HP].val)) > 0 )
 			break;
 	}
 	type = tabtab[j] & ~TABMASK;
@@ -373,7 +367,7 @@ Tchar setfield(int x)
 			j = cbits(ii = getch());
 			jj = width(ii);
 			widthp = jj;
-			numtabp[HP].val += jj;
+			numtab[HP].val += jj;
 			if (j == padc) {
 				npad++;
 				*pp++ = fp;
@@ -384,10 +378,7 @@ Tchar setfield(int x)
 				break;
 			else if (j == '\n') {
 				temp = j;
-				if (nlflg && ip == 0) {
-					numtabp[CD].val--;
-					nlflg = 0;
-				}
+				nlflg = 0;
 				break;
 			}
 			ws += jj;
@@ -396,8 +387,6 @@ s1:
 			if (fp > fbuf + FBUFSZ - 3)
 				break;
 		}
-		if (ws)
-			*fp++ = WORDSP;
 		if (!npad) {
 			npad++;
 			*pp++ = fp;
@@ -426,7 +415,7 @@ s1:
 		if ((j = width(rchar)) > 0) {
 			int nchar = length / j;
 			while (nchar-->0 && pbp < &pbbuf[NC-3]) {
-				numtabp[HP].val += j;
+				numtab[HP].val += j;
 				widthp = j;
 				*pbp++ = rchar;
 			}
@@ -436,15 +425,13 @@ s1:
 			jj = length | MOT;
 		else 
 			jj = getch0();
-		if (savepos > 0)
-			pushback(wbuf);
 	} else {
 		/*center tab*/
 		/*right tab*/
 		while ((j = cbits(ii = getch())) != savtc && j != '\n' && j != savlc) {
 			jj = width(ii);
 			ws += jj;
-			numtabp[HP].val += jj;
+			numtab[HP].val += jj;
 			widthp = jj;
 			*fp++ = ii;
 			if (fp > fbuf + FBUFSZ - 3) 
@@ -463,15 +450,9 @@ s1:
 				*pbp++ = rchar;
 			length %= j;
 		}
-		if (savepos > 0)
-			pushback(wbuf);
 		length = (length / HOR) * HOR;
 		jj = makem(length);
-		if (nlflg) {
-			if (ip == 0)
-				numtabp[CD].val--;
-			nlflg = 0;
-		}
+		nlflg = 0;
 	}
 rtn:
 	gchtab[fc] &= ~FCBIT;
@@ -483,6 +464,6 @@ rtn:
 	gchtab[fc] |= FCBIT;
 	gchtab[tabch] = TABBIT;
 	gchtab[ldrch] |= LDRBIT;
-	numtabp[HP].val = savepos;
+	numtab[HP].val = savepos;
 	return(jj);
 }

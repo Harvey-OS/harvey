@@ -1,0 +1,18 @@
+</$objtype/mkfile
+
+TARG=tiger
+OFILES=\
+	main.$O\
+	draw.$O\
+	tiger.$O\
+	name.$O\
+	place.$O\
+	sphere.$O\
+	subr.$O\
+	data.$O\
+
+HFILES=\
+	all.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

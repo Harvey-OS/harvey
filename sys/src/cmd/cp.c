@@ -1,30 +1,43 @@
 #include <u.h>
 #include <libc.h>
 
-#define	DEFB	(8*1024)
+#define	MAXM	10
+#define	DEFZ	(6*1024 - 8)
 
 void	copy(char *from, char *to, int todir);
 void	copy1(int fdf, int fdt, char *from, char *to);
+long	zsize;
 
 void
 main(int argc, char *argv[])
 {
 	Dir dirb;
 	int todir, i;
+	char *s;
 
-	if(argc<3){
-		fprint(2, "usage:\tcp fromfile tofile\n");
-		fprint(2, "\tcp fromfile ... todir\n");
+	zsize = 0;
+	ARGBEGIN{
+	case 'z':
+		zsize = DEFZ;
+		if(s = ARGF()){
+			if(*s >= '0' && *s <= '9')
+				zsize = atol(s);
+		}
+		break;
+	}ARGEND
+	if(argc<2){
+		fprint(2, "usage:\tcp [-z[#]] fromfile tofile\n");
+		fprint(2, "\tcp [-z[#]] fromfile ... todir\n");
 		exits("usage");
 	}
 	todir=0;
-	if(dirstat(argv[argc-1], &dirb)==0 && (dirb.mode&CHDIR))
+	if(dirstat(argv[argc-1], &dirb)==0 && (dirb.mode&0x80000000L))
 		todir=1;
-	if(argc>3 && !todir){
+	if(argc>2 && !todir){
 		fprint(2, "cp: %s not a directory\n", argv[argc-1]);
 		exits("bad usage");
 	}
-	for(i=1; i<argc-1; i++)
+	for(i=0; i<argc-1; i++)
 		copy(argv[i], argv[argc-1], todir);
 	exits(0);
 }
@@ -46,10 +59,11 @@ copy(char *from, char *to, int todir)
 		to=name;
 	}
 	if(dirstat(from, &dirb)!=0){
-		fprint(2,"cp: can't stat %s: %r\n", from);
+		fprint(2, "cp: can't stat %s: ", from);
+		perror("");
 		return;
 	}
-	if(dirb.mode&CHDIR){
+	if(dirb.mode&0x80000000L){
 		fprint(2, "cp: %s is a directory\n", from);
 		return;
 	}
@@ -57,17 +71,19 @@ copy(char *from, char *to, int todir)
 	if(dirstat(to, &dirt)==0)
 	if(dirb.qid.path==dirt.qid.path && dirb.qid.vers==dirt.qid.vers)
 	if(dirb.dev==dirt.dev && dirb.type==dirt.type){
-		fprint(2, "cp: %s and %s are the same file\n", from, to);
+		fprint(2, "cp: %s and %s are same file\n", from, to);
 		return;
 	}
 	fdf=open(from, OREAD);
 	if(fdf<0){
-		fprint(2, "cp: can't open %s: %r\n", from);
+		fprint(2, "cp: can't open %s:", from);
+		perror("");
 		return;
 	}
 	fdt=create(to, OWRITE, dirb.mode);
 	if(fdt<0){
-		fprint(2, "cp: can't create %s: %r\n", to);
+		fprint(2, "cp: can't create %s:", to);
+		perror("");
 		close(fdf);
 		return;
 	}
@@ -79,24 +95,73 @@ copy(char *from, char *to, int todir)
 void
 copy1(int fdf, int fdt, char *from, char *to)
 {
-	char *buf;
-	long n, n1, rcount;
+	char *buf, *zbuf;
+	long n, n1, bsize, rcount;
+	int flag;
 
-	buf = malloc(DEFB);
-	/* clear any residual error */
-	memset(buf, 0, ERRLEN);
-	errstr(buf);
+	if(zsize) {
+		buf = malloc(zsize);
+		zbuf = malloc(zsize);
+		memset(zbuf, 0, zsize);
+		flag = 0;
+		for(;;) {
+			n = read(fdf, buf, zsize);
+			if(n != zsize) {
+				if(n == 0)
+					break;
+				if(n < 0) {
+					fprint(2, "cp: error reading %s:", from);
+					perror("");
+					break;
+				}
+				n1 = write(fdt, buf, n);
+				if(n != n1) {
+					fprint(2, "cp: error writing %s:", to);
+					perror("");
+					break;
+				}
+				n = read(fdf, buf, zsize);
+				if(n != 0) {
+					fprint(2, "cp: short read reading %s:", from);
+					perror("");
+					break;
+				}
+				flag = 0;
+				break;
+			}
+			if(memcmp(buf, zbuf, zsize)) {
+				n1 = write(fdt, buf, zsize);
+				if(n1 != zsize) {
+					fprint(2, "short write\n");
+					exits("short write");
+				}
+				flag = 0;
+				continue;
+			}
+			seek(fdt, zsize, 1);
+			flag = 1;
+		}
+		if(flag) {
+			seek(fdt, -1, 1);
+			write(fdt, zbuf, 1);
+		}
+		return;
+	}
+	bsize = 8192;
+	buf = malloc(bsize);
 	for(rcount=0;; rcount++) {
-		n = read(fdf, buf, DEFB);
+		n = read(fdf, buf, bsize);
 		if(n <= 0)
 			break;
 		n1 = write(fdt, buf, n);
 		if(n1 != n) {
-			fprint(2, "cp: error writing %s: %r\n", to);
+			fprint(2, "cp: error writing %s:", to);
+			perror("");
 			break;
 		}
 	}
-	if(n < 0) 
-		fprint(2, "cp: error reading %s: %r\n", from);
-	free(buf);
+	if(n < 0) {
+		fprint(2, "cp: error reading %s:", from);
+		perror("");
+	}
 }

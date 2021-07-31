@@ -1,0 +1,236 @@
+CREATING VOUCHERS WITH VOUCHER.STY 1992 version
+
+There is a vouchform.tex that can be used as a template for a voucher.
+The voucher must be processed by LaTeX using voucher.sty.  There is a
+script `voucher' that uses a makefile (called vouch.Makefile in the
+original distribution).  Voucher can be used to automate the various
+processing steps after a copy of vouchform.tex is filled out.
+
+Preamble Data
+
+Data for the top part of the form is in the preamble part of the .tex
+file and has been seperated (in vouchform.tex) into data that will be
+constant for most users and data that will change with each voucher.
+You can fill out the fixed part and then save the file as a personal
+vouchform template.  Macros include:
+
+\pan{your-num}
+\name{first-name}{middle-initial-or-name}{last-name}
+\orgnum{new-FML-org-number
+\date{date-or-\today}
+\loccode{your-location-code}
+\room{room-num}
+\phone{area}{exchange}{4-digit-num}
+\buspurpose{a-string}
+\earliestdate{date-of-earliest-AMEX-charge}
+\amexadvance{amount}
+\expensetype{num-1-thru-8}
+\pageof{pagenum}{ofnum}
+\confprereg{amount}
+
+Optional macros
+
+\summerhire
+\exchangerate{value-string}
+\other{string-for-item-4}
+\creditdate{date-string}
+\debitdate{date-string}
+
+One of the reasons for the new form is the need to change to `FML' org
+and loc codes.  The orgnum for Bell Labs is BL0+deptnum+0's (enough
+zeros to make 9 char's).  Location code can be obtained from post,
+etc.  The location macro was changed from baseloc to loccode.  Baseloc
+still works but using the old two letter code is not allowed on this
+form.
+
+Note that the \earliestdate is now the date of the earliest amex
+charge not date of earliest expense as pre-1992.
+
+The exchange rate is entered as a string and may include decimals or
+other symbols. Creditdate and debitdate are for the dates in items 7
+and 8. Pageof is for entering values in the Page____ of ____ at the
+top of the page.  The values default to 1 and 1.  Note all three
+copies of the first page are (and should be) numbered 1.  There is
+currently no support for more pages other than this macro.  Totals
+will NOT be carried from page to page.  I will eventually add support
+to automatically continue to subsequent pages when the space for
+expenses is exceeded.  Note that the new form has 4 less lines than
+the old one, so additional pages are more likely to be needed.  The
+Other expense lines have been increased (who needed them??) I have
+taken the liberty of removing one other expense line compared to the
+form to reduce the total height of the form a bit.  Too many laser
+printers cannot print as close to the edge of the paper as would have
+been required by the original height.
+ 
+Pre-1992 macros no longer required or allowed.
+
+\numpersons 
+\amexexp
+\amexnum
+\baseloc
+\period
+\candidatenum
+
+Note that the pre-1992 macro \amexexp no longer
+exists (see discussion under AMEX Charges).  The macro \amexnum) is
+also obsolete -- the number does not appear on the new form.
+\amexadvance is for total of Am Express advances.  \expensetype checks
+one of the boxes at the top of the form.  Currently there is no way to
+Foreign Travel $ rate blank. 
+
+
+Expense Lines
+
+Expense line go in an expenses environment, ie,
+
+\begin{expenses}
+\expense{date}{description}{transp}{car}{num-meals}{meal-exp}{lodging}
+\expense{date}{descr}{transp}{\miles(num-miles}}{num-meals}{meal-exp}{lodging}
+\expense{date}{description}{transp}*{car}{num-meals}{meal-exp}*{lodging}*
+ ...
+\end{expenses}
+
+Note that the parameters of \expense are positional parameters in the
+same order as the columns in the expense voucher.  A comment line at
+the top documents this order.  A blank expense line is included as a
+comment.  Make copies of this line for each expense line desired,
+remove the comment `%' and fill out, adding amounts (in cents or like
+normal but omit the decimal!) and leaving any columns empty for which
+there was no expense.  Horizontal and vertical totals will be computed
+for you.  Notice that the automobile expenses you may put in the
+dollar amount or use the optional \miles macro (see second example
+expense line) to put in number of miles and allow macro to calculate
+dollar amount.
+
+NOTE that \expense has a different number of parameters and different
+meanings than the pre-1992 version.
+ 
+\miles{num-miles} % only allowed in the car arg of expense
+
+
+AMEX Charges
+
+The new form (1992) has a space for checking expenses charged on
+American Express Corporate cards.  The new voucher.sty supports this
+by allowing an optional `*' after any expense entry except personal
+car.  Simply place the `*' after the `{expense amount}' OUTSIDE the
+bracket; i.e., between the set of brackets for the expense and the set
+of brackets for the next expense (if any) on that line.  The marked
+expense will be checked as charged to amex and included in the amex
+total, which is now computed automatically.  There is now no provision
+for specifying the amount charged to amex -- you must use the marking
+system and allow voucher.sty to calculate the amex amount.  Notice
+that since an entry must be `all amex' or `no amex' (rules of the new
+form not mine) you may have to separate items that could be lumped
+together on the pre-1992 forms.  For example if on a given day you
+have two meals that were paid for out-of-pocket and one charged to
+amex, you would have to use two lines for that days meals.
+
+
+
+OTHER EXPENSES
+
+The otherexpenses environment is for the Other Expenses part of the
+form.  Again there is a commented template line and one documenting
+the parameter order.  The items must also be included in the other
+column of the \expense lines -- this cannot be automatic since the
+form cannot determine which expense line the item should go on and
+often several \otherexpenses are totaled on one \expense line.  
+
+\begin{otherexpenses}
+\otherexpense{date}{descr}{amount-less-tax}{tax}{fml-subacct}%
+\end{otherexpenses}
+
+NOTE that as with expense the number of parameters have changed from
+the pre-1992 version.  The main difference is that tax is not included
+in the amount but entered separately.  The total with tax is computed
+automatically. The otherexpenses are no longer copied to expense lines
+but only the total is copied (automatically) to line 1A.
+
+ACCOUNTING INFORMATION
+
+The projnums environment is for the accounting information part of the form.
+the first paramenter is for the project number and the second for the
+percentage to be charged to that project number.  The sty verifies
+that the percentages add up to 100 or prints and error to stdout.  I
+find it convenient to put lines for each project number I use into my
+personal vouchform.tex and comment out the lines not used for a given
+voucher.  
+
+
+TOTALS
+
+All other information such as column and row totals, amex total, and
+balance due are computed and entered automatically.  Even the total
+expenses written out in words is done automatically.  You just have to
+sign the form (all three copies) and get your approver to sign all three.
+
+
+COPIES
+
+Three copies marked TREASURY COPY, DUPLICATE TREASURY COPY,  and
+EMPLOYEE COPY are printed.
+
+
+VOUCHER SCRIPT
+
+voucher* are files for preparing vouchers.  
+
+Because vouchers are printed landscape style, you probably need
+postscript to print them.  I use dvips.  
+
+I find it convenient to set up makefile for documents.  vouch.Makefile
+is a makefile for vouchers.  I place all vouchers in a voucher
+directory with vouch.Makefile.  The makefile uses DOC as a variable.
+I use the script voucher to pass this in.  I use a similar make file
+for other documents by placing such documents in their own directory
+and setting DOC in the Makefile.
+
+Note that the method for printing postscript files often varies with
+different sites.  One common command uses prt.  The script voucher is
+setup to use prt.  If this is NOT appropriate at your site, define the
+environment variable PSPRINT as the appropriate command taking the
+postscript file as the parameter and export it.  For example:
+
+	export PSPRINT=/usr/local/bin/psprint
+
+If you have trouble check voucher and vouch.Makefile for other site
+dependent locations.  VOUCHBIN can be defined as the path to latex and
+dvips if these are not in the PATH.
+
+usage: voucher voucher-name [dvi|ps|print|printdoc|test|exp-test]
+
+voucher calls a makefile that does a 
+  latex voucher-file
+if voucher-file.dvi is not up to date, then a converts to PostScript
+if voucher-file.ps is not up to date.
+
+OPTIONS
+dvi	will force the make to stop with a dvi file NOT
+	making a PostScript file.  
+
+ps	the default
+
+print	make sure that voucher-name.ps is up to date and then print
+	the file.
+
+(There are some additional options in vouch.Makefile.)
+
+Note that vouch.Makefile uses a PSPRINT string that contains the
+command to print on a postscript printer.  I use a script called
+psprint.  Some can simply use lp.  Edit this as appropriate.
+
+
+USING VOUCHERS PREPARED WITH VOUCHER.STY [updated June 1991]
+
+I wrote to Treasury including a sample of my voucher and asked if they
+would accept them.  I never received a reply.  After a month I just
+started submitting them and have never gotten a complaint.  They have
+been accepting them from 3 or 4 of us for about 5 months, at least
+10-15 vouchers total, and none of use have had any problems.  One user
+apparently got a question -- they were puzzled as to why they weren't
+blue, but it was accepted.
+
+I should point out that we do not have a BL cashier in our building so
+all our forms have been sent directly to Treasury.  I do not know if
+one might have more trouble at a cashier counter.

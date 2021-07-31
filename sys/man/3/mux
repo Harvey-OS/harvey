@@ -1,0 +1,93 @@
+.TH MUX 3 
+.SH NAME
+mux \- server registry and service multiplexor
+.SH SYNOPSIS
+.nf
+.B bind #s /srv
+
+.BI #s/ service1
+.BI #s/ service2
+ ...
+.fi
+.SH DESCRIPTION
+Mux is a replacement for
+.IR srv (3)
+that allows a single file server to provide
+service to processes on both local and remote machines.
+.I Mux
+performs all the functions of
+.BR srv .
+.PP
+Plain files created in the top level directory of
+.I mux
+behave exactly as described
+in
+.IR srv (4).
+.PP
+Creating a directory in
+.I mux
+produces a stream multiplexer.  Many clients may write
+messages to a single server.
+.I Mux
+prefixes each message with a connection
+number to allow the server to distinguish between clients.  Messages written back
+to
+.IR mux
+by the server are prefixed by a destination connection number.
+.I Mux
+removes the destination connection number before passing messages back to its clients.
+.PP
+When created, a
+.I mux
+directory contains two files,
+.B head
+and
+.BR clone .
+Opening the clone
+file allocates a new connection on the multiplexer.
+The file descriptor returned
+is suitable for mounting (see
+.B mount
+in
+.IR bind (1)
+or
+.IR bind (2)).
+A file named by the new connection number
+is produced by opening the
+.B clone
+file.
+The numbered connection file may be used to
+read and write messages to the server.
+The
+.B head
+file should be used by the server
+to send and receive message from the clients.
+.PP
+A file server must be linked with
+.B /$objtype/lib/libmux.a
+to use the device.  The library uses the
+connection numbers provided by the driver to map the fid space of the various
+client mount drivers into a single fid space for the server.
+.B Libmux
+replaces
+.B convS2M
+and 
+.B convM2S
+(see
+.IR fcall (2))
+from the C library.
+A server linked with
+.B libmux
+will work correctly
+with a normal
+.B srv
+entry.
+.PP
+.IR Mux 's
+only use is to allow CPU servers to act as a gateway to a file system.
+It is not normally configured in a system.
+.SH BUGS
+This should be unnecessary but is required to overcome a failure of vision.
+.SH SEE ALSO
+.IR bind (2),
+.IR srv (4)

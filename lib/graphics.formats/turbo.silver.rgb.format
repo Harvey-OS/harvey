@@ -1,0 +1,92 @@
+
+From: her@compel.UUCP (Helge Egelund Rasmussen)
+Newsgroups: comp.sys.amiga.tech
+Subject: Turbo silver RGB picture file format
+
+Date: 18 Jul 90 07:47:29 GMT
+
+Here is the description of the RGBM AND RGB8 chunks used by
+Turbo Silver.
+
+======================================================================
+
+                    FORM RGBN and FORM RGB8
+					-----------------------
+
+	RGBN and RGB8 files	are used in Impulse's Silver and Turbo Silver.
+	They are almost identical to FORM ILBM's except for the BODY chunk
+	and slight differences in the BMHD chunk.
+
+	A CAMG chunk IS REQUIRED.
+
+	The BMHD chunk specfies the number of bitplanes as 13, and the
+	compressoin type as ??.
+
+	The FORM RGBN uses 12 bit RGB values, and the FORM RGB8 uses
+	24 bit RGB values.
+
+	The BODY chunk contains RGB values, a "genlock" bit, and repeat
+	counts.  In Silver, when "genlock" bit is set, a "zero color" is
+	written into the bitplanes for genlock video to show through.
+	In Diamond (a "paint" program, also by Impulse), the genlock bit
+	is ignored if the file is loaded as a picture (and the RGB color
+	is used instead), and if the file is loaded as a brush the genlock
+	bit marks pixels that are not part of the brush.
+
+	For both RGBN and RGB8 body chunks, each RGB value always has a
+	repeat count.  The values are written in different formats depending
+	on the magnitude of the repeat count.
+
+	For the RGBN BODY chunk:
+
+		For each RGB value, a WORD (16-bits) is written: with the
+		12 RGB bits in the MSB (most significant bit) positions;
+		the "genlock" bit next; and then a 3 bit repeat count.  
+		If the repeat count is greater than 7, the 3-bit count is
+		zero, and a BYTE repeat count follows.  If the repeat count
+		is greater than 255, the BYTE count is zero, and a WORD
+		repeat count follows.  Repeat counts greater than 65536 are
+		not supported.
+
+	For the RGB8 body chunk:
+
+		For each RGB value, a LONG-word (32 bits) is written:
+		with the 24 RGB bits in the MSB positions; the "genlock"
+		bit next, and then a 7 bit repeat count.  If the repeat
+		count is greater than 127, the same rules apply as in
+		the RGBN BODY.
+
+	Sample BODY code:
+
+			if(!count) {
+				if (Rgb8) {
+					fread (&w, 4, 1, RGBFile);
+					lock = w & 0x00000080;
+					rgb = w >> 8;
+					count = w & 0x0000007f;
+				} else {
+					w = (UWORD) getw (RGBFile);
+					lock = w & 8;
+					rgb = w >> 4;
+					count = w & 7;
+				}
+				if (!count)
+					if (!(count = (UBYTE) getc (RGBFile)))
+						count = (UWORD) getw (RGBFile);
+			}
+
+	The pixels are scanned from left to right across horizontal
+	lines, processing from top to bottom.  The (12 or 24 bit) RGB
+	values are stored with the red bits as the MSB's, the green
+	bits next, and the blue bits as the LSB's.
+
+	Special note:  As of this writing (Sep 88), Silver does NOT
+	support anything but black for color zero.
+
+
+---
+Helge E. Rasmussen  .  PHONE + 45 31 37 11 00  .  E-mail:  her@compel.dk
+Compel A/S          .  FAX   + 45 31 37 06 44  .  
+Copenhagen, Denmark
+
+

@@ -1,0 +1,33 @@
+/inch {72 mul} def
+
+/wedge
+{newpath
+0 0 moveto
+1 0 translate
+7.5 rotate
+0 7.5 sin translate
+0 0 7.5 sin -90 90 arc
+closepath
+} def
+
+% gsave
+% 3.75 inch 7.25 inch translate
+% 1 inch 1 inch scale
+% wedge 0.02 setlinewidth stroke
+% grestore
+
+gsave
+4.25 inch 4.25 inch translate
+1.75 inch 1.75 inch scale
+0.02 setlinewidth
+1 1 24
+{24 div setgray
+gsave
+wedge
+gsave fill grestore
+%0 setgray stroke
+grestore
+15 rotate
+} for
+grestore
+showpage

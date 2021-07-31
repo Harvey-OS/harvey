@@ -80,5 +80,5 @@ void
 send_interrupt(void)
 {
 if(dbg>0) fprint(dbg,"post interrupt to pid %d\n",hostpid);
-	postnote(PNGROUP, hostpid,"interrupt");
+	postnote(-hostpid,"interrupt");
 }

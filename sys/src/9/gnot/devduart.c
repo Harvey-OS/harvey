@@ -323,9 +323,9 @@ duartxintr(void)
 void
 duartintr(Ureg *ur)
 {
-	int cause, status, ch, c, i;
+	int cause, status, ch, i, nk;
 	Duart *duart;
-	static int collecting, nk;
+	static int lstate;
 	static uchar kc[5];
 
 	duart = DUARTREG;
@@ -361,24 +361,42 @@ duartintr(Ureg *ur)
 			if(ch == 0x7F)	/* VIEW key (bizarre) */
 				ch = 0xFF;
 			if(ch == 0xB6)	/* NUM PAD */
-				collecting = 1;
+				lstate = 1;
 			else{
 				if(ch & 0x80)
 					ch = keymap[ch&0x7F];
-				if(!collecting)
+				switch(lstate){
+				case 1:
+					kc[0] = ch;
+					lstate = 2;
+					if(ch == 'X')
+						lstate = 3;
+					break;
+				case 2:
+					kc[1] = ch;
+					ch = latin1(kc);
+					nk = 2;
+				putit:
+					lstate = 0;
+					if(ch != -1)
+						kbdputc(&kbdq, ch);
+					else for(i=0; i<nk; i++)
+						kbdputc(&kbdq, kc[i]);
+					break;
+				case 3:
+				case 4:
+				case 5:
+					kc[lstate-2] = ch;
+					lstate++;
+					break;
+				case 6:
+					kc[4] = ch;
+					ch = unicode(kc);
+					nk = 5;
+					goto putit;
+				default:
 					kbdputc(&kbdq, ch);
-				else{
-					kc[nk++] = ch;
-					c = latin1(kc, nk);
-					if(c >= -1){	/* otherwise need more keystrokes */
-						if(c != -1)	/* valid sequence */
-							kbdputc(&kbdq, c);
-						else	/* dump characters */
-							for(i=0; i<nk; i++)
-								kbdputc(&kbdq, kc[i]);
-						nk = 0;
-						collecting = 0;
-					}
+					break;
 				}
 			}
 		}
@@ -409,7 +427,7 @@ duartintr(Ureg *ur)
 	 * Is it 5?
 	 */
 	if(cause & IM_IPC)
-		mousetrack((~duart[0].ipc_acr) & 7, 0, 0);
+		mousebuttons((~duart[0].ipc_acr) & 7);
 }
 
 

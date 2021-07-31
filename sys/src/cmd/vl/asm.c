@@ -92,14 +92,11 @@ asmb(void)
 	curtext = P;
 	switch(HEADTYPE) {
 	case 0:
-	case 4:
 		OFFSET = rnd(HEADR+textsize, 4096);
 		seek(cout, OFFSET, 0);
 		break;
 	case 1:
 	case 2:
-	case 3:
-	case 5:
 		OFFSET = HEADR+textsize;
 		seek(cout, OFFSET, 0);
 		break;
@@ -119,14 +116,11 @@ asmb(void)
 		Bflush(&bso);
 		switch(HEADTYPE) {
 		case 0:
-		case 4:
 			OFFSET = rnd(HEADR+textsize, 4096)+datsize;
 			seek(cout, OFFSET, 0);
 			break;
-		case 3:
 		case 2:
 		case 1:
-		case 5:
 			OFFSET = HEADR+textsize+datsize;
 			seek(cout, OFFSET, 0);
 			break;
@@ -174,7 +168,6 @@ asmb(void)
 		lput(HEADR+textsize+datsize);
 		lput(symsize);			/* nsyms */
 		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-
 		lput((0407<<16)|0437L);		/* magic and version */
 		lput(textsize);			/* sizes */
 		lput(datsize);
@@ -201,166 +194,8 @@ asmb(void)
 		lput(0L);
 		lput(lcsize);
 		break;
-	case 3:
-		lput((0x160L<<16)|3L);		/* magic and sections */
-		lput(time(0));			/* time and date */
-		lput(HEADR+textsize+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-
-		lput((0407<<16)|0437L);		/* magic and version */
-		lput(textsize);			/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT);			/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(lcsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
-
-		strnput(".text", 8);		/* text segment */
-		lput(INITTEXT);			/* address */
-		lput(INITTEXT);
-		lput(textsize);
-		lput(HEADR);
-		lput(0L);
-		lput(HEADR+textsize+datsize+symsize);
-		lput(lcsize);			/* line number size */
-		lput(0x20L);			/* flags */
-
-		strnput(".data", 8);		/* data segment */
-		lput(INITDAT);			/* address */
-		lput(INITDAT);
-		lput(datsize);
-		lput(HEADR+textsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x40L);			/* flags */
-
-		strnput(".bss", 8);		/* bss segment */
-		lput(INITDAT+datsize);		/* address */
-		lput(INITDAT+datsize);
-		lput(bsssize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x80L);			/* flags */
-		break;
-	case 4:
-
-		lput((0x160L<<16)|3L);		/* magic and sections */
-		lput(time(0));			/* time and date */
-		lput(rnd(HEADR+textsize, 4096)+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-
-		lput((0413<<16)|01012L);	/* magic and version */
-		lput(textsize);			/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT);			/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(lcsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
-
-		strnput(".text", 8);		/* text segment */
-		lput(INITTEXT);			/* address */
-		lput(INITTEXT);
-		lput(textsize);
-		lput(HEADR);
-		lput(0L);
-		lput(HEADR+textsize+datsize+symsize);
-		lput(lcsize);			/* line number size */
-		lput(0x20L);			/* flags */
-
-		strnput(".data", 8);		/* data segment */
-		lput(INITDAT);			/* address */
-		lput(INITDAT);
-		lput(datsize);
-		lput(rnd(HEADR+textsize, 4096));	/* sizes */
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x40L);			/* flags */
-
-		strnput(".bss", 8);		/* bss segment */
-		lput(INITDAT+datsize);		/* address */
-		lput(INITDAT+datsize);
-		lput(bsssize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x80L);			/* flags */
-		break;
-	case 5:
-		strnput("\177ELF", 4);		/* e_ident */
-		CPUT(1);			/* class = 32 bit */
-		CPUT(2);			/* data = MSB */
-		CPUT(1);			/* version = CURRENT */
-		strnput("", 9);
-		lput((2L<<16)|8L);		/* type = EXEC; machine = MIPS */
-		lput(1L);			/* version = CURRENT */
-		lput(entryvalue());		/* entry vaddr */
-		lput(52L);			/* offset to first phdr */
-		lput(0L);			/* offset to first shdr */
-		lput(0L);			/* flags = MIPS */
-		lput((52L<<16)|32L);		/* Ehdr & Phdr sizes*/
-		lput((3L<<16)|0L);		/* # Phdrs & Shdr size */
-		lput((0L<<16)|0L);		/* # Shdrs & shdr string size */
-
-		lput(1L);			/* text - type = PT_LOAD */
-		lput(0L);			/* file offset */
-		lput(INITTEXT-HEADR);		/* vaddr */
-		lput(INITTEXT-HEADR);		/* paddr */
-		lput(HEADR+textsize);		/* file size */
-		lput(HEADR+textsize);		/* memory size */
-		lput(0x05L);			/* protections = RWX */
-		lput(0x10000L);			/* alignment code?? */
-
-		lput(1L);			/* data - type = PT_LOAD */
-		lput(HEADR+textsize);		/* file offset */
-		lput(INITDAT);			/* vaddr */
-		lput(INITDAT);			/* paddr */
-		lput(datsize);			/* file size */
-		lput(datsize+bsssize);		/* memory size */
-		lput(0x06L);			/* protections = RW */
-		lput(0x10000L);			/* alignment code?? */
-
-		lput(0L);			/* data - type = PT_NULL */
-		lput(HEADR+textsize+datsize);	/* file offset */
-		lput(0L);
-		lput(0L);
-		lput(symsize);			/* symbol table size */
-		lput(lcsize);			/* line number size */
-		lput(0x04L);			/* protections = R */
-		lput(0x04L);			/* alignment code?? */
 	}
 	cflush();
-}
-
-void
-strnput(char *s, int n)
-{
-	for(; *s; s++){
-		CPUT(*s);
-		n--;
-	}
-	for(; n > 0; n--)
-		CPUT(0);
 }
 
 void
@@ -383,21 +218,13 @@ cflush(void)
 }
 
 void
-nopstat(char *f, Count *c)
-{
-	if(c->outof)
-	Bprint(&bso, "%s delay %ld/%ld (%.2f)\n", f,
-		c->outof - c->count, c->outof,
-		(double)(c->outof - c->count)/c->outof);
-}
-
-void
 asmsym(void)
 {
 	Prog *p;
 	Auto *a;
 	Sym *s;
 	int h;
+	char name[NNAME];
 
 	s = lookup("etext", 0);
 	if(s->type == STEXT)
@@ -406,10 +233,6 @@ asmsym(void)
 	for(h=0; h<NHASH; h++)
 		for(s=hash[h]; s!=S; s=s->link)
 			switch(s->type) {
-			case SCONST:
-				putsymb(s->name, 'D', s->value, s->version);
-				continue;
-
 			case SDATA:
 				putsymb(s->name, 'D', s->value+INITDAT, s->version);
 				continue;
@@ -433,7 +256,7 @@ asmsym(void)
 			if(a->type == D_FILE)
 				putsymb(a->sym->name, 'z', a->offset, 0);
 			else
-			if(a->type == D_FILE1)
+			if(a->type == D_MREG)
 				putsymb(a->sym->name, 'Z', a->offset, 0);
 
 		if(s->type == STEXT)
@@ -442,7 +265,8 @@ asmsym(void)
 			putsymb(s->name, 'L', s->value, s->version);
 
 		/* frame, auto and param after */
-		putsymb(".frame", 'm', p->to.offset+4, 0);
+		strncpy(name, ".frame", NNAME);
+		putsymb(name, 'm', p->to.offset+4, 0);
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_AUTO)
 				putsymb(a->sym->name, 'a', -a->offset, 0);
@@ -459,39 +283,30 @@ void
 putsymb(char *s, int t, long v, int ver)
 {
 	int i, f;
+	char str[STRINGSZ];
 
 	if(t == 'f')
 		s++;
 	LPUT(v);
 	if(ver)
 		t += 'a' - 'A';
-	CPUT(t+0x80);			/* 0x80 is variable length */
-
-	if(t == 'Z' || t == 'z') {
-		CPUT(s[0]);
-		for(i=1; s[i] != 0 || s[i+1] != 0; i += 2) {
-			CPUT(s[i]);
-			CPUT(s[i+1]);
-		}
-		CPUT(0);
-		CPUT(0);
-		i++;
-	}
-	else {
-		for(i=0; s[i]; i++)
-			CPUT(s[i]);
-		CPUT(0);
-	}
-	symsize += 4 + 1 + i + 1;
-
+	CPUT(t);
+	for(i=0; i<NNAME; i++)
+		CPUT(s[i]);
+	CPUT(0);
+	CPUT(0);
+	CPUT(0);
+	symsize += 4 + 1 + NNAME + 3;
 	if(debug['n']) {
 		if(t == 'z' || t == 'Z') {
-			Bprint(&bso, "%c %.8lux ", t, v);
-			for(i=1; s[i] != 0 || s[i+1] != 0; i+=2) {
+			str[0] = 0;
+			for(i=1; i<NNAME; i+=2) {
 				f = ((s[i]&0xff) << 8) | (s[i+1]&0xff);
-				Bprint(&bso, "/%x", f);
+				if(f == 0)
+					break;
+				sprint(strchr(str, 0), "/%x", f);
 			}
-			Bprint(&bso, "\n");
+			Bprint(&bso, "%c %.8lux %s\n", t, v, str);
 			return;
 		}
 		if(ver)
@@ -606,14 +421,12 @@ datblk(long s, long n)
 		}
 		if(l >= n)
 			continue;
-		if(p->as != AINIT && p->as != ADYNT) {
-			for(j=l+(c-i)-1; j>=l; j--)
-				if(buf.dbuf[j]) {
-					print("%P\n", p);
-					diag("multiple initialization\n");
-					break;
-				}
-		}
+		for(j=l+(c-i)-1; j>=l; j--)
+			if(buf.dbuf[j]) {
+				print("%P\n", p);
+				diag("multiple initialization\n");
+				break;
+			}
 		switch(p->to.type) {
 		default:
 			diag("unknown mode in initialization\n%P\n", p);
@@ -699,25 +512,10 @@ datblk(long s, long n)
 #define	OP_JMP(op,i)\
 		((op)|((i)&0x3ffffffL))
 
-#define	OP(x,y)\
-	(((x)<<3)|((y)<<0))
-#define	SP(x,y)\
-	(((x)<<29)|((y)<<26))
-#define	BCOND(x,y)\
-	(((x)<<19)|((y)<<16))
-#define	MMU(x,y)\
-	(SP(2,0)|(16<<21)|((x)<<3)|((y)<<0))
-#define	FPF(x,y)\
-	(SP(2,1)|(16<<21)|((x)<<3)|((y)<<0))
-#define	FPD(x,y)\
-	(SP(2,1)|(17<<21)|((x)<<3)|((y)<<0))
-#define	FPW(x,y)\
-	(SP(2,1)|(20<<21)|((x)<<3)|((y)<<0))
-
 int
 asmout(Prog *p, Optab *o, int aflag)
 {
-	long o1, o2, o3, o4, o5, v;
+	long o1, o2, o3, o4, v;
 	Prog *ct;
 	int r, a;
 
@@ -725,7 +523,6 @@ asmout(Prog *p, Optab *o, int aflag)
 	o2 = 0;
 	o3 = 0;
 	o4 = 0;
-	o5 = 0;
 	switch(o->type) {
 	default:
 		diag("unknown type %d\n", o->type);
@@ -751,7 +548,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		}
 		break;
 
-	case 1:		/* mov[v] r1,r2 ==> OR r1,r0,r2 */
+	case 1:		/* mov r1,r2 ==> OR r1,r0,r2 */
 		o1 = OP_RRR(oprrr(AOR), p->from.reg, REGZERO, p->to.reg);
 		break;
 
@@ -767,7 +564,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
-		a = AADDU;
+		a = AADD;
 		if(o->a1 == C_ANDCON)
 			a = AOR;
 		o1 = OP_IRR(opirr(a), v, r, p->to.reg);
@@ -810,7 +607,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(r == NREG)
 			r = o->param;
 		v = regoff(&p->from);
-		o1 = OP_IRR(opirr(p->as+ALAST), v, r, p->to.reg);
+		o1 = OP_IRR(opirr(p->as+AEND), v, r, p->to.reg);
 		break;
 
 	case 9:		/* asl r1,[r2],r3 */
@@ -824,7 +621,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		v = regoff(&p->from);
 		r = AOR;
 		if(v < 0)
-			r = AADDU;
+			r = AADD;
 		o1 = OP_IRR(opirr(r), v, 0, REGTMP);
 		r = p->reg;
 		if(r == NREG)
@@ -840,16 +637,12 @@ asmout(Prog *p, Optab *o, int aflag)
 		else
 			v = p->cond->pc >> 2;
 		o1 = OP_JMP(opirr(p->as), v);
-		if(!debug['Y'] && p->link && p->cond && isnop(p->link)) {
-			nop.branch.count--;
-			nop.branch.outof--;
-			nop.jump.outof++;
+		if(p->link && p->cond && p->link->as == ANOR) {
 			o2 = asmout(p->cond, oplook(p->cond), 1);
 			if(o2) {
 				o1 += 1;
 				if(debug['a'])
-					Bprint(&bso, " %.8lux: %.8lux %.8lux%P\n",
-						p->pc, o1, o2, p);
+					Bprint(&bso, " %.8lux: %.8lux %.8lux%P\n", p->pc, o1, o2, p);
 				LPUT(o1);
 				LPUT(o2);
 				return 1;
@@ -877,10 +670,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
-		if(v >= 32)
-			o1 = OP_SRR(opirr(p->as+ALAST), v-32, r, p->to.reg);
-		else
-			o1 = OP_SRR(opirr(p->as), v, r, p->to.reg);
+		o1 = OP_SRR(opirr(p->as), v, r, p->to.reg);
 		break;
 
 	case 18:	/* jmp [r1],0(r2) */
@@ -894,22 +684,22 @@ asmout(Prog *p, Optab *o, int aflag)
 
 	case 19:	/* mov $lcon,r ==> lu+or */
 		v = regoff(&p->from);
-		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, p->to.reg);
+		o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, p->to.reg);
 		o2 = OP_IRR(opirr(AOR), v, p->to.reg, p->to.reg);
 		break;
 
-	case 20:	/* mov lohi,r */
-		r = OP(2,0);		/* mfhi */
+	case 20:	/* mov $lohi,r */
+		r = ADIV;
 		if(p->from.type == D_LO)
-			r = OP(2,2);	/* mflo */
-		o1 = OP_RRR(r, REGZERO, REGZERO, p->to.reg);
+			r = AMUL;
+		o1 = OP_RRR(oprrr(r+AEND), REGZERO, REGZERO, p->to.reg);
 		break;
 
-	case 21:	/* mov r,lohi */
-		r = OP(2,1);		/* mthi */
+	case 21:	/* mov r,$lohi */
+		r = ADIVU;
 		if(p->to.type == D_LO)
-			r = OP(2,3);	/* mtlo */
-		o1 = OP_RRR(r, REGZERO, p->from.reg, REGZERO);
+			r = AMULU;
+		o1 = OP_RRR(oprrr(r+AEND), REGZERO, p->from.reg, REGZERO);
 		break;
 
 	case 22:	/* mul r1,r2 */
@@ -920,7 +710,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		v = regoff(&p->from);
 		if(p->to.reg == REGTMP || p->reg == REGTMP)
 			diag("cant synthesize large constant\n%P\n", p);
-		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
+		o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, REGTMP);
 		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
 		r = p->reg;
 		if(r == NREG)
@@ -930,12 +720,12 @@ asmout(Prog *p, Optab *o, int aflag)
 
 	case 24:	/* mov $ucon,,r ==> lu r */
 		v = regoff(&p->from);
-		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, p->to.reg);
+		o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, p->to.reg);
 		break;
 
 	case 25:	/* add/and $ucon,[r1],r2 ==> lu $con,t; add t,[r1],r2 */
 		v = regoff(&p->from);
-		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
+		o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, REGTMP);
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
@@ -946,12 +736,12 @@ asmout(Prog *p, Optab *o, int aflag)
 		v = regoff(&p->from);
 		if(p->to.reg == REGTMP)
 			diag("cant synthesize large constant\n%P\n", p);
-		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
+		o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, REGTMP);
 		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
-		o3 = OP_RRR(oprrr(AADDU), REGTMP, r, p->to.reg);
+		o3 = OP_RRR(oprrr(AADD), REGTMP, r, p->to.reg);
 		break;
 
 	case 27:		/* mov [sl]ext/auto/oreg,fr ==> lwc1 o(r) */
@@ -960,25 +750,27 @@ asmout(Prog *p, Optab *o, int aflag)
 			r = o->param;
 		v = regoff(&p->from);
 		switch(o->size) {
-		case 20:
-			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
-			o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-			o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
-			o4 = OP_IRR(opirr(AMOVF+ALAST), 0, REGTMP, p->to.reg+1);
-			o5 = OP_IRR(opirr(AMOVF+ALAST), 4, REGTMP, p->to.reg);
-			break;
 		case 16:
-			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
-			o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-			o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
-			o4 = OP_IRR(opirr(AMOVF+ALAST), 0, REGTMP, p->to.reg);
+			if(v & 0x8000)
+				v += 0x10000;	/* assumes 2's comp */
+			o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, REGTMP);
+			o2 = OP_RRR(oprrr(AADD), r, REGTMP, REGTMP);
+			o3 = OP_IRR(opirr(AMOVF+AEND), v, REGTMP, p->to.reg+1);
+			o4 = OP_IRR(opirr(AMOVF+AEND), v+4, REGTMP, p->to.reg);
+			break;
+		case 12:
+			if(v & 0x8000)
+				v += 0x10000;	/* assumes 2's comp */
+			o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, REGTMP);
+			o2 = OP_RRR(oprrr(AADD), r, REGTMP, REGTMP);
+			o3 = OP_IRR(opirr(AMOVF+AEND), v, REGTMP, p->to.reg);
 			break;
 		case 8:
-			o1 = OP_IRR(opirr(AMOVF+ALAST), v, r, p->to.reg+1);
-			o2 = OP_IRR(opirr(AMOVF+ALAST), v+4, r, p->to.reg);
+			o1 = OP_IRR(opirr(AMOVF+AEND), v, r, p->to.reg+1);
+			o2 = OP_IRR(opirr(AMOVF+AEND), v+4, r, p->to.reg);
 			break;
 		case 4:
-			o1 = OP_IRR(opirr(AMOVF+ALAST), v, r, p->to.reg);
+			o1 = OP_IRR(opirr(AMOVF+AEND), v, r, p->to.reg);
 			break;
 		}
 		break;
@@ -989,22 +781,20 @@ asmout(Prog *p, Optab *o, int aflag)
 			r = o->param;
 		v = regoff(&p->to);
 		switch(o->size) {
-		case 20:
-			if(r == REGTMP)
-				diag("cant synthesize large constant\n%P\n", p);
-			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
-			o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-			o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
-			o4 = OP_IRR(opirr(AMOVF), 0, REGTMP, p->from.reg+1);
-			o5 = OP_IRR(opirr(AMOVF), 4, REGTMP, p->from.reg);
-			break;
 		case 16:
-			if(r == REGTMP)
-				diag("cant synthesize large constant\n%P\n", p);
-			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
-			o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-			o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
-			o4 = OP_IRR(opirr(AMOVF), 0, REGTMP, p->from.reg);
+			if(v & 0x8000)
+				v += 0x10000;	/* assumes 2's comp */
+			o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, REGTMP);
+			o2 = OP_RRR(oprrr(AADD), r, REGTMP, REGTMP);
+			o3 = OP_IRR(opirr(AMOVF), v, REGTMP, p->from.reg+1);
+			o4 = OP_IRR(opirr(AMOVF), v+4, REGTMP, p->from.reg);
+			break;
+		case 12:
+			if(v & 0x8000)
+				v += 0x10000;	/* assumes 2's comp */
+			o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, REGTMP);
+			o2 = OP_RRR(oprrr(AADD), r, REGTMP, REGTMP);
+			o3 = OP_IRR(opirr(AMOVF), v, REGTMP, p->from.reg);
 			break;
 		case 8:
 			o1 = OP_IRR(opirr(AMOVF), v, r, p->from.reg+1);
@@ -1017,13 +807,11 @@ asmout(Prog *p, Optab *o, int aflag)
 		break;
 
 	case 30:	/* movw r,fr */
-		r = SP(2,1)|(4<<21);		/* mtc1 */
-		o1 = OP_RRR(r, p->from.reg, 0, p->to.reg);
+		o1 = OP_RRR(oprrr(AMOVWF+AEND), p->from.reg, 0, p->to.reg);
 		break;
 
 	case 31:	/* movw fr,r */
-		r = SP(2,1)|(0<<21);		/* mfc1 */
-		o1 = OP_RRR(r, p->to.reg, 0, p->from.reg);
+		o1 = OP_RRR(oprrr(AMOVFW+AEND), p->to.reg, 0, p->from.reg);
 		break;
 
 	case 32:	/* fadd fr1,[fr2],fr3 */
@@ -1040,57 +828,47 @@ asmout(Prog *p, Optab *o, int aflag)
 
 	case 34:	/* mov $con,fr ==> or/add $i,r,r2 */
 		v = regoff(&p->from);
-		r = AADDU;
+		r = AADD;
 		if(o->a1 == C_ANDCON)
 			r = AOR;
 		o1 = OP_IRR(opirr(r), v, 0, REGTMP);
-		o2 = OP_RRR(SP(2,1)|(4<<21), REGTMP, 0, p->to.reg);	/* mtc1 */
+		o2 = OP_RRR(oprrr(AMOVWF+AEND), REGTMP, 0, p->to.reg);
 		break;
 
 	case 35:	/* mov r,lext/luto/oreg ==> sw o(r) */
-		/*
-		 * the lowbits of the constant cannot
-		 * be moved into the offset of the load
-		 * because the mips 4000 in 64-bit mode
-		 * does a 64-bit add and it will screw up.
-		 */
 		v = regoff(&p->to);
+		if(v & 0x8000L)
+			v += 0x10000L;
+		if(p->to.reg == REGTMP || p->reg == REGTMP)
+			diag("cant synthesize large constant\n%P\n", p);
+		o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, REGTMP);
 		r = p->to.reg;
 		if(r == NREG)
 			r = o->param;
-		if(r == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
-		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
-		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-		o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
-		o4 = OP_IRR(opirr(p->as), 0, REGTMP, p->from.reg);
+		o2 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
+		o3 = OP_IRR(opirr(p->as), v, REGTMP, p->from.reg);
 		break;
 
 	case 36:	/* mov lext/lauto/lreg,r ==> lw o(r30) */
 		v = regoff(&p->from);
+		if(v & 0x8000L)
+			v += 0x10000L;
+		if(p->to.reg == REGTMP || p->reg == REGTMP)
+			diag("cant synthesize large constant\n%P\n", p);
+		o1 = OP_IRR(opirr(AEND), v>>16, REGZERO, REGTMP);
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
-		if(r == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
-		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
-		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
-		o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
-		o4 = OP_IRR(opirr(p->as+ALAST), 0, REGTMP, p->to.reg);
+		o2 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
+		o3 = OP_IRR(opirr(p->as+AEND), v, REGTMP, p->to.reg);
 		break;
 
 	case 37:	/* movw r,mr */
-		r = SP(2,0)|(4<<21);		/* mtc0 */
-		if(p->as == AMOVV)
-			r = SP(2,0)|(5<<21);	/* dmtc0 */
-		o1 = OP_RRR(r, p->from.reg, 0, p->to.reg);
+		o1 = OP_RRR(oprrr(ATLBP+AEND), p->from.reg, 0, p->to.reg);
 		break;
 
 	case 38:	/* movw mr,r */
-		r = SP(2,0)|(0<<21);		/* mfc0 */
-		if(p->as == AMOVV)
-			r = SP(2,0)|(1<<21);	/* dmfc0 */
-		o1 = OP_RRR(r, p->to.reg, 0, p->from.reg);
+		o1 = OP_RRR(oprrr(ATLBR+AEND), p->to.reg, 0, p->from.reg);
 		break;
 
 	case 39:	/* rfe ==> jmp+rfe */
@@ -1107,12 +885,11 @@ asmout(Prog *p, Optab *o, int aflag)
 		break;
 
 	case 41:	/* movw r,fcr */
-		o1 = OP_RRR(SP(2,1)|(2<<21), REGZERO, 0, p->to.reg); 	/* mfcc1 */
-		o2 = OP_RRR(SP(2,1)|(6<<21), p->from.reg, 0, p->to.reg);/* mtcc1 */
+		o1 = OP_RRR(oprrr(ATLBWI+AEND), p->from.reg, 0, p->to.reg);
 		break;
 
 	case 42:	/* movw fcr,r */
-		o1 = OP_RRR(SP(2,1)|(2<<21), p->to.reg, 0, p->from.reg);/* mfcc1 */
+		o1 = OP_RRR(oprrr(ATLBWR+AEND), p->to.reg, 0, p->from.reg);
 		break;
 	}
 	if(aflag)
@@ -1150,33 +927,24 @@ asmout(Prog *p, Optab *o, int aflag)
 		LPUT(o3);
 		LPUT(o4);
 		break;
-	case 20:
-		if(debug['a'])
-			Bprint(&bso, " %.8lux: %.8lux %.8lux %.8lux %.8lux %.8lux%P\n",
-				v, o1, o2, o3, o4, o5, p);
-		LPUT(o1);
-		LPUT(o2);
-		LPUT(o3);
-		LPUT(o4);
-		LPUT(o5);
-		break;
 	}
 	return 0;
 }
 
-int
-isnop(Prog *p)
-{
-	if(p->as != ANOR)
-		return 0;
-	if(p->reg != REGZERO && p->reg != NREG)
-		return 0;
-	if(p->from.type != D_REG || p->from.reg != REGZERO)
-		return 0;
-	if(p->to.type != D_REG || p->to.reg != REGZERO)
-		return 0;
-	return 1;
-}
+#define	OP(x,y)\
+	(((x)<<3)|((y)<<0))
+#define	SP(x,y)\
+	(((x)<<29)|((y)<<26))
+#define	BCOND(x,y)\
+	(((x)<<19)|((y)<<16))
+#define	MMU(x,y)\
+	(SP(2,0)|(16<<21)|((x)<<3)|((y)<<0))
+#define	FPF(x,y)\
+	(SP(2,1)|(16<<21)|((x)<<3)|((y)<<0))
+#define	FPD(x,y)\
+	(SP(2,1)|(17<<21)|((x)<<3)|((y)<<0))
+#define	FPW(x,y)\
+	(SP(2,1)|(20<<21)|((x)<<3)|((y)<<0))
 
 long
 oprrr(int a)
@@ -1242,6 +1010,20 @@ oprrr(int a)
 	case ACMPGTD:	return FPD(7,4);
 	case ACMPGEF:	return FPF(7,6);
 	case ACMPGED:	return FPD(7,6);
+
+	case ATLBP+AEND:	return SP(2,0)|(4<<21); /* mtc0 */
+	case ATLBR+AEND:	return SP(2,0)|(0<<21); /* mfc0 */
+
+	case AMOVWF+AEND:	return SP(2,1)|(4<<21); /* mtc1 */
+	case AMOVFW+AEND:	return SP(2,1)|(0<<21); /* mfc1 */
+
+	case ATLBWI+AEND:	return SP(2,1)|(6<<21); /* mtcc1 */
+	case ATLBWR+AEND:	return SP(2,1)|(2<<21); /* mfcc1 */
+
+	case AMUL+AEND:		return OP(2,2);	/* mflo */
+	case ADIV+AEND:		return OP(2,0);	/* mfhi */
+	case AMULU+AEND:	return OP(2,3);	/* mtlo */
+	case ADIVU+AEND:	return OP(2,1);	/* mthi */
 	}
 	diag("bad rrr %d\n", a);
 	return 0;
@@ -1258,7 +1040,7 @@ opirr(int a)
 	case AAND:	return SP(1,4);
 	case AOR:	return SP(1,5);
 	case AXOR:	return SP(1,6);
-	case ALAST:	return SP(1,7);
+	case AEND:	return SP(1,7);
 	case ASLL:	return OP(0,0);
 	case ASRL:	return OP(0,2);
 	case ASRA:	return OP(0,3);
@@ -1283,33 +1065,21 @@ opirr(int a)
 	case AMOVH:
 	case AMOVHU:	return SP(5,1);
 	case AMOVW:	return SP(5,3);
-	case AMOVV:	return SP(7,7);
 	case AMOVF:	return SP(7,1);
 	case AMOVWL:	return SP(5,2);
 	case AMOVWR:	return SP(5,6);
-	case AMOVVL:	return SP(5,4);
-	case AMOVVR:	return SP(5,5);
 
 	case ABREAK:	return SP(5,7);
 
-	case AMOVWL+ALAST:	return SP(4,2);
-	case AMOVWR+ALAST:	return SP(4,6);
-	case AMOVVL+ALAST:	return SP(3,2);
-	case AMOVVR+ALAST:	return SP(3,3);
-	case AMOVB+ALAST:	return SP(4,0);
-	case AMOVBU+ALAST:	return SP(4,4);
-	case AMOVH+ALAST:	return SP(4,1);
-	case AMOVHU+ALAST:	return SP(4,5);
-	case AMOVW+ALAST:	return SP(4,3);
-	case AMOVV+ALAST:	return SP(6,7);
-	case AMOVF+ALAST:	return SP(6,1);
+	case AMOVWL+AEND:	return SP(4,2);
+	case AMOVWR+AEND:	return SP(4,6);
+	case AMOVB+AEND:	return SP(4,0);
+	case AMOVBU+AEND:	return SP(4,4);
+	case AMOVH+AEND:	return SP(4,1);
+	case AMOVHU+AEND:	return SP(4,5);
+	case AMOVW+AEND:	return SP(4,3);
+	case AMOVF+AEND:	return SP(6,1);
 
-	case ASLLV:		return OP(7,0);
-	case ASRLV:		return OP(7,2);
-	case ASRAV:		return OP(7,3);
-	case ASLLV+ALAST:	return OP(7,4);
-	case ASRLV+ALAST:	return OP(7,6);
-	case ASRAV+ALAST:	return OP(7,7);
 	}
 	diag("bad irr %d\n", a);
 	return 0;

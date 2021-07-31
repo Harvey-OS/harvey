@@ -1,0 +1,116 @@
+% -*-LaTeX-*-
+% Converted automatically from troff to LaTeX by tr2tex on Tue Mar 17 20:49:26 1992
+% tr2tex was written by Kamal Al-Yahya at Stanford University
+% (Kamal%Hanauma@SU-SCORE.ARPA)
+
+
+\documentstyle[troffms,11pt]{article}
+\begin{document}
+%
+% input file: testfile
+%
+\par\noindent
+\def\dC{\delta C}
+\def\xx{x^x}
+\def\B{{\bf B}}
+\def\ov{\over  }
+
+\footer{\rm\thepage}
+\lefthead{Al-Yahya}
+\righthead{troff to TeX translator}
+\title{Testing the troff-to-tex translator}
+\author{Kamal Al-Yahya}
+\authoraff{Stanford University}
+\begin{abstract}
+This file demonstrates the use of  %
+\bf tr2tex %
+\rm which translates
+documents written in troff to a LaTeX style.
+Examples are given to show what the translator can do.
+\end{abstract}
+\par
+First let's test some equation written for the
+{\bf eqn}
+preprocessor:
+$$
+2 \left( 1 \ +\  \sqrt{\omega_{i+1} + \zeta -{x+1  \over \Theta +1} y + 1} \right)
+\ \ \ =\ \ \  1
+\eqno (1)$$
+$$
+\left[
+\matrix {
+   \matrix { e_1 \cr . \cr . \cr e_i \cr . \cr . \cr e_N }
+}
+\right]_{n+1} \ \ =\ \  y + 1
+$$
+$$
+{\bf X} + {\rm a} \ \ge\ 
+\under{\hat a} \kern0.20em \sum_i^N \lim_{{x} \to k} \dC
+$$
+$$
+\left( \ \it\hbox{speed} \times \ \it\hbox{time} = \ \it\hbox{distance travelled} \right)
+$$
+$$
+\tilde \beta i \ge \zeta \dC
+$$
+\begin{itemize}
+\item[{}]
+In-line math like $\beta +1$ which is surrounded by math delimiters, as
+defined by
+{\it delim}
+is also translated.
+\rm
+\end{itemize}\par
+Only simple tables are translated. Translation of more complicated tables
+is painful and I won't do it now. Here is an example:
+\par
+\begin{tabular}{lrcc}
+name	 &  type		 &  color	 &  value\\
+$\alpha$	 &  real		 &  red	 &  2.3\\
+$x$	 &  imaginary	 &  green	 &  -1.2\\
+$a + 2$	 &  real		 &  white	 &  0.0
+\end{tabular}
+\par
+% this is a commented text
+\par
+Now we start a figure.
+\begin{figure}
+\par\vspace{3.0in}
+\caption{
+This is the caption of the figure.
+}\end{figure}
+\par
+Try some floating objects.
+\nwl
+{\nobreak
+This text should be kept in one page. i.e. a page break is discouraged here.
+}
+\nwl
+Now a floating text.
+\begin{figure}
+This text should be kept in one page even if we had to move it around,
+since it is a
+{\it floating}
+object. This is a boxed
+\fbox{word.}
+\end{figure}
+\nwl
+These characters are special in TeX, so they need to be escaped
+in the translation \% \& \# \_, while these characters have to be
+printed in math mode $<$ $>$ $|$. 
+\footnote{
+This is a footnote
+}
+\par
+\ACK
+Thanks to all of those who contributed by reporting bugs and suggesting
+some improvements. Special thanks go to Nelson Beebe for all of his valuable
+contributions and suggestions. He is responsible for making the translator
+portable to other computers. He also made significant improvements to
+the translation of manuals.
+\REF
+\reference{Knuth, D.E., 1984, The TeXBook, Addison-Wesley Publishing Company.}
+\reference{Lamprt, L., 1986, LaTeX: user's guide \& reference manual, Addison-Wesley Publishing Company.}
+\reference{Lesk, M.E., 1978, Typing documents on the UNIX system: using the -ms macros with troff and nroff, UNIX programmer's manual, v. 2B, sec. 3.}
+\reference{McGilton, H. and Morgan, R., 1983, Introducing the UNIX system, McGraw-Hill Book Company.}
+\end{document}

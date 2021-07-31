@@ -74,22 +74,10 @@ static const char wstab[] = {
 };
 
 void
-clearwstab(void)
-{
-	int i;
-
-	for (i = 0; i < sizeof(wstab); i++)
-		wstab[i] = 0;
-}
-
-void
 maketokenrow(int size, Tokenrow *trp)
 {
 	trp->max = size;
-	if (size>0)
-		trp->bp = (Token *)domalloc(size*sizeof(Token));
-	else
-		trp->bp = NULL;
+	trp->bp = (Token *)domalloc(size*sizeof(Token));
 	trp->tp = trp->bp;
 	trp->lp = trp->bp;
 }
@@ -312,15 +300,8 @@ puttokens(Tokenrow *trp)
 			len += tp->wslen+tp->len;
 		}
 		if (Mflag==0) {
-			if (len>OBS/2) {		/* handle giant token */
-				if (wbp > wbuf)
-					write(1, wbuf, wbp-wbuf);
-				write(1, p, len);
-				wbp = wbuf;
-			} else {	
-				memcpy(wbp, p, len);
-				wbp += len;
-			}
+			memcpy(wbp, p, len);
+			wbp += len;
 		}
 		if (wbp >= &wbuf[OBS]) {
 			write(1, wbuf, OBS);

@@ -1,0 +1,4 @@
+TEXT _SEEK(SB), $0
+MOVL $16, AX
+INT $64
+RET

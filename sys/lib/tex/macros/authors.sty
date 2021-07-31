@@ -1,0 +1,321 @@
+% Allows a copyto line to be created for persons in authordata base
+% must have defined two tab stops, e.g.
+%   \copyto{\nobreak\begin{tabbing}
+%   \hskip2in\=WW \=\kill
+%   \copytoline{tla}\\
+%   \copytoline{xyz}
+%   \end{tabbing}
+%
+\def\copytoline#1{\authornumber=20%
+  \authordata{#1}{\noindent\his{tm@author}}\>\protect\his{tm@location}%
+  \>\his{tm@office}\advance\authornumber by-1}
+
+% Add entries for each author you want to be able to use by the code
+% in the `compare'.  End each line with % or the copytoline above will
+% have unwanted spaces.
+\def\authordata#1{%
+  \compare{fml}{#1}\ifitssame% 
+    \author{F.\ M.\ Lax}%
+    \initials{FML}% 
+    \eaddress{cblph!fml}% 
+    \department{59110}%
+    \location{CB}{3Q-255}{5400}% 
+    \cityaddr{Columbus, OH\quad 43213}% 
+    \fi% 
+% 
+% 59114 
+% 
+  \compare{tla}{#1}\ifitssame%
+    \author{Terry L Anderson}% 
+    \initials{TLA}% 
+    \signatureextra{Reuse Technology Group\\Software Architecture Department}%
+    \eaddress{tla@bartok.att.com}% 
+    \department{59114}%
+    \location{LC}{4N-E01}{4428}% 
+    \cityaddr{Warren, NJ\quad 07059-0908}% 
+    \fi% 
+  \compare{llrose}{#1}\ifitssame%
+    \author{Lawrence L.\  Rose}% 
+    \initials{LLR}% 
+    \signatureextra{Reuse Technology Group\\Software Architecture Department}%
+    \eaddress{llrose@bartok.att.com}% 
+    \department{59114}%
+    \location{LC}{4N-E01}{4086}% 
+    \cityaddr{Warren, NJ\quad 07059-0908}% 
+    \fi% 
+  \compare{pgw}{#1}\ifitssame% 
+    \author{P.\ Warty}% 
+    \initials{PGW}%
+    \signatureextra{Reuse Technology Group\\Software Architecture Department}% 
+    \eaddress{hr3ar!pgw}% 
+    \department{59114}%
+    \location{HR}{2K-194}{4444}% 
+    \cityaddr{Middletown, NJ\quad 07748-3052}%
+    \fi% 
+  \compare{gas}{#1}\ifitssame% 
+    \author{G.\ A.\ Secor}%
+    \initials{GAS}% 
+    \eaddress{mozart!gas}% 
+    \department{59114}%
+    \location{LC}{4N-W11}{4377}% 
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi% 
+  \compare{jfm}{#1}\ifitssame% 
+    \author{J.\ F.\ Maranzanno}%
+    \initials{JFM}% 
+    \signatureextra{Software Architecture Department}%
+    \eaddress{mozart!jfm}% 
+    \department{59114}%
+    \location{LC}{4N-G16}{4520}% 
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+  \compare{kanwal}{#1}\ifitssame% 
+    \author{Kanwalinder Singh}% 
+    \initials{KS}%
+    \signatureextra{Reuse Technology Group\\Software Architecture Department}% 
+    \eaddress{mozart!kanwal}% 
+    \department{59114}%
+    \location{HR}{2H-182}{4624}% 
+    \cityaddr{Middletown, NJ\quad 07748-3052}%
+    \fi% 
+  \compare{kec}{#1}\ifitssame% 
+    \author{Kathleen Culver-Lozo}% 
+    \initials{KEC}%
+    \signatureextra{RAPID Technology Transfer Group\\Software Architecture Department}% 
+    \eaddress{homxc!kec}% 
+    \department{59114}%
+    \location{HR}{2F-239}{5307}% 
+    \cityaddr{Middletown, NJ\quad 07748-3052}%
+    \fi% 
+  \compare{sha}{#1}\ifitssame% 
+    \author{Steve Adachi}% 
+    \initials{SHA}%
+    \signatureextra{Productivity Technology Planning Group\\Software Architecture Department}% 
+    \eaddress{hrmso!sha}% 
+    \department{59114}%
+    \location{HR}{2L-109}{4207}% 
+    \cityaddr{Middletown, NJ\quad 07748-3052}%
+    \fi% 
+  \compare{dsa}{#1}\ifitssame%
+    \author{D.\ S.\ Albright}%
+    \initials{DSA}%
+    \eaddress{kaiser!dsa}%
+    \department{59114}%
+    \location{LC}{4N-E05}{4053}%
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+  \compare{helen}{#1}\ifitssame%
+    \author{H.\ V.\ Diamantidis}%
+    \initials{HVD}%
+    \eaddress{mozart!helen}%
+    \department{59114}%
+    \location{LC}{4N-G14}{4404}%
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+  \compare{msg}{#1}\ifitssame%
+    \author{M.\ Guthrie}%
+    \initials{MSG}%
+    \eaddress{mozart!msg}%
+    \department{59114}%
+    \location{LC}{4N-D19}{4822}%
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+  \compare{flint}{#1}\ifitssame%
+    \author{William F.\  Mershon}%
+    \initials{WFM}%
+    \signatureextra{Reuse Technology Group\\Software Architecture Department}%
+    \eaddress{flint@bartok.att.com}%
+    \department{59114}%
+    \location{LC}{4N-E08}{4996}%
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+  \compare{pebrown}{#1}\ifitssame%
+    \author{Philip E.\  Brown}%
+    \initials{PEB}%
+    \signatureextra{Reuse Technology Group\\Software Architecture Department}%
+    \eaddress{pebrown@homxc.att.com}%
+    \department{59114}%
+    \location{HR}{2F-239}{5150}%
+    \cityaddr{Middletown, NJ\quad 07748-3052}%
+    \fi%
+  \compare{kordonov}{#1}\ifitssame%
+    \author{Steven Adamski}%
+    \initials{SJA}%
+    \signatureextra{Reuse Technology Group\\Software Architecture Department}%
+    \eaddress{kornonov@bartok.att.com}%
+    \department{59114}%
+    \location{LC}{4N-E05}{4983}%
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+%
+% 59112
+%
+  \compare{jwh}{#1}\ifitssame%
+    \author{J.\ W.\ Hunt}%
+    \initials{JWH}%
+    \signatureextra{Software Systems Department}%
+    \eaddress{mozart!wayne}%
+    \department{59112}%
+    \location{LC}{4N-F15}{4420}%
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+  \compare{slv}{#1}\ifitssame%
+    \author{Susan Vogel}%
+    \initials{SLV}%
+    \signatureextra{Languages Technology Group\\Software Systems Department}%
+    \eaddress{mozart!slv}%
+    \department{59112}%
+    \location{LC}{4N-D15}{4464}%
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+  \compare{carroll}{#1}\ifitssame%
+    \author{Martin D. Carroll}%
+    \initials{MDC}%
+    \signatureextra{Languages Tools Group}%
+    \eaddress{carroll@mozart.att.com}%
+    \department{59112}%
+    \location{LC}{4N-D02}{4373}%
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+  \compare{lhs}{#1}\ifitssame%
+    \author{L.\ H.\ Scholler}%
+    \initials{LHS}%
+    \signatureextra{Software Tools \& Development\\Environment Planning Group}%
+    \eaddress{bloom!lhs}%
+    \department{59112}%
+    \location{LC}{4N-D19}{4359}%
+    \cityaddr{Warren, NJ\quad 07059-0908}%
+    \fi%
+%
+% 59115
+%
+  \compare{drr}{#1}\ifitssame%
+    \author{D.\ R.\ Ryan}%
+    \initials{DRR}%
+    \eaddress{cbosgd!drr}%
+    \department{59115}%
+    \location{CB}{1B-252}{6736}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{jph}{#1}\ifitssame%
+    \author{J.\ P.\ Holtman}%
+    \initials{JPH}%
+    \eaddress{cbdkc1!jph}%
+    \department{59116}%
+    \location{CB}{1B-288}{2214}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{djb}{#1}\ifitssame%
+    \author{D.\ J.\ Bryant}%
+    \initials{DJB}%
+    \eaddress{cbosgd!djb}%
+    \department{59115}%
+    \location{CB}{1D-242}{4516}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{mab}{#1}\ifitssame%
+    \author{M.\ A.\ Burgbacher}%
+    \initials{MAB}%
+    \eaddress{cbosgd!mab}%
+    \department{59115}%
+    \location{CB}{1E-275}{5899}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{smk}{#1}\ifitssame%
+    \author{S.\ M.\ Kennedy}%
+    \initials{SMK}%
+    \eaddress{cbosgd!smk}%
+    \department{59115}%
+    \location{CB}{1K-232}{7133}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{tkm}{#1}\ifitssame%
+    \author{T.\ K.\ Mielke}%
+    \initials{TKM}%
+    \eaddress{cbosgd!tkm}%
+    \department{59115}%
+    \location{CB}{1D-245}{4684}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{heather}{#1}\ifitssame%
+    \author{H.\ L.\ Oppenheimer}%
+    \initials{HLO}%
+    \eaddress{cbosgd!heather}%
+    \department{59115}%
+    \location{CB}{1E-289}{3433}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{jar}{#1}\ifitssame%
+    \author{J.\ A.\ Ritter}%
+    \initials{JAR}%
+    \eaddress{cbosgd!jar}%
+    \department{59115}%
+    \location{CB}{1E-289}{2340}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{pds}{#1}\ifitssame%
+    \author{P.\ D.\ Sullivan}%
+    \initials{PDS}%
+    \eaddress{cbosgd!pds}%
+    \department{59115}%
+    \location{CB}{1E-225}{2655}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{rwt}{#1}\ifitssame%
+    \author{R.\ W.\ Tower}%
+    \initials{RWT}%
+    \eaddress{cbosgd!rwt}%
+    \department{59115}%
+    \location{CB}{1K-217}{5170}%
+    \cityaddr{Columbus, OH\quad 43213}%
+    \fi%
+  \compare{rich}{#1}\ifitssame%
+    \author{R.\ J.\ Schwarz}%
+    \initials{RJS}%
+    \eaddress{hrals!rich}%
+    \department{59111}%
+    \location{HR}{2F-231}{5297}%
+    \cityaddr{Middletown, NJ\quad 07748-3052}%
+    \fi%
+%
+% 59113
+%
+  \compare{dgb}{#1}\ifitssame%
+    \author{D.\ G.\ Belanger}% 
+    \initials{DGB}% 
+    \signatureextra{Advanced Software Department}%
+    \eaddress{dgb@ulysses.att.com}% 
+    \department{59113}%
+    \location{MH}{3C-526A}{7427}% 
+    \cityaddr{Murray Hill, NJ\quad 07974-2070}%
+    \fi% 
+  \compare{kpv}{#1}\ifitssame%
+    \author{Kiem-Phong Vo}% 
+    \initials{KPV}% 
+    \signatureextra{Advanced Computer Systems Group\\Advanced Software Department}%
+    \eaddress{kpv@ulysses.att.com}% 
+    \department{59113}%
+    \location{MH}{3C-536A}{4869}% 
+    \cityaddr{Murray Hill, NJ\quad 07974-2070}%
+    \fi% 
+   \compare{bala}{#1}\ifitssame%
+     \author{Bala Krishnamurthy}%
+     \initials{BALA}%
+    \signatureextra{Advanced Computer Systems Group\\Advanced Software Department}%
+     \eaddress{bala@ulysses.att.com}%
+     \department{59113}%
+     \location{MH}{3D-561}{7464}% 
+     \cityaddr{Murray Hill, NJ\quad 07974-2070}% 
+     \fi%
+   \compare{yen}{#1}\ifitssame%
+     \author{Yennun Huang}%
+     \initials{YH}%
+     \signatureextra{Advanced Programming Environment Group\\Advanced Software Department}%
+     \eaddress{yen@ulysses.att.com}%
+     \department{59113}%
+     \location{MH}{3D-541}{5406}% 
+     \cityaddr{Murray Hill, NJ\quad 07974-2070}% 
+     \fi%
+
+}%
+

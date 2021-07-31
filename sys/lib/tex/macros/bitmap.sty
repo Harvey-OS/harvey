@@ -1,0 +1,50 @@
+\newdimen\bitdotsize\bitdotsize=1pt
+\newcount\bitmapwidth\bitmapwidth=48%
+\newcount\bitmapheight\bitmapheight=48%
+\newcount\bitcol\bitcol=0%
+\newcount\bitrow\bitrow=0%
+\newcount\bitbyteswide\bitbyteswide=6%
+\newsavebox{\bitzero}
+\newsavebox{\bitone}
+\newsavebox{\bittwo}
+\newsavebox{\bitthree}
+\newsavebox{\bitfour}
+\newsavebox{\bitfive}
+\newsavebox{\bitsix}
+\newsavebox{\bitseven}
+\newsavebox{\biteight}
+\newsavebox{\bitnine}
+\newsavebox{\bita}
+\newsavebox{\bitb}
+\newsavebox{\bitc}
+\newsavebox{\bitd}
+\newsavebox{\bite}
+\newsavebox{\bitf}
+\def\initbitmap{
+  \def\bitdot{\vrule height\bitdotsize width\bitdotsize depth0pt}%
+%  \def\bitblank{\vbox to\bitdotsize{\hbox to\bitdotsize{}}}%    
+  \def\bitblank{\hskip\bitdotsize}%
+  \sbox{\bitzero}{\bitblank\bitblank\bitblank\bitblank}%
+  \sbox{\bitone}{\bitdot\bitblank\bitblank\bitblank}%
+  \sbox{\bittwo}{\bitblank\bitdot\bitblank\bitblank}%
+  \sbox{\bitthree}{\bitdot\bitdot\bitblank\bitblank}%
+  \sbox{\bitfour}{\bitblank\bitblank\bitdot\bitblank}%
+  \sbox{\bitfive}{\bitdot\bitblank\bitdot\bitblank}%
+  \sbox{\bitsix}{\bitblank\bitdot\bitdot\bitblank}%
+  \sbox{\bitseven}{\bitdot\bitdot\bitdot\bitblank}%
+  \sbox{\biteight}{\bitblank\bitblank\bitblank\bitdot}%
+  \sbox{\bitnine}{\bitdot\bitblank\bitblank\bitdot}%
+  \sbox{\bita}{\bitblank\bitdot\bitblank\bitdot}%
+  \sbox{\bitb}{\bitdot\bitdot\bitblank\bitdot}%
+  \sbox{\bitc}{\bitblank\bitblank\bitdot\bitdot}%
+  \sbox{\bitd}{\bitdot\bitblank\bitdot\bitdot}%
+  \sbox{\bite}{\bitblank\bitdot\bitdot\bitdot}%
+  \sbox{\bitf}{\bitdot\bitdot\bitdot\bitdot}
+  \advance\bitbyteswide by-1
+  \def\bitstep{%
+    \ifnum\bitcol>\bitbyteswide\advance\bitrow by1\bitcol=0%
+       \hfill\break%
+       \fi\advance\bitcol by1\relax}%
+}
+
+

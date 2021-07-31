@@ -1,0 +1,118 @@
+This is dvips 5.490, a minor update to 5.47.  Please check it out and let
+me know of any further changes that should be made for 5.5.
+
+Warning:  the new dvips 5.483 (and later) uses a very different
+texps.lpro and different psfonts.map entries for slanted or extended
+fonts, even from 5.482.  If you use this on a NeXT, get TeXview 3.0
+alpha 7 or later.  In any case, change all entries in your local
+psfonts.map file that look like
+
+   rptmr Times-Oblique "/Times-Roman .167 SlantFont"
+
+to just
+
+   rptmr Times-Roman ".167 SlantFont"
+
+Note that we now use the unmodified font name as the second entry,
+and the special instructions do not provide a font name.
+
+I also need someone who knows troff to create a new, very short dvips.1
+that just points at dvips.tex, and I need someone with VMS to update the
+VMS port, and someone with CMS to update if possible the CMS port.
+
+Major new features:  color support, much better paper size support.
+
+New features:
+
+   Note that the color command will accept any PostScript commands,
+      including setcmycolor, setrgbcolor, etc.  The actual
+      specials recognized are `background <cmds>', `color push <cmds>',
+      `color pop', and `color <cmds>'.
+   The -a option will reduce the memory requirements,
+      especially at high resolutions, but it will run slower.
+   Added papersize= special, papersize support in config file
+   Added horizontal, vertical offsets for output
+   Added %DVIPSSection comments
+   If -p or -l options have argument preceded by =, then the page
+      numbers are treated as sequence rather than count0 values.
+   Added optional clipping to epsf inclusion
+   Allow popen for plotfile (first character of name `)
+   Added built-in command-line option help
+   Added option to create separate output files for each section
+   Added option to set the maximum number of pages for each section
+   Added MAKETEXPK environment variable for alternative command
+   Added support for MSDOS binary .pfb files
+   -M now creates a file `missfont.log' for all fonts that were needed
+      but not created; this file can be executed to generate the fonts.
+   VM/CMS support added.
+   The p configuration file option can now be used as `p+', meaning
+      `read in an additional psfonts map file', rather than just
+      overriding the default one.  You can read in as many such files
+      as you desire.
+   Added -k to print crop marks; also increases desired page size.
+      Should use special{papersize=} or -T with this.
+   Added -T option to specify desired page size in whatever units,
+      to complement -t to specify desired page size by name.  Can
+      use -t to specify paper format that sets size automatically
+      (such as film0 or film1) *and* -T to set desired size.
+   The -E option will create an EPSF file with a tight bounding
+      box.  Fails if you have a multi-page file, or if you
+      include any PS graphics.  Intended for creating simple
+      tables and equations or whatnot as EPSF.
+   Resident PostScript fonts now use almost no memory!
+   Added ability to re-encode PostScript fonts with PostScript
+      vectors and/or vf fonts.
+   The afm2tfm now prints out the psfonts.map entry you need to add.
+   Now uses (or approximates) header file VM for more accurate budgeting.
+   The -b option will allow color separation or poster or other fancy
+      printing options that require the page `text' be repeated a constant
+      number of times.  (See config.post3x3).
+
+Bug fixes:
+
+   Minor changes to MakeTeXPK to get around poor gftopk ports
+   Fixed some bugs in tpic support
+   Fixed bug in EPSF inclusion when file name as _ and _ is active
+   Unfixed that bug since it caused other bugs.
+   Fixed EPSF incompatibility with macro packages that redefine \empty
+   Fixed subtle psfig scaling problem
+   Improved spacing for characters with negative widths
+   Worked around problem with Blue Sky CM/PostScript fonts
+   Worked around a full md directory with Mac System 7.
+   Fixed bug in using PostScript fonts and different h/v resolutions.
+   Uses cmr10.tfm if a TFM file can't be found.
+   Made @beginspecia/@endspecial clean up the stack more like
+      Adobe says it should.
+   Made color work even when pages selected, reversed, -C used, -a
+      used, etc.  (Pretty much rewritten from scratch.)
+   Made PostScript fonts come out the correct size.  (Previously
+      the fonts were too small by 3/800 or less than .4%.)
+   Made psfig work, even with files that define /a to be something else.
+   Fixed header file bug; no idea how it crept in.
+
+Unfortunates:
+
+   Removed all occurences of /name /operator load def, even though this
+      costs a slight speed penalty, because I'm sick of working around
+      everyone else's bind problems.
+
+Aesthetic or pedagogical changes:
+
+   Landscape rotated 180 degrees to fit PostScript conventions
+   Shortened makefile
+   Added accent fixes to psfonts.sty
+   Man page removed (anyone want to write a short man page, that refers to the
+      dvips.tex manual, which will be in the TeX input path from now on?)
+   Limited number of errors due to specials
+   Made % expansion in path apply on a per-path-element basis rather than
+      overall
+   Removed t option in configuration file (use @ instead)
+   Removed default paths (why default paths?  User should set on compilation)
+   Removed possibility to use long name as PostScript font name.
+
+afm2tfm:
+
+   Turned off ligatures in fixed-pitch fonts
+   Made bad kern pairs in AFM files a warning, rather than a fatal error
+   Removed accent ligatures from PostScript fonts for compatibility with plain
+   Added automatic derivation of a PostScript space character

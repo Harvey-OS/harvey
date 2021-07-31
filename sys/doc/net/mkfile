@@ -1,13 +1,11 @@
-</sys/doc/fonts
+TYPESETTER=post
 
-DEPS	=	net.ms\
+DEPS	=	cs.ms\
+		library.ms\
+		net.ms\
+		perf.ms\
+		streams.ms\
 		tree.pout
 
-net.ps:D:	$DEPS
-	{ echo $FONTS; cat net.ms } | tbl | troff -ms | lp -dstdout > net.ps
-
-net.trout:D:	$DEPS
-	{ echo $FONTS; cat net.ms } | tbl | troff -ms > net.trout
-
-tree.pout:D:	tree
-	pic tree > tree.pout
+net.out: $DEPS
+	tbl net.ms | troff -ms > net.out

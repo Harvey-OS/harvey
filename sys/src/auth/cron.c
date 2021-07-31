@@ -1,0 +1,607 @@
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include <auth.h>
+#include "authsrv.h"
+
+char CRONLOG[] = "cron";
+
+typedef struct Job	Job;
+typedef struct Time	Time;
+typedef struct User	User;
+
+struct Time{			/* bit masks for each valid time */
+	ulong	min;			/* actually 1 bit for every 2 min */
+	ulong	hour;
+	ulong	mday;
+	ulong	wday;
+	ulong	mon;
+};
+
+struct Job{
+	char	host[NAMELEN];		/* where ... */
+	Time	time;			/* when ... */
+	char	*cmd;			/* and what to execute */
+	Job	*next;
+};
+
+struct User{
+	char	name[NAMELEN];		/* who ... */
+	Job	*jobs;			/* wants to execute these jobs */
+};
+
+User	*users;
+int	nuser;
+int	maxuser;
+char	*savec;
+char	*savetok;
+int	tok;
+int	debug;
+ulong	lexval;
+
+void	rexec(User*, Job*);
+void	readalljobs(void);
+Job	*readjobs(char*, User*);
+int	getname(char*);
+ulong	gettime(int, int);
+int	gettok(int, int);
+void	pushtok(void);
+void	usage(void);
+void	freejobs(Job*);
+User	*newuser(char*);
+void	*emalloc(ulong);
+void	*erealloc(void*, ulong);
+char	*myauth(int, char*, char*, char*);
+void	createuser(void);
+int	mkcmd(char*, char*, int);
+void	printjobs(void);
+
+void
+main(int argc, char *argv[])
+{
+	Job *j;
+	Tm tm;
+	Time t;
+	ulong now, last, x;
+	int i;
+
+	debug = 0;
+	ARGBEGIN{
+	case 'c':
+		createuser();
+		exits(0);
+	case 'd':
+		debug = 1;
+		break;
+	default:
+		usage();
+	}ARGEND
+	USED(argc, argv);
+
+	if(debug){
+		readalljobs();
+		printjobs();
+		exits(0);
+	}
+
+	switch(fork()){
+	case -1:
+		error("can't fork");
+	case 0:
+		break;
+	default:
+		exits(0);
+	}
+
+	argv0 = "cron";
+	srand(getpid()*time(0));
+	last = time(0) / 60;
+	for(;;){
+		readalljobs();
+		now = time(0) / 60;
+		for(; last <= now; last += 2){
+			tm = *localtime(last*60);
+			t.min = 1 << tm.min/2;
+			t.hour = 1 << tm.hour;
+			t.wday = 1 << tm.wday;
+			t.mday = 1 << tm.mday;
+			t.mon = 1 << (tm.mon + 1);
+			for(i = 0; i < nuser; i++)
+				for(j = users[i].jobs; j; j = j->next)
+					if(j->time.min & t.min && j->time.hour & t.hour
+					&& j->time.wday & t.wday
+					&& j->time.mday & t.mday && j->time.min & t.min)
+						rexec(&users[i], j);
+		}
+		x = time(0) / 60;
+		if(x - now < 2)
+			sleep((2 - (x - now))*60*1000);
+	}
+	exits(0);
+}
+
+void
+createuser(void)
+{
+	Dir d;
+	char file[3*NAMELEN], *user;
+	int fd;
+
+	user = getuser();
+	sprint(file, "/cron/%s", user);
+	fd = create(file, OREAD, 0755|CHDIR);
+	if(fd < 0){
+		fprint(2, "couldn't create %s: %r\n", file);
+		exits("create");
+	}
+	dirfstat(fd, &d);
+	strncpy(d.gid, user, NAMELEN);
+	dirfwstat(fd, &d);
+	close(fd);
+	sprint(file, "/cron/%s/cron", user);
+	fd = create(file, OREAD, 0644);
+	if(fd < 0){
+		fprint(2, "couldn't create %s: %r\n", file);
+		exits("create");
+	}
+	dirfstat(fd, &d);
+	strncpy(d.gid, user, NAMELEN);
+	dirfwstat(fd, &d);
+	close(fd);
+}
+
+void
+readalljobs(void)
+{
+	User *u;
+	Dir d[64], db;
+	char file[3*NAMELEN];
+	int i, n, fd;
+	ulong now;
+	static ulong lasttime;
+
+	now = time(0);
+	fd = open("/cron", OREAD);
+	if(fd < 0)
+		error("can't open /cron\n");
+	while((n = dirread(fd, d, sizeof d)) > 0){
+		n /= sizeof d[0];
+		for(i = 0; i < n; i++){
+			if(strcmp(d[i].name, "log") == 0)
+				continue;
+			if(strcmp(d[i].name, d[i].uid) != 0){
+				syslog(1, CRONLOG, "cron for %s owned by %s\n", d[i].name, d[i].uid);
+				continue;
+			}
+			u = newuser(d[i].name);
+			sprint(file, "/cron/%s/cron", d[i].name);
+			if(dirstat(file, &db) < 0)
+				continue;
+			if(lasttime < db.mtime){
+				freejobs(u->jobs);
+				u->jobs = readjobs(file, u);
+			}
+		}
+	}
+	lasttime = now;
+	close(fd);
+}
+
+/*
+ * parse user's cron file
+ * other lines: minute hour monthday month weekday host command
+ */
+Job *
+readjobs(char *file, User *user)
+{
+	Biobuf *b;
+	Job *j, *jobs;
+	int line;
+
+	b = Bopen(file, OREAD);
+	if(!b)
+		return 0;
+	jobs = 0;
+	for(line = 1; savec = Brdline(b, '\n'); line++){
+		savec[Blinelen(b) - 1] = '\0';
+		while(*savec == ' ' || *savec == '\t')
+			savec++;
+		if(*savec == '#' || *savec == '\0')
+			continue;
+		if(strlen(savec) > 1024){
+			syslog(0, CRONLOG, "%s: line %d: line too long", user->name, line);
+			continue;
+		}
+		j = emalloc(sizeof *j);
+		if((j->time.min = gettime(0, 59))
+		&& (j->time.hour = gettime(0, 23))
+		&& (j->time.mday = gettime(1, 31))
+		&& (j->time.mon = gettime(1, 12))
+		&& (j->time.wday = gettime(0, 6))
+		&& getname(j->host)){
+			j->cmd = emalloc(strlen(savec) + 1);
+			strcpy(j->cmd, savec);
+			j->next = jobs;
+			jobs = j;
+		}else{
+			syslog(0, CRONLOG, "%s: line %d: syntax error", user->name, line);
+			free(j);
+		}
+	}
+	Bclose(b);
+	return jobs;
+}
+
+void
+printjobs(void)
+{
+	char buf[8*1024];
+	Job *j;
+	int i;
+
+	for(i = 0; i < nuser; i++){
+		print("user %s\n", users[i].name);
+		for(j = users[i].jobs; j; j = j->next){
+			if(!mkcmd(j->cmd, buf, sizeof buf))
+				print("\tbad job %s on host %s\n", j->cmd, j->host);
+			else
+				print("\tjob %s on host %s\n", buf, j->host);
+		}
+	}
+}
+
+User *
+newuser(char *name)
+{
+	int i;
+
+	for(i = 0; i < nuser; i++)
+		if(strcmp(users[i].name, name) == 0)
+			return &users[i];
+	if(nuser == maxuser){
+		maxuser += 32;
+		users = erealloc(users, maxuser * sizeof *users);
+	}
+	strcpy(users[nuser].name, name);
+	users[nuser].jobs = 0;
+	return &users[nuser++];
+}
+
+void
+freejobs(Job *j)
+{
+	Job *fj;
+
+	for(fj = j; fj; fj = j){
+		j = j->next;
+		free(fj);
+	}
+}
+
+int
+getname(char *name)
+{
+	int c;
+	int i;
+
+	if(!savec)
+		return 0;
+	while(*savec == ' ' || *savec == '\t')
+		savec++;
+	for(i = 0; (c = *savec) && c != ' ' && c != '\t'; i++){
+		if(i == NAMELEN - 1)
+			return 0;
+		name[i] = *savec++;
+	}
+	name[i] = '\0';
+	while(*savec == ' ' || *savec == '\t')
+		savec++;
+	return i;
+}
+
+/*
+ * return the next time range in the file:
+ * times: '*'
+ * 	| range
+ * range: number
+ *	| number '-' number
+ *	| range ',' range
+ * a return of zero means a syntax error was discovered
+ */
+ulong
+gettime(int min, int max)
+{
+	ulong n, m, e;
+
+	if(gettok(min, max) == '*')
+		return ~0;
+	n = 0;
+	while(tok == '1'){
+		m = 1 << lexval;
+		n |= m;
+		if(gettok(0, 0) == '-'){
+			if(gettok(lexval, max) != '1')
+				return 0;
+			e = 1 << lexval;
+			for( ; m <= e; m <<= 1)
+				n |= m;
+			gettok(min, max);
+		}
+		if(tok != ',')
+			break;
+		if(gettok(min, max) != '1')
+			return 0;
+	}
+	pushtok();
+	return n;
+}
+
+void
+pushtok(void)
+{
+	savec = savetok;
+}
+
+int
+gettok(int min, int max)
+{
+	char c;
+
+	savetok = savec;
+	if(!savec)
+		return tok = 0;
+	while((c = *savec) == ' ' || c == '\t')
+		savec++;
+	switch(c){
+	case '0': case '1': case '2': case '3': case '4':
+	case '5': case '6': case '7': case '8': case '9':
+		lexval = strtoul(savec, &savec, 10);
+		if(lexval < min || lexval > max)
+			return tok = 0;
+		if(max > 32)
+			lexval /= 2;			/* yuk: correct min by / 2 */
+		return tok = '1';
+	case '*': case '-': case ',':
+		savec++;
+		return tok = c;
+	default:
+		return tok = 0;
+	}
+}
+
+int
+call(char *host)
+{
+	char *na, *p;
+
+	na = netmkaddr(host, 0, "rexexec");
+	p = utfrune(na, L'!');
+	if(!p)
+		return -1;
+	p = utfrune(p+1, L'!');
+	if(!p)
+		return -1;
+	if(strcmp(p, "!rexexec") != 0)
+		return -2;
+	return dial(na, 0, 0, 0);
+}
+
+/*
+ * convert command to run properly on the remote machine
+ * need to escape the quotes wo they don't get stripped
+ */
+int
+mkcmd(char *cmd, char *buf, int len)
+{
+	char *p;
+	int n, m;
+
+	n = sizeof "exec rc -c '" -1;
+	if(n >= len)
+		return 0;
+	strcpy(buf, "exec rc -c '");
+	while(p = utfrune(cmd, L'\'')){
+		p++;
+		m = p - cmd;
+		if(n + m + 1 >= len)
+			return 0;
+		strncpy(&buf[n], cmd, m);
+		n += m;
+		buf[n++] = '\'';
+		cmd = p;
+	}
+	m = strlen(cmd);
+	if(n + m + sizeof "'</dev/null>/dev/null>[2=1]" >= len)
+		return 0;
+	strcpy(&buf[n], cmd);
+	strcpy(&buf[n+m], "'</dev/null>/dev/null>[2=1]");
+	return 1;
+}
+
+void
+rexec(User *user, Job *j)
+{
+	char buf[8*1024], *key, *err;
+	int fd;
+
+	switch(rfork(RFPROC|RFNOWAIT|RFNAMEG|RFENVG|RFFDG)){
+	case 0:
+		break;
+	case -1:
+		syslog(0, CRONLOG, "can't fork a job for %s: %r\n", user->name);
+	default:
+		return;
+	}
+	key = findkey(user->name);
+	if(!key){
+		syslog(0, CRONLOG, "%s: key not found", user->name);
+		_exits(0);
+	}
+
+	if(!mkcmd(j->cmd, buf, sizeof buf)){
+		syslog(0, CRONLOG, "internal error: cmd buffer overflow");
+		_exits(0);
+	}
+
+	/*
+	 * remote call, auth, cmd with no i/o
+	 * give it 2 min to complete
+	 */
+	alarm(2*60*1000);
+	fd = call(j->host);
+	if(fd < 0){
+		if(fd == -2){
+			syslog(0, AUTHLOG, "%s: dangerous host %s", user->name, j->host);
+			syslog(0, CRONLOG, "%s: dangerous host %s", user->name, j->host);
+		}
+		syslog(0, CRONLOG, "%s: can't call '%s'", user->name, j->host);
+		_exits(0);
+	}
+	if(err = myauth(fd, user->name, j->host, key)){
+		syslog(0, CRONLOG, "%s: can't auth %s on %s: %s", user->name, j->cmd, j->host, err);
+		_exits(0);
+	}
+	write(fd, buf, strlen(buf)+1);
+	write(fd, buf, 0);
+	while(read(fd, buf, sizeof buf) > 0)
+		;
+	_exits(0);
+}
+
+void *
+emalloc(ulong n)
+{
+	void *p;
+
+	if(p = malloc(n))
+		return p;
+	error("out of memory");
+	return 0;
+}
+
+void *
+erealloc(void *p, ulong n)
+{
+	if(p = realloc(p, n))
+		return p;
+	error("out of memory");
+	return 0;
+}
+
+void
+usage(void)
+{
+	fprint(2, "usage: cron [-c]\n");
+	exits("usage");
+}
+
+enum{
+	CHALLEN	= 2*AUTHLEN + 2 * NAMELEN,
+	RESPLEN	= 2*AUTHLEN + NAMELEN + DESKEYLEN,
+	SULEN	= AUTHLEN + NAMELEN + DESKEYLEN,
+	MAXLEN	= 2*AUTHLEN + 2*NAMELEN + DESKEYLEN,
+};
+
+static void	gethostname(char*, char*);
+
+/*
+ * c -> h -> a	KC{KH{RXschal, hchal}, host, RXcchal, cchal}, client
+ * a -> h -> c	KC{KH{RXstick, hchal, client, KC}, RXctick, cchal}
+ * c -> h	KH{RXstick, hchal, client, KC}
+ */
+char *
+myauth(int tohost, char *user, char *dialstring, char *key)
+{
+	char buf[MAXLEN], hchal[AUTHLEN], chal[AUTHLEN], host[NAMELEN];
+	int i, j;
+
+	gethostname(host, dialstring);
+	/*
+	 * build the challenge to send to the server
+	 */
+	if(read(tohost, hchal, AUTHLEN) != AUTHLEN)
+		return "can't read server challenge";
+	i = 0;
+	memmove(&buf[i], hchal, AUTHLEN);
+	i += AUTHLEN;
+	strncpy(&buf[i], host, NAMELEN);
+	i += NAMELEN;
+	/*
+	 * just fake a random challenge
+	 */
+	buf[i++] = RXcchal;
+	for(j = 1; j < AUTHLEN; j++)
+		buf[i++] = chal[j] = nrand(256);
+	encrypt(key, buf, i);
+	strncpy(&buf[i], user, NAMELEN);
+	i += NAMELEN;
+
+	/*
+	 * send it and get the string to change the user name
+	 */
+	if(write(tohost, buf, i) != i)
+		return "can't write challenge";
+	if(read(tohost, buf, RESPLEN) != RESPLEN)
+		return "authentication failed";
+
+	/*
+	 * decrypt it and check the challenge string
+	 */
+	if(decrypt(key, buf, RESPLEN) < 0)
+		return "can't decrypt data";
+	i = AUTHLEN + NAMELEN + DESKEYLEN;
+	chal[0] = RXctick;
+	if(memcmp(chal, &buf[i], AUTHLEN) != 0)
+		return "challenge mismatch";
+	if(write(tohost, buf, SULEN) != SULEN)
+		return "can't write to server";
+	if(read(tohost, buf, 2) != 2 || buf[0] != 'O' || buf[1] != 'K')
+		return "server rejected connection";
+	return 0;
+}
+
+/*
+ * extract a host name from the dial string
+ * form [net!]host[!service]
+ * assumes net! over !service
+ * any leading slashes in host are ignored
+ * and then if host has a '.', it ends the name
+ *
+ * does not understand ip addresses like 135.102.117.34
+ */
+static void
+gethostname(char *name, char *dialstring)
+{
+	char *p, *q;
+	int n;
+
+	/*
+	 * strip optional net! and then !service
+	 */
+	n = NAMELEN - 1;
+	p = utfrune(dialstring, L'!');
+	if(p){
+		p++;
+		if(q = utfrune(p, L'!'))
+			n = q - p;
+	}else
+		p = dialstring;
+
+	/*
+	 * strip leading slashes
+	 */
+	while((q = utfrune(p, L'/')) && q < p + n){
+		q++;
+		n -= q - p;
+		p = q;
+	}
+	if(n > NAMELEN - 1)
+		n = NAMELEN - 1;
+	strncpy(name, p, n);
+	name[n] = '\0';
+	/*
+	 * wipe out \..*
+	 */
+	if(p = utfrune(name, '.'))
+		*p = '\0';
+}

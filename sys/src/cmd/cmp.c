@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
-#define		BUF		65536
+#define		BUF		8192
 
 int sflag = 0;
 int lflag = 0;

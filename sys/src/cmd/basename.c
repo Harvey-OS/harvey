@@ -5,28 +5,13 @@ void
 main(int argc, char *argv[])
 {
 	char *pr;
-	int n, dflag;
+	int n;
 
-	dflag = 0;
-	if(argc>1 && strcmp(argv[1], "-d") == 0){
-		--argc;
-		++argv;
-		dflag = 1;
-	}
 	if(argc < 2){
-		fprint(2, "usage: basename [-d] string [suffix]\n");
+		fprint(2, "usage: basename string [suffix]\n");
 		exits("usage");
 	}
 	pr = utfrrune(argv[1], '/');
-	if(dflag){
-		if(pr){
-			*pr = 0;
-			print("%s\n", argv[1]);
-			exits(0);
-		}
-		print(".\n");
-		exits(0);
-	}
 	if(pr)
 		pr++;
 	else

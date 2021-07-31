@@ -13,11 +13,11 @@ axis.  Find the intersection of the meridian thru (m,0), (90,0),
 with the parallel thru (0,p), (p1,p2) */
 
 static int
-twocircles(double m, double p, double p1, double p2, double *x, double *y)
+twocircles(float m, float p, float p1, float p2, float *x, float *y)
 {
-	double a;	/* center of meridian circle, a>0 */
-	double b;	/* center of parallel circle, b>0 */
-	double t,bb;
+	float a;	/* center of meridian circle, a>0 */
+	float b;	/* center of parallel circle, b>0 */
+	float t,bb;
 	if(m > 0) {
 		twocircles(-m,p,p1,p2,x,y);
 		*x = -*x;
@@ -45,7 +45,7 @@ twocircles(double m, double p, double p1, double p2, double *x, double *y)
 }		
 
 static int
-Xglobular(struct place *place, double *x, double *y)
+Xglobular(struct place *place, float *x, float *y)
 {
 	twocircles(-2*place->wlon.l/PI,
 		2*place->nlat.l/PI, place->nlat.c, place->nlat.s, x, y);
@@ -59,7 +59,7 @@ globular(void)
 }
 
 static int
-Xvandergrinten(struct place *place, double *x, double *y)
+Xvandergrinten(struct place *place, float *x, float *y)
 {
 	double t = 2*place->nlat.l/PI;
 	double abst = fabs(t);

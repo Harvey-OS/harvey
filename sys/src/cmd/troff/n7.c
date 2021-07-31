@@ -2,11 +2,6 @@
 #include "fns.h"
 #include "ext.h"
 
-#ifdef STRICT
-	/* not in ANSI or POSIX */
-#define	isascii(a) ((a) >= 0 && (a) <= 127)
-#endif
-
 #define GETCH gettch
 Tchar	gettch(void);
 
@@ -29,7 +24,7 @@ void tbreak(void)
 	trap = 0;
 	if (nb)
 		return;
-	if (dip == d && numtabp[NL].val == -1) {
+	if (dip == d && numtab[NL].val == -1) {
 		newline(1);
 		return;
 	}
@@ -121,8 +116,8 @@ void tbreak(void)
 		if (dip->dnl > dip->hnl)
 			dip->hnl = dip->dnl;
 	} else {
-		if (numtabp[NL].val > dip->hnl)
-			dip->hnl = numtabp[NL].val;
+		if (numtab[NL].val > dip->hnl)
+			dip->hnl = numtab[NL].val;
 	}
 	for (k = ls - 1; k > 0 && !trap; k--)
 		newline(0);
@@ -132,7 +127,6 @@ void tbreak(void)
 void donum(void)
 {
 	int i, nw;
-	int lnv = numtabp[LN].val;
 
 	nrbits = nmbits;
 	nw = width('1' | nrbits);
@@ -140,21 +134,22 @@ void donum(void)
 		nn--;
 		goto d1;
 	}
-	if (lnv % ndf) {
-		numtabp[LN].val++;
+	if (numtab[LN].val % ndf) {
+		numtab[LN].val++;
 d1:
-		un += nw * (nmwid + nms + ni);
+		un += nw * (3 + nms + ni);
 		return;
 	}
 	i = 0;
-	do {		/* count digits in numtabp[LN].val */
+	if (numtab[LN].val < 100)
 		i++;
-	} while ((lnv /= 10) > 0);
-	horiz(nw * (ni + max(nmwid-i, 0)));
+	if (numtab[LN].val < 10)
+		i++;
+	horiz(nw * (ni + i));
 	nform = 0;
-	fnumb(numtabp[LN].val, pchar);
+	fnumb(numtab[LN].val, pchar);
 	un += nw * nms;
-	numtabp[LN].val++;
+	numtab[LN].val++;
 }
 
 
@@ -164,8 +159,8 @@ void text(void)
 	static int spcnt;
 
 	nflush++;
-	numtabp[HP].val = 0;
-	if ((dip == d) && (numtabp[NL].val == -1)) {
+	numtab[HP].val = 0;
+	if ((dip == d) && (numtab[NL].val == -1)) {
 		newline(1); 
 		return;
 	}
@@ -186,7 +181,7 @@ void text(void)
 		goto t2;
 	while ((cbits(i = GETCH())) == ' ') {
 		spcnt++;
-		numtabp[HP].val += sps;
+		numtab[HP].val += sps;
 		widthp = sps;
 	}
 	if (nlflg) {
@@ -275,7 +270,7 @@ void nofill(void)
 		}
 		j = width(i);
 		widthp = j;
-		numtabp[HP].val += j;
+		numtab[HP].val += j;
 		storeline(i, j);
 	}
 	if (ce) {
@@ -320,29 +315,23 @@ void ckul(void)
 
 void storeline(Tchar c, int w)
 {
-	int diff;
-
 	if (linep >= line + lnsize - 2) {
-		lnsize += LNSIZE;
-		diff = linep - line;
-		if (( line = (Tchar *)realloc((char *)line, lnsize * sizeof(Tchar))) != NULL) {
-			if (linep && diff)
-				linep = line + diff;
-		} else {
-			if (over) {
-				return;
-			} else {
-				flusho();
-				ERROR "Line overflow." WARN;
-				over++;
-				*linep++ = LEFTHAND;
-				w = width(LEFTHAND);
-				nc++;
-				c = '\n';
-			}
+		if (!over) {
+			flusho();
+			ERROR "Line overflow." WARN;
+			over++;
+			c = LEFTHAND;
+			w = -1;
+			*linep++ = c;
+			*linep++ = '\n'; nc++;	/* other one comes later */
+			goto s1;
 		}
+		return;
 	}
 	*linep++ = c;
+s1:
+	if (w == -1)
+		w = width(c);
 	ne += w;
 	nel -= w;
 	nc++;
@@ -385,17 +374,17 @@ void newline(int a)
 	if (flss)
 		lss = flss;
 	nlss = dip->alss + dip->blss + lss;
-	numtabp[NL].val += nlss;
+	numtab[NL].val += nlss;
 	if (TROFF && ascii) {
 		dip->alss = dip->blss = 0;
 	}
 	pchar1((Tchar)'\n');
 	flss = 0;
 	lss = j;
-	if (numtabp[NL].val < pl)
+	if (numtab[NL].val < pl)
 		goto nl2;
 nl1:
-	ejf = dip->hnl = numtabp[NL].val = 0;
+	ejf = dip->hnl = numtab[NL].val = 0;
 	ejl = frame;
 	if (donef) {
 		if ((!nc && !wch) || ndone)
@@ -405,14 +394,14 @@ nl1:
 		if (frame == stk)
 			nflush++;
 	}
-	opn = numtabp[PN].val;
-	numtabp[PN].val++;
+	opn = numtab[PN].val;
+	numtab[PN].val++;
 	if (npnflg) {
-		numtabp[PN].val = npn;
+		numtab[PN].val = npn;
 		npn = npnflg = 0;
 	}
 nlpn:
-	if (numtabp[PN].val == pfrom) {
+	if (numtab[PN].val == pfrom) {
 		print++;
 		pfrom = -1;
 	} else if (opn == pto) {
@@ -422,7 +411,7 @@ nlpn:
 		goto nlpn;
 	}
 	if (print)
-		ptpage(numtabp[PN].val);	/* supposedly in a clean state so can pause */
+		ptpage(numtab[PN].val);	/* supposedly in a clean state so can pause */
 	if (stop && print) {
 		dpn++;
 		if (dpn >= stop) {
@@ -432,11 +421,11 @@ nlpn:
 	}
 nl2:
 	trap = 0;
-	if (numtabp[NL].val == 0) {
+	if (numtab[NL].val == 0) {
 		if ((j = findn(0)) != NTRAP)
 			trap = control(mlist[j], 0);
-	} else if ((i = findt(numtabp[NL].val - nlss)) <= nlss) {
-		if ((j = findn1(numtabp[NL].val - nlss + i)) == NTRAP) {
+	} else if ((i = findt(numtab[NL].val - nlss)) <= nlss) {
+		if ((j = findn1(numtab[NL].val - nlss + i)) == NTRAP) {
 			flusho();
 			ERROR "Trap botch." WARN;
 			done2(-5);
@@ -466,7 +455,7 @@ void chkpn(void)
 {
 	pto = *(pnp++);
 	pfrom = pto>=0 ? pto : -pto;
-	if (pto == -INT_MAX) {
+	if (pto == -32767) {
 		flusho();
 		done1(0);
 	}
@@ -482,7 +471,7 @@ findt(int a)
 {
 	int i, j, k;
 
-	k = INT_MAX;
+	k = 32767;
 	if (dip != d) {
 		if (dip->dimac && (i = dip->ditrap - a) > 0)
 			k = i;
@@ -512,7 +501,7 @@ findt1(void)
 	if (dip != d)
 		i = dip->dnl;
 	else 
-		i = numtabp[NL].val;
+		i = numtab[NL].val;
 	return(findt(i));
 }
 
@@ -532,10 +521,10 @@ void eject(Stack *a)
 		return;
 e1:
 	savlss = lss;
-	lss = findt(numtabp[NL].val);
+	lss = findt(numtab[NL].val);
 	newline(0);
 	lss = savlss;
-	if (numtabp[NL].val && !trap)
+	if (numtab[NL].val && !trap)
 		goto e1;
 }
 
@@ -681,7 +670,7 @@ getword(int x)
 			continue;
 		}
 		if (j == ' ') {
-			numtabp[HP].val += sps;
+			numtab[HP].val += sps;
 			widthp = sps;
 			storeword(i, sps);
 			continue;
@@ -708,7 +697,7 @@ g0:
 				hyp = hyptr + NHYP - 1;
 			goto g1;
 		}
-		if (((j == '-' || j == EMDASH)) && !(i & ZBIT))	/* zbit avoids \X */
+		if (j == '-' || j == EMDASH)
 			if (wordp > word + 1) {
 				hyoff = 2;
 				*hyp++ = wordp + 1;
@@ -717,7 +706,7 @@ g0:
 			}
 	}
 	j = width(i);
-	numtabp[HP].val += j;
+	numtab[HP].val += j;
 	storeword(i, j);
 g1:
 	j = cbits(i = GETCH());
@@ -739,15 +728,13 @@ g1:
 		}
 	}
 	*wordp = 0;
-	numtabp[HP].val += sps;
+	numtab[HP].val += sps;
 rtn:
 	for (wp = word; *wp; wp++) {
-		if (ismot(j))
-			break;	/* drechsler */
 		j = cbits(*wp);
 		if (j == ' ')
 			continue;
-		if (!(isascii(j) && isdigit(j)) && j != '-')
+		if (!isdigit(j) && j != '-')
 			break;
 	}
 	if (*wp == 0)	/* all numbers, so don't hyphenate */
@@ -763,36 +750,20 @@ rtn:
 
 void storeword(Tchar c, int w)
 {
-	Tchar *savp;
-	int i;
-
-	if (wordp >= word + wdsize - 2) {
-		wdsize += WDSIZE;
-		savp = word;
-		if (( word = (Tchar *)realloc((char *)word, wdsize * sizeof(Tchar))) != NULL) {
-			if (wordp)
-				wordp = word + (wordp - savp);
-			if (pendw)
-				pendw = word + (pendw - savp);
-			if (wdstart)
-				wdstart = word + (wdstart - savp);
-			if (wdend)
-				wdend = word + (wdend - savp);
-			for (i = 0; i < NHYP; i++)
-				if (hyptr[i])
-					hyptr[i] = word + (hyptr[i] - savp);
-		} else {
-			if (over) {
-				return;
-			} else {
-				flusho();
-				ERROR "Word overflow." WARN;
-				over++;
-				c = LEFTHAND;
-				w = width(LEFTHAND);
-			}
+	if (wordp >= &word[WDSIZE - 3]) {
+		if (!over) {
+			flusho();
+			ERROR "Word overflow." WARN;
+			over++;
+			c = LEFTHAND;
+			w = -1;
+			goto s1;
 		}
+		return;
 	}
+s1:
+	if (w == -1)
+		w = width(c);
 	widthp = w;
 	wne += w;
 	*wordp++ = c;

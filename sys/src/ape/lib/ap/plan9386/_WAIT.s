@@ -1,0 +1,4 @@
+TEXT _WAIT(SB), $0
+MOVL $36, AX
+INT $64
+RET

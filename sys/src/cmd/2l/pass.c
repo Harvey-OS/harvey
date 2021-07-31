@@ -90,9 +90,8 @@ dodata(void)
 		s->value = bsssize + datsize;
 		bsssize += t;
 	}
-	xdefine("bdata", SDATA, 0L);
-	xdefine("edata", SDATA, datsize);
-	xdefine("end", SBSS, datsize+bsssize);
+	xdefine("edata", SBSS, datsize);
+	xdefine("end", SBSS, bsssize + datsize);
 }
 
 Prog*
@@ -295,7 +294,7 @@ patch(void)
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT)
 			curtext = p;
-		if((p->as == ABSR || p->as == ARTS) && p->to.sym != S) {
+		if(p->as == ABSR) {
 			s = p->to.sym;
 			if(s->type != STEXT) {
 				diag("undefined: %s in %s\n", s->name, TNAME);

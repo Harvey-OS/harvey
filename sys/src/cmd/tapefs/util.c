@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include <fcall.h>
 #include <tapefs.h>
 #include <bio.h>
@@ -32,7 +31,7 @@ getpass(char *file)
 			nid++;
 		}
 	}		
-	Bterm(bp);
+	Bclose(bp);
 	up[nid].name = 0;
 	return up;
 }
@@ -57,6 +56,7 @@ poppath(Fileinf fi, int new)
 {
 	char *suffix;
 	Ram *dir, *ent;
+
 	if (*fi.name=='\0')
 		return 0;
 	if (suffix=strrchr(fi.name, '/')){
@@ -72,8 +72,6 @@ poppath(Fileinf fi, int new)
 		f.addr = 0;
 		f.mode = 0555|CHDIR;
 		dir = poppath(f, 0);
-		if (dir==0)
-			dir = ram;
 	} else {
 		suffix = fi.name;
 		dir = ram;
@@ -133,8 +131,6 @@ lookup(Ram *dir, char *name)
 {
 	Ram *r;
 
-	if (dir==0)
-		return 0;
 	for (r=dir->child; r; r=r->next){
 		if (r->busy==0 || strcmp(r->name, name)!=0)
 			continue;

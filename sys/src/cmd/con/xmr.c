@@ -36,14 +36,14 @@ main(int argc, char **argv)
 	}
 	fd = open("/dev/consctl", OWRITE);
 	if(fd < 0){
-		perror("xmr: open consctl");
+		perror("xmr");
 		exits("consctl");
 	}
 	write(fd, "rawon", 5);
 	fd = create(argv[0], ORDWR, 0666);
 	if(fd < 0){
-		perror("xmr: create");
-		exits("create");
+		perror("xmr");
+		exits("consctl");
 	}
 
 	atnotify(notifyf, 1);

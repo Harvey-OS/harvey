@@ -9,9 +9,10 @@ typedef	struct	Autom	Auto;
 typedef	struct	Prog	Prog;
 typedef	struct	Optab	Optab;
 
+#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 #define	P		((Prog*)0)
 #define	S		((Sym*)0)
-#define	TNAME		(curtext&&curtext->from.sym?curtext->from.sym->name:noname)
+#define	TNAME		(curtext?curtext->from.sym->name:noname)
 
 struct	Adr
 {
@@ -45,11 +46,9 @@ struct	Prog
 };
 struct	Sym
 {
-	char	*name;
+	char	name[NNAME];
 	short	type;
 	short	version;
-	short	become;
-	short	frame;
 	long	value;
 	Sym	*link;
 };
@@ -75,6 +74,16 @@ struct
 	Optab*	start;
 	Optab*	stop;
 } oprange[AEND];
+union
+{
+	struct
+	{
+		uchar	cbuf[8192];			/* output buffer */
+		uchar	xbuf[8192];			/* input buffer */
+		Rlent	rlent[8192/sizeof(Rlent)];	/* ranlib buf */
+	};
+	char	dbuf[1];
+} buf;
 
 enum
 {
@@ -83,8 +92,6 @@ enum
 	FPCHIP		= 1,
 	BIG		= 4096-8,
 	STRINGSZ	= 200,
-	MAXIO		= 8192,
-	MAXHIST		= 20,				/* limit of path elements for history symbols */
 	DATBLK		= 1024,
 	NHASH		= 10007,
 	NHUNK		= 100000,
@@ -102,7 +109,6 @@ enum
 	SYNC		= 1<<6,
 	LIST		= 1<<7,
 	FOLL		= 1<<8,
-	NOSCHED		= 1<<9,
 
 	STEXT		= 1,
 	SDATA,
@@ -111,7 +117,6 @@ enum
 	SXREF,
 	SLEAF,
 	SFILE,
-	SCONST,
 
 	C_NONE		= 0,
 
@@ -161,16 +166,6 @@ enum
 	C_NCLASS
 };
 
-union
-{
-	struct
-	{
-		uchar	cbuf[MAXIO];			/* output buffer */
-		uchar	xbuf[MAXIO];			/* input buffer */
-	};
-	char	dbuf[1];
-} buf;
-
 long	HEADR;			/* length of header */
 int	HEADTYPE;		/* type of header */
 long	INITDAT;		/* data location */
@@ -198,7 +193,7 @@ char	debug[128];
 Prog*	firstp;
 char	fnuxi8[8];
 Sym*	hash[NHASH];
-Sym*	histfrog[MAXHIST];
+Sym*	histfrog[NNAME/2-1];
 int	histfrogp;
 int	histgen;
 char*	library[50];
@@ -209,7 +204,7 @@ char	inuxi2[2];
 char	inuxi4[4];
 Prog*	lastp;
 long	lcsize;
-char	literal[32];
+char	literal[NNAME];
 int	nerrors;
 long	nhunk;
 char*	noname;
@@ -224,7 +219,6 @@ long	tothunk;
 char	xcmp[C_NCLASS][C_NCLASS];
 int	version;
 Prog	zprg;
-int	dtype;
 
 extern	Optab	optab[];
 extern	char*	anames[];
@@ -263,7 +257,6 @@ void	follow(void);
 void	gethunk(void);
 double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
-int	isnop(Prog*);
 void	ldobj(int, long, char*);
 void	loadlib(int, int);
 void	listinit(void);

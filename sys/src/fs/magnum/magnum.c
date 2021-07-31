@@ -3,30 +3,27 @@
 #include	"io.h"
 #include	"ureg.h"
 
-static int
+void
+duartinit(void)
+{
+	sccsetup(SCCADDR, SCCFREQ);
+	sccspecial(1, kbdchar, conschar, 9600);
+}
+
+int
 duartrecv(void)
 {
 	return sccgetc(1);
 }
 
-static void
+void
 duartxmit(int c)
 {
 	sccputc(1, c);
 }
 
 void
-consinit(void (*puts)(char*, int))
-{
-	sccsetup(SCCADDR, SCCFREQ);
-	consgetc = duartrecv;
-	consputc = duartxmit;
-	consputs = puts;
-	sccspecial(1, kbdchar, conschar, 9600);
-}
-
-void
-consreset(void)
+duartreset(void)
 {
 }
 

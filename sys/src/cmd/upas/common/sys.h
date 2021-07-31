@@ -31,8 +31,6 @@ extern int MBOXMODE;	/* default mailbox protection mode */
  *  files in libsys.c
  */
 extern char	*sysname_read(void);
-extern char	*alt_sysname_read(void);
-extern char	*domainname_read(void);
 extern char	*getlog(void);
 extern char	*thedate(void);
 extern Biobuf	*sysopen(char*, char*, ulong);
@@ -56,9 +54,6 @@ extern void	pipesig(int*);
 extern void	pipesigoff(void);
 extern void	newprocgroup(void);
 extern void	becomenone(void);
-extern char*	csquery(char*, char*, char*);
-extern int	holdon(void);
-extern void	holdoff(int);
 
 extern int nsysfile;
 extern int nofile;

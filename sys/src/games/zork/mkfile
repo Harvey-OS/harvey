@@ -1,0 +1,29 @@
+</$objtype/mkfile
+
+TARG=zork
+OFILES=	actors.$O ballop.$O clockr.$O demons.$O dgame.$O dinit.$O dmain.$O\
+	dso1.$O dso2.$O dso3.$O dso4.$O dso5.$O dso6.$O dso7.$O dsub.$O dverb1.$O\
+	dverb2.$O gdt.$O lightp.$O local.$O nobjs.$O np.$O np1.$O np2.$O np3.$O\
+	nrooms.$O objcts.$O rooms.$O sobjs.$O supp.$O sverbs.$O verbs.$O villns.$O
+HFILES=	funcs.h vars.h
+
+</sys/src/cmd/mkone
+
+BIN=/$objtype/bin/games
+CFLAGS=-B -c
+CC=pcc
+LD=pcc
+ZLIB=/sys/games/lib/zork
+
+install:V:	dtextc.dat
+
+dtextc.dat:
+	cat dtextc.uu1 dtextc.uu2 dtextc.uu3 dtextc.uu4 | uudecode
+
+$ZLIB/dtextc.dat:	dtextc.dat
+	cp $prereq $ZLIB
+
+np1.$O np2.$O np3.$O:	parse.h
+
+clean:V:
+	rm -f [$OS].out *.[$OS]

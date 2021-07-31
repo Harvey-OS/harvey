@@ -2,7 +2,6 @@
 #include "io.h"
 #include "exec.h"
 #include "fns.h"
-#include "getflags.h"
 #define	c0	t->child[0]
 #define	c1	t->child[1]
 #define	c2	t->child[2]
@@ -12,8 +11,8 @@ int codep, ncode;
 #define	emits(x) ((codep!=ncode || morecode()), codebuf[codep].s=(x), codep++)
 void stuffdot(int);
 char *fnstr(tree*);
-void outcode(tree*, int);
-void codeswitch(tree*, int);
+void outcode(tree*);
+void codeswitch(tree*);
 int iscase(tree*);
 code *codecopy(code*);
 void codefree(code*);
@@ -33,7 +32,7 @@ int compile(tree *t)
 	codebuf=(code *)emalloc(ncode*sizeof codebuf[0]);
 	codep=0;
 	emiti(0);			/* reference count */
-	outcode(t, flag['e']?1:0);
+	outcode(t);
 	if(nerror){
 		efree((char *)codebuf);
 		return 0;
@@ -62,7 +61,7 @@ char *fnstr(tree *t)
 	closeio(f);
 	return v;
 }
-void outcode(tree *t, int eflag)
+void outcode(tree *t)
 {
 	int p, q;
 	tree *tt;
@@ -74,78 +73,78 @@ void outcode(tree *t, int eflag)
 		break;
 	case '$':
 		emitf(Xmark);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xdol);
 		break;
 	case '"':
 		emitf(Xmark);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xqdol);
 		break;
 	case SUB:
 		emitf(Xmark);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xmark);
-		outcode(c1, eflag);
+		outcode(c1);
 		emitf(Xsub);
 		break;
 	case '&':
 		emitf(Xasync);
 		p=emiti(0);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xexit);
 		stuffdot(p);
 		break;
 	case ';':
-		outcode(c0, eflag);
-		outcode(c1, eflag);
+		outcode(c0);
+		outcode(c1);
 		break;
 	case '^':
 		emitf(Xmark);
-		outcode(c1, eflag);
+		outcode(c1);
 		emitf(Xmark);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xconc);
 		break;
 	case '`':
 		emitf(Xbackq);
 		p=emiti(0);
-		outcode(c0, 0);
+		outcode(c0);
 		emitf(Xexit);
 		stuffdot(p);
 		break;
 	case ANDAND:
-		outcode(c0, 0);
+		outcode(c0);
 		emitf(Xtrue);
 		p=emiti(0);
-		outcode(c1, eflag);
+		outcode(c1);
 		stuffdot(p);
 		break;
 	case ARGLIST:
-		outcode(c1, eflag);
-		outcode(c0, eflag);
+		outcode(c1);
+		outcode(c0);
 		break;
 	case BANG:
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xbang);
 		break;
 	case PCMD:
 	case BRACE:
-		outcode(c0, eflag);
+		outcode(c0);
 		break;
 	case COUNT:
 		emitf(Xmark);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xcount);
 		break;
 	case FN:
 		emitf(Xmark);
-		outcode(c0, eflag);
+		outcode(c0);
 		if(c1){
 			emitf(Xfn);
 			p=emiti(0);
 			emits(fnstr(c1));
-			outcode(c1, eflag);
+			outcode(c1);
 			emitf(Xunlocal);	/* get rid of $* */
 			emitf(Xreturn);
 			stuffdot(p);
@@ -154,10 +153,10 @@ void outcode(tree *t, int eflag)
 			emitf(Xdelfn);
 		break;
 	case IF:
-		outcode(c0, 0);
+		outcode(c0);
 		emitf(Xif);
 		p=emiti(0);
-		outcode(c1, eflag);
+		outcode(c1);
 		emitf(Xwastrue);
 		stuffdot(p);
 		break;
@@ -165,62 +164,59 @@ void outcode(tree *t, int eflag)
 		if(!runq->iflast) yyerror("`if not' does not follow `if(...)'");
 		emitf(Xifnot);
 		p=emiti(0);
-		outcode(c0, eflag);
+		outcode(c0);
 		stuffdot(p);
 		break;
 	case OROR:
-		outcode(c0, 0);
+		outcode(c0);
 		emitf(Xfalse);
 		p=emiti(0);
-		outcode(c1, eflag);
+		outcode(c1);
 		stuffdot(p);
 		break;
 	case PAREN:
-		outcode(c0, eflag);
+		outcode(c0);
 		break;
 	case SIMPLE:
 		emitf(Xmark);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xsimple);
-		if(eflag) emitf(Xeflag);
 		break;
 	case SUBSHELL:
 		emitf(Xsubshell);
 		p=emiti(0);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xexit);
 		stuffdot(p);
 		break;
 	case SWITCH:
-		codeswitch(t, eflag);
+		codeswitch(t);
 		break;
 	case TWIDDLE:
 		emitf(Xmark);
-		outcode(c1, eflag);
+		outcode(c1);
 		emitf(Xmark);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xmatch);
-		if(eflag) emitf(Xeflag);
 		break;
 	case WHILE:
 		q=codep;
-		emitf(Xsettrue);
-		outcode(c0, 0);
+		outcode(c0);
 		emitf(Xtrue);
 		p=emiti(0);
-		outcode(c1, eflag);
+		outcode(c1);
 		emitf(Xjump);
 		emiti(q);
 		stuffdot(p);
 		break;
 	case WORDS:
-		outcode(c1, eflag);
-		outcode(c0, eflag);
+		outcode(c1);
+		outcode(c0);
 		break;
 	case FOR:
 		emitf(Xmark);
 		if(c1){
-			outcode(c1, eflag);
+			outcode(c1);
 			emitf(Xglob);
 		}
 		else{
@@ -231,11 +227,11 @@ void outcode(tree *t, int eflag)
 		}
 		emitf(Xmark);		/* dummy value for Xlocal */
 		emitf(Xmark);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xlocal);
 		p=emitf(Xfor);
 		q=emiti(0);
-		outcode(c2, eflag);
+		outcode(c2);
 		emitf(Xjump);
 		emiti(p);
 		stuffdot(q);
@@ -255,21 +251,20 @@ void outcode(tree *t, int eflag)
 			emitf(Xclose);
 			emiti(t->fd0);
 		}
-		outcode(c1, eflag);
+		outcode(c1);
 		emitf(Xpopredir);
 		break;
 	case PIPEFD:
 		emitf(Xpipefd);
 		emiti(t->rtype);
 		p=emiti(0);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xexit);
 		stuffdot(p);
 		break;
 	case REDIR:
 		emitf(Xmark);
-		outcode(c0, eflag);
-		emitf(Xglob);
+		outcode(c0);
 		switch(t->rtype){
 		case APPEND:
 			emitf(Xappend);
@@ -283,7 +278,7 @@ void outcode(tree *t, int eflag)
 			break;
 		}
 		emiti(t->fd0);
-		outcode(c1, eflag);
+		outcode(c1);
 		emitf(Xpopredir);
 		break;
 	case '=':
@@ -292,21 +287,21 @@ void outcode(tree *t, int eflag)
 		if(t){
 			for(t=tt;t->type=='=';t=c2){
 				emitf(Xmark);
-				outcode(c1, eflag);
+				outcode(c1);
 				emitf(Xmark);
-				outcode(c0, eflag);
+				outcode(c0);
 				emitf(Xlocal);
 			}
 			t=tt;
-			outcode(c2, eflag);
+			outcode(c2);
 			for(;t->type=='=';t=c2) emitf(Xunlocal);
 		}
 		else{
 			for(t=tt;t;t=c2){
 				emitf(Xmark);
-				outcode(c1, eflag);
+				outcode(c1);
 				emitf(Xmark);
-				outcode(c0, eflag);
+				outcode(c0);
 				emitf(Xassign);
 			}
 		}
@@ -318,10 +313,10 @@ void outcode(tree *t, int eflag)
 		emiti(t->fd1);
 		p=emiti(0);
 		q=emiti(0);
-		outcode(c0, eflag);
+		outcode(c0);
 		emitf(Xexit);
 		stuffdot(p);
-		outcode(c1, eflag);
+		outcode(c1);
 		emitf(Xreturn);
 		stuffdot(q);
 		emitf(Xpipewait);
@@ -351,7 +346,7 @@ void outcode(tree *t, int eflag)
  * leave:
  *	Xpopm
  */
-void codeswitch(tree *t, int eflag)
+void codeswitch(tree *t)
 {
 	int leave;		/* patch jump address to leave switch */
 	int out;		/* jump here to leave switch */
@@ -363,7 +358,7 @@ void codeswitch(tree *t, int eflag)
 		return;
 	}
 	emitf(Xmark);
-	outcode(c0, eflag);
+	outcode(c0);
 	emitf(Xjump);
 	nextcase=emiti(0);
 	out=emitf(Xjump);
@@ -373,18 +368,18 @@ void codeswitch(tree *t, int eflag)
 	while(t->type==';'){
 		tt=c1;
 		emitf(Xmark);
-		for(t=c0->child[0];t->type==ARGLIST;t=c0) outcode(c1, eflag);
+		for(t=c0->child[0];t->type==ARGLIST;t=c0) outcode(c1);
 		emitf(Xcase);
 		nextcase=emiti(0);
 		t=tt;
 		for(;;){
 			if(t->type==';'){
 				if(iscase(c0)) break;
-				outcode(c0, eflag);
+				outcode(c0);
 				t=c1;
 			}
 			else{
-				outcode(t, eflag);
+				outcode(t);
 				break;
 			}
 		}

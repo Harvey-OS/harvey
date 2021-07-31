@@ -145,7 +145,6 @@ struct File
 	short	tag;		/* for communicating with terminal */
 	char	state;		/* Clean, Dirty, Unread, or Readerr*/
 	char	closeok;	/* ok to close file? */
-	char	deleted;	/* delete at completion of command */
 	char	marked;		/* file has been Fmarked at least once; once
 				 * set, this will never go off as undo doesn't
 				 * revert to the dawn of time */
@@ -200,7 +199,7 @@ union Hdr
 
 int	alnum(int);
 void	Bclean(Buffer*);
-void	Bterm(Buffer*);
+void	Bclose(Buffer*);
 void	Bdelete(Buffer*, Posn, Posn);
 void	Bflush(Buffer*);
 void	Binsert(Buffer*, String*, Posn);
@@ -226,7 +225,7 @@ void	Fstart(void);
 int	Fupdate(File*, int, int);
 int	Read(int, void*, int);
 void	Seek(int, long, int);
-int	plan9(File*, int, String*, int);
+void	plan9(File*, int, String*, int);
 int	Write(int, void*, int);
 int	bexecute(File*, Posn);
 void	cd(String*);
@@ -237,7 +236,6 @@ void	cmdupdate(void);
 void	compile(String*);
 void	copy(File*, Address);
 File	*current(File*);
-void	delete(File*);
 void	delfile(File*);
 void	dellist(List*, int);
 void	doubleclick(File*, Posn);
@@ -287,8 +285,8 @@ void	snarf(File*, Posn, Posn, Buffer*, int);
 void	sortname(File*);
 void	startup(char*, int, char**, char**);
 void	state(File*, int);
-int	statfd(int, ulong*, ulong*, long*, long*, long*);
-int	statfile(char*, ulong*, ulong*, long*, long*, long*);
+int	statfd(int, ulong*, ulong*, long*, long*);
+int	statfile(char*, ulong*, ulong*, long*, long*);
 void	Straddc(String*, int);
 void	Strclose(String*);
 int	Strcmp(String*, String*);
@@ -384,11 +382,9 @@ void	outTsS(Hmesg, int, String*);
 void	outTsllS(Hmesg, int, long, long, String*);
 void	outTsll(Hmesg, int, long, long);
 void	outTsl(Hmesg, int, long);
-void	outTsv(Hmesg, int, long);
 void	outstart(Hmesg);
 void	outcopy(int, void*);
 void	outshort(int);
 void	outlong(long);
-void	outvlong(void*);
 void	outsend(void);
 void	outflush(void);

@@ -1,19 +1,19 @@
 #include "map.h"
 
-static double r0, a;
+static float r0, a;
 
 static int
-Xsimpleconic(struct place *place, double *x, double *y)
+Xsimpleconic(struct place *place, float *x, float *y)
 {
-	double r = r0 - place->nlat.l;
-	double t = a*place->wlon.l;
+	float r = r0 - place->nlat.l;
+	float t = a*place->wlon.l;
 	*x = -r*sin(t);
 	*y = -r*cos(t);
 	return 1;
 }
 
 proj
-simpleconic(double par0, double par1)
+simpleconic(float par0, float par1)
 {
 	struct coord lat0;
 	struct coord lat1;

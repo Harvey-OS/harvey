@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 #include <frame.h>
 
 void
@@ -12,7 +12,7 @@ _frredraw(Frame *f, Point pt)
 	for(b=f->box; nb < f->nbox; nb++) {
 		_frcklinewrap(f, &pt, b);
 		if(b->nrune >= 0)
-			string(f->b, pt, f->font, (byte *)b->ptr, S);
+			string(f->b, pt, f->font, (char *)b->ptr, S^D);
 		pt.x += b->wid;
 		b++;
 	}

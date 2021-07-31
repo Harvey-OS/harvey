@@ -1,6 +1,6 @@
 #include <alef.h>
 #include <fcall.h>
-#include <libg.h>
+#include <graphics.h>
 #include <frame.h>
 #include "y.h"
 
@@ -19,7 +19,7 @@ newbuf(int size)
 }
 
 void
-wwrite(Window *w, byte *p, int count)
+wwrite(Window *w, char *p, int count)
 {
 	Buf *b;
 	Frame *f;
@@ -91,8 +91,6 @@ winsert(Window *w, int posn, Rune *r, int count)
 		if(w->sp1 < 0)
 			w->sp1 = 0;
 	}
-	if(posn > w->input)
-		posn = w->input;
 	end = posn+count;
 
 	runemove(b->t+end, b->t+posn, w->input-posn);
@@ -138,7 +136,7 @@ cutbuf(Rune *r, int count)
 }
 
 int
-cvtbufcr(Buf *b, Rune **r, byte *buf, int n)
+cvtbufcr(Buf *b, Rune **r, char *buf, int n)
 {
 	int l;
 	Rune *p;
@@ -196,27 +194,27 @@ select(Window *w)
 
 	f = w->frame;
 
-	frselectp(f, frones, F&~D);
-	p0 = frcharofpt(f, w->mse.xy);
+	frselectp(f, F&~D);
+	p0 = frcharofpt(f, w->mse.m);
 	p1 = p0;
 	pt0 = frptofchar(f, p0);
 	pt1 = frptofchar(f, p1);
-	frselectf(f, pt0, pt1, frones, F&~D);
+	frselectf(f, pt0, pt1, F&~D);
 
 	for(;;){
-		q = frcharofpt(f, w->mse.xy);
+		q = frcharofpt(f, w->mse.m);
 		if(p1 != q) {
 			if(p0 == p1)
-				frselectf(f, pt0, pt1, frones, F&~D);
+				frselectf(f, pt0, pt1, F&~D);
 			qt = frptofchar(f, q);
 			if(p1 < q)
-				frselectf(f, pt1, qt, frones, F&~D);
+				frselectf(f, pt1, qt, F&~D);
 			else
-				frselectf(f, qt, pt1, frones, F&~D);
+				frselectf(f, qt, pt1, F&~D);
 			p1 = q;
 			pt1 = qt;
 			if(p0 == p1)
-				frselectf(f, pt0, pt1, frones, F&~D);
+				frselectf(f, pt0, pt1, F&~D);
 		}
 		if(p0 < p1) {
 			f->p0 = p0;
@@ -229,7 +227,7 @@ select(Window *w)
 		windref(w);
 		while(event(w, 1) == 0)
 			;
-		if((w->mse.buttons&Mouse_l) == 0)
+		if((w->mse.mb&Mouse_l) == 0)
 			break;
 	}
 	w->sp0 = w->origin+f->p0;

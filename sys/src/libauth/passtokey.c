@@ -5,29 +5,25 @@
 int
 passtokey(char *key, char *p)
 {
-	uchar buf[NAMELEN], *t;
-	int i, n;
+	uchar t[10];
+	int c, n;
 
 	n = strlen(p);
-	if(n >= NAMELEN)
-		n = NAMELEN-1;
-	memset(buf, ' ', 8);
-	t = buf;
+	memset(t, ' ', sizeof t);
+	if(n < 5)
+		return 0;
+	if(n > 10)
+		n = 10;
 	strncpy((char*)t, p, n);
-	t[n] = 0;
-	memset(key, 0, DESKEYLEN);
-	for(;;){
-		for(i = 0; i < DESKEYLEN; i++)
-			key[i] = (t[i] >> i) + (t[i+1] << (8 - (i+1)));
-		if(n <= 8)
-			return 1;
-		n -= 8;
-		t += 8;
-		if(n < 8){
-			t -= 8 - n;
-			n = 8;
-		}
-		encrypt(key, t, 8);
+	if(n >= 9){
+		c = p[8] & 0xf;
+		if(n == 10)
+			c += p[9] << 4;
+		for(n = 0; n < 8; n++)
+			if(c & (1 << n))
+				t[n] -= ' ';
 	}
-	return 1;	/* not reached */
+	for(n = 0; n < 7; n++)
+		key[n] = (t[n] >> n) + (t[n+1] << (8 - (n+1)));
+	return 1;
 }

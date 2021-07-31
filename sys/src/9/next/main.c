@@ -182,6 +182,7 @@ bootargs(ulong base)
 
 	ac = 0;
 	av[ac++] = pusharg("/68020/9nextstation");
+	av[ac++] = pusharg("-p");
 
 	/* 4 byte word align stack */
 	sp = (uchar*)((ulong)sp & ~3);
@@ -199,7 +200,6 @@ void
 exit(int ispanic)
 {
 	u = 0;
-	wipekeys();
 	splhi();
 	print("exiting\n");
 	if(ispanic)
@@ -263,6 +263,10 @@ confinit(void)
 	conf.nswap = conf.nproc*80;
 	conf.nimage = 50;
 	conf.copymode = 0;		/* copy on write */
+	conf.ipif = 8;
+	conf.ip = 64;
+	conf.arp = 32;
+	conf.frag = 32;
 	conf.nfloppy = 1;
 }
 

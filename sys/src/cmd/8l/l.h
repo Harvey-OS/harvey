@@ -10,6 +10,7 @@
 	{ *cbp++ = c;\
 	if(--cbc <= 0)\
 		cflush(); }
+#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
 typedef	struct	Adr	Adr;
 typedef	struct	Prog	Prog;
@@ -42,6 +43,7 @@ struct	Prog
 	Adr	to;
 	union
 	{
+		long	stkoff;
 		Prog	*forwd;
 	};
 	Prog*	link;
@@ -63,11 +65,9 @@ struct	Auto
 };
 struct	Sym
 {
-	char	*name;
+	char	name[NNAME];
 	short	type;
 	short	version;
-	short	become;
-	short	frame;
 	long	value;
 	Sym*	link;
 };
@@ -78,6 +78,16 @@ struct	Optab
 	uchar	prefix;
 	uchar	op[10];
 };
+union
+{
+	struct
+	{
+		char	cbuf[8192];			/* output buffer */
+		uchar	xbuf[8192];			/* input buffer */
+		Rlent	rlent[8192/sizeof(Rlent)];	/* ranlib buf */
+	};
+	char	dbuf[1];
+} buf;
 
 enum
 {
@@ -87,15 +97,11 @@ enum
 	SDATA1,
 	SXREF,
 	SFILE,
-	SCONST,
-
 	NHASH		= 10007,
 	NHUNK		= 100000,
 	MINSIZ		= 4,
 	STRINGSZ	= 200,
 	MINLC		= 1,
-	MAXIO		= 8192,
-	MAXHIST		= 20,				/* limit of path elements for history symbols */
 
 	Yxxx		= 0,
 	Ynone,
@@ -103,7 +109,6 @@ enum
 	Yi1,
 	Yi8,
 	Yi32,
-	Yiauto,
 	Yal,
 	Ycl,
 	Yax,
@@ -142,7 +147,6 @@ enum
 	Zloop,
 	Zm_o,
 	Zm_r,
-	Zaut_r,
 	Zo_m,
 	Zpseudo,
 	Zr_m,
@@ -162,16 +166,6 @@ enum
 	Pq		= 0xff,	/* both escape */
 	Pb		= 0xfe,	/* byte operands */
 };
-
-union
-{
-	struct
-	{
-		char	cbuf[MAXIO];			/* output buffer */
-		uchar	xbuf[MAXIO];			/* input buffer */
-	};
-	char	dbuf[1];
-} buf;
 
 long	HEADR;
 long	HEADTYPE;
@@ -194,13 +188,13 @@ Prog*	datap;
 Prog*	edatap;
 long	datsize;
 char	debug[128];
-char	literal[32];
+char	literal[NNAME];
 Prog*	etextp;
 Prog*	firstp;
 char	fnuxi8[8];
 char	fnuxi4[4];
 Sym*	hash[NHASH];
-Sym*	histfrog[MAXHIST];
+Sym*	histfrog[NNAME/2-1];
 int	histfrogp;
 int	histgen;
 char*	library[50];
@@ -231,7 +225,6 @@ long	textsize;
 long	thunk;
 int	version;
 Prog	zprg;
-int	dtype;
 
 extern	Optab	optab[];
 extern	char*	anames[];

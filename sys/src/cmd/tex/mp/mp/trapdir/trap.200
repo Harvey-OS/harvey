@@ -1,0 +1,64 @@
+%!PS
+%%BoundingBox: -6.2132 -5.9851 36.21318 37.00375 
+%%Creator: MetaPost
+%%CreationDate: 1990.08.28:1027
+%%Pages: 1
+%*Font: trapf 9.96265 9.96265 41:800000008000b8
+%*Font: trapf 19.9253 9.96265 42:800000010000c
+%%EndProlog
+%%Page: 1 1
+newpath 1 13 moveto
+5 11 lineto
+5.75 11.75 6.125 12.3125 6.3125 12.6875 curveto
+6.375 12.8125 6.41667 12.91667 6.44444 13 curveto
+6.94444 14.5 lineto
+7 14.66667 7 14.75 7 14.75 curveto
+2 13.75 lineto
+2 13.75 2 13 3.5 11.5 curveto
+8.5 12.5 lineto
+7 14 7 14.75 7 14.75 curveto
+2 13.75 lineto
+2 13.75 2 13.66667 1.94444 13.5 curveto
+2.44444 15 lineto
+2.41667 14.91667 2.375 14.8125 2.3125 14.6875 curveto
+2.125 14.3125 1.75 13.75 1 13 curveto closepath fill
+gsave newpath 0 0 moveto
+48.28426 -48.28429 48.28426 78.28429 0 30 curveto
+-8.28427 21.71573 -8.28427 8.28427 0 0 curveto closepath clip
+ 0.5 setgray 1.41422 setlinewidth [2 1 ] 1 setdash 0 setlinecap
+ 0 setlinejoin 1 setmiterlimit
+gsave
+newpath 0 0 moveto
+30 0 lineto
+[1 1 -0.5 0.5 0 0] concat stroke grestore
+ 2 setlinecap 1 setlinejoin
+gsave
+newpath 0 0 moveto
+-48.28429 48.28426 78.28429 48.28426 30 0 curveto
+[1 1 -0.5 0.5 0 0] concat stroke grestore
+grestore
+ 0.5 setgray
+0 -2 moveto
+(Aqua) trapf 9.96265 fshow
+ 1.41422 setlinewidth [] 0 setdash 1 setlinejoin
+ 1 setmiterlimit
+gsave
+newpath 7.9701 -5.9851 moveto
+8.3686 -5.9851 lineto
+8.3686 13.9402 lineto
+7.9701 13.9402 lineto
+ closepath
+gsave fill grestore
+[1 1 -0.5 0.5 0 0] concat stroke grestore
+8.3686 -2 moveto
+(Brass) trapf 19.9253 fshow
+ [2 1 ] 1 setdash 2 setlinecap
+gsave
+newpath 1 0 moveto
+2 1 lineto
+[1 1 -0.5 0.5 0 0] concat stroke grestore
+ 0 setgray
+0 10 moveto
+(ast) trapf 9.96265 fshow
+showpage
+%%Trailer

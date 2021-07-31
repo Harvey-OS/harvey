@@ -1,0 +1,866 @@
+LATEST VERSIONS OF FILES -- LaTeX Version 2.09
+
+ADDENDUM.TEX  31 Oct 89    ARTICLE.DOC/STY   16 Mar 88   LATEX.BUG   7 Dec 89
+IDX.TEX       22 Jan 85    ART10.DOC/STY     22 Dec 87   LATEX.DIF  28 Apr 88
+LABLST.TEX     5 Jan 85    ART11.DOC/STY     22 Dec 87   LATEX.INS  20 Sep 88
+LATEX.TEX      7 Dec 89    ART12.DOC/STY     22 Dec 87   LOCAL.GID  24 Sep 85
+LFONTS.TEX    21 Nov 89    BEZIER.DOC/STY    17 Dec 85   LFONTS.AMR  6 May 86
+LOCAL.TEX     27 Oct 88    BOOK.DOC/STY      13 Nov 89
+LPLAIN.TEX    20 Oct 88    BK10.DOC/STY      19 Jan 88
+MAKEINDEX.TEX 17 Feb 87    BK11.DOC/STY      19 Jan 88
+SAMPLE.TEX     9 Apr 86    BK12.DOC/STY      19 Jan 88
+SFONTS.TEX    27 Oct 89    FLEQN.DOC/STY     26 Sep 89
+SLITEX.TEX     4 Dec 89    IFTHEN.DOC/STY    16 Dec 86
+SMALL.TEX      5 Jul 85    LETTER.DOC/STY    20 Sep 88
+SPLAIN.TEX    11 Oct 87    LEQNO.DOC/STY     14 Jun 85
+TESTPAGE.TEX  20 Jul 87    MAKEIDX.DOC/STY   20 Jan 87
+TRYFONTS.TEX  11 Nov 86    OPENBIB.DOC/STY   12 Oct 87
+                           PROC.DOC/STY      24 Sep 85
+                           REPORT.DOC/STY    13 Nov 89
+                           REP10.DOC/STY     19 Jan 88
+                           REP11.DOC/STY     19 Jan 88
+                           REP12.DOC/STY     19 Jan 88
+                           SHOWIDX.DOC/STY   11 Oct 89
+                           SLIDES.DOC/STY    17 Jan 86
+                           TITLEPAGE.DOC/STY 27 Jan 85  
+                           TWOCOLUMN.DOC/STY 27 Jan 85  
+
+
+                   BUGS IN AND CHANGES TO LATEX
+                   ----------------------------
+
+1. Some file extensions were in upper case.  Makes no difference for
+   TOPS-20, but messes up on Unix.  (Corrected 18 Dec 83)
+
+2. Glossary command wrote .IDX instead of .GLO file.  (Corrected 18 Dec 83)
+
+3. Size-changing commands add a blank space.   (Corrected 22 Dec 83)
+
+4. \mainbaselineskip has been eliminated, being replaced by the
+parameter \baselinestretch.  All font-size-changing commands, which
+are the commands that change \baselineskip, multiply the normal value
+of \baselineskip for the chosen font by \baselinestretch.
+\baselinestretch can be changed at any time by a \renewcommand
+command, but doing so affects only the next font-size-changing
+command.  Note that the \begin{document} command executes a \normal
+command to set the font size initially.) (Change made to version 2.01,
+on 1 Jan 1984.)
+
+5. \writecommand has been eliminated and a new command \protect added.
+Writing \protect\foo makes \foo do the right thing in an array or
+tabular @-expression and in the argument of a sectioning or caption
+command.  When used in an \addcontents command, \protect\foo has the
+same effect that \writecommand{\foo} used to.  Writing
+\section{\protect\foo} achieves what writing
+\section[\writecommand{\foo}]{\foo} used to.  The .STY files must now
+\let\protect=\noexpand when doing a \mark.  (Change made to version
+2.02 on 11 Jan 1984.)
+
+6. The error message 'This is a LaTeX bug' has been changed to
+'This may be a LaTeX bug', since it is possible for a user error
+to cause it. (Change made to version 2.02 on 11 Jan 1984.)
+
+7. A new error message 'Missing \item' has been added.  It detects
+an error that previously caused TeX to hang up.  I THINK that
+it can be caused only by a missing \item in a list environment.
+(Change made before 26 Jan 1984)
+
+8. A tabbing environment inside a list environment will use the
+document's outer right margin rather than the right margin of the
+list environment. (Corrected 7 February 1984.)
+
+9. \newcommand doesn't work if there's a \par in the definition.
+(corrected 17 Jan 1984)
+
+10. \newlist has been given an optional argument, which can come right
+before the last mandatory argument.  This optional argument specifies
+the number of arguments the new list environment has.  These arguments
+can be mentioned in the last mandatory argument just as in the
+\newcommand command.  For example, you can write
+
+      \newlist{labellist}{}{}[1]{\item [#1:]}
+
+(Change made 27 Jan 1984)
+
+11. A missing entry in an array or tabular environment may cause
+trouble -- e.g., writing '& &'.  until this is corrected, you can
+add a null item, such as '\mbox{}'.  (Corrected 8 Feb 84.)
+
+12. No longer applicable.
+
+13. The page headings don't come out right on float pages in twoside
+page layouts.  (Left-hand headings come out on right-hand pages.)
+Found by Gary Swanson. (Corrected 8 Feb 84.)
+
+14. By popular demand, a new environment  eqnarray  is being added 
+to LaTeX.  \begin{eqnarray} ... \end{eqnarray} acts like
+  \[ \begin{array}{lcl} ... \end{array} \]
+except that 
+    1. An equation number is put on every line, unless
+       there is a \nonumber command anywhere on that line.
+    2. Page breaking can occur between lines of an equation,
+       so the *-form of the \\ command is useful.
+    3. There is an extra \jot amount of space added between lines.
+Also, document-style designers who want to change where and how
+equations are numbered, should look for \@eqnnum in LATEX.TEX
+to see what to do; you no longer change \endequation.
+(Change made to version 2.03 on 6 Feb 84)
+
+15. An eqnarray* environment has been added.  It's the same as
+eqnarray except it doesn't number the equations.
+(Change made to version 2.03' on 7 Feb 84)
+
+16. A test should be made at the end of a list to check that
+it ends with an item---see manual change 4 below.
+(Change made on 8 Feb 84.)
+
+17. The tabbing environment doesn't work right when inside a list
+environment if it's the first thing after an \item command.
+(Corrected 8 February 1984)
+
+18. \protect now works in the argument of \typeout and \typein,
+so \typeout{Command \protect\foo} types out 'Command \foo'.
+(Change made to version 2.04 on 16 February 1984.)
+
+19. \typein doesn't work if the last item typed in by the user is a
+control sequence.  (Corrected 22 February 1984)
+
+20. A whole new method of handling fonts has been introduced.  LaTeX
+no longer produces an error if a typeface hasn't been preloaded.  It
+either loads it or else substitutes a different font and types a
+warning.  The commands \boldmath and \unboldmath have been added,
+allowing the user to produce boldface symbols and math formulas.  See
+LERRATA.TEX for a description of these commands.  Note: to be
+consistent, \boldmath should change the boldness of the characters
+that come from the math extension font.  However, I don't have a bold
+version of the AMEX font, so I can't implement that.  (Change made to
+version 2.05 on 22 February 1984)
+
+21. LPLAIN is changed so \rightline, \leftline and \centerline work.
+However, the LaTeX \line command bears no relation to PLAIN TeX's
+\line command.  (Changed 28 Feb 1984)
+
+22. The 'Missing \item' error message changed to 
+'Something's wrong--perhaps a missing \item.'  (Changed 28 Feb 1984)
+
+23. \protect now works in the argument of an \index command.  
+(2 Mar 1984)
+
+24. A ']' in a section title or caption caused an error.  
+(Corrected 6 Mar 1984)
+
+25. The commands to automatically load needed fonts have a bug.
+Suppose, for example, that \sl is not preloaded for the \small size.
+The first time you use \sl inside a \small environment, it works OK.
+However, subsequent \sl commands inside the same \small environment
+are no-ops.  \sl works fine the next time you execute \small.
+In other words,
+{\small ... \sl SLANTED \rm ROMAN \sl ROMAN!} ... {\small \sl works ok here}
+(Found by David Smith, Corrected 16 Mar 1984)
+
+26. Setting \textwidth before the \begin{document} doesn't work.  Can
+be fixed by putting a \onecolumn or \twocolumn command after the
+command to set \textwidth.  (Found by Mark Moriconi, Corrected 18 Mar 1984.)
+
+27. For one-sided output, LaTeX uses \evensidemargin for the left margin
+instead of \oddsidemargin as it should.  (Found by Mark Moriconi, 
+Corrected 19 Mar 1984.)
+
+28. The list environment, and other environments that use it (like
+enumerate), don't work in double column format.  (Found by Fernando
+Pereira, corrected 24 April 1984)
+
+29. When a \clearpage occurs and there are unprocessed figures to be put
+out, the next text page may be short.  A similar but harder to describe
+problem may occur in two-column output. (Found by Howard Trickey and 
+Gabi Kuper, corrected 1 May)
+
+30. There have been a number of changes made to version 2.06.  Most
+are invisible to the user, but require modification of all
+document styles made for earlier versions.  The user-visible ones
+are documented in LERRATA.TEX.  The ones that are invisible to the
+user but are important to the document-style designer include:
+  * \co@... has been changed to \the .  Thus, for example, \thesubsection
+    now produces the printed version of the current subsection number,
+    which might be something like '2.4.5'.
+  * While not a change to LaTeX itself, there is an important procedural 
+    change.  Document style files now come in two flavors: a version 
+    having having lots of comments, with the extension '.doc'; and 
+    a compressed version that LaTeX reads, with the extension '.sty'.
+    The '.doc' files have many more comments than the old '.sty' files,
+    making it easier to figure out how to customize a document style.
+  * The \documentstyle command has been changed completely, including
+    a new mechanism for handling document-style options.  This is explained
+    in REPORT.DOC.  (Scan for \@options.)
+
+31. When used in vmode, \vspace* with a negative argument doesn't work
+right, producing a positive \baselineskip space.  (Corrected in version 2.06.)
+
+32. A number of bugs were introduced in the first release of Version 2.06.
+All of these that were known by 26 June 1984 were corrected in the release
+of that date.
+
+33. LaTeX now assumes that the device driver will, with no other offset,
+print things starting one inch from both the top and left edges of the
+paper.  If your driver does not do this, then appropriate \hoffset and
+\voffset commands should be added to your local options file for 
+generating LaTeX.
+
+34. For very obscure reasons, there was occasionally an extra space at
+the end of the last item in a row of an array.  Also, an extra space
+would appear at the end of the last item in a row of a tabular
+environment ended with a \\[x] where x is a positive dimension.
+(Discovered by in part by Ken Laws.  Corrected 3 July 1984.)
+
+35. A \raggedbottom command was added. (Version 2.06a, 3 July 1984)
+
+36. A font that is not preloaded will, when called for the first time
+inside braces in math mode, generate a '\textfont ... is undefined'
+error.  This is an unsolvable problem.  To alleviate it, the user 
+should call the font in question at 'ground level' (outside any braces)
+before it is used in the math environment.  For example, before using
+\sc inside math mode, the user can type  \sc \rm at ground level.
+
+37. A typestyle-changing command does not work quite right when used 
+in an 'unsafe' argument, like the argument to a \section command.
+For example, if you type \section{ ... {\it foo} ... }, then the
+table of contents entry will contain 'foo' in the typesize in effect
+at the \section command, rather than the one in effect during the
+table of contents.  (Fortunately, these are usually the same.)
+(Corrected 6 July 1984.)
+
+38. \protect does not work right in an \addcontentsline or
+\addtocontents entry, or in the 'unsafe' argument of a sectioning
+command.  '\protect\foo x' will write '\foox' instead of '\foo x' on
+the .TOC file.  (Corrected 6 July 1984.)
+
+39. Any command like \label or \addcontentsline that comes between two
+\clearpage commands---i.e., that are on 'pages' with no printed
+text---are lost.  (Corrected 7 July 1984.  However, such a command
+that comes between a \clearpage or \newpage and the \end{document}
+is still lost.  Also, this correction causes every \clearpage command
+to put a blank line in the .LST file.)
+
+40. A complicated-to-explain but easy-to-fix bug, introduced by the
+correction made to 39, meant that the twocolumn document substyle would
+not load properly. (Corrected 19 July 1984.)
+
+41. \underline does not work properly in math mode.  (Corrected 
+10 August 1984.)
+
+42. The [t] option of the minipage environment does not work properly.
+(Corrected in version 2.07.)
+
+43. The \raggedbottom command can sometimes produce an overfull text
+page that runs into the page number.  (Corrected 15 August 1984.)
+
+44. A tabbing environment that begins an item inside a list environment
+produces incorrect vertical spacing.  (Corrected in version 2.07.)
+
+45. Any command whose expansion includes a  "  needs to be \protect'ed
+in environments calling for \protect'ion.  This includes all accent-making
+commands.  The fix will probably involve renaming the  "  command
+(introduced in Version 2.06).  (Corrected in version 2.07.)
+
+46. The \@startsection macro doesn't work right for producing in-line
+headings, as for the \paragraph and \subparagraph commands in the current 
+document styles.  A blank line between the command and the following
+text screws things up. (Corrected 28 October 1984)
+
+47. As in Plain TeX, a \$ command in an \it type style produces a
+pound sterling symbol.   (Corrected 29 September 1984)
+
+48. Typing   
+       \typein[\names]{Include what?}
+       \includeonly{\names}
+doesn't work. (Corrected in Version 2.07, 21 October 1984.)
+
+49. The sectioning commands did not put the correct space above a
+section heading if the command was preceded by certain LaTeX
+environments. (Corrected in Version 2.07, 26 October 1984.)
+
+50. A tabbing environment that begins a minipage environment leaves too
+much space above it. (Corrected 31 October 1984)
+
+51. The \endtabular and \endarray commands don't exist, so they can't
+be used in a \newenvironment command.  (To be corrected in Version 2.08.)
+
+52. When using the \raggedbottom option, footnotes don't go in the
+right place on an incomplete page--e.g., the last page of the document
+or one ending with a \newpage.  (Corrected 8 November)
+
+53. \cline was inadvertently defined to require the format \cline[1-2]
+rather than the correct \cline{1-2}.  (Corrected 9 November)
+
+54. The 9 November correction to the document styles introduced an
+error in \cite, making all numberic references come out as [0]
+in the text.   (Corrected 13 November)
+
+55. In the array and tabular environments, an extra space appeared
+between columns when a '|' was followed by a 'p' in the argument.
+(Corrected 13 November)
+
+56. Anomalous results may occur if a 'p' column in an array or
+tabular environment is left empty. (To be corrected in version 2.08)
+
+57. The \listoffigures and \listoftables commands did not properly
+indent the first line.  (Corrected 14 November 1984)
+
+58. \footnote and \footnotemark did not work in math or vertical mode.
+(Corrected 23 November 1984)
+
+59. The change to \index that allowed arbitrary special characters in its
+argument was not also made to \glossary.  (Corrected 21 December 1984)
+
+60. \boldmath did not work properly when called for the first time
+inside braces or an environment.  (Corrected 22 December 1984)
+
+61. \footnotemark with an optional argument didn't work right inside
+a minipage.  (Corrected 22 December 1984)
+
+62. Commands have been added to allow rules to appear between floats
+and text on a page.  See the \topfigrule, \botfigrule, and 
+\dblfigrule commands.  (Change made 22 December 1984)
+
+63. A minor bug in \raisebox was fixed.  (Change made 31 December 1984)
+
+64. \newcounter did not initialize \the... to \arabic{...}.
+(Corrected 5 January 1985)
+
+65. \linebreak, \nolinebreak, \pagebreak, and \nopagebreak produced
+an error given an optional argument of 0. (Corrected 16 January 1985)
+
+66. \protect doesn't work properly in the optional argument of \bibitem.
+(Corrected 27 January 1985)
+
+67. \protect and certain un\protect'ed commands don't work right in 
+the optional argument of \bibitem.  (Corrected 30 January 1985)
+
+68. The following two problems will occur if a footnote is split
+across two pages: (i) if a figure or table environment immediately
+follows the footnote, then the footnote will be scrambled, with the
+last part coming before the first part.  (ii) a \clearpage 
+immediately following the footnote causes an overfull \vbox message
+and produces extra vertical space at the beginning of the next page.
+(Corrected 25 February)
+
+69. The array, tabular and tabular* environments cannot be used with
+the \envbegin and \envend commands.  (Problem disappeared with version 2.09.)
+
+70. Some accents need \protect'ing. (Corrected 16 March 1985.)
+
+71. A sectioning command (like \paragraph) that produces an in-line
+heading (not on a separate line) doesn't work properly when it is
+immediately followed by a list or trivlist environment, or one that
+uses those environments (like verbatim or quote).  (Corrected in Version
+2.09.)
+
+72. Full page figures or tables that immediately follow the first
+page of a chapter appear on pages with no page headings.  More
+generally, full page floats that immediately follow a page 
+with a \thispagestyle{foo} command are formatted according to 
+page style foo.  (Corrected in Version 2.09.)
+
+73.  Multiple paragraph marginpar's don't work.  (Corrected 
+16 July 85.)
+
+74. \longrightarrow and \longleftarrow need \protect'ing in a moving
+argument.  (Corrected 4 September 85)
+
+75. In certain instances, the not enough vertical space appears 
+above a list environment.  (Corrected 4 September 85)
+
+76. The \textfraction parameter was being ignored, and a random
+value used.  (Corrected 27 September 85)
+
+
+77. The \item command was changed to allow a line break between
+the label and the following text.  This makes it easier to define
+a list environment in which the item occurs on a line by itself.
+(Change made 3 October 85).
+
+78. No warning was generated by the eqnarray and eqnarray* environments
+when a formula extended into the margin.  (Corrected 4 November 85.
+However, warning is not generated if formula extends only into the
+equation number.)
+
+79. \symbol and \newfont were not defined in SLiTeX.  (Corrected
+21 November 85)
+
+80. SLiTeX's \framebox command did not position items exactly right.
+(Corrected 28 November 85)
+
+81. Space produced by \hspace* can be gobbled inside an array or
+tabular environment.   (Observed by Sam Whidden.)  (Corrected 17 December 85)
+
+82. \skewchar commands were omitted for the math italic and and math
+symbol fonts, causing improper placement of math accents.  (Observed
+by Howard Trickey)  (Corrected 17 December 85)
+
+83. The preloaded typewriter fonts have had \hyphenchar redefined to
+-1 to prevent hyphenation with these fonts.  (Change made 17 December 85)
+
+84.  In rare circumstances, a bug in \@dottedtocline resulted in a page
+number appearing at the left of the line following the section
+heading in a table of contents entry.  (Corrected 7 January 86)
+
+85. As a result of change 83, the \- command doesn't work properly
+with the typewriter fonts.  (Reported by John DeTreville.
+Corrected 19 April 86.)
+
+86. In verbatim mode, the sequences ?` and !` produce ligatures
+instead of the correct characters.  (Found by Gerard Huet.  
+Corrected 19 April 86.)
+
+
+87.  The \vector and \line commands (through the \@svector and \@sline
+macros) only check if the vertical component of the slope exceeds the
+limit (4 or 6) for the command; the horizontal component is not
+checked.  Thus, \vector(2,5){5} gives an error message while
+\vector(5,2){5} produces incorrect results without any message.  Some
+arguments will reference a non-existent character in the line font.
+(Found by Joseph I. Pallas.  Corrected 19 April 86.)
+
+88. \newenvironment doesn't work if there's a \par command in
+an argument.  (Corrected 19 April 86.)
+
+89.  An obscure bug in \settowidth caused by a missing \relax.
+(Discovered by Oren Patashnik, corrected 24 March 86.)
+
+90.  A \markright or \markboth immediately after a sectioning command
+could allow a page break right after the section heading.
+(Discovered by Oren Patashnik, corrected 15 April 86.)
+
+91. The \arabic command (actually \@arabic) was changed so it
+will print nonpositive numbers.  (Suggested by Charles Kearney.
+Change made 29 April 86.)
+
+92.  An implementation error causes LaTeX to run out of room on very
+long tabbing environments.  (Discovered by Kent McPherson.  Corrected
+17 Jun 86)
+
+93.  In rare instances, a footnote is placed on the page following the
+one in belongs on.  This happens only when a figure or table
+environment appears in the text immediately after the place where the
+page that should contain the footnote ends.  Until this is fixed, the
+problem can be made to go away by moving the figure or table
+environment a little further back or forward in the text.
+
+94.  Unnecessary overfull boxes caused by descenders on last line of
+page.  Fixed by modifying the output routine \@makecol.  A temporary 
+dimen is used to hold the depth of the output box, then it is unboxed,
+then we vskip minus the depth. (2 Sep 86)
+
+95.  Grouping was taken out of \@latexerr. (Suggested by John Hobby.)
+(2 Sep 86)
+
+96.  \makethmlabel was deleted.  Never used anyway. 
+(Found by Mark Kent, 2 Sep 86).
+
+97.  \footheight may soon be deleted.  Never used.  Taken out of style
+files too.  (Found by Mark Kent, 2 Sep 86).
+
+98.  When a section heading does not indent the following paragraph, a
+\noindent caused a negative indentation--i.e., an outdent.  (Change,
+suggested by suggestion by Mario Wolczko, made 2 Sep 86)
+
+99.  A page break can occur where a figure or table environment or a
+\marginpar command appear, even in the scope of a \samepage declaration.
+(Found by Oren Patashnik.  Corrected 23 Oct 86)
+
+100. In rare instances, a figure can appear on the page preceding
+its environment, and a marginal note may appear on the wrong side.
+(Found by Oren Patashnik)
+
+101. The \verb command produces an error if it appears in math
+mode with a `_' in its argument.  (This is a bug in PLAIN.TEX
+corrected in LPLAIN.TEX on 13 Oct 86 and SPLAIN.TEX on 28 Oct 86.)
+
+102.  If no blank line follows a paragraph-making environment, then the
+following text is not indented.  However, a \noindent command produced
+an outdent.  (Correction, similar to #99, made on 23 Oct 86)
+
+103.  The mechanism to suppress the paragraph indentation of text
+immediately following a paragarph-making environment does not work if
+that environment is enclosed in braces or another environment.  In
+particular, it wouldn't work for environments like the ones defined
+in the examples on page 57 of the manual--e.g., when called
+by the `emphit' environment, the `itemize' environment is
+inside another environment. (Corrected 27 Oct 86)
+
+104. In SLiTeX, the \_ command produces an underscore that is
+printed on all color layers.  (Reported by John deTreville, 
+corrected 10 Nov 86.)
+
+105. A line break can occur at a space in a `verbatim' environment.
+(Reported by Nelson Beebe, corrected 19 Nov 86.)
+
+106.  An apparent typo put two copies of \@texttop at the top of a page
+instead of just one.  This did not seem to affect any of the standard
+styles, but would have created problems in special styles that used
+\@texttop. (Reported by Michael Harrison, corrected 1 Dec 86.)
+
+107. An array environment in the third argument to a \multicolumn
+command did not work.  (Reported by Ferdinand Hommes, corrected 6 Dec 86.)
+
+108.  A long descender (such as is normally produced only by math
+formulas) on the bottom line of a page could extend lower than
+it should.  (Corrected 21 Jan 86)
+
+109.  The \index command was changed to make \protect work in its
+argument, in case the \index command is used inside the argument of
+another command, such as \footnote.  (Change made 3 Feb 87)
+
+110.  A \label or \index command in a section heading caused a bug
+if that heading was used as a page heading.  (Discovered by
+Tim Hopkins.  Corrected 22 Feb 87)
+
+111.  Setting \topskip to 0pt does weird things.  I haven't figured out
+why, but there's no reason to set \topskip to 0pt, so this is not
+considered a bug.  (Discovered by Mabry Tyson.)
+
+112. \{ and \} are fragile commands, contrary to the manual.
+(Discovered by Piet van Oostrum <mcvax!ruuinfvax!piet@seismo.CSS.GOV>.
+Corrected 21 Apr 87.)
+
+113. \bibitem doesn't work when there's a \nofiles declaration.
+(Discovered by Arthur Ogawa.  Corrected 29 Apr 87.)
+
+114.  Spaces produced by a \verb command (e.g., `verb| x |') are
+deleted if they appear at the beginning of a line.  I don't know
+if this is a bug or a feature.  (Discovered by  R. J. Smith.)
+
+115.  A figure or table environment appearing between paragraphs (in
+vertical mode) can produce extra vertical space in the document between
+those paragraphs.  (Discovered by Arthur Ogawa.  Corrected 26 May 87.)
+
+116.  An obscure bug in the \caption command can cause it to leave
+extra vertical space above the caption if the command is not 
+preceded by a blank line.  This extra space does not appear
+when a \nofiles command is used.  (Discovered by Peter Schilling.
+Corrected 12 Jun 87.)
+
+117. A \put or \multiput with an argument beginning "plus" or "minus"
+causes an error.  (Discovered by Don Knuth.  Corrected 20 Jul 87.)
+
+118. \dotfill and \hrulefill don't work right in `tabular' and
+`array' environments.  (Discovered by Rainer Schoepf.  Corrected
+[in LPLAIN.TEX] 24 Jul 87.)
+
+119. The `p' option in an array or tabular environment puts a normal
+depth strut at the bottom of the parbox, which results in too much
+space if the last line of the box has a descender.  I don't see
+any reasonable way to fix this.  (Discovered by John Lavagnino.)
+
+120. The default \cite command was changed to put a space between
+multiple citations--for example, to produce `[1, 5, 17]' instead
+of `[1,5,17]'.  (Suggested by John Ellis.  Changed 21 Nov 87.)
+
+121. The \newcommand and \renewcommand commands left the LaTeX
+internal control sequence \@tempb \let to `#'.  While not causing
+any problem in LaTeX, it caused bugs in other people's document
+styles.  Fixed by replacing \@tempb in those commands with
+something more untypeable.  (Change made 23 Nov 87.)
+
+122. Figures were typeset with \boxmaxdepth = 0pt, which could screw
+up some macros--in particular, plain TeX's \overrightarrow.
+(Bug found by Thomas H. Cormen.  Corrected 15 Dec 87.)
+
+123. The fix for 122 broke \marginpar, so it did not work at all.
+(Corrected 3 Jan 88.)
+
+124. The \frame command put an extra space after the box.
+(Discovered by John Hershberger, corrected 14 Jan 88.)
+
+125.  \parskip wasn't restored in parboxes and footnotes, so it would
+have the wrong value when a parbox or footnote appeared in a list
+environment.  (Discovered by Dominik Wujastyk, corrected 20 Jan 88.)
+
+126. The leaders were not properly aligned in multiple-line
+table-of-contents entries.  (Discovered by Gunther Hartmann, corrected 
+25 Jan 88.)
+
+127.  Strange things can happen if a command like \footnotemark that
+doesn't generate in-line text appears between a \paragraph or
+\subparagraph command (or any sectioning command that produces a
+heading that's part of the following paragraph) and the following text.
+What happens is that TeX sees the \footnotemark command before it sees
+the argument to the \{sub}paragraph command, which can lead to
+incorrect numbering and who knows what else.  Any attempted fix is
+likely to break other things, so I will not try to fix this.
+(Discovered by Ed Zalta and Emma Pease.)
+
+128. A marginal note is misplaced if there is a footnote preceding
+it on the same page.  (Found by Chris Rowley.  Corrected 26 Feb 88.)
+
+129.  In SLiTeX, Two adjacent \frac's run into one another.  (Found by
+Stephen Pohlig.)
+
+130.  In SLiTeX, in an array or tabular environment, the rules formed
+by a `|' argument and by an \hline and \cline command appear in all
+color layers. (Corrected 8 Jun 88.)
+
+131.  If, for a counter foo, \thefoo is defined to contain mention of a
+non-preloaded font, then a \label{bar} command that involves counter
+foo will write some garbage on the .aux file causing an error on a
+\ref{foo} command.  (Reported by Peter K. Schilling.  Corrected 20 Jul 88.)
+
+132.  If a \contentsline or \addtocontents command immediately precedes
+an \include, then the table of contents line it produces may appear
+later than the contents lines added by the included file.  There does
+not appear to be an easy fix for this.
+(First reported by Rainer Schoepf and Frank Mittelbach)
+
+133.  If the output routine is called while in a tabbing environment,
+strange things can happen because \-, \', etc.  have unusual
+definitions.  (Reported by Detlev Droege and Friedrich Haubensak.
+Corrected 4 Aug 88.)
+
+134.  Redefining something like \thefigure to include a size-changing
+command like \small causes an error when a \ref referes to a label that
+labels a figure environment.  This problem can be solved by using
+\protect\noexpand\protect\small instead of \small.  I'm not sure
+if this is a bug, and I doubt if I'll fix it.  (Reported by Peter
+Schilling.)
+
+135.  The \pagebreak and \nopagebreak commands have no effect
+inside a tabbing or eqnarray environment.  (Reported by Mik Bickis.)
+
+136. Typing "\hspace*{...} plus ..." causes an error. (Reported by
+Emma Pease. Corrected 13 Oct 1988.)
+
+137.  The size of the circle printed by \circle{L} not a monotonic
+function of L.  (Reported by Nick North, diagnosed by Ian Young.
+Corrected 1 Nov 1988.)
+
+138.  A command like \index or \label could incorrectly suppress a
+space after the next \end command.  (Reported by Johannes Braams.
+Partially fixed on 30 Nov 88.  Problem can still occur if \index or
+\label command comes inside the \end's environment.)
+
+139.  Extra vertical space appears below a `p' entry in a tabular or
+array environment if the last line has nonzero depth.  (Reported by
+Michael DeCorte.  Corrected 14 Jan 1989.)
+
+149.  A \multicolumn command did not work right immediately
+before a \\[D] command when D was a positive length.
+(Reported by John Lee.  Corrected 8 Feb 89.)
+
+150. In the minipage environment, spacing between footnotes is too small 
+(Found by Don Hosek.  Corrected 27 Mar 89.)
+
+151. \pounds didn't work in math mode.  (Discovered by Don Hosek.
+Corrected 10 Apr 89.)
+
+152.  \indexentry commands instead of \glossaryentry commands are
+written on the .glo file.  (Discovered by William D. Partain.
+Corrected 14 Apr 89.)
+
+153. Following minor changes made 
+    \include: prevent space in \include{foo } from wiping out input file. 
+    \begin-\end: detects unmatched \begin ended with \end{document}
+    \verb: the leading spaces in \verb+ foo+ will not be dropped at the
+           beginning of a line.
+Also, minor changes to \newline (\\ in paragraph mode), minipage
+environment, \tableofcontents, \listoffigures, and \listoftables
+that should produce no noticable effects.  (Changes made 24 May 89,
+mostly based on suggestions by by Frank Mittelbach and Rainer Sch\"opf.
+
+154.  A bug in the picture environment caused an extra space to appear
+in a picture if an offset is specified and the environment begins with
+a declaration that generates a \special or some such TeX "other".
+(Corrected 13 Jun 89.)
+
+155.  Change 137 introduced a problem with the \oval command.
+(Reported by David Long and several other users, corrected 7 Dec 89.)
+
+
+                CHANGES TO .DOC AND .STY FILES AND OTHERS
+                -----------------------------------------
+
+[Changes needed to conform with changes to LaTeX are not noted.]
+
+1. \caption doesn't work properly with optional argument. (Corrected 28 Dec 83)
+
+2. The change to the thebibliography environment described in item 2
+below requres a change to the .STY files.  (Change made 28 Dec 83)
+
+3. The description environment was changed to allow a larger value
+of \leftmargin than the default.  The parameter \descriptionlabelwidth
+gives the maximum value of \labelwidth for a description environment.
+It should be \def'd to something like .2\linewidth. (Change made 31 Dec 83)
+
+4. A minor bug in a \mark command made it possible for a page heading
+to  come on an earlier page than it should. (Change made 13 Jan 84)
+
+5. Version 2.06 eliminated the .PLO files and completely changed the
+organization of the .STY files.  See LERRATA.TEX.
+
+6. The style files were changed to accomodate the new convention that
+assumes printing starts one inch from the top and left edges of the paper.
+
+7. LABLST.TEX did not work with Version 2.06.  (Corrected 18 July 84.)
+
+8. The default margins for the list environment weren't being set
+properly in SLIDES.DOC/STY.  (Corrected 26 July 84.)
+
+9. The table* environment was producing single-column rather than
+double-column tables.  (Corrected 16 September 84.)
+
+10. In the letter style, commands like \it didn't work right when
+the appeared in mailing labels. (Corrected 21 September 84)
+
+11. \begin{displaymath} ... \end{displaymath} doesn't work right
+in the fleqn style option.  (Corrected by a change in Version 2.07.)
+
+12. In the letter style, a null argument of a \begin{letter}
+produced an error.  (Corrected 21 October 1984.)
+
+13. Multiple paragraph footnotes don't work properly.  (Corrected
+8 November 1984)
+
+14. In normal article style, the \maketitle command did not prevent a
+figure from going above it at the top of the page. (Corrected 9
+November)
+
+15. The thebibliography environment messed up when there were more
+that 26 items.  (Corrected 9 November)
+
+16. The letter document style for Version 2.07 had incorrect
+enumerate and itemize environments.  (Corrected 9 November)
+
+17. The article style was changed so the thebibliography command
+produces the title "References" instead of "Bibliography".  (Note that
+report style still produces "Bibliography".) (Changed 17 November
+1984)
+
+18. LABLST.TEX may die if there's an un\protect'ed font-changing
+command in a table of contents entry.  (Corrected 24 November 1984)
+
+19. A list inside a trivlist environment, like a theorem environment,
+doesn't work right.  (Corrected 27 November 1984)
+
+20. The report style messed up page headings in single-sided output with
+the headings option. (Corrected 5 December 1984)
+
+21. The quotation environment puts extra space between paragraphs.  
+(Corrected 3 January 1985).
+
+22. The \[ ... \] environment had a minor bug in the fleqn style option.
+(Corrected 6 February 1985)
+
+23. A change was made to the letter style that should fix the
+anomalous page breaking.  (Thanks to Mike Fischer for tracking it
+down.) (Change made 9 February 1985)
+
+24. A sectioning command (like \paragraph) that produces an in-line
+heading (not on a separate line) doesn't work properly when it is
+immediately followed by a list or trivlist environment, or one that
+uses those environments (like verbatim or quote). (Corrected in Version
+2.09.)
+
+25. The leqno style option doesn't work.  (Corrected 20 May 1985)
+
+26.  The `slides' document style ignored all style options.  (Corrected
+20 November 1985)
+
+27. \tableofcontents, \listoffigures, \bibliography, etc. affect the
+page headings when the myheadings style is used.  (Reported by
+Tim Morgan.)  (Corrected 17 December 85)
+
+28.  The old version of the description environment was inadvertantly
+left in the `letter' and `slides' style.  (Reported by Rusty Wright.)
+(Corrected 17 January 86)
+
+29.  In all styles: no hyphenation is done in multi-line figure and
+table captions.
+
+30. Labels in the letter style did not work right if the user changed
+\parindent.  (Reported by Mike Fischer, corrected 5 Mar 86.)
+
+31. The `ifthen' style option was modified to make \protect work
+in the `test' argument of \ifthenelse and \while.
+(Problem reported by Tor Lillqvist, corrected 28 Oct 1986)
+
+32. A bug in the `ifthen' style made \equal not work after a
+\newcommand, \newenvironment, \renewcommand, or \renewenvironment
+command. (Problem reported by Tor Lillqvist, corrected 16 December 1986)
+
+33. With the `fleqn' style option, the text following a displayed
+equation always began a new paragraph, even if it was not preceded
+by a blank line.  (Reported by Joe Weening, corrected 9 March 1987)
+
+34. If a size-changing command is given at the outermost brace and
+\begin-\end level, and is followed by a \normalsize command, then
+the parameters used for controlling first-level lists are messed up.
+(Reported by Tom Hofmann, corrected 9 Jun 1987.)
+
+35. The letter style was changed to make the \date command have
+the expected effect.  (Suggested by John Pavel.  Change made
+20 Jul 87.)
+
+36. In the definition of \newblock inside \thebibliography, there
+was a "minus -.07ex" that should have been "minus .07ex".
+(Found by Oren Patashnik, corrected 12 October 1987.)
+
+37.  In the `openbib' style option, a couple of "\markboth"s should
+have been "\@mkboth"s.  (Found by Oren Patashnik, corrected 12 October
+1987.)
+
+38. A first-level list environment inside a trivlist environment
+messes up the left margin.  (Reported and correction suggested
+by Martha Wershofen, corrected 22 December 1987.)
+
+39. The \label command did not work for cross-referencing parts.
+(Reported by Paul Karger, corrected 19 January 1988.)
+
+40.  Changes made to \l@section command (article style) and \l@chapter
+command (book, report styles) for making table of contents entries to
+conform to 25 Jan 88 change to \numberline. (Reported by 
+Gunther Hartmann, corrected 5 February 88.)
+
+41. \protect did not work in the argumment to an \index command
+when the showidx style option is used.  (Reported by Nelson Beebe.
+Corrected 22 Feb 88.)
+
+42. The definitions in the standard style did not allow the labels
+in an `enumerate' environment to be changed in the usual way be
+redefining `\theenum...'.  (Corrected 16 Mar 88.)
+
+43.  With \pagestyle{empty}, a \chapter command still produces a page
+number on the first page of a chapter.  (Reported by Peter Schilling 3
+June 88.  Deemed not worth correcting.)
+
+44. A bug in the `letter' style caused a number to disappear from
+the output if it occurred at the beginning of a paragraph after
+a \ps.  (Corrected 20 Sep 88.)
+
+45. Report and book styles: Changed macros that produced "part" and
+"chapter" table-of-contents entries to improve page breaking.
+(Changed 24 May 89, as suggested by Jerry Leichter.)
+
+46.  In the fleqn style, \@beginparpenalty and \@endparpenalty were
+used instead of \predisplaypenalty and \postdisplaypenalty before and
+after a displayed equation made with \[ ...  \] or the "equation"
+environment.  (Reported by Rainer Sch\"opf and Frank Mittelbach.
+Corrected 24 May 89.)
+
+47.  The fix to the fleqn style reported in number 46 (24 May 89)
+re-introduced bug fixed in number 33 (9 Mar 87).  
+(Corrected 26 Sep 89.)
+
+48. Certain keywords like "height" caused an error in an \index
+command with the showidx style option.  (Reported by Joachim Schrod,
+corrected 11 Oct 89.)
+
+49. A bug in the definition of \part in the book and report styles
+made them use the optional argument instead of the regular argument
+for the heading printed in the text.  (Reported by Richard Roy, 
+corrected 13 Nov 89.)
+
+
+
+                         CHANGES TO THE MANUAL
+                         ---------------------
+
+See ADDENDUM.TEX

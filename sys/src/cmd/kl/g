@@ -1,0 +1,2 @@
+v.out -a asm.k list.k noop.k sched.k obj.k optab.k pass.k span.k enam.k >x1
+diff x1 x2

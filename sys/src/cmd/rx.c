@@ -5,7 +5,7 @@
 int	eof;		/* send an eof if true */
 char	*note = "die: yankee dog";
 
-void	rex(int, char*);
+void	rex(int, char*, char*);
 void	dkexec(int, char*, char*);
 void	tcpexec(int, char*, char*);
 int	call(char *, char*, char*, char**);
@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 	/* generic attempts */
 	fd = call(0, host, "rexexec", &addr);
 	if(fd >= 0)
-		rex(fd, args);
+		rex(fd, addr, args);
 	fd = call(0, host, "exec", &addr);
 	if(fd >= 0)
 		dkexec(fd, addr, args);
@@ -67,14 +67,16 @@ call(char *net, char *host, char *service, char **na)
 }
 
 void
-rex(int fd, char *cmd)
+rex(int fd, char *addr, char *cmd)
 {
-	char buf[4096];
+	char buf[4096], *err;
 	int kid, n;
 
-	if(auth(fd) < 0){
+	if(err = auth(fd, addr)){
 		close(fd);
-		error("authenticate fails", 0);
+		if(strcmp(err, "can't read server challenge") == 0)
+			return;
+		error(err, 0);
 	}
 	write(fd, cmd, strlen(cmd)+1);
 
@@ -83,7 +85,7 @@ rex(int fd, char *cmd)
 		if(write(1, buf, n)!=n)
 			error("write error", 0);
 	sleep(250);
-	postnote(PNPROC, kid, note);/**/
+	postnote(kid, note);/**/
 	exits(0);
 }
 
@@ -105,7 +107,7 @@ dkexec(int fd, char *addr, char *cmd)
 		if(write(1, buf, n)!=n)
 			error("write error", 0);
 	sleep(250);
-	postnote(PNPROC, kid, note);/**/
+	postnote(kid, note);/**/
 	exits(0);
 }
 
@@ -147,7 +149,7 @@ tcpexec(int fd, char *addr, char *cmd)
 		if(write(1, buf, n)!=n)
 			error("write error", 0);
 	sleep(250);
-	postnote(PNPROC, kid, note);/**/
+	postnote(kid, note);/**/
 	exits(0);
 }
 
@@ -179,9 +181,9 @@ void
 error(char *s, char *z)
 {
 	if(z == 0)
-		fprint(2, "%s: %s: %r\n", argv0, s);
+		fprint(2, "%s: %s\n", argv0, s);
 	else
-		fprint(2, "%s: %s %s: %r\n", argv0, s, z);
+		fprint(2, "%s: %s %s\n", argv0, s, z);
 	exits(s);
 }
 

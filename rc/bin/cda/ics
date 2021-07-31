@@ -1,0 +1,16 @@
+#!/bin/rc
+ICSLIB=/n/coma/usr/ucds/lib
+STOCK=(stock stock.stockrm stock.gucci)
+NL='
+'
+9fs tcp!coma
+switch($1) {
+case -*
+	echo 'ics: no switches'
+case *
+	echo 'part	bin	qty'
+	for (i in $*) {
+		for (f in $STOCK)
+			if (grep  -h  -i $i $ICSLIB/$f) echo '';
+	}
+}

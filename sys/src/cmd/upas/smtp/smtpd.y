@@ -12,7 +12,6 @@ struct quux {
 Biobuf *yyfp;
 YYSTYPE *bang;
 extern Biobuf bin;
-extern int debug;
 
 YYSTYPE cat(YYSTYPE*, YYSTYPE*, YYSTYPE*, YYSTYPE*, YYSTYPE*, YYSTYPE*, YYSTYPE*);
 int yyparse(void);
@@ -30,23 +29,21 @@ conversation	: cmd
 		| cmd conversation
 		;
 cmd		: error
-		| 'e' 'h' 'l' 'o' SPACE domain CRLF
-			{ syntaxerr(); }
 		| 'h' 'e' 'l' 'o' SPACE domain CRLF
 			{ hello($6.s); }
-		| 'm' 'a' 'i' 'l' SPACE 'f' 'r' 'o' 'm' ':' spath CRLF
+		| 'm' 'a' 'i' 'l' SPACE 'f' 'r' 'o' 'm' ':' path CRLF
 			{ sender($11.s); }
-		| 'r' 'c' 'p' 't' SPACE 't' 'o' ':' spath CRLF
+		| 'r' 'c' 'p' 't' SPACE 't' 'o' ':' path CRLF
 			{ receiver($9.s); }
 		| 'd' 'a' 't' 'a' CRLF
 			{ data(); }
 		| 'r' 's' 'e' 't' CRLF
 			{ reset(); }
-		| 's' 'e' 'n' 'd' SPACE 'f' 'r' 'o' 'm' ':' spath CRLF
+		| 's' 'e' 'n' 'd' SPACE 'f' 'r' 'o' 'm' ':' path CRLF
 			{ sender($11.s); }
-		| 's' 'o' 'm' 'l' SPACE 'f' 'r' 'o' 'm'  ':' spath CRLF
+		| 's' 'o' 'm' 'l' SPACE 'f' 'r' 'o' 'm'  ':' path CRLF
 			{ sender($11.s); }
-		| 's' 'a' 'm' 'l' SPACE 'f' 'r' 'o' 'm' ':' spath CRLF
+		| 's' 'a' 'm' 'l' SPACE 'f' 'r' 'o' 'm' ':' path CRLF
 			{ sender($11.s); }
 		| 'v' 'r' 'f' 'y' SPACE string CRLF
 			{ verify($6.s); }
@@ -67,9 +64,6 @@ path		: '<' '>'		={ $$ = anonymous(); }
 		| '<' mailbox '>'	={ $$ = $2; }
 		| '<' a-d-l ':' mailbox '>'	={ $$ = cat(&$2, bang, &$4, 0, 0 ,0, 0); }
 		;
-spath		: path			={ $$ = $1; }
-		| SPACE path		={ $$ = $2; }
-		;
 a-d-l		: at-domain		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| at-domain ',' a-d-l	={ $$ = cat(&$1, bang, &$3, 0, 0, 0, 0); }
 		;
@@ -88,9 +82,9 @@ mailbox		: local-part		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 local-part	: dot-string		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| quoted-string		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		;
-name		: let-dig			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
-		| let-dig ld-str		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
-		| let-dig ldh-str ld-str	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
+name		: a			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
+		| a ld-str		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
+		| a ldh-str ld-str	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
 		;
 ld-str		: let-dig
 		| let-dig ld-str	={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
@@ -170,8 +164,6 @@ yylex(void)
 		c = Bgetc(yyfp);
 		if(c == -1)
 			return 0;
-		if(debug)
-			fprint(2, "%c", c);
 		yylval.c = c = c & 0x7F;
 		if(c == '\n'){
 			return CRLF;
@@ -181,11 +173,8 @@ yylex(void)
 			if(c != '\n'){
 				Bungetc(yyfp);
 				c = '\r';
-			} else {
-				if(debug)
-					fprint(2, "%c", c);
+			} else
 				return CRLF;
-			}
 		}
 		if(isalpha(c))
 			return tolower(c);

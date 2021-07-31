@@ -1,0 +1,85 @@
+% USERDOC.FNT							February 1990
+%
+%  This file contains the macros and calls to prepare font charts for
+%  the principal 10-point fonts distributed with the AMSFonts package.
+%  This file can be TeXed by itself as a test of the fonts; it is also
+%  read in by USERDOC.TEX to produce the charts for Figure 1.
+
+% American Mathematical Society, Technical Support Group, P. O. Box 6248,
+%        Providence, RI 02940
+% 800-321-4AMS or 401-455-4080;  Internet: Tech-Support@Math.AMS.com
+\catcode`\@=11
+
+\def\oct#1{\hbox{\rm\'{}\kern-.2em\it#1\/\kern.05em}} % octal constant
+\def\hex#1{\hbox{\rm\H{}\tt#1}} % hexadecimal constant
+
+% macros for font tables
+\def\oddline#1{\cr
+  \noalign{\nointerlineskip}
+  \multispan{19}\hrulefill&
+  \setbox0=\hbox{\lower 2.3pt\hbox{\hex{#1x}}}\smash{\box0}\cr
+  \noalign{\nointerlineskip}}
+\def\evenline{\cr\noalign{\hrule}}
+\def\chartstrut{\lower4.5pt\vbox to14pt{}}
+\def\beginchart#1{$$\global\count@=0 #1         % \postdisplaypenalty=-10000
+  \halign to\hsize\bgroup
+    \chartstrut##\tabskip0pt plus10pt&
+    &\hfil##\hfil&\vrule##\cr
+    \lower6.5pt\null
+    &&&\oct0&&\oct1&&\oct2&&\oct3&&\oct4&&\oct5&&\oct6&&\oct7&\evenline}
+\def\endchart{\raise11.5pt\null&&&\hex 8&&\hex 9&&\hex A&&\hex B&
+  &\hex C&&\hex D&&\hex E&&\hex F&\cr\egroup$$}
+\def\:{\setbox0=\hbox{\char\count@}%
+  \ifdim\ht0>7.5pt\reposition
+  \else\ifdim\dp0>2.5pt\reposition\fi\fi
+  \box0\global\advance\count@ by1 }
+\def\reposition{\setbox0=\hbox{$\vcenter{\kern2pt\box0\kern2pt}$}}
+\def\normalchart{%
+  &\oct{00x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline0
+  &\oct{01x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{02x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline1
+  &\oct{03x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{04x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline2
+  &\oct{05x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{06x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline3
+  &\oct{07x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{10x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline4
+  &\oct{11x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{12x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline5
+  &\oct{13x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{14x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline6
+  &\oct{15x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{16x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline7
+  &\oct{17x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline}
+
+\def \table #1#2#3{\font #1=#2
+  \par\penalty-200
+  \centerline{\vbox{\hsize=29pc
+    \beginchart #1
+    \normalchart
+    \endchart
+    \smallskip
+    \centerline{#3 -- {\tt#2}}
+    \medskip }}}
+
+\catcode`\@=12
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\raggedbottom
+
+\table \teneufm{eufm10}{Euler Fraktur medium weight}
+\table \teneurm{eurm10}{Euler cursive (roman) medium weight}
+\table \teneusm{eusm10}{Euler script medium weight}
+\table \teneuex{euex10}{Euler-compatible extension font}
+\table \tenmib{cmmib10}{Computer Modern bold math italic}
+\table \tenbsy{cmbsy10}{Computer Modern bold math symbols}
+\table \tenmsam{msam10}{Extra symbols, group 1, medium weight}
+\table \tenmsbm{msbm10}{Extra symbols, group 2, medium weight}
+\table \tenex{cmex10}{Computer Modern math extension font}
+\table \tencsc{cmcsc10}{Computer Modern caps and small caps}
+\table \tencyr{wncyr10}{Cyrillic, medium weight}
+\table \tencyi{wncyi10}{Italic Cyrillic, medium weight}
+
+\bye

@@ -1,4 +1,4 @@
-.TH ADD 2
+.TH ADD 2G
 .SH NAME
 add, sub, mul, div, raddp, rsubp, rmul, rdiv, rshift, inset, rcanon, eqpt, eqrect, ptinrect, rectinrect, rectXrect, rectclip, Dx, Dy, Pt, Rect, Rpt \- arithmetic on points and rectangles
 .SH SYNOPSIS
@@ -8,8 +8,8 @@ add, sub, mul, div, raddp, rsubp, rmul, rdiv, rshift, inset, rcanon, eqpt, eqrec
 .br
 .B #include <libg.h>
 .PP
-.ta 12n +12n +12n +12n +12n
 .B
+.ta 12n +12n +12n +12n +12n
 Point	add(Point p, Point q)
 .PP
 .B
@@ -87,27 +87,27 @@ These are implemented as macros.
 returns the Point
 sum of its arguments:
 .BI Pt( p .x+ q .x,
-.IB p .y+ q .y) \f1.
+.IB p .y+ q .y) .
 .I Sub
 returns the Point
 difference of its arguments:
 .BI Pt( p .x- q .x,
-.IB p .y- q .y) \f1.
+.IB p .y- q .y) .
 .I Mul
 returns the Point
 .BI Pt( p .x* a ,
-.IB p .y* a ) \f1.
+.IB p .y* a ) .
 .I Div
 returns the Point
 .BI Pt( p .x/ a ,
-.IB p .y/ a ) \f1.
+.IB p .y/ a ) .
 .PP
 .I Raddp
 returns the Rectangle
 .BI Rect(add( r .min,
-.IB p ) \f1,
+.IB p ),
 .BI add( r .max,
-.IB p )) \f1;
+.IB p ))\fR;
 .I rsubp
 returns the Rectangle
 .BI Rpt(sub( r .min,
@@ -121,7 +121,7 @@ returns the Rectangle
 .I Rdiv
 returns the Rectangle
 .BI Rpt(div( r .min, a ),
-.BI div( r .max, a )) \f1.
+.BI div( r .max, a )) .
 .PP
 .I Rshift
 returns the rectangle
@@ -134,21 +134,23 @@ is positive or negative, respectively.
 .PP
 .I Inset
 returns the Rectangle
-.BI Rect( r .min.x+ n \f1,
-.IB r .min.y+ n \f1,
-.IB r .max.x- n \f1,
-.IB r .max.y- n ) \f1.
+.BI Rect( r .min.x+ n ,
+.IB r .min.y+ n ,
+.IB r .max.x- n ,
+.IB r .max.y- n ) .
 .PP
 .I Rcanon
 returns a rectangle with the same extent as
 .IR r ,
 canonicalized so that
 .B min.x
-≤
+.if t \(<=
+.if n <=
 .BR max.x ,
 and
 .B min.y
-≤
+.if t \(<=
+.if n <=
 .BR max.y .
 .PP
 .I Eqpt
@@ -197,9 +199,7 @@ The functions
 .I Dx
 and
 .I Dy
-give the width (\*Dx) and height (\*Dy) of a Rectangle.
+give the width (Δx) and height (Δy) of a Rectangle.
 They are implemented as macros.
-.SH SOURCE
-.B /sys/src/libg
 .SH SEE ALSO
 .IR graphics (2)

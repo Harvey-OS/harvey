@@ -5,46 +5,24 @@
 long
 Bseek(Biobufhdr *bp, long offset, int base)
 {
-	long n, d;
+	long n;
 
 	switch(bp->state) {
 	default:
 		fprint(2, "Bseek: unknown state %d\n", bp->state);
-		return Beof;
+		n = Beof;
+		break;
 
 	case Bracteof:
 		bp->state = Bractive;
-		bp->icount = 0;
-		bp->gbuf = bp->ebuf;
 
 	case Bractive:
-		n = offset;
 		if(base == 1) {
-			n += Boffset(bp);
+			offset += Boffset(bp);
 			base = 0;
 		}
-
-		/*
-		 * try to seek within buffer
-		 */
-		if(base == 0) {
-			d = n - Boffset(bp);
-			bp->icount += d;
-			if(d >= 0) {
-				if(bp->icount <= 0)
-					return n;
-			} else {
-				if(bp->ebuf - bp->gbuf >= -bp->icount)
-					return n;
-			}
-		}
-
-		/*
-		 * reset the buffer
-		 */
-		n = seek(bp->fid, n, base);
+		n = seek(bp->fid, offset, base);
 		bp->icount = 0;
-		bp->gbuf = bp->ebuf;
 		break;
 
 	case Bwactive:

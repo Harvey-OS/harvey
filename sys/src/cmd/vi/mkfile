@@ -11,6 +11,7 @@ OFILES=vi.$O\
 	symbols.$O\
 	cmd.$O\
 	bpt.$O\
+	das.$O\
 	float.$O\
 
 HFILES=mips.h\

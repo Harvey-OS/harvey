@@ -1,0 +1,67 @@
+.TH PART 10.1
+.SH NAME
+part \- configure common programmable logic devices
+.SH SYNOPSIS
+.B part
+[
+.I options
+] [
+.I filename
+]
+.SH DESCRIPTION
+.I Part
+accepts logic functions described by
+.IR minterm (10.6)
+as input and attempts to implement them with programmable
+logic devices. It assigns pins partitioning them
+over multiple devices if necessary.
+In the case that a single device is sufficient, part produces two output
+files 
+.IB filename .m
+and
+.IB filename .p .
+The first is used by
+.I xpal (10.1)
+for programming the device; the second
+contains pin assignment information. In the case of multiple devices
+.IB filename . nn m
+and
+.IB filename . nn p
+files are generated, where
+.I nn
+are integers between 0 and the number of
+devices minus one. In the case of multiple devices, a
+.IB filename .j
+giving a schematic representation of how the devices are connected in
+.IR graw (10.1)
+format is also produced.
+.PP
+The options are:
+.TP
+.BI -t " device_type
+use
+.I device_type
+as the target device programmable logic device.
+By default,
+.I part
+uses the type on the
+.B .x
+line of the
+.IR lde_format (10.6)
+source file if present.
+.TP
+.BI -N " n
+Iterate at most
+.I n
+times (default is 5).
+.TP
+.BI -M " n
+Iterate an additional
+.I n
+times after successfully fitting the equations
+to the target devices.
+.TP
+.B -p
+Use the pin assignments in the
+pin assignment
+files.

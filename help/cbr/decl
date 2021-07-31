@@ -1,0 +1,10 @@
+#!/bin/rc
+eval `{help/parse -c}
+x=`{cat /mnt/help/new/ctl}
+{
+	echo a
+	echo $dir/decl.$id'	Close!'
+} | help/buf > /mnt/help/$x/ctl
+{
+	vc -H $id:$line $file | sed 1q
+} > /mnt/help/$x/bodyapp

@@ -15,7 +15,6 @@ int	hversion;
 void	inmesg(Hmesg, int);
 int	inshort(int);
 long	inlong(int);
-long	invlong(int);
 void	hsetdot(int, long, long);
 void	hmoveto(int, long);
 void	hsetsnarf(int);
@@ -108,7 +107,6 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hbindname:
-		l = invlong(2);		/* for 64-bit pointers */
 		if((i=whichmenu(m)) < 0)
 			break;
 		/* in case of a race, a bindname may already have occurred */
@@ -170,23 +168,13 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hcheck0:
-		i = whichmenu(m);
-		if(i>=0) {
-			t = text[i];
-			if (t)
-				t->lock++;
+		if(whichmenu(m)>=0)
 			outTs(Tcheck, m);
-		}
 		break;
 
 	case Hcheck:
-		i = whichmenu(m);
-		if(i>=0) {
-			t = text[i];
-			if (t && t->lock)
-				t->lock--;
+		if(whichmenu(m)>=0)
 			hcheck(m);
-		}
 		break;
 
 	case Hunlock:
@@ -311,7 +299,7 @@ clrlock(void)
 void
 startfile(Text *t)
 {
-	outTsv(Tstartfile, t->tag, t);		/* for 64-bit pointers */
+	outTsl(Tstartfile, t->tag, (long)t);
 	setlock();
 }
 
@@ -319,7 +307,7 @@ void
 startnewfile(int type, Text *t)
 {
 	t->tag = Untagged;
-	outTv(type, t);				/* for 64-bit pointers */
+	outTl(type, (long)t);
 }
 
 int
@@ -333,17 +321,6 @@ inlong(int n)
 {
 	return indata[n]|(indata[n+1]<<8)|
 		((long)indata[n+2]<<16)|((long)indata[n+3]<<24);
-}
-
-long
-invlong(int n)
-{
-	long l;
-
-	l = (indata[n+7]<<24) | (indata[n+6]<<16) | (indata[n+5]<<8) | indata[n+4];
-	l = (l<<16) | (indata[n+3]<<8) | indata[n+2];
-	l = (l<<16) | (indata[n+1]<<8) | indata[n];
-	return l;
 }
 
 void
@@ -394,23 +371,6 @@ outTsl(Tmesg type, int s1, long l1)
 	outstart(type);
 	outshort(s1);
 	outlong(l1);
-	outsend();
-}
-
-void
-outTsv(Tmesg type, int s1, void *l1)
-{
-	outstart(type);
-	outshort(s1);
-	outvlong(l1);
-	outsend();
-}
-
-void
-outTv(Tmesg type, void *l1)
-{
-	outstart(type);
-	outvlong(l1);
 	outsend();
 }
 
@@ -475,20 +435,6 @@ outlong(long l)
 	buf[2]=l>>16;
 	buf[3]=l>>24;
 	outcopy(4, buf);
-}
-
-void
-outvlong(void *v)
-{
-	int i;
-	ulong l;
-	uchar buf[8];
-
-	l = (ulong) v;
-	for(i = 0; i < sizeof(buf); i++, l >>= 8)
-		buf[i] = l;
-
-	outcopy(8, buf);
 }
 
 void
@@ -601,8 +547,7 @@ hcheck(int m)
 				panic("hcheck request==0");
 			outTsls(Trequest, m, a, (int)n);
 			outTs(Tcheck, m);
-			t->lock++;	/* for the Trequest */
-			t->lock++;	/* for the Tcheck */
+			t->lock++;
 			reqd++;
 		}
 	    Checksel:
@@ -630,22 +575,20 @@ hsetsnarf(int nc)
 		s2[i] = getch();
 	s2[nc] = 0;
 	n = snarfswap(s2, nc, &s1);
-	if(n >= 0){
-		if(!s1)
+	if (n >= 0) {
+		if (!s1)
 			n = 0;
-		if(n > SNARFSIZE-1)
+		if (n > SNARFSIZE-1)
 			n = SNARFSIZE-1;
 		s1 = realloc(s1, n+1);
-		if (!s1)
-			exits("malloc");
 		s1[n] = 0;
 		snarflen = n;
 		outTs(Tsetsnarf, n);
 		if(n>0 && write(1, s1, n)!=n)
 			exits("write error");
-		free(s1);
-	}else
-		outTs(Tsetsnarf, 0);
+		if (s1)
+			free(s1);
+	}
 	free(s2);
 	cursorswitch(cursor);
 }

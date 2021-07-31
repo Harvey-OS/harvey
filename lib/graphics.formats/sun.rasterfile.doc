@@ -1,0 +1,84 @@
+
+>From: jwz@teak.berkeley.edu (Jamie Zawinski)
+Newsgroups: comp.graphics
+Subject: Re: Sun Raster files
+
+Date: 15 Nov 89 18:56:25 GMT
+Sender: news@pasteur.Berkeley.EDU
+Lines: 81
+
+
+
+
+   ... the manpage for 
+rasterfile(5) doesn't say anything about the format of byte-encoded
+images, or about plane/scanline ordering in multi-plane images.
+Pretty cool, yes?  Anyway, I have the firmly held belief that this
+information shouldn't be as hard to come by as it was for me.  So
+in the interest of spreading the data far and wide, here is what I
+know about the sun rasterfile format.  
+
+The first thing in the file is
+
+	struct rasterfile {
+		int ras_magic;
+		int ras_width;
+		int ras_height;
+		int ras_depth;
+		int ras_length;
+		int ras_type;
+		int ras_maptype;
+		int ras_maplength;
+		};
+The ras_magic field always contains the following constant:
+
+	#define RAS_MAGIC 0x59a66a95
+
+The ras_length field is the length of the image data (which is the length
+of the file minus the length of the header and colormap).  Catch: this
+is sometimes zero instead, so you can't really depend on it.
+
+The ras_type field is ras_old=0, ras_standard=1, ras_byte_encoded=2,
+or ras_experimental=FFFF.  There doesn't seem to be any difference 
+between OLD and STANDARD except that the ras_length field is always 0
+in OLD.
+
+I didn't deal with cmaps, so from the man page: "The ras_maptype and
+ras_maplength fields contain the type and length in bytes of the
+colormap values, respectively.  If ras_maptype is not RMT_NONE and the
+ras_maplength is not 0, then the colormap values are the ras_maplength
+bytes immediately after the header.  These values are either
+uninterpreted bytes (usually with the ras_maptype set to RMT_RAW) or the
+equal length red, green and blue vectors, in that order (when the
+ras_maptype is RMT_EQUAL_RGB).  In the latter case, the ras_maplength
+must be three times the size in bytes of any one of the vectors."
+
+Regardless of width, the stored scanlines are rounded up to multiples
+of 16 bits.
+
+I found the following description of byte-length encoding in Sun-Spots
+Digest, Volume 6, Issue 84:
+
+> From:    jpm%green@lanl.gov (Pat McGee)
+> Subject: Re: Format for byte encoded rasterfiles (1)
+> 
+> The format is composed of many sequences of variable length records.
+> Each record may be 1, 2, or 3 bytes long.
+> 
+>  o  If the first byte is not 0x80, the record is one byte long, and 
+>     contains a pixel value.  Output 1 pixel of that value.
+>  o  If the first byte is 0x80 and the second byte is zero, the record
+>     is two bytes long.  Output 1 pixel with value 0x80.
+>  o  If the first byte is 0x80, and the second byte is not zero, the 
+>     record is three bytes long.  The second byte is a count and the 
+>     third byte is a value.  Output (count+1) pixels of that value.
+> 
+> A run is not terminated at the end of a scan line.  So, if there are 
+> three lines of red in a picture 100 pixels wide, the first run will 
+> be 0x80 0xff 0x<red>, and the second will be 0x80 0x2b 0x<red>.
+> 
+> 	Pat McGee, jpm@lanl.gov
+
+	-- Jamie Zawinski, jwz@teak.berkeley.edu
+
+

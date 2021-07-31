@@ -1,0 +1,60 @@
+
+
+>From: darcy@druid.uucp (D'Arcy J.M. Cain)
+Newsgroups: comp.graphics
+Message-ID: <1990Jan21.180128.15439@druid.uucp>
+Date: 21 Jan 90 18:01:28 GMT
+
+Reply-To: darcy@druid.UUCP (D'Arcy J.M. Cain)
+Organization: D'Arcy Cain Consulting, West Hill, Ontario
+
+
+
+
+There is no file format called GKS.  GKS (Graphics Kernel System) is
+closely related to the CGM (Computer Graphics Metafile) standard however.
+This is probably what you are looking for.  If so they are available from
+ANSI.  The relevant documents are:
+
+	ISO8632-1	Part 1: Functional Specification
+	ISO8632-2	Part 2: Character Encoding
+	ISO8632-3	Part 3: Binary Encoding
+	ISO8632-4	Part 4: Clear Text Encoding.
+
+And can be ordered from:
+
+Canadian Standards Association
+Sales Group
+178 Rexdale Blvd.
+Rexdale, Ontario, M9W 1R3
+(416) 747-4044
+
+You colonials can get it from
+
+ANSI, American National Standards Institute
+Sales Department
+1430 Broadway
+New York, NY, 10018
+(212) 642-4900
+
+If you want information on the GKS standard (It is a specification of 
+the input and output primitives for displaying 2D graphical data.) you
+can get it from the same place.  The relevant documents are:
+
+	ISO 7942	Functional Specification
+	ISO 8651-1	Fortran Binding
+	ISO 8651-2	Pascal Binding
+	ISO 8651-3	Ada Binding
+	ISO 8651-4	Don't know.  Might be C but does someone know?
+	ISO 8805	GKS-3D
+	ISO 8806	GKS-3D Bindings
+
+
+
+-- 
+D'Arcy J.M. Cain (darcy@druid)     |   Thank goodness we don't get all 
+D'Arcy Cain Consulting             |   the government we pay for.
+West Hill, Ontario, Canada         |
+No disclaimers.  I agree with me   |
+
+

@@ -1,0 +1,335 @@
+\documentstyle[12pt]{article}
+\begin{document}
+\input{psfig}
+\def\Ps{{\sc Post\-Script} }
+%
+\title{Psfig/\TeX\ 1.1 Users Guide}
+\author{Trevor Darrell\\
+trevor@grasp.cis.upenn.edu\\
+Computer and Information Science\\
+University of Pennsylvania}
+\date{July 1987}
+\maketitle
+%
+\section{Introduction}
+The \TeX\ typesetting system is a powerful tool in the preparation of the 
+written word, yet when the time comes to add figures or pictures to a document,
+one traditionally had to resort to tedious manual paste-up. 
+With the advent of the \Ps page description language,
+which allows the `nesting' of environments and is rapidly becoming
+a {\it de facto} standard, it is now possible to merge graphics
+directly into a document. 
+Psfig/\TeX\ is a macro package for \TeX\ that facilitates the
+inclusion of arbitrary \Ps figures into \TeX\ documents.
+Figures are automatically scaled and positioned
+on the page, and the proper amount of space is reserved.
+Some possible figures include:
+\par
+\hbox{
+\hspace{.3in}
+\vbox{\psfig{figure=psfigs/zip.ps}\vspace{.5in}}
+\psfig{figure=psfigs/piechart.ps,height=1.5in}
+\vbox{\psfig{figure=psfigs/starlines.ps}\vspace{.6in}}
+}
+\par
+Custom characters such as
+`\psfig{figure=psfigs/pretzel.ps,height=8pt,silent=}' and 
+`\psfig{figure=psfigs/cm.ps,height=8pt,silent=}'
+may be created and used freely throughout a document. Since the
+Macintosh drawing applications produce \Ps, they can be used to create
+figures.
+%
+\par
+\section{Including a figure}
+To include a \Ps figure with psfig, simply load the psfig macros at the 
+beginning of your document with
+\par
+\begin{quote}
+{\tt\verb+\input{psfig}+}
+\end{quote}
+\par
+then invoke the macro
+\par
+\begin{quote}
+{\tt\verb+\+psfig\{figure={\it input}\}}
+\end{quote}
+\par
+where {\it input} is the name of a \Ps file. 
+psfig will automatically position the figure at the current place on the page, 
+and reserve the proper amount of space in \TeX\ so that it doesn't conflict
+with any other objects.
+\par
+For example, if we have a file called `piechart.ps' which contains the
+\Ps code to draw the chart in the introduction, and it was the first figure
+in our non-page reversed document, we would use the commands
+\begin{quote}\small
+{\tt\verb+\+input psfig } \\
+{\tt\verb+\+centerline\{\verb+\+psfig\{figure=piechart.ps\}\}}
+\end{quote}
+Since no mention of size was made in the above example, psfig draws the figure 
+at its natural size (as if it was printed directly on 
+a \Ps printer.) The pie's natural size is several inches across, which
+is a little large; the pie in the introduction was produced with:
+\par
+\begin{quote}\small
+\tt\verb+\+centerline\{\verb+\+psfig\{figure=piechart.ps,height=1.5in\}\}
+\end{quote}
+\par
+The {\tt height} option specifies how tall the figure should be on the
+page. Since no {\tt width} was specified, the figure was scaled equally
+in both dimensions.
+By listing both a {\tt height} and a {\tt width}, figures can be scaled 
+disproportionatly, with interesting results.
+\par
+For example:
+\par
+\centerline{\hbox{
+\psfig{figure=psfigs/rosette.ps,height=.8in,width=.15in}
+\psfig{figure=psfigs/rosette.ps,height=.8in,width=.35in}
+\psfig{figure=psfigs/rosette.ps,height=.8in}
+\psfig{figure=psfigs/rosette.ps,height=.8in,width=1.2in}
+\psfig{figure=psfigs/rosette.ps,height=.8in,width=1.5in}
+}}
+\par
+was produced with:
+\begin{quote}\small
+\tt\verb+\+centerline\{\verb+\+hbox\{ \\
+\verb+\+psfig\{figure=rosette.ps,height=.8in,width=.15in\}\\
+\verb+\+psfig\{figure=rosette.ps,height=.8in,width=.35in\}\\
+\verb+\+psfig\{figure=rosette.ps,height=.8in\} \\
+\verb+\+psfig\{figure=rosette.ps,height=.8in,width=1.2in\}\\
+\verb+\+psfig\{figure=rosette.ps,height=.8in,width=1.5in\}\\
+\}\} 
+\end{quote}
+\par
+\subsection{Caveats}
+For psfig to find the natural size of a figure, the figure must have a
+proper bounding box comment; see section 5 below. Draft mode (also 
+detailed below) should be used liberally to speed throughput. 
+Also, some versions
+of \LaTeX\ will fail to properly center a lone figure in a centering 
+environment;
+a good work-around is to precede the figure with a hard space. On very large documents with many figures, the printer memory
+allocated to dvips may have to be limited. 
+\Ps files produced with ps4014 need to have the clipping boundry set,
+see section 6.3 below.
+Finally, the
+\verb+\psfig+ macro will be confused by extra white space or newlines in its
+argument.
+\par
+\section{Generating PostScript}
+Before you can include a figure, however, you must create
+the \Ps file that describes it.
+The most common methods for creating a \Ps figure are to 
+use either a drawing application such as MacDraw, an image-to-ps or
+textronix-to-ps translator, or to 
+directly code \Ps by hand.
+\begin{figure}
+\centerline{\psfig{figure=psfigs/pathtext.ps,height=2in}}
+\centerline{Figure 1. a \Ps figure}
+\end{figure}
+\par
+\subsection{Macintosh files}
+Using a Macintosh (or any other system that supports mouse-based drawing
+utilities that use \Ps) is one of the easiest ways of creating
+a figure (figure 2a.)
+MacDraw is the recommended tool, since
+it produces code that is independent of scaling (as opposed to MacPaint,
+which produces a bitmap of the figure.)
+There are several known methods of capturing a MacDraw/MacWrite figure
+in \Ps form and transferring to the \TeX\ host; most involve some
+mucking about with tricky control sequences, one is detailed in the appendix.
+\par 
+MacDraw creates a output file in the form of `QuickDraw' calls, which are 
+interpreted as a set of \Ps procedures. These procedures are defined
+in what is called the `macintosh prolog', which must be prepended 
+to any macintosh file
+to be sent to the printer.
+There is a {\tt prolog} option in the psfig  macro to specify a file that
+should be prepended to the figure. The name of the prolog is, of course,
+site dependent; we have used `/usr/lib/ps/mac.pro'.
+For example, if you had a file `frog.mac' that contained the macintosh
+code to draw kermit (figure 2b), he could be included with:
+\begin{quote}\small
+{\tt\verb+\+psfig\{figure=frog.mac,prolog=mac.pro\}\}}
+\end{quote}
+\begin{figure}
+\centerline{
+\vbox{\vss\psfig{figure=psfigs/lab.ps,prolog=psfigs/mac.pro,width=2.5in}\vss}
+\hss\vbox{\vss\psfig{figure=psfigs/frogfill.mac,prolog=psfigs/mac.pro,width=2in}\vss}}
+\par
+\centerline{Figure 2a \& 2b: Macintosh figures.}
+\end{figure}
+If there are many such figures, it is probable that the repeated inclusion
+of the mac.pro file will cause a significant increase in file size and
+transmission time.
+A better method is to load the mac.pro file once, before the entire
+document (using {\tt psprint -m}, on our systems).
+\par
+\subsection{Images (ph), plot, and other sources}
+Any program that produces \Ps as output can be used for psfig figures.
+For instance, the {\it ph} program will convert a bitmap image
+to \Ps form and thus can be
+used to include an image in a document (figure 3.)
+\par
+There are similar utilities that can convert files from unix plot(5)
+or Textronix 4014 format into \Ps.
+\begin{figure}
+\centerline{
+\vbox{\vss\psfig{figure=psfigs/trevor.ps,height=2in}\vss}
+\hspace*{0.2in}{\psdraft\psfig{figure=psfigs/trevor.ps,height=2in}}
+}
+\par
+\centerline{Figures 3 and 4: The author's image and draft equivalent}
+\end{figure}
+\par
+\section{Draft figures}
+Certain \Ps figures (such as large bitmap images being transmitted at
+9600 baud) can tie up a slower \Ps device such as an
+Apple LaserWriter for quite some time.
+To circumvent this, a figure
+may be printed in draft mode, which will occupy the same space on the
+page as far as
+\TeX\ is concerened, but it will just print the name of the file from 
+which the figure is derived, and will not actually include it (figure 4.)
+The macro {\tt \verb+\+psdraft} will switch into draft mode, and all
+subsequent psfig macros will produce draft figures. The macro {\tt
+\verb+\+psfull} will switch out of draft mode. 
+\section{Bounding boxes}
+To properly translate and scale a figure psfig must know its `natural'
+position on the page; this information is present
+in what is called the {\it bounding box} of a \Ps program. The 
+bounding box is a outer limit to the marks created by a program,
+and is specified as four coordinates of a rectangle: the lower-left $x$ coordinate
+(bbllx), the lower-left $y$ coordinate (bblly), the upper-right
+$x$ coordinate (bburx), and the upper-right $y$ coordinate (bbury).
+Adobe has defined a convention whereby the bounding box of a program
+is contained in a `bounding box comment'.
+\footnote[1]{See `Appendix J: \Ps File Structuring Conventions' in
+{\it The \Ps Language Reference Manual}}
+This comment, which must be present in any file to be used as a psfig figure,
+is a line of the form
+\begin{quote}\small
+\tt \verb+%%+BoundingBox: \it bbllx bblly bburx bbury
+\end{quote}
+All values are in \Ps points, relative to the {\it default}
+transformation matrix. The only mandatory \Ps convention is
+that the first line of the file should begin with the characters
+`\verb+%+!' (a `\verb+%+' begins a comment in \Ps.) A good place for the
+bounding box comment is as the second line of the file.
+\par
+\section{Advanced topics}
+Casual users can safely skip this material unless they have run into 
+one of the issues in section 2.1
+\subsection{Internal structure}
+In including a figure, the {\tt \verb+\psfig+} macro performs the following
+operations:
+First, if bounding box information (see below) is omitted from the list
+of arguments, the
+file containing the figure
+is searched and the information recovered from the bounding box
+comment. Then,
+if both {\it height} and {\it width} are missing they are computed to
+be the height and width of the bounding box. If only one is missing,
+it is set to be the appropriate value such that there is no distorted
+scaling.
+If {\it rheight} or {\it rwidth} (see below) is missing it is presumed to
+be the same as the height and width.
+\par
+The {\tt\verb+\+psfig\{figure={\it input}\}} macro
+uses a vbox in \TeX\ to reserve the space for a figure.
+The transformation of the postscript environment needed to
+cause the figure to be printed at it's desired location is 
+done using \Ps functions called with 
+{\tt \verb+\+special}, as is the literal inclustion of the
+text of the figure.
+\footnote[2]{For more deatiled information about \Ps issues in the
+interals of psfig, see {\it Psfig -- A Ditroff Preprocessor for
+PostScript Figures} in the USENIX 87 proceedings, or {\it Bringing
+troff up to speed} in the July 1987 issue of Unix Revew.}
+\par
+\subsection{Reserved size}
+\psfig{figure=psfigs/box.ps,rheight=0bp,rwidth=0bp,height=1.25in,width=\textwidth,silent=}
+\par
+There are two sizes associated with each psfig figure: the size
+at which it is to be printed on the page
+and the size it reserves in \TeX. This latter size is appropriately
+termed the {\it reserved size}, and is expressed as clauses of the form
+`{\small\tt rheight={\it dimen}}'
+and `{\tt rwidth={\it dimen}}'. If ommited, the reserved size defaults
+to the real size. Some special effects need to be transparent
+to \TeX\ and thus have a zero reserved size, such as the grey
+box enclosing
+this paragraph.
+\par
+\subsection{Clipping}
+Normally a \Ps program can be expected to not mark the page 
+outside its bounding box. If this is not the case, or if you
+want to use the bounding box to isolate part of a larger figure,
+there is an option that sets the \Ps clip path so that
+no marks will show up outside the declared bounding box. Currently
+this is invoked by adding a clause of the form `{\tt clip=}'.
+Here a slice has been taken out of the pie chart in the example by
+specifying a smaller bounding box and adding the clip option.
+\par
+\centerline{\psfig{figure=psfigs/piechart.ps,height=2in,bbllx=306bp,bblly=396bp,bburx=486bp,bbury=546bp,clip=}}
+\par
+Some \Ps programs use the clipping path to position their output on
+the page; if a figure is being drawn at its natural size and position
+despite psfig commands to the contrary, it may need the clip option.
+\par
+\subsection{\Ps environment}
+The \Ps environment within psfig is fairly robust. All of the
+usual \Ps operators will operate as desired; in particular 
+the operators `showpage', `initgraphics', and `defaultmatrix' will
+all behave consistently inside a figure, except that `showpage' will
+only do an `initgraphics' and will {\it not} print or erase the current
+page.
+\par 
+It is very possible, however, for a \Ps program to bypass the psfig
+environment and disrupt a document. 
+\par
+\section{Acknowledgements}
+\par
+Ned Batchelder co-developed the original {\it troff} version of this
+program with the author, and was responsible for much of the overall design.
+Greg Hager provided an initial \TeX\ implementation.
+Figure 1 and the three broken out figures in 
+the introduction were taken from examples in {\it The PostScript Language
+Tutorial and Cookbook.} 
+\par 
+\appendix
+\newpage
+\section*{Appendix A: Capturing \Ps files from a Macintosh -- one kludge}
+In general, a \Ps file can be transferred from a Macintosh to another host
+using any of the popular terminal emulators and a serial line. We have used
+MacTerminal and Kermit without any problems.
+\par
+Slightly trickier is getting the \Ps into a file on the Macintosh. For
+MacDraw and MacWord (and perhaps others), there is an undocumented
+`feature' whereby the \Ps code can be diverted into a file rather than
+being sent to a printer. Immediately after clicking `ok' from the print
+menu, hit clover--F; the code will be placed in a file with the name 
+`PostScript' (there is no known way to change this). Clover-K will 
+capture the file {\it and} the lengthy prolog mentioned above.
+\newpage
+\section*{Appendix B: Installation}
+\par
+This version of psfig/tex was written to use certain {\tt \verb+\+special}
+calls implemented in ArborText's {\it dvips}. It should be relatively
+simple to port psfig to any dvi-to-ps program that supports file inclusion.
+\par
+The first step to install psfig is to print out a draft copy of this
+guide simply by running {\tt latex ug.tex},
+which presumably you have already done. 
+\subsection*{B.1 Add the psfig \Ps functions to the dvips prolog}
+Find the file called {\tt figtex.pro}, and {\it append} 
+it to the {\tt dvips.pro}
+file that is included every time a dvi file is converted to \Ps.
+\subsection*{B.2 Print a full copy of this document}
+Comment out the first line that contains {\tt \verb+\+psdraft } from the file
+{\tt ug.tex}, then run {\tt latex ug.tex}
+\subsection*{B.3 Copy psfig.tex to a well known location}
+Preferably in the \TeX\ search path, so everyone can find it.
+\end{document}
+

@@ -26,29 +26,6 @@ lock(Lock *l)
 			l->key, i, pc, l->pc);
 }
 
-void
-ilock(Lock *l)
-{
-	int i;
-	ulong pc;
-	ulong x;
-
-	pc = getcallerpc(((uchar*)&l) - sizeof(l));
-
-	x = splhi();
-	for(i = 0; i < 10000000; i++){
-    		if (tas(&l->key) == 0){
-			l->pc = pc;
-			l->sr = x;
-			return;
-		}
-	}
-	l->key = 0;
-	splx(x);
-	panic("lock loop 0x%lux key 0x%lux pc 0x%lux held by pc 0x%lux\n",
-			l->key, i, pc, l->pc);
-}
-
 int
 canlock(Lock *l)
 {
@@ -67,15 +44,4 @@ unlock(Lock *l)
 	l->key = 0;
 	if(u && u->p)
 		u->p->hasspin = 0;
-}
-
-void
-iunlock(Lock *l)
-{
-	ulong sr;
-
-	sr = l->sr;
-	l->pc = 0;
-	l->key = 0;
-	splx(sr);
 }

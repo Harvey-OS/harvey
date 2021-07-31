@@ -1,0 +1,809 @@
+\input ipamacs
+\asisformat{\skipbefore{6pt}
+            \everyasis{\leftindent{.5in}\rightindent{.5in}\tt}
+            \skipafter{6pt}}
+\font\smokefont=wsuipa17
+\newbox\tagbox
+\setbox\tagbox=\hbox{\tenpt\bf Pullum \&\ Ladusaw name:}
+ 
+\labelformat{\skipbefore{4pt}
+             \labelwidth{\wd\tagbox}
+             \gutter{1em}
+             \everylabel{\tenpt\bf}
+}
+\rhf{\oddpages{\twelvept\line{\lft{{\it WSUIPA Users Guide}}\rt{\pn}}\vs{\bl}}
+     \evenpages{\twelvept\line{\lft{\pn}\rt{{\it WSUIPA Users Guide}}}\vs{\bl}}}
+\font\mf=manfnt
+\def\deg{$^\circ$}
+ 
+\def\meta{{\mf METAFONT}}
+\def\wsu{{\tenpt WSUIPA}}
+\def\ipam{{\tenpt IPAMACS}}
+\def\PL{{\it Phonetic Symbol Guide}}
+ 
+\def\pos#1{\vs{10pt}\hrule width 1in\vs{1pt}\hrule width 1in
+    \noindent\label{\hfill\tenbf WSUIPA Char' Position:}\rm #1\par}
+\def\pl#1{\noindent\label{\hfill\tenbf Pullum \&\ Ladusaw name:}\rm #1\par}
+\def\mac#1{\noindent\label{\hfill\tenbf IPAMACS Name:}\tt\char'134 #1\par}
+\def\smoke#1{\noindent\label{\hfill\tenbf IPA Character:}
+\smokefont\char#1\par}
+\sfs{cm14}{fourteenpt}{default}
+\fourteenpt
+\cl{\bd Using the WSU International Phonetic Alphabet}
+\cl{January 9, 1990}
+\twelvept
+ 
+\subheada{Preface}
+ 
+This users guide is intended to serve as a help and supplement to the
+Washington State University International Phonetic Alphabet (\wsu) fonts.
+It is not intended to be a manual on \TeX, linguistics, or the correct usage of
+the characters, accents and diacritics contained within the font.
+It is assumed that the user is familiar with the version of \TeX\ he or she is
+using and with the characters contained within the \wsu\ font.
+Because the uses for a phonetic alphabet font are probably as varied as the
+many disciplines which use the characters, this guide is intended to merely
+show some of the most common ways of using the \wsu\ font. Surely each person
+who implements the font will develop his or her own favorite way of working with
+ and
+using the font.
+ 
+The principal
+source of information regarding the characters and their shapes has come from
+sources within the linguistic field---most
+notably, Geoffrey K. Pullum and William A. Ladusaw, whose book, {\it Phonetic
+Symbol Guide} was used extensively.
+The \PL\  not only lists the International Phonetic Alphabet (IPA) characters
+and diacritics, it also
+gives an enlarged illustration of each character which shows its baseline,
+height, depth and x-height. These character illustrations were invaluable
+in the design of the \wsu\ \meta\ characters.
+ 
+Several other people involved
+in the wonderful world of linguistics also aided in the design of the \wsu\
+font. Their input concerning everything
+from character shape, to placement within the font, to determining which
+characters should be included, is gratefully acknowledged. I would especially
+like to thank Karen Mullen, Associate Professor of English, University of
+Louisville, Louisville, Kentucky.  She tested, used the \wsu\ fonts, and took
+the time to give several suggestions and recommendations that have improved
+the font. Also, Christina A. Thiele, Managing Director, Journal Production
+ Centre,
+Carleton University, Ottawa, Ontario, who not only provided a wealth
+of phonetic information, but also a wealth of encouragement throughout
+the entire font designing process.
+ 
+ 
+Included with the \wsu\ fonts are:
+ 
+\listbegin
+\lil1
+The basic \wsu\ font which contains 128 phonetic characters
+and/or diacritics in five different point sizes (8,
+9, 10, 11 and 12) and in
+three typefaces (roman, slanted and bold extended).
+ 
+\lil1 Each size and typeface includes a TFM (\TeX\ Font Metric)
+file and its related GF, PK or PXL file.
+ 
+\lil1 A macro package (\ipam.TEX) for use with the \wsu\ font, and
+ 
+\lil1 the {\it WSUIPA Font User's Guide}.
+\listend
+ 
+This guide is divided into three main sections: 1) an introduction to the \wsu\
+font,
+2) a description of the font layout and the characters included in the font
+and 3) some \TeX niques for use with the \wsu\  fonts.
+ 
+Although the \wsu\ fonts are written in \meta , the user does not need
+experience with or knowledge of \meta\ to use the font. However, at least a
+beginning understanding of \TeX\ and the use of fonts in the \TeX\ environment
+{\it is} necessary. For information about either \TeX\ or font usage in \TeX ,
+see {\it The \TeX book} by Donald Knuth.
+ 
+\subheada{Introduction to the WSUIPA Font}
+ 
+The \wsu\  fonts are written in \meta\ and use the same font parameter values
+as their Computer Modern (CM) counterparts (cmr and cmbx). In fact, while
+designing the character shapes, the computer modern code was left intact or
+modified only slightly whenever possible. Therefore, the \wsu\  fonts
+are totally compatible with computer modern fonts---the design and shape
+of the characters are computer modern wherever possible. For the characters
+that are drastically different from any computer modern characters or symbols,
+such as the ``Gamma,'' ``Baby Gamma'' and the ``Esh,'' Pullum and Ladusaw's
+{\it Phonetic Symbol Guide} was used as the character design
+standard.
+ 
+The \wsu\  fonts are obviously not an exhaustive collection of phonetic or
+even recognized International Phonetic Alphabet characters. The characters
+included in the \wsu\  font were chosen either because they were listed
+as a ``major'' entry in Pullum and Ladusaw's {\it Guide\/},
+or because of the recommendations from
+various people with an interest in the font.
+ 
+The {\it Guide} contains what it classifies as ``major'' and ``minor''
+characters, based upon whether the symbol is an officially recognized IPA
+character or is determined by Pullum and Ladusaw
+to be a standard symbol in current American
+transcriptual practice. The {\it Guide}
+lists 78 ``major'' entries which are not easily
+attainable in the CM fonts. All 78 of these characters are included in the
+\wsu\  font, along with 50 ``minor'' entries from the {\it Guide}.
+The selection of which
+``minor'' entries to include was based on information and requests from
+various phoneticians and linguists who contacted WSU during the beginning
+stages of the creation of the font.
+ 
+\subheada{The Layout of the WSUIPA Font}
+ 
+The character-grouping pattern followed by Pullum and Ladusaw in their
+{\it Guide} was adopted as the basis
+for the \wsu\ font layout. The characters
+are grouped together according to shape rather than usage. Therefore,
+the ``a'' shapes occupy
+the first positions: '00 through '04, ``b'' shapes are in positions '05
+through '11 and so forth. The accents and diacritics follow the character
+shapes and are in the last positions in the font. This approach was taken
+because under it was assumed that under most circumstances,
+the user would most likely be accessing the characters with the use of macros
+rather than by typing large portions of entirely phonetic text.
+Aside from keeping like shapes together, the positioning of the
+\wsu\  font was fairly arbitrary.
+ 
+\subheada{Character Description}
+ 
+Within this section each of the \wsu\  characters are shown in a \meta\
+``smoke mode'' proof. The octal character position is indicated, along with the
+corresponding macro name in \ipam, and the
+name of the character given in P\&L.
+Only the roman characters will be illustrated since the shapes of the slanted
+and bold extended are the same.
+ 
+There are several Greek characters included in the \wsu\ font, and initially
+it may appear these are merely copies of the corresponding CM Greek characters.
+That is true with one very important distinction: the \wsu\ Greek characters
+included are not italic. All the lowercase Greek characters included in
+the CM fonts are italic which makes them unsuitable for some situations in
+phonetics where a non-italic Greek character is essential.
+\newpage
+\raggedbottom
+\vbox{ \pos{'00}\mac{inva}\pl{turned a}\smoke{'00}}
+ 
+\vbox{ \pos{'01}\mac{scripta}\pl{script a}\smoke{'01}}
+ 
+\vbox{ \pos{'02}\mac{nialpha}\pl{lowercase non-italic alpha}\smoke{'02}
+}
+ 
+\vbox{\pos{'03}\mac{invscripta}\pl{turned script a}\smoke{'03}}
+ 
+\vbox{\pos{'04}\mac{invv}\pl{inverted v}\smoke{'04}}
+ 
+\vbox{\pos{'05}\mac{crossb}\pl{crossed b}\smoke{'05}}
+ 
+\vbox{\pos{'06}\mac{barb}\pl{barred b}\smoke{'06}}
+ 
+\vbox{\pos{'07}\mac{slashb}\pl{slashed b}\smoke{'07}}
+ 
+\vbox{\pos{'10}\mac{hookb}\pl{hooktop b}\smoke{'10}}
+ 
+\vbox{\pos{'11}\mac{nibeta}\pl{non-italic lowercase beta}\smoke{'11}}
+ 
+\vbox{\pos{'12}\mac{slashc}\pl{slashed c}\smoke{'12}}
+ 
+\vbox{\pos{'13}\mac{curlyc}\pl{curly-tail c}\smoke{'13}}
+ 
+\vbox{\pos{'14}\mac{clickc}\pl{stretched c}\smoke{'14}}
+ 
+\vbox{\pos{'15}\mac{crossd}\pl{crossed d}\smoke{'15}}
+ 
+\vbox{\pos{'16}\mac{bard}\pl{barred d}\smoke{'16}}
+ 
+\vbox{\pos{'17}\mac{slashd}\pl{slashed d}\smoke{'17}}
+ 
+\vbox{\pos{'20}\mac{hookd}\pl{hooktop d}\smoke{'20}}
+ 
+\vbox{\pos{'21}\mac{taild}\pl{right-tail d}\smoke{'21}}
+ 
+\vbox{\pos{'22}\mac{dz}\pl{d-yogh ligature}\smoke{'22}}
+ 
+\vbox{\pos{'23}\mac{eth}\pl{eth}\smoke{'23}}
+ 
+\vbox{\pos{'24}\mac{scd}\pl{small capital D}\smoke{'24}}
+ 
+\vbox{\pos{'25}\mac{schwa}\pl{schwa}\smoke{'25}}
+ 
+\vbox{\pos{'26}\mac{er}\pl{right-hook schwa}\smoke{'26}}
+ 
+\vbox{\pos{'27}\mac{reve}\pl{reversed e}\smoke{'27}}
+ 
+\vbox{\pos{'30}\mac{niepsilon}\pl{non-italic greek epsilon}\smoke{'30}}
+ 
+\vbox{\pos{'31}\mac{revepsilon}\pl{reversed non-italic epsilon}\smoke{'31}}
+ 
+\vbox{\pos{'32}\mac{hookrevepsilon}\pl{right-hook reversed non-italic epsilon}
+\smoke{'32}}
+ 
+\vbox{\pos{'33}\mac{closedrevepsilon}\pl{closed reversed non-italic epsilon}
+\smoke{'33}}
+ 
+\vbox{\pos{'34}\mac{scriptg}\pl{lowercase variant g}\smoke{'34}}
+ 
+\vbox{\pos{'35}\mac{hookg}\pl{hooktop g}\smoke{'35}}
+ 
+\vbox{\pos{'36}\mac{scg}\pl{small capital G}\smoke{'36}}
+ 
+\vbox{\pos{'37}\mac{nigamma}\pl{non-italic gamma}\smoke{'37}}
+ 
+\vbox{\pos{'40}\mac{ipagamma}\pl{IPA Gamma}\smoke{'40}}
+ 
+\vbox{\pos{'41}\mac{babygamma}\pl{baby gamma}\smoke{'41}}
+ 
+\vbox{\pos{'42}\mac{hv}\pl{h-v ligature}\smoke{'42}}
+ 
+\vbox{\pos{'43}\mac{crossh}\pl{crossed h}\smoke{'43}}
+ 
+\vbox{\pos{'44}\mac{hookg}\pl{hooktop g}\smoke{'44}}
+ 
+\vbox{\pos{'45}\mac{hookheng}\pl{hooktop heng}\smoke{'45}}
+ 
+\vbox{\pos{'46}\mac{invh}\pl{turned h}\smoke{'46}}
+ 
+\vbox{\pos{'47}\mac{bari}\pl{barred i}\smoke{'47}}
+ 
+\vbox{\pos{'50}\mac{dlbari}\pl{barred dotless i}\smoke{'50}}
+ 
+\vbox{\pos{'51}\mac{niiota}\pl{non-italic greek iota}\smoke{'51}}
+ 
+\vbox{\pos{'52}\mac{sci}\pl{small capital I}\smoke{'52}}
+ 
+\vbox{\pos{'53}\mac{barsci}\pl{barred small capital I}\smoke{'53}}
+ 
+\vbox{\pos{'54}\mac{invf}\pl{barred dotless j}\smoke{'54}}
+ 
+\vbox{\pos{'55}\mac{tildel}\pl{l with tilde}\smoke{'55}}
+ 
+\vbox{\pos{'56}\mac{barl}\pl{barred l}\smoke{'56}}
+ 
+\vbox{\pos{'57}\mac{latfric}\pl{belted l}\smoke{'57}}
+ 
+\vbox{\pos{'60}\mac{taill}\pl{l with right tail}\smoke{'60}}
+ 
+\vbox{\pos{'61}\mac{lz}\pl{l-yogh ligature}\smoke{'61}}
+ 
+\vbox{\pos{'62}\mac{nilambda}\pl{non-italic greek lambda}\smoke{'62}}
+ 
+\vbox{\pos{'63}\mac{crossnilambda}\pl{crossed lambda}\smoke{'63}}
+ 
+\vbox{\pos{'64}\mac{labdentalnas}
+\pl{m with leftward tail at right}\smoke{'64}}
+ 
+\vbox{\pos{'65}\mac{invm}\pl{turned m}\smoke{'65}}
+ 
+\vbox{\pos{'66}\mac{legm}\pl{turned m with long right leg}\smoke{'66}}
+ 
+\vbox{\pos{'67}\mac{nj}\pl{n with leftward hook at left}\smoke{'67}}
+ 
+\vbox{\pos{'70}\mac{eng}\pl{eng}\smoke{'70}}
+ 
+\vbox{\pos{'71}\mac{tailn}\pl{n with right tail}\smoke{'71}}
+ 
+\vbox{\pos{'72}\mac{scn}\pl{small capital N}\smoke{'72}}
+ 
+\vbox{\pos{'73}\mac{clickb}\pl{bull's eye}\smoke{'73}}
+ 
+\vbox{\pos{'74}\mac{baro}\pl{barred o}\smoke{'74}}
+ 
+\vbox{\pos{'75}\mac{openo}\pl{open o}\smoke{'75}}
+ 
+\vbox{\pos{'76}\mac{niomega}\pl{non-italic lowercase greek omega}\smoke{'76}}
+ 
+\vbox{\pos{'77}\mac{closedniomega}\pl{closed omega}\smoke{'77}}
+ 
+\vbox{\pos{'100}\mac{oo}\pl{double o}\smoke{'100}}
+ 
+\vbox{\pos{'101}\mac{barp}\pl{barred p}\smoke{'101}}
+ 
+\vbox{\pos{'102}\mac{thorn}\pl{thorn}\smoke{'102}}
+ 
+\vbox{\pos{'103}\mac{niphi}\pl{non-italic lowercase greek phi}\smoke{'102}}
+ 
+\vbox{\pos{'104}\mac{flapr}\pl{fish hook r}\smoke{'104}}
+ 
+\vbox{\pos{'105}\mac{legr}\pl{r with long leg}\smoke{'105}}
+ 
+\vbox{\pos{'106}\mac{tailr}\pl{r with right tail}\smoke{'106}}
+ 
+\vbox{\pos{'107}\mac{invr}\pl{turned r}\smoke{'107}}
+ 
+\vbox{\pos{'110}\mac{tailinvr}\pl{turned r with right tail}\smoke{'110}}
+ 
+\vbox{\pos{'111}\mac{invlegr}\pl{turned long-legged r}\smoke{'111}}
+ 
+\vbox{\pos{'112}\mac{scr}\pl{small capital R}\smoke{'112}}
+ 
+\vbox{\pos{'113}\mac{invscr}\pl{inverted small capital R}\smoke{'113}}
+ 
+\vbox{\pos{'114}\mac{tails}\pl{s with right tail}\smoke{'114}}
+ 
+\vbox{\pos{'115}\mac{esh}\pl{esh}\smoke{'115}}
+ 
+\vbox{\pos{'116}\mac{curlyesh}\pl{curly-tail esh}\smoke{'116}}
+ 
+\vbox{\pos{'117}\mac{nisigma}\pl{non-italic lowercase greek sigma}\smoke{'117}}
+ 
+\vbox{\pos{'120}\mac{tailt}\pl{t with right tail}\smoke{'120}}
+ 
+\vbox{\pos{'121}\mac{tesh}\pl{t-esh ligature}\smoke{'121}}
+ 
+\vbox{\pos{'122}\mac{clickt}\pl{turned t}\smoke{'122}}
+ 
+\vbox{\pos{'123}\mac{nitheta}\pl{non-italic lowercase greek theta}\smoke{'123}}
+ 
+\vbox{\pos{'124}\mac{baru}\pl{barred u}\smoke{'124}}
+ 
+\vbox{\pos{'125}\mac{slashu}\pl{slashed u}\smoke{'124}}
+ 
+\vbox{\pos{'126}\mac{niupsilon}\pl{non-italic lowercase greek
+ upsilon}\smoke{'126}}
+ 
+\vbox{\pos{'127}\mac{scu}\pl{small capital U}\smoke{'127}}
+ 
+\vbox{\pos{'130}\mac{barscu}\pl{barred small capital U}\smoke{'130}}
+ 
+\vbox{\pos{'131}\mac{scriptv}\pl{script v}\smoke{'131}}
+ 
+\vbox{\pos{'132}\mac{invw}\pl{inverted w}\smoke{'132}}
+ 
+\vbox{\pos{'133}\mac{nichi}\pl{non-italic lowercase greek chi}\smoke{'133}}
+ 
+\vbox{\pos{'134}\mac{invy}\pl{turned y}\smoke{'134}}
+ 
+\vbox{\pos{'135}\mac{scy}\pl{small capital Y}\smoke{'135}}
+ 
+\vbox{\pos{'136}\mac{curlyz}\pl{curly-tail z}\smoke{'136}}
+ 
+\vbox{\pos{'137}\mac{tailz}\pl{z with right tail}\smoke{'137}}
+ 
+\vbox{\pos{'140}\mac{yogh}\pl{yogh}\smoke{'140}}
+ 
+\vbox{\pos{'141}\mac{curlyyogh}\pl{curly-tail yogh}\smoke{'141}}
+ 
+\vbox{\pos{'142}\mac{glotstop}\pl{glottal stop}\smoke{'142}}
+ 
+\vbox{\pos{'143}\mac{revglotstop}\pl{reversed glottal stop}\smoke{'143}}
+ 
+\vbox{\pos{'144}\mac{invglotstop}\pl{inverted glottal stop}\smoke{'144}}
+ 
+\vbox{\pos{'145}\mac{ejective}\pl{ejective}\smoke{'145}}
+ 
+\vbox{\pos{'146}\mac{reveject}\pl{reversed ejective}\smoke{'146}}
+ 
+\vbox{\pos{'147}\mac{dental\#1}\pl{subscript bridge}\smoke{'147}}
+ 
+\vbox{\pos{'150}\mac{stress}\pl{vertical stroke (superior)}\smoke{'150}}
+ 
+\vbox{\pos{'151}\mac{secstress}\pl{vertical stroke (inferior)}\smoke{'151}}
+ 
+\vbox{\pos{'152}\mac{syllabic}\pl{syllabicity mark}\smoke{'152}}
+ 
+\vbox{\pos{'153}\mac{corner}\pl{corner}\smoke{'153}}
+ 
+\vbox{\pos{'154}\mac{upt}\pl{IPA pointer}\smoke{'154}}
+ 
+\vbox{\pos{'155}\mac{downt}\pl{IPA pointer}\smoke{'155}}
+ 
+\vbox{\pos{'156}\mac{leftt}\pl{IPA pointer}\smoke{'156}}
+ 
+\vbox{\pos{'157}\mac{rightt}\pl{IPA pointer}\smoke{'157}}
+ 
+\vbox{\pos{'160}\mac{halflength}\pl{half-length mark}\smoke{'160}}
+ 
+\vbox{\pos{'161}\mac{length}\pl{length mark}\smoke{'161}}
+ 
+\vbox{\pos{'162}\mac{underdots}\pl{subscript umlaut}\smoke{'162}}
+ 
+\vbox{\pos{'163}\mac{ain}\pl{reversed apostrophe}\smoke{'163}}
+ 
+\vbox{\pos{'164}\mac{upp}\pl{pointer}\smoke{'164}}
+ 
+\vbox{\pos{'165}\mac{downp}\pl{pointer}\smoke{'165}}
+ 
+\vbox{\pos{'166}\mac{leftp}\pl{pointer}\smoke{'166}}
+ 
+\vbox{\pos{'167}\mac{rightp}\pl{pointer}\smoke{'167}}
+ 
+\vbox{\pos{'170}\mac{overring}\pl{over-ring}\smoke{'170}}
+ 
+\vbox{\pos{'171}\mac{underring}\pl{under-ring}\smoke{'171}}
+ 
+\vbox{\pos{'172}\mac{open}\pl{subscript left half-ring}\smoke{'172}}
+ 
+\vbox{\pos{'173}\mac{midtilde}\pl{superimposed (mid-) tilde}\smoke{'173}}
+ 
+\vbox{\pos{'174}\mac{undertilde}\pl{subscript tilde}\smoke{'174}}
+ 
+\vbox{\pos{'175}\mac{underwedge}\pl{subscript wedge}\smoke{'175}}
+ 
+\vbox{\pos{'176}\mac{polishhook}\pl{polish hook}\smoke{'176}}
+ 
+\vbox{\pos{'177}\mac{underarch}\pl{subscript arch}\smoke{'177}}
+ 
+\newpage
+\normalbottom
+\subheada{Using the IPAMACS Macros}
+ 
+In addition to the necessary font-related files, the \wsu\  font package
+also includes a file called IPAMACS.TEX. This is a macro file which includes
+font declarations and definitions for use with the \wsu\  fonts.
+It also contains macro definitions for accessing each \wsu\  character
+mnemonically, as well as some macro definitions
+to simplify using \wsu\  accents and diacritics with Computer Modern
+characters and vice versa.
+ 
+Before you can use any of the macros from the \ipam\ file, you must input the
+{\tt IPAMACS.TEX} file by entering,
+\aib
+\\input ipamacs
+\aie
+\nin at the top of your \TeX\ file. This assumes, of course, that you have
+installed this file.
+The \ipam\ file defines a font called
+\\ipa to be the twelve point roman \wsu\
+font. The \\ipa font is used in all the macro definitions in \ipam\
+ to access the
+characters from the \wsu\ font. You may redefine \\ipa, say to be ten point
+roman, by entering
+\aib
+\\font\\ipatenrm=wsuipa10
+\\def\\ipa\{\\ipatenrm\}
+\aie
+\nin within your file. From that point on, all the \wsu\ characters accessed by
+using the \ipam\ macros will be the ten-point roman \wsu.
+ 
+To access individual \wsu\ characters within sentences set in Computer Modern,
+you need only to enter the \\ipa command. For example,
+\asisbegin
+A shibilant is a term occasionally found for a fricative
+corresponding to
+a ``hushing'' sound, e.g., IPA [\\esh] (more technically,
+a grooved laminal fricative).
+\asisend
+\nin which will print as:
+\vs{5pt}
+\pb{
+A shibilant is a term occasionally found for a fricative
+corresponding to
+a ``hushing'' sound, e.g., IPA [\esh] (more technically,
+a grooved laminal fricative).
+}
+\vs{5pt}
+ 
+The \ipam\ character macros are defined so they can be used with the CM
+characters and accents without the need for delimiting curly braces. By using
+the \ipam\
+definitions, you can use the CM accents with a \wsu\ character in the
+same way you would accent a CM character. The following input
+ 
+\asisbegin
+The superscript tilde is a nasalization marker for vowels,
+thus [\\\tilde\\scripta] is a nasalized [\\scripta].
+\asisend
+\nin will print as:
+\vs{5pt}
+\pb{The superscript tilde is a nasalization marker for vowels, thus
+[\~\scripta] is a nasalized [\scripta].
+}
+\vs{5pt}
+ 
+The \wsu\ accents can be used with CM characters. However, only the \wsu\
+``\\dental'' and ``\\underarch'' have been defined in \ipam\ and both are
+diacritics which go under a character.
+To use any other \wsu\ character as an accent either with a CM character or with
+another \wsu\ character, you can define the \wsu\ accent
+in the same way that the CM accents are defined. For example, an ``over-ring''
+accent could be defined as,
+ 
+\asisbegin
+\\def\\or\#1\{\{\\edef\\next\{\\the\\font\}\%
+          \\ipatwelverm\\accent"78\\next\#1\}\}
+\aie
+\nin and may be used like,
+ 
+\aib
+The over-ring may be used over letters with descenders as an
+alternative to under-ring to indicate devoicing, e.g. [\\or g].
+\asisend
+\nin which will print as:
+\vs{5pt}
+\pb{\def\or#1{{\edef\next{\the\font}%
+          \ipatwelverm\accent"78\next#1}}
+The over-ring may be used over letters with descenders as an
+alternative to under-ring to indicate devoicing, e.g. [\or g].}
+\vs{5pt}
+ 
+Most of the \wsu\ diacritics are intended to go under characters, like the
+``underarch'' and ``dental'' mentioned above. You may define other ``under''
+accents in the same way as these two. For example, an ``undercircle''
+could be defined as,
+ 
+\asisbegin
+\\def\\undercirc\#1\{\\oalign\{\#1\\crcr
+                 \\hidewidth\\underring\\hidewidth\}\}
+\asisend
+\nin With this definition, the input
+\aib
+A voiceless trilled r [\\undercirc r] in
+certain Scottish dialects\el3
+\aie
+\nin will print as:
+\vs{5pt}
+\pb{\def\undercirc#1{\oalign{#1\crcr\hidewidth\underring\hidewidth}}
+A voiceless trilled r [\undercirc r] in certain Scottish dialects\el3
+}
+\vs{5pt}
+ 
+If the spacing or placement of the diacritic is not exactly what you desire
+with the basic definition given above, you can add kerns where needed.
+For example, if you want less space between the ``undercircle'' and
+the character, you could change the definition to be,
+\asisbegin\lin{-10pt}
+\\def\\undercirc\#1\{\\oalign\{\#1\\crcr
+           \\hidewidth\\raise.1ex\\hbox\{\\underring\}\\hidewidth\}\}
+\asisend
+\np
+\nin and this input
+\aib
+A voiceless trilled r [\\undercirc r] in
+certain Scottish dialects\el3
+\aie
+\nin will print as:
+\vs{5pt}
+\pb{\def\undercirc#1{\oalign{#1\crcr\hidewidth
+\raise.1ex\hbox{\underring}\hidewidth}}
+A voiceless trilled r [\undercirc r] in certain Scottish dialects\el3
+}
+\vs{5pt}
+ 
+Your diacritic definitions may be as general or specific as you wish. At one
+institution which uses the \wsu\ fonts, they prefer the ``undercircle'' to be
+placed differently when it falls under an r than any other character. To
+accomplish this, they use the following definition for \\undercirc.
+ 
+\aib\lin{-10pt}
+\\def\\undercirc\#1\{\\ifx\#1r
+      \\oalign\{\#1\\crcr\\hidewidth\\kern.24em\\underring
+            \\hidewidth\\crcr\}
+      \\else\\oalign\{\#1\\crcr
+            \\hidewidth\\raise.1ex\\hbox\{\\underring\}\\hidewidth\}
+                      \\fi\}
+\aie
+ 
+With this definition of \\undercirc, the following input
+ 
+\aib
+To illustrate the different placement of the \\underring on
+an \\undercirc s and on an \\undercirc r.
+\aie
+\nin will print as
+\vs{5pt}
+\pb{\def\undercirc#1{\ifx#1r
+     \oalign{#1\crcr\hidewidth\kern.24em\underring\hidewidth\crcr}\fi}
+To illustrate the different placement of the \\underring on an \\undercirc s
+and on an \undercirc r.
+}
+\vs{5pt}
+ 
+\ipam\
+also includes a macro called \\diatop which provides an alternative way
+of getting one or more characters, accents, or diacritics over one another. The
+\\diatop macro takes one argument which is delimited by square brackets ([])
+rather than curly braces, and has two parts. The first part of the
+argument is delimited, or separated, from the second part by a vertical bar
+($\vert$). \\diatop puts the first part of the argument over the second.
+ 
+Using \\diatop instead of our previous definition for the ``overring,'' (\\or)
+you could input,
+ 
+\aib
+The overring may be used over letters with descenders as
+an alternative to
+under-ring to indicate devoicing, e.g. [\\diatop[\\overring$\vert$g]].
+\aie
+\nin and the output would be,
+\vs{5pt}
+\pb{The overring may be used over letters with descenders as an alternative to
+under-ring to indicate devoicing, e.g. [\diatop[\overring|g]].
+}
+\vs{5pt}
+ 
+More than one character can be stacked over another character by using
+\\diatop. For example,
+ 
+\asisbegin
+For a really special \\diatop[\{\\diatop\{\\'$\|$\\overring]\}$\|$n]
+\asisend
+\nin will print as:
+\vs{5pt}
+\pb{For a really special \diatop[{\diatop[\'|\overring]}|n]
+}
+\vs{5pt}
+ 
+\nin Notice the use of curly braces to group the argument of the first \\diatop
+when more than one \\diatop command is used.
+ 
+It is also possible to get one or more accents over a character and another
+accent or character under it. Assuming that \\undercirc has been defined as
+described earlier, the following example
+ 
+\asisbegin\lin{-10pt}
+This is a really, really special
+\\diatop[\\overring$\|$\\undercirc\{r\}]
+\asisend
+\nin will print as:
+\vs{5pt}
+\pb{\def\undercirc#1{\oalign{#1\crcr\hidewidth\underring\hidewidth}}
+This is a really, really special \diatop[\overring|\undercirc{r}]
+}
+\vs{5pt}
+ 
+The \ipam\ do not sent up the \wsu\ fonts to be part of a font family
+definition, which means that any \wsu\ character that is accessed by
+an \ipam\
+macro, will always print out in the same font (wsuipa12, by default),
+regardless of what size or typeface you may have been using when
+the \ipam\
+macro was called. In other words, whatever font \\ipa is defined to be,
+determines the font \ipam\ will call.
+ 
+In order to get slanted \wsu\ characters when \\it or \\sl is being used, or
+bold \wsu\ characters when \\bf is being used, you must include the definition
+of \\ipa as part of your font family definitions.
+ 
+Without redefining \\ipa, the following input,
+ 
+\aib\lin{0pt}
+\\dots which is the case in the aforementioned
+instances, however, \{\\bf this
+does not preclude the other retroflex consonants:
+[\\nj], [\\taill], [\\taild], and [\\tailr]\}.
+\aie
+\nin will print as,
+ 
+\vs{5pt}
+\pb{\dots which is the case in the aforementioned instances, however, {\bf this
+does not preclude the other retroflex consonants: [\nj], [\taill], [\taild],
+and [\tailr]}.
+}
+\vs{5pt}
+ 
+Now, with \\ipa defined within the twelve-point font family, as illustrated
+below
+ 
+\aib\lin{-10pt}
+\\font\\twelverm=cmr12
+\\font\\twelvei=cmmi12
+\\font\\twelvesy=cmsy12
+\\font\\twelveex=cmex12
+\\font\\twelveit=cmti12
+\\font\\twelvebf=cmbx12
+\\font\\twelveipa=wsuipa12
+\\font\\twelveslipa=wslipa12
+\\font\\twelvebfipa=wbxipa12
+ 
+\\def\\twelvepoint\{\%
+  \\textfont0=\\twelverm
+      \\scriptfont0=\\sevenrm  \\scriptscriptfont0=\\sevenrm
+  \\def\\rm\{\\fam0\\twelverm\\def\\ipa\{\\twelvermipa\}\}\%
+  \\textfont1=\\twelvei
+  \\scriptfont1=\\sevenrm  \\scriptscriptfont1=\\sevenrm
+  \\textfont2=\\twelvesy
+  \\scriptfont2=\\sevensy   \\scriptscriptfont2=\\sevensy
+  \\textfont3=\\twelveex
+  \\scriptfont3=\\twelveex  \\scriptscriptfont3=\\twelveex
+  \\textfont\\itfam=\\twelveit
+  \\def\\it\{\\fam\\itfam\\twelveit\\def\\ipa\{\\twelveslipa\}\}\%
+  \\textfont\\bffam=\\twelvebf
+  \\def\\bf\{\\fam\\bffam\\twelvebf\\def\\ipa\{\\twelvebfipa\}\}\%
+  \\rm\}\%
+\%
+\\twelvepoint
+\%
+\aie
+\nin the previous input of
+\aib\lin{0pt}
+\\dots which is the case in the aforementioned
+instances, however, \{\\bf this
+does not preclude the other retroflex consonants:
+[\\nj], [\\taill], [\\taild], and [\\tailr]\}.
+\aie
+\nin will print as,
+ 
+\vs{5pt}
+\pb{\font\twelvebfipa=wbxipa12\font\twelvebf=cmbx12\def\bf{\fam\bffam\twelvebf
+\def\ipa{\twelvebfipa}}%
+\dots which is the case in the aforementioned instances, however, {\bf this
+does not preclude the other retroflex consonants: [\nj], [\taill], [\taild],
+and [\tailr]}.
+}
+\np
+\parindent 0pt
+\twelvept
+% macros for font tables
+\def\oct#1{\hbox{\rm\'{}\kern-.1em\it#1\/\kern.05em}}
+\def\hex#1{\hbox{\rm\H{}\tt#1}} % hexadecimal constant
+ 
+\abovedisplayskip=3pt\belowdisplayskip=2pt
+\font\smalltextfont=cmr7
+\newcount\fontcount
+\newbox\charbox
+\def\oddline#1{\cr
+  \noalign{\nointerlineskip}
+  \multispan{19}\hrulefill&
+  \setbox\charbox=\hbox{\lower 2.3pt\hbox{\hex{#1x}}}
+                       \smash{\box\charbox}\cr
+                        \noalign{\nointerlineskip}}
+\def\evenline{\cr\noalign{\hrule}}
+\def\chartstrut{\lower3.5pt\vbox to14pt{}}
+\def\beginchart#1{ \global\fontcount=0 #1
+  \halign to\hsize\bgroup
+    \chartstrut##\tabskip0pt plus10pt&
+    &\hfil##\hfil&\vrule##\cr
+    \lower6.5pt\null
+    &&&\oct0&&\oct1&&\oct2&&\oct3&&\oct4&&\oct5&&\oct6&&\oct7&\evenline}
+\def\endchart{\raise11.5pt\null&&&\hex 8&&\hex 9&&\hex A&&\hex B&
+  &\hex C&&\hex D&&\hex E&&\hex F&\cr\egroup}
+\def\:{\setbox\charbox=%\drawbox{
+\hbox{\char\fontcount
+%\llap{\vrule height.4pt width5pt depth0pt} %this will draw line at baseline
+}%}%
+  \ifdim\ht\charbox>7.5pt\reposition
+  \else\ifdim\dp\charbox>2.5pt\reposition
+  \else\ifdim\wd\charbox>0pt
+       \ifdim\ht\charbox<.01pt
+       \ifdim\dp\charbox<.01pt\unposition\fi\fi\fi\fi\fi
+  \box\charbox\global\advance\fontcount by1 }
+\def\reposition{}%\setbox\charbox=\hbox{$\vcenter{\kern2pt
+%                                 \box\charbox\kern2pt}$}}
+\def\unposition{\setbox\charbox=\hbox{\smalltextfont undef}}
+\def\normalchart{%
+  &\oct{00x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline0
+  &\oct{01x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{02x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline1
+  &\oct{03x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{04x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline2
+  &\oct{05x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{06x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline3
+  &\oct{07x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{10x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline4
+  &\oct{11x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{12x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline5
+  &\oct{13x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{14x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline6
+  &\oct{15x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline
+  &\oct{16x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\oddline7
+  &\oct{17x}&&\:&&\:&&\:&&\:&&\:&&\:&&\:&&\:&\evenline}
+\font\chartfont=wsuipa12
+{\tt WSUIPA12\bi--- WSU International Phonetic Alphabet Roman -- 12pt}
+\beginchart{\chartfont}
+\normalchart
+\endchart
+\vfill
+\font\newchartfont=wslipa12
+{\tt WSLIPA12\bd---WSU International Phonetic Alphabet Slanted -- 12pt}
+\beginchart{\newchartfont}
+\normalchart
+\endchart
+\np
+\font\nchartfont=wbxipa12
+{\tt WBXIPA12\bi---WSU International Phonetic Alphabet Bold Extended
+-- 12pt}
+\beginchart{\nchartfont}
+\normalchart
+\endchart
+\vfill
+\font\nwchartfont=wsuipa9
+{\tt WSUIPA9\bi---WSU International Phonetic Alphabet Roman -- 9pt}
+\beginchart{\nwchartfont}
+\normalchart
+\endchart

@@ -1,8 +1,8 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
-intern byte*
-skip(byte *s)
+intern char*
+skip(char *s)
 {
 	while(*s==' ' || *s=='\n' || *s=='\t')
 		s++;
@@ -10,16 +10,15 @@ skip(byte *s)
 }
 
 Font*
-rdfontfile(byte *name, int ldepth)
+rdfontfile(char *name, int ldepth)
 {
 	Font *fnt;
 	Cachefont *c;
 	int fd, i;
-	byte *buf, *s, *t;
+	char *buf, *s, *t;
 	Dir dir;
 	uint min, max;
-	byte *gbuf;
-	int offset;
+	char *gbuf;
 
 	fd = open(name, OREAD);
 	if(fd < 0)
@@ -53,6 +52,7 @@ rdfontfile(byte *name, int ldepth)
 	if(fnt == nil)
     		raise;
 
+	memset(fnt, 0, sizeof(Font));
 	fnt->name = strdup(name);
 	fnt->ncache = NFCACHE+NFLOOK;
 	fnt->nsubf = NFSUBF;
@@ -94,6 +94,8 @@ rdfontfile(byte *name, int ldepth)
 	fnt->nsub = 0;
 	fnt->sub = nil;
 
+	memset(fnt->subf, 0, sizeof(fnt->subf));
+	memset(fnt->cache, 0, fnt->ncache*sizeof(fnt->cache[0]));
 	fnt->age = 1;
 	do{
 		min = strtoi(s, &s, 0);
@@ -108,17 +110,9 @@ rdfontfile(byte *name, int ldepth)
 		if(*s==0 || min>=65536 || max>=65536 || min>max)
 			raise;
 
-		t = s;
-		offset = strtoi(s, &t, 0);
-		if(t>s && (*t==' ' || *t=='\t' || *t=='\n'))
-			s = skip(t);
-		else
-			offset = 0;
-
 		fnt->sub = realloc(fnt->sub, (fnt->nsub+1)*sizeof(Cachefont*));
 		if(fnt->sub == nil){
-			/* realloc manual says fnt->sub may have
-			 * been destroyed */
+			/* realloc manual says fnt->sub may have been destroyed */
 			fnt->nsub = 0;
 			raise;
 		}
@@ -128,7 +122,6 @@ rdfontfile(byte *name, int ldepth)
 		fnt->sub[fnt->nsub] = c;
 		c->min = min;
 		c->max = max;
-		c->offset = offset;
 		t = s;
 		while(*s && *s!=' ' && *s!='\n' && *s!='\t')
 			s++;
@@ -151,7 +144,7 @@ ffree(Font *f)
 {
 	int i;
 	Cachefont *c;
-	byte *b;
+	char *b;
 
 	for(i=0; i<f->nsub; i++){
 		c = f->sub[i];

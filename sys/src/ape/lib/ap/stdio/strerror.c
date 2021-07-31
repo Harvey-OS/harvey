@@ -1,13 +1,10 @@
 /*
  * pANS stdio -- strerror (not really in stdio)
- *
- * Shouldn't really call this sys_errlist or make it
- * externally visible, but too many programs in X assume it...
  */
 #include <errno.h>
 
 #include "iolib.h"
-char *sys_errlist[] = {
+static char *_IO_errlist[] = {
 	"Error 0",
 	"Too big",
 	"Access denied",
@@ -44,37 +41,11 @@ char *sys_errlist[] = {
 	"Spipe",
 	"Srch",
 	"Cross-device link",
-	"Not a socket",
-	"Protocol not supported",
-	"Connection refused",
-	"Address family not supported",
-	"No buffers",
-	"OP not supported",
-	"Address in use",
-	"Destination address required",
-	"Message size",
-	"Protocol option not supported",
-	"Socket option not supported",
-	"Address not available",
-	"Network down",
-	"Network unreachable",
-	"Network reset",
-	"Connection aborted",
-	"Connected",
-	"Not connected",
-	"Shut down",
-	"Too many references",
-	"Timed out",
-	"Host down",
-	"House unreachable",
-	"Unknown error"
 };
-#define	_IO_nerr	(sizeof sys_errlist/sizeof sys_errlist[0])
-int sys_nerr = _IO_nerr;
-
+#define	_IO_nerr	(sizeof _IO_errlist/sizeof _IO_errlist[0])
 char *strerror(int n){
 	if(n >= 0 && n < _IO_nerr)
-		return sys_errlist[n];
+		return _IO_errlist[n];
 	if(n == EDOM)
 		return "Domain error";
 	else if(n == ERANGE)

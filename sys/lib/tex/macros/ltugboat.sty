@@ -1,0 +1,440 @@
+
+\def\thistubstyle{latex}
+\def\fileversion{v1.04}
+\def\filedate{2 Mar 90}
+% Change history at bottom of file
+
+
+%               *****   LTUGBOAT.STY    *****
+%
+%
+%       Incorporates ideas and elements from these TUGboat authors:
+%               Adrian Clark
+%               Frank Mittelbach
+%               Rainer Sch\"opf
+
+
+%  Stop here if this file has been read already
+
+\ifx\tugstyloaded@\thistubstyle
+ \endinput\else\let\tugstyloaded@\thistubstyle\fi
+
+\typeout{Document Style `ltugboat' \fileversion \space\space <\filedate>}
+
+% **********************************************************************
+%
+%  Macros common to ltugboat.sty and tugboat.sty
+
+
+\input tugboat.com
+
+
+% ***********************************************************************
+%
+%  Fonts
+
+\font\sevbf=cmbx7
+\font \svtnsfb=cmssbx10 scaled \magstep3        % for section titles;
+
+\font \twlsfb=cmssbx10 scaled \magstep1         % definition of \LaTeX
+\newfam\sectitlefam                             % requires a family
+\textfont\sectitlefam=\svtnsfb
+\scriptfont\sectitlefam=\twlsfb
+
+\font\tenuit=cmu10                              % for Editor's Note
+
+
+
+%  redo definition of 10pt from latex (lfonts), to install \sevbf as
+%  \*scriptfont of \bffam
+\toks0=\expandafter{\xpt\scriptfont\bffam\sevbf \scriptscriptfont\bffam\sevbf}
+\xdef\xpt{\the\toks0}
+
+
+
+
+% ***********************************************************************
+%
+%  normal TUGboat dimensions, glue values, penalties
+
+\@twosidetrue           % for odd/even asymmetry in running heads
+\twocolumn              % two columns
+\sloppy                 % make those columns justify
+%\flushbottom           % but ensure they line up
+\columnsep 1.5pc        % space between columns
+\columnwidth 18.75pc    % width of each column
+\parindent \normalparindent     % paragraph indent
+\parskip 0pt            % no inter-paragraph space
+\leftmargini 2em        % unchanged
+\leftmarginv .5em       % unchanged
+\leftmarginvi .5em      % unchanged
+\oddsidemargin 0pt      % was 42pt
+\evensidemargin 0pt     % was 84pt
+\topmargin -2.5pc       % was 0pt
+\headheight 12pt        % height of running head, unchanged
+\headsep 20pt           % distance between header and text
+\marginparwidth 48pt    % don't use marginal notes
+\marginparsep 10pt      %  in TUGboat
+\textheight 54pc        % height of text on page
+\textwidth 39pc         % total width of a page
+
+
+\partopsep=\z@
+\topsep=3pt plus1pt minus1pt
+\parsep=3pt plus 1pt minus 1pt
+\itemsep=\parsep
+
+
+\def\@normalsize{\@setsize\normalsize{12pt}\xpt\@xpt
+\abovedisplayskip=3pt plus 3pt minus 1pt \belowdisplayskip=\abovedisplayskip
+\abovedisplayshortskip=\z@ plus3pt \belowdisplayshortskip=1pt plus3pt minus1pt}
+
+\def\small{\@setsize\small{11pt}\ixpt\@ixpt
+\abovedisplayskip=2.5pt plus2.5pt minus1pt\belowdisplayskip=\abovedisplayskip
+\abovedisplayshortskip=\z@ plus2pt \belowdisplayshortskip=1pt plus2pt minus1pt}
+
+\def\footnotesize{\@setsize\footnotesize{12pt}\xpt\@xpt
+\abovedisplayskip=3pt plus 3pt minus 1pt \belowdisplayskip=\abovedisplayskip
+\abovedisplayshortskip=\z@ plus3pt \belowdisplayshortskip=1pt plus3pt minus1pt}
+
+
+% ***********************************************************************
+%
+%  Lists
+
+\def\@listi{\leftmargin\leftmargini\parsep=1pt plus 1pt minus 1pt
+  \itemsep=\parsep}
+
+\def\@listii{\leftmargin\leftmarginii
+  \labelwidth=\leftmarginii \advance\labelwidth-\labelsep
+  \topsep=2pt plus 1pt minus 1pt
+  \parsep=1pt plus 1pt minus 1pt
+  \itemsep=\parsep}
+
+\def\@listiii{\leftmargin=\leftmarginiii
+  \labelwidth=\leftmarginiii \advance\labelwidth-\labelsep
+  \topsep=1pt plus 1pt minus 1pt
+  \parsep=\z@
+  \itemsep=\topsep}
+
+
+
+
+
+
+% ***********************************************************************
+%
+%  Titles, authors, addresses, signatures
+
+\def\sectitlefont{\fam\sectitlefam\svtnsfb\baselineskip\stbaselineskip}
+\setbox\T@stBox=\hbox{\sectitlefont O}
+\newdimen\stfontheight          \stfontheight=\ht\T@stBox
+\def \sectitle#1{\SecTitletrue \def\s@ctitle{#1}}
+
+\newcount\authornumber
+\authornumber=0
+
+\def\author#1{%
+  \global\advance\authornumber\@ne
+  \expandafter\def\csname theauthor\number\authornumber\endcsname
+      {\ignorespaces#1\unskip}%
+  \expandafter\let\csname theaddress\number\authornumber\endcsname\relax
+  \expandafter\let\csname thenetaddress\number\authornumber\endcsname\relax
+  }
+
+\def\address#1{%
+  \expandafter\def\csname theaddress\number\authornumber\endcsname
+      {\ignorespaces#1\unskip}}
+
+\def\network#1{\def\@network{#1: }}
+\def\netaddress{%
+  \begingroup
+  \let\@network\relax
+  \@ifnextchar[{\@netaddress}{\@netaddress[]}%
+  }
+
+{\makeactive\@
+ \gdef\netaddrat{\makeactive\@\def@{\char"40\discretionary{}{}{}}}
+ \makeactive\%
+ \gdef\netaddrpercent{\makeactive\%\def%{\char"25\discretionary{}{}{}}}
+}
+
+\def\@netaddress[#1]{#1\@sanitize\makeactive\@\makeactive\%\@@netaddress}
+
+\def\@@netaddress#1{%
+  \toks@{#1}%
+  \ifx\@network\relax \def\@@network{}%
+  \else \def\@@network{\@network}\fi
+  \expandafter\xdef\csname thenetaddress\number\authornumber\endcsname
+    {{\noexpand\rm\@@network}%
+     {\noexpand\netaddrat\noexpand\netaddrpercent\noexpand\net
+      \ignorespaces\the\toks@\unskip}}%
+  \endgroup
+  }
+
+\def\net{\tt}
+
+%  Overrides to default author and signature formats
+
+\def\authorlist#1{\def\@author{#1}}
+\def\@author{\@defaultauthorlist}
+
+
+\def\maketitle{\par
+ \ifdim\PreTitleDrop > 0pt
+   \loop
+   \ifdim \PreTitleDrop > \textheight
+     \vbox{}\vfil\eject
+     \advance\PreTitleDrop by -\textheight
+   \repeat
+   \vbox to \PreTitleDrop{}
+   \global\PreTitleDrop=0pt
+ \fi
+ \begingroup
+ \setcounter{footnote}{0}
+ \def\thefootnote{\fnsymbol{footnote}}
+ \def\@makefnmark{\hbox to 0pt{$^{\@thefnmark}$\hss}} 
+ \@maketitle
+ \@thanks
+ \endgroup
+ \setcounter{footnote}{0}
+% \let\maketitle\relax
+% \let\@maketitle\relax
+ \gdef\@thanks{}%\gdef\@author{}\gdef\@title{}%
+%\let\thanks\relax
+ }
+
+\def\@maketitle{\ifSecTitle \global\SecTitlefalse
+                \@sectitle{\s@ctitle}%
+        \else \vskip\AboveTitleSkip
+                \kern\topskip
+                \hrule height\z@ depth\z@ width 10pt
+                \kern-\topskip
+                \kern-\strulethickness
+                \hrule height\strulethickness depth\z@
+                \kern\medskipamount
+                \nobreak
+        \fi
+        {\nohyphens \interlinepenalty\@M
+        \setbox0=
+          \hbox{\let\thanks\@gobble
+                \let\\=\quad
+                \let\and=\quad
+                \ignorespaces\@author}%
+        {\noindent\bf\raggedright\ignorespaces\@title\endgraf}%
+        \ifdim \wd0 < 5pt               % omit if author is null
+        \else \nobreak \vskip 4pt       % 4pt + \BelowTitleSkip = \baselineskip
+                {\leftskip=\normalparindent
+                 \def\and{\unskip\\}%
+                 \noindent\@author\endgraf}%
+        \fi \nobreak \vskip\BelowTitleSkip }}
+
+
+\def\abstract{
+\section*{Abstract}
+}
+\def\endabstract{}
+
+
+%  Redefine style of section headings to look more like TUGboat.
+%  Start with definitions from art10.sty .  (Only \section correct so far.)
+%
+%  \vskip 8pt \vskip\parskip before; \vskip 4pt after
+%  Negative beforeskip suppresses following parindent.
+
+\def\section{\@startsection {section}{1}{\z@}{-8pt}{4pt}%
+        {\normalsize\bf\raggedright}}
+
+\def\subsection{\@startsection{subsection}{2}{\z@}{-8pt}{4pt}%
+        {\normalsize\bf\raggedright}}
+
+\def\subsubsection
+        {\@startsection{subsubsection}{3}{\z@}{-8pt}{4pt}{\normalsize\bf}}
+
+\def\paragraph{\@startsection
+ {paragraph}{4}{\z@}{3.25ex plus 1ex minus .2ex}{-1em}{\normalsize\bf}}
+
+\def\subparagraph{\@startsection
+ {subparagraph}{4}{\parindent}{3.25ex plus 1ex minus
+ .2ex}{-1em}{\normalsize\bf}}
+
+%       Modify \appendix from art10.sty, to add ``Appendix''
+%       1 May 89 Mittelach comments that we need to put ``Appendix''
+%         somewhere other than \thesection if \tableofcontents is used.
+%\def\appendix{\par
+% \setcounter{section}{0}
+% \setcounter{subsection}{0}
+% \def\thesection{Appendix \Alph{section}}}
+
+
+\def\l@part#1#2{\addpenalty{\@secpenalty}
+ \addvspace{2.25em plus 1pt} \begingroup
+ \@tempdima 3em \parindent \z@ \rightskip \z@ \parfillskip \z@
+ {\large \bf \leavevmode #1\hfil \hbox to\@pnumwidth{\hss #2}}\par
+ \nobreak \endgroup}
+\def\l@section#1#2{\addpenalty{\@secpenalty} \addvspace{1.0em plus 1pt}
+\@tempdima 1.5em \begingroup
+ \parindent \z@ \rightskip \z@  % article style makes \rightskip > 0 
+ \parfillskip \z@
+ \bf \leavevmode \advance\leftskip\@tempdima \hskip -\leftskip #1\nobreak\hfil
+\nobreak\hbox to\@pnumwidth{\hss #2}\par
+ \endgroup}
+
+
+\def \EdNote{{\tenuit Editor's note:\enspace }}
+
+
+% ***********************************************************************
+%
+%  Footnotes
+
+\long\def\@makefntext#1{\parindent 1em\noindent\hbox to 2em{}%
+  \llap{\@makefnmark}\null$\;$#1}
+%  \llap{$^{\@thefnmark}\,$}#1}
+
+
+% ***********************************************************************
+%
+%  Figures
+
+\def\fnum@figure{{\bf Figure \thefigure}}
+
+
+
+
+% ***********************************************************************
+%
+%  Quotes
+
+\def\quote{\list{}{\rightmargin.5\leftmargin}\item[]}
+
+%       From Dominik Wujastyk's font article.  First paragraph of a quotation
+%       will not be indented, and right margin is decreased for narrow columns.
+\renewcommand{\quotation}{\list{}{\listparindent 1.5em
+        \rightmargin.5\leftmargin\parsep 0pt plus 1pt}\item[]}
+
+
+% ***********************************************************************
+%
+%  Signature
+
+%  Moved to TUGboat.com
+
+% ***********************************************************************
+%
+%  Running heads, output routine
+
+\def \rtitlex{\def\tubfont{\normalsize\rm}\TUB, \volx }
+
+\def\PrelimDraftfooter{%
+  \dlap{\kern\textheight\kern3pc
+        \rlap{\hbox to \pagewd{\midrtitle\hfil\midrtitle}}
+  }}
+
+% registration marks; these are temporarily inserted in the running head
+\def\MakeRegistrationMarks{}
+\def\UseTrimMarks{%
+  \def\MakeRegistrationMarks{%
+    \ulap{\rlap{%
+       \vbox{\dlap{\vbox to\trimlgt{\vfil\botregister}}%
+             \topregister\vskip \headmargin \vskip 10pt}}}}%
+  }
+
+\def\@oddhead{\MakeRegistrationMarks\PrelimDraftfooter
+  \hbox{}\rm\rtitlex\qquad\midrtitle \hfil \thepage}
+\def\@evenhead{\MakeRegistrationMarks\PrelimDraftfooter
+  \rm \thepage\hfil\midrtitle\qquad\rtitlex}
+\def\@oddfoot{}
+\def\@evenfoot{}
+
+\def\ps@headings{}
+\pagestyle{headings}
+
+
+% ***********************************************************************
+%
+%  Macros for Mittelbach's self-documenting style
+
+\def\SelfDocumenting{%
+  \setlength\textwidth{31pc}
+  \onecolumn
+  \parindent 0pt
+  \parskip 2pt plus 1pt minus 1pt
+  \oddsidemargin 8pc
+  \evensidemargin 8pc
+  \toks@\expandafter{\@oddhead}%
+  \xdef\@oddhead{\hss\hbox to \pagewd{\the\toks@}}%
+  \toks@\expandafter{\@evenhead}%
+  \xdef\@evenhead{\hss\hbox to \pagewd{\the\toks@}}%
+  \def\ps@titlepage{}%
+}
+
+
+
+% ***********************************************************************
+%
+%  MISCELLANEOUS defs for compatibility with tugboat.sty
+
+\newif\ifFirstPar       \FirstParfalse
+
+\newdimen\pagewd        \pagewd=39pc
+\newdimen\trimwd        \trimwd=\pagewd
+\newdimen\trimlgt       \trimlgt=11in
+\newdimen\headmargin    \headmargin=3.5pc
+\def\smc{\sc}
+\def\ninepoint{\small}
+
+
+
+%*************************************************************************
+%
+%       Start-up
+
+\setcounter{page}{1001}
+\PrelimDrafttrue
+
+\endinput
+
+
+
+% **********************************************************************
+%
+%   Change history
+%
+
+ 2 Mar 90       v1.04
+added \nobreak to \@maketitle to prevent pagebreaks after leading rule
+
+25 Feb 90       v1.03
+added definition of \thistubstyle
+
+12 Feb 90       v1.02
+modified definition of \@makefntext; now uses \@makefnmark (as one
+   might expect)
+
+ 6 Feb 90       v1.01
+removed "\font\manual=manfnt"; tugboat.com already sets \font\manual=logo10
+adjusted definition of \netaddress to remove mis-timed \@sanitize-ation
+
+29 Nov 89       v1.00
+changed \titlefont to \sectitlefont
+added setting of \baselineskip to defintion of \sectitlefont
+changed \TUBparindent to \normalparindent (already in tugboat.com)
+removed additions of amcsc* fonts
+new definitions of \ragged... in tugboat.com include \nohyphens
+moved most of section title material to tugboat.com
+moved writing mechanism and multiple document handling to local .drv file
+redefined \author to be consistent with tugboat.sty
+added \address, \netaddress
+moved \signature stuff to tugboat.com
+made titles raggedright
+
+
+20 Oct 89       v0.53
+Zeroed \@signature for multiple documents
+
+19 Oct 89       v0.52
+Moved \rtitlex to tugboat.com
+
+18 Oct 89       v0.51
+Disallowed hyphenations in \section and \subsection

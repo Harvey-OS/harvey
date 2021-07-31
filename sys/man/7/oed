@@ -1,0 +1,215 @@
+.TH OED 7
+.SH NAME
+oed \- Oxford English Dictionary
+.SH SYNOPSIS
+.B oed
+[
+.I options
+]
+[
+.BR - [ iI ]
+.I index
+]
+.I word...
+.br
+.B oed
+.BI -b addr
+[
+.I options...
+]
+[
+.I sections...
+]
+.SH DESCRIPTION
+Given one or more
+.I word
+arguments,
+.B oed
+prints the matching main entry or entries from the first edition of the OED
+with Supplements.  Flag options for this
+case are:
+.TF -I\ \fIindex\fP
+.TP
+.B -p
+Match all entries having
+.I word
+as a prefix.
+.TP
+.BI -I index
+Print sections of the dictionary in which, according to the
+.IR index ,
+the
+.I word
+appears.
+.TP
+.BI -i index
+Like
+.BR -I ,
+but only head words are printed, along with a command that will
+print the rest.
+.PD
+.PP
+Available indexes are:
+.PD
+.TP
+.B le
+.I Word
+is a lexical entry (the default).
+.TP
+.B et
+.I Word
+appears in an etymology article.
+.TP
+.B se
+Sense:
+.I word
+is used in a definition.
+.TP
+.B la
+.I Word
+is used as a label.
+.TP
+.B qd
+.I Word
+appears in the date of a quoted work.
+.TP
+.B qa
+.I Word
+is the author of a quoted work.
+.TP
+.B qw
+.I Word
+is the title of a quoted work.
+.TP
+.B qt
+.I Word
+appears in the text of a quoted work.
+.PD
+.PP
+Except in the case of
+.LR le ,
+the program prints only the sections of an entry relevant to the
+.IR word ,
+e.g., indexing through
+.L qt
+produces the head word, a sense article, and the quotation.
+.PP
+The second form of
+.L oed
+uses file block addressing, primarily for the use of
+.LR "oed -i..." .
+Options are:
+.TF -I\ \fIindex\fP
+.TP
+.B -a
+Print starting addresses and tags for each section.
+.TP
+.BI -b addr
+Print the dictionary starting with block
+.IR addr .
+.TP
+.BI -b a . d
+Print the dictionary starting with the
+.IR d "'th"
+definition (counting from zero) in block
+.IR a .
+Printing stops at the end of this definition, or when the block specified
+with
+.L -e
+is reached.
+.TP
+.BI -e addr
+Stop printing when block
+.I addr
+is reached.
+.PD
+.PP
+Specific
+.I sections
+or parts thereof may be selected within a definition, as follows:
+.TF \fIn\fP.\fIttt\fP.\fImmm\fP
+.TP
+.I n
+Section number
+.I n
+(decimal).
+.TP
+.IR n . ttt
+Parts of section
+.I n
+(decimal) having tag
+.I ttt
+(hex).
+.TP
+.IR n . ttt . mmm
+Parts of section
+.I n
+(decimal) having tag
+.I ttt
+(hex), but only tag bits
+.I mmm
+(hex) are significant in the comparison.
+.PD
+.PP
+Options applicable to both forms are:
+.TF -I\ \fIindex\fP
+.TP
+.B -k
+Print the pronunciation key and exit.
+.TP
+.B -r
+Print the raw text from the dictionary, instead of a more readable form.
+.SH EXAMPLES
+.TP
+.L
+oed poot
+Look up the word
+.LR poot .
+.L
+.TP
+oed -i qt poot
+Show words used with
+.LR poot
+in quoted text.
+.TP
+.L
+oed -i la spiritualism
+Show words cited as terms of art in spiritualism.
+.SH FILES
+.TF /lib/oed/rcd0
+.TP
+.B /lib/oed/rcd0
+.SM CDROM
+image.
+.SH BUGS
+.PP
+The
+.L qa
+and
+.L qw
+indexes make heavy use of unpredictable abbreviations.
+Entries for dates in the
+.L qd
+index include references that are
+.IR ante ,
+.IR post ,
+and
+.IR circa ;
+the program does not distinguish these.
+.PP
+Tabular and other typographically complicated material is
+missing from the database, and flagged by
+.LR "{...}" .
+.PP
+A cross-reference that is not a main entry may be missing from the
+.L le
+index
+(e.g., 
+.I kinesthesia
+refers to
+.IR kinæsthesia ,
+but the definition is found under
+.IR kinæsthesis ).
+The
+.L -p
+flag with a long prefix of the desired word is often successful.

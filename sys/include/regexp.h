@@ -1,4 +1,3 @@
-#pragma	src	"/sys/src/libregexp"
 #pragma	lib	"libregexp.a"
 
 typedef struct Resub		Resub;
@@ -34,7 +33,7 @@ struct Reclass{
  *	Machine instructions
  */
 struct Reinst{
-	int	type;
+	int	type;			/* < 0200 ==> literal, otherwise action */
 	union	{
 		Reclass	*cp;		/* class pointer */
 		Rune	r;		/* character */

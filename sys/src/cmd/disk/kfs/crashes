@@ -1,0 +1,10 @@
+May 12, 1992
+	bart had a file system crash on a 4k block magnum file system.
+	the first block was scrambled.
+	the file system size was 0x7f000001
+	there was a block in two files.
+	one of those fileshad a block with address 0x7f000000.
+	fixing the first block and fsize and clri'ing the files
+	with bad blocks seemed to fix the problem
+
+	it seemed to happen after a sync and then a reboot.

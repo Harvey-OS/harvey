@@ -1,0 +1,52 @@
+.TH DROP 9.1
+.SH NAME
+drop, save, flip \- copy picture files to and from screen
+.SH SYNOPSIS
+.B fb/drop
+[
+.I input
+]
+.PP
+.B fb/save
+.PP
+.B fb/flip
+[
+.B -r
+.I fps
+]
+p1 p2 ...
+.SH DESCRIPTION
+.I Drop
+displays its argument picture file (default standard input) in the middle of a terminal screen
+or
+.B 8½
+window.  As most Plan 9 terminals are grey-scale
+devices with only a few bits per pixel, it computes the
+luminance of color images and uses error-diffusion
+dither to quantize the pixel values.
+.I Save
+writes a picfile containing its window (or screen if
+.B 8½
+is not running)
+onto its standard output.
+.PP
+.I Flip
+displays many picfiles in sequence in a loop.  The pictures must be
+the same size, and must fit in memory.
+The pictures are all loaded into main memory and then sent to the display
+as required using
+.B wrbitmap
+(see
+.IR balloc (2)),
+so the machine running
+.I flip
+can be remote; a CPU server
+can be used if there are many large frames.
+The
+.B -r
+option sets the display rate in frames per second.  By default
+.I flip
+displays as fast as it can: 
+about 15 frames per second for a small picture on a Magnum.
+.SH "SEE ALSO
+.IR picfile (9.6)

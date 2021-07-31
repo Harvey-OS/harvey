@@ -11,6 +11,7 @@ OFILES=getcmap.$O\
 	pic.run.$O\
 	picclose.$O\
 	picconf.$O\
+	picerror.$O\
 	picgetprop.$O\
 	picopen_r.$O\
 	picopen_w.$O\

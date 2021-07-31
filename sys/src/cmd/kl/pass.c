@@ -13,8 +13,6 @@ dodata(void)
 	Bflush(&bso);
 	for(p = datap; p != P; p = p->link) {
 		s = p->from.sym;
-		if(p->as == ADYNT || p->as == AINIT)
-			s->value = dtype;
 		if(s->type == SBSS)
 			s->type = SDATA;
 		if(s->type != SDATA)
@@ -288,19 +286,8 @@ loop:
 		curtext = p;
 	if(a == AJMP) {
 		q = p->cond;
-		if((p->mark&NOSCHED) || q && (q->mark&NOSCHED)){
-			p->mark |= FOLL;
-			lastp->link = p;
-			lastp = p;
-			p = p->link;
-			xfol(p);
-			p = q;
-			if(p && !(p->mark & FOLL))
-				goto loop;
-			return;
-		}
 		if(q != P) {
-			p->mark |= FOLL;
+			p->mark = FOLL;
 			p = q;
 			if(!(p->mark & FOLL))
 				goto loop;
@@ -308,7 +295,7 @@ loop:
 	}
 	if(p->mark & FOLL) {
 		for(i=0,q=p; i<4; i++,q=q->link) {
-			if(q == lastp || (q->mark&NOSCHED))
+			if(q == lastp)
 				break;
 			b = 0;		/* set */
 			a = q->as;
@@ -329,7 +316,7 @@ loop:
 				*r = *p;
 				if(!(r->mark&FOLL))
 					print("cant happen 1\n");
-				r->mark |= FOLL;
+				r->mark = FOLL;
 				if(p != q) {
 					p = p->link;
 					lastp->link = r;
@@ -360,16 +347,11 @@ loop:
 		q->cond = p;
 		p = q;
 	}
-	p->mark |= FOLL;
+	p->mark = FOLL;
 	lastp->link = p;
 	lastp = p;
-	if(a == AJMP || a == ARETURN || a == ARETT){
-		if(p->mark & NOSCHED){
-			p = p->link;
-			goto loop;
-		}
+	if(a == AJMP || a == ARETURN || a == ARETT)
 		return;
-	}
 	if(p->cond != P)
 	if(a != AJMPL && p->link != P) {
 		xfol(p->link);
@@ -400,7 +382,7 @@ patch(void)
 		a = p->as;
 		if(a == ATEXT)
 			curtext = p;
-		if((a == AJMPL || a == ARETURN) && p->to.sym != S) {
+		if(a == AJMPL && p->to.sym != S) {
 			s = p->to.sym;
 			if(s->type != STEXT) {
 				diag("undefined: %s\n%P\n", s->name, p);
@@ -482,7 +464,7 @@ brloop(Prog *p)
 	int c;
 
 	for(c=0; p!=P;) {
-		if(p->as != AJMP || (p->mark&NOSCHED))
+		if(p->as != AJMP)
 			return p;
 		q = p->cond;
 		if(q <= p) {

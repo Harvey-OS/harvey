@@ -1,0 +1,340 @@
+%%dimacs.tex                                       8/90
+%
+% This is a sample file for use with AMS-LaTeX. It provides an example of
+% how to set up a file to be typeset with AMS-LaTeX.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\documentstyle{DIMACS}
+
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{definition}{Definition}[section]
+
+\newcommand{\AmSLaTeX}{{\the\textfont2 A}\kern-.1667em\lower.5ex\hbox
+ {\the\textfont2 M}\kern-.125em{\the\textfont2 S}-\LaTeX}
+
+\begin{document}
+
+\title[MAXIMAL IDEALS IN SUBALGEBRAS OF $C(X)$]{Sample Paper for DIMACS,\\
+On Maximal Ideals in Subalgebras of $C(X)$}
+\author[AUTHOR ONE AND AUTHOR TWO]{Author One and Author Two}
+\address{Department of Mathematics, Northeastern University, Boston,
+Massachusetts 02115} % Research address for author one
+\email{XYZ\char`\@ Math.AMS.com}
+\address{Mathematical Research Section, School of Mathematical Sciences,
+Australian National University, Canberra ACT 2601, Australia} %address for 
+%                                                             author two
+
+\subjclass{Primary 54C40, 14E20; Secondary 46E25, 20C20}
+
+%  \thanks will become a 1st page footnote.
+%  Use \endgraf to indicate a new paragraph; a blank line or \par will
+%  be recognized as an error.
+%  Don't type a period at the end; it will be supplied.
+\thanks{The first author was supported in part by NSF
+Grant \#000000.\endgraf
+The final version of this paper will be submitted for
+publication elsewhere}
+
+\maketitle
+
+\begin{abstract}
+This paper is a sample prepared to illustrate for authors
+the use of the \AmSLaTeX{} Version~1.0 package.
+
+The file used to prepare this sample is \verb+sample.tex+; an author
+should use the coding in that file as a model.
+\end{abstract}
+
+\section{Introduction}
+
+This sample paper illustrates the use of \AmSLaTeX{} Version~1.0. In this
+sample paper, brief instructions to authors will be interspersed with
+mathematical text extracted from (purposely unidentified) published papers. 
+For instructions on preparing mathematical text, the author is referred to {\it
+The Joy of \TeX}, by Michael Spivak \cite{spivak:jot} and {\it \LaTeX{}: A
+Document Preparation System} by Leslie Lamport. \cite{lamport:latex}
+
+\subsection{Top matter}
+The input format and content of the top matter can be best understood
+by examining the first part of the sample file \verb+sample.tex+, up
+through the \verb+\begin{document}+ instruction.
+
+The top matter includes both elements that must be input by the author and a
+few that are provided automatically.  The author names and the title that are
+to appear in the running heads should be input between square brackets as an
+option to the \verb+\author+ and \verb+\title+ commands, respectively. The full
+names and title should be used unless they require too much space; in that
+event, abbreviated forms should be substituted. In the top matter, the title is
+input in caps and lowercase and will be set that way.  The author names should
+be input in caps and lowercase; they will automatically be set in all caps.
+
+For each author an address should be input.    Following these addresses, an
+address for electronic mail should be given, if one exists. Note that no
+abbreviations are used in addresses, and complete addresses for each author
+should be entered in the order that names appear on the title page.  Addresses
+are considered part of the top matter but are set at the end of the paper,
+following the references.
+
+Subject classifications (\verb+\subjclass+) and acknowledgments
+(\verb+\thanks+) are part of the top matter and will appear as footnotes at the
+bottom of the first page.  Use the 1980 Mathematics Subject Classification
+(1985 Revision) that appears in annual indexes of {\it Mathematical Reviews\/}
+beginning in 1984.  (The two-digit code from the Contents is not sufficient.)
+
+Use \verb+\thanks+ for the footnotes that appear on the first page.  It is
+generally desirable not to attach footnote numbers or symbols to titles or
+author names used as headings.  If a footnote applies to only one author then
+include this information in the footnote.  Only one instance of
+\verb+\thanks+ is permitted in a paper.  Multiple ``thanks'' footnotes may
+be simulated by separating the appropriate parts from one another by
+\verb+\endgraf+; this will begin a new paragraph in the footnote.
+
+Papers published in proceedings of conferences are often abstracts or
+preliminary versions.  In such a case, include the following in the
+\verb+\thanks+ to appear at the bottom of the first page: ``The final
+[detailed] version of this paper will be [has been] submitted for
+publication elsewhere.''  Papers that are to be considered for review
+by {\it Mathematical Reviews\/} should include the following statement:
+``This paper is in final form and no version of it will be submitted
+for publication elsewhere.''
+
+\subsection{Fonts}
+The fonts used in this paper are from the Computer Modern family; they
+should be available to all authors preparing papers with these macros.
+However, the final copy may be set by the AMS using other fonts.  
+
+\subsection{A mathematical extract}
+The mathematical content of this sample paper has been extracted from
+published papers, with no effort made to retain any mathematical sense.
+It is intended only to illustrate the recommended manner of input.
+
+Mathematical symbols in text should always be input in math mode as
+illustrated in the following paragraph.
+
+A function is invertible in $C(X)$ if it is never zero, and in $C^*(X)$ if
+it is bounded away from zero. In an arbitrary $A(X)$, of course, there
+is no such description of invertibility which is independent of the 
+structure of the algebra. Thus in \S 2 we associate to each noninvertible
+$f\in A(X)$ a $z$-filter $\cal Z (f)$ that is a measure of where
+$f$ is ``locally'' invertible in $A(X)$. This correspondence extends to
+one between maximal ideals of $A(X)$ and $z$-ultrafilters on $X$.
+In \S 3 we use the filters $\cal Z (f)$ to describe the intersection of 
+the free maximal ideals in any algebra $A(X)$. Finally, our main result
+allows us to introduce the notion of $A(X)$-compactness of which 
+compactness and realcompactness are special cases. In \S 4 we show how
+the Banach-Stone theorem extends to $A(X)$-compact spaces.
+
+\section{Theorems, lemmas, and proofs}
+
+Theorems and lemmas are varieties of \verb+theorem+ environments.  In this
+document, a \verb+theorem+ environment called \verb+lemma+ has been created,
+which is used below. Also, there is a  proof, which is in the predefined
+\verb+pf+ environment.  The lemma and proof below illustrate the use of 
+the \verb+enumerate+ environment. 
+
+\begin{lemma}
+{Lemma 1} Let $f, g\in  A(X)$ and let $E$, $F$ be cozero
+sets in $X$.
+\begin{enumerate}
+\item If $f$ is $E$-regular and $F\subseteq E$, then $f$ is $F$-regular.
+
+\item If $f$ is $E$-regular and $F$-regular, then $f$ is $E\cup F$-%
+regular.
+
+\item If $f(x)\ge c>0$ for all $x\in E$, then $f$ is $E$-regular.
+
+\end{enumerate}
+\end{lemma}
+
+\begin{pf}
+\begin{enumerate}
+
+\item  Obvious.
+
+\item Let $h, k\in A(X)$ satisfy $hf|_E=1$ and $kf|_F=1$. Let
+$w=h+k-fhk$. Then $fw|_{E\cup F}=1$.
+
+\item Let $h=\max\{c,f\}$. Then $h|_E=f|_E$ and $h\ge c$. So $0<h^{-1}
+\le c^{-1}$. Hence $h^{-1} \in C^*(X)\subseteq A(X)$, and 
+$h^{-1} f|_E=1$. 
+
+\end{enumerate}
+\end{pf}
+
+Another \verb+theorem+-type environment was defined at the beginning of this
+document, called \verb+definition+. Here is an example of it:
+
+\begin{definition}
+For $f\in A(X)$, we define
+$$
+\cal Z (f)=\{E\in Z[X]\: \text{$f$ is $E^c$-regular}\}.
+%\tag 2.1
+$$
+\end{definition}
+
+\section{Roman type}
+
+Numbers, punctuation, (parentheses), [brackets], $\{$braces$\}$, and
+symbols used as tags should always be set in roman type.  The following
+sample theorem illustrates how to code for roman type within the
+statement of a theorem.
+
+\begin{lemma}
+Let $\cal G$ be a free nilpotent-of-class-\rom{2} group of rank
+$\ge 2$ with carrier $G$ and let
+$$m : G\times G \to Z$$
+satisfy \rom{(2.21)}, \rom{(2.22)}, and \rom{(2.24)}, and define
+$\kappa$ by \rom{(2.23)}.  Then this kappa-group is kappa-nilpotent
+of class \rom{2} and kappa-metabelian, that is to say, it satisfies
+\rom{S2} and \rom{S3}, but it is kappa-abelian if, and only if,
+$$m(x,y) = -1\quad\text{for all $x, y \notin G'$}.
+%\tag 3.1
+$$
+\rom{(}Thus \rom{(3.1)} implies the trivial consequence
+\rom{(2.1)}.\rom{)}  Assume now that \rom{(3.1)} does not hold,
+so that the kappa-group is kappa-nonabelian.  Assume further that $m$
+is not constant outside $G'$ \rom{(}inside $G'$ the values of $m$
+clearly do not matter\rom{)}.  Then $\kappa$ is neither left nor right
+linear, that is to say, neither \rom{S4} nor \rom{S5} holds:
+\rom{I1} again holds, but none of \rom{I2--I5}.  As before,
+\rom{I6} is equivalent to \rom{(2.25)}.  Now \rom{I7$'$}, however,
+is equivalent to a condition similar to \rom{(2.25)}, namely
+$$m(xz\sigma, yz\sigma) = m(x,y)\,.
+%\tag 3.2
+$$
+\end{lemma}
+
+Letters used as abbreviations rather than as variables or constants
+are set in roman type.  Use the control sequences \cite[p.\ 99]{spivak:jot}
+for common mathematical functions and operators like $\log$ and $\lim$,
+and use \verb+\cite+ when citing a reference.  The reference tag
+will be {\bf bold} automatically, but you will need to set any
+additional information in roman type as illustrated by the coding of
+the previous sentence.
+
+\section{References}
+
+When you are ready to begin the bibliography, type 
+\verb+\begin{thebibliography}+
+before the first reference.  This produces the heading for the
+bibliography and changes the type to a smaller size.  Input each reference
+as you would normally do in \LaTeX{} \cite{lamport:latex}
+Use the abbreviations of names of journals as given in annual indexes of
+{\it Mathematical Reviews}.
+
+References are set with hanging indentation, The amount of indentation
+is preset to accommodate the most common case, two-digit numbers.
+It can be increased (or decreased) by specifying the widest number or
+key used in the references. For example,
+\verb+\widestnumber\no{999}\+ and
+\verb+\widestnumber\key{GHMaR}+
+will increase the indentation to accommodate a three-digit number or the key
+\hbox{[GHMaR]} respectively.  Note that the parts of the formatting that
+depend on the current journal style are taken into account automatically
+(the period after a number or the [\dots]\ around a key, plus the usual
+space).
+
+After the last reference, type \verb+\end{thebibliography}+ to mark the end of
+the bibliography.
+
+\section{Figures}
+
+Figures to be inserted later should be handled using \LaTeX's \verb+figure+
+environment.  The amount of space left should equal the exact height of the
+figure.  Extra space around the figure will be provided automatically.  The
+positioning of figures may need to be changed to obtain the best possible page
+layout.  
+
+In most cases, figures will be rendered for consistency of style within a
+book.  Please provide figure manuscript drawn in black ink with clean,
+unbroken lines on nonabsorbent paper.
+
+For the link in Figure 5a, the Massey product $\langle u_1, u_2, u_3,
+u_4, u_5\rangle$ in $S^3-L$ is defined and consists of all
+integer multiples of $\gamma_{1,5}$.  For the link in Figure 5b,
+the Massey product $\langle u_1, u_2, u_3, u_4, u_5\rangle$ in
+$S^3-L$ contains the single element $\gamma_{1,5}$.  Since the links
+in Figures 5a and 5b are homotopic, the example indicates that Massey
+products in $S^3-L$ with distinct $u_j$'s do not, in general,
+determine homotopy invariants of the link.  For the link in Figure 5a
+and the link in Figure 5b, the Massey product $\langle u_1, u_2, \dots,
+u_5\rangle$ in $\{S^3-L_i\}_{i=1}^5$ contains the single element
+$\gamma_{1,5}$.
+
+%  art work measures 11.5pc for figure 5a, 7pc for figure 5b
+
+\begin{figure}
+\vskip 11.5pc
+\caption{}
+\end{figure}
+
+\begin{figure}
+\vskip 7pc
+\caption{}
+\end{figure}
+
+
+\section{Other headings}
+
+\subsection{A subsection} 
+We conclude by noting that another characterization of $A$-compactness
+follows from Mandelker \cite{coddington:orddiffeq}. We call a family $\cal S$ of closed sets in
+$X\ A$-stable if every $f\in A(X)$ is bounded on some member of $\cal S$.
+]Then one can show (as in \cite{coddington:orddiffeq}) that a space is $A$-compact if and only if 
+every $A$-stable family of closed sets with the finite intersection property
+has nonempty intersection.
+
+%\subsubsection{A second-level subheading}
+%
+%This paragraph is included only to illustrate the appearance of a
+%sub-subsection.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{amsplain}
+
+\makeatletter \renewcommand{\@biblabel}[1]{\hfill#1.}\makeatother
+
+\begin{thebibliography}{10}
+
+\bibitem{bass:jacobian}
+H. Bass, E. H. Connell, and D. Wright,
+{\em The Jacobian conjecture}, Bull. Amer. Math. Soc.
+ {\bf 7} (1982), 287--330.
+
+\bibitem{bass:flows}
+H. Bass and G. H. Meisters,
+{\em Polynomial flows in the plane}, Adv. in Math.
+ {\bf 55} (1985), 173--203.
+
+\bibitem{coddington:orddiffeq}
+E. A. Coddington and N. Levinson,
+{\em Theory of ordinary differential equations},
+McGraw-Hill, New York, 1955.
+
+\bibitem{coomes:injectivity}
+B. Coomes,
+{\em Polynomial flows, symmetry groups, and conditions sufficient for 
+        injectivity of maps},
+ Ph.D. Thesis, Univ. Nebraska-Lincoln, 1988.
+
+\bibitem{coomes:lorenz}
+\bysame,
+{\em The Lorenz system does not have a polynomial flow},
+ {J. Differential Equations}, (to appear).
+
+\bibitem{spivak:jot}
+M. D. Spivak,
+{\em The Joy of \TeX{}}, Amer. Math. Soc., Providence, R.~I., 1986.
+
+\bibitem{lamport:latex} Leslie Lamport {\em \LaTeX{} -- A Document Preparation
+System}, Addison-Wesley, Reading, Mass., 1986.
+
+\end{thebibliography}
+
+\end{document}
+
+\endinput
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%***** END OF DIMACS.TEX
+%

@@ -1,6 +1,8 @@
 .TH RC 1
+.ds OK [\|
+.ds CK \|]
 .SH NAME
-rc, cd, eval, exec, exit, flag, rfork, shift, wait, whatis, ., ~ \- command language
+rc, cd, eval, exec, exit, flag, newpgrp, shift, wait, whatis, . \- command language
 .SH SYNOPSIS
 .B rc
 [
@@ -26,8 +28,8 @@ argument list.
 A command line is a sequence of commands, separated by ampersands or semicolons
 .RB ( &
 or
-.BR ; ),
-terminated by a newline.
+.BR ; )
+and terminated by a newline.
 The commands are executed in sequence
 from left to right.
 .I Rc
@@ -71,7 +73,7 @@ If the first argument is the name of an
 function or of one of
 .I rc's
 built-in commands, it is executed by
-.IR rc .
+.I rc.
 Otherwise if the name starts with a slash
 .RB ( / ),
 it must be the path name of the program to be executed.
@@ -305,18 +307,18 @@ The sequence
 .BI > file
 redirects the standard output file (file descriptor 1, normally the
 terminal) to the named
-.IR file ;
+.I file;
 .BI >> file
 appends standard output to the file.
 The standard input file (file descriptor 0, also normally the terminal)
 may be redirected from a file by the sequence
-.BI < file \f1,
+.BI < file ,
 or from an inline `here document'
 by the sequence
-.BI << eof-marker\f1.
+.BI << eof-marker.
 The contents of a here document are lines of text taken from the command
 input stream up to a line containing nothing but the
-.IR eof-marker ,
+.I eof-marker,
 which may be either a quoted or unquoted word.
 If
 .I eof-marker
@@ -344,7 +346,7 @@ may be redirected by writing
 A file descriptor may be redirected to an already open descriptor by writing
 .BI >[ fd0 = fd1 ]
 or
-.BI <[ fd0 = fd1 ]\f1.
+.BI <[ fd0 = fd1 ] .
 .I Fd1
 is a previously opened file descriptor and
 .I fd0
@@ -354,14 +356,14 @@ of it.
 A file descriptor may be closed by writing
 .BI >[ fd0 =]
 or
-.BI <[ fd0 =]\f1.
+.BI <[ fd0 =] .
 .PP
 Redirections are executed from left to right.
 Therefore,
 .B cc junk.c >/dev/null >[2=1]
 and
 .B cc junk.c >[2=1] >/dev/null
-have different effects: the first puts standard output in
+have different effects \(mi the first puts standard output in
 .BR /dev/null
 and then puts diagnostic output in the same place, where the second
 directs diagnostic output to the terminal and sends standard output to
@@ -380,9 +382,9 @@ connects the output end of the pipe to file descriptor
 rather than 1.
 .BI |[ fd0 = fd1 ]
 connects output to
-.I fd1
-of the left command and input to
 .I fd0
+of the left command and input to
+.I fd1
 of the right command.
 .PP
 A pair of commands separated by
@@ -404,7 +406,7 @@ is changed to non-null) by preceding it with a
 The
 .B |
 operator has highest precedence, and is left-associative (i.e. binds tighter
-to the left than the right).
+to the left than the right.)
 .B !
 has intermediate precedence, and
 .B &&
@@ -442,7 +444,7 @@ is executed.
 .br
 The immediately preceding command must have been
 .BI if( list )
-.IR command .
+.I command.
 If its condition was non-zero, the
 .I command
 is executed.
@@ -474,9 +476,9 @@ is executed repeatedly until its exit status is non-null.
 Each time it returns null status, the
 .I command
 is executed.
-An empty
+The empty
 .I list
-is taken to give null status.
+always yields zero status.
 .HP
 .BI "switch(" argument "){" list }
 .br
@@ -502,7 +504,7 @@ need not be matched explicitly.
 When a match is found, commands in the list are executed up to the next
 following
 .B case
-command (at the top level) or the closing brace.
+command (at the top level) or the closing parenthesis.
 .HP
 .BI { list }
 .br
@@ -539,20 +541,26 @@ function definition.
 .HP
 .BI "fn " note
 .br
-A function with a special name will be called when
+A function with the name of a note is defined
+in the usual way, but called when
 .I rc
-receives a corresponding note; see
+receives that note; see
 .IR notify (2).
-The valid note names (and corresponding notes) are
-.B sighup
-.RB ( hangup ),
-.B sigint
-.RB ( interrupt ),
-.BR sigalrm
-.RB ( alarm ),
+The valid note names are
+.BR sigexit ,
+.BR sighup ,
+.BR sigint ,
+.BR sigquit ,
+.BR sigalrm ,
+.BR sigbpt ,
+.BR sigrange ,
+.BR sigodd ,
+.BR sigbadsys ,
+.BR sigoddstack ,
+.BR sigpipe ,
+.BR sigtrap ,
 and
-.B sigfpe
-(floating point trap).
+.BR sigfpe .
 By default
 .I rc
 exits on receiving any signal, except when run interactively,
@@ -563,7 +571,7 @@ The second form causes
 .I rc
 to handle a signal in the default manner.
 .I Rc
-recognizes an artificial note,
+recognizes an artificial signal,
 .BR sigexit ,
 which occurs when
 .I rc
@@ -602,7 +610,7 @@ Execute
 .I command
 as usual except that any function named
 .I command
-is ignored in favor of the built-in meaning.
+is ignored.
 .HP
 .BI "cd [" dir "]"
 .br
@@ -930,17 +938,13 @@ Echo input on file descriptor 2 as it is read.
 .TP
 .B -x
 Print each simple command before executing it.
-.TP
 .B -r
 Print debugging information (internal form of commands
 as they are executed).
 .PD
-.SH SOURCE
-.B /sys/src/cmd/rc
-.SH "SEE ALSO"
-Tom Duff,
-``Rc \- The Plan 9 Shell''.
 .SH BUGS
+It's too slow and too big.
+.br
 There should be a way to match patterns against whole lists rather than
 just single strings.
 .br

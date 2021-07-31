@@ -1,0 +1,1671 @@
+\input webmac
+\parskip 0pt plus 1pt
+\def\RA{\char'31 } % right arrow
+\def\hang{\hangindent 4em\ignorespaces}
+\font\ninerm=cmr9
+\font\ninett=cmtt9
+\font\eighttt=cmtt8
+\let\mc=\ninerm % medium caps for names like SAIL
+\def\PASCAL{Pascal}
+\font\quoterm=cmssq8
+\font\quoteit=cmssqi8
+\def\pb{\.{|...|}}
+\def\lpile{\def\cr{\hfill\endline}\matrix} % I only use \lpile by itself
+
+\outer\def\section #1.{\penalty-50\vskip 12pt plus 3pt minus 3pt
+  \noindent{\bf #1.}\quad\ignorespaces}
+
+\def\titlepage{T}
+\def\lheader{\mainfont\the\pageno\hfill\sc\runninghead\hfill}
+\def\rheader{\hfill\sc\runninghead\hfill\mainfont\the\pageno}
+\def\runninghead{{\tentt WEB} USER MANUAL}
+
+% This verbatim mode assumed that no ? appears in the text being copied.
+\def\verbatim{\begingroup
+  \def\do##1{\catcode`##1=12 } \dospecials
+  \parskip 0pt \parindent 0pt
+  \catcode`\ =13 \catcode`\^^M=13
+  \tt \catcode`\?=0 \verbatimdefs \verbatimgobble}
+{\catcode`\^^M=13{\catcode`\ =13\gdef\verbatimdefs{\def^^M{\ \par}\let =\ }} %
+  \gdef\verbatimgobble#1^^M{}}
+
+\centerline{\titlefont The {\ttitlefont WEB} System
+  of Structured Documentation}
+
+\vskip 15pt plus 3pt minus 3pt
+\noindent This memo describes how to write programs in the
+\.{WEB} language; and it also includes the full \.{WEB} documentation for
+\.{WEAVE} and \.{TANGLE}, the programs that read \.{WEB} input and produce
+\TeX\ and \PASCAL\ output, respectively. The philosophy behind \.{WEB} is
+that an experienced system programmer, who wants to provide the best
+possible documentation of his or her software products, needs two things
+simultaneously:  a language like \TeX\ for formatting, and a language like
+\PASCAL\ for programming. Neither type of language can provide the best
+documentation by itself; but when both are appropriately combined, we
+obtain a system that is much more useful than either language separately.
+
+The structure of a software program may be thought of as a ``web'' that is
+made up of many interconnected pieces. To document such a program, we want
+to explain each individual part of the web and how it relates to its
+neighbors. The typographic tools provided by \TeX\ give us an opportunity
+to explain the local structure of each part by making that structure
+visible, and the programming tools provided by \PASCAL\ make it possible
+for us to specify the algorithms formally and unambiguously. By combining
+the two, we can develop a style of programming that maximizes our ability
+to perceive the structure of a complex piece of software, and at the same
+time the documented programs can be mechanically translated into a working
+software system that matches the documentation.
+
+Since \.{WEB} is an experimental system developed for internal use within
+the \TeX\ project at Stanford, this report is rather terse, and it assumes
+that the reader is an experienced programmer who is highly motivated to
+read a detailed description of \.{WEB}'s rules. Furthermore, even if a
+less terse manual were to be written, the reader would have to be warned
+in advance that \.{WEB} is not for beginners and it never will be: The
+user of \.{WEB} must be familiar with both \TeX\ and \PASCAL. When one
+writes a \.{WEB} description of a software system, it is possible to make
+mistakes by breaking the rules of \.{WEB} and/or the rules of \TeX\ and/or
+the rules of \PASCAL. In practice, all three types of errors will occur,
+and you will get different error messages from the different language
+processors. In compensation for the sophisticated expertise needed to cope
+with such a variety of languages, however, experience has shown that
+reliable software can be created quite rapidly by working entirely in
+\.{WEB} from the beginning; and the documentation of such programs seems
+to be better than the documentation obtained by any other known method.
+Thus, \.{WEB} users need to be highly qualified, but they can get some
+satisfaction and perhaps even a special feeling of accomplishment when
+they have successfully created a software system with this method.
+
+To use \.{WEB}, you prepare a file called \.{COB.WEB} (say), and then you
+apply a system program called \.{WEAVE} to this file, obtaining an output
+file called \.{COB.TEX}.  When \TeX\ processes \.{COB.TEX}, your output
+will be a ``pretty printed'' version of \.{COB.WEB} that takes appropriate
+care of typographic details like page layout and the use of indentation,
+italics, boldface, etc.; this output will contain extensive cross-index
+information that is gathered automatically. You can also submit the same
+file \.{COB.WEB} to another system program called \.{TANGLE}, which will
+produce a file \.{COB.PAS} that contains the \PASCAL\ code of your \.{COB}
+program. The \PASCAL\ compiler will convert \.{COB.PAS} into
+machine-language instructions corresponding to the algorithms that were so
+nicely formatted by \.{WEAVE} and \TeX. Finally, you can (and should)
+delete the files \.{COB.TEX} and \.{COB.PAS}, because \.{COB.WEB} contains
+the definitive source code. Examples of the behavior of \.{WEAVE} and
+\.{TANGLE} are appended to this manual.
+
+Besides providing a documentation tool, \.{WEB} enhances the \PASCAL\
+language by providing a rudimentary macro capability together with the
+ability to permute pieces of the program text, so that a large system can
+be understood entirely in terms of small modules and their local
+interrelationships.  The \.{TANGLE} program is so named because it takes a
+given web and moves the modules from their web structure into the order
+required by \PASCAL; the advantage of programming in \.{WEB} is that the
+algorithms can be expressed in ``untangled'' form, with each module
+explained separately.  The \.{WEAVE} program is so named because it takes
+a given web and intertwines the \TeX\ and \PASCAL\ portions contained in
+each module, then it knits the whole fabric into a structured document.
+(Get it? Wow.)  Perhaps there is some deep connection here with the fact
+that the German word for ``weave'' is ``{\it web\/}'', and the
+corresponding Latin imperative is ``{\it texe\/}''!
+
+It is impossible to list all of the related work that has influenced the
+design of \.{WEB}, but the key contributions should be mentioned
+here.\quad (1)~Myrtle Kellington, as executive editor for ACM
+publications, developed excellent typographic standards for the
+typesetting of Algol programs during the 1960s, based on the original
+designs of Peter Naur; the subtlety and quality of this influential work
+can be appreciated only by people who have seen what happens when other
+printers try to typeset Algol without the advice of ACM's copy
+editors.\quad(2)~Bill McKeeman introduced a program intended to automate
+some of this task [Algorithm 268, ``Algol~60 reference language editor,''
+{\sl CACM \bf8} (1965), 667--668]; and a considerable flowering of such
+programs has occurred in recent years [see especially Derek Oppen,
+``Prettyprinting,'' {\sl ACM TOPLAS \bf2} (1980), 465--483; G.~A. Rose and
+J. Welsh, ``Formatted programming languages,'' {\sl SOFTWARE Practice
+\char`\&\ Exper.\ \bf11} (1981), 651--669].\quad(3)~The top-down style of
+exposition encouraged by \.{WEB} was of course chiefly influenced by Edsger
+Dijkstra's essays on structured programming in the late 1960s. The less
+well known work of Pierre-Arnoul de Marneffe [``Holon programming: A
+survey,'' Univ.\ de Liege, Service Informatique, Liege, Belgium, 1973; 135
+pp.\null] also had a significant influence on the author as \.{WEB} was
+being formulated.\quad(4)~Edwin Towster has proposed a similar style of
+documentation in which the programmer is supposed to specify the relevant
+data structure environment in the name of each submodule [``A convention
+for explicit declaration of environments and top-down refinement of
+data,'' {\sl IEEE Trans.\ on Software Eng.\ \bf SE--5} (1979), 374--386];
+this requirement seems to make the documentation a bit too verbose,
+although experience with \.{WEB} has shown that any unusual control
+structure or data structure should definitely be incorporated into the
+module names on psychological grounds.\quad(5)~Discussions with Luis
+Trabb~Pardo in the spring of 1979 were extremely helpful for setting up a
+prototype version of \.{WEB} that was called \.{DOC}.\quad (6)~Ignacio
+Zabala's extensive experience with \.{DOC}, in which he created a full
+implementation of \TeX\ in \PASCAL\ that was successfully transported to
+many different computers, was of immense value while \.{WEB} was taking
+its present form.\quad(7)~David~R. Fuchs made several crucial suggestions
+about how to make \.{WEB} more portable; he and Arthur~L. Samuel
+coordinated the initial installations of \.{WEB} on dozens of computer
+systems, making changes to the code so that it would be acceptable to
+a wide variety of \PASCAL\ compilers.\quad(8)~The name \.{WEB} itself
+was chosen in honor of my wife's mother, Wilda Ernestine Bates.
+
+The appendices to this report contain complete \.{WEB} programs for the
+\.{WEAVE} and \.{TANGLE} processors. A study of these examples, together
+with an attempt to write \.{WEB} programs by yourself, is the best way
+to understand why \.{WEB} has come to be like it is.
+
+\section General rules.
+A \.{WEB} file is a long string of text that has been divided into
+individual lines. The exact line boundaries are not terribly crucial, and
+a programmer can pretty much chop up the \.{WEB} file in whatever way seems
+to look best as the file is being edited; but string constants and control
+texts must end on the same line on which they begin, since this convention
+helps to keep errors from propagating.  The end of a line means
+the same thing as a blank space.
+
+Two kinds of material go into \.{WEB} files: \TeX\ text and \PASCAL\ text.
+A programmer writing in \.{WEB} should be thinking both of the
+documentation and of the \PASCAL\ program that he or she is creating;
+i.e., the programmer should be instinctively aware of the different
+actions that \.{WEAVE} and \.{TANGLE} will perform on the \.{WEB} file.
+\TeX\ text is essentially copied without change by \.{WEAVE}, and it is
+entirely deleted by \.{TANGLE}, since the \TeX\ text is ``pure
+documentation.'' \PASCAL\ text, on the other hand, is formatted by
+\.{WEAVE} and it is shuffled around by \.{TANGLE}, according to rules that
+will become clear later. For now the important point to keep in mind is
+that there are two kinds of text. Writing \.{WEB} programs is something
+like writing \TeX\ documents, but with an additional ``\PASCAL\ mode''
+that is added to \TeX's horizontal mode, vertical mode, and math mode.
+
+A \.{WEB} file is built up from units called {\sl modules\/} that are more
+or less self-contained.  Each module has three parts:
+
+\yskip\item{1)} A \TeX\ part, containing explanatory material about what
+is going on in the module.
+
+\item{2)} A definition part, containing macro definitions that serve as
+abbreviations for \PASCAL\ constructions that would be less comprehensible
+if written out in full each time.
+
+\item{3)} A \PASCAL\ part, containing a piece of the program that
+\.{TANGLE} will produce. This \PASCAL\ code should ideally be about a
+dozen lines long, so that it is easily comprehensible as a unit and so
+that its structure is readily perceived.
+
+\yskip\noindent The three parts of each module must appear in this order;
+i.e., the \TeX\ commentary must come first, then the definitions, and
+finally the \PASCAL\ code. Any of the parts may be empty.
+
+A module begins with the pair of symbols `\.{@\ }' or `\.{@*}', where
+`\.{\ }' denotes a blank space. A module ends
+at the beginning of the next module (i.e., at the next
+`\.{@\ }' or `\.{@*}'), or at the end of the file, whichever comes first.
+The \.{WEB} file may also contain material that is not part of any module
+at all, namely the text (if any) that occurs before the first module.
+Such text is said to be ``in limbo''; it is ignored by \.{TANGLE}
+and copied essentially verbatim by \.{WEAVE}, so its function is to
+provide any additional formatting instructions that may be desired in the
+\TeX\ output. Indeed, it is customary to begin a \.{WEB} file with
+\TeX\ code in limbo that loads special fonts, defines special macros,
+changes the page sizes, and/or produces a title page.
+
+Modules are numbered consecutively, starting with 1; these numbers appear
+at the beginning of each module of the \TeX\ documentation, and they appear
+as bracketed comments at the beginning of the code generated by that
+module in the \PASCAL\ program.
+
+Fortunately, you never mention these numbers yourself when you are writing
+in \.{WEB}. You just say `\.{@\ }' or `\.{@*}' at the beginning of each
+new module, and the numbers are supplied automatically by \.{WEAVE} and
+\.{TANGLE}. As far as you are concerned, a module has a
+name instead of a number; such a name is specified by writing
+`\.{@<}' followed by \TeX\ text followed by `\.{@>}'. When \.{WEAVE}
+outputs a module name, it replaces the `\.{@<}' and `\.{@>}' by
+angle brackets and inserts the module number in small type. Thus, when you
+read the output of \.{WEAVE} it is easy to locate any module that is
+referred to in another module.
+
+For expository purposes, a module name should be a good description of the
+contents of that module, i.e., it should stand for the abstraction
+represented by the module; then the module can be ``plugged into'' one or
+more other modules so that the unimportant details of its inner workings
+are suppressed.  A module name therefore ought to be long enough to convey
+the necessary meaning. Unfortunately, however, it is laborious to type
+such long names over and over again, and it is also difficult to specify a
+long name twice in exactly the same way so that \.{WEAVE} and \.{TANGLE}
+will be able to match the names to the modules. Therefore a module name
+can be abbreviated after its first appearance in the \.{WEB} file, by
+typing `\.{@<$\alpha$...@>}', where $\alpha$ is any string that is a prefix of
+exactly one module name that appears in the file. For example, `\.{@<Clear
+the arrays@>}' can be abbreviated to `\.{@<Clear...@>}' if no other module
+name begins with the five letters `\.{Clear}'. Module names must otherwise
+match character for character, except that consecutive blank spaces and/or
+tab marks are treated as equivalent to single spaces, and such spaces are
+deleted at the beginning and end of the name. Thus, `\.{@< Clear { }the
+arrays @>}' will also match the name in the previous example.
+
+We have said that a module begins with `\.{@\ }' or `\.{@*}', but we
+didn't say how it gets divided up into a \TeX\ part, a definition part,
+and a \PASCAL\ part. The definition part begins with the first appearance
+of `\.{@d}' or `\.{@f}' in the module, and the \PASCAL\ part begins with
+the first appearance of `\.{@p}' or `\.{@<}'. The latter option `\.{@<}'
+stands for the beginning of a module name, which is the name of the module
+itself. An equals sign (\.=) must follow the `\.{@>}' at the end of this
+module name; you are saying, in effect, that the module name stands for
+the \PASCAL\ text that follows, so you say `$\langle\,$module
+name$\,\rangle=\null$\PASCAL\ text'. Alternatively, if the \PASCAL\ part
+begins with `\.{@p}' instead of a module name, the current module is said
+to be {\sl unnamed}. Note that module names cannot appear in the
+definition part of a module, because the first `\.{@<}' in a module
+signals the beginning of its \PASCAL\ part.  Any number of module names
+might appear in the \PASCAL\ part, however, once it has started.
+
+The general idea of \.{TANGLE} is to make a \PASCAL\ program out of these
+modules in the following way: First all the \PASCAL\ parts of unnamed
+modules are copied down, in order; this constitutes the initial
+approximation $T_0$ to the text of the program. (There should be at least
+one unnamed module, otherwise there will be no program.) Then all module
+names that appear in the initial text $T_0$ are replaced by the \PASCAL\
+parts of the corresponding modules, and this substitution process
+continues until no module names remain. Then all defined macros are
+replaced by their equivalents, according to certain rules that are
+explained later. The resulting \PASCAL\ code is ``sanitized'' so that it
+will be acceptable to an average garden-variety \PASCAL\ compiler; i.e.,
+lowercase letters are converted to uppercase, long identifiers are
+chopped, and the lines of the output file are constrained to be at most 72
+characters long.  All comments will have been removed from this \PASCAL\
+program except for the meta-comments delimited by `\.{@\{}' and
+`\.{@\}}', as explained below, and except for the module-number comments
+that point to the source location where each piece of the program text
+originated in the \.{WEB} file.
+
+If the same name has been given to more than one module, the \PASCAL\ text
+for that name is obtained by putting together all of the \PASCAL\ parts in
+the corresponding modules. This feature is useful, for example, in a
+module named `Global variables in the outer block', since one can then
+declare global variables in whatever modules those variables are
+introduced. When several modules have the same name, \.{WEAVE} assigns the
+first module number as the number corresponding to that name, and it
+inserts a note at the bottom of that module telling the reader to `See
+also sections so-and-so'; this footnote gives the numbers of all the other
+modules having the same name as the present one. The \PASCAL\ text
+corresponding to a module is usually formatted by \.{WEAVE} so that the
+output has an equivalence sign in place of the equals sign in the \.{WEB}
+file; i.e., the output says `$\langle\,$module
+name$\,\rangle\equiv\null$\PASCAL\ text'. However, in the case of the second
+and subsequent appearances of a module with the same name, this `$\equiv$'
+sign is replaced by `$\mathrel+\equiv$', as an indication that the \PASCAL\
+text that follows is being appended to the \PASCAL\ text of another
+module.
+
+The general idea of \.{WEAVE} is to make a \.{TEX} file from the \.{WEB}
+file in the following way: The first line of the \.{TEX} file will be
+`\.{\\input webmac}'; this will cause \TeX\ to read in the macros that
+define \.{WEB}'s documentation conventions. The next lines of the file
+will be copied from whatever \TeX\ text is in limbo before the first
+module.  Then comes the output for each module in turn, possibly
+interspersed with end-of-page marks.  Finally, \.{WEAVE} will generate a
+cross-reference index that lists each module number in which each \PASCAL\
+identifier appears, and it will also generate an alphabetized list
+of the module names, as well as a table of contents that
+shows the page and module numbers for each ``starred'' module.
+
+What is a ``starred'' module, you ask? A module that begins with `\.{@*}'
+instead of `\.{@\ }' is slightly special in that it denotes a new major
+group of modules. The `\.{@*}' should be followed by the title of this
+group, followed by a period. Such modules will always start on a new page
+in the \TeX\ output, and the group title will appear as a running headline
+on all subsequent pages until the next starred module. The title will also
+appear in the table of contents, and in boldface type at the beginning of
+its module. Caution:  Do not use \TeX\ control sequences in such titles,
+unless you know that the \.{webmac} macros will do the right thing with
+them. The reason is that these titles are converted to uppercase when
+they appear as running heads, and they are converted to boldface when they
+appear at the beginning of their modules, and they are also written out to
+a table-of-contents file used for temporary storage while \TeX\ is
+working; whatever control sequences you use must be meaningful in all
+three of these modes.
+
+The \TeX\ output produced by \.{WEAVE} for each module consists of
+the following: First comes the module number (e.g., `\.{\\M123.}'
+at the beginning of module 123, except that `\.{\\N}' appears in place of
+`\.{\\M}' at the beginning of a starred module). Then comes the
+\TeX\ part of the module, copied almost verbatim except as noted
+below. Then comes the definition part and the \PASCAL\ part, formatted
+so that there will be a little extra space between them if both are
+nonempty. The definition and \PASCAL\ parts are obtained by inserting
+a bunch of funny looking \TeX\ macros into the \PASCAL\ program; these
+macros handle typographic details about fonts and proper math spacing,
+as well as line breaks and indentation.
+
+When you are typing \TeX\ text, you will probably want to make frequent
+reference to variables and other quantities in your \PASCAL\ code, and you
+will want those variables to have the same typographic treatment
+when they appear in your text as when they appear in your
+program.  Therefore the \.{WEB} language allows you to get the effect of
+\PASCAL\ editing within \TeX\ text, if you place `\.|' marks before and
+after the \PASCAL\ material. For example, suppose you want to say something
+like this:
+$$\hbox{The characters are placed into \\{buffer}, which is a
+\&{packed} \&{array} $[1\to\|n]$ \&{of} \\{char}.}$$
+The \TeX\ text would look like this in your \.{WEB} file:
+$$\.{The characters are placed into |buffer|, which is a |packed
+array [1..n] of char|.}$$
+And \.{WEAVE} translates this into something you are glad you didn't have
+to type:
+$$\lpile{\.{The characters are placed into \\\\\{buffer\},}\cr
+  \.{which is a \\\&\{packed\}{ }\\\&\{array\}{ }\$
+    [1\\to\\|n]\${ }\\\&\{of\}{ }\\\\\{char\}.}\cr}$$
+Incidentally, the cross-reference index that \.{WEAVE} would make, in
+the presence of a comment like this, would include
+the current module number as one of the index entries for \\{buffer}
+and \\{char}, even though \\{buffer} and \\{char}
+might not appear in the \PASCAL\ part of
+this module. Thus, the index covers references to identifiers in
+the explanatory comments as well as in the program itself; you will
+soon learn to appreciate this feature. However, the identifiers
+\&{packed} and \&{array} and \|n\ and \&{of\/} would not be indexed,
+because \.{WEAVE} does not make index entries for reserved words or
+single-letter identifiers. Such identifiers are felt to be so ubiquitous
+that it would be pointless to mention every place where they occur.
+
+Speaking of identifiers, the author of \.{WEB} thinks that
+\\{IdentifiersSeveralWordsLong} look terribly ugly when they mix
+uppercase and lowercase letters. He recommends that
+\\{identifiers\_several\_words\_long} be written with underline characters
+to get a much better effect. The actual identifiers sent to the \PASCAL\
+compiler by \.{TANGLE} will have such underlines removed, and \.{TANGLE}
+will check to make sure that two different identifiers do not become
+identical when this happens. (In fact, \.{TANGLE} even checks that
+the first seven characters of identifiers are unique, when lowercase
+letters have been converted to uppercase; the number seven in this
+constraint is more strict than \PASCAL's eight, and it can
+be changed if desired.) The \.{WEAVE} processor will properly
+alphabetize identifiers that have embedded underlines
+when it makes the index.
+
+Although a module begins with \TeX\ text and ends with \PASCAL\ text, we
+have noted that the dividing line isn't sharp, since \PASCAL\ text can be
+included in \TeX\ text if it is enclosed in `\pb'.  Conversely, \TeX\ text
+also appears frequently within \PASCAL\ text, because everything in
+comments (i.e., between left and right braces) is treated as \TeX\ text.
+Furthermore, a module name consists of \TeX\ text; thus, a \.{WEB} file
+typically involves constructions like `\.{if} \.x \.= \.0 \.{then}
+\.{@<Empty} \.{the} \.{|buffer|} \.{array@>}' where we go back and forth
+between \PASCAL\ and \TeX\ conventions in a natural way.
+
+\section Macros.
+A \.{WEB} programmer can define three kinds of macros to make the programs
+shorter and more readable:
+
+\yskip\hang`\.{@d} \\{identifier} \.= \\{constant}' defines a {\sl numeric\/}
+macro, allowing \.{TANGLE} to do rudimentary arithmetic.
+
+\yskip\hang`\.{@d} \\{identifier} \.{==} \PASCAL\ text' defines a {\sl
+simple\/} macro, where the identifier will be replaced by the \PASCAL\ text
+when \.{TANGLE} produces its output.
+
+\yskip\hang`\.{@d} \\{identifier}\.{(\#) ==} \PASCAL\ text' defines a
+{\sl parametric\/} macro, where the identifier will be replaced by the \PASCAL\
+text and where occurrences of \.{\#} in that \PASCAL\ text will be
+replaced by an argument.
+
+\yskip\noindent In all three cases, the identifier must have length greater
+than one; it must not be a single letter. Furthermore, the identifier must
+be making its first appearance in the \.{WEB} file; a macro must be defined
+before it is used.
+
+Numeric macros are subject to the following restrictions:\quad
+(1)~The right-hand side of the numeric definition must be made entirely from
+integer constants, numeric macros, preprocessed strings (see below), and
+plus~signs or minus signs.  No other operations or symbols are allowed,
+not even parentheses, except that \PASCAL-like comments (enclosed in
+braces) can appear. Indeed, comments are recommended, since it is usually
+wise to give a brief explanation of the significance of each identifier as
+it is defined.\quad
+(2)~The numeric value must be less than $2^{15}=32768$ in absolute value.
+(For larger values, you can use `\.{==}' in place of~`\.=', thus making use
+of a simple macro instead of a numeric one. Note, however, that simple
+macros sometimes have a different effect. For example, consider the three
+definitions `\.{@d n1=2 @d n2=2+n1 @d n3==2+n1}'; then `\.{x-n2}' will
+expand into `\.{x-4}', while `\.{x-n3}' will expand into `\.{x-2+2}' which
+is quite different! It is wise to include parentheses in non-numeric
+macros, e.g., `\.{@d n3==(2+n1)}', to avoid such errors.)
+
+When constants are connected by plus signs or minus
+signs in a \PASCAL\ program, \.{TANGLE} does the arithmetic before putting
+the constant into the output file. Therefore it is permissible to say, for
+example, `\&{array} $[0\,.\,.\,\\{size}-1]$' if \\{size} has been declared
+as a macro; note that \PASCAL\ doesn't allow this kind of compile-time
+arithmetic if \\{size} is a \&{constant} quantity in the program. Another
+use of \.{TANGLE}'s arithmetic is to make \&{case} statement labels such
+as `$\\{flag}+1$' legitimate. Of course, it is improper to change \.{2+2}
+into \.4 without looking at the surrounding context; many counterexamples
+exist, such as the phrases `\.{-2+2}', `\.{x/2+2}', and `\.{2+2E5}'.  The
+program for \.{TANGLE}, in the appendix, gives precise details about this
+conversion, which \.{TANGLE} does only when it is safe.
+
+The right-hand sides of simple and parametric macros
+are required to have balanced parentheses, and the \PASCAL\ texts of
+modules must have balanced parentheses too. Therefore when the argument
+to a para\-metric macro appears in parentheses, both parentheses
+will belong to the same \PASCAL\ text.
+
+The appendices to this report contain hundreds of typical examples of the
+usefulness of \.{WEB} macros, so it is not necessary to dwell on the
+subject here. However, the reader should know that \.{WEB}'s apparently
+primitive macro capabilities can actually do a lot of rather surprising
+things. Here is a construction that sheds further light on what is
+possible: After making the definitions
+$$\catcode`\#=12
+\lpile{\.{@d two\_cases(#)==case j of 1:#(1); 2:#(2); end}\cr
+\.{@d reset\_file(#)==reset(input\_file@\&#)}\cr}$$
+one can write `\.{two\_cases(reset\_file)}' and the resulting \PASCAL\
+output will be
+$$\.{case j of 1:reset(input\_file1); 2:reset(input\_file2); end}$$
+(but in uppercase letters and with \.\_'s removed).
+The `\.{@\&}' operation used here joins together two adjacent tokens
+into a single token, as explained later; otherwise the \PASCAL\ file would
+contain a space between \.{input\_file} and the digit that followed it.
+This trick can be used to provide the effect of an array of files, if you
+are unfortunate enough to have a \PASCAL\ compiler that doesn't allow such
+arrays.  Incidentally, the cross-reference index made by \.{WEAVE} from
+this example would contain the identifier \\{input\_file} but it would not
+contain \\{input\_file1} or \\{input\_file2}. Furthermore, \.{TANGLE}
+would not catch the error that \.{INPUTFILE1} and \.{INPUTFILE2} both
+begin with the same nine letters; one should be more careful when using
+`\.{@\&}'! But such aspects of the construction in this trick are
+peripheral to our main point, which is that a parametric macro name without
+arguments can be used as an argument to another parametric macro.
+
+Although \.{WEB}'s macros are allowed to have at most one parameter, the
+following example shows that this is not as much of a restriction as it
+may seem at first. Let \\{amac} and \\{bmac} be any parametric macros, and
+suppose that we want to get the effect of
+$$\catcode`\#=12
+\.{@d cmac(#1,#2) == amac(#1) bmac(#2)}$$
+which \.{WEB} doesn't permit. The solution is to make the definitions
+$$\catcode`\#=12
+\lpile{\.{@d cmac(#) == amac(#) dmac}\cr
+\.{@d dmac(#) == bmac(#)}\cr}$$
+and then to say `\.{cmac(x)(y)}'.
+
+There is one restriction in the generality of \.{WEB}'s parametric
+macros, however: the argument to a para\-metric macro must not come from
+the expansion of a macro that has not already been ``started.'' For
+example, here is one of the things \.{WEB} cannot handle:
+$$\catcode`\#=12
+\lpile{\.{@d arg == (p)}\cr
+\.{@d identity(#) == #}\cr
+\.{@p identity arg}\cr}$$
+In this case \.{TANGLE} will complain that the \.{identity} macro is not
+followed by an argument in parentheses.
+
+The \.{WEB} language has another feature that is somewhat similar to a
+numeric macro. A {\sl preprocessed string\/} is a string that is like
+a \PASCAL\ string but delimited by double-quote marks (\.") instead of
+single-quotes. Double-quote marks inside of such strings are indicated by
+giving two double-quotes in a row. If a preprocessed string is
+of length one (e.g., \.{"A"} or \.{""""}), it will be treated by \.{TANGLE}
+as equivalent to the corresponding ASCII-code integer (e.g., \.{65} or
+\.{34}). And if a preprocessed string is not of length one, it will be
+converted into an integer equal to 128 or more. A {\sl string pool\/}
+containing all such strings will be written out by the \.{TANGLE}
+processor; this string pool file consists of string 128, then string 129,
+etc., where each string is followed by an end-of-line and prefixed by two
+decimal digits that define its length.  Thus, for example, the empty string
+\.{""} would be represented in the string pool file by a line containing
+the two characters `\.{00}', while the string \.{"""String"""} would be
+represented by `\.{08"String"}'.  A given string appears at most once in
+the string pool; the use of such a pool makes it easier to cope with
+\PASCAL's restrictions on string manipulation. The string pool ends with
+`\.{*nnnnnnnnn}', where \.{nnnnnnnnn} is a decimal number
+called the {\sl string pool check sum}. If any string changes, the check
+sum almost surely changes too; thus, the `\.{@\$}' feature
+described below makes it possible for a program to assure itself that it
+is reading its own string pool.
+
+Here is a simple example that combines numeric macros with preprocessed
+strings of length one:
+$$\lpile{\.{@d upper\_case\_Y = "Y"}\cr
+\.{@d case\_difference = -"y"+upper\_case\_Y}\cr}$$
+The result is to define
+$\\{upper\_case\_Y}=89$, $\\{case\_difference}=-32$.
+
+\section Control codes.
+We have seen several magic uses of `\.{@}' signs in \.{WEB} files, and it
+is time to make a systematic study of
+these special features. A \.{WEB} {\sl control code\/}
+is a two-character combination of which the first is `\.@'.
+
+Here is a complete list of the legal control codes. The letters $L$, $T$,
+$P$, $M$, $C$, and/or $S$ following each code indicate whether or not that
+code is allowable in limbo, in \TeX\ text, in \PASCAL\ text, in module
+names, in comments, and/or in strings.  A bar over such a letter means
+that the control code terminates the present part of the \.{WEB} file; for
+example, $\overline L$ means that this control code ends the limbo material
+before the first module.
+
+\def\@#1[#2] {\yskip\hangindent 2em\noindent\.{@#1\unskip
+  \spacefactor1000{ }}$[#2]$\quad}
+\def\oP{\overline P}
+\def\oT{\overline T}
+
+\@@ [C,L,M,P,S,T] A double \.@ denotes the single character `\.@'. This is
+the only control code that is legal in limbo, in comments, and in strings.
+
+\@\ [\overline L,\oP,\oT] This denotes the beginning of a new
+(unstarred) module. A tab mark or end-of-line (carriage return)
+is equivalent to a space when it follows an \.@ sign.
+
+\@* [\overline L,\oP,\oT] This denotes the beginning of a new starred
+module, i.e., a module that begins a new major group. The title of the new
+group should appear after the \.{@*}, followed by a period. As explained
+above, \TeX\ control sequences should be avoided in such titles unless
+they are quite simple. When \.{WEAVE} and \.{TANGLE} read a \.{@*}, they
+print an asterisk followed by the current module number, so that the user
+can see some indication of progress. The very first module should be starred.
+
+\@d [\oP,\oT] Macro definitions begin with \.{@d} (or \.{@D}), followed by
+the \PASCAL\ text for one of the three kinds of macros, as explained
+earlier.
+
+\@f [\oP,\oT] Format definitions begin with \.{@f} (or \.{@F}); they cause
+\.{WEAVE} to treat identifiers in a special way when they appear in
+\PASCAL\ text. The general form of a format definition is `\.{@f} \|l \.{==}
+\|r', followed by an optional comment enclosed in braces, where \|l and \|r
+are identifiers; \.{WEAVE} will subsequently treat identifier \|l as it
+currently treats \|r. This feature allows a \.{WEB} programmer to invent
+new reserved words and/or to unreserve some of \PASCAL's reserved
+identifiers. The definition part of each module consists of any number of
+macro definitions (beginning with \.{@d}) and format definitions (beginning
+with \.{@f}), intermixed in any order.
+
+\@p [\oP,\oT] The \PASCAL\ part of an unnamed module begins with \.{@p}
+(or \.{@P}). This causes \.{TANGLE} to append the following \PASCAL\ code
+to the initial program text $T_0$ as explained above. The \.{WEAVE}
+processor does not cause a `\.{@p}' to appear explicitly in the \TeX\
+output, so if you are creating a \.{WEB} file based on a \TeX-printed
+\.{WEB} documentation you have to remember to insert \.{@p} in the
+appropriate places of the unnamed modules.
+
+\@< [P,\oT] A module name begins with \.{@<} followed by \TeX\ text followed
+by \.{@>}; the \TeX\ text should not contain any \.{WEB} control sequences
+except \.{@@}, unless these control sequences appear in \PASCAL\ text that
+is delimited by \pb. The module name may be abbreviated, after its first
+appearance in a \.{WEB} file, by giving any unique prefix followed by \.{...},
+where the three dots immediately precede the closing \.{@>}. Module names may
+not appear in \PASCAL\ text that is enclosed in \pb, nor may they appear
+in the definition part of a module (since the appearance of a module name
+ends the definition part and begins the \PASCAL\ part).
+
+\@\' [P,T] This denotes an octal constant, to be formed from the
+succeeding digits. For example, if the \.{WEB} file contains `\.{@\'100}',
+the \.{TANGLE} processor will treat this an equivalent to `\.{64}';
+the constant will be formatted as ``\O{100}'' in the \TeX\ output
+produced via \.{WEAVE}. You should use octal notation only for positive
+constants; don't try to get, e.g., $-1$ by saying `\.{@\'777777777777}'.
+
+\@" [P,T] A hexadecimal constant; `\.{@"D0D0}' tangles to \.{53456} and
+weaves to `\H{D0D0}'.
+
+\@\$ [P] This denotes the string pool check sum.
+
+\@\{ [P] The beginning of a ``meta comment,'' i.e., a comment
+that is supposed to appear in the \PASCAL\ code, is indicated by
+\.{@\{} in the \.{WEB} file. Such delimiters can be used as
+isolated symbols in macros or modules, but they should be properly nested
+in the final \PASCAL\ program. The \.{TANGLE} processor will convert
+`\.{@\{}' into `\.\{' in the \PASCAL\ output file, unless
+the output is already part of a meta-comment; in the latter case
+`\.{@\{}' is converted into `\.[', since \PASCAL\ does not allow
+nested comments. Incidentally, module numbers are automatically inserted
+as meta-comments into the \PASCAL\ program, in order to help correlate the
+outputs of \.{WEAVE} and \.{TANGLE} (see Appendix~C\null). Meta-comments
+can be used to put conditional text into a \PASCAL\ program; this helps to
+overcome one of the limitations of \.{WEB}, since the simple macro
+processing routines of \.{TANGLE} do not include the dynamic evaluation of
+boolean expressions.
+
+\@\} [P] The end of a ``meta comment'' is indicated by `\.{@\}}'; this is
+converted either into `\.\}' or `\.{]}' in the \PASCAL\ output, according
+to the conventions explained for \.{@\{} above.
+
+\@\& [P] The \.{@\&} operation causes whatever is on its left to be
+adjacent to whatever is on its right, in the \PASCAL\ output. No spaces or
+line breaks will separate these two items. However, the thing on the left
+should not be a semicolon, since a line break might occur after a semicolon.
+
+\@\^ [P,T] The ``control text'' that follows, up to the next
+`\.{@>}', will be entered into the index together with the identifiers of
+the \PASCAL\ program; this text will appear in roman type. For example, to
+put the phrase ``system dependencies'' into the index, you can type
+`\.{@\^system dependencies@>}' in each module
+that you want to index as system dependent. A control text, like a string,
+must end on the same line of the \.{WEB} file as it began.  Furthermore,
+no \.{WEB} control sequences are allowed in a control text, not even
+\.{@@}. (If you need an \.{@} sign you can get around this restriction by
+typing `\.{\\AT!}'.)
+
+\@. [P,T] The ``control text'' that follows will be entered into the index
+in \.{typewriter} \.{type}; see the rules for `\.{@\^}', which is analogous.
+
+\@: [P,T] The ``control text'' that follows will be entered into the index
+in a format controlled by the \TeX\ macro `\.{\\9}', which the user
+should define as desired; see the rules for `\.{@\^}', which is analogous.
+
+\@t [P] The ``control text'' that follows, up to the next `\.{@>}', will
+be put into a \TeX\ \.{\\hbox} and formatted along with the neighboring
+\PASCAL\ program. This text is ignored by \.{TANGLE}, but it can be used
+for various purposes within \.{WEAVE}. For example, you can make comments
+that mix \PASCAL\ and classical mathematics, as in `$\\{size}<2^{15}$', by
+typing `\.{|size < @t\$2\^\{15\}\$@>|}'.  A control text must end on the
+same line of the \.{WEB} file as it began, and it may not contain any
+\.{WEB} control codes.
+
+\@= [P] The ``control text'' that follows, up to the next `\.{@>}', will
+be passed verbatim to the \PASCAL\ program.
+
+\@\\ [P] Force end-of-line here in the \PASCAL\ program file.
+
+\@! [P,T] The module number in an index entry will be underlined if `\.{@!}'
+immediately precedes the identifier or control text being indexed. This
+convention is used to distinguish the modules where an identifier is
+defined, or where it is explained in some special way, from the modules
+where it is used. A~reserved word or an identifier of length one will not
+be indexed except for underlined entries. An `\.{@!}' is implicitly inserted
+by \.{WEAVE} just after the reserved words \&{function}, \&{procedure},
+\&{program}, and \&{var}, and just after \.{@d} and \.{@f}. But you should
+insert your own `\.{@!}' before the definitions of types, constants,
+variables, parameters, and components of records and enumerated types that
+are not covered by this implicit convention, if you want to improve the
+quality of the index that you get.
+
+\@? [P,T] This cancels an implicit (or explicit) `\.{@!}', so that the next
+index entry will not be underlined.
+
+\@, [P] This control code inserts a thin space in \.{WEAVE}'s output; it is
+ignored by \.{TANGLE}. Sometimes you need this extra space if you are using
+macros in an unusual way, e.g., if two identifiers are adjacent.
+
+\@/ [P] This control code causes a line break to occur within a \PASCAL\
+program formatted by \.{WEAVE}; it is ignored by \.{TANGLE}. Line breaks
+are chosen automatically by \TeX\ according to a scheme that works 99\%\
+of the time, but sometimes you will prefer to force a line break so that
+the program is segmented according to logical rather than visual criteria.
+Caution: `\.{@/}' should be used only after statements or clauses, not in
+the middle of an expression; use \.{@|} in the middle of expressions, in
+order to keep \.{WEAVE}'s parser happy.
+
+\@| [P] This control code specifies an optional line break in the midst of
+an expression. For example, if you have a long condition between \&{if} and
+\&{then}, or a long expression on the right-hand side of an assignment
+statement, you can use `\.{@|}' to specify breakpoints more logical than
+the ones that \TeX\ might choose on visual grounds.
+
+\@\# [P] This control code forces a line break, like \.{@/} does,
+and it also causes a little extra white space to appear between the lines at
+this break. You might use it, for example, between procedure definitions or
+between groups of macro definitions that are logically separate but within
+the same module.
+
+\@+ [P] This control code cancels a line break that might otherwise be
+inserted by \.{WEAVE}, e.g., before the word `\&{else}', if you want to
+put a short if-then-else construction on a single line. It is ignored by
+\.{TANGLE}.
+
+\@; [P] This control code is treated like a semicolon, for formatting
+purposes, except that it is invisible. You can use it, for example, after
+a module name when the \PASCAL\ text represented by that module name ends
+with a semicolon.
+
+\yskip\noindent
+The last six control codes (namely `\.{@,}', `\.{@/}', `\.{@|}',
+`\.{@\#}', `\.{@+}', and `\.{@;}') have no effect on the \PASCAL\
+program output by \.{TANGLE}; they merely help to improve the readability
+of the \TeX-formatted \PASCAL\ that is output by \.{WEAVE}, in unusual
+circumstances. \.{WEAVE}'s built-in formatting method is fairly good, but
+it is incapable of handling all possible cases, because it must deal with
+fragments of text involving macros and module names; these fragments do
+not necessarily obey \PASCAL's syntax. Although \.{WEB} allows you to
+override the automatic formatting, your best strategy is not to worry
+about such things until you have seen what \.{WEAVE} produces automatically,
+since you will probably need to make only a few corrections when you are
+touching up your documentation.
+
+Because of the rules by which every module is broken into three parts,
+the control codes `\.{@d}', `\.{@f}', and `\.{@p}' are not allowed to occur
+once the \PASCAL\ part of a module has begun.
+
+\section Additional features and caveats.
+
+1. The character pairs `\.{(*}', `\.{*)}', `\.{(.}', and `\.{.)}' are
+converted automatically in \PASCAL\ text as though they were
+`\.{@\{}', `\.{@\}}', `\.[', and `\.]', respectively, except
+of course in strings. Furthermore in certain installations of \.{WEB} that
+{\def\\#1#2{`{\tentex\char'#1#2}'}%
+have an extended character set, the characters \\32, \\34, \\35, \\30,
+\\36, \\04, \\37, \\05, and \\06}
+can be used as abbreviations for
+`\.{<>}', `\.{<=}', `\.{>=}', `\.{:=}', `\.{==}', `\.{and}', `\.{or}',
+`\.{not}', and `\.{in}', respectively. However, the latter abbreviations
+are not used in the standard versions of \.{WEAVE.WEB} and \.{TANGLE.WEB}
+that are distributed to people who are installing \.{WEB} on other
+computers, and the programs are designed to produce only standard ASCII
+characters as output if the input consists entirely of ASCII characters.
+
+2. If you have an extended character set, all of the characters listed
+in Appendix C of {\sl The \TeX book\/} can be used in strings. But you should
+stick to standard ASCII characters if you want to write programs that will
+be useful to the all the poor souls out there who don't have extended
+character sets.
+
+3. The \TeX\ file output by \.{WEAVE} is broken into lines having at most
+80 characters each. The algorithm that does this line breaking is unaware
+of \TeX's convention about comments following `\.\%' signs on a line. When
+\TeX\ text is being copied, the existing line breaks are copied as well,
+so there is no problem with `\.\%' signs unless the original \.{WEB} file
+contains a line more than eighty characters long or a line with \PASCAL\
+text in \pb\ that expands to more than eighty characters long. Such lines
+should not have `\.\%' signs.
+
+4. \PASCAL\ text is translated by a ``bottom up'' procedure that
+identifies each token as a ``part of speech'' and combines parts of speech
+into larger and larger phrases as much as possible according to a special
+grammar that is explained in the documentation of \.{WEAVE}. It is easy to
+learn the translation scheme for simple constructions like single
+identifiers and short expressions, just by looking at a few examples of
+what \.{WEAVE} does, but the general mechanism is somewhat complex because
+it must handle much more than \PASCAL\ itself. Furthermore the output
+contains embedded codes that cause \TeX\ to indent and break lines as
+necessary, depending on the fonts used and the desired page width. For
+best results it is wise to adhere to the following restrictions:
+
+\yskip\itemitem{a)}Comments in \PASCAL\ text should appear only after
+statements or clauses; i.e., after semicolons, after reserved words like
+\&{then} and \&{do}, or before reserved words like \&{end} and \&{else}.
+Otherwise \.{WEAVE}'s parsing method may well get mixed up.
+
+\itemitem{b)}Don't enclose long \PASCAL\ texts in \pb, since the
+indentation and line breaking codes are omitted when the \pb\ text is
+translated from \PASCAL\ to \TeX. Stick to simple expressions or
+statements.
+
+\yskip
+5. Comments and module names are not permitted in \pb\ text. After a `\.|'
+signals the change from \TeX\ text to \PASCAL\ text, the next `\.|' that is
+not part of a string or control text ends the \PASCAL\ text.
+
+6. A comment must have properly nested occurrences of left and right
+braces, otherwise \.{WEAVE} and \.{TANGLE} will not know where the comment
+ends. However, the character pairs `\.{\\\{}' and `\.{\\\}}' do not count
+as left and right braces in comments, and the character pair `\.{\\|}'
+does not count as a delimiter that begins \PASCAL\ text. (The actual rule
+is that a character after `\.\\' is ignored; hence in `\.{\\\\\{}' the
+left brace {\sl does\/} count.) At present, \.{TANGLE} and \.{WEAVE} treat
+comments in slightly different ways, and it is necessary to satisfy both
+conventions: \.{TANGLE} ignores `\.|' characters entirely, while \.{WEAVE}
+uses them to switch between \TeX\ text and \PASCAL\ text. Therefore, a
+comment that includes a brace in a string in \pb---e.g., `\.{\{{ }look at
+this |"\{"| \}}'---will be handled correctly by \.{WEAVE}, but \.{TANGLE}
+will think there is an unmatched left brace. In order to satisfy both
+processors, one can write `\.{\{{ }look at this \\leftbrace\\{ }\}}', after
+setting up`\.{\\def\\leftbrace\{|"\{"|\}}'.
+
+7. Reserved words of \PASCAL\ must appear entirely in lowercase letters
+in the \.{WEB} file; otherwise their special nature will not be recognized
+by \.{WEAVE}. You could, for example, have a macro named \\{END} and it
+would not be confused with \PASCAL's \&{end}.
+
+However, you may not want to capitalize macro names just to distinguish them
+from other identifiers.  Here is a way to unreserve \PASCAL's reserved word
+`\&{type}' and to substitute another word `\&{mtype}' in the \.{WEB} file.
+$$\vbox{\halign{\tt #\hfil\cr
+@d type(\char'43) == mem[\char'43].t\cr
+@d mtype == t \char'100\char'46{} y \char'100\char'46{} p
+  \char'100\char'46{} e\cr
+@f mtype == type\cr
+@f type == true\cr}}$$
+In the output of \.{TANGLE}, the macro \.{mtype} now produces `\.{TYPE}'
+and the macro \.{type(x)} now produces `\.{MEM[X].T}'. In the output of
+\.{WEAVE}, these same inputs produce \&{mtype} and \\{type}(\|x),
+respectively.
+
+8. The \.{@f} feature allows you to define one identifier to act like
+another, and these format definitions are carried out sequentially, as the
+example above indicates. However, a given identifier has only one printed format
+throughout the entire document (and this format will even be used before
+the \.{@f} that defines it). The reason is that \.{WEAVE} operates in two
+passes; it processes \.{@f}'s and cross-references on the first pass and
+does the output on the second.
+
+9. You may want some \.{@f} formatting that doesn't correspond to any
+existing reserved word. In that case, \.{WEAVE} could be extended in a
+fairly obvious way to include new ``reserved words'' in its vocabulary.
+The identifier `\&{xclause}' has in fact been included already as a
+reserved word, so that it can be used to format the `\&{loop}' macro,
+where `\&{loop}' is defined to be equivalent to `\&{while \\{true} do}'.
+
+10. Sometimes it is desirable to insert spacing into \PASCAL\ code that is
+more general than the thin space provided by `\.{@,}'. The \.{@t} feature
+can be used for this purpose; e.g., `\.{@t\\hskip 1in@>}' will
+leave one inch of blank space. Furthermore, `\.{@t\\4@>}' can be
+used to backspace by one unit of indentation, since the control sequence
+\.{\\4} is defined in \.{webmac} to be such a backspace. (This
+control sequence is used, for example, at the beginning of lines that
+contain labeled statements, so that the label will stick out a little at
+the left.)
+
+11. \.{WEAVE} and \.{TANGLE} are designed to work with two input files,
+called \\{web\_file} and \\{change\_file}, where \\{change\_file} contains
+data that overrides selected portions of \\{web\_file}. The resulting merged
+text is actually what has been called the \.{WEB} file elsewhere in this
+report.
+
+Here's how it works: The change file consists of zero or more ``changes,''
+where a change has the form `\.{@x}$\langle$old lines$\rangle$\.{@y}$\langle$%
+new lines$\rangle$\.{@z}'. The special control codes \.{@x}, \.{@y}, \.{@z},
+which are allowed only in change files, must appear at the beginning of a line;
+the remainder of such a line is ignored.
+The $\langle$old lines$\rangle$ represent material that exactly matches
+consecutive lines of the \\{web\_file}; the $\langle$new lines$\rangle$
+represent zero or more lines that are supposed to replace the old. Whenever
+the first ``old line'' of a change is found to match a line in the
+\\{web\_file}, all the other lines in that change must match too.
+
+Between changes, before the first change, and after the last change,
+the change file can have any number of lines that do not begin with
+`\.{@x}', `\.{@y}', or~`\.{@z}'. Such lines are bypassed and not used for
+matching purposes.
+
+This dual-input feature is useful when working with a master \.{WEB} file
+that has been received from elsewhere (e.g., \.{TANGLE.WEB} or
+\.{WEAVE.WEB} or \.{TEX.WEB}), when changes are desirable to customize the
+program for your local computer system. You will be able to debug your
+system-dependent changes without clobbering the master web file; and once
+your changes are working, you will be able to incorporate them readily
+into new releases of the master web file that you might receive from time
+to time.
+
+\section Appendices.
+The basic ideas of \.{WEB} can be understood most easily by looking at
+examples of ``real'' programs. Appendix~A shows the \.{WEB} input that
+generated modules 55--59 of the \.{WEAVE} program; Appendix~B shows the
+corresponding \TeX\ code output by \.{WEAVE}; and Appendix~C shows excerpts
+from the corresponding \PASCAL\ code output by \.{TANGLE}.
+
+The complete webs for \.{WEAVE} and \.{TANGLE} appear as the bulk of this
+report, in Appendices D and~E. The reader should first compare Appendix~A
+to the corresponding portion of Appendix~D; then the same material should
+be compared to Appendices B and~C. Finally, if time permits, the reader may
+enjoy studying the complete programs in Appendices D and~E, since \.{WEAVE}
+and \.{TANGLE} contain several interesting aspects, and since an attempt
+has been made in these appendices to evolve a style of programming that
+makes good use of the \.{WEB} language.
+
+Finally, Appendix F is the `\.{webmac}' file that sets \TeX\ up to accept
+the output of \.{WEAVE}; Appendix~G discusses how to use some of its macros
+to vary the output formats; and Appendix~H discusses what needs to be done
+when \.{WEAVE} and \.{TANGLE} are installed in a new operating environment.
+
+\section Performance statistics.
+The programs in Appendices D and E will optionally keep statistics on
+how much memory they require. Here is what they printed out when
+processing themselves:
+
+\def\pstat#1#2#3
+#4{\yskip\noindent\.{#1} applied to \.{#2} (cpu time #3 sec)\par
+\halign{\quad\tt##\hfil\cr#4}}
+
+\pstat{TANGLE}{TANGLE}{15}
+{Memory usage statistics:\cr
+456 names, 215 replacement texts;\cr
+3396+3361 bytes, 6685+7329+5805 tokens.\cr}
+
+\pstat{TANGLE}{WEAVE}{30}
+{Memory usage statistics:\cr
+692 names, 339 replacement texts;\cr
+4576+4294 bytes, 10184+9875+9150 tokens.\cr}
+
+\pstat{WEAVE}{TANGLE}{45}
+{Memory usage statistics: 478 names, 2045 cross references, 4159+3729 bytes;\cr
+parsing required 684 scraps, 1300 texts, 3766 tokens, 119 levels;\cr
+sorting required 34 levels.\cr}
+
+\pstat{WEAVE}{WEAVE}{65}
+{Memory usage statistics: 737 names, 3306 cross references, 4896+4962 bytes;\cr
+parsing required 684 scraps, 1300 texts, 3766 tokens, 119 levels;\cr
+sorting required 73 levels.\cr}
+
+\yskip\noindent The cpu time for \PASCAL\ to process \.{TANGLE.PAS} was
+approximately 13 seconds, and \.{WEAVE.PAS} took approximately 26 seconds;
+thus the tangling time was slightly more than the compiling time.  The cpu
+time for \TeX\ to process \.{TANGLE.TEX} was approximately 500 seconds,
+and \.{WEAVE.TEX} took approximately 750 seconds (i.e., about 7
+seconds per printed page, where these pages are substantially larger than
+the pages in a normal book). All cpu times quoted are for a DECsystem-10.
+
+\def\K{{\mc K}}
+The file \.{TANGLE.WEB} is about 125\K\ characters long; \.{TANGLE}
+reduces it to a file \.{TANGLE.PAS} whose size is about 42\K\ characters,
+while \.{WEAVE} expands it to a file \.{TANGLE.TEX} of about 185\K\null.
+The corresponding file sizes for \.{WEAVE.WEB}, \.{WEAVE.PAS}, and
+\.{WEAVE.TEX} are 180\K, 89\K, and 265\K.
+
+The much larger file \.{TEX.WEB} led to the following numbers:
+
+\pstat{TANGLE}{TEX}{110}
+{Memory usage statistics:\cr
+3750 names, 1768 replacement texts;\cr
+41895+41053 bytes, 42378+45074+41091 tokens.\cr}
+
+\pstat{WEAVE}{TEX}{270}
+{Memory usage statistics: 3412 names, 19699 cross references,
+  37900+40232 bytes;\cr
+parsing required 685 scraps, 1303 texts, 3784 tokens, 104 levels;\cr
+sorting required 52 levels.\cr}
+
+\yskip\noindent
+\PASCAL\ did \.{TEX.PAS} in about 75 seconds; \TeX\ did \.{TEX.TEX}
+in about 3600.
+
+% Here is a quotation that could not really be omitted
+
+\vfill
+
+{\baselineskip9pt
+\halign to\hsize{\hfil\quoteit#\tabskip 0pt plus 100pt&
+  \hfil\quoteit#\tabskip 0pt\cr
+O, what a tangled web we weave&
+  O, what a tangled WEB we weave\cr
+When first we practise to deceive!&
+  When \TeX\ we practise to conceive!\cr
+\noalign{\vskip 2pt}
+\quoterm ---SIR WALTER SCOTT, {\quoteit Marmion} 6:17 (1808)&
+  \quoterm ---RICHARD PALAIS (1982)\cr
+}}
+\eject
+
+\def\runninghead{APPENDIX A --- {\tentt WEB} FILE FORMAT}
+\section Appendix A.
+This excerpt from \.{WEAVE.WEB} produced modules 55--59 in Appendix~D.
+Note that some of the lines are indented to show the program structure.
+The indentation is ignored by \.{WEAVE} and \.{TANGLE}, but users find
+that \.{WEB} files are quite readable if they have some such indentation.
+
+\vskip 6pt
+\begingroup \def\tt{\eighttt} \baselineskip9pt
+% Note to myself: I had to remove SAIL characters from the file here!
+% Also tabs replaced by double-space. The changes were made in WEAVE source.
+\verbatim
+@* Searching for identifiers.
+The hash table described above is updated by the |id_lookup| procedure,
+which finds a given identifier and returns a pointer to its index in
+|byte_start|. The identifier is supposed to match character by character
+and it is also supposed to have a given |ilk| code; the same name may be
+present more than once if it is supposed to appear in the index with
+different typesetting conventions.
+If the identifier was not already present, it is inserted into the table.
+
+Because of the way \.{WEAVE}'s scanning mechanism works, it is most convenient
+to let |id_lookup| search for an identifier that is present in the |buffer|
+array. Two other global variables specify its position in the buffer: the
+first character is |buffer[id_first]|, and the last is |buffer[id_loc-1]|.
+
+@<Glob...@>=
+@!id_first:0..long_buf_size; {where the current identifier begins in the buffer}
+@!id_loc:0..long_buf_size; {just after the current identifier in the buffer}
+@#
+@!hash:array [0..hash_size] of sixteen_bits; {heads of hash lists}
+
+@ Initially all the hash lists are empty.
+
+@<Local variables for init...@>=
+@!h:0..hash_size; {index into hash-head array}
+
+@ @<Set init...@>=
+for h:=0 to hash_size-1 do hash[h]:=0;
+
+@ Here now is the main procedure for finding identifiers (and index
+entries).  The parameter |t| is set to the desired |ilk| code. The
+identifier must either have |ilk=t|, or we must have
+|t=normal| and the identifier must be a reserved word.
+
+@p function id_lookup(@!t:eight_bits):name_pointer; {finds current identifier}
+label found;
+var i:0..long_buf_size; {index into |buffer|}
+@!h:0..hash_size; {hash code}
+@!k:0..max_bytes; {index into |byte_mem|}
+@!w:0..ww-1; {row of |byte_mem|}
+@!l:0..long_buf_size; {length of the given identifier}
+@!p:name_pointer; {where the identifier is being sought}
+begin l:=id_loc-id_first; {compute the length}
+@<Compute the hash code |h|@>;
+@<Compute the name location |p|@>;
+if p=name_ptr then @<Enter a new name into the table at position |p|@>;
+id_lookup:=p;
+end;
+
+@ A simple hash code is used: If the sequence of
+ASCII codes is $c_1c_2\ldots c_m$, its hash value will be
+$$(2^{n-1}c_1+2^{n-2}c_2+\cdots+c_n)\,\bmod\,|hash_size|.$$
+
+@<Compute the hash...@>=
+h:=buffer[id_first]; i:=id_first+1;
+while i<id_loc do
+  begin h:=(h+h+buffer[i]) mod hash_size; incr(i);
+  end
+?endgroup % end of verbatim mode
+\endgroup
+\vfill\eject
+
+\def\runninghead{APPENDIX B --- TRANSLATION BY {\tentt WEAVE}}
+\section Appendix B.
+This excerpt from \.{WEAVE.TEX} corresponds to Appendix A.
+
+% I've inserted \vfill's here at the blank lines, to squeeze this on one page!
+\begingroup \def\tt{\eighttt} \baselineskip9pt
+\verbatim
+?vfill?verbatimgobble
+\N55.  Searching for identifiers.
+The hash table described above is updated by the \\{id\_lookup} procedure,
+which finds a given identifier and returns a pointer to its index in
+\\{byte\_start}. The identifier is supposed to match character by character
+and it is also supposed to have a given \\{ilk} code; the same name may be
+present more than once if it is supposed to appear in the index with
+different typesetting conventions.
+If the identifier was not already present, it is inserted into the table.
+?vfill?verbatimgobble
+Because of the way \.{WEAVE}'s scanning mechanism works, it is most convenient
+to let \\{id\_lookup} search for an identifier that is present in the %
+\\{buffer}
+array. Two other global variables specify its position in the buffer: the
+first character is $\\{buffer}[\\{id\_first}]$, and the last is $\\{buffer}[%
+\\{id\_loc}-1]$.
+?vfill?verbatimgobble
+\Y\P$\4\X9:Globals in the outer block\X\mathrel{+}\S$\6
+\4\\{id\_first}: \37$0\to\\{long\_buf\_size}$;\C{where the current identifier
+begins in the buffer}\6
+\4\\{id\_loc}: \37$0\to\\{long\_buf\_size}$;\C{just after the current
+identifier in the buffer}\7
+\4\\{hash}: \37\&{array} $[0\to\\{hash\_size}]$ \1\&{of}\5
+\\{sixteen\_bits};\C{heads of hash lists}\2\par
+\fi
+?vfill?verbatimgobble
+\M56. Initially all the hash lists are empty.
+?vfill?verbatimgobble
+\Y\P$\4\X16:Local variables for initialization\X\mathrel{+}\S$\6
+\4\|h: \37$0\to\\{hash\_size}$;\C{index into hash-head array}\par
+\fi
+?vfill?verbatimgobble
+\M57. \P$\X10:Set initial values\X\mathrel{+}\S$\6
+\&{for} $\|h\K0\mathrel{\&{to}}\\{hash\_size}-1$ \1\&{do}\5
+$\\{hash}[\|h]\K0$;\2\par
+\fi
+?vfill?verbatimgobble
+\M58. Here now is the main procedure for finding identifiers (and index
+entries).  The parameter \|t is set to the desired \\{ilk} code. The
+identifier must either have $\\{ilk}=\|t$, or we must have
+$\|t=\\{normal}$ and the identifier must be a reserved word.
+?vfill?verbatimgobble
+\Y\P\4\&{function}\1\  \37$\\{id\_lookup}(\|t:\\{eight\_bits})$: \37\\{name%
+\_pointer};\C{finds current identifier}\6
+\4\&{label} \37\\{found};\6
+\4\&{var} \37\|i: \37$0\to\\{long\_buf\_size}$;\C{index into \\{buffer}}\6
+\|h: \37$0\to\\{hash\_size}$;\C{hash code}\6
+\|k: \37$0\to\\{max\_bytes}$;\C{index into \\{byte\_mem}}\6
+\|w: \37$0\to\\{ww}-1$;\C{row of \\{byte\_mem}}\6
+\|l: \37$0\to\\{long\_buf\_size}$;\C{length of the given identifier}\6
+\|p: \37\\{name\_pointer};\C{where the identifier is being sought}\2\6
+\&{begin} \37$\|l\K\\{id\_loc}-\\{id\_first}$;\C{compute the length}\6
+\X59:Compute the hash code \|h\X;\6
+\X60:Compute the name location \|p\X;\6
+\&{if} $\|p=\\{name\_ptr}$ \1\&{then}\5
+\X62:Enter a new name into the table at position \|p\X;\2\6
+$\\{id\_lookup}\K\|p$;\6
+\&{end};\par
+\fi
+?vfill?verbatimgobble
+\M59. A simple hash code is used: If the sequence of
+ASCII codes is $c_1c_2\ldots c_m$, its hash value will be
+$$(2^{n-1}c_1+2^{n-2}c_2+\cdots+c_n)\,\bmod\,\\{hash\_size}.$$
+?vfill?verbatimgobble
+\Y\P$\4\X59:Compute the hash code \|h\X\S$\6
+$\|h\K\\{buffer}[\\{id\_first}]$;\5
+$\|i\K\\{id\_first}+1$;\6
+\&{while} $\|i<\\{id\_loc}$ \1\&{do}\6
+\&{begin} \37$\|h\K(\|h+\|h+\\{buffer}[\|i])\mathbin{\&{mod}}\\{hash\_size}$;\5
+$\\{incr}(\|i)$;\6
+\&{end}\2\par
+\U section~58.\fi
+?endgroup
+\endgroup
+\eject
+
+\def\runninghead{APPENDIX C --- TRANSLATION BY {\tentt TANGLE}}
+\section Appendix C.
+The \.{TANGLE} processor converts \.{WEAVE.WEB} into a syntactically
+correct (but not very pretty) \PASCAL\ program \.{WEAVE.PAS}.
+The first three and last two lines of output are shown here, together with the
+lines of code generated by modules 55--62 and the environments of
+those lines. There are 1559 lines in all; the notation
+`\.. \\. \\.' stands for portions that are not shown.
+
+Note that, for example, the code corresponding to
+module 55 begins with `\.{\{55:\}}' and ends with `\.{\{:55\}}';
+the code from modules 59--62 has been tangled into the code from module 58.
+
+\vskip6pt
+\verbatim
+{2:}{4:}{$C-,A+,D-}{[$C+,D+]}{:4}
+PROGRAM WEAVE(WEBFILE,CHANGEFILE,TEXFILE);LABEL 9999;CONST{8:}
+MAXBYTES=45000;MAXNAMES=5000;MAXMODULES=2000;HASHSIZE=353;BUFSIZE=100;
+     . . .
+TOKPTR:0..MAXTOKS;{MAXTOKPTR,MAXTXTPTR:0..MAXTOKS;}{:53}{55:}
+IDFIRST:0..LONGBUFSIZE;IDLOC:0..LONGBUFSIZE;
+HASH:ARRAY[0..HASHSIZE]OF SIXTEENBITS;{:55}{63:}CURNAME:NAMEPOINTER;
+     . . .
+PROCEDURE INITIALIZE;VAR{16:}I:0..127;{:16}{40:}WI:0..1;{:40}{56:}
+H:0..HASHSIZE;{:56}{247:}C:ASCIICODE;{:247}BEGIN{10:}HISTORY:=0;{:10}
+     . . .
+TOKPTR:=1;TEXTPTR:=1;TOKSTART[0]:=1;TOKSTART[1]:=1;{MAXTOKPTR:=1;
+MAXTXTPTR:=1;}{:54}{57:}FOR H:=0 TO HASHSIZE-1 DO HASH[H]:=0;{:57}{94:}
+SCANNINGHEX:=FALSE;{:94}{102:}MODTEXT[0]:=32;{:102}{124:}OUTPTR:=1;
+     . . .
+IF R=0 THEN XREF[P]:=XREFPTR ELSE XMEM[R].XLINKFIELD:=XREFPTR;END;{:51}
+{58:}FUNCTION IDLOOKUP(T:EIGHTBITS):NAMEPOINTER;LABEL 31;
+VAR I:0..LONGBUFSIZE;H:0..HASHSIZE;K:0..MAXBYTES;W:0..1;
+L:0..LONGBUFSIZE;P:NAMEPOINTER;BEGIN L:=IDLOC-IDFIRST;{59:}
+H:=BUFFER[IDFIRST];I:=IDFIRST+1;
+WHILE I<IDLOC DO BEGIN H:=(H+H+BUFFER[I])MOD HASHSIZE;I:=I+1;END{:59};
+{60:}P:=HASH[H];
+WHILE P<>0 DO BEGIN IF(BYTESTART[P+2]-BYTESTART[P]=L)AND((ILK[P]=T)OR((T
+=0)AND(ILK[P]>3)))THEN{61:}BEGIN I:=IDFIRST;K:=BYTESTART[P];W:=P MOD 2;
+WHILE(I<IDLOC)AND(BUFFER[I]=BYTEMEM[W,K])DO BEGIN I:=I+1;K:=K+1;END;
+IF I=IDLOC THEN GOTO 31;END{:61};P:=LINK[P];END;P:=NAMEPTR;
+LINK[P]:=HASH[H];HASH[H]:=P;31:{:60};IF P=NAMEPTR THEN{62:}
+BEGIN W:=NAMEPTR MOD 2;
+IF BYTEPTR[W]+L>MAXBYTES THEN BEGIN WRITELN(TERMOUT);
+WRITE(TERMOUT,'! Sorry, ','byte memory',' capacity exceeded');ERROR;
+HISTORY:=3;JUMPOUT;END;
+IF NAMEPTR+2>MAXNAMES THEN BEGIN WRITELN(TERMOUT);
+WRITE(TERMOUT,'! Sorry, ','name',' capacity exceeded');ERROR;HISTORY:=3;
+JUMPOUT;END;I:=IDFIRST;K:=BYTEPTR[W];
+WHILE I<IDLOC DO BEGIN BYTEMEM[W,K]:=BUFFER[I];K:=K+1;I:=I+1;END;
+BYTEPTR[W]:=K;BYTESTART[NAMEPTR+2]:=K;NAMEPTR:=NAMEPTR+1;ILK[P]:=T;
+XREF[P]:=0;END{:62};IDLOOKUP:=P;END;{:58}{66:}
+FUNCTION MODLOOKUP(L:SIXTEENBITS):NAMEPOINTER;LABEL 31;VAR C:0..4;
+     . . .
+WRITE(TERMOUT,'(That was a fatal error, my friend.)');END;END{:263};
+END.{:261}
+?endgroup
+\vfill\eject
+
+\pageno=199 % take account of the page numbers for App's D and E.
+
+\def\runninghead{APPENDIX F --- MACROS FOR FORMATTING}
+\section Appendix F: The \.{webmac.tex} file.
+This is the file that extends ``plain \TeX'' format in order to support the
+features needed by the output of \.{WEAVE}.
+
+\vskip6pt
+\verbatim
+% standard macros for WEB listings (in addition to PLAIN.TEX)
+\xdef\fmtversion{\fmtversion+WEBMAC1.3} % identifies current set of macros
+\parskip 0pt % no stretch between paragraphs
+\parindent 1em % for paragraphs and for the first line of Pascal text
+
+\font\eightrm=cmr8
+\let\sc=\eightrm \let\mainfont=\tenrm
+\font\titlefont=cmr7 scaled\magstep4 % title on the contents page
+\font\ttitlefont=cmtt10 scaled\magstep2 % typewriter type in title
+\font\tentex=cmtex10 % TeX extended character set (used in strings)
+
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+\def\|#1{\hbox{$#1$}} % one-letter identifiers look a bit better this way
+\def\&#1{\hbox{\bf#1\/}} % boldface type for reserved words
+\def\.#1{\hbox{\tentex % typewriter type for strings
+  \let\\=\BS % backslash in a string
+  \let\'=\RQ % right quote in a string
+  \let\`=\LQ % left quote in a string
+  \let\{=\LB % left brace in a string
+  \let\}=\RB % right brace in a string
+  \let\~=\TL % tilde in a string
+  \let\ =\SP % space in a string
+  \let\_=\UL % underline in a string
+  \let\&=\AM % ampersand in a string
+  #1}}
+\def\#{\hbox{\tt\char`\#}} % parameter sign
+\def\${\hbox{\tt\char`\$}} % dollar sign
+\def\%{\hbox{\tt\char`\%}} % percent sign
+\def\^{\ifmmode\mathchar"222 \else\char`^ \fi} % pointer or hat
+% circumflex accents can be obtained from \^^D instead of \^
+\def\AT!{@} % at sign for control text
+
+\chardef\AM=`\& % ampersand character in a string
+\chardef\BS=`\\ % backslash in a string
+\chardef\LB=`\{ % left brace in a string
+\def\LQ{{\tt\char'22}} % left quote in a string
+\chardef\RB=`\} % right brace in a string
+\def\RQ{{\tt\char'23}} % right quote in a string
+\def\SP{{\tt\char`\ }} % (visible) space in a string
+\chardef\TL=`\~ % tilde in a string
+\chardef\UL=`\_ % underline character in a string
+
+\newbox\bak \setbox\bak=\hbox to -1em{} % backspace one em
+\newbox\bakk\setbox\bakk=\hbox to -2em{} % backspace two ems
+
+\newcount\ind % current indentation in ems
+\def\1{\global\advance\ind by1\hangindent\ind em} % indent one more notch
+\def\2{\global\advance\ind by-1} % indent one less notch
+\def\3#1{\hfil\penalty#10\hfilneg} % optional break within a statement
+\def\4{\copy\bak} % backspace one notch
+\def\5{\hfil\penalty-1\hfilneg\kern2.5em\copy\bakk\ignorespaces}% optional break
+\def\6{\ifmmode\else\par % forced break
+  \hangindent\ind em\noindent\kern\ind em\copy\bakk\ignorespaces\fi}
+\def\7{\Y\6} % forced break and a little extra space
+
+\let\yskip=\smallskip
+\def\to{\mathrel{.\,.}} % double dot, used only in math mode
+\def\note#1#2.{\Y\noindent{\hangindent2em\baselineskip10pt\eightrm#1 #2.\par}}
+\def\lapstar{\rlap{*}}
+\def\startsection{\Q\noindent{\let\*=\lapstar\bf\modstar.\quad}}
+\def\defin#1{\global\advance\ind by 2 \1\&{#1 }} % begin `define' or `format'
+\def\A{\note{See also}} % cross-reference for multiply defined section names
+\def\B{\mathopen{\.{@\{}}} % begin controlled comment
+\def\C#1{\ifmmode\gdef\XX{\null$\null}\else\gdef\XX{}\fi % Pascal comments
+  \XX\hfil\penalty-1\hfilneg\quad$\{\,$#1$\,\}$\XX}
+\def\D{\defin{define}} % macro definition
+\def\E{\cdot10^} % exponent in floating point constant
+\def\F{\defin{format}} % format definition
+\let\G=\ge % greater than or equal sign
+\def\H#1{\hbox{\rm\char"7D\tt#1}} % hexadecimal constant
+\let\I=\ne % unequal sign
+\def\J{\.{@\&}} % TANGLE's join operation
+\let\K=\gets % left arrow
+\let\L=\le % less than or equal sign
+\outer\def\M#1.{\MN#1.\ifon\vfil\penalty-100\vfilneg % beginning of section
+  \vskip12ptminus3pt\startsection\ignorespaces}
+\outer\def\N#1.#2.{\MN#1.\vfil\eject % beginning of starred section
+  \def\rhead{\uppercase{\ignorespaces#2}} % define running headline
+  \message{*\modno} % progress report
+  \edef\next{\write\cont{\Z{#2}{\modno}{\the\pageno}}}\next % to contents file
+  \ifon\startsection{\bf\ignorespaces#2.\quad}\ignorespaces}
+\def\MN#1.{\par % common code for \M, \N
+  {\xdef\modstar{#1}\let\*=\empty\xdef\modno{#1}}
+  \ifx\modno\modstar \onmaybe \else\ontrue \fi \mark{\modno}}
+\def\O#1{\hbox{\rm\char'23\kern-.2em\it#1\/\kern.05em}} % octal constant
+\def\P{\rightskip=0pt plus 100pt minus 10pt % go into Pascal mode
+  \sfcode`;=3000
+  \pretolerance 10000
+  \hyphenpenalty 10000 \exhyphenpenalty 10000
+  \global\ind=2 \1\ \unskip}
+\def\Q{\rightskip=0pt % get out of Pascal mode
+  \sfcode`;=1500 \pretolerance 200 \hyphenpenalty 50 \exhyphenpenalty 50 }
+\let\R=\lnot % logical not
+\let\S=\equiv % equivalence sign
+\def\T{\mathclose{\.{@\}}}} % terminate controlled comment
+\def\U{\note{This code is used in}} % cross-reference for uses of sections
+\let\V=\lor % logical or
+\let\W=\land % logical and
+\def\X#1:#2\X{\ifmmode\gdef\XX{\null$\null}\else\gdef\XX{}\fi % section name
+  \XX$\langle\,$#2{\eightrm\kern.5em#1}$\,\rangle$\XX}
+\def\Y{\par\yskip}
+\let\Z=\let % now you can \send the control sequence \Z
+\def\){\hbox{\.{@\$}}} % sign for string pool check sum
+\def\]{\hbox{\.{@\\}}} % sign for forced line break
+\def\=#1{\kern2pt\hbox{\vrule\vtop{\vbox{\hrule
+        \hbox{\strut\kern2pt\.{#1}\kern2pt}}
+      \hrule}\vrule}\kern2pt} % verbatim string
+\let\~=\ignorespaces
+\let\*=*
+
+\def\onmaybe{\let\ifon=\maybe} \let\maybe=\iftrue
+\newif\ifon \newif\iftitle \newif\ifpagesaved
+\def\lheader{\mainfont\the\pageno\eightrm\qquad\rhead\hfill\title\qquad
+  \tensy x\mainfont\topmark} % top line on left-hand pages
+\def\rheader{\tensy x\mainfont\topmark\eightrm\qquad\title\hfill\rhead
+  \qquad\mainfont\the\pageno} % top line on right-hand pages
+\def\page{\box255 }
+\def\normaloutput#1#2#3{\ifodd\pageno\hoffset=\pageshift\fi
+  \shipout\vbox{
+    \vbox to\fullpageheight{
+      \iftitle\global\titlefalse
+      \else\hbox to\pagewidth{\vbox to10pt{}\ifodd\pageno #3\else#2\fi}\fi
+      \vfill#1}} % parameter #1 is the page itself
+  \global\advance\pageno by1}
+
+\def\rhead{\.{WEB} OUTPUT} % this running head is reset by starred sections
+\def\title{} % an optional title can be set by the user
+\def\topofcontents{\centerline{\titlefont\title}
+  \vfill} % this material will start the table of contents page
+\def\botofcontents{\vfill} % this material will end the table of contents page
+\def\contentspagenumber{0} % default page number for table of contents
+\newdimen\pagewidth \pagewidth=6.5in % the width of each page
+\newdimen\pageheight \pageheight=8.7in % the height of each page
+\newdimen\fullpageheight \fullpageheight=9in % page height including headlines
+\newdimen\pageshift \pageshift=0in % shift righthand pages wrt lefthand ones
+\def\magnify#1{\mag=#1\pagewidth=6.5truein\pageheight=8.7truein
+  \fullpageheight=9truein\setpage}
+\def\setpage{\hsize\pagewidth\vsize\pageheight} % use after changing page size
+\def\contentsfile{CONTENTS} % file that gets table of contents info
+\def\readcontents{\input CONTENTS}
+
+\newwrite\cont
+\output{\setbox0=\page % the first page is garbage
+  \openout\cont=\contentsfile
+  \global\output{\normaloutput\page\lheader\rheader}}
+\setpage
+\vbox to \vsize{} % the first \topmark won't be null
+
+\def\ch{\note{The following sections were changed by the change file:}
+  \let\*=\relax}
+\newbox\sbox % saved box preceding the index
+\newbox\lbox % lefthand column in the index
+\def\inx{\par\vskip6pt plus 1fil % we are beginning the index
+  \write\cont{} % ensure that the contents file isn't empty
+  \closeout\cont % the contents information has been fully gathered
+  \output{\ifpagesaved\normaloutput{\box\sbox}\lheader\rheader\fi
+    \global\setbox\sbox=\page \global\pagesavedtrue}
+  \pagesavedfalse \eject % eject the page-so-far and predecessors
+  \setbox\sbox\vbox{\unvbox\sbox} % take it out of its box
+  \vsize=\pageheight \advance\vsize by -\ht\sbox % the remaining height
+  \hsize=.5\pagewidth \advance\hsize by -10pt
+    % column width for the index (20pt between cols)
+  \parfillskip 0pt plus .6\hsize % try to avoid almost empty lines
+  \def\lr{L} % this tells whether the left or right column is next
+  \output{\if L\lr\global\setbox\lbox=\page \gdef\lr{R}
+    \else\normaloutput{\vbox to\pageheight{\box\sbox\vss
+        \hbox to\pagewidth{\box\lbox\hfil\page}}}\lheader\rheader
+    \global\vsize\pageheight\gdef\lr{L}\global\pagesavedfalse\fi}
+  \message{Index:}
+  \parskip 0pt plus .5pt
+  \outer\def\:##1, {\par\hangindent2em\noindent##1:\kern1em} % index entry
+  \def\[##1]{$\underline{##1}$} % underlined index item
+  \rm \rightskip0pt plus 2.5em \tolerance 10000 \let\*=\lapstar
+  \hyphenpenalty 10000 \parindent0pt}
+\def\fin{\par\vfill\eject % this is done when we are ending the index
+  \ifpagesaved\null\vfill\eject\fi % output a null index column
+  \if L\lr\else\null\vfill\eject\fi % finish the current page
+  \parfillskip 0pt plus 1fil
+  \def\rhead{NAMES OF THE SECTIONS}
+  \message{Section names:}
+  \output{\normaloutput\page\lheader\rheader}
+  \setpage
+  \def\note##1##2.{\hfil\penalty-1\hfilneg\quad{\eightrm##1 ##2.}}
+  \linepenalty=10 % try to conserve lines
+  \def\U{\note{Used in}} % cross-reference for uses of sections
+  \def\:{\par\hangindent 2em}\let\*=*}
+\def\con{\par\vfill\eject % finish the section names
+  \rightskip 0pt \hyphenpenalty 50 \tolerance 200
+  \setpage
+  \output{\normaloutput\page\lheader\rheader}
+  \titletrue % prepare to output the table of contents
+  \pageno=\contentspagenumber \def\rhead{TABLE OF CONTENTS}
+  \message{Table of contents:}
+  \topofcontents
+  \line{\hfil Section\hbox to3em{\hss Page}}
+  \def\Z##1##2##3{\line{\ignorespaces##1
+    \leaders\hbox to .5em{.\hfil}\hfil\ ##2\hbox to3em{\hss##3}}}
+  \readcontents\relax % read the contents info
+  \botofcontents \end} % print the contents page(s) and terminate
+?endgroup
+\vfill\eject
+
+\def\runninghead{APPENDIX G --- NOTES ON FORMATTING}
+\section Appendix G: How to use \.{WEB} macros.
+The macros in \.{webmac} make it possible to produce a variety of formats
+without editing the output of \.{WEAVE}, and the purpose of this appendix
+is to explain some of the possibilities.
+
+\def\point#1.{\yskip\indent#1.\quad\ignorespaces}
+
+\point 1. Three fonts have been declared in addition to the standard fonts of
+\.{PLAIN} format: You can say `\.{\{\\sc stuff\}}' to get {\sc STUFF}
+in small caps; and you can select the largish fonts \.{\\titlefont}
+and \.{\\ttitlefont} in the title of your document, where \.{\\ttitlefont}
+is a typewriter style of type.
+
+\point 2. When you mention an identifier in \TeX\ text, you normally call
+it `\.{|identifier|}'. But you can also say `\.{\\\\\{identifier\}}'. The
+output will look the same in both cases, but the second alternative
+doesn't put \\{identifier} into the index, since
+it bypasses \.{WEAVE}'s translation from \PASCAL\ mode.
+
+\point 3. To get typewriter-like type, as when referring to `\.{WEB}', you
+can use the `\.{\\.}' macro (e.g., `\.{\\.\{WEB\}}'). In the argument to
+this macro you should insert an additional backslash before the symbols
+listed as `special string characters' in the index to \.{WEAVE}, i.e.,
+before backslashes and dollar signs and the like.
+A `\.{\\\ }' here will result in the visible space symbol; to get an
+invisible space following a control sequence you can say `\.{\{\ \}}'.
+
+\point 4. The three control sequences \.{\\pagewidth}, \.{\\pageheight},
+and \.{\\fullpageheight} can be redefined in the limbo section at the
+beginning of your \.{WEB} file, to change the dimensions of each page.
+The standard settings
+$$\lpile{\.{\\pagewidth=6.5in}\cr
+  \.{\\pageheight=8.7in}\cr
+  \.{\\fullpageheight=9in}\cr}$$
+were used to prepare the present report; \.{\\fullpageheight} is
+\.{\\pageheight} plus room for the additional heading and page numbers at
+the top of each page. If you change any of these quantities, you should
+call the macro \.{\\setpage} immediately after making the change.
+
+\point 5. The \.{\\pageshift} macro defines an amount by which right-hand
+pages (i.e., odd-numbered pages) are shifted right with respect to
+left-hand (even-numbered) ones. By adjusting this amount you may be
+able to get two-sided output in which the page numbers line up on
+opposite sides of each sheet.
+
+\point 6. The \.{\\title} macro will appear at the top of each page
+in small caps. For example, Appendix~D was produced after saying
+`\.{\\def\\title\{WEAVE\}}'.
+
+\point 7. The first page usually is number 1; if you want some other
+starting page, just set \.{\\pageno} to the desired number. For example,
+the initial limbo section for Appendix~D included the command
+`\.{\\pageno=16}'.
+
+\point 8. The macro \.{\\iftitle} will suppress the header line if it is
+defined by `\.{\\titletrue}'. The normal value is \.{\\titlefalse}
+except for the table of contents; thus, the contents
+page is usually unnumbered. If your program is so long that the table of
+contents doesn't fit on a single page, or if you want a number to appear
+on the contents page, you should reset \.{\\pageno} when you begin the
+table of contents.
+
+Two macros are provided to give flexibility to the table of
+contents: \.{\\topofcontents} is invoked just before the contents
+info is read, and \.{\\botofcontents} is invoked just after.
+For example, Appendix~D was produced with the following definitions:
+$$\lpile{\.{\\def\\topofcontents\{\\null\\vfill}\cr
+  \.{ { }\\titlefalse \% include headline on the contents page}\cr
+  \.{ { }\\def\\rheader\{\\mainfont Appendix D\\hfil 15\}}\cr
+  \.{ { }\\centerline\{\\titlefont The \{\\ttitlefont WEAVE\}{ }processor\}}\cr
+  \.{ { }\\vskip 15pt \\centerline\{(Version 2.5)\}{ }\\vfill\}}\cr}$$
+Redefining \.{\\rheader}, which is the headline for right-hand pages,
+suffices in this case to put the desired information at the top of the page.
+
+\point 9. Data for the table of contents is written to a file that
+is read after the indexes have been \TeX ed; there's one line of data
+for every starred module. For example, when Appendix~D was being generated,
+a file \.{CONTENTS.TEX} containing
+$$\lpile{\.{\\Z \{{ }Introduction\}\{1\}\{16\}}\cr
+  \.{\\Z \{{ }The character set\}\{11\}\{19\}}\cr}$$
+and similar lines was created. The \.{\\topofcontents} macro could
+redefine \.{\\Z} so that the information appears in another format.
+
+\point 10. Sometimes it is necessary or desirable to divide the output of
+\.{WEAVE} into subfiles that can be processed separately. For example,
+the listing of \TeX\ runs to more than 500 pages, and that is enough to
+exceed the capacity of many printing devices and/or their software.
+When an extremely large job isn't cut into smaller pieces, the entire
+process might be spoiled by a single error of some sort, making it
+necessary to start everything over.
+
+Here's a safe way to break a woven file into three parts:
+Say the pieces are $\alpha$,
+$\beta$, and $\gamma$, where each piece begins with a starred module.
+All macros should be defined in the opening limbo section of $\alpha$,
+and copies of this \TeX\ code should be placed at the
+beginning of $\beta$ and of $\gamma$. In order to process the parts
+separately, we need to take care of two things: The starting page
+numbers of $\beta$ and $\gamma$ need to be set up properly, and
+the table of contents data from all three runs needs to be
+accumulated.
+
+The \.{webmac} macros include two control sequences \.{\\contentsfile} and
+\.{\\readcontents} that facilitate the necessary processing.  We include
+`\.{\\def\\contentsfile\{CONT1\}}' in the limbo section of $\alpha$, and
+we include `\.{\\def\\contentsfile\{CONT2\}}' in the limbo section of
+$\beta$; this causes \TeX\ to write the contents data for $\alpha$ and $\beta$
+into \.{CONT1.TEX} and \.{CONT2.TEX}. Now in $\gamma$ we say
+$$\.{\\def\\readcontents\{\\input CONT1 \\input CONT2 \\input CONTENTS\}};$$
+this brings in the data from all three pieces, in the proper order.
+
+However, we still need to solve the page-numbering problem. One way to
+do it is to include the following in the limbo material for $\beta$:
+$$\lpile{\.{\\message\{Please type the last page number of part 1: \}}\cr
+  \.{\\read-1to\\\\ \\pageno=\\\\ \\advance\\pageno by 1}\cr}$$
+Then you simply provide the necessary data when \TeX\ requests
+it; a similar construction is used at the beginning of $\gamma$.
+
+This method can, of course, be used to divide a woven file into
+any number of pieces.
+
+\point 11. Sometimes it is nice to include things in the index that are
+typeset in a special way. For example, we might want to have an
+index entry for `\TeX'. \.{WEAVE} provides only two standard ways to
+typeset an index entry (unless the entry is an identifier or a reserved word):
+`\.{@\^}' gives roman type, and `\.{@.}' gives typewriter type.
+But if we try to typeset `\TeX' in roman type by saying, e.g.,
+`\.{@\^\\TeX@>}', the backslash character gets in the way,
+and this entry wouldn't appear in the index with the T's.
+
+The solution is to use the `\.{@:}' feature, declaring a macro that
+simply removes a sort key as follows:
+$$\.{\\def\\9\#1\{\}}$$
+Now you can say, e.g., `\.{@:TeX\}\{\\TeX@>}' in your \.{WEB} file; \.{WEAVE}
+puts it into the index alphabetically, based on the sort key, and
+produces the macro call `\.{\\9\{TeX\}\{\\TeX\}}' which will ensure that
+the sort key isn't printed.
+
+A similar idea can be used to insert hidden material into module
+names so that they are alphabetized in whatever way you might wish.
+Some people call these tricks ``special refinements''; others call
+them ``kludges''.
+
+\point 12. The control sequence \.{\\modno} is set to the number of the
+module being typeset.
+
+\point 13. If you want to list only the modules that have changed,
+together with the index, put the command `\.{\\let\\maybe=\\iffalse}' in
+the limbo section before the first module of your \.{WEB} file. It's
+customary to make this the first change in your change file.
+
+\vfill\eject
+
+\def\runninghead{APPENDIX H --- GETTING STARTED}
+\section Appendix H: Installing the \.{WEB} system.
+Suppose you want to use the \.{WEB} programs on your computer, and suppose
+that you can't simply borrow them from somebody else who has the same
+kind of machine. Here's what to do:
+
+\yskip
+\def\step(#1){\par\hangindent 2em\noindent\hbox to 2em{\hfil(#1) }\ignorespaces}
+\step(1) Get a tape that contains the files \.{WEAVE.WEB}, \.{TANGLE.WEB},
+\.{TANGLE.PAS}, and \.{WEBMAC.TEX}. The tape will probably also contain an
+example change file \.{TANGLE.CH}.
+\step(2) Look at the sections of \.{TANGLE} that are listed under ``system
+dependencies'' in the index of Appendix~E above, and figure out what changes
+(if any) will be needed for your system.
+\step(3) Make a change file \.{TANGLE.CH} that contains the changes of~(2);
+do not change your copy of \.{TANGLE.WEB}, leave it intact. (The
+rules for change files are explained at the end of the manual just before
+the appendices; you may want to look at the example change file that
+arrived with your copy of \.{TANGLE.WEB}. It's also a good idea to
+define all the ``switches'' like \&{debug} and \&{gubed} to be null in your
+first change files; then you can sure that your compiler will handle
+all of the code.)
+\step(4) Make the changes of (2) in your copy of \.{TANGLE.PAS}. (If these
+changes are extensive, you might be better off finding some computer that
+that already has \.{TANGLE} running, and making the new \.{TANGLE.PAS}
+from \.{TANGLE.WEB} and your \.{TANGLE.CH}.)
+\step(5) Use your \PASCAL\ compiler to convert your copy of \.{TANGLE.PAS}
+to a running program \.{TANGLE}.
+\step(6) Check your changes as follows: Run \.{TANGLE} on \.{TANGLE.WEB}
+and your \.{TANGLE.CH}, yielding $\.{TANGLE.PAS}'$; make a running
+program $\.{TANGLE}'$ by applying \PASCAL\ to
+$\.{TANGLE.PAS}'$; run $\.{TANGLE}'$ on \.{TANGLE.WEB} and
+your \.{TANGLE.CH}, yielding $\.{TANGLE.PAS}''$; and check
+that $\.{TANGLE.PAS}''$ is identical to
+$\.{TANGLE.PAS}'$. Once this test has been passed, you have got a
+working \.{TANGLE} program.
+\step(7) Make a change file \.{WEAVE.CH} analogous to (3), but this time
+consider the system-dependent parts of \.{WEAVE} that are listed in
+the index to Appendix~D.
+\step(8) Run \.{TANGLE} on \.{WEAVE.WEB} and your \.{WEAVE.CH}, obtaining
+\.{WEAVE.PAS}.
+\step(9) Use \PASCAL\ on \.{WEAVE.PAS} to make a running \.{WEAVE} program.
+\step(10) Run \.{WEAVE} on \.{TANGLE.WEB} and \.{TANGLE.CH} to produce
+\.{TANGLE.TEX}.
+\step(11) Run \TeX\ on \.{TANGLE.TEX}, obtaining a listing analogous to
+Appendix~E. This listing will incorporate your changes.
+\step(12) Run \.{WEAVE} on \.{WEAVE.WEB} and your \.{WEAVE.CH} to produce
+\.{WEAVE.TEX}.
+\step(13) Run \TeX\ on \.{WEAVE.TEX}, obtaining a listing analogous to
+Appendix~D that incorporates your changes.
+
+\yskip\noindent
+This description assumes that you already have a working \TeX82 system.
+But what if you don't have \TeX82? Then you start with a tape that also
+contains \.{TEX.WEB} and \.{plain.tex}, and you refer to a hardcopy
+listing of the \TeX82 program corresponding to \.{TEX.WEB}. Between steps
+(10) and (11) you do the following:
+
+\yskip
+\def\substep(10.#1){\par\hangindent 4em\noindent
+  \hbox to 4em{\hfil(10.#1) }\ignorespaces}
+\substep(10.1) Make a change file \.{TEX.CH} to fix the system dependent
+portions of \.{TEX.WEB}, in a manner analogous to step~(2). Since \TeX\ is
+a much more complex program than \.{WEAVE} or \.{TANGLE}, there are more
+system-dependent features to think about, but by now you will be good at
+making such modifications. Do not make any changes to \.{TEX.WEB}.
+\substep(10.2) Make an almost-copy of your \.{TEX.CH} called \.{INITEX.CH};
+this one will have the `\&{init}' and `\&{tini}' macros redefined in order
+to make the initialization version of \TeX. It also might have smaller
+font memory and dynamic memory areas, since \.{INITEX} doesn't need as
+much memory for such things; by setting the memory smaller in \.{INITEX},
+you guarantee that the production system will have a ``cushion.''
+\substep(10.3) Run \.{TANGLE} on \.{TEX.WEB} and \.{INITEX.CH}, obtaining
+\.{INITEX.PAS} and \.{TEX.POOL}.
+\substep(10.4) Run \PASCAL\ on \.{INITEX.PAS}, obtaining \.{INITEX}.
+\substep(10.5) Run \.{INITEX} on \.{TEX.POOL}, during which run you type
+`\.{plain}' and `\.{\\dump}'. This will produce a file \.{plain.fmt}
+containing the data needed to initialize \TeX's memory.
+\substep(10.6) Run \.{TANGLE} on \.{TEX.WEB} and the \.{TEX.CH} of (10.1),
+obtaining \.{TEX.PAS}.
+\substep(10.7) Run \PASCAL\ on \.{TEX.PAS}, obtaining \.{VIRTEX}.
+\substep(10.8) If your operating system supports programs whose core images
+have been saved, run \.{VIRTEX}, type `\.{\&plain}', then save the core image
+and call it \TeX. Otherwise, \.{VIRTEX} will be your \TeX, and it will
+read `\.{plain.fmt}' (or some other \.{fmt} file) each time you run.
+
+\yskip
+This 21-step process may seem long, but it is actually an oversimplification,
+since you also need fonts and a way to print the device-independent files
+that \TeX\ spews out. On the other hand, the total number of steps is not
+quite so large when you consider that \.{TANGLE}-followed-by-\PASCAL\ and
+\.{WEAVE}-followed-by-\TeX\ may be regarded as single operations.
+
+If you have only the present report, not a tape, you will have to prepare
+files \.{WEAVE.WEB} and \.{TANGLE.WEB} by hand, typing them into the
+computer by following Appendices D and E. Then you have to simulate the
+behavior of \.{TANGLE} by converting \.{TANGLE.WEB} manually into
+\.{TANGLE.PAS}; with a good text editor this takes about six hours. Then
+you have to correct errors that were made in all this hand work; but still
+the whole project is not impossibly difficult, because in fact the entire
+development of \.{WEAVE} and \.{TANGLE} (including the writing of the
+programs and the manual) took less than two months of work.
+
+\vfill\end

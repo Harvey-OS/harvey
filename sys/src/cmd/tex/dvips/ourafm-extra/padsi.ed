@@ -1,0 +1,53 @@
+762c
+   )
+(CHARACTER O 12 (comment ff)
+   (CHARWD R 544)
+   (CHARHT R 715)
+   (CHARDP R 269)
+   (CHARIC R 299)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 126)
+      )
+   )
+(CHARACTER O 13 (comment ffi)
+   (CHARWD R 785)
+   (CHARHT R 715)
+   (CHARDP R 269)
+   (CHARIC R 104)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 131)
+      )
+   )
+(CHARACTER O 14 (comment ffl)
+   (CHARWD R 786)
+   (CHARHT R 715)
+   (CHARDP R 269)
+   (CHARIC R 145)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 132)
+      )
+   )
+.
+577a
+   (LIG C f O 12)
+.
+576a
+   (LABEL O 12)
+   (LIG C l O 14)
+   (LIG C i O 13)
+   (STOP)
+.
+22a
+(MAPFONT D 1
+   (FONTNAME rpadsxi)
+   (FONTCHECKSUM O 35177776770)
+   )
+.
+1c
+(VTITLE Created by afm2tfm AGaramond-SemiboldItalic -v padsi_raw, ff ligs added)
+.
+w padsi.vpl
+q

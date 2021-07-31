@@ -9,7 +9,7 @@
 int faulting;
 
 void
-fault386(Ureg *ur, void *a)
+fault386(Ureg *ur)
 {
 	ulong addr;
 	int read;
@@ -18,15 +18,12 @@ fault386(Ureg *ur, void *a)
 	int insyscall;
 	char buf[ERRLEN];
 
-	USED(a);
-
 	insyscall = u->p->insyscall;
 	u->p->insyscall = 1;
 	addr = getcr2();
 	read = !(ur->ecode & 2);
 	user = (ur->cs&0xffff) == UESEL;
 	spllo();
-/* print("F%d:A#%lux:U%d:R%d|", u->p->pid, addr, user, read);/**/
 	n = fault(addr, read);
 	if(n < 0){
 		if(user){
@@ -44,5 +41,5 @@ fault386(Ureg *ur, void *a)
 void
 faultinit(void)
 {
-	setvec(Faultvec, fault386, 0);
+	setvec(Faultvec, fault386);
 }

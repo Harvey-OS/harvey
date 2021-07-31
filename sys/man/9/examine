@@ -1,0 +1,24 @@
+.TH EXAMINE 9.1
+.SH NAME
+examine \- examine pixel values interactively
+.SH SYNOPSIS
+.B fb/examine
+[
+.I input
+]
+.SH DESCRIPTION
+.I Examine
+displays an approximation of its argument picture file
+(default standard input) in the middle of the screen or window
+and waits for mouse input.  Button 1 selects
+pixels, whose coordinates and values are written to standard
+output.  Button 2 refreshes the display, which can be overwritten
+by
+.IR examine 's
+output.  Button 3 exits.
+.SH "SEE ALSO
+.IR picfile (9.6)
+.SH BUGS
+For compatibility with other programs, buttons 2 and 3
+should pop up menus.  But single-item menus are silly, and it's
+too much to have two of them.

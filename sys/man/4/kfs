@@ -3,35 +3,24 @@
 kfs \- disk file system
 .SH SYNOPSIS
 .B disk/kfs
-[
-.B -rc
-] [
-.B -b
-.I n
-] [
-.B -f
-.I file
-] [
-.B -n
-.I name
-] [
-.B -s
-]
+.RB [ -rc ]
+.RB [ -b
+.IR n ]
+.RB [ -f
+.IR file ]
+.RB [ -n
+.IR name ]
+.RB [ -s ]
 .SH DESCRIPTION
 .I Kfs
 is a local user-level file server for a Plan 9 terminal with a disk.
-It maintains a hierarchical Plan 9 file system on the disk
-and offers
-9P (see
-.IR intro (5))
-access to it.
 .B Kfs
 begins by
 checking the file system for consistency,
 rebuilding the free list, and placing a file descriptor in
-.BI /srv/ name\f1,
+.RI /srv/ service ,
 where
-.I name
+.I service
 is the service name (default
 .IR kfs ).
 If the file system is inconsistent,
@@ -41,7 +30,6 @@ the disk.
 The file system is not checked if it is reamed.
 .PP
 The options are
-.TF "n name"
 .TP
 .BI "b " n
 If the file system is reamed, use
@@ -62,9 +50,9 @@ Do not check the file system.
 .BI "f " file
 Use
 .I file
-as the disk.
+as the block storage file.
 The default is 
-.BR /dev/sd0fs .
+.BR /dev/hd0fs .
 .TP
 .BI "n " name
 Use
@@ -79,27 +67,25 @@ and adding all blocks to the free list.
 Post file descriptor zero in
 .BI /srv/ service
 and read and write protocol messages on file descriptor one.
-.PD
 .SH EXAMPLES
-Create a file system with service name
-.I kfs.local
-and mount it on
-.BR /n/kfs .
-.IP
 .EX
 % kfs -rb4096 -nlocal
 % mount -c /srv/kfs.local /n/kfs
 .EE
 .PP
+Create a file system with service name
+.I kfs.local
+and mount it on
+.BR /n/kfs .
 .SH FILES
-.TF /dev/sd0fs
+.TF \w'/dev/hd0fsXXXX'u
 .TP
-.B /dev/sd0fs
+.B /dev/hd0fs
 Default file holding blocks.
-.SH SOURCE
-.B /sys/src/cmd/disk/kfs
 .SH "SEE ALSO"
 .IR kfscmd (8),
 .IR mkfs (8),
 .IR prep (8),
-.IR wren (3)
+.IR hard (3)
+.SH BUGS
+This file system is known to be unreliable and shouldn't be depended on.

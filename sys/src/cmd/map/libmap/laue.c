@@ -2,9 +2,9 @@
 
 
 static int
-Xlaue(struct place *place, double *x, double *y)
+Xlaue(struct place *place, float *x, float *y)
 {
-	double r;
+	float r;
 	if(place->nlat.l<PI/4+FUZZ)
 		return(-1);
 	r = tan(PI-2*place->nlat.l);

@@ -62,14 +62,3 @@ s_new(void)
 	s_terminate(sp);
 	return sp;
 }
-
-extern int
-s_isfree(String *sp)
-{
-	String *s;
-
-	for(s = freed; s; s = (String *)(s->ptr))
-		if(s == sp)
-			return 1;
-	return 0;
-}

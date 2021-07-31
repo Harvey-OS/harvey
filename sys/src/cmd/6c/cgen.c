@@ -62,7 +62,7 @@ cgen(Node *n, Node *nn)
 		break;
 
 	case OAS:
-		if(typefd[n->type->etype]) {
+		if(typefdv[n->type->etype]) {
 			diag(n, "no floating");
 			return;
 		}
@@ -137,9 +137,9 @@ cgen(Node *n, Node *nn)
 		 */
 		if(nn != Z)
 		if(r->op == OCONST)
-		if(!typefd[n->type->etype]) {
+		if(!typefdv[n->type->etype]) {
 			cgen(l, nn);
-			if(r->vconst == 0)
+			if(r->offset == 0)
 			if(o != OAND)
 				break;
 			if(nn != Z)
@@ -157,7 +157,7 @@ cgen(Node *n, Node *nn)
 			nullwarn(l, r);
 			break;
 		}
-		if(typefd[n->type->etype])
+		if(typefdv[n->type->etype])
 			goto fop;
 		if(l->complex >= r->complex) {
 			regalloc(&nod, l, nn);
@@ -192,7 +192,9 @@ cgen(Node *n, Node *nn)
 	case OASDIV:
 	case OASMOD:
 	asand:
-		if(typefd[n->type->etype])
+		while(l->op == OCAST)
+			l = l->left;
+		if(typefdv[n->type->etype])
 			goto asfop;
 		if(l->complex >= r->complex) {
 			if(l->addable < INDEXED)
@@ -284,11 +286,11 @@ cgen(Node *n, Node *nn)
 		while(r->op == OADD)
 			r = r->right;
 		if(sconst(r)) {
-			v = r->vconst;
-			r->vconst = 0;
+			v = r->offset;
+			r->offset = 0;
 			cgen(l, &nod);
-			nod.xoffset += v;
-			r->vconst = v;
+			nod.offset += v;
+			r->offset = v;
 		} else
 			cgen(l, &nod);
 		regind(&nod, n);
@@ -364,7 +366,7 @@ cgen(Node *n, Node *nn)
 				diag(n, "DOT and no offset");
 				break;
 			}
-			nod.xoffset += r->vconst;
+			nod.offset += r->offset;
 			nod.type = n->type;
 			cgen(&nod, nn);
 		}
@@ -401,7 +403,7 @@ cgen(Node *n, Node *nn)
 		regalloc(&nod, l, nn);
 		gmove(&nod2, &nod);
 		regalloc(&nod1, l, Z);
-		if(typefd[l->type->etype]) {
+		if(typefdv[l->type->etype]) {
 			diag(n, "no floating");
 		} else
 			gopcode(OADD, nodconst(v), &nod, &nod1);
@@ -431,7 +433,7 @@ cgen(Node *n, Node *nn)
 
 		regalloc(&nod, l, nn);
 		gmove(&nod2, &nod);
-		if(typefd[l->type->etype]) {
+		if(typefdv[l->type->etype]) {
 			diag(n, "no floating");
 		} else
 			gopcode(OADD, nodconst(v), Z, &nod);
@@ -470,11 +472,11 @@ reglcgen(Node *t, Node *n, Node *nn)
 		while(r->op == OADD)
 			r = r->right;
 		if(sconst(r)) {
-			v = r->vconst;
-			r->vconst = 0;
+			v = r->offset;
+			r->offset = 0;
 			lcgen(n, t);
-			t->xoffset += v;
-			r->vconst = v;
+			t->offset += v;
+			r->offset = v;
 			regind(t, n);
 			return;
 		}
@@ -563,7 +565,7 @@ boolgen(Node *n, int true, Node *nn)
 		o = ONE;
 		if(true)
 			o = comrel[relindex(o)];
-		if(typefd[n->type->etype]) {
+		if(typefdv[n->type->etype]) {
 			diag(n, "no floating");
 		} else
 			gopcode(o, &nod, Z, nodconst(0L));
@@ -659,7 +661,7 @@ boolgen(Node *n, int true, Node *nn)
 			boolgen(&nod, true, nn);
 			break;
 		}
-		if(typefd[l->type->etype]) {
+		if(typefdv[l->type->etype]) {
 			diag(n, "no floating");
 			break;
 		}
@@ -747,35 +749,13 @@ sugen(Node *n, Node *nn, long w)
 				diag(n, "DOT and no offset");
 				break;
 			}
-			nod1.xoffset += r->vconst;
+			nod1.offset += r->offset;
 			nod1.type = n->type;
 			sugen(&nod1, nn, w);
 		}
 		break;
 
 	case OSTRUCT:
-		/*
-		 * rewrite so lhs has no fn call
-		 */
-		if(nn != Z && nn->complex >= FNX) {
-			nod1 = *n;
-			nod1.type = typ(TIND, n->type);
-			regret(&nod2, &nod1);
-			lcgen(nn, &nod2);
-			regsalloc(&nod0, &nod1);
-			gopcode(OAS, &nod2, Z, &nod0);
-			regfree(&nod2);
-
-			nod1 = *n;
-			nod1.op = OIND;
-			nod1.left = &nod0;
-			nod1.right = Z;
-			nod1.complex = 1;
-
-			sugen(n, &nod1, w);
-			return;
-		}
-
 		r = n->left;
 		for(t = n->type->link; t != T; t = t->down) {
 			l = r;
@@ -815,7 +795,7 @@ sugen(Node *n, Node *nn, long w)
 			nod4 = znode;
 			nod4.op = OCONST;
 			nod4.type = nod2.type;
-			nod4.vconst = t->offset;
+			nod4.offset = t->offset;
 
 			ccom(&nod0);
 			acom(&nod0);
@@ -963,29 +943,29 @@ layout(Node *f, Node *t, int c, int cv, Node *cn)
 	regalloc(&t2, &regnode, Z);
 	if(c > 0) {
 		gmove(f, &t1);
-		f->xoffset += SZ_LONG;
+		f->offset += SZ_LONG;
 	}
 	if(cn != Z)
 		gmove(nodconst(cv), cn);
 	if(c > 1) {
 		gmove(f, &t2);
-		f->xoffset += SZ_LONG;
+		f->offset += SZ_LONG;
 	}
 	if(c > 0) {
 		gmove(&t1, t);
-		t->xoffset += SZ_LONG;
+		t->offset += SZ_LONG;
 	}
 	if(c > 2) {
 		gmove(f, &t1);
-		f->xoffset += SZ_LONG;
+		f->offset += SZ_LONG;
 	}
 	if(c > 1) {
 		gmove(&t2, t);
-		t->xoffset += SZ_LONG;
+		t->offset += SZ_LONG;
 	}
 	if(c > 2) {
 		gmove(&t1, t);
-		t->xoffset += SZ_LONG;
+		t->offset += SZ_LONG;
 	}
 	regfree(&t1);
 	regfree(&t2);

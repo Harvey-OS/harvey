@@ -1,44 +1,14 @@
-%%% ====================================================================
-%%%  @BibTeX-style-file{
-%%%     filename        = "amsplain.bst",
-%%%     version         = "1.2",
-%%%     date            = "20-Jan-1995",
-%%%     time            = "09:33:33 EST",
-%%%     checksum        = "29816 1241 3733 26829",
-%%%     author          = "American Mathematical Society",
-%%%     address         = "American Mathematical Society,
-%%%                        Technical Support,
-%%%                        Electronic Products and Services,
-%%%                        P. O. Box 6248,
-%%%                        Providence, RI 02940,
-%%%                        USA",
-%%%     telephone       = "401-455-4080 or (in the USA and Canada)
-%%%                        800-321-4AMS (321-4267)",
-%%%     FAX             = "401-331-3842",
-%%%     email           = "tech-support@math.ams.org (Internet)",
-%%%     copyright       = "Copyright (C) 1995 American Mathematical Society,
-%%%                        all rights reserved.  Copying of this file is
-%%%                        authorized only if either:
-%%%                        (1) you make absolutely no changes to your copy,
-%%%                        including name; OR
-%%%                        (2) if you do make changes, you first rename it
-%%%                        to some other name.",
-%%%     supported       = "yes",
-%%%     keywords        = "bibtex, bibliography, amslatex, ams-latex",
-%%%     abstract        = "BibTeX bibliography style `amsplain' for BibTeX
-%%%                        versions 0.99a or later and LaTeX version 2e.
-%%%                        Produces alphabetic-label bibliography items in
-%%%                        a form typical for American Mathematical Society
-%%%                        publications.",
-%%%     docstring       = "The checksum field above contains a CRC-16
-%%%                        checksum as the first value, followed by the
-%%%                        equivalent of the standard UNIX wc (word
-%%%                        count) utility output of lines, words, and
-%%%                        characters.  This is produced by Robert
-%%%                        Solovay's checksum utility.",
-%%%  }
-%%% ====================================================================
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSPLAIN.BST						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BibTeX bibliography style `ams'
+% version 0.9 for BibTeX versions 0.99a or later, LaTeX version 2.09.
 % See the file btxbst.doc for extra documentation other than
 % what is included here.  And see btxhak.tex for a description
 % of the BibTeX language and how to use it.
@@ -48,37 +18,37 @@
 % this is the standard list from plain.bst.
 
 %% Types of entries currently allowed in a BibTeX file:
-%%
+%% 
 %% ARTICLE -- An article from a journal or magazine.
-%%
+%% 
 %% BOOK -- A book with an explicit publisher.
-%%
+%% 
 %% BOOKLET -- A work that is printed and bound,
 %% but without a named publisher or sponsoring institution.
-%%
+%% 
 %% CONFERENCE -- The same as INPROCEEDINGS,
 %% included for Scribe compatibility.
-%%
+%% 
 %% INBOOK -- A part of a book,
 %% which may be a chapter (or section or whatever) and/or a range of pages.
-%%
+%% 
 %% INCOLLECTION -- A part of a book having its own title.
-%%
+%% 
 %% INPROCEEDINGS -- An article in a conference proceedings.
-%%
-%% MANUAL -- Technical documentation.
-%%
+%% 
+%% MANUAL -- Technical documentation.  
+%% 
 %% MASTERSTHESIS -- A Master's thesis.
-%%
+%% 
 %% MISC -- Use this type when nothing else fits.
-%%
+%% 
 %% PHDTHESIS -- A PhD thesis.
-%%
+%% 
 %% PROCEEDINGS -- The proceedings of a conference.
-%%
+%% 
 %% TECHREPORT -- A report published by a school or other institution,
 %% usually numbered within a series.
-%%
+%% 
 %% UNPUBLISHED -- A document having an author and title, but not formally
 %% published.
 
@@ -129,14 +99,6 @@ FUNCTION {shows}
 { duplicate$ "::::  `" swap$ * "'" * top$
 }
 
-FUNCTION {showstack}
-{"STACK====================================================================="
-top$
-stack$
-"ENDSTACK=================================================================="
-top$
-}
-
 FUNCTION {not}
 {   { #0 }
     { #1 }
@@ -165,7 +127,7 @@ FUNCTION {field.or.null}
 FUNCTION {emphasize}
 { duplicate$ empty$
     { pop$ "" }
-    { "\emph{" swap$ * "}" * }
+    { "{\em " swap$ * "}" * }
   if$
 }
 
@@ -198,7 +160,7 @@ FUNCTION {n.dashify}
 }
 
 % tie.or.space.connect connects two items with a ~ if the
-% second item is less than 3 letters long, otherwise it just puts an
+% second item is less than 3 letters long, otherwise it just puts an 
 % ordinary space.
 
 FUNCTION {tie.or.space.connect}
@@ -230,14 +192,14 @@ FUNCTION {either.or.check}
 
 FUNCTION {output.nonnull}
 % remove the top item from the stack because it's in the way.
-{ 's :=
+{ 's := 
   output.state mid.sentence =
 % If we're in mid-sentence, add a comma to the new top item and write it
-    { ", " * write$ }
+    { ", " * write$ } 
 % Otherwise, if we're at the beginning of a bibitem,
     { output.state before.all =
 % just write out the top item from the stack;
-      'write$
+        'write$
 % and the last alternative is that we're at the end of the current
 % bibitem, so we add a period to the top stack item and write it out.
         { add.period$ " " * write$ }
@@ -259,13 +221,6 @@ FUNCTION {output}
   if$
 }
 
-% Standard warning message for a missing or empty field. For the user
-% we call any such field `missing' without respect to the distinction
-% made by BibTeX between missing and empty.
-
-FUNCTION {missing.warning}
-{ "missing " swap$ * " in " * cite$ * warning$ }
-
 % Output.check is like output except that it gives a warning on-screen
 % if the given field in the database entry is empty.  t is the field
 % name.
@@ -273,7 +228,7 @@ FUNCTION {missing.warning}
 FUNCTION {output.check}
 { 't :=
   duplicate$ empty$
-    { pop$ t missing.warning }
+    { pop$ "empty " t * " in " * cite$ * warning$ }
     'output.nonnull
   if$
 }
@@ -292,9 +247,16 @@ FUNCTION {output.bibitem}
   before.all 'output.state :=
 }
 
+% The extra section to write out a language field was added
+% for AMS.BST.  Not present in plain.bst.
+
 FUNCTION {fin.entry}
 { add.period$
   write$
+  language empty$
+    'skip$
+    { " (" language * ")" * write$ }
+  if$
   newline$
 }
 
@@ -304,16 +266,6 @@ FUNCTION {fin.entry}
 % basic functions like `and' and 'or' earlier in the file.
 
 INTEGERS { nameptr namesleft numnames }
-
-% The extra section to write out a language field was added
-% for AMSPLAIN.BST.  Not present in plain.bst.
-
-FUNCTION {format.language}
-{ language empty$
-    { "" }
-    { " (" language * ")" * }
-  if$
-}
 
 % This version of format.names puts names in the format
 %
@@ -366,18 +318,6 @@ FUNCTION {format.editors}
     { "" }
     { editor format.names
       editor num.names$ #1 >
-	{ " (eds.)" * }
-	{ " (ed.)" * }
-      if$
-    }
-  if$
-}
-
-FUNCTION {format.nonauthor.editors}
-{ editor empty$
-    { "" }
-    { editor format.names
-      editor num.names$ #1 >
 	{ ", eds." * }
 	{ ", ed." * }
       if$
@@ -394,16 +334,17 @@ FUNCTION {format.title}
 
 FUNCTION {format.journal.vol.year}
 { journal empty$
-    { "journal name" missing.warning ""}
-    { journal }
-  if$
-  volume empty$
-    'skip$
-    { " \textbf{" * volume * "}" * }
-  if$
-  year empty$
-    { "year" missing.warning }
-    { " (" * year * ")" * }
+    { "journal name missing in " cite$ * warning$ }
+    { journal
+      volume empty$ 
+        'skip$
+        { " {\bf " * volume * "}" * }
+      if$
+      year empty$
+        { "year missing in " cite$ * warning$ }
+        { " (" * year * ")" * }
+      if$
+    }
   if$
 }
 
@@ -438,30 +379,29 @@ FUNCTION {format.date}
 %%      The volume, series and number information is sort of tricky.
 %%      This code handles it as follows:
 %%      If the series is present, and the volume, but not the number,
-%%        then we do "\emph{Book title}, Series Name, vol. 000"
+%%        then we do "{\em Book title}, Series Name, vol. 000"
 %%      If the series is present, and the number, but not the volume,
-%%        then we do "\emph{Book title}, Series Name, no. 000"
+%%        then we do "{\em Book title}, Series Name, no. 000"
 %%      If the series is present, and both number and volume,
-%%        then we do "\emph{Book title}, vol. XX, Series Name, no. 000"
-%%      Finally, if the series is absent,
-%%        then we do "\emph{Book title}, vol. XX"
-%%        or         "\emph{Book title}, no. 000"
+%%        then we do "{\em Book title}, vol. XX, Series Name, no. 000"
+%%      Finally, if the series is absent, 
+%%        then we do "{\em Book title}, vol. XX"
+%%        or         "{\em Book title}, no. 000"
 %%        and if both volume and number are present, give a warning message.
 
 FUNCTION {format.bookvolume.series.number}
 { volume empty$
-    { "" % Push the empty string as a placeholder in case everything else
-         % is empty too.
+    { "" % Push the empty string as a placeholder in case everything else is empty too.
       series empty$
         'skip$
-        { pop$ series } % if series is not empty put in stack
+        { series } % if series is not empty put in stack
       if$
       number empty$
         'skip$
         { duplicate$ empty$ % if no preceding material,
             'skip$          % do nothing, otherwise
             { ", " * }      % add a comma and space to separate.
-          if$
+          if$ 
           "no." number tie.or.space.connect * % add the number information
         }
       if$
@@ -475,9 +415,9 @@ FUNCTION {format.bookvolume.series.number}
           if$
         }
         { series empty$
-            { "can't use both volume and number if series info is missing"
+            { "can't use both volume and number if series info is missing" 
               warning$
-              "in BibTeX entry type `" type$ * "'" * top$
+              "in BibTeX entry type `" type$ * "'" * top$ 
             }
             { ", " * series * ", no." * number tie.or.space.connect }
           if$
@@ -488,14 +428,15 @@ FUNCTION {format.bookvolume.series.number}
 
 }  % end of format.bookvolume.series.number
 
-%% format.inproc.title.where.editors is used by inproceedings entry types
+%% format.inproc.title.where.editors is
+%% used by inproceedings and incollection entry types
 
 FUNCTION {format.inproc.title.address.editors}
 { booktitle empty$
     { "" }
 %%      No case changing or emphasizing for the title.  We want initial
 %%      caps, roman.
-    { booktitle }
+    { booktitle } 
   if$
 %%      We add parentheses around the address (place where conference
 %%      was held).
@@ -506,39 +447,22 @@ FUNCTION {format.inproc.title.address.editors}
 %%      Likewise we add parentheses around the editors' names.
   editor empty$
     'skip$
-    { add.space.if.necessary "(" * format.nonauthor.editors * ")" * }
+    { add.space.if.necessary "(" * format.editors * ")" * }
   if$
 }
 
-%% format.incoll.title.editors is similar to format.inproc... but
-%% omits the address. For collections that are not proceedings volumes.
-
-FUNCTION {format.incoll.title.editors}
-{ booktitle empty$
-    { "" }
-%%      No case changing or emphasizing for the title.  We want initial
-%%      caps, roman.
-    { booktitle }
-  if$
-%%      We add parentheses around the editors' names.
-  editor empty$
-    'skip$
-    { add.space.if.necessary "(" * format.nonauthor.editors * ")" * }
-  if$
-}
-
-% Desired output for format.number.series:
+% Desired output:
 %
 % Lecture Notes in Math., no.~1224
 
 FUNCTION {format.number.series}
 { series empty$
-    { number empty$
+    { number empty$ 
         { "" }
         { "there's a number but no series in " cite$ * warning$ }
       if$
     }
-    { series
+    { series 
       number empty$
         'skip$
         { ", no.~" * number * }
@@ -598,6 +522,7 @@ FUNCTION {format.book.pages}
   if$
 }
 
+
 FUNCTION {format.chapter.pages}
 { chapter empty$
     'format.pages
@@ -613,6 +538,7 @@ FUNCTION {format.chapter.pages}
     }
   if$
 }
+
 
 FUNCTION {empty.misc.check}
 { author empty$ title empty$ howpublished empty$
@@ -643,6 +569,7 @@ FUNCTION {format.tr.number}
     { number tie.or.space.connect }
   if$
 }
+
 
 % The format.crossref functions haven't been paid much attention
 % at the present time (June 1990) and could probably use some
@@ -719,7 +646,7 @@ FUNCTION {format.incoll.inproc.crossref}
 	      crossref * warning$
 	      ""
 	    }
-	    { "In \emph{" booktitle * "}" * }
+	    { "In {\em " booktitle * "\/}" * }
 	  if$
 	}
 	{ "In " key * }
@@ -742,7 +669,7 @@ FUNCTION {article}
   format.authors "author" output.check
   format.title "title" output.check
   crossref missing$
-    { format.journal.vol.year output
+    { format.journal.vol.year "journal, volume, and year" output.check
       format.number output
       format.pages "pages" output.check
     }
@@ -750,7 +677,6 @@ FUNCTION {article}
       format.pages output
     }
   if$
-  format.language *
   note output
   fin.entry
 }
@@ -767,7 +693,6 @@ FUNCTION {book}
     }
   if$
   format.title "title" output.check
-  format.edition output
   crossref missing$
     { format.bookvolume.series.number output
       publisher "publisher" output.check
@@ -776,8 +701,8 @@ FUNCTION {book}
     { format.book.crossref output.nonnull
     }
   if$
+  format.edition output
   format.date "year" output.check
-  format.language *
   note output
   fin.entry
 }
@@ -819,9 +744,16 @@ FUNCTION {inbook}
   format.edition output
   format.date "year" output.check
   format.book.pages output
-  format.language *
   note output
   fin.entry
+}
+
+FUNCTION {showstack}
+{"STACK====================================================================="
+top$
+stack$
+"ENDSTACK=================================================================="
+top$
 }
 
 FUNCTION {incollection}
@@ -829,7 +761,7 @@ FUNCTION {incollection}
   format.authors "author" output.check
   format.title "title" output.check
   crossref missing$
-    { format.incoll.title.editors "booktitle" output.check
+    { format.inproc.title.address.editors "booktitle" output.check
       format.bookvolume.series.number output
       publisher "publisher" output.check
       address output
@@ -841,7 +773,6 @@ FUNCTION {incollection}
   if$
   note output
   format.book.pages output
-  format.language *
   fin.entry
 }
 
@@ -854,14 +785,12 @@ FUNCTION {inproceedings}
       format.bookvolume.series.number output
       organization output
       publisher output
-      format.date "year" output.check
     }
     { format.incoll.inproc.crossref output.nonnull
     }
   if$
   note output
   format.book.pages output
-  format.language *
   fin.entry
 }
 
@@ -950,12 +879,12 @@ FUNCTION {proceedings}
       format.date "year" output.check
     }
     { address output.nonnull
+      format.date "year" output.check
       editor empty$
 	'skip$
 	{ organization output }
       if$
       publisher output
-      format.date "year" output.check
     }
   if$
   note output
@@ -1156,7 +1085,7 @@ ITERATE {presort}
 
 SORT
 
-STRINGS { longest.label prev.author this.author }
+STRINGS { longest.label prev.author }
 
 INTEGERS { number.label longest.label.width }
 
@@ -1165,7 +1094,6 @@ FUNCTION {initialize.longest.label}
   #1 'number.label :=
   #0 'longest.label.width :=
   "abcxyz" 'prev.author :=
-  "" 'this.author :=
 }
 
 FUNCTION {longest.label.pass}
@@ -1177,23 +1105,10 @@ FUNCTION {longest.label.pass}
     }
     'skip$
   if$
-  author empty$
-    { editor empty$
-      { "" }
-      'editor
-      if$
-    }
-    'author
-  if$
-  'this.author :=
-  this.author prev.author =
+  author prev.author =
     { "\bysame" 'extra.label := }
     { "" 'extra.label :=
-      this.author "" =
-        { "abcxyz" }
-        'this.author
-      if$
-      'prev.author :=
+      author 'prev.author := 
     }
   if$
 }
@@ -1207,7 +1122,9 @@ FUNCTION {begin.bib}
     'skip$
     { preamble$ write$ newline$ }
   if$
-  "\providecommand{\bysame}{\leavevmode\hbox to3em{\hrulefill}\thinspace}"
+  "\makeatletter \renewcommand{\@biblabel}[1]{\hfill#1.}\makeatother"
+       write$ newline$
+  "\newcommand{\bysame}{\leavevmode\hbox to3em{\hrulefill}\,}"
        write$ newline$
   "\begin{thebibliography}{"  longest.label  * "}" * write$ newline$
 }
@@ -1224,18 +1141,3 @@ FUNCTION {end.bib}
 }
 
 EXECUTE {end.bib}
-%% \CharacterTable
-%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
-%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
-%%   Digits        \0\1\2\3\4\5\6\7\8\9
-%%   Exclamation   \!     Double quote  \"     Hash (number) \#
-%%   Dollar        \$     Percent       \%     Ampersand     \&
-%%   Acute accent  \'     Left paren    \(     Right paren   \)
-%%   Asterisk      \*     Plus          \+     Comma         \,
-%%   Minus         \-     Point         \.     Solidus       \/
-%%   Colon         \:     Semicolon     \;     Less than     \<
-%%   Equals        \=     Greater than  \>     Question mark \?
-%%   Commercial at \@     Left bracket  \[     Backslash     \\
-%%   Right bracket \]     Circumflex    \^     Underscore    \_
-%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
-%%   Right brace   \}     Tilde         \~}

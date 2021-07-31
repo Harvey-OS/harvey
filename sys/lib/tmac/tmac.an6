@@ -1,0 +1,154 @@
+'''\"	Pwb Manual Entry Macros - Version 6 (@(#)an6.src	1.6)
+'''\"	Nroff/Troff Version	@(#)1.6
+.deTH
+.tmwrong version of man entry macros - use -man
+.ab
+..
+.rnbd Bd
+.rndt Dt
+.rnit il
+.nr}I 5n
+.nr}P 0 1
+.de}C
+.ev1
+.po0
+.lt7.5i
+.tl\-\-
+.lt
+.po
+.ev
+..
+.de}E
+.wh-1p }C
+..
+.ift .em }E
+.dei0
+.in\\n(}Iu
+.dt
+..
+.delp
+.tc
+.i0
+.ta\\$2n
+.in\\$1n
+.ti-\\$2n
+..
+.des1
+.sp1v
+.ne2
+..
+.des2
+.ift .sp .5v
+.ifn .sp 1v
+..
+.des3
+.ift .sp .5v
+.ifn .sp 1v
+.ne2
+..
+.de}F
+.ev1
+'ft1
+'ps10
+'sp.5i
+.tl- % -
+'ft
+'ps
+.ev
+'bp
+..
+.deth
+.de}X
+.ev1
+.ift .}C
+'ft1
+'ps10
+'sp.5i
+.tl''THIS MANUAL ENTRY NEEDS TO BE CONVERTED - SEE mancvt(1) and man(7)''
+.tl\\$1\|(\|\\$2\|)PWB/UNIX\| \\$3\\$1\|(\|\\$2\|)
+'ps
+'ft
+'sp.5i
+.ev
+\\..
+.wh-1i }F
+.wh0 }X
+.if\\n+(}P>1 .bp1
+.ft1
+.ft1
+.ps10
+.vs12p
+.ift .po .5i
+.in\\n(}Iu
+.fi
+.dt
+.mc
+.ad
+.ifn .na
+..
+.desh
+.s1
+.ift .ft 3
+.ps8
+.ti0
+\&\\$1
+.ift .ft
+.ps
+.br
+..
+.deit
+.ul
+.ie\\nV>1 _\\$1_
+.el\&\\$1
+..
+.debd
+.ift .ft 3
+.ifn .ul
+.ie\\nV>1 _\\$1_
+.el\&\\$1
+.ift .ft 
+..
+.debn
+.ift .ft 3
+.ifn .ul
+.ie\\nV>1 _\\$1_\t\&\c
+.el\&\\$1\t\&\c
+.ift .ft 
+..
+.dedt
+.ifn .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 80n
+.ift .ta .5i 1i 1.5i 2i 2.5i 3i 3.5i 4i 4.5i 5i 5.5i 6i 6.5i
+..
+'dsv \(bv
+'ds' \(aa
+'ds> \(->
+'dsX \(mu
+'ds_ _
+'ds- \-
+'dsG \(*G
+'dsg \(ga
+'dsp \(*p
+'dsa \(aa
+'dsb \(*b
+'dsr \(rg
+'ds| \|
+'dsu \(*m
+.if\nV=1 \{\
+.po4
+.ll80
+.lt80
+.ev1
+.ll80
+.lt80
+.ev\}
+.if\nV>1 \{\
+.ll82
+.lt82
+.ev1
+.ll82
+.lt82
+.ev
+.pl84
+.rmul\}
+.hy14
+.uf2

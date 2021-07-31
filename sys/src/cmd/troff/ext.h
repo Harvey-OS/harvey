@@ -9,7 +9,6 @@ extern	char	*unlkp;
 extern	char	*xbufp;
 extern	char	*xeibuf;
 extern	char	cfname[NSO+1][NS];
-extern  int	trace;
 extern	char	devname[];
 extern	char	ibuf[IBUFSZ];
 extern	char	mfiles[NMF][NS];
@@ -24,7 +23,6 @@ extern	Offset	ip;
 extern	Offset	nextb;
 extern	Offset	offset;
 extern	Offset	woff;
-extern	Numerr	numerr;
 extern	int	*pnp;
 extern	int	pstab[];
 extern	int	nsizes;
@@ -116,7 +114,7 @@ extern	int	tabch,	ldrch;
 extern	int	tflg;
 extern	int	totout;
 extern	int	trap;
-extern	Ushort	trtab[];
+extern	ushort	trtab[];
 extern	int	tty;
 extern	int	ulfont;
 extern	int	vflag;
@@ -135,7 +133,7 @@ extern	Tchar	*pbp;
 extern	Tchar	*lastpbp;
 extern	Tchar	ch;
 extern	Tchar	nrbits;
-extern	Tbuf	_oline;
+extern	Tchar	oline[];
 extern	Wcache	widcache[];
 extern	char	gchtab[];
 extern	Diver	d[NDI];
@@ -148,8 +146,6 @@ extern	char	*codestr;
 extern	char	*chnamep;
 extern	short	*chtab;
 extern	int	nchtab;
-
-extern Numtab *numtabp;
 
 /* these characters are used as various signals or values
 /* in miscellaneous places.
@@ -173,12 +169,3 @@ extern int	c_boxrule;
 extern int	c_lefthand;
 extern int	c_dagger;
 extern int	c_isalnum;
-
-/*
- * String pointers for DWB pathname management.
- */
-
-extern char	*DWBfontdir;
-extern char	*DWBntermdir;
-extern char	*DWBalthyphens;
-

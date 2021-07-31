@@ -11,41 +11,12 @@ typedef struct {
 } msgalloc;
 static msgalloc *freep=0;
 
-/* get a copy of an 822 field */
-String*
-copyfield(message *mp, int x)
-{
-	Field *f;
-	Node *p;
-	char *start, *end;
-	int n;
-
-	for(f = mp->first; f; f = f->next){
-		if(f->node->c == x){
-			start = end = f->node->end+1;
-			for(p = f->node->next; p; p = p->next)
-				end = p->end+1;
-			while(start < end && (*start == ' ' || *start == '\t'))
-				start++;
-			n = end-start;
-			if(n <= 0)
-				break;
-			if(start[n-1] == '\n')
-				n--;
-			return s_nappend(s_new(), start, n);
-		}
-	}
-	return 0;
-}
-
 /* read in a message, interpret the 'From' header */
 extern message *
 m_get(String *sp)
 {
 	message *mp;
 	register char *cp;
-	Field *f;
-	Node *p;
 
 	if (freep==0 || freep->o >= MSGALLOC) {
 		freep = (msgalloc *)malloc(sizeof(msgalloc));
@@ -73,9 +44,7 @@ m_get(String *sp)
 	for(sp->ptr=cp; *cp != '\n' && *cp; cp++);
 	*cp = '\0';
 	if (parse_header(sp->ptr, mp->sender, mp->date)<0) {
-		fprint(2, "!mailbox format incorrect, this session is read only\n");
-		fprint(2, "!	bad line is: %s\n", sp->ptr);
-		writeable = 0;
+		fprint(2, "!mailbox format incorrect\n");
 		mzero = mp;
 		return 0;
 	}
@@ -87,79 +56,35 @@ m_get(String *sp)
 		while (*cp++ != '\n')
 			;
 	}
-	cp[-1] = '\0';	/* wipes out last newline */
+	cp[-1] = '\0';
 
-	mp->size = cp - sp->ptr - 1;
+	mp->size = cp - sp->ptr;
 	mp->body = s_array(sp->ptr, mp->size);
 	if(IS_TRAILER(cp))
 		cp += 5;
 	sp->ptr = cp;
-
-	/* parse 822 headers */
-	yyinit(s_to_c(mp->body));
-	yyparse();
-	mp->first = firstfield;
-	mp->subject = copyfield(mp, SUBJECT);
-	firstfield = lastfield = 0;
-	mp->body822 = s_to_c(mp->body);
-	for(f = mp->first; f; f = f->next){
-		for(p = f->node; p; p = p->next)
-			mp->body822 = p->end+1;
-	}
-
 	return mp;
 }
 
-/* store a message back in a mail file */
-extern int
-m_store(message *mp, Biobuf *fp)
-{
-	int rv = 0;
-
-	print_header(fp, s_to_c(mp->sender), s_to_c(mp->date));
-
-	if (mp->size > 0)
-		if(Bwrite(fp, s_to_c(mp->body), mp->size) != mp->size)
-			rv = -1;
-
-	if(rv == 0)
-		Bwrite(fp, "\n", 1);
-
-	return rv;
-
-}
-
-/*
- *  output a message, return 0 if ok -1 otherwise, do it a chunk at a time in
- *  case the user wants to interrupt a long message.
- */
+/* output a message, return 0 if ok -1 otherwise */
 extern int
 m_print(message *mp, Biobuf *fp, int nl, int header)
 {
 	int rv = 0;
-	int i, n, size;
-	char *p;
+	int i, n;
 
-	if (header){
+	if (header)
 		print_header(fp, s_to_c(mp->sender), s_to_c(mp->date));
-		p = s_to_c(mp->body);
-		size = mp->size;
-	} else {
-		p = mp->body822;
-		size = mp->size - (mp->body822 - s_to_c(mp->body));
-	}
 
-	for(i = 0; i < size; i += n){
-		n = size - i;
-		if(n > 256)
-			n = 256;
-		if(Bwrite(fp, p+i, n) != n){
-			rv = -1;
-			break;
+	if (mp->size > 0)
+		for(n = 0; n < mp->size-1; n+=i){
+			i = mp->size - 1 - n;
+			if(i > 1024)
+				i = 1024;
+			if(Bwrite(fp, s_to_c(mp->body)+n, i) != i)
+				rv = -1;
 		}
-	}
-
-	if (header && rv==0 && nl)
+	if (rv==0 && nl)
 		if(Bwrite(fp, "\n", 1) != 1)
 			rv = -1;
 
@@ -345,7 +270,7 @@ rdwr_mbox(char *file, int reverse)
 	sysremove(s_to_c(tmp));
 	fp = sysopen(s_to_c(tmp), "alc", MBOXMODE);
 	if(fp == 0){
-		fprint(2, "mail: error creating %s: %r\n", s_to_c(tmp));
+		fprint(2, "mail: error creating %s\n", tmp);
 		sysclose(fp);
 		goto err;
 	}
@@ -353,11 +278,11 @@ rdwr_mbox(char *file, int reverse)
 	errcnt = 0;
 	for(mp=reverse?mlist:mlast; mp!=0; mp=reverse?mp->next:mp->prev)
 		if ((mp->status&DELETED)==0)
-			errcnt += m_store(mp, fp);
+			errcnt += m_print(mp, fp, 1, 1);
 	if (errcnt != 0) {
 		sysremove(s_to_c(tmp));
 		sysclose(fp);
-		fprint(2,"mail: error writing %s: %r\n", s_to_c(tmp));
+		fprint(2,"mail: error writing %s\n", tmp);
 		goto err;
 	}
 	sysclose(fp);
@@ -401,13 +326,12 @@ write_mbox(char *file, int reverse)
 }
 
 /* global to semaphores */
-Lock *readingl;
+static Lock *readingl;
 
 extern void
 V(void)
 {
-	if(readingl)
-		unlock(readingl);
+	unlock(readingl);
 }
 
 /* return name of tty if file is already being read, 0 otherwise */
@@ -424,10 +348,8 @@ P(char *mailfile)
 		if(sysexist(mailfile)){
 			fprint(2,"WARNING: You are already reading mail.\n");
 			fprint(2, "\tThis instance of mail is read only.\n");
-		} else {
+		} else
 			fprint(2, "Sorry, no (or damaged) mailbox.\n");
-			exit(0);
-		}
 		return -1;
 	}
 	s_free(file);

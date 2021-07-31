@@ -22,7 +22,7 @@ circle(Bitmap *b, Point p, int r, int v, Fcode f)
 	int y0 = y1 - r;
 
 	y1 += r;
-	if(f > 0xF)
+	if(f > MAX)
 		f &= 0xF;
 	if(r == 0){
 		point(b, Pt(x0, y0), v, f);

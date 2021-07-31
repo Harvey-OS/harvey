@@ -1,0 +1,3 @@
+TEXT _BRK_(SB), $0
+KCALL $24
+RETURN

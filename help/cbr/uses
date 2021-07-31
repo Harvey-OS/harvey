@@ -1,0 +1,18 @@
+#!/bin/rc
+eval `{help/parse -c}
+x=`{cat /mnt/help/new/ctl}
+{
+	echo a
+	echo $dir/uses.$id'	Close!'
+} | help/buf > /mnt/help/$x/ctl
+{
+	if(~ $#1 0){
+		vc -H $id:$line $file
+		exit $status
+	}
+	defn = `{vc -H $id:$line $file | sed 1q}
+	file=`{echo $defn | sed 's/:.*//; s,.*/,,'}
+	line=`{echo $defn | sed 's/.*://'}
+	cd $dir
+	eval vc -H $id:$file:$line $* >[2] /dev/null | sort -u -t: +0 -1 +1n
+} > /mnt/help/$x/bodyapp

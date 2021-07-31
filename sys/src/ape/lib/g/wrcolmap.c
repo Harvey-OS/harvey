@@ -1,7 +1,5 @@
 #include <libg.h>
 
-typedef unsigned char uchar;
-
 /*
  * This code (and the devbit interface) will have to change
  * if we ever get bitmaps with ldepth > 3, because the
@@ -11,7 +9,7 @@ typedef unsigned char uchar;
 void
 wrcolmap(Bitmap *b, RGB *m)
 {
-	uchar *buf;
+	unsigned char *buf;
 	int i, n;
 
 	n = 1<<(1<<b->ldepth);

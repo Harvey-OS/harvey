@@ -1,0 +1,5 @@
+vardef C.~eq(expr n) =
+ save p;
+ picture p; p="~"infont n;
+ addto p also "-"infont n shifted(0,-.15*fontsize n);
+ p enddef;

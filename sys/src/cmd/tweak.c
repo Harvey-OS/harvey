@@ -225,6 +225,7 @@ error(char *s)
 		mesg("can't read %s: %s: %r", file, s);
 	else
 		mesg("/dev/bitblt error: %s", s);
+bflush();
 	if(err[0])
 		longjmp(err, 1);
 	exits(s);
@@ -407,14 +408,18 @@ value(Bitmap *b, int x)
 int
 bvalue(int v, int l)
 {
-	v &= (1<<(1<<l))-1;
+	v &= (2<<l)-1;
 	if(l > screen.ldepth)
-		v >>= (1<<l) - (1<<screen.ldepth);
-	else
-		while(l < screen.ldepth){
-			v |= v << (1<<l);
-			l++;
-		}
+		v >>= l-screen.ldepth;
+	else{
+		l = screen.ldepth - l;
+		if(v & 1){	/* 'sign' extend from below */
+			/* note: this isn't what bitblt does */
+			v <<= l;
+			v |= (1<<l)-1;
+		}else
+			v <<= l;
+	}
 	return v*Maxmag;
 }
 
@@ -1517,7 +1522,7 @@ twrite(Thing *t)
 			}
 			Bprint(&buf, "\n");
 		}
-		Bterm(&buf);
+		Bflush(&buf);
 	}else{
 		wrbitmapfile(fd, t->b);
 		if(t->s)
@@ -1649,46 +1654,32 @@ tread(Thing *t)
 void
 tchar(Thing *t)
 {
-	char buf[256], *p;
+	char buf[256];
 	Rune r;
-	ulong c, d;
+	ulong c;
 
 	if(t->s == 0){
 		mesg("not a subfont");
 		return;
 	}
-	if(type(buf, "char (hex or character or hex-hex)") == 0)
+	if(type(buf, "char (hex or character)") == 0)
 		return;
 	if(utflen(buf) == 1){
 		chartorune(&r, buf);
 		c = r;
-		d = r;
 	}else{
 		if(!strchr(hex, buf[0])){
 			mesg("illegal hex character");
 			return;
 		}
 		c = strtoul(buf, 0, 16);
-		d = c;
-		p = utfrune(buf, '-');
-		if(p){
-			d = strtoul(p+1, 0, 16);
-			if(d < c){
-				mesg("invalid range");
-				return;
-			}
-		}
 	}
 	c -= t->off;
-	d -= t->off;
-	while(c <= d){
-		if(c<0 || c>=t->s->n){
-			mesg("0x%lux not in font %s", c+t->off, t->name);
-			return;
-		}
-		openedit(t, Pt(0, 0), c);
-		c++;
+	if(c<0 || c>=t->s->n){
+		mesg("0x%lux not in font %s", c+t->off, t->name);
+		return;
 	}
+	openedit(t, Pt(0, 0), c);
 }
 
 void

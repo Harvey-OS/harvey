@@ -1,0 +1,163 @@
+.TH HELP 4
+.SH NAME
+help \- make and control help windows
+.SH SYNOPSIS
+.B help/help
+.PP
+.IR Help (1)
+serves a variety of files for reading, writing, and controlling
+its windows.
+The files are mounted on the directory
+.BR /mnt/help
+and are also unioned into the beginning of
+.BR /dev .
+At the top level of that directory are files
+.BR cons ,
+.BR consctl ,
+and
+.BR mouse ,
+much like those of
+.IR 8½ (1).
+.I Help's
+versions of these files have restricted utility, however:
+.B cons
+may be written to but not read
+and both
+.B consctl
+and
+.B mouse
+draw an error when opened.
+When a program is run from within
+.IR help ,
+its standard input is connected to
+.B /dev/null
+and its standard output to
+.BR /mnt/help/cons .
+Text written to
+.B cons
+will appear in
+.I help's
+.B Errors
+window.
+.B Consctl
+and
+.B mouse
+are there to prevent access to the files
+.I help
+is itself using.
+.PP
+Another file in
+.B /mnt/help
+is
+.BR index ,
+which holds one line of text for each
+.I help
+window.
+Each line has the numeric window id for the window, a tab,
+and the tag of the window.
+.PP
+The rest of the files in
+.B /mnt/help
+are directories, one per window, named by the numeric window id of
+the corresponding window.  Each directory contains the following files:
+.TF bodyapp
+.TP
+.B body
+This read-only file contains the text of the body of the window.
+.TP
+.B bodyapp
+Text written to this write-only file is appended to the body.
+.TP
+.B bodypos
+This read-only file contains the starting and ending byte offsets
+of the selection in the body, formatted as two textual numbers
+in 12-byte blank padded fields.
+.TP
+.B bodysel
+This read-only file contains the selected text in the body.
+.TP
+.B tag
+This read-only file contains the text of the tag of the window.
+.TP
+.B tagpos
+Like
+.B bodypos
+but for the tag.
+.TP
+.B tagsel
+Like
+.B bodysel
+but for the tag.
+.TP
+.B ctl
+A read of this file returns the textual numeric id of the window.
+Messages written to
+.B ctl
+change the contents of the
+window.
+Each message must be contained in a single 9P write message
+(see
+.IR read (5))
+and must begin with an
+.SM ASCII
+letter, possibly an address, and a newline.
+An address is one or two comma-separated positions in the file,
+either line numbers or character positions.
+The address syntax is a subset of that in
+.IR sam (1).
+If the message contains text to be added to the window,
+the text follows the newline and need not be newline-terminated.
+This description mentions
+only the upper case versions.  The symbol
+.B \en
+stands for a literal newline:
+.TF I<address>\en<text>
+.TP
+.BI a\en <text>
+Append the text to the tag.
+.TP
+.BI A\en <text>
+Append the text to the body.
+.TP
+.BI d <address> \en
+Delete the addressed text from the tag.
+.TP
+.BI D <address> \en
+Delete the addressed text from the body.
+.TP
+.BI i <address> \en <text>
+Insert the text in the tag at the addressed location.
+If the address has two components, the second is ignored.
+.TP
+.BI I <address> \en <text>
+Like
+.IR i ,
+but insert in the body.
+.TP
+.BI u\en
+Mark the window `not dirty', that is, remove the
+.B Put!
+string from the tag.
+.PP
+A single directory
+.BR /mnt/help/new ,
+when accessed, creates a new window.
+The easiest way to manage a new window is to open
+.BR /mnt/help/new/ctl ,
+which will create it automatically, and then read
+the file to retrieve the numeric id.
+The other files in the window may then be opened as usual.
+.SH EXAMPLE
+Create a new window and run
+.IR date (1)
+in it.
+.IP
+.EX
+id = `{cat /mnt/help/new/ctl}
+echo 'a
+Current time    Close!' > /mnt/help/$id/ctl
+date > /mnt/help/$id/bodyapp
+.EE
+.SH SEE ALSO
+.IR help (1),
+.IR 8½ (4)

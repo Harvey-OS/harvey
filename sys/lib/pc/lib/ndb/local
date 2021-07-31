@@ -1,0 +1,118 @@
+#
+#  systems
+#
+
+sys = bootes
+	dom=bootes.research.att.com
+	ip=135.104.9.30 ether=080069020677
+	ipmask=255.255.255.0
+	ipgw=135.104.9.1
+	proto=il flavor=9fs
+	9P=auth
+sys = pc486
+	dom=pc486.research.att.com
+	ip=135.104.117.201 ether=0000c0ca2151
+	bootf=/386/9pc
+	vgafile=generic/640x480x1
+	proto=il
+
+#
+#  ip networks and subnets
+#
+ipnet=mh-astro-net ip=135.104.0.0 ipmask=255.255.255.0
+	fs=bootes.research.att.com
+	auth=1127auth
+ipnet=unix-room ip=135.104.117.0
+	ipgw=135.104.117.1
+ipnet=third-floor ip=135.104.51.0
+	ipgw=135.104.51.1
+ipnet=fourth-floor ip=135.104.52.0
+	ipgw=135.104.52.1
+ipnet=fifth-floor ip=135.104.53.0
+	ipgw=135.104.53.1
+ipnet=xunet-ring ip=135.104.120.0
+	ipgw=135.104.120.1
+ipnet=ches-home ip=135.104.200.0
+	ipgw=135.104.200.100
+ipnet=inet-9 ip=135.104.9.0
+	ipgw=135.104.9.1
+
+#
+#  tcp services
+#
+tcp=cs		port=1
+tcp=echo	port=7
+tcp=discard	port=9
+tcp=systat	port=11
+tcp=daytime	port=13
+tcp=netstat	port=15
+tcp=chargen	port=19
+tcp=ftp-data	port=20
+tcp=ftp		port=21
+tcp=telnet	port=23
+tcp=smtp	port=25
+tcp=time	port=37
+tcp=whois	port=43
+tcp=domain	port=53
+tcp=uucp	port=64
+tcp=rje		port=77
+tcp=finger	port=79
+tcp=link	port=87
+tcp=supdup	port=95
+tcp=hostnames	port=101
+tcp=iso-tsap	port=102
+tcp=x400	port=103
+tcp=x400-snd	port=104
+tcp=csnet-ns	port=105
+tcp=pop-2	port=109
+tcp=sunrpc	port=111
+tcp=uucp-path	port=117
+tcp=nntp	port=119
+tcp=ntp		port=123
+tcp=NeWS	port=144
+tcp=print-srv	port=170
+tcp=fsb		port=400
+tcp=sysmon	port=401
+tcp=proxy	port=402
+tcp=proxyd	port=404
+tcp=rexec	port=512	restricted
+tcp=login	port=513	restricted
+tcp=shell	port=514	restricted
+tcp=printer	port=515
+tcp=courier	port=530
+tcp=cscan	port=531
+tcp=9fs		port=564
+tcp=fmclient	port=729
+tcp=ingreslock	port=1524
+tcp=Xdisplay	port=6000
+tcp=face	port=32000
+tcp=whoami	port=565
+tcp=video	port=17028
+
+#
+#  il services
+#
+il=echo		port=7
+il=discard	port=9
+il=chargen	port=19
+il=whoami	port=565
+il=cpu		port=17005
+il=cpunote	port=17006
+il=exportfs	port=17007
+il=9fs		port=17008
+il=rexexec	port=17009
+il=fsauth	port=17020
+il=rexauth	port=17021
+il=changekey	port=17022
+il=chal		port=17023
+il=check	port=17024
+il=juke		port=17026
+il=video	port=17028
+
+#
+#  udp services
+#
+udp=tftp	port=69
+udp=bootpc	port=68
+udp=bootp	port=67
+udp=dns		port=53

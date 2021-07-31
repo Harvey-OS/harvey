@@ -4,219 +4,302 @@ void
 evconst(Node *n)
 {
 	Node *l, *r;
-	int et, isf;
-	vlong v;
-	double d;
+	int et, isi, isf;
+	long v;
 
 	if(n == Z || n->type == T)
 		return;
-
 	et = n->type->etype;
-	isf = typefd[et];
-
+	isi = typechlp[et];
+	isf = FPCHIP && typefdv[et];
 	l = n->left;
 	r = n->right;
-
-	d = 0;
-	v = 0;
-
 	switch(n->op) {
 	default:
 		return;
 
 	case OCAST:
-		if(et == TVOID)
-			return;
-		et = l->type->etype;
-		if(isf) {
-			if(typefd[et])
-				d = l->fconst;
+		if(isi) {
+			et = l->type->etype;
+			if(typefdv[et]) {
+				if(!FPCHIP)
+					return;
+				if(l->ud > 0x7fffffff || l->ud < -0x7fffffff) {
+					warn(n, "overflow in fp->int conversion");
+					return;		/* let runtime get the fault */
+				}
+				v = l->ud;
+			} else
+			if(typechlp[et])
+				v = l->offset;
 			else
-				d = l->vconst;
-		} else {
-			if(typefd[et])
-				v = l->fconst;
-			else
-				v = convvtox(l->vconst, n->type->etype);
+				return;
+			n->offset = castto(v, n->type->etype);
+			break;
 		}
-		break;
+		if(FPCHIP && isf) {
+			et = l->type->etype;
+			if(typechlp[et]) {
+				if(typeu[et] && l->offset < 0)
+					return;		/* let runtime do it */
+				n->ud = l->offset;
+				break;
+			}
+			if(typefdv[et]) {
+				n->ud = l->ud;
+				break;
+			}
+			return;
+		}
+		return;
 
 	case OCONST:
 		break;
 
 	case OADD:
-		if(isf)
-			d = l->fconst + r->fconst;
-		else {
-			v = l->vconst + r->vconst;
+		if(isi) {
+			n->offset = l->offset + r->offset;
+			break;
 		}
-		break;
+		if(isf) {
+			n->ud = l->ud + r->ud;
+			break;
+		}
+		return;
 
 	case OSUB:
-		if(isf)
-			d = l->fconst - r->fconst;
-		else
-			v = l->vconst - r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset - r->offset;
+			break;
+		}
+		if(isf) {
+			n->ud = l->ud - r->ud;
+			break;
+		}
+		return;
 
 	case OMUL:
-		if(isf)
-			d = l->fconst * r->fconst;
-		else {
-			v = l->vconst * r->vconst;
+		if(isi) {
+			n->offset = l->offset * r->offset;
+			break;
 		}
-		break;
-
+		if(isf) {
+			n->ud = l->ud * r->ud;
+			break;
+		}
+		return;
 	case OLMUL:
-		v = (uvlong)l->vconst * (uvlong)r->vconst;
-		break;
+		if(isi) {
+			n->offset = (ulong)l->offset * (ulong)r->offset;
+			break;
+		}
+		return;
 
 
 	case ODIV:
-		if(vconst(r) == 0) {
-			warn(n, "divide by zero");
-			return;
+		if(isi) {
+			n->offset = l->offset / r->offset;
+			break;
 		}
-		if(isf)
-			d = l->fconst / r->fconst;
-		else
-			v = l->vconst / r->vconst;
-		break;
+		if(isf) {
+			n->ud = l->ud / r->ud;
+			break;
+		}
+		return;
 
 	case OLDIV:
-		if(vconst(r) == 0) {
-			warn(n, "divide by zero");
-			return;
+		if(isi) {
+			n->offset = (ulong)l->offset / (ulong)r->offset;
+			break;
 		}
-		v = (uvlong)l->vconst / (uvlong)r->vconst;
-		break;
+		return;
 
 	case OMOD:
-		if(vconst(r) == 0) {
-			warn(n, "modulo by zero");
-			return;
+		if(isi) {
+			n->offset = l->offset % r->offset;
+			break;
 		}
-		v = l->vconst % r->vconst;
-		break;
+		return;
 
 	case OLMOD:
-		if(vconst(r) == 0) {
-			warn(n, "modulo by zero");
-			return;
+		if(isi) {
+			n->offset = (ulong)l->offset % (ulong)r->offset;
+			break;
 		}
-		v = (uvlong)l->vconst % (uvlong)r->vconst;
-		break;
+		return;
 
 	case OAND:
-		v = l->vconst & r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset & r->offset;
+			break;
+		}
+		return;
 
 	case OOR:
-		v = l->vconst | r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset | r->offset;
+			break;
+		}
+		return;
 
 	case OXOR:
-		v = l->vconst ^ r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset ^ r->offset;
+			break;
+		}
+		return;
 
 	case OLSHR:
-		v = (uvlong)l->vconst >> r->vconst;
-		break;
+		if(isi) {
+			n->offset = (ulong)l->offset >> (ulong)r->offset;
+			break;
+		}
+		return;
 
 	case OASHR:
-		v = l->vconst >> r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset >> r->offset;
+			break;
+		}
+		return;
 
 	case OASHL:
-		v = l->vconst << r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset << r->offset;
+			break;
+		}
+		return;
 
 	case OLO:
-		v = (uvlong)l->vconst < (uvlong)r->vconst;
-		break;
+		if(isi) {
+			n->offset = (ulong)l->offset < (ulong)r->offset;
+			break;
+		}
+		return;
 
 	case OLT:
-		if(typefd[l->type->etype])
-			v = l->fconst < r->fconst;
-		else
-			v = l->vconst < r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset < r->offset;
+			break;
+		}
+		if(isf) {
+			n->offset = l->ud < r->ud;
+			break;
+		}
+		return;
 
 	case OHI:
-		v = (uvlong)l->vconst > (uvlong)r->vconst;
-		break;
+		if(isi) {
+			n->offset = (ulong)l->offset > (ulong)r->offset;
+			break;
+		}
+		return;
 
 	case OGT:
-		if(typefd[l->type->etype])
-			v = l->fconst > r->fconst;
-		else
-			v = l->vconst > r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset > r->offset;
+			break;
+		}
+		if(isf) {
+			n->offset = l->ud > r->ud;
+			break;
+		}
+		return;
 
 	case OLS:
-		v = (uvlong)l->vconst <= (uvlong)r->vconst;
-		break;
+		if(isi) {
+			n->offset = (ulong)l->offset <= (ulong)r->offset;
+			break;
+		}
+		return;
 
 	case OLE:
-		if(typefd[l->type->etype])
-			v = l->fconst <= r->fconst;
-		else
-			v = l->vconst <= r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset <= r->offset;
+			break;
+		}
+		if(isf) {
+			n->offset = l->ud <= r->ud;
+			break;
+		}
+		return;
 
 	case OHS:
-		v = (uvlong)l->vconst >= (uvlong)r->vconst;
-		break;
+		if(isi) {
+			n->offset = (ulong)l->offset >= (ulong)r->offset;
+			break;
+		}
+		return;
 
 	case OGE:
-		if(typefd[l->type->etype])
-			v = l->fconst >= r->fconst;
-		else
-			v = l->vconst >= r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset >= r->offset;
+			break;
+		}
+		if(isf) {
+			n->offset = l->ud >= r->ud;
+			break;
+		}
+		return;
 
 	case OEQ:
-		if(typefd[l->type->etype])
-			v = l->fconst == r->fconst;
-		else
-			v = l->vconst == r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset == r->offset;
+			break;
+		}
+		if(isf) {
+			n->offset = l->ud == r->ud;
+			break;
+		}
+		return;
 
 	case ONE:
-		if(typefd[l->type->etype])
-			v = l->fconst != r->fconst;
-		else
-			v = l->vconst != r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset != r->offset;
+			break;
+		}
+		if(isf) {
+			n->offset = l->ud != r->ud;
+			break;
+		}
+		return;
 
 	case ONOT:
-		if(typefd[l->type->etype])
-			v = !l->fconst;
-		else
-			v = !l->vconst;
-		break;
+		if(isi) {
+			n->offset = !l->offset;
+			break;
+		}
+		return;
 
 	case OANDAND:
-		if(typefd[l->type->etype])
-			v = l->fconst && r->fconst;
-		else
-			v = l->vconst && r->vconst;
-		break;
+		if(isi) {
+			n->offset = l->offset && r->offset;
+			break;
+		}
+		return;
 
 	case OOROR:
-		if(typefd[l->type->etype])
-			v = l->fconst || r->fconst;
-		else
-			v = l->vconst || r->vconst;
-		break;
-	}
-	if(isf) {
-		n->fconst = d;
-	} else {
-		n->vconst = convvtox(v, n->type->etype);
+		if(isi) {
+			n->offset = l->offset || r->offset;
+			break;
+		}
+		return;
 	}
 	n->op = OCONST;
+	v = castto(n->offset, n->type->etype);
+	if(v != n->offset) {
+		warn(n, "truncation in a constant expression");
+		n->offset = v;
+	}
 }
+
+#define	NTERM	10
+struct	term
+{
+	long	mult;
+	Node	*node;
+} term[NTERM];
+int	nterm;
 
 void
 acom(Node *n)
@@ -265,10 +348,10 @@ acom(Node *n)
 	term[0].mult = 0;
 	term[0].node = Z;
 	nterm = 1;
-	acom1(1, n);
-	if(debug['m'])
+	acom1(1L, n);
+	if(debug['a'])
 	for(i=0; i<nterm; i++) {
-		print("%d %3lld ", i, term[i].mult);
+		print("%d %3ld ", i, term[i].mult);
 		prtree1(term[i].node, 1, 0);
 	}
 	if(nterm < NTERM)
@@ -276,11 +359,10 @@ acom(Node *n)
 	n->type = t;
 }
 
-int
 acomcmp1(void *a1, void *a2)
 {
-	vlong c1, c2;
-	Term *t1, *t2;
+	long c1, c2;
+	struct term *t1, *t2;
 
 	t1 = a1;
 	t2 = a2;
@@ -307,11 +389,10 @@ acomcmp1(void *a1, void *a2)
 	return -1;
 }
 
-int
 acomcmp2(void *a1, void *a2)
 {
-	vlong c1, c2;
-	Term *t1, *t2;
+	long c1, c2;
+	struct term *t1, *t2;
 
 	t1 = a1;
 	t2 = a2;
@@ -330,9 +411,9 @@ void
 acom2(Node *n, Type *t)
 {
 	Node *l, *r;
-	Term trm[NTERM];
+	struct term trm[NTERM];
 	int k, nt, i, j;
-	vlong c1, c2;
+	long c1, c2;
 
 	/*
 	 * copy into automatic
@@ -358,11 +439,10 @@ acom2(Node *n, Type *t)
 	c1 = trm[0].mult;
 	if(k == 0) {
 		n->op = OCONST;
-		n->vconst = c1;
+		n->offset = c1;
 		return;
 	}
 	k = ewidth[t->etype];
-
 	/*
 	 * prepare constant term,
 	 * combine it with an addressing term
@@ -370,7 +450,7 @@ acom2(Node *n, Type *t)
 	if(c1 != 0) {
 		l = new1(OCONST, Z, Z);
 		l->type = t;
-		l->vconst = c1;
+		l->offset = c1;
 		trm[0].mult = 1;
 		for(i=1; i<nt; i++) {
 			if(trm[i].mult != 1)
@@ -415,7 +495,7 @@ acom2(Node *n, Type *t)
 				r = new1(OMUL, r, new(OCONST, Z, Z));
 				r->type = t;
 				r->right->type = t;
-				r->right->vconst = c2;
+				r->right->offset = c2;
 			}
 			l = trm[i].node;
 			if(ewidth[l->type->etype] != k) {
@@ -430,14 +510,13 @@ acom2(Node *n, Type *t)
 			trm[j].mult = 0;
 		}
 	}
-	if(debug['m']) {
+	if(debug['a']) {
 		print("\n");
 		for(i=0; i<nt; i++) {
-			print("%d %3lld ", i, trm[i].mult);
+			print("%d %3ld ", i, trm[i].mult);
 			prtree1(trm[i].node, 1, 0);
 		}
 	}
-
 	/*
 	 * put it all back together
 	 */
@@ -457,10 +536,10 @@ acom2(Node *n, Type *t)
 			r->type = t;
 			r->right->type = t;
 			if(c1 < 0) {
-				r->right->vconst = -c1;
+				r->right->offset = -c1;
 				c1 = -1;
 			} else {
-				r->right->vconst = c1;
+				r->right->offset = c1;
 				c1 = 1;
 			}
 		}
@@ -484,7 +563,7 @@ acom2(Node *n, Type *t)
 	}
 	if(c2 < 0) {
 		r = new1(OCONST, 0, 0);
-		r->vconst = 0;
+		r->offset = 0;
 		r->type = t;
 		l = new1(OSUB, r, l);
 		l->type = t;
@@ -493,7 +572,7 @@ acom2(Node *n, Type *t)
 }
 
 void
-acom1(vlong v, Node *n)
+acom1(long v, Node *n)
 {
 	Node *l, *r;
 
@@ -501,8 +580,8 @@ acom1(vlong v, Node *n)
 		return;
 	if(!addo(n)) {
 		if(n->op == OCONST)
-		if(!typefd[n->type->etype]) {
-			term[0].mult += v*n->vconst;
+		if(typechlp[n->type->etype]) {
+			term[0].mult += v*n->offset;
 			return;
 		}
 		term[nterm].mult = v;
@@ -530,13 +609,13 @@ acom1(vlong v, Node *n)
 		l = n->left;
 		r = n->right;
 		if(l->op == OCONST)
-		if(!typefd[n->type->etype]) {
-			acom1(v*l->vconst, r);
+		if(typechlp[n->type->etype]) {
+			acom1(v*l->offset, r);
 			break;
 		}
 		if(r->op == OCONST)
-		if(!typefd[n->type->etype]) {
-			acom1(v*r->vconst, l);
+		if(typechlp[n->type->etype]) {
+			acom1(v*r->offset, l);
 			break;
 		}
 
@@ -545,12 +624,11 @@ acom1(vlong v, Node *n)
 	}
 }
 
-int
 addo(Node *n)
 {
 
 	if(n != Z)
-	if(!typefd[n->type->etype])
+	if(typechlp[n->type->etype])
 	switch(n->op) {
 
 	case OCAST:
@@ -569,4 +647,132 @@ addo(Node *n)
 			return 1;
 	}
 	return 0;
+}
+
+void
+refinv(Sym *s)
+{
+	Ref *r, *r1;
+
+	r = s->ref;
+	s->ref = 0;
+
+	while(r) {
+		r1 = r;
+		r = r->link;
+
+		r1->link = s->ref;
+		s->ref = r1;
+	}
+}
+
+void
+reftrace(void)
+{
+	char str[100], *p;
+	Sym *s;
+	Ref *r, *hr, *rr;
+	int h, c;
+	long l;
+
+	for(h=0; h<NHASH; h++)
+	for(s = hash[h]; s != S; s = s->link) {
+		if(s->ref == 0)
+			continue;
+		refinv(s);
+
+		/*
+		 * look for HELP -> hr
+		 */
+		hr = 0;
+		for(r = s->ref; r; r = r->link)
+			if(r->class == CHELP)
+				hr = r;
+		if(hr == 0)
+			continue;
+
+		/*
+		 * if no line/file args, print all
+		 */
+		if(hr->lineno == 0 && hr->sym == 0) {
+			for(r = s->ref; r; r = r->link) {
+				c = r->class;
+				if(c == CHELP)
+					continue;
+				if(c >= CLAST) {
+					print("*");
+					c = c%CLAST;
+				}
+				print("%s <%uL>", cnames[c], r->lineno);
+				if(r->dlineno)
+					print(" <%uL>", r->dlineno);
+				print("\n");
+			}
+			continue;
+		}
+
+		/*
+		 * look for lineno that matches hr
+		 */
+		rr = 0;
+		for(r = s->ref; r; r = r->link) {
+			if(r->class == CHELP)
+				continue;
+			sprint(str, "%uL", r->lineno);
+			p = utfrune(str, ':');
+			if(p == 0)
+				continue;
+			*p++ = 0;
+			l = atol(p);
+			if(l != hr->lineno)
+				continue;
+			if(hr->sym) {
+				p = utfrrune(str, '/');
+				if(p == 0)
+					p = str;
+				if(strcmp(p, hr->sym->name) != 0)
+					continue;
+			}
+			rr = r;
+		}
+		if(rr == 0)
+			continue;
+
+		/*
+		 * look for definition
+		 */
+		l = rr->dlineno;
+		c = rr->class % CLAST;
+		hr = 0;
+		for(r = s->ref; r; r = r->link) {
+			if(r->class != c+CLAST)
+				continue;
+			if(l == 0) {
+				hr = r;
+				break;
+			}
+			if(r == rr || r->lineno == l) {
+				hr = r;
+				break;
+			}
+		}
+
+		/*
+		 * print definition
+		 */
+		if(hr != 0) {
+			l = hr->lineno;
+			print("%uL\n", hr->lineno);
+		}
+
+		/*
+		 * print all refs
+		 */
+		for(r = s->ref; r; r = r->link) {
+			if(r->class != c)
+				continue;
+			if(r->dlineno == 0 || r->dlineno == l)
+				print("%uL\n", r->lineno);
+		}
+	}
 }

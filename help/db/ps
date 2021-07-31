@@ -1,0 +1,15 @@
+#!/bin/rc
+x=`{cat /mnt/help/new/ctl}
+{
+	echo A
+	switch($#*){
+	case 0
+		/bin/psu | sed 's/^[^ ]*  *//'
+	case *
+		/bin/ps
+	}
+} | help/buf > /mnt/help/$x/ctl
+{
+	echo a
+	echo '	'ps'	Close!'
+} | help/buf > /mnt/help/$x/ctl

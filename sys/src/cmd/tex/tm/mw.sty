@@ -1,0 +1,1343 @@
+\def\mwversiondate{1991-Jul-31}
+\typeout{Document Style `MultiWeight' (Technical Memorandum).  
+Release \mwversiondate .}
+%
+%
+% based on book.sty and tm.sty
+%
+% Changes:
+%---------------------------------
+%  91-Jun-27   Started sty
+%
+%-------------------------------------------
+% article.sty  4-Sep-86
+%
+% Page dimension parameters
+%
+\def\@ptsize{0} \@namedef{ds@11pt}{\def\@ptsize{1}}
+\@namedef{ds@12pt}{\def\@ptsize{2}} 
+% old ptsize maintained for compatiblity by tm@ptsize used so that 
+% sizes not starting with 1 are supported.
+\def\mw@ptsize{10} \@namedef{ds@11pt}{\def\mw@ptsize{11}}
+\@namedef{ds@12pt}{\def\mw@ptsize{12}} 
+\@namedef{ds@9pt}{\def\mw@ptsize{9}} 
+\@namedef{ds@8pt}{\def\mw@ptsize{8}} 
+\def\ds@twoside{\@twosidetrue \@mparswitchtrue} \def\ds@draft{\overfullrule
+5pt} 
+\@options
+\input mw\mw@ptsize.sty\relax
+
+% -------------- COPY of BOOK.STY ------------------------
+% book.sty  5-Feb-88
+
+\def\labelenumi{\arabic{enumi}.} 
+\def\theenumi{\arabic{enumi}} 
+\def\labelenumii{\alph{enumii}.}
+\def\theenumii{\alph{enumii}}
+\def\p@enumii{\theenumi}
+\def\labelenumiii{\roman{enumiii}.}
+\def\theenumiii{\roman{enumiii}}
+\def\p@enumiii{\theenumi(\theenumii)}
+\def\labelenumiv{\Alph{enumiv}.}
+\def\theenumiv{\Alph{enumiv}} 
+\def\p@enumiv{\p@enumiii\theenumiii}
+
+\def\squarebullet{\vrule width 5pt height 5pt depth 0pt}
+\def\labelitemi{\squarebullet}
+\def\labelitemii{\bf ---}
+\def\labelitemiii{$\ast$}
+\def\labelitemiv{$\cdot$}
+
+\def\verse{\let\\=\@centercr 
+ \list{}{\itemsep\z@ \itemindent -1.5em\listparindent \itemindent 
+ \rightmargin\leftmargin\advance\leftmargin 1.5em}\item[]}
+\let\endverse\endlist
+\def\quotation{\list{}{\listparindent 1.5em
+ \itemindent\listparindent
+ \rightmargin\leftmargin\parsep 0pt plus 1pt}\item[]\small}
+\let\endquotation=\endlist
+\def\quote{\list{}{\rightmargin\leftmargin}\item[]\small\sf}
+\let\endquote=\endlist
+
+\def\descriptionlabel#1{\hspace\labelsep \bf #1}
+\def\description{\list{}{\labelwidth\z@ \itemindent-\leftmargin
+ \let\makelabel\descriptionlabel}}
+\let\enddescription\endlist
+\newdimen\descriptionmargin
+\descriptionmargin=3em
+
+
+\def\titlepage{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
+ \else \newpage \fi \thispagestyle{empty}\c@page\z@}
+\def\endtitlepage{\if@restonecol\twocolumn \else \newpage \fi}
+
+\arraycolsep 5pt \tabcolsep 6pt \arrayrulewidth .4pt \doublerulesep 2pt 
+\tabbingsep \labelsep 
+\skip\@mpfootins = \skip\footins
+\fboxsep = 3pt \fboxrule = .4pt 
+
+\newcounter{part}
+\newcounter {chapter}
+\newcounter {section}[chapter]
+\newcounter {subsection}[section]
+\newcounter {subsubsection}[subsection]
+\newcounter {paragraph}[subsubsection]
+\newcounter {subparagraph}[paragraph]
+
+\def\thepart {\Roman{part}}
+\def\thechapter {\arabic{chapter}}
+\def\thesection {\thechapter.\arabic{section}}
+\def\thesubsection {\thesection.\arabic{subsection}}
+\def\thesubsubsection {\thesubsection .\arabic{subsubsection}}
+\def\theparagraph {\thesubsubsection.\arabic{paragraph}}
+\def\thesubparagraph {\theparagraph.\arabic{subparagraph}}
+\def\@chapapp{Chapter}
+
+\def\part{\cleardoublepage \thispagestyle{plain} \if@twocolumn \onecolumn
+\@tempswatrue \else \@tempswafalse \fi \hbox{}\vfil \secdef\@part\@spart} 
+
+\def\@part[#1]#2{\ifnum \c@secnumdepth >-2\relax \refstepcounter{part}
+\addcontentsline{toc}{part}{\thepart \hspace{1em}#1}\else
+\addcontentsline{toc}{part}{#1}\fi \markboth{}{}
+ {\centering \ifnum \c@secnumdepth >-2\relax \huge\bf Part \thepart \par
+\vskip 20pt \fi \Huge \bf #1\par}\@endpart} 
+\def\@endpart{\vfil\newpage \if@twoside \hbox{} \thispagestyle{empty} 
+ \newpage 
+ \fi \if@tempswa \twocolumn \fi} 
+\def\@spart#1{{\centering \Huge \bf #1\par}\@endpart}
+
+
+\def\@pnumwidth{1.55em}
+\def\@tocrmarg {2.55em}
+\def\@dotsep{500}
+\setcounter{tocdepth}{2}
+\def\bigheader{}
+\newif\if@bighead\@bigheadfalse
+\def\bigzheader{\if@bighead\relax\else\advance\headheight 4pc\advance\textheight -4pc\@bigheadtrue\fi}
+\def\regheader{\if@bighead\advance\headheight -4pc\advance\textheight 4pc\@bigheadfalse\fi}
+
+\def\tableofcontents{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
+ \fi
+ \specialchapter*{Contents}{}\pagestyle{specialfirst}
+ \pagenumbering{roman}%
+ \parskip=2pt\advance\hangindent6pt\vskip-3pc
+ \@starttoc{toc}\if@restonecol\twocolumn\fi
+ \clearpage}
+
+\def\l@part#1#2{\addpenalty{-\@highpenalty}
+ \addvspace{2.25em plus 1pt} \begingroup
+ \@tempdima 3em \parindent \z@ \rightskip \@pnumwidth \parfillskip
+-\@pnumwidth 
+ {\large \bf \leavevmode #1\hfil \hbox to\@pnumwidth{\hss #2}}\par
+ \nobreak \endgroup}
+\def\l@chapter#1#2{\pagebreak[3] 
+ \vskip 22pt plus 10pt \@tempdima 5.7pc
+ \begingroup
+ \tocrule\samepage
+ \parindent \z@ \rightskip \@pnumwidth 
+ \parfillskip -\@pnumwidth 
+ \leavevmode \advance\leftskip2pc\hskip-6pc{\Large\bf #1}\nobreak\hfil
+ \nobreak\hbox to\@pnumwidth{\hss #2}\par
+ \endgroup}
+\def\l@condchapter#1#2{\chapterinloffalse\chapterinlotfalse\setbox\chapboxline\vbox{\l@chapter{#1}{#2}}}
+\def\l@section#1{\@dottedtocline{1}{24pt}{14pt}
+  {\advance\hangindent6pt\numberline{\squarebullet}#1}}
+\def\l@subsection#1{\@dottedtocline{2}{52pt}{3.2em}{\advance\hangindent4pt #1}}
+\def\l@subsubsection#1{\@dottedtocline{3}{66pt}{4.1em}{\advance\hangindent4pt
+  #1}}
+\def\l@paragraph#1{\@dottedtocline{4}{70pt}{5.0em}{\advance\hangindent4pt #1}}
+\def\l@subparagraph#1{\@dottedtocline{5}{84pt}{6em}{\advance\hangindent4pt #1}}
+\def\listoffigures{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
+ \fi\bigheader\specialchapter*{List of Figures}{}\pagestyle{specialfirst}
+ \parskip=2pt\advance\hangindent6pt\vskip-3pc
+ \@starttoc{lof}\if@restonecol
+ \twocolumn\fi\newpage}
+\newif\ifchapterinlof\chapterinloffalse
+\newif\ifchapterinlot\chapterinlotfalse
+\newbox\chapboxline
+\def\l@figure#1{\ifchapterinlof\else\chapterinloftrue\unvbox\chapboxline\fi
+   \@dottedtocline{1}{24pt}{2.75pc}{\advance\hangindent6pt #1}}
+\def\listoftables{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
+ \fi\bigheader\specialchapter*{List of Tables}{}\pagestyle{specialfirst}
+ \parskip=2pt\advance\hangindent6pt\vskip-3pc
+ \@starttoc{lot}\if@restonecol
+ \twocolumn\fi\newpage}
+\let\l@table\l@figure
+
+
+\def\mw@null{}
+\newif\if@putincontents\@putincontentstrue
+%specialchapter* does not add entry to TOC eq TOC itself
+\def\specialchapter{%
+  \@ifstar{\@putincontentsfalse\@specialchapter}{\@putincontentstrue\@specialchapter}}
+
+\def\@specialchapter#1#2{\cleardoublepage
+ \pagestyle{special}\thispagestyle{specialfirst} 
+ \def\speciallabel{#2}
+  \global\@topnum\z@
+ \@afterindentfalse
+ \ifx\speciallabel\mw@null\gdef\pageprefix{}\else\gdef\pageprefix{#2-}\fi
+ \if@putincontents
+   \ifnum \c@secnumdepth >\m@ne
+   \typeout{\@chapapp\space\speciallabel.}
+   \addcontentsline{toc}{chapter}{\protect
+   \numberline{#2}#1}\else
+   \addcontentsline{toc}{chapter}{#1}\fi
+   \addtocontents{lof}{\protect\addvspace{10pt}}
+   \addtocontents{lot}{\protect\addvspace{10pt}} 
+ \fi
+%    \vskip 12pt\hbox{\hskip-4pc\vtop{\hsize 20pc{\parindent 0pt\raggedright 
+%      \Chaptersize\bf\rightmark\par}}}
+ %   %\@makespecialhead{\rightmark} 
+ \@makespecialhead{#1}
+    \@afterheading\vskip2pc
+ \chaptermark{#1}\ 
+ }
+\def\@makespecialhead#1{\ \vskip-30pt\hbox{\hskip-4pc\vtop{\hsize 20pc{ 
+ \parindent 0pt\raggedright 
+ \Chaptersize\bf #1\par}}
+ \hfill\vtop to 48pt{\hsize 5pc\hfill\vfill}} 
+ \nobreak }
+ 
+\def\thebibliography#1{\clearpage%
+ \specialchapter{Bibliography}{BIB}\vskip8pt
+ \chapterrule\vskip1pc
+ \pagenumbering{arabic}\list
+ {}{\small\sf\settowidth\labelwidth{[0pt]}\leftmargin-2pc
+ \itemindent=-2pc\usecounter{enumi}}
+ \def\newblock{\hskip .11em plus .33em minus .07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax}
+\def\endthebibliography{\endlist\newpage%\pagestyle{headings}
+  }
+
+\def\thechapterbibliography#1{\section*{Bibliography}\list
+ {}{\labelwidth\z@\leftmargin-2pc\itemindent-2pc
+ \usecounter{enumi}}
+ \def\newblock{\hskip .11em plus .33em minus .07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax}
+\let\endthechapterbibliography=\endlist
+
+\def\@bibitem#1{\item\if@filesw \immediate\write\@auxout
+       {\string\bibcite{#1}{\the\c@enumi}}\fi\ignorespaces}
+
+
+\def\theglossary{\clearpage
+ \specialchapter{Glossary}{GL}\vskip-12pt 
+ \pagenumbering{arabic}\list
+ {}{\small\sf\labelwidth\z@\let\makelabel\glossarylabel\leftmargin-2.75pc
+ \itemindent=-1.25pc\usecounter{enumi}}
+ \def\newblock{\hskip .11em plus .33em minus .07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax}
+\def\endtheglossary{\endlist\clearpage%\pagestyle{headings}
+  }
+\def\glossarylabel#1{\hspace\labelsep \bf #1\\}
+
+\def\glossarydef#1{\item[{\bf#1}]\ignorespaces\ \\}
+
+% fix latex's which writes indexentry cmds rather than glossaryentries
+%  as documented on page 79.
+%  also changes adds a glossary* that takes a second arg with the
+%  definition. And writes glossarydef's
+\def\@wrglossary#1#2{\let\thepage\relax
+   \xdef\@gtempa{\write#1{\string
+      \glossaryentry{#2}{\thepage}}}\endgroup\@gtempa
+   \if@nobreak \ifvmode\nobreak\fi\fi\@esphack}
+\def\@@wrglossary#1#2#3{\let\thepage\relax
+   \xdef\@gtempa{\write#1{\string
+      \glossarydef{#2}{#3}}}\endgroup\@gtempa
+   \if@nobreak \ifvmode\nobreak\fi\fi\@esphack}
+\def\makeglossary{\if@filesw \newwrite\@glossaryfile
+  \immediate\openout\@glossaryfile=\jobname.glo
+  \def\glossary{\@ifnextchar*\@bsphack\begingroup\@sanitize\@@wrglossary\@glossaryfile\else\@bsphack\begingroup\@sanitize\@wrglossary\@glossaryfile\fi}%
+  \typeout{Writing glossary file \jobname.glo }\fi}
+% this is for the line that introduces each new alphabetic section on
+% special pages such as glossary, index and abbreviations.
+%\def\alphaline#1{\vskip6pt\alpharule\samepage\vskip6pt\samepage\item[{\LARGE #1}%]\ \\\vskip14pt\samepage}
+\def\alphaline#1{\pagebreak[3]\vskip24pt 
+  plus5pt\item[{\LARGE#1}]\vskip-12pt\alpharule\vskip6pt}
+
+\newif\if@restonecol
+\def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+\columnseprule \z@
+\columnsep 35pt\twocolumn[\@makeschapterhead{Index}]
+ \@mkboth{INDEX}{INDEX}\thispagestyle{plain}\parindent\z@
+ \parskip\z@ plus .3pt\relax\let\item\@idxitem}
+\def\@idxitem{\par\hangindent 40pt}
+\def\subitem{\par\hangindent 40pt \hspace*{20pt}}
+\def\subsubitem{\par\hangindent 40pt \hspace*{30pt}}
+\def\endtheindex{\if@restonecol\onecolumn\else\clearpage\fi}
+\def\indexspace{\par \vskip 10pt plus 5pt minus 3pt\relax}
+
+\def\footnoterule{\kern-3\p@ 
+ \hrule width .4\columnwidth 
+ \kern 2.6\p@} 
+\@addtoreset{footnote}{chapter} 
+\long\def\@makefntext#1{\hskip -4pc\noindent 
+ \hbox to 4pc{$^{\@thefnmark}$\hss}\sf#1}
+
+
+\setcounter{topnumber}{2}
+\def\topfraction{.7}
+\setcounter{bottomnumber}{1}
+\def\bottomfraction{.3}
+\setcounter{totalnumber}{3}
+\def\textfraction{.2}
+\def\floatpagefraction{.5}
+\setcounter{dbltopnumber}{2}
+\def\dbltopfraction{.7}
+\def\dblfloatpagefraction{.5}
+
+\long\def\@makecaption#1#2{
+ \vskip 10pt
+ \setbox\@tempboxa\hbox{\bf #1. #2}
+ \ifdim \wd\@tempboxa >\hsize{\bf #1. #2}\par \else \hbox
+to\hsize{\box\@tempboxa\hfil} 
+ \fi}
+
+%
+% new xfloat to allow floats to specify rules over and under
+%
+\newif\ifruleover\ruleoverfalse
+\newif\ifruleunder\ruleunderfalse
+\newif\ifovercaption\overcaptionfalse
+\newif\ifundercaption\undercaptionfalse
+\def\@xfloat#1[#2]{\ruleunderfalse\ruleoverfalse
+   \ifhmode \@bsphack\@floatpenalty -\@Mii\else
+   \@floatpenalty-\@Miii\fi\def\@captype{#1}\ifinner
+      \@parmoderr\@floatpenalty\z@
+    \else\@next\@currbox\@freelist{\@tempcnta\csname ftype@#1\endcsname
+       \multiply\@tempcnta\@xxxii\advance\@tempcnta\sixt@@n
+       \@tfor \@tempa :=#2\do
+                        {\if\@tempa h\advance\@tempcnta \@ne\fi
+                         \if\@tempa t\advance\@tempcnta \tw@\fi
+                         \if\@tempa b\advance\@tempcnta 4\relax\fi
+                         \if\@tempa p\advance\@tempcnta 8\relax\fi
+                         \if\@tempa o\ruleovertrue\fi
+                         \if\@tempa u\ruleundertrue\fi
+         }\global\count\@currbox\@tempcnta}\@fltovf\fi
+    \global\setbox\@currbox\vbox\bgroup 
+    \boxmaxdepth\z@
+    \hsize\columnwidth \@parboxrestore
+    {\parskip0pt\ifovercaption\caption{\presetcaption}\vskip-6pt\fi
+    \ifruleover\overfloatrule\vskip0pt\fi}
+    }
+\def\end@float{\ifruleunder\vskip-\parskip\underfloatrule\vskip0pt\fi
+   \ifundercaption\vskip-\baselineskip\caption{\presetcaption}\fi
+   \egroup 
+   \ifnum\@floatpenalty <\z@
+     \@cons\@currlist\@currbox
+     \ifdim \ht\@currbox >\textheight 
+        \ht\@currbox\textheight \fi
+     \ifnum\@floatpenalty < -\@Mii 
+        \penalty -\@Miv \vbox{}\penalty\@floatpenalty
+      \else \vadjust{\penalty -\@Miv \vbox{}\penalty\@floatpenalty}\@esphack
+     \fi\fi}
+%
+\newcounter{figure}[chapter]
+\def\thefigure{\thechapter-\@arabic\c@figure}
+\def\fps@figure{tbp}
+\def\ftype@figure{1}
+\def\ext@figure{lof}
+\def\fnum@figure{Figure \thefigure}
+\def\figure{\@float{figure}}
+\let\endfigure\end@float
+\@namedef{figure*}{\@dblfloat{figure}}
+\@namedef{endfigure*}{\end@dblfloat}
+\newcounter{table}[chapter]
+\def\thetable{\thechapter-\@arabic\c@table}
+\def\fps@table{tbp}
+\def\ftype@table{2}
+\def\ext@table{lot}
+\def\fnum@table{Table \thetable}
+\def\table{\@float{table}}
+\let\endtable\end@float
+\@namedef{table*}{\@dblfloat{table}}
+\@namedef{endtable*}{\end@dblfloat}
+%
+% new float and table with caption arg so put in correct place with
+%   rules
+%
+\def\capfigure#1{\def\presetcaption{#1}\undercaptiontrue\figure}
+\def\captable#1{\def\presetcaption{#1}\overcaptiontrue\table}
+\let\endcapfigure\end@float
+\let\endcaptable\end@float
+
+\def\maketitle{\begin{titlepage}
+ \let\footnotesize\small \let\footnoterule\relax \setcounter{page}{0}
+ \null
+ {\parskip=0pt\ \vskip-48pt%
+   \font\attlogofont=att36
+     \parbox{36pt}{\attlogofont L}
+     \parbox{86pt}{{\attlogofont AT\&T}}\hfill}
+ \vfil
+ \vskip 60pt \begin{center}
+ {\Huge \@title \par} \vskip 3em {\large \lineskip .75em
+ \begin{tabular}[t]{c}\@author 
+ \end{tabular}\par} 
+ \vskip 1.5em {\large \@date \par} \end{center} \par
+\@thanks
+\vfil
+\null
+\end{titlepage}
+\setcounter{footnote}{0} \let\thanks\relax
+\gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\maketitle\relax} 
+%
+\def\footnoterule{\kern-3pt%
+   \hbox{\hskip-4pc\vrule width 20.75pc height .5pt}\kern 2.5pt}
+
+\mark{{}{}} 
+\def\pageprefix{}
+\def\ps@headings{\regheader\let\@mkboth\markboth
+  \def\@oddfoot{\hfill\bottommark\hskip1pc{\large\bf\pageprefix\thepage}}
+  \def\@evenfoot{\hskip-4pc{\large\bf\pageprefix\thepage}\hskip1pc\bottommark\hfill}
+  \def\@evenhead{\vbox{\hbox{\hskip-4pc\parbox{20.75pc}{\leftmark}}\vskip2pt%
+     \leftheadrule\vskip4pt}}
+  \def\@oddhead{\vbox{\hbox{\hskip-4pc\parbox{20.75pc}{\rightmark}}\vskip2pt%
+     \rightheadrule\vskip4pt}}
+  \def\chaptermark##1{\markboth {##1}{##1}}
+  \def\sectionmark##1{}
+  }
+\def\ps@chapter{\regheader\let\@mkboth\markboth
+  \def\@oddfoot{\hfill\bottommark\hskip1pc{\large\bf\pageprefix\thepage}}
+  \def\@evenfoot{\hskip-4pc{\large\bf \pageprefix\thepage}\hskip1pc\bottommark\hfill}
+  \def\@evenhead{\vbox{\vskip4pt\hbox{\hskip-4pc}\fatleftheadrule}}
+  \def\@oddhead{\vbox{\hbox{\hskip-4pc}\fatrightheadrule}}
+  \def\chaptermark##1{\markboth {##1}{##1}}\def\sectionmark##1{}
+  }
+\def\ps@specialfirst{\regheader\let\@mkboth\markboth
+  \def\@oddfoot{\hfill\bottommark\hskip1pc{\large\bf\pageprefix\thepage}}
+  \def\@evenfoot{\hskip-4pc{\large\bf\pageprefix\thepage}%
+    \hskip1pc\bottommark\hfill}
+  \def\@evenhead{\vbox{\vskip4pt\hbox{\hskip-4pc}\fatleftheadrule
+%    \vskip 12pt\hbox{\hskip-4pc\vtop{\hsize 20pc{\parindent 0pt\raggedright 
+%      \Chaptersize\bf\rightmark\par}}}
+%    %\@makespecialhead{\rightmark} 
+%    \@afterheading\vskip2pc
+    }}
+  \def\@oddhead{\vbox{\hbox{\hskip-4pc}\fatrightheadrule
+%    \vskip12pt\hbox{\hskip-4pc\vtop{\hsize20pc{\parindent 0pt\raggedright 
+%      \Chaptersize\bf \rightmark\par}}}
+%    %\@makespecialhead{\rightmark} 
+%    \@afterheading\vskip2pc
+   }}
+  \def\chaptermark##1{\markboth {##1}{##1}}\def\sectionmark##1{}
+  }
+\def\ps@special{\regheader\let\@mkboth\markboth
+  \def\@oddfoot{\hfill\bottommark\hskip1pc{\large\bf\pageprefix\thepage}}
+  \def\@evenfoot{\hskip-4pc{\large\bf\pageprefix\thepage}%
+     \hskip1pc\bottommark\hfill}
+  \def\@evenhead{\vbox{\vskip4pt\hbox{\hskip-4pc%
+     \parbox{20.75pc}{\leftmark}}\fatleftheadrule}}
+  \def\@oddhead{\vbox{\hbox{\hskip-4pc%
+     \parbox{20.75pc}{\rightmark}}\fatrightheadrule}}
+  \def\chaptermark##1{\markboth {##1}{##1}}\def\sectionmark##1{}
+  }
+\def\ps@myheadings{\regheader\let\@mkboth\@gobbletwo
+\def\@oddhead{\hbox{}\sl\rightmark \hfil
+\rm\thepage}\def\@oddfoot{}\def\@evenhead{\rm \thepage\hfil\sl\leftmark\hbox
+{}}\def\@evenfoot{}\def\sectionmark##1{}\def\subsectionmark##1{}}
+
+
+\def\today{\ifcase\month\or
+ January\or February\or March\or April\or May\or June\or
+ July\or August\or September\or October\or November\or December\fi
+ \space\number\day, \number\year}
+\@addtoreset{equation}{chapter} 
+\def\theequation{\thechapter.\arabic{equation}}
+
+
+\ps@headings \pagenumbering{arabic} \onecolumn 
+
+
+
+%\input local.sty %contains local page positioning parameters
+% 
+% replace macros
+%
+% example of how to define optional parameters
+%\def\parbox{\@ifnextchar [{\@iparbox}{\@iparbox[c]}}
+%\long\def\@iparbox[#1]#2#3{\leavevmode \@pboxswfalse
+%   \if #1b\vbox 
+%     \else \if #1t\vtop 
+%              \else \ifmmode \vcenter 
+%                        \else \@pboxswtrue $\vcenter
+%                     \fi
+%           \fi
+%    \fi{\hsize #2\@parboxrestore #3}\if@pboxsw $\fi}
+%
+% input LaTeX extentions
+%
+\input tmaddon.sty		
+
+% Rules
+%
+\def\rightheadrule{\hbox{\hskip-9.5pc\vrule height 0.5pt width 42.5pc}%
+  \hbox{\hskip-4pc\vrule height 4pt width 20.75pc}}
+\def\leftheadrule{\hbox{\hskip-7pc\vrule height 0.5pt width 42.5pc}%
+  \hbox{\hskip-4pc\vrule height 4pt width 20.75pc}}
+\def\sectionrule{\hbox{\interlinepenalty \@M\hskip-4pc\vrule height2pt width20.75pc}\vskip-8pt}
+\def\subsectionrule{\hbox{\hskip-4pc\vrule height 1pt width 20.75pc}\vskip-8pt}
+\def\fatrightheadrule{{\baselineskip=0pt\hbox{\hskip-9.5pc\vrule height 0.5pt
+  depth 0pt width 42.5pc}%
+  \hbox{\hskip-4pc\vrule height 8pt depth 0pt width 20.75pc}}}
+\def\fatleftheadrule{{\baselineskip=0pt\hbox{\hskip-7pc\vrule height 0.5pt
+  depth 0pt width 42.5pc}%
+  \hbox{\hskip-4pc\vrule height 8pt depth 0pt width 20.75pc}}}
+\def\chapterrule{\hbox{\hskip-4pc\vrule height 0.5pt width 34pc}}
+\def\overfloatrule{\vrule height 1.0pt width 30pc}
+\def\underfloatrule{\vrule height 0.5pt width 30pc}
+\def\alpharule{{\hbox{\hskip-4pc\vrule height 0.5pt width 34pc}
+  \vskip-\baselineskip\vskip4pt\hbox{\hskip-4pc\vrule height 4pt depth 0pt width 3pc}}}
+\def\tocrule{{\hbox{\hskip-4pc\vrule height 0.5pt width 34pc}
+  \vskip-\baselineskip\vskip4pt\hbox{\hskip-4pc\vrule height 4pt depth 0pt width 6pc}}}
+%
+% modified addcontentsline and label to add prefix to pagenumber
+\def\addcontentsline#1#2#3{\if@filesw \begingroup
+\let\label\@gobble \let\index\@gobble
+\def\protect##1{\string\string\string##1\string\space
+   \space}\@temptokena{\pageprefix\thepage}%
+\edef\@tempa{\write \@auxout{\string\@writefile{#1}{\protect
+     \contentsline{#2}{#3}{\the\@temptokena}}}}\@tempa
+   \if@nobreak \ifvmode\nobreak\fi\fi\endgroup\fi}
+\def\label#1{\@bsphack\if@filesw {\let\thepage\relax
+   \xdef\@gtempa{\write\@auxout{\string
+      \newlabel{#1}{{\@currentlabel}{\pageprefix\thepage}}}}}\@gtempa
+   \if@nobreak \ifvmode\nobreak\fi\fi\fi\@esphack}
+
+% modified @startsection, sect, ssect and xsect to do rule 
+\def\@startsection#1#2#3#4#5#6{\if@noskipsec \leavevmode \fi
+   \par \@tempskipa #4\relax
+   \@afterindenttrue
+   \ifdim \@tempskipa <\z@ \@tempskipa -\@tempskipa \@afterindentfalse\fi
+   \if@nobreak \everypar{}\else
+     \addpenalty{\@secpenalty}\addvspace{\@tempskipa}\fi \@ifstar
+     {\@ssect{#3}{#4}{#5}{#6}{#2}}{\@dblarg{\@sect{#1}{#2}{#3}{#4}{#5}{#6}}}}
+
+\def\@ssect#1#2#3#4#5#6{\@tempskipa #3\relax
+   \ifdim \@tempskipa>\z@
+     \begingroup #4
+       \@hangfrom{\hskip #1}%
+         {\vbox{\ifnum #5<3\hsize20pc\else\hsize30pc\fi
+          \interlinepenalty \@M #6}\nobreak}%
+     \endgroup\nobreak
+   \else \def\@svsechd{#4\hskip #1\relax #6}\fi
+    \@xsect{#3}{#5}}
+
+\def\@sect#1#2#3#4#5#6[#7]#8{\ifnum #2>\c@secnumdepth
+     \def\@svsec{}\else 
+     \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname\hskip 1em }\fi
+     \@tempskipa #5\relax
+      \ifdim \@tempskipa>\z@ 
+        \begingroup #6\relax
+          \@hangfrom{\hskip #3\relax\@svsec}%
+            {\vbox{\ifnum #2 < 3\hsize20pc\else\hsize30pc\fi
+              \interlinepenalty \@M #8}}
+        \endgroup
+       \csname #1mark\endcsname{#7}\addcontentsline
+         {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                      \protect\numberline{\csname the#1\endcsname}\fi
+                    #7}\else
+        \def\@svsechd{#6\hskip #3\@svsec #8\csname #1mark\endcsname
+                      {#7}\addcontentsline
+                           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                             \protect\numberline{\csname the#1\endcsname}\fi
+                       #7}}\fi
+     \@xsect{#5}{#2}}
+
+\def\@xsect#1#2{\ifnum #2=1\nobreak\vskip-5pt\nobreak\sectionrule
+      \else\ifnum #2=2\nobreak\vskip-6pt\subsectionrule\fi\fi
+      \@tempskipa #1\relax
+      \ifdim \@tempskipa>\z@
+       \par \nobreak
+       \vskip \@tempskipa
+       \@afterheading
+    \else \global\@nobreakfalse \global\@noskipsectrue
+       \everypar{\if@noskipsec \global\@noskipsecfalse
+                   \clubpenalty\@M \hskip -\parindent
+                   \begingroup \@svsechd .\endgroup \unskip
+                   % ``.'' added to end of heading
+                   \hskip -#1
+                  \else \clubpenalty \@clubpenalty
+                    \everypar{}\fi}\fi\ignorespaces}
+%
+% MW macros
+%
+\def\subchapter#1{\vskip-64pt\hskip-4pc\vbox{\hsize20pc{\bf #1}}\vskip5pc}
+%\def\roundedboxit#1{\vbox{\hrule\hbox{\vrule\kern5pt
+%      \vbox{\kern5pt\hbox{#1}\kern5pt}\kern5pt\vrule}\hrule}}
+% \setbox\@tempboxa\hbox{\bf #1. #2}
+% \ifdim \wd\@tempboxa >\hsize{\bf #1. #2}\par \else \hbox
+%to\hsize{\box\@tempboxa\hfil} 
+\newbox\rboxstuff
+\def\@drawovalbox#1#2{\begingroup\boxmaxdepth \maxdimen
+  \@ovttrue \@ovbtrue \@ovltrue \@ovrtrue
+  \@ovxx #1 \@ovyy #2
+  \@tempdimb \ifdim \@ovyy >\@ovxx \@ovxx\else \@ovyy \fi
+  \@getcirc \@tempdimb
+  \@ovro \ht\@tempboxa \@ovri \dp\@tempboxa
+  \@ovdx\@ovxx \advance\@ovdx -\@tempdima \divide\@ovdx \tw@
+  \@ovdy\@ovyy \advance\@ovdy -\@tempdima \divide\@ovdy \tw@
+  \@circlefnt \setbox\@tempboxa
+  \hbox{\if@ovr \@ovvert32\kern -\@tempdima \fi
+  \if@ovl \kern \@ovxx \@ovvert01\kern -\@tempdima \kern -\@ovxx \fi
+  \if@ovt \@ovhorz \kern -\@ovxx \fi
+  \if@ovb \raise \@ovyy \@ovhorz \fi}\advance\@ovdx\@ovro
+  \advance\@ovdy\@ovro \ht\@tempboxa\z@ \dp\@tempboxa\z@
+  \@put{-\@ovdx}{-\@ovdy}{\box\@tempboxa}%
+  \endgroup}
+\newdimen\@ovalheight\newdimen\@ovalhalfheight
+\def\roundedboxit#1{\leavevmode\setbox\rboxstuff\hbox{#1}
+  \@ovalheight\ht\rboxstuff\advance\@ovalheight by\dp\rboxstuff
+  \advance\@ovalheight by15pt\@ovalhalfheight\@ovalheight
+  \divide\@ovalhalfheight by2
+  \vskip\@ovalhalfheight\vskip-15pt
+  \hskip15pc\@drawovalbox{30pc}{\@ovalheight}\par
+  \vskip-\@ovalheight\vskip6pt
+  \box\rboxstuff\vskip 1pt
+  }
+\def\figbox#1{\roundedboxit{\hbox to 30pc{\hskip1pc\parbox{28pc}{#1}\hfill}}}
+\def\codelisting{\begingroup\tt}
+\def\endcodelisting{\endgroup}
+
+\input dingbat.sty
+\def\note{\par\noteicon\hskip4pt{\rm NOTE:}%
+  \nobreak\par\nobreak\vskip-\parskip\leftskip=26pt
+}
+\def\endnote{\par\leftskip=0pt}
+\def\danger{\par\admonicon\hskip4pt{\large\rm DANGER:}%
+  \nobreak\par\nobreak\vskip-\parskip\bgroup\leftskip=22pt\it}
+\def\enddanger{\par\egroup}
+\def\warning{\par\admonicon\hskip4pt{\large\rm WARNING:}%
+  \nobreak\par\nobreak\vskip-\parskip\bgroup\leftskip=22pt\it}
+\let\endwarning\enddanger
+\def\caution{\par\admonicon\hskip4pt{\large\rm CAUTION:}%
+  \nobreak\par\nobreak\vskip-\parskip\bgroup\leftskip=22pt\it}
+\let\endcaution\enddanger
+
+\def\copyrightpage{\ \clearpage\bgroup\pagestyle{empty}\evensidemargin0pt\oddsidemargin0pt}
+\def\endcopyrightpage{\newpage\egroup}
+\def\copyrightnotice#1#2{{\large\bf Copyright\copyright\ #1 #2\\
+  All Rights Reserved\\
+  Printed in U.S.A.}\par\vskip12pt}
+\def\notice{\par{\large\bf Notice}\\\bgroup\footnotesize\sf}
+\def\endnotice{\egroup}
+\def\security{\par{\large\bf Security}\\\bgroup\footnotesize\sf}
+\let\endsecurity\endnotice
+\def\trademarks{\par{\large\bf Trademarks}\\\bgroup\footnotesize\sf}
+\let\endtrademarks\endnotice
+\def\warranty{\par{\large\bf Warranty}\\\bgroup\footnotesize\sf}
+\let\endwarranty\endnotice
+\def\orderinginfo{\par{\large\bf Ordering Information}\\\bgroup\footnotesize\sf}
+\let\endorderinginfo\endnotice
+\def\telephonesupport{\par{\large\bf Telephone Support Number}\\\bgroup\footnotesize\sf}
+\let\endtelephonesupport\endnotice
+\def\emailsupport{\par{\large\bf Electronic Mail Support Address}\\\bgroup\footnotesize\sf}
+\let\endemailsupport\endnotice
+%
+% Appendices
+%
+\def\appendices{\newpage\appendix%
+  \section*{Appendices\@mkboth{APPENDICES}{APPENDICES}
+  \addcontentsline{toc}{section}{APPENDICES}}}
+% set to null so can test if set by user
+\def\tm@null{}
+% \def\title{\@ifstar{\tm@notoptitle}{\tm@title}}
+\def\tm@title#1{\gdef\tm@covtitle{#1}\gdef\tm@titlepagetitle{#1}%
+  \markright{#1}}
+\def\tm@notoptitle#1{\gdef\tm@covtitle{#1}\gdef\tm@titlepagetitle{#1}%
+  \markright{}}
+\def\titlepagetitle#1{\gdef\tm@titlepagetitle{#1}}
+\def\covtitle#1{\gdef\tm@covtitle{#1}}
+\def\memotype#1{\gdef\tm@memotype{#1}}
+\def\date#1{\gdef\tm@date{#1}}
+\date{\today} % sets today as default date
+%
+% author stuff
+%
+\newcount\authornumber\authornumber=0
+%\def\author#1{\global\advance\authornumber by1 \expandafter\gdef\csname 
+%     tm@author\romannumeral\the\authornumber\endcsname{#1}}%
+\def\signatureextra#1{\expandafter\gdef\csname 
+   tm@signatureextra\romannumeral\the\authornumber\endcsname{#1}}%
+\def\typistinitials#1{\def\tm@typistinitials{#1}}%
+\def\initials#1{\expandafter\gdef\csname 
+   tm@initials\romannumeral\the\authornumber\endcsname{#1}}%
+\def\eaddress#1{\expandafter\gdef\csname 
+   tm@eaddress\romannumeral\the\authornumber\endcsname{#1}}%
+\def\company#1{\expandafter\gdef\csname 
+   tm@company\romannumeral\the\authornumber\endcsname{#1}}%
+\def\maddress#1{\expandafter\gdef\csname
+   tm@maddress\romannumeral\the\authornumber\endcsname{#1}}%
+\def\department#1{\expandafter\gdef\csname 
+   tm@department\romannumeral\the\authornumber\endcsname{#1}}%
+\def\location#1#2#3{%
+   \expandafter\gdef\csname tm@location\romannumeral\the\authornumber\endcsname{#1}%
+   \expandafter\gdef\csname tm@office\romannumeral\the\authornumber\endcsname{#2}%
+   \expandafter\gdef\csname tm@phone\romannumeral\the\authornumber\endcsname{#3}}%
+\def\locationextra#1{\expandafter\gdef\csname 
+   tm@locationextra\romannumeral\the\authornumber\endcsname{#1}}
+\def\documentno#1#2#3{%
+   \expandafter\def\csname tm@documentdate\romannumeral\the\authornumber\endcsname{#1}%
+   \expandafter\def\csname tm@documentseq\romannumeral\the\authornumber\endcsname{#2}%
+   \expandafter\def\csname tm@documentcat\romannumeral\the\authornumber\endcsname{#3}}%
+\def\previousdocument#1{\def\tm@prevdoc{#1}}\def\tm@prevdoc{\relax}
+%
+\newcount\filecasenumber\filecasenumber=0
+\def\filecase#1{\advance\filecasenumber by1\relax%
+   \expandafter\def\csname 
+   tm@filecase\romannumeral\the\filecasenumber\endcsname{#1}}
+\newcount\chargecasenumber\chargecasenumber=0
+\def\chargecase#1{\advance\chargecasenumber by1\relax%
+   \expandafter\def\csname 
+   tm@chargecase\romannumeral\the\chargecasenumber\endcsname{#1}}
+\def\tm@keywords{}
+\def\keywords#1{\def\tm@keywords{#1}}
+\newcount\mercurynumber\mercurynumber=0
+\def\mercurycode#1{\advance\mercurynumber by1\relax%
+   \expandafter\def\csname tm@mercury\romannumeral\the\mercurynumber\endcsname{#1}}
+\def\cityaddr#1{\def\tm@cityaddr{#1}}
+\def\companyname#1{\def\tm@companyname{#1}}
+\def\capcompanyname#1{\def\tm@capcompanyname{#1}}
+\def\tm@companyname{AT\&T Bell Laboratories}
+\def\tm@capcompanyname{AT\&T BELL LABORATORIES}
+\newcounter{tm@textpages}
+\newcounter{tm@otherpages}
+\newcounter{tm@totalpages}\setcounter{tm@totalpages}{0}
+\newcounter{tm@references}
+\newcounter{tm@extrapages}\setcounter{tm@extrapages}{0}
+\def\extrapages#1{\setcounter{tm@extrapages}{#1}}
+%\newdimen\abstrwidth
+%\newdimen\csabstrwidth\csabstrwidth=7in
+\long\def\abstract#1{%
+  \long\def\tm@abstr{#1}
+%  \abstrwidth\textwidth\advance\abstrwidth -.7in%
+%   \newsavebox{\tm@abstr}\setbox\tm@abstr%
+%   \hbox{#1}%
+%    \hbox{\begin{minipage}{\abstrwidth}{#1}\end{minipage}}
+%  \newsavebox{\tm@csabstr}\setbox\tm@csabstr%
+%    \hbox{\begin{minipage}{\csabstrwidth}{#1}\end{minipage}}
+  }
+\def\makeabstract{%
+    \smallskip%
+    {\parindent=0pt%
+    \leftskip0.37in\rightskip0.38in%
+    \tm@abstr\par\bigskip}%
+  }
+%  \unhbox\tm@abstr\par\bigskip}}
+\def\his#1{\csname #1\romannumeral\the\authornumber\endcsname}
+\def\hisorblank#1{\if\relax\his{#1}\ \else\his{#1}\fi}%
+\def\case#1{\csname #1\romannumeral\the\casenumber\endcsname}
+%\def\makeauthorhead{%
+%     {\bf\raggedright\parbox[t]{9.7em}{\raggedright\hyphenpenalty10000%
+%	\exhyphenpenalty10000\his{tm@author}\strut}
+%     \if\relax\his{tm@company}\relax\else\\ \his{tm@company}\fi%
+%     \if\relax\his{tm@maddress}\relax\else\\ \his{tm@maddress}\fi%
+%     \if\relax\his{tm@location}\relax\else\\ \his{tm@location}\enskip\fi%
+%     \if\relax\his{tm@department}\relax\else\his{tm@department}\fi
+%     \if\relax\his{tm@office}\relax\else\\ \his{tm@office}\enskip\fi%
+%     \if\relax\his{tm@phone}\relax\else x\his{tm@phone}\fi
+%     \if\relax\his{tm@eaddress}\relax\else\\ \his{tm@eaddress}\fi%
+%     \if\relax\his{tm@locationextra}\relax%
+%       \else\\ \his{tm@locationextra}\fi%
+%     \if\relax\his{tm@documentdate}%
+%        \else\\ \his{tm@department}-\his{tm@documentdate}%
+%        -\his{tm@documentseq}\his{tm@documentcat}\fi}}
+%
+% NEW AUTHORHEAD LAYOUT for mm summer 1990
+%
+%              - The appearance of the author's information in the "from"
+%                block on memoranda has changed. Also, the "x" extension
+%                prefix has been removed; the complete phone number (with
+%                area code) should be supplied as the 5th argument to the
+%                .AU macro.  Given the author information:
+%
+%                .AU NAME [INIT] [LOC] [DEPT] [PHONE] [ROOM] [EMAIL] [ARG]
+%                [ARG]
+%                the "from" block for each author looks like:
+%
+%                NAME
+%                Dept. DEPT
+%                LOC ROOM
+%                PHONE
+%                EMAIL
+%                ARG8
+%                ARG9
+\def\makeauthorhead{%
+     {\bf\raggedright\parbox[t]{9.7em}{\raggedright\hyphenpenalty10000%
+	\exhyphenpenalty10000\his{tm@author}\strut}
+     \if\relax\his{tm@company}\relax\else\\ \his{tm@company}\fi%
+     \if\relax\his{tm@maddress}\relax\else\\ \his{tm@maddress}\fi%
+     \if\relax\his{tm@department}\relax\else\\ Dept. \his{tm@department}\fi
+     \if\relax\his{tm@location}\relax\else\\ \his{tm@location}\enskip\fi%
+     \if\relax\his{tm@office}\relax\else\his{tm@office}\enskip\fi%
+     \if\relax\his{tm@phone}\relax\else\\ \his{tm@phone}\fi
+     \if\relax\his{tm@eaddress}\relax\else\\ \his{tm@eaddress}\fi%
+     \if\relax\his{tm@locationextra}\relax%
+       \else\\ \his{tm@locationextra}\fi%
+     \if\relax\his{tm@documentdate}%
+        \else\\ \his{tm@department}-\his{tm@documentdate}%
+        -\his{tm@documentseq}\his{tm@documentcat}\fi}}
+\newif\ifmoreauthors
+
+\def\forallauthors#1{%
+  \authornumber=1 #1%
+  \loop
+    \advance\authornumber by1
+    \if\relax\his{tm@author}\relax%
+      \moreauthorsfalse\else\moreauthorstrue\fi
+    \ifmoreauthors #1\repeat}
+\newcount\casenumber
+\newif\ifmorecases
+\def\forallfilecases#1{%
+  \global\casenumber=0%
+  \loop
+    \global\advance\casenumber by1
+    \if\relax\case{tm@filecase}\relax%
+      \morecasesfalse\else\morecasestrue\fi
+    \ifmorecases #1\repeat}
+\def\forallchargecases#1{%
+  \global\casenumber=0%
+  \loop
+    \global\advance\casenumber by1
+    \if\relax\case{tm@chargecase}\relax%
+      \morecasesfalse\else\morecasestrue\fi
+    \ifmorecases #1\repeat}
+
+%
+\def\makehead{
+   % write out bibliography style
+   %\if@filesw\immediate\write\@auxout{\string\bibstyle{unsrt}}\fi%
+   % remove call to bibstyle since bibtex .99 no longer tolerates
+   % redefining.
+   % now make the header
+   \if N\proprietarylevel\makeproprietarymark{}{}{}{}\fi
+   \newpage{\parskip=0pt\ \vskip-48pt%
+   \font\attlogofont=att36
+     \hfill\parbox{36pt}{\attlogofont L}
+     \parbox{86pt}{{\attlogofont AT\&T}}
+   \vskip16pt
+   \hrule
+   \vskip6pt
+   \noindent{\sf\tm@companyname}
+
+   \vskip4pt%
+   \hskip-5pt\parbox[t]{3.5in}{\raggedright%
+   \begin{itemize}
+     \item[{\footnotesize subject:}]{%
+           \bf\tm@titlepagetitle%
+     \forallchargecases{%
+       \expandafter\ifnum\the\casenumber=1{\\ Work Project No. }%
+        \else{, }\fi\case{tm@chargecase}} 
+     \forallfilecases{%
+       \expandafter\ifnum\the\casenumber=1{\\ File Case }\else{, }\fi\case{tm@filecase}}%
+     }
+     \end{itemize}}
+   \hfill%
+   \parbox[t]{14em}{\raggedright%
+     \begin{itemize}
+     \item[{\footnotesize date:}]{\bf\tm@date}
+     \forallauthors{\item[{\expandafter\ifnum\the\authornumber=1%
+       \footnotesize from:\fi}]\makeauthorhead}
+     \end{itemize}}
+   \vskip30pt
+   \expandafter\if\csname tm@memotype\endcsname\relax{}%
+     \else{\it\hfill\tm@memotype\hfill} \vskip24pt\fi
+   \thispagestyle{onlyfoot}}%
+   }
+\def\makesignature{{\parindent=0pt\par%
+   \parbox[b]{3in}{\tm@locationi -\tm@departmenti 
+   -\forallauthors{\expandafter\ifnum\the\authornumber=1{}\else/\fi%
+      \his{tm@initials}}%
+      \expandafter\if\csname tm@typistinitials\endcsname\relax{}%
+         \else /\tm@typistinitials\fi}\hfill%
+   \parbox[b]{3in}{\vskip-5pt\forallauthors{
+%     \hfill\\ \hbox{\vbox to34pt{}\hfill}\\{\bf \his{tm@author}
+     \vskip31pt{\bf \his{tm@author}
+       \if\his{tm@signatureextra}\relax{}\else\\ 
+         \his{tm@signatureextra}\fi}}}
+   \vskip12pt\setcounter{tm@textpages}{\c@page}}}
+\def\makefacesignature#1{{\parindent=0pt\par%
+   \@ifundefined{initbitmap}{\input bitmap.sty}{}
+   \vskip-5pt\forallauthors{
+     \vskip11pt
+     \xdef\tm@facefile{#1/\his{tm@initials}/face}%
+     \parbox[b]{3in}{\vbox{}\hskip2in\hbox{\vrule height48pt
+        depth3.5pt width0pt}\input \tm@facefile
+        \hfill}%
+     \parbox[b]{3in}{{\bf \his{tm@author}
+       \if\his{tm@signatureextra}\relax{}\else\\ 
+         \his{tm@signatureextra}\fi}}}%
+
+   \parbox[b]{3in}{\tm@locationi -\tm@departmenti 
+   -\forallauthors{\expandafter\ifnum\the\authornumber=1{}\else/\fi%
+      \his{tm@initials}}%
+      \expandafter\if\csname tm@typistinitials\endcsname\relax{}%
+         \else /\tm@typistinitials\fi}\hfill%
+   \vskip12pt\setcounter{tm@textpages}{\c@page}}}
+
+%\vbox{}\hskip3.5in\input /usr/banc/tla/face/tla/face.tex\hskip 
+%.5in\input /usr/banc/tla/face/bala/face.tex
+
+
+%\newenvironment{copyto}{\parskip=0pt\parindent=0pt
+%    \obeylines\hbox{Copy to}}{\vskip.5in}
+\long\def\copyto#1{%
+   {\obeylines\parskip=0pt\parindent=0pt%WHY DOES obeylines NOT WORK
+   \hbox{Copy to}\par\nobreak #1\par}
+%   \par\noindent
+%   \parbox[t]{\textwidth}{\@hangfrom{\rm Copy to: }\ignorespaces #1\strut}\par
+   \newsavebox{\copytobox}\sbox{\copytobox}{\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+   \setcounter{tm@textpages}{\c@page}}
+%
+\long\def\restofcopyto#1{%
+   {\obeylines\parskip=0pt\parindent=0pt%WHY DOES obeylines NOT WORK
+   \par #1\par\ \medskip}
+   \newsavebox{\restofcopytobox}\sbox{\restofcopytobox}%
+     {\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+   \setcounter{tm@textpages}{\c@page}}
+
+\long\def\copytohere#1{%
+   {\obeylines\parskip=0pt\parindent=0pt%WHY DOES obeylines NOT WORK
+   \hbox{Copy to}\par #1\par\ \medskip}
+   \setcounter{tm@textpages}{\c@page}}
+
+\long\def\copytocov#1{%
+   \newsavebox{\copytobox}\sbox{\copytobox}{\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+   \setcounter{tm@textpages}{\c@page}}
+
+\long\def\restofcopytocov#1{%
+   \newsavebox{\restofcopytobox}\sbox{\restofcopytobox}%
+     {\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+   \setcounter{tm@textpages}{\c@page}}
+
+\long\def\coverto#1{%
+   \newsavebox{\covertobox}\sbox{\covertobox}{\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+}
+\long\def\restofcoverto#1{%
+   \newsavebox{\restofcovertobox}\sbox{\restofcovertobox}%
+   {\begin{minipage}[t]{3in}
+     {\parskip=0pt\parindent=0pt#1}\end{minipage}}
+}
+\def\endoftext{\setcounter{tm@textpages}{\c@page}}
+%
+% Coversheet macros
+%
+\font\LARGEsf=cmss17
+\newif\iforgapproval\orgapprovalfalse
+\def\organizationalapproval{\orgapprovaltrue}
+\newif\ifclassified\classifiedfalse
+\def\classified#1{\classifiedtrue\def\classification{#1}}
+\newif\ifitdsrelease\itdsreleasetrue
+\def\itdsrestrict{\itdsreleasefalse}
+\def\tm@stop{@}
+\newif\ifitssame\newif\ifitsnew\newcount\tempcount\newtoks\tm@str
+\def\cmp#1#2*#3#4*{%
+   \itssametrue\if#1#3\if\tm@stop#1\else\cmp#2*#4\tm@stop*\fi%
+   \else\itssamefalse\fi}% compares str1*str2*
+\def\compare#1#2{% string compare
+  \edef\str{#1\tm@stop*#2\tm@stop*}% expand args before passing
+  \expandafter\cmp\str}
+\def\seeifnewdocnum{\tempcount=1\itsnewtrue%
+  {\loop\ifnum\the\tempcount<\the\authornumber%
+    \compare{\his{tm@department}\his{tm@documentdate}}{\csname 
+      tm@department\romannumeral\the\tempcount\endcsname\csname 
+      tm@documentdate\romannumeral\the\tempcount\endcsname}
+    \ifitssame\global\itsnewfalse\fi\advance\tempcount by1\repeat}}
+% The following are to allow an if comparison of string
+%   I can't find a more direct way.
+\let\CHM=a\let\CMM=b\let\MAN=c\let\CMP=d\let\ELC=e
+\let\LFS=f\let\STD=g\let\MAS=h\let\PHY=i\let\MKT=j
+\def\bigbox#1#2{\vbox{\hrule height\thinrule\hbox{\vrule width\thinrule%
+  \vbox to#1{\hbox to\hsize{#2}}\vrule width\thinrule}\hrule height\fatrule}}
+\def\cbox#1{\hbox to\hsize{\strut\hfill#1\hfill}}
+\def\tm@mercurytitle#1{%
+  \cbox{#1%
+  \compare{CHM}{#1}\ifitssame -- Chemistry and Materials\fi 
+  \compare{CMM}{#1}\ifitssame -- Communications\fi
+  \compare{MAN}{#1}\ifitssame -- Manufacturing\fi
+  \compare{CMP}{#1}\ifitssame -- Computing\fi
+  \compare{ELC}{#1}\ifitssame -- Electronics\fi
+  \compare{LFS}{#1}\ifitssame -- Life Sciences\fi
+  \compare{STD}{#1}\ifitssame -- Standards\fi
+  \compare{MAS}{#1}\ifitssame -- Math and Statistics\fi
+  \compare{PHY}{#1}\ifitssame -- Physics\fi
+  \compare{MKT}{#1}\ifitssame -- Marketing\fi
+  }}
+%
+
+\def\coversheet{
+  \cover@setsizes
+  \cover@genmacros
+  \cover@head         \cover@sep
+  \cover@title        \cover@sep
+  \cover@authors      \cover@sep
+  \cover@documentno   \cover@sep
+  \cover@keywords     \cover@sep
+  \cover@mercury      \cover@sep
+  \cover@abstract     \cover@sep
+  \cover@pagecount    \vskip8pt
+  \cover@maillabel    \newpage
+  \cover@pagetwohead  \cover@sep
+  \cover@distrlists   \vfill
+  \ifclassified\cover@sep\cover@classified\fi \cover@sep
+  \cover@futuredistribution 
+  \if R\proprietarylevel{\makeapproval}
+    \else\if G\proprietarylevel{\makeapproval}
+      \else\iforgapproval{\makeapproval}\fi\fi\fi\cover@sep
+  \cover@signature    \cover@sep
+  \cover@ordering
+  % Continued copyto pages if needed
+  \@ifundefined{tm@restof}{}{\cover@thirdpage}
+  }
+
+\def\cover@setsizes{%
+  \coversheetsize \hsize=7.5in \vsize=10.25in \textheight 10.25in
+  \clearpage
+  \hoffset-50pt\voffset-60pt
+  \pagestyle{empty}
+  \font\attlogofont=att36
+  \parindent=0pt
+  \newdimen\fatrule\fatrule=2pt
+  \newdimen\thinrule\thinrule=1.5pt
+}
+
+\def\coversheetsize{%
+  \def\@normalsize{\@setsize\normalsize{12pt}\xpt\@xpt
+    \abovedisplayskip 10pt plus2pt minus5pt\belowdisplayskip \abovedisplayskip
+    \abovedisplayshortskip \z@ plus3pt\belowdisplayshortskip 6pt plus3pt 
+    minus3pt}
+  \def\small{\@setsize\small{11pt}\ixpt\@ixpt
+    \abovedisplayskip 8.5pt plus 3pt minus 4pt\belowdisplayskip 
+    \abovedisplayskip \abovedisplayshortskip \z@
+    plus2pt\belowdisplayshortskip
+    4pt plus2pt minus 2pt
+    \def\@listi{\topsep 4pt plus 2pt minus 2pt\parsep 2pt plus 1pt minus 1pt
+      \itemsep \parsep}}
+  \def\footnotesize{\@setsize\footnotesize{9.5pt}\viiipt\@viiipt
+    \abovedisplayskip 6pt plus 2pt minus 4pt\belowdisplayskip 
+    \abovedisplayskip \abovedisplayshortskip \z@
+    plus1pt\belowdisplayshortskip
+    3pt plus1pt minus 2pt
+    \def\@listi{\topsep 3pt plus 1pt minus 1pt\parsep 2pt plus 1pt minus 1pt
+      \itemsep \parsep}}
+  \def\scriptsize{\@setsize\scriptsize{8pt}\viipt\@viipt}
+  \def\tiny{\@setsize\tiny{6pt}\vpt\@vpt}
+  \def\large{\@setsize\large{14pt}\xiipt\@xiipt}
+  \def\Large{\@setsize\Large{18pt}\xivpt\@xivpt}
+  \def\LARGE{\@setsize\LARGE{22pt}\xviipt\@xviipt}
+  \def\huge{\@setsize\huge{25pt}\xxpt\@xxpt}
+  \def\Huge{\@setsize\Huge{30pt}\xxvpt\@xxvpt}
+  \@normalsize\normalsize
+  }
+
+\def\cover@genmacros{%
+  \def\tm@TM{TECHNICAL MEMORANDUM}
+  \def\tm@tm{Technical Memorandum}
+  \def\tm@IM{INTERNAL MEMORANDUM}
+  \def\tm@im{Internal Memorandum}
+  \def\tm@TC{TECHNICAL CORRESPONDENCE}
+  \def\tm@tc{Technical Correspondence}
+  \def\cover@sep{\medskip\hrule height\thinrule\medskip}
+  \def\squarebox{%
+    \vbox{\hrule\hbox{\vrule\vbox to 5pt{\hbox to 5pt{\hfill}\vfil}%
+      \vrule}\hrule}\relax}}
+
+\def\cover@head{%
+  \hbox to \hsize{%
+    \vtop{\hsize=130pt\parbox{40pt}{\attlogofont L}
+      \parbox{86pt}{{\attlogofont AT\&T}}}
+    \hfill
+    \vtop{\hsize=160pt%
+      \hbox{\hfill\LARGEsf Document Cover Sheet\hfill}
+      \vskip4pt
+      \ifx\tm@memotype\tm@tm{\hbox{\hfill\LARGEsf for Technical Memorandum}}\fi
+      \ifx\tm@memotype\tm@TM{\hbox{\hfill\LARGEsf for Technical Memorandum}}\fi
+      \ifx\tm@memotype\tm@im{\hbox{\hfill\LARGEsf for Internal Memorandum}}\fi
+      \ifx\tm@memotype\tm@IM{\hbox{\hfill\LARGEsf for Internal Memorandum}}\fi
+      \ifx\tm@memotype\tm@tc{\hbox{\hfill\LARGEsf for Technical 
+        Correspondence}}\fi
+      \ifx\tm@memotype\tm@TC{\hbox{\hfill\LARGEsf for Technical 
+        Correspondence}}\fi
+      }}}
+
+\def\cover@title{%
+  \hbox to \hsize{%
+    \vtop{\hsize=.5in{\strut\bf Title:\hfill}}%
+    \parbox{6.75in}{\strut\tm@covtitle}\hfill}}
+
+\def\cover@authors{%
+  \hbox to 7.5in{%
+    \vtop{\hsize=130pt%
+      \cbox{{\bf Author\ifnum\authornumber>1 s\fi}}
+      \cbox{\vbox{\forallauthors{\hbox{\strut\his{tm@author}\hfill}}}}}
+    \hskip4pt%
+    \vtop{\hsize=118pt%
+      \cbox{{\bf Electronic Address}}
+      \cbox{\vbox{\forallauthors{\hbox{\strut\his{tm@eaddress}\hfill}}}}}
+    \hskip4pt%
+    \vtop{\hsize=60pt%
+      \cbox{{\bf Location}}
+      \cbox{\vbox{\forallauthors{\hbox{\strut\his{tm@location}\ 
+        \his{tm@office}\hfill}}}}}
+    \hskip4pt%
+    \vtop{\hsize=57pt%
+      \cbox{{\bf Phone}}
+      \forallauthors{\cbox{\his{tm@phone}}}}
+    \hskip4pt%
+    \vtop{\hsize=150pt%
+      \cbox{{\bf Company {\footnotesize (if other than AT\&T--BL)}}}
+      \cbox{\vbox{\forallauthors{\hbox{\strut\his{tm@company}\hfill}}}}}
+    \hfil
+    }}  
+
+\def\cover@documentno{%
+  \hbox{%
+    \vtop{\hsize=210pt%
+      \cbox{{\bf Document No.}}
+      \forallauthors{\seeifnewdocnum\ifitsnew%
+        \if\relax\his{tm@documentdate}\relax\else%
+        \cbox{\his{tm@department}-\his{tm@documentdate}% print if defined
+        -\his{tm@documentseq}\his{tm@documentcat}}\fi\fi}}
+    \vtop{\hsize=132pt%
+      \cbox{{\bf Filing Case No.}}
+      \forallfilecases{\cbox{\case{tm@filecase}}}}
+    \vtop{\hsize=164pt%
+      \cbox{{\bf Work Project No.}}
+      \forallchargecases{\cbox{\case{tm@chargecase}}}}
+    \hskip12pt%
+    \hfil
+    }
+  \if\relax\tm@prevdoc\relax\else
+  This document supersedes or amends document number: \tm@prevdoc\fi
+  }
+
+\def\cover@keywords{{\bf Keywords:}\hfill\break
+  \medskip
+  \hskip.25in\tm@keywords}
+
+\def\cover@mercury{%
+  {\bf MERCURY Announcement Bulletin Sections}\hfill\break
+  \medskip
+  %\def\footnotesize\relax
+  \hbox{\footnotesize%  
+    \vtop{\hsize=2.25in%
+      \expandafter\if\csname tm@mercuryi\endcsname\relax{}\else
+      \tm@mercurytitle{\tm@mercuryi}\fi}
+    \hfill
+    \vtop{\hsize=2.25in%
+      \expandafter\if\csname tm@mercuryii\endcsname\relax{}\else
+      \tm@mercurytitle{\tm@mercuryii}\fi}
+    \hfill
+    \vtop{\hsize=2.25in%
+      \expandafter\if\csname tm@mercuryiii\endcsname\relax{}\else
+      \tm@mercurytitle{\tm@mercuryiii}\fi}
+    }}
+
+\def\cover@abstract{{\bf Abstract}\hfill\break
+  \medskip
+  %{\parindent=0pt%
+  %  \leftskip0.25in\rightskip0.25in\tm@abstr\par\medskip
+  %  }
+  \newdimen\csabstrwidth\csabstrwidth=7in
+  \begin{center}
+    \begin{minipage}{\csabstrwidth}{\parskip\medskipamount\tm@abstr}\end{minipage}
+  %\usebox{\tm@csabstr}
+  \end{center}
+  \vfill}
+
+\def\cover@pagecount{%
+  \@ifundefined{restofcopytobox}{\@ifundefined{restofcovertobox}%
+    {}{\def\tm@restof{y}}}{\def\tm@restof{y}}
+  {\footnotesize Pages of Text\quad}\thetm@textpages\quad%
+  \addtocounter{tm@totalpages}{\c@page}%
+%  \ifnum\thetm@extrapages>0\addtocounter{tm@totalpages}{\thetm@extrapages}\fi%
+  \@ifundefined{tm@restof}% 1 or 2 more pages beyond here
+    {\addtocounter{tm@totalpages}{1}}%
+    {\addtocounter{tm@totalpages}{2}}%
+  \setcounter{tm@otherpages}{\thetm@totalpages}%
+  \addtocounter{tm@otherpages}{-\thetm@textpages}%
+  {\footnotesize Other Pages\quad}\thetm@otherpages\quad%
+  {\footnotesize Total\quad}\thetm@totalpages\\
+  {\footnotesize No. Figs.\quad}\thefigure\quad%
+  {\footnotesize No. Tables\quad}\thetable\quad%
+  {\footnotesize No. Refs.\quad}\thetm@references
+  \par}
+
+\def\cover@maillabel{%
+  \hfill {\bf Mailing Label}\hskip90pt\ %
+  \par\vskip22pt
+  \@ifundefined{tm@propmark}{}{\hskip.5in\usebox{\tm@propmark}}
+  \vskip47pt
+  {\footnotesize tm.sty (\tmversiondate )}\hfill
+  {\sf\tm@capcompanyname}}
+
+\def\cover@pagetwohead{%
+  {\bf Initial Distribution Specifications\hfill%
+     \authornumber=1\loop%
+       \if\relax\his{tm@author}\relax%
+        \moreauthorsfalse\else\moreauthorstrue\fi
+       \ifmoreauthors\relax\else\authornumber=1%
+         \def\tm@documentdatei{No Document Number}\fi%
+       \if\relax\his{tm@documentdate}%
+         \advance\authornumber by1\repeat% find first document number
+    \his{tm@department}-\his{tm@documentdate}%
+    \if\relax\his{tm@documentseq}\relax\else-\his{tm@documentseq}%
+       \his{tm@documentcat}\fi}%
+    {\enskip\it (page ii of 
+    \@ifundefined{tm@restof}{ii}{iii})}}
+
+\def\cover@distrlists{%
+  \hfill {\bf Complete Copy}\hfill\hfill{\bf Cover Sheet Only}\hfill\ 
+
+  \bigskip
+  \hbox to \hsize{%
+    \hskip.25in
+    \@ifundefined{copytobox}{}{\usebox{\copytobox}}%
+    \hfill%
+    \@ifundefined{covertobox}{}{\usebox{\covertobox}}
+    \hskip.25in\ }}
+\def\cover@classified{%
+  {\bf Government Security Classification}\hfill\classification}
+
+\def\cover@futuredistribution{{\bf Future AT\&T Distribution by ITDS}\hfill%
+  \ifitdsrelease\hfill Release to any AT\&T employee (excluding contract employees)%
+    \else\penalty-1\hbox{}\nobreak\hfill\nobreak%
+      \hbox{Do not release to any AT\&T employee without obtaining
+          appropriate approval}%
+    \fi\par}
+
+\def\makeapproval{%
+  \medskip\hrule height\thinrule\medskip
+  {\bf Proprietary Classification or Other Organizational Approval:} (Department Head)
+
+  \bigskip
+  \hbox to \hsize{\@ifundefined{tm@propmark}{}{\usebox{\tm@propmark}}%
+     \hfill\vbox{\hrule width 3.5in\vskip20pt\hrule}}}
+
+\def\cover@signature{%
+  {\forallauthors{\relax}%to set authornumber to numberofauthors+1
+   \bf Author Signature\ifnum\authornumber>2 s\fi}
+
+  \vskip22pt
+  \hbox to \hsize{%
+  \vbox{\hsize2.25in\hrule\smallskip\hfill\strut\tm@authori\hfill\ }
+  \nobreak\hfill
+  \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+    \expandafter\if\csname tm@authorii\endcsname\relax{}\else\tm@authorii\fi\hfill\ }
+  \nobreak\hfill
+  \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+    \expandafter\if\csname tm@authoriii\endcsname\relax{}\else\tm@authoriii\fi\hfill\ }}
+  \expandafter\if\csname tm@authoriv\endcsname\relax{}\else%
+    \vskip22pt
+    \hbox to \hsize{%
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut\tm@authoriv\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@authorv\endcsname\relax{}\else\tm@authorv\fi\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@authorvi\endcsname\relax{}\else\tm@authorvi\fi\hfill\ }}\fi
+  \expandafter\if\csname tm@authorvii\endcsname\relax{}\else%
+    \vskip22pt
+    \hbox to \hsize{%
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut\tm@authorvii\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@authorviii\endcsname\relax{}\else\tm@authorviii\fi\hfill\ }
+    \nobreak\hfill
+    \vbox{\hsize2.25in\hrule\smallskip\hfill\strut%
+      \expandafter\if\csname tm@authorix\endcsname\relax{}\else\tm@authorix\fi\hfill\ }}\fi
+  }
+
+\def\cover@ordering{{\bf For Use by Recipient of Cover Sheet:}
+
+  \medskip
+
+  {\scriptsize
+  \hbox to \hsize{%
+  \vbox to .7in{\hsize300pt%
+  \hbox{\hskip4pt\vbox{\hsize240pt%
+  \hbox{Computing network users may order copies via the {\it library -1} command;\hfill}
+  \hbox{\hskip4pt for information, type {\it man library} after the
+  UNIX\regmark\ system prompt.\hfill}}}
+  \vfill
+  \hbox{\hskip4pt\vbox{\hsize305pt%
+  \hbox{Otherwise:\hfill}
+  \hbox to\hsize{\hskip4pt Enter PAN if AT\&T--BL (or SS\# if non-AT\&T--BL).
+  \vbox{\hrule width104pt}\hfill}
+%  \hbox{2 Fold this sheet in half with this side out.\hfill}
+%  \hbox{3 Check the address of your local Internal Technical Document Service\hfill}
+%  \hbox{\hskip7pt if listed; otherwise, use HO 4F-112.  Use no envelope.\hfill}
+%  \hbox{4 Indicate whether microfiche or paper copy is desired.}
+  \hbox{\hskip4pt Return this sheet to any ITDS location.\par}
+  }}}
+  \hfill
+  \vbox to .7in{\hsize3in%
+  Internal Technical Document Service\hfill
+
+  \vfill{
+  \begin{tabbing}
+  ( )\hskip.72in\=( )\hskip.72in\=( )\hskip.72in\=\kill
+  
+  ( ) AK 2H-28	\>( ) IH 7M-103	\>( ) DR 2F-19\>( ) NW-ITDS\\
+  ( ) ALC 1B-102	\>( ) MV 3L-19	\>( ) INH 1C-114\>( ) PR 5-2120\\
+  ( ) CB 3O-2011  \>( ) WH 3E-204	\>( ) IW 2Z-156\\
+  ( ) HO 4F-112   \>		\>( ) MT 3B-117
+  \end{tabbing}}\vskip -8pt}%
+%  Please send a complete \squarebox\ microfiche \squarebox\ paper copy
+%  of this document to the address shown on the other side.
+%  \par}}
+  }
+  }}
+
+\def\cover@thirdpage{%
+  \newpage
+  {\hfill\bf%
+     \authornumber=1\loop%     
+       \if\relax\his{tm@author}\relax%
+        \moreauthorsfalse\else\moreauthorstrue\fi
+       \ifmoreauthors\relax\else\authornumber=1%
+         \def\tm@documentdatei{No Document Number}\fi%
+       \if\relax\his{tm@documentdate}%
+         \advance\authornumber by1\repeat% find first document number
+    \his{tm@department}-\his{tm@documentdate}%
+    \if\relax\his{tm@documentseq}\relax\else-\his{tm@documentseq}%
+       \his{tm@documentcat}\fi}%
+    {\enskip\it (page iii of iii)}
+  \medskip\hrule height\thinrule\medskip
+  \hbox to \hsize{%
+    \vtop{\hsize=.5in{\strut\bf Title:\hfill}}%
+    \parbox{6.75in}{\strut\tm@covtitle}\hfill}
+  \medskip\hrule height\thinrule\medskip
+  \hfill {\bf Complete Copy (continued)}\hfill%
+  \hfill{\bf Cover Sheet Only (continued)}\hfill\ 
+
+  \bigskip
+  \hbox to \hsize{%
+    \hskip.25in
+    \@ifundefined{restofcopytobox}{}{\usebox{\restofcopytobox}}%
+    \hfill%
+    \@ifundefined{restofcovertobox}{}{\usebox{\restofcovertobox}}
+    \hskip.25in\ }
+  \medskip\hrule height\thinrule\medskip
+  \vfill
+  }% end of continued copyto page
+
+% Memorandum for File type coversheet
+\def\mffcoversheet{%
+\makehead
+\makeabstract
+\newpage
+}%
+% end of memorandum for File type coversheet
+\pagestyle{headings}\sf
+\input localpatch.sty
+%%%%%%%%%%%%%%%%%%%%%%%%%%% THE END %%%%%%%%%%%%%%%%%%%%%%%%%

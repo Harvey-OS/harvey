@@ -10,7 +10,7 @@ void track(void (*rou)(Item *, int, Dpoint), int index, Item *ip){
 	Item *s;
 	if(ip){
 		setselection(0);
-		draw(ip, scoffs, dark, S^D);
+		draw(ip, scoffs, DARK, S^D);
 		ip->flags|=MOVING;
 	}
 	realign();
@@ -24,7 +24,7 @@ void track(void (*rou)(Item *, int, Dpoint), int index, Item *ip){
 	}
 	if(ip){
 		ip->flags&=~MOVING;
-		draw(ip, scoffs, dark, S^D);
+		draw(ip, scoffs, DARK, S^D);
 		setselection(ip);
 	}
 	else setselection(select());

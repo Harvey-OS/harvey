@@ -3,7 +3,8 @@
 
 /* globals to all files */
 int rmail;
-char *thissys, *altthissys;
+int onatty;
+char *thissys;
 int nflg;
 int xflg;
 int debug;
@@ -34,9 +35,7 @@ main(int argc, char *argv[])
 	dest *dp=0;
 	int checkforward;
 	char *base;
-	int rv, holding;
-
-	srand(time(0));
+	int rv, fd;
 
 	/* process args */
 	ARGBEGIN{
@@ -69,25 +68,25 @@ main(int argc, char *argv[])
 	/*
 	 * get context:
 	 *	- whether we're rmail or mail
+	 *	- whether on a tty
 	 */
 	base = basename(argv0);
 	checkforward = rmail = (strcmp(base, "rmail")==0) | rflg;
+	onatty = !rmail;
 	thissys = sysname_read();
-	altthissys = alt_sysname_read();
 
 	/*
 	 *  read the mail.  If an interrupt occurs while reading, save in
 	 *  dead.letter
 	 */
+	fd = -1;
+	if(onatty){
+		fd = open("/dev/consctl", OWRITE);
+		write(fd, "holdon", 6);
+	}
 	if (!nflg) {
 		Binit(&in, 0, OREAD);
-		if(rmail)
-			mp = m_read(&in, rmail);
-		else {
-			holding = holdon();
-			mp = m_read(&in, rmail);
-			holdoff(holding);
-		}
+		mp = m_read(&in, rmail);
 		if (mp == 0)
 			exit(0);
 		if (interrupt != 0) {
@@ -97,6 +96,10 @@ main(int argc, char *argv[])
 	} else {
 		mp = m_new();
 		default_from(mp);
+	}
+	if(onatty){
+		write(fd, "holdoff", 7);
+		close(fd);
 	}
 	errstring = s_new();
 	getrules();
@@ -133,7 +136,6 @@ main(int argc, char *argv[])
 		m_free(mp);
 	exit(rv);
 }
-
 
 
 /* send a message to a list of sites */
@@ -179,14 +181,15 @@ lesstedious(void)
 
 	if(debug)
 		return;
-
 	switch(fork()){
 	case -1:
+		onatty = 0;
 		break;
 	case 0:
 		rfork(RFENVG|RFNAMEG|RFNOTEG);
 		for(i=0; i<nsysfile; i++)
 			close(i);
+		onatty = 0;
 		savemail = 0;
 		break;
 	default:
@@ -373,7 +376,7 @@ cat_mail(dest *dp, message *mp)
 		s_free(tmp);
 	}
 	if(m_print(mp, fp, (char *)0, 1) < 0
-	|| Bprint(fp, "\n") < 0
+	|| Bprint(fp, "\nmorF\n") < 0
 	|| Bflush(fp) < 0){
 		sysclose(fp);
 		unlock(l);
@@ -412,13 +415,12 @@ refuse(dest *list, message *mp, char *cp, int status)
 
 	dp = d_rm(&list);
 	mkerrstring(errstring, mp, dp, list, cp, status);
-
 	/*
 	 * if on a tty just report the error.  Otherwise send mail
 	 * reporting the error.  N.B. To avoid mail loops, don't
 	 * send mail reporting a failure of mail to reach the postmaster.
 	 */
-	if (!rmail) {
+	if (onatty) {
 		fprint(2, "%s\n", s_to_c(errstring));
 		savemail = 1;
 		rv = 1;

@@ -1,0 +1,7 @@
+	the output of this directory is an executable that
+produces a couple of tables to insert into ../tcs.c.
+
+	there are two well-known encodings for cyrillic
+in regular ascii text. we handle both.
+
+	we now handle an additional msdos mapping.

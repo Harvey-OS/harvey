@@ -68,7 +68,7 @@ struct ttystate {
 } ttystate[2] = { {0, 1}, {0,0} };
 
 /* functions */
-void	initialize(int, char **);
+void	initialize(void);
 void	ebegin(int);
 Point	pt(int, int);
 void	rectf(Bitmap *, Rectangle, Fcode);
@@ -122,7 +122,8 @@ main(int argc, char **argv)
 	int standout = 0;
 	int insmode = 0;
 
-	initialize(argc, argv);
+	USED(argc, argv);
+	initialize();
 
 	for (;;) {
 		if (x > xmax || y > ymax) {
@@ -319,7 +320,7 @@ main(int argc, char **argv)
 }
 
 void
-initialize(int argc, char **argv)
+initialize(void)
 {
 	rfork(RFENVG|RFNAMEG|RFNOTEG);
 
@@ -342,11 +343,6 @@ initialize(int argc, char **argv)
 	bitblt(allones,Pt(0,0),allones,allones->r,F);
 
 	ereshaped(bscreenrect(0));
-
-	if( argc > 1) {
-		sendnchars(strlen(argv[1]),argv[1]);
-		sendnchars(1,"\n");
-	}
 }
 
 void
@@ -501,7 +497,7 @@ waitchar(void)
 			if( (c = Bgetc(snarffp)) < 0) {
 				if( lastc != '\n')
 					write(outfd,"\n",1);
-				Bterm(snarffp);
+				Bclose(snarffp);
 				snarffp = 0;
 				if( lastc != '\n' ) {
 					lastc = -1;

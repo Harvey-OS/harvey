@@ -1,3 +1,0 @@
-NAME squeeze WINDOWCOMPAT NEWFILES
-DESCRIPTION 'squeeze a PostScript file (source: dvips)'
-STACKSIZE 0x2000

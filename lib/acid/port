@@ -1,0 +1,374 @@
+// portable acid for all architectures
+
+defn pfl(addr)
+{
+	print(pcfile(addr), ":", pcline(addr), "\n");
+}
+
+defn labstk(l)				// trace from a label
+{
+	_stk(*l, *(l+4), l);
+}
+
+defn params(param)
+{
+	while param do {
+		sym = head param;
+		print(sym[0], "=", sym[1]);
+		param = tail param;
+		if param then
+			print (",");
+	}	
+}
+
+defn locals(l)
+{
+	local sym;
+
+	while l do {
+		sym = head l;
+		print("\t", sym[0], "=", sym[1], "\n");
+		l = tail l;
+	}	
+}
+
+defn _stk(pc, sp, dolocals)
+{
+	local stk;
+
+	stk = strace(pc, sp);
+
+	while stk do {
+		frame = head stk;
+		print(fmt(frame[0], 'a'), "(");
+		params(frame[2]);
+		print(") ", pcfile(frame[0]), ":", pcline(frame[0]));
+		print("called from ", fmt(frame[1], 'a'), " ");
+		pfl(frame[1]);
+		stk = tail stk;
+		if dolocals then
+			locals(frame[3]);
+	}
+}
+
+defn findsrc(file)
+{
+	local lst;
+	local src;
+
+	lst = srcpath;
+	while head lst do {
+		src = file(head lst+file);
+		if src != {} then {
+			srcfiles = append srcfiles, file;
+			srctext = append srctext, src;
+			return src;
+		}
+		lst = tail lst;
+	}
+}
+
+defn line(addr)
+{
+	local src;
+	local file;
+
+	file = pcfile(addr);
+	src = match(file, srcfiles);
+
+	if src >= 0 then
+		src = srctext[src];
+	else
+		src = findsrc(file);
+
+	if src == {} then {
+		print("no source for ", file, "\n");
+		return {};
+	}
+	line = pcline(addr)-1;
+	print(file, ":", src[line], "\n");
+}
+
+defn addsrcdir(dir)
+{
+	dir = dir+"/";
+
+	if match(dir, srcpath) >= 0 then {
+		print("already in srcpath\n");
+		return {};
+	}
+
+	srcpath = {dir}+srcpath;
+}
+
+defn source()
+{
+	local l;
+
+	l = srcpath;
+	while l do {
+		print(head l, "\n");
+		l = tail l;
+	}
+	l = srcfiles;
+
+	while l do {
+		print("\t", head l, "\n");
+		l = tail l;
+	}
+}
+
+defn Bsrc(addr)
+{
+	local lst;
+
+	lst = srcpath;
+	file = pcfile(addr);
+	while head lst do {
+		name = head lst+file;
+		if access(name) then {
+			rc("B "+itoa(-pcline(addr))+" "+name);
+			return {};
+		}
+		lst = tail lst;
+	}
+	print("no source for ", file, "\n");
+}
+
+defn src(addr)
+{
+	local src;
+	local file;
+	local line;
+	local cline;
+	local text;
+
+	file = pcfile(addr);
+	src = match(file, srcfiles);
+
+	if src >= 0 then
+		src = srctext[src];
+	else
+		src = findsrc(file);
+
+	if src == {} then {
+		print("no source for ", file, "\n");
+		return {};
+	}
+
+	cline = pcline(addr)-1;
+	line = cline-5;
+	loop 0,10 do {
+		if line >= 0 then {
+			if line == cline then
+				print(">");
+			else
+				print(" ");
+			text = src[line];
+			if text == {} then
+				return {};
+			print(file, ":", line, "\t", text, "\n");
+		}
+		line = line+1;
+	}	
+}
+
+defn step()					// single step the process
+{
+	local lst;
+	local lpl;
+	local addr;
+	local bput;
+
+	lst = follow(*PC);
+
+	lpl = lst;
+	while lpl do {				// place break points
+		*(head lpl) = bpinst;
+		lpl = tail lpl;
+	}
+
+	bput = 0;
+	if match(*PC, bplist) >= 0 then {	// Sitting on a breakpoint
+		bput = fmt(*PC, bpfmt);
+		*bput = @bput;
+	}
+
+	startstop(pid);				// do the step
+
+	while lst do {				// remove the breakpoints
+		addr = fmt(head lst, bpfmt);
+		*addr = @addr;
+		lst = tail lst;
+	}
+	if bput != 0 then
+		*bput = bpinst;
+}
+
+defn bpset(addr)				// set a breakpoint
+{
+	if match(addr, bplist) >= 0 then
+		print("breakpoint already set at ", fmt(addr, 'a'), "\n");
+	else {
+		*fmt(addr, bpfmt) = bpinst;
+		bplist = append bplist, addr;
+	}
+}
+
+defn bptab()					// print a table of breakpoints
+{
+	local lst;
+	local addr;
+
+	lst = bplist;
+	while lst do {
+		addr = head lst;
+		print("\t", fmt(addr, 'X'), fmt(addr, 'a'), "  ", fmt(addr, 'i'), "\n");
+		lst = tail lst;
+	}
+}
+
+defn bpdel(addr)				// delete a breakpoint
+{
+	local n;
+	local pc;
+	local nbplist;
+
+	n = match(addr, bplist);
+	if n < 0  then {
+		print("no breakpoint at ", fmt(addr, 'a'), "\n");
+		return {};
+	}
+
+	addr = fmt(addr, bpfmt);
+	*addr = @addr;
+
+	nbplist = {};				// delete from list
+	while bplist do {
+		pc = head bplist;
+		if pc != addr then
+			nbplist = append nbplist, pc;
+		bplist = tail bplist;
+	}
+	bplist = nbplist;			// delete from memory
+}
+
+defn cont()					// continue execution
+{
+	local addr;
+
+	addr = fmt(*PC, bpfmt);
+	if match(addr, bplist) >= 0 then {	// Sitting on a breakpoint
+		*addr = @addr;
+		step();				// Step over
+		*addr = bpinst;
+	}
+	startstop(pid);				// Run
+}
+
+defn stopped(pid)		// called from acid when a process changes state
+{
+	pstop(pid);		// stub so this is easy to replace
+}
+
+defn procs()			// print status of processes
+{
+	local c;
+	local lst;
+	local cpid;
+
+	cpid = pid;
+	lst = proclist;
+	while lst do {
+		np = head lst;
+		setproc(np);
+		if np == cpid then
+			c = '>';
+		else
+			c = ' ';
+		print(fmt(c, 'c'), np, ": ", status(np), " at ", fmt(*PC, 'a'), "\n");
+		lst = tail lst;
+	}
+	pid = cpid;
+	if pid != 0 then
+		setproc(pid);
+}
+
+defn asm(addr)
+{
+	addr = fmt(addr, 'i');
+	loop 1,30 do
+		print(fmt(addr, 'a'), "\t", @addr++, "\n");
+}
+
+defn new()
+{
+	bplist = {};
+	newproc(progargs);
+}
+
+defn stmnt()			// step one statement
+{
+	local line;
+
+	line = pcline(*PC);
+	while 1 do {
+		step();
+		if line != pcline(*PC) then {
+			src(*PC);
+			return {};
+		}
+	}
+}
+
+defn func()			// step until we leave the current function
+{
+	local pc;
+	local lst;
+	local end;
+	local start;
+
+	lst = symbols;
+	pc = *PC;
+	while lst do {
+		start = (head lst)[2];
+		end = etext;
+		if tail lst then
+			end = (head (tail lst))[2];
+
+		if pc >= start && pc < end then {
+			while pc >= start && pc < end do {
+				step();
+				pc = *PC;
+			}
+			return {};
+		}
+		lst = tail lst;
+	}
+	print("cannot locate text symbol\n");
+}
+
+defn dump(addr, n, fmt)
+{
+	loop 0, n do {
+		print(fmt(addr, 'a'), " ");
+		addr = mem(addr, fmt);
+	}
+}
+
+defn mem(addr, fmt)
+{
+	local i;
+
+	i = 0;
+	while fmt[i] != 0 do {
+		addr = fmt(addr, fmt[i]);
+		print(*addr++);
+		i = i+1;
+	}
+	print("\n");
+	return addr;
+}
+
+progargs="";
+print("/lib/acid/port");

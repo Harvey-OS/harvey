@@ -1,0 +1,16 @@
+#!/bin/rc
+eval `{/bin/help/parse}
+x=`{cat /mnt/help/new/ctl}
+{
+	echo a
+	if(~ $dir .) x=mk
+	if not x=$dir/mk
+	echo $x'	Close!'
+} | help/buf > /mnt/help/$x/ctl
+{
+	if(! ~ $dir ''){
+		cd $dir
+		mk $*
+	}
+	if not mk $*
+} > /mnt/help/$x/bodyapp >[2=1]

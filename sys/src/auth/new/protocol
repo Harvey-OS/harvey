@@ -1,0 +1,59 @@
+Actors
+A	authentication server
+C	client
+D	client's domain
+S	server
+C'	client's name in S's domain
+
+Message Fragments
+Chx	challenge sent by x
+Kx	x's private key
+KN	nonce key
+ERR	an error message
+
+K{Q} = Q encrypted with key K
+
+	# C sends its challenge to S
+1) C->S	KC{Acchal, ChC, S}, C, D
+
+	# S passes C's challenge to A, along with its own challenge
+2) S->A	KS{Aschal, ChS, C, D, KC{Acchal, ChC, S}}, S
+
+	# A sends an encrypted challenge back to C relayed by S
+	# KN is a new key to be used in encrypting the conversation
+3) A->S->C	KC{KS{Astick, ChS, C', KN}, Actick, ChC, KN}, PAD
+or
+3) A->S->C 	Aerr, ERR
+
+	# C now trusts S to be S
+	# C sends the encrypted challenge back to S
+5) C->S	KS{Astick, ChS, C', KN}
+
+	# S now trusts C to be C'
+6) S->C "OK"
+
+.TS
+K'x	x's auxiliary key
+CnS	challenge for an aux key sent by S
+.TE
+
+From a non-plan 9 machine
+C->S	C
+S->C	CnS
+C->S	K'C{CnS}
+S->A	KS{Asnchal, ChS, C, CnS, K'C{CnS}}, S
+A->S	KS{Astick, ChS, C', KN}}
+S->C	ok
+
+The same protocol is used for file and compute server attaches.
+The last message is a ticket that a compute server accepts
+to set the user name to C'.
+
+Changing passwords
+A user can change her password by contacting the password service
+on the authentication server.  The protocol is
+A -> C	challenge
+C -> A	client KC{challenge, oldpassword, newpassword}
+A -> C	"password changed" or error message
+old password and new password are 10 char wide fixed-width fields.
+challenge is an 64 bit random number

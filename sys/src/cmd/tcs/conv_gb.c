@@ -1,21 +1,16 @@
-#ifdef	PLAN9
 #include	<u.h>
 #include	<libc.h>
 #include	<bio.h>
-#else
-#include	<stdio.h>
-#include	<unistd.h>
-#include	"plan9.h"
-#endif
-#include	"hdr.h"
 #include	"conv.h"
 #include	"gb.h"
+#include	"hdr.h"
 
 /*
 	a state machine for interpreting gb.
+	don't blame me -- rob made me do it
 */
 void
-gbproc(int c, Rune **r, long input_loc)
+gbproc(int c, Rune **r, long ninput)
 {
 	static enum { state0, state1 } state = state0;
 	static int lastc;
@@ -41,7 +36,7 @@ again:
 		else {
 			nerrors++;
 			if(squawk)
-				EPR "%s: bad gb glyph %d (from 0x%x,0x%x) near byte %ld in %s\n", argv0, c-0xA0, lastc, cold, input_loc, file);
+				fprint(2, "%s: bad gb glyph %d (from 0x%x,0x%x) near byte %ld in %s\n", argv0, n, lastc, cold, ninput, file);
 			if(!clean)
 				emit(BADMAP);
 			state = state0;
@@ -51,7 +46,7 @@ again:
 		if(ch < 0){
 			nerrors++;
 			if(squawk)
-				EPR "%s: unknown gb %d (from 0x%x,0x%x) near byte %ld in %s\n", argv0, n, lastc, cold, input_loc, file);
+				fprint(2, "%s: unknown gb %d (from 0x%x,0x%x) near byte %ld in %s\n", argv0, n, lastc, cold, ninput, file);
 			if(!clean)
 				emit(BADMAP);
 		} else
@@ -63,32 +58,32 @@ again:
 void
 gb_in(int fd, long *notused, struct convert *out)
 {
-	Rune ob[N];
+	Rune obuf[N];
 	Rune *r, *re;
 	uchar ibuf[N];
 	int n, i;
 	long nin;
 
 	USED(notused);
-	r = ob;
-	re = ob+N-3;
+	r = obuf;
+	re = obuf+N-3;
 	nin = 0;
 	while((n = read(fd, ibuf, sizeof ibuf)) > 0){
 		for(i = 0; i < n; i++){
 			gbproc(ibuf[i], &r, nin++);
 			if(r >= re){
-				OUT(out, ob, r-ob);
-				r = ob;
+				OUT(out, obuf, r-obuf);
+				r = obuf;
 			}
 		}
-		if(r > ob){
-			OUT(out, ob, r-ob);
-			r = ob;
+		if(r > obuf){
+			OUT(out, obuf, r-obuf);
+			r = obuf;
 		}
 	}
 	gbproc(-1, &r, nin);
-	if(r > ob)
-		OUT(out, ob, r-ob);
+	if(r > obuf)
+		OUT(out, obuf, r-obuf);
 }
 
 void
@@ -98,6 +93,7 @@ gb_out(Rune *base, int n, long *notused)
 	int i;
 	Rune r;
 	static int first = 1;
+	static long tab[NRUNE];
 
 	USED(notused);
 	if(first){
@@ -122,11 +118,11 @@ gb_out(Rune *base, int n, long *notused)
 				continue;
 			}
 			if(squawk)
-				EPR "%s: rune 0x%x not in output cs\n", argv0, r);
+				fprint(2, "%s: rune 0x%x not in output cs\n", argv0, r);
 			nerrors++;
 			if(clean)
 				continue;
-			*p++ = BYTEBADMAP;
+			*p++ = BADMAP;
 		}
 	}
 	noutput += p-obuf;

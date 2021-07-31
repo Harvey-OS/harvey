@@ -2,12 +2,7 @@
 .SH NAME
 wait \- wait for a process to exit
 .SH SYNOPSIS
-.B #include <u.h>
-.br
-.B #include <libc.h>
-.PP
-.B
-int wait(Waitmsg *w)
+.B  int wait(Waitmsg *w)
 .SH DESCRIPTION
 .I Wait
 causes a process to wait for any child process (see
@@ -35,7 +30,7 @@ struct Waitmsg
 .PP
 .B Pid
 is the child's
-process id.
+.BR pid .
 The
 .B time
 array contains the time the child and its descendants spent in user code,
@@ -58,16 +53,10 @@ prefixed by the process name, a blank, the process id, and a colon.
 .PP
 If there are no more children to wait for,
 .I wait
-returns immediately, with return value \-1.
-.SH SOURCE
-.B /sys/src/libc/9syscall
+returns immediately, with return value \(mi1.
 .SH "SEE ALSO"
 .IR fork (2),
-.IR exits (2),
-the
-.B wait
-file in
-.IR proc (3)
+.IR exits (2)
 .SH DIAGNOSTICS
 Sets
-.IR errstr .
+.I errstr.

@@ -17,6 +17,4 @@ looks in
 and
 .B /adm/users
 to find out more information about
-.IR person .
-.SH SOURCE
-.B /rc/bin/who
+.I person.

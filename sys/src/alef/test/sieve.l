@@ -1,13 +1,10 @@
 #include <alef.h>
 
-int	countpid;
-
 void
 counter(chan(int) c)
 {
 	int i;
 
-	countpid = getpid();
 	for(i = 2; ; i++)
 		c <-= i;
 }
@@ -40,7 +37,8 @@ sieve(chan(int) in, chan(int) out)
 void
 main(void)
 {
-	byte c;
+	char c;
+	int i;
 	chan(int) count, primes;
 
 	alloc count, primes;
@@ -51,7 +49,5 @@ main(void)
 	for(c = 0; c < 100; c++)
 		print("%d ", <-primes);
 
-	postnote(PNPROC, countpid, "kill");
 	print("done\n");
-	exits(nil);
 }

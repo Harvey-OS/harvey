@@ -1,4 +1,3 @@
-#pragma	src	"/sys/src/libndb"
 #pragma	lib	"libndb.a"
 
 /*
@@ -20,17 +19,19 @@ enum
  */
 struct Ndb
 {
-	Ndb		*next;
+	Ndb	*next;
 
-	Biobufhdr	b;		/* buffered input file */
-	uchar		buf[256];	/* and it's buffer */
+	Biobufhdr;		/* buffered input file */
+	uchar	buf[256];	/* and it's buffer */
+	ulong	offset;		/* current file offset */
+	char	*line;		/* next unparsed line */
+	int	linelen;	/* and its length */
 
-	ulong		mtime;		/* mtime of db file */
-	Qid		qid;		/* qid of db file */
-	char		file[2*NAMELEN];/* path name of db file */
-	ulong		length;		/* length of db file */
+	ulong	mtime;		/* mtime of db file */
+	Qid	qid;		/* qid of db file */
+	char	file[2*NAMELEN];/* path name of db file */
 
-	Ndbhf		*hf;		/* open hash files */
+	Ndbhf	*hf;		/* open hash files */
 };
 
 /*
@@ -150,11 +151,10 @@ void		ndbfree(Ndbtuple*);
 Ndb*		ndbopen(char*);
 int		ndbreopen(Ndb*);
 void		ndbclose(Ndb*);
-long		ndbseek(Ndb*, long);
+long		ndbseek(Ndb*, long, int);
 Ndbtuple*	ndbsearch(Ndb*, Ndbs*, char*, char*);
 Ndbtuple*	ndbsnext(Ndbs*, char*, char*);
 Ndbtuple*	ndbgetval(Ndb*, Ndbs*, char*, char*, char*, char*);
-Ndbtuple*	csgetval(char*, char*, char*, char*);
 char*		ipattr(char*);
 int		ipinfo(Ndb*, char*, char*, char*, Ipinfo*);
 

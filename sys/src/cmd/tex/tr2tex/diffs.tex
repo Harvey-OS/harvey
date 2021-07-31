@@ -1,0 +1,82 @@
+\documentstyle[tr2tex,11pt]{article}
+\begin{document}
+\def\troff{{\it troff}}
+\def\Troff{{\it Troff}}
+\def\ditroff{{\it ditroff}}
+\def\Ditroff{{\it Ditroff}}
+
+\title{Differences between \TeX\ and troff typesetters}
+
+Outlined below are the differences between \TeX\ and \troff\/ that
+I know from experience with the two languages most of which
+obtained while writing {\bf tr2tex}.
+Most of them are advantages \TeX\ has over \troff.
+
+There are actually more than one type of \TeX, the most
+used ones are \LaTeX and plain \TeX\
+\Troff\/ can also be loaded with various macro packages to
+produce variations to plain \troff. Also, \ditroff\/ (device independent \troff)
+is becoming more and more the standard of \troff.
+The following comparison is made mainly between \LaTeX\ and {\bf ms} \troff.
+It will be mentioned if in a particular case \ditroff\/ makes a difference.
+
+\begin{itemize}
+\item \TeX\ is not system-dependent. \Troff\/ is a Unix tool.
+
+\item In \Troff, tables and equations are handled by preprocessors
+while in \TeX\ they are simultaneously processed with text.
+
+\item \Troff\/'s commands have to start at the beginning of the line
+and start with a dot. Equation symbols are recognized when delimited by space.
+All \TeX\ commands, in math or non-math mode, start with a backslash
+and they don't have to be placed at the beginning of the line.
+
+\item \TeX\ and \LaTeX\ commands are more verbose than \troff\/'s.
+This can be an advantage or disadvantage depending on the user.
+
+\item \TeX\ processes {\it boxes} such as lines and paragraphs as one unit.
+This means it can distribute {\it badness} over that box.
+For example, when a spacing between two lines needs to be large, because
+a line has large symbols, it will slightly stretch the
+line spacing in other lines to make the large spacing not look
+too bad. This also makes it avoid orphan lines.
+
+\item The input to \LaTeX\ is a more structured document with scopes. It makes it
+easier to proofread. \Troff\/'s input is less structured.
+
+\item Some  \TeX\ drivers make it very easy to include prepared
+graphs with the text. Including graphs with \troff\/'s text is more difficult.
+
+\item Many fonts can be loaded in a \TeX\ document (up to 32); in \troff,
+the limit is 4 (\ditroff\/ does not have this restriction).
+
+\item Non-math macros are defined just like math macros in \TeX.
+In \troff, {\bf define} is used for math definitions and {\bf .de} is
+used for non-math macros.
+\Troff\/'s macros can be made up from anything while
+\TeX\ macros cannot have non-letters which is a nuisance sometimes.
+
+\item There is no limit on the page size in \TeX. The size is limited only by
+the output device. \Troff\/'s paper size is limited.
+
+\item \TeX\ is interactive, while \troff\/ is not. However, not many people can
+benefit from this feature since they have to be skillful in answering
+its questions.
+
+\item \TeX\ and \LaTeX\ give a {\bf l\,o\,n\,g} ambiguous log file that does not
+exactly tell what the error is. \Troff\/ does not give error messages.
+
+\item \LaTeX\ automatically numbers equations and figures, etc. A powerful
+cross-referencing technique relieves the user from worrying about having
+the right sequence of equations' and figures' numbers. This feature
+is not available in \troff.
+
+\item The documentation in the \LaTeX\ manual is excellent.
+\Troff\/'s documentation is scattered over many references.
+The documentation in the \TeX Book is very technical and the average reader
+may find it unreadable.
+
+\item At hanauma, we have a previewer for TeX on the SUN, but don't have it
+for \troff.
+\end{itemize}
+\end{document}

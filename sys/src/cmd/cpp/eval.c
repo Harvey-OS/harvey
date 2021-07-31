@@ -112,7 +112,7 @@ eval(Tokenrow *trp, int kw)
 			return 0;
 		}
 		np = lookup(trp->tp, 0);
-		return (kw==KIFDEF) == (np && np->flag&(ISDEFINED|ISMAC));
+		return (kw==KIFDEF) == (np && np->flag&ISDEFINED);
 	}
 	ntok = trp->tp - trp->bp;
 	kwdefined->val = KDEFINED;	/* activate special meaning of defined */
@@ -398,7 +398,7 @@ tokval(Token *tp)
 		break;
 
 	case NAME1:
-		if ((np = lookup(tp, 0)) && np->flag&(ISDEFINED|ISMAC))
+		if ((np = lookup(tp, 0)) && np->flag&ISDEFINED)
 			v.val = 1;
 		break;
 

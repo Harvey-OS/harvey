@@ -1,0 +1,925 @@
+%!PS
+%%Version: 3.3
+%%DocumentFonts: (atend)
+%%Pages: (atend)
+%%EndComments
+%
+% Version 3.3 prologue for troff files.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/formsperpage 1 def
+/landscape false def
+/linewidth .3 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/resolution 720 def
+/rotation 1 def
+/xoffset 0 def
+/yoffset 0 def
+
+/roundpage true def
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/R  /Times-Roman def
+/I  /Times-Italic def
+/B  /Times-Bold def
+/BI /Times-BoldItalic def
+/H  /Helvetica def
+/HI /Helvetica-Oblique def
+/HB /Helvetica-Bold def
+/HX /Helvetica-BoldOblique def
+/CW /Courier def
+/CO /Courier def
+/CI /Courier-Oblique def
+/CB /Courier-Bold def
+/CX /Courier-BoldOblique def
+/PA /Palatino-Roman def
+/PI /Palatino-Italic def
+/PB /Palatino-Bold def
+/PX /Palatino-BoldItalic def
+/Hr /Helvetica-Narrow def
+/Hi /Helvetica-Narrow-Oblique def
+/Hb /Helvetica-Narrow-Bold def
+/Hx /Helvetica-Narrow-BoldOblique def
+/KR /Bookman-Light def
+/KI /Bookman-LightItalic def
+/KB /Bookman-Demi def
+/KX /Bookman-DemiItalic def
+/AR /AvantGarde-Book def
+/AI /AvantGarde-BookOblique def
+/AB /AvantGarde-Demi def
+/AX /AvantGarde-DemiOblique def
+/NR /NewCenturySchlbk-Roman def
+/NI /NewCenturySchlbk-Italic def
+/NB /NewCenturySchlbk-Bold def
+/NX /NewCenturySchlbk-BoldItalic def
+/ZD /ZapfDingbats def
+/ZI /ZapfChancery-MediumItalic def
+/S  /S def
+/S1 /S1 def
+/GR /Symbol def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	/scaling 72 resolution div def
+	linewidth setlinewidth
+	1 setlinecap
+
+	pagedimensions
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	width 2 div neg height 2 div translate
+	xoffset inch yoffset inch neg translate
+	margin 2 div dup neg translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+
+	/Symbol /S Sdefs cf
+	/Times-Roman /S1 S1defs cf
+	0 0 moveto
+} def
+
+/pagedimensions {
+	useclippath userdict /gotpagebbox known not and {
+		/pagebbox [clippath pathbbox newpath] def
+		roundpage currentdict /roundpagebbox known and {roundpagebbox} if
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/pagesetup {
+	/page exch def
+	currentdict /pagedict known currentdict page known and {
+		page load pagedict exch get cvx exec
+	} if
+} def
+
+/decodingdefs [
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg /y exch def counttomark 2 idiv {y moveto show} repeat}
+	{neg moveto {2 index stringwidth pop sub exch div 0 32 4 -1 roll widthshow} repeat}
+	{neg moveto {spacewidth sub 0.0 32 4 -1 roll widthshow} repeat}
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg setfunnytext}
+] def
+
+/setdecoding {/t decodingdefs 3 -1 roll get bind def} bind def
+
+/w {neg moveto show} bind def
+/m {neg dup /y exch def moveto} bind def
+/done {/lastpage where {pop lastpage} if} def
+
+/f {
+	dup /font exch def findfont exch
+	dup /ptsize exch def scaling div dup /size exch def scalefont setfont
+	linewidth ptsize mul scaling 10 mul div setlinewidth
+	/spacewidth ( ) stringwidth pop def
+} bind def
+
+/changefont {
+	/fontheight exch def
+	/fontslant exch def
+	currentfont [
+		1 0
+		fontheight ptsize div fontslant sin mul fontslant cos div
+		fontheight ptsize div
+		0 0
+	] makefont setfont
+} bind def
+
+/sf {f} bind def
+
+/cf {
+	dup length 2 idiv
+	/entries exch def
+	/chtab exch def
+	/newfont exch def
+
+	findfont dup length 1 add dict
+	/newdict exch def
+	{1 index /FID ne {newdict 3 1 roll put} {pop pop} ifelse} forall
+
+	newdict /Metrics entries dict put
+	newdict /Metrics get
+	begin
+		chtab aload pop
+		1 1 entries {pop def} for
+		newfont newdict definefont pop
+	end
+} bind def
+
+%
+% A few arrays used to adjust reference points and character widths in some
+% of the printer resident fonts. If square roots are too high try changing
+% the lines describing /radical and /radicalex to,
+%
+%	/radical	[0 -75 550 0]
+%	/radicalex	[-50 -75 500 0]
+%
+% Move braceleftbt a bit - default PostScript character is off a bit.
+%
+
+/Sdefs [
+	/bracketlefttp		[201 500]
+	/bracketleftbt		[201 500]
+	/bracketrighttp		[-81 380]
+	/bracketrightbt		[-83 380]
+	/braceleftbt		[203 490]
+	/bracketrightex		[220 -125 500 0]
+	/radical		[0 0 550 0]
+	/radicalex		[-50 0 500 0]
+	/parenleftex		[-20 -170 0 0]
+	/integral		[100 -50 500 0]
+	/infinity		[10 -75 730 0]
+] def
+
+/S1defs [
+	/underscore		[0 80 500 0]
+	/endash			[7 90 650 0]
+] def
+%
+% Tries to round clipping path dimensions, as stored in array pagebbox, so they
+% match one of the known sizes in the papersizes array. Lower left coordinates
+% are always set to 0.
+%
+
+/roundpagebbox {
+    7 dict begin
+	/papersizes [8.5 inch 11 inch 14 inch 17 inch] def
+
+	/mappapersize {
+		/val exch def
+		/slop .5 inch def
+		/diff slop def
+		/j 0 def
+		0 1 papersizes length 1 sub {
+			/i exch def
+			papersizes i get val sub abs
+			dup diff le {/diff exch def /j i def} {pop} ifelse
+		} for
+		diff slop lt {papersizes j get} {val} ifelse
+	} def
+
+	pagebbox 0 0 put
+	pagebbox 1 0 put
+	pagebbox dup 2 get mappapersize 2 exch put
+	pagebbox dup 3 get mappapersize 3 exch put
+    end
+} bind def
+
+%%EndProlog
+%%BeginSetup
+mark
+/linewidth 0.5 def
+/xoffset 0 def
+/yoffset 0 def
+/#copies 1 store
+/magnification 1 def
+%%FormsPerPage: 1
+/formsperpage 1 def
+
+/landscape false def
+/resolution 720 def
+setup
+2 setdecoding
+%%EndSetup
+%%Page: 1 1
+/saveobj save def
+mark
+1 pagesetup
+12 B f
+(Process Sleep and Wakeup on a Shared-memory Multiprocessor)7 3299 1 1230 1230 t
+10 I f
+(Rob Pike)1 363 1 2698 1470 t
+(Dave Presotto)1 574 1 2593 1590 t
+(Ken Thompson)1 603 1 2578 1710 t
+(Gerard Holzmann)1 730 1 2515 1830 t
+10 R f
+({rob)1959 2010 w
+10 S f
+(\357)2140 2010 w
+10 R f
+(presotto)2189 2010 w
+10 S f
+(\357)2511 2010 w
+10 R f
+(ken)2560 2010 w
+10 S f
+(\357)2704 2010 w
+10 R f
+(gerard}@research.att.com)2753 2010 w
+(AT&T Bell Laboratories)2 993 1 2383 2130 t
+(Murray Hill, New Jersey 07974)4 1267 1 2246 2250 t
+10 I f
+(ABSTRACT)2643 2630 w
+10 R f
+( of enabling a `sleeping' process on a shared-memory multiprocessor)9 2830(The problem)1 520 2 1330 2890 t
+( awakened by an interrupt-time event.)5 1548(is a difficult one, especially if the process is to be)10 2052 2 1080 3010 t
+( primitives that we use in our multiproces-)7 1710(We present here the code for sleep and wakeup)8 1890 2 1080 3130 t
+( has been exercised by months of active use and by a verification)12 2702( code)1 223( The)1 215(sor system.)1 460 4 1080 3250 t
+(system.)1080 3370 w
+( sus-)1 198( Processes)1 450( is to synchronise processes on a symmetric shared-memory multiprocessor.)9 3148(Our problem)1 524 4 720 3646 t
+(pend execution, or)2 742 1 720 3766 t
+10 I f
+(sleep,)1488 3766 w
+10 R f
+( the event occurs,)3 698( When)1 288( event such as an I/O interrupt.)6 1228(while awaiting an enabling)3 1082 4 1744 3766 t
+(the process is issued a)4 910 1 720 3886 t
+10 I f
+(wakeup)1662 3886 w
+10 R f
+( may be run-)3 531( these events, other processes)4 1200( During)1 340(to resume its execution.)3 970 4 1999 3886 t
+(ning and other interrupts occurring on other processors.)7 2218 1 720 4006 t
+(More specifically, we wish to implement subroutines called)7 2386 1 720 4162 t
+10 CW f
+(sleep)3131 4162 w
+10 R f
+( con-)1 203(, callable by a process to relinquish)6 1406 2 3431 4162 t
+(trol of its current processor, and)5 1300 1 720 4282 t
+10 CW f
+(wakeup)2050 4282 w
+10 R f
+( or an interrupt to resume the execu-)7 1477(, callable by another process)4 1153 2 2410 4282 t
+( for the)2 304( calling conventions of these subroutines will remain unspecified)8 2653( The)1 212(tion of a suspended process.)4 1151 4 720 4402 t
+(moment.)720 4522 w
+( have an atomic test-and-set or equivalent operation but no other synchronisation)11 3264(We assume the processors)3 1056 2 720 4678 t
+( can occur on any processor at any time, except on a processor that has)14 2851( we assume interrupts)3 877(method. Also,)1 592 3 720 4798 t
+(locally inhibited them.)2 903 1 720 4918 t
+( is the generalisation to a multiprocessor of a familiar and well-understood uniprocessor prob-)13 3804(The problem)1 516 2 720 5074 t
+( a uniprocessor problem by using a global test-and-set to serialise the sleeps and)13 3250( may be reduced to)4 779(lem. It)1 291 3 720 5194 t
+( how-)1 237( performance and cleanliness,)3 1203( For)1 195(wakeups, which is equivalent to synchronising through a monitor.)8 2685 4 720 5314 t
+(ever, we prefer to allow the interrupt handling and process control to be multiprocessed.)13 3518 1 720 5434 t
+( implemented)1 554( We)1 195( in Plan 9 [Pik90] prompted this paper.)7 1604(Our attempts to solve the sleep/wakeup problem)6 1967 4 720 5590 t
+( each time convinced ourselves \320 wrongly \320 they were)9 2351(solutions several times over several months and)6 1969 2 720 5710 t
+( be difficult to prove correct by inspection and formal reasoning)10 2706( algorithms can)2 644(correct. Multiprocessor)1 970 3 720 5830 t
+( we trust by verifying our code using an)8 1712( finally developed an algorithm)4 1318( We)1 204(about them is impractical.)3 1086 4 720 5950 t
+( by which it)3 481( present that code here, along with some comments about the process)11 2773( We)1 189(empirical testing tool.)2 877 4 720 6070 t
+(was designed.)1 560 1 720 6190 t
+10 B f
+(History)720 6430 w
+10 R f
+( 9 and the)3 424(Since processes in Plan)3 965 2 720 6586 t
+9 R f
+(UNIX)2143 6586 w
+10 S f
+(\322)2368 6586 w
+10 R f
+(system have similar structure and properties, one might ask if)9 2557 1 2483 6586 t
+9 R f
+(UNIX)720 6706 w
+10 CW f
+(sleep)970 6706 w
+10 R f
+(and)1295 6706 w
+10 CW f
+(wakeup)1464 6706 w
+10 R f
+([Bac86] could not easily be adapted from their standard uniprocessor implemen-)10 3216 1 1824 6706 t
+( short answer is, no.)4 799( The)1 205(tation to our multiprocessor needs.)4 1385 3 720 6826 t
+(The)720 6982 w
+9 R f
+(UNIX)900 6982 w
+10 R f
+( connect the)2 488(routines take as argument a single global address that serves as a unique identifier to)14 3400 2 1152 6982 t
+( the point)2 380( From)1 268( has several inherent disadvantages.)4 1431( This)1 229( process or processes.)3 867(wakeup with the appropriate)3 1145 6 720 7102 t
+(of view of)2 428 1 720 7222 t
+10 CW f
+(sleep)1182 7222 w
+10 R f
+(and)1516 7222 w
+10 CW f
+(wakeup)1694 7222 w
+10 R f
+(, it is difficult to associate a data structure with an arbitrary address; the)13 2986 1 2054 7222 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 1 1
+%%Page: 2 2
+/saveobj save def
+mark
+2 pagesetup
+10 R f
+(- 2 -)2 166 1 2797 480 t
+( reverse)1 312( \(The)1 238( variable recording the status of the event and processes.)9 2250(routines are unable to maintain a state)6 1520 4 720 840 t
+( course easy \320 we could require the address to point to a special data structure \320 but we are investi-)20 4141(is of)1 179 2 720 960 t
+(gating)720 1080 w
+9 R f
+(UNIX)1007 1080 w
+10 CW f
+(sleep)1271 1080 w
+10 R f
+(and)1610 1080 w
+10 CW f
+(wakeup)1793 1080 w
+10 R f
+( multiple processes sleep `on' a)5 1321( Also,)1 278(, not the code that calls them.\))6 1288 3 2153 1080 t
+(given address, so)2 691 1 720 1200 t
+10 CW f
+(wakeup)1439 1200 w
+10 R f
+( and let process scheduling determine which process actu-)8 2349(must enable them all,)3 864 2 1827 1200 t
+( is inefficient; a queueing mechanism would be preferable but, again, it is)12 2958( This)1 230( from the event.)3 638(ally benefits)1 494 4 720 1320 t
+( the lack of state means that)6 1169( Moreover,)1 478( a queue with a general address.)6 1331(difficult to associate)2 828 4 720 1440 t
+10 CW f
+(sleep)4561 1440 w
+10 R f
+(and)4896 1440 w
+10 CW f
+(wakeup)720 1560 w
+10 R f
+( what the corresponding process \(or interrupt\) is doing;)8 2202(cannot know)1 514 2 1106 1560 t
+10 CW f
+(sleep)3847 1560 w
+10 R f
+(and)4172 1560 w
+10 CW f
+(wakeup)4341 1560 w
+10 R f
+(must be)1 314 1 4726 1560 t
+( a multi-)2 345( On)1 175( suffices to disable interrupts during their execution.)7 2107( a uniprocessor it)3 691( On)1 174(executed atomically.)1 828 6 720 1680 t
+( a process)2 395(processor, however, most processors can inhibit interrupts only on the current processor, so while)13 3925 2 720 1800 t
+(is executing)1 490 1 720 1920 t
+10 CW f
+(sleep)1245 1920 w
+10 R f
+( the wakeup is to be)5 851( If)1 127(the desired interrupt can come and go on another processor.)9 2482 3 1580 1920 t
+( inter-process mutual exclusion mechanism)4 1775( Some)1 289( even harder.)2 539(issued by another process, the problem is)6 1717 4 720 2040 t
+(must be used, which, yet again, is difficult to do without a way to communicate state.)15 3411 1 720 2160 t
+(In summary, to be useful on a multiprocessor,)7 1834 1 720 2316 t
+9 R f
+(UNIX)2577 2316 w
+10 CW f
+(sleep)2827 2316 w
+10 R f
+(and)3152 2316 w
+10 CW f
+(wakeup)3322 2316 w
+10 R f
+(must either be made to run atom-)6 1332 1 3708 2316 t
+( as by using a monitor\) or they need a richer model for their communica-)14 2967(ically on a single processor \(such)5 1353 2 720 2436 t
+(tion.)720 2556 w
+10 B f
+(The design)1 465 1 720 2796 t
+10 R f
+( other case, a process awakening a sec-)7 1562( \(The)1 238(Consider the case of an interrupt waking up a sleeping process.)10 2520 3 720 2952 t
+( sleeping process is wait-)4 1016( The)1 209(ond process, is easier because atomicity can be achieved using an interlock.\))11 3095 3 720 3072 t
+( be)1 128( condition could)2 666( The)1 213(ing for some event to occur, which may be modeled by a condition coming true.)14 3313 4 720 3192 t
+( happened, or something more subtle such as a queue draining below some low-water)13 3442(just that the event has)4 878 2 720 3312 t
+( function of one argument of type)6 1384( represent the condition by a)5 1164(mark. We)1 424 3 720 3432 t
+10 CW f
+(void*)3724 3432 w
+10 R f
+(; the code supporting the)4 1016 1 4024 3432 t
+(device generating the interrupts provides such a function to be used by)11 2919 1 720 3552 t
+10 CW f
+(sleep)3673 3552 w
+10 R f
+(and)4007 3552 w
+10 CW f
+(wakeup)4185 3552 w
+10 R f
+(to synchro-)1 461 1 4579 3552 t
+( function returns)2 674(nise. The)1 398 2 720 3672 t
+10 CW f
+(false)1824 3672 w
+10 R f
+( occurred, and)2 583(if the event has not)4 788 2 2156 3672 t
+10 CW f
+(true)3560 3672 w
+10 R f
+(some time after the event has)5 1207 1 3833 3672 t
+(occurred. The)1 584 1 720 3792 t
+10 CW f
+(sleep)1335 3792 w
+10 R f
+(and)1666 3792 w
+10 CW f
+(wakeup)1841 3792 w
+10 R f
+( the event occurs while the)5 1092(routines must, of course, work correctly if)6 1716 2 2232 3792 t
+(process is executing)2 804 1 720 3912 t
+10 CW f
+(sleep)1549 3912 w
+10 R f
+(.)1849 3912 w
+(We assume that a particular call to)6 1398 1 720 4068 t
+10 CW f
+(sleep)2146 4068 w
+10 R f
+(corresponds to a particular call to)5 1353 1 2475 4068 t
+10 CW f
+(wakeup)3857 4068 w
+10 R f
+(, that is, at most one)5 823 1 4217 4068 t
+( be guaranteed in the code that calls)7 1476( can)1 171( This)1 236(process is asleep waiting for a particular event.)7 1929 4 720 4188 t
+10 CW f
+(sleep)4564 4188 w
+10 R f
+(and)4896 4188 w
+10 CW f
+(wakeup)720 4308 w
+10 R f
+( for the moment that there will be only one interrupt)10 2171( also assume)2 521( We)1 196(by appropriate interlocks.)2 1039 4 1113 4308 t
+(and that it may occur at any time, even before)9 1829 1 720 4428 t
+10 CW f
+(sleep)2574 4428 w
+10 R f
+(has been called.)2 634 1 2899 4428 t
+(For performance, we desire that multiple instances of)7 2143 1 720 4584 t
+10 CW f
+(sleep)2890 4584 w
+10 R f
+(and)3217 4584 w
+10 CW f
+(wakeup)3388 4584 w
+10 R f
+( simultaneously)1 634(may be running)2 631 2 3775 4584 t
+( example, a process calling)4 1110( For)1 197(on our multiprocessor.)2 918 3 720 4704 t
+10 CW f
+(sleep)2978 4704 w
+10 R f
+(to await a character from an input channel)7 1730 1 3310 4704 t
+( process to finish executing)4 1137(need not wait for another)4 1043 2 720 4824 t
+10 CW f
+(sleep)2936 4824 w
+10 R f
+( a finer level, we)4 711( At)1 161(to await a disk block.)4 896 3 3272 4824 t
+( execute)1 330(would like a process reading from one input channel to be able to)12 2636 2 720 4944 t
+10 CW f
+(sleep)3712 4944 w
+10 R f
+(in parallel with a process)4 1002 1 4038 4944 t
+( standard approach to synchronisation is to interlock the channel)9 2697( A)1 136( input channel.)2 619(reading from another)2 868 4 720 5064 t
+( method is clearly)3 749( This)1 240( at once.)2 359(`driver' so that only one process may be executing in the channel code)12 2972 4 720 5184 t
+( apply interlocks at)3 784(inadequate for our purposes; we need fine-grained synchronisation, and in particular to)11 3536 2 720 5304 t
+(the level of individual channels rather than at the level of the channel driver.)13 3049 1 720 5424 t
+(Our approach is to use an object called a)8 1666 1 720 5580 t
+10 I f
+(rendezvous)2417 5580 w
+10 R f
+(, which is a data structure through which)7 1667 1 2866 5580 t
+10 CW f
+(sleep)4564 5580 w
+10 R f
+(and)4896 5580 w
+10 CW f
+(wakeup)720 5700 w
+10 R f
+( an unrelated)2 535( similarly named construct in Ada is a control structure; ours is)11 2638(synchronise. \(The)1 751 3 1116 5700 t
+( source of events: one for each I/O channel, one)9 1977( rendezvous is allocated for each active)6 1609( A)1 129(data structure.\))1 605 4 720 5820 t
+( rendezvous serves as an interlockable structure in which to record)10 2724( The)1 212( pipe, and so on.)4 683(for each end of a)4 701 4 720 5940 t
+( so that)2 293(the state of the sleeping process,)5 1297 2 720 6060 t
+10 CW f
+(sleep)2337 6060 w
+10 R f
+(and)2664 6060 w
+10 CW f
+(wakeup)2835 6060 w
+10 R f
+(can communicate if the event happens before)6 1818 1 3222 6060 t
+(or while)1 330 1 720 6180 t
+10 CW f
+(sleep)1075 6180 w
+10 R f
+(is executing.)1 505 1 1400 6180 t
+(Our design for)2 582 1 720 6336 t
+10 CW f
+(sleep)1327 6336 w
+10 R f
+(is therefore a function)3 878 1 1652 6336 t
+9 CW f
+(void sleep\(Rendezvous *r, int \(*condition\)\(void*\), void *arg\))6 3294 1 1008 6506 t
+10 R f
+( argument)1 402( The)1 205(called by the sleeping process.)4 1217 3 720 6686 t
+10 CW f
+(r)2569 6686 w
+10 R f
+(connects the call to)3 768 1 2654 6686 t
+10 CW f
+(sleep)3447 6686 w
+10 R f
+(with the call to)3 597 1 3772 6686 t
+10 CW f
+(wakeup)4394 6686 w
+10 R f
+(, and is)2 286 1 4754 6686 t
+( function)1 367( The)1 214(part of the data structure for the \(say\) device.)8 1869 3 720 6806 t
+10 CW f
+(condition)3204 6806 w
+10 R f
+(is described above; called with)4 1263 1 3777 6806 t
+(argument)720 6926 w
+10 CW f
+(arg)1122 6926 w
+10 R f
+(, it is used by)4 531 1 1302 6926 t
+10 CW f
+(sleep)1858 6926 w
+10 R f
+( has occurred.)2 558(to decide whether the event)4 1097 2 2183 6926 t
+10 CW f
+(Wakeup)3889 6926 w
+10 R f
+(has a simpler spec-)3 765 1 4275 6926 t
+(ification:)720 7046 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 2 2
+%%Page: 3 3
+/saveobj save def
+mark
+3 pagesetup
+10 R f
+(- 3 -)2 166 1 2797 480 t
+9 CW f
+(void wakeup\(Rendezvous *r\).)2 1458 1 1008 830 t
+10 CW f
+(Wakeup)720 1010 w
+10 R f
+(must be called after the condition has become true.)8 2032 1 1105 1010 t
+10 B f
+(An implementation)1 825 1 720 1250 t
+10 R f
+(The)720 1406 w
+10 CW f
+(Rendezvous)900 1406 w
+10 R f
+(data type is defined as)4 887 1 1525 1406 t
+9 CW f
+(typedef struct{)1 810 1 1008 1576 t
+(Lock l;)1 540 1 1440 1686 t
+(Proc *p;)1 594 1 1440 1796 t
+(}Rendezvous;)1008 1906 w
+10 R f
+(Our)720 2086 w
+10 CW f
+(Locks)909 2086 w
+10 R f
+( routine)1 317( The)1 214(are test-and-set spin locks.)3 1086 3 1243 2086 t
+10 CW f
+(lock\(Lock *l\))1 780 1 2894 2086 t
+10 R f
+(returns when the current process)4 1332 1 3708 2086 t
+(holds that lock;)2 617 1 720 2206 t
+10 CW f
+(unlock\(Lock *l\))1 900 1 1362 2206 t
+10 R f
+(releases the lock.)2 684 1 2287 2206 t
+(Here is our implementation of)4 1228 1 720 2362 t
+10 CW f
+(sleep)1979 2362 w
+10 R f
+( details are discussed below.)4 1158(. Its)1 181 2 2279 2362 t
+10 CW f
+(Thisp)3674 2362 w
+10 R f
+( pointer to the current)4 893(is a)1 142 2 4005 2362 t
+( value differs on each processor.\))5 1323( \(Its)1 183(process on the current processor.)4 1310 3 720 2482 t
+9 CW f
+(void)1008 2652 w
+(sleep\(Rendezvous *r, int \(*condition\)\(void*\), void *arg\))5 3024 1 1008 2762 t
+({)1008 2872 w
+( interrupts */)2 756(inhibit\(\); /*)1 1404 2 1440 2982 t
+(lock\(&r->l\);)1440 3092 w
+(/*)1440 3312 w
+(* if condition happened, never mind)5 1890 1 1494 3422 t
+(*/)1494 3532 w
+(if\(\(*condition\)\(arg\)\){)1440 3642 w
+(unlock\(&r->l\);)1872 3752 w
+( interrupts */)2 756(allow\(\); /*)1 972 2 1872 3862 t
+(return;)1872 3972 w
+(})1440 4082 w
+(/*)1440 4302 w
+(* now we are committed to)5 1350 1 1494 4412 t
+(* change state and call scheduler)5 1782 1 1494 4522 t
+(*/)1494 4632 w
+(if\(r->p\))1440 4742 w
+(error\("double sleep %d %d", r->p->pid, thisp->pid\);)5 2754 1 1872 4852 t
+(thisp->state = Wakeme;)2 1188 1 1440 4962 t
+(r->p = thisp;)2 702 1 1440 5072 t
+(unlock\(&r->l\);)1440 5182 w
+( interrupts */)2 756(allow\(s\); /*)1 972 2 1440 5292 t
+( relinquish CPU */)3 972(sched\(\); /*)1 972 2 1440 5402 t
+(})1008 5512 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 3 3
+%%Page: 4 4
+/saveobj save def
+mark
+4 pagesetup
+10 R f
+(- 4 -)2 166 1 2797 480 t
+(Here is)1 285 1 720 840 t
+10 CW f
+(wakeup.)1030 840 w
+9 CW f
+(void)1008 1010 w
+(wakeup\(Rendezvous *r\))1 1134 1 1008 1120 t
+({)1008 1230 w
+(Proc *p;)1 432 1 1440 1340 t
+(int s;)1 324 1 1440 1450 t
+( interrupts; return old state */)5 1728( /*)1 216(s = inhibit\(\);)2 756 3 1440 1670 t
+(lock\(&r->l\);)1440 1780 w
+(p = r->p;)2 486 1 1440 1890 t
+(if\(p\){)1440 2000 w
+(r->p = 0;)2 486 1 1872 2110 t
+(if\(p->state != Wakeme\))2 1188 1 1872 2220 t
+(panic\("wakeup: not Wakeme"\);)2 1512 1 2304 2330 t
+(ready\(p\);)1872 2440 w
+(})1440 2550 w
+(unlock\(&r->l\);)1440 2660 w
+(if\(s\))1440 2770 w
+(allow\(\);)1872 2880 w
+(})1008 2990 w
+10 CW f
+(Sleep)720 3170 w
+10 R f
+(and)1073 3170 w
+10 CW f
+(wakeup)1270 3170 w
+10 R f
+(both begin by disabling interrupts and then locking the rendezvous structure.)10 3356 1 1684 3170 t
+(Because)720 3290 w
+10 CW f
+(wakeup)1084 3290 w
+10 R f
+( routine, the lock must be set only with interrupts disabled)10 2384(may be called in an interrupt)5 1180 2 1476 3290 t
+( interrupt comes during)3 950(on the current processor, so that if the)7 1536 2 720 3410 t
+10 CW f
+(sleep)3236 3410 w
+10 R f
+(it will occur only on a different pro-)7 1474 1 3566 3410 t
+( processor executing)2 826(cessor; if it occurred on the)5 1109 2 720 3530 t
+10 CW f
+(sleep)2683 3530 w
+10 R f
+(, the spin lock in)4 676 1 2983 3530 t
+10 CW f
+(wakeup)3687 3530 w
+10 R f
+( At)1 153(would hang forever.)2 812 2 4075 3530 t
+( \()1 86(the end of each routine, the lock is released and processor priority returned to its previous value.)16 3874 2 720 3650 t
+10 CW f
+(Wakeup)4680 3650 w
+10 R f
+(needs to inhibit interrupts in case it is being called by a process; it is a no-op if called by an interrupt.\))21 4073 1 720 3770 t
+10 CW f
+(Sleep)720 3926 w
+10 R f
+( the process posts its)4 858( Otherwise)1 469( condition has become true, and returns if so.)8 1869(checks to see if the)4 791 4 1053 3926 t
+(name in the rendezvous structure where)5 1642 1 720 4046 t
+10 CW f
+(wakeup)2398 4046 w
+10 R f
+( to be awakened)3 675(may find it, marks its state as waiting)7 1571 2 2794 4046 t
+( error checking only\) and goes to sleep by calling)9 2115(\(this is for)2 441 2 720 4166 t
+10 CW f
+(sched\(\))3317 4166 w
+10 R f
+( manipulation of the ren-)4 1057(. The)1 246 2 3737 4166 t
+(dezvous structure is all done under the lock, and)8 2007 1 720 4286 t
+10 CW f
+(wakeup)2762 4286 w
+10 R f
+(only examines it under lock, so atomicity and)7 1884 1 3156 4286 t
+(mutual exclusion are guaranteed.)3 1319 1 720 4406 t
+10 CW f
+(Wakeup)720 4562 w
+10 R f
+( it is called, the condition has implicitly become true, so it locks the ren-)14 2929( When)1 291( simpler job.)2 509(has a)1 204 4 1107 4562 t
+(dezvous, sees if a process is waiting, and readies it to run.)11 2307 1 720 4682 t
+10 B f
+(Discussion)720 4922 w
+10 R f
+( as far back as Saltzer's thesis)6 1233(The synchronisation technique used here is similar to known methods, even)10 3087 2 720 5078 t
+( and)1 173( code looks trivially correct in retrospect: all access to data structures is done under lock,)15 3618([Sal66]. The)1 529 3 720 5198 t
+( it took us several iterations to arrive at the)9 1751( Nonetheless,)1 568(there is no place that things may get out of order.)10 2001 3 720 5318 t
+(above implementation, because the things that)5 1913 1 720 5438 t
+10 I f
+(can)2671 5438 w
+10 R f
+( had four earlier)3 675( We)1 200( often hard to see.)4 760(go wrong are)2 552 4 2853 5438 t
+( different style of)3 720(implementations that were examined at great length and only found faulty when a new,)13 3600 2 720 5558 t
+(device or activity was added to the system.)7 1714 1 720 5678 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 4 4
+%%Page: 5 5
+/saveobj save def
+mark
+5 pagesetup
+10 R f
+(- 5 -)2 166 1 2797 480 t
+(Here, for example, is an incorrect implementation of wakeup, closely related to one of our versions.)15 3983 1 720 840 t
+9 CW f
+(void)1008 1010 w
+(wakeup\(Rendezvous *r\))1 1134 1 1008 1120 t
+({)1008 1230 w
+(Proc *p;)1 432 1 1440 1340 t
+(int s;)1 324 1 1440 1450 t
+(p = r->p;)2 486 1 1440 1670 t
+(if\(p\){)1440 1780 w
+(s = inhibit\(\);)2 756 1 1872 1890 t
+(lock\(&r->l\);)1872 2000 w
+(r->p = 0;)2 486 1 1872 2110 t
+(if\(p->state != Wakeme\))2 1188 1 1872 2220 t
+(panic\("wakeup: not Wakeme"\);)2 1512 1 2304 2330 t
+(ready\(p\);)1872 2440 w
+(unlock\(&r->l\);)1872 2550 w
+(if\(s\))1872 2660 w
+(allow\(\);)2304 2770 w
+(})1440 2880 w
+(})1008 2990 w
+10 R f
+(The mistake is that the reading of)6 1409 1 720 3170 t
+10 CW f
+(r->p)2166 3170 w
+10 R f
+( the other process calls)4 961(may occur just as)3 732 2 2443 3170 t
+10 CW f
+(sleep)4174 3170 w
+10 R f
+(, so when the)3 566 1 4474 3170 t
+( We)1 190( no one to wake up, and the sleeping process misses its wakeup.)12 2576(interrupt examines the structure it sees)5 1554 3 720 3290 t
+( reasoned that the fetch)4 945(wrote the code this way because we)6 1453 2 720 3410 t
+10 CW f
+(p = r->p)2 420 1 3148 3410 t
+10 R f
+(was inherently atomic and need not)5 1442 1 3598 3410 t
+( to the system)3 565( bug was found by examination when a new, very fast device was added)13 2947( The)1 210(be interlocked.)1 598 4 720 3530 t
+( was in the system for a couple of months)9 1734( it)1 88( However,)1 447(and sleeps and interrupts were closely overlapped.)6 2051 4 720 3650 t
+(without causing an error.)3 998 1 720 3770 t
+( would like a way to guarantee)6 1237( We)1 190( correct implementation above?)3 1267(How many errors lurk in our supposedly)6 1626 4 720 3926 t
+(correctness; formal proofs are beyond our abilities when the subtleties of interrupts and multiprocessors are)14 4320 1 720 4046 t
+( approached the last to see if his automated tool for)10 2181( that in mind, the first three authors)7 1501(involved. With)1 638 3 720 4166 t
+(checking protocols [Hol91] could be used to verify our new)9 2513 1 720 4286 t
+10 CW f
+(sleep)3272 4286 w
+10 R f
+(and)3611 4286 w
+10 CW f
+(wakeup)3794 4286 w
+10 R f
+( The)1 219(for correctness.)1 628 2 4193 4286 t
+( no way of proving that the trans-)7 1348(code was translated into the language for that system \(with, unfortunately,)10 2972 2 720 4406 t
+(lation is itself correct\) and validated by exhaustive simulation.)8 2489 1 720 4526 t
+( only one interrupt, the bug cannot occur, but)8 1819( our assumption that there is)5 1135( Under)1 300(The validator found a bug.)4 1066 4 720 4682 t
+( general case of multiple interrupts synchronising through the same condition function and ren-)13 3855(in the more)2 465 2 720 4802 t
+( return from)2 498( process may)2 535( A)1 129(dezvous, the process and interrupt can enter a peculiar state.)9 2459 4 720 4922 t
+10 CW f
+(sleep)4374 4922 w
+10 R f
+(with the)1 333 1 4707 4922 t
+(condition function false if there is a delay between the condition coming true and)13 3372 1 720 5042 t
+10 CW f
+(wakeup)4127 5042 w
+10 R f
+(being called,)1 519 1 4521 5042 t
+(with the delay occurring just as the receiving process calls)9 2353 1 720 5162 t
+10 CW f
+(sleep)3101 5162 w
+10 R f
+( condition is now true, so that pro-)7 1405(. The)1 234 2 3401 5162 t
+(cess returns immediately, does whatever is appropriate, and then \(say\) decides to call)12 3482 1 720 5282 t
+10 CW f
+(sleep)4234 5282 w
+10 R f
+(again. This)1 475 1 4565 5282 t
+( wakeup process then finds a sleeping process, and)8 2146( The)1 220(time the condition is false, so it goes to sleep.)9 1954 3 720 5402 t
+(wakes it up, but the condition is now false.)8 1710 1 720 5522 t
+( easy \(and verified\) solution: at the end of)8 1749(There is an)2 461 2 720 5678 t
+10 CW f
+(sleep)2965 5678 w
+10 R f
+(or after)1 300 1 3300 5678 t
+10 CW f
+(sleep)3635 5678 w
+10 R f
+(returns, if the condition is)4 1070 1 3970 5678 t
+(false, execute)1 549 1 720 5798 t
+10 CW f
+(sleep)1301 5798 w
+10 R f
+( the second synchronisation is guaranteed to)6 1800( re-execution cannot repeat;)3 1131(again. This)1 476 3 1633 5798 t
+(function under the external conditions we are supposing.)7 2263 1 720 5918 t
+( had been examined carefully by all)6 1436(Even though the original code is completely protected by interlocks and)10 2884 2 720 6074 t
+( seems to us that some exhaustive automated analysis is)9 2265( It)1 115( still had problems.)3 779(of us and believed correct, it)5 1161 4 720 6194 t
+( experience has confirmed that it is)6 1481( Our)1 219( multiprocessor algorithms to guarantee their safety.)6 2167(required of)1 453 4 720 6314 t
+( multiprocessor algo-)2 873(almost impossible to guarantee by inspection or simple testing the correctness of a)12 3447 2 720 6434 t
+( can demonstrate the presence of bugs but not their absence. [Dij72])11 2716(rithm. Testing)1 592 2 720 6554 t
+( passes all tests we have for cor-)7 1316(We close by claiming that the code above with the suggested modification)11 3004 2 720 6710 t
+( so far as to claim that it)7 977( would not, however, go)4 983( We)1 191(rectness under the assumptions used in the validation.)7 2169 4 720 6830 t
+(is universally correct.)2 862 1 720 6950 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 5 5
+%%Page: 6 6
+/saveobj save def
+mark
+6 pagesetup
+10 R f
+(- 6 -)2 166 1 2797 480 t
+10 B f
+(References)720 840 w
+10 R f
+( J. Bach,)2 384(Bac86. Maurice)1 662 2 720 1068 t
+10 I f
+( Operating System,)2 805(The Design of the UNIX)4 1046 2 1811 1068 t
+10 R f
+(Prentice-Hall, Englewood Cliffs)2 1332 1 3708 1068 t
+(\(1986\).)970 1188 w
+( Turing Award Lecture,'')3 1064( W. Dijkstra, ``The Humble Programmer \320 1972)7 2095(Dij72. Edsger)1 580 3 720 1344 t
+10 I f
+(Comm. ACM)1 539 1 4501 1344 t
+10 B f
+(15)970 1464 w
+10 R f
+(\(10\), pp. 859-866 \(October 1972\).)4 1361 1 1070 1464 t
+( J. Holzmann,)2 595(Hol91. Gerard)1 601 2 720 1620 t
+10 I f
+( Computer Protocols,)2 906(Design and Validation of)3 1069 2 1961 1620 t
+10 R f
+(Prentice-Hall, Englewood)1 1058 1 3982 1620 t
+(Cliffs \(1991\).)1 544 1 970 1740 t
+( Thompson, and Howard Trickey, ``Plan 9 from Bell Labs,'' pp. 1-9)11 2792( Pike, Dave Presotto, Ken)4 1052(Pik90. Rob)1 476 3 720 1896 t
+(in)970 2016 w
+10 I f
+(Proceedings of the Summer 1990 UKUUG Conference,)6 2216 1 1073 2016 t
+10 R f
+(, London \(July, 1990\).)3 894 1 3289 2016 t
+( H. Saltzer,)2 485(Sal66. Jerome)1 591 2 720 2172 t
+10 I f
+(Traffic Control in a Multiplexed Computer System,)6 2156 1 1839 2172 t
+10 R f
+(MIT, Cambridge, Mass.)2 1001 1 4039 2172 t
+(\(1966\).)970 2292 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 6 6
+%%Trailer
+done
+%%Pages: 6
+%%DocumentFonts: Courier Times-Bold Times-Italic Times-Roman Symbol

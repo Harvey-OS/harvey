@@ -1,4 +1,4 @@
-#include "config.h"
+#include "web.h"
 /* 9999 */ 
 #define bufsize 100 
 #define maxbytes 45000L 
@@ -71,7 +71,6 @@ integer outval, outapp  ;
 ASCIIcode outsign  ; 
 schar lastsign  ; 
 ASCIIcode outcontrib[linelength + 1]  ; 
-integer ii  ; 
 integer line  ; 
 integer otherline  ; 
 integer templine  ; 
@@ -86,10 +85,10 @@ boolean scanninghex  ;
 eightbits nextcontrol  ; 
 textpointer currepltext  ; 
 short modulecount  ; 
-char webname[PATHMAX + 1], chgname[PATHMAX + 1], pascalfilename[PATHMAX + 1], 
-poolfilename[PATHMAX + 1]  ; 
+char webfilename[61], changefilename[61], pascalfilename[61], 
+poolfilename[61]  ; 
 
-#include "tangleboot.h"
+#include "tangle.h"
 void error ( ) 
 {integer j  ; 
   integer k, l  ; 
@@ -132,9 +131,9 @@ void error ( )
   history = 2 ; 
 } 
 void scanargs ( ) 
-{integer dotpos, slashpos, i, a  ; 
+{integer dotpos, i, a  ; 
   char c  ; 
-  char fname[PATHMAX + 1]  ; 
+  char fname[56]  ; 
   boolean foundweb, foundchange  ; 
   foundweb = false ; 
   foundchange = false ; 
@@ -147,31 +146,27 @@ void scanargs ( )
 	if ( ! foundweb ) 
 	{
 	  dotpos = -1 ; 
-	  slashpos = -1 ; 
 	  i = 1 ; 
-	  while ( ( fname [ i ] != ' ' ) && ( i <= PATHMAX - 5 ) ) {
+	  while ( ( fname [ i ] != ' ' ) && ( i <= 55 ) ) {
 	      
-	    webname [ i ] = fname [ i ] ; 
+	    webfilename [ i ] = fname [ i ] ; 
 	    if ( fname [ i ] == '.' ) 
 	    dotpos = i ; 
-	    if ( fname [ i ] == '/' ) 
-	    slashpos = i ; 
 	    i = i + 1 ; 
 	  } 
-	  webname [ i ] = ' ' ; 
-	  if ( ( dotpos == -1 ) || ( dotpos < slashpos ) ) 
+	  if ( dotpos == -1 ) 
 	  {
 	    dotpos = i ; 
-	    webname [ dotpos ] = '.' ; 
-	    webname [ dotpos + 1 ] = 'w' ; 
-	    webname [ dotpos + 2 ] = 'e' ; 
-	    webname [ dotpos + 3 ] = 'b' ; 
-	    webname [ dotpos + 4 ] = ' ' ; 
+	    webfilename [ dotpos ] = '.' ; 
+	    webfilename [ dotpos + 1 ] = 'w' ; 
+	    webfilename [ dotpos + 2 ] = 'e' ; 
+	    webfilename [ dotpos + 3 ] = 'b' ; 
+	    webfilename [ dotpos + 4 ] = ' ' ; 
 	  } 
 	  {register integer for_end; i = 1 ; for_end = dotpos ; if ( i <= 
 	  for_end) do 
 	    {
-	      c = webname [ i ] ; 
+	      c = webfilename [ i ] ; 
 	      pascalfilename [ i ] = c ; 
 	      poolfilename [ i ] = c ; 
 	    } 
@@ -188,25 +183,21 @@ void scanargs ( )
 	else if ( ! foundchange ) 
 	{
 	  dotpos = -1 ; 
-	  slashpos = -1 ; 
 	  i = 1 ; 
-	  while ( ( fname [ i ] != ' ' ) && ( i <= PATHMAX - 5 ) ) {
+	  while ( ( fname [ i ] != ' ' ) && ( i <= 55 ) ) {
 	      
-	    chgname [ i ] = fname [ i ] ; 
+	    changefilename [ i ] = fname [ i ] ; 
 	    if ( fname [ i ] == '.' ) 
 	    dotpos = i ; 
-	    if ( fname [ i ] == '/' ) 
-	    slashpos = i ; 
 	    i = i + 1 ; 
 	  } 
-	  chgname [ i ] = ' ' ; 
-	  if ( ( dotpos == -1 ) || ( dotpos < slashpos ) ) 
+	  if ( dotpos == -1 ) 
 	  {
 	    dotpos = i ; 
-	    chgname [ dotpos ] = '.' ; 
-	    chgname [ dotpos + 1 ] = 'c' ; 
-	    chgname [ dotpos + 2 ] = 'h' ; 
-	    chgname [ dotpos + 3 ] = ' ' ; 
+	    changefilename [ dotpos ] = '.' ; 
+	    changefilename [ dotpos + 1 ] = 'c' ; 
+	    changefilename [ dotpos + 2 ] = 'h' ; 
+	    changefilename [ dotpos + 3 ] = ' ' ; 
 	  } 
 	  foundchange = true ; 
 	} 
@@ -232,16 +223,16 @@ void scanargs ( )
   } 
   if ( ! foundchange ) 
   {
-    chgname [ 1 ] = '/' ; 
-    chgname [ 2 ] = 'd' ; 
-    chgname [ 3 ] = 'e' ; 
-    chgname [ 4 ] = 'v' ; 
-    chgname [ 5 ] = '/' ; 
-    chgname [ 6 ] = 'n' ; 
-    chgname [ 7 ] = 'u' ; 
-    chgname [ 8 ] = 'l' ; 
-    chgname [ 9 ] = 'l' ; 
-    chgname [ 10 ] = ' ' ; 
+    changefilename [ 1 ] = '/' ; 
+    changefilename [ 2 ] = 'd' ; 
+    changefilename [ 3 ] = 'e' ; 
+    changefilename [ 4 ] = 'v' ; 
+    changefilename [ 5 ] = '/' ; 
+    changefilename [ 6 ] = 'n' ; 
+    changefilename [ 7 ] = 'u' ; 
+    changefilename [ 8 ] = 'l' ; 
+    changefilename [ 9 ] = 'l' ; 
+    changefilename [ 10 ] = ' ' ; 
   } 
 } 
 void initialize ( ) 
@@ -362,6 +353,7 @@ void initialize ( )
   xord [ ' ' ] = 32 ; 
   scanargs () ; 
   rewrite ( Pascalfile , pascalfilename ) ; 
+  rewrite ( pool , poolfilename ) ; 
   {register integer for_end; wi = 0 ; for_end = 2 ; if ( wi <= for_end) do 
     {
       bytestart [ wi ] = 0 ; 
@@ -396,15 +388,14 @@ void initialize ( )
   modtext [ 0 ] = 32 ; 
 } 
 void openinput ( ) 
-{reset ( webfile , webname ) ; 
-  reset ( changefile , chgname ) ; 
+{reset ( webfile , webfilename ) ; 
+  reset ( changefile , changefilename ) ; 
 } 
-boolean zinputln ( f ) 
-textfile f ; 
+boolean inputln ( textfile f ) 
 {register boolean Result; integer finallimit  ; 
   limit = 0 ; 
   finallimit = 0 ; 
-  if ( eof ( f ) ) 
+  if ( feof ( f ) ) 
   Result = false ; 
   else {
       
@@ -434,8 +425,7 @@ textfile f ;
   } 
   return(Result) ; 
 } 
-void zprintid ( p ) 
-namepointer p ; 
+void printid ( namepointer p ) 
 {integer k  ; 
   schar w  ; 
   if ( p >= nameptr ) 
@@ -449,8 +439,7 @@ namepointer p ;
     while ( k++ < for_end ) ; } 
   } 
 } 
-namepointer zidlookup ( t ) 
-eightbits t ; 
+namepointer idlookup ( eightbits t ) 
 {/* 31 32 */ register namepointer Result; eightbits c  ; 
   integer i  ; 
   integer h  ; 
@@ -617,8 +606,6 @@ eightbits t ;
 	equiv [ p ] = buffer [ idfirst + 1 ] + 32768L ; 
 	else {
 	    
-	  if ( stringptr == 256 ) 
-	  rewrite ( pool , poolfilename ) ; 
 	  equiv [ p ] = stringptr + 32768L ; 
 	  l = l - doublechars - 1 ; 
 	  if ( l > 99 ) 
@@ -651,8 +638,7 @@ eightbits t ;
   Result = p ; 
   return(Result) ; 
 } 
-namepointer zmodlookup ( l ) 
-sixteenbits l ; 
+namepointer modlookup ( sixteenbits l ) 
 {/* 31 */ register namepointer Result; schar c  ; 
   integer j  ; 
   integer k  ; 
@@ -736,8 +722,7 @@ sixteenbits l ;
   Result = p ; 
   return(Result) ; 
 } 
-namepointer zprefixlookup ( l ) 
-sixteenbits l ; 
+namepointer prefixlookup ( sixteenbits l ) 
 {register namepointer Result; schar c  ; 
   integer count  ; 
   integer j  ; 
@@ -806,8 +791,7 @@ sixteenbits l ;
   Result = r ; 
   return(Result) ; 
 } 
-void zstoretwobytes ( x ) 
-sixteenbits x ; 
+void storetwobytes ( sixteenbits x ) 
 {if ( tokptr [ z ] + 2 > maxtoks ) 
   {
     (void) putc('\n',  stdout );
@@ -820,8 +804,7 @@ sixteenbits x ;
   tokmem [ z ][ tokptr [ z ] + 1 ] = x % 256 ; 
   tokptr [ z ] = tokptr [ z ] + 2 ; 
 } 
-void zpushlevel ( p ) 
-namepointer p ; 
+void pushlevel ( namepointer p ) 
 {if ( stackptr == stacksize ) 
   {
     (void) putc('\n',  stdout );
@@ -1121,8 +1104,7 @@ void flushbuffer ( )
     outptr = linelength ; 
   } 
 } 
-void zappval ( v ) 
-integer v ; 
+void appval ( integer v ) 
 {integer k  ; 
   k = outbufsize ; 
   do {
@@ -1138,9 +1120,7 @@ integer v ;
     } 
   } while ( ! ( k == outbufsize ) ) ; 
 } 
-void zsendout ( t , v ) 
-eightbits t ; 
-sixteenbits v ; 
+void sendout ( eightbits t , sixteenbits v ) 
 {/* 20 */ integer k  ; 
   lab20: switch ( outstate ) 
   {case 1 : 
@@ -1248,8 +1228,7 @@ sixteenbits v ;
   outstate = 1 ; 
   else outstate = 0 ; 
 } 
-void zsendsign ( v ) 
-integer v ; 
+void sendsign ( integer v ) 
 {switch ( outstate ) 
   {case 2 : 
   case 4 : 
@@ -1278,8 +1257,7 @@ integer v ;
   } 
   lastsign = outapp ; 
 } 
-void zsendval ( v ) 
-integer v ; 
+void sendval ( integer v ) 
 {/* 666 10 */ switch ( outstate ) 
   {case 1 : 
     {
@@ -2017,8 +1995,7 @@ void getline ( )
   loc = 0 ; 
   buffer [ limit ] = 32 ; 
 } 
-eightbits zcontrolcode ( c ) 
-ASCIIcode c ; 
+eightbits controlcode ( ASCIIcode c ) 
 {register eightbits Result; switch ( c ) 
   {case 64 : 
     Result = 64 ; 
@@ -2497,16 +2474,6 @@ eightbits getnext ( )
       goto lab20 ; 
     } 
     break ; 
-  case 125 : 
-    {
-      {
-	(void) putc('\n',  stdout );
-	(void) Fputs( stdout ,  "! Extra }" ) ; 
-	error () ; 
-      } 
-      goto lab20 ; 
-    } 
-    break ; 
     default: 
     if ( c >= 128 ) 
     goto lab20 ; 
@@ -2516,8 +2483,7 @@ eightbits getnext ( )
   lab31: Result = c ; 
   return(Result) ; 
 } 
-void zscannumeric ( p ) 
-namepointer p ; 
+void scannumeric ( namepointer p ) 
 {/* 21 30 */ integer accumulator  ; 
   schar nextsign  ; 
   namepointer q  ; 
@@ -2652,9 +2618,8 @@ namepointer p ;
   } 
   equiv [ p ] = accumulator + 32768L ; 
 } 
-void zscanrepl ( t ) 
-eightbits t ; 
-{/* 22 30 31 21 */ sixteenbits a  ; 
+void scanrepl ( eightbits t ) 
+{/* 22 30 31 */ sixteenbits a  ; 
   ASCIIcode b  ; 
   eightbits bal  ; 
   bal = 0 ; 
@@ -2795,28 +2760,7 @@ eightbits t ;
 	  tokptr [ z ] = tokptr [ z ] + 1 ; 
 	} 
 	buffer [ limit + 1 ] = 64 ; 
-	lab21: if ( buffer [ loc ] == 64 ) 
-	{
-	  if ( loc < limit ) 
-	  if ( buffer [ loc + 1 ] == 64 ) 
-	  {
-	    {
-	      if ( tokptr [ z ] == maxtoks ) 
-	      {
-		(void) putc('\n',  stdout );
-		(void) fprintf( stdout , "%s%s%s",  "! Sorry, " , "token" , " capacity exceeded"                 ) ; 
-		error () ; 
-		history = 3 ; 
-		uexit ( 1 ) ; 
-	      } 
-	      tokmem [ z ][ tokptr [ z ] ] = 64 ; 
-	      tokptr [ z ] = tokptr [ z ] + 1 ; 
-	    } 
-	    loc = loc + 2 ; 
-	    goto lab21 ; 
-	  } 
-	} 
-	else {
+	while ( buffer [ loc ] != 64 ) {
 	    
 	  {
 	    if ( tokptr [ z ] == maxtoks ) 
@@ -2832,7 +2776,23 @@ eightbits t ;
 	    tokptr [ z ] = tokptr [ z ] + 1 ; 
 	  } 
 	  loc = loc + 1 ; 
-	  goto lab21 ; 
+	  if ( loc < limit ) 
+	  if ( ( buffer [ loc ] == 64 ) && ( buffer [ loc + 1 ] == 64 ) ) 
+	  {
+	    {
+	      if ( tokptr [ z ] == maxtoks ) 
+	      {
+		(void) putc('\n',  stdout );
+		(void) fprintf( stdout , "%s%s%s",  "! Sorry, " , "token" , " capacity exceeded"                 ) ; 
+		error () ; 
+		history = 3 ; 
+		uexit ( 1 ) ; 
+	      } 
+	      tokmem [ z ][ tokptr [ z ] ] = 64 ; 
+	      tokptr [ z ] = tokptr [ z ] + 1 ; 
+	    } 
+	    loc = loc + 2 ; 
+	  } 
 	} 
 	if ( loc >= limit ) 
 	{
@@ -2932,8 +2892,7 @@ eightbits t ;
   z = 0 ; 
   else z = z + 1 ; 
 } 
-void zdefinemacro ( t ) 
-eightbits t ; 
+void definemacro ( eightbits t ) 
 {namepointer p  ; 
   p = idlookup ( t ) ; 
   scanrepl ( t ) ; 
@@ -3073,7 +3032,7 @@ void main_body() {
   loc = 1 ; 
   buffer [ 0 ] = 32 ; 
   inputhasended = false ; 
-  (void) fprintf( stdout , "%s\n",  "This is TANGLE, C Version 4.3" ) ; 
+  (void) fprintf( stdout , "%s\n",  "This is TANGLE, C Version 4" ) ; 
   phaseone = true ; 
   modulecount = 0 ; 
   do {
@@ -3082,10 +3041,10 @@ void main_body() {
   while ( ! inputhasended ) scanmodule () ; 
   if ( changelimit != 0 ) 
   {
-    {register integer for_end; ii = 0 ; for_end = changelimit ; if ( ii <= 
+    {register integer for_end; loc = 0 ; for_end = changelimit ; if ( loc <= 
     for_end) do 
-      buffer [ ii ] = changebuffer [ ii ] ; 
-    while ( ii++ < for_end ) ; } 
+      buffer [ loc ] = changebuffer [ loc ] ; 
+    while ( loc++ < for_end ) ; } 
     limit = changelimit ; 
     changing = true ; 
     line = otherline ; 
@@ -3149,15 +3108,17 @@ void main_body() {
       (void) fprintf( stdout , "%ld%s",  (long)stringptr - 256 ,       " strings written to string pool file." ) ; 
     } 
     (void) putc( '*' ,  pool );
-    {register integer for_end; ii = 1 ; for_end = 9 ; if ( ii <= for_end) do 
+    {register integer for_end; stringptr = 1 ; for_end = 9 ; if ( stringptr 
+    <= for_end) do 
       {
-	outbuf [ ii ] = poolchecksum % 10 ; 
+	outbuf [ stringptr ] = poolchecksum % 10 ; 
 	poolchecksum = poolchecksum / 10 ; 
       } 
-    while ( ii++ < for_end ) ; } 
-    {register integer for_end; ii = 9 ; for_end = 1 ; if ( ii >= for_end) do 
-      (void) putc( xchr [ 48 + outbuf [ ii ] ] ,  pool );
-    while ( ii-- > for_end ) ; } 
+    while ( stringptr++ < for_end ) ; } 
+    {register integer for_end; stringptr = 9 ; for_end = 1 ; if ( stringptr 
+    >= for_end) do 
+      (void) putc( xchr [ 48 + outbuf [ stringptr ] ] ,  pool );
+    while ( stringptr-- > for_end ) ; } 
     (void) putc('\n',  pool );
   } 
   switch ( history ) 
@@ -3189,6 +3150,6 @@ void main_body() {
   } 
   (void) putc('\n',  stdout );
   if ( ( history != 0 ) && ( history != 1 ) ) 
-  uexit ( 1 ) ; 
-  else uexit ( 0 ) ; 
+  exit ( 1 ) ; 
+  else exit ( 0 ) ; 
 } 

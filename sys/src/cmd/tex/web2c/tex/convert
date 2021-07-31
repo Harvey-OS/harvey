@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/bin/rc
 # Convert TeX to C.
+#
 
-cat ../lib/common.defines ../lib/texmf.defines tex.p \
-	| ../web2c/$cpuobjtype.web2c -t -htexmf.h \
+cat tex.defines tex.p \
+	| ../web2c/$cpuobjtype.web2c -t \
 	| ../web2c/$cpuobjtype.fixwrites -t \
 	| ../web2c/$cpuobjtype.regfix \
 	| ../web2c/$cpuobjtype.splitup

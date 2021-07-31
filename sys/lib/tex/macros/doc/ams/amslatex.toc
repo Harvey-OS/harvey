@@ -1,0 +1,101 @@
+\contentsline {part}{\uppercase {i}\phspace {1em}General}{1}
+\contentsline {section}{\numberline {1}Introduction}{1}
+\contentsline {subsection}{\numberline {1.1}Notes}{1}
+\contentsline {section}{\numberline {2}The \pAmS -\pLaTeX {} project}{1}
+\contentsline {section}{\numberline {3}Major components of the \pAmS -\pLaTeX {} package}{3}
+\contentsline {part}{\uppercase {ii}\phspace {1em}Font considerations}{4}
+\contentsline {section}{\numberline {4}The font selection scheme of Mittelbach and Sch{\accent "7F o}pf}{4}
+\contentsline {section}{\numberline {5}Basic concepts}{4}
+\contentsline {subsection}{\numberline {5.1}Shape}{5}
+\contentsline {subsection}{\numberline {5.2}Series}{5}
+\contentsline {subsection}{\numberline {5.3}Size}{6}
+\contentsline {subsection}{\numberline {5.4}Family}{6}
+\contentsline {subsection}{\numberline {5.5}Using other font families}{7}
+\contentsline {subsection}{\numberline {5.6}The {\ptt oldlfont} option}{8}
+\contentsline {subsection}{\numberline {5.7}Warnings}{8}
+\contentsline {section}{\numberline {6}Names of math font commands}{9}
+\contentsline {section}{\numberline {7}The command {\ptt \bslash newsymbol}}{13}
+\contentsline {section}{\numberline {8}The {\ptt amssymb} option}{14}
+\contentsline {part}{\uppercase {iii}\phspace {1em}Features of the {\ptt amstex} option}{15}
+\contentsline {section}{\numberline {9}Math spacing commands}{15}
+\contentsline {section}{\numberline {10}Multiple integral signs}{15}
+\contentsline {section}{\numberline {11}Over and under arrows}{15}
+\contentsline {section}{\numberline {12}Dots}{15}
+\contentsline {section}{\numberline {13}Accents in math}{16}
+\contentsline {section}{\numberline {14}Roots}{17}
+\contentsline {section}{\numberline {15}Boxed formulas}{17}
+\contentsline {section}{\numberline {16}Extensible arrows}{17}
+\contentsline {section}{\numberline {17}{\ptt \bslash overset}, {\ptt \bslash underset} and {\ptt \bslash sideset}}{18}
+\contentsline {section}{\numberline {18}The {\ptt \bslash text} command}{18}
+\contentsline {section}{\numberline {19}Operator names}{19}
+\contentsline {section}{\numberline {20}{\ptt \bslash mod} and its relatives}{19}
+\contentsline {section}{\numberline {21}Fractions and related constructions}{19}
+\contentsline {section}{\numberline {22}Continued fractions}{20}
+\contentsline {section}{\numberline {23}Smash options}{20}
+\contentsline {section}{\numberline {24}New \pLaTeX {} environments}{21}
+\contentsline {subsection}{\numberline {24.1}The ``cases'' environment}{21}
+\contentsline {subsection}{\numberline {24.2}Matrix}{21}
+\contentsline {subsection}{\numberline {24.3}The {\ptt Sb} and {\ptt Sp} environments}{22}
+\contentsline {subsection}{\numberline {24.4}Commutative diagrams}{22}
+\contentsline {section}{\numberline {25}Alignment structures for equations}{23}
+\contentsline {subsection}{\numberline {25.1}The {\ptt align} environment}{24}
+\contentsline {subsection}{\numberline {25.2}The {\ptt gather} environment}{24}
+\contentsline {subsection}{\numberline {25.3}The {\ptt alignat} environment}{24}
+\contentsline {subsection}{\numberline {25.4}The {\ptt multline} environment}{24}
+\contentsline {subsection}{\numberline {25.5}The {\ptt split} environment}{25}
+\contentsline {subsection}{\numberline {25.6}Alignment environments that don't constitute an entire display}{25}
+\contentsline {subsection}{\numberline {25.7}Vertical spacing and page breaks in the {\ptt amstex} equation structures}{25}
+\contentsline {subsection}{\numberline {25.8}The {\ptt \bslash intertext} command}{26}
+\contentsline {subsection}{\numberline {25.9}Equation numbering}{26}
+\contentsline {subsection}{\numberline {25.10}Error messages}{26}
+\contentsline {section}{\numberline {26}Miscellaneous}{27}
+\contentsline {section}{\numberline {27}New documentstyle options available}{27}
+\contentsline {subsection}{\numberline {27.1}The {\ptt amssymb} option}{28}
+\contentsline {subsection}{\numberline {27.2}Comments}{28}
+\contentsline {subsection}{\numberline {27.3}Syntax checking}{28}
+\contentsline {section}{\numberline {28}Protecting fragile commands}{28}
+\contentsline {section}{\numberline {29}Differences the \pLaTeX {} user should note}{29}
+\contentsline {part}{\uppercase {iv}\phspace {1em}The {\ptt amsart} and {\ptt amsbook} documentstyles}{30}
+\contentsline {section}{\numberline {30}General remarks}{30}
+\contentsline {section}{\numberline {31}The {\ptt amsart} documentstyle}{30}
+\contentsline {subsection}{\numberline {31.1}Top matter}{30}
+\contentsline {subsection}{\numberline {31.2}Memory conservation measures}{31}
+\contentsline {subsection}{\numberline {31.3}Running heads}{31}
+\contentsline {subsection}{\numberline {31.4}Non-English versions of automatically generated text}{32}
+\contentsline {subsection}{\numberline {31.5}Theorems, definitions, and similar structures}{32}
+\contentsline {subsection}{\numberline {31.6}Proofs}{33}
+\contentsline {subsection}{\numberline {31.7}Miscellaneous notes}{34}
+\contentsline {subsubsection}{\numberline {31.7.1}Variations from standard \pLaTeX {}}{34}
+\contentsline {paragraph}{Starred forms of sectioning commands}{34}
+\contentsline {paragraph}{Author names and addresses}{34}
+\contentsline {subsubsection}{\numberline {31.7.2}Numbers and punctuation in italic text}{35}
+\contentsline {section}{\numberline {32}The {\ptt amsbook} documentstyle}{35}
+\contentsline {subsection}{\numberline {32.1}Front matter}{35}
+\contentsline {subsection}{\numberline {32.2}Running heads}{36}
+\contentsline {section}{\numberline {33}Bibliography styles for use with {\psc Bib\kern -.1emT\kern -.1667em\lower .5ex\hbox {E}\kern -.125emX}}{36}
+\contentsline {part}{\uppercase {v}\phspace {1em}Appendixes}{37}
+\contentsline {section}{\numberline {A}Files included in the \pAmS -\pLaTeX {} distribution}{37}
+\contentsline {subsection}{\numberline {A.1}Files maintained by the American Mathematical Society}{37}
+\contentsline {subsection}{\numberline {A.2}Files maintained by Mittelbach and Sch{\accent "7F o}pf}{39}
+\contentsline {section}{\numberline {B}Differences between \pAmS -T\kern -.1667em\lower .5ex\hbox {E}\kern -.125emX (version 2.0) and the {\ptt amstex} option}{39}
+\contentsline {subsection}{\numberline {B.1}Document structure commands}{39}
+\contentsline {subsection}{\numberline {B.2}Math font commands}{40}
+\contentsline {subsection}{\numberline {B.3}Matrices}{40}
+\contentsline {subsection}{\numberline {B.4}Displayed equation structures}{40}
+\contentsline {subsection}{\numberline {B.5}Math style commands}{41}
+\contentsline {subsection}{\numberline {B.6}{\ptt \bslash thickfrac}}{41}
+\contentsline {subsection}{\numberline {B.7}Commenting out a large section of text}{41}
+\contentsline {subsection}{\numberline {B.8}Page breaks inside a display}{41}
+\contentsline {subsection}{\numberline {B.9}Special colons in math}{41}
+\contentsline {subsection}{\numberline {B.10}Paragraphed text within a displayed equation}{41}
+\contentsline {subsection}{\numberline {B.11}Commutative diagrams}{42}
+\contentsline {subsection}{\numberline {B.12}Footnotes}{42}
+\contentsline {subsection}{\numberline {B.13}Vertical spacing}{42}
+\contentsline {subsection}{\numberline {B.14}Blank space for figures}{42}
+\contentsline {subsection}{\numberline {B.15}{\ptt \bslash hdotsfor}}{42}
+\contentsline {subsection}{\numberline {B.16}{\ptt \bslash topsmash} and {\ptt \bslash botsmash}}{42}
+\contentsline {subsection}{\numberline {B.17}{\ptt \bslash spreadlines} and other display options}{43}
+\contentsline {subsection}{\numberline {B.18}The {\ptt \bslash and} command}{43}
+\contentsline {subsection}{\numberline {B.19}Global options}{43}
+\contentsline {section}{\numberline {C}Memory statistics}{43}
+\contentsline {section}{\numberline {D}Getting help}{46}

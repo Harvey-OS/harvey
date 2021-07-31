@@ -258,7 +258,7 @@ scsiio(Device d, int rw, uchar *cmd, int clen, void *data, int dlen)
 	Target *tp;
 
 	if(d.ctrl >= NCtlr)
-		panic("scsiio: d.ctrl = %d\n", d.ctrl);
+		panic("scsiexec: d.ctrl = %d\n", d.ctrl);
 
 	tp = &target[d.ctrl][d.unit];
 	tp->lun = cmd[1]>>5;
@@ -511,7 +511,8 @@ identify(Target *tp, uchar status)
 				n = 0x04;
 			else
 				n = 0;
-			tp->sync = (n<<4)|msgin[4];
+			n |= msgin[4]<<4;
+			tp->sync = n;
 		}
 		break;
 
@@ -851,6 +852,7 @@ resetscsi(int ctlrnr, uchar *data, uchar *addr, ulong *cnt, uchar *fls, ulong ma
 			tp->transfer = Ctransfer;
 		}
 	}
+	noauth++;
 }
 
 static

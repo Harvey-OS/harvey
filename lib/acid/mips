@@ -1,0 +1,106 @@
+// Mips support
+
+defn acidinit()			// Called after all the init modules are loaded
+{
+	bplist = {};
+	bpfmt = 'X';
+
+	srcpath = {
+		"./",
+		"/sys/src/libc/port/",
+		"/sys/src/libc/9sys/",
+		"/sys/src/libc/mips/"
+	};
+
+	srcfiles = {};		// list of loaded files
+	srctext = {};		// the text of the files
+}
+
+defn stk()			// trace
+{
+	_stk(*PC, *SP, 0);
+}
+
+defn lstk()			// trace with locals
+{
+	_stk(*PC, *SP, 1);
+}
+
+defn gpr()			// print general purpose registers
+{
+	print("R1\t", *R1, "R2\t", *R2, "R3\t", *R3, "\n");
+	print("R4\t", *R4, "R5\t", *R5, "R6\t", *R6, "\n");
+	print("R7\t", *R7, "R8\t", *R8, "R9\t", *R9, "\n");
+	print("R10\t", *R10, "R11\t", *R11, "R12\t", *R12, "\n");
+	print("R13\t", *R13, "R14\t", *R14, "R15\t", *R15, "\n");
+	print("R16\t", *R16, "R17\t", *R17, "R18\t", *R18, "\n");
+	print("R19\t", *R19, "R20\t", *R20, "R21\t", *R21, "\n");
+	print("R22\t", *R22, "R23\t", *R23, "R24\t", *R24, "\n");
+	print("R25\t", *R25, "R26\t", *R26, "R27\t", *R27, "\n");
+	print("R28\t", *R28, "R29\t", *SP, "R30\t", *R30, "\n");
+	print("R31\t", *R31, "\n");
+}
+
+defn spr()				// print special processor registers
+{
+	local pc;
+	local link;
+	local cause;
+
+	pc = *PC;
+	print("PC\t", pc, fmt(pc, 'a'), "  ");
+	pfl(pc);
+
+	link = *R31;
+	print("SP\t", *SP, "LINK\t\t", link, fmt(link, 'a'), " ");
+	pfl(link);
+
+	cause = *CAUSE;
+	print("STATUS\t", *STATUS, "CAUSE\t", cause, reason(cause), "\n");
+	print("TLBVIR\t", *TLBVIRT, "BADVADDR\t", *BADVADDR, "\n");
+
+	print("HI\t", *HI, "LO\t", *LO, "\n");
+}
+
+defn regs()				// print all registers
+{
+	spr();
+	gpr();
+}
+
+defn next()
+{
+	local lst;
+	local addr;
+
+	lst = follow(*PC);
+	while lst do {
+		addr = head lst;
+		print(fmt(addr, 'a'),"\t", fmt(addr, 'i'), "\n");
+		lst = tail lst;
+	}
+}
+
+defn pstop(pid)
+{
+	local l;
+	local pc;
+
+	pc = *PC;
+
+	print(pid,": ", reason(*CAUSE), "\t");
+	print(fmt(pc, 'a'), "\t", fmt(pc, 'i'), "\n");
+
+	if notes then {
+		if notes[0] != "sys: breakpoint" then {
+			print("Notes pending:\n");
+			l = notes;
+			while l do {
+				print("\t", head l, "\n");
+				l = tail l;
+			}
+		}
+	}
+}
+
+print("/lib/acid/mips");

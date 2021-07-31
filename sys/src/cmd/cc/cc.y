@@ -4,6 +4,7 @@
 %union	{
 	Node*	node;
 	Sym*	sym;
+	Ref*	ref;
 	Type*	type;
 	struct {
 		Type*	t;
@@ -13,13 +14,16 @@
 		Type*	t1;
 		Type*	t2;
 	} tyty;
+	struct {
+		Sym*	sym;
+		Ref*	ref;
+	} syrf;
 	long	lval;
 	double	dval;
-	vlong	vval;
 	char*	sval;
 	ushort*	rval;
 }
-%type	<sym>	ltag
+%type	<syrf>	ltag
 %type	<lval>	tname tnlist
 %type	<type>	tlist sbody complex
 %type	<tycl>	types
@@ -27,9 +31,9 @@
 %type	<node>	name block stmnt cexpr expr xuexpr pexpr
 %type	<node>	zelist elist adecl slist uexpr
 %type	<node>	xdecor xdecor2 labels label ulstmnt
-%type	<node>	adlist edecor tag qual qlist
+%type	<node>	adlist edecor tag qual
 %type	<node>	abdecor abdecor1 abdecor2 abdecor3
-%type	<node>	zexpr lexpr init ilist
+%type	<node>	zexpr lexpr init ilist lcexpr
 
 %left	';'
 %left	','
@@ -47,9 +51,9 @@
 %left	'*' '/' '%'
 %right	LMM LPP LMG '.' '[' '('
 
-%token	<sym>	LNAME LCTYPE LSTYPE
-%token	<dval>	LFCONST LDCONST
-%token	<vval>	LCONST LLCONST LUCONST LULCONST LVLCONST LUVLCONST
+%token	<sym>	LNAME LTYPE
+%token	<dval>	LFCONST LVLCONST LDCONST
+%token	<lval>	LCONST LLCONST LUCONST LULCONST
 %token	<sval>	LSTRING
 %token	<rval>	LLSTRING
 %token		LAUTO LBREAK LCASE LCHAR LCONTINUE LDEFAULT LDO
@@ -91,7 +95,7 @@ xdecl:
 	block
 	{
 		revertdcl();
-		if(!debug['a'])
+		if(!debug['H'])
 			codgen($6, $2);
 	}
 
@@ -299,32 +303,46 @@ qual:
 	{
 		$$ = new(OARRAY, $2, Z);
 	}
-|	'.' ltag
+|	'.' tag
 	{
-		$$ = new(OELEM, Z, Z);
-		$$->sym = $2;
+		$$ = new(ODOT, $2, Z);
 	}
-|	qual '='
-
-qlist:
-	init ','
-|	qlist init ','
+|	'[' lexpr ']' qual
 	{
-		$$ = new(OLIST, $1, $2);
+		$$ = new(OARRAY, $2, Z);
+		$$ = new(OLIST, $$, $4);
 	}
-|	qual
-|	qlist qual
+|	'.' tag qual
 	{
-		$$ = new(OLIST, $1, $2);
+		$$ = new(ODOT, $2, Z);
+		$$ = new(OLIST, $$, $3);
 	}
 
 ilist:
-	qlist
-|	init
-|	qlist init
+	init
+|	qual init
 	{
 		$$ = new(OLIST, $1, $2);
 	}
+|	qual '=' init
+	{
+		$$ = new(OLIST, $1, $3);
+	}
+|	ilist ',' init
+	{
+		$$ = new(OLIST, $1, $3);
+	}
+|	ilist ',' qual init
+	{
+		$$ = new(OLIST, $1, $3);
+		$$ = new(OLIST, $$, $4);
+	}
+|	ilist ',' qual '=' init
+	{
+		$$ = new(OLIST, $1, $3);
+		$$ = new(OLIST, $$, $5);
+	}
+|	ilist ','
 
 zarglist:
 	{
@@ -393,6 +411,8 @@ label:
 |	LNAME ':'
 	{
 		$$ = new(OLABEL, dcllabel($1, 1), Z);
+		if($1->ref)
+			$1->ref->class = CLABEL+CLAST;
 	}
 
 stmnt:
@@ -441,18 +461,8 @@ ulstmnt:
 		$$ = new(ORETURN, $2, Z);
 		$$->type = thisfn->link;
 	}
-|	LSWITCH '(' cexpr ')' stmnt
+|	LSWITCH '(' lcexpr ')' stmnt
 	{
-		$$ = new(OCONST, Z, Z);
-		$$->vconst = 0;
-		$$->type = tint;
-		$3 = new(OSUB, $$, $3);
-
-		$$ = new(OCONST, Z, Z);
-		$$->vconst = 0;
-		$$->type = tint;
-		$3 = new(OSUB, $$, $3);
-
 		$$ = new(OSWITCH, $3, $5);
 	}
 |	LBREAK ';'
@@ -466,6 +476,8 @@ ulstmnt:
 |	LGOTO LNAME ';'
 	{
 		$$ = new(OGOTO, dcllabel($2, 0), Z);
+		if($2->ref)
+			$2->ref->class = CLABEL;
 	}
 |	LUSED '(' zelist ')' ';'
 	{
@@ -490,6 +502,13 @@ zexpr:
 
 lexpr:
 	expr
+	{
+		$$ = new(OCAST, $1, Z);
+		$$->type = types[TLONG];
+	}
+
+lcexpr:
+	cexpr
 	{
 		$$ = new(OCAST, $1, Z);
 		$$->type = types[TLONG];
@@ -653,19 +672,19 @@ uexpr:
 |	'+' xuexpr
 	{
 		$$ = new(OCONST, Z, Z);
-		$$->vconst = 0;
+		$$->offset = 0;
 		$$->type = tint;
 		$2 = new(OSUB, $$, $2);
 
 		$$ = new(OCONST, Z, Z);
-		$$->vconst = 0;
+		$$->offset = 0;
 		$$->type = tint;
 		$$ = new(OSUB, $$, $2);
 	}
 |	'-' xuexpr
 	{
 		$$ = new(OCONST, Z, Z);
-		$$->vconst = 0;
+		$$->offset = 0;
 		$$->type = tint;
 		$$ = new(OSUB, $$, $2);
 	}
@@ -676,7 +695,7 @@ uexpr:
 |	'~' xuexpr
 	{
 		$$ = new(OCONST, Z, Z);
-		$$->vconst = -1;
+		$$->offset = -1;
 		$$->type = tint;
 		$$ = new(OXOR, $$, $2);
 	}
@@ -719,12 +738,20 @@ pexpr:
 |	pexpr LMG ltag
 	{
 		$$ = new(ODOT, new(OIND, $1, Z), Z);
-		$$->sym = $3;
+		$$->sym = $3.sym;
+		if($3.ref) {
+			$3.ref->class = CSELEM;
+			$$->ref = $3.ref;
+		}
 	}
 |	pexpr '.' ltag
 	{
 		$$ = new(ODOT, $1, Z);
-		$$->sym = $3;
+		$$->sym = $3.sym;
+		if($3.ref) {
+			$3.ref->class = CSELEM;
+			$$->ref = $3.ref;
+		}
 	}
 |	pexpr LPP
 	{
@@ -739,54 +766,48 @@ pexpr:
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = tint;
-		$$->vconst = $1;
+		$$->offset = $1;
 	}
 |	LLCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TLONG];
-		$$->vconst = $1;
+		$$->offset = $1;
 	}
 |	LUCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = tuint;
-		$$->vconst = $1;
+		$$->offset = $1;
 	}
 |	LULCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TULONG];
-		$$->vconst = $1;
+		$$->offset = $1;
 	}
 |	LDCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TDOUBLE];
-		$$->fconst = $1;
+		$$->ud = $1;
 	}
 |	LFCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TFLOAT];
-		$$->fconst = $1;
+		$$->ud = $1;
 	}
 |	LVLCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TVLONG];
-		$$->vconst = $1;
-	}
-|	LUVLCONST
-	{
-		$$ = new(OCONST, Z, Z);
-		$$->type = types[TUVLONG];
-		$$->vconst = $1;
+		$$->ud = $1;
 	}
 |	LSTRING
 	{
 		$$ = new(OSTRING, Z, Z);
-		$$->cstring = $1;
+		$$->us = $1;
 		$$->sym = symstring;
 		$$->type = typ(TARRAY, types[TCHAR]);
 		$$->etype = TARRAY;
@@ -796,7 +817,7 @@ pexpr:
 |	LLSTRING
 	{
 		$$ = new(OLSTRING, Z, Z);
-		$$->rstring = $1;
+		$$->rs = $1;
 		$$->sym = symstring;
 		$$->type = typ(TARRAY, types[TUSHORT]);
 		$$->etype = TARRAY;
@@ -892,99 +913,101 @@ ctlist:
 complex:
 	LSTRUCT ltag
 	{
-		dotag($2, TSTRUCT, 0);
-		$$ = $2->suetag;
+		dotag($2.sym, TSTRUCT, 0);
+		$$ = $2.sym->suetag;
+		if($2.ref)
+			$2.ref->class = CSUETAG;
 	}
 |	LSTRUCT ltag
 	{
-		dotag($2, TSTRUCT, autobn);
+		dotag($2.sym, TSTRUCT, autobn);
+		if($2.ref)
+			$2.ref->class = CSUETAG+CLAST;
 	}
 	sbody
 	{
-		$$ = $2->suetag;
+		$$ = $2.sym->suetag;
 		if($$->link != T)
-			diag(Z, "redeclare tag: %s", $2->name);
+			diag(Z, "redeclare tag: %s", $2.sym->name);
 		$$->link = $4;
 		suallign($$);
+		dbgprint($2.sym, $$);
 	}
 |	LSTRUCT sbody
 	{
-		taggen++;
-		sprint(symb, "_%d_", taggen);
-		$$ = dotag(lookup(), TSTRUCT, autobn);
-		$$->link = $2;
+		$$ = typ(TSTRUCT, $2);
 		suallign($$);
 	}
 |	LUNION ltag
 	{
-		dotag($2, TUNION, 0);
-		$$ = $2->suetag;
+		dotag($2.sym, TUNION, 0);
+		$$ = $2.sym->suetag;
+		if($2.ref)
+			$2.ref->class = CSUETAG;
 	}
 |	LUNION ltag
 	{
-		dotag($2, TUNION, autobn);
+		dotag($2.sym, TUNION, autobn);
+		if($2.ref)
+			$2.ref->class = CSUETAG+CLAST;
 	}
 	sbody
 	{
-		$$ = $2->suetag;
+		$$ = $2.sym->suetag;
 		if($$->link != T)
-			diag(Z, "redeclare tag: %s", $2->name);
+			diag(Z, "redeclare tag: %s", $2.sym->name);
 		$$->link = $4;
 		suallign($$);
+		dbgprint($2.sym, $$);
 	}
 |	LUNION sbody
 	{
-		taggen++;
-		sprint(symb, "_%d_", taggen);
-		$$ = dotag(lookup(), TUNION, autobn);
-		$$->link = $2;
+		$$ = typ(TUNION, $2);
 		suallign($$);
 	}
 |	LENUM ltag
 	{
-		dotag($2, TENUM, 0);
-		$$ = $2->suetag;
+		dotag($2.sym, TENUM, 0);
+		$$ = $2.sym->suetag;
 		if($$->link == T)
 			$$->link = tint;
 		$$ = $$->link;
+		if($2.ref)
+			$2.ref->class = CSUETAG;
 	}
 |	LENUM ltag
 	{
-		dotag($2, TENUM, autobn);
+		dotag($2.sym, TENUM, autobn);
+		if($2.ref)
+			$2.ref->class = CSUETAG+CLAST;
 	}
 	'{'
 	{
-		en.tenum = T;
-		en.cenum = T;
+		lastenum = 0;
+		maxenum = 0;
 	}
 	enum '}'
 	{
-		$$ = $2->suetag;
+		$$ = $2.sym->suetag;
 		if($$->link != T)
-			diag(Z, "redeclare tag: %s", $2->name);
-		if(en.tenum == T) {
-			diag(Z, "enum type ambiguous: %s", $2->name);
-			en.tenum = tint;
-		}
-		$$->link = en.tenum;
-		$$ = en.tenum;
+			diag(Z, "redeclare tag: %s", $2.sym->name);
+		$$->link = maxtype(maxenum);
+		$$ = $$->link;
 	}
 |	LENUM '{'
 	{
-		en.tenum = T;
-		en.cenum = T;
+		lastenum = 0;
+		maxenum = 0;
 	}
 	enum '}'
 	{
-		$$ = en.tenum;
+		$$ = maxtype(maxenum);
 	}
-|	LCTYPE
+|	LTYPE
 	{
 		$$ = tcopy($1->type);
-	}
-|	LSTYPE
-	{
-		$$ = tcopy($1->type);
+		if($1->ref)
+			$1->ref->class = CTYPEDEF;
 	}
 
 tnlist:
@@ -1004,10 +1027,21 @@ enum:
 	LNAME
 	{
 		doenum($1, Z);
+		if($1->ref) {
+			$1->ref->class = CENUM+CLAST;
+			$1->varlineno = $1->ref->lineno;
+		}
 	}
-|	LNAME '=' expr
+|	LNAME
 	{
-		doenum($1, $3);
+		if($1->ref) {
+			$1->ref->class = CENUM+CLAST;
+			$1->varlineno = $1->ref->lineno;
+		}
+	}
+	'=' expr
+	{
+		doenum($1, $4);
 	}
 |	enum ','
 |	enum ',' enum
@@ -1047,24 +1081,37 @@ name:
 		$$->etype = TVOID;
 		if($$->type != T)
 			$$->etype = $$->type->etype;
-		$$->xoffset = $1->offset;
+		$$->offset = $1->offset;
 		$$->class = $1->class;
+		$$->ref = $1->ref;
 		$1->aused = 1;
+		if($$->ref) {
+			$$->ref->class = $$->class;
+			$$->ref->dlineno = $1->varlineno;
+		}
 	}
 tag:
 	ltag
 	{
 		$$ = new(ONAME, Z, Z);
-		$$->sym = $1;
-		$$->type = $1->type;
+		$$->sym = $1.sym;
+		$$->type = $1.sym->type;
 		$$->etype = TVOID;
 		if($$->type != T)
 			$$->etype = $$->type->etype;
-		$$->xoffset = $1->offset;
-		$$->class = $1->class;
+		$$->offset = $1.sym->offset;
+		$$->class = $1.sym->class;
+		$$->ref = $1.ref;
 	}
 ltag:
 	LNAME
-|	LCTYPE
-|	LSTYPE
+	{
+		$$.sym = $1;
+		$$.ref = $1->ref;
+	}
+|	LTYPE
+	{
+		$$.sym = $1;
+		$$.ref = $1->ref;
+	}
 %%

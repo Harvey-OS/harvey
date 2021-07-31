@@ -1,0 +1,383 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSBOOK.DOC						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\fileversion{v1.0b}
+\def\filedate{90/06/25}
+\def\docdate{90/06/25}
+
+%% \CheckSum{546}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+
+% \StopEventually{}
+%
+% \section{The AMSBOOK documentstyle}
+%
+%      First the usual ID message.
+%    \begin{macrocode}
+\immediate\write\sixt@@n{%
+  Document style `AMSBOOK' \fileversion\space <\filedate> (RK, MJD)}
+\immediate\write\sixt@@n{%
+  English documentation \space\@spaces\@spaces <\docdate> (MJD)}
+%    \end{macrocode}
+%      
+%      The documentstyle AMSBOOK shares a lot of code in common with the AMSART
+%      documentstyle.  In order to avoid maintaining two separate files with
+%      the resulting tendency for them to get out of sync, we use a switch and
+%      input amsart.sty, to load everything in amsart.sty that is shared in
+%      common with amsbook.sty.  See amsart.sty for more details.
+%    \begin{macrocode}
+\let\if@article\iffalse
+\input amsart.sty
+%    \end{macrocode}
+%      
+% \subsection{Title page information}
+%      In this section \verb=\@maketitle= is defined to produce a
+%      simple title page and if information is such as key words
+%      and subject classification numbers are also given they
+%      will print on the page after the title page (i.e., on the
+%      obverse side, in two-sided printing).
+%    \begin{macrocode}
+\def\@title[#1]#2{\def\thetitle@{\ignorespaces#2\unskip}}
+
+\def\@author[#1]#2{\expandafter\def\expandafter
+  \theauthors@\expandafter{\theauthors@#2\and}}
+%    \end{macrocode}
+%
+%      This definition of \verb=\maketitle= is the same as in amsart.sty
+%      except it does not refer to \verb=\sh@rtauthor=.
+%    \begin{macrocode}
+\def\maketitle{\par
+  \@topnum\z@ % this prevents figures from falling at the top of page 1
+  \begingroup
+  \@maketitle
+  \endgroup
+  \thispagestyle{plain}%
+  \c@footnote\z@
+  \def\do##1{\let##1\relax}%
+  \do\maketitle \do\@maketitle
+  \do\title \do\@title \do\thetitle@
+  \do\author \do\@author \do\theauthors@
+  \do\dedicatory \do\thededicatory@
+  \do\thanks \do\thethanks@
+  \do\keywords \do\thekeywords@
+  \do\subjclass \do\thesubjclass@
+  \do\@andify
+}
+
+\def\@maketitle{\cleardoublepage \thispagestyle{empty}%
+\begingroup \topskip\z@skip
+\null\vfil 
+\begingroup
+        \centering \large\bf \openup\medskipamount
+        \expandafter\uppercasetext@\expandafter{\thetitle@}\vfil
+        \def\and{\par\bigskip}\mediumseries\theauthors@\vfil
+\endgroup
+\vfil\vfil
+\newpage 
+\null\vfil
+\begingroup
+        \parskip\medskipamount 
+        \ifx\@empty\thetranslator@ \else
+        Translator: \thetranslator@ \@@par\fi
+        \thethanks@\@@par
+\endgroup
+\vfil
+\ifx\@empty\thesubjclass@ \else
+1980 {\it Mathematics Subject Classification} (1985 {\it Revision\/}).\enspace
+Primary \thesubjclass@.\vfil
+\fi
+\ifx\@empty\thekeywords@ \else
+{\it Key words and phrases.}\enspace \thekeywords@.\vfil
+\fi
+\ifvoid\addressb@x \else
+Author addresses:\par
+\unvbox\addressb@x\vfil\fi
+\vfil\vfil
+\endgroup}
+
+\def\titlepage{\newpage\thispagestyle{empty}\c@page\z@}
+\def\endtitlepage{\newpage}
+%    \end{macrocode}
+%
+% \subsection{Part titles and chapter titles}
+%      In the book style we redefine \verb=\part= to put the part
+%      title on a separate page.  \verb=\@part= and \verb=\@spart=
+%      are found in \verb=amsbk10.sty=.
+%    \begin{macrocode}
+\def\partname{Part}
+\def\thepart{\@arabic\c@part}
+
+\def\part{\cleardoublepage \thispagestyle{empty}% 
+  \null\vfil  \markboth{}{}\secdef\@part\@spart}
+%    \end{macrocode}
+%
+%      To print a part title in the table of contents, we make it like
+%      a centered section heading since it is a major division.  
+%      Argument \verb=#2=, the page number is discarded because
+%      \verb=\part= will normally be followed immediately by
+%      \verb=\chapter=, whose page number can be used for reference.
+%    \begin{macrocode}
+\def\l@part#1#2{\par\addpenalty\@secpenalty\medskip
+  {\centering#1\par}\nobreak\@afterheading}
+%    \end{macrocode}
+%
+%      Definitions for chapter titles.  Chapter titles and part titles
+%      are the only things that use fonts larger than
+%      \verb=\normalsize=.  (Well, also the title page if the author
+%      uses \verb=\maketitle=.)
+%    \begin{macrocode}
+\newcounter{chapter}
+
+\def\chapter{\cleardoublepage \thispagestyle{plain} \global\@topnum\z@
+  \@afterindentfalse \secdef\@chapter\@schapter}
+
+\def\@chapter[#1]#2{\refstepcounter{\@string\chapter}%
+  \typeout{\chaptername\space\thechapter}%
+  \addcontentsline{toc}{\@string\chapter}{%
+    \ifnum \c@secnumdepth >\m@ne
+      \protect\numberline{\chaptername\ \thechapter.}\fi #1}%
+  \chaptermark{\ifnum\c@secnumdepth >\m@ne \thechapter. \fi
+       \ignorespaces#1\unskip}%
+  \addtocontents{lof}{\protect\addvspace{10\p@}}%
+  \addtocontents{lot}{\protect\addvspace{10\p@}}%
+  \@makechapterhead{#2}\@afterheading}
+
+\def\@schapter#1{\typeout{#1}%
+  \addcontentsline{toc}{\@string\chapter}{#1}%
+  \chaptermark{\ignorespaces#1\unskip}%
+  \addtocontents{lof}{\protect\addvspace{10\p@}}%
+  \addtocontents{lot}{\protect\addvspace{10\p@}}%
+  \@makeschapterhead{#1}\@afterheading}
+
+\def\chaptername{Chapter}
+\def\thechapter{\@Roman\c@chapter}
+
+\def\l@chapter{\@tocline\medskipamount{2em}{\normalshape\bf}}
+
+\@addtoreset{section}{chapter}
+
+\def\appendix{\par
+  \c@chapter\z@ \c@section\z@
+  \def\chaptername{Appendix}%
+  \def\thechapter{\@Alph\c@chapter}}
+%    \end{macrocode}
+%      Since table of contents, list of figures and list of figures
+%      are identical in design as far as the chapter heading and other
+%      preliminaries go, we redefine \verb=\@starttoc= to do the necessary
+%      work, rather than defining a new macro (which would use up another
+%      control sequence name).
+%    \begin{macrocode}
+\def\@starttoc#1#2{\begingroup
+%    \end{macrocode}
+%      Inside this group we change \verb=\secdef= so that we can call
+%      \verb=\chapter= and only get the preliminary part of its definition
+%      that we need.
+%    \begin{macrocode}
+  \let\secdef\@gobbletwo \chapter 
+%    \end{macrocode}
+%      If we have a list of figures or list of tables we want to put
+%      them in the main table of contents, but we don't want to put an
+%      entry there for the main table of contents itself. So we check
+%      to see if argument 2 is \verb=\contentsname= and if it is then
+%      we refrain from doing \verb=\addcontentsline=.
+%    \begin{macrocode}
+  \ifx#2\contentsname \else
+    \addcontentsline{toc}{\@string\chapter}#2\fi
+%    \end{macrocode}
+%      Now we do the equivalent of \verb=\@schapter=.
+%    \begin{macrocode}
+  \typeout#2\chaptermark#2\@makeschapterhead#2\@afterheading
+%    \end{macrocode}
+%      And finally we call in the original definition of
+%      \verb=\@starttoc=.
+%    \begin{macrocode}
+  \makeatletter  
+  \@input{\jobname.#1}\if@filesw \expandafter\newwrite\csname tf@#1\endcsname
+             \expandafter\openout \csname tf@#1\endcsname \jobname.#1\relax
+  \fi \global\@nobreakfalse \endgroup
+  \newpage
+}
+%    \end{macrocode}
+%      Now it is easy to define \verb=\tableofcontents= and its relatives.
+%    \begin{macrocode}
+\def\tableofcontents{\@starttoc{toc}\contentsname}
+\def\listoffigures{\@starttoc{lof}\listfigurename}
+\def\listoftables{\@starttoc{lot}\listtablename}
+
+\def\listfigurename{List of Figures}
+\def\listtablename{List of Tables}
+
+\def\l@figure{\@dottedtocline{1}{1.5em}{2.3em}}
+\let\l@table=\l@figure
+
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+%    \end{macrocode}
+%      The heading for a bibliography is done like this.
+%    \begin{macrocode}
+\def\thebibliography#1{\chapter*\bibname
+  \list{[\@arabic\c@enumi]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+  \advance\leftmargin\labelsep \usecounter{enumi}}\sloppy
+  \clubpenalty9999 \widowpenalty\clubpenalty  \sfcode`\.\@m
+  \small}
+
+\let\endthebibliography=\endlist
+%    \end{macrocode}
+%      Chapter heading for an index.  Index is set up to be two
+%      columns.
+%    \begin{macrocode}
+\newif\if@restonecol
+\def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+  \columnseprule\z@ \columnsep 35\p@
+  \twocolumn[\@makeschapterhead\indexname]\chaptermark\indexname
+  \thispagestyle{plain}\let\item\@idxitem
+  \parindent\z@  \parskip\z@\@plus.3\p@\relax
+  \small}
+
+\def\indexname{Index}
+
+\def\@idxitem{\par\hangindent 4em}
+\def\subitem{\par\hangindent 4em\hspace*{2em}}
+\def\subsubitem{\par\hangindent 4em\hspace*{3em}}
+\def\endtheindex{\if@restonecol\onecolumn\else\clearpage\fi}
+\def\indexspace{\par\bigskip}
+%    \end{macrocode}
+%      Miscellaneous numbering settings.
+%    \begin{macrocode}
+\@addtoreset{footnote}{chapter}
+
+\def\thefigure{\thechapter.\@arabic\c@figure}
+\def\thetable{\thechapter.\@arabic\c@table}
+%    \end{macrocode}
+%
+%      Some theorem style parameters that vary from amsart.sty are
+%      defined here, and we change the remark environment to use the
+%      default `header font' (small caps) rather than italic.
+%    \begin{macrocode}
+\def\theorem@headerfont{\sc}
+\let\theorem@indent\indent
+
+\def\th@remark{\theorempreskipamount6\p@\@plus6\p@
+    \theorempostskipamount\z@\@plus6\p@
+    \normalshape}
+%    \end{macrocode}
+%
+%      In the amsbook style the `pf' environment uses paragraph
+%      indent, and small caps instead of italic for the word
+%      ``Proof''.
+%    \begin{macrocode}
+\newenvironment{pf}{\par\addvspace{6\p@\@plus6\p@}%
+  \indent{\sc\proofname.}\enspace
+  \ignorespaces}{\qed\par\addvspace{6\p@\@plus6\p@}}
+
+\@namedef{pf*}#1{\begingroup\def\proofname{#1}\pf\endgroup
+  \ignorespaces}
+\expandafter\let\csname endpf*\endcsname=\endpf
+%    \end{macrocode}
+%      
+%      Running heads.  We need some extra \verb=\expandafters= to
+%      expand \verb=\leftmark= before applying \verb=\uppercasetext@=.
+%    \begin{macrocode}
+\def\ps@headings{\let\@mkboth\markboth
+  \let\@oddfoot\@empty\let\@evenfoot\@empty
+  \def\@evenhead{\small \rlap{\thepage}\hfil 
+       \expandafter\expandafter\expandafter\uppercasetext@
+       \expandafter\expandafter\expandafter
+       {\leftmark}\hfil}
+  \def\@oddhead{\small \hfil 
+       \expandafter\expandafter\expandafter\uppercasetext@
+       \expandafter\expandafter\expandafter
+       {\rightmark}\hfil \llap{\thepage}}
+  \def\chaptermark##1{\@mkboth{##1}{##1}}
+  \let\sectionmark\markright}
+
+\def\ps@myheadings{\let\@mkboth\@gobbletwo
+  \def\@oddhead{\small\rightmark \hfil\thepage}\let\@oddfoot\@empty
+  \def\@evenhead{\small\thepage\hfil\leftmark}\let\@evenfoot\@empty
+  \let\chaptermark\@gobble \let\sectionmark\@gobble}
+
+\let\subsectionmark\@gobble 
+\let\subsubsectionmark\@gobble
+\let\paragraphmark\@gobble
+
+%    \end{macrocode}
+%      
+%      Initialization.
+%      We set the margins here (now that \verb=\textwidth= and
+%      \verb=\textheight= values have been determined).
+%
+%      Subtract the height of the running heads:
+%    \begin{macrocode}
+\advance\textheight by -\headheight
+\advance\textheight by -\headsep
+%    \end{macrocode}
+%      Subtract the difference between normalbaselineskip and topskip:
+%    \begin{macrocode}
+\advance\textheight by -\normalbaselineskip 
+\advance\textheight by \topskip
+%    \end{macrocode}
+%      We set \verb=\oddsidemargin= and \verb=\evensidemargin= to
+%      center the text on the page.
+%    \begin{macrocode}
+\oddsidemargin=8.5 true in % standard U.S. paper width
+\advance\oddsidemargin by -\textwidth
+\oddsidemargin=.5\oddsidemargin
+%    \end{macrocode}
+%      Now we subtract the default margin provided by standard DVI
+%      drivers.  But first we make sure that the final margin will
+%      be at least .5 inch.
+%    \begin{macrocode}
+\ifdim\oddsidemargin < .5 true in
+  \oddsidemargin = .5 true in \fi
+\advance\oddsidemargin by -1 true in 
+\evensidemargin=\oddsidemargin
+%    \end{macrocode}
+%     And we set \verb=\topmargin= to get vertical centering as well.
+%    \begin{macrocode}
+\topmargin=11 true in % standard U.S. paper width
+\advance\topmargin by -\textheight
+\advance\topmargin by -\headheight
+\advance\topmargin by -\headsep
+\advance\topmargin by -\footheight
+\advance\topmargin by -\footskip
+\topmargin=.5\topmargin
+%    \end{macrocode}
+%      We provide a minimum of .5in (after compensating  for the default
+%      margin---see next step).
+%    \begin{macrocode}
+\ifdim\topmargin<.5 true in
+  \topmargin=.5 true in \fi
+%    \end{macrocode}
+%      Now subtract the default margin provided by standard DVI
+%      drivers.
+%    \begin{macrocode}
+\advance\topmargin by -1 true in 
+%
+\mark{{}{}} 
+\ps@headings
+
+\pagenumbering{arabic}
+\@twosidetrue \@mparswitchtrue   % this = `twoside' option
+\onecolumn
+%    \end{macrocode}
+% \Finale

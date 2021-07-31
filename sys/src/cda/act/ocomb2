@@ -1,0 +1,177 @@
+and(and(e,and(e,e)),e)	#	AND4	Y	A	B	C	D
+not(or(not(e),or(not(e),or(not(e),not(e)))))	#	AND4	Y	D	A	B	C
+and(and(not(e),and(e,e)),e)	#	AND4A	Y	A	B	C	D
+not(or(not(e),or(e,or(not(e),not(e)))))	#	AND4A	Y	D	A	B	C
+and(and(not(e),and(not(e),e)),and(e,e))	#	AND5B	Y	A	B	C	D	E
+not(or(or(not(e),or(e,or(e,not(e)))),not(e)))	#	AND5B	Y	E	A	B	C	D
+mux(not(e),not(e),C1)	#	OR2B	Y	B	A
+not(and(e,e))	#	OR2B	Y	A	B
+or(not(e),or(not(e),not(e)))	#	OR3C	Y	C	A	B
+not(and(e,and(e,e)))	#	OR3C	Y	A	B	C
+or(e,or(not(e),or(not(e),e)))	#	OR4B	Y	D	A	B	C
+not(and(and(not(e),and(not(e),e)),e))	#	OR4B	Y	C	D	A	B
+or(e,or(not(e),or(not(e),not(e))))	#	OR4C	Y	D	A	B	C
+not(and(and(not(e),and(e,e)),e))	#	OR4C	Y	D	A	B	C
+or(or(e,or(not(e),or(not(e),e))),e)	#	OR5B	Y	E	A	B	C	D
+not(and(and(not(e),and(not(e),not(e))),and(e,e)))	#	OR5B	Y	C	D	E	A	B
+xor(e,and(not(e),e))	#	AX1	Y	C	A	B
+not(xor(e,mux(e,not(e),C1)))	#	AX1	Y	C	A	B
+xor(e,and(e,e))	#	AX1C	Y	C	A	B
+not(xor(e,mux(not(e),not(e),C1)))	#	AX1C	Y	C	A	B
+or(and(not(e),not(e)),or(not(e),not(e)))	#	AO2E	Y	A	B	D	C
+not(and(e,and(e,mux(e,e,C1))))	#	AO2E	Y	D	C	B	A
+mux(and(e,and(e,e)),e,C1)	#	AO3A	Y	A	B	C	D
+not(and(not(e),or(not(e),or(not(e),not(e)))))	#	AO3A	Y	D	C	A	B
+mux(and(e,e),and(e,e),C1)	#	AO6	Y	C	D	A	B
+not(or(and(not(e),mux(not(e),not(e),C1)),and(not(e),mux(not(e),not(e),C1))))	1.1.2.1.1=1.2.2.1.1:1.1.2.2.1=1.2.2.2.1	AO6	Y	C	A	B	D	#	#
+mux(and(not(e),e),and(e,e),C1)	#	AO6A	Y	D	C	A	B
+not(or(and(e,mux(not(e),not(e),C1)),and(not(e),mux(not(e),not(e),C1))))	1.1.2.1.1=1.2.2.2.1:1.1.2.2.1=1.2.2.1.1	AO6A	Y	D	B	A	C	#	#
+or(and(e,and(e,e)),or(e,e))	#	AO7	Y	A	B	C	E	D
+not(and(not(e),and(not(e),or(not(e),or(not(e),not(e))))))	#	AO7	Y	E	D	C	A	B
+or(and(e,e),or(and(not(e),not(e)),e))	#	AO8	Y	A	B	C	D	E
+not(and(not(e),or(and(e,mux(not(e),not(e),C1)),and(e,mux(not(e),not(e),C1)))))	1.2.1.2.1.1=1.2.2.2.1.1:1.2.1.2.2.1=1.2.2.2.2.1	AO8	Y	E	C	B	A	D	#	#
+or(and(e,e),or(e,or(e,e)))	#	AO9	Y	A	B	E	D	C
+not(and(not(e),and(not(e),and(not(e),mux(not(e),not(e),C1)))))	#	AO9	Y	E	D	C	B	A
+or(and(e,mux(and(e,e),e,C1)),and(e,mux(and(e,e),e,C1)))	1.2.1.1=2.2.1.1:1.2.1.2=2.2.1.2:1.2.2=2.2.2	AO10	Y	D	A	B	C	E	#	#	#
+not(or(and(not(e),not(e)),and(not(e),mux(not(e),not(e),C1))))	#	AO10	Y	D	E	C	B	A
+and(not(e),mux(not(e),not(e),C1))	#	AOI1	Y	C	B	A
+not(mux(and(e,e),e,C1))	#	AOI1	Y	A	B	C
+and(not(e),and(e,mux(e,not(e),C1)))	#	AOI2B	Y	D	C	A	B
+not(or(and(not(e),e),or(e,not(e))))	#	AOI2B	Y	A	B	D	C
+or(and(e,mux(not(e),not(e),C1)),and(not(e),mux(not(e),not(e),C1)))	1.2.1.1=2.2.2.1:1.2.2.1=2.2.1.1	AOI4A	Y	C	B	A	D	#	#
+not(mux(and(not(e),e),and(e,e),C1))	#	AOI4A	Y	C	D	A	B
+and(e,and(not(e),mux(not(e),e,C1)))	#	OA3B	Y	D	C	A	B
+not(or(and(not(e),e),or(not(e),e)))	#	OA3B	Y	B	A	D	C
+or(and(not(e),not(e)),or(not(e),not(e)))	#	OAI3	Y	A	B	D	C
+not(and(e,and(e,mux(e,e,C1))))	#	OAI3	Y	D	C	B	A
+or(and(e,and(e,e)),mux(e,and(e,mux(not(e),not(e),C1)),e))	1.1=2.2.2.1.1:1.2.1=2.2.2.2.1:1.2.2=2.3	CS1	Y	S	B	D	A	C	#	#	#
+not(or(and(not(e),and(e,e)),mux(e,and(not(e),mux(not(e),not(e),C1)),not(e))))	1.1.1.1=1.2.3.1:1.1.2.1=1.2.2.2.2.1:1.1.2.2=1.2.2.2.1.1	CS1	Y	D	S	B	A	C	#	#	#
+or(and(e,e),and(e,and(e,mux(e,e,C1))))	1.1=2.2.2.1:1.2=2.2.2.2	CY2A	Y	A1	B1	B0	A0	#	#
+not(or(and(not(e),mux(not(e),not(e),C1)),and(not(e),or(not(e),or(not(e),not(e))))))	1.1.1.1=1.2.2.1.1:1.1.2.1.1=1.2.2.2.2.1:1.1.2.2.1=1.2.2.2.1.1	CY2A	Y	A1	B0	A0	B1	#	#	#
+: cl
+and(e,e)	#	AND2	Y	A	B
+not(or(not(e),not(e)))	#	AND2	Y	B	A
+and(not(e),e)	#	AND2A	Y	A	B
+not(or(not(e),e))	#	AND2A	Y	B	A
+and(not(e),not(e))	#	AND2B	Y	A	B
+not(or(e,e))	#	AND2B	Y	B	A
+or(e,e)	#	OR2	Y	B	A
+not(and(not(e),not(e)))	#	OR2	Y	A	B
+or(e,not(e))	#	OR2A	Y	B	A
+not(and(not(e),e))	#	OR2A	Y	B	A
+and(e,and(e,e))	#	AND3	Y	A	B	C
+not(or(not(e),or(not(e),not(e))))	#	AND3	Y	C	A	B
+and(not(e),and(e,e))	#	AND3A	Y	A	B	C
+not(or(not(e),or(e,not(e))))	#	AND3A	Y	C	A	B
+and(not(e),and(not(e),e))	#	AND3B	Y	A	B	C
+not(or(not(e),or(e,e)))	#	AND3B	Y	C	A	B
+and(not(e),and(not(e),not(e)))	#	AND3C	Y	A	B	C
+not(or(e,or(e,e)))	#	AND3C	Y	C	A	B
+or(e,or(e,e))	#	OR3	Y	C	A	B
+not(and(not(e),and(not(e),not(e))))	#	OR3	Y	A	B	C
+or(e,or(not(e),e))	#	OR3A	Y	C	A	B
+not(and(not(e),and(not(e),e)))	#	OR3A	Y	B	C	A
+or(e,or(not(e),not(e)))	#	OR3B	Y	C	A	B
+not(and(not(e),and(e,e)))	#	OR3B	Y	C	A	B
+and(and(not(e),and(not(e),e)),e)	#	AND4B	Y	A	B	C	D
+not(or(not(e),or(e,or(e,not(e)))))	#	AND4B	Y	D	A	B	C
+and(and(not(e),and(not(e),not(e))),e)	#	AND4C	Y	A	B	C	D
+not(or(not(e),or(e,or(e,e))))	#	AND4C	Y	D	A	B	C
+or(e,or(e,or(e,e)))	#	OR4	Y	D	A	B	C
+not(and(and(not(e),and(not(e),not(e))),not(e)))	#	OR4	Y	A	B	C	D
+or(e,or(not(e),or(e,e)))	#	OR4A	Y	D	A	B	C
+not(and(and(not(e),and(not(e),not(e))),e))	#	OR4A	Y	B	C	D	A
+xor(e,e)	#	XOR	Y	B	A
+not(xor(e,not(e)))	#	XOR	Y	B	A
+xor(e,not(e))	#	XNOR	Y	B	A
+not(xor(e,e))	#	XNOR	Y	B	A
+or(e,xor(e,e))	#	XO1	Y	C	B	A
+not(and(not(e),xor(e,not(e))))	#	XO1	Y	C	B	A
+or(e,xor(e,not(e)))	#	XO1A	Y	C	B	A
+not(and(not(e),xor(e,e)))	#	XO1A	Y	C	B	A
+and(e,xor(e,e))	#	XA1	Y	C	B	A
+not(or(not(e),xor(e,not(e))))	#	XA1	Y	C	B	A
+and(e,xor(e,not(e)))	#	XA1A	Y	C	B	A
+not(or(not(e),xor(e,e)))	#	XA1A	Y	C	B	A
+xor(e,and(not(e),not(e)))	#	AX1B	Y	C	A	B
+not(xor(e,or(e,e)))	#	AX1B	Y	C	A	B
+or(and(e,e),e)	#	AO1	Y	A	B	C
+not(and(not(e),or(not(e),not(e))))	#	AO1	Y	C	B	A
+or(and(not(e),e),e)	#	AO1A	Y	A	B	C
+not(and(not(e),or(not(e),e)))	#	AO1A	Y	C	B	A
+or(and(e,e),not(e))	#	AO1B	Y	A	B	C
+not(and(e,or(not(e),not(e))))	#	AO1B	Y	C	A	B
+or(and(not(e),e),not(e))	#	AO1C	Y	A	B	C
+not(and(e,or(e,not(e))))	#	AO1C	Y	C	A	B
+and(not(e),or(not(e),e))	#	AOI1A	Y	C	B	A
+not(or(and(not(e),e),e))	#	AOI1A	Y	A	B	C
+and(e,or(not(e),not(e)))	#	AOI1B	Y	C	A	B
+not(or(and(e,e),not(e)))	#	AOI1B	Y	A	B	C
+and(not(e),or(e,e))	#	AOI1C	Y	C	B	A
+not(or(and(not(e),not(e)),e))	#	AOI1C	Y	A	B	C
+and(e,or(e,e))	#	AOI1D	Y	C	A	B
+not(or(and(not(e),not(e)),not(e)))	#	AOI1D	Y	A	B	C
+or(and(e,e),or(e,e))	#	AO2	Y	A	B	D	C
+not(and(not(e),and(not(e),or(not(e),not(e)))))	#	AO2	Y	D	C	B	A
+or(and(not(e),e),or(e,e))	#	AO2A	Y	A	B	D	C
+not(and(not(e),and(not(e),or(not(e),e))))	#	AO2A	Y	D	C	B	A
+or(and(not(e),not(e)),or(e,e))	#	AO2B	Y	A	B	D	C
+not(and(not(e),and(not(e),or(e,e))))	#	AO2B	Y	D	C	B	A
+or(and(not(e),e),or(e,not(e)))	#	AO2C	Y	A	B	D	C
+not(and(not(e),and(e,or(e,not(e)))))	#	AO2C	Y	D	C	A	B
+or(and(not(e),not(e)),or(e,not(e)))	#	AO2D	Y	A	B	D	C
+not(and(not(e),and(e,or(e,e))))	#	AO2D	Y	D	C	A	B
+or(e,or(e,or(not(e),e)))	#	AOI2A	Y	D	A	B	C
+not(and(and(not(e),and(not(e),not(e))),e))	#	AOI2A	Y	A	C	D	B
+or(not(e),or(e,or(e,e)))	#	AOI3A	Y	D	C	A	B
+not(and(and(not(e),and(not(e),not(e))),e))	#	AOI3A	Y	A	B	C	D
+or(and(not(e),and(e,e)),e)	#	AO3	Y	A	B	C	D
+not(and(not(e),or(not(e),or(e,not(e)))))	#	AO3	Y	D	C	A	B
+or(and(not(e),and(not(e),e)),e)	#	AO3B	Y	A	B	C	D
+not(and(not(e),or(not(e),or(e,e))))	#	AO3B	Y	D	C	A	B
+or(and(not(e),and(not(e),not(e))),e)	#	AO3C	Y	A	B	C	D
+not(and(not(e),or(e,or(e,e))))	#	AO3C	Y	D	C	A	B
+and(e,mux(e,e,e))	#	AO4A	Y	C	A	B	D
+not(or(not(e),mux(e,not(e),not(e))))	#	AO4A	Y	C	A	B	D
+or(e,mux(e,e,e))	#	AO5A	Y	D	A	B	C
+not(and(not(e),mux(e,not(e),not(e))))	#	AO5A	Y	D	A	B	C
+or(and(e,e),and(e,or(e,e)))	1.1=2.2.1:1.2=2.2.2	MAJ3	Y	A	B	C	#	#
+not(or(and(not(e),not(e)),and(not(e),or(not(e),not(e)))))	1.1.1.1=1.2.2.2.1:1.1.2.1=1.2.2.1.1	MAJ3	Y	A	B	C	#	#
+and(e,or(e,e))	#	OA1	Y	C	A	B
+not(or(and(not(e),not(e)),not(e)))	#	OA1	Y	A	B	C
+and(e,or(not(e),e))	#	OA1A	Y	C	A	B
+not(or(and(not(e),e),not(e)))	#	OA1A	Y	B	A	C
+and(not(e),or(e,e))	#	OA1B	Y	C	B	A
+not(or(and(not(e),not(e)),e))	#	OA1B	Y	A	B	C
+and(not(e),or(e,not(e)))	#	OA1C	Y	C	B	A
+not(or(and(not(e),e),e))	#	OA1C	Y	B	A	C
+or(and(e,or(e,e)),and(e,or(e,e)))	1.2.1=2.2.1:1.2.2=2.2.2	OA2	Y	C	B	A	D	#	#
+not(or(and(not(e),not(e)),and(not(e),not(e))))	#	OA2	Y	C	D	A	B
+or(and(e,or(e,not(e))),and(e,or(e,not(e))))	1.2.1=2.2.1:1.2.2.1=2.2.2.1	OA2A	Y	C	B	A	D	#	#
+not(or(and(not(e),not(e)),and(not(e),e)))	#	OA2A	Y	C	D	B	A
+and(e,and(e,or(e,e)))	#	OA3	Y	D	C	B	A
+not(or(and(not(e),not(e)),or(not(e),not(e))))	#	OA3	Y	A	B	D	C
+and(e,and(not(e),or(e,e)))	#	OA3A	Y	D	C	A	B
+not(or(and(not(e),not(e)),or(not(e),e)))	#	OA3A	Y	A	B	D	C
+and(e,or(e,or(e,e)))	#	OA4	Y	D	A	B	C
+not(or(and(not(e),and(not(e),not(e))),not(e)))	#	OA4	Y	A	B	C	D
+and(e,or(not(e),or(e,e)))	#	OA4A	Y	D	C	A	B
+not(or(and(not(e),and(not(e),e)),not(e)))	#	OA4A	Y	A	B	C	D
+or(e,and(e,or(e,e)))	#	OA5	Y	A	D	C	B
+not(and(not(e),or(and(not(e),not(e)),not(e))))	#	OA5	Y	A	B	C	D
+or(and(not(e),not(e)),not(e))	#	OAI1	Y	A	B	C
+not(and(e,or(e,e)))	#	OAI1	Y	C	A	B
+or(and(not(e),and(not(e),not(e))),e)	#	OAI2A	Y	A	B	C	D
+not(and(not(e),or(e,or(e,e))))	#	OAI2A	Y	D	C	A	B
+or(and(not(e),not(e)),or(e,e))	#	OAI3A	Y	A	B	D	C
+not(and(not(e),and(not(e),or(e,e))))	#	OAI3A	Y	D	C	B	A
+mux(e,e,e)	#	MX2	Y	S	A	B
+not(mux(e,not(e),not(e)))	#	MX2	Y	S	A	B
+mux(e,not(e),e)	#	MX2A	Y	S	A	B
+not(mux(e,e,not(e)))	#	MX2A	Y	S	A	B
+mux(e,e,not(e))	#	MX2B	Y	S	A	B
+not(mux(e,not(e),e))	#	MX2B	Y	S	A	B
+mux(e,not(e),not(e))	#	MX2C	Y	S	A	B
+not(mux(e,e,e))	#	MX2C	Y	S	A	B
+mux(e,mux(e,e,e),mux(e,e,e))	2.1=3.1	MX4	Y	S1	S0	D0	D1	#	D2	D3
+not(mux(e,mux(e,not(e),not(e)),mux(e,not(e),not(e))))	1.2.1=1.3.1	MX4	Y	S1	S0	D0	D1	#	D2	D3

@@ -1,0 +1,4 @@
+TEXT _ALARM(SB), $0
+MOVL $6, AX
+INT $64
+RET

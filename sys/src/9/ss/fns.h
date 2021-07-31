@@ -5,7 +5,6 @@ void	cacheinit(void);
 ulong	call(void*, ...);
 void	clearftt(ulong);
 #define	clearmmucache()
-void	clock(Ureg*);
 void	clockinit(void);
 void	compile(void);
 void	disabfp(void);
@@ -44,7 +43,6 @@ void	lanceintr(void);
 void	lancesetup(Lance*);
 void	lancetoggle(void);
 void	mmuinit(void);
-#define	mmunewpage(x)
 void	mousebuttons(int);
 void	printinit(void);
 #define	procrestore(p)
@@ -59,14 +57,12 @@ void	puttbr(ulong);
 void	putw4(ulong, ulong);	/* needed only at boot time */
 void	systemreset(void);
 void	restfpregs(FPsave*, ulong);
-long	rtctime(void);
 void	screeninit(char*, int);
 void	screenputc(int);
 void	screenputs(char*, int);
 void	scsiintr(void);
 void	setpsr(ulong);
 void	spldone(void);
-long	syscall(Ureg*);
 ulong	tas(ulong*);
 void	touser(ulong);
 void	trap(Ureg*);

@@ -1,6 +1,7 @@
 /*
  * other
  */
+FILE*	popen(char*, char*);
 int	pclose(FILE*);
 long	filesize(int fd);
 int	open(char *, int);
@@ -17,7 +18,6 @@ void	init2(void);
 void	cvtime(void);
 void	errprint(void);
 int	control(int a, int b);
-void	casept(void);
 int	getrq(void);
 Tchar	getch(void);
 void	setxon(void);
@@ -59,8 +59,6 @@ void	casepi(void);
  * c3.c
  */
 void	blockinit(void);
-char*	grow(char *, int, int);
-void	mnspace(void);
 void	caseig(void);
 void	casern(void);
 void	maddhash(Contab *rp);
@@ -89,7 +87,6 @@ Offset	setstr(void);
 void	collect(void);
 void	seta(void);
 void	caseda(void);
-void	casegd(void);
 void	casedi(void);
 void	casedt(void);
 void	casetl(void);
@@ -103,7 +100,6 @@ void	stackdump(void);
 void	setn(void);
 int	wrc(Tchar i);
 void	setn1(int i, int form, Tchar bits);
-void	nnspace(void);
 void	nrehash(void);
 void	nunhash(Numtab *rp);
 int	findr(int i);
@@ -159,8 +155,7 @@ void	casepn(void);
 void	casebp(void);
 void	casextm(void);
 void	casetm(void);
-void	casefm(void);
-void	casetm1(int ab, FILE *out);
+void	casetm1(int ab);
 void	casesp(void);
 void	casesp1(int a);
 void	casert(void);
@@ -229,14 +224,14 @@ Tchar	t_makem(int i);
 Tchar	getlg(Tchar i);
 void	caselg(void);
 void	casefp(void);
-char	*strdupl(const char *);
+char	*strdup(char *);
 int	setfp(int pos, int f, char *truename, int print);
 void	casecs(void);
 void	casebd(void);
 void	casevs(void);
 void	casess(void);
 Tchar	t_xlss(void);
-Uchar*	unpair(int i);
+char*	unpair(int i);
 void	outascii(Tchar i);
 
 /*
@@ -362,23 +357,23 @@ void	n_ptlead(void);
 void	n_ptpause(void);
 
 /*
- * indirect calls on TROFF/!TROFF.  these are variables!
+ * indirect calls on TROFF/!TROFF
  */
-extern Tchar	(*hmot)(void);
-extern Tchar	(*makem)(int i);
-extern Tchar	(*setabs)(void);
-extern Tchar	(*setch)(int c);
-extern Tchar	(*sethl)(int k);
-extern Tchar	(*setht)(void);
-extern Tchar	(*setslant)(void);
-extern Tchar	(*vmot)(void);
-extern Tchar	(*xlss)(void);
-extern int	(*findft)(int i);
-extern int	(*width)(Tchar j);
-extern void	(*mchbits)(void);
-extern void	(*ptlead)(void);
-extern void	(*ptout)(Tchar i);
-extern void	(*ptpause)(void);
-extern void	(*setfont)(int a);
-extern void	(*setps)(void);
-extern void	(*setwd)(void);
+Tchar	(*hmot)(void);
+Tchar	(*makem)(int i);
+Tchar	(*setabs)(void);
+Tchar	(*setch)(int c);
+Tchar	(*sethl)(int k);
+Tchar	(*setht)(void);
+Tchar	(*setslant)(void);
+Tchar	(*vmot)(void);
+Tchar	(*xlss)(void);
+int	(*findft)(int i);
+int	(*width)(Tchar j);
+void	(*mchbits)(void);
+void	(*ptlead)(void);
+void	(*ptout)(Tchar i);
+void	(*ptpause)(void);
+void	(*setfont)(int a);
+void	(*setps)(void);
+void	(*setwd)(void);

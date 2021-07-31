@@ -37,11 +37,11 @@ tryfile(char *machine, char *user, int ld)
 			strncpy(machineused, machine, sizeof(machineused));
 			strncpy(userused, user, sizeof(userused));
 			depthused = ld;
-			Bterm(mf);
+			Bclose(mf);
 			return file;
 		}
 	}
-	Bterm(mf);
+	Bclose(mf);
 	return 0;
 }
 
@@ -127,7 +127,7 @@ getfile(char *machine, char *user, int ld)
 		}
 		free(exp);
 	}
-	Bterm(mf);
+	Bclose(mf);
 	return 0;
 }
 
@@ -201,5 +201,5 @@ geticon(SRC *into, char *machine, char *user)
 		if(y++ >= MAXY)
 			break;
 	}
-	Bterm(fd);
+	Bclose(fd);
 }

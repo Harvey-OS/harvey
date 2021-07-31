@@ -53,7 +53,6 @@ int
 tcomo(Node *n, int f)
 {
 	Node *l, *r;
-	Type *t;
 	int o;
 
 	if(n == Z) {
@@ -63,7 +62,6 @@ tcomo(Node *n, int f)
 	n->addable = 0;
 	l = n->left;
 	r = n->right;
-		
 	switch(n->op) {
 	default:
 		diag(n, "unknown op in type complex: %O", n->op);
@@ -79,8 +77,6 @@ tcomo(Node *n, int f)
 		break;
 
 	case OCAST:
-		if(n->type == T)
-			break;
 		if(n->type->width == types[TLONG]->width) {
 			if(tcomo(l, ADDROF|CASTOF))
 					goto bad;
@@ -89,6 +85,22 @@ tcomo(Node *n, int f)
 				goto bad;
 		if(tcompat(n, l->type, n->type, tcast))
 			goto bad;
+		break;
+
+	case OAS:
+		o = tcom(l);
+		if(o | tcom(r))
+			goto bad;
+
+		typeext(l->type, r);
+		if(tlvalue(l) || tcompat(n, l->type, r->type, tasign))
+			goto bad;
+		if(!sametype(l->type, r->type)) {
+			r = new1(OCAST, r, Z);
+			r->type = l->type;
+			n->right = r;
+		}
+		n->type = l->type;
 		break;
 
 	case ORETURN:
@@ -109,40 +121,14 @@ tcomo(Node *n, int f)
 		}
 		break;
 
-	case OAS:
-		o = tcom(l);
-		if(o | tcom(r))
-			goto bad;
-
-		typeext(l->type, r);
-		if(tlvalue(l) || tcompat(n, l->type, r->type, tasign))
-			goto bad;
-		if(!sametype(l->type, r->type)) {
-			r = new1(OCAST, r, Z);
-			r->type = l->type;
-			n->right = r;
-		}
-		n->type = l->type;
-		break;
-
 	case OASADD:
 	case OASSUB:
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
-		typeext1(l->type, r);
 		if(tlvalue(l) || tcompat(n, l->type, r->type, tasadd))
 			goto bad;
-		t = l->type;
 		arith(n, 0);
-		while(n->left->op == OCAST)
-			n->left = n->left->left;
-		if(!sametype(t, n->type)) {
-			r = new1(OCAST, n->right, Z);
-			r->type = t;
-			n->right = r;
-			n->type = t;
-		}
 		break;
 
 	case OASMUL:
@@ -152,19 +138,9 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
-		typeext1(l->type, r);
 		if(tlvalue(l) || tcompat(n, l->type, r->type, tmul))
 			goto bad;
-		t = l->type;
 		arith(n, 0);
-		while(n->left->op == OCAST)
-			n->left = n->left->left;
-		if(!sametype(t, n->type)) {
-			r = new1(OCAST, n->right, Z);
-			r->type = t;
-			n->right = r;
-			n->type = t;
-		}
 		if(typeu[n->type->etype]) {
 			if(n->op == OASDIV)
 				n->op = OASLDIV;
@@ -198,16 +174,7 @@ tcomo(Node *n, int f)
 			goto bad;
 		if(tlvalue(l) || tcompat(n, l->type, r->type, tand))
 			goto bad;
-		t = l->type;
 		arith(n, 0);
-		while(n->left->op == OCAST)
-			n->left = n->left->left;
-		if(!sametype(t, n->type)) {
-			r = new1(OCAST, n->right, Z);
-			r->type = t;
-			n->right = r;
-			n->type = t;
-		}
 		if(typeu[n->type->etype]) {
 			if(n->op == OASMOD)
 				n->op = OASLMOD;
@@ -248,8 +215,6 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
-		typeext1(l->type, r);
-		typeext1(r->type, l);
 		if(tcompat(n, l->type, r->type, trel))
 			goto bad;
 		arith(n, 0);
@@ -265,11 +230,11 @@ tcomo(Node *n, int f)
 			goto bad;
 		if(r->right->type->etype == TIND && vconst(r->left) == 0) {
 			r->left->type = r->right->type;
-			r->left->vconst = 0;
+			r->left->offset = 0;
 		}
 		if(r->left->type->etype == TIND && vconst(r->right) == 0) {
 			r->right->type = r->left->type;
-			r->right->vconst = 0;
+			r->right->offset = 0;
 		}
 		if(sametype(r->right->type, r->left->type)) {
 			r->type = r->right->type;
@@ -398,7 +363,7 @@ tcomo(Node *n, int f)
 		}
 		if(n->type == T)
 			goto bad;
-		if(n->type->width <= 0) {
+		if(n->type->width < 0) {
 			diag(n, "sizeof undefined type");
 			goto bad;
 		}
@@ -409,7 +374,11 @@ tcomo(Node *n, int f)
 		n->op = OCONST;
 		n->left = Z;
 		n->right = Z;
-		n->vconst = convvtox(n->type->width, tint->etype);
+		n->offset = n->type->width;
+		if(ovflo(n->offset, tint->etype)) {
+			if((f & CASTOF) == 0)
+				diag(n, "sizeof bigger than int: %ld", n->offset);
+		}
 		n->type = tint;
 		break;
 
@@ -441,18 +410,16 @@ tcomo(Node *n, int f)
 		}
 		if(n->type->etype == TENUM) {
 			n->op = OCONST;
-			n->type = n->sym->tenum;
-			if(!typefd[n->type->etype])
-				n->vconst = n->sym->vconst;
-			else
-				n->fconst = n->sym->fconst;
+			n->type = tint;
+			if(n->ref)
+				n->ref->class = CENUM;
 			break;
 		}
 		n->addable = 1;
 		if(n->class == CEXREG) {
 			n->op = OREGISTER;
 			n->reg = n->sym->offset;
-			n->xoffset = 0;
+			n->offset = 0;
 			break;
 		}
 		break;
@@ -465,8 +432,8 @@ tcomo(Node *n, int f)
 				o = outlstring(0, 0);
 			}
 		}
+		n->offset = outlstring(n->rs, n->type->width);
 		n->op = ONAME;
-		n->xoffset = outlstring(n->rstring, n->type->width);
 		n->addable = 1;
 		break;
 
@@ -478,8 +445,8 @@ tcomo(Node *n, int f)
 				o = outstring(0, 0);
 			}
 		}
+		n->offset = outstring(n->us, n->type->width);
 		n->op = ONAME;
-		n->xoffset = outstring(n->cstring, n->type->width);
 		n->addable = 1;
 		break;
 
@@ -526,8 +493,6 @@ tcomo(Node *n, int f)
 			goto bad;
 		break;
 	}
-	if(n->type == T)
-		goto bad;
 	if(n->type->width < 0) {
 		diag(n, "structure not fully declared");
 		goto bad;
@@ -653,6 +618,8 @@ tcomd(Node *n)
 			diag(n, "not a member of struct/union: %F", n);
 			return 1;
 		}
+		if(n->ref)
+			n->ref->dlineno = t->lineno;
 		o += t->offset;
 		if(t->sym == n->sym)
 			break;
@@ -763,8 +730,8 @@ loop:
 		if(n->op == OASLSHR || n->op == OASASHR || n->op == OASASHL)
 		if(r->op == OCONST) {
 			t = n->type->width * 8;	/* bits per byte */
-			if(r->vconst >= t || r->vconst < 0)
-				warn(n, "stupid shift: %ld", r->vconst);
+			if(r->offset >= t || r->offset < 0)
+				warn(n, "stupid shift: %ld", r->offset);
 		}
 		break;
 
@@ -849,8 +816,8 @@ loop:
 		}
 		if(r->op == OCONST) {
 			t = n->type->width * 8;	/* bits per byte */
-			if(r->vconst >= t || r->vconst <= -t)
-				warn(n, "stupid shift: %ld", r->vconst);
+			if(r->offset >= t || r->offset <= -t)
+				warn(n, "stupid shift: %ld", r->offset);
 		}
 		goto common;
 
@@ -901,13 +868,14 @@ loop:
 	case OSUB:
 		ccom(r);
 		if(r->op == OCONST) {
-			if(typefd[r->type->etype]) {
+			if(typechlp[r->type->etype]) {
 				n->op = OADD;
-				r->fconst = -r->fconst;
+				r->offset = -r->offset;
 				goto loop;
-			} else {
+			}
+			if(typefdv[r->type->etype]) {
 				n->op = OADD;
-				r->vconst = -r->vconst;
+				r->ud = -r->ud;
 				goto loop;
 			}
 		}
@@ -927,7 +895,7 @@ loop:
 			*n = *l;
 			break;
 		}
-		goto commun;
+		goto common;
 
 	case OAND:
 		ccom(l);
@@ -940,54 +908,27 @@ loop:
 			*n = *r;
 			break;
 		}
-
-	commun:
-		/* look for commutative constant */
-		if(r->op == OCONST) {
-			if(l->op == n->op) {
-				if(l->left->op == OCONST) {
-					n->right = l->right;
-					l->right = r;
-					goto loop;
-				}
-				if(l->right->op == OCONST) {
-					n->right = l->left;
-					l->left = r;
-					goto loop;
-				}
-			}
-		}
-		if(l->op == OCONST) {
-			if(r->op == n->op) {
-				if(r->left->op == OCONST) {
-					n->left = r->right;
-					r->right = l;
-					goto loop;
-				}
-				if(r->right->op == OCONST) {
-					n->left = r->left;
-					r->left = l;
-					goto loop;
-				}
-			}
-		}
 		goto common;
 
 	case OANDAND:
 		ccom(l);
-		if(vconst(l) == 0) {
-			*n = *l;
-			break;
+		if(l->op == OCONST) {
+			if(l->offset == 0) {
+				*n = *l;
+				break;
+			}
 		}
 		ccom(r);
 		goto common;
 
 	case OOROR:
 		ccom(l);
-		if(l->op == OCONST && l->vconst != 0) {
-			*n = *l;
-			n->vconst = 1;
-			break;
+		if(l->op == OCONST) {
+			if(l->offset != 0) {
+				*n = *l;
+				n->offset = 1;
+				break;
+			}
 		}
 		ccom(r);
 		goto common;

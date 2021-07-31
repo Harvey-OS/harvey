@@ -32,12 +32,12 @@ main(int argc, char *argv[]){
 	high=atoi(argv[2]);
 	in=picopen_r(argc==4?argv[3]:"IN");
 	if(in==0){
-		perror(argc==4?argv[3]:"IN");
+		picerror(argc==4?argv[3]:"IN");
 		exits("open input");
 	}
 	out=picopen_w("OUT", PIC_SAMEARGS(in));
 	if(out==0){
-		perror("OUT");
+		picerror("OUT");
 		exits("create output");
 	}
 	l0=inline[0]+in->nchan;

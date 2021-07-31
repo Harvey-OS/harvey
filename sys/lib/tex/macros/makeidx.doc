@@ -1,0 +1,9 @@
+% MAKEIDX DOCUMENT-STYLE OPTION FOR ARTICLE STYLE 
+% RELEASED 20 January 1987 -- for LaTeX version 2.09
+% Copyright (C) 1987 by Leslie Lamport, all rights reserved
+
+% Defines the \see and \printindex commands.
+
+\def\see#1#2{{\em see\/} #1}
+
+\def\printindex{\@input{\jobname.ind}}

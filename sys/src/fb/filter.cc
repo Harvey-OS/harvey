@@ -26,12 +26,12 @@ main(int argc, char *argv[]){
 	if(argc!=1 && argc!=2) usage("[picture]");
 	in=picopen_r(argc==2?argv[1]:"IN");
 	if(in==0){
-		perror(argc==2?argv[1]:"IN");
+		picerror(argc==2?argv[1]:"IN");
 		exits("open input");
 	}
 	out=picopen_w("OUT", PIC_SAMEARGS(in));
 	if(out==0){
-		perror("OUT");
+		picerror("OUT");
 		exits("create output");
 	}
 	l0=inline[0]+in->nchan;
@@ -48,5 +48,5 @@ main(int argc, char *argv[]){
 		l1=l2;
 		l2=t;
 	}
-	exits(0);
+	exits("");
 }

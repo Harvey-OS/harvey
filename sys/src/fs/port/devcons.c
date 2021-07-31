@@ -21,43 +21,10 @@ struct
 	int	reading;
 } readq;
 
-int (*consgetc)(void);
-void (*consputc)(int);
-void (*consputs)(char*, int);
-
-/*
- * Put a string on the console.
- * n bytes of s are guaranteed to fit in the buffer and is ready to print.
- * Must be called splhi() and with printq locked.
- * If early in booting (predawn) poll output.
- * This is the interrupt driven routine used for non- screen-based systems.
- */
-static void
-puts(char *s, int n)
-{
-
-	if(predawn) {
-		while(n > 0) {
-			(*consputc)(*s++ & 0xFF);
-			delay(5);
-			n--;
-		}
-		return;
-	}
-	if(!printq.printing){
-		printq.printing = 1;
-		consstart(*s++ & 0xFF);
-		n--;
-	}
-	memmove(printq.in, s, n);
-	printq.in += n;
-	if(printq.in >= printq.buf+sizeof(printq.buf))
-		printq.in = printq.buf;
-}
-
 void
 printinit(void)
 {
+
 	lock(&printq);		/* allocate lock */
 	printq.in = printq.buf;
 	printq.out = printq.buf;
@@ -68,7 +35,36 @@ printinit(void)
 	readq.out = readq.buf;
 	unlock(&readq);
 
-	consinit(puts);
+	duartinit();
+}
+
+/*
+ * Put a string on the console.
+ * n bytes of s are guaranteed to fit in the buffer and is ready to print.
+ * Must be called splhi() and with printq locked.
+ * If early in booting (predawn) poll output.
+ */
+static void
+puts(char *s, int n)
+{
+
+	if(predawn) {
+		while(n > 0) {
+			duartxmit(*s++ & 0xFF);
+			delay(5);
+			n--;
+		}
+		return;
+	}
+	if(!printq.printing){
+		printq.printing = 1;
+		duartstart(*s++ & 0xFF);
+		n--;
+	}
+	memmove(printq.in, s, n);
+	printq.in += n;
+	if(printq.in >= printq.buf+sizeof(printq.buf))
+		printq.in = printq.buf;
 }
 
 /*
@@ -86,7 +82,7 @@ putstrn(char *str, int n)
 	lock(&printq);
 	while(n > 0){
 		if(*str == '\n')
-			(*consputs)("\r", 1);
+			puts("\r", 1);
 		m = printq.buf+sizeof(printq.buf) - printq.in;
 		if(n < m)
 			m = n;
@@ -94,7 +90,7 @@ putstrn(char *str, int n)
 		if(t)
 			if(t-str < m)
 				m = t - str;
-		(*consputs)(str, m);
+		puts(str, m);
 		n -= m;
 		str += m;
 	}
@@ -174,36 +170,28 @@ out:
 }
 
 int
-rawchar(int seconds)
+rawchar(int d)
 {
 	int c;
-	ulong s;
-
-	if(seconds != 0)
-		seconds += toytime();
 
 	for(;;) {
-		c = (*consgetc)();
+		c = duartrecv();
 		if(c) {
 			if(c == '\r')
 				c = '\n';
 			if(c == '\n') {
-				(*consputc)('\r');
+				duartxmit('\r');
 				delay(10);
 			}
-			(*consputc)(c);
+			duartxmit(c);
 			return c;
 		}
-		if(seconds) {
-			/* Allow MACHP(0)->ticks to run */
-			s = spllo();
-			if(toytime() > seconds) {
-				splx(s);
-				break;
-			}
-			splx(s);
-		}
 		delay(1);
+		if(d) {
+			d--;
+			if(d <= 0)
+				break;
+		}
 	}
 	return 0;
 }

@@ -1,0 +1,81 @@
+	this directory contains stuff to support the mapping
+of han characters from one encoding into another. currently,
+we do japanese (kana and kanji), chinese (big5 and gb).
+the mapping is based on kuten codes, big5 codes or gb codes respectively;
+if you need to do characters that don't have them, you are stuck.
+
+	the basic mapping sources are desc.han (unicode vol 1 tables)
+and desc.cjk (encoded form of the unicode volume 2 tables). the overall
+product is kuten.c; the mkfile tells you how. the intermediate goal
+is to generate a jis.font which is a mapping from kuten codes into unicodes.
+it is incomplete, which is why supplementary mappings in jis.weird are added.
+the han.bug mappings come from han.raw which is what the word processing
+pool typed in from a pre-release copy of volume 2 of unicode. han.bwk contains
+minor adjustments to the mapping. its format is obvious.
+
+	big5 and gb use a simpler structure, simply a mapping file.
+
+
+	the files *.bits contain the 16x16 and 24x24 bitmap fonts
+for JIS 208. they also contain the kuten codes for jis 208.
+
+Descriptions of the Chinese Fonts:
+
+cclib16fs.bdf.Z   Simplified characters, GB encoding, 16x16 Fang Song Style.
+cclib16st.bdf.Z   Simplified characters, GB encoding, 16x16 Song Style.
+hku-ch16.bdf.Z    Traditional characters, BIG5 encoding, 16x16 unnamed style.
+
+cfan24.ccf.Z      Traditional characters, QW encoding, 24x24 Song Style.
+cfang24.ccf.Z     Simplified characters,  QW encoding, 24x24 Fang Song Style.
+chei24.ccf.Z      Simplified characters,  QW encoding, 24x24 Hei Style.
+ckai24.ccf.Z      Simplified characters,  QW encoding, 24x24 Kai Style.
+csong24.ccf.Z     Simplified characters,  QW encoding, 24x24 Song Style.
+
+1) Traditional characters are the original Chinese characters. They are used
+   Hong Kong, Taiwan, and most overseas Chinese communities.
+
+   Simplified characters were introduced for convenience of use. They are used
+   in Mainland China and Singapore.
+   Some simplified characters were created from their traditional counterparts
+   by removing certain strokes.  Others are themselves traditional characters
+   but are also homonyms of some more complex-shaped characters.
+   Because of the merge of homonyms,  the simplified character set is smaller
+   then the traditional set.
+
+2) Here "GB encoding" refers to the Standard "Code of Chinese Graphic
+   Character for Information Interchange, Primary Set (GB2312-80)",
+   published by National Standards Bureau, Beijing, China in 1980.
+
+3) Here "BIG5 encoding" refers the the HKU Big5 encoding, a variant of
+   the widely used de facto standard, so-called "Big5".  It is slightly
+   different with ETen encoding.
+
+4) Here "QW encoding" refers to the QUWEI code,  a variant of GB,
+   QW maps to GB by the following formula:
+   { 
+     char qw[4];  int gb;
+     gb = ((qw[0] - '0')*10 + (qw[1] - '0') + 160) * 256 +
+          ((qw[2] - '0')*10 + (qw[3] - '0') + 160);
+   }
+
+
+usage:
+	it is always safe to say
+
+		mk -s all clean
+
+	the only product is ../kuten.c and it only updates it if it
+were to change.
+
+Attributions:
+
+	The big5 stuff comes from HKU and is freely available by ftp
+(although we only use the font, not any of the software). the contact
+name for this is kwchan%csd@hkujnt.bitnet
+
+	the jis 208 bitmaps come from a file included with the X distribution.
+
+	the main mapping files come from unicode. we, and not unicode, are
+responsible for the final results. you are responsible for how they are used.
+
+	we don't yet know the attribution of, or copyright on, the chinese fonts.

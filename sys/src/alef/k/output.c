@@ -179,9 +179,6 @@ char	*itab[] =
 	"XOR",
 	"XORCC",
 	"END",
-	"DYNT",
-	"INIT",
-	"LAST",
 };
 
 char rcmap[256] =
@@ -224,7 +221,7 @@ void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	char *p, *q;
+	char name[NNAME], *p, *q;
 	Inst pg;
 	int n;
 
@@ -232,6 +229,7 @@ outhist(Biobuf *b)
 	pg.src1.type = A_NONE;
 	pg.dst.reg = Nreg;
 	pg.reg = Nreg;
+	name[0] = '<';
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		while(p) {
@@ -245,16 +243,17 @@ outhist(Biobuf *b)
 				n = strlen(p);
 				q = 0;
 			}
+			if(n >= NNAME-1)
+				n = NNAME-2;
 			if(n) {
-				Bputc(b, ANAME);
-				Bputc(b, D_FILE);
-				Bputc(b, 1);
-				Bputc(b, '<');
-				Bwrite(b, p, n);
-				Bputc(b, 0);
+				memmove(name+1, p, n);
+				name[n+1] = 0;
+				vname(b, Dfile, name, 1);
 			}
 			p = q;
 		}
+		if(opt('h'))
+			print("%s line %d offset %d\n", name, h->line, h->offset);
 		pg.lineno = h->line;
 		pg.dst.ival = h->offset;
 		pg.dst.type = A_NONE;
@@ -274,7 +273,7 @@ sfile(char *name)
 
 	f = create(name, OWRITE|OTRUNC, 0666);
 	if(f < 0) {
-		diag(ZeroN, "cannot open %s: %r", name);
+		diag(ZeroN, "cannot open %s", name);
 		return;
 	}
 	Binit(&b, f, OWRITE);
@@ -300,7 +299,7 @@ objfile(char *name)
 	
 	f = create(name, OWRITE|OTRUNC, 0666);
 	if(f < 0) {
-		diag(ZeroN, "cannot open %s: %r", name);
+		diag(ZeroN, "cannot open %s", name);
 		return;
 	}
 	Binit(&b, f, OWRITE);
@@ -370,7 +369,8 @@ vcache(Biobuf *b, Adres *a)
 void
 vname(Biobuf *b, char class, char *name, int slot)
 {
-	char io[4];
+	char io[128], *p;
+	int sl;
 
 	io[0] = ANAME;
 	switch(class) {
@@ -383,7 +383,6 @@ vname(Biobuf *b, char class, char *name, int slot)
 		io[1] = D_STATIC;
 		break;
 	case External:
-	case Global:
 		io[1] = D_EXTERN;
 		break;
 	case Parameter:
@@ -395,8 +394,15 @@ vname(Biobuf *b, char class, char *name, int slot)
 	}
 	io[2] = slot;
 
-	Bwrite(b, io, 3);
-	Bwrite(b, name, strlen(name)+1);
+	p = io+3;
+	sl = strlen(name);
+	if(sl >= NNAME-1)
+		sl = NNAME-1;
+	while(sl--)
+		*p++ = *name++;
+	*p++ = '\0';
+
+	Bwrite(b, io, p-io);
 }
 
 char*
@@ -432,7 +438,6 @@ vaddr(char *bp, Adres *a, int s)
 			bp[3] = D_STATIC;
 			break;
 		case External:
-		case Global:
 			bp[3] = D_EXTERN;
 			break;
 		case Parameter:
@@ -440,6 +445,7 @@ vaddr(char *bp, Adres *a, int s)
 			break;
 		case Automatic:
 			bp[3] = D_AUTO;
+			l = -l;
 			break;
 		}
 		bp[4] = l;
@@ -491,7 +497,6 @@ vaddr(char *bp, Adres *a, int s)
 			bp[3] = D_STATIC;
 			break;
 		case External:
-		case Global:
 			bp[1] = NREG;
 			bp[3] = D_EXTERN;
 			break;
@@ -502,6 +507,7 @@ vaddr(char *bp, Adres *a, int s)
 		case Automatic:
 			bp[1] = NREG;
 			bp[3] = D_AUTO;
+			l = -l;
 			break;
 		}
 		bp[4] = l;
@@ -563,7 +569,7 @@ iconv(void *o, Fconv *f)
 
 	i = *((Inst **)o);
 
-	if(i->op == ADATA || i->op == AINIT || i->op == ADYNT)
+	if(i->op == ADATA)
 		sprint(buf, "\t%s\t%a/%d,%a", itab[i->op], &i->src1, i->reg, &i->dst);
 	else
 	if(i->reg == Nreg) {
@@ -598,7 +604,6 @@ mconv(void *o, Fconv *f)
 		break;
 
 	case External:
-	case Global:
 		sprint(buf, "%s+%d(SB)", adr->sym->name, adr->ival);
 		break;
 
@@ -611,7 +616,7 @@ mconv(void *o, Fconv *f)
 		break;
 
 	case Automatic:
-		sprint(buf, "%s%d(SP)", adr->sym->name, adr->ival);
+		sprint(buf, "%s-%d(SP)", adr->sym->name, adr->ival);
 		break;
 	}
 
@@ -693,9 +698,7 @@ struct runtime
 	"ALEF_send", 		&sendnode,
 	"ALEF_exit", 		&exitnode,
 	"ALEF_selrecv",		&selrecv,
-	"ALEF_selsend",		&selsend,
 	"ALEF_doselect",	&doselect,
-	"ALEF_varselect",	&varselect,
 	"ALEF_pfork",		&pforknode,
 	"ALEF_pexit",		&pexitnode,
 	"ALEF_pdone",		&pdonenode,
@@ -703,12 +706,11 @@ struct runtime
 	"ALEF_crcv",		&crcvnode,
 	"ALEF_chana",		&challocnode,
 	"ALEF_chanu",		&chunallocnode,
+	"ALEF_assert",		&asfailnode,
 	"malloc",    		&allocnode,
 	"free",    		&unallocnode,
 	"ALEF_gin",		&ginode,
 	"ALEF_gou",		&gonode,
-	"memmove",		&movenode,
-	"ALEFcheck",		&checknode,
 	0,			0,
 };
 
@@ -716,7 +718,8 @@ void
 outinit(void)
 {
 	Node *n;
-	Type *t;
+	Type *vf;
+	Tinfo *ti;
 	Runtime *rp;
 
 	fmtinstall('i', iconv);		/* Instructions */
@@ -725,21 +728,17 @@ outinit(void)
 	fmtinstall('m', mconv);		/* Memeory addresses */
 	fmtinstall('B', Bconv);		/* Memeory addresses */
 
+	vf = at(TVOID, 0);
+	vf = at(TFUNC, vf);
+
 	for(rp = runtime; rp->name; rp++) {
-		n = an(ONAME, nil, nil);
+		n = an(ONAME, ZeroN, ZeroN);
 		n->sym = enter(rp->name, Tid);
-
-		t = builtype[TVOID];
-		if(rp->p == &allocnode)
-			t = at(TIND, t);
-		t = at(TFUNC, t);
-		t->proto = an(ONAME, an(OVARARG, nil, nil), nil);
-		t->proto->sym = n->sym;
-		if(rp->p == &checknode)
-			t = at(TIND, t);
-
-		n->t = t;
-		n->ti = ati(t, Global);
+		n->t = vf;
+		ti = malloc(sizeof(Tinfo));
+		ti->class = External;
+		ti->offset = 0;
+		n->ti = ti;
 		sucalc(n);
 		*(rp->p) = n;
 	}
@@ -778,39 +777,4 @@ ieeedtod(Ieee *ieee, double native)
 	ieee->l = ho;
 	ieee->l <<= 16;
 	ieee->l |= (long)(fr*f);
-}
-
-void
-init(Node *tab, Node *v)
-{
-	Inst *i;
-
-	i = ai();
-	i->op = AINIT;
-	i->reg = builtype[TIND]->size;
-	mkaddr(tab, &i->src1, 0);
-	mkaddr(v, &i->dst, 0);
-	ilink(i);
-}
-
-void
-dynt(Node *tab, Node *ind)
-{
-	Inst *i;
-
-	i = ai();
-	i->op = ADYNT;
-	if(tab)
-		mkaddr(tab, &i->src1, 0);
-	mkaddr(ind, &i->dst, 0);
-	ilink(i);
-}
-
-void
-dupok(void)
-{
-	if(ipc->reg == Nreg)
-		ipc->reg = DUPOK;
-	else
-		ipc->reg |= DUPOK;
 }

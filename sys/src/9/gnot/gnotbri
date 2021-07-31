@@ -1,0 +1,43 @@
+dev
+	root	/
+	cons	c
+	env	e
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	incon	i
+	dk	k
+	dup	d
+	bit	b
+	port	x
+	scsi	S	scsi scsisubs scsibuf
+	wren	w
+	duart	t
+	isdn	I
+	hifi	H
+stream
+	async
+	fcall
+	lapd
+	urp
+misc
+	kfs.root
+	cfs.root
+port
+	int cpuserver = 0;
+	void kproftimer(ulong pc){ USED(pc); }
+	void consdebug(void){}
+	void
+	confinit1(int mul)
+	{
+		USED(mul);
+		conf.nisdn = 1;
+		conf.nlapd = 1;
+	}
+boot
+	9600
+	19200
+	local
+	incon "config 1 16 restart dk"
+	bri "/tmp/brilog;config 1 16 restart dk"

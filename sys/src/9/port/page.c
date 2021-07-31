@@ -53,7 +53,7 @@ pageinit(void)
 
 	hw = swapalloc.highwater*BY2PG;
 	hr = swapalloc.headroom*BY2PG;
-
+	
 	print("%lud free pages, %dK bytes, swap %dK, highwater %dK, headroom %dK\n", 
 	palloc.user, pmem, vmem, hw/1024, hr/1024);/**/
 }
@@ -122,7 +122,6 @@ retry:
 	p->modref = 0;
 	for(i = 0; i < MAXMACH; i++)
 		p->cachectl[i] = PG_NOFLUSH;
-	mmunewpage(p);
 	unlock(p);
 
 	if(clear){
@@ -178,8 +177,6 @@ putpage(Page *p)
 		}
 
 		palloc.freecount++;	/* Release people waiting for memory */
-		if(palloc.r.p != 0)
-			wakeup(&palloc.r);
 		unlock(&palloc);
 	}
 	unlock(p);
@@ -251,7 +248,6 @@ duppage(Page *p)				/* Always call with p locked */
 	uncachepage(np);
 	np->va = p->va;
 	np->daddr = p->daddr;
-	mmunewpage(np);
 	copypage(p, np);
 	cachepage(np, p->image);
 	unlock(np);
@@ -409,33 +405,16 @@ ptealloc(void)
 void
 freepte(Segment *s, Pte *p)
 {
-	int ref;
-	Page *pt, **pg, **ptop;
-	void (*fn)(Page*);
+	Page **pg, **ptop;
 
 	switch(s->type&SG_TYPE) {
 	case SG_PHYSICAL:
-		fn = s->pseg->pgfree;
 		ptop = &p->pages[PTEPERTAB];
-		if(fn) {
-			for(pg = p->pages; pg < ptop; pg++) {
-				if(*pg == 0)
-					continue;
-				(*fn)(*pg);
+		for(pg = p->pages; pg < ptop; pg++)
+			if(*pg) {
+				(*s->pgfree)(*pg);
 				*pg = 0;
 			}
-			break;
-		}
-		for(pg = p->pages; pg < ptop; pg++) {
-			pt = *pg;
-			if(pt == 0) 
-				continue;
-			lock(pt);
-			ref = --pt->ref;
-			unlock(pt);
-			if(ref == 0)
-				free(pt);
-		}
 		break;
 	default:
 		for(pg = p->first; pg <= p->last; pg++)

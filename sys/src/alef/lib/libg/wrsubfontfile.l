@@ -1,15 +1,15 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 #define	CHUNK	2048		/* >> 6*256 */
 
 void
 wrsubfontfile(int fd, Subfont *f)
 {
-	byte hdr[3*12+1];
-	byte *data;
+	char hdr[3*12+1];
+	char *data;
 	int j;
-	byte *p;
+	char *p;
 	Fontchar *i;
 
 	sprint(hdr, "%11d %11d %11d ", f->n, f->height, f->ascent);

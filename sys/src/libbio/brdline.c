@@ -17,13 +17,12 @@ Brdline(Biobufhdr *bp, int delim)
 			if(bp->state == Bracteof)
 				bp->state = Bractive;
 			bp->rdline = 0;
-			bp->gbuf = bp->ebuf;
 			return 0;
 		}
 	}
 
 	/*
-	 * first try in remainder of buffer (gbuf doesn't change)
+	 * first try in remainder of buffer
 	 */
 	ip = (char*)bp->ebuf - i;
 	ep = memchr(ip, delim, i);
@@ -39,7 +38,6 @@ Brdline(Biobufhdr *bp, int delim)
 	 */
 	if(i < bp->bsize)
 		memmove(bp->bbuf, ip, i);
-	bp->gbuf = bp->bbuf;
 
 	/*
 	 * append to buffer looking for the delim
@@ -54,7 +52,6 @@ Brdline(Biobufhdr *bp, int delim)
 			memmove(bp->ebuf-i, bp->bbuf, i);
 			bp->rdline = i;
 			bp->icount = -i;
-			bp->gbuf = bp->ebuf-i;
 			return 0;
 		}
 		bp->offset += j;
@@ -66,10 +63,8 @@ Brdline(Biobufhdr *bp, int delim)
 			 * copy back up and reset everything
 			 */
 			ip = (char*)bp->ebuf - i;
-			if(i < bp->bsize){
+			if(i < bp->bsize)
 				memmove(ip, bp->bbuf, i);
-				bp->gbuf = (uchar*)ip;
-			}
 			j = (ep - (char*)bp->bbuf) + 1;
 			bp->rdline = j;
 			bp->icount = j - i;
@@ -83,7 +78,6 @@ Brdline(Biobufhdr *bp, int delim)
 	 */
 	bp->rdline = bp->bsize;
 	bp->icount = -bp->bsize;
-	bp->gbuf = bp->bbuf;
 	return 0;
 }
 

@@ -68,7 +68,6 @@ arpstart(void)
 			cmd_install("arp", "subcommand -- arp protocol", cmd_arp);
 			arpcache.flag = flag_install("arp", "-- verbose");
 			arpcache.start = 1;
-			iprouteinit();
 		}
 		unlock(&arpcache);
 	}

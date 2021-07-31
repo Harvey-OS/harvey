@@ -1,0 +1,45 @@
+#!/bin/rc
+awk 'BEGIN {
+	if (ARGC < 2) {
+		print "usage: xnfpins name part [pin]* > name.pins"
+		exit
+	}
+	name = ARGV[1]
+	ARGV[1] = ""
+	part = ARGV[2]
+	pkg = substr(part, 5, 20)
+	ARGV[2] = ""
+	for (i = 3; i < ARGC; i++) {
+		fix[ARGV[i]] = 1
+		ARGV[i] = ""
+	}
+	ARGV[1] = "/sys/lib/cda/"substr(part, 1, 4)".pin"
+	print ".t	"name"	"pkg
+}
+/^\.n/ {
+	for (col = 1; col < NF && $col != pkg; col++)
+		;
+}
+/^\.p/ {
+	if ($col != ".") {
+		tt[$col] = "n"
+		if (max < $col)
+			max = $col
+	}
+	if (fix[$2] == 1) {
+		print ".tp	"toupper($2)"	"$col
+		tt[$col] = $7
+	}
+	else if ($2 == "vcc" || $2 == "gnd")
+		tt[$col] = $7
+}
+END {
+	printf ".tt	"
+	for (i = 1; i <= max; i++)
+	for (i = 1; i <= max; i++)
+		if (tt[i] == "")
+			printf "n"
+		else
+			printf "%s", tt[i]
+	print "\n%float"
+}' $*

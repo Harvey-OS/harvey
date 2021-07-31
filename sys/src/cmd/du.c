@@ -90,33 +90,25 @@ du(char *name, Dir *dir)
 	return nk;
 }
 
-#define	NCACHE	128	/* must be power of two */
-struct cache
-{
-	Dir	*cache;
-	int	n;
-	int	max;
-} cache[NCACHE];
-
 int
 seen(Dir *dir)
 {
+	static Dir *cache=0;
+	static int n=0, ncache=0;
 	Dir *dp;
 	int i;
-	struct cache *c;
 
-	c = &cache[dir->qid.path&(NCACHE-1)];
-	dp = c->cache;
-	for(i=0; i<c->n; i++,dp++)
+	dp=cache;
+	for(i=0; i<n; i++,dp++)
 		if(dir->qid.path==dp->qid.path &&
 		   dir->type==dp->type && dir->dev==dp->dev)
 			return 1;
-	if(c->n == c->max){
-		c->cache = realloc(c->cache, (c->max+=20)*sizeof(Dir));
-		if(cache == 0)
+	if(n==ncache){
+		cache=realloc(cache, (ncache+=20)*sizeof(Dir));
+		if(cache==0)
 			err("malloc failure");
 	}
-	c->cache[c->n++] = *dir;
+	cache[n++]=*dir;
 	return 0;
 }
 

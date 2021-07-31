@@ -11,10 +11,6 @@ dict \- dictionary browser
 .I dictname
 ]
 [
-.B -c
-.I command
-]
-[
 .I pattern
 ]
 .SH DESCRIPTION
@@ -32,18 +28,13 @@ The options are
 .BI -d " dictname"
 Use the given dictionary.
 The default is
-.BR oed ,
+.IR oed ,
 the second edition of the Oxford English Dictionary.
-A list of available dictionaries is printed by option
-.BR -d? .
-.TP
-.BI -c " command"
-Execute one command and quit.
-The command syntax is described below.
+Available dictionaries printed with
+.B -d?
 .TP
 .B -k
 Print a pronunciation key.
-.PD
 .PP
 Patterns are regular expressions (see
 .IR regexp (6)),
@@ -54,8 +45,8 @@ and trailing
 Patterns are matched against an index of headwords and variants,
 to form a `match set'.
 By default, both patterns and the index are folded:
-upper case characters are mapped into their lower case equivalents,
-and Latin accented characters are mapped into their non-accented
+uppercase characters are mapped into their lowercase equivalents,
+and Latin-1 accented characters are mapped into their non-accented
 equivalents.
 In interactive mode, there is always a `current match set'
 and a `current entry' within the match set.
@@ -77,15 +68,25 @@ Like
 .BI / re /
 but use exact matching, i.e., without case and accent folding.
 .TP
-.I n
-An integer
-.I n
-means change the current entry to the
+.BI / re /. n
+Like
+.BI / re /
+but set the current entry to the
+.IR n th
+of the match set.
+.TP
+.BI ! re !. n
+Like
+.BI / re /. n
+but without folding.
+.TP
+.BI . n
+Just change the current entry to the
 .IR n th
 of the current match set.
 .TP
-.BI # n
-The integer
+.I n
+An integer
 .I n
 is an absolute byte offset into the raw dictionary.
 (See the
@@ -103,15 +104,14 @@ the current entry.
 Like
 .IB addr +
 but go to previous dictionary entry.
-.PD
 .PP
-The command letters come in pairs: a lower case and the
-corresponding upper case letter.
-The lower case version prints something about the current
+The command letters come in pairs: a lowercase and the
+corresponding uppercase letter.
+The lowercase version prints something about the current
 entry only, and advances the current entry to the next
 in the match set (wrapping around to the beginning after
 the last).
-The upper case version prints something about all of the
+The uppercase version prints something about all of the
 match set and resets the current entry to the beginning of
 the set.
 .TF \fLa,A\fP
@@ -125,39 +125,21 @@ Print only the headword(s) of the entry.
 .BR a , A
 Print the dictionary byte offset of the entry.
 .TP
-.BR r , R
+.BR r, R
 Print the whole entry in raw format (without translating
 special characters, etc.).
-.PD
 .PP
-If no command letter is given for the first command,
-.B H
-is assumed.
-After an
-.BR H ,
-the default command is
-.BR p .
-Otherwise, the default command is the previous command.
+If no command letter is given, the last-typed command letter is used.
 .SH FILES
 .B /lib/oed/oed2
 .br
 .B /lib/oed/oed2index
-.br
-Other files in
-.BR /lib .
 .SH "SEE ALSO"
 .IR regexp (6)
-.SH SOURCE
-.B /sys/src/cmd/dict
 .SH BUGS
-A font with wide coverage of the Unicode Standard
+A unicode font (e.g.
+.BR /lib/font/bit/pelm/unicode.9.font )
 should be used for best results.
-(Try
-.BR /lib/font/bit/pelm/unicode.9.font .)
 .br
-If the
-.I pattern
-doesn't begin with
+If the regular expression pattern doesn't begin with
 a few literal characters, matching takes a long time.
-.br
-The dictionaries are not distributed outside Bell Labs.

@@ -1,9 +1,9 @@
 #include "map.h"
 
 static int
-Xlagrange(struct place *place, double *x, double *y)
+Xlagrange(struct place *place, float *x, float *y)
 {
-	double z1,z2;
+	float z1,z2;
 	double w1,w2,t1,t2;
 	struct place p;
 	copyplace(place,&p);

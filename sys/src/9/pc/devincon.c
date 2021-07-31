@@ -71,7 +71,7 @@ typedef struct Incon	Incon;
 
 #define DPRINT if(incondebug)kprint
 
-static void	inconintr(Ureg *ur, void *a);
+static void	inconintr(Ureg *ur);
 
 enum {
 	Minstation=	2,	/* lowest station # to poll */
@@ -184,19 +184,6 @@ Dirtab incondir[]={
 #define NINCON	(sizeof incondir/sizeof incondir[0])
 
 static void
-nop(void)
-{
-}
-
-static int
-slowinb(int x)
-{
-	nop();
-	nop();
-	return inb(x);
-}
-
-static void
 reset(int dev)				/* hardware reset */
 {
 	outb(dev+Qpcr, Finitbar);
@@ -274,9 +261,9 @@ irdstatus(Incon *ip)			/* read status at interrupt level */
 
 	outb(dev+Qdlr, 0x01);
 	outb(dev+Qpcr, Finitbar|Faf|Fsi|Fstrobe);
-	data = (slowinb(dev+Qpsr)&0xf8)<<2;
+	data = (inb(dev+Qpsr)&0xf8)<<2;
 	outb(dev+Qpcr, Finitbar|Faf|Fsi);
-	data |= slowinb(dev+Qpsr)>>3;
+	data |= inb(dev+Qpsr)>>3;
 	if(data&(OVERFLOW|CRC_ERROR)){
 		if(data&OVERFLOW)
 			ip->overflow++;
@@ -294,9 +281,9 @@ irddata(int dev)			/* read data at interrupt level */
 
 	outb(dev+Qdlr, 0x00);
 	outb(dev+Qpcr, Finitbar|Faf|Fsi|Fstrobe);
-	data = (slowinb(dev+Qpsr)&0xf8)<<2;
+	data = (inb(dev+Qpsr)&0xf8)<<2;
 	outb(dev+Qpcr, Finitbar|Faf|Fsi);
-	data |= slowinb(dev+Qpsr)>>3;
+	data |= inb(dev+Qpsr)>>3;
 
 	return data;
 }
@@ -324,7 +311,6 @@ irdnop(int dev, int pcr)		/* read nop (mux reset) */
 
 int		Irdnext(int);
 #define	irdnext	Irdnext
-/**/
 
 /*
  *  set the incon parameters
@@ -357,7 +343,7 @@ inconsetctl(Incon *ip, Block *bp)
 	int cnt;
 
 	del = 15;
-	n = getfields((char *)bp->rptr, field, 3, " ");
+	n = getfields((char *)bp->rptr, field, 3, ' ');
 	switch(n){
 	default:
 		freeb(bp);
@@ -378,6 +364,11 @@ inconsetctl(Incon *ip, Block *bp)
 	}
 	inconset(ip, cnt, del);
 	freeb(bp);
+}
+
+static void
+nop(void)
+{
 }
 
 /*
@@ -481,14 +472,6 @@ void
 inconreset(void)
 {
 	int i;
-	char *p;
-
-	/*
-	 *  get incondev from p9rc
- 	 */
-	p = getconf("incondev");
-	if(p)
-		incondev = atoi(p);
 
 	/*
 	 * state is Selected if we used incon as the boot device
@@ -522,7 +505,7 @@ inconattach(char *spec)
 	int i;
 	Chan *c;
 
-	setvec(lptinfo[incondev].ivec, inconintr, 0);
+	setvec(lptinfo[incondev].ivec, inconintr);
 	i = strtoul(spec, 0, 0);
 	if(i >= Nincon)
 		error(Ebadarg);
@@ -1097,17 +1080,15 @@ rdpackets(Incon *ip)
  *  is for incon[0].
  */
 static void
-inconintr(Ureg *ur, void *a)
+inconintr(Ureg *ur)
 {
 	uchar status;
 	int pcr;
 	Incon *ip;
 
-	USED(ur, a);
+	USED(ur);
 	ip = &incon[0];
 	pcr = inb(ip->dev+Qpcr);
-	if(!(pcr & Fie))
-		return;
 	status = irdstatus(ip);
 	if(incondebug){
 		kprint("pcr=%2.2x status=%2.2x\n", pcr, status);

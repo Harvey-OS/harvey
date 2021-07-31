@@ -214,18 +214,15 @@ immed(Node *n)
 Node*
 atvnode(Type *t)
 {
-	int o;
 	Node *n;
+	int o;
 
-	n = an(OREGISTER, ZeroN, ZeroN);
+	n = an(OINDREG, ZeroN, ZeroN);
+	n->t = t;
 	n->reg = ratv.reg;
-	n->ival = 0;
-	n->t = at(TIND, t);
 
-	o = align(ratv.ival, builtype[TINT]);
-	ratv.ival = o+t->size;
-	if(ratv.ival > maxframe)
-		maxframe = ratv.ival;
+	ratv.ival = align(ratv.ival, builtype[TINT]);
+	o = ratv.ival;
 
 	/* Adjust offset within int for smaller types */
 	switch(t->type) {
@@ -239,10 +236,8 @@ atvnode(Type *t)
 		break;
 	}
 
-	n = an(OADD, n, con(o));
-	n->t = n->left->t;
-	n = an(OIND, n, ZeroN);
-	n->t = t;
+	n->ival = o;
+	ratv.ival += t->size;
 
 	sucalc(n);
 	return n;
@@ -261,8 +256,9 @@ argnode(Type *t)
 		return atvnode(t);
 
 	n = an(ONAME, ZeroN, ZeroN);
+	n->ti = malloc(sizeof(Tinfo));
+	n->ti->class = Argument;
 	n->t = t;
-	n->ti = ati(t, Argument);
 	args = align(args, builtype[TINT]);
 	o = args;
 
@@ -285,40 +281,21 @@ argnode(Type *t)
 	return n;
 }
 
-Node*
-paramnode(Type *t)
-{
-	Node *n;
-
-	USED(t);
-
-	while(tip->class != Parameter)
-		tip = tip->dcllist;
-
-	n = an(ONAME, ZeroN, ZeroN);
-	n->sym = tip->s;
-	n->ti = tip;
-	n->t = tip->t;
-
-	/* for next time */
-	tip = tip->dcllist;
-
-	sucalc(n);
-	return n;
-}
-
 /*
  * Make a stack temporary node and allocate space in the frame
  */
 Node*
 stknode(Type *o)
 {
-	Node *n;
 	char buf[10];
+	Node *n;
+	Tinfo *t;
 
 	n = an(ONAME, ZeroN, ZeroN);
+	t = malloc(sizeof(Tinfo));
 	n->sym = malloc(sizeof(Sym));
-	n->ti = ati(o, Automatic);
+
+	n->ti = t;
 	n->t = o;
 
 	sprint(buf, ".t%d", stmp++);
@@ -328,7 +305,8 @@ stknode(Type *o)
 	frame = align(frame, o);
 	frame += o->size;
 
-	n->ti->offset = -frame;
+	t->class = Automatic;
+	t->offset = frame;
 	sucalc(n);
 	return n;
 }
@@ -336,19 +314,22 @@ stknode(Type *o)
 Node*
 internnode(Type *o)
 {
-	Node *n;
 	char buf[10];
+	Node *n;
+	Tinfo *t;
 
 	n = an(ONAME, ZeroN, ZeroN);
+	t = malloc(sizeof(Tinfo));
 	n->sym = malloc(sizeof(Sym));
+	n->ti = t;
 	n->t = at(o->type, 0);
 	n->t->class = Internal;
-	n->ti = ati(n->t, Internal);
 
 	sprint(buf, ".i%d", stmp++);
 	n->sym->name = strdup(buf);
 
-	n->ti->offset = 0;
+	t->class = Internal;
+	t->offset = 0;
 	sucalc(n);
 
 	n->init = ZeroN;
@@ -365,18 +346,6 @@ con(int i)
 	c = an(OCONST, ZeroN, ZeroN);
 	c->t = builtype[TINT];
 	c->ival = i;
-
-	return c;
-}
-
-Node*
-conf(double d)
-{
-	Node *c;
-
-	c = an(OCONST, ZeroN, ZeroN);
-	c->t = builtype[TFLOAT];
-	c->fval = d;
 
 	return c;
 }

@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+LIB=libsim.a$O
+OFILES=sim.$O
+HFILES=/sys/include/cda/sim.h
+
+</sys/src/cmd/mklib
+CFLAGS=-DM$objtype
+LIBDIR=/$objtype/lib/cda
+
+install:V:	$LIB
+	cp $LIB $LIBDIR/libsim.a
+
+cleaan:V:
+	rm -f *.[$OS] y.tab.? y.output y.error libsim.[$OS]

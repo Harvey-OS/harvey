@@ -16,6 +16,7 @@
 #include	"../gen.h"
 
 #define	STRSIZE	200
+#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 #define	offsetof(t,x)	((ulong)&((t*)0)->x)
 
 char	openfile[]	= "/lib/chess/opening.m.out";
@@ -436,7 +437,7 @@ rword(void)
 		c = *lp;
 		if(c == 0)
 			return 1;
-		if(c != ' ' && c != '\t')
+		if(!isspace(c))
 			break;
 		lp++;
 	}
@@ -444,7 +445,7 @@ rword(void)
 		c = *lp;
 		if(c == 0)
 			break;
-		if(c == ' ' || c == '\t')
+		if(isspace(c))
 			break;
 		*wp++ = c;
 		lp++;

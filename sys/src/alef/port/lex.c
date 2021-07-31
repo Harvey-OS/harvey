@@ -7,6 +7,7 @@
 #include "globl.h"
 #include "y.tab.h"
 
+#define Ungetc(s)	{ if(s == '\n') line--; Bungetc(bin); }
 int Lconv(void*, Fconv*);
 
 struct keywd
@@ -20,11 +21,10 @@ keywds[] =
 	"aggr",		Taggregate,
 	"alloc",	Talloc,
 	"alt",		Tselect,
-	"become",	Tbecome,
 	"break",	Tbreak,
-	"byte",		Tchar,
 	"case",		Tcase,
 	"chan",		Tchannel,
+	"char",		Tchar,
 	"check",	Tcheck,
 	"continue",	Tcontinue,
 	"default",	Tdefault,
@@ -50,19 +50,28 @@ keywds[] =
 	"switch",	Tswitch,
 	"task",		Ttask,		
 	"typedef",	Tnewtype,
-	"typeof",	Ttypeof,
 	"uint",		Tuint,
 	"unalloc",	Tunalloc,
 	"union",	Tunion,
 	"usint",	Tsuint,
 	"void",		Tvoid,
 	"while",	Twhile,
-	"tuple",	Ttuple,
-	"zerox",	Tzerox,
 	0,		0
 };
 
-static char cmap[256];
+char cmap[256] =
+{
+	['0']	'\0'+1,
+	['n']	'\n'+1,
+	['r']	'\r'+1,
+	['t']	'\t'+1,
+	['b']	'\b'+1,
+	['f']	'\f'+1,
+	['a']	'\a'+1,
+	['v']	'\v'+1,
+	['\\']	'\\'+1,
+	['"']	'"'+1,
+};
 
 void
 kinit(void)
@@ -71,20 +80,6 @@ kinit(void)
 	
 	for(i = 0; keywds[i].name; i++) 
 		enter(keywds[i].name, keywds[i].terminal);
-
-	polyptr = enter("ptr", Tid);
-	polysig = enter("sig", Tid);
-
-	cmap['0'] = '\0'+1;
-	cmap['n'] = '\n'+1;
-	cmap['r'] = '\r'+1;
-	cmap['t'] = '\t'+1;
-	cmap['b'] = '\b'+1;
-	cmap['f'] = '\f'+1;
-	cmap['a'] = '\a'+1;
-	cmap['v'] = '\v'+1;
-	cmap['\\'] = '\\'+1;
-	cmap['"'] = '"'+1;
 
 	fmtinstall('L', Lconv);
 	fmtinstall('m', Lconv);
@@ -104,7 +99,7 @@ escchar(char c)
 			if(c == Eof)
 				fatal("%L: <eof> in escape sequence", line);
 			if(strchr("0123456789xX", c) == 0) {
-				Bungetc(bin);
+				Ungetc(c);
 				break;
 			}
 			buf[n++] = c;
@@ -119,81 +114,12 @@ escchar(char c)
 	return n-1;
 }
 
-void
-polytab(char *line)
-{
-	char *p;
-	Node *n, *i;
-
-	p = line;
-	while(*p && *p != ' ' && *p != '\t')
-		p++;
-	if(*p == '\0')
-		goto bad;
-	*p++ = '\0';
-	while(*p && (*p == ' ' || *p == '\t'))
-		p++;
-	if(*p == '\0')
-		goto bad;
-
-	n = rtnode(line, nil, at(TIND, builtype[TFUNC]));
-	i = rtnode(p, nil, builtype[TINT]);
-	dynt(n, i);
-	return;
-bad:
-	diag(0, "bad #pragma dynamic");
-}
-
-void
-pragma(char *buf)
-{
-	char *p, *e;
-
-	p = buf;
-	while(*p && *p != ' ' && *p != '\t')
-		p++;
-	if(*p == '\0')
-		return;
-
-	while(*p && (*p == ' ' || *p == '\t'))
-		p++;
-	if (*p == '\0')
-		return;
-
-	e = p;
-	while(*e && *e != ' ' && *e != '\t')
-		e++;
-
-	if(*e == '\0')
-		return;
-	*e++ = '\0';
-
-	if(strcmp(p, "lib") == 0) {
-		p = strrchr(e, '"');
-		if(p == 0)
-			fatal("%L: malformed #pragma", line);
-		*p = '\0';
-		p = strchr(e, '"')+1;
-		linehist(strdup(p), -1);
-	}
-	else
-	if(strcmp(p, "noprofile") == 0)
-		txtprof = 1;	
-	else
-	if(strcmp(p, "profile") == 0)
-		txtprof = 0;
-	else
-	if(strcmp(p, "dynamic") == 0)
-		polytab(e);
-}
-
 /* Eat preprocessor directives */
 void
 preprocessor(void)
 {
+	char buf[Strsize], *p;
 	int i, c, off;
-	static char *basef;
-	char buf[Strsize], *p, *q;
 
 	SET(c);
 	p = buf;
@@ -214,61 +140,34 @@ preprocessor(void)
 	if(opt('p'))
 		print("%s\n", buf);
 
-	p = buf;
-	while (*p == ' ' || *p == '\t')
-		p++;
-
-	if(strncmp(p, "line", 4) == 0) {
-		p += 4;
-		while (*p == ' ' || *p == '\t')
-			 p++;
-	}
-
-	if(*p >= '0' && *p <= '9') {
-		off = strtoul(p, &p, 10);
-		while (*p == ' ' || *p == '\t')
-			p++;
-		if (*p == 0)
-			fatal("%L: malformed preprocessor statement", line);
-
-		q = strrchr(p+1, '"');
-		if (*p != '"' || q == 0)
+	if(strncmp(buf, "line", 4) == 0) {
+		off = strtoul(buf+5, 0, 10);
+		p = strrchr(buf, '"');
+		if(p == 0)
 			fatal("%L: malformed #line", line);
-
-		*q = '\0';
-		p = strdup(p+1);
-		if(basef == 0)
-			basef = p;
-		inbase = 0;
-		if(strcmp(p, basef) == 0)
-			inbase = 1;
-		linehist(p, off);
-		return;
+		*p = '\0';
+		p = strchr(buf, '"');
+		linehist(strdup(p+1), off);
 	}
-	if(strncmp(p, "pragma", 6) == 0)
-		pragma(p+6);
-}
-
-String*
-mkstring(char *fmt, ...)
-{
-	String *s;
-	char buf[Strsize];
-
-	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
-	s = malloc(sizeof(String));
-	s->string = strdup(buf);
-	s->len = strlen(buf)+1;
-
-	return s;
+	if(strncmp(buf, "pragma", 6) == 0) {
+		p = strstr(buf+7, "lib");
+		if(p == 0)
+			return;
+		p = strrchr(buf, '"');
+		if(p == 0)
+			fatal("%L: malformed #pragma", line);
+		*p = '\0';
+		p = strchr(buf, '"');
+		linehist(strdup(p+1), -1);
+	}
 }
 
 void
 eatstring(void)
 {
 	String *s;
-	char buf[Strsize];
 	int esc, c, cnt;
+	char buf[Strsize];
 
 	esc = 0;
 	for(cnt = 0;;) {
@@ -278,16 +177,10 @@ eatstring(void)
 			fatal("%L: <eof> in string constant", line);
 
 		case '\n':
-			line++;
 			diag(0, "newline in string constant");
 			goto done;
 
 		case '\\':
-			if(esc) {
-				buf[cnt++] = c;
-				esc = 0;
-				break;
-			}
 			esc = 1;
 			break;
 
@@ -306,10 +199,11 @@ eatstring(void)
 		}
 	}
 done:
-	buf[cnt] = '\0';
+	buf[cnt++] = '\0';
 	s = malloc(sizeof(String));
-	s->len = strlen(buf)+1;
-	s->string = strdup(buf);
+	s->string = malloc(cnt);
+	s->len = cnt;
+	memcpy(s->string, buf, cnt);
 	yylval.string = s;
 }
 
@@ -344,38 +238,30 @@ loop:
 		goto loop;
 
 	case '\n':
+		line++;
 		if(opt('L'))
 			print("%L\n", line);
-		line++;
 		goto loop;
 
 	case '.':
 		c = Bgetc(bin);
-		Bungetc(bin);
+		Ungetc(c);
 		if(isdigit(c))
 			return numsym('.');
+
 		return '.';
-
- 	case ':':
-		c = Bgetc(bin);
-		if(c == ':')
-			return Titer;
-		if(c == '=')
-			return Tvasgn;
-		Bungetc(bin);
-		return ':';
-
+ 
 	case '(':
 	case ')':
 	case '[':
 	case ']':
 	case ';':
+	case ':':
 	case ',':
 	case '~':
 	case '?':
 	case '}':
 	case '{':
-	case '$':
 		return c;
 
 	case '+':
@@ -384,39 +270,39 @@ loop:
 			return Taddeq;
 		if(c == '+')
 			return Tinc;
-		Bungetc(bin);
+		Ungetc(c);
 		return '+';
 
 	case '/':
 		c = Bgetc(bin);
 		if(c == '=')
 			return Tdiveq;
-		Bungetc(bin);
+		Ungetc(c);
 		return '/';
 
 	case '%':
 		c = Bgetc(bin);
 		if(c == '=')
 			return Tmodeq;
-		Bungetc(bin);
+		Ungetc(c);
 		return '%';
 
 	case '^':
 		c = Bgetc(bin);
 		if(c == '=')
 			return Txoreq;
-		Bungetc(bin);
+		Ungetc(c);
 		return '^';
 
 	case '*':
 		c = Bgetc(bin);
 		if(c == '=')
 			return Tmuleq;
-		Bungetc(bin);
+		Ungetc(c);
 		return '*';
 
 	case '\'':
-		c = Bgetrune(bin);
+		c = Bgetc(bin);
 		if(c == '\\')
 			yylval.ival = escchar(Bgetc(bin));
 		else
@@ -424,7 +310,7 @@ loop:
 		c = Bgetc(bin);
 		if(c != '\'') {
 			diag(0, "missing '");
-			Bungetc(bin);
+			Ungetc(c);
 		}
 		return Tconst;
 
@@ -434,14 +320,14 @@ loop:
 			return Tandand;
 		if(c == '=')
 			return Tandeq;
-		Bungetc(bin);
+		Ungetc(c);
 		return '&';
 
 	case '=':
 		c = Bgetc(bin);
 		if(c == '=')
 			return Teq;
-		Bungetc(bin);
+		Ungetc(c);
 		return '=';
 
 	case '|':
@@ -450,7 +336,7 @@ loop:
 			return Toror;
 		if(c == '=')
 			return Toreq;
-		Bungetc(bin);
+		Ungetc(c);
 		return '|';
 
 	case '<':
@@ -461,12 +347,12 @@ loop:
 			c = Bgetc(bin);
 			if(c == '=')
 				return Tlsheq;
-			Bungetc(bin);
+			Ungetc(c);
 			return Tlsh;
 		}
 		if(c == '-')
 			return Tcomm;
-		Bungetc(bin);
+		Ungetc(c);
 		return '<';
 
 	case '>':
@@ -477,10 +363,10 @@ loop:
 			c = Bgetc(bin);
 			if(c == '=')
 				return Trsheq;
-			Bungetc(bin);
+			Ungetc(c);
 			return Trsh;
 		}
-		Bungetc(bin);
+		Ungetc(c);
 		return '>';
 
 	case '!':
@@ -489,7 +375,7 @@ loop:
 			return Tneq;
 		if(c == '{')
 			return Tguard;
-		Bungetc(bin);
+		Ungetc(c);
 		return '!';
 
 	case '-':
@@ -500,7 +386,7 @@ loop:
 			return Tsubeq;
 		if(c == '-')
 			return Tdec;
-		Bungetc(bin);
+		Ungetc(c);
 		return '-';
 
 	default:
@@ -511,97 +397,60 @@ loop:
 int
 numsym(char first)
 {
-	int c;
-	char *p;
+	int c, isfloat, ishex;
+	char *sel, *p;
 	Sym *s;
 	Type *t;
-	enum { Int, Hex, Frac, Expsign, Exp } state;
 
 	symbol[0] = first;
 	p = symbol;
 
+	ishex = 0;
+	isfloat = 0;
 	if(first == '.')
-		state = Frac;
-	else
-		state = Int;
+		isfloat = 1;
 
-	if(isdigit(*p++) || state == Frac) {
+	if(isdigit(*p++) || isfloat) {
 		for(;;) {
 			c = Bgetc(bin);
 			if(c < 0)
-				fatal("%L: <eof> eating numeric", line);
+				fatal("%L: <eof> eating symbols", line);
 
 			if(c == '\n')
 				line++;
+			sel = "01234567890.x";
+			if(ishex)
+				sel = "01234567890abcdefABCDEF";
 
-			switch(state) {
-			case Int:
-				if(strchr("01234567890", c))
-					break;
-				switch(c) {
-				case 'x':
-				case 'X':
-					state = Hex;
-					break;
-				case '.':
-					state = Frac;
-					break;
-				case 'e':
-				case 'E':
-					state = Expsign;
-					break;
-				default:
-					goto done;
-				}
-				break;
-			case Hex:
-				if(strchr("01234567890abcdefABCDEF", c) == 0)
-					goto done;
-				break;
-			case Frac:
-				if(strchr("01234567890", c))
-					break;
-				if(c == 'e' || c == 'E')
-					state = Expsign;
-				else
-					goto done;
-				break;
-			case Expsign:
-				state = Exp;
-				if(c == '-' || c == '+')
-					break;
-				/* else fall through */
-			case Exp:
-				if(strchr("01234567890", c) == 0)
-					goto done;
+			if(strchr(sel, c) == 0) {
+				Ungetc(c);
 				break;
 			}
+			if(c == '.')
+				isfloat = 1;
+			if(c == 'x')
+				ishex = 1;
 			*p++ = c;
 		}
-	done:
-		Bungetc(bin);
 		*p = '\0';
-		switch(state) {
-		default:
-			yylval.ival = strtoul(symbol, 0, 0);
-			return Tconst;
-		case Frac:
-		case Expsign:
-		case Exp:
-			if(mpatof(symbol, &yylval.fval))
-				diag(0, "floating point conversion overflow %s", symbol);
+		if(isfloat) {
+			yylval.fval = atof(symbol);
 			return Tfconst;
 		}
 
+		yylval.ival = strtoul(symbol, 0, 0);
+		return Tconst;
 	}
 
 	for(;;) {
 		c = Bgetc(bin);
 		if(c < 0)
 			fatal("%L <eof> eating symbols", line);
+		if(c == '\n')
+			line++;
 		if(c != '_')
 		if(!isalnum(c)) {
-			Bungetc(bin);
+			Ungetc(c);
 			break;
 		}
 		*p++ = c;
@@ -609,7 +458,9 @@ numsym(char first)
 
 	*p = '\0';
 
-	s = enter(symbol, Tid);
+	s = lookup(symbol);
+	if(s == 0) 
+		s = enter(symbol, Tid);
 
 	switch(s->lexval) {
 	case Tid:
@@ -642,10 +493,6 @@ enter(char *name, int type)
 	Sym *s;
 	ulong h;
 	char *p;
-
-	s = lookup(name);
-	if(s != nil)
-		return s;
 
 	h = 0;
 	for(p = name; *p; p++)
@@ -685,10 +532,6 @@ ltytosym(Type *t)
 	int i;
 	Sym *p;
 
-	p = t->tag;
-	if(p && p->ltype && typecmp(p->ltype, t, 5))
-		return p;
-
 	for(i = 0; i < Hashsize; i++) {
 		for(p = hash[i]; p; p = p->hash)
 			if(typecmp(p->ltype, t, 5))
@@ -721,8 +564,7 @@ Lconv(void *o, Fconv *f)
 		if(l < h->line)
 			break;
 		if(h->name) {
-			if(h->offset != 0) {	 
-				/* #line directive, not #pragma */
+			if(h->offset != 0) {	 /* #line directive, not #pragma */
 				if(n > 0 && n < HISTSZ && h->offset >= 0) {
 					a[n-1].line = h;
 					a[n-1].ldel = h->line - h->offset + 1;
@@ -750,21 +592,15 @@ Lconv(void *o, Fconv *f)
 	for(i=n-1; i>=0; i--) {
 		if(i != n-1)
 			strcat(str, " ");
-		sprint(s, "%s:%d:", a[i].line->name, l-a[i].ldel+1);
+			sprint(s, "%s %3ld:", a[i].line->name, l-a[i].ldel+1);
 		if(strlen(s)+strlen(str) >= Strsize-10)
 			break;
 		strcat(str, s);
-		l = a[i].incl->line - 1;	
+		l = a[i].incl->line - 1;	/* now print out start of this file */
 	}
-
 	if(n == 0)
 		strcat(str, "<eof> ");
-
-	n = strlen(wd);
-	if(strncmp(str, wd, n) != 0)
-		n = 0;
-
-	strconv(str+n, f);
+	strconv(str, f);
 	return sizeof(l);
 }
 
@@ -807,18 +643,4 @@ linehist(char *f, int offset)
 	}
 	ehist->link = h;
 	ehist = h;
-}
-
-void
-umap(char *s)
-{
-	s = strchr(s, '_');
-	if(s == 0)
-		return;
-	if(s[-1] == '\0' || s[1] == '\0')
-		return;
-	if(!isalnum(s[-1]) || !isalnum(s[1]))
-		return;
-
-	*s = '.';
 }

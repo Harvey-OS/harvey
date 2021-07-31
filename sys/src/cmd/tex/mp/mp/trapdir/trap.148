@@ -1,0 +1,26 @@
+%!PS
+%%BoundingBox: -5 -5 12.5 5 
+%%Creator: MetaPost
+%%CreationDate: 1990.08.28:1027
+%%Pages: 1
+%%EndProlog
+%%Page: 1 1
+ 1 setlinewidth [] 0 setdash 1 setlinejoin 1 setmiterlimit
+gsave 2 0 translate
+newpath 5 0 moveto
+5 1.32608 4.47322 2.59785 3.53554 3.53554 curveto
+2.59785 4.47322 1.32608 5 0 5 curveto
+-1.32608 5 -2.59785 4.47322 -3.53554 3.53554 curveto
+-4.47322 2.59785 -5 1.32608 -5 0 curveto
+-5 -1.32608 -4.47322 -2.59785 -3.53554 -3.53554 curveto
+-2.59785 -4.47322 -1.32608 -5 0 -5 curveto
+1.32608 -5 2.59785 -4.47322 3.53554 -3.53554 curveto
+4.47322 -2.59785 5 -1.32608 5 0 curveto closepath
+gsave fill grestore stroke grestore
+ 3 setlinewidth 1 setlinecap
+gsave
+newpath 0 0 moveto
+12 0 lineto
+0.33333 1 scale stroke grestore
+showpage
+%%Trailer

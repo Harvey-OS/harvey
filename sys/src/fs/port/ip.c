@@ -80,25 +80,23 @@ ipreceive(Enpkt *ep, int l, Ifc *ifc)
 	}
 
 	/*
-	 * throw away old rocks.
-	 */
-	t = toytime();
-	lock(&ip);
-	r = ip.rock;
-	for(i=0; i<Nrock; i++,r++)
-		if(r->mb && t >= r->age) {
-			mbfree(r->mb);
-			r->mb = 0;
-		}
-
-	/*
 	 * reassembly of fragments
 	 * look up rock by src, dst, id.
+	 * in same pass, throw away old rocks.
 	 */
+	lock(&ip);
 	or = 0;
+	t = toytime();
 	r = ip.rock;
 	for(i=0; i<Nrock; i++,r++) {
 		if(r->mb == 0) {
+			if(or == 0)
+				or = r;
+			continue;
+		}
+		if(t >= r->age) {
+			mbfree(r->mb);
+			r->mb = 0;
 			if(or == 0)
 				or = r;
 			continue;
@@ -110,13 +108,14 @@ ipreceive(Enpkt *ep, int l, Ifc *ifc)
 	}
 	r = or;
 	if(r == 0) {
-		/* no available rocks */
+		unlock(&ip);
+		print("iprecv: out of rocks\n");
+		lock(&ip);
 		r = ip.rock;
-		for(i=0; i<Nrock; i++,r++)
-			if(r->mb) {
-				mbfree(r->mb);
-				r->mb = 0;
-			}
+		for(i=0; i<Nrock; i++,r++) {
+			mbfree(r->mb);
+			r->mb = 0;
+		}
 		r = ip.rock;
 	}
 	r->id = id;
@@ -132,7 +131,7 @@ found:
 
 	off = (frag & ~(IP_DF|IP_MF)) << 3;
 	if(len+off+Ensize+Ipsize > mb->count) {
-		/* ip pkt too big */
+		print("iprecv: ip pkt too big\n");
 		mbfree(mb);
 		r->mb = 0;
 		goto uout;
@@ -167,7 +166,7 @@ found:
 	 * add this frag
 	 */
 	if(n >= Nfrag) {
-		/* too many frags */
+		print("too many frags\n");
 		mbfree(mb);
 		r->mb = 0;
 		goto uout;
@@ -213,9 +212,6 @@ send:
 
 	case Ilproto:
 		ilrecv(mb, ifc);
-		break;
-	case Udpproto:
-		udprecv(mb, ifc);
 		break;
 	}
 	return;

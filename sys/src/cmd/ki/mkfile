@@ -10,6 +10,7 @@ OFILES= ki.$O\
 	symbols.$O\
 	cmd.$O\
 	bpt.$O\
+	das.$O\
 	float.$O\
 
 HFILES=sparc.h\

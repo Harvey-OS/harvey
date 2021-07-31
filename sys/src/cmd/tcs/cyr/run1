@@ -1,0 +1,4 @@
+#!/bin/rc
+mk install
+cd ..
+mk v.out && v.out -f cyr1 < cyr/ex3.cyr1

@@ -1,0 +1,82 @@
+**(trap.mp
+\*//*\trap\pass2!
+! Missing symbolic token inserted.
+<inserted text> 
+                 INACCESSIBLE
+l.22 ...t next=\; delimiters ^~7
+                                ! fi
+! Extra tokens will be flushed.
+<to be read again> 
+                   !
+l.22 ... next=\; delimiters ^~7!
+                                 fi
+! Forbidden token found while scanning to the end of the statement.
+<inserted text> 
+                ;
+<to be read again> 
+                   \
+l.23 next\
+          ; % the second pass will now compute silently; the ...
+
+hello again^^_
+{tracingonline:=1}
+
+f<expr>->let)=];let[=(;show._
+(EXPR0)<-xx
+{let}
+{let}
+{show}
+>> _1
+{showdependencies}
+xpart '=-ypart '-0.66667
+{qq:=pen}
+{showstats}
+Memory usage 1982&339 (61 still untouched)
+String usage 62&284 (1154&5992 now untouched)
+{[repeat the loop]}
+>> bye
+! Isolated expression.
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+! Extra tokens will be flushed.
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+! Forbidden token found while scanning to the end of the statement.
+<inserted text> 
+                ;
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+{show}
+)
+*! An expression can't begin with `end'.
+<inserted text> 
+                0
+<to be read again> 
+                   end
+<*> end
+       
+>> 0
+! A group begun on line 192 never ended.
+<to be read again> 
+                   end
+<*> end
+       
+{endgroup}
+(end occurred when else on line 88 was incomplete)
+(end occurred when if on line 37 was incomplete)
+(end occurred when elseif on line 22 was incomplete)
+(see the transcript file for additional information)
+(illegal design size has been changed to 128pt)
+(some chardp values had to be adjusted by as much as 0.5pt)
+(local label 0:: was missing)
+(local label 5:: was missing)
+(4 font metric dimensions had to be decreased)
+Font metrics written on trap.tfm.
+25 output files written: trap.ps .. trap.200
+Transcript written on trap.log.

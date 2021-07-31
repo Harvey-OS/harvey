@@ -1,0 +1,46 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TESTBOOK.TEX						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentstyle{amsbook}
+
+%% \theoremstyle{plain} %% This is the default
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+
+\begin{document}
+\pagenumbering{roman}
+\title{One-Dimensional Stable Distributions}
+\author{V. M. Zolotarev}
+\address{Faculty of Mathematics and Statistics, Moscow State
+University, Moscow, USSR}
+\subjclass{47A56, 47A10; Secondary 47A55, 47A70, 47A68, 47B15}
+\date{July 19, 1992}
+\translator{H. H. McFaden}
+\maketitle
+
+\begin{abstract}
+The file {\tt testbook.tex} and its included files demonstrate
+a \LaTeX{} book setup using the documentstyle {\tt amsbook}.
+The abstract will appear on the obverse of the 
+title page.
+\end{abstract}
+
+\tableofcontents
+
+\pagenumbering{arabic}
+\include{pref}
+\include{chap1}
+\include{chap2}
+\include{app}
+
+\bibliographystyle{amsplain}
+\bibliography{test}
+
+\end{document}

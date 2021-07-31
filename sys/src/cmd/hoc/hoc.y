@@ -333,7 +333,7 @@ moreinput(void)
 	if (gargc-- <= 0)
 		return 0;
 	if (bin != &binbuf)
-		Bterm(bin);
+		Bclose(bin);
 	infile = *gargv++;
 	lineno = 1;
 	if (strcmp(infile, "-") == 0) {

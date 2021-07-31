@@ -1,10 +1,10 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 void
 texture(Bitmap *d, Rectangle r, Bitmap *s, Fcode f)
 {
-	byte *buf;
+	char *buf;
 
 	buf = bneed(23);
 	buf[0] = 't';

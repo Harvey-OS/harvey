@@ -72,15 +72,3 @@ bbonstack(void)
 		return 1;
 	return 0;
 }
-
-void
-bbexec(void (*memstart)(void), int len, int onstack)
-{
-	if(onstack) {
-		icflush(memstart, len);
-		memstart();
-		return;
-	}
-	memstart();
-	bbfree(memstart, len);
-}

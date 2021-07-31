@@ -1,0 +1,103 @@
+% macros for the appendix to "Errors of TeX" paper
+\input manmac
+\voffset=-.3in
+\catcode`\^=7 % disable the indexing stuff
+\font\sltt=cmsltt9
+\font\logosl=logosl9
+\ninepoint
+\vsize=48pc \pageheight=\vsize
+\hsize=33.5pc
+
+\def\\{\bgroup\catcode`_=\active\identifier}
+{\catcode`_=\active \global\let_=\_}
+\def\identifier#1{\hbox{\it#1\/\kern.05em}\egroup} % italic type for identifiers
+
+\newdimen\codesize \setbox0=\hbox{\enspace M} \codesize=\wd0
+\setbox0=\hbox{\thinspace\S1111\kern\codesize} \rightskip=\wd0
+\newdimen\itemnosize \setbox0=\hbox{\bf999} \itemnosize=\wd0
+\setbox0=\hbox{$999\mapsto{}$\kern\itemnosize\enspace} \parindent=\wd0
+\newdimen\datemar \setbox0=\hbox{\bf 15 Mar 1977}
+\datemar=\hsize \advance\datemar-\wd0 \divide\datemar2
+\newdimen\hangamount \hangamount=\parindent \advance\hangamount 1em
+\everypar{\global\hangindent=\hangamount}
+\parfillskip=-\rightskip
+\finalhyphendemerits=0
+\interlinepenalty=100
+\smallskipamount=3pt plus 2pt
+\def\smallbreak{\fin\penalty-50\smallskip}
+
+\newbox\predec % for predecessor "mapsto" info
+\newbox\code   % for the code letter
+\newbox\texsec % for TeX section numbers
+\newbox\cbox   % the symbol used on commentlines
+\newbox\dbox   % empty box used after datelines
+\setbox\dbox=\hbox to\datemar{}
+\setbox\cbox=\hbox to\itemnosize{\hfil$\bullet$}
+
+\newif\ifnothing \newif\ifnobreak
+\def\fin{\ifnothing\nothingfalse\else\endgroup
+ \unskip\nobreak\hfil\penalty500\enspace\null\nobreak\hfil\box\texsec
+ \box\code\endgraf\ifnobreak\nobreakfalse\nobreak\fi\fi}
+
+\catcode`\	=12 % tabs are ordinary characters
+\catcode`@=\active  % @ signs denote a TeX section reference
+{\obeylines \gdef@#1
+ {\global\setbox\texsec=\hbox{\S$#1$}\lookahead}}
+\def\>#1\relax{\global\setbox\predec=\hbox{$#1\mapsto{}$}} % previous bug ref
+
+\def\checkvalid#1{\expandafter\ifx\csname#1!\endcsname\okay\else\invalidcode\fi}
+\def\okay{\okay}
+\def\makevalid#1{\expandafter\let\csname#1!\endcsname=\okay}
+\makevalid A % algorithm
+\makevalid B % blunder
+\makevalid C % cleanup
+\makevalid D % data structure
+\makevalid E % efficiency
+\makevalid F % forgotten case
+\makevalid G % generalization
+\makevalid I % interaction
+\makevalid L % language
+\makevalid M % mismatch
+\makevalid P % program organization
+\makevalid Q % quality
+\makevalid R % robustness
+\makevalid S % surprise
+\makevalid T % typo
+
+\def\lookahead{\futurelet\next\looky} % we'll do this at end of every line
+\def\looky{\if\next	\let\cont\continuationline % tab mark
+  \else\if\next*\let\cont\dateline % asterisk
+  \else\if\next##\let\cont\commentline % sharp sign
+  \else\if\next\relax\let\cont\endit % \relax (gets us out)
+  \else\let\cont\dataline\fi\fi\fi\fi\cont} % otherwise should be a code letter
+\def\continuationline	{ } % insert space if a tab mark starts the next line
+\def\dateline* {\smallbreak\begingroup\bf\hfill\nobreaktrue
+  \global\setbox\code=\copy\dbox}
+\def\dataline#1{\fin\checkvalid#1%
+  \global\setbox\code=\hbox to\codesize{\enspace
+   \hskip0pt plus 3fil\rm#1\hskip0pt plus1fil}%
+  \begingroup\rm\itemnumber}
+\def\itemnumber#1.{\setbox0=\hbox to\itemnosize{\bf\hfil#1\relax}%
+  \textindent{\hfil\box\predec\box0}}
+\def\commentline{\fin\afterassignment\begincomment\let\next}
+\def\begincomment{\begingroup\let\tt=\sltt\let\SAIL=\slSAIL
+  \let\MF=\slMF\sl\textindent{\hfil\copy\cbox}}
+
+\def\leftheadline{\hbox to \hsize{%
+    \vbox to 10pt{}% strut to position the baseline
+    {\tenrm\folio\kern1pc}% folio to left of text
+    \hfil\eightrm D. \ E. \ KNUTH\hfil% running head 
+    }}
+\def\rightheadline{\hbox to \hsize{%
+    \vbox to 10pt{}% strut to position the baseline
+    \hfil\eightrm THE \ ERRORS \ OF \ \TeX\hfil% running head 
+    {\kern1pc\tenrm\folio}% folio to right of text
+    }}
+
+\def\O#1{\hbox{\rm\char'23\kern-.2em\it#1\/\kern.05em}} % octal constant
+\def\SAIL{{\eightrm SAIL}}
+\def\slSAIL{{\eightsl SAIL}}
+\def\slMF{{\logosl META}\-{\logosl FONT}}
+
+\def\endit{\fin\catcode`\^^M=5\let\par=\endgraf}
+\let\par=\lookahead \obeylines \nothingtrue

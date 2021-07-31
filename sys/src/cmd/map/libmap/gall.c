@@ -1,9 +1,9 @@
 #include "map.h"
 
-static double scale;
+static float scale;
 
 static int
-Xgall(struct place *place, double *x, double *y)
+Xgall(struct place *place, float *x, float *y)
 {
 	/* two ways to compute tan(place->nlat.l/2) */
 	if(fabs(place->nlat.s)<.1)
@@ -15,9 +15,9 @@ Xgall(struct place *place, double *x, double *y)
 }
 
 proj
-gall(double par)
+gall(float par)
 {
-	double coshalf;
+	float coshalf;
 	if(fabs(par)>80)
 		return 0;
 	par *= RAD;

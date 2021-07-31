@@ -1,0 +1,579 @@
+From att!usl!usl!kogure Thu Jan 30 14:55 EST 1992
+From: kogure@usl.com
+To: att!coma!bwk
+Subject: 3/3
+Received: from usl by usl.com; Thu, 30 Jan 1992 14:51 EST
+Content-Type: binary
+Content-Length: 18354
+
+#! /sbin/sh
+#  This is a shell archive file contains:
+#	UOJA-ja.mm2
+# On: 01/30/92 14:55, By: kogure@hoss
+_____________________________________
+echo x - UOJA-ja.mm2 1>&2 
+sed "s/.//" >UOJA-ja.mm2 <<"//GO.SYSIN DD UOJA-ja.mm2"
+X'\"@(#)UOJA-ja.mm 1.7 December 10, 1991 (by Nakahara, TOSHIBA)"
+X'\"
+X'\" DESCRIPTION
+X'\"
+X'\"	UOJA-ja.mm -	UI-OSF-USLP Joint Announcement of common Japanese
+X'\"			EUC entitled "Definition of Japanese EUC and
+X'\"			its Notes and Rationale", Japanese language version.
+X'\"
+X'\"	UOJA-en.mm -	The English version of UOJA-ja.mm
+X'\"
+X'\" COMPILATION
+X'\"
+X'\"	(j)mmt -t -rL10.5i UOJA-ja.mm | PRINTER
+X'\"
+X'\" REDACTOR
+X'\"
+X'\"	Yasushi Nakahara		91/10/16	1.0
+X'\"	Yasushi Nakahara		91/10/20	1.1
+X'\"	Toshinori Numata		91/10/29	1.2
+X'\"	Toshinori Numata		91/11/15	1.3
+X'\"	T.Numata & K.Namgoong		91/11/19	1.4
+X'\"	Toshinori Numata		91/11/26	1.5
+X'\"	Yasushi Nakahara		91/11/30	1.6
+X'\"	Yasushi Nakahara		91/12/10	1.7
+X'\"
+X'\" DRAFTING COMMITTEE
+X'\"
+X'\"	Yasunori Hiratsuka, UI Asia/Pacific
+X'\"	Akio Kido, IBM Japan
+X'\"	Fumitaka Maruyama, DEC Japan
+X'\"	Yasushi Nakahara, Toshiba
+X'\"	Kyung Namgoong, Sony
+X'\"	Toshinori Numata, Fujitsu
+X'\"	Masahiro Ozaki, USL Pacific
+X'\"
+X'\" COPYRIGHT
+X'\"
+X'\"	Copyright (C) 1991, Open System Foundation
+X'\"	Copyright (C) 1991, UNIX International, Inc.
+X'\"	Copyright (C) 1991, UNIX System Laboratories Pacific, Ltd.
+X'\"
+X'\"	This document contains data and information confidential to
+X'\"	Open System Foundation, UNIX International, Inc. and UNIX System
+X'\"	Laboratories Pacific Ltd.
+X'\"	This data shall not be disclosed, disseminated, reproduced or
+X'\"	otherwise used outside of Open System Foundation, UNIX International,
+X'\"	Inc., UNIX System Laboratories Pacific Ltd. or their Member
+X'\"	Organizations without the express written consent of an officer of
+X'\"	the corporation.
+X'\"
+X'\" Log:	UOJA-ja.mm
+X'\"
+X'\" Revision 1.7  91/12/10  16:31:34	ynk
+X'\" 	All changes were applied to synchronize with the English version
+X'\"	UOJA-en.mm Draft 1.7.  The main changes are:
+X'\"	The overall wording was improved for readers who may not have
+X'\"	a good knowledge about the related Standards and background of
+X'\"	the technical discussions between OSF, UI and USLP.
+X'\" 	The small group (A. Kido, T. Numata, Y. Hiratsuka, and Y. Nakahara)
+X'\"	discussion at the UNIX Fair '91, Keio Plaza Hotel on December 4 was
+X'\" 	reflected and delivered for review and comments to the Drafting
+X'\"	Committee.
+X'\" Revision 1.6  91/11/30  16:58:58	ynk
+X'\" 	Based on the OSF-UI-USLP ad hoc meeting on November 27,
+X'\" 	the new abbreviation for the name of agreed Japanese EUC was 
+X'\"	introduced and the previous mnemonic section was eliminated.
+X'\" 	All the editorial changes were applied to synchronize with the
+X'\"	English version UOJA-en.mm Draft 1.6.
+X'\" Revision 1.5  91/11/26  		numa
+X'\" 	Several comments from OSF people were applied.
+X'\" 	The JES name was introduced.
+X'\" Revision 1.4  91/11/19  		numa & nangu
+X'\" 	The small group (T.Numata, K. Namgoong, M. Ozaki and Y. Nakahara)
+X'\"	discussion in Korean was reflected and delivered for review and
+X'\" 	comments by email.
+X'\" Revision 1.3  91/11/15  		numa
+X'\" 	All comments of Draft 1.2 were incorporated, including the first
+X'\" 	USLP's comments.
+X'\" Revision 1.2  91/10/29  		numa
+X'\"	Comments of T. Numata and A. Kido were applied.
+X'\" 	Troff format was modified.
+X'\" Revision 1.1  91/10/20  17:36:56  ynk
+X'\"	Notes and Rationale C and F were added
+X'\" Revision 1.0  91/10/16  16:39:49  ynk
+X'\"	Initial revision based upon the October Ad Hoc meeting output
+X'\"	(in troff format)
+X'\"
+X'\" FONT CONTROL
+X'\" if nroff treat all font as R
+X.if n .fp 2 R
+X.if n .fp 3 R
+X.if n .fp 4 R
+X.if n .fp 5 R
+X'\" if troff, specify each font
+X.if t .fp 1 R
+X.if t .fp 2 I
+X.if t .fp 3 B
+X.if t .fp 4 CW
+X.if t .fp 5 CB
+X.ds HF 3 3 3 2 2 2 2
+X.ds HP 10 10 10 10 10 10 10
+X'\" PARAGRAPH CONTROL
+X.nr Pi 2
+X.nr Pt 1
+X.tr ~  
+X.PH "'UI-OSF-USLP 共同技術資料''日本語EUCの定義と解説'"
+X.PF "'Unapproved Draft 1.7'-%-'1991 年 12 月 10 日"
+X.DS C
+X日本語 EUC の定義
+X.DE
+X.SP
+X.H 1 "適用範囲"
+X本書は、
+Xオープン・ソフトウェア・ファンデーション (OSF)、
+XUNIX インターナショナル (UI)、および、
+XUNIX システム・ラボラトリーズ・パシフィック (USLP) で
+X共通の日本語文字コードとして合意された
+X日本語 EUC（Advanced Japanese EUC \(em AJEC）の定義を記述するものである。
+X.P
+X本書は、1990 年に新たに制定された JIS 補助漢字規格 (JIS X 0212) に関する
+X業界での一貫性のある対応を計るため、EUC の各国定義部分に関する
+X日本語文字集合の割り当ての定義を発展させたものであり、
+X従来の EUC の枠組みを変更するものではない。
+X.P
+X本定義は 1991 年 11 月現在の情報交換符号に関する国際規格（ISO）
+X及び日本規格（JIS）を参照している。
+X.P
+Xまた、本書は JIS 未定義領域の使用法も定義しているが、
+Xフォントの実装について定めるものではない。
+X.H 1 "日本語 EUC の定義"
+X.P
+XAJEC として定義する日本語 EUC の文字集合、バイト数、文字表示幅の情報は、
+X以下の通りである。
+X.TS
+Xcenter tab(>);
+Xl | l | l | l
+Xc | c | c | l.
+X=
+Xコードセット>バイト数>表示幅>文字集合
+X_
+X0>1>1>ANS X 3.4 (ASCII)
+X1>2>2>JIS X 0208
+X2>1>1>JIS X 0201 カタカナ
+X3>2>2>JIS X 0212
+X=
+X.TE
+X.P
+Xただし、バイト数はシングルシフトを除いた数値である。
+X.P
+Xまた、表示幅は ASCII 文字が１カラムを占め、その他の文字が１または
+Xそれ以上のカラム数を占める文字型表示装置に有効な値である。
+X.H 1 "未定義領域の使用法"
+X日本規格 JIS X 0208, JIS X 0212 の未定義領域（規格解説にいう「空き」領域）
+Xの使用に関して、不必要な混乱と衝突を避けるために、その使用方法を次の通り
+Xとする。
+X.LB \n(Li 0 0 3 1
+X.LI
+XJIS 未定義領域の中で、次の領域を「共通自由領域」として定める。
+X.nr Pi 3
+X.DL
+X.LI
+XJIS X 0208 の未定義領域のうち、85 区から 94 区までの領域
+X.LI
+XJIS X 0212 の未定義領域のうち、78 区から 94 区までの領域
+X.LE 1
+X.nr Pi 2
+X.LI
+X共通自由領域には、ユーザ／ベンダ定義文字を割り当てることができる。
+X.LE
+X.H 1 "コードの透過性"
+X上記で定義した全てのコード（未定義領域も含む）に対して、
+X有効な文字コードの値として扱い、
+Xかつ処理中にその値が変更されないという意味での透過性を保証する。
+X.SK
+X.DS C
+X日本語 EUC の解説
+X.DE
+X.SP
+X.HM A
+X.nr H1 0
+X.H 1 "EUC の定義"
+XEUC は、AT&T 日本語 UNIX システム諮問委員会から 1985 年 AT&T に提案された
+X「UNIX システム日本語機能提案書」の中で定義された
+X日本語用 UNIX 内部コード体系を基に、
+XAT&T ベル研究所で世界各国で使用可能なように拡張したコード体系である。
+X.P
+Xそのコード拡張法は、1 バイト文字および複数バイト文字を同時に扱うことができる
+XISO 2022 のコード拡張法に準拠して定義されており、ISO 2022 に準拠した文字集合
+Xであれば、世界各国の文字集合を適用できるように設計されている。
+X.P
+XEUC では、ISO 2022 で許されている最大 4 つの文字集合を、
+Xロッキングシフトを用いることなく、同時に処理することができる。
+X基本コードセット（G0 集合）にはシステムの基本文字集合である
+XASCII 文字集合を固定的に割り当て、
+X3 つの補助コードセット（G1〜G3 集合）に各国（ユーザ）独自の文字集合を
+X割り当てる。
+Xそのコード系の定義は、次の通り。
+X.DS
+X.S -1
+X.TS
+Xcenter, box, tab(>);
+Xl| c  s  s  s| l
+Xc| c  s  s  s| l
+Xr| c| c| c| c| c
+Xl| cf4 cf4 cf4 cf4| l.
+Xコードセット要素 \s-2\u*1\d\s0>コ　ー　ド　表　現>対応規格／文字集合
+X\^>_>\^
+X\^>1 バイト>2 バイト>3 バイト>4 バイト>\^
+X_
+XC0 集合 (C0) \s-2\u*2\d\s0>000XXXXX>\(em>\(em>\(em>ISO 646
+X\^>\^>\^>\^>\^
+X_
+XC1 集合 (C1) \s-2\u*3\d\s0>100XXXXX>\(em>\(em>\(em>(ISO 6429)
+X\^>\^>\^>\^>\^
+X_
+X間隔文字 (SP)>00100000>\(em>\(em>\(em>
+X\^>\^>\^>\^>\^
+X_
+X抹消文字 (DEL)>01111111>\(em>\(em>\(em>
+X\^>\^>\^>\^>\^
+X_
+XG0 集合 (G0) \s-2\u*4\d\s0>0XXXXXXX>\(em>\(em>\(em>ASCII
+X\^>\^>\^>\^>\^>(ISO 646 variant)
+X_
+XG1 集合 (G1) \s-2\u*5\d\s0>1XXXXXXX>\(em>\(em>\(em>各国定義 \s-2\u*6\d\s0
+X\^>1XXXXXXX>1XXXXXXX>\(em>\(em>\^
+X\^>1XXXXXXX>1XXXXXXX>1XXXXXXX>\(em>\^
+X_
+XG2 集合 (G2) \s-2\u*5\d\s0>SS2>1XXXXXXX>\(em>\(em>各国定義 \s-2\u*6\d\s0
+X\^>SS2>1XXXXXXX>1XXXXXXX>\(em>\^
+X\^>SS2>1XXXXXXX>1XXXXXXX>1XXXXXXX>\^
+X_
+XG3 集合 (G3) \s-2\u*5\d\s0>SS3>1XXXXXXX>\(em>\(em>各国定義 \s-2\u*6\d\s0
+X\^>SS3>1XXXXXXX>1XXXXXXX>\(em>\^
+X\^>SS3>1XXXXXXX>1XXXXXXX>1XXXXXXX>\^
+X.TE
+X.DE
+X.DS I
+X*1: 要素の名称は、ISO 2022 (JIS X 0202) に拠る。
+X*2: \f4000XXXXX\fP は \f400000000\-00011111\fP の範囲の値を取り得る。
+X*3: \f4100XXXXX\fP は \f410000000\-10011111\fP の範囲の値を取り得る。
+X*4: \f40XXXXXXX\fP は \f400100001\-01111110\fP の範囲の値を取り得る。
+X*5: \f41XXXXXXX\fP は \f410100000\-11111111\fP の範囲の値を取り得る。
+X*6: 4 バイト以上の複数バイト文字集合についても同様に定義できる。
+X.S
+X.DE
+X.H 1 "日本語 EUC を規定する制御シーケンス"
+X本書は前述したように、1991 年 11 月時点での最新の標準規格を参照している。
+X以下に、この日本語 EUC の定義を規定する制御シーケンスを示す。
+X.P
+XISO 2022 (JIS X 0202) の観点からは、日本語 EUC というコード系は、
+XSS2/SS3 の利用を除いて、これらが固定的であり、
+X当事者同志の了解の下に省略されていると解釈される。
+X.H 2 "アナウンスシーケンス"
+X.DS I
+X.TS
+Xtab(>);
+Xc| l
+Xl| lf4.
+X=
+X使用する拡張機能>エスケープシーケンス
+X_
+XG0 を GL に LS0 によって呼び出す>ESC 02/0 05/0
+XG1 を GR に LS1R によって呼び出す>ESC 02/0 05/3
+XG2 を SS2 によって呼び出す>ESC 02/0 05/10	
+XG3 を SS3 によって呼び出す>ESC 02/0 05/11	 
+XC1 を使用する>ESC 02/0 04/7
+X=
+X.TE
+X.DE
+X.sp .5v
+X.H 2 "図形文字集合の指示 (designation)"
+X.DS I
+X.TS
+Xtab(>);
+Xc| c| c
+Xl| lf4| l.
+X=
+X指示>エスケープシーケンス>意味
+X_
+XG0 の指示>ESC 02/8 04/2  or>ASCII (ANS X3.4-1968) または
+X\^>ESC 02/8 04/10>JIS X 0201-1976 ローマ文字集合
+X_
+XG1 の指示>ESC 02/6 04/0 ESC 02/4 02/9 04/2>JIS X 0208-1990 漢字
+X\^>\^>\^
+X_
+XG2 の指示>ESC 02/10 04/9>JIS X 0201-1976 カタカナ
+X\^>\^>\^
+X_
+XG3 の指示>ESC 02/4 02/11 04/4>JIS X 0212-1990 補助漢字
+X\^>\^>\^
+X=
+X.TE
+X.DE
+X.sp .5v
+X.P
+X備考: G1 の指示について
+X.in \n(Si
+X.AL
+X.LI
+XJIS X 0208-1990 を指示するエスケープシーケンスは、
+XISO 2022:1986 (JIS X 0202-1991) に拠っている。
+Xそこでは登録済み集合に対する更新シーケンスが新たに規定され、
+Xさらに JIS X 0208-1990 が JIS X 0208-1983
+Xの更新版と見なされるために、更新シーケンス (\f4ESC 02/6 04/0\fP)
+Xの付加が必要となっている。
+X.P
+Xなお、ISO 2022:1986 (JIS X 0202-1991) の古い版、
+XISO 2022:1982 (JIS X 0202-1984) に準拠したシステムでは、この更新シーケンス
+Xは未定義なので、対応のエスケープシーケンスは、
+X.DS I
+X\f4ESC 02/4 02/9 04/2\fP
+X.DE
+Xとなり、JIS X 0208-1990 と JIS X 0208-1983 の指示が同じものになる。
+X.LI
+X本書では、当該文字集合に関する標準規格の厳密な版（年号）までは規制していない。
+Xそのため、JIS X 0208-1983、JIS X 0208-1978 を指示するシステムでは、
+Xエスケープシーケンスはそれぞれ次のようになる。
+X.DS I
+X.TS
+Xtab(>);
+Xl lf4.
+XG1 に JIS X 0208-1983 を指示>ESC 02/4 02/9 04/2
+X\^>\^
+XG1 に JIS X 0208-1978 を指示>ESC 02/4 02/9 04/0
+X.TE
+X.DE
+X.LE
+X.in -\n(Si
+X.sp .5v
+X.H 2 "図形文字集合の呼び出し (Invocation)"
+X.DS I
+X.TS
+Xtab(>);
+Xc| c
+Xl| lf4.
+X=
+X呼び出し>エスケープシーケンス
+X_
+XG0 の呼び出し>LS0  (00/15)
+XG1 の呼び出し>LS1R (ESC 07/14)
+XG2 の呼び出し>SS2  (08/14)
+XG3 の呼び出し>SS3  (08/15)
+X=
+X.TE
+X.DE
+X.H 1 "コード変換"
+Xこの節では、今回定義した日本語 EUC コードと他のコードとのコード変換における
+X留意事項について記述する。
+X.H 2 "ISO (JIS) 7 ビット標準コード"
+Xここで ISO (JIS) 7 ビット標準コードとは、
+XISO 2022:1982 (JIS X 0202-1984) より古い版に準拠したシステムでも対応が
+X可能なように、
+X基本文字集合としての ASCII（JIS X 0201 ローマ文字）を G0 に、
+XJIS X 0201 カタカナを G1 に、デフォルトとして指示し（designate）、
+X呼び出し（invoke）、
+XJIS X 0208 および JIS X 0212 を G0 のマルチバイト集合として
+X適切なエスケープシーケンスを用いて切り替えながら、
+X指示し、呼び出すコード系をいう。
+XこのISO (JIS) 7 ビット標準コードと日本語 EUC コードとの変換における留意事項を、
+X以下に示す。
+X.LB \n(Li 0 0 3 1
+X.LI
+XJIS X 0208-1990 への切り替え（俗にいう“漢字イン”シーケンス）
+X.P
+X厳密に JIS X 0208-1990 および ISO 2022:1986 (JIS X 0202-1991) に準拠する
+Xシステムでは、G0 への指示シーケンスは以下の通りである。
+X.VL 40 5
+X.LI "(1-1)~\f4ESC~2/6~4/0~ESC~2/4~2/8~4/2\fP"
+X.LE
+X.P
+Xただし、旧版の ISO 2022 (JIS X 0202) や旧版の JIS X 0208 (1978年版、1983年版) を
+X使用しているシステムでは、
+X.nr Pi 3
+X.DL
+X.LI
+X\f4ESC 2/6 4/0\fP のような更新番号シーケンスがサポートされていない
+X.LI
+XJIS X 0208-1978 か JIS X 0208-1983 しかサポートされていない
+X.LI
+XG0 へのマルチバイト文字集合の指示シーケンスとして、\f4ESC 2/4 2/8 F\fP の
+X代わりに \f4ESC 2/4 F\fP が用いられている場合がある
+X.LI
+Xさらに、ベンダ固有の“漢字イン”シーケンスが用いられている場合がある
+X.LE 1
+X.nr Pi 2
+Xことから、次のようなエスケープシーケンスの使用もあり得るので、それらを
+X考慮したコード変換（双方向とも）が望ましい。
+X.VL 40 5
+X.LI "(1-2)~\f4ESC~2/4~2/8~4/2\fP"
+XJIS X 0208-1983/1990 の指示
+X.LI "(1-3)~\f4ESC~2/4~2/8~4/0\fP"
+XJIS X 0208-1978 の指示
+X.LI "(1-4)~\f4ESC~2/4~4/2\fP"
+XJIS X 0208-1983/1990 の指示
+X.LI "(1-5)~\f4ESC~2/4~4/0\fP"
+XJIS X 0208-1978 の指示
+X.LI "(1-6)~\f4ESC~2/6~4/0~ESC~2/4~4/2\fP"
+XJIS X 0208-1990 の指示
+X.LI "(1-7)~ベンダ独自のシーケンス"
+XJIS X 0208-1978/1983/1990 用共
+X.LE
+X.LI
+XJIS X 0212-1990 への切り替え
+X.P
+X上述したエスケープシーケンスのバラエティを考慮すると、以下のものがある。
+X.VL 40 5
+X.LI "(2-1)~\f4ESC~2/4~2/8~4/4\fP"
+X\f4ESC 2/4 2/8 F\fP に則ったもの
+X.LI "(2-2)~\f4ESC~2/4~4/4\fP"
+X\f4ESC 2/4 F\fP に則ったもの
+X.LI "(2-3)~ベンダ独自のシーケンス"
+XJIS X 0212 用
+X.LE
+X.LI
+XASCII (JIS X 0201 ローマ文字) への切り替え（俗にいう“漢字アウト”シーケンス）
+X.P
+X次のバラエティを考慮する必要がある。
+X.VL 40 5
+X.LI "(3-1)~\f4ESC~2/8~4/2\fP"
+XISO 646 American version
+X.br
+X(ASCII; ANS X3.4-1968)
+X.LI "(3-2)~\f4ESC~2/8~4/10\fP"
+XISO 646 Japanese version
+X.br
+X(JIS X 0201 ローマ文字)
+X.LI "(3-3)~\f4ESC~2/8~4/0\fP"
+XISO 646 IRV
+X.LI "(3-4)~ベンダ独自のシーケンス"
+XASCII/JIS X 0201 用
+X.LE
+X.LI
+XJIS X 0201 カタカナへの切り替え
+X.P
+XJIS X 0201 カタカナが G1 集合に指示されている場合は、一般にその呼び出しは、
+Xシフトアウト (\f4SO; 0/14\fP) で呼び出される。
+X.VL 40 5
+X.LI "(4-1)~\f4SO~(0/14)\fP"
+XG1 集合（カタカナ）への切り替え
+X.LE
+X.P
+Xなお、この場合 G0 (ASCII/JIS X 0201 ローマ文字) への“復帰”は、
+X.VL 40 5
+X.LI "(3-5)~\f4SI~(0/15)\fP"
+XG0 集合への切り替え
+X.LE 1
+Xで行われるので、コード変換において \f4SI\fP/\f4SO\fP の処理が必要となる。
+X.P
+X一方、この JIS X 0201 カタカナを G1 集合に指示するのではなく、
+X他の文字集合と同じように、G0 集合に指示し呼び出して利用しているものもあるので、
+Xその点も注意が必要である。
+X.VL 40 5
+X.LI "(4-2)~\f4ESC~2/8~4/9\fP"
+XJIS X 0201-1976 カタカナを G0 に指示
+X.LI "(4-3)~ベンダ独自のシーケンス"
+XJIS X 0201-1976 カタカナ用
+X.LE
+X.H 2 "ISO (JIS) 8 ビット標準コード"
+Xここでいう ISO (JIS) 8 ビット標準コードとは、
+X前述の ISO (JIS) 7 ビット標準コードを 8 ビット系に拡張したもので、
+X基本文字集合としての ASCII （JIS X 0201 ローマ文字）を G0 に指示し
+XGL に呼び出し、
+XJIS X 0201 カタカナを G1 に指示して GR に呼び出し、
+XJIS X 0208 および JIS X 0212 は G0 のマルチバイト集合として適切な
+Xエスケープシーケンスを用いて切り替えながら、
+X指示し GL に呼び出すコード系のことである。
+Xそのコードと日本語 EUC コードとの変換の留意事項は、
+X次の JIS X 0201 カタカナの変換に関するものを除いて、
+XISO (JIS) 7 ビット標準コードの場合と同じである。
+X.in \n(Si
+X.VL 40 5
+X.LI "(4-4)~JIS~X 0201 カタカナ"
+Xデフォルトとして G1 に指示され、GR に呼び出される
+X（\f4ESC 02/9 04/9\fP の発行を仮定）。
+Xただし、この制御シーケンスは、当事者同志の了解の下に省略されていると解釈される。
+X従って、JIS X 0201 カタカナは 1 バイトの 8 ビット文字として表わされる。
+X.LE
+X.in -\n(Si
+X.H 2 "シフト JIS コード（MS 漢字コード）"
+X現在のところ、シフト JIS コードにおける JIS X 0212 補助漢字集合の
+X業界として共通なコード割り当て（法）は未確定なので、
+X一般に JIS X 0212 を除いた部分のコード変換しか実現されないことに
+X注意が必要である。
+X.H 2 "コードの透過性と共通自由領域におけるユーザ／ベンダ定義文字について"
+X日本語 EUC 以外へのコードにコード変換された後の、
+XJIS 未定義領域の文字（ユーザ／ベンダ定義文字を含む）についての透過性は、
+X保証されていない。
+X.P
+Xただ、ユーザ／ベンダ定義文字のフォント情報は別として、
+Xコード変換において区点コードの対応関係が保存されることが望ましい。
+X.H 1 "自由領域について"
+X本書で定義した「共通自由領域」は、
+Xユーザ定義文字やベンダ定義文字を割り当てるために利用可能である。
+Xどの領域をどのように利用するかについては、本書では規定していない。
+X.P
+X未定義領域に関する JIS 規格の「解説」では、
+X標準が将来の拡張のために確保する
+X「保留領域（としての性格が強い領域）」と、
+X当事者間で一時的・局所的に割り当て可能な
+X「自由領域（としての性格が強い領域）」
+Xが定められている。
+XJIS 規格の解説は規格の一部ではないものの、
+X本書ではその意向に基づいて「共通自由領域」を定めた。
+Xこれは、将来の JIS 改定による文字追加と
+Xユーザ／ベンダ定義文字との衝突を最大限回避するためのものである。
+X.P
+X共通自由領域は、JIS 規格で区単位に未定義となっている領域の中から、
+X以下の基準で選択した。
+X.nr Pi 3
+X.DL
+X.LI
+X既にベンダ定義文字が割り当てられている可能性が大で、
+X新たに共通自由領域とすると混乱を招く領域を除く。
+X（JIS X 0208 の 9 区から 15 区）
+X.LI
+XJIS 規格の解説で、「自由領域」とされている領域を含む。
+X（JIS X 0208 および X 0212 の 85 区から 94 区）
+X.LI
+Xユーザ／ベンダ定義文字をできるだけ多く確保するために、
+X残りの未定義領域の中で、最大限連続している領域を含む。
+X（JIS X 0212 の 78 区から 84 区）
+X.LE
+X.nr Pi 0
+X.P
+Xなお、これらの領域の利用にあたっては、以下の方針を推奨する。
+X.nr Pi 3
+X.DL
+X.LI
+Xユーザ／ベンダ定義文字は、
+XJIS X 0208 および JIS X 0212 ともに、94 区から 85 区の順に使用する。
+X.LI
+XJIS X 0212 の「保留領域」（78 区から 84 区まで）の使用は、
+X他の「自由領域」を使いきった上で、
+Xさらにユーザ／ベンダ定義文字を利用したい場合に限る。
+X.LE
+X.nr Pi 2
+X.H 1 "フォントの取り扱いの問題"
+Xフォントの実装は、一般に文字コードと独立して、
+X端末、プリンタ等の表示・印刷装置、ないしは、
+Xそのサポート・サブシステムによって実現される。
+X本書は最新の JIS 規格を参照しているものの、
+X既存の（最新でない）多様な日本語表示・印刷装置の利用を排除しないために、
+Xフォントの実装（文字の見え方）については規定しない。
+X以下、本書で定義した日本語 EUC を
+X実際の表示・印刷装置に適応した場合の留意事項を述べる。
+X.LB \n(Li 0 0 3 1
+X.LI
+XJIS X 0212 のフォントを持たない装置では、JIS X 0212 の文字は
+X表示・印字されない。
+X.LI
+XJIS X 0208 には、厳密には、1978 年、1983 年、1990 年の 3 つの版があり、
+Xそれぞれに差がある。
+XJIS X 0208 の文字がどのように表示・印字されるかは、
+X装置に実装されたフォントに依存する。
+X.LI
+Xユーザ／ベンダ定義文字の表示・印字は定義の対象となった特定の装置に依存し、
+Xその他の装置での表示・印字は全く保証されない。
+X.LI
+X表示装置によって、ANS X3.4 と JIS X 0201 を区別しないか、
+Xあるいはどちらか一方のみを実装している場合もある。
+X.LE
+//GO.SYSIN DD UOJA-ja.mm2
+

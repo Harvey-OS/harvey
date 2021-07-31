@@ -1,0 +1,66 @@
+#!/bin/rc
+awk '
+function map(pin)
+{
+if (mapped) return(pinmap[pin]);
+else return(pin);
+}
+BEGIN	{ pin = 1; GROUND="g"; VOLTAGE="v"; printf(".t %s PGA%s\n", FILENAME, FILENAME); }
+	{ if ($1 == "!") {
+		if ($2 == "debug") debug = 1;
+		else
+		if ($2 == "holes") expand = 1;
+		else
+		if ($2 == "clip")
+			if ($3 == "g") GROUND="G";
+			else
+			if ($3 == "v") VOLTAGE="V";
+			else
+				print "pga: unknown clip signal"
+		else
+		if ($2 == "map") {
+			mapped = 1;
+			mapfile = $3;
+			while (getline < mapfile) {
+				pinmap[$1] = $2;
+			}
+		}
+		else
+		print "unknown ! mode:", $2;
+	}
+	else
+	if ($1 != "#") {
+		if ($1 == "--") {
+			if (expand) pin++;
+		}
+		else {
+			pinnumber = map(pin++);
+			if ($1 == "VCC") type[pinnumber] = VOLTAGE;
+			else
+			if ($1 == "GND") type[pinnumber] = GROUND;
+			else
+			if ($1 == "NC") type[pinnumber] = "n";
+			else
+			if ($1 == "VDD") type[pinnumber] = VOLTAGE;
+			else
+			if ($1 == "VSS") type[pinnumber] = GROUND;
+			else {
+			     if (NF > 1) type[pinnumber] = $2;
+			     else type[pinnumber] = "4";
+			     printf(".tp %s %d\n", $1, pinnumber);
+			}
+			if (pinnumber > max) max = pinnumber;
+			if (debug) printf("\tpin %d [%s]\n", pin-1, type[map(pin-1)]);
+		}
+	}
+	}
+END	{ printf(".tt ");
+	  for(i=1; i<=max; i++) {
+		if (type[i]) printf("%s", type[i]);
+		else
+		printf("n");
+		if ((i % 10) == 0) printf(" ");
+	  }
+	  printf("\n\n");
+	}
+' $*

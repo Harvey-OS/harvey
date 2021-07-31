@@ -1,0 +1,74 @@
+</$objtype/mkfile
+
+LIBS=fizz
+PROGS=LDE\
+	act\
+	cdmglob\
+	drawp\
+	espresso\
+	gerber\
+	gnet\
+	graw\
+	grawp\
+	jcc\
+	lde\
+	mkpins\
+	mw\
+	mwd\
+	npart\
+	part\
+	pck\
+	place\
+	pll\
+	quine\
+	rework\
+	rom\
+	smoke\
+	unisite\
+	xil\
+	xnf\
+	xpal\
+	xpart\
+	xy\
+
+DIRS=$LIBS $PROGS		# libs must be made first
+
+
+none:Q:
+	echo usage: mk entry
+
+all:V:
+	for(dir in $DIRS) @{
+		cd $dir
+		echo --- $dir ---
+		mk all
+	}
+
+install:V:
+	for(i in $DIRS) @{
+		cd $i
+		echo --- $i ---
+		mk all
+	}
+
+installall:V:
+	for(i in $DIRS) @{
+		cd $i
+		echo --- $i ---
+		mk installall
+	}
+	mk clean
+
+clean:V:
+	for(i in $DIRS) @{
+		cd $i
+		echo clean --- $i ---
+		mk clean
+	}
+
+nuke:V:
+	for(i in $DIRS) @{
+		cd $i
+		echo nuke --- $i ---
+		mk nuke
+	}

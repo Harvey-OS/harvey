@@ -1,0 +1,18 @@
+</$objtype/mkfile
+
+TARG=\
+	kana\
+	kwindow\
+
+OBJ=\
+	ikana.$O\
+	maps.$O\
+	event.$O\
+
+HFILES=ikana.h\
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkmany
+
+$O.kana:	$OBJ
+	$LD -o $target $prereq

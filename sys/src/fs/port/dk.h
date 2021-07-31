@@ -226,6 +226,7 @@ struct	Dk
 	Filter	orate;		/* aggrigate bytes */
 	Rendez	rren;		/* receiver non-empty */
 	Rendez	xren;		/* xmitter half-full */
+	Rendez	dkto;		/* timer */
 	Queue*	reply;		/* return from file system server, gets Msgbuf* */
 	Queue*	local;		/* server of dk special channels */
 	Queue*	poke;		/* output to dk device, gets Chan* */

@@ -330,7 +330,4 @@ char	*anames[] =
 	"FYL2X",
 	"FYL2XP1",
 	"END",
-	"DYNT",
-	"INIT",
-	"LAST",
 };

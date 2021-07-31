@@ -1,0 +1,377 @@
+LAST MODIFICATION TO THESE INSTRUCTIONS WAS ON 20 September 1988
+
+Here are instructions for generating LaTeX at a different site.  Unless
+otherwise specified, all files are obtained from the same source from
+which you obtained this file.  For clarity, in this document file names
+appear in UPPER-CASE letters.  However, for systems that distinguish
+case in file names, all file names should be lower case.
+
+
+CONTENTS OF THIS FILE:
+
+   O. News
+   I. What Files You Need
+  II. Generating an Executable LaTeX File
+ III. Customizing LaTeX for Your Site
+      A. Generating the Local Guide
+      B. SMALL.TEX and LOCAL.GID
+      C. Other Modifications
+  IV. SLiTeX
+   V. BibTeX and MakeIndex
+  VI. Keeping in Touch
+ VII. FTPing Files
+VIII. What to do with Old Versions of the Manual 
+
+
+0. NEWS
+   ----
+
+The file LATEX.DIF has been added to the distribution.  This is file
+contains the results of running the Unix diff program to compare
+successive versions of important files, such as LATEX.TEX.  It allows
+sites to update to new releases without having to obtain complete copies
+of the new files.
+
+
+I. WHAT FILES YOU NEED
+   -------------------
+
+The beginning of the file LATEX.BUG lists all the files that you should
+have, along with their creation dates.  Each file contains its creation
+date in a comment somewhere near the beginning of the file.  Make sure
+you have all these files, and that the dates of the file corresponds to
+the dates given in LATEX.BUG. 
+
+Note: Do not depend upon the creation date of the file given by the
+operating system.  This is likely to be later than the one in the file
+for two reasons: (1) copying the file can cause the copy to have 
+as its creation date the date the copy was made, and (2) cosmetic
+changes to a file are sometimes made without changing its date.
+
+The files on the standard distribution tape should all have the correct
+dates.  However, a common source of errors is for an old version of a
+file to appear in the system directory in place of the current one.
+
+
+
+II. GENERATING AN EXECUTABLE LaTeX FILE
+    ------------------------------------
+
+After obtaining the LaTeX files, you must create an executable LaTeX
+file and put it on a system directory so it can be run by your users.
+You need the following files .TEX files:
+
+     LPLAIN.TEX
+     LATEX.TEX
+     LFONTS.TEX
+
+plus standard TeX files called by the PLAIN package, like HYPHEN.TEX.
+
+LaTeX uses the following special fonts in addition to the normal CMR
+family:
+  LASY10 LASY9 ... LASY5  (for special symbols)
+  LINE10 LINEW10          (for slanted lines)
+  CIRCLE10 CIRCLEW10      (for circles)
+Characters may be added to the LASY font family from time to time.
+
+Pixel files for these fonts are available from the standard TeX
+sources.  Currently, they can be generated only with the old metafont.
+To do this, you'll need the .MF files for all of these -- i.e.,
+LASY10.MF, ...  , CIRCLEW10.MF -- plus the following .MF files called
+by them:
+   LASY.MF
+   LINE.MF
+   CIRCLE.MF
+
+Note: Because the Imagen MAKIMP program for TOPS-20 doesn't do things
+in the approved fashion, the standard LINE10 and CIRCLE10 fonts don't
+work right with it.  (Fonts that work right for the Imagen on the
+TOPS-20 can be created from the files TLINE10.MF and TCIRCLE10.MF on
+the <NEWMETAFONT> directory at SRI-AI.  When using them, you should also
+\input the file <TEX82>SRI.TEX when running INITEX to create a new
+version of LaTeX. [See below.]) Other device drivers may have similar
+problems.
+
+The file LFONTS.TEX contains all the LaTeX code that involves font
+loading.  This file loads the new CMR fonts.  The file LFONTS.AMR
+is a version of LFONTS.TEX that loads the old AMR fonts.
+
+Some fonts are preloaded, others get loaded when the user
+first requests them.  The comments at the beginning of LFONTS.TEX
+explain how this works.  The section of LFONTS.TEX that preloads the
+fonts mentions all the fonts that LaTeX currently loads or might load,
+the latter having the \font commands commented out.  However, the
+current LFONTS and .STY files don't need all those files.  The best way
+to see what fonts are required is to run input files that try to use
+all type styles in all sizes.  (You probably can't do this with a
+single input file because you'll run TeX out of font space.) The file
+TRYFONTS.TEX can be used for this purpose.  Just run it through LaTeX
+and follow directions.  You may want to change the exact set of
+typestyles provided to the user at the various sizes.
+
+You create LaTeX just as you would an ordinary version of TeX,
+except you must load LPLAIN instead of PLAIN.  (TeX sometimes
+uses PLAIN as a default if nothing else is specified, and you may
+have a version of TeX with PLAIN already loaded, which should
+not be used.)  
+
+You may have to enlarge the limits in the standard distribution
+version of TeX to produce an executable LaTeX file.  The appropriate
+parameters are the ones used to produce the SU-Score version of TeX.
+
+Here is how to create LaTeX on some operating systems.
+
+
+TOPS-20 
+
+The following sequence of commands is used on the TOPS-20 system at
+SRI-AI. It shows prompts as well as what you type, with comments at the
+right, in parentheses.
+
+    @INITEX lplain
+    *\input sri           (Loads local modifications. See below.)       
+    *\dump
+    @VIRTEX &lplain
+    *^C
+    @SAVE latex 0 37777
+
+This will produce a version that can be called by @LATEX .  
+You'll have to define TEXSPOOL: and other devices just as for TeX.
+
+
+ULTRIX/UNIX
+
+The following sequence of commands works on Ultrix at SRC, with the
+version of TeX produced on the Pastel compiler.  Since Ultrix and Unix
+are similar, it may work on Unix also.  Some path file names will
+obviously have to be changed.  The system prompt is shown as `%', and
+`*' indicates TeX's prompt.  Comments are in parentheses at the right.
+
+  %initex lplain
+  *\input src          (Loads local modifications.  See below.)
+  *\dump
+
+  %virtex \&lplain
+  * control-\         (This is a single control character.)
+
+  %undump  latex  /usr/local/bin/virtex  core
+
+For the pc Pascal compiler, and for TeX compiled with the WEB-to-C
+system on Unix machines, the two lines beginning with
+`%virtex \&lplain' should be replaced by the following:
+
+        % virtex '&lplain' xyxyxy        
+
+(This will produce the responses)
+
+        This is TeX, Version 2.9 for Berkeley UNIX (no format preloaded)
+        ! I can't find file `xyxyxy.tex'.
+        <*> &lplain xyxyxy 
+  
+        Please type another input file name: ^\
+
+Notice that the pseudo-file-name "xyxyxy" can be any nonsense character string
+you choose, so long as you are sure that no file named xyxyxy.tex is 
+accessible.
+The "^\" character represents the Unix "Quit" character (usually control-\) 
+which makes a core file (if you are running in a directory in which you have
+write privileges).  Follow this with undump, as noted above.
+
+The TEXINPUTS environment variable tells LaTeX where to find input
+files.
+
+
+
+Vax-VMS
+
+Andy Hanson at SRI reports that the following sequence of VMS and TeX
+commands generates an executable LaTeX file on VMS. Before typing the
+`\dump' command, you may want to \input a file with local
+modifications.
+
+  $ set command virtex
+  $ initex
+  **lplain
+  *\dump
+  $ virtex
+  **&lplain
+  *\stop
+  *save latex
+
+
+
+
+III. CUSTOMIZING LaTeX FOR YOUR SITE
+     -------------------------------
+
+The installer of LaTeX cannot just copy the files and generate an
+executable versions.  There are certain other things that must be done
+to make sure that your site conforms to the description in the 
+LaTeX manual.
+
+
+A. Generating the Local Guide
+   --------------------------
+
+The LaTeX manual has been published by Addison-Wesley, and is now
+available in book stores.  It refers to a Local Guide that describes
+how to use LaTeX at the user's site.  You are responsible for
+generating the Local Guide at your site.  First, run the file LOCAL.TEX
+through LaTeX. (The file has cross-references, so you must run it
+through twice.) This produces a version of the Local Guide for some
+site other than your own.  You must modify LOCAL.TEX to create the
+local guide for your site.
+
+
+B. SMALL.TEX and LOCAL.GID
+   -----------------------
+
+The file SMALL.TEX is a short introduction to LaTeX, and is meant to be
+read on-line with a text editor.  It refers to a file LOCAL.GID that
+contains brief instructions for running LaTeX at your site.  You must
+modify SMALL.TEX so it correctly tells the user where to find 
+LOCAL.GID.  You must modify LOCAL.GID for your site.  LOCAL.GID is
+mean to be read on-line, so it should fit on a single terminal 
+screen.
+
+
+C.  Other Modifications
+    -------------------
+
+You may need to make some local modifications for your site.
+These are best done by making a .TEX file with commands that 
+are \input when you generate LaTeX.
+
+The margin settings on all the document styles are made under the
+assumption that a point that TeX thinks is in the upper left-hand
+corner of the output page is printed by the device driver at a point
+one inch from both the top and left sides of the paper.  Many output
+devices don't conform to this convention.  They may also magnify or
+reduce the output in one or more dimensions.  If your output device
+deviates from the this convention, you should make the appropriate
+correction by adding commands to set \hoffset and \voffset to your file
+of local modifications.  Running LaTeX on the input TESTPAGE.TEX will
+generate a test page for checking what your output device really
+prints.
+
+You may also have to adjust the settings of \marginparwidth, which
+controls the width of marginal notes, in the document style files.  The
+current values are chosen to get the largest marginal notes that the
+Imagen printer will fit on the page.  However, your printer may be able
+to fit more or less text on a line.
+
+You'll have to modify the macros in LETTER.STY to produce the letter
+document style appropriate for your installation.  However, if you
+significantly change the functionality, give the document style a
+different name.
+
+Do not make any changes to the standard document styles other than the
+ones described above.  The manual describes what happens when you run
+SAMPLE.TEX with these document styles, and the user expects the same
+thing to happen when run at your site.  The creation of new document
+styles is encouraged, but they should be given new names.  If you
+design a new style or style option that is generally useful, it can be
+added to the LaTeX distribution.  LaTeX input files can be sent
+electronically, and provide an excellent way of transmitting documents
+electronically.  (.DVI files are not as portable because different
+sites may have different fonts.)  If LaTeX is to be useable for document
+exchange, the standard document styles must be standard.
+
+
+
+IV. SLiTeX
+    ------
+
+To generate SLiTeX, you need the following .TEX files:
+      SPLAIN.TEX
+      SLITEX.TEX
+      SFONTS.TEX
+SPLAIN and SFONTS are the analogs of LPLAIN and LFONTS. You generate
+SLiTeX by INITEX'ing SPLAIN instead of LPLAIN. SFONTS describes the
+fonts that are needed.  There are three nonstandard visible fonts that
+are used by SLiTeX: AMSSS8, AMSSSI8 and AMSSSB8.  The first two are
+almost identical to AMSSQ8 and AMSSQI8, differing only in that the
+uppercase `I' has crossbars in the AMSSS* fonts.  AMSSSB8 is a bold
+version of AMSSS8.  For every visible font, SLiTeX also uses a
+corresponding invisible font---one that has the identical .TFM
+information but prints nothing.  Its name is obtained by adding an `I'
+to the beginning of the corresponding visible font's name.  You need
+the invisible fonts to make color slides and to implement the
+\invisible command.
+
+By now, these slide fonts should be on the standard distribution tape.
+If they aren't, you should find some reasonable substitutes and modify
+SFONTS.TEX accordingly.  If you don't have the invisible fonts, you'll
+have to warn your users (in the Local Guide) that they can't make color
+slides or use the \invisible command.  The names of the fonts called in
+SFONTS.TEX might differ from the names of the actual fonts that appear
+on the distribution tape.  The necessary changes to SFONTS.TEX should
+be obvious.
+
+
+V.  BibTeX and MakeIndex
+    --------------------
+
+The BibTeX program is not part of the LaTeX file set.  Problems with
+BibTeX should be addressed to Oren Patashnik, whose Internet address
+is patashnik@score.stanford.edu.  
+
+MakeIndex is a C program written by Peehong Chen at Berekeley.
+Instructions for using it with LaTeX are contained in the file
+MAKEINDEX.TEX; its use depends upon the MAKEIDX document style that is
+part of the LaTeX distribution.  However, the MakeIndex program itself
+is not part of the LaTeX or TeX distribution, since it is not written
+in Web.
+
+
+VI.  KEEPING IN TOUCH
+     ----------------
+
+Known bugs in LaTeX and in the standard document styles are listed in
+LATEX.BUG.  This file also lists the date all relevant files have been
+changed.  You should check LATEX.BUG from time to time.  I don't expect
+LaTeX bugs to be too common, but they will be fixed as they are reported.
+
+Errata and omissions to the manual are described in ADDENDUM.TEX,
+which is \input by LOCAL.TEX.  Please send any new ones that you 
+find to me electronically at my Internet address
+      lamport@src.DEC.COM    
+or my my mailing address
+      Digital Equipment Corporation
+      130 Lytton Avenue
+      Palo Alto, CA 94301
+
+I will, of course, fix all bugs that I am told about.  There should be
+someone at each site to whom users report bugs; he or she should make
+sure that they are bugs before forwarding them to me.  (In particular,
+Section C.8.1 should be read carefully before reporting bugs in
+LaTeX's figure placement algorithm.)   
+
+
+
+VII. FTPing FILES
+     ------------
+
+If you've gotten this file by FTP over a network, then you know how to
+FTP files from here to there.  It's not likely that you'll be FTPing
+files while they're being updated, but the following algorithm
+eliminates this possibility:
+
+    1. FTP the LATEX.BUG file first.
+    2. Check that the creation date of every other file you FTP
+       is the same as the date given for it at the head of LATEX.BUG.
+       If the date on LATEX.BUG is earlier, then I'm currently updating
+       the file.  If the date on LATEX.BUG is later, then something
+       is fouled up and you should send me a message.  
+
+Meanwhile, the maintainer of the version being FTP'ed should change the
+file LATEX.BUG only after changing all other files.  [See
+Communications of the ACM, Vol 20, No. 11 (Nov. 1977) pages 806-811
+for a proof of correctness for this algorithm.]
+
+
+
+VIII.  WHAT TO DO WITH OLD VERSIONS OF THE MANUAL 
+      ------------------------------------------
+
+Destroy them.

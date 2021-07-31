@@ -17,25 +17,16 @@ getl(uchar *p)	/* return next line of input, throw away trailing '\n' */
 }
 
 void
-printerr(char *type, char *fmt, va_list argl)
-{
-	char buf[1024];
-
-	if(!eof)fprint(errorf,"%d: ",yyline);
-	fprint(errorf,"(%s) ", type);
-	doprint(buf, buf+sizeof(buf), fmt, argl);
-	fprint(errorf, "%s\n", buf);
-}
-
-
-void
 error(char *s,...)
 {
 	va_list argl;
 
 	va_start(argl, s);
-	printerr("Error", s, argl);
+	if(!eof)fprintf(errorf,"%d: ",yyline);
+	fprintf(errorf,"(Error) ");
+	vfprintf(errorf,s,argl);
 	va_end(argl);
+	putc('\n',errorf);
 # ifdef DEBUG
 	if(debug && sect != ENDSECTION) {
 		sect1dump();
@@ -56,25 +47,24 @@ warning(char *s,...)
 	va_list argl;
 
 	va_start(argl, s);
-	printerr("Warning", s, argl);
-	va_end(argl);
-	Bflush(&fout);
+	if(!eof)fprintf(errorf,"%d: ",yyline);
+	fprintf(errorf,"(Warning) ");
+	fprintf(errorf,s,argl);
+	putc('\n',errorf);
+	fflush(errorf);
+	fflush(fout);
+	fflush(stdout);
 }
 
 void
 lgate(void)
 {
-	int fd;
-
 	if (lgatflg) return;
 	lgatflg=1;
-	if(foutopen == 0){
-		fd = create("lex.yy.c", OWRITE, 0666);
-		if(fd < 0)
-			error("Can't open lex.yy.c");
-		Binit(&fout, fd, OWRITE);
-		foutopen = 1;
+	if(fout == NULL){
+		fout = fopen("lex.yy.c", "w");
 		}
+	if(fout == NULL) error("Can't open lex.yy.c");
 	phead1();
 }
 
@@ -177,7 +167,6 @@ cpyact(void)
 
 	brac = 0;
 	sw = TRUE;
-	savline = 0;
 
 while(!eof){
 	c = gch();
@@ -192,8 +181,8 @@ case '|':	if(brac == 0 && sw == TRUE){
 
 case ';':
 		if( brac == 0 ){
-			Bputc(&fout, c);
-			Bputc(&fout, '\n');
+			putc(c,fout);
+			putc('\n',fout);
 			return(1);
 		}
 		break;
@@ -206,27 +195,27 @@ case '{':
 case '}':
 		brac--;
 		if( brac == 0 ){
-			Bputc(&fout, c);
-			Bputc(&fout, '\n');
+			putc(c,fout);
+			putc('\n',fout);
 			return(1);
 		}
 		break;
 
 case '/':	/* look for comments */
-		Bputc(&fout, c);
+		putc(c,fout);
 		c = gch();
 		if( c != '*' ) goto swt;
 
 		/* it really is a comment */
 
-		Bputc(&fout, c);
+		putc(c,fout);
 		savline=yyline;
 		while( c=gch() ){
 			if( c=='*' ){
-				Bputc(&fout, c);
+				putc(c,fout);
 				if( (c=gch()) == '/' ) goto loop;
 			}
-			Bputc(&fout, c);
+			putc(c,fout);
 		}
 		yyline=savline;
 		error( "EOF inside comment" );
@@ -240,14 +229,14 @@ case '"':	/* character string */
 
 	string:
 
-		Bputc(&fout, c);
+		putc(c,fout);
 		while( c=gch() ){
 			if( c=='\\' ){
-				Bputc(&fout, c);
+				putc(c,fout);
 				c=gch();
 			}
 			else if( c==mth ) goto loop;
-			Bputc(&fout, c);
+			putc(c,fout);
 			if (c == '\n') {
 				yyline--;
 				error( "Non-terminated string or character constant");
@@ -263,10 +252,9 @@ default:
 		}
 loop:
 	if(c != ' ' && c != '\t' && c != '\n') sw = FALSE;
-	Bputc(&fout, c);
+	putc(c,fout);
 	}
-	error("Premature EOF");
-	return(0);
+error("Premature EOF");
 }
 
 int
@@ -274,19 +262,19 @@ gch(void){
 	int c;
 	prev = pres;
 	c = pres = peek;
-	peek = pushptr > pushc ? *--pushptr : Bgetc(fin);
-	if(peek == Beof && sargc > 1){
-		Bterm(fin);
-		fin = Bopen(sargv[fptr++],OREAD);
-		if(fin == 0)
+	peek = pushptr > pushc ? *--pushptr : getc(fin);
+	if(peek == EOF && sargc > 1){
+		fclose(fin);
+		fin = fopen(sargv[fptr++],"r");
+		if(fin == NULL)
 			error("Cannot open file %s",sargv[fptr-1]);
-		peek = Bgetc(fin);
+		peek = getc(fin);
 		sargc--;
 		sargv++;
 	}
-	if(c == Beof) {
+	if(c == EOF) {
 		eof = TRUE;
-		Bterm(fin);
+		fclose(fin);
 		return(0);
 	}
 	if(c == '\n')yyline++;
@@ -443,30 +431,30 @@ allprint(int c)
 {
 	switch(c){
 		case 014:
-			print("\\f");
+			printf("\\f");
 			charc++;
 			break;
 		case '\n':
-			print("\\n");
+			printf("\\n");
 			charc++;
 			break;
 		case '\t':
-			print("\\t");
+			printf("\\t");
 			charc++;
 			break;
 		case '\b':
-			print("\\b");
+			printf("\\b");
 			charc++;
 			break;
 		case ' ':
-			print("\\\bb");
+			printf("\\\bb");
 			break;
 		default:
 			if(!isprint(c)){
-				print("\\%-3o",c);
+				printf("\\%-3o",c);
 				charc += 3;
 			} else 
-				print("%c", c);
+				putchar(c);
 			break;
 	}
 	charc++;
@@ -480,7 +468,7 @@ strpt(uchar *s)
 		allprint(*s++);
 		if(charc > LINESIZE){
 			charc = 0;
-			print("\n\t");
+			printf("\n\t");
 		}
 	}
 }
@@ -490,25 +478,25 @@ sect1dump(void)
 {
 	int i;
 
-	print("Sect 1:\n");
+	printf("Sect 1:\n");
 	if(def[0]){
-		print("str	trans\n");
+		printf("str	trans\n");
 		i = -1;
 		while(def[++i])
-			print("%s\t%s\n",def[i],subs[i]);
+			printf("%s\t%s\n",def[i],subs[i]);
 	}
 	if(sname[0]){
-		print("start names\n");
+		printf("start names\n");
 		i = -1;
 		while(sname[++i])
-			print("%s\n",sname[i]);
+			printf("%s\n",sname[i]);
 	}
 }
 
 void
 sect2dump(void)
 {
-	print("Sect 2:\n");
+	printf("Sect 2:\n");
 	treedump();
 }
 
@@ -517,75 +505,75 @@ treedump(void)
 {
 	int t;
 	uchar *p;
-	print("treedump %d nodes:\n",tptr);
+	printf("treedump %d nodes:\n",tptr);
 	for(t=0;t<tptr;t++){
-		print("%4d ",t);
-		parent[t] ? print("p=%4d",parent[t]) : print("      ");
-		print("  ");
+		printf("%4d ",t);
+		parent[t] ? printf("p=%4d",parent[t]) : printf("      ");
+		printf("  ");
 		if(name[t] < NCH)
 				allprint(name[t]);
 		else switch(name[t]){
 			case RSTR:
-				print("%d ",left[t]);
+				printf("%d ",left[t]);
 				allprint(right[t]);
 				break;
 			case RCCL:
-				print("ccl ");
+				printf("ccl ");
 				strpt(left[t]);
 				break;
 			case RNCCL:
-				print("nccl ");
+				printf("nccl ");
 				strpt(left[t]);
 				break;
 			case DIV:
-				print("/ %d %d",left[t],right[t]);
+				printf("/ %d %d",left[t],right[t]);
 				break;
 			case BAR:
-				print("| %d %d",left[t],right[t]);
+				printf("| %d %d",left[t],right[t]);
 				break;
 			case RCAT:
-				print("cat %d %d",left[t],right[t]);
+				printf("cat %d %d",left[t],right[t]);
 				break;
 			case PLUS:
-				print("+ %d",left[t]);
+				printf("+ %d",left[t]);
 				break;
 			case STAR:
-				print("* %d",left[t]);
+				printf("* %d",left[t]);
 				break;
 			case CARAT:
-				print("^ %d",left[t]);
+				printf("^ %d",left[t]);
 				break;
 			case QUEST:
-				print("? %d",left[t]);
+				printf("? %d",left[t]);
 				break;
 			case RNULLS:
-				print("nullstring");
+				printf("nullstring");
 				break;
 			case FINAL:
-				print("final %d",left[t]);
+				printf("final %d",left[t]);
 				break;
 			case S1FINAL:
-				print("s1final %d",left[t]);	
+				printf("s1final %d",left[t]);	
 				break;
 			case S2FINAL:
-				print("s2final %d",left[t]);
+				printf("s2final %d",left[t]);
 				break;
 			case RNEWE:
-				print("new %d %d",left[t],right[t]);
+				printf("new %d %d",left[t],right[t]);
 				break;
 			case RSCON:
 				p = (uchar *)right[t];
-				print("start %s",sname[*p++-1]);
+				printf("start %s",sname[*p++-1]);
 				while(*p)
-					print(", %s",sname[*p++-1]);
-				print(" %d",left[t]);
+					printf(", %s",sname[*p++-1]);
+				printf(" %d",left[t]);
 				break;
 			default:
-				print("unknown %d %d %d",name[t],left[t],right[t]);
+				printf("unknown %d %d %d",name[t],left[t],right[t]);
 				break;
 		}
-		if(nullstr[t])print("\t(null poss.)");
-		print("\n");
+		if(nullstr[t])printf("\t(null poss.)");
+		putchar('\n');
 	}
 }
 # endif

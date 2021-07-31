@@ -1,0 +1,2 @@
+#!/bin/rc
+/bin/broke | rc >[2] /dev/null > /dev/null

@@ -1,12 +1,12 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 Subfont*
 subfalloc(int n, int height, int ascent, Fontchar *info, Bitmap *b, uint q1, uint q2)
 {
 	int id, i;
 	Subfont *f;
-	byte *buf, *p, xbuf[3];
+	char *buf, *p, xbuf[3];
 
 	bneed(0);	/* flush so we can get allocs right */
 	buf = bneed(15+6*(n+1));
@@ -57,7 +57,7 @@ subfalloc(int n, int height, int ascent, Fontchar *info, Bitmap *b, uint q1, uin
 void
 subffree(Subfont *f)
 {
-	byte *buf;
+	char *buf;
 
 	buf = bneed(3);
 	buf[0] = 'g';

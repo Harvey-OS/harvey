@@ -1,0 +1,1898 @@
+% Bugs (sigh) in Computers \& Typesetting
+
+\input manmac
+\font\sltt=cmsltt10
+\font\niness=cmss9
+\font\ninessi=cmssi9
+\proofmodefalse
+\raggedbottom
+\output{\hsize=29pc \onepageout{\unvbox255\kern-\dimen@ \vfil}}
+
+\def\cutpar{{\parfillskip=0pt\par}}
+
+\def\rhead{Bugs in {\tensl Computers \& Typesetting}}
+\def\bugonpage#1(#2) \par{\bigbreak\tenpoint
+  \hrule width\hsize
+  \line{\lower3.5pt\vbox to13pt{}Page #1\hfil(#2)}\hrule width\hsize
+  \nobreak\medskip}
+\def\buginvol#1(#2) \par{\bigbreak\penalty-1000\tenpoint
+  \hrule width\hsize
+  \line{\lower3.5pt\vbox to13pt{}Volume #1\hfil(#2)}\hrule width\hsize
+  \nobreak\medskip}
+\def\slMF{{\manual 89:;}\-{\manual <=>:}} % slant the logo
+\def\0{\raise.7ex\hbox{$\scriptstyle\#$}}
+\newcount\nn
+\newdimen\nsize \newdimen\msize \newdimen\ninept \ninept=9pt
+\newbox\eqbox \setbox\eqbox=\hbox{\kern2pt\eightrm=\kern2pt}
+
+\noindent This is a list of all corrections made to {\sl Computers \&
+Typesetting}, Volumes A--E\null, between the date of publication
+(May, 1986) and 15~June 1987.
+It also includes corrections made to
+the softcover version of {\sl The \TeX book}, beginning with the
+sixth printing (January 1986); these are the same as corrections to
+Volume~A\null. Corrections to the softcover version of {\sl The
+\slMF\kern1ptbook\/} are the same as corrections to Volume~C\null.
+% volume A
+\bugonpage A7, fourth line from the bottom (6/28/86)
+
+\tenpoint\line{%
+since control sequences of the second kind always have exactly one
+symbol after}
+
+\bugonpage A35, second-last line (1/31/87)
+
+\rightline{\eightssi He may run who reads.}
+\smallskip
+\rightline{\eightss--- HABAKKUK 2\thinspace:\thinspace2 (c.~600 B.C.)}
+\smallskip
+\rightline{\eightssi He that runs may read.}
+
+\bugonpage A43, lines 8--9 (8/23/86)
+
+\tenpoint\noindent
+of Appendix B\null, which defines |%| to be a special kind of symbol so that you
+can use it for comments, defines the control sequence |\%| to mean
+a percent sign.
+
+\bugonpage A45, lines 10--13 (8/23/86)
+
+\ninepoint\noindent
+\TeX\ adds~64. Hence
+code 127 can be typed |^^?|, and
+the dangerous bend sign can be obtained by saying
+|{\manual^^?}|. However, you must change the category code of character
+127 before using it, since this character ordinarily has category~15
+(^{invalid}); say, e.g., |\catcode`\^^?=12|.
+The |^^| notation is different from |\char|, because |^^|\cutpar
+
+\bugonpage A76, line 7 (8/23/86)
+
+\ninepoint
+\noindent
+and extra space; for example, these quantities are
+$3.33333\pt$, $1.66666\pt$, $1.11111\pt$,\cutpar
+
+\bugonpage A83, bottom line (5/19/87)
+
+\tenpoint\noindent[This line should be flush right.]
+
+\bugonpage A111, 7th-last line, right-hand column (2/15/87)
+
+\ninepoint
+if $b=10000$ and $-10000<p<10000$ and $q<10000$;
+
+\bugonpage A117, second-last line (6/10/87)
+
+\eightpoint
+marks; sometimes also |$\|\||$| ($\Vert$).
+You can say, e.g., `|\footnote\dag{...}|'.
+
+\bugonpage A124, lines 6--11 (2/26/87)
+
+\begingroup \def\n{\thinspace$n$}
+\ninepoint\noindent
+of insertion; an additional `|\penalty-10000|' item is assumed
+to be present at the end of the vertical list, to ensure that a legal
+breakpoint exists.) \ Let $u$ be the natural height plus depth of that
+least-cost box, and let $r$ be the penalty associated with the optimum
+breakpoint.  Decrease $g$ by~$uf$, and increase $q$ by~$r$. \ (If
+|\tracingpages||=1|, the log file should now get a cryptic message that says
+`|% split|\n\ |to| $v$|,|$u$ |p=|$r$'. For~example,
+\begintt
+% split254 to 180.2,175.3 p=100
+\endtt
+\endgroup
+
+\bugonpage A158, lines 6--8 (2/20/87)
+
+\ninepoint\noindent the
+second atom, which has subscript~$i$; the superscripts are empty except for the
+last atom, whose superscript is~$\overline{n+1}$. This superscript is
+itself a math list consisting of one atom, whose nucleus is~$n+1$; and that
+nucleus is a math list consisting of three atoms.
+
+\bugonpage A171, line 20 (1/26/86)
+
+\ninepoint\line{%
+will be surrounded by more space than there would be
+if that subformula were enclosed}
+
+\bugonpage A176, line 1 (8/23/86)
+
+\ninepoint
+You can insert `|\noalign||{|$\langle$vertical mode
+material$\rangle$|}|' just after any \kern-1pt|\cr| within\cutpar
+
+\bugonpage A248, line 17 (6/17/86)
+
+\ninepoint
+`|&|' or `|\span|' or `|\cr|', it needs some way to decide which
+alignment is involved.\cutpar
+
+\bugonpage A249, line 20 (6/17/86)
+
+\ninepoint\noindent
+line (see Chapter~8).
+If you don't want a~|\cr| at the end of a certain line,
+just type\cutpar
+
+\bugonpage A276, line 19 (1/27/86)
+
+\ninepoint\vskip-3pt
+\beginsyntax
+  \alt^|\font|<control sequence><equals><file name><at clause>
+  \alt<global assignment>
+\endsyntax
+[The bottom line of p.~276 will now move to the top of p.~277.]
+
+\bugonpage A277, lines 31--32 (1/27/86)
+
+\ninepoint
+\beginsyntax
+<font assignment>\is^|\fontdimen|<number><font><equals><dimen>
+\endsyntax
+
+\bugonpage A286, sixth-last line (4/28/87)
+
+\ninepoint\noindent
+|\sfcode| table as described in Chapter~12; characters numbered 128
+to~255 set the\cutpar
+
+\bugonpage A287, line 19 (2/15/87)
+
+\ninepoint
+\textindent{$\bull$}|\-|.\enskip
+This ``discretionary hyphen'' command is defined in Appendix H.
+
+\bugonpage A292, lines 9--10 (2/15/87)
+
+\ninepoint
+\textindent{$\bull$}|\-|.\enskip
+This command is usually equivalent to `|\discretionary{-}{}{}|'; the `|-|' is
+therefore interpreted as a ^{hyphen}, not as a minus sign.
+\ (See Appendix~H.)
+
+\bugonpage A308, lines 25--26 (6/1/87)
+
+\ninepoint\indent
+|\def\appendroman#1#2#3{\edef#1{\csname|\parbreak
+|      \expandafter\gobble\string#2\romannumeral#3\endcsname}}|
+
+\bugonpage A312, lines 10--14 (8/23/86)
+
+\ninepoint
+\ansno12.11: The interline glue will be zero, and the natural height is
+$1+1-3+2=1\pt$ (because the depth of\/ |\box2| isn't included in the natural
+height); so the glue will ultimately become |\vskip-1pt| when it's set.
+Thus, |\box3| is $3\pt$ high, $2\pt$ deep, $4\pt$ wide. Its reference
+point coincides with that of\/ |\box2|; to get to the reference point
+of\/ |\box1| you go up $2\pt$ and right $3\pt$.
+
+\bugonpage A312, line 21 (8/23/86)
+
+\ninepoint\noindent
+up $4\pt$ to get to the upper left corner of
+|\box4|; then down $-1.6\pt$, i.e., up $1.6\pt$, to\cutpar
+
+\bugonpage A319, line 20 (31/3/87)
+
+\ninepoint\noindent
+make ordinary periods act like |\cdot| symbols: Just define
+|\mathcode`.| to be |"0201|,\cutpar
+
+\bugonpage A328, lines 18--19 (5/14/87)
+
+\ninepoint\noindent
+not performed
+while the expansion is taking place, and the control sequences following
+|\def| are expanded; so the result is an infinite string
+\begintt
+A\def A\def A\def A\def A\def A\def A\def A\def A...
+\endtt
+
+\bugonpage A329, lines 14--15 (8/23/86)
+
+\ninepoint
+\ansno20.5: The |##| feature is indispensable when the replacement text of
+a definition contains other definitions. For example, consider
+
+\bugonpage A356, lines 6--7 (1/30/87)
+
+\ninepoint\noindent
+|  \spaceskip=.3333em \xspaceskip=.5em\relax}|\hfil\break
+|\def\ttraggedright{\tt\rightskip=0pt plus2em\relax}|
+
+\bugonpage A356, line 33 (6/1/87)
+
+\ninepoint\noindent
+|    \vbox to.2ex{\hbox{\char'26}\vss}\hidewidth}}|
+
+\bugonpage A357, tenth-last line (10/13/86)
+
+\ninepoint\noindent
+|\let\sp=^ \let\sb=_        {\catcode`\_=\active \global\let_=\_}|
+
+\bugonpage A357, third-last and second-last lines (2/17/87)
+
+\ninepoint\noindent
+|\def\pr@m@s{\ifx'\next\let\nxt\pr@@@s \else\ifx^\next\let\nxt\pr@@@t|%
+\hfil\break\strut
+|  \else\let\nxt\egroup\fi\fi \nxt}|
+
+\bugonpage A364, fifth-last line (1/30/87)
+
+\ninepoint\noindent
+|\def\fmtname{plain}\def\fmtversion{2.3} % identifies the current format|
+
+\bugonpage A368, bottom line (2/26/86)
+
+\ninepoint
+\line{that includes the symbols
+{\tentex\char'30},~{\tentex\char1}, {\tentex\char'32}, {\tentex\char'34},
+and~{\tentex\char'35}, and he finds that this makes it much more}
+
+\bugonpage A396, line 13 (8/23/86)
+
+\ninepoint
+|  \hyphenpenalty=10000 \exhyphenpenalty=10000|
+
+\bugonpage A414, line 10 (3/4/86)
+
+\ninepoint\noindent
+|\font\titlefont=cmssdc10 at 40pt   % titles in chapter openings|
+
+\bugonpage A427, line 7 (2/23/86)
+
+\ninepoint\noindent
+the author's book
+{\sl Computer Modern Typefaces}.)
+
+\bugonpage A428, lines 18--20 (6/15/87)
+
+\tenpoint\noindent
+The first eight of these all have essentially the same layout;
+but |cmr5| needs no ligatures, and many of the symbols of |cmti10|
+have different shapes.
+For example, the ^{ampersand} becomes an `^{E.T.}', and the
+^{dollar} changes to ^{pound} ^{sterling}:
+
+\bugonpage A434, lines 25--28 (8/17/86)
+
+\tenpoint\noindent
+from |\nu|~($\nu$). Similarly,
+|\varsigma|~($\varsigma$) should not be confused with |\zeta|~($\zeta$).
+It turns out that |\varsigma| and |\upsilon| are almost never used in
+math formulas; they are included in plain \TeX\ primarily because they are
+sometimes needed in short Greek citations (cf.~Appendix~J).
+
+\bugonpage A447, line 32 (6/1/87)
+
+\ninepoint\noindent
+ters
+also affect mathematical typesetting:
+dimension parameters
+ \hbox{|\delimitershortfall|}\cutpar
+
+\bugonpage A455, new paragraph to follow line 9 (2/15/87)
+
+\begingroup
+\hyphenpenalty=-1000 \pretolerance=-1 \tolerance=1000
+\doublehyphendemerits=-100000 \finalhyphendemerits=-100000
+\ddanger The control sequence ^|\-| is equivalent to
+|\discretionary{\char|$\,h$|}{}{}|, where $h$ is the
+^|\hyphenchar| of the current font, provided that $h$ lies
+between 0 and~255. Otherwise |\-| is equivalent to |\discretionary{}{}{}|.
+
+\endgroup % end the special hyphenation conventions
+
+\bugonpage A457, left column, fifth-last line (2/17/87)
+
+\eightpoint\indent\qquad 155, 201, {\it 305}, 324, $\underline{357}$, 394--395;
+
+\bugonpage A458, left column, line 6 (2/15/87)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+{\tt\char`\\-} (discretionary hyphen), 95, 283, 287,\par
+\indent\qquad 292, $\underline{455}$.
+
+\bugonpage A458, left column, near the bottom (5/19/87)
+
+\eightpoint {\tt!} (exclamation point), 51,
+{\it 72}, 73, 75, {\it 169}.
+\nobreak\medskip\noindent[This saves a line that otherwise would make
+the index too long on page 481!]
+
+\bugonpage A458, right column, line 10 (11/27/86)
+
+\eightpoint {\tt\char`\~}
+(tilde), 38, 51, 343, $\underline{353}$; {\sl see also\/} ties.
+
+\bugonpage A458, right column (6/14/87)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+{\tt\char`\\accent} (general accent), 9, 54, 86, 283, $\underline{286}$.
+
+\bugonpage A461, entry for boxes (3/16/87)
+
+\eightpoint boxes, 63--67, 77--83, 221--229.
+
+\bugonpage A461, entry for {\tt\char`\\centering} (1/28/86)
+
+\eightpoint {\tt\char`\\centering}, $\underline{347}$, 348, 362.
+
+\bugonpage A462, entry for \<code assignment> (1/27/86)
+
+\eightpoint \<code assignment>, $\underline{277}$.
+
+\bugonpage A464, left column, line 3 (2/15/87)
+
+\eightpoint
+discretionary hyphens, 28, 95--96, 453, $\underline{455}$.
+
+\bugonpage A465, right column, line 8 (5/3/87)
+
+\eightpoint
+expansion of expandable tokens, 212--216, 238,
+
+\bugonpage A466, entry for {\tt\char`\\font}, second line (1/27/86)
+
+\eightpoint \indent\qquad 271, $\underline{276}$.
+
+\bugonpage A466, new entry (2/3/87)
+
+\eightpoint \indent\<fontdef token>, $\underline{271}$.
+
+\bugonpage A467, entry for {\tt\char`\\hideskip} (1/28/86)
+
+\eightpoint {\tt\char`\\hideskip}, $\underline{347}$, 348, 354.
+
+\bugonpage A468, left column line 2 (2/15/87)
+
+\eightpoint\indent\qquad 351, 395, {\it 414}, 454, 455.
+
+\bugonpage A470, entry for {\tt manfnt} (1/15/86)
+
+\eightpoint {\tt manfnt}, 44, 408, 414.
+
+\bugonpage A471, entry for {\tt\char`\\medbreak} (10/13/86)
+
+\eightpoint {\tt\char`\\medbreak}, 111, 113, $\underline{353}$,
+ {\it355}, {\it419}, {\it422}.
+
+\bugonpage A471, entry for {\tt\char`\\moveright} (2/27/87)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+{\tt\char`\\moveright}, 80--81, {\it 221}, $\underline{282}$.
+
+\bugonpage A471, entry for Mozart, second line (3/19/86)
+
+\eightpoint \indent\qquad Gottlieb (= Theophilus = Amadeus), 409.
+
+\bugonpage A472, the entry for {\tt\char`\\not} (2/12/87)
+
+\eightpoint\noindent
+[The overprinting here is intentional, since {\tt\char`\\not} is a
+character of width zero. More than a dozen people have reported this
+as an error, but it is not!]
+
+\bugonpage A477, entry for {\tt\char`\\span} (5/3/87)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+{\tt\char`\\span}, 215, 238, $\underline{243}$, {\it244}, $\underline{245}$,
+248, 249,\par
+\indent\qquad 282, {\it330}, 385.
+
+\bugonpage A479, entry for ties, second line (11/27/86)
+
+\eightpoint \indent\qquad {\it173}, 353, {\it404}.
+
+\bugonpage A480, changes to various entries (6/14/87)
+
+\eightpoint
+\newbox\astbox \setbox\astbox=\hbox to0pt{\hss\lower1pt\hbox{*}}
+\def\prim#1{\par\indent\copy\astbox{\tt\char`\\#1}}
+\prim{underline}, {\it130--131}, 141, 291, $\underline{443}$.
+\prim{unhbox}, 120, 283, $\underline{285}$, {\it354}, {\it356}, {\it361},
+ {\it399}.
+\prim{unhcopy}, 120, 283, $\underline{285}$, {\it353}.
+\prim{unkern}, $\underline{280}$.
+\prim{unpenalty}, $\underline{280}$.
+\prim{unskip}, 222--223, $\underline{280}$, 286, {\it313}, {\it392},
+ {\it418--419}.
+\prim{unvbox}, 120, 254, $\underline{282}$, 286, {\it354}, {\it361},
+ {\it363}, {\it364}, {\it392}, {\it399}, {\it417}.
+\prim{unvcopy}, 120, $\underline{282}$, 286, {\it361}.
+\prim{vadjust}, 95, 105, 109, 110, 117, 259, $\underline{281}$, 393, 454.
+\prim{valign}, 249, 283, $\underline{285}$--$\underline{286}$, 302,
+ {\it335}, {\it397}.
+\prim{vcenter}, 150--151, 159, 170, 193, 222, 242,
+\prim{vfil}, 71, $\underline{72}$, 111, 256, 281, 286, 417.
+\prim{vfill}, 24, 25, 71, $\underline{72}$, 256--257, 281, 286.
+\prim{vfilneg}, $\underline{72}$, 111, 281, 286.\par
+|\voidb@x|, $\underline{347}$, 348.
+
+\bugonpage A481, left column (6/14/87)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+{\tt\char`\\vss}, 71, $\underline{72}$, {\it 255}, 281, 286.
+
+% volume B
+\hsize=35pc
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+\def\to{\mathrel{.\,.}} % double dot, used only in math mode
+
+\buginvol B, in general (7/28/86)
+
+\tenpoint\noindent
+[A number of entries were mistakenly omitted from the mini-indexes
+on the right-hand pages. Here is a combined list of all the missing
+items; you can mount it inside the back cover, say, as a secondary mini-index
+when the first one fails\dots\ ]
+
+\nobreak\medskip
+\setbox0=\vbox{\eightpoint \hsize=11pc \catcode`\_=\active \let_=\_
+  \rightskip=0pt plus 100pt minus 10pt
+  \pretolerance 10000
+  \hyphenpenalty 10000 \exhyphenpenalty 10000
+  \noindent\vbox to1pt{}\par % 1pt = \topskip - \ninept
+  \def\&#1{\hbox{\bf#1\/}} % boldface type for reserved words
+  \obeylines
+  \def\makeref #1 #2 #3#4
+   {\nn=#2 \hangindent=1em \noindent\\{#1}%
+    \if#3:: \else\unhcopy\eqbox \fi#4, \S\number\nn.\par}
+  \makeref active_base 222 =$1$
+  \makeref aux 213 =macro
+  \makeref begin_name 515 :\&{procedure}
+  \makeref big_switch 1030 =$60$
+  \makeref choice_node 689 =$15$
+  \makeref cur_boundary 271 :$0\to \\{save\_size}$
+  \makeref cur_c 724 :\\{quarterword}
+  \makeref cur_group 271 :\\{group\_code}
+  \makeref cur_i 724 :\\{four\_quarters}
+  \makeref cur_level 271 :\\{quarterword}
+  \makeref do_extension 1348 :\&{procedure}
+  \makeref dvi_buf 595 :\&{array}
+  \makeref dvi_gone 595 :\\{integer}
+  \makeref dvi_limit 595 :\\{dvi\_index}
+  \makeref dvi_offset 595 :\\{integer}
+  \makeref dvi_ptr 595 :\\{dvi\_index}
+  \makeref end_graf 1096 :\&{procedure}
+  \makeref error 82 :\&{procedure}
+  \makeref error_stop_mode 73 =$3$
+  \makeref font_base 12 =$0$
+  \makeref font_info 549 :\&{array}
+  \makeref get_token 365 :\&{procedure}
+  \makeref glue_base 222 =$2626$
+  \makeref half_buf 595 :\\{dvi\_index}
+  \makeref handle_right_brace 1068 :\&{procedure}
+  \makeref hash_base 222 =$258$
+  \makeref head 213 =macro
+  \makeref hyf_distance 921 :\&{array}
+  \makeref hyf_next 921 :\&{array}
+  \makeref hyf_num 921 :\&{array}
+  \makeref index 302 =macro
+  \makeref inf 448 :\\{boolean}
+  \makeref init_col 788 :\&{procedure}
+  \makeref init_span 787 :\&{procedure}
+  \makeref input_ln 31 :\&{function}
+  \makeref interaction 73 :$0\to 3$
+  \makeref limit 302 =macro
+  \makeref line_width 830 :\\{scaled}
+  \makeref macro_call 389 :\&{procedure}
+  \makeref main_control 1030 :\&{procedure}
+  \makeref mem 116 :\&{array}
+  \makeref mem_bot 12 =$0$
+  \makeref mem_end 118 :\\{pointer}
+  \makeref mem_top 12 =macro
+  \makeref mlist_to_hlist 726 :\&{procedure}
+  \makeref mode 213 =macro
+  \makeref mode_line 213 =macro
+  \makeref more_name 516 :\&{function}
+  \makeref mu 448 :\\{boolean}
+  \makeref name 302 =macro
+  \makeref nest 213 :\&{array}
+  \makeref off_save 1064 :\&{procedure}
+  \makeref open_log_file 534 :\&{procedure}
+  \makeref output_active 989 :\\{boolean}
+  \makeref p 498 :\\{pointer}
+  \makeref param_stack 308 :\&{array}
+  \makeref pool_file 50 :\\{alpha\_file}
+  \makeref pool_ptr 39 :\\{pool\_pointer}
+  \makeref prefixed_command 1211 :\&{procedure}
+  \makeref prev_depth 213 =macro
+  \makeref prev_graf 213 =macro
+  \makeref prev_prev_r 830 :\\{pointer}
+  \makeref print_err 73 =macro
+  \makeref r 960 :\\{trie\_pointer}
+  \makeref reconstitute 906 :\&{function}
+  \makeref resume_after_display 1200 :\&{procedure}
+  \makeref save_ptr 271 :$0\to \\{save\_size}$
+  \makeref save_stack 271 :\&{array}
+  \makeref scan_dimen 448 :\&{procedure}
+  \makeref scan_math 1151 :\&{procedure}
+  \makeref short_display 174 :\&{procedure}
+  \makeref show_node_list 182 :\&{procedure}
+  \makeref start 302 =macro
+  \makeref state 302 =macro
+  \makeref str_pool 39 :\&{packed}\ \&{array}
+  \makeref str_ptr 39 :\\{str\_number}
+  \makeref str_start 39 :\&{array}
+  \makeref tail 213 =macro
+  \makeref trap_zero_glue 1229 :\&{procedure}
+  \makeref trie 921 :\&{array}
+  \makeref trie_char 921 =macro
+  \makeref trie_link 921 =macro
+  \makeref trie_op 921 =macro
+  \makeref vlist_out 629 :\&{procedure}
+  \makeref write_loc 1345 :\\{pointer}
+  }
+\hbox{\nsize=\ht0 \advance\nsize-\topskip
+  \divide\nsize by 3 \divide\nsize by\ninept
+  \multiply\nsize by\ninept \advance\nsize\topskip
+  \vsplit0 to\nsize \kern1pc
+  \msize=\ht0 \advance\msize-\topskip
+  \divide\msize by 2 \divide\msize by\ninept
+  \multiply\msize by\ninept \advance\msize\topskip
+  \vbox to\nsize{\vsplit0 to\msize\vss}\kern1pc
+  \vbox to\nsize{\box0\vss}}
+
+\buginvol B, in general (4/6/87)
+
+\tenpoint\noindent[The percent signs in all the comments (for example,
+on pages 7 and 50) are in the wrong font! Change `{\tt\%}' to `\%'.]
+
+\bugonpage Bvi, bottom line, and top line of next page (10/12/86)
+
+{\hsize=29pc
+\tenpoint\noindent
+puter Science Report 1097 (Stanford, California, April 1986), 146~pp.
+\ {\it The {\sltt WEB} programs for four utility programs that are
+often used with \TeX: {\sltt POOLtype}, {\sltt TFtoPL},
+{\sltt PLtoTF}, and {\sltt DVItype}.}
+\par}
+
+\bugonpage B2, line 32 (4/22/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf define} $\\{banner}\equiv\hbox{\tt\char'23}$%
+{\tt This\]is\]TeX,\]Version\]2.2\char'23}\quad
+$\{\,$printed when \TeX\ starts$\,\}$
+
+\bugonpage B7, new line after line 25 (1/28/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf if} $\\{max\_in\_open}\ge128$ {\bf then} $\\{bad}\gets6$;
+
+\bugonpage B13, first three lines (4/7/87)
+
+\tenpoint\noindent
+The `\\{name}' parameter, which is of type `{\bf packed array
+$[\langle\\{any}\rangle]$ of \\{char}}', stands for the name of
+the external file that is being opened for input or output.
+Blank spaces that might appear in \\{name} are ignored.
+
+\bugonpage B14, line 30 (4/7/87)
+
+\tenpoint\noindent
+{\bf 31.\quad}%
+The \\{input\_ln} function brings the next line of input from the specified
+file into available\cutpar
+
+\bugonpage B18, line 30 (5/22/86)
+
+\ninepoint\noindent
+\\{str\_ptr}: \\{str\_number};\quad
+$\{\,$number of the current string being created$\,\}$
+
+\bugonpage B21, first line of mini-index, right column (6/14/87)
+
+\eightpoint
+\indent\\{pool\_name}\unhcopy\eqbox|"string"|, \S11.
+
+\bugonpage B34, lines 5--6 (6/14/87)
+
+\tenpoint\noindent
+to delete a token, and/or if some fatal error
+occurs while \TeX\ is trying to fix a non-fatal one. But such recursion
+is never more than two levels deep.
+
+\bugonpage B55, lines 12--13 (4/21/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf if} $r=p$ {\bf then if} $\\{rlink}(p)\ne p$ {\bf then}
+  $\langle\,$Allocate entire node $p$ and {\bf goto} \\{found}%
+  {\sevenrm\kern.5em129}$\,\rangle$;
+
+\bugonpage B57, lines 25--28 (6/14/87)
+
+\tenpoint\noindent
+The first of these has $\\{font}=\\{font\_base}$, and its \\{link}
+points to the second;
+the second identifies the font and the character dimensions.
+The saving feature about oriental characters is that most of them have
+the same box dimensions. The \\{character} field of the first \\{char\_node}
+is a ``\\{charext}'' that distinguishes between graphic symbols whose
+dimensions are identical for typesetting purposes. (See the \MF\ manual.)
+Such an extension of \TeX\ would not be difficult; further details are
+left to the reader.
+
+\bugonpage B58, second line of section 136 (7/23/86)
+
+\tenpoint\noindent
+the values corresponding to `|\hbox{}|'. The \\{subtype} field is set to
+\\{min\_quarterword}, since that's\cutpar
+
+\bugonpage B66, lines 2--8 (4/21/87)
+
+\tenpoint\noindent
+location is
+more efficient than dynamic allocation when we can get away with it. For
+example, locations \\{mem\_bot} to $\\{mem\_bot}+3$ are always used to store the
+specification for glue that is `\hbox{\tt 0pt plus 0pt minus 0pt}'. The
+following macro definitions accomplish the static allocation by giving
+symbolic names to the fixed positions. Static variable-size nodes appear
+in locations \\{mem\_bot} through \\{lo\_mem\_stat\_max}, and static
+single-word nodes appear in locations \\{hi\_mem\_stat\_min} through
+\\{mem\_top}, inclusive. It is harmless to let \\{lig\_trick} and
+\\{garbage} share the same location of \\{mem}.
+
+\bugonpage B67, line 23 (4/13/87)
+
+\ninepoint\noindent\hskip30pt
+$\{\,$previous \\{mem\_end}, \\{lo\_mem\_max}, and \\{hi\_mem\_min}$\,\}$
+
+\bugonpage B71, line 17 (4/15/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf begin while} $p>\\{mem\_min}$ {\bf do}
+
+\smallskip\eightpoint\noindent[Now \\{null} can be removed from the mini-index.]
+
+\bugonpage B74, line 24 (4/15/87)
+
+\ninepoint\noindent
+{\bf procedure} \\{show\_node\_list}($p\;{:}\;\\{integer}$);\quad
+$\{\,$prints a node list symbolically$\,\}$
+
+\bugonpage B74, line 33 (4/15/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf while} $p>\\{mem\_min}$ {\bf do}
+
+\bugonpage B84, line 12 (2/15/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf define} $\\{relax}=0$\quad$\{\,$do nothing ( {\tt\char`\\relax} )$\,\}$
+
+\bugonpage B86, third line of section 210 (8/23/86)
+
+\tenpoint\noindent
+that their special nature is easily discernible.
+The ``expandable'' commands come first.
+
+\bugonpage B88, line 23 (5/22/86)
+
+\ninepoint\noindent
+{\bf procedure\/}\  $\\{print\_mode}(m:\\{integer})$;\quad
+$\{\,$prints the mode represented by $m\,\}$
+
+\bugonpage B93, lines 3--4 (8/17/86)
+
+{\tenpoint\parindent=1em
+In the first region we have 128 equivalents for ``active characters'' that
+act as control sequences, followed by 128 equivalents for single-character
+control sequences.
+\par}
+
+\bugonpage B130, ninth-last line (5/7/87)
+
+\tenpoint\noindent
+This variable has six possible values:
+
+\bugonpage B151, line 9 (4/22/87)
+
+\ninepoint\noindent\hskip20pt
+{\bf begin if} $(\\{end\_line\_char}<0)\lor(\\{end\_line\_char}>127)$
+ {\bf then} \\{incr}(\\{limit});\par\noindent\hskip20pt
+{\bf if} $\\{limit}=\\{start}$ {\bf then}\quad
+ $\{\,$previous line was empty$\,\}$
+
+\bugonpage B160, lines 17--20 (7/28/86)
+
+\tenpoint\noindent
+{\bf 389.\quad}%
+After parameter scanning is complete, the parameters are moved to the
+\\{param\_stack}. Then the macro body is fed to the scanner; in other words,
+\\{macro\_call} places the defined text of the control sequence at the
+top of\/ \TeX's input stack, so that \\{get\_next} will proceed to read it
+next.
+
+\bugonpage B200, top line (5/5/87)
+
+\tenpoint\noindent{\bf 495.\quad}%
+ When we begin to process a new {\tt\char`\\if}, we set
+$\\{if\_limit}\gets\\{if\_code}$; then
+if\/ {\tt\char`\\or} or {\tt\char`\\else} or {\tt\char`\\fi}\cutpar
+
+\bugonpage B217, lines 15--16 (6/14/87)
+
+\tenpoint\noindent
+|DVI| format.
+
+\bugonpage B224, lines 4--7 of section 560 (10/22/86)
+
+\tenpoint\noindent
+name and area strings \\{nom} and \\{aire}, and the
+``at'' size~$s$. If $s$~is negative, it's the negative of a scale factor
+to be applied to the design size; $s=-1000$ is the normal case.
+Otherwise $s$ will be substituted for the design size; in this
+case, $s$ must be positive and less than $2048\rm\,pt$
+(i.e., it must be less than $2^{27}$ when considered as an integer).
+
+\bugonpage B224, second-last line (4/28/87)
+
+\ninepoint\noindent
+\\{done}: {\bf if} \\{file\_opened} {\bf then} \\{b\_close}(\\{tfm\_file});\par
+\noindent\hskip10pt $\\{read\_font\_info}\gets g$;
+
+\bugonpage B255, mini-index at the bottom (4/15/87)
+
+\eightpoint
+$\\{mag}=\rm macro$, \S236.
+
+\bugonpage B257, lines 11--13 (6/14/87)
+
+\ninepoint
+\noindent\hskip20pt{\bf if} $c\ge\\{qi}(128)$ {\bf then}
+ \\{dvi\_out}(\\{set1});\par
+\noindent\hskip20pt\\{dvi\_out}(\\{qo}($c$));
+
+\bugonpage B260, lines 7--8 (4/15/87)
+
+\tenpoint\noindent\hskip10pt
+In the case of \\{c\_leaders} (centered leaders), we want to increase \\{cur\_h}
+by half of the excess space not occupied by the leaders; and in the
+case of \\{x\_leaders} (expanded leaders) we increase\cutpar
+
+\bugonpage B267, mini-index at the bottom (4/15/87)
+
+\eightpoint
+\\{cur\_s}: \\{integer}, \S616.
+$\\{mag}=\rm macro$, \S236.
+$\\{pop}=142$, \S586.
+
+\bugonpage B271, line 10 (8/23/86)
+
+\tenpoint\noindent
+which will be ignored in the calculations
+because it is a highly negative number.
+
+\bugonpage B285, lines 23 and 24 (5/4/87)
+
+\tenpoint\noindent
+the current string would be `{\tt.\char`\^.\char`\_/}'
+if $p$ points to the \\{ord\_noad} for $x$ in the (ridiculous) formula
+`{\tt\char`\\sqrt\char`\{a\char`\^\char`\{\char`\\mathinner\char`\{%
+b\char`\_\char`\{c\char`\\over x+y\char`\}\char`\}\char`\}\char`\}\char`\$}'.
+
+\bugonpage B296, lines 3--5 (5/8/87)
+
+\tenpoint\noindent
+box~$b$ and
+changes it so that the new box is centered in a box of width~$w$.
+The centering is done by putting {\tt\char`\\hss} glue at the left and right
+of the list inside $b$, then packaging the new box; thus, the
+actual box might not really be centered, if it already contains
+infinite glue.
+
+\bugonpage B346, line 19 (5/19/87)
+
+\ninepoint\noindent
+\\{pass\_number}: \\{halfword};\quad
+$\{\,$the number of passive nodes allocated on this pass$\,\}$
+
+\bugonpage B350, lines 36 and 37 (1/28/87)
+
+\ninepoint\noindent
+$v$: \\{pointer};\quad
+$\{\,$points to a glue specification or a node ahead of \\{cur\_p}$\,\}$
+\par\noindent
+$t$: \\{integer};\quad
+$\{\,$node count, if \\{cur\_p} is a discretionary node$\,\}$
+
+\bugonpage B353, lines 8--22 (1/28/87)
+
+\ninepoint
+\noindent\hskip10pt$s\gets\\{cur\_p}$;\par
+\noindent\hskip10pt{\bf  if} $\\{break\_type}>\\{unhyphenated}$ {\bf then}
+ {\bf if} $\\{cur\_p}\ne\\{null}$ {\bf then}\par
+\noindent\hskip30pt$\langle\,$Compute the discretionary
+ \\{break\_width} values{\sevenrm\kern.5em840}$\,\rangle$;\par
+\noindent\hskip10pt{\bf  while} $s\ne\\{null}$ {\bf do}\par
+\noindent\hskip30pt\vdots\hskip30pt [as before, but indented one less notch]\par
+\noindent\hskip10pt{\bf end};
+
+\bugonpage B354, line 6 (1/28/87)
+
+\tenpoint\noindent
+will be the background plus $l_1$, so the length from \\{cur\_p} to \\{cur\_p}
+should be $\gamma+l_0+l_1-l$,
+minus the length of nodes that will be discarded after the discretionary break.
+
+\bugonpage B354, lines 12--18 (1/28/87)
+
+\ninepoint
+\noindent\hskip10pt{\bf begin} $t\gets\\{replace\_count}(\\{cur\_p})$;\kern5pt
+  $v\gets\\{cur\_p}$;\kern5pt $s\gets\\{post\_break}(\\{cur\_p})$;\par
+\noindent\hskip10pt{\bf while} $t>0$ {\bf do}\par
+\noindent\hskip20pt{\bf begin} $\\{decr}(t)$;\kern5pt
+ $v\gets\\{link}(v)$;\kern5pt
+ $\langle\,$Subtract the width of node $v$ from \\{break\_width}%
+ {\sevenrm\kern.5em841}$\,\rangle$;\par
+\noindent\hskip20pt{\bf end};\par
+\noindent\hskip10pt{\bf while} $s\ne\\{null}$ {\bf do}\par
+\noindent\hskip20pt{\bf  begin} $\langle\,$Add the width of
+  node $s$ to \\{break\_width} and increase $t$, unless it's
+  discardable{\sevenrm\kern.5em842}$\,\rangle$;\par
+
+\bugonpage B354, new line after line 21 (1/28/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf if} $t=0$ {\bf then} $s\gets\\{link}(v)$;\quad
+ $\{\,$more nodes may also be discardable after the break$\,\}$
+
+\bugonpage B354, lines 26--34 (1/28/87)
+
+\ninepoint\noindent
+[Change `$s$' to `$v$' throughout this section (8 times).]
+
+\bugonpage B354, line 9 from the bottom (1/28/87)
+
+\tenpoint\noindent{\bf 842.\quad}%
+\ninepoint$\langle\,$Add the width of
+  node $s$ to \\{break\_width} and increase $t$, unless it's
+  discardable{\sevenrm\kern.5em842}$\,\rangle\equiv$
+
+\bugonpage B355, lines 1--3 (1/28/87)
+
+\ninepoint
+\noindent\hskip20pt$\\{hlist\_node},\\{vlist\_node},\\{rule\_node}$:
+ $\\{break\_width}[1]\gets\\{break\_width}[1]+\\{width}(s)$;\par
+\noindent\hskip20pt\\{kern\_node}: {\bf if} $(t=0)\land
+ (\\{subtype}(s)\ne\\{acc\_kern})$ {\bf then}
+  $t\gets-1$\quad$\{\,$discardable$\,\}$\par
+\noindent\hskip30pt{\bf  else} $\\{break\_width}[1]\gets
+ \\{break\_width}[1]+\\{width}(s)$;\par
+\noindent\hskip20pt{\bf  othercases}
+ \\{confusion}({\tt\char'42 disc2\char'42})\par
+\noindent\hskip20pt{\bf endcases};\par
+\noindent\hskip10pt$\\{incr}(t)$
+
+\bugonpage B355, patches to mini-index at bottom (1/28/87)
+
+\eightpoint
+$\\{acc\_kern}=2$, \S155.\par
+$\\{incr}=\rm macro$, \S16.\par
+$t$: \\{integer}, \S830.\par
+$v$: \\{pointer}, \S830.
+
+\bugonpage B372, lines 12--14 (1/28/87)
+
+\ninepoint
+\noindent\hskip40pt$\langle\,$Change discretionary to compulsory
+ and set $\\{disc\_break}\gets\\{true}${\sevenrm\kern.5em882}$\,\rangle$\par
+\noindent\hskip30pt{\bf else if\/} $(\\{type}(q)=\\{math\_node})\lor
+ (\\{type}(q)=\\{kern\_node})$ {\bf then} $\\{width}(q)\gets0$;
+
+\bugonpage B380, fifth-last line (5/7/87)
+
+\begingroup\tenpoint\noindent\def\!{\kern-1pt}\def\.#1{\hbox{\tt#1}}
+\.b and \.c, the two patterns with and without hyphenation are
+$\.a\,\.b\,\.-\,\.{c\!d}\,\.{e\!f}$ and $\.a\,\.{b\!c}\,\.{d\!e}\,\.f$.
+Thus the\cutpar\endgroup
+
+\bugonpage B386, lines 2--4 (5/21/87)
+
+\tenpoint\noindent
+hyphenation,
+\TeX\ first looks to see if it is in the user's exception dictionary. If not,
+hyphens are inserted based on patterns that appear within the given word,
+using an algorithm due to Frank~M. Liang.
+
+\bugonpage B397, line 28 (5/21/87)
+
+\tenpoint\noindent
+$h=z-c$. It follows that location \\{trie\_max} will
+never be occupied in \\{trie}, and we will have\cutpar
+
+\bugonpage B415, the mini-index (4/6/87)
+
+\eightpoint\noindent[Delete the spurious entry for `$c$'.]
+
+\bugonpage B419, mini-index entry for \\{c} (4/6/87)
+
+\eightpoint $c$: \\{integer}, \S994.
+
+\bugonpage B422, line 24 (8/23/86)
+
+\ninepoint\noindent
+\hskip20pt\\{prev\_p}: \\{pointer};\quad
+$\{\,$predecessor of $p\,\}$
+
+\bugonpage B435, line 16 (10/12/86)
+
+\ninepoint\noindent
+\hskip20pt$\\{width}(p)\gets\\{font\_info}[k].\\{sc}$;\quad
+$\{\,$that's \\{space}$(f)\,\}$\par\noindent
+\hskip20pt$\\{stretch}(p)\gets\\{font\_info}[k+1].\\{sc}$;\quad
+$\{\,$and \\{space\_stretch}$(f)\,\}$\par\noindent
+\hskip20pt$\\{shrink}(p)\gets\\{font\_info}[k+2].\\{sc}$;\quad
+$\{\,$and \\{space\_shrink}$(f)\,\}$\par
+\smallskip\eightpoint\noindent
+[And the mini-index gets three new entries:
+$\\{space}=macro$, \S558.
+$\\{space\_shrink}=macro$, \S558.
+$\\{space\_stretch}=macro$, \S558.]
+
+\bugonpage B495, lines 18 and 19 (2/15/87)
+
+\ninepoint\noindent
+[delete these lines, since the cases cannot occur]
+
+\bugonpage B510, line 8 (12/15/86)
+
+\ninepoint\noindent\hskip30pt
+({\tt"Pretend\]that\]you're\]Hercule\]Poirot:\]Examine\]all\]clues,"})
+
+\bugonpage B527, new line to follow line 13 (6/17/86)
+
+{\tenpoint\parindent=1em
+This program doesn't bother to close the input files that may still be open.
+\par}
+
+\bugonpage B534, fourth-last line (5/4/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf define} $\\{write\_stream}(\hbox{\tt\char`\#})\equiv\\{info}(
+ \hbox{\tt\char`\#}+1)$\quad $\{\,$stream number (0 to 17)$\,\}$
+
+\bugonpage B544, left column (1/28/87)
+
+\eightpoint
+\leftline{\\{acc\_kern}:\quad$\underline{155}$, 191, 837, 842, 879, 1125.}
+
+\bugonpage B546, entry for \\{c} (4/6/87)
+
+\eightpoint\noindent[Add a reference to section $\underline{994}$.]
+
+\bugonpage B547, left column (4/7/87)
+
+\eightpoint
+\leftline{\\{char}:\quad 19, 26--27, 520, 534.}
+
+\bugonpage B547, left column (6/14/87)
+
+\eightpoint
+\leftline{Chinese characters:\quad 134, 585.}
+
+\bugonpage B553, entry for \\{font\_base} (6/14/87)
+
+\eightpoint\noindent[Insert a reference to section 134.]
+
+\bugonpage B555, right column, new entry (10/25/86)
+
+\eightpoint
+\leftline{{\tt Huge page...},\quad 641.}
+
+\bugonpage B556, entry for \\{incr} (1/28/87)
+
+\eightpoint\noindent[Add a reference to section 842.]
+
+\bugonpage B557, entry for \\{is\_char\_node} (1/28/87)
+
+\eightpoint\noindent[Delete the reference to section 881.]
+
+\bugonpage B557, right column (6/14/87)
+
+\eightpoint
+\leftline{Japanese characters:\quad 134, 585.}
+
+\bugonpage B560, right column (1/28/87)
+
+\eightpoint
+\leftline{\\{max\_in\_open}:\quad$\underline{11}$, 14, 304, 328.}
+
+\bugonpage B561, left column, line 10 (4/15/87)
+
+\eightpoint
+\leftline{\qquad 169--172, 174, 178, 182, 1249, 1312, 1334.}
+
+\bugonpage B561, left column (5/1/87)
+
+\eightpoint
+\leftline{{\tt Missing font identifier}:\quad 577.}
+
+\bugonpage B563, left column, line 2 (4/15/87)
+
+\eightpoint
+\leftline{\qquad 136, 145, 149--154, 164, 168--169, 175--176, 182,}
+
+\bugonpage B563, right column (6/14/87)
+
+\eightpoint
+\leftline{oriental characters:\quad 134, 585.}
+
+\bugonpage B569, right column, in appropriate places (10/12/86)
+
+\eightpoint
+\leftline{\\{space}:\quad 547, $\underline{558}$, 752, 755, 1042.}
+\leftline{\\{space\_shrink}:\quad 547, $\underline{558}$, 1042.}
+\leftline{\\{space\_stretch}:\quad 547, $\underline{558}$, 1042.}
+
+\bugonpage B570, third-last line (1/28/87)
+
+\eightpoint\noindent\qquad
+ 786, 795, 809, 819--820, 822, 837, 842--844, 866,
+
+\bugonpage B571, right column (10/25/86)
+
+\eightpoint
+\leftline{{\tt The following...deleted},\quad 641, 992, 1121.}
+
+\bugonpage B571, right column (4/7/87)
+
+\eightpoint
+\leftline{\\{text\_char}:\quad $\underline{19}$, 20, 25, 47.}
+
+\bugonpage B573, right column (5/1/87)
+
+\eightpoint\noindent
+[Delete the entry for `{\tt Undefined font code}'.]
+
+\bugonpage B576, line 2 (1/28/87)
+
+\ninepoint\noindent
+$\langle\,$Add the width of
+  node $s$ to \\{break\_width} and increase $t$, unless it's
+  discardable{\sevenrm\kern.5em842}$\,\rangle$\par
+\noindent\qquad {\eightpoint Used in section 840.}
+
+\bugonpage B591, line 6 from the bottom (1/28/87)
+
+\ninepoint\noindent
+ $\langle\,$Subtract the width of node $v$ from \\{break\_width}%
+ {\sevenrm\kern.5em841}$\,\rangle$\quad
+ {\eightpoint Used in section 840.}
+
+% volume C
+\hsize=29pc
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+
+\bugonpage C14, top two lines (3/16/87)
+
+\danger The recursive midpoint rule for curve-drawing was discovered in 1959
+by Paul de Casteljau, who showed that the curve could be described
+algebraically by the remarkably simple formula
+
+\bugonpage C54, sixth-last to fourth-last lines (10/13/86)
+
+\ninepoint Jonathan H. Quick (a student) used `|a.plus1|' as the name
+of a variable at the beginning of his program; later he said `|let|
+|plus=+|'. How could he refer to the variable `|a.plus1|' after that?
+
+\bugonpage C76, line 14 (10/13/86)
+
+\tenpoint
+\newdimen\longesteq
+\setbox0=\hbox{\indent$z_{12}-z_{11}=z_{14}-z_{13}$\quad}
+\longesteq=\wd0
+\noindent\hbox to \longesteq{\indent
+  $x_4=w-.01\\{in}$\hfil}%
+Point 4 should be one-hundredth of an inch inside\cutpar
+
+\bugonpage C103, line 12 (10/12/86)
+
+\tenpoint
+$\\{ht}\0=\\{body\_height}\0$; \ $.5[\\{ht}\0,-\\{dp}\0]=\\{axis}\0$;
+
+\bugonpage C105, line 13 (10/13/86)
+
+\ninepoint
+The vertical line just to the right of the italic left parenthesis
+shows the italic\cutpar
+
+\bugonpage C113, lines 20--27 (8/23/86)
+
+{\catcode`\@=\active
+\def@#1@{\begingroup\def\_{\kern.04em
+    \vbox{\hrule width.3em height .6pt}\kern.08em}%
+  \ifmmode\mathop{\bf#1}\else\hbox{\bf#1\/}\fi\endgroup}
+\danger The command `@erase@ @fill@ $c$' is an abbreviation for
+`@cullit@; @unfill@~$c$; @cullit@'; this zeros out the pixel values inside
+the cyclic path~$c$, and sets other pixel values to~1 if they were positive
+before erasing took place. \ (It works because the initial @cullit@ makes
+all the values 0 or~1, then the @unfill@ changes the values inside~$c$
+to 0 or negative. The final @cullit@ gets rid of the negative values,
+so that they won't detract from future filling and drawing.) \ You can
+also use `@draw@', `@filldraw@', or `@drawdot@' with `@erase@'; for example,
+`@erase@ @draw@~$p$' is an abbreviation for `@cullit@; @undraw@~$p$;
+@cullit@', which uses the currently-picked-up pen as if it were an
+eraser applied to path~$p$.
+
+}
+
+\bugonpage C124, line 9 (6/17/86)
+
+\eightpoint
+\noindent\hskip1.8in
+$\\{branch}_2=\\{flex}((30,570),(10,590),(-1,616))$
+
+\bugonpage C130, 3rd-last line (9/25/86)
+
+\ninepoint\noindent
+{\sl Geometry\/ \bf 1} (1986), 123--140]: Given a sequence
+
+\bugonpage C144, sixth line of the program (8/23/86)
+
+\ninepoint\noindent\hbox to\parindent{\hfil\sevenrm6\ \ \ }%
+$y_2=.1h$; \ $\\{top}\,y_3=.4h$;
+
+\bugonpage C148, the line before the illustration (11/27/86)
+
+\ninepoint\noindent
+are polygons with 32 and 40 sides, respectively:
+
+\smallskip\noindent
+[New illustrations are needed here, since \MF\ version 1.3 improves
+the accuracy of pen polygons.]
+
+\bugonpage C149, 7th line after the illustration (10/24/86)
+
+\ninepoint
+\line{$(200,y+100\pm\alpha)$, where
+$\alpha=\sqrt5/4\approx0.559$. If we digitize these outlines and fill the}
+
+\bugonpage C178, second-last line (8/23/86)
+
+\ninepoint\noindent
+(If $t_3=t_1$~transum~$t_2$, then
+$z$~transformed~$t_3=z$~transformed~$t_1+z$~transformed~$t_2$,\cutpar
+
+\bugonpage C198, fifth-last and fourth-last lines (10/13/86)
+
+\ninepoint\vskip-3pt
+\begindisplay
+$\\{top}\,y_2={\rm round}(\\{top}\,\beta)$.
+\enddisplay
+Such operations occur frequently in practice, so plain \MF\ provides
+convenient\cutpar
+
+\bugonpage C212, lines 9--11 from the bottom (8/23/86)
+
+\ninepoint
+\qquad
+ \alt\[point]\<numeric expression>\[of]\<path primary>\continuerule
+ \alt\[precontrol]\<numeric expression>\[of]\<path primary>\continuerule
+ \alt\[postcontrol]\<numeric expression>\[of]\<path primary>
+
+\bugonpage C233, lines 13--14 (2/15/87)
+
+\ninepoint\noindent
+one column of white
+pixels, if the character is $2a$ pixels wide, because the right edge of
+black pixels is specified here to have the $x$~coordinate $2a-1$.
+
+\bugonpage C247, lines 23--25 (11/27/86)
+
+\ninepoint
+\ansno 16.2:
+ `{\bf pencircle} scaled 1.06060' is the diamond but
+`{\bf pencircle} scaled 1.06061' is~the square. \ (This assumes that
+$\\{fillin}=0$. If, for example, $\\{fillin}=.1$, the change doesn't
+occur until the diameter is 1.20204.) \ The next change is at diameter
+1.5, which\cutpar
+
+\bugonpage C262, lines 1--4 (7/28/86)
+
+\ninepoint
+When we come to macros whose use has not yet been explained---for
+example, somehow |softjoin| and |stop| never made it
+into Chapters 1 through~27---we shall consider them from a user's
+viewpoint. But most of the comments that follow are addressed to a
+potential base-file designer.
+
+\bugonpage C266, line 16 (8/17/86)
+
+\ninepoint\noindent
+variables; they have the side effect of changing the variable's value.
+
+\bugonpage C276, line 26 (6/23/86)
+
+\ninepoint
+\noindent
+| if charic<>0: r((w+charic*hppp,h.o_),(w+charic*hppp,.5h.o_)); fi|
+
+\bugonpage C286, lines 24--26 (10/13/86)
+
+\ninepoint\noindent
+but \MF\ won't let you. And even if this had worked, it wouldn't have
+solved the problem; it would simply have put |ENDFOR| into the
+replacement text of |ast|, because expansion is inhibited when the
+replacement text is being read.
+
+\bugonpage C290, line 1 (8/23/86)
+
+\ninepoint  \noindent{\it 2.\enspace Fortuitous loops.\enspace}%
+The `^{max}' and `^{min}' macros in Appendix~B make use of the fact\cutpar
+
+\bugonpage C298, third-last line (8/23/86)
+
+\ninepoint
+$t[\,u_1,\ldots,u_n]\;=\;t\bigl[t[u_1,\ldots,u_{n-1}],t[u_2,\ldots,u_n]\,\bigr]$
+
+\bugonpage C304, 14th-last line (2/15/87)
+
+\ninepoint\noindent
+[replace this `|\smallskip|' by a |\smallskip| between lines!]
+
+\bugonpage C307, fifth-last line (12/7/86)
+
+\ninepoint
+{\def\_{\kern.04em
+    \vbox{\hrule width.3em height .6pt}\kern.08em}%
+\bf adjust\_fit}(\<left sidebearing adjustment>,\thinspace
+  \<right sidebearing adjustment>);
+
+\bugonpage C312, line 34 (10/12/86)
+
+\ninepoint\noindent
+|params[2] = "sans_params";      fontname[2] = "cmssbx10";|
+
+\bugonpage C316, lines 19--21 (8/17/86)
+
+\ninepoint\noindent
+example,
+`|(some| |charht| |values| |had| |to| |be| |adjusted| |by| |as| |much|
+|as| |0.12pt)|' means that~you had too many different nonzero heights, but
+\MF\ found a way to reduce the number to at most~15 by changing some of
+them; none of them had to be\cutpar
+
+\bugonpage C319, line 3 (8/23/86)
+
+\ninepoint\noindent
+specified by saying, e.g.,
+
+\bugonpage C321, line 6 (7/28/86)
+
+\ninepoint\noindent
+|  special "identifier " & font_identifier_;|
+
+\bugonpage C334, line 2 (6/23/86)
+
+\ninepoint\noindent
+|  currentpicture := currentpicture shifted-(1,1); pix := currentpicture;|
+
+\bugonpage C339, tenth-last line (2/4/87)
+
+\ninepoint\noindent
+|  Jackie K\=aren {\L}au\.ra Mar{\'\i}a N\H{a}ta{\l}{\u\i}e {\O}ctave|
+
+\bugonpage C343, second-last line (8/23/86)
+
+\rightline{\eightssi
+the precise needs of a precise but limited intellectual goal.}
+
+\bugonpage C346, 2nd line of entry for `{\tt;}' (1/12/87)
+
+\eightpoint
+\qquad 217, 223--224, 263, 312.
+
+\bugonpage C348, line 6 (6/17/86)
+
+\eightpoint
+concatenation, of paths, {\eightit 70--71}, {\eightit 123}, 127,
+
+\bugonpage C348, just before `debugging' (3/16/87)
+
+\eightpoint
+de Casteljau, Paul de Faget, 14.
+
+\bugonpage C348, right column (3/16/87)
+
+\eightpoint\noindent
+[The entry for `|define_whole_vertical_blacker_pixels|' should be moved up
+before the entry for `|define_whole_vertical_pixels|'.]
+
+\bugonpage C352, left column (6/1/87)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+{\tt kern}, {\it 97}, {\it 316}, $\underline{317}$.
+
+\bugonpage C352, right column (3/8/87)
+
+\eightpoint\noindent
+[The entry for `|lowres|' belongs before the entry for `|lowres_fix|'.]
+
+\bugonpage C353, left column (3/8/87)
+
+\eightpoint\noindent
+[The entries for `|mode|' and `\<mode command>' belong before the entry
+for `|mode_def|'.]
+
+\bugonpage C353, entry for {\tt mode\char`\_def} (8/17/86)
+
+\eightpoint
+{\tt mode\char`\_def}, 94, 189, $\underline{\smash{\hbox{\it 270}}}$,
+{\it 278--279}.
+
+\bugonpage C355, right column (4/15/86)
+
+\eightpoint\noindent
+[The entry for `{\tt rulepen}' belongs before the entry for `rules'.]
+
+\bugonpage C355, right column (8/5/86)
+
+\eightpoint
+{\tt screenstrokes}, 191, $\underline{277}$.
+
+\bugonpage C355, 2nd line of entry for `semicolons' (1/12/87)
+
+\eightpoint
+\qquad 217, 223--224, 263, 312.
+
+\bugonpage C356, full names for the Stanfords (4/10/86)
+
+\eightpoint
+Stanford, Amasa Leland, 340.
+
+Stanford, Jane Elizabeth Lathrop, 340.
+
+% Volume D
+\hsize=35pc
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+\def\to{\mathrel{.\,.}} % double dot, used only in math mode
+
+\buginvol D, in general (7/28/86)
+
+\tenpoint\noindent
+[A number of entries were mistakenly omitted from the mini-indexes
+on the right-hand pages. Here is a combined list of all the missing
+items; you can mount it inside the back cover, say, as a secondary mini-index
+when the first one fails\dots\ ]
+
+\nobreak\medskip
+\setbox0=\vbox{\eightpoint \hsize=11pc \catcode`\_=\active \let_=\_
+  \rightskip=0pt plus 100pt minus 10pt
+  \pretolerance 10000
+  \hyphenpenalty 10000 \exhyphenpenalty 10000
+  \noindent\vbox to1pt{}\par % 1pt = \topskip - \ninept
+  \def\&#1{\hbox{\bf#1\/}} % boldface type for reserved words
+  \obeylines
+  \def\makeref #1 #2 #3#4
+   {\nn=#2 \hangindent=1em \noindent\\{#1}%
+    \if#3:: \else\unhcopy\eqbox \fi#4, \S\number\nn.\par}
+  \makeref add_or_subtract 930 :\&{procedure}
+  \makeref after 427 :\&{array}
+  \makeref arg_list 720 :\\{pointer}
+  \makeref b 580 :\\{pixel\_color}
+  \makeref bad_exp 824 :\&{procedure}
+  \makeref before 427 :\&{array}
+  \makeref begin_name 770 :\&{procedure}
+  \makeref bilin1 968 :\&{procedure}
+  \makeref binary_mac 863 :\&{procedure}
+  \makeref blank_rectangle 567 :\&{procedure}
+  \makeref boc_c 1162 :\\{integer}
+  \makeref boc_p 1162 :\\{integer}
+  \makeref cf 298 :\\{fraction}
+  \makeref clockwise 453 :\\{boolean}
+  \makeref ct 298 :\\{fraction}
+  \makeref cubic_intersection 556 :\&{procedure}
+  \makeref cur_pen 403 :\\{pointer}
+  \makeref cur_rounding_ptr 427 :$0\to \\{max\_wiggle}$
+  \makeref cur_spec 403 :\\{pointer}
+  \makeref cur_x 389 :\\{scaled}
+  \makeref cur_y 389 :\\{scaled}
+  \makeref dely 557 :\\{integer}
+  \makeref dep_finish 935 :\&{procedure}
+  \makeref dep_list 587 =macro
+  \makeref dimen_head 1125 :\&{array}
+  \makeref dx 495 :\\{integer}
+  \makeref dy 495 :\\{integer}
+  \makeref d1 464 :$0\to 1$
+  \makeref end_name 772 :\&{procedure}
+  \makeref eqtb 201 :\&{array}
+  \makeref error_stop_mode 68 =$3$
+  \makeref firm_up_the_line 682 :\&{procedure}
+  \makeref get_next 667 :\&{procedure}
+  \makeref gf_buf 1152 :\&{array}
+  \makeref gf_offset 1152 :\\{integer}
+  \makeref gf_ptr 1152 :\\{gf\_index}
+  \makeref halfword 156 =$\\{min\_halfword}\to \\{max\_halfword}$
+  \makeref hash 201 :\&{array}
+  \makeref index 629 =macro
+  \makeref input_ln 30 :\&{function}
+  \makeref interaction 68 :$0\to 3$
+  \makeref j 357 :$0\to \\{move\_size}$
+  \makeref known_pair 872 :\&{procedure}
+  \makeref limit 629 =macro
+  \makeref m_spread 357 :\\{integer}
+  \makeref materialize_pen 865 :\&{procedure}
+  \makeref max_allowed 403 :\\{scaled}
+  \makeref max_c 813 :\&{array}
+  \makeref max_link 813 :\&{array}
+  \makeref max_tfm_dimen 1130 :\\{scaled}
+  \makeref mem_top 12 =macro
+  \makeref mem 159 :\&{array}
+  \makeref memory_word 156 =\&{record}
+  \makeref more_name 771 :\&{function}
+  \makeref m1 464 :\\{integer}
+  \makeref n 580 :\\{screen\_col}
+  \makeref n_sin_cos 145 :\&{procedure}
+  \makeref name 629 =macro
+  \makeref negate_dep_list 904 :\&{procedure}
+  \makeref new_knot 871 :\&{function}
+  \makeref node_to_round 427 :\&{array}
+  \makeref n1 464 :\\{integer}
+  \makeref octant_dir 395 :\&{array}
+  \makeref o1 453 :\\{small\_number}
+  \makeref o2 453 :\\{small\_number}
+  \makeref paint_row 568 :\&{procedure}
+  \makeref param 1096 :\&{array}
+  \makeref param_stack 633 :\&{array}
+  \makeref path_length 916 :\&{function}
+  \makeref perturbation 1119 :\\{scaled}
+  \makeref phi 542 :\\{angle}
+  \makeref pool_ptr 38 :\\{pool\_pointer}
+  \makeref post_head 843 :\\{pointer}
+  \makeref pre_head 843 :\\{pointer}
+  \makeref print_err 68 =macro
+  \makeref print_macro_name 722 :\&{procedure}
+  \makeref quarterword 156 =$0\to 255$
+  \makeref recycle_value 809 :\&{procedure}
+  \makeref row_transition 579 :\\{trans\_spec}
+  \makeref scan_text_arg 730 :\&{procedure}
+  \makeref scroll_mode 68 =$2$
+  \makeref set_controls 299 :\&{procedure}
+  \makeref sf 298 :\\{fraction}
+  \makeref show_context 635 :\&{procedure}
+  \makeref sorted 325 =macro
+  \makeref st 298 :\\{fraction}
+  \makeref start 629 =macro
+  \makeref start_sym 1077 :\\{halfword}
+  \makeref str_pool 38 :\&{packed}\ \&{array}
+  \makeref str_ptr 38 :\\{str\_number}
+  \makeref str_start 38 :\&{array}
+  \makeref take_part 910 :\&{procedure}
+  \makeref tfm_changed 1130 :\\{integer}
+  \makeref tol 557 :\\{integer}
+  \makeref tt 843 :\\{small\_number}
+  \makeref tx 954 :\\{scaled}
+  \makeref txx 954 :\\{scaled}
+  \makeref txy 954 :\\{scaled}
+  \makeref ty 954 :\\{scaled}
+  \makeref tyx 954 :\\{scaled}
+  \makeref tyy 954 :\\{scaled}
+  \makeref unsorted 325 =macro
+  \makeref uv 557 :$0\to \\{bistack\_size}$
+  \makeref xy 557 :$0\to \\{bistack\_size}$
+  \makeref x1 542 :\\{scaled}
+  \makeref x2 542 :\\{scaled}
+  \makeref x3 542 :\\{scaled}
+  \makeref y1 542 :\\{scaled}
+  \makeref y2 542 :\\{scaled}
+  \makeref y3 542 :\\{scaled}
+  }
+\hbox{\nsize=\ht0 \advance\nsize-\topskip
+  \divide\nsize by 3 \divide\nsize by\ninept
+  \multiply\nsize by\ninept \advance\nsize\topskip
+  \vsplit0 to\nsize \kern1pc
+  \msize=\ht0 \advance\msize-\topskip
+  \divide\msize by 2 \divide\msize by\ninept
+  \multiply\msize by\ninept \advance\msize\topskip
+  \vbox to\nsize{\vsplit0 to\msize\vss}\kern1pc
+  \vbox to\nsize{\box0\vss}}
+
+\buginvol D, in general (4/6/87)
+
+\tenpoint\noindent[The percent signs in all the comments (for example,
+on pages 7 and 42) are in the wrong font! Change `{\tt\%}' to `\%'.]
+
+\bugonpage Dvii, line 9 (9/25/86)
+
+{\tenpoint\noindent\hsize=29pc
+{\sl Discrete and Computational Geometry\/ \bf1} (1986), 123--140.
+\ \it Develops the theory\cutpar}
+
+\bugonpage D2, line 27 (6/17/86)
+
+\ninepoint\noindent\hskip10pt
+{\bf define} $\\{banner}\equiv\hbox{\tt\char'23}$%
+{\tt This\]is\]METAFONT,\]Version\]1.3\char'23}\quad
+$\{\,$printed when \MF\ starts$\,\}$
+
+\bugonpage D18, line 30 (5/22/86)
+
+\ninepoint\noindent
+\\{str\_ptr}: \\{str\_number};\quad
+$\{\,$number of the current string being created$\,\}$
+
+\bugonpage D23, second line of mini-index, right column (6/14/87)
+
+\eightpoint
+\indent\\{pool\_name}\unhcopy\eqbox|"string"|, \S11.
+
+\bugonpage D30, lines 33--34 (6/14/87)
+
+\tenpoint\noindent
+to delete a token, and/or if some fatal error
+occurs while \MF\ is trying to fix a non-fatal one. But such recursion
+is never more than two levels deep.
+
+\bugonpage D63, lines 13--14 (5/5/87)
+
+\ninepoint\noindent
+[These two lines can be eliminated, since the variable \\{temp\_ptr}
+is no longer used! If you delete them, also remove \S158 from the
+list of sections where global variables are declared (pages D7 and D552),
+and remove \\{temp\_ptr} from the index on page D540.]
+
+\bugonpage D66, line 6 (5/22/86)
+
+\ninepoint\noindent
+{\bf function\/}\  $\\{get\_node}(s:\\{integer})$: \\{pointer};\quad
+$\{\,$variable-size node allocation$\,\}$
+
+\bugonpage D66, lines 31--32 (3/16/86)
+
+\tenpoint\noindent
+controlled
+growth helps to keep the \\{mem} usage consecutive when \MF\ is
+implemented on ``virtual memory'' systems.
+
+\bugonpage D67, lines 7--8 (4/21/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf if} $r=p$ {\bf then if} $\\{rlink}(p)\ne p$ {\bf then}
+  $\langle\,$Allocate entire node $p$ and {\bf goto} \\{found}%
+  {\sevenrm\kern.5em171}$\,\rangle$;
+
+\bugonpage D86, second line of section 198 (2/27/87)
+
+\noindent
+Individual class numbers have no semantic
+or syntactic significance, except in a few instances\cutpar
+
+\bugonpage D101, line 2 (3/16/86)
+
+\tenpoint\line{%
+like `{\tt x}', or they can
+combine the structural properties of arrays and records, like `{\tt x20a.b}'.
+A}
+
+\bugonpage D102, line 24 (3/16/86)
+
+\tenpoint\line{\kern10pt
+In other words, variables have a hierarchical structure that includes
+enough threads running}
+
+\bugonpage D127, line 10 (5/5/87)
+
+\ninepoint\noindent
+[Variable $r$ can be eliminated, since it is not
+used in this procedure! If you delete it, also remove $\underline{280}$
+from the corresponding index entry on page D536.]
+
+\bugonpage D129, line 15 (5/5/87)
+
+\ninepoint\noindent
+[This line can be eliminated, since \\{sine} and \\{cosine} are not
+used in this procedure! If you delete them, also remove $\underline{284}$
+from the corresponding index entries on pages D538 and D521.]
+
+\bugonpage D142, line 23 (4/24/87)
+
+\tenpoint\noindent
+$(7-\sqrt{28}\,)/12$; the worst case
+occurs for polynomials like $B(0,28-4\sqrt{28},14-5\sqrt{28},42;t)$.)
+
+\bugonpage D178, third-last line (7/30/86)
+
+\tenpoint\line{\quad
+The following code maintains the invariant relations
+$0\le \\{x0}<\max(\\{x1},\\{x1}+\\{x2})$, $\vert\\{x1}\vert<2^{30}$,}
+
+\bugonpage D228, line 13 (7/30/86)
+
+\ninepoint\noindent\kern10pt
+{\bf while} $\\{max\_coef}<\\{fraction\_half}$ {\bf do}
+
+\smallskip\eightpoint\noindent
+The mini-index at the bottom of the next page should also receive the following
+new entry:
+\smallskip\indent
+$\\{fraction\_half}={\rm macro}$, \S105.
+
+\bugonpage D228, 10th-last line (5/5/87)
+
+\ninepoint\noindent\hskip20pt
+{\bf begin} $\\{right\_type}(p)\gets k$;
+\smallskip
+\noindent[Also eliminate `$q,$' seven lines above this, and delete
+$\underline{497}$ from the index entry for \\{q} on page D536.]
+
+\bugonpage D248, lines 16--21 (11/27/86)
+
+\ninepoint\noindent\kern10pt
+$\\{alpha}\gets\\{abs}(u)$;\kern5pt
+ $\\{beta}\gets\\{abs}(v)$;\par\noindent\kern10pt
+{\bf if} $\\{alpha}<\\{beta}$ {\bf then}\par\noindent\kern20pt
+{\bf begin} $\\{alpha}\gets\\{abs}(v)$;\kern5pt
+ $\\{beta}\gets\\{abs}(u)$;\kern5pt
+{\bf end};\quad$\{\,$now $\alpha=\max(\vert u\vert,\vert v\vert)$,
+ $\beta=\min(\vert u\vert,\vert v\vert)\,\}$\par\noindent\kern10pt
+{\bf if} $\\{internal}[\\{fillin}]\ne0$ {\bf then}\par\noindent\kern20pt
+$d\gets d-\\{take\_fraction}(\\{internal}[\\{fillin}],
+ \\{make\_fraction}(\\{beta}+\\{beta},\\{delta}))$;\par\noindent\kern10pt
+$d\gets\\{take\_fraction}((d+4)\;{\bf div}\;8,\\{delta})$;\kern5pt
+$\\{alpha}\gets\\{alpha}\;{\bf div}\;\\{half\_unit}$;
+
+\bugonpage D263, line 20 (3/16/86)
+
+\tenpoint\noindent
+instead of \\{false}, the other routines will simply log the fact
+that they have been called; they won't\cutpar
+
+\bugonpage D268, line 2 (4/28/87)
+
+\tenpoint\noindent
+Given the number~$k$ of an open window, the pixels of positive
+weight in \\{cur\_edges} will be shown\cutpar
+
+\bugonpage D301, line 6 of section 652 (5/5/87)
+
+\ninepoint\noindent
+[This line can be eliminated, since variable $s$ is not
+used in this procedure! If you delete it, also remove $\underline{652}$
+from the corresponding index entry on page D537; remove 652 from
+the index entries for \\{param\_size} and \\{param\_start} on page D534;
+and remove \\{param\_size} from the mini-index on page D301.]
+
+\bugonpage D376, lines 17 and 18 (11/14/86)
+
+\tenpoint\noindent
+[these two mysterious lines should be deleted]
+
+\bugonpage D380, line 11 (5/5/87)
+
+\ninepoint\noindent
+[Variables $q$ and $r$ can be eliminated, since they are not
+used in this procedure! If you delete them, also remove $\underline{862}$
+from the corresponding index entries on page D536.]
+
+\bugonpage D429, line 14 (5/5/87)
+
+\ninepoint\noindent\hskip10pt
+{\bf begin} $p\gets\\{cur\_exp}$;
+\smallskip
+\noindent[Also eliminate line 12, and delete $\underline{985}$ from the
+index entry for \\{vv} on page D543.]
+
+\bugonpage D455, line 5 (5/5/87)
+
+\ninepoint\noindent
+[This line can be eliminated, since variable $t$ is not
+used in this procedure! If you delete it, also remove $\underline{1059}$
+from the corresponding index entry on page D540; remove 1059 from
+the index entries for \\{small\_number} and \\{with\_option} on pages D539
+and D544; and remove \\{with\_option} from the mini-index on page D455.]
+
+\bugonpage D463, line 10 (12/15/86)
+
+\ninepoint\noindent\hskip30pt
+({\tt"Pretend\]that\]you're\]Miss\]Marple:\]Examine\]all\]clues,"})
+
+\bugonpage D465, lines 17--18 (6/14/87)
+
+\tenpoint\noindent
+[Delete these two lines.]
+
+\bugonpage D474, 5th-last line (3/16/86)
+
+\tenpoint\noindent
+depths, or italic corrections) are sorted;
+then the list of sorted values is perturbed, if necessary.
+
+\bugonpage D481, line 12 (6/17/86)
+
+\ninepoint\noindent\hskip10pt
+\\{print\_nl}({\tt\char`\"Font\]metrics\]written\]on\]\char`\"});\kern5pt
+\\{print}(\\{metric\_file\_name});\kern5pt
+\\{print\_char}({\tt\char`\".\char`\"});
+
+\noindent\hskip10pt\\{b\_close}(\\{tfm\_file})
+
+\smallskip\eightpoint\noindent
+The mini-index at the bottom of this page should also receive the following
+new entry:
+\smallskip\indent
+\\{print\_char}: {\bf procedure}, \S58.
+
+\bugonpage D510, new line to follow line 5 (6/17/86)
+
+{\tenpoint\parindent=1em
+This program doesn't bother to close the input files that may still be open.
+\par}
+
+\bugonpage D510, just before the fifth-last line (8/5/86)
+
+\ninepoint\noindent\hskip30pt$\\{internal}[\\{fontmaking}]\gets0$;\quad
+$\{\,$avoid loop in case of fatal error$\,\}$
+
+\bugonpage D520, right column (6/14/87)
+
+\eightpoint
+\leftline{Chinese characters:\quad 1147.}
+
+\bugonpage D526, left column, lines 1--2 (7/30/86)
+
+\eightpoint
+\leftline{\indent\\{fraction\_half}:\quad
+ $\underline{105}$, 111, 152, 288, 408, 496, 543,}
+\leftline{\indent\qquad 1098, 1128, 1141.}
+
+\bugonpage D526, left column, lines 6--7 (7/30/86)
+
+\eightpoint
+\leftline{\indent\qquad 478, 497, 499, 503, 530, 540, 547, 549, 599, 603,}
+\leftline{\indent\qquad 612, 615, 815--816, 917, 1169--1170.}
+
+\bugonpage D528, right column (6/14/87)
+
+\eightpoint
+\leftline{Japanese characters:\quad 1147.}
+
+\bugonpage D530, right column, line 45 (7/30/86)
+
+\eightpoint
+\leftline{\indent\\{max}:\quad$\underline{539}$, 543.}
+
+\bugonpage D533, right column (6/14/87)
+
+\eightpoint
+\leftline{oriental characters:\quad 1147.}
+
+\bugonpage D535, right column, line 27 (6/17/86)
+
+\eightpoint
+\leftline{\indent\qquad 1134, 1163--1165, 1182, 1194, 1200, 1205, 1213.}
+
+\bugonpage D547, bottom two lines (11/27/86)
+
+\ninepoint\noindent
+[These lines, and the top two on the next page, should move down
+so that they appear in alphabetical order just before `Compute
+test coefficients'.]
+% volume E
+\hsize=29pc
+\def\dashto{\mathrel{\hbox{-\kern-.05em}\mkern3.9mu\hbox{-\kern-.05em}}}
+
+\bugonpage Exiii, lines 1--2 (7/28/86)
+
+\tenpoint\noindent
+February 11--13, 1984), 49.
+\ {\it An example meta-character of the Devanagari alphabet, worked out
+``online'' with the help of Matthew Carter.}
+
+\bugonpage Exiii, line 6 (7/28/86)
+
+\tenpoint\noindent
+{\it and western alphabets work also for Devanagari and Tamil.}
+
+\bugonpage E12, lines 15 and 19 (7/23/86)
+
+\tenpoint\noindent[change `17.32' to `17.28' in both places]
+
+\bugonpage E12, third-last line (12/18/86)
+
+\tenpoint\noindent[change `41' to `40']
+
+\bugonpage E13, lines 3, 4, and 20 (12/18/86)
+
+\tenpoint\noindent[change `40' to `41', `48' to `47', `17' to `7']
+
+\bugonpage E18, line 20 (7/23/86)
+
+\tenpoint\noindent[change `17.32' to `17.28']
+
+\bugonpage E18, line 29 (12/9/86)
+
+\tenpoint\noindent[change `236' to `212' in the {\tt cmss9} column]
+
+\bugonpage E170, top illustration (11/2/86)
+
+\tenpoint\noindent[There should be no ``dish'' or depression in the
+vicinity of point {\tt 3r}; the top edge of the character should be
+straight. This error appears also in the other uses of `\\{no\_dish\_serif}'
+throughout the book, since the illustrations were made before
+`\\{no\_dish\_serif}' was added to the program. See page
+E180~(twice at the top), E370~(twice), E374~(twice), E376~(twice), E378~(top),
+E390~(bottom), E398~(top), E402~(top), E406~(top), E453~(twice).]
+
+\bugonpage E179, new line to be inserted after line 6 (10/13/86)
+
+\ninepoint\noindent
+{\bf if}  $\\{shaved\_stem}<\\{crisp}.\\{breadth}$:
+  $\\{shaved\_stem}:=\\{crisp}.\\{breadth}$; {\bf fi}
+
+\bugonpage E219, line 29 (6/2/87)
+
+\ninepoint\line{\\{top} $y_1=h$; \ $x_1=x_2$; \
+ {\bf filldraw stroke} $z_{1e}\dashto z_{2'e}$;\hfil\% stem}
+
+\bugonpage E279, seventh line from the bottom (7/20/86)
+
+\rightline{\eightssi that delicious but restrained humor which
+ her readers found so irresistible.}
+
+\bugonpage E301, new line to be inserted after line 28 (5/15/87)
+
+\ninepoint\noindent
+\quad{\bf if} $\\{lower\_side}>1.2\\{upper\_side}$:
+  $\\{upper\_side}:=\\{lower\_side}$; {\bf fi}
+
+\bugonpage E554, bottom half of page (12/18/86)
+
+\ninepoint\noindent[The letters will change slightly because of the
+corrections to {\tt cmr17} noted on pages 12 and 13.]
+
+\bugonpage E561, line 3 (12/9/86)
+
+\ninepoint\noindent[The numerals should be `\thinspace
+{\niness 0123456789}\thinspace' (i.e., 2/3 point less tall)
+because of the correction made to page 18.]
+
+\bugonpage E562, line 9 (12/9/86)
+
+\ninepoint\noindent[The numerals should be `\thinspace
+{\ninessi 0123456789\/}\thinspace' (i.e., 2/3 point less tall)
+because of the correction made to page 18.]
+
+\bugonpage E572, entry for {\it breadth} (10/13/86)
+
+\eightpoint
+{\it breadth}, 59, 75, 79, 91, 93, 179, 225, 233,
+
+\bugonpage E573, entry for {\tt cmcsc10} (8/17/86)
+
+\eightpoint
+{\tt cmcsc10}, $\underline{30}$--$\underline{31}$, 567.
+
+\bugonpage E576, tenth-last line (5/15/87)
+
+\eightpoint
+{\bf lowres\kern.04em\vbox{\hrule width.3em height .6pt}\kern.08em
+ fix}, 550.
+\bye
+Now here are some that I will make soon!
+

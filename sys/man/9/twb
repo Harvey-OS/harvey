@@ -1,0 +1,178 @@
+.TH TWB 9.1
+.SH NAME
+dpic, twb \- anti-aliased troff output to picture files
+.SH SYNOPSIS
+.B fb/dpic
+[
+.B -o
+.I list
+] [
+.B -w
+.I xmin ymin xmax ymax
+] [
+.B -d
+.I dpi
+] [
+.B -s
+.I stem
+] [
+.I file ...
+]
+.PP
+.B fb/twb
+[
+.I options
+] [
+.I files
+]
+.SH DESCRIPTION
+.I Dpic
+converts the output of
+.IR troff (1)
+into anti-aliased images.
+Reading input from the named
+.I files
+(default standard input),
+it scan-converts characters
+using font outlines for the
+Merganthaler Linotron 202 phototypesetter;
+.IR troff 's
+.B -T202
+flag will so apprise it.
+.PP
+.I Dpic
+puts each page of output in a picture file.
+Normally these files are named
+.BR page.1 ,
+.BR page.2 ,
+etc.
+Option
+.BI -s stem
+causes page
+.I n
+to be put in file
+.IB stem . n.
+.PP
+Option
+.BI -w "xmin ymin xmax ymax"
+gives pixel coordinates of the rectangle in which type is to be set.
+The default is
+.BR "-w 0 0 640 480" .
+Option
+.BI -d dpi
+gives the mapping from
+.I troff
+coordinates (point sizes, etc.)
+to pixel coordinates;
+.I dpi
+is the number of dots (pixels) in the output files per inch of
+.I troff
+coordinates.
+The default is 100 dpi.
+.PP
+Option
+.B -o
+gives a list of pages to be processed.
+By default all pages of the input files are converted.
+.PP
+.I Dpic
+interprets several commands copied through using
+.IR troff 's
+.BI \eX' ... '
+escape.
+.TP
+.BI \eX'color " r g b a" '
+Set the foreground color to
+.I r g b a.
+The arguments are numbers between 0 and 255 specifying
+the red, green, blue and alpha (opacity) components
+of the color.
+Subsequent type and line-art will be set in
+this color.
+.TP
+.BI \eX'bgcolor " r g b a" '
+Set the background color to
+.I r g b a.
+Before any type is set on any page, it is cleared to this color.
+.TP
+.BI \eX'clear'
+Clear the page to the background color.
+.TP
+.BI \eX'picfile " name x y" '
+Display a picture file with its upper-right
+corner at pixel
+.IR (x,y) .
+.TP
+.BI \eX'clrwin " x0 y0 x1 y1" '
+Set all pixels with
+.I x0<=x<=x1
+and
+.I y0<=y<=y1
+to the background color.
+.TP
+.BI \eX'border " x0 y0 x1 y1" '
+Draw a one-pixel-wide rectangle in the
+foreground color.  Opposite corners of
+the rectangle are at
+.I (x0,y0)
+and
+.IR (x1,y1) .
+.PP
+.IR Twb ,
+the Toastmaster's Workbench,
+is an
+.I rc
+script that provides a rudimentary slide-making interface to
+.I dpic .
+It runs the
+.I files,
+(default standard input)
+through
+.I grap, pic, tbl, eqn, troff
+and
+.I dpic,
+passing any
+.I options
+to
+.I troff
+or
+.I dpic,
+as appropriate.
+.PP
+.I Twb
+loads the
+.B -mtwb
+macro-package into
+.I troff.
+The following macros mostly repackage the nonstandard
+.IR dpic
+commands described above:
+.TP
+.BI \.CO " [r g b a]"
+Set the foreground color.  If the arguments are omitted
+the color reverts to its previous setting.  Initially
+the foreground color is (255,255,255,255) (opaque white.)
+.TP
+.BI \.BC " [r g b a]"
+Set the background color.  If the arguments are omitted
+the color reverts to its previous setting.  Initially
+the background color is (0,0,0,0) (transparent black.)
+.TP
+.B \.CL
+Clear the page to the background color.
+.TP
+.BI \.IN " picfile x y"
+Include a picture file, placing it with its upper-left
+corner at pixel
+.IR (x,y) .
+.TP
+.BI \.CW " x0 y0 x1 y1"
+Clear a window to the background color.
+.TP
+.BI \.BW " x0 y0 x1 y1"
+Draw a window border using the foreground color.
+.TP
+.BI \.SL " [title]"
+Start a new slide with the given title.
+.SH "SEE ALSO
+.IR picfile (9.6)

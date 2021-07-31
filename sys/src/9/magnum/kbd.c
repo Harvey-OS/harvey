@@ -180,10 +180,10 @@ kbdintr(void)
 	KBDdev *k;
 	static int shifted;
 	static int ctrled;
-	static int collecting, nk;
+	static int lstate;
 	static uchar kc[5];
 	uchar ch, code;
-	int c, i;
+	int c, i, nk;
 
 	k = KBD;
 	kbdwait(k);
@@ -219,21 +219,39 @@ kbdintr(void)
 	if(!(ch & Spec)){
 		if(ctrled)
 			ch &= 0x1f;
-		if(!collecting){
-			kbdputc(&kbdq, ch);
-			return 0;
-		}
-		kc[nk++] = ch;
-		c = latin1(kc, nk);
-		if(c < -1)	/* need more keystrokes */
-			return 0;
-		if(c != -1)	/* valid sequence */
-			kbdputc(&kbdq, c);
-		else	/* dump characters */
-			for(i=0; i<nk; i++)
+		switch(lstate){
+		case 1:
+			kc[0] = ch;
+			lstate = 2;
+			if(ch == 'X')
+				lstate = 3;
+			break;
+		case 2:
+			kc[1] = ch;
+			c = latin1(kc);
+			nk = 2;
+		putit:
+			lstate = 0;
+			if(c != -1)
+				kbdputc(&kbdq, c);
+			else for(i=0; i<nk; i++)
 				kbdputc(&kbdq, kc[i]);
-		nk = 0;
-		collecting = 0;
+			break;
+		case 3:
+		case 4:
+		case 5:
+			kc[lstate-2] = ch;
+			lstate++;
+			break;
+		case 6:
+			kc[4] = ch;
+			c = unicode(kc);
+			nk = 5;
+			goto putit;
+		default:
+			kbdputc(&kbdq, ch);
+			break;
+		}
 		return 0;
 	}
 
@@ -256,8 +274,7 @@ kbdintr(void)
 		ctrled = 1;
 		break;
 	case Latin:
-		collecting = 1;
-		nk = 0;
+		lstate = 1;
 		break;
 	default:
 		kbdputc(&kbdq, ch);

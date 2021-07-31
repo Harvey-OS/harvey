@@ -1,0 +1,65 @@
+.TH DRAWP 10.1
+.SH NAME
+drawp \- draw board layout
+.SH SYNOPSIS
+.B cda/drawp
+.RI [ options... ]
+.RI [ files... ]
+.SH DESCRIPTION
+.PP
+.I Drawp
+reads files produced by the
+.IR fizz (10.1)
+suite of programs
+and writes output suitable for
+.IR pic (1).
+Options are:
+.TP
+.B -c
+Draw pins associated with chips.
+.TP
+.B -d
+Draw datums.
+.TP
+.B -H
+Omit
+.IR troff (1)
+header.
+.TP
+.B -k
+Display package names.
+.TP
+.B -l
+Plot in landscape mode.
+.TP
+.B -p
+Plot pins from the board definition.
+.TP
+.B -r
+Do not attempt to rotate text when labeling chips.
+.TP
+.B -t
+Display chip types.
+.TP
+.B -v
+Show special-signal pins.
+.TP
+.BI -h " file"
+Plot holes as given by
+.IR file ,
+which is in the
+.SM XY
+format accepted by
+.SM ICON\s0.
+.TP
+.BI -w " file"
+Plot nets as given by
+.IR file ,
+which is in the
+.SM XY
+format accepted by
+.SM ICON\s0.
+.SH "SEE ALSO"
+.IR fizz (10.1),
+.IR pic (1),
+.IR troff (1)

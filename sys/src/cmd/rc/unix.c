@@ -203,6 +203,7 @@ Waitfor(pid, persist){
 		}
 		wstat=sig?sig+1000:(wstat>>8)&0xFF;
 		if(wpid==pid){
+			if(flag['e'] && wstat) exit(wstat);
 			itoa(wstatstr, wstat);
 			setstatus(wstatstr);
 			break;

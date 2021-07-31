@@ -28,11 +28,11 @@ enum
  * the following are adjustable
  * according to memory size
  */
-	ACTSIZE		= 30000,
-	MEMSIZE		= 30000,
+	ACTSIZE		= 20000,
+	MEMSIZE		= 20000,
 	NSTATES		= 2000,
 	NTERMS		= 255,
-	NPROD		= 800,
+	NPROD		= 600,
 	NNONTERM	= 300,
 	TEMPSIZE	= 2000,
 	CNAMSZ		= 5000,
@@ -148,7 +148,7 @@ char	tokname[NAMESIZE+4];	/* input token name, slop for runes and 0 */
 typedef
 struct
 {
-	int	lset[TBITSET];
+	long	lset[TBITSET];
 } Lkset;
 
 typedef
@@ -162,7 +162,7 @@ typedef
 struct
 {
 	char*	name;
-	int	value;
+	long	value;
 } Symb;
 
 typedef
@@ -425,11 +425,6 @@ others(void)
 	TLOOP(i) {
 		j = tokset[i].value;
 		if(j >= 0 && j < 256) {
-			if(temp1[j]) {
-				print("yacc bug -- cant have 2 different Ts with same value\n");
-				print("	%s and %s\n", tokset[i].name, tokset[temp1[j]].name);
-				nerrors++;
-			}
 			temp1[j] = i;
 			if(j > c)
 				c = j;
@@ -443,11 +438,6 @@ others(void)
 	TLOOP(i) {
 		j = tokset[i].value - PRIVATE;
 		if(j >= 0 && j < 256) {
-			if(temp1[j]) {
-				print("yacc bug -- cant have 2 different Ts with same value\n");
-				print("	%s and %s\n", tokset[i].name, tokset[temp1[j]].name);
-				nerrors++;
-			}
 			temp1[j] = i;
 			if(j > c)
 				c = j;
@@ -483,14 +473,14 @@ others(void)
 					error("cannot reopen action tempfile");
 				while((c=Bgetrune(faction)) != Beof)
 					Bputrune(ftable, c);
-				Bterm(faction);
+				Bclose(faction);
 				ZAPFILE(actname);
 				c = Bgetrune(finput);
 			}
 		}
 		Bputrune(ftable, c);
 	}
-	Bterm(ftable);
+	Bclose(ftable);
 }
 
 /*
@@ -599,9 +589,9 @@ summary(void)
 		print("\n");
 	}
 	if(ftemp != 0)
-		Bterm(ftemp);
+		Bclose(ftemp);
 	if(fdefine != 0)
-		Bterm(fdefine);
+		Bclose(fdefine);
 }
 
 /*
@@ -614,7 +604,7 @@ error(char *s, ...)
 	nerrors++;
 	fprint(2, "\n fatal error:");
 	fprint(2, s, (&s)[1]);
-	fprint(2, ", %s:%d\n", infile, lineno);
+	fprint(2, ", line %d\n", lineno);
 	if(!fatfl)
 		return;
 	summary();
@@ -1114,7 +1104,7 @@ closure(int i)
 }
 
 /*
- * decide if the lookahead set pointed to by p is known
+ *decide if the lookahead set pointed to by p is known
  * return pointer to a perminent location for the set
  */
 Lkset*
@@ -1485,7 +1475,7 @@ setup(int argc, char *argv[])
 		while((c=Bgetrune(finput)) != Beof)
 			Bputrune(ftable, c);
 	}
-	Bterm(finput);
+	Bclose(finput);
 }
 
 /*
@@ -1495,7 +1485,7 @@ void
 finact(void)
 {
 
-	Bterm(faction);
+	Bclose(faction);
 	Bprint(ftable, "#define YYEOFCODE %d\n", 1);
 	Bprint(ftable, "#define YYERRCODE %d\n", 2);
 }
@@ -1557,8 +1547,8 @@ defin(int nt, char *s)
 		if(s[2] >= '0' && s[2] <= '7') {
 			if(s[3] < '0' ||
 			   s[3] > '7' ||
-			   s[4] < '0' ||
-			   s[4] > '7' ||
+			   s[4]<'0' ||
+			   s[4]>'7' ||
 			   s[5] != 0)
 				error("illegal \\nnn construction");
 			val = 64*s[2] + 8*s[3] + s[4] - 73*'0';
@@ -2071,8 +2061,9 @@ swt:
 			} else
 				if(c == match)
 					goto lcopy;
-				if(c == '\n')
-					error("newline in string or char. const.");
+				else
+					if(c == '\n')
+						error("newline in string or char. const.");
 			Bputrune(faction, c);
 		}
 		error("EOF in string or character constant");

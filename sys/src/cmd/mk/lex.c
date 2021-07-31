@@ -3,12 +3,14 @@
 static int initdone = 0;
 
 static int bquote(Biobuf *, Bufblock *);
-static int assquote(Biobuf *, Bufblock *, int, int);
+static int assquote(Biobuf *, Bufblock *, int);
+static int assdquote(Biobuf *, Bufblock *);
 static char *squote(char*);
 static long nextrune(Biobuf*, int);
 static int expandvar(Biobuf *, Bufblock *);
 static Bufblock *varname(Biobuf*);
 static int varsub(Biobuf *, Bufblock *);
+static int whitespace(Biobuf*);
 
 /*
  *	Assemble a line skipping blank lines, comments, and eliding
@@ -23,8 +25,7 @@ assline(Biobuf *bp, Bufblock *buf)
 	initdone = 0;
 	buf->current=buf->start;
 	while ((c = nextrune(bp, 1)) >= 0){
-		switch(c)
-		{
+		switch(c) {
 		case '\n':
 			if (buf->current != buf->start) {
 				insert(buf, 0);
@@ -33,7 +34,7 @@ assline(Biobuf *bp, Bufblock *buf)
 			break;		/* skip empty lines */
 		case '\'':
 			rinsert(buf, c);
-			if (!assquote(bp, buf, 1, c))
+			if (!assquote(bp, buf, 1))
 				Exit();
 			break;
 		case '`':
@@ -72,19 +73,19 @@ eof:
  *	Assemble a token surrounded by single quotes
  */
 static int
-assquote(Biobuf *bp, Bufblock *buf, int preserve, int termchar)
+assquote(Biobuf *bp, Bufblock *buf, int preserve)
 {
 	int c, line;
 
 	line = inline;
 	while ((c = nextrune(bp, 0)) >= 0) {
-		if (c == termchar) {
+		if (c == '\'') {
 			if (preserve)
 				rinsert(buf, c);
 			c = Bgetrune(bp);
 			if (c < 0)
 				break;
-			if (c != termchar) {
+			if (c != '\'') {
 				Bungetrune(bp);
 				return 1;
 			}
@@ -105,8 +106,7 @@ bquote(Biobuf *bp, Bufblock *buf)
 	char *end;
 
 	line = inline;
-	while ((c = Bgetrune(bp)) == ' ' || c == '\t')
-			;
+	c = whitespace(bp);
 	if(c != '{') {
 		SYNERR(line);
 		fprint(2, "missing opening { after `\n");
@@ -117,6 +117,9 @@ bquote(Biobuf *bp, Bufblock *buf)
 		if (c == '\n')
 			break;
 		if (c == '}') {
+			c = Bgetrune(bp);
+			if (c != '`')	/* for backward compatibility */
+				Bungetrune(bp);
 			insert(buf, '\n');
 			insert(buf,0);
 			end = buf->current-1;
@@ -127,9 +130,9 @@ bquote(Biobuf *bp, Bufblock *buf)
 			}
 			rcexec(buf->current, end, buf);
 			return 1;
-		} else if (QUOTE(c)) {
+		} else if (c == '\'') {
 			insert(buf, c);
-			if (!assquote(bp, buf, 1, c))
+			if (!assquote(bp, buf, 1))
 				return 0;
 			continue;
 		}
@@ -192,7 +195,7 @@ expandvar(Biobuf *bp, Bufblock *buf)
 			freebuf(buf2);
 			return 0;
 		case '\'':
-			if (!assquote(bp, buf2, 0, c)) {
+			if (!assquote(bp, buf2, 0)) {
 				freebuf(buf2);
 				return 0;
 			}
@@ -221,8 +224,7 @@ expandvar(Biobuf *bp, Bufblock *buf)
 	sym = symlook(buf2->start, S_VAR, 0);
 	if (!sym || !sym->value)
 		bufcpy(buf, buf2->start, start-2);
-	else
-		subsub((Word *) sym->value, buf2->start+start, buf);
+	else subsub((Word *) sym->value, buf2->start+start, buf);
 	freebuf(buf2);
 	return 1;
 }
@@ -322,4 +324,14 @@ nextrune(Biobuf *bp, int elide)
 		return c;
 	}
 	return 0;
+}
+
+static int
+whitespace(Biobuf *bp)
+{
+	int c;
+
+	while ((c = Bgetrune(bp)) == ' ' || c == '\t')
+			;
+	return c;
 }

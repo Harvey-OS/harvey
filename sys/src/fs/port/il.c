@@ -5,34 +5,6 @@
 #define Starttimer(s)	{(s)->timeout = 0; \
 			 (s)->fasttime = (Fasttime*(s)->rtt)/Iltickms; \
 			 (s)->slowtime = (Slowtime*(s)->rtt)/Iltickms; }
-enum
-{
-	Ilsync		= 0,		/* Packet types */
-	Ildata,
-	Ildataquery,
-	Ilack,
-	Ilquerey,
-	Ilstate,
-	Ilclose,
-
-	Ilclosed	= 0,		/* Connection state */
-	Ilsyncer,
-	Ilsyncee,
-	Ilestablished,
-	Illistening,
-	Ilclosing,
-	Ilopening,
-
-	Iltickms 	= 100,
-	Slowtime 	= 300*Iltickms,
-	Fasttime 	= 4*Iltickms,
-	Acktime		= 2*Iltickms,
-	Ackkeepalive	= 6000*Iltickms,
-	Querytime	= 60*Iltickms,		/* time between queries */
-	Keepalivetime	= 10*Querytime,		/* keep alive time */
-	Defaultwin	= 20,
-	ILgain		= 8,
-};
 
 static
 struct
@@ -153,7 +125,7 @@ getchan(Ifc *ifc, Ilpkt *p)
 
 	ilpinit(&cp->ilp);
 
-	iproute(cp->ilp.ipgate, p->src, ifc->netgate);
+	memmove(cp->ilp.ipgate, ifc->netgate, Pasize);
 	memmove(cp->ilp.ea, ifc->ea, Easize);
 
 	cp->ilp.usegate = 0;
@@ -164,10 +136,10 @@ getchan(Ifc *ifc, Ilpkt *p)
 	cp->reply = il.reply;
 	cp->ilp.reply = ifc->reply;
 	cp->whotime = 0;
-	sprint(cp->whochan, "il!%I!%d", p->src, srcp);
+	sprint(cp->whochan, "%I-%d", p->src, srcp);
 
 	unlock(&il);
-	print("il: allocating %s\n", cp->whochan);
+	print("allocating %s\n", cp->whochan);
 	return cp;
 }
 
@@ -426,7 +398,7 @@ ilprocess(Chan *cp, Msgbuf *mb)
 			mbfree(mb);
 			break;
 		case Ilsync:
-			if(id != ilp->rstart) {
+			if(id != ilp->start) {
 				ilp->state = Ilclosed;
 				ilhangup(cp, "remote close");
 			} else {
@@ -581,6 +553,7 @@ ilpullup(Chan *cp)
 	lock(&il);
 
 	while(ilp->outoforder) {
+
 		mb = ilp->outoforder;
 		oh = (Ilpkt*)mb->data;
 		oid = nhgetl(oh->ilid);
@@ -612,7 +585,7 @@ iloutoforder(Chan *cp, Ilpkt *h, Msgbuf *mb)
 {
 	Msgbuf **l, *f;
 	Ilp *ilp;
-	ulong id, ilid;
+	ulong id;
 	uchar *lid;
 
 	ilp = &cp->ilp;
@@ -632,21 +605,17 @@ iloutoforder(Chan *cp, Ilpkt *h, Msgbuf *mb)
 	 */
 	mb->next = 0;
 	lock(&il);
-	if(ilp->outoforder == 0) {
+	if(ilp->outoforder == 0)
 		ilp->outoforder = mb;
-	} else {
+	else {
 		l = &ilp->outoforder;
 		for(f = *l; f; f = f->next) {
 			lid = ((Ilpkt*)(f->data))->ilid;
-			ilid = nhgetl(lid);
-			if(id <= ilid) {
-				if(id == ilid) {
-					mbfree(mb);
-					unlock(&il);
-					return;
-				}
+			if(id < nhgetl(lid)) {
 				mb->next = f;
-				break;
+				*l = mb;
+				unlock(&il);
+				return;
 			}
 			l = &f->next;
 		}
@@ -668,7 +637,7 @@ ilackto(Chan *cp, ulong ackto)
 	if(ilp->rttack == ackto) {
 		t = TK2MS(MACHP(0)->ticks - ilp->ackms);
 		/* Guard against the ulong zero wrap */
-		if(t < 120000)
+		if(t < 100*ilp->rtt)
 			ilp->rtt = (ilp->rtt*(ILgain-1)+t)/ILgain;
 		if(ilp->rtt < Iltickms)
 			ilp->rtt = Iltickms;
@@ -864,4 +833,97 @@ callildial(Alarm *a, void *arg)
 	USED(arg);
 	cancel(a);
 	wakeup(&ild);
+}
+
+Chan*
+ildial(uchar *ip, Queue *rcp)
+{
+	Ifc *i;
+	Ilp *ilp;
+	Chan *cp;
+	static ulong initseq;
+
+	for(i = enets; i; i = i->next)
+		if((nhgetl(i->ipa)&i->mask) == (nhgetl(ip)&i->mask))
+			goto found;
+
+	print("ilauth: no interface for %I\n", ip);
+	return 0;
+
+found:
+	for(cp = il.ilp; cp; cp = cp->ilp.link)
+		if(cp->ilp.alloc == 0) 
+			break;
+			
+	if(cp == 0) {
+		cp = chaninit(Devil, 1);
+		cp->ilp.link = il.ilp;
+		il.ilp = cp;
+	}
+	ilp = &cp->ilp;
+	ilp->alloc = 1;
+
+	lock(&il);
+	if(il.reply == 0) {
+		il.reply = newqueue(Nqueue);
+		userinit(ilout, &il, "ilo");
+		userinit(iltimer, &il, "ilt");
+	}
+
+	memmove(ilp->iphis, ip, Pasize);
+	memmove(ilp->ipmy, i->ipa, Pasize);
+	ilp->srcp = Ilauthport;
+	ilp->dstp = Ilfsout;
+
+	ilpinit(ilp);
+
+	memmove(ilp->ipgate, i->netgate, Pasize);
+	memmove(ilp->ea, i->ea, Easize);
+	ilp->usegate = 0;
+
+	cp->send = rcp;
+	cp->reply = il.reply;
+	ilp->reply = i->reply;
+	cp->whotime = 0;
+	unlock(&il);
+
+	sprint(cp->whochan, "%I-%d", ip, Ilauthport);
+
+	initseq += toytime();
+	ilp->start = initseq & 0xffffff;
+	ilp->next = ilp->start+1;
+	ilp->window = Defaultwin;
+	ilp->state = Ilsyncer;
+	ilp->slowtime = Slowtime;
+	ilp->rtt = Iltickms;
+	ilsendctl(cp, 0, Ilsync, ilp->start, ilp->recvd);
+	sleep(&ilp->syn, notsyncer, ilp);
+
+	if(ilp->state == Ilclosed) {
+		print("ilauth: connection failed\n");
+		return 0;
+	}
+	print("allocating %s\n", cp->whochan);
+	print("ilauth: connected\n");	
+	return cp;
+}
+
+void
+ilauth(void)
+{
+	int i;
+
+	if(authchan)
+		ilhangup(authchan, "ilauth close");
+
+		print("ilauth: dialing %I\n", authip);
+
+	for(i = 0; i < 5; i++) {
+		authchan = ildial(authip, authreply);
+		if(authchan)
+			return;
+		alarm(10000, callildial, 0);
+		sleep(&ild, no, 0);
+	}
+	print("ilauth: dial giving up\n");
 }

@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <ctype.h>
 #include "diff.h"
 
 struct line {
@@ -137,7 +136,7 @@ prepare(int i, char *arg)
 			 */
 			cp += chartorune(&r, cp);
 			if (r == 0 || (r > 0x7f && r <= 0xa0)) {
-				Bterm(bp);
+				Bclose(bp);
 				panic(mflag ? 0: 2, "binary file %s\n", arg);
 				return 0;
 			}

@@ -21,7 +21,7 @@ typedef void fmtfn(char *);
 struct Arg
 {
 	int	ascii;		/* 0==none, 1==ascii */
-	int	loglen;		/* 0==1, 1==2, 2==4, 3==8 */
+	int	loglen;		/* 0==1, 1==2, 2==4 */
 	int	base;		/* 0==8, 1==10, 2==16 */
 	fmtfn	*fn;		/* function to call with data */
 	char	*afmt;		/* format to use to print address */
@@ -29,19 +29,17 @@ struct Arg
 }arg[Narg];
 int	narg;
 
-fmtfn	fmt0, fmt1, fmt2, fmt3, fmtc;
-fmtfn *fmt[4] = {
+fmtfn	fmt0, fmt1, fmt2, fmtc;
+fmtfn *fmt[3] = {
 	fmt0,
 	fmt1,
-	fmt2,
-	fmt3
+	fmt2
 };
 
-char *dfmt[4][3] = {
+char *dfmt[3][3] = {
 	" %.3uo",	" %.3ud",	" %.2ux",
 	" %.6uo",	" %.5ud",	" %.4ux",
 	" %.11luo",	" %.10lud",	" %.8lux",
-	" %.22lluo",	" %.20llud",	" %.16llux",
 };
 
 char *cfmt[3][3] = {
@@ -66,7 +64,6 @@ main(int argc, char *argv[])
 
 	Binit(&bout, 1, OWRITE);
 	err = 0;
-	ap = 0;
 	while(argc>1 && argv[1][0]=='-' && argv[1][1]){
 		--argc;
 		argv++;
@@ -139,13 +136,9 @@ main(int argc, char *argv[])
 			case '4':
 				ap->loglen = 2;
 				break;
-			case 'v':
-			case '8':
-				ap->loglen = 3;
-				break;
 			default:
 			Usage:
-   fprint(2, "usage: xd [-u] [-r] [-s] [-a{odx}] [-c|{b1w2l4v8}{odx}] ... file ...\n");
+   fprint(2, "usage: xd [-u] [-r] [-s] [-a{odx}] [-c|{b1w2l4}{odx}] ... file ...\n");
 				exits("usage");
 			}
 			argv[0]++;
@@ -192,24 +185,20 @@ xd(char *name, int title)
 	int fd;
 	int i, star;
 	Arg *ap;
-	Biobuf *bp;
 
 	fd = 0;
-	if(name){
-		bp = Bopen(name, OREAD);
-		if(bp == 0){
-			fprint(2, "xd: can't open %s\n", name);
-			return 1;
-		}
-	}else{
-		bp = &bin;
-		Binit(bp, fd, OREAD);
+	if(name)
+		fd = open(name, OREAD);
+	if(fd < 0){
+		fprint(2, "xd: can't open %s\n", name);
+		return 1;
 	}
 	if(title)
 		xprint("%s\n", (long)name);
+	Binit(&bin, fd, OREAD);
 	addr = 0;
 	star = 0;
-	while((ndata=Bread(bp, data, 16)) >= 0){
+	while((ndata=Bread(&bin, data, 16)) >= 0){
 		if(ndata < 16)
 			for(i=ndata; i<16; i++)
 				data[i] = 0;
@@ -249,7 +238,7 @@ xd(char *name, int title)
 			break;
 		}
 	}
-	Bterm(bp);
+	Bclose(&bin);
 	return 0;
 }
 
@@ -298,22 +287,6 @@ fmt2(char *f)
 	int i;
 	for(i=0; i<ndata; i+=sizeof(unsigned long))
 		xprint(f, (data[i]<<24)|(data[i+1]<<16)|(data[i+2]<<8)|data[i+3]);
-}
-
-void
-fmt3(char *f)
-{
-	int i;
-	unsigned long long v;
-	for(i=0; i<ndata; i+=sizeof(unsigned long long)){
-		v = (data[i]<<24)|(data[i+1]<<16)|(data[i+2]<<8)|data[i+3];
-		v <<= 32;
-		v |= (data[i+4]<<24)|(data[i+1+4]<<16)|(data[i+2+4]<<8)|data[i+3+4];
-		if(Bprint(&bout, f, v)<0){
-			fprint(2, "xd: i/o error\n");
-			exits("i/o error");
-		}
-	}
 }
 
 void

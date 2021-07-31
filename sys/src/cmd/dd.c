@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 	for(c=1; c<argc; c++) {
 		key = argv[c++];
 		if(c >= argc){
-			fprint(2, "dd: arg %s needs a value\n", key);
+			fprint(2, "%s: arg %s needs a value\n", argv[0], key);
 			exits("arg");
 		}
 		string = argv[c];
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 			bs = number(BIG);
 			continue;
 		}
-		if(iskey("if")) {
+/*		if(iskey("if")) {
 			ifile = string;
 			continue;
 		}
@@ -94,6 +94,7 @@ main(int argc, char *argv[])
 			ofile = string;
 			continue;
 		}
+*/
 		if(iskey("skip")) {
 			skip = number(BIG);
 			continue;
@@ -161,7 +162,7 @@ main(int argc, char *argv[])
 				goto cloop;
 			}
 		}
-		fprint(2, "dd: bad arg: %s\n", key);
+		fprint(2, "%s: bad arg: %s\n", argv[0], key);
 		exits("arg");
 	}
 	if(conv == null && cflag&(LCASE|UCASE))
@@ -171,28 +172,23 @@ main(int argc, char *argv[])
 	else
 		ibf = dup(0, -1);
 	if(ibf < 0) {
-		fprint(2, "dd: open %s: %r\n", ifile);
+		fprint(2, "cannot open: %s\n", ifile);
 		exits("open");
 	}
-	if(ofile){
+	if(ofile)
 		obf = create(ofile, 1, 0664);
-		if(obf < 0) {
-			fprint(2, "dd: create %s: %r\n", ofile);
-			exits("create");
-		}
-	}else{
+	else
 		obf = dup(1, -1);
-		if(obf < 0) {
-			fprint(2, "dd: can't dup file descriptor: %r\n", ofile);
-			exits("dup");
-		}
+	if(obf < 0) {
+		fprint(2, "cannot create: %s\n", ofile);
+		exits("create");
 	}
 	if(bs)
 		ibs = obs = bs;
 	if(ibs == obs && conv == null)
 		fflag++;
 	if(ibs == 0 || obs == 0) {
-		fprint(2, "dd: counts: cannot be zero\n");
+		fprint(2, "counts: cannot be zero\n");
 		exits("counts");
 	}
 	ibuf = sbrk(ibs);
@@ -202,7 +198,7 @@ main(int argc, char *argv[])
 		obuf = sbrk(obs);
 	sbrk(64);	/* For good measure */
 	if(ibuf == (char *)-1 || obuf == (char *)-1) {
-		fprint(2, "dd: not enough memory: %r\n");
+		fprint(2, "not enough memory\n");
 		exits("memory");
 	}
 	ibc = 0;
@@ -221,7 +217,6 @@ main(int argc, char *argv[])
 		skip--;
 	}
 
-	ip = 0;
 loop:
 	if(ibc-- == 0) {
 		ibc = 0;

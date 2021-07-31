@@ -16,10 +16,10 @@ typedef struct Type	Type;
 enum
 {
 	Pdor=		0x3f2,	/* motor port */
-	 Fintena=	 0x8,	/* enable floppy interrupt */
-	 Fena=		 0x4,	/* 0 == reset controller */
+	 Fintena=	 0x4,	/* enable floppy interrupt */
+	 Fena=		 0x8,	/* 0 == reset controller */
 
-	Pmsr=		0x3f4,	/* controller main status port */
+	Pstatus=	0x3f4,	/* controller main status port */
 	 Fready=	 0x80,	/* ready to be touched */
 	 Ffrom=		 0x40,	/* data from controller */
 	 Fbusy=		 0x10,	/* operation not over */
@@ -29,7 +29,7 @@ enum
 	 Fseek=		 0xf,	/* seek cmd */
 	 Fsense=	 0x8,	/* sense cmd */
 	 Fread=		 0x66,	/* read cmd */
-	 Fwrite=	 0x45,	/* write cmd */
+	 Fwrite=	 0x47,	/* write cmd */
 	 Fmulti=	 0x80,	/* or'd with Fread or Fwrite for multi-head */
 
 	/* digital input register */
@@ -132,14 +132,14 @@ static int c2b[] =
  */
 struct Drive
 {
-	Type	*t;
-	int	dt;
-	int	dev;
-
 	ulong	lasttouched;	/* time last touched */
 	int	cyl;		/* current cylinder */
-	int	confused;	/* needs to be recalibrated (or worse) */
 	long	offset;		/* current offset */
+	int	confused;	/* needs to be recalibrated (or worse) */
+	int	dev;
+	int	dt;
+
+	Type	*t;
 
 	int	tcyl;		/* target cylinder */
 	int	thead;		/* target head */
@@ -153,6 +153,8 @@ struct Drive
  */
 struct Floppy
 {
+	Lock;
+
 	Drive	d[Maxfloppy];	/* the floppy drives */
 	int	rw;		/* true if a read or write in progress */
 	int	seek;		/* one bit for each seek in progress */
@@ -164,7 +166,7 @@ struct Floppy
 	int	rate;
 
 	int 	cdev;
-	uchar	*ccache;	/* cylinder cache */
+	uchar	*ccache;		/* cyclinder cache */
 	int	ccyl;
 	int	chead;
 };
@@ -181,6 +183,7 @@ static int	floppysense(Drive*);
 static int	floppyrecal(Drive*);
 static void	floppyon(Drive*);
 static long	floppyxfer(Drive*, int, void*, long);
+static void	floppyintr(Ureg*);
 static void	floppyrevive(void);
 static void	floppystop(Drive*);
 
@@ -209,31 +212,21 @@ setdef(Drive *dp)
 		}
 }
 
-static void
-floppyintr(Ureg*, void*)
-{
-	fl.intr = 1;
-}
-
 int
 floppyinit(void)
 {
 	Drive *dp;
 	uchar equip;
-	int mask;
+	int nfloppy = 0;
 	Type *t;
-	char debstr[256];
 
-	setvec(Floppyvec, floppyintr, 0);
+	setvec(Floppyvec, floppyintr);
 
-	/* reset the interface chip */
-	sprint(debstr, "resetting floppy interface\n");
-	delay(50);
+	delay(10);
 	outb(Pdor, 0);
-	delay(50);
+	delay(1);
 	outb(Pdor, Fintena | Fena);
-	delay(50);
-	sprint(debstr, "floppy interface reset\n");
+	delay(10);
 
 	/*
 	 *  init dependent parameters
@@ -256,15 +249,16 @@ floppyinit(void)
 	/*
 	 *  read nvram for types of floppies 0 & 1
 	 */
-	mask = 0;
 	equip = nvramread(0x10);
-	if(Maxfloppy > 0 && (fl.d[0].dt = ((equip>>4) & 0xF))){
+	if(Maxfloppy > 0){
+		fl.d[0].dt = (equip >> 4) & 0xf;
 		setdef(&fl.d[0]);
-		mask |= 0x01;
+		nfloppy++;
 	}
-	if(Maxfloppy > 1 && (fl.d[1].dt = (equip & 0xF))){
+	if(Maxfloppy > 1){
+		fl.d[1].dt = equip & 0xf;
 		setdef(&fl.d[1]);
-		mask |= 0x02;
+		nfloppy++;
 	}
 
 	fl.rate = -1;
@@ -275,10 +269,8 @@ floppyinit(void)
 	fl.cdev = -1;
 	fl.ccache = (uchar*)ialloc(18*2*512, 1);
 
-	/* to turn the motor off when inactive */
 	alarm(5*1000, floppyalarm, (void *)0);
-
-	return mask;
+	return nfloppy;
 }
 
 static void
@@ -371,7 +363,7 @@ floppysend(int data)
 		/*
 		 *  see if its ready for data
 		 */
-		c = inb(Pmsr);
+		c = inb(Pstatus);
 		if((c&(Ffrom|Fready)) != Fready)
 			continue;
 
@@ -394,7 +386,7 @@ floppyrcv(void)
 		/*
 		 *  see if its ready for data
 		 */
-		c = inb(Pmsr);
+		c = inb(Pstatus);
 		if((c&(Ffrom|Fready)) != (Ffrom|Fready))
 			continue;
 
@@ -707,4 +699,11 @@ out:
 	dp->offset = offset + n;
 	dp->maxtries = 3;
 	return n;
+}
+
+static void
+floppyintr(Ureg *ur)
+{
+	USED(ur);
+	fl.intr = 1;
 }

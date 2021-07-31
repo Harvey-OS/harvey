@@ -20,32 +20,27 @@ prasm(Prog *p)
 int
 Pconv(void *o, Fconv *fp)
 {
-	char str[STRINGSZ], *s;
+	char str[STRINGSZ];
 	Prog *p;
 	int a;
 
 	p = *(Prog**)o;
 	curp = p;
 	a = p->as;
-	if(a == ADATA || a == ADYNT || a == AINIT)
+	if(a == ADATA)
 		sprint(str, "(%ld)	%A	%D/%d,%D",
 			p->line, a, &p->from, p->reg, &p->to);
-	else{
-		s = str;
-		s += sprint(s, "(%ld)", p->line);
-		if(p->mark & NOSCHED)
-			s += sprint(s, "*");
-		if(p->reg == NREG)
-			sprint(s, "	%A	%D,%D",
-				a, &p->from, &p->to);
-		else
-		if(p->from.type != D_FREG)
-			sprint(s, "	%A	%D,R%d,%D",
-				a, &p->from, p->reg, &p->to);
-		else
-			sprint(s, "	%A	%D,F%d,%D",
-				a, &p->from, p->reg, &p->to);
-	}
+	else
+	if(p->reg == NREG)
+		sprint(str, "(%ld)	%A	%D,%D",
+			p->line, a, &p->from, &p->to);
+	else
+	if(p->from.type != D_FREG)
+		sprint(str, "(%ld)	%A	%D,R%d,%D",
+			p->line, a, &p->from, p->reg, &p->to);
+	else
+		sprint(str, "(%ld)	%A	%D,F%d,%D",
+			p->line, a, &p->from, p->reg, &p->to);
 	strconv(str, fp);
 	return sizeof(p);
 }
@@ -58,7 +53,7 @@ Aconv(void *o, Fconv *fp)
 
 	a = *(int*)o;
 	s = "???";
-	if(a >= AXXX && a < ALAST)
+	if(a >= AXXX && a <= AEND)
 		s = anames[a];
 	strconv(s, fp);
 	return sizeof(a);
@@ -86,12 +81,6 @@ Dconv(void *o, Fconv *fp)
 
 	case D_CONST:
 		sprint(str, "$%N", a);
-		if(a->reg != NREG)
-			sprint(str, "%N(R%d)(CONST)", a, a->reg);
-		break;
-
-	case D_OCONST:
-		sprint(str, "$*$%N", a);
 		if(a->reg != NREG)
 			sprint(str, "%N(R%d)(CONST)", a, a->reg);
 		break;
@@ -176,6 +165,10 @@ Nconv(void *o, Fconv *fp)
 
 	a = *(Adr**)o;
 	s = a->sym;
+	if(s == S) {
+		sprint(str, "%ld", a->offset);
+		goto out;
+	}
 	switch(a->name) {
 	default:
 		sprint(str, "GOK-name(%d)", a->name);
@@ -186,31 +179,19 @@ Nconv(void *o, Fconv *fp)
 		break;
 
 	case D_EXTERN:
-		if(s == S)
-			sprint(str, "%ld(SB)", a->offset);
-		else
-			sprint(str, "%s+%ld(SB)", s->name, a->offset);
+		sprint(str, "%s+%ld(SB)", s->name, a->offset);
 		break;
 
 	case D_STATIC:
-		if(s == S)
-			sprint(str, "<>+%ld(SB)", a->offset);
-		else
-			sprint(str, "%s<>+%ld(SB)", s->name, a->offset);
+		sprint(str, "%s<>+%ld(SB)", s->name, a->offset);
 		break;
 
 	case D_AUTO:
-		if(s == S)
-			sprint(str, "%ld(SP)", a->offset);
-		else
-			sprint(str, "%s-%ld(SP)", s->name, -a->offset);
+		sprint(str, "%s-%ld(SP)", s->name, -a->offset);
 		break;
 
 	case D_PARAM:
-		if(s == S)
-			sprint(str, "%ld(FP)", a->offset);
-		else
-			sprint(str, "%s+%ld(FP)", s->name, a->offset);
+		sprint(str, "%s+%ld(FP)", s->name, a->offset);
 		break;
 	}
 out:

@@ -1,5 +1,4 @@
-% Change file for BibTeX in C, originally by Howard Trickey, for
-% Berkeley Unix.
+% Change file for BibTeX for Berkeley UNIX, by H. Trickey, et al.
 % 
 % History:
 % 05/28/84      Initial implementation, version 0.41 of BibTeX
@@ -13,36 +12,23 @@
 % 04/04/88      Version 0.99c; converted for use with web2c (ETM).
 % 11/30/89      Use FILENAMESIZE instead of 1024 (KB).
 % 03/09/90	`int' is a bad variable name for some cc's.
-% (more recent changes in ../ChangeLog.W2C)
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [1] banner
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
+
+@x banner
 @d banner=='This is BibTeX, Version 0.99c' {printed when the program starts}
 @y
 @d banner=='This is BibTeX, C Version 0.99c' {printed when the program starts}
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [2] `term_in' and `term_out' are standard input and output.  But
-% there is a complication: BibTeX passes `term_out' to some routines as
-% a var parameter.  web2c turns a var parameter f into &f at the calling
-% side -- and stdout is sometimes implemented as `&_iob[1]' or some
-% such.  An address of an address is invalid.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
+@x terminal
 @d term_out == tty
 @d term_in == tty
 @y
-@d term_out == standard_output
-@d term_in == standard_input
+@d term_out == stdout
+@d term_in == stdin
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [4] Turn debug..gubed et al. into #ifdef's.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x 
+@x debug..gubed, stat..tats, trace..ecart
 @d debug == @{          { remove the `|@{|' when debugging }
 @d gubed == @t@>@}      { remove the `|@}|' when debugging }
 @f debug == begin
@@ -74,137 +60,109 @@
 @f ecart == end
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [10] Possibly exit with bad status.  It doesn't seem worth it to move
-% the definitions of the |history| values to above this module; hence
-% the 1.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
-exit_program:
-end.
+@d incr(#) == #:=#+1    {increase a variable by unity}
+@d decr(#) == #:=#-1    {decrease a variable by unity}
 @y
-exit_program:
-if (history > 1) then uexit (history);
-end.
+{These are defined as C macros}
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [11] Remove compiler directives.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
+@x compiler directives
 @{@&$C-,A+,D-@}  {no range check, catch arithmetic overflow, no debug overhead}
 @!debug @{@&$C+,D+@}@+ gubed            {but turn everything on when debugging}
 @y
+{Don't need 'em for C}
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [13] Remove nonlocal goto.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
     goto exit_program;
 @y
-    uexit (1);
+    uexit(0);
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [14] Increase some constants.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
+@x increase buf_size
 @!buf_size=1000; {maximum number of characters in an input line (or string)}
 @y
 @!buf_size=3000; {maximum number of characters in an input line (or string)}
 @z
-@x
+
+@x increase pool_size and other parameters
 @!pool_size=65000; {maximum number of characters in strings}
-@y
-@!pool_size=512000; {maximum number of characters in strings}
-@z
-@x
 @!max_strings=4000; {maximum number of strings, including pre-defined;
                                                         must be |<=hash_size|}
-@y
-@!max_strings=20000; {maximum number of strings, including pre-defined;
-                                                        must be |<=hash_size|}
-@z
-@x
 @!max_cites=750; {maximum number of distinct cite keys; must be
                                                         |<=max_strings|}
 @y
-@!max_cites=3000; {maximum number of distinct cite keys; must be
+@!pool_size=300000; {maximum number of characters in strings}
+@!max_strings=9000; {maximum number of strings, including pre-defined;
+                                                        must be |<=hash_size|}
+@!max_cites=2000; {maximum number of distinct cite keys; must be
                                                         |<=max_strings|}
 @z
-@x
-@!min_crossrefs=2; {minimum number of cross-refs required for automatic
-                                                        |cite_list| inclusion}
-@y
-@!min_crossrefs=2000; {minimum number of cross-refs required for automatic
-                                                        |cite_list| inclusion}
-@z
 
-@x
-@!max_ent_ints=3000; {maximum number of |int_entry_var|s
-                                        (entries $\times$ |int_entry_var|s)}
-@y
-@!max_ent_ints=25000; {maximum number of |int_entry_var|s
-                                        (entries $\times$ |int_entry_var|s)}
-@z
-@x
-@!max_ent_strs=3000; {maximum number of |str_entry_var|s
-                                        (entries $\times$ |str_entry_var|s)}
-@y
-@!max_ent_strs=10000; {maximum number of |str_entry_var|s
-                                        (entries $\times$ |str_entry_var|s)}
-@z
-@x
+@x increase max_fields
 @!max_fields=17250; {maximum number of fields (entries $\times$ fields,
                                         about |23*max_cites| for consistency)}
 @y
-@!max_fields=69000; {maximum number of fields (entries $\times$ fields,
+@!max_fields=46000; {maximum number of fields (entries $\times$ fields,
                                         about |23*max_cites| for consistency)}
 @z
+
+
 @x
 @d hash_size=5000       {must be |>= max_strings| and |>= hash_prime|}
-@y
-@d hash_size=21000       {must be |>= max_strings| and |>= hash_prime|}
-@z
-@x
 @d hash_prime=4253      {a prime number about 85\% of |hash_size| and |>= 128|
                                                 and |< @t$2^{14}-2^6$@>|}
-@y
-@d hash_prime=16319      {a prime number about 85\% of |hash_size| and |>= 128|
-                                                and |< @t$2^{14}-2^6$@>|}
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [15] Use the system constant.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
 @d file_name_size=40    {file names shouldn't be longer than this}
 @y
-@d file_name_size == PATH_MAX
+@d hash_size=10000       {must be |>= max_strings| and |>= hash_prime|}
+@d hash_prime=8501      {a prime number about 85\% of |hash_size| and |>= 128|
+                                                and |< @t$2^{14}-2^6$@>|}
+@d file_name_size == FILENAMESIZE  {Get value from \.{site.h}.}
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [36] Define `alpha_file' in C.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
-@!alpha_file=packed file of text_char;  {files that contain textual data}
-@y
-@z
+@x declare real_name_of_file
+Most of what we need to do with respect to input and output can be handled
+by the I/O facilities that are standard in \PASCAL, i.e., the routines
+called |get|, |put|, |eof|, and so on. But
+standard \PASCAL\ does not allow file variables to be associated with file
+names that are determined at run time, so it cannot be used to implement
+\BibTeX; some sort of extension to \PASCAL's ordinary |reset| and |rewrite|
+is crucial for our purposes. We shall assume that |name_of_file| is a variable
+of an appropriate type such that the \PASCAL\ run-time system being used to
+implement \BibTeX\ can open a file whose external name is specified by
+|name_of_file|. \BibTeX\ does no case conversion for file names.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [37] Can't do arithmetic with |file_name_size| any longer, sigh.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
+@<Globals in the outer block@>=
+@!name_of_file:packed array[1..file_name_size] of char;
+                         {on some systems this is a \&{record} variable}
+@!name_length:0..file_name_size;
+  {this many characters are relevant in |name_of_file| (the rest are blank)}
 @!name_ptr:0..file_name_size+1;         {index variable into |name_of_file|}
 @y
-@!name_ptr:integer;         {index variable into |name_of_file|}
+Most of what we need to do with respect to input and output can be handled
+by the I/O facilities that are standard in \PASCAL, i.e., the routines
+called |get|, |put|, |eof|, and so on. But
+standard \PASCAL\ does not allow file variables to be associated with file
+names that are determined at run time, so it cannot be used to implement
+\BibTeX; some sort of extension to \PASCAL's ordinary |reset| and |rewrite|
+is crucial for our purposes. We shall assume that |name_of_file| is a variable
+of an appropriate type such that the \PASCAL\ run-time system being used to
+implement \BibTeX\ can open a file whose external name is specified by
+|name_of_file|. \BibTeX\ does no case conversion for file names.
+
+The C version of BibTeX uses search paths to look for files to open.
+We use |real_name_of_file| to hold the |name_of_file| with a directory name
+from the path in front of it.
+
+@<Globals in the outer block@>=
+@!name_of_file,@!real_name_of_file:packed array[1..file_name_size] of char;
+@!name_length:0..file_name_size;
+  {this many characters are relevant in |name_of_file| (the rest are blank)}
+@!name_ptr:integer;             {index variable into |name_of_file|}
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [38] File opening.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
+@x opening files
 The \ph\ compiler with which the present version of \TeX\ was prepared has
 extended the rules of \PASCAL\ in a very convenient way. To open file~|f|,
 we can write
@@ -240,40 +198,204 @@ function a_open_out(var f:alpha_file):boolean;  {open a text file for output}
 begin rewrite(f,name_of_file,'/O'); a_open_out:=rewrite_OK(f);
 end;
 @y
-@ File opening will be done in C.
-@d no_file_path = -1
+@ The \ph\ compiler with which the present version of \TeX\ was prepared has
+extended the rules of \PASCAL\ in a very convenient way for file opening.
+Berkeley {\mc UNIX} \PASCAL\ isn't nearly as nice as \ph.
+Normally, it bombs out if a file open fails.
+An external C procedure, |test_access| is used to check whether or not the
+open will work.  It is declared in the ``ext.h'' include file, and it returns
+|true| or |false|. The |name_of_file| global holds the file name whose access
+is to be tested.
+The first parameter for |test_access| is the access mode,
+one of |read_access_mode| or |write_access_mode|.
+
+We also implement path searching in |test_access|:  its second parameter is
+one of the ``file path'' constants defined below.  If |name_of_file|
+doesn't start with |'/'| then |test_access| tries prepending pathnames
+from the appropriate path list until success or the end of path list
+is reached.
+On return, |real_name_of_file| contains the original name with the path
+that succeeded (if any) prepended.  It is the name used in the various
+open procedures.
+
+Path searching is not done for output files.
+
+@d read_access_mode=4  {``read'' mode for |test_access|}
+@d write_access_mode=2 {``write'' mode for |test_access|}
+
+@d no_file_path=0    {no path searching should be done}
+@d input_file_path=1 {path specifier for input files}
+@d bib_file_path=2   {path specifier for .bib files}
+
+@<Procedures and functions for file-system interacting@>=
+function a_open_in(var f:palpha_file; pathspec:integer):boolean;
+  {open a text file for input}
+var @!ok:boolean;
+begin
+if test_access(read_access_mode,pathspec) then
+    begin reset(f,real_name_of_file); ok:=true@+end
+else
+    ok:=false;
+a_open_in:=ok;
+end;
+@#
+function a_open_out(var f:palpha_file):boolean;
+  {open a text file for output}
+var @!ok:boolean;
+begin
+if test_access(write_access_mode,no_file_path) then
+    begin rewrite(f,real_name_of_file); ok:=true @+end
+else ok:=false;
+a_open_out:=ok;
+end;
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [39] Do file closing in C.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @<Procedures and functions for file-system interacting@>=
 procedure a_close(var f:alpha_file);            {close a text file}
 begin close(f);
 end;
 @y
-File closing will be done in C, too.
+{aclose will be defined as a C macro}
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [47] web2c doesn't understand f^.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
+%%%%% overflow and confusion go here 
+@x faster input_ln
+Standard \PASCAL\ says that a file should have |eoln| immediately
+before |eof|, but \BibTeX\ needs only a weaker restriction: If |eof|
+occurs in the middle of a line, the system function |eoln| should return
+a |true| result (even though |f^| will be undefined).
+
+@<Procedures and functions for all file I/O, error messages, and such@>=
+function input_ln(var f:alpha_file) : boolean;
+                                {inputs the next line or returns |false|}
+label loop_exit;
+begin
+last:=0;
+if (eof(f)) then input_ln:=false
+else
+  begin
+  while (not eoln(f)) do
+    begin
+    if (last >= buf_size) then
+        buffer_overflow;
     buffer[last]:=xord[f^];
     get(f); incr(last);
     end;
   get(f);
+  while (last > 0) do           {remove trailing |white_space|}
+    if (lex_class[buffer[last-1]] = white_space) then
+      decr(last)
+     else
+      goto loop_exit;
+loop_exit:
+  input_ln:=true;
+  end;
+end;
 @y
-    buffer[last] := xord[getc (f)];
-    incr (last);
-    end;
-  vgetc (f); {skip the eol}
+With Berkeley {\mc UNIX} we call an external C procedure, |line_read|.
+That routine fills |buffer| from |0| onwards with the |xord|'ed values
+of the next line, setting |last| appropriately.  It will stop if
+|last=buf_size|, and the following will cause an ``overflow'' abort.
+
+@<Procedures and functions for all file I/O, error messages, and such@>=
+function input_ln(var f:alpha_file) : boolean;
+  {inputs the next line or returns |false|}
+label loop_exit;
+begin
+last:=0;
+if eof(f) then input_ln:=false
+else
+  begin
+  line_read(f,buf_size);
+  if last>=buf_size then
+        overflow('buffer size ',buf_size);
+  while (last > 0) do           {remove trailing |white_space|}
+    if lex_class[buffer[last-1]] = white_space then
+      decr(last)
+     else
+      goto loop_exit;
+loop_exit:
+  input_ln:=true;
+  end;
+end;
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [77] The predefined string array starts at zero instead of one.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+@x
+if (length(file_name) > file_name_size) then
+    begin
+    print ('File=');
+    print_pool_str (file_name);
+    print_ln (',');
+    file_nm_size_overflow;
+    end;
+name_ptr := 1;
+@y
+if (length(file_name) > file_name_size) then
+    begin
+    print ('File=');
+    print_pool_str (file_name);
+    print_ln (',');
+    file_nm_size_overflow;
+    end;
+name_ptr := 0;
+@z
+
+@x
+name_ptr := name_length + 1;
+p_ptr := str_start[ext];
+while (p_ptr < str_start[ext+1]) do
+    begin
+    name_of_file[name_ptr] := chr (str_pool[p_ptr]);
+    incr(name_ptr); incr(p_ptr);
+    end;
+name_length := name_length + length(ext);
+name_ptr := name_length+1;
+while (name_ptr <= file_name_size) do   {pad with blanks}
+    begin
+    name_of_file[name_ptr] := ' ';
+    incr(name_ptr);
+    end;
+@y
+name_ptr := name_length;
+p_ptr := str_start[ext];
+while (p_ptr < str_start[ext+1]) do
+    begin
+    name_of_file[name_ptr] := chr (str_pool[p_ptr]);
+    incr(name_ptr); incr(p_ptr);
+    end;
+name_length := name_length + length(ext);
+name_of_file[name_length] := ' ';
+@z
+
+@x
+    print_pool_str (area); print (name_of_file,',');
+    file_nm_size_overflow;
+    end;
+name_ptr := name_length;
+while (name_ptr > 0) do         {shift up name}
+    begin
+    name_of_file[name_ptr+length(area)] := name_of_file[name_ptr];
+    decr(name_ptr);
+    end;
+name_ptr := 1;
+p_ptr := str_start[area];
+while (p_ptr < str_start[area+1]) do
+@y
+    print_pool_str (area); print_str (name_of_file,',');
+    file_nm_size_overflow;
+    end;
+name_ptr := name_length;
+while (name_ptr > 0) do         {shift up name}
+    begin
+    name_of_file[name_ptr+length(area)] := name_of_file[name_ptr];
+    decr(name_ptr);
+    end;
+name_ptr := 0;
+p_ptr := str_start[area];
+while (p_ptr < str_start[area+1]) do
+@z
+
 @x
 for i:=1 to len do
     buffer[i] := xord[pds[i]];
@@ -282,19 +404,57 @@ for i:=1 to len do
     buffer[i] := xord[pds[i-1]];
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [97] Can't do this tangle-time arithmetic.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @!aux_name_length : 0..file_name_size+1;        {\.{.aux} name sans extension}
 @y
 @!aux_name_length : integer;
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [100] Reading the aux file name.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
+procedure sam_too_long_file_name_print;
+begin
+write (term_out,'File name `');
+name_ptr := 1;
+while (name_ptr <= aux_name_length) do
+    begin
+    write (term_out,name_of_file[name_ptr]);
+@y
+procedure sam_too_long_file_name_print;
+begin
+write (term_out,'File name `');
+name_ptr := 0;
+while (name_ptr < aux_name_length) do
+    begin
+    write (term_out,name_of_file[name_ptr]);
+@z
+
+@x
+procedure sam_wrong_file_name_print;
+begin
+write (term_out,'I couldn''t open file name `');
+name_ptr := 1;
+while (name_ptr <= name_length) do
+    begin
+    write (term_out,name_of_file[name_ptr]);
+    incr(name_ptr);
+    end;
+write_ln (term_out,'''');
+end;
+@y
+procedure sam_wrong_file_name_print;
+begin
+write (term_out,'I couldn''t open file name `');
+name_ptr := 0;
+while (name_ptr < name_length) do
+    begin
+    write (term_out,name_of_file[name_ptr]);
+    incr(name_ptr);
+    end;
+write_ln (term_out,'''');
+end;
+@z
+
+@x reading the command line
 This procedure consists of a loop that reads and processes a (nonnull)
 \.{.aux} file name.  It's this module and the next two that must be
 changed on those systems using command-line arguments.  Note: The
@@ -342,9 +502,7 @@ label aux_found,@!aux_not_found;
 begin
 loop
     begin
-    {initialize the path variables}
-    set_paths (BIB_INPUT_PATH_BIT + BST_INPUT_PATH_BIT);
-    if (argc > 1) then
+    if (gargc > 1) then
         @<Process a possible command line@>
       else begin
         write (term_out,'Please type input file name (no extension)--');
@@ -354,7 +512,7 @@ loop
                 readln(term_in);
                 sam_you_made_the_file_name_too_long;
             end;
-            name_of_file[aux_name_length+1] := getc(term_in);
+            name_of_file[aux_name_length] := getc(term_in);
             incr(aux_name_length);
         end;
         if (eof(term_in)) then begin
@@ -366,25 +524,18 @@ loop
       end;
     @<Handle this \.{.aux} name@>;
 aux_not_found:
-    argc := 0;
+    gargc := 0;
     end;
 aux_found:                      {now we're ready to read the \.{.aux} file}
 end;
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [101] Don't need this variable; we use argc to check if we have a
-% command line.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @<Variables for possible command-line processing@>=
 @!check_cmnd_line : boolean;    {|true| if we're to check the command line}
 @y
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [102] Get the aux file name from the command line.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @<Process a possible command line@>=
 begin
@@ -392,18 +543,9 @@ do_nothing;             {the ``default system'' doesn't use the command line}
 end
 @y
 @<Process a possible command line@>=
-begin
-argv (1, name_of_file);
-aux_name_length := 1;
-while name_of_file[aux_name_length] <> ' '
-  do incr (aux_name_length);
-decr (aux_name_length);
-end
+aux_name_length := get_cmd_line(name_of_file, file_name_size)
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [106] Don't use a path to find the aux file.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 if (not a_open_in(cur_aux_file)) then
     sam_you_made_the_file_name_wrong;
@@ -412,9 +554,21 @@ if (not a_open_in(cur_aux_file,no_file_path)) then
     sam_you_made_the_file_name_wrong;
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [123] Use BIBINPUTS to search for the .bib file.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+@x
+while (name_ptr <= name_length) do
+    begin
+    buffer[name_ptr] := xord[name_of_file[name_ptr]];
+    incr(name_ptr);
+    end;
+@y
+while (name_ptr <= name_length) do
+    begin
+    buffer[name_ptr] := xord[name_of_file[name_ptr-1]];
+    incr(name_ptr);
+    end;
+@z
+
+% Handle path searching on opening files
 @x
 if (not a_open_in(cur_bib_file)) then
     begin
@@ -423,13 +577,10 @@ if (not a_open_in(cur_bib_file)) then
         open_bibdata_aux_err ('I couldn''t open database file ');
     end;
 @y
-if (not a_open_in(cur_bib_file,BIB_INPUT_PATH)) then
+if (not a_open_in(cur_bib_file,bib_file_path)) then
         open_bibdata_aux_err ('I couldn''t open database file ');
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [127] Use BSTINPUTS/TEXINPUTS to search for .bst files.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 add_extension (s_bst_extension);
 if (not a_open_in(bst_file)) then
@@ -445,7 +596,7 @@ if (not a_open_in(bst_file)) then
     end;
 @y
 add_extension (s_bst_extension);
-if (not a_open_in(bst_file,BST_INPUT_PATH)) then
+if (not a_open_in(bst_file,input_file_path)) then
     begin
         print ('I couldn''t open style file ');
         print_bst_name;@/
@@ -454,20 +605,19 @@ if (not a_open_in(bst_file,BST_INPUT_PATH)) then
     end;
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [141] Don't use a path to search for subsidiary aux files, either.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+@x
+name_ptr := name_length+1;
+@y
+name_ptr := name_length;
+@z
+
+% More search path stuff
 @x
 if (not a_open_in(cur_aux_file)) then
 @y
 if (not a_open_in(cur_aux_file, no_file_path)) then
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [151] This goto gets turned into a setjmp/longjmp by ./convert --
-% unfortunately, it is a nonlocal goto.  ekrell@ulysses@att.com
-% implemented the conversion.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 buf_ptr2 := last;       {to get the first input line}
 loop
@@ -488,10 +638,7 @@ hack1;
 bst_done: a_close (bst_file);
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [198] Broken cc's can't handle a variable named `int'.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
+@x `int' is a bad variable name in some cc's.
 This procedure takes the integer |int|, copies the appropriate
 |ASCII_code| string into |int_buf| starting at |int_begin|, and sets
 the |var| parameter |int_end| to the first unused |int_buf| location.
@@ -541,19 +688,4 @@ repeat                          {copy digits into |int_buf|}
     append_int_char ("0" + (the_int mod 10));
     the_int := the_int div 10;
   until (the_int = 0);
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [388] bibtex.web has mutually exclusive tests here; Oren said he
-% doesn't want to fix it until 1.0, since it's obviously of no practical
-% import (or someone would have found it before GCC 2 did).  Changing
-% the second `and' to an `or' makes all but the last of multiple authors
-% be omitted in the bbl file, so I simply removed the statement.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
-while ((ex_buf_xptr < ex_buf_ptr) and
-                        (lex_class[ex_buf[ex_buf_ptr]] = white_space) and
-                        (lex_class[ex_buf[ex_buf_ptr]] = sep_char)) do
-        incr(ex_buf_xptr);                      {this removes leading stuff}
-@y
 @z

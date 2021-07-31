@@ -1,0 +1,45 @@
+% OPENBIB DOCUMENT-STYLE OPTION FOR ARTICLE STYLE 
+% RELEASED 12 October 1987 -- for LaTeX version 2.09
+% Copyright (C) 1987, all rights reserved
+
+% Produces the "open" bibliography style, in which each block starts
+% on a new line, and succeeding lines in a block are indented by
+% \bibindent.
+%
+% It's rather hard to do line breaks in bibliographies,
+% so we allow "sloppy" setting.
+%       \sloppy
+%
+% The following \sfcode declaration causes a `.' (period) not to
+% produce an end-of-sentence space.
+%       \sfcode`\.=1000\relax
+
+\newdimen\bibindent
+\bibindent=1.5em
+
+\@ifundefined{chapter}{\def\thebibliography#1{\section*{References\@mkboth
+  {REFERENCES}{REFERENCES}}\list
+  {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}
+    \leftmargin\labelwidth
+    \advance\leftmargin\labelsep
+    \advance\leftmargin\bibindent
+    \itemindent -\bibindent
+    \listparindent \itemindent
+    \parsep \z@
+    \usecounter{enumi}}
+    \def\newblock{\par}
+    \sloppy
+    \sfcode`\.=1000\relax}}%
+{\def\thebibliography#1{\chapter*{Bibliography\@mkboth
+  {BIBLIOGRAPHY}{BIBLIOGRAPHY}}\list
+  {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}
+    \leftmargin\labelwidth
+    \advance\leftmargin\labelsep
+    \advance\leftmargin\bibindent
+    \itemindent -\bibindent
+    \listparindent \itemindent
+    \parsep \z@
+    \usecounter{enumi}}
+    \def\newblock{\par}
+    \sloppy
+    \sfcode`\.=1000\relax}}

@@ -1,0 +1,121 @@
+	TEXT	test(SB), $0
+/*
+ * addressing modes
+ */
+
+	MOVW	(R1), R10
+	MOVW	(R1+R2), R10
+	MOVW	10(R1), R10
+
+	MOVW	x(SB), R10
+	MOVW	x(SP), R10
+	MOVW	x(FP), R10
+
+	MOVW	x+10(SB), R10
+/*
+ * load registers
+ */
+	FMOVF	x(SB), F(10)
+	FMOVF	x(SB), F10
+	FMOVD	x(SB), F10
+	MOVD	x(SB), F10
+	FMOVF	F8, F10
+	FMOVD	F8, F10
+	MOVW	x(SB), FSR
+
+	MOVW	x(SB), C(10)
+	MOVW	x(SB), C10
+	MOVD	x(SB), C10
+	MOVW	x(SB), CSR
+
+	MOVW	R1, Y
+	MOVW	R1, PSR
+	MOVW	R1, WIM
+	MOVW	R1, TBR
+
+	XOR	R1, R2, Y
+	XOR	$1, R2, Y
+/*
+ * store registers
+ */
+	MOVW	F10, x(SB)
+	MOVD	F10, x(SB)
+	MOVW	FSR, x(SB)
+	MOVD	FQ, x(SB)
+
+	MOVW	C10, x(SB)
+	MOVD	C10, x(SB)
+	MOVW	CSR, x(SB)
+	MOVD	CQ, x(SB)
+
+	MOVW	Y, R1
+	MOVW	PSR, R1
+	MOVW	WIM, R1
+	MOVW	TBR, R1
+/*
+ * load/store
+ */
+	MOVB	x(SB), R10
+	MOVBU	x(SB), R10
+	MOVH	x(SB), R10
+	MOVHU	x(SB), R10
+	MOVW	x(SB), R10
+	MOVD	x(SB), R10
+	TAS	x(SB), R10
+	SWAP	x(SB), R10
+/*
+ * asi
+ */
+	MOVW	(R1, 10), R10
+	MOVB	(R1+R2, 10), R10
+/*
+ * fixed point opcodes
+ */
+	ADD	$1, R10
+	ADD	R1, R10
+	ADD	$1,R2, R10
+	ADD	R1,R2, R10
+
+	ADDCC	R1,R2, R10
+	ADDX	R1,R2, R10
+	ADDXCC	R1,R2, R10
+
+	TADDCC	R1,R2, R10
+	TADDCCTV R1,R2, R10
+	SUB	R1,R2, R10
+	SUBCC	R1,R2, R10
+	SUBX	R1,R2, R10
+	SUBXCC	R1,R2, R10
+	TSUBCC	R1,R2, R10
+	TSUBCCTV R1,R2, R10
+	MULSCC	R1,R2, R10
+	AND	R1,R2, R10
+	ANDCC	R1,R2, R10
+	ANDN	R1,R2, R10
+	ANDNCC	R1,R2, R10
+	OR	R1,R2, R10
+	ORCC	R1,R2, R10
+	ORN	R1,R2, R10
+	ORNCC	R1,R2, R10
+	XOR	R1,R2, R10
+	XORCC	R1,R2, R10
+	XNOR	R1,R2, R10
+	XNORCC	R1,R2, R10
+	SLL	R1,R2, R10
+	SRL	R1,R2, R10
+	SRA	R1,R2, R10
+
+/*
+ * trap
+ */
+	TA	R1,R2
+/*
+ * branch
+ */
+	BA	label
+	FBA	label
+label:
+	
+#ifdef xxx
+#endif
+	RETURN

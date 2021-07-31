@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+ALL=kmap cmap
+ALLC=${ALL:%=%.c}
+
+install:V:	../cyrillic.h
+
+../cyrillic.h:Pcmp -s:	cyrillic.h
+	cp $prereq $target
+
+#	usage: kmap < jeg.map
+
+kmap:	kmap.c
+	$CC $CFLAGS kmap.c && $LD -o $target kmap.$O
+
+#	usage: cmap < cyr1.map
+
+cmap:	cmap.c
+	$CC $CFLAGS cmap.c && $LD -o $target cmap.$O
+
+cyrillic.h:	jeg.map $ALLC cyr1.map
+	mk $ALL
+	{ kmap < jeg.map; cmap < cyr1.map } > $target
+
+clean nuke:V:
+	rm *.[$OS] $ALL

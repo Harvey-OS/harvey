@@ -19,6 +19,7 @@ dev
 	scsi	S	scsi scsibuf
 	wren	w
 	cdrom	R
+	vid	v
 	kprof	T
 
 stream
@@ -32,6 +33,7 @@ port
 	long fslen = 0; ulong fscode[1];
 	void consdebug(void) {}
 /*	void kproftimer(ulong pc){}	/**/
+	int islcd;
 boot
 	il
 	tcp

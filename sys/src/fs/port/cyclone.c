@@ -50,6 +50,7 @@ struct Cyclone
 		Vmedevice* vme;
 		int	hpactive;
 		int	cmdwait;
+		int	verb;
 		long	oubusy;
 		Rendez	hrir;			/* vme interrupt */
 		QLock	issueq;
@@ -258,6 +259,12 @@ busy:
 	if(SUM)
 		hc->param[3] = addsum(mb->data, count);
 
+	if(hp->verb) {
+		print("cyo: cmd=reply u=%.8lux b=%.8lux c=%.8lux\n",
+			hc->param[0], hc->param[1], hc->param[2]);
+		prflush();
+	}
+
 	wbackcache(hc, sizeof(*hc));
 	invalcache(hc, sizeof(*hc));
 
@@ -365,6 +372,12 @@ found:
 			print("cyi: checksum %lux sb %lux\n", s, hcmd->param[4]);
 	}
 
+	if(hp->verb) {
+		print("cyi%d: cmd=buf u=%.8lux b=%.8lux c=%.8lux\n",
+			hp-h, hcmd->param[0], hcmd->param[1], hcmd->param[3]);
+		prflush();
+	}
+
 	send(cp->send, mb);
 
 	hp->count.count++;
@@ -463,10 +476,13 @@ cmd_cycl(int argc, char *argv[])
 {
 	int i, c;
 	Cyclone *hp;
-	/*struct { Hhdr hdr; Hcmd cmd; } cmd;*/
+	struct { Hhdr hdr; Hcmd cmd; } cmd;
 
 	if(argc <= 1) {
 		print("cycl [unit] reboot -- reboot\n");
+		print("cycl [unit] intr -- fake an interrupt\n");
+		print("cycl [unit] verbose -- chatty\n");
+		print("cycl [unit] ping -- issue Uping\n");
 		return;
 	}
 
@@ -489,6 +505,25 @@ cmd_cycl(int argc, char *argv[])
 	for(; i<argc; i++) {
 		if(strcmp(argv[i], "reboot") == 0) {
 			dostart(hp);
+			continue;
+		}
+		if(strcmp(argv[i], "intr") == 0) {
+			hp->cmdwait = 1;
+			wakeup(&hp->hrir);
+			continue;
+		}
+		if(strcmp(argv[i], "verbose") == 0) {
+			hp->verb = !hp->verb;
+			if(hp->verb)
+				print("chatty\n");
+			else
+				print("quiet\n");
+			continue;
+		}
+		if(strcmp(argv[i], "ping") == 0) {
+			cmd.cmd.cmd = Uping;
+			if(cyclissue(hp, &cmd.hdr, &cmd.cmd, 1))
+				print("	ping didnt issue\n");
 			continue;
 		}
 		print("unknown cycl subcommand\n");

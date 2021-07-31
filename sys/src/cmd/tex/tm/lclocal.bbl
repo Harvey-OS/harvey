@@ -1,0 +1,23 @@
+\begin{thebibliography}{1}
+
+\bibitem{bib:latex}
+Leslie Lamport.
+\newblock 1986.
+\newblock {\it \LaTeX : A Document Preparation System}.
+\newblock Addison-Wesley, Reading, MA.
+
+\bibitem{bib:tmdoc}
+Terry~L.\ Anderson.
+\newblock 1989.
+\newblock {\it Using the \LaTeX\ Document Style {\bf tm.sty}}.
+\newblock Technical Memorandum~59114-890130-01TMS, AT\&T Bell Laboratories,
+  February.
+
+\bibitem{bib:blstyle}
+April Cormaci and Richard Trenner.
+\newblock 1988.
+\newblock {\it The Bell Labs Style Guide}.
+\newblock AT\&T Bell Laboratories, Kelly Education and Training Center,
+  February.
+
+\end{thebibliography}

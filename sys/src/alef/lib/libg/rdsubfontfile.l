@@ -1,8 +1,8 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 void
-_unpackinfo(Fontchar *i, byte *p, int n)
+_unpackinfo(Fontchar *i, char *p, int n)
 {
 	int j;
 
@@ -20,9 +20,9 @@ _unpackinfo(Fontchar *i, byte *p, int n)
 Subfont*
 rdsubfontfile(int fd, Bitmap *b)
 {
-	byte hdr[3*12+4+1];
+	char hdr[3*12+4+1];
 	int l, n, height, ascent;
-	byte *p;
+	char *p;
 	Fontchar *info;
 	Subfont *f;
 	Dir d;
@@ -56,9 +56,9 @@ rdsubfontfile(int fd, Bitmap *b)
 			berror("rdsubfontfile protocol error");
 		id = BGSHORT(p+1);
 		p += 3;
-		n = atoi((byte*)p);
-		height = atoi((byte*)p+12);
-		ascent = atoi((byte*)p+24);
+		n = atoi((char*)p);
+		height = atoi((char*)p+12);
+		ascent = atoi((char*)p+24);
 		info = malloc(sizeof(Fontchar)*(n+1));
 		if(info == nil)
 			berror("rdsubfontfile malloc");

@@ -1,0 +1,15 @@
+cd /sys/src/fs/port
+ar vu port.arch *.[chs] mkfile
+push tempel port.arch fs
+cd ../power
+ar vu power.arch *.[chs] mkfile
+push tempel power.arch fs
+cd ../6280
+ar vu 6280.arch *.[chs] mkfile
+push tempel 6280.arch fs
+cd ../magnum
+ar vu magnum.arch *.[chs] mkfile
+push tempel magnum.arch fs
+cd ../ss
+ar vu ss.arch *.[chs] mkfile
+push tempel ss.arch fs

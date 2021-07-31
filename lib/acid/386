@@ -1,0 +1,92 @@
+// 386 support
+
+defn acidinit()			// Called after all the init modules are loaded
+{
+	bplist = {};
+	bpfmt = 'b';
+
+	srcpath = {
+		"./",
+		"/sys/src/libc/port/",
+		"/sys/src/libc/9sys/",
+		"/sys/src/libc/386/"
+	};
+
+	srcfiles = {};			// list of loaded files
+	srctext = {};			// the text of the files
+}
+
+defn stk()				// trace
+{
+	_stk(*PC, *SP, 0);
+}
+
+defn lstk()				// trace with locals
+{
+	_stk(*PC, *SP, 1);
+}
+
+defn gpr()		// print general(hah hah!) purpose registers
+{
+	print("AX\t", *AX, "BX\t", *BX, "CX\t", *CX, "DX\t", *DX, "\n");
+	print("DI\t", *DI, "SI\t", *SI, "BP\t", *BP, "\n");
+}
+
+defn spr()				// print special processor registers
+{
+	local pc;
+	local cause;
+
+	pc = *PC;
+	print("PC\t", pc, fmt(pc, 'a'), "  ");
+	pfl(pc);
+	print("SP\t", *SP, "ECODE\t", *ECODE, "EFLAGS\t", *EFLAGS, "\n");
+	print("CS\t", *CS, "DS\t", *DS, "SS\t", *SS, "\n");
+	print("GS\t", *GS, "FS\t", *FS, "ES\t", *ES, "\n");
+	
+	cause = *TRAP;
+	print("TRAP\t", cause, reason(cause), "\n");
+}
+
+defn regs()				// print all registers
+{
+	spr();
+	gpr();
+}
+
+defn next()
+{
+	local lst;
+	local addr;
+
+	lst = follow(*PC);
+	while lst do {
+		addr = head lst;
+		print(fmt(addr, 'a'),"\t", fmt(addr, 'i'), "\n");
+		lst = tail lst;
+	}
+}
+
+defn pstop(pid)
+{
+	local l;
+	local pc;
+
+	pc = *PC;
+
+	print(pid,": ", reason(*TRAP), "\t");
+	print(fmt(pc, 'a'), "\t", fmt(pc, 'i'), "\n");
+
+	if notes then {
+		if notes[0] != "sys: breakpoint" then {
+			print("Notes pending:\n");
+			l = notes;
+			while l do {
+				print("\t", head l, "\n");
+				l = tail l;
+			}
+		}
+	}
+}
+
+print("/lib/acid/386");

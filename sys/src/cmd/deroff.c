@@ -54,11 +54,13 @@
 
 
 int	linect	= 0;
+int	numflag	= 0;
 int	wordflag= NO;
 int	msflag	= NO;
 int	iflag	= NO;
 int	mac	= MM;
 int	disp	= 0;
+int	parag	= 0;
 int	inmacro	= NO;
 int	intable	= NO;
 int	eqnflag	= 0;
@@ -118,6 +120,9 @@ main(int argc, char *av[])
 	argv = av;
 	Binit(&bout, 1, OWRITE);
 	ARGBEGIN{
+	case 'n':
+		numflag = 1;
+		break;
 	case 'w':
 		wordflag = YES;
 		break;
@@ -133,6 +138,9 @@ main(int argc, char *av[])
 			}
 		else
 			usage();
+		break;
+	case 'p':
+		parag = YES;
 		break;
 	case 'i':
 		iflag = YES;
@@ -195,6 +203,8 @@ opn(char *p)
 		}
 	}
 	linect = 0;
+	if(numflag)
+		Bprint(&bout, ".F %s\n",p);
 	return(fd);
 }
 
@@ -202,7 +212,7 @@ int
 eof(void)
 {
 	if(Bfildes(infile) != 0)
-		Bterm(infile);
+		Bclose(infile);
 	if(filesp > files)
 		infile = *--filesp;
 	else
@@ -323,6 +333,8 @@ regline(int macline, int vconst)
 			putmac(line,vconst);
 		else
 			Bprint(&bout, "%S\n", line);
+		if(numflag && linect%10 == 0)
+			Bprint(&bout, ".%d\n",linect);
 	}
 }
 
@@ -421,6 +433,10 @@ comx:
 		refer(c2);
 		return;
 	}
+	if(parag && mac==MM && c1=='P' && c2=='\n') {
+		Bprint(&bout, ".P\n");
+		return;
+	}
 	if(c2 == '\n')
 		return;
 	if(c1 == '\\' && c2 == '\"')
@@ -465,7 +481,7 @@ comx:
 			if(fname[0] == '\0')
 				exits(0);
 			if(Bfildes(infile) != 0)
-				Bterm(infile);
+				Bclose(infile);
 			infile = *filesp = opn(fname);
 		}
 	else
@@ -483,7 +499,19 @@ comx:
 	if(msflag && c1=='N' && c2 == 'R')
 		SKIP;
 	else
-	if(msflag && c1 == 'A' && (c2 == 'U' || c2 == 'I')){
+	if(parag && msflag && (c1=='P' || c1=='I' || c1=='L') && c2=='P') {
+		Bprint(&bout, ".%C%C", c1, c2);
+		while(C != '\n')
+			Bputrune(&bout, c);
+		Bputc(&bout, '\n');
+	} else
+	if(parag && mac==MM && c1=='P' && c2==' ') {
+		Bprint(&bout, ".%C%C", c1, c2);
+		while(C != '\n')
+			Bputrune(&bout, c);
+		Bputc(&bout, '\n');
+	}
+	else if(msflag && c1 == 'A' && (c2 == 'U' || c2 == 'I')){
 		if(mac==MM)SKIP;
 		else {
 			SKIP_TO_COM;
@@ -496,8 +524,24 @@ comx:
 	}
 	else
 	if(msflag && (c1=='S' || c1=='N') && c2=='H') {
-		SKIP_TO_COM;
-		goto comx; 
+		if(parag) {
+			Bprint(&bout, ".%C%C", c1, c2);
+			while(C != '\n')
+				Bputrune(&bout, c);
+			Bprint(&bout, "\n!");
+			for(;;) {
+				while(C != '\n')
+					Bputrune(&bout, c);
+				Bputc(&bout, '\n');
+				if(C == '.')
+					goto com;
+				Bputc(&bout, '!');
+				Bputrune(&bout, c);
+			}
+		} else {
+			SKIP_TO_COM;
+			goto comx; 
+		}
 	} else
 	if(c1 == 'U' && c2 == 'X') {
 		if(wordflag)
@@ -512,9 +556,16 @@ comx:
 	if(msflag && c1=='N' && c2=='D')
 		SKIP;
 	else
-	if(msflag && mac==MM && c1=='H' && (c2==' '||c2=='U'))
-		SKIP;
-	else
+	if(msflag && mac==MM && c1=='H' && (c2==' '||c2=='U')) {
+		if(parag) {
+			Bprint(&bout, ".%C%C", c1, c2);
+			while(C != '\n')
+				Bputrune(&bout, c);
+			Bputc(&bout, '\n');
+		} else {
+			SKIP;
+		}
+	} else
 	if(msflag && mac==MM && c2=='L') {
 		if(disp || c1=='R')
 			sdis('L', 'E');

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Convert TeX to C.
+#
+
+cat tex.defines tex.p \
+	| ../web2c/web2c -t \
+	| ../web2c/fixwrites -t \
+	| ../web2c/regfix \
+	| ../web2c/splitup
+
+cat coerce.h fixcoerce.h > xcoerce.h
+mv xcoerce.h coerce.h

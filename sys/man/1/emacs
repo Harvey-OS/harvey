@@ -8,10 +8,8 @@ emacs \- editor macros
 ]
 .SH DESCRIPTION
 This page intentionally left blank.
-.SH SOURCE
-MIT
 .SH SEE ALSO
 .IR sam (1),
 .IR vi (1)
 .SH BUGS
-Yes.
+Many.

@@ -7,6 +7,7 @@ for(i in /dev/windows/*)
 	echo -n window ''''`{syscall -o read 0 buf 59 < $i/window >[2] /dev/null |
 	sed 's/............//; s/^ *//; s/  */ /g'}
 	echo -n ''' '
-	{ cat $i/label; echo } | sed 's/.* //'
+	cat $i/label
+	echo
 }
 oifs=ifs

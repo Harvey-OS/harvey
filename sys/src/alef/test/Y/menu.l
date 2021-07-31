@@ -1,10 +1,10 @@
 #include <alef.h>
 #include <fcall.h>
-#include <libg.h>
+#include <graphics.h>
 #include <frame.h>
 #include "y.h"
 
-intern byte	**lastm;
+intern char	**lastm;
 intern int	lsel;
 
 void
@@ -15,7 +15,8 @@ menuserver(chan(Mesg) r)
 
 	for(;;) {
 		m = <-r;
-		n = domenu(m.xy, m.menu);
+
+		n = domenu(m.m, m.menu);
 		if(n < 0)
 			continue;
 
@@ -28,7 +29,7 @@ menuserver(chan(Mesg) r)
 }
 
 int
-domenu(Point ps, byte **menu)
+domenu(Point ps, char **menu)
 {
 	Mesg m;
 	Point p;
@@ -51,7 +52,7 @@ domenu(Point ps, byte **menu)
 
 	x += 10;
 	y += 4;
-	m.xy = ps;
+	m.m = ps;
 	ps.x -= x/2;
 	if(lastm == menu)
 		ps.y -= (lsel*y) + y/2;
@@ -88,7 +89,7 @@ domenu(Point ps, byte **menu)
 	p = add(r.min, Pt(3, 2));
 
 	m.type = MsgMouse;
-	m.buttons = 1;
+	m.mb = 1;
 	sel = -2;
 	for(;;) {
 		switch(m.type) {
@@ -97,14 +98,14 @@ domenu(Point ps, byte **menu)
 			break;
 
 		case MsgMouse:
-			if(m.buttons == 0)
+			if(m.mb == 0)
 				break 2;
 
 			fnd = 0;
 			nh.min = p;
 			nh.max = Pt(r.max.x-3, p.y+y);
 			for(n = 0; n < i; n++) {
-				if(ptinrect(m.xy, nh)) {
+				if(ptinrect(m, nh)) {
 					if(sel >= 0)
 						border(w->cache, h, 2, Zero);
 					border(w->cache, nh, 2, F);

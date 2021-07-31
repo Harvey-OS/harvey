@@ -279,19 +279,19 @@ nase:
 	}
 |	cons =
 	{
-		bundle(3, " ", $1, " ");
+		bundle(2, " ", $1);
 	}
 |	DOT cons =
 	{
-		bundle(3, " .", $2, " ");
+		bundle(2, " .", $2);
 	}
 |	cons DOT cons =
 	{
-		bundle(5, " ", $1, ".", $3, " ");
+		bundle(4, " ", $1, ".", $3);
 	}
 |	cons DOT =
 	{
-		bundle(4, " ", $1, ".", " ");
+		bundle(3, " ", $1, ".");
 	}
 |	DOT =
 	{
@@ -780,7 +780,7 @@ loop:
 		ln = 0;
 		goto loop;
 	}
-	Bterm(in);
+	Bclose(in);
 	if((in = Bopen(sargv[ifile], OREAD)) != 0){
 		ln = 0;
 		ss = sargv[ifile];

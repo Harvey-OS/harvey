@@ -1,0 +1,7 @@
+#!/bin/rc
+# Convert Metafontware programs to C.
+# 
+stem=`{echo $1 | sed 's/\.p$//'}
+cat mfware.defines $1 \
+	| ../web2c/$cpuobjtype.web2c -hmfware.h -c$stem \
+	| ../web2c/$cpuobjtype.fixwrites > $2

@@ -1,0 +1,49 @@
+.TH IPF 10.1
+.SH NAME
+ipf, pga132a \- Actel to CDA translation
+.SH SYNOPSIS
+.B cda/ipf
+.I filename ...
+.br
+.B cda/pga132a
+.SH DESCRIPTION
+.PP
+.I Ipf
+reads at least an adil_file,
+as produced by
+.BR "cda/act -a" ,
+and a pin_file,
+returned by the Actel placing and routing software and produces two files:
+package and type definitions in CDL format in
+.IB name .pins \fP,
+and a new input file for the Actel software in
+.IB name .ipf \fP,
+where
+.I name
+is the prefix of the first file argument.
+If
+.IB name .ipf
+were given to the Actel software,
+it would return a pin_file with the same contents as the argument to
+.IR ipf .
+.PP
+.I Pga132a
+provides pin name to pin number translations for the Actel PGA132 package.
+.SH EXAMPLES
+If you are working on a PGA132 device, then a typical use would be
+.sp
+.EX
+	cda/pg132a | cda/ipf /fd/0 xmit.adi xmit.pin
+.EE
+.SH SEE ALSO
+.IR act (10.1),
+.IR lde (10.1)
+.SH BUGS
+.I Ipf
+misses pins whose definitions change between the
+.B .io
+and
+.B .o
+sections.
+.br
+This should all be one program.

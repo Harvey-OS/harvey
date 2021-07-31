@@ -29,7 +29,6 @@ OFILES=\
 	syslog.$O\
 	time.$O\
 	times.$O\
-	werrstr.$O\
 
 HFILES=/sys/include/libc.h
 

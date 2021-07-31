@@ -21,7 +21,6 @@ rdfontfile(char *name, int ldepth)
 	Dir dir;
 	ulong min, max;
 	uchar *gbuf;
-	int offset;
 
 	fd = open(name, OREAD);
 	if(fd < 0)
@@ -85,7 +84,7 @@ rdfontfile(char *name, int ldepth)
 	fnt->nsub = 0;
 	fnt->sub = 0;
 
-	memset(fnt->subf, 0, fnt->nsubf * sizeof(fnt->subf[0]));
+	memset(fnt->subf, 0, sizeof(fnt->subf));
 	memset(fnt->cache, 0, fnt->ncache*sizeof(fnt->cache[0]));
 	fnt->age = 1;
 	do{
@@ -98,12 +97,6 @@ rdfontfile(char *name, int ldepth)
 			ffree(fnt);
 			return 0;
 		}
-		t = s;
-		offset = strtol(s, &t, 0);
-		if(t>s && (*t==' ' || *t=='\t' || *t=='\n'))
-			s = skip(t);
-		else
-			offset = 0;
 		fnt->sub = realloc(fnt->sub, (fnt->nsub+1)*sizeof(Cachefont*));
 		if(fnt->sub == 0){
 			/* realloc manual says fnt->sub may have been destroyed */
@@ -116,7 +109,6 @@ rdfontfile(char *name, int ldepth)
 		fnt->sub[fnt->nsub] = c;
 		c->min = min;
 		c->max = max;
-		c->offset = offset;
 		t = s;
 		while(*s && *s!=' ' && *s!='\n' && *s!='\t')
 			s++;

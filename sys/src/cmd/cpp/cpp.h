@@ -36,8 +36,8 @@ typedef struct token {
 	unsigned char	type;
 	unsigned char 	flag;
 	unsigned short	hideset;
-	unsigned int	wslen;
-	unsigned int	len;
+	unsigned short	wslen;
+	unsigned short	len;
 	uchar	*t;
 } Token;
 
@@ -134,7 +134,6 @@ int	newhideset(int, Nlist *);
 int	unionhideset(int, int);
 void	iniths(void);
 void	setobjname(char *);
-void	clearwstab(void);
 #define	rowlen(tokrow)	((tokrow)->lp - (tokrow)->bp)
 
 extern	char *outp;
@@ -150,4 +149,3 @@ extern	int verbose;
 extern	int Cplusplus;
 extern	Nlist *kwdefined;
 extern	Includelist includelist[NINCLUDE];
-extern	char wd[];

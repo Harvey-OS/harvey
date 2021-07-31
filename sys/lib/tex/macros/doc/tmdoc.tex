@@ -1,0 +1,1328 @@
+\documentstyle{tm}
+\newcommand{\BibTeX}{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\markproprietary
+\title{AT\&T Specific \LaTeX\ Document Styles and Related Tools}
+\author{Terry L Anderson}
+\signatureextra{Software Development Environment Group\\Software Architecture Department}%
+\initials{TLA}
+\eaddress{tla@bartok.att.com}
+\department{59114}
+\location{LC}{4N-E01}{908-580-4428}
+\date{Nov 14, 1991}
+\chargecase{978899-0100}
+\filecase{61093}
+\documentno{910000}{00}{TMS}
+\previousdocument{59553-870625-02TM, 59114-890130-01TMS}
+\keywords{\TeX ; \LaTeX ; Memorandum; View Graphs; Slides; tm.sty;
+Document Preparation}
+\mercurycode{CMP}
+\memotype{TECHNICAL MEMORANDUM}
+\organizationalapproval
+\approver{T.\ F.\ Houghton, Supv}
+\approver{G.\ P.\ Pasternack, Head 59112}
+\abstract{
+This document describes several AT\&T specific document styles for
+\LaTeX , including {\it tm} style for preparing AT\&T Bell
+Laboratories style memoranda using \LaTeX , a companion style, {\it
+rp}, for released papers, a letter style, {\it attletter} that
+includes an AT\&T letterhead, {\it mw.sty} for preparing
+documents following the Multiweight Design format (an AT\&T standard
+for external, end-user documentation), a viewgraph style,
+{\it attslides}, and a style for preparing Bell Laboratories expense
+vouchers, {\it voucher.sty}.  Also described in a translator from
+mm/troff to \LaTeX .Most of the features of
+the mm macro package available under troff are available in \LaTeX ,
+except for the built-in knowledge of AT\&T memorandum layout styles
+and coversheets.  The {\it tm} document style adds support for all of
+the special memorandum information, such as work locations, document
+numbers, work project numbers, MERCURY codes, \dots , and will produce
+coversheets, contents lists, memorandum headers, proprietary markings,
+\dots\ in a fairly standard form.  A related {\it rp} style for
+released papers accepts the same document file but produces a paper
+approximating mm's released paper memorandum type.  A letter style,
+{\it attletter}, similar to \LaTeX 's standard letter style but adding
+the AT\&T letterhead is also described.  Examples of technical
+memorandums and letters are included.  The style files and other
+related files are available on request.  Some extended picture
+environment macros, macros for printing bitmaps and the AT\&T Logo
+defined in METAFONT are also available.}
+\begin{document}
+\makehead
+\makeabstract
+\section{Introduction}
+This document describes a number of AT\&T specific \LaTeX\ styles and
+some related tools.  The AT\&T memo style {\it tm} is described in
+detail.  The {\it voucher} style for preparing Bell Laboratories
+vouchers is also documented.  A special style for SLI\TeX\, {\it
+attslides} for preparing one of the many AT\&T slide styles is also
+documented.  A style for preparing documents in Multiweight Design, an
+AT\&T standard for external, end-user documentation is descibed here
+but documented fulling in another document.  See {\it A \LaTeX\ Style for
+Multiweight Design}.\cite{bib:mw}  The mm/troff translator is
+documented in {\it An MM to \LaTeX\ Translator}.\cite{bib:mm2tex}
+
+\part{Memo Styles, TM and RP}
+\LaTeX\ is a macro package for use with the typesetting language
+\TeX\tmnotice{\TeX\ is a trademark of the American
+Mathematical Society}.  It simplifies a number of formatting 
+tasks common in producing large documents.  
+\LaTeX\ supports document style descriptions that specify
+the layout of information in a document and on each page.  This
+document describes a document style that produces 
+AT\&T Bell Laboratories memoranda, in a form similar to those produced
+with the mm macro package\cite{bib:mm,bib:mm2} available under {\it troff}.  
+It is assumed that the reader is reasonably familiar with \LaTeX ,
+and its use.  This document will not discuss the standard features of \LaTeX . 
+The {\it tm} style is a standard \LaTeX\ document style file and is
+very similar to the {\it article} style described in the \LaTeX\
+book.\cite{bib:latex}  It is invoked by the command
+\begin{itemize}
+\item[]
+\verb|\documentstyle{tm}|
+\end{itemize}
+at the beginning of the document source file.  We will document only 
+the differences and extensions to the {\it article}
+style.  This memorandum documents the version of {\it tm.sty} dated
+87-Jul-10.\markedfootnote{\dag}{The version date is printed on the
+terminal when the style file is read into \TeX\ and at the bottom of
+the first page of the coversheet.}  The {\it tm} style was written
+by the author.
+
+\section{Differences from {\it article} Style Defaults}
+The text width and height dimensions have been changed to correspond
+to those used by mm memoranda; text width is 6 inches and height
+8.7.  A file, named ``local.sty'', is read in to allow local page
+positioning parameters.  This is for use with dvi programs that cannot
+change the offsets just before printing.  This file must exist but
+may be empty.
+
+Several other changes in format have been made to conform more
+closely to standard memorandum style.  The format of the table of
+contents has been adjusted.  Calls to \verb|\newpage| have been
+added before sections such as references and table of contents to
+make them occur on new pages.
+
+The \verb|\cite| macro has been changed to print square brackets
+around the entry and to raise it above the
+line.\markedfootnote{*}{See an example in the first paragraph 
+of this document}  The citation marking can be left unraised by
+calling 
+\begin{itemize}
+\item[]
+\verb|\noraisedcitations|
+\end{itemize}
+and raised again by calling
+\begin{itemize}
+\item[]
+\verb|\raisedcitations|
+\end{itemize}
+The default is raised.
+
+The {\it tm} style supports most of the options of the article style,
+such as different default type sizes [11pt] or [12pt] but the two
+column option is not recommended.  {\it tm} also adds support for some
+smaller point sizes, [8pt] and [9pt].
+\section{Memorandum Data}
+The {\it tm} style adds commands for giving values to various
+memorandum parameters so that they can be printed in standard form
+on the first page heading, in the end of document signature and on
+coversheets.
+Several of these replace similar commands in the {\it article}
+style; in a few cases with different parameters.  
+
+The title can be entered using
+\begin{itemize}
+\item[]
+\verb|\title{|{\it text}\verb|}|\\
+\verb|\title*{|{\it text}\verb|}|
+\end{itemize}
+When using the default page style, the title is automatically placed
+in the appropriate places in the first page document heading, the
+coversheet (if generated) and at the top of each page in the page
+heading (see section on New Pages Styles for other options).  The
+title at the top of each page can be suppressed by using
+\verb|\title*|.  The
+macro \verb|\title| actually sets three internal macros for printing
+the title on the title page, on the coversheet and on the top of each
+page.  If the title is too long to fit comfortably in the heading, a
+shortened version, some other appropriate heading or no heading at all
+can be substituted by using
+\verb|\markright{|{\it string}\verb|}| or 
+\verb|\markright{}|.\markedfootnote{\ddag}{See the description of
+the {\it headandfoot} page style below}  
+If it is desired to specify line breaks for one of the other titles,
+the individual macros 
+\begin{itemize}
+\item[]
+\verb|\covtitle{|{\it text}\verb|}|\\
+\verb|\titlepagetitle{|{\it text}\verb|}|
+\end{itemize}
+can be called after calling \verb|\title|.  These macros will allow
+`\verb|\\|' to appear in the title.  If \verb|\title| is not called
+all three macros \verb|\markright|, \verb|\covtitle| and
+\verb|titlepagetitle| must be called.
+
+The author and associated data is entered as follows.
+\begin{itemize}
+\item[]
+\verb|\author{|{\it author\/}\verb|}|\\
+\verb|\initials{|{\it initials\/}\verb|}|
+\end{itemize}
+These are traditionally the author's three initials in upper case,
+and will appear along with location code and department number in
+the signature block.  The command
+\begin{itemize}
+\item[]
+\verb|\signatureextra{|{\it string}\verb|}|
+\end{itemize}
+allows any additional information, such as the authors
+title, department name, \dots , to be added directly under the
+author's name (as with the .AT macro
+in mm).
+\begin{itemize}
+\item[]
+\verb|\eaddress{|{\it electronic-address\/}\verb|}|
+\end{itemize}
+The electronic address (if given) will be displayed below the office
+number and phone extension in first page header and in a column
+after the name on the ITDS-style coversheet.
+\begin{itemize}
+\item[]
+\verb|\department{|{\it department-number\/}\verb|}|\\
+\verb|\location{|{\it location-code\/}\verb|}{|{\it
+room-number\/}\verb|}{|{\it phone-number\/}\verb|}|\\
+\verb|\locationextra{|{\it string}\verb|}|
+\end{itemize}
+{\it Note that effective mid-1990 the AT\&T memorandum style is to use
+complete phone numbers including area code, not just extensions} -- the
+argument to \verb|location| should thus contain the full phone number
+in the form \verb|###-###-####|.  Effective with the 90-Sep-11 release
+of tm.sty, the author information in the `from' part will use the new
+layout with a separate line for phone number and no `x' in front of
+the number.
+The \verb|\locationextra| entry allow any additional information desired
+to be included with the location information in the first page
+header.  It appears under the the electronic address (if given).
+
+A company name and mailing address can be given by using
+\begin{itemize}
+\item[]
+\verb|\company{|{\it company-name\/}\verb|}|\\
+\verb|\maddress{|{\it street-address\verb|\\|city, ST ZIP\/}\verb|}|
+\end{itemize}
+As many lines as necessary can be given in the mailing address as
+long as they are separated by `\verb|\\|'.  The company name will
+appear on the ITDS-style coversheet in the `Company\dots' field, and the
+company name as well as any mailing address will appear on the first
+page.  Since this is primarily intended for authors who are not 
+AT\&T Bell Laboratories employees, the location,
+department and document numbers would normally be left blank.
+For employees of other AT\&T entities, the entity name can be given
+as the company and location and office information specified as for
+a Bell Laboratories employee.
+
+All of the author related data macros can be collected into a author
+database.  For more information see the section on {\it Author
+Database}. 
+
+The document number may be specified using
+\begin{itemize}
+\item[]
+\verb|\documentno{|{\it yymmdd\/}\verb|}{|{\it
+sequence-num\/}\verb|}{|{\it category-with-suffix\/}\verb|}|
+\end{itemize}
+Note that the document number does {\it
+not} include the department number part.  This is added
+automatically.  The {\it category-with-suffix} is `IM', `TM' or `TC'
+with `S' added if the document includes ``any nontrivial executable
+computer program routine, whether in source or object code (See GEI
+2.2-2.)''.
+
+The author related data macros \verb|\author|,
+\verb|\initials|, \verb|\department|, and \verb|\location|
+are all {\it required}.  Leaving any out will cause \TeX\ undefined
+macro errors.  All of the data macros associated with the author
+(the required macros plus \verb|\signatureextra|, \verb|\eaddress|, 
+\verb|\locationextra|, and \verb|\documentnumber|) can be repeated 
+for more authors.  Only the first nine authors names will have
+signature lines on the ITDS-style coversheet.
+The \verb|\author| should occur first and all other data up to the 
+next \verb|\author| applies to that
+author.  Declaring another author without supplying all the required
+data macros will cause a \TeX\ error.  If the document number is
+given for an author, it will appear under his {\it author data} in
+the heading.  If all author's document numbers are the same it
+should be specified only once with the last author.  Then it will
+appear only at the end of the author list in the heading.  If there
+is more than one document number, a document number should be given
+for each author.  This will cause it appear after each author's data.  
+In any case, each unique document number will occur only once on 
+the cover sheet (if generated).
+
+A typist's initials can be specified by
+\begin{itemize}
+\item[]
+\verb|\typistinitials{|{\it initials\/}\verb|}|
+\end{itemize}
+The initials for the typist are usually given as lower-case letters.
+Specifying a typist's initials is optional but if they are given they
+will appear after the author's initials in the signature block.
+
+The document numbers of previous documents that are amended or
+superseded by the current document may also be specified by
+\begin{itemize}
+\item[]
+\verb|\previousdocument{|{\it documentnumber\/}\verb|}|
+\end{itemize}
+The full document number (including department number, date,
+sequence number and any suffix) should be given exactly as it should
+appear.  Numbers in the older document number style can also be
+used.  If more than one previous document number needs to be
+specified, use one \verb|\previousdocument| macro and separate
+the document numbers by commas.
+
+The date is entered with
+\begin{itemize}
+\item[]
+\verb|\date{|{\it date\/}\verb|}|
+\end{itemize}
+This is identical to the {\it date} macro in mm.  It is common to
+use the \TeX\ macro \verb|\today| to generate the current date.  If
+you do not call \verb|\date| the date will default to the current date.
+\begin{itemize}
+\item[]
+\verb|\chargecase{|{\it charge-case-num\/}\verb|}|\\
+\verb|\filecase{|{\it file-case-num\/}\verb|}|
+\end{itemize}
+These are fairly obvious.  Just as with the author data the charge
+case and file case macros can be repeated.  They are not associated
+with a particular author so they can appear anywhere in the
+preamble, but they will be listed in the order given, in the heading
+and on the coversheet.
+\begin{itemize}
+\item[]
+\verb|\keywords{|{\it keyword-list\/}\verb|}|\\
+\verb|\mercurycode{|{\it code\/}\verb|}|
+\end{itemize}
+The keyword list is simply a string, punctuated as desired.  It is
+common to place `;' between phrases, as in ``document preparation;
+typesetting; memorandum''.  The string will be printed exactly as
+given.  The {\it mercury code} must be from
+the standard list CHM, CMM, CMP, ELC, LFS, MAN, MAS, MKT, PHY, or
+STD, and should be uppercase.  
+The \verb|\mercurycode| macro can be repeated for more than
+one code.  Only three mercury codes will appear on the ITDS-style
+coversheet.
+\begin{itemize}
+\item[]
+\verb|\memotype{|{\it type-name\/}\verb|}|
+\end{itemize}
+This string will appear in italics just under the header on the
+first page.  Common {\it type-name}s are `TECHNICAL MEMORANDUM'
+and `INTERNAL MEMORANDUM' but any string may be used.  This is the
+same function as the `.MT ``string'' ' macro in mm.
+\begin{itemize}
+\item[]
+\verb|\abstract{|{\it text}\verb|}|
+\end{itemize}
+Note that this is a macro, not an environment as in the standard {\it
+article} style.  This is to allow the data to be captured and
+printed in more than one place.  This also means that it should
+appear in the preamble (along with the rest of the items in this
+section) rather than in the body of the document or immediately after
+the \verb|\begin{document}| (and before the \verb|\makeabstract|
+described next).  If the abstract contains citations it {\it must}
+follow the \verb|\begin{document}| to allow the citations to be
+resolved.  The abstract 
+can be placed at the top of the first page (just under
+the memotype), by calling 
+\begin{itemize}
+\item[]
+\verb|\makeabstract|
+\end{itemize}
+It will also be placed automatically on the coversheet (if one is
+generated).
+\begin{itemize}
+\item[]
+\verb|\copyto{|{\it name\/}\verb|\\|{\it name\/}\verb|\\|{\it name \dots}\verb|}|\\
+\verb|\copytocov{|{\it name\/}\verb|\\|{\it name\/}\verb|\\|{\it name \dots}\verb|}|\\
+\verb|\copytohere{|{\it name\/}\verb|\\|{\it name\/}\verb|\\|{\it name \dots}\verb|}|\\
+\verb|\coverto{|{\it name\/}\verb|\\|{\it name\/}\verb|\\|{\it name \dots}\verb|}|
+\end{itemize}
+The \verb|\\| 
+must be placed after each name except the last.
+
+These lists will appear on the ITDS-style coversheet and the {\it copyto} list
+will appear at the location where the macro is called (usually after
+the signature.  \verb|\copytocov| suppresses the local copy, printing
+the copyto list only on the coversheet.  \verb|\copytohere| suppresses
+the copy on the coversheet, printing only at the location of the macro
+call.  
+
+Copyto lists that are longer than the space remaining on the signature
+page are automatically continued onto the next page, but copyto and
+coverto lists that are too long for the space available on the
+coversheet are {\it not} automatically handled.  The lists must be
+manually broken into to lists.  A list short enough to fit in the
+space on the coversheet should be given with one of the above
+commands.  The additional list can be created with one of the following
+
+\begin{itemize}
+\item[]
+\verb|\restofcopyto{|{\it name\/}\verb|\\|{\it name\/}\verb|\\|{\it name \dots}\verb|}|\\
+\verb|\restofcopytocov{|{\it name\/}\verb|\\|{\it name\/}\verb|\\|{\it name \dots}\verb|}|\\
+\verb|\restofcoverto{|{\it name\/}\verb|\\|{\it name\/}\verb|\\|{\it name \dots}\verb|}|
+\end{itemize}
+
+There is no \verb|\restofcopytohere| since if the only copy is to be
+on the signature page the standard \verb|\copytohere| will handle the
+long list.  The \verb|\restofcopyto| will add its list immediately
+after the standard copyto list on the signature page to look like a
+single long list.  In addition, it along with the other two, will
+generate an additional coversheet page and include the extra list or
+lists.  This page will have the appropriate heading material.  No
+provision is made for more than this single extra page.  It is also
+possible to use a tabular environment in any of the lists to make
+use of multiple columns.
+
+A government security classification can be added by calling
+\begin{itemize}
+\item[]
+\verb|\classified{|{\it classification-level}\verb|}|
+\end{itemize}
+The {\it classification-level} is the government assigned title;
+e.g., Secret, Top Secret, \dots  The author can use
+\verb|\classified{Not Classified}| to explicitly indicate that the
+document is unclassified, but usually the macro should simply not be
+called.
+
+ITDS-style coversheets indicate whether ITDS should obtain approval prior
+to releasing the document to AT\&T employees 
+(excluding contract employees).  The default is permit release
+without approval.  To require ITDS to obtain approval for each
+release, use
+\begin{itemize}
+\item[]
+\verb|\itdsrestrict|
+\end{itemize}
+\verb|\itdsrestrict| is automatically invoked when restricted or registered
+proprietary levels are specified.
+An organizational approval section is also included automatically 
+when a restricted or registered proprietary level has been
+specified.  In other cases such an approval section is optional and
+may be requested by 
+\begin{itemize}
+\item[]
+\verb|\organizationalapproval|
+\end{itemize}
+Or one may specify the names of approvers using from one to six calls to
+\begin{itemize}
+\item[]
+\verb|\approver{|{\it name}\verb|}|
+\end{itemize}
+This also forces an approval section and guarantees enough signature
+lines for those specified and prints the names under the lines,
+similar to that done for authors.
+
+\subsection{Location of the Data Macros}
+All of the above macros for entering data, except \verb|\copyto| and
+\verb|\coverto|  should be placed in the
+preamble; i.e., before the \verb|\begin{document}| command.  The
+\verb|\copyto| and \verb|\coverto| macros should be called after the
+\verb|\makesignature| macro (see the discussion in the next section).
+\section{Generating the Heading, Abstract, Cover Sheets, \dots}
+The heading containing the AT\&T logo, title and author's
+identification is placed at the top of the first page by calling
+\begin{itemize}
+\item[]
+\verb|\makehead|
+\end{itemize}
+immediately after the \verb|\begin{document}| statement.  If the
+abstract is to be printed on the first page, a call to
+\verb|\makeabstract| should appear next.  The company name defaults to
+AT\&T Bell Laboratories, but can be changed to another company name
+but calling
+\begin{itemize}
+\item[]
+\verb|\companyname{|{\it company-name}\verb|}|\\
+\verb|\capcompanyname{|{\it company-name-in-all-caps}\verb|}|.
+\end{itemize}
+The later is only needed if an ITDS-style coversheet is generated where the
+company name appears in all uppercase characters.
+
+Following the body of the memorandum should be a call to one of the
+signature macros
+\begin{itemize}
+\item[]
+\verb|\makesignature|\\
+\verb|\makefacesignature{|{\it face-root}\verb|}|
+\end{itemize}
+to place the standard signature information at the end.  The
+\verb|\makefacesignature| version places a picture of the author's
+face just to the left of his signature block.  To use this version
+you must have a face.tex for each author in the file {\it
+face-root}/{\it author-initials}/face.tex.  For example my face.tex is
+in {\it face-root}\verb|/TLA/face.tex|.  Note that each author's
+directory name must 
+be the same as the string specified in \verb|\initials|.  The
+number of faces that can appear on one page is limited by the size of
+your \TeX\ data structures.  My system can only print two faces on
+a page.  So for more than two authors, either the signatures must lie
+across a page boundary or I must use the faceless version of
+\verb|\makesignature|.  For more information on face and other bitmap
+files see the section on bitmap.sty.
+
+The signature should be followed by calls to the \verb|\copyto| and
+\verb|\coverto| macros, if desired (see discussion of these in the
+section on memorandum data).
+
+If a list of references is desired the standard {\it thebibliography}
+environment should be used.  By default the references are printed on
+a separate page.  A new environment {\it thebibliography*} can be used
+to print the reference list without starting a new page.  \BibTeX\ can
+be used to create the bibliography.  There is an asterisk form,
+\verb|\bibliography*{|{\it bib-files}\verb|}| that may be used to
+supress the starting of a new page for the reference list when using
+\BibTeX .  There is no default for
+bibliography style.  The user must set one of the standard
+bibliography styles or a new bibliography
+style, {\it atttm.sty}.  The {\it
+atttm} style is similar to the {\it unsrt} style but is somewhat closer to
+the style recommended in {\it The Bell Labs Style
+Guide}\cite{bib:style} (though there are still some differences).
+The bibliography style can be set by calling
+\begin{itemize}
+\item[]
+\verb|\bibliographystyle{|{\it style-file}\verb|}|
+\end{itemize}
+just after the \verb|\begin{document}|.
+
+If appendices are used, a call to the new macro \verb|\appendices|
+should occur after the bibliography (see discussion of the macro in
+section \ref{sec:appendicies}).
+  
+Just as with the standard {\it article} 
+style, table of contents,
+list of figures and list of tables can be generated by calls to 
+\begin{itemize}
+\item[]
+\verb|\tableofcontents|\\
+\verb|\listoffigures|\\
+\verb|\listoftables|
+\end{itemize}
+
+An ITDS-style coversheet in a form similar to that generated by the
+docgen and docsend programs can be generated by the macro
+\begin{itemize}
+\item[]
+\verb|\coversheet|
+\end{itemize}
+The coversheet macro should be called after {\it all} other items
+(such as table of contents, \dots) to get the page counts correct.
+It should appear just before the call to \verb|\end{document}|.  
+
+The page counts are automatically made and printed on the coversheet.
+If pages are to be inserted into the document that are not printed
+with \LaTeX , one must correct the page numbers.  This can be done in
+two ways.  If the pages appear after the last regularly numbered page;
+i.e., after any references and appendices, then only the page count on
+the cover sheet need be corrected.  This can be done with the macro
+\begin{itemize}
+\item[]
+\verb|\extrapages{|{\it number-of-extra-pages}\verb|}|
+\end{itemize}
+If the extra pages occur in the middle of the sequence of numbered
+pages; such as, in an appendix other than the last appendix, then the
+page number used by \LaTeX\ must be corrected.  This can be done with 
+\begin{itemize}
+\item[]
+\verb|\clearpage|\\
+\verb|\addtocounter{page}{|{\it number-to-be-added}\verb|}|
+\end{itemize}
+This should be done seperately at each location where pages are to be
+inserted. 
+
+A memorandum-for-file-style coversheet (which has a heading like the
+first page of the document but contains only the abstract) can also be
+generated by the macro 
+\begin{itemize}
+\item[]
+\verb|\mmfcoversheet|
+\end{itemize}
+The macro can be called before the first page of the document (but
+after the \verb|\begin{document}| but will then be counted as page 1
+with the ``first page'' begin numbered page 2.  It is best to call the
+macro at the end, just before the call to \verb|\end{document}| as
+with the ITDS-style coversheet and then move it to the beginning after
+printing.
+\subsection{Example Using {\it tm} to Generate a Complete Document}
+An example source file for generating a complete document,
+illustrating most features and including a coversheet is given in
+Appendix A.  The resulting document is included in Appendix B.
+For a more complete example, the source for {\it this} document is
+available from the author or in the file \verb|tm.doc| in the tm
+distribution. 
+\section{Released Paper Style {\it rp.sty}}
+A related style called rp (for released paper) is also available.
+This style will accept all the macros used by {\it tm.sty} but produce a
+document in the {\it released paper} style of MM.  Most of the tm
+macros are simply ignored since they refer to things not included in
+released papers.  They are still tolerated so that a single source
+file can produce documents in both forms.  The only changes that must
+be made are to change the \verb|\documentstyle{tm}| to
+\verb|\documentstyle{rp}| and to define a ``city-state-zip'' address
+using the macro
+\begin{itemize}
+\item[]
+\verb|\cityaddr{|{\it city, ST  ZIP}\verb|}|
+\end{itemize}
+This information is used beneath the author's name and company
+affiliation in the released paper style.  MM obtains this
+automatically from a built-in table indexed by the location code.  A
+future version of {\it rp.sty} may also contain such a table.  The
+current version of {\it rp.sty} does {\it not} allow different
+cityaddr for each author.  The \verb|\cityaddr| macro is tolerated by
+the {\it tm.sty} but ignored, so if put in the document source file
+the \verb|\documentstyle| alone determines the output form.
+
+The proprietary markings are still printed in the released paper
+style if included in the document source file.  MM does the same.
+If the released paper is not proprietary the internal TM shouldn't be
+either.  
+
+The word ``ABSTRACT'' is added above the abstract printed on the
+released paper form of the coversheet but not anywhere else the macro
+\verb|\makeabstract| is called, such as on the first page.  This
+allows the word or any other notation to appear above the abstract at the
+discretion of the author.
+
+\section{Extensions to \LaTeX}
+\subsection{New Page Styles}
+Some additional page styles have been added.  The style {\it
+headandfoot} is similar to the standard \LaTeX\ style {\it myhead}
+but adds a centered foot generated by the macro \verb|\bottommark|. 
+Headandfoot is the default page style for the {\it tm} document style.
+The bottommark can be manually set by calling
+\begin{itemize}
+\item[]
+\verb|\markbottom{|{\it string}\verb|}|
+\end{itemize}
+The bottommark is set automatically by calls to the \verb|\markdraft|
+and proprietary markings macros.  The standard macros for setting
+headings are supported, \verb|\markright| and \verb|\markboth|.
+
+A page style with the simpler heading consisting of only ``- pageno -''
+(the default with the mm package) but the same foot is also available.
+To use this style for the entire document specify
+\begin{itemize}
+\item[]
+\verb|\pagestyle{simpleheadandfoot}|
+\end{itemize}
+in the preamble.
+
+There is also an {\it onlyfoot} page style that has the same bottom
+marking but no page headings.
+\subsection{Enumerated Lists}
+The mm macro package for troff allows ``enumerated'' lists using Roman
+numerals and alphabetic letters in addition to Latin numbers.  This
+is especially useful for outlines.  To support this, four new
+environments have been added:  {\it romanenum, Romanenum, alphenum} and
+{\it Alphenum}.  These are used exactly like {\it enumerate} but
+use lower case Roman numerals (i, ii, iii, iv, \dots), uppercase
+Roman numerals (I, II, III, IV, \dots), lower case letters and upper
+case letters, respectively.
+\subsection{Labeled Lists}
+A new type of list, not available in mm, is available in tm.sty.  This
+list environment is called {\it labeled} and has {\bf left} justified
+labels and takes the indentation for the 
+item body as a parameter.  For example the following commands
+\begin{itemize}
+\item[]
+\verb|\begin{labeled}{1in}|\\
+\verb|\item[label 1]This is the body of the item.  If the body continues|\\
+\verb|onto a second line, the continuation will be indented like the|\\
+\verb|body part of the first, to the amount specified in the parameter.|\\
+\verb|\item[label 2]This is a second item, included to illustrate the|\\
+\verb|resulting format.|\\
+\verb|\end{labeled}|
+\end{itemize}
+would give the following results
+\begin{labeled}{1in}
+\item[label 1]This is the body of the item.  If the body continues
+onto a second line, the continuation will be indented like the
+body part of the first, to the amount specified in the parameter.
+\item[label 2]This is a second item, included to illustrate the
+resulting format.
+\end{labeled}
+\subsection{Inline Lists}
+A new kind of ``list'' environment, {\it inlinelist},  has been added.
+This formats a 
+numbered list in-line in the paragraph; i.e., each item is labeled
+with a number in parenthesis.  It is really not a
+list environment in the \LaTeX\ sense, since it is not implemented as a
+display and each item does not begin on a new line.  The desired
+inter-item punctuation should be supplied at the end of each item.
+For example, 
+\begin{inlinelist}
+\item one can use a semicolon as after this item;
+\item a comma, or
+\item place a period at the end.
+\end{inlinelist}
+This list was implemented with the following \LaTeX\ code
+\begin{itemize}
+\item[]
+\verb|\begin{inlinelist}|\\
+\verb|\item one can use a semicolon as after this item;|\\
+\verb|\item a comma, or|\\
+\verb|\item place a period at the end.|\\
+\verb|\end{inlinelist}.|
+\end{itemize}
+
+\subsection{Draft Marking}
+A document will be labeled as {\it DRAFT} at the bottom of each page
+if the macro
+\begin{itemize}
+\item[]
+\verb|\markdraft|\\
+\verb|\markdraft*|
+\end{itemize}
+is called.  The `*' version adds the date and
+time\markedfootnote{\dag}{Date and time versions contributed by Dennis
+DeBruler}.  If a proprietary marking is also used \verb|\markdraft|
+must be called {\it before} the \verb|\markprivate|,
+\verb|\markproprietary|, \verb|\markrestricted|, or \verb|\markregistered|.
+\subsection{Proprietary Markings}
+Proprietary markings of the standard form are available by making
+calls to 
+\begin{itemize}
+\item[]
+\verb|\markprivate|\\
+\verb|\markproprietary|\\
+\verb|\markrestricted|\\
+\verb|\markregistered|\\
+\verb|\marknone|
+\end{itemize}
+Calls to any of these macros replace the bottommark and so replace
+any bottommark set with \verb|\markbottom| or any previous call to a
+proprietary marking macro.  \verb|\markprivate| also replaces the
+heading on all pages with a centered, bold ``{\bf PRIVATE}'',
+replacing the line with usually carries the title or markright
+string.  \verb|\marknone| cancels a previous mark.
+\subsection{Trade Marks}
+The trademark symbol `\tm ' and registered trademark symbol `\regmark ' 
+can be generated by the macros
+\begin{itemize}
+\item[]
+\verb|\tm|\\
+\verb|\regmark|
+\end{itemize}
+The registered trademark, \UNIX\ can be generated by 
+\begin{itemize}
+\item[]
+\verb|\UNIX|
+\end{itemize}
+Note that a footnote indicating the ownership of the trademark is
+automatically generated the first time the trademark is used in a
+document.\markedfootnote{\dag}{See the example here.}
+
+Other registered trademarks can be used with ownership footnotes by
+the macros
+\begin{itemize}
+\item[]
+\verb|\regnotice{|{\it ownership-text}\verb|}|\\
+\verb|\tmnotice{|{\it ownership-text}\verb|}|
+\end{itemize}
+\subsection{Footnotes with Symbols}
+An additional footnote style is supported, using symbols for the
+footnote mark.  The macro is
+\begin{itemize}
+\item[]
+\verb|\markedfootnote{|{\it symbol}\verb|}{|{\it footnote text}\verb|}|
+\end{itemize}
+\subsection{Time of Day}
+The time of day can be printed by calling 
+\begin{itemize}
+\item[]
+\verb|\hhmm|\\
+\verb|\hhmm*|
+\end{itemize}
+The `*' version prints the time using the 24 hour
+format.\markedfootnote{*}{24 hour version, contributed by Nelson Beebe in
+texhas.86.002.  I modified it to offer a 12 hour version.}  Both of
+these use the basic \verb|\time| macro of \TeX\ that gets the time of
+day in minutes since midnight.
+\subsection{Cent Sign}
+The symbol for cents is available.  The macro suggested by Knuth on
+page 319 of the TeXbook is the one used.
+\begin{itemize}
+\item[]
+\verb|\cents|
+\end{itemize}
+\subsection{Appendices}\label{sec:appendicies}
+The new macro 
+\begin{itemize}
+\item[]
+\verb|\appendices|
+\end{itemize}
+should be used to begin the appendices.  It calls the
+\verb|\appendix| macro which causes sections to be labeled with
+capital letters (A, B, \dots) rather than numbers.  It also calls
+\verb|\newpage| to begin the first appendix on a new page and
+\verb|\addcontentsline| to make a table of contents entry labeled
+``APPENDICES''.  
+\subsection{Variable Width hlines in Tabular Environment}
+The \LaTeX\ tabular environment has a parameter
+\verb|\arrayruleswidth| that specifies the width of lines generated
+with \verb|\hline, \cline|, and \verb|\vline|.  The value may be
+changed outside the tabular environment (affecting subsequent
+tabular environments) or it can be changed inside a single item of the
+environment (one column entry of one line) (affecting the vertical
+line, if any, that follows that column entry but {\bf not} subsequent
+items).  There appears, however, to be no way to change the value to
+effect a single horizontal line.  The implementation of \verb|\hline|
+will not allow any macro calls between the \verb|\\| and the
+\verb|\hline| so the value cannot be changed in the scope of the
+horizontal line.
+
+A new macro \verb|\varhline| has been added to allow this capability.
+It can be used wherever \verb|\hline| can be used but takes a
+parameter specifying the line width.
+\begin{itemize}
+\item[]
+\verb|\varhline{|{\it line-width}\verb|}|
+\end{itemize}
+
+\section{Known Limitations of {\it tm} style}
+\begin{enumerate}
+\item Attachments are not automatically indicated on the signature
+page as prescribed in the {\it AT\&T Bell Laboratories Office Guide}.
+These may be added manually as illustrated in the example in
+appendix A.
+\end{enumerate}
+\section{Other \TeX\ related Items}
+\subsection{AT\&T Logo}
+A few other items of interest to \TeX\ users have been developed. 
+These are not a part of the {\it tm} style.  A font file containing
+the AT\&T ball and the letters `A', `T', and `\&' in the AT\&T logo
+style have been created using METAFONT.  Fonts have been generated
+for Imagen (8/300) and Epson\tm\ LQ1500 (dot-matrix) printers.  
+The METAFONT `.mf' file can be supplied to those who would like 
+to generate the fonts for other printers.
+\subsection{Extended Picture Environment}
+Two extensions to the {\it picture} environment have been
+developed, to provide features available in {\it pic}.  A circle
+with text centered inside can be produced with the command
+\begin{itemize}
+\item[]
+\verb|\labeledcircle{|{\it x-coord}\verb|}{|{\it y-coord}\verb|}{|{\it
+  diam}\verb|}{|{\it string}\verb|}|
+\end{itemize}
+Note that the {\it x-coord} and {\it y-coord} are specified as
+ordinary \TeX\ parameters {\it not} in parentheses separated by
+commas.  
+
+Pic allows circles to be easily connected by lines and arrows.  In
+the {\it picture} environment lines and vectors are available, but
+only at a few slopes and the end points must be known.  Thus to draw
+an arrow from the perimeter of a circle, the
+user must calculate the point that would lie on the perimeter in the
+direction of the line.  A macro has been added that does this
+calculation for the user, for all available slopes.  The command is
+\begin{itemize}
+\item[]
+\verb|\arrowcircle{|{\it x-coord}\verb|}{|{\it y-coord}\verb|}{|{\it
+  h-slope}\verb|}{|{\it v-slope}\verb|}{|{\it circ-diam}\verb|}{|{\it
+  dimen}\verb|}|
+\end{itemize}
+As with \verb|\labeledcircle| all parameters are given in the \TeX\
+style.  The {\it x-coord} and {\it y-coord} are the coordinates of
+the center of the circle from which the arrow is to be drawn.  The
+{\it h-slope}, {\it v-slope} and {\it dimen} are given in the same 
+way as for \verb|\vector| except that {\it dimen} is the distance
+from the center of one circle to the {\it center} of another circle.  
+The arrow will actually be
+truncated at the perimeter of the other circle.  The {\it circ-diam} 
+is the diameter of the circles.  The current version requires that
+both circles be the same diameter.  Note that neither of the circles
+are drawn by the command.  The user must still locate the circles in
+such as way as to use one of the available slopes.  A way of
+specifying a series of circles and arrows that are simply
+concatenated but in which the user does not specify the center
+coordinates is being investigated.
+
+To use these two macros the file {\it expicture.sty} must be
+available and it must be loaded by adding `[expicture]' as an option
+on the \verb|\documentstyle| command.
+\subsection{Difference Marking}
+A difference marking filter, {\it ldiffmk}, similar to the standard \UNIX\
+utility {\it diffmk}, is available for use with \LaTeX .  
+{\it Ldiffmk} is a simple modification to {\it diffmk} and has the same limitations
+that {\it diffmk} has as well as a new one. 
+\begin{enumerate}
+\item Since {\it diffmk} and {\it ldiffmk} are line-oriented,
+detecting lines that are not identical, a simple change the location
+of a source-file line break will be detected as a change even though
+the output of \TeX\ will be identical.
+\item Differences are indicated by a `T' in the right margin where
+the change begins and by an upside-down `T' in the right margin
+where it ends.  It does {\it not} connect them with a solid line as
+{\it diffmk} with {\it troff} does.  It does this by using the
+marginal note feature of \LaTeX .  Single line changes must still be
+indicated by marks on two lines and will cause a warning from \LaTeX\
+that one mark has been moved.  
+\item Marginal notes are not allowed in text that is used as an
+argument for a macro, so differences in text for abstracts and
+footnotes can cause \LaTeX\ to fail and the difference marks must be
+manually removed.
+\end{enumerate}
+See the man page for {\it ldiffmk} for a more detailed discussion.  A
+more robust version will be developed in the future.  In spite of
+these limitations, {\it ldiffmk} can be a useful tool for reviewing
+multiple revisions of a document.
+\subsection{Bitmaps}
+There is a {\it bitmap.sty} that can be included as an option (call 
+\verb|\documentstyle[bitmap]{tm}|).  This allows small bitmaps to be
+printed by the following
+\begin{itemize}
+\item[]
+\verb|\input| {\it bitmap-filename}\\
+\verb|\vbox{}\hskip2in\input| {\it bitmap-filename}
+\end{itemize}
+As with all input files the bitmap-file name must end in .tex, but the
+.tex is not used in the command.
+The later form illustrates how to print the bitmap 2 inches from the
+left margin.  The size of \TeX\ data structures severely limits the
+number and size of bitmaps that can be printed on a single page.  My
+implementation limits me to about 100 by 100 or two face files of 48
+by 48.  Included with the system is a utility, {\it bitmap2tex}, written
+in awk for converting X-window bitmaps into a form compatible with
+this macro.  There is also a c++ program, {\it makeface}, for converting
+9$^{th}$ Edition \UNIX\ face files to X-window bitmaps.  By using {\it
+makeface} and {\it bitmap2tex} one can obtain faces from the 9$^{th}$
+Edition face server and convert them into a form for printing with
+this macro.  There is a special version of the makesignature macro,
+\verb|\makefacesignature| that places the author's faces just to the
+left of their signature blocks at the end of a document.  For this
+macro all of the author's faces must be stored in the following
+directory structure {\it some-face-home/authors-initials}/face.tex.
+There is no documentation at this time on how to make your own
+bitmap-file.tex's, but two examples, square and tlaface, are included
+in both X-window bitmap and tex forms.  If you have this memo in \TeX\
+source form, you can try the macro by creating a directory TLA in the
+directory where the source is stored moving the file tlaface.tex to
+the new directory and renaming it face.tex, adding \verb|[bitmap]| to the
+\verb|\documentstyle| and changing \verb|\makesignature| to
+\verb|makefacesignature{|{\it directory-of-this-document}\verb|}| and
+rerunning it through \LaTeX .
+\subsection{Author Database}
+To reduce the nuisance of reentering author related data into each
+document, one may wish to collect the data for several authors into an
+author database.  An example is included in the distribution called
+authors.sty.  You should edit it to add the data for yourself and the
+other authors you commonly coauthor papers with.  You can include the
+database as an option in the \verb|\documentstyle| macro and then
+enter the author related data into the document as
+\begin{itemize}
+\item[]
+\verb|\authordata{|{\it author-code}\verb|}|
+\end{itemize}
+\section{Local Modifications to tm.sty}
+Some sites who install tm.sty and its related style files may wish to
+alter some of the features or defaults.  There are two files that may
+be modified to allow local changes without modifying tm.sty itself.
+The file {\it local.sty} is intended to contain page offset commands
+to adapt for positioning differences in some printers.  It can also
+contain commands to change the page sizes.  This file is included
+before most of the tm definitions that differ from article.sty.  This
+means that any references to dimensions in the tm macros {\it will} be
+affected by changes made in local.sty.  However, macro definitions
+placed here would be overridden by those in tm.sty.  If you wish to
+alter any of the defined macros, do so in the file {\it localpatch.sty}.
+This is included at the very end of tm.sty.  All changes where
+possible should be made in these files rather than by editing tm.sty.
+This will prevent the necessity of remodifying future releases of tm.sty.
+
+\part{MM to \LaTeX\ translator,{\it mm2tex}}
+
+The {\bf mm2tex} filter converts documents written in mm into \LaTeX\ using
+the tm.sty style developed for writing AT\&T memoranda.  The filter
+currently uses a combination of sed and awk scripts.  While it does
+not handle all mm and troff macros, it handles the majority of those
+used in typical memos.  Full documentation is given in the document
+{\it An MM to \LaTeX\ Translator}.\cite{bib:mm2tex}
+
+\part{Letter Style {\it attletter.sty}}
+The {\it attletter.sty} is modeled after the standard \LaTeX\
+letter.sty with a few modifications.  The AT\&T letter head will be
+automatically printed at the top of the first page.  The
+\verb|\companyname| macro can be used to change the company name from
+the default, AT\&T Bell Laboratories.  The standard letter style
+address macro can be used to define the return address.  
+
+There is a predefined address macro that allows the following macros
+\begin{itemize}
+\item[]
+\verb|\room{|{\it room-number}\verb|}|\\
+\verb|\streetaddr{|{\it street-address}\verb|}|\\
+\verb|\cityaddr{|{\it city-state-zip}\verb|}|\\
+\verb|\phone{|{\it full-phone-number}\verb|}|\\
+\verb|\fax{|{\it fax-number}\verb|}|\\
+\verb|\eaddress{|{\it electronic-address}\verb|}|
+\end{itemize}
+to specify the room number, street and city address, a personal phone
+number, fax number and an 
+electronic address that can optionally be called.  All items have
+defaults (some default to blank) appropriate for the Liberty Corner
+location, so only those values you want to override need be specified.
+Defaults can be replaced with blanks by calling the macro with a null
+argument.  It is recommended that the style file 
+be edited by the one who installs it to default to values appropriate
+for the site where the file is installed, so that 
+each user does not need to specify items like the the building mailing
+address.
+
+There is a new dimension parameter \verb|\labelheight| that specifies 
+the height of the address labels printed by the standard declaration
+\verb|\makelabels|.  The default is 1 inch rather than 2 inches as in
+the standard letter.sty.  Labels are printed ``two up''; i.e., two across
+the page, and spaced vertically by labelheight.  The height can be
+changed to fit specific ``peel-off'' labels by 
+\begin{itemize}
+\item[]
+\verb|\labelheight=|{\it height}
+\end{itemize}
+
+\verb|\makelabels*| causes a return address label is printed for each
+address label.  The return address is predefined similarly to address
+but without phone numbers and additional data.  The name given in the
+signature macro is added to the top.  If the argument to the signature
+macro includes data other than the name, the user can optionally call 
+\begin{itemize}
+\item[]
+\verb|\name|{\it author-name}
+\end{itemize}
+to supply the name to be used.
+
+Many of the extensions to \LaTeX\ discussed below are also available
+in the attletter style.  There is a face version of the
+\verb|\signature| macro
+\begin{itemize}
+\item[]
+\verb|\facesignature{|{\it signature}\verb|}{|{\it face-file}\verb|}|
+\end{itemize}
+The signature field is the same as for the normal \verb|\signature|
+macro.  The face-file is the face file name and any necessary path not
+simply a face root directory as for the tm.sty.
+
+\part{A Voucher Style, {\it voucher.sty}}
+\section{Creating Vouchers}
+
+There is a vouchform.tex that can be used as a template for a voucher.
+The voucher must be processed by LaTeX using voucher.sty.  There is a
+script `voucher' that uses a makefile (called vouch.Makefile in the
+original distribution).  Voucher can be used to automate the various
+processing steps after a copy of vouchform.tex is filled out.
+
+Note that the parameters of \verb|\expense| are positional parameters in the
+same order as the columns in the expense voucher.  A comment line at
+the top documents this order.  A blank expense line is included as a
+comment.  Make copies of this line for each expense line desired,
+remove the comment `%' and fill out, adding amounts (in cents or like
+normal but omit the decimal!) and leaving any columns empty for which
+there was no expense.  Horizontal and vertical totals will be computed
+for you.  Notice that the automobile expenses you may put in the
+dollar amount or use the optional \verb|\miles| macro (see second example
+expense line) to put in number of miles and allow macro to calculate
+dollar amount.
+
+Data for the top part of the form is in the preamble part of the .tex
+file and has been seperated (in vouchform.tex) into data that will be
+constant for most users and data that will change with each voucher.
+You can fill out the fixed part and then save the file as a personal
+vouchform template.  Note that \verb|\amexexp| is for total amount charged to
+Corp Am Express card (card number given in \verb|\amexnum|).
+\verb|\amexadvance|  is
+for total of Am Express advances.  \verb|\expensetype| checks one of the
+boxes at the top of the form.  Currently there is no way to Foreign
+Travel \$ rate blank.  Note that on current forms there is no box
+numbered 3.
+
+The otherexpenses environment is for the Other Expenses part of the
+form.  Again there is a commented template line and one documenting
+the parameter order.  The items must also be included in the other
+column of the \verb|\expense| lines -- this cannot be automatic since the
+form cannot determine which expense line the item should go on and
+often several \verb|\otherexpenses| are totaled on one \verb|\expense| line.  
+
+the projnums environment is for the project number part of the form.
+the first paramenter is for the project number and the second for the
+percentage to be charged to that project number.  The sty verifies
+that the percentages add up to 100 or prints and error to stdout.  I
+find it convenient to put lines for each project number I use into my
+personal vouchform.tex and comment out the lines not used for a given
+voucher.  
+
+\section{Voucher Script}
+
+{\it voucher*} are files for preparing vouchers.  
+
+Because vouchers are printed landscape style, you probably need
+postscript to print them.  I use dvips.  
+
+I find it convenient to set up makefile for documents.  vouch.Makefile
+is a makefile for vouchers.  I place all vouchers in a voucher
+directory with vouch.Makefile.  The makefile uses DOC as a variable.
+I use the script voucher to pass this in.  I use a similar make file
+for other documents by placing such documents in their own directory
+and setting DOC in the Makefile.
+
+Note that the method for printing postscript files often varies with
+different sites.  One common command uses prt.  The script voucher is
+setup to use prt.  If this is NOT appropriate at your site, define the
+environment variable PSPRINT as the appropriate command taking the
+postscript file as the parameter and export it.  For example:
+\begin{itemize}
+  \item[]
+        \verb|$ export PSPRINT=/usr/local/bin/psprint|
+\end{itemize}
+
+If you have trouble check voucher and vouch.Makefile for other site
+dependent locations.  VOUCHBIN can be defined as the path to latex and
+dvips if these are not in the PATH.
+\begin{itemize}
+  \item[]
+        \verb|$ voucher |{\it voucher-name} \verb|[dvi|ps|print|printdoc|test|exp-test]|
+\end{itemize}
+
+voucher calls a makefile that does a 
+\begin{itemize}
+  \item[]
+        \verb|$ latex voucher-file|
+\end{itemize}
+if voucher-file.dvi is not up to date, then a converts to PostScript
+if voucher-file.ps is not up to date.
+
+\noindent OPTIONS
+\begin{description}
+  \item[dvi]will force the make to stop with a dvi file NOT
+	making a PostScript file.
+  \item[ps]the default
+  \item[print]make sure that voucher-name.ps is up to date and then print
+	the file.
+  \item 
+\end{description}
+
+(There are some additional options in vouch.Makefile.)
+
+Note that vouch.Makefile uses a PSPRINT string that contains the
+command to print on a postscript printer.  I use a script called
+psprint.  Some can simply use lp.  Edit this as appropriate.
+
+
+\section{Using Vouchers Prepared with voucher.sty [updated June 1991]}
+
+I wrote to Treasury including a sample of my voucher and asked if they
+would accept them.  I never received a reply.  After a month I just
+started submitting them and have never gotten a complaint.  They have
+been accepting them from 3 or 4 of us for about 5 months, at least
+10-15 vouchers total, and none of use have had any problems.  One user
+apparently got a question -- they were puzzled as to why they weren't
+blue, but it was accepted.
+
+I should point out that we do not have a BL cashier in our building so
+all our forms have been sent directly to Treasury.  I do not know if
+one might have more trouble at a cashier counter.
+
+\part{SLi\TeX\ Style for AT\&T Viewgraphs}
+SLi\TeX\ is a standard \LaTeX\ system for making viewgraphs.  It is
+documented in a chapter in the \LaTeX\ book\cite{bib:latex}.  SLi\TeX\
+input consists of two files, called the {\it root file} and the {\it
+slide file}.  The root file contains a standard \verb|\documentstyle|
+line and a document environment.  Inside the document environment is
+either a \verb|\colorslides{|{\it slidefilename}\verb|}| or a
+\verb|\blackandwhite{|{\it slidefilename}\verb|}| call to indicate the
+slide file.  The slide file contains slide, note and overlay
+environments producing pages of the corresponding type.
+
+The standard SLi\TeX\ documentstyle is called {\it slides}.  We offer
+an alternative slide style, {\it attslides}, that produces slides in
+one of the commonly used AT\&T specific styles.  It uses 17 pt sans
+serif font for the body of each slide including itemize lists and uses
+29 pt italic san serif font for headings.  Headings appear above a
+horizon line that has an 11 pica underline or multiweight line similar
+to that used in Multiweight Design.  The corporate signature (AT\&T
+logo) appears at the bottom right.
+
+Slides (in a dvi file) are produced with the slitex command (rather
+than the latex command). 
+\begin{itemize}
+\item[]
+\verb|$ slitex |{\it rootfilename}
+\end{itemize}
+
+Slides are sized for 11 in by 8.5 in paper in landscape mode rather
+than the usual portrait mode of slides.sty.  This means that they
+{\it cannot} be printed with most dvixxx printer filters.  The pages
+can be rotated, however, by most PostScript\regnotice{PostScript is a
+trademark of Adobe Systems Incorporated} printer filters, such as
+dvips.  The usual invocation is
+\begin{itemize}
+\item[]
+\verb|$ dvips -t landscape |{\it rootfilename}
+\end{itemize}
+The resulting file can then be printed in normal way for PostScript files.
+
+\part{Document Style for Multiweight Design, {\it mw.sty}}
+Multiweight Design, or officially {\bf
+AT\&T Documentation Architecture} (AT\&T 1990), is a set of standards
+for the content and format of documentation intended for ``all
+postsale, external-customer documents typically delivered with or in
+support of a product or service''.  The standards are optional for
+presale information, internal documents (such as requirements and
+design specifications) and training materials.
+
+The standards are intended for large documents divided into chapters
+and various sections with headings and a separate title page.  
+
+\section{The Multiweight Design Style} The multiweight design style is
+a \LaTeX\ style used with \TeX\ and \LaTeX\ to produce documents.  It
+uses most of the same macros as {\bf tm.sty} (Anderson 1989) and so it
+is possible to easily change from one style to the other to change the
+printed format of a document.  There are some limitations.
+Multiweight Design is a standard format for multichapter books and
+mw.sty is based on the standard book.sty of \LaTeX .  Tm.sty is
+intended for technical memoranda and is based on article.sty.  There
+is no chapter macro in article.sty or tm.sty and so a tm.sty document
+could be incorporated into a mw.sty book as a chapter with the
+addition of a chapter macro.  Taking a mw.sty book and reformatting it
+as a TM would take more revision.
+
+The style is fully documented in the document {\it A \LaTeX\ Style for
+Multiweight Design} which also serves as an example.
+
+\part{Availability}
+All styles were developed for \LaTeX\ version 2.09 and should
+be compatible with that and later versions on any machine that has
+\TeX\ and \LaTeX .  The author uses them on Sun Workstations\regnotice{Sun
+Workstation is a registered trademark of Sun Microsystems, Inc.}
+(3/110 and 4/110) and
+on a VAX\regnotice{VAX is a trademark of Digital 
+Equipment Corporation} (running \UNIX\ System V.2) and prints on an
+Imagen 8/300 laser printer.  He also has
+used some of them on an AT\&T 6300plus printing on an Epson\tm\
+LQ-1500 dot-matrix 
+printer.  No changes should be required to use the package on a
+different computer.  The only change that should be required to 
+use it with a different printer is to build the font files for the
+AT\&T logo.  METAFONT would be required to build these font files.  
+The author can supply the font files for Imagen 8/300 so for that
+printer METAFONT would {\it not} be required. 
+
+All files are available on request from the author.  Send email to
+tla@bartok.att.com.
+\makesignature
+
+\noindent Atts.\\
+References\\
+Appendixes A - D
+
+\medskip
+\copyto{{\nobreak\topsep=0pt\partopsep=0pt\begin{tabbing}\nobreak%
+\hskip2in\=WW \=\kill%
+Y.\ Afek		\>MH 3D-438\\
+E.\ Ayanoglu (vax135!ender)\>HO 4F-507\\
+M.\ Beutnagel		\>MH 2D-513\\
+C.\ D.\ Blewett		\>MH 2C-470\\
+D.\ S.\ Booth		\>HO 4E-526\\
+R.\ J.\ Brackman	\>MH 3C-439\\
+B.\ Carpenter (ho5cad!wjc)	\>HO 1L-410\\
+M.\ Carroll		\>LC 4N-D02\\
+H.\ H.\ Chefitz		\>LC 3W-F09\\
+Y.\ Chen		\>MH 3C-535\\
+D.\ L.\ DeBruler	\>IHP 1F-114\\
+R.\ A.\ Deighan		\>ALC 1C-343\\
+P.\ Glassman		\>HO 3K-324\\
+R.\ S.\ Hauck		\>IH 2E-424\\
+A.\ I.\ Hauser		\>MT 3D-205\\
+K.\ H.\ Horton		\>PR 5-3047\\
+Dan Jacobson		\>IH 1D-213\\
+T.\ J.\ Kowalski	\>MH 2C-552\\
+P.\ Kravitz		\>MH 30H-016\\
+Bala Krishnamurthy	\>LC 4N-E03\\
+G.\ R.\ Kuntz		\>SF 5345\\
+L.\ S.\ Levy		\>MT 3G-108\\
+M.\ Y.\ Liberman	\>MH 2D-444\\
+J.\ P.\ Linderman	\>MH 3D-435\\
+Bill Mershon		\>LC 4N-E08\\
+Victor McCrary		\>MH 2A-337\\
+M.\ Murdocca		\>HO 4G-538\\
+R.\ B.\ Murray		\>LC 4N-W09\\
+Steve North (ulysses!north)	\>MH 3C-539\\
+Kostas Oikonomou (houdi!ko)	\>HO 3M-521\\
+Jong Park (speedy!jtp)	\>SK 527\\
+A.\ Reibman		\>HO 2L-518\\
+Larry L.\ Rose		\>LC 4N-E01
+\end{tabbing}}}%\vspace*{-20pt}
+\restofcopyto{{\nobreak\topsep=0pt\partopsep=0pt\begin{tabbing}\nobreak%
+\hskip2in\=\kill
+J.\ R.\ Rowland		\>LC 3W-G25\\
+E. Sampieri		\>HO 4G-616\\
+Ravi Sharma		\>HR 2K-115\\
+T.\ Sizer		\>HO 4G-530\\
+Richard Stone (hocus!res)	\>HO 3K-328\\
+V.\ Tavernini		\>AN 4S-125\\
+S.\ K.\ Tewksbury (vax135!skt)	\>HO 4B-505\\
+H.\ Trickey (coma!trickey)	\>MH 2C-460\\
+J.\ D.\ Weld		\>WH 4C-228A\\
+Wayne Wolf (allegra!wolf)	\>MH 3D-474\\
+Anthony Zawadzki	\>HO 4K-406 
+\end{tabbing}}}
+\coverto{
+All Supervision Lab 5911\\
+All Members of Department 59112\\
+All Members of Department 59114}
+\begin{thebibliography}{99}
+
+\bibitem{bib:latex}Leslie Lamport.  1986.  {\it \LaTeX : A Document
+Preparation System}.  Reading, MA: Addison-Wesley.
+\bibitem{bib:mm}D.\ W.\ Smith, J.\ R.\ Mashey, E.\ C.\ Pariser \& N.\
+W.\ Smith. ``MM -- Memorandum Macros'', \UNIX\ document 1098.
+\bibitem{bib:mm2}{\it \UNIX\ System Document Processing Guide}.
+\bibitem{bib:style}April Cormaci and Richard Trenner.  1988. {\it The Bell
+Labs Style Guide}, AT\&T Bell Laboratories, Kelly Education and
+Training Center. February.
+\bibitem{bib:mw}Terry L Anderson.  1991. {\it A \LaTeX\ Style for Multiweight
+Design}.  Technical Memorandum 59112-91xxxx.01TMS. AT\&T Bell Laboratories.
+\bibitem{bib:mm2tex}Terry L Anderson.  1991. {\it An MM to \LaTeX\
+Translator}. Technical Memorandum 59112-91xxxx.01TMS. AT\&T Bell Laboratories.
+\end{thebibliography}
+\appendices
+\section{An Example Source File}
+The following is an example source for a document showing many of
+the available features.
+\def\bv{\begin{verbatim}}% These are necessary to get verbatim to 
+\def\infil{\input tmexample}% begin only after input is redirected
+\expandafter\bv\infil
+\end{verbatim}
+\clearpage
+\section{The Resulting Example Document}
+The following pages show the document that is produced by the
+source file in the previous appendix. 
+\clearpage\addtocounter{page}{8}% 8 pages of example added
+\section{An Example Letter Source File}
+The following is an example source for a letter using attletter.sty
+\def\bv{\begin{verbatim}}% These are necessary to get verbatim to 
+\def\infil{\input letexample}% begin only after input is redirected
+\expandafter\bv\infil
+\end{verbatim}
+\clearpage
+\section{The Resulting Letter}
+The following pages show the letter that is produced by the
+source file in the previous appendix. 
+\clearpage
+\addtocounter{page}{4}% \clearpage added one and 3 more example pgs
+\tableofcontents
+\coversheet
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THE END %%%%%%%%%%%%%%%%%%%%%%%%

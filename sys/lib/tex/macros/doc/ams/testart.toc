@@ -1,0 +1,48 @@
+\contentsline {section}{\numberline {1.}Introduction}{2}
+\contentsline {subsection}{\numberline {1.1.}Acknowledgment}{2}
+\contentsline {section}{\numberline {2.}Top matter instructions}{3}
+\contentsline {subsection}{\numberline {2.1.}Title}{3}
+\contentsline {subsection}{\numberline {2.2.}Author}{3}
+\contentsline {subsection}{\numberline {2.3.}Addresses}{3}
+\contentsline {subsection}{\numberline {2.4.}First-page footnotes}{3}
+\contentsline {section}{\numberline {3.}Enumeration of Hamiltonian paths in a graph}{4}
+\contentsline {section}{\numberline {4.}Main Theorem}{5}
+\contentsline {section}{\numberline {5.}Application}{8}
+\contentsline {section}{\numberline {6.}Secret Key Exchanges}{9}
+\contentsline {section}{\numberline {7.}Review}{9}
+\contentsline {section}{\numberline {8.}One-Way Complexity}{14}
+\contentsline {subsection}{Step 1}{16}
+\contentsline {subsection}{Step 2}{17}
+\contentsline {section}{\numberline {9.}Various font features of the {\ptt amstex} option}{20}
+\contentsline {subsection}{\numberline {9.1.}Bold versions of special symbols}{20}
+\contentsline {subsection}{\numberline {9.2.}``Poor man's bold''}{20}
+\contentsline {section}{\numberline {10.}Compound symbols and other features}{21}
+\contentsline {subsection}{\numberline {10.1.}Multiple integral signs}{21}
+\contentsline {subsection}{\numberline {10.2.}Over and under arrows}{21}
+\contentsline {subsection}{\numberline {10.3.}Dots}{21}
+\contentsline {subsection}{\numberline {10.4.}Accents in math}{22}
+\contentsline {subsection}{\numberline {10.5.}Superscripted accents}{22}
+\contentsline {subsection}{\numberline {10.6.}Dot accents}{22}
+\contentsline {subsection}{\numberline {10.7.}Roots}{22}
+\contentsline {subsection}{\numberline {10.8.}Boxed formulas}{23}
+\contentsline {subsection}{\numberline {10.9.}Extensible arrows}{23}
+\contentsline {subsection}{\numberline {10.10.}{\ptt \bslash overset}, {\ptt \bslash underset} and {\ptt \bslash sideset}}{23}
+\contentsline {subsection}{\numberline {10.11.}The {\ptt \bslash text} command}{23}
+\contentsline {subsection}{\numberline {10.12.}Operator names}{24}
+\contentsline {subsection}{\numberline {10.13.}{\ptt \bslash mod} and its relatives}{24}
+\contentsline {subsection}{\numberline {10.14.}Fractions and related constructions}{25}
+\contentsline {subsection}{\numberline {10.15.}Continued fractions}{26}
+\contentsline {subsection}{\numberline {10.16.}Smash}{26}
+\contentsline {subsection}{\numberline {10.17.}The `cases' environment}{26}
+\contentsline {subsection}{\numberline {10.18.}Matrix}{26}
+\contentsline {subsection}{\numberline {10.19.}The {\ptt Sb} and {\ptt Sp} environments}{28}
+\contentsline {subsection}{\numberline {10.20.}Commutative diagrams}{28}
+\contentsline {subsection}{\numberline {10.21.}Big-g-g-g delimiters}{28}
+\contentsline {section}{\numberline {Appendix\ A.}Examples of multiple-line equation structures}{29}
+\contentsline {subsection}{\numberline {A.1.}Split}{29}
+\contentsline {subsection}{\numberline {A.2.}Multline}{34}
+\contentsline {subsection}{\numberline {A.3.}Gather}{35}
+\contentsline {subsection}{\numberline {A.4.}Align}{37}
+\contentsline {subsection}{\numberline {A.5.}Align and split within gather}{38}
+\contentsline {subsection}{\numberline {A.6.}Alignat}{40}
+\contentsline {section}{References}{41}

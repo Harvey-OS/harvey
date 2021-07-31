@@ -2,10 +2,13 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <signal.h>
 #include "sys9.h"
 
 extern char **environ;
+
+/*
+ * BUG: to protect environment, need a new pgrp for now
+ */
 
 int
 execve(const char *name, const char *argv[], const char *envp[])
@@ -13,11 +16,9 @@ execve(const char *name, const char *argv[], const char *envp[])
 	int n, f, i;
 	char **e, *ss, *se;
 	Fdinfo *fi;
-	unsigned long flags;
 	char nam[NAMELEN+5];
 	char buf[1000];
 
-	_RFORK(RFCENVG);
 	/*
 	 * To pass _fdinfo[] across exec, put lines like
 	 *   fd flags oflags
@@ -28,15 +29,14 @@ execve(const char *name, const char *argv[], const char *envp[])
 	ss = buf;
 	for(n = 0; n<OPEN_MAX; n++){
 		fi = &_fdinfo[n];
-		flags = fi->flags;
-		if(flags&FD_CLOEXEC){
+		if(fi->flags&FD_CLOEXEC){
 			_CLOSE(n);
 			fi->flags = 0;
 			fi->oflags = 0;
-		}else if(flags&FD_ISOPEN){
+		}else if(fi->flags&FD_ISOPEN){
 			ss = _ultoa(ss, n);
 			*ss++ = ' ';
-			ss = _ultoa(ss, flags);
+			ss = _ultoa(ss, fi->flags);
 			*ss++ = ' ';
 			ss = _ultoa(ss, fi->oflags);
 			*ss++ = '\n';
@@ -49,27 +49,7 @@ execve(const char *name, const char *argv[], const char *envp[])
 	if(ss > buf)
 		_WRITE(f, buf, ss-buf);
 	_CLOSE(f);
-	/*
-	 * To pass _sighdlr[] across exec, set $_sighdlr
-	 * to list of blank separated fd's that have
-	 * SIG_IGN (the rest will be SIG_DFL).
-	 * We write the variable, even if no signals
-	 * are ignored, in case the current value of the
-	 * variable ignored some.
-	 */
-	f = _CREATE("#e/_sighdlr", OWRITE, 0666);
-	if(f >= 0){
-		ss = buf;
-		for(i = 0, n=0; i <=MAXSIG && ss < &buf[sizeof(buf)]-5; i++) {
-			if(_sighdlr[i] == SIG_IGN) {
-				ss = _ultoa(ss, i);
-				*ss++ = ' ';
-			}
-		}
-		_WRITE(f, buf, ss-buf);
-		_CLOSE(f);
-	}
-	if(envp){
+	if(envp && envp != environ){
 		strcpy(nam, "#e/");
 		for(e = envp; (ss = *e); e++) {
 			se = strchr(ss, '=');

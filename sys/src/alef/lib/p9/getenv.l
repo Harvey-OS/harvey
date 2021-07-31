@@ -1,11 +1,11 @@
 #include <alef.h>
 
-byte*
-getenv(byte *name)
+char*
+getenv(char *name)
 {
 	int f, s;
-	byte *ans;
-	byte ename[200];
+	char *ans;
+	char ename[200];
 
 	sprint(ename, "/env/%s", name);
 	f = open(ename, OREAD);

@@ -15,20 +15,8 @@ opendir(const char *filename)
 {
 	int f;
 	DIR *d;
-	struct stat sb;
-	char cd[DIRLEN];
 
-	if(_STAT(filename, cd) < 0){
-		_syserrno();
-		return NULL;
-	}
-	_dirtostat(&sb, cd, 0);
-	if(S_ISDIR(sb.st_mode) == 0) {
-		errno = ENOTDIR;
-		return NULL;
-	}
-
-	f = open(filename, O_RDONLY);
+	f = __open(filename, O_RDONLY);
 	if(f < 0){
 		_syserrno();
 		return NULL;
@@ -62,24 +50,12 @@ closedir(DIR *d)
 void
 rewinddir(DIR *d)
 {
-	int f;
-	char dname[300];
-
-	d->dd_loc = 0;
-	d->dd_size = 0;
 	if(!d){
 		return;
 	}
-	/* seeks aren't allowed on directories, so reopen */
-	strncpy(dname, _fdinfo[d->dd_fd].name, sizeof(dname));
-	close(d->dd_fd);
-	 f = open(dname, O_RDONLY);
-	if (f < 0) {
-		_syserrno();
-		return;
-	}
-	_fdinfo[f].flags |= FD_CLOEXEC;
-	d->dd_fd = f;
+	lseek(d->dd_fd, SEEK_SET, 0);
+	d->dd_loc = 0;
+	d->dd_size = 0;
 }
 
 struct dirent *

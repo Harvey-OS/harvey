@@ -1,0 +1,11 @@
+% Redefine float commands so that they are thrown away (but still processing
+% their contents, so that figure numbers, etc., still get incremented).
+% This style option is useful for papers to be submitted to journals, which
+% often require figures, tables to be typeset separately
+\newbox\@garbagebox
+\def\@xfloat#1[#2]{\def\@captype{#1}\setbox\@garbagebox\vbox\bgroup 
+    \boxmaxdepth\z@
+    \hsize\columnwidth \@parboxrestore}
+
+\def\end@float{\egroup}
+

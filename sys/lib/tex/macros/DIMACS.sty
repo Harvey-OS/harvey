@@ -1,0 +1,371 @@
+%% test.sty based upon amsart10.sty (modeled after DIMACS specs)
+
+\input amsart.sty
+
+\textheight=49pc
+\textwidth=29pc
+\parskip=0pt
+
+\def\large{\@setsize\large{14\p@}\xiipt\@xiipt}
+\def\Large{\@setsize\Large{18\p@}\xivpt\@xivpt}
+
+\def\@normalsize{\@setsize\normalsize{13\p@}\xpt\@xpt
+  \abovedisplayskip 6\p@ \@plus 6\p@
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip \z@ \@plus 6\p@
+  \belowdisplayshortskip 3\p@ \@plus 6\p@
+  \let\@listi\@listI}
+
+\def\footnotesize{\@setsize\footnotesize{10\p@}\viiipt\@viiipt%
+  \abovedisplayskip 5\p@ \@plus 2.5\p@ minus2.5\p@%
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip \z@ \@plus 2\p@%
+  \belowdisplayshortskip 4\p@ \@plus 2\p@ minus2\p@%
+  \def\@listi{\topsep \z@ \parsep \z@ \itemsep \z@}}
+
+\normalsize
+
+%***************************************************************
+%section 1
+%%this section is left in here, although commented out for those
+%%style files which do not have aheads centered (like LAM)
+%%just comment out section 2 when this section is used
+%%
+%%\def\section{\@startsection{\@string\section}%
+%%        1\z@{9\p@\@plus12\p@}{6\p@}%
+%%        {\centering\defaultfont\sc}}
+%%\def\subsection{\@startsection{\@string\subsection}%
+%%        2\z@{6\p@\@plus9\p@}{-.5em}%
+%%        {\defaultfont\bf}}
+%%
+%%\def\subsubsection{\@startsection{\@string\subsubsection}%
+%%        3\z@{6\p@\@plus9\p@}{-.5em}%
+%%        \defaultfont\it}
+%%
+%%\def\paragraph{\@startsection{\@string\paragraph}%
+%%        4\z@\z@{-\spaceskip}\defaultfont}
+%***********************************************************************
+
+%***********************************************************************
+%%section 2
+%%
+%M% We can't use \@startsection for AMS-style \section because it's not 
+%M% designed for centered headings, so instead of something like
+%M%
+%M%\def\section{\@startsection {section}{1}{\z@}{12pt plus 3pt}{7pt}{\sc}}
+%M%
+%M% we use \secdef. If the user uses \section*, \@ssection will
+%M% be called; otherwise \@section.
+
+\def\section{\secdef\@section\@ssection}
+
+%M% If the user does not use the square bracket option, #1 will be the same
+%M% as #2 (done by \@dblarg, via \secdef).  If the square bracket option is
+%M% used, then probably #1 will be a shortened form of #2, and it will only
+%M% be used for the table of contents (since the article style does not
+%M% put section headings into the running heads).
+
+\def\@section[#1]#2{\par\addvspace{12\p@ \@plus 3\p@}%
+%M% \sectionmark not needed because section text doesn't go into
+%M% running heads in the AMS article style (only in the book style).
+  \refstepcounter{section}%
+%M% \begingroup\centering...\endgroup is the equivalent of
+%M% \begin{center}...\end{center}, leaving out some unnecessary overhead.
+  \begingroup\centering\bf
+%M% The sectioning level of \section is 1.  So if the specified numbering
+%M% depth (\c@secnumdepth) is 1 or more, then we typeset the section number,
+%M% otherwise we omit it.
+  \ifnum\c@secnumdepth>0\relax\thesection.\enspace\fi
+  #2\@@par\endgroup\@xsect{7\p@}}
+
+%M% ``starred \section''
+\def\@ssection#1{\par\addvspace{12\p@\@plus3\p@}%
+%M% \sectionmark not needed because section text doesn't go into
+%M% running heads
+%M%
+%M% From the LaTeX book: ``The *-form suppresses the section
+%M% number, does not increment the counter, does not affect the running
+%M% head, and produces no table of contents entry.''  So this
+%M% is nonstandard to have the \addcontentsline.
+  \begingroup\centering\bf#1\@@par\endgroup\@xsect{7\p@}}
+
+\def\subsection{\@startsection{subsection}% %M% counter name
+{2}% %M% sectioning level
+{\parindent}% %% indent to the left of the subsection title
+{6\p@\@plus2\p@}% %M% vertical space above
+{-.5em}% %M% following text is run in, after a horizontal space of this amount.
+%M% The minussign is to get horizontal space instead of vertical space.
+{\bf}}% %M% The font of the subsection title
+
+\def\subsubsection{\@startsection {subsubsection}% %M% counter number
+{3}% %M% sectioning level
+{\parindent}% %% indent to the left of the subsubsection title
+{6\p@\@plus2\p@}% %M%  vertical space above
+{-.5em}% %M% horizontal space after (negative sign will be canceled)
+{\it}}% %M% font of subsubsection title
+
+%M% To save control sequence names, we don't provide \paragraph and
+%M% \subparagraph.  We don't expect them to be used often enough to be worth
+%M% it.
+
+%M%\def\paragraph{\@startsection {paragraph}{4}{\z@}{\z@}{\z@}{\rm}}
+%M%\def\subparagraph{\@startsection {subparagraph}{4}{\z@}{\z@}{\z@}{\rm}}
+%***********************************************************************
+
+
+\let\@ssect\relax % to save memory.  \@ssect not needed in amsart.sty.
+
+\def\thesection{\@arabic\c@section}
+\def\thesubsection{\thesection.\@arabic\c@subsection}
+\def\thesubsubsection{\thesubsection.\@arabic\c@subsubsection}
+\setcounter{secnumdepth}{3}
+\def\@pnumwidth{1.6em}
+
+\def\@listI{\leftmargin\leftmargini \parsep\z@
+  \topsep\z@ \itemsep\z@}
+\let\@listi\@listI
+\@listi
+
+\def\@cite#1#2{\rom{\mediumseries[{\bf#1\if@tempswa , #2\fi}]}}
+
+\def\@afterheading{\global\@nobreaktrue
+   \everypar{\if@nobreak \global\@nobreakfalse \clubpenalty\@M
+               \if@afterindent \else {\setbox\z@\lastbox}\fi
+             \else \clubpenalty\@clubpenalty \everypar{}\fi}}
+\def\@hangfrom#1{\setboxz@h{#1}\hangindent\wdz@ \noindent\box\z@}
+
+
+\theorembodyfont{}
+\def\@begintheorem#1#2{\item[\hskip\labelsep \theorem@headerfont
+       \theorem@indent#1\ \rom{#2}\unskip.]}
+\def\@opargbegintheorem#1#2#3{\item[\hskip\labelsep {\theorem@headerfont
+       \theorem@indent#1\ \rom{#2}}\unskip\ \rom(#3\rom).]}
+\def\th@plain{\it}
+\def\th@definition{\theorempreskipamount\z@
+    \theorempostskipamount\theorempreskipamount
+    \normalshape}
+\def\th@remark{\theorempreskipamount6\p@\@plus6\p@
+    \theorempostskipamount\z@\@plus6\p@
+    \def\theorem@headerfont{\it}\normalshape}
+\def\theorem@headerfont{\normalshape\sc}
+\let\theorem@indent\indent
+\theorempreskipamount=6pt plus9pt
+\theorempostskipamount=\theorempreskipamount
+\def\@endtheorem{\endtrivlist\@endpefalse }
+
+\renewenvironment{pf}{\par\addvspace{6\p@\@plus6\p@}
+  {\sc\proofname.}\enspace\ignorespaces}{\qed\par\addvspace{6\p@\@plus6\p@}}
+
+\@namedef{pf*}#1{\par\begingroup\def\proofname{#1}\pf\endgroup\ignorespaces}
+\expandafter\let\csname endpf*\endcsname=\endpf
+
+\def\ps@headings{\let\@mkboth\@gobbletwo
+  \let\partmark\@gobble\let\sectionmark\@gobble
+  \let\subsectionmark\@gobble
+  \let\@oddfoot\@empty\let\@evenfoot\@empty%
+  \def\@evenhead{\defaultfont\scriptsize
+      \rlap{\thepage}\hfil
+      \expandafter\uppercasetext@\expandafter{\sh@rtauthor}\hfil}%
+  \def\@oddhead{\defaultfont\scriptsize \hfil
+      \expandafter\uppercasetext@\expandafter{\sh@rttitle}\hfil
+      \llap{\thepage}}%
+}
+
+\def\ps@myheadings{\let\@mkboth\@gobbletwo
+  \let\@oddfoot\@empty\let\@evenfoot\@empty
+  \def\@oddhead{\null\defaultfont\scriptsize\rightmark \hfil\thepage}%
+  \def\@evenhead{\defaultfont\scriptsize \thepage\hfil\leftmark\null}%
+}
+
+\def\ps@plain{\let\@mkboth\@gobbletwo
+     \let\@oddhead\@empty \let\@evenhead\@empty \let\@evenfoot\@oddfoot
+     \def\@oddfoot{\defaultfont\scriptsize \hfil\thepage\hfil}}
+
+
+%       Some computations to make the \textheight come out
+%       to an even multiple of baselineskip (after taking
+%       \topskip etc. into account).  \normalbaselineskip
+%       is set to 13pt in ams-l.sty.  MJD
+\advance\textheight by -\headheight
+\advance\textheight by -\headsep
+\advance\textheight by -\normalbaselineskip
+\advance\textheight by \topskip
+
+%       We now have the right value for \textheight except that
+%       we need to round it.
+\advance\textheight by.5\normalbaselineskip
+\divide\textheight by\normalbaselineskip
+\multiply\textheight by\normalbaselineskip
+%       One last note: if \baselinestretch is changed in an
+%       actual document, this \textheight will most likely be
+%       off and you'll get underfull vbox messages.
+
+\advance\topmargin by -.25 true in
+
+%***************************************************************************
+
+
+%% ********** environment definitions ***********
+
+\def\enumerate{\ifnum \@enumdepth >3 \@toodeep\else
+      \advance\@enumdepth \@ne
+      \edef\@enumctr{enum\romannumeral\the\@enumdepth}\list
+      {\csname label\@enumctr\endcsname}{\usecounter
+        {\@enumctr}\partopsep=6pt\def\makelabel##1{\hss\llap{\normalshape##1}}}\fi}
+
+\def\itemize{\ifnum\@itemdepth>3 \@toodeep
+  \else \advance\@itemdepth\@ne
+  \edef\@itemitem{labelitem\romannumeral\the\@itemdepth}%
+  \list{\csname\@itemitem\endcsname}%
+  {\partopsep=6pt\def\makelabel##1{\hss\llap{\normalshape##1}}}\fi}
+
+\def\description{\list{}{\partopsep=6pt\labelwidth\z@ \itemindent-18pt
+	\hangindent=18pt\hangafter=-1
+ \let\makelabel\descriptionlabel}}
+\let\enddescription=\endlist
+
+
+\newcommand{\refsc}{\series{m}\shape{sc}\size{10}{12pt}\selectfont}
+
+\def\thebibliography#1{\section*{{\refsc References}\@mkboth
+  {REFERENCES}{REFERENCES}}\normalshape\mediumseries\small\labelsep 0.5em
+  \list{\arabic{enumi}.}{\settowidth\labelwidth{#1.}
+  \leftmargin\labelwidth \advance\leftmargin\labelsep
+  \usecounter{enumi}}
+  \def\newblock{\hskip .11em \@plus .33em minus.07em}
+    \def\bysame{\leavevmode\vbox to 1ex{\vskip 0pt plus 100pt
+    \hbox to 3em{\leaders\hrule\hfil}\vskip 0pt plus 300pt}}
+  \sloppy\clubpenalty4000\widowpenalty4000
+  \sfcode`\.=1000\relax}
+\let\endthebibliography=\endlist
+
+
+
+%% ****** topmatter definitions **********
+\def\@maketitle{%
+  \defaultfont\normalsize
+  \let\@makefnmark\relax  \let\@thefnmark\relax
+  \ifx\@empty\thesubjclass@\else
+   \@footnotetext{1980 {\it Mathematics Subject
+     Classification} (1985 {\it Revision\/}).\enspace
+        Primary \thesubjclass@.}\fi
+  \ifx\@empty\thekeywords@\else
+   \@footnotetext{{\it Key words and phrases.}\enspace \thekeywords@.}\fi
+\ifx\@empty\thethanks@\else
+   \@footnotetext{\thethanks@}\fi
+%% Series logo needs to fall even with the top of the running heads.
+  \null \kern-\topskip \kern-\headsep \kern-\headheight
+  \nointerlineskip
+  \serieslogo@
+\kern 7.8pc%
+  \vtop{\centering{\Large\bf
+    \expandafter\expandafter{\thetitle@}\@@par}%
+   \global\dimen@i\prevdepth}%
+  \prevdepth\dimen@i
+  \ifx\@empty\theauthors@
+  \else
+    \baselineskip32\p@
+    \vtop{\@andify{ AND }\theauthors@
+      \centering{%
+  \expandafter\uppercasetext@\expandafter{\theauthors@}\@@par}%
+         \global\dimen@i\prevdepth}\relax
+    \prevdepth\dimen@i
+  \fi
+  \ifx\@empty\thededicatory@
+  \else
+    \baselineskip18\p@
+  \vtop{\centering{\small\it\thededicatory@\@@par}%
+      \global\dimen@i\prevdepth}\prevdepth\dimen@i
+  \fi
+  \ifx\@empty\thedate@\else
+  \baselineskip24\p@
+    \vtop{\centering\thedate@\@@par
+      \global\dimen@i\prevdepth}\prevdepth\dimen@i
+  \fi
+  \normalbaselines
+  \dimen@32\p@ \advance\dimen@-\baselineskip
+  \vskip\dimen@\@plus14\p@
+  } % end \@maketitle
+
+
+
+%% This is not a vbox to height 0 (unlike amssty.sty) since the
+%% outside design consultant hired by the AMS specifies the
+%% sinkage of the title as a base-to-base distance from the
+%% series logo.  21-MAR-1990 mjd
+
+\def\serieslogo@{\vbox{%
+  \parindent\z@ \size{6}{6.5\p@}\selectfont
+	DIMACS Series in Discrete Mathematics\newline
+        and Theoretical Computer Science\newline
+	Volume {\bf\cvol}, \cvolyear
+  \vss}}
+
+
+\def\cyear{1990}
+\def\cyearmodc{90}
+\def\ISSN{0000-0000}
+\def\cprice{\$1.00\;+\;\$.25 per page}
+\def\cvol{00}
+\def\cvolyear{1990}
+
+%% Doing the copyright info on the first page is a little tricky. We
+%% want it to come at the bottom, after any footnotes and floating
+%% inserts, but before the page number.  If we put it into \@oddfoot
+%% (in \ps@plain) its height will not be subtracted from the height of
+%% the text and then the page number will be lower than we want.
+%% Instead we put the copyright info into \@textbottom, which is normally
+%% used by \raggedbottom and \flushbottom.
+
+%     If \raggedbottom is ever needed in CNM, then this will need to be
+%     changed (from latex.tex):
+% \def\raggedbottom{\def\@textbottom{\vskip \z@ plus.0001fil}%
+%             \let\@texttop\relax}
+
+\def\raggedbottom{\typeout{\string\raggedbottom\space is not
+ usable in AMS LaTeX production; see the documentation for further details.}}
+
+%% \baselineskip and \lineskip are set to 0 in LaTeX output routine,
+%% so we don't need to worry about them in \@textbottom.  After the
+%% first use of \@textbottom \copyrightbox@ is void, but \@textbottom
+%% is still emptied out, to save a couple tokens of memory.
+
+\def\@textbottom{\box\copyrightbox@ \global\let\@textbottom\@empty}
+
+
+\newbox\copyrightbox@
+\newdimen\pagetocopyright@      \pagetocopyright@=2pc
+
+%% We set the copyright info in a box in order to measure the height,
+%% because we want to subtract it from the vsize on the first page.
+%% The actual setbox is done in the individual journal file.
+
+\expandafter\def\expandafter\@preamblecmds\expandafter{%
+   \@preamblecmds\advance\vsize-\ht\copyrightbox@}
+
+
+
+%% We set the copyright info in a box in order to measure the height,
+%% because we want to subtract it from the vsize on the first page.
+%% This setbox operation has to be done in DIMWRK-L.STY instead of
+%% AMS-L.STY because it freezes information like ISSN number.
+\setbox\copyrightbox@=\vbox{\hsize\textwidth
+  \parfillskip\z@ \leftskip\z@\@plus.9\textwidth
+  \size{6}{6.5\p@}\selectfont
+%% The spacing between the preceding text and the copyright info
+%% is done with a strut of height \pagetocopyright@.
+%% (\lineskip and \baselineskip are 0 in the LaTeX output routine.)
+%% The \everypar{} turns off the LaTeX warning about setting
+%% text before \begin{document}.
+  \everypar{}\noindent\vrule\@width\z@\@height\pagetocopyright@
+  \copyright\cyear\ American Mathematical Society\break
+  \ISSN/\cyearmodc\ \cprice\endgraf
+%% This kern of 0pt forces the depth of the last line (if any) to
+%% be added to the height of the box.
+  \kern\z@}
+
+
+
+\endinput
+%% 
+%% End of file `tex_inputs:amsart10.sty'.

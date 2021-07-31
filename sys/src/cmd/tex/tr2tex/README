@@ -1,0 +1,68 @@
+Please read this file before you install the program.
+
+Troff-to-TeX translator version .93, March 4, 1987.
+Copyright (C) by 1987 Kamal Al-Yahya.
+
+This directory contains programs that were developed at the
+Stanford Exploration Project, Geophysics Department, by Kamal Al-Yahya.
+Copying them to any other machine is permitted without prior permission
+provided that copyright messages are kept, no profit is made by copying
+the files, and modifications are clearly documented.
+
+I would very much appreciate any comments or suggestions. My e-net
+address is
+		kamal@hanauma.stanford.edu
+If it doesn't work try
+		kamal%hanauma@score.stanford.edu
+
+			INSTALLATION INSTRUCTIONS
+
+In short, type ``make'' and then run it on the document (try the testfile):
+		tr2tex testfile > testfile.tex
+
+In details:
+
+- Use makefile.msc if you're running MS-DOS.
+- In the makefile, define the destination of the executable (default is
+  current directory). Also, add the -O flag if you want to (and the
+  optimizer in your machine is not buggy). The -O flag causes long compilation
+  time but experience has shown that it is unnecessary for this package;
+  time saved in running time is extremely small in the computers I used.
+- If the limit on your unsigned int is not 65535, change MAXLEN in
+  setups.h accordingly.
+- In tr2tex.c, change the document type if you want. The default is article.
+  Also, change the style options to suit your taste. The default
+  is [troffms,11pt] if no flag is used and [troffman] if the -m flag is used.
+- Add necessary -D's to CFLAGS if you need them. The program recognizes the
+  following compiler-time definitions:
+	   -Dtops20, -DANSI, -DMSC, -DNO_SGTTY
+- type ``make'' to produce the executable, called ``tr2tex''.
+- Modify troffms.sty and troffman.sty to suit your taste but keep the
+  necessary macro definitions as they will be needed when running latex.
+  Make sure the font names exist on your site. Change them if necessary.
+- Move troffms.sty and troffman.sty to your macros directory.
+- Install and read the manual page.
+- Run the translator on ``testfile'' and the manual page as follows
+		tr2tex testfile > testfile.tex
+		tr2tex -m tr2tex.9 > tr2tex.9.tex
+  
+  and compare ``testfile.tex'' with ``testfile.tex-orig'' and
+  ``tr2tex.9.tex'' with ``tr2tex.9-tex-orig''.
+  If they are not identical, you have not installed it properly.
+
+
+			USING THE TRANSLATOR
+
+You can run the program either by
+		tr2tex < file  > file.tex
+or
+		tr2tex file  > file.tex
+You are most likely to get messages on the standard error telling
+you about things it encounters and cannot do.
+
+Now you have the translated document. Look at it and see if you
+can spot a major error. Run it through latex. If it runs and produces
+the dvi file, then print it. If you get latex error messages modify
+the translated document accordingly and repeat the latex run, and so on.
+I usually get away with one or two iterations.
+

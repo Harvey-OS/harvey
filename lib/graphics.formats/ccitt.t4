@@ -1,0 +1,477 @@
+
+MMM-6
+
+
+
+RFC 804
+
+
+               CCITT Draft Recommendation T.4
+
+
+  As Defined In: CCITT STUDY GROUP XIV, CONTRIBUTION No.25-E
+
+SOURCE: DRAFTING GROUP ON DRAFT RECOMMENDATION T.4
+TITLE: DRAFT RECOMMENDATION T.4 - STANDARDIZATION OF GROUP 3
+    FACSIMILE   APPARATUS   FOR  DOCUMENT  TRANSMISSION  (as
+    amended and agreed by Working Party XIV/2)
+
+Draft Recommendation T.4
+
+STANDARDIZATION OF GROUP 3 FACSIMILE APPARATUS FOR  DOCUMENT
+TRANSMISSION
+
+The CCITT, considering
+
+a.  that Recommendation T.2 refers to Group 1 type apparatus
+    for  ISO  A4 document transmission over a telephone-type
+    circuit in approximately six minutes;
+b.  that Recommendation T.3 refers to Group 2 type apparatus
+    for  ISO  A4 document transmission over a telephone-type
+    circuit in approximately three minutes:
+c.  that there is a  demand  for  Group  3  apparatus  which
+    enables  an  ISO  A4  document  to be transmitted over a
+    telephone-type circuit in approximately one minute;
+d.  that for a large number of applications black and  white
+    reproduction is sufficient;
+e.  that  such   a   service   may   be   requested   either
+    alternatively   with  telephone  conversation,  or  when
+    either or both stations are not attended; in both cases,
+    the facsimile operation will follow Recommendation T.30,
+
+(unanimously) declares  the  view  that  Group  3  facsimile
+apparatus  for use on the general switched telephone network
+and international leased circuits  should  be  designed  and
+operated according to the following standards:
+
+
+1.  Scanning track
+
+     The  message  area  should  be  scanned  in  the   same
+direction  in  the  transmitter  and  receiver.  Viewing the
+message area in a vertical  plane,  the  scanning  direction
+should  be from left to right and subsequent scans should be
+adjacent and below the previous scan.
+
+
+2.  Dimensions of apparatus
+
+CCITT Draft Recommendation T.4                      PAGE   2
+
+
+
+     The following dimensions should be used:
+
+a.  A normal definition  standard  and  an  optional  higher
+    definition standard of 3.85 and 7.7 line/mm respectively
+    in vertical direction;
+b.  1728 black and white picture elements along the  scanned
+    line;
+c.  A scanning line length of 215 mm.  Other  scanning  line
+    lengths  may  be  employed  in  which  case the scanning
+    density  should  be  changed  to  maintain  the  correct
+    picture proportions;
+d.  Input documents up to a minimum of ISO A4 size should be
+    accepted.
+
+3.  Transmission time per scanning line
+
+     A total scanning line is defined as  the  sum  of  DATA
+bits  plus  any  required  FILL bits plus the EOL bits.  The
+minimum transmission times of the total scanning line should
+conform to the following:
+
+a.  20 milliseconds recommended standard  with  an  optional
+    fall-back to the 40 milliseconds option;
+b.  10  milliseconds  recognized  option  with  a  mandatory
+    fall-back to the 20 milliseconds standard;
+c.  5  milliseconds  recognized  option  with  a   mandatory
+    fall-back  to  the  10  milliseconds  option  and the 20
+    milliseconds standard;
+d.  40 milliseconds recognized option.
+
+     The  identification  and   choice   of   this   minimum
+transmission time is to be made in the pre-message (Phase B)
+portion  of  the  T.30  control  procedure.    The   maximum
+transmission  time of any total scanning line should be less
+than 5 seconds.
+
+4.  Coding scheme
+
+     The  one-dimensional   run   length   encoding   scheme
+recommended for Group 3 apparatus is as follows:
+
+a.  DATA
+    A line of data is  composed  of  a  series  of  variable
+    length  code  words.   Each  code  word represents a run
+    length of either all white or all black.  White runs and
+    black  runs alternate.  A total of 1728 picture elements
+    represent one horizontal scanning line of  the  document
+    of  standard  A4  size.   In  order  to  insure that the
+    receiver maintains color synchronization, all DATA lines
+    will  begin  with  a white run length code word.  If the
+    actual scanning line begins with a black  run,  a  white
+    run  length  of  zero  will be sent.  Black or white run
+    lengths, up to a maximum length  of  one  scanning  line
+
+CCITT Draft Recommendation T.4                      PAGE   3
+
+
+
+    (1728  picture elements or pels) are defined by the code
+    words in Tables 1 and 2.  The  code  words  are  of  two
+    types:  Terminating  Code  words and Make Up Code words.
+    Each run length is represented by either one Terminating
+    Code  word  or  one  Make  Up  Code  word  followed by a
+    Terminating Code word.
+
+    Run lengths in the range of 0 to  63  pels  are  encoded
+    with their appropriate Terminating Code word.  Note that
+    there is a different list of code words  for  black  and
+    white run lengths.
+
+    Run lengths in the range of 64 to 1728 pels are  encoded
+    first  by  the  Make  Up  Code word representing the run
+    length which is equal to or shorter than that  required.
+    This  is  then  followed  by  the  Terminating Code word
+    representing the difference  between  the  required  run
+    length  and  the  run  length represented by the Make Up
+    Code.
+
+b.  END OF LINE (EOL)
+
+    This code word follows each  line  of  DATA.   It  is  a
+    unique  code word that can never be found within a valid
+    line of  DATA;  therefore,  resynchronization  after  an
+    error burst is possible.
+
+    In addition, this signal will occur prior to  the  first
+    DATA line of a page.
+
+                    Format: 000000000001
+
+c.  FILL
+
+    A  pause  may  be  placed  in  the   message   flow   by
+    transmitting  FILL.  FILL may be inserted between a line
+    of DATA and an EOL, but never within  a  line  of  DATA.
+    Fill  must  be  added  to insure that each line of DATA,
+    FILL, and EOL exceeds the minimum transmission time of a
+    total   scanning  line  established  in  the  premessage
+    control procedure.  The maximum length for a single line
+    of  FILL  is  5  seconds,  after  which the receiver may
+    disconnect.
+
+        Format: variable length string of 0's.      
+
+d.  RETURN TO CONTROL (RTC)
+
+    The end of  a  document  transmission  is  indicated  by
+    sending   six  consecutive  EOL's.   Following  the  RTC
+    signal, the  transmitter  will  send  the  post  message
+    commands in the standard T.30 blocked format at the data
+    rate.
+
+CCITT Draft Recommendation T.4                      PAGE   4
+
+
+
+     Format: 000000000001 ... ... ... ... 000000000001
+                     (total of 6 times)
+
+CCITT Draft Recommendation T.4                      PAGE   5
+
+
+
+         Table 1a. Terminating White Codes
+         Code            Lng     Run
+         ---------------------------
+         00110101        8       0
+         000111          6       1
+         0111            4       2
+         1000            4       3
+         1011            4       4
+         1100            4       5
+         1110            4       6
+         1111            4       7
+         10011           5       8
+         10100           5       9
+         00111           5       10
+         01000           5       11
+         001000          6       12
+         000011          6       13
+         110100          6       14
+         110101          6       15
+         101010          6       16
+         101011          6       17
+         0100111         7       18
+         0001100         7       19
+         0001000         7       20
+         0010111         7       21
+         0000011         7       22
+         0000100         7       23
+         0101000         7       24
+         0101011         7       25
+         0010011         7       26
+         0100100         7       27
+         0011000         7       28
+         00000010        8       29
+         00000011        8       30
+         00011010        8       31
+         00011011        8       32
+         00010010        8       33
+         00010011        8       34
+         00010100        8       35
+         00010101        8       36
+         00010110        8       37
+         00010111        8       38
+         00101000        8       39
+         00101001        8       40
+         00101010        8       41
+         00101011        8       42
+         00101100        8       43
+         00101101        8       44
+         00000100        8       45
+         00000101        8       46
+         00001010        8       47
+         00001011        8       48
+         01010010        8       49
+
+CCITT Draft Recommendation T.4                      PAGE   6
+
+
+
+         01010011        8       50
+         01010100        8       51
+         01010101        8       52
+         00100100        8       53
+         00100101        8       54
+         01011000        8       55
+         01011001        8       56
+         01011010        8       57
+         01011011        8       58
+         01001010        8       59
+         01001011        8       60
+         00110010        8       61
+         00110011        8       62
+         00110100        8       63
+
+CCITT Draft Recommendation T.4                      PAGE   7
+
+
+
+         Table 1b. Make Up White Codes
+         Code            Lng     Run
+         ---------------------------
+         11011           5       64
+         10010           5       128
+         010111          6       192
+         0110111         7       256
+         00110110        8       320
+         00110111        8       384
+         01100100        8       448
+         01100101        8       512
+         01101000        8       576
+         01100111        8       640
+         011001100       9       704
+         011001101       9       768
+         011010010       9       832
+         011010011       9       896
+         011010100       9       960
+         011010101       9       1024
+         011010110       9       1088
+         011010111       9       1152
+         011011000       9       1216
+         011011001       9       1280
+         011011010       9       1344
+         011011011       9       1408
+         010011000       9       1472
+         010011001       9       1536
+         010011010       9       1600
+         011000          6       1664
+         010011011       9       1728
+
+CCITT Draft Recommendation T.4                      PAGE   8
+
+
+
+         Table 2a. Terminating Black Codes
+         Code            Lng     Run
+         ---------------------------
+         0000110111      10      0
+         010             3       1
+         11              2       2
+         10              2       3
+         011             3       4
+         0011            4       5
+         0010            4       6
+         00011           5       7
+         000101          6       8
+         000100          6       9
+         0000100         7       10
+         0000101         7       11
+         0000111         7       12
+         00000100        8       13
+         00000111        8       14
+         000011000       9       15
+         0000010111      10      16
+         0000011000      10      17
+         0000001000      10      18
+         00001100111     11      19
+         00001101000     11      20
+         00001101100     11      21
+         00000110111     11      22
+         00000101000     11      23
+         00000010111     11      24
+         00000011000     11      25
+         000011001010    12      26
+         000011001011    12      27
+         000011001100    12      28
+         000011001101    12      29
+         000001101000    12      30
+         000001101001    12      31
+         000001101010    12      32
+         000001101011    12      33
+         000011010010    12      34
+         000011010011    12      35
+         000011010100    12      36
+         000011010101    12      37
+         000011010110    12      38
+         000011010111    12      39
+         000001101100    12      40
+         000001101101    12      41
+         000011011010    12      42
+         000011011011    12      43
+         000001010100    12      44
+         000001010101    12      45
+         000001010110    12      46
+         000001010111    12      47
+         000001100100    12      48
+         000001100101    12      49
+
+CCITT Draft Recommendation T.4                      PAGE   9
+
+
+
+         000001010010    12      50
+         000001010011    12      51
+         000000100100    12      52
+         000000110111    12      53
+         000000111000    12      54
+         000000100111    12      55
+         000000101000    12      56
+         000001011000    12      57
+         000001011001    12      58
+         000000101011    12      59
+         000000101100    12      60
+         000001011010    12      61
+         000001100110    12      62
+         000001100111    12      63
+
+CCITT Draft Recommendation T.4                      PAGE  10
+
+
+
+         Table 2b. Make Up Black Codes
+         Code            Lng     Run
+         ---------------------------
+         0000001111      10      64
+         000011001000    12      128
+         000011001001    12      192
+         000001011011    12      256
+         000000110011    12      320
+         000000110100    12      384
+         000000110101    12      448
+         0000001101100   13      512
+         0000001101101   13      576
+         0000001001010   13      640
+         0000001001011   13      704
+         0000001001100   13      768
+         0000001001101   13      832
+         0000001110010   13      896
+         0000001110011   13      960
+         0000001110100   13      1024
+         0000001110101   13      1088
+         0000001110110   13      1152
+         0000001110111   13      1216
+         0000001010010   13      1280
+         0000001010011   13      1344
+         0000001010100   13      1408
+         0000001010101   13      1472
+         0000001011010   13      1536
+         0000001011011   13      1600
+         0000001100100   13      1664
+         0000001100101   13      1728
+
+CCITT Draft Recommendation T.4                      PAGE  11
+
+
+
+Note: It is recognized that machines exist which accommodate
+larger   paper   widths   whilst  maintaining  the  standard
+horizontal resolution.  This option has been provided for by
+the addition of the Make Up Code Set defined as follows:
+
+     
+     
+         Table 3. Extended Make Up Codes (Black and White)
+         Code            Lng     Run
+         ---------------------------
+         00000001000     11      1792
+         00000001100     11      1856
+         00000001101     11      1920
+         000000010010    12      1984
+         000000010011    12      2048
+         000000010100    12      2112
+         000000010101    12      2176
+         000000010110    12      2240
+         000000010111    12      2304
+         000000011100    12      2368
+         000000011101    12      2432
+         000000011110    12      2496
+         000000011111    12      2560
+
+     The identification and choice of  either  the  standard
+code  table  or the extended code table is to be made in the
+pre-message  (Phase  B)  portion   of   the   T.30   control
+procedures.
+
+4.2 Two dimensional coding scheme
+
+     The one-dimensional coding scheme defined in 4.1 may be
+extended  as an option to a two-dimensional scheme.  This is
+the subject of further study.
+
+5.  Modulation and demodulation method
+
+     It is  provisionally  agreed  that  Group  3  apparatus
+operating  on  the  general switched telephone network shall
+utilize the modulation scrambler,  equalization  and  timing
+signals  defined  in Recommendation V.27ter, specifically in
+the preamble and 2, 3, 6, 7, 9 and 10.
+
+     The  data  signalling  rates  to  be  used  are   those
+recommended  in  Recommendation V.27ter, i.e.  4800 and 2400
+bit/s.
+
+Note 1: Some administrations pointed out that it  would  not
+be  possible  to  guarantee the service at a data signalling
+rate higher than 2400 bit/s.
+
+Note 2: It should be noted  that  there  are  equipments  in
+service  using,  inter  alia, other modulation methods.  The
+
+CCITT Draft Recommendation T.4                      PAGE  12
+
+
+
+arrangement of interworking between equipment conforming  to
+Recommendation  T.4 and these existing equipments is subject
+to further study.
+
+Note 3: For higher speed operation, such as may be  possible
+on  leased circuits, it is provisionally agreed that Group 3
+apparatus may utilize the signals specifically defined in 1,
+2, 3, 4, 7, 8, 9, 11, and 12 of Recommendation V.29.
+
+

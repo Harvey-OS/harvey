@@ -1,0 +1,63 @@
+.TH NPART 10.1
+.SH NAME
+npart \- configure multi-bank programmable logic devices
+.SH SYNOPSIS
+.B npart
+[
+.I options
+] [
+.I filename
+]
+.SH DESCRIPTION
+.I Npart
+accepts logic functions described by
+.IR minterm (10.6)
+as input and attempts to implement them with multi-bank programmable
+logic devices such as the AMD MACH series parts. It assigns pins and
+routes the interconnection switch matrix.
+Npart produces two output
+files 
+.IB filename .m
+and
+.IB filename .p .
+The first is used by
+.I xpal (10.1)
+for programming the device; the second
+contains pin assignment information.
+.PP
+The options are:
+.TP
+.BI -t " device_type
+use
+.I device_type
+as the target device programmable logic device (presently AMD MACH M110, M120, M130, M210, M220, and M230).
+By default,
+.I npart
+uses the type on the
+.B .x
+line of the
+.IR lde_format (10.6)
+source file if present.
+.TP
+.BI -N " n
+Iterate at most
+.I n
+times (default is 5).
+.TP
+.BI -M " n
+Iterate an additional
+.I n
+times after successfully fitting the equations
+to the target devices to further reduce the interconnection wiring.
+.TP
+.B -p
+Use the pin assignments in the
+pin assignment
+files.
+.TP
+.B -L n
+Backtrack n levels deep in attempting to route the interconnection switch
+matrix (default is 2).
+.TP
+.B -S n
+Leave at least n unused inputs on each of the internal banks.

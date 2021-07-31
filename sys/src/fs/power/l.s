@@ -92,11 +92,6 @@ TEXT	spldone(SB), $0		/* place holder for profiling */
 
 	RET
 
-TEXT	getstatus(SB), $0
-	MOVW	M(STATUS), R1
-	NOOP
-	RET
-
 TEXT	wbflush(SB), $0
 
 	MOVW	$WBFLUSH, R1

@@ -1,0 +1,194 @@
+Some problems you might encounter:
+
+* GNU sed 1.06 cannot handle the sed script in mf/convert.
+
+* On a 386 machine, GNU C 1.36 does not compile tex.5 correctly when
+making a 32-bit TeX.  1.37 fixes this bug.
+
+* GNU Make 3.57 does not pass arguments to shell scripts (like convert),
+under system V.  3.56 does not have this problem, and neither does 3.58.
+
+* On the AT&T 3b2, under System V release 3.2, cc thinks that
+eject_penalty (which is -1000, defined at line 3216), is a very large
+positive number.
+
+* On a Sun 386i running 4.0.1, cc cannot compile Metafont with -O, because it
+can't compile x = x + y correctly.  Don't use -O, or don't use cc.
+
+* Some parts of this work on an Apollo, other parts don't.  Ditto for an
+Amiga.  bsuggs@hac2arpa.hac.com is working on this, but would be happy
+to have help.
+
+* On a 386 machine running 386/ix, cc cannot compile itex.c, according
+to Reiner Petersen <reiner@db0tui62.bitnet>.  Here is an ed script to
+get around the problem (alternatively, you can get gcc, and compile with
+that):
+
+:
+#       Reiner Petersen (reiner@coma.uucp)
+#       Technical University of Berlin
+#
+ed - $1 << end-of-edscript
+!echo change:
+/  register integer for_end; i = 1 ; for_end = 31 ; if ( i <= for_end) do
++1,.+2p
+-2,.c
+  register integer for_end;
+   register char j;             /* 386/ix cc bug workaround  rp */
+   i = 1 ;
+   for_end = 31 ;
+   if ( i <= for_end) do 
+        j = i;
+        xchr [ j ] = chr ( i ) ;
+    
+    while ( i++ < for_end ) ; 
+.
+!echo to:
+-8,.p
+w $1
+end-of-edscript
+
+If you want, you can put this into the pipeline in ./tex/convert.
+
+* undump doesn't work under 386/ix.  Here is a diff to undump.SYS_V.c to
+fix the around, again contributed by reiner:
+*** undump.SYS_V.c      Mon Apr 20 00:57:23 1987
+--- undump.c    Fri Aug 19 17:55:27 1988
+***************
+*** 1,7 ****
+  /*
+   * undump - resurrect a core file into a running program.
+   *
+!  *    for UNIX System V on a 3Bx
+   *    that uses the Common Object File Format
+   *
+   * Author:
+--- 1,7 ----
+  /*
+   * undump - resurrect a core file into a running program.
+   *
+!  *    for UNIX System V on a 3Bx or Interactive 386/ix
+   *    that uses the Common Object File Format
+   *
+   * Author:
+***************
+*** 9,14 ****
+--- 9,19 ----
+   *    New York University
+   *    Tue Mar  3 13:18:25 EST 1987
+   *
++  * Additions for 386/ix:
++  *    Reiner Petersen (reiner@coma.uucp)
++  *    Technical University of Berlin
++  *    Thu Aug 18 13:40:20 MET DST 1988
++  *
+   * Adapted from:
+   *     Spencer Thomas's undump and the file unexec.c in GNU emacs
+   */
+***************
+*** 15,22 ****
+--- 20,33 ----
+
+  #include <sys/param.h>
+  #include <sys/types.h>
++
++ #ifndef       ISC_386ix       /* not availible in ISC 386/ix */
++
+  #include <sys/psw.h>
+  #include <sys/pcb.h>
++
++ #endif        /* ISC_386ix */
++
+  #include <sys/signal.h>
+  #include <sys/fs/s5dir.h>
+  #include <sys/user.h>
+***************
+*** 37,46 ****
+--- 48,66 ----
+  struct scnhdr dsc;
+  struct scnhdr bsc;
+
++ #ifdef        ISC_386ix
++ struct scnhdr csc;            /* Comment section used by ISC 386/ix */
++ #endif        /* ISC_386ix */
++
+  long bias;
+  long lnnoptr;
+  long text_scnptr;
+  long data_scnptr;
++
++ #ifdef        ISC_386ix
++ long comment_scnptr;
++ #endif        /* ISC_386ix */
++
+  long symlocptr;
+
+  main(argc, argv)
+***************
+*** 89,94 ****
+--- 109,118 ----
+                        dsc = sc;
+                 else if (strcmp(sc.s_name, ".bss") == 0) 
+                        bsc = sc;
++ #ifdef        ISC_386ix
++                else if (strcmp(sc.s_name, ".comment") == 0) 
++                       csc = sc;
++ #endif        /* ISC_386ix */
+                
+        
+
+***************
+*** 97,103 ****
+        if (u.u_exdata.ux_tsize != aout.tsize ||
+            u.u_exdata.ux_dsize != aout.dsize ||
+            u.u_exdata.ux_bsize != aout.bsize) 
+!               fprintf("mismatch between %s and %s sizes\n", a_out_name,
+ core_name);
+                exit(1);
+        
+
+--- 121,128 ----
+        if (u.u_exdata.ux_tsize != aout.tsize ||
+            u.u_exdata.ux_dsize != aout.dsize ||
+            u.u_exdata.ux_bsize != aout.bsize) 
+!               fprintf( stderr, "mismatch between %s and %s sizes\n",
+!                                                       a_out_name, core_name);
+                exit(1);
+        
+
+***************
+*** 122,128 ****
+--- 147,159 ----
+        bsc.s_paddr = bsc.s_vaddr = aout.data_start + aout.dsize;
+        bsc.s_size = aout.bsize;
+        bsc.s_scnptr = 0L;
++ #ifndef       ISC_386ix
+        bias = dsc.s_scnptr + dsc.s_size - lnnoptr;
++ #else
++       comment_scnptr = csc.s_scnptr;
++       csc.s_scnptr = dsc.s_scnptr + dsc.s_size;
++       bias = csc.s_scnptr + csc.s_size - lnnoptr;
++ #endif        /* ISC_386ix */
+
+        if (fh.f_symptr > 0L)
+                fh.f_symptr += bias;
+***************
+*** 139,149 ****
+--- 170,186 ----
+                Perror("ds write");
+        if (fwrite(&bsc, sizeof(bsc), 1, nfp) != 1)
+                Perror("bs write");
++       if (fwrite(&csc, sizeof(csc), 1, nfp) != 1)
++               Perror("cs write");
+        fseek(nfp, (long)text_scnptr, 0);
+        copy(afp, nfp, aout.tsize);
+        fseek(cfp, off, 0);
+        fseek(nfp, (long)data_scnptr, 0);
+        copy(cfp, nfp, size);
++ #ifdef        ISC_386ix
++       fseek(afp, (long)comment_scnptr, 0);
++       copy(afp, nfp, csc.s_size);
++ #endif        /* ISC_386ix */
+        copy_syms(afp, nfp);
+        fclose(nfp);
+        fclose(afp);

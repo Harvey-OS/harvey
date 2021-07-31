@@ -90,36 +90,8 @@ enum
 	IM_XRDYA	=0x01,
 };
 
-static int
-duartrecv(void)
-{
-	Duart *duart;
-
-	duart = DUARTREG;
-	duart->cmnd = ENB_TX|ENB_RX;
-	if(duart->sr_csr & RCV_RDY)
-		return duart->data & 0xFF;
-	return 0;
-}
-
-static void
-duartxmit(int c)
-{
-	Duart *duart;
-	int i;
-
-	duart = DUARTREG;
-	duart->cmnd = ENB_TX|ENB_RX;
-	for(i=0; i<100; i++) {
-		if(duart->sr_csr & XMT_RDY)
-			break;
-		delay(1);
-	}
-	duart->data = c;
-}
-
 void
-consinit(void (*puts)(char*, int))
+duartinit(void)
 {
 	Duart *duart;
 
@@ -138,10 +110,6 @@ consinit(void (*puts)(char*, int))
 	duart->is_imr = IM_RRDYA|IM_XRDYA;
 	duart->cmnd = ENB_TX|ENB_RX;
 
-	consgetc = duartrecv;
-	consputc = duartxmit;
-	consputs = puts;
-
 	setioavector(DUARTIOAVEC, DUARTIE);
 
 	intrclr(DUARTIE);
@@ -150,7 +118,7 @@ consinit(void (*puts)(char*, int))
 }
 
 void
-consreset(void)
+duartreset(void)
 {
 	DUARTREG->cmnd = ENB_TX|ENB_RX;
 }
@@ -186,4 +154,32 @@ duartintr(void)
 			duartxmit(c);
 	}
 	*IOAERRREG = (1<<15);
+}
+
+void
+duartxmit(int c)
+{
+	Duart *duart;
+	int i;
+
+	duart = DUARTREG;
+	duart->cmnd = ENB_TX|ENB_RX;
+	for(i=0; i<100; i++) {
+		if(duart->sr_csr & XMT_RDY)
+			break;
+		delay(1);
+	}
+	duart->data = c;
+}
+
+int
+duartrecv(void)
+{
+	Duart *duart;
+
+	duart = DUARTREG;
+	duart->cmnd = ENB_TX|ENB_RX;
+	if(duart->sr_csr & RCV_RDY)
+		return duart->data & 0xFF;
+	return 0;
 }

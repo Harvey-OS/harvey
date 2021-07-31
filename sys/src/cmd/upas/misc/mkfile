@@ -1,15 +1,12 @@
+</$objtype/mkfile
+LIB=../common/libcommon.a$O ../libString/libString.a$O
+TARG = uk2uk\
 
-RCFILES=mail.rc\
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkmany
+CFLAGS=-w -I../common
 
-all:Q:		install
-	;
-installall:Q:	install
-	;
-
-install:V:
+installall:V:
+	for(objtype in $CPUS)
+		mk install
 	cp mail.rc /rc/bin/mail
-
-clean:Q:
-	;
-nuke:V:
-	rm /rc/bin/mail

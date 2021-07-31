@@ -31,12 +31,6 @@ struct Dir
 	short	dev;
 };
 
-#define	DOMLEN		48
-#define	DESKEYLEN	7
-#define	CHALLEN		8
-#define	TICKETLEN	(CHALLEN+2*NAMELEN+DESKEYLEN+1)
-#define	AUTHENTLEN	(CHALLEN+4+1)
-
 struct	Fcall
 {
 	char	type;
@@ -45,15 +39,11 @@ struct	Fcall
 	Ushort	oldtag;		/* T-Flush */
 	Qid	qid;		/* R-Attach, R-Walk, R-Open, R-Create */
 	char	client[NAMELEN];/* T-auth */
-	char	chal[CHALLEN];	/* T-session, R-session */
+	char	chal[8+NAMELEN];/* T-auth, R-auth */
 	char	uname[NAMELEN];	/* T-Attach */
 	char	aname[NAMELEN];	/* T-Attach */
-	char	ticket[TICKETLEN]; /* T-Attach */
-	char	auth[AUTHENTLEN]; /* T-Attach */
-	char	rauth[AUTHENTLEN]; /* R-Attach */
+	char	auth[NAMELEN];	/* T-Attach */
 	char	ename[ERRLEN];	/* R-Error */
-	char	authid[NAMELEN]; /* R-session */
-	char	authdom[DOMLEN]; /* R-session */
 	long	perm;		/* T-Create */ 
 	short	newfid;		/* T-Clone, T-Clwalk */
 	char	name[NAMELEN];	/* T-Walk, T-Clwalk, T-Create */
@@ -72,10 +62,14 @@ enum
 {
 	Tnop =		50,
 	Rnop,
+	Tsession =	52,
+	Rsession,
 	Terror =	54,	/* illegal */
 	Rerror,
 	Tflush =	56,
 	Rflush,
+	Tattach =	58,
+	Rattach,
 	Tclone =	60,
 	Rclone,
 	Twalk =		62,
@@ -98,10 +92,8 @@ enum
 	Rwstat,
 	Tclwalk =	80,
 	Rclwalk,
-	Tsession =	84,
-	Rsession,
-	Tattach =	86,
-	Rattach
+	Tauth =		82,
+	Rauth
 };
 
 int	convM2S(char*, Fcall*, int);

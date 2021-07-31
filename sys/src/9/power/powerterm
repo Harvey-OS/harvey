@@ -1,0 +1,35 @@
+dev
+	root	/
+	cons	c
+	env	e
+	dup	d
+	proc	p
+	pipe	|
+	srv	s
+	lance	l
+	mnt	M
+	hs	h
+	dk	k
+	rtc	r
+	iproute	P
+	arp	a
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	duart	t
+	kprof	T
+
+stream
+	urp
+	ip
+	fcall
+
+port
+	long cfslen = 0; ulong cfscode[1];
+	long fslen = 0; ulong fscode[1];
+	void consdebug(void){}
+	int cpuserver = 0;
+
+boot
+	cyc
+	il
+	hs "config 4 256 restart dk"
+	tcp

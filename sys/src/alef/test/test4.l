@@ -3,8 +3,8 @@
 void
 main(void)
 {
-	byte c;
-	byte *p;
+	char c;
+	char *p;
 	int a;
 
 	p = p + a;

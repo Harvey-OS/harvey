@@ -1,0 +1,561 @@
+\makeatletter
+\typeout{%
+Enhancements to Picture Environment. Version 1.2 - Released June 1, 1986}
+%----------------------------------------------------------------------
+% Copyright (C) podar@sbcs (Sunil Podar) July 14,1986.
+% You may use this file in whatever way you wish. You are requested to 
+% leave this notice intact, and report any bugs, enhancements, comments,
+% suggestions, etc. to:
+% USmail: Sunil Podar,Dept. of Computer Science,SUNY at Stony Brook,NY 11794.
+%  CSNET: podar@sbcs.csnet
+%   ARPA: podar%suny-sb.csnet@csnet-relay.arpa
+%   UUCP: {allegra, hocsd, philabs, ogcvax}!sbcs!podar
+%----------------------------------------------------------------------
+% This file contains implementation of:
+% \multiputlist	\matrixput	\grid		\picsquare
+% \dottedline	\dashline	\drawline	\jput
+% \putfile
+% Environments: dottedjoin, dashjoin and drawjoin
+%
+% For documentation, see the accompanying manual.
+%----------------------------------------------------------------------
+% usage: \multiputlist(x,y)(delta-x,delta-y)[tbrl]{item1,item2,item3,.....}
+% \lop and \lopoff taken from TeXbook.
+%----------------------------------------------------------------------
+\def\lop#1\to#2{\expandafter\lopoff#1\lopoff#1#2}
+\long\def\lopoff,#1,#2\lopoff#3#4{\def#4{#1}\def#3{,#2}}
+\def\@@mlistempty{,}
+\newif\iflistnonempty
+\def\multiputlist(#1,#2)(#3,#4){\@ifnextchar
+[{\@imultiputlist(#1,#2)(#3,#4)}{\@imultiputlist(#1,#2)(#3,#4)[]}}
+
+\long\def\@imultiputlist(#1,#2)(#3,#4)[#5]#6{{%
+\@xdim=#1\unitlength \@ydim=#2\unitlength
+\listnonemptytrue \def\@@mlist{,#6,} % need this for end condition
+\loop
+\lop\@@mlist\to\@@firstoflist
+\@killglue\raise\@ydim\hbox to\z@{\hskip
+\@xdim\@imakepicbox(0,0)[#5]{\@@firstoflist}\hss}
+\advance\@xdim #3\unitlength\advance\@ydim #4\unitlength
+\ifx\@@mlist\@@mlistempty \listnonemptyfalse\fi
+\iflistnonempty
+\repeat\relax
+\ignorespaces}}
+%----------------------------------------------------------------------
+% two-dimensional version of \multiput
+% \matrixput(0,0)(20,0){5}(0,20){3}{\circle{2}}
+%----------------------------------------------------------------------
+\newcount\@@multicnt
+\def\matrixput(#1,#2)(#3,#4)#5(#6,#7)#8#9{%
+\ifnum#5>#8\@matrixput(#1,#2)(#3,#4){#5}(#6,#7){#8}{#9}%
+\else\@matrixput(#1,#2)(#6,#7){#8}(#3,#4){#5}{#9}\fi}
+
+%% here #5 >= #8
+\long\def\@matrixput(#1,#2)(#3,#4)#5(#6,#7)#8#9{{\@killglue%
+\@multicnt=#5\relax\@@multicnt=#8\relax%
+\@xdim=0pt%
+\@ydim=0pt%
+\setbox\@tempboxa\hbox{\@whilenum \@multicnt > 0\do {%
+%%\typeout{\the\@multicnt, \the\@@multicnt}%
+\raise\@ydim\hbox to \z@{\hskip\@xdim #9\hss}%
+\advance\@multicnt \m@ne%
+\advance\@xdim #3\unitlength\advance\@ydim #4\unitlength}}%
+\@xdim=#1\unitlength%
+\@ydim=#2\unitlength%
+\@whilenum \@@multicnt > 0\do {%
+\raise\@ydim\hbox to \z@{\hskip\@xdim \copy\@tempboxa\hss}%
+\advance\@@multicnt \m@ne%
+\advance\@xdim #6\unitlength\advance\@ydim #7\unitlength}%
+\ignorespaces}}
+%----------------------------------------------------------------------
+%\grid(wd,ht)(delta-wd,delta-ht)[initial-X-integer,initial-Y-integer]
+% example: 1. \put(0,0){\grid(95,100)(9.5,10)}
+%          2. \put(0,0){\grid(100,100)(10,5)[-10,0]}
+%          or \put(0,0){\tiny \grid(100,100)(5,5)[0,0]}%numbers in \tiny font
+%----------------------------------------------------------------------
+\newcount\d@lta
+\newdimen\@delta
+\newdimen\@@delta
+\newcount\@gridcnt
+\def\grid(#1,#2)(#3,#4){\@ifnextchar [{\@igrid(#1,#2)(#3,#4)}%
+{\@igrid(#1,#2)(#3,#4)[@,@]}}
+
+\long\def\@igrid(#1,#2)(#3,#4)[#5,#6]{%
+\makebox(#1,#2){%
+\@delta=#1pt\@@delta=#3pt\divide\@delta \@@delta\d@lta=\@delta%
+\advance\d@lta \@ne\relax\message{grid=\the\d@lta\space x}%
+%% copied the definition of \line(0,1){#2} for some efficiency!.
+\multiput(0,0)(#3,0){\d@lta}{\hbox to\z@{\hskip -\@halfwidth \vrule
+	 \@width \@wholewidth \@height #2\unitlength \@depth \z@\hss}}%
+\ifx#5@\relax\else%
+\global\@gridcnt=#5%
+\multiput(0,0)(#3,0){\d@lta}{%
+\makebox(0,-2)[t]{\number\@gridcnt\global\advance\@gridcnt by #3}}%
+\global\@gridcnt=#5%
+\multiput(0,#2)(#3,0){\d@lta}{\makebox(0,0)[b]{\number\@gridcnt\vspace{2mm}%
+\global\advance\@gridcnt by #3}}%
+\fi%
+\@delta=#2pt\@@delta=#4pt\divide\@delta \@@delta\d@lta=\@delta%
+\advance\d@lta \@ne\relax\message{\the\d@lta . }%
+%% copied the definition of \line(1,0){#1} for some efficiency!.
+\multiput(0,0)(0,#4){\d@lta}{\vrule \@height \@halfwidth \@depth \@halfwidth
+	 \@width #1\unitlength}%
+\ifx#6@\relax\else
+\global\@gridcnt=#6%
+\multiput(0,0)(0,#4){\d@lta}{%
+\makebox(0,0)[r]{\number\@gridcnt\ \global\advance\@gridcnt by #4}}%
+\global\@gridcnt=#6%
+\multiput(#1,0)(0,#4){\d@lta}{%
+\makebox(0,0)[l]{\ \number\@gridcnt\global\advance\@gridcnt by #4}}%
+\fi}}
+%----------------------------------------------------------------------
+% \picsquare is a centered square of dimensions governed by \thinlines,
+% \thicklines or \linethickness declarations.
+\def\picsquare{\hskip -0.5\@wholewidth%
+\vrule height \@halfwidth depth \@halfwidth width \@wholewidth}
+%
+% just a square dot with reference point at bottom-left
+\def\picsquare@bl{\vrule height \@wholewidth depth \z@  width \@wholewidth}
+%----------------------------------------------------------------------
+% \begin{dottedjoin}{interdot-gap in units}
+% .....			
+% \end{dottedjoin}
+% \begin{dashjoin}{dash-length in units}{interdotgap in each dash}
+% .....			
+% \end{dashjoin}
+% \begin{drawjoin}
+% .....
+% \end{drawjoin}
+% \jput(x,y){character}
+% \dottedline[opt. dotcharacter]{dotgap in units}(x1,y1)(x2,y2)...(xN,yN)
+% \dashline[#]{dash-length}[opt. dotgap](x1,y1)(x2,y2)...(xN,yN)
+% \drawline[#](x1,y1)(x2,y2)...(xN,yN)
+%----------------------------------------------------------------------
+% definitions for *join environment. had to do all this mess because of
+% optional arguments.
+%----------------------------------------------------------------------
+\newif\if@jointhem \global\@jointhemfalse
+\newif\if@firstpoint \global\@firstpointtrue
+\newcount\@joinkind
+%\newenvironment{dottedjoin}[1]%[opt char]{dotgap}
+%{\global\@jointhemtrue \gdef\dotgap@join{#1}\global\@joinkind=0\relax}%
+%{\global\@jointhemfalse \global\@firstpointtrue}
+%----------------------------------------------------------------------
+\def\dottedjoin{\global\@jointhemtrue \global\@joinkind=0\relax
+  \bgroup\@ifnextchar[{\@idottedjoin}{\@idottedjoin[\picsquare@bl]}}
+\def\@idottedjoin[#1]#2{\gdef\dotchar@join{#1}\gdef\dotgap@join{#2}}
+\def\enddottedjoin{\global\@jointhemfalse \global\@firstpointtrue\egroup}
+%----------------------------------------------------------------------
+\def\dashjoin{\global\@jointhemtrue \global\@joinkind=1\relax
+  \bgroup\@ifnextchar[{\@idashjoin}{\@idashjoin[\dashlinestretch]}}
+\def\@idashjoin[#1]#2{\edef\dashlinestretch{#1}\gdef\dashlen@join{#2}%
+\@ifnextchar[{\@iidashjoin}{\gdef\dotgap@join{}}}
+\def\@iidashjoin[#1]{\gdef\dotgap@join{#1}}
+\let\enddashjoin\enddottedjoin
+%----------------------------------------------------------------------
+\def\drawjoin{\global\@jointhemtrue \global\@joinkind=2\relax
+  \bgroup\@ifnextchar[{\@idrawjoin}{}}
+\def\@idrawjoin[#1]{\def\drawlinestretch{#1}}
+\let\enddrawjoin\enddottedjoin
+%----------------------------------------------------------------------
+%% this is equiv to \put(x,y){#1} when not in {dot*join} environment.
+\long\def\jput(#1,#2)#3{{\@killglue\raise#2\unitlength\hbox to \z@{\hskip
+#1\unitlength #3\hss}\ignorespaces}
+\if@jointhem
+ \if@firstpoint \gdef\x@one{#1} \gdef\y@one{#2} \global\@firstpointfalse
+ \else\ifcase\@joinkind
+	\@dottedline[\dotchar@join]{\dotgap@join\unitlength}%
+(\x@one\unitlength,\y@one\unitlength)(#1\unitlength,#2\unitlength)
+	\or\@dashline[\dashlinestretch]{\dashlen@join}[\dotgap@join]%
+(\x@one,\y@one)(#1,#2)
+	\else\@drawline[\drawlinestretch](\x@one,\y@one)(#1,#2)\fi
+    \gdef\x@one{#1} \gdef\y@one{#2}
+ \fi
+\fi}
+%----------------------------------------------------------------------
+\newdimen\@dotgap
+\newdimen\@ddotgap
+\newcount\@x@diff
+\newcount\@y@diff
+\newdimen\x@diff
+\newdimen\y@diff
+\newbox\@dotbox
+\newcount\num@segments
+\newcount\num@segmentsi
+\newif\ifsqrt@done
+%% from sqrtandstuff func basically need \num@segments.
+%% given a deltax, deltay and dotgap, it calculates \num@segments = number of
+%% segments along the hypotenuse. used by \dottedline & \dashline.
+%% It finishes quickly if any of deltax or deltay are zero or close to zero.
+\def\sqrtandstuff#1#2#3{
+\ifdim #1 <0pt \@x@diff= -#1 \else\@x@diff=#1\fi
+\ifdim #2 <0pt \@y@diff= -#2 \else\@y@diff=#2\fi
+%% @diff's will be positive and diff's will retain their sign.
+\@dotgap=#3 \divide\@dotgap \tw@
+\advance\@x@diff \@dotgap \advance\@y@diff \@dotgap% for round-off errors
+\@dotgap=#3
+\divide\@x@diff \@dotgap \divide\@y@diff \@dotgap
+\sqrt@donefalse
+\ifnum\@x@diff < 2
+   \ifnum\@y@diff < 2 \num@segments=\@x@diff \advance\num@segments \@y@diff
+		      \sqrt@donetrue
+        \else\num@segments=\@y@diff \sqrt@donetrue\fi
+   \else\ifnum\@y@diff < 2 \num@segments=\@x@diff \sqrt@donetrue\fi
+\fi
+\ifsqrt@done \ifnum\num@segments=\z@ \num@segments=\@ne\fi\relax
+ \else \ifnum\@y@diff >\@x@diff
+		 \@tempcnta=\@x@diff \@x@diff=\@y@diff \@y@diff=\@tempcnta
+       \fi    		%exchange @x@diff & @y@diff, so now @x@diff > @y@diff
+  \num@segments=\@y@diff
+  \multiply\num@segments \num@segments
+  \multiply\num@segments by 457
+  \divide\num@segments \@x@diff
+  \advance\num@segments by 750 % for round-off, going to divide by 1000.
+  \divide\num@segments \@m
+  \advance\num@segments \@x@diff
+		%num@segments = @x@diff + (0.457*sqr(@y@diff)/@x@diff)
+\fi}
+%----------------------------------------------------------------------
+% \dottedline[opt. char]{interdot gap in units}(x1,y1)(x2,y2)....(xN,yN)
+%----------------------------------------------------------------------
+%% Used the following construction earlier but that results in box memory
+%% full much too soon although it works perfectly.
+%% \setbox\@dotbox\vbox to\z@{\vss \hbox to\z@{\hss #1\hss}\vss}\relax}
+%% The cenetering of characters is achieved by substracting half the ht, wd
+%% of character from the (x,y) coordinates where they are to be put. We
+%% chose to use a macro for the ``dot'' instead of \copy\box to save memory
+%% at the expense of extra cpu, since memory becomes an issue very soon.
+%% \picsquare is already centered, whereas other characters, except \circle,
+%% will not be cenetered, hence to handle them all in a similar fashion,
+%% used \picsquare@bl.
+%
+% kind of tail recursion.
+\def\dottedline{\@ifnextchar [{\@idottedline}{\@idottedline[\picsquare@bl]}}
+\def\@idottedline[#1]#2(#3,#4){\@ifnextchar (%
+{\@iidottedline[#1]{#2}(#3,#4)}{\relax}}
+\def\@iidottedline[#1]#2(#3,#4)(#5,#6){\@dottedline[#1]{#2\unitlength}%
+(#3\unitlength,#4\unitlength)(#5\unitlength,#6\unitlength)%
+\@idottedline[#1]{#2}(#5,#6)}
+%
+%% user not supposed to use this directly. arguments in absolute dimensions.
+%% need to pass absolute dimens here because dashline calls dottedline and
+%% can supply only absolute dimensions.
+\long\def\@dottedline[#1]#2(#3,#4)(#5,#6){{%
+\x@diff=#5\relax\advance\x@diff by -#3\relax
+\y@diff=#6\relax\advance\y@diff by -#4\relax
+\sqrtandstuff{\x@diff}{\y@diff}{#2}
+\divide\x@diff \num@segments
+\divide\y@diff \num@segments
+\advance\num@segments \@ne     % to put the last point at destination.
+%%\typeout{num@segments= \the\num@segments}
+\setbox\@dotbox\hbox{#1}% just to get the dimensions of the character.
+\@xdim=#3 \@ydim=#4
+\ifdim\ht\@dotbox >\z@% otherwise its a circle.
+  \advance\@xdim -0.5\wd\@dotbox
+  \advance\@ydim -0.5\ht\@dotbox
+  \advance\@ydim .5\dp\@dotbox\fi
+%%circle's have a ht=0, this is one way I could think of to catch circles.
+%%following loop is equiv to
+%%\multiput(\@xdim,\@ydim)(\x@diff,\y@diff){\num@segments}{#1}
+%%with arguments in absolute dimensions.
+\@killglue
+\loop \ifnum\num@segments > 0
+\unskip\raise\@ydim\hbox to\z@{\hskip\@xdim #1\hss}%
+\advance\num@segments \m@ne\advance\@xdim\x@diff\advance\@ydim\y@diff%
+\repeat
+\ignorespaces}}
+%----------------------------------------------------------------------
+% \dashline[#]{dash-length}[optional dotgap](x1,y1)(x2,y2)...(xN,yN)
+% The minimum # of dashes put is 2, one at either end point; dash-length is
+% reduced accordingly if necessary. Also have to some dirty work to account
+% for stretch & shrink.
+% \renewcommand{\dashlinestretch}{-50}  %ONLY INTEGERS PERMITTED.
+%----------------------------------------------------------------------
+\def\dashlinestretch{0} %well, could have used a counter.
+\def\dashline{\@ifnextchar [{\@idashline}{\@idashline[\dashlinestretch]}}
+\def\@idashline[#1]#2{\@ifnextchar [{\@iidashline[#1]{#2}}%
+{\@iidashline[#1]{#2}[\@empty]}} %\@empty needed-- later checked with \ifx 
+\def\@iidashline[#1]#2[#3](#4,#5){\@ifnextchar (%
+{\@iiidashline[#1]{#2}[#3](#4,#5)}{\relax}}
+%
+\def\@iiidashline[#1]#2[#3](#4,#5)(#6,#7){%
+\@dashline[#1]{#2}[#3](#4,#5)(#6,#7)%
+\@iidashline[#1]{#2}[#3](#6,#7)}
+%
+\long\def\@dashline[#1]#2[#3](#4,#5)(#6,#7){{%
+\x@diff=#6\unitlength \advance\x@diff by -#4\unitlength
+\y@diff=#7\unitlength \advance\y@diff by -#5\unitlength
+%% correction to get actual width since the dash-length as taken in arguement
+%% is the center-to-center of the end-points.
+\@tempdima=#2\unitlength \advance\@tempdima -\@wholewidth
+\sqrtandstuff{\x@diff}{\y@diff}{\@tempdima}
+\ifnum\num@segments <3 \num@segments=3\fi% min number of dashes I can plot
+% is 2, 1 at either end, thus min num@segments is 3 (including 'empty dash').
+\@tempdima=\x@diff \@tempdimb=\y@diff
+\divide\@tempdimb by\num@segments
+\divide\@tempdima by\num@segments
+%% ugly if-then-else. If optional dotgap specified, then use it otherwise
+%% make a solid looking dash.
+{\ifx#3\@empty \relax
+    \ifdim\@tempdima < 0pt \x@diff=-\@tempdima\else\x@diff=\@tempdima\fi
+    \ifdim\@tempdimb < 0pt \y@diff=-\@tempdimb\else\y@diff=\@tempdimb\fi
+    \ifdim\x@diff < 0.3pt %it's a vertical dashline
+           \ifdim\@tempdimb > 0pt
+	        \global\setbox\@dotbox\hbox{\hskip -\@halfwidth \vrule
+		 \@width \@wholewidth \@height \@tempdimb}
+	   \else\global\setbox\@dotbox\hbox{\hskip -\@halfwidth \vrule
+		 \@width \@wholewidth \@height\z@ \@depth -\@tempdimb}\fi
+       \else\ifdim\y@diff < 0.3pt %it's a horizontal dashline
+               \ifdim\@tempdima >0pt
+		  \global\setbox\@dotbox\hbox{\vrule \@height \@halfwidth
+		 		\@depth \@halfwidth \@width \@tempdima}
+		\else\global\setbox\@dotbox\hbox{\hskip \@tempdima
+			 \vrule \@height \@halfwidth \@depth \@halfwidth
+				 \@width -\@tempdima \hskip \@tempdima}\fi
+	    \else\global\setbox\@dotbox\hbox{%
+\@dottedline[\picsquare]{0.98\@wholewidth}(0pt,0pt)(\@tempdima,\@tempdimb)}
+\fi\fi
+\else\global\setbox\@dotbox\hbox{%
+\@dottedline[\picsquare]{#3\unitlength}(0pt,0pt)(\@tempdima,\@tempdimb)}
+\fi}
+\advance\x@diff by -\@tempdima % both have same sign
+\advance\y@diff by -\@tempdimb
+%
+%%here we correct the number of dashes to be put by reducing them
+%%appropriately. (num@segments*\@wholewidth) is in some way the slack we
+%%have,and division by dash-length gives the reduction. reduction =
+%%(2*num@segments*\@wholewidth)/dash-length
+%% (num@segments includes empty ones)
+\@tempdima=\num@segments\@wholewidth \@tempdima=2\@tempdima 
+\@tempcnta=\@tempdima \@tempdima=#2\unitlength \@tempdimb=0.5\@tempdima
+\@tempcntb=\@tempdimb \advance\@tempcnta by \@tempcntb % round-off error
+\divide\@tempcnta by\@tempdima \advance\num@segments by -\@tempcnta
+%
+\ifnum #1=0 \relax\else\ifnum #1 < -100
+  \typeout{***dashline: reduction > -100 percent implies blankness!***}
+\else\num@segmentsi=#1 \advance\num@segmentsi by 100
+     \multiply\num@segments by\num@segmentsi \divide\num@segments by 100
+\fi\fi
+%
+\divide\num@segments by 2 % earlier num@segments included 'empty dashes' too.
+\ifnum\num@segments >0 % if =0 then don't divide => \x@diff & \y@diff
+ \divide\x@diff by\num@segments%   remain same.
+ \divide\y@diff by\num@segments
+ \advance\num@segments by\@ne %for the last segment for which I subtracted
+	 		     %\@tempdima & \@tempdimb from \x@diff & \y@diff
+ \else\num@segments=2 % one at each end.
+\fi
+%%\typeout{num@segments finally = \the\num@segments}
+%% equiv to \multiput(#4,#5)(\x@diff,\y@diff){\num@segments}{\copy\@dotbox}
+%% with arguements in absolute dimensions.
+\@xdim=#4\unitlength \@ydim=#5\unitlength
+\@killglue
+\loop \ifnum\num@segments > 0
+\unskip\raise\@ydim\hbox to\z@{\hskip\@xdim \copy\@dotbox\hss}%
+\advance\num@segments \m@ne\advance\@xdim\x@diff\advance\@ydim\y@diff%
+\repeat
+\ignorespaces}}
+%----------------------------------------------------------------------
+%%1.00   .833333  .80  .75  .66666   .60  .50  .40  .33333    .25 .20  .16666
+%% .916666 .816666 .775 .708333 .633333 .55 .45 .366666 .291666 .225 .183333
+%% 0.0
+%%0.083333
+%% the first line has absolute slopes corresponding to various permissible
+%% integer combinations representing slopes. The second line is the midpoint
+%% of all those slopes (attempted to show them in the middle of two entries).
+%%
+%% \lineslope(x@diff dimen, y@diff dimen)
+%% Given base (x@diff) and height (y@diff) in dimensions, determines the
+%% closest available slope and returns the two required integers in \@xarg
+%% and \@yarg. The given base and height can be ANYTHING, -ve or +ve, or
+%% even 0pt. \lineslope knows about (0,1) and (1,0) slopes too and returns
+%% correct values if the conditions regarding x@diff & y@diff are obeyed
+%% (see NOTE). Used by \drawline. This is the simplest and only way I could
+%% figure out to accomplish it!.
+%% NOTE: both the dimensions (x@diff & y@diff) must be in SAME units and the
+%% larger of the two dimensions must be atleast 1pt (i.e. 65536sp). To avoid
+%% dividing by 0, I make the larger dimension = 1pt if it is < 1pt.
+%% will need a similar one for vectors, or maybe this can be used. For
+%% vectors the range is -4, 4 unlike lines where it is -6, 6.
+\newif\if@flippedargs
+\def\lineslope(#1,#2){%
+\ifdim #1 <0pt \@xdim= -#1 \else\@xdim=#1\fi
+\ifdim #2 <0pt \@ydim= -#2 \else\@ydim=#2\fi
+%%\typeout{xdim,ydim= \the\@xdim, \the\@ydim}
+\ifdim\@xdim >\@ydim \@tempdima=\@xdim \@xdim=\@ydim \@ydim=\@tempdima
+\@flippedargstrue\else\@flippedargsfalse\fi% x < y
+\ifdim\@ydim >1pt \@tempcnta=\@ydim
+            \divide\@tempcnta by 65536% now \@tempcnta=integral part of #1.
+            \divide\@xdim \@tempcnta\fi
+\ifdim\@xdim <.083333pt \@xarg=1 \@yarg=0
+ \else\ifdim\@xdim <.183333pt	\@xarg=6 \@yarg=1
+ \else\ifdim\@xdim <.225pt 	\@xarg=5 \@yarg=1
+ \else\ifdim\@xdim <.291666pt 	\@xarg=4 \@yarg=1
+ \else\ifdim\@xdim <.366666pt 	\@xarg=3 \@yarg=1
+ \else\ifdim\@xdim <.45pt 	\@xarg=5 \@yarg=2
+ \else\ifdim\@xdim <.55pt 	\@xarg=2 \@yarg=1
+ \else\ifdim\@xdim <.633333pt 	\@xarg=5 \@yarg=3
+ \else\ifdim\@xdim <.708333pt 	\@xarg=3 \@yarg=2
+ \else\ifdim\@xdim <.775pt 	\@xarg=4 \@yarg=3
+ \else\ifdim\@xdim <.816666pt 	\@xarg=5 \@yarg=4
+ \else\ifdim\@xdim <.916666pt 	\@xarg=6 \@yarg=5
+       \else			\@xarg=1 \@yarg=1%
+\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
+\if@flippedargs\relax\else\@tempcnta=\@xarg \@xarg=\@yarg
+			  \@yarg=\@tempcnta\fi
+\ifdim #1 <0pt \@xarg= -\@xarg\fi
+\ifdim #2 <0pt \@yarg= -\@yarg\fi
+%%\typeout{closest slope integers = \the\@xarg, \the\@yarg}
+}
+%----------------------------------------------------------------------
+% usage: \drawline[#](x1,y1)(x2,y2)....(xN,yN)
+%       		 % # is an optional integer between -100 & infinity.
+% \renewcommand{\drawlinestretch}{-50}  %ONLY INTEGERS PERMITTED.
+%----------------------------------------------------------------------
+\newif\if@toosmall
+\newif\if@drawit
+\newif\if@horvline
+\def\drawlinestretch{0} %well, could have used a counter.
+% kind of tail recursion.
+\def\drawline{\@ifnextchar [{\@idrawline}{\@idrawline[\drawlinestretch]}}
+\def\@idrawline[#1](#2,#3){\@ifnextchar ({\@iidrawline[#1](#2,#3)}{\relax}}
+\def\@iidrawline[#1](#2,#3)(#4,#5){\@drawline[#1](#2,#3)(#4,#5)
+\@idrawline[#1](#4,#5)}
+%
+\def\@drawline[#1](#2,#3)(#4,#5){{%
+\x@diff=#4\unitlength \advance\x@diff by -#2\unitlength
+\y@diff=#5\unitlength \advance\y@diff by -#3\unitlength
+%% override any linethickness declarations, and since horiz & vertical lines
+%% come out thinner than the slanted ones, assign slightly larger values.
+%% default values are: thinlines=0.4pt, thicklines=0.8pt
+\ifx\@linefnt\tenln \linethickness{0.5pt} \else \linethickness{0.9pt}\fi
+\lineslope(\x@diff,\y@diff)% returns the two integers in \@xarg & \@yarg.
+%------
+\@toosmalltrue
+{\ifdim\x@diff <\z@ \x@diff=-\x@diff\fi
+ \ifdim\y@diff <\z@ \y@diff=-\y@diff\fi
+ \ifdim\x@diff >10pt \global\@toosmallfalse\fi
+ \ifdim\y@diff >10pt \global\@toosmallfalse\fi}
+%------
+%% For efficiency, if the line is horiz or vertical then we draw it in one
+%% shot, only if the stretch is not -ve and the line is not too small.
+\@drawitfalse\@horvlinefalse
+\ifnum#1 <0 \relax\else\@horvlinetrue\fi
+\if@toosmall\@horvlinetrue\fi% to get 'or' condition. We necessarily draw a 
+% solid line if the line is too small ignoring any -ve stretch.
+\if@horvline
+ \ifdim\x@diff =0pt \put(#2,#3){\ifdim\y@diff >0pt \@linelen=\y@diff \@upline
+ 				\else\@linelen=-\y@diff \@downline\fi}%
+ \else\ifdim\y@diff =0pt
+          \ifdim\x@diff >0pt \put(#2,#3){\vrule \@height \@halfwidth \@depth
+				\@halfwidth \@width \x@diff}
+		\else \put(#4,#5){\vrule \@height \@halfwidth \@depth
+				\@halfwidth \@width -\x@diff}\fi
+       \else\@drawittrue\fi\fi % construct the line explicitly
+\else\@drawittrue\fi
+%-------------------------------
+\if@drawit
+\ifnum\@xarg< 0 \@negargtrue\else\@negargfalse\fi
+\ifnum\@xarg =0 \setbox\@linechar%
+\hbox{\hskip -\@halfwidth \vrule \@width \@wholewidth \@height 10.2pt
+ \@depth \z@}
+\else \ifnum\@yarg =0 \setbox\@linechar%
+\hbox{\vrule \@height \@halfwidth \@depth \@halfwidth \@width 10.2pt}
+\else \if@negarg \@xarg -\@xarg \@yyarg -\@yarg
+        \else \@yyarg \@yarg\fi
+\ifnum\@yyarg >0 \@tempcnta\@yyarg \else \@tempcnta -\@yyarg\fi
+\setbox\@linechar\hbox{\@linefnt\@getlinechar(\@xarg,\@yyarg)}%
+\fi\fi
+%------
+\if@toosmall% => it isn't a horiz or vert line and is toosmall.
+  \@dottedline[\picsquare]{.98\@wholewidth}%
+(#2\unitlength,#3\unitlength)(#4\unitlength,#5\unitlength)%
+\else
+%% following is neat. The last segment takes \wd\@linechar & \ht\@linechar
+%% so plot the line as though it were from (#2,#3) to
+%% (#4-\wd\@linechar,#5-\ht\@linechar) (i.e. for positive slope; of course,
+%% signs are reversed for other slopes). For horizontal & vertical dashes we
+%% don't have to subtract the ht & wd resp. since they are already centered.
+\ifnum\@xarg=0\relax\else\ifdim\x@diff >\z@ \advance\x@diff -\wd\@linechar
+  \else\advance\x@diff \wd\@linechar\fi\fi
+\ifnum\@yarg=0\relax\else\ifdim\y@diff >\z@\advance\y@diff -\ht\@linechar
+  \else\advance\y@diff \ht\@linechar\fi\fi
+\ifdim\x@diff <\z@ \@x@diff=-\x@diff \else\@x@diff=\x@diff\fi
+\ifdim\y@diff <\z@ \@y@diff=-\y@diff \else\@y@diff=\y@diff\fi
+%%\typeout{x@diff,y@diff=\the\x@diff , \the\y@diff}
+\num@segments=0 \num@segmentsi=0
+\ifdim\wd\@linechar >1pt
+ \num@segmentsi=\@x@diff \divide\num@segmentsi \wd\@linechar\fi
+\ifdim\ht\@linechar >1pt
+ \num@segments=\@y@diff \divide\num@segments \ht\@linechar\fi
+\ifnum\num@segmentsi >\num@segments \num@segments=\num@segmentsi\fi
+\advance\num@segments \@ne %to account for round-off error
+%
+\ifnum #1=0 \relax \else\ifnum #1 < -99
+  \typeout{***drawline: reduction <= -100 percent implies blankness!***}
+\else\num@segmentsi=#1 \advance\num@segmentsi by 100
+     \multiply\num@segments \num@segmentsi
+     \divide\num@segments by 100
+     \ifnum \num@segments=0 \num@segments=1 \fi
+\fi\fi
+%%\typeout{num@segments after = \the\num@segments}
+%
+\divide\x@diff \num@segments
+\divide\y@diff \num@segments
+\advance\num@segments \@ne %for the last segment for which I subtracted
+			  %\wd & \ht of \@linechar from \@x@diff & \@y@diff.
+%%\typeout{numseg,x@diff,y@diff= \the\num@segments, \the\x@diff, \the\y@diff}
+%
+\@xdim=#2\unitlength \@ydim=#3\unitlength
+\if@negarg \advance\@xdim -\wd\@linechar\fi
+\ifnum\@yarg <0 \advance\@ydim -\ht\@linechar\fi
+%%following loop equiv to \multiput@abs(\@xdim,\@ydim)%
+%%(\x@diff,\y@diff){\num@segments}{\copy\@linechar}
+%%with arguements in absolute dimensions.
+\@killglue
+\loop \ifnum\num@segments > 0
+\unskip\raise\@ydim\hbox to\z@{\hskip\@xdim \copy\@linechar\hss}%
+\advance\num@segments \m@ne\advance\@xdim\x@diff\advance\@ydim\y@diff%
+\repeat
+\ignorespaces
+\fi%the if of @toosmall
+\fi}}% for \if@drawit
+%----------------------------------------------------------------------
+%usage: \putfile{datafile}{OBJECT}
+% The OBJECT is plotted at EACH of the coordinates read from the datafile.
+% The idea of these macros is to generate (x,y) pairs using some program
+% and then directly use those coordinates. Since TeX doesn't have real
+% floating point calculations, it is much more efficient and accurate to do
+% things this way. One can also use the unix facility 'spline' now to
+% generate smooth curves with equidistant ``dots''.
+% NOTE: the external file of coordinates must have x y pairs with a space
+% between them. Also it is suggested that some extension such as '.put'
+% be used for such datafiles to distinguish them in which case it must
+% be explicitely specified in the 1st argument so that TeX doesn't look
+% for a .tex extension.
+% The % char remains valid as a comment char and such lines are ignored;
+% however, there should be atleast one space after the second entry if a
+% comment is on the same line as data since % eats up the newline.
+%-----------------------------------------------------------------------
+\long\def\splittwoargs#1 #2 {(#1,#2)}
+%
+\newif\if@stillmore
+\newread\@datafile
+\long\def\putfile#1#2{\openin\@datafile = #1
+\@stillmoretrue
+\loop
+\ifeof\@datafile\relax\else\read\@datafile to\@dataline\fi
+%if file nonexistent, do nothing.
+\ifeof\@datafile\@stillmorefalse
+\else\ifx\@dataline\@empty \relax
+     \else
+\expandafter\expandafter\expandafter\put\expandafter\splittwoargs%
+\@dataline{#2}
+     \fi
+\fi
+\if@stillmore
+\repeat
+\closein\@datafile
+}
+%----------------------------------------------------------------------
+\makeatother

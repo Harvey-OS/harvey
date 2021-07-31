@@ -166,7 +166,7 @@
 	/hungarumlaut
 	/ogonek
 	/caron
-	/.notdef		% was space
+	/space
 	/exclamdown
 	/cent
 	/sterling
@@ -301,16 +301,27 @@ userdict /@RealFindfont known not {
 } bind def
 
 %
-% Assume A0, except for A0A0 which is replaced by 20A0, can be ignored.
-% Works with ASCII or Latin1 because A0 has been re-encoded as a zero
-% width non-printing character. 
+% UTF string decoding for ASCII and Latin1 only:
+%
+%	C2 XX	=> 00 XX
+%	C3 XX	=> XX+40 00
+%
+% Two passes through each string with search is undoubtedly faster than
+% PostScript that examines each byte.
 %
 
 /UTFstring {
 	dup {
-		(\240\240) search {
+		(\302) search {
 			pop
-			0 16#20 put
+			0 0 put
+		}{pop exit} ifelse
+	} loop
+	dup {
+		(\303) search {
+			pop
+			1 index 0 get 16#40 add 0 exch put
+			dup length 0 gt {dup 0 0 put} if
 		}{pop exit} ifelse
 	} loop
 } bind def

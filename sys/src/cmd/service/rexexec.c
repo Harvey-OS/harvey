@@ -11,13 +11,13 @@ void	error(char*);
 void
 main(void)
 {
-	char user[NAMELEN], buf[8192];
+	char *err, user[NAMELEN], buf[8192];
 	int n;
 
-	if(srvauth(0, user) < 0)
-		error("srvauth");
-	if(newns(user, 0) < 0)
-		error("newns");
+	if(err = srvauth(user))
+		error(err);
+	if(err = newns(user, 0))
+		error(err);
 	n = read(0, buf, sizeof buf - 1);
 	if(n < 0)
 		error("can't read command");

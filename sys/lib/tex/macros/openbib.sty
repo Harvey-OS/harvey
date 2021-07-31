@@ -1,0 +1,30 @@
+% openbib.sty 12-Oct-87
+
+\newdimen\bibindent
+\bibindent=1.5em
+\@ifundefined{chapter}{\def\thebibliography#1{\section*{References\@mkboth
+ {REFERENCES}{REFERENCES}}\list
+ {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}
+ \leftmargin\labelwidth
+ \advance\leftmargin\labelsep
+ \advance\leftmargin\bibindent
+ \itemindent -\bibindent
+ \listparindent \itemindent
+ \parsep \z@
+ \usecounter{enumi}}
+ \def\newblock{\par}
+ \sloppy
+ \sfcode`\.=1000\relax}}{\def\thebibliography#1{\chapter*{Bibliography\@mkboth
+ {BIBLIOGRAPHY}{BIBLIOGRAPHY}}\list
+ {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}
+ \leftmargin\labelwidth
+ \advance\leftmargin\labelsep
+ \advance\leftmargin\bibindent
+ \itemindent -\bibindent
+ \listparindent \itemindent
+ \parsep \z@
+ \usecounter{enumi}}
+ \def\newblock{\par}
+ \sloppy
+ \sfcode`\.=1000\relax}}
+

@@ -23,20 +23,9 @@ OFILES=\
 	strcmp.$O\
 	strcpy.$O\
 	strlen.$O\
-	sqrt.$O\
-	vlrt.$O\
-	vlop.$O\
+	vl.$O\
 
 HFILES=/sys/include/libc.h
 
 </sys/src/cmd/mksyslib
 
-install:V:	install.68881
-installall:V:
-	mk install
-clean:V:	clean.68881
-nuke:V:		clean.68881
-
-%.68881:V:
-	cd 68881
-	mk $stem

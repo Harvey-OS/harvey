@@ -1,0 +1,23 @@
+.TH GRAWP 10.1
+.SH NAME
+grawp \- draw schematics
+.SH SYNOPSIS
+.B cda/grawp
+.RB [ -t ]
+.RI [ files... ]
+.SH DESCRIPTION
+.PP
+.I Grawp
+reads files produced by
+.IR graw (10.1)
+and writes output suitable for
+.IR pic (1).
+Under the
+.B -t
+option, the
+.IR troff (1)
+header is omitted, so the result may be more easily included in a document.
+.SH SEE ALSO
+.IR graw (10.1),
+.IR pic (1),
+.IR troff (1)

@@ -7,12 +7,17 @@
 int
 fstat(int fd, struct stat *buf)
 {
+	Fdinfo *f;
+
 	char cd[DIRLEN];
 
 	if(_FSTAT(fd, cd) < 0){
 		_syserrno();
 		return -1;
 	}
-	_dirtostat(buf, cd, &_fdinfo[fd]);
+	_dirtostat(buf, cd);
+	f = &_fdinfo[fd];
+	if(f->flags&FD_BUFFERED)
+		buf->st_size = f->n;
 	return 0;
 }

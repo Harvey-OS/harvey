@@ -1,0 +1,70 @@
+.TH XPAL 10.1
+.SH NAME
+xpal \- data preparation program for PAL's and PLA's
+.SH SYNOPSIS
+.B cda/xpal
+.BI [\- option ]
+.BI [ type [ filename ]]
+.SH DESCRIPTION
+.I Xpal
+reads data from the standard input or
+.I filename
+in the form of
+.IR minterm (10.6)
+and writes on the standard output in a form suitable
+for any of the pal/prom burners.
+.PP
+The options are:
+.TP
+.B \-m manufacturer
+Specifies a manufacturer that will be output as a comment
+.TP
+.B \-t type
+Specifies a PAL type if not given by a .x line
+.TP
+.B \-l library
+Tells xpal where to look for library definitions.  Defaults to /usr/ucds/lib/library.paddle.
+.TP
+.B \-v
+Produce slightly verbose output (not harmful)
+.TP
+.B \-d
+Produce debugging output
+.TP
+.B \-i
+echoes the input
+.TP
+.B \-z
+produces a zero checksum for SPRINT programmers
+.TP
+.B \-p
+demands parsing; used in conjunction with -t, this can be used to debug new
+pal definitions.
+.PP
+The output is JEDEC
+suitable for any number of JEDEC compatible programmers.
+Xpal's principal advantage over pal is that the tables are now
+read in.  The
+.I type
+flag on the command line or as given by the .x line in the lde file
+is used to address the correct tables.
+.PP
+The numeric symbol of a term that corresponds to the output
+enable of a pin is 100 + pin_number by convention.  Just to be strange,
+the convention for the 22V10 is: 200 + pin_number for polarity,
+300 + pin_number for architecture fuses and pins 25 and 26 are
+asynchronous reset and synchronous preset respectively.
+Each programmable device has its own mapping as defined by the pal definition.
+.PP
+The pals with X in their name use an additional convention.
+Since \fIquine\fP can only handle and-or logic, and the X pals have two
+different sets of and-or logic driving the two inputs of an xor gate,
+those two terms are number 20 + output pin number and 70 + ditto.
+.SH SEE ALSO
+.PP
+.IR minterm (10.6),
+.IR paddle (10.6)
+.SH FILES
+.B /sys/lib/ucds/library.paddle
+.SH BUGS
+The pin naming convention is peculiar at best.

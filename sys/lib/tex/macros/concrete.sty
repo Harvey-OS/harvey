@@ -1,0 +1,189 @@
+%% 
+%% This is file `concrete.sty' generated
+%% on <1990/6/30> with the docstrip utility (v1.1k). 
+%% 
+%% The original source file was `concrete.doc'.
+%% 
+%% 
+%% Copyright (C) 1989,1990 by Frank Mittelbach, Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy this file 
+%% to a file with a different name and then change the copy. 
+%% 
+%% You are allowed to distribute this file under the condition that it is 
+%% distributed together with all files mentioned in readme.mz3. If you 
+%% receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT ALLOWED 
+%% to take money for the distribution or use of either this file or a 
+%% changed version, except for a nominal charge for copying etc. 
+%% 
+%% Error Reports in case of UNCHANGED versions to 
+%% 
+%% F. Mittelbach 
+%% Eichenweg 29 
+%% D-6500 Mainz 1 
+%% Federal Republic of Germany 
+%% Bitnet: <PZF5HZ@DRUEDS2> 
+%% 
+%% or: 
+%% R. Sch\"opf 
+%% Inst. f. Theor. Physik 
+%% der Universit\"at Heidelberg 
+%% Philosophenweg 16 
+%% D-6900 Heidelberg 
+%% Federal Republic of Germany 
+%% Bitnet: <BK4@DHDURZ1> 
+%% 
+%% 
+ 
+\def\fileversion{v1.0f}
+\def\filedate{90/04/05}
+\def\docdate {90/01/28}
+ 
+%% File `concret.doc'.
+%% Copyright (C) 1989 Frank Mittelbach and Rainer Sch\"opf,
+%% all rights reserved.
+%% \CheckSum{90}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\typeout{Style Option: `concrete'
+  \fileversion\space <\filedate> (FMi and RmS)}
+\typeout{English Documentation
+  \@spaces\@spaces\space <\docdate> (FMi and RmS)}
+\@ifundefined{selectfont}
+     {\@latexerr{`concrete' style option could only be used
+                  with the new font selection scheme}\@eha
+      \endinput}{}
+\new@fontshape{ccr}{m}{n}{%
+   <5>ccr5%
+   <6>ccr6%
+   <7>ccr7%
+   <8>ccr8%
+   <9>ccr9%
+   <10>ccr10%
+   <11>ccr10 at10.95pt%
+   <12>ccr10 at12pt%
+   <14>ccr10 at14.4pt%
+   <17>ccr10 at17.28pt%
+   <20>ccr10 at20.74pt%
+   <25>ccr10 at24.88pt}{}
+\new@fontshape{ccr}{m}{it}{%
+   <5>1ccr5%
+   <6>1ccr6%
+   <7>1ccr7%
+   <8>1ccr8%
+   <9>1ccr9%
+   <10>ccti10%
+   <11>ccti10 at10.95pt%
+   <12>ccti10 at12pt%
+   <14>1ccr10 at14.4pt%
+   <17>1ccr10 at17.28pt%
+   <20>1ccr10 at20.74pt%
+   <25>1ccr10 at24.88pt}{}
+\new@fontshape{ccr}{m}{sc}{%
+   <5>1ccr5%
+   <6>1ccr6%
+   <7>1ccr7%
+   <8>1ccr8%
+   <9>1ccr9%
+   <10>cccsc10%
+   <11>cccsc10 at10.95pt%
+   <12>cccsc10 at12pt%
+   <14>1ccr10 at14.4pt%
+   <17>1ccr10 at17.28pt%
+   <20>1ccr10 at20.74pt%
+   <25>1ccr10 at24.88pt}{}
+\new@fontshape{ccr}{c}{sl}{%
+   <5>1ccr5%
+   <6>1ccr6%
+   <7>1ccr7%
+   <8>1ccr8%
+   <9>ccslc9%
+   <10>1ccr10%
+   <11>1ccr10 at10.95pt%
+   <12>1ccr10 at12pt%
+   <14>1ccr10 at14.4pt%
+   <17>1ccr10 at17.28pt%
+   <20>1ccr10 at20.74pt%
+   <25>1ccr10 at24.88pt}{}
+\extra@def{ccr}{}{}
+ 
+\new@fontshape{eur}{m}{n}{%
+   <5>eurm5%
+   <6>eurm6%
+   <7>eurm7%
+   <8>eurm8%
+   <9>eurm9%
+   <10>eurm10%
+   <11>eurm10 at10.95pt%
+   <12>eurm10 at12pt%
+   <14>eurm10 at14.4pt%
+   <17>eurm10 at17.28pt%
+   <20>eurm10 at20.74pt%
+   <25>eurm10 at24.88pt}{}
+\extra@def{eur}{\skewchar#1'177}{}
+\new@fontshape{euex}{m}{n}{%
+   <5>1euex7%
+   <6>1euex7%
+   <7>euex7%
+   <8>euex8%
+   <9>euex9%
+   <10>euex10%
+   <11>1euex10%
+   <12>1euex10%
+   <14>1euex10%
+   <17>1euex10%
+   <20>1euex10%
+   <25>1euex10}{}
+\extra@def{euex}{}{}
+\def\graffiti{\protect\pgraffiti}
+\def\pgraffiti{\family{ccr}\series{c}\shape{sl}\size{9}{10pt}\selectfont}
+\new@mathversion\mv@euler
+\define@mathgroup\mv@euler{0}
+                 {ccr}{m}{n}
+\define@mathgroup\mv@euler{1}
+                 {eur}{m}{n}
+\define@mathgroup\mv@euler{2}
+                 {cmsy}{m}{n}
+\new@mathgroup\euex@group
+\define@mathgroup\mv@euler\euex@group
+                 {euex}{m}{n}
+\mathcode`\0="7130
+\mathcode`\1="7131
+\mathcode`\2="7132
+\mathcode`\3="7133
+\mathcode`\4="7134
+\mathcode`\5="7135
+\mathcode`\6="7136
+\mathcode`\7="7137
+\mathcode`\8="7138
+\mathcode`\9="7139
+\edef\@tempa{\hexnumber@\euex@group}
+\mathchardef\intop="1\@tempa 52
+\mathchardef\ointop="1\@tempa 48
+\mathchardef\sum="1\@tempa 50
+\mathchardef\prod="1\@tempa 51
+\def\@makefnmark{\raise 1ex\hbox{\scriptsize\@thefnmark}}
+\mathversion{euler}
+ 
+\endinput
+%% 
+%% End of file `concrete.sty'.

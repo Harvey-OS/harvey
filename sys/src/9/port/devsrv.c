@@ -165,7 +165,7 @@ srvremove(Chan *c)
 		if(sp->path == c->qid.path)
 			break;
 
-		l = &sp->link;
+		l = &srv->link;
 	}
 	if(sp == 0)
 		error(Enonexist);

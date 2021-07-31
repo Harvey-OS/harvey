@@ -494,32 +494,30 @@ eval(Node *n, int g)
 int
 vlog(Node *n)
 {
-	int s, i;
-	ulong m, v;
+	ulong v;
+	int i, l;
 
 	if(n->op != OCONST)
 		goto bad;
-	if(typefd[n->type->etype])
+	if(!typechlp[n->type->etype])
 		goto bad;
-
-	v = n->vconst;
-
-	s = 0;
-	m = MASK(64);
-	for(i=32; i; i>>=1) {
-		m >>= i;
-		if(!(v & m)) {
-			v >>= i;
-			s += i;
+	i = 0;
+	l = 0;
+	for(v = n->offset; v; v >>= 1) {
+		i++;
+		if(v & 1) {
+			if(l)
+				goto bad;
+			l = i;
 		}
 	}
-	if(v == 1)
-		return s;
+	return l-1;
 
 bad:
 	return -1;
 }
 
+#include	<bio.h>
 void	outhist(Biobuf*);
 void	zname(Biobuf*, char*, int, int);
 void	zaddr(Biobuf*, Adr*, int);
@@ -728,25 +726,19 @@ zaddr(Biobuf *b, Adr *a, int s)
 		Bputc(b, i>>8);
 }
 
-
-
 void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	char *p, *q, *op;
+	char name[NNAME], *p, *q;
 	Prog pg;
 	int n;
 
 	pg = zprog;
 	pg.as = AHISTORY;
+	name[0] = '<';
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
-		op = 0;
-		if(p && p[0] != '/' && h->offset == 0 && pathname && pathname[0] == '/') {
-			op = p;
-			p = pathname;
-		}
 		while(p) {
 			q = utfrune(p, '/');
 			if(q) {
@@ -758,20 +750,14 @@ outhist(Biobuf *b)
 				n = strlen(p);
 				q = 0;
 			}
+			if(n >= NNAME-1)
+				n = NNAME-2;
 			if(n) {
-				Bputc(b, ANAME);
-				Bputc(b, ANAME>>8);
-				Bputc(b, D_FILE);
-				Bputc(b, 1);
-				Bputc(b, '<');
-				Bwrite(b, p, n);
-				Bputc(b, 0);
+				memmove(name+1, p, n);
+				name[n+1] = 0;
+				zname(b, name, D_FILE, 1);
 			}
 			p = q;
-			if(p == 0 && op) {
-				p = op;
-				op = 0;
-			}
 		}
 		pg.lineno = h->line;
 		pg.to.type = zprog.to.type;
@@ -822,7 +808,7 @@ nodalloc(Type *t, int g, Node *n)
 	n->complex = 0;
 	g = regaddr(g);
 	n->reg = g | I_INDIR;
-	n->xoffset = 0;
+	n->offset = 0;
 	return g;
 }
 
@@ -831,9 +817,9 @@ mulcon(Node *n, Node *c, int result, Node *nn)
 {
 	long v;
 
-	if(typefd[n->type->etype])
+	if(typefdv[n->type->etype])
 		return 0;
-	v = c->vconst;
+	v = c->offset;
 	if(mulcon1(n, v, result, nn))
 		return 1;
 	return 0;
@@ -844,7 +830,7 @@ shlcon(Node *n, Node *c, int result, Node *nn)
 {
 	long v;
 
-	v = 1L << c->vconst;
+	v = 1L << c->offset;
 	return mulcon1(n, v, result, nn);
 }
 
@@ -955,22 +941,13 @@ sextern(Sym *s, Node *a, long o, long w)
 		gpseudo(ADATA, s, D_SCONST, 0L);
 		p->from.offset += o+e;
 		p->from.displace = lw;
-		memmove(p->to.sval, a->cstring+e, lw);
+		memmove(p->to.sval, a->us+e, lw);
 	}
 }
 
 void
 gextern(Sym *s, Node *a, long o, long w)
 {
-	if(a->op == OCONST && typev[a->type->etype]) {
-		gpseudo(ADATA, s, D_CONST, (long)(a->vconst>>32));
-		p->from.offset += o;
-		p->from.displace = 4;
-		gpseudo(ADATA, s, D_CONST, (long)(a->vconst));
-		p->from.offset += o + 4;
-		p->from.displace = 4;
-		return;
-	}
 	gpseudo(ADATA, s, D_TREE, (long)a);
 	p->from.offset += o;
 	p->from.displace = w;
@@ -995,23 +972,37 @@ xOconv(int a)
 	return xonames[a-OEND-1];
 }
 
+long
+castto(long c, int f)
+{
+
+	switch(f) {
+	case TCHAR:
+		c &= 0xff;
+		if(c & 0x80)
+			c |= ~0xff;
+		break;
+
+	case TUCHAR:
+		c &= 0xff;
+		break;
+
+	case TSHORT:
+		c &= 0xffff;
+		if(c & 0x8000)
+			c |= ~0xffff;
+		break;
+
+	case TUSHORT:
+		c &= 0xffff;
+		break;
+	}
+	return c;
+}
+
 int
 endian(int w)
 {
 
 	return tint->width - w;
-}
-
-int
-passbypointer(int et)
-{
-
-	return typesuv[et];
-}
-
-int
-argalign(long typewidth, long offset, int offsp)
-{
-	USED(typewidth,offset,offsp);
-	return 0;
 }

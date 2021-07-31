@@ -1,0 +1,414 @@
+.TH FIZZ_FORMAT 10.6
+.de Cs
+.sp
+.ne 3
+.nf
+.ft L
+..
+.de Ce
+.fi
+.ft R
+..
+.SH NAME
+fizz \- physical layout input language
+.SH DESCRIPTION
+.I Fizz
+is a suite of tools to build circuit boards from a circuit description.
+This section describes the input format for the various
+.I fizz
+commands.
+Most of the UCDS tools produce files in
+.IR cdl (10.6)
+format;
+these need to be converted into
+.I fizz
+format by
+.IR cvt .
+.SS Concepts
+Types, signals and chips are identified by name.
+Pins are identified by name and number.
+A
+.I name
+is a string of letters,
+digits or any of the characters
+.BR +-.$/:<=>[]\(ul .
+Sometimes, the first character
+may not be a digit.
+A name may not be longer than 137 characters.
+.PP
+The physical design
+consists of a
+.I board
+containing
+.IR pin-holes .
+The description details the positions of the pin-holes and the
+position and orientation of the chips.
+I/O connectors may be considered as chips with unmoveable packages.
+.PP
+The coordinate system for the board has
+.I x
+increasing to the right and
+.I y
+increasing upwards.
+The origin is at the lower left corner;
+no coordinate should ever be negative.
+The circuit board and components mounted on it are described
+as rectangles.
+They are positioned so that their sides are parallel to one or other
+of the axes.
+Measurements are integers measuring 0.001 inch.
+Coordinates are expressed as pairs of integers separated by
+.B /
+with
+the
+.I x
+coordinate appearing first.
+All rectangular regions are half open;
+the upper and right edges are outside the rectangle.
+.SS Syntax
+The input is a sequence of items.
+An item consists of a item-type followed by a number of fields.
+Multiple fields are indicated by a trailing
+.B {
+on the keyword line and terminated by a line containing a single
+.BR } .
+Fields are a keyword followed by the value for that field.
+Certain values are spread over multiple lines between
+.B {}
+as described above.
+.PP
+It is sometimes necessary to provide a list of
+coordinates.
+Invariably each coordinate is associated with a numbered object
+(say, a pin number).
+A one coordinate list consists of the index
+number followed by its coordinates as in
+.RS
+.PP
+.B
+28 1700/2500
+.RE
+A series of equally spaced
+and consecutively numbered coordinates can be described by
+giving the first and last coordinates and separating the
+two with
+.B -
+as in
+.RS
+.PP
+.B
+28 1700/2500 - 30 1900/2000
+.RE
+Coordinate 29 is 1800/2250.
+If the index numbers are equally spaced but not consecutive
+a step size can follow the
+.B -
+as in
+.RS
+.PP
+.B
+12 2000/7000 -9 147 2000/1000
+.RE
+This describes coordinates numbered 12, 21, 30, and so on.
+If a letter follows the coordinate specifications,
+it specifies the drill to be used for the pinholes.
+The known drill types are
+.TS
+center, tab(/);
+cFCW1 n cFCW1 n cFCW1 n cFCW1 n cFCW1 n cFCW1 n cFCW1 n.
+A/33/B/34/C/39/D/42/E/50/F/62/G/106
+H/107/I/108/J/20/K/110/L/111/M/112/N/113
+O/114/P/115/Q/116/R/117/S/118/T/119/U/100
+V/20/W/122/X/123/Y/124/Z/125
+.TE
+.SS Items
+In the following descriptions,
+each item has a sample input defining all possible fields.
+Some fields are optional; mandatory fields are marked by
+.B **
+which is
+.I not
+part of the actual input.
+.Cs
+Board{
+	name board_name
+	align 1600/2000 9600/1700 1400/7100 9600/6600
+	layer signalside 1
+	plane 1 + VCC 2000 2000 8000 8000
+	datums 100/100 135 100/8000 45 10000/100 45
+}
+.Ce
+The board name is set to
+.I board_name .
+The alignment points are used by
+.B "wrap -s"
+to align the board in Joe's semi-automatic wire wrapping machine.
+All four alignment points must be given.
+The
+.I layer
+field associates a layer number with a name to be used in XY artwork output.
+The layer numbers
+.B 0
+and
+.B 1
+are the two outside layers.
+The
+.B plane
+fields represent signal planes for circuit boards.
+The format is
+.I "layer sense signame minx miny maxx maxy" .
+.I Sense
+is a character
+meaning add
+.RB ( + )
+or subtract
+.RB ( - )
+the rectangle for the signal
+.I signame .
+The planes can be viewed with
+.IR place (10.1).
+Note that multiple signals can be present in one layer.
+The
+.I datums
+field sets the positions and orientations of the three datums
+(alignment marks for artwork).
+The orientation is the angle formed by the two squares in the datum.
+.Cs
+Package{
+**	name DIP20
+**	br -600 0 9600 3000
+**	pins 1 20{
+		1 0/0 - 10 9000/0 V
+		11 9000/3000 - 20 0/3000 V
+	}
+	drills 1 2{
+		1 500/1500 - 2 8500/1500 V
+	}
+	keepout 0 - VCC -1000 -4000 10000 3400
+	plane 0 - VCC -1000 -4000 10000 3400
+	plane 0 + VDD -500 -3500 9500 2900
+	xymask clump {
+		arbitrary XY mask stuff
+	}
+}
+.Ce
+Each package definition may have an arbitrary origin.
+The bounding rectangle
+.B br
+is used for placement;
+the values are ll.x, ll.y, ur.x, ur.y.
+The
+.B drills
+field is for mounting bolts etc;
+it does not affect placement.
+Both the
+.B pins
+and
+.B drills
+fields take a minimum and maximum pin number.
+Placement of a package involves both its pins and rectangle.
+The rectangle must not intersect any other placed package,
+and there must be a pin-hole for each of the pins.
+The
+.B keepout
+field looks like a plane definition (the sense is always set to
+.BR - ).
+Multiwire wiring will not enter the specified plane.
+The
+.B plane
+fields are similar to those in
+.B Board
+but are instantiated for every chip using this package.
+The
+.B xymask
+field denotes the clump name
+.RI ( clump )
+for this package and some optional XY mask input
+(used by
+.IR artwork ).
+The XY mask input has leading tabs deleted, not white space, as blanks
+are significant to XY mask.
+.Cs
+Chip{
+**	name miscinv
+**	type 74F240
+}
+.Ce
+This simply specifies the chip type.
+.Cs
+Type{
+**	name 74F240
+**	pkg DIP20
+**	family F
+	tt ii3i3i3i3gi3i3i3i3iv
+}
+.Ce
+The
+.B tt
+field must have a letter for every pin of the package.
+Any pin whose letter is one of
+.B gvwxyz
+or
+.B GVWXYZ
+will be automatically attached to special signal 0,1,2,3,4,5 respectively.
+Other letters are ignored (they are used by other tools).
+.Cs
+Net port 4{
+	select 8
+	miscinv 14
+	syncff 13
+	ackff 1
+}
+.Ce
+Signal nets have the net name and number of points on the item line.
+All other lines are simple
+.I chipname , pinnumber
+pairs.
+Net descriptions are normally produced by
+.IR cvt .
+.Cs
+Route{
+**	name port
+**	alg hand
+	route{
+		ackff 1
+		miscinv 14
+		select 8
+		syncff 13
+	}
+	layout{
+		100/2000 A
+		3450/2000 Z
+		3400/2000 A
+		3400/1000
+	}
+}
+.Ce
+This describes the routing for net
+.I name .
+The algorithm must be one of
+.B tsp
+(normal travelling salesman),
+.B tspe
+(travelling salesman specifying one end),
+.B mst
+(minimal spanning tree),
+.B mst3
+(minimal spanning tree of degree three),
+.B default
+(whatever is specified in the
+.I wrap
+command)
+and
+.B hand
+(the exact order is given).
+The routing is a list of
+.IR chipname , pinnumber
+pairs.
+The layout is a list of pin positions.
+The layout uses the drill field to specify both the width of the trace
+and as a control.
+The layout is actually a sequence of lists of connected segments; a pin with a drill of
+.B Z
+is the last pin in a particular list.
+The trace width for a list is taken from the drill of the first pin for that list.
+The above example describes a T-shaped layout.
+.Cs
+Positions{
+	select 3200/2300 0 0
+	miscinv 4900/1700 0 0
+	syncff 2400/2700 0 0
+}
+.Ce
+Specify the position data for each chip.
+Each line has the form
+.I "chipname coord orientation flags" .
+The orientation is the number of right angles clockwise to
+rotate the package.
+The following bits in
+.IR flags ,
+which should be initialised to zero,
+have a defined meaning:
+.RS
+.PD 0
+.TP
+.B 4
+this chip is unplaced
+.TP
+.B 8
+the bounding rectangle is ignored in placement
+.TP
+.B 16
+the pinholes are ignored in placement.
+.TP
+.B 32
+the names are ignored in the silk screen output.
+.RE
+.PD
+.Cs
+Pinholes{
+	1400/6900 3200 300 10 V
+	6650/6900 3200 300 10 V
+	1600/1700 8100 1000 10/30 V
+	1600/2700 8100 1000 10/30 V
+}
+.Ce
+Each pinhole specification has the form
+.I "coord lx ly spacing diam"
+which defines a rectangular array of pin-holes with diameter of
+.IR diam .
+The lower left corner of the rectangle is
+.IR coord ,
+and the width and height are
+.I lx,ly
+respectively.
+The pins are placed
+.I spacing
+apart.
+If
+.I spacing
+is of the form
+.IR sx / sy ,
+the spacings in the
+.I x
+and
+.I y
+directions are set independently.
+.Cs
+Vsig 0{
+	name GND
+	pins 96{
+		1 1800/2100 - 16 9300/2100 A
+		17 1800/3100 - 32 9300/3100 A
+		33 1800/4100 - 48 9300/4100 A
+		49 1800/5100 - 64 9300/5100 A
+		65 1800/6100 - 80 9300/6100 A
+		81 1800/6700 - 96 9300/6700 A
+	}
+}
+.Ce
+This defines the special signals.
+The special signal number follows
+.BR Vsig .
+Pins are numbered from 1;
+the number of pins is given in the
+.B pins
+field line.
+A warning is given if any pins are not specified.
+.Cs
+Wires {
+	level COMP
+	net iod15  {
+		8100/8500
+		8100/8550
+		8000/8650
+	}
+.Ce
+Wires specify the inflection points of a signal net.
+Each instance of a net creates a new
+.IR wire .
+The level can also be specified, although it is ignored by the
+.I fizz
+tools.
+.SH SEE ALSO
+.IR fizz (10.1)

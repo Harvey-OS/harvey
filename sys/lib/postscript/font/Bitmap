@@ -1,0 +1,158 @@
+%!PS-AdobeFont-1.0: Bitmap
+%%CreationDate: Tue Mar 24 13:30:19 EST 1992
+%%Creator: Paul Glick, pg@research.att.com
+/Font 10 dict def
+Font begin
+
+	/FontMatrix [0.072 0 0 0.072 0 0] def
+	/FontType 3 def
+	/FontBBox [0 0 7 1] def
+	/Encoding 256 array def
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/space		/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/ampersand	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/period		/.notdef
+	/zero		/one		/two		/three
+	/four		/five		/six		/seven
+	/eight		/nine		/.notdef	/.notdef		
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/A		/B		/C
+	/D		/E		/F		/G
+	/H		/I		/J		/K
+	/L		/M		/N		/O
+	/P		/Q		/R		/S
+	/T		/U		/V		/W
+	/X		/Y		/Z		/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/a		/b		/c
+	/d		/e		/f		/g
+	/h		/i		/j		/k
+	/l		/m		/n		/o
+	/p		/q		/r		/s
+	/t		/u		/v		/w
+	/x		/y		/z		/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	/.notdef	/.notdef	/.notdef	/.notdef
+	Encoding astore pop
+	/CharData 66 dict def
+	CharData begin
+		/space <00> def
+		/a <80> def
+		/b <82> def
+		/c <84> def
+		/d <86> def
+		/e <88> def
+		/f <8A> def
+		/g <8C> def
+		/h <8E> def
+		/i <90> def
+		/j <92> def
+		/k <94> def
+		/l <96> def
+		/m <98> def
+		/n <9A> def
+		/o <9C> def
+		/p <9E> def
+		/q <A0> def
+		/r <A2> def
+		/s <A4> def
+		/t <A6> def
+		/u <A8> def
+		/v <AA> def
+		/w <AC> def
+		/x <AE> def
+		/y <B0> def
+		/z <B2> def
+		/A <B4> def
+		/B <B6> def
+		/C <B8> def
+		/D <BA> def
+		/E <BC> def
+		/F <BE> def
+		/G <C0> def
+		/H <C2> def
+		/I <C4> def
+		/J <C6> def
+		/K <C8> def
+		/L <CA> def
+		/M <CC> def
+		/N <CE> def
+		/O <D0> def
+		/P <D2> def
+		/Q <D4> def
+		/R <D6> def
+		/S <D8> def
+		/T <DA> def
+		/U <DC> def
+		/V <DE> def
+		/W <E0> def
+		/X <E2> def
+		/Y <E4> def
+		/Z <E6> def
+		/ampersand <E8> def
+		/one <EA> def
+		/two <EC> def
+		/three <EE> def
+		/four <F0> def
+		/five <F2> def
+		/six <F4> def
+		/seven <F6> def
+		/eight <F8> def
+		/nine <FA> def
+		/zero <FC> def
+		/period <FE> def
+		/.notdef <00> def
+	end
+
+	/BuildChar {
+		/char exch def
+		/fontdir exch def
+%		7 0 0 0 1 7 setcachedevice
+		7 0 setcharwidth
+		7 1 scale
+		7 1 true [ 7 0 0 -1 0 1 ] {
+			fontdir begin Encoding char get CharData exch get end
+		} imagemask
+	} def
+	/UniqueID 999 def
+end
+/Bitmap Font definefont pop

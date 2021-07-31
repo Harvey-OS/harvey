@@ -1,0 +1,319 @@
+\def\tmaddonversiondate{1991-Jul-03}
+\typeout{Document Style `TMADDON' (Misc TM addon macros).  Release \tmaddonversiondate}
+%
+%
+% Changes:  (by tla)
+%	89-Feb-01	add tmnotice
+%	89-Feb-27	change draftmark to add date/time option;
+%			  contributed by Dennis DeBruler
+%	89-Feb-28	added \hhmm and \hhmm*
+%	89-Aug-04	added simpleheadandfoot pagestyle
+%	89-Aug-24	added varhline (var width hlines)
+%       89-Dec-13       moved \@cite redef here from tm.sty
+%       90-May-30       fixed markdraft to add bottommark even if
+%                         propietary level not set
+%       90-Jul-05       added inlinelist environment
+%       90-Aug-27       changed UNIX tm notice
+%       91-Feb-25       corrected spelling of propr notice USL
+%       91-May-02       added numenum to force arabic numbered lists
+%       91-May-17       removed right indent from the added enumerations
+%       91-May-28       added symbol for cents.
+%       91-Jun-05       added typed caption to override float type
+%                        this is for generated TeX where type may not
+%                        be known when float begun.
+%       91-Jul-02       changed the implementation of the enums to use
+%                        the standard enum levels and simply override
+%                        the label defs
+%
+% various extensions to LaTeX used by tm and related styles
+%
+% raise citations like footnotes
+%
+\newif\ifraisedcite%raises citations [1] above line 
+\def\raisedcitations{\raisedcitetrue}
+\def\noraisedcitations{\raisedcitefalse}
+\raisedcitations% default
+\def\@cite#1#2{%
+   \ifraisedcite\raisebox{3pt}{\footnotesize [{#1\if@tempswa , #2\fi}]}
+   \else [{#1\if@tempswa , #2\fi}]\fi}
+%
+% Additional enumeration styles: Roman roman Alph alph num(arabic)
+%
+%\newcounter{Romancount}
+%\newcounter{romancount}
+%\newcounter{Alphcount}
+\newcounter{alphcount}
+%\newcounter{numcount}
+%\newenvironment{Romanenum}{\begin{list}%
+%   {\Roman{Romancount}.}{\usecounter{Romancount}
+%   %\setlength{\rightmargin}{\leftmargin}
+%   }}{\end{list}}
+%\newenvironment{romanenum}{\begin{list}%
+%   {\roman{romancount}.}{\usecounter{romancount}
+%   %\setlength{\rightmargin}{\leftmargin}
+%   }}{\end{list}}
+%\newenvironment{Alphenum}{\begin{list}%
+%   {\Alph{Alphcount}.}{\usecounter{Alphcount}
+%   %\setlength{\rightmargin}{\leftmargin}
+%   }}{\end{list}}
+%\newenvironment{alphenum}{\begin{list}%
+%   {\alph{alphcount}.}{\usecounter{alphcount}
+%   %\setlength{\rightmargin}{\leftmargin}
+%   }}{\end{list}}
+%\newenvironment{numenum}{\begin{list}%
+%   {\arabic{numcount}.}{\usecounter{numcount}
+%   %\setlength{\rightmargin}{\leftmargin}
+%   }}{\end{list}}
+%
+\newcount\nextenumdepth
+%
+\newenvironment{Romanenum}{%
+  \nextenumdepth\@enumdepth
+  \advance\nextenumdepth by1
+  \@namedef{labelenum\romannumeral\the\nextenumdepth}%
+    {\Roman{enum\romannumeral\the\nextenumdepth}.}%
+  \@namedef{theenum\romannumeral\the\nextenumdepth}%
+   {\Roman{enum\romannumeral\the\nextenumdepth}}%
+  \begin{enumerate}%
+  }{\end{enumerate}}
+\newenvironment{romanenum}{%
+  \nextenumdepth\@enumdepth
+  \advance\nextenumdepth by1
+  \@namedef{labelenum\romannumeral\the\nextenumdepth}%
+    {\roman{enum\romannumeral\the\nextenumdepth}.}%
+  \@namedef{theenum\romannumeral\the\nextenumdepth}%
+    {\roman{enum\romannumeral\the\nextenumdepth}}%
+  \begin{enumerate}%
+  }{\end{enumerate}}
+\newenvironment{Alphenum}{%
+  \nextenumdepth\@enumdepth
+  \advance\nextenumdepth by1
+  \@namedef{labelenum\romannumeral\the\nextenumdepth}%
+    {\Alph{enum\romannumeral\the\nextenumdepth}.}%
+  \@namedef{theenum\romannumeral\the\nextenumdepth}%
+    {\Alph{enum\romannumeral\the\nextenumdepth}}%
+  \begin{enumerate}%
+  }{\end{enumerate}}
+\newenvironment{alphenum}{%
+  \nextenumdepth\@enumdepth
+  \advance\nextenumdepth by1
+  \@namedef{labelenum\romannumeral\the\nextenumdepth}%
+    {\alph{enum\romannumeral\the\nextenumdepth}.}%
+  \@namedef{theenum\romannumeral\the\nextenumdepth}%
+    {\alph{enum\romannumeral\the\nextenumdepth}}%
+  \begin{enumerate}%
+  }{\end{enumerate}}
+\newenvironment{numenum}{%
+  \nextenumdepth\@enumdepth
+  \advance\nextenumdepth by1
+  \@namedef{labelenum\romannumeral\the\nextenumdepth}%
+    {\arabic{enum\romannumeral\the\nextenumdepth}.}%
+  \@namedef{theenum\romannumeral\the\nextenumdepth}%
+    {\arabic{enum\romannumeral\the\nextenumdepth}}%
+  \begin{enumerate}%
+  }{\end{enumerate}}
+%
+% new macros
+%
+%
+% Redefine \begin{document} to allow additional initalizations
+%\let\orgdocument\document
+%\def\document{%
+%  \orgdocument%
+%  }
+%
+\def\bottommark{}
+\def\markbottom#1{\def\bottommark{#1}}
+ % draft mark macros
+\newsavebox{\draftmarkL}
+\newsavebox{\draftmarkR}
+\sbox{\draftmarkL}{\vtop{}}
+\sbox{\draftmarkR}{\vtop{}}
+
+\newcount\hh	% TIME OF DAY	by Nelson Beebe in texhax.86.002
+\newcount\mm
+\def\hhmm{\mm=\time%
+\hh=\time%
+\divide\hh by 60%
+\divide\mm by 60%
+\multiply\mm by 60%
+\mm=-\mm%
+\advance\mm by \time%
+\@ifstar{\number\hh:\ifnum\mm<10{}0\fi\number\mm}%
+   {\ifnum\hh>12\relax\advance\hh by-12\fi\relax%
+         \number\hh:\ifnum\mm<10{}0\fi\number\mm
+   }}
+\def\markdraft
+ {\@ifstar
+ {\sbox{\draftmarkL}%
+   {\vbox to 48pt
+     {\baselineskip 12pt%
+      \rlap{\it DRAFT}
+      \rlap{\it \today}
+      \rlap{\it \hhmm*}
+      \vfil
+     }%
+   }%
+  \sbox{\draftmarkR}%
+   {\vbox to 48pt
+     {\baselineskip 12pt%
+        \llap{\it DRAFT}
+        \llap{\it \today}
+        \llap{\it \hhmm*}
+        \vfil
+     }%
+   }%
+  \makeproprietarymark{}{}{}{}
+ }
+ {\sbox{\draftmarkL}%
+   {\vbox to 48pt
+     {\baselineskip 12pt%
+      \rlap{\it DRAFT}
+      \vfil
+     }%
+   }%
+  \sbox{\draftmarkR}%
+   {\vbox to 48pt
+     {\baselineskip 12pt%
+        \llap{\it DRAFT}
+        \vfil
+     }%
+   }%
+ \makeproprietarymark{}{}{}{}}}
+%
+% new list style called labeled -- similar to itemize but the label is
+% set left justified in the label region and it takes the leftmargin
+% as a parameter.  For example:
+% 
+% label        The item.  If it is continued onto a second line, the
+%              continuation is indented as the first to leftmargin.
+%
+\def\labeledlabel#1{#1\hfil}
+\def\labeled#1{\list{}{\leftmargin#1
+\labelwidth\leftmargin\advance\labelwidth-\labelsep 
+\let\makelabel\labeledlabel}}
+\let\endlabeled=\endlist
+%
+% new page styles like myhead but with a centered foot \bottommark
+%
+\def\tm@privatemark{\if V\proprietarylevel{\hbox{}\hfill\bf PRIVATE\hfill}\else{}\fi}
+\def\ps@simpleheadandfoot{\let\@mkboth\@gobbletwo
+\def\@oddhead{\hbox{}\if V\proprietarylevel{\hfill\bf PRIVATE\hfill}%
+  \else{}\hfil\fi%
+- \rm\thepage\ -\hfil}\def\@oddfoot{\hbox{}\hfill \bottommark\hfill}%
+\def\@evenhead{\hbox{}\hfil - \rm \thepage\ -\if
+V\proprietarylevel{\hfill\bf
+  PRIVATE\hfill}\else{}\hfil\hbox{}\fi}
+\def\@evenfoot{\hbox{}\hfill \bottommark\hfill}%
+\def\sectionmark##1{}\def\subsectionmark##1{}}
+%
+\def\ps@headandfoot{\let\@mkboth\@gobbletwo
+\def\@oddhead{\hbox{}\if V\proprietarylevel{\hfill\bf PRIVATE\hfill}%
+  \else\sl\rightmark \hfil\fi%
+\rm\thepage}\def\@oddfoot{\hbox{}\hfill \bottommark\hfill}%
+\def\@evenhead{\rm \thepage\if V\proprietarylevel{\hfill\bf PRIVATE\hfill}%
+  \else\hfil\sl\leftmark\hbox{}\fi}
+\def\@evenfoot{\hbox{}\hfill \bottommark\hfill}%
+\def\sectionmark##1{}\def\subsectionmark##1{}}
+%
+% new page style without headers but with a centered foot \bottommark
+%
+\def\ps@onlyfoot{\let\@mkboth\@gobbletwo
+\def\@oddhead{\tm@privatemark}\def\@oddfoot{\hbox{}\hfill \bottommark\hfill}%
+\def\@evenhead{\tm@privatemark}\def\@evenfoot{\hbox{}\hfill \bottommark\hfill}%
+\def\sectionmark##1{}\def\subsectionmark##1{}}
+%
+\def\ps@myheadings{\let\@mkboth\@gobbletwo
+\def\@oddhead{\hbox{}\sl\rightmark \hfil
+\rm\thepage}\def\@oddfoot{}\def\@evenhead{\rm \thepage\hfil\sl\leftmark\hbox
+{}}\def\@evenfoot{}\def\sectionmark##1{}\def\subsectionmark##1{}}
+
+%
+% AT&T proprietary markings
+%
+\newsavebox{\tm@propmark}
+\newsavebox{\tm@bottommark}
+\def\makeproprietarymark#1#2#3#4{%
+  \sbox{\tm@propmark}{\vbox{\baselineskip 12pt%
+    \hbox to 3.5in{\hfil #1\hfil}%
+    \hbox to 3.5in{\hfil #2\hfil}%
+    \hbox to 3.5in{\hfil #3\hfil}%
+    \hbox to 3.5in{\hfil #4\hfil}}}%
+  \sbox{\tm@bottommark}{%
+     \hbox to \textwidth{\usebox{\draftmarkL}\hfil\usebox{\tm@propmark}%
+       \hfil\usebox{\draftmarkR}}}%
+  \def\bottommark{\usebox{\tm@bottommark}}%
+  \footskip60pt}
+\def\proprietarylevel{N}
+\def\markprivate{\def\proprietarylevel{V}%
+  \makeproprietarymark{}
+  {{\bf PRIVATE}}{}{}}
+\def\markproprietary{\def\proprietarylevel{P}%
+  \makeproprietarymark{{\it AT\&T -- PROPRIETARY}}
+  {Use pursuant to Company Instructions}{}{}}
+\def\markrestricted{\def\proprietarylevel{R}%
+  \makeproprietarymark%
+    {{\it AT\&T -- PROPRIETARY (RESTRICTED)}}%
+    {Solely for authorized persons}%
+    {having a need to know pursuant}%
+    {to Company Instructions}
+  \itdsrestrict}
+\def\markregistered{\def\proprietarylevel{G}%
+  \makeproprietarymark%
+    {{\it AT\&T -- PROPRIETARY (REGISTERED)}}%
+    {Solely for authorized persons}%
+    {having a need to know and}%
+    {subject to cover sheet instructions}
+    \itdsrestrict}
+\def\marknone{\def\proprietarylevel{N}%
+  \makeproprietarymark{}{}{}{}}
+%
+\def\markedfootnote#1#2{{\def\thefootnote{#1}\footnote[1]{#2}}}
+\def\tm@no{no}
+\def\unixfootnoteprinted{no}
+\def\UNIX{UNIX%
+  \ifx\unixfootnoteprinted\tm@no%
+  \newbox\regbox\setbox\regbox=\hbox{\@regmark}%
+  \markedfootnote{\copy\regbox}{UNIX is a registered trademark of
+    UNIX System Laboratories, Inc.}%
+    \def\unixfootnoteprinted{yes}%
+  \fi}%
+\def\boxit#1{\vbox{\hrule\hbox{\vrule\kern3pt
+      \vbox{\kern3pt\hbox{#1}\kern3pt}\kern3pt\vrule}\hrule}}
+\def\@regmark{{\ooalign
+    {\hfil\raise.07ex\hbox{\tiny R}\hfil\crcr{\scriptsize\mathhexbox20D}}}}
+\def\regmark{\raise1ex\hbox{\@regmark}}
+\newbox\regbox\setbox\regbox=\hbox{\@regmark}%
+\def\regnotice#1{%
+    \markedfootnote{\copy\regbox}{#1}}%
+\def\tm{\raise5pt\hbox{{\rm\tiny TM}}}
+\newbox\tmbox\setbox\tmbox=\hbox{\tm}%
+\def\tmnotice#1{%
+    \newbox\tmbox\setbox\tmbox=\hbox{{\rm\tiny TM}}%
+    \markedfootnote{\copy\tmbox}{#1}}%
+\def\cents{\hbox{\rm\rlap/c}}
+%
+% for tabular environment -- allows variable hline width
+% \hline will not tolerate a change to \arrayrulewidth just before it
+\def\varhline#1{\noalign{\ifnum0=`}\fi\hrule \@height #1 \futurelet
+   \@tempa\@xhline}
+%
+% ``list'' environment that does NOT use a display but puts list in
+% line in the paragraph. CANNOT BE NESTED
+%
+%  Currently leaves space before `;' (bad) and after last item though
+%  one often wants to end sentence there and so add a `.' without a space
+%  How can I keep from adding space at end of item???
+%
+\newcount\@inlineitemnum\@inlineitemnum=0
+\def\inlinelist{\gdef\@newinlinelist{Y}%
+   \begingroup\def\item{\if Y\@newinlinelist{\gdef\@newinlinelist{N}}%
+   \else{}\fi% inter item punctuation such as `;' could go here but it
+             % is difficult to supress the space before it; one must
+             % end each item with a %, and one may not want the same
+             % punctuation for each list so let's let the user add own
+             % punctuation at end of each item. Logic left in to show
+             % how punctuation can be added.
+   \advance\@inlineitemnum by1 (\the\@inlineitemnum )\ }}
+\def\endinlinelist{\endgroup}
+\def\typedcaption#1{\refstepcounter{#1} \@dblarg{\@caption{#1}}}

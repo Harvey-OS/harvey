@@ -1,0 +1,153 @@
+.TH MK9660 8
+.SH NAME
+mk9660, pump \- create and write ISO-9660 CD-ROM images
+.SH SYNOPSIS
+.B disk/mk9660
+.RB [ -c  ]
+.RB [ -e  ]
+.RB [ -a
+.IR absfile ]
+.RB [ -b
+.IR bibfile ]
+.RB [ -n
+.IR notfile ]
+.RB [ -o
+.IR ofile ]
+.I ifile
+.PP
+.B disk/pump
+.RB [ -t
+.IR target ]
+.RB [ -m
+.IR meg ]
+.RB [ -n
+.IR nproc ]
+.RI [ ifile ]
+.SH DESCRIPTION
+.I Mk9660
+reads the file system archive
+.I ifile
+as prepared by
+.IR mkfs (8)
+and produces a file system on
+.I ofile
+.RB ( cd-rom
+by default)
+in ISO-9660 format.
+.PP
+The options to
+.I mk9660
+are:
+.TP
+.B c
+Convert all file names in the file system
+so that they conform to 9660 standards.
+(Roughly this is eight or fewer single case
+alphanumerics followed by an optional
+period and three or fewer single case alphanumerics.)
+File names that conform are converted from
+lower case letters in the input
+filesystem to upper case
+in the output file system.
+Files that do not conform 
+are renamed to
+.BI F number
+and directories are renamed
+.BI D number.
+A file named
+.B _CONFORM.MAP
+is created in the root of the
+output file system with old-name
+new-name pairs of all converted files.
+.TP
+.B e
+Add a
+.I system-use
+field to every directory record that
+contains the name, uid, gid and mode
+of the file.
+With or without this extension,
+directory records conform to the 9660
+standard and should be able to be read
+on other systems.
+.TP
+.B a
+Places the named file to
+the abstract field of the primary volume descriptor.
+The file must be in the root directory.
+.TP
+.B b
+Places the named file in
+the bibliographic field of the primary volume descriptor.
+The file must be in the root directory.
+.TP
+.B n
+Places the named file in
+the copyright field of the primary volume descriptor.
+The file must be in the root directory.
+.PP
+All dates in the output file system are set to
+the date the command was executed.
+The volume identifier field of the primary
+volume descriptor is set to the last
+component of
+.IR ifile .
+The system identifier field of the primary
+volume descriptor is set to
+.BR "PLAN 9" ,
+and should be keyed to the interpretation
+of the system-use fields of the directory
+records.
+.PP
+.I Pump
+reads
+.I ifile
+.RB ( cd-rom
+by default)
+and issues the SCSI commands
+to write a Phillips CDD 521
+Compact Disk Recorder.
+The file is uninterpreted,
+but it can be a 9660 file system
+as produced by
+.IR mk9660 (8).
+The CD writer requires a sustained data rate of
+305,600 bytes/sec.
+To get this rate on an Ethernet from a file server,
+.I pump
+creates several processes that read ahead into shared
+buffers.
+Even so,
+the file system should have fast disks or
+multiple disks with interleaved overlapping seeks.
+The options to
+.I pump
+are:
+.TP
+.B t
+specifies the SCSI target
+(default 1)
+for the CD writer.
+.TP
+.B m
+specifies the total buffer space
+(default 10)
+in megabytes.
+.TP
+.B n
+specifies the number
+(default 3)
+of read-ahead processes.
+.SH BUGS
+The
+.I pump
+command does not correctly set up the SCSI bus.
+Use the
+.IR scuzz (8)
+command to
+.I open
+the desired SCSI target.
+.SH "SEE ALSO"
+.IR scsi (3),
+.IR mkfs (8),
+.IR scuzz (8).

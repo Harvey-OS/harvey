@@ -1,0 +1,1085 @@
+.lg 0
+.de X
+.ie '\\n(.z'' \\!x X \\$1 \\$2 \\$3
+.el \\!.X \\$1 \\$2 \\$3
+..
+.ds sd /usr/lib/tmac
+.\"	RT -  reset everything to normal state
+.de RT
+.if !\\n(1T .BG
+.ce 0
+.if !\\n(IK .if !\\n(IF .if !\\n(IX .if !\\n(BE .di
+.ul 0
+.if \\n(QP \{\
+.	ll +\\n(QIu
+.	in -\\n(QIu
+.	nr QP -1\}
+.if \\n(NX<=1 .if \\n(AJ=0 .ll \\n(LLu
+.if !\\n(IF \{\
+.	ps \\n(PS
+.	ie \\n(VS>=41 .vs \\n(VSu
+.	el .vs \\n(VSp\}
+.ie \\n(IP \{\
+.	in \\n(I\\n(IRu
+.	nr IP -1\}
+.el .if !\\n(IR \{\
+.	nr I1 \\n(PIu
+.	nr I2 0
+.	nr I3 0
+.	nr I4 0
+.	nr I5 0\}
+.if !\\n(AB .ft 1
+.ta 5n 10n 15n 20n 25n 30n 35n 40n 45n 50n 55n 60n 65n 70n 75n 80n
+.fi
+..
+.	\"IZ - initialization
+.de IZ
+.so \\*(sd/tmac.sdisp
+.nr TN 0
+.em EM
+. \"  ACCENTS  say \*'e or \*`e to get e acute or e grave
+.ds ' \h'\w'e'u*4/10'\z\(aa\h'-\w'e'u*4/10'
+.ds ` \h'\w'e'u*4/10'\z\(ga\h'-\w'e'u*4/10'
+. \"  UMLT  \*:u, etc.
+.if t .ds : \\v'-0.6m'\\h'(1u-(\\\\n(.fu%2u))*0.13m+0.06m'\\z.\\h'0.2m'\\z.\\h'-((1u-(\\\\n(.fu%2u))*0.13m+0.26m)'\\v'0.6m'
+.if n .ds : \z"
+. \" TILDE and CIRCUMFLEX
+.ds ^ \\\\k:\\h'-\\\\n(.fu+1u/2u*2u+\\\\n(.fu-1u*0.13m+0.06m'\\z^\\h'|\\\\n:u'
+.ds ~ \\\\k:\\h'-\\\\n(.fu+1u/2u*2u+\\\\n(.fu-1u*0.13m+0.06m'\\z~\\h'|\\\\n:u'
+.	\" czech v symbol
+.ds v \\\\k:\\\\h'+\\\\w'e'u/4u'\\\\v'-0.6m'\\\\s6v\\\\s0\\\\v'0.6m'\\\\h'|\\\\n:u'
+.		\" cedilla
+.ds , \\\\k:\\\\h'\\\\w'c'u*0.4u'\\\\z,\\\\h'|\\\\n:u'
+.so \\*(sd/tmac.srefs
+.ch FO \\n(YYu
+.if !\\n(FM .nr FM .7i
+.nr YY -\\n(FMu
+.nr XX 0 1
+.nr IP 0
+.nr PI 5n
+.nr QI 5n
+.nr I0 \\n(PIu
+.nr PS 11
+.nr VS 12
+.nr LL 5.65i
+.nr LT 5.65i
+.nr PL 9.35i \" was 9.85
+.nr PI 2n
+.ps \\n(PS
+.vs \\n(VSp
+.pl \\n(PLu-.6i  \" first page shorter...
+.ll \\n(LLu
+.lt \\n(LTu
+.nr PD 0
+.nr DV .5v
+.nr ML 3v
+.ps \\n(PS
+.ie \\n(VS>=41 .vs \\n(VSu
+.el .vs \\n(VSp
+.nr IR 0
+.nr I0 0
+.nr I1 \\n(PIu
+.nr TB 0
+.nr SJ \\n(.j
+.ll \\n(LLu
+.ev 1
+.if !\\n(FL .nr FL \\n(LLu
+.ll \\n(FLu
+.ps 8
+.vs 9p
+.ev
+.if \\*(CH .ds CH "\(hy \\\\n(PN \(hy
+.wh 0 NP
+.wh -\\n(FMu FO
+.ch FO 16i
+.wh -\\n(FMu FX
+.ch FO -\\n(FMu
+.wh -\\n(FMu+.5v BT   \" was 1v
+.nr CW 0-1
+.nr GW 0-1
+..
+.	\"TL - title and initialization
+.de TL
+.IZ
+.rm IZ
+.br
+....sp |\\nx
+....CO
+.nr X .5i
+....X "SP \\nX TL"
+.nr TV 1
+.ME
+.rm ME
+.di WT
+.na
+.fi
+.ll \\n(LLu-.5i
+.ft 1
+.	ps 18
+.	vs 40p
+.hy 0
+..
+.de TX
+.rs
+.sp .5i
+.ce 1000
+.if n .ul 1000
+.ps 12
+.ft 3
+.vs 15p
+.ne 4
+.hy 0
+.WT
+.hy 14
+.ce 0
+.ul 0
+..
+.	\"	AU - author(s)
+.de AU
+.nr AV 1
+.ad \\n(SJ
+.br
+.di
+.br
+.nf
+.nr NA +1
+.ds R\\n(NA \\$1
+.ds E\\n(NA \\$2
+.di A\\n(NA
+.ll \\n(LLu
+.ps 8
+..
+.de AX
+.ft 1
+.rs
+.ce 1000
+.if n .ul 0
+.ps \\n(PS
+.ie \\n(VS>=41 .vs \\n(VSu
+.el .vs \\n(VSp
+.if t \{\
+.	WS 2
+.	A1
+.	ns
+.	I1
+.	if \\n(NA-1 .sp
+.	A2
+.	if \\n(NA-1 .sp 0.5
+.	ns
+.	I2
+.	if \\n(NA-2 .sp
+.	A3
+.	if \\n(NA-2 .sp 0.5
+.	ns
+.	I3
+.	if \\n(NA-3 .sp
+.	A4
+.	if \\n(NA-3 .sp 0.5
+.	ns
+.	I4
+.	if \\n(NA-4 .sp
+.	A5
+.	if \\n(NA-4 .sp 0.5
+.	ns
+.	I5
+.	if \\n(NA-5 .sp
+.	A6
+.	if \\n(NA-5 .sp 0.5
+.	ns
+.	I6
+.	if \\n(NA-6 .sp
+.	A7
+.	if \\n(NA-6 .sp 0.5
+.	ns
+.	I7
+.	if \\n(NA-7 .sp
+.	A8
+.	if \\n(NA-7 .sp 0.5
+.	ns
+.	I8
+.	if \\n(NA-8 .sp
+.	A9
+.	if \\n(NA-8 .sp 0.5
+.	ns
+.	I9\}
+..
+.	\"AI - authors institution
+.de AI
+.br
+.ft 2
+.di
+.di I\\n(NA
+.nf
+.ps 9
+..
+.	\"AB - begin an abstract
+.de AB
+.br
+.di
+.WS .4i
+.vs 12p
+.ul 0
+.ce 0
+.nr 1T 1
+.nr IK 1
+.nr KI 1
+.di WB
+.rs
+.nr AJ 1
+.ce 1
+.ft 3
+.ll \\n(LLu
+\s9SUMMARY\s0
+.sp 6p
+.hy 14
+.ul 0
+.ce 0
+.fi
+.ft 3
+.nr OJ \\n(.i
+.br
+.nr PS 9
+.nr VS 10
+.ps \\n(PS
+.vs \\n(VSp
+.	\" no indent on first line [ti +\\n(PIu]
+.nr AB 1
+..
+.	\"AE - end of an abstract
+.de AE
+.br
+.di
+.nr AB 0
+.ll \\n(LLu
+.nr PS 11
+.nr VS 12
+.ps \\n(PS
+.ie \\n(VS>=41 .vs \\n(VSu
+.el .vs \\n(VSp
+.nr 1T 0
+.nr IK 0
+.in \\n(OJu
+.nr AJ 0
+.ce 0
+..
+.	\"S0- mike lesk conserve paper style
+.de S0
+.ce 0
+.br
+.ll \\n(LLu
+.if \\n(TV+\\n(AV .ns
+.if \\n(TV .TX
+.if \\n(AV .AX
+.if \\n(TV+\\n(AV .rs
+.ce 0
+.if \\n(TV .sp 2
+.ls 1
+.if \\n(FP \{\
+.	FJ
+.	nf
+.	FG
+.	fi
+.	FK
+.	nr FP 0\}
+.nf
+.WB
+.ls
+.fi
+.ad \\n(SJ
+..
+.	\"Tables.  TS - table start, TE - table end
+.de TS
+.sp 1
+.if !\\n(1T .RT
+.ul 0
+.ti \\n(.iu
+.if t .X "SP \\nX TS"
+.if t .sp 0.5
+.nr X 0.5v
+.if n .sp
+.if \\$1H .TQ
+.nr IX 1
+.ps -2
+.vs -2
+..
+.de TQ
+.di TT
+.nr IT 1
+..
+.de TH
+.if \\n(.d>0.5v \{\
+.	nr T. 0
+.	T# 0\}
+.di
+.nr TQ \\n(.i
+.nr HT 1
+.in 0
+.mk #a
+.mk #b
+.mk #c
+.mk #d
+.mk #e
+.mk #f
+.TT
+.in \\n(TQu
+.mk #T
+..
+.de TE
+.nr IX 0
+.if \\n(IT .if !\\n(HT \{\
+.	di
+.	nr EF \\n(.u
+.	nf
+.	TT
+.	if \\n(EF .fi\}
+.nr IT 0
+.nr HT 0
+.nr X 0.5v
+.if t .X "SP \\nX TE"
+.if n .sp 1
+.if t .sp 0.5
+.rm a+ b+ c+ d+ e+ f+ g+ h+ i+ j+ k+ l+ n+ m+
+.rr 32 33 34 35 36 37 38 40 79 80 81 82
+.rr a| b| c| d| e| f| g| h| i| j| k| l| m|
+.rr a- b- c- d- e- f- g- h- i- j- k- l- m-
+.ps +2
+.vs +2
+..
+.so \*(sd/tmac.skeep
+.de EQ  \"equation, breakout and display
+.nr EF \\n(.u
+.rm EE
+.nr LE 1	\" 1 is center
+.ds EL \\$1
+.if "\\$1"L" \{\
+.	ds EL \\$2
+.	nr LE 0\}
+.if "\\$1"C" .ds EL \\$2
+.if "\\$1"R" \{\
+.	ds EL \\$2 \" 2 is right adjust
+.	nr LE 2\}
+.if "\\$1"I" \{\
+.	nr LE 0
+.	if "\\$3"" .ds EE \\h'|10n'
+.	el .ds EE \\h'\\$3'
+.	ds EL \\$2\}
+.if \\n(YE .nf
+.di EZ
+..
+.de EN  \" end of a displayed equation
+.br
+.di
+.rm EZ
+.nr ZN \\n(dn
+.if \\n(ZN .if !\\n(YE .LP
+.if !\\n(ZN .if !"\\*(EL"" .nr ZN 1
+.if \\n(ZN \{\
+.	nr X 0.5v
+.	if t .X "SP \\nX EQ"
+.	ie "\\n(.z"" \{\
+.		if t .if !\\n(nl=\\n(PE .sp .5
+.		if n .if !\\n(nl=\\n(PE .sp 1\}
+.	el \{\
+.		if t .if !\\n(.d=\\n(PE .sp .5
+.		if n .if !\\n(.d=\\n(PE .sp 1\}\}
+'pc
+.if \\n(BD .nr LE 0 \" don't center if block display or mark/lineup
+.if \\n(MK \{\
+.	if \\n(LE=1 .ds EE \\h'|10n'
+.	nr LE 0\}
+'lt \\n(.lu
+.if !\\n(EP .if \\n(ZN \{\
+.	if \\n(LE=1 .tl \(ts\(ts\\*(10\(ts\\*(EL\(ts
+.	if \\n(LE=2 .tl \(ts\(ts\(ts\\*(10\\*(EL\(ts
+.	if !\\n(LE \{\
+.		if !\\n(BD .tl \(ts\\*(EE\\*(10\(ts\(ts\\*(EL\(ts
+.		if \\n(BD .if \\n(BD<\\w\(ts\\*(10\(ts .nr BD \\w\(ts\\*(10\(ts
+.		if \\n(BD \!\\*(10\\t\\*(EL\}\}
+.if \\n(EP .if \\n(ZN \{\
+.	if \\n(LE=1 .tl \(ts\\*(EL\(ts\\*(10\(ts\(ts
+.	if \\n(LE=2 .tl \(ts\\*(EL\(ts\(ts\\*(10\(ts
+.	if !\\n(LE \{\
+.		if !\\n(BD .tl \(ts\\*(EL\\*(EE\\*(10\(ts\(ts\(ts
+.		if \\n(BD .if \\n(BD<\\w\(ts\\*(10\(ts .nr BD \\w\(ts\\*(10\(ts
+.		if \\n(BD \!\\h'-\\\\n(.iu'\\*(EL\\h'|0'\\*(10\}\}
+'lt \\n(LLu
+'pc %
+.if \\n(YE .if \\n(EF .fi
+.if t .if \\n(ZN .nr X 0.5v
+.if t .if \\n(ZN .X "SP \\nX EN
+.if t .if \\n(ZN .sp .5
+.if n .if \\n(ZN .sp
+.ie "\\n(.z"" .nr PE \\n(nl
+.el .nr PE \\n(.d
+..
+.de PS	\" start picture
+.	\" $1 is height, $2 is width, both in inches
+.br
+.nr X 0.35v
+.if \\$1>0 .X "SP \\nX PS"
+.if \\$1>0 .sp .35
+.ie \\$1>0 .nr $1 \\$1
+.el .nr $1 0
+.in (\\n(.lu-\\$2)/2u
+.ne \\$1
+..
+.de PE	\" end of picture
+.in
+.nr X .65v
+.if \\n($1>0 .X "SP \\nX PE"
+.if \\n($1>0 .sp .65
+..
+.de ME
+.nr SJ \\n(.j
+.if \\n(LL .nr LT \\n(LL
+.nr YE 1
+.if !\\n(PO .nr PO \\n(.o
+.if \\n(mo-0 .ds MO January
+.if \\n(mo-1 .ds MO February
+.if \\n(mo-2 .ds MO March
+.if \\n(mo-3 .ds MO April
+.if \\n(mo-4 .ds MO May
+.if \\n(mo-5 .ds MO June
+.if \\n(mo-6 .ds MO July
+.if \\n(mo-7 .ds MO August
+.if \\n(mo-8 .ds MO September
+.if \\n(mo-9 .ds MO October
+.if \\n(mo-10 .ds MO November
+.if \\n(mo-11 .ds MO December
+.if \\n(dw-0 .ds DW Sunday
+.if \\n(dw-1 .ds DW Monday
+.if \\n(dw-2 .ds DW Tuesday
+.if \\n(dw-3 .ds DW Wednesday
+.if \\n(dw-4 .ds DW Thursday
+.if \\n(dw-5 .ds DW Friday
+.if \\n(dw-6 .ds DW Saturday
+.if "\\*(DY"" .ds DY \\*(MO \\n(dy, 19\\n(yr
+.if "\\*(CF"" .if n .ds CF "\\*(DY
+..
+.	\"EM end up macro - process left over keep-release
+.de EM
+.br
+.if \\n(AJ .tm Syntax error: no .AE
+.if \\n(IF .ab Missing .FE somewhere
+.if t .if \\n(TB=0 .wh -1p CM
+.if \\n(TB \{\&\c
+'	bp
+.	NP
+.	ch CM 160\}
+..
+.	\"NP new page
+.de NP
+.rr PE
+.if \\n(FM+\\n(HM>=\\n(.p \{\
+.	tm Margins bigger than page length.
+.	ab
+.	ex\}
+.CM
+.if !\\n(HM .nr HM .7i \" was .7
+'sp |\\n(HMu/2u
+.ev 1
+.nr PX \\n(.s
+.nr PF \\n(.f
+.nr PV \\n(.v
+.lt \\n(LTu
+.ps \\n(PS
+.vs \\n(PS+2
+.ft 1
+....nr Po \\n(.ou
+.if \\n(PO .po \\n(POu
+.PT
+....po \\n(Pou
+.ps \\n(PX
+.vs \\n(PVu
+.ft \\n(PF
+.ev
+'sp |\\n(HMu
+.nr XX 0 1
+.nr YY 0-\\n(FMu
+.ch FO 16i
+.ch FX 17i
+.ch FO \\n(.pu-\\n(FMu
+.ch FX \\n(.pu-\\n(FMu
+.if \\n(MF .FV
+.nr MF 0
+.if t .X "NP \\n(nl"
+.mk
+.os
+.ev 1
+.if !\\n(TD .if \\n(TC<5  .XK
+.nr TC 0
+.ns
+.ev
+.nr TQ \\n(.i
+.nr TK \\n(.u
+.if \\n(IT \{\
+.	in 0
+.	nf
+.	TT
+.	in \\n(TQu
+.	if \\n(TK .fi\
+\}
+.mk #T
+..
+.de XK
+.nr TD 1
+.nf
+.ls 1
+.in 0
+.rn KJ KL
+.KL
+.rm KL
+.if "\\n(.z"KJ" .di
+.nr TB 0
+.if "\\n(.z"KJ" .nr TB 1
+.br
+.in
+.ls
+.fi
+.if (\\n(nl+1v)>(\\n(.p-\\n(FM) \{\
+.	if \\n(NX>1 .RC
+.	if \\n(NX<1 .bp\}
+.nr TD 0
+..
+.de KD
+.nr KM 0
+.if "\\n(.z"" .if \\$2>0 .if \\n(nl>\\n(HM \{\
+.	if (\\n(nl+1v)<(\\n(.p-\\n(FM) .di KJ \" full page figure must have new page
+.	sp 15i\}
+.if "\\n(.z"" .if \\n(nl>\\n(HM .if \\$2=0 .if (\\n(nl+1v)>(\\n(.p-\\n(FM) .sp 15i
+.if "\\n(.z"KJ" .nr KM 1 \" KM is 1 if in a rediversion of keeps
+.if \\n(KM>0 \!.KD \\$1 \\$2
+.nr KR \\n(.t
+.if \\n(nl<=\\n(HM .nr KR 32767
+.if \\n(KM=0 \{\
+.	if \\n(KR<\\$1 \{\
+.		di KJ
+.		nr KM 1\}
+.	if \\$2>0 .if (\\n(nl+1v)>(\\n(.p-\\n(FM) .sp 15i\}
+.rs
+.if \\n(KM=0 .if \\$2>0 .sp \\n(.tu-\\$1u
+..
+.de PT
+.lt \\n(LLu
+.pc %
+.nr PN \\n%
+.if !\\n%-1 .CO
+.if \\n%-1 .if e .tl '\\n(PN'\s7\\*(Tl\s0''
+.if \\n%-1 .if o .tl ''\s7\\*(Tr\s0'\\n(PN'
+.lt \\n(.lu
+..
+.	\"FO - footer of page
+.de FO
+.rn FO FZ
+.if \\n(IT>0 \{\
+.	nr T. 1
+.	if \\n(FC=0  .T# 1
+.	br\}
+.nr FC +1
+.if \\n(NX<2 .nr WF 0
+.nr dn 0
+.if t .X "FO \\n(nl"
+..... probably ought to be just below after the .RC
+.if \\n(FC<=1 .if \\n(XX .XF
+.rn FZ FO
+.nr MF 0
+.if \\n(dn  .nr MF 1
+.if !\\n(WF \{\
+.	nr YY 0-\\n(FMu
+.	ch FO \\n(YYu\}
+.if !\\n(dn .nr WF 0
+.if \\n(FC<=1 .if \\n(XX=0 \{\
+.	if \\n(NX>1 .RC
+.	if \\n(NX<1 'bp\}
+.nr FC -1
+.if \\n(ML>0 .ne \\n(MLu
+..
+.	\"2C - begin double column
+.de 2C
+.MC \" default MC is double column
+..
+.de MH
+A\^T\|\|&\|\|T Bell Laboratories, 600 Mountain Avenue, Murray Hill, NJ 07974 U.S.A.
+..
+.de BT
+.ev 1
+.nr Ss \\n(.s
+.nr Sf \\n(.f
+.ps \\n(PS
+.vs \\n(VSp
+.lt \\n(LLu
+.ft 1
+.nr yr \\n(yr%1900
+.af NU 01
+.af VN 01
+.af P< 0001
+.nr VN \\*(VN
+.nr NU \\*(NU
+.\" price = 1.00 if <= 10 pages, otherwise .10/page.
+.nr p1 (1+\\n(P>-\\n(P<)*10
+.if \\n(p1<100 .nr p1 100
+.nr p2 \\n(p1%100
+.nr p1 \\n(p1/100
+.ds pr \\n(p1.\\n(p2
+.if \\n(Pf=0 .tl "0038-0644/\\n(yr/\\n(NU\\n(VN-\\n(P<$0\\*(pr""\f2Received \\*(DY\f1"
+.if \\n(Pf=0 .tl '\\*(Co''\f2\\*(DR\fP'
+.if \\n(Pf=0 .pl +.6i
+.nr Pf \\n(Pf+1
+.af % 1
+.ps \\n(Ss
+.ft \\n(Sf
+.ev
+..
+.	\"PP - paragraph
+.de PP
+.RT
+.if \\n(SH .sp .5
+.nr SH 0
+.if \\n(1T .X "SP \\n(PD PP"
+.if \\n(1T .sp \\n(PDu
+.ti +\\n(PIu
+..
+.	\"SH - (unnumbered) section heading
+.de SH
+.ti \\n(.iu
+.RT
+.nr X 1v
+.if \\n(1T .X "SP \\nX SH
+.ie \\n(1T .sp 2
+.el .BG
+.RT
+.ne 4
+.nr Sh 1
+.if \\n(.$ .nr Sh \\$1
+.if \\n(Sh=1 .ce
+.if \\n(Sh=2 .ft B
+.if \\n(Sh=3 .ft I
+.nr SH 1
+..
+.	\"NH - numbered heading
+.de NH
+.RT
+.nr X 1v
+.if \\n(1T .X "SP \\nX NH"
+.ie \\n(1T .sp 2
+.el .BG
+.RT
+.ne 4
+.if n .ul 1000
+.ce
+.nr NS \\$1
+.if !\\n(.$ .nr NS 1
+.if !\\n(NS .nr NS 1
+.nr H\\n(NS +1
+.if !\\n(NS-4 .nr H5 0
+.if !\\n(NS-3 .nr H4 0
+.if !\\n(NS-2 .nr H3 0
+.if !\\n(NS-1 .nr H2 0
+.if !\\$1 .if \\n(.$ .nr H1 1
+.ds SN \\n(H1.
+.ti \\n(.iu
+.if \\n(NS-1 .as SN \\n(H2.
+.if \\n(NS-2 .as SN \\n(H3.
+.if \\n(NS-3 .as SN \\n(H4.
+.if \\n(NS-4 .as SN \\n(H5.
+\\*(SN
+..
+.	\"BG - begin, execute at first PP
+.de BG
+.br
+.ME
+.rm ME
+.di
+.ce 0
+.nr KI 0
+.hy 14
+.nr 1T 1
+.S\\n(ST
+.rm S0 S1 S2 S3 OD OK TX AX WT TM IM MF MR RP I1 I2 I3 I4 I5 CB E1 E2
+.de TL
+.ft 3
+.sp
+.if n .ul 100
+.ce 100
+.ps +2
+\\..
+.RA
+.rm RA
+.rn FJ FS
+.rn FK FE
+.nf
+.ev 1
+.ps \\n(PS-2
+.vs \\n(.s+1p
+.ev
+.if !\\n(KG .nr FP 0 
+.if \\n(GA>1 .if \\n(KG=0 .nr GA 0 \" next UNIX must be flagged.
+.nr KG 0 
+.if \\n(FP \{\
+.	FS
+.	FG
+.	FE\}
+.br
+.if t .if \\n(TV .sp 1
+.fi
+.ll \\n(LLu
+.ev 1
+.if !\\n(FL .nr FL \\n(LLu*11u/12u
+.ll \\n(FLu
+.ev
+..
+.	\"IP - indented paragraph
+.de IP
+.RT
+.if !\\n(IP .nr IP +1
+.ie \\n(ID>0 .X "SP \\n(ID IP"
+.el .X "SP \\n(PD IP"
+.ie \\n(ID>0 .sp \\n(IDu
+.el .sp \\n(PDu
+.nr IU \\n(IR+1
+.if \\n(.$>1 .nr I\\n(IU \\$2n+\\n(I\\n(IRu
+.if \\n(I\\n(IU=0 .nr I\\n(IU \\n(PIu+\\n(I\\n(IRu
+.in \\n(I\\n(IUu
+.nr TY \\n(TZ-\\n(.i
+.nr JQ \\n(I\\n(IU-\\n(I\\n(IR
+.ta \\n(JQu \\n(TYuR
+.if \\n(.$ \{\
+.ti \\n(I\\n(IRu
+\&\\$1\t\c\}
+..
+.	\"LP - left aligned (block) paragraph
+.de LP
+.ti \\n(.iu
+.RT
+.if \\n(SH .sp .5
+.nr SH 0
+.if \\n(1T .X "SP \\n(PD LP"
+.if \\n(1T .sp \\n(PDu
+..
+.de QP
+.ti \\n(.iu
+.RT
+.if \\n(1T .X "SP \\n(PD QP"
+.if \\n(1T .sp \\n(PDu
+.ne 1.1
+.nr QP 1
+.in +\\n(QIu
+.ll -\\n(QIu
+.ti \\n(.iu
+..
+.	\"IE - synonym for .LP
+.de IE
+.LP
+..
+.	\"RS - prepare for double indenting
+.de RS
+.nr IS \\n(IP
+.RT
+.nr IP \\n(IS
+.nr IU \\n(IR
+.nr IR +1
+.if !\\n(I\\n(IR .nr I\\n(IR \\n(I\\n(IU+\\n(PIu
+.in \\n(I\\n(IRu
+.nr TY \\n(TZ-\\n(.i
+.ta \\n(TYuR
+..
+.	\"RE - retreat to the left
+.de RE
+.nr IS \\n(IP
+.RT
+.nr IP \\n(IS
+.if \\n(IR>0 .nr IR -1
+.in \\n(I\\n(IRu
+..
+.de TC
+.nr TZ \\n(.lu
+.if \\n(.$ .nr TZ \\$1n
+.ta \\n(TZuR
+..
+.de TD
+.LP
+.nr TZ 0
+..
+.	\"CM - cut mark
+.de CM
+.po 0
+.lt 7.6i
+.ft 1
+.ps 10
+.vs 4p
+.if !"\\*(.T"202" .tl '--''--'
+.po
+.vs
+.lt
+.ps
+.ft
+..
+.	\"B - bold font
+.de B
+.nr PQ \\n(.f
+.ft 3
+.if \\n(.$ \&\\$1\\f\\n(PQ\\$2
+..
+.de BI	\" bold italic -- only on 202
+.nr PQ \\n(.f
+.ie t \{\
+.	ft 4
+.	if !"\\$1"" \&\\$1\\f\\n(PQ\\$2\}
+.el \{\
+.	ie "\\$1"" .ul 1000
+.	el .ul 1
+.	if \\n(.$=1 \&\\$1
+.	if \\n(.$>1 \&\\$1\\c
+.	if \\n(.$>1 \\&\\$2\}
+..
+.	\"R - Roman font
+.de R
+.nr PQ \\n(.f
+.ft 1
+.ie \\n(.$>0 \&\\$1\f\\n(PQ\\$2
+.el .if n .ul 0
+..
+.	\"I - italic font
+.de I
+.nr PQ \\n(.f
+.if t .ft 2
+.if t .if !"\\$1"" \&\\$1\^\f\\n(PQ\\$2
+.if n \{\
+.	ie "\\$1"" .ul 1000
+.	el .ul 1
+.	if \\n(.$=1 \&\\$1
+.	if \\n(.$>1 \&\\$1\\c
+.	if \\n(.$>1 \\&\\$2\}
+..
+.	\"TA - tabs set in ens or chars
+.de TA
+.ta \\$1n \\$2n \\$3n \\$4n \\$5n \\$6n \\$7n \\$8n \\$9n
+..
+.	\"SM - make smaller size
+.de SM
+.ie \\n(.$ \&\\$3\s-2\\$1\s0\\$2
+.el .ps -2
+..
+.	\"LG - make larger size
+.de LG
+.ps +2
+..
+.	\"NL - return to normal size
+.de NL
+.ps \\n(PS
+..
+.	\"DA - force date; ND - no date or new date.
+.de DA
+.if \\n(.$ .ds DY \\$1 \\$2 \\$3 \\$4
+.ds CF \\*(DY
+..
+.de ND
+.ME
+.rm ME
+.ds DY \\$1 \\$2 \\$3 \\$4
+.rm CF
+..
+.de FN
+.FS
+..
+.	\"FS - begin footnote
+.de FJ
+'ce 0
+.nr IA \\n(IP
+.nr IB \\n(.i
+.ev1
+.ll \\n(FLu
+.da FF
+.br
+.if \\n(IF \{\
+.	tm Footnote within footnote-illegal.
+.	ab\}
+.nr IF 1
+.if !\\n+(XX-1 .FA
+..
+.	\"FE - footnote end
+.de FK
+.br
+.in 0
+.nr IF 0
+.di
+.ev
+.if !\\n(XX-1 .nr dn +\\n(.v
+.nr YY -\\n(dn
+.if !\\n(NX .nr WF 1
+.if \\n(dl>\\n(CW .nr WF 1
+.ie (\\n(nl+\\n(.v)<=(\\n(.p+\\n(YY) .ch FO \\n(YYu
+.el \{\
+.	if \\n(nl>(\\n(HM+1.5v) .ch FO \\n(nlu+\\n(.vu
+.	if \\n(nl+\\n(FM+1v>\\n(.p .ch FX \\n(.pu-\\n(FMu+2v
+.	if \\n(nl<=(\\n(HM+1.5v) .ch FO \\n(HMu+(4u*\\n(.vu)\}
+.nr IP \\n(IA
+'in \\n(IBu
+..
+.\"	First page footer.
+.de FS
+.ev1
+.br
+.ll \\n(FLu
+.da FG
+..
+.de FE
+.br
+.di
+.nr FP \\n(dn
+.if !\\n(1T .nr KG 1 \"not in abstract repeat next page.
+.if "\\n(.z"OD" .nr KG 0 \" if in OK, don't repeat.
+.ev
+..
+.de FA
+\l'4.5P'
+.br
+..
+.de FV
+.FS
+.nf
+.ls 1
+.FY
+.ls
+.fi
+.FE
+..
+.de FX
+.if \\n(XX \{\
+.	di FY
+.	ns\}
+..
+.de XF
+.if \\n(nlu+1v>(\\n(.pu-\\n(FMu) .ch FX \\n(nlu+1.9v
+.ev1
+.nf
+.ls 1
+.FF
+.rm FF
+.nr XX 0 1
+.br
+.ls
+.di
+.fi
+.ev
+..
+.de FL
+.ev1
+.nr FL \\$1n
+.ll \\$1
+.ev
+..
+.de HO
+AT&T Bell Laboratories
+Holmdel, New Jersey 07733
+..
+.de WH
+AT&T Bell Laboratories
+Whippany, New Jersey 07981
+..
+.de IH
+AT&T Bell Laboratories
+Naperville, Illinois 60540
+..
+.de UL \" underline argument, don't italicize
+.ie t \\$1\l'|0\(ul'\\$2
+.el .I "\\$1" "\\$2"
+..
+.de QS
+.br
+.LP
+.in +\\n(QIu
+.ll -\\n(QIu
+..
+.de QE
+.br
+.ll +\\n(QIu
+.in -\\n(QIu
+.LP
+..
+.de B1 \" begin boxed stuff
+.br
+.di BB
+.nr BC 0
+.if "\\$1"C" .nr BC 1
+.nr BE 1
+..
+.de B2 \" end boxed stuff
+.br
+.nr BI 1n
+.if \\n(.$>0 .nr BI \\$1n
+.di
+.nr BE 0
+.nr BW \\n(dl
+.nr BH \\n(dn
+.ne \\n(BHu+\\n(.Vu
+.nr BQ \\n(.j
+.nf
+.ti 0
+.if \\n(BC>0 .in +(\\n(.lu-\\n(BWu)/2u
+.in +\\n(BIu
+.ls 1
+.BB
+.ls
+.in -\\n(BIu
+.nr BW +2*\\n(BI
+.sp -1
+\l'\\n(BWu\(ul'\L'-\\n(BHu'\l'|0\(ul'\h'|0'\L'\\n(BHu'
+.if \\n(BC>0 .in -(\\n(.lu-\\n(BWu)/2u
+.if \\n(BQ .fi
+.br
+..
+.de BX
+.ie t \(br\|\\$1\|\(br\l'|0\(rn'\l'|0\(ul'
+.el \(br\\kA\|\\$1\|\\kB\(br\v'-1v'\h'|\\nBu'\l'|\\nAu'\v'1v'\l'|\\nAu'
+..
+.de [
+[
+..
+.de ]
+]
+..
+.de Vx	\" volume, number, Month, year, page 1, page n, top title(s) in one blast (bwk)
+.\" also needs DY for date received as 31 July 1978
+.ds VN \\$1
+.ds NU \\$2
+.ds mo \\$3
+.if "\\$3"January" .ds MO JANUARY
+.if "\\$3"February" .ds MO FEBRUARY
+.if "\\$3"March" .ds MO MARCH
+.if "\\$3"April" .ds MO APRIL
+.if "\\$3"May" .ds MO MAY
+.if "\\$3"June" .ds MO JUNE
+.if "\\$3"July" .ds MO JULY
+.if "\\$3"August" .ds MO AUGUST
+.if "\\$3"September" .ds MO SEPTEMBER
+.if "\\$3"October" .ds MO OCTOBER
+.if "\\$3"November" .ds MO NOVEMBER
+.if "\\$3"December" .ds MO DECEMBER
+.nr yr \\$4
+.nr P \\$5-1
+.nr P< \\$5
+.pn \\$5
+.nr P> \\$6
+.ds Tl \\$7
+.ds Tr \\$8
+..
+.ds Co \s14\v'.2m'\(co\v'-.2m'\s0 19\\n(yr by John Wiley & Sons, Ltd.
+.de CO
+.ps 7
+.vs 9p
+.nf
+SOFTWARE\(emPRACTICE AND EXPERIENCE, VOL. \\*(VN(\\*(NU), \\n(P<-\\n(P> (\\*(MO 19\\n(yr)
+.fi
+.ft 1
+.lt \\n(LLu
+.ps \\n(PS
+.vs \\n(VSp
+..
+....de OK
+....sp
+....ps 6
+....ft 1
+...KEY WORDS   \\$1   \\$2   \\$3   \\$4   \\$5   \\$6   \\$7   \\$8   \\$9
+....ps
+.....

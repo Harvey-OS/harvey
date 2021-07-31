@@ -1,0 +1,202 @@
+APE=/sys/src/ape
+< $APE/config
+PROS=tex.pro texps.pro texc.pro special.pro forms.pro finclude.pro color.pro crop.pro
+CONFIGS=config.ps config.lino config.gnot config.fax psfonts.map
+TEXS=epsf.tex epsf.sty rotate.tex rotate.sty colordvi.tex colordvi.sty blackdvi.tex blackdvi.sty
+TEXBIN=/sys/lib/tex/bin/$objtype
+TEXBINRC=/sys/lib/tex/bin/rc
+TEXMACROS=/sys/lib/tex/macros
+PS=/sys/lib/tex/ps
+PSFILES=$PROS $CONFIGS
+
+#
+#   Stuff derived from Makefile for dvips
+#
+
+# where TeX is `rooted'.  Sometimes /usr/local/lib/tex.
+# TEXDIR = /usr/lib/tex
+TEXDIR = /sys/lib/tex
+
+# another place pk, tfm, and vf files might be found.
+# LOCALDIR = /LocalLibrary/Fonts/TeXFonts
+LOCALDIR = /LocalLibrary/Fonts/TeXFonts
+
+# the default path to search for TFM files 
+# (this usually is identical to TeX's defaultfontpath, which omits `.')
+# (private fonts are given an explicit directory, which overrides the path)
+# TFMPATH = $(LOCALDIR)/tfm:$(TEXDIR)/fonts/tfm
+TFMPATH = .:$TEXDIR/fonts/tfm
+
+# the default path to search for PK files (usually omits `.')
+# Don't forget to add the directory that
+# MakeTeXPK puts the files!  (In this case, /LocalLibrary/Fonts...)
+# PKPATH = $(LOCALDIR)/pk:$(TEXDIR)/fonts/pk
+PKPATH = .:$TEXDIR/fonts/canonpk
+
+# the default path to search for VF files (usually omits `.')
+# VFPATH = $(LOCALDIR)/vf:$(TEXDIR)/fonts/vf
+VFPATH = .:$TEXDIR/fonts/psvf
+
+# additional directories in which to search for subdirectories to find
+# both tfm and pk files
+FONTSUBDIRPATH = 
+
+# where the config files go
+# CONFIGDIR = $(TEXDIR)/ps
+CONFIGDIR = $TEXDIR/ps
+
+# the default path to search for config files
+# CONFIGPATH = .:$(CONFIGDIR)
+CONFIGPATH = .:$CONFIGDIR
+
+# the name of your config file
+# CONFIGFILE = config.ps
+CONFIGFILE = config.ps
+
+# where the header PS files go
+# HEADERDIR = $(TEXDIR)/ps
+HEADERDIR = $TEXDIR/ps
+
+# the default path to search for header files
+# HEADERPATH = .:$(HEADERDIR)
+HEADERPATH = .:$HEADERDIR
+
+# where epsf.tex and rotate.tex go (usually the TeX macros directory)
+# TEXMACRODIR = $(TEXDIR)/inputs
+TEXMACRODIR = $TEXDIR/macros
+
+# the default path to search for epsf and psfiles
+# (usually the same as TeX's defaultinputpath)
+# FIGPATH = .:..:$(TEXDIR)/inputs
+FIGPATH = .:..:$TEXDIR/macros
+
+# the place man pages are located.
+MANDIR = /usr/man/man1
+
+# change -DDEFRES=300 or whatever is required
+#    if the default resolution is not 300 dpi,
+# add -DDEBUG to turn on debugging capability
+# add -DTPIC for tpic support
+# add -DFONTLIB to search font libraries
+# add -DSEARCH_SUBDIRECTORIES to search the FONTSUBDIRPATH.
+# add -DHAVE_GETCWD if you have getcwd (relevant only for subdir searching)
+# add -DIBM6000 for compiling on IBM 6000 systems
+# (for VM/CMS, see the MKDVIPS.EXEC file in the vmcms subdirectory).
+# (RESEARCH) add -DSHORTFNAMES for 14 character pk names
+# and -DRESEARCH for local hacks
+# add -DPLAN9 for different environment
+DEFS= -DTPIC -DDEBUG -DDEFRES=300 -DSHORTFNAMES -DRESEARCH -DPLAN9
+
+# either use
+# OPT = -g -Wall
+# or
+OPT = -B
+
+# libraries to include (-lm -lc on most systems)
+#FLIBS= -lNeXT_s -lsys_s
+FLIBS= /$objtype/lib/ape/libv.a
+
+# If you are compiling dvips for suid or other privileges, you will
+# definitely want to define the following symbol; else don't.
+# SECURE = -DSECURE
+
+# If you want EMTEX specials, define the following.
+EMTEX = -DEMTEX
+
+# for SYSV (and friends which use <string.h> instead of <strings.h>)
+# define the c-compiler flag
+# add -D_POSIX_SOURCE if you are POSIX (also define SYSV) (only relevant
+# for subdir searching)
+SYS = -DSYSV -D_POSIX_SOURCE
+
+PATHS = -DTFMPATH="$TFMPATH" \
+	-DPKPATH="$PKPATH" \
+	-DVFPATH="$VFPATH" \
+	-DHEADERPATH="$HEADERPATH" \
+	-DCONFIGPATH="$CONFIGPATH" \
+        -DCONFIGFILE="$CONFIGFILE" \
+	-DFONTSUBDIRPATH="$FONTSUBDIRPATH" \
+	-DFIGPATH="$FIGPATH" \
+	-DTEXBIN="$TEXBINRC"
+#
+#	Plan 9 mkfile interface
+#
+
+LIB=$FLIBS
+TARG=dvips
+
+OFILES=dvips.$O dospecial.$O dviinput.$O fontdef.$O loadfont.$O tfmload.$O \
+	download.$O prescan.$O scanpage.$O skippage.$O output.$O scalewidth.$O \
+	dosection.$O dopage.$O resident.$O search.$O unpack.$O drawPS.$O \
+	header.$O makefont.$O repack.$O virtualfont.$O dpicheck.$O finclude.$O \
+	pprescan.$O papersiz.$O flib.$O color.$O bbox.$O
+
+HFILES=structures.h\
+	debug.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS = $DEFS $OPT $SYS $SECURE $EMTEX $DEFPFMT -c
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+
+default:V:	all
+
+all:V:	$O.afm2tfm $PROS
+
+compile:V:	all
+
+dvips:V:	$O.out
+
+dvips.$O: dvips.c paths.h
+	$CC $CFLAGS $PATHS dvips.c
+
+makefont.$O: makefont.c
+	$CC $CFLAGS $PATHS makefont.c
+
+flib.$O:	paths.h
+resident.$O:	paths.h
+loadfont.$O:	paths.h
+tfmload.$O:	paths.h
+
+$O.afm2tfm:	afm2tfm.$O $LIB
+	$LD -o $target $LDFLAGS $prereq
+
+
+$cpuobjtype.squeeze: squeeze.c
+	objtype=$cputype
+	$CC $CFLAGS squeeze.c
+	$LD -o $target $LDFLAGS squeeze.$cpuobjtype /$cputype/lib/ape/libv.a
+
+%.pro:	%.lpro $cpuobjtype.squeeze
+	./$cpuobjtype.squeeze < $stem.lpro > $stem.pro
+
+install:V: $BIN/dvips $TEXBIN/afm2tfm $PSFILES $TEXS $TEXBINRC/MakeTeXPK
+	for (i in $PSFILES)
+		$INSTALL $i $PS/$i $INSOWNER $INSGROUP 664
+	for (i in $TEXS)
+		$INSTALL $i $TEXMACROS/$i $INSOWNER $INSGROUP 664
+	for (i in $PROS)
+		$INSTALL $i $PS/$i
+
+$BIN/dvips:	$O.out
+	$INSTALL $prereq $target $INSOWNER $INSGROUP $INSMODE
+
+$TEXBIN/%:	$O.%
+	$INSTALL $prereq $target $INSOWNER $INSGROUP $INSMODE
+
+$TEXBINRC/%:	%
+	$INSTALL $prereq $target $INSOWNER $INSGROUP $INSMODE
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG [$OS].afm2tfm
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG [$OS].afm2tfm
+	rm -f $PROS t.* *.dvi *.log *.aux core [$OS].squeeze
+
+test:V: dvips
+	cd testdir
+	../dvips.$cputype test1.dvi > t.ps
+	if (! cmp test1.ps t.ps)
+		echo bad dvips
+	rm -f t.ps

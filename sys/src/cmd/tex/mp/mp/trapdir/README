@@ -1,0 +1,49 @@
+The `trap' test for MetaPost is analogous to the similarly named test for
+METAFONT.  It requires a special version of inimp with the following constant
+settings:
+    mem_max = 4000+mem_min
+    error_line = 64
+    half_error_line = 32
+    max_print_line = 72
+    mem_top = 4000+mem_min
+The other parameters max_internal, buf_size, etc. are not very important but
+should be left at the values given in mp.web if possible.
+
+The trap test uses trap.mp, trap.mpx, and trapf.tfm.  These three files should
+be in the current directory when running the trap test; the other files in
+this directory should be saved for comparison purposes.  Be sure that trap.mpx
+is written more recently than trap.mp so that MetaPost does not try to
+regenerate trap.mpx.
+
+Run the special inimp and give it the contents of trap1.in as terminal input.
+This should produce lots of error messages and write a binary file `trap.mem'.
+The resulting trap.log should almost match the trapin.log in this directory.
+(The allowable differences are listed below).
+
+Now run the special inimp again and give it the contents of trap2.in as terminal
+input.  The terminal output should almost match trap.fot and the other files
+written should almost match the versions in this directory.  Run the binary
+output file trap.tfm through tftopl and compare the resulting trap.pl with the
+one in this directory.
+
+                            Allowable differences
+1. trap.log, trap.ps, and the output files with numeric extensions all contain
+   lines that give the time and date.
+
+2. The capacity values printed out at the end depend on the parameters buf_size,
+   stack_size, etc.
+
+3. In the output file trap.197, some occurances of the name "trapf" may be
+   replaced by "UNSPECIFIED" or some other name.  This is due to system-dependent
+   code for generating PostScript font names when prologs>0.
+
+4. The strings `now untouched' statistics may differ due to changes in the
+   number of characters in the date on the first line of the log file.  All the
+   string statistics will change if you alter ../mp.ch in a way that changes the
+   string pool.
+
+5. If integer division with negative numbers does not truncate toward zero in
+   your implementation, numeric results will be rounded differently.
+
+6. If for some reason you alter the storage allocation code ../mp.web or ../mp.ch
+   this will change the memory usage statistics and the capsule numbers.

@@ -4,8 +4,8 @@
 #include "sys9.h"
 #undef OPEN
 #include "../stdio/iolib.h"
-#include "lib.h"
 #include "dir.h"
+#include "lib.h"
 
 FILE *
 tmpfile(void){

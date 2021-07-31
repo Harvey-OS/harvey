@@ -33,13 +33,12 @@ getrect(int but, Mouse *m){
 		*m = emouse();
 		border(&screen, rc, 2, F&~D);
 		r.max = m->xy;
-	}while(m->buttons == but);
+	}while(m->buttons & but);
 
     Return:
-	cursorswitch(0);
+	cursorswitch((Cursor *)0);
 	if(m->buttons & (7^but)){
 		rc.min.x = rc.max.x = 0;
-		rc.min.y = rc.max.y = 0;
 		while(m->buttons)
 			*m = emouse();
 	}

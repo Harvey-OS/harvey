@@ -66,11 +66,7 @@ template
 .br
 M. E. Lesk and E. Schmidt,
 `LEX\(emLexical Analyzer Generator', 
-.I
-Unix Research System Programmer's Manual,
-Tenth Edition, Volume 2.
-.SH SOURCE
-.B /sys/src/cmd/lex
+Unix Research System Programmer's Manual, Volume 2
 .SH BUGS
 Cannot handle
 .SM UTF.

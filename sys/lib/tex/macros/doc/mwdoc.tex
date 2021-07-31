@@ -1,0 +1,1129 @@
+\documentstyle[epsf,twoside,bitmap,bitmap2]{mw}
+\author{Terry L Anderson}
+\title{A \LaTeX\ Style for Multiweight Design}
+\markbottom{\today\quad Draft}
+%\makeglossary
+\def\LaTeXnine{{\rm L\kern-.36em\raise.3ex\hbox{\tiny A}\kern-.15em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+\maketitle
+\begin{copyrightpage}
+\copyrightnotice{1991}{AT\&T}
+  \begin{notice}
+    Every effort was made to ensure that the information in this document
+    was complete and accurate at the time of printing.  However,
+    information is subject to change.
+  \end{notice}
+  \begin{security}
+    This is a sample security statement.
+  \end{security}
+  \begin{trademarks}
+    \TeX\ is a trademark of the American Mathematical Society\\
+    UNIX is a registered trademark of UNIX Systems Laboratories, Inc.
+  \end{trademarks}
+  \begin{warranty}
+    AT\&T provides a no warranty for this product.  
+  \end{warranty}
+  \begin{orderinginfo}
+    This product is available to AT\&T employees on request to
+    tla@bartok.att.com or (908) 580-4428.
+  \end{orderinginfo}
+  \begin{telephonesupport}
+    Limited telephone support for this product is available at (908)
+    580-4428.  Report error to the same number.
+  \end{telephonesupport}
+  \begin{emailsupport}
+    Limited email support for this product is available at
+    tla@bartok.att.com. Report error to the address.
+  \end{emailsupport}
+\end{copyrightpage}
+\chapter{Introduction}
+This book both documents and illustrates the \LaTeX\ style, mw, for
+producing documents that follow the AT\&T Documentation Architecture
+standard. 
+
+\section{Multiweight Design} Multiweight Design, or officially {\bf
+AT\&T Documentation Architecture} (AT\&T 1990), is a set of standards
+for the content and format of documentation intended for ``all
+postsale, external-customer documents typically delivered with or in
+support of a product or service''.  The standards are optional for
+presale information, internal documents (such as requirements and
+design specifications) and training materials.
+
+The standards are intended for large documents divided into chapters
+and various sections with headings and a separate title page.  
+
+\section{The Multiweight Design Style} The multiweight design style is
+a \LaTeX\ style used with \TeX\ and \LaTeX\ to produce documents.  It
+uses most of the same macros as {\bf tm.sty} (Anderson 1989) and so it
+is possible to easily change from one style to the other to change the
+printed format of a document.  There are some limitations.
+Multiweight Design is a standard format for multichapter books and
+mw.sty is based on the standard book.sty of \LaTeX .  Tm.sty is
+intended for technical memoranda and is based on article.sty.  There
+is no chapter macro in article.sty or tm.sty and so a tm.sty document
+could be incorporated into a mw.sty book as a chapter with the
+addition of a chapter macro.  Taking a mw.sty book and reformatting it
+as a TM would take more revision.
+
+
+\section{Rest of the Document}
+
+Chapter~\ref{chap:doc} documents the features implemented in mw.sty.
+Chapter~\ref{chap:example} is an example illustrating most of the
+features ({\it signature elements}) in Multiweight Design and
+implemented by mw.sty.  This entire book  is a further example of
+Multiweight Design and illustrates most of the {\it special pages} and
+other features. 
+
+\begin{thechapterbibliography}{99}
+\bibitem{bib:anderson89}Anderson, Terry L. 1989. {\it Using the
+\LaTeX\ Document Style {\bf tm.sty}}.  AT\&T Bell Laboratories
+Technical Memorandum, 59114-890130-01TMS.
+\bibitem{bib:att1990}AT\&T. 1990. {\it AT\&T Documentation Architecture, Content and Format
+Standards}.  Document number AT\&T 000-110-000 (available from
+Customer Information Center, 800 432 6600).
+\end{thechapterbibliography}
+%
+\chapter{Documentations for mw.sty\label{chap:doc}}
+Mw.sty is a \LaTeX\ style file and so must be used with \TeX\ and
+\LaTeX .  This chapter assumes that the reader is familiar with
+\LaTeX\ and only documents the features of the mw style.  For general
+information on using \TeX\ see (Knuth 1986) and on using \LaTeX\ see
+(Lamport 1986).  For information about other local AT\&T styles see
+(Anderson 1989).  There may also be a local user's guide for \LaTeX\
+at your installation.  Ask the person in charge of your \LaTeX\
+installation. 
+
+\section{Preamble Macros}
+The file should begin with 
+\begin{itemize}
+  \item[]
+  \verb|\documentstyle[twoside]{mw}|
+\end{itemize}
+The twoside is optional but since the multiweight design format
+specifies odd and even page offsets, it is intended for twosided
+format.  Other style options that are useful include:
+\begin{itemize}
+  \item{\bf epsf} -- for inclusion of postscript figures.
+  \item{\bf bitmap} -- for inclusion of bitmaps in figures. 
+\end{itemize}
+
+The document author is specified by
+\begin{itemize}
+  \item[]\verb|\author{|{\it author-name}\verb|} |
+\end{itemize}
+
+The book's title is specified by 
+\begin{itemize}
+  \item[]\verb|\title{|{\it book-title}\verb|}|
+\end{itemize}
+
+Optional footer material; such as, a release number, date or draft
+marking can be specified using markbottom.
+\begin{itemize}
+  \item[]\verb|\markbottom{|{\it footer-text}\verb|| 
+\end{itemize}
+for example
+\begin{itemize}
+  \item[]\verb|\markbottom{\today\quad Draft}| 
+\end{itemize}
+
+\section{Body Macros}
+A title page is created by the macro
+\begin{itemize}
+  \item[]\verb|\maketitle|
+\end{itemize}
+
+\subsection{Legal Information Page}
+
+An environment \verb|copyrightpage| is available for copyright notices
+and other legal statements.  It creates a page following the title
+page.  The copyright notice is created by
+\begin{itemize}
+  \item[]\verb|\copyrightnotice{|{\it year}\verb|}{|{\it owner}\verb|}|
+\end{itemize}
+Owner will usually be ``AT\&T''.
+The following environments are available for other legal and support
+information. 
+\begin{itemize}
+  \item[]{\tt
+        notice\\
+        security\\
+        tradmarks\\
+        warranty\\
+        orderinginfo\\
+        telephonesupport\\
+        emailsupport}
+\end{itemize}
+The Mandatory Customer Information section is not yet supported.
+\subsection{Chapters and Section Headings}
+Chapters are implemented with the standard \verb|\chapter| macro.
+Parts are also implemented but are not part of the Multiweight Design
+standard. 
+\begin{note}
+ For some unknown reason putting \verb|\label{}| into a chapter
+        argument causes an extra line (or at least 5pt extra space)
+        between chapter title and multirule.  The problem can be
+        avoided by putting the label at the end of the argument.
+\end{note}
+
+Five levels of section headings are supported.  They are implemented
+using the standard \LaTeX\ sectioning commands, \verb|\section|,
+\verb|\subsection|, \verb|\subsubsection|, \verb|\paragraph|, and
+\verb|\subparagraph|. 
+\begin{note}Note that the level 5 heading,
+\verb|subparagraph|, results in a run-in heading.  A terminal period
+is added automatically by the macro and should NOT be supplied in the
+argument.  
+\end{note}
+
+The heading titles are permitted to be up to three lines long, but
+long titles tend to be unattractive and in paragraph and subparagraph
+they do not stand out well.
+\subsection{Lists}
+Multiweight Design recognizes five types of lists
+
+\begin{itemize}
+  \item[\squarebullet]bulleted
+  \item[---]dashed 
+  \item[1.]numbered
+  \item[a.]lettered
+  \item[a string]variable
+\end{itemize}
+Multiweight Design permits lists to be nested only three levels deep.
+Bulleted and dashed lists are implemented using the \verb|itemize|
+environment.  Itemize defaults to bullets at the first nesting level,
+dashes at the second and asterisks (not a multiweight design standard
+list symbol) at the third.  The default symbol at any level may be
+overridden by specifying the desired symbol within square brackets
+in the \verb|\begin{itemize}| statement; as in,
+\verb|\begin{itemize}[\spadesuit]|.  Multiweight Design discourages
+symbols other than square bullets and dashes.
+
+Autosequenced lists are implemented using the \verb|enumerate|
+environment.  Enumerate defaults to arabic numerals at the first
+level, lower case letters at the second level, and lower case roman
+numerals at the third.  The type of numbering at any level can be
+overridden by using the environments Romanenum, romanenum, Alphenum,
+alphenum, numenum as a substitute for enumerate to obtain uppercase
+Roman numerals, lower case Roman numberals, upper case letters, lower
+case letters or arabic numerals, respectively.
+
+Variable lists are not supported at this time.
+
+\subsection{Figures and Tables and Screen Displays}
+Figures and table floats are supported.
+In order to properly position rules and captions in figures and table
+according to the Multiweight Design standard, we have had to create
+new figure and table macros that specify the caption as an argument
+to the environment.  The new macros are
+  \begin{itemize}
+    \item[]
+          \verb|\begin{capfigure}[htbpou]{|{\it caption}\verb|}|\\
+          \verb|\end{capfigure}|\\
+          \verb|\begin{captable}[htbpou]{|{\it caption}\verb|}|\\
+          \verb|\end{captable}|
+  \end{itemize}
+The caption argument may contain \verb|\label| macros.
+The contents of the figure should normally be centered, using the
+centering macro or the center environment.  The capfigure and captable
+macros take the same optional positioning specification as figure and
+table, but with two additional options that control the placement of rules
+  \begin{itemize}
+    \item[o] put a rule over the float
+    \item[u] put a rule under the float
+  \end{itemize}
+The Multiweight Design standard specifies both over and under rules
+except where the figure has its own frame such as a screen display, so
+`o' and `u' should normally be specified.
+
+Where rules are not desired either capfigure and captable without the
+`o' and `u' may be used or the standard figure and table environments
+may be used. 
+
+The Multiweight Design standards suggest placing screen displays in a
+box with rounded corners.  This may be done using
+  \begin{itemize}
+    \item[]\verb|\figbox{|{\it material-to-box}\verb|}|
+  \end{itemize}
+  \begin{note}
+    Unfortunately the \verb|\verbatim| environment cannot be used in an
+    argument to this or other macros.
+  \end{note}
+
+Normally these boxed figures should be treated like other figures and
+have captions, but they should not have the rules over and under the
+box.  This can be done by placing the figbox inside a figure
+environment or capfigure without the `o' and `u' options.  Screen
+displays of only a few lines often are used only to illustrate a
+discussion in the text and have not obvious title -- it seems
+reasonable to omit a caption in these cases.  Often a caption would
+only repeat words used in the text.
+
+I have found such boxes improve the clarity
+of other figures which contain only text; such as file or code
+listings.  When several short textual figures appear on a single page,
+especially without captions and with only a few lines a body text
+between them, it is hard for the eye to distinguish between body text
+and figure text.  This is even true when over and under rules are used
+since they differ only slightly and which text is between the rules
+and which is outside is not apparent.  Boxes with the vertical lines
+help make the figure text stand out.  Where these are file listing it
+is good practice to include the name of the file in the caption.
+Captions should also be used where the contents have an appropriate
+name or identity.  Small amounts of text that are used only for
+illustration and have no obvious title might omit the caption.
+
+The Multiweight Design standard specifies that screen display text be
+set in Courier or similar monospaced typeface and recommends 9pt text
+but no smaller than 7pt text.  An environment is provided 
+  \begin{itemize}
+    \item[]
+          \verb|\begin{codelisting}|\\
+          \verb|\end{codelisting}|
+  \end{itemize}
+Currently the codelisting environment simply changes to the tt font,
+but later will be augmented to preserve spacing and special symbols
+more like verbatim.
+\subsection{Notes and Admonishments}
+Notes and Admonishments use the following environments
+  \begin{itemize}
+    \item notes
+    \item danger
+    \item warning
+    \item caution
+  \end{itemize}
+For example a note would be entered as
+  \begin{itemize}
+    \item[]\verb|\begin{note}|\\
+          \verb|An example of a note.  This is important or explanatory|\\
+          \verb|information and so we want it to stand out from the rest|\\
+          \verb|of the text.|\\
+          \verb|\end{note}|
+  \end{itemize}
+\subsection{Other Body Macros}
+Footnotes are entered in the usual \LaTeX\ manner.
+
+Many other macros from tm.sty are available.
+\section{Macros for Special Pages}
+Macros for 
+\begin{enumerate}
+  \item glossary
+  \item bibliography
+  \item index
+  \item table of contents
+  \item list of figures
+  \item list of tables
+\end{enumerate}
+usually appear at the after all chapter bodies and while they are
+optional, any that are used should be specified in
+the order of the above list.
+
+\subsection{Glossary}
+A glossary uses a {\it theglossary} environment, similar to that for a
+bibliography.
+\begin{itemize}
+  \item[]
+        \verb|\begin{theglossary}|\\
+        \verb|\end{theglossary}|
+\end{itemize}
+Individual glossary entries are similar to list items and use
+\begin{itemize}
+  \item[]\verb|\glossardef{|{\it word-or-phrase}|\verb|}|{\it definition-text}
+\end{itemize}
+Note however that it differs from list itens in that the word or
+phrase to be defined goes into braces rather than brackets and is not
+optional.  The multiweight design standard recommends that long
+glossaries use a letter and rule to separate the glossary into
+alphabetic sections.  This may be done using 
+\begin{itemize}
+  \item[]\verb|\alphaline{|{\it alphabetic-letter}\verb|}|
+\end{itemize}
+For example the following would produce an letter line, rule and a
+single glossary entry.
+\begin{itemize}
+  \item[]
+        \verb|\alphaline{A}|\\
+        \verb|\glossarydef{AT\&T Practice}A type of document used to|\\
+        \verb|convey maintenance, operations, and administration|\\
+        \verb|information to support|
+\end{itemize}
+
+\subsection{Bibliography}
+In multiweight design bibliographies can be placed at the end of each
+chapter or at the end of the document.  This style supports both using
+the macros
+\begin{itemize}
+  \item[]
+        \verb|\begin{thebibliography}{99}|\\
+        \verb|\begin{thechapterbibliography}{99}|
+\end{itemize}
+The chapter end bibliography is formatted like a section and should
+appear as the last section in a chapter.  The bibliography is
+formatted like a chapter and should appear after all other normal
+chapters and the glossary (if present).
+
+Individual entries use
+\begin{itemize}
+  \item[]
+        \verb|\bibitem{|{\it tag}\verb|}|{\it bibliographic-text}
+\end{itemize}
+See the multiweight documentation for proper format of bibliographic
+text.  In general it follows that {\it Chicago Manual of Style} format
+of 
+\begin{itemize}
+  \item[] Author. year. {\it Title.} Publication data.
+\end{itemize}
+
+\subsection{Index}
+Indexes are not currently supported.  Support will be added in a later version.
+
+\subsection{Table of Contents and Lists of Figures and Tables}
+A Table of Contents and Lists of Figures and Tables may be
+automatically constructed and printed using 
+\begin{itemize}
+  \item[]
+        \verb|\tableofcontents|\\
+        \verb|\listoffigures|\\
+        \verb|\listoftables|
+\end{itemize}
+\section{Conclusion}
+For information on limitations and bugs see page~\pageref{sec:bugs}.
+
+\begin{thechapterbibliography}{99}
+\bibitem{bib:anderson89}Anderson, Terry L. 1989. {\it Using the
+\LaTeX\ Document Style {\bf tm.sty}}.  AT\&T Bell Laboratories
+Technical Memorandum, 59114-890130-01TMS.
+\bibitem{bib:knuth}Knuth, Donald E. 1986. {\it The \TeX book}. Reading, MA:
+Addison-Wesley.
+\bibitem{bib:lamport}Lamport, Leslie. 1986. {\it \LaTeX : A Document
+Preparation System}. Reading, MA: Addison-Wesley.
+\end{thechapterbibliography}
+\chapter{Examples of Multiweight Design Features\label{chap:example}}
+%
+\subchapter{Illustrates multiweight design signature elements and has
+a subtitle long enough to take 2 lines}
+
+This is ordinary text before a header. Often a section heading would
+come first but this is here to measure the space from chapter line or
+subtitle to first text.
+
+\section{Heading Level 1}
+This is an example of heading level 1. Level 1 headings are called
+\verb|\section|.  It appears in 14 pt type above
+a 2 pt rule.  There should be some text before a lower level heading.
+Let's add more text here to see when the page break occurs. This page
+has a footnote\footnote{This is an example of a footnote.  We will
+make it long enough for two lines to see how the second indents.  I
+don't like the large spacing between footnote symbol and the text.
+Why not bring the footnote symbol in as in lists?} and we need to
+check the space between the last line and the footnote rule.
+
+
+\subsection{Heading Level 2}
+
+
+This is an example of heading level 2.  Level 2 headings are called
+\verb|\subsection|.  It appears in 11 pt type above
+a 1 pt rule It is still outdented.
+
+
+Let's have this section have two paragraphs to allow measuring distance 
+between paragraphs and space below a regular body paragraph.
+
+
+\subsubsection{Heading Level 3}
+
+
+Level 3 headings are called \verb|\subsubsection|.  Level 3 heading are just
+like level 2 except that they are not underlined. They are still in 11
+pt type and outdented. Note that no headings are numbered. The
+standards allow numbered headings but do not encourage them.
+
+
+\paragraph{Heading Level 4}
+
+Level 4 headings are called \verb|\paragraph|.  Level 4 headings are
+not outdented. They are still in 11 pt type. The standard allows for
+five levels of headers.
+
+
+\subparagraph{Heading Level 5}Level 5 headings are called
+\verb|\subparagraph|.  Heading level 5 is a run-in header.  Fortunately
+the distinction between stand-alone and run-in headers is built into
+\LaTeX\ so this is easy to implement.  These run-in headers look ok when
+they are short but I don't like them when the title is long.
+
+
+\section{Level 1 Heading that is Long Enough 
+to Need Two Lines even in the table of contents.}
+
+
+Let us put in a little text.  We need more text.  The text should be
+longer than the title.  But I really have little to say.
+
+
+\subsection{This is a Long Level 2 Heading to See Where it 
+Breaks for the Second Line}
+
+
+Let us put in a little text.  We need more text.  The text should be
+longer than the title.  But I really have little to say.
+
+
+
+\subsubsection{This is a Long Level 3 Heading to See Where it 
+Breaks for the Second Line}
+
+
+Let us put in a little text.  We need more text.  The text should be
+longer than the title.  But I really have little to say.
+
+
+
+\paragraph{This is a Long Level 4 Heading to See Where it Breaks for
+the Second Line}
+
+Level 4 headings are allowed to extend the entire width of the text
+column.  Level 4 headings do not stand out as well with no underlining
+or outdenting --- only bolding.  This is especially a problem when the
+heading is more than a single line.
+
+
+\subparagraph{This is a level 5 heading that is very long to see how
+they look when they are very long such as more than a full line} This
+is the body for a paragraph with a very long run-in header.  This
+needs to be long enough that the paragraph is larger than the header.
+I do not like the looks of this method of titling when the title is long.
+
+
+This page looks very bad with so many headings, but of course using such long 
+headings and so little text between them is very artificial.
+
+
+\section{Figures and Tables}
+\subsection{Figures}
+We can include figures in pic, postscript and xbitmaps. 
+Figure~\ref{fig:face} is an example of a figure whose source is an
+xbitmap (included using \verb|\bitmap| which prints bitmaps converted
+to \TeX\ by the filter bitmap2tex).
+
+\begin{capfigure}{\label{fig:face}The Author's face}[htbpou]
+\vskip.5in
+\centerline{
+\input tlaface
+}\vskip.4in
+\end{capfigure}
+
+Figure~\ref{fig:tardis} is an example of a figure whose source is an
+xbitmap (included using \verb|\bitmap2| which directly parses xbitmap files).
+\begin{capfigure}{\label{fig:tardis}The Tardis}[htbpou]
+\vskip.5in
+\begin{center}
+\Bitmap{tlaface.map}{1pt}
+\end{center}
+\vskip0.2in
+\end{capfigure}
+
+Figure~\ref{fig:attlogo} is an example of encapsulated PostScript.
+\begin{capfigure}{\label{fig:attlogo}The AT\&T Logo}[htbpou]
+\center{
+%\special{psfile="/tools/sde/frame.sde/lib/EPSI/attlogo.epsf"}
+%\epsfbox{/tools/sde/frame.sde/lib/EPSI/attlogo.epsf}
+}
+\end{capfigure}
+Including Encapsulated PostScript requires using dvips or other dvi
+supporting postscript specials.  Dvips supports  \verb|\special| with
+the designation of a PostScript file and a number of options.  If
+epsf.sty is available and the epsf style option is specified in the
+documentstyle, one may also use \verb|\epsfbox{|{\it
+psfilename}\verb|}| can be used to include an Encapsulated PostScript
+figure with the space required automatically calculated.
+
+Figure~\ref{fig:s} on page~\pageref{fig:s} is another example of encapsulated
+PostScript.  It consists of two plots made by S (Becker, Chambers and
+Wilks 1988).
+\begin{capfigure}{\label{fig:s}Sample output of S (shown at 64\%
+  reduction)}[htbpou] 
+\center{
+%\epsfbox{S.epsf}
+}
+\end{capfigure}
+
+
+\subsection{Tables}
+Tables are labelled at the top rather than at the bottom. 
+
+Multiweight Design specifies text to be used when tables are not compete on a 
+single page and must be continued onto a second page. I do not see how to 
+enforce this in \LaTeX, although I can provide macros types
+that include the text for continuing.
+
+
+Table~\ref{tab:example} on page~\pageref{tab:example} is an example of
+a small (regular width) table.
+
+\begin{captable}{\label{tab:example}Example Table}[htbpou]
+\begin{tabbing}
+Lotus 1-2-3\quad\=Software BackPlane\quad\=\kill
+{\bf Product}\>{\bf Description}\>{\bf Kind of Link}\\
+20/20\>	a spreadsheet\>	outputs MIF\\
+Lotus 1-2-3\>	a spreadsheet\>	outputs MIF\\
+Teamwork\>	CASE\>	outputs MIF\\
+StP\>	CASE\>	outputs MIF\\
+Atherton\>	Software BackPlane\>	live-links? version control of documents\\
+MML filter\>	ascii editing\>	allows ascii editing of Frame documents\\
+\end{tabbing}
+\end{captable}
+
+This table was done with the tabbing environment.  We can also make
+tables using tabular environment and box the items.
+
+\subsection{Screen Displays and File Listings}
+Multiweight Design recommends the use of rounded boxes to set off
+screen displays.  It is also a nice for file listings.  For very small
+figures such as those illustrating terminal interaction, figures with
+captions seem to be overkill.  Figures without captions might be used
+but while the above and
+below lines are suitable for setting off non-text figures, they
+are still somewhat ambiguous for text figures.  When
+there are several on a page, with the text between about the same as
+the text within them it is not clear which is figure and which is
+paragraph text.  Placing them in rounded boxes works fine since the
+vertical sides of the box removes the ambiguity.  Figure captions
+without additional rules can be added when useful.
+
+The following is an example of a command line.
+\begin{figure}[h]
+\figbox{{\tt{\bf\$} mycommand arg1 arg2}}
+\end{figure}
+
+Figure~\ref{fig:mpsprint} on page~\pageref{fig:mpsprint} is an example of
+a multiple line file listing. 
+
+\begin{figure}[htbp]
+\figbox{
+\begin{codelisting}
+if test -r "\$1.ps"; then INF="\$1.ps"\\
+   else if test -r "\$1.PS"; then INF="\$1.PS"\\
+   else if test -r "\$1"; then INF="\$1"\\
+   else echo "No \$1, \$1.ps or \$1.PS found";exit\\
+fi fi fi\\
+cat \$INF | rsh mozart lp -d4NE10P -oraw
+\end{codelisting}
+}
+\caption{\label{fig:mpsprint}Listing of the mpsprint command}
+\end{figure}
+
+\section{Lists}
+
+
+Multiweight Design recognizes five types of lists
+
+\begin{itemize}
+  \item[\squarebullet]bulleted
+  \item[---]dashed< 
+  \item[1.]numbered
+  \item[a.]lettered
+  \item[a string]variable
+\end{itemize}
+
+The line following a list should be 18 pt baseline to baseline if it
+is part of the paragraph or 24 pt if it begins a new paragraph. 
+
+
+The standard says that the period is the same distance form the text column as 
+the left edge of box and dash but this looks too far out. The examples
+in the document do not follow this. So I have followed the example
+which puts the period at about 2 picas from text column.
+
+
+The variable list is not yet implemented.
+
+
+Nested lists are supported to four levels though the guidelines
+suggests a limit of three.
+
+
+\subsection{Bullet Lists}
+
+This is an example of a bullet list.
+\begin{itemize}
+  \item This is level 1
+  \item So is this, but lets make the item long enough for a second
+        line to check the indent. 
+  \begin{itemize}
+    \item This is level 2
+    \item This is too.  Lets make the item long enough for a second
+          line to check the indent. 
+
+          This is a second paragraph of the same item.
+    \begin{itemize}
+      \item This is level 3 Lets make the item long enough for a
+            second line to check the indent.
+      \item this is too Lets make the item long enough for a second
+            line  to check the indent.
+
+            This is a second paragraph of a level 3 item
+    \end{itemize}
+    \item This is level 2 again
+    \begin{itemize}
+      \item Again
+    \end{itemize}
+  \end{itemize}
+  \item This is again level 1
+\end{itemize}
+
+
+
+\subsection{Numbered Lists}
+
+
+This is an sample of nested numbered lists.
+\begin{numenum}
+  \item This is level 1
+  \item So is this, but lets make the item long enough for a second
+        line to check the indent. 
+  \begin{numenum}
+    \item This is level 2
+    \item This is too.  Lets make the item long enough for a second
+          line to check the indent. 
+
+          This is a second paragraph of the same item.
+    \begin{numenum}
+      \item This is level 3 Lets make the item long enough for a
+            second line to check the indent.
+      \item this is too Lets make the item long enough for a second
+            line  to check the indent.
+
+            This is a second paragraph of a level 3 item
+    \end{numenum}
+    \item This is level 2 again
+    \begin{numenum}
+      \item Again
+    \end{numenum}
+  \end{numenum}
+  \item This is again level 1
+\end{numenum}
+
+\subsection{Enumerated Lists}
+
+
+This is an sample of nested enumerated lists, where the enumeration
+type is changed automatically.
+\begin{enumerate}
+  \item This is level 1
+  \item So is this, but lets make the item long enough for a second
+        line to check the indent. 
+  \begin{enumerate}
+    \item This is level 2
+    \item This is too.  Lets make the item long enough for a second
+          line to check the indent. 
+
+          This is a second paragraph of the same item.
+    \begin{enumerate}
+      \item This is level 3 Lets make the item long enough for a
+            second line to check the indent.
+      \item this is too Lets make the item long enough for a second
+            line  to check the indent.
+
+            This is a second paragraph of a level 3 item
+    \end{enumerate}
+    \item This is level 2 again
+    \begin{enumerate}
+      \item Again
+    \end{enumerate}
+  \end{enumerate}
+  \item This is again level 1
+\end{enumerate}
+
+\subsection{Lettered Lists}
+
+
+This is an sample of nested lettered lists.
+
+\begin{alphenum}
+\typeout{\theenumi}
+  \item This is level 1
+  \item So is this, but lets make the item long enough for a second
+        line to check the indent. 
+  \begin{alphenum}
+    \item This is level 2
+    \item This is too.  Lets make the item long enough for a second
+          line to check the indent. 
+
+          This is a second paragraph of the same item.
+    \begin{alphenum}
+      \item This is level 3 Lets make the item long enough for a
+            second line to check the indent.
+      \item this is too Lets make the item long enough for a second
+            line  to check the indent.
+
+            This is a second paragraph of a level 3 item
+    \end{alphenum}
+    \item This is level 2 again
+    \begin{alphenum}
+      \item Again
+    \end{alphenum}
+  \end{alphenum}
+  \item This is again level 1
+\end{alphenum}
+
+\subsection{Mixed Lists}
+
+
+Of course in practice one should not have nested lists of one kind but
+nest dash  lists inside bullet lists and nest lettered lists inside
+numbered lists as recommended in the guidelines. Here is an example
+
+\begin{enumerate}
+  \item This is level 1
+  \item So is this, but lets make the item long enough for a second
+        line to check the indent. 
+  \begin{alphenum}
+    \item This is level 2
+    \item This is too.  Lets make the item long enough for a second
+          line to check the indent. 
+
+          This is a second paragraph of the same item.
+    \begin{itemize}
+      \item This is level 3 Lets make the item long enough for a
+            second line to check the indent.
+      \item this is too Lets make the item long enough for a second
+            line  to check the indent.
+
+            This is a second paragraph of a level 3 item
+    \end{itemize}
+    \item This is level 2 again
+    \begin{itemize}
+      \item Again
+    \end{itemize}
+  \end{alphenum}
+  \item This is again level 1
+\end{enumerate}
+\section{Admonishments or Product Safety Labels}
+There is a special notation for ``Admonishments'' or product safety
+labels.  Admonishments 
+(danger, warning, and caution statements) tell customers that the
+actions they are about to perform may harm them or the equipment.  The
+Multiweight Design documentation defines the three types of
+admonishments and gives standards for their use.  Any admonishment
+that appears on the product must also appear verbatim in the
+documentation.  
+\begin{danger}
+This is an example of a {\it danger} admonishment. Danger indicates
+the presence of a hazard that {\it will} cause death or severe
+personal injury if the hazard is not avoided.
+\end{danger}
+\begin{warning}
+This is an example of a {\it warning} admonishment.  Warning indicates
+the presence of a hazard that {\it can} cause death or severe personal
+injury if the hazard is not avoided.
+\end{warning}
+\begin{note}
+Do not use danger or warning for property-damage accidents or
+service-interruption accidents unless personal injury risk appropriate
+to the level is also involved.
+\end{note}
+\begin{caution}
+This is an example of a {\it caution} admonishment.  Caution indicates the
+presence of a hazard that {\it will} or {\it can} cause minor personal
+injury or property damage if the hazard is not avoided.
+\end{caution}
+
+\section{Notes }
+
+There is also a special notation for ``Notes''. 
+
+Notes
+are used for ``important or explanatory information that stands out
+from the rest of the text. If there is a notice label or an
+instruction label on the product, repeat this information as a note in
+the document.''
+
+
+\begin{note}An example of a note.  This is important or explanatory
+  information and so we want it to stand out fron the rest of the text.
+
+Notes will usually be only a single paragraph but the standards to not
+state that a second paragraph is not permitted.  Second paragraphs
+should not be a distinct note, however.
+\end{note}
+\begin{note}
+This is another note.  A second distinct note on the same or later
+page must repeat the work 
+NOTE and the icon if used, even if immediately adjacent to another
+note; i.e., two notes may not be complined into a single note by using
+multiple paragraphs.
+\end{note}
+
+
+\section{Quotations}
+
+
+There are two methods of indicating quoted material. For short
+quotations, usually of two lines or less, the text is placed in line
+in the paragraph and set off by double quote marks. For longer
+quotations, it is set in a separate paragraph with extra indenting.
+The quote below is from the {\it Chicago Manual of Style} (University of Chicago Press 1982).
+
+\begin{quote}
+Quotations may be incorporated in the text in two ways: (1) run in,
+that is, in the same type size as the text and enclosed in quotation
+marks; or (2) set off from the text, without quotation marks.
+Quotations of the latter sort may be set in smaller type, or with all
+lines indented from the left, or with unjustified lines (if text lines
+are justified), or with less space between lines than the text --- or
+some combination of these typographical devices may be specified by
+the book designer. Quotations set off from the text are called block
+quotations, extracts or excerpts.
+\end{quote}
+
+This block form of quotation will be in the next release of the
+standard.  It is implemented by using the \LaTeX\ {\it quote} environment.
+
+\section{Using Bibliographies}
+
+The following is an example of a bibliography placed at the end of a
+chapter. Multiweight Design permits them to be placed there or in a
+separate Bibliography section. The data must appear in the order:
+author. publication date. title. location of publication., with each
+item separated by a period and a space. For more details on the style,
+Multiweight Design relies on the {\it Chicago Manual of Style}
+(University of Chicago Press 1982).
+
+
+Bibliographic citations in the text follow the style of ``(author
+year)''; for example, (Anderson 1991). If the bibliography contains
+more than one reference by the same author in a given year a
+sequential lower case letter is appended to the year; for example,
+(Anderson 1991a). The alphabetic letter is also used in the
+publication date entry in the bibliography.
+
+Remember to use italic font ("emphasis" in the C
+catalog) for a book title or journal title but a journal article
+title is in standard font enclosed in quotes.
+
+\begin{thechapterbibliography}{99}
+
+\bibitem{bib:att1990}AT\&T. 1990. {\it AT\&T Documentation Architecture, Content and Format
+Standards}.  Document number AT\&T 000-110-000 (available from
+Customer Information Center, 800 432 6600).
+
+\bibitem{bib:becker}Becker, Richard A., John M.\ Chambers, and Allan
+R.\ Wilks. 1988. {\it The New S Language}. Pacific Grove, CA: Wadsorth
+\& Brooks/Cole Advanced Books \& Software.
+
+\bibitem{bib:smith1991}Smith, John. 1991a. ``A Journal Article.'' {\it Journal Name}(Month):34-45.
+
+\bibitem{bib:smith1988b}Smith, John. 1991b. {\it A Book by the Same Author}. New York:Some Publisher.
+
+\bibitem{bib:chicago82}University of Chicago Press. 1982. {\it The
+Chicago Manual of Style}. Chicago:University of Chicago Press.
+\end{thechapterbibliography}
+\chapter{Conclusion and a Long Chapter Title to See How Long Ones are Handled}
+
+\section{Limitations and Bugs\label{sec:bugs}}
+
+
+The style is not complete nor are all features implemented in a fully
+standard manner. These will be removed in later releases. The
+following are some of the known limitations and bugs.
+
+
+\begin{enumerate}
+  \item Chapter titles are in 17 pt type rather than 16 since 16 is not
+        available. 
+  \item Chapter numbers is in 25 pt type rather than 115 since 115 is
+        not available.
+  \item For some unknown reason putting \verb|\label{}| into a chapter
+        argument causes an extra line (or at least 5pt extra space)
+        between chapter title and multirule.  The problem can be
+        avoided by putting the label at the end of the argument.
+  \item Table of Contents and Lists of Figures and Tables do not have
+        the correct heading on 2$^{nd}$ and subsequent pages.
+\end{enumerate}
+\section{Future}
+It is our intention to complete the implementation of all standard
+features for 8.5 by 11 inch, one-column pages, including
+\begin{itemize}
+  \item indexes
+  \item correct size fonts (including 115 pt)
+  \item copyright page
+  \item proprietary notice at bottom of pages
+  \item mandatory customer information section for legal page
+\end{itemize}
+
+At some later time support for 8.5 by 11 inch, two-column pages may be
+added.  
+\begin{theglossary}
+
+\alphaline{A}
+\glossarydef{AT\&T Practice}A type of document used to convey
+maintenance, operations, and administration information to support
+personnel.
+\glossarydef{addenda sheets}A method of revising permanently bound
+documents by using update sheets that list new or revised information.
+See also errata sheets and page updates.
+\alphaline{B}
+\glossarydef{back matter}All parts of a document after the body text.
+Back matter includes the appendixes, glossary, and index.
+\glossarydef{baseline}An imaginary line on which all capital letters
+on a document page rest.  Descenders extend beyond the baseline.  See
+also descender.
+\alphaline{D}
+\glossarydef{descender}The part of certain letters, such as, g, p, q,
+and y  that extend below the baseline.  
+\alphaline{L}
+\glossarydef{\LaTeXnine}A macro package for \TeX\ that simplifies
+preparation of documents that have a common format and style.  Most
+items are {\it tagged} by their function in the document (for example,
+section, enumerated list, or table) with the formatting for that
+function specified separately.  This keeps format and content separate
+in the spirit of SGML.  (See also SGML and \TeX .)
+\alphaline{M}
+\glossarydef{multiweight design}Multiweight Design, or officially {\bf
+AT\&T Documentation Architecture} (AT\&T 1990), is a set of standards
+for the content and format of documentation intended for ``all
+postsale, external-customer documents typically delivered with or in
+support of a product or service''.  The standards are optional for
+presale information, internal documents (such as requirements and
+design specifications) and training materials.
+\alphaline{S}
+\glossarydef{SGML}Standard Generalized Markup Language --- a set of
+standards for defining document markup tags, allow the specification
+of document items by function rather than format, and methods for
+defining the format to associate with tagged items.
+\alphaline{T}
+\glossarydef{\TeX}A page layout, document formatting, or typesetting
+language; somewhat like troff but with a more regular syntax, better
+control over scoping and more high-level features.  (See also \LaTeXnine ).
+\end{theglossary}
+\begin{thebibliography}{99}
+
+\bibitem{bib:att1990}AT\&T. 1990. {\it AT\&T Documentation Architecture, Content and Format
+Standards}.  Document number AT\&T 000-110-000 (available from
+Customer Information Center, 800 432 6600).
+
+\bibitem{bib:bangs1988a}Bangs, Alex J. 1988a. {\it The Motion Interpreter/Control Computer
+System}. Harvard University.
+
+
+\bibitem{bib:bangs1988b}Bangs, Alex J. 1988b. {\it Another Book by the Same Author}. New York:
+Some Publisher.
+
+
+\bibitem{bib:mwbarnwell}Barnwell, T. P., R.C. Rose, S. McGrath. {\it A Real-Time
+Implementation of a 4600 BPS Self-Excited Vocoder Using the AT\&T
+WE\regmark DSP32 Signal Processing Microprocessor}.  Georgia Institute
+of Technology
+
+
+\bibitem{bib:smith1991}Smith, John. 1991. ``A Journal Article.'' {\it Journal Name}(Month):34-45.
+
+\bibitem{bib:att1990}AT\&T. 1990. {\it AT\&T Documentation Architecture, Content and Format
+Standards}.  Document number AT\&T 000-110-000 (available from
+Customer Information Center, 800 432 6600).
+
+\bibitem{bib:bangs1988a}Bangs, Alex J. 1988a. {\it The Motion Interpreter/Control Computer
+System}. Harvard University.
+
+
+\bibitem{bib:bangs1988b}Bangs, Alex J. 1988b. {\it Another Book by the Same Author}. New York:
+Some Publisher.
+
+
+\bibitem{bib:mwbarnwell}Barnwell, T. P., R.C. Rose, S. McGrath. {\it A Real-Time
+Implementation of a 4600 BPS Self-Excited Vocoder Using the AT\&T
+WE\regmark DSP32 Signal Processing Microprocessor}.  Georgia Institute
+of Technology
+
+
+\bibitem{bib:smith1991}Smith, John. 1991. ``A Journal Article.'' {\it Journal Name}(Month):34-45.
+
+\bibitem{bib:att1990}AT\&T. 1990. {\it AT\&T Documentation Architecture, Content and Format
+Standards}.  Document number AT\&T 000-110-000 (available from
+Customer Information Center, 800 432 6600).
+
+\bibitem{bib:bangs1988a}Bangs, Alex J. 1988a. {\it The Motion Interpreter/Control Computer
+System}. Harvard University.
+
+
+\bibitem{bib:bangs1988b}Bangs, Alex J. 1988b. {\it Another Book by the Same Author}. New York:
+Some Publisher.
+
+
+\bibitem{bib:mwbarnwell}Barnwell, T. P., R.C. Rose, S. McGrath. {\it A Real-Time
+Implementation of a 4600 BPS Self-Excited Vocoder Using the AT\&T
+WE\regmark DSP32 Signal Processing Microprocessor}.  Georgia Institute
+of Technology
+
+
+\bibitem{bib:smith1991}Smith, John. 1991. ``A Journal Article.'' {\it Journal Name}(Month):34-45.
+
+
+\bibitem{bib:att1990}AT\&T. 1990. {\it AT\&T Documentation Architecture, Content and Format
+Standards}.  Document number AT\&T 000-110-000 (available from
+Customer Information Center, 800 432 6600).
+
+\bibitem{bib:bangs1988a}Bangs, Alex J. 1988a. {\it The Motion Interpreter/Control Computer
+System}. Harvard University.
+
+
+\bibitem{bib:bangs1988b}Bangs, Alex J. 1988b. {\it Another Book by the Same Author}. New York:
+Some Publisher.
+
+
+\bibitem{bib:mwbarnwell}Barnwell, T. P., R.C. Rose, S. McGrath. {\it A Real-Time
+Implementation of a 4600 BPS Self-Excited Vocoder Using the AT\&T
+WE\regmark DSP32 Signal Processing Microprocessor}.  Georgia Institute
+of Technology
+
+
+\bibitem{bib:smith1991}Smith, John. 1991. ``A Journal Article.'' {\it Journal Name}(Month):34-45.
+
+\bibitem{bib:att1990}AT\&T. 1990. {\it AT\&T Documentation Architecture, Content and Format
+Standards}.  Document number AT\&T 000-110-000 (available from
+Customer Information Center, 800 432 6600).
+
+\bibitem{bib:bangs1988a}Bangs, Alex J. 1988a. {\it The Motion Interpreter/Control Computer
+System}. Harvard University.
+
+
+\bibitem{bib:bangs1988b}Bangs, Alex J. 1988b. {\it Another Book by the Same Author}. New York:
+Some Publisher.
+
+
+\bibitem{bib:mwbarnwell}Barnwell, T. P., R.C. Rose, S. McGrath. {\it A Real-Time
+Implementation of a 4600 BPS Self-Excited Vocoder Using the AT\&T
+WE\regmark DSP32 Signal Processing Microprocessor}.  Georgia Institute
+of Technology
+
+
+\bibitem{bib:smith1991}Smith, John. 1991. ``A Journal Article.'' {\it Journal Name}(Month):34-45.
+
+\bibitem{bib:att1990}AT\&T. 1990. {\it AT\&T Documentation Architecture, Content and Format
+Standards}.  Document number AT\&T 000-110-000 (available from
+Customer Information Center, 800 432 6600).
+
+\bibitem{bib:bangs1988a}Bangs, Alex J. 1988a. {\it The Motion Interpreter/Control Computer
+System}. Harvard University.
+
+
+\bibitem{bib:bangs1988b}Bangs, Alex J. 1988b. {\it Another Book by the Same Author}. New York:
+Some Publisher.
+
+
+\bibitem{bib:mwbarnwell}Barnwell, T. P., R.C. Rose, S. McGrath. {\it A Real-Time
+Implementation of a 4600 BPS Self-Excited Vocoder Using the AT\&T
+WE\regmark DSP32 Signal Processing Microprocessor}.  Georgia Institute
+of Technology
+
+
+\bibitem{bib:smith1991}Smith, John. 1991. ``A Journal Article.'' {\it Journal Name}(Month):34-45.
+\end{thebibliography}
+\tableofcontents
+\listoffigures
+\listoftables
+\end{document}

@@ -1,0 +1,5 @@
+foo:
+	troff -mpm -mpictures <help.ms | lp -du -H
+
+psi:
+	troff -mpm -mpictures <help.ms | lp -dstdout | psi

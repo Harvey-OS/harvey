@@ -1,0 +1,79 @@
+% eepicemy Version 1.0 < August 14, 1988 >
+%	Written by Conrad Kwok
+%
+% Internet : kwok@iris.ucdavis.edu
+% csnet    : kwok@ucd.csnet
+% csnet    : kwok%iris.ucdavis.edu@csnet.relay
+% UUCP	   : ...!ucbvax!ucdavis!iris!kwok
+%
+% The macros are in public domain.
+% You may distribute or modify it in any ways you like.
+% Please report any bugs, enhancements, comments, suggestions, etc.
+\makeatletter
+\typeout{Emulation of EEPIC using EPIC. Version 1.0 - Release August 14, 1988}
+\let\path\drawline
+\def\ellipse{%
+    \@ifstar{\@ellipse}{\@ellipse}}
+\def\@ellipse#1#2{%
+    \ifnum #1=#2%
+	\circle{#1}%
+    \else
+	\oval(#1,#2)
+    \fi\relax}
+\let\Thicklines\thicklines
+\def\circle{%
+    \@ifstar
+	{\@emudot}%
+	{\@emucirc}%
+}
+\def\@emudot#1{%
+    \@tempdimb #1\unitlength
+    \ifdim \@tempdimb > 15pt
+        \oval(#1,#1)%
+    \else
+        \@dot{#1}%
+    \fi
+}
+\def\@emucirc#1{%
+     \@tempdimb #1\unitlength
+     \ifdim \@tempdimb > 40pt
+	\oval(#1,#1)%
+     \else
+	\@circle{#1}%
+     \fi
+}
+\def\arc#1#2#3{\typeout{arc function is not supported in emulation package}}
+\newcount\@spxcnt
+\newcount\@spycnt
+\newcount\@ispxcnt
+\newcount\@ispycnt
+\newcount\@cmidxcnt
+\newcount\@cmidycnt
+
+\def\spline(#1,#2){%
+    \@ifnextchar ({\@ispline(#1,#2)}%
+		  {\ignorespaces}}
+\def\@ispline(#1,#2)(#3,#4){%
+    \@ifnextchar ({\@iispline(#1,#2)(#3,#4)}%
+	          {\@drawline[0](#1,#2)(#3,#4)\ignorespaces}}
+\def\@iispline(#1,#2)(#3,#4)(#5,#6){%
+    \@ifnextchar ({%
+        \@spxcnt=#3 \advance\@spxcnt by #5 \divide\@spxcnt by 2\relax
+        \@spycnt=#4 \advance\@spycnt by #6 \divide\@spycnt by 2\relax
+        \@chaikin{#1}{#2}{#3}{#4}{\@spxcnt}{\@spycnt}%
+        \@ispxcnt=\@spxcnt\relax \@ispycnt=\@spycnt\relax
+        \@iispline(\@ispxcnt,\@ispycnt)(#5,#6)}%
+%   else
+       {\@chaikin{#1}{#2}{#3}{#4}{#5}{#6}}}
+\def\@chaikin#1#2#3#4#5#6{%
+    \@cmidxcnt=#1 \advance\@cmidxcnt by #3
+    \advance\@cmidxcnt by #3 \advance\@cmidxcnt by #5
+    \divide\@cmidxcnt by 4
+    \@cmidycnt=#2 \advance\@cmidycnt by #4
+    \advance\@cmidycnt by #4 \advance\@cmidycnt by #6
+    \divide\@cmidycnt by 4
+    \@drawline[0](#1,#2)(\@cmidxcnt,\@cmidycnt)%
+    \@drawline[0](\@cmidxcnt,\@cmidycnt)(#5,#6)%
+}
+\def\allinethickness#1{\thicklines\linethickness{#1}}
+\makeatother

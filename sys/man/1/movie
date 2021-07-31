@@ -1,0 +1,124 @@
+.TH MOVIE 1
+.SH NAME
+movie \- algorithm animation
+.SH SYNOPSIS
+.B movie
+[
+.B -d
+]
+[
+.I files ...
+]
+.SH DESCRIPTION
+.I Movie
+converts a `movie script'
+into an internal representation, then displays it in a window.
+Or, if the input file is already in the internal representation
+format, the conversion step is skipped.
+The
+.B -d
+option says to leave the internal representation around in a file
+with the same name as the input file, with the suffix (if any)
+replaced by
+.BR .i .
+If no file names are given, standard input is used.
+If more than one file name is given, they are each animated in turn.
+.PP
+Button 1 stops and starts the movie;
+button 2 adjusts view sizes and selects clicks;
+button 3 sets various parameters.
+The `new file' option on the button 3 menu prompts for
+another file to display; that file must be in internal representation format.
+.SS Movie scripts
+A movie consists of multiple independent views,
+each presented as a rectangular sub-window.
+If no 
+.B view
+statements appear, there is a single implicit view
+.BR def.view .
+Any text or geometrical object may be labeled with a name and colon.
+Labels and coordinates are local to views.
+A recurring label erases the previous
+object with that label.
+.PP
+Comments follow #; blank lines are ignored.
+.HP
+.B text
+.I options x y string
+.br
+Text is centered and medium size by default;  options: one of
+.B "center
+.B ljust
+.B rjust
+.B above
+.BR below ,
+and one of
+.BR "small
+.B medium
+.B big
+.BR bigbig .
+A leading quote is stripped from
+.IR string ,
+as is a trailing quote if a leading one is present.
+.PD 0
+.HP
+.BI line
+.I "options x1 y1 x2 y2
+.br
+Lines are solid by default;  options: one of
+.B "fat
+.B fatfat
+.B dotted
+.B dashed
+and one of
+.B "->
+.B <-
+.BR <-> .
+.HP
+.BI box
+.I "options xmin ymin xmax ymax
+.br
+A box may be
+.BR fill ed.
+.HP
+.BI circle 
+.I "options x1 y1 radius
+.br
+Radius is measured in the
+.I x
+dimension.
+A circle may be
+.BR fill ed.
+.TP
+.BI erase " label
+Erase an object explicitly.
+.TP
+.B clear
+Erase all objects currently in the current view.
+.TP
+.BI click " optional-name
+Place a mark in the intermediate with this name;
+clicks are used to control stepping in a movie or to define frames
+for a set of stills.
+.TP
+.BI view " name
+.br
+Associate subsequent objects with this view,
+until changed again.
+.PD
+.SH FILES
+All files are in
+.BI /sys/lib/movie/$objtype .
+.TF fdevelop
+.TP
+.B fdevelop
+Converts scripts to internal format.
+.TP
+.B anim
+Displays one file in internal format.
+.SH "SEE ALSO"
+J. L. Bentley and B. W. Kernighan,
+`A System for Algorithm Animation',
+.I
+Unix Programmer's Manual,
+Tenth Edition, Volume 2

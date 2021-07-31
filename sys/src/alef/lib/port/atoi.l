@@ -1,7 +1,7 @@
 #include <alef.h>
 
 int
-atoi(byte *s)
+atoi(char *s)
 {
 	int n, f;
 

@@ -3,7 +3,7 @@
 # do not modify /$cputype/bin/c++/?l
 # instead, change the master copy in /sys/src/c++/ld/ldprog and mk installall
 
-rfork e
+rfork
 
 switch($0){
 case *vl
@@ -34,7 +34,6 @@ ldargs=()
 libn=()
 pflag=()
 vflag=()
-nflag=()
 while(! ~ $#* 0){
 	switch($1){
 	case -l*
@@ -52,8 +51,6 @@ while(! ~ $#* 0){
 	case -o
 		out=$2
 		shift
-	case -n
-		nflag=-n
 	case -p
 		pflag=-p
 	case -v
@@ -74,20 +71,11 @@ if(~ $#objs 0){
 	exit nofiles
 }
 
-fn sigint sighup sigterm{
-	rm -f $out
-	exit 1
-}
-
 if(! ~ $#vflag 0)
-	echo $LD $pflag $nflag $vflag -o $out $objs $libn
-$LD $pflag $nflag $vflag -o $out $objs $ldargs /$objtype/lib/c++/libC.a
+	echo $LD $pflag -o $out $objs $libn
+$LD $pflag $vflag -o $out $objs $ldargs /$objtype/lib/c++/libC.a
 if(~ $status ''){
 	if(! ~ $#vflag 0)
 		echo c++/patch $out
-	if(! /bin/c++/patch $out){
-		rm -f $out
-		exit 1
-	}
+	/bin/c++/patch $out
 }
-exit ''

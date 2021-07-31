@@ -1,0 +1,338 @@
+% The following defines procedures assumed and used by program "dvips"
+% and must be downloaded or sent as a header file for all TeX jobs.
+% Originated by Neal Holtz, Carleton University, Ottawa, Canada
+%      <holtz@cascade.carleton.cdn>
+%      June, 1985
+%
+%   Hacked by tgr, July 1987, stripped down to bare essentials,
+%   plus a few new commands for speed.
+%
+%   Hacked by don, December 1989, to give characters top down and to
+%   remove other small nuisances; merged with tgr's compression scheme
+%
+% To convert this file into a downloaded file instead of a header
+% file, uncomment all of the lines beginning with %-%
+%
+%   To observe available VM, uncomment the following.
+%   (The first ten lines define a general 'printnumber' routine.)
+%
+% /VirginMtrx 6 array currentmatrix def
+% /dummystring 20 string def
+% /numberpos 36 def
+% /printnumber { gsave VirginMtrx setmatrix
+%   /Helvetica findfont 10 scalefont setfont
+%   36 numberpos moveto
+%   /numberpos numberpos 12 add def
+%   dummystring cvs show
+%   grestore
+%   } bind def
+% /showVM { vmstatus exch sub exch pop printnumber } def
+% /eop-aux { showVM } def
+%
+%-%0000000 			% Server loop exit password
+%-%serverdict begin exitserver
+%-%  systemdict /statusdict known
+%-%  {statusdict begin 9 0 3 setsccinteractive /waittimeout 300 def end}
+%-% if
+
+/TeXDict 250 dict def   % define a working dictionary ( IBM: color - 200->250 )
+TeXDict begin           % start using it.
+/N {def} def
+/B {bind def} N
+/S {exch} N
+/X { S N } B
+/TR {translate} N
+
+% The output of dvips assumes pixel units, Resolution/inch, with
+% increasing y coordinates corresponding to moving DOWNWARD.
+% The PostScript default is big point units (bp), 72/inch, with
+% increasing y coordinates corresponding to moving UP; the
+% following routines handle conversion to dvips conventions. 
+
+% Let the PostScript origin be (xps,yps) in dvips coordinates.
+
+/isls false N
+/vsize 11 72 mul N
+
+/@rigin                 % -xps -yps @rigin -   establishes dvips conventions
+  { isls { [ 0 -1 1 0 0 0 ] concat } if
+    72 Resolution div 72 VResolution div neg scale
+    isls { Resolution hsize -72 div mul 0 TR } if
+    Resolution VResolution vsize -72 div 1 add mul TR
+% As bad as setmatrix is, it is better than misalignment.
+    matrix currentmatrix
+    dup dup 4 get round 4 exch put
+    dup dup 5 get round 5 exch put
+    setmatrix } N
+
+/@landscape { /isls true N } B
+
+/@manualfeed
+   { statusdict /manualfeed true put
+   } B
+
+        % n @copies -   set number of copies
+/@copies
+   { /#copies X
+   } B
+
+% Bitmap fonts are called Fa, Fb, ..., Fz, F0, F1 . . . Ga . . .
+% The calling sequence for downloading font foo is
+%           /foo df chardef1 ... chardefn E 
+% where each chardef is
+%           <hexstring> wd ht xoff yoff dx charno D 
+%  or       <hexstring> wd ht xoff yoff dx I
+%  or       <hexstring> charno D
+%  or       <hexstring> I
+
+/FMat [1 0 0 -1 0 0] N
+/FBB [0 0 0 0] N
+
+/nn 0 N /IE 0 N /ctr 0 N
+/df-tail       % id numcc maxcc df-tail -- initialize a new font dictionary
+  {
+%   dmystr 2 fontname cvx (@@@@) cvs putinterval  % put name in template
+    /nn 8 dict N              % allocate new font dictionary
+    nn begin
+        /FontType 3 N
+	/FontMatrix fntrx N
+	/FontBBox FBB N
+        string /base X
+        array /BitMaps X
+        /BuildChar {CharBuilder} N
+        /Encoding IE N
+        end
+    dup { /foo setfont }          %  dummy macro to be filled in
+       2 array copy cvx N         %  have to allocate a new one
+    load                          %  now we change it
+%      0 dmystr 6 string copy       %  get a copy of the font name
+       0 nn put
+%      cvn cvx put                  %  and stick it in the dummy macro
+    /ctr 0 N                      %  go, count, and etc.
+    [                               %  start next char definition
+  } B
+/df {
+   /sf 1 N
+   /fntrx FMat N
+   df-tail
+} B
+/dfs { div /sf X
+   /fntrx [ sf 0 0 sf neg 0 0 ] N
+   df-tail
+} B
+
+/E { pop nn dup definefont setfont } B
+
+% the following is the only character builder we need.  it looks up the
+% char data in the BitMaps array, and paints the character if possible.
+% char data  -- a bitmap descriptor -- is an array of length 6, of
+%          which the various slots are:
+
+/ch-width {ch-data dup length 5 sub get} B % the number of pixels across
+/ch-height {ch-data dup length 4 sub get} B % the number of pixels tall
+/ch-xoff  {128 ch-data dup length 3 sub get sub} B % num pixels right of origin
+/ch-yoff  {ch-data dup length 2 sub get 127 sub} B % number of pixels below origin
+/ch-dx  {ch-data dup length 1 sub get} B     % number of pixels to next character
+/ch-image {ch-data dup type /stringtype ne
+      { ctr get /ctr ctr 1 add N } if
+   } B                        % the hex string image, or array of same
+%      /id ch-image N                          % image data
+/id 0 N /rw 0 N /rc 0 N /gp 0 N /cp 0 N /G 0 N /sf 0 N
+
+/CharBuilder    % fontdict ch Charbuilder -     -- image one character
+     {save 3 1 roll S dup /base get 2 index get S /BitMaps get S get
+      /ch-data X pop
+      /ctr 0 N
+      ch-dx 0 ch-xoff ch-yoff ch-height sub
+      ch-xoff ch-width add ch-yoff
+      setcachedevice
+      ch-width ch-height true
+      [1 0 0 -1 -.1 ch-xoff sub ch-yoff .1 add]
+% begin code for uncompressed fonts only
+      {ch-image} imagemask
+      restore
+  } B
+% end code for uncompressed fonts only
+% % here's the alternate code for unpacking compressed fonts
+%      /id ch-image N                          % image data
+%      /rw ch-width 7 add 8 idiv string N      % row, initially zero
+%      /rc 0 N                                 % repeat count
+%      /gp 0 N                                 % image data pointer
+%      /cp 0 N                                 % column pointer
+%      { rc 0 ne { rc 1 sub /rc X rw } { G } ifelse } imagemask
+%    restore
+% } B
+% /G { { id gp get /gp gp 1 add N
+%   dup 18 mod S 18 idiv pl S get exec } loop } B
+% /adv { cp add /cp X } B
+% /chg { rw cp id gp 4 index getinterval putinterval
+%         dup gp add /gp X adv } B
+% /nd { /cp 0 N rw exit } B
+% /lsh { rw cp 2 copy get dup 0 eq { pop 1 } { dup 255 eq { pop 254 }
+%     { dup dup add 255 and S 1 and or } ifelse } ifelse put 1 adv } B
+% /rsh { rw cp 2 copy get dup 0 eq { pop 128 } { dup 255 eq { pop 127 }
+%     { dup 2 idiv S 128 and or } ifelse } ifelse put 1 adv } B
+% /clr { rw cp 2 index string putinterval adv } B
+% /set { rw cp fillstr 0 4 index getinterval putinterval adv } B
+% /fillstr 18 string 0 1 17 { 2 copy 255 put pop } for N
+% /pl [
+%    { adv 1 chg }
+%    { adv 1 chg nd }
+%    { 1 add chg }
+%    { 1 add chg nd }
+%    { adv lsh }
+%    { adv lsh nd }
+%    { adv rsh }
+%    { adv rsh nd }
+%    { 1 add adv }
+%    { /rc X nd }
+%    { 1 add set }
+%    { 1 add clr }
+%    { adv 2 chg }
+%    { adv 2 chg nd }
+%    { pop nd } ] dup { bind pop } forall N
+% % end of code for unpacking compressed fonts
+
+               % in the following, the font-cacheing mechanism requires that
+                % a name unique in the particular font be generated
+
+/D            % char-data ch D -    -- define character bitmap in current font
+  { /cc X
+    dup type /stringtype ne {]} if
+    nn /base get cc ctr put
+    nn /BitMaps get S ctr S
+    sf 1 ne {
+       dup dup length 1 sub dup 2 index S get sf div put
+    } if
+    put
+    /ctr ctr 1 add N
+  } B
+
+/I            % a faster D for when the next char follows immediately
+  { cc 1 add D } B
+
+/bop           % %d bop -              -- begin a brand new page, %d = seqno
+  {
+    userdict /bop-hook known { bop-hook } if
+    /SI save N
+    @rigin
+%
+%   Now we check the resolution.  If it's correct, we use RV as V,
+%   otherwise we use FV.
+%
+    0 0 moveto
+    /V matrix currentmatrix
+    dup 1 get dup mul exch 0 get dup mul add .99 lt
+    {/FV} {/RV} ifelse load def
+    pop
+  } N
+
+/eop           % - eop -              -- end a page
+  { % eop-aux  % -- to observe VM usage
+    SI restore
+    showpage
+    userdict /eop-hook known { eop-hook } if
+  } N
+
+/@start         % - @start -            -- start everything
+  {
+    userdict /start-hook known { start-hook } if
+    /VResolution X
+    /Resolution X
+    1000 div /DVImag X
+    /IE 256 array N
+    0 1 255 {IE S 1 string dup 0 3 index put cvn put} for
+    65781.76 div /vsize X
+    65781.76 div /hsize X
+  } N
+
+/p {show} N        %  the main character setting routine
+
+/RMat [ 1 0 0 -1 0 0 ] N % things we need for rules
+/BDot 260 string N
+/rulex 0 N /ruley 0 N
+/v {                   % can't use ...fill; it makes rules too big
+   /ruley X /rulex X
+   V
+} B
+%
+%   What we need to do to get things to work here is tragic.
+%
+/V {} B /RV
+%
+%   Which do we use?  The first if we are talking to Display
+%   PostScript, the latter otherwise.
+%
+statusdict begin /product where
+   { pop product dup length 7 ge
+      { 0 7 getinterval dup (Display) eq exch 0 4 getinterval (NeXT) eq or }
+      { pop false } ifelse }
+   { false } ifelse end
+{ {
+   gsave
+      TR -.1 -.1 TR 1 1 scale rulex ruley
+      false RMat { BDot } imagemask
+   grestore
+} }
+{ {
+   gsave
+      TR -.1 -.1 TR rulex ruley scale 1 1
+      false RMat { BDot } imagemask
+   grestore
+} } ifelse B
+%
+%   We use this if the resolution doesn't match.
+%
+/FV {
+   gsave
+      transform round exch round exch itransform moveto
+      rulex 0 rlineto 0 ruley neg rlineto
+      rulex neg 0 rlineto fill
+   grestore
+} B
+%
+/a { moveto } B    % absolute positioning
+/delta 0 N         % we need a variable to hold space moves
+%
+%   The next ten macros allow us to make horizontal motions that
+%   are within 4 of the previous horizontal motion with a single
+%   character.  These are typically used for spaces.
+%
+/tail { dup /delta X 0 rmoveto } B
+/M { S p delta add tail } B
+/b { S p tail } B      % show and tail!
+/c { -4 M } B
+/d { -3 M } B
+/e { -2 M } B
+/f { -1 M } B
+/g { 0 M } B
+/h { 1 M } B
+/i { 2 M } B
+/j { 3 M } B
+/k { 4 M } B
+%
+%   These next allow us to make small motions (-4..4) cheaply.
+%   Typically used for kerns.
+%
+/w { 0 rmoveto } B
+/l { p -4 w } B
+/m { p -3 w } B
+/n { p -2 w } B
+/o { p -1 w } B
+/q { p 1 w } B
+/r { p 2 w } B
+/s { p 3 w } B
+/t { p 4 w } B
+%
+%  x is good for small vertical positioning.
+%  And y is good for a print followed by a move.
+%
+/x { 0 S rmoveto } B
+/y { 3 2 roll p a } B
+%
+%   The bos and eos commands bracket sections of downloaded characters.
+%
+/bos { /SS save N } B
+/eos { SS restore } B
+
+end  % revert to previous dictionary

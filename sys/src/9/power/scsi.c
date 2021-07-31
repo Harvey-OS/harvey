@@ -277,9 +277,10 @@ scsiio(int nbus, Scsi *p, int rw)
 	unlock(&ctlr->regs);
 	splx(s);
 
-	while(waserror())
-		;
-
+	/*
+	 * Wait for the request to complete
+	 * and return the status.
+	 */
 	tsleep(tp, done, tp, 60*5*1000);
 
 	if(!done(tp)) {
@@ -291,7 +292,6 @@ scsiio(int nbus, Scsi *p, int rw)
 	p->data.ptr += tp->dmatx;
 
 	qunlock(tp);
-	poperror();
 
 	return status;
 }
@@ -308,7 +308,7 @@ scsiexec(Scsi *p, int read)
 	if(p->target == CtlrID)
 		return 0x6002;
 
-	p->status = scsiio(p->bus, p, rw);
+	p->status = scsiio(0, p, rw);
 
 	return p->status;
 }
@@ -766,10 +766,7 @@ scsiicltr(int ctlrnr, uchar *data, uchar *addr, ulong *cnt, uchar *fls, ulong ma
 		tp->dmafls = fls;
 		tp->dmamap = map;
 
-		/* Set so scsibus one does not try to perform
-		 * synchronous negotiation.
-		 */
-		if(ctlrnr == 0 && (ctlr->flags & Freselect)){
+		if(ctlr->flags & Freselect){
 			tp->flags = 0;
 			tp->transfer = CtransferATN;
 		}

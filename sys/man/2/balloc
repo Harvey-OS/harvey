@@ -1,4 +1,4 @@
-.TH BALLOC 2
+.TH BALLOC 2G
 .SH NAME
 balloc, bfree, rdbitmap, wrbitmap, rdbitmapfile, wrbitmapfile \- allocating, freeing, reading, writing bitmaps
 .SH SYNOPSIS
@@ -64,9 +64,9 @@ into
 .IR data .
 The rows read have
 .IR y = ymin , ymin "+1, ... "
-.IR ymax \-1.
+.IR ymax \(mi1.
 Those rows must be within the range allowed by
-.IB b .r\f1.
+.IB b .r .
 .PP
 .B Wrbitmap
 replaces the specified rows of pixels in bitmap
@@ -81,7 +81,7 @@ for the file format);
 .I fd
 is a file descriptor obtained by opening such a file for reading.
 The returned bitmap is allocated using
-.IR balloc .
+.I balloc.
 .PP
 .I Wrbitmapfile
 writes bitmap
@@ -97,8 +97,7 @@ and
 .I wrbitmapfile
 do not close
 .IR fd .
-.SH SOURCE
-.B /sys/src/libg
+.PP
 .SH "SEE ALSO"
 .IR graphics (2),
 .IR bitblt (2),
@@ -109,7 +108,7 @@ These functions return 0 on failure, usually due to insufficient
 memory.
 .PP
 May set
-.IR errstr .
+.I errstr.
 .SH BUGS
 .B Ldepth
 must be 0, 1, 2, or 3.

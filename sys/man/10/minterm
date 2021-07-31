@@ -1,0 +1,147 @@
+.TH MINTERM 10.6
+.SH NAME
+minterm \- minterm file format
+.SH DESCRIPTION
+The
+.I minterm
+file format consists of at least one binary valued function
+definition.
+A function definition begins
+.B .o
+.IR name [@ flag *]
+.RI [ name ] ...
+followed by line(s) that have the form
+.IR term : mask
+\&...
+.I Name
+is either a string or a number.
+The first
+.I name
+following
+.B .o
+is a symbol of the function
+(usually an output pin name or number of a ROM/PAL/FPGA integrated circuit).
+Any other
+.RI name 's
+are symbols of input binary variables.
+.I Term
+and
+.I mask
+are decimal numbers.
+.PP
+There is a correspondence between the bits of the numbers in binary
+representation and the input symbols, the first input symbol
+is associated with the least significant bit.
+The meaning of a bit with value 1 in
+.I mask
+is `do care',
+and the meaning of a bit with value 1 in
+.I term
+is `input must be 1'.
+Thus the
+.IR term : mask
+is an implicant, and a set of them when
+.IR or 'ed
+together
+describes the input conditions for which the output symbol will have
+a value of 1.
+.PP
+For example:
+.EX
+ .o 3 1 2
+ 3:3
+ .o 4 1 2
+ 1:3 2:3 3:3
+ .o 5 2 3
+ 1:3 2:3
+ .o 11
+ .o 9
+ 0:0
+.EE
+Output 3 is the
+.I and
+function of inputs 1 and 2;
+output 4 is the
+.I or
+function of inputs 1 and 2
+.RI ( quine (10.1)
+would change this to 1:1 2:2);
+output 5 is the
+.I exclusive-or
+function of inputs 2 and 3;
+output 11 is a constant 0 and output 9 is
+a constant 1.
+.PP
+.I Flag
+information is essentially communication between
+.I lde
+and the technology mapper for a particular architecture, and is
+passed through unchanged by
+.IR quine ,
+.IR cover ,
+and
+.I hazard
+(see
+.IR quine (10.1)).
+Among the 
+.I flags
+are
+.TP
+.PD 0
+.B b
+buried
+.TP
+.B d
+D flip-flop clock
+.TP
+.B e
+output enable
+.TP
+.B g
+clock enable
+.TP
+.B i
+inverted sense
+.TP
+.B t
+T flip-flop clock
+.PD
+.PP
+Another example:
+.EX
+ .o x0@b
+ 0:0
+ .o x1@b x0
+ 1:1
+ .o x2@b x0 x1
+ 3:3
+ .o x0@t ck
+ 1:1
+ .o x1@t ck
+ 1:1
+ .o x2@t ck
+ 1:1
+ .o c2 x2
+ 1:1
+ .o c2@e en
+ 1:1
+.EE
+.B x[012]
+are bits of a buried three bit counter, each bit
+is toggled by
+.B ck
+only if all lower bits are 1.
+.B c2
+outputs
+.B x2,
+the output enable is
+controlled by
+.B ck.
+.SH SEE ALSO
+.IR lde (10.1),
+.IR quine (10.1),
+.IR cover (10.1),
+.IR hazard (10.1),
+.IR xpal (10.1),
+.IR part (10.1),
+.IR act (10.1)

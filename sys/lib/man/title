@@ -1,21 +1,23 @@
-.fp 1 R LucidaSans
-.fp 2 I LucidaSansI
-.ps36
+.fp 3 H
+.ps8
+.ps22
 .sp 3.0i
 .ce
-Plan 9\s36\u\s8\u™
-.sp |4.4i
-.ps24
+PLAN 9
+.sp .2i
 .ce
-Programmer's Manual
-.sp .3i
+from
 .ce
-Volume 1
+.sp .2i
+BELL LABS
+.sp .75i+4p
+.ce
+PROGRAMMER'S MANUAL
 .ps12
-.sp |6i
+.sp .75i
 .ft I
 .ce
-Second Edition
+First Edition
 .sp |9.25i-1
 .ce
 Computing Science Research Center
@@ -24,17 +26,21 @@ AT&T Bell Laboratories
 .ce
 Murray Hill, New Jersey
 .bp
-.ft 1
-.ll 5.5i
-.in .5i
+.ll 4.8i
+.in .75i
 .hy 0
-.vs 10p
-.ps 8
-.sp |1i
-.nf
-Copyright © 1995 AT&T Corp. All Rights Reserved.
-Portions Copyright © 1988, 1995 Aladdin Enterprises. All Rights Reserved.
-Portions Copyright © 1995 Sky Publishing Corporation. All Rights Reserved.
-.sp 3
+.vs 12p
 .ps 10
-Cover Design: Gerard J. Holzmann
+--
+.sp |7.5i
+.nf
+.ce 1000
+Copyright \(co 1992 AT&T
+
+Unpublished and not for publication
+All Rights Reserved
+.ce 0
+.sp 1i
+.ce
+PostScript and ThinkJet are registered trademarks.
+.fi

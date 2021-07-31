@@ -2,10 +2,6 @@
 .SH NAME
 stat, fstat, wstat, fwstat, dirstat, dirfstat, dirwstat, dirfwstat \- get and put file status
 .SH SYNOPSIS
-.B #include <u.h>
-.br
-.B #include <libc.h>
-.PP
 .B
 int stat(char *name, char *edir)
 .PP
@@ -85,8 +81,8 @@ struct Dir {
 	long	atime;	/* last read time */
 	long	mtime;	/* last write time */
 	Length;		/* file length: see <u.h> */
-	ushort	type;	/* server type */
-	ushort	dev;	/* server subtype */
+	short	type;	/* server type */
+	short	dev;	/* server subtype */
 } Dir;
 .EE
 .PP
@@ -98,12 +94,12 @@ structure,
 and
 .B DIRLEN
 are defined in
-.BR <libc.h> .
+.B <libc.h>.
 The
-.B Length
+.I Length
 structure is defined in
-.BR </$objtype/u.h> .
-.B Length
+.BR <u.h> .
+.I Length
 is an unnamed structure (see
 .IR 2c (1)),
 which means that its fields are directly
@@ -130,16 +126,16 @@ says which of a group of servers of the same type is the one
 responsible for this file.
 .B Qid
 is a structure containing
-.B path
+.I path
 and
-.B vers
+.I vers
 fields, each an
 .B unsigned
 .BR long :
-.B path
+.I path
 is guaranteed to be
 unique among all path names currently on the file server, and
-.B vers
+.I vers
 changes each time the file is modified.
 Thus, if two files have the same
 .BR type ,
@@ -180,14 +176,14 @@ and
 for the read, write, and execute bits for others.
 .PP
 The two time fields are measured in seconds since the epoch
-(Jan 1 00:00 1970 GMT).
+(Jan 1 00:00 1970 local time).
 .B Mtime
 is the time of the last change of content.
 Similarly,
 .B atime
 is set whenever the contents are accessed;
 also, it is set whenever
-.B mtime
+.I mtime
 is set.
 .PP
 .B Uid
@@ -203,7 +199,7 @@ set of users in the group
 When an initial attachment is made to a server,
 the user string in the process group is communicated to the server.
 Thus, the server knows, for any given file access, whether the accessing
-process is the owner of, or in the group of, the file.
+process is the owner or in the group of the file.
 This selects which sets of three bits in
 .B mode
 is used to check permissions.
@@ -212,19 +208,17 @@ Only some of the fields may be changed with the
 .I wstat
 calls.
 The
-.B name
+.I name
 can be changed by anyone with write permission in the parent directory.
 The
-.B mode
-and
-.B mtime
+.I mode
 can be changed by the owner or the group leader of the file's current
 group.
 The
-.B gid
+.I gid
 can be changed by the owner if he or she is a member of the new group.
 The
-.B gid
+.I gid
 can be changed by the group leader of the file's current group
 if he or she is the leader of the new group.
 (See
@@ -232,22 +226,8 @@ if he or she is the leader of the new group.
 for permission information, and
 .IR users (6)
 for user and group information).
-.SH SOURCE
-.TF /sys/src/libc/9syscall
-.TP
-.B /sys/src/libc/9syscall
-for the
-.RB non- dir
-routines
-.TP
-.B /sys/src/libc/9sys
-for the routines prefixed
-.B dir
 .SH SEE ALSO
 .IR intro (2),
 .IR fcall (2),
 .IR dirread (2),
 .IR stat (5)
-.SH DIAGNOSTICS
-All these functions return 0 on success, -1 on error, and set
-.IR errstr .

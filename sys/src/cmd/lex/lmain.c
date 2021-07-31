@@ -4,9 +4,7 @@
    written by Eric Schmidt, August 27, 1976   */
 
 # include "ldefs.h"
-Biobuf	fout;
-int	foutopen;
-int	errorf = 1;
+FILE	*fout = NULL, *errorf = {stdout};
 int	sect = DEFSECTION;
 int	prev = '\n';	/* previous input character */
 int	pres = '\n';	/* present input character */
@@ -37,7 +35,7 @@ int divflg;
 int funcflag;
 int pflag;
 int chset;	/* 1 = char set modified */
-Biobuf *fin, *fother;
+FILE *fin, *fother;
 int fptr;
 int *name;
 int *left;
@@ -87,20 +85,17 @@ static void	get1core(void);
 static void	get2core(void);
 static void	get3core(void);
 
-void
 main(int argc, char **argv)
 {
 	int i;
-
 	ARGBEGIN {
 # ifdef DEBUG
 		case 'd': debug++; break;
 		case 'y': yydebug = TRUE; break;
 # endif
 		case 't': case 'T':
-			Binit(&fout, 1, OWRITE);
-			errorf= 2;
-			foutopen = 1;
+			fout = stdout;
+			errorf = stderr;
 			break;
 		case 'v': case 'V':
 			report = 1;
@@ -114,21 +109,13 @@ main(int argc, char **argv)
 	sargc = argc;
 	sargv = argv;
 	if (argc > 0){
-		fin = Bopen(argv[fptr++], OREAD);
-		if(fin == 0)
-			error ("Can't read input file %s",argv[0]);
+		fin = fopen(argv[fptr++], "r");
 		sargc--;
 		sargv++;
 	}
-	else {
-		fin = myalloc(sizeof(Biobuf), 1);
-		if(fin == 0)
-			exits("core");
-		Binit(fin, 0, OREAD);
-	}
-	if(Bgetc(fin) == Beof)		/* no input */
-		exits(0);
-	Bseek(fin, 0, 0);
+	else fin = stdin;
+	if(fin == NULL)
+		error ("Can't read input file %s",argc>0?argv[0]:"standard input");
 	gch();
 		/* may be gotten: def, subs, sname, stchar, ccl, dchar */
 	get1core();
@@ -155,7 +142,7 @@ main(int argc, char **argv)
 	cgoto();
 # ifdef DEBUG
 	if(debug){
-		print("Print %d states:\n",stnum+1);
+		printf("Print %d states:\n",stnum+1);
 		for(i=0;i<=stnum;i++)stprt(i);
 		}
 # endif
@@ -169,26 +156,29 @@ main(int argc, char **argv)
 # ifdef DEBUG
 	free3core();
 # endif
-	fother = Bopen(cname,OREAD);
-	if(fother == 0)
+	fother = fopen(cname,"r");
+	if(fother == NULL)
 		error("Lex driver missing, file %s",cname);
-	while ( (i=Bgetc(fother)) != Beof)
-		Bputc(&fout, i);
+	while ( (i=getc(fother)) != EOF)
+		putc(i,fout);
 
-	Bterm(fother);
-	Bterm(&fout);
+	fclose(fother);
+	fclose(fout);
 	if(
 # ifdef DEBUG
 		debug   ||
 # endif
 			report == 1)statistics();
-	Bterm(fin);
+	fclose(stdout);
+	fclose(stderr);
 	exits(0);	/* success return code */
 }
 
 static void
 get1core(void)
 {
+	int i, val;
+
 	ccptr =	ccl = myalloc(CCLSIZE,sizeof(*ccl));
 	pcptr = pchar = myalloc(pchlen, sizeof(*pchar));
 	def = myalloc(DEFSIZE,sizeof(*def));
@@ -211,7 +201,7 @@ free1core(void)
 static void
 get2core(void)
 {
-	int i;
+	int i, val;
 
 	gotof = myalloc(nstates,sizeof(*gotof));
 	nexts = myalloc(ntrans,sizeof(*nexts));
@@ -249,6 +239,8 @@ free2core(void)
 static void
 get3core(void)
 {
+	int i, val;
+
 	verify = myalloc(outsize,sizeof(*verify));
 	advance = myalloc(outsize,sizeof(*advance));
 	stoff = myalloc(stnum+2,sizeof(*stoff));
@@ -282,5 +274,5 @@ myalloc(int a, int b)
 void
 yyerror(char *s)
 {
-	fprint(2, "line %d: %s\n", yyline, s);
+	fprintf(stderr, "line %d: %s\n", yyline, s);
 }

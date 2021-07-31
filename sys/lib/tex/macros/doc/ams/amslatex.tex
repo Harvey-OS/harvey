@@ -1,0 +1,2921 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSLATEX.TEX						    August 1990    %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% A file for the User's Guide for the AMS-LaTeX macro package.
+%%
+\ifx\undefined\selectfont
+% If we are using an old LaTeX format file that does not incorporate
+% the Mittelbach--Sch"opf font selection scheme, we will
+% use the following documentstyle line:
+\documentstyle{article}
+%  Otherwise we will use the following documentstyle declaration:
+\else
+\documentstyle[oldlfont]{article}
+\fi
+
+\makeindex % write index information to the file amslatex.idx
+
+% Some special definitions used in producing this documentation:
+\input{extradef}
+
+% Used in the first appendix, for listings of files:
+\newenvironment{filelist}{\par
+  \addvspace{\medskipamount}\hrule\nobreak\addvspace{\medskipamount}\noindent
+  \begin{tabular*}{\columnwidth}[t]{p{7pc}@{\extracolsep{\fill}}p{20pc}}}%
+{\end{tabular*}\par}
+
+\begin{document}
+\begin{titlepage}
+\pagestyle{empty}
+\title{\amslatex/ Version 1.0\\User's Guide}
+\author{American Mathematical Society}
+\date{August 1990}
+\maketitle
+\end{titlepage}
+
+% By not using arabic numbers for the table of contents pages, we
+% avoid having to run this file three times to get correct page
+% numbers.
+\pagenumbering{roman}
+\tableofcontents
+
+\newpage \pagenumbering{arabic}
+\part{General}
+\section{Introduction}
+
+The necessary documentation for using the \amslatex/ package has two
+parts: this {\em User's Guide\/}, and some sample files illustrating 
+the features available in the
+\amslatex/ package.  The file used to produce this {\it User's Guide}
+is \fn{amslatex.tex}; the sample files are named
+\fn{testart.tex} and \fn{testbook.tex}.
+Installation instructions for the
+\amslatex/ package are found in a separate file, \fn{amltinst.tex}. 
+As explained in the \fn{amltinst.tex} file, installation requires
+making a new \latex/ format file.
+This {\em User's Guide}, however, 
+can be typeset without the new format file,
+so that users can read it before proceeding further if they wish.
+As a consequence, though, it was
+impractical in many cases to show sample output for commands from the
+\opt{amstex} option; this is done instead in the sample file
+\fn{testart.tex}.  In the {\em User's Guide\/}
+approximate output has been shown for the purposes
+of illustration when it was practical to do so in ordinary \latex/.
+
+For best understanding, you should be reasonably familiar with the
+\latex/ manual: {\sl\latex/: A document preparation system}, by Leslie
+Lamport \cite{lm}. Reading the \jt/ \cite{jt} (the manual for \amstex/)
+will help you get the most out of the \amslatex/ software, but is not
+mandatory. For users whose background is in \amstex/ rather than \latex/,
+there is an appendix describing the ways in which the \latex/ \opt{amstex}
+option differs from \amstex/ 2.0.
+
+\subsection{Notes}
+
+The notation \<dimension>, \<number>, and the like will be used to
+indicate that an arbitrary dimension or number or whatever
+is to be substituted by the user.  By {\it dimension\/} we mean a number
+followed by one of \tex/'s standard units {\tt pt}, {\tt pc},
+{\tt in}, {\tt mm}, {\tt cm}, and so forth.
+
+It is important in this {\it User's Guide} that we distinguish between the
+original, non-\latex/ implementation of \amstex/ and the modified form
+of it that constitutes the \latex/ option \opt{amstex}.
+Typewriter type will be used for the \latex/ option
+\opt{amstex}, and the standard logo \amstex/ will be used for the
+original non-\latex/ version.
+
+\section{The \amslatex/ project}
+
+\amstex/ was originally released for general use in 1982.  Its main
+strength is that it makes it easy for the user to typeset mathematics,
+while taking care of the many details necessary to make the output
+satisfy the high standards of mathematical publishing.  It provides a
+predefined set of natural commands such as \cs{matrix} and \cs{text} that
+make complicated mathematics reasonably convenient to type.  These
+commands incorporate the typesetting experience and standards of the
+American Mathematical Society, to handle
+problematic possibilities without burdening the user: matrices within matrices,
+or a word of text within a subscript, and so on.
+
+\amstex/, unlike \latex/ does not have certain features that are
+very convenient for authors---automatic numbering that adjusts to
+addition or deletion of material being the primary one.  There are
+also labor-saving ways provided in \latex/ for preparing such items as indexes,
+bibliographies, tables, and simple diagrams.  These
+features are such a convenience for authors that the use of \latex/
+spread rapidly in the mid-80s (a
+reasonably mature version of \latex/ was available by the end of
+1983), and the American Mathematical Society began to be asked by its
+authors to accept electronic submissions in \latex/.
+
+The obvious question to ask was whether the strengths of \amstex/ could
+be combined with the strengths of \latex/, and in 1987 the American
+Mathematical Society began to investigate the possibility of doing just
+that.  Work on the \amslatex/ project was carried out over
+the next three years by Romesh Kumar, a \tex/
+consultant in the Chicago area, and by West German \latex/ experts Frank
+Mittelbach and Rainer Sch\"opf, with assistance from Michael Downes
+of the American Mathematical Society Technical Support staff.
+
+The overall philosophy was to provide \amstex/ commands to the \latex/ user
+without deviating from standard \latex/ syntax whenever possible.
+Thus, to make their syntax more like normal \latex/ syntax, \amstex/
+commands having the form \cs{something}\5$\ldots$\5\cs{endsomething} were
+converted to \latex/ environments, so that they now have the form
+\cs{begin}\verb"{something}"\5$\ldots$\5\cs{end}\verb"{something}".  For
+example, a matrix is typed as
+\cs{begin}\verb"{matrix}"\5\dots\5\cs{end}\verb"{matrix}" instead of
+\cs{matrix}\5$\ldots$\5\cs{endmatrix}.  Also, some commands that have top
+and bottom options were changed so that the option is specified using
+\verb"[t]" or \verb"[b]" instead of by a prefix \verb"top" or \verb"bot"
+in the command name.  See Appendix~\ref{s:diff} for more details.
+
+A good part of the original \amstex/ was whittled off in the creation of the
+\opt{amstex} option.  Many commands were redundant and were simply
+dropped; others seemed only marginally useful and were omitted in order
+to conserve control sequence memory.  Some internal control sequences
+were eliminated by restructuring the code.
+
+\amslatex/ is different enough from the original \amstex/ that using the
+\jt/ as documentation would be unsatisfactory.  Instead, this
+{\it User's Guide\/} aims to be more or less self-sufficient.  The \jt/
+is still recommended reading because it provides background information
+that helps explain why some things are handled the way they are.
+
+\section{Major components of the \amslatex/ package}
+
+The first major part of the \amslatex/ package is an extensive modification
+of \amstex/ 2.0 that allows it to be used in \latex/ as a documentstyle
+option.  In other words, if you are writing an article,
+your documentstyle declaration should look like this:
+\begin{verbatim}
+\documentstyle[amstex]{article}
+\end{verbatim}
+
+The second major part of the \amslatex/ package is a pair of documentstyles
+called \sty{amsart} and \sty{amsbook}, parallel to \latex/'s \sty{article}
+and \sty{book}, which are designed to be used in preparing manuscripts for
+submission to the AMS.
+As alternatives to the standard \latex/ article and book styles,
+the AMS style files also offer the general \latex/
+user style files which match the style of AMS publications.
+When the \sty{amsart} and \sty{amsbook} style files
+are used the \opt{amstex} option will be automatically included, so
+that the documentstyle declarations would simply be
+\cs{documentstyle}\verb"{amsart}" or \cs{documentstyle}\verb"{amsbook}".
+
+The analog in \amstex/ of the \sty{amsart} documentstyle is the
+documentstyle \sty{amsppt}  (``AMS preprint'').  In \sty{amsart} and
+\sty{amsbook} the document structure commands of the {\tt amsppt} style
+described in Appendix~A of the \jt/ have been superseded by their \latex/
+equivalents, where equivalents existed, and otherwise have been
+reimplemented in \latex/ form.  In order to save a significant amount of
+memory, the bibliography commands described in
+Appendix~C of the \jt/ have been dropped in favor of \bibtex/.
+
+\newpage
+\part{Font considerations}
+\label{s:fonts}
+
+\section{The font selection scheme of Mittelbach and Sch\"opf}
+
+In order to provide not only access to the \amsfonts/ currently
+available but a general, reliable mechanism for making new math fonts
+accessible to the user, the Society enlisted Frank Mittelbach and
+Rainer Sch\"opf to adapt their new \latex/ font selection scheme
+to accommodate the needs of the \amslatex/ project.  This new scheme has
+a couple of distinctive features: (1) fonts (even math fonts) need not
+be preloaded but can be loaded on demand; (2) font switches work a bit
+differently---attributes are independent, and only one is changed at a
+time.  In \latex/ terms this means that, for example, \verb"\bf\Large"
+has the same effect as \verb"\Large\bf".
+
+At the present time the files for the new font selection scheme are
+being distributed along with the \amslatex/ package, with the
+permission of Mittelbach and Sch\"opf; in the future the new scheme
+will become part of \latex/, in place of the current scheme.  A
+detailed description of the workings of the font selection scheme can
+be found in an article by Mittelbach and Sch\"opf that appeared in
+\tugboat/, June 1990 (vol.~11, no.~2): {\it The new font family
+selection---user interface to standard \latex/\/}
+\cite{msf}.  If you don't have access to that article, contact the
+\tex/ User's Group (see Appendix~D for the address).
+
+\section{Basic concepts}
+
+In normal use, the ordinary \latex/ commands \cs{rm},
+\cs{it}, \cs{tt}, \cs{bf} are defined in terms of more primitive
+commands \cs{family} etc., and  still function in much the same way as
+before.  Knowledge of the more primitive commands will not be
+essential except in documentstyle design or similar tasks.
+
+The Mittelbach--Sch\"opf font selection scheme classifies fonts
+based on the attributes
+{\em shape}, {\em series}, {\em size}, and {\em family}.
+Each attribute can be changed independently using the commands
+\cs{shape}, \cs{series}, \cs{size}, and \cs{family}.
+For example, to change the family attribute to {\tt cmr} (Computer
+Modern roman),
+the command would be \cs{family}\verb={cmr}=.
+Note that these commands do
+not actually select the new font, because it's not uncommon
+for you to want to change several attributes at a time
+before actually switching to the new font.  The command
+for putting the new attributes into effect is \cs{selectfont}.
+For example, if the current font is family {\tt cmr},
+size 10/12
+(10-point type with 12-point baselineskip), series {\tt m} (medium
+weight and width), and shape {\tt it} (italic), then the command
+\begin{verbatim}
+\family{cmtt}\shape{n}\selectfont
+\end{verbatim}
+would switch to a Computer Modern typewriter font
+in the ``normal,'' i.e., upright, shape.  The current size and series
+values would be used in the selection of the new font.
+
+\subsection{Shape}
+The {\em shape} attribute is one of normal ({\tt n}),
+italic ({\tt it}), small caps ({\tt sc}),
+slanted (or ``sloped'') ({\tt sl}), and upright italic ({u}).  The
+first three of these are the shapes that were typically found
+together in the same font case, in the days of manual typesetting.
+The latter two are somewhat unusual
+variant shapes that are present in the Computer
+Modern fonts.
+
+The command to switch to a particular shape, say {\tt sc},
+without changing other font attributes would be
+\begin{verbatim}
+\shape{sc}\selectfont
+\end{verbatim}
+but there are abbreviations for the most common shape changes:
+\cs{sc}, \cs{it}, \cs{sl}, and \cs{normalshape}.  These are
+the same as in the previous font selection scheme, except for
+\cs{normalshape}, which may be understood as a replacement for
+\cs{rm}.  In the new font selection scheme \cs{rm} is a family-changing
+command, not a shape-changing command.  If you are dismayed at
+the prospect of typing many instances of \cs{normalshape}, which
+is obviously much longer than \cs{rm}, don't be.  As you shall
+see, many former uses of \cs{rm}, especially in mathematics,
+are better handled by other means.  With astute use of grouping,
+most documents can be done without using \cs{normalshape} at all.
+
+\subsection{Series}
+
+The series attribute is actually a combination of two related
+attributes, weight and width.  The font charts
+of type manufacturers typically show weights of light,
+medium, and bold, and widths of condensed, medium, and expanded,
+with intermediate and extreme variations such as semibold,
+extra bold, and ultra bold.  The full list of the weights and
+widths allowed for in the Mittelbach--Sch\"opf scheme are as shown
+in Table~\ref{weight-width} (adapted from
+Table~1 in \cite{msf}), along with their corresponding
+ abbreviations for use with the \cs{series} command.
+Examples:
+\begin{description}
+\item[\cs{series}{\tt\char`\{ux\char`\}}\cs{selectfont}]
+Switches to an ultra expanded version of the current font.
+
+\item[\cs{series}{\tt\char`\{sbc\char`\}}\cs{selectfont}]
+Switches to a semibold condensed version of the current font.
+
+\item[\cs{series}{\tt\char`\{m\char`\}}\cs{selectfont}]
+Switches to a medium weight, medium width version of the current font.
+\end{description}
+Only two series changes are common enough to require abbreviations:
+\cs{bf} and \cs{mediumseries} are abbreviations for,
+respectively,
+\begin{verbatim}
+\series{bx}\selectfont   \series{m}\selectfont
+\end{verbatim}
+or, in other words, ``bold'' and ``not bold''.
+
+\begin{table}[htp]
+\caption{Font weights and widths, and their abbreviations.
+For use in the {\tt\bslash series\-} command, combine the
+weight and width abbreviations, dropping any
+{\tt m}'s (for ``medium''), except in the case where
+both weight and width are medium: then use a single
+{\tt m}.  Examples: Ultra Bold Condensed: {\tt ubc};
+Medium Condensed:~{\tt c}.}
+\label{weight-width}
+\begin{center}
+\begin{tabular}{|ll@{\hspace{2\tabcolsep}}ll|}
+\hline
+Weight&& Width&\\ \hline
+\vrule width0pt height10pt
+Ultra Light& {\tt ul}&       Ultra Condensed& {\tt uc}\\
+Extra Light& {\tt el}&       Extra Condensed& {\tt ec}\\
+Light& {\tt l}&              Condensed& {\tt c}\\
+Semilight& {\tt sl}&         Semicondensed& {\tt sc}\\
+Medium (normal)& {\tt m}&    Medium& {\tt m}\\
+Semibold& {\tt sb}&          Semiexpanded& {\tt sx}\\
+Bold& {\tt b}&               Expanded& {\tt x}\\
+Extra Bold& {\tt eb}&        Extra Expanded& {\tt ex}\\
+Ultra Bold& {\tt ub}&        Ultra Expanded& {\tt ux}\\[3pt]
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Size}
+Because a change in font size is usually accompanied by a  change in
+baselineskip, the \cs{size} command is designed to take two arguments,
+the new size and the new baselineskip.  To switch to 14-point type
+with a baselineskip of 18 points, the command would be
+\begin{verbatim}
+\size{14}{18pt}\selectfont
+\end{verbatim}
+All the usual \latex/ size-changing commands from \cs{tiny}
+to \cs{Huge} have suitable definitions based on the \cs{size} command.
+
+{\em Note}.\ In the specification for the baselineskip, it is necessary
+to give the units, because in some situations a unit other than {\tt
+pt} may be desirable.
+
+\subsection{Family}\label{s:families}
+We define a font {\em family} as a group
+of fonts of various shapes, widths, and weights, that
+share distinctive design features, such as
+x-height, the relative thickness of horizontal and vertical strokes,
+distinctive shapes of particular letters, and so forth.
+In other words,
+fonts in the same family share a resemblance that fonts from
+different families don't share (though in some cases the
+resemblance is obvious only to an experienced eye).
+Table~\ref{fams} gives a classification of some of
+the Computer Modern fonts according to family.
+
+\begin{table}[htp]
+\caption{Computer Modern font families}
+\label{fams}
+\begin{center}
+\begin{tabular}{|p{12pc}|l|}
+\hline
+Font file name& Family (and abbreviation)\\
+\hline
+\tt \raggedright
+cmr10, cmti10, cmsl10, cmcsc10, cmu10,
+cmbx10, cmbxti, cmbxsl, cmb10&
+Computer modern roman ({\tt cmr})\\
+\hline
+\tt \raggedright
+cmss10, cmssi10, cmssbx10, cmssdc10&
+Computer modern sans serif ({\tt cmss})\\
+\hline
+\tt \raggedright
+cmtt10, cmitt10, cmsltt, cmtcsc10&
+   Computer modern typewriter ({\tt cmtt})\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+The abbreviations \cs{rm}, \cs{tt}, and \cs{sf} are provided for
+switching to the Computer Modern roman, typewriter, and sans serif
+families.  (The definition of \cs{sf}, for example, is
+\verb=\family{cmss}\selectfont=.)
+
+\subsection{Using other font families}
+If the base family of a document is Computer Modern roman, with other
+families used only sporadically, the other families would be
+selected using the \cs{family} command as described in
+\S\ref{s:families}.  If you want to change the {\it base family\/}
+of the document, however, say to Times Roman or Baskerville,
+then the best way is to change the default family settings.
+In a canonical setup with all Computer Modern fonts, the following
+definitions are in effect:
+\begin{verbatim}
+\newcommand\rmdefault{cmr}
+\newcommand\sfdefault{cmss}
+\newcommand\ttdefault{cmtt}
+\end{verbatim}
+Some or all of these default settings can be changed using
+{\tt\bslash renewcommand}.  For example, if you have families
+{\tt pstr}, {\tt pshel}, and {\tt pstt} for respectively
+PostScript Times Roman, PostScript Helvetica, and Postscript
+Typewriter fonts, then you could make them the default
+via the commands
+\begin{verbatim}
+\renewcommand{\rmdefault}{pstr}
+\renewcommand{\sfdefault}{pshel}
+\renewcommand{\ttdefault}{pstt}
+\end{verbatim}
+either in the preamble of an individual document, or in an
+option file (which then could be used by more than one document).
+After these changes, the commands \cs{rm}, \cs{sf}, and \cs{tt}
+will select the PostScript families rather than Computer Modern families.
+Computer Modern families would still be accessible through explicit
+use of the \cs{family} command, e.g., 
+\begin{verbatim}
+\family{cmtt}\selectfont
+\end{verbatim}
+
+Note that in order to
+use such alternate families you must
+have on your computer system
+a fontdef file that defines which fonts belong to the
+families {\tt pstr}, {\tt pshel}, and {\tt pstt},
+as well as what sizes, shapes, and weights
+are available on your particular system;
+see the file \fn{fontdef.max} for more details.
+
+In addition to the family defaults, there are defaults for some other
+font attributes: \cs{bfdefault}, \cs{itdefault}, \cs{scdefault}, and
+\cs{sldefault}. These give further control over fonts. I.e., if you
+wanted to have all the slanted fonts in a document come out in italic,
+it could be done like this: 
+\begin{verbatim}
+\renewcommand{\sldefault}{it}
+\end{verbatim}
+The normal values for these defaults are 
+\begin{verbatim}
+\bfdefault      bx
+\itdefault      it
+\scdefault      sc
+\sldefault      sl
+\end{verbatim}
+
+Notice that by default bold fonts come from the Bold Expanded series
+rather than the Bold series.  A comparison of the bold Computer Modern
+fonts provided in standard distributions of \tex/ shows why:
+\[\begin{tabular}{|l|ll|}
+\hline
+Bold& \multicolumn{2}{c|}{Bold Expanded}\\[2pt]
+\hline
+{\tt cmb10}&    {\tt cmbx5}&    {\tt cmbxsl8}\\
+        &       {\tt cmbx6}&    {\tt cmbxsl10}\\
+        &       {\tt cmbx7}&    {\tt cmbxti7}\\
+        &       {\tt cmbx8}&    {\tt cmbxti10}\\
+        &       {\tt cmbx9}&\\
+        &       {\tt cmbx10}&\\
+        &       {\tt cmbx12}&\\
+\hline
+\end{tabular}\]
+
+
+\subsection{The {\tt oldlfont} option}
+\label{s:oldlfont}
+
+When the Mittelbach--Sch\"opf font selection
+scheme is in use, emulation of the old font selection scheme can
+be obtained by adding the option \opt{oldlfont} to the documentstyle
+options list.  When the \opt{oldlfont} option is used, size-changing
+commands return to normal shape and medium series in addition
+to changing the font size; \cs{rm} gives normal shape and medium
+series; \cs{tt} gives the normal shape and medium series
+of the typewriter font; and \cs{sf} gives the normal shape and
+medium series of sans serif.
+
+\subsection{Warnings}
+
+When using the Mittelbach--Sch\"opf scheme, the font names listed in
+an ``overfull hbox'' message won't look the same as before.  Each font
+name will have the family, series, shape, and size, separated by
+slashes. For example, 10-point Computer Modern bold extended will
+appear as {\tt \bslash cmr/bx/n/10}.  Formerly it would have appeared
+as \cs{tenbf}.
+
+Many combinations of font attributes are not available at the
+present time because the corresponding fonts do not exist.
+The combination
+\begin{verbatim}
+\family{cmr}\series{bx}\shape{sl}
+\end{verbatim}
+happens to be available, because the corresponding font file,
+{\tt cmbxsl10}, is part of the standard \tex/ distribution.
+However, for the combination
+\begin{verbatim}
+\family{cmss}\series{sbux}\shape{sc}
+\end{verbatim}
+``Computer Modern sans serif semibold ultra expanded small caps,''
+no font file currently exists.
+
+When a combination of font attributes is selected that is
+not available, the nearest available font will be substituted,
+and a warning message---not an error message, just a warning
+message---will appear on-screen during the processing of
+the document file.  The warning message will indicate which
+font was substituted.
+
+Once in a while,
+you may find surprising results from a few commands in standard
+\latex/  because they do not reset all the font attributes in the new
+font selection scheme.  For example, if the \cs{footnote} command
+appears within italic text (e.g., in a theorem), then the text of the
+footnote will also be italic, because the standard definition of
+\cs{footnote} resets only the {\em size\/} attribute, not the {\em
+shape\/} or {\em family\/} or {\em series\/} attributes.  Problems
+of this nature
+will be rectified in the next version of \latex/ (version 2.10); 
+in the meantime, you can add
+explicit font commands where needed: to get a normal
+footnote in italic text, type\indexcs{normalshape}
+\begin{verbatim}
+\footnote{\normalshape ...}
+\end{verbatim}
+instead of just \cs{footnote}.
+
+\section{Names of math font commands}
+\label{s:mathfonts}
+
+The single biggest issue in the integration of \amstex/ and \latex/ font
+usage was that in \amstex/ math font commands work
+differently than text font commands and have different names. Instead
+of being a simple switch, whose scope is bounded by curly braces, a math
+font command in \amstex/ is a command with one argument.  This means that
+in \amslatex/, to obtain a single bold letter in math you type 
+\cs{bold}\verb"{A}" rather than \verb"{\bf A}", and two bold letters would
+be typed \verb"\bold{A}"\5\verb"\bold{B}" instead of \verb"{\bf AB}".
+(A similar distinction between text accents and math accents
+ already existed in \latex/.)
+Having the font command apply only to a single letter in this way
+is more natural in math formulas, because
+letters are usually single variables rather
+than components of a word, and different fonts are mixed in all
+combinations; four consecutive letters might be from four different
+fonts.
+
+The full list of math font commands in the \opt{amstex} option is
+\cs{mathrm}, \cs{bold}, \cs{cal}, with the addition of \cs{frak}
+(Fraktur) and \cs{Bbb} (blackboard bold) if \amsfonts/ are available. 
+Math italic, the default font for letters in math, also has a name,
+\cs{mit}, but this is never needed in ordinary use.  Tables
+\ref{fonttable} and~\ref{mathfonts} give a comprehensive listing of
+font change commands for convenient reference.
+
+\begin{table}[htp]
+\chardef\{=`\{ \chardef\}=`\}
+\caption{Font commands used in text}
+\label{fonttable}
+\begin{center}
+\begin{tabular}{|lll|}
+\hline
+\multicolumn{1}{|l}{Font command}&   Equivalent&   Font selected\\
+\hline
+\cs{normalshape}&  \tt\cs{shape}\{n\}&      normal, upright, ``roman''\\
+\cs{it}&   \tt\cs{shape}\{it\}&             italic\\
+\cs{em}&   \tt\cs{shape}\{it\}$^*$ &          emphasis\\
+\cs{sl}&   \tt\cs{shape}\{sl\}&     slanted\\
+\cs{sc}&   \tt\cs{shape}\{sc\}&     small caps\\
+\cs{mediumseries}&  \tt\cs{series}\{m\}&     medium weight\\
+\cs{bf}&            \tt\cs{series}\{bx\}&    bold extended weight\\
+\cs{tt}&    \tt\cs{family}\{cmtt\}&          typewriter style\\
+\cs{sf}&    \tt\cs{family}\{cmss\}&          sans serif\\
+\cs{rm}&    \tt\cs{family}\{cmr\}&           roman\\
+\hline
+\multicolumn{3}{|l|}{\parbox{20pc}{$^*$\strut The command \cs{em} selects
+shape {\tt it} if the current font is upright, otherwise it selects
+shape {\tt n} (normal).}}\\[6pt]
+\hline
+\end{tabular}
+\end{center}
+\bigskip
+\caption{Font commands used in math}
+\label{mathfonts}
+\begin{center}
+\begin{tabular}{|lp{20pc}|}
+\hline
+\cs{bold}&  Used to obtain bold letters from the English alphabet.\\
+\cs{boldsymbol}& Used to obtain bold numbers and other nonalphabetic
+        symbols, as well as bold Greek letters.\\
+\cs{pmb}&   ``Poor man's bold,'' used for math symbols when
+        bold versions don't exist in the currently available fonts.\\
+\cs{cal}&   Calligraphic letters. Only uppercase is available.\\
+\cs{mit}&   Math italic.  This font is automatically selected
+        in math mode, so the command \cs{mit} is not needed in
+        normal use.\\
+\cs{mathrm}& Roman, normal shape.  Note: most of the time, \cs{text}
+        or \cs{operatorname} should be used instead of
+        \cs{mathrm} to produce this font in math.\\
+\cs{frak}&  Euler Fraktur alphabet.\\
+\cs{Bbb}&   Blackboard bold alphabet.  Only uppercase is
+        available.\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+To gain access to a new math alphabet, you use the
+\cs{new\-math\-alpha\-bet} command in the preamble of your document.
+If you have the \amsfonts/ 2.0 package, for example, and you want to use
+Russian letters in math, taking them from the University of Washington
+Cyrillic fonts, then you need
+to find out the family name assigned to the fonts and
+the shapes and weights available.  See Table~\ref{fonts}
+to see what family names are included in the standard font definition
+file \fn{fontdef.max}.  If you made a custom fontdef file
+to match your available fonts, look in that file to find
+the information.  If you are running \LaTeX{} at a larger
+institution where some technical person has been assigned
+to handle arcane font matters, you may need to consult that
+person.
+
+\begin{table}[htp]
+\caption{Font name assignments made in {\tt fontdef.max}}
+\label{fonts}
+\medskip
+\begin{tabular}{|lllp{17pc}|}
+\hline
+\multicolumn{1}{|c}{Family}&     \multicolumn{1}{c}{Series}&
+        \multicolumn{1}{c}{Shape}&  \\
+\hline
+cmr&   m&     n& Computer Modern Roman\\
+cmr&   m&     sl& CM slanted\\
+cmr&   m&     it& CM italic\\
+cmr&   m&     sc& CM small caps\\
+cmr&   m&     u& CM upright italic\\
+cmr&   b&     n& CM bold\\
+cmr&   bx&    n& CM bold extended\\
+cmr&   bx&    sl& CM bold extended slanted\\
+cmr&   bx&    it& CM bold extended italic\\
+cmss&  m&     n& CM sans serif\\
+cmss&  m&     sl& CM sans serif slanted\\
+cmss&  sbc&   n& CM sans serif semibold condensed\\
+cmss&  bx&    n& CM sans serif bold extended\\
+cmtt&  m&     n& CM typewriter\\
+cmtt&  m&     it& CM typewriter italic\\
+cmtt&  m&     sl& CM typewriter slanted\\
+cmtt&  m&     sc& CM typewriter small caps\\
+cmm&   m&     it& CM math italic\\
+cmm&   b&     it& CM bold math italic\\
+cmsy&  m&     n& CM math symbols\\
+cmsy&  b&     n& CM bold math symbols\\
+lasy&  m&     n& \latex/ extra symbols\\
+lasy&  b&     n& \latex/ bold extra symbols\\
+msa&   m&     n& AMS extra symbols~A\\
+msb&   m&     n& AMS extra symbols~B\\
+euf&   m&     n& Euler fraktur\\
+euf&   b&     n& Euler fraktur bold\\
+eur&   m&     n& Euler roman\\
+eur&   b&     n& Euler bold roman\\
+eus&   m&     n& Euler script\\
+eus&   b&     n& Euler bold script\\
+euex&  m&     n& Euler math extension symbols\\
+UWCyr& m&     n& University of Washington Cyrillic\\
+UWCyr& m&     it& UW Cyrillic italic\\
+UWCyr& m&     sc& UW Cyrillic small caps\\
+UWCyr& b&     n& UW Cyrillic bold\\
+UWCyss& m&    n& UW Cyrillic sans serif\\
+ccr&   m&     n& Concrete Roman\\
+ccr&   m&     it& Concrete italic\\
+ccr&   m&     sc& Concrete small caps\\
+ccr&   c&     sl& Concrete condensed slanted\\
+ccm&   m&     it& Concrete math italic\\
+\hline
+\end{tabular}
+\end{table}
+
+Suppose, then, that the family name for the University of
+Washington fonts is {\tt UWCyr}.  Decide on the name of
+the command you'd like to use for Cyrillic,
+let's say \cs{cy}.  In the preamble area
+of your document, add the line
+\begin{verbatim}
+\newmathalphabet*{\cy}{UWCyr}{m}{n}
+\end{verbatim}
+Thenceforth \verb=\cy{A}=, \verb=\cy{d}=, and so on will give you
+a Russian A, d, or whatever in math.  Since there is not a one-to-one
+correspondence between the Russian alphabet and the English
+alphabet, you may need to refer to your documentation to
+find out how to obtain certain letters.  The {\it \amsfonts/ User's Guide\/}
+\cite{amsfonts} gives a complete table.
+
+If you also want to use bold Russian letters, you could define
+another math alphabet and name it, say, \verb=\boldcy=.
+Alternatively, you could set things up so that bold Russian
+letters are accessible through the commands \cs{boldsymbol}
+and \cs{boldmath}.
+If you add the line
+\begin{verbatim}
+\addtoversion{bold}{\cy}{UWCyr}{b}{n}
+\end{verbatim}
+in your document's preamble,
+then \verb=\cy{A}= would produce a normal-weight Russian A
+and
+\begin{verbatim}
+{\boldmath  $ ... \cy{A} ... $ }
+\end{verbatim}
+would produce a bold Russian A (with the rest of the formula being
+made bold as well).  Furthermore, you could then obtain
+a bold Russian A in the midst of normal math using \cs{boldsymbol}:
+\begin{verbatim}
+$ ... \boldsymbol{\cy{A}} ... $
+\end{verbatim}
+
+In the \opt{amstex} option \cs{boldsymbol} is to be used for
+individual bold math symbols and bold Greek letters---everything in
+math except for letters (where you would use \cs{bold}).  For example,
+to obtain a bold $\infty$, $+$, $\pi$, or $0$, you would use the
+commands \verb"\boldsymbol{\infty}", \verb"\boldsymbol{+}",
+\verb"\boldsymbol{\pi}", or \verb"\boldsymbol{0}".   Because they are
+not included in the  standard distribution of \tex/ fonts,  sizes
+other than 10-point of bold fonts for math symbols, Greek, and math
+italic ({\sc CMBSY} and {\sc CMMIB}) are provided in the \amsfonts/
+2.0 distribution.
+
+Since \cs{boldsymbol} takes rather a lot of typing, you would usually
+put some definitions in the preamble of the form
+\begin{verbatim}
+\newcommand{\bpi}{\boldsymbol{\pi}}
+\newcommand{\binfty}{\boldsymbol{\infty}}
+\end{verbatim}
+for any bold symbols you're going to use frequently.
+
+For some math symbols \cs{boldsymbol} will not have any effect because
+bold versions of those symbols do not exist in the currently available
+fonts.  These include
+extension symbols and large operator symbols from the font CMEX, as well
+as the AMS extra math symbols from the fonts MSAM and MSBM.
+``Poor man's bold'' (\cs{pmb}) can be used for some of the
+things that aren't handled properly by \cs{boldsymbol}.  It works by
+typesetting three copies of the symbol with slight offsets.
+With large operators and extension symbols, however, \cs{pmb} does not
+currently work very well because the proper spacing and treatment of
+limits is not preserved.
+
+To make an entire math formula bold (or as much of it as possible,
+depending on the available fonts), use \verb=\boldmath= preceding
+the formula, as described in the \latex/ manual.
+
+The sequence \verb={\bf\hat{a}}= (in ordinary \latex/) or
+\verb=\bold{\hat{a}}= (in the \opt{amstex} option) produces a bold accent
+character over the {\bf a}, as you would expect.
+However, combinations like
+\verb"{\cal\hat{a}}" will not work because the \cs{cal} font does
+not have its own accents.  In the \opt{amstex} option the font change
+commands are defined in such a way that accent characters will be
+taken from the \cs{rm} font if they are not available in
+the current font (in addition to the \cs{cal} font, the \cs{Bbb} and
+\cs{frak} fonts don't contain accents).
+
+In ordinary \latex/ uppercase Greek can be made bold by, e.g.,
+\verb"{\bf\Gamma}".  In the \opt{amstex} option uppercase
+Greek can be made bold only by using \cs{boldsymbol} (in other words,
+uppercase Greek is handled the same as lowercase Greek).
+\sloppypar
+
+\section{The command {\tt\bslash newsymbol}}
+\label{s:newsym}
+
+The command \cs{newsymbol} is presently used only for symbols from the
+AMS extra symbol fonts, MSAM and MSBM.  \cs{newsymbol} allows you to create a
+control sequence that will properly produce a symbol from the extra symbol
+fonts.  The use of \cs{newsymbol} is
+explained in the {\em\amsfonts/ User's Guide\/}.
+In a \latex/ document
+there is one main difference in usage, which is only applicable
+if you want to use \amsfonts/ without using the \opt{amstex}
+option: instead of using the additional
+setting-up commands \cs{loadmsam} and \cs{loadmsbm},
+you should put
+``\opt{amsfonts}'' in the documentstyle options list.
+Otherwise \cs{newsymbol} commands can be used exactly as
+shown in the {\em\amsfonts/ User's Guide\/}.  Like \cs{newcommand}'s,
+they should be placed in the preamble.
+
+The \opt{amsfonts} option is geared to the current release of
+\amsfonts/ (version 2.0).  In this version, some rearranging has been done
+and some font names are different than in earlier versions.
+If you have an earlier version,
+you would need to contact the AMS for an upgrade to version 2.0
+in order to use the \opt{amsfonts} option successfully.  See Appendix~D for how
+to obtain \amsfonts/.
+
+\section{The {\tt amssymb} option}
+
+If you are running a version of \latex/ with extra memory available
+for control sequence names, and you use quite a few of the extra math
+symbols from the \amsfonts/, it may be more convenient for you to use
+the \opt{amssymb} documentstyle option, which will define all the
+symbol names (about 200), so you won't have to include an individual
+\cs{newsymbol} command in your document for each one.  You may prefer
+to include it in the construction of a format file (see the
+installation instructions) to save processing time; it is a stand-alone
+option, so it can be included in the format file without including the
+\opt{amstex} option.
+
+\newpage
+\part{Features of the {\tt amstex} option}
+
+\section{Math spacing commands}
+Both\indexcs{,}\indexcs{:}\indexcs{;}\indexcs{thinspace}%
+\indexcs{negthinspace}\indexcs{medspace}\indexcs{negmedspace}%
+\indexcs{thickspace}\indexcs{negthickspace}
+the spelled-out and abbreviated forms of these commands are robust, and
+in addition they can also be used outside of math.
+The primary math spacing commands are:
+\begin{center}
+\begin{tabular}{|l|l||l|l|}
+Abbrev.&Spelled out&Abbrev.&Spelled out\\
+\verb+\,+&\verb+\thinspace+&\verb+\!+&\verb+\negthinspace+\\
+\verb+\:+&\verb+\medspace+&&\verb+\negmedspace+\\
+\verb+\;+&\verb+\thickspace+&&\verb+\negthickspace+\\
+\verb+@,+&&\verb+@!+&\\
+&\verb+\quad+&&\\
+&\verb+\qquad+&&
+\end{tabular}
+\end{center}
+\verb"@,"\index{"@,@{\tt{}"@,}} and
+\verb"@!"\index{"@"!@{\tt{}"@"!}} give
+one-tenth the space of \cs{,} and {\tt\bslash !}\index{"!@{\tt\bslash
+"!}} respectively, for extra fine tuning where necessary.
+
+\section{Multiple integral signs}
+\cs{iint}, \cs{iiint}, and \cs{iiiint} give multiple
+integral signs with the spacing between them nicely adjusted,  in both
+text and display style.  \cs{idotsint} is an extension of the same
+idea that gives two integral signs with dots between them.
+
+\section{Over and under arrows}
+
+There are some additional
+over and under arrow operations provided in the \opt{amstex} option:
+{\samepage
+\begin{tabbing}
+\qquad\={\tt\bslash overleftrightarrow\qquad}\=\kill
+\> \cs{underleftarrow} \> \cs{underrightarrow} \+\\
+\cs{overleftrightarrow}         \> \cs{underleftrightarrow}
+\end{tabbing}
+}
+All over and under operations, including the previously
+available ones, have been modified to
+scale properly in subscript  sizes.
+(After you have installed \amslatex/, you can process and print the
+sample file \fn{testart.tex} to see  examples of the arrows.)
+
+\section{Dots} In the \opt{amstex} option dots should be typed as
+\cs{dots}; placement (on the baseline or centered) is selected
+according to whatever follows after the \cs{dots}.  If the next thing is
+a plus sign, the dots will be centered; if it's a comma, they will be on
+the baseline---that is, if you are using the \sty{amsart}
+documentstyle.
+Dot placement can be changed in other documentstyles if different
+conventions are wanted.
+
+If the dots fall at the end of a math formula, the next thing is
+something like \verb"\end" or \verb"\)" or \verb"$", which does not give any
+information about how to place the dots.  Then you must help by using
+\cs{dotsc} for ``dots with commas,'' or \cs{dotsb} for ``dots with
+binary operators/relations,'' or \cs{dotsm} for ``multiplication dots,''
+or \cs{dotsi} for ``dots with integrals.'' For example, the input
+\begin{verbatim}
+Then we have the series $A_1,A_2,\dotsc$,
+the regional sum $A_1+A_2+\dotsb$,
+the orthogonal product $A_1A_2\dotsm$,
+and the infinite integral
+\[\int_{A_1}\int_{A_2}\dotsi\].
+\end{verbatim}
+will produce low dots in the first instance and centered dots
+in the others, with the spacing on either side of the dots
+nicely adjusted.
+\begin{quotation}
+Then we have the series $A_1,A_2,\ldots\,$,
+the regional sum $A_1+A_2+\cdots\,$,
+the orthogonal product $A_1A_2\cdots\,$,
+and the infinite integral
+\[\int_{A_1}\int_{A_2}\cdots\,.\]
+\end{quotation}
+
+Specifying dots this way, in terms of their meaning rather than in terms
+of their visual placement, is in keeping with the general philosophy of
+\latex/ and makes documents more portable between places where different
+conventions prevail.  The control sequences \cs{ldots} and \cs{cdots}
+are still available, however, for compatibility.
+
+\section{Accents in math}
+
+The following accent commands automatically
+give good positioning of double accents:
+\begin{verbatim}
+ \Hat    \Check  \Tilde  \Acute  \Grave  \Dot    \Ddot
+ \Breve  \Bar    \Vec
+\end{verbatim}
+In ordinary \latex/ the second
+accent will usually be askew:
+$\hat{\hat A}$ (\verb"\hat{\hat A}").
+In the \opt{amstex} option, if you type \verb"\Hat"\5\verb"{\Hat A}"
+(using the capitalized form for both accents) the second accent
+will be properly positioned (see \fn{testart.tex} for examples).
+
+As explained in the \jt/, this double accent operation is complicated
+and tends to slow down the processing of a \tex/ file.
+If your document contains many double accents, you can
+use \cs{accentedsymbol} in the preamble of your document to
+help speed things up.  It stores the result of the double accent
+command in a box register, for quick retrieval.  \cs{accented\-symbol}
+is used like \cs{newcommand}:
+\begin{verbatim}
+\accentedsymbol{\Ahathat}{\Hat{\Hat A}}
+\end{verbatim}
+
+Some accents have a wide form: typing \verb"$\widehat{xy},\widetilde{xy}$"
+produces $\widehat{xy},\widetilde{xy}$.  Because these wide accents
+have a certain maximum size, extremely long expressions are better
+handled by a different notation:
+$(AmBD)^{\widehat{\hphantom{x}}}$ instead of $\widehat{AmBD}$.  But getting
+an accent into a superscript is a little tricky (try it),
+so \opt{amstex} has the following control sequences
+to make it easier:
+\begin{verbatim}
+ \sphat     \spcheck   \sptilde   \spdot
+ \spddot    \spdddot   \spbreve
+\end{verbatim}
+The example above would be typed \verb"(AmBD)\sphat".
+
+Finally, \cs{dddot} and \cs{ddddot} are available to
+produce triple and quadruple dot accents
+in addition to the \cs{dot} and \cs{ddot} accents already available
+in \latex/.
+
+\section{Roots}
+
+In ordinary \latex/ the placement of root indices is sometimes not so
+good: $\sqrt[\beta]{k}$ (\verb"\sqrt"\5\verb"[\beta]{k}").  In the
+\opt{amstex} option \cs{leftroot} and \cs{uproot} allow you to adjust
+the position of the root:
+\verb"\sqrt"\5\verb"[\leftroot{-2}"\5\verb"\uproot{2}"\5\verb"\beta]{k}"
+will move the beta up and to the right.
+(See the sample file \fn{testart.tex}.) The negative argument
+used with \cs{leftroot} moves the $\beta$ to the right. The units are
+a small dimension that is a useful size for such
+adjustments.
+
+\section{Boxed formulas} The command \cs{boxed} puts a box around its
+argument, like \cs{fbox} except that the contents are in math mode.
+
+\section{Extensible arrows}  \verb"@>>>" and \verb"@<<<" produce
+arrows that extend automatically to accommodate unusually wide
+subscripts or superscripts.  The text of a superscript is typed in
+between the first and second \verb+>+ or \verb+<+ symbols, and for a
+subscript, it's typed between the second and third symbols. For example,
+\verb+@>\xi F_k\Gamma_k\alpha>>+ would have a superscript $\xi
+F_k\Gamma_k\alpha$ placed above the arrow.   These arrows were
+originally developed for use in commutative diagrams but can be used
+elsewhere also.  However, the \opt{amscd} option must be loaded for extensible
+arrows to function.  (See section \ref{s:commdiag} for more information about
+the \opt{amscd} option.)
+
+\section{{\tt\bslash overset}, {\tt\bslash underset} and
+{\tt\bslash sideset}} \latex/ provides \cs{stackrel} for
+placing a superscript above a binary relation.  In \opt{amstex}
+there are somewhat more general commands, \cs{overset} and
+\cs{underset}, that can be used to place one symbol above or
+below another symbol, whether it's a relation or something
+else.  The input \verb"\overset{*}{X}" will place a
+superscript-size $*$ above the  $X$; \cs{underset} performs
+the parallel operation that you'd expect.
+
+There's also a command called \cs{sideset}, for a rather special
+purpose: putting symbols at the subscript and superscript
+corners of a large operator symbol such as $\sum$ or $\prod$.
+The prime example is the case when
+you want to put a prime on a sum symbol.  If there are no
+limits above or below the sum, you could just use \cs{nolimits}:
+here's \verb"\sum\nolimits' E_n" in display mode:
+\begin{equation}\sum\nolimits' E_n.\end{equation}
+But if you want not only the prime but also something below or
+above the sum symbol, it's not so easy.  If you have
+\begin{equation}\sum_{n<k,\;n\ \rm odd}nE_n\end{equation}
+and you want to add a prime
+on the sum symbol, use \cs{sideset} like this:
+\begin{verbatim}
+\sideset{}{'}\sum_{...}nE_n
+\end{verbatim}
+The extra pair of empty braces is explained by the fact that
+\cs{sideset} has the capability of putting an extra symbol
+or symbols at each corner of a large operator; to put an asterisk
+at each corner of a product symbol, you would type
+\begin{verbatim}
+\sideset{_*^*}{_*^*}\prod
+\end{verbatim}
+(After you have installed \amslatex/, you can
+typeset and print the sample file \fn{testart.tex} to see
+examples of the output.)
+
+\section{The {\tt\bslash text} command}
+The main use of the command \cs{text} is for words or phrases in a
+display.  It is very similar to the \latex/ command \cs{mbox} in
+its effects, but has a couple of advantages.  If you want a word
+or phrase of text in a subscript, you can type
+\verb"..._{\text{word or phrase}}", which is slightly easier
+than the \cs{mbox} equivalent: \verb"..._{\mbox{\scriptsize word
+or phrase}}".  The other advantage is the more descriptive
+name.
+
+\section{Operator names}\label{s:opname}
+Math functions such as $\log$, $\sin$, and $\lim$ are traditionally
+typeset in roman type to help avoid confusion with single math
+variables, set in math italic.  The more common ones have predefined
+names, \cs{log}, \cs{sin}, \cs{lim}, and so forth, but new ones come up
+all the time in mathematical papers, so \opt{amstex} provides a general
+mechanism for producing such names: \cs{operatorname}\verb"{xxx}"
+produces {\rm xxx} in the proper font and automatically adds proper
+spacing on either side when necessary, so that you get $A\,{\rm xxx}\,B$
+instead of $A{\rm xxx}B$.
+
+Since \cs{operatorname} takes rather a lot of typing, you would usually
+put some definitions in the preamble of the form
+\begin{verbatim}
+\newcommand{\xxx}{\operatorname{xxx}}
+\newcommand{\yyy}{\operatorname{yyy}}
+\end{verbatim}
+for any operator names you're going to use frequently.
+
+Something like \cs{lim} has been defined as an
+\cs{operatornamewithlimits} rather than an \cs{operatorname}, because in
+displayed formulas if there is a subscript on \cs{lim} it is conventionally
+placed underneath, like the limits on sums:
+\begin{equation}
+C_+f(x)=\lim_{t\to0}C(f)(x+it)
+\end{equation}
+You can use \cs{operatornamewithlimits} just like \cs{operatorname}; the
+only difference is the placement of subscripts and superscripts.
+A few special operator names with limits are defined for you in the
+\opt{amstex} option:  \cs{varinjlim}, \cs{varprojlim}, \cs{varliminf},
+and \cs{varlimsup}; there are some examples in the sample file
+\fn{testart.tex}.
+
+\section{{\tt\bslash mod} and its relatives} Commands \cs{mod},
+\cs{bmod}, \cs{pmod}, \cs{pod} are provided to deal with the rather
+special spacing conventions of ``mod'' notation.  \cs{bmod} and \cs{pmod}
+are available in \latex/, but in the \opt{amstex} option the spacing of
+\cs{pmod} will adjust to a smaller value if it's used in a
+non-display-mode formula.  \cs{mod} and \cs{pod} are variants of
+\cs{pmod} preferred by some authors; \cs{mod} omits the parentheses,
+whereas \cs{pod} omits the ``mod'' and retains the parentheses.
+
+\section{Fractions and related constructions}
+\label{fracs}
+
+In addition to \cs{frac} (which was already available in \latex/),
+\opt{amstex} provides \cs{dfrac} and \cs{tfrac} as convenient
+abbreviations for \verb"{\displaystyle\frac" \verb"..." \verb"}" and
+\verb"{\textstyle\frac" \verb"..." \verb"}". Furthermore, the
+thickness of the fraction line can be varied, using
+a new square-bracket option of the \cs{frac} command.
+\cs{frac}\5\verb"["\<dimension>\verb"]"\5\verb"{...}"\5\verb"{...}"
+makes a fraction where the thickness of the horizontal rule is determined by
+the given dimension.  The sample file \fn{testart.tex} shows an
+example using a thickness of \verb=1.5pt=.
+
+\cs{fracwithdelims}\5\<left delimiter>\5\<right
+delimiter>\5\verb"["\<dimension>\verb"]" is an extension of the same idea,
+with delimiters on either side specified by the user.%
+\setbox0=\hbox{\footnotesize
+\verb"\left"\5\verb"(\frac"\5\verb"{...}"\5\verb"{...}"\5\verb"\right)"}%
+\footnote{The perceptive reader may wonder why this command is necessary
+when you can type things like \unhbox0.
+The answer is that \cs{fracwithdelims} provides slightly better
+spacing.}
+
+For binomial expressions such as $\bigl({n\atop k}\bigr)$
+\opt{amstex} has \cs{binom}, \cs{dbinom} and \cs{tbinom}.  \cs{binom} is
+an abbreviation for \cs{fracwithdelims}\verb"()[0pt]".
+
+After you have installed \amslatex/, you can
+typeset and print the sample file \fn{testart.tex} to see
+examples of \cs{frac} and \cs{binom}.
+
+\section{Continued fractions}
+The continued fraction
+\begin{equation}
+\def\cfrac#1#2{{\displaystyle\strut#1\over\displaystyle#2}%
+ \kern-\nulldelimiterspace}
+\cfrac{1}{\sqrt{2}+
+ \cfrac{1}{\sqrt{2}+
+  \cfrac{1}{\sqrt{2}+
+   \cfrac{1}{\sqrt{2}+
+    \cfrac{1}{\sqrt{2}+\cdots
+}}}}}
+\end{equation}
+can be obtained by typing
+{\samepage
+\begin{verbatim}
+\cfrac{1}{\sqrt{2}+
+ \cfrac{1}{\sqrt{2}+
+  \cfrac{1}{\sqrt{2}+
+   \cfrac{1}{\sqrt{2}+
+    \cfrac{1}{\sqrt{2}+\dotsb
+}}}}}
+\end{verbatim}
+}Left or right placement of any of the numerators is accomplished by using
+\cs{lcfrac} or \cs{rcfrac} instead of \cs{cfrac}.
+
+\section{Smash options}
+
+The plain \tex/ command \cs{smash} is used to typeset a subformula and
+give it an effective height and depth of zero, which is sometimes
+useful in adjusting the subformula's position with respect to adjacent
+symbols.   In \opt{amstex} there are optional arguments \verb"t" and
+\verb"b" for \cs{smash}, because sometimes it is advantageous to be
+able to ``smash'' only the top or only the bottom of something while
+retaining the natural depth or height.  For example, to smash only the
+part of a subformula that extends below the baseline, you would type
+\verb"\smash[b]{"\5\<whatever>\5\verb"}".
+
+\section{New  \latex/ environments}
+\subsection{The ``cases'' environment}
+``Cases'' constructions like the following are common in
+mathematics:
+\begin{equation} P_{r-j}=
+  \left\{
+  \begin{array}{ll}
+    0                &\mbox{if $r-j$ is odd},\\
+    r!\,(-1)^{(r-j)/2} &\mbox{if $r-j$ is even}.
+  \end{array}
+  \right.
+\end{equation}
+and in the \opt{amstex} option there is a \env{cases} environment:
+\begin{verbatim}
+\begin{equation} P_{r-j}=
+  \begin{cases}
+    0&  \text{if $r-j$ is odd},\\
+    r!\,(-1)^{(r-j)/2}&  \text{if $r-j$ is even}.
+  \end{cases}
+\end{equation}
+\end{verbatim}
+Notice the use of \cs{text} and the embedded math.
+
+\subsection{Matrix}
+
+In the creation of the \opt{amstex} option, \amstex/'s \cs{matrix}
+could have been discarded, since \latex/'s \env{array} environment has
+the same function.  But we wanted to keep \amstex/'s \cs{pmatrix},
+\cs{bmatrix}, \cs{vmatrix} and \cs{Vmatrix} commands, with delimiters
+built in; for consistency, the basic \cs{matrix} has been retained
+also.  It and the other matrix commands have been changed into \latex/
+environments that work like \env{array}, except that they don't have
+an argument specifying the format of the columns. Instead a default
+format is provided: up to 10 centered columns. The maximum number of
+columns is determined by the counter \verb"MaxMatrixCols", which you
+can change if necessary using \latex/'s \cs{setcounter} or
+\cs{addtocounter} commands.  I.e., suppose you have a big
+matrix with 19 or 20 columns.  Then you'd do something like this:
+\begin{verbatim}
+\begin{equation}
+\setcounter{MaxMatrixCols}{20}
+A=\begin{pmatrix}
+...&...&...&...&...&...&...&...&...&...&...&...&  ... \\
+  ...  \\
+  ...
+\end{pmatrix}
+\end{equation}
+\end{verbatim}
+
+To produce a small matrix suitable for use in text, use the
+\env{smallmatrix} environment.
+\begin{verbatim}
+\begin{math}
+  \bigl( \begin{smallmatrix}
+      a&b\\ c&d
+    \end{smallmatrix} \bigr)
+\end{math}
+\end{verbatim}
+
+\cs{hdotsfor}\verb"{"\<number>\verb"}" produces a row of dots in a matrix
+spanning the given number of columns.
+\begin{verbatim}
+\begin{matrix} a&b&c&d\\
+e&\hdotsfor{3} \end{matrix}
+\end{verbatim}
+would give dots spanning the last three columns in the second row.
+The spacing of the dots can be varied through use of a square-bracket
+option, for example, \verb"\hdotsfor[1.5]{3}".  The number in square brackets
+will be used as a multiplier; the normal value is 1.
+
+\subsection{The {\tt Sb} and {\tt Sp} environments}
+
+The \env{Sb} and \env{Sp} environments can be used to typeset several
+lines as a subscript or superscript:
+for example
+\begin{verbatim}
+\begin{equation}
+  \sum\begin{Sb}
+        0\le i\le m\\ 0<j<n
+      \end{Sb}
+    P(i,j)
+\end{equation}
+\end{verbatim}
+produces a two-line subscript underneath the sum:
+\begin{equation}
+  \sum_{0\le i\le m\atop 0<j<n}
+    P(i,j)
+\end{equation}
+\env{Sb} and \env{Sp} can be used anywhere that an ordinary subscript or
+superscript can be used.
+
+\subsection{Commutative diagrams}
+\label{s:commdiag}
+
+To save memory, the commutative diagram commands of \amstex/ are not
+included in the \opt{amstex} option, but are available as a separate
+option, \opt{amscd}.  The \env{picture} environment
+can be used for complex commutative diagrams but for
+simple diagrams without diagonal arrows the \opt{amscd}  commands are more
+convenient.
+
+The commutative diagram
+\begin{equation}\label{e:cd}
+\begin{array}{ccc}
+S^{{\cal W}_\Lambda}\otimes T&
+   \stackrel{j}{\longrightarrow}&  T\\
+\Big\downarrow&
+       &\Big\downarrow\vcenter{\rlap{$\scriptstyle{\rm End}\,P$}}\\
+(S\otimes T)/I& =&  (Z\otimes T)/J
+\end{array}
+\end{equation}
+can be produced in ordinary \latex/ by
+\begin{verbatim}
+\begin{array}{ccc}
+S^{{\cal W}_\Lambda}\otimes T&
+    \stackrel{j}{\longrightarrow}&  T\\
+\Big\downarrow&
+        &\Big\downarrow\vcenter{%
+          \rlap{$\scriptstyle{\rm End}\,P$}}\\
+(S\otimes T)/I& =&  (Z\otimes T)/J
+\end{array}
+\end{verbatim}
+When the \opt{amscd} option is used you would type instead
+\begin{verbatim}
+\begin{CD}
+S^{{\cal W}_\Lambda}\otimes T   @>j>>   T\\
+@VVV                                    @VV{\End P}V\\
+(S\otimes T)/I                  @=      (Z\otimes T)/J
+\end{CD}
+\end{verbatim}
+(with \cs{End} defined as \cs{operatorname}\verb={End}=; see
+\S\ref{s:opname}).
+This would give longer horizontal arrows than in (\ref{e:cd})
+and improved spacing between
+elements of the diagram (see \fn{testart.tex}). In the \env{CD} environment
+the commands \verb=@>>>=, \verb=@<<<=,
+\verb=@VVV=, and \verb=@AAA= give respectively right, left, down, and
+up arrows.\index{"@VVV@{\tt{}"@VVV}}%
+\index{"@AAA@{\tt{}"@AAA}}%
+\index{"@<<<@{\tt{}"@<<<}}%
+\index{"@>>>@{\tt{}"@>>>}}%
+For the horizontal arrows, material between the first and second
+\verb=>= or \verb=<= symbols will be typeset as a superscript,
+and material between the second and third will be typeset as
+a subscript.  Similarly, material between the first and second
+or second and third {\tt A}s or {\tt V}s of vertical arrows will be typeset as
+left or right ``sidescripts''.
+
+\section{Alignment structures for equations}
+\label{s:displays}
+
+In the \opt{amstex} option
+several environments exist for creating multi-line displayed
+equations.
+They are similar in function to \latex/'s \env{equation} and
+\env{eqnarray} environments.
+These environments are:
+\begin{verbatim}
+ align      gather     alignat    xalignat   xxalignat
+ multline   split
+\end{verbatim}
+Each environment, except for \env{split}, has both starred
+and unstarred forms, where the unstarred forms have automatic
+numbering, using \latex/'s \env{equation} counter.  You can suppress
+the number on any particular line by putting \cs{notag} before the
+\cs\bslash; you can also override it with a tag of your own using
+\cs{tag}\verb"{"\<label>\verb"}", where \<label> means arbitrary text
+such as \verb"$*$" or \verb"ii" used to ``number'' the equation.  There
+is also a \cs{tag*} command that causes the tag to be typeset
+absolutely literally, without putting parentheses around it.  \cs{tag}
+and \cs{tag*} can also be used in the starred versions of all the
+\opt{amstex} alignment structures.  See \fn{testart.tex}, Appendix~B,
+for examples of the use of \cs{tag}.
+
+\subsection{The {\tt align} environment}
+
+The \env{align} environment is used for two or more equations when
+vertical alignment is desired (usually binary relations such as equal
+signs are aligned).  The term ``equation'' is used rather loosely here
+to mean any math formula that is intended by the author as a
+self-contained subdivision of the larger display,  usually, but not
+always, containing a binary relation.
+
+\subsection{The {\tt gather} environment} Like the \env{align}
+environment, the \env{gather} environment is  used for two or more
+equations, but when there is no alignment desired among them; each one
+is centered separately between the left and right margins.
+
+\subsection{The {\tt alignat} environment}
+The \env{alignat} environment is for multiple ``align'' structures
+side by side.  There is one required argument, to specify the number
+of ``align'' structures.%
+%
+\footnote{For an argument of $n$, the number of {\tt\char`\&}'s
+per line is $2n-1$ (one ampersand for alignment within each
+``align'' structure, and ampersands to separate the ``align'' structures
+from one another).}
+%
+The \env{xalignat} and \env{xxalignat} environments
+are forms of the \env{alignat} environment with expanded spacing
+between the component align structures.  If we consider each
+``align'' structure to be a column, \env{xalignat} has equal
+spacing between columns and at the margins; \env{xxalignat}
+has equal spacing between columns and zero spacing at the
+margins.
+
+\subsection{The {\tt multline} environment} The \env{multline}
+environment is a variation of the \env{equation} environment used for
+equations that don't fit on a single line.  The first line of a
+\env{multline} will be at the left margin and the last line at the right
+margin, except for an indention on both sides whose amount is equal to
+\cs{multlinegap}.  The value of \cs{multlinegap} can be changed using
+\latex/'s \cs{setlength} and \cs{addtolength} commands.  If the
+\env{multline} contains more than two lines, any lines other than the
+first and last will be centered individually between the margins.
+
+\subsection{The {\tt split} environment} The \env{split} environment
+is for {\em single} equations that are too long to fit on one line and
+hence must be split into multiple lines.  Unlike the other
+\opt{amstex} equation structures, it provides no numbering, because it
+is used only inside some other displayed equation structure, usually
+an \env{equation}, \env{align}, or \env{gather} environment, which
+provides the numbering.  Unlike
+the \env{multline} environment, the \env{split} environment provides
+for alignment among the split lines, using \verb"&" to mark alignment
+points, as usual.
+
+\subsection{Alignment environments that don't constitute an entire display}
+In addition to the \env{split} environment, there are some other
+equation alignment environments that do not constitute an entire
+display.  They are self-contained units that
+can be used inside of other formulas, or set side-by-side.  The
+environment names are \env{aligned}, \env{gathered}, and
+\env{alignedat}.  These environments take an optional argument
+to specify their vertical positioning with respect to the material
+on either side.  The default is {\tt[c]}.  A \env{gathered}
+environment with the first line level with the material on either
+side would be done like this.
+\begin{verbatim}
+\begin{gathered}[t]
+...\\
+...
+\end{gathered}
+\end{verbatim}
+
+
+\subsection{Vertical spacing and page breaks  in the {\tt amstex}
+equation structures} You can use the
+\cs\bslash\verb"["\<dimension>\verb"]" command to get extra vertical
+space between lines in all the \opt{amstex} displayed equation
+environments, as is usual in \latex/\@.  Unlike \env{eqnarray},  the
+\opt{amstex} environments don't allow page breaks between lines, unless
+\cs{display\-break} or \cs{allow\-display\-breaks} is used.  The
+philosophy is that page breaks in such situations should receive
+individual attention from the author.  \cs{display\-break} must go
+before the \cs\bslash\ where it is supposed to take effect.  Like
+\latex/'s \cs{page\-break}, \cs{displaybreak} takes an optional argument
+between 0 and 4 denoting the desirability of the pagebreak.
+\verb"\displaybreak[0]" means ``it is permissible to break here''
+without encouraging a break; \verb"\displaybreak" with no optional
+argument is the same as \verb"\displaybreak[4]" and forces a break.
+
+There is also an optional argument for \cs{allow\-display\-breaks}.
+\cs{allow\-display\-breaks} obeys the usual \latex/ scoping rules; the
+normal way of limiting its scope would be to put
+\verb"{"\cs{allow\-display\-breaks} at the beginning and \verb"}" at the end
+of the desired range.  Within the scope of an \cs{allow\-display\-breaks}
+command, the \verb"\\*" command can be used to prohibit a pagebreak, as
+usual.
+
+\subsection{The {\tt\bslash intertext} command} The command \cs{intertext}
+is used for a short interjection of a few lines in the middle of a
+display alignment.  Its salient feature is preservation of the
+alignment, which would not be possible if you simply ended the display
+and then started it up again afterwards. \cs{intertext} may only appear
+right after a \verb"\\" or \verb"\\*" command.
+
+\subsection{Equation numbering}
+
+In \latex/ if you wanted to have equations numbered within
+sections---that is, have
+equation numbers (1.1), (1.2), \dots, (2.1), (2.2),
+\dots, in sections 1, 2, and so forth---you would probably redefine
+\verb"\theequation":  \begin{verbatim}
+\renewcommand{\theequation}{\thesection.\arabic{equation}}
+\end{verbatim}
+This works fine except that the equation counter won't be reset to
+zero at the beginning of a new section or chapter, unless you do it
+yourself using \verb"\setcounter".  To make this a little more
+convenient, the \opt{amstex} option provides a command
+\cs{numberwithin}.  To have equation numbering tied to section
+numbering, with automatic reset of the equation counter,
+the command would be
+\begin{verbatim}
+\numberwithin{equation}{section}
+\end{verbatim}
+As the name implies, \cs{numberwithin} can be applied to other
+counters besides the equation counter, but the results are not
+guaranteed because of potential complications.  Normal \latex/ methods
+should be used where available, e.g., in \cs{newtheorem}.
+
+To make cross-references to equations easier, an \cs{eqref}
+command is provided.  This automatically supplies the parentheses
+around the equation number, and adds an italic correction if necessary
+(see Section~\ref{s:rom}).  To refer to an equation that
+was labeled with the label {\tt e:baset}, the usage would be
+\verb=\eqref{e:baset}=.
+
+\subsection{Error messages}
+
+One kind of error message in particular should be mentioned, since it
+follows from a mistake that is easy to make.
+
+\begin{verbatim}
+Runaway argument?
+ \left |\frac {\hat v(s)-\hat v(t)}{|\widetilde {D} \ETC.
+! Paragraph ended before \multline* was complete.
+<to be read again>
+                   \par
+l.17
+
+? h
+I suspect you've forgotten a `}', causing me to apply this
+control sequence to too much text. How can we recover?
+My plan is to forget the whole thing and hope for the best.
+
+? e
+\end{verbatim}
+
+This usually means one of two things: Either you have an
+equation alignment environment where the
+end doesn't match the beginning---perhaps something
+like
+\begin{verbatim}
+\begin{multline*}
+...
+\end{multline}
+\end{verbatim}
+(as in this case)---or else you have a missing \verb=}= or \verb=\right=
+delimiter inside of the environment.  A \verb=}= is rather easy
+to leave off accidentally when using certain commands,
+such as \verb=\frac=.
+
+\section{Miscellaneous}
+
+In the \opt{amstex} option \verb"~"\index{~@{\tt\string~}}, \cs{/}, and
+\cs{slash} will remove superfluous spaces on either side of them, as a
+convenience to the user (in the case of \cs{/}, only a space on the
+left will be removed).  For example, if you have typed
+% \tt space was too wide, so used ~ instead:
+\verb"p."~\verb"63" and then realize you should add a \verb"~", you can
+insert the \verb"~" without deleting the space.
+
+In ordinary \latex/ \cs{big}, \cs{bigg}, \cs{Big}, and \cs{Bigg}
+delimiters don't adjust properly over the full range of \latex/ font
+sizes.  In the \opt{amstex} option they do.
+
+\section{New documentstyle options available}
+\label{s:options}
+
+Several new documentstyle
+options have been created.  About half of them
+have to do with the positioning of ``limits'' or \cs{tag}s.
+The abbreviation of the names reflects the MS-DOS limitation
+of eight characters for file names,\footnote{Not including the file
+extension.} which we need to allow for.%
+\begin{center}
+\begin{tabular}{lp{20pc}}
+ \opt{nosumlim}&      No limits on sums\\
+ \opt{intlim}&        Limits on integrals\\
+ \opt{nonamelm}&      No limits on operatornames\\
+ \opt{ctagsplt}&      Vertically centered tags
+                        on the \env{split} environment\\
+ \opt{righttag}&      Equation tags on the right
+\end{tabular}
+\end{center}
+
+Some of the component parts of the \opt{amstex} option are also
+available individually, that is, they can be used in the options list
+of the \cs{documentstyle} command:
+\begin{center}
+\begin{tabular}{lp{20pc}}
+\opt{amstext}&  defines \cs{text}\\
+\opt{amsbsy}&   defines \cs{boldsymbol} and \cs{pmb}\\
+\opt{amsfonts}& defines \cs{frak} and \cs{Bbb}
+and  sets up the fonts {\sc msam} (extra math symbols A), {\sc msbm}
+(extra math symbols B, and blackboard bold), {\sc eufm} (Euler Fraktur),
+as well as extra sizes of {\sc cmmib} (bold math italic and bold
+lowerCase Greek), and {\sc cmbsy} (bold math symbols and bold script),
+for use in mathematics.
+\end{tabular}
+\end{center}
+
+\subsection{The {\tt amssymb} option} The \opt{amssymb} option  defines
+names for all the symbols in the AMS math symbol fonts.  (Note: The
+\opt{amssymb} and \opt{amsfonts} options aren't much use unless you have
+version 2.0 of the \amsfonts/ package.)
+
+\subsection{Comments}
+\label{s:comment}
+
+A new \opt{verbatim} style option written by Rainer Sch\"opf (and
+distributed along with the \amslatex/ package) provides a \env{comment}
+environment;
+anything you write between \verb"\begin{comment}" and
+% Splitting up \end%{comment} here allows this part of the documentation to be
+% commented out! mjd
+\verb"\end{"\verb"comment}" is totally ignored by \latex/\@.  The
+\verb"\end{"\verb"comment}" should be on a line by itself: any text
+after \verb"\end{"\verb"comment}" on the same line would be ignored (and
+you would receive a warning message that it was lost).  Inside the
+\env{comment} environment \latex/ is in a special state that is
+ended by the first occurrence of the \verb"\end{"\verb"comment}"
+command; you cannot have one \env{comment} environment nested inside
+another.  The \opt{verbatim} option provides some
+other nice features; see \fn{verbatim.doc} for further details.
+
+\subsection{Syntax checking}
+
+Another new style option is called \opt{syntonly}; if you include this
+in your document options list, then you can put \cs{syntaxonly} in the
+document preamble to run the file with syntax check only.  No output
+will be produced, but any \latex/ errors will be uncovered.  The
+advantage of this is that \latex/ will run significantly faster when
+\cs{syntaxonly} is in effect.  How much faster depends on the particular
+computer being used and other variables but 30\%--40\% is typical.
+
+\section{Protecting fragile commands}
+
+Many of the commands added by the \opt{amstex} option are fragile and
+will need to be \cs{protect}ed in commands with ``moving
+arguments''---\cs{section} and other sectioning commands, \cs{caption},
+\cs{addcontentsline}, \cs{addtocontents}, \cs{markboth}, \cs{markright},
+\verb"@"-expressions in an \env{array} or \env{tabular} environment, and
+others (see the \latex/ manual, Section~C.1.3).
+\sloppypar
+
+\section{Differences the \latex/ user should note}
+
+In \opt{amstex} the \verb"@" character has a special use, in the extensible
+arrows \verb"@>>>" and \verb"@<<<" and in the math microspacing commands
+\verb"@," and \verb"@!".  In order to get an ordinary printed @
+character, type \verb"@@" instead of \verb"@".
+
+With the various alignment environments available in the \opt{amstex}
+option, the \env{eqnarray} environment is no longer needed.  Furthermore,
+since it does not prevent overlapping of the equation numbers with wide
+formulas, as most of the \opt{amstex} alignments do, using the
+\opt{amstex} alignments seems better.
+
+\cs{nonumber} is interchangeable with \cs{notag}; the
+latter seems slightly preferable, for consistency with the name of \cs{tag}.
+
+In math \cs{bf}, \cs{rm}, and other text font commands
+should not be used for single math variables; \cs{bold},
+\cs{mathrm}, etc.\ should be used instead.
+(See section \ref{s:mathfonts} for details.)
+
+\newpage
+\part{The {\tt amsart} and {\tt amsbook} documentstyles}
+\label{artbook}
+
+\section{General remarks}
+
+Two considerations controlled the development of the \sty{amsart} and
+\sty{amsbook} documentstyles.   First of all, their intended use is
+for articles and books submitted for publication to the American
+Mathematical Society (in addition to giving the \latex/ user some additional
+output styles).  And second, because \sty{amsart} and
+\sty{amsbook} not only load the \opt{amstex} option, but also add
+several features not found in the standard \latex/ styles, they don't
+have much spare memory to work with (if used with a ``small''
+implementation of \tex/).
+
+Therefore some features of lesser usefulness found in the standard
+\latex/ styles have been omitted or minimized in an effort to conserve
+memory. No special provisions have been made for setting up marginal
+notes or two-column format, for example. And the 11pt and 12pt options
+have been reduced to a minimal kernel: they do nothing except reset
+the margins and a few font sizes. More sophisticated adjustments that
+are done in the standard \latex/ \sty{article} and \sty{book} styles
+are omitted.
+
+The \opt{fleqn} option and the \opt{openbib} bibliography style are
+not used in AMS publications, and therefore the necessary
+work to make them available has not been done.
+
+No provision is made for fonts in sizes larger than \cs{large}; the
+\latex/ commands  \cs{Large}, \cs{LARGE}, \cs{huge}, and \cs{Huge}
+still function normally but the size they produce is the same as for
+\cs{large}. The design of \sty{amsart} does not use internally
+anything larger than \cs{normalsize}.
+
+The \opt{amstex} option, which is part of the \sty{amsart}
+and \sty{amsbook} styles, does the necessary setting up to allow the
+use of fonts from the \amsfonts/ 2.0 collection, but it is perfectly
+possible to use \sty{amsart} and \sty{amsbook} without having \amsfonts/.
+
+\section{The {\tt amsart} documentstyle}
+
+\subsection{Top matter}
+We use the term ``top matter'' for the information found at the
+beginning of an article, such as the title, author, addresses,
+and abstract.
+Compared to the standard \sty{article} documentstyle, the
+\sty{amsart} documentstyle has a significantly expanded top
+matter section.
+\latex/'s \sty{article} style provides \cs{title}, \cs{author},
+\cs{thanks}, \cs{date}, and an \env{abstract} environment.  The
+complete list of top matter commands provided by the \sty{amsart}
+style is:
+
+\begin{center}
+\begin{tabular}{@{\hspace{3em}}ll}
+\cs{title}&   \cs{keywords}\\
+\cs{author}&  \cs{subjclass}\\
+\cs{address}& \cs{translator}\\
+\cs{email}&   \cs{dedicatory}\\
+\cs{thanks}&  \cs{date}
+\end{tabular}
+\end{center}
+
+All of these commands
+should precede the \cs{maketitle}
+command.  If the\linebreak[2] \env{abstract} environment is used,
+it should follow immediately after \cs{maketitle}.
+The address, e-mail address,
+and translator information prints at the end of the document;
+the key words, subject classification, and thanks information
+print as footnotes at the bottom of the first page of the document.
+
+An \cs{author} command should be used for each individual author,
+when a paper has multiple authors.
+Things like \cs{address}, \cs{email}, and
+\cs{thanks} that pertain only to one author  should be placed after
+the \cs{author} command that they go with (and before any other
+\cs{author} commands).  The AMS custom is to list author names in
+alphabetical order. (See {\bf Author names and addresses} in section
+\ref{sss:variations} for further details.)
+
+In giving an e-mail address remember that \verb=@= characters
+should be doubled in order for them to print.
+
+\subsection{Memory conservation measures}
+To free up valuable memory, commands that are needed only at the
+beginning of a document are undefined when they are no longer needed.
+This includes the top matter commands \cs{title}, \cs{author}, etc. and the
+\env{abstract} environment.
+
+\subsection{Running heads}
+
+Running heads on odd-numbered pages (right-hand pages) in the
+\sty{amsart} style contain the text of the article title, and on
+even-numbered pages they contain the author's name.  If the title is
+too long to fit within the page width, a shorter version
+for the running head text can be
+specified with a square-bracket option of the \cs{title}
+command:
+\begin{verbatim}
+\title[Short Version Here]{Long Version of the Title Here,\\
+  Perhaps with Multiple Lines}
+\end{verbatim}
+The \cs{author} command has also been given the same
+kind of square-bracket option.
+
+\subsection{Non-English versions of automatically generated text}
+
+If the base language of an article is some language other than
+English, the user may wish to change some pieces of text that
+are generated automatically.  To change ``Abstract'' to ``R\'esum\'e'',
+use \verb=\renewcommand= to redefine \verb=\abstractname=:
+\begin{verbatim}
+\renewcommand{\abstractname}{R\'esum\'e}
+\end{verbatim}
+The user can change the following in the same way:%
+\footnote{The names of the control sequences
+were chosen to match the names used in \fn{babel.sty}.}
+\begin{verbatim}
+\abstractname   Abstract
+\partname       Part
+\indexname      Index
+\figurename     Figure
+\tablename      Table
+\proofname      Proof
+\refname        References
+\appendixname   Appendix
+\tocname        Contents
+\end{verbatim}
+This also allows the user to substitute,
+e.g., ``Diagram'' instead of ``Figure'' for the labels of
+figure environments.
+In the \sty{amsbook} style, there are some additional
+names available for changing:
+\begin{verbatim}
+\chaptername    Chapter
+\listfigurename List of Figures
+\listtablename  List of Tables
+\bibname        Bibliography
+\end{verbatim}
+(The environment \env{thebibliography} uses \cs{bibname} in the
+\sty{amsbook} style, and \cs{refname} in the
+\sty{amsart} style.)
+
+\subsection{Theorems, definitions, and similar structures}
+
+\latex/ provides \cs{newtheorem} to create theorem
+environments.  The \sty{amsart} and \sty{amsbook} styles make
+use of the \opt{theorem} documentstyle option to provide more
+flexibility in the design of theorems, definitions, proofs,
+remarks, and the like (for full details, see Frank
+Mittelbach's article in \tugboat/, vol.~10, no.~3,
+November 1989, pp.~416--426).  Three levels of
+theorem-type environments are provided through
+three \cs{theoremstyle}s: {\tt plain}, {\tt definition},
+and {\tt remark}.  The different styles receive different
+typographical treatment that gives them visual emphasis
+corresponding to their relative importance in the
+author's exposition.
+
+To create new theorem-type environments in the
+different styles, use the\linebreak[1] \cs{newtheorem} command
+in the normal way, but divide your \cs{newtheorem} commands
+into groups and preface each group with the appropriate
+\cs{theoremstyle}.
+If no \cs{theoremstyle} command is given, the style used will
+be \fn{plain}.  The\linebreak[1] \cs{theorembodyfont} and
+\cs{theoremheaderfont} commands described in Mittelbach's article
+are unnecessary in the AMS documentstyles.
+
+Here is an example of a rather comprehensive \cs{newtheorem} section:
+\begin{verbatim}
+% theorem style plain --- default
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lem}{Lemma}[section]
+\newtheorem{cor}{Corollary}[section]
+\newtheorem{prop}{Proposition}[section]
+\newtheorem{crit}{Criterion}[section]
+\newtheorem{alg}{Algorithm}[section]
+
+\theoremstyle{definition}
+
+\newtheorem{defn}{Definition}[section]
+\newtheorem{conj}{Conjecture}[section]
+\newtheorem{exmp}{Example}[section]
+\newtheorem{prob}{Problem}[section]
+
+\theoremstyle{remark}
+
+\newtheorem{rem}{Remark}        \renewcommand{\theremark}{}
+\newtheorem{note}{Note}         \renewcommand{\thenote}{}
+\newtheorem{claim}{Claim}
+\newtheorem{summ}{Summary}      \renewcommand{\thesumm}{}
+\newtheorem{case}{Case}
+\newtheorem{ack}{Acknowledgment}  \renewcommand{\theack}{}
+\end{verbatim}
+If you would like an unnumbered environment, use \cs{renewcommand}
+to undefine\linebreak[1] {\tt\bslash thexxxx} (where {\tt xxxx}
+stands for the environment name), as shown in the
+``remark'' section.  If you have a theorem with a special name,
+such as ``Klein's Theorem,'' use a separate \cs{newtheorem}
+command just for that theorem and make it unnumbered:
+\begin{verbatim}
+\newtheorem{kthm}{Klein's Theorem}
+\renewcommand{\thekthm}{}
+\end{verbatim}
+This will give the normal format for a theorem in all respects
+except the automatic numbering.
+
+\subsection{Proofs}
+
+A predefined \env{pf} environment and a starred form \env{pf*}
+are provided for
+proofs, and produce the heading ``Proof'' with appropriate
+spacing and punctuation.  A ``Q.E.D.'' symbol,
+$\vcenter{\hrule\hbox{\vrule height.6em\kern.6em\vrule}\hrule}$,
+is automatically appended at the end of a proof.
+To substitute
+a different end-of-proof symbol, use \cs{renewcommand}
+to redefine the command \cs{qedsymbol}.
+The proof environment is primarily intended for short proofs, less than
+a page in length; longer proofs should probably be done as a separate
+section or subsection in your document.  For a long
+proof that doesn't use the \env{pf} environment,
+you can obtain the symbol and the usual amount of preceding space
+by using \cs{qed}.
+
+The starred form, \env{pf*}, of the proof environment takes an
+argument in curly braces, which allows you to
+substitute a different name for the standard ``Proof''.
+If you want to substitute, say, ``Proof (sufficiency)'', then write
+\begin{verbatim}
+\begin{pf*}{Proof (sufficiency)}
+\end{verbatim}
+and that's all there is to it.
+
+\subsection{Miscellaneous notes}
+\subsubsection{Variations from standard \latex/}
+\label{sss:variations}
+
+Variations to \latex/ (like \verb=\subjclass= for subject
+classification numbers) that are simple additions will not be
+specially pointed out. However, a couple of variations that involve
+contradictions of statements in the \latex/ manual need to be noted.
+
+\paragraph{Starred forms of sectioning commands}
+In the {\tt amsart} and {\tt amsbook} documentstyles starred forms of
+the \cs{chapter} and \cs{section} commands produce a table of contents
+entry.  This is a variation from standard \latex/
+(see the \latex/ manual, \S C.3.1), but more in keeping with
+usual publishing practice.
+
+\paragraph{Author names and addresses}
+The standard \latex/ format for specifying the names and addresses
+ of a document's authors is this:
+\begin{verbatim}
+\author{First Author\\Address, Line 1\\Address, Line 2
+        \and Second Author\\Address, Line 1\\Address, Line 2}
+\end{verbatim}
+In the \sty{amsart} and \sty{amsbook} documentstyles
+there is a separate
+\cs{address} command for addresses, and the author names and addresses are
+specified individually like all the other elements of the
+top matter:
+\begin{verbatim}
+\author{First Author}
+\address{Address, Line 1\\Address, Line 2}
+...
+\author{Second Author}
+\address{Address, Line 1\\Address, Line 2}
+\end{verbatim}
+
+Addresses and similar elements will be associated with the nearest
+preceding \cs{author} command to determine where they should be
+printed.
+
+Author names and addresses typed in the standard \latex/ format
+will still print fine, without error messages, but the addresses
+may not fall in the proper place (at the end of the document, in
+the \sty{amsart} style).
+
+\subsubsection{Numbers and punctuation in italic text}
+\label{s:rom}
+
+Mathematical typesetting poses a problem that rarely arises in
+nonmathematical typesetting.  In mathematical publishing,
+for consistency,  parentheses and other punctuation, as
+well as numbers, are always set in  an upright font rather than
+varying with the surrounding text.   But then when a math formula with
+non\-italic numbers and punctuation occurs in the middle of italicized
+text---e.g., in a theorem---with italic numbers and punctuation
+nearby, the visual discrepancy rises up to smite the reader
+in the eye.
+Therefore it is conventional in mathematical publishing to use the
+same upright style for numbers and punctuation in italic text as is
+used in the mathematics. 
+
+At the present time, italic fonts with upright numbers and
+punctuation aren't available.
+The work of getting upright numbers and punctuation in italic text
+therefore must be done by the author.   In order to
+help the author, the \sty{amsart} and \sty{amsbook} documentstyles
+take two steps.  First, they do as much as possible automatically,
+behind the scenes.  For example, \cs{ref} usually produces a number
+of some sort; the definition of \cs{ref} has been changed so
+that the number will never print in italic.  Second, they provide
+a control sequence \cs{rom}, with one argument, that can be used by the author
+when necessary to make an individual punctuation mark or number
+nonitalic.  For example:
+\begin{verbatim}
+... formal \rom{(} in the previous year, \rom{1989)} ...
+\end{verbatim}
+Italic corrections are inserted automatically by \cs{rom}.
+
+The use of \cs{rom} is unnecessary for punctuation marks that are not
+high enough to have a noticeable slant, such as commas and periods.
+
+\section{The {\tt amsbook} documentstyle}
+
+The \sty{amsbook} style has much in common with the \sty{amsart}
+style; everything in the previous sections about \sty{amsart}
+holds true for \sty{amsbook}, excepting some details
+such as the placement of author addresses and other top matter
+information.
+
+\subsection{Front matter}
+The ``top matter'' information for a book (more commonly called the front matter,
+when discussing a book)
+is usually specially made up on a title page, with the format
+varying widely from book to book.  In the \sty{amsbook} design
+\cs{maketitle} produces a simple title page with the title
+and author; subject classification numbers, abstract, or
+key words, if supplied, will print on the next page.
+The style is too plain for actual publication;
+it's purpose is to make it convenient for authors to provide
+the necessary information to a publisher.
+
+For submissions to the
+American Mathematical Society, please provide as a minimum the
+following information: title, author, addresses, mathematics
+subject classification numbers, translator (if applicable),
+and acknowledgments of funding support (\cs{thanks}),
+
+\subsection{Running heads}
+
+Right-hand running heads in the \sty{amsbook} style contain
+the text of the current section heading; left-hand running
+heads contain the current chapter title.  For special chapters
+such as a preface or bibliography that don't have sections,
+the right running head will be the same as the left.
+Square-bracket options can be used, as normal, to change
+the text used for running heads.
+
+\section{Bibliography styles for use with \bibtex/}
+
+The \amslatex/ distribution includes two bibliography styles,
+\fn{amsplain} and \fn{amsalpha}, analogous to the standard \latex/
+\fn{plain} and \fn{alpha} bibliography styles.  In the AMS
+styles an extra field ``language'' is provided, for giving the
+original language of a reference, as an indication to the
+reader that the title, author name, and so on are translated.
+(Because that means locating the reference in a library will
+require a little extra care.)
+
+Also included is a file \fn{mrabbrev.bib} containing  standardized
+abbreviations used by {\it Mathematical Reviews\/} for journal names
+in the mathematical sciences and related fields.
+Because the full list is too big to be handled by the current
+version of \bibtex/, individual users should use it as a resource,
+extracting abbreviations for the journals
+that they cite in their particular bibliography database
+and adding them to their database.
+
+\newpage
+\part{Appendixes}
+\appendix
+
+\section{Files included in the \amslatex/ distribution}
+
+The total number of files in the \amslatex/ package, including
+documentation and option files, is more than sixty.
+A majority of these files are for the
+Mittelbach--Sch\"opf font selection scheme and other \latex/
+option files written and maintained by Mittelbach and Sch\"opf.  They
+are used by various parts of the \amslatex/ package but are not
+inherently part of the \amslatex/ distribution; they are included at
+the present time because they have not yet become widely available in
+the United States.
+
+\subsection{Files maintained by the American Mathematical Society}
+
+\begin{filelist}
+\fn{amltinst.tex}&
+
+Instructions on how to install the \amslatex/ package.
+\end{filelist}
+
+\begin{filelist}
+\fn{amslatex.tex}\newline\fn{amslatex.toc}&
+
+This {\it User's Guide}, describing the \amslatex/ package, and the auxiliary
+file for the table of contents.
+\end{filelist}
+
+\begin{filelist}
+\fn{testart.tex}\newline \fn{test.bib}\newline \fn{testart.bbl}&
+
+A sample file illustrating the use of commands from the \opt{amstex}
+option, as well as the \opt{amsart} documentstyle.
+\end{filelist}
+
+\begin{filelist}
+\fn{testbook.tex}\newline \fn{pref.tex}\newline \fn{chap1.tex}\newline
+\fn{chap2.tex}\newline \fn{app.tex}\newline \fn{testbook.bbl}&
+
+These files are sample files illustrating the use of the \opt{amsbook}
+documentstyle.\sloppy
+\end{filelist}
+
+\begin{filelist}
+\fn{amstex.sty}&
+
+The \opt{amstex} documentstyle option. Defines
+special \amstex/ structures (like multiline display alignments) with
+\latex/ syntax.  It is a copy of \fn{amstex.tex}, version 2.0,
+modified as necessary to make it usable from within \latex/.
+\end{filelist}
+
+\begin{filelist}
+\fn{amstext.sty}\newline \fn{amsbsy.sty}\newline
+\fn{amsfonts.sty}\newline \fn{amssymb.sty}&
+
+These are extra option files that can be used apart from the
+\opt{amstex} option.
+The file \fn{amsbsy.sty} defines the \cs{boldsymbol} command
+and the \cs{pmb} command (``poor man's
+bold'').  The file
+\fn{amstext.sty} defines the \amstex/ \cs{text} command.
+The files \fn{amsfonts.sty} and \fn{amssymb.sty} are for
+use with the \amsfonts/ package (version 2.0).   \fn{amsfonts.sty}
+defines commands, including \cs{newsymbol},
+for using fonts in the \amsfonts/ collection,
+and \fn{amssymb.sty} defines the names of
+all the math symbols available in the \amsfonts/
+collection.\sloppy
+\end{filelist}
+
+\begin{filelist}
+\fn{amscd.sty}& Commutative diagrams\\
+
+&The \opt{amscd}  option
+contains extra mathematical commands that can be used as add-ons with the
+\opt{amstex} option. (It can also be used without the
+\opt{amstex} option.)
+\end{filelist}
+
+\begin{filelist}
+\fn{intlim.sty}\newline \fn{nonamelm.sty}\newline
+\fn{nosumlim.sty}\newline \fn{righttag.sty}\newline
+\fn{ctagsplt.sty}&
+
+Extra math style options that affect, for example, left or right
+placement of equation numbers.  They are for use only with
+the \opt{amstex} option. The \opt{intlim} option provides for
+integral subscripts to be placed above and below rather than on the
+side. The \opt{nosumlim} option provides for sum subscripts to be
+placed on the side rather than above and below. The \opt{nonamelm}
+option provides for ``operator name'' subscripts to be placed on the
+side rather than above and below. The \opt{righttag} option puts
+equation numbers on the right instead of on the left. The
+\opt{ctagsplt} option gives equation numbers  vertically centered on
+the height of a displayed formula that uses the \env{split}
+environment.
+\end{filelist}
+
+\begin{filelist}
+\fn{amsart.sty}\newline \fn{amsbook.sty}\newline
+\fn{amsart.doc}\newline \fn{amsbook.doc}&
+
+Primary documentstyles for submissions to the AMS, for articles and
+books respectively, and technical documentation files.
+Auxiliary files for 10-point, 11-point and
+12-point options are also distributed: \fn{amsart10.sty},
+\fn{amsart11.sty}, \fn{amsart12.sty},\newline \fn{amsbk10.sty},
+\fn{amsbk11.sty}, \fn{amsbk12.sty},\newline \fn{amsbk10.doc},
+\fn{amsart10.doc}.\sloppy\hbadness9999
+\end{filelist}
+
+\begin{filelist}
+\fn{amsplain.bst}\newline \fn{amsalpha.bst}\newline \fn{mrabbrev.bib}&
+
+Bibliography style files for use with \bibtex/, and a file
+containing the {\it Mathematical Reviews\/} standard abbreviations
+for the names of mathematical journals.
+\end{filelist}
+
+\subsection{Files maintained by Mittelbach and Sch\"opf}
+
+The official copies of the remaining files in this distribution are maintained
+by Frank Mittelbach and Rainer Sch\"opf, who have given permission for the
+American Mathematical Society to distribute them.
+
+\begin{filelist}
+\fn{theorem.sty}\newline
+\fn{theorem.doc}\newline and related files&
+
+Option for special treatment of theorems and similar structures,
+written by Frank Mittelbach, and auxiliary files; used by \fn{amsart.sty}
+and \fn{amsbook.sty}.
+\end{filelist}
+
+\begin{filelist}
+\fn{verbatim.sty}\newline \fn{verbatim.doc}&
+Option file implementing an improved \env{verbatim}
+environment and a \env{comment} environment.
+\end{filelist}
+
+\begin{filelist}
+\fn{lfonts.new}\newline
+\fn{preload.min}\newline
+\fn{fontdef.max}\newline
+\fn{newlfont.sty}\newline
+and related files&
+
+The files that implement the Mittelbach--Sch\"opf
+font selection scheme.
+\end{filelist}
+
+
+\section{Differences between \amstex/ (version 2.0)
+and the {\tt amstex} option}
+\label{s:diff}
+
+This section describes the parts of \amstex/ that were removed
+during the creation of the \opt{amstex} option.  It will probably
+be of interest primarily to users with \amstex/ experience.
+
+In general, \amstex/ commands that were redundant with \latex/
+commands were simply dropped.  Other commands were reimplemented
+as documentstyle options or otherwise changed in form.
+
+\subsection{Document structure commands}
+These commands have all been
+superseded by their \latex/ equivalents (some of which
+have the same name but function slightly differently):
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\amstex/&\latex/\\[3pt]
+\noalign{\hrule\vskip3pt}
+\cs{document}&\verb+\begin{document}+\\
+\cs{midspace}&\verb+\beginfigure[htp]...\endfigure+\\
+\cs{footnote}&\cs{footnote}\\
+\cs{cite}&\cs{cite}\\
+\cs{pagewidth}&\cs{textwidth}\\
+\cs{pagebreak}&\cs{pagebreak}\\
+\end{tabular}
+\end{center}
+
+For more information on document structure commands
+refer to Part~\ref{artbook}, which
+describes the \sty{amsart} and \sty{amsbook} documentstyles.
+
+\subsection{Math font commands}
+
+The names for \amstex/ math font commands couldn't simply be carried over
+to \latex/ because there is a conflict with \cs{roman}, which is
+preempted by \latex/ for another use.  Therefore, in the \opt{amstex}
+option, \amstex/'s \cs{roman} has been renamed \cs{mathrm}.  In
+addition, the \cs{italic} and \cs{slanted} math font commands have been
+dropped in \opt{amstex}, since their usefulness is in question and memory
+space for control sequence names is in short supply.  It appears that
+\verb"\text"\5\verb"{\it...}" will serve everywhere that \cs{italic}
+might be used, and the same goes for \cs{sl} and \cs{slanted}.
+
+In \amstex/ the text font commands \cs{bf}, \cs{rm}, \cs{sl}, etc.,
+cause an error message if used in math mode, but in the \opt{amstex}
+option this has been disabled.  This is intended to make it easier for
+users who might want to add the \opt{amstex} option to a \latex/ document
+that has already been written or partially written.  However, using
+these commands in math mode will have no effect on font changes.
+
+In \amstex/ 2.0 there is a command \cs{boldkey} used to obtain bold
+versions of math symbols such as \verb+=+ and \verb=+= that are
+present on keyboard keys.  In the \opt{amstex} option the use of the
+new font selection scheme made it possible to generalize
+\cs{boldsymbol} so that \cs{boldkey} is not needed.
+
+\subsection{Matrices}
+The \cs{format} option of \amstex/'s \cs{matrix} is not available for
+\env{matrix}, \env{pmatrix} and related
+environments; just use the \env{array} environment
+instead if you need an unusual format for the columns.
+
+\amstex/'s \cs{smallmatrix} command has also been reimplemented
+as an environment:
+\begin{verbatim}
+\begin{math}
+  \bigl( \begin{smallmatrix}
+      a&b\\ c&d
+    \end{smallmatrix} \bigr)
+\end{math}
+\end{verbatim}
+
+\subsection{Displayed equation structures}
+
+ In the \latex/ \opt{amstex} option, commands for creating
+multiple-line displays
+have been converted to environments similar to \latex/'s
+\env{eqnarray} and \env{equation}---they use
+\cs{begin} and \cs{end}, and the \verb"$$" that would have been used
+in \amstex/ should not be used.  See Section~\ref{s:displays}
+for more details.
+
+\subsection{Math style commands}
+As a matter of convenience, \amstex/ provided
+the abbreviations \cs{dsize}, \cs{tsize},
+\cs{ssize}, and \cs{sssize} for
+\cs{display\-style},
+\cs{text\-style}, \cs{script\-style}, and \cs{script\-script\-style}.
+In order to conserve control sequence names, these have
+been dropped in \opt{amstex}, since they are merely synonyms.
+If you need to use a math style command frequently because of the nature
+of your material, you can add an abbreviation using
+\cs{newcommand} in the preamble of your document,
+and call it whatever you choose:
+\begin{verbatim}
+\newcommand{\sst}{\scriptstyle}
+\end{verbatim}
+
+\subsection{{\tt\bslash thickfrac}}
+
+The \cs{thickfrac} and \cs{thickfracwithdelims} commands of
+\amstex/ have been replaced by square-bracket options on
+the \cs{frac} and \cs{fracwithdelims} commands.  See
+Section~\ref{fracs}.
+
+\subsection{Commenting out a  large section of text}
+
+The \cs{comment} command of \amstex/ is replaced by the
+\env{comment} environment of the \opt{verbatim} documentstyle
+option.  See the description in Section~\ref{s:comment}.
+
+\subsection{Page breaks inside a display}
+
+In the \opt{amstex} option, \cs{displaybreak} should
+{\em precede\/} the \cs\bslash\ where it is supposed to take effect.
+In the original \amstex/ it follows
+immediately after the \cs\bslash.
+
+\subsection{Special colons in math}
+\latex/ and \amstex/ have different definitions for the \cs{:} command.
+In \latex/ it is a medium math space, whereas in \amstex/ it is a colon
+with spacing appropriate in certain notation for mappings:
+$S\,{:}\;s\to s^t$ (\verb"$S\:s\to" \5\verb"s^t$"). The \latex/ version
+is the one that has been retained, in order to avoid compatibility
+problems.  \verb"\colon" is available as a substitute for the \amstex/
+\verb"\:".
+
+\subsection{Paragraphed text within a displayed equation}
+
+\amstex/ has a \cs{foldedtext} command  for handling
+a piece of text within a display that needs to be typeset
+as a paragraph (perhaps to keep it from running over the right
+margin).  In the \opt{amstex} option this was dropped because
+it's redundant; \latex/'s \cs{parbox} command
+can be used instead.
+
+\subsection{Commutative diagrams}
+
+In order to conserve memory, commutative diagram commands are a separate
+option, \opt{amscd}, that must be loaded in the documentstyle options list
+if it is desired.
+
+The \cs{pretend}\dots\cs{haswidth} command is not available in the
+\opt{amscd} option. Approximately the same results can be gotten by
+inserting blank space using \cs{hspace} in the subscript or
+superscript fields of the extensible arrow commands (\verb=@>>>= and
+\verb=@<<<=).\index{"@<<<@{\tt{}"@<<<}}\index{"@>>>@{\tt{}"@>>>}}
+
+\subsection{Footnotes}
+
+The \cs{footnote} command of the \sty{amsppt} documentstyle
+is superseded by \latex/'s command of
+the same name.  Instead of the \amstex/ \cs{adjustfootnotemark}
+command use \cs{addtocounter}\verb"{footnote}{"\<number>\verb"}".  The
+literal footnote mark feature of \sty{amsppt} is not available.
+
+\subsection{Vertical spacing}
+
+The \amstex/ use of \cs{vspace} in alignment structures
+\cs{align}, \cs{split}, etc. is superfluous in \latex/
+because the same function is available
+through the optional
+argument of the \verb"\\" or \verb"\\*" commands.  Therefore
+\amstex/'s version of \cs{vspace} has been dropped.
+
+\subsection{Blank space for figures}
+
+\amstex/'s \cs{midspace}, \cs{topspace}, \cs{caption}
+and\index{figures}\index{floats}\index{floating environments}
+\cs{captionwidth} are superfluous in the \opt{amstex} option and have
+been dropped; use \latex/'s \env{figure} environment and \cs{caption}
+command.
+
+\subsection{{\tt\bslash hdotsfor}}
+
+The original \amstex/ syntax of \cs{hdotsfor} has been simplified
+somewhat in the \opt{amstex} option; \amstex/'s \cs{innerhdotsfor} is
+not needed.  The spacing between
+dots is adjusted via a square-bracket
+option rather than through a separate command \cs{spacehdotsfor} or
+\cs{spaceinnerhdotsfor}.
+
+\subsection{{\tt\bslash topsmash} and {\tt\bslash botsmash}}
+These have been changed in the \opt{amstex} option to square-bracket
+options of the \cs{smash} command.
+
+\subsection{{\tt\bslash spreadlines} and other display options}
+
+Some of the \amstex/ options used inside displays, 
+such as \cs{spreadlines} and \cs{nopagebreak}, have been dropped.  For the
+most part their effect can be obtained by other means available in
+standard \latex/.
+
+\subsection{The {\tt\bslash and} command}
+There is a name conflict between \amstex/'s \cs{and} and
+\latex/'s \cs{and}.  The function of \amstex/'s \cs{and}
+can be obtained in the \opt{amstex} option by using
+\cs{And}.
+
+\subsection{Global options}
+There are several \amstex/ commands that change the global setting of
+certain aspects of the document style.  In the \opt{amstex} option we've
+done the natural thing, which is to make them into \latex/
+documentstyle options (see Section~\ref{s:options}).  These commands are
+\cs{Tags\-On\-Right}, \cs{Centered\-Tags\-On\-Splits}, \cs{Limits\-On\-Ints},
+\cs{No\-Limits\-On\-Names}, and \cs{No\-Limits\-On\-Sums}.  The corresponding
+opposites of these commands have been dropped because they
+describe the default conditions in the \opt{amstex} option.
+Because it seems to be of only marginal usefulness,
+\cs{TagsAsMath} has been dropped.
+
+\section{Memory statistics}
+\label{memstats}
+
+Combining all of \amstex/ with all of \latex/, even after eliminating
+redundancies, produces a large macro package that strains the current
+limits of personal computer versions of \tex/\@.  After the
+zealous application of efficiency measures, the current version of
+\amslatex/ is probably more compact than anyone anticipated;
+nevertheless, for some documents and some implementations of \tex/
+it will still be too big to run.  Among other things, a
+large number of bibliography items, cross-references, or personal
+definitions will tend to cause an overrun in a particular area of
+\tex/'s memory: the maximum limit on the number of control sequence
+names.   Also, you are more likely to run out of main memory if your
+document includes a large table or Pic\tex/ diagram.
+
+\begin{table}[htp]
+\caption{Memory statistics}
+\label{memtable}
+\medskip
+\footnotesize
+\setlength{\tabcolsep}{.2\tabcolsep}
+\noindent
+\begin{tabular*}{\columnwidth}{|r|c*{6}{@{\extracolsep{\fill}}c}|}
+\hline
+&{\tt article}$^*$&
+{\tt\begin{tabular}[b]{c}[M--S\\fonts]\\article\end{tabular}}&
+{\tt\begin{tabular}[b]{c}[amstex]$^{\dag}$\\article\end{tabular}}&
+{\tt\begin{tabular}[b]{c}[amstex,\\amscd,\\amssymb]\\article\end{tabular}}&
+{\tt\begin{tabular}[b]{c}[amsfonts,\\amsbsy]\\article\end{tabular}}&
+{\tt\begin{tabular}[b]{c}[amstex]$^{\dag}$\\amsart\end{tabular}}&
+\begin{tabular}[b]{c}represen-\\tative\\maxima\end{tabular}\\
+\hline
+strings& 286& 386& 942& 1170& 500& 933& 7032\\ \hline
+\begin{tabular}{r}string\\charac-\\ters\end{tabular}&
+        2421& 3183& 8444& 10505& 4218& 8419& 20798\\ \hline
+\begin{tabular}{r}main\\memory\end{tabular}&
+        51376& 50126& 63506& 63880& 51059& 65445& 65501\\ \hline
+\begin{tabular}{r}control\\sequences\end{tabular}&
+        2234& 2410& 2938& 3160& 2498& 2946& 5000\\ \hline
+\begin{tabular}{r}font\\infor-\\mation\end{tabular}&
+        18941& 12721& 16842& 16842& 16842& 11462& 65504\\ \hline
+\begin{tabular}{r}number\\of fonts\end{tabular}&
+        72& 50& 70& 70& 70& 47& 220\\ \hline
+\begin{tabular}{r}hyphen-\\ation\\excep-\\tions\end{tabular}&
+        14& 14& 14& 14& 14& 14& 307\\ \hline
+\begin{tabular}{r}input\\stack\end{tabular}&
+        12& 16& 16& 16& 16& 19& 200\\ \hline
+\begin{tabular}{r}nesting\\levels\end{tabular}&
+        9& 9& 14& 14& 9& 14& 40\\ \hline
+\begin{tabular}{r}param-\\eter\\stack\end{tabular}&
+        25& 25& 25& 25& 25& 25& 60\\ \hline
+\begin{tabular}{r}input\\buffer\end{tabular}&
+        361& 361& 436& 436& 400& 436& 1500\\ \hline
+\begin{tabular}{r}save\\stack\end{tabular}&
+        233& 173& 192& 192& 187& 264& 2000\\
+\hline
+\end{tabular*}%
+\par
+\smallskip
+
+\parbox{\columnwidth}{$^*$This column is the control,
+using standard \latex/ with the standard \sty{article} documentstyle,
+without the Mittelbach--Sch\"opf font selection scheme.  The
+adjacent column is the same, except for the font selection
+scheme.
+
+$^{\dag}$Recall that
+the \opt{amstex} option includes the
+\opt{amsfonts}, \opt{amsbsy}, and \opt{amstext} options, and
+that the \sty{amsart} and \sty{amsbook}
+documentstyles automatically include the \opt{amstex} option.
+}% end of parbox
+\end{table}
+
+For those who might be interested in the details, Table~\ref{memtable}
+shows memory statistics
+from \latex/ runs using various combinations of option files
+from the \amslatex/ distribution.  For comparison purposes,
+the statistics in the first column are from
+a sample run using the current standard \latex/ without
+the Mittelbach--Sch\"opf font scheme, with the
+\sty{article} documentstyle, and the last column, ``representative
+maxima'', shows the available memory in each category in the
+implementation of \tex/ used for testing (VAX/VMS Version 2.98a.0 (AMS)).
+The test document used in each case
+was a medium-size article with about 20 bibliography
+entries, 50 author-defined commands, and 50 cross-reference
+labels.
+
+It can be seen that in all of the tests with the \opt{amstex} option
+loaded the upper limit of 65536 words of main memory is nearly
+exceeded.  And use of the \opt{amssymb} option in the fourth test
+would cause control sequence memory to be exceeded for implementations
+of \tex/ that have a maximum of 3000 (currently true for
+many implementations on small computer systems).
+
+The font base used in all the tests, except for the control, was
+\fn{fontdef.max}, \fn{preload.min}, and \fn{newlfont.sty}.  Obviously,
+preloading more fonts by using a different preload file would
+tend to increase font memory usage.  The reason for the comparatively
+small number of fonts used by the \sty{amsart} documentstyle is that
+no fonts larger than \cs{normalsize} are used in the title and
+section headings.
+
+Memory statistics for the \sty{amsbook} documentstyle are comparable
+to the statistics for \sty{amsart}.  But bear in mind that books
+will usually have larger bibliographies and more cross-references,
+which means greater usage of control sequence memory.
+
+\newpage
+\section{Getting help}
+
+Comments or questions on the \amslatex/ package should be sent to:
+\medskip
+
+\begin{raggedright}
+
+\leftskip=4.25pc
+American Mathematical Society\\
+Technical Support\\
+P. O. Box 6248\\
+Providence, RI 02940\\[3pt]
+Phone: 800-321-4AMS (321-4267) \quad or \quad 401-455-4080\\
+Internet: {\tt tech-support@Math.AMS.com}\\
+\end{raggedright}
+\medskip
+
+\noindent If you are reporting a problem you should include
+the following information:
+\begin{enumerate}
+\item the source file---either in electronic form or printed---where
+  the problem occurred, preferably with irrelevant
+  material removed.
+\item a \latex/ transcript (log) file showing the error
+ message (if applicable) and the version numbers of
+ the documentstyle and option files being used.
+\end{enumerate}
+
+\medskip
+
+If you wish to obtain the article by Mittelbach and Sch\"opf that
+appeared in \tugboat/, June 1990 (vol.~11, no.~2): {\it The new font
+family selection---user interface to standard \latex/\/}, contact:
+
+\medskip
+\begin{raggedright}
+
+\leftskip=4.25pc
+\tex/ User's Group\\
+P. O. Box 9506\\
+Providence, RI 02940\\[3pt]
+Phone: (401) 751-7760\\
+Internet: {\tt TUG@Math.AMS.com}\\
+\end{raggedright}
+
+
+\begin{thebibliography}{9}
+
+\bibitem{amsfonts} {\it AMSFonts version 2.0---user's guide},
+American Mathematical Society, Providence, R.I., 1990; distributed
+with the \amsfonts/ package.
+
+\bibitem{lm} Leslie Lamport, {\it\latex/: A document preparation
+system}, Addison-Wesley, 1985.
+
+\bibitem{msf} Frank Mittelbach and Rainer Sch\"opf,
+{\it The new font family
+selection---user interface to standard \latex/},
+\tugboat/ {\bf11}, no.~2 (June 1990), pp.~297--305.
+
+\bibitem{jt} Michael Spivak, {\it The joy of \tex/}, 2nd ed.,
+American Mathematical Society, Providence, R.I., 1990.
+
+\end{thebibliography}
+
+%%%%%%%%%%%INDEX
+%% The following index is the output file from running the program MakeIndex
+%% on the .idx file produced by running amslatex.tex through LaTeX. It is
+%% included here for the benefit of users who do
+%% not have use of the program MakeIndex.
+%%%%%%%%%%%%
+\begin{theindex}
+
+\small
+
+  \item {\tt\bslash !}, 15
+  \item {\ptt \bslash /}, 27
+  \item {\ptt \bslash :}, 15, 41
+  \item {\ptt \bslash ;}, 15
+  \item {\tt{}@!}, 15
+  \item {\tt{}@,}, 15
+  \item {\tt{}@<<<}, 23, 42
+  \item {\tt{}@>>>}, 23, 42
+  \item {\tt{}@AAA}, 23
+  \item {\tt{}@VVV}, 23
+  \item {\ptt \bslash \bslash }, 24, 25, 41
+  \item {\tt\string~}, 27
+
+  \indexspace
+
+  \item {\ptt {}abstract} environment, 31
+  \item {\ptt \bslash accentedsymbol}, 17
+  \item {\ptt \bslash addcontentsline}, 28
+  \item {\ptt \bslash address}, 31, 34
+  \item {\ptt \bslash addtocontents}, 28
+  \item {\ptt \bslash addtocounter}, 21, 42
+  \item {\ptt \bslash addtolength}, 24
+  \item {\ptt \bslash adjustfootnotemark}, 42
+  \item {\ptt \bslash align}, 42
+  \item {\ptt {}align} environment, 24, 25
+  \item {\ptt {}alignat} environment, 24
+  \item {\ptt {}aligned} environment, 25
+  \item {\ptt {}alignedat} environment, 25
+  \item {\ptt \bslash allowdisplaybreaks}, 25
+  \item {\ptt {}alpha}, 36
+  \item {\ptt {}amltinst.tex}, 37
+  \item {\ptt {}amsalpha}, 36
+  \item {\ptt {}amsalpha.bst}, 38
+  \item {\ptt {}amsart} documentstyle, 16, 30--32, 34, 35, 39, 44, 45
+  \item {\ptt {}amsart} option, 37
+  \item {\ptt {}amsart.doc}, 38
+  \item {\ptt {}amsart.sty}, 38, 39
+  \item {\ptt {}amsart10.doc}, 38
+  \item {\ptt {}amsart10.sty}, 38
+  \item {\ptt {}amsart11.sty}, 38
+  \item {\ptt {}amsart12.sty}, 38
+  \item {\ptt {}amsbk10.doc}, 38
+  \item {\ptt {}amsbk10.sty}, 38
+  \item {\ptt {}amsbk11.sty}, 38
+  \item {\ptt {}amsbk12.sty}, 38
+  \item {\ptt {}amsbook} documentstyle, 3, 30, 32, 34--36, 39, 44, 45
+  \item {\ptt {}amsbook} option, 37
+  \item {\ptt {}amsbook.doc}, 38
+  \item {\ptt {}amsbook.sty}, 38, 39
+  \item {\ptt {}amsbsy} option, 28, 44
+  \item {\ptt {}amsbsy.sty}, 38
+  \item {\ptt {}amscd} option, 18, 22, 23, 38, 42
+  \item {\ptt {}amscd.sty}, 38
+  \item {\ptt {}amsfonts} option, 14, 28, 44
+  \item {\ptt {}amsfonts.sty}, 38
+  \item {\ptt {}amslatex.tex}, 1, 37
+  \item {\ptt {}amslatex.toc}, 37
+  \item {\ptt {}amsplain}, 36
+  \item {\ptt {}amsplain.bst}, 38
+  \item {\ptt {}amsppt} documentstyle, 3, 42
+  \item {\ptt {}amssymb} option, i, 14, 28, 45
+  \item {\ptt {}amssymb.sty}, 38
+  \item {\ptt {}amstex} option, 1--3, 10, 13--30, 38--45
+  \item {\ptt {}amstex.sty}, 37
+  \item {\ptt {}amstex.tex}, 37
+  \item {\ptt {}amstext} option, 28, 44
+  \item {\ptt {}amstext.sty}, 38
+  \item {\ptt \bslash And}, 43
+  \item {\ptt \bslash and}, 43
+  \item {\ptt {}app.tex}, 37
+  \item {\ptt {}array} environment, 21, 28, 40
+  \item {\ptt {}article} documentstyle, 3, 30, 43, 44
+  \item {\ptt \bslash author}, 30, 31, 35
+
+  \indexspace
+
+  \item {\ptt {}babel.sty}, 32
+  \item {\ptt \bslash Bbb}, 10, 11, 13, 28
+  \item {\ptt \bslash begin}, 2, 40
+  \item {\ptt \bslash bf}, 4, 5, 11, 29, 40
+  \item {\ptt \bslash bfdefault}, 8
+  \item {\ptt \bslash bibname}, 32
+  \item {\ptt \bslash Big}, 27
+  \item {\ptt \bslash big}, 27
+  \item {\ptt \bslash Bigg}, 27
+  \item {\ptt \bslash bigg}, 27
+  \item {\ptt \bslash binom}, 20
+  \item {\ptt \bslash bmatrix}, 21
+  \item {\ptt \bslash bmod}, 19
+  \item {\ptt \bslash bold}, 9--11, 13, 29
+  \item {\ptt \bslash boldkey}, 40
+  \item {\ptt \bslash boldmath}, 10
+  \item {\ptt \bslash boldsymbol}, 10, 11, 13, 28, 38, 40
+  \item {\ptt {}book} documentstyle, 3, 30
+  \item {\ptt \bslash boxed}, 17
+
+  \indexspace
+
+  \item {\ptt \bslash cal}, 10, 11
+  \item {\ptt \bslash caption}, 28, 42
+  \item {\ptt \bslash captionwidth}, 42
+  \item {\ptt {}cases} environment, 21
+  \item {\ptt {}CD} environment, 23
+  \item {\ptt \bslash cdots}, 16
+  \item {\ptt \bslash CenteredTagsOnSplits}, 43
+  \item {\ptt \bslash cfrac}, 20
+  \item {\ptt {}chap1.tex}, 37
+  \item {\ptt {}chap2.tex}, 37
+  \item {\ptt \bslash chapter}, 34
+  \item {\ptt \bslash cite}, 39
+  \item {\ptt \bslash comment}, 41
+  \item {\ptt {}comment} environment, 28, 39, 41
+  \item {\ptt {}ctagsplt} option, 27, 38
+  \item {\ptt {}ctagsplt.sty}, 38
+  \item {\ptt \bslash cy}, 10
+
+  \indexspace
+
+  \item {\ptt \bslash date}, 31
+  \item {\ptt \bslash dbinom}, 20
+  \item {\ptt \bslash ddddot}, 17
+  \item {\ptt \bslash dddot}, 17
+  \item {\ptt \bslash ddot}, 17
+  \item {\ptt \bslash dedicatory}, 31
+  \item {\ptt \bslash dfrac}, 19
+  \item {\ptt \bslash displaybreak}, 25, 41
+  \item {\ptt \bslash displaystyle}, 41
+  \item {\ptt \bslash document}, 39
+  \item {\ptt \bslash documentstyle}, 3, 27
+  \item {\ptt \bslash dot}, 17
+  \item {\ptt \bslash dots}, 15
+  \item {\ptt \bslash dotsb}, 16
+  \item {\ptt \bslash dotsc}, 16
+  \item {\ptt \bslash dotsi}, 16
+  \item {\ptt \bslash dotsm}, 16
+  \item {\ptt \bslash dsize}, 41
+
+  \indexspace
+
+  \item {\ptt \bslash em}, 11
+  \item {\ptt \bslash email}, 31
+  \item {\ptt \bslash End}, 23
+  \item {\ptt \bslash end}, 2, 40
+  \item {\ptt \bslash endmatrix}, 2
+  \item {\ptt \bslash endsomething}, 2
+  \item {\ptt {}eqnarray} environment, 23, 25, 29, 40
+  \item {\ptt \bslash eqref}, 26
+  \item {\ptt {}equation} environment, 23--25, 40
+
+  \indexspace
+
+  \item {\ptt \bslash family}, 4, 7, 8
+  \item {\ptt \bslash fbox}, 17
+  \item {\ptt {}figure} environment, 42
+  \item figures, 42
+  \item {\ptt {}fleqn} option, 30
+  \item floating environments, 42
+  \item floats, 42
+  \item {\ptt \bslash foldedtext}, 41
+  \item {\ptt {}fontdef.max}, 8, 10, 39, 45
+  \item {\ptt \bslash footnote}, 9, 39, 42
+  \item {\ptt \bslash format}, 40
+  \item {\ptt \bslash frac}, 19, 20, 41
+  \item {\ptt \bslash fracwithdelims}, 20, 41
+  \item {\ptt \bslash frak}, 10, 11, 13, 28
+
+  \indexspace
+
+  \item {\ptt {}gather} environment, 24, 25
+  \item {\ptt {}gathered} environment, 25
+
+  \indexspace
+
+  \item {\ptt \bslash haswidth}, 42
+  \item {\ptt \bslash hdotsfor}, 22, 42
+  \item {\ptt \bslash hspace}, 42
+  \item {\ptt \bslash Huge}, 6, 30
+  \item {\ptt \bslash huge}, 30
+
+  \indexspace
+
+  \item {\ptt \bslash idotsint}, 15
+  \item {\ptt \bslash iiiint}, 15
+  \item {\ptt \bslash iiint}, 15
+  \item {\ptt \bslash iint}, 15
+  \item {\ptt \bslash innerhdotsfor}, 42
+  \item {\ptt \bslash intertext}, 26
+  \item {\ptt {}intlim} option, 27, 38
+  \item {\ptt {}intlim.sty}, 38
+  \item {\ptt \bslash it}, 4, 5, 11
+  \item {\ptt \bslash italic}, 40
+  \item {\ptt \bslash itdefault}, 8
+
+  \indexspace
+
+  \item {\ptt \bslash keywords}, 31
+
+  \indexspace
+
+  \item {\ptt \bslash LARGE}, 30
+  \item {\ptt \bslash Large}, 30
+  \item {\ptt \bslash large}, 30
+  \item {\ptt \bslash lcfrac}, 20
+  \item {\ptt \bslash ldots}, 16
+  \item {\ptt \bslash leftroot}, 17
+  \item {\ptt {}lfonts.new}, 39
+  \item {\ptt \bslash lim}, 19
+  \item {\ptt \bslash LimitsOnInts}, 43
+  \item {\ptt \bslash loadmsam}, 14
+  \item {\ptt \bslash loadmsbm}, 14
+  \item {\ptt \bslash log}, 19
+
+  \indexspace
+
+  \item {\ptt \bslash maketitle}, 31, 36
+  \item {\ptt \bslash markboth}, 28
+  \item {\ptt \bslash markright}, 28
+  \item {\ptt \bslash mathrm}, 10, 11, 29, 40
+  \item {\ptt \bslash matrix}, 2, 21, 40
+  \item {\ptt {}matrix} environment, 40
+  \item {\ptt \bslash mbox}, 18
+  \item {\ptt \bslash mediumseries}, 5, 11
+  \item {\ptt \bslash medspace}, 15
+  \item {\ptt \bslash midspace}, 39, 42
+  \item {\ptt \bslash mit}, 10, 11
+  \item {\ptt \bslash mod}, 19
+  \item {\ptt {}mrabbrev.bib}, 36, 38
+  \item {\ptt {}multline} environment, 24, 25
+  \item {\ptt \bslash multlinegap}, 24
+
+  \indexspace
+
+  \item {\ptt \bslash negmedspace}, 15
+  \item {\ptt \bslash negthickspace}, 15
+  \item {\ptt \bslash negthinspace}, 15
+  \item {\ptt \bslash newcommand}, 14, 17, 41
+  \item {\ptt {}newlfont.sty}, 39, 45
+  \item {\ptt \bslash newmathalphabet}, 10
+  \item {\ptt \bslash newsymbol}, i, 13, 14, 38
+  \item {\ptt \bslash newtheorem}, 26, 32, 33
+  \item {\ptt \bslash nolimits}, 18
+  \item {\ptt \bslash NoLimitsOnNames}, 43
+  \item {\ptt \bslash NoLimitsOnSums}, 43
+  \item {\ptt {}nonamelm} option, 27, 38
+  \item {\ptt {}nonamelm.sty}, 38
+  \item {\ptt \bslash nonumber}, 29
+  \item {\ptt \bslash nopagebreak}, 43
+  \item {\ptt \bslash normalshape}, 5, 9, 11
+  \item {\ptt \bslash normalsize}, 30, 45
+  \item {\ptt {}nosumlim} option, 27, 38
+  \item {\ptt {}nosumlim.sty}, 38
+  \item {\ptt \bslash notag}, 24, 29
+  \item {\ptt \bslash numberwithin}, 26
+
+  \indexspace
+
+  \item {\ptt {}oldlfont} option, 8
+  \item {\ptt {}openbib} option, 30
+  \item {\ptt \bslash operatorname}, 11, 19, 23
+  \item {\ptt \bslash operatornamewithlimits}, 19
+  \item {\ptt \bslash overleftrightarrow}, 15
+  \item {\ptt \bslash overset}, 18
+
+  \indexspace
+
+  \item {\ptt \bslash pagebreak}, 25, 39
+  \item {\ptt \bslash pagewidth}, 39
+  \item {\ptt \bslash parbox}, 41
+  \item {\ptt {}pf} environment, 33, 34
+  \item {\ptt {}pf*} environment, 33, 34
+  \item {\ptt {}picture} environment, 22
+  \item {\ptt {}plain}, 33, 36
+  \item {\ptt \bslash pmatrix}, 21
+  \item {\ptt {}pmatrix} environment, 40
+  \item {\ptt \bslash pmb}, 11, 13, 28, 38
+  \item {\ptt \bslash pmod}, 19
+  \item {\ptt \bslash pod}, 19
+  \item {\ptt {}pref.tex}, 37
+  \item {\ptt {}preload.min}, 39, 45
+  \item {\ptt \bslash pretend}, 42
+  \item {\ptt \bslash protect}, 28
+
+  \indexspace
+
+  \item {\ptt \bslash qed}, 34
+  \item {\ptt \bslash qedsymbol}, 34
+
+  \indexspace
+
+  \item {\ptt \bslash rcfrac}, 20
+  \item {\ptt \bslash ref}, 35
+  \item {\ptt \bslash refname}, 32
+  \item {\ptt \bslash renewcommand}, 33, 34
+  \item {\ptt {}righttag} option, 27, 38
+  \item {\ptt {}righttag.sty}, 38
+  \item {\ptt \bslash rm}, 4, 5, 7, 8, 11, 13, 29, 40
+  \item {\ptt \bslash rom}, 35
+  \item {\ptt \bslash roman}, 40
+
+  \indexspace
+
+  \item {\ptt {}Sb} environment, 22
+  \item {\ptt \bslash sc}, 5, 11
+  \item {\ptt \bslash scdefault}, 8
+  \item {\ptt \bslash scriptscriptstyle}, 41
+  \item {\ptt \bslash scriptstyle}, 41
+  \item {\ptt \bslash section}, 28, 34
+  \item {\ptt \bslash selectfont}, 4, 5
+  \item {\ptt \bslash series}, 4, 5, 11
+  \item {\ptt \bslash setcounter}, 21
+  \item {\ptt \bslash setlength}, 24
+  \item {\ptt \bslash sf}, 8, 11
+  \item {\ptt \bslash shape}, 4, 11
+  \item {\ptt \bslash sideset}, 18
+  \item {\ptt \bslash sin}, 19
+  \item {\ptt \bslash size}, 4, 6
+  \item {\ptt \bslash sl}, 5, 11, 40
+  \item {\ptt \bslash slanted}, 40
+  \item {\ptt \bslash slash}, 27
+  \item {\ptt \bslash sldefault}, 8
+  \item {\ptt \bslash smallmatrix}, 40
+  \item {\ptt {}smallmatrix} environment, 21
+  \item {\ptt \bslash smash}, 20, 42
+  \item {\ptt \bslash something}, 2
+  \item {\ptt {}Sp} environment, 22
+  \item {\ptt \bslash spacehdotsfor}, 42
+  \item {\ptt \bslash spaceinnerhdotsfor}, 42
+  \item {\ptt \bslash split}, 42
+  \item {\ptt {}split} environment, 23, 25, 27, 38
+  \item {\ptt \bslash spreadlines}, 43
+  \item {\ptt \bslash ssize}, 41
+  \item {\ptt \bslash sssize}, 41
+  \item {\ptt \bslash stackrel}, 18
+  \item {\ptt \bslash subjclass}, 31
+  \item {\ptt \bslash syntaxonly}, 28
+  \item {\ptt {}syntonly} option, 28
+
+  \indexspace
+
+  \item {\ptt {}tabular} environment, 28
+  \item {\ptt \bslash tag}, 24, 27, 29
+  \item {\ptt \bslash tag*}, 24
+  \item {\ptt \bslash TagsAsMath}, 43
+  \item {\ptt \bslash TagsOnRight}, 43
+  \item {\ptt \bslash tbinom}, 20
+  \item {\ptt \bslash tenbf}, 9
+  \item {\ptt {}test.bib}, 37
+  \item {\ptt {}testart.bbl}, 37
+  \item {\ptt {}testart.tex}, 1, 15--20, 23, 24, 37
+  \item {\ptt {}testbook.bbl}, 37
+  \item {\ptt {}testbook.tex}, 1, 37
+  \item {\ptt \bslash text}, 2, 11, 18, 21, 28, 38
+  \item {\ptt \bslash textstyle}, 41
+  \item {\ptt \bslash textwidth}, 39
+  \item {\ptt \bslash tfrac}, 19
+  \item {\ptt \bslash thanks}, 31, 36
+  \item {\ptt {}thebibliography} environment, 32
+  \item {\ptt {}theorem} option, 32
+  \item {\ptt {}theorem.doc}, 39
+  \item {\ptt {}theorem.sty}, 39
+  \item {\ptt \bslash theorembodyfont}, 33
+  \item {\ptt \bslash theoremheaderfont}, 33
+  \item {\ptt \bslash theoremstyle}, 32, 33
+  \item {\ptt \bslash thickfrac}, 41
+  \item {\ptt \bslash thickfracwithdelims}, 41
+  \item {\ptt \bslash thickspace}, 15
+  \item {\ptt \bslash thinspace}, 15
+  \item {\ptt \bslash tiny}, 6
+  \item {\ptt \bslash title}, 30, 31
+  \item {\ptt \bslash topspace}, 42
+  \item {\ptt \bslash translator}, 31
+  \item {\ptt \bslash tsize}, 41
+  \item {\ptt \bslash tt}, 4, 7, 8, 11
+
+  \indexspace
+
+  \item {\ptt \bslash underleftarrow}, 15
+  \item {\ptt \bslash underleftrightarrow}, 15
+  \item {\ptt \bslash underrightarrow}, 15
+  \item {\ptt \bslash underset}, 18
+  \item {\ptt \bslash uproot}, 17
+
+  \indexspace
+
+  \item {\ptt \bslash varinjlim}, 19
+  \item {\ptt \bslash varliminf}, 19
+  \item {\ptt \bslash varlimsup}, 19
+  \item {\ptt \bslash varprojlim}, 19
+  \item {\ptt {}verbatim} environment, 39
+  \item {\ptt {}verbatim} option, 28, 41
+  \item {\ptt {}verbatim.doc}, 28, 39
+  \item {\ptt {}verbatim.sty}, 39
+  \item {\ptt \bslash Vmatrix}, 21
+  \item {\ptt \bslash vmatrix}, 21
+  \item {\ptt \bslash vspace}, 42
+
+  \indexspace
+
+  \item {\ptt {}xalignat} environment, 24
+  \item {\ptt {}xxalignat} environment, 24
+
+\end{theindex}
+%%%%%%%%%%%INDEX ENDS HERE
+
+\end{document}
+
+\endinput
+

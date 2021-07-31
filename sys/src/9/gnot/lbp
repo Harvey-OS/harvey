@@ -1,0 +1,31 @@
+dev
+	root	/
+	duart	t
+	cons	c
+	env	e
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	incon	i
+	dk	k
+	dup	d
+	bit	b
+	port	x
+	lbp	l
+stream
+	urp
+	fcall
+misc
+port
+	int cpuserver = 0;
+	long cfslen = 0; ulong cfscode[1];
+	long fslen = 0; ulong fscode[1];
+	void kproftimer(ulong pc){ USED(pc); }
+	void consdebug(void){}
+	void confinit1(int mul){ USED(mul); }
+	char *conffile = "gnot";
+boot
+	incon "config 1 16 restart dk"
+	9600
+	19200

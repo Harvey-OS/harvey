@@ -14,7 +14,6 @@ int	noflush;
 int	tversion;
 
 long	inlong(void);
-long	invlong(void);
 int	inshort(void);
 int	inmesg(Tmesg);
 void	setgenstr(File*, Posn, Posn);
@@ -63,12 +62,12 @@ char *tname[] = {
 	[Tstartnewfile]	"Tstartnewfile",
 	[Twrite]	"Twrite",
 	[Tclose]	"Tclose",
-	[Tlook]		"Tlook",
 	[Tsearch]	"Tsearch",
+	[Tlook]		"Tlook",
 	[Tsend]		"Tsend",
-	[Tdclick]	"Tdclick",
 	[Tstartsnarf]	"Tstartsnarf",
 	[Tsetsnarf]	"Tsetsnarf",
+	[Tdclick]	"Tdclick",
 	[Tack]		"Tack",
 	[Texit]		"Texit",
 };
@@ -76,7 +75,7 @@ char *tname[] = {
 void
 journal(int out, char *s)
 {
-	static int fd = 0;
+	static fd = 0;
 
 	if(fd <= 0)
 		fd = create("/tmp/sam.out", 1, 0666L);
@@ -84,7 +83,7 @@ journal(int out, char *s)
 }
 
 void
-journaln(int out, long n)
+journaln(int out, int n)
 {
 	char buf[32];
 	sprint(buf, "%d", n);
@@ -177,7 +176,6 @@ inmesg(Tmesg type)
 	Range r;
 	String *str;
 	char *c;
-	Rune *rp;
 
 	if(type > TMAX)
 		panic("inmesg");
@@ -185,6 +183,7 @@ inmesg(Tmesg type)
 	journal(0, tname[type]);
 
 	inp = indata;
+	SET(c);
 	switch(type){
 	case -1:
 		panic("rcv error");
@@ -199,11 +198,11 @@ inmesg(Tmesg type)
 		break;
 
 	case Tstartcmdfile:
-		l = invlong();		/* for 64-bit pointers */
+		l = inlong();
 		journaln(0, l);
 		Strdupl(&genstr, samname);
 		cmd = newfile();
-		outTsv(Hbindname, cmd->tag, l);
+		outTsl(Hbindname, cmd->tag, l);
 		outTs(Hcurrent, cmd->tag);
 		Fsetname(cmd, &genstr);
 		cmd->rasp = emalloc(sizeof(List));
@@ -259,7 +258,7 @@ inmesg(Tmesg type)
 		if(!f->rasp)	/* this might be a duplicate message */
 			f->rasp = emalloc(sizeof(List));
 		current(f);
-		outTsv(Hbindname, f->tag, invlong());	/* for 64-bit pointers */
+		outTsl(Hbindname, f->tag, inlong());
 		outTs(Hcurrent, f->tag);
 		journaln(0, f->tag);
 		termlocked++;
@@ -348,11 +347,11 @@ inmesg(Tmesg type)
 		break;
 
 	case Tstartnewfile:
-		l = invlong();
+		l = inlong();
 		Strdupl(&genstr, empty);
 		f = newfile();
 		f->rasp = emalloc(sizeof(List));
-		outTsv(Hbindname, f->tag, l);
+		outTsl(Hbindname, f->tag, l);
 		Fsetname(f, &genstr);
 		outTs(Hcurrent, f->tag);
 		current(f);
@@ -373,14 +372,11 @@ inmesg(Tmesg type)
 		break;
 
 	case Tclose:
-		termlocked++;
 		i = inshort();
 		journaln(0, i);
 		f = whichfile(i);
 		current(f);
 		trytoclose(f);
-		/* if trytoclose fails, will error out */
-		delete(f);
 		break;
 
 	case Tlook:
@@ -439,25 +435,25 @@ inmesg(Tmesg type)
 		break;
 
 	case Tstartsnarf:
-		if (snarfbuf->nrunes <= 0) {	/* nothing to export */
-			outTs(Hsetsnarf, 0);
-			break;
-		}
-		c = 0;
-		i = 0;
-		rp = malloc((snarfbuf->nrunes)*sizeof(Rune));
-		if(rp){
-			Bread(snarfbuf, rp, snarfbuf->nrunes, 0);
-			c = Strtoc(tmprstr(rp, snarfbuf->nrunes));
-			free(rp);
+		i = -1;
+		if(snarfbuf->nrunes < BLOCKSIZE){
+			Bread(snarfbuf, genbuf, snarfbuf->nrunes, 0);
+			c = Strtoc(tmprstr(genbuf, snarfbuf->nrunes));
 			i = strlen(c);
+			if(i > SNARFSIZE){
+				free(c);
+				i = -1;
+			}
+		}
+		if(i < 0){
+			dprint("snarf buffer too long\n");
+			i = 0;
 		}
 		outTs(Hsetsnarf, i);
-		if(c){
+		if(i){
 			Write(1, c, i);
 			free(c);
-		} else
-			dprint("snarf buffer too long\n");
+		}
 		break;
 
 	case Tsetsnarf:
@@ -522,18 +518,6 @@ inlong(void)
 
 	n = inp[0] | (inp[1]<<8) | (inp[2]<<16) | (inp[3]<<24);
 	inp += 4;
-	return n;
-}
-
-long
-invlong(void)
-{
-	ulong n;
-	
-	n = (inp[7]<<24) | (inp[6]<<16) | (inp[5]<<8) | inp[4];
-	n = (n<<16) | (inp[3]<<8) | inp[2];
-	n = (n<<16) | (inp[1]<<8) | inp[0];
-	inp += 8;
 	return n;
 }
 
@@ -664,16 +648,6 @@ outTsl(Hmesg type, int s, Posn l)
 }
 
 void
-outTsv(Hmesg type, int s, Posn l)
-{
-	outstart(type);
-	outshort(s);
-	outvlong((void*)l);
-	journaln(1, l);
-	outsend();
-}
-
-void
 outstart(Hmesg type)
 {
 	journal(1, hname[type]);
@@ -702,17 +676,6 @@ outlong(long l)
 	*outp++ = l>>8;
 	*outp++ = l>>16;
 	*outp++ = l>>24;
-}
-
-void
-outvlong(void *v)
-{
-	int i;
-	ulong l;
-
-	l = (ulong) v;
-	for(i = 0; i < 8; i++, l >>= 8)
-		*outp++ = l;
 }
 
 void

@@ -26,3 +26,4 @@ struct Bootp
 	char	file[128];	/* boot file name */
 	char	vend[128];	/* vendor-specific goo */
 };
+

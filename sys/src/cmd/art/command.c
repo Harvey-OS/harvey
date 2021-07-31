@@ -229,8 +229,7 @@ void Odelete(void){
 	}
 	else msg("delete: nothing selected");
 }
-Rune rcmd[]={L'◀',0};
-char cmd[]="◀";
+Rune rcmd[]={1};
 Rune *rcmdp=rcmd;
 void typein(int c){
 	switch(c){
@@ -259,7 +258,7 @@ void typein(int c){
 		*rcmdp='\0';
 		break;
 	}
-	rcmdp[0]=L'◀';
+	rcmdp[0]='\1';
 	rcmdp[1]='\0';
 	sprint(cmd, "%S", rcmd);
 	echo(cmd);
@@ -270,7 +269,7 @@ int idchar(int c){
 char filename[NCMD];
 void typecmd(void){
 	register char *a=cmd;
-	register c, style;
+	register c;
 	Item *s;
 	while(*a==' ' || *a=='\t') a++;
 	c=*a++;
@@ -323,25 +322,8 @@ void typecmd(void){
 	case 't':				/* text */
 		if(!a) goto What;
 		s=addtext(scene, curpt, curface, a);
-		draw(s, scoffs, dark, S|D);
+		draw(s, scoffs, DARK, S|D);
 		setselection(s);
-		break;
-	case 's':
-		if(selection==0) goto What;	/* no! should give a reasonable message */
-		if(!a && selection->style)
-			selection->style=0;
-		else{
-			style=0;
-			while(*a) switch(*a++){
-			default: goto What;
-			case '<': style|=ARROW0; break;
-			case '>': style|=ARROW1; break;
-			case '-': style|=DASH; break;
-			case '.': style|=DOT; break;
-			}
-			selection->style=style;
-		}
-		redraw();
 		break;
 	}
 }

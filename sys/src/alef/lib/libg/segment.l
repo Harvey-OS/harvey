@@ -1,10 +1,10 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 void
 segment(Bitmap *d, Point p1, Point p2, int v, Fcode f)
 {
-	byte *buf;
+	char *buf;
 
 	buf = bneed(22);
 	buf[0] = 'l';

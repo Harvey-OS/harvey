@@ -1,0 +1,19 @@
+#!/bin/rc
+
+fn demo {
+	aux/nvga $1 $2 $3 &&
+		echo $1 $2 $3
+	sleep 3
+}
+
+demo 320 200 8
+demo 640 480 1
+demo 640 480 2
+demo 640 480 4
+demo 800 600 1
+demo 800 600 8
+demo 1024 768 1
+demo 1024 768 8
+demo 1280 1024 1
+
+demo 640 480 1

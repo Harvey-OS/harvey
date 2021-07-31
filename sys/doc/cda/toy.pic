@@ -1,0 +1,50 @@
+.PS
+.nr VS \n(.v
+.nr PQ \n(.f
+.nr PS \n(.s
+.vs 6
+.ft CW
+.ps 6
+scale = 16/0.125
+"PA?" ljust   at (144,-168)
+line from (64,-168) to (144,-168)
+line from (64,-56) to (144,-56)
+line from (64,-72) to (144,-72)
+line from (64,-88) to (144,-88)
+line from (64,-104) to (144,-104)
+line from (64,-120) to (144,-120)
+line from (64,-136) to (144,-136)
+line from (64,-152) to (144,-152)
+box ht 160 wid 64 with .nw at (0,-16)
+"cable" center above at (32,-32)
+"J2" center above at (32,-40)
+"RESET-" rjust   at (64,-56)
+"INT-" rjust   at (64,-72)
+"DS-" rjust   at (64,-88)
+"WE-" rjust   at (64,-104)
+"ACK-" rjust   at (64,-120)
+"PD?" rjust   at (64,-136)
+"PORT-" rjust   at (64,-152)
+"reset-" ljust above at (80,-56)
+"int-" ljust above at (80,-72)
+"ds-" ljust above at (80,-88)
+"we-" ljust above at (80,-104)
+"ack-" ljust above at (80,-120)
+"pd<0:7>" ljust above at (80,-136)
+"port-" ljust above at (80,-152)
+box ht 160 wid 64 with .nw at (144,-16)
+"plane" center above at (176,-32)
+"P2" center above at (176,-40)
+"RESET-" ljust   at (144,-56)
+"INT-" ljust   at (144,-72)
+"DS-" ljust   at (144,-88)
+"WE-" ljust   at (144,-104)
+"ACK-" ljust   at (144,-120)
+"PORT-" ljust   at (144,-152)
+"PA?" rjust   at (64,-168)
+"PD?" ljust   at (144,-136)
+"pa<0:5>" ljust above at (80,-168)
+.vs \n(VSu
+.ft \n(PQ
+.ps \n(PS
+.PE

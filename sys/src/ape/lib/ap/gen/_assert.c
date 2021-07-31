@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <assert.h>
 
-void
+int
 _assert(char *f, unsigned line)
 {
 	char buf[20], *p, *s = &buf[20];

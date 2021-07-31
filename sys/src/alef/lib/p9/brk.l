@@ -1,64 +1,35 @@
 #include <alef.h>
 
-extern	byte	end[];
-
-aggr Mem
-{
-	Lock;
-	byte*	addr;
-};
-
-intern Mem bloc;
+extern	char	end[];
+intern	char	*bloc;
 
 int
 brk(void *p)
 {
 	uint n;
 
+	if(bloc == nil)
+		bloc = end;
 	n = (uint)p;
 	n += 3;
 	n &= ~3;
-
-	bloc.lock();
-	rescue {
-		bloc.unlock();
-		return -1;
-	}
-
-	if(bloc.addr == nil)
-		bloc.addr = end;
-
 	if(brk_((void*)n) < 0)
-		raise;
-
-	bloc.addr = (byte*)n;
-	bloc.unlock();
+		return -1;
+	bloc = (char *)n;
 	return 0;
 }
 
 void*
 sbrk(uint n)
 {
-	void *base;
+	if(bloc == nil)
+		bloc = end;
 
 	n += 3;
 	n &= ~3;
-
-	bloc.lock();
-	rescue {
-		bloc.unlock();
+	if(brk_((void*)(bloc+n)) < 0)
 		return (void*)-1;
-	}
+	bloc += n;
 
-	if(bloc.addr == nil)
-		bloc.addr = end;
-
-	base = bloc.addr;
-	if(brk_(bloc.addr+n) < 0)
-		raise;
-
-	bloc.addr += n;
-	bloc.unlock();
-
-	return base;
+	return (void*)(bloc-n);
 }

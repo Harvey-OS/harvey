@@ -27,12 +27,13 @@ writef(File *f)
 	char *name;
 	int i, samename, newfile;
 	ulong dev, qid;
-	long mtime, appendonly, length;
+	long mtime;
 
 	newfile = 0;
 	samename = Strcmp(&genstr, &f->name) == 0;
 	name = Strtoc(&f->name);
-	i = statfile(name, &dev, &qid, &mtime, 0, 0);
+	i = statfile(name, &dev, &qid, &mtime, 0);
+	free(name);
 	if(i == -1)
 		newfile++;
 	else if(samename &&
@@ -49,8 +50,6 @@ writef(File *f)
 	if((io=create(genc, 1, 0666L)) < 0)
 		error_s(Ecreate, genc);
 	dprint("%s: ", genc);
-	if(statfd(io, 0, 0, 0, &length, &appendonly) > 0 && appendonly && length>0)
-		error(Eappend);
 	n = writeio(f);
 	if(f->name.s[0]==0 || samename)
 		state(f, addr.r.p1==0 && addr.r.p2==f->nrunes? Clean : Dirty);
@@ -59,7 +58,7 @@ writef(File *f)
 	if(addr.r.p2>0 && Fchars(f, &c, addr.r.p2-1, addr.r.p2) && c!='\n')
 		warn(Wnotnewline);
 	if(f->name.s[0]==0 || samename){
-		if(statfd(io, &dev, &qid, &mtime, 0, 0) > 0){
+		if(statfd(io, &dev, &qid, &mtime, 0) > 0){
 			f->dev = dev;
 			f->qid = qid;
 			f->date = mtime;
@@ -118,7 +117,7 @@ readio(File *f, int *nulls, int setdate)
 	if(*nulls)
 		warn(Wnulls);
 	if(setdate){
-		if(statfd(io, &dev, &qid, &mtime, 0, 0) > 0){
+		if(statfd(io, &dev, &qid, &mtime, 0) > 0){
 			f->dev = dev;
 			f->qid = qid;
 			f->date = mtime;

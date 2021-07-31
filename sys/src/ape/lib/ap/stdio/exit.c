@@ -1,7 +1,7 @@
 #include <unistd.h>
 #define	NONEXIT	34
 int (*_atexitfns[NONEXIT])(void);
-void _doatexits(void){
+void exit(int status){
 	int i, (*f)(void);
 	for(i = NONEXIT-1; i >= 0; i--)
 		if(_atexitfns[i]){
@@ -9,10 +9,6 @@ void _doatexits(void){
 			_atexitfns[i] = 0;	/* self defense against bozos */
 			(*f)();
 		}
-}
-void exit(int status)
-{
-	_doatexits();
 	_exit(status);
 }
 atexit(int (*f)(void))

@@ -56,44 +56,43 @@ prtree1(Node *n, int d, int f)
 	switch(n->op)
 	{
 	case ONAME:
-		print(" \"%F\"", n);
-		print(" %ld", n->xoffset);
+		print(" \"%s\"", n->sym->name);
+		print(" %ld", n->offset);
 		i = 0;
 		break;
 
 	case OINDREG:
-		print(" %ld(R%d)", n->xoffset, n->reg);
+		print(" %ld(R%d)", n->offset, n->reg);
 		i = 0;
 		break;
 
 	case OREGISTER:
-		if(n->xoffset)
-			print(" %ld+R%d", n->xoffset, n->reg);
+		if(n->offset)
+			print(" %ld+R%d", n->offset, n->reg);
 		else
 			print(" R%d", n->reg);
 		i = 0;
 		break;
 
 	case OSTRING:
-		print(" \"%s\"", n->cstring);
+		print(" \"%s\"", n->us);
 		i = 0;
 		break;
 
 	case OLSTRING:
-		print(" \"%S\"", n->rstring);
+		print(" \"%S\"", n->rs);
 		i = 0;
 		break;
 
 	case ODOT:
-	case OELEM:
-		print(" \"%F\"", n);
+		print(" \"%s\"", n->sym->name);
 		break;
 
 	case OCONST:
-		if(typefd[n->type->etype])
-			print(" \"%.8e\"", n->fconst);
+		if(typefdv[n->type->etype])
+			print(" \"%.8e\"", n->ud);
 		else
-			print(" \"%lld\"", n->vconst);
+			print(" \"%ld\"", n->offset);
 		i = 0;
 		break;
 	}
@@ -201,10 +200,6 @@ simplet(long b)
 	case BVLONG|BLONG|BINT|BSIGNED:
 		return types[TVLONG];
 
-	case BVLONG|BLONG|BUNSIGNED:
-	case BVLONG|BLONG|BINT|BUNSIGNED:
-		return types[TUVLONG];
-
 	case BFLOAT:
 		return types[TFLOAT];
 
@@ -281,7 +276,7 @@ makedot(Node *n, Type *t, long o)
 	n->addable = n->left->addable;
 	if(n->addable == 0) {
 		n1 = new1(OCONST, Z, Z);
-		n1->vconst = o;
+		n1->offset = o;
 		n1->type = types[TLONG];
 		n->right = n1;
 		n->type = t;
@@ -294,7 +289,7 @@ makedot(Node *n, Type *t, long o)
 	}
 	n->type = t;
 	n1 = new1(OCONST, Z, Z);
-	n1->vconst = o;
+	n1->offset = o;
 	t = typ(TIND, t);
 	t->width = types[TIND]->width;
 	n1->type = t;
@@ -417,45 +412,6 @@ ambig:
 	return o;
 }
 
-/*
- * look into tree for floating point constant expressions
- */
-int
-allfloat(Node *n, int flag)
-{
-
-	if(n != Z) {
-		if(n->type->etype != TDOUBLE)
-			return 1;
-		switch(n->op) {
-		case OCONST:
-			if(flag)
-				n->type = types[TFLOAT];
-			return 1;
-		case OADD:	/* no need to get more exotic than this */
-		case OSUB:
-		case OMUL:
-		case ODIV:
-			if(!allfloat(n->right, flag))
-				break;
-		case OCAST:
-			if(!allfloat(n->left, flag))
-				break;
-			if(flag)
-				n->type = types[TFLOAT];
-			return 1;
-		}
-	}
-	return 0;
-}
-
-void
-typeext1(Type *st, Node *l)
-{
-	if(st->etype == TFLOAT && allfloat(l, 0))
-		allfloat(l, 1);
-}
-
 void
 typeext(Type *st, Node *l)
 {
@@ -468,10 +424,9 @@ typeext(Type *st, Node *l)
 		return;
 	if(st->etype == TIND && vconst(l) == 0) {
 		l->type = st;
-		l->vconst = 0;
+		l->offset = 0;
 		return;
 	}
-	typeext1(st, l);
 
 	/*
 	 * extension of C
@@ -502,7 +457,7 @@ typeext(Type *st, Node *l)
 			n1 = new1(OXXX, Z, Z);
 			*n1 = *l;
 			n2 = new1(OCONST, Z, Z);
-			n2->vconst = o;
+			n2->offset = o;
 			n2->type = st;
 			l->op = OADD;
 			l->left = n1;
@@ -605,7 +560,7 @@ arith(Node *n, int f)
 			n->op = ODIV;
 			n->left = n1;
 			n1 = new1(OCONST, Z, Z);
-			n1->vconst = n->right->type->link->width;
+			n1->offset = n->right->type->link->width;
 			n1->type = n->type;
 			n->right = n1;
 		}
@@ -621,7 +576,7 @@ arith(Node *n, int f)
 				goto bad;
 			if(w > 1) {
 				n1 = new1(OCONST, Z, Z);
-				n1->vconst = w;
+				n1->offset = w;
 				n1->type = n->type;
 				n->left = new1(OMUL, n->left, n1);
 				n->left->type = n->type;
@@ -638,7 +593,7 @@ arith(Node *n, int f)
 				goto bad;
 			if(w != 1) {
 				n1 = new1(OCONST, Z, Z);
-				n1->vconst = w;
+				n1->offset = w;
 				n1->type = n->type;
 				n->right = new1(OMUL, n->right, n1);
 				n->right->type = n->type;
@@ -648,6 +603,17 @@ arith(Node *n, int f)
 	return;
 bad:
 	diag(n, "illegal pointer operation");
+}
+
+int
+ovflo(long l, int f)
+{
+	long v;
+
+	v = castto(l, f);
+	if(v != l)
+		return 1;
+	return 0;
 }
 
 int
@@ -723,18 +689,12 @@ vconst(Node *n)
 	{
 	case TFLOAT:
 	case TDOUBLE:
-		i = 100;
-		if(n->fconst > i || n->fconst < -i)
-			goto no;
-		i = n->fconst;
-		if(i != n->fconst)
-			goto no;
-		return i;
-
 	case TVLONG:
-	case TUVLONG:
-		i = n->vconst;
-		if(i != n->vconst)
+		i = 100;
+		if(n->ud > i || n->ud < -i)
+			goto no;
+		i = n->ud;
+		if(i != n->ud)
 			goto no;
 		return i;
 
@@ -745,8 +705,8 @@ vconst(Node *n)
 	case TLONG:
 	case TULONG:
 	case TIND:
-		i = n->vconst;
-		if(i != n->vconst)
+		i = n->offset;
+		if(i != n->offset)
 			goto no;
 		return i;
 	}
@@ -763,7 +723,7 @@ no:
 void
 relcon(Node *l, Node *r)
 {
-	vlong v;
+	long v;
 
 	if(l->op != OCONST)
 		return;
@@ -771,6 +731,7 @@ relcon(Node *l, Node *r)
 		return;
 	if(!nilcast(r->left->type, r->type))
 		return;
+	v = l->offset;
 	switch(r->type->etype) {
 	default:
 		return;
@@ -778,8 +739,7 @@ relcon(Node *l, Node *r)
 	case TUCHAR:
 	case TSHORT:
 	case TUSHORT:
-		v = convvtox(l->vconst, r->type->etype);
-		if(v != l->vconst)
+		if(ovflo(v, r->type->etype))
 			return;
 		break;
 	}
@@ -899,13 +859,13 @@ yyerror(char *a, ...)
 char*	tnames[] =
 {
 	"TXXX",
-	"CHAR","UCHAR","SHORT","USHORT","LONG","ULONG","VLONG","UVLONG","FLOAT","DOUBLE",
+	"CHAR","UCHAR","SHORT","USHORT","LONG","ULONG","VLONG","FLOAT","DOUBLE",
 	"IND","FUNC","ARRAY","VOID","STRUCT","UNION","ENUM","FILE","OLD","DOT",
 };
 char*	qnames[] =
 {
 	"Q0",
-	"CHAR","UCHAR","SHORT","USHORT","LONG","ULONG","VLONG","UVLONG","FLOAT","DOUBLE",
+	"CHAR","UCHAR","SHORT","USHORT","LONG","ULONG","VLONG","FLOAT","DOUBLE",
 	"Q-IND","UNSIGNED","Q-ARRAY","VOID","SIGNED","INTEGER","Q-ENUM",
 	"AUTO","EXTERN","STATIC","TYPEDEF","REGISTER",
 };
@@ -930,7 +890,7 @@ char*	onames[] =
 	"LT","MOD","MUL","NAME","NE","NOT","OR","OROR",
 	"POSTDEC","POSTINC","PREDEC","PREINC","PROTO","REGISTER","RETURN","SET",
 	"SIZE","STRING","LSTRING","STRUCT","SUB","SWITCH","UNION","USED",
-	"WHILE","XOR","NEG","COM","ELEM","END"
+	"WHILE","XOR","END"
 };
 
 char	comrel[12] =
@@ -946,25 +906,20 @@ char	logrel[12] =
 	OEQ, ONE, OLS, OLS, OLO, OLO, OHS, OHS, OHI, OHI,
 };
 
-char	typei[XTYPE] =		{ 0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0 };
-char	typeu[XTYPE] =		{ 0,0,1,0,1,0,1,0,1,0,0,1,0,0,0,0,0,0 };
-char	typesuv[XTYPE] =	{ 0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0 };
-char	typelp[XTYPE] =		{ 0,0,0,0,0,1,1,0,0,0,0,1,0,0,0,0,0,0 };
-char	typechl[XTYPE] =	{ 0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0 };
-char	typechlp[XTYPE] =	{ 0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0 };
-char	typechlpfd[XTYPE] =	{ 0,1,1,1,1,1,1,0,0,1,1,1,0,0,0,0,0,0 };
-
-char	typec[XTYPE] =		{ 0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-char	typeh[XTYPE] =		{ 0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-char	typel[XTYPE] =		{ 0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0 };
-char	typev[XTYPE] =		{ 0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0 };
-char	typefd[XTYPE] =		{ 0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0 };
-char	typeaf[XTYPE] =		{ 0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0 };
-char	typesu[XTYPE] =		{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0 };
+char	typefdv[XTYPE] =	{ 0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0 };
+char	typesu[XTYPE] =		{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0 };
+char	typechlp[XTYPE] =	{ 0,1,1,1,1,1,1,0,0,0,1,0,0,0,0,0,0 };
+char	typscalar[XTYPE] =	{ 0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0 };
+char	typechl[XTYPE] =	{ 0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0 };
+char	typel[XTYPE] =		{ 0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0 };
+char	typelp[XTYPE] =		{ 0,0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,0 };
+char	typeu[XTYPE] =		{ 0,0,1,0,1,0,1,0,0,0,1,0,0,0,0,0,0 };
+char	typeaf[XTYPE] =		{ 0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0 };
+char	typec[XTYPE] =		{ 0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+char	typeh[XTYPE] =		{ 0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0 };
 /*
-char	typeX[XTYPE] =		{ X,C,C,H,H,L,L,V,V,F,D,P,N,A,V,S,U,E };
+char	typeX[XTYPE] =		{ X,C,C,H,H,L,L,L,F,D,P,N,A,V,S,U,E };
  */
-
 
 long	tasign[XTYPE] =
 {
@@ -976,7 +931,6 @@ long	tasign[XTYPE] =
 	/* TLONG */	BNUMBER,
 	/* TULONG */	BNUMBER,
 	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
 	/* TFLOAT */	BNUMBER,
 	/* TDOUBLE */	BNUMBER,
 	/* TIND */	BIND,
@@ -997,7 +951,6 @@ long	tasadd[XTYPE] =
 	/* TLONG */	BNUMBER,
 	/* TULONG */	BNUMBER,
 	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
 	/* TFLOAT */	BNUMBER,
 	/* TDOUBLE */	BNUMBER,
 	/* TIND */	BINTEGER,
@@ -1018,7 +971,6 @@ long	tcast[XTYPE] =
 	/* TLONG */	BNUMBER|BIND|BVOID,
 	/* TULONG */	BNUMBER|BIND|BVOID,
 	/* TVLONG */	BNUMBER|BIND|BVOID,
-	/* TUVLONG */	BNUMBER|BIND|BVOID,
 	/* TFLOAT */	BNUMBER|BVOID,
 	/* TDOUBLE */	BNUMBER|BVOID,
 	/* TIND */	BINTEGER|BIND|BVOID,
@@ -1039,7 +991,6 @@ long	lcast[XTYPE] =
 	/* TLONG */	BLONG|BULONG|BVLONG|BIND,
 	/* TULONG */	BULONG|BLONG|BVLONG|BIND,
 	/* TVLONG */	BULONG|BLONG|BVLONG,
-	/* TUVLONG */	BULONG|BLONG|BVLONG,
 	/* TFLOAT */	BFLOAT|BDOUBLE,
 	/* TDOUBLE */	BDOUBLE,
 	/* TIND */	BIND,
@@ -1060,7 +1011,6 @@ long	tadd[XTYPE] =
 	/* TLONG */	BNUMBER|BIND,
 	/* TULONG */	BNUMBER|BIND,
 	/* TVLONG */	BNUMBER|BIND,
-	/* TUVLONG */	BNUMBER|BIND,
 	/* TFLOAT */	BNUMBER,
 	/* TDOUBLE */	BNUMBER,
 	/* TIND */	BINTEGER,
@@ -1081,7 +1031,6 @@ long	tsub[XTYPE] =
 	/* TLONG */	BNUMBER,
 	/* TULONG */	BNUMBER,
 	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
 	/* TFLOAT */	BNUMBER,
 	/* TDOUBLE */	BNUMBER,
 	/* TIND */	BINTEGER|BIND,
@@ -1102,7 +1051,6 @@ long	tmul[XTYPE] =
 	/* TLONG */	BNUMBER,
 	/* TULONG */	BNUMBER,
 	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
 	/* TFLOAT */	BNUMBER,
 	/* TDOUBLE */	BNUMBER,
 	/* TIND */	0,
@@ -1123,7 +1071,6 @@ long	tand[XTYPE] =
 	/* TLONG */	BINTEGER,
 	/* TULONG */	BINTEGER,
 	/* TVLONG */	BINTEGER,
-	/* TUVLONG */	BINTEGER,
 	/* TFLOAT */	0,
 	/* TDOUBLE */	0,
 	/* TIND */	0,
@@ -1144,7 +1091,6 @@ long	trel[XTYPE] =
 	/* TLONG */	BNUMBER,
 	/* TULONG */	BNUMBER,
 	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
 	/* TFLOAT */	BNUMBER,
 	/* TDOUBLE */	BNUMBER,
 	/* TIND */	BIND,
@@ -1178,16 +1124,15 @@ long	targ[1] =
 
 char	tab[NTYPE][NTYPE] =
 {
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,
-	0, 2, 2, 4, 4, 6, 6, 7, 8, 9,10,11,
-	0, 3, 4, 3, 4, 5, 6, 7, 8, 9,10,11,
-	0, 4, 4, 4, 4, 6, 6, 7, 8, 9,10,11,
-	0, 5, 6, 5, 6, 5, 6, 7, 8, 9,10,11,
-	0, 6, 6, 6, 6, 6, 6, 7, 8, 9,10,11,
-	0, 7, 8, 7, 8, 7, 8, 7, 8, 9,10,11,
-	0, 8, 8, 8, 8, 8, 8, 8, 8, 9,10,11,
-	0, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,11,
-	0,10,10,10,10,10,10,10,10,10,10,11,
-	0,11,11,11,11,11,11,11,11,11,11,11,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,
+	0, 2, 2, 4, 4, 6, 6, 7, 8, 9,10,
+	0, 3, 4, 3, 4, 5, 6, 7, 8, 9,10,
+	0, 4, 4, 4, 4, 6, 6, 7, 8, 9,10,
+	0, 5, 6, 5, 6, 5, 6, 7, 8, 9,10,
+	0, 6, 6, 6, 6, 6, 6, 7, 8, 9,10,
+	0, 7, 7, 7, 7, 7, 7, 7, 8, 9,10,
+	0, 8, 8, 8, 8, 8, 8, 8, 8, 9,10,
+	0, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,
+	0,10,10,10,10,10,10,10,10,10,10,
 };

@@ -1,0 +1,8 @@
+#!/bin/rc
+# Convert font utility programs to C.
+# 
+
+stem=`{echo $1 | sed 's/\.p$//'}
+cat futil.defines $1 \
+	| ../web2c/$cpuobjtype.web2c -hextra.h -c$stem \
+	| ../web2c/$cpuobjtype.fixwrites > $2

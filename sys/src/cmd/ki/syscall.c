@@ -455,19 +455,8 @@ sysnotify(void)
 {
 	nofunc = getmem_w(reg.r[1]+4);
 	if(sysdbg)
-		itrace("notify(0x%lux)", nofunc);
+		itrace("notify(0x%lux)\n", nofunc);
 
-	reg.r[7] = 0;
-}
-
-void syssegflush(void)
-{
-	ulong start, len;
-
-	start = getmem_w(reg.r[1]+4);
-	len = getmem_w(reg.r[1]+8);
-	if(sysdbg)
-		itrace("segflush(0x%lux, 0x%lux)", start, len);
 	reg.r[7] = 0;
 }
 
@@ -479,6 +468,7 @@ void sysnoted(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[7]]); 
 void syssegattach(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[7]]); exits(0);}
 void syssegdetach(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[7]]); exits(0);}
 void syssegfree(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[7]]); exits(0);}
+void syssegflush(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[7]]); exits(0);}
 void sysrendezvous(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[7]]); exits(0);}
 void sysunmount(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[7]]); exits(0);}
 void sysfork(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[7]]); exits(0);}

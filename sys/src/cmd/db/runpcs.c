@@ -25,10 +25,11 @@ runpcs(int runmode, int keepnote)
 
 	rc = 0;
 	if (adrflg)
-		rput(cormap, mach->pc, dot);
-	dot = rget(cormap, mach->pc);
+		rput(mach->pc, dot);
+	dot = rget(mach->pc);
 	flush();
 	while (--loopcnt >= 0) {
+		machdata->rrest(mach->reglist+mach->firstwr);
 		if (runmode == SINGLE) {
 			bkpt = scanbkpt(dot);
 			if (bkpt) {
@@ -43,7 +44,7 @@ runpcs(int runmode, int keepnote)
 			}
 			runstep(dot, keepnote);
 		} else {
-			if ((bkpt = scanbkpt(rget(cormap, mach->pc))) != 0) {
+			if ((bkpt = scanbkpt(rget(mach->pc))) != 0) {
 				execbkpt(bkpt, keepnote);
 				keepnote = 0;
 			}
@@ -51,8 +52,9 @@ runpcs(int runmode, int keepnote)
 			runrun(keepnote);
 		}
 		keepnote = 0;
+		chkerr();
 		delbp();
-		dot = rget(cormap, mach->pc);
+		dot = rget(mach->pc);
 		/* real note? */
 		if (nnote > 0) {
 			keepnote = 1;
@@ -131,6 +133,12 @@ setup(void)
 
 	nnote = 0;
 	startpcs();
+	if (errflg) {
+		dprint("%s\n", errflg);
+		dprint("%s: cannot execute\n", symfil);
+		endpcs();
+		error(0);
+	}
 	bpin = FALSE;
 	pcsactive = 1;
 }
@@ -145,6 +153,7 @@ execbkpt(BKPT *bk, int keepnote)
 {
 	runstep(bk->loc, keepnote);
 	bk->flag = BKPTSET;
+	chkerr();
 }
 
 /*

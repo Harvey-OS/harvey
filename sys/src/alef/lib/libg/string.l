@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 enum
 {
@@ -7,10 +7,10 @@ enum
 };
 
 Point
-string(Bitmap *d, Point p, Font *f, byte *s, Fcode fc)
+string(Bitmap *d, Point p, Font *f, char *s, Fcode fc)
 {
 	int n, wid;
-	byte *b;
+	char *b;
 	usint cbuf[Max], *c, *ec;
 
 	while(*s){

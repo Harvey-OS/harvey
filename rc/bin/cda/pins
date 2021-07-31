@@ -1,0 +1,33 @@
+#!/bin/rc
+switch($#*){
+case 0
+	echo usage: $0 '[lib.pins] part' >[1=2]
+	exit usage
+case 1
+	lib=/sys/lib/cda/lib.pins
+case 2
+	lib=$1
+	shift
+}
+awk '
+BEGIN		{ inside = 0; synp = 0; part = "'$1'";
+		  if (part ~ /^74[alsf]/) {
+			sub("f", "F", part)
+			sub("a", "A", part)
+			sub("l", "L", part)
+			sub("s", "S", part)
+		  }
+		}
+($1 == ".t")	{ if (NF < 2) next
+		  if ($3 == "=") {
+			inside = 0
+			if($2 == part){ synp = 1; syn = $4; print }
+			next
+		  }
+		  else if ($2 == part || synp && $2 == syn) {
+			inside = 1;
+		  }
+		  else	inside = 0;
+		}
+		{ if (inside) print }
+' $lib

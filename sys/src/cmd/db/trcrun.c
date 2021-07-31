@@ -196,10 +196,14 @@ startpcs(void)
 	child++;
 	sprint(procname, "/proc/%d/mem", pid);
 	corfil = procname;
+	if ((fcor = open(corfil, ORDWR|OCEXEC)) < 0) {
+		dprint("cannot open %s\n", corfil);
+		error(0);
+	}
 	msgpcs("waitstop");
 	bpwait();
 	if (adrflg)
-		rput(cormap, mach->pc, adrval);
+		rput(rname("PC"), adrval);
 	while (rdc() != EOR)
 		;
 	reread();
@@ -217,11 +221,8 @@ runstep(ulong loc, int keepnote)
 		dprint("stepping unimplemented; assuming not a branch\n");
 		nfoll = 1;
 		foll[0] = loc+mach->pcquant;
-	}else {
-		nfoll = machdata->foll(cormap, loc, rget, foll);
-		if (nfoll < 0)
-			error("%r");
-	}
+	}else
+		nfoll = machdata->foll(loc, foll);
 	memset(bkpt, 0, sizeof bkpt);
 	for(i=0; i<nfoll; i++){
 		if(foll[i] == loc)
@@ -237,7 +238,7 @@ runstep(ulong loc, int keepnote)
 void
 bpwait(void)
 {
-	setcor();
+	mapimage();
 	unloadnote();
 }
 
@@ -264,9 +265,9 @@ runrun(int keepnote)
 void
 bkput(BKPT *bp, int install)
 {
+	char err[ERRLEN];
 	char buf[256];
 	ulong loc;
-	int ret;
 
 	errstr(buf);
 	if(machdata->bpfix)
@@ -274,13 +275,13 @@ bkput(BKPT *bp, int install)
 	else
 		loc = bp->loc;
 	if(install){
-		ret = get1(cormap, loc, bp->save, machdata->bpsize);
-		if (ret > 0)
-			ret = put1(cormap, loc, machdata->bpinst, machdata->bpsize);
+		if (get1(cormap, loc, SEGANY, bp->save, machdata->bpsize))
+			put1(cormap, loc, SEGANY, machdata->bpinst, machdata->bpsize);
 	}else
-		ret = put1(cormap, loc, bp->save, machdata->bpsize);
-	if(ret < 0){
-		sprint(buf, "can't set breakpoint at %lux: %r", bp->loc);
+		put1(cormap, loc, SEGANY, bp->save, machdata->bpsize);
+	if(errflg){
+		errstr(err);
+		sprint(buf, "can't set breakpoint at %lux: %s", bp->loc, err);
 		print(buf);
 		read(0, buf, 100);
 	}

@@ -1,0 +1,11 @@
+#!/bin/rc
+awk '
+BEGIN				{ state=0 }
+/^Chip[ 	]*{/		{ state=1; next }
+/^[ 	]*name[ 	]/	{ if(state==1)print $2 }
+				{ state=0 }
+' $* | sort | awk '
+BEGIN	{ print "Positions{" }
+	{ print "\t" $0 " 0/0 0 28" } # UNPLACED|IGRECT|IGPINS
+END	{ print "}" }
+'

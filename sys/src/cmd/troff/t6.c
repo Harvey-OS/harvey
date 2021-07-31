@@ -113,6 +113,7 @@ getcw(int i)
 	int k, n, x;
 	Font *fp;
 	int nocache = 0;
+
 	if (i < ' ')
 		return 0;
 	bd = 0;
@@ -124,9 +125,8 @@ getcw(int i)
 	} else if ((n = onfont(i, xfont)) >= 0) {	/* on this font at n */
 		k = fp->wp[n].wid;
 		if (setwdf)
-			numtabp[CT].val |= fp->wp[n].kern;
+			numtab[CT].val |= fp->wp[n].kern;
 	} else if (n == -2) {		/* \N with default width */
-		
 		k = fp->defaultwidth;
 	} else {			/* not on current font */
 		nocache = 1;
@@ -139,7 +139,7 @@ getcw(int i)
 					if (xfont == sbold)
 						bd = bdtab[ii];
 					if (setwdf)
-						numtabp[CT].val |= fonts[ii].wp[n].kern;
+						numtab[CT].val |= fonts[ii].wp[n].kern;
 					break;
 				}
 			}
@@ -228,19 +228,7 @@ Tchar t_setch(int c)
 			s++;
 	}
 	*s = '\0';
-#ifdef UNICODE
 	return chadd(temp, Troffchar, Install) | chbits; /* add name even if haven't seen it */
-#else
-	if (NROFF) {
-		j = chadd(temp, Troffchar, Lookup);
-		if ( j == -1)
-			return 0;
-		else
-			return j | chbits;
-	} else
-		return chadd(temp, Troffchar, Install) | chbits; /* add name even if haven't seen it */
-		
-#endif /*UNICODE*/
 }
 
 Tchar t_setabs(void)		/* set absolute char from \N'...' */
@@ -287,7 +275,7 @@ Tchar t_setabs(void)		/* set absolute char from \N'...' */
 t_findft(int i)
 {
 	int k;
-	Uchar *p;
+	char *p;
 
 	p = unpair(i);
 
@@ -336,7 +324,7 @@ void caseps(void)
 			i = inumb(&apts);	/* this is a disaster for fractional point sizes */
 			noscale = 0;
 			if(nonumb)
-				i = apts1;
+				return;
 		}
 		casps1(i);
 	}
@@ -401,7 +389,7 @@ void t_setps(void)
 		i -= '0';
 		if (i == 0)		/* \s0 */
 			j = apts1;
-		else if (i <= 3 && (ch=getch()) && isdigit(j = cbits(ch))) {	/* \sdd */
+		else if (i <= 3 && isdigit(j = cbits(ch=getch()))) {	/* \sdd */
 			j = 10 * i + j - '0';
 			ch = 0;
 		} else		/* \sd */
@@ -440,7 +428,6 @@ Tchar t_setht(void)		/* set character height from \H'...' */
 	c = CHARHT;
 	c |= ZBIT;
 	setsbits(c, n);
-	setfbits(c, pts);	/* sneaky, CHARHT font bits are size bits */
 	return(c);
 }
 
@@ -504,12 +491,12 @@ void t_setwd(void)
 	int delim, emsz, k;
 	int savhp, savapts, savapts1, savfont, savfont1, savpts, savpts1;
 
-	base = numtabp[ST].val = numtabp[SB].val = wid = numtabp[CT].val = 0;
+	base = numtab[ST].val = numtab[ST].val = wid = numtab[CT].val = 0;
 	if (ismot(i = getch()))
 		return;
 	delim = cbits(i);
-	savhp = numtabp[HP].val;
-	numtabp[HP].val = 0;
+	savhp = numtab[HP].val;
+	numtab[HP].val = 0;
 	savapts = apts;
 	savapts1 = apts1;
 	savfont = font;
@@ -520,7 +507,7 @@ void t_setwd(void)
 	while (cbits(i = getch()) != delim && !nlflg) {
 		k = width(i);
 		wid += k;
-		numtabp[HP].val += k;
+		numtab[HP].val += k;
 		if (!ismot(i)) {
 			emsz = (INCH/72) * xpts;
 		} else if (isvmot(i)) {
@@ -531,13 +518,13 @@ void t_setwd(void)
 			emsz = 0;
 		} else 
 			continue;
-		if (base < numtabp[SB].val)
-			numtabp[SB].val = base;
-		if ((k = base + emsz) > numtabp[ST].val)
-			numtabp[ST].val = k;
+		if (base < numtab[SB].val)
+			numtab[SB].val = base;
+		if ((k = base + emsz) > numtab[ST].val)
+			numtab[ST].val = k;
 	}
 	setn1(wid, 0, (Tchar) 0);
-	numtabp[HP].val = savhp;
+	numtab[HP].val = savhp;
 	apts = savapts;
 	apts1 = savapts1;
 	font = savfont;
@@ -659,10 +646,10 @@ void caselg(void)
 {
 
 	if(TROFF) {
-		skip();
+		lg = 1;
+		if(skip())
+			return;
 		lg = atoi0();
-		if (nonumb)
-			lg = 1;
 	}
 }
 
@@ -692,13 +679,13 @@ void casefp(void)
 		setfp(i, j, nextf, 1);
 }
 
-char *strdupl(const char *s)	/* make a copy of s */
+char *strdup(char *s)	/* make a copy of s */
 {
 	char *t;
 
 	t = (char *) malloc(strlen(s) + 1);
 	if (t == NULL)
-		ERROR "out of space in strdupl(%s)", s FATAL;
+		ERROR "out of space in strdup(%s)", s FATAL;
 	strcpy(t, s);
 	return t;
 }
@@ -711,12 +698,12 @@ setfp(int pos, int f, char *truename, int print)	/* mount font f at position pos
 	if (truename)
 		strcpy(shortname, truename);
 	else
-		strcpy(shortname, (char *) unpair(f));
+		strcpy(shortname, unpair(f));
 	if (truename && strrchr(truename, '/')) {	/* .fp 1 R dir/file: use verbatim */
 		sprintf(pathname, "%s", truename);
 		if (fonts[pos].truename)
 			free(fonts[pos].truename);
-		fonts[pos].truename = strdupl(truename);
+		fonts[pos].truename = strdup(truename);
 	} else if (truename) {			/* synonym: .fp 1 R Avant */
 		sprintf(pathname, "%s/dev%s/%s", fontdir, devname, truename);
 		truename = 0;	/* so doesn't get repeated by ptfpcmd */
@@ -745,17 +732,12 @@ setfp(int pos, int f, char *truename, int print)	/* mount font f at position pos
 	return pos;
 }
 
-/*
- * .cs request; don't check legality of optional arguments
- */
+
 void casecs(void)
 {
 	int i, j;
 
 	if (TROFF) {
-		int savtr = trace;
-
-		trace = 0;
 		noscale++;
 		skip();
 		if (!(i = getrq()) || (i = findft(i)) < 0)
@@ -771,7 +753,6 @@ void casecs(void)
 	rtn:
 		zapwcache(0);
 		noscale = 0;
-		trace = savtr;
 	}
 }
 
@@ -870,12 +851,12 @@ Tchar t_xlss(void)
 	return(HX);
 }
 
-Uchar *unpair(int i)
+char *unpair(int i)
 {
-	static Uchar name[3];
+	static char name[3];
 
-	name[0] = i & SHORTMASK;
-	name[1] = (i >> SHORT) & SHORTMASK;
+	name[0] = i & BYTEMASK;
+	name[1] = (i >> BYTE) & BYTEMASK;
 	name[2] = 0;
-	return name;
+	return (name);
 }

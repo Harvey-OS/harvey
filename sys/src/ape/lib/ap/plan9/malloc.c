@@ -16,7 +16,6 @@ struct Bucket
 	int	size;
 	int	magic;
 	Bucket	*next;
-	int	pad;
 	char	data[1];
 };
 
@@ -58,8 +57,8 @@ good:
 		return  bp->data;
 	}
 	size = sizeof(Bucket)+(1<<pow);
-	size += 7;
-	size &= ~7;
+	size += 3;
+	size &= ~3;
 
 	if(pow < CUTOFF) {
 		n = (CUTOFF-pow)+2;

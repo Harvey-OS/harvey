@@ -34,7 +34,7 @@ main(int argc, char *argv[]){
 	}
 	in=picopen_r(inf);
 	if(in==0){
-		perror(inf);
+		picerror(inf);
 		exits("open input");
 	}
 	out=picopen_w("OUT", PIC_SAMEARGS(in));

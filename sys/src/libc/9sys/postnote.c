@@ -2,21 +2,15 @@
 #include <libc.h>
 
 int
-postnote(int group, int pid, char *note)
+postnote(int pid, char *note)
 {
 	char file[128];
 	int f, r;
 
-	switch(group) {
-	case PNPROC:
+	if(pid < 0)
+		sprint(file, "/proc/%d/notepg", -pid);
+	else
 		sprint(file, "/proc/%d/note", pid);
-		break;
-	case PNGROUP:
-		sprint(file, "/proc/%d/notepg", pid);
-		break;
-	default:
-		return -1;
-	}
 
 	f = open(file, OWRITE);
 	if(f < 0)

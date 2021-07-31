@@ -1,0 +1,78 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% EXTRADEF.TEX						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Special definitions for use in producing some parts of the
+%% AMS-LaTeX User's Guide.
+% We allow some slop at the right margin because we have some
+% long control sequence names and verbatim text to deal with.
+\hfuzz2pc
+
+\makeatletter
+
+% Change hyphenation inside \tt text back to normal:
+\let\-=\@@hyph  \let\@dischyph=\@@hyph  \let\@nohyphens\@gobbletwo
+{\footnotesize\tt \hyphenchar\the\font=`\- 
+\small\tt \hyphenchar\the\font=`\- 
+\normalsize\tt \hyphenchar\the\font=`\-
+\large\tt \hyphenchar\the\font=`\-
+}
+
+\chardef\bslash=`\\ % p. 424, TeXbook
+% \kern\z@ here inhibits hyphenation except at \-
+
+% control sequence
+\def\cs#1{{\tt\bslash\kern\z@#1}\index{#1@{\tt\bslash#1}}}
+
+% LaTeX documentstyle name
+\def\sty#1{{\tt\kern\z@#1}\index{#1@{\tt{}#1} documentstyle}}
+
+% LaTeX option name
+\def\opt#1{{\tt\kern\z@#1}\index{#1@{\tt{}#1} option}}
+
+% environment name
+\def\env#1{{\tt\kern\z@#1}\index{#1@{\tt{}#1} environment}}
+
+% file name
+\def\fn#1{{\tt\kern\z@#1}\index{#1@{\tt{}#1}}}
+
+% to index a control sequence without printing it
+\def\indexcs#1{\index{#1@{\tt\bslash#1}}}
+
+% Macros for the various macro package names.  \AmS and \LaTeX are
+% defined using \protect to avoid writing long strings to the .aux
+% file, which would be a problem on some computers.
+\def\AmS{\protect\pAmS}            \def\LaTeX{\protect\pLaTeX}
+\def\pAmS{{\the\textfont2
+        A\kern-.1667em\lower.5ex\hbox{M}\kern-.125emS}}
+\def\pLaTeX{{\rm L\kern-.36em\raise.3ex\hbox{\the\scriptfont0 A}\kern-.15em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\def\amstex/{\AmS-\TeX}         \def\amslatex/{\AmS-\LaTeX{}}
+\def\latex/{\LaTeX{}}           \def\pictex/{PIC\TeX}
+\def\tex/{\TeX}                 \def\jt/{{\it Joy of \TeX}}
+\def\bibtex/{{\sc Bib\kern-.1em\TeX}}     \def\tugboat/{{\it TUGboat\/}}
+\def\amsfonts/{AMSFonts}
+
+% `Meta' macro.
+\def\<#1>{{$\langle$\it#1\/$\rangle$}}
+
+% Indent a little on the left in the verbatim environment.
+\def\verbatim{\interlinepenalty\@M \@verbatim
+  \leftskip\@totalleftmargin\advance\leftskip2pc
+  \frenchspacing\@vobeyspaces \@xverbatim}
+
+% To introduce permissible breakpoints for line breaks in verbatim text:
+\def\5{\penalty500 }
+
+% A modified form of \sloppypar, to be used at the end of a paragraph:
+\def\sloppypar{{\tolerance9999\par}}
+
+\makeatother
+\endinput

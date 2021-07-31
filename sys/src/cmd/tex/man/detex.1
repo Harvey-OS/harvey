@@ -1,0 +1,27 @@
+.TH DETEX 1 
+.SH NAME
+detex \- remove TeX constructs
+.SH SYNOPSIS
+.B detex file ...
+.SH DESCRIPTION
+.I Detex
+reads each file in sequence
+and removes all
+.I TeX
+control sequences and math mode constructions,
+producing a list of the words on standard output, one word per line.
+If no arguments are given, standard input is read.
+A `word' is a sequence of letters, apostrophes, and discretionary hyphens.
+Apostrophes and discretionary hyphens are removed.
+Single letter words and words all in uppercase letters are not output,
+nor are any other characters.
+.PP
+The intended use is as a filter before
+.I spell
+(1).
+.SH "SEE ALSO"
+spell(1), tex(1), tex78(1)
+.SH BUGS
+It is assumed that only dollar signs are used to indicate math mode.
+.SH HISTORY
+Installed at Stanford by Howard Trickey, June 1983.

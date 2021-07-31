@@ -2,7 +2,7 @@
 
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
+# include <stdio.h>
 # include <ctype.h>
 
 # define MAXLIN 250
@@ -62,7 +62,7 @@ extern char texstr[];
 extern int linstart;
 
 
-extern Biobuf *tabin, tabout;
+extern FILE *tabin, *tabout;
 # define CRIGHT 2
 # define CLEFT 0
 # define CMID 1

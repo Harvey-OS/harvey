@@ -6,7 +6,7 @@
 #include "dir.h"
 
 int
-_isatty(int fd)
+isatty(int fd)
 {
 	int t;
 	Dir d1, d2;
@@ -16,8 +16,6 @@ _isatty(int fd)
 	if(_FSTAT(fd, cd) < 0)
 		return 0;
 	convM2D(cd, &d1);
-	if(strncmp(d1.name, "ptty", 4)==0)
-		return 1;
 	if(_STAT("/dev/cons", cd) < 0)
 		return 0;
 	convM2D(cd, &d2);
@@ -41,14 +39,4 @@ _isatty(int fd)
 		convM2D(cd, &d2);
 	}
 	return (d1.type == d2.type) && (d1.dev == d2.dev);
-}
-
-/* The FD_ISTTY flag is set via _isatty in _fdsetup or open */
-int
-isatty(fd)
-{
-	if(_fdinfo[fd].flags&FD_ISTTY)
-		return 1;
-	else
-		return 0;
 }

@@ -33,5 +33,4 @@ loop:
 	bp->state = Binactive;
 	bp->ocount = 0;
 	raise;
-	return 0;
 }

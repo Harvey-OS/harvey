@@ -1,0 +1,67 @@
+.TH PLL 10.1
+.SH NAME
+pll \- phase lock loop calculator
+.SH SYNOPSIS
+.B cda/pll
+[
+.B -cfknoptzAPT
+]
+.SH DESCRIPTION
+.PP
+.I Pll
+calculates the passive component values for
+a second-order phase lock loop.  Component values and other
+calculations are emitted on the
+standard error output while the Bode plot is generated on
+the standard output.
+.PP
+The parameters of the loop are given on the command line:
+.TP
+.B -c
+the capacitor, in farads
+.TP
+.B -f
+the frequency of the loop in hertz
+.TP
+.B -v
+the gain constant of the vco (in Hz/v)
+.TP
+.B -n
+the divider multiplier
+.TP
+.B -o
+the frequency of the loop \(*w
+.TP
+.B -p
+the gain constant of the phase detector (in V/radian)
+.TP
+.B -t
+the `type' of the chip; should be in the list printed by the
+.B -T
+option.
+.TP
+.B -z
+the damping constant \(*z
+.PP
+Other output flags are:
+.TP
+.B -A
+for an active filter (defaults to passive)
+.TP
+.B -P
+for a Bode plot; output
+.IR grap (1)
+format on standard output.
+.TP
+.B -T
+will tell about the chip types known to
+.I pll.
+.PP
+This program is shamelessly stolen from Rhode's book "Theory and Design
+of Digital PLL Frequency Synthesizers".
+.SH SEE ALSO
+.IR grap (1)
+.SH BUGS
+Capacitor value should be in microfarads.
+.br
+Failure to give all the values results in an invalid floating point fault.

@@ -49,7 +49,7 @@ stream_free(stream *sp)
 
 	close(sp->fd);
 	fd = Bfildes(sp->fp);
-	Bterm(sp->fp);
+	Bclose(sp->fp);
 	close(fd);
 	free((char *)sp);
 }
@@ -110,15 +110,8 @@ proc_wait(process *pp)
 {
 	Waitmsg status;
 	int pid;
-	char err[ERRLEN];
 
-	for(;;){
-		pid = wait(&status);
-		if(pid < 0){
-			errstr(err);
-			if(strstr(err, "interrupt") == 0)
-				break;
-		}
+	while((pid = wait(&status))>=0) {
 		if (pid==pp->pid)
 			break;
 	}

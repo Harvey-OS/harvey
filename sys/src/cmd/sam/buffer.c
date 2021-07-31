@@ -14,7 +14,7 @@ Bopen(Discdesc *dd)
 }
 
 void
-Bterm(Buffer *b)
+Bclose(Buffer *b)
 {
 	Dclose(b->disc);
 	Strclose(&b->cache);

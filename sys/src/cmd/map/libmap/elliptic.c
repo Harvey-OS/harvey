@@ -3,9 +3,9 @@
 struct coord center;
 
 static int
-Xelliptic(struct place *place, double *x, double *y)
+Xelliptic(struct place *place, float *x, float *y)
 {
-	double r1,r2;
+	float r1,r2;
 	r1 = acos(place->nlat.c*(place->wlon.c*center.c
 		- place->wlon.s*center.s));
 	r2 = acos(place->nlat.c*(place->wlon.c*center.c
@@ -21,7 +21,7 @@ Xelliptic(struct place *place, double *x, double *y)
 }
 
 proj
-elliptic(double l)
+elliptic(float l)
 {
 	l = fabs(l);
 	if(l>89)

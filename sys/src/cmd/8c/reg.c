@@ -36,7 +36,6 @@ void
 regopt(Prog *p)
 {
 	Reg *r, *r1, *r2;
-	Prog *p1;
 	int i, z;
 	long initpc, val;
 	ulong vreg;
@@ -164,10 +163,6 @@ regopt(Prog *p)
 		case AMOVL:
 		case AMOVB:
 		case AMOVW:
-		case AMOVBLSX:
-		case AMOVBLZX:
-		case AMOVWLSX:
-		case AMOVWLZX:
 			for(z=0; z<BITS; z++)
 				r->set.b[z] |= bit.b[z];
 			break;
@@ -509,28 +504,27 @@ brk:
 	for(r = firstr; r != R; r = r1) {
 		r->pc = val;
 		p = r->prog;
-		p1 = P;
 		r1 = r->link;
-		if(r1 != R)
-			p1 = r1->prog;
-		for(; p != p1; p = p->link) {
-			switch(p->as) {
-			default:
-				val++;
-				break;
+		if(r1 == R)
+			break;
+		while(p != r1->prog)
+		switch(p->as) {
 
-			case ANOP:
-			case ADATA:
-			case AGLOBL:
-			case ANAME:
-				break;
-			}
+		default:
+			val++;
+
+		case ADATA:
+		case AGLOBL:
+		case ANAME:
+			p = p->link;
 		}
 	}
-	pc = val;
+	pc = val + 1;
 
 	/*
+	 * last pass
 	 * fix up branches
+	 * free aux structures
 	 */
 	if(debug['R'])
 		if(bany(&addrs))
@@ -542,16 +536,6 @@ brk:
 		if(p->to.type == D_BRANCH)
 			p->to.offset = r->s2->pc;
 		r1 = r;
-	}
-
-	/*
-	 * last pass
-	 * eliminate nops
-	 * free aux structures
-	 */
-	for(p = firstr->prog; p != P; p = p->link){
-		while(p->link && p->link->as == ANOP)
-			p->link = p->link->link;
 	}
 	if(r1 != R) {
 		r1->link = freer;
@@ -695,7 +679,7 @@ out:
 	if(n == D_PARAM)
 		for(z=0; z<BITS; z++)
 			params.b[z] |= bit.b[z];
-	if(v->etype != et || !typechlpfd[et])	/* funny punning */
+	if(v->etype != et || !typscalar[et])	/* funny punning */
 		for(z=0; z<BITS; z++)
 			addrs.b[z] |= bit.b[z];
 	return bit;
@@ -943,49 +927,11 @@ paint1(Reg *r, int bn)
 }
 
 ulong
-regset(Reg *r, ulong bb)
-{
-	ulong b, set;
-	Adr v;
-	int c;
-
-	set = 0;
-	v = zprog.from;
-	while(b = bb & ~(bb-1)) {
-		v.type = BtoR(b);
-		c = copyu(r->prog, &v, A);
-		if(c == 3)
-			set |= b;
-		bb &= ~b;
-	}
-	return set;
-}
-
-ulong
-reguse(Reg *r, ulong bb)
-{
-	ulong b, set;
-	Adr v;
-	int c;
-
-	set = 0;
-	v = zprog.from;
-	while(b = bb & ~(bb-1)) {
-		v.type = BtoR(b);
-		c = copyu(r->prog, &v, A);
-		if(c == 1 || c == 2 || c == 4)
-			set |= b;
-		bb &= ~b;
-	}
-	return set;
-}
-
-ulong
 paint2(Reg *r, int bn)
 {
 	Reg *r1;
 	int z;
-	ulong bb, vreg, x;
+	ulong bb, vreg;
 
 	z = bn/32;
 	bb = 1L << (bn%32);
@@ -1027,15 +973,6 @@ paint2(Reg *r, int bn)
 			break;
 		if(!(r->refbehind.b[z] & bb))
 			break;
-	}
-
-	bb = vreg;
-	for(; r; r=r->s1) {
-		x = r->regu & ~bb;
-		if(x) {
-			vreg |= reguse(r, x);
-			bb |= regset(r, x);
-		}
 	}
 	return vreg;
 }

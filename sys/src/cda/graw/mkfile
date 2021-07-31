@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=graw
+OFILES=file.$O\
+	line.$O\
+	graw.$O\
+	util.$O\
+	mhit.$O\
+
+HFILES=thing.h\
+	event.h\
+	menu.h\
+
+</sys/src/cmd/mkone
+CFLAGS=
+
+CFILES=${OFILES:%.$O=%.c}
+
+print:V:
+	print $HFILES $CFILES
+
+wc:V:
+	wc $HFILES $CFILES

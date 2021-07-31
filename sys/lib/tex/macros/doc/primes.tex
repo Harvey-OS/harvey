@@ -1,0 +1,555 @@
+\input webmac
+% limbo material
+\font\ninerm=amr9
+\let\mc=\ninerm % medium caps for names like PASCAL
+\def\WEB{{\tt WEB}}
+\def\PASCAL{{\mc PASCAL}}
+\def\[{\ifhmode\ \fi$[\![$}
+\def\]{$]\!]$\ }
+\def\<{$\langle\,$}
+\def\>{$\,\rangle$}
+\def\Dijk{{2}} % unnecessary when combined with text of paper
+\def\goto{{3}} % ditto
+\hyphenation{Dijk-stra} % ditto
+\def\sec{{\tensy x}}
+\hsize=84mm
+
+
+\N1.  Printing primes: An example of \WEB.
+The following program is essentially the same as Edsger Dijkstra's
+``first example of step-wise program composition,''
+found on pages 26--39 of his {\sl Notes on Structured Programming},$^{\Dijk}$
+but it has been translated into the \WEB\ language.
+
+\[Double brackets will be used in what follows to enclose comments
+relating to \WEB\ itself, because the chief purpose of this program
+is to introduce the reader to the \WEB\ style of documentation.
+\WEB\ programs are always broken into small sections, each
+of which has a serial number; the present section is number~1.\]
+
+Dijkstra's program prints a table of the first thousand prime numbers.  We
+shall begin as he did, by reducing the entire program to its top-level
+description. \[Every section in a \WEB\ program begins with optional {\it
+commentary\/} about that section, and ends with optional {\it program
+text\/} for the section. For example, you are now reading part of the
+commentary in \sec1, and the program text for \sec1 immediately follows
+the present paragraph. Program texts are specifications of \PASCAL\
+programs; they either use \PASCAL\ language directly, or they use angle
+brackets to represent \PASCAL\ code that appears in other sections. For
+example, the angle-bracket notation `\X2:Program to print $\ldots$
+numbers\X' is \WEB's way of saying the following: ``The \PASCAL\ text to
+be inserted here is called `Program to print $\ldots$ numbers', and you
+can find out all about it by looking at section~2.'' One of the main
+characteristics of \WEB\ is that different parts of the program are
+usually abbreviated, by giving them such an informal top-level
+description.\]
+
+\Y\P\X2:Program to print the first thousand prime numbers\X\par
+\fi
+
+\M2. This program has no input, because we want to keep it rather simple.
+The result of the program will be to produce a list of the first
+thousand prime numbers, and this list will appear on the \\{output} file.
+
+Since there is no input, we declare the value $\|m=1000$ as a compile-time
+constant. The program itself is capable of generating the first
+\|m prime numbers for any positive \|m, as long as the computer's
+finite limitations are not exceeded.
+
+\[The program text below specifies the ``expanded meaning'' of `\X2:Program
+to print $\ldots$ numbers\X'; notice that it involves the top-level
+descriptions of three other sections. When those top-level descriptions
+are replaced by their expanded meanings, a syntactically correct \PASCAL\
+program will be obtained.\]
+
+\Y\P$\4\X2:Program to print the first thousand prime numbers\X\S$\6
+\4\&{program}\1\  \37$\\{print\_primes}(\\{output})$;\6
+\4\&{const} \37$\|m=1000$;\5
+\X5:Other constants of the program\X\6
+\4\&{var} \37\X4:Variables of the program\X\6
+\&{begin} \37\X3:Print the first \|m prime numbers\X;\6
+\&{end}.\par
+\U section~1.\fi
+
+
+\N3.  Plan of the program.
+We shall proceed to fill out the rest of the program by making whatever
+decisions seem easiest at each step; the idea will be to strive for
+simplicity first and efficiency later, in order to see where this leads us.
+The final program may not be optimum, but we want it to be reliable,
+well motivated, and reasonably fast.
+
+Let us decide at this point to maintain a table that includes all of the
+prime numbers that will be generated, and to separate the generation
+problem from the printing problem.
+
+\[The \WEB\ description you are reading once again follows a pattern that
+will soon be familiar: A typical section begins with comments and
+ends with program text. The comments motivate and explain noteworthy
+features of the program text.\]
+
+\Y\P$\4\X3:Print the first \|m prime numbers\X\S$\6
+\X11:Fill table \|p with the first \|m prime numbers\X;\6
+\X8:Print table \|p\X\par
+\U section~2.\fi
+
+\M4. How should table \|p be represented? Two possibilities suggest
+themselves: We could construct a sufficiently large array
+of boolean values in which the $k$th entry is \\{true} if and only if the
+number~\|k is prime; or we could build an array of integers in which
+the \|kth entry is the \|kth prime number. Let us choose the latter
+alternative, by introducing an integer array called $\|p[1\to\|m]$.
+
+In the documentation below, the notation `$\|p[\|k]$' will refer to the
+\|kth element of array~\|p, while `$p_k$' will refer to the $k$th
+prime number. If the program is correct, $\|p[\|k]$ will either be
+equal to $p_k$ or it will not yet have been assigned any value.
+
+\[Incidentally, our program will eventually make use of several
+more variables as we refine the data structures. All of the sections
+where variables are declared will be called `\X4:Variables of the
+program\X'; the number `{\eightrm4}' in this name refers to the
+present section, which is the first section to specify the
+expanded meaning of `\<Variables of the program\>'.
+The note `{\eightrm See also $\ldots$}' refers to all of the other
+sections that have the same top-level description. The expanded meaning of
+`\X4:Variables of the program\X' consists of all the program texts
+for this name, not just the text found in~\sec4.\]
+
+\Y\P$\4\X4:Variables of the program\X\S$\6
+\4\|p: \37\&{array} $[1\to\|m]$ \1\&{of}\5
+\\{integer};\C{the first \|m prime numbers, in increasing order}\2\par
+\A sections~7, 12, 15, 17, 23, and~24.
+\U section~2.\fi
+
+
+\N5.  The output phase.
+Let's work on the second part of the program first. It's not as interesting
+as the problem of computing prime numbers; but the job of printing must be
+done sooner or later, and we might as well do it sooner, since it will
+be good to have it done. \[And it is easier to learn \WEB\ when reading a
+program that has comparatively few distracting complications.\]
+
+Since \|p is simply an array of integers, there is little difficulty
+in printing the output, except that we need to decide upon a suitable
+output format. Let us print the table on separate pages, with \\{rr} rows
+and \\{cc} columns per page, where every column is \\{ww} character positions
+wide. In this case we shall choose $\\{rr}=50$, $\\{cc}=4$, and $\\{ww}=10$, so
+that
+the first 1000 primes will appear on five pages. The program will
+not assume that \|m is an exact multiple of $\\{rr}\cdot\\{cc}$.
+
+\Y\P$\4\X5:Other constants of the program\X\S$\6
+$\\{rr}=50$;\C{this many rows will be on each page in the output}\6
+$\\{cc}=4$;\C{this many columns will be on each page in the output}\6
+$\\{ww}=10$;\C{this many character positions will be used in each column}\par
+\A section~19.
+\U section~2.\fi
+
+\M6. In order to keep this program reasonably free of notations that
+are uniquely \PASCAL esque, \[and in order to illustrate more of the
+facilities of \WEB,\] a few macro definitions for low-level output
+instructions are introduced here. All of the output-oriented commands
+in the remainder of the program will be stated in terms of five
+simple primitives called \\{print\_string}, \\{print\_integer}, \\{print%
+\_entry},
+\\{new\_line}, and \\{new\_page}.
+
+\[Sections of a \WEB\ program are allowed to contain {\it macro definitions\/}
+between the opening comments and the closing program text. The
+general format for each section is actually tripartite: commentary,
+then definitions, then program. Any of the three parts may be absent;
+for example, the present section contains no program text.\]
+
+\[Simple macros simply substitute a bit of \PASCAL\ code for an
+identifier. Parametric macros are similar, but they also substitute
+an argument wherever `\#' occurs in the macro definition. The first three
+macro definitions here are parametric; the other two are simple.\]
+
+\Y\P\D \37$\\{print\_string}(\#)\S\\{write}(\#)$\C{put a given string into the %
+\\{output} file}\par
+\P\D \37$\\{print\_integer}(\#)\S\\{write}(\#:1)$\C{put a given integer into
+the \\{output}     file, in decimal notation, using only as many digit
+positions as necessary}\par
+\P\D \37$\\{print\_entry}(\#)\S\\{write}(\#:\\{ww})$\C{like \\{print\_integer},
+but \\{ww} character     positions are filled, inserting blanks at the left}\par
+\P\D \37$\\{new\_line}\S\\{write\_ln}$\C{advance to a new line in the %
+\\{output} file}\par
+\P\D \37$\\{new\_page}\S\\{page}$\C{advance to a new page in the \\{output}
+file}\par
+\fi
+
+\M7. Several variables are needed to govern the output process. When we begin
+to print a new page, the variable \\{page\_number} will be the ordinal number
+of that page, and \\{page\_offset} will be such that $\|p[\\{page\_offset}]$ is
+the
+first prime to be printed. Similarly, $\|p[\\{row\_offset}]$ will be the first
+prime in a given row.
+
+\[Notice the notation `$+\S$' below; this indicates that the present
+section has the same name as a previous section, so the program text
+will be appended to some text that was previously specified.\]
+
+\Y\P$\4\X4:Variables of the program\X\mathrel{+}\S$\6
+\4\\{page\_number}: \37\\{integer};\C{one more than the number of pages printed
+so far}\6
+\4\\{page\_offset}: \37\\{integer};\C{index into \|p for the first entry on the
+current page}\6
+\4\\{row\_offset}: \37\\{integer};\C{index into \|p for the first entry in the
+current row}\6
+\4\|c: \37$0\to\\{cc}$;\C{runs through the columns in a row}\par
+\fi
+
+\M8. Now that appropriate auxiliary variables have been introduced, the process
+of outputting table~\|p almost writes itself.
+
+\Y\P$\4\X8:Print table \|p\X\S$\6
+\&{begin} \37$\\{page\_number}\K1$;\5
+$\\{page\_offset}\K1$;\6
+\&{while} $\\{page\_offset}\L\|m$ \1\&{do}\6
+\&{begin} \37\X9:Output a page of answers\X;\6
+$\\{page\_number}\K\\{page\_number}+1$;\5
+$\\{page\_offset}\K\\{page\_offset}+\\{rr}\ast\\{cc}$;\6
+\&{end};\2\6
+\&{end}\par
+\U section~3.\fi
+
+\M9. A simple heading is printed at the top of each page.
+
+\Y\P$\4\X9:Output a page of answers\X\S$\6
+\&{begin} \37$\\{print\_string}(\.{\'The\ First\ \'})$;\5
+$\\{print\_integer}(\|m)$;\6
+$\\{print\_string}(\.{\'\ Prime\ Numbers\ ---\ Page\ \'})$;\5
+$\\{print\_integer}(\\{page\_number})$;\5
+\\{new\_line};\5
+\\{new\_line};\C{there's a blank line after the heading}\6
+\&{for} $\\{row\_offset}\K\\{page\_offset}\mathrel{\&{to}}\\{page\_offset}+%
+\\{rr}-1$ \1\&{do}\5
+\X10:Output a line of answers\X;\2\6
+\\{new\_page};\6
+\&{end}\par
+\U section~8.\fi
+
+\M10. The first row will contain
+$$\hbox{$\|p[1]$, $\|p[1+\\{rr}]$, $\|p[1+2\ast\\{rr}]$, \dots;}$$
+a similar pattern holds for each value of the \\{row\_offset}.
+
+\Y\P$\4\X10:Output a line of answers\X\S$\6
+\&{begin} \37\&{for} $\|c\K0\mathrel{\&{to}}\\{cc}-1$ \1\&{do}\6
+\&{if} $\\{row\_offset}+\|c\ast\\{rr}\L\|m$ \1\&{then}\5
+$\\{print\_entry}(\|p[\\{row\_offset}+\|c\ast\\{rr}])$;\2\2\6
+\\{new\_line};\6
+\&{end}\par
+\U section~9.\fi
+
+
+\N11.  Generating the primes.
+The remaining task is to fill table~\|p with the correct numbers.
+Let us do this by generating its entries one at a time: Assuming that
+we have computed all primes that are \|j~or less, we will advance \|j
+to the next suitable value, and continue doing this until the
+table is completely full.
+
+The program includes a provision to initialize the variables in certain
+data structures that will be introduced later.
+
+\Y\P$\4\X11:Fill table \|p with the first \|m prime numbers\X\S$\6
+\X16:Initialize the data structures\X;\6
+\&{while} $\|k<\|m$ \1\&{do}\6
+\&{begin} \37\X14:Increase \|j until it is the next prime number\X;\6
+$\|k\K\|k+1$;\5
+$\|p[\|k]\K\|j$;\6
+\&{end}\2\par
+\U section~3.\fi
+
+\M12. We need to declare the two variables \|j and~\|k that were just
+introduced.
+
+\Y\P$\4\X4:Variables of the program\X\mathrel{+}\S$\6
+\4\|j: \37\\{integer};\C{all primes $\L\|j$ are in table \|p}\6
+\4\|k: \37$0\to\|m$;\C{this many primes are in table \|p}\par
+\fi
+
+\M13. So far we haven't needed to confront the issue of what a prime number
+is. But everything else has been taken care of, so we must delve into
+a bit of number theory now.
+
+By definition, a number is called prime if it is an integer greater
+than~1 that is not evenly divisible by any smaller prime number. Stating
+this another way, the integer $\|j>1$ is not prime if and only if there
+exists a prime number $p_n<j$ such that \|j is a multiple of~$p_n$.
+
+Therefore the section of the program that is called `\<Increase \|j until
+it is the next prime number\>' could be coded very simply:
+`\ignorespaces \&{repeat} $\|j\K\|j+1$;\unskip\
+\<Give to~\\{j\_prime} the meaning: \|j~is a prime number\>;
+\ignorespaces  \&{until}  \\{j\_prime}\unskip'.
+And to compute the boolean value \\{j\_prime}, the following
+would suffice: `\ignorespaces$\\{j\_prime}\K\\{true}$;  \&{for} $\|n\K1%
+\mathrel{\&{to}}\|k$ \&{do}\unskip\
+\<If $\|p[\|n]$ divides \|j, set $\\{j\_prime}\K\\{false}$\>'.
+
+\fi
+
+\M14. However, it is possible to obtain a much more efficient algorithm by
+using more facts of number theory. In the first place, we can speed
+things up a bit by recognizing that $p_1=2$ and that all subsequent
+primes are odd; therefore we can let \|j run through odd values only.
+Our program now takes the following form:
+
+\Y\P$\4\X14:Increase \|j until it is the next prime number\X\S$\6
+\1\&{repeat} \37$\|j\K\|j+2$;\5
+\X20:Update variables that depend on~\|j\X;\6
+\X22:Give to \\{j\_prime} the meaning: \|j~is a prime number\X;\6
+\4\&{until}\5
+\\{j\_prime}\2\par
+\U section~11.\fi
+
+\M15. The  \&{repeat}  loop in the previous section introduces a boolean
+variable \\{j\_prime}, so that it will not be necessary to resort to
+a \&{goto}  statement. (We are following Dijkstra,$^\Dijk$ not Knuth.$^\goto$)
+
+\Y\P$\4\X4:Variables of the program\X\mathrel{+}\S$\6
+\4\\{j\_prime}: \37\\{boolean};\C{is \|j a prime number?}\par
+\fi
+
+\M16. In order to make the odd-even trick work, we must of course initialize
+the variables \|j, \|k, and $\|p[1]$ as follows.
+
+\Y\P$\4\X16:Initialize the data structures\X\S$\6
+$\|j\K1$;\5
+$\|k\K1$;\5
+$\|p[1]\K2$;\par
+\A section~18.
+\U section~11.\fi
+
+\M17. Now we can apply more number theory in order to obtain further
+economies. If \|j is not prime, its smallest prime factor $p_n$ will
+be $\sqrt j$ or less. Thus if we know a number \\{ord} such that
+$$p[\\{ord}]^2>j,$$ and if \|j is odd, we need only test for divisors
+in the set $\{p[2], \ldots, p[\\{ord}-1]\}$. This is much faster than
+testing divisibility by $\{p[2],\ldots,p[k]\}$, since \\{ord} tends
+to be much smaller than~\|k. \ (Indeed, when \|k is large, the
+celebrated ``prime number theorem'' implies that the value of \\{ord}
+will be approximately $2\sqrt{k/\!\ln k}$.)
+
+Let us therefore introduce \\{ord} into the data structure. A moment's
+thought makes it clear that \\{ord} changes in a simple way when \|j
+increases, and that another variable \\{square} facilitates the
+updating process.
+
+\Y\P$\4\X4:Variables of the program\X\mathrel{+}\S$\6
+\4\\{ord}: \37$2\to\\{ord\_max}$;\C{the smallest index $\G2$ such that
+$p_{ord}^2>j$}\6
+\4\\{square}: \37\\{integer};\C{$\\{square}=p_{ord}^2$}\par
+\fi
+
+\M18. \P$\X16:Initialize the data structures\X\mathrel{+}\S$\6
+$\\{ord}\K2$;\5
+$\\{square}\K9$;\par
+\fi
+
+\M19. The value of \\{ord} will never get larger than a certain value
+\\{ord\_max}, which must be chosen sufficiently large. It turns out that
+\\{ord} never exceeds~30 when $\|m=1000$.
+
+\Y\P$\4\X5:Other constants of the program\X\mathrel{+}\S$\6
+$\\{ord\_max}=30$;\C{$p_{ord\_max}^2$ must exceed $p_m$}\par
+\fi
+
+\M20. When \|j has been increased by~2, we must increase \\{ord} by unity
+when $j=p_{ord}^2$, i.e., when $\|j=\\{square}$.
+
+\Y\P$\4\X20:Update variables that depend on~\|j\X\S$\6
+\&{if} $\|j=\\{square}$ \1\&{then}\6
+\&{begin} \37$\\{ord}\K\\{ord}+1$;\5
+\X21:Update variables that depend on~\\{ord}\X;\6
+\&{end}\2\par
+\U section~14.\fi
+
+\M21. At this point in the program, \\{ord} has just been increased by unity,
+and we want to set $\\{square}:=p_{ord}^2$. A surprisingly subtle point
+arises here: How do we know that $p_{ord}$ has already been computed,
+i.e., that $\\{ord}\L\|k$? If there were a gap in the sequence of prime
+numbers,
+such that $p_{k+1}>p_k^2$ for some~$k$, then this part of the program would
+refer to the yet-uncomputed value $\|p[\|k+1]$ unless some special test were
+made.
+
+Fortunately, there are no such gaps. But no simple proof of this fact is
+known. For example, Euclid's famous demonstration that there are
+infinitely many prime numbers is strong enough to prove only that
+$p_{k+1}<=p_1\ldots p_k+1$. Advanced books on number theory come to our
+rescue by showing that much more is true; for example, ``Bertrand's
+postulate''  states that $p_{k+1}<2p_k$
+for all~$k$.
+
+\Y\P$\4\X21:Update variables that depend on~\\{ord}\X\S$\6
+$\\{square}\K\|p[\\{ord}]\ast\|p[\\{ord}]$;\C{at this point $\\{ord}\L\|k$}\par
+\A section~25.
+\U section~20.\fi
+
+
+\N22.  The inner loop.
+Our remaining task is to determine whether or not a given integer~\|j is prime.
+The general outline of this part of the program is quite simple,
+using the value of \\{ord} as described above.
+
+\Y\P$\4\X22:Give to \\{j\_prime} the meaning: \|j~is a prime number\X\S$\6
+$\|n\K2$;\5
+$\\{j\_prime}\K\\{true}$;\6
+\&{while} $(\|n<\\{ord})\W\\{j\_prime}$ \1\&{do}\6
+\&{begin} \37\X26:If $\|p[\|n]$ is a factor of~\|j, set $\\{j\_prime}\K%
+\\{false}$\X;\6
+$\|n\K\|n+1$;\6
+\&{end}\2\par
+\U section~14.\fi
+
+\M23. \P$\X4:Variables of the program\X\mathrel{+}\S$\6
+\4\|n: \37$2\to\\{ord\_max}$;\C{runs from 2 to \\{ord} when testing
+divisibility}\par
+\fi
+
+\M24. Let's suppose that division is very slow or nonexistent on our
+machine. We want to detect nonprime odd numbers, which are odd multiples
+of the set of primes $\{p_2,\ldots,p_{ord}\}$.
+
+Since \\{ord\_max} is small, it is reasonable to maintain an auxiliary table of
+the smallest odd multiples that haven't already been used to show that
+some~\|j is nonprime. In other words, our goal is to ``knock out'' all
+of the odd multiples of each $p_n$ in the set $\{p_2,\ldots,p_{ord}\}$,
+and one way to do this is to introduce an auxiliary table that serves as
+a control structure for a set of knock-out procedures that are being
+simulated in parallel. (The so-called ``sieve of Eratosthenes''
+generates primes by a similar method, but
+it knocks out the multiples of each prime serially.)
+
+The auxiliary table suggested by these considerations is a \\{mult}
+array that satisfies the following invariant condition: For $2\L\|n<\\{ord}$,
+$\\{mult}[\|n]$ is an odd multiple of $p_n$ such that $\\{mult}[n]<j+2p_n$.
+
+\Y\P$\4\X4:Variables of the program\X\mathrel{+}\S$\6
+\4\\{mult}: \37\&{array} $[2\to\\{ord\_max}]$ \1\&{of}\5
+\\{integer};\C{runs through multiples of primes}\2\par
+\fi
+
+\M25. When \\{ord} has been increased, we need to initialize a new element of
+the \\{mult} array. At this point $j=p[\\{ord}-1]^2$, so there is no
+need for an elaborate computation.
+
+\Y\P$\4\X21:Update variables that depend on~\\{ord}\X\mathrel{+}\S$\6
+$\\{mult}[\\{ord}-1]\K\|j$;\par
+\fi
+
+\M26. The remaining task is straightforward, given the data structures
+already prepared. Let us recapitulate the current situation: The
+goal is to test whether or not \|j~is divisible by~$p_n$, without
+actually performing a division. We know that $j$~is odd, and that
+$\\{mult}[\|n]$ is an odd multiple of~$p_n$ such that $\\{mult}[n]<j+2p_n$.
+If $\\{mult}[\|n]<\|j$, we can increase $\\{mult}[\|n]$ by $2p_n$ and the same
+conditions will hold. On the other hand if $\\{mult}[\|n]\G\|j$, the
+conditions imply that \|j~is divisible by~$p_n$ if and only if
+$\|j=\\{mult}[\|n]$.
+
+\Y\P$\4\X26:If $\|p[\|n]$ is a factor of~\|j, set $\\{j\_prime}\K\\{false}$\X%
+\S$\6
+\&{while} $\\{mult}[\|n]<\|j$ \1\&{do}\5
+$\\{mult}[\|n]\K\\{mult}[\|n]+\|p[\|n]+\|p[\|n]$;\2\6
+\&{if} $\\{mult}[\|n]=\|j$ \1\&{then}\5
+$\\{j\_prime}\K\\{false}$\2\par
+\U section~22.\fi
+
+
+\N27.  Index.
+Every identifier used in this program is shown here together with a list
+of the section numbers where that identifier appears. The section number
+is underlined if the identifier was defined in that section. However,
+one-letter identifiers are indexed only at their point of definition,
+since such identifiers tend to appear almost everywhere. \[An index like
+this is prepared automatically by the \WEB\ software, and it is appended
+to the final section of the program. However, underlining of section
+numbers is not automatic; the user is supposed to mark identifiers
+at their point of definition in the \WEB\ source file.\]
+
+This index also refers to some of the places where key elements of the
+program are treated. For example, the entries for `Output format' and
+`Page headings' indicate where details of the output format are
+discussed. Several other topics that appear in the documentation
+(e.g., `Bertrand's postulate') have also been indexed. \[Special
+instructions within a \WEB\ source file can be used to insert
+essentially anything into the index.\]
+\fi
+
+
+
+\inx
+\:{Bertrand, Joseph, postulate}, 21.
+\:\\{boolean}, 15.
+\:\|{c}, \[7].
+\:\\{cc}, \[5], 7, 8, 10.
+\:{Dijkstra, Edsger}, 1, 15.
+\:{Eratosthenes, sieve of}, 24.
+\:\\{false}, 13, 26.
+\:\\{integer}, 4, 7, 12, 17, 24.
+\:\|{j}, \[12].
+\:\\{j\_prime}, 13, 14, \[15], 22, 26.
+\:\|{k}, \[12].
+\:{Knuth, Donald E.}, 15.
+\:\|{m}, \[2].
+\:\\{mult}, \[24], 25, 26.
+\:\|{n}, \[23].
+\:\\{new\_line}, \[6], 9, 10.
+\:\\{new\_page}, \[6], 9.
+\:\\{ord}, \[17], 18, 19, 20, 21, 22, 23, 24, 25.
+\:\\{ord\_max}, 17, \[19], 23, 24.
+\:\\{output}, 2, 6.
+\:{output format}, 5, 9.
+\:\|{p}, \[4].
+\:\\{page}, 6.
+\:{page headings}, 9.
+\:\\{page\_number}, \[7], 8, 9.
+\:\\{page\_offset}, \[7], 8, 9.
+\:{prime number, definition of}, 13.
+\:\\{print\_entry}, \[6], 10.
+\:\\{print\_integer}, \[6], 9.
+\:\\{print\_primes}, \[2].
+\:\\{print\_string}, \[6], 9.
+\:\\{row\_offset}, \[7], 9, 10.
+\:\\{rr}, \[5], 8, 9, 10.
+\:\\{square}, \[17], 18, 20, 21.
+\:\\{true}, 4, 13, 22.
+\:\.{WEB}, 1.
+\:\\{write}, 6.
+\:\\{write\_ln}, 6.
+\:\\{ww}, \[5], 6.
+
+\fin
+\:\X11:Fill table \|p with the first \|m prime numbers\X
+\U section~3.
+\:\X22:Give to \\{j\_prime} the meaning: \|j~is a prime number\X
+\U section~14.
+\:\X26:If $\|p[\|n]$ is a factor of~\|j, set $\\{j\_prime}\K\\{false}$\X
+\U section~22.
+\:\X14:Increase \|j until it is the next prime number\X
+\U section~11.
+\:\X16, 18:Initialize the data structures\X
+\U section~11.
+\:\X5, 19:Other constants of the program\X
+\U section~2.
+\:\X10:Output a line of answers\X
+\U section~9.
+\:\X9:Output a page of answers\X
+\U section~8.
+\:\X8:Print table \|p\X
+\U section~3.
+\:\X3:Print the first \|m prime numbers\X
+\U section~2.
+\:\X2:Program to print the first thousand prime numbers\X
+\U section~1.
+\:\X20:Update variables that depend on~\|j\X
+\U section~14.
+\:\X21, 25:Update variables that depend on~\\{ord}\X
+\U section~20.
+\:\X4, 7, 12, 15, 17, 23, 24:Variables of the program\X
+\U section~2.
+\con

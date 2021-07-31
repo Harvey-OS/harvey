@@ -1,0 +1,95 @@
+</$objtype/mkfile
+#
+#on mips & pixel machines jslr.c needs an overriding compiler flag
+#uncomment the next line and comment out the following one
+#PIXMIP=-Wf,-XNg520	
+PIXMIP=
+
+LIB=libpsi.a$O
+OFILES=array.$O class.$O color.$O control.$O cache.$O dict.$O error.$O\
+	execute.$O file.$O font.$O get_token.$O globals.$O graphics.$O\
+	init.$O io.$O make.$O math.$O matrix.$O misc.$O object.$O\
+	operator.$O path.$O save.$O scanner.$O string.$O tac.$O util.$O\
+	imagemask.$O initfont.$O device.$O relational.$O screen.$O image.$O\
+	clip.$O se.$O type1.$O SSn.bits.$O SSn.tbl.$O Rn.tbl.$O Rn.bits.$O\
+	In.tbl.$O In.bits.$O Rn.tbl.$O Rn.bits.$O In.tbl.$O In.bits.$O BIn.tbl.$O\
+	BIn.bits.$O CWn.tbl.$O CWn.bits.$O Hn.tbl.$O Hn.bits.$O HIn.tbl.$O\
+	HIn.bits.$O  HBn.tbl.$O HBn.bits.$O HBOn.tbl.$O HBOn.bits.$O Bn.tbl.$O\
+	Bn.bits.$O CCITT.$O jslr.$O outfax.$O runlen.$O\
+	wg4.$O wt6.$O mouse.$O jerqcode.$O nbitfile.$O dummy.$O v10code.$O\
+	
+</sys/src/cmd/mklib
+CFLAGS=-I.. -DPlan9
+
+addr.$O: ../njerq.h ../system.h 
+balloc.$O: ../njerq.h ../stdio.h 
+bitblt.$O: ../njerq.h ../system.h 
+cache.$O: ../stdio.h ../defines.h ../object.h ../njerq.h ../comm.h\
+		../path.h ../graphics.h ../cache.h 
+clip.$O: ../stdio.h ../defines.h ../object.h ../path.h ../graphics.h 
+color.$O: ../system.h ../njerq.h
+device.$O: ../njerq.h ../comm.h ../system.h
+dict.$O: ../path.h ../comm.h 
+dutil.$O: ../njerq.h ../system.h 
+font.$O: ../njerq.h ../comm.h ../cache.h 
+globals.$O: ../njerq.h 
+graphics.$O: ../njerq.h 
+image.$O: ../stdio.h ../system.h ../defines.h ../object.h ../njerq.h\
+		../path.h ../comm.h ../graphics.h 
+imagemask.$O: ../stdio.h ../system.h ../defines.h ../object.h ../njerq.h\
+		../comm.h ../path.h ../graphics.h ../cache.h 
+infont.$O: ../system.h ../njerq.h ../font.h 
+init.$O: ../njerq.h 
+initfont.$O: ../stdio.h ../system.h ../defines.h ../object.h ../dict.h\
+		../njerq.h ../font.h
+io.$O: ../njerq.h 
+main.$O: ../njerq.h ../font.h ../object.h ../system.h
+make.$O: ../njerq.h ../cache.h 
+math.$O: ../system.h 
+matrix.$O: ../njerq.h 
+mouse.$O: ../mouse.h
+nbitfile.$O: ../njerq.h ../system.h 
+path.$O: ../system.h ../njerq.h 
+save.$O: ../dict.h ../comm.h ../cache.h
+screen.$O: ../system.h 
+texture.$O: ../njerq.h 
+CCITT.$O: ../system.h ../faxcode/CCITT.c
+	$CC $CFLAGS ../faxcode/CCITT.c
+outfax.$O: ../system.h ../faxcode/outfax.c
+	$CC $CFLAGS ../faxcode/outfax.c
+jslr.$O: ../system.h ../faxcode/jslr.c
+	$CC $CFLAGS $PIXMIP ../faxcode/jslr.c
+runlen.$O: ../system.h ../g4/runlen.c
+	$CC $CFLAGS ../g4/runlen.c
+wt6.$O: ../system.h ../g4/wt6.c
+	$CC $CFLAGS ../g4/wt6.c
+wg4.$O: ../system.h ../njerq.h ../g4/wg4.c
+	$CC $CFLAGS ../g4/wg4.c
+v10code.$O: ../system.h
+SSn.bits.$O: SSn.bits.c
+SSn.tbl.$O: SSn.tbl.c
+Rn.tbl.$O: Rn.tbl.c
+Rn.bits.$O: Rn.bits.c
+In.tbl.$O: In.tbl.c
+In.bits.$O: In.bits.c
+Rn.tbl.$O: Rn.tbl.c
+Rn.bits.$O: Rn.bits.c
+In.tbl.$O: In.tbl.c
+In.bits.$O: In.bits.c
+BIn.tbl.$O: BIn.tbl.c
+BIn.bits.$O: BIn.bits.c
+CWn.tbl.$O: CWn.tbl.c
+CWn.bits.$O: CWn.bits.c
+Hn.tbl.$O: Hn.tbl.c
+Hn.bits.$O: Hn.bits.c
+HIn.tbl.$O: HIn.tbl.c
+HIn.bits.$O: HIn.bits.c
+HBn.tbl.$O: HBn.tbl.c
+HBn.bits.$O: HBn.bits.c
+HBOn.tbl.$O: HBOn.tbl.c
+HBOn.bits.$O: HBOn.bits.c
+Bn.tbl.$O: Bn.tbl.c
+Bn.bits.$O: Bn.bits.c
+nuke:V:
+	mk clean
+	rm -f libpsi.a[$OS]

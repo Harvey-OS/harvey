@@ -1,0 +1,11 @@
+\contentsline {section}{\numberline {1}Introduction}{1}
+\contentsline {section}{\numberline {2}Preamble-like Macros}{1}
+\contentsline {section}{\numberline {3}Body Macros}{2}
+\contentsline {section}{\numberline {4}Man Page Standards}{5}
+\contentsline {subsection}{\numberline {4.1}Fonts}{5}
+\contentsline {subsection}{\numberline {4.2}Section Ordering}{6}
+\contentsline {section}{\numberline {5}Conclusion}{6}
+\contentsline {section}{REFERENCES}{7}
+\contentsline {section}{APPENDICES}{8}
+\contentsline {section}{\numberline {A}Example Man Page Source File}{8}
+\contentsline {section}{\numberline {B}Formatted Man Page Resulting from Example Source File}{10}

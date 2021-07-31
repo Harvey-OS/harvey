@@ -1,0 +1,119 @@
+% BEZIER DOCUMENT-STYLE OPTION - released 17 December 1985
+%    for LaTeX version 2.09
+% Copyright (C) 1985 by Leslie Lamport
+
+%  In a picture environment, writing
+%
+%       \bezier{N}(AX,AY)(BX,BY)(CX,CY)
+%
+%  plots a quadratic Bezier curve from (AX,AY) to (CX,CY), with (BX,BY) as
+%  the third Bezier point, using N+1 equally spaced points.
+%
+%  \bezier{N}(AX,AY)(BX,BY)(CX,CY) ==
+%    BEGIN
+%      @sc  := N
+%      @scp := @sc+1
+%      \@xb := 2 * (BX - AX) * \unitlength
+%      \@xa := ((CX-AX)*\unitlength - \@xb)/@sc
+%      \@yb := 2 * (BY - AY) * \unitlength
+%      \@ya := ((CY-AY)*\unitlength - \@yb)/@sc
+%      \@pt := square rule of width \@wholewidth
+%      @t := 0
+%      WHILE @t < @scp
+%        DO  \@x := ((@t*\@xa + @xb) / @sc) * t
+%            \@y := ((@t*\@ya + @yb) / @sc) * t
+%            plot pt with relative coords (\@x,\@y)
+%            @t := @t+1
+%        OD
+
+\newcounter{@sc}
+\newcounter{@scp}
+\newcounter{@t}
+\newlength{\@x}
+\newlength{\@xa}
+\newlength{\@xb}
+\newlength{\@y}
+\newlength{\@ya}
+\newlength{\@yb}
+\newsavebox{\@pt}
+
+\def\bezier#1(#2,#3)(#4,#5)(#6,#7){\c@@sc#1\relax
+  \c@@scp\c@@sc \advance\c@@scp\@ne
+  \@xb #4\unitlength \advance\@xb -#2\unitlength \multiply\@xb \tw@
+  \@xa #6\unitlength \advance\@xa -#2\unitlength
+      \advance\@xa -\@xb \divide\@xa\c@@sc
+  \@yb #5\unitlength \advance\@yb -#3\unitlength \multiply\@yb \tw@
+  \@ya #7\unitlength \advance\@ya -#3\unitlength
+      \advance\@ya -\@yb \divide\@ya\c@@sc
+  \setbox\@pt\hbox{\vrule height\@halfwidth  depth\@halfwidth 
+   width\@wholewidth}\c@@t\z@   
+   \put(#2,#3){\@whilenum{\c@@t<\c@@scp}\do
+      {\@x\c@@t\@xa \advance\@x\@xb \divide\@x\c@@sc \multiply\@x\c@@t 
+       \@y\c@@t\@ya \advance\@y\@yb \divide\@y\c@@sc \multiply\@y\c@@t 
+       \raise \@y \hbox to \z@{\hskip \@x\unhcopy\@pt\hss}\advance\c@@t\@ne}}}
+
+
+%  of commands of the type specified below, does the following, 
+%  where t, dt, dx, and dy are counters, 
+%
+%        t  := 0
+%        dt := DT
+%        dx := 0
+%        dy := 0
+%        WHILE t < MAX 
+%          DO  plot the point (X + (dx/SCALE)), Y + (dy/SCALE))
+%              t := t + dt
+%              execute COMMANDS
+%          OD
+%
+% COMMANDS may include only the commands \set, \add, \mul, or \div,
+% defined as follows, where
+%           CTR == counter name, 
+%           VAL == either an integer (like 2145 or -7), or
+%                  \value{CTR'}, where CTR' a counter name, or
+%                  -\value{CTR'}
+%
+%      \set{CTR}{VAL} 
+%         This command performs the operation  CTR := VAL
+%   
+%      \add{CTR}{VAL}
+%          Performs the operation  CTR := CTR + VAL
+%   
+%      \mul{CTR}{VAL}
+%          Performs the operation  CTR := CTR * VAL
+%   
+%      \div{CTR}{VAL}
+%          Performs the operation  CTR := CTR / VAL
+%          (this is integer division, with 5/3 = 1 and -5/3 = 5/(-3) = -1)
+%
+%  There should be no spaces in COMMANDS.  However, the command \  can
+%  be used for readabiilty--e.g.,
+%       \set{foo}{dt}\  \mul{foo}{3}
+%
+%
+%  HINTS:  
+%    \plot'ing takes a long time, so start with DT large, and make it small
+%     only for the final draft.
+%
+
+%\newcounter{t}
+%\newcounter{dt}
+%\newcounter{dx}
+%\newcounter{dy}
+%
+%\def\set#1#2{\csname c@#1\endcsname#2}
+%\def\@div#1#2{\divide\csname c@#1\endcsname#2}
+%\def\mul#1#2{\multiply\csname c@#1\endcsname#2}
+%\def\add#1#2{\advance\csname c@#1\endcsname#2}
+%
+
+
+
+%\def\plot#1#2#3#4{\let\div\@div \def\ {}\c@t\z@ \c@t\z@ 
+%  \c@dt#1\c@dx\z@ \c@dy\z@\edef\@tempa{#4}\@tempdima\unitlength
+%  \divide\@tempdima #3\relax
+%  \setbox\@pt\hbox{\vrule height\@halfwidth  depth\@halfwidth 
+%   width\@wholewidth}\@whilenum{\c@t<#2}\do
+%  {\raise \c@dy\@tempdima \hbox to \z@{\hskip \c@dx\@tempdima\unhcopy\@pt\hss
+%                                      }\advance\c@t\c@dt\@tempa}}
+%

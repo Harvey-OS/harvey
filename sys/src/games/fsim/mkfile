@@ -1,6 +1,5 @@
 </$objtype/mkfile
 
-TARG=fsim
 OFILES=\
 	datn.$O\
 	data.$O\
@@ -31,6 +30,19 @@ OFILES=\
 HFILES=\
 	type.h\
 
-BIN=/$objtype/bin/games
+$O.out:	$OFILES
+	$LD $OFILES
 
-</sys/src/cmd/mkone
+%.$O:	%.c
+	$CC -w $stem.c
+
+%.$O:	$HFILES
+
+clean:V:
+	rm -f *.[$OS] *.db[$OS] [$OS].out
+
+install:V:	$O.out
+	cp $O.out /$objtype/bin/games/fsim
+
+installall:V:
+	for(objtype in $CPUS) mk install

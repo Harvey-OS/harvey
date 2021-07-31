@@ -1,0 +1,48 @@
+all install installall:V:	../kuten.c ../big5.c ../gb.c
+
+../%.c:QPcmp -s:	%.c
+	echo updating $target
+	cp $prereq $target
+
+kuten.c:D:	table.awk jis.font
+	rm -f kuten.dups
+	{ echo 'kuten KUTEN' `{ sed -n '/define.*MAX/s/.*	//p' ../kuten.h}; cat jis.font} | awk -f table.awk > $target
+
+big5.c:D:	table.awk big5.map
+	rm -f big5.dups
+	{ echo 'big5 BIG5' `{ sed -n '/define.*MAX/s/.*	//p' ../big5.h}; cat big5.map} | awk -f table.awk > $target
+
+gb.c:D:	table.awk gb.map
+	rm -f gb.dups
+	{ echo 'gb GB' `{ sed -n '/define.*MAX/s/.*	//p' ../gb.h}; cat gb.map} | awk -f table.awk > $target
+
+
+jis.font:D:	han.map desc.han font.awk
+	> jis.font
+	#sed '1,/^UNIC/d' desc.han | time awk -f font.awk
+	#awk -f jis.awk < jis.font | sort +1n -o jis.font
+	cat han.map >> jis.font
+
+big5.map:D:	desc.cjk big5.awk big5.weird
+	sed '1,/^UNIC/d' desc.cjk | awk -f big5.awk > big5.map
+	cat big5.weird >> big5.map
+
+gb.map:D:	desc.cjk gb.awk gb.weird
+	sed '1,/^UNIC/d' desc.cjk | awk -f gb.awk > gb.map
+	cat gb.weird >> gb.map
+
+han.map:D:	desc.cjk han.awk han.bwk jis.weird
+	sed '1,/^UNIC/d' desc.cjk | awk -f han.awk > han.map
+	cat jis.weird >> han.map
+	cat han.bwk >> han.map		# errors/buglets
+
+nuke clean:V:
+	rm -f *.font *.map *.c *.dups
+
+poot2:VE:	gb.map
+	awk '{
+		f = int($1/100)+32
+		c = $1%100+32
+		printf "0x%4.4x\t\t0x%4.4x\n", f*256 + c, $2
+	}' < gb.map | sort > temp
+	diff temp adams/gb2312 > temp1; wc temp1

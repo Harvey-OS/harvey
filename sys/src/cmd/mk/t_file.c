@@ -50,7 +50,7 @@ ftouch(char *name, char *x1, char *x2)
 		sbuf.mtime = time((long *)0);
 		if(dirwstat(name, &sbuf) >= 0)
 			return;
-	} else if(create(name, OWRITE, 0666) >= 0)
+	} else if(CREAT(name, 0666) >= 0)
 		return;
 	perror(name);
 	Exit();
@@ -60,6 +60,6 @@ void
 fdelete(char *s, char *x1, char *x2)
 {
 	USED(x1, x2);
-	if(remove(s) < 0)
+	if(UNLINK(s) < 0)
 		perror(s);
 }

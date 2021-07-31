@@ -10,7 +10,6 @@ int	verbose;
 int	Mflag;
 int	Cplusplus;
 Nlist	*kwdefined;
-char	wd[128];
 
 #define	NLSIZE	128
 
@@ -85,8 +84,6 @@ setup(int argc, char **argv)
 		includelist[1].file = NULL;
 		error(WARNING, "Unknown $objtype");
 	}
-	if (getwd(wd, sizeof(wd))==0)
-		wd[0] = '\0';
 	includelist[0].file = "/sys/include";
 	includelist[0].always = 1;
 	setsource("", -1, 0);
@@ -123,9 +120,6 @@ setup(int argc, char **argv)
 			break;
 		case '+':
 			Cplusplus++;
-			break;
-		case 'W':
-			clearwstab();
 			break;
 		default:
 			error(FATAL, "Unknown argument");
@@ -177,7 +171,6 @@ lookup(Token *tp, int install)
 	}
 	if (install) {
 		np = new(Nlist);
-		np->val = 0;
 		np->vp = NULL;
 		np->ap = NULL;
 		np->flag = 0;

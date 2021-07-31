@@ -1,0 +1,306 @@
+#include	<u.h>
+#include	<libc.h>
+#include	<bio.h>
+
+/*
+ *	output format:
+ *
+ *  0 , county entry
+ *	s state name
+ *	y county name
+ *
+ *	1 , line entry
+ *	    c cfcc code
+ *	    n feature name *
+ *
+ *	    2 , left area entry
+ *		a from address *
+ *		b to address *
+ *		z zip *
+ *		m mcd name
+ *		l place name
+ *		y county name
+ *		c feature type
+ *		n feature name
+ *
+ *	    3 , right area entry
+ *		a from address
+ *		b to address
+ *		z zip
+ *		m mcd name
+ *		l place name
+ *		y county name
+ *		c feature type
+ *		n feature name
+ *
+ *	    t 32-bit latitude
+ *		d 15-bit signed relative latitude
+ *	    g 32-bit longitude
+ *		d 15-bit signed relative longitude
+ *
+ *	4 , point entry
+ *	    c cfcc code
+ *	    n feature name
+ *	    s feature suffix
+ *	    t 32-bit latitude
+ *	    g 32-bit longitude
+ *************************
+ *
+ *	0 county entry
+ *	1 line entry, 0
+ *	2 left area entry, 0
+ *	3 right area entry, 0
+ *	4 point entry, 0
+ *	a address from, 23
+ *	b address to, 23
+ *	c cfcc code, 1234
+ *	d delta lat/lng, tg
+ *	g longitude, 14 degree*1*10^6
+ *	h longitude, 14 degree*5*10^6
+ *	l place name, 01234
+ *	m mcd name, 01234
+ *	n feature name, 1234
+ *	s state name, 0
+ *	t latitude, 14 degree*1*10^6
+ *	u latitude, 14 degree*5*10^6
+ *	y county name, 023
+ *	z zip, 23
+ */
+
+A00	Road, Classification Unknown or Not Elsewhere Classified
+A01	Road, undivided
+A02	Road, undivided, in tunnel
+A03	Road, undivided, underpassing
+A04	Road, undivided, rail line in center
+A05	Road, divided
+A06	Road, divided, in tunnel
+A07	Road, divided, underpassing
+A08	Road, divided, rail line in center
+
+A10	Primary road, interstate highway and limited access road
+A11	Primary road, interstate highway and limited access road, undivided
+A12	Primary road, interstate highway and limited access road, undivided, in tunnel
+A13	Primary road, interstate highway and limited access road, undivided, underpassing
+A14	Primary road, interstate highway and limited access road, undivided, rail line in center
+A15	Primary road, interstate highway and limited access road, divided
+A16	Primary road, interstate highway and limited access road, divided, in tunnel
+A17	Primary road, interstate highway and limited access road, divided, underpassing
+A18	Primary road, interstate highway and limited access road, divided, rail line in center
+
+A20	Secondary road, U.S. highway not classified A10, and state roads
+A21	Secondary road, U.S. highway not classified A10, and state roads, undivided
+A22	Secondary road, U.S. highway not classified A10, and state roads, undivided, in tunnel
+A23	Secondary road, U.S. highway not classified A10, and state roads, undivided, underpassing
+A24	Secondary road, U.S. highway not classified A10, and state roads, undivided, rail line in center
+A25	Secondary road, U.S. highway not classified A10, and state roads, divided
+A26	Secondary road, U.S. highway not classified A10, and state roads, divided, in tunnel
+A27	Secondary road, U.S. highway not classified A10, and state roads, divided, underpassing
+A28	Secondary road, U.S. highway not classified A10, and state roads, divided, rail line in center
+
+A30	Connecting road, county roads, and roads not classified as A10 or A20
+A31	Connecting road, county roads, and roads not classified as A10 or A20, undivided
+A32	Connecting road, county roads, and roads not classified as A10 or A20, undivided, in tunnel
+A33	Connecting road, county roads, and roads not classified as A10 or A20, undivided, underpassing
+A34	Connecting road, county roads, and roads not classified as A10 or A20, undivided, rail line in center
+A35	Connecting road, county roads, and roads not classified as A10 or A20, divided
+A36	Connecting road, county roads, and roads not classified as A10 or A20, divided, in tunnel
+A37	Connecting road, county roads, and roads not classified as A10 or A20, divided, underpassing
+A38	Connecting road, county roads, and roads not classified as A10 or A20, divided, rail line in center
+
+A40	Neighborhood roads, city streets and unimproved roads
+A41	Neighborhood roads, city streets and unimproved roads, undivided
+A42	Neighborhood roads, city streets and unimproved roads, undivided, in tunnel
+A43	Neighborhood roads, city streets and unimproved roads, undivided, underpassing
+A44	Neighborhood roads, city streets and unimproved roads, undivided, rail line in center
+A45	Neighborhood roads, city streets and unimproved roads, divided
+A46	Neighborhood roads, city streets and unimproved roads, divided, in tunnel
+A47	Neighborhood roads, city streets and unimproved roads, divided, underpassing
+A48	Neighborhood roads, city streets and unimproved roads, divided, rail line in center
+
+A50	Jeep trail, passable only by four-wheel drive (4WD) vehicle
+A51	Jeep trail, passable only by four-wheel drive (4WD) vehicle, undivided
+A52	Jeep trail, passable only by four-wheel drive (4WD) vehicle, undivided, in tunnel
+A53	Jeep trail, passable only by four-wheel drive (4WD) vehicle, undivided, underpassing
+
+A60	Special Road Feature
+A61	Cul-de-sac
+A62	Traffic circle
+A63	Cloverleaf or interchange
+A64	Service drive
+A65	Ferry crossing
+
+A70	Other Thoroughfare
+A71	Walkway
+A72	Stairway
+A73	Alley
+
+B00	Railroad, Classification Unknown or Not Elsewhere Classified
+B01	Railroad track
+B02	Railroad track, in tunnel
+B03	Railroad track, underpassing
+
+B10	Railroad Main Track
+B11	Railroad main track
+B12	Railroad main track, in tunnel
+B13	Railroad main track, underpassing
+
+B20	Railroad Spur Track
+B21	Railroad spur track
+B22	Railroad spur track, in tunnel
+B23	Railroad spur track, underpassing
+
+B30	Railroad Yard
+B31	Railroad yard
+B32	Railroad yard, in tunnel
+B33	Railroad yard, underpassing
+
+B40	Railroad Ferry Crossing
+
+B50	Other Rail Feature
+B51	Carline
+B52	Cog railroad, incline railway, or logging tram
+
+C00	Special Transportation Feature, Classification Unknown or Not Elsewhere Classified
+
+C10	Pipeline
+
+C20	Power Transmission Line
+
+C30	Other Special Transportation Feature
+C31	Aerial tramway, monorail, or ski lift
+
+D00	Landmark Feature, Classification Unknown or Not Elsewhere Classified
+
+D10	Military installation
+
+D20	Multihousehold and transient quarters
+D21	Apartment building or complex
+D22	Rooming or boarding house
+D23	Trailer court or mobile home park
+D24	Marina
+D25	Crew of vessel
+D26	Housing facility for workers
+D27	Hotel, motel, resort, spa, YMCA, or YWCA
+D28	Campground
+D29	Shelter or mission
+
+D30	Custodial facility
+D31	Hospital
+D32	Halfway house
+D33	Nursing home, retirement home, or home for the aged
+D34	County home or poor farm
+D35	Orphanage
+D36	Jail or detention center
+D37	Federal penitentiary, state prison, or prison farm
+
+D40	Educational or religious institution
+D41	Sorority or fraternity
+D42	Convent or monastery
+D43	Educational institution
+D44	Religious institution
+
+D50	Transportation terminal
+D51	Airport or airfield
+D52	Train station
+D53	Bus terminal
+D54	Marine terminal
+D55	Seaplane anchorage
+
+D60	Employment center
+D61	Shopping center or major retail center
+D62	Industrial building or industrial park
+D63	Office building or office park
+D64	Amusement center
+D65	Government center
+D66	Other employment center
+
+D70	Tower
+D71	Lookout tower
+
+D80	Open space
+D81	Golf course
+D82	Cemetery
+D83	National park or forest
+D84	Other federal land
+D85	State or local park or forest
+
+D90	Special purpose landmark
+D91	Post office box ZIP code
+
+E00	Physical Feature, Classification Unknown or Not Elsewhere Classified
+
+E10	Fence line
+E20	Topographic feature
+E21	Ridge line
+E22	Mountain peak
+
+F10	Nonvisible Political Boundary
+F11	Offset corporate boundary
+F12	Corporate Corridor
+F13	Nonvisible interpolated boundary, polygon definition line for hydrological areas
+
+F20	Feature Extension, Not Otherwise Classified
+F21	Automated extension
+F22	Irregular block extension
+F23	Closure extension
+F24	Nonvisible separation line
+F25	Nonvisible corporate corridor centerline
+
+F30	Point-to-Point Line
+
+F40	Property Line
+
+F50	ZIP Code Boundary
+
+F60	Map Edge
+
+F70	Statistical Boundary
+F71	1980 Statistical Boundary
+F72	1990 Block Boundary
+F73	1990 Statistical Boundary
+F74	1990 Statistical Boundary, Tabulation Areas Only
+
+H00	Water Feature, Classification Unknown or Not Elsewhere Classified
+
+H01	Shoreline of perennial water feature
+H02	Shoreline of intermittent water feature
+
+H10	Stream
+H11	Perennial stream
+H12	Intermittent stream or wash
+H13	Braided stream
+
+H20	Canal, Ditch, or Aqueduct
+H21	Perennial canal, ditch, or aqueduct
+H22	Intermittent canal, ditch, or aqueduct
+
+H30	Lake or pond
+H31	Perennial lake or pond
+H32	Intermittent lake or pond
+
+H40	Reservoir
+H41	Perennial reservoir
+H42	Intermittent reservoir
+
+H50	Bay, Estuary, Gulf, Sound, Sea, or Ocean
+H51	Bay, estuary, gulf, or sound
+H53	Sea or ocean
+
+H60	Gravel Pit or Quarry Filled With Water
+
+H70	Nonvisible Water Area Definition Boundary
+H71	USGS closure line
+H72	Census computed center line
+H73	Census international water boundary, 10-mile limit, area measurement line
+H74	Census water boundary, inland or coastal or Great Lakes
+H75	3-mile limit water boundary
+
+H80	Special Water Feature
+H81	Glacier
+
+X00	Feature Not Yet Classified
+X10	FAA airport
+X11	FAA vor
+X12	FAA ndb
+
+X20	Place Names

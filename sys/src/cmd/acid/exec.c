@@ -9,29 +9,18 @@
 void
 error(char *fmt, ...)
 {
-	int i;
-	char buf[2048];
-
-	/* Unstack io channels */
-	if(iop != 0) {
-		for(i = 1; i < iop; i++)
-			Bterm(io[i]);
-		bout = io[0];
-		iop = 0;
-	}
+	char buf[128];
 
 	ret = 0;
 	gotint = 0;
+	Bflush(bin);
 	Bflush(bout);
-	if(silent)
-		silent = 0;
-	else {
-		doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
-		fprint(2, "%L: (error) %s\n", buf);
-	}
-	while(popio())
-		;
-	interactive = 1;
+	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
+	if(filename)
+		fprint(2, "%d: (%s) %s\n", line, filename, buf);
+	else
+		fprint(2, "%d: (error) %s\n", line, buf);
+
 	longjmp(err, 1);
 }
 
@@ -56,11 +45,11 @@ unwind(void)
 void
 execute(Node *n)
 {
+	Node res;
 	Value *v;
 	Lsym *sl;
 	Node *l, *r;
 	int i, s, e;
-	Node res, xx;
 	static int stmnt;
 
 	if(gotint)
@@ -69,7 +58,7 @@ execute(Node *n)
 	if(n == 0)
 		return;
 
-	if(stmnt++ > 5000) {
+	if(stmnt++ > 10000) {
 		Bflush(bout);
 		stmnt = 0;
 	}
@@ -80,34 +69,24 @@ execute(Node *n)
 	switch(n->op) {
 	default:
 		expr(n, &res);
-		if(ret || (res.type == TLIST && res.l == 0))
-			break;
-		prnt->right = &res;
-		expr(prnt, &xx);
-		break;
-	case OASGN:
-	case OCALL:
-		expr(n, &res);
 		break;
 	case OCOMPLEX:
-		decl(n);
+		decl(n->sym, l->sym);
 		break;
 	case OLOCAL:
-		for(n = n->left; n; n = n->left) {
-			if(ret == 0)
-				error("local not in function");
-			sl = n->sym;
-			if(sl->v->ret == ret)
-				error("%s declared twice", sl->name);
-			v = gmalloc(sizeof(Value));
-			v->ret = ret;
-			v->pop = sl->v;
-			sl->v = v;
-			v->scope = 0;
-			*(ret->tail) = sl;
-			ret->tail = &v->scope;
-			v->set = 0;
-		}
+		if(ret == 0)
+			error("local not in function");
+		sl = n->sym;
+		if(sl->v->ret == ret)
+			error("%s already declared at this scope", sl->name);
+		v = gmalloc(sizeof(Value));
+		v->ret = ret;
+		v->pop = sl->v;
+		sl->v = v;
+		v->scope = 0;
+		*(ret->tail) = sl;
+		ret->tail = &v->scope;
+		v->set = 0;
 		break;
 	case ORET:
 		if(ret == 0)
@@ -140,13 +119,13 @@ execute(Node *n)
 	case ODO:
 		expr(l->left, &res);
 		if(res.type != TINT)
-			error("loop must have integer start");
+			error("do must have integer start");
 		s = res.ival;
 		expr(l->right, &res);
 		if(res.type != TINT)
-			error("loop must have integer end");
+			error("do must have integer end");
 		e = res.ival;
-		for(i = s; i <= e; i++)
+		for(i = s; i < e; i++)
 			execute(r);
 		break;
 	}
@@ -182,31 +161,13 @@ bool(Node *n)
 }
 
 void
-convflt(Node *r, char *flt)
-{
-	char c;
-
-	c = flt[0];
-	if(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
-		r->type = TSTRING;
-		r->fmt = 's';
-		r->string = strnode(flt);
-	}
-	else {
-		r->type = TFLOAT;
-		r->fval = atof(flt);
-	}
-}
-
-void
 indir(Map *m, ulong addr, char fmt, Node *r)
 {
 	int i;
-	long ival;
-	int ret;
+	int ival;
 	uchar cval;
 	ushort sval;
-	char buf[512], reg[12];
+	char buf[512];
 
 	r->op = OCONST;
 	r->fmt = fmt;
@@ -217,9 +178,7 @@ indir(Map *m, ulong addr, char fmt, Node *r)
 	case 'C':
 	case 'b':
 		r->type = TINT;
-		ret = get1(m, addr, &cval, 1);
-		if (ret < 0)
-			error("indir: %r");
+		get1(m, addr, SEGANY, &cval, 1);
 		r->ival = cval;
 		break;
 	case 'x':
@@ -227,16 +186,10 @@ indir(Map *m, ulong addr, char fmt, Node *r)
 	case 'u':
 	case 'o':
 	case 'q':
-	case 'r':
 		r->type = TINT;
-		ret = get2(m, addr, &sval);
-		if (ret < 0)
-			error("indir: %r");
+		get2(m, addr, SEGANY, &sval);
 		r->ival = sval;
 		break;
-	case 'a':
-	case 'A':
-	case 'B':
 	case 'X':
 	case 'D':
 	case 'U':
@@ -244,93 +197,49 @@ indir(Map *m, ulong addr, char fmt, Node *r)
 	case 'Q':
 	case 'Y':
 		r->type = TINT;
-		ret = get4(m, addr, &ival);
-		if (ret < 0)
-			error("indir: %r");
+		get4(m, addr, SEGANY, &ival);
 		r->ival = ival;
 		break;
 	case 's':
 		r->type = TSTRING;
 		for(i = 0; i < sizeof(buf)-1; i++) {
-			ret = get1(m, addr, (uchar*)&buf[i], 1);
-			if (ret < 0)
-				error("indir: %r");
+			get1(m, addr, SEGANY, (uchar*)&buf[i], 1);
 			addr++;
 			if(buf[i] == '\0')
 				break;
 		}
 		buf[i] = 0;
-		if(i == 0)
-			strcpy(buf, "(null)");
 		r->string = strnode(buf);
 		break;
 	case 'R':
 		r->type = TSTRING;
-		for(i = 0; i < sizeof(buf)-2; i += 2) {
-			ret = get1(m, addr, (uchar*)&buf[i], 2);
-			if (ret < 0)
-				error("indir: %r");
+		for(i = 0; i < sizeof(buf)-1; i += 2) {
+			get1(m, addr, SEGANY, (uchar*)&buf[i], 2);
 			addr += 2;
 			if(buf[i] == 0 && buf[i+1] == 0)
 				break;
 		}
-		buf[i++] = 0;
 		buf[i] = 0;
-		r->string = runenode((Rune*)buf);
+		r->string = strnode(buf);
 		break;
 	case 'i':
 	case 'I':
-		if ((*machdata->das)(m, addr, fmt, buf, sizeof(buf)) < 0)
-			error("indir: %r");
+		xprint = 1;
+		asmbuf[0] = '\0';
+		dot = addr;
+		(*machdata->printins)(m, fmt, SEGANY);
+		xprint = 0;
 		r->type = TSTRING;
 		r->fmt = 's';
-		r->string = strnode(buf);
+		r->string = strnode(asmbuf);
 		break;
 	case 'f':
-		ret = get1(m, addr, (uchar*)buf, mach->szfloat);
-		if (ret < 0)
-			error("indir: %r");
-		machdata->sftos(buf, sizeof(buf), (void*) buf);
-		convflt(r, buf);
-		break;
-	case 'g':
-		ret = get1(m, addr, (uchar*)buf, mach->szfloat);
-		if (ret < 0)
-			error("indir: %r");
-		machdata->sftos(buf, sizeof(buf), (void*) buf);
-		r->type = TSTRING;
-		r->string = strnode(buf);
+		r->type = TFLOAT;
+		get1(m, addr, SEGANY, (uchar*)buf, mach->szfloat);
 		break;
 	case 'F':
-		ret = get1(m, addr, (uchar*)buf, mach->szdouble);
-		if (ret < 0)
-			error("indir: %r");
-		machdata->dftos(buf, sizeof(buf), (void*) buf);
-		convflt(r, buf);
-		break;
-	case '3':	/* little endian ieee 80 with hole in bytes 8&9 */
-		ret = get1(m, addr, (uchar*)reg, 10);
-		if (ret < 0)
-			error("indir: %r");
-		memmove(reg+10, reg+8, 2);	/* open hole */
-		memset(reg+8, 0, 2);		/* fill it */
-		leieee80ftos(buf, sizeof(buf), reg);
-		convflt(r, buf);
-		break;
-	case '8':	/* big-endian ieee 80 */
-		ret = get1(m, addr, (uchar*)reg, 10);
-		if (ret < 0)
-			error("indir: %r");
-		beieee80ftos(buf, sizeof(buf), reg);
-		convflt(r, buf);
-		break;
-	case 'G':
-		ret = get1(m, addr, (uchar*)buf, mach->szdouble);
-		if (ret < 0)
-			error("indir: %r");
-		machdata->dftos(buf, sizeof(buf), (void*) buf);
-		r->type = TSTRING;
-		r->string = strnode(buf);
+		r->type = TFLOAT;
+		get1(m, addr, SEGANY, (uchar*)buf, mach->szdouble);
 		break;
 	}
 }
@@ -341,7 +250,6 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 	uchar cval;
 	ushort sval;
 	Node res, aes;
-	int ret;
 
 	if(m == 0)
 		error("no map for */@=");
@@ -351,9 +259,6 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 
 	if(aes.type != TINT)
 		error("bad type lhs of @/*");
-
-	if(m != cormap && wtflag == 0)
-		error("not in write mode");
 
 	r->type = res.type;
 	r->fmt = res.fmt;
@@ -366,7 +271,7 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 	case 'C':
 	case 'b':
 		cval = res.ival;
-		ret = put1(m, aes.ival, &cval, 1);
+		put1(m, aes.ival, SEGANY, &cval, 1);
 		break;
 	case 'r':
 	case 'x':
@@ -374,26 +279,21 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 	case 'u':
 	case 'o':
 		sval = res.ival;
-		ret = put2(m, aes.ival, sval);
+		put2(m, aes.ival, SEGANY, sval);
 		r->ival = sval;
 		break;
-	case 'a':
-	case 'A':
-	case 'B':
 	case 'X':
 	case 'D':
 	case 'U':
 	case 'O':
 	case 'Y':
-		ret = put4(m, aes.ival, res.ival);
+		put4(m, aes.ival, SEGANY, res.ival);
 		break;
 	case 's':
 	case 'R':
-		ret = put1(m, aes.ival, (uchar*)res.string->string, res.string->len);
+		put1(m, aes.ival, SEGANY, (uchar*)res.string->string, res.string->len);
 		break;
 	}
-	if (ret < 0)
-		error("windir: %r");
 }
 
 void
@@ -406,8 +306,6 @@ call(char *fn, Node *parameters, Node *local, Node *body, Node *retexp)
 	Lsym *s, *next;
 	Node *avp[Maxarg], *ava[Maxarg];
 
-	rlab.local = 0;
-
 	na = 0;
 	flatten(avp, parameters);
 	np = na;
@@ -416,30 +314,22 @@ call(char *fn, Node *parameters, Node *local, Node *body, Node *retexp)
 	if(np != na) {
 		if(np < na)
 			error("%s: too few arguments", fn);
+
 		error("%s: too many arguments", fn);
 	}
 
+	rlab.local = 0;
 	rlab.tail = &rlab.local;
 
 	ret = &rlab;
 	for(i = 0; i < np; i++) {
 		n = ava[i];
-		switch(n->op) {
-		default:
+		if(n->op != ONAME)
 			error("%s: %d formal not a name", fn, i);
-		case ONAME:
-			expr(avp[i], &res);
-			s = n->sym;
-			break;
-		case OINDM:
-			res.cc = avp[i];
-			res.type = TCODE;
-			res.comt = 0;
-			if(n->left->op != ONAME)
-				error("%s: %d formal not a name", fn, i);
-			s = n->left->sym;
-			break;
-		}
+
+		expr(avp[i], &res);
+
+		s = n->sym;
 		if(s->v->ret == ret)
 			error("%s already declared at this scope", s->name);
 

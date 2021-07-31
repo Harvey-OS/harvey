@@ -1,0 +1,269 @@
+.TH HELP 1
+.SH NAME
+help \- experimental window system
+.SH SYNOPSIS
+.B help/help
+.PP
+.B help/buf
+.PP
+.B
+eval `{/bin/help/parse
+[
+.B -ca0
+]
+}
+.SH DESCRIPTION
+.I Help
+is an experimental combination of window system, editor, shell, and
+user interface.
+.I Help
+supports textual applications only.
+.SS Layout
+The screen is divided initially into two columns of windows.
+Each window is divided into two components: a single line of text
+across the top, called the
+.IR tag ,
+and a multi-line
+.I body
+of text below.  Typically a window represents a file whose name
+is in the tag and whose contents are in the body.
+In this case, the file name appears as the first part of the tag,
+followed by white space.  The
+.I directory name
+associated with the window is the file name in the tag stripped
+of text after its final slash character.
+.PP
+The columns also have tags.
+The windows and columns are stacked like aligned sheets of paper that may
+overlap.
+(In the rest of this document, `window' will stand for `window or column'.)
+Each window has associated a small black square to the left of the
+column containing the window; each column has one to the top.
+Clicking with mouse button 1 on the square brings the associated window
+to the top of the stack of windows in which it resides, leaving its
+x-y position unchanged.
+.PP
+Pressing mouse button 3 in the tag of a window allows the window
+to be moved: hold the button down and release it in the desired new position.
+.PP
+New windows are placed automatically by
+.IR help .
+They are placed in the bottom of the column containing the selected text
+(q.v.).
+.SS Text
+Each window contains editable text in its tag and body.
+The behavior of this text is essentially the same as in
+.IR sam (1):
+button 1 selects text; typing replaces the selection; there is
+a scroll bar to the left, etc.
+Double clicking button 1 selects as in
+.I sam.
+The tag and body have independent selections.
+.PP
+The current window (tag or body)
+is the one under the mouse; there is no `click-to-type'
+property.
+.PP
+Cutting and pasting are done by chords on the mouse buttons.
+While button 1 is held down after a selection, clicking button 2
+will cut the selected text and button 3 will paste the snarf buffer
+into the selected text.
+There is no menu for cutting and pasting, although there are such
+commands; see the next section.
+.SS Execution
+Commands are executed by selecting the text of the command using
+button 2.
+When the button is released, the button 2 selection is passed to the
+shell for execution.
+While a command is executing, the command name appears in the top line
+of the
+.I help
+screen; when the command completes, it is removed.
+Selecting with button 2 does not affect the current text.
+.PP
+Some commands are built in to
+.I help.
+By convention, these commands have initial capital letters.
+Examples are
+.BR Cut ,
+.BR Paste ,
+.BR Snarf ,
+.BR Open ,
+etc.
+Such commands are interpreted internally, much like functions in
+.IR rc (1),
+and do not correspond to executable files.
+Some built-ins take no arguments and cause actions to the window in which
+they are executed.  These are suffixed with an exclamation point.
+They are
+.BR Close! ,
+which closes the window,
+.BR Get! ,
+which rereads the file, and
+.BR Put! ,
+which writes the window to its file.
+.PP
+The file name to execute is found as follows.
+If the command name begins
+.B /
+or
+.B ./
+it is taken as a literal file name.
+If not, the name is prefixed by the directory name of the window holding
+the command name.
+If that file does not exist or if there is no directory name,
+the name is prefixed by
+.BR /bin/ .
+.PP
+Multiple words are interpreted as a command to execute followed by its
+arguments.  Single quotes behave as in
+.IR rc (1).
+Built-in commands that take an argument will use the selected text
+as an argument if no argument is provided explicitly.
+For example, one may select a file name with button 1 and select
+.B Open
+with button 2 to open a window on a file.
+Shell commands must be provided their arguments explicitly,
+although it is possible to discover the selection in a program
+designed to run under
+.IR help ;
+see
+.IR help (4)
+and read about
+.I parse
+below.
+.SS Defaults
+When selecting text with button 1, double clicks select words, lines, etc.
+There is no way to double click with button 2, however.
+Instead, a null selection \(em a click \(em with button 2 on a word
+expands to the entire white-space-delimited word containing
+the selection.  For example, clicking button 2 on
+.B Cut
+will cut the selected text.
+If the text selected with button 2 is not a null string,
+no such expansion occurs.
+.PP
+When a null button 1 selection is used as an argument to a command,
+rules relevant to the command are used to expand the selection.
+For example,
+.B Open
+expands the selection to a white-space-delimited word and interprets
+that as a file name.
+It is therefore possible to open a file with two clicks: one on the
+file name, one on
+.BR Open .
+Also, since typing leaves the selection at the null string at the
+end of the typed text, one may load a new file by typing its name
+(leaving the selection at the end of the name) and clicking button 2 on
+.B Open.
+Other commands interpret the selection as numbers, words,
+C identifiers, etc.,
+.I
+according to the rules of the command.
+.SS Tools
+Tools in
+.I help
+comprise directories holding executable programs and
+associated file, conventionally called
+.B stf
+(`stuff') that holds the templates for
+executing the programs.  Standard tools live in
+.BR /help .
+For example,
+.B /help/cbr
+is a directory of tools for browsing C source text and
+.B /help/cbr/stf
+is a text file that acts somewhat like a menu of browser commands.
+By the rules mentioned above, clicking button 2 on, say,
+.B decl
+in the window holding
+.B /help/cbr/stf
+will execute
+.BR /help/cbr/decl ,
+a program that identifies the declaration of a C variable.
+.SS Boot
+When started,
+.I help
+initializes its display and prints the words
+.B help/Boot
+and
+.B Exit
+across the top.
+.B Exit
+is naturally the built-in command to quit
+.IR help .
+The program
+.B help/Boot
+loads
+.I help
+with the tools named in the environment variable
+.B $helpboot .
+.SS Support programs
+See
+.IR help (4)
+for an explanation of the control files
+.I help
+offers its applications.  Two programs in
+.B /bin/help
+assist such applications.
+.I Buf
+collects its input and emits it in a single
+.B write
+system call.  It sends a maximum of 8192 bytes.
+.I Parse
+reads
+.IR help 's
+control files to find the selected text.  It expands the selection, if null,
+to the alphanumeric word defined by its option:
+.B -0
+(zero) selects numbers;
+.B -a
+selects alphabetic words; and
+.B -c
+selects C identifiers.
+.I Parse
+then prints strings to set the environment variables
+.B $file
+to the file name of the window holding the selection,
+.B $dir
+to the directory,
+.B $base
+to the basename (file minus directory),
+.B $line
+to the line number holding the beginning of the selection,
+and
+.B $id
+to the text containing the word.
+The output of
+.I parse
+should be executed by
+.BR rc .
+.SH FILES
+.TF /help/lib/boot
+.TP
+.B /mnt/help
+Files served by
+.I help
+(also unioned in
+.B /dev
+in a window's name space, before the terminal's real
+.B /dev
+files).
+.TP
+.B /help
+Directory of tools.
+.TP
+.B /help/lib/boot
+Bootstrap program.
+.SH "SEE ALSO"
+.IR 8½ (1),
+.IR 8½ (4),
+.IR help (4)
+.br
+Rob Pike,
+.I
+A Global Minimal User Interface.
+.SH BUGS
+.I Help
+has not been engineered or tested nearly as well as
+.I 8½.

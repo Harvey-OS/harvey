@@ -1,0 +1,233 @@
+#!/bin/sh
+# edit a vpl file to put in Greek upper case from Symbol font
+COMMAND="$0 $1 $2"
+case "$1" in
+-s)	SFONT=Symbol; shift ;;
+*)	SFONT=Symbolsl
+esac
+case "$1" in
+"")	echo 'Usage: addgreekcaps [-s] name[.vpl]'; exit 1 ;;
+*.vpl)	VFILE=$1 ;;
+*)	VFILE=$1.vpl
+esac
+case $SFONT in
+Symbol)
+ed $VFILE <<endofscript
+/VTITLE/s/)/; $COMMAND)/
+/LIGTABLE/i
+(MAPFONT D 1
+   (FONTNAME Symbol)
+   (FONTCHECKSUM O 5346612612)
+   )
+.
+/CHARACTER/i
+(CHARACTER O 0 (comment Gamma)
+   (CHARWD R 603)
+   (CHARHT R 673)
+   (CHARIC R 6)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 107)
+      )
+   )
+(CHARACTER O 1 (comment Delta)
+   (CHARWD R 612)
+   (CHARHT R 688)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 104)
+      )
+   )
+(CHARACTER O 2 (comment Theta)
+   (CHARWD R 741)
+   (CHARHT R 685)
+   (CHARDP R 17)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 121)
+      )
+   )
+(CHARACTER O 3 (comment Lambda)
+   (CHARWD R 686)
+   (CHARHT R 688)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 114)
+      )
+   )
+(CHARACTER O 4 (comment Xi)
+   (CHARWD R 645)
+   (CHARHT R 672)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 130)
+      )
+   )
+(CHARACTER O 5 (comment Pi)
+   (CHARWD R 768)
+   (CHARHT R 673)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 120)
+      )
+   )
+(CHARACTER O 6 (comment Sigma)
+   (CHARWD R 592)
+   (CHARHT R 673)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 123)
+      )
+   )
+(CHARACTER O 7 (comment Upsilon)
+   (CHARWD R 690)
+   (CHARHT R 673)
+   (CHARIC R 4)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 125)
+      )
+   )
+(CHARACTER O 10 (comment Phi)
+   (CHARWD R 763)
+   (CHARHT R 672)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 106)
+      )
+   )
+(CHARACTER O 11 (comment Psi)
+   (CHARWD R 795)
+   (CHARHT R 683)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 131)
+      )
+   )
+(CHARACTER O 12 (comment Omega)
+   (CHARWD R 768)
+   (CHARHT R 688)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 127)
+      )
+   )
+.
+w
+endofscript
+;;
+Symbolsl)
+ed $VFILE <<endofscriptsl
+/VTITLE/s/)/; $COMMAND)/
+/LIGTABLE/i
+(MAPFONT D 1
+   (FONTNAME Symbol)
+   (FONTCHECKSUM O 5346612612)
+   )
+.
+/CHARACTER/i
+(CHARACTER O 0 (comment Gamma)
+   (CHARWD R 603)
+   (CHARHT R 673)
+   (CHARIC R 6)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 107)
+      )
+   )
+(CHARACTER O 1 (comment Delta)
+   (CHARWD R 612)
+   (CHARHT R 688)
+   (CHARIC R 118)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 104)
+      )
+   )
+(CHARACTER O 2 (comment Theta)
+   (CHARWD R 741)
+   (CHARHT R 685)
+   (CHARDP R 17)
+   (CHARIC R 87)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 121)
+      )
+   )
+(CHARACTER O 3 (comment Lambda)
+   (CHARWD R 686)
+   (CHARHT R 688)
+   (CHARIC R 109)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 114)
+      )
+   )
+(CHARACTER O 4 (comment Xi)
+   (CHARWD R 645)
+   (CHARHT R 672)
+   (CHARIC R 100)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 130)
+      )
+   )
+(CHARACTER O 5 (comment Pi)
+   (CHARWD R 768)
+   (CHARHT R 673)
+   (CHARIC R 89)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 120)
+      )
+   )
+(CHARACTER O 6 (comment Sigma)
+   (CHARWD R 592)
+   (CHARHT R 673)
+   (CHARIC R 109)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 123)
+      )
+   )
+(CHARACTER O 7 (comment Upsilon)
+   (CHARWD R 690)
+   (CHARHT R 673)
+   (CHARIC R 116)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 125)
+      )
+   )
+(CHARACTER O 10 (comment Phi)
+   (CHARWD R 763)
+   (CHARHT R 672)
+   (CHARIC R 89)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 106)
+      )
+   )
+(CHARACTER O 11 (comment Psi)
+   (CHARWD R 795)
+   (CHARHT R 683)
+   (CHARIC R 100)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 131)
+      )
+   )
+(CHARACTER O 12 (comment Omega)
+   (CHARWD R 768)
+   (CHARHT R 688)
+   (CHARDP R 7)
+   (CHARIC R 107)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 127)
+      )
+   )
+.
+w
+endofscriptsl
+esac

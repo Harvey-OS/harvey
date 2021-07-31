@@ -40,6 +40,12 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
+int
+cmp(char *a, char *b)
+{
+	return atoi(a) - atoi(b);
+}
+
 void
 ps(char *s)
 {
@@ -86,10 +92,4 @@ error(char *s)
 	fprint(2, "ps: %s: ", s);
 	perror("error");
 	exits(s);
-}
-
-int
-cmp(char *a, char *b)
-{
-	return atoi(a) - atoi(b);
 }

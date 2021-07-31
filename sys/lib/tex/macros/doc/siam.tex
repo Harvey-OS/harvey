@@ -1,0 +1,166 @@
+\documentstyle{siam}
+\title{Using the SIAM \LaTeX\ Style%
+	\thanks{This document was written September 24, 1986.}}
+\author{Howard Trickey%
+	\thanks{AT\&T Bell Laboratories, 600 Mountain Ave.,
+		Murray Hill, NJ 07974.
+		{\tt research!trickey} or {\tt trickey@btl.csnet}}}
+\begin{document}
+\maketitle
+\begin{abstract}
+This note explains how to use a \LaTeX\ style that produces a good
+approximation to the style used in SIAM journals.
+The note is itself an example of the {\tt siam} style in action.
+\end{abstract}
+\begin{keywords}
+Document preparation, \LaTeX, SIAM
+\end{keywords}
+
+\section{Introduction}
+The {\em Society for Industrial and Applied Mathematics (SIAM)\/}
+publishes a number of journals, as shown in Table~\ref{pub-table}.
+Authors who have prepared their articles using \LaTeX\ \cite{latexbook}
+can get them formatted in a style identical to a typical paper
+in one of those journals.
+Input that is suitable for the \LaTeX\ {\tt article} style needs
+only a couple of modifications besides changing the document style
+to {\tt siam}.
+
+\begin{table}\label{pub-table}
+\caption{SIAM Publications}
+\begin{center}
+\begin{tabular}{l}
+\hline
+SIAM Journal on Algebraic and Discrete Methods\\
+SIAM Journal on Applied Mathematics\\
+SIAM Journal on Computing\\
+SIAM Journal on Control and Optimization\\
+SIAM Journal on Mathematical Analysis\\
+SIAM Journal on Numerical Analysis\\
+SIAM Journal on Scientific and Statistical Computing\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+This paper itself gives an example of the {\tt siam} style.
+Figure~\ref{outline-fig} is an outline of the input used.
+
+\begin{figure}
+\begin{center}
+\begin{verbatim}
+\documentstyle{siam}
+\title{Using the SIAM \LaTeX\ Style%
+        \thanks{This document was written September 24, 1986.}}
+\author{Howard Trickey%
+        \thanks{AT\&T Bell Laboratories, 600 Mountain Ave.,
+                Murray Hill, NJ 07974.
+                {\tt research!trickey} or {\tt trickey@btl.csnet}}}
+\begin{document}
+\maketitle
+\begin{abstract}
+This note explains ...
+\end{abstract}
+\begin{keywords}
+Document preparation, \LaTeX, SIAM
+\end{keywords}
+
+\section{Introduction}
+...
+\section*{Acknowledgment}
+\bibliography{siam}
+\bibliographystyle{siam}
+\end{document}
+\end{verbatim}
+\end{center}
+\caption{Input used to produce this paper}\label{outline-fig}
+\end{figure}
+
+\section{Title Material}
+Use the \LaTeX\ \verb|\title| and \verb|\author| declarations and the
+\verb|\maketitle| command as usual.
+SIAM journals don't put author affiliations below or beside
+the author(s); instead, use \verb|\thanks| to list addresses.
+In fact, it is an error to use \verb|\\| in the \verb|\author|
+command, because it interferes with some fairly fancy
+footwork that the style uses to change the author and title
+to all uppercase.
+If there are several authors with the same affiliation,
+the best I can suggest is to \verb|\thanks| only one, see
+what footnote mark comes out, and manually place it after
+the others (sorry).
+
+The \verb|\maketitle| can be followed by an abstract and/or a keywords
+section, as shown in the introduction.
+
+\section{Figures and Tables}
+SIAM tables have their captions above the table contents,
+while figures have captions below the contents.
+Place the \verb|\caption| command accordingly.
+Figure~\ref{outline-fig} and Table~\ref{pub-table}
+were examples.
+
+\section{Mathematics}
+Equations are entered as usual.
+SIAM journals put equation numbers on the left.
+It appears to be up to the author whether equations are numbered
+within a section (e.g., (4.2)) or within the paper (e.g., (2)).
+The {\tt siam} style uses the latter, as this example from
+the {\em SIAM Journal on Numerical Analysis\/}
+\cite{bube} shows:
+\begin{equation}
+r_k=\int_{-\Delta}^{\Delta} r(2k\Delta+\tau)\,d\tau\qquad (0\le k \le n)
+\end{equation}
+
+There are four ``theorem-like'' environments predefined:
+theorem, lemma, corollary, and proposition.
+Again, SIAM does not appear to prescribe the exact numbering scheme
+to be used.
+The {\tt siam} style numbers them all in the same index space, and
+not within each section.
+There is also a \verb|\proof| environment.
+For example, here is Theorem~1 of the example paper \cite{bube}:
+\begin{theorem}
+Suppose the ramp reflectance is sampled. Then
+\begin{equation}\label{theq}
+\|R_j\|_2 \le c_0 \equiv \|R_X\| < 1
+\end{equation}
+whenever $(j+1)\Delta\le X$;
+thus the discrete inverse problem can be solved,
+yielding a positive discrete impedance profile.
+\end{theorem}
+\begin{proof}
+Fix $\Delta$, and fix $j$ and $x$ with $0<x=(j+1)\Delta \le X$.\\
+\dots so since $R_j$ is symmetric, (\ref{theq}) follows.
+\end{proof}
+
+\section{SIAM Bibliographies}
+The {\tt siam} bibliography style uses numeric labels, abbreviations
+from Mathematical Reviews, titles in italics, mixed upper-lower case
+for book titles, lower case for article titles, and uses commas
+to separate fields.
+SIAM journal articles sometimes order the entries alphabetically,
+sometimes order-of-reference.
+The {\tt siam} style does alphabetic ordering.
+
+\section{Page Styles}
+Use the {\tt plain} style, or perhaps {\tt empty} or {\tt myheadings}.
+The {\tt headings} style doesn't do the right thing.
+(A problem with making {\tt headings} work is that
+often the title and/or authors have to be abbreviated to fit
+in the headings.)
+
+\section*{Acknowledgment}
+Eric Grosse and Bill Coughran were the instigators and first users
+of this style.
+Eric has made it available via {\em netlib}, a repository
+of mathematical software.  You can get the {\tt siam} style
+files by
+\begin{verbatim}
+    mail research!netlib
+    send latex from siam
+\end{verbatim}
+
+\bibliography{siam}
+\bibliographystyle{siam}
+\end{document}

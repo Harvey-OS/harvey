@@ -2,13 +2,9 @@
 .SH NAME
 stream \- a structure for communications
 .SH SYNOPSIS
-.B bind
-.I streamdevice
-.I dir
 .nf
-
-.IB dir /data
-.IB dir /ctl
+.B x/data
+.B x/ctl
 .fi
 .SH DESCRIPTION
 .PP
@@ -23,7 +19,7 @@ The properties described here are common to all such channels.
 All streams are represented by two standard files,
 .B ctl
 and
-.BR data ,
+.B data,
 plus any others the particular device wants to add.
 Reading and writing the
 .B data
@@ -65,9 +61,4 @@ is described with the particular device.
 .IR pipe (3),
 .IR dk (3),
 .IR cons (3),
-.IR async (3),
-.IR fcall (3),
-.IR ip (3),
-.IR reboot (3)
-.SH SOURCE
-.B /sys/src/9/port/st*.c
+.IR async (3)

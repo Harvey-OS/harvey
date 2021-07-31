@@ -1,12 +1,12 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 #include <frame.h>
 
 int
 _frcanfit(Frame *f, Point pt, Frbox *b)
 {
 	int left, w, nr;
-	byte *p;
+	char *p;
 	Rune r;
 
 	left = f->r.max.x-pt.x;

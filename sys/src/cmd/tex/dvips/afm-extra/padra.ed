@@ -1,0 +1,135 @@
+1331,1332c
+   (CHARDP R 354)
+   (CHARIC R 559)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 121)
+      )
+.
+1328c
+(CHARACTER C Q (comment Qalt)
+.
+1209,1212c
+(CHARACTER C 9 (comment nineoldstyle)
+   (CHARWD R 472)
+   (CHARHT R 436)
+   (CHARDP R 198)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 71)
+      )
+.
+1207a
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 70)
+      )
+.
+1204,1206c
+(CHARACTER C 8 (comment eightoldstyle)
+   (CHARWD R 430)
+   (CHARHT R 621)
+.
+1199,1202c
+(CHARACTER C 7 (comment sevenoldstyle)
+   (CHARWD R 472)
+   (CHARHT R 425)
+   (CHARDP R 198)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 67)
+      )
+.
+1197a
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 66)
+      )
+.
+1194,1196c
+(CHARACTER C 6 (comment sixoldstyle)
+   (CHARWD R 489)
+   (CHARHT R 636)
+.
+1189,1192c
+(CHARACTER C 5 (comment fiveoldstyle)
+   (CHARWD R 370)
+   (CHARHT R 438)
+   (CHARDP R 198)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 65)
+      )
+.
+1184,1187c
+(CHARACTER C 4 (comment fouroldstyle)
+   (CHARWD R 470)
+   (CHARHT R 437)
+   (CHARDP R 186)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 64)
+      )
+.
+1179,1182c
+(CHARACTER C 3 (comment threeoldstyle)
+   (CHARWD R 380)
+   (CHARHT R 436)
+   (CHARDP R 188)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 63)
+      )
+.
+1177a
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 62)
+      )
+.
+1174,1176c
+(CHARACTER C 2 (comment twooldstyle)
+   (CHARWD R 440)
+   (CHARHT R 436)
+.
+1172a
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 61)
+      )
+.
+1169,1171c
+(CHARACTER C 1 (comment oneoldstyle)
+   (CHARWD R 328)
+   (CHARHT R 425)
+.
+1167a
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 60)
+      )
+.
+1164,1166c
+(CHARACTER C 0 (comment zerooldstyle)
+   (CHARWD R 511)
+   (CHARHT R 436)
+.
+927a
+(CHARACTER O 11 (comment ct)
+   (CHARWD R 702)
+   (CHARHT R 676)
+   (CHARDP R 14)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 143)
+      )
+   )
+.
+622a
+   (LIG C t O 11)
+.
+3c
+(FAMILY TeX-OldGard-Regular)
+.
+w padra.vpl
+q

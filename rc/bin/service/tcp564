@@ -1,2 +1,2 @@
 #!/bin/rc
-/bin/exportfs -sc $3/ctl
+exec /bin/exportfs -c $3/ctl

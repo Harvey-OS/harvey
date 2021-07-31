@@ -228,8 +228,15 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 Node*
 nodconst(long v)
 {
-	constnode.vconst = v;
+	constnode.offset = v;
 	return &constnode;
+}
+
+Node*
+nodfconst(long v)
+{
+	fconstnode.ud = v;
+	return &fconstnode;
 }
 
 int
@@ -255,7 +262,7 @@ regret(Node *n, Node *nn)
 	int r;
 
 	r = REGRET;
-	if(typefd[nn->type->etype])
+	if(typefdv[nn->type->etype])
 		diag(nn, "no floating");
 	nodreg(n, nn, r);
 	reg[r]++;
@@ -350,7 +357,7 @@ regsalloc(Node *n, Node *nn)
 	if(cursafe+curarg > maxargsafe)
 		maxargsafe = cursafe+curarg;
 	*n = *nodsafe;
-	n->xoffset = -(stkoff + cursafe);
+	n->offset = -(stkoff + cursafe);
 	n->type = nn->type;
 	n->etype = nn->type->etype;
 	n->lineno = nn->lineno;
@@ -375,7 +382,7 @@ regaalloc(Node *n, Node *nn)
 	*n = *nn;
 	n->op = OINDREG;
 	n->reg = REGSP;
-	n->xoffset = curarg + 4;
+	n->offset = curarg + 4;
 	n->complex = 0;
 	n->addable = 20;
 	o = nn->type->width;
@@ -440,14 +447,14 @@ naddr(Node *n, Adr *a)
 	case OINDREG:
 		a->type = n->reg+D_INDIR;
 		a->sym = S;
-		a->offset = n->xoffset;
+		a->offset = n->offset;
 		break;
 
 	case ONAME:
 		a->etype = n->etype;
 		a->type = D_STATIC;
 		a->sym = n->sym;
-		a->offset = n->xoffset;
+		a->offset = n->offset;
 		if(n->class == CSTATIC)
 			break;
 		if(n->class == CEXTERN || n->class == CGLOBL) {
@@ -465,13 +472,13 @@ naddr(Node *n, Adr *a)
 		goto bad;
 
 	case OCONST:
-		if(typefd[n->type->etype]) {
+		if(typefdv[n->type->etype]) {
 			diag(n, "no floating");
 			break;
 		}
 		a->sym = S;
 		a->type = D_CONST;
-		a->offset = n->vconst;
+		a->offset = n->offset;
 		break;
 
 	case OADDR:
@@ -491,11 +498,11 @@ naddr(Node *n, Adr *a)
 
 	case OADD:
 		if(n->right->op == OCONST) {
-			v = n->right->vconst;
+			v = n->right->offset;
 			naddr(n->left, a);
 		} else
 		if(n->left->op == OCONST) {
-			v = n->left->vconst;
+			v = n->left->offset;
 			naddr(n->right, a);
 		} else
 			goto bad;
@@ -518,7 +525,7 @@ gmove(Node *f, Node *t)
 	if(debug['M'])
 		print("gop: %O %O[%s],%O[%s]\n", OAS,
 			f->op, tnames[ft], t->op, tnames[tt]);
-	if(typefd[ft] && f->op == OCONST) {
+	if(typefdv[ft] && f->op == OCONST) {
 		diag(f, "no floating");
 		return;
 	}
@@ -534,7 +541,7 @@ gmove(Node *f, Node *t)
 		a = AMOVOB;
 		goto ld;
 	case TSHORT:
-		if(typefd[tt]) {
+		if(typefdv[tt]) {
 			diag(t, "no floating");
 			return;
 		}
@@ -546,7 +553,7 @@ gmove(Node *f, Node *t)
 	case TLONG:
 	case TULONG:
 	case TIND:
-		if(typefd[tt]) {
+		if(typefdv[tt]) {
 			diag(t, "no floating");
 			return;
 		}
@@ -766,17 +773,17 @@ gins(int a, Node *f, Node *t)
 
 	if(f != Z && f->op == OINDEX) {
 		regalloc(&nod, &regnode, Z);
-		v = constnode.vconst;
+		v = constnode.offset;
 		cgen(f->right, &nod);
-		constnode.vconst = v;
+		constnode.offset = v;
 		idx.reg = nod.reg;
 		regfree(&nod);
 	}
 	if(t != Z && t->op == OINDEX) {
 		regalloc(&nod, &regnode, Z);
-		v = constnode.vconst;
+		v = constnode.offset;
 		cgen(t->right, &nod);
-		constnode.vconst = v;
+		constnode.offset = v;
 		idx.reg = nod.reg;
 		regfree(&nod);
 	}
@@ -1006,8 +1013,8 @@ sconst(Node *n)
 {
 	long v;
 
-	if(n->op == OCONST && !typefd[n->type->etype]) {
-		v = n->vconst;
+	if(n->op == OCONST && !typefdv[n->type->etype]) {
+		v = n->offset;
 		if(v >= 0 && v < 4096)
 			return 1;
 	}
@@ -1028,7 +1035,7 @@ schar	ewidth[XTYPE] =
 	SZ_CHAR,	SZ_CHAR,	/* TCHAR	TUCHAR */
 	SZ_SHORT,	SZ_SHORT,	/* TSHORT	TUSHORT */
 	SZ_LONG,	SZ_LONG,	/* TLONG	TULONG */
-	SZ_VLONG,	SZ_VLONG,	/* TVLONG	TUVLONG */
+	SZ_VLONG,			/* TVLONG */
 	SZ_FLOAT,	SZ_DOUBLE,	/* TFLOAT	TDOUBLE */
 	SZ_IND,		0,		/* TIND		TFUNC */
 	-1,		0,		/* TARRAY	TVOID */
@@ -1044,8 +1051,7 @@ long	ncast[XTYPE] =
 	/* TUSHORT */	BSHORT|BUSHORT,
 	/* TLONG */	BLONG|BULONG|BIND,
 	/* TULONG */	BLONG|BULONG|BIND,
-	/* TVLONG */	BVLONG|BUVLONG,
-	/* TUVLONG */	BVLONG|BUVLONG,
+	/* TVLONG */	BVLONG,
 	/* TFLOAT */	BFLOAT,
 	/* TDOUBLE */	BDOUBLE,
 	/* TIND */	BLONG|BULONG|BIND,

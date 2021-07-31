@@ -25,7 +25,6 @@ struct Lock
 {
 	int	val;
 	ulong	pc;
-	ulong	sr;
 };
 
 struct Label
@@ -47,6 +46,10 @@ struct Conf
 	ulong	base0;		/* base of bank 0 */
 	ulong	base1;		/* base of bank 1 */
 	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
+	ulong	ipif;		/* Ip protocol interfaces */
+	ulong	ip;		/* Ip conversations per interface */
+	ulong	arp;		/* Arp table size */
+	ulong	frag;		/* Ip fragment assemble queue size */
 	ulong	debugger;	/* use processor 1 as a kernel debugger */
 };
 
@@ -86,23 +89,21 @@ struct Cycmsg
 
 struct Mach
 {
-	/* OFFSETS OF THE FOLLOWING KNOWN BY l.s */
-	int	machno;			/* physical id of processor */
-	Softtlb *stb;			/* Software tlb simulation */
+	int	machno;			/* physical id of processor NB. MUST BE FIRST */
+	Softtlb *stb;			/* Software tlb simulation NB. MUST BE SECOND */
 	ulong	splpc;			/* pc that called splhi() */
-	int	tlbfault;
-
-	/* ordering from here on irrelevant */
 	ulong	ticks;			/* of the clock since boot time */
 	Proc	*proc;			/* current process on this processor */
 	Label	sched;			/* scheduler wakeup */
 	Lock	alarmlock;		/* access to alarm list */
 	void	*alarm;			/* alarms bound to this clock */
+	char	pidhere[NTLBPID];	/* is this pid possibly in this mmu? */
 	int	lastpid;		/* last pid allocated on this machine */
 	Proc	*pidproc[NTLBPID];	/* process that owns this tlbpid on this mach */
 	Page	*ufreeme;		/* address of upage of exited process */
 	Ureg	*ur;
 
+	int	tlbfault;		/* this offset known in l.s/utlbmiss() */
 	int	tlbpurge;
 	int	pfault;
 	int	cs;
@@ -111,7 +112,6 @@ struct Mach
 	int	intr;
 	int	ledval;			/* value last written to LED */
 
-	/* MUST BE LAST */
 	int	stack[1];
 };
 
@@ -198,6 +198,8 @@ struct User
 	int	(*notify)(void*, char*);
 	void	*ureg;			/* User registers for notes */
 	void	*dbgreg;		/* User registers for debugging in proc */
+	ulong	svstatus;
+	ulong	svr1;
 	/*
 	 *  machine dependent User stuff
 	 */

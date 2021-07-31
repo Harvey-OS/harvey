@@ -340,10 +340,3 @@ int	beq(Bits, Bits);
 
 #define	D_HI	D_NONE
 #define	D_LO	D_NONE
-
-/*
- * com64
- */
-int	com64(Node*);
-void	com64init(void);
-void	bool64(Node*);

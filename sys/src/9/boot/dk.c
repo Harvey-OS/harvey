@@ -31,7 +31,7 @@ dkauth(void)
 		p++;
 	else
 		p = path;
-	strcpy(p, "p9auth!ticket");
+	strcpy(p, "p9auth!check");
 	if(dkdial(dfd, path) < 0)
 		return -1;
 	close(dfd[0]);

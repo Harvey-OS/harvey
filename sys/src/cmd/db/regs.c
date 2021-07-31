@@ -5,117 +5,44 @@
 #include "defs.h"
 #include "fns.h"
 
+int	regdirty;
+
 /*
- * translate a name to a magic register offset
+ * get/put registers
+ * in our saved copies
  */
-Reglist*
-rname(char *name)
-{
-	Reglist *rp;
-
-	for (rp = mach->reglist; rp->rname; rp++)
-		if (strcmp(name, rp->rname) == 0)
-			return rp;
-	return 0;
-}
-
-static ulong
-getreg(Map *map, Reglist *rp)
-{
-
-	long l;
-	int ret;
-
-	l = 0;
-	ret = 0;
-	switch (rp->rformat)
-	{
-	case 'x':
-		ret = get2(map, rp->raddr, (ushort*) &l);
-		break;
-	case 'X':
-	case 'f':
-	case 'F':
-		ret = get4(map, rp->raddr, &l);
-		break;
-	default:
-		werrstr("can't retrieve register %s", rp->rname);
-		error("%r");
-	}
-	if (ret < 0) {
-		werrstr("Register %s: %r", rp->rname);
-		error("%r");
-	}
-	l += rp->rdelta;
-	return l;
-}
-
 ulong
-rget(Map *map, char *name)
+rget(int r)
 {
 	Reglist *rp;
 
-	rp = rname(name);
-	if (!rp)
-		error("invalid register name");
-	return getreg(map, rp);
-}
-
-void
-rput(Map *map, char *name, ulong v)
-{
-	Reglist *rp;
-	int ret;
-
-	rp = rname(name);
-	if (!rp)
-		error("invalid register name");
-	if (rp->rflags & RRDONLY)
-		error("register is read-only");
-	switch (rp->rformat)
-	{
-	case 'x':
-		ret = put2(map, rp->raddr, (ushort) v);
-		break;
-	case 'X':
-	case 'f':
-	case 'F':
-		ret = put4(map, rp->raddr, (long) v);
-		break;
-	default:
-		ret = -1;
+	for (rp = mach->reglist; rp->rname; rp++) {
+		if (rp->roffs == r)
+			return (rp->rval);
 	}
-	if (ret < 0)
-		error("can't write register");
+	dprint("rget: can't find reg %d\n", r);
+	error("panic: rget");
+	return 1;		/* to shut compiler up */
+	/* NOTREACHED */
 }
 
 void
-fixregs(Map *map)
-{
-	Reglist *rp;
-	long val;
-
-	if (machdata->ufixup) {
-		if (machdata->ufixup(map, &val) < 0)
-			error("can't fixup register addresses: %r");
-	} else
-		val = 0;
-	for (rp = mach->reglist; rp->rname; rp++)
-		rp->raddr = mach->kbase+rp->roffs-val;
-}
-
-void
-adjustreg(char *name, ulong raddr, long rdelta)
+rput(int r, ulong v)
 {
 	Reglist *rp;
 
-	rp = rname(name);
-	if (!rp)
-		error("invalid register name");
-	rp->raddr=raddr;
-	rp->rdelta=rdelta;
+	for (rp = mach->reglist; rp->rname; rp++) {
+		if (rp->roffs == r) {
+			regdirty = 1;
+			rp->rval = v;
+			return;
+		}
+	}
+	dprint("rput: can't find reg %d\n", r);
+	error("panic: rput");
+	/* NOTREACHED */
 }
-	
+
 /*
  * print the registers
  */
@@ -126,13 +53,9 @@ printregs(int c)
 	int i;
 
 	for (i = 1, rp = mach->reglist; rp->rname; rp++, i++) {
-		if ((rp->rflags & RFLT)) {
-			if (c != 'R')
-				continue;
-			if (rp->rformat == '8' || rp->rformat == '3')
-				continue;
-		}
-		dprint("%-8s %-12lux", rp->rname, getreg(cormap, rp));
+		if (rp->rfloat == 1 && c != 'R')
+			continue;
+		dprint("%-8s %-12lux", rp->rname, rp->rval);
 		if ((i % 3) == 0) {
 			dprint("\n");
 			i = 0;
@@ -141,6 +64,49 @@ printregs(int c)
 	if (i != 1)
 		dprint("\n");
 	printsyscall();
-	dprint ("%s\n", machdata->excep(cormap, rget));
+	machdata->excep();
 	printpc();
+}
+
+/*
+ * translate a name to a magic register offset
+ * the latter useful in rget/rput
+ */
+int
+rname(char *n)
+{
+	Reglist *rp;
+
+	for (rp = mach->reglist; rp->rname; rp++)
+		if (strcmp(n, rp->rname) == 0)
+			return (rp->roffs);
+	return (BADREG);
+}
+
+/*
+ * Common versions for machines with 4-byte registers.
+ * Should be called before looking at the process.
+ */
+
+void
+rsnarf4(Reglist *rp)
+{
+	for (; rp->rname; rp++)
+		get4(cormap, rp->roffs, SEGREGS, (long *)&rp->rval);
+	regdirty = 0;
+}
+
+void
+rrest4(Reglist *rp)
+{
+	if (pid == 0 || !regdirty)
+		return;
+	for (; rp->rname; rp++){
+		if(put4(cormap, rp->roffs, SEGREGS, rp->rval) == 0){
+			char buf[ERRLEN];
+			errstr(buf);
+			dprint("can't write %s: %s\n", rp->rname, buf);
+		}
+	}
+	regdirty = 0;
 }

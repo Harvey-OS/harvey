@@ -1,0 +1,4 @@
+TEXT _FWSTAT(SB), $0
+MOVL $27, AX
+INT $64
+RET

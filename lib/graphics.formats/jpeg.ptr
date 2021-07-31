@@ -1,0 +1,122 @@
+JPEG file format documents
+--------------------------
+
+The official standard for JPEG image compression is not available on-line.
+To get it, you have to order a paper copy from ANSI; it's not cheap.
+(As of May 1992, Part 1 is $95 and Part 2 is $47, plus 7% shipping/handling.)
+Ordering information is attached below.  If you are not in the USA, you
+should try your national ISO member organization first.
+
+The JPEG standard does NOT define a concrete image file format, only a
+family of compression algorithms.  The Independent JPEG Group recommends
+that one of these two file formats be used for JPEG-compressed images:
+    JFIF:	for simple applications that just need the image data;
+    TIFF 6.0:	for more complex applications that need to store extra
+		data about an image, such as color correction curves.
+JFIF is a simple, restrictive, but easily processed format.  TIFF 6.0 is a
+complex format that will let you represent almost anything you could want,
+but it is less portable than JFIF since different applications tend to
+implement different subsets of TIFF.
+
+These formats are defined by the following documents available in this
+archive:
+
+jfif.ps		JFIF specification (in PostScript format)
+tiff.app_o.ps	TIFF Appendix O: YCbCr color space (in PostScript format)
+tiff.app_p.ps	TIFF Appendix P: JPEG compression (in PostScript format)
+
+The JFIF document assumes you have the JPEG standard, but is otherwise
+self-contained.  To make sense of the TIFF appendices you'll also need the
+main TIFF 5.0 document, which is available from Aldus or Adobe.  (When the
+TIFF 6.0 standard is released, these appendices will be included in it.)
+
+
+--------------------------------------------------------
+
+Date:    Mon, 14 Oct 91 09:41:36 PDT
+Subject: How to order official JPEG documents
+From:    Greg Wallace
+
+A. Phases in ISO Standards Development
+
+In the ISO standards creation process, there are 4 levels of
+documents.  The first is the Working Draft (WD), a purely informal
+document.  When the ISO Working Group (WG) which prepares the WD feels
+it is ready, it becomes a Committee Draft (CD).  The CD is the first
+form of the ISO document which is officially examined and balloted
+within ISO, outside of the WG which created it. 
+
+When the voting member nations are happy with the technical content
+and general exposition of a CD, it is promoted to Draft International
+Standard (DIS).  The DIS is then balloted not only among the voting
+member nations, but among other branches of ISO and among other
+committees as well.  Generally, this phase of voting puts less
+emphasis on scrutinizing the technical content, and more emphasis on
+proper form and "positioning" with respect to other standards efforts.
+Approval of a DIS ballot results in publication of the International
+Standard (IS). 
+
+
+B. JPEG Status
+
+The "JPEG committee" is an ISO WG, the full formal nomenclature being
+ISO/IEC JTC1/SC2/WG10, hereafter WG10 for short. (Incidentally, a new
+Sub-Committee (SC) in ISO is forming; the JPEG WG is expected to join
+this new SC29, and become JTC1/SC29/WGxx in November 1991). 
+
+At its August 1991 meeting, WG10 examined the ballot results of CD
+Part 1 (the votes were almost unanimously positive), made several 
+editorial revisions to the CD per the ballot comments, and concluded 
+that the revised CD deserved promotion to DIS.  The DIS Part 1 should
+be published late November or December, at which time its ballot will 
+begin.  If the ballot results are positive, the IS should be published 
+by Spring 1992.
+
+Note that Part 1 is essentially the JPEG specification, including many
+guidelines for implementation, and Part 2 is Compliance Testing.  WG10 
+has a goal of agreeing on the details of Compliance Testing at its 
+November 18-22 meeting.  If successful, CD Part 2 should be published 
+by January 1992.
+
+Note also that the ISO version of the JPEG standard will be common 
+text for an identical standard within CCITT.  In parallel with the 
+publication of the ISO DIS Part 1 will be publication of CCITT Draft 
+Recommendation T.81 (Part 1).
+
+
+C. Document Ordering Information
+
+(1) To obtain the JPEG Committee Draft Part 1:
+
+    Call ANSI Sales at (212) 642-4900, and ask to order the following
+    document.  To ensure the clerk is certain which document you want,
+    give all three of the following (redundant) document designations:
+
+    (a) The JPEG Committee Draft Part 1, entitled:
+
+      ``Digital Compression and Coding of Continuous-tone Still
+        Images, Part 1: Requirements and guidelines''
+
+    (b) Number: ISO/IEC CD 10918-1 
+    (c) Alternate Number: SC2 N2215
+
+
+(2) To obtain the JPEG Draft International Standard Part 1:
+
+    Call ANSI Sales around the end of November, and ask if the DIS 
+    version of the above is available yet.  Use the ordering 
+    information above, but replace CD with DIS in (a) and (b).  The
+    alternate number (c) was not known at the time of this writing.
+
+(3) To obtain the JPEG Committee Draft Part 2:
+
+    Call ANSI Sales around the end of December 1991, and ask if the
+    following document is available yet:
+
+    (a) The JPEG Committee Draft Part 2, entitled:
+
+      ``Digital Compression and Coding of Continuous-tone Still
+        Images, Part 2: Compliance testing''
+
+    (b) Number: ISO/IEC CD 10918-2
+    (c) Alternate Number: not known at time of this writing.

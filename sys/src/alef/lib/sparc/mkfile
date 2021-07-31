@@ -3,23 +3,60 @@ objtype=sparc
 
 LIB=/$objtype/lib/alef/libA.a
 
-AFILES=frexp.l\
-	lock.l\
-	nan.l\
+OFILES =\
+	alef.$O\
+	alefasm.$O\
+	frexp.$O\
+	lock.$O\
+	main9.$O\
+	memccpy.$O\
+	memchr.$O\
+	memcmp.$O\
+	memmove.$O\
+	memset.$O\
+	muldiv.$O\
+	nan.$O\
+	strchr.$O\
+	strcmp.$O\
+	strcpy.$O\
 
-SFILES =alefasm.s\
-	getfcr.s\
-	main9.s\
-	memccpy.s\
-	memchr.s\
-	memcmp.s\
-	memmove.s\
-	memset.s\
-	muldiv.s\
-	strchr.s\
-	strcmp.s\
-	strcpy.s\
+%:	%.l
+	$ALEF -w $stem.l
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
 
-HFILES=run.h
+%:	%.s
+	$AS $stem.s
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
 
-<../rt/mkfile
+none:Q:
+	echo usage: mk entry/install/installall/entry.all
+
+%:	%.l
+	$ALEF -w $stem.l
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
+
+%:	%.s
+	$AS $stem.s
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
+
+install:V:	$OFILES
+	ar vu $LIB $OFILES
+	$RL $LIB
+	rm -f $OFILES
+
+clean:V:
+	rm -f *.[$OS]
+
+%.$O:	%.l
+	$ALEF -w $stem.l
+
+%.$O:	%.s
+	$AS $stem.s

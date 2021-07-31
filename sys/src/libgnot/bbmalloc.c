@@ -33,6 +33,8 @@ bbmalloc(int nbytes)
 void
 bbfree(void *a, int n)
 {
+	ulong *up;
+
 	USED(a);
 	bbcur = (ulong *)(((char *)bblast) + n + linewords*sizeof(long));
 }

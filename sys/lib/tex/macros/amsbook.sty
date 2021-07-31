@@ -1,0 +1,254 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSBOOK.STY						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+%% This is file `tex_inputs:amsbook.sty' generated
+%% on <1990/7/10> with the docstrip utility (v1.1j). 
+%% 
+%% The original source file was `tex_inputs:amsbook.doc'.
+%% 
+%% 
+\def\fileversion{v1.0b}
+\def\filedate{90/06/25}
+\def\docdate{90/06/25}
+
+%% \CheckSum{546}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+
+\immediate\write\sixt@@n{%
+  Document style `AMSBOOK' \fileversion\space <\filedate> (RK, MJD)}
+\immediate\write\sixt@@n{%
+  English documentation \space\@spaces\@spaces <\docdate> (MJD)}
+\let\if@article\iffalse
+\input amsart.sty
+\def\@title[#1]#2{\def\thetitle@{\ignorespaces#2\unskip}}
+
+\def\@author[#1]#2{\expandafter\def\expandafter
+  \theauthors@\expandafter{\theauthors@#2\and}}
+\def\maketitle{\par
+  \@topnum\z@ % this prevents figures from falling at the top of page 1
+  \begingroup
+  \@maketitle
+  \endgroup
+  \thispagestyle{plain}%
+  \c@footnote\z@
+  \def\do##1{\let##1\relax}%
+  \do\maketitle \do\@maketitle
+  \do\title \do\@title \do\thetitle@
+  \do\author \do\@author \do\theauthors@
+  \do\dedicatory \do\thededicatory@
+  \do\thanks \do\thethanks@
+  \do\keywords \do\thekeywords@
+  \do\subjclass \do\thesubjclass@
+  \do\@andify
+}
+
+\def\@maketitle{\cleardoublepage \thispagestyle{empty}%
+\begingroup \topskip\z@skip
+\null\vfil
+\begingroup
+        \centering \large\bf \openup\medskipamount
+        \expandafter\uppercasetext@\expandafter{\thetitle@}\vfil
+        \def\and{\par\bigskip}\mediumseries\theauthors@\vfil
+\endgroup
+\vfil\vfil
+\newpage
+\null\vfil
+\begingroup
+        \parskip\medskipamount
+        \ifx\@empty\thetranslator@ \else
+        Translator: \thetranslator@ \@@par\fi
+        \thethanks@\@@par
+\endgroup
+\vfil
+\ifx\@empty\thesubjclass@ \else
+1980 {\it Mathematics Subject Classification} (1985 {\it Revision\/}).\enspace
+Primary \thesubjclass@.\vfil
+\fi
+\ifx\@empty\thekeywords@ \else
+{\it Key words and phrases.}\enspace \thekeywords@.\vfil
+\fi
+\ifvoid\addressb@x \else
+Author addresses:\par
+\unvbox\addressb@x\vfil\fi
+\vfil\vfil
+\endgroup}
+
+\def\titlepage{\newpage\thispagestyle{empty}\c@page\z@}
+\def\endtitlepage{\newpage}
+\def\partname{Part}
+\def\thepart{\@arabic\c@part}
+
+\def\part{\cleardoublepage \thispagestyle{empty}%
+  \null\vfil  \markboth{}{}\secdef\@part\@spart}
+\def\l@part#1#2{\par\addpenalty\@secpenalty\medskip
+  {\centering#1\par}\nobreak\@afterheading}
+\newcounter{chapter}
+
+\def\chapter{\cleardoublepage \thispagestyle{plain} \global\@topnum\z@
+  \@afterindentfalse \secdef\@chapter\@schapter}
+
+\def\@chapter[#1]#2{\refstepcounter{\@string\chapter}%
+  \typeout{\chaptername\space\thechapter}%
+  \addcontentsline{toc}{\@string\chapter}{%
+    \ifnum \c@secnumdepth >\m@ne
+      \protect\numberline{\chaptername\ \thechapter.}\fi #1}%
+  \chaptermark{\ifnum\c@secnumdepth >\m@ne \thechapter. \fi
+       \ignorespaces#1\unskip}%
+  \addtocontents{lof}{\protect\addvspace{10\p@}}%
+  \addtocontents{lot}{\protect\addvspace{10\p@}}%
+  \@makechapterhead{#2}\@afterheading}
+
+\def\@schapter#1{\typeout{#1}%
+  \addcontentsline{toc}{\@string\chapter}{#1}%
+  \chaptermark{\ignorespaces#1\unskip}%
+  \addtocontents{lof}{\protect\addvspace{10\p@}}%
+  \addtocontents{lot}{\protect\addvspace{10\p@}}%
+  \@makeschapterhead{#1}\@afterheading}
+
+\def\chaptername{Chapter}
+\def\thechapter{\@Roman\c@chapter}
+
+\def\l@chapter{\@tocline\medskipamount{2em}{\normalshape\bf}}
+
+\@addtoreset{section}{chapter}
+
+\def\appendix{\par
+  \c@chapter\z@ \c@section\z@
+  \def\chaptername{Appendix}%
+  \def\thechapter{\@Alph\c@chapter}}
+\def\@starttoc#1#2{\begingroup
+  \let\secdef\@gobbletwo \chapter
+  \ifx#2\contentsname \else
+    \addcontentsline{toc}{\@string\chapter}#2\fi
+  \typeout#2\chaptermark#2\@makeschapterhead#2\@afterheading
+  \makeatletter
+  \@input{\jobname.#1}\if@filesw \expandafter\newwrite\csname tf@#1\endcsname
+             \expandafter\openout \csname tf@#1\endcsname \jobname.#1\relax
+  \fi \global\@nobreakfalse \endgroup
+  \newpage
+}
+\def\tableofcontents{\@starttoc{toc}\contentsname}
+\def\listoffigures{\@starttoc{lof}\listfigurename}
+\def\listoftables{\@starttoc{lot}\listtablename}
+
+\def\listfigurename{List of Figures}
+\def\listtablename{List of Tables}
+
+\def\l@figure{\@dottedtocline{1}{1.5em}{2.3em}}
+\let\l@table=\l@figure
+
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+\def\thebibliography#1{\chapter*\bibname
+  \list{[\@arabic\c@enumi]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+  \advance\leftmargin\labelsep \usecounter{enumi}}\sloppy
+  \clubpenalty9999 \widowpenalty\clubpenalty  \sfcode`\.\@m
+  \small}
+
+\let\endthebibliography=\endlist
+\newif\if@restonecol
+\def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+  \columnseprule\z@ \columnsep 35\p@
+  \twocolumn[\@makeschapterhead\indexname]\chaptermark\indexname
+  \thispagestyle{plain}\let\item\@idxitem
+  \parindent\z@  \parskip\z@\@plus.3\p@\relax
+  \small}
+
+\def\indexname{Index}
+
+\def\@idxitem{\par\hangindent 4em}
+\def\subitem{\par\hangindent 4em\hspace*{2em}}
+\def\subsubitem{\par\hangindent 4em\hspace*{3em}}
+\def\endtheindex{\if@restonecol\onecolumn\else\clearpage\fi}
+\def\indexspace{\par\bigskip}
+\@addtoreset{footnote}{chapter}
+
+\def\thefigure{\thechapter.\@arabic\c@figure}
+\def\thetable{\thechapter.\@arabic\c@table}
+\def\theorem@headerfont{\sc}
+\let\theorem@indent\indent
+
+\def\th@remark{\theorempreskipamount6\p@\@plus6\p@
+    \theorempostskipamount\z@\@plus6\p@
+    \normalshape}
+\newenvironment{pf}{\par\addvspace{6\p@\@plus6\p@}%
+  \indent{\sc\proofname.}\enspace
+  \ignorespaces}{\qed\par\addvspace{6\p@\@plus6\p@}}
+
+\@namedef{pf*}#1{\begingroup\def\proofname{#1}\pf\endgroup
+  \ignorespaces}
+\expandafter\let\csname endpf*\endcsname=\endpf
+\def\ps@headings{\let\@mkboth\markboth
+  \let\@oddfoot\@empty\let\@evenfoot\@empty
+  \def\@evenhead{\small \rlap{\thepage}\hfil
+       \expandafter\expandafter\expandafter\uppercasetext@
+       \expandafter\expandafter\expandafter
+       {\leftmark}\hfil}
+  \def\@oddhead{\small \hfil
+       \expandafter\expandafter\expandafter\uppercasetext@
+       \expandafter\expandafter\expandafter
+       {\rightmark}\hfil \llap{\thepage}}
+  \def\chaptermark##1{\@mkboth{##1}{##1}}
+  \let\sectionmark\markright}
+
+\def\ps@myheadings{\let\@mkboth\@gobbletwo
+  \def\@oddhead{\small\rightmark \hfil\thepage}\let\@oddfoot\@empty
+  \def\@evenhead{\small\thepage\hfil\leftmark}\let\@evenfoot\@empty
+  \let\chaptermark\@gobble \let\sectionmark\@gobble}
+
+\let\subsectionmark\@gobble
+\let\subsubsectionmark\@gobble
+\let\paragraphmark\@gobble
+
+\advance\textheight by -\headheight
+\advance\textheight by -\headsep
+\advance\textheight by -\normalbaselineskip
+\advance\textheight by \topskip
+\oddsidemargin=8.5 true in % standard U.S. paper width
+\advance\oddsidemargin by -\textwidth
+\oddsidemargin=.5\oddsidemargin
+\ifdim\oddsidemargin < .5 true in
+  \oddsidemargin = .5 true in \fi
+\advance\oddsidemargin by -1 true in
+\evensidemargin=\oddsidemargin
+\topmargin=11 true in % standard U.S. paper width
+\advance\topmargin by -\textheight
+\advance\topmargin by -\headheight
+\advance\topmargin by -\headsep
+\advance\topmargin by -\footheight
+\advance\topmargin by -\footskip
+\topmargin=.5\topmargin
+\ifdim\topmargin<.5 true in
+  \topmargin=.5 true in \fi
+\advance\topmargin by -1 true in
+\mark{{}{}}
+\ps@headings
+
+\pagenumbering{arabic}
+\@twosidetrue \@mparswitchtrue   % this = `twoside' option
+\onecolumn
+
+\endinput
+%% 
+%% End of file `tex_inputs:amsbook.sty'.

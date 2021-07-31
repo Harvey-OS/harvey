@@ -14,12 +14,12 @@ int _PRDpl9(PICFILE *f, void *vbuf){
 	if(f->line==0){
 		ldepth=picgetprop(f, "LDEPTH");
 		if(ldepth==0){
-			werrstr("no LDEPTH");
+			_PICerror="no LDEPTH";
 			return 0;
 		}
 		f->depth=1<<atoi(ldepth);
 		if(f->depth<=0 || NBB<f->depth){
-			werrstr("bad LDEPTH");
+			_PICerror="bad LDEPTH";
 			return 0;
 		}
 	}
@@ -30,7 +30,7 @@ int _PRDpl9(PICFILE *f, void *vbuf){
 	if(f->buf==0){
 		f->buf=malloc(nbl);
 		if(f->buf==0){
-			werrstr("Can't allocate read buffer");
+			_PICerror="Can't allocate read buffer";
 			return 0;
 		}
 	}
@@ -54,10 +54,13 @@ int _PWRpl9(PICFILE *f, void *vbuf){
 	int npb, nbl, mask, sh;
 	if(f->line==0){
 		ldepth=picgetprop(f, "LDEPTH");
-		if(ldepth==0) ldepth="3";
+		if(ldepth==0){
+			_PICerror="no LDEPTH";
+			return 0;
+		}
 		f->depth=1<<atoi(ldepth);
 		if(f->depth<=0 || NBB<f->depth){
-			werrstr("bad LDEPTH");
+			_PICerror="bad LDEPTH";
 			return 0;
 		}
 		sprint(hdr, "%11d %11d %11d %11d %11d ",
@@ -70,7 +73,7 @@ int _PWRpl9(PICFILE *f, void *vbuf){
 	if(f->buf==0){
 		f->buf=malloc(nbl+1);	/* +1 because loop below is sloppy */
 		if(f->buf==0){
-			werrstr("can't allocate write buffer");
+			_PICerror="can't allocate write buffer";
 			return 0;
 		}
 	}

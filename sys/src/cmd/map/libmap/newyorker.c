@@ -3,10 +3,10 @@
 static double a;
 
 static int
-Xnewyorker(struct place *place, double *x, double *y)
+Xnewyorker(struct place *place, float *x, float *y)
 {
-	double r = PI/2 - place->nlat.l;
-	double s;
+	float r = PI/2 - place->nlat.l;
+	float s;
 	if(r<.001)	/* cheat to plot center */
 		s = 0;
 	else if(r<a)
@@ -19,7 +19,7 @@ Xnewyorker(struct place *place, double *x, double *y)
 }
 
 proj
-newyorker(double a0)
+newyorker(float a0)
 {
 	a = a0*RAD;
 	return(Xnewyorker);

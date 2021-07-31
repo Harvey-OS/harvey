@@ -1,0 +1,76 @@
+.TH KANA8½ 1
+.SH NAME
+kana8½ \- language transliterator
+.SH SYNOPSIS
+.B kana8½
+[
+.I args
+]
+.SH DESCRIPTION
+The
+.I kana8½
+script starts an instance of the window manager
+.IR 8½ (1)
+able to transliterate keyboard letter
+sequences into characters in languages that do not use the Latin character set.
+It also creates a small control window; a menu on button 2 in this window
+chooses among English (default), Russian, Japanese hiragana or katakana, or Greek.
+Language may also be controlled by sending one of
+.BR english ,
+.BR katakana ,
+.BR hiragana ,
+.BR russian ,
+or
+.BR greek
+to the file
+.BR /mnt/kanactl/data .
+.PP
+The Japanese selections
+interpret lower-case letters as a Hepburn representation
+of hiragana or katakana.
+The Russian selection interprets letters as Cyrillic;
+the transliteration is mostly phonetic, with
+.B '
+for
+.IR myagkij-znak ,
+.B ''
+for
+.I tverdyj-znak
+(spell it
+.I tvyordyj-znak
+if you want the dieresis),
+.B j
+for
+.IR i-kratkaya .
+No transliteration is done in English mode.
+.PP
+If no arguments are given, the font specification
+.B unicode.9
+is used; if there are arguments, they are passed unchanged
+to the window system and an appropriate font must already be installed.
+.PP
+The command is a short script that starts
+.BR aux/kana ;
+this program inserts itself between
+.BR /dev/cons
+and the window system,
+and performs the transliteration.
+The script
+then invokes an instance of
+.I 8½.
+.SH FILES
+.TF /mnt/kanactl/data
+.TP
+.B /mnt/kana/data1
+used as a naming point for binding output upon
+.BR /dev/cons .
+.TP
+.B /mnt/kanactl/data
+for controlling language.
+.SH "SEE ALSO"
+.IR 8½ (1)
+.SH BUGS
+Considerably more sophistication is required to support
+ideographic languages.
+.PP
+The language can't be selected independently in each window.

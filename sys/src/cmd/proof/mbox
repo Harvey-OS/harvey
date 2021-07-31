@@ -1,0 +1,16 @@
+From kahrs Mon Jan 13 18:11:40 EST 1992
+here are some ideas w.r.t. panning in proof:
+
+1. if you pan down, currently you stay at the same position in the
+next page; meaning you have to pan back up if you don't shrink the
+page...
+
+2. using the "view" key on a gnot as a scroll down key would match
+the gnot window view
+
+3. it might be nice to have to borders in grey so one has an idea of
+page layout ...
+
+just some small ideas...
+
+

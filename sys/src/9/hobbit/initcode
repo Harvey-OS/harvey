@@ -1,0 +1,14 @@
+#include "/sys/src/libc/9syscall/sys.h"
+
+DATA name(SB), $"\057boot"
+
+TEXT main(SB), $16
+	MOV	$name(SB), R4
+	MOVA	R16, R8
+	KCALL	$EXEC
+_loop:
+	KCALL	$SYSR1
+	JMP	_loop
+	RETURN
+
+GLOBL name(SB), $8

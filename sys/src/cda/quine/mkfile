@@ -1,0 +1,7 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=quine cover hazard
+
+</sys/src/cmd/mkmany
+CFLAGS=-DPLAN9 -DX$objtype

@@ -20,7 +20,6 @@ typedef	struct	Prog	Prog;
 typedef	struct	Case	Case;
 typedef	struct	C1	C1;
 typedef	struct	Multab	Multab;
-typedef	struct	Hintab	Hintab;
 typedef	struct	Bits	Bits;
 typedef	struct	Var	Var;
 typedef	struct	Reg	Reg;
@@ -72,14 +71,8 @@ struct	C1
 
 struct	Multab
 {
-	long	val;
-	char	code[20];
-};
-
-struct	Hintab
-{
-	ushort	val;
-	char	hint[10];
+	short	val;
+	char	code[12];
 };
 
 #define	BITS	5
@@ -147,9 +140,7 @@ long	curarg;
 long	cursafe;
 Prog*	firstp;
 Prog*	lastp;
-int	hintabsize;
 long	maxargsafe;
-Multab	multab[20];
 int	mnstring;
 int	retok;
 Node*	nodrat;
@@ -167,6 +158,7 @@ Prog	zprog;
 char	reg[NREG+NREG];
 long	exregoffset;
 long	exfregoffset;
+int	multabsize;
 
 #define	BLOAD(r)	band(bnot(r->refbehind), r->refahead)
 #define	BSTORE(r)	band(bnot(r->calbehind), r->calahead)
@@ -204,7 +196,7 @@ Var	var[NVAR];
 
 
 extern	char*	anames[];
-extern	Hintab	hintab[];
+extern	Multab	multab[];
 
 /*
  * sgen.c
@@ -235,7 +227,6 @@ void	nextpc(void);
 void	gargs(Node*, Node*, Node*);
 void	garg1(Node*, Node*, Node*, int, Node**);
 Node*	nodconst(long);
-Node*	nod32const(vlong);
 Node*	nodfconst(double);
 void	nodreg(Node*, Node*, int);
 void	regret(Node*, Node*);
@@ -271,7 +262,7 @@ void	bitstore(Node*, Node*, Node*, Node*, Node*);
 long	outstring(char*, long);
 int	vlog(Node*);
 int	mulcon(Node*, Node*);
-Multab*	mulcon0(Node*, long);
+Multab*	mulcon0(long);
 int	mulcon1(Node*, long, Node*);
 void	nullwarn(Node*, Node*);
 void	sextern(Sym*, Node*, long, long);
@@ -343,10 +334,3 @@ int	bany(Bits*);
 int	bnum(Bits);
 Bits	blsh(unsigned);
 int	beq(Bits, Bits);
-
-/*
- * com64.c
- */
-int	com64(Node*);
-void	com64init(void);
-void	bool64(Node*);

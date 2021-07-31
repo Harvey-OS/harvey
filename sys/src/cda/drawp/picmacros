@@ -1,0 +1,29 @@
+define DOWNLJ %
+.RT "$1"
+"\v'-.2m'\h'-.2m'\X'. RT'" ljust %
+
+define DOWNC %
+.nr ww \w'$1'/2
+.RT "$1"
+"\v'-.2m'\v'-\n(wwu'\h'-.2m'\X'. RT'" ljust %
+
+define DOWNRJ %
+.nr ww \w'$1'
+.RT "$1"
+"\v'-.2m'\v'-\n(wwu'\h'-.2m'\X'. RT'" ljust %
+
+define pin %
+	circle at $1,$2
+%
+
+define chip %
+#	circle rad 50 at $2,$3
+#	box wid $4 ht $5 with .sw at last circle.c-($6,$7)
+	box wid 60 ht 60 with .c at $2,$3
+	box wid $4 ht $5 with .sw at last box.c-($6,$7)
+	if $8 then {
+		DOWNC($1) at last box.c
+	} else {
+		"$1" center at last box.c
+	}
+%

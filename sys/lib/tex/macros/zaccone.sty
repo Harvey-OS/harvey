@@ -1,0 +1,37 @@
+%%%%%%%%%%%%%%%% cut here %%%%%%%%%%%%%%%% zaccone.sty %%%%%%%%%%%%%%%%
+% zaccone.sty---provide for independent formatting for float captions.
+% The following is a re-definition of the \@caption macro which lets
+% you format your figure captions differently from your table captions, etc.
+% Your .sty file must provide for a meaning for, e.g., \@makefigurecaption, etc.
+% If you do not, the default \@makecaption will be used.
+\long\def\@caption#1[#2]#3{\par\addcontentsline{\csname
+  ext@#1\endcsname}{#1}{\protect\numberline{\csname
+  the#1\endcsname}{\ignorespaces #2}}\begingroup
+    \@parboxrestore
+    \normalsize
+    \expandafter\let\expandafter\@tempa\csname @make#1caption\endcsname
+    \ifx\@tempa\relax\let\@tempa\@makecaption\fi
+    \@tempa{\csname fnum@#1\endcsname}{\ignorespaces #3}\par
+  \endgroup}
+%
+% Here is the content of a .sty file containing definitions using the above
+% hook.
+%
+% The following is the same as the \@makecaption in book.sty:
+\long\def\@makefigurecaption#1#2{%
+ \vskip 10pt 
+ \setbox\@tempboxa\hbox{#1. #2}%
+ \ifdim \wd\@tempboxa >\hsize #1. #2\par \else
+  \hbox to\hsize{\hfil\box\@tempboxa\hfil} %
+  \fi
+ }
+%
+% The following is slightly different from the \@makecaption in book.sty:
+\long\def\@maketablecaption#1#2{%
+ \setbox\@tempboxa\hbox{#1. #2}%
+ \ifdim \wd\@tempboxa >\hsize #1. #2\par \else
+  \hbox to\hsize{\hfil\box\@tempboxa\hfil} %
+  \fi
+ \vskip 10pt 
+ }
+

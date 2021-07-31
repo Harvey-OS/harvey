@@ -1,0 +1,17 @@
+\begin{thebibliography}{1}
+
+\bibitem{bib:manpagestd}
+M.~E. Pasternak.
+\newblock 1987.
+\newblock {\em Manual Page Standards}.
+\newblock Internal Memorandum 55513-870219-021IM, AT\&T Bell Laboratories,
+  February.
+
+\bibitem{bib:tmdoc}
+Terry~L. Anderson.
+\newblock 1989.
+\newblock {\em Using the \LaTeX\ Document Style {\bf tm.sty}}.
+\newblock Technical Memorandum 59114-890130-01TMS, AT\&T Bell Laboratories,
+  February.
+
+\end{thebibliography}

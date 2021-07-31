@@ -1,6 +1,6 @@
 #include	"mk.h"
 
-static char *nextword(char*, char**, char**);
+static char *tokenize(char*, char**, char**);
 
 Word *
 newword(char *s)
@@ -21,7 +21,7 @@ stow(char *s)
 
 	w = head = 0;
 	while(*s){
-		s = nextword(s, &start, &end);
+		s = tokenize(s, &start, &end);
 		if(*start == 0)
 			break;
 		save = *end;
@@ -82,10 +82,10 @@ dumpw(char *s, Word *w)
 }
 
 static char *
-nextword(char *s, char **start, char **end)
+tokenize(char *s, char **start, char **end)
 {
 	char *to;
-	Rune r, q;
+	Rune r;
 	int n;
 
 	while (*s && SEP(*s))		/* skip leading white space */
@@ -100,12 +100,11 @@ nextword(char *s, char **start, char **end)
 			while (*s && SEP(*s))	
 				s++;
 			to = *start = s;
-		} else if (QUOTE(r)) {
-			q = r;
+		} else if (r == '\'') {
 			s += n;		/* skip leading quote */
 			while (*s) {
 				n = chartorune(&r, s);
-				if (r == q) {
+				if (r == '\'') {
 					if (s[1] != '\'')
 						break;
 					s++;	/* embedded quote */

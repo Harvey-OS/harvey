@@ -63,6 +63,7 @@ clock(Ureg *ur)
 		dt = *TBREAK - *TCOUNT;
 	}while(dt == 0 || dt > COUNT);
 
+#ifdef asdf
 	/*
 	 *  network light
 	 */
@@ -80,6 +81,7 @@ clock(Ureg *ur)
 			}
 		}
 	}
+#endif asdf
 
 	/*
 	 *  account for time
@@ -96,7 +98,6 @@ clock(Ureg *ur)
 	checkalarms();
 	sccclock();
 	kproftimer(ur->pc);
-	mouseclock();
 	if(u && (ur->status&IEP) && p && p->state==Running){
 		if(anyready()){
 			if(p->hasspin)

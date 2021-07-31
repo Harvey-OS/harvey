@@ -47,9 +47,6 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 			nr = 0;
 			w = 0;
 			while(sp < ep){
-				c = *sp;
-				if(c=='\t' || c=='\n')
-					break;
 				rw = runetochar(s, sp);
 				if(s+rw >= tmp+TMPSIZE)
 					break;
@@ -57,6 +54,9 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 				sp++;
 				s += rw;
 				nr++;
+				c = *sp;
+				if(c=='\t' || c=='\n')
+					break;
 			}
 			*s++ = 0;
 			p = _frallocstr(s-tmp);

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -10,16 +9,16 @@
 /* Site dependent definitions */
 
 #ifndef TMACDIR
-#define TMACDIR		"lib/tmac/tmac."
+#define TMACDIR		"/usr/lib/tmac/tmac."
 #endif
 #ifndef FONTDIR
-#define FONTDIR		"lib/font"
+#define FONTDIR		"/usr/lib/font"
 #endif
 #ifndef NTERMDIR
-#define NTERMDIR	"lib/term/tab."
+#define NTERMDIR	"/usr/lib/term/tab."
 #endif
 #ifndef TDEVNAME
-#define TDEVNAME	"post"
+#define TDEVNAME	"utf"
 #endif
 #ifndef NDEVNAME
 #define NDEVNAME	"37"
@@ -27,29 +26,24 @@
 #ifndef TEXHYPHENS
 #define	TEXHYPHENS	"/usr/lib/tex/macros/hyphen.tex"
 #endif
-#ifndef ALTHYPHENS
-#define	ALTHYPHENS	"lib/tmac/hyphen.tex"	/* another place to look */
-#endif
+#define	ALTHYPHENS	"/usr/lib/tmac/hyphen.tex"	/* another place to look */
 
-typedef	unsigned char	Uchar;
-typedef unsigned short	Ushort;
+typedef	unsigned char	uchar;
+typedef unsigned short	ushort;
 
 typedef	/*unsigned*/ long	Tchar;
 
 typedef	struct	Blockp	Blockp;
 typedef	struct	Diver	Diver;
 typedef	struct	Stack	Stack;
-typedef	struct	Divsiz	Divsiz;
 typedef	struct	Contab	Contab;
 typedef	struct	Numtab	Numtab;
-typedef	struct	Numerr	Numerr;
 typedef	struct	Env	Env;
 typedef	struct	Term	Term;
 typedef struct	Chwid	Chwid;
 typedef struct	Font	Font;
 typedef	struct	Spnames	Spnames;
 typedef	struct	Wcache	Wcache;
-typedef	struct	Tbuf	Tbuf;
 
 /* this simulates printf into a buffer that gets flushed sporadically */
 /* the BSD goo is because SunOS sprintf doesn't return anything useful */
@@ -160,24 +154,24 @@ extern	char	errbuf[];
 /* array sizes, and similar limits: */
 
 #define MAXFONTS 99	/* Maximum number of fonts in fontab */
-#define	NM	90	/* requests + macros */
-#define	NN	NNAMES	/* number registers */
+#define	NM	500	/* requests + macros */
+#define	NN	400	/* number registers */
 #define	NNAMES	15	/* predefined reg names */
 #define	NIF	15	/* if-else nesting */
 #define	NS	128	/* name buffer */
-#define	NTM	1024	/* tm buffer */
+#define	NTM	256	/* tm buffer */
 #define	NEV	3	/* environments */
 #define	EVLSZ	10	/* size of ev stack */
 
 #define	STACKSIZE (6*1024)	/* stack for macros and strings in progress */
 #define	NHYP	10	/* max hyphens per word */
 #define	NHEX	512	/* byte size of exception word list */
-#define	NTAB	100	/* tab stops */
+#define	NTAB	50	/* tab stops */
 #define	NSO	5	/* "so" depth */
 #define	NMF	5	/* number of -m flags */
-#define	WDSIZE	500	/* word buffer click size */
-#define	LNSIZE	4000	/* line buffer click size */
-#define	OLNSIZE	5000	/* output line buffer click; bigger for 'w', etc. */
+#define	WDSIZE	500	/* word buffer size */
+#define	LNSIZE	4000	/* line buffer size */
+#define	OLNSIZE	5000	/* output line buffer;  bigger for 'w', etc. */
 #define	NDI	5	/* number of diversions */
 
 #define	ALPHABET alphabet	/* number of characters in basic alphabet. */
@@ -202,7 +196,7 @@ extern	char	errbuf[];
 	/* to allow \N of up to 254 with up to 338 special characters
 		you need NCHARS of 338 + ALPHABET = 466 */
 
-#define	NROFFCHARS	1024	/* maximum size of nroff character set */
+#define	NROFFCHARS	1024	/* maximum size of troff character set */
 
 #define	NTRTAB		NCHARS	/* number of items in trtab[] */
 #define NWIDCACHE	NCHARS	/* number of items in widcache[] */
@@ -267,18 +261,15 @@ extern	int	realcbits(Tchar);
 #define	BYTEMASK 0377
 #define	BYTE	 8
 
-#define	SHORTMASK 0XFFFF
-#define	SHORT	 16
-
-#define	TABMASK	 ((unsigned) INT_MAX >> 1)
-#define	RTAB	((TABMASK << 1) & ~TABMASK)
-#define	CTAB	(RTAB << 1)
+#define	TABMASK	 037777
+#define	RTAB	(unsigned) 0100000
+#define	CTAB	040000
 
 #define	TABBIT	02		/* bits in gchtab */
 #define	LDRBIT	04
 #define	FCBIT	010
 
-#define	PAIR(A,B)	(A|(B<<SHORT))
+#define	PAIR(A,B)	(A|(B<<BYTE))
 
 
 extern	int	Inch, Hor, Vert, Unitwidth;
@@ -318,11 +309,6 @@ extern	Spnames	spnames[];
 #define	pastend(o)	(((o) & (BLK-1)) == 0)
 /* #define	incoff(o)	( (++o & (BLK-1)) ? o : blist[bindex(o-1)].nextoff ) */
 #define	incoff(o)	( (((o)+1) & (BLK-1)) ? o+1 : blist[bindex(o)].nextoff )
-
-#define	skipline(f)	while (getc(f) != '\n')
-#define is(s)		(strcmp(cmd, s) == 0)
-#define	eq(s1, s2)	(strcmp(s1, s2) == 0)
-
 
 typedef	unsigned long	Offset;		/* an offset in macro/string storage */
 
@@ -364,29 +350,20 @@ struct Stack {		/* stack frame */
 
 extern	Stack	s;
 
-struct Divsiz {
-	int dix;
-	int diy;
-};
-
 struct Contab {		/* command or macro */
-	unsigned int	rq;
+	unsigned short	rq;
 	Contab	*link;
 	void	(*f)(void);
 	Offset	mx;
-	Offset	emx;
-	Divsiz	*divsiz;
 };
-
-#define	C(a,b)	{a, 0, b, 0, 0}		/* how to initialize a contab entry */
 
 extern	Contab	contab[NM];
 
 struct Numtab {	/* number registers */
-	unsigned int	r;		/* name */
-	int	val;
+	short	r;		/* name */
 	short	fmt;
 	short	inc;
+	int	val;
 	Numtab	*link;
 };
 
@@ -413,10 +390,6 @@ struct	Wcache {	/* width cache, indexed by character */
 	short	width;
 };
 
-struct	Tbuf {		/* growable Tchar buffer */
-	Tchar *_bufp;
-	unsigned int _size;
-};
 
 /* the infamous environment block */
 
@@ -445,7 +418,6 @@ struct	Tbuf {		/* growable Tchar buffer */
 #define	ad	envp->_ad
 #define	nms	envp->_nms
 #define	ndf	envp->_ndf
-#define	nmwid	envp->_nmwid
 #define	fi	envp->_fi
 #define	cc	envp->_cc
 #define	c2	envp->_c2
@@ -488,15 +460,11 @@ struct	Tbuf {		/* growable Tchar buffer */
 #define	spread	envp->_spread
 #define	it	envp->_it
 #define	itmac	envp->_itmac
+#define	lnsize	envp->_lnsize
 #define	hyptr	envp->_hyptr
 #define	tabtab	envp->_tabtab
-#define	line	envp->_line._bufp
-#define	lnsize	envp->_line._size
-#define	word	envp->_word._bufp
-#define wdsize	envp->_word._size
-
-#define oline	_oline._bufp
-#define olnsize	_oline._size
+#define	line	envp->_line
+#define	word	envp->_word
 
 /*
  * Note:
@@ -530,7 +498,6 @@ struct Env {
 	int	_ad;
 	int	_nms;
 	int	_ndf;
-	int	_nmwid;
 	int	_fi;
 	int	_cc;
 	int	_c2;
@@ -573,28 +540,29 @@ struct Env {
 	int	_spread;
 	int	_it;
 	int	_itmac;
+	int	_lnsize;
 	Tchar	*_hyptr[NHYP];
-	long	_tabtab[NTAB];
-	Tbuf	_line;
-	Tbuf	_word;
+	int	_tabtab[NTAB];
+	Tchar	_line[LNSIZE];
+	Tchar	_word[WDSIZE];
 };
 
 extern	Env	env[];
 extern	Env	*envp;
 
+
 enum {	MBchar = 'U', Troffchar = 'C', Number = 'N', Install = 'i', Lookup = 'l' };
 	/* U => utf, for instance;  C => \(xx, N => \N'...' */
 
 
-
 struct Chwid {	/* data on one character */
-	Ushort	num;		/* character number:
+	ushort	num;		/* character number:
 					0 -> not on this font
 					>= ALPHABET -> its number among all Cxy's */
-	Ushort	code;		/* char code for actual device.  used for \N */
+	ushort	code;		/* char code for actual device.  used for \N */
 	char	*str;		/* code string for nroff */
-	Uchar	wid;		/* width */
-	Uchar	kern;		/* ascender/descender */
+	uchar	wid;		/* width */
+	uchar	kern;		/* ascender/descender */
 };
 
 struct Font {	/* characteristics of a font */
@@ -617,16 +585,9 @@ struct Font {	/* characteristics of a font */
 #define	LFFI	010
 #define	LFFL	020
 
-/* tracing modes */
-#define TRNARGS	01		/* trace legality of numeric arguments */
-#define TRREQ	02		/* trace requests */
-#define TRMAC	04		/* trace macros */
-#define RQERR	01		/* processing request/macro */
-
 /* typewriter driving table structure */
 
 
-extern	Term	t;
 struct Term {
 	int	bset;		/* these bits have to be on */
 	int	breset;		/* these bits have to be off */
@@ -658,13 +619,3 @@ struct Term {
 };
 
 extern	Term	t;
-
-/*
- * for error reporting; keep track of escapes/requests with numeric arguments
- */
-struct Numerr {
-	char	type;	/* request or escape? */
-	char	esc;	/* was escape sequence named esc */
-	char	escarg;	/* argument of esc's like \D'l' */
-	unsigned int	req;	/* was request or macro named req */
-};

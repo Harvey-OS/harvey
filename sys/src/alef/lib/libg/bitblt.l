@@ -1,10 +1,10 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 void
 bitblt(Bitmap *d, Point p, Bitmap *s, Rectangle r, Fcode f)
 {
-	byte *buf;
+	char *buf;
 
 	buf = bneed(31);
 	buf[0] = 'b';

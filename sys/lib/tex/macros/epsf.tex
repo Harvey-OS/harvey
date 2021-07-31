@@ -59,7 +59,6 @@
 \newif\ifepsffileok    % continue looking for the bounding box?
 \newif\ifepsfbbfound   % success?
 \newif\ifepsfverbose   % report what you're making?
-\newif\ifepsfdraft     % use draft mode?
 \newdimen\epsfxsize    % horizontal size after scaling
 \newdimen\epsfysize    % vertical size after scaling
 \newdimen\epsftsize    % horizontal size before scaling
@@ -113,9 +112,9 @@
 %   Now we have to calculate the scale and offset values to use.
 %   First we compute the natural sizes.
 %
+\def\epsfclipstring{}% do we clip or not?  If so,
 \def\epsfclipon{\def\epsfclipstring{ clip}}%
-\def\epsfclipoff{\def\epsfclipstring{\ifepsfdraft\space clip\fi}}%
-\epsfclipoff
+\def\epsfclipoff{\def\epsfclipstring{}}%
 %
 \def\epsfsetgraph#1{%
    \epsfrsize=\epsfury\pspoints
@@ -168,16 +167,14 @@
    \epsftmp=10\epsfxsize \divide\epsftmp\pspoints
    \vbox to\epsfysize{\vfil\hbox to\epsfxsize{%
       \ifnum\epsfrsize=0\relax
-        \special{PSfile=\ifepsfdraft psdraft.ps\else#1\fi\space
-             llx=\epsfllx\space lly=\epsflly\space
-             urx=\epsfurx\space ury=\epsfury\space rwi=\number\epsftmp
-             \epsfclipstring}%
+        \special{PSfile=#1 llx=\epsfllx\space lly=\epsflly\space
+            urx=\epsfurx\space ury=\epsfury\space rwi=\number\epsftmp
+            \epsfclipstring}%
       \else
         \epsfrsize=10\epsfysize \divide\epsfrsize\pspoints
-        \special{PSfile=\ifepsfdraft psdraft.ps\else#1\fi\space
-             llx=\epsfllx\space lly=\epsflly\space
-             urx=\epsfurx\space ury=\epsfury\space rwi=\number\epsftmp\space
-             rhi=\number\epsfrsize \epsfclipstring}%
+        \special{PSfile=#1 llx=\epsfllx\space lly=\epsflly\space
+            urx=\epsfurx\space ury=\epsfury\space rwi=\number\epsftmp\space
+            rhi=\number\epsfrsize \epsfclipstring}%
       \fi
       \hfil}}%
 \global\epsfxsize=0pt\global\epsfysize=0pt}%

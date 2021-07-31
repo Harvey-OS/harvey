@@ -1,0 +1,4455 @@
+This is MetaPost, C Version 0.15 (preloaded mem=trap 90.8.28)  28 AUG 1990 10:27
+** &trap  trap
+(trap.mp
+{if}
+{known(0)}
+{not(true)}
+{false}
+{known("")}
+{true}
+
+/*\`'@#->begingroup.message(SUFFIX1)&str(SUFFIX0)&jobname&char.ASCII'`&s
+tr(SUFFIX2)!endgroup
+(SUFFIX0)<-/*\
+(SUFFIX1)<-`'
+(SUFFIX2)<-pass2
+{begingroup}
+{message}
+
+`'->begingroup'`endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-`'
+{begingroup}
+
+'`->"\*/"
+{endgroup}
+{("\*/")&("/*\")}
+{jobname}
+{("\*//*\")&("trap")}
+
+'`->"\*/"
+{ASCII("\*/")}
+{char(92)}
+{("\*//*\trap")&("\")}
+{("\*//*\trap\")&("pass2!")}
+
+\*//*\trap\pass2!
+{endgroup}
+{nonstopmode}
+
+{outer}
+{let}
+{delimiters}
+! Missing symbolic token inserted.
+<inserted text> 
+                 INACCESSIBLE
+l.22 ...t next=\; delimiters ^~7
+                                ! fi
+Sorry: You can't redefine a number, string, or expr.
+I've inserted an inaccessible symbol so that your
+definition will be completed without mixing me up too badly.
+
+! Extra tokens will be flushed.
+<to be read again> 
+                   !
+l.22 ... next=\; delimiters ^~7!
+                                 fi
+I've just read as much of that statement as I could fathom,
+so a semicolon should have been next. It's very puzzling...
+but I'll try to get myself back together, by ignoring
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+! Forbidden token found while scanning to the end of the statement.
+<inserted text> 
+                ;
+<to be read again> 
+                   \
+l.23 next\
+          ; % the second pass will now compute silently; the ...
+A previous error seems to have propagated,
+causing me to read past where you wanted me to stop.
+I'll try to recover; but if the error is serious,
+you'd better type `E' or `X' now and fix your file.
+
+{\}
+{batchmode}
+
+! An expression can't begin with `endgroup'.
+<inserted text> 
+                0
+<to be read again> 
+                   endgroup
+l.24 batchmode; ^~7,endgroup
+                             pausing:=1; exitif p exitif bool...
+I'm afraid I need some sort of value in order to continue,
+so I've tentatively inserted `0'. You may want to
+delete this zero and insert something else;
+see Chapter 27 of The METAFONTbook for an example.
+
+! Missing ` INACCESSIBLE' has been inserted.
+<to be read again> 
+                   endgroup
+l.24 batchmode; ^~7,endgroup
+                             pausing:=1; exitif p exitif bool...
+I found no right delimiter to match a left one. So I've
+put one in, behind the scenes; this may fix the problem.
+
+! Extra `endgroup'.
+<recently read> endgroup
+                        
+l.24 batchmode; ^~7,endgroup
+                             pausing:=1; exitif p exitif bool...
+I'm not currently working on a `begingroup',
+so I had better not try to end anything.
+
+{pausing:=1}
+{exitif}
+{exitif}
+{pencircle}
+{endfor}
+! Extra `endfor'.
+l.24 ...ean pen pencircle endfor
+                                
+I'm not currently working on a for loop,
+so I had better not try to end anything.
+
+{scantokens}
+{begingroup}
+{message}
+{char(0)}
+{("^^@")&("watch this")}
+^^@watch this
+{-(1)}
+{char(-1)}
+{("pair p[],';")&("^^ff")}
+{endgroup}
+{pen(pen)}
+{boolean(true)}
+{true}
+! No loop is in progress.
+<to be read again> 
+                   pair
+<scantokens> pair
+                  p[],';^^ff
+<to be read again> 
+                   path
+l.26 path
+          p[][]p,w,qw; qw=(1,-2)..(2,-1)..(2.5,0.5)..(1,2)..(...
+Why say `exitif' when there's nothing to exit from?
+
+>> p
+! Undefined condition will be treated as `false'.
+<to be read again> 
+                   pair
+<scantokens> pair
+                  p[],';^^ff
+<to be read again> 
+                   path
+l.26 path
+          p[][]p,w,qw; qw=(1,-2)..(2,-1)..(2.5,0.5)..(1,2)..(...
+The expression shown above should have had a definite
+true-or-false value. I'm changing it to `false'.
+
+{false}
+! Missing `;' has been inserted.
+<to be read again> 
+                   pair
+<scantokens> pair
+                  p[],';^^ff
+<to be read again> 
+                   path
+l.26 path
+          p[][]p,w,qw; qw=(1,-2)..(2,-1)..(2.5,0.5)..(1,2)..(...
+After `exitif <boolean exp>' I expect to see a semicolon.
+I shall pretend that one was there.
+
+{pair}
+! Text line contains an invalid character.
+<scantokens> pair p[],';^^ff
+                            
+<to be read again> 
+                   path
+l.26 path
+          p[][]p,w,qw; qw=(1,-2)..(2,-1)..(2.5,0.5)..(1,2)..(...
+A funny symbol that I can't read has just been input.
+Continue, and I'll forget that it ever happened.
+
+{path}
+{-(2)}
+{-(1)}
+{turningnumber((xpart ',ypart '))}
+Path at line 26, before choices:
+(1,-2){curl 1}
+ ..(2,-1)
+ ..(2.5,0.5)
+ ..(1,2)
+ ..{curl 1}(0,2.5)
+
+Path at line 26, after choices:
+(1,-2)..controls (1.37755,-1.71404) and (1.71404,-1.37755)
+ ..(2,-1)..controls (2.33353,-0.55965) and (2.59729,-0.04124)
+ ..(2.5,0.5)..controls (2.36812,1.23369) and (1.6712,1.65662)
+ ..(1,2)..controls (0.66821,2.16974) and (0.33485,2.33641)
+ ..(0,2.5)
+
+{(unknown path qw)=(path)}
+{numeric}
+! Enormous number has been reduced.
+l.27 ...[$] ]]=10000000000000000
+                                ; "this string constant is in...
+I can't handle numbers bigger than about 4095.99998;
+so I've changed your constant to that maximum amount.
+
+{(p[[ [-1] ]])=(4095.99998)}
+## p[[ [-1] ]]=4095.99998
+! Incomplete string token has been flushed.
+l.27 ...g constant is incomplete
+                                
+Strings should finish on the same line as they began.
+I've deleted the partial string; you might want to
+insert another by typing, e.g., `I"new string"'.
+
+{string}
+! Declared variable conflicts with previous vardef.
+<to be read again> 
+                   ,
+l.28 string foo[]p,
+                   p~if true:[];
+You can't use, e.g., `numeric foo[]' after `vardef foo'.
+Proceed, and I'll ignore the illegal redeclaration.
+
+{if}
+{true}
+{true}
+{boolean}
+{fi}
+{showvariable}
+boolean.boolean=unknown boolean
+! OK.
+l.29 ...n; showvariable boolean;
+                                
+
+{inner}
+{def}
+{outer}
+{picture}
+{pen}
+! Illegal suffix of declared variable will be flushed.
+<to be read again> 
+                   [
+<to be read again> 
+                   "a"
+l.31 pen p~[]~,q["a"
+                    ,qq; p~1~=q=pencircle scaled mexp(-3016.5...
+Variables in declarations must consist entirely of
+names and collective subscripts, e.g., `x[]a'.
+Are you trying to use a reserved word in a variable name?
+I'm going to discard the junk I found here,
+up to the next comma or the end of the declaration.
+
+{pencircle}
+{-(3016.57654)}
+{mexp(-3016.57654)}
+{(pen)scaled(0)}
+{(unknown pen q)=(pen)}
+{(unknown pen p~1~)=(pen)}
+{transform}
+! Illegal suffix of declared variable will be flushed.
+<to be read again> 
+                   0
+l.32 transform p,pp0
+                    ; if p=p:qq=makepen((7,0)..cycle) xscaled...
+Variables in declarations must consist entirely of
+names and collective subscripts, e.g., `x[]a'.
+Explicit subscripts like `x15a' aren't permitted.
+I'm going to discard the junk I found here,
+up to the next comma or the end of the declaration.
+
+{if}
+{((xpart p,ypart p,xxpart p,xypart p,yxpart p,yypart p))=((xpart p,ypart
+ p,xxpart p,xypart p,yxpart p,yypart p))}
+{true}
+Path at line 32, before choices:
+(7,0)
+ ..cycle
+
+Path at line 32, after choices:
+(7,0)..controls (7,0) and (7,0)
+ ..cycle
+
+{makepen(path)}
+{hex("1000")}
+! Number too large (4096).
+<to be read again> 
+                   ;
+l.32 ...cle) xscaled hex "1000";
+                                show qq;fi
+I have trouble with numbers greater than 4095; watch out.
+
+{(pen)xscaled(4096)}
+{(unknown pen qq)=(pen)}
+{show}
+>> Pen at line 32:
+pencircle transformed (28672,0,0,0,0,0)
+
+! OK.
+l.32 ...aled hex "1000";show qq;
+                                fi
+
+{fi}
+Path at line 33, before choices:
+(4,1)
+ ..(1,2)
+ ..(5,3)
+ ..(3,2)
+ ..(1,1)
+ ..(0,1)
+ ..(1,0)
+ ..cycle
+
+Path at line 33, after choices:
+(4,1)..controls (3.72015,2.36482) and (1.84834,1.36037)
+ ..(1,2)..controls (-5.16994,6.65202) and (8.52596,9.85889)
+ ..(5,3)..controls (4.6365,2.29291) and (3.69041,2.34465)
+ ..(3,2)..controls (2.30983,1.65547) and (1.78375,0.86862)
+ ..(1,1)..controls (0.63611,1.06099) and (0.23091,1.28844)
+ ..(0,1)..controls (-0.3216,0.5983) and (0.24828,0.12357)
+ ..(1,0)..controls (2.58165,-0.25998) and (4.23677,-0.15471)
+ ..cycle
+
+{makepen(path)}
+{qq:=pen}
+{show}
+>> Pen at line 33:
+(0,1)
+ .. (1,0)
+ .. (4,1)
+ .. (5,3)
+ .. (1,2)
+ .. cycle
+
+! OK.
+l.33 .....(1,0)..cycle);show qq;
+                                
+
+{vardef}
+! Missing parameter type; `expr' will be assumed.
+<to be read again> 
+                   )
+l.34 ...ext suffix a,b endtext()
+                                )suffix@=show #@; p.a.b() end...
+You should've had `expr' or `suffix' or `text' here.
+
+{expandafter}
+{\}
+{let}
+
+\\->=show
+{outer}
+{((6,12))-((xpart p7,ypart p7))}
+{((0,1))transformed((xpart p,ypart p,xxpart p,xypart p,yxpart p,yypart p
+))}
+{(x)-(x)}
+{(2)/(0)}
+>> 2
+! Division by zero.
+<to be read again> 
+                   ,
+l.36 ...)transformed p=(2/(x-x),
+                                3/0)transformed p;
+You're trying to divide the quantity shown above the error
+message by zero. I'm going to divide it by one instead.
+
+! Division by zero.
+l.36 ...ansformed p=(2/(x-x),3/0
+                                )transformed p;
+I'll pretend that you meant to divide by 1.
+
+{((2,3))transformed((xpart p,ypart p,xxpart p,xypart p,yxpart p,yypart p
+))}
+{((linearform,linearform))=((linearform,linearform))}
+## yxpart p=-yypart p
+## xxpart p=-xypart p
+{((-xpart p7+6,-ypart p7+12))=((linearform,linearform))}
+## ypart p7=-ypart p-yypart p+12
+## xpart p7=-xpart p-xypart p+6
+{\}
+{if}
+{string(unknown string p~[-1])}
+{true}
+{(p0.1 0.2)-(p0.1 0.2)}
+! The token `endtext' is no longer a right delimiter.
+l.37 ...1.2-p.1.199999,1 endtext
+                                 transformed p;
+Strange: This token has lost its former meaning!
+I'll read it as a right delimiter this time;
+but watch out, I'll probably miss it later.
+
+{((0,1))transformed((xpart p,ypart p,-xypart p,xypart p,-yypart p,yypart
+ p))}
+{((linearform,linearform))=((linearform,linearform))}
+## ypart p=-yypart p+6
+#### ypart p7=6
+## xpart p=-xypart p+3
+#### xpart p7=3
+{(unknown path p1 2p)=((3,6))}
+{showstopping:=0}
+{showvariable}
+p=(-xypart p+3,-yypart p+6,-xypart p,xypart p,-yypart p,yypart p)
+p[]=pair
+p[][]=numeric
+p[][]p=unknown path
+p[][]p~=macro:(SUFFIX2)(SUFFIX3)(EXPR4)<suffix>->begingroup ETC.
+p[]~=unknown boolean
+p~=path
+p~[]=unknown string
+p~[]~=unknown pen
+p~[]~[][]=unknown picture
+p~[-1]=unknown string p~[-1]
+p~1~=pen
+p[[ [] ]]=numeric
+p[[ [-1] ]]=4095.99998
+p0.1 0.2=p0.1 0.2
+p1 2p=path
+p7=(3,6)
+{((-xypart p+3,-yypart p+6,-xypart p,xypart p,-yypart p,yypart p))=((-xy
+part p+3,-yypart p+6,-xypart p,xypart p,-yypart p,yypart p))}
+{let}
+{let}
+{xxpart((-xypart p+3,-yypart p+6,-xypart p,xypart p,-yypart p,yypart p))
+}
+{(-xypart p)+(0.002)}
+{yxpart((-xypart p+3,-yypart p+6,-xypart p,xypart p,-yypart p,yypart p))
+}
+{((xpart p2,ypart p2))-((xpart p1,ypart p1))}
+{(1)*((linearform,linearform))}
+{((xpart p1,ypart p1))+((linearform,linearform))}
+{(y)+(0.00002)}
+{yypart((-xypart p+3,-yypart p+6,-xypart p,xypart p,-yypart p,yypart p))
+}
+{xypart((-xypart p+3,-yypart p+6,-xypart p,xypart p,-yypart p,yypart p))
+}
+{((5,y))=((yypart p,xypart p))}
+## y=xypart p
+## yypart p=5
+#### ypart p=1
+#### yxpart p=-5
+{((5,xypart p+0.00002))=((5,xypart p))}
+{((xpart p2,ypart p2))=((5,xypart p))}
+## ypart p2=xypart p
+## xpart p2=5
+{((-xypart p+0.002,-5))=((5,xypart p))}
+## xypart p=-5
+#### ypart p2=-5
+#### y=-5
+#### xpart p=8
+#### xxpart p=5
+! Inconsistent equation (off by -0.002).
+<to be read again> 
+                   ;
+l.39 ...,y)=(yypart p,xypart p);
+                                
+The equation I just read contradicts what was said before.
+But don't worry; continue and I'll just ignore it.
+
+Path at line 40, before choices:
+(0,0)..controls (15,4) and (-15,-12)
+ ..(4,0)
+ ..cycle
+
+Path at line 40, after choices:
+(0,0)..controls (15,4) and (-15,-12)
+ ..(4,0)..controls (17.52783,8.54388) and (-15.45978,-4.12262)
+ ..cycle
+
+{reverse(path)}
+{(path)transformed((8,1,5,-5,-5,5))}
+{(path)=(unknown path p2 3p)}
+
+p1 2p~(SUFFIX2)(SUFFIX3)(EXPR4)<suffix>->begingroup.show(SUFFIX0);p(SUFF
+IX2)(SUFFIX3)((EXPR4)endgroup
+(SUFFIX0)<-p1 2p
+(SUFFIX1)<-~
+(SUFFIX2)<-
+(SUFFIX3)<-2 3p~
+! A primary expression can't begin with `right delimiter that matches ('
+.
+<inserted text> 
+                0
+<to be read again> 
+                   )
+l.41 ...000000001]2p~(,[2]3p~,-)
+                                =p~1~2[pausing];
+I'm afraid I need some sort of value in order to continue,
+so I've tentatively inserted `0'. You may want to
+delete this zero and insert something else;
+see Chapter 27 of The METAFONTbook for an example.
+
+{-(0)}
+(EXPR4)<-0
+(SUFFIX5)<-
+{begingroup}
+{show}
+>> Path at line 41:
+(3,6)
+
+
+p2 3p~(SUFFIX2)(SUFFIX3)(EXPR4)<suffix>->begingroup.show(SUFFIX0);p(SUFF
+IX2)(SUFFIX3)((EXPR4)endgroup
+(SUFFIX0)<-p2 3p
+(SUFFIX1)<-~
+! Missing `,' has been inserted.
+<to be read again> 
+                   (0)
+p1 2p~->...IX2)(SUFFIX3)((EXPR4)
+                                endgroup
+<to be read again> 
+                   =
+l.41 ...00000001]2p~(,[2]3p~,-)=
+                                p~1~2[pausing];
+I've finished reading a macro argument and am about to
+read another; the arguments weren't delimited correctly.
+You might want to delete some tokens before continuing.
+
+(SUFFIX2)<-
+! Missing `,' has been inserted.
+<to be read again> 
+                   (0)
+p1 2p~->...IX2)(SUFFIX3)((EXPR4)
+                                endgroup
+<to be read again> 
+                   =
+l.41 ...00000001]2p~(,[2]3p~,-)=
+                                p~1~2[pausing];
+I've finished reading a macro argument and am about to
+read another; the arguments weren't delimited correctly.
+You might want to delete some tokens before continuing.
+
+(SUFFIX3)<-
+! Missing `)' has been inserted.
+<to be read again> 
+                   endgroup
+<to be read again> 
+                   =
+l.41 ...00000001]2p~(,[2]3p~,-)=
+                                p~1~2[pausing];
+I've gotten to the end of the macro parameter list.
+You might want to delete some tokens before continuing.
+
+(EXPR4)<-0
+(SUFFIX5)<-
+{begingroup}
+{show}
+>> Path at line 41:
+(8,1)..controls (-48.68579,57.68579) and (52.91974,-43.91974)
+ ..(28,-19)..controls (-7,16) and (63,-54)
+ ..cycle
+
+>> (8,1,5,-5,-5,5)
+! Isolated expression.
+<to be read again> 
+                   (
+p2 3p~->...;p(SUFFIX2)(SUFFIX3)(
+                                (EXPR4)endgroup
+<to be read again> 
+                   endgroup
+<to be read again> 
+                   =
+l.41 ...00000001]2p~(,[2]3p~,-)=
+                                p~1~2[pausing];
+I couldn't find an `=' or `:=' after the
+expression that is shown above this error message,
+so I guess I'll just ignore it and carry on.
+
+! Extra tokens will be flushed.
+<to be read again> 
+                   (
+p2 3p~->...;p(SUFFIX2)(SUFFIX3)(
+                                (EXPR4)endgroup
+<to be read again> 
+                   endgroup
+<to be read again> 
+                   =
+l.41 ...00000001]2p~(,[2]3p~,-)=
+                                p~1~2[pausing];
+I've just read as much of that statement as I could fathom,
+so a semicolon should have been next. It's very puzzling...
+but I'll try to get myself back together, by ignoring
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+{endgroup}
+{endgroup}
+{(vacuous)=(unknown picture p~1~2 1)}
+>> vacuous
+>> unknown picture p~1~2 1
+! Equation cannot be performed (vacuous=unknown picture).
+<to be read again> 
+                   ;
+l.41 ...2]3p~,-)=p~1~2[pausing];
+                                
+I'm sorry, but I don't know how to make such things equal.
+(See the two expressions just above the error message.)
+
+{vardef}
+Runaway definition?
+if.p(SUFFIX1)(SUFFIX1)=(SUFFIX1)(SUFFIX1)p.fi
+! Forbidden token found while scanning the definition of p~[].
+<inserted text> 
+                enddef
+<to be read again> 
+                   ;
+l.42 ...iary t:=if p@ @=@ @p fi;
+                                 vardef p[][]p~[]=BAD; inner ;;
+I suspect you have forgotten an `enddef',
+causing me to read past where you wanted me to stop.
+I'll try to recover; but if the error is serious,
+you'd better type `E' or `X' now and fix your file.
+
+{vardef}
+! This variable already starts with a macro.
+l.42 ...@p fi; vardef p[][]p~[]=
+                                BAD; inner ;;
+After `vardef a' you can't say `vardef a.b'.
+So I'll have to discard this definition.
+
+Runaway definition?
+BAD
+! Forbidden token found while scanning the definition of a bad variable.
+<inserted text> 
+                enddef
+<to be read again> 
+                   ;
+l.42 ...i; vardef p[][]p~[]=BAD;
+                                 inner ;;
+I suspect you have forgotten an `enddef',
+causing me to read past where you wanted me to stop.
+I'll try to recover; but if the error is serious,
+you'd better type `E' or `X' now and fix your file.
+
+{inner}
+{show}
+{-(2)}
+
+p~[-2]@#<tertiary>->begingroup.if.p(SUFFIX1)(SUFFIX1)=(SUFFIX1)(SUFFIX1)
+p.fi.endgroup
+(SUFFIX0)<-p~
+(SUFFIX1)<-[-2]
+(SUFFIX2)<-~
+! A tertiary expression can't begin with `['.
+<inserted text> 
+                0
+<to be read again> 
+                   [
+<to be read again> 
+                   (3000)
+<to be read again> 
+                   ,
+l.43 show p~[-2]~[3000,
+                       x]++4000>path p3; showvariable p,P;
+I'm afraid I need some sort of value in order to continue,
+so I've tentatively inserted `0'. You may want to
+delete this zero and insert something else;
+see Chapter 27 of The METAFONTbook for an example.
+
+{(x)-(3000)}
+{(0)*(x-3000)}
+{(3000)+(0)}
+{(3000)++(4000)}
+(EXPR3)<-4999.99998
+{begingroup}
+{if}
+{(p[-2][-2])=(-2)}
+>> p[-2][-2]+2
+! Unknown relation will be considered false.
+<to be read again> 
+                   [-2]
+p~[-2]->...1)=(SUFFIX1)(SUFFIX1)
+                                p.fi.endgroup
+<to be read again> 
+                   >
+l.43 show p~[-2]~[3000,x]++4000>
+                                path p3; showvariable p,P;
+Oh dear. I can't decide if the expression above is positive,
+negative, or zero. So this comparison test won't be `true'.
+
+{false}
+! Missing `:' has been inserted.
+<to be read again> 
+                   [-2]
+p~[-2]->...1)=(SUFFIX1)(SUFFIX1)
+                                p.fi.endgroup
+<to be read again> 
+                   >
+l.43 show p~[-2]~[3000,x]++4000>
+                                path p3; showvariable p,P;
+There should've been a colon after the condition.
+I shall pretend that one was there.
+
+{endgroup}
+{path((xpart p3,ypart p3))}
+{(vacuous)>(false)}
+>> vacuous
+>> false
+! Not implemented: (vacuous)>(boolean).
+<to be read again> 
+                   ;
+l.43 ...~[3000,x]++4000>path p3;
+                                 showvariable p,P;
+I'm afraid I don't know how to apply that operation to that
+combination of types. Continue, and I'll return the second
+argument (see above) as the result of the operation.
+
+>> false
+{showvariable}
+p=(8,1,5,-5,-5,5)
+p[]=pair
+p[][]=numeric
+p[][]p=unknown path
+p[][]p~=macro:(SUFFIX2)(SUFFIX3)(EXPR4)<suffix>->begingroup ETC.
+p[]~=unknown boolean
+p~=path
+p~[]@#=macro:<tertiary>->begingroup.if.p(SUFFIX1)(SUFFIX1) ETC.
+p[[ [] ]]=numeric
+p[[ [-1] ]]=4095.99998
+p[-2][-2]=p[-2][-2]
+p0.1 0.2=p0.1 0.2
+p1=(xpart p1,ypart p1)
+p1 2p=path
+p2=(5,-5)
+p2 3p=path
+p3=(xpart p3,ypart p3)
+p7=(3,6)
+> P=tag
+{numeric}
+{(2)*(alpha)}
+{(p3~)=(2alpha)}
+## alpha=0.5p3~
+{(1)/(-1)}
+{(3)*(beta)}
+{(p[-1]~)=(3beta)}
+## beta=0.33333p[-1]~
+{begingroup}
+{save}
+{showvariable}
+> p=tag
+{(3)*(0.33333(SAVED)p[-1]~)}
+{((SAVED)p[-1]~)=(1)}
+## (SAVED)p[-1]~=1
+#### beta=0.33333
+{restoring p}
+{endgroup}
+{showvariable}
+p=(8,1,5,-5,-5,5)
+p[]=pair
+p[][]=numeric
+p[][]p=unknown path
+p[][]p~=macro:(SUFFIX2)(SUFFIX3)(EXPR4)<suffix>->begingroup ETC.
+p[]~=numeric
+p~=path
+p~[]@#=macro:<tertiary>->begingroup.if.p(SUFFIX1)(SUFFIX1) ETC.
+p[[ [] ]]=numeric
+p[[ [-1] ]]=4095.99998
+p[-2][-2]=p[-2][-2]
+p[-1]~=1
+p0.1 0.2=p0.1 0.2
+p1=(xpart p1,ypart p1)
+p1 2p=path
+p2=(5,-5)
+p2 3p=path
+p3=(xpart p3,ypart p3)
+p3~=p3~
+p7=(3,6)
+{def}
+{def}
+! Missing `=' has been inserted.
+<to be read again> 
+                   false
+l.46 ...enddef;def!primary!false
+                                ):!fi enddef;
+The next thing in this `def' should have been `=',
+because I've already looked at the definition heading.
+But don't worry; I'll pretend that an equals sign
+was present. Everything from here to `enddef'
+will be the replacement text of this macro.
+
+{def}
+{(path)scaled(-1)}
+Path at line 47, before choices:
+(1,-2)..controls (1.37755,-1.71404) and (1.71404,-1.37755)
+ ..(2,-1)..controls (2.33353,-0.55965) and (2.59729,-0.04124)
+ ..(2.5,0.5)..controls (2.36812,1.23369) and (1.6712,1.65662)
+ ..(1,2)..controls (0.66821,2.16974) and (0.33485,2.33641)
+ ..(0,2.5)
+ ..(-1,2)..controls (-1.37755,1.71404) and (-1.71404,1.37755)
+ ..(-2,1)..controls (-2.33353,0.55965) and (-2.59729,0.04124)
+ ..(-2.5,-0.5)..controls (-2.36812,-1.23369) and (-1.6712,-1.65662)
+ ..(-1,-2)..controls (-0.66821,-2.16974) and (-0.33485,-2.33641)
+ ..(0,-2.5)
+ ..cycle
+
+Path at line 47, after choices:
+(1,-2)..controls (1.37755,-1.71404) and (1.71404,-1.37755)
+ ..(2,-1)..controls (2.33353,-0.55965) and (2.59729,-0.04124)
+ ..(2.5,0.5)..controls (2.36812,1.23369) and (1.6712,1.65662)
+ ..(1,2)..controls (0.66821,2.16974) and (0.33485,2.33641)
+ ..(0,2.5)..controls (-0.37186,2.68167) and (-0.668,2.25146)
+ ..(-1,2)..controls (-1.37755,1.71404) and (-1.71404,1.37755)
+ ..(-2,1)..controls (-2.33353,0.55965) and (-2.59729,0.04124)
+ ..(-2.5,-0.5)..controls (-2.36812,-1.23369) and (-1.6712,-1.65662)
+ ..(-1,-2)..controls (-0.66821,-2.16974) and (-0.33485,-2.33641)
+ ..(0,-2.5)..controls (0.37186,-2.68167) and (0.668,-2.25146)
+ ..cycle
+
+{makepen(path)}
+{qq:=pen}
+{show}
+>> Pen at line 48:
+(-2.5,-0.5)
+ .. (-1,-2)
+ .. (0,-2.5)
+ .. (1,-2)
+ .. (2,-1)
+ .. (2.5,0.5)
+ .. (1,2)
+ .. (0,2.5)
+ .. (-1,2)
+ .. (-2,1)
+ .. cycle
+
+{primarydef}
+{secondarydef}
+
+//<expr>->
+
+//<expr>->
+{pencircle}
+{length(path)}
+{(pen)slanted(1)}
+{((3,6))-((5,-5))}
+
+_aa__<secondary>->if(true
+{(0.1)*(15)}
+{odd(1.50009)}
+{not(false)}
+{known((8,1,5,-5,-5,5))}
+{(true)and(true)}
+(EXPR0)<-true
+{if}
+{true}
+
+!<primary>->false):(EXPR0)fi
+(EXPR0)<-(5,-5)
+{false}
+{(true)or(false)}
+{true}
+{fi}
+{-((5,-5))}
+{-((5,-5))}
+{+(1)}
+{-(1)}
+>> -1
+! Improper curl has been replaced by 1.
+<to be read again> 
+                   )
+l.52  {curl- +1)
+                ..tension atleast1..cycle sqrt2++sqrt2***[[]];
+A curl must be a known, nonnegative number.
+
+! Missing `}' has been inserted.
+<to be read again> 
+                   )
+l.52  {curl- +1)
+                ..tension atleast1..cycle sqrt2++sqrt2***[[]];
+I've scanned a direction spec for part of a path,
+so a right brace should have come next.
+I shall pretend that one was there.
+
+Path at line 52, before choices:
+(-5,5)
+
+Path at line 52, after choices:
+(-5,5)
+
+Path at line 52, before choices:
+(3,6)..controls (5,-5) and (-5,5)
+ ..(-5,5)..tension atleast1
+ ..{2896.30943,-2896.30934}cycle
+
+Path at line 52, after choices:
+(3,6)..controls (5,-5) and (-5,5)
+ ..(-5,5)..controls (-3.29726,7.86205) and (0.64516,8.35484)
+ ..cycle
+
+! Missing `)' has been inserted.
+<to be read again> 
+                   sqrt
+l.52 ...ion atleast1..cycle sqrt
+                                2++sqrt2***[[]];
+I found no right delimiter to match a left one. So I've
+put one in, behind the scenes; this may fix the problem.
+
+{((-2,11))subpath(path)}
+{reverse(path)}
+{makepen(path)}
+
+**->[[show(EXPR0)*(EXPR1)]]
+(EXPR0)<-pen
+(EXPR1)<-pen
+{begingroup}
+{show}
+{(pen)*(pen)}
+>> pen
+>> pen
+! Not implemented: (pen)*(pen).
+<to be read again> 
+                   ]]
+<to be read again> 
+                   sqrt
+l.52 ...ion atleast1..cycle sqrt
+                                2++sqrt2***[[]];
+I'm afraid I don't know how to apply that operation to that
+combination of types. Continue, and I'll return the second
+argument (see above) as the result of the operation.
+
+>> Pen at line 52:
+(-5,5)
+ .. (3,6)
+ .. cycle
+
+{endgroup}
+(EXPR0)<-vacuous
+{sqrt(2)}
+{sqrt(2)}
+{(1.41422)++(1.41422)}
+{begingroup}
+{endgroup}
+
+***->expandafter(EXPR1)scantokens"**oct"(EXPR0)
+(EXPR0)<-2
+(EXPR1)<-vacuous
+{expandafter}
+{scantokens}
+{oct(2)}
+>> 2
+! Not implemented: oct(known numeric).
+<to be read again> 
+                   ;
+l.52 ...cle sqrt2++sqrt2***[[]];
+                                
+I'm afraid I don't know how to apply that operation to that
+particular type. Continue, and I'll simply return the
+argument (shown above) as the result of the operation.
+
+
+**->[[show(EXPR0)*(EXPR1)]]
+(EXPR0)<-vacuous
+(EXPR1)<-2
+{begingroup}
+{show}
+{(vacuous)*(2)}
+>> vacuous
+>> 2
+! Not implemented: (vacuous)*(known numeric).
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.52 ...cle sqrt2++sqrt2***[[]];
+                                
+I'm afraid I don't know how to apply that operation to that
+combination of types. Continue, and I'll return the second
+argument (see above) as the result of the operation.
+
+>> 2
+{endgroup}
+(EXPR0)<-vacuous
+{-(20.5)}
+{charcode:=-20.5}
+{-(2048)}
+{chardp:=-2048}
+{shipout}
+{nullpicture}
+! Enormous chardp has been reduced.
+<to be read again> 
+                   ;
+l.53 ...048;shipout nullpicture;
+                                
+Font metric dimensions must be less than 2048pt.
+
+[]
+Edge structure at line 53 (just shipped out):
+End edges
+
+{if}
+{-(275.50002)}
+{charexists(-275.50002)}
+{known(unknown path p0 0p)}
+{(true)>(false)}
+{known(path)}
+{(true)=(true)}
+{true}
+{randomseed}
+! Missing `:=' has been inserted.
+<to be read again> 
+                   charcode
+l.54 ... p~: randomseed charcode
+                                ; fi
+Always say `randomseed:=<numeric expression>'.
+
+{randomseed:=-20.5}
+{fi}
+{randomseed}
+>> "goof"
+! Unknown value will be ignored.
+<to be read again> 
+                   ;
+l.55 randomseed:="goof";
+                         a[($,18++1+-+18),(2,3)]=b[(3,2),(1,$);
+Your expression was too random for me to handle,
+so I won't change the random seed just now.
+
+{(18)++(1)}
+{(18.02776)+-+(18)}
+{((2,3))-((-1,1))}
+{(a)*((3,2))}
+{((-1,1))+((3a,2a))}
+! Missing `]' has been inserted.
+<to be read again> 
+                   ;
+l.55 ...8),(2,3)]=b[(3,2),(1,$);
+                                
+I've scanned an expression of the form `a[b,c',
+so a right bracket should have come next.
+I shall pretend that one was there.
+
+{((1,-1))-((3,2))}
+{(b)*((-2,-3))}
+{((3,2))+((-2b,-3b))}
+{((3a-1,2a+1))=((-2b+3,-3b+2))}
+## b=-0.66667a+0.33333
+## a=2
+#### b=-1
+{show}
+{(^)+(1)}
+{(~)+(2)}
+{-(1)}
+{((^+1,~+2))slanted(-1)}
+{-(2)}
+{((linearform,~+2))yscaled(-2)}
+{-((3,4))}
+{((linearform,-2~-4))zscaled((-3,-4))}
+>> (-5~-3^-13,10~-4^+16)
+{((xpart pp,ypart pp,xxpart pp,xypart pp,yxpart pp,yypart pp))xscaled(9)
+}
+{((8,1,5,-5,-5,5))transformed((9xpart pp,ypart pp,9xxpart pp,9xypart pp,
+yxpart pp,yypart pp))}
+>> (9xpart pp+72xxpart pp+9xypart pp,ypart pp+8yxpart pp+yypart pp,45xxp
+art pp-45xypart pp,-45xxpart pp+45xypart pp,5yxpart pp-5yypart pp,-5yxpa
+rt pp+5yypart pp)
+{((xpart pp,ypart pp,xxpart pp,xypart pp,yxpart pp,yypart pp))shifted((1
+,2))}
+{((8,1,5,-5,-5,5))transformed((8,1,5,-5,-5,5))}
+{((xpart pp+1,ypart pp+2,xxpart pp,xypart pp,yxpart pp,yypart pp))transf
+ormed((43,-34,50,-50,-50,50))}
+>> (50xpart pp-50ypart pp-7,-50xpart pp+50ypart pp+16,50xxpart pp-50yxpa
+rt pp,50xypart pp-50yypart pp,-50xxpart pp+50yxpart pp,-50xypart pp+50yy
+part pp)
+{(2)-(1)}
+{(_0)*(1)}
+{(1)+(_0)}
+{-(_0+1)}
+>> -_0-1
+{show}
+{normaldeviate}
+{-(-2048)}
+{uniformdeviate(2048)}
+{angle((-0.41438,761.67789))}
+{cosd(90.03117)}
+{(200)*(-0.00055)}
+{mexp(-0.10986)}
+{sqrt(0.99957)}
+{mlog(0.99979)}
+{sind(-0.05469)}
+{floor(-0.00096)}
+>> -1
+{string}
+{(unknown string s2)=(unknown string s4)}
+{(unknown string s1)=(unknown string s2)}
+{(unknown string s3)=(unknown string s5)}
+{(unknown string s2)=(unknown string s4)}
+! Redundant equation.
+<to be read again> 
+                   ;
+l.59 ... s1=s2=s4; s3=s5; s1=s2;
+                                 if s1<=s4<>(s1<>s3):show[[ch...
+I already knew that this equation was true.
+But perhaps no harm has been done; let's continue.
+
+{if}
+{(unknown string s2)<=(unknown string s1)}
+{(unknown string s2)<>(unknown string s5)}
+>> unknown string s2
+>> unknown string s5
+! Unknown relation will be considered false.
+<to be read again> 
+                   )
+l.59 ...=s2; if s1<=s4<>(s1<>s3)
+                                :show[[char34=s2:=s3]]fi;
+The quantities shown above have not been equated.
+
+{(true)<>(false)}
+{true}
+{show}
+{begingroup}
+{char(34)}
+{s2:=unknown string s5}
+{(""")=(unknown string s2)}
+{endgroup}
+{fi}
+>> vacuous
+{(0.1)point(path)}
+{begingroup}
+{pencircle}
+{endgroup}
+{((3.24413,0.64801))penoffset(pen)}
+{((0.09795,-0.49031))rotated(540)}
+{((-0.09795,0.49031))/(0.33333)}
+{-(1.5)}
+! Paths don't touch; `&' will be changed to `..'.
+<to be read again> 
+                   )
+l.61 ...tcontrol-1.5of(p~&cycle)
+                                -precontrol1/2of p~(p~)=s1:=s...
+When you join paths `p&q', the ending point of p
+must be exactly equal to the starting point of q.
+So I'm going to pretend that you said `p..q' instead.
+
+Path at line 61, before choices:
+(0,0)..controls (15,4) and (-15,-12)
+ ..(4,0)
+ ..cycle
+
+Path at line 61, after choices:
+(0,0)..controls (15,4) and (-15,-12)
+ ..(4,0)..controls (17.52783,8.54388) and (-15.45978,-4.12262)
+ ..cycle
+
+{(-1.5)postcontrol(path)}
+{(0.5)precontrol(path)}
+{((-2.75,-5))-((3.75,-1))}
+! Missing `of' has been inserted for directiontime.
+<to be read again> 
+                   (
+l.61 ...cle)-precontrol1/2of p~(
+                                p~)=s1:=s4:=s4;
+I've got the first argument; will look now for the other.
+
+{((-6.5,-4))directiontime(path)}
+{decimal(0.5)}
+{((-0.29384,1.47095))substring("0.5")}
+{s4:=unknown string s1}
+{s1:=unknown string s4}
+{("0")=(unknown string s1)}
+{path}
+{length("  ")}
+! Missing `,' has been inserted.
+<to be read again> 
+                   }
+l.62 ...p~[]; p~1=p2{length"  "}
+                                &cycle; p~1=p2=p~0; p2..contr...
+I've got the x coordinate of a path direction;
+will look for the y coordinate next.
+
+! An expression can't begin with `}'.
+<inserted text> 
+                0
+<to be read again> 
+                   }
+l.62 ...p~[]; p~1=p2{length"  "}
+                                &cycle; p~1=p2=p~0; p2..contr...
+I'm afraid I need some sort of value in order to continue,
+so I've tentatively inserted `0'. You may want to
+delete this zero and insert something else;
+see Chapter 27 of The METAFONTbook for an example.
+
+Path at line 62, before choices:
+(5,-5){4096,0}
+ ..{4096,0}cycle
+
+Path at line 62, after choices:
+(5,-5)..controls (5,-5) and (5,-5)
+ ..cycle
+
+{(unknown path p~1)=(path)}
+{((5,-5))=(unknown path p~0)}
+{(path)=(path)}
+! Redundant or inconsistent equation.
+<to be read again> 
+                   ;
+l.62 ..."  "}&cycle; p~1=p2=p~0;
+                                 p2..controls-p2..cycle=p~2;(p7
+An equation between already-known quantities can't help.
+But don't worry; continue and I'll just ignore it.
+
+{-((5,-5))}
+Path at line 62, before choices:
+(5,-5)..controls (-5,5) and (-5,5)
+ ..cycle
+
+Path at line 62, after choices:
+(5,-5)..controls (-5,5) and (-5,5)
+ ..cycle
+
+{(path)=(unknown path p~2)}
+{length(path)}
+Path at line 63, before choices:
+(3,6)..tension 1.2
+ ..(5,-5)..controls (5,-5) and (5,-5)
+ ..(5,-5)
+ ..(5,-5)..controls (-5,5) and (-5,5)
+ ..(5,-5){0,4096}..tension 1 and atleast1
+ ..cycle
+
+Path at line 63, after choices:
+(3,6)..controls (-3.01212,4.82085) and (-1.0424,-6.01257)
+ ..(5,-5)..controls (5,-5) and (5,-5)
+ ..(5,-5)..controls (5,-5) and (5,-5)
+ ..(5,-5)..controls (-5,5) and (-5,5)
+ ..(5,-5)..controls (5,0.02791) and (4.99951,6.39217)
+ ..cycle
+
+>> x
+! Improper tension has been set to 1.
+<to be read again> 
+                   ..
+l.64  x..
+         {curl1}-p7{curl hex "IsBad"}..tension.75and.74999..p...
+The expression above should have been a number >=3/4.
+
+{-((3,6))}
+{hex("IsBad")}
+>> "IsBad"
+! String contains illegal digits.
+<to be read again> 
+                   }
+l.64 ...l1}-p7{curl hex "IsBad"}
+                                ..tension.75and.74999..p2{0,1...
+I zeroed out characters that weren't hex digits.
+
+>> 0.74998
+! Improper tension has been set to 1.
+<to be read again> 
+                   ..
+l.64 ...}..tension.75and.74999..
+                                p2{0,1}&p2{_,'}..cycle:=p
+The expression above should have been a number >=3/4.
+
+>> _
+! Undefined x coordinate has been replaced by 0.
+<to be read again> 
+                   ,
+l.64 ...and.74999..p2{0,1}&p2{_,
+                                '}..cycle:=p
+I need a `known' x value for this part of the path.
+The value I found (see above) was no good;
+so I'll try to keep going by using zero instead.
+(Chapter 27 of The METAFONTbook explains that
+you might want to type `I ???' now.)
+
+>> (xpart ',ypart ')
+! Undefined y coordinate has been replaced by 0.
+<to be read again> 
+                   }
+l.64 ...d.74999..p2{0,1}&p2{_,'}
+                                ..cycle:=p
+I need a `known' y value for this part of the path.
+The value I found (see above) was no good;
+so I'll try to keep going by using zero instead.
+(Chapter 27 of The METAFONTbook explains that
+you might want to type `I ???' now.)
+
+Path at line 64, before choices:
+(3,6)..controls (-3.01212,4.82085) and (-1.0424,-6.01257)
+ ..(5,-5)..controls (5,-5) and (5,-5)
+ ..(5,-5)..controls (5,-5) and (5,-5)
+ ..(5,-5)..controls (-5,5) and (-5,5)
+ ..(5,-5)..controls (5,0.02791) and (4.99951,6.39217)
+ ..(3,6)
+ ..{curl 1}(-3,-6){curl 2989}..tension 0.75 and 1
+ ..{0,4096}(5,-5){curl 1}
+ ..cycle
+
+Path at line 64, after choices:
+(3,6)..controls (-3.01212,4.82085) and (-1.0424,-6.01257)
+ ..(5,-5)..controls (5,-5) and (5,-5)
+ ..(5,-5)..controls (5,-5) and (5,-5)
+ ..(5,-5)..controls (-5,5) and (-5,5)
+ ..(5,-5)..controls (5,0.02791) and (4.99951,6.39217)
+ ..(3,6)..controls (-2.44821,4.93144) and (-5.41408,-1.00029)
+ ..(-3,-6)..controls (-3.70045,-12.19485) and (5,-11.61679)
+ ..(5,-5)..controls (12.45406,-3.75087) and (10.41669,7.45464)
+ ..cycle
+
+>> path
+! Improper `:=' will be changed to `='.
+l.64 ...p2{0,1}&p2{_,'}..cycle:=
+                                p
+I didn't find a variable name at the left of the `:=',
+so I'm going to pretend that you said `=' instead.
+
+{(path)=(unknown path p~4)}
+{-(9)}
+{((3.5001,7.00002))subpath(path)}
+{((-9,9))subpath(path)}
+{(path)=(unknown path p~6)}
+{show}
+>> Path at line 66:
+(-2.5,2.5)..controls (-2.49893,2.49893) and (0.00107,-0.00107)
+ ..(5,-5)..controls (5,0.02791) and (4.99951,6.39217)
+ ..(3,6)..controls (-2.44821,4.93144) and (-5.41408,-1.00029)
+ ..(-3,-6)..controls (-3.70045,-12.19485) and (5,-11.61679)
+ ..(5,-5)..controls (5.0001,-4.99998) and (5.00021,-4.99997)
+ ..(5.00032,-4.99995)
+
+{((1,2))directiontime(path)}
+>> 1
+{-(1.00002)}
+{((1,-1.00002))directiontime(path)}
+>> 3.24937
+Path at line 67, before choices:
+(0,0)..controls (1,1) and (0,1)
+ ..(1,0)
+
+Path at line 67, after choices:
+(0,0)..controls (1,1) and (0,1)
+ ..(1,0)
+
+{(unknown path p~3)=(path)}
+{show}
+Path at line 67, before choices:
+(5,-5){-2896.30943,-2896.30934}
+ ..{1831.78674,3663.57385}cycle
+
+Path at line 67, after choices:
+(5,-5)..controls (5,-5) and (5,-5)
+ ..cycle
+
+>> Path at line 67:
+(5,-5)..controls (5,-5) and (5,-5)
+ ..cycle
+
+{((0.31416,1))subpath(path)}
+{((1,1))directiontime(path)}
+{(1)-(0.31416)}
+{(0.27097)*(0.68584)}
+{(0.31416)+(0.18584)}
+>> 0.5
+{((0,0.25))subpath(path)}
+{((0.25,1))subpath(path)}
+Path at line 69, before choices:
+(0,0)..controls (0.25,0.25) and (0.375,0.4375)
+ ..(0.4375,0.5625)..controls (0.625,0.9375) and (0.25,0.75)
+ ..(1,0)
+
+Path at line 69, after choices:
+(0,0)..controls (0.25,0.25) and (0.375,0.4375)
+ ..(0.4375,0.5625)..controls (0.625,0.9375) and (0.25,0.75)
+ ..(1,0)
+
+! Missing `endtext' has been inserted.
+<to be read again> 
+                   ;
+l.69 ...~3)shifted begintext1,0;
+                                
+I found no right delimiter to match a left one. So I've
+put one in, behind the scenes; this may fix the problem.
+
+{(path)shifted((1,0))}
+{(unknown path p~5)=(path)}
+{(2/3)*((xpart ',ypart '))}
+{((0.66667xpart ',0.66667ypart '))zscaled((xpart ',ypart '))}
+>> (0,0,xpart ',-ypart ',ypart ',xpart ')
+! Transform components aren't all known.
+<to be read again> 
+                   {
+l.70 p~3:=2/3'zscaled'{
+                       p~3}..controls(2,2/3(3))and penoffset(...
+I'm unable to apply a partially specified transformation
+except to a fully known pair or transform.
+Proceed, and I'll omit the transformation.
+
+>> 0.66667xpart '
+! Undefined x coordinate has been replaced by 0.
+<to be read again> 
+                   {
+l.70 p~3:=2/3'zscaled'{
+                       p~3}..controls(2,2/3(3))and penoffset(...
+I need a `known' x value for this part of the path.
+The value I found (see above) was no good;
+so I'll try to keep going by using zero instead.
+(Chapter 27 of The METAFONTbook explains that
+you might want to type `I ???' now.)
+
+>> 0.66667ypart '
+! Undefined y coordinate has been replaced by 0.
+<to be read again> 
+                   {
+l.70 p~3:=2/3'zscaled'{
+                       p~3}..controls(2,2/3(3))and penoffset(...
+I need a `known' y value for this part of the path.
+The value I found (see above) was no good;
+so I'll try to keep going by using zero instead.
+(Chapter 27 of The METAFONTbook explains that
+you might want to type `I ???' now.)
+
+>> path
+! Undefined coordinates have been replaced by (0,0).
+<to be read again> 
+                   }
+l.70 p~3:=2/3'zscaled'{p~3}
+                           ..controls(2,2/3(3))and penoffset(...
+I need x and y numbers for this part of the path.
+The value I found (see above) was no good;
+so I'll try to keep going by using zero instead.
+(Chapter 27 of The METAFONTbook explains that
+you might want to type `I ???' now.)
+
+{(2/3)*(3)}
+{(1/2)*(x)}
+{((0.5x,-5))penoffset((0,1))}
+>> (0.5x,-5)
+>> (0,1)
+! Not implemented: penoffset(unknown pair)of(pair).
+<to be read again> 
+                   (
+l.70 ...enoffset(1/2x,y)of(0,1)(
+                                1,0);
+I'm afraid I don't know how to apply that operation to that
+combination of types. Continue, and I'll return the second
+argument (see above) as the result of the operation.
+
+! Missing `..' has been inserted.
+<to be read again> 
+                   (
+l.70 ...enoffset(1/2x,y)of(0,1)(
+                                1,0);
+A path join command should end with two dots.
+
+Path at line 70, before choices:
+(0,0)..controls (2,2) and (0,1)
+ ..(1,0)
+
+Path at line 70, after choices:
+(0,0)..controls (2,2) and (0,1)
+ ..(1,0)
+
+{p~3:=path}
+{show}
+{reverse(path)}
+{(path)intersectiontimes(path)}
+>> (0.17227,0.28339)
+{(0.17227)point(path)}
+>> (0.71329,0.78188)
+{(1)-(0.28339)}
+{(0.71661)point(path)}
+>> (0.7133,0.78189)
+{show}
+{(path)shifted((0.01,0))}
+{(path)intersectiontimes(path)}
+{xpart((1.47693,1.18973))}
+{(1.47693)point(path)}
+{(path)shifted((0.01,0))}
+{(path)intersectiontimes(path)}
+{ypart((1.47693,1.18973))}
+{(1.18973)point(path)}
+{((1.50499,0.71521))-((1.495,0.71521))}
+>> (0.01,0)
+{begingroup}
+{-(1)}
+{-(1.00002)}
+{(-1)+-+(-1.00002)}
+! Pythagorean subtraction 1+-+1.00002 has been replaced by 0.
+l.74 [[ e[-1+-+ -1.00001]
+                         =nullpicture; addto e1 also[[
+Since I don't take square roots of negative numbers,
+I'm zeroing this one. Proceed, with fingers crossed.
+
+{nullpicture}
+{(unknown picture e0)=(picture)}
+{addto}
+{begingroup}
+{addto}
+{(path)scaled(3)}
+{(unknown picture e1)=(unknown picture e2)}
+{(picture)=(unknown picture e1)}
+{nullpicture}
+{endgroup}
+{show}
+>> Edge structure at line 76:
+Filled pen stroke :
+(3,0)..controls (3.75,0.75) and (4.125,1.3125)
+ ..(4.3125,1.6875)..controls (4.875,2.8125) and (3.75,2.25)
+ ..(6,0)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+End edges
+
+{-(3)}
+{(picture)shifted((-3,0))}
+>> Edge structure at line 76:
+Filled pen stroke :
+(0,0)..controls (0.75,0.75) and (1.125,1.3125)
+ ..(1.3125,1.6875)..controls (1.875,2.8125) and (0.75,2.25)
+ ..(3,0)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+End edges
+
+{endgroup}
+{addto}
+{-(2)}
+{(picture)shifted((-2,-1))}
+{-(4)}
+{(picture)shifted((-4,-1))}
+{e1:=picture}
+{addto}
+{turningnumber(path)}
+{oct("180")}
+>> "180"
+! String contains illegal digits.
+<to be read again> 
+                   ++
+l.79 ...en qq xscaled(oct"180"++
+                                1) rotated-angle(64,$) shifte...
+I zeroed out characters that weren't in the range 0..7.
+
+{(64)++(1)}
+{(pen)xscaled(64.00781)}
+{angle((64,-1))}
+{-(-0.89517)}
+{(pen)rotated(0.89517)}
+{(pen)shifted((9,8))}
+{show}
+>> Edge structure at line 80:
+Filled pen stroke :
+(-1,-1)..controls (-0.25,-0.25) and (0.125,0.3125)
+ ..(0.3125,0.6875)..controls (0.875,1.8125) and (-0.25,1.25)
+ ..(2,-1)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+Filled pen stroke :
+(-3,-2)..controls (-2.25,-1.25) and (-1.875,-0.6875)
+ ..(-1.6875,-0.3125)..controls (-1.125,0.8125) and (-2.25,0.25)
+ ..(0,-2)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+Filled pen stroke colored (0.4,2,0):
+(0,9)
+butt ends, mitered joins limited 1 with pen
+(-150.99219,4.99976)
+ .. (-54.96875,5.00012)
+ .. (9.03906,5.5003)
+ .. (73.03125,7.00037)
+ .. (137.01563,9.00037)
+ .. (168.99219,11.00024)
+ .. (72.96875,10.99988)
+ .. (8.96094,10.4997)
+ .. (-55.03125,8.99963)
+ .. (-119.01563,6.99963)
+ .. cycle
+End edges
+
+{charcode:=5}
+{chardp:=5}
+{-(1.5)}
+{xoffset:=-1.5}
+## xoffset=-1.5
+{shipout}
+[5
+Envelope spec at line 80:
+(0,9) % beginning with offset (-150.99219,4.99976)
+   ..controls (0,9) and (0,9)
+ ..(0,9) % counterclockwise to offset (-150.99219,4.99976)
+ & cycle
+
+]
+Edge structure at line 80 (just shipped out):
+Filled pen stroke :
+(-1,-1)..controls (-0.25,-0.25) and (0.125,0.3125)
+ ..(0.3125,0.6875)..controls (0.875,1.8125) and (-0.25,1.25)
+ ..(2,-1)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+Filled pen stroke :
+(-3,-2)..controls (-2.25,-1.25) and (-1.875,-0.6875)
+ ..(-1.6875,-0.3125)..controls (-1.125,0.8125) and (-2.25,0.25)
+ ..(0,-2)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+Filled pen stroke colored (0.4,2,0):
+(0,9)
+butt ends, mitered joins limited 1 with pen
+(-150.99219,4.99976)
+ .. (-54.96875,5.00012)
+ .. (9.03906,5.5003)
+ .. (73.03125,7.00037)
+ .. (137.01563,9.00037)
+ .. (168.99219,11.00024)
+ .. (72.96875,10.99988)
+ .. (8.96094,10.4997)
+ .. (-55.03125,8.99963)
+ .. (-119.01563,6.99963)
+ .. cycle
+End edges
+
+{nullpicture}
+{(unknown picture e3)=(picture)}
+{showstats}
+Memory usage 1178&115 (1844 still untouched)
+String usage 19&84 (1277&9787 now untouched)
+{addto}
+Path at line 81, before choices:
+(0.5,0){curl 1}
+ ..{curl 1}(3.5,1.5)
+
+Path at line 81, after choices:
+(0.5,0)..controls (1.5,0.5) and (2.5,1)
+ ..(3.5,1.5)
+
+Path at line 82, before choices:
+(1,1)
+ ..cycle
+
+Path at line 82, after choices:
+(1,1)..controls (1,1) and (1,1)
+ ..cycle
+
+{makepen(path)}
+{(pen)yscaled(1.5)}
+{q:=pen}
+{-(14.5)}
+{charext:=-14.5}
+{chardp:=-14.5}
+{chardx:=-14.5}
+## chardx=-14.5
+{charcode:=6}
+{shipout}
+[6]
+Edge structure at line 83 (just shipped out):
+Filled pen stroke :
+(3,0)..controls (3.75,0.75) and (4.125,1.3125)
+ ..(4.3125,1.6875)..controls (4.875,2.8125) and (3.75,2.25)
+ ..(6,0)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+End edges
+
+Path at line 84, before choices:
+(0,0){curl 1}
+ ..(1,0.5)
+ ..(5,1.5)
+ ..(7,2.5)
+ ..(12,3.5)
+ ..{curl 1}(13,4)
+
+Path at line 84, after choices:
+(0,0)..controls (0.3153,0.20053) and (0.6504,0.36807)
+ ..(1,0.5)..controls (2.29114,0.98723) and (3.72412,0.97192)
+ ..(5,1.5)..controls (5.68967,1.78545) and (6.30771,2.22081)
+ ..(7,2.5)..controls (8.58867,3.1407) and (10.3946,2.90645)
+ ..(12,3.5)..controls (12.3506,3.62962) and (12.68594,3.7973)
+ ..(13,4)
+
+{(unknown path p~9)=(path)}
+{addto}
+{addto}
+! A primary expression can't begin with `doublepath'.
+<inserted text> 
+                0
+<to be read again> 
+                   doublepath
+l.85 addto doublepath
+                      (-4095,0)..tension
+I'm afraid I need some sort of value in order to continue,
+so I've tentatively inserted `0'. You may want to
+delete this zero and insert something else;
+see Chapter 27 of The METAFONTbook for an example.
+
+>> 0
+! Not a suitable variable.
+<to be read again> 
+                   doublepath
+l.85 addto doublepath
+                      (-4095,0)..tension
+At this point I needed to see the name of a picture variable.
+(Or perhaps you have indeed presented me with one; I might
+have missed it, if it wasn't followed by the proper token.)
+So I'll not change anything just now.
+
+! Extra tokens will be flushed.
+<to be read again> 
+                   doublepath
+l.85 addto doublepath
+                      (-4095,0)..tension
+I've just read as much of that statement as I could fathom,
+so a semicolon should have been next. It's very puzzling...
+but I'll try to get myself back together, by ignoring
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+{show}
+{-(90)}
+{(picture)rotated(-90)}
+>> Edge structure at line 86:
+Filled pen stroke :
+(0,-0.5)..controls (0.5,-1.5) and (1,-2.5)
+ ..(1.5,-3.5)
+dashed 3on 0off offset 0
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+Filled pen stroke :
+(0,0)..controls (0.20053,-0.3153) and (0.36807,-0.6504)
+ ..(0.5,-1)..controls (0.98723,-2.29114) and (0.97192,-3.72412)
+ ..(1.5,-5)..controls (1.78545,-5.68967) and (2.22081,-6.30771)
+ ..(2.5,-7)..controls (3.1407,-8.58867) and (2.90645,-10.3946)
+ ..(3.5,-12)..controls (3.62962,-12.3506) and (3.7973,-12.68594)
+ ..(4,-13)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+End edges
+
+{if}
+{if}
+{elseif}
+! Missing `:' has been inserted.
+<inserted text> 
+                :
+<to be read again> 
+                   elseif
+l.87 if "a" if "ab">"b" elseif
+                               path reverse (3,4): >="aa":foo...
+
+{("ab")>("b")}
+{false}
+{reverse((3,4))}
+{path(path)}
+{true}
+{("a")>=("aa")}
+{false}
+{if}
+{((xpart ',ypart '))-((1,yy))}
+{((xpart '-1,linearform))<((xpart ',ypart '))}
+{true}
+{fi}
+{else}
+! Extra else.
+l.88 ... if '-(1,yy)<': :fi else
+                                 def dup text t=[[t;save endd...
+I'm ignoring this; it doesn't match any if.
+
+{def}
+{def}
+{def}
+
+||<tertiary>->show.substring(EXPR0)of("a"
+(EXPR0)<-(2,-1)
+{show}
+{("a")&("bc")}
+{((2,-1))substring("abc")}
+>> "ba"
+{tertiarydef}
+{def}
+{show}
+{((23.3,4.5))subpath(path)}
+Path at line 95, before choices:
+(0,0){curl 2}
+ ..(13,4)..controls (12.84297,3.89865) and (12.68063,3.80606)
+ ..(12.51372,3.72261){curl 3}
+ ..{curl 4}(-1,-1){curl 4}
+ ..{curl 2}cycle
+
+Path at line 95, after choices:
+(0,0)..controls (-40.15552,-36.7088) and (58.71173,33.50317)
+ ..(13,4)..controls (12.84297,3.89865) and (12.68063,3.80606)
+ ..(12.51372,3.72261)..controls (8.00914,2.1484) and (3.50458,0.5742)
+ ..(-1,-1)..controls (-0.66667,-0.66667) and (-0.33333,-0.33333)
+ ..cycle
+
+>> Path at line 95:
+(0,0)..controls (-40.15552,-36.7088) and (58.71173,33.50317)
+ ..(13,4)..controls (12.84297,3.89865) and (12.68063,3.80606)
+ ..(12.51372,3.72261)..controls (8.00914,2.1484) and (3.50458,0.5742)
+ ..(-1,-1)..controls (-0.66667,-0.66667) and (-0.33333,-0.33333)
+ ..cycle
+
+{numspecial}
+{(2)+(3)}
+
+++->[[dup.showtoken(EXPR0);]];def.x.expr.z.of(EXPR1)=z.enddef;texts(x=((
+EXPR1)+0)(EXPR1)+(EXPR1))("xx",foo((EXPR0)))=0]]
+(EXPR0)<-path
+(EXPR1)<-5
+{begingroup}
+
+dup<text>->[[(TEXT0);save
+(TEXT0)<-showtoken(path)
+{begingroup}
+{showtoken}
+> (path)
+{save}
+{restoring ;}
+{endgroup}
+{def}
+! Missing symbolic token inserted.
+<inserted text> 
+                 INACCESSIBLE
+++->...]];def.x.expr.z.of(EXPR1)
+                                =z.enddef;texts(x=((EXPR1)+0)...
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+Sorry: You can't redefine a number, string, or expr.
+I've inserted an inaccessible symbol so that your
+definition will be completed without mixing me up too badly.
+
+
+texts(TEXT0)(TEXT1)<expr>->for.n:=,for.n"yy":n,length.if.false:endfor(TE
+XT1),(TEXT0),:if.string.n:forsuffixes.n=foo1,[foo(n)],':show(TEXT0),(TEX
+T1)|(n;exitif.not('<='+((EXPR2),yy))endfor.for.m= :+endfor.for.m=alpha.s
+tep-1.1 3$:+m.endfor.fi.endfor
+(TEXT0)<-x=((5)+0)(5)+(5)
+(TEXT1)<-"xx",foo((path))
+(EXPR2)<-0
+{for}
+{for}
+! Missing `=' has been inserted.
+<to be read again> 
+                   "yy"
+texts->for.n:=,for.n"yy"
+                        :n,length.if.false:endfor(TEXT1),(TEX...
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+The next thing in this loop should have been `=' or `:='.
+But don't worry; I'll pretend that an equals sign
+was present, and I'll look for the values next.
+
+{loop value="yy"}
+{if}
+{false}
+{false}
+! Incomplete if; all text was ignored after line 95.
+<inserted text> 
+                fi
+<to be read again> 
+                    ENDFOR
+<for("yy")> ....if.false: ENDFOR
+                                
+texts->...length.if.false:endfor
+                                (TEXT1),(TEXT0),:if.string.n:...
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+A forbidden `outer' token occurred in skipped text.
+This kind of error happens when you say `if...' and forget
+the matching `fi'. I've inserted a `fi'; this might work.
+
+{[repeat the loop]}
+{length("xx")}
+
+foo(TEXT2)->begingroup(TEXT2)endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-foo
+(TEXT2)<-(path)
+{begingroup}
+{endgroup}
+
+x<expr>of<primary>->(EXPR0)
+{(5)+(0)}
+(EXPR0)<-5
+! Missing `of' has been inserted for x.
+<to be read again> 
+                   (5)
+<argument> x=((5)+0)(5)
+                       +(5)
+texts->...:endfor(TEXT1),(TEXT0)
+                                ,:if.string.n:forsuffixes.n=f...
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+I've got the first argument; will look now for the other.
+
+(EXPR1)<-5
+{(5)+(5)}
+{loop value="yy"}
+{if}
+{string("yy")}
+{true}
+{forsuffixes}
+! Missing symbolic token inserted.
+<inserted text> 
+                 INACCESSIBLE
+<for("yy")> ...orsuffixes(EXPR0)
+                                =foo1,[foo((EXPR0))],':show.x...
+texts->...3$:+m.endfor.fi.endfor
+                                
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+Sorry: You can't redefine a number, string, or expr.
+I've inserted an inaccessible symbol so that your
+definition will be completed without mixing me up too badly.
+
+
+foo(TEXT2)->begingroup(TEXT2)endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-foo
+(TEXT2)<-("yy")
+{begingroup}
+{endgroup}
+>> "yy"
+! Improper subscript has been replaced by zero.
+<for("yy")> ...o1,[foo((EXPR0))]
+                                ,':show.x=((5)+0)(5)+(5),"xx"...
+texts->...3$:+m.endfor.fi.endfor
+                                
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+A bracketed subscript must have a known numeric value;
+unfortunately, what I found was the value that appears just
+above this error message. So I'll try a zero subscript.
+
+{loop value=foo1}
+{show}
+
+x<expr>of<primary>->(EXPR0)
+{(5)+(0)}
+(EXPR0)<-5
+! Missing `of' has been inserted for x.
+<to be read again> 
+                   (5)
+<for(foo1)> show.x=((5)+0)(5)
+                             +(5),"xx",foo((path))|(("yy");ex...
+<for("yy")> ...'+((0),yy))endfor
+                                .for.m= :+endfor.for.m=alpha....
+texts->...3$:+m.endfor.fi.endfor
+                                
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+I've got the first argument; will look now for the other.
+
+(EXPR1)<-5
+{(5)+(5)}
+>> 10
+>> "xx"
+foo(TEXT2)->begingroup(TEXT2)endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-foo
+(TEXT2)<-(path)
+{begingroup}
+{endgroup}
+
+|<suffix>->,(SUFFIX0)
+! Missing `)' has been inserted.
+<to be read again> 
+                   ("yy")
+<for(foo1)> ...o((path))|(("yy")
+                                ;exitif.not('<='+((0),yy)) EN...
+<for("yy")> ...'+((0),yy))endfor
+                                .for.m= :+endfor.for.m=alpha....
+texts->...3$:+m.endfor.fi.endfor
+                                
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+I've gotten to the end of the macro parameter list.
+You might want to delete some tokens before continuing.
+
+(SUFFIX0)<-
+>> Path at line 95:
+(0,0)..controls (15,4) and (-15,-12)
+ ..(4,0)
+
+>> "yy"
+{exitif}
+{((xpart ',ypart '))+((0,yy))}
+{((xpart ',ypart '))<=((xpart ',linearform))}
+>> -yy
+! Unknown relation will be considered false.
+<to be read again> 
+                   )
+<for(foo1)> ...ot('<='+((0),yy))
+                                 ENDFOR
+<for("yy")> ...'+((0),yy))endfor
+                                .for.m= :+endfor.for.m=alpha....
+texts->...3$:+m.endfor.fi.endfor
+                                
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+Oh dear. I can't decide if the expression above is positive,
+negative, or zero. So this comparison test won't be `true'.
+
+{[repeat the loop]}
+{loop value=0}
+{not(false)}
+{true}
+{for}
+{for}
+>> 0.5p3~
+! Improper initial value has been replaced by 0.
+<to be read again> 
+                   step
+<for("yy")> ....for.m=alpha.step
+                                -1.1 3$:+m.endfor.fi ENDFOR
+texts->...3$:+m.endfor.fi.endfor
+                                
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+When you say `for x=a step b until c',
+the initial value `a' and the step size `b'
+and the final value `c' must have known numeric values.
+I'm zeroing this one. Proceed, with fingers crossed.
+
+{-(1.1)}
+! Missing `until' has been inserted.
+<to be read again> 
+                   3
+<for("yy")> ...=alpha.step-1.1 3
+                                $:+m.endfor.fi ENDFOR
+texts->...3$:+m.endfor.fi.endfor
+                                
+<to be read again> 
+                   ]]
+<to be read again> 
+                   ;
+l.95 ...ycle;numspecial p~++2+3;
+                                [[
+I assume you meant to say `until' after `step'.
+So I'll look for the final value and colon next.
+
+{(3)*(-1)}
+{loop value=0}
+{[repeat the loop]}
+{loop value=-1.1}
+{+(0)}
+{[repeat the loop]}
+{loop value=-2.20001}
+{(0)+(-1.1)}
+{[repeat the loop]}
+{fi}
+{[repeat the loop]}
+{loop value=2}
+{if}
+{string(2)}
+{false}
+{[repeat the loop]}
+{loop value=path}
+{if}
+{string(path)}
+{false}
+{[repeat the loop]}
+{loop value=10}
+{if}
+{string(10)}
+{false}
+{[repeat the loop]}
+{(-1.1)+(-2.20001)}
+{endgroup}
+{begingroup}
+{let}
+{save}
+{def}
+{def}
+
+texts->input
+{input}
+(trap.mp
+if->endinput?
+{endinput}
+{if}
+{known(0)}
+{not(true)}
+{false}
+)
+! Incomplete if; all text was ignored after line 2.
+<inserted text> 
+                fi
+l.96 ...=input enddef;texts trap
+                                 ]];
+The file ended while I was skipping conditional text.
+This kind of error happens when you say `if...' and forget
+the matching `fi'. I've inserted a `fi'; this might work.
+
+{restoring \}
+{restoring if}
+{endgroup}
+
+dup<text>->[[(TEXT0);save
+Runaway text?
+[[def.texts.secondary.x=primarydef.y++y=x@y.enddef;showtoken ETC.
+! Forbidden token found while scanning a text argument.
+<inserted text> 
+                endgroup
+<to be read again> 
+                   \
+l.97 ... showtoken++;x enddef]]\
+                                ;
+It seems that a right delimiter was left out,
+causing me to read past where you wanted me to stop.
+I'll try to recover; but if the error is serious,
+you'd better type `E' or `X' now and fix your file.
+
+(TEXT0)<-[[def.texts.secondary.x=primarydef.y++y=x@y.enddef;showtoken++;
+x.enddef]]
+{begingroup}
+{begingroup}
+{def}
+{endgroup}
+{save}
+! Missing symbolic token inserted.
+<inserted text> 
+                 INACCESSIBLE
+<to be read again> 
+                   \
+l.97 ... showtoken++;x enddef]]\
+                                ;
+Sorry: You can't redefine my error-recovery tokens.
+I've inserted an inaccessible symbol so that your
+definition will be completed without mixing me up too badly.
+
+{\}
+
+texts<secondary>->primarydef.y++y=(EXPR0)@y.enddef;showtoken++;(EXPR0)
+(EXPR0)<-"a"
+{primarydef}
+{showtoken}
+> ++=primarydef'd macro:
+("a")@(EXPR1)
+{("a")&("b")}
+ab
+texts<secondary>->primarydef.y++y=(EXPR0)@y.enddef;showtoken++;(EXPR0)
+{(1.00002)*(a1)}
+{-(1.00002a1)}
+(EXPR0)<--1.00002a1
+{primarydef}
+{showtoken}
+> ++=primarydef'd macro:
+(-1.00002a1)@(EXPR1)
+{(a2)+(a3)}
+{(linearform)+(a4)}
+{(linearform)+(a5)}
+{(linearform)+(a6)}
+{-(linearform)}
+{(-1.00002a1)=(linearform)}
+## a1=0.99998a6+0.99998a5+0.99998a4+0.99998a3+0.99998a2
+{-((a3,a2))}
+{((-a3,-a2))/(0.99998)}
+{(a4)+(a5)}
+{begingroup}
+{showdependencies}
+a1=0.99998a6+0.99998a5+0.99998a4+0.99998a3+0.99998a2
+alpha=0.5p3~
+{endgroup}
+{(linearform)+(a6)}
+{(a3)+(a4)}
+{(linearform)+(a5)}
+{(linearform)+(a6)}
+{-((linearform,linearform))}
+{((-1.00002a3,-1.00002a2))=((linearform,linearform))}
+## a2=0.99998a6+0.99998a5+0.99998a4+0.99998a3
+## a3=0.99998a6+0.99998a5+0.99998a4
+{restoring  INACCESSIBLE}
+{endgroup}
+{(1.00002)*(0.25a4*4)}
+{(0.25a4*4)+(1)}
+{(0.25a5*4)+(0.25a6*4)}
+{(0.25a4*4+1)=(linearform)}
+## a4*4=0.99998a6*4+0.99998a5*4-3.99994
+{(0.9)*(0.5p3~)}
+{(0.45p3~)+(7)}
+{alpha:=0.45p3~+7}
+## alpha=0.45p3~+7
+{showdependencies}
+alpha=0.45p3~+7
+a4=0.25a6*4+0.25a5*4-0.99998
+a3=0.49998a6*4+0.49998a5*4-0.99997
+a2=0.99997a6*4+0.99997a5*4-1.99992
+a1=1.99992a6*4+1.99992a5*4-3.99982
+{(0.66667)-(0.25a6*4)}
+{(0.25a6*4)=(-0.25a6*4+0.66667)}
+## a6*4=1.33334
+{(0.25a5*4)=(0.33333)}
+## a5*4=1.33331
+#### a4=-0.33333
+#### a3=0.33333
+#### a2=0.66664
+#### a1=1.33328
+{chardp:=27}
+{charcode:=27}
+{(3.1)=(aaz)}
+## aaz=3.1
+{show}
+>> 3.1
+{ligtable}
+{show}
+{begingroup}
+{interim}
+{tracingcommands:=0}
+
+lig(TEXT0)(TEXT1)->ligtable0::for*=1step1until60:0kern.boundarychar+*,en
+dfor.skipto0;ligtable(TEXT0):(TEXT0)(TEXT1)0,skipto255;boundarychar:=bou
+ndarychar+51.29999
+(TEXT0)<-"g"
+(TEXT1)<-=:|
+
+lig(TEXT0)(TEXT1)->ligtable0::for*=1step1until60:0kern.boundarychar+*,en
+dfor.skipto0;ligtable(TEXT0):(TEXT0)(TEXT1)0,skipto255;boundarychar:=bou
+ndarychar+51.29999
+(TEXT0)<-"h":"i"
+(TEXT1)<-|=:
+! Character h is already in a ligtable.
+<to be read again> 
+                   :
+<argument> "h":
+               "i"
+lig->...;ligtable(TEXT0):(TEXT0)
+                                (TEXT1)0,skipto255;boundarych...
+l.102 ...=:|); lig("h":"i")(|=:)
+                                ;
+It's not legal to label a character more than once.
+So I'll not change anything just now.
+
+
+lig(TEXT0)(TEXT1)->ligtable0::for*=1step1until60:0kern.boundarychar+*,en
+dfor.skipto0;ligtable(TEXT0):(TEXT0)(TEXT1)0,skipto255;boundarychar:=bou
+ndarychar+51.29999
+(TEXT0)<-"j"
+(TEXT1)<-|=:>
+
+lig(TEXT0)(TEXT1)->ligtable0::for*=1step1until60:0kern.boundarychar+*,en
+dfor.skipto0;ligtable(TEXT0):(TEXT0)(TEXT1)0,skipto255;boundarychar:=bou
+ndarychar+51.29999
+(TEXT0)<-"k"
+(TEXT1)<-=:|>
+
+lig(TEXT0)(TEXT1)->ligtable0::for*=1step1until60:0kern.boundarychar+*,en
+dfor.skipto0;ligtable(TEXT0):(TEXT0)(TEXT1)0,skipto255;boundarychar:=bou
+ndarychar+51.29999
+(TEXT0)<-"l"
+(TEXT1)<-|=:|>
+{restoring tracingcommands=2.1}
+{endgroup}
+>> vacuous
+{begingroup}
+{let}
+{vardef}
+{endgroup}
+! Variable c.a1 has been obliterated.
+<to be read again> 
+                   ;
+l.104 ...;vardef b=enddef;1]] ];
+                                 ligtable"m":0=:0,skipto5;
+It seems you did a nasty thing---probably by accident,
+but nevertheless you nearly hornswoggled me...
+While I was evaluating the suffix of this variable,
+something was redefined, and it's no longer a variable!
+In order to get back on my feet, I've inserted `0' instead.
+
+{b1:=0}
+! Variable b1 has been obliterated.
+<to be read again> 
+                   ;
+l.104 ...;vardef b=enddef;1]] ];
+                                 ligtable"m":0=:0,skipto5;
+It seems you did a nasty thing---probably by accident,
+but nevertheless you nearly hornswoggled me...
+While I was evaluating the right-hand side of this
+command, something happened, and the left-hand side
+is no longer a variable! So I won't change anything.
+
+{ligtable}
+! A statement can't begin with `skipto'.
+<to be read again> 
+                   !!
+l.105 !!
+        ; errhelp 0; errmessage "Be like Jane";
+I was looking for the beginning of a new statement.
+If you just proceed without changing anything, I'll ignore
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+! Extra tokens will be flushed.
+<to be read again> 
+                   !!
+l.105 !!
+        ; errhelp 0; errmessage "Be like Jane";
+I've just read as much of that statement as I could fathom,
+so a semicolon should have been next. It's very puzzling...
+but I'll try to get myself back together, by ignoring
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+{errhelp}
+>> 0
+! Not a string.
+<to be read again> 
+                   ;
+l.105 !!; errhelp 0;
+                     errmessage "Be like Jane";
+A message should be a known string expression.
+
+{errmessage}
+! Be like Jane.
+<to be read again> 
+                   ;
+l.105 ...message "Be like Jane";
+                                
+This error message was generated by an `errmessage'
+command, so I can't give any explicit help.
+Pretend that you're Miss Marple: Examine all clues,
+and deduce the truth by inspired guesses.
+
+{errhelp}
+{errmessage}
+! .
+<to be read again> 
+                   ;
+l.106 ...e%%%lp%"; errmessage"";
+                                 errhelp ""; errmessage "Anot...
+He%
+lp
+
+
+{errhelp}
+{errmessage}
+! Another.
+<to be read again> 
+                   ;
+l.106 ...; errmessage "Another";
+                                
+(That was another `errmessage'.)
+
+{headerbyte}
+>> 0
+! Improper location.
+<to be read again> 
+                   ;
+l.107 headerbyte 0;
+                    headerbyte(48.5)substring(-9,9)of"long"; ...
+I was looking for a known, positive number.
+For safety's sake I'll ignore the present command.
+
+{headerbyte}
+! Missing `:' has been inserted.
+<to be read again> 
+                   substring
+l.107 ...aderbyte(48.5)substring
+                                (-9,9)of"long"; for\=0:\
+A colon should follow a headerbyte or fontinfo location.
+
+{-(9)}
+{((-9,9))substring("long")}
+>> "long"
+! Invalid code has been replaced by 0.
+<to be read again> 
+                   ;
+l.107 ...ubstring(-9,9)of"long";
+                                 for\=0:\
+I was looking for a number between 0 and 255, or for a
+string of length 1. Didn't find it; will use 0 instead.
+
+{for}
+Runaway loop?
+! Forbidden token found while scanning the text of a for loop.
+<inserted text> 
+                endfor
+<to be read again> 
+                   \
+l.107 ...-9,9)of"long"; for\=0:\
+                                
+I suspect you have forgotten an `endfor',
+causing me to read past where you wanted me to stop.
+I'll try to recover; but if the error is serious,
+you'd better type `E' or `X' now and fix your file.
+
+{loop value=0}
+{[repeat the loop]}
+{\}
+{headerbyte}
+{(2)*(0.33333)}
+{fontdimen}
+{(2)*(0.33333)}
+>> "q"
+! Improper font parameter.
+<to be read again> 
+                   ;
+l.108 ..."; fontdimen 9:2a6,"q";
+                                 fontdimen 1:2048;
+I'm zeroing this one. Proceed, with fingers crossed.
+
+{fontdimen}
+{fontmaking:=1}
+{extensible}
+! Missing `:' has been inserted.
+<to be read again> 
+                   5
+l.109 ...king:=1; extensible 5 5
+                                ,"c"255.5,"d"; charlist 0:5:"...
+I'm processing `extensible c: t,m,b,r'.
+
+! Missing `,' has been inserted.
+<to be read again> 
+                   255.5
+l.109 ...extensible 5 5,"c"255.5
+                                ,"d"; charlist 0:5:"a":"d";
+I'm processing `extensible c: t,m,b,r'.
+
+>> 255.5
+! Invalid code has been replaced by 0.
+<to be read again> 
+                   ,
+l.109 ...xtensible 5 5,"c"255.5,
+                                "d"; charlist 0:5:"a":"d";
+I was looking for a number between 0 and 255, or for a
+string of length 1. Didn't find it; will use 0 instead.
+
+{charlist}
+! Character code 5 is already extensible.
+<to be read again> 
+                   :
+l.109 ...,"d"; charlist 0:5:"a":
+                                "d";
+It's not legal to label a character more than once.
+So I'll not change anything just now.
+
+{ligtable}
+! Too far to skip.
+l.110 ligtable255:255::
+                       "a"=:"b","d" kern -2048,"c":0:99.5:"e"...
+At most 127 lig/kern steps can separate skipto1 from 1::.
+
+{-(2048)}
+! Character code 0 is already in a charlist.
+<to be read again> 
+                   :
+l.110 ...","d" kern -2048,"c":0:
+                                99.5:"e"|=:|"f",0kern';
+It's not legal to label a character more than once.
+So I'll not change anything just now.
+
+>> (xpart ',ypart ')
+! Improper kern.
+<to be read again> 
+                   ;
+l.110 ...99.5:"e"|=:|"f",0kern';
+                                
+The amount of kern should be a known numeric value.
+I'm zeroing this one. Proceed, with fingers crossed.
+
+{ligtable}
+! Character code 5 is already extensible.
+<to be read again> 
+                   :
+l.111 ligtable 5:
+                 0; def clear(text x)=interim x:=$ enddef; cl...
+It's not legal to label a character more than once.
+So I'll not change anything just now.
+
+! Illegal ligtable step.
+<to be read again> 
+                   ;
+l.111 ligtable 5:0;
+                    def clear(text x)=interim x:=$ enddef; cl...
+I was looking for `=:' or `kern' here.
+
+{def}
+
+clear(TEXT0)->interim(TEXT0):=$
+(TEXT0)<-hppp
+{interim}
+! The token `hppp' isn't an internal quantity.
+<to be read again> 
+                   hppp
+clear->interim(TEXT0)
+                     :=$
+l.111 ...:=$ enddef; clear(hppp)
+                                ; vppp=0;
+Something like `tracingonline' should follow `interim'.
+
+{hppp:=-1}
+## hppp=-1
+{(vppp)=(0)}
+## vppp=0
+{begingroup}
+
+clear(TEXT0)->interim(TEXT0):=$
+(TEXT0)<-tracingmacros
+{interim}
+{tracingmacros:=-1}
+{interim}
+{tracingcommands:=-1}
+Runaway text?
+tracingoutput
+! Forbidden token found while scanning a text argument.
+<inserted text> 
+                )
+<to be read again> 
+                   \
+l.112 ...); clear(tracingoutput\
+                                ;
+It seems that a right delimiter was left out,
+causing me to read past where you wanted me to stop.
+I'll try to recover; but if the error is serious,
+you'd better type `E' or `X' now and fix your file.
+
+[95] [96] [97] [98] [99] [100] [101] [102] [103] [104] [105] [106] [107]
+## chardy=6
+[108] [109]
+{restoring tracingoutput=1}
+{restoring tracingcommands=2.1}
+{restoring tracingmacros=1}
+{endgroup}
+{def}
+{def}
+{addto}
+Path at line 122, before choices:
+(0,0){4096,0}
+ ..{4096,0}(1,0){0,-4096}
+ ..{0,4096}cycle
+
+Path at line 122, after choices:
+(0,0)..controls (0.33333,0) and (0.66667,0)
+ ..(1,0)..controls (1,-0.66667) and (0,-0.66667)
+ ..cycle
+
+
+f(SUFFIX0)(EXPR1)(EXPR2)(TEXT3)->numeric.w;show(EXPR1);addto(SUFFIX0)con
+tour(0,0)..(2,0)..(1,$)..(1,1)..cycle.withpen.qq;addto(SUFFIX0)doublepat
+h(0,0){1,1}..{2,1}(2,1)withpen.qq;addto(SUFFIX0)doublepath(($,$){1,0}..(
+1,1){1,0})scaled0.5withpen.nullpen;
+! Missing `]' has been inserted.
+<to be read again> 
+                   ,
+l.123 f(e[3,
+            w); g(e3,transformed p,penoffset-(1,1.3)of(pencir...
+I've seen a `[' and a subscript value, in a suffix,
+so a right bracket should have come next.
+I shall pretend that one was there.
+
+(SUFFIX0)<-e3
+(EXPR1)<-unknown path w
+! Missing argument to f.
+<to be read again> 
+                   ;
+l.123 f(e[3,w);
+                g(e3,transformed p,penoffset-(1,1.3)of(pencir...
+That macro has more parameters than you thought.
+I'll continue by pretending that each missing argument
+is either zero or null.
+
+(EXPR2)<-0
+! Missing argument to f.
+<to be read again> 
+                   ;
+l.123 f(e[3,w);
+                g(e3,transformed p,penoffset-(1,1.3)of(pencir...
+That macro has more parameters than you thought.
+I'll continue by pretending that each missing argument
+is either zero or null.
+
+(TEXT3)<-
+{numeric}
+{show}
+>> unknown path %CAPSULE1693
+{addto}
+Path at line 123, before choices:
+(0,0)
+ ..(2,0)
+ ..(1,-1)
+ ..(1,1)
+ ..cycle
+
+Path at line 123, after choices:
+(0,0)..controls (0.56189,-0.5286) and (1.43811,0.5286)
+ ..(2,0)..controls (2.70831,-0.66634) and (1.66634,-1.70831)
+ ..(1,-1)..controls (0.4714,-0.43811) and (1.5286,0.43811)
+ ..(1,1)..controls (0.33366,1.70831) and (-0.70831,0.66634)
+ ..cycle
+
+{addto}
+Path at line 123, before choices:
+(0,0){2896.30943,2896.30934}
+ ..{3663.57385,1831.78674}(2,1)
+
+Path at line 123, after choices:
+(0,0)..controls (0.53566,0.53566) and (1.32689,0.66344)
+ ..(2,1)
+
+{addto}
+Path at line 123, before choices:
+(-1,-1){4096,0}
+ ..{4096,0}(1,1)
+
+Path at line 123, after choices:
+(-1,-1)..controls (0.10457,-1) and (-0.10457,1)
+ ..(1,1)
+
+{(path)scaled(0.5)}
+{nullpen}
+
+g(SUFFIX0)->show(SUFFIX0)
+(SUFFIX0)<-e3
+! Too many arguments to g;
+  Missing `)' has been inserted.
+l.123 f(e[3,w); g(e3,
+                     transformed p,penoffset-(1,1.3)of(pencir...
+I'm going to assume that the comma I just read was a
+right delimiter, and then I'll begin expanding the macro.
+You might want to delete some tokens before continuing.
+
+{show}
+{(picture)transformed((8,1,5,-5,-5,5))}
+>> Edge structure at line 123:
+Filled pen stroke :
+(10.5,-1.5)..controls (13,-4) and (15.5,-6.5)
+ ..(18,-9)
+dashed 3on 0off offset 0
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+Filled pen stroke :
+(8,1)..controls (8.57388,0.42612) and (9.41167,-0.41167)
+ ..(10.5,-1.5)..controls (14.51955,-5.51955) and (21.76099,-12.76099)
+ ..(25.5,-16.5)..controls (27.5211,-18.5211) and (28.4345,-19.4345)
+ ..(30.5,-21.5)..controls (35.23984,-26.23984) and (45.4408,-36.4408)
+ ..(50.5,-41.5)..controls (51.60489,-42.60489) and (52.4432,-43.4432)
+ ..(53,-44)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+Filled contour :
+(8,1)..controls (13.45242,-4.45242) and (12.54758,-3.54758)
+ ..(18,-9)..controls (24.87325,-15.87325) and (24.87325,-15.87325)
+ ..(18,-9)..controls (12.54758,-3.54758) and (13.45242,-4.45242)
+ ..(8,1)..controls (1.12675,7.87325) and (1.12675,7.87325)
+ ..cycle
+mitered joins limited 1 with pen
+(-10,10)
+ .. (5,-5)
+ .. (12.5,-12.5)
+ .. (15,-15)
+ .. (15,-15)
+ .. (10,-10)
+ .. (-5,5)
+ .. (-12.5,12.5)
+ .. (-15,15)
+ .. (-15,15)
+ .. cycle
+Filled pen stroke :
+(8,1)..controls (8,1) and (11.31726,-2.31726)
+ ..(13,-4)
+butt ends, mitered joins limited 1 with pen
+(-10,10)
+ .. (5,-5)
+ .. (12.5,-12.5)
+ .. (15,-15)
+ .. (15,-15)
+ .. (10,-10)
+ .. (-5,5)
+ .. (-12.5,12.5)
+ .. (-15,15)
+ .. (-15,15)
+ .. cycle
+Filled pen stroke :
+(8,1)..controls (10.76146,-1.76146) and (5.23854,3.76146)
+ ..(8,1)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+End edges
+
+{-((1,1.3))}
+{pencircle}
+{(pen)scaled(20)}
+{-(0.5)}
+{(pen)yscaled(-0.5)}
+{((-1,-1.3))penoffset(pen)}
+>> (-9.33345,1.79489)
+Path at line 124, before choices:
+(0,0)..controls (1,1) and (-1,1)
+ ..(3,0)
+
+Path at line 124, after choices:
+(0,0)..controls (1,1) and (-1,1)
+ ..(3,0)
+
+{((0,1))directiontime(path)}
+>> 0.33333
+{(3.14159)point(path)}
+{((3.14159,4))subpath(path)}
+{((7.68668,2.72437))intersectiontimes(path)}
+>> (0,0)
+Path at line 126, before choices:
+(-1,1.1){curl 1}
+ ..{curl 1}(1,-1)
+
+Path at line 126, after choices:
+(-1,1.1)..controls (-0.33333,0.40001) and (0.33333,-0.3)
+ ..(1,-1)
+
+{(-1)precontrol((0,0))}
+{(path)intersectiontimes((0,0))}
+>> (-1,-1)
+{addto}
+{-(4094.99998)}
+{-(0.00002)}
+Path at line 127, before choices:
+(-4094.99998,0){curl 1}
+ ..{curl 1}(4094.99998,-0.00002)
+
+Path at line 127, after choices:
+(-4094.99998,0)..controls (-1365,0) and (1365,-0.00002)
+ ..(4094.99998,-0.00002)
+
+{pencircle}
+{(0)penoffset(pen)}
+>> 0
+>> pen
+! Not implemented: penoffset(known numeric)of(pen).
+<to be read again> 
+                   ;
+l.128 pencircle;
+                 addto e3 also e3 shifted (0,257); ,"flushed ...
+I'm afraid I don't know how to apply that operation to that
+combination of types. Continue, and I'll return the second
+argument (see above) as the result of the operation.
+
+{addto}
+{(picture)shifted((0,257))}
+! A statement can't begin with `,'.
+<to be read again> 
+                   ,
+l.128 ...o e3 shifted (0,257); ,
+                                "flushed with pride"; numeric...
+I was looking for the beginning of a new statement.
+If you just proceed without changing anything, I'll ignore
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+! Extra tokens will be flushed.
+<to be read again> 
+                   ,
+l.128 ...o e3 shifted (0,257); ,
+                                "flushed with pride"; numeric...
+I've just read as much of that statement as I could fathom,
+so a semicolon should have been next. It's very puzzling...
+but I'll try to get myself back together, by ignoring
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+{numeric}
+{def}
+
+f(EXPR0)(EXPR1)(EXPR2)->showdependencies;tracingcapsules:=1;showdependen
+cies;show1/3(3,6)*(((EXPR0)+(EXPR1))+((EXPR1)-(EXPR0))),(1,1)/sqrt2zscal
+ed((EXPR0)+1,(EXPR0)+2)-((EXPR0)+1,(EXPR0)+2)rotated45,(0,1)zscaled(1,(E
+XPR1)+2)-(1,(EXPR1)+2)rotated90
+{(xx)+(1)}
+{(xx+1)/(0.3)}
+(EXPR0)<-3.3333xx+3.3333
+{(yy)-(1)}
+{(yy-1)/(0.5)}
+(EXPR1)<-2yy-2
+(EXPR2)<-(xx,0)
+{showdependencies}
+alpha=0.45p3~+7
+{tracingcapsules:=1}
+{showdependencies}
+xpart %CAPSULE2314=xx
+%CAPSULE2322=2yy-2
+%CAPSULE2330 = 3.3333xx+3.3333
+alpha=0.45p3~+7
+{show}
+{(1/3)*((3,6))}
+{(3.3333xx+3.3333)+(2yy-2)}
+{(2yy-2)-(3.3333xx+3.3333)}
+{(linearform)+(linearform)}
+{((1,2))*(4yy-4)}
+>> (4yy-4,8yy-8)
+{sqrt(2)}
+{((1,1))/(1.41422)}
+{(3.3333xx+3.3333)+(1)}
+{(3.3333xx+3.3333)+(2)}
+{((0.7071,0.7071))zscaled((3.3333xx+4.3333,3.3333xx+5.3333))}
+{(3.3333xx+3.3333)+(1)}
+{(3.3333xx+3.3333)+(2)}
+{((3.3333xx+4.3333,3.3333xx+5.3333))rotated(45)}
+{((-0.7071,4.71399xx+6.83531))-((-0.7071,4.71399xx+6.83531))}
+>> (0,0)
+{(2yy-2)+(2)}
+{((0,1))zscaled((1,2yy))}
+{(2yy-2)+(2)}
+{((1,2yy))rotated(90)}
+{((-2yy,1))-((-2yy,1))}
+>> (0,0)
+{(1000)*(o3)}
+{(o1)-(o2)}
+{(4000)*(linearform)}
+{(1000o3)-(linearform)}
+{(4000)*(o2)}
+{(linearform)+(4000o2)}
+{(linearform)+(9)}
+{(0.01)*(o3)}
+{-(0.01o3)}
+{(3)*(ooo)}
+{(-0.01o3)+(3ooo)}
+{begingroup}
+{(o2)+(o4)}
+{(linearform)+(o5)}
+{(linearform)-(20)}
+{(9/10)*(linearform)}
+{(oo)=(linearform)}
+## oo=0.9o5+0.9o4+0.9o2-18
+{(0.5)*(o2)}
+{(o1)+(0.5o2)}
+{(8/9)*(linearform)}
+{(o5)=(linearform)}
+## o5=0.44444o2+0.88889o1
+{(o4)=(linearform)}
+## o4=0.44444o2+0.88889o1
+{(0.0001)*(o2)}
+{-(0.0001o2)}
+{(o6)=(-0.0001o2)}
+## o6=-0.0001o2
+{showdependencies}
+o6=-0.0001o2
+o4=0.44444o2+0.88889o1
+o5=0.44444o2+0.88889o1
+oo=1.7o2+1.6o1-18
+%CAPSULE2242 = 3ooo-0.01o3
+%CAPSULE2262 = 8000o2-4000o1+1000o3+9
+xpart %CAPSULE2338=xpart '
+ypart %CAPSULE2338=ypart '
+alpha=0.45p3~+7
+{numeric}
+### -1.6o1=-oo+1.7o2-18
+! Arithmetic overflow.
+l.134   numeric o[];
+                    xpart(alfa,[[pair alfa;0]])]])=-2/3[[save...
+Uh, oh. A little while ago one of the quantities that I was
+computing got too large, so I'm afraid your answers will be
+somewhat askew. You'll probably have to adopt different
+tactics next time. But I shall try to carry on anyway.
+
+### -3062.5o2*4 = -%CAPSULE2262-2500.00002oo+1000o3-32758.99998
+#### o6=0
+### -0.04578o3 = -o4+0.44112oo+8.50041
+### -o4 = -o5
+### 0.21834o5 = -%CAPSULE2242+0.09631oo+3ooo+1.85596
+{begingroup}
+{pair}
+### -alfa=-%CAPSULE2230
+{endgroup}
+### -%CAPSULE2230=-xpart %CAPSULE2228
+{xpart((xpart %CAPSULE2228,0))}
+### -xpart %CAPSULE9=-%CAPSULE2218
+{endgroup}
+{(%CAPSULE2242)+(%CAPSULE2218)}
+### -%CAPSULE2242=-%CAPSULE2206+%CAPSULE2218
+### -%CAPSULE2206=-ypart %CAPSULE2204
+### -%CAPSULE2262=-xpart %CAPSULE2204
+{begingroup}
+{save}
+{(1)-(p$)}
+{restoring p}
+### p$=-ypart %CAPSULE2170+1
+{endgroup}
+{(2/3)*((-ypart %CAPSULE2170+1,ypart %CAPSULE2170))}
+### ypart %CAPSULE2170=-xpart %CAPSULE2170+1
+### -0.66667xpart %CAPSULE2170=-xpart %CAPSULE2162
+{-((xpart %CAPSULE2162,-xpart %CAPSULE2162+0.66667))}
+### xpart %CAPSULE2162=-xpart %CAPSULE2142
+{((xpart %CAPSULE2204,ypart %CAPSULE2204))=((xpart %CAPSULE2142,-xpart %
+CAPSULE2142-0.66667))}
+## xpart %CAPSULE2142=-ypart %CAPSULE2204-0.66667
+## xpart %CAPSULE2204=-ypart %CAPSULE2204-0.66667
+### ypart %CAPSULE2204=-xpart %CAPSULE2204-0.66667
+### -xpart %CAPSULE2204=-xpart %CAPSULE2142
+{((xpart ',ypart '))=((xpart %CAPSULE2142,-xpart %CAPSULE2142-0.66667))}
+## xpart %CAPSULE2142=-ypart '-0.66667
+## xpart '=-ypart '-0.66667
+{begingroup}
+{(0.5)*(ooo)}
+{begingroup}
+{numeric}
+### -ooo=-%CAPSULE2104
+{endgroup}
+{(%CAPSULE2104)+(1)}
+### -%CAPSULE2104=-%CAPSULE2092+1
+{(1/2)*(%CAPSULE2092)}
+### -0.5%CAPSULE2092=-%CAPSULE2084
+{-(%CAPSULE2084)}
+### %CAPSULE2084=-%CAPSULE2076
+{(2)*(%CAPSULE2076)}
+### -2%CAPSULE2076=-%CAPSULE2068
+{(-0.5%CAPSULE2068-0.5)=(%CAPSULE2068)}
+## %CAPSULE2068=-0.33333
+{(oo)=(-0.33333)}
+## oo=-0.33333
+{endgroup}
+{(4000)*(-0.33333)}
+{yoffset:=-1333.31299}
+## yoffset=-1333.31299
+{xoffset:=-1333.31299}
+## xoffset=-1333.31299
+{addto}
+
+foo(TEXT2)->begingroup(TEXT2)endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-foo
+! Missing argument to foo.
+<to be read again> 
+                   contour
+l.136 addto foo contour
+                        begingroup vardef foo=enddef; (0,0).....
+That macro has more parameters than you thought.
+I'll continue by pretending that each missing argument
+is either zero or null.
+
+(TEXT2)<-
+{begingroup}
+{endgroup}
+>> vacuous
+! Not a suitable variable.
+<to be read again> 
+                   contour
+l.136 addto foo contour
+                        begingroup vardef foo=enddef; (0,0).....
+At this point I needed to see the name of a picture variable.
+(Or perhaps you have indeed presented me with one; I might
+have missed it, if it wasn't followed by the proper token.)
+So I'll not change anything just now.
+
+! Extra tokens will be flushed.
+<to be read again> 
+                   contour
+l.136 addto foo contour
+                        begingroup vardef foo=enddef; (0,0).....
+I've just read as much of that statement as I could fathom,
+so a semicolon should have been next. It's very puzzling...
+but I'll try to get myself back together, by ignoring
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+Path at line 136, before choices:
+(0,0)
+ ..cycle
+
+Path at line 136, after choices:
+(0,0)..controls (0,0) and (0,0)
+ ..cycle
+
+! Extra `endgroup'.
+l.136 ...; (0,0)..cycle endgroup
+                                ;
+I'm not currently working on a `begingroup',
+so I had better not try to end anything.
+
+{(unknown path p~7)=(unknown path p~8)}
+{-(1)}
+Path at line 137, before choices:
+(0,0){-2896.30943,2896.30934}
+ ..{curl 1}(30,0)
+
+Path at line 137, after choices:
+(0,0)..controls (-48.28429,48.28426) and (78.28429,48.28426)
+ ..(30,0)
+
+{p~8:=path}
+{show}
+>> Path at line 137:
+(0,0)..controls (-48.28429,48.28426) and (78.28429,48.28426)
+ ..(30,0)
+
+{-(1)}
+{((0,-1))directiontime(path)}
+>> 0.83456
+{show}
+{((1,0))directiontime(path)}
+>> -1
+{-(1)}
+{-(1)}
+! Missing `}' has been inserted.
+<to be read again> 
+                   )
+l.139 ...(0,0){1,0}..(0,0){0,-1)
+                                ..cycle);
+I've scanned a direction spec for part of a path,
+so a right brace should have come next.
+I shall pretend that one was there.
+
+Path at line 139, before choices:
+(0,0){4096,0}
+ ..{0,-4096}(0,0)
+
+Path at line 139, after choices:
+(0,0)..controls (0,0) and (0,0)
+ ..(0,0)
+
+{((1,-1))directiontime(path)}
+>> 0
+! Extra tokens will be flushed.
+<to be read again> 
+                   ..
+l.139 ...,0){1,0}..(0,0){0,-1)..
+                                cycle);
+I've just read as much of that statement as I could fathom,
+so a semicolon should have been next. It's very puzzling...
+but I'll try to get myself back together, by ignoring
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+{nullpicture}
+{(unknown picture e4)=(picture)}
+{(unknown picture e9)=(picture)}
+{addto}
+{addto}
+! Picture is too complicated to use as a dash pattern.
+<to be read again> 
+                   ;
+l.141 ...ublepath p~8 dashed e4;
+                                 e9:=nullpicture;
+When you say `dashed p', every path in p should be monotone
+in x and there must be no overlapping.  This failed
+so I'll just make it a solid line instead.
+
+{nullpicture}
+{e9:=picture}
+{nullpicture}
+{e4:=picture}
+{addto}
+Path at line 142, before choices:
+(1,1){curl 1}
+ ..{curl 1}(4,1)
+
+Path at line 142, after choices:
+(1,1)..controls (2,1) and (3,1)
+ ..(4,1)
+
+{addto}
+{nullpicture}
+{e9:=picture}
+{addto}
+{pencircle}
+{makepath(pen)}
+{-(2)}
+{(picture)scaled(-2)}
+{show}
+>> Edge structure at line 144:
+Filled pen stroke :
+(1,1)..controls (2,1) and (3,1)
+ ..(4,1)
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+Filled pen stroke :
+(0.5,0)..controls (0.5,0.13261) and (0.44731,0.25978)
+ ..(0.35355,0.35355)..controls (0.25978,0.44731) and (0.13261,0.5)
+ ..(0,0.5)..controls (-0.13261,0.5) and (-0.25978,0.44731)
+ ..(-0.35355,0.35355)..controls (-0.44731,0.25978) and (-0.5,0.13261)
+ ..(-0.5,0)..controls (-0.5,-0.13261) and (-0.44731,-0.25978)
+ ..(-0.35355,-0.35355)..controls (-0.25978,-0.44731) and (-0.13261,-0.5)
+ ..(0,-0.5)..controls (0.13261,-0.5) and (0.25978,-0.44731)
+ ..(0.35355,-0.35355)..controls (0.44731,-0.25978) and (0.5,-0.13261)
+ ..cycle
+dashed 6on 0off offset 2
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,0,0,0,0)
+End edges
+
+{nullpicture}
+{(unknown picture e5)=(picture)}
+{e4:=picture}
+{addto}
+{-(4)}
+{-(3)}
+{-(2)}
+{-(2.7)}
+Path at line 145, before choices:
+(-4,-3){curl 1}..tension 2
+ ..{curl 1}(-2,-2.7)
+
+Path at line 145, after choices:
+(-4,-3)..controls (-3.66667,-2.95) and (-2.33333,-2.75)
+ ..(-2,-2.7)
+
+{addto}
+{(path)shifted((0,4))}
+{(path)scaled(3)}
+{show}
+{llcorner(picture)}
+>> (0.5,9.5)
+{nullpicture}
+{e6:=picture}
+{addto}
+Path at line 149, before choices:
+(0,0){curl 1}
+ ..{curl 1}(30,0)
+
+Path at line 149, after choices:
+(0,0)..controls (10,0) and (20,0)
+ ..(30,0)
+
+{pencircle}
+{makepath(pen)}
+>> path
+! Improper type.
+<to be read again> 
+                   dashed
+l.150 dashed
+             e5 withpen pencircle scaled2 dashed e5shifted(0,...
+Next time say `dashed <known picture expression>';
+I'll ignore the bad `with' clause and look for another.
+
+{pencircle}
+{(pen)scaled(2)}
+{-(11)}
+{(picture)shifted((0,-11))}
+{pencircle}
+{show}
+>> Edge structure at line 151:
+Filled pen stroke :
+(0,0)..controls (10,0) and (20,0)
+ ..(30,0)
+dashed 2on 1off offset 1
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,1,0,0,1)
+End edges
+
+{def}
+{(path)rotated(90)}
+{-(1)}
+{(path)xscaled(-1)}
+Path at line 152, before choices:
+(0,0)..controls (48.28426,-48.28429) and (48.28426,78.28429)
+ ..(0,30)
+ ..cycle
+
+Path at line 152, after choices:
+(0,0)..controls (48.28426,-48.28429) and (48.28426,78.28429)
+ ..(0,30)..controls (-8.28427,21.71573) and (-8.28427,8.28427)
+ ..cycle
+
+{p~7:=path}
+{linecap:=2}
+{linejoin:=1}
+{nullpicture}
+{(picture)=(picture)}
+! Redundant or inconsistent equation.
+<to be read again> 
+                   ;
+l.153 e6=nullpicture;
+                      addto e6 doublepath p~8 dashed e5 withp...
+An equation between already-known quantities can't help.
+But don't worry; continue and I'll just ignore it.
+
+{addto}
+{pencircle}
+{clip}
+{addto}
+{begingroup}
+{save}
+{picture}
+{nullpicture}
+{(unknown picture p)=(picture)}
+{string}
+{vardef}
+{(unknown string n0)=("trapf")}
+
+s(EXPR2)(EXPR3)(EXPR4)(EXPR5)(EXPR6)->begingroup.addto.p.also(EXPR2)info
+nt(EXPR3)scaled(EXPR4)shifted((EXPR5),(EXPR6));endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-s
+(EXPR2)<-"Aqua"
+(EXPR3)<-"trapf"
+(EXPR4)<-1
+(EXPR5)<-0
+(EXPR6)<-0
+{begingroup}
+{addto}
+{("Aqua")infont("trapf")}
+{(picture)scaled(1)}
+{(picture)shifted((0,0))}
+{endgroup}
+{vardef}
+
+r(EXPR2)(EXPR3)(EXPR4)(EXPR5)->begingroup.addto.p.contour((EXPR2),(EXPR3
+))--((EXPR4),(EXPR3))--((EXPR4),(EXPR5))--((EXPR2),(EXPR5))--cycle;endgr
+oup
+(SUFFIX0)<-
+(SUFFIX1)<-r
+(EXPR2)<-7.9701
+{-(3.9851)}
+(EXPR3)<--3.9851
+(EXPR4)<-8.3686
+(EXPR5)<-15.9402
+{begingroup}
+{addto}
+
+--->{curl1}..{curl1}
+
+--->{curl1}..{curl1}
+
+--->{curl1}..{curl1}
+
+--->{curl1}..{curl1}
+Path at line 10, before choices:
+(7.9701,-3.9851){curl 1}
+ ..{curl 1}(8.3686,-3.9851){curl 1}
+ ..{curl 1}(8.3686,15.9402){curl 1}
+ ..{curl 1}(7.9701,15.9402){curl 1}
+ ..{curl 1}cycle
+
+Path at line 10, after choices:
+(7.9701,-3.9851)..controls (8.10294,-3.9851) and (8.23576,-3.9851)
+ ..(8.3686,-3.9851)..controls (8.3686,2.65666) and (8.3686,9.29843)
+ ..(8.3686,15.9402)..controls (8.23576,15.9402) and (8.10294,15.9402)
+ ..(7.9701,15.9402)..controls (7.9701,9.29843) and (7.9701,2.65666)
+ ..cycle
+
+{endgroup}
+{(unknown string n1)=("trapf")}
+
+s(EXPR2)(EXPR3)(EXPR4)(EXPR5)(EXPR6)->begingroup.addto.p.also(EXPR2)info
+nt(EXPR3)scaled(EXPR4)shifted((EXPR5),(EXPR6));endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-s
+(EXPR2)<-"Brass"
+(EXPR3)<-"trapf"
+(EXPR4)<-2
+(EXPR5)<-8.3686
+(EXPR6)<-0
+{begingroup}
+{addto}
+{("Brass")infont("trapf")}
+{(picture)scaled(2)}
+{(picture)shifted((8.3686,0))}
+{endgroup}
+{restoring n}
+{restoring s}
+{restoring r}
+{restoring p}
+{endgroup}
+{-(2)}
+{(picture)shifted((0,-2))}
+{addto}
+Path at line 155, before choices:
+(1,0){curl 1}
+ ..{curl 1}(2,1)
+
+Path at line 155, after choices:
+(1,0)..controls (1.33333,0.33333) and (1.66667,0.66667)
+ ..(2,1)
+
+{addto}
+{(0.5)*((1,1,1))}
+{pencircle}
+{(pen)xscaled(2)}
+{(pen)rotated(45)}
+{addto}
+{begingroup}
+{save}
+{picture}
+{nullpicture}
+{(unknown picture p)=(picture)}
+{string}
+{vardef}
+{(unknown string n0)=("trapf")}
+
+s(EXPR2)(EXPR3)(EXPR4)(EXPR5)(EXPR6)->begingroup.addto.p.also(EXPR2)info
+nt(EXPR3)scaled(EXPR4)shifted((EXPR5),(EXPR6));endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-s
+(EXPR2)<-"ast"
+(EXPR3)<-"trapf"
+(EXPR4)<-1
+(EXPR5)<-0
+(EXPR6)<-0
+{begingroup}
+{addto}
+{("ast")infont("trapf")}
+{(picture)scaled(1)}
+{(picture)shifted((0,0))}
+{endgroup}
+{restoring n}
+{restoring s}
+{restoring r}
+{restoring p}
+{endgroup}
+{(picture)shifted((0,10))}
+{show}
+>> Edge structure at line 158:
+clipping path:
+(0,0)..controls (48.28426,-48.28429) and (48.28426,78.28429)
+ ..(0,30)..controls (-8.28427,21.71573) and (-8.28427,8.28427)
+ ..cycle
+Filled pen stroke :
+(0,0)..controls (10,0) and (20,0)
+ ..(30,0)
+dashed 2on 1off offset 1
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,1,0,0,1)
+Filled pen stroke :
+(0,0)..controls (-48.28429,48.28426) and (78.28429,48.28426)
+ ..(30,0)
+dashed 1on 1off 1on 9off offset 9
+square ends, round joins with pen
+pencircle transformed (0,0,1,0,0,1)
+stop clipping
+"Aqua" infont "trapf"
+transformed (0,-2,1,0,0,1)
+Filled contour :
+(7.9701,-5.9851)..controls (8.10294,-5.9851) and (8.23576,-5.9851)
+ ..(8.3686,-5.9851)..controls (8.3686,0.65666) and (8.3686,7.29843)
+ ..(8.3686,13.9402)..controls (8.23576,13.9402) and (8.10294,13.9402)
+ ..(7.9701,13.9402)..controls (7.9701,7.29843) and (7.9701,0.65666)
+ ..cycle
+
+"Brass" infont "trapf"
+transformed (8.3686,-2,2,0,0,2)
+Filled pen stroke :
+(1,0)..controls (1.33333,0.33333) and (1.66667,0.66667)
+ ..(2,1)
+square ends, round joins with pen
+pencircle transformed (0,0,0,0,0,0)
+End edges
+
+{lrcorner(picture)}
+>> (36.21318,-5.9851)
+{ulcorner(picture)}
+>> (-6.2132,37.00375)
+{charcode:=200}
+{shipout}
+[200
+Envelope spec at line 158:
+(3,12) % beginning with offset (2,-1)
+   ..controls (3.75,12.75) and (4.125,13.3125)
+ ..(4.3125,13.6875)
+   ..controls (4.375,13.8125) and (4.41667,13.91667)
+ ..(4.44444,14) % counterclockwise to offset (2.5,0.5)
+   ..controls (4.5,14.16667) and (4.5,14.25)
+ ..(4.5,14.25) % clockwise to offset (-2.5,-0.5)
+   ..controls (4.5,14.25) and (4.5,13.5)
+ ..(6,12) % counterclockwise to offset (2.5,0.5)
+   ..controls (4.5,13.5) and (4.5,14.25)
+ ..(4.5,14.25) % counterclockwise to offset (-2.5,-0.5)
+   ..controls (4.5,14.25) and (4.5,14.16667)
+ ..(4.44444,14) % clockwise to offset (-2,1)
+   ..controls (4.41667,13.91667) and (4.375,13.8125)
+ ..(4.3125,13.6875)
+   ..controls (4.125,13.3125) and (3.75,12.75)
+ ..(3,12) % counterclockwise to offset (2,-1)
+ & cycle
+
+]
+Edge structure at line 158 (just shipped out):
+Filled pen stroke :
+(3,12)..controls (3.75,12.75) and (4.125,13.3125)
+ ..(4.3125,13.6875)..controls (4.875,14.8125) and (3.75,14.25)
+ ..(6,12)
+dashed 2on 1off offset 1 (this will be ignored)
+butt ends, mitered joins limited 1 with pen
+(-2.5,-0.5)
+ .. (-1,-2)
+ .. (0,-2.5)
+ .. (1,-2)
+ .. (2,-1)
+ .. (2.5,0.5)
+ .. (1,2)
+ .. (0,2.5)
+ .. (-1,2)
+ .. (-2,1)
+ .. cycle
+clipping path:
+(0,0)..controls (48.28426,-48.28429) and (48.28426,78.28429)
+ ..(0,30)..controls (-8.28427,21.71573) and (-8.28427,8.28427)
+ ..cycle
+Filled pen stroke colored (0.5,0.5,0.5):
+(0,0)..controls (10,0) and (20,0)
+ ..(30,0)
+dashed 2on 1off offset 1
+butt ends, mitered joins limited 1 with pen
+pencircle transformed (0,0,1.41422,-0.7071,1.41422,0.7071)
+Filled pen stroke colored (0.5,0.5,0.5):
+(0,0)..controls (-48.28429,48.28426) and (78.28429,48.28426)
+ ..(30,0)
+dashed 2on 1off offset 1
+square ends, round joins with pen
+pencircle transformed (0,0,1.41422,-0.7071,1.41422,0.7071)
+stop clipping
+"Aqua" infont "trapf"
+colored (0.5,0.5,0.5)transformed (0,-2,1,0,0,1)
+Filled contour colored (0.5,0.5,0.5):
+(7.9701,-5.9851)..controls (8.10294,-5.9851) and (8.23576,-5.9851)
+ ..(8.3686,-5.9851)..controls (8.3686,0.65666) and (8.3686,7.29843)
+ ..(8.3686,13.9402)..controls (8.23576,13.9402) and (8.10294,13.9402)
+ ..(7.9701,13.9402)..controls (7.9701,7.29843) and (7.9701,0.65666)
+ ..cycle
+round joins with pen
+pencircle transformed (0,0,1.41422,-0.7071,1.41422,0.7071)
+"Brass" infont "trapf"
+colored (0.5,0.5,0.5)transformed (8.3686,-2,2,0,0,2)
+Filled pen stroke colored (0.5,0.5,0.5):
+(1,0)..controls (1.33333,0.33333) and (1.66667,0.66667)
+ ..(2,1)
+dashed 2on 1off offset 1
+square ends, round joins with pen
+pencircle transformed (0,0,1.41422,-0.7071,1.41422,0.7071)
+"ast" infont "trapf"
+transformed (0,10,1,0,0,1)
+End edges
+
+{showstats}
+Memory usage 2936&264 (98 still untouched)
+String usage 55&243 (1201&9422 now untouched)
+{("curb")infont("trapf")}
+Missing character: There is no c in font trapf!
+{-(0.5)}
+{(picture)slanted(-0.5)}
+{-(1)}
+{(picture)scaled(-1)}
+{e6:=picture}
+{e5:=picture}
+{showstats}
+Memory usage 2265&264 (98 still untouched)
+String usage 54&240 (1199&9413 now untouched)
+{show}
+{pencircle}
+{((0,0))penoffset(pen)}
+>> (0,0)
+{llcorner(picture)}
+>> (-3.98508,-7.97011)
+{urcorner(picture)}
+>> (3.98506,1.99254)
+{(picture)rotated(90)}
+{(picture)shifted("oops")}
+>> "oops"
+! Improper transformation argument.
+<to be read again> 
+                   ;
+l.161 ...ated 90 shifted "oops";
+                                 show llcorner e5, urcorner e5;
+The expression shown above has the wrong type,
+so I can't transform anything using it.
+Proceed, and I'll omit the transformation.
+
+{e5:=picture}
+{show}
+{llcorner(picture)}
+>> (-1.99254,-3.98508)
+{urcorner(picture)}
+>> (7.97011,3.98506)
+{show}
+{char(220)}
+{("^^dc")infont("trapf")}
+Missing character: There is no ^^dc in font trapf!
+{urcorner(picture)}
+>> (0,0)
+{makepath(pen)}
+>> Path at line 162:
+(-2.5,-0.5)..controls (-2.5,-0.5) and (-1,-2)
+ ..(-1,-2)..controls (-1,-2) and (0,-2.5)
+ ..(0,-2.5)..controls (0,-2.5) and (1,-2)
+ ..(1,-2)..controls (1,-2) and (2,-1)
+ ..(2,-1)..controls (2,-1) and (2.5,0.5)
+ ..(2.5,0.5)..controls (2.5,0.5) and (1,2)
+ ..(1,2)..controls (1,2) and (0,2.5)
+ ..(0,2.5)..controls (0,2.5) and (-1,2)
+ ..(-1,2)..controls (-1,2) and (-2,1)
+ ..(-2,1)..controls (-2,1) and (-2.5,-0.5)
+ ..cycle
+
+{show}
+{-(2)}
+{-(1)}
+{((-2,-1))subpath(path)}
+>> Path at line 163:
+(0,0)
+
+{pencircle}
+{makepath(pen)}
+{((9,10))subpath(path)}
+>> Path at line 163:
+(0.35355,0.35355)..controls (0.25978,0.44731) and (0.13261,0.5)
+ ..(0,0.5)
+
+{("hi")infont("qw99z")}
+! Font qw99z not usable: TFM file not found.
+l.164 "hi" infont "qw99z";
+                           numspecial "ij"="ij"; show substri...
+I wasn't able to read the size data for this font so this
+`infont' operation won't produce anything. If the font name
+is right, you might ask an expert to make a TFM file
+
+Missing character: There is no h in font qw99z!
+Missing character: There is no i in font qw99z!
+>> picture
+! Isolated expression.
+<to be read again> 
+                   ;
+l.164 "hi" infont "qw99z";
+                           numspecial "ij"="ij"; show substri...
+I couldn't find an `=' or `:=' after the
+expression that is shown above this error message,
+so I guess I'll just ignore it and carry on.
+
+{numspecial}
+{("ij")=("ij")}
+>> true
+! Unsuitable expression.
+<to be read again> 
+                   ;
+l.164 ...; numspecial "ij"="ij";
+                                 show substring(-2,-1)of"abc";
+The expression is the wrong type to be output.
+
+{show}
+{-(2)}
+{-(1)}
+{((-2,-1))substring("abc")}
+>> ""
+{addto}
+{begingroup}
+{endgroup}
+>> vacuous
+! Improper `addto'.
+<to be read again> 
+                   ;
+l.165 addto e5 contour [[ ]];
+                              addto e5 contour true; pausing:...
+This expression should have specified a known path.
+So I'll not change anything just now.
+
+{addto}
+{true}
+>> true
+! Improper `addto'.
+<to be read again> 
+                   ;
+l.165 ... addto e5 contour true;
+                                 pausing:=0;prologues:=1;
+This expression should have specified a known path.
+So I'll not change anything just now.
+
+{pausing:=0}
+{prologues:=1}
+{charcode:=197}
+{shipout}
+[197]
+Edge structure at line 166 (just shipped out):
+"curb" infont "trapf"
+transformed (0,0,0,1,-1,0.5)
+End edges
+
+{-(1)}
+{-(1)}
+Path at line 167, before choices:
+(0,0){2881.87209,2910.67511}..tension atleast1
+ ..{4096,0}(1,1){-2896.30943,2896.30934}
+ ..{2896.30943,-2896.30934}(2,0)
+
+Path at line 167, after choices:
+(0,0)..controls (0.3493,0.3528) and (0.99011,1)
+ ..(1,1)..controls (0.12732,1.87268) and (1.46066,0.53934)
+ ..(2,0)
+
+{(unknown path p~10)=(path)}
+{prologues:=0}
+{for}
+{-(1)}
+{-(1)}
+{loop value=(-1,1)}
+{show}
+{((-1,1))directiontime(path)}
+>> 1
+{[repeat the loop]}
+{loop value=(1,-1)}
+{show}
+{((1,-1))directiontime(path)}
+>> 1.2355
+{[repeat the loop]}
+{loop value=(0,0)}
+{show}
+{((0,0))directiontime(path)}
+>> 0
+{[repeat the loop]}
+{linecap:=1}
+{linejoin:=1}
+{nullpicture}
+{e5:=picture}
+{addto}
+{pencircle}
+{(pen)scaled(10)}
+{makepath(pen)}
+{pencircle}
+{(pen)shifted((2,0))}
+{addto}
+Path at line 171, before choices:
+(0,0){curl 1}
+ ..{curl 1}(12,0)
+
+Path at line 171, after choices:
+(0,0)..controls (4,0) and (8,0)
+ ..(12,0)
+
+{pencircle}
+{(pen)yscaled(3)}
+{charcode:=148}
+{shipout}
+[148]
+Edge structure at line 171 (just shipped out):
+Filled contour :
+(5,0)..controls (5,1.32608) and (4.47322,2.59785)
+ ..(3.53554,3.53554)..controls (2.59785,4.47322) and (1.32608,5)
+ ..(0,5)..controls (-1.32608,5) and (-2.59785,4.47322)
+ ..(-3.53554,3.53554)..controls (-4.47322,2.59785) and (-5,1.32608)
+ ..(-5,0)..controls (-5,-1.32608) and (-4.47322,-2.59785)
+ ..(-3.53554,-3.53554)..controls (-2.59785,-4.47322) and (-1.32608,-5)
+ ..(0,-5)..controls (1.32608,-5) and (2.59785,-4.47322)
+ ..(3.53554,-3.53554)..controls (4.47322,-2.59785) and (5,-1.32608)
+ ..cycle
+round joins with pen
+pencircle transformed (2,0,1,0,0,1)
+Filled pen stroke :
+(0,0)..controls (4,0) and (8,0)
+ ..(12,0)
+round ends, round joins with pen
+pencircle transformed (0,0,1,0,0,3)
+End edges
+
+{nullpicture}
+{e5:=picture}
+{clip}
+! An expression can't begin with `;'.
+<inserted text> 
+                0
+<to be read again> 
+                   ;
+l.172 ...llpicture; clip p~8 to;
+                                 clip e5 to e4; clip e5 to p~...
+I'm afraid I need some sort of value in order to continue,
+so I've tentatively inserted `0'. You may want to
+delete this zero and insert something else;
+see Chapter 27 of The METAFONTbook for an example.
+
+! Variable p~8 is the wrong type (path).
+<to be read again> 
+                   ;
+l.172 ...llpicture; clip p~8 to;
+                                 clip e5 to e4; clip e5 to p~...
+I was looking for a "known" picture variable.
+So I'll not change anything just now.
+
+{clip}
+>> picture
+! Improper `clip'.
+<to be read again> 
+                   ;
+l.172 ... p~8 to; clip e5 to e4;
+                                 clip e5 to p~8; clip e5 to p~7;
+This expression should have specified a known path.
+So I'll not change anything just now.
+
+{clip}
+! Not a cycle.
+<to be read again> 
+                   ;
+l.172 ... to e4; clip e5 to p~8;
+                                 clip e5 to p~7;
+That contour should have ended with `..cycle' or `&cycle'.
+So I'll not change anything just now.
+
+{clip}
+{addto}
+{pencircle}
+{(pen)scaled(50)}
+{makepath(pen)}
+{addto}
+{pencircle}
+{(pen)xscaled(2)}
+{addto}
+{pencircle}
+{addto}
+{(path)shifted((10,0))}
+{(picture)scaled(1)}
+{pencircle}
+{charcode:=149}
+{shipout}
+[149
+Envelope spec at line 177:
+(25,0) % beginning with offset (2.5,0.5)
+   ..controls (25,6.63042) and (22.36609,12.98926)
+ ..(17.67767,17.67767) % counterclockwise to offset (1,2)
+   ..controls (15.7597,19.59564) and (13.56218,21.16978)
+ ..(11.18088,22.36044) % counterclockwise to offset (0,2.5)
+   ..controls (7.74117,24.08029) and (3.918,25)
+ ..(0,25)
+   ..controls (-3.918,25) and (-7.74117,24.08029)
+ ..(-11.18088,22.36044) % counterclockwise to offset (-1,2)
+   ..controls (-13.56218,21.16978) and (-15.7597,19.59564)
+ ..(-17.67767,17.67767) % counterclockwise to offset (-2,1)
+   ..controls (-20.44812,14.90723) and (-22.50117,11.55353)
+ ..(-23.71729,7.90517) % counterclockwise to offset (-2.5,-0.5)
+   ..controls (-24.5592,5.37941) and (-25,2.71243)
+ ..(-25,0)
+   ..controls (-25,-6.63042) and (-22.36609,-12.98926)
+ ..(-17.67767,-17.67767) % counterclockwise to offset (-1,-2)
+   ..controls (-15.7597,-19.59564) and (-13.56218,-21.16978)
+ ..(-11.18088,-22.36044) % counterclockwise to offset (0,-2.5)
+   ..controls (-7.74117,-24.08029) and (-3.918,-25)
+ ..(0,-25)
+   ..controls (3.918,-25) and (7.74117,-24.08029)
+ ..(11.18088,-22.36044) % counterclockwise to offset (1,-2)
+   ..controls (13.56218,-21.16978) and (15.7597,-19.59564)
+ ..(17.67767,-17.67767) % counterclockwise to offset (2,-1)
+   ..controls (20.44812,-14.90723) and (22.50117,-11.55353)
+ ..(23.71729,-7.90517) % counterclockwise to offset (2.5,0.5)
+   ..controls (24.5592,-5.37941) and (25,-2.71243)
+ ..(25,0) % counterclockwise to offset (-2.5,-0.5)
+   ..controls (25,-2.71243) and (24.5592,-5.37941)
+ ..(23.71729,-7.90517) % clockwise to offset (-2,1)
+   ..controls (22.50117,-11.55353) and (20.44812,-14.90723)
+ ..(17.67767,-17.67767) % clockwise to offset (-1,2)
+   ..controls (15.7597,-19.59564) and (13.56218,-21.16978)
+ ..(11.18088,-22.36044) % clockwise to offset (0,2.5)
+   ..controls (7.74117,-24.08029) and (3.918,-25)
+ ..(0,-25)
+   ..controls (-3.918,-25) and (-7.74117,-24.08029)
+ ..(-11.18088,-22.36044) % clockwise to offset (1,2)
+   ..controls (-13.56218,-21.16978) and (-15.7597,-19.59564)
+ ..(-17.67767,-17.67767) % clockwise to offset (2.5,0.5)
+   ..controls (-22.36609,-12.98926) and (-25,-6.63042)
+ ..(-25,0)
+   ..controls (-25,2.71243) and (-24.5592,5.37941)
+ ..(-23.71729,7.90517) % clockwise to offset (2,-1)
+   ..controls (-22.50117,11.55353) and (-20.44812,14.90723)
+ ..(-17.67767,17.67767) % clockwise to offset (1,-2)
+   ..controls (-15.7597,19.59564) and (-13.56218,21.16978)
+ ..(-11.18088,22.36044) % clockwise to offset (0,-2.5)
+   ..controls (-7.74117,24.08029) and (-3.918,25)
+ ..(0,25)
+   ..controls (3.918,25) and (7.74117,24.08029)
+ ..(11.18088,22.36044) % clockwise to offset (-1,-2)
+   ..controls (13.56218,21.16978) and (15.7597,19.59564)
+ ..(17.67767,17.67767) % clockwise to offset (-2.5,-0.5)
+   ..controls (22.36609,12.98926) and (25,6.63042)
+ ..(25,0) % counterclockwise to offset (2.5,0.5)
+ & cycle
+
+]
+Edge structure at line 177 (just shipped out):
+Filled pen stroke :
+(25,0)..controls (25,6.63042) and (22.36609,12.98926)
+ ..(17.67767,17.67767)..controls (12.98926,22.36609) and (6.63042,25)
+ ..(0,25)..controls (-6.63042,25) and (-12.98926,22.36609)
+ ..(-17.67767,17.67767)..controls (-22.36609,12.98926) and (-25,6.63042)
+ ..(-25,0)..controls (-25,-6.63042) and (-22.36609,-12.98926)
+ ..(-17.67767,-17.67767)..controls (-12.98926,-22.36609) and (-6.63042,-
+25)
+ ..(0,-25)..controls (6.63042,-25) and (12.98926,-22.36609)
+ ..(17.67767,-17.67767)..controls (22.36609,-12.98926) and (25,-6.63042)
+ ..cycle
+round ends, round joins with pen
+(-2.5,-0.5)
+ .. (-1,-2)
+ .. (0,-2.5)
+ .. (1,-2)
+ .. (2,-1)
+ .. (2.5,0.5)
+ .. (1,2)
+ .. (0,2.5)
+ .. (-1,2)
+ .. (-2,1)
+ .. cycle
+Filled pen stroke :
+(0,0)..controls (-48.28429,48.28426) and (78.28429,48.28426)
+ ..(30,0)
+dashed 2on 1off offset 1
+round ends, round joins with pen
+pencircle transformed (0,0,2,0,0,1)
+Filled pen stroke :
+(0,0)..controls (-48.28429,48.28426) and (78.28429,48.28426)
+ ..(30,0)
+dashed 2on 1off offset 1
+round ends, round joins with pen
+pencircle transformed (0,0,1,0,0,1)
+Filled pen stroke :
+(10,0)..controls (-38.28429,48.28426) and (88.28429,48.28426)
+ ..(40,0)
+dashed 2on 1off offset 1
+round ends, round joins with pen
+pencircle transformed (0,0,1,0,0,1)
+End edges
+
+{addto}
+>> 3
+! Not a suitable variable.
+<to be read again> 
+                   ;
+l.177 ...; shipout e5;  addto 3;
+                                 addto p~8 contour p~7;
+At this point I needed to see the name of a picture variable.
+(Or perhaps you have indeed presented me with one; I might
+have missed it, if it wasn't followed by the proper token.)
+So I'll not change anything just now.
+
+{addto}
+! Variable p~8 is the wrong type (path).
+<to be read again> 
+                   ;
+l.177 ... addto p~8 contour p~7;
+                                
+I was looking for a "known" picture variable.
+So I'll not change anything just now.
+
+{nullpicture}
+{e5:=picture}
+{linecap:=2}
+{linejoin:=0}
+{miterlimit:=10}
+{addto}
+Path at line 179, before choices:
+(10,5)
+ ..cycle
+
+Path at line 179, after choices:
+(10,5)..controls (10,5) and (10,5)
+ ..cycle
+
+{addto}
+Path at line 180, before choices:
+(5,10){curl 1}
+ ..{curl 1}(5,15)
+
+Path at line 180, after choices:
+(5,10)..controls (5,11.66667) and (5,13.33333)
+ ..(5,15)
+
+{addto}
+Path at line 182, before choices:
+(0,0)..controls (10,10) and (10,10)
+ ..(10,10)
+ ..{curl 1}(0,20){curl 1}
+ ..{curl 1}(30,10)
+
+Path at line 182, after choices:
+(0,0)..controls (10,10) and (10,10)
+ ..(10,10)..controls (6.66667,13.33333) and (3.33333,16.66667)
+ ..(0,20)..controls (10,16.66667) and (20,13.33333)
+ ..(30,10)
+
+{-(5)}
+Path at line 182, before choices:
+(0,-5)
+ ..(0,5)
+ ..cycle
+
+Path at line 182, after choices:
+(0,-5)..controls (6.66667,-5) and (6.66667,5)
+ ..(0,5)..controls (-6.66667,5) and (-6.66667,-5)
+ ..cycle
+
+{makepen(path)}
+{charcode:=150}
+{prologues:=1}
+{shipout}
+[150
+Envelope spec at line 182:
+(10,5) % beginning with offset (-2.5,-0.5)
+   ..controls (10,5) and (10,5)
+ ..(10,5) % counterclockwise to offset (-2.5,-0.5)
+ & cycle
+
+Envelope spec at line 182:
+(10,5) % beginning with offset (-2.5,-0.5)
+   ..controls (10,5) and (10,5)
+ ..(10,5) % counterclockwise to offset (-2.5,-0.5)
+ & cycle
+
+Envelope spec at line 182:
+(5,10) % beginning with offset (2.5,0.5)
+   ..controls (5,11.66667) and (5,13.33333)
+ ..(5,15) % counterclockwise to offset (-2.5,-0.5)
+   ..controls (5,13.33333) and (5,11.66667)
+ ..(5,10) % counterclockwise to offset (2.5,0.5)
+ & cycle
+
+Envelope spec at line 182:
+(0,0) % beginning with offset (0,-5)
+   ..controls (10,10) and (10,10)
+ ..(10,10) % counterclockwise to offset (0,5)
+   ..controls (6.66667,13.33333) and (3.33333,16.66667)
+ ..(0,20) % clockwise to offset (0,-5)
+   ..controls (10,16.66667) and (20,13.33333)
+ ..(30,10) % counterclockwise to offset (0,5)
+   ..controls (20,13.33333) and (10,16.66667)
+ ..(0,20) % counterclockwise to offset (0,-5)
+   ..controls (3.33333,16.66667) and (6.66667,13.33333)
+ ..(10,10) % clockwise to offset (0,5)
+   ..controls (10,10) and (10,10)
+ ..(0,0) % counterclockwise to offset (0,-5)
+ & cycle
+
+]
+Edge structure at line 182 (just shipped out):
+Filled contour :
+(10,5)..controls (10,5) and (10,5)
+ ..cycle
+mitered joins limited 10 with pen
+(-2.5,-0.5)
+ .. (-1,-2)
+ .. (0,-2.5)
+ .. (1,-2)
+ .. (2,-1)
+ .. (2.5,0.5)
+ .. (1,2)
+ .. (0,2.5)
+ .. (-1,2)
+ .. (-2,1)
+ .. cycle
+Filled pen stroke :
+(5,10)..controls (5,11.66667) and (5,13.33333)
+ ..(5,15)
+square ends, mitered joins limited 10 with pen
+(-2.5,-0.5)
+ .. (-1,-2)
+ .. (0,-2.5)
+ .. (1,-2)
+ .. (2,-1)
+ .. (2.5,0.5)
+ .. (1,2)
+ .. (0,2.5)
+ .. (-1,2)
+ .. (-2,1)
+ .. cycle
+Filled pen stroke :
+(0,0)..controls (10,10) and (10,10)
+ ..(10,10)..controls (6.66667,13.33333) and (3.33333,16.66667)
+ ..(0,20)..controls (10,16.66667) and (20,13.33333)
+ ..(30,10)
+square ends, mitered joins limited 10 with pen
+(0,-5)
+ .. (0,5)
+ .. cycle
+End edges
+
+{for}
+{sqrt(-1)}
+! Square root of -1 has been replaced by 0.
+l.183 for @=angle(sqrt$,
+                        mlog$):charext:=uniformdeviate$;charh...
+Since I don't take square roots of negative numbers,
+I'm zeroing this one. Proceed, with fingers crossed.
+
+{mlog(-1)}
+! Logarithm of -1 has been replaced by 0.
+l.183 for @=angle(sqrt$,mlog$)
+                              :charext:=uniformdeviate$;charh...
+Since I don't take logs of non-positive numbers,
+I'm zeroing this one. Proceed, with fingers crossed.
+
+{angle((0,0))}
+! angle(0,0) is taken as zero.
+l.183 for @=angle(sqrt$,mlog$):
+                               charext:=uniformdeviate$;charh...
+The `angle' between two identical points is undefined.
+I'm zeroing this one. Proceed, with fingers crossed.
+
+Runaway loop?
+charext:=uniformdeviate$;charht:=2048;addto.e3contour( ETC.
+! Forbidden token found while scanning the text of a for loop.
+<inserted text> 
+                endfor
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+I suspect you have forgotten an `endfor',
+causing me to read past where you wanted me to stop.
+I'll try to recover; but if the error is serious,
+you'd better type `E' or `X' now and fix your file.
+
+{loop value=0}
+{uniformdeviate(-1)}
+{charext:=-0.00507}
+{charht:=2048}
+{addto}
+{-(100)}
+{-(99)}
+Path at line 192, before choices:
+(0,-100)..tension 500
+ ..(100,-99)..tension 3000
+ ..cycle
+
+Path at line 192, after choices:
+(0,-100)..controls (-36.92659,-103.51175) and (136.98943,-101.7726)
+ ..(100,-99)..controls (99.9889,-98.99916) and (0.01108,-99.99895)
+ ..cycle
+
+{tracingoutput:=0}
+{special}
+{charcode:=151}
+{shipout}
+! Enormous charht has been reduced.
+<to be read again> 
+                   ;
+<for(0)> ...ode:=151;shipout.e3;
+                                interim.char99="c";true=false...
+<inserted text> endfor
+                      
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+Font metric dimensions must be less than 2048pt.
+
+[151
+Envelope spec at line 192:
+(0,0) % beginning with offset (-1,-2)
+   ..controls (0.04324,-0.04068) and (0.08835,-0.07198)
+ ..(0.13504,-0.09532) % counterclockwise to offset (0,-2.5)
+   ..controls (0.64822,-0.3519) and (1.35178,0.35191)
+ ..(1.86496,0.09532) % clockwise to offset (-1,-2)
+   ..controls (1.91165,0.07198) and (1.95676,0.04068)
+ ..(2,0)
+   ..controls (2.00706,-0.00664) and (2.01395,-0.01332)
+ ..(2.02066,-0.02003) % clockwise to offset (-2.5,-0.5)
+   ..controls (2.2398,-0.23918) and (2.27596,-0.49583)
+ ..(2.2023,-0.71681) % clockwise to offset (-2,1)
+   ..controls (2.16501,-0.82869) and (2.09958,-0.93141)
+ ..(2.01549,-1.0155) % clockwise to offset (-1,2)
+   ..controls (1.95589,-1.0751) and (1.88692,-1.12534)
+ ..(1.81195,-1.16281) % clockwise to offset (0,2.5)
+   ..controls (1.63397,-1.2518) and (1.42226,-1.26889)
+ ..(1.22209,-1.16881) % clockwise to offset (1,2)
+   ..controls (1.15273,-1.13412) and (1.08475,-1.08539)
+ ..(1.02003,-1.02068) % clockwise to offset (2.5,0.5)
+   ..controls (1.01332,-1.01396) and (1.00664,-1.00706)
+ ..(1,-1)
+   ..controls (0.78389,-0.77028) and (0.83284,-0.488)
+ ..(0.93013,-0.19617) % clockwise to offset (2,-1)
+   ..controls (0.97351,-0.06602) and (1.0265,0.06602)
+ ..(1.06989,0.19617) % counterclockwise to offset (2.5,0.5)
+   ..controls (1.16716,0.488) and (1.21611,0.77028)
+ ..(1,1)
+   ..controls (0.99336,1.00706) and (0.98668,1.01395)
+ ..(0.97997,1.02066) % counterclockwise to offset (1,2)
+   ..controls (0.91525,1.08537) and (0.84727,1.13412)
+ ..(0.77791,1.16881) % counterclockwise to offset (0,2.5)
+   ..controls (0.57773,1.26889) and (0.36601,1.2518)
+ ..(0.18803,1.16281) % counterclockwise to offset (-1,2)
+   ..controls (0.11307,1.12534) and (0.0441,1.0751)
+ ..(-0.0155,1.0155) % counterclockwise to offset (-2,1)
+   ..controls (-0.09958,0.93141) and (-0.16502,0.82869)
+ ..(-0.20232,0.71681) % counterclockwise to offset (-2.5,-0.5)
+   ..controls (-0.27597,0.49583) and (-0.2398,0.2392)
+ ..(-0.02066,0.02003) % counterclockwise to offset (-1,-2)
+   ..controls (-0.01395,0.01332) and (-0.00706,0.00664)
+ ..(0,0)
+ & cycle
+
+Envelope spec at line 192:
+(0,0) % beginning with offset (1,2)
+   ..controls (-0.00706,0.00664) and (-0.01395,0.01332)
+ ..(-0.02066,0.02003) % clockwise to offset (2.5,0.5)
+   ..controls (-0.2398,0.23918) and (-0.27596,0.49583)
+ ..(-0.2023,0.71681) % clockwise to offset (2,-1)
+   ..controls (-0.16501,0.82869) and (-0.09958,0.93141)
+ ..(-0.01549,1.0155) % clockwise to offset (1,-2)
+   ..controls (0.04411,1.0751) and (0.11308,1.12534)
+ ..(0.18805,1.16281) % clockwise to offset (0,-2.5)
+   ..controls (0.36603,1.2518) and (0.57774,1.26889)
+ ..(0.77791,1.16881) % clockwise to offset (-1,-2)
+   ..controls (0.84727,1.13412) and (0.91525,1.08539)
+ ..(0.97997,1.02068) % clockwise to offset (-2.5,-0.5)
+   ..controls (0.98668,1.01396) and (0.99336,1.00706)
+ ..(1,1)
+   ..controls (1.21611,0.77028) and (1.16716,0.488)
+ ..(1.06987,0.19617) % clockwise to offset (-2,1)
+   ..controls (1.02649,0.06602) and (0.9735,-0.06602)
+ ..(0.93011,-0.19617) % counterclockwise to offset (-2.5,-0.5)
+   ..controls (0.83284,-0.488) and (0.78389,-0.77028)
+ ..(1,-1)
+   ..controls (1.00664,-1.00706) and (1.01332,-1.01395)
+ ..(1.02003,-1.02066) % counterclockwise to offset (-1,-2)
+   ..controls (1.08475,-1.08537) and (1.15273,-1.13412)
+ ..(1.22209,-1.16881) % counterclockwise to offset (0,-2.5)
+   ..controls (1.42227,-1.26889) and (1.63399,-1.2518)
+ ..(1.81197,-1.16281) % counterclockwise to offset (1,-2)
+   ..controls (1.88693,-1.12534) and (1.9559,-1.0751)
+ ..(2.0155,-1.0155) % counterclockwise to offset (2,-1)
+   ..controls (2.09958,-0.93141) and (2.16502,-0.82869)
+ ..(2.20232,-0.71681) % counterclockwise to offset (2.5,0.5)
+   ..controls (2.27597,-0.49583) and (2.2398,-0.2392)
+ ..(2.02066,-0.02003) % counterclockwise to offset (1,2)
+   ..controls (2.01395,-0.01332) and (2.00706,-0.00664)
+ ..(2,0)
+   ..controls (1.95676,0.04068) and (1.91165,0.07198)
+ ..(1.86496,0.09532) % counterclockwise to offset (0,2.5)
+   ..controls (1.35178,0.3519) and (0.64822,-0.35191)
+ ..(0.13504,-0.09532) % clockwise to offset (1,2)
+   ..controls (0.08835,-0.07198) and (0.04324,-0.04068)
+ ..(0,0)
+ & cycle
+
+Envelope spec at line 192:
+(0,0) % beginning with offset (1,-2)
+   ..controls (0.17854,0.17854) and (0.38548,0.31178)
+ ..(0.60698,0.42253) % clockwise to offset (0,-2.5)
+   ..controls (1.04999,0.64404) and (1.55122,0.77562)
+ ..(1.99995,1) % counterclockwise to offset (1,-2)
+   ..controls (1.99997,1) and (1.99998,1)
+ ..(2,1) % counterclockwise to offset (-1,2)
+   ..controls (1.99998,1) and (1.99997,1)
+ ..(1.99995,1) % clockwise to offset (0,2.5)
+   ..controls (1.55122,0.77562) and (1.05,0.64404)
+ ..(0.607,0.42253) % counterclockwise to offset (-1,2)
+   ..controls (0.3855,0.31178) and (0.17856,0.17856)
+ ..(0,0) % counterclockwise to offset (1,-2)
+ & cycle
+
+Envelope spec at line 192:
+(0,257) % beginning with offset (-1,-2)
+   ..controls (0.04324,256.95932) and (0.08835,256.92802)
+ ..(0.13504,256.90468) % counterclockwise to offset (0,-2.5)
+   ..controls (0.64822,256.6481) and (1.35178,257.35191)
+ ..(1.86496,257.09532) % clockwise to offset (-1,-2)
+   ..controls (1.91165,257.07198) and (1.95676,257.04068)
+ ..(2,257)
+   ..controls (2.00706,256.99336) and (2.01395,256.98668)
+ ..(2.02066,256.97997) % clockwise to offset (-2.5,-0.5)
+   ..controls (2.2398,256.76082) and (2.27596,256.50417)
+ ..(2.2023,256.28319) % clockwise to offset (-2,1)
+   ..controls (2.16501,256.17131) and (2.09958,256.06859)
+ ..(2.01549,255.9845) % clockwise to offset (-1,2)
+   ..controls (1.95589,255.9249) and (1.88692,255.87466)
+ ..(1.81195,255.83719) % clockwise to offset (0,2.5)
+   ..controls (1.63397,255.7482) and (1.42226,255.73111)
+ ..(1.22209,255.83119) % clockwise to offset (1,2)
+   ..controls (1.15273,255.86588) and (1.08475,255.91461)
+ ..(1.02003,255.97932) % clockwise to offset (2.5,0.5)
+   ..controls (1.01332,255.98604) and (1.00664,255.99294)
+ ..(1,256)
+   ..controls (0.78389,256.22972) and (0.83284,256.512)
+ ..(0.93013,256.80383) % clockwise to offset (2,-1)
+   ..controls (0.97351,256.93398) and (1.0265,257.06602)
+ ..(1.06989,257.19617) % counterclockwise to offset (2.5,0.5)
+   ..controls (1.16716,257.488) and (1.21611,257.77028)
+ ..(1,258)
+   ..controls (0.99336,258.00706) and (0.98668,258.01395)
+ ..(0.97997,258.02066) % counterclockwise to offset (1,2)
+   ..controls (0.91525,258.08537) and (0.84727,258.13412)
+ ..(0.77791,258.16881) % counterclockwise to offset (0,2.5)
+   ..controls (0.57773,258.26889) and (0.36601,258.2518)
+ ..(0.18803,258.16281) % counterclockwise to offset (-1,2)
+   ..controls (0.11307,258.12534) and (0.0441,258.0751)
+ ..(-0.0155,258.0155) % counterclockwise to offset (-2,1)
+   ..controls (-0.09958,257.93141) and (-0.16502,257.82869)
+ ..(-0.20232,257.71681) % counterclockwise to offset (-2.5,-0.5)
+   ..controls (-0.27597,257.49583) and (-0.2398,257.2392)
+ ..(-0.02066,257.02003) % counterclockwise to offset (-1,-2)
+   ..controls (-0.01395,257.01332) and (-0.00706,257.00664)
+ ..(0,257)
+ & cycle
+
+Envelope spec at line 192:
+(0,257) % beginning with offset (1,2)
+   ..controls (-0.00706,257.00664) and (-0.01395,257.01332)
+ ..(-0.02066,257.02003) % clockwise to offset (2.5,0.5)
+   ..controls (-0.2398,257.23918) and (-0.27596,257.49583)
+ ..(-0.2023,257.71681) % clockwise to offset (2,-1)
+   ..controls (-0.16501,257.82869) and (-0.09958,257.93141)
+ ..(-0.01549,258.0155) % clockwise to offset (1,-2)
+   ..controls (0.04411,258.0751) and (0.11308,258.12534)
+ ..(0.18805,258.16281) % clockwise to offset (0,-2.5)
+   ..controls (0.36603,258.2518) and (0.57774,258.26889)
+ ..(0.77791,258.16881) % clockwise to offset (-1,-2)
+   ..controls (0.84727,258.13412) and (0.91525,258.08539)
+ ..(0.97997,258.02068) % clockwise to offset (-2.5,-0.5)
+   ..controls (0.98668,258.01396) and (0.99336,258.00706)
+ ..(1,258)
+   ..controls (1.21611,257.77028) and (1.16716,257.488)
+ ..(1.06987,257.19617) % clockwise to offset (-2,1)
+   ..controls (1.02649,257.06602) and (0.9735,256.93398)
+ ..(0.93011,256.80383) % counterclockwise to offset (-2.5,-0.5)
+   ..controls (0.83284,256.512) and (0.78389,256.22972)
+ ..(1,256)
+   ..controls (1.00664,255.99294) and (1.01332,255.98605)
+ ..(1.02003,255.97934) % counterclockwise to offset (-1,-2)
+   ..controls (1.08475,255.91463) and (1.15273,255.86588)
+ ..(1.22209,255.83119) % counterclockwise to offset (0,-2.5)
+   ..controls (1.42227,255.73111) and (1.63399,255.7482)
+ ..(1.81197,255.83719) % counterclockwise to offset (1,-2)
+   ..controls (1.88693,255.87466) and (1.9559,255.9249)
+ ..(2.0155,255.9845) % counterclockwise to offset (2,-1)
+   ..controls (2.09958,256.06859) and (2.16502,256.17131)
+ ..(2.20232,256.28319) % counterclockwise to offset (2.5,0.5)
+   ..controls (2.27597,256.50417) and (2.2398,256.7608)
+ ..(2.02066,256.97997) % counterclockwise to offset (1,2)
+   ..controls (2.01395,256.98668) and (2.00706,256.99336)
+ ..(2,257)
+   ..controls (1.95676,257.04068) and (1.91165,257.07198)
+ ..(1.86496,257.09532) % counterclockwise to offset (0,2.5)
+   ..controls (1.35178,257.3519) and (0.64822,256.64809)
+ ..(0.13504,256.90468) % clockwise to offset (1,2)
+   ..controls (0.08835,256.92802) and (0.04324,256.95932)
+ ..(0,257)
+ & cycle
+
+Envelope spec at line 192:
+(0,257) % beginning with offset (1,-2)
+   ..controls (0.17854,257.17854) and (0.38548,257.31178)
+ ..(0.60698,257.42253) % clockwise to offset (0,-2.5)
+   ..controls (1.04999,257.64404) and (1.55122,257.77562)
+ ..(1.99995,258) % counterclockwise to offset (1,-2)
+   ..controls (1.99997,258) and (1.99998,258)
+ ..(2,258) % counterclockwise to offset (-1,2)
+   ..controls (1.99998,258) and (1.99997,258)
+ ..(1.99995,258) % clockwise to offset (0,2.5)
+   ..controls (1.55122,257.77562) and (1.05,257.64404)
+ ..(0.607,257.42253) % counterclockwise to offset (-1,2)
+   ..controls (0.3855,257.31178) and (0.17856,257.17856)
+ ..(0,257) % counterclockwise to offset (1,-2)
+ & cycle
+
+]
+{interim}
+! The token `char' isn't an internal quantity.
+<to be read again> 
+                   char
+<for(0)> ...pout.e3;interim.char
+                                99="c";true=false;show.penoff...
+<inserted text> endfor
+                      
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+Something like `tracingonline' should follow `interim'.
+
+{char(99)}
+{("c")=("c")}
+! Redundant equation.
+<to be read again> 
+                   ;
+<for(0)> ...;interim.char99="c";
+                                true=false;show.penoffset(2,1...
+<inserted text> endfor
+                      
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+I already knew that this equation was true.
+But perhaps no harm has been done; let's continue.
+
+{true}
+{false}
+{(true)=(false)}
+! Inconsistent equation.
+<to be read again> 
+                   ;
+<for(0)> ...ar99="c";true=false;
+                                show.penoffset(2,1)of.qq;show...
+<inserted text> endfor
+                      
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+The equation I just read contradicts what was said before.
+But don't worry; continue and I'll just ignore it.
+
+{show}
+{((2,1))penoffset(pen)}
+>> (0,-2.5)
+{showstats}
+Memory usage 2614&410 (61 still untouched)
+String usage 62&286 (1182&9336 now untouched)
+{let}
+{showtoken}
+> f=tag
+{showstats}
+Memory usage 2574&339 (61 still untouched)
+String usage 62&286 (1182&9336 now untouched)
+{begingroup}
+
+clear(TEXT0)->interim(TEXT0):=$
+(TEXT0)<-tracingcommands
+{interim}
+{tracingcommands:=-1}
+! Enormous charht has been reduced.
+<to be read again> 
+                   ;
+<for(0)> ...shipout.nullpicture;
+                                "careful"for.for=(EXPR0)step2...
+<inserted text> endfor
+                      
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+Font metric dimensions must be less than 2048pt.
+
+[0]
+careful METAFONT METAFONT METAFONT METAFONT METAFONT METAFONT METAFONT M
+ETAFONT METAFONT METAFONT METAFONT METAFONT METAFONT METAFONT METAFONT M
+ETAFONT METAFONT METAFONT METAFONT METAFONT METAFONT METAFONT METAFONT M
+ETAFONT METAFONT METAFONT METAFONT
+{restoring tracingcommands=2.1}
+{endgroup}
+{scrollmode}
+
+{char(31)}
+{("hello again")&("^^_")}
+hello again^^_
+{save}
+### -0.45p3~=-alpha+7
+{def}
+{begingroup}
+{tracingonline:=1}
+
+{tracingonline:=1}
+
+f<expr>->let)=];let[=(;show._
+(EXPR0)<-xx
+{let}
+{let}
+{show}
+>> _1
+{showdependencies}
+xpart '=-ypart '-0.66667
+{qq:=pen}
+{showstats}
+Memory usage 1982&339 (61 still untouched)
+String usage 62&284 (1154&5992 now untouched)
+{[repeat the loop]}
+>> bye
+! Isolated expression.
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+I couldn't find an `=' or `:=' after the
+expression that is shown above this error message,
+so I guess I'll just ignore it and carry on.
+
+! Extra tokens will be flushed.
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+I've just read as much of that statement as I could fathom,
+so a semicolon should have been next. It's very puzzling...
+but I'll try to get myself back together, by ignoring
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+! Forbidden token found while scanning to the end of the statement.
+<inserted text> 
+                ;
+<to be read again> 
+                   endtext
+l.192 ... showstats; bye endtext
+                                
+A previous error seems to have propagated,
+causing me to read past where you wanted me to stop.
+I'll try to recover; but if the error is serious,
+you'd better type `E' or `X' now and fix your file.
+
+{show}
+)
+*end
+! An expression can't begin with `end'.
+<inserted text> 
+                0
+<to be read again> 
+                   end
+<*> end
+       
+I'm afraid I need some sort of value in order to continue,
+so I've tentatively inserted `0'. You may want to
+delete this zero and insert something else;
+see Chapter 27 of The METAFONTbook for an example.
+
+>> 0
+! A group begun on line 192 never ended.
+<to be read again> 
+                   end
+<*> end
+       
+I saw a `begingroup' back there that hasn't been matched
+by `endgroup'. So I've inserted `endgroup' now.
+
+{endgroup}
+(end occurred when else on line 88 was incomplete)
+(end occurred when if on line 37 was incomplete)
+(end occurred when elseif on line 22 was incomplete) 
+Here is how much of MetaPost's memory you used:
+ 64 strings out of 1307
+ 775 string characters out of 9940
+ 3940 words of memory out of 4001
+ 309 symbolic tokens out of 2100
+ 8i,34n,8p,167b stack positions out of 30i,100n,150p,500b
+ 0 string compactions (0 characters, 0 strings)
+
+(illegal design size has been changed to 128pt)
+(some chardp values had to be adjusted by as much as 0.5pt)
+(local label 0:: was missing)
+(local label 5:: was missing)
+(4 font metric dimensions had to be decreased) 
+(You used 3w,2h,16d,2i,312l,301k,1e,10p metric file positions
+  out of 256w,16h,16d,64i,5000l,500k,256e,50p)
+
+Font metrics written on trap.tfm.
+25 output files written: trap.ps .. trap.200

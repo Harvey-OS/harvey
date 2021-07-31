@@ -1,0 +1,121 @@
+.TH TIGER 7
+.SH NAME
+tiger \- United States street map database
+.SH SYNOPSIS
+.B tiger
+[
+county[,state] ...
+]
+.SH DESCRIPTION
+.I Tiger
+displays
+.I counties
+from the U.S. Census Tiger Database,
+a street map of the entire U.S. and
+affiliates such as Puerto Rico,
+Samoa, the Marshall Islands, etc.
+.SS Keyboard commands
+.TP
+.BI s #
+sets the scale of the map to the number.
+There are 4 scales per power of 10 and scale 5
+is 5 nautical miles across the screen.
+Scale 16 (2800 nmi.) is a little
+larger than the width of the U.S.
+Scale 2 is about one statute mile.
+From scale 9 to 18,
+only primary and secondary roads are displayed.
+From scales 0 to 8,
+all roads, railroads and water features are displayed.
+.TP
+.BI / regexp
+All features labeled by text matching the regular expression
+are highlighted,
+even for features not displayed at
+the current scale.
+.TP
+.BI r county,state
+adds the map of the named
+.I county
+to the current
+display list.
+The center of the display is set to the
+center of the resulting display list.
+The scale is set to 9.
+A
+.I county
+can be the name of a county if it is unique
+.RB ( sandiego )
+or have a comma and state abbreviation
+if the county is not unique
+.RB ( union,nj ).
+The county can also be a six digit code
+of the form SSCCCC taken from the database.
+See the file
+.B /lib/tiger/codes1
+for counties
+and their codes.
+.TP
+.BI e county,state
+is the same as
+.I r
+except that the previous display list
+is discarded before the new county is read.
+.TP
+.B q
+Exit
+.I tiger.
+.SS Mouse button commands
+.TP
+Button 1
+displays the text of the
+.I line
+nearest the cursor.
+Only displayed lines are examined.
+.TP
+Button 2
+displays the text of the
+.I area
+nearest the cursor.
+All areas are examined.
+Areas (as opposed to lines)
+include oceans,
+lakes,
+wide rivers,
+large cemeteries,
+some airports,
+counties,
+cities,
+and a lot more.
+.TP
+Button 3
+centers the display on the cursor position
+and redraws the map.
+.SH FILES
+.TF \w'/lib/tiger/SS/CCCCXXXXX'u
+.TP
+.B /lib/tiger/SS/CCCC.h
+database files
+where SS is the state numeric code and CCCC
+is the county numeric code.
+.br
+On the distribution there are maps of the San Francisco area and Manhattan.
+Look in
+.B /lib/tiger
+for the names.
+.TP
+.B /lib/tiger/codes1
+is the translation
+between symbolic names and numeric codes.
+.SH BUGS
+.I Tiger
+takes 16-32 megabytes of memory.
+It is only installed in
+.B /mips/bin
+and should be run only on a large machine.
+.br
+Because of the large memory usage,
+it is unwise to display a large number of
+counties at the same time.
+.br
+This program is just a toy.

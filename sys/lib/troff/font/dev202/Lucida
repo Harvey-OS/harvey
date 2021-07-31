@@ -1,0 +1,467 @@
+# Lucidaa
+name Lucida
+spacewidth 17
+charset
+a	30	0	0x0061	a
+à	30	2	0x00E0	a-ga
+`a	"
+a`	"
+á	30	2	0x00E1	a-aa
+'a	"
+a'	"
+â	30	2	0x00E2	a-ht
+^a	"
+a^	"
+ã	30	2	0x00E3	a-ti
+~a	"
+a~	"
+ä	30	2	0x00E4	a-um
+"a	"
+a"	"
+a:	"
+b	35	2	0x0062	b
+c	29	0	0x0063	c
+ç	29	1	0x00E7	c-cd
+,c	"
+c,	"
+d	36	2	0x0064	d
+e	30	0	0x0065	e
+è	30	2	0x00E8	e-ga
+`e	"
+e`	"
+é	30	2	0x00E9	e-aa
+'e	"
+e'	"
+ê	30	2	0x00EA	e-ht
+^e	"
+e^	"
+ë	30	2	0x00EB	e-um
+"e	"
+e"	"
+:e	"
+e:	"
+f	22	2	0x0066	f
+g	32	1	0x0067	g
+h	35	2	0x0068	h
+i	18	0	0x0069	i
+ì	18	2	0x00EC	i-ga
+`i	"
+i`	"
+í	18	0	0x00ED	i-aa
+'i	"
+i'	"
+î	18	0	0x00EE	i-ht
+^i	"
+i^	"
+ï	18	0	0x00EF	i-um
+"i	"
+i"	"
+i:	"
+:i	"
+j	20	1	0x006A	j
+k	33	2	0x006B	k
+l	18	2	0x006C	l
+m	52	0	0x006D	m
+n	35	0	0x006E	n
+o	34	0	0x006F	o
+ò	34	0	0x00F2	o-ga
+`o	"
+o`	"
+ó	34	2	0x00F3	o-aa
+'o	"
+o'	"
+ô	34	0	0x00F4	o-ht
+^o	"
+o^	"
+õ	34	2	0x00F5	o-ti
+~o	"
+o~	"
+ö	34	2	0x00F6	o-um
+"o	"
+o"	"
+:o	"
+o:	"
+p	36	1	0x0070	p
+q	35	1	0x0071	q
+r	24	0	0x0072	r
+s	29	0	0x0073	s
+t	22	2	0x0074	t
+u	35	0	0x0075	u
+ù	35	0	0x00F9	u-ga
+`g	"
+g`	"
+ú	35	0	0x00FA	u-aa
+'g	"
+g'	"
+û	35	2	0x00FB	u-ht
+^u	"
+u^	"
+ü	35	2	0x00FC	u-um
+"u	"
+u"	"
+:u	"
+u:	"
+v	33	0	0x0076	v
+w	45	0	0x0077	w
+x	31	0	0x0078	x
+y	33	1	0x0079	y
+ý	33	3	0x00FD	y-aa
+'y	"
+y'	"
+ÿ	33	1	0x00FF	y-um
+"y	"
+y"	"
+:y	"
+y:	"
+z	33	0	0x007A	z
+A	38	2	0x0041	A
+À	38	2	0x00C0	A-ga
+`A	"
+A`	"
+Á	38	2	0x00C1	A-aa
+'A	"
+A'	"
+Â	38	2	0x00C2	A-ht
+^A	"
+A^	"
+Ã	38	2	0x00C3	A-ti
+~A	"
+A~	"
+Ä	38	2	0x00C4	A-um
+"A	"
+A"	"
+:A	"
+A:	"
+B	33	2	0x0042	B
+C	38	2	0x0043	C
+Ç	38	3	0x00C7	C-cd
+,C	"
+C,	"
+D	42	2	0x0044	D
+E	31	2	0x0045	E
+È	31	2	0x00C8	E-ga
+`E	"
+E`	"
+É	31	2	0x00C9	E-aa
+'E	"
+E'	"
+Ê	31	2	0x00CA	E-ht
+^E	"
+E^	"
+Ë	31	2	0x00CB	E-um
+"E	"
+E"	"
+:E	"
+E:	"
+F	30	2	0x0046	F
+G	40	2	0x0047	G
+H	42	2	0x0048	H
+I	18	2	0x0049	I
+Ì	18	2	0x00CC	I-ga
+`I	"
+I`	"
+Í	18	2	0x00CD	I-aa
+'I	"
+I'	"
+Î	18	2	0x00CE	I-ht
+^I	"
+I^	"
+Ï	18	2	0x00CF	I-um
+"I	"
+I"	"
+:I	"
+I:	"
+J	23	2	0x004A	J
+K	37	2	0x004B	K
+L	31	2	0x004C	L
+M	47	2	0x004D	M
+N	41	2	0x004E	N
+O	43	2	0x004F	O
+Ò	43	2	0x00D2	O-ga
+`O	"
+O`	"
+Ó	43	2	0x00D3	O-aa
+'O	"
+O'	"
+Ô	43	2	0x00D4	O-ht
+^O	"
+O^	"
+Õ	43	2	0x00D5	O-ti
+~O	"
+O~	"
+Ö	43	2	0x00D6	O-um
+"O	"
+O"	"
+:O	"
+O:	"
+P	31	2	0x0050	P
+Q	43	3	0x0051	Q
+R	36	2	0x0052	R
+S	30	2	0x0053	S
+T	37	2	0x0054	T
+U	39	2	0x0055	U
+Ù	39	2	0x00D9	U-ga
+`U	"
+U`	"
+Ú	39	2	0x00DA	U-aa
+'U	"
+U'	"
+Û	39	2	0x00DB	U-ht
+^U	"
+U^	"
+Ü	39	2	0x00DC	U-um
+"U	"
+U"	"
+:U	"
+U:	"
+V	37	2	0x0056	V
+W	50	2	0x0057	W
+X	35	2	0x0058	X
+Y	35	2	0x0059	Y
+Ý	35	2	0x00DD	Y-aa
+'Y	"
+Y'	"
+"Y	35	2	0x0178	Y-um
+Y"	"
+:Y	"
+Y:	"
+Z	35	2	0x005A	Z
+sp	17	0	0x0020	spacewidth
+&	39	0	0x0026	amp
+0	34	2	0x0030	0
+1	34	2	0x0031	1
+2	34	2	0x0032	2
+3	34	2	0x0033	3
+4	34	2	0x0034	4
+5	34	2	0x0035	5
+6	34	2	0x0036	6
+7	34	2	0x0037	7
+8	34	2	0x0038	8
+9	34	2	0x0039	9
+.	17	0	0x002E	per
+,	17	0	0x002C	com
+:	17	0	0x003A	col
+;	17	0	0x003B	sco
+?	27	0	0x003F	qm
+!	13	0	0x0021	ex
+(	18	0	0x0028	lp
+)	18	0	0x0029	rp
+-	19	0	0x002D	hy
+hy	"
+'	13	0	0x2019	sq
+`	13	0	0x2018	bq
+bq	"
+em	54	0	0x2014	em
+en	27	0	0x2013	en
+$	34	2	0x0024	dol
+¢	34	0	0x00A2	ct
+ct	"
+c$	"
+c|	"
+%	38	0	0x0025	pc
+pc	"
+/	29	2	0x002F	sl
+sl	"
+fr	2	2	0x2044	ssl
+£	34	2	0x00A3	lb
+l$	"
+[	18	2	0x005B	lsb
+]	18	2	0x005D	rsb
+*	27	2	0x002A	ast
+§	34	2	0x00A7	sc
+sc	"
+SS	"
+so	"
+dg	34	2	0x2020	dg
+dd	34	2	0x2021	dd
+ii	18	0	0x0131	ib
+´	34	2	0x00B4	aa
+aa	"
+ga	34	2	0x0060	ga
+^	34	2	0x005E	hat
+ht	34	2	0x0302	ht
+¨	34	2	0x00A8	um
+..	"
+~	34	2	0x007E	til
+ti	34	2	0x02DC	ti
+hc	34	2	0x02C7	hc
+ev	34	2	0x02D8	brv
+ri	34	4	0x02DA	ri
+¸	34	1	0x00B8	cd
+cd	"
+dt	34	4	0x02D9	da
+¯	34	2	0x00AF	mac
+__	"
+g<	19	0	0x2039	lsg
+<g	"
+g>	19	0	0x203A	rsg
+>g	"
+«	30	0	0x00AB	ldg
+<<	"
+»	30	0	0x00BB	rdg
+>>	"
+%o	57	2	0x2030	pmil
+oe	49	0	0x0152	oe
+OE	55	2	0x0153	OE
+¿	27	1	0x00BF	iqm
+??	"
+~?	"
+¡	12	1	0x00A1	iex
+!!	"
+~!	"
+sf	34	3	0x0192	sf
+``	21	2	0x201C	lqt
+''	21	2	0x201D	rqt
+,,	21	2	0x201E	bqt
+,b	13	0	0x201A	bsq
+b,	"
+ß	35	2	0x00DF	ss
+ss	"
+æ	44	0	0x00E6	ae
+ae	"
+Æ	50	2	0x00C6	AE
+AE	"
+Ae	"
+å	30	2	0x00E5	a-ri
+oa	"
+Å	38	2	0x00C5	A-ri
+oA	"
+Ao	"
+AO	"
+A*	"
+ø	34	2	0x00F8	o-sl
+/o	"
+o/	"
+Ø	43	2	0x00D8	O-sl
+/O	"
+O/	"
+fi	36	2	0xE800	fi
+fl	36	2	0xE801	fl
+"	21	0	0x0022	qt
+qt	"
+dq	"
+@	47	0	0x0040	at
+at	"
+#	34	0	0x0023	nm
+fm	13	0	0x0027	fm
+<	34	0	0x003C	lt
+>	34	0	0x003E	gt
+=	34	0	0x003D	eq
+eq	"
++	34	0	0x002B	pl
+pl	"
+\	29	2	0x005C	bs
+¤	34	2	0x00A4	cur
+$g	"
+g$	"
+xo	"
+cr	"
+¥	34	2	0x00A5	yen
+$y	"
+y$	"
+$j	"
+j$	"
+Y-	"
+¦	14	0	0x00A6	bvb
+||	"
+©	48	2	0x00A9	co
+co	"
+cO	"
+cr	"
+ª	23	2	0x00AA	orf
+sa	"
+a_	"
+¬	34	0	0x00AC	not
+no	"
+-,	"
+®	34	2	0x00AE	rg
+rg	"
+rO	"
+ro	"
+°	15	0	0x00B0	de
+de	"
+sO	"
+0^	"
+±	34	0	0x00B1	pm
++-	"
+²	23	2	0x00B2	2sp
+s2	"
+2^	"
+³	23	2	0x00B3	3sp
+s3	"
+3^	"
+µ	36	1	0x00B5	mic
+mn	"
+¶	34	2	0x00B6	par
+PP	"
+pp	"
+P!	"
+pg	"
+·	17	0	0x00B7	cdot
+do	"
+.^	"
+¹	23	2	0x00B9	1sp
+s1	"
+1^	"
+º	23	2	0x00BA	orm
+so	"
+o_	"
+¼	47	2	0x00BC	f14
+14	"
+½	47	2	0x00BD	f12
+12	"
+¾	47	2	0x00BE	f34
+34	"
+ð	34	2	0x00F0	Oed
+d-	"
+Ð	42	2	0x00D0	OED
+D-	"
+þ	36	3	0x00FE	Oth
+|p	"
+p|	"
+th	"
+Þ	31	2	0x00DE	OTH
+|P	"
+P|	"
+TH	"
+Th	"
+×	34	0	0x00D7	mu
+mu	"
+xx	"
+di	34	0	0x00F7	di
+-:	"
+:-	"
+_	27	3	0x005F	ul
+∙	34	0	0x2022	bu
+bu	"
+ñ	35	0	0x00F1	n-ti
+~n	"
+n~	"
+Ñ	41	2	0x00D1	N-ti
+~N	"
+N~	"
+{	18	2	0x007B	lcb
+}	18	2	0x007D	rcb
+|	14	3	0x007C	vb
+hu	34	2	0x02DD	hum
+og	34	2	0x02DB	og
+mi	34	0	0x2212	mi
+--	"
+el	54	0	0x2026	eli
+tm	49	0	0x2122	tm
+vs	29	0	0x0161	s-hc
+sv	"
+vS	30	2	0x0160	S-hc
+Sv	"
+vz	33	0	0x017E	z-hc
+zv	"
+vZ	35	2	0x017D	Z-hc
+Zv	"
+l/	18	2	0x0142	l-sl
+/l	"
+l-	"
+-l	"
+L/	31	2	0x0141	L-sl
+/L	"
+L-	"
+-L	"

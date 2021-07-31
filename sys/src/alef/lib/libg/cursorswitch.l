@@ -1,10 +1,10 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 void
 cursorswitch(Cursor *c)
 {
-	byte buf[73];
+	char buf[73];
 
 	bneed(0);
 	buf[0] = 'c';

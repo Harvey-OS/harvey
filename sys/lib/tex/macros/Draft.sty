@@ -1,0 +1,27 @@
+% This is like the `draft' style option, except that it also puts symbolic
+% label definitions in the left margin as they are encountered.
+% Some label definitions might not go into the margin; some might even overlap
+% other text in unusual circumstances.
+
+\overfullrule=5pt
+
+
+\def\@shlb#1{$[{\it#1\/}=\@currentlabel]$}		% [<label>=<value>]
+
+\def\@shlab#1{\makesm@sh{\llap{%			% ord. space marginal note
+	\@shlb{#1}\kern\marginparsep}}}
+	
+\newdimen\@lpd						% used to store \prevdepth
+
+
+\def\label#1{\@bsphack\if@filesw {\let\thepage\relax
+   \xdef\@gtempa{\write\@auxout{\string
+      \newlabel{#1}{{\@currentlabel}{\thepage}}}}}\@gtempa
+   \ifvmode	\@lpd\prevdepth				% carefully in vlist
+		\nointerlineskip\@shlab{#1}%
+		\prevdepth\@lpd
+   \else\ifinner\lower2ex\llap{%			% in hbox (hope no overlap)
+			\@shlb{#1}\kern\marginparsep}%
+   \else	\vadjust{\@shlab{#1}}%			% vadjust into a paragraph
+   \fi\fi
+   \if@nobreak \ifvmode\nobreak\fi\fi\fi\@esphack}

@@ -28,9 +28,6 @@ s_getline(Biobuf *fp, String *to)
 		while(c==' ' || c=='\t' || c=='\n' || c=='\r')
 			c = Bgetc(fp);
 
-		if(c < 0)
-			return 0;
-
 		/* take care of comments */
 		if(c == '#'){
 			do {

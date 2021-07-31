@@ -1,0 +1,751 @@
+% Bugs (sigh) in The TeXbook
+
+\input manmac
+\proofmodefalse
+\raggedbottom
+\output{\onepageout{\unvbox255\kern-\dimen@ \vfil}}
+
+\def\rhead{Bugs in {\sl The \TeX book}, first printing}
+\def\bugonpage#1(#2) \par{\bigbreak\tenpoint
+  \hrule\line{\lower3.5pt\vbox to13pt{}Page #1\hfil(#2)}\hrule\nobreak\medskip}
+
+\noindent This is a list of all corrections made to {\sl The \TeX book\/}
+between the first and second printings. If your copy says `{\sl\kern-1pt Second
+printing (October 1984)\/}' on the copyright page, you've already got
+all of these things corrected. Otherwise, you're a lucky owner of the
+rare first edition; read on.
+
+\bugonpage 29, lines 31--32 (8/25/84)
+
+The underfull box that \TeX\ produces in the 1.5-inch case is really bad;
+with such narrow limits, an occasional wide space is unavoidable. But try
+
+\bugonpage 54, lines 5--6 (4/20/84)
+
+{\parfillskip=0pt
+\ddanger Appendix B shows that plain \TeX\ handles most of the accents
+by using \TeX's ^|\accent| primitive. For example, |\'#1| is equivalent
+to |{\accent19 #1}|, where\par}
+
+\bugonpage 63, seven lines below the first illustration (2/27/84)
+
+\line{points, a width of 5.5555 points, and a depth of zero;
+the letter `g' has a height}
+
+\bugonpage 72, line 35 (2/28/84)
+
+\ninepoint\noindent
+from |0pt|, but |0.00001filll| is infinitely greater than |16383.99999fill|.
+
+\bugonpage 79, line 12 (2/28/84)
+
+\ninepoint\indent
+|\hbox(6.25+1.94444)x312.0, glue set 0.5783, shifted 36.0 []|
+
+\bugonpage 98, line 24 (4/13/84)
+
+\ninepoint
+\line{and |\finalhyphendemerits=5000|. Demerits are in units of
+  ``badness squared,'' so the}
+
+\bugonpage 101, lines 29--30 (3/13/84)
+
+{\parfillskip=0pt
+\danger It's possible to control the length of lines in a much more general
+way, if simple changes to |\leftskip| and |\rightskip| aren't
+flexible enough for your\par}
+
+\bugonpage 113, bottom two lines (3/13/84)
+
+{\parfillskip=0pt
+\ddanger Notice that the first ``|%| line'' of our example says |t=10.0|;
+this is a consequence of another parameter, called ^|\topskip|. Glue
+disappears at a page break, but\par}
+
+\bugonpage 124, eighth-last line (8/25/84)
+
+\ninepoint
+{\parfillskip=0pt\noindent
+discarded, |\box100| will
+be void after the |\vsplit|. And if\/ |\box100| was void before the\par}
+
+\bugonpage 131, display in exercise 16.8 (3/16/84)
+
+\indent
+|If$ x = y$, then $x$ is equal to $y.$|
+
+\bugonpage 170, table in middle of the page (2/12/84)
+
+\ninepoint
+$$\baselineskip0pt\lineskip0pt
+\halign to\hsize
+ {\strut\hbox to\parindent{\it#\hfil}& % for the legend "Left atom"
+  #\hfil\quad& % for the row labels
+  #\hfil\tabskip 0pt plus 10pt& % for the rule at the left
+  \hbox to 25pt{\tt\hss#\hss}& % for column 1
+  \hbox to 25pt{\tt\hss#\hss}& % for column 2
+  \hbox to 25pt{\tt\hss#\hss}& % for column 3
+  \hbox to 25pt{\tt\hss#\hss}& % for column 4
+  \hbox to 25pt{\tt\hss#\hss}& % for column 5
+  \hbox to 25pt{\tt\hss#\hss}& % for column 6
+  \hbox to 25pt{\tt\hss#\hss}& % for column 7
+  \hbox to 25pt{\tt\hss#\hss}& % for column 8
+  #\hfil\tabskip0pt\cr % for the rule at the right
+\noalign{\vskip-6pt} % it just happens that there's extra white space
+&&&&\multispan7\hss\it Right atom\hss\cr
+\noalign{\vskip3pt}
+&&&\rm Ord&\rm Op&\rm Bin&\rm Rel&\rm Open&\rm Close&\rm Punct&\rm Inner\cr
+\noalign{\vskip2pt}
+\omit&&\multispan{10}\leaders\hrule\hfil\cr
+\omit\vbox to 2pt{}&&\vrule&&&&&&&&&\vrule\cr
+&Ord&\vrule&0&1&(2)&(3)&0&0&0&(1)&\vrule\cr
+&Op&\vrule&1&1&*&(3)&0&0&0&(1)&\vrule\cr
+&Bin&\vrule&(2)&(2)&*&*&(2)&*&*&(2)&\vrule\cr
+Left&Rel&\vrule&(3)&(3)&*&0&(3)&0&0&(3)&\vrule\cr
+atom&Open&\vrule&0&0&*&0&0&0&0&0&\vrule\cr
+&Close&\vrule&0&1&(2)&(3)&0&0&0&(1)&\vrule\cr
+&Punct&\vrule&(1)&(1)&*&(1)&(1)&(1)&(1)&(1)&\vrule\cr
+&Inner&\vrule&(1)&1&(2)&(3)&(1)&0&(1)&(1)&\vrule\cr
+\omit\vbox to 2pt{}&&\vrule&&&&&&&&&\vrule\cr
+\omit&&\multispan{10}\leaders\hrule\hfil\cr}$$
+
+\bugonpage 173, line 11 (1/2/84)
+
+\indent|Clearly $a_i<b_i$ for~$i=1, 2, \ldots, n$.|
+
+\bugonpage 176, bottom two lines (7/20/84)
+
+\def\chapno{ 18} \exno=23 % for exercise 18.24!
+\dangerexercise Typeset the display \ \lower12pt\null
+$\tenpoint\smash{\displaystyle
+\left\lgroup\matrix{a&b&c\cr d&e&f\cr}\right\rgroup
+  \left\lgroup\matrix{u&x\cr v&y\cr w&z\cr}\right\rgroup
+}$, \
+using ^|\lgroup| and ^|\rgroup|.
+
+\bugonpage 189, line 18 (2/13/84)
+
+\ninepoint\noindent
+{\parfillskip=0pt
+when there is an overlap.] \ If $e=0$ and if there is an |\leqno|,
+the equation number is\par}
+
+\bugonpage 204, line 31 (2/13/84)
+
+\ninepoint\noindent
+of\/ |\a| is delimited by a left brace.
+
+\bugonpage 212, line 23 (7/8/84)
+
+\ninepoint\noindent
+it equals~2.) \
+Similarly, ^|\tracingmacros||=2| will trace |\output|, |\everypar|, etc.
+
+\bugonpage 216, first five lines (8/25/84)
+
+\ddanger Expanded definitions that are made with |\edef| or |\xdef| continue
+to expand tokens until only unexpandable tokens remain, except that
+token lists produced by `^|\the|' are not expanded further. Furthermore
+a token following `^|\noexpand|' will not be expanded, since its ability
+to expand has been nullified. These two operations can be used to control
+^^{expansion, avoiding} what gets expanded and what doesn't.
+
+\bugonpage 219, simplification of line 18 (2/15/84)
+
+\ninepoint\indent
+|  \advance\count0 by\count2 \hexdigit}}|
+
+\bugonpage 223, lines 3--4 (3/13/84)
+
+{\parfillskip=0pt
+\ddanger Chapters 24 to 26 present summaries of all \TeX's operations
+in all modes, and when those summaries mention a `\<box>' they mean one
+of the seven\par}
+
+\bugonpage 242, line 29 (1/2/84)
+
+\ninepoint\noindent
+{\parfillskip=0pt
+a relation, the solution is to insert `|{}|' ^^{lbrace rbrace}
+at the beginning of the right-hand formula; \TeX
+\par}
+
+\bugonpage 245, line 24 (2/15/84)
+
+\ninepoint\noindent
+of a box that spans columns $i$ through~$j$,
+hence the glue in such a box might shrink.
+
+\bugonpage 248, the fourth dangerous bend (2/15/84)
+
+{\parfillskip=0pt
+\ddanger You have to be careful with the use of |&| and ^|\span| and ^|\cr|,
+because these tokens are intercepted by \TeX's scanner even when it is
+not expanding macros.\par}
+
+\bugonpage 249, lines 20--26 (2/15/84)
+
+\ninepoint\noindent
+line (see Chapter~9).
+If you don't want a~|\cr| at the end of a certain line,
+just type `|%|' and the corresponding |\cr|
+will be ``commented out.'' ^^{percent} \ (This special mode doesn't
+work with ^|\+| lines, since |\+| is a macro whose argument is delimited
+by the token `|\cr|', not simply by a token that has the same meaning
+as~|\cr|.  ^^{delimited arguments} But you can redefine |\+| to overcome
+this hurdle, if you want to. For example, define a macro |\alternateplus|
+that is just like |\+| except that its argument is delimited by the active
+character |^^M|; then include the command `|\let\+=\alternateplus|' as
+part of\/ |\obeylines|.)
+
+\bugonpage 253, lines 28--32 (4/25/84)
+
+\ninepoint\noindent
+vertical list at what it thinks is the best place, and at such times
+it enters internal vertical mode and begins to read the commands in the
+current |\output| routine. When the output routine begins, ^|\box255|
+contains the page that \TeX\ has completed; the output routine is supposed to
+do something with this vbox. When the output routine ends, the list of
+items that it has constructed in internal vertical mode is placed just%
+{\parfillskip=0pt\par}
+
+\bugonpage 254, lines 1--13 (3/13/84)
+
+\ddanger \TeX's primitive command |\shipout|\<box> is what actually
+causes output. It sends the contents of the box to the |dvi| file,
+which is \TeX's main output file; after \TeX\ has finished,
+the ^|dvi| file will contain a compact device-independent encoding of
+instructions that specify exactly what should be printed.  When a
+box is shipped out, \TeX\ displays the values of\/ |\count0| through
+|\count9| on your terminal, ^^|\count0| as explained in Chapter~15; these
+ten counters are also recorded in the |dvi| file, where they can be used
+to identify the page. All of the ^|\openout|, ^|\closeout|, and ^|\write|
+commands that appear inside of the \<box> are performed in their natural
+order as that box is being shipped out. Since a |\write| command
+expands macros, as explained in Chapter~21, \TeX's scanning mechanism
+might detect syntax errors while a |\shipout| is in progress. If
+^|\tracingoutput| is nonzero at the time of a |\shipout|, the contents
+of the \<box> being shipped are written into your log file in symbolic
+form. You can say |\shipout| anywhere, not only in an output routine.
+
+\bugonpage 255, line 33 (4/25/84)
+
+\ninepoint\indent
+|\nointerlineskip|
+
+
+\bugonpage 256, starting with line $-17$ (11/1/83)
+
+\ninepoint
+\textindent{6)} Finally, the ^|\dosupereject| macro is designed to clear
+out any insertions that have been held over, whether they are illustrations
+or footnotes or both: ^^|\insertpenalties| ^^|\supereject|
+\begintt
+\ifnum\insertpenalties>0
+  \line{} \kern-\topskip \nobreak
+  \vfill\supereject\fi
+\endtt
+The mysterious negative ^|\kern| here cancels out the natural space of the
+^|\topskip| glue that goes above the empty |\line|; that empty line box
+prevents the ^|\vfill| from disappearing into a page break.  The vertical
+list that results from |\dosupereject| is placed on \TeX's list of things
+to put out next, just after the straggling insertions have been
+reconsidered as explained in Chapter~15. Hence another super-eject will
+occur, and the process will continue until no insertions remain.
+
+\bugonpage 262, line 14 (2/12/84)
+
+\ninepoint\indent
+|\def\endindex{\mark{}\break\endgroup}|
+
+\bugonpage 262, lines 34 and 35 (2/12/84)
+
+\ninepoint\noindent
+if\/ |\next| is `|\endindex|',
+the next commands executed will be `|\vfill|\allowbreak
+|\mark{}|\allowbreak|\break|\allowbreak|\endgroup|';
+otherwise the line will be treated as a main entry.
+
+\bugonpage 269, line 23 becomes two lines (8/25/84)
+
+\ninepoint\noindent
+tokens like |+|$_{12}$;
+(3)~keywords like \[pt]; (4)~control sequence names like |\dimen|;
+or (5)~the special symbols |{|, |}|, |$|.
+
+\bugonpage 274, line 24 (2/15/84)
+
+\ninepoint\indent
+|\lineskip|\quad(interline glue if\/ |\baselineskip| isn't feasible)
+
+\bugonpage 289, slight clarification on lines 39--41 (3/10/84)
+
+\ninepoint
+A \<math character> defines a 15-bit number either by specifying it
+directly with ^|\mathchar| or in a previous ^|\mathchardef|, or by
+specifying a 27-bit |\delimiter| value; in the latter case, the least
+significant 12~bits are discarded.
+
+
+\bugonpage 307, a slightly more explicit answer (11/3/83)
+
+\ninepoint\noindent
+\hbox to\parindent{\bf\hss6.3.\enspace}%
+It represents the heavy bar that shows up in
+your output. \ (This bar wouldn't be present if\/ ^|\overfullrule| had been
+set to |0pt|, nor is it present in an underfull box.)
+
+\bugonpage 313, first four lines (3/13/84)
+
+{\ninepoint\parfillskip=0pt
+\ansno12.17:
+ You get `A' at the extreme left and `puzzle.\null' at the extreme right,
+because the space between words has the only stretchability that is finite;
+the infinite stretchability cancels out. \ (In this case, \TeX's rule
+about ^{infinite glue} differs from what you would get in the limit if the
+value of $1\,{\rm fil}$ were finite but getting larger and larger.
+The true\par}
+
+\bugonpage 315, first three lines (3/13/84)
+
+\ninepoint
+\ansno14.14:
+ Just say |\parfillskip|\stretch|=|\stretch|\parindent|. Of course,
+\TeX\ will not be able to find appropriate line breaks unless each
+paragraph is sufficiently long or sufficiently lucky; but with an
+appropriate text, your output will be immaculately
+symmetrical.{\parfillskip=\parindent\par}
+
+\bugonpage 324, line 16 (2/15/84)
+
+\ninepoint\noindent
+\hbox to\parindent{\bf\hss18.41.\enspace}%
+|$$\{\underbrace{\overbrace{\mathstrut a,\ldots,a}|
+
+\bugonpage 324, first line of answer 18.44 (4/11/84)
+
+\ninepoint
+\ansno18.44:
+ |$$\mathop{{\sum}'}_{x\in A}f(x)\mathrel{\mathop=^{\rm def}}|
+
+\bugonpage 333, beginning of the final paragraph (12/19/83)
+
+\ninepoint
+{\sl Note:\/} The stated preamble solves the problem and demonstrates
+that \TeX's line-breaking capability can be used within tables. But this
+particular table is not really a good example of the use of\/ |\halign|,
+because \TeX\ could typeset it directly, using ^|\everypar| in an
+appropriate manner to set up the hanging indentation, and using |\par|
+instead of\/ |\cr|. For example, one could say
+
+\bugonpage 341, the bottom line was left out! (2/9/84)
+
+\line{Footline\quad\dotfill\quad Page 1009}
+
+\bugonpage 345, top three lines (1/26/84)
+
+\ninepoint{\noindent\parfillskip=0pt
+A mathcode is relevant only when the corresponding category code is
+11 or~12; therefore many of these codes will rarely be looked at. For
+example, the math code for |^^M| specifies the character |\oplus|,
+but it's hard to imagine a user who would want |^^M|\par}
+
+\bugonpage 345, line 31 (2/29/84)
+
+\ninepoint\noindent
+|\delcode`\<="26830A    \delcode`\\="26E30F    \delcode`\>="26930B|
+
+\bugonpage 347, lines 1 and 2 (3/16/84)
+
+\ninepoint\noindent
+|\count18=3  % this counter allocates math families 4, 5, 6, ...|\hfil\break
+|\count19=255 % this counter allocates insertions 254, 253, 252, ...|
+
+\bugonpage 350, line 9 from the bottom (3/16/84)
+
+\ninepoint\noindent
+font, whose information does not have to be loaded again.
+
+\bugonpage 354, line 5 (6/7/84)
+
+\ninepoint\noindent
+|\def\ialign{\everycr={}\tabskip=0pt \halign} % initialized \halign|
+
+\bugonpage 355, lines 19--21 (7/3/84)
+
+\ninepoint\noindent
+subdivision in a document; to use it, you say
+`|\beginsection|\<section title>' followed by a blank line (or~|\par|).
+The macro first emits glue and penalties, designed to start a new page
+if the present page is nearly full; then it makes a ^|\bigskip| and
+puts the section{\parfillskip=0pt\par}
+
+\bugonpage 355, lines 27--29 (7/3/84)
+
+\ninepoint\noindent
+|\outer\def\beginsection#1\par{\vskip0pt plus.3\vsize\penalty-250|
+\par\noindent
+|  \vskip0pt plus-.3\vsize\bigskip\vskip\parskip|
+\par\noindent
+|  \message{#1}\leftline{\bf#1}\nobreak\smallskip\noindent}|
+
+\bugonpage 355, line 37 (4/24/84)
+
+\ninepoint\noindent
+|\outer\def\proclaim #1. #2\par{\medbreak|
+
+\bugonpage 356, seven lines from the bottom (4/11/84)
+
+\ninepoint\noindent
+|\def|^|\TeX||{T\kern-.1667em \lower.5ex\hbox{E}\kern-.125em X}|
+
+\bugonpage 359, starting with line 2 (11/16/83)
+
+\ninepoint
+\beginlines
+|\mathchardef\ldotp="602E\mathchardef\cdotp="6201\mathchardef\colon="603A|
+|\def\ldots{\mathinner{\ldotp\ldotp\ldotp}}|
+|\def\cdots{\mathinner{\cdotp\cdotp\cdotp}}|
+|\def\vdots{\vbox{\baselineskip=4pt \lineskiplimit=0pt|
+|    \kern6pt \hbox{.}\hbox{.}\hbox{.}}}|
+|\def\ddots{\mathinner{\mskip1mu\raise7pt\vbox{\kern7pt\hbox{.}}\mskip2mu|
+|    \raise4pt\hbox{.}\mskip2mu\raise1pt\hbox{.}\mskip1mu}}|
+\endlines
+
+\bugonpage 359, starting with line 19 (11/3/83)
+
+{\ninepoint\parindent=0pt
+|\def|^|\overbrace|%
+  |#1{\mathop{\vbox{\ialign{##\crcr\noalign{\kern3pt}|\parbreak%
+|     \downbracefill\crcr\noalign{\kern3pt\nointerlineskip}|\parbreak%
+|     $\hfil\displaystyle{#1}\hfil$\crcr}}}|^|\limits||}|
+
+|\def|^|\underbrace||#1{\mathop{\vtop{\ialign{##\crcr|\parbreak%
+|     $\hfil\displaystyle{#1}\hfil$\crcr|%
+  |\noalign{\kern3pt\nointerlineskip}|\parbreak%
+|     \upbracefill\crcr\noalign{\kern3pt}}}}\limits}|
+}
+
+\bugonpage 359, seventh line from the bottom (2/29/84)
+
+\ninepoint\noindent
+|\def\backslash{\delimiter"026E30F }   \def\bracevert{\delimiter"000033E }|
+
+\bugonpage 361, line 3 (8/17/84)
+
+\ninepoint\noindent
+
+|\def\buildrel#1\over#2{\mathrel{\mathop{\null#2}\limits^{#1}}}|
+
+\bugonpage 363, line 10 (4/26/84)
+
+\ninepoint\noindent
+|  \ifhmode\edef\@sf{\spacefactor=\the\spacefactor}\/\fi|
+
+\bugonpage 364, starting with line 10 (11/1/83)
+
+{\ninepoint\parindent=0pt
+|\def\dosupereject{\ifnum\insertpenalties>0 % something is being held over|%
+\parbreak
+|  \line{}\kern-\topskip\nobreak\vfill\supereject\fi}|
+}
+
+\bugonpage 364, line 28 (7/8/84)
+
+\ninepoint\noindent
+|  \tracingmacros=2 \tracingparagraphs=1 \tracingrestores=1 |
+
+\bugonpage 370, line 7 (3/16/84)
+
+\ninepoint\noindent
+information about the \TeX\ Users Group.)
+
+\bugonpage 374, line 23 (7/8/84)
+
+\ninepoint
+\line{log file when |\tracingmacros=2| and
+  |\tracingcommands=2|. One of the important ways}
+
+\bugonpage 379, line 1 (1/12/84)
+
+\ninepoint\noindent
+A particular item can be selected by its position number from the left:
+
+\bugonpage 381, line 6 (2/12/84)
+
+\ninepoint\indent
+|\newcount\lineno % the number of file lines listed|
+
+\bugonpage 381, lines 24 and 25 (12/15/83)
+
+\ninepoint
+{\parfillskip=0pt
+Instead of listing a file verbatim, you might want to define a |\verbatim|
+macro such that `|\verbatim{$this$|{\tt\ is }|{\it!}}|' yields
+`|$this$|{\tt\ is }|{\it!}|'. It's somewhat\par}
+
+\bugonpage 385, lines 22 and 23 (1/12/84)
+
+\ninepoint\noindent
+macro, a parameter, or a token list
+variable; (b)~when \TeX\ must determine whether the token
+|&|~or ^|\span| ^^{ampersand}
+or ^|\cr| or~^|\crcr| is the end of an entry within an ^{alignment}.
+
+\bugonpage 387, two paragraphs in right column (1/18/84)
+
+\setbox0=\vbox{
+\eightpoint
+\tolerance=9999
+\hbadness=2300
+\finalhyphendemerits=3000000
+\doublehyphendemerits=1000000
+\parskip=1pt
+\parindent=1.5em
+\frenchspacing
+\hsize=166.8125pt
+\def\\#1{\raise.5pt\hbox{$\scriptscriptstyle
+    \ifx#1`\langle\!\langle\else\rangle\!\rangle\fi$}% Spanish quote marks
+  \ifx#1`\nobreak\hskip0pt \fi} % allow hyphenation
+\item{A.} Exactamente. Pero los profesores son tan conservadores
+que temer\'\i an espantar al tipo de estudiante \\`apisonadora\\'
+que hace lo que le proponen para casa, obe\-dien\-te\-mente y de forma
+mec\'anica. Adem\'as, no creo que les gustase el trabajo adicional
+de calificar respuestas a preguntas abiertas.
+
+\item{}La forma tradicional es dejar la parte creativa para los cursos
+altos. Durante diecisiete a\~nos o m\'as se ense\~na al es\-tu\-diante a
+aprobar, luego de golpe, cerca de la graduaci\'on, se le pide que haga
+algo original.
+
+}\rightline{\box0}
+
+\bugonpage 395, lines 21 and 22 (1/12/84)
+
+\ninepoint\noindent
+{\parfillskip=0pt
+Notice that the macros need to do their own checking for ligatures, and
+they also take appropriate actions when a paragraph begins with an opening
+quote.  Since |\kern|\par}
+
+\bugonpage 399, line 1 (1/10/84)
+
+\ninepoint
+{\parfillskip=0pt
+Inside the output routine, |\box\footins| will now be a vbox of hboxes, and
+\par}
+
+\bugonpage 399, line 9 (2/28/84)
+
+\ninepoint\indent
+|.\hbox(7.6359+0.0)x269.62617 []|
+
+\bugonpage 407, line 4 (6/10/84)
+
+\ninepoint\noindent
+|\beginlinemode| and |\beginparmode| are defined to initiate these
+modes; and another%
+{\parfillskip=0pt\par}
+
+\bugonpage 408, line 15 (12/14/83)
+
+\noindent
+|    P. O. Box 1009, Haga Alto, CA 94321 USA}|
+
+\smallskip\noindent\ninepoint
+[Also change the ZIP code in the return address on the envelope
+illustrated at the bottom of page 405.]
+
+\bugonpage 409, line 5 (2/18/84)
+
+\ninepoint\noindent
+|\font\twelveit=cmti10 at 12pt  % (a cheap substitute for cmti12)|
+
+\bugonpage 417, last six lines (8/25/84)
+
+\ninepoint\noindent
+^|\parskip|
+of |0pt| |plus|~|.8pt| between adjacent entries, and since there is room for
+more than 50 lines per column; therefore the |manmac| balancing routine tries
+to make both the top and bottom baselines agree at the end of the index.
+In applications where the glue is not so flexible it would be more
+appropriate to let the right-hand column be a little short; the best
+way to do this is probably to replace the command `|\unvbox3|' by
+`|\dimen2=|^|\dp||3| |\unvbox3| |\kern-\dimen2| ^|\vfil|'.
+
+\bugonpage 422, lines 24--26 (2/9/84)
+
+\ninepoint\noindent
+(The last two lines use |\d@nger| and |\dd@nger|, which are non-|\outer|
+equivalents of\/ |\danger| and |\ddanger|; such duplication is necessary
+because control sequences of type ^|\outer| cannot appear within a |\def|.)
+
+\bugonpage 428, in the table of sixteen basic fonts (12/19/83)
+
+\ninepoint\noindent
+[The special fonts called |cmi10| and |cmi7| and |cmi5| should really be
+called |cmmi10| and |cmmi7| and |cmmi5|.]
+
+\bugonpage 433, last eight lines (8/17/84)
+
+\noindent
+explained in Appendix~G\null. If you want to increase
+the number of parameters past the number that actually appear in a font's
+metric information file, you can assign new values immediately after that font
+has been loaded.  For example, if some font |\ff| with seven parameters
+has just entered \TeX's memory, the command |\fontdimen13\ff=5pt| will set
+parameter number~13 to $5\pt$; the intervening parameters, numbers 8--12,
+will be set to zero. You can even give more than seven parameters to
+^|\nullfont|, provided that you assign the values before any actual fonts
+have been loaded.
+
+\bugonpage 445, line 6 (11/11/83)
+
+\ninepoint
+\line{if $(a-{1\over2}\theta)-
+\bigl(h(z)-v\bigr)<\varphi$, increase~$v$ by the difference. Finally
+construct a vbox of}
+
+\bugonpage 449, line 12 (1/18/84)
+
+\line{immediately clear why the `n' should
+be attached to the `e' in one case but not}
+
+\bugonpage 459, left column, line 2 (1/18/84)
+
+\eightpoint
+al-Khw\^arizm\^\i, abu Ja`far Mu\d{h}ammad
+
+\bugonpage 460, index entry for Beethoven (8/16/84)
+
+\eightpoint
+Change `von' to `van'.
+
+\bugonpage 461, third line in left column (8/25/84)
+
+\eightpoint The entry for |\box255| should not be indented.
+
+\bugonpage 461, index entry for boxed material (8/2/84)
+
+\eightpoint Add `{\it 420}'.
+
+\bugonpage 462, index entry for {\tt\char`\\colon} (11/16/83)
+
+\eightpoint Add page \underbar{359} to this list.
+
+\bugonpage 462, right column, third-last line (5/21/84)
+
+\eightpoint\indent
+[Change `crochets' to `crotchets'; then move this entry down two lines.]
+
+\bugonpage 463, right column, line 16 (5/20/84)
+
+\eightpoint\indent
+design size, 16--17, 213.
+
+\bugonpage 464, index entry for {\tt\char`\\dump} (1/10/84)
+
+\eightpoint Add page {\it 344\/} to this list.
+
+\bugonpage 464, right column, line 5 (1/5/84)
+
+\eightpoint
+Dvo\v r\'ak, Anton\'\i n Leopold, 409.
+
+\bugonpage 464, index entry for {\tt\char`\\end} (8/25/84)
+
+\eightpoint Page number 264 should be underlined.
+
+\bugonpage 465, index entry for {\tt\char`\\everydisplay} (8/25/84)
+
+\eightpoint Add page {\it 326\/} to this list.
+
+\bugonpage 465, index entry for {\tt\char`\\filbreak} (7/3/84)
+
+\eightpoint Delete the reference to page number 355.
+
+\bugonpage 466, index entry for {\tt\char`\\footnote} (4/26/84)
+
+\eightpoint Page number 363 should be underlined.
+
+\bugonpage 467, index entry for {\tt\char`\\hidewidth} (7/3/84)
+
+\eightpoint Page number 354 should be underlined.
+
+\bugonpage 468, index entry for insertions (8/25/84)
+
+\eightpoint Add pages 115--117, 122--125 to this list.
+
+\bugonpage 469, index entry for {\tt\char`\\kern} (11/1/83)
+
+\eightpoint Add page {\it 256\/} to this list.
+
+\bugonpage 470, index entry for {\tt\char`\\limits} (11/3/83)
+
+\eightpoint Add page {\it 359\/} to this list.
+
+\bugonpage 472, right column, lines 10--11 (7/9/84)
+
+{\eightpoint
+\indent
+|\normalbaselines|\kern1pt,
+ {\it 325}, 349, $\underline{351}$, {\it 414--415}.\par
+\baselineskip=9.9pt
+\indent
+|\normalbaselineskip|\kern1pt,
+ $\underline{349}$, {\it 414--415}.\par
+}
+
+\bugonpage 472, index entry for {\tt\char`\\null} (7/3/84)
+
+\eightpoint Page number 351 should be underlined.
+
+\bugonpage 472, right column, line 28 (1/3/84)
+
+\eightpoint\indent
+\hbox to0pt{\hss\lower1pt\hbox{*}}|\nullfont|, 14, 153, 271, 433.
+
+\bugonpage 476, a new index entry (8/25/84)
+
+\eightpoint\indent
+shifted output, {\sl see\/} |\hoffset|, |\voffset|.
+
+\bugonpage 476, index entry for shriek (8/25/84)
+
+\eightpoint It should not be capitalized.
+
+\bugonpage 478, index entry for \'Swierczkowski (9/15/84)
+
+\eightpoint
+The middle name should be `S\l awomir'.
+
+\bugonpage 479, last seven lines in the left column (8/23/84)
+
+\eightpoint
+{\baselineskip=9.9pt
+\par\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\tracingmacros|, $\underline{205}$, $\underline{212}$, 273, {\it329}.
+\par\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\tracingonline|, 121, 212, 273, $\underline{303}$.
+\par\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\tracingoutput|, $\underline{254}$, 273, {\it301--302}.
+\par\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\tracingpages|, {\it112--114}, 124, 273, $\underline{303}$.
+\par\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\tracingparagraphs|, {\it98--99}, 273, $\underline{303}$.
+\par\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\tracingrestores|, 273, $\underline{301}$, $\underline{303}$.
+\par\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\tracingstats|, 273, $\underline{300}$, $\underline{303}$, {\it383}.
+}
+
+\bugonpage 479, index entry for underlined text (8/2/84)
+
+\eightpoint Add `{\sl see also\/} |\underbar|'.
+
+\bugonpage 480, index entry for {\tt\char`\\vbox} (11/1/83)
+
+\eightpoint Delete page 256 from this list.
+
+\bye
+

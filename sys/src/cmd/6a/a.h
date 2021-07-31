@@ -46,7 +46,7 @@ struct	Sym
 	char*	macro;
 	long	value;
 	ushort	type;
-	char	*name;
+	char	name[NNAME];
 	char	sym;
 };
 #define	S	((Sym*)0)
@@ -115,8 +115,6 @@ enum
 
 char	debug[256];
 Sym*	hash[NHASH];
-char*	Dlist[30];
-int	nDlist;
 Hist*	ehist;
 int	newflag;
 Hist*	hist;
@@ -132,7 +130,6 @@ int	ninclude;
 Gen	nullgen;
 char*	outfile;
 int	pass;
-char*	pathname;
 long	pc;
 int	peekc;
 int	sym;

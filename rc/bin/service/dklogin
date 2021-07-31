@@ -1,2 +1,1 @@
-#!/bin/rc
-exec /bin/aux/telnetd -N -n $*
+#!/bin/aux/telnetd -n

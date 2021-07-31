@@ -40,7 +40,6 @@ void
 regopt(Prog *p)
 {
 	Reg *r, *r1, *r2;
-	Prog *p1;
 	int i, z;
 	long val, initpc;
 	ulong vreg;
@@ -337,7 +336,7 @@ loop2:
 				v = var + i;
 				if(v->type == D_AUTO) {
 					r->set.b[i/32] |= (1L << (i%32));
-					if(typefd[v->etype])
+					if(typefdv[v->etype])
 						addmove(r, i, NREG+NREG, 1);
 				}
 			}
@@ -431,28 +430,27 @@ brk:
 	for(r = firstr; r != R; r = r1) {
 		r->pc = val;
 		p = r->prog;
-		p1 = P;
 		r1 = r->link;
-		if(r1 != R)
-			p1 = r1->prog;
-		for(; p != p1; p = p->link) {
-			switch(p->as) {
-			default:
-				val++;
-				break;
+		if(r1 == R)
+			break;
+		while(p != r1->prog)
+		switch(p->as) {
 
-			case ANOP:
-			case ADATA:
-			case AGLOBL:
-			case ANAME:
-				break;
-			}
+		default:
+			val++;
+
+		case ADATA:
+		case AGLOBL:
+		case ANAME:
+			p = p->link;
 		}
 	}
-	pc = val;
+	pc = val + 1;
 
 	/*
+	 * last pass
 	 * fix up branches
+	 * free aux structures
 	 */
 	if(debug['R'])
 		if(bany(&addrs))
@@ -464,16 +462,6 @@ brk:
 		if(p->to.type == D_BRANCH)
 			p->to.offset = r->s2->pc;
 		r1 = r;
-	}
-
-	/*
-	 * last pass
-	 * eliminate nops
-	 * free aux structures
-	 */
-	for(p = firstr->prog; p != P; p = p->link){
-		while(p->link && p->link->as == ANOP)
-			p->link = p->link->link;
 	}
 	if(r1 != R) {
 		r1->link = freer;
@@ -643,7 +631,7 @@ out:
 	if(t == D_PARAM)
 		for(z=0; z<BITS; z++)
 			params.b[z] |= bit.b[z];
-	if(a->etype != v->etype || !typechlpfd[a->etype])
+	if(a->etype != v->etype || !typscalar[a->etype])
 		for(z=0; z<BITS; z++)
 			addrs.b[z] |= bit.b[z];	/* funny punning */
 	return bit;
@@ -804,6 +792,7 @@ allreg(ulong b, Rgn *r)
 		}
 		break;
 
+	case TVLONG:
 	case TDOUBLE:
 	case TFLOAT:
 		i = BtoF(~b);

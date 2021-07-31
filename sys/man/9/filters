@@ -94,10 +94,9 @@ computes 5 times the center pixel minus the sum
 of its four vertical and horizontal neighbors.
 This adds a 3\(mu3 discrete Laplacian to the original image,
 and is a less extreme high-pass filter than
-.IR crispen .
+.I crispen.
 .PP
-.IR Edge ,
-.IR edge2 ,
+.I Edge, edge2
 and
 .I edge3
 detect edges in various ways.
@@ -142,9 +141,7 @@ with the unit vector in the light-source direction specified by option
 (default 1,-1,1).
 If the dot product is negative, it is clamped at zero.
 (This computation is just Lambertian diffuse reflection.)
-.SH SOURCE
-.B /sys/src/fb
 .SH "SEE ALSO
 .IR picfile (9.6)
 .SH BUGS
-There are too many weird wired-in sizes.
+There are too many weird wired-in sizes, like 17\(mu 17 and 7\(mu7.

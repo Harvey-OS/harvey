@@ -167,7 +167,7 @@ unfinished(FPsave *f)
 	default:
 		goto bad;
 	}
-	if(ed <= -(maxe-5)){	/* guess: underflow */
+	if(ed <= -(maxe-4)){	/* guess: underflow */
 		zeroreg(f, size, rd, sd);
 		return 1;
 	}

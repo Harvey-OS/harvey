@@ -131,3 +131,30 @@ rulecnt(void)
 	memset(s, 0, nrules);
 	return(s);
 }
+
+int
+ismeta(char *s)
+{
+	Rune r;
+
+	while(*s) {
+		s += chartorune(&r, s);
+		switch(r)
+		{
+		case '\'':
+			while (*s) {
+				s += chartorune(&r, s);
+				if (r == '\'')
+					break;
+			}
+			break;
+		case '[':
+		case '*':
+		case '?':
+			return(1);
+		default:
+			break;
+		}
+	}
+	return(0);
+}

@@ -46,7 +46,7 @@ main(int argc, char *argv[]){
 	}
 	in=picopen_r(inname);
 	if(in==0){
-		perror(inname);
+		picerror(inname);
 		exits("open input");
 	}
 	npix=PIC_WIDTH(in)*PIC_HEIGHT(in);
@@ -57,7 +57,7 @@ main(int argc, char *argv[]){
 	}
 	out=picopen_w("OUT", PIC_SAMEARGS(in));
 	if(out==0){
-		perror("OUT");
+		picerror("OUT");
 		exits("create output");
 	}
 	nx=PIC_WIDTH(in)*PIC_NCHAN(in);

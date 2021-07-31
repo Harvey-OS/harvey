@@ -10,7 +10,7 @@
 extern	char	lastc, peekc;
 
 void
-scanform(long icount, int prt, char *ifp, Map *map, int literal)
+scanform(WORD icount, int prt, char *ifp, Map *map, int itype, int ptype)
 {
 	char	*fp;
 	char	c;
@@ -23,7 +23,7 @@ scanform(long icount, int prt, char *ifp, Map *map, int literal)
 		fp=ifp;
 		savdot=dot;
 		/*now loop over format*/
-		while (*fp) {
+		while (*fp && errflg==0) {
 			if (!isdigit(*fp))
 				fcount = 1;
 			else {
@@ -36,32 +36,42 @@ scanform(long icount, int prt, char *ifp, Map *map, int literal)
 			}
 			if (*fp==0)
 				break;
-			fp=exform(fcount,prt,fp,map,literal,firstpass);
+			fp=exform(fcount,prt,fp,map,itype,ptype,firstpass);
 			firstpass = 0;
 		}
 		dotinc=dot-savdot;
 		dot=savdot;
+		if (errflg) {
+			if (icount<0) {
+				errflg=0;
+				break;
+			}
+			else
+				error(errflg);
+		}
 		if (--icount)
 			dot=inkdot(dotinc);
+		if (mkfault)
+			error(0);
 	}
 }
 
 char *
-exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
+exform(int fcount, int prt, char *ifp, Map *map, int itype, int ptype, int firstpass)
 {
 	/* execute single format item `fcount' times
 	 * sets `dotinc' and moves `dot'
 	 * returns address of next format item
 	 */
-	int	w;
-	ulong	savdot;
-	char	*fp, *p;
+	WORD	w;
+	ADDR	savdot;
+	char	*fp;
 	char	c, modifier;
 	int	i;
-	ushort sh, *sp;
-	uchar ch, *cp;
+	ushort sh;
+	uchar ch;
+	char	buf[32];
 	Symbol s;
-	char buf[512];
 
 	fp = 0;
 	while (fcount > 0) {
@@ -70,17 +80,15 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		modifier = *fp++;
 		if (firstpass) {
 			firstpass = 0;
-			if (!literal  && (c == 'i' || c == 'I' || c == 'M')
+			if (itype != SEGNONE  && (c == 'i' || c == 'I' || c == 'M')
 					&& (dot & (mach->pcquant-1))) {
 				dprint("warning: instruction not aligned");
-				printc('\n');
+				printc(EOR);
 			}
-			if (prt && modifier != 'a' && modifier != 'A') {
-				symoff(buf, 512, dot, CANY);
-				dprint("%s%c%16t", buf, map==symmap? '?':'/');
-			}
+			if (prt)
+				psymoff((WORD)dot,itype,map==symmap?"?%16t":"/%16t");
 		}
-		if (charpos()==0 && modifier != 'a' && modifier != 'A')
+		if (charpos()==0 && modifier!='a')
 			dprint("\t\t");
 		switch(modifier) {
 
@@ -96,21 +104,16 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			return(fp);
 
 		case 'a':
-			symoff(buf, sizeof(buf), dot, CANY);
-			dprint("%s%c%16t", buf, map==symmap? '?':'/');
-			dotinc = 0;
-			break;
-
-		case 'A':
-			dprint("%lux%10t", dot);
+			psymoff((WORD)dot, ptype, map==symmap ?"?%16t":"/%16t");
 			dotinc = 0;
 			break;
 
 		case 'p':
-			if (get4(map, dot, &w) < 0)
-				error("%r");
-			symoff(buf, sizeof(buf), w, CANY);
-			dprint("%s%16t", buf);
+			if (get4(map, dot, itype, &w) == 0)
+				return (fp);
+			if (mkfault)
+				return (0);
+			psymoff(w, ptype, "%16t");
 			dotinc = mach->szaddr;
 			break;
 
@@ -119,11 +122,11 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		case 'x':
 		case 'o':
 		case 'q':
-			if (literal)
-				sh = (ushort) dot;
-			else if (get2(map, dot, &sh) < 0)
-				error("%r");
+			if (get2(map, dot, itype, &sh) == 0)
+				return (fp);
 			w = sh;
+			if (mkfault)
+				return (0);
 			dotinc = 2;
 			if (c == 'u')
 				dprint("%-8lud", w);
@@ -142,10 +145,10 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		case 'X':
 		case 'O':
 		case 'Q':
-			if (literal)
-				w = (long) dot;
-			else if (get4(map, dot, &w) < 0)
-				error("%r");
+			if (get4(map, dot, itype, &w) == 0)
+				return (fp);
+			if (mkfault)
+				return (0);
 			dotinc = 4;
 			if (c == 'U')
 				dprint("%-16lud", w);
@@ -162,10 +165,10 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		case 'b':
 		case 'c':
 		case 'C':
-			if (literal)
-				ch = (uchar) dot;
-			else if (get1(map, dot, &ch, 1)  < 0)
-				error("%r");
+			if (get1(map, dot, itype, &ch, 1) == 0)
+				return (fp);
+			if (mkfault)
+				return (0);
 			if (modifier == 'C')
 				printesc(ch);
 			else if (modifier == 'B' || modifier == 'b')
@@ -176,51 +179,34 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			break;
 
 		case 'r':
-			if (literal)
-				sh = (ushort) dot;
-			else if (get2(map, dot, &sh) < 0)
-				error("%r");
-			dprint("%C", sh);
+			if (get2(map, dot, itype, &sh) == 0)
+				return (fp);
+			w = sh;
+			if (mkfault)
+				return (0);
+			dprint("%C", w);
 			dotinc = 2;
 			break;
 
 		case 'R':
-			if (literal) {
-				sp = (ushort*) &dot;
-				dprint("%C%C", sp[0], sp[1]);
-				endline();
-				dotinc = 4;
-				break;
-			}
 			savdot=dot;
-			while ((i = get2(map, dot, &sh) > 0) && sh) {
+			dotinc=2;
+			while (get2(map, dot,itype, &sh) && sh) {
 				dot=inkdot(2);
 				dprint("%C", sh);
 				endline();
 			}
-			if (i < 0)
-				error("%r");
 			dotinc = dot-savdot+2;
 			dot=savdot;
 			break;
 
 		case 's':
-			if (literal) {
-				cp = (uchar*) &dot;
-				for (i = 0; i < 4; i++)
-					buf[i] = cp[i];
-				buf[i] = 0;
-				dprint("%s", buf);
-				endline();
-				dotinc = 4;
-				break;
-			}
 			savdot = dot;
 			for(;;){
 				i = 0;
 				do{
-					if (get1(map, dot, (uchar*)&buf[i], 1) < 0)
-						error("%r");
+					if (get1(map, dot, itype, (uchar *) &buf[i], 1) == 0)
+						return fp;
 					dot = inkdot(1);
 					i++;
 				}while(!fullrune(buf, i));
@@ -235,70 +221,48 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			break;
 
 		case 'S':
-			if (literal) {
-				cp = (uchar*) &dot;
-				for (i = 0; i < 4; i++)
-					printesc(cp[i]);
-				endline();
-				dotinc = 4;
-				break;
-			}
 			savdot=dot;
-			while ((i = get1(map, dot, &ch, 1) > 0) && ch) {
+			dotinc=1;
+			while (get1(map, dot,itype, &ch, 1) && ch) {
 				dot=inkdot(1);
 				printesc(ch);
 				endline();
 			}
-			if (i < 0)
-				error("%r");
 			dotinc = dot-savdot+1;
 			dot=savdot;
 			break;
 
 		case 'Y':
-			if (literal)
-				w = (long) dot;
-			else if (get4(map, dot, &w) < 0)
-				error("%r");
-			p = ctime(w);
-			p[strlen(p)-1] = 0;	/* stomp on newline */
-			dprint("%-25s", p);
+			get4(map, dot, itype, &w);
+			printdate(w);
 			dotinc = 4;
 			break;
 
 		case 'I':
 		case 'i':
-			dotinc = machdata->das(map, dot, modifier, buf, sizeof(buf));
-			if (dotinc < 0)
-				error("%r");
-			dprint("%s\n", buf);
+			machdata->printins(map, modifier, itype);
+			printc(EOR);
 			break;
 
 		case 'M':
-			dotinc = machdata->hexinst(map, dot, buf, sizeof(buf));
-			if (dotinc < 0)
-				error("%r");
-			dprint("%s", buf);
-			if (*fp) {
-				dotinc = 0;
-				dprint("%48t");
-			} else
-				dprint("\n");
+			machdata->printdas(map, itype);
 			break;
 
 		case 'f':
-			if (get1(map, dot, (uchar*)buf, mach->szfloat) < 0)
-				error("%r");
-			machdata->sftos(buf, sizeof(buf), (void*) buf);
-			dprint("%s\n", buf);
+			if (get1(map, dot, itype, (uchar *)buf, mach->szfloat) == 0)
+				return (fp);
+			if (mkfault)
+				return (0);
+			machdata->sfpout(buf);
 			dotinc = mach->szfloat;
 			break;
 
 		case 'F':
-			if (get1(map, dot, (uchar*)buf, mach->szdouble) < 0)
-				error("%r");
-			machdata->dftos(buf, sizeof(buf), (void*) buf);
-			dprint("%s\n", buf);
+			if (get1(map, dot, itype, (uchar *) buf, mach->szdouble) == 0)
+				return (fp);
+			if (mkfault)
+				return (0);
+			machdata->dfpout(buf);
 			dotinc = mach->szdouble;
 			break;
 
@@ -338,7 +302,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		default:
 			error("bad modifier");
 		}
-		if (map->fd >= 0)
+		if (itype != SEGNONE)
 			dot=inkdot(dotinc);
 		fcount--;
 		endline();

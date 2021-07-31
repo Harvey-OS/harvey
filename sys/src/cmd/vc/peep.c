@@ -546,7 +546,7 @@ copyu(Prog *p, Adr *v, Adr *s)
 		if(v->type == D_REG) {
 			if(v->reg <= REGEXT && v->reg > exregoffset)
 				return 2;
-			if(REGARG && v->reg == REGARG)
+			if(v->reg == REGARG)
 				return 2;
 		}
 		if(v->type == D_FREG)

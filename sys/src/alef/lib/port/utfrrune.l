@@ -1,11 +1,11 @@
 #include <alef.h>
 
-byte*
-utfrrune(byte *s, int c)
+char*
+utfrrune(char *s, int c)
 {
 	int c1;
 	Rune r;
-	byte *s1;
+	char *s1;
 
 	if(c < Runesync)		/* not part of utf sequence */
 		return strrchr(s, c);

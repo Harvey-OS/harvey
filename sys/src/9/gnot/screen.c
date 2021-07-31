@@ -145,26 +145,36 @@ setcolor(ulong p, ulong r, ulong g, ulong b)
 }
 
 int
-hwgcmove(Point p)
+hwcursset(uchar *s, uchar *c, int ox, int oy)
 {
-	USED(p);
+	USED(s, c, ox, oy);
+	return 0;
+}
+
+int
+hwcursmove(int x, int y)
+{
+	USED(x, y);
 	return 0;
 }
 
 void
-setcursor(Cursor *curs)
+mouseclock(void)	/* called spl6 */
 {
-	uchar *p;
-	int i;
-	extern GBitmap set, clr;
+	++mouse.clock;
+}
 
-	for(i = 0; i < 16; i++){
-		p = (uchar*)&set.base[i];
-		*p = curs->set[2*i];
-		*(p+1) = curs->set[2*i+1];
-		p = (uchar*)&clr.base[i];
-		*p = curs->clr[2*i];
-		*(p+1) = curs->clr[2*i+1];
+void
+mousetry(Ureg *ur)
+{
+	int s;
+
+	if(mouse.clock && mouse.track && (ur->sr&SPL(7)) == 0 && canlock(&cursor)){
+		s = spl1();
+		mouseupdate(0);
+		splx(s);
+		unlock(&cursor);
+		wakeup(&mouse.r);
 	}
 }
 

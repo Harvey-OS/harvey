@@ -1,10 +1,10 @@
 #include <alef.h>
 
 int
-putenv(byte *name, byte *val)
+putenv(char *name, char *val)
 {
 	int f, s;
-	byte ename[NAMELEN+6];
+	char ename[NAMELEN+6];
 
 	sprint(ename, "/env/%s", name);
 	f = create(ename, OWRITE, 0664);

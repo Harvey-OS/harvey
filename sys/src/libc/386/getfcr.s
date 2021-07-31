@@ -1,18 +1,18 @@
 
-TEXT	setfcr(SB), $4
+TEXT	setfcr(SB), $0
 	MOVL	p+0(FP),AX
 	XORB	$0x3f,AX
-	MOVW	AX, 0(SP)
+	PUSHW	AX
 	WAIT
 	FLDCW	0(SP)
-	MOVW	0(SP), AX
+	POPW	AX
 	RET
 
-TEXT	getfcr(SB), $4
-	MOVW	AX, 0(SP)
+TEXT	getfcr(SB), $0
+	PUSHW	AX
 	WAIT
 	FSTCW	0(SP)
-	MOVW	0(SP), AX
+	POPW	AX
 	XORB	$0x3f,AX
 	RET
 

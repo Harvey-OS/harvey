@@ -1,0 +1,33 @@
+.TH GAMMA 2
+.SH NAME
+gamma \- log gamma function
+.SH SYNOPSIS
+.ta \w'\fLdouble 'u
+.B
+double	gamma(double x)
+.PP
+.B
+int	signgam;
+.SH DESCRIPTION
+.I Gamma
+returns
+ln |\(*G(\|\fIx\fP\|)|.
+The sign of
+\(*G(\|\fIx\fP\|)
+is returned in the external integer
+.IR signgam .
+.SH EXAMPLES
+Computation of the gamma function:
+.PP
+.nf
+.ta 8n +8n
+.ft L
+	errno = 0;
+	y = gamma(x);
+	if(errno || y > 88)
+		error();
+	y = signgam*exp(y);
+.fi
+.ft P
+.SH SEE ALSO
+.IR intro (2)

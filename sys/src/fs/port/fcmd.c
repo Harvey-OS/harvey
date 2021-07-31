@@ -3,14 +3,9 @@
 int
 fchar(void)
 {
-	int n;
-
-	n = BUFSIZE;
-	if(n > MAXDAT)
-		n = MAXDAT;
 	if(uidgc.find >= uidgc.flen) {
 		uidgc.find = 0;
-		uidgc.flen = con_read(FID2, uidgc.uidbuf->iobuf, cons.offset, n);
+		uidgc.flen = con_read(FID2, uidgc.uidbuf->iobuf, cons.offset, BUFSIZE);
 		if(uidgc.flen <= 0)
 			return -1;
 		cons.offset += uidgc.flen;
@@ -166,5 +161,4 @@ getipa(Ifc *ifc)
 	memmove(ifc->netgate, defgwip, Pasize);
 	ifc->ipaddr = nhgetl(ifc->ipa);
 	ifc->mask = nhgetl(defmask);
-	ifc->cmask = ipclassmask(ifc->ipa);
 }

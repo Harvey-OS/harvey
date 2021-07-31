@@ -264,10 +264,13 @@ void
 envcpy(Egrp *to, Egrp *from)
 {
 	Evalue **l, *ne, *e;
+	char *p;
 
 	l = &to->entries;
 	qlock(from);
 	for(e = from->entries; e; e = e->link) {
+if(e->name == 0) panic("e->name == 0");
+for(p = e->name; *p; p++) if(p - e->name >= NAMELEN) panic("e->name %.*s", NAMELEN, e->name);
 		ne = smalloc(sizeof(Evalue));
 		ne->name = smalloc(strlen(e->name)+1);
 		strcpy(ne->name, e->name);

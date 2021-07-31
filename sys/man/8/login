@@ -1,0 +1,42 @@
+.TH LOGIN 8
+.SH NAME
+login \- set user name
+.SH SYNOPSIS
+.B login
+[
+-u
+.I user
+]
+[
+cmd
+]
+.SH DESCRIPTION
+.I Login
+establishes a new name space for a new user and runs a command in that environment.
+.I Login
+fist asks for a user name
+and challenges the user with a string appropriate for use
+with a Digital Pathways SecureNet encryption box.
+A fresh name space is constructed for the user
+and
+.I rc
+is started.
+If
+.I cmd
+is given, the arguments
+.B -c
+.I cmd
+are passed to
+.IR rc ;
+otherwise, an interactive
+.I rc
+is started.
+.PP
+The option
+.B -u
+starts the process as
+.I user
+and suppresses the user name prompt.
+.SH "SEE ALSO"
+.IR rc (1),
+.IR auth (8)

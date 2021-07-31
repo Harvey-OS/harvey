@@ -3,7 +3,7 @@
 int
 dirfstat(int f, Dir *dir)
 {
-	byte buf[DIRLEN];
+	char buf[DIRLEN];
 
 	if(fstat(f, buf) == -1)
 		return -1;

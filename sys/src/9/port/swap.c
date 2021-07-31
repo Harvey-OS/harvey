@@ -12,11 +12,15 @@ void	pageout(Proc *p, Segment*);
 void	pagepte(int, Page**);
 void	pager(void*);
 
+enum
+{
+	Maxpages = SEGMAXSIZE/BY2PG,	/* Max # of pageouts per segment pass */
+};
+
 	Image 	swapimage;
 static 	int	swopen;
 static	Page	**iolist;
 static	int	ioptr;
-static	int	maxpages;
 
 void
 swapinit(void)
@@ -26,10 +30,7 @@ swapinit(void)
 	swapalloc.alloc = swapalloc.swmap;
 	swapalloc.last = swapalloc.swmap;
 	swapalloc.free = conf.nswap;
-	maxpages = SEGMAXSIZE/BY2PG;
-	if(maxpages > conf.nswap/2)
-		maxpages = conf.nswap/2;
-	iolist = xalloc(maxpages*sizeof(Page*));
+	iolist = xalloc(Maxpages*sizeof(Page*));
 	if(swapalloc.swmap == 0 || iolist == 0)
 		panic("swapinit: not enough memory");
 }
@@ -93,9 +94,9 @@ kickpager(void)
 void
 pager(void *junk)
 {
-	int i;
 	Proc *p, *ep;
-	Segment *s, *ts;
+	Segment *s;
+	int i;
 
 	if(waserror()) 
 		panic("pager: os error\n");
@@ -108,19 +109,12 @@ loop:
 	u->p->psstate = "Idle";
 	sleep(&swapalloc.r, needpages, 0);
 
-	while(needpages(junk)) {
+	for(;;) {
 		p++;
 		if(p >= ep)
 			p = proctab(0);
 
 		if(p->state == Dead || p->kp)
-			continue;
-
-		/* don't swap out programs from devroot.c - they
-		 * supply important system services
-		 */
-		ts = p->seg[TSEG];
-		if(ts && ts->image && devchar[ts->image->c->type] == '/')
 			continue;
 
 		if(swapimage.c) {
@@ -207,17 +201,9 @@ pageout(Proc *p, Segment *s)
 				continue;
 			}
 
-			while(swapalloc.free == 0) {
-				if(ioptr != 0)
-					goto out;
-
-				print("out of swap space\n");
-				tsleep(&swapalloc.r, return0, 0, 1000);
-			}
-
 			pagepte(type, pg);
 
-			if(ioptr >= maxpages)
+			if(ioptr >= Maxpages)
 				goto out;
 		}
 	}

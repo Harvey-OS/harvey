@@ -56,4 +56,3 @@ int	wordchr(int);
 void	yyerror(char*);
 int	yylex(void);
 int	yyparse(void);
-char *	Geterrstr(void);

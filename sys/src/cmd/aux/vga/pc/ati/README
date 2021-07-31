@@ -1,0 +1,7 @@
+This directory contains the dregs of a (so far) failed attempt to decrypt and set
+the proprietary ATI registers.    The diff output of the vga command shows that
+three or four of their known registers don't get set to the values they have
+when properly set under dos.  Perhaps we set them in the wrong order.  Perhaps
+Some register unlocks them.  If you have lots of spare time and an ATI board,
+your efforts are welcome.
+	ches@research.att.com

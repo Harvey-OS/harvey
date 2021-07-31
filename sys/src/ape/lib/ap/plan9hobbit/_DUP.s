@@ -1,0 +1,3 @@
+TEXT _DUP(SB), $0
+KCALL $5
+RETURN

@@ -133,7 +133,6 @@ colon(char *addr, char *cp)
 {
 	int argc;
 	char *argv[100];
-	char tbuf[512];
 
 	cp = nextc(cp);
 	switch(*cp) {
@@ -152,7 +151,7 @@ colon(char *addr, char *cp)
 	case 'r':
 		reset();
 		argc = buildargv(cp+1, argv, 100);
-		initstk(argc, argv);
+		init(argc, argv);
 		count = 0;
 		atbpt = 0;
 		run();
@@ -176,8 +175,7 @@ colon(char *addr, char *cp)
 
 	dot = reg.pc;
 	Bprint(bioout, "%s at #%lux ", atbpt ? "breakpoint" : "stopped", dot);
-	symoff(tbuf, sizeof(tbuf), dot, CTEXT);
-	Bprint(bioout, tbuf);
+	psymoff(dot, SEGTEXT, " ");
 	if(fmt == 'z')
 		printsource(dot);
 
@@ -399,8 +397,7 @@ pfmt(char fmt, int mem, ulong val)
 		break;
 
 	case 'a':
-		symoff(str, sizeof(str), dot, CTEXT);
-		c = Bprint(bioout, str);
+		psymoff(dot, SEGTEXT, "");
 		inc = 0;
 		break;
 
@@ -411,12 +408,8 @@ pfmt(char fmt, int mem, ulong val)
 		break;
 
 	case 'i':
-		inc = _mipscoinst(symmap, dot, str, sizeof(str));
-		if (inc < 0) {
-			Bprint(bioout, "vi: %r\n");
-			return 0;
-		}
-		c = Bprint(bioout, str);
+		c = mipscoprintins();
+		inc = 4;
 		break;
 
 	case 'n':
@@ -469,11 +462,9 @@ void
 quesie(char *p)
 {
 	int c, count, i;
-	char tbuf[512];
 
 	c = 0;
-	symoff(tbuf, sizeof(tbuf), dot, CTEXT);
-	Bprint(bioout, "%s?\t", tbuf);
+	psymoff(dot, SEGTEXT, "?\t");
 
 	while(*p) {
 		p = nextc(p);
@@ -501,8 +492,7 @@ quesie(char *p)
 			dot += inc;
 			if(c > width) {
 				Bprint(bioout, "\n");
-				symoff(tbuf, sizeof(tbuf), dot, CTEXT);
-				Bprint(bioout, "%s?\t", tbuf);
+				psymoff(dot, SEGTEXT, "?\t");
 				c = 0;
 			}
 		}

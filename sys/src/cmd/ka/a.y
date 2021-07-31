@@ -24,12 +24,12 @@
 %token	<lval>	LNOP LEND LRETT LUNIMP LTEXT LDATA LRETRN
 %token	<lval>	LCONST LSP LSB LFP LPC LCREG LFLUSH
 %token	<lval>	LREG LFREG LR LC LF
-%token	<lval>	LFSR LFPQ LPSR LSCHED
+%token	<lval>	LFSR LFPQ LPSR
 %token	<dval>	LFCONST
 %token	<sval>	LSCONST
 %token	<sym>	LNAME LLAB LVAR
 %type	<lval>	con expr pointer offset sreg
-%type	<gen>	addr rreg name psr creg freg
+%type	<gen>	addr rreg regaddr name psr creg freg
 %type	<gen>	imm ximm fimm rel fsr fpq
 %%
 prog:
@@ -60,10 +60,6 @@ line:
 			yyerror("redeclaration of %s", $1->name);
 		$1->value = $3;
 	}
-|	LSCHED ';'
-	{
-		nosched = $1;
-	}
 |	';'
 |	inst ';'
 |	error ';'
@@ -80,7 +76,15 @@ inst:
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LMOVW regaddr ',' rreg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
 |	LMOVD addr ',' rreg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LMOVD regaddr ',' rreg
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -92,6 +96,10 @@ inst:
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LMOVB regaddr ',' rreg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
 /*
  * B.2 load floating instructions
  *	includes CSR
@@ -100,7 +108,15 @@ inst:
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LMOVD regaddr ',' freg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
 |	LFMOV addr ',' freg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LFMOV regaddr ',' freg
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -116,7 +132,15 @@ inst:
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LFMOV freg ',' regaddr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
 |	LMOVW addr ',' fsr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LMOVW regaddr ',' fsr
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -128,7 +152,15 @@ inst:
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LMOVW regaddr ',' creg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
 |	LMOVD addr ',' creg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LMOVD regaddr ',' creg
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -145,7 +177,21 @@ inst:
 			yyerror("constant must be zero");
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LMOVW rreg ',' regaddr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LMOVW imm ',' regaddr
+	{
+		if($2.offset != 0)
+			yyerror("constant must be zero");
+		outcode($1, &$2, NREG, &$4);
+	}
 |	LMOVD rreg ',' addr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LMOVD rreg ',' regaddr
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -159,6 +205,16 @@ inst:
 			yyerror("constant must be zero");
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LMOVB rreg ',' regaddr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LMOVB imm ',' regaddr
+	{
+		if($2.offset != 0)
+			yyerror("constant must be zero");
+		outcode($1, &$2, NREG, &$4);
+	}
 /*
  * B.5 store floating instructions
  *	includes CSR and CQ
@@ -167,7 +223,15 @@ inst:
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LMOVW freg ',' regaddr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
 |	LMOVD freg ',' addr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LMOVD freg ',' regaddr
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -175,7 +239,15 @@ inst:
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LMOVW fsr ',' regaddr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
 |	LMOVD fpq ',' addr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LMOVD fpq ',' regaddr
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -187,7 +259,15 @@ inst:
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
+|	LMOVW creg ',' regaddr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
 |	LMOVD creg ',' addr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LMOVD creg ',' regaddr
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -196,6 +276,10 @@ inst:
  * B.8 swap
  */
 |	LSWAP addr ',' rreg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LSWAP regaddr ',' rreg
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -282,11 +366,19 @@ inst:
 	{
 		outcode($1, &nullgen, NREG, &$3);
 	}
+|	LJMPL comma regaddr
+	{
+		outcode($1, &nullgen, NREG, &$3);
+	}
 |	LJMPL comma sreg ',' rel
 	{
 		outcode($1, &nullgen, $3, &$5);
 	}
 |	LJMPL comma sreg ',' addr
+	{
+		outcode($1, &nullgen, $3, &$5);
+	}
+|	LJMPL comma sreg ',' regaddr
 	{
 		outcode($1, &nullgen, $3, &$5);
 	}
@@ -305,6 +397,10 @@ inst:
 		outcode($1, &$2, NREG, &nullgen);
 	}
 |	LFLUSH addr comma
+	{
+		outcode($1, &$2, NREG, &nullgen);
+	}
+|	LFLUSH regaddr comma
 	{
 		outcode($1, &$2, NREG, &nullgen);
 	}
@@ -592,7 +688,7 @@ sreg:
 		$$ = $3;
 	}
 
-addr:
+regaddr:
 	'(' sreg ')'
 	{
 		$$ = nullgen;
@@ -615,7 +711,17 @@ addr:
 		$$.xreg = $4;
 		$$.offset = 0;
 	}
-|	name
+|	'(' sreg '+' sreg ',' con ')'
+	{
+		$$ = nullgen;
+		$$.type = D_ASI;
+		$$.reg = $2;
+		$$.xreg = $4;
+		$$.offset = $6;
+	}
+
+addr:
+	name
 |	con '(' sreg ')'
 	{
 		$$ = nullgen;

@@ -1,0 +1,45 @@
+awk '
+BEGIN				{OFS=""}
+/^#define [A-Za-z]+_width/	{
+	 print "\def\\bitmapwidth{"$3"}%"
+	 Width=$3
+	 print "\\newdimen\mapboxwidth\mapboxwidth=\\bitdotsize%"
+	 print "\multiply\mapboxwidth by\\bitmapwidth%"
+	}
+/^#define [A-Za-z]+_height/	{print "\def\\bitmapheight{"$3"}%"
+				 Height=$3
+				}
+/static/{
+     	 print"\vbox{\parindent=0pt\hsize\mapboxwidth%"
+	 print "\\bitbyteswide="Width/8"%"
+	 print"\initbitmap\\baselineskip=\\bitdotsize%"
+	 bit["0"]="\usebox\\bitzero"
+	 bit["1"]="\usebox\\bitone"
+	 bit["2"]="\usebox\\bittwo"
+	 bit["3"]="\usebox\\bitthree"
+	 bit["4"]="\usebox\\bitfour"
+	 bit["5"]="\usebox\\bitfive"
+	 bit["6"]="\usebox\\bitsix"
+	 bit["7"]="\usebox\\bitseven"
+	 bit["8"]="\usebox\\biteight"
+	 bit["9"]="\usebox\\bitnine"
+	 bit["a"]="\usebox\\bita"
+	 bit["b"]="\usebox\\bitb"
+	 bit["c"]="\usebox\\bitc"
+	 bit["d"]="\usebox\\bitd"
+	 bit["e"]="\usebox\\bite"
+	 bit["f"]="\usebox\\bitf"
+	 FS=","
+	}
+/0x/	{for (i=1;i<=NF;i++){
+	   while ((substr($i,1,1) != "x")&&(length($i)>0)) $i=substr($i,2,length($i))
+	   if (length($i)>0)
+	     print "\\bitstep",bit[substr($i,3,1)],bit[substr($i,2,1)],"%"
+	   }
+	}
+END	{print "}"}
+
+
+' $*
+
+

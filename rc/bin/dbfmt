@@ -1,0 +1,73 @@
+#!/bin/awk -f
+NR == 1 {
+	size = $2
+	printf "/"
+	Fmt["CHAR"] = "b"
+	Sizeof["CHAR"] = 1
+	Fmt["UCHAR"] = "b"
+	Sizeof["UCHAR"] = 1
+	Fmt["SHORT"] = "d"
+	Sizeof["SHORT"] = 2
+	Fmt["USHORT"] = "u"
+	Sizeof["USHORT"] = 2
+	Fmt["LONG"] = "D"
+	Sizeof["LONG"] = 4
+	Fmt["ULONG"] = "U"
+	Sizeof["ULONG"] = 4
+	Fmt["VLONG"] = "XX"
+	Sizeof["VLONG"] = 8
+	Fmt["FLOAT"] = "f"
+	Sizeof["FLOAT"] = 4
+	Fmt["DOUBLE"] = "F"
+	Sizeof["DOUBLE"] = 8
+	Fmt["IND"] = "X"
+	Sizeof["IND"] = 4
+	Fmt["FUNC"] = "X"
+	Sizeof["FUNC"] = 4
+	Fmt["ARRAY"] = "a"
+	Sizeof["ARRAY"] = 0
+	Fmt["STRUCT"] = "a"
+	Sizeof["STRUCT"] = 0
+	Fmt["UNION"] = "a"
+	Sizeof["UNION"] = 0
+	offset = 0
+}
+NR > 1 {
+	ty = $3
+	sub(/[^A-Z].*$/, "", ty)
+	f = Fmt[ty]
+	s = Sizeof[ty]
+	if (f == "") {
+		f = "a"
+		s = 0
+	}
+	if ($4 ~ /^[0-9]+:[0-9]+$/) {
+		f = bitfieldf($4)
+		s = 4
+	}
+	d = $2 - offset
+	if (d > 0)
+		printf "%d+", d
+	else if (d < 0)
+		printf "%d-", -d
+	printf "\"%s \"%sn", $1, f
+	offset = $2 + s
+}
+END {
+	if (size != offset)
+		printf "%d+", size - offset
+	printf "\n"
+}
+func bitfieldf(bf,	sh, n, div, mask)
+{
+	split(bf, A, ":")
+	sh = A[1]
+	n = A[2]
+	if (sh >= 31)
+		return "X\"%#80000000\""
+	div = 2^sh
+	if (sh + n >= 32)
+		return sprintf("X\"%#%x\"", div)
+	mask = (2^n - 1) * div
+	return sprintf("X\"&#%x%%#%x\"", mask, div)
+}

@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include <fcall.h>
 
 static void dumpsome(char*, char*, long);
@@ -141,7 +140,7 @@ dirconv(void *v, Fconv *f)
 static void
 fdirconv(char *buf, Dir *d)
 {
-	sprint(buf, "'%s' '%s' '%s' q %#lux|%#lux m %#luo at %ld mt %ld l %ld t %d d %d",
+	sprint(buf, "'%s' '%s' '%s' q %#lux|%#lux m %#luo at %ld mt %ld l %ld t %d d %d\n",
 			d->name, d->uid, d->gid,
 			d->qid.path, d->qid.vers, d->mode,
 			d->atime, d->mtime, d->length,

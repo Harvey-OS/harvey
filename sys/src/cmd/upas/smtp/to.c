@@ -12,17 +12,17 @@ usage(void)
 	exits("usage"); 
 }
 void
-main(int argc, char **argv)
+main(void)
 {
-	int i, n, eof, pid, ac;
+	int i, n, eof;
 	Field *f, **l;
 	Node *np;
 	int pfd[2];
 	char *uneaten;
 	char buf[16*1024];
-	char **av;
-	Waitmsg w;
-	int nav;
+	char *argv[1024];
+	char **av = argv;
+	int argc = 0;
 
 	/*
 	 *  input the first 16k bytes.  The header had better fit.
@@ -38,41 +38,17 @@ main(int argc, char **argv)
 	buf[n] = 0;
 
 	/*
-	 *  skip any 'From ' line at the head
-	 */
-	i = 0;
-	if(strncmp(buf, "From ", 5) == 0){
-		for(; buf[i]; i++)
-			if(buf[i] == '\n'){
-				i++;
-				break;
-			}
-	}
-
-	/*
 	 *  parse the header, turn all addresses into @ format
 	 */
-	yyinit(buf+i);
+	yyinit(buf);
 	yyparse();
 
-	ac = 0;
-	nav = 128;
-	av = (char**)malloc(nav*sizeof(char*));
-	av[ac++] = "/bin/mail";
-	av[ac++] = "-r";
-	ARGBEGIN {
-	case 'x':
-		av[ac++] = "-x";
-		break;
-	case '#':
-		av[ac++] = "-#";
-		break;
-	} ARGEND;
+	av[argc++] = "/bin/mail";
 
 	/*
-	 *  make a list of destinations, take out bcc
+	 *  print out all destination addresses, take out bcc
 	 */
-	uneaten = buf+i;
+	uneaten = buf;
 	l = &firstfield;
 	for(f = firstfield; f; f = f->next){
 		switch(f->node->c){
@@ -89,17 +65,8 @@ main(int argc, char **argv)
 		}
 		for(np = f->node; np; np = np->next){
 			uneaten = np->end;
-			if(np->addr){
-				if(ac == nav-2){
-					nav *= 2;
-					av = (char**)realloc(av, nav*sizeof(char*));
-					if(av == 0){
-						fprint(2, "%s: %r\n", argv0);
-						exits("memory");
-					}
-				}
-				av[ac++] = s_to_c(np->s);
-			}
+			if(np->addr)
+				av[argc++] = s_to_c(np->s);
 		}
 		if(f->node->c == BCC)
 			*l = f->next;
@@ -107,14 +74,14 @@ main(int argc, char **argv)
 			l = &f->next;
 		uneaten++;		/* skip newline */
 	}
-	av[ac] = 0;
+	av[argc] = 0;
 
 	if(pipe(pfd) < 0){
 		fprint(2, "to: %r\n");
 		exits("pipe");
 	}
 
-	switch(pid = fork()){
+	switch(fork()){
 	case -1:
 		fprint(2, "to: %r\n");
 		exits("fork");
@@ -122,7 +89,7 @@ main(int argc, char **argv)
 		dup(pfd[0], 0);
 		close(pfd[0]);
 		close(pfd[1]);
-		exec("/bin/upas/sendmail", av);/**/
+		exec("/bin/mail", argv);
 	}
 
 	close(pfd[0]);
@@ -154,16 +121,6 @@ main(int argc, char **argv)
 	if(eof == 0)
 		while((n = read(0, buf, sizeof(buf))) > 0)
 			Bwrite(&bout, buf, n);
-	Bterm(&bout);
-	close(pfd[1]);
 
-	/*
-	 */
-	for(;;){
-		n = wait(&w);
-		if(n < 0)
-			exits(0);
-		if(n == pid)
-			exits(w.msg);
-	}
+	Bflush(&bout);
 }

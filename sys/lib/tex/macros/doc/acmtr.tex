@@ -1,0 +1,545 @@
+% acmtr.tex:
+
+\documentstyle{acmtrans}
+%&t&{\tt #}&
+%&v&\verb|#|&
+
+\newcommand{\BibTeX}{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+
+\firstfoot{ACM Transactions on Programming Languages and Systems,
+  Vol.\ 8, No.\ 1, January, 1986, Pages \pages.}
+
+\runningfoot{ACM Transactions on Programming Languages and Systems,
+  Vol.\ 8, No.\ 1, January, 1986.}
+
+
+
+\markboth{Leslie Lamport}{Preparing Articles for the ACM Transactions}
+
+\title{Preparing Articles for the ACM Transactions
+with \LaTeX}
+\author{LESLIE LAMPORT\\Digital Equipment Corporation}
+\begin{abstract}
+The \LaTeX\ {\tt acmtrans} document style formats articles in 
+the style of the ACM transactions.  Users who have prepared their
+document with \LaTeX\ can, with very little effort, produce
+camera-ready copy for these journals.
+\end{abstract}
+
+\category{D.2.7}{Software Engineering}{Distribution and Main\-ten\-ance}%
+[Documentation]
+
+\category{H.4.0}{Information Systems Applications}{General}
+
+\category{I.7.2}{Text Processing}{Document Preparation}[Languages \and
+  Photocomposition]
+
+\terms{Documentation, Languages}
+
+\keywords{Document preparation, publications, typesetting}
+
+\begin{document}
+
+\setcounter{page}{111}
+
+\begin{bottomstuff}
+Author's address: L. Lamport, System Research Center,
+Digital Equipment Corporation, 130 Lytton Ave., Palo Alto, CA 94301.
+\permission
+\copyright\ 1986 ACM 0164-0925/86/0100-0111 \$00.75
+\end{bottomstuff}
+\maketitle
+
+\section{Introduction}
+
+This article is a description of the \LaTeX\ {\tt acmtrans} document
+style for typesetting articles in the format of the ACM
+transactions---{\em Transacations on Programming Languages and
+Systems}, {\em Transactions on Database Systems}, etc.  It has, of
+course, been typeset using this document style, so it is a
+self-illustrating article.  The reader is assumed to be familiar
+with \LaTeX, as described in~\cite{lamport:latex}.
+
+\LaTeX\ is a document preparation system
+implemented as a macro package in Donald Knuth's
+\TeX\ typesetting system~\cite{knuth:texbook}.  It is based
+upon the premise that the user should describe the logical structure of
+his document and not how the document is to be formatted.  Formatting
+is under the direction of a {\em document style} chosen by the user.
+The user can dramatically change the way the document is formatted by
+simply choosing a different document style.  The idea of separating the
+logical structure from the formatting comes from Brian Reid's {\em
+Scribe\/} system~\cite{reid:scribe}.  
+
+It is impossible to provide predefined logical structures to handle all
+situations that may arise in a document, so users must sometimes make
+their own formatting decisions.  \LaTeX\ provides a number of features
+to assist in this task and, if necessary, the user can call upon the
+full power of \TeX, which is probably the most powerful typesetting
+system currently available.  However, very little user formatting is
+necessary for the majority of documents that appear in journals such as
+the ACM transactions.  Consequently, it is quite easy to convert
+an existing \LaTeX\ input file to the {\tt acmtrans} style.
+
+\section{The Title Page}
+
+\subsection{The Title, Author(s), and Abstract}
+
+\subsubsection{Title and Author}
+The \LaTeX\ \verb|\title| and \verb|\author| declarations and the
+\verb|\maketitle| command are employed as usual.  However, the user
+must format the author a little differently to match the ACM standard.
+The following example from \cite{6:1(1)} illustrates most features:
+\begin{verbatim}
+\author{JAMES E. ARCHER, JR.\\ Rational Machines
+        \and RICHARD CONWAY and FRED B. SCHNEIDER \\ 
+             Cornell University}
+\end{verbatim}
+Note that authors' names are in uppercase letters, authors are
+separated from their affiliation by a \verb|\\| command, multiple
+authors with the same affiliation are separated by ``and'' (or commas
+and ``and'' if there are more than two), and authors with different
+affiliations are separated by an \verb|\and| command.  The following
+example from~\cite{6:3(380)} shows what to do if there are more than
+two affiliations:
+\begin{verbatim}
+\author{E. KORACH \\ IBM Israel \\
+        D. ROTEM \\ University of Waterloo
+        \and N. SANTORO \\ Carleton University}
+\end{verbatim}
+In both the title and the author, you may have to insert \verb|\\|
+commands if lines need to be broken. 
+
+\subsubsection{Abstract}
+The abstract is typed as usual with the {\tt abstract} environment.
+However, this environment must come before the \verb|\maketitle|
+command.
+
+\subsection{Content Indicators and Keywords}
+
+The content indicators and keywords are entered with \LaTeX\ 
+declarations.  The CR categories are indicated with \verb|\category|
+declarations.  The first CR category of this article, appearing
+right below the abstract, was entered with the following command:
+\begin{verbatim}
+\category{D.2.7}{Software Engineering}{Distribution and 
+  Maintenance}[Documentation]
+\end{verbatim}
+Note that the last argument, which contains the subject descriptors
+is optional, since some categories have none.  Multiple subject descriptors
+are separated by \verb|\and| commands, as in the last category of
+this article:
+\begin{verbatim}
+\category{I.7.2}{Text Processing}{Document Preparation}[Languages 
+   \and Photocomposition]
+\end{verbatim}
+Use a separate \verb|\category| declaration for each CR category;
+they will be listed in the order that the commands appear.  The
+\verb|\category| commands must precede the \verb|\maketitle|
+command.
+
+The General Terms are declared with a (single) \verb|\terms|
+command as in the one for this article:
+\begin{verbatim}
+\terms{Documentation, Languages}
+\end{verbatim}
+The \verb|\terms| declaration must come before the \verb|\maketitle|
+command.
+
+The ``Additional Keywords and Phrases'' item on the title page
+is provided by the \verb|\keywords| declaration.  For this article,
+they were produced by the following command:
+\begin{verbatim}
+\keywords{Document preparation, publications, typesetting}
+\end{verbatim}
+
+\subsection{The Bottom of the Title Page}
+
+The bottom of the article's title page contains acknowledgment of
+support, the author(s) address(es), a ``permission to copy'' statement,
+and a line containing a copyright symbol (\copyright) and a mysterious
+number.  This is all entered with a {\tt bottomstuff} environment;
+there must be no blank line after the \verb|\begin{bottomstuff}|
+command.  The permission to copy statement is produced by the
+\verb|\permission| command.
+
+\section{Ordinary Text}
+
+Most of the body of the text is typed just as in an ordinary
+document.  This section lists the differences.
+
+\subsection{Lists}
+
+\subsubsection{Enumeration and Itemization}
+
+Let's begin with enumeration.
+\begin{longenum}
+\item The ACM style has two different formats for 
+itemized lists, which I will call the {\em long\/} and {\em short\/}
+formats.  The long format is generally used when the individual items
+are more than two or three lines long, but ACM has been inconsistent in
+their choice of format, sometimes using the long format for lists whose
+items are all one or two lines long and the short format for lists of
+long items.  This list is an example of the long format.
+
+\item The ordinary {\tt enumerate} environment
+produces the short format.  For the long format, use the
+{\tt longenum} environment.
+\begin{enumerate}
+\item This inner enumeration uses the short format.
+\item It was produced using \LaTeX's ordinary {\tt enumerate}
+      environment.
+\item ACM has no standard for enumerations nested more than
+      two levels deep, so the {\tt acmtrans} style does not
+      handle them well.
+\end{enumerate}
+\end{longenum}
+
+Itemized lists are similar to enumerated ones.
+\begin{longitem}
+\item As with enumerations, there is a long and a short
+format for itemized lists.  This list is in the long format.
+
+\item The long format is produced by the {\tt longitem}
+environment.  The ordinary {\tt itemize} environment
+uses the short format.
+\begin{itemize}
+\item This is an itemized list using the short format.
+
+\item It was produced  with the {\tt itemize} environment
+that is used in ordinary \LaTeX\ input.
+\end{itemize}
+\end{longitem}
+
+It is interesting to observe that the style of tick mark used
+for an itemization changed around 1985 from an em dash
+(---) to an en dash (--).
+
+\subsubsection{Descriptions}
+
+A list is a sequence of displayed text elements, called items, each
+composed of the following two elements:
+\begin{describe}{{\em item body\/}:}
+\item[{\em label\/}:]
+A marker that identifies or sets off the item.  It
+is a number in an enumerated list and a tick mark in an itemized list.
+
+\item[{\em item body\/}:] The text of the item.  It is usually ordinary prose,
+but sometimes consists of an equation, a program statement, etc.
+\end{describe}
+
+When the labels of a list are names rather than numbers or tick marks,
+the list is called a {\em description\/} list.  The ACM transactions
+has both long and short description lists.  The above list is a short
+description list; the bodies of all the items are indented enough to
+accomodate the widest label.
+
+The {\tt
+acmtrans} style provides a {\tt describe} environment that works the
+same as the {\tt description} environment except that it takes an
+argument, which should be the same as the argument of the \verb|\item|
+command that produces the widest label.  Thus, the above description
+list was begun with the command
+\begin{verbatim}
+\begin{describe}{{\em item body\/}:}
+\end{verbatim}
+
+A description label is often emphasized in some way; in this example I
+used the \LaTeX\ \verb|\em| command, italicized the label.  The ACM
+appears to have no standard convention for formatting the labels of a
+description list, so the {\tt describe} environment leaves the label
+formatting up to you.  An \verb|\hfill| command can be used to produce
+a label like ``\mbox{\em gnu\ --\/}'' where {\em gnu\/} is flush left
+agains the margin and the ``--'' is aligned flush right next to the
+item body.
+
+The standard \LaTeX\ {\tt description} environment produces a long
+description list.  It italicizes the labels, and puts a period after
+them, which seems to be what is done in the ACM transactions.
+
+
+\subsection{Theorems, Etc.}
+
+\LaTeX\ provides a single class of theorem-like environments, which are
+defined with the \verb|\newtheorem| command.  The ACM transactions
+style divides this class into two subclasses that are formatted
+differently.  The first class includes theorems, corollaries, lemmas,
+and propositions.  It is produced with the \verb|\newtheorem| command.
+Such a theorem-like environment is often followed by a proof, for which
+the {\tt acmtrans} style provides a {\tt proof} environment.
+Here is an example, taken from~\cite{7(1):137}.
+
+\newtheorem{theorem}{Theorem}
+
+\begin{theorem}
+If $g$ is the base generalization of $f$, then $g$ is a valid
+generalization of $f$.
+\end{theorem}
+\begin{proof}
+Suppose $P$ is correct wrt $f$.  We must show that $P$ is correct
+wrt $g$.  Let $Y\in D(g)$.  If $Y\in D(f)$, the loop handles the input
+correctly by hypothesis.  If $Y$ is not in $D(f)$, we must have
+$\tilde{\rule{0pt}{6pt}}B(Y)$ and $g(Y)=Y$.  The program and $g$ map
+$Y$ to itself, and thus are in agreement.  Consequently $P$ is
+correct wrt $g$, and $g$ is a valid generalization of $f$.
+\end{proof}
+
+The second subclass of theorem-like environments includes ones for
+definitions, examples, and remarks.  These environments are defined
+with the \verb|\newdef| command, which works the same as
+\verb|\newtheorem| except it has no optional arguments.  Here
+is an example of such an environment.
+
+\newdef{example}{Example} 
+
+
+\begin{example}
+This is an example of an example, typed with an {\tt example}
+environment defined with \verb|\newdef|.
+\end{example}
+
+
+\newtheorem{property}{Property}
+
+Sometimes theorem-like environments are numbered in unusual ways, or
+are identified by a name.  Consider the following example
+from~\cite{7(3):359}.
+\begin{property}[{\rm Ca}]
+Let syn $\in$ Syn, occ $\in$ Occ be maximal and sta $\in$ Sta.  Then
+Tcol\/{\rm [[}syn\/{\rm ]]} occ sta\hspace{-2pt} $\downarrow\!1$ $=$
+Tsto\/{\rm [[}syn\/{\rm ]]} sta.
+\end{property}
+\begin{proof}[of Property {\rm Ca}]
+By straightforward structural induction, and is \linebreak
+omitted.
+\end{proof}
+It was obtained by giving optional arguments to the
+{\tt property} environment (defined with \verb|\newtheorem|)
+and the {\tt proof} environment and was typed as follows.
+\begin{verbatim}
+\begin{property}[{\rm Ca}] Let ...  \end{property}
+\begin{proof}[of Property {\rm Ca}]  By straightforward ...
+\end{verbatim}
+Notice that the optional argument to the {\tt property} environment
+suppresses the automatic numbering.  If a null optional argument
+were given to this environment by typing ``{\tt []}'', then
+it would have produced the label ``{\sc Property.}''  This is
+how unnumbered theorems, etc.\ are produced.
+
+Environments defined by \verb|\newdef| use the optional
+argument the same way as those defined by \verb|\newtheorem|.
+
+\subsection{Programs}
+
+Good formatting of programs requires a knowledge of their semantics,
+and is beyond the scope of a document production system.  While
+``pretty printers'' are useful for handling the many pages of a real
+program, the short examples that are published in articles should be
+formatted by hand to improve their clarity.  The \LaTeX\ {\tt tabbing}
+environment makes the formatting of programs relatively easy,
+especially if the user defines commands for his particular language
+constructs.
+
+The ACM transactions style requires that programs be formatted with
+different size fonts, depending upon whether they appear in the text or
+in a figure.  The {\tt acmtrans} style provides a {\tt program}
+environment that is exactly the same as the standard {\tt tabbing}
+environment except for the size of the fonts it uses.  This environment
+should be used for formatting programs, whether they appear in the
+running text or in a figure.  Here is an example of such a program,
+taken from~\cite{7(2):183}.
+\begin{program}
+{\bf type} date $=$\\
+%{\bf type} date =\\
+\hspace*{1em}\= {\bf record} \= day: 1\,.\,.\,31;\+\+\\
+                                month: 1\,.\,.\,12;\\
+                                year: integer \-\\
+                {\bf end} \-\\
+{\bf var} mybirth, today : date;\\
+{\bf var} myage : integer;
+\end{program}
+Figure~\ref{fig:prog} shows how the same program looks in a figure.
+\begin{narrowfig}{104pt}
+\begin{program}
+{\bf type} date $=$\\
+%{\bf type} date =\\
+\hspace*{1em}\= {\bf record} \= day: 1\,.\,.\,31;\+\+\\
+                                month: 1\,.\,.\,12;\\
+                                year: integer \-\\
+                {\bf end} \-\\
+{\bf var} mybirth, today : date;\\
+{\bf var} myage : integer;
+\end{program}
+\caption{An example of a program displayed in a figure.}
+\label{fig:prog}
+\end{narrowfig}
+
+
+The ACM standard calls for the program to start flush at the left
+margin, with each new level of nesting indented by a distance of one
+em, and with the continuation of broken lines indented two ems.  However,
+this standard is not applied consistently.
+
+In addition to formatting programs, the {\tt program} environment is
+used for similar displayed material such as BNF syntax specifications
+and rewrite rules.
+
+
+\section{Figures and Tables}
+
+\subsection{Figures}
+
+The ordinary \LaTeX\ {\tt figure} environment works as usual.
+Figure~\ref{fig:ordinary}, which is Figure~6 of \cite{7(2):311}
+\begin{figure}
+\centering
+\(\begin{array}{c|ccc}
+     & \bot & F & T \\
+\hline
+\bot & \bot & \bot & T \\
+F    & \bot & F    & T \\
+T    & \bot & T    & T
+\end{array}\)
+\caption{The truth table for the parallel-or.}
+\label{fig:ordinary}
+\end{figure}
+was produced in this way.  
+
+Some figures (and tables) have no caption except for the figure number.
+For such figures (and tables), one uses a \verb|\nocaption| command,
+which has no argument, instead of the \verb|\caption| command.
+
+In addition to this method of formatting figures, the ACM transactions
+also uses figures with side captions, as in Figure~\ref{fig:prog}.
+Such a figure is produced with the {\tt narrowfig} environment.  This
+environment has a single mandatory argument, which is the width of the
+figure.  It works just like the ordinary {\tt figure} environment,
+except it must contain only one \verb|\caption| or \verb|\nocaption|
+command, which must come after the figure itself.  
+
+The {\tt narrowfig} environment should obviously not be used unless the
+figure is narrow enough to leave a reasonable amount of space beside it
+for the caption.  The ACM seems to have no consistent policy for choosing
+which style of figure to employ.
+
+\subsection{Tables}
+
+The ordinary \LaTeX\ {\tt table} environment can be used, but it
+requires the user to add formatting commands to match the ACM
+transactions style.  This formatting is performed automatically
+if the {\tt acmtable} environment is used instead, producing
+the result shown in Table~\ref{tab:table}, which shows the same
+table displayed in Figure~\ref{fig:ordinary}.
+\begin{acmtable}{100pt}
+\centering
+\(\begin{array}{c|ccc}
+     & \bot & F & T \\
+\hline
+\bot & \bot & \bot & T \\
+F    & \bot & F    & T \\
+T    & \bot & T    & T
+\end{array}\)
+\caption{The truth table for the parallel-or.}
+\label{tab:table}
+\end{acmtable}
+This environment has a mandatory argument that equals the width
+of the table---more precisely, it specifies the width of the rules
+above and below the table.  There must be only one 
+\verb|\caption| or \verb|\nocaption|
+command, which must come after the text of the table.  
+(Even though the table caption is printed above the table, the
+\verb|\caption| command comes after the table in the input file.)
+
+
+\section{The End of the Document}
+
+\subsection{Acknowledgments}
+
+An optional acknowledgments section follows all the text of the
+article, including any appendices.  It is produced with the
+{\tt acks} environment.  (Since I can never remember how many
+{\em e\/}'s there are in {\em acknowledgments}, it seemed
+like an abbreviation was in order for the environment name.)
+
+
+\subsection{Bibliography}
+
+The bibliography follows the acknowledgements, and is the last
+significant body of text in the article.  It is produced by the usual
+\LaTeX\ commands.  Howard Trickey has written an {\tt acmtrans}
+bibliography style for \BibTeX\ that formats bibliography entries in
+the ACM style.  The user is encouraged to let produce his bibliography
+with the \verb|\bibliography| command, letting \BibTeX\ handle the
+formatting of the entries.
+
+
+\subsection{Received Date}
+
+An ACM transactions article ends with the dates that the paper and its
+revised versions were received and the date it was accepted for
+publication.  In the {\tt acmtrans} document style, this information is
+produced with the {\tt received} environment.  Type the body of the
+environment just as it should appear in the printed version.
+
+\appendix
+
+\section{Preparing the Appendix}
+
+Articles with appendices fall into two classes: ones with a single
+appendix and ones with multiple appendices.  When an article
+has a single appendix, the appendix does not have numbered
+sections.  The appendix title is produced with a
+\verb|\section*| command such as
+\begin{verbatim}
+\section*{Appendix: The Title}
+\end{verbatim}
+(\LaTeX\ will convert all the letters to uppercase to conform
+to the ACM transactions style.)  Unnumbered subsection
+headings can be produced with the ordinary \verb|\subsection*|
+command.
+
+For an article such as this one with multiple appendices, one begins
+the appendix with an \verb|\appendix| command, then starts each
+appendix with an ordinary \verb|\section| command.  Lower levels of
+sectioning are produced by the ordinary sectioning commands.
+
+\section{Running Heads and Feet}
+
+The running foot of all but the title page of the article is declared
+with the \linebreak
+\verb|\runningfoot| command.  It contains the name of the
+journal, volume, number, and date.  The foot for the title page
+contains this information plus the page numbers.  It is declared
+with the \verb|\firstfoot| command.
+
+The \verb|\pages| command prints the page numbers of the article,
+producing something like ``123--132''.  It is implemented with the
+\LaTeX\ \verb|\pageref| command, so it will not produce the correct
+page numbers the first time the file is run through \LaTeX, or if the
+number of the first or last page has changed since the last time.
+
+The default page style for the {\tt acmtrans} style is {\tt
+myheadings}.  Thus, a \verb|\markboth| command is used to set the
+running heads.  The left head contains the author's name (or authors'
+names) and the right head contains the title.  For long titles,
+some contraction of the title is used.
+
+The ACM would probably prefer to strip in their own running heads and
+feet, so it is unnecessary to worry about them when producing
+camera-ready copy.
+
+\begin{acks}
+I wish to thank Howard Trickey for providing the {\tt acmtrans}
+bibliography style and Marilyn Salmansohn for providing information
+on the official ACM transactions style.
+\end{acks}
+
+\bibliographystyle{acm}
+\bibliography{acmtr}
+\begin{received}
+Received Februrary 1986; revised August 1986; accepted December 1986
+\end{received}
+
+\end{document}

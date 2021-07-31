@@ -1,0 +1,60 @@
+% FLEQN DOCUMENT-STYLE OPTION - released 26 September 1989
+%    for LaTeX version 2.09
+% Copyright (C) 1989 by Leslie Lamport
+
+% The following commands make the displayed math environments flush left,
+% with an indentation of \mathindent from the prevailing left margin.
+
+% Definitions of \[ and \] changed 9 Mar 87 to use \begin{trivlist} ...
+% \end{trivlist} instead of simulating it; corrects bug that caused
+% following text always to start new paragraph.
+%
+% \[ and \equation changed to set \@beginparpenalty and \@endparpenalty
+% to \predisplaypenalty and \postdisplaypenalty.  Change made
+% 24 May 89, suggested by Rainer Sch\"opf and Frank Mittelbach.
+%
+% \[ and \] changed 26 Sep 89 to correct bug introduced in 24 May 89 change
+% that caused the following text always to start a new paragraph.
+
+\def\[{\relax\ifmmode\@badmath\else
+ \begin{trivlist}
+ \@beginparpenalty\predisplaypenalty
+ \@endparpenalty\postdisplaypenalty
+ \item[]\leavevmode
+ \hbox to\linewidth\bgroup$ \displaystyle
+ \hskip\mathindent\bgroup\fi}
+
+
+\def\]{\relax\ifmmode \egroup $\hfil 
+       \egroup \end{trivlist}\else \@badmath \fi}
+
+\def\equation{\@beginparpenalty\predisplaypenalty
+  \@endparpenalty\postdisplaypenalty
+\refstepcounter{equation}\trivlist \item[]\leavevmode
+  \hbox to\linewidth\bgroup $ % $ TO MAKE DOLLAR NESTING OK
+  \displaystyle
+\hskip\mathindent}
+
+\def\endequation{$\hfil % $ TO MAKE DOLLAR NESTING IN THIS FILE OK
+           \displaywidth\linewidth\@eqnnum\egroup \endtrivlist}
+
+\def\eqnarray{\stepcounter{equation}\let\@currentlabel=\theequation
+\global\@eqnswtrue
+\global\@eqcnt\z@\tabskip\mathindent\let\\=\@eqncr
+\abovedisplayskip\topsep\ifvmode\advance\abovedisplayskip\partopsep\fi
+\belowdisplayskip\abovedisplayskip
+\belowdisplayshortskip\abovedisplayskip
+\abovedisplayshortskip\abovedisplayskip
+$$\halign % $$ DOLLAR MATCHING
+to \linewidth\bgroup\@eqnsel\hskip\@centering$\displaystyle\tabskip\z@
+  {##}$&\global\@eqcnt\@ne \hskip 2\arraycolsep \hfil${##}$\hfil
+  &\global\@eqcnt\tw@ \hskip 2\arraycolsep $\displaystyle{##}$\hfil 
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+
+\def\endeqnarray{\@@eqncr\egroup
+      \global\advance\c@equation\m@ne$$\global\@ignoretrue % $$ MATCHING
+      }
+
+\newdimen\mathindent 
+\mathindent = \leftmargini
+  

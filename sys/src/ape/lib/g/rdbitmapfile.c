@@ -2,32 +2,28 @@
 #include <unistd.h>
 #include <libg.h>
 
-typedef unsigned char uchar;
-typedef unsigned long ulong;
-
-static long readn(int, char *, long);
-
 #define	CHUNK	6000
 
 Bitmap*
 rdbitmapfile(int fd)
 {
 	char hdr[5*12+1];
+	unsigned char *data;
 	long dy, px;
-	ulong l, t, n;
+	unsigned long l, t, n;
 	long miny, maxy;
 	Rectangle r;
 	int ld;
 	Bitmap *b;
 
-	if(readn(fd, hdr, 5*12)!=5*12)
+	if(read(fd, hdr, 5*12)!=5*12)
 		berror("rdbitmapfile read");
 	ld = atoi(hdr+0*12);
 	r.min.x = atoi(hdr+1*12);
 	r.min.y = atoi(hdr+2*12);
 	r.max.x = atoi(hdr+3*12);
 	r.max.y = atoi(hdr+4*12);
-	if(ld<0 || ld>3)
+	if(ld<0 || ld>1)
 		berror("rdbitmapfile ldepth");
 	if(r.min.x>r.max.x || r.min.y>r.max.y)
 		berror("rdbitmapfile rectangle");
@@ -46,37 +42,22 @@ rdbitmapfile(int fd)
 	b = balloc(r, ld);
 	if(b == 0)
 		return 0;
+	data = malloc(CHUNK);
+	if(data == 0)
+		berror("rdbitmapfile malloc");
 	while(maxy > miny){
 		dy = maxy - miny;
 		if(dy*l > CHUNK)
 			dy = CHUNK/l;
 		n = dy*l;
-		if(readn(fd, (char *)_btmp, n) != n){
+		if(read(fd, (char *)data, n) != n){
+			free(data);
 			bfree(b);
 			berror("rdbitmapfile read");
 		}
-		wrbitmap(b, miny, miny+dy, _btmp);
+		wrbitmap(b, miny, miny+dy, data);
 		miny += dy;
 	}
+	free(data);
 	return b;
-}
-
-static long
-readn(int f, char *av, long n)
-{
-	char *a;
-	long m, t;
-
-	a = av;
-	t = 0;
-	while(t < n){
-		m = read(f, a+t, n-t);
-		if(m <= 0){
-			if(t == 0)
-				return m;
-			break;
-		}
-		t += m;
-	}
-	return t;
 }

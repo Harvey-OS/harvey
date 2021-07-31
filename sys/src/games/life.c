@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <libg.h>
 #include <bio.h>
-#define	NLIFE	512		/* life array size */
+#define	NLIFE	256		/* life array size */
 #define	PX	4		/* cell spacing */
 #define	BX	3		/* box size */
 /*
@@ -13,11 +13,6 @@
  * col[j] indicates how many cells are alive in life[*][j].
  * Adjust contains pointers to cells that need to have their neighbour
  * counts adjusted in the second pass of the generation procedure.
- *
- * In an attempt to stave off edge-effect trouble as long as possible,
- * the program re-centers the array whenever a border cell turns on.
- * The display jumps when this happens -- it should be rewritten so that
- * it doesn't.
  */
 char life[NLIFE][NLIFE];
 int row[NLIFE];
@@ -49,13 +44,12 @@ setrules(char *r){
 
 void
 usage(void){
-	print("Usage: %s [-3o] [-r rules] [-s millisec] file\n", argv0);
+	print("Usage: %s [-3o] [-r rules] file\n", argv0);
 	exits("usage");
 }
 void
 main(int argc, char *argv[]){
-	char *rules, *s;
-	int delay=0;
+	char *rules;
 	setrules(".d.d..b..d.d.d.d.d");			/* regular rules */
 	ARGBEGIN{
 	case '3': setrules(".d.d.db.b..d.d.d.d"); break;	/* 34-life */
@@ -64,11 +58,6 @@ main(int argc, char *argv[]){
 		rules=ARGF();
 		if(!rules) usage();
 		setrules(rules);
-		break;
-	case 's':
-		s=ARGF();
-		if(s==0) usage();
-		delay=atoi(s);
 		break;
 	default:
 		usage();
@@ -79,10 +68,7 @@ main(int argc, char *argv[]){
 	box=balloc(Rect(0, 0, BX, BX), screen.ldepth);
 	redraw();
 	readlife(argv[0]);
-	do{
-		bflush();
-		sleep(delay);
-	}while(generate());
+	do bflush(); while(generate());
 }
 /*
  * We can only have interest in a given row (or column) if there
@@ -237,7 +223,7 @@ void readlife(char *filename){
 		if(c<0) break;
 	}
 	centerlife();
-	Bterm(bp);
+	Bclose(bp);
 }
 int min(int a, int b){return(a<b?a:b);}
 void centerlife(void){

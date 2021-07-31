@@ -54,7 +54,6 @@ Iosect*	getsect(Xfs*, long);
 Iosect*	newsect(void);
 Iotrack*	getiotrack(Xfs*, long);
 int	canlock(Lock*);
-int	devcheck(Xfs*);
 int	devread(Xfs*, long, void*, long);
 int	devwrite(Xfs*, long, void*, long);
 int	tread(Iotrack*);

@@ -1,16 +1,16 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 #define	CHUNK	4096
 
 void
 wrbitmapfile(int fd, Bitmap *b)
 {
-	byte *data;
+	char *data;
 	int dy, px;
 	uint l, t, n;
 	int miny, maxy;
-	byte hdr[5*12+1];
+	char hdr[5*12+1];
 
 	sprint(hdr, "%11d %11d %11d %11d %11d ",
 		b->ldepth, b->r.min.x, b->r.min.y, b->r.max.x, b->r.max.y);

@@ -22,12 +22,6 @@ Qinfo rebootinfo =
 	0
 };
 
-void
-strebootlink(void)
-{
-	newqinfo(&rebootinfo);
-}
-
 static void
 rebootopen(Queue *q, Stream *s)
 {

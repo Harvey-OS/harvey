@@ -1,0 +1,5179 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     G R A S P
+
+                         GRAphical System for Presentation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                           Another USEware product from:
+
+                             Microtex Industries, Inc.
+                            2091 Business Center Drive
+                                Irvine, Ca.  92715
+                                  (714) 476-0777
+
+                    (714) 545-8100 - PCPaint Picture Swap Line
+
+        Current release number: 1.10            Current release date :05/86
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                             GRASP - Table of Contents
+                             =========================
+
+         Overview of Product . . . . . . . . . . . . . . . . . . . . .    1
+
+              What is GRASP? . . . . . . . . . . . . . . . . . . . . .    3
+              What is on the GRASP disk? . . . . . . . . . . . . . . .    4
+              Making a working copy of the GRASP disk  . . . . . . . .    6
+              Installing GRASP . . . . . . . . . . . . . . . . . . . .    7
+              GRASP Installation Diagram . . . . . . . . . . . . . . .    8
+              How do I use GRASP?  . . . . . . . . . . . . . . . . . .    9
+              Running GRASP  . . . . . . . . . . . . . . . . . . . . .   10
+              The Grasp Editor . . . . . . . . . . . . . . . . . . . .   12
+              Simple GRASP Tutorial  . . . . . . . . . . . . . . . . .   15
+              Running the library file version - GRASPRT . . . . . . .   18
+              Using the GRASP Graphics Librarian - GLIB  . . . . . . .   19
+
+         The commands of GRASP - Detailed  . . . . . . . . . . . . . .   21
+
+              BOX  . . . . . . . . . . . . . . . . . . . . . . . . . .   23
+              CFADE  . . . . . . . . . . . . . . . . . . . . . . . . .   24
+              CFREE  . . . . . . . . . . . . . . . . . . . . . . . . .   25
+              CHGCOLOR . . . . . . . . . . . . . . . . . . . . . . . .   26
+              CIRCLE . . . . . . . . . . . . . . . . . . . . . . . . .   27
+              CLEARSCR . . . . . . . . . . . . . . . . . . . . . . . .   28
+              CLOAD  . . . . . . . . . . . . . . . . . . . . . . . . .   29
+              COLOR  . . . . . . . . . . . . . . . . . . . . . . . . .   30
+              EXEC . . . . . . . . . . . . . . . . . . . . . . . . . .   31
+              EXIT . . . . . . . . . . . . . . . . . . . . . . . . . .   32
+              FFREE  . . . . . . . . . . . . . . . . . . . . . . . . .   33
+              FGAPS  . . . . . . . . . . . . . . . . . . . . . . . . .   34
+              FLOAD  . . . . . . . . . . . . . . . . . . . . . . . . .   35
+              FLOAT  . . . . . . . . . . . . . . . . . . . . . . . . .   36
+              FLY  . . . . . . . . . . . . . . . . . . . . . . . . . .   37
+              FSTYLE . . . . . . . . . . . . . . . . . . . . . . . . .   38
+              GOSUB  . . . . . . . . . . . . . . . . . . . . . . . . .   39
+              GOTO . . . . . . . . . . . . . . . . . . . . . . . . . .   40
+              IFKEY  . . . . . . . . . . . . . . . . . . . . . . . . .   41
+              LINE   . . . . . . . . . . . . . . . . . . . . . . . . .   42
+              LINK . . . . . . . . . . . . . . . . . . . . . . . . . .   43
+              LOOP . . . . . . . . . . . . . . . . . . . . . . . . . .   44
+              MARK . . . . . . . . . . . . . . . . . . . . . . . . . .   45
+              MODE . . . . . . . . . . . . . . . . . . . . . . . . . .   46
+              NOISE  . . . . . . . . . . . . . . . . . . . . . . . . .   48
+              OFFSET . . . . . . . . . . . . . . . . . . . . . . . . .   49
+              PALETTE  . . . . . . . . . . . . . . . . . . . . . . . .   50
+              PAN  . . . . . . . . . . . . . . . . . . . . . . . . . .   51
+              PFADE  . . . . . . . . . . . . . . . . . . . . . . . . .   52
+              PFREE  . . . . . . . . . . . . . . . . . . . . . . . . .   53
+              PLOAD  . . . . . . . . . . . . . . . . . . . . . . . . .   54
+              POINT  . . . . . . . . . . . . . . . . . . . . . . . . .   55
+              PUTUP  . . . . . . . . . . . . . . . . . . . . . . . . .   56
+
+                                          i
+
+
+
+
+
+              RESETSCR . . . . . . . . . . . . . . . . . . . . . . . .   57
+              RETURN . . . . . . . . . . . . . . . . . . . . . . . . .   58
+              SETCOLOR . . . . . . . . . . . . . . . . . . . . . . . .   59
+              TEXT . . . . . . . . . . . . . . . . . . . . . . . . . .   60
+              TRAN . . . . . . . . . . . . . . . . . . . . . . . . . .   61
+              VIDEO  . . . . . . . . . . . . . . . . . . . . . . . . .   62
+              WAITKEY  . . . . . . . . . . . . . . . . . . . . . . . .   64
+              WINDOW . . . . . . . . . . . . . . . . . . . . . . . . .   65
+
+         Tips, Hints, Examples and Demo Programs . . . . . . . . . . .   67
+
+              Example Program #1 - Slide Show  . . . . . . . . . . . .   69
+              Example Program #2 - How to animate using FLY  . . . . .   70
+
+         APPENDIX A - Command Summary  . . . . . . . . . . . . . . . .   71
+
+         APPENDIX B - Fade Table . . . . . . . . . . . . . . . . . . .   73
+
+         APPENDIX C - Error Messages . . . . . . . . . . . . . . . . .   75
+
+         APPENDIX D - Picture Swap Line  . . . . . . . . . . . . . . .   79
+
+         APPENDIX E - GRASP Order Form . . . . . . . . . . . . . . . .   81
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                         ii
+
+
+
+
+
+                                Overview of Product
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  1
+
+
+
+
+
+
+                        This page intentionally left blank
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  2
+
+
+
+
+
+
+
+                                  What is GRASP?
+
+        GRASP is a simple graphics programming pseudo-language which can be
+        used to create and run animated graphics demonstrations, tutorials,
+        and  presentations  on  an  IBM  PC/XT/AT or respective compatible.
+        GRASP requires that the user make use of  some other  tool, such as
+        Mouse Systems'  PCPAINT PLUS, to create PCPAINT PLUS packed page or
+        BSAVE format pictures, or 'capture' screens from any other graphics
+        software with  the provided  capture utility  program. This product
+        was developed by the folks at  Microtex Industries,  the authors of
+        PCPAINT PLUS, so it is patterned to take advantage of the pictures,
+        clippings and fonts  created  with  PCPAINT  PLUS  and  its related
+        utilities, like FONTASIA and ARTOOLS.
+
+        GRASP was  designed to  be the  base for many other products. GRASP
+        files can be generated by programs  written in  virtually any other
+        language. This  allows great flexibility to users in many different
+        areas. It is  this  flexibility  that  sets  GRASP  apart  from its
+        competitors. GRASP  in its  raw form,  as you  have it here, is not
+        indended to be a  user-friendly,  end-user  tool.  It  is, however,
+        simple enough  that any  user can  quickly learn  how to manipulate
+        GRASP files with ease.
+
+
+        Features:
+
+        * Supports IBM CGA, IBM EGA, HERCULES, AST ColorGraphPlus,
+          Plantronics, AST Preview, 3 text modes.
+
+        * 16 Picture Buffers
+
+        * 128 Clipping Buffers
+
+        * Single command to control animation sequences
+
+        * 25 different fades with limitless combinations
+
+        * Simple ASCII file format
+
+        * FONTRIX(tm) font compatible
+
+        * Fully PCPAINT PLUS from MOUSE SYSTEMS(tm) compatible
+
+        * Run Custom Programs from within GRASP program
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  3
+
+
+
+
+
+
+                            What is on the GRASP disk?
+
+
+        The following files are on the GRASP disk
+
+        GRASP.EXE -
+
+        This is the main GRASP program.  This   version  of GRASP  gets the
+        pictures, character  sets, clippings  and text  files it needs from
+        the current directory on your current disk drive,  unless otherwise
+        specified in  the text  files. This  program allows  you to create,
+        edit and execute your GRASP programs.
+
+        GRASPRT.EXE - 
+
+        This is the run-time version of GRASP. This  version of  GRASP gets
+        the pictures,  character sets,  clippings, and text it needs from a
+        graphics library  created with  the GRASP  graphics librarian GLIB.
+        This version only allows you to execute completed programs that are
+        in library form. No  editing of  the files  is possible.  This .EXE
+        file, along  with your .GL file, may be distributed without license
+        fees or other compensation.
+
+        GLIB.COM - 
+
+        Library  manager  for  version  GRASPRT  of  GRASP  product. Allows
+        management of  all necessary  files in a library environment rather
+        than as files in a subdirectory on a disk. 
+
+        CAP.COM -
+
+        Capture program for capturing screens and  clippings from  all your
+        favorite software.
+
+        WHATPIC.EXE - 
+
+        Utility program to determine size and color combinations of PCPAINT
+        PLUS pictures.
+
+        WHATCLP.EXE - 
+
+        Utility program to determine size and color combinations of PCPAINT
+        PLUS clippings.
+
+        *.SET -
+
+        Some fonts for you to use in your demo.  
+
+        *.HLP -
+
+        Various help files.
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  4
+
+
+
+
+
+
+        GRASP.PIC -
+
+        A 4 color CGA picture to use for testing and learning about GRASP.
+
+        ALLFADES.TXT -
+
+        A sample  GRASP text  file that uses GRASP.PIC and demonstrates all
+        the different fades.
+
+        GRASP.MAN -
+
+        The GRASP manual. You are reading it right now!
+
+        CAP.MAN -
+
+        A short manual on CAP, the resident capture utility.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  5
+
+
+
+
+
+
+                      Making a working copy of the GRASP disk
+
+
+        The GRASP disk is not copy protected in any way. You should back up
+        the disk  using the DOS diskcopy command, or you may perform a file
+        by file backup to a hard disk using the DOS copy command. There are
+        several different  ways to  copy disks under DOS, but the following
+        will  work  on  almost  any  hardware  configuration  since  all it
+        requires is access to the DOS master disk and 1 floppy disk drive.
+
+        For PCs with 1 or 2 floppys, or an XT or AT with 1 floppy:
+
+        Put your  DOS master  disk in  drive A  and turn  on the machine or
+        press CTRL-ALT-DEL to re-boot the system.  Enter the  Date and Time
+        when prompted and you should see the system prompt:
+
+        A>_
+
+        Type:
+
+        A>DISKCOPY A: A:
+
+        and press  the return  key. You  will be prompted to put the SOURCE
+        disk in drive A. Remove the DOS master disk from  drive A,  put the
+        GRASP distribution  disk in,  close the  door and  press the return
+        key. After it reads some information, DOS will  ask you  to put the
+        TARGET disk in drive A. Put a blank disk (formatted or unformatted)
+        into drive A, close the door and press return. If  your machine has
+        less than  512K of memory, you may be prompted to perform this disk
+        exchange several times. When the process is complete, put the GRASP
+        disk away in a safe place and use the backup copy for your work.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  6
+
+
+
+
+
+
+                                 Installing GRASP
+
+
+        Simple Set-Up
+        -------------
+
+        To  develop  demos  under  the  grasp  system, you need to have the
+        following GRASP files and programs accessible:
+
+        GRASP.EXE
+        CM1.HLP
+        CM2.HLP
+        ED1.HLP
+        FD1.HLP
+        FD2.HLP
+        RP1.HLP
+
+        as well as your pictures, clippings and fonts.
+
+        With all of these files in  one subdirectory,  you will  be able to
+        create and  edit your  demo program and have access to the help. If
+        you do not need the help files, you may omit them. If you are going
+        to be  creating a  library version of your demo, you will also need
+        access to the librarian utility, GLIB.EXE. 
+
+
+
+        Advanced Set-Up
+        ---------------
+
+        The following is an example of a well set-up system on a hard disk,
+        including PCPAINT,  so that you can edit pictures and clippings and
+        create your demo with a minimum of effort.
+
+        From the root directory, create a sub-directory called PAINTLIB and
+        put all  the PCPAINT  files in  it. (This is the recommended method
+        for installing PCPAINT). In addition, be  sure your  PATH statement
+        points to  PAINTLIB and  set up an environment variable to point to
+        PAINTLIB as well with the command:
+
+        SET PAINTLIB=C:\PAINTLIB
+
+        Also make a sub-directory off the root called GRASP. Copy the GRASP
+        disk contents  to the  sub-directory GRASP. Add the GRASP directory
+        to your PATH command. Then create a DEMO  directory, change  to it,
+        and run  GRASP by  typing GRASP at the command prompt. When you are
+        in the GRASP editor, you can  run PCPAINT  by pressing  ALT-F10 and
+        your previous  PATH and  SET statements will help DOS know where to
+        find it. The following diagram is an example:
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  7
+
+
+
+
+
+
+                            GRASP Installation Diagram
+
+
+        This diagram  shows the  proper structure  for your sub-directories
+        for GRASP  to perform  in the  above stated  manner. This  is not a
+        requirement, just an example.
+                                       
+                                   ___________
+                                  |           |
+                                  |  C:\Root  |
+                                  |___________|
+                ________________________|________________________ . . . .
+         ______|_______    ______|______    __________|__________    
+        |              |  |             |  |                     |
+        |   PAINTLIB   |  |    GRASP    |  |    DOS or OTHER     |
+        |______________|  |_____________|  |_____________________|   
+            :                  :      |          : 
+        PCPAINT.EXE        GRASP.EXE  |      DOS files
+        PxPAINT.OVR        ED1.HLP    |      Various batch files 
+        CAP.COM            CM1.HLP    |
+                           CM2.HLP    | 
+                           CM3.HLP    |
+                           FD1.HLP    |
+                           FD2.HLP    |
+                           RP1.HLP    |
+                                      |
+                           ___________|_ 
+                          |             | 
+                          |    Demos    |
+                          |_____________|
+
+        Then these statements would be in your AUTOEXEC.BAT file:
+
+        SET PAINTLIB=C:\PAINTLIB
+        PATH C:\PAINTLIB;C:\GRASP;C:\whateverelseyouwant...
+
+        With this  set-up, you  can be  in any  directory and  run GRASP by
+        typing GRASP and PCPAINT by typing PCPAINT. You have full access to
+        all help files and the  PCPAINT  system.  The  auto-run  feature in
+        GRASP (ALT-F10)  allows you to run PCPAINT while in GRASP. It looks
+        for PCPAINT in the \PAINTLIB directory.  The  GRASP help  files are
+        only accessible if they are in one of three places:
+
+        1) In the current directory
+        2) In the directory pointed to by the environment string 'PAINTLIB'
+        3) In a sub-directory off the root called 'GRASP'
+
+        GRASP performs  a search  for the help files in this order. If they
+        are not found, a message  will  appear  when  you  first  run grasp
+        telling you so. You may run GRASP without access to the help files,
+        but you will get a beep if you try to access them.
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  8
+
+
+
+
+
+
+                                How do I use GRASP?
+
+
+        To use GRASP you need to do 3 things.
+
+
+        1) Create the pictures and clippings you want  to use  with PCPAINT
+        PLUS, or capture them the the CAP utility.
+
+        2) Use the built-in GRASP editor to create an GRASP 'program' which
+        is nothing more than a list of GRASP commands and some comments.
+
+        3) Run your demonstration  by pressing  F10 from  the editor  or by
+        selecting EXECUTE FILE from the main GRASP menu.
+
+
+        It's that  simple. If you want to give your demo away, you must put
+        the .PIC, .CLP, .SET and .TXT  files into  a library  with the GLIB
+        utility, and distribute the library file with GRASPRT.EXE.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  9
+
+
+
+
+
+
+                                   Running GRASP
+
+        To run the GRASP, enter at the command prompt:
+
+        A:>GRASP
+
+        You will be presented with a screen that looks something like this:
+
+                                     G R A S P
+                         GRAphical System for Presentation
+                             Version 1.10* - May, 1986
+                  Copyright (C) 1986 - Microtex Industries, Inc.
+
+                                    Edit File      
+                                    Execute File   
+                                    Load File      
+                                    Save File      
+                                    Quit GRASP     
+
+                               Current File: TMPFILE
+
+        To select  an option from this menu, use the up and down arrow keys
+        until the option you want to select is highlighted. Then just press
+        return  and  the  option  is  selected. Each of these options has a
+        special meaning to GRASP.
+
+        Edit File: The Edit File option tells GRASP that you want to  go to
+        the editor and create or modify your GRASP program file.
+
+        Execute File:  The Execute  File option  tells GRASP to execute the
+        currently loaded GRASP program file.
+
+        Load File: The Load File option allows you to tell GRASP to load in
+        an existing  file, or  to create  a new one. Notice that just below
+        the menu there is an area  with the  current filename  listed. When
+        you  first  run  GRASP,  the  system  will  default to a file named
+        TMPFILE. This is the name that GRASP will use unless  you specify a
+        new one.  To specify  a new one, just type in the name you want. DO
+        NOT specify  the filename  extension. GRASP  will automatically use
+        the extension  .TXT for you. To create a new file, just perform the
+        load as though the  file you  want already  exists. GRASP  is smart
+        enough to  understand and  create a  new file for you. If a file is
+        already loaded, and changes have been  made, GRASP  will prompt you
+        for saving before allowing you to load another. This keeps you from
+        trashing your current file.
+
+        Save File: The Save File option tells GRASP that you want to save
+        the current working GRASP program file. It works  much the  same as
+        the load  command. Just  specify the name you want to save the file
+        under and press return. The  system  will  default  to  the current
+        working name.
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  10
+
+
+
+
+
+
+        Quit GRASP: The Quit GRASP option tells the system that you want to
+        exit GRASP. If a file is loaded and has been changed since the last
+        save, GRASP will prompt you for saving before allowing you to quit.
+
+        Be sure to save your file before quitting!
+
+
+        Of these  options, the only one that requires special consideration
+        is the first one, Edit File. Select that  option and  let's explore
+        the world of the GRASP editor...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  11
+
+
+
+
+
+
+
+                                 The Grasp Editor
+
+
+        If you  have selected  the Edit File option from the main menu, you
+        will now be in the GRASP editor. The screen should have a blue line
+        across the top that looks like the following:
+
+
+        TMPFILE         COL:1     LINE:1     POS:0     LEN:0      INSERT ON
+
+        These are  just information  items about  the current  file you are
+        working on and the mode you are operating in. Starting  at the left
+        is the  name of  the current  file, which defaults to TMPFILE. Next
+        comes the current cursor column  number,  the  current  cursor line
+        number,  the  current  cursor's  character position relative to the
+        entire file, and the total  number  of  characters  in  the current
+        file.  At  the  far  right  is  the  status  of the INS key on your
+        keyboard. If INSERT mode is ON,  then characters  you type  will be
+        inserted before  the character  just to the right of the cursor. If
+        INSERT mode is OFF, then characters to the right of the cursor will
+        be overwritten.  This second  mode, INSERT  OFF, is commonly called
+        OVERSTRIKE mode. This information is just there for  reference, and
+        with the  exception of  the INSERT  mode signal, you probably won't
+        need to refer to it too often.
+
+        The first three function keys are the most important keys  to learn
+        in  the  GRASP  editor.  GRASP  provides  'Quick  Help'  for  three
+        different areas and is accessable by pressing F1, F2 or F3. 
+
+        NOTE: If you press one of these function keys and  hear a  low tone
+        from  your  computer  and  no  help  appears,  it  means that GRASP
+        couldn't find the .HLP files that  were on  your distribution disk.
+        If you  want to use the help. the .HLP files must be on the current
+        drive and directory, in a directory called 'GRASP' directly off the
+        root directory,  or in  a directory  pointed to  by the environment
+        string 'PAINTLIB'. See INSTALLING GRASP for more details.
+
+        F1 - Provides help in using the GRASP Editor. This  includes a list
+        of the  most commonly  used editing  keys and a description of what
+        each function key is used for.
+
+        F2 - Provides  a  quick  summary  listing  of  all  available GRASP
+        commands.  This  information  is  not  a  complete reference on the
+        commands of GRASP, but  rather a  command syntax  reference so that
+        you  can   insure  proper  useage  of  the  commands  and  a  brief
+        description of what the command is used for. 
+
+        F3 - Provides a  summary listing  of the  25 GRASP  fades and their
+        respective  numbers.  Remember  that  all  fades  can  be  used for
+        graphics  pictures,  text  pictures,  pictures  in   a  window  and
+        clippings.
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  12
+
+
+
+
+
+
+
+        If this  is your  first time  running GRASP and you are too lazy or
+        too bored  to  read  the  entire  manual,  you  should  find enough
+        information in these help keys to get you started.
+
+        If you want to learn a little more about the editor, here is a full
+        description of all the keys available in the GRASP editor.
+
+        F1  - Quick help with the editor.
+        F2  - Quick help with the commands.
+        F3  - Quick help with the fades and video modes.
+        F4  - Start/End highlighting a block.
+        F5  - Copy a highlighted block.
+        F6  - Move a highlighted block.
+        F7  - Read a block in from disk.
+        F8  - Write a highlighted block to disk.
+        F9  - Save current file and run from current line.
+        F10 - Save current file and run from the top.
+
+        ALT/F1   - Quick exit to DOS. Typing EXIT at the DOS propmt returns
+                   you to the GRASP editor.
+
+        ALT/F10  - Run  PCPAINT  from  within the GRASP editor. PCPAINT.EXE
+                   and  its  overlays  must  be  in  a  subdirectory called
+                   PAINTLIB off the root directory on the current drive.
+
+        CTRL-K-X or
+        ESC      - Quit the  editor. Do  not save file. Leave flag set that
+                   indicates changes if they have been made. 
+
+        CTRL-K-Q - Quit  the  editor.  Do  not  save  file.  Reset  flag to
+                   indicate no changes have been made.
+
+        CTRL-K-D or
+        ALT/X    - Quit the editor, save file if changes have been made.
+
+        CTRL-K-S or
+        ALT/S or
+        ALT/W    - Save the current file and continue editing.
+
+        ALT/L or
+        ALT/R    - Reload   the   current   file   and   continue  editing,
+                   overwriting any changes made.
+
+        CTRL-Y or
+        ALT/D    - Delete current line.
+
+        CTRL-N   - Insert a carriage return  and  leave  cursor  at current
+                   line.
+
+        CTRL-K-B - Mark block beginnng. Same as the first time you hit F4.
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  13
+
+
+
+
+
+
+        CTRL-K-K - Mark block end. Same as the second time you hit F4.
+
+        CTRL-Q-B - Go to block beginning.
+
+        CTRL-Q-K - Go to block end.
+
+        CTRL-K-C - Copy a block. Same as F5.
+
+        CTRL-K-V - Move a block. Same as F6.
+
+        CTRL-K-R - Read block at cursor position. Same as F7.
+
+        CTRL-K-W - Write block. Same as F8.
+
+        CTRL-K-Y - Delete highlighted block. 
+
+        CTRL-HOME or
+        CTRL-Q-R - Go to top of file.
+
+        CTRL-END or
+        CTRL-Q-C - Go to end of file.
+
+        CTRL-RIGHT ARROW or
+        CTRL-F   - Skip word right.
+
+        CTRL-LEFT ARROW or
+        CTRL-A   - Skip word left.
+
+        CTRL-Q-S or
+        HOME     - Go to beginning of line.
+
+        CTRL-Q-D or
+        END      - Go to end of line.
+
+        INS      - Turns insert mode on and off.
+
+        DEL      - Deletes character under cursor and adjusts text.
+
+        ARROW  KEYS  /  PGUP  / PGDN and Wordstar(tm) 'Diamond' equivalents
+        move cursor around document.
+
+        Now that you know how to use the editor, let's  see exactly  how to
+        make a demo...
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  14
+
+
+
+
+
+
+                               Simple GRASP Tutorial
+
+        Loading and displaying a picture:
+
+        It  is  important  to  understand  that  GRASP  is very much a LINE
+        oriented programming pseudo-language.  It  is  called  this because
+        inter-line  dependencies  have  been  kept to a minimum. In simpler
+        terms, GRASP interprets one line at a time, executes it,  then goes
+        and  gets  the  next  line.  Except  for  a few special cases, what
+        happens on each line is relatively independent of the previous line
+        or the next line. This is important because if you understand this,
+        then creating a GRASP  program  will  be  easier  to  understand in
+        concept.
+
+        Each line can start with only one of three things:
+
+        1) A GRASP command. (PRESS F2 to see all the GRASP commands)
+
+        2) A semicolon - ';'. This indicates the beginning of a comment.
+
+        3) A  label. This  can be any continuous string of ASCII characters
+        with the exception of space, and must be followed by a colon - ':'.
+
+        This keeps  the GRASP  interpreter's job  simple. It  either sees a
+        command,  and  immediately  looks  for  possible  parameters,  or a
+        semicolon, in which case  it ignores  the rest  of that  line, or a
+        label, which it puts into a list so it can find it later if needed.
+        Any  variation  from  these  three  options  will  result  in GRASP
+        thinking that what you typed was  a GRASP  command which  it cannot
+        understand, and results in an 'INVALID COMMAND IN LINE XXX' message
+        when you try to execute the program.
+
+        Usually, you will want to start you GRASP  program with  a comment,
+        like a title of your program or your name, etc. Type:
+
+        ; DEMO Program for GRASP
+
+        and press return. You now have written a 1-line GRASP program. 
+
+        Exciting huh? I'll bet you can't wait for more.
+
+        The very  first command  in every  GRASP program  should be a VIDEO
+        command which tells GRASP which video mode you want to  use. If you
+        select a  video mode  that is not available on your computer, GRASP
+        will try to understand and tell you so.  If you  get wierd results,
+        or  the  screen  seems  to  go  crazy,  don't worry, just check the
+        reference section of this manual to be sure  you are  using a valid
+        video mode.  For this  tutorial, we  will assume that your computer
+        has an IBM Color Graphics Adapter  or compatible,  and we  will use
+        the standard 4 color 320x200 mode, which GRASP understands as video
+        mode A. Type the  following (exactly  as spelled  below, with upper
+        case):
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  15
+
+
+
+
+
+
+
+        ; DEMO Program for GRASP
+        ;
+        video Q
+
+        Now press F10 to execute the program. (By the way, all this does is
+        set the video mode and come  back to  the editor.  Not too exciting
+        yet, but we're getting there...)
+
+        You should get a message that says
+
+                           Illegal argument(s) at line 3
+                                 File TMPFILE.TXT
+                             Press any Key to Continue
+
+        Any time you see the message, it means that the command you entered
+        was correct, but one of the arguments you entered was incorrect.
+        Press a key and you will  be returned  back to  the editor,  to the
+        line where  the error  occured. The  problem here  is that  Q is an
+        invalid video mode. Change it to A (which stands for  CGA 320x200 4
+        color mode)  and press  F10 again. Your screen should blink and the
+        you will be put back in the editor.  
+
+        Now we have named the program and set up a video mode, so it's time
+        to try  out some  graphics commands.  On the distribution disk is a
+        picture named  GRASP.PIC.  This  is  a  4  color  picture  from the
+        CGADEMO.GL file.  Let's load  it into  GRASP and display it using a
+        variety of fades.
+
+        ; DEMO Program for GRASP
+        ;
+        video A
+        ;
+        pload grasp,1                    ; load picture into buffer #1
+        pfade 0,1,0,0                    ; fade it to the screen using fade
+                                         ;  #0
+        waitkey                           ; wait for a keypress before     
+                                         ;  returning to the editor.
+
+        now, press F10 and you should see the GRASP.PIC picture  loaded and
+        displayed. 
+
+        Change  the  first  parameter  of  the  pfade command to any number
+        between 0 and 25 and watch all the different special  effects. Then
+        to slow  things down, try a number like 50 for the third parameter,
+        which is the speed of the fade. Speed  seems to  have no  effect on
+        some fades,  while on others, it makes a lot of difference. This is
+        because of the nature of  each  individual  fade.  To  optimize the
+        performance of GRASP, it was decided that speed would be a relative
+        number, that is, relative to the actual fade.  This way,  each fade
+        may be accurately controlled from its fastest speed to its slowest.
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  16
+
+
+
+
+
+
+        Let's do one more command, the  WINDOW command.  Window means don't
+        allow  any  part  of  the  picture  that lies outside of a specific
+        rectangle to be faded to the screen. Add the window command to your
+        demo program as follows:
+
+        ; DEMO Program for GRASP
+        ;
+        video A
+        ;
+        pload grasp,1                    ; load picture into buffer #1
+        window 0,0,100,100               ; set fade clip window
+        pfade 0,1,0,0                    ; fade it to the screen using fade
+                                         ;  #0
+        waitkey                          ; wait for a keypress before
+                                         ;  returning to the editor.
+
+        now press F10 and watch the  difference. You  should see  that only
+        the lower  left part  of your picture was actually dissolved to the
+        screen. Change the coordinates of the window command  and watch the
+        results.
+
+        One  other  note:  The  window  command  can  only  operate on byte
+        boundaries. For most video modes, this means every 8 pixels  in the
+        x  direction.   You  don't   have  to  worry  because  WINDOW  will
+        automatically adjust itself to a byte boundary.
+          
+        This concludes this lesson.  Other  commands  in  GRASP  work  in a
+        similar fashion.  Experiment with them. Just remember to keep track
+        of your video modes and buffers.  You may  also want  to take apart
+        the demo program, CGADEMO.GL using the GLIB.EXE utility and look at
+        the code for more examples.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  17
+
+
+
+
+
+
+                    Running the library file version - GRASPRT
+
+
+        The Library file, or runtime version of the program is identical to
+        the  text  file  version  except  that  the  interpreter  gets  its
+        information from  a library  file instead  of the  current disk and
+        directory. The  GLIB utility  will put all of your .PIC, .CLP, .SET
+        and .TXT files into a library  with the  extension GL.  To run your
+        demo execute the command:
+
+        GRASPRT <libfile> <textfile>
+
+        If  the  textfile  is  omitted  from  the  command line, GRASP will
+        execute the first text file it finds in the library.
+
+        To run the demo that comes with GRASP, type:
+
+        GRASPRT CGADEMO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  18
+
+
+
+
+
+
+                     Using the GRASP Graphics Librarian - GLIB
+
+        The Graphics LIBrarian, GLIB.EXE, is used in the following manner:
+
+        GLIB [-dstuea] libname [files...]  
+
+        where the following commands are supported:
+
+         -d   delete file from library
+         -s   extended file list
+         -t   quick file list
+         -u   update (add) file to library
+         -e   extract file from library
+         -a   extract all files from library
+
+        For example, if you  wanted to  put all  of the  .PIC files  in the
+        current directory into a library file named MYFILE, you would type:
+
+        GLIB -u MYFILE *.PIC
+
+        Or if you wanted to extract GRASP.PIC from the library CGADEMO, you
+        would type:
+
+        GLIB -e CGADEMO GRASP.PIC
+
+        Be  sure that all files  needed for  your demo  are in  the library
+        file  before  you  try  to  run  it.  Otherwise,  you may get error
+        messages.
+
+        NOTE:
+        You cannot use  wild  cards  for  extracting  or  deleting  in this
+        version (1.0)  of GLIB.  However, you may use wild cards for adding
+        to or updating the library.
+
+        More Examples:
+
+        GLIB -d DEMO FRED.TXT
+
+        will delete the file 'fred.txt' from library file DEMO.GL
+
+        GLIB -e DEMO LOGO.CLP
+
+        will extract the clipping 'logo.clp' from library file DEMO.GL
+
+        GLIB -u DEMO MTX.CLP
+
+        will add/replace the picture 'mtx.pic' to library file DEMO.GL
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  19
+
+
+
+
+
+
+                        This page intentionally left blank
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  20
+
+
+
+
+
+
+
+                         The commands of GRASP - Detailed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  21
+
+
+
+
+
+
+                        This page intentionally left blank
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  22
+
+
+
+
+
+
+        BOX                                                            BOX
+
+
+        Summary:
+        -------
+
+        BOX allows you to draw a box on the screen  in the  current drawing
+        color.
+
+
+        Syntax:
+        ------
+
+        BOX startx, starty, endx, endy, <width>
+
+        where 'startx'  and 'starty'  is the point of one corner of the box
+        and 'endx' and endy'  is the  point of  the opposite  corner of the
+        box. Width  is the  number of  pixels wide  you want the box to be.
+        Width is drawn 'inward' from the original box. 
+
+
+        Example:
+        -------
+
+        BOX 0,0,100,100
+
+        will draw a box in the  current  drawing  color  from  x=0,  y=0 to
+        x=100, y=100.
+
+
+        Comments:
+        --------
+
+        Transparent mode  does not affect this command. Default width is 1.
+        BOX is not available in text modes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  23
+
+
+
+
+
+
+        CFADE                                                        CFADE
+
+
+        Summary:
+        -------
+
+        CFADE allows you to dissolve or fade a clipping to  the screen. You
+        may specify  one of several dissolves, the speed for that dissolve,
+        and a delay after the dissolve. This command  is similar  to PFADE,
+        but applies  to clippings. The same 25 fades that apply to pictures
+        also apply to clippings.
+
+
+        Syntax:
+        ------
+
+        CFADE fade number, x, y, <buffer number>, <speed>, <delay>
+
+        where 'fade  number' is  the number  of the  fade you  want to use,
+        'buffer number'  is the  clipping buffer  number where the clipping
+        you want to fade has been loaded, 'x' and 'y' are the  location for
+        the clipping  to be  faded, 'speed'  is the  speed of  the fade and
+        'delay' is the time to wait after the  delay. Speed  can be  in the
+        range 0-10000. Check Appendix B for a list of fades.
+
+
+        Example:
+        -------
+
+        CFADE 2,20,40,5,500,1000
+
+        will fade  the clipping  in buffer 5 using fade 2 at location x=24,
+        y=40 at speed 500, and then  wait 10  seconds. The  delay works the
+        same as using the WAITKEY command. 
+
+
+        Comments:
+        --------
+
+        Note: CFADE only fades byte-width clippings and puts them up at the
+        nearest byte boundary to the x  and  y  specified  in  the command.
+        Deviations may cause unpredictable results. Use the utility WHATCLP
+        to obtain the needed  information  about  your  clippings.  If your
+        clipping  is  not  byte-width,  it  will  fill  the  right  edge to
+        byte-width with white (highest  color available).  Transparent mode
+        does NOT apply to CFADE. 
+
+        Default values for optional parameters:
+
+        buffer number: 1
+        speed:         0
+        delay:         0
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  24
+
+
+
+
+
+
+        CFREE                                                        CFREE
+
+
+        Summary:
+        -------
+
+        CFREE is  used to free-up a clipping buffer. Sometimes, you may run
+        out of memory and need to clear up  some buffers  you have  full of
+        clippings you have already used.
+
+
+        Syntax:
+        ------
+
+        CFREE buf1, <buf2>, <buf3>...
+
+        where 'buf1' and other buffers are buffers you want to free-up.
+
+
+        Example:
+        -------
+
+        CFREE 1,4,12
+
+        will free-up clipping buffers 1, 4 and 12.
+
+        CFREE 1,-,16
+
+        will free-up buffers 1 through 16. You MUST use commas or spaces to
+        separate these parameters.
+
+
+        Comments:
+        --------
+
+        This is especially useful in  EGA  16  color  mode  where  space is
+        critical.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  25
+
+
+
+
+
+
+        CHGCOLOR                                                  CHGCOLOR
+
+
+        Summary:
+        -------
+
+        Chgcolor is  used to  set the color palette registers in IBM EGA 16
+        color mode. On the  EGA, there  are 16  possible colors,  called an
+        'index', and  each of  these color  indices may  be one of 64 color
+        'values'.
+
+
+        Syntax:
+        ------
+
+        CHGCOLOR color index, color value,...
+
+        where 'color index' refers to the color number  you want  to change
+        in the range 0-15 and 'color value' lies in the range 0-63.
+
+
+        Example:
+        -------
+
+        CHGCOLOR 3,32
+
+        will change color index 3 to color value 32.
+
+
+        Comments:
+        --------
+
+        Remember, this only works in EGA 16 color modes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  26
+
+
+
+
+
+
+        CIRCLE                                                      CIRCLE
+
+
+        Summary:
+        -------
+
+        CIRCLE allows  you to draw a circle or ellipse on the screen in the
+        current drawing color. The  color parameters  must be  specified in
+        pairs, as in the example.
+
+
+        Syntax:
+        ------
+
+        CIRCLE centerx, centery, xradius, <yradius>
+
+        where 'centerx'  and 'centery' is the center point of the circle or
+        ellipse, xradius' is the radius in the x-direction and 'yradius' is
+        the radius in the y direction.
+
+
+        Example:
+        -------
+
+        CIRCLE 100,100,100,20
+
+        will draw a circle centered at x=100, y=100 with x radius=100 and y
+        radius=20.
+
+
+        Comments:
+        --------
+
+        Transparent mode does not affect this command. Failure to specify a
+        yradius assumes yradius=xradius and a circle is produced. Note also
+        that circle  here implies  xradius=yradius which,  depending on the
+        aspect  ratio  of  your  current  video  mode, may not be a circle.
+        CIRCLE is not available in text modes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  27
+
+
+
+
+
+
+        CLEARSCR                                                  CLEARSCR
+
+
+        Summary:
+        -------
+
+        Clearscr is used to clear the screen to the current drawing color.
+
+
+        Syntax:
+        ------
+
+        CLEARSCR
+
+
+        Example:
+        -------
+
+        CLEARSCR
+
+        will clear the screen to the current drawing  color (the  color set
+        with the last COLOR command).
+
+
+        Comments:
+        --------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  28
+
+
+
+
+
+
+        CLOAD                                                        CLOAD
+
+
+        Summary:
+        -------
+
+        This command  is used  to load  a clipping into a buffer. There are
+        128 buffers available for  clippings in  GRASP. It  is advised, for
+        memory  reasons,  that  the  user  try  to  manage  using as few as
+        possible. A clipping must be loaded into a buffer before  it can be
+        dissolved or put up onto the screen.
+
+
+        Syntax:
+        ------
+
+        CLOAD clipping, buffer number, <shiftparm>
+
+        where 'clipping'  is the name of the clipping you want to load (the
+        file name extension is optional) and 'buffer number'  is the number
+        of the  buffer you  want to  load in to. Valid buffer numbers are 1
+        through 128. Buffer 0 is non-existent  for clippings,  and thus, no
+        clipping may  be loaded  into it.  'Shiftparm' indicates whether or
+        not to create the  shifted copies  necessary to  place clippings at
+        non-byte boundaries. Default for shiftparm is 0 or YES. Placing a 1
+        here will cause GRASP  not to  create the  shifted copies  and thus
+        saving memory.  This is useful if you know that you are going to be
+        using CFADE on this clipping and therefore couldn't use the shifted
+        copies anyway.
+
+
+        Example:
+        -------
+
+        CLOAD myclip,5
+
+        will load the clipping myclip.clp into clipping buffer number 5.
+
+
+        Comments:
+        --------
+
+        If you  do not understand the concept of shifted copies, it is best
+        not to fool around with the shiftparm parameter.  Note also  that a
+        file extension  is not  necessary in  your GRASP file. Drive letter
+        and path may be specified.
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  29
+
+
+
+
+
+
+        COLOR                                                        COLOR
+
+
+        Summary:
+        -------
+
+        COLOR allows you to choose a drawing color.  Drawing color  is used
+        for  drawing  primitives  (such  as  line,  box, circle, or point),
+        transparent mode selection, text  strings and  clearing the screen.
+        Secondary color is used for background color in text mode or shadow
+        color for font styles in graphics modes.
+
+
+        Syntax:
+        ------
+
+        COLOR n1,<n2>
+
+        where 'n1' is the drawing color and 'n2' is the secondary color.
+
+
+        Example:
+        -------
+
+        COLOR 3,0
+
+        will set the current  drawing color  to color  3 and  the secondary
+        color to 0.
+
+
+        Comments:
+        --------
+
+        Related  commands  are  LINE,  BOX,  CIRCLE, POINT, TRAN, CLEARSCR,
+        PALETTE, MODE and PFADE. The secondary color is used for the bottom
+        character in  shadow text strings and the background color for text
+        screens. Secondary color defaults to color 0 if not specified.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  30
+
+
+
+
+
+
+        EXEC                                                          EXEC
+
+
+        Summary:
+        -------
+        This command allows you to execute another program from within your
+        GRASP program.  Useful for utility programs, or custom programs you
+        write that provide a function that GRASP does not.
+
+
+        Syntax:
+        ------
+
+        EXEC program, <parameters>
+
+        where 'program' is the name of the program you wish to execute. You
+        MUST include  path if  it is  in a  different path, and all program
+        names must include the extension. 'Parameters' are any command line
+        parameters you would normally pass to the program.
+
+
+        Example:
+        -------
+
+        EXEC \PAINTLIB\PCPAINT.EXE, /O
+
+        will execute  pcpaint from  the \paintlib  directory on the current
+        drive passing the /O parameter.
+
+
+        Comments:
+        --------
+
+        You MUST include full path and file extension.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  31
+
+
+
+
+
+
+        EXIT                                                          EXIT
+
+
+        Summary:
+        --------
+
+        Exit will  cause the  currently running  GRASP program  to quit and
+        return to DOS or the GRASP editor.
+
+
+        Syntax:
+        ------
+
+        EXIT
+
+
+        Example:
+        -------
+
+        EXIT
+
+        will  cause  the  currently  running GRASP program to terminate and
+        return to DOS or the GRASP editor.
+
+
+        Comments:
+        --------
+
+        If you are running  GRASPRT, EXIT  returns you  to DOS.  If you are
+        running GRASP,  EXIT returns  you to  the editor  or the main menu,
+        depending on how you ran the program.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  32
+
+
+
+
+
+
+        FFREE                                                        FFREE
+
+
+        Summary:
+        -------
+
+        This command will free up the font buffer  so that  more memory may
+        be available for pictures and clippings.
+
+
+        Syntax:
+        ------
+
+        FFREE
+
+
+        Example:
+        -------
+
+        FFREE
+
+        will free up the font buffer.
+
+
+        Comments:
+        --------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  33
+
+
+
+
+
+
+        FGAPS                                                        FGAPS
+
+
+        Summary:
+        -------
+
+        This command  allows you  to set the gaps between characters in the
+        text command and also the width of the space character.
+
+
+        Syntax:
+        ------
+
+        FGAPS <char gap, space gap>
+
+        where 'char gap is the  number  of  pixels  between  characters and
+        'space gap' is the number of pixels wide for the space character.
+
+
+        Example:
+        -------
+
+        FGAPS 3,9
+
+        will  set  the  inter-character  gap  to  3  pixels  and  the space
+        character to a width of 9 pixels.
+
+
+        Comments:
+        --------
+
+        Note that this has no effect on the TEXT command if you are in TEXT
+        mode. FGAPS  with no parameters resets the gaps to the default gaps
+        for the currently loaded font.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  34
+
+
+
+
+
+
+        FLOAD                                                        FLOAD
+
+
+        Summary:
+        -------
+
+        This command is used to load in a  character set.  The GRASP system
+        only allows  1 character set in memory at a time. After a character
+        set has been loaded,  TEXT  commands  (see  command  TEXT)  will be
+        performed using the currently loaded font. Applies only to graphics
+        modes.
+
+
+        Syntax:
+        ------
+
+        FLOAD fontname
+
+        where 'fontname'  is the  name of  the FONTRIX(tm)  or PCPAINT font
+        file you wish to load. File name extensions are optional.
+
+
+        Example:
+        -------
+
+        FLOAD bocklin
+
+        will load  the FONTRIX(tm)  font bocklin.set into memory for use by
+        the TEXT command.
+
+
+        Comments:
+        --------
+
+        When a font is loaded with FLOAD, the gaps are reset to the default
+        gaps  for  that  font.  So  be  sure  to reset gaps using the FGAPS
+        command if the default gaps aren't adequate. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  35
+
+
+
+
+
+
+        FLOAT                                                        FLOAT
+
+
+        Summary:
+        -------
+
+        FLOAT allows you to  animate  a  clipping  or  series  of clippings
+        between any two points on the screen with one command. It
+        is similar  to FLY  except that it performs an exchange with screen
+        data so that the background may be preserved. 
+
+        Syntax:
+        ------
+
+        FLOAT startx, starty, endx,  endy, increment,  delay, clip1, clip2,
+        ...clipn
+
+        where 'startx' and 'starty' indicate the starting point, 'endx' and
+        'endy' indicate  the  ending  point,  'increment'  is  the distance
+        between each  put along  the line, 'delay' is the wait time between
+        each put and 'clip1-clipn' is the list of clippings. 
+
+
+        Example:
+        -------
+
+        FLOAT 0,0,200,200,2,10,1,2,3
+
+        will 'FLOAT' the clippings 1,2 and  3   in that  order from  0,0 to
+        200,200, skipping  2 pixels between each put, waiting a count of 10
+        between each put. For example, clip 1 will  be put  at 0,0,  clip 2
+        will be  put at  clip 2,2, clip 3 will be put a 4,4, clip 1 will be
+        put at 6,6, clip2 will be put at 8,8, etc.
+
+
+        Comments:
+        --------
+
+        This command differs from FLY in that it  preserves the background.
+        Also note  that the  last operation  it performs  is the swap-back,
+        which restores screen data. This means that if  you want  to have a
+        clipping on  the screen after the FLOAT command, you have to follow
+        the FLOAT with a  PUTUP command.  Selective use  of transparent can
+        yield very interesting results.
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  36
+
+
+
+
+
+
+        FLY                                                            FLY
+
+
+        Summary:
+        -------
+
+        FLY allows you to animate a clipping or series of clippings between
+        any two points on the screen with one command.
+
+
+        Syntax:
+        ------
+
+        FLY startx, starty, endx,  endy,  increment,  delay,  clip1, clip2,
+        ...clipn
+
+        where 'startx' and 'starty' indicate the starting point, 'endx' and
+        'endy' indicate  the  ending  point,  'increment'  is  the distance
+        between each  put along  the line, 'delay' is the wait time between
+        each put and  'clip1-clipn'  is  the  list  of  clippings.  You may
+        animate up to 10 clippings.
+
+
+        Example:
+        -------
+
+        FLY 0,0,200,200,2,10,1,2,3
+
+        will  'fly'  the  clippings  1,2  and  3  in that order from 0,0 to
+        200,200, skipping 2 pixels between each put, waiting a count  of 10
+        between each  put. For  example, clip  1 will be put at 0,0, clip 2
+        will be put at clip 2,2, clip 3 will be put a  4,4, clip  1 will be
+        put at 6,6, clip2 will be put at 8,8, etc.
+
+
+        Comments:
+        --------
+         
+        Selective use  of slightly larger than necessary clippings (to wipe
+        out  the    previous  put)  and  transparent  mode  can  yield very
+        interesting results.
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  37
+
+
+
+
+
+
+        FSTYLE                                                       FSTYLE
+
+
+        Summary:
+        -------
+
+        This command allows you to choose a style for the characters in the
+        TEXT command. Styles are as follows:
+
+        style #    style
+        -------    -----
+           0       Default, normal letters
+           1       Bold up.
+           2       Bold right.
+           3       Shadow up right.
+           4       Shadow up left.
+           5       Shadow up right 2 pixels.
+           6       Shadow up left 2 pixels.
+
+
+        Syntax:
+        ------
+
+        FSTYLE fstyle
+
+        where fstyle is the number of the desired style.
+
+
+        Example:
+        -------
+
+        FSTYLE 4
+
+        will set the text style to shadow up left.
+
+
+        Comments:
+        --------
+        Use of the command with no parameters will default to style 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  38
+
+
+
+
+
+
+        GOSUB                                                        GOSUB
+
+
+        Summary:
+        -------
+
+        This command allows the transfer of  control during  execution of a
+        GRASP program  to a  sub-program defined  elsewhere in the program.
+        This is similar to a BASIC gosub command. The subprogram is defined
+        by a  label at the beginning, and a RETURN command at the end. When
+        the  RETURN  is  encountered,  control  is  returned  to  the  line
+        following the line where the GOSUB ocurred.
+
+
+        Syntax:
+        ------
+
+        GOSUB subroutine
+
+        where 'subroutine'  is a sub-program defined elsewhere in the GRASP
+        program.
+
+
+        Example:
+        -------
+
+        GOSUB myprog
+
+        will transfer control to  the  sub-program  'myprog'.  Control will
+        return when the statement RETURN in encountered in the sub-program.
+
+
+        Comments:
+        --------
+
+        Also see command RETURN.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  39
+
+
+
+
+
+
+        GOTO                                                          GOTO
+
+
+        Summary:
+        -------
+
+        This command  allows you  to transfer control of a GRASP program to
+        another portion of the program,  similar  to  the  same  command in
+        BASIC. You  must first  define a  label at the point you want to go
+        to. Labels are defined  as any  string of  less than  16 characters
+        terminated by a colon (:).
+
+
+        Syntax:
+        ------
+
+        GOTO label
+
+        where 'label' is defined somewhere else in the program.
+
+
+        Example:
+        -------
+
+        GOTO here
+
+        will  transfer  control  to  the  line which begins with the string
+        'here:'. There may only be one  label of  a particular  name in one
+        GRASP program. 
+
+
+        Comments:
+        --------
+
+        You may have up to 512 labels in a GRASP program.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  40
+
+
+
+
+
+
+        IFKEY                                                        IFKEY
+
+
+        Summary:
+        -------
+
+        IFKEY allows  conditional branching by means of an implied goto. If
+        the key indicated in  the  command  matches  the  last  key pressed
+        during a waitkey command, branching occurs.
+
+
+        Syntax:
+        ------
+
+        IFKEY key label
+
+        where  key  is  the  key  code  to  compare to and label is a label
+        defined elsewhere in the program.
+
+
+        Example:
+        -------
+
+        IFKEY 1 part1
+
+        means that if, during  the last  waitkey command,  the '1'  key was
+        pressed, goto label "PART1".
+
+
+        Comments:
+        --------
+
+        Valid keys are all numeric and letter keys, F1-F10, UP, DN, LF, RT,
+        PGUP, PGDN, HOME, END.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  41
+
+
+
+
+
+
+        LINE                                                          LINE
+
+
+        Summary:
+        -------
+
+        LINE allows you to draw a single pixel width line on the  screen in
+        the current drawing color.
+
+
+        Syntax:
+        ------
+
+        LINE startx, starty, endx, endy
+
+        where 'startx'  and 'starty' is the location for the first point in
+        the line and 'endx' and 'endy' is the  location for  the last point
+        in the line.
+
+
+        Example:
+        -------
+
+        LINE 0,0,100,100
+
+        will draw  a line  in the  current drawing  color from  x=0, y=0 to
+        x=100, y=100.
+
+
+        Comments:
+        --------
+
+        Transparent  mode  does  not  affect  this  command.  LINE  is  not
+        available in text modes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  42
+
+
+
+
+
+
+        LINK                                                          LINK
+
+
+        Summary:
+        -------
+
+        This command  is used  to link to another text command file. IF you
+        wish to have several special  effects,  and  for  editing purposes,
+        keep them  is separate  ASCII files, you may link them during GRASP
+        run time with this command.
+
+
+        Syntax:
+        ------
+
+        LINK txtfile
+
+        where 'txtfile' is  the  name  of  the  command  file  you  wish to
+        execute.  File  name  extensions  are  not  required,  but all text
+        command files must have an extension of txt.
+
+
+        Example:
+        -------
+
+        LINK race
+
+        will  link  to  the  text  command  file  'race.txt'  and  continue
+        executing.
+
+
+        Comments:
+        --------
+
+        Since this  command requires  interpretation of the command itself,
+        the loading of a  new file,  and the  interpretation of  the second
+        file, it has a tendency to slow things down. It is recommended that
+        all commands be put into  one  file  before  giving  a presentation
+        using GRASP.  This command  is useful during development, or if you
+        have stored several effects  from previous  demonstrations and want
+        to link them together.
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  43
+
+
+
+
+
+
+        LOOP                                                          LOOP
+
+
+        Summary:
+        -------
+
+        This  command  causes  the  GRASP  interpreter  to loop back to the
+        previous mark. This will happen n number of  times, where  n is the
+        number specified in the previous MARK command.
+
+
+        Syntax:
+        ------
+
+        LOOP
+
+
+        Example:
+        -------
+
+        LOOP
+
+        will loop to previous mark.
+
+
+        Comments:
+        --------
+
+        MARK/LOOP pairs may be nested up to 16 levels deep.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  44
+
+
+
+
+
+
+        MARK                                                         MARK
+
+
+        Summary:
+        -------
+
+        This command  is used to mark a position which will be the top of a
+        loop. Coupled with the LOOP command, MARK allows you to  repeat the
+        same steps in your GRASP command file a specified number of times.
+
+
+        Syntax:
+        ------
+
+        MARK xxx
+
+        where 'xxx'  is the  number of  times you wish to loop back to this
+        mark.
+
+
+        Example:
+        -------
+
+        MARK 10
+
+        will place a mark at this  point  so  that  the  next  time  a LOOP
+        command is  encountered, the  program will loop back to this point.
+        This process will occur ten times.
+
+
+        Comments:
+        --------
+
+        MARK/LOOP pairs may be  nested up  to 16  levels deep.  The maximum
+        number of times you can loop is 65535.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  45
+
+
+
+
+
+
+        MODE                                                          MODE
+
+
+        Summary:
+        -------
+
+        Mode is used in IBM CGA 4 color mode and IBM CGA 2 color mode only.
+        It is used to set the palette and border color in these modes. 
+
+
+        Syntax:
+        ------
+
+        MODE border color, palette
+
+        where 'border color' refers to the  background color  in IBM  CGA 4
+        color mode  and foreground  color in  IBM CGA 2 color mode. 'Border
+        color' can be in  the range  0-15. Palette  affects only  IBM CGA 4
+        color mode  and is  in the range 0-5. Refer to the following tables
+        for specifics.
+
+
+        Border                                 Color Table
+        Color    Color       Palette   1            2              3
+        -----    -----       ------- -----------------------------------
+          0      Black          0    Green        Red             Brown
+          1      Blue           1    Cyan         Magenta         White
+          2      Green          2    Cyan         Red             White
+          3      Cyan           3    Bright Green Bright Red      Yellow
+          4      Red            4    Bright Cyan  Bright Magenta  White
+          5      Magenta        5    Bright Cyan  Bright Red      White
+          6      Brown       -------------------------------------------
+          7      Grey 
+          8      Dark Grey (Bright Black)
+          9      Bright Blue
+         10      Bright Green
+         11      Bright Cyan
+         12      Bright Red
+         13      Bright Magenta
+         14      Yellow (Bright Brown)
+         15      White (Bright Grey)
+
+
+        In the above Palette  table,  color  0  is  the  currently selected
+        Border Color.
+          
+
+        Example:
+        -------
+
+        Mode 1,4
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  46
+
+
+
+
+
+
+        will  yield  the  following:  (Assuming  we  are in IBM CGA 4 color
+        mode), border color is blue (Drawing Color 0), and the palette will
+        be bright  cyan, bright magenta, and white. (Drawing colors 1,2 and
+        3, respectively) in IBM CGA 4 color mode. In IBM CGA 2  color mode,
+        The foreground color will be blue.
+
+
+        Comments:
+        --------
+
+        This command  was intended  for use only in IBM CGA 4 color and IBM
+        CGA 2 color modes. Use in  any other  mode may  result in  an error
+        message. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  47
+
+
+
+
+
+
+        NOISE                                                        NOISE
+
+
+        Summary:
+        -------
+
+        NOISE allows you to make music in GRASP. By specifying starting and
+        ending frequencies, as well as  a  duration,  you  can  make single
+        notes, or complex sounds.
+
+
+        Syntax:
+        ------
+
+        NOISE startfreq, endfreq, duration
+
+        where 'startfreq'  and 'startfreq' are the starting frequencies for
+        the noise and 'duration' is the overall length of the noise.
+
+
+        Example:
+        -------
+
+        NOISE 440,440,100
+
+        will play the note with a frequency 440 for duration 100.
+
+
+        Comments:
+        --------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  48
+
+
+
+
+
+
+        OFFSET                                                      OFFSET
+
+
+        Summary:
+        -------
+
+        The  OFFSET  command  allows  you  to  treat  coordinates  in other
+        commands  (like  putup,  line,  box,  cfade,  etc...)  as  relative
+        coordinates rather than absolute. If the OFFSET is set to 0,0, then
+        the coordinates you enter in the other commands are relative to the
+        screen as a whole  which appears  to be  absolute. This  command is
+        used when  you want to repeat a series of operations but don't want
+        to have to alter all the  coordinates in  order to  use a different
+        region of the screen.
+
+
+        Syntax:
+        ------
+
+        OFFSET x,y
+
+        where 'x' and 'y' are the x and y offset values.
+
+
+        Example:
+        -------
+
+        OFFSET 40,32
+
+        will set  the offset  to x=40, y=32. This means that if you specify
+        that you want a line drawn from 0,0 to 10,10, it will actually draw
+        it from 40,32 to 50,42. In other words, the offset values are added
+        to the coordinate data you type in the command.
+
+
+        Comments:
+        --------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  49
+
+
+
+
+
+
+        PALETTE                                                    PALETTE
+
+
+        Summary:
+        -------
+
+        Palette is used to set the current palette to that of the specified
+        picture  which  has  been  loaded  into  a buffer. This sets the 16
+        colors out of 64 on  EGA  16  color  modes  and  the border-palette
+        combination of CGA 4 color mode.
+
+
+        Syntax:
+        ------
+
+        PALETTE buffer number
+
+        Where  'buffer  number'  is  the  number of the buffer in which the
+        picture resides.
+
+
+        Example:
+        -------
+
+        PALETTE 2
+
+        will set the current palette to  the palette  used for  the picture
+        which was loaded into buffer 2 with the PLOAD command.
+
+
+        Comments:
+        --------
+
+        This command  was intended  for use  in EGA 16 color mode and CGA 4
+        color  mode  only.  Use  in  other  modes  may  cause unpredictable
+        results. Use with caution.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  50
+
+
+
+
+
+
+        PAN                                                           PAN
+
+
+        Summary:
+        -------
+
+        This  command  allows  you  to  perform  a  hardware pan if you are
+        operating in one of the EGA modes. If the picture  you want  to pan
+        around on  is larger  than a screen then the following rules apply:
+        1) You MUST use PFADE number 0 to put up  the picture,  2) when you
+        are  finished  panning  and  scrolling, you MUST PFREE the picture,
+        clear the screen with CLEARSCR, then do a RESETSCR before using any
+        other pictures.  This is so that the EGA will be able to keep track
+        of which picture you are using  and how  to best  display it. Also,
+        sequences  of   PAN  commands  should  always  return  you  to  the
+        coordinate 0,0 when you are done. Think of  the picture  as being a
+        very large  screen with the upper left corner being coordinate 0,0.
+        Pan  then  allows  you  to  change  upper  left  corner  to  be any
+        coordinate in the valid coordinate space.
+
+
+        Syntax:
+        ------
+
+        PAN x0,y0,x1,y1,buffer
+
+        where 'x0',  'y0' is  the starting coordinate for panning and 'x1',
+        'y1' is the ending coordinate. 'Buffer' is the  picture buffer that
+        the command  will look into to get real picture coordinates and set
+        the EGA display modes to coincide to.
+
+
+        Example:
+        -------
+
+        PAN 0,0,100,100,1
+        PAN 100,100,0,0,1
+
+        will smoothly pan the screen diagonally from the  upper left corner
+        to 100,100 and back again.
+
+
+        Comments:
+        --------
+
+        This  is  a  complicated  command  and requires some thought to use
+        effectively. Be careful.
+
+        CAUTION: It is imperative that you free the oversize picture buffer
+        BEFORE you perform the CLEARSCR and RESETSCR functions! 
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  51
+
+
+
+
+
+
+        PFADE                                                        PFADE
+
+        Summary:
+        -------
+
+        Pfade is the heart of GRASP. It allows you to dissolve a picture to
+        the screen. You may specify one of several dissolves, the speed for
+        that dissolve, and a delay after the dissolve.
+
+
+        Syntax:
+        ------
+
+        PFADE fade number, buffer number, speed, delay
+
+        where 'fade  number' is  the number  of the  fade you  want to use,
+        'buffer number' is the picture buffer number where  the picture you
+        want to  fade has been loaded, 'speed' is the speed of the fade and
+        'delay' is the time to wait after the  delay. Speed  can be  in the
+        range 0-10000. Check Appendix B for a list of fades.
+
+
+        Example:
+        -------
+
+        PFADE 12,1,500,1000
+
+        will fade  the picture  in buffer  1 using fade 12 at speed 500 and
+        then wait 1000. The delay  works  the  same  as  using  the WAITKEY
+        command. 
+
+
+        Comments:
+        --------
+
+        The first  25 fades in GRASP are the same in all video modes. Fades
+        beyond 25 may be mode  specific  and  must  be  used  with caution.
+        Specifying buffer  0 will  cause a  blank screen of current drawing
+        color to  be generated  and faded  to the  screen. Transparent mode
+        does NOT apply to PFADE.
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  52
+
+
+
+
+
+
+        PFREE                                                        PFREE
+
+
+        Summary:
+        -------
+
+        PFREE is  used to  free-up a picture buffer. Sometimes, you may run
+        out of memory and need to clear up  some buffers  you have  full of
+        pictures you have already used.
+
+
+        Syntax:
+        ------
+
+        PFREE buf1, buf2, buf3...
+
+        where 'buf1' and other buffers are buffers you want to free-up.
+
+
+        Example:
+        -------
+
+        PFREE 1,2
+
+        will free-up picture buffers 1 and 2.
+
+
+        Comments:
+        --------
+
+        This  is  especially  useful  in  EGA  16 color mode where space is
+        critical.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  53
+
+
+
+
+
+
+        PLOAD                                                        PLOAD
+
+
+        Summary:
+        -------
+
+        This command is used to load a picture into a buffer. There are  16
+        buffers available  for pictures in GRASP. It is advised, for memory
+        reasons, that the user try  to  manage  using  only  one  buffer. A
+        picture must  be loaded  into a  buffer before  it can be dissolved
+        onto the screen.
+
+
+        Syntax:
+        ------
+
+        PLOAD picture,buffer number
+
+        where 'picture' is the name of  the picture  you want  to load (the
+        file name  extension is optional) and 'buffer number' is the number
+        of the buffer you want to load in  to. Valid  buffer numbers  are 1
+        through 16.  Buffer 0  is a dummy buffer used for solid color wipes
+        and changes, and thus, no picture may be loaded into it.
+
+
+        Example:
+        -------
+
+        PLOAD mypic,1
+
+        will load the picture myfile.pic into picture buffer number 1.
+
+
+        Comments:
+        --------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  54
+
+
+
+
+
+
+        POINT                                                        POINT
+
+
+        Summary:
+        -------
+
+        POINT allows you to draw  a  single  pixel  on  the  screen  in the
+        current drawing  color. If  a second  point is  indicated, a random
+        point  is  drawn  in  the  rectangular  region  defined  by  the  4
+        coordinates.
+
+
+        Syntax:
+        ------
+
+        POINT startx, starty, <endx, endy>
+
+        where  'startx'  and  'starty'  is  the  location for the point and
+        'endx' and 'endy' define the region for randomization.
+
+
+        Example:
+        -------
+
+        POINT 50,50
+
+        will draw a point in the current drawing color at x=50, y=50.
+
+        POINT 100,100,150,150
+
+        will draw a random point in the region defined by 100,100,150,150.
+
+
+        Comments:
+        --------
+         
+        Transparent mode does not affect this command.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  55
+
+
+
+
+
+
+        PUTUP                                                        PUTUP
+
+
+        Summary:
+        -------
+
+        PUTUP allows you to  place  a  clipping  on  the  screen.  PUTUP is
+        similar to  CFADE 0,  but allows  placement at any x and y location
+        and supports transparent mode.
+
+
+        Syntax:
+        ------
+
+        PUTUP x ,y, <buffer number>, <delay>
+
+        where 'x' and 'y' are the location where  the lower  left corner of
+        the clipping will be placed, 'buffer number' is the clipping buffer
+        number where the clipping you want to put  up resides  and delay is
+        the time to wait after the putup in hundredths of a second.
+
+
+        Example:
+        -------
+
+        PUTUP 25,50,1,1000
+
+        will put  the clipping  in buffer  1 up on the screen at x=25, y=50
+        and then wait for time 1000 (10 seconds). Remember that the x and y
+        coordinates correspond  to the  current video mode. Exceeding these
+        coordinates may result in an error message.
+
+
+        Comments:
+        --------
+
+        Also see CFREE.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  56
+
+
+
+
+
+
+        RESETSCR                                                   RESETSCR
+
+
+        Summary:
+        -------
+
+        This command is used to reset  the virtual  screen back  to display
+        screen size after a PAN command with a larger-than-screen picture.
+
+
+        Syntax:
+        ------
+
+        RESETSCR
+
+
+        Example:
+        -------
+
+        RESETSCR 
+
+        will reset the virtual screen image.
+
+
+        Comments:
+        --------
+
+        Works only with EGA modes and PAN command.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  57
+
+
+
+
+
+
+        RETURN                                                       RETURN
+
+
+        Summary:
+        -------
+
+        This command  causes execution  of the  current sub-program to halt
+        and return control to the calling program.
+
+
+        Syntax:
+        ------
+
+        RETURN
+
+
+        Example:
+        -------
+
+        RETURN
+
+        will return control to calling program.
+
+
+        Comments:
+        --------
+
+        Also see command GOSUB.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  58
+
+
+
+
+
+
+        SETCOLOR                                                  SETCOLOR
+
+
+        Summary:
+        -------
+
+        Setcolor is used to set the color palette  registers in  IBM EGA 16
+        color modes.  On the  EGA, there  are 16 possible colors, called an
+        'index', and each of  these color  indices may  be one  of 64 color
+        'values'. SETCOLOR  differs from CHGCOLOR in that SETCOLOR sets all
+        16 color  indices  at  once.  This  is  faster  and  is  useful for
+        animation effects.
+
+
+        Syntax:
+        ------
+
+        SETCOLOR color value 1, color value 2, ... color value 16
+
+        where 'color value n' lies in the range 0-63.
+
+
+        Example:
+        -------
+
+        SETCOLOR 3,32,23,53,12,11,10,21,35,2,4,8,30,40,61,63
+
+        will  set  the  current  palette  registers  to the 16 color values
+        specified.
+
+
+        Comments:
+        --------
+
+        Remember, this only works  in EGA  16 color  modes and  requires an
+        Enhanced Color Display (ECD).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  59
+
+
+
+
+
+
+        TEXT                                                          TEXT
+
+
+        Summary:
+        -------
+
+        TEXT allows  you to put-up a string of text in the font loaded with
+        FLOAD in the current drawing color.
+
+
+        Syntax:
+        ------
+
+        TEXT x, y, string, <delay>
+
+        where 'x' and 'y' is the location of the lower  left corner  of the
+        first character in the string, 'string' is the string to put up and
+        'delay' is the time  to wait  after the  put-up in  hundredths of a
+        second.
+
+
+        Example:
+        -------
+
+        TEXT 4,4,"This is a text string..."
+
+        will put  the string  indicated between  the quotes up at x=4, y=4,
+        using the current drawing color.
+
+
+        Comments:
+        --------
+
+        The string to be put must be in double quotes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  60
+
+
+
+
+
+
+        TRAN                                                          TRAN
+
+
+        Summary:
+        -------
+
+        TRAN allows you to set transparent mode on  or off,  and to specify
+        which  colors  to  make  transparent.  This  is used for overlaying
+        objects or floating objects across complex backgrounds.
+
+
+        Syntax:
+        ------
+
+        TRAN on/off, color1, color2,...colorn
+
+        where 'on/off' specifies whether  you want  transparent mode turned
+        on or  off and color1-colorn indicate which colors you want to make
+        transparent. Color1-colorn may have the values 0 to  maxcolor where
+        maxcolor  is  the  highest  color  number available in your current
+        video mode.
+
+
+        Example:
+        -------
+
+        TRAN on 2,14
+
+        will turn  transparent  mode  on  and  make  the  colors  2  and 14
+        transparent.
+
+        TRAN off
+
+        will turn transparent mode off.
+
+
+        Comments:
+        --------
+
+        If you  turn transparent mode on and off, the next time you turn it
+        on, you must re-specify  which colors  you want  to be transparent.
+        Transparent does not work in EGA 16 color modes.
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  61
+
+
+
+
+
+
+        VIDEO                                                        VIDEO
+
+
+        Summary:
+        -------
+
+        Video is  used to  set the video mode. Video should be used  at the
+        beginning of the  GRASP  text  file.  Video  modes  may  be changed
+        during   the  demo, but caution is advised. Damage may be done to a
+        monitor if the wrong video mode is requested  for your  system. The
+        default video mode is A, (see table below).
+
+
+        Syntax:
+        ------
+
+        VIDEO vidmode
+
+        where 'vidmode' is one of the following...
+
+                    Maximum       Picture         Memory
+        Vidmode    Resolution   # of Colors     Requirement
+        --------------------------------------------------------
+           0         40x25          16         2K (IBM 40 column text)
+           1         80x25          16         4K (IBM 80 column text)
+           2         80x25          2          4K (IBM 80 column text)
+           A        320x200         4         16K (IBM CGA)
+           B        320x200         16        32K (IBM PCjr/STB)
+           C        640x200         2         16K (IBM CGA)
+           D        640x200       16/64       64K (IBM EGA)
+           E        640x350         2         32K (IBM EGA monochrome)
+           F        640x350         4         64K (IBM EGA)
+           G        640x350       16/64      128K (IBM EGA)
+           H        720x348         2         32K (Hercules monochrome)
+           I        320x200         16        32K (Plantronics/AST CGP)
+           J        320x200         16        32K (IBM EGA)
+
+        These modes,  (with the  exception of the text modes) correspond to
+        PCPAINT video modes.
+
+
+        Example:
+        -------
+
+        VIDEO G
+
+        Will set up GRASP to  use  the  high  resolution  mode  of  the EGA
+        adapter in 16 out of 64 colors.
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  62
+
+
+
+
+
+
+        Comments:
+        --------
+
+        Memory requirement in the table above is the approximate amount  of
+        memory required for the buffer to hold EACH picture you load in for
+        use. Also,  pay attention  to the  size of the screen in each video
+        mode. Attempting to FADE  pictures other  that this  size may yield
+        unpredictable results.  The exception to this is when using the PAN
+        command on an EGA.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  63
+
+
+
+
+
+
+        WAITKEY                                                    WAITKEY
+
+
+        Summary:
+        -------
+
+        This command instructs the  demonstration or  presentation to pause
+        until a  key is  pressed, or  until timeout value, if specified. If
+        timeout occurs, conditional branching is allowed.
+
+
+        Syntax:
+        ------
+
+        WAITKEY <timeout>, <label>
+
+        where 'timeout' is the time to wait before  timeout in  100ths of a
+        second and 'label' is the label to go to if timeout occurs.
+
+
+        Example:
+        -------
+
+        WAITKEY 600,myline
+
+        will wait  until a  key is pressed, or until delay of 6 seconds. If
+        delay of 6 seconds is reached, goto label 'myline'.
+
+
+        Comments:
+        --------
+
+        If no timeout is specified, WAITKEY will wait  forever until  a key
+        is pressed.  The key that is pressed to abort the wait is saved and
+        may be tested by IFKEY.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  64
+
+
+
+
+
+
+        WINDOW                                                       WINDOW
+
+
+        Summary:
+        -------
+
+        This command is used  to restrict  a picture  fade to  a particular
+        portion of  the screen. The coordinates you pass are in pixels, but
+        they are rounded to the nearest byte, or usually 8 pixels.
+
+
+        Syntax:
+        ------
+
+        WINDOW x,y,x1,y1
+
+        where 'x', 'y', 'x1' and 'y1'  are the  lower left  and upper right
+        corner of the window to set for clipping.
+
+
+        Example:
+        -------
+
+        WINDOW 40,40,100,160
+
+        will set  the fade  window to 40,40,100,160. The PFADE command will
+        only fade that portion of the screen that lies in this region.
+
+
+        Comments:
+        --------
+
+        WINDOW has no effect on the CFADE command.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  65
+
+
+
+
+
+
+                        This page intentionally left blank
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  66
+
+
+
+
+
+
+                      Tips, Hints, Examples and Demo Programs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  67
+
+
+
+
+
+
+                        This page intentionally left blank
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  68
+
+
+
+
+
+
+        Example Program #1 - Slide Show
+        -------------------------------
+
+        A simple slideshow can be constructed  by creating  a grasp command
+        file as follows:
+
+
+        ; Slideshow demo for GRASP
+        ;
+        ; This program will load and display 4 pictures, alternating
+        ; between fade #1 and fade #2, waiting for a count of 500 between
+        ; each fade.
+        ;
+         video a             ; set medium res 4 color CGA mode (this can
+                             ; be whatever mode you want to use)
+        ;
+         load pic1           ; load pic1 into buffer 1
+         fade 1              ; fade using fade number 1
+         waitkey 500         ; wait for a count of 500
+        ;
+         load pic2           ; load pic2 into buffer 1
+         fade 2              ; but use fade #2 this time.
+         waitkey 500         ; etc...
+        ;
+         load pic3
+         fade 1
+         waitkey 500
+        ;
+         load pic4
+         fade 2
+         waitkey 500
+        ;
+         exit                ; quit the program
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  69
+
+
+
+
+
+
+        Example Program #2 - How to animate using FLY
+        ---------------------------------------------
+
+        Let's say  you have  2 clippings  which are  a flock  of birds with
+        wings up and wings down. To fly them across the screen, (from 0,160
+        to 300,160 issue the following sequence:
+
+
+         tran on 3      ; turn transparent mode on
+                        ; (this assumes the background is color 3.)
+        ;
+         cload birds1,1                ; load in first clip
+         cload birds2,2                ; load in second clip
+         fly 0,160,300,160,3,4,1,2     ; fly 'em!
+        ;
+         tran off       ; turn off transparent mode
+
+        The parameters  in the  fly command  are x1,y1,x2,y2,step(number of
+        pixels between each putup),delay(time of delay between each putup),
+        and list of clippings, in this case, 1 and 2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  70
+
+
+
+
+
+
+        APPENDIX A - Command Summary
+
+
+        Notes:
+        -----
+
+        Each   command's   arguments  (if  any) are separated by commas  or
+        spaces, whichever is preferable.
+
+        Comments begin at a semicolon and  continue  for  the  rest  of the
+        line.
+
+        Line  labels   are  up  to  16  characters  long  and  end  with  a
+        colon,i.e.,<label>:.
+
+        Subroutines can be nested up to 16 levels deep.
+
+        There can be up to 16 levels of nesting in MARK,LOOP constructions.
+
+        CAPITAL letters are the command name. It must be spelled correctly,
+        but capitals are not required.
+
+        LOWERCASE letters  and numbers are parameters. You must specify all
+        required parameters, (those not enclosed in <>), or you will get an
+        error message indicating too few parameters.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  71
+
+
+
+
+
+
+        Command Summary:
+        ---------------
+        BOX x,y,x2,y2,<width>                 - draw a box
+        CFADE #,x,y,<buffer>,<speed>,<delay>  - fade a clipping to screen
+        CFREE buffer,<buffer>,...             - free up clipping buffer(s)
+        CHGCOLOR from,to,<from,to>,...        - EGA, change color index
+        CIRCLE x,y,rx,<ry>                    - draw an ellipse
+        CLEARSCR                              - clear screen
+        CLOAD clipping filename,<buffer>      - load a clipping
+        COLOR color1,<color2>                 - set color 1 & color 2
+        EXEC program,<parameters>             - execute program from GRASP
+        EXIT                                  - quit program
+        FFREE                                 - free the font buffer
+        FGAPS <char_gap, space_gap>           - set text gaps
+        FLOAD character set filename          - load a font
+        FLOAT xs,ys,xe,ye,step,delay,clp1...  - float clip across screen
+        FLY xs,ys,xe,ye,step,delay,clp1...    - fly clip across screen
+        FSTYLE style                          - set text style
+        GOSUB label                           - execute subroutine
+        GOTO label                            - goto label
+        IFKEY key,label                       - if key match, goto label
+        LINE x,y,x2,y2                        - draw line
+        LINK textfile filename                - link to another text file
+        LOOP                                  - loop to previous mark
+        MARK loop count                       - mark for looping
+        MODE border color,<palette>           - CGA border & palette set
+        NOISE freq1,freq2,duration            - make some noise
+        OFFSET x,y                            - set x and y offsets
+        PALETTE buffer                        - EGA mode set palette
+        PAN x0,y0,x1,y1,<buffer>              - EGA pan from x0,y0 to x1,y1
+        PFADE #,<buffer>,<speed>,<delay>      - fade a picture to screen
+        PFREE buffer,<buffer>,...             - free up picture buffer(s)
+        PLOAD picture filename,<buffer>       - load a picture
+        POINT x,y,<x2,y2>                     - draw a point
+        PUTUP x,y,<buffer>,<delay>            - put a clip to screen @ x,y
+        RESETSCR                              - reset screen to default
+        RETURN                                - return from subroutine
+        SETCOLOR c1,c2,c3...c16               - EGA mode set 16 colors
+        TEXT x,y,"some text",<delay>          - put up text @ x,y
+        TRAN on/off, color                    - transparent mode on/off
+        VIDEO vidmode                         - set video mode
+        WAITKEY <timeout>, <label>            - wait for a keypress
+        WINDOW x0,y0,x1,y1                    - set clip window
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  72
+
+
+
+
+
+
+        APPENDIX B - Fade Table
+
+        There are  25 fades  in GRASP  which must  be called by number. All
+        fades work on  graphics  screens,  graphics  screens  in  a window,
+        clippings  and  text  screens.  This  list  is  also  accessable by
+        pressing F3 while in the GRASP editor.
+
+        Fade # Description
+        ------ -------------------------------------------------------
+          0    Quick snap wipe
+          1    Horizontal left to right wipe
+          2    Horizontal right to left wipe
+          3    Horizontal edge to center wipe
+          4    Horizontal center to edge wipe
+          5    Horizontal 1 pass filter wipe - both sides simultaneously
+          6    Horizontal 2 pass filter wipe - from left, then from right
+          7    Horizontal halves wipe - left to right, then right to left
+          8    Horizontal halves wipe - left and right simultaneously
+          9    Vertical top to bottom wipe
+         10    Vertical bottom to top wipe
+         11    Vertical edge to center wipe
+         12    Vertical center to egde wipe
+         13    Vertical filter wipe, top and bottom simultaneously
+         14    Vertical halves wipe, top and bottom simultaneously
+         15    Vertical halves wipe, left down, right up
+         16    Vertical quarters wipe
+         17    Vertical fingers wipe
+         18    Vertcial fingers/filter combination wipe
+         19    Slither from top to bottom
+         20    Sparkle fade (random)
+         21    Diagonal wipe
+         22    Aperature dissolve - edge to center
+         23    Aperature dissolve - center to edge
+         24    Clockwise clock dissolve
+         25    Double slant dissolve
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  73
+
+
+
+
+
+
+                        This page intentionally left blank
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  74
+
+
+
+
+
+
+        APPENDIX C - Error Messages
+
+        The following is a  list of  messages you  may get  while executing
+        GRASP and some of their causes and solutions.
+
+
+        MOST COMMON ERRORS:
+
+
+        I.    The  most  common  error  is  not a grasp program error but a
+              system error. The screen will  clear,  and  you  will  get an
+              error like
+
+         External Memory allocation overflow, xxxxk requested, yyyyk free.
+
+              This means  that you have tried to load a picture or clipping
+              that is too large  for the  memory you  have left.  There are
+              several fixes for this problem.
+              1) Buy more memory. EGA 16 color demos usually take most of a
+              640K machine
+              2) Check your code and use PFREE, CFREE and FFREE to clean up
+              memory  when  you  are  through  using  particular  pictures,
+              clippings and fonts. See the section  of the  manual on these
+              commands.
+              3)  Use  the  special  parameter, ',1' on clipping loads that
+              don't make the shifted copies. In order to be able to PUTUP a
+              clipping at  any single-pixel coordinate, GRASP needs to make
+              up to 8 shifted copies of the clipping.  If you  are going to
+              be using  CFADE or putting it up at a byte boundary, then the
+              shifted copies aren't necessary. You can keep them from being
+              generated by typing:
+
+              CLOAD clip,1,1 ;note the extra ',1'
+
+              If you  do specify the extra parameter, and you try to put up
+              the clipping at a non-byte  boundary,  no  putup  will occur.
+              Remember,  FLY,  FLOAT  and  PUTUP  can  put clippings at any
+              coordinate. CFADE can only putup at a byte boundary.
+
+              If none of the above three  work,  then  call  the  GRASP and
+              PCPAINT BBS for more advice.
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  75
+
+
+
+
+
+
+        II. System Errors
+
+         The following  is a  list of  the GRASP system errors that you may
+        encounter. These will appear on the top of the screen while running
+        your demo  along with  a line number where the error occurred. When
+        you press a key, you will be returned to that line in your program.
+        If you  get the  error while running under the runtime version, the
+        program will stop.
+
+
+
+        DUPLICATE LABEL 
+
+        - You have used the same label name more than once in your demo and
+        GRASP is confused.
+
+
+        ERROR IN LOOP COUNT
+
+         - Loop count  must be  a positive  number. This  error occurs if a
+        negative number was specified.
+
+
+        ERROR IN NAME
+
+         - You have used an invalid character  in a  filename, or  the file
+        GRASP was trying to load was not found.
+
+
+        ERROR IN PACKED CLIPPING
+
+         - sometimes,  clippings  may  be  trashed or someone tries to load
+        some other file with a .CLP extension. If GRASP does  not recognize
+        a  clipping  as  being  a  valid  clipping  file, you will get this
+        message.
+
+
+        ERROR IN XCOORD
+
+         - The Y-coordinate lies off  the screen.  This may  occur after an
+        OFFSET command. If you specify 0 for the Y coordinate, but Y offset
+        is set to -5, you will get this error.
+
+
+        ERROR IN YCOORD
+
+         - The Y-coordinate lies off  the screen.  This may  occur after an
+        OFFSET command. If you specify 0 for the Y coordinate, but Y offset
+        is set to -5, you will get this error.
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  76
+
+
+
+
+
+
+        ERROR LOADING FONT
+
+         - GRASP doesn't recognize the  font you  are trying  to load. Also
+        could be too large for memory or hardware error during load.
+
+
+        ERROR LOADING PICTURE
+
+         - GRASP doesn't recognize the picture you are trying to load. Also
+        could be hardware error during load.
+
+
+        ERROR LOADING TEXT
+
+         - GRASP doesn't recognize the text file you are trying to link to.
+        Also could be hardware during load.
+
+
+        ILLEGAL ARGUMENT(S)
+
+         - One  of  the  arguments  for  the  current  command  is invalid.
+        Examples are invalid video mode, etc.
+
+
+        ILLEGAL BUFFER
+
+         - You have specified a buffer  number  that  is  outside  of valid
+        range. Buffers  are 1-16 for pictures and 1-128 for clippings. Also
+        may get this when an error occurs trying  to allocate  a new buffer
+        during load.
+
+
+        ILLEGAL COLOR
+
+         - You have specified an invalid color number for this video mode.
+
+
+        ILLEGAL FADE
+
+         - You have specified an invalid fade number. Valid fades are 0-25.
+
+
+        ILLEGAL PALETTE
+
+         - You have  specified an  invalid palette  number for  CGA 4 color
+        mode. Valid palettes are 0-5.
+
+
+        ILLEGAL SPEED
+
+         - You have specified an invalid speed for a fade. Valid speeds are
+        0-10000.
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  77
+
+
+
+
+
+
+        INVALID FONT STYLE
+
+         - You have  specified an  invalid font  style number. Valid styles
+        are 0-6.
+
+
+        INVALID GAP VALUE
+
+         - You have specified an invalid GAP value. Range is 0-255.
+
+
+        LABEL NOT FOUND
+
+         - You have  tried to  reference a  label which  was not previously
+        defined.
+
+
+        MEMORY ERROR
+
+         - When trying  to allocate the memory for your GRASP command file,
+        an error was encountered. Usually only happens when  a command file
+        is too large.
+
+
+        NOT ENOUGH ARGUMENTS
+
+         - Certain commands require a minimum number of arguments. You need
+        to specify some more.
+
+
+        THIS COMMAND REQUIRES AN EGA
+
+         - Just like it says, this particular command requires  an EGA card
+        and EGA video mode to operate.
+
+
+        TOO MANY LOOPS
+
+         - You have nested your loops deeper than the maximum, which is 16,
+        or you have more loop commands that mark commands.
+
+
+        TOO MANY MARKS
+
+         - You have nested your loops deeper than the maximum, which is 16,
+        or you have more mark commands than loop commands.
+
+
+        UNKNOWN COMMAND
+
+         - GRASP found  something that  was not  a comment, not a label and
+        couldn't recognize as a valid command. Check your spelling.
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  78
+
+
+
+
+
+
+        APPENDIX D - Picture Swap Line
+
+
+        There is a public domain electronic  bulletin board  which operates
+        24 hours a day with the sole purpose of providing a method by which
+        users of PCPAINT and GRASP may exchange pictures, clippings, fonts,
+        effects and  ideas. This help eliminate the extra cost of providing
+        artwork for many of  the GRASP  demos you  may want  to create. The
+        most current version of GRASP will be avaliable this system.
+
+        All uploads  and downloads  are free  and may be used by anyone. We
+        encourage you to contribute any artwork you feel  could be  used by
+        someone  else.  Of  course  there  will  be proprietary artwork you
+        either pay  to have  developed, or  need to  keep confidential. But
+        your discards may be another's joy...
+
+        The BBS is located in Costa Mesa, California, and the number is
+
+                           ***    (714) 545-8100    ***
+
+        You will  be limited  to 1 hour of use per day. We suggest that you
+        use 1200 or 2400 baud modems set at 8 bits, 1 stop  bit, no parity.
+        You will  be transferring binary files so the 8 bit mode is a must.
+        There are several utility programs you will want  to download first
+        which allow you to squeeze and unsqueeze the pic files so that they
+        will not take as much time  to upload  and download.  You will find
+        them in the UTILITY file area.
+
+
+        Thanks in advance for your support and contributions to the board.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  79
+
+
+
+
+
+
+                        This page intentionally left blank
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  80
+
+
+
+
+
+
+        APPENDIX E - GRASP Order Form
+
+        GRASP is distributed in the USEware format. If you are going to USE
+        it, please check the appropriate box below and  enclose a  check or
+        purchase order. If you find the program unUSEable, please drop us a
+        line telling us why. If you pay for the program by sending  in this
+        registration form with a check or money order, you will be added to
+        our mailing list and be  kept  notified  of  new  releases  and new
+        utilities.
+
+        ------------------------------------------------------------------
+        Single-User Order Form
+        ======================
+        If you are going to pay for less than 50 copies, use this form. The
+        single user price is $50.00.  California  residents  please  add 6%
+        sales tax. You must pay for EACH copy you plan to use.
+
+        Full Name:__________________________  ___ Copies @ $50.00=_________
+
+        Address  :__________________________      6% Sales Tax   =_________
+
+                 :__________________________      Total Enclosed =_________
+
+        City, St.:_________________    _____  Zip:_________________
+
+        ------------------------------------------------------------------
+        Corporate Site License Order Form
+        =================================
+        If you are going to be using in excess of 50 copies of GRASP within
+        your company at one site, (5 mile radius from licensing party), you
+        need  only  pay  for  the  first  50  copies. You may then make and
+        distribute to your employees an unlimited  number of  copies of the
+        software and  manual. We  have 45 day billing if you include a P.O.
+        number instead of a check or money order.
+
+        Primary Corporate Contact for updates, etc.:
+
+        Full Name :_________________________  50 Copies @ $50.00 = $2500.00
+
+        Address   :_________________________        6% Sales Tax =_________
+
+                  :_________________________      Total Enclosed =_________
+
+        Department:_________________________   P.O. Number:________________
+
+        City, St. :_________________    _____     Zip:_________________
+
+        Authorized Signature:______________________________  Date:_________
+
+        ------------------------------------------------------------------
+
+
+
+                   GRASP - Graphical System for Presentation
+                                   Page:  81
+
+

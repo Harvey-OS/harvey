@@ -1,0 +1,33 @@
+.TH LCA2PIN 10.1
+.SH NAME
+lca2pin, pga132x \- Xilinx to CDA translation
+.SH SYNOPSIS
+.B cda/lca2pin
+.I filenames ...
+.br
+.B cda/pga132x
+.SH DESCRIPTION
+.I Lca2pin
+reads at least a
+.I lca_file
+returned by the proprietary Unix-based Xilinx
+placing and routing software and produces a
+package and type definitions in CDL format in
+.IB name .pins \fP,
+where
+.I name
+is the prefix of the first file argument.
+.PP
+.I Pga132x
+provides
+.I lca2pin
+with pin name to pin number translations for the Xilinx PGA132 package.
+.SH EXAMPLES
+If you are working on a PGA132 device, then a typical use would be
+.sp
+.EX
+	cda/pg132x | cda/lca2pin /fd/0 xmit.lca
+.EE
+.SH SEE ALSO
+.IR xnf (10.1),
+.IR lde (10.1)

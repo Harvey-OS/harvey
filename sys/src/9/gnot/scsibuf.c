@@ -13,7 +13,7 @@
  * This is simplistic at best, and opportunities for
  * deadlock abound.
  */
-#define Nbuf	1
+#define Nbuf	2
 
 struct {
 	Lock;

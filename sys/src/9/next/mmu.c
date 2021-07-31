@@ -219,7 +219,7 @@ putmmu(ulong tlbvirt, ulong tlbphys, Page *pg)
 		pexit("Suicide", 0);
 	}
 
-	splhi();
+	s = splhi();
 	/*
 	 *  synchronize text and data cache for this page
 	 */

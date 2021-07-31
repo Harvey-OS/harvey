@@ -1,7 +1,6 @@
 </$objtype/mkfile
 
-TARG=kal
-OFILES=	cinit.$O\
+OBJ=	cinit.$O\
 	code.$O\
 	inst.$O\
 	output.$O\
@@ -9,40 +8,33 @@ OFILES=	cinit.$O\
 	sugen.$O\
 	regopt.$O\
 	peep.$O\
-	main.$O\
-	lex.$O\
-	y.tab.$O\
-	misc.$O\
-	type.$O\
-	type2.$O\
-	type3.$O\
-	tree.$O\
-	decl.$O\
-	func.$O\
-	init.$O\
-	acid.$O\
-	mpatof.$O\
-	mul.$O\
-	pack.$O\
+	../port/main.$O\
+	../port/lex.$O\
+	../port/y.tab.$O\
+	../port/misc.$O\
+	../port/type.$O\
+	../port/type2.$O\
+	../port/tree.$O\
+	../port/decl.$O\
+	../port/func.$O\
+	../port/init.$O\
 
-YFILES=../port/parl.y
+INC=	machdep.h ../port/tcom.h ../port/globl.h ../port/parl.h
 
-HFILES=	machdep.h\
-	../port/tcom.h\
-	../port/globl.h\
-	../port/parl.h\
-	../port/y.tab.h\
+$O.out:	$OBJ
+	$LD $prereq
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkone
+%.$O:	%.c $INC ../port/y.tab.h
+	$CC -w -I../port -o $stem.$O $stem.c
 
-CFLAGS=-w -I../port
-
-../port/y.tab.h:	y.tab.h
-	mv $prereq $target
-
-%.$O:	../port/%.c
-	$CC $CFLAGS ../port/$stem.c
+../port/y.tab.c ../port/y.tab.h: ../port/parl.y $INC
+	cd ../port; yacc -d parl.y
 
 clean:V:
-	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG ../port/y.tab.? ../port/*.[$OS]
+	rm -f *.[$OS] ../port/y.tab.? ../port/*.[$OS] *.out
+
+install:	$O.out
+		cp $O.out /$objtype/bin/kal
+
+installall:V:
+	for(objtype in $CPUS) mk install

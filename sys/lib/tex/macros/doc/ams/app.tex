@@ -1,0 +1,43 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% APP.TEX						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+\chapter[Nonselfadjoint Equations]%
+{On the Eigenvalues and Eigenfunctions\\
+of Certain Classes of Nonselfadjoint Equations}
+
+\section{Compact operators} In an appropriate Hilbert space, all 
+the equations considered below can be reduced to the 
+form
+\begin{equation}
+y=L(\lambda)y+f,\qquad L(\lambda)=K_0+\lambda K_1+\dots+\lambda^n
+K_n,
+\end{equation}
+where $y$ and $f$ are elements of the Hilbert space, 
+$\lambda$ is a complex parameter, and the $K_i$ are
+compact operators.
+
+A compact operator $R(\lambda)$ is the resolvent of 
+$L(\lambda)$ if $(E+R)(E-L)=E$.  If the resolvent exists
+for some $\lambda=\lambda_0$, it is a meromorphic function
+of $\lambda$ on the whole plane.  We say that $y$ is
+an eigenelement for the eigenvalue $\lambda=c$, and that
+$y_1,\dots,y_k$ are elements associated with it (or
+associated elements) if 
+\begin{equation}
+y=L(c)y,\quad y_k=L(c)y_k+\frac{1}{1!}\,\frac{\partial L(c)}{\partial c}
+y_{k-1}+\dots+\frac{1}{k!}\,\frac{\partial^kL(c)}{\partial c^k}y.
+\end{equation}
+Note that if $y$ is an eigenelement and $y_1,\dots,y_k$
+are elements associated with it, then $y(t)=e^{ct}(y_k
++y_{k-1}t/1!+\dots+yt^k/k!)$ is a solution of the equation
+$y=K_0y+K_1\partial y/\partial t+\dots+K_n\partial^ny/
+\partial t^n$.
+
+\endinput

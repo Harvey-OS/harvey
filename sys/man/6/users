@@ -8,7 +8,7 @@ and groups, in
 by convention.
 Each line in the file has the format
 .IP
-.IB num : name : leader :\fImembers\fP
+.IR num : name : leader :\fImembers\fP
 .PP
 where
 .I num
@@ -62,7 +62,6 @@ itself is owned by user
 .IR adm ,
 having a negative
 .IR num ,
-and write protected to others,
 so it can only be changed via console commands.
 .SH "SEE ALSO"
 .IR intro (5),

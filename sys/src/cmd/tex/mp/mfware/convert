@@ -1,0 +1,6 @@
+#!/bin/sh
+# Convert Metafontware programs to C.
+# 
+cat mfware.defines $1 \
+	| ../web2c/web2c -hmfware.h -c`basename $1 .p` \
+	| ../web2c/fixwrites > $2

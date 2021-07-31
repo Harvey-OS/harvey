@@ -1,0 +1,2362 @@
+\input paperhead    %  Read private macro package
+\DoContents         %  Maintain a table of contents
+\centerline{\titlefont A Guide to \TeX}
+\vskip 4pt
+\centerline{\titlefont for the Troff User}
+\vskip 8pt
+\centerline{\it Mike Urban}
+\centerline{\sl TRW Software Productivity Project}
+\vskip .5in
+\Section{Introduction}
+Donald Knuth's \TeX\ system has several advantages over the
+\def\Troff/{{\it troff\/}}% Includes the italic correction
+standard \Troff/ program distributed with Berkeley or Bell \Unix
+\note{UNIX is a Registered Trademark of AT\&T Bell Laboratories.  Some
+say that's the problem.}.
+\TeX\ is portable, as it
+is written in |Pascal|, and is available
+on a variety of systems such as \Unix, VMS, TOPS-20%
+\note{VMS and TOPS-20 are Trademarks of Digital
+Equipment Corporation}, and IBM's
+VM/CMS%
+\note {VM/CMS is a Trademark of IBM} system. It is inexpensive (\$50 for
+the \Unix\ port from the University of Washington),
+and it generates device-independent output.  It
+also can produce beautiful copy, especially when setting mathematics.
+Finally, it has arbitrary-length command
+and variable names, which can
+provide much greater readability than the 1- and 2-character
+symbols of \Troff/
+(this property is shared with the
+|Scribe|$^{\rm TM}$ system from Unilogic, Inc.).
+For example, the first few lines of the file which produced
+this paper are:
+\begintt
+\input paperhead    % Read private macro package
+\DoContents         %  Maintain a table of contents
+\centerline{\titlefont A Guide to \TeX}
+\vskip 4pt
+\centerline{\titlefont for the Troff User}
+\vskip 8pt
+\centerline{\it Mike Urban}
+\centerline{\sl TRW Software Productivity Project}
+\vskip .5in
+\Section{Introduction}
+Donald Knuth's \TeX\ system has several advantages over the
+\endtt
+The only cryptic item in this excerpt is the |\vskip|
+primitive, which stands for {\bf Vertical Skip}; the remaining
+commands are fairly transparent.
+
+\TeX\ is, however, substantially different in
+its general architecture from \Troff/.  Its input is
+``stream-oriented'' rather than consisting of discrete lines,
+with embedded formatting commands preceded by an {\sl escape\/},
+or distinguished
+character (the backslash, |\|).  Its treatment of different typefaces is
+different from the approach used
+by \Troff/, which was designed to drive a particular
+(and now somewhat obsolete) variety of typesetter.
+Finally, \TeX\ sets up a page of
+type using an algorithm based on ``gluing'' together ``boxes'' of
+characters, in a manner quite analogous to the way that
+traditional printers locked up ``composing sticks'' containing
+rows of letters by adjusting external wedges called ``quoins.''
+To the casual user setting up a simple document, the difference
+may appear to be minor.  However, the consequences can be felt
+when one is attempting an operation that is even slightly extraordinary.
+
+For these reasons, using \TeX\ for the first time
+may prove to be a strange,
+perhaps even frustrating experience for an experienced \Troff/
+user, even if a wealth of ``user-friendly'' macros (analogous
+to the {\bf --mm} or {\bf --me} macro packages) has been
+provided.  This document will attempt to assist the prospective
+\TeX\ user in the transition from \Troff/.  It does not pretend
+to be a complete description of \TeX, nor is it a ``cookbook''
+of conversion techniques for \Troff/ documents.  It is simply
+an introduction to the most basic elements of \TeX\ that
+assumes some \Troff/ experience.  When in doubt,
+the reader is urged to try
+out the various features of \TeX\ to see how they behave in
+practice, rather than relying on ``thought experiments''
+based on the material in this paper or ``{\sl The \TeX book}''.
+\Section{Input Format}
+\SubSection{Control Sequences}
+The \Troff/ input format with which the reader is familiar
+consists of lines of text.  Some of these lines begin
+with a command character (i.e., a period)
+and are considered command lines;
+these contain formatting directives.  The remaining lines
+contain text to be formatted, with occasional escape
+sequences (using a distinguished,
+or
+{\sl escape\/} character) for
+particular formatting operations that cannot be easily
+specified at a line-break (such as in the middle of a word),
+or for special characters such as the Greek letter `$\alpha$'
+(|\(*a|).
+
+In contrast, \TeX\ input is ``stream-oriented'', i.e.,
+the boundaries between input lines are
+unimportant.  During normal
+operations, there is no substantial difference between
+a newline and a space (there are two exceptions to be noted
+later).  \TeX\ commands (called
+{\sl control sequences}) may occur anywhere in the input,
+and are distinguished by beginning with an {\sl escape\/} character
+(|\|, the backslash)\note
+{This character has {\bf nothing} to do with the ASCII `ESC'
+character (character code $036_8$) which is labeled {\tt ESC}
+or {\tt ESCAPE}
+on many terminals.}.
+There are two varieties of control sequences.  The
+first is called a {\sl control word} and consists of the
+escape character followed by one or more alphabetic characters.
+The end of a control word is the {\sl first non-alphabetic 
+character encountered\/}.  Thus the control
+sequence |\TeX|, which sets the word `\TeX,' could be
+used in a phrase like |\TeX82| (which produces `\TeX82'),
+because the non-alphabetic character `8' signifies the end
+of the |\TeX| control word.
+However, the phrase
+|\TeXnical| would be considered an undefined control word.
+
+The second kind of control sequence, like |\'|, is called a
+{\sl control symbol}; it consists of the escape character
+followed by a {\sl single nonletter}.  For example, the
+escape sequence |\'| is used to accent letters: the input
+|P\'olya| yields `P\'olya'.
+
+When a space follows a control word, it is ignored.  For
+example, to set the word `\TeX nical' into type, one would type
+the input |\TeX  nical|; the space following the |\TeX| control
+word ends
+the control word, but is otherwise ignored. 
+Multiple spaces are treated as a
+single space.  So to set the phrase `\TeX\ ignores spaces
+after control words' one must say:
+\begintt
+\TeX\ ignores spaces after control words
+\endtt
+using the control symbol |\|\] (i.e. an escape followed by a space)
+to set an actual space.
+
+There are about 300 {\sl primitive} control sequences built
+into \TeX, and 600 more {\sl defined} control sequences (many
+of them are {\sl macros}) are supplied as part of the default
+version of \TeX.  These 900 definitions
+constitute ``{\sl plain \TeX\/}.''  Plain \TeX{}
+provides substantially more built-in support than \Troff/ does
+without macros, but does not provide all the facilities
+(section numbering, tables of contents) of a typical \Troff/ macro
+package.  Thus, additional macros (probably supplied in
+a macro package) are usually required to format
+a complex document, but many simple documents with unnumbered
+paragraphs, and even with footnotes, labeled sections,
+and page headers,
+can be formatted using only the facilities of plain \TeX.
+\SubSection{Input lines}
+As mentioned above, there are two exceptions to the rule
+whereby a newline is treated the same as a space.  The
+first case is {\sl comments\/}.  When \TeX\ encounters
+a percent sign (|%|), the percent sign and all following
+characters up to and including the next newline are ignored
+(to set a percent in a document, use the control
+symbol |\%|).
+
+The second case is {\sl paragraphs\/}.  When two consecutive
+newlines are encountered (i.e. an empty line), the effect is
+the same as if a |\par| control word, which represents an
+end-of-paragraph command, has occurred.  Thus, a user can set
+up a simple document quite easily by simply leaving empty lines
+between paragraphs.
+
+One can also use a plain \TeX\ macro, |\obeylines|, to cause
+each
+newline character to begin a new paragraph,
+just as two consecutive newlines normally do.  The
+effect is similar to the |.na| request of \Troff/.
+However, as there is no
+macro to undo this effect, this should be done inside
+a {\sl group\/,} to be described later.
+\SubSection{Other Strange Characters}
+Besides |\| and |%|, there are eight other characters that have
+special significance for \TeX\ and should be avoided.  If
+one must type them, there are control sequences that can be used to
+prevent their special meanings:
+$$\vbox{\halign {\hfil{\tt#}\hfil&\quad#\hfil&\quad#\hfil&\quad{\tt#}\hfil\cr
+{\sl\quad Character\quad}&\hfil\sl Name\quad&
+{\sl Significance\hfil}&{\sl\hfil Control Sequence}\cr
+\noalign{\smallskip\hrule\smallskip}
+\\&Backslash&Escape&\$\\backslash\$\cr
+$\{$&Left Brace&Begin Group&\$\\$\{$\$\cr
+$\}$&Right Brace&End Group&\$\\$\}$\$\cr
+\$&Dollar Sign&Math Escape&\\\$\cr
+\&&Ampersand&Alignment Tab&\\\&\cr
+\#&Pound Sign&Parameter&\\\#\cr
+|^|&Circumflex&Superscript&|\^|  {\it (accent)}\cr
+|_|&Underscore&Subscript&|\_|\cr
+|~|&Tilde&Tie&|\~|  {\it (accent)}\cr
+\%&Percent&Comment&\\\%\cr
+}
+}$$
+\SubSection{Groups}
+The characters |{| and |}| deserve special attention.  These
+braces delimit {\sl groups\/}.  Groups correspond, very roughly,
+to \Troff/ environments (which most users don't see except
+in the effects of such macros as the |.(b|~macro of the {\bf --me}
+package).  Basically, any formatting change that occurs
+within a group is undone when that group is closed.  For example,
+the plain \TeX\ macro |\bf| changes the current font to {\bf bold
+face}; to change one word to {\bf bold} in the middle of the
+sentence, one says something like
+\begintt
+to change one word to {\bf bold} in the middle
+\endtt
+The change to boldface within the group is undone when that group
+is closed.
+
+Groups also serve a second function: they delimit parameters for
+certain control sequences.  For example, the plain \TeX\ macro
+|\centerline| requires a parameter comprising the text to be
+centered.  Thus, the first title line of this document was
+produced by the input
+\begintt
+\centerline{\titlefont A Guide to \TeX}
+\endtt
+as seen in the introduction.  Groups are not precisely analogous
+to anything in \Troff/, but are an extremely important element
+of \TeX\ syntax.
+
+\Section{Fonts and Sizes}
+\SubSection{Fonts}
+{\it Troff\/} is oriented towards a
+Wang Laboratories, Inc.,
+C/A/T~Phototypesetter\note{A device-independent
+\Troff/ is available as a separate program product from Western
+Electric or maybe some other AT\&T subsidiary.},
+and this causes several peculiarities and limitations, such as the
+four-font restriction and the limitation of text width to 
+$7{1\over2}$ inches.  Furthermore, the phototypesetter produces different
+sizes of type by magnifying the letters with lenses.  This causes
+the smaller point sizes to be cramped and hard to read, while
+the much larger sizes may be more widely spaced than aesthetics
+might dictate.
+
+\TeX\ produces device-independent output files with a theoretical
+resolution smaller than the wavelength of visible light (65536
+basic units to a printer's point).  Characters on the page
+are symbols (often called {\sl glyphs\/}) from particular fonts.
+The size of the symbol is defined by the font in which it occurs,
+just as its shape is.  Thus, ten-point roman (which you are reading
+now) is a font completely separate from eight-point roman ({\eightpoint
+which you are reading now}).
+Plain \TeX\ assumes that the document
+will be set in ten-point type, and sets the distance between
+lines to account for that.  Plain \TeX\ also defines five control
+sequences for changing fonts:
+$$\vbox{\halign{\indent#\hfil\qquad&#\hfil\cr
+|\rm| switches to the normal ``roman'' typeface:&Roman\cr
+|\sl| switches to a slanted roman typeface:&\sl Slanted\cr
+|\it| switches to italic style:&\it Italic\cr
+|\tt| switches to a typewriter-like face:&\tt Typewriter\cr
+|\bf| switches to an extended boldface style:&\bf Bold\cr}}$$
+At the beginning of a run you get roman type.  As we saw
+earlier, the best way to switch fonts is within a {\sl group\/};
+this obviates the need for explicitly switching back to the
+previous font.  Notice that these control sequences all change
+to the ten-point version of these type styles, regardless of
+the point size currently being used.
+
+Users of \Troff/, who are accustomed to using {\it italics\/} for
+emphasis and special material, should note carefully the difference
+between {\it italics\/} and {\sl slanted letters.  Slanted letters
+are just skewed roman letters, \it  but italic letters are drawn
+in a completely different style\/}.  Consider, for example,
+{\tenu unslanted italic letters}.  Usually, slanted letters can
+be used for emphasis or for cited book titles; italics can be
+used for special material such as section headings, or names
+of \Unix\ programs such as \Troff/.  However, there are no established
+conventions for the use of italics versus slanted letters, and the
+writer is free to use them as he or she sees fit.
+
+In addition to the
+five plain \TeX\ fonts, one can easily define a control sequence
+which will switch to 
+any single font in the font library stored in the \Unix\ file system
+(which normally includes the Computer Modern font family you are
+now reading).  In effect, one is creating an association between
+a font name, used as a control sequence within \TeX, and the name
+of the file on disk where the information about the font can be found.
+For example, the word `\Unix' which appears
+throughout this document is set in
+a ten-point small-caps
+font.  The \Unix\ file name for this font is |cmcsc10|.
+The \Unix\ file names have no intrinsic significance to \TeX,
+so to use
+|cmcsc10| in this paper, a |\csc| control sequence was defined
+and associated with the |cmcsc10| disk file
+by saying
+\begintt
+\font\csc=cmcsc10
+\endtt
+After the |\font| control sequence, a switch to title font
+is accomplished by simply issuing the |\csc| control sequence.
+Samples of some of the available fonts have been appended to
+this paper.
+
+Plain \TeX\ predefines some control sequences for certain
+smaller character
+sizes.  For example, |\sevenbf| selects {\sevenbf seven-point boldface}
+type.  When switching to a different size of type, one should be
+aware that the interline spacing is {\sl not\/} changed, nor are
+the definitions for |\sl|, |\bf|, etc. changed; they still refer
+to ten-point slanted, boldface, etc.\note{The macro package used
+to set this paper includes an {\tt\\eightpoint} macro that changes
+all the appropriate definitions
+to eight-point type, as in this footnote.
+See your \TeX\ guru to see if such a macro is publicly available.}
+To use the other available character sizes, such as nine-point
+roman,
+one must use |\font| to
+associate a new control word (e.g. |\ninerm|) with the appropriate
+font information file (in this case, |cmr9|).
+
+When switching from a slanty font like {\it italics\/} to a vertical
+one like this roman font, a little extra space should be inserted
+to prevent the top of the slanty text from getting too close to
+the unslanted material.  Otherwise,
+it ends up `{\it printed} like this' instead of
+`{\it printed\/} like this.'  This so-called {\sl italic
+correction\/} should be set with the
+control symbol |\/| in the slanty font whenever such a 
+switch is made.  For example, the previous sentence began:
+\begintt
+This so-called {\sl italic correction\/} should be set
+\endtt
+This isn't too hard to get used to, and can prevent some
+uglinesses that \Troff/ doesn't understand or attempt to
+deal with.
+\tracingpages=1
+\SubSection{Special Characters Revisited}
+Not every font has every character.  For example, the
+roman font doesn't have the inequality signs `$<$' and
+`$>$' (they must be typed in Mathematics Mode, to be
+described later).  However, if you know the symbols that
+{\sl are\/} on the fonts you're using\note{The \TeX book
+displays font layout tables in Appendix~E.}, you can produce
+these characters using the special |\char| control sequence.
+For example, the visible characters in the |\tt| font correspond
+to ASCII terminal characters.  Thus, to produce a typewriter-style
+backslash (`{\tt\\}', ASCII code 92 decimal), one can type
+\begintt
+{\tt\char92}
+\endtt
+By using an ``accent gr\`ave'' or left-quote character, one
+can specify the character directly.  For example, the backslash
+could also be produced by
+\begintt
+{\tt\char`\\}
+\endtt
+Remember, this example only applies to Typewriter font.  Position
+92 of the roman font doesn't contain a backslash; thus
+|\char`\\| would only produce the double-quote (\char92).
+
+As described in the  later section on ``Macros And Definitions,''
+these |\char| sequences can be assigned to {\sl macros\/} or abbreviations,
+if they are to be used many times in a single document.
+\SubSection{Magnification}
+Many of the large type sizes can be obtained satisfactorily
+by magnifying ten-point type to larger sizes just as
+\Troff/ does.  Indeed, such magnified fonts may be the only
+available fonts in the desired size.  One may specify a
+magnified font by using the word |scaled| in the font
+definition as shown:
+\begintt
+\font\twelverm=cmr10 scaled 1200
+\endtt
+The scaling factor (``1200'' in this example) is based on
+1000 as a 1:1 ratio; in this example, it specifies that
+the normal ten-point letters will be magnified by a factor
+of 1.2000 to a size of twelve points.
+
+Plain \TeX\ provides a series of standard magnification steps
+that give a series of magnifications of 1.2 times.  They
+are specified by a macro called |\magstep| as follows:
+$$\vbox{\halign{\tt#\hfil&\hfil\quad#\quad\hfil&\quad#\hfil\cr
+\hfil\sl specification&\hfil\sl value&\hfil\sl Changes 10pt to\cr
+\noalign{\smallskip\hrule\smallskip}
+\\magstep 0&1000&10pt (no change)\cr
+\\magstephalf&1095&11pt\cr
+\\magstep 1&1200&12pt\cr
+\\magstep 2&1440&14pt (a little more)\cr
+\\magstep 3&1728&18pt (a little less)\cr
+\\magstep 4&2074&21pt (a little less)\cr
+\\magstep 5&2488&24pt (a little more)\cr
+}}$$
+Thus, a specification like
+\begintt
+\font\elevenrm=cmr10 scaled \magstephalf
+\endtt
+produces a reasonable eleven-point roman font.
+
+Finally, one can use magnifications to
+enlarge the entire contents of
+a paper (if all the fonts are available in the 
+appropriate magnifications on your installation) by
+saying |\magnification=|$n$ where $n$
+is an integer such as 1000 (for no change) or can be
+a |\magstep| macro.  Thus, if you say
+|\magnification=\magstephalf| at the beginning of your paper,
+its entire contents will be scaled up to eleven-point (well~$\ldots$
+10.95-point) type.
+Consult your local \TeX\ guru for a
+list of the fonts and sizes available on your facility.
+\SubSection{Ligatures}
+As with \Troff/, many \TeX\ fonts provide ligatures that
+automatically occur when certain consecutive characters are read.
+For example, the letters~|ff| in the input will produce the
+single glyph~`ff' on the page.
+This is intended to improve the appearance of sentences such
+as ``If you flex your fingers in a coffin, you can baffle a
+giraffe.''
+In \TeX, as with \Troff/, this happens automatically, and
+the writer rarely needs to think about it.  However,
+in \TeX, there are additional
+special ligatures that deserve particular attention.
+Two consecutive hyphens (|--|) produce an en-dash
+(`--'; used for ranges such as `pages 13--34'); Three consecutive
+hyphens (|---|) produce a regular punctuation dash (---).
+Two consecutive closing single quote characters
+(\'{}\'{}) will produce a
+closing double-quote ('') while two consecutive opening single-quotes
+(\`{}\`{} ---often
+referred to on terminal keyboards
+as `grave accent' characters) will produce
+an opening double-quote (``).  The double-quote character |"| should
+not be used.
+Finally, two ``Spanish'' ligatures are available: the inverted
+question mark `?`' can be typed as a question mark
+followed by an open quotation mark(|?|\`{}), and the inverted
+exclamation point `!`' can be typed as |!|\`{}.
+These are {\sl not\/} control sequences, but are
+a property built into the definition of each font.  Thus, they may
+not occur in every available font (e.g. typewriter font), although
+all the italic, bold, slanted and roman fonts can be expected
+to behave this way.
+
+\Section{Composing Text}
+\SubSection{Paragraphs and All of That}
+99\% of the time, \Troff/ is reading text (with the occasional
+font change), filling up output lines as best it can, and outputting
+them (with occasional interrupts at page breaks).
+
+\TeX\ is doing
+something similar 99\% of the time.  It reads text (with occasional
+font changes) into a buffer.  Whenever an end of paragraph is found
+(the |\par| macro or an empty line), \TeX\ breaks the text in its
+buffer up into lines, breaking those lines at the points which
+will produce the most attractive output.  For example,
+it may space out an
+early line a little more to keep a line with a big word
+in it from looking too spaced out later.
+Because \TeX\ composes paragraphs, not lines, its output can look
+better, and strange tricks are possible.  For example,
+the last sentence of this paragraph
+ends {\bf flush} with the right margin because I told 
+\TeX\ to allow no space at the end of the paragraph.  Another result
+of setting paragraphs is that \TeX\ can usually avoid
+``widow'' lines at the top and bottom of pages, setting paragraphs
+a little more spaced out, if necessary.
+{\parfillskip=0pt\par}
+One useful feature of the line-breaking algorithm for \TeX\
+\tolerance 500
+is found in the use of {\sl ties\/}.  Ties
+are typed using the character |~| (the tilde character), and
+behave just like spaces, except that \TeX\ will never split a line
+at a tie.
+In \Troff/,
+the special sequence `\\\]' (backslash-space) is used
+similarly,
+but in \Troff/ this is also an ``unpaddable'' space that
+cannot be stretched; in \TeX, the {\bf only} effect of the analogous
+tie character, the tilde, is to prevent
+line breaking.
+There are no strict rules for the placement of ties; they
+should be used according to stylistic considerations, in places
+where a line break is unacceptable.
+For example, a phrase like `Chapter~2' should be typed as `|Chapter~2|'
+to avoid something that looks like `Chapter
+{\parfillskip=0pt\par\parskip=0pt\noindent}2'.  Other
+good places for ties
+\tolerance 200
+include (1)~after the number
+in enumerated cases like these; (2)~The space between the
+surnames in phrases like `Vincent~Van~Gogh'; (3)~Between math symbols
+in apposition as in `dimension~$d$'.
+
+Frequently, one wishes to change the normal paragraph indentation,
+or indent a paragraph at both margins, or adjust the amount of space
+between paragraphs.  \Troff/ allows one to set registers
+and specify local motions for these operations.
+\TeX\ allows
+something superficially similar, but the actual mechanism is
+quite different.  A discussion of {\sl glue\/} is thus appropriate.
+\SubSection{Boxes and Glue}
+Because \Troff/ targets its output for a phototypesetter
+that produces its output on a continuous form, the
+composition of elements on the page involves commands to move
+up and down the page, or left and right.  Even a `begin page'
+command just causes movement downward to the length of the
+current page\note{This causes problems when the phototypesetter
+is simulated on a page-oriented device and a page length other
+than 11 inches is specified.}.
+
+\TeX, however, composes pages
+as units rather than as a stream of commands, and builds
+them from blocks of text called {\sl boxes\/} (typically paragraphs),
+much as hand-set print was built from composing sticks filled
+with letters.  The blank space around the boxes (such as the
+paragraph indentation or the space between lines) is called
+{\sl glue\/}---it is much like the wedges, or {\sl quoins\/}, that
+printers used to set a page of print.  Thus, while a \Troff/ command
+like |.sp .4i| means ``move down .4 inches,'' the corresponding
+\TeX\ control sequence, |\vskip .4in| means ``at this point, there
+should be .4 inches of glue.''  Although the difference may seem
+to be minor, \TeX's behavior at paragraphs, page breaks, and so on
+can only be properly understood if the picture of ``boxes of text
+separated by glue'' is kept in mind.  Of course, these boxes
+{\sl should not\/} be confused with the boxes that can be drawn around
+``boxed tables'' in {\it tbl\/}, or the |.bx| macro in the |-me|
+package.  \TeX\ boxes
+are simply the units into which text material
+is organized on the page.
+
+Of course, the boxes themselves are often composed of other boxes,
+surrounded by glue.  The page that gets output is a box made up
+of paragraph boxes separated by vertical glue; these paragraph
+boxes are composed of line boxes with vertical glue (baseline
+spacing) between them; and these line boxes are in their turn
+made up of word boxes with horizontal glue (interword spacing)
+between them.  If one wants to get really fancy, one can even
+put together a box explicitly with |\hbox| (for horizontal boxes)
+and |\vbox| (for vertical boxes), as in
+\begintt
+for \vbox{\hbox{`A box}\hbox{of Text.'}}
+\endtt
+for \vbox{\hbox{`A box}\hbox{of Text.'}}
+This is a vertical box (|\vbox|) composed of two horizontal boxes
+(|\hbox|)---the first contains ``|`A box|'', the second ``|of Text.'|''.
+Such constructions are usually undertaken by
+\TeX perts, and are rarely needed in ordinary applications.
+However, one special type of box, called a {\sl rule\/}, is
+frequently useful.  A rule is a box that is filled entirely
+with ink.  Normally, rules are very thin and are used for
+horizontal and vertical lines.  The control sequences |\hrule|
+and |\vrule| are used to construct horizontal and vertical rules
+respectively.  For example, to construct
+the little blot `\vrule height 8pt width 4pt',
+I typed
+\begintt
+the little blot `\vrule height 8pt width 4pt',
+\endtt
+Vertical rules should be used within paragraphs, horizontal
+rules between paragraphs, even if this
+means having to specify a wide, flat ``vertical'' rule
+in order to get a horizontal line into a paragraph.
+Rules have default thicknesses
+of 0.4pt, appropriate to thin lines.
+
+Finally, a rule will have a default length equal to the box which
+contains it.  This can sometimes be confusing, but one important
+result is that a horizontal rule, when between paragraphs,
+is as wide as the page.  This can be useful in setting off diagrams
+and the like.  For example, |\hrule| was typed after this paragraph.
+\hrule\smallskip
+\SubSubSection{Dimensions}
+Just as \Troff/ lets you describe distances in inches, points, ems,
+etc., \TeX\ permits a variety of units in which the dimensions of
+glue and boxes can be specified:
+$$\halign{\indent\tt#&\quad#\hfil\cr
+pt&point (baselines in this paper are 12 pt apart)\cr
+pc&pica ($\rm1\,pc=12\,pt$)\cr
+in&inch ($\rm1\,in=72.27\,pt$)\cr
+bp&big point ($\rm72\,bp=1\,in$)\cr
+cm&centimeter ($\rm2.54\,cm=1\,in$)\cr
+mm&millimeter ($\rm10\,mm=1\,cm$)\cr
+dd&did\^ot point ($\rm1157\,dd=1238\,pt$)\cr
+cc&cicero ($\rm1\,cc=12\,dd$)\cr
+sp&scaled point ($\rm65536\,sp=1\,pt$)\cr}$$
+\filbreak
+In addition, there are two other context-dependent units of measure
+whose actual size depends on the current font:
+{\par\narrower\parskip 0pt\obeylines\nobreak
+{\bf em} is the width of a ``printer's em'' in the current font.
+\nobreak{\bf ex} is the ``x-height'' of the current font.
+}
+The ``em'' will be familiar to \Troff/ users---it is the same
+as the |m| unit used in such \Troff/ parameters as |10m|, and, in the
+days of mechanical type, was based on the width of the letter
+`M'.  This is typically the same as the point size of the
+current font.
+Similarly, the ``x-height'' is nominally the height of the
+letter `x', although this may not be exactly true in
+every font.  
+
+In fact, each font defines its own em and ex values.  In 10-point
+roman, the font
+you are now reading, $1\,{\rm em}=10\,{\rm pt}$
+and $1\,{\rm ex}\approx4.3\,{\rm pt}.$
+The figures for {\bf Bold face} type of the same size are
+11.5 and 4.44 respectively.
+\SubSubSection{Using Glue}
+When glue is placed into the document, it appears as white
+space.
+\TeX\ provides several control sequences that place glue
+into the document.  |\hskip 1in| will insert one inch of
+horizontal glue
+(i.e. a one-inch space)
+between words at the current position in the document..
+|\vskip 8pt| will terminate the current paragraph and
+follow it with 8 points of (vertical) glue.  One very useful type
+of horizontal glue is |\quad|, which simulates a ``printer's
+quad'', i.e. a 1-em space.
+
+There are also three types of useful vertical glue defined
+as plain \TeX\ macros, which are
+sometimes helpful in formatting.  The control sequence |\smallskip| generates
+a 3-point skip, |\medskip| a 6-point skip, and |\bigskip| a 12-point
+skip.
+$$\vbox{
+\hbox to 4in{This line is followed by a |\smallskip|,\hfil} \smallskip
+\hbox to 4in{this by a |\medskip|,\hfil}\medskip
+\hbox to 4in{and this by a |\bigskip|.\hfil} \bigskip
+\hbox to 4in{The sizes of these skips are independent of the current font size.\hfil}}$$
+
+Several parameters can be set to govern the glue
+to be placed at critical points in the document.  For example,
+the glue between lines in this document is set so that the distance between
+baselines is 12 points.  This can be adjusted by saying
+|\baselineskip=14pt|, for example,
+if wider spacing is desired (e.g. for 12-point type).  Here are
+some other useful
+parameters:
+$$\vbox{\halign{#\quad\hfil&\it#\hfil&\quad#\hfil\cr
+\hfil\sl Name&\hfil\rm\sl Default\hfil&\hfil\sl Description\hfil\cr
+\noalign{\smallskip}
+|\parskip|&0pt&Space between paragraphs\cr
+|\leftskip|&0pt&Placed at left of each line of a paragraph\cr
+|\rightskip|&0pt&Placed at right of each line of a paragraph\cr
+|\topskip|&10pt&Glue at top of page\cr
+|\parindent|&20pt&Paragraph indentation\cr
+|\hsize|&6.5in&Width of text on the page\cr
+|\vsize|&8.9in&Vertical size of text area on the page\cr
+}}$$
+\SubSubSection{Stretching and Shrinking}
+Actually, glue is more than just rigid wedges between boxes.
+It also has a certain amount of elasticity.  For example, when
+\TeX\ sets a line of text, the glue between the words in the
+line is able to shrink or stretch a certain amount in order
+to adjust that line's spacing.  Similarly, the |\parskip| glue
+between paragraphs is actually able to stretch an additional point
+if necessary to improve the appearance of a page, and
+the |\smallskip| series of skips can shrink {\bf or} stretch by as
+much as 33\% of their natural lengths to assist in page formatting.
+
+Some glue is infinitely elastic.  If you think of the printer's
+page filled with rigid steel boxes of type and wedges between, this
+infinitely stretchable glue is like a powerful spring.  
+The name of horizontally stretchable glue is |\hfil|\note
+{You can also specify such glue as {\tt\\hskip} or {\tt\\vskip} glue,
+with a dimension of {\tt0pt plus 1fil}.  The {\tt plus 1fil} tells
+\TeX\ that this glue can stretch to ``one degree of infinity''
+as needed.  You can even make it ``infinitely shrinkable'' by
+saying {\tt0pt minus 1fil}, or both at the same time.}.  If you type
+|\line{\hfil Text}| then \TeX\ will set a line of type
+the width of the page, with
+the word ``Text'' at the far right end.  The |\centerline| macro
+seen at the beginning of this paper is a |\line| with springs
+at {\sl both} sides of the text.
+\SubSection{Up, Down, Left, Right}
+We've already seen how to add vertical and horizontal glue (effectively
+skipping down and right) to create ``white space'' on the page.
+One can also use vertical and horizontal glue with a {\sl negative\/}
+dimension to move upwards or to the left, although this is rarely
+useful.
+There are a few other useful primitives for ``moving around'' the
+page.  The primitive control word |\kern| specifies unstretchable
+glue.
+The name derives from a printer's term referring to type that projects
+beyond the body of a letter.  |\kern| is normally used between letters
+to move them further apart or closer together (|\hskip|, nearly identical
+in semantics, can be used as well).
+For example, the letters `T' and `E' in ``\TeX'' have been
+moved closer together by the command |\kern-.1667em|.  Notice the
+size of this glue is negative and pulls the letter boxes on either
+side closer together than normal.  The `E' in `\TeX' has also been
+lowered; this was done with the control sequence |\lower .5ex\hbox{E}|.
+This is rather complex.  The |\hbox{E}| places the letter `E' in its
+own horizontal box; the |\lower .5ex| sequence moves the baseline
+of that box lower by .5ex.  Similarly, one can raise a box above
+its normal baseline by using |\raise| instead of |\lower| (or
+by using |\lower| with a negative dimension).
+Normally, someone setting a simple document
+will not need to set up his or her own |\hbox|es, just as one
+rarely requires the horizontal and vertical movements of \Troff/.
+
+Sometimes, one wishes to set type that
+behaves
+as if it takes up no space at all (e.g., for overstriking).
+Plain \TeX\ provides two macros, |\rlap| and |\llap| for this.
+|\rlap{something}| sets `something' and then backspaces as if
+nothing had been set at all.  Similarly, |\llap{something}|
+sets `something' at the left of the current point, overlapping
+whatever was on the left.
+Using typewriter font, for example,
+one can typeset `{\tt\rlap{/}=}' by saying `|\rlap{/}=|' or `|/\llap{=}|'.
+
+\Section{Page Composition}
+Although plain \TeX\ is not as complete a document composition
+system as a typical \Troff/ macro package, it does provide
+several convenient features for composing technical documents.
+\SubSection{Section Headings}
+Plain \TeX\ does not provide the sophisticated numbered
+headings (with several levels of section number) that
+are found in the |-mm| and |-me| macro packages for
+\Troff/, or the |Article| document type for |Scribe|.
+However, there is a |\beginsection| macro that
+can be used to set
+a bold heading for a paragraph.  For example:
+\begintt
+\beginsection 1. An Example
+|medskip
+This paragraph isn't indented, even
+though subsequent paragraphs would be.  A more
+extensive example of this appears in Appendix~B
+of ``{\sl The \TeX book}.''
+\endtt
+produces the following result:
+\bigskip
+\leftline{\bf 1. An Example}\nobreak\smallskip\vskip-\parskip\noindent
+This paragraph isn't indented, even
+though subsequent paragraphs would be.  A more
+extensive example of this appears in Appendix~B
+of ``{\sl The \TeX book}.''
+
+Plain \TeX\ also includes
+a |\proclaim| macro that can be used to
+present theorems or similarly assertive statements.
+\begintt
+\proclaim Rule 225(a).  All proclamations must end their
+labels with periods, and will appear in slanted type.
+\endtt
+\proclaim Rule 225(a).  All proclamations must end their
+labels with periods, and will appear in slanted type.
+
+The text of the proclamation comprises an entire paragraph, and
+thus ends at the next empty line (or |\par|).
+\SubSection{Page Headers and Footers}
+Plain \TeX\ normally produces pages with no header lines and
+a page number centered at the bottom.  If something else is wanted,
+macros are provided to change them.  |\footline| defines
+the footer line.  For example, a paper might set
+up a footer line
+with the command:
+\nobreak
+\begintt
+\footline={\tenrm Rogue for Pacifists\hfil\folio}
+\endtt
+to produce a footer line like:
+\nobreak\vskip 12pt
+\line{\tenrm Rogue for Pacifists\hfil\folio}
+\par\noindent
+As with \Troff/, it is a good idea to explicitly set the
+font to ten-point roman type.  Otherwise, the footer
+will be set in whatever font happens to be in effect
+when the page break occurs.
+The alert reader will have noted the use of |\folio| for
+the page number.  This useful (if somewhat
+cryptically named) macro produces the Arabic
+representation of the page number if it is positive, and
+the Roman numeral representation of the number if it is
+negative.  The page number begins at 1 and is incremented
+after every page (or decremented if it is negative).  If
+you want to adjust it yourself, you can issue the command
+|\pageno=|$n$, where $n$ is the (possibly negative) new page number.
+
+The header line can be set up the same way, using
+|\headline=|.  In fact, the
+document {\sl Using Nroff and --ME\/}, by Eric Allman, uses
+a header line exactly analogous to the footer line
+of the previous example.
+
+Three-part headers and footers are trickier,
+because just putting |\hfil| glue between the parts will center
+the middle section between the left and right sections, rather
+than centering it on the page.  The control sequences
+|\rlap| and |\llap|
+can be used to good effect here, since their results behave as if they
+are of zero width.  Think of this as ``allowing the |\hfil|
+springs to push against the sides of the page,'' and
+you get the idea.  For example, the footer line of this page was
+set with the input
+\begintt
+\footline= {
+   \tenrm                % Ten-point roman
+   \rlap{\TeX\ For {\it Troff\/} Users} % Takes no space, types to right
+   \hfil\folio\hfil      % Centered Page number
+   \llap{Sample}         % Also no space, types to left
+}
+\endtt
+\footline= {
+   \tenrm                % Ten-point roman
+   \rlap{\TeX\ For {\it Troff\/} Users} % Takes no space
+   \hfil\folio\hfil % Centered Page number
+   \llap{Sample}         % Also no space
+   \global\footline={\hss\tenrm\folio\hss}% Sneaky
+}
+\SubSection{Footnotes and Figures}
+Most documents require some kind of ``movable'' text,
+i.e. text that is to be set somewhere other than where it appears
+in the input.  In general, \TeX\ calls such items {\sl inserts} and
+provides powerful, if complex, primitives for the effective manipulation
+of such material.  Fortunately, plain \TeX\ provides fairly handy
+macros for doing some of the more familiar types of inserts.
+
+The most common insert is a footnote, which consists of text
+to go at the bottom of a page.  The plain \TeX\ |\footnote| macro
+can be used within a paragraph\footnote{*}{Like this.}; for example,
+the footnote in the present sentence was typed in the following
+way:
+\nobreak
+\begintt
+... within a paragraph\footnote{*}{Like this.}; for example, ...
+\endtt
+There are two parameters to |\footnote|: the reference mark (which
+will appear in the footnote and in the paragraph), and the text of
+the footnote.  If necessary, long footnotes are automatically
+split between pages,
+and footnotes normally appear in normal sized type as in this
+example\footnote{**}{This paper uses a
+private macro (not part of plain \TeX) to automatically
+number footnotes and display them in eight-point type; this
+footnote was produced with plain \TeX.}.  Note that
+footnotes {\sl must} appear in
+the context of a paragraph, or anything else ``horizontal''
+that contributes to the page, e.g. in a |\centerline|.    If
+you insist on using a footnote in a more exotic
+context (e.g. the caption of a ``floating keep''), the esoteric
+macro |\vfootnote| must be used instead of |\footnote|.
+
+The second kind of insert that many people use is exemplified by
+the ``floating keep'' construct of the |-me| macro package.  In this
+case, an illustration or figure is to be kept together and set
+onto the page at the earliest convenient time.  There are three
+kinds of floating inserts in plain \TeX.  The first, |\topinsert|,
+places its material, which ends with |\endinsert|,
+at the top of the current page, if possible,
+otherwise the material will be placed at the top of the next page.
+For example:
+\nobreak
+\begintt
+\topinsert
+   \centerline{\vbox{
+      \hbox{$\spadesuit$ A K 8 4}
+      \hbox{$\heartsuit$ K 3 2}
+      \hbox{$\diamondsuit$ 5}
+      \hbox{$\clubsuit$ A K J 9 6}
+   }}
+\vskip 12pt
+\centerline{{\bf Figure 1.} Example of a figure}
+\endinsert
+\endtt
+|\topinsert| automatically adds some extra space to separate
+the caption from the following text.
+%\topinsert\vskip 3in
+\topinsert
+   \centerline{\vbox{
+      \hbox{$\spadesuit$ A K 8 4}
+      \hbox{$\heartsuit$ K 3 2}
+      \hbox{$\diamondsuit$ 5}
+      \hbox{$\clubsuit$ A K J 9 6}
+   }}
+\vskip 12pt
+\centerline{{\bf Figure 1.} Example of a figure}
+\endinsert
+
+The second floating insert, |\midinsert| is much more like the |.(z|
+construct of the |-me| package; it tries to insert the material in place
+in the middle of the current page.  If it succeeds, the material
+is placed in a vertical box with about 12 points of space above and below.
+If this can't be done, the effect is that of a |\topinsert|.
+
+Finally, the macro |\pageinsert| justifies its material to the size
+of a full page and places the result on the following page.  For
+example, the following produces a familiar result:
+\nobreak
+\begintt
+\pageinsert
+   \vfil % vertical centering 
+   \centerline{This page intentionally left blank}
+   \vfil % vertical centering
+\endinsert
+\endtt
+\pageinsert
+   \vfil % vertical centering
+   \centerline{This page intentionally left blank}
+   \vfil % vertical centering
+\endinsert
+\SubSection{Other Keeps}
+Plain \TeX\ doesn't provide all the macros that one might want
+to use for keeps, displays, and the like.  However, it's fairly
+easy to tell \TeX\ to try to avoid breaking up a group.  Simply
+set the cryptic parameter |\interlinepenalty=150| within that
+group, and this will make line breaks within the group into very poor
+candidates for page breaking.  Another strategy is to use
+the control word |\filbreak|.  |\filbreak| causes the remainder
+of the current page to be filled with vertical glue, {\bf unless}
+it can be filled with additional text that is itself followed
+by |\filbreak|.  If every paragraph had |\filbreak| after it, 
+every page of a document would have only complete paragraphs on the
+page.
+
+Similarly, while there is no specific ``display'' macro
+to correspond to the |.(l| macro of |-me| or
+the |.DS| macro of |-mm|, one
+can specify |\obeylines| within a group
+to cause each newline to begin a new
+paragraph.  One might also wish to set |\parindent|
+to an appropriate value for the lines within the group.  You
+can even have an entire group of centered lines by specifying |\obeylines|,
+setting |\parindent| to zero, and |\leftskip| and |\rightskip|
+(i.e. the left and right margins) to
+be infinitely extensible glue\note{i.e. {\tt \\leftskip=0pt
+plus 1fil} and {\tt \\rightskip=0pt plus 1fil}}.  There
+may be some prepackaged
+macro facilities available on your system for doing these sorts of
+things.
+
+\Section{Tables}
+Users of \Troff/ often find themselves setting up tables
+in their documents by using {\it tbl\/}, a program that
+turns (relatively) simple table descriptions into the
+complicated commands that unvarnished \Troff/ requires
+to set the document.  Plain \TeX\ has its own built-in
+facility for the creation of small (less than one page)
+tables.  While \TeX\ table descriptions may be
+somewhat harder to read than the corresponding
+input for {\it tbl},
+the table mechanism is well-integrated with the other
+\TeX\ facilities, and there is no preprocessor required.
+\SubSection{Tabs}
+The easiest kind of table is one that uses ``tab stops''
+set regularly across the page, analogous to the physical stops
+in a typewriter.  In \TeX, one can set these tab stops by
+saying |\settabs| $n$ |\columns|.  This divides the line
+into $n$ equal parts.  To use the tab stops, one types
+text that begins with the control sequence |\+| 
+and ends with the sequence |\cr|. 
+``|\cr|'' stands for Carriage-Return,
+and suggests a time when typewriters had carriages.  If you forget
+to end a tabbed line with |\cr|, \TeX\ will become very confused.
+Of course, this means that the text for a single tabbed line may
+occupy several lines in the input file, as long as it ends
+with |\cr|.
+
+The \TeX\ tab character is the ampersand, |&|; while this
+can be changed to something else, the syntax-changing commands
+of \TeX\ are (deliberately) somewhat opaque, and you probably
+don't want to try it.  Here's an example of using tabs (stolen
+shamelessly from ``{\sl The \TeX book\/}''):\penalty 200
+\begintt
+\settabs 4 \columns
+\+&&Text that starts in the third column\cr
+\+&Text that starts in the second column\cr
+\+\it Text that starts in the first column, and&&&
+ the fourth, and&beyond!\cr
+\endtt
+The result of all this is:
+\penalty 200
+\medskip
+\settabs 4 \columns
+\+&&Text that starts in the third column\cr
+\+&Text that starts in the second column\cr
+\+\it Text that starts in the first column, and&&&
+ the fourth, and&beyond!\cr
+\def\tick{\kern-0.2pt\vbox to 0pt{\kern-36pt\leaders\hbox{\vrule height 1pt
+\vbox to4pt{}}\vfil}}
+\vskip-\baselineskip
+\+\tick&\tick&\tick&\tick&\tick\cr
+\medskip
+There are several interesting features in this example.  The
+ampersand isn't exactly like a mechanical tab because it backs up,
+if necessary, to reach the next numerical tab stop; this makes
+tab-based tables somewhat easier than their \Troff/ counterparts, in
+which one must always know when a field will slop over into
+the next tabbed column.  Thus, in the last line, three |&|'s were required
+to get to column~4, even though the first entry had extended
+into column~2.  Lines~2~and~3 show that the |\cr| can end a line even
+if some fields are not specified.  The last pair of lines shows
+that spaces are ignored after ampersands; hence you can end an
+input line harmlessly at such a point without getting extraneous
+spaces.  The last line also shows that each individual entry
+in a tabbed line is implicitly grouped as if it were in braces;
+for this reason, no braces were required around the |\it| section.
+
+The dashed columns, by the way, are pedagogical, and do not normally
+appear.
+\SubSection{General Tab Stops}
+For somewhat more complicated tables, there's a second form of the
+|\settabs| control sequence, in which a sample line (usually
+consisting of the widest entries to be found in each field) is
+supplied in order to set the tab stops.  The tabs are placed
+at the positions of the |&|'s in the sample line, but the
+sample line itself will {\bf not}
+actually appear in the output.  There should be
+some extra space between columns, to prevent the text in adjacent
+columns from touching.  For example:\penalty 200
+\begintt
+\settabs\+\hskip 1in&Section Three\quad&\cr % Sample line
+\+&Section One&Commands\cr
+\+&Section Two&System Calls\cr
+\+&Section Three&Subroutines\cr
+\endtt
+causes the following three lines to be typeset:\penalty 200
+{\interlinepenalty=150
+\medskip
+\settabs\+\hskip 1in&Section Three\quad&\cr % Sample line
+\+&Section One&Commands\cr
+\+&Section Two&System Calls\cr
+\+&Section Three&Subroutines\cr
+}
+\medskip
+Notice that the sample line will typically end with |&\cr|, because
+the text following the last tab isn't used for anything.  In other
+words, the {\bf only} thing a sample field does is determine the
+amount of space to the {\sl next} tab stop.  Also notice that each
+tabbed line in this example
+begins with a tab, so as to get the 1-inch indentation
+(|\hskip 1in|) that was specified for the first field width in the
+sample line.
+
+Tabbed entries can also contain stretchable glue%
+\note{{\tt\\hfill} glue (with two `l's) must be used here,
+as you need
+something ``infinitely more stretchable'' than the normal {\tt\\hfil}
+glue that \TeX\ uses to left-justify the tabbed entries.  In
+effect, the {\tt\\hfill} glue overrides the normal glue.}, allowing one
+to do centering and justifying.  For example:\penalty 200
+\begintt
+\settabs 2 \columns
+\+\hfill This material&\hfill While this\hfill&\cr
+\+\hfill is flush right&\hfill material is centered\hfill&\cr
+\+\hfill in the left-hand column&\hfill in the right-hand column.\hfill&\cr
+\endtt
+produces the following:\penalty 200
+\penalty 200
+\medskip
+\settabs 2 \columns
+\+\hfill This material&\hfill While this\hfill&\cr
+\+\hfill is flush right&\hfill material is centered\hfill&\cr
+\+\hfill in the left-hand column&\hfill in the right-hand column.\hfill&\cr
+\medskip
+\SubSection{Alignments}
+Finally, there is a general mechanism, known as {\sl alignment},
+which can be used to set generalized tables.  The details of
+alignments can get quite complex, and a full chapter is devoted
+to them in ``{\sl The \TeX book\/}.''  However, a short explanation
+and example may be of
+interest.
+The command |\halign| is used to set up arbitrary tables.  The
+general format is
+\penalty 200\begintt
+\halign{|begingroup|it Line Template |endgroup\cr
+|begingroup|it table lines, each ending with |endgroup\cr
+}
+\endtt
+\noindent Each table line will be ``plugged into'' the line template,
+with the individual line elements (separated, as before,
+with ampersands) substituted wherever
+a pound-sign (|#|, also known as ``sharp-sign'' or ``octothorpe'')
+occurs in the template.  As a specific example,
+suppose we want to set the following table:
+\penalty 200
+\medskip
+$$\vbox{\halign{\hfil\bf#\hfil & \quad#\hfil\cr
+\sl Section&\sl Subject\cr
+&\cr
+1&Commands\cr
+2&System Calls\cr
+3&Subroutines\cr
+4&Special Files\cr
+5&File Formats\cr
+6&Games\cr
+7&Miscellany\cr
+8&System Maintenance\cr}}$$
+\medskip
+To accomplish this, the
+line template must include the |\hfil| glue used to center
+and justify the columns, and the boldface shift for the numerals
+that appear
+in the first column.  In fact, it looks like this:\penalty 200
+\begintt
+\hfil\bf#\hfil & \quad#\hfil\cr
+\endtt
+The first column,` |\hfil\bf#\hfil|' will automatically have its
+text, represented by the pound-sign,
+centered by the two |\hfil| commands, and emboldened
+by the |\bf|.  As with tabbing (which is really just a special
+case of alignment), the font change is implicitly grouped
+within the single table entry.  The second column,
+`|\quad#\hfil|' will have a 1-em padding at the beginning,
+and will be left-justified by the |\hfil| glue at the end.
+Here's the whole command:\penalty 200
+\begintt
+\halign
+   {\hfil\bf#\hfil & \quad#\hfil\cr
+
+\sl Section&\sl Subject\cr
+&\cr
+1&Commands\cr
+2&System Calls\cr
+3&Subroutines\cr
+4&Special Files\cr
+5&File Formats\cr
+6&Games\cr
+7&Miscellany\cr
+8&System Maintenance\cr}
+\endtt
+Notice how the normal fonts were overridden in the title line, and
+how an empty line was set to separate the title line from the remainder
+of the table.  As an alternative way to get some space between
+lines in an alignment, you can say\penalty 200
+\begintt
+\noalign{|begingroup|it material|endgroup| }
+\endtt\penalty200
+after a |\cr| in an alignment and that material will be copied  
+in place without being aligned.  For example, `|\noalign{\smallskip}|'
+is an easy way to get a small skip between two lines of a table.
+
+There was also some other magic involved in centering the
+table on the page, to be described in the next section.  Basically,
+the alignment was placed in its own |\vbox|, and that vertical
+box was horizontally centered.
+
+The examples of this section have been simple ones, but cover
+most of the types of tables that are used in most
+documents (such as the tables of dimensions or special characters
+used in the earlier sections of this document).  People with more
+complex needs will have to consult a \TeX\ guru, or learn more
+from the chapter on alignments in ``{\sl The \TeX book\/}.''
+
+\Section{Setting Mathematics}
+\def\Eqn/{{\it eqn\/}}
+Many people find that the most useful adjunct to \Troff/ is
+the program \Eqn/, which provides a ``pronounceable''
+way to describe mathematical equations for typesetting.  \TeX\ provides
+a built-in {\sl mathematics mode\/} in which the meanings
+of the letters and control sequences are changed to allow
+easier equation settings.
+
+Actually, there are two forms of mathematics mode in
+\TeX: {\sl text\/} math mode, and {\sl display\/} math mode.
+Text math mode is used for the in-line expressions specified
+by the |delim| feature of \Eqn/.  It is delimited by 
+single dollar signs.  For example, one can say something
+like
+\nobreak\begintt
+Let $x$ be the sum of $y$ and $z/2$.
+\endtt
+in the middle of a paragraph, and produce something like
+`Let $x$ be the sum of $y$ and $z/2$.'  Note that
+math mode sets letters in italics but numerals in
+roman font.
+
+Display math mode is for setting equations between paragraphs
+just as the |.EQ| and |.EN| macros of \Eqn/ do.  The display
+math delimiters are double dollar signs, |$$|.  For example,
+to display the equation $$x+5$$ this document includes
+a line that says:
+\nobreak
+\begintt
+to display the equation $$x+5$$ this document includes
+\endtt
+Note that display math mode automatically centers the
+display on the page and provides the extra vertical spacing
+around it.
+
+\TeX's math mode contains a great deal of built-in knowledge
+about equation spacing, and therefore {\sl ignores\/} spaces
+that occur between the dollar signs (just as \Eqn/
+does).  For example |$  x  $| has
+the same effect as |$x$|.  You can always force extra space
+by using |\quad|, |\|\] (escape-space),
+or a glue specification; there are also
+special control sequences for thinner spaces.
+\SubSection{Greek Letters}
+Unlike \Eqn/, which converts words like `omega' into the
+corresponding Greek letters, \TeX\ requires control words
+to produce these.
+While this may,  at first, seem a nuisance, one is freed
+from having to worry about `reserved words' in \TeX.
+For example, to produce
+$$x=2\pi\int\sin(\omega t)dt$$
+one would type
+|$$x=2\pi\int\sin(\omega t)dt$$|.  Upper-case Greek letters
+(which are pronounced like |GAMMA| in \Eqn/) have names
+like |\Gamma| in \TeX.  Math mode provides a host of other
+math characters like |\infty| for `$\infty$'; 
+Appendix~A lists several of these.
+\SubSection{Subscripts and Superscripts}
+\TeX\ math mode provides a simple method of superscripting
+and subscripting, using the special characters |^| and |_|,
+respectively.  For example, to set `$x^2$' one types |$x^2$|.
+Similarly, `$\alpha_0$' is pronounced |$\alpha_0$|.  These
+characters normally apply only to the next single character.
+If you want more things subscripted or superscripted, you
+can group them.  For example, `$x^{y_2}$' is typed as
+|$x^{y_2}$|.  However, unlike \Eqn/, \TeX\ considers
+a construct like
+|$x^y^z$| illegal; you should specify |$x^{y^z}$| or
+|$x^{yz}$|, depending on what is meant.
+
+One can, however, specify |$x^2_3$| in order to obtain
+`$x^2_3$';  |$x_3^2$| is equivalent.  Notice that 
+simultaneous su$\rm_b^{per\kern-1pt}$scripts are stacked
+over one another.  A special character `$\prime$', designed specifically
+for being shrunk and raised for superscripting, is designated
+by the control word |\prime|.  For example, one might 
+refer to |$f^\prime(x)$| to set `$f^\prime(x)$'.  Plain \TeX\ provides
+a convenient abbreviation: a single quote.  For example,
+you could also say |$f'(x)$| (for `$f'(x)$')
+or even |$f'''(x)$| for `$f'''(x)$'.
+\SubSection{Fractions}
+\TeX\ fractions are similar to \Eqn/'s treatment.  One can
+type |$a/b$| to obtain `$a/b$,' but if one wants an
+equation like $${x+y^2}\over{k+1}$$ one may type
+`|$${x+y^2}\over{k+1}$$|'.  This can be taken to excess; Knuth
+warns one against expressions like |$$a\over{b\over 2}$$|,
+which produces the formula $$a\over{b\over 2}$$  This looks
+fairly awful; the recommended alternative is |$$a\over{b/2}$$|,
+which produces
+$$a\over{b/2}$$
+Plain \TeX\ also provides an operator |\choose|
+for producing binomial coefficients such as $n\choose2$, which
+is typed as |$n\choose 2$|.
+\SubSection{Square Roots}
+The control squence |\sqrt| produces square roots.
+For example |$\sqrt2$| produces `$\sqrt2$' and
+\begintt
+$$\sqrt{x^3+\sqrt\alpha}$$
+\endtt
+produces
+$$\sqrt{x^3+\sqrt\alpha}$$
+You can produce other roots using |\root| and |\of|.  For
+example, |$$\root 3 \of {x+y}$$| produces $$\root 3 \of {x+y}$$
+\TeX\ is able to handle fairly tall formulas without getting
+too ugly.  For example, the input
+\nobreak\begintt
+$$\sqrt{a^2\over{b_2}}$$
+\endtt
+produces
+$$\sqrt{a^2\over{b_2}}$$ which is
+substantially better than the ugly example on page~4
+of the \Eqn/ manual.  A similar method produces
+lines below or above formulas: |$\overline{x+y}$| produces
+`$\overline{x+y}$.'  
+\SubSection{Large Operators}
+{\raggedright
+Plain \TeX\ provides {\sl large operators\/} like 
+$\sum$, $\int$ and $\prod$, which
+produce larger symbols in display math mode than in text.
+For example |$\sum x_n$| produces $\sum x_n$, but
+|$$\sum x_n$$| produces $$\sum x_n$$
+If one wishes to add ``limits'' to such operators, they
+can be typed like subscripts.  For example,\hfil\break
+|$$\sum_{n=1} ^m x_n$$| produces $$\sum_{n=1}^m x_n$$
+The |\int| operator, $\int$, normally has its limits placed
+to the sides of the operator.  For example, |$$\int _0 ^{\infty}$$|
+produces
+$$\int_0^{\infty}$$  If one wishes to change this convention, one
+can type `|\limits|' directly after the |\int| operator.  For
+example, |$$\int\limits_0^{\pi\over 2}$$| yields $$\int\limits_0^{\pi\over 2}$$
+Certain defined control
+sequences in plain \TeX\ also accept limits.  For example,
+$$\lim_{n\to\infty}x_n=0$$
+is produced by |$$\lim_{n\to\infty}x_n=0$$|.
+}
+\SubSection{Fonts}
+Normally, text in math mode is set in math italic (similar, but not
+identical to text italic).  Sometimes, one wants roman
+type as part of a formula, especially with such mathematical functions
+as `log' and `sin'.  Plain \TeX\ defines several control sequences
+such as |\sin|, |\ln|, and |\lim| which always are set in roman
+type.  You can also switch explicitly to roman by typing |\rm|.
+For example, `$x^3+{\rm lower\ order\ terms}$' can be set by
+typing |$x^3+{\rm lower\ order\ terms}$|.  Notice that spaces
+had to be explicitly inserted by preceding them with the
+backslash, because \TeX\ ignores spaces in math mode.
+
+Bold face can also be used.  For example, |$\bf a+b=\Phi_m$|
+produces `$\bf a+b=\Phi_m$'.  Plain \TeX\ arranges matters
+so that the |\bf| control sequence only affects alphabetic
+characters when in mathematics mode.  There is also a `calligraphic'
+font for use with upper-case (and {\sl only\/} upper-case) letters
+in math mode.  |$\cal EXAMPLE$| produces `$\cal EXAMPLE$'.  Finally,
+|\it|, |\sl|, and |\tt| can be used, but cannot be produced in
+subscript size.
+\SubSection{Accents}
+Plain \TeX\ defines eight control sequences for placing
+accents over letters in mathematics mode:
+\nobreak\vskip 8pt
+\leftline{\vbox{\halign{\hskip .5in\tt\$\\# a\$&\hskip 1in$#$\cr
+hat&\hat a\cr
+check&\check a\cr
+tilde&\tilde a\cr
+dot&\dot a\cr
+ddot&\ddot a\cr
+breve&\breve a\cr
+bar&\bar a\cr
+vec&\vec a\cr}
+}}
+Note that the |dyad| accent of \Eqn/ is not present in plain
+\TeX.  Also
+note that |\underline| and |\overline| can be used to place
+a bar over or under any formula.
+
+\SubSection{Alignments}
+The |mark| and |lineup| constructs of \Eqn/ are used to
+align equations.  In \TeX, this can be done using the powerful
+|\halign| mechanism as described in the previous section.  However,
+plain \TeX\ also provides some special-purpose alignment macros
+for doing some of the more common operations without resorting
+to |\halign|.
+
+The most common use of aligned formulas is in multi-line
+displays that should be lined up by their `=' signs.
+Plain \TeX\ provides the |\eqalign| macro for this purpose.
+For
+example, the example (that can't be done with |mark|) in the
+\Eqn/ manual:
+$$\eqalign{x&=1\cr x+y&=z\cr}$$ was typed as
+\nobreak\begintt
+$$\eqalign {
+   x & =1 \cr
+   x+y & = z\cr
+}$$
+\endtt
+The right-hand side can start with an equals-sign or any other
+symbol.  For example, one might wish to say something like:
+$$\eqalign {
+   x+y+z & < 5\cr
+   z & = y/42\cr
+   y\sin z & > x\log z\cr
+}$$
+with the equality and inequality symbols aligned.
+This can be typed as
+\begintt
+$$\eqalign {
+   x+y+z & < 5\cr
+   z & = y/42\cr
+   y\sin z & > x\log z\cr
+}$$
+\endtt
+
+Another type of aligned display is something like
+$$f(x)=\cases{
+   x,& for $x\ge 0$;\cr
+   0,& otherwise.\cr}$$
+For this sort of display, the special macro |\cases| is defined.
+This example was typed as
+\nobreak\begintt
+$$f(x)=\cases{
+   x,& for $x\ge 0$;\cr
+   0,& otherwise.\cr}$$
+\endtt
+Note that the first column is implicitly in mathematics mode, but
+the second column is {\sl not\/}.  For example, the `$x\ge 0$'
+of the first line had to be set explicitly in math mode.  The
+|\cases| macro automatically typesets its own `$\{$' in the
+appropriate size.
+
+Finally, matrices can be set up using the |\matrix| alignment
+macro.  For example, a neat array like
+$$\matrix{
+   x_i & x^2 \cr
+   y_i & y^2 \cr
+}$$
+can be set up by typing
+\begintt
+$$\matrix{
+   x_i & x^2 \cr
+   y_i & y^2 \cr
+}$$
+\endtt
+To set the array with big parentheses around it, |\pmatrix|
+can be used instead of |\matrix|, to produce
+$$\pmatrix{
+   x_i & x^2 \cr
+   y_i & y^2 \cr
+}$$
+Of course, there are other ways of typing arbitrary brackets,
+as described in the next section.
+\SubSection{Big Brackets, Etc.}
+Plain \TeX\ provides an assortment of brackets and delimiters
+that can be used for formulas.  The obvious ones are the
+parentheses and brackets; one can also use |\{| and |\}| for
+braces in math mode.  In addition, there are
+|$\lfloor$| for `$\lfloor$', |$\lceil$| for `$\lceil$',
+and |$\langle$| for `$\langle$'.  The right-hand versions
+are |$\rfloor$|, |$\rceil$|, and |$\rangle$|.
+One can also use the vertical bar, \vrt, as a delimeter
+(e.g. to signify absolute value).
+
+Sometimes one wishes
+to get a larger version of these symbols.  To do this, precede them
+by `|\bigl|' for the left side and `|\bigr|' for the right.  This
+can make formulas easier to read.  For example,
+\begintt
+|$$\bigl(x-s(x)\bigr)\bigl(y-s(y)\bigr)$$|
+\endtt
+produces
+$$\bigl(x-s(x)\bigr)\bigl(y-s(y)\bigr)$$
+
+In \Eqn/, there is a generalized mechanism that produces brackets
+big enough for whatever they enclose, using the keywords |left| and
+|right|.  The mechanism in \TeX\ is quite similar.  For example,
+the example on page~6 of the \Eqn/ manual,
+$$\left\{a\over b + 1\right\}
+=\left(c\over d \right)
++\left[e\right]
+$$
+is produced by the input
+\begintt
+$$\left\{a\over b + 1\right\}
+=\left(c\over d \right)
++\left[e\right]
+$$
+\endtt
+
+The |\left| and |\right| delimiters {\sl must\/} pair up with one
+another, just as braces do in \TeX\ groups.  However, one can
+use a period (`|.|') as a null delimiter in unbalanced groups.
+For example, 
+\begintt
+$$x=\left\{y\over 3\right.$$
+\endtt
+produces
+$$x=\left\{y\over 3\right.$$
+The `|\right.|' sequence outputs nothing, but closes the
+group begun by the |\left\{| sequence.
+\SubSection {Displayed Text}
+Display math mode can also be used to center and set off
+textual material or alignments.  To do this, simply place
+the material in a box using |\hbox| or |\vbox|.  For example,
+\nobreak
+\begintt
+$$\hbox{Display Text}$$
+\endtt
+produces
+$$\hbox{Display Text}$$
+Notice that the text occurs in the regular text font (ten-point
+Roman) rather than math italics.
+An even more practical use of this technique is for alignments.
+A table can be centered easily.
+\begintt
+$$\vbox
+ {\halign
+  {\tt#\hfil & \quad #\hfil \cr
+   \bf\hfil Name & \bf\hfil Supplier\cr
+\noalign {\smallskip\hrule\smallskip}
+   \TeX   & University of Washington\cr
+   TROFF  & Bell Laboratories\cr
+   SCRIBE & Unilogic, Ltd.\cr
+   DSR    & DEC (VMS Only)\cr
+}}$$
+\endtt
+produces
+$$\vbox
+ {\halign
+  {\tt#\hfil & \quad #\hfil \cr
+   \bf\hfil Name & \bf\hfil Supplier\cr
+\noalign {\smallskip\hrule\smallskip}
+   \TeX   & University of Washington\cr
+   TROFF  & Bell Laboratories\cr
+   SCRIBE & Unilogic, Ltd.\cr
+   DSR    & DEC (VMS Only)\cr
+}}$$
+complete with the spacing that separates it from the surrounding
+textual material.
+\SubSection {More Reading}
+This section has outlined some of the more straightforward uses of
+math mode.  There are many other facilities, as described in
+``{\sl The \TeX book\/}''.  Consult that volume for
+additional ideas.
+
+\Section{Macros and Definitions}
+We have already shown one instance in which a \TeX\ control
+sequence was defined or modified by the user.  This was
+the use of |\font| to define a font-switching control
+sequence.
+However, one can also define a new \TeX\ control sequence
+by using the primitive |\def|.  Such new control sequences
+are called {\sl macros\/} as they are, in effect, short
+abbreviations for longer streams of commands.
+It is, of course, possible to define whole
+families of macros similar in function to the macro packages
+such as {\bf --me} or {\bf --mm} in \Troff/, or the `document
+formats' such as {\bf @Make(Report)} of |Scribe|.  Knuth's
+{\sl\TeX book\/} was produced using such a package\note
+{This package is described in Appendix~E of that book.
+Some of Knuth's macros were stolen for
+this document.}, and the
+numbered
+section headings and footnotes for this document were produced
+by the author's own macros such as the |\Section| macro seen in
+the example at the beginning of the document.
+
+However, 
+even when using a very complete  macro package, one sometimes
+wishes to define often-used sequences for a particular paper.
+For example, this paper
+uses a macro, |\Unix|, which is similar to |\TeX| but  produces
+`\Unix' in 10-point small-caps font.  It was defined as follows:
+\begintt
+\font\csc=cmcsc10 % Small-caps font
+\def\Unix{{\csc Unix}} % Extra grouping for font-change
+\endtt
+As a result, whenever |\Unix| is seen in the input
+for this paper, \TeX\
+substitutes the
+sequence |{\csc Unix}|. 
+
+As another example, one might wish to refer to the backslash
+character many times in typewriter-font examples (for instance,
+if one were writing a document about \TeX).  In this case, it
+might be useful to define a control sequence such as |\\| as
+follows:
+\begintt
+\def\\{\char`\\}
+\endtt
+After which an example like |\this\example\here| could be
+typed as
+\begintt
+{\tt \\this\\example\\here}
+\endtt
+
+If you have a file containing a group of useful macros and definitions,
+or even just a useful section of text that you wish to
+repeat, you can use the \TeX\ primitive |\input|, which operates
+much like the |.so| primitive of \Troff/.  For example, the
+definitions of |\Section| and so on for this paper are
+contained in a file called |paperhead.tex|; the first line
+of this document is |\input paperhead|.
+If the file to be input isn't in the current working directory,
+a ``macro library'' directory is searched.  This allows commonly-used
+macro packages, such as the American Mathematical Society's
+{$\cal A$\kern-.1667em\lower.5ex\hbox{$\cal M$}\kern-.125em $\cal S$-\TeX}
+package, to be publicly available with a minimum of fuss.
+
+It is also possible to generate a separate runnable version of
+\TeX\ that has a built-in set of macros other than those used
+by plain \TeX.  One such system is the excellent 
+L\kern-.2em\raise.3ex\hbox{\csc a}\kern-.09em\TeX\
+document preparation system created by Leslie Lamport of
+SRI International, which presents a far more complete system
+for producing complex text documents than plain \TeX.
+
+More complex macros with parameters, etc., are possible, but
+are `big-league' material outside the scope of this paper.
+The grouping features of \TeX, combined with a powerful
+set of conditionals,
+give \TeX\ a structured-language-like
+appearance, compared to that of \Troff/.
+The Truly Ambitious should read ``{\sl The \TeX book\/}'' by Donald
+Knuth, which is the ultimate font of \TeX nical knowledge.
+
+\Section{Running \TeX\ under \Unix}
+\TeX82 is written in |PASCAL| and the user interface is
+nearly identical on the various operating systems to which
+it has been ported.  The \TeX\ source code is placed
+in a file with a name like `{\it filename\/\tt.tex}'.
+The input should end with a |\bye| macro, which automatically
+fills out the last page with |\vfil| glue, outputs it,
+and terminates \TeX.
+Assuming
+a Bourne shell, the command to invoke \TeX\ will be
+$${\hbox{\tt\$ tex \it filename}}$$
+Assuming that  |tex| is found, \TeX\ will print
+something like
+\begintt
+This is TeX, Version 1.0 for Berkeley UNIX (preloaded format=plain 83.12.9)
+(filename.tex [1])
+Output written to filename.dvi (1 page, 2092 bytes)
+Transcript written on filename.log.
+$
+\endtt
+\TeX\ lists the files as it reads them, and displays the numbers
+of the pages as they are produced (in brackets).  It writes
+error messages and warnings,
+and some occasionally cryptic information,
+in {\it filename\/\tt.log} and
+produces a device-independent (`dvi') representation
+of the result in {\it filename\/\tt.dvi}.  This file can be
+sent to  your typesetting device by giving it as input to
+the appropriate device driver program.  Consult your local \TeX\
+guru for information on the device drivers available at your
+site.
+
+If \TeX\ detects errors in the input, and it has a terminal input
+device, it will attempt to interact with the user and allow
+him or her to correct the error.  The help facilities built
+into \TeX\ allow the user to receive an explanation of the
+error, and provide some guidance as to possible remedies.
+Type a question-mark and hit the |return| key if you're in doubt.
+One
+can, as an alternative, add the command |\batchmode| to the input file to
+suppress this interaction. In this case, \TeX\ can be run
+in background mode (redirecting output to |/dev/null|); the
+output for errors and warnings will still be placed in the
+appropriate |.log| file for later examination.
+
+\Section{A Short Example}
+\def\boxit#1{\vbox{\hrule\hbox{\vrule\kern3pt\vbox{\kern3pt#1
+\kern3pt}\kern3pt\vrule}\hrule}}
+\vfil
+\centerline{\parfillskip=0pt\boxit{\boxit
+{\vbox{\hsize 4in\tolerance 800\noindent
+\advance\count0 by 1
+Pages \number\count0
+\advance\count0 by 1
+\ and \number\count0
+\ contain a short sample of \TeX\ input,
+demonstrating some of the features discussed in this
+document.  The result is on page
+\advance\count0 by 1
+\number\count0.  Note
+that the page number in the sample output follows the
+page numbering in this document, rather than being
+`1' as it would be if the sample were run separately.
+The reader should inspect closely the left and right
+single quotes in the input, which can be rather hard to
+distinguish in the `tt' font.}}}}
+\vfil\eject
+\begintt
+\font\titletype=cmbx10 scaled \magstep 1 % 12-point boldface
+\footline={\TeX\ Sample \hfil Page \folio}
+\headline={\hfil{\bf S A M P L E}\hfil}
+\vskip .25in
+\line{\hfil Sample Output}  % Right-justified
+\line{\hfil Feb 30, 1986}   % text due to \hfil
+\vskip 12pt
+\centerline{\titletype \TeX\ Sample}
+\vskip 1cm
+This material, which appears in 10-point type (possibly
+magnified) , demonstrates
+several features: (1)~Ties.  (2)~Floating Keeps for figures.
+(3)~General syntax. (4)~Equations and tables.  (5)~Verbatim
+mode using {\tt obeylines}.
+\beginsection Footnotes and Accents.
+|bigskip
+This is a new paragraph.  It contains a footnote\footnote{*}
+{Which doesn't tell you much}, and contains some fascinating
+accent marks like the accent gr\`ave, and the accents in
+phrases like ``\c c'est la vie'' and ``\^gis revido.''  This
+paragraph also demonstrated the double-quote ligatures---which
+are somewhat hard to read in the `tt' font---and the long
+dashes.
+|bigskip
+Here's yet another new paragraph, this one
+indented, since it is not at the beginning
+of a section.  Notice that the interparagraph
+spacing is zero, unlike the main body of the paper.
+In Figure~1,
+we see an equation from ``{\sl A System for Typesetting Mathematics\/}''
+by Kernighan and Cherry.
+\midinsert % A displayed Equation from Kernighan and Cherry
+\def\emx{e^{mx}} % This is done with EQN defines in Kernighan and Cherry
+\def\mab{m\sqrt{ab}}
+\def\sa{\sqrt a}
+\def\sb{\sqrt b}
+$${\int\limits{dx\over{a\emx-be^{-mx}}}}=\cases{
+{1\over{2\mab}}\log
+{{\sa\emx-\sb}\over{\sa\emx+\sb}}&\cr
+&\cr
+{1\over{\mab}}\tanh^{-i}({\sa\over\sb}\emx)&\cr
+&\cr
+{-1\over{\mab}}\coth^{-i}({\sa\over\sb}\emx)&\cr
+}$$
+\centerline{Figure 1.  An Equation}
+\endinsert
+Furthermore, here is a table from M. Lesk's
+``{\sl Tbl---A Program to Format Tables\/}'':
+\endtt\vfil\eject\begintt
+\vskip 10pt
+\settabs\+Language\quad&Carnegie-Mellon\quad&\cr
+\+\hfil Language\hfil & \hfil Authors\hfil & \quad Runs on\cr %centered
+\+ \cr % Skip a line
+\+ Fortran & Many & Almost anything\cr
+\+ PL/1 & IBM & 360/370\cr
+\+ C & BTL & 11/45,H6000,370\cr
+\+ BLISS & Carnegie-Mellon & PDP-10,11\cr
+\+ IDS & Honeywell & H6000\cr
+\+ Pascal & Stanford & 370\cr
+\endtt\begintt
+\bigskip
+Finally, here's an example of {\tt obeylines}:
+{\obeylines\parindent=1in\parskip=0pt % Single-space, 1-inch indent
+\endtt\begintt
+This material
+has no interparagraph gap
+between the lines, but each
+line is, in effect, a new paragraph} % End of Obeylines
+\endtt\begintt
+Now to finish up.
+\bye
+\endtt
+\vfil\eject % Throw a new page.
+{
+\parskip=0pt plus 1pt
+%\font\titletype=cmbx10 at 12 truept% 12-point boldface if magnified
+\font\titletype=cmbx10 scaled \magstep 1 % 12-point boldface
+\footline={\TeX\ Sample \hfil Page \folio}
+\headline={\hfil{\bf S A M P L E}\hfil}
+\vskip .25in
+\line{\hfil Sample Output}  % Right-justified
+\line{\hfil Feb 30, 1986}   % text due to \hfil
+\vskip 12pt
+\centerline{\titletype \TeX\ Sample}
+\vskip 1cm
+This material, which appears in 10-point type (possibly
+magnified), demonstrates
+several features: (1)~Ties.  (2)~Floating Keeps for figures.
+(3)~General syntax. (4)~Equations and tables.  (5)~Verbatim
+mode using {\tt obeylines}.
+\beginsection Footnotes and Accents.
+
+This is a new paragraph.  It contains a footnote\footnote{*}
+{Which doesn't tell you much}, and contains some fascinating
+accent marks like the accent gr\`ave, and the accents in
+phrases like ``\c c'est la vie'' and ``\^gis revido.''  This
+paragraph also demonstrated the double-quote ligatures---which
+are somewhat hard to read in the `tt' font---and the long
+dashes.
+
+Here's yet another new paragraph, this one
+indented, since it is not at the beginning
+of a section.  Notice that the interparagraph
+spacing is zero, unlike the main body of the paper.
+In Figure~1,
+we see an equation from ``{\sl A System for Typesetting Mathematics\/}''
+by Kernighan and Cherry.
+\midinsert % A displayed Equation from Kernighan and Cherry
+\def\emx{e^{mx}} % This is done with EQN defines in Kernighan and Cherry
+\def\mab{m\sqrt{ab}}
+\def\sa{\sqrt a}
+\def\sb{\sqrt b}
+$${\int{dx\over{a\emx-be^{-mx}}}}=\cases{
+{1\over{2\mab}}\log
+{{\sa\emx-\sb}\over{\sa\emx+\sb}}&\cr
+&\cr
+{1\over{\mab}}\tanh^{-i}({\sa\over\sb}\emx)&\cr
+&\cr
+{-1\over{\mab}}\coth^{-i}({\sa\over\sb}\emx)&\cr
+}$$
+%
+%$${\int\limits{dx\over{ae^{mx}-be^{-mx}}}}=\cases{
+%{1\over{2m\sqrt{ab}}}\log
+%{{\sqrt{a}e^{mx}-\sqrt{b}}\over{\sqrt{a}e^{mx}+\sqrt{b}}}&\cr
+%&\cr
+%{1\over{m\sqrt{ab}}}\tanh^{-i}({\sqrt{a}\over\sqrt{b}}e^{mx})&\cr
+%&\cr
+%{-1\over{m\sqrt{ab}}}\coth^{-i}({\sqrt{a}\over\sqrt{b}}e^{mx})&\cr
+%}$$
+\centerline{Figure 1.  An Equation}
+\endinsert
+
+Furthermore, here is a table from M. Lesk's
+``{\sl Tbl---A Program to Format Tables\/}'':
+\vskip 10pt
+\settabs\+Language\quad&Carnegie-Mellon\quad&\cr
+\+\hfil Language\hfil & \hfil Authors\hfil & \quad Runs on\cr %centered
+\+ \cr % Skip a line
+\+ Fortran & Many & Almost anything\cr
+\+ PL/1 & IBM & 360/370\cr
+\+ C & BTL & 11/45,H6000,370\cr
+\+ BLISS & Carnegie-Mellon & PDP-10,11\cr
+\+ IDS & Honeywell & H6000\cr
+\+ Pascal & Stanford & 370\cr
+
+\bigskip
+Finally, here's an example of {\tt obeylines}:
+{\obeylines\parindent=1in\parskip=0pt % Single-space, 1-inch indent
+
+This material
+has no interparagraph gap
+between the lines, but each
+line is, in effect, a new paragraph} % End of Obeylines
+
+Now to finish up.
+\vfil\eject
+\headline={\line{\hss}}
+\footline={\hss\folio\hss}
+}
+
+{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SpecChars.tex  -- Print the special characters available in math
+%                     mode.
+%
+%   This version swiped from TeX82, version 0.97, with PLAIN.TEX loaded.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Major munging applied 1/84 to jive with Appendix F of the TeXbook
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\ctr#1{\hss#1\hss}
+\def\\{\char `\\}
+\def\v{\vrule height 20pt depth 10pt width 0pt}
+\tabskip 1em
+\parskip 6pt plus 2pt
+\abovedisplayskip 0pt
+\belowdisplayskip 0pt
+\def\dcolumn#1{$\vcenter
+               {
+                \halign{\v$\ctr{##}$&$\displaystyle\ctr{##}$&{\tt ##}\cr#1}
+               }$
+             }
+\def\column#1{$\vcenter
+               {
+                \halign{$\ctr{##}$&{\tt ##}\cr#1}
+               }$
+             }
+\def\sect#1{\penalty-1000
+            \vskip 12pt plus 6pt
+            {\sl #1}
+            \vskip 4pt
+            \penalty9999\ignorespaces}
+\Appendix{A}{Special characters available in \TeX's ``math mode''}
+
+There are many special-purpose characters available from \TeX, but most of
+them don't appear on most keyboards.  Therefore, the following control
+sequences have been pre-defined in plain.tex for your convenience.
+Note, however, that most of these special sequences are {\sl only\/}
+available in math mode.  Consult Appendix~F of {\sl The \TeX book\/}
+for complete details.
+
+\sect{(a) Lower-case Greek letters:}
+\hbox to \hsize{
+    \hfill
+    \column{
+        \alpha&\\alpha\cr
+        \beta&\\beta\cr
+        \gamma&\\gamma\cr
+        \delta&\\delta\cr
+        \epsilon&\\epsilon\cr
+        \zeta&\\zeta\cr
+        \eta&\\eta\cr
+        \theta&\\theta\cr
+        \iota&\\iota\cr
+    }
+    \column{
+        \kappa&\\kappa\cr
+        \lambda&\\lambda\cr
+        \mu&\\mu\cr
+        \nu&\\nu\cr
+        \xi&\\xi\cr
+        \pi&\\pi\cr
+        \rho&\\rho\cr
+        \sigma&\\sigma\cr
+        \tau&\\tau\cr
+    }
+    \column{
+        \upsilon&\\upsilon\cr
+        \phi&\\phi\cr
+        \chi&\\chi\cr
+        \psi&\\psi\cr
+        \omega&\\omega\cr
+        \varepsilon&\\varepsilon\cr
+        \varpi&\\varpi\cr
+        \vartheta&\\vartheta\cr
+        \varphi&\\varphi\cr
+    }
+    \hfill
+}
+
+\filbreak
+\sect{(b) Upper-case Greek letters:}
+\hbox to \hsize{
+    \hfill
+    \column{
+        \Gamma&\\Gamma\cr
+        \Delta&\\Delta\cr
+        \Theta&\\Theta\cr
+        \Lambda&\\Lambda\cr
+        \Xi&\\Xi\cr
+        \Pi&\\Pi\cr
+    }
+    \column{
+        \Sigma&\\Sigma\cr
+        \Upsilon&\\Upsilon\cr
+        \Phi&\\Phi\cr
+        \Psi&\\Psi\cr
+        \Omega&\\Omega\cr
+    }
+%    \column{
+%        \Gammait&\\Gammait\cr
+%        \Deltait&\\Deltait\cr
+%        \Thetait&\\Thetait\cr
+%        \Lambdait&\\Lambdait\cr
+%        \Xiit&\\Xiit\cr
+%        \Piit&\\Piit\cr
+%    }
+%    \column{
+%        \Sigmait&\\Sigmait\cr
+%        \Upsilonit&\\Upsilonit\cr
+%        \Phiit&\\Phiit\cr
+%        \Psiit&\\Psiit\cr
+%        \Omegait&\\Omegait\cr
+%    }
+    \hfill
+}
+
+\filbreak
+\sect{(c) Script letters (Characters from the {\tt \\cal} font):}
+{\def\{{\char`\{}\def\}{\char`\}}
+\hbox to \hsize{
+    \hfill
+    \column{
+        {\cal A}&\{\\cal A\}\cr
+        {\cal B}&\{\\cal B\}\cr
+        {\cal C}&\{\\cal C\}\cr
+        {\cal D}&\{\\cal D\}\cr
+        {\cal E}&\{\\cal E\}\cr
+        {\cal F}&\{\\cal F\}\cr
+        {\cal G}&\{\\cal G\}\cr
+        {\cal H}&\{\\cal H\}\cr
+        {\cal I}&\{\\cal I\}\cr
+    }
+    \column{
+        {\cal J}&\{\\cal J\}\cr
+        {\cal K}&\{\\cal K\}\cr
+        {\cal L}&\{\\cal L\}\cr
+        {\cal M}&\{\\cal M\}\cr
+        {\cal N}&\{\\cal N\}\cr
+        {\cal O}&\{\\cal O\}\cr
+        {\cal P}&\{\\cal P\}\cr
+        {\cal Q}&\{\\cal Q\}\cr
+        {\cal R}&\{\\cal R\}\cr
+    }
+    \column{
+        {\cal S}&\{\\cal S\}\cr
+        {\cal T}&\{\\cal T\}\cr
+        {\cal U}&\{\\cal U\}\cr
+        {\cal V}&\{\\cal V\}\cr
+        {\cal W}&\{\\cal W\}\cr
+        {\cal X}&\{\\cal X\}\cr
+        {\cal Y}&\{\\cal Y\}\cr
+        {\cal Z}&\{\\cal Z\}\cr
+    }
+    \hfill
+}}
+There are also ``oldstyle numerals'' available via
+{\tt \$\\oldstyle 0123456789\$}: $\oldstyle 0123456789$.
+\filbreak
+\sect{(d) Binary operators:}
+\hbox to \hsize{
+    \hfill
+    \column{
+        \mp&\\mp\cr
+        \pm&\\pm\cr
+        \setminus&\\setminus\cr
+        \cdot&\\cdot\cr
+        \times&\\times\cr
+        \ast&\\ast\cr
+	\star&\\star\cr
+        \diamond&\\diamond\cr
+        \circ&\\circ\cr
+        \bullet&\\bullet\cr
+        \div&\\div\cr
+    }
+    \column{
+        \cap&\\cap\cr
+        \cup&\\cup\cr
+        \uplus&\\uplus\cr
+        \sqcap&\\sqcap\cr
+        \sqcup&\\sqcup\cr
+        \triangleleft&\\triangleleft\cr
+        \triangleright&\\triangleright\cr
+        \wr&\\wr\cr
+        \bigcirc&\\bigcirc\cr
+        \bigtriangleup&\\bigtriangleup\cr
+        \bigtriangledown&\\bigtriangdown\cr
+    }
+    \column{
+        \lor&\\lor (or \\vee)\cr
+        \land&\\land (or \\wedge)\cr
+        \oplus&\\oplus\cr
+        \ominus&\\ominus\cr
+        \otimes&\\otimes\cr
+        \oslash&\\oslash\cr
+        \odot&\\odot\cr
+        \dagger&\\dagger\cr
+        \ddagger&\\ddagger\cr
+        \amalg&\\amalg\cr
+    }
+    \hfill
+}
+
+\filbreak
+\sect{(e) Binary relations:}
+\hbox to \hsize{
+    \hfill
+    \column{
+	\leq&\\leq\cr
+	\prec&\\prec\cr
+	\preceq&\\preceq\cr
+	\ll&\\ll\cr
+	\subset&\\subset\cr
+	\subseteq&\\subseteq\cr
+	\sqsubseteq&\\sqsubseteq\cr
+	\in&\\in\cr
+	\vdash&\\vdash\cr
+	\smile&\\smile\cr
+	\frown&\\frown\cr
+    }
+    \hfill
+    \column{
+	\geq&\\geq\cr
+	\succ&\\succ\cr
+	\succeq&\\succeq\cr
+	\gg&\\gg\cr
+	\supset&\\supset\cr
+	\supseteq&\\subseteq\cr
+	\sqsupseteq&\\sqsubseteq\cr
+	\ni&\\ni\cr
+	\dashv&\\dashv\cr
+	\mid&\\mid\cr
+	\parallel&\\parallel\cr
+    }
+    \hfill
+    \column{
+        \equiv&\\equiv\cr
+        \sim&\\sim\cr
+        \simeq&\\simeq\cr
+        \asymp&\\asymp\cr
+        \approx&\\approx\cr
+        \cong&\\cong\cr
+        \bowtie&\\bowtie\cr
+        \propto&\\propto\cr
+        \models&\\models\cr
+        \doteq&\\doteq\cr
+        \perp&\\perp\cr
+    }
+    \hfill
+}
+\noindent
+You can also use the control sequence {\tt \\not} to negate or ``cross out''
+most of the relations above.  For example, the symbol
+``$\mathrel{\not\subseteq}$''
+is really two symbols, obtained by typing ``{\tt \\not\\subseteq}''.
+(The slashing character in the symbol font has a width of zero, so it will overlap
+the following character.)  But watch out: you should actually type
+``{\tt \\mathrel\char`\{\\not\\subseteq\char`\}}'', in order to prevent
+\TeX\ from breaking a line after {\tt \\not}.
+\filbreak
+\sect{(f) Arrows : }
+\vskip 6pt plus 2pt
+\hbox to \hsize{
+    \hfill
+    \column{
+        \uparrow&\\uparrow\cr
+        \Uparrow&\\Uparrow\cr
+        \downarrow&\\downarrow\cr
+        \Downarrow&\\Downarrow\cr
+        \updownarrow&\\updownarrow\cr
+        \Updownarrow&\\Updownarrow\cr
+        \nearrow&\\nearrow\cr
+        \searrow&\\searrow\cr
+        \swarrow&\\swarrow\cr
+        \nwarrow&\\nwarrow\cr
+    }
+    \column{
+        \longleftarrow&\\longleftarrow\cr
+        \Longleftarrow&\\Longleftarrow\cr
+        \longrightarrow&\\longrightarrow\cr
+        \Longrightarrow&\\Longrightarrow\cr
+        \longleftrightarrow&\\longleftrightarrow\cr
+        \Longleftrightarrow&\\Longleftrightarrow\cr
+        \longmapsto&\\longmapsto\cr
+        \hookrightarrow&\\hookrightarrow\cr
+        \rightharpoonup&\\rightharpoonup\cr
+        \rightharpoondown&\\rightharpoondown\cr
+    }
+    \column{
+        \leftarrow&\\leftarrow\cr
+        \Leftarrow&\\Leftarrow\cr
+        \rightarrow&\\rightarrow\cr
+        \Rightarrow&\\Rightarrow\cr
+        \leftrightarrow&\\leftrightarrow\cr
+        \Leftrightarrow&\\Leftrightarrow\cr
+        \mapsto&\\mapsto\cr
+        \hookleftarrow&\\hookleftarrow\cr
+        \leftharpoonup&\\leftharpoonup\cr
+        \leftharpoondown&\\leftharpoondown\cr
+        \rightleftharpoons&\\rightleftharpoons\cr
+    }
+    \hfill
+}
+
+\filbreak
+\sect{(g) ``Large'' operators (text and display styles):}
+\hbox to \hsize{
+    \hfill
+    \dcolumn{
+        \bigwedge&\bigwedge&\\bigwedge\cr
+        \bigvee&\bigvee&\\bigvee\cr
+        \int&\int&\\int\cr
+        \oint&\oint&\\oint\cr
+    }
+    \dcolumn{
+        \sum&\sum&\\sum\cr
+        \prod&\prod&\\prod\cr
+        \coprod&\coprod&\\coprod\cr
+        \bigoplus&\bigoplus&\\bigoplus\cr
+        \bigotimes&\bigotimes&\\bigotimes\cr
+        \bigodot&\bigodot&\\bigodot\cr
+    }
+    \dcolumn{
+        \bigcap&\bigcap&\\bigcap\cr
+        \bigcup&\bigcup&\\bigcup\cr
+        \biguplus&\biguplus&\\biguplus\cr
+        \bigsqcup&\bigsqcup&\\bigsqcup\cr
+    }
+    \hfill
+}
+
+\filbreak
+\sect{(h) Brackets:}
+$$\vbox{
+    \halign{$\ctr{#}$&{\tt #}\quad&$\ctr{#}$&{\tt #}\cr
+        \lfloor&\\lfloor&\rfloor&\\rfloor\cr
+        \lceil&\\lceil&\rceil&\\rceil\cr
+        \lbrack&\\lbrack&\rbrack&\\rbrack\cr
+        \{&\\\char`\{\ (or \\lbrace)&\}&\\\char`\}\ (or \\rbrace)\cr
+        \langle&\\langle&\rangle&\\rangle\cr
+    }
+}$$
+
+\filbreak
+\sect{(i) Miscellaneous math symbols:}
+\hbox to \hsize{
+    \hfill
+    \column{
+        \imath&\\imath\cr
+        \jmath&\\jmath\cr
+	\ell&\\ell\cr
+        \Re&\\Re\cr
+        \Im&\\Im\cr
+        \aleph&\\aleph\cr
+        \wp&\\wp\cr
+        \infty&\\infty\cr
+    }
+    \column{
+        \emptyset&\\emptyset\cr
+        \exists&\\exists\cr
+        \forall&\\forall\cr
+	\triangle&\\triangle\cr
+        \angle&\\angle\cr
+        \lnot&\\lnot (or \\neg)\cr
+        \nabla&\\nabla\cr
+    }
+    \column{
+        \partial&\\partial\cr
+        \prime&\\prime\cr
+        \smallint&\\smallint\cr
+        \top&\\top\cr
+        \bot&\\bot\cr
+        \surd&\\surd\cr
+	\hbar&\\hbar\cr
+    }
+    \hfill
+}
+
+\filbreak
+\sect{(j) Miscellaneous nonmath symbols (math mode required):}
+\hbox to \hsize{
+    \hfill
+    \column{
+        \spadesuit&\\spadesuit\cr
+        \heartsuit&\\heartsuit\cr
+        \diamondsuit&\\diamondsuit\cr
+        \clubsuit&\\clubsuit\cr
+    }
+    \column{
+	\sharp&\\sharp\cr
+	\flat&\\flat\cr
+	\natural&\\natural\cr
+    }
+    \hfill
+}
+\filbreak
+\sect{(k) Miscellaneous nonmath symbols (math mode {\bf not} required):}
+\hbox to \hsize{
+    \hfill
+    \column{
+        \$&\\\char `\$\cr
+        \%&\\\char `\%\cr
+        \copyright&\\copyright\cr
+    }
+    \column{
+        \#&\\\char `\#\cr
+        \S&\\S\cr
+        \P&\\P\cr
+    }
+    \column{
+        \&&\\\char `\&\cr
+        \ddag&\\ddag\cr
+        \dag&\\dag\cr
+    }
+    \hfill
+}
+}
+
+%\vfil\eject
+%\centerline{\twelveb Appendix B}
+%\vskip 4pt
+%\centerline{\twelveb Font Samples}
+%\vskip 8pt
+\Appendix{B}{Font Samples}
+Plain \TeX\ predefines control sequences for the\ math\ italic, bold
+and roman styles of the Computer Modern family in five-point,
+seven-point and ten-point (the default).  The predefined fonts
+are as follows:
+$$\halign{#\quad&#\hfil\cr
+|\tenrm|&Normal ten-point roman\cr
+|\teni|&\teni ten-point\ math\ italic\cr
+|\tenit|&\tenit ten-point text italic\cr
+|\tenbf|&\tenbf ten-point bold extended\cr
+|\tensl|&\tensl ten-point slanted roman\cr
+|\tentt|&\tentt ten-point typewriter\cr
+\noalign{\smallskip}
+|\sevenrm|&\sevenrm seven-point roman\cr
+|\seveni|&\seveni seven-point\ math\ italic\cr
+|\sevenbf|&\sevenbf seven-point bold extended\cr
+\noalign{\smallskip}
+|\fiverm|&\fiverm five-point roman\cr
+|\fivei|&\fivei five-point\ math\ italic\cr
+|\fivebf|&\fivebf five-point bold extended\cr}$$
+
+Note that the Math Italic fonts are intended to
+be used in Mathematics Mode only, and hence
+behave somewhat strangely if used for normal text
+
+For fonts other than the predefined ones, the |\font| operation must be used
+to associate a keyword with the font information file.
+Here are some of the fonts distributed with the \Unix\
+version of \TeX:
+\vskip 10pt
+\def\Fsample#1:#2.{\font\nonce=#1\line{\rlap{\tt#1}\hskip 1in\nonce#2\hfil}\vskip 3pt}
+\Fsample cmssq8:8-point sans-serif.
+\Fsample cmss10:10-point sans-serif.
+%\Fsample cmssmc10:Emboldened 10-point sans-serif.
+%\Fsample cminch:BIG.
+\vskip 5pt
+\Fsample cmssqi8:8-point slanted sans-serif.
+%\Fsample cmssi10:10-point slanted sans-serif.
+\vskip 5pt
+\Fsample cmssbx10:10-point bold sans-serif.
+\vskip 5pt
+\Fsample cmr6:6-point roman.
+\Fsample cmr8:8-point roman.
+\Fsample cmr9:9-point roman.
+\vskip 5pt
+\Fsample cmsl8:8-point slanted.
+\Fsample cmsl9:9-point slanted.
+%\Fsample cmbxsl10:10-point bold slanted.
+\vskip 5pt
+\Fsample cmbx6:6-point bold.
+\Fsample cmbx8:8-point bold.
+\Fsample cmbx9:9-point bold.
+\vskip 5pt
+\Fsample cmmi6:6-point\ math\ italic.
+\Fsample cmmi8:8-point\ math\ italic.
+\Fsample cmmi9:9-point\ math\ italic.
+\Fsample cmti7:7-point text italic.
+\Fsample cmti8:8-point text italic.
+\Fsample cmti9:9-point text italic.
+%\Fsample cmbi10:10-point\ bold\ math\ italic.
+\vskip 5pt
+%\Fsample cmtt8:8-point typewriter.
+\Fsample cmtt9:9-point typewriter.
+\Fsample cmsltt10:10-point slanted typewriter.
+%\Fsample cmitt10:10-point italic typewriter.
+\vskip 5pt
+\Fsample cmcsc10:10-point Small Capitals.
+\vskip 5pt
+\Fsample cmu10:10-point unslanted italics.
+\Fsample cmdunh10:Tall thin letters for no known purpose.
+
+\vfil\eject
+{\parindent=0pt\parskip=10pt\pretolerance=400
+\frenchspacing
+\centerline{\twelveb Bibliography}
+\vskip 8pt
+
+\def\Hpar{\par\hangindent .75in\hangafter=1}
+\Hpar
+{\csc American Mathematical Society} 
+``Differences between \TeX82 and \TeX80.'' In {\sl \TeX\ and Metafont:
+Errata and Changes}. Published for the \TeX\ Users Group by the American
+Mathematical Society, Providence, RI. September 1983
+
+\Hpar
+{\csc Furuta, R., Scofield, J. {\rm and} Shaw, A.} ``Document Formatting
+Systems: Survey, Concepts, and Issues.'' In {\sl Computing Surveys\/},
+{\bf 14}, 3 (Sept.~1982), 417-472.
+
+\Hpar
+{\csc Kernighan, B.~W.~{\rm and} Cherry, L.~L.} ``Typesetting
+Mathematics --- User's Guide (Second Edition).'' In {\sl Unix Programmer's
+Manual\/}, Volume 2A.  Western Electric Co., Greensboro NC 1976
+
+\Hpar
+{\csc Knuth, D.~E.} ``\TeX, a system for technical text.'' In {\sl \TeX\ and
+Metafont: New Directions in Typesetting\/}, part 2.  Digital Press
+and the American Mathematical Society, Bedford, MA, and
+Providence, RI.  1979
+
+\Hpar
+{\csc Knuth, D.~E.}
+{\sl The \TeX book\/}.  Addison-Wesley Publishing and the
+American Mathematical Society, Reading, MA, and Providence, RI.
+1984
+
+\Hpar
+{\csc Lamport, L.}
+{\sl The
+L\kern-.2em\raise.3ex\hbox{\csc a}\kern-.09em\TeX\
+Document Preparation System}.  Forthcoming in 1985.
+
+\Hpar
+{\csc Lesk, M.~E. {\rm and} Kernighan, B.~W.} ``Tbl --- A Program
+to Format Tables.'' In {\sl UNIX Programmer's
+Manual\/}, Volume 2A.  Western Electric Co., Greensboro NC 1976
+
+\Hpar
+{\csc Ossana, J.~F.} ``NROFF/TROFF User's Manual.'' In {\sl UNIX Programmer's
+Manual\/}, Volume 2A.  Western Electric Co., Greensboro NC 1974
+
+\Hpar
+{\csc Reid, B.~K.} {\sl Scribe Introductory User's Manual\/}.  Unilogic
+Inc., Pittsburgh PA, 1980
+
+\Hpar
+{\csc Urban, M.}{\sl An Introduction to
+L\kern-.2em\raise.3ex\hbox{\csc a}\kern-.09em\TeX}.  TRW Inc., 1985
+
+}
+\PrintTOC
+\bye

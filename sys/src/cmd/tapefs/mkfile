@@ -2,7 +2,7 @@ BUILTINS=
 </$objtype/mkfile
 
 BIN=/$objtype/bin/fs
-TARG=tarfs tpfs v6fs 32vfs cpiofs tapfs v10fs
+TARG=tarfs tpfs v6fs 32vfs cpiofs
 OBJ=\
 	fs.$O\
 	util.$O

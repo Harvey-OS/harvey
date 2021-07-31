@@ -1,0 +1,221 @@
+\catcode`@=11
+%\font\titlefont=amtitl at 14 truept
+\font\titlefont=cmssbx10 scaled \magstep 2
+
+\font\ninerm=cmr9
+\font\eightrm=cmr8
+\font\sixrm=cmr6
+
+\font\ninei=cmmi9
+\font\eighti=cmmi8
+\font\sixi=cmmi6
+
+\font\ninesy=cmsy9
+\font\eightsy=cmsy8
+\font\sixsy=cmsy6
+
+\font\eightss=cmssq8
+
+
+\font\ninebf=cmbx9
+\font\eightbf=cmbx8
+\font\sixbf=cmbx6
+
+\font\ninett=cmtt9
+\font\eighttt=cmtt8
+
+\font\ninesl=cmsl9
+\font\eightsl=cmsl8
+
+\font\nineit=cmti9
+\font\eightit=cmti8
+
+\font\tenu=cmu10 % unslanted italic
+\font\tenrm=cmr10
+\font\tentt=cmtt10
+\let\oldtenbf=\tenbf
+\font\tenbf=cmbx10
+\let\mainfont=\tenrm
+\textfont0=\tenrm
+\let\oldninerm=\ninerm
+\font\ninerm=cmr9
+\newskip\ttglue
+\def\tenpoint{\def\rm{\fam0\tenrm}%
+  \textfont0=\tenrm \scriptfont0=\sevenrm \scriptscriptfont0=\fiverm
+  \textfont1=\teni \scriptfont1=\seveni \scriptscriptfont1=\fivei
+  \textfont2=\tensy \scriptfont2=\sevensy \scriptscriptfont2=\fivesy
+  \textfont3=\tenex \scriptfont3=\tenex \scriptscriptfont3=\tenex
+  \def\it{\fam\itfam\tenit}%
+  \textfont\itfam=\tenit
+  \def\sl{\fam\slfam\tensl}%
+  \textfont\slfam=\tensl
+  \def\bf{\fam\bffam\tenbf}%
+  \textfont\bffam=\tenbf \scriptfont\bffam=\sevenbf
+   \scriptscriptfont\bffam=\fivebf
+  \def\tt{\fam\ttfam\tentt}%
+  \textfont\ttfam=\tentt
+  \tt \ttglue=.5em plus.25em minus.15em
+  \normalbaselineskip=12pt
+  \let\sc=\eightrm
+  \let\big=\tenbig
+  \setbox\strutbox=\hbox{\vrule height8.5pt depth3.5pt width\z@}%
+  \normalbaselines\rm}
+\def\eightpoint{\def\rm{\fam0\eightrm}%
+  \textfont0=\eightrm \scriptfont0=\sixrm \scriptscriptfont0=\fiverm
+  \textfont1=\eighti \scriptfont1=\sixi \scriptscriptfont1=\fivei
+  \textfont2=\eightsy \scriptfont2=\sixsy \scriptscriptfont2=\fivesy
+  \textfont3=\tenex \scriptfont3=\tenex \scriptscriptfont3=\tenex
+  \def\it{\fam\itfam\eightit}%
+  \textfont\itfam=\eightit
+  \def\sl{\fam\slfam\eightsl}%
+  \textfont\slfam=\eightsl
+  \def\bf{\fam\bffam\eightbf}%
+  \textfont\bffam=\eightbf \scriptfont\bffam=\sixbf
+   \scriptscriptfont\bffam=\fivebf
+  \def\tt{\fam\ttfam\eighttt}%
+  \textfont\ttfam=\eighttt
+  \tt \ttglue=.5em plus.25em minus.15em
+  \normalbaselineskip=9pt
+  \let\sc=\sixrm
+  \let\big=\eightbig
+  \setbox\strutbox=\hbox{\vrule height7pt depth2pt width\z@}%
+  \normalbaselines\rm}
+%
+%
+\def\tenmath{\tenpoint\fam-1 } % use after $ in ninepoint sections
+\def\tenbig#1{{\hbox{$\left#1\vbox to8.5pt{}\right.\n@space$}}}
+\def\ninebig#1{{\hbox{$\textfont0=\tenrm\textfont2=\tensy
+  \left#1\vbox to7.25pt{}\right.\n@space$}}}
+\def\eightbig#1{{\hbox{$\textfont0=\ninerm\textfont2=\ninesy
+  \left#1\vbox to6.5pt{}\right.\n@space$}}}
+%
+% macros for verbatim scanning (from Knuth's manhdr format)
+%
+\chardef\other=12
+\def\ttverbatim{\begingroup
+  \catcode`\\=\other
+  \catcode`\{=\other
+  \catcode`\}=\other
+  \catcode`\$=\other
+  \catcode`\&=\other
+  \catcode`\#=\other
+  \catcode`\%=\other
+  \catcode`\~=\other
+  \catcode`\_=\other
+  \catcode`\^=\other
+  \parskip=0pt
+  \obeyspaces \obeylines \tt}
+
+{\obeyspaces\gdef {\ }} % \obeyspaces now gives \ , not \space
+\outer\def\begintt{$$\let\par=\endgraf \ttverbatim%\parskip=0pt
+  \catcode`\|=0 \rightskip-5pc \ttfinish}
+{\catcode`\|=0 |catcode`|\=\other % | is temporary escape character
+  |obeylines % end of line is active
+  |gdef|ttfinish#1^^M#2\endtt{|vbox{#2}|endgroup$$}}
+
+\catcode`\|=\active
+{\obeylines \gdef|{\ttverbatim \spaceskip\ttglue \let^^M=\  \let|=\endgroup}}
+%\def\ttspace{{\tt\hskip\ttglue}}
+
+\def\vrt{\hbox{\tt\char`\|}} % vertical line
+\def\dn{\hbox{\tt\char'176}} % downward arrow
+\def\up{\hbox{\tt\char'136}} % upward arrow
+\def\]{\hbox{\tt\char`\ }} % visible space
+\def\\{\hbox{\tt\char'134}} % visible backslash
+
+% Counts one through 9 can be used for `subpage'
+% numbers (we're told).  I'm going to depend on this.
+
+\newcount\levelcount
+\newbox\sectnum
+%\newswitch{toc}\let\Z=\relax\def\SP{ }
+\newif\iftoc\let\Z=\relax\def\SP{ }
+\def\sectionlevel#1.#2{\message{Sect, level #1:`#2'}
+	\if1#1\goodbreak\bigskip%	Level 1 section
+	\else\ifhmode\goodbreak\bigskip%	or lower if not vert mode.
+		\else\nobreak\smallskip\nobreak\fi\fi % Skip a bit
+	\advance\count#1by1
+	\levelcount=#1
+	\loop\advance\levelcount by1 % All lower levels get zeroed
+		\ifnum\levelcount<10\count\levelcount=0\repeat
+	\levelcount=1
+	\setbox\sectnum=\hbox{\number\count1}
+	\global\def\Sectnum{\number\count1}
+	\loop\ifnum\levelcount<#1		% Glue together higher levels
+		\advance\levelcount by 1
+		\ifnum0=\count\levelcount % Higher level 0 => 1
+			\set\count\levelcount=1\fi
+		\setbox\sectnum=\hbox
+			{\unhbox\sectnum.\number\count\levelcount}
+		\global\edef\Sectnum{\Sectnum.\number\count\levelcount}
+	\repeat
+	\setbox0=\hbox{\if1#1\bf\else\it\fi\copy\sectnum.\hskip1em#2}
+	\def\text{#2}\def\level{#1}
+		\line{\box0\hfil}
+		\nobreak\smallskip
+		\nobreak\ignorespaces % Should leave me in v mode
+	\iftoc %
+	{\let\the=0\xdef\ixout{\write\inx{\Z\level!\Sectnum.\SP!\text!\SP\the\pageno.}}\ixout}\ignorespaces%
+	\fi\ignorespaces}
+\newcount\Siz
+\newwrite\inx
+\def\Appendix#1#2{
+	\vfil\eject\centerline{\twelveb Appendix #1}
+	\centerline{\twelveb #2}
+	\iftoc %
+	{\let\the=0\xdef\ixout{\write\inx{\Z1!#1.\SP!#2!\SP\the\pageno.}}\ixout}\ignorespaces%
+	\fi\ignorespaces
+}
+
+\def\DoContents{\toctrue\immediate\openout\inx=TOC}
+\def\PrintTOC{\vfill\supereject\immediate\closeout\inx
+	\def\LeadFill{\leaders\hbox to 1.5em{\hss.\hss}\hfill}
+	\def\Z##1!##2!##3!##4.{
+	    \Siz=##1\count1=\Siz
+	    \advance\Siz by 1\multiply\Siz by \count1
+	    \divide\Siz by 2\advance\Siz by -1
+	    \dimen0=1em\multiply\dimen0 by \Siz
+	    \Siz=##1\advance\Siz by 1
+	    \dimen1=1em\multiply\dimen1 by \Siz
+	    \line{\hskip\dimen0\hbox to \dimen1{##2\hfil}{##3}\LeadFill\hbox{##4}}}
+	\centerline{\titlefont Table of Contents}\vskip .75in
+	\global\count0=-1
+	\input TOC}
+
+\newcount\notecount
+\def\resetnotes{\notecount=0}
+\resetnotes
+\def\note#1{\advance\notecount by1
+    {\eightpoint\footnote{\tenpoint$^{\the\notecount}$\eightpoint}{\eightpoint #1}}}
+
+\def\Section#1{\sectionlevel 1.{#1}}
+\def\SubSection#1{\sectionlevel 2.{#1}}
+\def\SubSubSection#1{\sectionlevel 3.{#1}}
+
+\parskip=5pt plus 2pt minus 1pt
+\topskip=10pt plus 2pt
+\font\csc=cmcsc10
+\font\twelveb=cmbx10 scaled \magstep1
+\def\Unix{{\csc Unix{}}}
+
+\def\Month {\ifcase\month Yuletide
+\or January
+\or February
+\or March
+\or April
+\or May
+\or June
+\or July
+\or August
+\or September
+\or October
+\or November
+\or December
+\else Randomember \fi}
+\def\Year {{\count0=\year \advance\count0 by -1900 \number\count0}}
+\def\Date {\Month \number\day, \number\year}
+\tenpoint
+\catcode`@=12
+%
+% That's the macro package so far.
+%

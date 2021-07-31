@@ -5,7 +5,7 @@
 #include <libc.h>
 #include <bio.h>
 
-int ropt, aopt;
+int ropt;
 int changed;
 ulong size;
 ulong secsize;
@@ -39,10 +39,8 @@ void	prepare(char*);
 int	read_table(int);
 void	print_table(char*);
 void	write_table(int);
-void	auto_table(void);
-void	edit_table(void);
-void	rddosinfo(char*);
-ulong	memsize(void);
+void	edit_table(void);void	rddosinfo(char*);
+
 
 void
 main (int argc, char **argv)
@@ -59,15 +57,9 @@ main (int argc, char **argv)
 	}
 
 	ARGBEGIN{
-	case 'r':
-		ropt++;
-		break;
-	case 'a':
-		aopt++;
-		break;
-	default:
-		fprint(2, "prep [-ra] special\n");
-		exits("usage");
+	case 'r':	ropt++; break;
+	default:	fprint(2, "prep [-ra] special\n");
+			exits("usage");
 	}ARGEND;
 	if(argc != 1){
 		fprint(2, "prep [-ra] special\n");
@@ -78,7 +70,6 @@ main (int argc, char **argv)
 
 	if(changed) 
 		print("\n *** PARTITION TABLE HAS BEEN MODIFIED ***\n");
-	exits(0);
 }
 
 void
@@ -101,8 +92,6 @@ rddiskinfo(char *special)
 	int fd;
 	Partition *pp = ptab;
 
-	if(strcmp(special + strlen(special) - 4, "disk") == 0)
-		*(special + strlen(special) - 4) = 0;
 	sprint(name, "%sdisk", special);
 	if(dirstat(name, &d) < 0)
 		error("stating %s", name);
@@ -112,9 +101,6 @@ rddiskinfo(char *special)
 		error("stating %s", name);
 	secsize = d.length;
 	secs = size/secsize;
-	if(secbuf == 0)
-		secbuf = malloc(secsize+1);
-
 
 	npart = 2;
 
@@ -131,7 +117,7 @@ rddiskinfo(char *special)
 	if(fd < 0)
 		error("opening %s", name);
 
-	print("sector = %d bytes, disk = %d sectors, all numbers are in sectors\n", secsize, size/secsize);
+	print("sector = %d bytes, disk = %d sectors\n", secsize, size/secsize);
 	return fd;
 }
 
@@ -140,40 +126,32 @@ prepare(char *special)
 {
 	int i, fd;
 	char *line;
-	int delete = 0, automatic = aopt;
+	int delete = 0;
 	Partition *pp;
 
 	fd = rddiskinfo(special);	
 	rddosinfo(special);
 
-	if(aopt == 0)
-		switch(read_table(fd)){
-		case -1:
-			automatic++;
-			break;
-		default:
-			print("Plan 9 partition table exists\n");
-			print_table(special);
-			print("(a)utopartition, (d)elete, (e)dit or (q)uit ?");
-			line = Brdline(&in, '\n');
-			if(line == 0)
-				exits("exists");
-			if(ropt)
+	switch(read_table(fd)){
+	case -1:
+		break;
+	default:
+		print("Plan 9 partition table exists\n");
+		print_table(special);
+		print("(d)elete, (e)dit or (q)uit ?");
+		line = Brdline(&in, '\n');
+		if(line == 0)
+			exits("exists");
+		switch (*line) {
+			case 'd':
+				delete++;
+				break;
+			case 'e':
+				break;
+			default:
 				return;
-			switch (*line) {
-				case 'a':
-					delete++;
-					automatic++;
-					break;
-				case 'd':
-					delete++;
-					break;
-				case 'e':
-					break;
-				default:
-					return;
-			}
 		}
+	}
 
 	if(delete){
 		pp = &ptab[2];
@@ -192,23 +170,14 @@ prepare(char *special)
 		ptab[2].end = dosend;
 	}
 
-	if(automatic)
-		print("Setting up default Plan 9 partitions\n");
-	else
-		print_table(special);
-
+	print_table(special);
 	npart = 2;
+	print("\n");
 	for(;;) {
-		if(automatic){
-			auto_table();
-			automatic = 0;
-		} else
-			edit_table();
-		if(aopt)
-			break;
-
+		edit_table();
+		print("\n");
 		print_table(special);
-		print("\nOk [y/n]:");
+		print("\nOk:");
 		line = Brdline(&in, '\n');
 		if(line == 0)
 			return;
@@ -217,65 +186,6 @@ prepare(char *special)
 	}
 	write_table(fd);
 	close(fd);
-}
-
-/*
- *  make a boot area, swap space, and file system (leave DOS partition)
- */
-#define BOOTSECS 2048
-void
-auto_table(void)
-{
-	ulong total, next, swap;
-	Partition *pp;
-
-	total = ptab[0].end - ptab[0].start - 1;
-	next = 0;
-	pp = &ptab[2];
-	if(strcmp(pp->name, "dos") == 0){
-		next += pp->end - pp->start;
-		pp++;
-	}
-
-	if(total-next < BOOTSECS)
-		error("not enough room for boot area", 0);
-	strcpy(pp->name, "boot");
-	pp->start = next;
-	next += BOOTSECS;
-	pp->end = next;
-	pp++;
-
-	/*
-	 *  grab at most 20% of remaining for swap
-	 */
-	swap = (total-next)*20/100;
-	if(swap > 2*memsize())
-		swap = 2*memsize();
-	strcpy(pp->name, "swap");
-	pp->start = next;
-	next += swap;
-	pp->end = next;
-	pp++;
-
-	/*
-	 *  one page for nvram
-	 */
-	strcpy(pp->name, "nvram");
-	pp->start = next;
-	next += 1;
-	pp->end = next;
-	pp++;
-
-	/*
-	 *  the rest is file system
-	 */
-	strcpy(pp->name, "fs");
-	pp->start = next;
-	next = total;
-	pp->end = next;
-	pp++;
-
-	npart = pp - ptab;
 }
 
 void
@@ -346,6 +256,9 @@ read_table(int fd)
 	char *line[Maxpart+1];
 	char *field[3];
 	Partition *pp;
+
+	if(secbuf == 0)
+		secbuf = sbrk(secsize+1);
 
 	if((i = read(fd, secbuf, secsize)) < 0)
 		error("reading partition table", 0);
@@ -436,7 +349,7 @@ write_table(int fd)
 		off += sprint(&secbuf[off], "%s %d %d\n", pp->name, pp->start, pp->end);
 	}
 
-	if(write(fd, secbuf, secsize) != secsize)
+	if(write(fd, secbuf, secsize) < 0)
 		error("writing table", 0);
 
 	changed = 1;
@@ -529,36 +442,4 @@ rddosinfo(char *special)
 			dosend = end;
 	}
 	print("\n");
-}
-
-/*
- *  return memory size in sectors
- */
-ulong
-memsize(void)
-{
-	int fd, n, by2pg, secs;
-	char *p;
-	char buf[128];
-
-	p = getenv("cputype");
-	if(p && strcmp(p, "68020") == 0)
-		by2pg = 8*1024;
-	else
-		by2pg = 4*1024;
-
-	secs = 4*1024*1024/secsize;
-	
-	fd = open("/dev/swap", OREAD);
-	if(fd < 0)
-		return secs;
-	n = read(fd, buf, sizeof(buf)-1);
-	close(fd);
-	if(n <= 0)
-		return secs;
-	buf[n] = 0;
-	p = strchr(buf, '/');
-	if(p)
-		secs = strtoul(p+1, 0, 0) * (by2pg/secsize);
-	return secs;
 }

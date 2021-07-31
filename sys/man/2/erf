@@ -1,0 +1,19 @@
+.TH ERF 2
+.SH NAME
+erf, erfc \- error function
+.SH SYNOPSIS
+.B double erf(double x)
+.PP
+.B double erfc(double x)
+.SH DESCRIPTION
+These functions calculate the error function
+.RI erf( x )
+and the complementary error function
+.RI erfc( x ).
+The error criterion for both
+.I erf
+and
+.I erfc
+is relative.
+.SH DIAGNOSTICS
+There are no error returns.

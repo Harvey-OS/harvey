@@ -45,6 +45,7 @@ dkinit(Dk *dk)
 	dofilter(&dk->orate);
 	wakeup(&dk->rren);
 	wakeup(&dk->xren);
+	wakeup(&dk->dkto);
 }
 
 enum

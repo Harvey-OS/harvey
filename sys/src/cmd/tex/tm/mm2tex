@@ -1,0 +1,19 @@
+#!/bin/sh
+# Translate from troff/mm to LaTex/tm.sty
+# Created by Terry L Anderson 91 May 28
+# Standard in: file in MM format.
+# Standard out: file in LaTex format using tm.sty
+# Intended for use by humans - it does various checks before executing.
+# Arguments: parameter 1 == name of MM file with or without .mm extension.
+# This program produces an Latex file with the .tex extension.
+
+# First test if the file is okay to use.
+
+if test -r "$1.mm"; then INF="$1.mm"; BASEFILE=$1
+   else if test -r "$1"; then INF="$1" BASEFILE=`basename $1 .mm`
+   else echo "No $1, $1.mm found";exit
+fi fi 
+
+# Actual translation follows.
+
+mm2tex.sh <$INF >$BASEFILE.tex

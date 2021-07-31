@@ -1,0 +1,14 @@
+r ../zc/z.out.h
+v/^	A/d
+,s/^	A/	"/
+g/ .*$/s///
+,s/,*$/",/
+1i
+char	*anames[] =
+{
+.
+$a
+};
+.
+w enam.c
+Q

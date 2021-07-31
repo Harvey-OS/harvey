@@ -1,4 +1,3 @@
-#pragma src "/sys/src/alef/lib/libbio"
 #pragma lib "/$M/lib/alef/libbio.a"
 
 enum
@@ -27,21 +26,23 @@ adt	Biobufhdr
 extern	int	flag;		/* magic if malloc'ed */
 	int	off;		/* offset of buffer in file */
 	int	bsize;		/* size of buffer */
-	byte*	bbuf;		/* pointer to beginning of buffer */
-	byte*	ebuf;		/* pointer to end of buffer */
+	char*	bbuf;		/* pointer to beginning of buffer */
+	char*	ebuf;		/* pointer to end of buffer */
 
 intern	int	iflush(*Biobufhdr);
 
 	int	buffered(*Biobufhdr);
-	int	term(*Biobufhdr);
+	int	close(*Biobufhdr);
+	void	erase(*Biobufhdr);
 	int	fildes(*Biobufhdr);
 	int	flush(*Biobufhdr);
 	int	getc(*Biobufhdr);
 	int	getrune(*Biobufhdr);
-	int	inits(*Biobufhdr, int, int, byte*, int);
+	int	inits(*Biobufhdr, int, int, char*, int);
+	void	kill(*Biobufhdr);
 	int	linelen(*Biobufhdr);
 	int	offset(*Biobufhdr);
-	int	print(*Biobufhdr, byte*, ...);
+	int	print(*Biobufhdr, char*, ...);
 	int	putc(*Biobufhdr, int);
 	int	putrune(*Biobufhdr, int);
 	void*	rdline(*Biobufhdr, int);
@@ -56,10 +57,10 @@ adt	Biobuf
 {
 	Biobufhdr;
 
-extern	byte	b[Bungetsize+Bsize];
+extern	char	b[Bungetsize+Bsize];
 
 	int	init(*Biobuf, int, int);
 };
 
-Biobuf*	Bopen(byte*, int);
+Biobuf*	Bopen(char*, int);
 void	batexit(void);

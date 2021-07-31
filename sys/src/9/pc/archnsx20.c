@@ -185,5 +185,4 @@ PCArch nsx20 =
 	nsx20serialpower,
 	nsx20modempower,
 	0,
-	0,
 };

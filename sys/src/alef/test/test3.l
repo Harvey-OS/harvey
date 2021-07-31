@@ -1,10 +1,10 @@
-#include	<alef.h>
+int	write(int, char*, int);
 
-void
-main(void)
+int
+main(int a, int b)
 {
 	int i;
-	byte c;
+	char c;
 
 	for(i = 'a'; i < 'z'; i = i+1) {
 		switch(i) {
@@ -40,5 +40,5 @@ main(void)
 		}
 		write(1, &c, 1);
 	}
-	write(1, "\n", 1);
+	return a;
 }

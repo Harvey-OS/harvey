@@ -10,6 +10,9 @@ mc \- multicolumn print
 .BI - N
 ]
 [
+.B -t
+]
+[
 .I file ...
 ]
 .SH DESCRIPTION
@@ -30,11 +33,9 @@ Under option
 each input line ending in a colon 
 .L :
 is printed separately.
-.SH SOURCE
-.B /sys/src/cmd/mc.c
+On output, multiple spaces are converted to tabs; this
+is suppressed by option
+.BR -t .
 .SH "SEE ALSO"
 .IR 8½ (1),
-.IR pr (1),
-.I lc
-in
-.IR ls (1)
+.IR pr (1)

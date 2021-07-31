@@ -1,0 +1,21 @@
+#!/bin/rc
+
+site=plan9
+cpu=helix
+
+# cs sets sysname
+/bin/ndb/cs
+sysname=`{cat /dev/sysname}
+
+/bin/bind -b '#w' /dev >/dev/null
+/bin/bind -a '#f' /dev >/dev/null
+/bin/bind -a '#t' /dev >/dev/null
+/fs
+/bin/mount -c /srv/dos /n/c: /dev/hd0disk
+switch($terminal){
+case NCR* 'AT&TNSX'*
+	aux/mouse ps2
+	aux/vga generic/640x480x1
+case *
+	cat /readme
+}

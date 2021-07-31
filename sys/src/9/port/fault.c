@@ -42,11 +42,10 @@ fault(ulong addr, int read)
 int
 fixfault(Segment *s, ulong addr, int read, int doputmmu)
 {
-	int type;
-	Pte **p, *etp;
 	ulong mmuphys=0, soff;
 	Page **pg, *lkp, *new;
-	Page *(*fn)(Segment*, ulong);
+	Pte **p, *etp;
+	int type;
 
 	addr &= ~(BY2PG-1);
 	soff = addr-s->base;
@@ -80,11 +79,6 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 		if(pagedout(*pg))
 			pio(s, addr, soff, pg);
 
-		lkp = *pg;
-		lock(lkp);
-		if(lkp->image)     
-			duppage(lkp);	
-		unlock(lkp);
 		goto done;
 
 	case SG_BSS:
@@ -136,22 +130,11 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 		break;
 
 	case SG_PHYSICAL:
-		if(*pg == 0) {
-			fn = s->pseg->pgalloc;
-			if(fn)
-				*pg = (*fn)(s, addr);
-			else {
-				new = smalloc(sizeof(Page));
-				new->va = addr;
-				new->pa = s->pseg->pa+(addr-s->base);
-				new->ref = 1;
-				*pg = new;
-			}
-		}
+		if(*pg == 0)
+			*pg = (*s->pgalloc)(addr);
 
-		mmuphys = PPN((*pg)->pa) |PTEWRITE|PTEUNCACHED|PTEVALID;
+		mmuphys = PPN((*pg)->pa) | PTEWRITE|PTEUNCACHED|PTEVALID;
 		(*pg)->modref = PG_MOD|PG_REF;
-/*		print("v %lux p %lux\n", addr, mmuphys);	/**/
 		break;
 	}
 
@@ -215,10 +198,8 @@ pio(Segment *s, ulong addr, ulong soff, Page **p)
 			ask = BY2PG;
 
 		n = (*devtab[c->type].read)(c, kaddr, ask, daddr);
-		if(n != ask){
-			print("demand load: %s: %d %d\n", u->error, n, ask);
+		if(n != ask)
 			error(Eioload);
-		}
 		if(ask < BY2PG)
 			memset(kaddr+ask, 0, BY2PG-ask);
 
@@ -245,10 +226,8 @@ pio(Segment *s, ulong addr, ulong soff, Page **p)
 		}
 
 		n = (*devtab[c->type].read)(c, kaddr, BY2PG, daddr);
-		if(n != BY2PG){
-			print("page in: %s: %d %d\n", u->error, n, BY2PG);
+		if(n != BY2PG)
 			error(Eioload);
-		}
 
 		poperror();
 		kunmap(k);
@@ -269,10 +248,10 @@ void
 faulterror(char *s)
 {
 	if(u->nerrlab) {
-		postnote(u->p, 1, s, NUser);
+		postnote(u->p, 1, s, NDebug);
 		error(s);
 	}
-	pexit(s, 1);
+	pexit(s, 0);
 }
 
 /*

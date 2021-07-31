@@ -1,2 +1,0 @@
-#!/bin/rc
-exec http/httpd -n /lib/namespace.http.att $*

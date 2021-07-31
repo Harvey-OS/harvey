@@ -3,7 +3,7 @@
 static struct coord center;
 
 static int
-Xbicentric(struct place *place, double *x, double *y)
+Xbicentric(struct place *place, float *x, float *y)
 {
 	if(place->wlon.c<=.01||place->nlat.c<=.01)
 		return(-1);
@@ -13,7 +13,7 @@ Xbicentric(struct place *place, double *x, double *y)
 }
 
 proj
-bicentric(double l)
+bicentric(float l)
 {
 	l = fabs(l);
 	if(l>89)

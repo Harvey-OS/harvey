@@ -16,7 +16,7 @@ int	ifdepth;
 int	ifsatisfied[NIF];
 int	skipping;
 
-int
+void
 main(int argc, char **argv)
 {
 	Tokenrow tr;
@@ -36,7 +36,6 @@ main(int argc, char **argv)
 	flushout();
 	fflush(stderr);
 	exits(nerrs? "errors" : 0);
-	return 0;
 }
 
 void
@@ -267,13 +266,12 @@ error(enum errtype type, char *string, ...)
 	char *cp, *ep;
 	Token *tp;
 	Tokenrow *trp;
-	Source *s;
 	int i;
 
-	fprintf(stderr, "cpp: ");
-	for (s=cursource; s; s=s->next)
-		if (*s->filename)
-			fprintf(stderr, "%s:%d ", s->filename, s->line);
+	if (*cursource->filename)
+		fprintf(stderr, "cpp: %s:%d: ", cursource->filename, cursource->line);
+	else
+		fprintf(stderr, "cpp: ");
 	va_start(ap, string);
 	for (ep=string; *ep; ep++) {
 		if (*ep=='%') {

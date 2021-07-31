@@ -1,0 +1,37 @@
+x T utf
+x res 720 1 1
+x init
+V0
+p1
+x font 1 R
+x font 2 I
+x font 3 B
+x font 4 BI
+x font 5 CW
+x font 6 H
+x font 7 HI
+x font 8 HB
+x font 9 S1
+x font 10 S
+s10
+f1
+H720
+V840
+ch
+50e44l28l28ow75|h49Csmiley
+33|w74w72o50r33l28dn120 0
+H720
+s24
+V1320
+ch
+h120ce
+h106cl
+67l67owh180c|
+h118Csmiley
+79|wh178cw
+h173co
+h120cr
+79l67dn120 0
+x trailer
+V7920
+x stop

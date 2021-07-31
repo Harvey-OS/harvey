@@ -1,0 +1,49 @@
+#!/bin/sh
+# Create tfm files for built-in fonts and virtual fonts
+# for each of them (and a few more).
+# The map file has lines with
+#    field1 = Adobe name
+#    field2 = abbreviated name (if present; otherwise no abbreviation;
+#			should begin with an uppercase character)
+#    field3,4,5 = a "real" built-in font, and how to use it to derive
+#			the required one.  e.g., 'F -e factor' to expand
+#			font F by factor; 'F -s slant' to oblique font F.
+rm -f *.tfm *.vpl *.vf
+# first, make some caps/small-caps fonts
+echo 'afm2tfm AvantGarde-Book -V avantcsc Avant
+afm2tfm Bookman-Light -V booklcsc Bookl
+afm2tfm Helvetica -V helvcsc Helv
+afm2tfm NewCenturySchlbk-Roman -V centcsc Cent
+afm2tfm Palatino-Roman -V palcsc Pal
+afm2tfm Times-Roman -V timescsc Times
+rm *.tfm' > doit
+# and generate the rest from the map file
+awk 'BEGIN {l["A"]="a"; l["B"]="b"; l["C"]="c"; l["D"]="d"; l["E"]="e";
+	l["F"]="f"; l["G"]="g"; l["H"]="h"; l["I"]="i"; l["J"]="j";
+	l["K"]="k"; l["L"]="l"; l["M"]="m"; l["N"]="n"; l["O"]="o";
+	l["P"]="p"; l["Q"]="q"; l["R"]="r"; l["S"]="s"; l["T"]="t";
+	l["U"]="u"; l["V"]="v"; l["W"]="w"; l["X"]="x"; l["Y"]="y";
+	l["Z"]="z";
+	}
+NF>=1	{
+		afm = (NF>2)? $3 : $1
+		tfm = (NF>1)? $2 : $1
+		vpl = l[substr(tfm,1,1)] substr(tfm,2)
+		printf "afm2tfm %s -v %s",afm,vpl
+		if(NF>3) printf(" %s %s",$4,$5)
+		printf " %s\n", tfm
+		if($1 ~ /Oblique/ || $1 ~ /Italic/)
+			printf "addgreekcaps -s %s\n", vpl
+		else
+			printf "addgreekcaps %s\n", vpl
+	}
+' map >> doit
+sh doit
+# the virtual fonts are all wrong for non-text fonts
+rm symbol.vpl symbolsl.vpl dingbats.vpl
+for i in *.vpl
+do
+	stem=`echo $i | sed 's/\.vpl//'`
+	vptovf $stem.vpl $stem.vf $stem.tfm
+done
+rm doit

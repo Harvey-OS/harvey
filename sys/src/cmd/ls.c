@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <auth.h>
 #include <fcall.h>
 
 typedef struct NDir NDir;
@@ -21,7 +20,6 @@ int	rflag;
 int	sflag;
 int	tflag;
 int	uflag;
-int	Fflag;
 int	ndirbuf;
 int	ndir;
 NDir*	dirbuf;
@@ -52,7 +50,6 @@ main(int argc, char *argv[])
 
 	Binit(&bin, 1, OWRITE);
 	ARGBEGIN{
-	case 'F':	Fflag++; break;
 	case 'd':	dflag++; break;
 	case 'l':	lflag++; break;
 	case 'n':	nflag++; break;
@@ -62,7 +59,7 @@ main(int argc, char *argv[])
 	case 's':	sflag++; break;
 	case 't':	tflag++; break;
 	case 'u':	uflag++; break;
-	default:	fprint(2, "usage: ls [-dlnpqrstuF] [file ...]\n");
+	default:	fprint(2, "usage: ls [-dlnpqrstu] files\n");
 			exits("usage");
 	}ARGEND
 
@@ -99,7 +96,8 @@ ls(char *s, int multi)
 	}
 	if(dirstat(s, db)==-1){
     error:
-		fprint(2, "ls: %s: %r\n", s);
+		fprint(2, "ls: %s: ", s);
+		perror(0);
 		return 1;
 	}
 	if(db[0].qid.path&CHDIR && dflag==0){
@@ -194,18 +192,6 @@ dowidths(Dir *db)
 	}
 }
 
-char*
-fileflag(Dir *db)
-{
-	if(Fflag == 0)
-		return "";
-	if(CHDIR & db->qid.path)
-		return "/";
-	if(0111 & db->mode)
-		return "*";
-	return "";
-}
-
 void
 format(Dir *db, char *name)
 {
@@ -217,7 +203,7 @@ format(Dir *db, char *name)
 			db->qid.path,
 			qwidth, db->qid.vers);
 	if(lflag)
-		Bprint(&bin, "%M %C %*d %*s %s %*ld %s %s\n",
+		Bprint(&bin, "%M %c %*d %*s %s %*ld %s %s\n",
 			db->mode, db->type,
 			vwidth, db->dev,
 			-uwidth, db->uid,
@@ -225,7 +211,7 @@ format(Dir *db, char *name)
 			glwidth-strlen(db->gid), db->length,
 			asciitime(uflag? db->atime : db->mtime), name);
 	else
-		Bprint(&bin, "%s%s\n", name, fileflag(db));
+		Bprint(&bin, "%s\n", name);
 }
 
 void
@@ -270,7 +256,7 @@ compar(NDir *a, NDir *b)
 	if(i == 0)
 		i = (a<b? -1 : 1);
 	if(rflag)
-		i = -i;
+		i = -1 * i;
 	return i;
 }
 

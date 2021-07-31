@@ -30,7 +30,7 @@ domore(char *dataln)
 	if (prefix(".TE", dataln))
 		return(0);
 	if (dataln[0] == '.' && !isdigit(dataln[1])) {
-		Bprint(&tabout, "%s\n", dataln);
+		puts(dataln);
 		return(1);
 	}
 	fullbot[0] = 0;

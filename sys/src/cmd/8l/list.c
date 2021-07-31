@@ -34,8 +34,6 @@ Pconv(void *o, Fconv *fp)
 			p->line, p->as, &p->from, &p->to);
 		break;
 	case ADATA:
-	case AINIT:
-	case ADYNT:
 		sprint(str, "(%ld)	%A	%D/%d,%D",
 			p->line, p->as, &p->from, p->from.scale, &p->to);
 		break;

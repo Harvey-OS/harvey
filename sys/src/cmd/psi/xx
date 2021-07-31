@@ -1,0 +1,8 @@
+sort +5 psi.err|awk '
+/^%/	{next}
+	{ count[$6]++
+	}
+END	{
+	for(i in count)
+		if(count[i] % 2)print i " " count[i]
+}'

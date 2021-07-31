@@ -1,3 +1,0 @@
-#!/bin/rc
-window '4 4 104 104' games/clock
-window '80 80 610 360' /usr/none/lib/first.window

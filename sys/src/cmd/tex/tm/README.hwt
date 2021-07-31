@@ -1,0 +1,10 @@
+Changes made to distribution:
+
+attletter.sty:
+changed address defaults
+
+\phone{908 582-3000} % information number for the location
+\fax{908 582-5857} % fax # for 1127
+%\fax{908 582-2379} % fax # for 1121 (third floor)
+\streetaddr{600 Mountain Avenue}
+\cityaddr{Murray Hill, NJ\quad 07974-0636}

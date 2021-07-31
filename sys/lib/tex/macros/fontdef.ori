@@ -1,0 +1,579 @@
+%% 
+%% This is file `fontdef.ori' generated
+%% on <1990/6/30> with the docstrip utility (v1.1k). 
+%% 
+%% The original source file was `fontdef.doc'.
+%% Included modules: `ori'.
+%% 
+%% 
+%% Copyright (C) 1989,1990 by Frank Mittelbach, Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy this file 
+%% to a file with a different name and then change the copy. 
+%% 
+%% You are allowed to distribute this file under the condition that it is 
+%% distributed together with all files mentioned in readme.mz3. If you 
+%% receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT ALLOWED 
+%% to take money for the distribution or use of either this file or a 
+%% changed version, except for a nominal charge for copying etc. 
+%% 
+%% Error Reports in case of UNCHANGED versions to 
+%% 
+%% F. Mittelbach 
+%% Eichenweg 29 
+%% D-6500 Mainz 1 
+%% Federal Republic of Germany 
+%% Bitnet: <PZF5HZ@DRUEDS2> 
+%% 
+%% or: 
+%% R. Sch\"opf 
+%% Inst. f. Theor. Physik 
+%% der Universit\"at Heidelberg 
+%% Philosophenweg 16 
+%% D-6900 Heidelberg 
+%% Federal Republic of Germany 
+%% Bitnet: <BK4@DHDURZ1> 
+%% 
+%% 
+ 
+\def\fileversion{v1.1i}
+\def\filedate{90/06/08}
+\def\docdate {90/06/08}
+ 
+%% \CheckSum{126}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%% This file contains the external font information needed to load
+%% the standard families of the computer modern fonts
+%% designed by Donald E. Knuth.
+%% This means that some of the font shapes are not available in
+%% all sizes; in this case some other size (or other font) is
+%% substituted instead.
+%%
+%% For a larger collection of fonts see the file `fontdef.max'.
+%%
+%% You should *not* change this file!  If you want to change the
+%% fonts/shapes you should create a copy of it named `fontdef.tex'
+%% and edit this one according to your needs!
+%%
+%% The format of a font/shape definition is as follows:
+%%
+%% \new@fontshape{family}{series}{shape}%
+%%       {<size_1>external_font_1%
+%%        <size_2>external_font_2%
+%%        ...
+%%        <size_n>external_font_n}{}
+%%
+%% (Don't forget the final {} !)
+%%
+%% family    : Name of font family like cmr etc.
+%% series    : Weight and width of the font in 1 to 4 letter
+%%             abbreviations. A table is given in the tugboat article
+%%             distributed together with this file.
+%% shape     : Either n (normal), it (italic), sc (small caps), sl
+%%             (slanted) or u (upright italic).
+%% <size_i>  : The size in printer points. Standard LaTeX supports 5,
+%%             6, 7, 8, 9, 10, 11, 12, 14, 17, 20, 25 corresponding to
+%%             \tiny, \scriptsize and so on.  The angle brackets are
+%%             part of the syntax!
+%%
+%% external_font_i : The name of the external font in your font
+%%             library. If the font/shape is not available in a
+%%             certain size you may use the name of a replacement
+%%             font.  E.g. one can substitute cmr5 for cmti.. which is
+%%             only available in size 7 and higher.  If you put a `1'
+%%             in front of the name of the font a warning message will
+%%             be produced (saying that the font has been substituted
+%%             for the real one) when you use it for the first time.
+%%             Below you can find examples of this mechanism.
+%%
+%% For font/shape combinations which aren't available at all like
+%% computer modern sans serif small caps a suitable default will be
+%% used automatically unless you specify a substitution yourself with
+%% the \subst@fontshape command.
+%%
+%% It syntax is as follows:
+%%
+%% \subst@fontshape{family}{series}{shape}%
+%%                 {subst_family}{subst_series}{subst_shape}
+%%
+%% This might be necessary if the automatically selected default does
+%% not match your needs. For example: the font shape choosen instead
+%% of `computer modern sans serif small caps' would be `computer
+%% modern sans serif normal'. With a \subst@fontshape command you can
+%% change this, for example, to `computer modern roman small caps' as
+%% we did below. (If you don't like this remove this line in your
+%% *copy* of this file.)
+%%
+%% Finally, for every family there is an \extra@def macro.  It defines
+%% special action to be done at load time for every font of the family.
+%% In most cases you can simply write
+%%
+%% \extra@def{family}{}{}
+%%
+%% In this file it is used to suppress hyphenation for typewriter
+%% fonts (see \extra@def{cmtt}... below) and to set the \skewchar
+%% for math fonts (see \extra@def{cmm}... and \extra@def{cmsy}...).
+%%
+%%
+\newlinechar`\^^J
+\immediate\write\sixt@@n{File: `fontdef.ori' \space
+ \fileversion\space <\filedate> (FMi and RmS)}
+\immediate\write\sixt@@n{English Documentation
+      \@spaces\space <\docdate> (FMi and RmS)}
+\immediate\write\sixt@@n
+  {^^JIncludes Font/Shape Definitions for:^^J
+     ^^J\@spaces Computer Modern Standard Fonts%
+  .^^J}
+\immediate\write\sixt@@n
+  {********************************************************************}
+\immediate\write\sixt@@n
+  {* Probably customized by YOU who forgot to change the lines above! *}
+\immediate\write\sixt@@n
+  {********************************************************************}
+%%
+%% Please don't change the next lines unless you know exactly what you
+%% are doing.
+%%
+\def\default@shape{n}
+\def\default@series{m}
+\def\default@family{cmr}
+\def\default@errfont{cmsy10}
+%%
+%% Again, this is doubly dangerous bent.
+%%
+\family\default@family
+\series\default@series
+\shape\default@shape
+%%
+%% And here is your playground:
+%%
+\new@fontshape{cmr}{m}{n}{%
+      <5>cmr5%
+      <6>cmr6%
+      <7>cmr7%
+      <8>cmr8%
+      <9>cmr9%
+      <10>cmr10%
+      <11>cmr10 at10.95pt%
+      <12>cmr12%
+      <14>cmr12 at14.4pt%
+      <17>cmr17%
+      <20>cmr17 at20.736pt%
+      <25>cmr17 at24.8832pt}{}
+\extra@def{cmr}{}{}
+\new@fontshape{cmr}{m}{sl}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>cmsl8%
+      <9>cmsl9%
+      <10>cmsl10%
+      <11>cmsl10 at10.95pt%
+      <12>cmsl12%
+      <14>cmsl12 at14.4pt%
+      <17>cmsl12 at17.28pt%
+      <20>cmsl12 at20.74pt%
+      <25>cmsl12 at24.88pt%
+      }{}
+ 
+\new@fontshape{cmr}{m}{it}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>cmti7%
+      <8>cmti8%
+      <9>cmti9%
+      <10>cmti10%
+      <11>cmti10 at10.95pt%
+      <12>cmti12%
+      <14>cmti12 at14.4pt%
+      <17>cmti12 at17.28pt%
+      <20>cmti12 at20.74pt%
+      <25>cmti12 at24.88pt%
+      }{}
+ 
+\new@fontshape{cmr}{m}{sc}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>cmcsc10 at8pt%
+      <9>cmcsc10 at9pt%
+      <10>cmcsc10%
+      <11>cmcsc10 at10.95pt%
+      <12>cmcsc10 at12pt%
+      <14>cmcsc10 at14.4pt%
+      <17>cmcsc10 at17.28pt%
+      <20>cmcsc10 at20.74pt%
+      <25>cmcsc10 at24.88pt%
+      }{}
+%%
+%% Warning: please note that the upright shape below is used
+%%          for the \pounds symbol of LaTeX. So this font
+%%          definition shouldn't be removed.
+%%
+\new@fontshape{cmr}{m}{u}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>1cmr8%
+      <9>1cmr9%
+      <10>cmu10%
+      <11>cmu10 at10.95pt%
+      <12>cmu10 at12pt%
+      <14>cmu10 at14.4pt%
+      <17>cmu10 at17.28pt%
+      <20>cmu10 at20.74pt%
+      <25>cmu10 at24.88pt%
+      }{}
+ 
+%%%%%%%% bold series
+ 
+\new@fontshape{cmr}{b}{n}{%
+      <5>1cmbx5%
+      <6>1cmbx6%
+      <7>1cmbx7%
+      <8>1cmbx8%
+      <9>1cmbx9%
+      <10>cmb10%
+      <11>cmb10 at10.95pt%
+      <12>cmb10 at12pt%
+      <14>cmb10 at14.4pt%
+      <17>cmb10 at17.28pt%
+      <20>cmb10 at20.736pt%
+      <25>cmb10 at24.8832pt%
+      }{}
+ 
+%%%%%%%%% bold extended series
+ 
+\new@fontshape{cmr}{bx}{n}{%
+      <5>cmbx5%
+      <6>cmbx6%
+      <7>cmbx7%
+      <8>cmbx8%
+      <9>cmbx9%
+      <10>cmbx10%
+      <11>cmbx10 at10.95pt%
+      <12>cmbx12%
+      <14>cmbx12 at14.4pt%
+      <17>cmbx12 at17.28pt%
+      <20>cmbx12 at20.74pt%
+      <25>cmbx12 at24.88pt%
+      }{}
+ 
+\new@fontshape{cmr}{bx}{sl}{%
+      <5>1cmbx5%
+      <6>1cmbx6%
+      <7>1cmbx7%
+      <8>1cmbx8%
+      <9>1cmbx9%
+      <10>cmbxsl10%
+      <11>cmbxsl10 at10.95pt%
+      <12>cmbxsl10 at12pt%
+      <14>cmbxsl10 at14.4pt%
+      <17>cmbxsl10 at17.28pt%
+      <20>cmbxsl10 at20.74pt%
+      <25>cmbxsl10 at24.88pt%
+      }{}
+ 
+\new@fontshape{cmr}{bx}{it}{%
+      <5>1cmbx5%
+      <6>1cmbx6%
+      <7>1cmbx7%
+      <8>1cmbx8%
+      <9>1cmbx9%
+      <10>cmbxti10%
+      <11>cmbxti10 at10.95pt%
+      <12>cmbxti10 at12pt%
+      <14>cmbxti10 at14.4pt%
+      <17>cmbxti10 at17.28pt%
+      <20>cmbxti10 at20.74pt%
+      <25>cmbxti10 at24.88pt%
+      }{}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Sans serif font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\new@fontshape{cmss}{m}{n}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>cmss8%
+      <9>cmss9%
+      <10>cmss10%
+      <11>cmss10 at10.95pt%
+      <12>cmss12%
+      <14>cmss12 at14.4pt%
+      <17>cmss17%
+      <20>cmss17 at20.74pt%
+      <25>cmss17 at24.88pt%
+      }{}
+ 
+ 
+\subst@fontshape{cmss}{m}{it}{cmss}{m}{sl}
+ 
+\new@fontshape{cmss}{m}{sl}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>cmssi8%
+      <9>cmssi9%
+      <10>cmssi10%
+      <11>cmssi10 at10.95pt%
+      <12>cmssi12%
+      <14>cmssi12 at14.4pt%
+      <17>cmssi17%
+      <20>cmssi17 at20.74pt%
+      <25>cmssi17 at24.88pt%
+      }{}
+ 
+%%%%%%% Font/shape undefined, therefore substituted
+ 
+\subst@fontshape{cmss}{m}{sc}{cmr}{m}{sc}
+ 
+%%%%%%%% semibold condensed series
+ 
+\new@fontshape{cmss}{sbc}{n}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>1cmss8%
+      <9>1cmss9%
+       <10>cmssdc10%
+       <11>cmssdc10 at10.95pt%
+       <12>cmssdc10 at12pt%
+       <14>cmssdc10 at14.4pt%
+       <17>cmssdc10 at17.28pt%
+       <20>cmssdc10 at20.74pt%
+       <25>cmssdc10 at24.88pt%
+       }{}
+ 
+%%%%%%%%% bold extended series
+ 
+\new@fontshape{cmss}{bx}{n}{%
+      <5>1cmbx5%
+      <6>1cmbx6%
+      <7>1cmbx7%
+      <8>1cmbx8%
+      <9>1cmbx9%
+      <10>cmssbx10%
+      <11>cmssbx10 at10.95pt%
+      <12>cmssbx10 at12pt%
+      <14>cmssbx10 at14.4pt%
+      <17>cmssbx10 at17.28pt%
+      <20>cmssbx10 at20.74pt%
+      <25>cmssbx10 at24.88pt%
+      }{}
+ 
+\extra@def{cmss}{}{}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Typewriter font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\new@fontshape{cmtt}{m}{n}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>cmtt8%
+      <9>cmtt9%
+      <10>cmtt10%
+      <11>cmtt10 at10.95pt%
+      <12>cmtt12%
+      <14>cmtt12 at14.4pt%
+      <17>cmtt12 at17.28pt%
+      <20>cmtt12 at20.74pt%
+      <25>cmtt12 at24.88pt%
+      }{}
+ 
+\new@fontshape{cmtt}{m}{it}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>1cmtt8%
+      <9>1cmtt9%
+      <10>cmitt10%
+      <11>cmitt10 at10.95pt%
+      <12>cmitt10 at12pt%
+      <14>cmitt10 at14.4pt%
+      <17>cmitt10 at17.28pt%
+      <20>cmitt10 at20.74pt%
+      <25>cmitt10 at24.88pt%
+      }{}
+ 
+\new@fontshape{cmtt}{m}{sl}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>1cmtt8%
+      <9>1cmtt9%
+      <10>cmsltt10%
+      <11>cmsltt10 at10.95pt%
+      <12>cmsltt10 at12pt%
+      <14>cmsltt10 at14.4pt%
+      <17>cmsltt10 at17.28pt%
+      <20>cmsltt10 at20.74pt%
+      <25>cmsltt10 at24.88pt%
+      }{}
+ 
+\new@fontshape{cmtt}{m}{sc}{%
+      <5>1cmr5%
+      <6>1cmr6%
+      <7>1cmr7%
+      <8>1cmtt8%
+      <9>1cmtt9%
+      <10>cmtcsc10%
+      <11>cmtcsc10 at10.95pt%
+      <12>cmtcsc10 at12pt%
+      <14>cmtcsc10 at14.4pt%
+      <17>cmtcsc10 at17.28pt%
+      <20>cmtcsc10 at20.74pt%
+      <25>cmtcsc10 at24.88pt%
+      }{}
+ 
+\extra@def{cmtt}{\hyphenchar #1\m@ne}{}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Math italic font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\new@fontshape{cmm}{m}{it}{%
+      <5>cmmi5%
+      <6>cmmi6%
+      <7>cmmi7%
+      <8>cmmi8%
+      <9>cmmi9%
+      <10>cmmi10%
+      <11>cmmi10 at10.95pt%
+      <12>cmmi12%
+      <14>cmmi12 at14.4pt%
+      <17>cmmi12 at17.28pt%
+      <20>cmmi12 at20.74pt%
+      <25>cmmi12 at24.88pt%
+      }{}
+ 
+\new@fontshape{cmm}{b}{it}{%
+      <5>1cmmi5%
+      <6>1cmmi6%
+      <7>1cmmi7%
+      <8>1cmmi8%
+      <9>1cmmi9%
+      <10>cmmib10%
+      <11>cmmib10 at10.95pt%
+      <12>cmmib10 at12pt%
+      <14>cmmib10 at14.4pt%
+      <17>cmmib10 at17.28pt%
+      <20>cmmib10 at20.74pt%
+      <25>cmmib10 at24.88pt%
+      }{}
+ 
+\extra@def{cmm}{\skewchar#1'177}{}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Math symbol font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\new@fontshape{cmsy}{m}{n}{%
+      <5>cmsy5%
+      <6>cmsy6%
+      <7>cmsy7%
+      <8>cmsy8%
+      <9>cmsy9%
+      <10>cmsy10%
+      <11>cmsy10 at10.95pt%
+      <12>cmsy10 at12pt%
+      <14>cmsy10 at14.4pt%
+      <17>cmsy10 at17.28pt%
+      <20>cmsy10 at20.74pt%
+      <25>cmsy10 at24.88pt%
+      }{}
+ 
+\new@fontshape{cmsy}{b}{n}{%
+      <5>1cmsy5%
+      <6>1cmsy6%
+      <7>1cmsy7%
+      <8>1cmsy8%
+      <9>1cmsy9%
+      <10>cmbsy10%
+      <11>cmbsy10 at10.95pt%
+      <12>cmbsy10 at12pt%
+      <14>cmbsy10 at14.4pt%
+      <17>cmbsy10 at17.28pt%
+      <20>cmbsy10 at20.74pt%
+      <25>cmbsy10 at24.88pt%
+      }{}
+ 
+\extra@def{cmsy}{\skewchar#1'60}{}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  LaTeX symbol font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\new@fontshape{lasy}{m}{n}{%
+      <5>lasy5%
+      <6>lasy6%
+      <7>lasy7%
+      <8>lasy8%
+      <9>lasy9%
+      <10>lasy10%
+      <11>lasy10 at10.95pt%
+      <12>lasy10 at12pt%
+      <14>lasy10 at14.4pt%
+      <17>lasy10 at17.28pt%
+      <20>lasy10 at20.74pt%
+      <25>lasy10 at24.88pt%
+      }{}
+ 
+\new@fontshape{lasy}{b}{n}{%
+      <5>1lasy5%
+      <6>1lasy6%
+      <7>1lasy7%
+      <8>1lasy8%
+      <9>1lasy9%
+      <10>lasyb10%
+      <11>lasyb10 at10.95pt%
+      <12>lasyb10 at12pt%
+      <14>lasyb10 at14.4pt%
+      <17>lasyb10 at17.28pt%
+      <20>lasyb10 at20.74pt%
+      <25>lasyb10 at24.88pt%
+      }{}
+ 
+\extra@def{lasy}{}{}
+ 
+ 
+ 
+ 
+ 
+\endinput
+%% 
+%% End of file `fontdef.ori'.

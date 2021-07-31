@@ -1,0 +1,92 @@
+This is a source file distribution for the game dungeon as implemented
+in C.  It is based on the game dungeon as distributed on a DECUS tape,
+circa 1980.  It has been converted from the original DEC FORTRAN to
+f77 to C.  See the file "History" for some revision history and credit
+to those whose efforts have made this possible.
+
+Take a look at the Makefile.  It should be fine for most systems,
+although you may want to change BINDIR and LIBDIR.  On SCO UNIX see
+the note at the definition of CFLAGS.  Makefile.MSC should work for
+MS-DOS using Microsoft C.  It was contributed by Jonathan Mark
+(uunet!microsoft!jonm).
+
+To compile and link dungeon, type make.  To install it in BINDIR and
+LIBDIR, type make install.
+
+There are two functions in local.c that you may want to write for your
+system.  The first controls when the game can be played, and can be
+used to disallow play during business hours, for example.  The second
+controls who is allowed to invoke the game debugging tool; note that
+this will only be available at all if you uncomment the GDTFLAG line
+in the Makefile.  The comments in local.c explain what to do.
+
+All files in the distribution kit are ASCII.  The files dtextc.uu1,
+dtextc.uu2, dtextc.uu3, dtextc.uu4 are parts of a uuencoded binary
+file named dtextc.dat.  The Makefile will create the binary file
+automatically on a UNIX system; elsewhere you will have to stick the
+four files together in numerical order and run the resulting large
+file through uudecode.  I can't help you find uudecode, though.
+
+The binary file dtextc.dat holds the text strings and initialization
+information for the game.  The strings are encrypted to prevent easy
+cheating; if you want to do further work on the program, or translate
+the strings, Ian Taylor (address below) has a program to convert this
+file back and forth from a human-readable form.
+
+This has been compiled and tested on a DECstation 3100 running Ultrix
+4.0, a VAXstation GPX running Ultrix 3.1, an 80386 box running SCO
+Unix 3.2.2, an 8800 running Ultrix, a Sun box running SUN OS 4 release
+4, and an 80386 PC running MS-DOS.
+
+I consider my changes to be in the public domain, as did previous
+contributors (see the History file for more detail).  The original
+source, however, is copyright.
+
+	Ian Lance Taylor
+	ian@airs.com or uunet!airs!ian
+	11 March 1991
+
+Dungeon consists of the following files:
+
+	dmain.c			-program root
+	dgame.c			-main routine
+	dsub.c			-resident subroutines
+	dinit.c			-initialization routine
+	np.c			-parser, part 0
+	np1.c			-parser, part 1
+	np2.c			-parser, part 2
+	np3.c			-parser, part 3
+	gdt.c			-game debugging tool
+	verbs.c			-principal verbs
+	objcts.c		-principal objects
+	sverbs.c		-simple verbs
+	dverb1.c		-auxiliary verbs, part 1
+	dverb2.c		-auxiliary verbs, part 2
+	actors.c		-character processors
+	demons.c		-demon processors
+	clockr.c		-clock event processors
+	rooms.c			-room processors
+	nrooms.c		-new room processors
+	sobjs.c			-simple objects
+	nobjs.c			-new objects
+	ballop.c		-balloon processor
+	lightp.c		-light processors
+	villns.c		-villain processors
+	dso1.c			-overlaid subroutines, part 1
+	dso2.c			-overlaid subroutines, part 2
+	dso3.c			-overlaid subroutines, part 3
+	dso4.c			-overlaid subroutines, part 4
+	dso5.c			-overlaid subroutines, part 5
+	dso6.c			-overlaid subroutines, part 6
+	dso7.c			-overlaid subroutines, part 7
+	funcs.h			-header file with function prototypes
+	vars.h			-header file with variable definitions
+	parse.h			-header file for parsing routines
+	supp.c			-support routines and more processing
+	local.c			-hooks for local definition
+	dindxc.dat		-data base [binary file]
+	dungeon.6		-man page
+	Makefile		-Makefile
+	Makefile.MSC		-Makefile for MS-DOS and Microsoft C
+	History			-Some revision history notes
+	README			-This file

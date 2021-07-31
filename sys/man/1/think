@@ -1,0 +1,33 @@
+.TH THINK 1
+.SH NAME
+think \(mi HP ThinkJet filter
+.SH SYNOPSIS
+.B think
+[
+.B -r
+]
+[
+.B -o
+.I outfile
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Think
+filters the given
+.I files
+(standard input by default) to
+.I outfile
+.RB ( /dev/lpt1data
+by default).  Tabs are expanded, carriage-returns are added after newlines,
+and runes that fall outside the standard
+.SM ASCII
+range are converted to Roman-8 codes if possible.  The
+.B -r
+option suppresses this conversion.
+.SH FILES
+.TF /dev/lpt1data
+.TP
+.B /dev/lpt1data
+Centronix printer port

@@ -1,0 +1,37 @@
+starting
+Map: (377, 100) - (477, 200)
+getmydir: /sys/doc/cda
+call_host helix.exec
+rcv: z 7a
+rcv: b 62
+Bounds: (500, 500) - (7100, 6500)
+rcv: B 42
+rcv: P 50
+10 pinholes
+rcv: C 43
+2 Chips
+rcv: A 41
+Chip String:  (106)
+rcv: S 53
+20 Signals
+rcv: D 44
+DRAW
+Map: (377, 100) - (477, 200)
+Chip: (-50, -30) (1960, 120)
+Fixed Chip: (377, 199) (402, 200)
+Chip: (-240, -50) (50, 3140)
+Fixed Chip: (374, 152) (377, 200)
+rcv: z 7a
+ -->opened
+ rcv: c 63
+rcv: z 7a
+rcv: c 63
+rcv: z 7a
+rcv: t 74
+rcv: c 63
+rcv: z 7a
+rcv: c 63
+rcv: z 7a
+rcv: c 63
+rcv: z 7a
+rcv: z 7a

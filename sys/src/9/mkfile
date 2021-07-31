@@ -1,31 +1,24 @@
-ARCH=\
-	chm\
-	gnot\
-	indigo3k\
-	indigo4k\
-	magnum\
-	next\
-	pc\
-	power\
-	ss\
-	ss10\
+ARCH=ss gnot power magnum next pc hobbit hobbitrom
 
 all:V:
-	for(i in $ARCH)@{
-		cd $i
+	cd boot
+	for(i in $ARCH){
+		cd ../$i
 		mk
 	}
 
 installall:V:
-	for(i in $ARCH) @{
-		cd $i
+	cd boot
+	for(i in $ARCH){
+		cd ../$i
 		mk installall
 	}
 
 clean:V:
-	@{ cd boot; mk clean }
-	for(i in $ARCH) @{
-		cd $i
+	cd boot
+	mk clean
+	for(i in $ARCH){
+		cd ../$i
 		mk clean
 	}
 

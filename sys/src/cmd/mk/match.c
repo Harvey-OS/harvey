@@ -55,15 +55,14 @@ void
 subst(char *stem, char *template, char *dest)
 {
 	Rune r;
-	char *s;
 	int n;
 
 	while(*template){
 		n = chartorune(&r, template);
 		if (PERCENT(r)) {
 			template += n;
-			for (s = stem; *s; s++)
-				*dest++ = *s;
+			while (*stem)
+				*dest++ = *stem++;
 		} else
 			while (n--)
 				*dest++ = *template++;

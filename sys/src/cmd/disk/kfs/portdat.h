@@ -9,8 +9,6 @@
 #define	MAXMSG		128		/* max size protocol message sans data */
 #define NTLOCK		200		/* number of active file Tlocks */
 
-#include <auth.h>
-
 typedef	struct	Fbuf	Fbuf;
 typedef	struct	Super1	Super1;
 typedef	struct	Superb	Superb;
@@ -81,12 +79,10 @@ struct	Super1
 	long	fsize;
 	long	tfree;
 	long	qidgen;		/* generator for unique ids */
-
-	long	fsok;		/* file system ok */
-
 	/*
-	 * garbage for WWC device
+	 * Stuff for WWC device
 	 */
+	long	cwraddr;	/* cfs root addr */
 	long	roraddr;	/* dump root addr */
 	long	last;		/* last super block addr */
 	long	next;		/* next super block addr */
@@ -230,44 +226,42 @@ struct	Fcall
 {
 	char	type;
 	short	fid;
-	short	err;
 	short	tag;
+	short	err;
 	union
 	{
 		struct
 		{
-			short	uid;		/* T-Userstr */
-			short	oldtag;		/* T-nFlush */
-			Qid	qid;		/* R-Attach, R-Clwalk, R-Walk,
-						 * R-Open, R-Create */
-			char	rauth[AUTHENTLEN];	/* R-attach */
+			short	oldtag;		/* T-Flush */
+			Qid	qid;		/* R-Attach, R-Walk, R-Open, R-Create */
 		};
 		struct
 		{
-			char	uname[NAMELEN];	/* T-nAttach */
-			char	aname[NAMELEN];	/* T-nAttach */
-			char	ticket[TICKETLEN];	/* T-attach */
-			char	auth[AUTHENTLEN];	/* T-attach */
+			char	client[NAMELEN];/* T-auth */
+			char	chal[8+NAMELEN];/* T-auth, R-auth */
 		};
 		struct
 		{
-			char	ename[ERRREC];	/* R-nError */
-			char	chal[CHALLEN];	/* T-session, R-session */
-			char	authid[NAMELEN];	/* R-session */
-			char	authdom[DOMLEN];	/* R-session */
+			char	uname[NAMELEN];	/* T-Attach */
+			char	aname[NAMELEN];	/* T-Attach */
+			char	auth[NAMELEN];	/* T-Attach */
 		};
 		struct
 		{
-			char	name[NAMELEN];	/* T-Walk, T-Clwalk, T-Create, T-Remove */
-			long	perm;		/* T-Create */
+			char	ename[ERRREC];	/* R-Error */
+		};
+		struct
+		{
+			long	perm;		/* T-Create */ 
 			short	newfid;		/* T-Clone, T-Clwalk */
+			char	name[NAMELEN];	/* T-Walk, T-Clwalk, T-Create */
 			char	mode;		/* T-Create, T-Open */
 		};
 		struct
 		{
 			long	offset;		/* T-Read, T-Write */
 			long	count;		/* T-Read, T-Write, R-Read */
-			char*	data;		/* T-Write, R-Read */
+			char	*data;		/* T-Write, R-Read */
 		};
 		struct
 		{
@@ -280,18 +274,16 @@ struct	Fcall
 
 enum
 {
-	Tmux =		48,
-	Rmux,			/* illegal */
 	Tnop =		50,
 	Rnop,
-	Tosession =	52,	/* illegal */
-	Rosession,		/* illegal */
+	Tsession =	52,
+	Rsession,
 	Terror =	54,	/* illegal */
 	Rerror,
 	Tflush =	56,
 	Rflush,
-	Toattach =	58,	/* illegal */
-	Roattach,		/* illegal */
+	Tattach =	58,
+	Rattach,
 	Tclone =	60,
 	Rclone,
 	Twalk =		62,
@@ -314,12 +306,8 @@ enum
 	Rwstat,
 	Tclwalk =	80,
 	Rclwalk,
-	Tauth =		82,	/* illegal */
-	Rauth,			/* illegal */
-	Tsession =	84,
-	Rsession,
-	Tattach =	86,
-	Rattach,
+	Tauth =		82,
+	Rauth,
 
 	MAXSYSCALL
 };

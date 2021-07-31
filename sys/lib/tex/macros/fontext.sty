@@ -1,0 +1,29 @@
+% FONTEXT DOCUMENT STYLE OPTION
+%    for LaTeX version 2.09
+%
+% This option is designed to work for styles that allow 11pt and 12pt options.
+
+% Remove the outerness:
+\def\newfam{\alloc@8\fam\chardef\sixt@@n}
+
+% \newmathfont {\CMD} {FONT.NAME}
+%   Defines \CMD to be a typestyle that works in text or in math mode
+%   but does not obey size changing commands.
+%   Scaling information for subscripts and subsubscripts is generated
+%   automatically, so FONT.NAME should not include any `at...' or
+%   `scaled...' clauses.
+
+\def\newmathfont#1#2{\@ifdefinable#1{%
+	\expandafter\newfam\csname fm\string#1\endcsname
+	\expandafter\font \csname ft\string#1\endcsname
+		#2 at1\@ptsize pt			  % 10, 11, 12 pt text
+	\expandafter\font \csname fs\string#1\endcsname
+		#2 at\ifcase\@ptsize\space 7\else 8\fi pt % 7, 8, 8 pt script
+	\expandafter\font \csname fss\string#1\endcsname
+		#2 at\ifcase\@ptsize\space 5\else 6\fi pt % 5, 6, 6 pt scriptscript
+	\textfont\@fontfam#1t%
+	\scriptfont\@fontfam#1s%
+	\scriptscriptfont\@fontfam#1{ss}%
+	\gdef#1{\fam\@fontfam#1t}%
+	}}
+\def\@fontfam#1#2{\csname fm\string#1\endcsname\csname f#2\string#1\endcsname}

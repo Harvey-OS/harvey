@@ -139,12 +139,6 @@ Qinfo urpinfo =
 	urpreset
 };
 
-void
-sturplink(void)
-{
-	newqinfo(&urpinfo);
-}
-
 static void
 urpreset(void)
 {
@@ -243,14 +237,11 @@ urpclose(Queue *q)
 	/*
 	 *  free all staged but unsent messages
 	 */
-	for(i = 0; i < 7; i++){
-		qlock(&up->xl[i]);
+	for(i = 0; i < 7; i++)
 		if(up->xb[i]){
 			freeb(up->xb[i]);
 			up->xb[i] = 0;
 		}
-		qunlock(&up->xl[i]);
-	}
 	qunlock(&up->xmit);
 
 	qlock(up);
@@ -572,7 +563,6 @@ urpiput(Queue *q, Block *bp)
 /*
  *  downstream control
  */
-Queue *trapq;
 static void
 urpctloput(Urp *up, Queue *q, Block *bp)
 {
@@ -600,7 +590,7 @@ urpctloput(Urp *up, Queue *q, Block *bp)
 			return;
 		}
 		if(streamparse("debug", bp)){
-			switch(getfields((char *)bp->rptr, fields, 2, " ")){
+			switch(getfields((char *)bp->rptr, fields, 2, ' ')){
 			case 1:
 				if (strcmp(fields[0], "on") == 0) {
 					q->flag |= QDEBUG;
@@ -612,10 +602,6 @@ urpctloput(Urp *up, Queue *q, Block *bp)
 				}
 			}
 			freeb(bp);
-			return;
-		}
-		if(streamparse("trap", bp)){
-			trapq = q;
 			return;
 		}
 	}
@@ -876,7 +862,7 @@ sendblock(Urp *up, int bn)
 	n = BLEN(bp);
 	m->rptr[0] = SEQ | bn;
 	m->rptr[1] = n;
-	m->rptr[2] = n>>8;
+	m->rptr[2] = n<<8;
 	m->flags |= S_DELIM;
 	PUTNEXT(q, m);
 	DPRINT("sb %d (%d)\n", bn, up->timer);
@@ -904,6 +890,8 @@ rcvack(Urp *up, int msg)
 			qlock(&up->xl[i]);
 			if(up->xb[i])
 				freeb(up->xb[i]);
+			else
+				urpvomit("rcvack", up);
 			up->xb[i] = 0;
 			qunlock(&up->xl[i]);
 		}

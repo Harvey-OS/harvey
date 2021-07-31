@@ -25,9 +25,9 @@ rega(void)
 	Reg *r;
 
 	r = freer;
-	if(r == R)
+	if(r == R) {
 		r = malloc(sizeof(Reg));
-	else
+	} else
 		freer = r->next;
 
 	*r = zreg;
@@ -57,7 +57,6 @@ regopt(Inst *p)
 	long initpc, val;
 	ulong vreg;
 	Bits bit;
-	Inst *p1;
 	struct
 	{
 		long	m;
@@ -96,8 +95,6 @@ regopt(Inst *p)
 	for(; p != P; p = p->next) {
 		switch(p->op) {
 		case ADATA:
-		case ADYNT:
-		case AINIT:
 		case AGLOBL:
 		case ANAME:
 			continue;
@@ -154,7 +151,7 @@ regopt(Inst *p)
 		if(bany(&bit))
 		switch(p->op) {
 		default:
-			diag(ZeroN, "reg: unknown op: %d", p->op);
+			diag(ZeroN, "reg: unknown asop: %A", p->op);
 			break;
 
 		/*
@@ -167,6 +164,7 @@ regopt(Inst *p)
 		case AMOVHU:
 		case AMOVW:
 		case AFMOVF:
+		case AFMOVD:
 			for(z=0; z<BITS; z++)
 				r->set.b[z] |= bit.b[z];
 			break;
@@ -174,8 +172,6 @@ regopt(Inst *p)
 		/*
 		 * funny
 		 */
-		case AFMOVD:
-		case ARETURN:
 		case AJMPL:
 			for(z=0; z<BITS; z++)
 				addrs.b[z] |= bit.b[z];
@@ -329,7 +325,7 @@ loop2:
 			dummy.srcline = r->prog->lineno;
 			warn(&dummy, "set and not used: %B", bit);
 			if(opt('R'))
-				print("set and not used: %B\n", bit);
+				print("set an not used: %B\n", bit);
 			excise(r);
 		}
 		for(z=0; z<BITS; z++)
@@ -405,26 +401,21 @@ brk:
 		r->pc = val;
 		p = r->prog;
 		r1 = r->next;
-		p1 = P;
-		if(r1 != R)
-			p1 = r1->prog;
+		if(r1 == R)
+			break;
+		while(p != r1->prog)
+		switch(p->op) {
 
-		while(p != p1) {
-			switch(p->op) {
-			default:
-				p->pc = val++;
+		default:
+			p->pc = val++;
 
-			case ADATA:
-			case ADYNT:
-			case AINIT:
-			case AGLOBL:
-			case ANAME:
-			case ANOP:
-				p = p->next;
-			}
+		case ADATA:
+		case AGLOBL:
+		case ANAME:
+			p = p->next;
 		}
 	}
-	pc = val;
+	pc = val + 1;
 
 	/*
 	 * last pass
@@ -442,10 +433,6 @@ brk:
 			p->dst.ival = r->s2->pc;
 		r1 = r;
 	}
-	for(p = firstr->prog; p && p->next; p = p->next)
-		while(p->next && p->next->op == ANOP)
-			p->next = p->next->next;
-
 	if(r1 != R) {
 		r1->next = freer;
 		freer = firstr;
@@ -462,12 +449,6 @@ addmove(Reg *r, int bn, int rn, int f)
 	Inst *p, *p1;
 	Adres *a;
 	Var *v;
-
-	if(r->prog->op == AJMPL && r->next) {
-		p1 = r->next->prog;
-		if(p1->dst.type == A_REG && p1->dst.reg == RegSP)
-			r = r->next;
-	}
 
 	p1 = ai();
 	*p1 = zprog;
@@ -546,10 +527,6 @@ mkvar(Adres *a, int docon)
 		if(s == ZeroS && sval(o))
 			goto none;
 	}
-
-	if(s && s->name[0] == '.' && et == TFLOAT)
-		goto none;
-
 	n = a->class;
 	v = var;
 	for(i=0; i<nvar; i++) {
@@ -559,6 +536,9 @@ mkvar(Adres *a, int docon)
 			goto out;
 		v++;
 	}
+	if(s)
+		if(s->name[0] == '.')
+			goto none;
 	if(nvar >= NVAR) {
 		if(s)
 		warn(ZeroN, "variable not optimized: %s", s->name);
@@ -575,13 +555,13 @@ mkvar(Adres *a, int docon)
 		print("bit=%2d et=%2d %a\n", i, et, a);
 out:
 	bit = blsh(i);
-	if(n == External || n == Internal || n == Global)
+	if(n == External || n == Internal)
 		for(z=0; z<BITS; z++)
 			externs.b[z] |= bit.b[z];
 	if(n == Parameter)
 		for(z=0; z<BITS; z++)
 			param.b[z] |= bit.b[z];
-	if(v->etype != et || !(MSCALAR&(1<<et)))	/* funny punning */
+	if(v->etype != et || !(MARITH&(1<<et)))	/* funny punning */
 		for(z=0; z<BITS; z++)
 			addrs.b[z] |= bit.b[z];
 	if(t == A_CONST) {

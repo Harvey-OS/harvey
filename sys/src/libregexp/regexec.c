@@ -3,6 +3,7 @@
 #include "regexp.h"
 #include "regcomp.h"
 
+static Resublist sempty;		/* empty set of matches */
 
 /*
  *  return	0 if no match
@@ -14,8 +15,9 @@ regexec1(Reprog *progp,	/* program to run */
 	char *bol,	/* string to run machine on */
 	Resub *mp,	/* subexpression elements */
 	int ms,		/* number of elements at mp */
-	Reljunk *j
-)
+	char *starts,
+	char *eol,
+	Rune startchar)
 {
 	int flag=0;
 	Reinst *inst;
@@ -32,36 +34,22 @@ regexec1(Reprog *progp,	/* program to run */
 	char *p;
 
 	match = 0;
-	checkstart = j->starttype;
-	if(mp)
-		for(i=0; i<ms; i++) {
-			mp[i].sp = 0;
-			mp[i].ep = 0;
-		}
-	j->relist[0][0].inst = 0;
-	j->relist[1][0].inst = 0;
+	checkstart = startchar;
+	sempty.m[0].sp = 0;
+	if(mp!=0)
+		for(i=0; i<ms; i++)
+			mp[i].sp = mp[i].ep = 0;
+	_relist[0][0].inst = _relist[1][0].inst = 0;
 
 	/* Execute machine once for each character, including terminal NUL */
-	s = j->starts;
+	s = starts;
 	do{
 		/* fast check for first char */
-		if(checkstart) {
-			switch(j->starttype) {
-			case RUNE:
-				p = utfrune(s, j->startchar);
-				if(p == 0)
-					return match;
-				s = p;
-				break;
-			case BOL:
-				if(s == bol)
-					break;
-				p = utfrune(s, '\n');
-				if(p == 0)
-					return match;
-				s = p;
-				break;
-			}
+		if(checkstart){
+			p = utfrune(s, startchar);
+			if(p == 0)
+				return match;
+			s = p;
 		}
 		r = *(uchar*)s;
 		if(r < Runeself)
@@ -70,28 +58,29 @@ regexec1(Reprog *progp,	/* program to run */
 			n = chartorune(&r, s);
 
 		/* switch run lists */
-		tl = j->relist[flag];
-		tle = j->reliste[flag];
-		nl = j->relist[flag^=1];
-		nle = j->reliste[flag];
+		tl = _relist[flag];
+		tle = _reliste[flag];
+		nl = _relist[flag^=1];
+		nle = _reliste[flag];
 		nl->inst = 0;
 
 		/* Add first instruction to current list */
-		if(match == 0)
-			_renewemptythread(tl, progp->startinst, s);
+		if(match == 0){
+			sempty.m[0].sp = s;
+			_renewthread(tl, progp->startinst, &sempty);
+		}
 
 		/* Execute machine until current list is empty */
 		for(tlp=tl; tlp->inst; tlp++){	/* assignment = */
-			if(s == j->eol)
+			if(s == eol)
 				break;
 
 			for(inst = tlp->inst; ; inst = inst->next){
 				switch(inst->type){
 				case RUNE:	/* regular character */
-					if(inst->r == r){
+					if(inst->r == r)
 						if(_renewthread(nl, inst->next, &tlp->se)==nle)
 							return -1;
-					}
 					break;
 				case LBRA:
 					tlp->se.m[inst->subid].sp = s;
@@ -150,29 +139,10 @@ regexec1(Reprog *progp,	/* program to run */
 				break;
 			}
 		}
-		checkstart = j->starttype && nl->inst==0;
+		checkstart = startchar && nl->inst==0;
 		s += n;
 	}while(r);
 	return match;
-}
-
-static int
-regexec2(Reprog *progp,	/* program to run */
-	char *bol,	/* string to run machine on */
-	Resub *mp,	/* subexpression elements */
-	int ms,		/* number of elements at mp */
-	Reljunk *j
-)
-{
-	Relist relist0[BIGLISTSIZE], relist1[BIGLISTSIZE];
-
-	/* mark space */
-	j->relist[0] = relist0;
-	j->relist[1] = relist1;
-	j->reliste[0] = relist0 + nelem(relist0) - 2;
-	j->reliste[1] = relist1 + nelem(relist1) - 2;
-
-	return regexec1(progp, bol, mp, ms, j);
 }
 
 extern int
@@ -181,41 +151,41 @@ regexec(Reprog *progp,	/* program to run */
 	Resub *mp,	/* subexpression elements */
 	int ms)		/* number of elements at mp */
 {
-	Reljunk j;
-	Relist relist0[LISTSIZE], relist1[LISTSIZE];
+	char *starts;	/* where to start match */
+	char *eol;	/* where to end match */
+	Rune startchar;
 	int rv;
 
 	/*
  	 *  use user-specified starting/ending location if specified
 	 */
-	j.starts = bol;
-	j.eol = 0;
+	starts = bol;
+	eol = 0;
 	if(mp && ms>0){
 		if(mp->sp)
-			j.starts = mp->sp;
+			starts = mp->sp;
 		if(mp->ep)
-			j.eol = mp->ep;
+			eol = mp->ep;
 	}
-	j.starttype = 0;
-	j.startchar = 0;
-	if(progp->startinst->type == RUNE && progp->startinst->r < Runeself) {
-		j.starttype = RUNE;
-		j.startchar = progp->startinst->r;
+	startchar = (progp->startinst->type == RUNE && progp->startinst->r < Runeself)
+		? progp->startinst->r : 0;
+
+	/* keep trying till we have enough list space to terminate */
+	for(;;){
+		if(_relist[0] == 0){
+			_relist[0] = malloc(2*_relistsize*sizeof(Relist));
+			_relist[1] = _relist[0] + _relistsize;
+			_reliste[0] = _relist[0] + _relistsize - 1;
+			_reliste[1] = _relist[1] + _relistsize - 1;
+			if(_relist[0] == 0)
+				regerror("_relist overflow");
+		}
+		rv = regexec1(progp, bol, mp, ms, starts, eol, startchar);
+		if(rv >= 0)
+			return rv;
+		free(_relist[0]);
+		_relist[0] = 0;
+		_relistsize += LISTINCREMENT;
 	}
-	if(progp->startinst->type == BOL)
-		j.starttype = BOL;
-
-	/* mark space */
-	j.relist[0] = relist0;
-	j.relist[1] = relist1;
-	j.reliste[0] = relist0 + nelem(relist0) - 2;
-	j.reliste[1] = relist1 + nelem(relist1) - 2;
-
-	rv = regexec1(progp, bol, mp, ms, &j);
-	if(rv >= 0)
-		return rv;
-	rv = regexec2(progp, bol, mp, ms, &j);
-	if(rv >= 0)
-		return rv;
 	return -1;
 }

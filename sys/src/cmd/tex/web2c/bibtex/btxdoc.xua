@@ -1,0 +1,28 @@
+\relax 
+\citation{btxhak}
+\citation{latex}
+\@writefile{toc}{\string\contentsline\space {section}{\string\numberline\space {1}Overview}{1}}
+\@writefile{toc}{\string\contentsline\space {section}{\string\numberline\space {2}Changes}{2}}
+\newlabel{differences}{{2}{2}}
+\@writefile{toc}{\string\contentsline\space {subsection}{\string\numberline\space {2.1}New {\string\prm\space B\kern -.05em{\string\psc\space i\kern -.025em b}\kern -.08em T\kern -.1667em\lower .7ex\hbox {E}\kern -.125emX}\ features}{2}}
+\newlabel{features}{{2.1}{2}}
+\newlabel{concat}{{2}{2}}
+\newlabel{preamble}{{6}{4}}
+\citation{btxhak}
+\@writefile{toc}{\string\contentsline\space {subsection}{\string\numberline\space {2.2}Changes to the standard styles}{5}}
+\citation{latex}
+\@writefile{toc}{\string\contentsline\space {section}{\string\numberline\space {3}The Entries}{7}}
+\newlabel{latex-appendix}{{3}{7}}
+\@writefile{toc}{\string\contentsline\space {subsection}{\string\numberline\space {3.1}Entry Types}{7}}
+\citation{van-leunen}
+\@writefile{toc}{\string\contentsline\space {subsection}{\string\numberline\space {3.2}Fields}{9}}
+\citation{van-leunen}
+\citation{chicago}
+\@writefile{toc}{\string\contentsline\space {section}{\string\numberline\space {4}Helpful Hints}{11}}
+\newlabel{odds-and-ends}{{4}{11}}
+\bibdata{btxdoc}
+\bibcite{chicago}{1}
+\bibcite{latex}{2}
+\bibcite{btxhak}{3}
+\bibcite{van-leunen}{4}
+\bibstyle{plain}

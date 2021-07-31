@@ -1,0 +1,189 @@
+%
+% Prologue for building troff width tables. The gsave/grestore pairs are
+% for hardcopy.
+%
+
+/slowdown 25 def
+/flagduplicates false def
+
+/ascenderheight -1 def
+/descenderdepth 0 def
+/octalescapes 256 def
+/startcomments 256 def
+/currentfontdict null def
+/scratchstring 512 string def
+
+/Print {
+	scratchstring cvs print flush
+	slowdown {1 pop} repeat
+} def
+
+/ReEncode {	% vector fontname ReEncode -
+	dup
+	findfont dup length dict begin
+		{1 index /FID ne {def}{pop pop} ifelse} forall
+		/Encoding 3 -1 roll def
+		currentdict
+	end
+	definefont pop
+} bind def
+
+/SelectFont {	% fontname SelectFont -
+	findfont
+		dup /PaintType get 0 eq {
+			/scaling 1 def
+			unitwidth resolution 72.0 div mul
+		}{
+			/scaling resolution 72 div def
+			unitwidth
+		} ifelse 
+	scalefont
+	/currentfontdict exch def
+} def
+
+/ChangeMetrics {DpostPrologue begin addmetrics end} def
+
+/NamedInPrologue {
+	dup
+	DpostPrologue exch known {
+		DpostPrologue exch get type /nametype eq {
+			(named in prologue\n) Print
+		} if
+	}{pop} ifelse
+} def
+
+/SetAscender {
+	/str exch def
+
+	gsave
+		currentfontdict setfont
+		newpath
+		0 0 moveto
+		str false charpath flattenpath pathbbox
+		/descenderdepth 4 -1 roll .5 mul def
+		exch pop exch pop
+
+		newpath
+		0 0 moveto
+		str 0 1 getinterval false charpath flattenpath pathbbox
+		4 1 roll pop pop pop
+		dup 3 1 roll sub .25 mul add
+		/ascenderheight exch def
+	grestore
+} def
+
+/GetAscender {
+	ascenderheight descenderdepth ge {
+		gsave
+			currentfontdict setfont
+			newpath
+			0 0 moveto
+			( ) dup 0 4 -1 roll put
+			false charpath flattenpath pathbbox
+			exch pop 3 -1 roll pop
+			ascenderheight gt {2}{0} ifelse
+			exch descenderdepth lt {1}{0} ifelse
+			or
+		grestore
+	}{0} ifelse
+} def
+
+/GetWidth {
+	gsave
+		currentfontdict setfont
+		( ) dup 0 4 -1 roll put
+		stringwidth pop scaling mul round cvi
+	grestore
+} def
+
+/GetCode {
+	256 3 1 roll		% last unprintable match
+	0 3 -1 roll {
+		2 index eq {
+			dup 127 and 32 ge {exit} if
+			3 -1 roll pop
+			dup 3 1 roll
+		} if
+		1 add
+	} forall
+	exch pop
+	dup 255 gt {pop}{exch pop} ifelse
+} def
+
+/BuildFontCharset {
+	0 2 charset length 2 sub {
+		/i exch def
+		/chcode -1 def
+		/chname null def
+		/key charset i get def
+		/val charset i 1 add get def
+
+		val type /integertype eq {
+			/chcode val def
+			/chname currentfontdict /Encoding get chcode get def
+		} if
+
+		val type /nametype eq {
+			/chname val def
+			/chcode currentfontdict /Encoding get chname GetCode def
+		} if
+
+		val type /stringtype eq {/chcode 0 def} if
+
+		chcode 0 lt chcode 255 gt or {
+			chcode 0 lt {(syntaxerror: )}{(undefinedname: )} ifelse
+			Print key Print (\t) Print val Print (\n) Print
+			quit
+		} if
+
+		val type /stringtype eq {
+			key Print
+			(\t) Print val Print
+			(\n) Print
+		}{
+			chcode octalescapes ge key (---) eq and {
+				(\\0) Print chcode 8 (   ) cvrs Print
+			}{key Print} ifelse
+			(\t) Print chcode GetWidth Print
+			(\t) Print chcode GetAscender Print
+			(\t) Print chcode Print
+			chcode startcomments ge {
+				(\t# ) Print chname Print
+			} if
+			(\n) Print
+			chcode octalescapes ge (---) key ne and {
+				key (\\0) anchorsearch not {
+					pop
+					(\\0) Print chcode 8 (   ) cvrs Print
+					(\t"\n) Print
+				}{pop pop} ifelse
+			} if
+		} ifelse
+	} for
+} def
+
+/BuildDescCharset {
+	/DescDict 512 dict def
+	/Characters 0 def
+
+	0 1 charset length 1 sub {
+		/i exch def
+		/key charset i get def
+
+		key length 2 eq {
+			DescDict key cvn known {
+				flagduplicates {	% for debugging
+					(<<<duplicated character: ) Print
+					key Print
+					(>>>\n) Print
+				} if
+			}{
+				DescDict key cvn 1 put
+				key Print
+				/Characters Characters 1 add def
+				Characters 20 mod 0 eq {(\n)}{( )} ifelse Print
+			} ifelse
+		} if
+	} for
+} def
+

@@ -1,20 +1,16 @@
 #include <alef.h>
 #include <fcall.h>
 
-intern void dumpsome(byte*, byte*, int);
-intern void fdirconv(byte*, Dir*);
+intern void dumpsome(char*, char*, int);
+intern void fdirconv(char*, Dir*);
 
 int
 fcallconv(Printspec *p)
 {
 	Dir d;
 	Fcall *f;
-	byte *buf;
+	char buf[512];
 	int fid, type, tag, n;
-
-	buf = malloc(2000);
-	if(buf == nil)
-		return sizeof(Fcall*);
 
 	f = *(Fcall **)p->o;
 	type = f->type;
@@ -47,7 +43,7 @@ fcallconv(Printspec *p)
 			tag, f->fid, f->uname, f->aname, f->auth);
 		break;
 	case Rattach:
-		sprint(buf, "Rattach tag %ud fid %d qid 0x%ux|0x%ux",
+		sprint(buf, "Rattach tag %ud fid %d qid 0x%lux|0x%lux",
 			tag, fid, f->qid.path, f->qid.vers);
 		break;
 	case Tclone:	/* 60 */
@@ -60,34 +56,34 @@ fcallconv(Printspec *p)
 		sprint(buf, "Twalk tag %ud fid %d name %.28s", tag, fid, f->name);
 		break;
 	case Rwalk:
-		sprint(buf, "Rwalk tag %ud fid %d qid 0x%ux|0x%ux",
+		sprint(buf, "Rwalk tag %ud fid %d qid 0x%lux|0x%lux",
 			tag, fid, f->qid.path, f->qid.vers);
 		break;
 	case Topen:	/* 64 */
 		sprint(buf, "Topen tag %ud fid %d mode %d", tag, fid, f->mode);
 		break;
 	case Ropen:
-		sprint(buf, "Ropen tag %ud fid %d qid 0x%ux|0x%ux",
+		sprint(buf, "Ropen tag %ud fid %d qid 0x%lux|0x%lux",
 			tag, fid, f->qid.path, f->qid.vers);
 		break;
 	case Tcreate:	/* 66 */
-		sprint(buf, "Tcreate tag %ud fid %d name %.28s perm 0x%ux mode %d",
+		sprint(buf, "Tcreate tag %ud fid %d name %.28s perm 0x%lux mode %d",
 			tag, fid, f->name, f->perm, f->mode);
 		break;
 	case Rcreate:
-		sprint(buf, "Rcreate tag %ud fid %d qid 0x%ux|0x%ux",
+		sprint(buf, "Rcreate tag %ud fid %d qid 0x%lux|0x%lux",
 			tag, fid, f->qid.path, f->qid.vers);
 		break;
 	case Tread:	/* 68 */
-		sprint(buf, "Tread tag %ud fid %d offset %d count %d",
+		sprint(buf, "Tread tag %ud fid %d offset %ld count %d",
 			tag, fid, f->offset, f->count);
 		break;
 	case Rread:
 		n = sprint(buf, "Rread tag %ud fid %d count %d ", tag, fid, f->count);
-		dumpsome(buf+n, f->data, f->count);
+			dumpsome(buf+n, f->data, f->count);
 		break;
 	case Twrite:	/* 70 */
-		n = sprint(buf, "Twrite tag %ud fid %d offset %d count %d ",
+		n = sprint(buf, "Twrite tag %ud fid %d offset %ld count %d ",
 			tag, fid, f->offset, f->count);
 		dumpsome(buf+n, f->data, f->count);
 		break;
@@ -127,14 +123,13 @@ fcallconv(Printspec *p)
 		sprint(buf,  "unknown type %d", type);
 	}
 	strconv(p, buf);
-	free(buf);
-	return sizeof(Fcall*);
+	return(sizeof(Fcall*));
 }
 
 int
 dirconv(Printspec *p)
 {
-	byte buf[160];
+	char buf[160];
 
 	fdirconv(buf, *(Dir**)p->o);
 	strconv(p, buf);
@@ -142,9 +137,9 @@ dirconv(Printspec *p)
 }
 
 intern void
-fdirconv(byte *buf, Dir *d)
+fdirconv(char *buf, Dir *d)
 {
-	sprint(buf, "'%s' '%s' '%s' q %#ux|%#ux m %#uo at %d mt %d l %d t %d d %d\n",
+	sprint(buf, "'%s' '%s' '%s' q %#lux|%#lux m %#luo at %ld mt %ld l %ld t %d d %d\n",
 			d->name, d->uid, d->gid,
 			d->qid.path, d->qid.vers, d->mode,
 			d->atime, d->mtime, d->length,
@@ -159,19 +154,17 @@ fdirconv(byte *buf, Dir *d)
 #define DUMPL 24
 
 intern void
-dumpsome(byte *ans, byte *buf, int count)
+dumpsome(char *ans, char *buf, int count)
 {
-	byte *p, c;
 	int i, printable;
+	char *p;
 
 	printable = 1;
 	if(count > DUMPL)
 		count = DUMPL;
-	for(i=0; i<count && printable; i++) {
-		c = buf[i];
-		if((c < 32 && c !='\n' && c !='\t') || c > 127)
+	for(i=0; i<count && printable; i++)
+		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || buf[i]>127)
 			printable = 0;
-	}
 	p = ans;
 	*p++ = '\'';
 	if(printable){

@@ -2,10 +2,6 @@
 .SH NAME
 sin, cos, tan, asin, acos, atan, atan2 \- trigonometric functions
 .SH SYNOPSIS
-.B #include <u.h>
-.br
-.B #include <libc.h>
-.PP
 .B
 double sin(double x)
 .PP
@@ -36,23 +32,26 @@ by the caller to make sure the result is meaningful.
 .PP
 .I Asin
 returns the arc sine in the range
-\-π/2 to π/2.
+.if t \-\(*p/2 to \(*p/2.
+.if n -PI/2 to PI/2.
 .PP
 .I Acos
 returns the arc cosine in the range
-0 to π.
+0 to
+.if t \(*p.
+.if n PI.
 .PP
 .I Atan
 returns the arc tangent in the range
-\-π/2 to π/2.
+.if t \-\(*p/2 to \(*p/2.
+.if n -PI/2 to PI/2.
 .PP
 .I Atan2
 returns the arc tangent of
 .I y/x
 in the range
-\-π to π.
-.SH SOURCE
-.B /sys/src/libc/port
+.if t \-\(*p to \(*p.
+.if n -PI to PI.
 .SH SEE ALSO
 .IR intro (2)
 .SH BUGS

@@ -1,0 +1,74 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TESTART.BBL						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeatletter \renewcommand{\@biblabel}[1]{\hfill#1.}\makeatother
+\newcommand{\bysame}{\leavevmode\hbox to3em{\hrulefill}\,}
+\begin{thebibliography}{10}
+
+\bibitem{dihe:newdir}
+W.~Diffie and E.~Hellman, {\em New directions in cryptography}, IEEE
+  Transactions on Information Theory {\bf 22} (1976), no.~5, 644--654.
+
+\bibitem{fre:cichon}
+D.~H. Fremlin, {\em Cichon's diagram}, 1983/1984, presented at the
+  S{\'e}minaire Initiation {\`a} l'Analyse, G. Choquet, M. Rogalski, J. Saint
+  Raymond, at the Universit{\'e} Pierre et Marie Curie, Paris, 23e ann{\'e}e.
+
+\bibitem{gouja:lagrmeth}
+I.~P. Goulden and D.~M. Jackson, {\em The enumeration of directed closed
+  {E}uler trails and directed {H}amiltonian circuits by {L}angrangian methods},
+  European J. Combin. {\bf 2} (1981), 131--212.
+
+\bibitem{hapa:graphenum}
+F.~Harary and E.~M. Palmer, {\em Graphical enumeration}, Academic Press, 1973.
+
+\bibitem{imlelu:oneway}
+R.~Impagliazzo, L.~Levin, and M.~Luby, {\em Pseudo-random generation from
+  one-way functions}, Proc. 21st STOC (1989), ACM, New York, pp.~12--24.
+
+\bibitem{komiyo:unipfunc}
+M.~Kojima, S.~Mizuno, and A.~Yoshise, {\em A new continuation method for
+  complementarity problems with uniform p-functions}, Tech. Report B-194, Tokyo
+  Inst. of Technology, Tokyo, 1987, Dept. of Information Sciences.
+
+\bibitem{komiyo:lincomp}
+\bysame, {\em A polynomial-time algorithm for a class of linear complementarity
+  problems}, Tech. Report B-193, Tokyo Inst. of Technology, Tokyo, 1987, Dept.
+  of Information Sciences.
+
+\bibitem{liuchow:formalsum}
+C.~J. Liu and Yutze Chow, {\em On operator and formal sum methods for graph
+  enumeration problems}, SIAM J. Algorithms Discrete Methods {\bf 5} (1984),
+  384--438.
+
+\bibitem{mami:matrixth}
+M.~Marcus and H.~Ming, {\em A survey of matrix theory and matrix inequalities},
+  Complementary Series in Math. {\bf 14} (1964), 21--48.
+
+\bibitem{miyoki:lincomp}
+S.~Mizuno, A.~Yoshise, and T.~Kikuchi, {\em Practical polynomial time
+  algorithms for linear complementarity problems}, Tech. Report~13, Tokyo Inst.
+  of Technology, Tokyo, April 1988, Dept. of Industrial Engineering and
+  Management.
+
+\bibitem{moad:quadpro}
+R.~D. Monteiro and I.~Adler, {\em Interior path following primal-dual
+  algorithms, part {II}: Quadratic programming}, August 1987, Working paper,
+  Dept. of Industrial Engineering and Operations Research.
+
+\bibitem{ste:sint}
+E.~M. Stein, {\em Singular integrals and differentiability properties of
+  functions}, Princeton Univ. Press, Princeton, N.J., 1970.
+
+\bibitem{ye:intalg}
+Y.~Ye, {\em Interior algorithms for linear, quadratic and linearly constrained
+  convex programming}, Ph.D. thesis, Stanford Univ., Palo Alto, Calif., July
+  1987, Dept. of Engineering--Economic Systems, unpublished.
+
+\end{thebibliography}

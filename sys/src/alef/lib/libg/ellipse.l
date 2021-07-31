@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 intern void
 mark(Bitmap *b, Point c, int x, int y, int v, Fcode f)

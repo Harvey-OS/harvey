@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include <fcall.h>
 #include <tapefs.h>
 
@@ -45,6 +44,7 @@ char 	*(*fcalls[])(Fid*) = {
 	[Tremove]	rremove,
 	[Tstat]		rstat,
 	[Twstat]	rwstat,
+	[Tauth]		rauth,
 };
 
 char	Eperm[] =	"permission denied";
@@ -74,7 +74,7 @@ main(int argc, char *argv[])
 	char *defmnt;
 	int p[2];
 
-	defmnt = "/n/tapefs";
+	defmnt = 0;
 	ARGBEGIN{
 	case 'm':
 		defmnt = ARGF();
@@ -91,6 +91,8 @@ main(int argc, char *argv[])
 
 	if (argc==0)
 		error("no file to mount");
+	else if (defmnt==0)
+		defmnt = argv[0];
 	ram = r = (Ram *)emalloc(sizeof(Ram));
 	r->busy = 1;
 	r->data = 0;
@@ -125,11 +127,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		close(p[0]);	/* don't deadlock if child fails */
-		if(mount(p[1], defmnt, MREPL|MCREATE, "") < 0) {
-			char buf[256];
-			sprint(buf, "mount on `%s' failed", defmnt);
-			error(buf);
-		}
+		if(defmnt && mount(p[1], defmnt, MREPL|MCREATE, "", "") < 0)
+			error("mount failed");
 	}
 	exits(0);
 }
@@ -148,9 +147,6 @@ rsession(Fid *unused)
 
 	USED(unused);
 
-	memset(thdr.authid, 0, sizeof(thdr.authid));
-	memset(thdr.authdom, 0, sizeof(thdr.authdom));
-	memset(thdr.chal, 0, sizeof(thdr.chal));
 	for(f = fids; f; f = f->next)
 		if(f->busy)
 			rclunk(f);
@@ -162,6 +158,13 @@ rflush(Fid *f)
 {
 	USED(f);
 	return 0;
+}
+
+char *
+rauth(Fid *f)
+{
+	USED(f);
+	return Enoauth;
 }
 
 char*

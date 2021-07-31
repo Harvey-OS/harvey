@@ -1,7 +1,7 @@
 #include <alef.h>
 
 int
-execl(byte *f, ...)
+execl(char *f, ...)
 {
 	return exec(f, ...);
 }

@@ -2,8 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 #include <ndb.h>
-#include <lock.h>
 #include "dns.h"
+#include "lock.h"
 
 static Ndb *db;
 
@@ -16,13 +16,11 @@ static Ndbtuple* look(Ndbtuple*, Ndbtuple*, char*);
 
 static Lock	dblock;
 
-static int	implemented[Tall] =
+void
+dbinit(void)
 {
-	[Ta]	1,
-	[Tns]	1,
-	[Tsoa]	1,
-	[Tmx]	1,
-};
+	lockinit(&dblock);
+}
 
 /*
  *  lookup an RR in the network database, look for matches
@@ -50,18 +48,11 @@ dblookup(char *name, int class, int type, int auth)
 	if(class != Cin)
 		return 0;
 
-	if(type == Tall){
-		rp = 0;
-		for (type = Ta; type <= Tall; type++)
-			if(implemented[type])
-				rrcat(&rp, dblookup(name, class, type, auth), type);
-		return rp;
-	}
-
 	lock(&dblock);
+
 	rp = 0;
 	if(db == 0){
-		db = ndbopen(dbfile);
+		db = ndbopen(0);
 		if(db == 0)
 			goto out;
 	}
@@ -82,7 +73,6 @@ dblookup(char *name, int class, int type, int auth)
 	wild = strchr(name, '.');
 	if(wild == 0)
 		goto out;
-
 	snprint(buf, sizeof(buf), "*%s", wild);
 	rp = dblookup1(buf, type, auth);
 	dp = dnlookup(name, class, 1);
@@ -133,12 +123,6 @@ dblookup1(char *name, int type, int auth)
 	 *  find a matching entry in the database
 	 */
 	t = ndbgetval(db, &s, "dom", name, attr, val);
-
-	/*
-	 *  hack for local names
-	 */
-	if(t == 0 && strchr(name, '.') == 0)
-		t = ndbgetval(db, &s, "sys", name, attr, val);
 	if(t == 0)
 		return 0;
 
@@ -302,12 +286,10 @@ dbinaddr(DN *dp)
 	RR *rp;
 	Ndbs s;
 
-	rp = 0;
-	lock(&dblock);
 	if(db == 0){
-		db = ndbopen(dbfile);
+		db = ndbopen(0);
 		if(db == 0)
-			goto out;
+			return 0;
 	}
 
 	len = strlen(dp->name);
@@ -315,7 +297,7 @@ dbinaddr(DN *dp)
 		return 0;
 	p = dp->name + len - IALEN;
 	if(cistrcmp(p, ia) != 0)
-		goto out;
+		return 0;
 
 	/* flip ip components into sensible order */
 	np = ip;
@@ -344,7 +326,5 @@ dbinaddr(DN *dp)
 	rp->db = 1;
 	rp->owner = dp;
 	rp->ptr = dnlookup(dom, Cin, 1);
-out:
-	unlock(&dblock);
 	return rp;
 }

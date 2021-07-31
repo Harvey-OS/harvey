@@ -10,17 +10,14 @@ actual or intended publication of such source code.
 
 %{
 #include <stdio.h>
-#include <string.h>
 #include "awk.h"
-
-void checkdup(Node *list, Cell *item);
 yywrap(void) { return(1); }
 
 Node	*beginloc = 0;
 Node	*endloc = 0;
 int	infunc	= 0;	/* = 1 if in arglist or body of func */
 int	inloop	= 0;	/* = 1 if in while, for, do */
-uchar	*curfname = 0;	/* current function name */
+uchar	*curfname = 0;
 Node	*arglist = 0;	/* list of args for current function */
 %}
 
@@ -166,7 +163,7 @@ pa_stat:
 		{ beginloc = linkum(beginloc, $3); $$ = 0; }
 	| XEND lbrace stmtlist '}'
 		{ endloc = linkum(endloc, $3); $$ = 0; }
-	| FUNC funcname '(' varlist rparen {infunc++; } lbrace stmtlist '}'
+	| FUNC funcname '(' varlist rparen {infunc++;} lbrace stmtlist '}'
 		{ infunc--; curfname=0; defn((Cell *)$2, $4, $8); $$ = 0; }
 	;
 
@@ -177,7 +174,7 @@ pa_stats:
 
 patlist:
 	  pattern
-	| patlist comma pattern		{ $$ = linkum($1, $3); }
+	| patlist comma pattern	{ $$ = linkum($1, $3); }
 	;
 
 ppattern:
@@ -397,9 +394,7 @@ var:
 varlist:
 	  /* nothing */		{ arglist = $$ = 0; }
 	| VAR			{ arglist = $$ = valtonode($1,CVAR); }
-	| varlist comma VAR	{
-			checkdup($1, $3);
-			arglist = $$ = linkum($1,valtonode($3,CVAR)); }
+	| varlist comma VAR	{ arglist = $$ = linkum($1,valtonode($3,CVAR)); }
 	;
 
 varname:
@@ -442,16 +437,5 @@ Node *notnull(Node *n)
 		return n;
 	default:
 		return op2(NE, n, nullnode);
-	}
-}
-
-void checkdup(Node *vl, Cell *cp)	/* check if name already in list */
-{
-	char *s = cp->nval;
-	for ( ; vl; vl = vl->nnext) {
-		if (strcmp(s, ((Cell *)(vl->narg[0]))->nval) == 0) {
-			ERROR "duplicate argument %s", s SYNTAX;
-			break;
-		}
 	}
 }

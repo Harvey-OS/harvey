@@ -1,0 +1,49 @@
+.TH XPART 10.1
+.SH NAME
+xpart \- partitioner (fitter) for PALs, PLAs and MACH parts
+.SH SYNOPSIS
+.B cda/xpart
+.BI [\- option ]
+.BI [ type [ filename ]]
+.SH DESCRIPTION
+.I Xpart
+reads data from a stem
+.I filename
+in the form of
+.IR minterms (10.6)
+directly from
+.IR lde (10.1)
+and partitions the equations amongst a number of devices of the same flavor.
+.PP
+The options are:
+.TP
+.B \-N iterations
+Specifies the maximum number of iterations before failing
+.TP
+.B \-p
+Use the existing pin files (.p) as the pin assignments
+.TP
+.B \-l library
+Tells where to look for library definitions.  Defaults to /sys/lib/cda/library.paddle.
+.TP
+.B \-v
+Produce slightly verbose output (not harmful)
+.TP
+.B \-g \-D
+Produce debugging output
+.TP
+.B \-i
+echos the input
+.TP
+.B \-P package
+specifies the package
+.PP
+.SH SEE ALSO
+.PP
+.IR xpal (10.1)
+.IR minterm (10.6),
+.IR paddle (10.6)
+.SH FILES
+.B /sys/lib/cda/library.paddle
+.SH BUGS
+The pin naming convention is peculiar at best.

@@ -1,10 +1,10 @@
 #include <alef.h>
 #include <fcall.h>
-#include <libg.h>
+#include <graphics.h>
 #include <frame.h>
 #include "y.h"
 
-byte backgrnd[] = {
+char backgrnd[] = {
 	0xEE, 0xEE, 0xBB, 0xBB, 0xEE, 0xEE, 0xBB, 0xBB,
 	0xEE, 0xEE, 0xBB, 0xBB, 0xEE, 0xEE, 0xBB, 0xBB,
 	0xEE, 0xEE, 0xBB, 0xBB, 0xEE, 0xEE, 0xBB, 0xBB,
@@ -17,10 +17,10 @@ intern Cursor *mgc;
 intern Rectangle rz;
 
 void
-main(int argc, byte **argv)
+main(int argc, char **argv)
 {
 	Mesg r;
-	byte *f;
+	char *f;
 	chan(Mesg) c;
 
 	f = nil;
@@ -66,7 +66,7 @@ main(int argc, byte **argv)
 		alt {
 		case r = <-mreq:
 			sweeper(Off);
-			if(r.buttons == 0)
+			if(r.mb == 0)
 				grab = nil;
 			else if(wtrls)
 				break;
@@ -129,7 +129,7 @@ cuset(Mesg *r)
 	Window *w;
 
 	if(r != nil && r->type == MsgMouse)
-		mpos = r->xy;
+		mpos = r->m;
 
 	c = nil;
 	w = wcurr;
@@ -172,7 +172,7 @@ void
 keybd(chan(Mesg) r)
 {
 	Mesg m;
-	byte *p, buf[128];
+	char *p, buf[128];
 	int fd, fdc, n, w, kbdcnt;
 
 	fd = open("/dev/cons", OREAD);
@@ -209,7 +209,7 @@ mouse(chan(Mesg) r)
 {
 	Mesg m;
 	int fd, n;
-	byte buf[128];
+	char buf[128];
 
 	fd = open("/dev/mouse", OREAD);
 	if(fd < 0)
@@ -223,18 +223,18 @@ mouse(chan(Mesg) r)
 		if(buf[0] != 'm')
 			continue;
 
-		m.buttons = buf[1] & 15;
-		m.xy.x = BGLONG(buf+2);
-		m.xy.y = BGLONG(buf+6);
-		m.msec = BGLONG(buf+10);
+		m.mb = buf[1] & 15;
+		m.m.x = BGLONG(buf+2);
+		m.m.y = BGLONG(buf+6);
+		m.tick = BGLONG(buf+10);
 		r <-= m;
 	}
 }
 
 void
-error(byte *fmt, ...)
+error(char *fmt, ...)
 {
-	byte buf[128];
+	char buf[128];
 	
 	doprint(buf, buf+sizeof(buf), fmt, ...);
 	fprint(2, "Y: (fatal error) %s %r\n", buf);

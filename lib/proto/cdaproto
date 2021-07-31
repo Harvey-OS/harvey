@@ -1,0 +1,8 @@
+$cputype
+	bin
+		cda
+			+
+sys
+	lib
+		cda
+			+

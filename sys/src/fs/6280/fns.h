@@ -18,4 +18,4 @@ extern	void	vector80(void);
 extern	void	intrclr(ulong);
 extern	int	probe(void *, unsigned);
 extern	void	setioavector(ulong *, ulong);
-extern	ulong	getstatus(void);
+extern	void	hrodstart(void);

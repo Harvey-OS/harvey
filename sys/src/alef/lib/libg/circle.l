@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 /*	Form a circle of radius r centered at x1,y1
  *	The boundary is a sequence of vertically, horizontally,

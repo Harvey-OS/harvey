@@ -1,0 +1,7 @@
+vardef C.Fi(expr n) =
+ save p;
+ picture p; p="f"infont n;
+ for c="f","i":
+  addto p also c infont n shifted(xpart urcorner p-fontsize n/20,0);
+ endfor
+ p enddef;

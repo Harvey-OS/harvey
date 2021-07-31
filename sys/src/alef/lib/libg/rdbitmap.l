@@ -1,14 +1,14 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 #define	CHUNK	6000
 
 void
-rdbitmap(Bitmap *b, int miny, int maxy, byte *data)
+rdbitmap(Bitmap *b, int miny, int maxy, char *data)
 {
 	int dy, px;
 	uint l, t, n;
-	byte hdr[11];
+	char hdr[11];
 
 	bneed(0);
 	hdr[0] = 'r';

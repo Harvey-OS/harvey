@@ -1,0 +1,59 @@
+#!/bin/rc
+awk 'BEGIN {
+	if (ARGC < 2) {
+		print "usage: xnffrom part old.pins ppr/lca2xnf.xnf >> new.pins"
+		exit
+	}
+	pkg = substr(ARGV[1], 5, 20)
+	ARGV[1] = "/sys/lib/cda/"substr(ARGV[1], 1, 4)".pin"
+	ptype["I,"] = "i"
+	ptype["T,"] = "3"
+	ptype["O,"] = "2"
+	ptype["B,"] = "4"
+}
+/^\.n/ {
+	for (col = 1; col < NF+1 && $col != pkg; col++)
+		;
+	if (col > NF)
+		print "undefined pkg "pkg
+	next
+}
+/^\.p/ {
+	sig[$col] = $2
+	tt[$col] = "n"
+	ftt[$col] = $7
+	if (max < $col)
+		max = $col
+	if (col == 6)
+		pin[$5] = $6
+	else
+		pin[P$col] = $col
+	next
+}
+/^\.t[ 	]/ {
+	print $0
+}
+/^\.tp/ {
+	if (float != "%float") {
+		print $0
+		tt[$3] = ftt[$3]
+	}
+}
+/^%float/ {
+	float = $1
+	print $0
+}
+/^EXT,/ {
+	p = substr($2, 3, length($2)-3)
+	print ".tp	"p"	"pin[$4]
+	tt[pin[$4]] = ptype[$3]
+}
+END {
+	printf ".tt	"
+	for (i = 1; i <= max; i++)
+		if (tt[i] == "")
+			printf "n"
+		else
+			printf "%s", tt[i]
+	printf "\n"
+}' $*

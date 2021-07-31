@@ -1,0 +1,7 @@
+#!/bin/sh
+# Convert font utility programs to C.
+# 
+
+cat futil.defines $1 \
+	| ../web2c/web2c -hextra.h -c`basename $1 .p` \
+	| ../web2c/fixwrites > $2

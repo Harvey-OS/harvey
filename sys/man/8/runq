@@ -1,0 +1,80 @@
+.TH RUNQ 8
+.SH NAME
+runq \- process all requests in a queue
+.SH SYNOPSIS
+.B runq
+[
+.B \-ad
+]
+.I root cmd
+.SH DESCRIPTION
+Without the
+.B \-a
+option,
+.I runq
+processes all requests in the directory
+.IR root / user ,
+where
+.I user
+is the contents of
+.BR /dev/user .
+A request is defined as a control and a data file
+(see 
+.IR qer (8)).
+The request is processed by executing the command
+.I cmd
+with the contents of the control file as its arguments,
+the contents of the data file as its standard input, and
+standard error appended to the error file
+.BR E.XXXXXX .
+.P
+The action taken by
+.I runq
+depends on the return status of
+.IR cmd .
+If
+.I cmd
+returns a null status, the processing is assumed successful and the
+control, data, and error files are removed.
+If
+.I cmd
+returns an error status containing the word
+.LR Retry ,
+the files are left to be reprocessed at a later time.
+For any other status, an error message is mailed
+to the requester and the files are removed.
+.P
+To avoid reprocessing files too often, the following algorithm is used:
+a data file younger than one hour will not be processed if its
+error file exists and was last modified within the preceding 10 minutes.
+A data file older than one hour will not be processed if its error
+file exists and was last modified within the preceding hour.
+.P
+The
+.B \-a
+option forces
+.I runq
+to process all the requests under the root, not
+just a single user's.
+.P
+The
+.B \-d
+option causes debugging output on standard error
+describing the progress through the queues.
+.SH FILES
+.TF \fIroot\fP/\fIuser\fP/D.XXXXXX
+.TP
+.B \fIroot\fP/\fIuser\fP
+queue directory for
+.I user
+.TP
+.B \fIroot\fP/\fIuser\fP/D.XXXXXX
+data file
+.TP
+.B \fIroot\fP/\fIuser\fP/C.XXXXXX
+control file
+.TP
+.B \fIroot\fP/\fIuser\fP/E.XXXXXX
+error file
+.SH "SEE ALSO"
+.IR qer (8)

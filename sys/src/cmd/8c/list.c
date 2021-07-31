@@ -21,11 +21,11 @@ Pconv(void *o, Fconv *fp)
 
 	p = *(Prog**)o;
 	if(p->as == ADATA)
-		sprint(str, "	%A	%D/%d,%D",
-			p->as, &p->from, p->from.scale, &p->to);
+		sprint(str, "(%ld)	%A	%D/%d,%D",
+			p->lineno, p->as, &p->from, p->from.scale, &p->to);
 	else
-		sprint(str, "	%A	%D,%D",
-			p->as, &p->from, &p->to);
+		sprint(str, "(%ld)	%A	%D,%D",
+			p->lineno, p->as, &p->from, &p->to);
 	strconv(str, fp);
 	return sizeof(Prog*);
 }
@@ -110,7 +110,7 @@ Dconv(void *o, Fconv *fp)
 		break;
 
 	case D_FCONST:
-		sprint(str, "$(%.17e)", a->dval);
+		sprint(str, "$(%g)", a->dval);
 		break;
 
 	case D_SCONST:

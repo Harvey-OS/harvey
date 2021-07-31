@@ -1,0 +1,200 @@
+.TH PADDLE 10.6
+.de Cs
+.sp
+.ne 3
+.nf
+.ft L
+..
+.de Ce
+.fi
+.ft R
+..
+.SH NAME
+paddle \- pal description language
+.SH DESCRIPTION
+.I Paddle
+is a description language for detailing the fuse format of
+programmable devices.
+.I Paddle
+is used by
+.IR xpal (10.1)
+to create the fuse map that
+.IR urom (10.1)
+and friends want.
+It is also used by
+.IR xpart (10.1).
+.PP
+.I Paddle
+has an underlying model of arrays of fuses.  This model looks something like this:
+.PS
+.nr VS \n(.v
+.nr PQ \n(.f
+.nr PS \n(.s
+.vs 6
+.ft CW
+.ps 6
+scale = 16/0.125
+define Ginv {[
+line from (8,-32) to (8,0)
+line from (8,0) to (32,-16)
+line from (32,-16) to (8,-32)
+Gbubble with .nw at (32,-12)
+line from (0,-16) to (8,-16)
+]}
+define Gbuf {[
+line from (8,-32) to (8,0)
+line from (8,0) to (32,-16)
+line from (32,-16) to (8,-32)
+line from (32,-16) to (40,-16)
+line from (0,-16) to (8,-16)
+]}
+define Gbubble {[
+line from (0,-2) to (2,0)
+line from (0,-6) to (0,-2)
+line from (2,-8) to (0,-6)
+line from (6,-8) to (2,-8)
+line from (8,-6) to (6,-8)
+line from (8,-2) to (8,-6)
+line from (6,0) to (8,-2)
+line from (2,0) to (6,0)
+]}
+define Gror {[
+line from (11,-3) to (0,0)
+line from (21,-3) to (11,-3)
+line from (32,0) to (21,-3)
+line from (32,-16) to (32,0)
+line from (29,-21) to (32,-16)
+line from (25,-25) to (29,-21)
+line from (21,-29) to (25,-25)
+line from (16,-32) to (21,-29)
+line from (9,-28) to (16,-32)
+line from (4,-23) to (9,-28)
+line from (0,-16) to (4,-23)
+line from (0,0) to (0,-16)
+line from (0,0) to (0,0)
+]}
+define Gror5 {[
+Gror with .nw at (16,0)
+line from (0,0) to (16,0)
+line from (64,0) to (48,0)
+]}
+"idempotent line" ljust above at (320,-112)
+"inverted line" ljust above at (320,-152)
+line from (232,-80) to (232,-256)
+line from (192,-80) to (192,-256)
+line from (184,-80) to (184,-256)
+"input node" ljust above at (0,-152)
+line from (160,-112) to (464,-112)
+line from (96,-112) to (96,-152)
+line from (120,-112) to (96,-112)
+Gbuf with .nw at (120,-96)
+line from (120,-152) to (0,-152)
+line from (160,-152) to (464,-152)
+Ginv with .nw at (120,-136)
+Gror5 with .nw at (176,-256)
+line from (208,-288) to (208,-320)
+"\s+4.\s-4" ljust above at (200,-208)
+"\s+4.\s-4" ljust above at (208,-208)
+"\s+4.\s-4" ljust above at (216,-208)
+"output node" center below at (208,-320)
+.vs \n(VSu
+.ft \n(PQ
+.ps \n(PS
+.PE
+The input to an \fIand/or\fP array is a set of nodes; the output is
+also a set of nodes.  A node can be externally visible (such as a pin)
+or it may be an internal node.  The buffered or inverted version
+of a node is called a "line".  The intersection of a line with
+the input term of the \fIOR\fP is controlled by a \fIfuse\fP.
+The collection of fuses over a set of input and output nodes is
+called an \fIarray\fP.
+.PP
+It is possible that a device may have
+multiple \fIand/or\fP arrays;
+examples of such devices include the Advanced Micro Devices Mach parts,
+the Cypress 7C361 finite state machine controller and the Signetics
+Macrologic (PLS 501, 601 and 701) parts.  Therefore, every array declaration
+must be followed by a symbolic name.  This helps
+.B xpal
+and
+.B xpart
+to give useful error messages.  Also, each array must have an "offset" declaration.
+This permits the array to be placed anywhere in the fuse space.
+Next, the declaration of input
+and output nodes must be given.  Note that in most programmable
+logic devices, input lines
+come in both complement and idempotent flavors
+and are provided courtesy
+of the buffer on the input pin.
+.I Paddle
+therefore
+has a declaration that declares that
+a given set of nodes are doubled, either the complement or
+idempotent line first.
+.PP
+Fuse arrays are used for declaring special fuses that some programmable
+parts offer.  For example, the
+.B 22V10
+has fuses that set the polarity
+of the output pin, whether the output is latched or combinatorial and so
+forth.  These fuses are not organized in an
+.I and/or
+array and so
+.I paddle
+just permits a one-to-one mapping between artificial pin
+(external node) numbers and fuse numbers.
+permits multiple fuse arrays provided they are given unique names.
+Each definition begins by defining the name of the part along
+with possible synonyms.  This is followed by (1) an array declaration
+(2) a fuse block definition (3) a type declaration (the
+.B .tt
+line)
+and lastly, a (4) pins declaration.  The array declaration permits
+declaration of input and output pins to the array.  The use of the
+.I complement
+keyword create 2 input lines for a given pin.  The general form
+of a pin declaration is
+.BR pin:terms=fuse ,
+where
+.I terms
+is the maximum number of terms for the pin and
+.I fuse
+is the optional fuse number.
+.SH EXAMPLES
+Here is part of the declaration of a 20L10:
+.Cs
+20L10=NS20L10=AM20L10 {
+    package "DIP24"
+    declare {
+	internal {
+		output enables { 114..123 }
+	}
+	external {
+		inputs { 1..13 }
+		inverted outputs { 14..23 }
+		ground { 12 }
+		supply { 24 }
+	}
+    }
+    array and/or {
+	inputs complement+ {
+		2,	1,
+		.
+		.
+		.
+		11,	13
+	}
+	outputs {
+		123:1,
+		23:3,
+		.
+		.
+		.
+		}
+	}
+}
+.Ce
+.SH SEE ALSO
+.IR xpal (10.1)
+.SH FILES
+.B /sys/lib/cda/library.paddle

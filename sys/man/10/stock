@@ -1,0 +1,18 @@
+.TH STOCK 10.6
+.SH NAME
+stock \- stock list
+.SH DESCRIPTION
+.PP
+The stock file is a plain text file.
+The first column is the part name, the second column
+is the bin (bins have the form <bin number><section><drawer>), the
+third column is the quantity and the remaining string is the chip
+description.  The latest entries include the manufacturer at the end of
+the line in the form "[manufacturer]".
+.SH SEE ALSO
+.IR findparts (10.1),
+.IR ics (10.1)
+.SH FILES
+.B /n/coma/usr/ucds/lib/stock
+.SH BUGS
+The quantity is seldom up to date.

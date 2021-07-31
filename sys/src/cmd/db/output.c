@@ -38,6 +38,25 @@ tconv(void *oa, Fconv *f)
 	return 0;
 }
 
+int	dascase;
+
+/* convert to lower case from upper, according to dascase */
+int
+Sconv(void *oa, Fconv *f)
+{
+	char buf[128];
+	char *s, *t;
+
+	if(dascase){
+		for(s=*(char**)oa,t=buf; *t = *s; s++,t++)
+			if('A'<=*t && *t<='Z')
+				*t += 'a'-'A';
+		strconv(buf, f);
+	}else
+		strconv(*(char**)oa, f);
+	return sizeof(char*);
+}
+
 /* hexadecimal with initial # */
 int
 myxconv(void *oa, Fconv *f)
@@ -111,6 +130,7 @@ iclose(int stack, int err)
 		if (ifiledepth >= MAXIFD)
 			error("$<< nested too deeply");
 		istack[ifiledepth].fd = infile;
+		istack[ifiledepth].r9 = var[9];
 		ifiledepth++;
 		infile = STDIN;
 	} else {
@@ -120,6 +140,7 @@ iclose(int stack, int err)
 		}
 		if (ifiledepth > 0) {
 			infile = istack[--ifiledepth].fd;
+			var[9] = istack[ifiledepth].r9;
 		}
 	}
 }
@@ -128,7 +149,7 @@ void
 oclose(void)
 {
 	flushbuf();
-	Bterm(&stdout);
+	Bclose(&stdout);
 	Binit(&stdout, 1, OWRITE);
 }
 
@@ -146,7 +167,7 @@ redirout(char *file)
 		seek(fd, 0L, 2);
 	else if ((fd = create(file, 1, 0666)) < 0)
 		error("cannot create");
-	Bterm(&stdout);
+	Bclose(&stdout);
 	Binit(&stdout, fd, OWRITE);
 }
 
@@ -183,4 +204,5 @@ outputinit(void)
 	Binit(&stdout, 1, OWRITE);
 	fmtinstall('t', tconv);
 	fmtinstall('x', myxconv);
+	fmtinstall('S', Sconv);
 }

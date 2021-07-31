@@ -42,6 +42,8 @@ sysrfork(ulong *arg)
 			p->pgrp = newpgrp();
 			if(flag & RFNAMEG)
 				pgrpcpy(p->pgrp, opg);
+			else
+				*p->pgrp->crypt = *opg->crypt;
 			closepgrp(opg);
 		}
 		if(flag & (RFENVG|RFCENVG)) {
@@ -124,6 +126,8 @@ sysrfork(ulong *arg)
 		p->pgrp = newpgrp();
 		if(flag & RFNAMEG)
 			pgrpcpy(p->pgrp, parent->pgrp);
+		else
+			*p->pgrp->crypt = *parent->pgrp->crypt;
 	}
 	else {
 		p->pgrp = parent->pgrp;
@@ -182,11 +186,7 @@ sysrfork(ulong *arg)
 	 *  (i.e. has bad properties) and has to be discarded.
 	 */
 	flushmmu();
-	p->priority = u->p->priority;
-	p->basepri = u->p->basepri;
-	p->mp = u->p->mp;
 	ready(p);
-	sched();
 	return pid;
 }
 
@@ -301,7 +301,7 @@ sysexec(ulong *arg)
 		if(((ulong)argp&(BY2PG-1)) < BY2WD)
 			validaddr((ulong)argp, BY2WD, 0);
 		validaddr((ulong)a, 1, 0);
-		nbytes += (vmemchr(a, 0, 0x7FFFFFFF) - a) + 1;
+		nbytes += (vmemchr(a, 0, 0xFFFFFFFF) - a) + 1;
 		nargs++;
 	}
 	ssize = BY2WD*(nargs+1) + ((nbytes+(BY2WD-1)) & ~(BY2WD-1));
@@ -351,15 +351,7 @@ sysexec(ulong *arg)
 	 */
 	for(i = SSEG; i <= BSEG; i++) {
 		putseg(p->seg[i]);
-		/* prevent a second free if we have an error */
-		p->seg[i] = 0;	   
-	}
-	for(i = BSEG+1; i < NSEG; i++) {
-		s = p->seg[i];
-		if(s != 0 && (s->type&SG_CEXEC)) {
-			putseg(s);
-			p->seg[i] = 0;
-		}
+		p->seg[i] = 0;	    /* prevent a second free if we have an error */
 	}
 
 	/*
@@ -402,12 +394,6 @@ sysexec(ulong *arg)
 	s->top = USTKTOP;
 	relocateseg(s, TSTKTOP-USTKTOP);
 
-	/*
-	 *  '/' processes are higher priority (hack to make /ip more responsive).
-	 */
-	if(devchar[tc->type] == L'/')
-		u->p->basepri = PriRoot;
-	u->p->priority = u->p->basepri;
 	close(tc);
 
 	/*
@@ -468,16 +454,10 @@ return0(void *a)
 long
 syssleep(ulong *arg)
 {
-	int n;
-
-	n = arg[0];
-	if(n == 0){
-		sched();	/* yield */
-		return 0;
-	}
-	if(MS2TK(n) == 0)	/* sleep for at least one tick */
-		n = TK2MS(1);
-	tsleep(&u->p->sleep, return0, 0, n);
+	if(arg[0] == 0)
+		sched();
+	else
+		tsleep(&u->p->sleep, return0, 0, arg[0]);
 
 	return 0;
 }
@@ -493,7 +473,6 @@ sysexits(ulong *arg)
 {
 	char *status;
 	char *inval = "invalid exit string";
-	char buf[ERRLEN];
 
 	status = (char*)arg[0];
 	if(status){
@@ -501,11 +480,8 @@ sysexits(ulong *arg)
 			status = inval;
 		else{
 			validaddr((ulong)status, 1, 0);
-			if(vmemchr(status, 0, ERRLEN) == 0){
-				memmove(buf, status, ERRLEN);
-				buf[ERRLEN-1] = 0;
-				status = buf;
-			}
+			if(vmemchr(status, 0, ERRLEN) == 0)
+				status = inval;
 		}
 		poperror();
 
@@ -536,12 +512,9 @@ sysdeath(ulong *arg)
 long
 syserrstr(ulong *arg)
 {
-	char tmp[ERRLEN];
-
 	validaddr(arg[0], ERRLEN, 1);
-	memmove(tmp, (char*)arg[0], ERRLEN);
 	memmove((char*)arg[0], u->error, ERRLEN);
-	memmove(u->error, tmp, ERRLEN);
+	strncpy(u->error, Enoerror, ERRLEN);
 	return 0;
 }
 
@@ -558,7 +531,8 @@ sysnotify(ulong *arg)
 long
 sysnoted(ulong *arg)
 {
-	if(arg[0]!=NRSTR && !u->notified)
+	USED(arg);
+	if(u->notified == 0)
 		error(Egreg);
 	return 0;
 }
@@ -569,20 +543,18 @@ syssegbrk(ulong *arg)
 	Segment *s;
 	int i;
 
-	for(i = 0; i < NSEG; i++) {
+	for(i = 0; i < NSEG; i++)
 		if(s = u->p->seg[i]) {
 			if(arg[0] >= s->base && arg[0] < s->top) {
 				switch(s->type&SG_TYPE) {
 				case SG_TEXT:
 				case SG_DATA:
-				case SG_STACK:
 					error(Ebadarg);
 				default:
 					return ibrk(arg[1], i);
 				}
 			}
 		}
-	}
 
 	error(Ebadarg);
 	return 0;		/* not reached */
@@ -662,7 +634,7 @@ long
 sysrendezvous(ulong *arg)
 {
 	Proc *p, **l;
-	int tag;
+	int s, tag;
 	ulong val;
 
 	tag = arg[0];
@@ -674,8 +646,8 @@ sysrendezvous(ulong *arg)
 			*l = p->rendhash;
 			val = p->rendval;
 			p->rendval = arg[1];
-			/* Hard race avoidance */
-			while(p->mach != 0)
+			/* Easy race avoidance */
+			while(p->state != Rendezvous)
 				;
 			ready(p);
 			unlock(u->p->pgrp);
@@ -690,10 +662,12 @@ sysrendezvous(ulong *arg)
 	p->rendval = arg[1];
 	p->rendhash = *l;
 	*l = p;
-	u->p->state = Rendezvous;
-	unlock(p->pgrp);
 
+	s = splhi();
+	unlock(p->pgrp);
+	u->p->state = Rendezvous;
 	sched();
+	splx(s);
 
 	return u->p->rendval;
 }

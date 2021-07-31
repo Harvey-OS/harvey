@@ -1,0 +1,464 @@
+1561c
+   (CHARIC R 60)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 166)
+      )
+.
+1557,1558c
+(CHARACTER C v (comment vswash)
+   (CHARWD R 486)
+.
+1390,1394c
+(CHARACTER C Z (comment Zswash)
+   (CHARWD R 526)
+   (CHARHT R 684)
+   (CHARDP R 269)
+   (CHARIC R 332)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 132)
+      )
+.
+1388c
+   (CHARIC R 171)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 131)
+      )
+.
+1384,1386c
+(CHARACTER C Y (comment Yswash)
+   (CHARWD R 710)
+   (CHARHT R 670)
+.
+1378,1382c
+(CHARACTER C X (comment Xswash)
+   (CHARWD R 980)
+   (CHARHT R 676)
+   (CHARDP R 55)
+   (CHARIC R 135)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 130)
+      )
+.
+1376c
+   (CHARIC R 117)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 127)
+      )
+.
+1372,1374c
+(CHARACTER C W (comment Wswash)
+   (CHARWD R 1138)
+   (CHARHT R 676)
+.
+1370c
+   (CHARIC R 116)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 126)
+      )
+.
+1366,1368c
+(CHARACTER C V (comment Vswash)
+   (CHARWD R 884)
+   (CHARHT R 676)
+.
+1364c
+   (CHARIC R 178)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 125)
+      )
+.
+1360,1362c
+(CHARACTER C U (comment Uswash)
+   (CHARWD R 724)
+   (CHARHT R 663)
+.
+1358c
+   (CHARIC R 222)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 124)
+      )
+.
+1348,1356c
+(CHARACTER C T (comment Tswash)
+   (CHARWD R 728)
+   (CHARHT R 718)
+.
+1342,1346c
+(CHARACTER C S (comment Sswash)
+   (CHARWD R 585)
+   (CHARHT R 690)
+   (CHARDP R 123)
+   (CHARIC R 73)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 123)
+      )
+.
+1339,1340c
+   (CHARDP R 269)
+   (CHARIC R 416)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 122)
+      )
+.
+1336,1337c
+(CHARACTER C Q (comment Qswash)
+   (CHARWD R 650)
+   (CHARHT R 706)
+   (CHARDP R 252)
+   (CHARIC R 505)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 121)
+      )
+   )
+(CHARACTER C R (comment Rswash)
+   (CHARWD R 790)
+.
+1334c
+   (CHARIC R 111)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 120)
+      )
+.
+1330,1332c
+(CHARACTER C P (comment Pswash)
+   (CHARWD R 805)
+   (CHARHT R 676)
+.
+1328c
+   (CHARIC R 67)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 117)
+      )
+.
+1318,1326c
+(CHARACTER C O (comment Oswash)
+   (CHARWD R 716)
+   (CHARHT R 676)
+.
+1312,1316c
+(CHARACTER C N (comment Nswash)
+   (CHARWD R 875)
+   (CHARHT R 662)
+   (CHARDP R 269)
+   (CHARIC R 396)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 116)
+      )
+.
+1309,1310c
+   (CHARDP R 57)
+   (CHARIC R 188)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 115)
+      )
+.
+1306,1307c
+(CHARACTER C M (comment Mswash)
+   (CHARWD R 1520)
+.
+1300,1304c
+(CHARACTER C L (comment Lswash)
+   (CHARWD R 470)
+   (CHARHT R 676)
+   (CHARDP R 230)
+   (CHARIC R 266)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 114)
+      )
+.
+1297,1298c
+   (CHARDP R 269)
+   (CHARIC R 375)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 113)
+      )
+.
+1294,1295c
+(CHARACTER C K (comment Kswash)
+   (CHARWD R 628)
+.
+1288,1292c
+(CHARACTER C J (comment Jswash)
+   (CHARWD R 608)
+   (CHARHT R 687)
+   (CHARDP R 255)
+   (CHARIC R 122)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 112)
+      )
+.
+1286c
+   (CHARIC R 161)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 111)
+      )
+.
+1276,1283c
+(CHARACTER C I (comment Iswash)
+   (CHARWD R 330)
+.
+1274c
+   (CHARIC R 318)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 110)
+      )
+.
+1270,1272c
+(CHARACTER C H (comment Hswash)
+   (CHARWD R 752)
+   (CHARHT R 790)
+.
+1264,1268c
+(CHARACTER C G (comment Gswash)
+   (CHARWD R 690)
+   (CHARHT R 676)
+   (CHARDP R 260)
+   (CHARIC R 89)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 107)
+      )
+.
+1262c
+   (CHARIC R 208)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 106)
+      )
+.
+1258,1260c
+(CHARACTER C F (comment Fswash)
+   (CHARWD R 755)
+   (CHARHT R 684)
+.
+1256c
+   (CHARIC R 134)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 105)
+      )
+.
+1254a
+   (CHARDP R 6)
+   (CHARIC R 59)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 104)
+      )
+   )
+(CHARACTER C E (comment Eswash)
+   (CHARWD R 495)
+   (CHARHT R 676)
+.
+1252,1253c
+(CHARACTER C C (comment Cswash)
+   (CHARWD R 550)
+   (CHARHT R 690)
+   (CHARDP R 128)
+   (CHARIC R 173)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 103)
+      )
+   )
+(CHARACTER C D (comment Dswash)
+   (CHARWD R 970)
+.
+1250c
+   (CHARIC R 86)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 102)
+      )
+.
+1246,1248c
+(CHARACTER C B (comment Bswash)
+   (CHARWD R 820)
+   (CHARHT R 676)
+.
+1240,1244c
+(CHARACTER C A (comment Aswash)
+   (CHARWD R 1340)
+   (CHARHT R 676)
+   (CHARDP R 64)
+   (CHARIC R 222)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 101)
+      )
+.
+1196,1200c
+(CHARACTER C 9 (comment nineoldstyle)
+   (CHARWD R 412)
+   (CHARHT R 436)
+   (CHARDP R 198)
+   (CHARIC R 26)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 71)
+      )
+.
+1194c
+   (CHARIC R 85)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 70)
+      )
+.
+1190,1192c
+(CHARACTER C 8 (comment eightoldstyle)
+   (CHARWD R 418)
+   (CHARHT R 621)
+.
+1184,1188c
+(CHARACTER C 7 (comment sevenoldstyle)
+   (CHARWD R 414)
+   (CHARHT R 425)
+   (CHARDP R 198)
+   (CHARIC R 86)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 67)
+      )
+.
+1182c
+   (CHARIC R 159)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 66)
+      )
+.
+1178,1180c
+(CHARACTER C 6 (comment sixoldstyle)
+   (CHARWD R 430)
+   (CHARHT R 636)
+.
+1172,1176c
+(CHARACTER C 5 (comment fiveoldstyle)
+   (CHARWD R 332)
+   (CHARHT R 436)
+   (CHARDP R 198)
+   (CHARIC R 73)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 65)
+      )
+.
+1166,1170c
+(CHARACTER C 4 (comment fouroldstyle)
+   (CHARWD R 485)
+   (CHARHT R 436)
+   (CHARDP R 186)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 64)
+      )
+.
+1160,1164c
+(CHARACTER C 3 (comment threeoldstyle)
+   (CHARWD R 378)
+   (CHARHT R 436)
+   (CHARDP R 188)
+   (CHARIC R 9)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 63)
+      )
+.
+1158c
+   (CHARIC R 2)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 62)
+      )
+.
+1154,1156c
+(CHARACTER C 2 (comment twooldstyle)
+   (CHARWD R 423)
+   (CHARHT R 436)
+.
+1152a
+   (CHARIC R 76)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 61)
+      )
+.
+1149,1151c
+(CHARACTER C 1 (comment oneoldstyle)
+   (CHARWD R 352)
+   (CHARHT R 425)
+.
+1147c
+   (CHARIC R 23)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 60)
+      )
+.
+1143,1145c
+(CHARACTER C 0 (comment zerooldstyle)
+   (CHARWD R 414)
+   (CHARHT R 436)
+.
+1090,1094c
+   (CHARIC R 129)
+.
+1086,1088c
+(CHARACTER O 46 (comment ampersand)
+   (CHARWD R 770)
+   (CHARHT R 760)
+.
+871a
+(CHARACTER O 1 (comment ct)
+   (CHARWD R 640)
+   (CHARHT R 674)
+   (CHARDP R 14)
+   (CHARIC R 84)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 143)
+      )
+   )
+(CHARACTER O 2 (comment st)
+   (CHARWD R 545)
+   (CHARHT R 670)
+   (CHARDP R 14)
+   (CHARIC R 110)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 163)
+      )
+   )
+.
+744a
+   (LIG C t O 2)
+.
+636a
+   (LIG C t O 1)
+.
+3c
+(FAMILY TeX-OldGarnd-Italic)
+.
+w padrai.vpl
+q

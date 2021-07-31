@@ -658,7 +658,6 @@ static void
 duartkproc(void *a)
 {
 	Port *p = a;
-	Queue *q;
 	IOQ *cq = p->iq;
 	Block *bp;
 	int n;
@@ -670,14 +669,10 @@ loop:
 	if(p->wq == 0){
 		cq->out = cq->in;
 	}else{
-		q = RD(p->wq);
-		if(!QFULL(q->next)){
-			bp = allocb(n);
-			bp->flags |= S_DELIM;
-			bp->wptr += gets(cq, bp->wptr, n);
-			PUTNEXT(q, bp);
-		} else
-			tsleep(&cq->r, return0, 0, 250);
+		bp = allocb(n);
+		bp->flags |= S_DELIM;
+		bp->wptr += gets(cq, bp->wptr, n);
+		PUTNEXT(RD(p->wq), bp);
 	}
 	qunlock(p);
 	goto loop;

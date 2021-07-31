@@ -85,7 +85,6 @@ struct RTCdev
 
 #define SLAVE	0x0
 
-extern	void	duartintr(void);
 
 extern Vmedevice vmedevtab[];
 
@@ -96,6 +95,9 @@ extern	Drive*	jagdrive(Device);
 
 extern	int	hsvmeinit(Vmedevice *);
 extern	void	hsvmeintr(Vmedevice *);
+
+extern	int	hrodinit(Vmedevice *);
+extern	void	hrodintr(Vmedevice *);
 
 extern	int	eagleinit(Vmedevice *);
 extern	void	eagleintr(Vmedevice *);

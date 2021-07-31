@@ -1,0 +1,3 @@
+TEXT _BIND(SB), $0
+KCALL $2
+RETURN

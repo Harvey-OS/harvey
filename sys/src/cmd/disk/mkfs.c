@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include <bio.h>
 
 enum{
@@ -26,31 +25,29 @@ struct File{
 	ulong	mode;
 };
 
-void	arch(Dir*);
-void	copy(Dir*);
-int	copyfile(File*, Dir*, int);
-void*	emalloc(ulong);
-void	error(char *, ...);
-void	freefile(File*);
-File*	getfile(File*);
-char*	getmode(char*, ulong*);
-char*	getname(char*, char*, int);
-char*	getpath(char*);
-void	kfscmd(char *);
-void	mkdir(Dir*);
-int	mkfile(File*);
 void	mkfs(File*, int);
-char*	mkpath(char*, char*);
 void	mktree(File*, int);
-void	mountkfs(char*);
-void	printfile(File*);
-void	setnames(File*);
-void	setusers(void);
-void	skipdir(void);
-char*	strdup(char*);
+int	mkfile(File*);
+int	copyfile(File*, Dir*, int);
 int	uptodate(Dir*, char*);
-void	usage(void);
+void	mkdir(Dir*);
+void	copy(Dir*);
+void	arch(Dir*);
+char	*mkpath(char*, char*);
+char	*strdup(char*);
+void	setnames(File*);
+void	freefile(File*);
+File	*getfile(File*);
+char	*getpath(char*);
+char	*getname(char*, char*, int);
+char	*getmode(char*, ulong*);
+void	setusers(void);
+void	mountkfs(char*);
+void	kfscmd(char *);
+void	*emalloc(ulong);
+void	error(char *, ...);
 void	warn(char *, ...);
+void	usage(void);
 
 Biobuf	*b;
 Biobufhdr bout;			/* stdout when writing archive */
@@ -71,7 +68,6 @@ int	indent;
 int	verb;
 int	modes;
 int	ream;
-int	debug;
 int	xflag;
 int	sfd;
 int	fskind;			/* Kfs, Fs, Archive */
@@ -102,9 +98,6 @@ main(int argc, char **argv)
 	case 'd':
 		fskind = Fs;
 		newroot = ARGF();
-		break;
-	case 'D':
-		debug = 1;
 		break;
 	case 'n':
 		strncpy(name, ARGF(), NAMELEN - 1);
@@ -149,6 +142,7 @@ main(int argc, char **argv)
 	cputype = getenv("cputype");
 	if(cputype == 0)
 		cputype = "68020";
+	fprint(2, "making a %s file system\n", cputype);
 
 	errs = 0;
 	for(i = 0; i < argc; i++){
@@ -163,9 +157,8 @@ main(int argc, char **argv)
 		}
 
 		lineno = 0;
-		indent = 0;
 		mkfs(&file, -1);
-		Bterm(b);
+		Bclose(b);
 	}
 	fprint(2, "file system made\n");
 	kfscmd("disallow");
@@ -174,7 +167,7 @@ main(int argc, char **argv)
 		exits("skipped protos");
 	if(fskind == Archive){
 		Bprint(&bout, "end of archive\n");
-		Bterm(&bout);
+		Bclose(&bout);
 	}
 	exits(0);
 }
@@ -249,7 +242,6 @@ mkfile(File *f)
 
 	if(dirstat(oldfile, &dir) < 0){
 		warn("can't stat file %s: %r", oldfile);
-		skipdir();
 		return 0;
 	}
 	return copyfile(f, &dir, 0);
@@ -402,8 +394,8 @@ mkdir(Dir *d)
 void
 arch(Dir *d)
 {
-	Bprint(&bout, "%s %luo %s %s %lud %d\n",
-		newfile, d->mode, d->uid, d->gid, d->mtime, d->length);
+	Bprint(&bout, "%s %luo %s %s %d\n",
+		newfile, d->mode, d->uid, d->gid, d->length);
 }
 
 char *
@@ -453,43 +445,7 @@ freefile(File *f)
 	free(f);
 }
 
-/*
- * skip all files in the proto that
- * could be in the current dir
- */
-void
-skipdir(void)
-{
-	char *p, c;
-	int level;
-
-	if(indent < 0)
-		return;
-	level = indent;
-	for(;;){
-		indent = 0;
-		p = Brdline(b, '\n');
-		lineno++;
-		if(!p){
-			indent = -1;
-			return;
-		}
-		while((c = *p++) != '\n')
-			if(c == ' ')
-				indent++;
-			else if(c == '\t')
-				indent += 8;
-			else
-				break;
-		if(indent <= level){
-			Bseek(b, -Blinelen(b), 1);
-			lineno--;
-			return;
-		}
-	}
-}
-
-File*
+File *
 getfile(File *old)
 {
 	File *f;
@@ -497,8 +453,6 @@ getfile(File *old)
 	char *p;
 	int c;
 
-	if(indent < 0)
-		return 0;
 loop:
 	indent = 0;
 	p = Brdline(b, '\n');
@@ -507,20 +461,19 @@ loop:
 		indent = -1;
 		return 0;
 	}
-	while((c = *p++) != '\n')
+	p[Blinelen(b) - 1] = '\0';
+	while(c = *p++)
 		if(c == ' ')
 			indent++;
 		else if(c == '\t')
 			indent += 8;
 		else
 			break;
-	if(c == '\n' || c == '#')
+	if(c == '\0' || c == '#')
 		goto loop;
 	p--;
 	f = emalloc(sizeof *f);
 	p = getname(p, elem, sizeof elem);
-	if(debug)
-		fprint(2, "getfile: %s root %s\n", elem, old->new);
 	f->new = mkpath(old->new, elem);
 	f->elem = utfrrune(f->new, L'/') + 1;
 	p = getmode(p, &f->mode);
@@ -536,34 +489,29 @@ loop:
 		f->old = 0;
 	}
 	setnames(f);
-
-	if(debug)
-		printfile(f);
-
 	return f;
 }
 
-char*
+char *
 getpath(char *p)
 {
-	char *q, *new;
-	int c, n;
+	char *q;
+	int c;
 
 	while((c = *p) == ' ' || c == '\t')
 		p++;
 	q = p;
-	while((c = *q) != '\n' && c != ' ' && c != '\t')
+	while((c = *q) && c != ' ' && c != '\t')
 		q++;
-	if(q == p)
+	*q = '\0';
+	if(!*p)
 		return 0;
-	n = q - p;
-	new = emalloc(n + 1);
-	memcpy(new, p, n);
-	new[n] = 0;
-	return new;
+	q = emalloc(q - p + 1);
+	strcpy(q, p);
+	return q;
 }
 
-char*
+char *
 getname(char *p, char *buf, int len)
 {
 	char *s;
@@ -572,7 +520,7 @@ getname(char *p, char *buf, int len)
 	while((c = *p) == ' ' || c == '\t')
 		p++;
 	i = 0;
-	while((c = *p) != '\n' && c != ' ' && c != '\t'){
+	while((c = *p) && c != ' ' && c != '\t'){
 		if(i < len)
 			buf[i++] = c;
 		p++;
@@ -596,7 +544,7 @@ getname(char *p, char *buf, int len)
 	return p;
 }
 
-char*
+char *
 getmode(char *p, ulong *mode)
 {
 	char buf[7], *s;
@@ -682,7 +630,7 @@ mountkfs(char *name)
 		fprint(2, "can't open %s\n", kname);
 		exits("open /srv/kfs");
 	}
-	if(amount(sfd, "/n/kfs", MREPL|MCREATE, "") < 0){
+	if(mount(sfd, "/n/kfs", MREPL|MCREATE, "", "") < 0){
 		fprint(2, "can't mount kfs on /n/kfs\n");
 		exits("mount kfs");
 	}
@@ -752,15 +700,6 @@ warn(char *fmt, ...)
 	sprint(buf, "%s: %s: %d: ", prog, proto, lineno);
 	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, (&fmt+1));
 	fprint(2, "%s\n", buf);
-}
-
-void
-printfile(File *f)
-{
-	if(f->old)
-		fprint(2, "%s from %s %s %s %o\n", f->new, f->old, f->uid, f->gid, f->mode);
-	else
-		fprint(2, "%s %s %s %o\n", f->new, f->uid, f->gid, f->mode);
 }
 
 void

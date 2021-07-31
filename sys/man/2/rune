@@ -2,11 +2,6 @@
 .SH NAME
 runetochar, chartorune, runelen, fullrune, utflen, utfrune, utfrrune, utfutf \- rune/UTF conversion
 .SH SYNOPSIS
-.ta \w'\fLchar*xx'u
-.B #include <u.h>
-.br
-.B #include <libc.h>
-.PP
 .B
 int	runetochar(char *s, Rune *r)
 .PP
@@ -40,9 +35,9 @@ copies one rune at
 .I r
 to at most
 .B UTFmax
-bytes starting at
+characters starting at
 .I s
-and returns the number of bytes copied.
+and returns the number of characters copied.
 .BR UTFmax ,
 defined as
 .B 3
@@ -53,19 +48,19 @@ is the maximum number of bytes required to represent a rune.
 .I Chartorune
 copies at most
 .B UTFmax
-bytes starting at
+characters starting at
 .I s
 to one rune at
 .I r
-and returns the number of bytes copied.
-If the input is not exactly in
+and returns the number of characters copied.
+If the characters are not exactly in
 .SM UTF
 format,
 .I chartorune
 will convert to 0x80 and return 1.
 .PP
 .I Runelen
-returns the number of bytes
+returns the number of characters
 required to convert
 .I r
 into
@@ -84,7 +79,7 @@ contains a legal
 .SM UTF
 encoding.
 This routine is used by programs that
-obtain input a byte at
+obtain input a character at
 a time and need to know when a full rune
 has arrived.
 .PP
@@ -117,7 +112,7 @@ string
 or 0 if
 .I c
 does not occur in the string.
-The NUL byte terminating a string is considered to
+The NUL character terminating a string is considered to
 be part of the string
 .IR s .
 .PP
@@ -138,10 +133,6 @@ is the null string,
 .I utfutf
 returns
 .IR s1 .
-.SH SOURCE
-.B /sys/src/libc/port/rune.c
-.br
-.B /sys/src/libc/port/utfrune.c
 .SH SEE ALSO
 .IR utf (6),
-.IR tcs (1)
+.IR tcs (1),

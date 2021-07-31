@@ -1,0 +1,38 @@
+</$objtype/mkfile
+
+TARG=help
+OFILES=help.$O\
+	clik.$O\
+	ctrl.$O\
+	dat.$O\
+	errs.$O\
+	exec.$O\
+	file.$O\
+	page.$O\
+	pick.$O\
+	proc.$O\
+	scrl.$O\
+	text.$O\
+	util.$O\
+	xtrn.$O
+
+HFILES=dat.h\
+	fns.h\
+	/sys/include/frame.h\
+
+BIN=/$objtype/bin/help
+</sys/src/cmd/mkone
+
+install:V:	$BIN/buf $BIN/parse
+
+$BIN/%:	$O.%
+	cp $prereq $target
+
+$O.%:	%.$O
+	$LD -o $target $prereq
+
+clean:V:
+	rm -f *.[$OS] [$OS].out $TARG [$OS].buf [$OS].parse *.db
+
+%.db:		help.$O
+	$CC -N -o/dev/null -s$stem help.c | dbfmt > $stem.db

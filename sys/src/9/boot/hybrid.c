@@ -3,25 +3,17 @@
 #include <../boot/boot.h>
 
 extern char *timeserver;
-static Method *config;
-
-static void
-confighyb(Method *mp, void (*cf)(Method*))
-{
-	char *save;
-
-	config = mp;
-	save = mp->arg;
-	mp->arg = 0;
-	(*cf)(mp);
-	mp->arg = save;
-	configlocal(mp);
-}
 
 void
 confighybrid(Method *mp)
 {
-	confighyb(mp, config9600);
+	char *save;
+
+	save = mp->arg;
+	mp->arg = 0;
+	config9600(mp);
+	mp->arg = save;
+	configlocal(mp);
 }
 
 int
@@ -38,28 +30,11 @@ connecthybrid(void)
 	fd = dkconnect();
 	if(fd < 0)
 		fatal("can't connect to file server");
-	doauthenticate(fd, config);
+	nop(fd);
+	session(fd);
 	/*if(cfs)
 		fd = (*cfs)(fd);*/
 	srvcreate("bootes", fd);
 	timeserver = "#s/bootes";
 	return connectlocal();
-}
-
-void
-configHybrid(Method *mp)
-{
-	confighyb(mp, config19200);
-}
-
-int
-authHybrid(void)
-{
-	return dkauth();
-}
-
-int
-connectHybrid(void)
-{
-	return connecthybrid();
 }

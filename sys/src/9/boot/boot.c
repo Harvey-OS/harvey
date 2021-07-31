@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include "../boot/boot.h"
 
 #define DEFSYS "bootes"
@@ -13,29 +12,18 @@ char	cputype[NAMELEN];
 char	terminal[NAMELEN];
 char	sys[2*NAMELEN];
 char	username[NAMELEN];
+char	*sauth;
 char	bootfile[3*NAMELEN];
 char	conffile[NAMELEN];
 
 int mflag;
 int fflag;
 int kflag;
-int afd = -1;
+int aflag;
+int pflag;
 
 static void	swapproc(void);
 static Method	*rootserver(char*);
-
-static int
-rconv(void *o, Fconv *fp)
-{
-	char s[ERRLEN];
-
-	USED(o);
-
-	s[0] = 0;
-	errstr(s);
-	strconv(s, fp);
-	return 0;
-}
 
 void
 boot(int argc, char *argv[])
@@ -45,11 +33,8 @@ boot(int argc, char *argv[])
 	char cmd[64];
 	char flags[6];
 	int islocal, ishybrid;
-	char rootdir[3*NAMELEN];
 
 	sleep(1000);
-
-	fmtinstall('r', rconv);
 
 	open("#c/cons", OREAD);
 	open("#c/cons", OWRITE);
@@ -59,7 +44,13 @@ boot(int argc, char *argv[])
 		print("%s ", argv[fd]);
 	print("\n");/**/
 
+	if(argc <= 1)
+		pflag = 1;
+
 	ARGBEGIN{
+	case 'a':
+		aflag = 1;
+		break;
 	case 'u':
 		strcpy(username, ARGF());
 		break;
@@ -67,7 +58,11 @@ boot(int argc, char *argv[])
 		kflag = 1;
 		break;
 	case 'm':
+		pflag = 1;
 		mflag = 1;
+		break;
+	case 'p':
+		pflag = 1;
 		break;
 	case 'f':
 		fflag = 1;
@@ -75,7 +70,7 @@ boot(int argc, char *argv[])
 	}ARGEND
 
 	readfile("#e/cputype", cputype, sizeof(cputype));
-	readfile("#e/terminal", terminal, sizeof(terminal));
+	readfile("#e/terminal", terminal, sizeof(cputype));
 	getconffile(conffile, terminal);
 
 	/*
@@ -84,8 +79,7 @@ boot(int argc, char *argv[])
 	mp = rootserver(argc ? *argv : 0);
 	(*mp->config)(mp);
 	islocal = strcmp(mp->name, "local") == 0;
-	ishybrid = (mp->name[0] == 'h' || mp->name[0] == 'H') &&
-			strcmp(&mp->name[1], "ybrid") == 0;
+	ishybrid = strcmp(mp->name, "hybrid") == 0;
 
 	/*
 	 *  get/set key or password
@@ -99,30 +93,27 @@ boot(int argc, char *argv[])
 	if(fd < 0)
 		fatal("can't connect to file server");
 	if(!islocal && !ishybrid){
+		nop(fd);
+		session(fd);
 		if(cfs)
 			fd = (*cfs)(fd);
-		doauthenticate(fd, mp);
 	}
 	srvcreate("boot", fd);
 
 	/*
-	 *  create the name space
+	 *  create the name space, mount the root fs
 	 */
 	if(bind("/", "/", MREPL) < 0)
 		fatal("bind");
-	if(mount(fd, "/", MAFTER|MCREATE, "") < 0)
-		fatal("mount");
+	sauth = "";
+	if(mount(fd, "/", MAFTER|MCREATE, "", sauth) < 0){
+		sauth = "any";
+		if(mount(fd, "/", MAFTER|MCREATE, "", sauth) < 0)
+			fatal("mount");
+	}
 	close(fd);
-
-	/*
-	 *  hack to let us have the logical root in a
-	 *  subdirectory - useful when we're the 'second'
-	 *  OS along with some other like DOS.
-	 */
-	readfile("#e/rootdir", rootdir, sizeof(rootdir));
-	if(rootdir[0])
-		if(bind(rootdir, "/", MREPL|MCREATE) >= 0)
-			bind("#/", "/", MBEFORE);
+	if(cpuflag == 0)
+		newkernel();
 
 	/*
 	 *  if a local file server exists and it's not
@@ -136,19 +127,17 @@ boot(int argc, char *argv[])
 			fd = (*mp->connect)();
 			if(fd < 0)
 				break;
-			mount(fd, "/n/kfs", MAFTER|MCREATE, "") ;
+			mount(fd, "/n/kfs", MAFTER|MCREATE, "", "") ;
 			close(fd);
 			break;
 		}
 	}
 
 	settime(islocal);
-	close(afd);
 	swapproc();
-	remove("#e/password");
 
 	sprint(cmd, "/%s/init", cputype);
-	sprint(flags, "-%s%s", cpuflag ? "c" : "t", mflag ? "m" : "");
+	sprint(flags, "-%s%s%s", cpuflag ? "c" : "t", mflag ? "m" : "", aflag ? "a" : "");
 	execl(cmd, "init", flags, 0);
 	fatal(cmd);
 }
@@ -162,28 +151,23 @@ rootserver(char *arg)
 	char prompt[256];
 	char reply[64];
 	Method *mp;
-	char *cp, *goodarg;
+	char *cp;
 	int n, j;
+	int notfirst;
 
-	goodarg = 0;
 	mp = method;
 	n = sprint(prompt, "root is from (%s", mp->name);
-	if(arg && strncmp(arg, mp->name, strlen(mp->name)) == 0)
-		goodarg = arg;
-	for(mp++; mp->name; mp++){
+	for(mp++; mp->name; mp++)
 		n += sprint(prompt+n, ", %s", mp->name);
-		if(arg && strncmp(arg, mp->name, strlen(mp->name)) == 0)
-			goodarg = arg;
-	}
 	sprint(prompt+n, ")");
 
-	if(goodarg)
-		strcpy(reply, goodarg);
-	else {
+	if(arg)
+		strcpy(reply, arg);
+	else
 		strcpy(reply, method->name);
-	}
-	for(;;){
-		outin(cpuflag, prompt, reply, sizeof(reply));
+	for(notfirst = 0;; notfirst = 1){
+		if(pflag || notfirst)
+			outin(prompt, reply, sizeof(reply));
 		cp = strchr(reply, '!');
 		if(cp)
 			j = cp - reply;

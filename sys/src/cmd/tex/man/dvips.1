@@ -1,0 +1,528 @@
+.\" man page for dvips
+.TH DVIPS 1 "5 January 1990"
+.SH NAME
+dvips \- convert a TeX DVI file to PostScript (PostScript is a
+trademark of Adobe Systems, Inc.)
+.SH SYNOPSIS
+.B dvips
+[
+.B -c
+.I num
+]
+[
+.B -d
+.I num
+]
+[
+.B -e
+.I num
+]
+[
+.B -f
+]
+[
+.B -h
+.I file
+]
+[
+.B -m
+]
+[
+.B -n
+.I num
+]
+[
+.B -o
+.I file
+]
+[
+.B -p
+.I num
+]
+[
+.B -q
+]
+[
+.B -r
+]
+[
+.B -s
+.I str	
+]
+[
+.B -t
+.I modename
+]
+[
+.B -x
+.I num
+]
+[
+.B -C
+.I num
+]
+[
+.B -D
+.I num
+]
+[
+.B -F
+]
+[
+.B -N
+]
+[
+.B -P printername
+]
+[
+.B -Z
+]
+[
+.B -?
+]
+.IR file [.dvi]
+.br
+.SH DESCRIPTION
+The program
+.B dvips
+converts a DVI file
+.IR file [.dvi]
+produced by TeX (or by some other processor like GFtoDVI)
+and converts it to PostScript, normally
+sending the result directly to the laserprinter.
+The result requires a small amount of 
+PostScript source to precede it, before it can be successfully printed.
+By default, that PostScript code is prepended to the output.
+If no file
+is specified in the command line, the DVI file is read from the standard 
+input stream.
+The DVI file may be specified without the
+.I .dvi
+extension.
+Fonts used may either be resident in the printer or defined as bitmaps
+in PK files, or a `virtual' combination of both.
+If the
+.B MakeTeXPK
+program is installed,
+.B dvips
+will automatically invoke METAFONT to generate fonts that don't already exist.
+.SH OPTIONS
+Boolean flags that are turned on by
+certain letters (such as -r to reverse pages) can be turned off
+by following the option immediately with a 0 (as in -r0).  The
+options that this can be used with are \fBfmqrFNZ\fP.
+The command line switches are:
+.IP "\fB-c\fP \fInum\fP"
+Generate
+.I num
+copies of every page.
+Default is 1. (For collated copies, see the
+.B -C
+option below.)
+.IP "\fB-d\fP \fInum\fP"
+Set the debug flags.
+This is intended only for emergencies or for unusual
+fact-finding expeditions; it will work only if
+.B dvips
+has been compiled with the DEBUG option.
+The file
+.I debug.h
+in the sources indicates what the values of
+.I num
+can be.
+.IP "\fB-e\fP \fInum\fP"
+Make sure that each character is placed at most this many pixels from its
+`true' resolution-independent
+position on the page. The default value of this parameter
+is resolution dependent (it is the number
+of entries in the list [100, 200, 300, 400, 500, 600, 800, 1000, 1200, 1600,
+2000, 2400, 2800, 3200, ...] that are less than or equal to the resolution in
+dots per inch). Allowing individual
+characters to `drift' from their correctly rounded positions
+by a few pixels, while regaining the true position at the beginning of
+each new word, improves the spacing of letters in words.
+.IP "\fP-f\fP"
+Run as a filter.
+Read the DVI file from standard input and write the PostScript to
+standard output.
+.IP "\fB-h\fP \fIname\fP"
+Prepend file
+.I name
+as an additional header file. (However, if the name is simply `-',
+suppress all header files from the output.)
+.IP "\fB-m\fP"
+Specify manual feed for printer.
+.IP "\fB-n\fP \fInum\fP"
+At most
+.I num
+pages will be printed out.
+Default is 100000.
+.IP "\fB-o\fP \fIname\fP"
+The output will be sent to file
+.I name.
+If no file name is given, the default name is
+.IR file .ps;
+if this option isn't given, the default name is !lpr.
+If the first character of the file name is an exclamation mark, then
+the remainder will be used as an argument to popen; thus, specifying
+!lpr as the output file will automatically queue the file for printing.
+.IP "\fB-p\fP \fInum\fP"
+The first page printed will be the first one numbered
+.I num.
+Default is the first page in the document.
+.IP "\fB-q\fP"
+Run in quiet mode.
+Don't chatter about pages converted, etc.; report nothing but errors to stderr.
+.IP "\fB-r\fP"
+Stack pages in reverse order.
+Normally, page one will be printed first.
+.IP "\fB-t\fP \fImodename\fP"
+This sets the mode to \fImodename\fP.
+Currently, the only modes allowable are:
+\fBletter\fP, which selects \fIletter\fP size (8.5 by 11 inch page);
+\fBa4\fP, which selects \fIa4\fP size;
+\fBlegal\fP, which selects \fIlegal\fP size (8.5 by 14 inches);
+\fBlandscape\fP, which rotates
+a \fIletter\fP size document by ninety degrees.
+The default mode is \fIletter\fP. The upper left corner of each page in
+the DVI file is placed one inch from the left and one inch from the top.
+.IP "\fB-x\fP \fInum\fP"
+Set the magnification ratio to
+.I num
+/1000. Overrides the magnification specified in the DVI file.
+Must be between 10 and 100000.
+.IP "\fB-C\fP \fInum\fP"
+Create
+.I num
+copies, but collated (by replicating the data in the PostScript file).
+Slower than the
+.B -c
+option, but easier on the humans.
+.IP "\fB-D\fP \fInum\fP"
+Set the resolution in dpi (dots per inch) to
+.I num.
+This affects the choice of bitmap fonts that are loaded and also the positioning
+of letters in resident PostScript fonts. Must be between 10 and 10000.
+.IP "\fB-F\fP"
+Causes control-D (ASCII code 4) to be appended as the very last character
+of the PostScript file.
+.IP "\fB-N\fP"
+Turns off structured comments; this might be necessary on some systems
+that try to interpret PostScript comments in weird ways.
+.IP "\fB-P\fP \fIprintername\fP"
+Sets up the output for the appropriate printer.  This is implemented
+by reading in
+.I config.printername,
+which can then set the output pipe
+(as in, !lpr -Pprintername) as well as the font paths and any other
+defaults for that printer only.  It is recommended that all standard
+defaults go in the one master
+.I config.ps
+file and only things that vary
+printer to printer go in the
+.I config.printername
+files.  Note that
+.I config.ps
+is read before
+.I config.printername.
+.IP "\fB-Z\fP"
+Causes bitmap fonts to be compressed before they are downloaded,
+thereby reducing the size of the PostScript font-downloading information
+to about 70% of the uncompressed size. Especially useful at high resolutions.
+.IP "\fB-?\fP"
+Print out the banner identifying the program.
+.SH "CONFIG FILE OPTIONS"
+The file
+.I config.ps
+can be used to set many of the options to configure
+.B dvips
+for a particular site.
+These will probably be set by the installer, so normal users can skip
+this section.
+The name and location of the config file can be changed at installation time.
+Each line of the file specifies a configuration option.
+If the initial
+character is a space, an asterisk, a pound sign, or a semicolon,
+the line is ignored.
+But if the initial character is an option like "o", for example,
+the remainder of the line is considered to be the default file output 
+name (e.g. /dev/lpr).
+The options are:
+.IP "\fBD\fP \fInum\fP"
+Sets the resolution to
+.I num
+dots per inch (dpi).
+.IP "\fBe\fP \fInum\fP"
+Sets the maximum drift parameter to
+.I num
+dots (pixels) as explained above.
+.IP "\fBm\fP \fInum\fP"
+.I num
+is the virtual memory available for fonts and strings in the printer.
+Default is 180000.
+.IP "\fBo\fP \fIname\fP"
+The default output file is set to
+.I name.
+.IP "\fBt\fP \fIpath\fP"
+The (colon-separated) path to search for the tfm files is
+.I path.
+The TEXFONTS environment variable will override this. This path is used for
+resident fonts and fonts that can't be otherwise found. It's usually best to
+make it identical to the path used by TeX.
+.IP "\fBv\fP \fIpath\fP"
+The (colon-separated) path to search for virtual font (VF) files is
+.I path.
+This may be device-dependent, if you use virtual fonts to simulate
+actual fonts on different devices.
+.IP "\fBp\fP \fIpath\fP"
+The (colon-separated) path to search for bitmap (PK) font files is
+.I path.
+The TEXPKS environment variable will override this.
+.IP "\fBs\fP \fIpath\fP"
+The (colon-separated) path to search for special illustrations
+(encapsulated PostScript files or psfiles) is
+.I path.
+The TEXINPUTS environment variable will override this.
+.IP "\fBr\fP"
+Reverse the order of pages by default.
+.IP "\fBq\fP"
+Run in quiet mode by default.
+.IP "\fBf\fP"
+Run as a filter by default.
+.IP "\fBh\fP \fIname\fP"
+Add
+.I name
+as a PostScript header file to be downloaded at the beginning.
+.IP "\fBM\fP \fImode\fP"
+Set
+.I mode
+as the METAFONT mode to be used when generating fonts.  This is
+passed along to MakeTeXPK and overrides mode derivation from the
+base resolution.
+.IP "\fBN\fP"
+Disable PostScript comments by default.
+.IP "\fBZ\fP"
+Compress all downloaded fonts by default.
+.SH "POSTSCRIPT FONT SUPPORT"
+This version of dvips supports PostScript fonts.
+You need TFM (TeX Font Metric) files for all fonts seen by TeX; they
+can be generated from AFM (Adobe Font Metric) files
+by running the program
+.B afm2tfm
+(which is described on its own manual page). That program also creates
+virtual fonts with which you can use normal plain TeX conventions.
+The set of all resident fonts known to
+.B dvips
+appears in the file
+.I psfonts.map,
+which should be updated whenever you install a new resident font. See
+.B afm2tfm
+for examples.
+.SH "\especial OPTIONS"
+This DVI driver allows the inclusion of PostScript code
+to be inserted in a TeX file via TeX's \especial command.
+For compatibility with other systems, several different conventions
+are supported.
+.sp
+First, there's a flexible key-and-value scheme:
+.sp
+.nf
+.na
+   \especial{psfile="filename"[ key=value]*}
+.fi
+.ad
+.sp
+This will download the PostScript file called
+.I filename
+such that the current point will be the origin of the PostScript
+co-ordinate system.
+The optional key/value assignments allow you
+to specify transformations on the PostScript in
+.I filename.
+The possible keys are:
+.sp
+.nf
+.na
+.ta 2i
+hoffset	The horizontal offset (default 0)
+voffset	The vertical offset (default 0)
+hsize	The horizontal clipping size (default 612)
+vsize	The vertical clipping size (default 792)
+hscale	The horizontal scaling factor (default 100)
+vscale	The vertical scaling factor (default 100)
+angle	The rotation (default 0)
+.fi
+.ad
+.sp
+The hoffset, voffset, hsize, and vsize are given in PostScript units
+(1/72 of an inch), called bp elsewhere in TeX; these are the units of the
+default coordinate system assumed to be valid in the PostScript file.
+The hscale and vscale are given in non-dimensioned percentage units, and the
+rotate value is specified in degrees.
+Thus
+.sp
+.ce
+\especial{psfile=foo.ps hoffset=72 hscale=90 vscale=90}
+.sp
+will shift the graphics produced by file
+.I foo.ps
+right by 1", and will 
+draw it at 0.9 normal size.
+If either hsize or vsize is specified, the figure will be clipped to a
+rectangular region from (0,0) to (hsize,vsize) in default coordinates,
+after scaling, translation, and/or rotation. Otherwise no clipping will be done.
+Offsets are given relative to the point of the \especial command, and are
+unaffected by scaling or rotation. Rotation is counterclockwise about (0,0).
+The order of operations is: Take the PostScript figure, rotate it, then
+scale it, then offset it, then clip it. For example, if you want to extract
+a one-inch-square figure bounded by (100,200), (172,200), (172,272), and
+(100,272) in the PostScript coordinates of the graphic in cropthis.ps,
+you would say
+.sp
+.cs
+\especial{psfile=cropthis.ps hoffset=-100 yoffset=-200 hsize=72 vsize=72}
+.sp
+Secondly, if your file conforms to the
+.I "Encapsulated Post Script"
+(EPS) conventions, then it is possible to use a simpler
+.B \especial
+command that will automatically reserve the required space.
+.sp
+To use, simply say
+.sp     
+.na
+.nf
+        \einput epsf           % at the beginning of your TeX document
+        \eepsfbox{filename.ps} % at the place where you want the figure
+.fi
+.ad
+.sp
+A
+.I vbox
+of the appropriate size for the bounding box will be built. The
+height and width of this vbox will be the height and width of the figure;
+the depth of the vbox will be zero.
+By default, the graphic will have its `natural' width.
+If you wish to enlarge or reduce it,
+simply set the dimension `\eepsfxsize'
+to something else, such as `\ehsize'; the figure will be scaled so that
+\eepsfxsize is its final width.
+This vbox can be centered with \ecenterline, or treated as any other vbox.
+.sp
+(The \eepsfbox macro does its job by scanning filename.ps for a standard
+`BoundingBox' comment. The figure is clipped to the size of that bounding
+box. If no bounding box is found, the coordinates `72 72
+If the bounding box is not found, a bounding box of `72 72 540 720' is
+assumed.
+If the PostScript file to be included is not EPSF, you are probably better
+off using the
+.I psfile
+special instead.)
+.sp
+Thirdly, there are special commands for drawing diagrams using the conventions
+of `TPIC' (a portable, non-PostScript-dependent program by Tim Morgan,
+with PostScript implementation by Dorab Patel). For example,
+`\especial{pn 2}' in this language sets the pen size to .002 inch.
+.sp
+A fourth type of \especial allows you to write PostScript instructions that
+will be passed literally to dvips's output file. These are intended for
+people whose favorite graphics language is raw PostScript.
+.sp
+.ce
+\especial{" \fItext\fP}
+.sp
+includes
+.I text
+literally in the output PostScript document,
+after translating the origin to the current page position, opening a
+special user dictionary, and
+and reverting to the PostScript convention of 72 units=1in.
+.sp
+.ce
+\especial{! \fItext\fP}
+.sp
+includes
+.I text
+literally in the prolog (before all typesetting is done), putting
+definitions in the special dictionary; this is good for definitions you intend
+to use with \especial{"}.
+Note that
+.I dvips
+will always include such specials
+in the prolog, unless they occur on pages after the last page printed.
+This allows correct printing of selected pages,
+even when literal PostScript definitions are used, provided that
+you give definitions before their first use.
+.sp
+A fifth type of \especial allows literal PostScript instructions to be
+inserted
+.I without
+enclosing them in an invisible protective shield; users of this feature
+are supposed to understand what they are doing (and they shouldn't change
+the PostScript graphics state unless they are willing to take the
+consequences). This command can take many forms, because it has had a
+tortuous history; any of the following will work:
+.sp
+.na
+.nf
+        \especial{ps:\fItext\fP}
+        \especial{ps::\fItext\fP}
+        \especial{ps::[begin]\fItext\fP}
+        \especial{ps::[end]\fItext\fP}
+.fi
+.ad
+(with longer forms taking precedence over shorter forms, when they are used).
+Exception: The command
+.sp
+.ce
+       \especial{ps: plotfile \fIfilename\fP}
+.sp
+will copy the commands from
+.I filename
+verbatim into dvips's output (but omitting lines that begin with %).
+An example of the proper use of literal specials can be found in the file
+.B rotate.tex, which makes it easy to typeset text turned 90 degrees.
+.sp
+Finally, there are two special cases of \especial, which provide
+alternatives to certain dvips command-line options: (1) You may put the command
+.sp
+.ce
+.B "\especial{landscape}"
+.sp
+anywhere in your document (except after the final page selected for
+printing), and the entire document will be printed in landscape mode.
+(2) The command
+.sp
+.ce
+.B "\especial{header="
+.IB filename }
+.sp
+may be used to add
+.I filename
+as a header file (i.e., a file that will be downloaded before the
+start of processing).
+This is usually used for Macintosh header files.
+.SH FILES
+Files used by dvips are usually system dependent, but the following are typical:
+.sp
+.br
+.ta 3i
+the prolog dir        /usr/lib/tex/ps
+.br
+the config dir	      /usr/lib/tex/ps
+.br
+the tfm dir	      /usr/lib/tex/fonts/tfm
+.br
+the font dir	      /usr/lib/tex/fonts/pk
+.br
+the virtual font dir  /usr/lib/tex/fonts/vf
+.br
+the epsf/psfile dir   .:/usr/lib
+.SH "SEE ALSO"
+mf(1), afm2tfm(1), tex(1), latex(1), lpr(1)
+.SH BUGS
+Rejects any file with the string "IBM" in it.
+This is considered to be a feature by some.
+.SH AUTHOR
+Tomas Rokicki <rokicki@neon.stanford.edu>; extended to virtual fonts
+by Don Knuth.

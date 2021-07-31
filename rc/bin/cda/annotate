@@ -1,0 +1,24 @@
+#!/bin/rc
+WX=$1
+shift
+awk '
+/^\.c/ {part = $3; next}
+/^	/ {if (NF == 3) print ".p ",part,$3,$2}
+' $WX | sort -u | awk '
+BEGIN {
+	pos[1] = 10; pos[4] = 10; pos[6] = 8; pos[9] = 2; pos[16] = -1;
+	pos[20] = 10; pos[22] = 8; pos[17] = 10; pos[25] = 2;
+}
+{if (FILENAME != fn) {
+	fn = FILENAME
+	split(fn,x,".")
+	if (x[2] == "w")
+		file = x[1]".a"
+}}
+/^\.p/ {name[$2","$3] = $4 ; next}
+/^\.c/ {part = $3 ; next}
+/^	/ {
+	if ((k = pos[$4]+0) < 0 || (n = name[part""$2]) == "") next
+	print "s \"" n "\"",k,$5,$6 >file
+}
+' - $*

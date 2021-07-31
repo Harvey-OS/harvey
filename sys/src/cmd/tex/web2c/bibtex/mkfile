@@ -2,32 +2,30 @@
 #	mkfile for TEX bibtex programs
 APE=/sys/src/ape
 < $APE/config
+SITEDIR=..
+OPT=-B
 SHELL=/bin/rc
 
 TARG=bibtex
 
 OFILES=bibtex.$O\
-	openinout.$O
+	bibext.$O\
 
-HFILES=../lib/common.h
-
-LIB=../lib/lib.a$O
+HFILES=bib.h\
+	$SITEDIR/site.h
 
 </sys/src/cmd/mkone
 
-CFLAGS=-B -DBibTeX -D_POSIX_SOURCE -I../lib -c
+CFLAGS=$OPT -I$SITEDIR -c
 LDFLAGS=
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
 
-bibtex.c:	bibtex.p ../lib/common.defines ../lib/texmf.defines
+bibtex.c:	bibtex.p bibtex.defines
 		$SHELL ./convert bibtex.p $target
 
 bibtex.p:	bibtex.web bibtex.ch ../stamp-tangle.$cputype
 		# redirected to stop chatter - remove redirection for debugging
 		../web/$cpuobjtype.tangle bibtex.web bibtex.ch > /dev/null
-
-openinout.$O:	../lib/openinout.c
-		$CC $CFLAGS $prereq
 
 ../stamp-tangle.$cputype:
 		cd ..; objtype=$cputype mk stamp-tangle.$cputype

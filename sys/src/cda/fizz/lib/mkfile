@@ -1,0 +1,58 @@
+</$objtype/mkfile
+
+LIB=libfizz.a$O
+OFILES=alloc.$O \
+	board.$O \
+	chip.$O \
+	chkvsig.$O \
+	chtype.$O \
+	coords.$O \
+	csmap.$O \
+	cutout.$O \
+	crack.$O \
+	drill.$O \
+	fizz.$O \
+	fizzprewrap.$O \
+	format.$O \
+	getopt.$O \
+	graphic.$O \
+	hand.$O \
+	keymap.$O \
+	mst.$O \
+	net.$O \
+	netlen.$O \
+	nn.lin.$O \
+	package.$O \
+	pinholes.$O \
+	pintab.$O \
+	pins.$O \
+	pkgclass.$O \
+	place.$O \
+	plane.$O \
+	positions.$O \
+	prmst.$O \
+	prseq.$O \
+	rect.$O \
+	route.$O \
+	symtab.$O \
+	tsp.$O \
+	tspe.$O \
+	tt.$O \
+	type.$O \
+	vsig.$O \
+	wires.$O \
+	wrap.$O\
+
+HFILES=/sys/include/cda/fizz.h\
+	symtab.h\
+
+</sys/src/cmd/mklib
+
+CFLAGS=-DPLAN9
+
+install:V:	$LIB
+	cp $prereq /$objtype/lib/cda/libfizz.a
+
+nuke:V:
+	mk clean
+	rm -f libfizz.a[$OS]

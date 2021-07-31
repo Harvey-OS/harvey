@@ -1,0 +1,54 @@
+.TH DVIPS 1 "13 February 1992" TeXware
+.SH NAME
+dvips \- convert a TeX DVI file to PostScript
+.SH SYNOPSIS
+.B dvips
+[
+.I options
+]
+.IR file [.dvi]
+.br
+.SH DESCRIPTION
+The program
+.B dvips
+takes a DVI file
+.IR file [.dvi]
+produced by TeX (or by some other processor such as GFtoDVI)
+and converts it to PostScript, normally
+sending the result directly to the laserprinter.
+The DVI file may be specified without the
+.I .dvi
+extension.
+Fonts used may either be resident in the printer or defined as bitmaps
+in PK files, or a `virtual' combination of both.
+If the
+.B MakeTeXPK
+program is installed,
+.B dvips
+will automatically invoke METAFONT to generate fonts that don't already exist.
+.PP
+For more information, see the manual 
+.I dvips.tex 
+in the TEXINPUTS directory.  
+The manual can be printed with the following commands:
+.EX 4
+.IP
+tex dvips
+.br
+dvips dvips -o dvips.ps
+.br
+lpr dvips.ps
+.LP
+.EE
+.SH OPTIONS
+A summary of command line options can be obtained by running 
+.B dvips 
+without a filename.  For more details refer to 
+.I dvips.tex.
+.SH "SEE ALSO"
+mf(1), afm2tfm(1), tex(1), latex(1), lpr(1)
+.SH NOTES
+PostScript is a registered trademark of Adobe Systems Incorporated.
+.SH AUTHOR
+Tomas Rokicki <rokicki@cs.stanford.edu>; extended to virtual fonts
+by Don Knuth.

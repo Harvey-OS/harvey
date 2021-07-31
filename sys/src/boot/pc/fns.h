@@ -1,80 +1,58 @@
-void	aamloop(int);
-Alarm*	alarm(int, void (*)(Alarm*), void*);
-void	alarminit(void);
-int	bootp(int, char*);
-void	cancel(Alarm*);
-void	cgainit(void);
-void	cgaputs(IOQ*, char*, int);
-void	checkalarms(void);
+#include "portfns.h"
+
+#define	clearmmucache()		/* 386 doesn't have one */
+void	clock(Ureg*);
 void	clockinit(void);
-void	consinit(void);
-int	conschar(void);
 void	delay(int);
-uchar*	etheraddr(int);
-int	etherinit(void);
-int	etherrxpkt(int, Etherpkt*, int);
-int	ethertxpkt(int, Etherpkt*, int, int);
 #define	evenaddr(x)		/* 386 doesn't care */
-int	floppyinit(void);
-long	floppyread(int, void*, long);
-long	floppyseek(int, long);
-char*	getconf(char*);
-ulong	getcr0(void);
-ulong	getcr2(void);
-ulong	getcr3(void);
-int	getfields(char*, char**, int, char);
-int	getstr(char*, char*, int, char*, int);
-int	hardinit(void);
-long	hardread(int, void*, long);
-long	hardseek(int, long);
-long	hardwrite(int, void*, long);
 void	i8042a20(void);
-void	i8042reset(void);
-void*	ialloc(ulong, int);
+void	fault386(Ureg*);
+void	faultinit(void);
+int	floppyinit(void);
+long	floppyseek(int, long);
+long	floppyread(int, void*, long);
+#define	flushvirt();
+void	fpsave(FPsave*);
+void	fprestore(FPsave*);
+ulong	getcr2(void);
+int	hardinit(void);
+long	hardseek(int, long);
+long	hardread(int, void*, long);
+long	hardwrite(int, void*, long);
+void	heada20(void);
 void	idle(void);
 int	inb(int);
-ushort	ins(int);
-ulong	inl(int);
-void	insb(int, void*, int);
 void	inss(int, void*, int);
-void	insl(int, void*, int);
-int	isaconfig(char*, int, ISAConf*);
 void	kbdinit(void);
-void	kbdchar(int);
-void	machinit(void);
+void	kbdintr(Ureg*);
 void	meminit(void);
 void	mmuinit(void);
+char	*nextelem(char*, char*);
 uchar	nvramread(int);
 void	outb(int, int);
-void	outs(int, ushort);
-void	outl(int, ulong);
-void	outsb(int, void*, int);
 void	outss(int, void*, int);
-void	outsl(int, void*, int);
-int	plan9boot(int, long (*)(int, long), long (*)(int, void*, int));
-void	panic(char*, ...);
-void	putcr3(ulong);
+int	p9boot(int, long (*)(int, long), long (*)(int, void*, int));
+void	prhex(ulong);
+void	procrestore(Proc*, uchar*);
+void	procsave(uchar*, int);
+void	procsetup(Proc*);
+void	putgdt(Segdesc*, int);
 void	putidt(Segdesc*, int);
-void	qinit(IOQ*);
-int	scsiexec(Scsi*, int);
-int	scsiinit(void);
-long	scsiread(int, void*, long);
-long	scsiseek(int, long);
-Partition* sethardpart(int, char*);
-Partition* setscsipart(int, char*);
-void	setvec(int, void (*)(Ureg*, void*), void*);
-int	splhi(void);
-int	spllo(void);
-void	splx(int);
+void	putcr3(ulong);
+void	puttr(ulong);
+void	screeninit(void);
+void	screenputc(int);
+void	screenputs(char*, int);
+void	setvec(int, void (*)(Ureg*));
+int	sethardpart(int, char*);
+void	systrap(void);
+void	touser(void);
 void	trapinit(void);
-void	uartspecial(int, void (*)(int), int (*)(void), int);
-void	uartputs(IOQ*, char*, int);
-int	x86(void);
+int	tas(Lock*);
+void	vgainit(void);
+#define	waserror()	(u->nerrlab++, setlabel(&u->errlab[u->nerrlab-1]))
 
-#define	GSHORT(p)	(((p)[1]<<8)|(p)[0])
-#define	GLONG(p)	((GSHORT(p+2)<<16)|GSHORT(p))
-#define	GLSHORT(p)	(((p)[0]<<8)|(p)[1])
-#define	GLLONG(p)	((GLSHORT(p)<<16)|GLSHORT(p+2))
-
-#define KADDR(a)	((void*)((ulong)(a)|KZERO))
-#define PADDR(a)	((ulong)(a)&~KZERO)
+#define	GSHORT(p) (((p)[1]<<8)|(p)[0])
+#define	GLONG(p) ((GSHORT(p+2)<<16)|GSHORT(p))
+#define	GLSHORT(p) (((p)[0]<<8)|(p)[1])
+#define	GLLONG(p) ((GLSHORT(p)<<16)|GLSHORT(p+2))

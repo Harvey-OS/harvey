@@ -1,0 +1,884 @@
+% File LFONTS - Version of 21 November 1989
+%
+% This version of LFONTS.TEX is for the CMR fonts.  It was converted
+% from the AMR version by David Fuchs on 18 December 1985.
+% And corrected on 11 Nov 1986 by Leslie Lamport.  
+% Last vestige of AMR fonts removed 3 Mar 89 by Leslie Lamport.
+
+% This file needs to be customized for the fonts available at a particular
+% site.  There are three places where changes need to be made.  They
+% can be found by searching this file for the string  FONT-CUSTOMIZING.
+%
+% FONT CONVENTIONS
+%
+% A TYPESTYLE COMMAND is something like \it that defines a type style.
+% Each style command \xx is defined to be \protect\pxx, where 
+% \pxx is defined to choose the correct font for the current size.
+% This allows style commands to appear in 'unsafe' arguments where
+% protection is required.
+%
+% A SIZE COMMAND is something like \normalsize that defines a type size.
+% It is defined by the document style.  However, \normalsize is handled
+% somewhat differently because it is called so often--e.g., on every
+% page by the output routine.  The document style defines \@normalsize
+% instead of \normalsize.
+% 
+% A ONE-SIZE typestyle is one that exists only in the \normalsize size.
+%
+% A FONT-SIZE COMMAND is one that defines \textfont, \scriptfont and 
+% \scriptscriptfont for the font families corresponding to preloaded fonts,
+% as well as the typestyle commands for the preloaded fonts.  Each
+% font-size command has an associated @fontsize command, having the same
+% name except for an '@' at the front.   All font-size commands are defined 
+% in LFONTS.  The naming convention is that a fifteenpt font has a font-size
+% name \xvpt, and so on.
+%
+% Each size command \SIZE executes the command
+%             \@setsize\SIZE{BASELINESKIP}\FONTSIZE\@FONTSIZE
+% which does the following.
+%   0. Executes \@nomath\SIZE to issue warning if in math mode.
+%   1. \let \@currsize = \SIZE  
+%   2. Sets \strutbox to a strut of height .7 * BASELINESKIP and
+%      depth .3 * BASELINESKIP
+%
+%       Note: Charles Karney observed that step 2 is useless, since the
+%       \FONTSIZE command executed in step 4 resets \strutbox using
+%       the actual baselineskip, which is \baselinestretch * BASELINESKIP.
+%       Some day, this step may get removed.  (Note made 28 Feb 89)
+%
+%   3. Sets \baselineskip to \baselinestretch * BASELINESKIP 
+%      and 
+%   4. Calls \FONTSIZE 
+%   5. Executes the \@FONTSIZE command.
+% It should then define all the typestyle commands not defined by the font-size
+% command, except for the one-size type styles. A typestyle command for which
+% the corresponding font exists but is not preloaded is defined to expand to a
+% \@getfont command.  A typestyle whose font does not exist is defined to 
+% expand to a \@subfont command.
+%
+% A one-size typestyle whose font is not preloaded is defined to expand to
+% a \@onesizefont command.
+%
+% \em is defined to be \it inside an unslanted style and \rm inside a
+% slanted style.  An \em command in a section title will produce a \pem
+% command in the table of contents.
+%
+
+\def\em{\protect\pem{}}
+\def\pem{\ifdim \fontdimen\@ne\font >\z@ \rm \else \it \fi}
+
+\def\normalsize{\ifx\@currsize\normalsize \rm \else \@normalsize\fi}
+
+% \load{SIZE}{STYLE} : Solves anomaly of loaded-on-demand font
+%    used for first time in math mode.  Give this command outside math
+%    mode, before formula using it for first time.
+\def\load#1#2{\let\@tempa\@currsize \let\@currsize\relax #1#2\@tempa}
+
+% \newfont{\CMD}{FONT} defines \CMD to be the font FONT.
+%    It is equivalent to \font \CMD = FONT
+% \symbol{NUM} == \char NUM
+
+\def\newfont#1#2{\@ifdefinable #1{\font #1=#2\relax}}
+\def\symbol#1{\char #1\relax}
+
+
+
+% \@getfont \STYLE \FAM \@FONTSIZE{LOADING.INFO}
+%   \STYLE       = style command
+%   \FAM         = a control sequence defined by \newfam\FAM
+%   \@FONTSIZE   = the @fontsize command for the current size. 
+%   LOADING.INFO = information needed to load the font--e.g., 
+%                  cmtti10 \magstep 2
+%   Does the following, where \FONTNAME denotes a new unique, untypeable
+%   font name:
+%    1. Executes  \font \FONTNAME = LOADING.INFO 
+%    2. Appends '\textfont FAM \FONTNAME \def\STYLE{\fam \FAM \FONTNAME}' 
+%       to the definition of \@FONTSIZE.
+%    3. Executes \@FONTSIZE \STYLE.
+%
+% \@nohyphens\STYLE\@FONTSIZE
+%   Used right after \@getfont to set \hyphenchar of the new font to -1,
+%   thereby prohibiting hyphenation.  It is used with \tt fonts.
+%   (\@nohyphens was added on 12/18/85)
+%
+% \@subfont \STYLE \REPSTYLE 
+%   \STYLE, \REPSTYLE = type style commands.
+%   Types warning message and defines uses \REPSTYLE.
+%
+% \@onesizefont \STYLE {LOADING.INFO}
+%   Defines \STYLE to be a typestyle that exists only for the \normalsize
+%   size.  It produces the font specified by LOADING.INFO
+%
+% \@addfontinfo\@FONTSIZE{DEFS}
+%    Expands DEFS and adds to the definition of \@FONTSIZE. Items that should 
+%    not be expanded should be protected with \@prtct---except no protection
+%    is needed for '\def\foo', only for the contents of the definition.
+%
+% \@nomath\CS : Types a warning '\CS used in math mode' if encountered
+%    in math mode.
+
+% Remove \outer from definition of \newfam
+\def\newfam{\alloc@8\fam\chardef\sixt@@n}
+
+\def\@setsize#1#2#3#4{\@nomath#1\let\@currsize#1\baselineskip
+   #2\setbox\strutbox\hbox{\vrule height.7\baselineskip
+      depth.3\baselineskip width\z@}\baselineskip\baselinestretch\baselineskip
+   \normalbaselineskip\baselineskip#3#4}
+
+\newif\if@bold
+
+\let\@prtct=\relax
+
+\def\@addfontinfo#1#2{{\def\@prtct{\noexpand\@prtct\noexpand}\def\def{\noexpand
+    \def\noexpand}\xdef#1{#1#2}}}
+
+\def\@getfont#1#2#3#4{\@ifundefined{\string #1\string #3}{\global\expandafter
+    \font \csname \string #1\string #3\endcsname #4\relax 
+     \@addfontinfo#3{\textfont #2\csname \string #1\string #3\endcsname 
+     \scriptfont #2\csname \string #1\string #3\endcsname 
+     \scriptscriptfont #2\csname \string #1\string #3\endcsname 
+     \def#1{\fam #2\csname\string #1\string #3\endcsname}}}{}#3#1}
+
+\def\@nohyphens#1#2{\global\expandafter \hyphenchar\csname 
+   \string #1\string #2\endcsname \m@ne}
+
+\def\@subfont#1#2{\@warning{No \string#1\space typeface in 
+        this size, using \string#2}#2}
+
+\def\@onesizefont#1#2{\expandafter\newfam\csname fm\string#1\endcsname
+  \global\expandafter\font\csname ft\string#1\endcsname #2\relax
+  \gdef#1{\ifx \@currsize\normalsize \@ftfam#1\else
+  \@warning{Typeface \string#1\space available only in 
+  \string\normalsize, using \string\rm}\gdef #1{\ifx \@currsize\normalsize 
+  \textfont\@fontfam#1 \scriptfont\@fontfam#1 \scriptscriptfont
+  \@fontfam#1\@ftfam#1\else \rm\fi}#1\fi}#1}
+
+\def\@ftfam#1{\fam\csname fm\string#1\endcsname\csname ft\string#1\endcsname}
+
+\def\@nomath#1{\ifmmode \@warning{\string#1\space in math mode.}\fi}
+\def\@nomathbold{\ifmmode \@warning{\string\mathbold\space in math mode.}\fi}
+
+% The following definitions save token space.  E.g., using \@height 
+% instead of height saves 5 tokens at the cost in time of one macro 
+% expansion.
+
+\def\@height{height}
+\def\@depth{depth}
+\def\@width{width}
+
+\def\@magscale#1{ scaled \magstep #1}
+\def\@halfmag{ scaled \magstephalf}
+\def\@ptscale#1{ scaled #100}
+
+
+%% FONT-CUSTOMIZING:  The following \font commands define the
+%% preloaded LaTeX fonts.  Font names should be changed to cause
+%% different fonts to be loaded in place of these particular AMR fonts.
+%% \font commands should be added or deleted to change which fonts
+%% are preloaded.
+
+% five point
+ \font\fivrm  = cmr5               % roman
+ \font\fivmi  = cmmi5              % math italic
+    \skewchar\fivmi ='177          %  for placement of accents
+%\font\fivmib = cmmib10  \@ptscale5 % bold math italic
+ \font\fivsy  = cmsy5              % math symbols
+    \skewchar\fivsy ='60           %   for placement of math accents
+%\font\fivsyb = cmbsy10 \@ptscale5 % bold math symbols
+%\font\fivit  = cmti7   scaled 714 % text italic
+%\font\fivsl  = cmsl10  \@ptscale5 % slanted
+%\font\fivbf  = cmbx7   scaled 714 % extended bold 
+%\font\fivbfs = cmbxsl10\@ptscale5 % extended bold slanted
+%\font\fivtt  = cmtt10  \@ptscale5 % typewriter
+%\font\fivtti = cmitt10 \@ptscale5 % italic typewriter
+%\font\fivtts = cmsltt10\@ptscale5 % slanted typewriter
+%\font\fivsf  = cmss10  \@ptscale5 % sans serif
+%\font\fivsfi = cmssi10 \@ptscale5 % italic sans serif
+%\font\fivsfb = cmssbx10\@ptscale5 % bold sans serif
+%\font\fivsc  = cmcsc10 \@ptscale5 % small caps
+ \font\fivly  = lasy5             % LaTeX symbols
+%\font\fivlyb = lasyb10 \@ptscale5 % LaTeX symbols
+%\font\fivuit = cmu10   \@ptscale5 % unslanted italic
+
+% six point
+ \font\sixrm  = cmr6               % roman
+ \font\sixmi  = cmmi6              % math italic
+    \skewchar\sixmi ='177          %  for placement of accents
+%\font\sixmib = cmmib10  \@ptscale6 % bold math italic
+ \font\sixsy  = cmsy6              % math symbols
+    \skewchar\sixsy ='60           %   for placement of math accents
+%\font\sixsyb = cmbsy10 \@ptscale6 % bold math symbols
+%\font\sixit  = cmti7   scaled 857 % text italic
+%\font\sixsl  = cmsl10  \@ptscale6 % slanted
+%\font\sixbf  = cmbx7   scaled 857 % extended bold 
+%\font\sixbfs = cmbxsl10\@ptscale6 % extended bold slanted
+%\font\sixtt  = cmtt10  \@ptscale6 % typewriter
+%\font\sixtti = cmitt10 \@ptscale6 % italic typewriter
+%\font\sixtts = cmsltt10\@ptscale6 % slanted typewriter
+%\font\sixsf  = cmss10  \@ptscale6 % sans serif
+%\font\sixsfi = cmssi10 \@ptscale6 % italic sans serif
+%\font\sixsfb = cmssbx10\@ptscale6 % bold sans serif
+%\font\sixsc  = cmcsc10 \@ptscale6 % small caps
+ \font\sixly  = lasy6             % LaTeX symbols
+%\font\sixlyb = lasyb10 \@ptscale6 % LaTeX symbols
+%\font\sixuit = cmu10   \@ptscale6 % unslanted italic
+
+% seven point
+ \font\sevrm  = cmr7               % roman
+ \font\sevmi  = cmmi7              % math italic
+    \skewchar\sevmi ='177          %  for placement of accents
+%\font\sevmib = cmmib10  \@ptscale7 % bold math italic
+ \font\sevsy  = cmsy7              % math symbols
+    \skewchar\sevsy ='60           %   for placement of math accents
+%\font\sevsyb = cmbsy10 \@ptscale7 % bold math symbols
+ \font\sevit  = cmti7              % text italic
+%\font\sevsl  = cmsl10  \@ptscale7 % slanted
+%\font\sevbf  = cmbx7              % extended bold 
+%\font\sevbfs = cmbxsl10\@ptscale7 % extended bold slanted
+%\font\sevtt  = cmtt10  \@ptscale7 % typewriter
+%\font\sevtti = cmitt10 \@ptscale7 % italic typewriter
+%\font\sevtts = cmsltt10\@ptscale7 % slanted typewriter
+%\font\sevsf  = cmss10  \@ptscale7 % sans serif
+%\font\sevsfi = cmssi10 \@ptscale7 % italic sans serif
+%\font\sevsfb = cmssbx10\@ptscale7 % bold sans serif
+%\font\sevsc  = cmcsc10 \@ptscale7 % small caps
+ \font\sevly  = lasy7             % LaTeX symbols
+%\font\sevlyb = lasyb10 \@ptscale7 % LaTeX symbols
+%\font\sevuit = cmu10   \@ptscale7 % unslanted italic
+
+% eight point
+ \font\egtrm  = cmr8               % roman
+ \font\egtmi  = cmmi8              % math italic
+    \skewchar\egtmi ='177          %  for placement of accents
+%\font\egtmib = cmmib10  \@ptscale8 % bold math italic
+ \font\egtsy  = cmsy8              % math symbols
+    \skewchar\egtsy ='60           %   for placement of math accents
+%\font\egtsyb = cmbsy10 \@ptscale8 % bold math symbols
+ \font\egtit  = cmti8              % text italic
+%\font\egtsl  = cmsl8              % slanted
+%\font\egtbf  = cmbx8              % extended bold 
+%\font\egtbfs = cmbxsl10\@ptscale8 % extended bold slanted
+%\font\egttt  = cmtt8              % typewriter
+%\font\egttti = cmitt10 \@ptscale8 % italic typewriter
+%\font\egttts = cmsltt10\@ptscale8 % slanted typewriter
+%\font\egtsf  = cmss10  \@ptscale8 % sans serif
+%\font\egtsfi = cmssi10 \@ptscale8 % italic sans serif
+%\font\egtsfb = cmssbx10\@ptscale8 % bold sans serif
+%\font\egtsc  = cmcsc10 \@ptscale8 % small caps
+ \font\egtly  = lasy8             % LaTeX symbols
+%\font\egtlyb = lasyb10 \@ptscale8 % LaTeX symbols
+%\font\egtuit = cmu10   \@ptscale8 % unslanted italic
+
+
+% nine point
+ \font\ninrm  = cmr9               % roman
+ \font\ninmi  = cmmi9              % math italic
+    \skewchar\ninmi ='177          %  for placement of accents
+%\font\ninmib = cmmib10  \@ptscale9 % bold math italic
+ \font\ninsy  = cmsy9              % math symbols
+    \skewchar\ninsy ='60           %   for placement of math accents
+%\font\ninsyb = cmbsy10 \@ptscale9 % bold math symbols
+ \font\ninit  = cmti9              % text italic
+%\font\ninsl  = cmsl9              % slanted
+ \font\ninbf  = cmbx9              % extended bold 
+%\font\ninbfs = cmbxsl10\@ptscale9 % extended bold slanted
+ \font\nintt  = cmtt9              % typewriter
+    \hyphenchar\nintt = -1         %  suppress hyphenation in \tt font
+%\font\nintti = cmitt10 \@ptscale9 % italic typewriter
+%\font\nintts = cmsltt10\@ptscale9 % slanted typewriter
+%\font\ninsf  = cmss10  \@ptscale9 % sans serif
+%\font\ninsfi = cmssi10 \@ptscale9 % italic sans serif
+%\font\ninsfb = cmssbx10\@ptscale9 % bold sans serif
+%\font\ninsc  = cmcsc10 \@ptscale9 % small caps
+ \font\ninly  = lasy9             % LaTeX symbols
+%\font\ninlyb = lasyb10 \@ptscale9 % LaTeX symbols
+%\font\ninuit = cmu10   \@ptscale9 % unslanted italic
+
+% ten point
+ \font\tenrm  = cmr10    % roman
+ \font\tenmi  = cmmi10   % math italic
+    \skewchar\tenmi ='177  %  for placement of accents
+%\font\tenmib = cmmib10   % bold math italic
+ \font\tensy  = cmsy10   % math symbols
+    \skewchar\tensy ='60 %   for placement of math accents
+%\font\tensyb = cmbsy10  % bold symbols
+ \font\tenit  = cmti10   % text italic
+ \font\tensl  = cmsl10   % slanted
+ \font\tenbf  = cmbx10   % extended bold 
+%\font\tenbfs = cmbxsl10 % extended bold slanted
+ \font\tentt  = cmtt10   % typewriter
+    \hyphenchar\tentt = -1         %  suppress hyphenation in \tt font
+%\font\tentti = cmitt10  % italic typewriter
+%\font\tentts = cmsltt10 % slanted typewriter
+ \font\tensf  = cmss10   % sans serif
+%\font\tensfi = cmssi10  % italic sans serif
+%\font\tensfb = cmssbx10 % bold sans serif
+%\font\tensc  = cmcsc10  % small caps
+ \font\tenly  = lasy10  % LaTeX symbols
+%\font\tenlyb = lasyb10 % bold LaTeX symbols
+%\font\tenuit = cmu10    % unslanted italic
+
+% eleven point
+ \font\elvrm  = cmr10    \@halfmag % roman  
+ \font\elvmi  = cmmi10   \@halfmag % math italic
+    \skewchar\elvmi ='177          %  for placement of accents
+%\font\elvmib = cmmib10   \@halfmag % bold math italic
+ \font\elvsy  = cmsy10   \@halfmag % math symbols
+    \skewchar\elvsy ='60           %   for placement of math accents
+%\font\elvsyb = cmbsy10  \@halfmag % bold symbols
+ \font\elvit  = cmti10   \@halfmag % text italic
+ \font\elvsl  = cmsl10   \@halfmag % slanted
+ \font\elvbf  = cmbx10   \@halfmag % exelvded bold 
+%\font\elvbfs = cmbxsl10 \@halfmag % exelvded bold slanted
+ \font\elvtt  = cmtt10   \@halfmag % typewriter
+    \hyphenchar\elvtt = -1         %  suppress hyphenation in \tt font
+%\font\elvtti = cmitt10  \@halfmag % italic typewriter
+%\font\elvtts = cmsltt10 \@halfmag % slanted typewriter
+ \font\elvsf  = cmss10   \@halfmag % sans serif
+%\font\elvsfi = cmssi10  \@halfmag % italic sans serif
+%\font\elvsfb = cmssbx10 \@halfmag % bold sans serif
+%\font\elvsc  = cmcsc10  \@halfmag % small caps
+ \font\elvly  = lasy10  \@halfmag % LaTeX symbols
+%\font\elvlyb = lasyb10 \@halfmag % bold LaTeX symbols
+%\font\elvuit = cmu10    \@halfmag % unslanted italic
+
+% twelve point
+ \font\twlrm  = cmr12                 % roman  
+ \font\twlmi  = cmmi12               % math italic
+    \skewchar\twlmi ='177          %  for placement of accents
+%\font\twlmib = cmmib10   \@magscale1 % bold math italic
+ \font\twlsy  = cmsy10   \@magscale1 % math symbols
+    \skewchar\twlsy ='60           %   for placement of math accents
+%\font\twlsyb = cmbsy10  \@magscale1 % bold symbols
+ \font\twlit  = cmti12               % text italic
+ \font\twlsl  = cmsl12               % slanted
+ \font\twlbf  = cmbx12               % extended bold 
+%\font\twlbfs = cmbxsl10 \@magscale1 % extended bold slanted
+ \font\twltt  = cmtt12               % typewriter
+    \hyphenchar\twltt = -1         %  suppress hyphenation in \tt font
+%\font\twltti = cmitt10  \@magscale1 % italic typewriter
+%\font\twltts = cmsltt10 \@magscale1 % slanted typewriter
+ \font\twlsf  = cmss12               % sans serif
+%\font\twlsfi = cmssi10  \@magscale1 % italic sans serif
+%\font\twlsfb = cmssbx10 \@magscale1 % bold sans serif
+%\font\twlsc  = cmcsc10  \@magscale1 % small caps
+ \font\twlly  = lasy10  \@magscale1 % LaTeX symbols
+%\font\twllyb = lasyb10 \@magscale1 % bold LaTeX symbols
+%\font\twluit = cmu10    \@magscale1 % unslanted italic
+
+% fourteen point
+ \font\frtnrm  = cmr10    \@magscale2 % roman  
+ \font\frtnmi  = cmmi10   \@magscale2 % math italic
+    \skewchar\frtnmi ='177          %  for placement of accents
+%\font\frtnmib = cmmib10   \@magscale2 % bold math italic
+ \font\frtnsy  = cmsy10   \@magscale2 % math symbols
+    \skewchar\frtnsy ='60           %   for placement of math accents
+%\font\frtnsyb = cmbsy10  \@magscale2 % bold symbols
+%\font\frtnit  = cmti10   \@magscale2 % text italic
+%\font\frtnsl  = cmsl10   \@magscale2 % slanted
+ \font\frtnbf  = cmbx10   \@magscale2 % extended bold 
+%\font\frtnbfs = cmbxsl10 \@magscale2 % extended bold slanted
+%\font\frtntt  = cmtt10   \@magscale2 % typewriter
+%\font\frtntti = cmitt10  \@magscale2 % italic typewriter
+%\font\frtntts = cmsltt10 \@magscale2 % slanted typewriter
+%\font\frtnsf  = cmss10   \@magscale2 % sans serif
+%\font\frtnsfi = cmssi10  \@magscale2 % italic sans serif
+%\font\frtnsfb = cmssbx10 \@magscale2 % bold sans serif
+%\font\frtnsc  = cmcsc10  \@magscale2 % small caps
+ \font\frtnly  = lasy10  \@magscale2 % LaTeX symbols
+%\font\frtnlyb = lasyb10 \@magscale2 % bold LaTeX symbols
+%\font\frtnuit = cmu10    \@magscale2 % unslanted italic
+
+% seventeen point
+ \font\svtnrm  = cmr17                % roman  
+ \font\svtnmi  = cmmi10   \@magscale3 % math italic
+    \skewchar\svtnmi ='177          %  for placement of accents
+%\font\svtnmib = cmmib10   \@magscale3 % bold math italic
+ \font\svtnsy  = cmsy10   \@magscale3 % math symbols
+    \skewchar\svtnsy ='60           %   for placement of math accents
+%\font\svtnsyb = cmbsy10  \@magscale3 % bold symbols
+%\font\svtnit  = cmti10   \@magscale3 % text italic
+%\font\svtnsl  = cmsl10   \@magscale3 % slanted
+ \font\svtnbf  = cmbx10   \@magscale3 % extended bold 
+%\font\svtnbfs = cmbxsl10 \@magscale3 % extended bold slanted
+%\font\svtntt  = cmtt10   \@magscale3 % typewriter
+%\font\svtntti = cmitt10  \@magscale3 % italic typewriter
+%\font\svtntts = cmsltt10 \@magscale3 % slanted typewriter
+%\font\svtnsf  = cmss10   \@magscale3 % sans serif
+%\font\svtnsfi = cmssi10  \@magscale3 % italic sans serif
+%\font\svtnsfb = cmssbx10 \@magscale3 % bold sans serif
+%\font\svtnsc  = cmcsc10  \@magscale3 % small caps
+ \font\svtnly  = lasy10  \@magscale3 % LaTeX symbols
+%\font\svtnlyb = lasyb10 \@magscale3 % bold LaTeX symbols
+%\font\svtnuit = cmu10    \@magscale3 % unslanted italic
+
+% twenty point
+ \font\twtyrm  = cmr10    \@magscale4 % roman  
+ \font\twtymi  = cmmi10   \@magscale4 % math italic
+    \skewchar\twtymi ='177          %  for placement of accents
+%\font\twtymib = cmmib10   \@magscale4 % bold math italic
+ \font\twtysy  = cmsy10   \@magscale4 % math symbols
+    \skewchar\twtysy ='60           %   for placement of math accents
+%\font\twtysyb = cmbsy10  \@magscale4 % bold symbols
+%\font\twtyit  = cmti10   \@magscale4 % text italic
+%\font\twtysl  = cmsl10   \@magscale4 % slanted
+%\font\twtybf  = cmbx10   \@magscale4 % extended bold 
+%\font\twtybfs = cmbxsl10 \@magscale4 % extended bold slanted
+%\font\twtytt  = cmtt10   \@magscale4 % typewriter
+%\font\twtytti = cmitt10  \@magscale4 % italic typewriter
+%\font\twtytts = cmsltt10 \@magscale4 % slanted typewriter
+%\font\twtysf  = cmss10   \@magscale4 % sans serif
+%\font\twtysfi = cmssi10  \@magscale4 % italic sans serif
+%\font\twtysfb = cmssbx10 \@magscale4 % bold sans serif
+%\font\twtysc  = cmcsc10  \@magscale4 % small caps
+ \font\twtyly  = lasy10  \@magscale4 % LaTeX symbols
+%\font\twtylyb = lasyb10 \@magscale4 % bold LaTeX symbols
+%\font\twtyuit = cmu10    \@magscale4 % unslanted italic
+
+% twenty-five point
+ \font\twfvrm  = cmr10    \@magscale5 % roman  
+%\font\twfvmi  = cmmi10   \@magscale5 % math italic
+%\font\twfvmib = cmmib10   \@magscale5 % bold math italic
+%\font\twfvsy  = cmsy10   \@magscale5 % math symbols
+%\font\twfvsyb = cmbsy10  \@magscale5 % bold symbols
+%\font\twfvit  = cmti10   \@magscale5 % text italic
+%\font\twfvsl  = cmsl10   \@magscale5 % slanted
+%\font\twfvbf  = cmbx10   \@magscale5 % extended bold 
+%\font\twfvbfs = cmbxsl10 \@magscale5 % extended bold slanted
+%\font\twfvtt  = cmtt10   \@magscale5 % typewriter
+%\font\twfvtti = cmitt10  \@magscale5 % italic typewriter
+%\font\twfvtts = cmsltt10 \@magscale5 % slanted typewriter
+%\font\twfvsf  = cmss10   \@magscale5 % sans serif
+%\font\twfvsfi = cmssi10  \@magscale5 % italic sans serif
+%\font\twfvsfb = cmssbx10 \@magscale5 % bold sans serif
+%\font\twfvsc  = cmcsc10  \@magscale5 % small caps
+%\font\twfvly  = lasy10   \@magscale5 % LaTeX symbols
+%\font\twfvlyb = lasyb10  \@magscale5 % bold LaTeX symbols
+%\font\twfvuit = cmu10    \@magscale5 % unslanted italic
+
+% Math extension
+ \font\tenex   = cmex10 
+
+% line & circle fonts 
+\font\tenln    = line10
+\font\tenlnw   = linew10  
+\font\tencirc  = lcircle10    % 21 Nov 89 : circle10 -> lcircle10
+\font\tencircw = lcirclew10   % 21 Nov 89 : circlew10 -> lcirclew10
+
+% Change made 6 May 86: `\@warning' replaced by `\immediate\write 15' 
+% since it's not defined when lfonts.tex is read by lplain.tex.
+%
+\ifnum\fontdimen8\tenln=\fontdimen8\tencirc \else 
+  \immediate\write 15{Incompatible thin line and circle fonts}\fi
+\ifnum\fontdimen8\tenlnw=\fontdimen8\tencircw \else 
+  \immediate\write 15{Incompatible thick line and circle fonts}\fi
+
+
+% protected font names
+\def\rm{\protect\prm}
+\def\it{\protect\pit}
+\def\bf{\protect\pbf}
+\def\sl{\protect\psl}
+\def\sf{\protect\psf}
+\def\sc{\protect\psc}
+\def\tt{\protect\ptt}
+
+%% FONT-CUSTOMIZING:  The following definitions define certain commands
+%% to be abbreviations for certain font names.  These commands are used
+%% below in \@getfont commands, which load the loaded-on-demand fonts.
+%% This is done only to save space.  To change the fonts that are loaded
+%% on demand, one can either change these definitions or else change
+%% the arguments of the \@getfont commands.  
+%%
+\def\@mbi{cmmib10}
+\def\@mbsy{cmbsy10}
+\def\@mcsc{cmcsc10}
+\def\@mss{cmss10}
+\def\@lasyb{lasyb10}
+
+% families
+
+\newfam\itfam      % \it is family 4
+\newfam\slfam      % \sl is family 5
+\newfam\bffam      % \bf is family 6
+\newfam\ttfam      % \tt is family 7
+\newfam\sffam      % \sf is family 8
+\newfam\scfam      % \sf is family 9
+\newfam\lyfam      % \ly is family 10
+
+\def\cal{\fam\tw@}
+\def\mit{\fam\@ne}
+
+\def\@setstrut{\setbox\strutbox=\hbox{\vrule \@height .7\baselineskip
+    \@depth .3\baselineskip \@width\z@}}
+
+
+%% FONT-CUSTOMIZING: The commands \vpt, \vipt, ... , \xxvpt perform all
+%% the declarations needed to change the type size to 5pt, 6pt, ... ,
+%% 25pt.  To see how this works, consider the definition of \viipt,
+%% which determines the fonts used in a 7pt type size.  The command
+%%    \def\pit{\fam\itfam\sevit}
+%% means that the \it command causes the preloaded \sevit font to
+%% be used--this font was defined earlier with a \font\sevit...
+%% command.  The commands
+%%     \textfont\itfam\sevit 
+%%     \scriptfont\itfam\sevit 
+%%     \scriptscriptfont\itfam\sevit 
+%% tell TeX to use the \sevit font for all three math-mode sizes
+%% (text, script, and scriptscript) for the 7pt size.  
+%% The fonts appearing in these commands must be preloaded.
+%% 
+%% The command 
+%%     \def\pbf{\@getfont\pbf\bffam\@viipt{ambx7}}
+%% declares \bf to use a loaded-on-demand font--namely, the font
+%% ambx7.
+%%
+%% The command
+%%     \def\ptt{\@subfont\tt\rm}
+%% declares that the \tt font is unavailable in the 7pt size, so
+%% the \rm font is used instead.  (The substituted type style should
+%% correspond to a preloaded size.)
+
+\def\vpt{\textfont\z@\fivrm 
+  \scriptfont\z@\fivrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\fivmi \scriptfont\@ne\fivmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\fivsy \scriptfont\tw@\fivsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\prm{\fam\z@\fivrm}%
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath
+  \unboldmath\fam\@ne\@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\def\pit{\@subfont\it\rm}% 
+\def\psl{\@subfont\sl\rm}%
+\def\pbf{\@getfont\pbf\bffam\@vpt{cmbx5}}%
+\def\ptt{\@subfont\tt\rm}%
+\def\psf{\@subfont\sf\rm}%
+\def\psc{\@subfont\sc\rm}%
+\def\ly{\fam\lyfam\fivly}\textfont\lyfam\fivly 
+    \scriptfont\lyfam\fivly \scriptscriptfont\lyfam\fivly 
+\@setstrut\rm}
+
+\def\@vpt{}
+
+\def\vipt{\textfont\z@\sixrm 
+  \scriptfont\z@\sixrm \scriptscriptfont\z@\sixrm
+\textfont\@ne\sixmi \scriptfont\@ne\sixmi \scriptscriptfont\@ne\sixmi
+\textfont\tw@\sixsy \scriptfont\tw@\sixsy \scriptscriptfont\tw@\sixsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\prm{\fam\z@\sixrm}%
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath
+  \unboldmath\@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\def\pit{\@subfont\it\rm}%
+\def\psl{\@subfont\sl\rm}%
+\def\pbf{\@getfont\pbf\bffam\@vipt{cmbx6}}%
+\def\ptt{\@subfont\tt\rm}%
+\def\psf{\@subfont\sf\rm}%
+\def\psc{\@subfont\sc\rm}%
+\def\ly{\fam\lyfam\sixly}\textfont\lyfam\sixly 
+    \scriptfont\lyfam\sixly \scriptscriptfont\lyfam\sixly 
+\@setstrut\rm}
+
+\def\@vipt{}
+
+\def\viipt{\textfont\z@\sevrm 
+  \scriptfont\z@\sixrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\sevmi \scriptfont\@ne\fivmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\sevsy \scriptfont\tw@\fivsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\prm{\fam\z@\sevrm}%
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath
+\unboldmath\@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\def\pit{\fam\itfam\sevit}\textfont\itfam\sevit 
+   \scriptfont\itfam\sevit \scriptscriptfont\itfam\sevit 
+\def\psl{\@subfont\sl\it}%
+\def\pbf{\@getfont\pbf\bffam\@viipt{cmbx7}}%
+\def\ptt{\@subfont\tt\rm}%
+\def\psf{\@subfont\sf\rm}%
+\def\psc{\@subfont\sc\rm}%
+\def\ly{\fam\lyfam\sevly}\textfont\lyfam\sevly 
+    \scriptfont\lyfam\fivly \scriptscriptfont\lyfam\fivly 
+\@setstrut \rm}
+
+\def\@viipt{}
+
+\def\viiipt{\textfont\z@\egtrm 
+  \scriptfont\z@\sixrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\egtmi \scriptfont\@ne\sixmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\egtsy \scriptfont\tw@\sixsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\prm{\fam\z@\egtrm}%
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath
+\unboldmath\@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\def\pit{\fam\itfam\egtit}\textfont\itfam\egtit 
+   \scriptfont\itfam\sevit \scriptscriptfont\itfam\sevit 
+\def\psl{\@getfont\psl\slfam\@viiipt{cmsl8}}%
+\def\pbf{\@getfont\pbf\bffam\@viiipt{cmbx8}}%
+\def\ptt{\@getfont\ptt\ttfam\@viiipt{cmtt8}\@nohyphens\ptt\@viiipt}%
+\def\psf{\@getfont\psf\sffam\@viiipt{cmss8}}%
+\def\psc{\@getfont\psc\scfam\@viiipt{\@mcsc \@ptscale8}}% 
+\def\ly{\fam\lyfam\egtly}\textfont\lyfam\egtly 
+    \scriptfont\lyfam\sixly \scriptscriptfont\lyfam\fivly 
+\@setstrut \rm}
+
+\def\@viiipt{}
+
+\def\ixpt{\textfont\z@\ninrm 
+  \scriptfont\z@\sixrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\ninmi \scriptfont\@ne\sixmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\ninsy \scriptfont\tw@\sixsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\prm{\fam\z@\ninrm}%
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+    \@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\def\pit{\fam\itfam\ninit}\textfont\itfam\ninit 
+   \scriptfont\itfam\sevit \scriptscriptfont\itfam\sevit 
+\def\psl{\@getfont\psl\slfam\@ixpt{cmsl9}}%
+\def\pbf{\fam\bffam\ninbf}\textfont\bffam\ninbf 
+   \scriptfont\bffam\ninbf \scriptscriptfont\bffam\ninbf 
+\def\ptt{\fam\ttfam\nintt}\textfont\ttfam\nintt
+   \scriptfont\ttfam\nintt \scriptscriptfont\ttfam\nintt 
+\def\psf{\@getfont\psf\sffam\@ixpt{cmss9}}%
+\def\psc{\@getfont\psc\scfam\@ixpt{\@mcsc \@ptscale9}}%  
+\def\ly{\fam\lyfam\ninly}\textfont\lyfam\ninly 
+   \scriptfont\lyfam\sixly \scriptscriptfont\lyfam\fivly 
+\@setstrut \rm}
+
+\def\@ixpt{}
+
+\def\xpt{\textfont\z@\tenrm 
+  \scriptfont\z@\sevrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\tenmi \scriptfont\@ne\sevmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\tensy \scriptfont\tw@\sevsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+          \textfont\@ne\tenmi 
+          \textfont\tw@\tensy \textfont\lyfam\tenly
+          \@boldfalse}\@boldfalse
+\def\boldmath{\@ifundefined{tenmib}{\global\font\tenmib\@mbi 
+   \global\font\tensyb\@mbsy 
+   \global\font\tenlyb\@lasyb\relax\@addfontinfo\@xpt
+   {\def\boldmath{\everymath{\mit}\everydisplay{\mit}\@prtct\@nomathbold
+        \textfont\@ne\tenmib \textfont\tw@\tensyb 
+        \textfont\lyfam\tenlyb \@prtct\@boldtrue}}}{}\@xpt\boldmath}%
+\def\prm{\fam\z@\tenrm}%
+\def\pit{\fam\itfam\tenit}\textfont\itfam\tenit \scriptfont\itfam\sevit
+    \scriptscriptfont\itfam\sevit
+\def\psl{\fam\slfam\tensl}\textfont\slfam\tensl 
+     \scriptfont\slfam\tensl \scriptscriptfont\slfam\tensl
+\def\pbf{\fam\bffam\tenbf}\textfont\bffam\tenbf 
+    \scriptfont\bffam\tenbf \scriptscriptfont\bffam\tenbf 
+\def\ptt{\fam\ttfam\tentt}\textfont\ttfam\tentt
+    \scriptfont\ttfam\tentt \scriptscriptfont\ttfam\tentt
+\def\psf{\fam\sffam\tensf}\textfont\sffam\tensf
+    \scriptfont\sffam\tensf \scriptscriptfont\sffam\tensf
+\def\psc{\@getfont\psc\scfam\@xpt{\@mcsc}}%
+\def\ly{\fam\lyfam\tenly}\textfont\lyfam\tenly 
+   \scriptfont\lyfam\sevly \scriptscriptfont\lyfam\fivly 
+\@setstrut \rm}
+
+\def\@xpt{}
+
+\def\xipt{\textfont\z@\elvrm 
+  \scriptfont\z@\egtrm \scriptscriptfont\z@\sixrm
+\textfont\@ne\elvmi \scriptfont\@ne\egtmi \scriptscriptfont\@ne\sixmi
+\textfont\tw@\elvsy \scriptfont\tw@\egtsy \scriptscriptfont\tw@\sixsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+          \textfont\@ne\elvmi \textfont\tw@\elvsy 
+          \textfont\lyfam\elvly \@boldfalse}\@boldfalse
+\def\boldmath{\@ifundefined{elvmib}{\global\font\elvmib\@mbi\@halfmag 
+         \global\font\elvsyb\@mbsy\@halfmag
+         \global\font\elvlyb\@lasyb\@halfmag\relax\@addfontinfo\@xipt
+         {\def\boldmath{\everymath{\mit}\everydisplay{\mit}\@prtct\@nomathbold
+                \textfont\@ne\elvmib \textfont\tw@\elvsyb 
+                \textfont\lyfam\elvlyb\@prtct\@boldtrue}}}{}\@xipt\boldmath}%
+\def\prm{\fam\z@\elvrm}%
+\def\pit{\fam\itfam\elvit}\textfont\itfam\elvit 
+   \scriptfont\itfam\egtit \scriptscriptfont\itfam\sevit
+\def\psl{\fam\slfam\elvsl}\textfont\slfam\elvsl 
+    \scriptfont\slfam\tensl \scriptscriptfont\slfam\tensl 
+\def\pbf{\fam\bffam\elvbf}\textfont\bffam\elvbf 
+   \scriptfont\bffam\ninbf \scriptscriptfont\bffam\ninbf 
+\def\ptt{\fam\ttfam\elvtt}\textfont\ttfam\elvtt
+   \scriptfont\ttfam\nintt \scriptscriptfont\ttfam\nintt 
+\def\psf{\fam\sffam\elvsf}\textfont\sffam\elvsf
+    \scriptfont\sffam\tensf \scriptscriptfont\sffam\tensf
+\def\psc{\@getfont\psc\scfam\@xipt{\@mcsc\@halfmag}}%
+\def\ly{\fam\lyfam\elvly}\textfont\lyfam\elvly 
+   \scriptfont\lyfam\egtly \scriptscriptfont\lyfam\sixly 
+\@setstrut \rm}
+
+\def\@xipt{}
+
+\def\xiipt{\textfont\z@\twlrm 
+  \scriptfont\z@\egtrm \scriptscriptfont\z@\sixrm
+\textfont\@ne\twlmi \scriptfont\@ne\egtmi \scriptscriptfont\@ne\sixmi
+\textfont\tw@\twlsy \scriptfont\tw@\egtsy \scriptscriptfont\tw@\sixsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+          \textfont\@ne\twlmi 
+          \textfont\tw@\twlsy \textfont\lyfam\twlly
+          \@boldfalse}\@boldfalse
+\def\boldmath{\@ifundefined{twlmib}{\global\font\twlmib\@mbi\@magscale1\global
+        \font\twlsyb\@mbsy \@magscale1\global\font
+         \twllyb\@lasyb\@magscale1\relax\@addfontinfo\@xiipt
+              {\def\boldmath{\everymath
+                {\mit}\everydisplay{\mit}\@prtct\@nomathbold
+                \textfont\@ne\twlmib \textfont\tw@\twlsyb 
+                \textfont\lyfam\twllyb\@prtct\@boldtrue}}}{}\@xiipt\boldmath}%
+\def\prm{\fam\z@\twlrm}%
+\def\pit{\fam\itfam\twlit}\textfont\itfam\twlit \scriptfont\itfam\egtit
+   \scriptscriptfont\itfam\sevit
+\def\psl{\fam\slfam\twlsl}\textfont\slfam\twlsl 
+     \scriptfont\slfam\tensl \scriptscriptfont\slfam\tensl
+\def\pbf{\fam\bffam\twlbf}\textfont\bffam\twlbf 
+   \scriptfont\bffam\ninbf \scriptscriptfont\bffam\ninbf 
+\def\ptt{\fam\ttfam\twltt}\textfont\ttfam\twltt
+   \scriptfont\ttfam\nintt \scriptscriptfont\ttfam\nintt 
+\def\psf{\fam\sffam\twlsf}\textfont\sffam\twlsf
+    \scriptfont\sffam\tensf \scriptscriptfont\sffam\tensf
+\def\psc{\@getfont\psc\scfam\@xiipt{\@mcsc\@magscale1}}%
+\def\ly{\fam\lyfam\twlly}\textfont\lyfam\twlly 
+   \scriptfont\lyfam\egtly \scriptscriptfont\lyfam\sixly
+ \@setstrut \rm}
+
+\def\@xiipt{}
+
+\def\xivpt{\textfont\z@\frtnrm 
+  \scriptfont\z@\tenrm \scriptscriptfont\z@\sevrm
+\textfont\@ne\frtnmi \scriptfont\@ne\tenmi \scriptscriptfont\@ne\sevmi
+\textfont\tw@\frtnsy \scriptfont\tw@\tensy \scriptscriptfont\tw@\sevsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath 
+          \textfont\@ne\frtnmi \textfont\tw@\frtnsy 
+          \textfont\lyfam\frtnly \@boldfalse}\@boldfalse
+\def\boldmath{\@ifundefined{frtnmib}{\global\font
+        \frtnmib\@mbi\@magscale2\global\font\frtnsyb\@mbsy\@magscale2
+         \global\font\frtnlyb\@lasyb\@magscale2\relax\@addfontinfo\@xivpt
+               {\def\boldmath{\everymath
+                {\mit}\everydisplay{\mit}\@prtct\@nomathbold
+              \textfont\@ne\frtnmib \textfont\tw@\frtnsyb 
+              \textfont\lyfam\frtnlyb\@prtct\@boldtrue}}}{}\@xivpt\boldmath}%
+\def\prm{\fam\z@\frtnrm}%
+\def\pit{\@getfont\pit\itfam\@xivpt{cmti10\@magscale2}}%
+\def\psl{\@getfont\psl\slfam\@xivpt{cmsl10\@magscale2}}%
+\def\pbf{\fam\bffam\frtnbf}\textfont\bffam\frtnbf 
+   \scriptfont\bffam\tenbf \scriptscriptfont\bffam\ninbf 
+\def\ptt{\@getfont\ptt\ttfam\@xivpt{cmtt10\@magscale2}\@nohyphens\ptt\@xivpt}%
+\def\psf{\@getfont\psf\sffam\@xivpt{\@mss\@magscale2}}%
+\def\psc{\@getfont\psc\scfam\@xivpt{\@mcsc\@magscale2}}%
+\def\ly{\fam\lyfam\frtnly}\textfont\lyfam\frtnly 
+   \scriptfont\lyfam\tenly \scriptscriptfont\lyfam\sevly 
+\@setstrut \rm}
+
+\def\@xivpt{}
+
+\def\xviipt{\textfont\z@\svtnrm 
+  \scriptfont\z@\twlrm \scriptscriptfont\z@\tenrm
+\textfont\@ne\svtnmi \scriptfont\@ne\twlmi \scriptscriptfont\@ne\tenmi
+\textfont\tw@\svtnsy \scriptfont\tw@\twlsy \scriptscriptfont\tw@\tensy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+          \textfont\@ne\svtnmi \textfont\tw@\svtnsy \textfont\lyfam\svtnly
+          \@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\def\prm{\fam\z@\svtnrm}%
+\def\pit{\@getfont\pit\itfam\@xviipt{cmti10\@magscale3}}%
+\def\psl{\@getfont\psl\slfam\@xviipt{cmsl10\@magscale3}}%
+\def\pbf{\fam\bffam\svtnbf}\textfont\bffam\svtnbf 
+    \scriptfont\bffam\twlbf \scriptscriptfont\bffam\tenbf 
+\def\ptt{\@getfont\ptt\ttfam\@xviipt{cmtt10\@magscale3}\@nohyphens
+   \ptt\@xviipt}%
+\def\psf{\@getfont\psf\sffam\@xviipt{cmss17}}%
+\def\psc{\@getfont\psc\scfam\@xviipt{\@mcsc\@magscale3}}%
+\def\ly{\fam\lyfam\svtnly}\textfont\lyfam\svtnly 
+   \scriptfont\lyfam\twlly   \scriptscriptfont\lyfam\tenly
+\@setstrut \rm}
+
+\def\@xviipt{}
+
+\def\xxpt{\textfont\z@\twtyrm 
+  \scriptfont\z@\frtnrm \scriptscriptfont\z@\twlrm
+\textfont\@ne\twtymi \scriptfont\@ne\frtnmi \scriptscriptfont\@ne\twlmi
+\textfont\tw@\twtysy \scriptfont\tw@\frtnsy \scriptscriptfont\tw@\twlsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+        \textfont\@ne\twtymi \textfont\tw@\twtysy \textfont\lyfam\twtyly
+        \@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\def\prm{\fam\z@\twtyrm}%
+\def\pit{\@getfont\pit\itfam\@xxpt{cmti10\@magscale4}}%
+\def\psl{\@getfont\psl\slfam\@xxpt{cmsl10\@magscale4}}%
+\def\pbf{\@getfont\pbf\bffam\@xxpt{cmbx10\@magscale4}}%
+\def\ptt{\@getfont\ptt\ttfam\@xxpt{cmtt10\@magscale4}\@nohyphens\ptt\@xxpt}%
+\def\psf{\@getfont\psf\sffam\@xxpt{\@mss\@magscale4}}%
+\def\psc{\@getfont\psc\scfam\@xxpt{\@mcsc\@magscale4}}%
+\def\ly{\fam\lyfam\twtyly}\textfont\lyfam\twtyly 
+   \scriptfont\lyfam\frtnly \scriptscriptfont\lyfam\twlly 
+\@setstrut \rm}
+
+\def\@xxpt{}
+
+\def\xxvpt{\textfont\z@\twfvrm 
+  \scriptfont\z@\twtyrm \scriptscriptfont\z@\svtnrm
+\textfont\@ne\twtymi \scriptfont\@ne\twtymi \scriptscriptfont\@ne\svtnmi
+\textfont\tw@\twtysy \scriptfont\tw@\twtysy \scriptscriptfont\tw@\svtnsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+        \textfont\@ne\twtymi \textfont\tw@\twtysy \textfont\lyfam\twtyly
+        \@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\def\prm{\fam\z@\twfvrm}%
+\def\pit{\@subfont\it\rm}%
+\def\psl{\@subfont\sl\rm}%
+\def\pbf{\@getfont\pbf\bffam\@xxvpt{cmbx10\@magscale5}}%
+\def\ptt{\@subfont\tt\rm}%
+\def\psf{\@subfont\sf\rm}%
+\def\psc{\@subfont\sc\rm}%
+\def\ly{\fam\lyfam\twtyly}\textfont\lyfam\twtyly 
+   \scriptfont\lyfam\twtyly \scriptscriptfont\lyfam\svtnly 
+\@setstrut \rm}
+
+\def\@xxvpt{}
+
+% SPECIAL LaTeX character definitions
+
+% Definitions of math operators added by LaTeX
+\mathchardef\mho"0A30
+\mathchardef\Join"3A31
+\mathchardef\Box"0A32
+\mathchardef\Diamond"0A33
+\mathchardef\leadsto"3A3B
+\mathchardef\sqsubset"3A3C
+\mathchardef\sqsupset"3A3D
+\def\lhd{\mathbin{< \hbox to -.43em{}\hbox{\vrule 
+      \@width .065em \@height .55em \@depth .05em}\hbox to .2em{}}}
+\def\rhd{\mathbin{\hbox to .3em{}\hbox{\vrule \@width .065em \@height 
+       .55em \@depth .05em}\hbox to -.43em{}>}}
+\def\unlhd{\mathbin{\leq \hbox to -.43em{}\hbox
+        {\vrule \@width .065em \@height .63em \@depth -.08em}\hbox to .2em{}}}
+\def\unrhd{\mathbin{ \hbox to .3em{}\hbox
+ {\vrule \@width .065em \@height .63em \@depth -.08em}\hbox to -.43em{}\geq}}
+
+% Definition of \$ to work in italic font (since it produces a pound sterling
+% sign in the cmit font.
+
+\def\${\protect\pdollar}
+\def\pdollar{{\ifdim \fontdimen\@ne\font >\z@ \sl \fi\char`\$}}
+
+% Definition of pound sterling sign.
+% Modified 10 Apr 89 to work in math mode.
+
+\def\pounds{\protect\ppounds}
+\def\ppounds{\relax\ifmmode\mathchar"424\else{\it \char'44}\fi}
+
+
+% Definition of \copyright changed so it works in other type styles,
+% and so it is robust
+\def\copyright{\protect\pcopyright}
+\def\pcopyright{{\rm\ooalign{\hfil
+     \raise.07ex\hbox{c}\hfil\crcr\mathhexbox20D}}}

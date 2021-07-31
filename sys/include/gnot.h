@@ -1,10 +1,4 @@
-#pragma	src	"/sys/src/libgnot"
 #pragma	lib	"libgnot.a"
-
-extern void	*bbmalloc(int);
-extern void	bbfree(void *, int);
-extern int	bbonstack(void);
-extern void	bbexec(void(*)(void), int, int);
 
 /*
  * Graphics types

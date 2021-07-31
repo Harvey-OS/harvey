@@ -133,7 +133,6 @@ colon(char *addr, char *cp)
 {
 	int argc;
 	char *argv[100];
-	char tbuf[512];
 
 	cp = nextc(cp);
 	switch(*cp) {
@@ -152,7 +151,7 @@ colon(char *addr, char *cp)
 	case 'r':
 		reset();
 		argc = buildargv(cp+1, argv, 100);
-		initstk(argc, argv);
+		init(argc, argv);
 		count = 0;
 		atbpt = 0;
 		run();
@@ -176,8 +175,7 @@ colon(char *addr, char *cp)
 
 	dot = reg.pc;
 	Bprint(bioout, "%s at #%lux ", atbpt ? "breakpoint" : "stopped", dot);
-	symoff(tbuf, sizeof(tbuf), dot, CTEXT);
-	Bprint(bioout, tbuf);
+	psymoff(dot, SEGTEXT, " ");
 	if(fmt == 'z')
 		printsource(dot);
 
@@ -195,10 +193,13 @@ dollar(char *cp)
 		break;
 
 	case 'c':
-	case 'C':
 		stktrace(*cp);
 		break;
 
+	case 'C':
+		stktrace(*cp);
+		break;
+		
 	case 'b':
 		dobplist();
 		break;
@@ -209,7 +210,6 @@ dollar(char *cp)
 
 	case 'R':
 		dumpreg();
-		/* fall through */
 
 	case 'f':
 		dumpfreg();
@@ -258,7 +258,7 @@ dollar(char *cp)
 		cp++;
 		switch(*cp) {
 		default:
-			Bprint(bioout, "$i[isa]\n");
+			Bprint(bioout, "$i[itsa]\n");
 			break;
 		case 'i':
 			isum();
@@ -392,8 +392,7 @@ pfmt(char fmt, int mem, ulong val)
 		break;
 
 	case 'a':
-		symoff(str, sizeof(str), dot, CTEXT);
-		Bprint(bioout, "%s", str);
+		psymoff(dot, SEGTEXT, "");
 		inc = 0;
 		break;
 
@@ -403,14 +402,12 @@ pfmt(char fmt, int mem, ulong val)
 		inc = 0;
 		break;
 
-	case 'I':
 	case 'i':
-		inc = machdata->das(symmap, dot, fmt, str, sizeof(str));
-		if (inc < 0) {
-			Bprint(bioout, "ki: %r\n");
-			return 0;
-		}
-		c = Bprint(bioout, "\t%s", str);
+	case 'I':
+		c = printcol;
+		sparcprintins(fmt, 0);
+		c = printcol-c;
+		inc = 4;
 		break;
 
 	case 'n':
@@ -463,11 +460,9 @@ void
 quesie(char *p)
 {
 	int c, count, i;
-	char tbuf[512];
 
 	c = 0;
-	symoff(tbuf, sizeof(tbuf), dot, CTEXT);
-	Bprint(bioout, "%s?\t", tbuf);
+	psymoff(dot, SEGTEXT, "?\t");
 
 	while(*p) {
 		p = nextc(p);
@@ -495,8 +490,7 @@ quesie(char *p)
 			dot += inc;
 			if(c > width) {
 				Bprint(bioout, "\n");
-				symoff(tbuf, sizeof(tbuf), dot, CTEXT);
-				Bprint(bioout, "%s?\t", tbuf);
+				psymoff(dot, SEGTEXT, "?\t");
 				c = 0;
 			}
 		}

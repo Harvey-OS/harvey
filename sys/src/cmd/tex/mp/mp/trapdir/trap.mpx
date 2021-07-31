@@ -1,0 +1,22 @@
+% Written by DVItoMP, C Version 0.1
+begingroup save p,r,s,n; picture p; p=nullpicture;
+string n[];
+vardef s(expr t,f,m,x,y)=
+  addto p also t infont f scaled m shifted (x,y); enddef;
+n0="trapf";
+s("Aqua",n0,1.00000,0.0000,0.0000);
+vardef r(expr a,b,c,d)=
+  addto p contour (a,b)--(c,b)--(c,d)--(a,d)--cycle; enddef;
+r(7.9701,-3.9851,8.3686,15.9402);
+n1="trapf";
+s("Brass",n1,2.00000,8.3686,0.0000);
+p endgroup
+mpxbreak
+begingroup save p,r,s,n; picture p; p=nullpicture;
+string n[];
+vardef s(expr t,f,m,x,y)=
+  addto p also t infont f scaled m shifted (x,y); enddef;
+n0="trapf";
+s("ast",n0,1.00000,0.0000,0.0000);
+p endgroup
+mpxbreak

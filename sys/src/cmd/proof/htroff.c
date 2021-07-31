@@ -1,6 +1,7 @@
 #include	<u.h>
 #include	<libc.h>
 #include	<libg.h>
+#include	<ctype.h>
 #include	<bio.h>
 #include	"proof.h"
 
@@ -99,7 +100,7 @@ clearview(Rectangle r)
 void ereshaped(Rectangle r)
 {
 	/* this is called if we are reshaped */
-	screen.r = r;
+	screen.r = inset(r,3);
 	initpage();
 }
 
@@ -130,14 +131,13 @@ addpage(int n)
 void
 readpage(void)
 {
-	int c, i;
+	int c;
 	static int first = 0;
 	int m, n, gonow = 1;
-	char buf[300];
-	Rune r[32], t;
+	char str[100], buf[300];
 	Point p,q,qq;
 
-	offset = screen.clipr.min;
+	offset = screen.r.min;
 	cursorswitch(&deadmouse);
 	while (gonow)
 	{
@@ -172,28 +172,26 @@ readpage(void)
 
 		/* FALLS THROUGH */
 		case 'c':	/* single ascii character */
-			r[0] = Bgetrune(&bin);
-			r[1] = 0;
-			dochar(r);
+			buf[0] = c = BGETC(&bin);
+			buf[1] = 0;
+			if (isascii(c))
+				dochar((uchar *) buf);
+			else {	/* it's something weird */
+				Bungetc(&bin);
+				getutf(str);
+				dochar((uchar *) str);
+			}
 			break;
 
 		case 'C':
-			for(i=0; ; i++){
-				t = Bgetrune(&bin);
-				if(isspace(t))
-					break;
-				r[i] = t;
-			}
-			r[i] = 0;
-			dochar(r);
+			getstr(str);
+			dochar((uchar *) str);
 			break;
-
 		case 'N':
-			r[0] = getn();
-			r[1] = 0;
-			dochar(r);
+			str[0] = getn();
+			str[1] = 0;
+			dochar((uchar *) str);
 			break;
-
 		case 'D':	/* draw function */
 			switch (BGETC(&bin))
 			{
@@ -201,7 +199,7 @@ readpage(void)
 				n = getn();
 				m = getn();
 				p = Pt(hpos,vpos);
-				q = add(p, Pt(n,m));
+				q = add(p, Pt(n,m)); 
 				hpos += n;
 				vpos += m;
 				segment(&screen, scale(p), scale(q), ONES, Mode);
@@ -420,12 +418,6 @@ devcntrl(void)	/* interpret device control functions */
 	eatline();
 }
 
-int
-isspace(int c)
-{
-	return c==' ' || c=='\t' || c=='\n';
-}
-
 static void
 getstr(char *is)
 {
@@ -474,12 +466,14 @@ getn(void)
 	while (c = BGETC(&bin))
 		if (!isspace(c))
 			break;
-	if(c == '-'){
+	if(c == '-')
+	{
 		sign = -1;
 		c = BGETC(&bin);
-	}else
+	}
+	else
 		sign = 1;
-	for (n = 0; '0'<=c && c<='9'; c = BGETC(&bin))
+	for (n = 0; isdigit(c); c = BGETC(&bin))
 		n = n*10 + c - '0';
 	while (c == ' ')
 		c = BGETC(&bin);
@@ -534,7 +528,7 @@ botpage(int np)	/* called at bottom of page np-1 == top of page np */
 				return skipto(np-1, np);
 			p++;
 		}
-		if ('0'<=*p && *p<='9') {
+		if (isdigit(*p)) {
 			n = atoi(p);
 			return skipto(n, np);
 		}

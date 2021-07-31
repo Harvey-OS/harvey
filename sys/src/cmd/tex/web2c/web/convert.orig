@@ -1,0 +1,7 @@
+#!/bin/sh
+# Convert WEB system programs to C.
+# 
+
+cat web.defines $1 \
+	| ../web2c/web2c -hweb.h -c`basename $1 .p` \
+	| ../web2c/fixwrites > $2

@@ -1,0 +1,496 @@
+.TH FIZZ 10.1
+.SH NAME
+artwork, check, clip, cvt, draw, drills, getparts, kollmorgen, list, pkgplot, place, prance, ring, signal, saf, wrap \- physical layout programs
+.SH SYNOPSIS
+.B cda/artwork
+[
+.I option
+]
+.I file ...
+.PP
+.B cda/check
+[
+.B -uw
+] [
+.BI -c chip
+]
+.I file ...
+.PP
+.B cda/clip
+[
+.BI -f clipfile
+] [
+.I file ...
+]
+.PP
+.B cda/cvt
+[
+.I file ...
+]
+.PP
+.B cda/draw
+[
+.I option
+] [
+.I file ...
+]
+.PP
+.B cda/drills
+.BI -d diams
+.I file ...
+.PP
+.B cda/getparts
+.I file ...
+.PP
+.B cda/kollmorgen
+[
+.BI -hnbx
+]
+.I file ...
+.PP
+.B cda/list
+.I file ...
+.PP
+.B cda/pkgplot
+[
+.BI -bp
+]
+.I file
+.PP
+.B cda/place
+[
+.I file ...
+]
+.PP
+.B cda/prance
+[
+.I file ...
+]
+.PP
+.B cda/ring
+[
+.B -lqsuvadk
+] [
+.BI -z argument
+] [
+.BI -w argument
+] [
+.BI -c argument
+]
+.I file ...
+.PP
+.B cda/saf
+[
+.BI -sdru
+]
+.I file ...
+.PP
+.B cda/signal
+[
+.I option
+] [
+.I file ...
+]
+.PP
+.B cda/wrap
+[
+.I option
+] [
+.I file ...
+]
+.SH DESCRIPTION
+The
+.I fizz
+suite of programs handle all the physical aspects of creating a
+wire-wrap, buried micro-via or microwire board.
+All the programs take
+.IR fizz_format (10.6)
+input;
+.IR cdl (10.6)
+can be converted with
+.IR cvt .
+.PP
+All of the programs can take multiple files;
+most of the programs require that the files form a board description.
+Normally, this is arranged amongst four files (with recommended suffix):
+the board and special signal layout
+.RB ( .brd ),
+the chip, chip type and net descriptions (from
+.IR cdmglob (10.1))
+.RB ( .wx ),
+the package descriptions
+.RB ( .pkg ),
+and the chip positions
+.RB ( .pos ).
+In general, if the file arguments are missing, standard input is used.
+.sp
+.PP
+.I Artwork
+prints various artwork information for the board definition in
+.I files .
+The options are
+.PP
+.PD 0
+.TP
+.B -a
+prints XY mask clump includes for all placed chips with artwork
+fields in their package definitions.
+.TP
+.B -r
+prints bounding rectangle information for the microwire router.
+.TP
+.B -s
+generate silk screen information for chip layout.
+.sp
+.PP
+.I Check
+checks the syntax and consistency of the given
+.IR files .
+The
+.B -u
+option causes the names of any unplaced chips to be printed.
+Option
+.B -w
+checks readiness for wrapping.
+Specifically, it checks that no net is too large;
+no chip pin coincides with an inappropriate special signal pin,
+and no chip pin appears on more than one signal.
+Option
+.BI -c chip
+prints out detailed information about the named chip.
+.sp
+.PP
+.I Clip
+takes a board description (in
+.IR files )
+and a clip description file
+.RI ( clipfile )
+and checks that all of and only the clips specified are present.
+Clips are simply pins on a wirewrap board.
+Almost always they are directly connected to a signal plane.
+Clips do not exist in the rest of the
+.I fizz
+suite; they are simply special signal pins.
+Standard input is used if there are no file arguments.
+The output reports missing clips in a format suitable as part of a board description.
+The clipfile consists of directives (one per line) of the forms
+.ti 17n
+.RB [ ssig | pin ]
+.I numbers
+.RB [ chip | type ]
+.I identifiers
+.br
+.ti 17n
+.B tt
+.RB [ chip | type ]
+.I identifiers
+.PP
+Clips are put on either specific chips with the given names
+.RB ( chip )
+or chips of specified chip types
+.RB ( type ).
+The clips are put on either the specified pins
+.RB ( pin )
+or pins belonging to the specified special signals
+.RB ( ssig ).
+The identifier
+.B ALL
+refers to all chips or types.
+Lines starting with a
+.B %
+are ignored.
+The
+.B tt
+directive means pins whose entry in the
+.B tt
+field of the type (or the chip's type) is one of
+.BR GVWXYZ .
+For example,
+.TP
+.B
+ssig 0,1 type 74F374 74F245
+Clips on power and ground for all chips of type
+.B 74F374
+and
+.BR 74F245 .
+.TP
+.B
+pin 3-6,9 chip widget
+Clips on pins 3,4,5,6,9 on chip
+.BR widget .
+.PP
+.I Numbers
+are specified as a
+comma-separated list, possibly including
+.BI \& lo - hi
+ranges.
+A missing
+.I clipfile
+argument is taken as
+.ti 17n
+.B
+tt type ALL
+.sp
+.PP
+.I Cvt
+converts \s-2CDL\s0 format input and outputs it in
+.IR fizz_format (10.6)
+format.
+If no
+.I files
+are specified, standard input is read.
+Typically,
+.I cvt
+is used to process the output of
+.IR cdmglob (10.1).
+The options are:
+.PP
+.PD 0
+.TP
+.B -f
+Don't do families
+.TP
+.B -c
+Don't emit comments
+.TP
+.B -n
+Don't emit names
+.sp
+.PP
+.I Draw
+generates a
+.IR plot (6)
+description of the board layout of
+.IR files .
+Standard input is used if there are no file arguments.
+The options are
+.PP
+.PD 0
+.TP
+.B -p
+Show pins (as circles).
+.TP
+.B -t
+Show chip types rather than chip names.
+.TP
+.B -k
+Show package names rather than chip names.
+.TP
+.B -v
+Show special signal pins as \f2(n+3)\fP-gons
+where \f2n\fP is the signal number.
+.TP
+.B -P
+Draw package descriptions in
+.IR pic (1)
+format.
+Each drawing shows the package name,
+the bounding rectangle,
+a cross at the origin, and numbered pin locations.
+.TP
+.B -f
+Draws the pin frame.
+.TP
+.B -r
+Removes the ruler.
+.sp
+.PP
+.I Drills
+takes a board description and a set of drill diameters
+.RI ( diams )
+and produces a wraplist
+(like that produced by
+.IR wrap )
+with an entry for every pin whose diameter is in that set.
+.sp
+.PP
+.I Getparts
+reads its input files and generates a part list on standard output.
+.sp
+.PP
+.I Kollmorgen
+generates the input files needed for Kollmorgen's router.  Output is to the standard
+output.  The options are
+.PP
+.PD 0
+.TP
+.B -n
+Produce nets
+.TP
+.B -b
+Produce border (keepouts are also generated).  Wiring area shouldn't be too
+unusual.
+.TP
+.B -h
+Produce holes.  Holes may be wired or not depending on the declaration.
+.TP
+.B -x
+Produce correspondence between net names and net numbers
+.sp
+.PP
+.I List
+makes a fairly complete parts list giving
+type, package, and comment followed by each instance of it
+with position, rotation, and board side.
+The options are:
+.PP
+.PD 0
+.TP
+.B -b
+list burnable parts, like PALs.
+.TP
+.B -t
+Special Terry Wallis switch
+.TP
+.B -s
+Short output
+.PP
+.PP
+.I Pkgplot
+generates a plot of the package(s) in the input. the options are:
+.PP
+.PD 0
+.TP
+.B -p
+Generate Postscript
+.TP
+.B -b
+Generate bottom up instead of chip down view
+.sp
+.PP
+.I Place
+supports interactive chip placement on a board.
+It requires a Plan 9 terminal running 8½.
+The user interface is mouse-driven.
+The main menu items are
+.PD 0
+.TP 15n
+.B select
+a submenu allowing selecting chips or signals by name.
+Signals are displayed in the way they would be wired by
+.I wrap
+(no
+.B -3
+support).
+.TP
+.B view
+a submenu supporting zooming, panning, grid overlay and resolution.
+.TP
+.B insert
+insert unplaced chips.
+.TP
+.B place
+a submenu supporting manual placement, machine placement
+and machine improvement of placement.
+.TP
+.B "read files"
+reset the world and read the given (blank separated) filenames.
+.TP
+.B "write file"
+write out the chip positions.
+The filename conventionally should have a
+.B .pos
+suffix.
+.TP
+.B exit
+finito.
+.PP
+Chips can be selected by button 1 or by the button 3 submenu.
+Selected chips can be edited by the button 2 menu.
+.sp
+.PP
+.I Prance
+generates the input files needed for Cadence's prance router on standard output.  
+.sp
+.PP
+.I Ring
+reads a board description and analyses the
+.B Wire 's
+therein; these contain the actual route of
+nets including all the inflection points.
+.I Ring
+walks each net, and starting from each driver calculates the length
+of the net (to the farthest pin).  Next, it calculates the
+gate capacitance and distributed line capacitance.  The
+rise time of the driver is used to calculate the maximum length
+of the line.  Any offending long lines are reported to the user
+with the computed impedance of the line.
+.sp
+.PP
+.I Saf
+outputs the packaging data suitable for giving to the automatic placement
+machine at Lisle.
+.sp
+.PP
+.I Signal
+gives information about signals in the board description in
+.IR files .
+Standard input is used if no file arguments are given.
+By default,
+all signals are shown as sequences of
+.IB chip . pin ,
+one signal per line.
+Note that the lines for the ground and power signals are likely be very long.
+The options are
+.PP
+.PD 0
+.TP
+.B -w
+Wrap (route) signals before printing.
+.TP
+.BI -s name
+Show the signal
+.I name
+as both
+.I chip . pin
+and board coordinates (one point per line).
+Unplaced chips have negative coordinates.
+.sp
+.PP
+.I Wrap
+generates a wraplist fo rthe board description in
+.IR files .
+The options are
+.PP
+.PD 0
+.TP
+.B -3
+don't do TSP
+.TP
+.B -n
+connect to noconnects
+.TP
+.B -o
+one post wraps are OK
+.TP
+.B -v
+verbosity
+.TP
+.B -c
+cents instead of mils
+.TP
+.B -x
+don't do wire wraps
+.TP
+.B -r
+set root string
+.TP
+.B -b
+turn on buried vias
+.TP
+.B -j
+produce a
+.B .br
+file suitable for the buried microvia router
+.TP
+.B -t
+make file for cb router
+.TP
+.B -h
+produce a
+.B .hn
+file suitable for the buried microvia router
+.SH SEE ALSO
+.IR cdl (10.6),
+.IR fizz_format (10.6),
+.IR saf (10.6)

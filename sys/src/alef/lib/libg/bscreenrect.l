@@ -1,11 +1,11 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 Rectangle
 bscreenrect(Rectangle *clipr)
 {
 	Rectangle r;
-	byte buf[34];
+	char buf[34];
 
 	bneed(0);
 	if(write(bitbltfd, "i", 1) != 1)

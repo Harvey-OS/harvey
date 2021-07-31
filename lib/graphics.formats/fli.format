@@ -1,0 +1,177 @@
+
+From: kdarling@hobbes.ncsu.edu (Kevin Darling)
+Newsgroups: comp.graphics
+Subject: Re: FLI file-format?
+Message-ID: <1991Mar12.202026.5005@ncsu.edu>
+Date: 12 Mar 91 20:20:26 GMT
+Organization: North Carolina State University
+
+>Has someone a description of the FLI-format?
+
+Autodesk Animator files explanation (.FLI only excerpted).  I believe
+that the original programmer wrote up this doc.  It's correct, as I've
+used the info to realtime playback stock .FLIs on a 680x0 machine.
+All numbers in a .FLI file are in Intel format, so you may have to
+compensate for that, of course. - kevin
+
+8.1 Flic Files (.FLI)
+
+     The details of a FLI file are moderately complex, but the
+idea behind it is simple: don't bother storing the parts of a
+frame that are the same as the last frame.  Not only does this
+save space, but it's very quick.  It's faster to leave a pixel
+alone than to set it.
+
+     A FLI file has a 128-byte header followed by a sequence of
+frames. The first frame is compressed using a bytewise run-length
+compression scheme.  Subsequent frames are stored as the
+difference from the previous frame.  (Occasionally the first
+frame and/or subsequent frames are uncompressed.)  There is one
+extra frame at the end of a FLI which contains the difference
+between the last frame and the first frame.
+
+     The FLI header:
+
+     byte size name      meaning
+     offset
+
+     0    4    size      Length of file, for programs that want
+                         to read the FLI all at once if possible.
+     4    2    magic     Set to hex AF11.  Please use another
+                         value here if you change format (even to
+                         a different resolution) so Autodesk
+                         Animator won't crash trying to read it.
+     6    2    frames    Number of frames in FLI.  FLI files have
+                         a maxium length of 4000 frames.
+     8    2    width     Screen width (320).
+     10   2    height    Screen height (200).
+     12
+     14   2    flags     Must be 0.
+     16   2    speed     Number of video ticks between frames.
+     18   4    next      Set to 0.
+     22   4    frit      Set to 0.
+     26   102  expand    All zeroes -- for future enhancement.
+
+     Next are the frames, each of which has a header:
+
+     byte size name      meaning
+     offset
+     0    4    size      Bytes in this frame.  Autodesk Animator
+                         demands that this be less than 64K.
+     4    2    magic     Always hexadecimal F1FA
+     6    2    chunks    Number of 'chunks' in frame.
+     8    8    expand    Space for future enhancements. All zeros.
+
+     After the frame header come the chunks that make up the
+frame.  First comes a color chunk if the color map has changed
+from the last frame.  Then comes a pixel chunk if the pixels have
+changed.  If the frame is absolutely identical to the last frame
+there will be no chunks at all.
+
+     A chunk itself has a header, followed by the data.  The
+chunk header is:
+
+     byte size name meaning
+     offset
+     0    4    size Bytes in this chunk.
+     4    2    type Type of chunk (see below).
+
+     There are currently five types of chunks you'll see in a FLI
+file:
+
+     number    name      meaning
+     11        FLI_COLOR Compressed color map
+     12        FLI_LC    Line compressed -- the most common type
+                         of compression for any but the first
+                         frame.  Describes the pixel difference
+                         from the previous frame.
+     13        FLI_BLACK Set whole screen to color 0 (only occurs
+                         on the first frame).
+     15        FLI_BRUN  Bytewise run-length compression -- first
+                         frame only
+     16        FLI_COPY  Indicates uncompressed 64000 bytes soon
+                         to follow.  For those times when
+                         compression just doesn't work!
+
+     The compression schemes are all byte-oriented.  If the
+compressed data ends up being an odd length a single pad byte is
+inserted so that the FLI_COPY's always start at an even address
+for faster DMA.
+
+FLI_COLOR Chunks
+
+     The first word is the number of packets in this chunk. This
+is followed directly by the packets.  The first byte of a packet
+says how many colors to skip.  The next byte says how many colors
+to change.  If this byte is zero it is interpreted to mean 256. 
+Next follows 3 bytes for each color to change (one each for red,
+green and blue).
+
+FLI_LC Chunks
+
+     This is the most common, and alas, most complex chunk.   The
+first word (16 bits) is the number of lines starting from the top
+of the screen that are the same as the previous frame. (For
+example, if there is motion only on the bottom line of screen
+you'd have a 199 here.)  The next word is the number of lines
+that do change.  Next there is the data for the changing lines
+themselves.  Each line is compressed individually; among other
+things this makes it much easier to play back the FLI at a
+reduced size.
+
+     The first byte of a compressed line is the number of packets
+in this line.  If the line is unchanged from the last frame this 
+is zero.  The format of an individual packet is:
+
+ skip_count
+ size_count
+ data
+
+     The skip count is a single byte.  If more than 255 pixels
+are to be skipped it must be broken into 2 packets. The size
+count is also a byte.  If it is positive, that many bytes of data
+follow and are to be copied to the screen.  If it's negative a
+single byte follows, and is repeated -skip_count times.
+
+     In the worst case a FLI_LC frame can be about 70K.  If it
+comes out to be 60000 bytes or more Autodesk Animator decides
+compression isn't worthwhile and saves the frame as FLI_COPY.
+
+FLI_BLACK Chunks
+
+     These are very simple.  There is no data associated with
+them at all. In fact they are only generated for the first frame
+in Autodesk Animator after the user selects NEW under the FLIC menu.
+
+FLI_BRUN Chunks
+
+     These are much like FLI_LC chunks without the skips.  They
+start immediately with the data for the first line, and go line-
+by-line from there.  The first byte contains the number of
+packets in that line.  The format for a packet is:
+
+ size_count
+ data
+
+     If size_count is positive the data consists of a single byte
+which is repeated size_count times. If size_count is negative
+there are -size_count bytes of data which are copied to the
+screen. In Autodesk Animator if the "compressed" data shows signs
+of exceeding 60000 bytes the frame is stored as FLI_COPY instead.
+
+FLI_COPY Chunks
+
+     These are 64000 bytes of data for direct reading onto the
+screen.
+
+ -eof-
+
+Notes: Since these are animations, the last frame will delta into a
+copy of the first one (which was usually a large BRUN chunk).  Therefore,
+looping should go back to the _second_ frame chunk (usually a LC
+or COLOR chunk) instead of all the way back to the file beginning, to
+avoid a "stutter" caused by unnecessarily redecoding the original frame.
+Also, a very few files may have palette animation, so write your code
+so that COLOR chunks can be found at any time.  - kevin
+
+

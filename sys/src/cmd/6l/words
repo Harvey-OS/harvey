@@ -1,0 +1,78 @@
+the typical opcode is
+
+	ADDL	AX,BX
+
+the book shows ADD; the assembler
+demands ADDB, ADDW or ADDL to specify
+byte, word or doubleword (long).
+
+in byte mode, registers such as AX
+are equivalent to AL. registers like
+DX are illegal. you must used AH, etc
+to get the high bytes.
+
+long mode is assumed. word mode is
+escaped with 0x66. in both word mode
+and long mode, use AX, BX etc. the
+names EAX, EBX are not known.
+
+far addressing is not recognized.
+16-bit addressing is not recognized.
+
+addressing modes:
+
+	AX
+	(AX)
+	(AX)(BX*4)
+	10(AX)
+	10(AX)(BX*4)
+
+names can be used with/without indexing.
+
+	param+10(FP)
+	param+10(FP)(AX*2)
+	auto-8(SP)(AX*2)
+	extern+5(SB)(AX*2)
+	static<>+9(SB)(AX*2)
+
+double indexing of externals are theoretically
+possible, but not allowed, eg:
+
+	extern+5(SB)(AX)(BX*4)
+
+some special instructions:
+
+	MOVL	AX, GDTR	/* lgtd */
+	MOVL	AX, IDTR	/* lidt */
+	MOVL	(AX), SP:SS	/* load full pointer */
+	MOVW	AX, LDTR	/* lldt */
+	MOVW	AX, MSW		/* lmsw */
+	MOVW	AX, TASK	/* ltr */
+	MOVW	DS, AX		/* move data, segments */
+	MOVL	CR0, AX		/* move to/from special */
+	MOVL	GDTR, AX	/* sgdt */
+	MOVL	IDTR, AX	/* sidt */
+	MOVW	LDTR, AX	/* sldt */
+	SHLL	$16, 10(SP):AX	/* double shift */
+	MOVW	MSW, AX		/* smsw */
+	MOVW	TASK, AX	/* str */
+
+other notes:
+
+SETCC:
+	only name for the condition codes:
+	CC, CS, EQ, GE, GT, HI, LE, LS, LT,
+	MI, NE, OC, OS, PC, PL, PS
+	the JCC codes have most reasonable
+	synonyms
+JMP/CALL:
+	non-relative addresses have '*' added to
+	the syntax.
+IMUL
+	the special operands are not recognized.
+	the syntax is the same as for MUL, DIV, IDIV.
+LOOP
+	only LOOP, LOOPEQ, LOOPNE
+REP
+	only REP, REPN. the opcodes are not prefixes,
+	but standalone opcodes preceding the strings.

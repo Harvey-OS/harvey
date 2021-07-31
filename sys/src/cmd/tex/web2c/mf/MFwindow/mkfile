@@ -1,0 +1,40 @@
+# This file makes an archive file consisting of the window support for
+# all the devices.  To make Metafont support another device, just add a
+# file here, and the obvious declarations in ../extra.c (the device
+# support is the last section in that file).
+# 
+# By making the result into an archive file, the final binary has only
+# the devices which are actually desired, thus saving some small amount
+# of time and space.
+#
+
+APE=/sys/src/ape
+< $APE/config
+SITEDIR=..
+OPT=-B -J
+CFLAGS=$OPT -I../$SITEDIR
+SHELL=/bin/rc
+
+lib=window.a$O
+objs=x11.$O
+
+%.$O: %.c
+		$CC $CFLAGS -c $stem.c
+
+default:V:	all
+
+all:V:		$lib
+
+window.a$O:	$objs
+		rm -f $lib
+		ar rc $lib $objs
+		$SHELL -c 'if ( test -f '$RANLIB') '$RANLIB' '$lib
+
+$objs:	../mfd.h
+
+clean:V:
+		rm -f *.[$OS] $lib
+
+nuke:V:	clean
+		rm -f '#'*'#' *~ *.bak
+

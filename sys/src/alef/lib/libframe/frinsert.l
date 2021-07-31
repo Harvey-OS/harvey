@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 #include <frame.h>
 
 #define	DELTA	25
@@ -20,7 +20,7 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 {
 	Frbox *b;
 	int w, c, nb, delta, nl, nr, rw;
-	byte *p, *s, tmp[TMPSIZE+3];	/* +3 for rune overflow */
+	char *p, *s, tmp[TMPSIZE+3];	/* +3 for rune overflow */
 
 	frame.r = f->r;
 	frame.b = f->b;
@@ -56,9 +56,6 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 			nr = 0;
 			w = 0;
 			while(sp < ep){
-				c = *sp;
-				if(c=='\t' || c=='\n')
-					break;
 				rw = runetochar(s, sp);
 				if(s+rw >= tmp+TMPSIZE)
 					break;
@@ -66,6 +63,9 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 				sp++;
 				s += rw;
 				nr++;
+				c = *sp;
+				if(c=='\t' || c=='\n')
+					break;
 			}
 			*s++ = 0;
 			p = _frallocstr(s-tmp);
@@ -136,9 +136,9 @@ frinsert(Frame *f, Rune *sp, Rune *ep, uint p0)
 	 * (p0); pt1 is terminal point (without line wrap) of insertion.
 	 */
 	if(p0==f->p0 && p0==f->p1)		/* quite likely */
-		frselectf(f, pt0, pt0, frones, F&~D);
+		frselectf(f, pt0, pt0, F&~D);
 	else
-		frselectp(f, frones, F&~D);
+		frselectp(f, F&~D);
 	/*
 	 * Find point where old and new x's line up
 	 * Invariants:
@@ -241,7 +241,7 @@ frinsert(Frame *f, Rune *sp, Rune *ep, uint p0)
 				y = pt.y;
 		}
 	}
-	frselectf(f, ppt0, ppt1, frones, 0);
+	frselectf(f, ppt0, ppt1, 0);
 	_frredraw(&frame, ppt0);
 	_fraddbox(f, nn0, frame.nbox);
 	for(n=0; n<frame.nbox; n++)
@@ -264,5 +264,5 @@ frinsert(Frame *f, Rune *sp, Rune *ep, uint p0)
 		f->p1 += frame.nchars;
 	if(f->p1 > f->nchars)
 		f->p1 = f->nchars;
-	frselectp(f, frones, F&~D);
+	frselectp(f, F&~D);
 }

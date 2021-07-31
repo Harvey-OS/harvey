@@ -1,0 +1,96 @@
+This file describes the installation process for the MetaPost system.
+The source files are set up with the web2c version of TeX which is available
+by anonymous ftp from the machine labrea.stanford.edu.  All that is really
+required is an executable version of TeX and the actual conversion programs
+in web2c directory of the TeX distribution.
+
+The main source files for MetaPost are in ./mp; auxiliary programs
+that process included TeX commands are contained in ./mpware; standard
+macro files and such are in ./mplib.  The ./mp directory actually
+contains code for two versions of MetaPost: virmp requires a binary file
+giving standard definitions; inimp is a little larger and is capable of
+writing such ".mem" files.  It is possible to make do with just inimp, but
+this has the drawback that it is necessary to ask explicitly for the standard
+definitions.  The user documentation assumes that the standard name "mp" invokes
+virmp so that users can type "mp input-file" instead of "mp \&plain input-file"
+(See the man page).
+
+When inimp or virmp is processing an input file that contains TeX commands,
+they depend on a shell script mpware/makempx to create an auxiliary input file
+that gives corresponding MetaPost picture expressions.  This script uses
+mpware/mptotex to create TeX input and uses a program mpware/dvitomp to
+postprocess the TeX output.
+
+There is also another shell script mpware/troffmpx that handles input files
+with imbeded troff commands.  It runs programs mpware/mptotr and mpware/dmp
+to generate a troff input file and convert the troff output into MetaPost.
+The dmp translator reads data files mplib/trfonts.map and mplib/trchar.adj.
+The former handles the translation between troff names and tfm file names,
+while the latter gives character positioning adjustments.  There is also
+a directory mplib/charlib containing MetaPost programs for characters used
+in troff and not appearing in standard PostScript fonts.
+
+Like its ancestor METAFONT, MetaPost is written in the web language.  Anyone
+who is not familiar with the mechanics of web programs should see the
+documentation that comes with the TeX distribution.  That distribution
+contains a directory called "web2c" with Tim Morgan's programs for
+automatically translating web programs into C.  It is a good idea to
+look at the documentation for web2c before installing MetaPost.
+
+The source files expect the web2c directory to have four programs: fixwrites,
+regfix, splitup, and web2c.  Each directory that contains web programs
+contains a shell script "convert" that invokes the four translation
+programs.  It also refers to a .h file and a ".defines" file that tells
+how to treat certain identifiers in the Pascal programs.
+
+The ultimate source for MetaPost is mp/mp.web.  System-dependent changes
+go in mp/mp.ch.  This is basically a diff file where changes are denoted
+                   @x <old text> @y <new text> @z
+There are also a number of source files necessary for Pascal-to-C conversion.
+The driver file mp/convert uses identifier definitions in mp/mp.defines.
+The translated C files use definitions in mp/mp.h and external routines
+in mp/mpext.c.  C program files mp0.c through mp9.c and include files
+mpd.h and coerce.h are generated automatically by mp/convert.
+
+
+                            Installation
+
+0. Some parts of the code in mp/mp.web indexed under `system dependencies'.
+   This distribution should contain everything necessary to make these
+   parts of the program work on UNIX systems, but this is a good place
+   to look if something goes wrong.
+1. If you don't have tangle version 4.0 or higher, get a more recent TeX
+   distribution.
+2. Find the directory in the TeX distribution that contains executable
+   versions of fixwrites, regfix, splitup, and web2c.  The convert scripts
+   in mp and mpware assume that this directory is named web2c and is a
+   sibling of mp and mpware.  Make a symbolic link if necessary to achieve
+   this.
+3. Edit ./site.h and ./Makefile to set up your local paths, compiler, etc.
+   You may be able to merge these with the site.h and top-level Makefile
+   from the TeX distribution.  The file ./site.h has a comment indicating
+   which lines were added for MetaPost support.  If you move ./site.h to
+   another directory (i.e., change SITEDIR in Makefile), move ./defaults.h
+   there, also.
+4. The standard TeX distribution uses the PostScript name for TFM files
+   for built-in fonts; e.g., Times-Roman.tfm.  If your TeX implementation
+   uses different names, remove the @{ and @} symbols from mp/mp.ch.
+   This affects the font names used in MetaPost output when the user makes
+   the "prologs" variable positive.
+5. Run the `trap' test.  `make triptrap' to compile the special version
+   of inimp that runs the test.  Then `make run-triptrap' to run the tests
+   and to a series of diffs to compare the output files with the expected
+   versions in mp/trapdir.  It is normal to have some differences since
+   many of the output files contain a line that gives the date and time.
+   Certain other differences are allowed as explained in mp/trapdir/README.
+   If the results are satisfactory 'make clean-triptrap' and go on to the
+   next step.
+6. `make' to make the working versions of every program in this hierarchy.
+   This also makes the plain.mem and mfplain.mem.  (These are analogous
+   to METAFONT's plain.base).
+7. `make install' to do the obvious.
+8. `make clean' if you intend to compile the programs on another
+   architecture.  Since the .c files are intended to be portable across
+   architectures, they are not removed by this.
+9. `make veryclean' when you're all done.  This removes everything that
+   was not in the original distribution (and more besides).

@@ -6,24 +6,18 @@
 #include <stdio.h>
 #include <libg.h>
 
-typedef unsigned char uchar;
+	int		bitbltfd;
+	Bitmap		screen;
+	Font		*font;
+static	unsigned char	bbuf[8192];
+static	unsigned char	*bbufp = bbuf;
+static	void		(*onerr)(char*);
+static	char		oldlabel[128+1];
+static	char		*label;
 
-	int	dontbexit;
-	int	bitbltfd;
-	Bitmap	screen;
-	Font	*font;
-static	uchar	bbuf[8000];
-	uchar	_btmp[8000];
-static	uchar	*bbufp = bbuf;
-static	void	(*onerr)(char*);
-static	char	oldlabel[128+1];
-static	char	*label;
-
-uchar*
-bneed(int n)
+unsigned char*
+bneed(int n)	/* n can be negative */
 {
-	if(n < 0)
-		berror("negative count in bneed");
 	if(n==0 || bbufp-bbuf>sizeof bbuf-n){
 		if(!bwrite())
 			berror("write to /dev/bitblt");
@@ -54,43 +48,26 @@ bwrite(void)
 void
 binit(void (*f)(char *), char *s, char *nlabel)
 {
-	uchar *buf, *p;
-	char fontname[128];
-	int fd, n, m, j;
-	Fontchar *info;
-	Subfont	*subfont;
+	unsigned char *buf, *p;
+	char *t;
+	char fontname[32];
+	int fd, n, j;
+	Bitmap *b;
+	Fontchar *info, *i;
 
-	if(s == 0){
-		fd = open("/env/font", O_RDONLY);
-		if(fd >= 0){
-			n = read(fd, fontname, sizeof(fontname));
-			if(n > 0){
-				fontname[n] = 0;
-				s = fontname;
-			}
-			close(fd);
-		}
-	}
 	onerr = f;
 	bitbltfd = open("/dev/bitblt", O_RDWR);
 	if(bitbltfd < 0)
 		berror("open /dev/bitblt");
 	if(write(bitbltfd, "i", 1) != 1)
 		berror("binit write /dev/bitblt");
-
-	n = 18+16;
-	m = 18+16;
-	if(s == 0){
-		m += 3*12;
-		n += 3*12+1300*6;	/* 1300 charinfos: big enough? */
-	}
-	buf = malloc(n);
+	buf = malloc(18+3*12+300*6);
 	if(buf == 0){
 		free(buf);
 		berror("binit alloc");
 	}
-	j = read(bitbltfd, (char *)buf, n);
-	if(j<m || buf[0]!='I'){
+	n = read(bitbltfd, (char *)buf, 18+3*12+300*6);
+	if(n<18+3*12 || buf[0]!='I'){
 		free(buf);
 		berror("binit read");
 	}
@@ -99,49 +76,55 @@ binit(void (*f)(char *), char *s, char *nlabel)
 	screen.r.min.y = BGLONG(buf+6);
 	screen.r.max.x = BGLONG(buf+10);
 	screen.r.max.y = BGLONG(buf+14);
-	screen.clipr.min.x = BGLONG(buf+18);
-	screen.clipr.min.y = BGLONG(buf+22);
-	screen.clipr.max.x = BGLONG(buf+26);
-	screen.clipr.max.y = BGLONG(buf+30);
 	screen.cache = 0;
 
 	if(s){
-		/*
-		 * Load specified font
-		 */
-		font = rdfontfile(s, screen.ldepth);
+		free(buf);
+		t = s+strlen(s)-1;
+		if(t>=s && '0'<=*t && *t<='9'){
+			j = *t;
+			*t = '0'+screen.ldepth;	/* try to use right ldepth */
+			if(access(s, R_OK) != 0)
+				*t = j;
+		}
+		fd = open(s, O_RDONLY);
+		if(fd < 0)
+			berror("binit font open");
+		b = rdbitmapfile(fd);
+		if(b == 0)
+			berror("binit font bitmap read");
+		font = rdfontfile(fd, b);
 		if(font == 0)
-			berror("binit font load");
+			berror("binit font info read");
+		close(fd);
 	}else{
-		/*
-		 * Cobble fake font using existing subfont
-		 */
-		n = atoi((char*)buf+18+16);
+		n = atoi((char*)buf+18);
 		info = malloc(sizeof(Fontchar)*(n+1));
 		if(info == 0){
 			free(buf);
 			berror("binit info alloc");
 		}
-		p = buf+18+16+3*12;
-		_unpackinfo(info, p, n);
-		subfont = malloc(sizeof(Subfont));
-		if(subfont == 0){
-	Err:
+		p = buf+18+3*12;
+		for(i=info,j=0; j<=n; j++,i++,p+=6){
+			i->x = BGSHORT(p);
+			i->top = p[2];
+			i->bottom = p[3];
+			i->left = p[4];
+			i->width = p[5];
+		}
+		font = malloc(sizeof(Font));
+		if(font == 0){
 			free(buf);
 			free(info);
 			berror("binit font alloc");
 		}
-		subfont->n = n;
-		subfont->height = atoi((char*)buf+18+16+12);
-		subfont->ascent = atoi((char*)buf+18+16+24);
-		subfont->info = info;
-		subfont->id = 0;
-		font = mkfont(subfont, 0);
-		if(font == 0)
-			goto Err;
+		font->n = n;
+		font->height = atoi((char*)buf+18+12);
+		font->ascent = atoi((char*)buf+18+24);
+		font->info = info;
+		font->id = 0;
+		free(buf);
 	}
-	free(buf);
-	
 	label = nlabel;
 	if(label){
 		fd = open("/dev/label", O_RDONLY);
@@ -165,7 +148,6 @@ void
 bclose(void)
 {
 	close(bitbltfd);
-	dontbexit = 1;
 }
 
 void
@@ -173,8 +155,6 @@ bexit(void)
 {
 	int fd;
 
-	if(dontbexit)
-		return;
 	bflush();
 	if(label){
 		fd = creat("/dev/label", 0666);

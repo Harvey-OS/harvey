@@ -11,12 +11,12 @@ int _PRD601(PICFILE *f, void *vbuf){
 	if(f->line==0){
 		f->buf=malloc(f->width*2);
 		if(f->buf==0){
-			werrstr("Can't allocate buffer");
+			_PICerror="Can't allocate buffer";
 			return 0;
 		}
 	}
 	if(f->line==f->height){
-		werrstr("Read past end of picture");
+		_PICerror="Read past end of picture";
 		return 0;
 	}
 	/* read the file */
@@ -28,13 +28,13 @@ int _PWR601(PICFILE *f, void *vbuf){
 	if(f->line==0){
 		f->buf=malloc(f->width*2);
 		if(f->buf==0){
-			werrstr("Can't allocate buffer");
+			_PICerror="Can't allocate buffer";
 			return 0;
 		}
 		_PWRheader(f);
 	}
 	if(f->line>=f->height){
-		werrstr("Write past end of picture");
+		_PICerror="Write past end of picture";
 		return 0;
 	}
 	/* write the file */

@@ -1,87 +1,21 @@
-%%% ====================================================================
-%%%  @BibTeX-style-file{
-%%%     author          = "American Mathematical Society",
-%%%     version         = "1.2",
-%%%     date            = "20-Jan-1995",
-%%%     time            = "09:16:28 EST",
-%%%     filename        = "amsalpha.bst",
-%%%     copyright       = "Copyright (C) 1995 American Mathematical Society,
-%%%                        all rights reserved.  Copying of this file is
-%%%                        authorized only if either:
-%%%                        (1) you make absolutely no changes to your copy,
-%%%                        including name; OR
-%%%                        (2) if you do make changes, you first rename it
-%%%                        to some other name.",
-%%%     address         = "American Mathematical Society,
-%%%                        Technical Support,
-%%%                        Electronic Products and Services,
-%%%                        P. O. Box 6248,
-%%%                        Providence, RI 02940,
-%%%                        USA",
-%%%     telephone       = "401-455-4080 or (in the USA and Canada)
-%%%                        800-321-4AMS (321-4267)",
-%%%     FAX             = "401-331-3842",
-%%%     checksum        = "53335 1382 4093 29480",
-%%%     email           = "tech-support@math.ams.org (Internet)",
-%%%     codetable       = "ISO/ASCII",
-%%%     keywords        = "bibtex, bibliography, amslatex, ams-latex",
-%%%     supported       = "yes",
-%%%     abstract        = "BibTeX bibliography style amsalpha for BibTeX
-%%%                        versions 0.99a or later and LaTeX version 2e.
-%%%                        Produces alphabetic-label bibliography items in
-%%%                        a form typical for American Mathematical Society
-%%%                        publications.",
-%%%     docstring       = "The checksum field above contains a CRC-16
-%%%                        checksum as the first value, followed by the
-%%%                        equivalent of the standard UNIX wc (word
-%%%                        count) utility output of lines, words, and
-%%%                        characters.  This is produced by Robert
-%%%                        Solovay's checksum utility.",
-%%%  }
-%%% ====================================================================
-
-% See the file btxbst.doc for extra documentation other than
-% what is included here.  And see btxhak.tex for a description
-% of the BibTeX language and how to use it.
-
-% This defines the types of fields that can occur in a database entry
-% for this particular bibliography style.  Except for `language',
-% this is the standard list from alpha.bst.
-
-%% Types of entries currently allowed in a BibTeX file:
-%%
-%% ARTICLE -- An article from a journal or magazine.
-%%
-%% BOOK -- A book with an explicit publisher.
-%%
-%% BOOKLET -- A work that is printed and bound,
-%% but without a named publisher or sponsoring institution.
-%%
-%% CONFERENCE -- The same as INPROCEEDINGS,
-%% included for Scribe compatibility.
-%%
-%% INBOOK -- A part of a book,
-%% which may be a chapter (or section or whatever) and/or a range of pages.
-%%
-%% INCOLLECTION -- A part of a book having its own title.
-%%
-%% INPROCEEDINGS -- An article in a conference proceedings.
-%%
-%% MANUAL -- Technical documentation.
-%%
-%% MASTERSTHESIS -- A Master's thesis.
-%%
-%% MISC -- Use this type when nothing else fits.
-%%
-%% PHDTHESIS -- A PhD thesis.
-%%
-%% PROCEEDINGS -- The proceedings of a conference.
-%%
-%% TECHREPORT -- A report published by a school or other institution,
-%% usually numbered within a series.
-%%
-%% UNPUBLISHED -- A document having an author and title, but not formally
-%% published.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSALPHA.BST						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BibTeX standard bibliography style `alpha'
+	% version 0.99a for BibTeX versions 0.99a or later, LaTeX version 2.09.
+	% Copyright (C) 1985, all rights reserved.
+	% Copying of this file is authorized only if either
+	% (1) you make absolutely no changes to your copy, including name, or
+	% (2) if you do make changes, you name it something other than
+	% btxbst.doc, plain.bst, unsrt.bst, alpha.bst, and abbrv.bst.
+	% This restriction helps ensure that all standard styles are identical.
+	% The file btxbst.doc has the documentation for this style.
 
 ENTRY
   { address
@@ -94,7 +28,6 @@ ENTRY
     institution
     journal
     key
-    language
     month
     note
     number
@@ -111,31 +44,87 @@ ENTRY
   {}
   { label extra.label sort.label }
 
-% Removed after.sentence, after.block---not needed.
-
-INTEGERS { output.state before.all mid.sentence }
+INTEGERS { output.state before.all mid.sentence after.sentence after.block }
 
 FUNCTION {init.state.consts}
 { #0 'before.all :=
   #1 'mid.sentence :=
+  #2 'after.sentence :=
+  #3 'after.block :=
 }
-
-% Scratch variables:
 
 STRINGS { s t }
 
-% Utility functions
-
-FUNCTION {shows}
-{ duplicate$ "::::  `" swap$ * "'" * top$
+FUNCTION {output.nonnull}
+{ 's :=
+  output.state mid.sentence =
+    { ", " * write$ }
+    { output.state after.block =
+	{ add.period$ write$
+	  newline$
+	  "\newblock " write$
+	}
+	{ output.state before.all =
+	    'write$
+	    { add.period$ " " * write$ }
+	  if$
+	}
+      if$
+      mid.sentence 'output.state :=
+    }
+  if$
+  s
 }
 
-FUNCTION {showstack}
-{"STACK====================================================================="
-top$
-stack$
-"ENDSTACK=================================================================="
-top$
+FUNCTION {output}
+{ duplicate$ empty$
+    'pop$
+    'output.nonnull
+  if$
+}
+
+FUNCTION {output.check}
+{ 't :=
+  duplicate$ empty$
+    { pop$ "empty " t * " in " * cite$ * warning$ }
+    'output.nonnull
+  if$
+}
+
+FUNCTION {output.bibitem}
+{ newline$
+  "\bibitem[" write$
+  label write$
+  "]{" write$
+  cite$ write$
+  "}" write$
+  newline$
+  ""
+  before.all 'output.state :=
+}
+
+FUNCTION {fin.entry}
+{ add.period$
+  write$
+  newline$
+}
+
+FUNCTION {new.block}
+{ output.state before.all =
+    'skip$
+    { after.block 'output.state := }
+  if$
+}
+
+FUNCTION {new.sentence}
+{ output.state after.block =
+    'skip$
+    { output.state before.all =
+	'skip$
+	{ after.sentence 'output.state := }
+      if$
+    }
+  if$
 }
 
 FUNCTION {not}
@@ -156,6 +145,38 @@ FUNCTION {or}
   if$
 }
 
+FUNCTION {new.block.checka}
+{ empty$
+    'skip$
+    'new.block
+  if$
+}
+
+FUNCTION {new.block.checkb}
+{ empty$
+  swap$ empty$
+  and
+    'skip$
+    'new.block
+  if$
+}
+
+FUNCTION {new.sentence.checka}
+{ empty$
+    'skip$
+    'new.sentence
+  if$
+}
+
+FUNCTION {new.sentence.checkb}
+{ empty$
+  swap$ empty$
+  and
+    'skip$
+    'new.sentence
+  if$
+}
+
 FUNCTION {field.or.null}
 { duplicate$ empty$
     { pop$ "" }
@@ -166,163 +187,11 @@ FUNCTION {field.or.null}
 FUNCTION {emphasize}
 { duplicate$ empty$
     { pop$ "" }
-    { "\emph{" swap$ * "}" * }
+    { "{\em " swap$ * "}" * }
   if$
 }
-
-% n.dashify is used to make sure page ranges get the TeX code
-% (two hyphens) for en-dashes.
-
-FUNCTION {n.dashify}
-{ 't :=
-  ""
-    { t empty$ not }
-    { t #1 #1 substring$ "-" =
-	{ t #1 #2 substring$ "--" = not
-	    { "--" *
-	      t #2 global.max$ substring$ 't :=
-	    }
-	    {   { t #1 #1 substring$ "-" = }
-		{ "-" *
-		  t #2 global.max$ substring$ 't :=
-		}
-	      while$
-	    }
-	  if$
-	}
-	{ t #1 #1 substring$ *
-	  t #2 global.max$ substring$ 't :=
-	}
-      if$
-    }
-  while$
-}
-
-% tie.or.space.connect connects two items with a ~ if the
-% second item is less than 3 letters long, otherwise it just puts an
-% ordinary space.
-
-FUNCTION {tie.or.space.connect}
-{ duplicate$ text.length$ #3 <
-    { "~" }
-    { " " }
-  if$
-  swap$ * *
-}
-
-FUNCTION {add.space.if.necessary}
-{ duplicate$ "" =
-    'skip$
-    { " " * }
-  if$
-}
-
-% either.or.check gives a warning if two mutually exclusive fields
-% were used in the database.
-
-FUNCTION {either.or.check}
-{ empty$
-    'pop$
-    { "can't use both " swap$ * " fields in " * cite$ * warning$ }
-  if$
-}
-
-% output.nonnull is called by output.
-
-FUNCTION {output.nonnull}
-% remove the top item from the stack because it's in the way.
-{ 's :=
-  output.state mid.sentence =
-% If we're in mid-sentence, add a comma to the new top item and write it
-    { ", " * write$ }
-% Otherwise, if we're at the beginning of a bibitem,
-    { output.state before.all =
-% just write out the top item from the stack;
-      'write$
-% and the last alternative is that we're at the end of the current
-% bibitem, so we add a period to the top stack item and write it out.
-        { add.period$ " " * write$ }
-      if$
-      mid.sentence 'output.state :=
-    }
-  if$
-% Put the top item back on the stack that we removed earlier.
-  s
-}
-
-% Output checks to see if the stack top is empty; if not, it
-% calls output.nonnull to write it out.
-
-FUNCTION {output}
-{ duplicate$ empty$
-    'pop$
-    'output.nonnull
-  if$
-}
-
-% Standard warning message for a missing or empty field. For the user
-% we call any such field `missing' without respect to the distinction
-% made by BibTeX between missing and empty.
-
-FUNCTION {missing.warning}
-{ "missing " swap$ * " in " * cite$ * warning$ }
-
-% Output.check is like output except that it gives a warning on-screen
-% if the given field in the database entry is empty.  t is the field
-% name.
-
-FUNCTION {output.check}
-{ 't :=
-  duplicate$ empty$
-    { pop$ t missing.warning }
-    'output.nonnull
-  if$
-}
-
-FUNCTION {output.bibitem}
-{ newline$
-  "\bibitem[" write$
-  label write$
-  "]{" write$
-  cite$ write$
-  "}" write$
-  newline$
-% This empty string is the first thing that will be written
-% the next time write$ is called.  Done this way because each
-% item is saved on the stack until we find out what punctuation
-% should be added after it.  Therefore we need an empty first item.
-  ""
-  before.all 'output.state :=
-}
-
-FUNCTION {fin.entry}
-{ add.period$
-  write$
-  newline$
-}
-
-% Removed new.block, new.block.checka, new.block.checkb, new.sentence,
-% new.sentence.checka, and new.sentence.checkb functions here, since they
-% don't seem to be needed in the AMS style.  Also moved some real
-% basic functions like `and' and 'or' earlier in the file.
 
 INTEGERS { nameptr namesleft numnames }
-
-% The extra section to write out a language field was added
-% for AMSPLAIN.BST.  Not present in plain.bst.
-
-FUNCTION {format.language}
-{ language empty$
-    { "" }
-    { " (" language * ")" * }
-  if$
-}
-
-% This version of format.names puts names in the format
-%
-% First von Last, Jr.
-%
-% (i.e., first name first, no abbreviating to initials).
 
 FUNCTION {format.names}
 { 's :=
@@ -356,11 +225,7 @@ FUNCTION {format.names}
 FUNCTION {format.authors}
 { author empty$
     { "" }
-    { extra.label "\bysame" =
-         {"\bysame"}
-         { author format.names }
-     if$
-    }
+    { author format.names }
   if$
 }
 
@@ -369,20 +234,8 @@ FUNCTION {format.editors}
     { "" }
     { editor format.names
       editor num.names$ #1 >
-	{ " (eds.)" * }
-	{ " (ed.)" * }
-      if$
-    }
-  if$
-}
-
-FUNCTION {format.nonauthor.editors}
-{ editor empty$
-    { "" }
-    { editor format.names
-      editor num.names$ #1 >
-	{ ", eds." * }
-	{ ", ed." * }
+	{ ", editors" * }
+	{ ", editor" * }
       if$
     }
   if$
@@ -391,36 +244,34 @@ FUNCTION {format.nonauthor.editors}
 FUNCTION {format.title}
 { title empty$
     { "" }
-    { title "t" change.case$ emphasize }
+    { title "t" change.case$ }
   if$
 }
 
-FUNCTION {format.journal.vol.year}
-{ journal empty$
-    { "" "journal name" missing.warning }
-    { journal
-      volume empty$
-        'skip$
-        { " \textbf{" * volume * "}" * }
-      if$
-      year empty$
-        { "year" missing.warning }
-        { " (" * year * ")" * }
+FUNCTION {n.dashify}
+{ 't :=
+  ""
+    { t empty$ not }
+    { t #1 #1 substring$ "-" =
+	{ t #1 #2 substring$ "--" = not
+	    { "--" *
+	      t #2 global.max$ substring$ 't :=
+	    }
+	    {   { t #1 #1 substring$ "-" = }
+		{ "-" *
+		  t #2 global.max$ substring$ 't :=
+		}
+	      while$
+	    }
+	  if$
+	}
+	{ t #1 #1 substring$ *
+	  t #2 global.max$ substring$ 't :=
+	}
       if$
     }
-  if$
+  while$
 }
-
-% For formatting the issue number for a journal article.
-
-FUNCTION {format.number}
-{ number empty$
-    { "" }
-    { "no.~" number * }
-  if$
-}
-
-% For formatting miscellaneous dates
 
 FUNCTION {format.date}
 { year empty$
@@ -439,115 +290,55 @@ FUNCTION {format.date}
   if$
 }
 
-%%      The volume, series and number information is sort of tricky.
-%%      This code handles it as follows:
-%%      If the series is present, and the volume, but not the number,
-%%        then we do "\emph{Book title}, Series Name, vol. 000"
-%%      If the series is present, and the number, but not the volume,
-%%        then we do "\emph{Book title}, Series Name, no. 000"
-%%      If the series is present, and both number and volume,
-%%        then we do "\emph{Book title}, vol. XX, Series Name, no. 000"
-%%      Finally, if the series is absent,
-%%        then we do "\emph{Book title}, vol. XX"
-%%        or         "\emph{Book title}, no. 000"
-%%        and if both volume and number are present, give a warning message.
+FUNCTION {format.btitle}
+{ title emphasize
+}
 
-FUNCTION {format.bookvolume.series.number}
+FUNCTION {tie.or.space.connect}
+{ duplicate$ text.length$ #3 <
+    { "~" }
+    { " " }
+  if$
+  swap$ * *
+}
+
+FUNCTION {either.or.check}
+{ empty$
+    'pop$
+    { "can't use both " swap$ * " fields in " * cite$ * warning$ }
+  if$
+}
+
+FUNCTION {format.bvolume}
 { volume empty$
-    { "" % Push the empty string as a placeholder in case everything else
-         % is empty too.
+    { "" }
+    { "volume" volume tie.or.space.connect
       series empty$
-        'skip$
-        { pop$ series } % if series is not empty put in stack
+	'skip$
+	{ " of " * series emphasize * }
       if$
-      number empty$
-        'skip$
-        { duplicate$ empty$ % if no preceding material,
-            'skip$          % do nothing, otherwise
-            { ", " * }      % add a comma and space to separate.
-          if$
-          "no." number tie.or.space.connect * % add the number information
-        }
-      if$
-    }
-%% If the volume is NOT EMPTY:
-    { "vol." volume tie.or.space.connect % vol. XX
-      number empty$
-        { series empty$
-            'skip$
-            { series ", " * swap$ *}    % Series Name, vol. XX
-          if$
-        }
-        { series empty$
-            { "can't use both volume and number if series info is missing"
-              warning$
-              "in BibTeX entry type `" type$ * "'" * top$
-            }
-            { ", " * series * ", no." * number tie.or.space.connect }
-          if$
-        }
-      if$
+      "volume and number" number either.or.check
     }
   if$
-
-}  % end of format.bookvolume.series.number
-
-%% format.inproc.title.where.editors is used by inproceedings entry types
-
-FUNCTION {format.inproc.title.address.editors}
-{ booktitle empty$
-    { "" }
-%%      No case changing or emphasizing for the title.  We want initial
-%%      caps, roman.
-    { booktitle }
-  if$
-%%      We add parentheses around the address (place where conference
-%%      was held).
-  address empty$
-    'skip$
-    { add.space.if.necessary "(" * address * ")" * }
-  if$
-%%      Likewise we add parentheses around the editors' names.
-  editor empty$
-    'skip$
-    { add.space.if.necessary "(" * format.nonauthor.editors * ")" * }
-  if$
 }
-
-%% format.incoll.title.editors is similar to format.inproc... but
-%% omits the address. For collections that are not proceedings volumes.
-
-FUNCTION {format.incoll.title.editors}
-{ booktitle empty$
-    { "" }
-%%      No case changing or emphasizing for the title.  We want initial
-%%      caps, roman.
-    { booktitle }
-  if$
-%%      We add parentheses around the editors' names.
-  editor empty$
-    'skip$
-    { add.space.if.necessary "(" * format.nonauthor.editors * ")" * }
-  if$
-}
-
-% Desired output for format.number.series:
-%
-% Lecture Notes in Math., no.~1224
 
 FUNCTION {format.number.series}
-{ series empty$
+{ volume empty$
     { number empty$
-        { "" }
-        { "there's a number but no series in " cite$ * warning$ }
+	{ series field.or.null }
+	{ output.state mid.sentence =
+	    { "number" }
+	    { "Number" }
+	  if$
+	  number tie.or.space.connect
+	  series empty$
+	    { "there's a number but no series in " cite$ * warning$ }
+	    { " in " * series * }
+	  if$
+	}
       if$
     }
-    { series
-      number empty$
-        'skip$
-        { ", no.~" * number * }
-      if$
-    }
+    { "" }
   if$
 }
 
@@ -555,8 +346,8 @@ FUNCTION {format.edition}
 { edition empty$
     { "" }
     { output.state mid.sentence =
-	{ edition "l" change.case$ " ed." * }
-	{ edition "t" change.case$ " ed." * }
+	{ edition "l" change.case$ " edition" * }
+	{ edition "t" change.case$ " edition" * }
       if$
     }
   if$
@@ -587,16 +378,30 @@ FUNCTION {multi.page.check}
 FUNCTION {format.pages}
 { pages empty$
     { "" }
-    { pages n.dashify }
+    { pages multi.page.check
+	{ "pages" pages n.dashify tie.or.space.connect }
+	{ "page" pages tie.or.space.connect }
+      if$
+    }
   if$
 }
 
-FUNCTION {format.book.pages}
-{ pages empty$
-    { "" }
-    { pages multi.page.check
-	{ "pp.~" pages n.dashify * }
-	{ "p.~" pages * }
+FUNCTION {format.vol.num.pages}
+{ volume field.or.null
+  number empty$
+    'skip$
+    { "(" number * ")" * *
+      volume empty$
+	{ "there's a number but no volume in " cite$ * warning$ }
+	'skip$
+      if$
+    }
+  if$
+  pages empty$
+    'skip$
+    { duplicate$ empty$
+	{ pop$ format.pages }
+	{ ":" * pages n.dashify * }
       if$
     }
   if$
@@ -606,13 +411,24 @@ FUNCTION {format.chapter.pages}
 { chapter empty$
     'format.pages
     { type empty$
-	{ "ch.~" }
-	{ type "l" change.case$ " " * }
+	{ "chapter" }
+	{ type "l" change.case$ }
       if$
-      chapter *
+      chapter tie.or.space.connect
       pages empty$
 	'skip$
-	{ ", " * format.book.pages * }
+	{ ", " * format.pages * }
+      if$
+    }
+  if$
+}
+
+FUNCTION {format.in.ed.booktitle}
+{ booktitle empty$
+    { "" }
+    { editor empty$
+	{ "In " booktitle emphasize * }
+	{ "In " format.editors * ", " * booktitle emphasize * }
       if$
     }
   if$
@@ -639,7 +455,7 @@ FUNCTION {format.thesis.type}
 
 FUNCTION {format.tr.number}
 { type empty$
-    { "Tech. Report" }
+    { "Technical Report" }
     'type
   if$
   number empty$
@@ -648,10 +464,6 @@ FUNCTION {format.tr.number}
   if$
 }
 
-% The format.crossref functions haven't been paid much attention
-% at the present time (June 1990) and could probably use some
-% work.  MJD
-
 FUNCTION {format.article.crossref}
 { key empty$
     { journal empty$
@@ -659,7 +471,7 @@ FUNCTION {format.article.crossref}
 	  warning$
 	  ""
 	}
-	{ "In " journal * }
+	{ "In {\em " journal * "\/}" * }
       if$
     }
     { "In " key * }
@@ -689,7 +501,7 @@ FUNCTION {format.book.crossref}
     { "empty volume in " cite$ * "'s crossref of " * crossref * warning$
       "In "
     }
-    { "Vol." volume tie.or.space.connect
+    { "Volume" volume tie.or.space.connect
       " of " *
     }
   if$
@@ -702,7 +514,7 @@ FUNCTION {format.book.crossref}
 	      crossref * warning$
 	      "" *
 	    }
-	    { series * }
+	    { "{\em " * series * "\/}" * }
 	  if$
 	}
 	{ key * }
@@ -723,7 +535,7 @@ FUNCTION {format.incoll.inproc.crossref}
 	      crossref * warning$
 	      ""
 	    }
-	    { "In \emph{" booktitle * "}" * }
+	    { "In {\em " booktitle * "\/}" * }
 	  if$
 	}
 	{ "In " key * }
@@ -734,27 +546,22 @@ FUNCTION {format.incoll.inproc.crossref}
   " \cite{" * crossref * "}" *
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% The main functions for each entry type.
-
-% journal, vol and year are formatted together because they are
-% not separated by commas.
-
 FUNCTION {article}
 { output.bibitem
   format.authors "author" output.check
+  new.block
   format.title "title" output.check
+  new.block
   crossref missing$
-    { format.journal.vol.year "journal, volume, and year" output.check
-      format.number output
-      format.pages "pages" output.check
+    { journal emphasize "journal" output.check
+      format.vol.num.pages output
+      format.date "year" output.check
     }
     { format.article.crossref output.nonnull
       format.pages output
     }
   if$
-  format.language *
+  new.block
   note output
   fin.entry
 }
@@ -770,18 +577,23 @@ FUNCTION {book}
       if$
     }
   if$
-  format.title "title" output.check
-  format.edition output
+  new.block
+  format.btitle "title" output.check
   crossref missing$
-    { format.bookvolume.series.number output
+    { format.bvolume output
+      new.block
+      format.number.series output
+      new.sentence
       publisher "publisher" output.check
       address output
     }
-    { format.book.crossref output.nonnull
+    { new.block
+      format.book.crossref output.nonnull
     }
   if$
+  format.edition output
   format.date "year" output.check
-  format.language *
+  new.block
   note output
   fin.entry
 }
@@ -789,10 +601,13 @@ FUNCTION {book}
 FUNCTION {booklet}
 { output.bibitem
   format.authors output
+  new.block
   format.title "title" output.check
+  howpublished address new.block.checkb
   howpublished output
   address output
   format.date output
+  new.block
   note output
   fin.entry
 }
@@ -808,22 +623,25 @@ FUNCTION {inbook}
       if$
     }
   if$
-  title "title" output.check
+  new.block
+  format.btitle "title" output.check
   crossref missing$
-    { format.bookvolume.series.number output
+    { format.bvolume output
       format.chapter.pages "chapter and pages" output.check
+      new.block
       format.number.series output
+      new.sentence
       publisher "publisher" output.check
       address output
     }
     { format.chapter.pages "chapter and pages" output.check
+      new.block
       format.book.crossref output.nonnull
     }
   if$
   format.edition output
   format.date "year" output.check
-  format.book.pages output
-  format.language *
+  new.block
   note output
   fin.entry
 }
@@ -831,41 +649,60 @@ FUNCTION {inbook}
 FUNCTION {incollection}
 { output.bibitem
   format.authors "author" output.check
+  new.block
   format.title "title" output.check
+  new.block
   crossref missing$
-    { format.inproc.title.address.editors "booktitle" output.check
-      format.bookvolume.series.number output
+    { format.in.ed.booktitle "booktitle" output.check
+      format.bvolume output
+      format.number.series output
+      format.chapter.pages output
+      new.sentence
       publisher "publisher" output.check
       address output
       format.edition output
       format.date "year" output.check
     }
     { format.incoll.inproc.crossref output.nonnull
+      format.chapter.pages output
     }
   if$
+  new.block
   note output
-  format.book.pages output
-  format.language *
   fin.entry
 }
 
 FUNCTION {inproceedings}
 { output.bibitem
   format.authors "author" output.check
+  new.block
   format.title "title" output.check
+  new.block
   crossref missing$
-    { format.inproc.title.address.editors "booktitle" output.check
-      format.bookvolume.series.number output
-      organization output
-      publisher output
-      format.date "year" output.check
+    { format.in.ed.booktitle "booktitle" output.check
+      format.bvolume output
+      format.number.series output
+      format.pages output
+      address empty$
+	{ organization publisher new.sentence.checkb
+	  organization output
+	  publisher output
+	  format.date "year" output.check
+	}
+	{ address output.nonnull
+	  format.date "year" output.check
+	  new.sentence
+	  organization output
+	  publisher output
+	}
+      if$
     }
     { format.incoll.inproc.crossref output.nonnull
+      format.pages output
     }
   if$
+  new.block
   note output
-  format.book.pages output
-  format.language *
   fin.entry
 }
 
@@ -883,19 +720,24 @@ FUNCTION {manual}
     }
     { format.authors output.nonnull }
   if$
-  format.title "title" output.check
+  new.block
+  format.btitle "title" output.check
   author empty$
     { organization empty$
-	{ address output }
+	{ address new.block.checka
+	  address output
+	}
 	'skip$
       if$
     }
-    { organization output
+    { organization address new.block.checkb
+      organization output
       address output
     }
   if$
   format.edition output
   format.date output
+  new.block
   note output
   fin.entry
 }
@@ -903,11 +745,14 @@ FUNCTION {manual}
 FUNCTION {mastersthesis}
 { output.bibitem
   format.authors "author" output.check
+  new.block
   format.title "title" output.check
+  new.block
   "Master's thesis" format.thesis.type output.nonnull
   school "school" output.check
   address output
   format.date "year" output.check
+  new.block
   note output
   fin.entry
 }
@@ -915,11 +760,13 @@ FUNCTION {mastersthesis}
 FUNCTION {misc}
 { output.bibitem
   format.authors output
+  title howpublished new.block.checkb
   format.title output
+  howpublished new.block.checka
   howpublished output
   format.date output
+  new.block
   note output
-  format.book.pages output
   fin.entry
   empty.misc.check
 }
@@ -927,13 +774,15 @@ FUNCTION {misc}
 FUNCTION {phdthesis}
 { output.bibitem
   format.authors "author" output.check
-  format.title "title" output.check
-  "Ph.D. thesis" format.thesis.type output.nonnull
+  new.block
+  format.btitle "title" output.check
+  new.block
+  "PhD thesis" format.thesis.type output.nonnull
   school "school" output.check
   address output
   format.date "year" output.check
+  new.block
   note output
-  format.book.pages output
   fin.entry
 }
 
@@ -943,25 +792,31 @@ FUNCTION {proceedings}
     { organization output }
     { format.editors output.nonnull }
   if$
-  format.title "title" output.check
-  format.bookvolume.series.number output
+  new.block
+  format.btitle "title" output.check
+  format.bvolume output
+  format.number.series output
   address empty$
     { editor empty$
-        'skip$
-	{ organization output }
+	{ publisher new.sentence.checka }
+	{ organization publisher new.sentence.checkb
+	  organization output
+	}
       if$
       publisher output
       format.date "year" output.check
     }
     { address output.nonnull
+      format.date "year" output.check
+      new.sentence
       editor empty$
 	'skip$
 	{ organization output }
       if$
       publisher output
-      format.date "year" output.check
     }
   if$
+  new.block
   note output
   fin.entry
 }
@@ -969,11 +824,14 @@ FUNCTION {proceedings}
 FUNCTION {techreport}
 { output.bibitem
   format.authors "author" output.check
+  new.block
   format.title "title" output.check
+  new.block
   format.tr.number output.nonnull
   institution "institution" output.check
   address output
   format.date "year" output.check
+  new.block
   note output
   fin.entry
 }
@@ -981,7 +839,9 @@ FUNCTION {techreport}
 FUNCTION {unpublished}
 { output.bibitem
   format.authors "author" output.check
+  new.block
   format.title "title" output.check
+  new.block
   note "note" output.check
   format.date output
   fin.entry
@@ -1012,6 +872,47 @@ MACRO {oct} {"October"}
 MACRO {nov} {"November"}
 
 MACRO {dec} {"December"}
+
+MACRO {acmcs} {"ACM Computing Surveys"}
+
+MACRO {acta} {"Acta Informatica"}
+
+MACRO {cacm} {"Communications of the ACM"}
+
+MACRO {ibmjrd} {"IBM Journal of Research and Development"}
+
+MACRO {ibmsj} {"IBM Systems Journal"}
+
+MACRO {ieeese} {"IEEE Transactions on Software Engineering"}
+
+MACRO {ieeetc} {"IEEE Transactions on Computers"}
+
+MACRO {ieeetcad}
+ {"IEEE Transactions on Computer-Aided Design of Integrated Circuits"}
+
+MACRO {ipl} {"Information Processing Letters"}
+
+MACRO {jacm} {"Journal of the ACM"}
+
+MACRO {jcss} {"Journal of Computer and System Sciences"}
+
+MACRO {scp} {"Science of Computer Programming"}
+
+MACRO {sicomp} {"SIAM Journal on Computing"}
+
+MACRO {tocs} {"ACM Transactions on Computer Systems"}
+
+MACRO {tods} {"ACM Transactions on Database Systems"}
+
+MACRO {tog} {"ACM Transactions on Graphics"}
+
+MACRO {toms} {"ACM Transactions on Mathematical Software"}
+
+MACRO {toois} {"ACM Transactions on Office Information Systems"}
+
+MACRO {toplas} {"ACM Transactions on Programming Languages and Systems"}
+
+MACRO {tcs} {"Theoretical Computer Science"}
 
 READ
 
@@ -1348,8 +1249,6 @@ FUNCTION {begin.bib}
     'skip$
     { preamble$ write$ newline$ }
   if$
-  "\providecommand{\bysame}{\leavevmode\hbox to3em{\hrulefill}\thinspace}"
-       write$ newline$
   "\begin{thebibliography}{"  longest.label  * "}" * write$ newline$
 }
 
@@ -1365,18 +1264,3 @@ FUNCTION {end.bib}
 }
 
 EXECUTE {end.bib}
-%% \CharacterTable
-%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
-%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
-%%   Digits        \0\1\2\3\4\5\6\7\8\9
-%%   Exclamation   \!     Double quote  \"     Hash (number) \#
-%%   Dollar        \$     Percent       \%     Ampersand     \&
-%%   Acute accent  \'     Left paren    \(     Right paren   \)
-%%   Asterisk      \*     Plus          \+     Comma         \,
-%%   Minus         \-     Point         \.     Solidus       \/
-%%   Colon         \:     Semicolon     \;     Less than     \<
-%%   Equals        \=     Greater than  \>     Question mark \?
-%%   Commercial at \@     Left bracket  \[     Backslash     \\
-%%   Right bracket \]     Circumflex    \^     Underscore    \_
-%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
-%%   Right brace   \}     Tilde         \~}

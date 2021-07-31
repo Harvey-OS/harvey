@@ -1,0 +1,349 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMLTINST.TEX						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% A file for instructions for installation of AMS-LaTeX macro package.
+%%
+\documentstyle{report}
+\textheight 46pc
+\textwidth 30.5pc
+\def\thesection {\arabic{section}}
+
+\newcommand{\amstex}{{\the\textfont2 A}\kern-.1667em\lower.5ex\hbox
+ {\the\textfont2 M}\kern-.125em{\the\textfont2 S}-\TeX}
+\newcommand{\amslatex}{{\the\textfont2 A}\kern-.1667em\lower.5ex\hbox
+ {\the\textfont2 M}\kern-.125em{\the\textfont2 S}-\LaTeX}
+
+\newcommand{\usertype}[1]{\vspace{3pt plus 3pt}\centerline{%
+                                #1}\vspace{3pt plus 3pt}}
+
+% Define a control sequence to enable the @ sign to be typeset regardless
+% of whether this document is being run under AMS-LaTeX or standard LaTeX.
+{\catcode`\@=12
+\gdef\atsign/{@}}
+
+\begin{document}
+
+\centerline{\huge Installation Guide for \amslatex\ 1.0}
+\vspace{-8pt}
+
+\section{Introduction}
+
+The \amslatex\ Version 1.0 macro package is a group of files which are 
+designed to provide some of the capabilities of \amstex\ within the 
+\LaTeX\ environment.
+
+\amslatex\ can be used with any full implementation of \TeX. See the {\it
+\amslatex\ User's Guide}
+for a listing of recommended \TeX\ capacities for using this package.
+
+If you do not have a recent version of the file \verb+latex.tex+, then you 
+may have difficulty using the \amslatex\ package. Checking the version
+number is not sufficient; there have been several releases called Version 2.09.
+At the top of the file, next to the Version number (probably version 2.09),
+your \verb+latex.tex+ contains a date. That date must {\it not} be earlier than
+May 1986.
+If your version is earlier than May 1986, then you must obtain a more
+recent version.
+
+\section{Files included in this distribution}
+
+The subdirectory \verb+doc+
+contains the following files:
+
+{\tt
+\begin{center}
+\begin{tabular}{l@{\hspace{3em}}l@{\hspace{3em}}l}
+amltinst.tex&
+amsart.doc&
+amsart10.doc\\
+amsbk10.doc&
+amsbook.doc&
+amslatex.tex\\
+app.tex&
+chap1.tex&
+chap2.tex\\
+extradef.tex&
+pref.tex&
+test.bib\\
+testart.bbl&
+testart.tex&
+testbook.bbl\\
+testbook.tex&
+theorem.doc&
+verbatim.doc\\
+\end{tabular}
+\end{center}
+}
+
+\smallskip
+\noindent The subdirectory \verb+fontsel+ contains the following files:
+
+{\tt
+\begin{center}
+\begin{tabular}{l@{\hspace{3em}}l@{\hspace{3em}}l}
+array.sty&
+basefont.tex&
+concrete.doc\\
+concrete.sty&
+euscript.sty&
+fontdef.max\\
+fontdef.ori&
+fontsel.bug&
+fontsel.tex\\
+lfonts.new&
+margid.sty&
+newlfont.sty\\
+nomargid.sty&
+oldlfont.sty&
+preload.med\\
+preload.min&
+preload.ori&
+readme.mz3\\
+syntonly.sty&
+tracefnt.sty&
+\end{tabular}
+\end{center}
+}
+
+\smallskip
+\noindent The subdirectory \verb+inputs+ contains the following files:
+
+
+{\tt
+\begin{center}
+\begin{tabular}{l@{\hspace{3em}}l@{\hspace{3em}}l}
+amsalpha.bst&
+amsart.sty&
+amsart10.sty\\
+amsart11.sty&
+amsart12.sty&
+amsbk10.sty\\
+amsbk11.sty&
+amsbk12.sty&
+amsbook.sty\\
+amsbsy.sty&
+amscd.sty&
+amsfonts.sty\\
+amsplain.bst&
+amssymb.sty&
+amstex.sty\\
+amstext.sty&
+ctagsplt.sty&
+fontdef.ams\\
+intlim.sty&
+mrabbrev.bib&
+nonamelm.sty\\
+nosumlim.sty&
+preload.max&
+righttag.sty\\
+theorem.sty&
+thp.sty&
+verbatim.sty\\
+\end{tabular}
+\end{center}
+}
+
+\medskip
+
+\goodbreak
+\section{Copying files to the appropriate directories}
+
+All the files in the \verb+doc+ subdirectory can be copied to any  documentation
+directory or other directory where you would like to keep them. 
+
+The files in the \verb+inputs+ subdirectory and the \verb+fontsel+ subdirectory
+should all be copied to the directory where your implementation of \TeX\ looks
+for input files. 
+
+\section{What the various files are for}
+
+Once the files have been copied to the appropriate places, the
+main ones of interest will be:
+\[\begin{tabular}{ll}
+$\left.\begin{tabular}{l}
+lfonts.new\\ fontdef.*\\ preload.*\\ basefont.tex
+\end{tabular}\right\}$&
+        Used in creating a new \LaTeX\ format file\\[6pt]
+\ \ amstex.sty&
+        \LaTeX\ documentstyle option file\\[3pt]
+\ \ amsart.sty&
+        Main documentstyle for AMS article formatting\\[3pt]
+\ \ amsbook.sty&
+        Main documentstyle for AMS book formatting\\[3pt]
+\ \ amslatex.tex&
+        {\it\amslatex\ User's Guide}\\[6pt]
+$\left.\begin{tabular}{l}
+app.tex\\ chap*.tex\\ pref.tex\\ test*.*
+\end{tabular}\right\}$&
+Examples
+\end{tabular}\]
+
+Use of the \amslatex\ package is dependent on the font selection scheme of
+Mittelbach and Sch\"opf described in {\it TUGboat} {\bf 11}, no.~2, June
+1990, pp.~297--305. 
+This means that you need to receive a new \LaTeX\ format file based on
+Mittelbach and Sch\"opf's scheme (some of the distributors of \TeX\ will
+provide this), or make one yourself (instructions follow), using {\sc initex},
+a version of \TeX\ with no preloaded format which is included with most
+implementations of \TeX.
+
+The {\it User's Guide} file \verb+amslatex.tex+ can be typeset using the old
+\LaTeX\ format file \verb+lplain.fmt+, so if you want to you can typeset it
+using \LaTeX\  in the usual way and read it before proceeding further.  It
+gives a general description of the \amslatex\ project and the features
+available to users.
+
+\section{Making a new format file}
+
+In order to create a new \LaTeX\ format file that uses the new font selection
+scheme, you must first rename the file \verb+lfonts.tex+ which was distributed
+with your original \LaTeX\ distribution to another name. This file is in the
+directory where your implementation of \TeX\ looks for input files; e.g. for
+PC\TeX\ it would be  \verb+\pctex\texinput+. You want to name it something 
+such as \verb+olfonts.tex+ (``O'' for ``original'').  You may also want to
+rename the file \verb+lplain.fmt+, in the directory where your \TeX\ looks for
+format files, to \verb+olplain.fmt+,  if you want to continue to be able to use
+the old version of \LaTeX\ as well as the new version.
+
+Then follow the directions for creating a new \LaTeX\ format file, using  {\sc
+initex}, in the documentation for your implementation of \TeX. The directions
+will vary from one implementation of \TeX\ to another, but what you want to do
+is \TeX\ the file \verb+lplain.tex+ using the {\sc initex} option. 
+(\verb+lplain.tex+ is a standard \LaTeX\ file which should already be installed
+on your system.  It is not included with this distribution.)
+
+After some initial processing, {\sc initex} will stop and ask for another
+filename because it cannot find the file \verb+lfonts.tex+. (Remember, you
+renamed it according to the first paragraph of this section.) When it stops, 
+just type 
+
+\usertype{lfonts.new}
+
+\noindent in response to the prompt (``Please type another input file name'') and
+continue.  There are three other files that will be input in a similar
+way. They are indicated in the following table:
+\begin{eqnarray*}
+\mbox{In place of:}&& \mbox{Substitute:}\\
+\mbox{fontdef.tex}&& \left\{
+\begin{tabular}{lp{16pc}}
+% We use \rightskip here instead of \raggedright because
+% \raggedright causes problems with \\ commands.
+fontdef.ori& \rightskip0pt plus3em
+             If you want to use only CM and \LaTeX\ fonts.\\
+fontdef.ams& \rightskip0pt plus3em
+             If you want to use the basic math fonts from
+             the AMSFonts 2.0 collection (Euler Fraktur, bold math,
+             extra math symbols MSAM and MSBM).\\
+fontdef.max& \rightskip0pt plus3em 
+             If you want to use other AMSFonts (Euler Roman or
+             Script, cyrillic text fonts), or Concrete fonts.
+\end{tabular}\right.\\ % end of second line of eqnarray
+\mbox{preload.tex}&& \left\{
+\begin{tabular}{lp{16pc}}
+preload.min& \rightskip0pt plus3em 
+             To preload fewer fonts (uses less font memory,
+             but may increase processing time).\\
+preload.ori& \rightskip0pt plus3em 
+             To preload all basic \LaTeX\ fonts (leaves less
+             memory for other fonts, faster processing time).
+\end{tabular}\right.\\ % end of third line of eqnarray
+\mbox{xxxlfont.sty}&& \left\{
+\begin{tabular}{lp{16pc}}
+basefont.tex& \rightskip0pt plus3em If you intend to use AMSFonts 2.0.\\
+newlfont.sty& \rightskip0pt plus3em If you don't intend to use AMSFonts 2.0.
+\end{tabular}\right.
+\end{eqnarray*}
+\chardef\bsl=`\\
+Note: When basefont.tex is used the following math symbols will be
+undefined: {\tt\bsl mho},  {\tt\bsl Join},  {\tt\bsl
+Box},  {\tt\bsl Diamond},  {\tt\bsl leadsto},  {\tt\bsl lhd}, 
+{\tt\bsl unlhd},  {\tt\bsl rhd}, and {\tt\bsl unrhd}.  Alternate
+versions of all these symbols exist in the AMSFonts math symbol fonts
+(which presumably you have, if you used basefont.tex) and they can be
+defined using {\tt\bsl newsymbol}.  See the {\it User's Guide}.
+
+After quite a bit of further processing you will wind up at a * prompt,
+whereupon you type 
+
+\vskip-6pt
+\usertype{$\backslash$dump}
+
+\noindent and return.  You will now have a file called \verb+lplain.fmt+.
+Depending on your implementation of \TeX, this file may be in the directory
+where \TeX\ looks for format files or it may be in the currently connected
+directory. If the latter is true, you must copy it to the directory where \TeX\
+will look for format files (see your \TeX's documentation for the name of that
+directory).
+
+You might also want to copy the transcript file \verb+lplain.log+ into the
+directory with the format file, for future reference.
+
+\section{Using the new format file}
+
+The test files \verb+testart.tex+ and \verb+testbook.tex+, and the other files
+in the \verb+doc+ subdirectory which they input, are useful for testing your
+new \verb+lplain.fmt+ format file.
+
+You can use your new format file to typeset them,
+following the instructions for using a format file with your implementation of
+\TeX. For example, with PC\TeX\ and many other implementations of \TeX, the
+command would be
+
+\usertype{tex\ \ \&lplain\ \ testart.tex\quad\quad ({\it or\/} testbook.tex)}
+
+\noindent but it may be different for your implementation. These are examples
+of using the \verb+amsart+ and \verb+amsbook+ style options.
+
+
+\section{Using the old format file}
+
+Some of your old \LaTeX\ files may be incompatible with the new format
+file. If you find this to be the case, you can ordinarily typeset such
+a file by adding ``{\tt oldlfont}'' to the documentstyle options list.
+Alternatively, of course, you could use the old \LaTeX\ format file
+instead of the new one.  Assuming you saved the previous
+\verb+lplain.fmt+  file under the name \verb+olplain.fmt+, you would
+use ``\&olplain'' instead of  ``\&lplain'' in the command line.
+
+
+\section{Typesetting the {\it User's Guide}}
+
+The file \verb+amslatex.tex+ is the source file for the {\it \amslatex\
+User's Guide}.  If you haven't already done so, you should now typeset this file
+using either of the methods described above.  (Remember that
+\verb+amslatex.tex+ can be typeset using either the old or the new format
+file.)  It is essential that you read through the {\it User's Guide\/} before
+attempting to use the \amslatex\ package.
+
+
+\section{Getting Help}
+
+Questions or comments concerning \amslatex\ 
+can be directed to:
+
+
+\vskip1pc
+\parindent1in\parskip0pt
+
+Technical Support
+
+American Mathematical Society
+
+201 Charles Street
+
+P.O. Box 6248
+
+Providence, RI 02940
+
+800-321-4AMS (321-4267)\quad or \quad 401-455-4080
+
+Internet: tech-support\atsign/Math.AMS.com
+
+\end{document}

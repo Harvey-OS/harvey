@@ -122,7 +122,7 @@ Dconv(void *o, Fconv *fp)
 		break;
 
 	case D_FCONST:
-		sprint(str, "$(%.17e)", a->dval);
+		sprint(str, "$(%g)", a->dval);
 		break;
 
 	case D_SCONST:

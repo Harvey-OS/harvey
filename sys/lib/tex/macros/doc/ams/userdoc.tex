@@ -1,0 +1,1365 @@
+% USERDOC.TEX						February 1990
+%
+% A documentation file for use of AMSFonts 2.0, called AMSFonts User's Guide.
+% To TeX this file, you will need the files USERDOC.DEF, USERDOC.CYR, 
+%        and USERDOC.FNT.
+% 
+% NOTE: This file should be typeset using Plain TeX, NOT AMS-TeX or LaTeX.
+% 
+% American Mathematical Society, Technical Support Group, P. O. Box 6248,
+%        Providence, RI 02940
+% 800-321-4AMS or 401-455-4080;  Internet: Tech-Support@Math.AMS.com
+%
+\input userdoc.def
+\input amssym.def
+\input amssym
+\parskip=\smallskipamount
+
+\def\amstexreleasedate{January 1990}
+\def\fontsreleasedate{January 1990}
+
+\pageno=1
+\def\ppcontents{1}
+\def\pphistory{6}
+\def\ppAMSTeX{8}
+\def\ppnonAMSTeX{11}
+\def\ppcyrillic{13}
+\def\ppsymbols{17}
+\def\ppfurtherinfo{22}
+\def\ppreflist{23}
+
+\makeatletter
+\def\@period{.}
+\def\@gobble#1{}
+\def\furtherinfo{\futurelet\test@period\check@period}
+\def\check@period{the section {\bf For further information}%
+  \ifx\test@period .\def\next{.\@gobble}\else \def\next{''}\fi \next }
+
+\def\@Note #1{\def\endx{\ifhmode \unskip\endgraf \fi \endgroup }%
+  \ifdim\lastskip>\medskipamount \else \removelastskip\medskip \fi
+  \begingroup
+  \leftskip=3pc \rightskip=\leftskip
+  \interlinepenalty=10000
+  \noindent
+  {\bf\ignorespaces#1\unskip: } \ignorespaces }
+\def\Note{\@Note{Note}}
+\def\Warn{\@Note{Warning}}
+
+\def\<#1>{$\langle${\rm #1\/}$\rangle$}
+
+\def\filename#1{\leavevmode\hbox{\tt\ignorespaces#1\unskip}}
+\def\fontname#1{\leavevmode\hbox{\ignorespaces#1\unskip}}       
+\makeatother
+
+\input cyracc.def
+\font\tencyr=wncyr10
+\def\cyr{\tencyr\cyracc}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\maintitle AMSFonts Version 2.0\Dash User's Guide\\
+  \fontsreleasedate<
+
+Standard distributions of \TeX{} ordinarily come with all the fonts
+specified in |PLAIN.TEX|, and they may also come with a number of
+additional fonts intended for use with \LaTeX.  Additional fonts
+designed for use in mathematics and defined in \AmSTeX{} are not always
+included among such font collections.  For this reason, the \AMS{} has
+compiled a collection, known as AMSFonts, which contains fonts of
+symbols and several alphabets corresponding to symbols and alphabets
+used in AMS publications, including the MathSci online database.
+
+\Warn  The fonts in this collection are suitable for use with
+  \AmSTeX{} Version~2.0, but are not compatible with earlier versions
+  of \AmSTeX.  If you are using an older version of \AmSTeX{} and are
+  intending to use fonts from this Version~2.0 collection, you should
+  obtain a new version of \AmSTeX, if you haven't already done so.
+  Similarly, earlier versions of this collection are not compatible
+  with \AmSTeX{} Version~2.0.
+\endx
+
+
+\section Contents of this document
+
+\begingroup
+\parfillskip=\normalparindent
+\parindent=\normalparindent
+
+\item{\bull} Contents of the AMSFonts collection \dotsfill\ \ppcontents{}
+
+\item{\bull} History of these fonts \dotsfill\ \pphistory{}
+
+\item{\bull} How to use AMSFonts 2.0 with \AmSTeX{} 2.0 \dotsfill\ \ppAMSTeX{}
+
+\item{\bull} How to use AMSFonts 2.0 without \AmSTeX{}
+  \dotsfill\ \ppnonAMSTeX{}
+
+\item{\bull} Installing and using cyrillic \dotsfill\ \ppcyrillic{}
+
+\item{\bull} Installing and using the extra symbols \dotsfill\ \ppsymbols{}
+
+\item{\bull} For further information \dotsfill\ \ppfurtherinfo{}
+
+\item{\bull} References \dotsfill\ \ppreflist{}
+
+\endgroup
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title Contents of the AMSFonts collection
+
+The AMSFonts collection contains the following fonts, in the sizes
+indicated:
+
+\begingroup
+\raggedright
+\parskip=0pt
+\item{\bull} The Euler family, all but \fontname{EUEX} in 5, 6, 7, 8, 9,
+  and 10 point:
+\itemitem{--} Fraktur (German), medium-weight and bold (\fontname{EUFM}
+  and \fontname{EUFB})
+\itemitem{--} ``Roman'' cursive, medium-weight and bold (\fontname{EURM}
+  and \fontname{EURB})
+\itemitem{--} Script, medium-weight and bold (\fontname{EUSM} and
+  \fontname{EUSB})
+\itemitem{--} Euler-compatible extension font (\fontname{EUEX}),
+  in 7, 8, 9, and 10 point
+
+\item{\bull} Additional sizes of some Computer Modern math fonts
+  (the 10-point fonts are included in standard \TeX\ distributions):
+\itemitem{--} bold math italic (\fontname{CMMIB}), in 5, 6, 7, 8, and 9 point
+\itemitem{--} bold math symbols (\fontname{CMBSY}), in 5, 6, 7, 8, and 9 point
+\itemitem{--} math extension font (\fontname{CMEX}), in 7, 8, and 9 point
+              (the 10-point font is included in standard \TeX\ distributions)
+
+\item{\bull} Extra math symbols, in 5, 6, 7, 8, 9, and 10 point:
+\itemitem{--} first series, medium-weight (\fontname{MSAM})
+\itemitem{--} second series, including Blackboard Bold, medium-weight
+  (\fontname{MSBM})
+
+\item{\bull} Cyrillic, developed at the University of Washington
+\itemitem{--} lightface (\fontname{WNCYR}), in 5, 6, 7, 8, 9, and 10 point
+\itemitem{--} bold (\fontname{WNCYB}), in 5, 6, 7, 8, 9, and 10 point
+\itemitem{--} italic (\fontname{WNCYI}), in 5, 6, 7, 8, 9, and 10 point
+\itemitem{--} caps and small caps (\fontname{WNCYSC}), in 10 point
+\itemitem{--} sans serif (\fontname{WNCYSS}), in 8, 9, and 10 point
+
+\item{\bull} Computer Modern caps and small caps (\fontname{CMCSC}),
+  in 8 and 9 point
+ (the 10-point font is included in standard \TeX\ distributions)
+
+\item{\bull} The ``dummy font,'' used in \AmSTeX{} for syntax checking,
+  exists only as metrics (\filename{DUMMY.TFM})
+
+\item{\bull} Other files needed to use these fonts:
+\itemitem{--} \filename{AMSSYM.TEX}, a file defining the symbols in fonts
+  \fontname{MSAM} and \fontname{MSBM}
+\itemitem{--} \filename{AMSSYM.DEF}, a file that loads the fonts
+  \fontname{MSAM}, \fontname{MSBM} and \fontname{EUFM} and defines some
+  control sequences required by \filename{AMSSYM.TEX}
+\itemitem{--} \filename{CYRACC.DEF}, a file containing definitions needed for
+  proper access to characters in the cyrillic fonts
+
+\item{\bull} Other useful files:
+\itemitem{--} \filename{USERDOC.TEX}, the source file for this User's Guide
+\itemitem{--} \filename{USERDOC.CYR}, the source file for the table showing
+  cyrillic input conventions, input by \filename{USERDOC.TEX}
+\itemitem{--} \filename{USERDOC.FNT}, the source file for the tables of
+  the principal 10-point fonts in the AMSFonts collection, input by
+  \filename{USERDOC.TEX}; this file may also be \TeX{}ed by itself
+\itemitem{--} \filename{USERDOC.DEF}, the macros used to format this
+  User's Guide
+\endgraf
+\endgroup       % end \raggedright
+
+\noindent
+Each font at a particular size is provided in seven standard \TeX{}
+magnifications, magsteps 0~through~5, including magstephalf.  The AMSFonts
+package for the IBM~PC and compatibles includes all magnifications.  For
+use with {\it Textures\/} on the Macintosh, the Standard AMSfonts package
+includes only magsteps 0~and~1; the Extended AMSFonts package includes all
+seven magnifications.  All instances of every font have been newly
+generated for this release of the AMSFonts collection.
+
+The philosophy under which the Euler fonts were implemented was different
+from that used for Computer Modern, and the result is a lower degree of
+``meta-ness''.  For that reason, the appearance of these fonts is not
+very good at small sizes when output on low-resolution devices, in
+particular on screens.  Even so, the fonts are included in AMSFonts in all
+the sizes and magnifications offered, on the assumption that the printed
+output will be prepared on a device of higher resolution (at least 300dpi)
+where this effect will not be noticeable.
+
+Figure 1 shows the layouts for the 10-point fonts listed above.
+Where both medium-weight and bold versions are listed, only the medium-weight
+layout is shown.  The bold fonts have the same layout as the corresponding
+medium-weight versions.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\normalbottom
+
+\figuretitle Figure 1a. {\rm Layouts of the AMSFonts\Dash Euler}
+
+\Note  The charts shown in this figure were set with the 10-point versions
+  of the indicated fonts, then photographically reduced. 
+\endx
+
+\vskip 0pt plus \vsize
+\begingroup
+\leftskip 1in
+\obeylines
+  Charts to appear here:
+  Euler: EUFM10, EURM10, EUSM10, EUEX10
+\endgroup
+\vskip 0pt plus \vsize
+\DoHrule
+\eject
+
+\figuretitle Figure 1b. {\rm Layouts of the AMSFonts\Dash
+    Computer Modern bold math; extra symbols}
+
+\vskip 0pt plus \vsize
+\begingroup
+\leftskip 1in
+\obeylines
+  Charts to appear here:
+  Symbols: MSAM10, MSBM10
+  Computer Modern bold math: CMMIB10, CMBSY10
+\endgroup
+\vskip 0pt plus \vsize
+\DoHrule
+\eject
+
+\figuretitle Figure 1c. {\rm Layouts of the AMSFonts\Dash 
+    Computer Modern math extension; caps/small caps; cyrillic}
+
+\vskip 0pt plus \vsize
+\begingroup
+\leftskip 1in
+\obeylines
+  Charts to appear here:
+  Math extension: CMEX10
+  Caps/small caps: CMCSC10
+  Cyrillic: WNCYR10, WNCYI10
+\endgroup
+\vskip 0pt plus \vsize
+\DoHrule
+\eject
+
+\raggedbottom
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section Font naming conventions
+
+Developers of fonts for use with \TeX, at least those using \MF,
+generally try to make the names distinctive, so that a user will know
+the origin of the font by the font name.  For most of the fonts in the
+AMSFonts collection, the first two letters identify the font source,
+as follows:
+
+\begingroup
+\raggedright
+\parskip=0pt
+\item{\bull} ``CM'': These fonts are based directly on the
+  specifications for Knuth's Computer Modern fonts, as described
+  in Volume~E of \CandT{} [DEK86E].
+\item{\bull} ``EU'': These are members of the Euler family,
+  described below.
+\item{\bull} ``MS'': These fonts of math symbols were developed
+  by or under the direction of the AMS staff.
+\item{\bull} ``WN'': These cyrillic fonts were developed at or
+  under the direction of the University of Washington Humanities and Arts
+  Computing Center, and are distributed with their permission.
+\endgraf
+\endgroup
+
+\noindent
+DUMMY is a special case; it was developed as part of the Stanford
+University \TeX{} Project, and follows no particular naming
+convention.
+
+For information on \fontname{CM} fonts other than those specifically named
+here, and on other fonts in general, the \TUG{} is the best source.
+For TUG's address, see \furtherinfo.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title History of these fonts
+
+When the AMS began using \TeX{} to produce its publications, the available
+complement of symbols was found to be inadequate.  Several alphabets
+used extensively as symbols were not available either.  While
+development of the symbols could be undertaken by in-house personnel,
+using the existing \TeX{} symbol font as a model, the creation of new
+Fraktur and script alphabets required the assistance of someone with
+experience in font design.
+
+
+\section Euler
+
+With Donald Knuth's assistance and encouragement, Hermann Zapf, one of the
+premier font designers of this century, was commissioned to create designs
+for Fraktur and script, and for a somewhat experimental, upright cursive
+alphabet that would represent a mathematician's handwriting on a blackboard
+and that could be used in place of italic.  The designs that resulted were
+named Euler, in honor of Leonhard Euler, a prominent mathematician of the
+eighteenth century.  Zapf's designs were rendered in \MF{} code by graduate
+students at Stanford, working under Knuth's direction; the process by which
+the \MF{} fonts were implemented is described in a report by David Siegel
+[DRS85].  The Euler fonts were designed to be used as symbols; they are not
+intended for setting running text.
+
+The Fraktur face of the Euler family has been used by the AMS for several
+years in its production.  However, no extensive test or use had been made
+of the script or cursive until Knuth decided that they should be used in a
+textbook, {\sl Concrete Mathematics}, written by him and two co-authors
+[GKP88].  During the course of preparing that book, a number of errors,
+particularly in spacing parameters affecting the placement of sub- and
+superscripts, were discovered.  All these errors have been corrected in the
+new medium-weight versions of the Euler fonts (almost no boldface symbols
+were used in {\sl Concrete Mathematics\/}).  Knuth also noticed that the
+style of some symbols in the Computer Modern extension font, in particular
+the integral sign, was too slanted to be attractive with Euler, and
+consequently he prepared a new (partial) extension font for use with Euler.
+Knuth has described his experience with the Euler fonts in a \TUB\/ article
+[DEK89].  In the article he also identifies the macros he used and where they
+can be obtained.
+
+
+\section Additional Computer Modern fonts for use in math
+
+Only the 10-point size of the Computer Modern bold math italic (which
+includes Greek), symbol, and math extension fonts are included in standard
+distributions of \TeX{}.  Since these symbols are often needed in
+mathematics, other sizes have been constructed, using the principles
+demonstrated in Knuth's {\sl Computer Modern Typefaces\/} [DEK86E], and
+included in the AMSFonts collection.
+
+
+\section Symbols
+
+Two fonts of ``extra'' symbols are included in the AMSFonts collection.
+These are named \fontname{MSAM} and \fontname{MSBM}, and have been newly
+implemented in ``new'' \MF{} (\mf84); they replace earlier fonts (named
+\fontname{MSXM} and \fontname{MSYM}) that were defined in old \MF{}
+(\mf79)\null.  These fonts contain symbols needed in the publishing program
+of the AMS, including the MathSci online database, and include the
+uppercase letters of an alphabet known as Blackboard Bold
+($\Bbb A, \dots, \Bbb Z$).
+
+
+\section Cyrillic
+
+Titles of books reviewed in \MR\/ are traditionally rendered in their
+original language.  For books published in Russian or other Slavic
+languages, this frequently requires use of the cyrillic alphabet.
+A cyrillic font was developed at AMS using \MF\/79 with the \fontname{AM}
+fonts as a model.  This font was organized in a manner suitable for use with
+the transliteration scheme adopted by {\sl MR\/} in 1980, and contained only
+those letters which appear in current mathematical literature.
+In particular, this meant that the letters dropped from the Russian
+alphabet after the Revolution of 1917, and some letters used in non-Slavic
+languages now rendered in cyrillic (such as Azerbaijani, from which no
+mathematical literature is currently reviewed in {\sl MR\/}) were absent.
+
+In 1988, the Humanities and Arts Computing Center of the University of
+Washington undertook a font development project for support of scholars
+in Slavic languages.  The fonts developed through this project include
+several different font layouts.  One layout is based on that of the
+original AMS cyrillic augmented with `{\cyr \u\i}' (cyrillic short `i'),
+`{\cyr\"e}' (umlauted `e'), and several pre-Revolutionary letters.
+The fonts with the AMS layout are included in the AMSFonts collection
+with the permission of the University of Washington developers.  For
+information on cyrillic fonts with other layouts, see \furtherinfo.
+
+The cyrillic fonts are based on Computer Modern letter shapes.
+Type styles include ordinary upright, bold (based on \fontname{CM} bold
+extended), caps and small caps, italic, and upright sans serif.
+The principal text fonts (upright, italic and boldface) are present in
+sizes from 5 through 10 point;
+sans serif is in sizes 8, 9 and 10 point;
+caps and small caps are in 10 point only.
+
+
+\section Caps/small caps
+
+The font \fontname{CMCSC10} is referenced in \filename{PLAIN.TEX} and
+should be included in all standard \TeX{} distributions.  However, Knuth
+did not generate this font in any other sizes.  The AMSFonts collection
+includes 8 and 9-point sizes, generated according to the same principles as
+other \fontname{CM} fonts of these sizes.
+
+
+\section Dummy font
+
+This is a pseudo-font, which exists only as a set of metrics.
+Mainframe \TeX{} distributions contain this font in ``property list''
+(\filename{.PL}) format, a human-readable file that contains everything in the
+corresponding \filename{.TFM} file.  (Transformation between \filename{.PL}
+and \filename{.TFM} formats can be accomplished by the programs |PLtoTF| and
+|TFtoPL|; for convenience, the AMSFonts collection includes the file
+\filename{DUMMY.TFM}\null.)  Specifically, the dummy font contains no
+ligature or kerning information, and all dimensions and parameter values
+are set to zero.
+
+The dummy font is used in \AmSTeX{} to implement ``syntax checking.''
+(Syntax checking is activated by the |\printoptions| command as described
+in \JoT{} [MDS86].)
+In this mode, the dummy font replaces all the usual ``printing'' fonts,
+so that \TeX{} never accumulates any text to be set, and never tries to
+write out a page, but in the process of reading the input file, checks
+all control sequences for syntactic correctness.  In this mode, an input
+file will be processed perhaps 30 percent faster than if it were actually
+being set.  However, some errors and conditions are not detected during
+a syntax check; in particular, overfull boxes will not be detected until
+setting actually occurs.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title How to use AMSFonts 2.0 with \AmSTeX{} 2.0
+
+In \JoT{}, Michael Spivak describes various fonts that are used in
+mathematics in addition to the fonts provided with the standard
+distributions of \TeX.  Two references in particular are of interest with
+respect to AMSFonts: the section {\bf Fonts in math mode} in Chapter 20,
+and Appendix F, {\bf Further fonts}.  The first describes the use of
+letters from alphabets, including Fraktur, and the second, mostly
+nonalphabetic symbols.
+
+\Warn  This information is effective as of \AmSTeX{} version~2.0,
+  \amstexreleasedate{} and the 2nd edition of \JoT\/ [MDS90].
+  The handling of non-\filename{PLAIN} fonts in earlier versions is
+  different from what is described here.  If you have an earlier
+  version of \AmSTeX, it is highly recommended that you obtain \AmSTeX{}
+  Version~2.0, which is available from AMS and most \TeX{} distributors.
+\endx
+
+Instructions for using the fonts of the AMSFonts collection with \AmSTeX{}
+are also given in the {\sl User's Guide to \AmSTeX{} Version~2.0\/} [AMS90]
+and in Appendix~F of editions of \JoT{} [MDS90] dated 1990 or later.
+
+Additional fonts to be used with \AmSTeX{} should be specified at the top
+of the document input file, in what is known as the ``preamble.''  The
+arrangement of commands at the top of an input file is the following:
+\begintt
+\input amstex
+|<preamble commands>
+\documentstyle{...}
+\endtt
+
+\AmSTeX{} provides a simple method for accessing most of the fonts in the
+AMSFonts collection.  The two extra symbol fonts and Euler Fraktur are
+loaded automatically by the preprint style (\filename{AMSPPT.STY})\null.
+If you are using \AmSTeX{}, but not the preprint style, the method used to
+load these fonts and define the associated symbol names depends on how many
+symbols will be needed.  If a lot of the symbols will be needed, or
+you aren't worried about memory space and just want to do what is easiest,
+all three fonts will be loaded and the symbol names defined if you type the
+command |\UseAMSsymbols| in the preamble.  This will load the file
+\filename{AMSSYM.TEX}, in which all the symbol names (more than 200 of them)
+are defined.  If only a few symbols from these fonts are needed, the
+commands |\loadmsam|, |\loadmsbm|, and |\loadeufm| will load the
+medium-weight versions of the two extra symbol fonts and Euler Fraktur
+respectively.  The command |\newsymbol| can then be used to define just
+those symbols that are needed; its use is described below, in the section
+{\bf Installing and using the extra symbols}.
+
+\Warn  Additional fonts from the AMSFonts collection can be accessed
+  easily in \AmSTeX.
+  However, users should be aware that \TeX{} limits the number of
+  math mode font families to 16, of which 10 are predefined in \AmSTeX.
+  Only those additional families should be activated that will actually
+  be used in a document, to avoid exceeding the limit.
+\endx
+
+Two sizes of fonts, suitable for body text and for passages requiring smaller
+type (e.g.\ abstracts and footnotes), are incorporated in the preprint style
+\filename{AMSPPT.STY}\null.  These are accessed through the control sequences
+|\tenpoint| and |\eightpoint|, which are ordinarily referred to only by
+commands that identify the kind of text being input (e.g.\ |\title|,
+|\abstract|, |\footnote|).  Most fonts in the AMSFonts collection have
+|\load...|\ instructions defined in \AmSTeX{} and will be accessed properly for
+use with the preprint style when the |\load| instructions are included in the
+preamble of the document input.  If you are not using the preprint style,
+you can use the font definitions in \filename{AMSPPT.STY} as a model.
+
+\Warn  Editions of \Joy\/ prior to 1990 describe an obsolete method of
+  accessing these fonts.  The directions given in Appendix F of these
+  older editions are superseded by the |\load...|\ instructions cited
+  here for Euler, bold math italic, and symbol fonts.
+\endx
+
+
+\section Euler
+
+The Euler fonts are defined only in math mode, in sizes appropriate for
+text and two orders of sub- and superscripts.  They can be activated by
+invoking the proper |\load| instructions before the |\documentstyle|
+command, in the preamble of a paper in which the fonts are to be used.
+(The medium-weight Fraktur font is activated automatically by the preprint
+style.)  The Euler fonts can be activated by the following commands:
+
+\begingroup
+\smallskip
+\parskip=0pt
+\def\1 #1 {\item{}{\tt\bs#1}\qquad\ignorespaces}
+\1 loadeufm Euler Fraktur medium (automatic with the preprint style)
+\1 loadeufb Euler Fraktur bold
+\1 loadeurm Euler cursive medium
+\1 loadeurb Euler cursive bold
+\1 loadeusm Euler script medium
+\1 loadeusb Euler script bold
+\endgraf
+\endgroup
+
+After the \fontname{EUFM} font has been loaded, the medium-weight Fraktur
+letters can be produced by typing |\frak| followed by the desired letter.
+For example, |$\frak g \frak A$| yields $\frak g \frak A$.
+
+
+\section Computer Modern bold math italic and symbols
+
+The Computer Modern bold math italic (\fontname{CMMIB}) and bold math
+symbol (\fontname{CMBSY}) fonts can both be loaded by the command
+|\loadbold|; there are no predefined commands to load them separately.
+|\loadbold| must be invoked in the preamble of the document input file.
+
+A rather elaborate mechanism has been defined in \AmSTeX{} to simplify
+access to bold letters and symbols, in math mode only.  Three control
+sequences are available, each of which affects a particular class of
+characters:
+
+\begingroup
+\smallskip
+\parskip=0pt
+\setbox0=\hbox{\tt xboldsymbol}
+\def\1 #1 {\item{}\hbox to\wd0{\tt\bs#1\hfil}\qquad\ignorespaces}
+\1 bold         for a single letter or numeral
+\1 boldkey      for a symbol that appears on the keyboard
+\1 boldsymbol   for a symbol specified by a single control sequence
+\endgraf
+\endgroup
+\noindent
+These facilities are described in more detail in the User's Guide to
+\AmSTeX{} Version~2.0 [AMS90] and editions of \Joy\/ published in 1990
+or later [MDS90].
+
+
+\section Computer Modern math extension font
+
+Smaller sizes of the math extension font are appropriate for use in text
+smaller than ten-point and in sub- and superscripts.  They are provided
+automatically for these environments in the preprint style.  If you are
+not using the preprint style, you can use the font definitions in either
+\filename{AMSPPT.STY} or Appendix~E of \TB\/ [DEK86A] as a model.
+
+
+\section Extra symbols
+
+The medium-weight versions of the two extra symbol fonts are available
+automatically, including all the symbol names, if you are using the preprint
+style or if you have specified |\input amssym|.  If you wish to load these
+fonts separately, use the appropriate control sequence |\loadmsam| or
+|\loadmsbm| in the preamble of your document.  If you load the fonts
+separately, a few symbols will be defined when one of the fonts is loaded,
+but most must be defined using the |\newsymbol| command before they can be
+used.  See the section {\bf Installing and using the extra symbols} for
+information on both the symbol names and on using |\newsymbol| to define them.
+
+
+\section Cyrillic
+
+Cyrillic is not referred to in the \AmSTeX{} files as distributed.
+The cyrillic fonts included in AMSFonts are intended for use mainly in text,
+not as symbols in math.  Detailed instructions for loading and using cyrillic
+appear below in the section {\bf Installing and using cyrillic}.
+
+
+\section Caps/small caps
+
+Caps/small caps are loaded automatically by the \AmSTeX{} preprint style
+for use in ten-point and eight-point text.  If you are not using the preprint
+style, you can use the font definitions in either \filename{AMSPPT.STY}
+or Appendix~E of \TB\/ [DEK86A] as a model.
+
+
+\section Dummy font
+
+No special action is needed to use the dummy font with \AmSTeX.
+It is already built into the syntax checking procedure.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title How to use AMSFonts 2.0 without \AmSTeX{}
+
+For the most part, it is assumed that anyone using AMSFonts without
+\AmSTeX{} has some experience with \TeX{} macros or has a friendly
+relationship with a \TeX nician.  
+Since all applications seem to refer to fonts in different
+ways, no assumptions are made about how any ``average'' user is going
+to use these fonts.  However, some general guidelines may be helpful.
+
+Two models for defining fonts should be accessible to most users:
+\item{\bull} Appendix E of \TB\/ contains size-specific font definitions
+  for \hbox{|\tenpoint|}, \hbox{|\ninepoint|} and |\eightpoint| that permit
+  size-switching, including support of mathematics.
+\item{\bull} \filename{AMSPPT.STY}, the file of macros supporting the
+  \AmSTeX{} preprint style, contains similar font definitions, |\tenpoint|
+  and |\eightpoint|.
+
+\noindent
+Extensive size-switching font facilities are also present in \LaTeX,
+but these cannot easily be copied for uses outside of \LaTeX.
+
+Before attempting to load all available fonts into every \TeX{} job,
+determine (if you can) how many fonts can be accommodated by the
+implementation of \TeX{} you are using.  It is generally a good idea to
+load seldom-used fonts selectively.
+
+
+\section Euler
+
+The following commands will load the medium-weight Euler Fraktur font, and
+can be used as a model for accessing the other Euler fonts.
+\begintt
+\font\teneufm=eufm10
+\font\seveneufm=eufm7
+\font\fiveeufm=eufm5
+\newfam\eufmfam
+\textfont\eufmfam=\teneufm
+\scriptfont\eufmfam=\seveneufm
+\scriptscriptfont\eufmfam=\fiveeufm
+\def\frak#1{{\fam\eufmfam\relax#1}}
+\endtt
+
+Individual letters in the Euler fonts are accessible by the ordinary
+letters on your keyboard, once the font has been loaded and named by
+a control sequence equivalent to |\frak|.
+
+The medium-weight Fraktur font, \fontname{EUFM}, can also be loaded by
+|\input amssym.def|; this loads the two extra symbol fonts as well.
+
+
+\section Computer Modern bold math italic and symbols
+
+The \fontname{CMMIB} and \fontname{CMBSY} fonts can be loaded and made
+accessible to math in ten-point environments by the following code:
+\begintt
+\font\tencmmib=cmmib10  \skewchar\tencmmib='177
+\font\sevencmmib=cmmib7 \skewchar\sevencmmib='177
+\font\fivecmmib=cmmib5  \skewchar\fivecmmib='177
+\newfam\cmmibfam
+\textfont\cmmibfam=\tencmmib \scriptfont\cmmibfam=\sevencmmib
+ \scriptscriptfont\cmmibfam=\fivecmmib
+
+\font\tencmbsy=cmbsy10  \skewchar\tencmbsy='60
+\font\sevencmbsy=cmbsy7 \skewchar\sevencmbsy='60
+\font\fivecmbsy=cmbsy5  \skewchar\fivecmbsy='60
+\newfam\cmbsyfam
+\textfont\cmbsyfam=\tencmbsy \scriptfont\cmbsyfam=\sevencmbsy
+ \scriptscriptfont\cmbsyfam=\fivecmbsy
+\endtt
+The \TeX{} primitive |\mathchar| must be used to access individual characters
+from a font in math mode.
+|\mathchar|, like the |\char| primitive, requires that you know the position in
+the font of the character you are accessing.  However, |\mathchar| also
+requires that you specify the ``class'' and the family of the math character
+being accessed.  See Chapter 17 of \TB{} for more details on the use of
+|\mathchar|, as well as |\mathchardef|, which will allow you to define your own
+macro names for individual characters in these fonts.
+
+\Note The file \filename{AMSSYM.DEF} contains a convenient macro,
+|\hexnumber@|, to determine the family number of the font being accessed
+through |\mathchar|.  For example, the |\mathchar| statement to properly access
+the bold alpha in the CMMIB font would be:
+\begintt
+\mathchar"0\hexnumber@\cmmibfam0B
+\endtt
+\endx
+
+
+
+\section Computer Modern math extension font
+
+The 10-point \fontname{CMEX} font is loaded by \filename{PLAIN.TEX}.
+To install the 7-point size appropriate for sub- and superscripts in
+a ten-point math environment, include the following code in your file:
+\begintt
+\font\sevenex=cmex7
+\scriptfont3=\sevenex \scriptscriptfont3=\sevenex 
+\endtt
+To use other sizes implies the use of switchable-size fonts,
+which may be implemented according to the models cited
+at the beginning of this section.
+
+
+\section Extra symbols
+
+Detailed instructions for accessing the \fontname{MSAM} and \fontname{MSBM}
+fonts are given in the section {\bf Installing and using the extra
+symbols}.
+
+
+\section Cyrillic
+
+See the section {\bf Installing and using cyrillic} for instructions.
+
+
+\section Caps/small caps
+
+The 10-point \fontname{CMCSC} font is loaded by \filename{PLAIN.TEX}.
+To use the smaller versions implies the use of switchable-size fonts,
+which may be implemented according to the models cited at the beginning
+of this section.
+
+
+\section Dummy font
+
+The dummy font was designed to be used for syntax checking.  The general
+technique is described in Appendix~D of \TB, p.~401.  This has been
+implemented in the file \filename{AMSTEX.TEX}, which can be used as a model.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title Installing and using cyrillic
+
+\def\2#1{${}\mapsto{}${\cyr#1}}
+
+\newcount\cyrtablefigno  \cyrtablefigno=2
+\def\cyrtablefig{Figure~\number\cyrtablefigno}
+
+The cyrillic fonts in the AMSFonts collection have been designed so that
+input using the transliteration conventions of {\sl Mathematical Reviews\/}
+will be converted directly to cyrillic text.  The following cyrillic
+fonts are included:
+
+\item{} \fontname{WNCYR} (upright), in sizes 5, 6, 7, 8, 9, and 10 point
+\item{} \fontname{WNCYB} (bold), in the same range of sizes as \fontname{WNCYR}
+\item{} \fontname{WNCYI} (italic), in the same range of sizes as
+  \fontname{WNCYR}
+\item{} \fontname{WNCYSC} (caps and small caps), in size 10 point
+\item{} \fontname{WNCYSS} (upright sans serif), in sizes 8, 9, and 10 point
+
+\noindent
+The file \filename{CYRACC.DEF}, which is included in the AMSFonts collection,
+must be input to any document using the cyrillic fonts as defined with the
+AMS layout.  Since the cyrillic alphabet contains more letters than the
+roman alphabet, some cyrillic letters are accessed by combinations of roman
+letters, accented letters, or control sequences.  \filename{CYRACC.DEF}
+contains the definitions of these accents and control sequences.
+If this file is not input, some cyrillic letters will be inaccessible.
+
+
+\section Making cyrillic available to a document
+
+If you are not using \AmSTeX, include the following instructions near the
+top of the document input file to make the 10-point cyrillic font available
+for use in text (see below for cyrillic in math):
+\begintt
+\input cyracc.def
+\font\tencyr=wncyr10
+\def\cyr{\tencyr\cyracc}
+\endtt
+If you require cyrillic text in more than one size, you must take a
+different approach in defining |\cyr|.  An appropriate model appears in
+Appendix~E of \TB\/ [DEK86A], pages 414--15.  The definition of |\cyr|
+should be incorporated into size-specific macros such as |\tenpoint| and
+|\eightpoint| similarly to what is done there for |\bf|.  Don't forget to
+include the command |\cyracc| in the definition.
+
+If you are using \AmSTeX{} and the preprint style, the following instructions
+should be included in the preamble of your document input file to make
+cyrillic available in 10-point and 8-point text:
+\begintt
+\input cyracc.def
+\catcode`\@=11
+\font@\tencyr=wncyr10
+\font@\eightcyr=wncyr8
+\catcode`\@=13
+\addto\tenpoint{\def\cyr{\tencyr\cyracc}}
+\addto\eightpoint{\def\cyr{\eightcyr\cyracc}}
+\endtt
+(The |\font@| command not only loads the fonts, but also makes them behave
+properly during syntax checking.)
+If you are not using the preprint style, you can use the font definitions
+in either \filename{AMSPPT.STY} or \TB\/ Appendix~E as a model.
+
+The macro definitions in \filename{CYRACC.DEF} govern the behavior of
+cyrillic-specific control sequences, including accents, in cyrillic and
+noncyrillic text.  Definitions governing noncyrillic text are activated
+as soon as \filename{CYRACC.DEF} is |\input|.  This will permit text input
+according to the scheme shown in \cyrtablefig{} to be typeset in
+transliterated form, according to the {\sl MR\/} conventions.  To produce
+actual cyrillic text, enclose the cyrillic input in a group that begins with
+the instruction |\cyr| {\sl inside\/} the group, as
+\begintt
+...{\cyr ...} ...
+\endtt
+Enclosing in braces both the |\cyr| and the text to be set in cyrillic type,
+in the same way that an italic phrase would be indicated in a roman text,
+is particularly important for two reasons.  First, like |\it|, |\cyr| must
+be explicitly terminated to return to roman text.  And second, unlike |\it|,
+the special cyrillic control sequences invoked by |\cyracc| are interpreted
+differently by \TeX{} depending on whether they are in a cyrillic or a
+noncyrillic environment.  The ``cyrillic'' interpretation is not turned
+off simply by invoking |\rm|.  Failure to follow this practice will yield
+gibberish.
+
+
+\section Cyrillic input
+
+The table in \cyrtablefig{} follows the alphabetical order of the table
+published in the 1983 MR author index.  The three paired columns
+contain: (1)~Cyrillic; (2)~Input; (3)~Transliteration.
+
+The letters in the Cyrillic columns will appear in the
+typeset output when the corresponding codes from the Input columns
+are used in the |{\cyr ...}| context described above.  The roman
+letters in the Transliteration columns will appear in the output when
+the corresponding codes from the Input columns are used in a noncyrillic
+environment, i.e., have not been preceded by |\cyr|.
+
+\penalty0
+\topinsert
+\begingroup
+\input userdoc.cyr
+\endgroup
+\endinsert
+
+\penalty0
+\indent
+Several points should be noted here.
+
+\nobreak
+\item{\bull} Input codes for uppercase cyrillic which consist of more than
+  one letter, e.g. |Zh|\2{Zh}, can also be input in all caps, e.g. |ZH|\2{ZH},
+  if the context is entirely in caps.
+
+\item{\bull} Particular care is necessary when the letter t\2{t} is followed
+  by s\2{s}.  The control sequence |\cydot| (``cyrillic dot'')
+  is provided as a separator to keep those letters distinct:
+  |t\cydot s|~(t\cydot s)\2{t\cydot s}.
+  Otherwise, they will be combined as ts\2{ts}.
+
+\item{} The t\cydot s pair appears, for example, in the word
+  |sovet\cydot ski\u\i|
+  (sovet\cydot ski\u\i)\2{sovet\cydot ski\u\i}
+  and is not uncommon in the suffix of reflexive verbs, e.g.
+  \hbox{|nakhodyat\cydot sya|}
+  (nakhodyat\cydot sya)\2{nakhodyat\cydot sya}.
+
+\item{\bull} Because there is not a one-to-one correspondence between
+  cyrillic and roman letters, some cyrillic letters have been placed
+  in locations where a roman letter does not have a cyrillic
+  counterpart.  A user who is aware of this fact may be able to
+  detect input keying that does not conform to the recommendations
+  shown in \cyrtablefig, and correct it more easily than otherwise.
+  The following nonstandard assignments have been made:\newline
+\indent |c|\2{c}; |h|\2{h}; |q|\2{q}; |w|\2{w}; |x|\2{x}.
+
+\item{\bull} Some very strange effects can occur in cyrillic text
+  hyphenated by the default English hyphenation rules; in particular,
+  a cyrillic letter input as a group of letters can be decomposed.
+  (Most multiple-letter input groups are converted to a single cyrillic
+  letter by way of \TeX's ligaturing mechanism.)  For example,
+  |shch|\2{shch} might, in especially unlucky circumstances, be
+  decomposed as {\cyr s-hch}, {\cyr sh-ch} or {\cyr shc-h}.
+  In other words, if there is any chance that cyrillic text might fall
+  into a position where hyphenation could occur, the results should be
+  checked very carefully, and discretionary hyphens used as appropriate.
+
+\item{\bull} Hyphenation patterns do not exist for the AMS cyrillic font
+  when the input conventions shown here are used.  Furthermore, it is
+  probably impracticable to attempt to develop such rules, since the
+  rules to recognize control sequences and complicated ligatures, both
+  used extensively by the AMS cyrillic input conventions, are not easily
+  specified to \TeX's hyphenation mechanism.  Another approach to
+  hyphenation, requiring some changes to the cyrillic \filename{.TFM}
+  files, has been described by Dimitri Vulis in a \TUB\/ article [DLV89].
+
+
+\section Cyrillic in math
+
+Although the cyrillic fonts are intended for use as text, the need
+occasionally arises to use one or two letters in math; for example,
+{\cyr SH} may be used to represent the Shafarevich group.  When cyrillic
+must also be made available to math mode, the following instructions
+(which will support the use of cyrillic in both text and math) should
+replace the definition of |\cyr| shown previously (which will work only
+for text):
+\begintt
+\newfam\cyrfam
+\font\tencyr=wncyr10
+\font\sevencyr=wncyr7
+\font\fivecyr=wncyr5
+\def\cyr{\fam\cyrfam\tencyr\cyracc}
+\textfont\cyrfam=\tencyr \scriptfont\cyrfam=\sevencyr
+  \scriptscriptfont\cyrfam=\sevencyr
+\endtt
+If only the 10-point cyrillic font has been accessed, the references
+to |\sevencyr| and |\fivecyr| can be changed to |\tencyr| to save memory.
+When using \AmSTeX{} and the preprint style, use |\font@| instead of |\font|,
+remembering to change the |\catcode| of the |@| appropriately, and embed the
+font family specifications in |\addto\tenpoint|, as shown above.
+
+If other base text sizes are used besides ten point, the suggestions given
+above under {\bf Making cyrillic available} apply here as well.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\makeatletter
+
+%  Define macros for presentation of tables of symbols.
+\def\BBB#1{\par\bigbreak
+  \leavevmode\llap{$\bullet$\enspace}{\bf#1}}
+\def\ttcs#1{\leavevmode\hbox{\tt\bs\ignorespaces#1\unskip}}
+\newdimen\biggest
+\setbox0\hbox{$\dashrightarrow$}\biggest=\wd0
+\def\1#1{\hbox to\biggest{\hfil$\csname#1\endcsname$\hfil}\ \ %
+  \ttcs{#1}}
+
+\def\getID@#1{\edef\next@{\expandafter\meaning\csname#1\endcsname}%
+ \expandafter\getID@@\next@0\getID@@}
+\def\getID@@#1"#2#3#4#5#6\getID@@{\def\next@{#6}%
+  \ifx\next@\empty
+   \def\next@{#2}%
+    \ifx\next@\msafam@
+     \def\ID@{10#3#4}%
+    \else
+     \def\ID@{20#3#4}%
+    \fi
+  \else 
+   \def\next@{#3}%
+    \ifx\next@\msafam@
+     \def\ID@{1#2#4#5}%
+    \else
+     \def\ID@{2#2#4#5}%
+    \fi
+  \fi}
+\def\2#1{\hbox to.5\hsize
+  {\hbox to\biggest{\hfill$\csname#1\endcsname$\hfill}\ \ %
+    \getID@{#1}{\tt\ID@}\ \ \ttcs{#1}\hfill}}
+\def\3#1#2{\hbox to.5\hsize
+  {\hbox to\biggest{\hfil$\csname#1\endcsname$\hfil}\ \ %
+    \getID@{#1}{\tt\ID@}\ \ \ttcs{#1}, \ttcs{#2}\hss}}
+\def\4#1{\hbox to.5\hsize
+  {\hbox to\biggest{\hfill$\csname#1\endcsname$\hfill}\ \ %
+    \getID@{#1}{\tt\ID@}\ \ \ttcs{#1}\ \ {\eightpoint(U)}\hfill}}
+
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title Installing and using the extra symbols
+
+Most users of the extra symbol fonts will probably want to make them
+accessible to their \TeX{} jobs with the least possible fuss.  For \AmSTeX{}
+users, these fonts are available automatically with the preprint style, and
+other methods of loading them for use with \AmSTeX{} are described above.
+
+If you are not using \AmSTeX, the easiest method of loading these fonts and
+defining the control sequences for accessing the symbols is to place the
+commands
+\begintt
+\input amssym.def
+\input amssym
+\endtt
+at the top of your input file.  This will load the fonts \fontname{MSAM},
+\fontname{MSBM}, and \fontname{EUFM} in sizes 10, 7, and 5 point, suitable
+for use in ordinary ten-point math environments, and define the names of
+all the symbols in these fonts.  However, this assigns more than 200
+control sequence names, so if you are limited for space, an alternative
+method may be preferred.
+
+If you type just |\input amssmy.def|, the fonts will be loaded, but only the
+names of the few special symbols listed below will be defined.
+
+First there are four symbols that are normally used outside of math mode:
+$$\vcenter{\halign to\hsize{\1{#}\hfil\tabskip\centering&
+   \hbox to.5\hsize{\1{#}\hfil}\tabskip0pt\cr
+checkmark&circledR\cr
+maltese&yen\cr}}
+$$
+These symbols, like \P, \S, \dag, and \ddag, can also be used in
+math mode, and will change sizes correctly in subscripts and superscripts.
+
+Next are four symbols that are ``delimiters'' (although there are
+no larger versions obtainable with \ttcs{left} and \ttcs{right}), so they
+must be used in math mode:
+$$\vcenter{\halign to\hsize{\1{#}\hfil\tabskip\centering&
+   \hbox to.5\hsize{\1{#}\hfil}\tabskip0pt\cr
+ ulcorner&urcorner\cr
+ llcorner&lrcorner\cr}}$$
+
+Finally, two dashed arrows are constructed from symbols in this family
+(note that one of them has two names; it can be accessed by either one):
+$$\vcenter{\halign to\hsize{\1{#}\hfil\tabskip\centering&
+   \hbox to.5\hsize{\1{#}\hfil}\tabskip0pt\cr
+ \omit\hbox to.5\hsize{\hbox to\biggest{\hfil$\dashrightarrow$\hfil}\ \ %
+    \ttcs{dashrightarrow}, \ttcs{dasharrow}\hss}&dashleftarrow\cr}}$$
+
+The Blackboard Bold letters $\Bbb A,\dots,\Bbb Z$ can be accessed by typing
+(in math mode) |\Bbb A|,\dots,|\Bbb Z|.
+
+Wider versions of the \filename{PLAIN.TEX} |\widehat| and |\widetilde|
+are now available.
+
+Letters in the \fontname{EUFM} font can be accessed (in math mode) by typing,
+for example, |\frak A \frak g| to get $\frak A \frak g$.
+
+
+\section The {\tt\bs newsymbol} command
+
+All other symbols of the \fontname{MSAM} and \fontname{MSBM} fonts must be
+named by control sequences so that they can be used (in math mode only) when
+the fonts are loaded.  If you are very short on space for control sequence
+names, and need only a few of these symbols, you can omit the loading of
+\filename{AMSSYM.TEX} and instead assign only the names you will need by
+using the command |\newsymbol| for each symbol you need, to create a
+control sequence that will properly produce that symbol.  The control
+sequence can be either the ``standard'' name, as listed below, or one
+of your own choosing.
+
+The list of symbols below shows for each symbol the symbol itself, a
+four-character~``ID,'' and the ``standard'' name of the symbol. 
+(The first character of the ID identifies the font family in which a
+symbol resides.  Symbols from the \fontname{MSAM} family have {\tt1} as the
+first character; symbols from the \fontname{MSBM} family have {\tt2} as the
+first character.)
+For example, the symbol $\nleqslant$ appears as
+\medskip
+\noindent\kern\parindent\2{nleqslant}
+\medskip
+\noindent
+To produce a control sequence with this name, the instruction
+\begintt
+\newsymbol\nleqslant 230A
+\endtt
+appears in the file \filename{AMSSYM.TEX}\null.  This same instruction can
+be typed by a user who is not using the \AmSTeX{} preprint style and has
+chosen not to load all the symbols, and thereafter the control sequence
+|\nleqslant| will produce the symbol $\nleqslant$ (in math mode), and will
+act properly as a ``binary relation.''
+
+A few symbols in these fonts replace symbols defined in \filename{PLAIN.TEX}
+by combinations of symbols available in the Computer Modern fonts.  These
+are |\angle|~($\angle$) and |\hbar|~($\hbar$) from the group
+``Miscellaneous symbols,'' and |\rightleftharpoons|~($\rightleftharpoons$)
+from the group ``Arrows'' below.  The new symbols will
+change sizes correctly in subscripts and superscripts, provided that you
+are using appropriate redefinitions.  In order to use |\newsymbol| to
+replace an existing definition, the name must first be ``undefined.''
+Here are the lines you must put in your file if you are not using the
+\AmSTeX{} preprint style or |\input amssym| (which perform the redefinition
+automatically):
+\begintt
+\undefine\angle
+\newsymbol\angle 105C
+\undefine\hbar
+\newsymbol\hbar 207E
+\undefine\rightleftharpoons
+\newsymbol\rightleftharpoons 130A
+\endtt
+\noindent
+These symbols are flagged in the tables below with a ``{\eightpoint(U)},''
+as a reminder that they must be undefined.
+
+Note in the tables that some symbols are shown with two names; in such a
+case, either one can be used to access the symbol.
+
+\BBB{Lowercase Greek letters}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+digamma&varkappa\cr}$$
+
+\BBB{Hebrew letters}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+beth&gimel\cr 
+daleth\cr
+}$$
+
+\BBB{Miscellaneous symbols}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+\omit\4{hbar}&backprime\cr
+hslash&varnothing\cr
+vartriangle&blacktriangle\cr
+triangledown&blacktriangledown\cr
+square&blacksquare\cr
+lozenge&blacklozenge\cr
+circledS&bigstar\cr
+\omit\4{angle}&sphericalangle\cr
+measuredangle&\omit\cr
+nexists&complement\cr
+mho&eth\cr
+Finv&diagup\cr
+Game&diagdown\cr
+Bbbk&\omit\cr
+}$$
+
+\BBB{Binary operators}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+dotplus&ltimes\cr
+smallsetminus&rtimes\cr
+\omit\3{Cap}{doublecap}&leftthreetimes\cr
+\omit\3{Cup}{doublecup}&rightthreetimes\cr
+barwedge&curlywedge\cr
+veebar&curlyvee\cr
+%                               %%%%%%%%%%
+%\noalign{\newpage}
+%                               %%%%%%%%%%
+doublebarwedge\cr
+boxminus&circleddash\cr
+boxtimes&circledast\cr
+boxdot&circledcirc\cr
+boxplus&centerdot\cr
+divideontimes&intercal\cr}
+$$
+
+\BBB{Binary relations}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+leqq&geqq\cr
+leqslant&geqslant\cr
+eqslantless&eqslantgtr\cr
+lesssim&gtrsim\cr
+lessapprox&gtrapprox\cr
+approxeq\cr
+lessdot&gtrdot\cr
+\omit\3{lll}{llless}&\omit\3{ggg}{gggtr}\cr
+lessgtr&gtrless\cr
+lesseqgtr&gtreqless\cr
+lesseqqgtr&gtreqqless\cr
+\omit\3{doteqdot}{Doteq}&eqcirc\cr
+risingdotseq&circeq\cr
+fallingdotseq&triangleq\cr
+backsim&thicksim\cr
+backsimeq&thickapprox\cr
+subseteqq&supseteqq\cr
+Subset&Supset\cr
+sqsubset&sqsupset\cr
+preccurlyeq&succcurlyeq\cr
+curlyeqprec&curlyeqsucc\cr
+precsim&succsim\cr
+precapprox&succapprox\cr
+vartriangleleft&vartriangleright\cr
+trianglelefteq&trianglerighteq\cr
+vDash&Vdash\cr
+Vvdash\cr
+smallsmile&shortmid\cr
+smallfrown&shortparallel\cr
+bumpeq&between\cr
+Bumpeq&pitchfork\cr
+varpropto&backepsilon\cr
+blacktriangleleft&blacktriangleright\cr
+therefore&because\cr}$$
+\bigbreak
+\BBB{Negated relations}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+nless&ngtr\cr
+nleq&ngeq\cr
+nleqslant&ngeqslant\cr
+nleqq&ngeqq\cr
+lneq&gneq\cr
+lneqq&gneqq\cr
+lvertneqq&gvertneqq\cr
+lnsim&gnsim\cr
+lnapprox&gnapprox\cr
+%                               %%%%%%%%%%
+%\noalign{\newpage}
+%                               %%%%%%%%%%
+nprec&nsucc\cr
+npreceq&nsucceq\cr
+precneqq&succneqq\cr
+precnsim&succnsim\cr
+precnapprox&succnapprox\cr
+nsim&ncong\cr
+nshortmid&nshortparallel\cr
+nmid&nparallel\cr
+nvdash&nvDash\cr
+nVdash&nVDash\cr
+ntriangleleft&ntriangleright\cr
+ntrianglelefteq&ntrianglerighteq\cr
+nsubseteq&nsupseteq\cr
+nsubseteqq&nsupseteqq\cr
+subsetneq&supsetneq\cr
+varsubsetneq&varsupsetneq\cr
+subsetneqq&supsetneqq\cr
+varsubsetneqq&varsupsetneqq\cr}$$
+
+\overfullrule=0pt
+
+\BBB{Arrows}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+leftleftarrows&rightrightarrows\cr
+leftrightarrows&rightleftarrows\cr
+Lleftarrow&Rrightarrow\cr
+twoheadleftarrow&twoheadrightarrow\cr
+leftarrowtail&rightarrowtail\cr
+looparrowleft&looparrowright\cr
+leftrightharpoons&\omit\4{rightleftharpoons}\cr
+curvearrowleft&curvearrowright\cr
+circlearrowleft&circlearrowright\cr
+Lsh&Rsh\cr
+upuparrows&downdownarrows\cr
+upharpoonleft&\omit\3{upharpoonright}{restriction}\cr
+downharpoonleft&downharpoonright\cr
+multimap&rightsquigarrow\cr
+leftrightsquigarrow\cr}$$
+
+\BBB{Negated arrows}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+leftarrow&nrightarrow\cr
+nLeftarrow&nRightarrow\cr
+nleftrightarrow&nLeftrightarrow\cr}$$
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\title For further information
+
+The AMSFonts collection was implemented and packaged by the Technical
+Support Group in the \AMS's Composition Services Department.
+Questions or suggestions for improvements should be directed to that
+group at the following address:
+\begingroup
+\smallskip
+\parskip=0pt
+\TextAddr Technical Support Group
+  \AMS{}
+  \POBox 6248
+  Providence, RI 02940
+  \smallskip Phone: 800-321-4AMS\quad or\quad 401-455-4080
+  Internet: Tech-Support@Math.AMS.com<
+\endgroup
+
+\smallskip
+
+The cyrillic fonts included in the AMSFonts collection were developed
+at the Humanities and Arts Computing Center of the University of Washington.
+Questions regarding these cyrillic fonts should be directed to:
+\begingroup
+\smallskip
+\parskip=0pt
+\TextAddr Director
+  Humanities and Arts Computing Center
+  DR-10
+  University of Washington
+  Seattle, WA 98195
+  \smallskip Phone: 206-543-4218<
+\endgroup
+
+\smallskip
+
+The \TUG{} is a good source of general information about fonts for use
+with \TeX.  Inquiries can be directed to:
+\begingroup
+\smallskip
+\parskip=0pt
+\TextAddr \TUG{}
+  \POBox 9506
+  Providence, RI 02940-9506
+  \smallskip Phone: 401-751-7760
+  Internet: TUG@Math.AMS.com<
+\endgroup
+
+
+\section Obtaining the \MF{} source files
+
+The AMSFonts collection has been prepared for a number of different
+resolutions suitable for use on what the AMS staff has determined to be
+the most popular devices currently being used to prepare \TeX{} output.
+More such devices continue to appear, many of them with characteristics
+different from the devices that are currently supported.
+
+Users of unsupported devices who have access to an operating version of
+\MF{} and have some experience with generating \MF{} fonts are encouraged
+to contact the manager of the Society's Composition Services Department
+to arrange to obtain the \MF{} source files.  Some restrictions will
+apply; details will be provided when the sources are requested.
+
+\MF{} source files for the cyrillic fonts in the AMSFonts collection can
+be obtained either from the Society or directly from the University of
+Washington.  The sources available from Washington also include other
+fonts in different layouts.  Information can be obtained from the
+director of the Academic Computing Center at the address given above.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title References
+
+\begingroup
+\raggedright
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+
+\setbox\TestBox=\hbox{[DEK86A] }
+\leftskip=\wd\TestBox
+\def\1 [#1] {\noindent\kern-\leftskip
+    \hbox to\leftskip{[#1]\hfil}\ignorespaces}
+\def\bysame{\hbox to 3em{\leaders\hrule\hfill}\thinspace, }
+
+\1 [AMS90] {\sl User's Guide to \AmSTeX{} Version~2.0, January 1990},
+  \AMS, Providence, RI, 1990; distributed with \AmSTeX{} Version~2.0.
+
+\1 [DEK86A] Donald E. Knuth, {\sl The \TeX book},
+  Volume~A of \CandT, \AW{} Publishing Co.,
+  Reading, 1986.
+
+\1 [DEK86E] \bysame {\sl Computer Modern Typefaces},
+  Volume~E of \CandT, \AW{} Publishing Co.,
+  Reading, 1986.
+
+\1 [DEK89] \bysame ``Typesetting Concrete Mathematics,''
+  {\sl \TUB\/} {\bf10} (1989), no.~1, 31--36; erratum,
+  {\sl \TUB\/} {\bf10} (1989), no.~3, 342.
+
+\1 [DLV89] Dimitri Vulis, ``Notes on Russian \TeX,''
+  {\sl \TUB\/} {\bf10} (1989), no.~3, 332--36.
+
+\1 [DRS86] David R Siegel, {\sl The Euler Project at Stanford},
+  Computer Science Department, Stanford University, 1985.
+
+\1 [GKP88] Ronald L. Graham, Donald E. Knuth, and Oren Patashnik,
+  {\sl Concrete Mathematics}, \AW{} Publishing Co.,
+  Reading, 1988.
+
+\1 [MDS86] M. D. Spivak, \JoT, \AMS, Providence, 1986.
+
+\1 [MDS90] \bysame \JoT, $2^{\rm nd}$ (revised) edition,
+  \AMS, Providence, 1990 (to appear).
+
+\endgroup
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+%  Increase page length to get two font charts per page.
+\collgt=54pc
+\resetpagelgt
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title Font charts to be used in Figure 1
+
+\begingroup
+\let\bye=\endinput
+
+\input userdoc.fnt
+
+\endgroup
+
+\bye
+

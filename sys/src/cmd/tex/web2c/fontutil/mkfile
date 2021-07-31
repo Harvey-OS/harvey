@@ -1,32 +1,30 @@
-# This file makes some font utilities that are not part of the
-# Metafontware report but are nevertheless standard.
-
+# This file makes some font utilities that are not part of MFware
+# from their respective sources.
+#
 APE=/sys/src/ape
 < $APE/config
+SITEDIR=..
+OPT=-B
 SHELL=/bin/rc
 
 TARG=pktogf pktype vftovp vptovf
 
-OFILES=
+OFILES=extra.$O
 
-HFILES=../lib/common.h
-
-LIB=../lib/lib.a$O
+HFILES=extra.h\
+	$SITEDIR/site.h\
 
 </sys/src/cmd/mkmany
 
-CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
+CFLAGS=$OPT -I$SITEDIR -c
 LDFLAGS=
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
 
-vftovp.$O:	vftovp.c $HFILES
-		$CC $CFLAGS '-Dindex=index_var' vftovp.c
+extra.c:Q:		#dummy - needed to keep out of %.c rule
+		echo -n
 
-vptovf.$O:	vptovf.c $HFILES
-		$CC $CFLAGS '-Dindex=index_arr' vptovf.c
-
-%.c:		%.p $HFILES
-		$SHELL ../lib/convert $stem.p $stem.c
+%.c:		%.p futil.defines
+		$SHELL ./convert $stem.p $stem.c
 
 %.p:		%.ch %.web ../stamp-tangle.$cputype
 		# redirected to stop chatter - remove redirection for debugging

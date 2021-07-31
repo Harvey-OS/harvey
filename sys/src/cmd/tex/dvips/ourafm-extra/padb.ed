@@ -1,0 +1,51 @@
+732c
+   )
+(CHARACTER O 12 (comment ff)
+   (CHARWD R 591)
+   (CHARHT R 715)
+   (CHARDP R 3)
+   (CHARIC R 114)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 126)
+      )
+   )
+(CHARACTER O 13 (comment ffi)
+   (CHARWD R 846)
+   (CHARHT R 715)
+   (CHARDP R 3)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 131)
+      )
+   )
+(CHARACTER O 14 (comment ffl)
+   (CHARWD R 846)
+   (CHARHT R 715)
+   (CHARDP R 3)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 132)
+      )
+   )
+.
+561a
+   (LIG C f O 12)
+.
+560a
+   (LABEL O 12)
+   (LIG C l O 14)
+   (LIG C i O 13)
+   (STOP)
+.
+21a
+(MAPFONT D 1
+   (FONTNAME rpadbx)
+   (FONTCHECKSUM O 26777776230)
+   )
+.
+1c
+(VTITLE Created by afm2tfm AGaramond-Bold -v padb_raw, ff ligs added)
+.
+w padb.vpl
+q

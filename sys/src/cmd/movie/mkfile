@@ -1,0 +1,16 @@
+</$objtype/mkfile
+
+TARG=anim\
+	fdevelop\
+
+BIN=/sys/lib/movie/$objtype
+</sys/src/cmd/mkmany
+CC=pcc
+LD=pcc
+CFLAGS=-c
+
+installall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS install
+	cp movie /rc/bin/movie
+

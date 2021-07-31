@@ -4,13 +4,11 @@ int
 strncmp(const char *s1, const char *s2, size_t n)
 {
 	unsigned c1, c2;
-	long nn;
 
-	nn = n;
-	while(nn > 0) {
+	while(n > 0) {
 		c1 = *s1++;
 		c2 = *s2++;
-		nn--;
+		n--;
 		if(c1 != c2) {
 			if(c1 > c2)
 				return 1;

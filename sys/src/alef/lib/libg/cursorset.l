@@ -1,10 +1,10 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 void
 cursorset(Point p)
 {
-	byte *buf;
+	char *buf;
 
 	buf = bneed(9);
 	buf[0] = 'x';

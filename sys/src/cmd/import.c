@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include <fcall.h>
+#include <auth.h>
 
 int	connect(char*, char*);
 void	error(int, char*, ...);
@@ -12,7 +12,9 @@ main(int argc, char **argv)
 {
 	char *mntpt;
 	int fd, mntflags;
+	char *srv;
 
+	srv = "";
 	mntflags = MREPL;
 	ARGBEGIN{
 	case 'a':
@@ -23,6 +25,14 @@ main(int argc, char **argv)
 		break;
 	case 'c':
 		mntflags |= MCREATE;
+		break;
+	case 't':
+		srv = "any";
+		break;
+	case 's':
+		srv = ARGF();
+		if(srv == 0)
+			usage();
 		break;
 	default:
 		usage();
@@ -40,26 +50,24 @@ main(int argc, char **argv)
 		usage();
 	}
 
-	alarm(60*1000);
 	fd = connect(argv[0], argv[1]);
-	if(amount(fd, mntpt, mntflags, "") < 0)
-		error(1, "can't mount %s: %r", argv[1]);
-	alarm(0);
+	if(mount(fd, mntpt, mntflags, "", srv) < 0)
+		error(1, "can't mount %s", argv[1]);
 	exits(0);
 }
 
 int
 connect(char *system, char *tree)
 {
-	char buf[ERRLEN], *na;
+	char buf[ERRLEN], *na, *err;
 	int fd, n;
 
 	na = netmkaddr(system, 0, "exportfs");
 	if((fd = dial(na, 0, 0, 0)) < 0)
 		error(1, "can't dial %s", system);
 
-	if(auth(fd) < 0)
-		error(1, "%r: %s", system);
+	if(err = auth(fd, na))
+		error(1, "%s: %s", err, system);
 
 	n = write(fd, tree, strlen(tree));
 	if(n < 0)

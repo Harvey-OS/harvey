@@ -14,7 +14,6 @@ struct Bucket
 	int	size;
 	int	magic;
 	Bucket	*next;
-	int pad;
 	char	data[1];
 };
 
@@ -54,8 +53,8 @@ good:
 		return  bp->data;
 	}
 	size = sizeof(Bucket)+(1<<pow);
-	size += 7;
-	size &= ~7;
+	size += 3;
+	size &= ~3;
 
 	if(pow < CUTOFF) {
 		n = (CUTOFF-pow)+2;
@@ -137,14 +136,14 @@ realloc(void *ptr, long n)
 
 	/* enough space in this bucket */
 	osize = 1<<bp->size;
-	if(osize >= n && n > osize/2)
+	if(osize >= n)
 		return ptr;
 
 	new = malloc(n);
 	if(new == nil)
 		return nil;
 
-	memmove(new, ptr, osize < n ? osize : n);
+	memmove(new, ptr, osize);
 	free(ptr);
 
 	return new;

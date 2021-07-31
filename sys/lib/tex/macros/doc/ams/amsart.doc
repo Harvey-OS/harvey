@@ -1,0 +1,1269 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSART.DOC						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\fileversion{v1.0c}
+\def\filedate{90/06/26}
+\def\docdate{90/06/26}
+
+%% \CheckSum{1978}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+% 
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \changes{v1.0c}{90/06/26}{Revised theorem treatment}
+% \changes{v1.0b}{90/06/21}{Added `rom for `th@remark}
+%
+% \StopEventually{}
+%
+% \section{AMSART.STY}
+%
+% \def\sty{\bgroup\tt\let\next=}
+% \let\opt=\sty
+% \def\cs{\bgroup\tt\char`\\\let\next=}
+%
+%      Two considerations controlled the development of the \sty{amsart} and
+%      \sty{amsbook} documentstyles.  First of all, their intended use is for
+%      articles and books submitted for publication to the American
+%      Mathematical Society.  Some features of the standard \LaTeX{} styles
+%      that are irrelevant to this purpose (e.g., 11pt and 12pt options) have
+%      been reduced to a minimal kernel or omitted.  Second, because
+%      \sty{amsart} and \sty{amsbook} not only load the \opt{amstex} option,
+%      but also add several features not found in the standard \LaTeX{}
+%      styles, they don't have much spare memory to work with (if used with a
+%      `small' implementation of \TeX{}).  Therefore some features of lesser
+%      usefulness found in the standard \LaTeX{}
+%      styles have been omitted or minimized in an effort to conserve memory.
+%      
+%      To be more specific, the \opt{11pt} and \opt{12pt} options for
+%      \sty{amsart} and \sty{amsbook} do nothing except reset the margins and
+%      a few font sizes. More sophisticated adjustments that are done in the
+%      normal \sty{article} and \sty{book} styles are omitted.  The
+%      \opt{twocolumn} option isn't available, because it's not used in any
+%      American Mathematical Society journal (excluding {\it Notices}, which
+%      contains primarily Society news, not research) and because leaving it
+%      out saves a little memory.  
+%      
+%      Similarly, the \opt{fleqn} option and the \opt{openbib}
+%      bibliography style, which are not used in AMS publications,
+%      have been dropped.
+%
+%    \subsection{Sharing code between amsart.sty and amsbook.sty}
+%      Because amsart.sty and amsbook.sty share a great deal of code in
+%      common, and we don't want to maintain two separate copies, 
+%      amsart.sty is input by amsbook.sty.  We use \verb=\if@article=
+%      to avoid loading pieces that we want to skip.
+%
+%      Setting up \verb=\if@article= is a little tricky.  In
+%      amsbook.sty we have \verb=\let\if@article\iffalse=, and
+%      everything works in a straightforward way from there.  But if
+%      amsart.sty is being used by itself, we have a dilemma: if we
+%      say \verb=\let\if@article\iftrue= then the \verb=\iffalse=
+%      variation from amsbook will always be overridden, whereas if we do
+%      not define \verb=\if@article= at all it will be undefined and
+%      cause an error.  So we use this method:
+%    \begin{macrocode}
+\ifx\undefined\if@article % If \if@article is undefined,
+\expandafter\let          % we will end up with \let\if@article\iftrue
+\else \expandafter\@gobbletwo\fi % otherwise \@gobbletwo\if@article\iftrue
+\if@article\iftrue       % which removes this line.
+%    \end{macrocode}
+%
+%      As usual, we write the file name, version and date on the screen.
+%    \begin{macrocode}
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\immediate\write\sixt@@n{%
+  Document style `AMSART' \fileversion\space <\filedate> (RK, MJD)}
+\immediate\write\sixt@@n{%
+  English documentation \space\@spaces\@spaces <\docdate> (MJD)}
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+
+\input amstex.sty
+\def\@ptsize{0} 
+\@namedef{ds@11pt}{\def\@ptsize{1}}
+\@namedef{ds@12pt}{\def\@ptsize{2}}
+%    \end{macrocode}
+%      Because twosided output is the default in amsart and amsbook
+%      (running heads differ on left and right-hand pages),
+%      \verb=\ds@twoside= is just defined to be \verb=\@empty=.  (Note that
+%      \verb=\relax= would not work.)
+%    \begin{macrocode}
+\@namedef{ds@twoside}{\@empty} 
+
+\def\ds@draft{\overfullrule 5\p@}
+%    \end{macrocode}
+%      These macros give warnings for the options that are not
+%      applicable when using AMSART and AMSBOOK documentstyles.
+%      To save memory, they will be undefined after option-loading
+%      is complete.
+%    \begin{macrocode}
+\@namedef{ds@twocolumn}{\typeout{Sorry---the `twocolumn' option 
+      is not available in the AMSART and AMSBOOK documentstyles.}}
+\@namedef{ds@openbib}{\typeout{Sorry---the `openbib' option 
+      is not available in the AMSART and AMSBOOK documentstyles.}}
+\@namedef{ds@fleqn}{\typeout{Sorry---the `fleqn' option 
+      is not available in the AMSART and AMSBOOK documentstyles.}}
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\@namedef{ds@titlepage}{\typeout{Sorry---the `titlepage' option 
+      is not available in the AMSART documentstyle.}}
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+
+\@options
+\let\ds@twocolumn\relax       \let\ds@openbib\relax
+\let\ds@fleqn\relax           
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\let\ds@titlepage\relax
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+%    \end{macrocode}
+%      Make the `margid' option the default in amsart.sty and
+%      amsbook.sty.
+%    \begin{macrocode}
+\input{margid.sty}
+%    \end{macrocode}
+%      Using \verb=\@plus= instead of `plus' saves token memory whenever it
+%      occurs inside a definition.  Each such use saves 3 tokens and since
+%      plus is used fairly often, using up another control sequence name
+%      seems justifiable. We don't bother to do the same for `minus'
+%      because it is used less often.
+%    \begin{macrocode}
+\def\@plus{plus}
+%    \end{macrocode}
+%      
+%      A utility macro that helps conserve token memory.  When
+%      a reference to a counter occurs inside a macro definition,
+%      using \verb=\@string\countername= uses 2 tokens instead of
+%      length(countername) tokens.
+%    \begin{macrocode}
+\def\@string{\expandafter\@gobble\string}
+%    \end{macrocode}
+%      Utility macro to test if an argument is empty.  We use \verb=\@@end=
+%      on either side of the possibly empty argument with an \verb=\ifx=
+%      test; if the argument is completely empty, the result will
+%      be \verb=\ifx\@@end\@@end=; otherwise
+%      \verb=\ifx\@@end\someothertoken=
+%      and the second \verb=\@@end= will be skipped because it is on the
+%      false branch.  The reason for choosing \verb=\@@end= is that it is
+%      a token that we do not expect to ever occur in the text being
+%      tested.
+%    \begin{macrocode}
+\def\@ifempty#1{\ifx\@@end#1\@@end\expandafter\@leftmark
+    \else \expandafter\@rightmark\fi}
+%    \end{macrocode}
+%      As a precaution, we make \verb=\@leftmark= and \verb=\@rightmark=
+%      long.  Otherwise they're the same as originally defined in
+%      latex.tex.  It would be nice to have more generic names like
+%      \verb=\dofirst= and \verb=\dosecond= but we don't
+%      want to use different control sequences at the present time
+%      (21-JUN-1990) because that would use up hash memory.
+%    \begin{macrocode}
+\long\def\@leftmark#1#2{#1}
+\long\def\@rightmark#1#2{#2}
+%    \end{macrocode}
+%
+% \subsection{The {\tt\string\@andify} macro}
+%      This is a utility macro to convert \verb=aa\and bb\and cc\and = into
+%      \verb=aa, bb, and cc=, or 
+%      \verb=aa\and bb\and = into \verb=aa and bb=, or \verb=aa\and = into 
+%      \verb=aa=. Currently (31-MAY-1990) used only by \verb=\author= and
+%      \verb=\sh@rtauthor=, and therefore it is undefined after
+%      \verb=\maketitle= in order to conserve main memory.
+% 
+%      \verb=#1= is normally ``\verb= AND ='' or ``\verb= and =''; since
+%      the amount of space might be more than a word space in some cases, 
+%      it must be given in the argument.  \verb=#2= is a macro such as
+%      \verb=\theauthors@= containing text of the form \verb=aa \and=
+%      \verb= bb\and cc\and=.
+%    \begin{macrocode}
+\def\@andify#1#2{%
+%    \end{macrocode}
+%      If no separators (\verb=\and=) are present in \verb=#2=, then
+%      we do nothing to it.
+%    \begin{macrocode}
+  \expandafter\in@\expandafter\and\expandafter{#2}%
+  \ifin@
+  \begingroup\global\toks\@ne{}% initialize to empty
+%    \end{macrocode}
+%      Now we count how many instances of \verb=\and= are in arg \verb=#2=.
+%    \begin{macrocode}
+  \def\and##1\and{\@ifempty{##1}{}{\advance\@tempcnta\@ne\and}}%
+  \@tempcnta\z@\expandafter\and#2\and%
+%    \end{macrocode}
+%      If more than two, we want to produce `aa, bb, and cc'
+%    \begin{macrocode}
+  \ifnum\@tempcnta>\tw@
+    \def\and##1\and{\advance\@tempcnta\m@ne
+      \global\toks\@ne\expandafter{\the\toks\@ne ##1}%
+      \edef\@tempa{\the\toks\@ne\ifnum\@tempcnta=\@ne\unskip,#1\else
+          \ifnum\@tempcnta>\@ne\unskip,\ \fi\fi}%
+      \global\toks\@ne\expandafter{\@tempa \ignorespaces}%
+      \ifnum\@tempcnta>\z@\expandafter\and\fi}%
+%    \end{macrocode}
+%      Otherwise we want to produce `aa and bb' or just `aa'.
+%    \begin{macrocode}
+  \else % if NOT > 2
+    \def\and##1\and{\advance\@tempcnta\m@ne
+       \global\toks\@ne\expandafter{\the\toks\@ne ##1}%
+       \edef\@tempa{\the\toks\@ne
+         \ifnum\@tempcnta=\@ne\unskip#1\ignorespaces\fi}%
+       \global\toks\@ne\expandafter{\@tempa}%
+       \ifnum\@tempcnta>\z@\expandafter\and\fi}%
+  \fi % ifnum
+ \expandafter\and#2\relax\endgroup
+ \edef#2{\the\toks\@ne}%
+\fi % ifin@
+}
+%    \end{macrocode}
+%      Now a utility macro to do \verb=\uppercase= but sidestep any math, to
+%      prevent uppercasing math variables.  In order to be handled properly
+%      the \verb=$...$= or \verb=\(...\)= must be on the outer level (not
+%      enclosed in braces).  We did not try to handle the possibility
+%      \verb=\begin{math}...\end{math}= in a title at the present time (too
+%      complicated).  Also we increase inter-word space in the uppercase
+%      text. 
+%      
+%      One other little problem: uppercasing of a few special characters
+%      like the German "ss" and the undotted i and j (\verb=\i= and
+%      \verb=\j=), used sometimes with accents.  We redefine to be upper
+%      case equivalents. (Undotted \verb=\i= and \verb=\j= in math would be
+%      typed as \verb=\imath= and \verb=\jmath=.)
+%
+%      Note the extra level of braces to localize changes:
+%    \begin{macrocode}
+\def\uppercasetext@#1{%
+   {\spaceskip1.3\fontdimen2\the\font plus1.3\fontdimen3\the\font
+    \def\ss{SS}\let\i=I\let\j=J\let\ae\AE\let\oe\OE\let\o\O\let\aa\AA\let\l\L
+    \skipmath@#1$\skipmath@$}}
+
+\def\skipmath@#1$#2${\skipmath@b#1\(\skipmath@b\)%
+  \ifx\skipmath@#2\else$#2$\expandafter\skipmath@\fi}
+
+\def\skipmath@b#1\(#2\){\uppercase{#1}%
+  \ifx\skipmath@b#2\else\(#2\)\expandafter\skipmath@b\fi}
+%    \end{macrocode}
+%
+%      This definition of \verb=\today= is straight from article.sty.
+%    \begin{macrocode}
+\def\today{\ifcase\month\or
+ January\or February\or March\or April\or May\or June\or
+ July\or August\or September\or October\or November\or December\fi
+ \space\number\day, \number\year}
+%    \end{macrocode}
+%      We change the \verb=\LaTeX= command so that it doesn't use
+%      \verb=\sc= for the A (the small caps font is often not
+%      available in unusual sizes, which could cause problems for a
+%      user trying to print files like amstest.tex).
+%    \begin{macrocode}
+\def\LaTeX{L\raise.42ex\hbox{\kern-.33em\protect\scriptsize A\kern-.15em}\TeX}
+%    \end{macrocode}
+%      An interesting redefinition of \verb=\@ifundefined=.  Allows the
+%      replacement true or false text to end with a macro that takes an
+%      argument.  Also allows \verb=\@ifundefined= to be completely
+%      expanded in an \verb=\edef= if desired.
+%    \begin{macrocode}
+\def\@ifundefined#1{\expandafter\ifx\csname#1\endcsname\relax
+        \expandafter\@leftmark 
+        \else\expandafter\@rightmark\fi}
+%    \end{macrocode}
+%
+%      We redefine \verb=\ref= to add \verb=\rom= in a couple
+%      of places.  Actually in one place we just add
+%      \verb=\normalshape= because we don't need to do the extra work of
+%      \verb=\rom= for the temporary ?? marker.  Note: this
+%      definition is derived from the one in lfonts.new.
+%    \begin{macrocode}
+\def\ref#1{\@ifundefined{r@#1}{{\normalshape\bf ??}\iffirstchoice@ 
+  \@warning{Reference `#1' on page \thepage \space undefined}\fi}%
+  {\rom{\expandafter\expandafter\expandafter
+    \@car\csname r@#1\endcsname\@nil\null}}}
+%    \end{macrocode}
+%
+%      The macro \verb=\defaultfont= resets everything to `normal',
+%      except for size.
+%    \begin{macrocode}
+\def\defaultfont{\family\default@family \series\default@series
+  \shape\default@shape \selectfont}
+%    \end{macrocode}
+%
+% \subsection{Top matter}
+%      Macros for title, author, etc.
+%    \begin{macrocode}
+\def\title{\@dblarg{\@title}}
+\def\thetitle@{}
+
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\def\@title[#1]#2{\def\sh@rttitle{\def\\{\unskip, \ignorespaces}%
+   \ignorespaces#1\unskip}%
+   \def\thetitle@{\ignorespaces#2\unskip}}
+
+\def\sh@rttitle{}
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+%    \end{macrocode}
+%      Because there might be more than one \verb=\author=,
+%      \verb=\theauthors@= and \verb=\sh@rtauthor= are not 
+%      \verb=\@andify='d until  \verb=\maketitle=.
+%    \begin{macrocode}
+\def\author{\@dblarg{\@author}}
+\def\theauthors@{}
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\def\@author[#1]#2{\expandafter\def\expandafter
+  \theauthors@\expandafter{\theauthors@#2\and}%
+  \expandafter\def\expandafter\sh@rtauthor\expandafter{\sh@rtauthor#1\and}}
+
+\def\sh@rtauthor{}
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+
+\newbox\addressb@x  \setbox\addressb@x\copy\voidb@x
+\def\address#1{\setbox\addressb@x\vbox{%
+%    \end{macrocode}
+%      Address is supposed to go all on one line, so we redefine \verb=\\=
+%      to just insert a comma instead of doing a line break.
+%    \begin{macrocode}
+\def\\{\unskip, \ignorespaces}%
+%    \end{macrocode}
+%      To suppress the pre-\verb=\begin{document}= error message
+%      we change \verb=\@nodocument= to empty.
+%    \begin{macrocode}
+\let\@nodocument\@empty
+  \ifvoid\addressb@x\indent
+%    \end{macrocode}
+%      This strut of height 16pt is what provides the spacing above the
+%      address(es) at the end of the article.  Because we're going to
+%      \verb=\unvbox=, \verb=\baselineskip= would not work.  When
+%      \verb=\unvboxing= we'll need to do a kern of \verb=-\prevdepth= to
+%      get the proper baseline distance.
+%    \begin{macrocode}
+\vrule\@height16\p@\@width\z@\else
+  \dimen@\dp\addressb@x \unvbox\addressb@x \prevdepth\dimen@
+  \medskip\indent\fi \ignorespaces{\small\sc#1%
+  \interlinepenalty\@M\par}}}
+%    \end{macrocode}
+%      \verb=\email= adds to \verb=\addressb@x=.
+%    \begin{macrocode}
+\def\email#1{\ifvoid\addressb@x\errmessage{\string\email\space
+  can't precede \string\address.}\fi
+  \setbox\addressb@x\vbox{%
+%    \end{macrocode}
+%      To suppress the pre-\verb=\begin{document}= error message
+%      we change \verb=\@nodocument= to empty.
+%    \begin{macrocode}
+\let\@nodocument\@empty
+  \dimen@\dp\addressb@x \unvbox\addressb@x \prevdepth\dimen@
+  \vskip2\p@\indent{\small{\it E-mail\/}:\enspace
+  \ignorespaces#1\interlinepenalty\@M\par}}}
+
+\def\date#1{\def\thedate@{#1}}
+\def\thedate@{}
+
+\def\thanks#1{\ifx\@empty\thethanks@
+   \def\thethanks@{\ignorespaces#1\unskip.}%
+ \else \expandafter\def\expandafter\thethanks@\expandafter
+   {\thethanks@\@@par\ignorespaces#1\unskip.}\fi
+}
+\def\thethanks@{}
+
+\def\dedicatory#1{\def\thededicatory@{#1}}
+\def\thededicatory@{}
+
+\def\keywords#1{\def\thekeywords@{#1}}
+\def\thekeywords@{}
+
+\def\subjclass#1{\def\thesubjclass@{#1}}
+\def\thesubjclass@{}
+
+\def\translator#1{\def\thetranslator@{#1}}
+\def\thetranslator@{}
+
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\def\maketitle{\par
+  \@topnum\z@ % this prevents figures from falling at the top of page 1
+  \begingroup
+  \@maketitle 
+  \endgroup
+%    \end{macrocode}
+%      Set up the left-hand running head:
+%    \begin{macrocode}
+  \@andify{ AND }\sh@rtauthor
+  \thispagestyle{plain}% 
+  \c@footnote\z@ 
+  \def\do##1{\let##1\relax}%
+  \do\maketitle \do\@maketitle
+  \do\title \do\@title \do\thetitle@
+  \do\author \do\@author \do\theauthors@
+  \do\dedicatory \do\thededicatory@
+  \do\thanks \do\thethanks@
+  \do\keywords \do\thekeywords@
+  \do\subjclass \do\thesubjclass@
+  \do\@andify 
+}
+%    \end{macrocode}
+%      Here is a diagram of the elements of the top matter, showing the
+%      vertical spacing. (`b2b' means base-to-base.)
+%     \begin{verbatim}
+%      ----------- top of type block (= top of running heads)
+%      6.5pc b2b
+%      TITLE
+%      ==
+%      32pt b2b
+%      AUTHOR
+%      ==
+%      18pt b2b
+%      DEDICATORY
+%      ==
+%      24pt b2b
+%      DATE
+%      ==
+%      32pt + 14 b2b
+%      MAIN TEXT
+%    \end{verbatim}
+%    \begin{macrocode}
+\def\@maketitle{%
+%    \end{macrocode}
+%      Set font to normal, just in case.
+%    \begin{macrocode}
+  \defaultfont\normalsize
+%    \end{macrocode}
+%      
+%      Special footnotes are put here to ensure that they come first at
+%      the bottom of the page.
+%    \begin{macrocode}
+  \let\@makefnmark\relax  \let\@thefnmark\relax
+  \ifx\@empty\thesubjclass@\else
+   \@footnotetext{1980 {\it Mathematics Subject 
+     Classification} (1985 {\it Revision\/}).\enspace 
+        Primary \thesubjclass@.}\fi
+  \ifx\@empty\thekeywords@\else
+   \@footnotetext{{\it Key words and phrases.}\enspace \thekeywords@.}\fi
+%    \end{macrocode}
+%      Ending period for \verb=\thanks= was added earlier.
+%    \begin{macrocode}
+\ifx\@empty\thethanks@\else
+   \@footnotetext{\thethanks@}\fi
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\topskip66\p@ % 6.5 picas to the base of the first title line
+%    \end{macrocode}
+%      Using a \verb=\vtop= gives us the right distance to the first baseline,
+%    \begin{macrocode}
+  \vtop{\centering{\baselineskip14\p@\bf
+    \expandafter\uppercasetext@\expandafter{\thetitle@}\@@par}%
+%    \end{macrocode}
+%      but since we used a \verb=\vtop=, distance base-to-base from the last
+%      line of the title to the first line of the author names may
+%      be off unless we get the depth of the last title line and
+%      carry it outside the \verb=\vtop=.
+%    \begin{macrocode}
+   \global\dimen@i\prevdepth}%
+  \prevdepth\dimen@i
+  \ifx\@empty\theauthors@
+  \else
+    \baselineskip32\p@
+    \vtop{\@andify{ AND }\theauthors@ 
+      \centering{\small
+%    \end{macrocode}
+%      Here \verb=\uppercasetext@= instead of just \verb=\uppercase= is a bit of
+%      overkill but it gives us the uppercase special chars and handles
+%      potential exotic cases without further work.
+%    \begin{macrocode}
+  \expandafter\uppercasetext@\expandafter{\theauthors@}\@@par}%
+         \global\dimen@i\prevdepth}\relax
+    \prevdepth\dimen@i
+  \fi
+%    \end{macrocode}
+%      Likewise with \verb=\thededicatory@= and \verb=\thedate@=.
+%    \begin{macrocode}
+  \ifx\@empty\thededicatory@
+  \else
+    \baselineskip18\p@
+  \vtop{\centering{\small\it\thededicatory@\@@par}%
+      \global\dimen@i\prevdepth}\prevdepth\dimen@i
+  \fi
+  \ifx\@empty\thedate@\else
+  \baselineskip24\p@
+    \vtop{\centering\thedate@\@@par
+      \global\dimen@i\prevdepth}\prevdepth\dimen@i
+  \fi
+%    \end{macrocode}
+%      Space before the main text should be 32 + 14 base-to-base; we
+%      accomplish this by doing a vskip of that amount with \verb=\baselineskip=
+%      subtracted.
+%    \begin{macrocode}
+  \normalbaselines
+  \dimen@32\p@ \advance\dimen@-\baselineskip
+  \vskip\dimen@\@plus14\p@
+  } % end \@maketitle
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+%    \end{macrocode}
+%      `Abstract' can be changed to say `R\'esum\'e' (French) by
+%      redefining \verb=\abstractname=.  This and other control
+%      sequence names (\verb=\refname=, \verb=\contentsname=,
+%      \verb=\appendixname=, and so on) are compatible with babel.sty,
+%      in the hope (not yet tested--27-JUN-1990) that amsart.sty and
+%      babel.sty may be able to be used together, because the AMS
+%      sometimes publishes articles in languages other than English.
+%    \begin{macrocode}
+\def\abstractname{Abstract}
+\def\abstract{%
+%    \end{macrocode}
+%      If there is an abstract it should follow immediately after
+%      \verb=\maketitle= in the user's file.  We need to subtract the difference
+%      between the previous vskip and the desired skip of 28pt plus 0pt:
+%    \begin{macrocode}
+\vskip-4\p@\@plus-14\p@
+  \moveright 3pc\vtop \bgroup 
+  \advance \hsize -6pc\bgroup % extra \bgroup to localize \small
+   \defaultfont\small \noindent 
+  {\sc\abstractname}.\enspace\ignorespaces
+\global\let\abstract\relax}
+
+\def\endabstract{\par\egroup
+%    \end{macrocode}
+%      Since the abstract is set in a \verb=\vtop=, \TeX{} won't get the depth
+%      of the last line when doing baselineskip calculations unless
+%      we work around it.
+%    \begin{macrocode}
+\global\dimen@i\prevdepth \egroup \prevdepth\dimen@i
+%    \end{macrocode}
+%      We subtract baselineskip from the amount of the vskip so that
+%      the total base-to-base distance will be as desired (32 + 14).
+%    \begin{macrocode}
+\dimen@32\p@ \advance\dimen@-\normalbaselineskip
+  \vskip\dimen@\@plus14\p@ \relax
+\global\let\endabstract\relax}
+%    \end{macrocode}
+%
+%      Title page environment does nothing much; information and
+%      formatting to be provided by the user.
+%    \begin{macrocode}
+\def\titlepage{\thispagestyle{empty}\c@page\z@}
+\def\endtitlepage{\newpage}
+%    \end{macrocode}
+%
+% \subsection{Macros for list labels}
+%    \begin{macrocode}
+\def\labelenumi{(\@arabic\c@enumi)} 
+\def\theenumi{\@arabic\c@enumi} 
+\def\labelenumii{(\@alph\c@enumii)}
+\def\theenumii{\@alph\c@enumii}
+\def\p@enumii{\theenumi}
+\def\labelenumiii{(\@roman\c@enumiii)}
+\def\theenumiii{\@roman\c@enumiii}
+\def\p@enumiii{\theenumi(\theenumii)}
+\def\labelenumiv{(\@Alph\c@enumiv)}
+\def\theenumiv{\@Alph\c@enumiv} 
+\def\p@enumiv{\p@enumiii\theenumiii}
+
+\def\labelitemi{$\m@th\bullet$}
+\def\labelitemii{\bf --}% \normalshape already done by \itemize
+\def\labelitemiii{$\m@th\ast$}
+\def\labelitemiv{$\m@th\cdot$}
+%    \end{macrocode}
+%
+% \subsection{Verse and quotation environments}
+%    \begin{macrocode}
+\def\verse{\let\\\@centercr 
+ \list{}{\itemsep\z@ \itemindent -1.5em\listparindent\itemindent 
+ \rightmargin\leftmargin \advance\leftmargin 1.5em}\item[]}
+\let\endverse=\endlist
+\def\quotation{\list{}{\listparindent 1.5em\itemindent\listparindent
+ \rightmargin\leftmargin \parsep\z@ \@plus\p@}\item[]}
+\let\endquotation=\endlist
+\def\quote{\list{}{\rightmargin\leftmargin}\item[]}
+\let\endquote=\endlist
+%    \end{macrocode}
+%      Changed definition of \verb=\trivlist=, \verb=\enumerate=, and
+%      \verb=\itemize= in order to add \verb=\rom= in \verb=\makelabel=. 
+%      Except we only need \verb=\normalshape= because it is the first
+%      thing inside the label box, so we don't have to worry about italic
+%      correction for a preceding character.
+%    \begin{macrocode}
+\def\trivlist{\parsep\parskip
+  \@trivlist \labelwidth\z@ \leftmargin\z@
+  \itemindent\z@ \def\makelabel##1{\normalshape##1}}
+
+\def\enumerate{\ifnum \@enumdepth >3 \@toodeep\else
+      \advance\@enumdepth \@ne 
+      \edef\@enumctr{enum\romannumeral\the\@enumdepth}\list
+      {\csname label\@enumctr\endcsname}{\usecounter
+        {\@enumctr}\def\makelabel##1{\hss\llap{\normalshape##1}}}\fi}
+
+\def\itemize{\ifnum\@itemdepth>3 \@toodeep
+  \else \advance\@itemdepth\@ne
+  \edef\@itemitem{labelitem\romannumeral\the\@itemdepth}%
+  \list{\csname\@itemitem\endcsname}%
+  {\def\makelabel##1{\hss\llap{\normalshape##1}}}\fi}
+
+\def\descriptionlabel#1{\hspace\labelsep \normalshape\bf #1:}
+\def\description{\list{}{%
+%    \end{macrocode}
+%      Combined total of 12pt hang indent (label extends 6pt to the left,
+%      text is indented 6pt extra to the right)
+%    \begin{macrocode}
+\advance\leftmargin6\p@ \itemindent-6\p@
+  \labelwidth\z@ \let\makelabel\descriptionlabel}}
+\let\enddescription=\endlist
+%    \end{macrocode}
+%
+% \subsection{Inclusion of amsart10.sty or the like}
+%      Amsart10.sty et al.\ also have conditional code to skip
+%      parts not applicable to a book if \verb=\if@article= =
+%      \verb=\iffalse=.
+%      
+%      Note. The decisions in the standard article.sty and book.sty
+%      about what macros to relegate to the substyle files art10.sty,
+%      bk10.sty, etc. have not been strictly followed.  In general
+%      we put dimension and skip settings and font size commands in the
+%      size-specific files, and we put everything else in the parent file.
+%    \begin{macrocode}
+% amsart10 will input amsbk10 if the parent documentstyle was amsbook.
+\input amsart1\@ptsize.sty\relax 
+%    \end{macrocode}
+%
+% \subsection{Redefined internal sectioning commands}
+%      
+%      In amsart.sty \verb=\@startsection=, \verb=\@sect=, \verb=\@xsect=,
+%      and a couple of other things are redefined to fix a few hard-coded
+%      things that would interfere with the desired style.  The most
+%      noteworthy difference is that all section headings will go into the 
+%      table of contents (governed by secnumdepth as usual), EVEN WHEN THE
+%      * FORM IS USED.  The only section heading not listed in the table of
+%      contents is the heading for the toc itself.
+%    \begin{macrocode}
+\def\@startsection#1#2#3#4#5#6{%
+%    \end{macrocode}
+%      Section titles, if they are run-in with the following text, are
+%      stored in a box instead of being typeset right away.  They will be
+%      typeset by \verb=\everypar=, but if one section heading follows
+%      right after another, this won't happen.  So by doing
+%      \verb=\leavevmode= we force this to happen.  (\verb=\if@noskipsec=
+%      is true if the previous section title has not yet been typeset.)
+%    \begin{macrocode}
+\if@noskipsec \leavevmode \fi
+ \par \@tempskipa #4\relax
+ \@afterindenttrue
+ \ifdim \@tempskipa <\z@ \@tempskipa -\@tempskipa \@afterindentfalse\fi
+ \if@nobreak \everypar{}\else
+     \addpenalty\@secpenalty\addvspace\@tempskipa\fi
+ \@ifstar{\@dblarg{\@sect{#1}{\@m}{#3}{#4}{#5}{#6}}}%
+         {\@dblarg{\@sect{#1}{#2}{#3}{#4}{#5}{#6}}}%
+}
+%    \end{macrocode}
+%       For reference, here is the argument list for \verb=\@sect=.
+%    \begin{verbatim}
+% % #1    #2     #3      #4          #5         #6     #7      #8
+% {NAME}{LEVEL}{INDENT}{BEFORESKIP}{AFTERSKIP}{STYLE}[SHORTT]{TITLE}
+%    \end{verbatim}
+%    \begin{macrocode}
+\def\@sect#1#2#3#4#5#6[#7]#8{%
+%    \end{macrocode}
+%      \verb=\@svsec= will be the section number plus some formatting if
+%      the star form was not used and if the depth of numbering extends to
+%      the current level. The user can change secnumdepth to control how
+%      many levels of sectioning will be numbered.
+%    \begin{macrocode}
+\ifnum #2>\c@secnumdepth 
+   \let\@svsec\@empty
+ \else 
+   \refstepcounter{#1}%
+%    \end{macrocode}
+%      If the \verb=*=-form was not used (\verb=#2= less than 1000), we add
+%      \verb=\sectionname= or whatever as a prefix, separated by a space. 
+%      We need the ifundefined test in order to know whether the space
+%      should be added or not.  There must be a better way to do this
+%      but I haven't thought of it yet.
+%    \begin{macrocode}
+\edef\@svsec{\ifnum#2<\@m 
+             \@ifundefined{#1name}{}{\csname #1name\endcsname\ }\fi
+%    \end{macrocode}
+%      We add \verb=\rom= here in order to make numbers always roman
+%      even within italic.
+%    \begin{macrocode}
+\noexpand\rom{\csname the#1\endcsname}.\enspace}\fi
+ \@tempskipa #5\relax
+ \ifdim \@tempskipa>\z@ % then this is not a run-in section heading
+   \begingroup #6\relax
+   \@hangfrom{\hskip #3\relax\@svsec}{\interlinepenalty\@M #8\par}%
+   \endgroup
+%    \end{macrocode}
+%
+%      Section headings don't set marks for the running heads in the amsart
+%      style, only in the amsbook style.
+%    \begin{macrocode}
+   \if@article\else\csname #1mark\endcsname{%
+        \ifnum \c@secnumdepth >#2\relax\csname the#1\endcsname. \fi#7}\fi
+%    \end{macrocode}
+%      If \verb=#2= (level) is greater than 1000 then we don't do a table
+%      of contents entry. This happens only for the section heading above
+%      the table of contents itself.
+%    \begin{macrocode}
+\ifnum#2>\@m \else
+       \addcontentsline{toc}{#1}%
+%    \end{macrocode}
+%      If the \verb=*=-form for the sectioning command was used, then
+%      \verb=#2= = 1000, and \verb=\sectionname= and the number will be
+%      suppressed.
+%    \begin{macrocode}
+{\ifnum #2>\c@secnumdepth \else
+             \protect\numberline{%
+               \ifnum#2<\@m
+               \@ifundefined{#1name}{}{\csname #1name\endcsname\ }\fi
+               \csname the#1\endcsname.}\fi
+           #7}%
+     \fi
+ \else
+%    \end{macrocode}
+%      Otherwise we're doing a run-in heading; it is stored as \verb=\@svsechd=,
+%      which will be typeset by \verb=\everypar= as soon as some text is
+%      encountered.
+%    \begin{macrocode}
+  \def\@svsechd{#6\hskip #3\@svsec \ignorespaces#8\unskip.%
+        \ifnum#2>\@m \else
+          \addcontentsline{toc}{#1}%
+            {\ifnum #2>\c@secnumdepth \else
+              \protect\numberline{%
+                \ifnum#2<\@m
+                \@ifundefined{#1name}{}{\csname #1name\endcsname\ }\fi
+                \csname the#1\endcsname.}\fi
+             #7}\fi}%
+ \fi
+%    \end{macrocode}
+%      \verb=\@xsect= does some more stuff based on whether this is a run-in
+%      heading or not.
+%    \begin{macrocode}
+\@xsect{#5}}
+
+\def\@xsect#1{\@tempskipa #1\relax
+ \ifdim \@tempskipa>\z@ % then this is not a run-in heading
+   \par \nobreak \vskip\@tempskipa
+   \@afterheading
+ \else % otherwise it IS a run-in heading
+   \global\@nobreakfalse \global\@noskipsectrue
+   \everypar{\if@noskipsec \global\@noskipsecfalse
+               \clubpenalty\@M \kern-\parindent
+               \begingroup \@svsechd \endgroup \hskip -#1\relax
+             \else \clubpenalty \@clubpenalty\everypar{}\fi
+            }%
+ \fi\ignorespaces}
+
+\def\@afterheading{\global\@nobreaktrue    
+   \everypar{\if@nobreak \global\@nobreakfalse \clubpenalty\@M
+               \if@afterindent \else {\setbox\z@\lastbox}\fi
+             \else \clubpenalty\@clubpenalty \everypar{}\fi}}
+%    \end{macrocode}
+%      \verb=\@hangfrom{TEXT}= : Puts TEXT in a box, and makes a hang-indented 
+%      paragraph out of the following material. (Amount of indent
+%      determined by the width of TEXT).  Should be used
+%      in vertical mode.
+%
+%      In AMSART.STY we can use box 0 instead of tempboxa and save a few
+%      tokens (using the abbreviations \verb=\setboxz@h=, etc., from
+%      amstex.sty).
+%    \begin{macrocode}
+\def\@hangfrom#1{\setboxz@h{#1}\hangindent\wdz@ \noindent\box\z@}
+
+\let\@ssect\relax % to save memory.  \@ssect not needed in amsart.sty.
+
+\newcounter{part}
+\newcounter{section}
+\newcounter{subsection}[section]
+\newcounter{subsubsection}[subsection]
+
+\def\thepart{\@Roman\c@part} 
+\def\thesection{\@arabic\c@section}
+\def\thesubsection{\thesection.\@arabic\c@subsection}
+\def\thesubsubsection{\thesubsection.\@arabic\c@subsubsection}
+%    \end{macrocode}
+%      Depth of section numbering; if \verb=\secnumdepth= were 2 instead of
+%      3, \verb=\subsubsection= would not be numbered.
+%    \begin{macrocode}
+\setcounter{secnumdepth}{3}
+%    \end{macrocode}
+%      
+% \subsection{Table of contents macros}
+%      
+%      \verb=\@pnumwidth= is the maximum width for page numbers in a table of
+%      contents.  1.6em allows enough room for three digits.
+%    \begin{macrocode}
+\def\@pnumwidth{1.6em}
+%    \end{macrocode}
+%      \verb=\@tocrmarg= is \verb=\@pnumwidth= plus the desired minimum
+%      space (1em) between page numbers and the preceding text.
+%    \begin{macrocode}
+\def\@tocrmarg {2.6em}
+\setcounter{tocdepth}{2}
+%    \end{macrocode}
+%      \verb=\tableofcontents= is like \verb=\section= except for no number and
+%      no table of contents entry.
+%    \begin{verbatim}
+%      Arguments: {} = name = empty
+%      \@M = no number should be used and no table of contents entry
+%      \z@ = indent amount
+%      12pt + 12pt = vskip before
+%      6pt = vskip after
+%      \centering\sc = format
+%    \end{verbatim}
+%    \begin{macrocode}
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\def\tableofcontents{%
+%    \end{macrocode}
+%      Remove the skip after the abstract so that we can substitute another
+%    \begin{macrocode}
+\removelastskip\vskip\z@skip
+  \@startsection{}\@M\z@{12\p@\@plus12\p@}{6\p@}%
+        {\centering\sc}\contentsname
+ \@starttoc{toc}%
+ \addvspace{32\p@\@plus14\p@}%
+\let\tableofcontents\relax
+\let\l@part\relax \let\l@section\relax
+\let\l@subsection\relax \let\l@subsubsection\relax
+}
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+
+\def\contentsname{Contents}
+%    \end{macrocode}
+%      \verb=\@tocline= is a modified form of
+%      \verb=\@dottedtocline= for higher-level section titles.
+%      Arguments: ABOVESKIP, NUMBER WIDTH, STYLE, TEXT, PAGE.
+%    \begin{macrocode}
+\def\@tocline#1#2#3#4#5{\par
+  \addpenalty\@secpenalty\addvspace{#1}%
+  \begingroup   \@tempdima#2\relax % used by \numberline
+  \parindent\z@ \rightskip\@pnumwidth \parfillskip-\@pnumwidth 
+  {#3\leavevmode #4\hfil \hbox to\@pnumwidth{\hss #5}}\par\nobreak
+  \endgroup}
+
+\def\l@part{\@tocline\bigskipamount{2em}{\normalshape\bf}}
+
+\def\l@section{\@tocline\medskipamount{2em}{\normalshape\bf}}
+%    \end{macrocode}
+%      Redefine \verb=\@dottedtocline= to remove the dots.  But retain the
+%      same name in order not to use up another control sequence name.
+%
+%      Example lines from .toc file:
+%    \begin{verbatim}
+%      \contentsline {section}{\numberline {2.}Top matter}{3}
+%      \contentsline {subsection}{\numberline {2.1.}AT: Article Title}{3}
+%    \end{verbatim}
+%      Arguments: LEVEL, NUMBER WIDTH, EXTRA SEP, NUMBER/TEXT, PAGE
+%    \begin{macrocode}
+\def\@dottedtocline#1#2#3#4#5{\ifnum #1>\c@tocdepth \else
+  \vskip \z@\@plus\p@
+  {\leftskip #2\relax \rightskip\@tocrmarg \parfillskip-\rightskip
+   \parindent #2\relax \@afterindenttrue
+   \interlinepenalty\@M \leavevmode 
+   \@tempdima #3\relax \advance\leftskip\@tempdima 
+    \null \hskip-\leftskip #4\nobreak
+        \hfill\nobreak
+%    \end{macrocode}
+%      We omit the page numbers from the highest-numbered level (= lowest,
+%      least-important level) of sectioning.
+%    \begin{macrocode}
+  \ifnum#1<\c@tocdepth\hbox to\@pnumwidth{\hfil\normalshape#5}\fi
+  \null\par}\fi}
+%    \end{macrocode}
+%      In order to avoid having the number overlap the following text,
+%      we change the definition of \verb=\numberline= so that 
+%      if \verb=\@tempdima= is not big enough,
+%    \begin{macrocode}
+\def\numberline#1{\setboxz@h{#1\enspace}\ifdim\wdz@>\@tempdima
+  \box\z@\else \hbox to\@tempdima{#1\hfil}\fi}
+%    \end{macrocode}
+%      These definitions set up the form of table of contents entries for
+%      subsection, subsubsection and paragraph.
+%    \begin{macrocode}
+\def\l@subsection{\@dottedtocline\tw@{1.5em}{2.3em}}
+\def\l@subsubsection{\@dottedtocline\thr@@{3.8em}{3.2em}}
+\def\l@paragraph{\@dottedtocline4{7em}{4.1em}}
+%    \end{macrocode}
+%      
+%      Bibliography setup.  Following babel.sty, we use
+%      \verb=\refname= in articles and \verb=\bibname= in books.
+%    \begin{macrocode}
+\def\refname{References}
+\def\bibname{Bibliography}
+
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\def\thebibliography#1{\section*\refname
+  \defaultfont\small\labelsep .5em\relax
+  \list{\@arabic\c@enumi.}{\settowidth\labelwidth{#1.}%
+  \leftmargin\labelwidth \advance\leftmargin\labelsep
+  \usecounter{enumi}}%
+  \sloppy \clubpenalty4000\relax \widowpenalty\clubpenalty
+  \sfcode`\.\@m}
+\let\endthebibliography=\endlist
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+
+\def\footnoterule{\kern-.4\p@ 
+        \hrule\@width 5pc\kern11\p@\kern-\footnotesep}
+
+\def\@makefnmark{\hbox{$\m@th^{\@thefnmark}$}}
+
+\def\@makefntext{\indent\@makefnmark}
+%    \end{macrocode}
+%      Add \verb=\defaultfont= before \verb=\footnotesize= so that
+%      fonts will come out properly using the new font selection scheme.
+%    \begin{macrocode}
+\long\def\@footnotetext#1{\insert\footins{%
+    \defaultfont\footnotesize
+    \interlinepenalty\interfootnotelinepenalty 
+    \splittopskip\footnotesep \splitmaxdepth \dp\strutbox 
+    \floatingpenalty\@MM \hsize\columnwidth
+%    \end{macrocode}
+%      Mostly \verb=\@parboxrestore= does what we want; but not with
+%      respect to \verb=\parindent= and \verb=\tolerance=.
+%    \begin{macrocode}
+\@parboxrestore \parindent\normalparindent \sloppy
+  \edef\@currentlabel{\p@footnote\@thefnmark}\@makefntext
+ {\rule\z@\footnotesep\ignorespaces#1\unskip\strut\par}}}
+%    \end{macrocode}
+%      \verb=\sloppy=, as defined in latex.tex, uses a
+%      \verb=\tolerance= of 10000, which is TOO sloppy, so we change
+%      it to 9999.  We also use `sloppy' value of 1pt for
+%      \verb=\hfuzz= and \verb=\vfuzz= all the time instead of only
+%      within the scope of a \verb=\sloppy= declaration.
+%    \begin{macrocode}
+\def\sloppy{\tolerance9999\relax}
+\hfuzz=1pt \vfuzz=\hfuzz
+
+\setcounter{topnumber}{2}
+\def\topfraction{.7}
+\setcounter{bottomnumber}{1}
+\def\bottomfraction{.3}
+\setcounter{totalnumber}{3}
+\def\textfraction{.2}
+\def\floatpagefraction{.5}
+%    \end{macrocode}
+%      These are referred to in output routine so have to be defined even
+%      though amsart.sty is designed only for one-column output:
+%    \begin{macrocode}
+\setcounter{dbltopnumber}{2}
+\def\dbltopfraction{.7}
+\def\dblfloatpagefraction{.5}
+%    \end{macrocode}
+%      This is what we want \verb=\@makecaption= to do:  If the total width
+%      is greater than 29pc (normal textwidth) we want to break
+%      the caption into lines using a line width of 23pc, and center
+%      the resulting block between the margins.  Otherwise
+%      we want to set the caption as a single line, centered between
+%      the margins.
+%      
+%      To do this we set the caption as a vbox with line width 23pc,
+%      except that we allow the last line (which may be the only line) to
+%      be up to 29pc long by adding a kern of -6pc.  If the result
+%      is a single hbox (i.e., a single line) we need to unpack the
+%      hbox, remove rightskip, parfillskip, and the -6pc kern, and
+%      center the remaining material.  If the caption is more than
+%      one line, then box 1 contains the last line, which we need
+%      to unpack in the same way, and run through the paragraphing
+%      process again (because this last line may be up to 6 picas
+%      wider than the desired 23 pica width).
+%      
+%      Finally, if the caption is for a figure, it will be set below the
+%      figure, so the separating space goes above the caption;  otherwise
+%      the separating space goes below the caption.
+%    \begin{macrocode}
+\long\def\@makecaption#1#2{%
+%    \end{macrocode}
+%      Measure the contents of the caption.
+%    \begin{macrocode}
+\setbox\@tempboxa\vbox{\advance\hsize-6pc\noindent
+    \sc#1\@ifempty{#2}{}{.\normalshape\enspace#2}%
+    \unskip\kern-6pc\par
+    \global\setbox\@ne\lastbox}%
+\ifhbox\@ne % the normal case
+  \setbox\@ne\hbox{\unhbox\@ne\unskip\unskip\unpenalty\unkern}%
+\fi
+%    \end{macrocode}
+%      If \verb=\@tempboxa= is not empty at this point then the caption was 
+%      more than one line long or there was extra vertical mode material,
+%      maybe a \verb=\write= (from \verb=\index= or something).
+%      Interestingly, we can't use \verb=\ifvoid= to see if
+%      \verb=\@tempboxa= is empty, because empty is not the same thing
+%      as void (as far as the \verb=\ifvoid= test is concerned).  So
+%      instead we measure the width of \verb=\@tempboxa=
+%      to see if it's zero; this should suffice for non-bizarre cases.
+%    \begin{macrocode}
+  \ifdim\wd\@tempboxa=\z@ % this means caption will fit on one line 
+    \setbox\@ne\hbox to\columnwidth{\hss\kern-6pc\box\@ne\hss}%
+  \else % tempboxa contained more than one line (or other vertical mode stuff)
+    \setbox\@ne\vbox{\unvbox\@tempboxa\parskip\z@skip
+        \noindent\unhbox\@ne\advance\hsize-6pc\par}%
+\fi
+  \ifnum\@tempcnta<64 % if the float IS a figure...
+    \vskip 1pc%
+    \moveright 3pc\box\@ne
+  \else % if the float IS NOT a figure...
+    \moveright 3pc\box\@ne
+    \vskip 1pc%
+  \fi
+\relax
+}
+
+\newcounter{figure}
+\def\thefigure{\@arabic\c@figure}
+\def\fps@figure{tbp}
+\def\ftype@figure{1}
+\def\ext@figure{lof}
+\def\fnum@figure{\figurename\ \thefigure}
+\def\figurename{Figure}
+\def\figure{\@float{\@string\figure}}
+\let\endfigure=\end@float
+\newcounter{table}
+\def\thetable{\@arabic\c@table}
+\def\fps@table{tbp}
+\def\ftype@table{2}
+\def\ext@table{lot}
+\def\fnum@table{\tablename\ \thetable}
+\def\tablename{Table}
+\def\table{\@float{\@string\table}}
+\let\endtable=\end@float
+%    \end{macrocode}
+% \subsection{Theorems and related structures}
+%      
+%      We input theorem.sty and use its basic setup, and define styles
+%      \verb=\th@plain=, \verb=\th@definition=, \verb=\th@remark=.
+%    \begin{macrocode}
+\input theorem.sty
+\theorembodyfont{}
+%    \end{macrocode}
+%      
+%      To avoid further proliferation of the number of files in the
+%      AMS-\LaTeX{} package, we don't maintain the definitions
+%      \verb=\th@plain=, etc. in separate files (that was done by
+%      Mittelbach to conserve main memory by not defining classes that
+%      weren't used).  
+%
+% \changes{v1.0b}{90/06/21}{Added `rom for `th@remark}
+%      Since the style \verb=\th@remark= uses \verb=\it= for the
+%      theorem header font, we need  \verb=\rom= in several places
+%      to prevent numbers and parentheses from being italicized. 
+%      Notice that if the author redefines \verb=\theremark= or
+%      whatever to something other than a number (maybe \verb=\Alph=
+%      to get A, B, C, and so on) the \verb=\rom= will still be
+%      applied.  I think this is what Editorial wants, but need to
+%      verify it.
+%    \begin{macrocode}
+\def\@begintheorem#1#2{\item[\hskip\labelsep \theorem@headerfont
+       \theorem@indent#1\ \rom{#2}\unskip.]}
+\def\@opargbegintheorem#1#2#3{\item[\hskip\labelsep \theorem@headerfont
+       \theorem@indent#1\ \rom{#2}\unskip\ \rom(#3\rom).]}
+%    \end{macrocode}
+%
+%      Since a theorem will not be nested inside another theorem-type
+%      environment in any reasonable case, the macro \verb=\th@plain=
+%      does not need to reset \verb=\theorem@headerfont=,
+%      \verb=\theorempreskipamount=, \verb=\theorempostskipamount=, or
+%      \verb=\theorem@indent=.  It will inherit the default values.
+%    \begin{macrocode}
+\def\th@plain{\it}
+\def\th@definition{\theorempreskipamount6\p@\@plus6\p@
+    \theorempostskipamount\theorempreskipamount
+    \normalshape}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\th@remark{\theorempreskipamount6\p@\@plus6\p@
+    \theorempostskipamount\z@\@plus6\p@
+    \def\theorem@headerfont{\it}\normalshape}
+%    \end{macrocode}
+%
+%      Now we set up the default values for theorem environment
+%      parameters.  
+%    \begin{macrocode}
+\def\theorem@headerfont{\normalshape\bf}
+\let\theorem@indent\noindent
+\theorempreskipamount=6pt plus9pt
+\theorempostskipamount=\theorempreskipamount
+%    \end{macrocode}
+%      The standard definition of \verb=\@endtheorem= is just
+%      \verb=\endtrivlist=, but that doesn't automatically
+%      start a new paragraph, so we add \verb=\@endpefalse= in
+%      order to ensure a new paragraph.
+%    \begin{macrocode}
+\def\@endtheorem{\endtrivlist\@endpefalse }
+%    \end{macrocode}
+%
+%      In the amsbook style the style for the `pf' environment is
+%      slightly different than the style shown here.
+%    \begin{macrocode}
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\newenvironment{pf}{\par\addvspace{6\p@\@plus6\p@}\noindent
+  {\it\proofname.}\enspace\ignorespaces}{\qed\par\addvspace{6\p@\@plus6\p@}}
+
+\@namedef{pf*}#1{\par\begingroup\def\proofname{#1}\pf\endgroup\ignorespaces}
+\expandafter\let\csname endpf*\endcsname=\endpf
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+%    \end{macrocode}
+%      We don't use \verb=\square= here in case extra AMSfonts are not in
+%      use.
+%    \begin{macrocode}
+\def\qedsymbol{\RIfM@\bgroup\else$\bgroup\aftergroup$\fi
+  \vcenter{\hrule\hbox{\vrule\@height.6em\kern.6em\vrule}\hrule}\egroup}
+\def\qed{\RIfM@\else\unskip\nobreak\fi\quad\qedsymbol}
+\def\proofname{Proof}
+%    \end{macrocode}
+% \subsection{End of document}
+%      At the end of an article we need to print the translator name,
+%      if present, and the addresses.
+%    \begin{macrocode}
+\def\enddocument{\@checkend{document}\par
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY
+  \ifx\@empty\thetranslator@ \else
+    \addvspace{6\p@\@plus9\p@}%
+    \hbox to\columnwidth{\hss\defaultfont\normalsize 
+     Translated by \expandafter\uppercasetext@\expandafter{\thetranslator@}}%
+  \fi
+%    \end{macrocode}
+%      The space between address and preceding text is provided by a strut
+%      inside \verb=\addressb@x=.
+%    \begin{macrocode}
+ \removelastskip\unvbox\addressb@x
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY
+ \clearpage\begingroup  
+ \if@filesw \immediate\closeout\@mainaux 
+ \def\global\@namedef##1##2{}\def\newlabel{\@testdef r}%
+ \def\bibcite{\@testdef b}\@tempswafalse \makeatletter\input \jobname.aux
+ \if@tempswa \@warning{Label(s) may have changed.  Rerun to get
+ cross-references right}\fi\fi\endgroup\deadcycles\z@\@@end}
+%    \end{macrocode}
+% \subsection{Running heads}
+%      In the running heads we use \verb=\uppercasetext@= to uppercase
+%      them without affecting math that the title, for instance, might
+%      contain.
+%    \begin{macrocode}
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+\def\ps@headings{\let\@mkboth\@gobbletwo
+  \let\partmark\@gobble\let\sectionmark\@gobble
+  \let\subsectionmark\@gobble
+  \let\@oddfoot\@empty\let\@evenfoot\@empty%
+  \def\@evenhead{\defaultfont\small
+      \rlap{\thepage}\hfil
+      \expandafter\uppercasetext@\expandafter{\sh@rtauthor}\hfil}%
+  \def\@oddhead{\defaultfont\small \hfil 
+      \expandafter\uppercasetext@\expandafter{\sh@rttitle}\hfil 
+      \llap{\thepage}}%
+}
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+
+\def\ps@myheadings{\let\@mkboth\@gobbletwo
+  \let\@oddfoot\@empty\let\@evenfoot\@empty
+  \def\@oddhead{\null\defaultfont\small\rightmark \hfil\thepage}%
+  \def\@evenhead{\defaultfont\small \thepage\hfil\leftmark\null}%
+}
+%    \end{macrocode}
+%      We redefine \verb=\ps@plain= (original definition is in latex.tex) to
+%      reset the font in \verb=\@oddfoot=.
+%    \begin{macrocode}
+\def\ps@plain{\let\@mkboth\@gobbletwo
+     \let\@oddhead\@empty \let\@evenhead\@empty \let\@evenfoot\@oddfoot
+     \def\@oddfoot{\defaultfont\small \hfil\thepage\hfil}}
+%    \end{macrocode}
+% \subsection{Miscellaneous}
+%      
+%      Changed \verb=\@cite= to use roman font. And AMSART style
+%      is to never use boldface for cite numbers even when they occur
+%      amid bold text.
+%    \begin{macrocode}
+\def\@cite#1#2{\rom{\mediumseries[{#1\if@tempswa , #2\fi}]}}
+%    \end{macrocode}
+%      Macro for making non-slanted numbers and punctuation in italic
+%      or slanted text.  This is to avoid visual inconsistencies
+%      between numbers or parentheses in math and adjacent numbers or
+%      parentheses in text.
+%    \begin{macrocode}
+\def\rom#1{\leavevmode\skip@\lastskip\unskip\/%
+        \ifdim\skip@=\z@\else\hskip\skip@\fi
+   {\normalshape#1}}
+%    \end{macrocode}
+%
+%      To make references to equation numbers easier, we provide
+%      \verb=\eqref=.  We almost don't need \verb=\rom=, except that
+%      \verb=\tagform@= doesn't supply the italic correction.
+%    \begin{macrocode}
+\def\eqref#1{\rom{\tagform@{\ref{#1}}}}
+\def\theequation{\@arabic\c@equation}
+%    \end{macrocode}
+% \subsection{Initialization}
+%      We set the margins here (now that \verb=\textwidth= and
+%      \verb=\textheight= values have been determined).
+%    \begin{macrocode}
+\if@article %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+%      Subtract the height of the running heads:
+%    \begin{macrocode}
+\advance\textheight by -\headheight
+\advance\textheight by -\headsep
+%    \end{macrocode}
+%      Subtract the difference between normalbaselineskip and topskip:
+%    \begin{macrocode}
+\advance\textheight by -\normalbaselineskip 
+\advance\textheight by \topskip
+%    \end{macrocode}
+%      We set \verb=\oddsidemargin= and \verb=\evensidemargin= to
+%      center the text on the page.
+%    \begin{macrocode}
+\oddsidemargin=8.5 true in % standard U.S. paper width
+\advance\oddsidemargin by -\textwidth
+\oddsidemargin=.5\oddsidemargin
+%    \end{macrocode}
+%      Now we subtract the default margin provided by standard DVI
+%      drivers.  But first we make sure that the final margin will
+%      be at least .5 inch.
+%    \begin{macrocode}
+\ifdim\oddsidemargin < .5 true in
+  \oddsidemargin = .5 true in \fi
+\advance\oddsidemargin by -1 true in 
+\evensidemargin=\oddsidemargin
+%    \end{macrocode}
+%     And we set \verb=\topmargin= to get vertical centering as well.
+%    \begin{macrocode}
+\topmargin=11 true in % standard U.S. paper width
+\advance\topmargin by -\textheight
+\advance\topmargin by -\headheight
+\advance\topmargin by -\headsep
+\advance\topmargin by -\footheight
+\advance\topmargin by -\footskip
+\topmargin=.5\topmargin
+%    \end{macrocode}
+%      We provide a minimum of .5in (after compensating  for the default
+%      margin---see next step).
+%    \begin{macrocode}
+\ifdim\topmargin<.5 true in
+  \topmargin=.5 true in \fi
+%    \end{macrocode}
+%      Now subtract the default margin provided by standard DVI
+%      drivers.
+%    \begin{macrocode}
+\advance\topmargin by -1 true in 
+%
+\pagenumbering{arabic}
+\onecolumn 
+\@twosidetrue \@mparswitchtrue   % this = `twoside' option
+%    \end{macrocode}
+%      Initialize running heads
+%    \begin{macrocode}
+\mark{{}{}} 
+\ps@headings
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ARTICLE ONLY 
+%    \end{macrocode}
+%      
+% \Finale
+\endinput

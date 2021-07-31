@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <lock.h>
 #include "dns.h"
 #include "ip.h"
 
@@ -66,19 +65,9 @@ dnresolve1(char *name, int class, int type, Request *req)
 	if(rp)
 		return rp;
 
-	/* in-addr.arpa queries (and all) are special */
-	if(tsame(type, Tptr)){
+	/* in-addr.arpa queries are special */
+	if(type == Tptr){
 		rp = dbinaddr(dp);
-		if(rp)
-			return rp;
-	}
-
-	/*
-	 *  Quick grab, see if it's a 'relative to my domain' request.
-	 *  I'm not sure this is a good idea but our x-terminals want it.
-	 */
-	if(strchr(name, '.') == 0){
-		rp = dblookup(name, class, type, 1);
 		if(rp)
 			return rp;
 	}
@@ -176,12 +165,12 @@ mkreq(DN *dp, int type, uchar *buf, int reqno)
 
 	/* make request and convert it to output format */
 	memset(&m, 0, sizeof(m));
-	m.flags = Frecurse;
+	m.flags = 0;
 	m.id = reqno;
 	m.qd = rralloc(type);
 	m.qd->owner = dp;
 	m.qd->type = type;
-	len = convDNS2M(&m, &buf[Udphdrsize], Maxudp);
+	len = convDNS2M(&m, &buf[Udphdrlen], Maxudp);
 	if(len < 0)
 		fatal("can't convert");
 	return len;
@@ -197,26 +186,16 @@ readreq(int fd, DN *dp, int type, int req, uchar *ibuf, DNSmsg *mp)
 	int len;
 
 	for(;;){
-		len = read(fd, ibuf, Udphdrsize+Maxudp);
-		len -= Udphdrsize;
+		len = read(fd, ibuf, Udphdrlen+Maxudp);
+		len -= Udphdrlen;
 		if(len < 0)
 			return -1;	/* timed out */
 		
 		/* convert into internal format  */
-		err = convM2DNS(&ibuf[Udphdrsize], len, mp);
+		err = convM2DNS(&ibuf[Udphdrlen], len, mp);
 		if(err){
 			syslog(0, "dns", "input err %s", err);
 			continue;
-		}
-		if(debug){
-			if(mp->qd)
-				syslog(0, "dns", "rcvd %I qd %s", ibuf, mp->qd->owner->name);
-			if(mp->an)
-				syslog(0, "dns", "rcvd %I an %R", ibuf, mp->an);
-			if(mp->ns)
-				syslog(0, "dns", "rcvd %I ns %R", ibuf, mp->ns);
-			if(mp->ar)
-				syslog(0, "dns", "rcvd %I ar %R", ibuf, mp->ar);
 		}
 
 		/* answering the right question? */
@@ -266,8 +245,8 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp)
 	DN *ndp;
 	Dest dest[Maxdest];
 	DNSmsg m;
-	uchar obuf[Maxudp+Udphdrsize];
-	uchar ibuf[Maxudp+Udphdrsize];
+	uchar obuf[Maxudp+Udphdrlen];
+	uchar ibuf[Maxudp+Udphdrlen];
 
 	slave(reqp);
 
@@ -293,7 +272,7 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp)
 
 	/*
 	 *  transmit requests and wait for answers.
-	 *  at most Maxtrans attempts to each address.
+	 *  at most 3 attempts to each address.
 	 *  each cycle send one more message than the previous.
 	 */
 	fd = udpport();
@@ -313,9 +292,7 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp)
 
 			p->nx++;
 			memmove(obuf, p->a, sizeof(p->a));
-			if(debug)
-				syslog(0, "dns", "sending to %I", obuf);
-			if(write(fd, obuf, len + Udphdrsize) < 0)
+			if(write(fd, obuf, len + Udphdrlen) < 0)
 				warning("sending udp msg %r");
 			p++;
 		}

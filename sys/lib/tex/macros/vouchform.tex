@@ -1,0 +1,40 @@
+\documentstyle{voucher}
+% fixed data
+  \pan{111111}\name{First}{M}{Last}\orgnum{BL0111110}
+  \date{\today}
+  \loccode{NJXX###}\room{1A123}\phone{908}{123}{1234}
+% varying data
+  \buspurpose{}
+  \earliestdate{}
+  \amexadvance{}
+  \confprereg{} 
+  \expensetype{1}% 1-8
+%  \summerhire
+%  \exchangerate{2.56}
+%  \other{material purchases}
+%  \creditdate{date}
+%  \debitdate{date
+%\shifttoleft
+\begin{document}
+  \begin{voucher}
+    \begin{expenses}%
+     %\expense{date}{descr}{transp}{car}{no meals}{meals}{lodging}
+     %\expense{date}{descr}{transp}*{car}{no meals}{meals}*{lodging}*
+     % you may use \miles{num-miles} in car parameter; num-miles must
+     %   not be null.
+     % copy next line as a template
+     % the `*' mark amex expenses and are optional
+     %\expense{}{}{}{}{}{}{}
+     %\expense{}{}{}{\miles{}}{}{}{}
+    \end{expenses}
+    \begin{otherexpenses}%
+      %\otherexpense{date}{descr}{amount-less-tax}{tax}{fml-subacct}%
+      %\otherexpense{}{}{}{}{}%
+    \end{otherexpenses}%
+    \begin{projnums}%
+      \projnum{11111}{123456-1234}{100}% Main Project
+      %\projnum{11111}{123456-4321}{100}% Second Project
+      %\projnum{11111}{123456-1221}{100}% One More Project
+    \end{projnums}%
+  \end{voucher}
+\end{document}

@@ -88,6 +88,7 @@ int	Outpos;
 int	Page;
 int	Pcolpos;
 int	Plength;
+int	Report = 1;
 int	Sepc = 0;
 
 extern	int	atoix(char**);
@@ -152,7 +153,7 @@ main(int argc, char *argv[])
 				nfdone++; /* suppress printing */
 		} else {
 			if(pr(*argv))
-				Bterm(Files->f_f);
+				Bclose(Files->f_f);
 			nfdone++;
 		}
 	if(!nfdone)			/* no files named, use stdin */
@@ -209,6 +210,9 @@ findopt(int argc, char *argv[])
 				case 'o':
 					Offset = atoix(argv);
 					continue;
+				case 'r':
+					Report = 0;
+					continue;
 				case 's':
 					if((Sepc = (*argv)[1]) != '\0')
 						++*argv;
@@ -222,11 +226,15 @@ findopt(int argc, char *argv[])
 					Linew = atoix(argv);
 					continue;
 				case 'n':
+				case 'x': /* retained for historical reasons */
 					Lnumb++;
 					if((Numw = intopt(argv, &Nsepc)) <= 0)
 						Numw = NUMW;
 				case 'b':
 					Balance = 1;
+					continue;
+				case 'q': /* retained for historical reasons */
+				case 'j': /* ignore GCOS jprint option */
 					continue;
 				default:
 					die("bad option");
@@ -593,11 +601,13 @@ mustopen(char *s, Fils *f)
 			return f->f_f;
 		sprint(s = (char*)getspace(strlen(f->f_name) + 1 + EMPTY),
 			"%s -- empty file\n", f->f_name);
-		Bterm(f->f_f);
+		Bclose(f->f_f);
 	}
 	error = 1;
-	cerror(s);
-	fprint(2, "\n");
+	if(Report) {
+		cerror(s);
+		Bputc(&bout, '\n');
+	}
 	return 0;
 }
 

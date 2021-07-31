@@ -1,0 +1,6 @@
+/n/bootes/lib/ucds/urom.codes lists all the family/pinout for
+the Data I/O Unisite; use grep -i...
+
+Some devices have a footnote number in the last column.  The
+text of the footnotes is in /n/bootes/lib/ucds/urom.notes.
+`/rc/bin/ucds/uromnotes n...' may be used to print entries.

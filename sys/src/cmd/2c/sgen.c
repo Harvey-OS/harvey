@@ -78,8 +78,8 @@ loop:
 			break;
 		}
 		doinc(l, PRE);
-		if(typesu[n->type->etype] || typev[n->type->etype]) {
-			sugen(l, D_TREE, nodret, n->type->width);
+		if(typesu[l->type->etype]) {
+			sugen(l, D_TREE, nodret, l->type->width);
 			doinc(l, POST);
 			noretval(3);
 			gbranch(ORETURN);
@@ -88,7 +88,7 @@ loop:
 		g = regalloc(n->type, regret(n->type));
 		cgen(l, g, n);
 		doinc(l, POST);
-		if(typefd[n->type->etype])
+		if(typefdv[n->type->etype])
 			noretval(1);
 		else
 			noretval(2);
@@ -99,7 +99,7 @@ loop:
 	case OLABEL:
 		l = n->left;
 		if(l) {
-			l->xoffset = pc;
+			l->offset = pc;
 			if(l->label)
 				patch(l->label, pc);
 		}
@@ -117,8 +117,8 @@ loop:
 			return;
 		}
 		gbranch(OGOTO);
-		if(n->xoffset) {
-			patch(p, n->xoffset);
+		if(n->offset) {
+			patch(p, n->offset);
 			return;
 		}
 		if(n->label)
@@ -144,7 +144,7 @@ loop:
 		if(l->op == OCONST)
 		if(typechl[l->type->etype]) {
 			cas();
-			cases->val = l->vconst;
+			cases->val = l->offset;
 			cases->def = 0;
 			cases->label = pc;
 			setsp();
@@ -500,8 +500,6 @@ xcom(Node *n)
 	case OASHL:
 		xcom(l);
 		xcom(r);
-		if(typev[n->type->etype])
-			break;
 		g = vconst(r);
 		if(g >= 0 && g < 4)
 			n->addable = 7;
@@ -511,12 +509,10 @@ xcom(Node *n)
 	case OLMUL:
 		xcom(l);
 		xcom(r);
-		if(typev[n->type->etype])
-			break;
 		g = vlog(r);
 		if(g >= 0) {
 			n->op = OASHL;
-			r->vconst = g;
+			r->offset = g;
 			if(g < 4)
 				n->addable = 7;
 			break;
@@ -528,7 +524,7 @@ xcom(Node *n)
 			l = r;
 			r = n->right;
 			n->op = OASHL;
-			r->vconst = g;
+			r->offset = g;
 			if(g < 4)
 				n->addable = 7;
 			break;
@@ -539,23 +535,19 @@ xcom(Node *n)
 	case OLDIV:
 		xcom(l);
 		xcom(r);
-		if(typev[n->type->etype])
-			break;
 		g = vlog(r);
 		if(g >= 0) {
 			if(n->op == ODIV)
 				n->op = OASHR;
 			else
 				n->op = OLSHR;
-			r->vconst = g;
+			r->offset = g;
 		}
 		break;
 
 	case OSUB:
 		xcom(l);
 		xcom(r);
-		if(typev[n->type->etype])
-			break;
 		if(vconst(l) == 0) {
 			n->op = ONEG;
 			n->left = r;
@@ -566,8 +558,6 @@ xcom(Node *n)
 	case OXOR:
 		xcom(l);
 		xcom(r);
-		if(typev[n->type->etype])
-			break;
 		if(vconst(l) == -1) {
 			n->op = OCOM;
 			n->left = r;
@@ -579,12 +569,10 @@ xcom(Node *n)
 	case OASLMUL:
 		xcom(l);
 		xcom(r);
-		if(typev[n->type->etype])
-			break;
 		g = vlog(r);
 		if(g >= 0) {
 			n->op = OASASHL;
-			r->vconst = g;
+			r->offset = g;
 		}
 		goto aseae;
 
@@ -592,15 +580,13 @@ xcom(Node *n)
 	case OASLDIV:
 		xcom(l);
 		xcom(r);
-		if(typev[n->type->etype])
-			break;
 		g = vlog(r);
 		if(g >= 0) {
 			if(n->op == OASDIV)
 				n->op = OASASHR;
 			else
 				n->op = OASLSHR;
-			r->vconst = g;
+			r->offset = g;
 		}
 		goto aseae;
 
@@ -608,17 +594,18 @@ xcom(Node *n)
 	case OASMOD:
 		xcom(l);
 		xcom(r);
-		if(typev[n->type->etype])
-			break;
-
-	aseae:		/* hack that there are no byte/short mul/div operators */
+	aseae:		/* hack that there are no byte mul/div operators */
 		if(n->type->etype == TCHAR || n->type->etype == TSHORT) {
+			n->left = new1(OCAST, n->left, Z);
 			n->right = new1(OCAST, n->right, Z);
+			n->left->type = types[TLONG];
 			n->right->type = types[TLONG];
 			n->type = types[TLONG];
 		}
 		if(n->type->etype == TUCHAR || n->type->etype == TUSHORT) {
+			n->left = new1(OCAST, n->left, Z);
 			n->right = new1(OCAST, n->right, Z);
+			n->left->type = types[TULONG];
 			n->right->type = types[TULONG];
 			n->type = types[TULONG];
 		}
@@ -635,8 +622,6 @@ xcom(Node *n)
 	case OAS:
 		xcom(l);
 		xcom(r);
-		if(typev[n->type->etype])
-			break;
 
 	asop:
 		if(l->addable > INDEXED &&
@@ -650,8 +635,6 @@ xcom(Node *n)
 	case OPOSTDEC:
 	case OPREDEC:
 		xcom(l);
-		if(typev[n->type->etype])
-			break;
 		if(l->addable > INDEXED &&
 		   l->complex < FNX)
 			n->addable = l->addable;
@@ -680,10 +663,6 @@ brk:
 	}
 	if(n->complex == 0)
 		n->complex++;
-
-	if(com64(n))
-		return;
-
 	switch(n->op) {
 
 	case OFUNC:
@@ -775,10 +754,10 @@ loop:
 	} else
 	if(l->right->addable == 20) {
 		idx.regtree = l->left;
-		idx.scale = l->right->vconst;
+		idx.scale = l->right->offset;
 	} else {
 		idx.regtree = l->right;
-		idx.scale = l->left->vconst;
+		idx.scale = l->left->offset;
 	}
 	t = ewidth[idx.regtree->type->etype];
 	if(t == SZ_LONG)
@@ -804,12 +783,24 @@ bcomplex(Node *n)
 	if(tcompat(n, T, n->type, tnot))
 		n->type = T;
 	if(n->type != T) {
-		bool64(n);
 		doinc(n, PRE);
 		boolgen(n, 1, D_NONE, Z, n);
 	} else
 		gbranch(OGOTO);
 }
+
+schar	ewidth[XTYPE] = {
+	-1,				/* TXXX */
+	SZ_CHAR,	SZ_CHAR,	/* TCHAR	TUCHAR */
+	SZ_SHORT,	SZ_SHORT,	/* TSHORT	TUSHORT */
+	SZ_LONG,	SZ_LONG,	/* TLONG	TULONG */
+	SZ_VLONG,			/* TVLONG */
+	SZ_FLOAT,	SZ_DOUBLE,	/* TFLOAT	TDOUBLE */
+	SZ_IND,		0,		/* TIND		TFUNC */
+	-1,		0,		/* TARRAY	TVOID */
+	-1,		-1,		/* TSTRUCT	TUNION */
+	-1				/* TENUM */
+};
 
 Node*
 nodconst(long v)

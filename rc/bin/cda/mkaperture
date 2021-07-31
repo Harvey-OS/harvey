@@ -1,0 +1,30 @@
+#!/bin/rc
+
+cat <<'//GO.SYSIN DD *'
+Gerber Plotter Information.
+
+Code:			ASCII
+Units:			English [inches]
+Zero supression:	trailing
+Integer digits:		2
+Fractional digits:	3
+Coordinate mode:	absolute
+
+For example: X1 represents 10 inches, X00001 is 1 mil.
+
+Each record is terminated by a carriage return, line feed sequence.
+The character "*" is used as the Gerber command terminator.
+
+The following apertures are used:
+
+Code	Shape	Size (mils)
+----	-----	----
+
+//GO.SYSIN DD *
+
+grep -h '^G54D[0-9][0-9]\*' $* | sort -u | sed 's/.*D(..).*/\1/' | awk '
+{
+	d = $0+0
+	if(10 <= d && d <= 19)printf "D%2d\tsquare\t%3d\n", d, 2^(d-9)-1
+	else printf "D%2d\tround\t%3d\n", d, d-20
+}'

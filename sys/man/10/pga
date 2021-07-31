@@ -1,0 +1,92 @@
+.TH PGA 10.1
+.SH NAME
+pga \- generate CDL pins format for large packages
+.SH SYNOPSIS
+.B cda/pga
+.I pin_file
+.SH DESCRIPTION
+.PP
+.I Pga
+takes a list of pin names (in numerical order),
+one per line, and generates a pin list
+suitable for
+.IR cdmglob (10.1)
+and friends.  Each pin name may be optionally followed by a
+tab and a single character
+.IR smoke (10.1)
+pin type.  Special pin names are:
+.BR VCC ,
+.BR VDD ,
+.B VSS
+and
+.BR GND .
+These are recognized and generate the proper pin type.  Unless
+specified, the default pin type is
+.BR 4 ,
+or bidirectional tri-state.
+.PP
+There are two other special names:
+.BR NC ,
+which denotes no connect pins and
+.BR -- ,
+which specifies a hole in the PGA.  Comments may
+be preceded by a '# '.  Special commands (preceded by a '! ')
+worth knowing about are:
+.IR debug ,
+.IR map ,
+.IR clip ,
+and
+.IR holes .
+.PP
+.B debug
+is useful for double checking your definition,
+.PP
+.B "map mapfile"
+maps the pins via a map file; a map file is a 1:1 mapping suitable for
+PGA adaptors.  An example of a map file that will reverse all the pins
+in a mysterious 5 pin package is:
+.sp
+.nf
+1	5
+2	4
+3	3
+4	2
+5	1
+.fi
+.PP
+.B "clip [v|g]"
+tells
+.I pga
+to capitalize the appropriate plane (suitable for
+.IR clip ).
+.PP
+.B holes
+counts holes (pins declared as
+.BR -- )
+as pins and therefore will generate more pins.  Normally holes are ignored.
+.SH EXAMPLES
+Here's an example:
+.sp
+.nf
+# section E with hole
+WE-	i
+DI05
+DI10
+NC
+--
+--
+--
+VSS
+--
+--
+--
+DI38
+DI34
+REGADR4	i
+CI6	i
+.fi
+.sp
+.SH SEE ALSO
+.IR cdmglob (10.1),
+.IR smoke (10.1),
+.IR fizz (10.6)

@@ -18,7 +18,7 @@
 
 int linewidth=WIDTH;
 int colonflag=0;
-int tabflag=0;	/* -t flag turned off forever */
+int tabflag=1;
 Rune *cbuf, *cbufp;
 Rune **word;
 int maxwidth=0;

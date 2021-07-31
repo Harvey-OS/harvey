@@ -45,7 +45,6 @@ typedef enum Err{
 	Elongtag,
 	Esubexp,
 	Etmpovfl,
-	Eappend,
 }Err;
 typedef enum Warn{
 	/* warn_s */

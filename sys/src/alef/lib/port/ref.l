@@ -5,10 +5,10 @@ Ref.inc(Ref *r)
 {
 	int i;
 
-	r->l.lock();
-	i = r->cnt;
-	r->cnt++;
-	r->l.unlock();
+	r->lock();
+	i = r->ref;
+	r->ref++;
+	r->unlock();
 
 	return i;
 }
@@ -18,16 +18,16 @@ Ref.dec(Ref *r)
 {
 	int i;
 
-	r->l.lock();
-	r->cnt--;
-	i = r->cnt;
-	r->l.unlock();
+	r->lock();
+	r->ref--;
+	i = r->ref;
+	r->unlock();
 
 	return i;
 }
 
 int
-Ref.ref(Ref *r)
+Ref.val(Ref *r)
 {
-	return r->cnt;
+	return r->ref;
 }

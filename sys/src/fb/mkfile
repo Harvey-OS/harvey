@@ -1,34 +1,27 @@
 </$objtype/mkfile
 
 TARG=3to1\
-	9v\
 	adapt\
 	ahe\
 	aplot\
-	bbox\
 	card\
 	cmap\
-	colors\
-	cpr\
-	cprview\
 	crispen\
-	cvt2pic\
 	dither\
-	dumppic\
+	drop\
 	edge\
 	edge2\
 	edge3\
-	ega2pic\
+	examine\
 	extremum\
 	face2pic\
 	flip\
 	floyd\
-	getmap\
 	gif2pic\
 	halftone\
 	he\
-	hist\
 	hysteresis\
+	ikon\
 	improve\
 	lam\
 	laplace\
@@ -42,8 +35,6 @@ TARG=3to1\
 	nonoise\
 	pcp\
 	pcx2pic\
-	pdup\
-	pic2gif\
 	pic2ps\
 	piccat\
 	picinfo\
@@ -54,12 +45,8 @@ TARG=3to1\
 	resample\
 	rotate\
 	save\
-	sgi2pic\
 	shadepic\
 	smooth\
-	sub\
-	targa2pic\
-	tiff2pic\
 	transpose\
 	utah2pic\
 	xpand\
@@ -67,12 +54,13 @@ TARG=3to1\
 OFILES=
 HFILES=
 YFILES=moto.y
-RFILES=hed.r\
+RFILES=dumppic.r\
+	hed.r\
 	nohed.r\
 	picnegate.r\
 	picopic.r\
 	quantize.r\
-	xbm2pic.r\
+	twb.r\
 
 BIN=/$objtype/bin/fb
 </sys/src/cmd/mkmany
@@ -85,16 +73,16 @@ edge.$O:	filter.cc
 edge2.$O:	filter.cc
 edge3.$O:	filter.cc
 extremum.$O:	filter.cc
+ikon.$O:	scsicam.h
 laplace.$O:	filter.cc
 nonoise.$O:	filter.cc
 smooth.$O:	filter.cc
-targa2pic.$O:	tga.h
 
-all:V:		jpg2pic-all
-install:V:	jpg2pic-install
-installall:V:	jpg2pic-installall
-clean:V:	jpg2pic-clean
-nuke:V:		jpg2pic-nuke
+all:V:		dpic-all
+install:V:	dpic-install
+installall:V:	dpic-installall
+clean:V:	dpic-clean
+nuke:V:		dpic-nuke
 
 clean:V:
 	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG moto.c
@@ -105,11 +93,11 @@ moto.c:	y.tab.c
 	cp $stem.r $BIN/$stem
 	chmod +x $BIN/$stem
 
-([a-z0-9]*)-([a-z]*):VR:
-	cd $stem1
-	mk $stem2
+dpic-%:V:
+	cd dpic
+	mk $stem
 
-install:V:
+installall:V:
 	mk $RFILES
-	for (i in $TARG)
-		mk $MKFLAGS $i.install
+	for(objtype in mips 68020 sparc 386)
+		mk $MKFLAGS install

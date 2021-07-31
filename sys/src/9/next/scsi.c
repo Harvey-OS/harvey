@@ -129,6 +129,11 @@ scsiexec(Scsi *p, int rflag)
 	qlock(&scsilock);
 	qlock(&dmalock);
 
+	if(waserror()){
+		qunlock(&dmalock);
+		qunlock(&scsilock);
+		nexterror();
+	}
 	p->rflag = rflag;
 	p->status = 0;
 
@@ -162,8 +167,6 @@ scsiexec(Scsi *p, int rflag)
 	curcmd = p;
 	dev->cmd = Select;
 
-	while(waserror())
-		;
 	DPRINT("S<");
 	sleep(&scsirendez, scsidone, 0);
 	poperror();

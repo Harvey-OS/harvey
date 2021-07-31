@@ -6,148 +6,161 @@
 #define Extern extern
 #include "acid.h"
 
+struct maptype
+{
+	char	*name;
+	char	fmt;
+} maptype[] = {
+	"CHAR",		'b',
+	"UCHAR",	'b',
+	"SHORT",	'd',
+	"USHORT",	'u',
+	"LONG",		'D',
+	"ULONG",	'U',
+	"VLONG",	'V',
+	"FLOAT",	'f',
+	"DOUBLE",	'F',
+	"IND",		'X',
+	"FUNC",		'X',
+	"ARRAY",	'a',
+	"STRUCT",	'a',
+	"UNION",	'a',
+	0
+};
+
 Type*
 srch(Type *t, char *s)
 {
-	Type *f;
-
-	f = 0;
 	while(t) {
-		if(strcmp(t->tag->name, s) == 0) {
-			if(f == 0 || t->depth < f->depth)
-				f = t;
-		}
+		if(strcmp(t->name, s) == 0)
+			return t;
 		t = t->next;
 	}
-	return f;
+	return 0;
 }
 
 void
-odot(Node *n, Node *r)
+dodot(Node *n, Node *r)
 {
 	char *s;
 	Type *t;
 	Node res;
 	ulong addr;
 
+	USED(n,r);
 	s = n->sym->name;
-	if(s == 0)
-		fatal("dodot: no tag");
 
 	expr(n->left, &res);
 	if(res.comt == 0)
 		error("no type specified for (expr).%s", s);
 
-	if(res.type != TINT)
-		error("pointer must be integer for (expr).%s", s);
-
 	t = srch(res.comt, s);
 	if(t == 0)
 		error("no tag for (expr).%s", s);
 
-	/* Propagate types */
-	if(t->type) 
-		r->comt = t->type->lt;
-	
+	if(res.type != TINT)
+		error("pointer must be integer for (expr).%s", s);
+
 	addr = res.ival+t->offset;
 	if(t->fmt == 'a') {
-		r->op = OCONST;
 		r->fmt = 'a';
 		r->type = TINT;
 		r->ival = addr;
 	}
-	else 
+	else
 		indir(cormap, addr, t->fmt, r);
-
 }
 
-static Type **tail;
-static Lsym *base;
-
 void
-buildtype(Node *m, int d)
+decl(Lsym *type, Lsym *var)
 {
-	Type *t;
+	if(type->lt == 0)
+		error("%s is not a structure tag", type->name);
 
-	if(m == ZN)
-		return;
+	var->v->comt = type->lt;
+}
 
-	switch(m->op) {
-	case OLIST:
-		buildtype(m->left, d);		
-		buildtype(m->right, d);
-		break;
+Type*
+rdtags(Biobuf *bp)
+{
+	int i;
+	char *p, *nr, *ty;
+	Type *t, *lst, **tail;
 
-	case OCTRUCT:
-		buildtype(m->left, d+1);
-		break;
-	default:
-		t = malloc(sizeof(Type));
-		t->next = 0;
-		t->depth = d;
-		t->tag = m->sym;
-		t->base = base;
-		t->offset = m->ival;
-		if(m->left) {
-			t->type = m->left->sym;
-			t->fmt = 'a';			
-		}
-		else {
-			t->type = 0;
-			if(m->right)
-				t->type = m->right->sym;
-			t->fmt = m->fmt;
+	lst = 0;
+	tail = &lst;
+
+	for(;;) {
+		p = Brdline(bp, '\n');
+		if(p == 0)
+			return lst;
+		p[BLINELEN(bp)-1] = '\0';
+		nr = strchr(p, ' ');
+		if(nr == 0)
+			goto bad;
+		*nr++ = '\0';
+		ty = strchr(nr, ' ');
+		if(ty == 0)
+			goto bad;
+		*ty++ = '\0';
+
+		t = gmalloc(sizeof(Type));
+		memset(t, 0, sizeof(Type));
+		strncpy(t->name, p, sizeof(t->name));
+		strncpy(t->type, ty, sizeof(t->type));
+		t->offset = atoi(nr);
+		p = strchr(ty, ' ');
+		if(p != 0)
+			*p = '\0';
+
+		/* Use primary type to invent a format */
+		for(i = 0; maptype[i].name; i++) {
+			if(strncmp(maptype[i].name, ty, strlen(maptype[i].name)) == 0) {
+				t->fmt = maptype[i].fmt;
+				break;
+			}
 		}
 
 		*tail = t;
 		tail = &t->next;
-	}			
+	}
+bad:
+	for(t = lst; t; t = lst) {
+		lst = t->next;
+		free(t);
+	}
+	Bclose(bp);
+	error("bad tag file format");
+	return 0;
 }
 
 void
-defcomplex(Node *tn, Node *m)
+ltag(char *file)
 {
-	tail = &tn->sym->lt;
-	base = tn->sym;
-	buildtype(m, 0);
-}
+	Lsym *l;
+	Biobuf *bp;
+	char *nr, *p;
 
-void
-decl(Node *n)
-{
-	Node *l;
-	Value *v;
-	Frtype *f;
-	Lsym *type;
+	bp = Bopen(file, OREAD);
+	if(bp == 0)
+		error("tag: open %s: %r", file);
 
-	type = n->sym;
-	if(type->lt == 0)
-		error("%s is not a complex type", type->name);
-
-	l = n->left;
-	if(l->op == ONAME) {
-		v = l->sym->v;
-		v->comt = type->lt;
-		v->fmt = 'a';
+	p = Brdline(bp, '\n');
+	if(p == 0) {
+		Bclose(bp);
 		return;
 	}
-
-	/*
-	 * Frame declaration
-	 */
-	for(f = l->sym->local; f; f = f->next) {
-		if(f->var == l->left->sym) {
-			f->type = n->sym->lt;
-			return;
-		}
+	p[BLINELEN(bp)-1] = '\0';
+	nr = strchr(p, ' ');
+	if(nr == 0) {
+		error("bad tag file format");
+		Bclose(bp);
+		return;
 	}
-	f = malloc(sizeof(Frtype));
-	if(f == 0)
-		fatal("out of memory");
+	*nr = '\0';
 
-	f->type = type->lt;
-
-	f->var = l->left->sym;
-	f->next = l->sym->local;
-	l->sym->local = f;
+	l = mkvar(p);
+	l->lt = rdtags(bp);
+	Bprint(bout, "%s\n", l->name);
+	Bclose(bp);
 }

@@ -2,9 +2,8 @@
 intro 0intro
 arp arp
 async async
-audio audio
 bit bit
-cdrom cdrom
+conc conc
 cons cons
 cyc cyc
 datakit datakit
@@ -16,16 +15,16 @@ dup dup
 env env
 fcall fcall
 floppy floppy
-i82365 i82365
+hard hard
+wren hard
 ip ip
 iproute iproute
 kprof kprof
 lance lance
-lpt lpt
 mnt mnt
+mux mux
 pipe pipe
 proc proc
-reboot reboot
 root root
 rtc rtc
 duart scc
@@ -35,5 +34,3 @@ scsi scsi
 srv srv
 stream stream
 vga vga
-ata wren
-wren wren

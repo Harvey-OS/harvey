@@ -33,4 +33,3 @@ void vec(double, double);
 void save(void);
 char *whoami(void);
 void doublebuffer(void);
-void setwindow(char *);

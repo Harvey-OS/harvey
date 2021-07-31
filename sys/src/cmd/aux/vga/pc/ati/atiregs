@@ -1,0 +1,33 @@
+	MOV   DX,OFFSET LB2EEH
+	IN    AL,DX
+
+	MOV   DX,OFFSET L26EEH
+	MOV   AL,OFFSET 0A0H
+	OUT   AL,DX
+
+	MOV   DX,OFFSET L76EEH
+	OUT   AL,DX
+L718DH:  MOV   DX,OFFSET L7AEEH
+	MOV   AL,CL
+	OUT   AL,DX
+	MOV   DX,OFFSET L22E8H
+	MOV   AX,OFFSET L0020H
+	OUT   AX,DX
+	CLC                     ;Clear the carry flag.
+
+	MOV   DX,OFFSET L22E8H
+	OUT   AL,DX
+	LODSW                   ;Load AX with wrd at (SI)+-.
+	MOV   DX,OFFSET L4AEEH
+	OUT   AX,DX
+	LODSW                   ;Load AX with wrd at (SI)+-.
+	MOV   AX,OFFSET L003FH
+	MOV   DX,OFFSET L46EEH
+	OUT   AX,DX
+	MOV   DX,OFFSET L5AEEH
+	XOR   AX,AX
+	OUT   AX,DX
+	MOV   DX,OFFSET L46EEH
+	OUT   AX,DX
+	CLC                     ;Clear the carry flag.
+

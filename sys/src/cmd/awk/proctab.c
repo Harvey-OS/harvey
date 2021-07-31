@@ -135,7 +135,7 @@ Cell *(*proctab[92])(Node **, int) = {
 	jump,	/* BREAK */
 	closefile,	/* CLOSE */
 	jump,	/* CONTINUE */
-	adelete,	/* DELETE */
+	delete,	/* DELETE */
 	dostat,	/* DO */
 	jump,	/* EXIT */
 	forstat,	/* FOR */

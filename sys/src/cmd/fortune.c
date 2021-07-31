@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 
+char line[512];
 char choice[512];
 char index[] = "/sys/games/lib/fortunes.index";
 char fortunes[] = "/sys/games/lib/fortunes";
@@ -16,7 +17,7 @@ main(int argc, char *argv[])
 	int newindex, oldindex;
 	char *p;
 	Dir fbuf, ixbuf;
-	Biobuf *f, g;
+	Biobuf *f;
 
 	newindex = 0;
 	oldindex = 0;
@@ -45,10 +46,7 @@ main(int argc, char *argv[])
 				newindex = 1;
 		}
 	}
-	srand(time(0));
-	i = getpid()&32767;
-	while(--i >= 0)
-		rand();
+	srand(time(0)+getpid()*getpid());
 	if(oldindex){
 		seek(ix, nrand(ixbuf.length/sizeof(offs))*sizeof(offs), 0);
 		read(ix, off, sizeof(off));
@@ -60,23 +58,23 @@ main(int argc, char *argv[])
 		}else
 			strcpy(choice, "Misfortune!");
 	}else{
-		Binit(&g, ix, 1);
 		for(i=1;;i++){
 			if(newindex)
-				offs = Boffset(f);
+				offs = Bseek(f, 0, 1);
 			p = Brdline(f, '\n');
 			if(p == 0)
 				break;
 			p[Blinelen(f)-1] = 0;
+			strcpy(line, p);
 			if(newindex){
 				off[0] = offs;
 				off[1] = offs>>8;
 				off[2] = offs>>16;
 				off[3] = offs>>24;
-				Bwrite(&g, off, sizeof(off));
+				write(ix, off, sizeof(off));
 			}
 			if(nrand(i)==0)
-				strcpy(choice, p);
+				strcpy(choice, line);
 		}
 	}
 	print("%s\n", choice);

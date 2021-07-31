@@ -15,42 +15,16 @@ extern	char	lastc;
 /* general printing routines ($) */
 
 char	*Ipath = INCDIR;
-static	int	tracetype;
-static void	printfp(Map*, int);
-
-/*
- *	callback on stack trace
- */
-static void
-ptrace(Map *map, ulong pc, ulong sp, Symbol *sym)
-{
-	char buf[512];
-
-	USED(map);
-	dprint("%s(", sym->name);
-	printparams(sym, sp);
-	dprint(") ");
-	printsource(sym->value);
-	dprint(" called from ");
-	symoff(buf, 512, pc, CTEXT);
-	dprint("%s ", buf);
-	printsource(pc);
-	dprint("\n");
-	if(tracetype == 'C')
-		printlocals(sym, sp);
-}
 
 void
 printtrace(int modif)
 {
 	int	i;
-	ulong pc, sp, link;
 	long v;
 	BKPT *bk;
 	Symbol s;
 	int	stack;
 	char	*fname;
-	char buf[512];
 
 	if (cntflg==0)
 		cntval = -1;
@@ -82,6 +56,10 @@ printtrace(int modif)
 		attachproc();
 		break;
 
+	case 'p':
+		kmproc();
+		break;
+
 	case 'k':
 		kmsys();
 		break;
@@ -100,6 +78,14 @@ printtrace(int modif)
 
 	case 's':
 		maxoff=(adrflg?adrval:MAXOFF);
+		break;
+
+	case 'v':
+		for (i=0;i<NVARS;i++) {
+			if (var[i])
+				dprint("%-8lux >%c\n", var[i],
+					(i<=9 ? '0' : 'a'-10) + i);
+		}
 		break;
 
 	case 'm':
@@ -122,34 +108,22 @@ printtrace(int modif)
 
 	case 'f':
 	case 'F':
-		printfp(cormap, modif);
+		if(machdata->fpprint)
+			machdata->fpprint(modif);
+		else
+			dprint("no fpreg print routine\n");
 		return;
 
 	case 'c':
 	case 'C':
-		tracetype = modif;
-		if (machdata->ctrace) {
-			if (adrflg) {	/* trace from jmpbuf for multi-threaded code */
-				if (get4(cormap, adrval, (long*)&sp) < 0 ||
-					get4(cormap, adrval+4, (long*)&pc) < 0)
-						error("%r");
-			} else {
-				sp = rget(cormap, mach->sp);
-				pc = rget(cormap, mach->pc);
-			}
-			if(mach->link)
-				link = rget(cormap, mach->link);
-			else
-				link = 0;
-			if (machdata->ctrace(cormap, pc, sp, link, ptrace) <= 0)
-				error("no stack frame");
-		}
+		if (machdata->ctrace)
+			machdata->ctrace(modif);
 		break;
 
 		/*print externals*/
 	case 'e':
 		for (i = 0; globalsym(&s, i); i++) {
-			if (get4(cormap, s.value, &v) > 0)
+			if (get4(cormap, s.value,SEGDATA,&v))
 				dprint("%s/%12t%lux\n", s.name,	v);
 		}
 		break;
@@ -159,8 +133,7 @@ printtrace(int modif)
 	case 'B':
 		for (bk=bkpthead; bk; bk=bk->nxtbkpt)
 			if (bk->flag) {
-				symoff(buf, 512, (WORD)bk->loc, CTEXT);
-				dprint(buf);
+				psymoff((WORD)bk->loc,SEGTEXT,"");
 				if (bk->count != 1)
 					dprint(",%d", bk->count);
 				dprint(":%c %s", bk->flag == BKPTTMP ? 'B' : 'b', bk->comm);
@@ -199,32 +172,6 @@ getfname(void)
 	return (fname);
 }
 
-static void
-printfp(Map *map, int modif)
-{
-	Reglist *rp;
-	int i;
-	int ret;
-	char buf[512];
-
-	for (i = 0, rp = mach->reglist; rp->rname; rp += ret) {
-		ret = 1;
-		if (!(rp->rflags&RFLT))
-			continue;
-		ret = fpformat(map, rp, buf, sizeof(buf), modif);
-		if (ret < 0) {
-			werrstr("Register %s: %r", rp->rname);
-			error("%r");
-		}
-			/* double column print */
-		if (i&0x01)
-			dprint("%40t%-8s%-12s\n", rp->rname, buf);
-		else
-			dprint("\t%-8s%-12s", rp->rname, buf);
-		i++;
-	}
-}
-
 void
 redirin(int stack, char *file)
 {
@@ -244,28 +191,93 @@ redirin(int stack, char *file)
 			error("cannot open");
 		}
 	}
+	if (cntflg)
+		var[9] = cntval;
+	else
+		var[9] = 1;
 }
 
 void
-printmap(char *s, Map *map)
+printmap(char *s, Map *mp)
 {
-	int i;
-
-	if (!map)
-		return;
-	if (map == symmap)
+	if (mp == symmap)
 		dprint("%s%12t`%s'\n", s, fsym < 0 ? "-" : symfil);
-	else if (map == cormap)
+	else if (mp == cormap)
 		dprint("%s%12t`%s'\n", s, fcor < 0 ? "-" : corfil);
 	else
 		dprint("%s\n", s);
-	for (i = 0; i < map->nsegs; i++) {
-		if (map->seg[i].inuse)
-			dprint("%s%8t%-16lux %-16lux %-16lux\n", map->seg[i].name,
-				map->seg[i].b, map->seg[i].e, map->seg[i].f);
-	}
+	if (mp->seg[SEGTEXT].inuse)
+		dprint("%s%8t%-16lux %-16lux %-16lux\n", mp->seg[SEGTEXT].name,
+			mp->seg[SEGTEXT].b, mp->seg[SEGTEXT].e, mp->seg[SEGTEXT].f);
+	if (mp->seg[SEGDATA].inuse)
+		dprint("%s%8t%-16lux %-16lux %-16lux\n", mp->seg[SEGDATA].name,
+			mp->seg[SEGDATA].b, mp->seg[SEGDATA].e, mp->seg[SEGDATA].f);
+	if (mp->seg[SEGUBLK].inuse)
+		dprint("%s%8t%-16lux %-16lux %-16lux\n", mp->seg[SEGUBLK].name,
+		mp->seg[SEGUBLK].b, mp->seg[SEGUBLK].e, mp->seg[SEGUBLK].f);
+	if (mp->seg[SEGREGS].inuse)
+		dprint("%s%8t%-16lux %-16lux %-16lux\n", mp->seg[SEGREGS].name,
+			mp->seg[SEGREGS].b, mp->seg[SEGREGS].e, mp->seg[SEGREGS].f);
 }
 
+void
+printparcel(ulong p, int zeros)
+{
+	ulong d;
+	static char hex[] = "0123456789abcdef";
+
+	if(d = p/16)
+		printparcel(d, zeros-1);
+	else
+		while(zeros--)
+			printc('0');
+	printc(hex[p%16]);
+}
+
+/*
+ * Print value v as name[+offset] and then the string s.
+ */
+void
+psymoff(WORD v, int type, char *str)
+{
+	Symbol s;
+	int t;
+	int r;
+	int delta;
+
+	r = delta = 0;		/* to shut compiler up */
+	switch(type) {
+	case SEGREGS:
+		dprint("%%%lux", v);
+		dprint(str);
+		return;
+	case SEGANY:
+		t = CANY;
+		break;
+	case SEGDATA:
+		t = CDATA;
+		break;
+	case SEGTEXT:
+		t = CTEXT;
+		break;
+	case SEGNONE:
+	default:
+		return;
+	}
+	if (v) {
+		r = findsym(v, t, &s);
+		if (r)
+			delta = v-s.value;
+	}
+	if (v == 0 || r == 0 || delta >= maxoff)
+		dprint("%lux", v);
+	else {
+		dprint("%s", s.name);
+		if (delta)
+			dprint("+%lux", delta);
+	}
+	dprint(str);
+}
 /*
  *	dump the raw symbol table
  */
@@ -314,20 +326,17 @@ printsource(long dot)
 		dprint("%s", str);
 }
 
+
 void
 printpc(void)
 {
-	char buf[512];
-
-	dot = (ulong)rget(cormap, mach->pc);
+	dot = (ADDR)rget(mach->pc);
 	if(dot){
-		printsource((long)dot);
+		printsource((WORD)dot);
 		printc(' ');
-		symoff(buf, sizeof(buf), (long)dot, CTEXT);
-		dprint("%s?", buf);
-		if (machdata->das(symmap, dot, 'i', buf, sizeof(buf)) < 0)
-				error("%r");
-		dprint("%16t%s\n", buf);
+		psymoff((WORD)dot, SEGTEXT, "?%16t");
+		machdata->printins(symmap, 'i', SEGTEXT);
+		printc(EOR);
 	}
 }
 
@@ -335,37 +344,38 @@ void
 printlocals(Symbol *fn, ADDR fp)
 {
 	int i;
-	long val;
+	WORD val;
 	Symbol s;
 
 	s = *fn;
 	for (i = 0; localsym(&s, i); i++) {
 		if (s.class != CAUTO)
 			continue;
-		if (get4(cormap, fp-s.value, &val) > 0)
+		if (get4(cormap, fp-s.value, SEGDATA, &val))
 			dprint("%8t%s.%s/%10t%lux\n", fn->name, s.name, val);
-		else
+		else {
 			dprint("%8t%s.%s/%10t?\n", fn->name, s.name);
+			errflg = 0;
+		}
 	}
 }
 
 void
-printparams(Symbol *fn, ulong fp)
+printparams(Symbol *fn, ADDR fp)
 {
 	int i;
 	Symbol s;
 	long v;
 	int first = 0;
 
-	fp += mach->szaddr;			/* skip saved pc */
+	fp += mach->szreg;			/* skip saved pc */
 	s = *fn;
 	for (i = 0; localsym(&s, i); i++) {
 		if (s.class != CPARAM)
 			continue;
-		if (get4(cormap, fp+s.value, &v) > 0) {
-			if (first++)
-				dprint(", ");
+		if (first++)
+			dprint(", ");
+		if (get4(cormap, fp+s.value, SEGDATA, &v))
 			dprint("%s=%lux", s.name, v);
-		}
 	}
 }

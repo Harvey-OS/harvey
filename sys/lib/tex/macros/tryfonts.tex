@@ -1,0 +1,93 @@
+% FILE TRYFONTS : TEST OF LaTeX FONTS
+% Released 11 November 1986
+
+\typeout{}
+\typeout{******************************************************************}
+\typeout{*  Type document style in form '[11pt]{article}' or '[]{report}' *}
+\typein[\docstylename]{****************************************************%
+**************}
+\expandafter\documentstyle\docstylename
+
+\nofiles
+\begin{document}
+
+{\centering Document Style \tt \docstylename\par}
+\vspace{1in}
+
+Test of \verb|\rm| in all sizes:\\[.2in]
+---{\huge huge}---\\[.1in]
+---{\LARGE LARGE}---\\[.1in]
+---{\Large Large}---\\[.1in]
+---{\large large}---\\[.1in]
+---{\normalsize normalsize}---\\
+---{\small small}---\\
+---{\footnotesize footnotesize}---\\
+---{\scriptsize scriptsize}---\\
+---{\tiny tiny}---
+\newpage
+\def\fontest{{\centering \foo\par}
+\noindent
+Roman---{\it Italic}---{\bf Bold}---\\
+---{\sl Slanted}---{\sf Sans Serif}---\\
+w---{\tt Typewriter}---{\sc Small Caps}---\par
+\vspace{1em}
+\noindent Now in math mode:\\[.4em]
+$\rm Roman_{rm_{rm}}\ \Gamma$ \ \ $\it Italic_{it_{it}}\ \Gamma$ \ \ 
+$\bf Bold_{bf_{bf}}\ \Gamma$\\
+$\sl Slanted_{sl_{sl}}\ \Gamma$ \ \ $\sf Sans\ Serif_{sf_{sf}}\ \Gamma$\\
+$\tt Typewriter_{type_{type}}\ \Gamma$ \ \ 
+$\sc Small\ Caps_{scap_{scap}}\ \Gamma$
+\par
+\vspace{1em}
+\noindent Bold math: \ \ 
+{\boldmath $\Gamma$, $x=y^{2}$.
+\[ Math_{mat_{mat}}\ Bold\ \alpha\ \Gamma\ \exists\ \unlhd \ \Diamond \]
+Unbold math:} \ \ $\Gamma$, $x=y^{2}$.
+\par
+\vspace{1em}
+\noindent lasy font: \ \ $\leadsto_{\leadsto_{\leadsto}}$
+\newpage}
+
+
+\typeout{*************************************************************}
+\typeout{* Type size command like 'tiny' or else 'stop'--with no '\protect\' *}
+\typein[\foo]{*************************************************************}
+\csname\foo\endcsname\fontest
+
+\typeout{*************************************************************}
+\typeout{* Type size command like 'tiny' or else 'stop'--with no '\protect\' *}
+\typein[\foo]{*************************************************************}
+\csname\foo\endcsname\fontest
+
+\typeout{*************************************************************}
+\typeout{* Type size command like 'tiny' or else 'stop'--with no '\protect\' *}
+\typein[\foo]{*************************************************************}
+\csname\foo\endcsname\fontest
+
+\typeout{*************************************************************}
+\typeout{* Type size command like 'tiny' or else 'stop'--with no '\protect\' *}
+\typein[\foo]{*************************************************************}
+\csname\foo\endcsname\fontest
+
+\typeout{*************************************************************}
+\typeout{* Type size command like 'tiny' or else 'stop'--with no '\protect\' *}
+\typein[\foo]{*************************************************************}
+\csname\foo\endcsname\fontest
+
+\typeout{*************************************************************}
+\typeout{* Type size command like 'tiny' or else 'stop'--with no '\protect\' *}
+\typein[\foo]{*************************************************************}
+\csname\foo\endcsname\fontest
+
+\typeout{*************************************************************}
+\typeout{* Type size command like 'tiny' or else 'stop'--with no '\protect\' *}
+\typein[\foo]{*************************************************************}
+\csname\foo\endcsname\fontest
+
+\typeout{*************************************************************}
+\typeout{* Type size command like 'tiny' or else 'stop'--with no '\protect\' *}
+\typein[\foo]{*************************************************************}
+\csname\foo\endcsname\fontest
+
+
+\end{document}

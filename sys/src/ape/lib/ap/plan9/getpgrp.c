@@ -4,22 +4,18 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-#include <stdio.h>
 #include "sys9.h"
-#include "lib.h"
 
 pid_t
 getpgrp(void)
 {
-	int n, f, pid;
-	char pgrpbuf[15], fname[30];
+	int n, f;
+	char pgrpbuf[15];
 
-	pid = getpid();
-	sprintf(fname, "/proc/%d/noteid", pid);
-	f = open(fname, 0);
+	f = open("#c/pgrp", 0);
 	n = read(f, pgrpbuf, sizeof pgrpbuf);
 	if(n < 0)
-		_syserrno();
+		errno = EINVAL;
 	else
 		n = atoi(pgrpbuf);
 	close(f);

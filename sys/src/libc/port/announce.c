@@ -37,7 +37,7 @@ announce(char *addr, char *dir)
 	 */
 	n = sprint(buf, "%.*s/", 2*NAMELEN+1, netdir);
 	m = read(ctl, &buf[n], sizeof(buf)-n-1);
-	if(m<=0){
+	if(n<=0){
 		close(ctl);
 		return -1;
 	}
@@ -161,13 +161,11 @@ identtrans(char *addr, char *naddr, int na, char *file, int nf)
 	/* parse the network */
 	strncpy(reply, addr, sizeof(reply));
 	reply[sizeof(reply)-1] = 0;
-	p = strchr(reply, '!');
+	p = strchr(addr, '!');
 	if(p)
 		*p++ = 0;
-	else
-		return -1;
 
-	sprint(file, "/net/%.*s/clone", nf - sizeof("/net//clone"), reply);
+	sprint(file, "/net/%.*s/clone", na - sizeof("/net//clone"), reply);
 	strncpy(naddr, p, na);
 	naddr[na-1] = 0;
 

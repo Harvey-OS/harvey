@@ -1,0 +1,7 @@
+#!/bin/rc
+rfork s
+date
+for(i in `{seq 1 1000}){
+	for(objtype in mips 68020 sparc 386 hobbit) mk -s nuke all
+}
+date

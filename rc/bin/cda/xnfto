@@ -1,0 +1,69 @@
+#!/bin/rc
+awk 'BEGIN {
+	if (ARGC < 2) {
+		print "usage: xnfto part name.pins name.xnf > name.cst"
+		exit
+	}
+	pkg = substr(ARGV[1], 5, 20)
+	ARGV[1] = "/sys/lib/cda/"substr(ARGV[1], 1, 4)".pin"
+	n = split("m0 m1 m2 prog- done cclk tdo M0 M1 M2 PROG- DONE CCLK TDO", x, " ");
+	for (i = 1; i <= n; i++)
+		dont[x[i]] = 1		# dont mention these to ppr
+}
+{
+	if (FILENAME != file) {
+		file = FILENAME
+		split(file, x, ".")
+		ext = x[2]
+		cst = x[1]".cst"
+	}
+	if (ext == "xnf")
+		if ($1 == "ext," && pin[$2] != "") {
+			split($2, y, ",")
+			print "place instance "y[1]": "pin[$2]";"
+			pin[$2] = ""
+		}
+}
+/^\.n/ {
+	for (col = 1; col < NF+1 && $col != pkg; col++)
+		;
+	if (col > NF)
+		print "undefined pkg "pkg
+	next
+}
+/^\.p/ {
+	sig[$col] = $2
+	alnum[$6] = $5	# just in case we have to
+	next
+}
+/^%float/ {
+	float = $1
+}
+/^\.tp/ {
+	p = $3
+	if (col == 6)
+		p = alnum[p]
+	else
+		p = "p"p
+	if (float != "%float") {
+		if (!dont[$2])
+			pin["p_"$2","] = p
+	}
+	else
+		place["p_"$2] = p
+}
+END {
+	first = 1
+	for (p in pin)
+		if (pin[p] != "") {
+			if (first) {
+				printf "notplace instance *:"
+				first = 0
+			}
+			printf " %s", pin[p]
+		}
+	if (!first)
+		print ";"
+	for (p in place)
+		print "place instance "p": "place[p]";"
+}' $*

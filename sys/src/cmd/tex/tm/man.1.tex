@@ -1,0 +1,142 @@
+\begin{manpage}
+\NAME{MAN}\section{1}\chapter{USER COMMANDS}\update{90-Oct-22}
+\begin{name}
+man -- display reference manual pages; find reference pages by keyword
+\end{name}
+\begin{synopsis}
+{\bf man} [-] [\arg{-t}{}] [\arg{-M}{ path}]
+  [\arg{-T}{ macro-package}] [[\arg{}{section}] \arg{}{title}
+  \ldots{}]\ldots{}\\ 
+{\bf man} [\arg{-M}{ path}] \arg{-k}{ keyword} \ldots{}\\
+{\bf man} [\arg{-M}{ path}] \arg{-f}{ filename} \ldots{}
+\end{synopsis}
+\begin{description}
+{\it man} displays information from the reference manuals.
+It can display complete manual pages that you select by
+{\it title}, or one-line summaries selected either by
+{\it keyword} (\arg{-k}{}),
+or by the name of an associated file
+(\arg{-f}{}).
+
+A {\it section}, when given, applies to the
+{\it titles} that follow it on the command line (up to the next
+{\it section}, if any).
+{\bf man} looks in the indicated section of the manual for those
+{\bf title}s.  {\it section} is either a digit (perhaps followed by a
+single letter indicating the type of manual page), or one of the words 
+{\bf new}, {\bf local}, {\bf old}, or {\bf public}.
+If {\it section} is omitted, {\bf man} searches all reference sections
+(giving preference to commands over functions)
+and prints the first manual page it finds.
+If no manual page is located, {\bf man} prints an error message.
+
+The reference page sources are typically located in the
+{\bf /usr/share/man/man}? directories.  Since these directories are
+optionally installed, they may not reside on your host; you may have
+to mount  {\bf /usr/share/man} from a host on which they do reside. 
+If there are preformatted, up-to-date versions in corresponding
+{\bf cat?} or {\bf fmt?} directories, {\bf man}
+simply displays or prints those versions.  If the preformatted
+version of interest is out of date or missing, {\bf man}
+reformats it prior to display.  If directories for the
+preformatted versions are not provided,  {\bf man}
+reformats a page whenever it is requested; it uses a temporary
+file to store the formatted text during display.
+ 
+If the standard output is not a terminal, or if the `{\bf -}'
+flag is given, {\bf man} pipes its output through {\bf cat} (1V).
+Otherwise, {\bf man} pipes its output through {\bf more} (1)
+to handle paging and underlining on the screen.
+\end{description}
+\begin{options}\begin{optionlist}
+  \item[-t]{\bf man} arranges for the specified manual pages to be
+        {\bf troff}ed to a suitable raster output device (see {\bf
+        troff}(1) or {\bf vtroff}(1)).  If both the {\bf -} and {\bf
+        -t} flags are given, {\bf man} updates the {\bf troff}ed
+        versions of each named {\it title} (if necessary), but does
+        not display them. 
+  \item[\arg{-M}{ path}]Change the search path for manual pages.
+        {\it path} is a colon-separated list of directories that
+        contain manual page directory subtrees.  For example,\\ 
+        {\bf/usr/share/man/u\_man:/usr/share/man/a\_man} makes {\bf man}
+        search in the standard System V locations.  When used with the
+        {\bf -k} or {\bf -f} options, the {\bf -M} option must appear
+        first.  Each directory in the {\it path} is assumed to contain
+        subdirectories of the form {\bf man[1-8l-p]}.
+  \item[\arg{-T}{ macro-package}]\ \\{\bf man} uses {\it macro-package}
+        rather than the standard \arg{-man}{} macros defined in {\bf
+        /usr/share/lib/tmac/tmac.an} for formatting manual pages.
+  \item[\arg{-k}{ keyword\ldots{}}]\ \\{\bf man} prints out one-line
+        summaries from the {\bf whatis} database (table of contents)
+        that contain any of the given {\it keyword}s.
+  \item[\arg{-f}{ filename \ldots{}}]\ \\{\bf man} attempts to locate
+        manual pages related to any of the given {\it filename}s.  It
+        strips the leading pathname components from each {\it
+        filename}, and then prints one-line summaries containing the
+        resulting basename or names.
+\end{optionlist}\end{options}
+\begin{manblock}{MANUAL PAGES}
+Manual pages are {\bf troff}(1)/{\bf nroff}(1) source files prepared
+with the \arg{-man}{} macro package.  Refer to {\bf man}(7), or {\it
+Formatting Document on the Sun Workstation} for more information.
+
+When formatting a manual page, {\bf man} examines the first line to
+determine whether it requires special processing.
+
+\hspace{-.2in}{\bf Referring to Other Manual Pages}
+
+If the first line of the manual page is a reference to another
+manual page entry fitting the pattern:
+\begin{itemize}
+\item[]
+{\bf .so} {\it man?*/sourcefile}
+\end{itemize}
+{\bf man} processes the indicated file in place of the current one. 
+The reference must be expressed as a pathname relative to to the root
+of the manual page directory subtree.
+
+When the second or any subsequent line starts with {\bf .so}, {\bf man}
+ignores it; {\bf troff}(1) or {\bf nroff}(1) processes the request in
+the usual manner. 
+\end{manblock}
+\begin{environment}\begin{environmentlist}
+\item[MANPATH]If set, its value overrides {\it /usr/share/man} as the
+      default search path. (The {\bf -M} flag, in turn, overrides this
+      value.)  
+\item[PAGER]A program to use for interactively delivering {\bf man}'s
+      output to the screen.  If not set, {\bf more -s} (see {\bf
+      more}(1)) is used.
+\item[TCAT]The name of the program to use to display {\bf troff}ed
+      manual pages.  If not set, {\bf lpr -t} (see {\bf lpr}(1)) is
+      used. 
+\item[TROFF]The name of the formatter to use when the {\bf -t} flag is
+      given.  If not set, {\bf troff} is used.
+\end{environmentlist}\end{environment}
+\begin{files}\begin{filelist}
+\item[/usr/man]root of the standard manual page directory subtree
+\item[/usr/share/man/man?/*]unformatted manual entries
+\item[/usr/share/man/cat?/*]{\bf nroff}ed manual entries
+\item[/usr/share/man/fmt?/*]{\bf troff}ed manual entries
+\item[/usr/share/man/whatis]table of contents and keyword database
+\item[/usr/share/lib/tmac/tmac.an]standard {\bf -man} macro package
+\end{filelist}\end{files}
+\begin{seealso}
+{\bf cat}(1V), {\bf col}(1V), {\bf eqn}(1), {\bf more}(1), {\bf
+nroff}(1), {\bf tbl}(1), {\bf troff}(1), {\bf whatis}(1), {\bf
+man}(7), {\bf catman}(8)
+\end{seealso}
+\begin{caveats}
+The manual is supposed to be reproducible either on a phototypesetter
+or on an {\small ASCII} terminal.  However, on a terminal some
+information (indicated by font changes, for instance) is necessarily
+lost. 
+
+Some dumb terminals cannot process the vertical motions produced
+by the {\bf e} ({\bf eqn}(1)) preprocessing flag.  To prevent garbled
+output on these terminals, when you use {\bf e} also use {\bf t}, to
+invoke {\bf col}(1V) implicitly.  This workaround has the disadvantage
+of eliminating superscripts and subscripts --- even on those
+terminals that can display them.  {\small CTRL-Q} will clear a
+terminal that gets confused by {\bf eqn}(1) output.
+\end{caveats}
+\end{manpage}

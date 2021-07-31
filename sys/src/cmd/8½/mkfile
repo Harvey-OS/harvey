@@ -21,6 +21,5 @@ BIN=/$objtype/bin
 clean:V:
 	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG *.db
 
-syms:V:
-	vc -a main.c	>syms
-	vc -aa ????.c 	>>syms
+%.db:		dat.h
+	$CC -s$stem main.c | dbfmt > $stem.db

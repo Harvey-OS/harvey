@@ -1,0 +1,39 @@
+</$objtype/mkfile
+
+TARG=dpic
+
+OFILES=dpic.$O\
+	draw.$O\
+	font.$O\
+	misc.$O\
+	rdtypeface.$O\
+	set.$O\
+	tile.$O\
+
+HFILES=ext.h\
+	proto.h\
+	typeface.h
+
+CFILES=${OFILES:%.$O=%.c}
+
+BIN=/$objtype/bin/fb
+</sys/src/cmd/mkone
+CFLAGS=
+
+proto.h:QE:	$CFILES
+	grep '^[a-zA-Z].*\){$' $CFILES |
+		grep -v ':static[ 	]' |
+		sed 's/{$/;/;s/ \*/* /g' |
+		sort +1 |
+		sed 's/\* / */g;s@^(.*):(.*)$@\2	/* \1 */@' >proto.x
+	cmp -s proto.x proto.h || mv proto.x proto.h
+	exit 0
+listing:
+	pr mkfile $HFILES $CFILES twb tmac.twb|lp -du
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG proto.[hx]
+
+installall:V:
+	for(objtype in mips 68020 sparc 386)
+		mk install

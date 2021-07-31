@@ -6,10 +6,8 @@ void
 (*p9call[MAXSYSCALL])(Chan*, Fcall*, Fcall*) =
 {
 	[Tnop]		f_nop,
-	[Tosession]	f_session,
 	[Tsession]	f_session,
 	[Tflush]	f_flush,
-	[Toattach]	f_attach,
 	[Tattach]	f_attach,
 	[Tclone]	f_clone,
 	[Twalk]		f_walk,
@@ -22,6 +20,7 @@ void
 	[Tstat]		f_stat,
 	[Twstat]	f_wstat,
 	[Tclwalk]	f_clwalk,
+	[Tauth]		f_auth,
 };
 
 char	*errstr[MAXERR] =
@@ -42,7 +41,7 @@ char	*errstr[MAXERR] =
 	[Eexist]	"create/wstat -- file exists",
 	[Edot]		"create -- . and .. illegal names",
 	[Eempty]	"remove -- directory not empty",
-	[Ebadu]		"attach -- unknown user",
+	[Ebadu]		"attach -- privileged user",
 	[Enoattach]	"attach -- system maintenance",
 	[Enotu]		"wstat -- not owner",
 	[Enotg]		"wstat -- not in group",

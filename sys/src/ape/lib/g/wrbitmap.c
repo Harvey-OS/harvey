@@ -1,16 +1,13 @@
 #include <string.h>
 #include <libg.h>
 
-typedef unsigned char uchar;
-typedef unsigned long ulong;
-
 #define	CHUNK	6000
 void
-wrbitmap(Bitmap *b, int miny, int maxy, uchar *data)
+wrbitmap(Bitmap *b, int miny, int maxy, unsigned char *data)
 {
 	long dy, px;
-	ulong l, t, n;
-	uchar *buf;
+	unsigned long l, t, n;
+	unsigned char *buf;
 
 	px = 1<<(3-b->ldepth);	/* pixels per byte */
 	/* set l to number of bytes of data per scan line */
@@ -35,4 +32,5 @@ wrbitmap(Bitmap *b, int miny, int maxy, uchar *data)
 		data += n;
 		miny += dy;
 	}
+	bneed(0);
 }

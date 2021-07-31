@@ -1,0 +1,150 @@
+.TH INTRO 10.1
+.SH NAME
+intro \- circuit design aids
+.SH DESCRIPTION
+.PP
+Circuit Design Aids (CDA) is a collection of programs used for the design and
+fabrication of electronic circuits.  CDA is composed of programs that communicate
+through text files.  A thorough introduction to CDA is given in the document
+"Circuit Design Aids (CDA) on Plan 9".  What follows here is an abbreviated
+version.
+.SS Schematic entry
+.PP
+Schematics are created with the schematic editor
+.IR graw (10.1).
+There are three varieties of schematic entities: library shapes (for simple gates),
+boxes of user defined parts and wires.
+The boxes and library shapes contain the symbolic
+.I names
+of pins which will be turned into pin numbers later on.
+The output of
+.IR graw
+is an ASCII file in
+.IR graw (10.6)
+format.  This must be interpreted by
+.IR gnet (10.1)
+to generate a net list.  Net lists are combined into a common net list by
+.IR cdmglob (10.1).
+.IR Cdmglob
+also expands macros, interprets bus notation and matches the
+symbolic pin names in the schematics with the numeric pin numbers in a "pin file"
+that gives the correspondence between symbolic names and numbers in CDL format.
+.SS Programmable Devices
+Besides commodity parts like the 7400 series,
+schematics may also use programmable devices such as PALs, Actel and Xilinx parts.
+CDA contains tools that convert logic equations written in a language called
+.IR lde (10.6)
+format into the various formats required to fry the fuses on a programmable device.
+.I Lde
+format is interpreted by
+.IR lde (10.1)
+and generates "symbolic product terms".
+Programs called "fitters" attempt to squeeze
+.IR lde
+output into the selected programmable part.
+.IR Part (10.1),
+.IR npart (10.1)
+and
+.IR xpart (10.1)
+are the fitters used for PAL-like devices.
+.IR Act (10.1)
+is the fitter for Actel devices.  The output is fed to
+.IR adil (10.1)
+which in turn must be converted by the Actel software.
+The route to Xilinx parts is similar.
+.IR xil (10.1)
+generates the intermediate format needed by the Xilinx software.
+.SS Physical output
+.PP
+The output of
+.IR cdmglob (10.1)
+has no information about the actual physical construction of the circuit.
+A separate design subsystem of CDA known as
+.I fizz
+does the hard work of generating the information needed to build the circuit.
+.IR Cvt (10.1)
+converts from the CDL output of
+.IR cdmglob
+into
+.IR fizz (10.6)
+format.
+.IR Place (10.1)
+is a graphical tool that helps to position parts on the board.
+It requires a
+.IR fizz
+description of the packages, net lists and the board.
+Finally, given the input to
+.I fizz
+and the output of
+.I place
+(a position file),
+.IR wrap (10.1)
+will generate a wrap file containing the coordinates of all the wires.
+.SS File naming conventions
+.PP
+There is a strong convention for naming the files;
+it is highly encouraged but not enforced:
+.TP
+.B .g
+schematic board description file produced by
+.IR graw (10.1).
+.TP
+.B .w
+netlist, output from
+.IR gnet (10.1).
+.TP
+.B .cdl
+circuit description language, output from
+.IR cdmglob (10.1).
+.TP
+.B .fx
+fizz netlist, output from
+.IR cvt (10.1).
+.TP
+.B .pos
+chip position file, output of
+.IR place (10.1).
+.TP
+.B .brd
+board description file including pinholes and special signal pins.
+.TP
+.B .pkg
+package definitions.
+.TP
+.B .pins
+pin definitions for input to
+.IR cdmglob (10.1)
+.TP
+.B .lde
+logic design equations, input to
+.IR lde (10.1).
+.TP
+.B .min
+.IR minterm (10.6)
+output from
+.IR lde (10.1),
+.IR quine (10.1),
+.IR cover (10.1),
+or
+.IR hazard (10.1).
+.TP
+.B .adi
+Actel design intermediate, output from
+.BR "act -a" (10.1).
+.TP
+.B .adl
+Actel Design Language, used by Actel software.
+.TP
+.B .xy
+xymask, the venerable BTL film plotting language.
+.TP
+.B .wx
+netlist, output from
+.IR cdmglob (10.1).
+.SH SEE ALSO
+A. G. Hume,
+M. Kahrs,
+and
+T. J. Killian,
+.I
+Circuit Design Aids (CDA) on Plan 9

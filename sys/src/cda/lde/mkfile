@@ -1,0 +1,34 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=lde
+OFILES=comp.$O\
+	field.$O\
+	lex.$O\
+	main.$O\
+	out.$O\
+	tree.$O\
+	y.tab.$O\
+
+HFILES=dat.h\
+	fns.h\
+	gram.h\
+
+YFILES=lde.y\
+
+</sys/src/cmd/mkone
+YFLAGS=-d -v
+CFLAGS=-DPLAN9 -w
+
+regress:V: v.out
+	cd regress; mk
+
+gram.h:EQ: y.tab.h
+	cp $prereq $target
+
+y.tab.$O: y.tab.c dat.h fns.h
+	$CC $CFLAGS -DYYMAXDEPTH'='2000 y.tab.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug gram.h y.output $TARG
+

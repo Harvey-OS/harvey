@@ -25,15 +25,13 @@ Usage is almost always
 eqn file ... | troff
 .PP
 If no files are specified, 
-.I eqn
-reads from the standard input.
+these programs
+read from the standard input.
 .I Eqn
 prepares output for the typesetter 
 named in the
 .BI -T dest
-option (default
-.BR -Tutf ;
-see
+option (Postscript default, see
 .IR troff (1)).
 When run with other preprocessor filters,
 .I eqn
@@ -69,7 +67,7 @@ and
 .BR .EN .
 Left and right delimiters may be identical.
 (They are customarily taken to be
-$font L "$$" )$.
+$font CW "$$" )$.
 Delimiters are turned off by
 .LR "delim off" .
 All text that is neither between delimiters nor between
@@ -100,7 +98,7 @@ half as much.
 Subscripts and superscripts are produced with the keywords
 .B sub
 and
-.BR sup .
+.B sup.
 Thus
 .L "x sub i" 
 makes
@@ -132,7 +130,7 @@ introduce lower and upper
 limits on arbitrary things:
 $lim from {n -> inf} sum from 0 to n x sub i$
 is made with
-.LR "lim from {n -> inf} sum from 0 to n x sub i" .
+.L "lim from {n -> inf} sum from 0 to n x sub i".
 .PP
 Left and right brackets, braces, etc., of the right height are made with
 .B left
@@ -210,16 +208,16 @@ $x vec = y dyad$.
 .PP
 Sizes and fonts can be changed with prefix operators
 .B size 
-.IR n ,
+.I n,
 .B size
-.BI ± n \f1,
+.BI \(+- n,
 .BR fat ,
 .BR roman ,
 .BR italic ,
 .BR bold ,
 or
 .BR font
-.IR n .
+.I n.
 Size and fonts can be changed globally in a document by
 .B gsize
 .I n
@@ -229,12 +227,12 @@ and
 or by the command-line arguments
 .BI -s n
 and
-.BI -f n\f1.
+.BI -f n.
 .PP
 Normally subscripts and superscripts are reduced by
 3 point sizes from the previous size;
 this may be changed by the command-line argument
-.BI -p n\f1.
+.BI -p n.
 .PP
 Successive display arguments can be lined up.
 Place
@@ -311,24 +309,21 @@ with
 .I troff
 when all else fails.
 .SH FILES
-.TF /sys/lib/troff/font/devutf
+.TF /sys/lib/font/devpost
 .TP
-.B /sys/lib/troff/font/devutf
-font descriptions for PostScript
-.SH SOURCE
-.B /sys/src/cmd/eqn
+.B /sys/lib/font/devpost
+font descriptions for Postscript
 .SH "SEE ALSO"
 .IR troff (1), 
-.IR tbl (1)
-.br
-J. F. Ossanna and B. W. Kernighan,
-``Troff User's Manual''.
+.IR tbl (1), 
 .br
 B. W. Kernighan and L. L. Cherry,
-``Typesetting Mathematics\(emUser's Guide'', 
-.I
-Unix Research System Programmer's Manual,
-Tenth Edition, Volume 2.
+`Typesetting Mathematics\(emUser's Guide', 
+Unix Research System Programmer's Manual, Volume 2
+.br
+J. F. Ossanna and B. W. Kernighan,
+`NROFF/TROFF User's Manual',
+.I ibid.
 .SH BUGS
 To embolden digits, parens, etc.,
 it is necessary to quote them,

@@ -3,18 +3,15 @@
 #include <stdio.h>
 #include <libg.h>
 
-typedef unsigned char uchar;
-typedef unsigned long ulong;
-
 #define	CHUNK	4096
 
 void
 wrbitmapfile(int fd, Bitmap *b)
 {
 	char hdr[5*12+1];
-	uchar *data;
+	unsigned char *data;
 	long dy, px;
-	ulong l, t, n;
+	unsigned long l, t, n;
 	long miny, maxy;
 
 	sprintf(hdr, "%11d %11d %11d %11d %11d ",

@@ -12,7 +12,6 @@ qlock(QLock *q)
 
 	if(u)
 		u->p->qlockpc = getcallerpc(((uchar*)&q) - sizeof(q));
-
 	lock(&q->use);
 	if(!q->locked) {
 		q->locked = 1;
@@ -35,9 +34,7 @@ qlock(QLock *q)
 int
 canqlock(QLock *q)
 {
-	if(!canlock(&q->use))
-		return 0;
-
+	lock(&q->use);
 	if(q->locked){
 		unlock(&q->use);
 		return 0;

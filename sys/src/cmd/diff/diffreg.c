@@ -326,7 +326,7 @@ diffreg(char *f, char *t)
 	b1 = prepare(1, t);
 	if (!b1) {
 		FREE(file[0]);
-		Bterm(b0);
+		Bclose(b0);
 		return;
 	}
 	clen = 0;
@@ -359,5 +359,5 @@ diffreg(char *f, char *t)
 	check(b0, b1);
 	output();
 	FREE(J); FREE(ixold); FREE(ixnew);
-	Bterm(b0); Bterm(b1);			/* ++++ */
+	Bclose(b0); Bclose(b1);			/* ++++ */
 }

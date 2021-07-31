@@ -1,0 +1,146 @@
+%
+% EXAMPLE
+%
+\documentstyle{tm}
+\markdraft*
+\markrestricted
+\classified{Secret}
+\itdsrestrict
+\title{A Sample Document that is Incredibly Long in Fact so Long that
+it Will not Fit on a Single Line Even on the Coversheet but requires
+at Least Two Lines}
+\markright{A Short Version of the Title}
+\typistinitials{typ}
+\author{Terry L.\ Anderson}
+\initials{TLA}
+\eaddress{tla@bartok.att.com}
+\department{00000}
+\approver{M.\ Y.\ Head, Head 00000}
+\location{LC}{9N-Z00}{9999}
+\documentno{000625}{03}{TM}
+\previousdocument{00000-000101-01-IM, 00001-000111-03-IM}
+\author{Jane M.\ Smith-Fredrickson}
+\initials{JMS}
+\signatureextra{Department Head}
+\department{00001}
+\approver{U.\ R.\ Boss, Head 00001}
+\location{AB}{2H-123}{1234}
+\documentno{000625}{03}{TM}
+\author{Longfirstname M.\ Lastname}
+\initials{LML}
+\eaddress{somemachine!fpj}
+\department{00002}
+\approver{Big Guy, Head 00002}
+\location{AB}{2H-112}{2345}
+\documentno{000625}{03}{TM}
+\author{Mary~J.~Johnson}
+\initials{MJJ}
+\signatureextra{My Favorite Group\\A Really Great Department}
+\eaddress{mjj@research.att.com}
+\department{00001}
+\location{AB}{2H-124}{3456}
+\documentno{000625}{03}{TM}
+\author{Not B.\ L.\ Employee}
+\initials{NBLE}
+\company{Some Other Co.}
+\maddress{1234 Some St.\\Somewhere, XX\quad 00000}
+\eaddress{...!ihnp4!hiscpu!nble}
+
+\date{\today}
+\chargecase{000000-0100}
+\filecase{00001}
+\filecase{00002}
+\keywords{TeX; LaTeX; Memorandum; Document Preparation; Example}
+\mercurycode{CMP}
+\mercurycode{STD}
+\memotype{TECHNICAL MEMORANDUM}
+\abstract{
+This small sample document illustrates many of features of the {\it
+tm} document style.}
+\begin{document}
+\makehead
+\makeabstract
+\section{The First Section}
+This is the first section.  To show more features let us refer to
+the \UNIX\ operating system.
+\subsection{A Subsection}
+This is a subsection.  It will be numbered 1.1 and be included in
+the table of contents.\markedfootnote{\dag}{This is a footnote
+marked with a dagger.}
+
+Note that the two hypenated names are printed differently.  Tm.sty
+will not break a hyphenated name at the explicit hyphen.  So if you
+use a tie (`\verb|~|') rather than a space between the parts of the
+name it will force the entire name to appear on one line (even if it
+exceeds the margin).  If you would like the name to be broken onto
+more than one line, use normal spaces.  Remember that initials
+followed by a `.' as with any abbreviation should use `\verb|\ |'
+(backslash space) rather than simply space after the `.'.  Otherwise
+\TeX\ considers it the end of a sentence and inserts a wider space
+than indended.
+
+We can include the time of day in a document as ``it is now \hhmm''.
+Notice that this document has called \verb|\markdraft*| in the
+preamble so the draft marks at the bottom of the page show the time of
+day for this draft.  The \verb|\markdraft*| uses \verb|\hhmm*| to give
+the time of day in 24 hour format.
+
+Here we include an enumerated list using capital alphabetic letters.
+\begin{Alphenum}
+\item The first item
+\item The second item.  Let us make it long enough to 
+take more than a single line.  Do you think that this is enough?
+\item The last item.
+\end{Alphenum}
+\section{The Second Section}
+This is another section.  We will refer to the \LaTeX\ manual to
+illustrate references.\cite{bib:latex}  Note that the actual
+reference data is included in the {\it thebibliography} environment
+after the \verb|\coverto| list.  The {\it bib:latex} is the user
+chosen label for referring to the bibliographic item.
+
+\section{Last Section}
+Note that the \verb|\signatureextra| after the \verb|author{|{\it
+name}\verb|}| at the beginning of this document has two lines of
+extra data; in this case identifying the author's group and
+department.  This will be printed under the signature right after
+this section.
+\makesignature
+
+\noindent Atts.\\
+References\\
+Appendixes A and B
+
+\medskip
+\copyto{
+All Supervision Center 9999\\
+M.\ T.\ Staff\\
+D.\ M.\ T.\ Staff\\
+M.\ Supervisor}
+\coverto{
+All Members of Department 99999\\
+J.\ Smith\\
+J.\ Doe}
+\begin{thebibliography}{99}
+
+\bibitem{bib:latex}Leslie Lamport, {\it \LaTeX : A Document
+Preparation System}, Reading, MA: Addison-Wesley, 1986.
+%\bibitem{bib:abbott}Russell J.\ Abbott, {\it An Integrated Approach
+%to Software Development}, New York: John Wiley \& Sons, 1986.
+\end{thebibliography}
+\appendices
+\section{An Appendix Title}
+The body of the appendix.
+\section{The Other One}
+We will include another section to illustrate that appendices can still
+have sections.  They can of course also have subsections, \dots
+
+The sections can be used as separate appendices in which case it
+might be appropriate to use \verb|\newpage| just before the
+\verb|\section| to make each begin a new page.
+\tableofcontents
+\coversheet
+\end{document}
+%
+% END of example
+%

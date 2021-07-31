@@ -23,11 +23,8 @@ Bgetrune(Biobufhdr *bp)
 		str[i++] = c;
 
 		if(fullrune(str, i)) {
-			bp->runesize = chartorune(&rune, str);
-			while(i > bp->runesize) {
-				Bungetc(bp);
-				i--;
-			}
+			chartorune(&rune, str);
+			bp->runesize = i;
 			return rune;
 		}
 	}

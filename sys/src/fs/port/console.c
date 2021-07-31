@@ -171,7 +171,7 @@ doclri(File *f)
 		goto out;
 	}
 
-	accessdir(p1, d1, FWRITE, 0);
+	accessdir(p1, d1, FWRITE);
 	putbuf(p1);
 	p1 = 0;
 

@@ -163,13 +163,6 @@ subprop(Reg *r0)
 		case AMULL:
 		case AMULW:
 
-		case ASHLB:
-		case ASHLL:
-		case ASHLW:
-		case ASHRB:
-		case ASHRL:
-		case ASHRW:
-
 		case AREP:
 		case AREPN:
 
@@ -331,7 +324,6 @@ copy1(Adr *v1, Adr *v2, Reg *r, int f)
  * 4 if set and used
  * 0 otherwise (not touched)
  */
-int
 copyu(Prog *p, Adr *v, Adr *s)
 {
 
@@ -514,21 +506,17 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case AMULL:
 	case AMULW:
 
-	case ACWD:
-	case ACDQ:
-		if(v->type == D_AX || v->type == D_DX)
-			return 2;
-		goto caseread;
-
-	case AMOVSL:
 	case AREP:
 	case AREPN:
-		if(v->type == D_CX || v->type == D_DI || v->type == D_SI)
-			return 2;
-		goto caseread;
 
+	case ACWD:
+	case ACDQ:
+
+	case AMOVSL:
 	case AFSTSW:
-		if(v->type == D_AX)
+
+return 2;
+		if(v->type == D_AX || v->type == D_DX)
 			return 2;
 		goto caseread;
 
@@ -545,12 +533,9 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case ARET:	/* funny */
 		if(v->type == REGRET)
 			return 2;
-		if(s != A)
-			return 1;
-		return 3;
 
 	case ACALL:	/* funny */
-		if(REGARG && v->type == REGARG)
+		if(v->type == REGRET)
 			return 2;
 
 		if(s != A) {
@@ -609,7 +594,6 @@ int
 copysub(Adr *a, Adr *v, Adr *s, int f)
 {
 	int t;
-
 	if(copyas(a, v)) {
 		t = s->type;
 		if(t >= D_AX && t <= D_DI) {

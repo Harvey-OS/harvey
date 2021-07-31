@@ -73,6 +73,7 @@ void
 putc(int c)
 {
 	Duart *duart;
+	int i;
 
 	if(c == '\n')
 		putc('\r');
@@ -91,10 +92,8 @@ putc(int c)
 void
 chkabort(void)
 {
-/*
 	Taxi *t;
 	int csr;
-*/
 	Duart *duart;
 
 /*

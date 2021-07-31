@@ -11,13 +11,6 @@ struct Service
 	char	trusted;		/* true if service in trusted dir */
 };
 
-typedef struct Announce	Announce;
-struct Announce
-{
-	Announce	*next;
-	char	*a;
-};
-
 int	readstr(char*, char*, char*, int);
 void	netchown(int, char*);
 void	dolisten(char*, char*, int);
@@ -25,7 +18,6 @@ void	newcall(int, char*, char*, Service*);
 int 	findserv(char*, char*, Service*);
 int	getserv(char*, char*, Service*);
 void	error(char*);
-void	mkannouncements(char*t, char*);
 
 char	listenlog[] = "listen";
 
@@ -34,7 +26,6 @@ char	*cpu;
 char	*net;
 char	*trustdir;
 char	*servdir;
-Announce *announcements;
 #define SEC 1000
 
 void
@@ -43,7 +34,7 @@ main(int argc, char *argv[])
 	Service *s;
 	int ctl, try;
 	char *name;
-	Announce *a;
+	char aname[256];
 	char dir[40];
 
 	/*
@@ -95,104 +86,45 @@ main(int argc, char *argv[])
 		error("usage: listen [-d servdir] [net [name]]");
 	}
 
-	mkannouncements(net, name);
-	for(a = announcements; a; a = a->next){
-		switch(rfork(RFFDG|RFPROC|RFMEM)){
-		default:
-			continue;
-		case 0:
-			break;
+	if(strcmp(net, "tcp")==0 || strcmp(net, "udp")==0 || strcmp(net, "il")==0){
+		sprint(aname, "%s!*!*", net);
+	} else {
+		if(!name)
+			error("can't announce without name");
+		sprint(aname, "%s!%s", net, name);
+	}
+
+	switch(fork()){
+	case 0:
+		break;
+	case -1:
+		error("can't fork");
+	default:
+		exits(0);
+	}
+
+	ctl = -1;
+	for(;;){
+		for(try = 0; try < 5; try++){
+			if(try || strcmp(net, "dk") == 0)
+				sleep(10*SEC);
+			ctl = announce(aname, dir);
+			if(ctl >= 0)
+				break;
+			syslog(1, listenlog, "%s: can't announce as %s: %r", net, aname);
 		}
-		for(;;){
-			ctl = -1;
-			for(try = 0; try < 5; try++){
-				if(try || strcmp(net, "dk") == 0)
-					sleep(10*SEC);
-				ctl = announce(a->a, dir);
-				if(ctl >= 0)
-					break;
-			}
-			if(ctl < 0) {
-				syslog(1, listenlog, "giving up on %s", a->a);
-				exits("ctl");
-			}
-			dolisten(net, dir, ctl);
-			close(ctl);
+		if(ctl < 0) {
+			syslog(1, listenlog, "%s: giving up", net);
+			exits("ctl");
 		}
+		if(!quiet)
+			syslog(1, listenlog, "%s: announced as %s on %s", net, aname, dir);
+
+		dolisten(net, dir, ctl);
+		syslog(1, listenlog, "%s: hung up on %s", net, aname);
+		close(ctl);
+		syslog(1, listenlog, "%s: restarting %s", net, aname);
 	}
-	exits(0);
-}
-
-/*
- *  make a list of all services to announce for
- */
-void
-addannounce(char *fmt, ...)
-{
-	int n;
-	Announce *a, **l;
-	char str[128];
-
-	n = doprint(str, str+sizeof(str), fmt, &fmt+1) - str;
-	str[n] = 0;
-
-	/* look for duplicate */
-	l = &announcements;
-	for(a = announcements; a; a = a->next){
-		if(strcmp(str, a->a) == 0)
-			return;
-		l = &a->next;
-	}
-
-	/* accept it */
-	a = malloc(sizeof(*a) + strlen(str) + 1);
-	if(a == 0)
-		return;
-	a->a = ((char*)a)+sizeof(*a);
-	strcpy(a->a, str);
-	*l = a;
-}
-
-void
-scandir(char *net, char *dname)
-{
-	int fd, i, n, nlen;
-	Dir db[32];
-
-	fd = open(dname, OREAD);
-	if(fd < 0)
-		return;
-
-	nlen = strlen(net);
-	while((n=dirread(fd, db, sizeof db)) > 0){
-		n /= sizeof(Dir);
-		for(i=0; i<n; i++){
-			if(db[i].qid.path&CHDIR)
-				continue;
-			if(strncmp(db[i].name, net, nlen) != 0)
-				continue;
-			addannounce("%s!*!%s", net, db[i].name+nlen);
-		}
-	}
-}
-
-/*
- *  We announce once per listened for port.  We could just listen for
- *  '*' and avoid this, but then users could listen for the individual
- *  ports and steal them from us.
- */
-void
-mkannouncements(char *net, char *name)
-{
-	if(strcmp(net, "dk") == 0){
-		addannounce("%s!%s", net, name);
-		return;
-	}
-	if(trustdir)
-		scandir(net, trustdir);
-	if(servdir)
-		scandir(net, servdir);
-	addannounce("%s!*!*", net);
 }
 
 void
@@ -204,7 +136,12 @@ becomenone(void)
 	if(fd < 0 || write(fd, "none", strlen("none")) < 0)
 		error("can't become none");
 	close(fd);
-	if(newns("none", 0) < 0)
+	fd = open("#c/key", OWRITE);
+	if(fd >= 0){
+		write(fd, "1234567", 7);
+		close(fd);
+	}
+	if(newns("none", 0))
 		error("can't build namespace");
 }
 

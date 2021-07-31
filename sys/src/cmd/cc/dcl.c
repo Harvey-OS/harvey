@@ -26,7 +26,7 @@ loop:
 			complex(n1);
 			v = -1;
 			if(n1->op == OCONST)
-				v = n1->vconst;
+				v = n1->offset;
 			if(v <= 0) {
 				diag(n, "array size must be a positive constant");
 				v = 1;
@@ -51,7 +51,7 @@ loop:
 		complex(n1);
 		lastfield = -1;
 		if(n1->op == OCONST)
-			lastfield = n1->vconst;
+			lastfield = n1->offset;
 		if(lastfield < 0) {
 			diag(n, "field width must be non-negative constant");
 			lastfield = 1;
@@ -64,7 +64,7 @@ loop:
 				lastfield = 1;
 			}
 		}
-		if(!typei[t->etype]) {
+		if(!typechl[t->etype]) {
 			diag(n, "field type must be int-like");
 			t = tint;
 			lastfield = 1;
@@ -91,15 +91,25 @@ loop:
 		firstbit = 0;
 		n->sym = s;
 		n->type = s->type;
-		n->xoffset = s->offset;
+		n->offset = s->offset;
 		n->class = s->class;
 		n->etype = TVOID;
 		if(n->type != T)
 			n->etype = n->type->etype;
 		if(debug['d'])
 			dbgdecl(s);
-		acidvar(s);
 		s->varlineno = lineno;
+		if(n->ref)
+			if(f == edecl) {
+				n->ref->class = CSELEM+CLAST;
+				strl->lineno = n->ref->lineno;
+			} else {
+				n->ref->class = s->class+CLAST;
+				if(s->class == CGLOBL && s->varlineno != 0)
+					n->ref->dlineno = s->varlineno;
+				else
+					s->varlineno = n->ref->lineno;
+			}
 		break;
 	}
 	lastdcl = t;
@@ -113,7 +123,7 @@ mkstatic(Sym *s)
 
 	if(s->class != CLOCAL)
 		return s;
-	snprint(symb, NSYMB, "%s$%d", s->name, s->block);
+	sprint(symb, "%s.%d", s->name, s->block);
 	s1 = lookup();
 	if(s1->class != CSTATIC) {
 		s1->type = s->type;
@@ -126,7 +136,7 @@ mkstatic(Sym *s)
 
 /*
  * make a copy of a typedef
- * the problem is to split out incomplete
+ * the problem is to split out imcomplete
  * arrays so that it is in the variable
  * rather than the typedef.
  */
@@ -229,12 +239,12 @@ loop:
 		b = new(OCONST, Z, Z);
 		b->type = a->type->link;
 		if(a->op == OSTRING) {
-			b->vconst = convvtox(*a->cstring, TCHAR);
-			a->cstring++;
+			b->offset = castto(*a->us, TCHAR);
+			a->us++;
 		}
 		if(a->op == OLSTRING) {
-			b->vconst = convvtox(*a->rstring, TUSHORT);
-			a->rstring++;
+			b->offset = castto(*a->rs, TUSHORT);
+			a->rs++;
 		}
 		a->type->width -= b->type->width;
 		if(a->type->width <= 0)
@@ -259,7 +269,6 @@ isstruct(Node *a, Type *t)
 	case OLSTRING:
 	case OCONST:
 	case OINIT:
-	case OELEM:
 		return 0;
 	}
 
@@ -286,7 +295,6 @@ Node*
 init1(Sym *s, Type *t, long o, int exflag)
 {
 	Node *a, *l, *r;
-	Type *t1;
 	long e, w, so, mw;
 
 	a = peekinit();
@@ -317,7 +325,7 @@ init1(Sym *s, Type *t, long o, int exflag)
 	case TDOUBLE:
 	case TIND:
 	single:
-		if(a->op == OARRAY || a->op == OELEM)
+		if(a->op == OARRAY)
 			return Z;
 
 		a = nextinit();
@@ -333,7 +341,7 @@ init1(Sym *s, Type *t, long o, int exflag)
 			l->etype = TVOID;
 			if(s->type)
 				l->etype = s->type->etype;
-			l->xoffset = s->offset + o;
+			l->offset = s->offset + o;
 			l->class = s->class;
 
 			l = new(OAS, l, a);
@@ -375,13 +383,14 @@ init1(Sym *s, Type *t, long o, int exflag)
 				a = a->left;
 			goto gext;
 		}
-
-		while(a->op == OCAST)
-			a = a->left;
-		if(a->op == OADDR) {
-			warn(a, "initialize pointer to an integer", s->name);
-			a = a->left;
-			goto gext;
+		if(typelp[t->etype]) {
+			while(a->op == OCAST)
+				a = a->left;
+			if(a->op == OADDR) {
+				warn(a, "initialize pointer to an integer", s->name);
+				a = a->left;
+				goto gext;
+			}
 		}
 		diag(a, "initializer is not a constant: %s", s->name);
 		return Z;
@@ -394,7 +403,7 @@ init1(Sym *s, Type *t, long o, int exflag)
 	case TARRAY:
 		w = t->link->width;
 		if(a->op == OSTRING || a->op == OLSTRING)
-		if(typei[t->link->etype]) {
+		if(typechl[t->link->etype]) {
 			/*
 			 * get rid of null if sizes match exactly
 			 */
@@ -424,8 +433,6 @@ init1(Sym *s, Type *t, long o, int exflag)
 			a = peekinit();
 			if(a == Z)
 				break;
-			if(a->op == OELEM && t->link->etype != TSTRUCT)
-				break;
 			if(a->op == OARRAY) {
 				a = nextinit();
 				r = a->left;
@@ -434,7 +441,7 @@ init1(Sym *s, Type *t, long o, int exflag)
 					diag(r, "initializer subscript must be constant");
 					return Z;
 				}
-				e = r->vconst;
+				e = r->offset;
 				if(t->width != 0)
 					if(e < 0 || e*w >= t->width) {
 						diag(a, "initilization index out of range: %ld", e);
@@ -473,26 +480,15 @@ init1(Sym *s, Type *t, long o, int exflag)
 			return Z;
 		}
 		l = Z;
-
-	again:
-		for(t1 = t->link; t1 != T; t1 = t1->down) {
-			if(a->op == OARRAY && t1->etype != TARRAY)
-				break;
-			if(a->op == OELEM) {
-				if(t1->sym != a->sym)
-					continue;
-				nextinit();
-			}
-			r = init1(s, t1, o+t1->offset, 1);
-			l = newlist(l, r);
+		for(t = t->link; t != T; t = t->down) {
 			a = peekinit();
 			if(a == Z)
 				break;
-			if(a->op == OELEM)
-				goto again;
+			if(a->op == OARRAY)
+				break;
+			r = init1(s, t, o+t->offset, 1);
+			l = newlist(l, r);
 		}
-		if(a && a->op == OELEM)
-			diag(a, "structure element not found %F", a);
 		return l;
 	}
 }
@@ -542,7 +538,6 @@ suallign(Type *t)
 		}
 		w += round(w, supad);
 		t->width = w;
-		acidtype(t);
 		return;
 
 	case TUNION:
@@ -562,7 +557,6 @@ suallign(Type *t)
 		}
 		w += round(w, supad);
 		t->width = w;
-		acidtype(t);
 		return;
 
 	default:
@@ -593,8 +587,8 @@ round(long v, long w)
 		diag(Z, "rounding by %d", w);
 		w = 1;
 	}
-	if(w > types[TVLONG]->width)
-		w = types[TVLONG]->width;
+	if(w > types[TLONG]->width)
+		w = types[TLONG]->width;
 	r = v%w;
 	if(r)
 		r = w-r;
@@ -636,7 +630,7 @@ argmark(Node *n, int pass)
 	Type *t;
 
 	autoffset = 0;
-	if(passbypointer(thisfn->link->etype)) {
+	if(typesu[thisfn->link->etype]) {
 		autoffset += types[TIND]->width;
 		autoffset += round(autoffset, tint->width);
 	}
@@ -662,7 +656,6 @@ void
 walkparam(Node *n, int pass)
 {
 	Sym *s;
-	Node *n1;
 
 	if(n != Z && n->op == OPROTO && n->left == Z && n->type == types[TVOID])
 		return;
@@ -681,29 +674,19 @@ loop:
 		goto loop;
 
 	case OPROTO:
-		for(n1 = n; n1 != Z; n1=n1->left)
-			if(n1->op == ONAME) {
-				if(pass == 0) {
-					s = n1->sym;
+		if(pass == 0) {
+			for(; n != Z; n=n->left)
+				if(n->op == ONAME) {
+					s = n->sym;
 					push1(s);
 					s->offset = -1;
 					break;
 				}
-				dodecl(pdecl, CPARAM, n->type, n->left);
-				break;
-			}
-		if(n1)
-			break;
-		if(pass == 0) {
-			/*
-			 * extension:
-			 *	allow no name in argument declaration
-			diag(Z, "no name in argument declaration");
-			 */
+			if(n == Z)
+				diag(Z, "no name in argument declaration");
 			break;
 		}
-		dodecl(NODECL, CPARAM, n->type, n->left);
-		pdecl(CPARAM, lastdcl, S);
+		dodecl(pdecl, CPARAM, n->type, n->left);
 		break;
 
 	case ODOTDOT:
@@ -871,12 +854,10 @@ void
 dbgdecl(Sym *s)
 {
 
+	print("decl \"%s\": %s ", s->name, cnames[s->class]);
 	if(s->class == CAUTO)
-		print("decl \"%s\": %s [%d:%ld] %T",
-			s->name, cnames[s->class], s->block, s->offset, s->type);
-	else
-		print("decl \"%s\": %s [%d] %T\n",
-			s->name, cnames[s->class], s->block, s->type);
+		print("[%d:%ld] ", s->block, s->offset);
+	print("%T\n", s->type);
 }
 
 Decl*
@@ -973,7 +954,7 @@ rsametype(Type *t1, Type *t2, int n)
 	}
 }
 
-Type*
+void
 dotag(Sym *s, int et, int bn)
 {
 	Decl *d;
@@ -995,7 +976,6 @@ dotag(Sym *s, int et, int bn)
 			s->name);
 	if(s->suetag->tag == S)
 		s->suetag->tag = s;
-	return s->suetag;
 }
 
 Node*
@@ -1087,21 +1067,16 @@ adecl(int c, Type *t, Sym *s)
 	}
 	if(c == CXXX)
 		c = CAUTO;
-	if(s) {
-		if(s->class == CSTATIC)
-			if(c == CEXTERN || c == CGLOBL)
-				c = CSTATIC;
-		if(s->class == CAUTO || s->class == CPARAM || s->class == CLOCAL)
-		if(s->block == autobn)
-			diag(Z, "auto redeclaration of: %s", s->name);
-		if(c != CPARAM)
-			push1(s);
-		s->block = autobn;
-		s->offset = 0;
-		s->type = t;
-		s->class = c;
-		s->aused = 0;
-	}
+	if(s->class == CAUTO || s->class == CPARAM || s->class == CLOCAL)
+	if(s->block == autobn)
+		diag(Z, "auto redeclaration of: %s", s->name);
+	if(c != CPARAM)
+		push1(s);
+	s->block = autobn;
+	s->offset = 0;
+	s->type = t;
+	s->class = c;
+	s->aused = 0;
 
 	if(c != CAUTO && c != CPARAM)
 		return;
@@ -1111,8 +1086,7 @@ adecl(int c, Type *t, Sym *s)
 	}
 	if(t->width < tint->width)
 		autoffset += endian(t->width);
-	if(s)
-		s->offset = autoffset;
+	s->offset = autoffset;
 	autoffset += t->width;
 	autoffset += round(autoffset, tint->width);
 	if(c == CAUTO)
@@ -1126,7 +1100,7 @@ adecl(int c, Type *t, Sym *s)
 void
 pdecl(int c, Type *t, Sym *s)
 {
-	if(s && s->offset != -1) {
+	if(s->offset != -1) {
 		diag(Z, "not a parameter: %s", s->name);
 		return;
 	}
@@ -1253,6 +1227,7 @@ void
 edecl(int c, Type *t, Sym *s)
 {
 	Type *t1;
+	int n;
 
 	if(s == S) {
 		if(!typesu[t->etype])
@@ -1272,6 +1247,33 @@ edecl(int c, Type *t, Sym *s)
 		t->nbits = lastfield;
 		if(firstbit)
 			t->shift = -t->shift;
+		/* real bitfields or not */
+		if(0) {
+			n = t->nbits;
+			lastfield = 0;
+			firstbit = 0;
+			lastbit = 0;
+			t->nbits = 0;
+			t->shift = 0;
+			if(typeu[t->etype]) {
+				/* BUG */
+				if(n <= 8)
+					t->etype = TUCHAR;
+				else
+				if(n <= 16)
+					t->etype = TUSHORT;
+				else
+					t->etype = TULONG;
+			} else {
+				if(n <= 8)
+					t->etype = TCHAR;
+				else
+				if(n <= 16)
+					t->etype = TSHORT;
+				else
+					t->etype = TLONG;
+			}
+		}
 	}
 	if(strf == T)
 		strf = t;
@@ -1280,26 +1282,22 @@ edecl(int c, Type *t, Sym *s)
 	strl = t;
 }
 
-/*
- * this routine is very suspect.
- * ansi requires the enum type to
- * be represented as an 'int'
- * this means that 0x81234567
- * would be illegal. this routine
- * makes signed and unsigned go
- * to unsigned.
- */
 Type*
-maxtype(Type *t1, Type *t2)
+maxtype(long v)
 {
+	char c;
+	short s;
 
-	if(t1 == T)
-		return t2;
-	if(t2 == T)
-		return t1;
-	if(t1->etype > t2->etype)
-		return t1;
-	return t2;
+/*
+ * BUG this tests the compile, not the target
+ */
+	c = v;
+	if(c == v)
+		return types[TCHAR];
+	s = v;
+	if(s == v)
+		return types[TSHORT];
+	return types[TLONG];
 }
 
 void
@@ -1308,39 +1306,45 @@ doenum(Sym *s, Node *n)
 
 	if(n) {
 		complex(n);
-		if(n->op != OCONST) {
-			diag(n, "enum not a constant: %s", s->name);
+		if(n->op != OCONST || !typechl[n->type->etype]) {
+			diag(n, "constant integer expected in enum: %s", s->name);
 			return;
 		}
-		en.cenum = n->type;
-		en.tenum = maxtype(en.cenum, en.tenum);
-
-		if(!typefd[en.cenum->etype])
-			en.lastenum = n->vconst;
-		else
-			en.floatenum = n->fconst;
+		if(tint != types[TLONG] && typel[n->type->etype])
+			diag(n, "enum constant cannot be long");
+		lastenum = n->offset;
 	}
 	if(dclstack)
 		push1(s);
 	xdecl(CXXX, types[TENUM], s);
-
-	if(en.cenum == T) {
-		en.tenum = tint;
-		en.cenum = tint;
-		en.lastenum = 0;
-	}
-	s->tenum = en.cenum;
-
-	if(!typefd[s->tenum->etype]) {
-		s->vconst = convvtox(en.lastenum, s->tenum->etype);
-		en.lastenum++;
-	} else {
-		s->fconst = en.floatenum;
-		en.floatenum++;
-	}
-
+	if(ovflo(lastenum, tint->etype))
+		diag(n, "enum constant exceeds an integer: %s", s->name);
+	s->offset = lastenum;
 	if(debug['d'])
 		dbgdecl(s);
+	if(lastenum > maxenum)
+		maxenum = lastenum;
+	if(-lastenum > maxenum)
+		maxenum = -lastenum;
+	lastenum++;
+}
+
+void
+dbgprint(Sym *s, Type *t)
+{
+	Type *l;
+
+	if(suedebug == 0)
+		return;
+	if(strcmp(s->name, suedebug) != 0)
+		return;
+	print("%s %ld %T\n", s->name, t->width, t);
+	for(l = t->link; l != T; l = l->down) {
+		if(l->sym)
+			print("%s %ld %T\n", l->sym->name, l->offset, l);
+		else
+			print("<> %ld %T\n", l->offset, l);
+	}
 }
 
 void
@@ -1357,7 +1361,7 @@ symadjust(Sym *s, Node *n, long del)
 
 	case ONAME:
 		if(n->sym == s)
-			n->xoffset -= del;
+			n->offset -= del;
 		return;
 
 	case OCONST:
@@ -1420,7 +1424,7 @@ contig(Sym *s, Node *n, long v)
 	p = new(ONAME, Z, Z);
 	*p = *q;
 	p->type = typ(TIND, types[TLONG]);
-	p->xoffset = s->offset;
+	p->offset = s->offset;
 
 	r = new(ONAME, Z, Z);
 	*r = *p;
@@ -1431,7 +1435,7 @@ contig(Sym *s, Node *n, long v)
 	q = new(OIND, q, Z);
 
 	m = new(OCONST, Z, Z);
-	m->vconst = 0;
+	m->offset = 0;
 	m->type = types[TLONG];
 
 	q = new(OAS, q, m);
@@ -1445,7 +1449,7 @@ contig(Sym *s, Node *n, long v)
 	q = new(ONAME, Z, Z);
 	*q = *p;
 	q->type = q->type->link;
-	q->xoffset += w;
+	q->offset += w;
 	q = new(OADDR, q, 0);
 
 	q = new(OAS, p, q);

@@ -1,0 +1,8 @@
+\contentsline {chapter}{Preface}{1}
+\contentsline {chapter}{\numberline {Chapter\ \uppercase {i}.}Operators with Compact Resolvent}{3}
+\contentsline {section}{\numberline {1.}Auxiliary propositions from function theory}{3}
+\contentsline {chapter}{\numberline {Chapter\ \uppercase {ii}.}Keldysh Pencils}{5}
+\contentsline {section}{\numberline {1.}Holomorphic operator-valued functions}{5}
+\contentsline {chapter}{\numberline {Appendix\ A.}Nonselfadjoint Equations}{7}
+\contentsline {section}{\numberline {1.}Compact operators}{7}
+\contentsline {chapter}{Bibliography}{9}

@@ -1,3 +1,0 @@
-NAME afm2tfm WINDOWCOMPAT NEWFILES
-DESCRIPTION 'Adobe afm -> TeX tfm converter for OS/2 and DOS'
-STACKSIZE 0x2000

@@ -4,28 +4,10 @@
 int	tas(int*);
 
 void
-ALEF_lockinit()
-{
-}
-
-void
-ALEF_lockrele()
-{
-}
-
-void
 Lock.lock(Lock *lk)
 {
 	while(tas(&lk->val))
 		;
-}
-
-int
-Lock.canlock(Lock *lk)
-{
-	if(tas(&lk->val))
-		return 0;
-	return 1;
 }
 
 void
@@ -60,28 +42,14 @@ QLock.lock(QLock *q)
 	if(rh != nil)
 		tdb->runhd = rh->link;
 	tdb->ctask = rh;
-	tdb->sleeper = rh == nil;
 	tdb->unlock();
 
-	if(rh == nil)
+	if(tdb->ctask == nil)
 		rendezvous(tdb, 0);
 
 	s = ALEF_switch(me, tdb->ctask, nil);
 	if(s)
 		free(s);
-}
-
-int
-QLock.canlock(QLock *q)
-{
-	q->use.lock();
-	if(q->used == 0) {
-		q->used++;
-		q->use.unlock();
-		return 1;
-	}
-	q->use.unlock();
-	return 0;
 }
 
 void

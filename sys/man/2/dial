@@ -2,38 +2,34 @@
 .SH NAME
 dial, hangup, announce, listen, accept, reject, netmkaddr \- make and break network connections
 .SH SYNOPSIS
-.B #include <u.h>
-.br
-.B #include <libc.h>
+.B
+int	dial(char *addr, char *local, char *dir, int *cfdp)
 .PP
 .B
-int   dial(char *addr, char *local, char *dir, int *cfdp)
+int	hangup(int ctl)
 .PP
 .B
-int   hangup(int ctl)
+int	announce(char *addr, char *dir)
 .PP
 .B
-int   announce(char *addr, char *dir)
+int	listen(char *dir, char *newdir)
 .PP
 .B
-int   listen(char *dir, char *newdir)
+int	accept(int ctl, char *dir)
 .PP
 .B
-int   accept(int ctl, char *dir)
+int	reject(int ctl, char *dir, char *cause)
 .PP
 .B
-int   reject(int ctl, char *dir, char *cause)
-.PP
-.B
-char* netmkaddr(char *addr, char *defnet, char *defservice)
+char*	netmkaddr(char *addr, char *defnet, char *defservice)
 .SH DESCRIPTION
 For these routines,
 .I addr
 is a network address of the form
-.IB network ! netaddr ! service\f1,
-.IB network ! netaddr\f1,
+.IB network ! netaddr ! service,
+.IB network ! netaddr,
 or simply
-.IR netaddr .
+.I netaddr.
 .I Network
 is any directory listed in 
 .B /net
@@ -46,8 +42,8 @@ between the source and the host
 .I Netaddr
 can be a host name, a domain name, a network address,
 or a meta-name of the form
-.BI $ attribute\f1,
-which
+.BI $ attribute.
+.BI $ attribute
 is replaced by
 .I value
 from the value-attribute pair
@@ -128,7 +124,7 @@ files.
 and
 .I listen
 are the complements of
-.IR dial .
+.I dial.
 .I Announce
 establishes a network
 name to which calls can be made.
@@ -143,7 +139,7 @@ The
 routine takes as its first argument the
 .I dir
 of a previous
-.IR announce .
+.I announce.
 When a call is received,
 .I listen
 returns an open
@@ -161,10 +157,10 @@ refuses the call because of
 .IR cause .
 .I Accept
 returns a file descriptor for the data file opened
-.BR ORDWR .
+.B ORDWR .
 .PP
 .I Netmkaddr
-makes an address suitable for dialing or announcing.
+make an address suitable for dialing or announcing.
 It takes an address along with a default network and service to use
 if they are not specified in the address.
 It returns a pointer to static data holding the actual address to use.
@@ -206,11 +202,13 @@ bekremvax(void)
 	afd = announce("dk!kremvax", adir);
 	if(afd < 0)
 		return -1;
+
 	for(;;){
 		/* listen for a call */
 		lcfd = listen(adir, ldir);
 		if(lcfd < 0)
 			return -1;
+
 		/* fork a process to echo */
 		switch(fork()){
 		case -1:
@@ -231,11 +229,10 @@ bekremvax(void)
 			close(lcfd);
 			break;
 		}
+
 	}
 }
-.EE
-.SH SOURCE
-.B /sys/src/libc/port
+.EX
 .SH "SEE ALSO"
 .IR auth (2),
 .IR dk (3),
@@ -243,10 +240,10 @@ bekremvax(void)
 .IR stream (3),
 .IR ndb (8)
 .SH DIAGNOSTICS
-.IR Dial ,
-.IR announce ,
+.I Dial,
+.I announce,
 and
 .I listen
-return \-1 if they fail.
+return \(mi1 if they fail.
 .I Hangup
 returns nonzero if it fails.

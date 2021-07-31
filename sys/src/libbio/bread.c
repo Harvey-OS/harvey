@@ -27,12 +27,9 @@ Bread(Biobufhdr *bp, void *ap, long count)
 					bp->state = Binactive;
 				break;
 			}
-			bp->gbuf = bp->bbuf;
 			bp->offset += i;
-			if(i < bp->bsize) {
+			if(i < bp->bsize)
 				memmove(bp->ebuf-i, bp->bbuf, i);
-				bp->gbuf = bp->ebuf-i;
-			}
 			ic = -i;
 			continue;
 		}

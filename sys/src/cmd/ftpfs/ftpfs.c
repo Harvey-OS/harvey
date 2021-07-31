@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include <fcall.h>
 #include "ftpfs.h"
 
@@ -22,14 +21,13 @@ Fcall	rhdr;
 Fcall	thdr;
 int	debug;
 int	usenlst;
-char	*ext;
-int	quiet;
 
 char	*rflush(Fid*), *rnop(Fid*), *rsession(Fid*),
 	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
 	*rclwalk(Fid*), *ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
+	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*),
+	*rauth(Fid*);
 void	mountinit(char*);
 void	io(void);
 int	readpdir(Node*);
@@ -50,22 +48,7 @@ char 	*(*fcalls[])(Fid*) = {
 	[Tremove]	rremove,
 	[Tstat]		rstat,
 	[Twstat]	rwstat,
-};
-
-OS oslist[] = {
-	{ Unix,		"SUN", },
-	{ Unix,		"UNIX", },
-	{ VMS,		"VMS", },
-	{ VM,		"VM", },
-	{ Tops,		"TOPS", },
-	{ MVS,		"MVS", },
-	{ Plan9,	"Plan 9", },
-	{ Plan9,	"Plan9", },
-	{ NetWare,	"NetWare", },
-	{ OS½,		"OS/2", },
-	{ TSO,		"TSO", },
-	{ NT,		"Windows_NT", },
-	{ Unknown,	0 },
+	[Tauth]		rauth,
 };
 
 #define S2P(x) (((ulong)(x)) & 0xffffff)
@@ -75,7 +58,7 @@ char *nosuchfile = "file does not exist";
 void
 usage(void)
 {
-	fprint(2, "ftpfs [-/dq] [-a passwd] [-m mountpoint] [net!]address\n");
+	fprint(2, "ftpfs [-/] [-m mountpoint] [net!]address\n");
 	exits("usage");
 }
 
@@ -91,18 +74,14 @@ notifyf(void *a, char *s)
 void
 main(int argc, char *argv[])
 {
-	char *mountroot = 0;
+	int mountroot = 0;
 	char *mountpoint = "/n/ftp";
 	char *cpassword = 0;
-	char *cp;
 	int p[2];
-	OS *o;
-
-	defos = Unix;
 
 	ARGBEGIN {
 	case '/':
-		mountroot = "/";
+		mountroot = 1;
 		break;
 	case 'a':
 		cpassword = ARGF();
@@ -115,23 +94,6 @@ main(int argc, char *argv[])
 		break;
 	case 'n':
 		usenlst = 1;
-		break;
-	case 'e':
-		ext = ARGF();
-		break;
-	case 'o':
-		cp = ARGF();
-		for(o = oslist; o->os != Unknown; o++)
-			if(strncmp(cp, o->name, strlen(o->name)) == 0){
-				defos = o->os;
-				break;
-			}
-		break;
-	case 'r':
-		mountroot = ARGF();
-		break;
-	case 'q':
-		quiet = 1;
 		break;
 	} ARGEND
 	if(argc != 1)
@@ -163,7 +125,7 @@ main(int argc, char *argv[])
 		break;
 	default:
 		close(p[0]);
-		if(mount(p[1], mountpoint, MREPL|MCREATE, "") < 0)
+		if(mount(p[1], mountpoint, MREPL|MCREATE, "", "") < 0)
 			fatal("mount failed: %r");
 	}
 	exits(0);
@@ -276,9 +238,6 @@ char*
 rsession(Fid *f)
 {
 	USED(f);
-	memset(thdr.authid, 0, sizeof(thdr.authid));
-	memset(thdr.authdom, 0, sizeof(thdr.authdom));
-	memset(thdr.chal, 0, sizeof(thdr.chal));
 	return 0;
 }
 
@@ -287,6 +246,13 @@ rflush(Fid *f)
 {
 	USED(f);
 	return 0;
+}
+
+char *
+rauth(Fid *f)
+{
+	USED(f);
+	return "no authentication";
 }
 
 char*
@@ -330,7 +296,7 @@ rwalk(Fid *f)
 	}
 
 	/* top level tops-20 names are special */
-	if((os == Tops || os == VM || os == VMS) && f->node == remroot){
+	if((os == Tops || os == VM) && f->node == remroot){
 		np = newtopsdir(name);
 		if(np){
 			f->node = np;
@@ -509,7 +475,6 @@ rclunk(Fid *f)
 		if(createfile(f->node) < 0)
 			fprint(2, "ftpfs: couldn't create %s\n", f->node->d.name);
 		fileclean(f->node);
-		uncache(f->node);
 	}
 	f->busy = 0;
 	return 0;
@@ -590,12 +555,9 @@ safecpy(void *to, void *from, int n)
  *  set the error string
  */
 int
-seterr(char *fmt, ...)
+seterr(char *msg)
 {
-	char *s;
-
-	s = doprint(errstring, errstring + (sizeof(errstring)-1) / sizeof(*errstring), fmt, &fmt + 1);
-	*s = 0;
+	safecpy(errstring, msg, sizeof(errstring));
 	return -1;
 }
 
@@ -614,7 +576,6 @@ newnode(Node *parent, char *name)
 	safecpy(np->d.name, name, sizeof(np->d.name));
 	np->d.atime = time(0);
 	np->children = 0;
-	np->longname = strdup(name);
 	if(parent){
 		np->parent = parent;
 		np->sibs = parent->children;

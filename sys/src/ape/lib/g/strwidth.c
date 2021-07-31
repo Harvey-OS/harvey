@@ -1,28 +1,25 @@
 #include <libg.h>
 
-typedef unsigned short ushort;
+Point
+strsize(Font *f, char *cs)
+{
+	int c, l, n;
+	Fontchar *info;
+	unsigned char *s;
+
+	s = (unsigned char*)cs;
+	l = 0;
+	n = f->n;
+	info = f->info;
+	if(s)
+		while(c = *s++)
+			if(c < n)
+				l += info[c].width;
+	return Pt(l,f->height);
+}
 
 long
 strwidth(Font *f, char *s)
 {
-	int wid, twid, n;
-	enum { Max = 128 };
-	ushort cbuf[Max];
-
-	twid = 0;
-	while(*s){
-		n = 0;
-		while(cachechars(f, &s, cbuf, Max, &wid) <= 0)
-			if(++n > 10)
-				berror("strwidth");
-		agefont(f);
-		twid += wid;
-	}
-	return twid;
-}
-
-Point
-strsize(Font *f, char *s)
-{
-	return Pt(strwidth(f, s), f->height);
+	return strsize(f,s).x;
 }

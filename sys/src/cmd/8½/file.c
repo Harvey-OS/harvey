@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include <fcall.h>
 #include <libg.h>
 #include <frame.h>
@@ -82,7 +81,7 @@ int	sfd;		/* server end of pipe */
 char	user[NAMELEN];
 
 void	rflush(void);
-void	rsession(void);
+void	rauth(void);
 void	rattach(Rfile *);
 void	rclone(Rfile *, int);
 int	rwalk(Rfile *);
@@ -119,7 +118,6 @@ enum{
 	Qwinds,
 	Qwinid,
 	Qtext,
-	Qkbd,
 	NQid
 };
 
@@ -135,7 +133,6 @@ Dirtab dirtab[]=
 	"label",	{Qlabel},	0600,		1,
 	"select",	{Qselect},	0600,		1,
 	"text",		{Qtext},	0400,		1,
-	"kbd",		{Qkbd},		0600,		1,
 	"windows",	{Qwinds|CHDIR},	CHDIR|0500,	0,
 	"winid",	{Qwinid},	0400,		0,
 	0,
@@ -174,7 +171,7 @@ io(void)
 	}		
 
 /*BUG: check busy */
-	if(okfid(rhdr.fid)==0)
+	if(rhdr.type!=Tauth && okfid(rhdr.fid)==0)
 		return;
 	rf = &rfile[rhdr.fid];
 #ifdef DEBUG
@@ -194,8 +191,8 @@ io(void)
 	case Tflush:
 		rflush();
 		break;
-	case Tsession:
-		rsession();
+	case Tauth:
+		rauth();
 		break;
 	case Tattach:
 		rattach(rf);
@@ -279,12 +276,9 @@ rflush(void)
 }
 
 void
-rsession(void)
+rauth(void)
 {
-	memset(thdr.authid, 0, sizeof(thdr.authid));
-	memset(thdr.authdom, 0, sizeof(thdr.authdom));
-	memset(thdr.chal, 0, sizeof(thdr.chal));
-	sendmsg(0);
+	sendmsg(Eauth);
 }
 
 void
@@ -305,17 +299,9 @@ rattach(Rfile *rf)
 		if(rhdr.aname[0] == 'N'){
 			n = rhdr.aname+1;
 			pid = strtoul(n, &n, 0);
-			if(*n == ',')
-				n++;
 			r.min.x = strtol(n, &n, 0);
-			if(*n == ',')
-				n++;
 			r.min.y = strtol(n, &n, 0);
-			if(*n == ',')
-				n++;
 			r.max.x = strtol(n, &n, 0);
-			if(*n == ',')
-				n++;
 			r.max.y = strtol(n, &n, 0);
 			if(cfd>=0 && okrect(r)){
 				s = newterm(r, 0, pid);
@@ -330,6 +316,7 @@ rattach(Rfile *rf)
 		}else{
 			s = atoi(rhdr.aname);
 			if(s<=0 || s>=(1<<16)){
+				print("slot %d out of range\n", s);
 				err = Eslot;
 				goto send;
 			}
@@ -522,11 +509,6 @@ ropen(Rfile *rf)
 	case Qctl:
 		w->ctlopen++;
 		break;
-
-	case Qkbd:
-		if (mode==OREAD)
-			w->kbdopen = fp->slot+1;
-		break;
 	}
 	rf->open = 1;
 
@@ -554,7 +536,6 @@ rread(Rfile *rf)
 	Window *w;
 	Text *t;
 	char *s;
-	IOQ *kq;
 
 	n = 0;
 	err = 0;
@@ -676,20 +657,6 @@ rread(Rfile *rf)
 		}
 		break;
 
-	case Qkbd:
-		if (w->deleted) {
-			n = 0;
-			goto send;
-		}
-		kq = (IOQ *)emalloc(sizeof(IOQ));
-		kq->tag = rhdr.tag;
-		kq->cnt = cnt;
-		kq->fid = rhdr.fid;
-		kq->next = w->kq;
-		w->kq = kq;
-		run(w->p);
-		return;
-	
 	default:
 		n = 0;
 		err = Egreg;
@@ -797,37 +764,6 @@ rwrite(Rfile *rf)
 			cnt = 0;
 		break;
 
-	case Qkbd:
-		if (w->deleted) {
-			cnt = 0;
-			goto send;
-		}
-		i = 0;
-		if (w->nipart){
-			while (i<cnt){
-				w->ipart[w->nipart++] = rhdr.data[i];
-				if (fullrune(w->ipart, w->nipart)){
-					Rune r[1];
-					chartorune(r, w->ipart);
-					textinsert(w, &w->rawbuf, r, 1, w->rawbuf.n, 0);
-					w->nipart = 0;
-					break;
-				}
-				i++;
-			}
-		}
-		while (i<cnt && fullrune(rhdr.data+i, cnt-i)) {
-			Rune r[1];
-			wid = chartorune(r, rhdr.data+i);
-			textinsert(w, &w->rawbuf, r, 1, w->rawbuf.n, 0);
-			i += wid;
-		}
-		while (i<cnt && w->nipart<sizeof(w->ipart))
-			w->ipart[w->nipart++] = rhdr.data[i++];
-		cnt = i;
-		run(w->p);
-		goto send;
-
 	default:
 		cnt = 0;
 		err = Egreg;
@@ -871,11 +807,6 @@ rclunk(Rfile *rf, int err)
 			termunraw(w);
 			termhold(w, 0);
 		}
-		break;
-
-	case Qkbd:
-		if(w->kbdopen==fp->slot+1)
-			w->kbdopen = 0;
 		break;
 	}
 	if(fp->slot == 0){	/* slave shutting down */

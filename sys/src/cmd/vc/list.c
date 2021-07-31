@@ -43,7 +43,7 @@ Aconv(void *o, Fconv *fp)
 
 	a = *(int*)o;
 	s = "???";
-	if(a >= AXXX && a < ALAST)
+	if(a >= AXXX && a <= AEND)
 		s = anames[a];
 	strconv(s, fp);
 	return sizeof(a);
@@ -117,7 +117,7 @@ Dconv(void *o, Fconv *fp)
 		break;
 
 	case D_FCONST:
-		sprint(str, "$%.17e", a->dval);
+		sprint(str, "$%f", a->dval);
 		break;
 
 	case D_SCONST:

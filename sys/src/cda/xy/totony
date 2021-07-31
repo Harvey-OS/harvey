@@ -1,0 +1,32 @@
+this information is the same as before, except i think i have
+now written down all the seemy details of the number format.
+thanks again.
+
+
+file to be plotted is LG.ger
+
+coordinates are absolute.
+
+2 digits before, 3 digits after the decimal point.
+trailing zeroes are suppressed.
+for example: X1 is 10 inches, X00001 is 1 mil.
+
+approximate plot size is 3x5 inches.
+
+apertures are all square.  sizes are:
+
+D10	 1 mil
+D11	 3 mils
+D12	 7 mils
+D13	15 mils
+D14	31 mils
+D15	63 mils
+
+please send output to:
+
+	Tom Killian
+	MH 2C465
+
+	phone:	908-582-6215
+	email:	research!tom
+	wpn:	311407-7109

@@ -32,9 +32,6 @@ f_session(Chan *cp, Fcall *in, Fcall *ou)
 	USED(ou);
 	if(CHAT(cp))
 		print("c_session %d\n", cp->chan);
-	memset(ou->authid, 0, sizeof(ou->authid));
-	memset(ou->authdom, 0, sizeof(ou->authdom));
-	memset(ou->chal, 0, sizeof(ou->chal));
 	fileinit(cp);
 }
 
@@ -1278,4 +1275,12 @@ out:
 	if(f)
 		qunlock(f);
 	ou->fid = in->fid;
+}
+
+void
+f_auth(Chan *cp, Fcall *in, Fcall *ou)
+{
+	USED(cp);
+	ou->fid = in->fid;
+	ou->err = Eauth;
 }

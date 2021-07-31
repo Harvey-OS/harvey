@@ -1,0 +1,4 @@
+Omolola Ogunyemi was an SRP student for me in the summer of 1992. She
+worked on an interactive graphic circuit simulator called gnisim. added features
+to it, and ported it from plan-9 to X-windows. One of the added features automatically generates test vectors from
+the simulation results.

@@ -27,8 +27,6 @@ int	termlocked;
 char	*samterm = SAMTERM;
 char	*rsamname = RSAM;
 
-Rune	baddir[] = { '<', 'b', 'a', 'd', 'd', 'i', 'r', '>', '\n'};
-
 void	usage(void);
 
 void
@@ -69,6 +67,12 @@ main(int argc, char *argv[])
 			if(argc == 1)
 				usage();
 			rsamname = *argv;
+			break;
+
+		case 'g':	/* -geom -> pass to samterm */
+			*ap++ = *argv++;
+			*ap++ = *argv;
+			argc--;
 			break;
 
 		default:
@@ -185,12 +189,10 @@ hiccough(char *s)
 	if(undobuf->nrunes)
 		Bdelete(undobuf, (Posn)0, undobuf->nrunes);
 	update();
-	if (curfile) {
-		if (curfile->state==Unread)
-			curfile->state = Clean;
-		else if (downloaded)
-			outTs(Hcurrent, curfile->tag);
-	}
+	if(curfile && curfile->state==Unread)
+		curfile->state = Clean;
+	if(downloaded && curfile && curfile->state!=Unread)
+		outTs(Hcurrent, curfile->tag);
 	longjmp(mainloop, 1);
 }
 
@@ -204,23 +206,23 @@ void
 trytoclose(File *f)
 {
 	char *t;
-	char buf[256];
 
 	if(f == cmd)	/* possible? */
-		return;
-	if(f->deleted)
 		return;
 	if(f->state==Dirty && !f->closeok){
 		f->closeok = TRUE;
 		if(f->name.s[0]){
 			t = Strtoc(&f->name);
-			strncpy(buf, t, sizeof buf-1);
+			error_s(Emodified, t);
 			free(t);
 		}else
-			strcpy(buf, "nameless file");
-		error_s(Emodified, buf);
+			error_s(Emodified, "nameless file");
 	}
-	f->deleted = TRUE;
+	if(downloaded && f->rasp)
+		outTs(Hclose, f->tag);
+	delfile(f);
+	if(f == curfile)
+		current((File *)0);
 }
 
 void
@@ -230,7 +232,6 @@ trytoquit(void)
 	File *f;
 
 	if(!quitok)
-{
 		for(c = 0; c<file.nused; c++){
 			f = file.filepptr[c];
 			if(f!=cmd && f->state==Dirty){
@@ -239,7 +240,6 @@ trytoquit(void)
 				error(Echanges);
 			}
 		}
-}
 }
 
 void
@@ -269,16 +269,6 @@ cmdupdate(void)
 }
 
 void
-delete(File *f)
-{
-	if(downloaded && f->rasp)
-		outTs(Hclose, f->tag);
-	delfile(f);
-	if(f == curfile)
-		current(0);
-}
-
-void
 update(void)
 {
 	int i, anymod;
@@ -289,8 +279,6 @@ update(void)
 		f = tempfile.filepptr[i];
 		if(f==cmd)	/* cmd gets done in main() */
 			continue;
-		if(f->deleted)
-			delete(f);
 		if(f->mod==modnum && Fupdate(f, FALSE, downloaded))
 			anymod++;
 		if(f->rasp)
@@ -320,22 +308,15 @@ edit(File *f, int cmd)
 		addr.r.p2 = f->nrunes;
 	}else if(f->nrunes!=0 || (f->name.s[0] && Strcmp(&genstr, &f->name)!=0))
 		empty = FALSE;
-	if((io = open(genc, OREAD))<0) {
-		if (curfile && curfile->state == Unread)
-			curfile->state = Clean;
+	if((io = open(genc, OREAD))<0)
 		error_s(Eopen, genc);
-	}
 	p = readio(f, &nulls, empty);
 	closeio((cmd=='e' || cmd=='I')? -1 : p);
 	if(cmd == 'r')
 		f->ndot.r.p1 = addr.r.p2, f->ndot.r.p2 = addr.r.p2+p;
 	else
 		f->ndot.r.p1 = f->ndot.r.p2 = 0;
-	f->closeok = empty;
-	if (quitok)
-		quitok = empty;
-	else
-		quitok = FALSE;
+	quitok = f->closeok = empty;
 	state(f, empty && !nulls? Clean : Dirty);
 	if(cmd == 'e')
 		filename(f);
@@ -433,15 +414,13 @@ undo(void)
 	return 1;
 }
 
-int
+void
 readcmd(String *s)
 {
-	int retcode;
-
 	if(flist == 0)
 		(flist = Fopen())->state = Clean;
 	addr.r.p1 = 0, addr.r.p2 = flist->nrunes;
-	retcode = plan9(flist, '<', s, FALSE);
+	plan9(flist, '<', s, FALSE);
 	Fupdate(flist, FALSE, FALSE);
 	flist->mod = 0;
 	if (flist->nrunes > BLOCKSIZE)
@@ -452,7 +431,6 @@ readcmd(String *s)
 	memmove(genstr.s, genbuf, flist->nrunes*RUNESIZE);
 	genstr.n = flist->nrunes;
 	Straddc(&genstr, '\0');
-	return retcode;
 }
 
 void
@@ -464,14 +442,7 @@ cd(String *str)
 
 	t = tmpcstr("/bin/pwd");
 	Straddc(t, '\0');
-	if (flist) {
-		Fclose(flist);
-		flist = 0;
-	}
-	if (readcmd(t) != 0) {
-		Strduplstr(&genstr, tmprstr(baddir, sizeof(baddir)/sizeof(Rune)));
-		Straddc(&genstr, '\0');
-	}
+	readcmd(t);
 	freetmpstr(t);
 	Strduplstr(&wd, &genstr);
 	if(wd.s[0] == 0){

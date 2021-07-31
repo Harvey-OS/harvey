@@ -1,11 +1,9 @@
 #include <libg.h>
 
-typedef unsigned char uchar; 
-
 void
 texture(Bitmap *d, Rectangle r, Bitmap *s, Fcode f)
 {
-	uchar *buf;
+	unsigned char *buf;
 
 	buf = bneed(23);
 	buf[0] = 't';

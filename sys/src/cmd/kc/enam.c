@@ -168,7 +168,4 @@ char	*anames[] =
 	"XOR",
 	"XORCC",
 	"END",
-	"DYNT",
-	"INIT",
-	"LAST"
 };

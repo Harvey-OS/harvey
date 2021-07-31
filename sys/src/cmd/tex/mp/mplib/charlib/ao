@@ -1,0 +1,7 @@
+vardef C.ao(expr n) =
+ save p,q; picture p,q;
+ p="a"infont n;
+ q=char202 infont n;
+ addto p also q
+  shifted(xpart(urcorner p-urcorner q)/2,.05*fontsize n);
+ p enddef;

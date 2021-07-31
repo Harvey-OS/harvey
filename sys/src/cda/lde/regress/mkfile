@@ -1,0 +1,28 @@
+NPROC=3
+</mips/mkfile
+
+EFILES=`echo *.e`
+RFILES=${EFILES:%.e=%.R}
+
+all:NV:	$RFILES
+
+%.O: %.e /bin/cda/lde
+	cda/lde $stem.e >$target
+
+%.N: %.e ../lde
+	../lde $stem.e >$target
+
+#dram.O: dram.e /bin/cda/lde
+#	cda/lde -0 -1 -2 -3 dram.e >$target
+#
+#dram.N: dram.e ../lde
+#	../lde -0 -1 -2 -3 dram.e >$target
+#
+#bkrom.O: bkrom.e /bin/cda/lde
+#	cda/lde -r bkrom.e >$target
+#
+#bkrom.N: bkrom.e ../lde
+#	../lde -r bkrom.e >$target
+
+%.R: %.O %.N
+	cmp -s $prereq

@@ -34,6 +34,6 @@ struct Dir
 	short	dev;
 } Dir;
 
-void	_dirtostat(struct stat *, char *, Fdinfo*);
+void	_dirtostat(struct stat *, char *);
 int	convM2D(char*, Dir*);
 int	convD2M(Dir*, char*);

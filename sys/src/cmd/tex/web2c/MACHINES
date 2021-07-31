@@ -1,0 +1,56 @@
+Here is the list of configurations that have passed the trip and trap tests.
+See also ./PROBLEMS.
+
+Except as otherwise noted:
+* ANSI is not defined
+* SIXTEENBIT is not defined
+* REGFIX is either defined or irrelevant
+* optimization is maximally turned on.
+
+``32-bit TeX'' means with bigtex.diff and bigmf.diff applied, and with
+glue_ratio changed to double, as site.h and README suggest.  ``16-bit
+TeX'' means with glue_ratio defined to be float.
+
+Here are the email addresses for the `who':
+karl = karl@cs.umb.edu
+lgy = lgy@newton.phys.washington.edu
+mackay = mackay@cs.washington.edu
+morgan = morgan@ics.uci.edu
+spqr = sqpr@ecs.southampton.ac.uk
+
+
+machine		operating system	compiler	who
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DEC 3100				cc 3.1		mackay
+
+HP9000		HP-UX 6.5		gcc 1.37	spqr
+
+i386		386/ix 2.0.2		gcc 1.37	karl
+
+Masscomp 5600	RTU 4.1A		cc		spqr
+	But pltotf and dvitype don't work.
+
+Microvax II	Ultrix-32 3.1		cc		karl
+
+MIPS/2000	RISC/os 4.01            cc 2.0		lgy
+	For systype=bsd43 or systype=sysv.  -O1 works, but -O2 doesn't.
+
+Sequent Symmetry Dynix 3.0.12		cc		morgan
+	cc -O fails on mf/x11.c: just compile that without -O.
+
+Sun 2	SunOS 3.2 and 3.4 		cc		mackay
+        long lines in mf2.c and mf4.c break the compiler.  Simple
+	editing corrects this.  Oversize case statements in gvtodvi.c
+	and vftovp.c cause yacc errors.  See ./PROBLEMS.
+        Otherwise works, even with -O.
+        
+Sun 3		Sun Unix 3.4		gcc 1.37,cc	karl
+
+Sun 386i	SunOS 4.0.1		gcc 1.37,cc	karl
+        cc -O fails with Metafont: see ./PROBLEMS.
+
+Sun 4/110	Sun Unix 3.4		gcc 1.37	karl
+
+Sun sparc       SunOS 4.0.3c		gcc 1.37,cc	karl
+
+Vax 11/750	4.3bsd			gcc 1.37	karl

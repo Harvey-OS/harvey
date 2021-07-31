@@ -1,0 +1,19 @@
+#!/bin/rc
+if(~ $#* 1) id=$1
+if not{
+	eval `{help/parse -0}
+	if(~ $#id 0){
+		echo stack: no pid
+		exit 1
+	}
+}
+x=`{cat /mnt/help/new/ctl}
+{
+	echo A
+	echo $id^'$p
+$C' | db /sys/src/9/next/9next /proc/$id/mem | sed 1,3d
+} | help/buf > /mnt/help/$x/ctl
+{
+	echo a
+	echo '	'$id' kstack	Close!'
+} | help/buf > /mnt/help/$x/ctl

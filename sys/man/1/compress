@@ -1,0 +1,124 @@
+.TH COMPRESS 1
+.SH NAME
+compress, uncompress \- compress and expand data
+.SH SYNOPSIS
+.B compress
+[
+.B \-dfvcV
+] [
+.B \-b
+.I bits
+] [
+.I name ...
+]
+.SH DESCRIPTION
+.I Compress
+reduces the size of the named files using adaptive Lempel-Ziv coding.
+Whenever possible,
+each file is replaced by one with the extension
+.B "\&.Z,"
+while keeping the same ownership modes, access and modification times.
+If no files are specified, the standard input is compressed to the
+standard output.
+Compressed files can be restored to their original form using
+.IR "compress \-d" .
+The script,
+.I /rc/bin/uncompress,
+performs the command
+.I "``compress \-d $*''."
+.PP
+The
+.B \-f
+option will force compression of
+.I name.
+This is useful for compressing an entire directory,
+even if some of the files do not actually shrink.
+If
+.B \-f
+is not given and
+.I compress
+is run in the foreground,
+the user is prompted as to whether an existing file should be overwritten.
+.PP
+The
+.B \-c
+option makes
+.I compress
+write to the standard output; no files are changed.
+.PP
+The
+.B \-v
+option prints compression statistics and the
+.B \-V
+option prints the version of the program.
+.PP
+.I Compress
+uses the modified Lempel-Ziv algorithm popularized in
+"A Technique for High Performance Data Compression",
+Terry A. Welch,
+.I "IEEE Computer,"
+vol. 17, no. 6 (June 1984), pp. 8-19.
+Common substrings in the file are first replaced by 9-bit codes 257 and up.
+When code 512 is reached, the algorithm switches to 10-bit codes and
+continues to use more bits until the
+limit specified by the
+.B \-b
+flag is reached (default 16).
+.I Bits
+must be between 9 and 16.  The default can be changed in the source to allow
+.I compress
+to be run on a smaller machine.
+.PP
+After the
+.I bits
+limit is attained,
+.I compress
+periodically checks the compression ratio.  If it is increasing,
+.I compress
+continues to use the existing code dictionary.  However,
+if the compression ratio decreases,
+.I compress
+discards the table of substrings and rebuilds it from scratch.  This allows
+the algorithm to adapt to the next "block" of the file.
+.PP
+Note that the
+.B \-b
+flag is omitted for
+.IR "compress -d" ,
+since the 
+.I bits
+parameter specified during compression
+is encoded within the output, along with
+a magic number to ensure that neither decompression of random data nor
+recompression of compressed data is attempted. 
+.PP
+.ne 8
+The amount of compression obtained depends on the size of the
+input, the number of
+.I bits
+per code, and the distribution of common substrings.
+Typically, text such as source code or English
+is reduced by 50\-60%.
+Compression is generally much better than that achieved by
+Huffman coding (as used in
+.IR pack ),
+or adaptive Huffman coding
+.RI ( compact ),
+and takes less time to compute.
+.PP
+Under the
+.B \-v
+option,
+a message is printed yielding the percentage of
+reduction for each file compressed.
+.PP
+If the
+.B \-V
+option is specified, the current version and compile options are printed on
+stderr.
+.SH BUGS
+Although compressed files are compatible between machines with large memory,
+.BR \-b \12
+should be used for file transfer to architectures with 
+a small process data space (64KB or less, as exhibited by the DEC PDP
+series, the Intel 80286, etc.)

@@ -1,0 +1,46 @@
+\newcount\arcircdiam
+\newcount\ardeltax
+\newcount\ardeltay
+\newcount\arrowlength
+\newcount\xarslope\newcount\yarslope
+\newcount\xarslopesign\newcount\yarslopesign
+\def\setdelta#1#2{\global\ardeltax=#1\global\ardeltay=#2%
+  \global\multiply\ardeltax by\arcircdiam\global\divide\ardeltax by 2000%
+  \global\multiply\ardeltay by\arcircdiam\global\divide\ardeltay by 2000}
+\def\arrowcircle#1#2#3#4#5#6{%
+  %draws vector from edge of circle of diam 15  
+  \ifnum#3<0\global\xarslopesign=-1\global\xarslope=-#3
+     \else\global\xarslopesign=1\global\xarslope=#3\fi\relax
+  \ifnum#4<0\global\yarslopesign=-1\global\yarslope=-#4
+     \else\global\yarslopesign=1\global\yarslope=#4\fi\relax
+  \global\arcircdiam=#5
+  \ifcase\xarslope\ifnum\yarslope=1\setdelta{0}{1000}%		0 1
+        \else\setdelta{0}{0}\fi\relax%				error
+     \or\ifcase\yarslope\setdelta{1000}{0}%			1 0
+        \or\setdelta{707}{707}%					1 1
+        \or\setdelta{447}{894}%					1 2
+        \or\setdelta{316}{949}%					1 3
+        \or\setdelta{243}{970}%					1 4
+        \else\setdelta{0}{0}\fi\relax%				error
+     \or\ifnum\yarslope=1\setdelta{894}{447}%			2 1
+        \else\ifnum\yarslope=3\setdelta{555}{832}%		2 3
+        \else\setdelta{0}{0}\fi\fi\relax%			error
+     \or\ifnum\yarslope=1\setdelta{949}{316}%			3 1
+        \else\ifnum\yarslope=2\setdelta{832}{555}%		3 2
+        \else\ifnum\yarslope=4\setdelta{600}{800}%		3 4
+        \else\setdelta{0}{0}\fi\fi\fi\relax%			error
+     \or\ifnum\yarslope=1\setdelta{970}{243}%			4 1
+        \else\ifnum\yarslope=3\setdelta{800}{600}%		4 3
+        \else\setdelta{0}{0}\fi\fi\relax%			error
+     \else\setdelta{0}{0}\fi\relax%				error
+  \arrowlength=#6
+  \advance\arrowlength by -\ardeltax\advance\arrowlength by -\ardeltax
+  \multiply\ardeltax by\xarslopesign\advance\ardeltax by#1
+  \multiply\ardeltay by\yarslopesign\advance\ardeltay by#2
+  \put(\ardeltax,\ardeltay){\vector(#3,#4){\arrowlength}}}
+\def\labeledcircle#1#2#3#4{\newcount\lcbot\newcount\lcleft\lcleft=#3%
+   \put(#1,#2){\circle{#3}}%
+   \divide\lcleft by -2\lcbot=\lcleft\advance\lcleft by#1%
+   \advance\lcbot by #2%
+   \put(\lcleft,\lcbot){\makebox(#3,#3){#4}}\relax}
+%%%%%%%%%% THE END %%%%%%%%%%%%%%%%%%%%%%%

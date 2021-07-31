@@ -74,46 +74,10 @@ cnumb(void)
 }
 
 Device
-config1(int c)
-{
-	Device d, dl[200];
-	int i, m;
-
-	for(i=0;; i++) {
-		dl[i] = config();
-		if(f.error)
-			goto bad;
-		m = *f.charp;
-		if(c == '(' && m == ')')
-			break;
-		if(c == '[' && m == ']')
-			break;
-	}
-	f.charp++;
-	if(i == 0)
-		return dl[0];
-
-	d.type = Devmcat;
-	d.ctrl = 0;
-	if(c == '[')
-		d.type = Devmlev;
-	d.unit = f.loc;
-	for(m=0; m<=i; m++)
-		cwdevs[f.loc+m] = dl[m];
-	f.loc += m;
-	d.part = f.loc;
-	return d;
-
-bad:
-	d.type = Devnone;
-	return d;
-}
-
-Device
 config(void)
 {
-	int c, m;
-	Device d, d1, d2;
+	int c, i, m;
+	Device d, dl[100];
 	char *icp;
 
 	if(f.error)
@@ -132,13 +96,34 @@ config(void)
 
 	case '(':	/* (d+) one or multiple cat */
 	case '[':	/* [d+] one or multiple interleave */
-		d = config1(c);
+		for(i=0;; i++) {
+			dl[i] = config();
+			if(f.error)
+				goto bad;
+			m = *f.charp;
+			if(c == '(' && m == ')')
+				break;
+			if(c == '[' && m == ']')
+				break;
+		}
+		f.charp++;
+		if(i == 0)
+			return dl[0];
+
+		d.type = Devmcat;
+		if(c == '[')
+			d.type = Devmlev;
+		d.unit = f.loc;
+		for(m=0; m<=i; m++)
+			cwdevs[f.loc+m] = dl[m];
+		f.loc += m;
+		d.part = f.loc;
 		break;
 
 	case 'f':	/* fd fake worm */
 		d.type = Devfworm;
-		d1 = config();
-		cwdevs[f.loc] = d1;
+		dl[0] = config();
+		cwdevs[f.loc] = dl[0];
 		d.part = f.loc;
 		f.loc++;
 		break;
@@ -174,18 +159,18 @@ config(void)
 
 	case 'c':	/* cdd cache/worm */
 		d.type = Devcw;
-		d1 = config();
-		d2 = config();
-		cwdevs[f.loc+0] = d1;
-		cwdevs[f.loc+1] = d2;
+		dl[0] = config();
+		dl[1] = config();
+		cwdevs[f.loc+0] = dl[0];
+		cwdevs[f.loc+1] = dl[1];
 		d.part = f.loc;
 		f.loc += 2;
 		break;
 
 	case 'p':	/* pd#.# partition base% size% */
 		d.type = Devpart;
-		d1 = config();
-		cwdevs[f.loc] = d1;
+		dl[0] = config();
+		cwdevs[f.loc] = dl[0];
 		d.ctrl = f.loc;
 		f.loc++;
 		d.unit = cnumb();
@@ -446,7 +431,7 @@ void
 arginit(void)
 {
 	int verb, c;
-	char line[300], word[300], *cp;
+	char line[300], word[100], *cp;
 	uchar localip[Pasize];
 	Filsys *fs;
 	uchar csum;
@@ -467,7 +452,7 @@ arginit(void)
 	}
 
 	print("for config mode hit a key within 5 seconds\n");
-	c = rawchar(5);
+	c = rawchar(5*1000);
 	if(c == 0) {
 		print("	no config\n");
 		return;
@@ -491,22 +476,17 @@ loop:
 	}
 
 /*** temp macros for bootes configuration ***/
-	if(strcmp(word, "z0") == 0) {
-		strcpy(line, "config w1.4.0");
+	if(strcmp(word, "y0") == 0) {
+		strcpy(line, "config w0");
 		cp = getwd(word, line);
 	}
-	if(strcmp(word, "z1") == 0) {
-		strcpy(line, "filsys main c[w1.4.0w1.5.0w1.6.0](r0.2.<0-44>r0.2.<50-94>)");
+	if(strcmp(word, "y1") == 0) {
+		strcpy(line, "filsys main c[w2w4w5w6](r10.<0-29>)");
 		cp = getwd(word, line);
 	}
-	if(strcmp(word, "z2") == 0) {
-		strcpy(line, "filsys other w1.3.0");
+	if(strcmp(word, "y2") == 0) {
+		strcpy(line, "filsys other [w0w3]");
 		cp = getwd(word, line);
-	}
-	if(strcmp(word, "allow") == 0) {
-		wstatallow = 1;
-		writeallow = 1;
-		goto loop;
 	}
 /*** temp ***/
 
@@ -529,21 +509,6 @@ loop:
 	if(strcmp(word, "filsys") == 0) {
 		verb = FEDIT;
 		goto gfsname;
-	}
-	if(strcmp(word, "nvram") == 0) {
-		getwd(word, cp);
-		if(testconfig(word))
-			goto loop;
-		c = strlen(word);
-		if(c >= sizeof(nvr.config)) {
-			print("config string too long\n");
-			goto loop;
-		}
-		memset(nvr.config, 0, sizeof(nvr.config));
-		memmove(nvr.config, word, c);
-		nvr.configsum = nvcsum(nvr.config, sizeof(nvr.config));
-		nvwrite(NVRAUTHADDR, &nvr, sizeof(nvr));
-		goto loop;
 	}
 	if(strcmp(word, "config") == 0) {
 		getwd(word, cp);

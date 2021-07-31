@@ -7,6 +7,7 @@ fd
 tmp
 usr
 srv
+help
 lib
 	namespace
 	font
@@ -22,12 +23,16 @@ lib
 	ndb
 		local
 	units
-	vgadb
+	vga
+		generic
+			640x480x1
+			640x480x2
 rc
 	+
 mail
 mnt
 	8½
+	help
 	term
 	kana
 	kanactl
@@ -50,7 +55,10 @@ $cputype
 	bin
 		aux
 			mouse
+			netkey
 			samterm
+			kana
+			kwindow
 			vga
 		ndb
 			cs
@@ -105,6 +113,7 @@ $cputype
 		graph
 		grep
 		hayes
+		help
 		hoc
 		hp
 		import
@@ -115,7 +124,6 @@ $cputype
 		mk
 		mkdir
 		mv
-		netkey
 		nm
 		p
 		pbd
@@ -147,7 +155,6 @@ $cputype
 		tbl
 		tcs
 		tee
-		telco
 		test
 		time
 		touch
@@ -166,19 +173,7 @@ $cputype
 	mkfile
 sys
 	games
-		lib
-			fortunes
-			fortunes.index
-			anawords
-			plumb
-				pieces.1
-				pieces.2
-				pieces.3
-				pieces.4
-				levels
-			life
-			quiz
-			zork
+		+
 	lib
 		newuser
 		samsave

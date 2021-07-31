@@ -6,7 +6,7 @@ Biobufhdr.getrune(Biobufhdr *bp)
 {
 	int c, i;
 	Rune rune;
-	byte str[4];
+	char str[4];
 
 	c = bp->getc();
 	if(c < Runeself) {		/* one char */

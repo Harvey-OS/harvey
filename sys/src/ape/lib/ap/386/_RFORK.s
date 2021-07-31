@@ -1,4 +1,0 @@
-TEXT _RFORK(SB), 1, $0
-MOVL $19, AX
-INT $64
-RET

@@ -5,7 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include 	"arp.h"
-#include 	"../port/ipdat.h"
+#include 	"ipdat.h"
 
 int	tcpdbg = 0;
 ushort	tcp_mss = DEF_MSS;	/* Maximum segment size to be sent with SYN */
@@ -66,7 +66,7 @@ sndrst(Ipaddr source, Ipaddr dest, ushort length, Tcp *seg)
 	if((hbp = htontcp(seg, 0, &ph)) == 0)
 		return;
 
-	ipmuxoput(0, hbp);
+	PUTNEXT(Ipoutput, hbp);
 }
 
 /*
@@ -77,22 +77,16 @@ void
 tcpflushincoming(Ipconv *s)
 {
 	Tcp seg;
-	Tcpctl *tcb;
-	uchar dst[4];		
+	Tcpctl *tcb;		
 
 	tcb = &s->tcpctl;
 	seg.source = s->pdst;
 	seg.dest = s->psrc;
 	seg.flags = ACK;	
 	seg.seq = tcb->snd.ptr;
-	tcb->last_ack = tcb->rcv.nxt;
-	seg.ack = tcb->rcv.nxt;
+	seg.ack = tcb->last_ack = tcb->rcv.nxt;
 
-	if(s->src == 0){
-		hnputl(dst, s->dst);
-		s->src = ipgetsrc(dst);
-	}
-	sndrst(s->dst, s->src, 0, &seg);
+	sndrst(s->dst, Myip[Myself], 0, &seg);
 	localclose(s, 0);
 }
 
@@ -103,7 +97,7 @@ tcpmove(struct Tctl *to, struct Tctl *from)
 }
 
 Ipconv*
-tcpincoming(Ipifc *ifc, Ipconv *s, Tcp *segp, Ipaddr source, Ipaddr dest)
+tcpincoming(Ipifc *ifc, Ipconv *s, Tcp *segp, Ipaddr source)
 {
 	Ipconv *new;
 
@@ -124,7 +118,6 @@ tcpincoming(Ipifc *ifc, Ipconv *s, Tcp *segp, Ipaddr source, Ipaddr dest)
 	new->psrc = segp->dest;
 	new->pdst = segp->source;
 	new->dst = source;
-	new->src = dest;
 	tcpmove(&new->tcpctl, &s->tcpctl);
 	new->tcpctl.flags &= ~CLONE;
 	new->tcpctl.timer.arg = new;
@@ -175,24 +168,8 @@ tcpinput(Ipifc *ifc, Block *bp)
 	
 	/* Look for a connection. failing that look for a listener. */
 	s = ip_conn(ifc, seg.dest, seg.source, source);
-	if(s && s->tcpctl.state == Listen)
-		s = 0;	/* can't talk directly to a listener */
-
 	if (s == 0) {
 		if(seg.flags & SYN){
-			/*
-			 *  dump packets with bogus flags
-			 */
-			if(seg.flags & RST){
-				freeb(bp);
-				return;
-			}
-			if(seg.flags & ACK) {
-				freeb(bp);
-				sndrst(source, dest, length, &seg);
-				return;
-			}
-
 			/*
 			 *  find a listener specific to this port (spec) or,
 			 *  failing that, a general one (gen)
@@ -214,9 +191,9 @@ tcpinput(Ipifc *ifc, Block *bp)
 				}
 			}
 			if(spec)
-				s = tcpincoming(ifc, spec, &seg, source, dest);
+				s = tcpincoming(ifc, spec, &seg, source);
 			else if(gen)
-				s = tcpincoming(ifc, gen, &seg, source, dest);
+				s = tcpincoming(ifc, gen, &seg, source);
 			else
 				s = 0;
 		}
@@ -240,20 +217,26 @@ tcpinput(Ipifc *ifc, Block *bp)
 		sndrst(source, dest, length, &seg);
 		goto done;
 	case Listen:
-		if((seg.flags & (SYN|RST|ACK)) != SYN) {
-			/* ignore bogus packets */
-print("packet to channel in listen state %d <- %d\n", s->psrc, s->pdst);
+		if(seg.flags & RST) {
 			freeb(bp);
 			goto done;
+		} 
+		if(seg.flags & ACK) {
+			freeb(bp);
+			sndrst(source, dest, length, &seg);
+			goto done;
 		}
-
-		proc_syn(s, tos, &seg);
-		tcpsndsyn(tcb);
-		tcpsetstate(s, Syn_received);		
-		if(length != 0 || (seg.flags & FIN)) 
-			break;
+		if(seg.flags & SYN) {
+			proc_syn(s, tos, &seg);
+			tcpsndsyn(tcb);
+			tcpsetstate(s, Syn_received);		
+			if(length != 0 || (seg.flags & FIN)) 
+				break;
+			freeb(bp);
+			goto output;
+		}
 		freeb(bp);
-		goto output;
+		goto done;
 	case Syn_sent:
 		if(seg.flags & ACK) {
 			if(!seq_within(seg.ack, tcb->iss+1, tcb->snd.nxt)) {
@@ -324,13 +307,13 @@ print("packet to channel in listen state %d <- %d\n", s->psrc, s->pdst);
 		goto output;
 	}
 
-	/*
-	 *  keep looping till we've processed this packet plus any
-	 *  adjacent packets in the resequence queue
-	 */
 	for(;;) {
 		if(seg.flags & RST) {
-			localclose(s, Econrefused);
+			if(tcb->state == Syn_received
+			   && !(tcb->flags & (CLONE|ACTIVE))) 
+				tcpsetstate(s, Listen);
+			else
+				localclose(s, Econrefused);
 
 			freeb(bp);
 			goto done;
@@ -363,12 +346,8 @@ print("packet to channel in listen state %d <- %d\n", s->psrc, s->pdst);
 			break;
 		case Finwait1:
 			update(s, &seg);
-			if(tcb->sndcnt == 0){
-				tcb->kacounter = MAXBACKOFF;
+			if(tcb->sndcnt == 0)
 				tcpsetstate(s, Finwait2);
-				tcb->timer.start = MSL2 * (1000 / MSPTICK);
-				tcpgo(&tcb->timer);
-			}
 			break;
 		case Finwait2:
 			update(s, &seg);
@@ -385,7 +364,7 @@ print("packet to channel in listen state %d <- %d\n", s->psrc, s->pdst);
 			update(s, &seg);
 			if(tcb->sndcnt == 0) {
 				freeb(bp);
-				localclose(s, 0);
+				localclose(s, Enoerror);
 				goto done;
 			}			
 		case Time_wait:
@@ -430,12 +409,10 @@ print("packet to channel in listen state %d <- %d\n", s->psrc, s->pdst);
 
 				tcprcvwin(s);
 	
-				if(tcb->acktimer.state != TimerON)
-					tcpgo(&tcb->acktimer);
+				tcpgo(&tcb->acktimer);
 
-				if(tcb->rcv.nxt-tcb->last_ack > Streamhi/2)
+				if(tcb->max_snd <= tcb->rcv.nxt-tcb->last_ack)
 					tcb->flags |= FORCE;
-
 				break;
 			case Finwait2:
 				/* no process to read the data, send a reset */
@@ -481,22 +458,16 @@ print("packet to channel in listen state %d <- %d\n", s->psrc, s->pdst);
 			}
 		}
 
-		/*
-		 *  get next adjacent segment from the requence queue.
-		 *  dump/trim any overlapping segments
-		 */
-		for(;;) {
-			if(tcb->reseq == 0)
-				goto output;
-
+		while(tcb->reseq) {
 			if(seq_ge(tcb->rcv.nxt, tcb->reseq->seg.seq) == 0)
-				goto output;
+				break;
 
 			get_reseq(tcb, &tos, &seg, &bp, &length);
 
 			if(trim(tcb, &seg, &bp, &length) == 0)
 				break;
 		}
+		break;
 	}
 output:
 	tcpoutput(s);
@@ -511,8 +482,6 @@ update(Ipconv *s, Tcp *seg)
 	ushort acked;
 	ushort expand;
 	Tcpctl *tcb = &s->tcpctl;
-
-	tcb->kacounter = MAXBACKOFF;	/* keep alive count down */
 
 	if(seq_gt(seg->ack, tcb->snd.nxt)) {
 		tcb->flags |= FORCE;
@@ -600,7 +569,7 @@ update(Ipconv *s, Tcp *seg)
 int
 in_window(Tcpctl *tcb, int seq)
 {
-	return seq_within(seq, tcb->rcv.nxt, tcb->rcv.nxt+tcb->rcv.wnd-1);
+	return seq_within(seq, tcb->rcv.nxt, (int)(tcb->rcv.nxt+tcb->rcv.wnd-1));
 }
 
 void
@@ -623,8 +592,7 @@ proc_syn(Ipconv *s, char tos, Tcp *seg)
 		tcb->mss = seg->mss;
 
 	tcb->max_snd = seg->wnd;
-/* FIX MTU!!! */
-	if((mtu = 1500) != 0) {
+	if((mtu = s->ifc->maxmtu) != 0) {
 		mtu -= TCP_HDRSIZE + TCP_EHSIZE + TCP_PHDRSIZE; 
 		tcb->cwind = tcb->mss = MIN(mtu, tcb->mss);
 	}
@@ -636,10 +604,7 @@ tcpsndsyn(Tcpctl *tcb)
 {
 	static int start;
 
-	if(start == 0)
-		start = rtctime();
-	else
-		start += 250000;
+	start += 250000;
 	tcb->iss = start;
 	tcb->rttseq = tcb->iss;
 	tcb->snd.wl2 = tcb->iss;
@@ -729,8 +694,8 @@ trim(Tcpctl *tcb, Tcp *seg, Block **bp, ushort *length)
 			accept++;
 		else
 		if(len != 0) {
-			if(in_window(tcb, seg->seq+len-1) || 
-			seq_within(tcb->rcv.nxt, seg->seq,seg->seq+len-1))
+			if(in_window(tcb, (int)(seg->seq+len-1)) || 
+			seq_within(tcb->rcv.nxt, seg->seq,(int)(seg->seq+len-1)))
 				accept++;
 		}
 	}
@@ -869,7 +834,7 @@ init_tcpctl(Ipconv *s)
  *  called with tcb locked
  */
 void
-localclose(Ipconv *s, char *reason)
+localclose(Ipconv *s, char reason[])
 {
 	Reseq *rp,*rp1;
 	Tcpctl *tcb = &s->tcpctl;
@@ -892,15 +857,11 @@ localclose(Ipconv *s, char *reason)
 
 	tcb->reseq = 0;
 	s->err = reason;
-	if(tcb->sndq != 0){
-		freeb(tcb->sndq);
-		tcb->sndq = 0;
-	}
 	tcpsetstate(s, Closed);
 }
 
 int
-seq_within(ulong x, ulong low, ulong high)
+seq_within(int x, int low, int high)
 {
 	if(low <= high){
 		if(low <= x && x <= high)
@@ -914,27 +875,27 @@ seq_within(ulong x, ulong low, ulong high)
 }
 
 int
-seq_lt(ulong x, ulong y)
+seq_lt(int x, int y)
 {
-	return x < y;
+	return (long)(x-y) < 0;
 }
 
 int
-seq_le(ulong x, ulong y)
+seq_le(int x, int y)
 {
-	return x <= y;
+	return (long)(x-y) <= 0;
 }
 
 int
-seq_gt(ulong x, ulong y)
+seq_gt(int x, int y)
 {
-	return x > y;
+	return (long)(x-y) > 0;
 }
 
 int
-seq_ge(ulong x, ulong y)
+seq_ge(int x, int y)
 {
-	return x >= y;
+	return (long)(x-y) >= 0;
 }
 
 void

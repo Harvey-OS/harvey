@@ -1,0 +1,24 @@
+#!/bin/sh
+# A shell script to perform modifications on the mpd.h file for MetaPost in C
+# to make trapmp instead of inimp.
+#
+# To use it, say
+#	ini_to_trip mpd.h
+#
+ed - $1 <<edscriptend
+/undef	TRAP/
+s/undef/define/p
+/memmax/
+s/[0-9][0-9]*/4000/p
+/maxinternal/
+s/[0-9][0-9]*/100/p
+/errorline/
+s/[0-9][0-9]*/64/p
+/halferrorline/
+s/[0-9][0-9]*/32/p
+/maxprintline/
+s/[0-9][0-9]*/72/p
+/memtop/
+s/[0-9][0-9]*/4000/p
+w
+edscriptend

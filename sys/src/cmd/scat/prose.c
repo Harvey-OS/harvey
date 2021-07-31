@@ -35,12 +35,8 @@ prose(char *s, char *desc[][2], short index[])
 
 	j = 0;
 	while(*s){
-		if(p >= buf+sizeof buf)
-			abort();
 		if(*s == ' '){
-			if(p>buf && p[-1]!=' ')
-				*p++ = ' ';
-			s++;
+			*p++ = *s++;
 			continue;
 		}
 		if(*s == ','){
@@ -63,8 +59,7 @@ prose(char *s, char *desc[][2], short index[])
 			case '5': case '6': case '7': case '8': case '9':
 				while('0'<=*s && *s<='9')
 					*p++ = *s++;
-				if(*s=='\'' || *s=='s')
-					*p++ = *s++;
+				*p++ = ' ';
 				break;
 
 			case '(': case ')':
@@ -80,14 +75,10 @@ prose(char *s, char *desc[][2], short index[])
 				Pnumber:
 					while('0'<=*s && *s<='9')
 						*p++=*s++;
+					if(s[0] == 'M')
+						s++;
 					if(s[0] == '-'){
 						*p++ = *s++;
-						flag++;
-						goto Pnumber;
-					}
-					if(s[0]==',' && s[1]==' ' && '0'<=s[2] && s[2]<='9'){
-						*p++ = *s++;
-						s++;	/* skip blank */
 						flag++;
 						goto Pnumber;
 					}

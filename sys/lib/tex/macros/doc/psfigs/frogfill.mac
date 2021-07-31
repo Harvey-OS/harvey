@@ -1,0 +1,163 @@
+%!
+md begin
+T 32 760 100 72 72 psu
+(Frog2; user: )jn
+%%Title: Frog2
+%%Creator: MAC LaserWriter Driver
+%%BoundingBox: 35 576 251 792
+%%For: 
+1320 od
+%%EndProlog
+%%Page: ? 1
+op
+0 0 xl
+1 1 pen
+0 0 gm
+0 0 720 540 6 dorect
+58 <40A00000040A0000>setpat
+63 78 123 147 4 dorect
+4 4 pen
+19 61 119 155 130 412 4 doarc
+0 grlevel
+21. 63. 117. 153. 130 412 0 doarc
+58 grlevel
+37 61 137 155 45 132 4 doarc
+0 grlevel
+39. 63. 135. 153. 45 132 0 doarc
+bc
+142 130 gm
+bp
+133 130 T qi
+133 103 qc
+151 85 qc
+187 67 qc
+196 67 qc
+205 76 qc
+187 112 qc
+142 130 T qq
+138 130 gm
+58 grlevel
+qf
+7 ec
+bc
+142 130 gm
+tr
+0 grlevel
+pt
+178 148 pl
+151 148 pl
+151 166 pl
+133 130 pl
+eu
+133 121 gm
+187 85 lin
+bc
+70 130 gm
+bp
+79 130 T qi
+79 103 qc
+61 85 qc
+25 67 qc
+16 67 qc
+7 76 qc
+25 112 qc
+70 130 T qq
+75 130 gm
+58 grlevel
+qf
+7 ec
+bc
+70 130 gm
+tr
+0 grlevel
+pt
+34 148 pl
+61 148 pl
+61 166 pl
+79 130 pl
+eu
+76 121 gm
+22 85 lin
+0 0 gm
+16 setgry
+40 67 62 149 4 doval
+0 grlevel
+42. 69. 60. 147. 0 doval
+bc
+73 34 gm
+bp
+73 16 T qi
+82 7 qc
+91 16 qc
+91 22 qc
+73 34 T qq
+73 25 gm
+64 grlevel
+qf
+7 ec
+2 2 pen
+0 0 gm
+14 77 31 85 4 doval
+0 grlevel
+15. 78. 30. 84. 0 doval
+bc
+4 4 pen
+139 34 gm
+bp
+139 16 T qi
+130 7 qc
+121 16 qc
+121 22 qc
+139 34 T qq
+139 25 gm
+64 grlevel
+qf
+7 ec
+2 2 pen
+0 0 gm
+14 131 31 139 4 doval
+0 grlevel
+15. 132. 30. 138. 0 doval
+bc
+143 71 gm
+bp
+161 74 T qi
+170 86 qc
+164 95 qc
+155 101 qc
+128 107 qc
+125 95 qc
+158 89 qc
+137 80 qc
+140 68 qc
+143 71 T qq
+152 73 gm
+32 grlevel
+qf
+7 ec
+bc
+71 71 gm
+0 grlevel
+bp
+53 74 T qi
+44 86 qc
+50 95 qc
+59 101 qc
+86 107 qc
+89 95 qc
+56 86 qc
+77 80 qc
+74 68 qc
+71 71 T qq
+62 73 gm
+32 grlevel
+qf
+7 ec
+0 page
+cp
+%%Page: ? 2
+op
+-1 page
+cp
+%%Trailer
+end

@@ -275,10 +275,8 @@ fcomp(void)
 	while (rline(linebuf, lbend) >= 0) {
 		cp = linebuf;
 comploop:
-		while(*cp == ' ' || *cp == '\t')
-			cp++;
-		if(*cp == '\0' || *cp == '#')
-			continue;
+		while(*cp == ' ' || *cp == '\t')	cp++;
+		if(*cp == '\0' || *cp == '#')		continue;
 		if(*cp == ';') {
 			cp++;
 			goto comploop;
@@ -302,8 +300,7 @@ comploop:
 			} else
 				rep->ad2.type = A_NONE;
 		}
-		while(*cp == ' ' || *cp == '\t')
-			cp++;
+		while(*cp == ' ' || *cp == '\t')	cp++;
 
 swit:
 		switch(*cp++) {
@@ -343,15 +340,12 @@ swit:
 				if(rep->ad1.type != A_NONE)
 					quit(AD0MES, (char *) linebuf);
 
-				while(*cp == ' ')
-					cp++;
+				while(*cp == ' ') cp++;
 				tp = lab->asc;
-				while (*cp && *cp != ';' && *cp != ' ' && *cp != '\t' && *cp != '#') {
-					*tp++ = *cp++;
+				while((*tp++ = *cp++))
 					if(tp >= &(lab->asc[8]))
 						quit(LTL, (char *) linebuf);
-				}
-				*tp = '\0';
+				tp[-1] = '\0';
 
 				if(lpt = search(lab)) {
 					if(lpt->address)
@@ -363,10 +357,7 @@ swit:
 						quit("Too many labels: %S", (char *) linebuf);
 				}
 				lpt->address = rep;
-				if (*cp == '#')
-					continue;
-				rep--;			/* reuse this slot */
-				break;
+				continue;
 
 			case 'a':
 				rep->command = ACOM;
@@ -724,7 +715,7 @@ getrune(void)
 		} else 
 			c = -1;
 	} else if ((c = Bgetrune(prog.bp)) < 0)
-			Bterm(prog.bp);
+			Bclose(prog.bp);
 	return c;
 }
 
@@ -907,10 +898,6 @@ execute(void)
 				continue;
 			}
 			command(ipc);
-
-			if(ipc->ad2.type == A_RE && match(ipc->ad2.rp, linebuf))
-				ipc->active = 0;
-
 			if(delflag)
 				break;
 
@@ -1335,7 +1322,7 @@ arout(void)
 				continue;
 			while((c = Bgetc(fi)) >= 0)
 				Bputc(&fout, c);
-			Bterm(fi);
+			Bclose(fi);
 		}
 	}
 	aptr = abuf;
@@ -1372,10 +1359,10 @@ gline(Rune *addr)
 /*	Bflush(&fout);********* dumped 4/30/92 - bobf****/
 	do {
 		p = addr;
-		for (c = (peekc ? peekc : Bgetrune(f)); c >= 0; c = Bgetrune(f)) {
+		for (c = (peekc ? peekc : Bgetrune(f)); c > 0; c = Bgetrune(f)) {
 			if (c == '\n') {
 				if ((peekc = Bgetrune(f)) < 0) {
-					Bterm(f);
+					Bclose(f);
 					if (fhead == 0)
 						dolflag = 1;
 				}

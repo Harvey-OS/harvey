@@ -1,10 +1,10 @@
 #include "map.h"
 
 static struct coord stdpar;
-static double r0;
+static float r0;
 
 static
-Xbonne(struct place *place, double *x, double *y)
+Xbonne(struct place *place, float *x, float *y)
 {
 	double r, alpha;
 	r = r0 - place->nlat.l;
@@ -24,7 +24,7 @@ Xbonne(struct place *place, double *x, double *y)
 }
 
 proj
-bonne(double par)
+bonne(float par)
 {
 	if(fabs(par*RAD) < .01)
 		return(Xsinusoidal);

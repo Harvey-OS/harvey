@@ -90,9 +90,9 @@ wrengen(Chan *c, Dirtab *tab, long ntab, long s, Dir *dirp)
 
 	pp = &dp->p[s];
 	if(drive & 7)
-		sprint(name, "sd%d.%d%s", drive>>3, drive&7, pp->name);
+		sprint(name, "hd%d.%d%s", drive>>3, drive&7, pp->name);
 	else
-		sprint(name, "sd%d%s", drive>>3, pp->name);
+		sprint(name, "hd%d%s", drive>>3, pp->name);
 	name[NAMELEN] = 0;
 	qid.path = MKQID(drive, s);
 	l = (pp->end - pp->start) * dp->bytes;
@@ -160,18 +160,7 @@ wrencreate(Chan *c, char *name, int omode, ulong perm)
 void
 wrenclose(Chan *c)
 {
-	Drive *d;
-	Partition *p;
-
-	if(c->mode != OWRITE && c->mode != ORDWR)
-		return;
-
-	d = &wren[DRIVE(c->qid.path)];
-	p = &d->p[PART(c->qid.path)];
-	if(strcmp(p->name, "partition"))
-		return;
-
-	wrenpart(DRIVE(c->qid.path));
+	USED(c);
 }
 
 void
@@ -213,6 +202,7 @@ wrenio(Chan *c, int write, char *a, ulong len, ulong offset)
 	Partition *p;
 	Scsibuf *b;
 	ulong block, n, max, x;
+
 	d = &wren[DRIVE(c->qid.path)];
 	if(d->npart == 0)			/* drive repartitioned */
 		error(Eio);
@@ -255,8 +245,7 @@ wrenio(Chan *c, int write, char *a, ulong len, ulong offset)
 			len = 0;
 		else if(len > x - offset)
 			len = x - offset;
-		if(len)
-			memmove(a, (char*)b->virt + offset, len);
+		memmove(a, (char*)b->virt + offset, len);
 	}
 	poperror();
 	scsifree(b);
@@ -308,15 +297,6 @@ wrenpart(int dev)
 	pp->end = dp->p[0].end;
 
 	scsiinquiry(dev, buf, sizeof buf);
-	switch(buf[0]) {
-	default:
-		error("not a SCSI disk");
-	case 0x00:			/* Direct access (disk) */
-	case 0x05:			/* CD-rom */
-	case 0x07:			/* rewriteable MO */
-		break;
-	}
-
 	if(memcmp(&buf[8], "INSITE  I325VM        *F", 24) == 0)
 		scsimodesense(dev, 0x2e, buf, 0x2a);
 	/*
@@ -335,10 +315,10 @@ wrenpart(int dev)
 	 *  parse partition table.
 	 */
 	pp = &dp->p[2];
-	n = getfields(rawpart, line, Npart+1, "\n");
+	n = getfields(rawpart, line, Npart+1, '\n');
 	if(n > 0 && strncmp(line[0], MAGIC, sizeof(MAGIC)-1) == 0){
 		for(i = 1; i < n; i++){
-			if(getfields(line[i], field, 3, " ") != 3)
+			if(getfields(line[i], field, 3, ' ') != 3)
 				break;
 			strncpy(pp->name, field[0], NAMELEN);
 			pp->start = strtoul(field[1], 0, 0);

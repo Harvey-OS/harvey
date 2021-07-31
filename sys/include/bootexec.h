@@ -1,16 +1,3 @@
-struct coffsect
-{
-	char	name[8];
-	ulong	phys;
-	ulong	virt;
-	ulong	size;
-	ulong	fptr;
-	ulong	fptrreloc;
-	ulong	fptrlineno;
-	ulong	nrelocnlineno;
-	ulong	flags;
-};
-
 /*
  * proprietary exec headers, needed to bootstrap various machines
  */
@@ -38,14 +25,6 @@ union{
 	long	pcsize;
 };
 	long	gp_value;	/* the gp value used for this object    */
-};
-
-struct mips4kexec
-{
-	struct mipsexec	h;
-	struct coffsect	itexts;
-	struct coffsect idatas;
-	struct coffsect ibsss;
 };
 
 struct sparcexec
@@ -130,10 +109,20 @@ struct i386exec
 		ulong	itextstart;
 		ulong	idatastart;
 	};
-	struct coffsect	itexts;
-	struct coffsect idatas;
-	struct coffsect ibsss;
-	struct coffsect icomments;
+	struct i386sect{
+		char	name[8];
+		ulong	phys;
+		ulong	virt;
+		ulong	size;
+		ulong	fptr;
+		ulong	fptrreloc;
+		ulong	fptrlineno;
+		ulong	nrelocnlineno;
+		ulong	flags;
+	}itexts;
+	struct i386sect idatas;
+	struct i386sect ibsss;
+	struct i386sect icomments;
 };
 
 struct i960exec

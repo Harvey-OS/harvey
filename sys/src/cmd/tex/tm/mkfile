@@ -1,0 +1,19 @@
+APE=/sys/src/ape
+< $APE/config
+TEXMACROS=/sys/lib/tex/macros
+
+INPUTS=tm.sty tm8.sty tm9.sty tm10.sty tm11.sty tm12.sty tmaddon.sty rp.sty \
+	expicture.sty local.sty localpatch.sty attslides.sty \
+	mw.sty mw10.sty mw12.sty mw14.sty bitmap.sty attletter.sty \
+	authors.sty atttm.bst voucher.sty vouchform.tex \
+	bitmap2.sty dingbat.sty
+DOCS=tmdoc.tex tmexample.tex letexample.tex mwdoc.tex tlaface.tex tlaface.map
+
+install:V:
+	for (i in $INPUTS)
+		$INSTALL $i $TEXMACROS/$i $INSOWNER $INSGROUP 664
+	for (i in $DOCS)
+		$INSTALL $i $TEXMACROS/doc/$i $INSOWNER $INSGROUP 664
+
+clean nuke:V:
+	echo done

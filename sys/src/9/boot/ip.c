@@ -27,9 +27,9 @@ static int	mygetfields(char*, char**, int);
 static char*	fmtaddr(uchar*);
 static void	maskip(uchar*, uchar*, uchar*);
 static int	equivip(uchar*, uchar*);
-static void	etheripconfig(Method*);
+static void	ipconfig(Method*);
 static int	ipdial(int*, char*, uchar*, int);
-static void	catchint(void*, char*);
+static int	catchint(void*, char*);
 
 uchar classmask[4][4] = {
 	0xff, 0x00, 0x00, 0x00,
@@ -38,10 +38,12 @@ uchar classmask[4][4] = {
 	0xff, 0xff, 0xff, 0x00,
 };
 
+int	arpnotefd = -1;
+
 void
 configtcp(Method *mp)
 {
-	etheripconfig(mp);
+	ipconfig(mp);
 }
 
 int
@@ -56,6 +58,10 @@ connecttcp(void)
 	int fd[2], rv;
 
 	rv = ipdial(fd, "#Itcp/tcp", fsip, 564);
+	if(arpnotefd >= 0){
+		write(arpnotefd, "die", 3);
+		close(arpnotefd);
+	}
 	if(cpuflag)
 		sendmsg(fd[0], "push reboot");
 	sendmsg(fd[0], "push fcall");
@@ -67,7 +73,7 @@ connecttcp(void)
 void
 configil(Method *mp)
 {
-	etheripconfig(mp);
+	ipconfig(mp);
 }
 
 int
@@ -75,7 +81,7 @@ authil(void)
 {
 	int fd[2]; 
 
-	if(auip[0] == 0 || ipdial(fd, "#Iil/il", auip, 566) < 0)
+	if(ipdial(fd, "#Iil/il", auip, 17024) < 0)
 		return -1;
 	close(fd[0]);
 	return fd[1];
@@ -87,6 +93,10 @@ connectil(void)
 	int fd[2], rv;
 
 	rv = ipdial(fd, "#Iil/il", fsip, 17008);
+	if(arpnotefd >= 0){
+		write(arpnotefd, "die", 3);
+		close(arpnotefd);
+	}
 	if(cpuflag)
 		sendmsg(fd[0], "push reboot");
 	if(rv >= 0)
@@ -94,37 +104,14 @@ connectil(void)
 	return fd[1];
 }
 
-static void
-etheripconfig(Method *mp)
-{
-	int efd[2];
-
-	/* configure/open ip */
-	myetheraddr(eaddr, "#l/ether");
-/*print("my etheraddr is %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux\n", eaddr[0], eaddr[1],
-eaddr[2], eaddr[3], eaddr[4], eaddr[5]);/**/
-	if(plumb("#l/ether", "0x800", efd, 0) < 0)
-		fatal("opening ip ether");
-
-	sendmsg(efd[0], "push arp");
-	sendmsg(efd[0], "push internet");
-	sendmsg(efd[0], "push permanent");
-
-	/* do a bootp to find fs, auth server, & gateway */
-	bootp(mp, efd[0], 0);
-
-	/* done with the mux */
-	close(efd[0]);
-	close(efd[1]);
-}
-
 /*
  *  configure ip. use bootp to get ip address, net mask, file server ip address,
  *  authentication server ip address and gateway ip address.
  */
-void
-bootp(Method *mp, int muxctlfd, uchar *useipaddr)
+static void
+ipconfig(Method *mp)
 {
+	int efd[2];
 	int fd;
 	int ufd[2];
 	int n;
@@ -150,6 +137,16 @@ bootp(Method *mp, int muxctlfd, uchar *useipaddr)
 
 	memset(bcast, 0xff, sizeof(bcast));	/* ether broadcast address */
 
+	/* configure/open ip */
+	myetheraddr(eaddr, "#l/ether");
+/*print("my etheraddr is %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux\n", eaddr[0], eaddr[1],
+eaddr[2], eaddr[3], eaddr[4], eaddr[5]);/**/
+	if(plumb("#l/ether", "0x800", efd, 0) < 0)
+		fatal("opening ip ether");
+	sendmsg(efd[0], "push arp");
+	sendmsg(efd[0], "push internet");
+	sendmsg(efd[0], "push tcp");
+
 	/* open a udp connection for bootp and fill in a packet */
 	if(plumb("#Iudp/udp", buf2, ufd, "68") < 0)
 		fatal("opening bootp udp");
@@ -159,13 +156,11 @@ bootp(Method *mp, int muxctlfd, uchar *useipaddr)
 	req.htype = 1;		/* ethernet */
 	req.hlen = 6;		/* ethernet */
 	memmove(req.chaddr, eaddr, sizeof(req.chaddr));
-	if(useipaddr != 0)
-		memmove(req.ciaddr, useipaddr, sizeof(req.ciaddr));
 	memset(req.file, 0, sizeof(req.file));
 	strcpy(req.vend, "p9  ");
 
 	/* broadcast bootp's till we get a reply, or 3 times around the loop */
-	notify(catchint);
+	atnotify(catchint, 1);
 	tries = 0;
 	field[0] = 0;
 	for(rp = 0; rp == 0 && tries++ < 10;){
@@ -179,7 +174,7 @@ bootp(Method *mp, int muxctlfd, uchar *useipaddr)
 			if(n <= 0)
 				break;
 			rp = (Bootp*)buf;
-			memset(field, 0, sizeof field);
+			field[0] = 0;;
 			if(memcmp(req.chaddr, rp->chaddr, 6) == 0
 			&& rp->htype == 1
 			&& rp->hlen == 6
@@ -196,8 +191,8 @@ bootp(Method *mp, int muxctlfd, uchar *useipaddr)
 					maskip(ipaddr, ipmask, ipnet);
 					if(bootfile[0] == 0){
 						strncpy(bootfile, rp->file,
-							 3*NAMELEN);
-						bootfile[3*NAMELEN-1] = 0;
+							 sizeof(bootfile));
+						bootfile[sizeof(bootfile)-1] = 0;
 					}
 					break;
 				}
@@ -212,45 +207,36 @@ bootp(Method *mp, int muxctlfd, uchar *useipaddr)
 		fmtaddr(ipaddr), field[0], sys, field[2], field[3])/**/;
 	else {
 		errstr(buf);	/* Clear timeout error from alarm */
+		mp->auth = 0;	/* Dont know where to check password */
 
-		if(readfile("#e/ipaddr", buf2, sizeof(buf2)) < 0)
-			strcpy(buf2, "");
-		outin(0, "My IP address", buf2, sizeof(buf2));
+		strcpy(buf2, "0.0.0.0");
+		outin("My IP address", buf2, sizeof(buf2));
 		parseip(ipaddr, buf2);
 
-		if(readfile("#e/ipmask", buf2, sizeof(buf2)) < 0)
-			strcpy(buf2, "");
-		outin(0, "My IP mask", buf2, sizeof(buf2));
+		strcpy(buf2, "255.255.255.0");
+		outin("My IP mask", buf2, sizeof(buf2));
 		parseip(ipmask, buf2);
 		maskip(ipaddr, ipmask, ipnet);
 
-		if(readfile("#e/ipgw", buf2, sizeof(buf2)) < 0)
-			strcpy(buf2, "");
-		outin(0, "My IP gateway", buf2, sizeof(buf2));
+		strcpy(buf2, "0.0.0.0");
+		outin("My IP gateway", buf2, sizeof(buf2));
 		parseip(gwip, buf2);
 
 		if(*sys)
 			strcpy(buf2, sys);
 		else {
-			if(readfile("#e/fs", buf2, sizeof(buf2)) < 0)
-				strcpy(buf2, "");
-			outin(0, "filesystem IP address", buf2, sizeof(buf2));
+			strcpy(buf2, "0.0.0.0");
+			outin("filesystem IP address", buf2, sizeof(buf2));
 		}
 		parseip(fsip, buf2);
-
-		if(readfile("#e/auth", buf2, sizeof(buf2)) < 0)
-			strcpy(buf2, "0.0.0.0");
-		outin(0, "authentication server IP address", buf2, sizeof(buf2));
-		parseip(auip, buf2);
 	}
-
-	if(auip[0] == 0 && auip[1] == 0)
-		mp->auth = 0;
 
 	/* set our ip address and mask */
 	n = sprint(buf2, "setip %s ", fmtaddr(ipaddr));
 	sprint(buf2+n, "%s", fmtaddr(ipmask));
-	sendmsg(muxctlfd, buf2);
+	sendmsg(efd[0], buf2);
+	close(efd[0]);
+	close(efd[1]);
 
 	/* specify a routing gateway */
 	if(*gwip){
@@ -262,6 +248,9 @@ bootp(Method *mp, int muxctlfd, uchar *useipaddr)
 			print("%s failed\n", buf2);
 		close(fd);
 	}
+
+	/* a process to answer arps */
+	arpnotefd = arplisten();
 }
 
 static int
@@ -269,10 +258,6 @@ ipdial(int *ifd, char *dev, uchar *ip, int service)
 {
 	uchar tmp[4];
 	char buf[64];
-	int arpnotefd;
-
-	/* start a process to answer arps */
-	arpnotefd = arplisten();
 
 	/* arp for first hop */
 	maskip(ip, ipmask, tmp);
@@ -285,10 +270,8 @@ ipdial(int *ifd, char *dev, uchar *ip, int service)
 	sprint(buf, "%s!%d", fmtaddr(ip), service);
 	if(plumb(dev, buf, ifd, 0) < 0){
 		fprint(2, "error dialing %s\n", buf);
-		ifd[1] = -1;
+		return -1;
 	}
-
-	fprint(arpnotefd, "kill");
 
 	return ifd[1];
 }
@@ -366,9 +349,6 @@ arplisten(void)
 	Arppkt reply, *rp;
 	char buf[1600];
 
-	alarm(0);
-	notify(catchint);
-
 	switch(pid = fork()){
 	case -1:
 		fatal("forking arplisten");
@@ -381,14 +361,13 @@ arplisten(void)
 
 	if(plumb("#l/ether", "0x806", afd, 0) < 0)
 		fatal("opening ip ether");
+	atnotify(catchint, 0);
 
 	for(;;){
 		memset(buf, 0, sizeof(buf));
 		n = read(afd[1], buf, sizeof(buf));
-		if(n < 0)
+		if(n <= 0)
 			break;
-		if(n == 0)
-			continue;
 		rp = (Arppkt*)buf;
 		if(nhgets(rp->op) != ARP_REQUEST)
 			continue;
@@ -426,38 +405,6 @@ hnputs(uchar *ptr, ushort val)
 {
 	ptr[0] = val>>8;
 	ptr[1] = val;
-}
-
-int
-myipaddr(uchar *to, char *dev)
-{
-	char buf[256];
-	int n, fd, clone;
-	char *ptr;
-
-	/* Opening clone ensures the 0 connection exists */
-	sprint(buf, "%s/clone", dev);
-	clone = open(buf, OREAD);
-	if(clone < 0)
-		return -1;
-
-	sprint(buf, "%s/0/local", dev);
-	fd = open(buf, OREAD);
-	close(clone);
-	if(fd < 0)
-		return -1;
-	n = read(fd, buf, sizeof(buf)-1);
-	close(fd);
-	if(n <= 0)
-		return -1;
-	buf[n] = 0;
-
-	ptr = strchr(buf, ' ');
-	if(ptr)
-		*ptr = 0;
-
-	parseip(to, buf);
-	return 0;
 }
 
 #define CLASS(p) ((*(uchar*)(p))>>6)
@@ -571,14 +518,13 @@ fmtaddr(uchar *a)
 	return buf;
 }
 
-static void
+static int
 catchint(void *a, char *note)
 {
 	USED(a);
-	if(strstr(note, "alarm"))
-		noted(NCONT);
-	else
-		noted(NDFLT);
+	if(strcmp(note, "alarm") == 0)
+		return 1;
+	return 0;
 }
 
 static void

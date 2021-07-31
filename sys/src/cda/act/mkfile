@@ -1,0 +1,41 @@
+</$objtype/mkfile
+
+DIRS=act act2
+
+all:V:
+	@{cd act; mk all}
+	@{cd act2; mk all}
+
+act $O.act:V:
+	@{cd act; mk $O.out}
+	cp act/$O.out $O.act
+
+act2 $O.act2:V:
+	@{cd act2; mk $O.out}
+	cp act2/$O.out $O.act2
+
+install:V:	sim.install
+		@{cd act; mk install}
+		@{cd act2; mk install}
+
+installall:V:
+		@{cd act; mk installall}
+		@{cd act2; mk installall}
+
+clean:V:	sim.clean
+		rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output [$OS].act [$OS].act2 par.c
+		@{cd act; mk clean}
+		@{cd act2; mk clean}
+
+nuke:V:
+		rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output [$OS].act [$OS].act2
+		rm -f par.c
+		@{cd act; mk nuke}
+		@{cd act2; mk nuke}
+
+sim.%:V:
+	cd sim
+	mk $stem
+
+wc:
+	wc dat.h par.y pro.mt util.c tree.c mach.c def.awk gates

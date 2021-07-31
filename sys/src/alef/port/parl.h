@@ -6,13 +6,8 @@ enum
 	True		= 1,
 	Strsize		= 512,
 	Chunk		= 512*1024,
-	NADDR		= (1<<0),
-	NOUNBOX		= (1<<1),
+	NADDR		= 1,
 	Sdepth		= 64,
-	NDYHASH		= 32,
-	NPHASH		= 32,
-	Needed		= 0,
-	Made,
 };
 
 typedef struct Node	Node;
@@ -24,9 +19,6 @@ typedef struct String	String;
 typedef struct Hist	Hist;
 typedef struct Tysym	Tysym;
 typedef struct Stats	Stats;
-typedef struct Tyrec	Tyrec;
-typedef struct Altrec	Altrec;
-typedef struct Dynt	Dynt;
 
 struct Stats
 {
@@ -57,25 +49,21 @@ struct Node
 	char	islval;
 	char	sun;
 	char	reg;
-	Node*	left;
-	Node*	right;
-	Node*	vlval;
+	Node	*left;
+	Node	*right;
 	union {
-		Node*	init;
-		Node*	poly;
-		Node*	link;
+		Node	*init;
 		ulong	atvsafe;
-		char	ireg;
 	};
-	Type*	t;
-	Sym*	sym;
-	Tinfo*	ti;
+	Type	*t;
+	Sym	*sym;
+	Tinfo	*ti;
 	int	srcline;
 	union {
 		long	pc;
 		long	ival;
 		float	fval;
-		Node*	proto;
+		Node	*proto;
 	};
 };
 #define	ZeroN	((Node*)0)
@@ -88,20 +76,11 @@ struct String
 	char	*string;
 };
 
-struct Dynt
-{
-	ulong	sig;
-	Type*	t;
-	Node*	n;
-	Dynt*	hash;
-};
-
 /* Storage classes */
 enum
 {
 	Internal = 1,
 	External,
-	Global,
 	Parameter,
 	Automatic,
 	Argument,
@@ -128,7 +107,6 @@ enum
 	TFUNC,
 	TVOID,
 	TADT,
-	TPOLY,
 	Ntype,
 };
 
@@ -148,16 +126,12 @@ enum
 	MFUNC		= (1<<TFUNC),
 	MVOID		= (1<<TVOID),
 	MADT		= (1<<TADT),
-	MPOLY		= (1<<TPOLY),
 
 	MARITH		= (MINT|MUINT|MSINT|MSUINT|MCHAR|MFLOAT),
 	MUNSIGNED	= (MCHAR|MUINT|MSUINT|MIND),
-	MBOOL		= (MARITH|MIND),
-	MSCALAR		= (MARITH|MIND),
 	MINCDEC		= (MINT|MUINT|MSINT|MSUINT|MCHAR|MIND),
 	MCOMPLEX	= (MADT|MUNION|MAGGREGATE),
-	MCONVIND	= (MINT|MUINT|MIND),
-	MINTEGRAL	= (MINT|MUINT|MSINT|MSUINT|MCHAR),
+	MCONVIND	= (MINT|MUINT|MIND)
 };
 
 enum
@@ -256,59 +230,37 @@ enum
 	OTCHKED,
 	OBLOCK,
 	OLBLOCK,
-	OBECOME,
-	OITER,
-	OXEROX,
-	OVASGN,
 	Nrops,
 };
 
 struct Type
 {
-	uchar	type;
-	uchar	poly;
+	int	type;
+	Sym	*tag;
+	Sym	*sym;
+	Type	*member;
+	Type	*next;
+	ulong	size;
+	ulong	offset;
 	uchar	align;
-	uchar	class;
-	Sym*	tag;
-	Sym*	sym;
-	Type*	member;
-	Type*	variant;
-	Type*	param;
-	Type*	next;
-	Type*	subst;
-	int	size;
-	int	offset;
+	int	class;
 	union {
 		int	nbuf;
-		Node*	proto;
-		Node*	dcltree;
+		Node	*proto;
 	};
 };
 #define ZeroT	((Type*)0)
 
 struct Tinfo
 {
-	Type*	t;
-	long	offset;
-	Tinfo*	next;
-	Tinfo*	dcllist;
-	Sym*	s;
+	Type	*t;
+	ulong	offset;
+	Tinfo	*next;
+	Tinfo	*dcllist;
+	Sym	*s;
 	int	block;
 	int	class;
 	char	ref;
-};
-
-struct Altrec
-{
-	Tyrec*	r;
-	Altrec*	prev;
-};
-
-struct Tyrec
-{
-	Type*	rcv;
-	Type*	vch;
-	Tyrec*	next;
 };
 
 enum
@@ -318,11 +270,11 @@ enum
 
 struct Sym
 {
-	char*	name;
+	char	*name;
 	int	lexval;
-	Sym*	hash;
-	Type*	ltype;
-	Tinfo*	instance;
+	Sym	*hash;
+	Type	*ltype;
+	Tinfo	*instance;
 	int	sval;
 	int	slot;
 };
@@ -333,8 +285,8 @@ struct Sym
 
 struct Jmps
 {
-	Inst*	i;
+	Inst	*i;
 	int	par;
 	int	crit;
-	Jmps*	next;
+	Jmps	*next;
 };

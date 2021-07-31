@@ -1,25 +1,24 @@
+#include <unistd.h>
 #include <string.h>
 #include <libg.h>
-
-typedef unsigned char uchar;
 
 void
 cursorswitch(Cursor *c)
 {
-	uchar *b;
+	unsigned char buf[73];
 
+	bneed(0);
+	buf[0] = 'c';
 	if(c == 0){
-		b = bneed(1);
-		b[0] = 'c';
-		bflush();
+		if(write(bitbltfd, (char *)buf, 1) != 1)
+			berror("cursorswitch write");
 		return;
 	}
-
-	b = bneed(1+8+2*(2*16));
-	b[0] = 'c';
-	BPLONG(b+1, c->offset.x);
-	BPLONG(b+5, c->offset.y);
-	memmove(b+9, c->clr, 2*16);
-	memmove(b+41, c->set, 2*16);
-	bflush();
+		
+	BPLONG(buf+1, c->offset.x);
+	BPLONG(buf+5, c->offset.y);
+	memmove(buf+9, c->clr, 2*16);
+	memmove(buf+41, c->set, 2*16);
+	if(write(bitbltfd, (char *)buf, sizeof buf) != sizeof buf)
+		berror("cursorswitch write");
 }

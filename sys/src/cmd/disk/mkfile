@@ -1,35 +1,30 @@
 </$objtype/mkfile
 
 TARG=exsort\
-	format\
+	flio\
 	kfscmd\
 	mkext\
 	mkfs\
+	mk9660\
+	newkernel\
 	prep\
-
-DIRS=kfs\
-	pip\
+	pump\
 
 OFILES=
+YFILES=
 
 BIN=/$objtype/bin/disk
 </sys/src/cmd/mkmany
 
-all:V:	all-kfs
+all:V:	all.kfs
 
-install:V:	install-kfs ksync
+install:V:	install.kfs
 
-clean:V:	clean-kfs
+clean:V:	clean.kfs
 
-nuke:V:		nuke-kfs
+nuke:V:		nuke.kfs
 
-installall:V:	installall-kfs
+%.kfs:V:
+	cd kfs
+	mk $MKFLAGS $stem
 
-%-kfs:V:
-	for(i in $DIRS) @{
-		cd $i
-		mk $MKFLAGS $stem
-	}
-
-ksync:
-	touch $BIN/ksync

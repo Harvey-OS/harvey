@@ -1,10 +1,10 @@
 #include <alef.h>
-#include <libg.h>
+#include <graphics.h>
 
 void
 point(Bitmap *d, Point p, int v, Fcode f)
 {
-	byte *buf;
+	char *buf;
 
 	buf = bneed(14);
 	buf[0] = 'p';

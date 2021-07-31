@@ -1,0 +1,51 @@
+.NH
+A Toy Example.
+.LP
+In this section we present a complete example.  The design consists of
+two
+.SM I/O
+connectors that route signals from a ribbon cable to a backplane.
+Here is the schematic, followed by the
+.CW ".w"
+file:
+.PS <toy.pic
+.nr dP 2	\" delta point size for program
+.nr dV 2p	\" delta vertical for programs
+.P1
+.so toy.w.l
+.P2
+.LP
+The comments (introduced by
+.CW % )
+are coordinates from the
+.CW .g
+file that can be used later to annotate the drawing with pin numbers.
+Otherwise the
+.CW .w
+file is mostly just a compendium of the text strings in the
+.CW .g
+file.
+In order to proceed further, we need a
+.CW .pins
+file:
+.P1
+.so toy.pins.l
+.P2
+.LP
+It should be fairly obvious what is going on here.  Note the appearance of the
+.I "package type"
+on the
+.CW .t
+lines.
+Now the
+.CW .wx
+file can be made:
+.P1
+.so toy.wx.l
+.P2
+.LP
+This is basically a listing, for each chip, of net\ name\-pin\ number pairs.
+Package types are copied through from the
+.CW .pins
+file for use by the physical design tools, and
+the pin names are left as an aid to humans.

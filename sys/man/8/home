@@ -1,6 +1,6 @@
 .TH HOME 8
 .SH NAME
-home, 40meg, 80meg, personalize, update, Disclabel \- administration for local file systems
+home, 40meg, 80meg, 100meg, newkernel, personalize, update, Disclabel \- administration for local file systems
 .SH SYNOPSIS
 .B gnot/home
 .PD 0
@@ -19,27 +19,32 @@ home, 40meg, 80meg, personalize, update, Disclabel \- administration for local f
 .PD
 .PP
 .PD 0
-.B pc/40meg
+.B safari/40meg
 .PP
-.B pc/80meg
+.B safari/80meg
 .PP
-.B pc/personalize
+.B safari/personalize
 .PP
-.B pc/update
+.B safari/update
 .PD
 .PP
 .PD 0
-.B nextstation/home
+.B nextstation/100meg
+.PP
+.B nextstation/personalize
 .PP
 .B nextstation/update
 .PD
+.PP
+.B disk/newkernel
+.PP
+.B cp Disclabel /dev/hd1label
 .SH DESCRIPTION
 These programs help maintain a file system on a local disk for a private machine.
 .PP
 .I Home
 partitions a disk, copies the appropriate kernel to the disk,
 and makes a new file system on the disk.
-To do this, it overwrites the vendor-supplied software on the disk with a copy of Plan 9.
 .IR 40meg ,
 .IR 80meg ,
 and
@@ -59,22 +64,22 @@ removes the contents of the
 directory on the local disk and copies a minimal set of files for
 the user who runs the command.
 .PP
-The file
-.BR /rc/bin/nextstation/Disclabel ,
-despite its name, is not an
-.IR rc (1)
-script.
-It contains the second stage bootstrap program
-for Nextstations booting from local disk.
-Before booting a Plan 9 Nextstation from disk, it should be
-installed in the partition
-.BR /dev/hd1label ;
-this is normally done by
-.IR nexstation/home .
+.I Newkernel
+updates the kernel in the boot partition.
+If the running kernel was linked more than 10 minutes before
+the kernel on the file system was installed,
+.I newkernel
+verifies with the user that the kernel should be installed,
+and copies the kernel.
+.PP
+.I Disclabel
+is the bootstrap program copied into the partition
+.B /dev/hd1label
+on Nextstations.
 .SH FILES
 .TP
 .B /lib/proto/portproto
-.BR Mkfs
+.IR Mkfs
 prototype files for
 .IR magnum/home ,
 .IR magnum/update ,
@@ -83,24 +88,14 @@ and
 .IR gnot/update .
 .TP
 .B /lib/proto/386proto
-.BR Mkfs
 prototype files for
-.IR pc/40meg ,
-.IR pc/80meg ,
+.IR Mkfs
+.IR safari/40meg ,
+.IR safari/80meg ,
 and
-.IR pc/update .
-.SH SOURCE
-.B /rc/bin/gnot/*
-.br
-.B /rc/bin/magnum/*
-.br
-.B /rc/bin/pc/*
-.br
-.B /rc/bin/nextstation/*
+.IR safari/update .
 .SH "SEE ALSO"
 .IR kfs (4),
 .IR mkfs (8),
 .IR prep (8),
-.IR wren (3)
-.br
-``Installing the Plan 9 Distribution''.
+.IR hard (3)

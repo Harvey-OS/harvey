@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 
 void	usage(void);
 void	catch(void*, char*);
@@ -8,10 +7,11 @@ void	catch(void*, char*);
 void
 main(int argc, char *argv[])
 {
-	char *spec;
+	char *spec, *srv;
 	ulong flag = 0;
 	int fd;
 
+	srv = "";
 	ARGBEGIN{
 	case 'a':
 		flag |= MAFTER;
@@ -21,6 +21,14 @@ main(int argc, char *argv[])
 		break;
 	case 'c':
 		flag |= MCREATE;
+		break;
+	case 't':
+		srv = "any";
+		break;
+	case 's':
+		srv = ARGF();
+		if(srv == 0)
+			usage();
 		break;
 	default:
 		usage();
@@ -44,7 +52,7 @@ main(int argc, char *argv[])
 	}
 
 	notify(catch);
-	if(amount(fd, argv[1], flag, spec) < 0){
+	if(mount(fd, argv[1], flag, spec, srv) < 0){
 		fprint(2, "%s: mount %s %s: %r\n", argv0, argv[0], argv[1]);
 		exits("mount");
 	}
@@ -62,6 +70,6 @@ catch(void *x, char *m)
 void
 usage(void)
 {
-	fprint(2, "usage: mount [-b|-a|-c|-bc|-ac] [-s server] /srv/service dir [spec]\n");
+	fprint(2, "usage: mount [-b|-a|-c|-bc|-ac] [-t|-s server] /srv/service dir [spec]\n");
 	exits("usage");
 }

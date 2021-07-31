@@ -1,9 +1,10 @@
 CC=2c
 LD=2l
 O=2
+RL=rl
 AS=2a
-OS=2kv86x
-CPUS=mips 68020 sparc 386
+OS=2kvz86
+CPUS=mips 68020 sparc 386 hobbit
 CFLAGS=
 LEX=lex
 YACC=yacc

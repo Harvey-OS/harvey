@@ -1,0 +1,58 @@
+.TH MKPINS 10.1
+.SH NAME
+mkpins, mkpkgs, getpkgs, mkpos /- select pin definitions
+.SH SYNOPSIS
+.B cda/mkpins
+.IB file .wx
+[
+.IB file .pins
+\&...
+]
+.PP
+.B cda/mkpkgs
+.IB file .wx
+[
+.IB file .pkgs
+\&...
+]
+.PP
+.B cda/getpkgs
+.IB file .wx
+[
+.IB file .fizz
+\&...
+]
+.PP
+.B cda/mkpos
+.IB file .fx
+.SH DESCRIPTION
+.I Mkpins
+sorts through the various pins files given and only selects the needed pins
+definitions by looking up the type from the
+.B .t
+line in the various
+.B .pins
+files.  It writes the needed pins on the standard output and undefined
+pins on the standard error.
+.PP
+.I Mkpkgs
+is like
+.I mkpins
+except it accepts a list of package files and generates the appropriate
+package files on the standard output.
+.PP
+.I Getpkgs
+is like
+.I mkpkgs
+except it takes a CDL input
+.RB ( .wx )
+file and a
+.I fizz
+package file.
+.PP
+.I Mkpos
+creates a null position file from a
+.I fizz
+input file.
+.SH BUGS
+CDL should go away.

@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 	case 'D':
 		p = ARGF();
 		if(p)
-			Dlist[nDlist++] = p;
+			dodefine(p);
 		break;
 
 	case 'I':
@@ -121,10 +121,7 @@ child:
 	Binit(&obuf, of, OWRITE);
 
 	pass = 1;
-	nosched = 0;
 	pinit(*argv);
-	for(i=0; i<nDlist; i++)
-		dodefine(Dlist[i]);
 	yyparse();
 	if(nerrors) {
 		cclean();
@@ -132,11 +129,8 @@ child:
 	}
 
 	pass = 2;
-	nosched = 0;
 	outhist();
 	pinit(*argv);
-	for(i=0; i<nDlist; i++)
-		dodefine(Dlist[i]);
 	yyparse();
 	cclean();
 	if(nerrors)
@@ -308,14 +302,6 @@ struct
 	"SRL",		LTYPE1, ASRL,
 	"SRA",		LTYPE1, ASRA,
 
-	"ADDV",		LTYPE1, AADDV,
-	"ADDVU",		LTYPE1, AADDVU,
-	"SUBV",		LTYPE1, ASUBV,	/* converted to ADD(-) in loader */
-	"SUBVU",		LTYPE1, ASUBVU,
-	"SLLV",		LTYPE1, ASLLV,
-	"SRLV",		LTYPE1, ASRLV,
-	"SRAV",		LTYPE1, ASRAV,
-
 	"NOR",		LTYPE2, ANOR,
 
 	"MOVB",		LTYPE3, AMOVB,
@@ -324,8 +310,6 @@ struct
 	"MOVHU",	LTYPE3, AMOVHU,
 	"MOVWL",	LTYPE3, AMOVWL,
 	"MOVWR",	LTYPE3, AMOVWR,
-	"MOVVL",	LTYPE3, AMOVVL,
-	"MOVVR",	LTYPE3, AMOVVR,
 
 	"BREAK",	LTYPEJ, ABREAK,		/* overloaded CACHE opcode */
 	"END",		LTYPE4, AEND,
@@ -339,7 +323,6 @@ struct
 	"TLBWR",	LTYPE4, ATLBWR,
 
 	"MOVW",		LTYPE5, AMOVW,
-	"MOVV",		LTYPE5, AMOVV,
 	"MOVD",		LTYPE5, AMOVD,
 	"MOVF",		LTYPE5, AMOVF,
 
@@ -347,10 +330,6 @@ struct
 	"DIVU",		LTYPE6, ADIVU,
 	"MUL",		LTYPE6, AMUL,
 	"MULU",		LTYPE6, AMULU,
-	"DIVV",		LTYPE6, ADIVV,
-	"DIVVU",		LTYPE6, ADIVVU,
-	"MULV",		LTYPE6, AMULV,
-	"MULVU",		LTYPE6, AMULVU,
 
 	"RFE",		LTYPE7, ARFE,
 	"JMP",		LTYPE7, AJMP,
@@ -411,8 +390,6 @@ struct
 
 	"WORD",		LTYPEH, AWORD,
 	"NOP",		LTYPEI, ANOP,
-	"SCHED",	LSCHED, 0,
-	"NOSCHED",	LSCHED, 0x80,
 	0
 };
 
@@ -443,13 +420,6 @@ cinit(void)
 		s = slookup(itab[i].name);
 		s->type = itab[i].type;
 		s->value = itab[i].value;
-	}
-
-	ALLOCN(pathname, 0, 100);
-	if(getwd(pathname, 99) == 0) {
-		ALLOCN(pathname, 100, 900);
-		if(getwd(pathname, 999) == 0)
-			strcpy(pathname, "/???");
 	}
 }
 
@@ -519,7 +489,6 @@ zaddr(Gen *a, int s)
 
 	case D_OREG:
 	case D_CONST:
-	case D_OCONST:
 	case D_BRANCH:
 		l = a->offset;
 		Bputc(&obuf, l);
@@ -602,7 +571,7 @@ jackpot:
 		break;
 	}
 	Bputc(&obuf, a);
-	Bputc(&obuf, reg|nosched);
+	Bputc(&obuf, reg);
 	Bputc(&obuf, lineno);
 	Bputc(&obuf, lineno>>8);
 	Bputc(&obuf, lineno>>16);
@@ -620,17 +589,13 @@ outhist(void)
 {
 	Gen g;
 	Hist *h;
-	char *p, *q, *op;
+	char name[NNAME], *p, *q;
 	int n;
 
 	g = nullgen;
+	name[0] = '<';
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
-		op = 0;
-		if(p && p[0] != '/' && h->offset == 0 && pathname && pathname[0] == '/') {
-			op = p;
-			p = pathname;
-		}
 		while(p) {
 			q = strchr(p, '/');
 			if(q) {
@@ -642,19 +607,14 @@ outhist(void)
 				n = strlen(p);
 				q = 0;
 			}
+			if(n >= NNAME-1)
+				n = NNAME-2;
 			if(n) {
-				Bputc(&obuf, ANAME);
-				Bputc(&obuf, D_FILE);	/* type */
-				Bputc(&obuf, 1);	/* sym */
-				Bputc(&obuf, '<');
-				Bwrite(&obuf, p, n);
-				Bputc(&obuf, 0);
+				memmove(name+1, p, n);
+				name[n+1] = 0;
+				zname(name, D_FILE, 1);
 			}
 			p = q;
-			if(p == 0 && op) {
-				p = op;
-				op = 0;
-			}
 		}
 		g.offset = h->offset;
 

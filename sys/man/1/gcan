@@ -1,0 +1,175 @@
+.TH GCAN 1
+.SH NAME
+gcan, homespool, gspool \- interface to gnot laser-printers
+.SH SYNOPSIS
+.B gcan
+[
+.I option ...
+]
+[
+.I file ...
+]
+.sp
+.B homespool
+.sp
+.B gspool
+.SH DESCRIPTION
+This command prints
+.I files
+(standard input by default) on a gnot laser printer.
+.IR Troff (1)
+output and ordinary text are generally recognized and processed appropriately;
+in any case the first option can be used to specify the type of input:
+.TF -f\ \fIfile\fP
+.TP
+.B -sb
+Bitmap files.
+(See
+.IR bitmap (6)).
+.TP
+.B -sc
+ordinary text.
+.TP
+.B -sd
+.I troff
+output.
+.TP
+.B -sm
+.SM MIDI
+output.
+.TP
+.B -sr
+.L "TYPE=rle"
+run-length-encoded bitmaps.
+.PD
+.PP
+The destination printer is determined in one of the following ways,
+in decreasing order of precedence:
+.IP
+option
+.B -d
+.I dest
+.br
+environment variable
+.L candest
+.br
+printer named in file
+.B /sys/lib/candest
+.PD
+.PP
+These options are common to all classes of input:
+.TF -f\ \fIfile\fP
+.TP
+.B --
+No more options.
+.TP
+.B -dg
+Destination is printer outside of graphics lab.
+.TP
+.B -du
+Destination is printer in dirty room.
+.TP
+.B -dt
+Destination is printer in 2C465 (tom's office).
+.TP
+.B -p
+Output goes to
+.B /usr/$user/pspool
+for proofreading.
+.TP
+.BI -f file
+Output goes to
+.I file
+for debugging.
+.TP
+.B -G
+Output goes to
+.B /usr/$user/spool
+for local printing.
+.TP
+.B -H
+Suppress header page.
+.TP
+.B -I
+Do not attempt page reversal (no page number index is generated).
+.TP
+.BI -l n
+Set number of lines per page (forces
+.L c
+service even if data look like 
+.IR troff ")."
+.TP
+.BI -% n
+Print odd-numbered pages if
+.IR n =1,
+even-numbered pages if
+.IR n =2.
+.TP
+.B -D
+Turn on debugging.
+.TP
+.BI -o ...
+Print only those pages whose numbers appear in the list (e.g.,
+.LR "-o 1,3,5-8" ).
+.TP
+.BI -O ...
+Like
+.LR -o ,
+except pages are counted sequentially, i.e., \fItroff\fP-assigned
+page numbers are ignored.  (Both options
+have the same effect on non-\fItroff\fP files.)
+.PD
+.PP
+These options are only valid with the types of input indicated:
+.TF -f\ \fIfile\fP
+.TP
+.BI -m n
+Set magnification to
+.I n
+(type
+.LR b ).
+.TP
+.BI -s n
+Set point size to
+.I n
+(type
+.LR c ).
+.TP
+.BI -x n
+Move the image
+.I n
+pixels left (types
+.LR c ,
+.LR d ,
+.LR r ).
+.TP
+.BI -y n
+Move the image
+.I n
+pixels down (types
+.LR c ,
+.LR d ,
+.LR r ).
+.sp
+.PP
+.B homespool
+initializes the files needed for a private spooler;
+.B gspool
+starts such a spooler.  See the
+.B -G
+option.
+.SH FILES
+.TF /usr/$user/pspool
+.TP
+.B /sys/lib/candest 
+name of default printer.
+.TP
+.B /usr/$user/pspool
+proofreading spool area.
+.TP
+.B /usr/$user/spool
+spool area.
+.SH SEE  ALSO
+.IR troff (1).
+.SH BUGS
+More input classes should be divined from the data.
