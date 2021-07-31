@@ -100,7 +100,6 @@ extern	int	_WSTAT(const char*, unsigned char*, int);
 extern 	void *_MALLOCZ(int, int);
 extern	int	_WERRSTR(char*, ...);
 extern	long	_READN(int, void*, long);
-extern	int	_IOUNIT(int);
 
 #define dirstat _dirstat
 #define dirfstat _dirfstat
@@ -125,10 +124,12 @@ extern	int	_IOUNIT(int);
 #define pread _PREAD
 #define readn _READN
 #define mallocz _MALLOCZ
-#define iounit	_IOUNIT
 
 /* assume being called as in event.c */
 #define postnote(x, pid, msg) kill(pid, SIGTERM)
 #define atnotify(x, y) signal(SIGTERM, ekill)
+
+/* assume being called as in init.c */
+#define iounit(x) (32*1024)
 
 #define ERRMAX 128
