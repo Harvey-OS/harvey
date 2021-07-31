@@ -8,8 +8,8 @@ kb,
 print,
 probe,
 serial,
-usbeject,
-usbfat:
+usbfat:,
+usbeject
 \- Universal Serial Bus device drivers
 .SH SYNOPSIS
 .B usb/kb
