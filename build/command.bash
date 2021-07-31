@@ -23,13 +23,9 @@ send "1280x1024x32\n"
 expect -exact "monitor is \[xga\]:"
 send "vesa\n"
 
-# Mount the host's fileserver
-expect -exact "term% "
-send "9fs tcp!10.0.2.2!5640 /n/harvey\n"
-
 # Now run a command
 expect -exact "term% "
-send "ls -l /n/harvey/\n"
+send "ls\n"
 
 # and shut down
 expect -exact "term% "

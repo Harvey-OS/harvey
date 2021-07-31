@@ -15,11 +15,9 @@ jobs:
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y # see https://wiki.ubuntu.com/ToolChain
         sudo apt-get update
         sudo apt-get install -y rc qemu go-dep qemu-utils expect qemu-system-x86
-        go get harvey-os.org/cmd/ufs
     - name: bootstrap and run
       env:
         ARCH: amd64
         OS: linux
       run: |
-        ~/go/bin/ufs -root .. -user glenda &
         bash command.bash # run a command
