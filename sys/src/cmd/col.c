@@ -177,7 +177,7 @@ outc(Rune c)
 	while (*line == '\b')
 		line += 2;
 	if (bflag || *line == '\0' || *line == ' ')
-		cp += runetochar(line, &c) - 1;
+		*line = c;
 	else {
 		char c1, c2, c3;
 
@@ -232,17 +232,17 @@ emit(char *s, int lineno)
 
 	if (*s) {
 		while (cline < lineno - 1) {
-			Bputc(&bout, '\n');
+			Bputrune(&bout, '\n');
 			pcp = 0;
 			cline += 2;
 		}
 		if (cline != lineno) {
-			Bputc(&bout, ESC);
-			Bputc(&bout, '9');
+			Bputrune(&bout, ESC);
+			Bputrune(&bout, '9');
 			cline++;
 		}
 		if (pcp)
-			Bputc(&bout, '\r');
+			Bputrune(&bout, '\r');
 		pcp = 0;
 		p = s;
 		while (*p) {
@@ -250,15 +250,15 @@ emit(char *s, int lineno)
 			while (*p++ == ' ')
 				if ((++ncp & 7) == 0 && !xflag) {
 					pcp = ncp;
-					Bputc(&bout, '\t');
+					Bputrune(&bout, '\t');
 				}
 			if (!*--p)
 				break;
 			while (pcp < ncp) {
-				Bputc(&bout, ' ');
+				Bputrune(&bout, ' ');
 				pcp++;
 			}
-			Bputc(&bout, *p);
+			Bputrune(&bout, *p);
 			if (*p++ == '\b')
 				pcp--;
 			else
