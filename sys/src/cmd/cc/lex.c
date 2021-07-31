@@ -407,7 +407,7 @@ syminit(Sym *s)
 
 #define	EOF	(-1)
 #define	IGN	(-2)
-#define	ESC	(Runemask+1)		/* Rune flag: a literal byte */
+#define	ESC	(1<<20)
 #define	GETC()	((--fi.c < 0)? filbuf(): (*fi.p++ & 0xff))
 
 enum
