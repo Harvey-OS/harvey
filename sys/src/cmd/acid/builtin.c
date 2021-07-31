@@ -83,7 +83,7 @@ struct Btab
 	0
 };
 
-char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ38";
+char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ";
 
 void
 mkprint(Lsym *s)
@@ -1039,8 +1039,6 @@ patom(char type, Store *res)
 		break;
 	case 'f':
 	case 'F':
-	case '3':
-	case '8':
 		if(type != TFLOAT)
 			Bprint(bout, "*%c<%s>*", res->fmt, typenames[type]);
 		else
