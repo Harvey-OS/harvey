@@ -32,7 +32,6 @@ TARG=\
 	trampoline\
 	typepasswd\
 	write\
-	zerotrunc\
 
 BIN=/$objtype/bin/aux
 
