@@ -10,8 +10,8 @@ enum{
 int	selected(char*, int, char*[]);
 void	mkdirs(char*, char*);
 void	mkdir(char*, ulong, ulong, char*, char*);
-void	extract(char*, ulong, ulong, char*, char*, uvlong);
-void	seekpast(uvlong);
+void	extract(char*, ulong, ulong, char*, char*, ulong);
+void	seekpast(ulong);
 void	error(char*, ...);
 void	warn(char*, ...);
 void	usage(void);
@@ -32,8 +32,7 @@ main(int argc, char **argv)
 	Biobuf bout;
 	char *fields[NFLDS], name[2*LEN], *p, *namep;
 	char *uid, *gid;
-	ulong mode, mtime;
-	uvlong bytes;
+	ulong mode, bytes, mtime;
 
 	quotefmtinstall();
 	namep = name;
@@ -84,7 +83,7 @@ main(int argc, char **argv)
 		uid = fields[2];
 		gid = fields[3];
 		mtime = strtoul(fields[4], 0, 10);
-		bytes = strtoull(fields[5], 0, 10);
+		bytes = strtoul(fields[5], 0, 10);
 		if(argc){
 			if(!selected(namep, argc, argv)){
 				if(bytes)
@@ -94,7 +93,7 @@ main(int argc, char **argv)
 			mkdirs(name, namep);
 		}
 		if(hflag){
-			Bprint(&bout, "%q %luo %q %q %lud %llud\n",
+			Bprint(&bout, "%q %luo %q %q %lud %lud\n",
 				name, mode, uid, gid, mtime, bytes);
 			if(bytes)
 				seekpast(bytes);
@@ -201,17 +200,16 @@ mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
 }
 
 void
-extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, uvlong bytes)
+extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, ulong bytes)
 {
 	Dir d, *nd;
 	Biobuf *b;
 	char buf[LEN];
 	char *p;
-	ulong n;
-	uvlong tot;
+	ulong n, tot;
 
 	if(vflag)
-		print("x %q %llud bytes\n", name, bytes);
+		print("x %q %lud bytes\n", name, bytes);
 
 	b = Bopen(name, OWRITE);
 	if(!b){
@@ -252,14 +250,11 @@ extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, uvlong bytes)
 			warn("can't reread modes for %q: %r", name);
 		else{
 			if(Tflag && nd->mtime != mtime)
-				warn("%q: time mismatch %lud %lud\n",
-					name, mtime, nd->mtime);
+				warn("%q: time mismatch %lud %lud\n", name, mtime, nd->mtime);
 			if(uflag && strcmp(uid, nd->uid))
-				warn("%q: uid mismatch %q %q",
-					name, uid, nd->uid);
+				warn("%q: uid mismatch %q %q", name, uid, nd->uid);
 			if(uflag && strcmp(gid, nd->gid))
-				warn("%q: gid mismatch %q %q",
-					name, gid, nd->gid);
+				warn("%q: gid mismatch %q %q", name, gid, nd->gid);
 			free(nd);
 		}
 	}
@@ -267,11 +262,10 @@ extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, uvlong bytes)
 }
 
 void
-seekpast(uvlong bytes)
+seekpast(ulong bytes)
 {
 	char buf[LEN];
-	ulong n;
-	uvlong tot;
+	ulong tot, n;
 
 	for(tot = 0; tot < bytes; tot += n){
 		n = sizeof buf;
