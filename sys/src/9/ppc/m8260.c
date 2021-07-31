@@ -7,8 +7,8 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"io.h"
-#include	"fns.h"
 #include	"m8260.h"
+#include	"fns.h"
 
 enum {
 	Pin4 = BIT(4),
