@@ -39,9 +39,6 @@ safeinstall:V: $O.out
 	test -e $BIN/$TARG && mv $BIN/$TARG $BIN/_$TARG
 	cp $prereq $BIN/$TARG
 
-update:V:
-	update $UPDATEFLAGS $UPDATE
-
 safeinstallall:V:
 	for (objtype in $CPUS)
 		mk safeinstall

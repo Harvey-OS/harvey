@@ -321,7 +321,6 @@ initu:
 
 out:
 	free(uidgc.uidbuf);
-	writegroup = strtouid1("write");
 	wunlock(&uidgc.uidlock);
 
 }

@@ -10,7 +10,6 @@
 #include <fcall.h>
 #include <9p.h>
 
-int rawhack = 1;
 Conn *conn;
 char *remoteip	= "<remote>";
 char *mtpt;
@@ -1067,7 +1066,6 @@ threadmain(int argc, char **argv)
 
 	sshclienthandshake(&c);
 
-	requestpty(&c);		/* turns on TCP_NODELAY on other side */
 	m = allocmsg(&c, SSH_CMSG_EXEC_SHELL, 0);
 	sendmsg(m);
 

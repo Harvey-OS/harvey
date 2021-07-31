@@ -104,7 +104,7 @@ restart:
 	for(;; putactivity()){
 		memset(&repmsg, 0, sizeof(repmsg));
 		memset(&reqmsg, 0, sizeof(reqmsg));
-		alarm(2*60*1000);	/* be patient, it's a big world */
+		alarm(60*1000);
 		len = read(fd, buf, sizeof(buf));
 		alarm(0);
 		if(len <= Udphdrsize)
@@ -112,7 +112,7 @@ restart:
 		uh = (Udphdr*)buf;
 		len -= Udphdrsize;
 		getactivity(&req);
-		req.aborttime = now + 2*60;  /* don't spend more than 2 mins */
+		req.aborttime = now + 30;	/* don't spend more than 30 seconds */
 		err = convM2DNS(&buf[Udphdrsize], len, &reqmsg);
 		if(err){
 			syslog(0, logfile, "server: input error: %s from %I", err, buf);

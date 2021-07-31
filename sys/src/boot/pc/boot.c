@@ -134,7 +134,6 @@ Endofinput:
 			print("badly compressed kernel\n");
 			return FAIL;
 		}
-
 		entry = GLLONG(ep->entry);
 		text = GLLONG(ep->text);
 		data = GLLONG(ep->data);

@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 #include <thread.h>
-#include <plumb.h>
 #include "dat.h"
 
 void*

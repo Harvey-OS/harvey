@@ -125,13 +125,14 @@ unroot(char *path, char *root)
 	char *s;
 
 	len = strlen(root);
-	while(len > 1 && root[len-1]=='/')
-		len--;
-	if(strncmp(path, root, len)==0 && (path[len]=='/' || path[len]=='\0')){
+	if(strncmp(path, root, len)==0){
 		s = path+len;
-		while(*s == '/')
-			s++;
-		return s-1;
+		if(s[0]=='\0')
+			return "/";
+		if(s[0]=='/' && s[1]=='\0')
+			return "/";
+		if(s[0]=='/')
+			return s+1;
 	}
 	return path;
 }

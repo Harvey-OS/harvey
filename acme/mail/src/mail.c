@@ -328,7 +328,8 @@ plumbsendthread(void*)
 
 	threadsetname("plumbsendthread");
 	while((m = recvp(cplumbsend)) != nil){
-		mkreply(nil, "Mail", m->data, m->attr);
+		mkreply(nil, "Mail", m->data);
+
 		plumbfree(m);
 	}
 	threadexits(nil);
@@ -347,9 +348,9 @@ mboxcommand(Window *w, char *s)
 		return 0;
 	if(strcmp(args[0], "Mail") == 0){
 		if(nargs == 1)
-			mkreply(nil, "Mail", "", nil);
+			mkreply(nil, "Mail", "");
 		else
-			mkreply(nil, "Mail", args[1], nil);
+			mkreply(nil, "Mail", args[1]);
 		return 1;
 	}
 	if(strcmp(s, "Del") == 0){

@@ -42,7 +42,6 @@ static void cleanup(void);
 static u64int unittoull(char *s);
 static int vac(VtSession *z, char *argv[]);
 static void vacFile(DirSink *dsink, char *lname, char *sname, VacFile*);
-static void vacStdin(DirSink *dsink, char *name, VacFile *vf);
 static void vacData(DirSink *dsink, int fd, char *lname, VacFile*, Dir*);
 static void vacDir(DirSink *dsink, int fd, char *lname, char *sname, VacFile*);
 static int vacMerge(DirSink *dsink, char *lname, char *sname);
@@ -88,7 +87,6 @@ struct {
 } stats;
 
 int bsize = BlockSize;
-int maxbsize;
 char *oname, *dfile;
 int verbose;
 uvlong fileid = 1;
@@ -97,7 +95,6 @@ char *exclude[MaxExclude];
 int nexclude;
 int nowrite;
 int merge;
-char *isi;
 
 void
 main(int argc, char *argv[])
@@ -143,11 +140,6 @@ main(int argc, char *argv[])
 		if(host == nil)
 			usage();
 		break;
-	case 'i':
-		isi = ARGF();
-		if(isi == nil)
-			usage();
-		break;
 	case 'n':
 		nowrite++;
 		break;
@@ -169,7 +161,6 @@ main(int argc, char *argv[])
 		bsize = 512;
 	if(bsize > VtMaxLumpSize)
 		bsize = VtMaxLumpSize;
-	maxbsize = bsize;
 
 	vtAttach();
 
@@ -200,7 +191,7 @@ main(int argc, char *argv[])
 void
 static usage(void)
 {
-	fprint(2, "usage: %s [-amqsv] [-h host] [-d vacfile] [-b blocksize] [-i name] [-e exclude] [-f vacfile] file ... \n", argv0);
+	fprint(2, "usage: %s [-amqsv] [-h host] [-d vacfile] [-b blocksize] [-e exclude] [-f vacfile] file ... \n", argv0);
 	exits("usage");
 }
 
@@ -302,23 +293,15 @@ vac(VtSession *z, char *argv[])
 			cp2++;
 			cd = 1;
 		}
-		vff = nil;
 		if(fs)
 			vff = vacFileOpen(fs, cp2);
+		else
+			vff = nil;
 		vacFile(dsink, argv[0], cp2, vff);
 		if(vff)
 			vacFileDecRef(vff);
 		if(cd && chdir(cwd) < 0)
 			sysfatal("can't cd back to %s: %r\n", cwd);
-	}
-	
-	if(isi) {
-		vff = nil;
-		if(fs)
-			vff = vacFileOpen(fs, isi);
-		vacStdin(dsink, isi, vff);
-		if(vff)
-			vacFileDecRef(vff);
 	}
 
 	dirSinkClose(dsink);
@@ -348,7 +331,7 @@ vac(VtSession *z, char *argv[])
 	free(dir);
 	sprint(root.type, "vac");
 	memmove(root.score, ds->sink->score, VtScoreSize);
-	vtPutUint16(root.blockSize, maxbsize);
+	vtPutUint16(root.blockSize, bsize);
 	if(fs != nil)
 		vacFSGetScore(fs, root.prev);
 
@@ -436,34 +419,6 @@ vacFile(DirSink *dsink, char *lname, char *sname, VacFile *vf)
 
 	free(dir);
 	close(fd);
-}
-
-static void
-vacStdin(DirSink *dsink, char *name, VacFile *vf)
-{
-	Dir *dir;
-	VacDir vd;
-	ulong entry;
-
-	if(verbose)
-		fprintf(stderr, "%s\n", "<stdio>");
-
-	dir = dirfstat(0);
-	if(dir == nil) {
-		warn("can't stat <stdio>: %r");
-		return;
-	}
-
-	entry = dsink->nentry;
-
-	vacData(dsink, 0, "<stdin>", vf, dir);
-
-	plan9ToVacDir(&vd, dir, entry, fileid++);
-	vd.elem = vtStrDup(name);
-	metaSinkWriteDir(dsink->msink, &vd);
-	vacDirCleanup(&vd);
-
-	free(dir);
 }
 
 static ulong
@@ -650,6 +605,7 @@ vacMergeFile(DirSink *dsink, VacFile *vf, VacDir *dir, uvlong offset, uvlong *ma
 		dirSinkWrite(dsink, (VtDirEntry2*)(buf+VtDirEntrySize2));
 	metaSinkWriteDir(dsink->msink, dir);
 	
+fprint(2, "merged %s\n", dir->elem);
 	return 1;
 }
 
@@ -683,9 +639,6 @@ vacMerge(DirSink *dsink, char *lname, char *sname)
 	if(verbose)
 		fprintf(stderr, "merging: %s\n", lname);
 
-	if(maxbsize < vacFSGetBlockSize(fs))
-		maxbsize = vacFSGetBlockSize(fs);
-
 	for(;;) {
 		if(vacDirEnumRead(d, &dir, 1) < 1)
 			break;
@@ -693,6 +646,7 @@ vacMerge(DirSink *dsink, char *lname, char *sname)
 		vacDirCleanup(&dir);	
 	}
 	fileid += max;
+fprint(2, "fileid = %ulld max = %ulld\n", fileid, max);
 
 Done:
 	if(d != nil)

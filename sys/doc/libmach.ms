@@ -42,7 +42,8 @@ application program support for a new architecture.
 Directory Structure
 .PP
 Architecture-dependent information for the new processor
-is stored in the directory tree rooted at \f(CW/\fP\fIm\fP
+is stored in the directory tree rooted at
+.CW /\fIm
 where
 .I m
 is the name of the new architecture (e.g.,

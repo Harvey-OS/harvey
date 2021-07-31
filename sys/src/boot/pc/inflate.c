@@ -37,7 +37,6 @@ enum {
 static ulong	*crctab;
 static ulong	crc;
 
-extern void diff(char*);	//XXX
 int
 gunzip(uchar *out, int outn, uchar *in, int inn)
 {

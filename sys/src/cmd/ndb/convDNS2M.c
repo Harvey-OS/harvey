@@ -29,8 +29,7 @@ struct Dict
 #define USHORT(x)	p = pushort(p, ep, x)
 #define UCHAR(x)	p = puchar(p, ep, x)
 #define ULONG(x)	p = pulong(p, ep, x)
-#define V4ADDR(x)	p = pv4addr(p, ep, x)
-#define V6ADDR(x)	p = pv6addr(p, ep, x)
+#define ADDR(x)		p = paddr(p, ep, x)
 
 static uchar*
 pstring(uchar *p, uchar *ep, char *np)
@@ -88,7 +87,7 @@ pulong(uchar *p, uchar *ep, int val)
 }
 
 static uchar*
-pv4addr(uchar *p, uchar *ep, char *name)
+paddr(uchar *p, uchar *ep, char *name)
 {
 	uchar ip[IPaddrlen];
 
@@ -97,16 +96,6 @@ pv4addr(uchar *p, uchar *ep, char *name)
 	parseip(ip, name);
 	v6tov4(p, ip);
 	return p + 4;
-
-}
-
-static uchar*
-pv6addr(uchar *p, uchar *ep, char *name)
-{
-	if(ep - p < IPaddrlen)
-		return ep+1;
-	parseip(p, name);
-	return p + IPaddrlen;
 
 }
 
@@ -230,10 +219,7 @@ convRR2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 		NAME(rp->host->name);
 		break;
 	case Ta:
-		V4ADDR(rp->ip->name);
-		break;
-	case Taaaa:
-		V6ADDR(rp->ip->name);
+		ADDR(rp->ip->name);
 		break;
 	case Tptr:
 		NAME(rp->ptr->name);

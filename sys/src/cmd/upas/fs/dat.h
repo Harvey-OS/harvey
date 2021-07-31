@@ -145,7 +145,6 @@ void		parseunix(Message*);
 String*	date822tounix(char*);
 int		fidmboxrefs(Mailbox*);
 int		hashmboxrefs(Mailbox*);
-void		checkmboxrefs(void);
 
 extern int	debug;
 extern int	fflag;

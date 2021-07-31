@@ -58,7 +58,6 @@ Fcall	rhdr;
 Fcall	thdr;
 VacFS	*fs;
 VtSession *session;
-int	noperm;
 
 Fid *	newfid(int);
 void	error(char*);
@@ -159,9 +158,6 @@ main(int argc, char *argv[])
 		break;
 	case 's':
 		defmnt = 0;
-		break;
-	case 'p':
-		noperm = 1;
 		break;
 	case 'm':
 		defmnt = ARGF();
@@ -514,8 +510,8 @@ vacDirStat(VacDir *vd, uchar *p, int np)
 	dir.qid.type = QTFILE;
 	if(vd->mode & ModeDir){
 		dir.mode |= DMDIR;
+		dir.qid.type = QTDIR;
 	}
-	dir.qid.type = dir.mode >> 24;
 	dir.length = vd->size;
 	dir.mtime = vd->mtime;
 	dir.atime = vd->atime;
@@ -696,9 +692,9 @@ permf(VacFile *vf, char *user, int p)
 	perm = dir.mode & 0777;
 	if((p*Pother) & perm)
 		goto Good;
-	if((noperm || strcmp(user, dir.gid)==0) && ((p*Pgroup) & perm))
+	if(strcmp(user, dir.gid)==0 && ((p*Pgroup) & perm))
 		goto Good;
-	if((noperm || strcmp(user, dir.uid)==0) && ((p*Powner) & perm))
+	if(strcmp(user, dir.uid)==0 && ((p*Powner) & perm))
 		goto Good;
 	vacDirCleanup(&dir);
 	return 0;

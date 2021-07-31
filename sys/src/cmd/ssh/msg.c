@@ -89,7 +89,6 @@ allocmsg(Conn *c, int type, int len)
 		abort();
 
 	m = (Msg*)emalloc(sizeof(Msg)+4+8+1+len+4);
-	setmalloctag(m, getcallerpc(&c));
 	p = (uchar*)&m[1];
 	m->c = c;
 	m->bp = p;
@@ -121,7 +120,6 @@ recvmsg0(Conn *c)
 	pad = 8 - len%8;
 
 	m = (Msg*)emalloc(sizeof(Msg)+pad+len);
-	setmalloctag(m, getcallerpc(&c));
 	m->c = c;
 	m->bp = (uchar*)&m[1];
 	m->ep = m->bp + pad+len-4;	/* -4: don't include crc */
@@ -166,7 +164,6 @@ recvmsg(Conn *c, int type)
 	}
 	if(type && (m==nil || m->type!=type))
 		badmsg(m, type);
-	setmalloctag(m, getcallerpc(&c));
 	return m;
 }
 
@@ -211,11 +208,9 @@ sendmsg(Msg *m)
 	if(c->cstate)
 		c->cipher->encrypt(c->cstate, m->bp+4, len+pad);
 
-	if(write(c->fd[1], m->bp, p - m->bp) != p-m->bp){
-		free(m);
+	if(write(c->fd[1], m->bp, p - m->bp) != p-m->bp)
 		return -1;
-	}
-	free(m);
+
 	return 0;
 }
 

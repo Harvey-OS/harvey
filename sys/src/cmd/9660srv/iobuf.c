@@ -76,10 +76,8 @@ purgebuf(Xdata *dev)
 	Ioclust *p;
 
 	for(p=iohead; p!=nil; p=p->next)
-		if(p->dev == dev){
-			p->addr = -1;
+		if(p->dev == dev)
 			p->busy = 0;
-		}
 }
 
 static Ioclust*

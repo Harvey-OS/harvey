@@ -74,7 +74,6 @@ doreadfile(char *s)
 
 	if((fd = open(s, OREAD)) < 0
 	|| (n = readn(fd, p, len)) < 0) {
-		close(fd);
 		free(p);
 		return nil;
 	}

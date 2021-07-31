@@ -229,7 +229,7 @@ _inclass(Rune c, Rune* cl)
 	int	negate;
 	int	i;
 
-	n = _Strlen(cl);
+	n = runestrlen(cl);
 	if(n == 0)
 		return 0;
 	ans = 0;
@@ -265,8 +265,8 @@ _prefix(Rune* pre, Rune* s)
 	int	n;
 	int	k;
 
-	ns = _Strlen(s);
-	n = _Strlen(pre);
+	ns = runestrlen(s);
+	n = runestrlen(pre);
 	if(ns < n)
 		return 0;
 	for(k = 0; k < n; k++) {
@@ -274,26 +274,6 @@ _prefix(Rune* pre, Rune* s)
 			return 0;
 	}
 	return 1;
-}
-
-// Number of runes in (null-terminated) s
-int
-_Strlen(Rune* s)
-{
-	if(s == nil)
-		return 0;
-	return runestrlen(s);
-}
-
-// -1, 0, 1 as s1 is lexicographically less, equal greater than s2
-int
-_Strcmp(Rune *s1, Rune *s2)
-{
-	if(s1 == nil)
-		return (s2 == nil || *s2 == 0) ? 0 : -1;
-	if(s2 == nil)
-		return (*s1 == 0) ? 0 : 1;
-	return runestrcmp(s1, s2);
 }
 
 // Like Strcmp, but use exactly n chars of s1 (assume s1 has at least n chars).
@@ -364,8 +344,8 @@ _Strdup2(Rune* s, Rune* t)
 	Rune* ans;
 	Rune* p;
 
-	ns = _Strlen(s);
-	nt = _Strlen(t);
+	ns = runestrlen(s);
+	nt = runestrlen(t);
 	if(ns+nt == 0)
 		return nil;
 	ans = _newstr(ns+nt);

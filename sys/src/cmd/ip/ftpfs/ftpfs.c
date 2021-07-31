@@ -69,7 +69,6 @@ OS oslist[] = {
 	{ Tops,		"TOPS", },
 	{ MVS,		"MVS", },
 	{ NetWare,	"NetWare", },
-	{ NetWare,	"NETWARE", },
 	{ OS½,		"OS/2", },
 	{ TSO,		"TSO", },
 	{ NT,		"Windows_NT", },	/* DOS like interface */
@@ -469,7 +468,7 @@ rcreate(Fid *f)
 	name = thdr.name;
 	f->node = extendpath(f->node, s_copy(name));
 	uncache(f->node);
-	if(thdr.perm & DMDIR){
+	if(rhdr.perm & DMDIR){
 		if(createdir(f->node) < 0)
 			return "permission denied";
 	} else

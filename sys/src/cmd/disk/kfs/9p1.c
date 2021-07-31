@@ -69,13 +69,12 @@ f_session(Chan *cp, Oldfcall *in, Oldfcall *ou)
 		print("c_session %d\n", cp->chan);
 
 	memmove(cp->rchal, in->chal, sizeof(cp->rchal));
+	mkchallenge(cp);
 	memmove(ou->chal, cp->chal, sizeof(ou->chal));
-	if(wstatallow || cp == cons.srvchan){
+	if(wstatallow || cp == cons.srvchan)
 		memset(ou->authid, 0, sizeof(ou->authid));
-	}else{
-		mkchallenge(cp);
+	else
 		memmove(ou->authid, nvr.authid, sizeof(ou->authid));
-	}
 	sprint(ou->authdom, "%s.%s", service, nvr.authdom);
 	fileinit(cp);
 }
@@ -109,7 +108,7 @@ f_attach(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	}
 	u = -1;
 	if(cp != cons.chan){
-		if(authorize(cp, in, ou) == 0 || strcmp(in->uname, "adm") == 0){
+		if(/*authorize(cp, in, ou) == 0 || */strcmp(in->uname, "adm") == 0){
 			ou->err = Eauth;
 			goto out;
 		}
@@ -427,7 +426,7 @@ f_open(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	/*
 	 * if remove on close, check access here
 	 */
-	ro = isro(f->fs->dev) || (cp != cons.chan && writegroup && !ingroup(f->uid, writegroup));
+	ro = isro(f->fs->dev);
 	if(in->mode & MRCLOSE) {
 		if(ro) {
 			ou->err = Eronly;
@@ -571,7 +570,7 @@ f_create(Chan *cp, Oldfcall *in, Oldfcall *ou)
 		ou->err = Efid;
 		goto out;
 	}
-	if(isro(f->fs->dev) || (cp != cons.chan && writegroup && !ingroup(f->uid, writegroup))) {
+	if(isro(f->fs->dev)) {
 		ou->err = Eronly;
 		goto out;
 	}
@@ -909,7 +908,7 @@ f_write(Chan *cp, Oldfcall *in, Oldfcall *ou)
 		ou->err = Eopen;
 		goto out;
 	}
-	if(isro(f->fs->dev) || (cp != cons.chan && writegroup && !ingroup(f->uid, writegroup))) {
+	if(isro(f->fs->dev)) {
 		ou->err = Eronly;
 		goto out;
 	}
@@ -988,7 +987,7 @@ doremove(File *f, int iscon)
 
 	p = 0;
 	p1 = 0;
-	if(isro(f->fs->dev) || (f->cp != cons.chan && writegroup && !ingroup(f->uid, writegroup))) {
+	if(isro(f->fs->dev)) {
 		err = Eronly;
 		goto out;
 	}
@@ -1147,7 +1146,7 @@ f_wstat(Chan *cp, Oldfcall *in, Oldfcall *ou)
 		ou->err = Efid;
 		goto out;
 	}
-	if(isro(f->fs->dev) || (cp != cons.chan && writegroup && !ingroup(f->uid, writegroup))) {
+	if(isro(f->fs->dev)) {
 		ou->err = Eronly;
 		goto out;
 	}

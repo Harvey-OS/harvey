@@ -55,7 +55,6 @@ void		reader(void);
 int		readheader(Message*, char*, int, int);
 int		cistrncmp(char*, char*, int);
 int		tokenconvert(String*, char*, int);
-String*		stringconvert(String*, char*, int);
 void		post(char*, char*, int);
 
 char	*rflush(Fid*), *rauth(Fid*),
@@ -161,7 +160,6 @@ main(int argc, char *argv[])
 	char srvfile[64];
 	int srvpost;
 
-	rfork(RFNOTEG);
 	mntpt = nil;
 	fflag = 0;
 	mboxfile = nil;
@@ -448,7 +446,9 @@ readinfo(Message *m, char *buf, long off, int count)
 	len = 0;
 	for(i = 0; len < count && infofields[i] >= 0; i++){
 		n = fileinfo(m, infofields[i], &p);
-		s = stringconvert(s, p, n);
+		s_reset(s);
+		if(tokenconvert(s, p, n) != 0)
+			s_append(s, p);
 		s_append(s, "\n");
 		p = s_to_c(s);
 		n = strlen(p);
@@ -1064,7 +1064,6 @@ rclunk(Fid *f)
 		mboxdecref(mb);
 		qunlock(&mbllock);
 	}
-	f->fid = -1;
 	return 0;
 }
 
@@ -1167,7 +1166,6 @@ io(void)
 		 * on the processes writing to us,
 		 * so we wait for the error
 		 */
-		checkmboxrefs();
 		n = read9pmsg(mfd[0], mdata, messagesize);
 		if(n == 0)
 			continue;
@@ -1348,7 +1346,7 @@ struct Charset {
 	char *name;
 	int len;
 	int convert;
-} charsets[] =
+} charsets[4] =
 {
 	{ "us-ascii",		8,	1, },
 	{ "utf-8",		5,	0, },
@@ -1356,17 +1354,28 @@ struct Charset {
 	{ "big5",		4,	2, },
 };
 
+// convert a single token
 int
-rfc2047convert(String *s, char *token, int len)
+tokenconvert(String *s, char *token, int len)
 {
 	char decoded[1024];
 	char utfbuf[2*1024];
-	int i;
+	int i, havequote;
 	char *e, *x;
 
 	if(len == 0)
 		return -1;
 
+	havequote = 0;
+	if(token[0] == '"' && token[len-1] == '"'){
+		havequote = 1;
+		token++;
+		len -= 2;
+	}
+
+	if(token[0] != '=' || token[1] != '?' ||
+	   token[len-2] != '?' || token[len-1] != '=')
+		return -1;
 	e = token+len-2;
 	token += 2;
 
@@ -1398,6 +1407,8 @@ rfc2047convert(String *s, char *token, int len)
 	} else
 		return -1;
 
+	if(havequote)
+		s_append(s, "\"");
 	switch(charsets[i].convert){
 	case 0:
 		s_append(s, decoded);
@@ -1415,64 +1426,57 @@ rfc2047convert(String *s, char *token, int len)
 		}
 		break;
 	}
+	if(havequote)
+		s_append(s, "\"");
 
 	return 0;
 }
 
-char*
-rfc2047start(char *start, char *end)
+// convert a header line
+String*
+hdrconvert(String *s, char *line, int len)
 {
-	int quests;
+	char *end;
+	char token[1024];
+	int i;
 
-	if(*--end != '=')
-		return nil;
-	if(*--end != '?')
-		return nil;
-
-	quests = 0;
-	for(end--; end >= start; end--){
-		switch(*end){
-		case '=':
-			if(quests == 3 && *(end+1) == '?')
-				return end;
-			break;
-		case '?':
-			++quests;
-			break;
+	end = line+len;
+	s = s_reset(s);
+	i = 0;
+	if(memchr(line, '=', len) == 0){
+		s_nappend(s, line, len);
+		return s;
+	}
+	while(line < end){
+		switch(*line){
 		case ' ':
 		case '\t':
 		case '\n':
-		case '\r':
-			/* can't have white space in a token */
-			return nil;
-		}
-	}
-	return nil;
-}
-
-// convert a header line
-String*
-stringconvert(String *s, char *uneaten, int len)
-{
-	char *token;
-	char *p;
-	int i;
-
-	s = s_reset(s);
-	p = uneaten;
-	for(i = 0; i < len; i++){
-		if(*p++ == '='){
-			token = rfc2047start(uneaten, p);
-			if(token != nil){
-				s_nappend(s, uneaten, token-uneaten);
-				if(rfc2047convert(s, token, p - token) < 0)
-					s_nappend(s, token, p - token);
-				uneaten = p;
+			token[i] = 0;
+			if(tokenconvert(s, token, i) < 0){
+				token[i++] = *line++;
+				token[i] = 0;
+				s_append(s, token);
+				i = 0;
+				continue;
 			}
+			s_putc(s, *line++);
+			s_terminate(s);
+			i = 0;
+			break;
+
+		default:
+			if(i >= sizeof(token)-3){
+				token[i++] = *line++;
+				token[i] = 0;
+				s_append(s, token);
+				i = 0;
+				continue;
+			}
+			token[i++] = *line++;
+			break;
 		}
 	}
-	if(p > uneaten)
-		s_nappend(s, uneaten, p-uneaten);
 	return s;
 }
 
@@ -1497,7 +1501,7 @@ readheader(Message *m, char *buf, int off, int cnt)
 		}
 
 		// rfc2047 processing
-		s = stringconvert(s, p, n);
+		s = hdrconvert(s, p, n);
 		ns = s_len(s);
 		if(off > 0){
 			if(ns <= off){
@@ -1609,7 +1613,6 @@ hfree(ulong ppath, char *name)
 	for(l = &htab[h]; *l != nil; l = &(*l)->next){
 		hp = *l;
 		if(ppath == hp->ppath && strcmp(name, hp->name) == 0){
-			hp->mb = nil;
 			*l = hp->next;
 			free(hp);
 			break;
@@ -1633,25 +1636,6 @@ hashmboxrefs(Mailbox *mb)
 	}
 	qunlock(&hashlock);
 	return refs;
-}
-
-void
-checkmboxrefs(void)
-{
-	int f, refs;
-	Mailbox *mb;
-
-	qlock(&mbllock);
-	for(mb=mbl; mb; mb=mb->next){
-		qlock(mb);
-		refs = (f=fidmboxrefs(mb))+1;
-		if(refs != mb->refs){
-			fprint(2, "mbox %s %s ref mismatch actual %d (%d+1) expected %d\n", mb->name, mb->path, refs, f, mb->refs);
-			abort();
-		}
-		qunlock(mb);
-	}
-	qunlock(&mbllock);
 }
 
 void

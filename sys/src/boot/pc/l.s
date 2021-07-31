@@ -198,10 +198,14 @@ noapm:
 	 BYTE	$0x16
 	 WORD	$tgdtptr(SB)
 
-	LWI(1, rAX)
+	MOVL	$1,AX
 	/* MOV AX,MSW */
 	BYTE $0x0F; BYTE $0x01; BYTE $0xF0
 
+/*	MOVL	CR0,AX
+	ORL	$1,AX
+	MOVL	AX,CR0
+*/
 /*
  *	clear prefetch queue (weird code to avoid optimizations)
  */

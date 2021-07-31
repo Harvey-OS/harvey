@@ -629,9 +629,6 @@ blockLoad(ulong addr, int type)
 	int i, j;
 	Block *b;
 
-	if(addr == 0)
-		return nil;
-
 	cacheage++;
 
 	/* age has wraped */

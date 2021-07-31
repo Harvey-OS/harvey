@@ -165,6 +165,5 @@ extern	int	writeallow;
 extern	int	wstatallow;
 extern	int	allownone;
 extern	int	noatime;
-extern	int	writegroup;
 
 extern Lock wpathlock;

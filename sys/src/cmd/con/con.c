@@ -15,7 +15,6 @@ int msgfd = -1;		/* mesgld file descriptor (for signals to be written to) */
 int outfd = 1;		/* local output file descriptor */
 int cooked;		/* non-zero forces cooked mode */
 int returns;		/* non-zero forces carriage returns not to be filtered out */
-int crtonl;			/* non-zero forces carriage returns to be converted to nls coming from net */
 int	strip;		/* strip off parity bits */
 char firsterr[2*ERRMAX];
 char transerr[2*ERRMAX];
@@ -92,9 +91,6 @@ main(int argc, char *argv[])
 		break;
 	case 'R':
 		nltocr = 1;
-		break;
-	case 'T':
-		crtonl = 1;
 		break;
 	case 'C':
 		cooked = 1;
@@ -479,13 +475,7 @@ fromnet(int net)
 			for (cp=buf; cp<buf+n; cp++)
 				*cp &= 0177;
 
-		if(crtonl) {
-			/* convert cr's to nl's */
-			for (cp = buf; cp < buf + n; cp++)
-				if (*cp == '\r')
-					*cp = '\n';
-		}
-		else if(!returns){
+		if(!returns){
 			/* convert cr's to null's */
 			cp = buf;
 			ep = buf + n;

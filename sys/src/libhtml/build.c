@@ -291,7 +291,7 @@ static Item*		newitext(Rune* s, int fnt, int fg, int voff, int ul);
 static Kidinfo*		newkidinfo(int isframeset, Kidinfo* link);
 static Option*		newoption(int selected, Rune* value, Rune* display, Option* link);
 static Pstate*		newpstate(Pstate* link);
-static SEvent*		newscriptevent(int type, Rune* script, SEvent* link);
+static SEvent*		newscriptevent(int type, Rune* script, Attr* link);
 static Table*		newtable(int tableid, Align align, Dimen width, int border,
 					int cellspacing, int cellpadding, Background bg, Token* tok, Table* link);
 static Tablecell*	newtablecell(int cellid, int rowspan, int colspan, Align align, Dimen wspec,
@@ -512,7 +512,7 @@ getitems(ItemSource* is, uchar* data, int datalen)
 			// BUG: won't discard \n before a start tag that begins
 			// the next bufferful of tokens.
 			s = tok->text;
-			n = _Strlen(s);
+			n = runestrlen(s);
 			if(!ps->literal) {
 				i = 0;
 				j = n;
@@ -879,7 +879,7 @@ getitems(ItemSource* is, uchar* data, int datalen)
 				target = atargval(tok, di->target);
 				method = atabval(tok, Amethod, method_tab, NMETHODTAB, HGet);
 				if(warn && _tokaval(tok, Aenctype, &enctype, 0) &&
-						_Strcmp(enctype, L"application/x-www-form-urlencoded"))
+						runestrcmp(enctype, L"application/x-www-form-urlencoded"))
 					fprint(2, "form enctype %S not handled\n", enctype);
 				frm = newform(++is->nforms, name, action, target, method, di->forms);
 				di->forms = frm;
@@ -1253,11 +1253,11 @@ getitems(ItemSource* is, uchar* data, int datalen)
 					continue;
 				if(_tokaval(tok, Ahttp_equiv, &equiv, 0)) {
 					val = aval(tok, Acontent);
-					n = _Strlen(equiv);
+					n = runestrlen(equiv);
 					if(!_Strncmpci(equiv, n, L"refresh"))
 						di->refresh = val;
 					else if(!_Strncmpci(equiv, n, L"content-script-type")) {
-						n = _Strlen(val);
+						n = runestrlen(val);
 						if(!_Strncmpci(val, n, L"javascript")
 						   || !_Strncmpci(val, n, L"jscript1.1")
 						   || !_Strncmpci(val, n, L"jscript"))
@@ -1843,7 +1843,7 @@ getpcdata(Token* toks, int tokslen, int* ptoki)
 		tok = &toks[toki];
 		if(tok->tag == Data) {
 			toki++;
-			anslen += _Strlen(tok->text);
+			anslen += runestrlen(tok->text);
 		}
 		else
 			break;
@@ -1857,7 +1857,7 @@ getpcdata(Token* toks, int tokslen, int* ptoki)
 			tok = &toks[toki];
 			if(tok->tag == Data) {
 				toki++;
-				p = _Stradd(p, tok->text, _Strlen(tok->text));
+				p = _Stradd(p, tok->text, runestrlen(tok->text));
 			}
 			else
 				break;
@@ -1972,7 +1972,7 @@ additem(Pstate* ps, Item* it, Token* tok)
 	Rune*	s;
 	Rune*	t;
 	Attr*	a;
-	SEvent*	e;
+	Attr*	e;
 
 	if(ps->skipping) {
 		if(warn)
@@ -2169,7 +2169,7 @@ addtext(Pstate* ps, Rune* s)
 			it = ps->lastit;
 			if(it->tag == Itexttag) {
 				ss = ((Itext*)it)->s;
-				k = _Strlen(ss);
+				k = runestrlen(ss);
 				if(k > 0 && ss[k] == ' ')
 					p = buf;
 			}
@@ -2209,7 +2209,7 @@ addbrk(Pstate* ps, int sp, int clr)
 	if(ps->lastit != ps->items) {
 		if(!ps->literal && ps->lastit->tag == Itexttag) {
 			t = (Itext*)ps->lastit;
-			_splitr(t->s, _Strlen(t->s), notwhitespace, &l, &nl, &r, &nr);
+			_splitr(t->s, runestrlen(t->s), notwhitespace, &l, &nl, &r, &nr);
 			// try to avoid making empty items
 			// but not crucial f the occasional one gets through
 			if(nl == 0 && ps->prelastit != nil) {
@@ -2599,7 +2599,7 @@ trim_cell(Tablecell* c)
 			if(p->tag == Itexttag) {
 				q = (Itext*)p;
 				s = q->s;
-				_splitr(s, _Strlen(s), notwhitespace, &x, &nx, &y, &ny);
+				_splitr(s, runestrlen(s), notwhitespace, &x, &nx, &y, &ny);
 				if(nx != 0 && ny != 0) {
 					q->s = _Strndup(x, nx);
 					free(s);
@@ -2640,7 +2640,7 @@ listmark(uchar ty, int n)
 
 	case LT1:
 		t = _ltoStr(n);
-		n2 = _Strlen(t);
+		n2 = runestrlen(t);
 		s = _newstr(n2+1);
 		t = _Stradd(s, t, n2);
 		*t++ = '.';
@@ -2674,7 +2674,7 @@ listmark(uchar ty, int n)
 			n = NROMAN;
 		}
 		t = roman[n - 1];
-		n2 = _Strlen(t);
+		n2 = runestrlen(t);
 		s = _newstr(n2+1);
 		for(i = 0; i < n2; i++)
 			s[i] = (ty == LTi)? tolower(t[i]) : t[i];
@@ -2694,7 +2694,7 @@ getmap(Docinfo* di, Rune* name)
 	Map*	m;
 
 	for(m = di->maps; m != nil; m = m->next) {
-		if(!_Strcmp(name, m->name))
+		if(!runestrcmp(name, m->name))
 			return m;
 	}
 	m = (Map*)emalloc(sizeof(Map));
@@ -2798,7 +2798,7 @@ atabval(Token* tok, int attid, StringInt* tab, int ntab, int dflt)
 
 	ans = dflt;
 	if(_tokaval(tok, attid, &aval, 0)) {
-		if(!_lookup(tab, ntab, aval, _Strlen(aval), &ans)) {
+		if(!_lookup(tab, ntab, aval, runestrlen(aval), &ans)) {
 			ans = dflt;
 			if(warn)
 				fprint(2, "warning: name not found in table lookup: %S\n", aval);
@@ -2845,7 +2845,7 @@ listtyval(Token* tok, int dflt)
 
 	ans = dflt;
 	if(_tokaval(tok, Atype, &aval, 0)) {
-		n = _Strlen(aval);
+		n = runestrlen(aval);
 		if(n == 1) {
 			switch(aval[0]) {
 			case '1':
@@ -2913,7 +2913,7 @@ removeallwhite(Rune* s)
 	Rune*	ans;
 
 	j = 0;
-	n = _Strlen(s);
+	n = runestrlen(s);
 	for(i = 0; i < n; i++) {
 		c = s[i];
 		if(c >= 256 || !isspace(c))
@@ -2977,7 +2977,7 @@ adimen(Token* tok, int attid)
 	Rune*	wd;
 
 	if(_tokaval(tok, attid, &wd, 0))
-		return parsedim(wd, _Strlen(wd));
+		return parsedim(wd, runestrlen(wd));
 	else
 		return makedimen(Dnone, 0);
 }
@@ -3065,7 +3065,7 @@ setdimarray(Token* tok, int attid, Dimen** pans, int* panslen)
 	int	an[SMALLBUFSIZE];
 
 	if(_tokaval(tok, attid, &s, 0)) {
-		nc = _splitall(s, _Strlen(s), L", ", a, an, SMALLBUFSIZE);
+		nc = _splitall(s, runestrlen(s), L", ", a, an, SMALLBUFSIZE);
 		if(nc > 0) {
 			d = (Dimen*)emalloc(nc * sizeof(Dimen));
 			for(k = 0; k < nc; k++) {
@@ -3609,7 +3609,7 @@ stringalign(int a)
 	Rune*	s;
 
 	s = _revlookup(align_tab, NALIGNTAB, a);
-	if(s == nil)
+	if(!runestrcmp(s, nil))
 		s = L"none";
 	return s;
 }
@@ -3646,7 +3646,7 @@ printitems(Item* items, char* msg)
 }
 
 static Genattr*
-newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, SEvent* events)
+newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, Attr* events)
 {
 	Genattr* g;
 
@@ -3792,11 +3792,11 @@ newdestanchor(int index, Rune* name, Item* item, DestAnchor* link)
 }
 
 static SEvent*
-newscriptevent(int type, Rune* script, SEvent* link)
+newscriptevent(int type, Rune* script, Attr* link)
 {
 	SEvent* ans;
 
-	ans = (SEvent*)emalloc(sizeof(SEvent));
+	ans = (Attr*)emalloc(sizeof(SEvent));
 	ans->type = type;
 	ans->script = script;
 	ans->next = link;
@@ -3911,11 +3911,11 @@ targetid(Rune* s)
 	int i;
 	int n;
 
-	n = _Strlen(s);
+	n = runestrlen(s);
 	if(n == 0)
 		return FTself;
 	for(i = 0; i < ntargets; i++)
-		if(_Strcmp(s, targetmap[i].key) == 0)
+		if(runestrcmp(s, targetmap[i].key) == 0)
 			return targetmap[i].val;
 	if(i >= targetmapsize) {
 		targetmapsize += 10;
@@ -3951,7 +3951,7 @@ color(Rune* s, int dflt)
 
 	if(s == nil)
 		return dflt;
-	if(_lookup(color_tab, NCOLORS, s, _Strlen(s), &v))
+	if(_lookup(color_tab, NCOLORS, s, runestrlen(s), &v))
 		return v;
 	if(s[0] == '#')
 		s++;

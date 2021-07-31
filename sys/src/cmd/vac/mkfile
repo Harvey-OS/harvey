@@ -1,13 +1,11 @@
 </$objtype/mkfile
 
-LIBFILES=\
-	cache\
-	fs\
-	file\
-	source\
-	error\
-
-LIB=${LIBFILES:%=%.$O}
+LIB=\
+	cache.$O\
+	fs.$O\
+	file.$O\
+	source.$O\
+	error.$O\
 
 HFILES=\
 	/sys/include/venti.h\
@@ -18,14 +16,6 @@ HFILES=\
 
 TARG=vacfs vac
 BIN=/$objtype/bin
-
-CFILES=${TARG:%=%.c} ${LIBFILES:%=%.c}
-
-UPDATE=\
-	mkfile\
-	$CFILES\
-	$HFILES\
-	${TARG:%=/386/bin/%}
 
 default:V: all test
 

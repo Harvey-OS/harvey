@@ -162,24 +162,15 @@ shuffle(Image *im, Image *tmp, int axis, int n, Image *mask, int gran,
 void
 rot180(Image *im)
 {
-	Image *tmp, *tmp0;
+	Image *tmp;
 	Image *mask;
 	Rectangle rmask;
 	int gran;
 
-	if(chantodepth(im->chan) < 8){
-		/* this speeds things up dramatically; draw is too slow on sub-byte pixel sizes */
-		tmp0 = xallocimage(display, im->r, CMAP8, 0, DNofill);
-		draw(tmp0, tmp0->r, im, nil, im->r.min);
-	}else
-		tmp0 = im;
-
-	tmp = xallocimage(display, tmp0->r, tmp0->chan, 0, DNofill);
-	if(tmp == nil){
-		if(tmp0 != im)
-			freeimage(tmp0);
+	tmp = xallocimage(display, im->r, im->chan, 0, DNofill);
+	if(tmp == nil)
 		return;
-	}
+
 	for(gran=1; gran<Dx(im->r); gran *= 2)
 		;
 	gran /= 4;
@@ -208,6 +199,4 @@ rot180(Image *im)
 	freeimage(mask);
 	freeimage(mtmp);
 	freeimage(tmp);
-	if(tmp0 != im)
-		freeimage(tmp0);
 }

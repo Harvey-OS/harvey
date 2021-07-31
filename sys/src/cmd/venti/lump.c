@@ -4,7 +4,7 @@
 
 int			queueWrites = 0;
 
-static Packet		*readILump(Lump *u, IAddr *ia, u8int *score, int rac);
+static Packet		*readILump(Lump *u, IAddr *ia, u8int *score);
 
 Packet*
 readLump(u8int *score, int type, u32int size)
@@ -13,7 +13,6 @@ readLump(u8int *score, int type, u32int size)
 	Packet *p;
 	IAddr ia;
 	u32int n;
-	int rac;
 
 	vtLock(stats.lock);
 	stats.lumpReads++;
@@ -33,7 +32,7 @@ readLump(u8int *score, int type, u32int size)
 		return p;
 	}
 
-	if(!lookupScore(score, type, &ia, &rac)){
+	if(!lookupScore(score, type, &ia)){
 		//ZZZ place to check for someone trying to guess scores
 		setErr(EOk, "no block with that score exists");
 
@@ -47,7 +46,7 @@ readLump(u8int *score, int type, u32int size)
 		return nil;
 	}
 
-	p = readILump(u, &ia, score, rac);
+	p = readILump(u, &ia, score);
 	putLump(u);
 
 	return p;
@@ -97,14 +96,13 @@ writeQLump(Lump *u, Packet *p, int creator)
 	Packet *old;
 	IAddr ia;
 	int ok;
-	int rac;
 
-	if(lookupScore(u->score, u->type, &ia, &rac)){
+	if(lookupScore(u->score, u->type, &ia)){
 		/*
 		 * if the read fails,
 		 * assume it was corrupted data and store the block again
 		 */
-		old = readILump(u, &ia, u->score, rac);
+		old = readILump(u, &ia, u->score);
 		if(old != nil){
 			ok = 1;
 			if(packetCmp(p, old) != 0){
@@ -123,7 +121,7 @@ writeQLump(Lump *u, Packet *p, int creator)
 	ok = storeClump(mainIndex, flat, u->score, u->type, creator, &ia);
 	freeZBlock(flat);
 	if(ok)
-		ok = insertScore(u->score, &ia, 1);
+		ok = insertScore(u->score, &ia);
 	if(ok)
 		insertLump(u, p);
 	else
@@ -132,37 +130,14 @@ writeQLump(Lump *u, Packet *p, int creator)
 	return ok;
 }
 
-static void
-readAhead(u64int a, Arena *arena, u64int aa, int n)
-{	
-	u8int buf[ClumpSize];
-	Clump cl;
-	IAddr ia;
-
-	while(n > 0) {
-		if(readArena(arena, aa, buf, ClumpSize) < ClumpSize)
-			break;
-		if(!unpackClump(&cl, buf))
-			break;
-		ia.addr = a;
-		ia.type = cl.info.type;
-		ia.size = cl.info.uncsize;
-		ia.blocks = (cl.info.size + ClumpSize + (1 << ABlockLog) - 1) >> ABlockLog;
-		insertScore(cl.info.score, &ia, 0);
-		a += ClumpSize + cl.info.size;
-		aa += ClumpSize + cl.info.size;
-		n--;
-	}
-}
-
 static Packet*
-readILump(Lump *u, IAddr *ia, u8int *score, int rac)
+readILump(Lump *u, IAddr *ia, u8int *score)
 {
 	Arena *arena;
 	ZBlock *zb;
 	Packet *p, *pp;
 	Clump cl;
-	u64int a, aa;
+	u64int aa;
 	u8int sc[VtScoreSize];
 
 	arena = amapItoA(mainIndex, ia->addr, &aa);
@@ -188,13 +163,6 @@ readILump(Lump *u, IAddr *ia, u8int *score, int rac)
 		freeZBlock(zb);
 		return nil;
 	}
-
-	if(rac == 0) {
-		a = ia->addr + ClumpSize + cl.info.size;
-		aa += ClumpSize + cl.info.size;
-		readAhead(a, arena, aa, 20);
-	}
-
 	p = zblock2Packet(zb, cl.info.uncsize);
 	freeZBlock(zb);
 	pp = packetDup(p, 0, packetSize(p));

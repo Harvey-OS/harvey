@@ -5,8 +5,8 @@
 #include "fns.h"
 #include "io.h"
 
-IOQ consiq;
-IOQ consoq;
+static IOQ consiq;
+static IOQ consoq;
 
 static int useuart;
 
@@ -207,8 +207,7 @@ panic(char *fmt, ...)
 	consputs(buf, n);
 	consputs("\n", 1);
 
-//floppymemwrite();
-//splhi(); for(;;);
+splhi(); for(;;);
 	if(etherdetach)
 		etherdetach();
 	if(sddetach)

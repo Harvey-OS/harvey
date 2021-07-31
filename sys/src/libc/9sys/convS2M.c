@@ -45,6 +45,7 @@ stringsz(char *s)
 	return BIT16SZ+strlen(s);
 }
 
+static
 uint
 sizeS2M(Fcall *f)
 {

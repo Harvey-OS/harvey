@@ -1,2 +1,0 @@
-#!/bin/rc
-echo reboot > /dev/reboot
