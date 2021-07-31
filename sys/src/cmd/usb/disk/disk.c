@@ -57,10 +57,8 @@ getmaxlun(Dev *dev)
 	r = Rd2h|Rclass|Riface;
 	if(usbcmd(dev, r, Getmaxlun, 0, 0, &max, 1) < 0){
 		dprint(2, "disk: %s: getmaxlun failed: %r\n", dev->dir);
-	}else{
-		max &= 017;			/* 15 is the max. allowed */
+	}else
 		dprint(2, "disk: %s: maxlun %d\n", dev->dir, max);
-	}
 	return max;
 }
 
