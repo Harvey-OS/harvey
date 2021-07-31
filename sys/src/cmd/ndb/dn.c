@@ -5,17 +5,6 @@
 #include <ctype.h>
 #include "dns.h"
 
-/*
- *  this comment used to say `our target is 4000 names cached, this should
- *  be larger on large servers'.  dns at Bell Labs starts off with
- *  about 1780 names.
- *
- * aging seems to corrupt the cache, so raise the trigger from 4000 until we
- * figure it out.
- */
-enum {
-	Deftarget = 100000,
-};
 enum {
 	Minage		= 10*60,
 	Defagefreq	= 30*60,	/* age names this often (seconds) */
@@ -135,7 +124,6 @@ char *opname[] =
 [Oupdate]	"update",
 };
 
-ulong target = Deftarget;
 Lock	dnlock;
 
 static ulong agefreq = Defagefreq;
@@ -222,7 +210,7 @@ dndump(char *file)
 	int i, fd;
 	RR *rp;
 
-	fd = create(file, OWRITE, 0666);
+	fd = open(file, OWRITE|OTRUNC);
 	if(fd < 0)
 		return;
 
@@ -315,6 +303,17 @@ dnage(DN *dp)
 		l = &rp->next;
 	}
 }
+
+/*
+ *  this comment used to say `our target is 4000 names cached, this should
+ *  be larger on large servers'.  dns at Bell Labs starts off with
+ *  about 1780 names.
+ */
+enum {
+	Deftarget = 4000,
+};
+
+ulong target = Deftarget;
 
 #define MARK(dp)	{ if (dp) (dp)->keep = 1; }
 

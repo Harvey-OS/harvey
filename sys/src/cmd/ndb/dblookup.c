@@ -735,14 +735,6 @@ db2cache(int doit)
 	unlock(&dblock);
 }
 
-void
-dnforceage(void)
-{
-	lock(&dblock);
-	dnageall(1);
-	unlock(&dblock);
-}
-
 extern uchar	ipaddr[IPaddrlen];	/* my ip address */
 
 /*
