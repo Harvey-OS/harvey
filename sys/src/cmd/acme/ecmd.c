@@ -137,6 +137,7 @@ edittext(Window *w, int q, Rune *r, int nr)
 	case Inactive:
 		return "permission denied";
 	case Inserting:
+		w->neditwrsel += nr;
 		eloginsert(f, q, r, nr);
 		return nil;
 	case Collecting:
@@ -213,7 +214,7 @@ c_cmd(Text *t, Cmd *cp)
 {
 	elogreplace(t->file, addr.r.q0, addr.r.q1, cp->text->r, cp->text->n);
 	t->q0 = addr.r.q0;
-	t->q1 = addr.r.q0;
+	t->q1 = addr.r.q0+cp->text->n;
 	return TRUE;
 }
 
@@ -515,7 +516,7 @@ s_cmd(Text *t, Cmd *cp)
 	if(!didsub && nest==0)
 		editerror("no substitution");
 	t->q0 = addr.r.q0;
-	t->q1 = addr.r.q1;
+	t->q1 = addr.r.q1+delta;
 	return TRUE;
 
 Err:
@@ -595,6 +596,7 @@ runpipe(Text *t, int cmd, Rune *cr, int ncr, int state)
 		w = t->w;
 		t->q0 = addr.r.q0;
 		t->q1 = addr.r.q1;
+		w->neditwrsel = 0;
 		if(cmd == '<' || cmd=='|')
 			elogdelete(t->file, t->q0, t->q1);
 	}
@@ -624,6 +626,10 @@ runpipe(Text *t, int cmd, Rune *cr, int ncr, int state)
 	editing = Inactive;
 	if(t!=nil && t->w!=nil)
 		winlock(t->w, 'M');
+	if(state == Inserting){
+		t->q0 = addr.r.q0;
+		t->q1 = addr.r.q0 + t->w->neditwrsel;
+	}
 }
 
 int
@@ -734,7 +740,7 @@ append(File *f, Cmd *cp, long p)
 	if(cp->text->n > 0)
 		eloginsert(f, p, cp->text->r, cp->text->n);
 	f->curtext->q0 = p;
-	f->curtext->q1 = p;
+	f->curtext->q1 = p+cp->text->n;
 	return TRUE;
 }
 
@@ -1295,10 +1301,8 @@ cmdname(File *f, String *str, int set)
 		runemove(r, s, n);
 	}else{
 		newname = dirname(f->curtext, runestrdup(s), n);
+		r = newname.r;
 		n = newname.nr;
-		r = runemalloc(n+1);	/* NUL terminate */
-		runemove(r, newname.r, n);
-		free(newname.r);
 	}
 	fc.f = f;
 	fc.r = r;
