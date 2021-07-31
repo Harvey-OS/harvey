@@ -577,14 +577,14 @@ qpass(Queue *q, Block *b)
 	dowakeup = 0;
 	ilock(q);
 	if(q->len >= q->limit){
-		iunlock(q);
 		freeblist(b);
+		iunlock(q);
 		return -1;
 	}
 	if(q->state & Qclosed){
 		len = BALLOC(b);
-		iunlock(q);
 		freeblist(b);
+		iunlock(q);
 		return len;
 	}
 
@@ -632,8 +632,8 @@ qpassnolim(Queue *q, Block *b)
 
 	if(q->state & Qclosed){
 		len = BALLOC(b);
-		iunlock(q);
 		freeblist(b);
+		iunlock(q);
 		return len;
 	}
 
