@@ -9,13 +9,11 @@ aan aan
 aliasmail aliasmail
 apm apm
 aquarela aquarela
-as auth
 auth auth
 authsrv auth
 changeuser auth
 convkeys auth
 convkeys2 auth
-debug auth
 disable auth
 enable auth
 guard.srv auth
@@ -55,10 +53,10 @@ getflags getflags
 usage getflags
 gpsevermore gpsfs
 gpsfs gpsfs
-histogram histogram
 httpd httpd
 imagemap httpd
 man2html httpd
+mirror httpd
 save httpd
 webls httpd
 init init
@@ -103,7 +101,6 @@ tcp995 listen
 lp lp
 dump9660 mk9660
 mk9660 mk9660
-mkflashfs mkflashfs
 mkext mkfs
 mkfs mkfs
 mkpaqfs mkpaqfs
@@ -118,7 +115,6 @@ dns ndb
 dnsdebug ndb
 dnsquery ndb
 dnstcp ndb
-inform ndb
 ipquery ndb
 mkdb ndb
 mkhash ndb
@@ -167,7 +163,6 @@ rsafill rsa
 rsagen rsa
 scanmail scanmail
 testscan scanmail
-screenlock screenlock
 scuzz scuzz
 secstore secstore
 secstored secstore
