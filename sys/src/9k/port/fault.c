@@ -177,11 +177,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput)
 
 		if (checkaddr && addr == addr2check)
 			(*checkaddr)(addr, s, *pg);
-		mmuphys = PPN((*pg)->pa) | PTEVALID;
-		if((s->pseg->attr & SG_RONLY) == 0)
-			mmuphys |= PTEWRITE;
-		if((s->pseg->attr & SG_CACHED) == 0)
-			mmuphys |= PTEUNCACHED;
+		mmuphys = PPN((*pg)->pa) |PTEWRITE|PTEUNCACHED|PTEVALID;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 	}
