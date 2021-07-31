@@ -1,6 +1,10 @@
 /*
  * ahci serial ata driver
  * copyright © 2007-8 coraid, inc.
+ *
+ * there was a great deal of locking of single operations (e.g.,
+ * atomic assignments); it's not clear what that locking was intended to
+ * prevent.
  */
 
 #include "u.h"
@@ -1026,14 +1030,6 @@ configdrive(Drive *d)
 }
 
 static void
-setstate(Drive *d, int state)
-{
-	ilock(d);
-	d->state = state;
-	iunlock(d);
-}
-
-static void
 resetdisk(Drive *d)
 {
 	uint state, det, stat;
@@ -1061,10 +1057,10 @@ resetdisk(Drive *d)
 	iunlock(d);
 
 	qlock(&d->portm);
-	if(p->cmd&Ast && ahciswreset(&d->portc) == -1)
-		setstate(d, Dportreset);	/* get a bigger stick. */
-	else {
-		setstate(d, Dmissing);
+	if(p->cmd&Ast && ahciswreset(&d->portc) == -1){
+		d->state = Dportreset;	/* get a bigger stick. */
+	} else {
+		d->state = Dmissing;
 		configdrive(d);
 	}
 	dprint("ahci: %s: resetdisk: %s → %s\n", (d->unit? d->unit->name: nil),
@@ -1102,7 +1098,9 @@ newdrive(Drive *d)
 		if(ahcirecover(c) == -1)
 			goto lose;
 	}
-	setstate(d, Dready);
+
+	d->state = Dready;
+
 	qunlock(c->m);
 
 	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->name,
@@ -1112,7 +1110,7 @@ newdrive(Drive *d)
 
 lose:
 	idprint("%s: can't be initialized\n", d->unit->name);
-	setstate(d, Dnull);
+	d->state = Dnull;
 	qunlock(c->m);
 	return -1;
 }
@@ -1300,12 +1298,9 @@ isctlrjabbering(Ctlr *c, ulong cause)
 		c->intrs = 0;
 		c->lastintr0 = now;
 	}
-	if (++c->intrs > Maxintrspertick) {
-		iprint("sdiahci: %lud intrs per tick for no serviced "
-			"drive; cause %#lux mport %d\n",
-			c->intrs, cause, c->mport);
-		c->intrs = 0;
-	}
+	if (++c->intrs > Maxintrspertick)
+		panic("sdiahci: too many intrs per tick for no serviced "
+			"drive; cause %#lux mport %d", cause, c->mport);
 }
 
 static void
@@ -1318,11 +1313,9 @@ isdrivejabbering(Drive *d)
 		d->intrs = 0;
 		d->lastintr0 = now;
 	}
-	if (++d->intrs > Maxintrspertick) {
-		iprint("sdiahci: %lud interrupts per tick for %s\n",
-			d->intrs, d->unit->name);
-		d->intrs = 0;
-	}
+	if (++d->intrs > Maxintrspertick)
+		panic("sdiahci: too many interrupts per tick for %s",
+			d->unit->name);
 }
 
 static void
@@ -1653,7 +1646,7 @@ waitready(Drive *d)
 		esleep(250);
 	}
 	print("%s: not responding; offline\n", d->unit->name);
-	setstate(d, Doffline);
+	d->state = Doffline;
 	return -1;
 }
 
@@ -2180,9 +2173,7 @@ forcemode(Drive *d, char *mode)
 			break;
 	if(i == nelem(modename))
 		i = 0;
-	ilock(d);
 	d->mode = i;
-	iunlock(d);
 }
 
 static void
@@ -2211,7 +2202,7 @@ forcestate(Drive *d, char *state)
 			break;
 	if(i == nelem(diskstates))
 		error(Ebadctl);
-	setstate(d, i);
+	d->state = i;
 }
 
 /*
