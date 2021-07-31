@@ -40,11 +40,17 @@ int _IO_setvbuf(FILE *f){
 static int
 isatty(int fd)
 {
-	char buf[64];
+	Dir *d1, *d2;
+	int ret;
 
-	if(fd2path(fd, buf, sizeof buf) != 0)
-		return 0;
-
-	/* might be /mnt/term/dev/cons */
-	return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
+	d1 = dirfstat(fd);
+	d2 = dirstat("/dev/cons");
+	ret = 0;
+	if(d1!=nil && d2!=nil)
+		ret = (d1->qid.path == d2->qid.path) &&
+			(d1->type == d2->type) &&
+			(d1->dev == d2->dev);
+	free(d1);
+	free(d2);
+	return 0;
 }

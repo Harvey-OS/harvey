@@ -77,9 +77,10 @@ is assumed, with collating sequence
 .IR grep (1)
 .SH DIAGNOSTICS
 The exit status is
-.RB `` "not found" ''
+.B \&"not found"
 if no match is found, and
-.RB `` "no dictionary" ''
+.B \&"no dictionary"
 if
 .I file
 or the default dictionary cannot be opened.
+

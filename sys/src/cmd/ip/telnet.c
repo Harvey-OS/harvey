@@ -504,13 +504,14 @@ xlocsub(Biobuf *bp, uchar *sub, int n)
 static int
 islikeatty(int fd)
 {
-	char buf[64];
+	Dir *d;
+	int iscons;
 
-	if(fd2path(fd, buf, sizeof buf) != 0)
+	if((d = dirfstat(fd)) == nil)
 		return 0;
-
-	/* might be /mnt/term/dev/cons */
-	return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
+	iscons = (strcmp(d->name, "cons") == 0);
+	free(d);
+	return iscons;
 }
 
 /*

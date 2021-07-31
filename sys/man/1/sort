@@ -19,8 +19,6 @@ sort \- sort and/or merge files
 .I ,pos2
 ]
 ] ...
-.br
-\h'0.5in
 [
 .B -o
 .I output

@@ -4,7 +4,7 @@ man, lookman, sig \- print or find pages of this manual
 .SH SYNOPSIS
 .B man
 [
-.B -ntpP
+.I option ...
 ]
 [
 .I section ...
@@ -40,11 +40,6 @@ section at the top of the page will serve as a
 .PP
 The options are:
 .TP
-.B -n
-(Default)
-Print the pages on the standard output using
-.IR nroff .
-.TP
 .B -p
 Run
 .IR proof (1)
@@ -57,10 +52,14 @@ on the specified man pages.
 .TP
 .B -t
 Run
-.IR troff (1)
+.I troff
 and send its output
 to standard output.
-.PD
+.TP
+.B -n
+(Default)
+Print the pages on the standard output using
+.IR nroff .
 .PP
 .B Lookman
 prints the names of all manual sections that contain
@@ -70,9 +69,10 @@ words given on the command line.
 .PP
 .B Sig
 prints the signature (i.e. C definition) of the
-.IR function 's
+.IR functions
 given on the command line.
 .SH FILES
+.TF /sys/lib/man/lookman/index
 .TP
 .B /sys/man/?/*
 .I troff
@@ -93,16 +93,13 @@ index for
 .br
 .B /rc/bin/lookman
 .SH "SEE ALSO"
-.IR page (1),
 .IR proof (1)
 .SH BUGS
 The manual was intended to be typeset; some detail is sacrificed on text terminals.
-.PP
+.br
 There is no automatic mechanism to keep the indices up to date.
-.PP
-Except for special cases,
-.I man
-doesn't recognize things that should be run through
+.br
+Except for special cases, it doesn't recognize things that should be run through
 .I tbl
 and/or
 .IR eqn .

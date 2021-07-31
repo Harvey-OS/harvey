@@ -282,39 +282,6 @@ remmatch(char *name)
 }
 
 /*
- *  like trylock, but we've already got the lock on fd,
- *  and don't want an L. lock file.
- */
-static Mlock *
-keeplockalive(char *path, int fd)
-{
-	char buf[1];
-	Mlock *l;
-
-	l = malloc(sizeof(Mlock));
-	if(l == 0)
-		return 0;
-	l->fd = fd;
-	l->name = s_new();
-	s_append(l->name, path);
-
-	/* fork process to keep lock alive until sysunlock(l) */
-	switch(l->pid = rfork(RFPROC)){
-	default:
-		break;
-	case 0:
-		fd = l->fd;
-		for(;;){
-			sleep(1000*60);
-			if(pread(fd, buf, 1, 0) < 0)
-				break;
-		}
-		_exits(0);
-	}
-	return l;
-}
-
-/*
  *  try a message
  */
 void
@@ -325,7 +292,6 @@ dofile(Dir *dp)
 	char *buf, *cp, **av;
 	Waitmsg *wm;
 	Biobuf *b;
-	Mlock *l = nil;
 
 	if(debug)
 		fprint(2, "dofile %s\n", dp->name);
@@ -365,7 +331,7 @@ dofile(Dir *dp)
 			if(time(0) - etime < 60*60)
 				return;
 		}
-
+		
 	}
 
 	/*
@@ -458,18 +424,11 @@ dofile(Dir *dp)
 	}
 
 	/*
-	 * Ken's fs, for example, gives us 5 minutes of inactivity before
-	 * the lock goes stale, so we have to keep reading it.
- 	 */
-	l = keeplockalive(file(dp->name, 'C'), Bfildes(b));
-
-	/*
 	 *  transfer
 	 */
 	pid = fork();
 	switch(pid){
 	case -1:
-		sysunlock(l);
 		sysunlockfile(Bfildes(b));
 		syslog(0, runqlog, "out of procs");
 		exits(0);
@@ -532,8 +491,6 @@ dofile(Dir *dp)
 
 	}
 done:
-	if (l)
-		sysunlock(l);
 	Bterm(b);
 	sysunlockfile(Bfildes(b));
 	free(buf);
@@ -662,7 +619,7 @@ warning(char *f, void *a)
 
 	rerrstr(err, sizeof(err));
 	snprint(buf, sizeof(buf), f, a);
-	fprint(2, "runq: %s: %s\n", buf, err);
+	fprint(2, "runq: %s: %s\n", buf, err);	
 }
 
 /*
@@ -677,7 +634,7 @@ error(char *f, void *a)
 	rerrstr(err, sizeof(err));
 	snprint(buf, sizeof(buf), f, a);
 	fprint(2, "runq: %s: %s\n", buf, err);
-	exits(buf);
+	exits(buf);	
 }
 
 void

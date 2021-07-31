@@ -1,6 +1,6 @@
 .TH JPG 1
 .SH NAME
-jpg, gif, png, ppm, bmp, yuv, ico, togif, toppm, topng, toico \- view and convert pictures
+jpg, gif, png, ppm, ico, togif, toppm, topng, toico \- view and convert pictures
 .SH SYNOPSIS
 .B jpg
 [
@@ -8,36 +8,25 @@ jpg, gif, png, ppm, bmp, yuv, ico, togif, toppm, topng, toico \- view and conver
 ] [
 .I file ...
 ]
-.br
+.PP
 .B gif
 [
 .B -39cdektv
 ] [
 .I file ...
 ]
-.br
+.PP
 .B png
 [
 .B -39cdektv
 ] [
 .I file ...
 ]
-.br
 .B ppm
 [
 .B -39cdektv
 ] [
 .I file ...
-]
-.br
-.B bmp
-[
-.I file
-]
-.br
-.B yuv
-[
-.I file
 ]
 .PP
 .B togif
@@ -61,7 +50,7 @@ jpg, gif, png, ppm, bmp, yuv, ico, togif, toppm, topng, toico \- view and conver
 ]
 .I file ...
 ]
-.br
+.PP
 .B toppm
 [
 .B -c
@@ -69,7 +58,7 @@ jpg, gif, png, ppm, bmp, yuv, ico, togif, toppm, topng, toico \- view and conver
 ] [
 .I file
 ]
-.br
+.PP
 .B topng
 [
 .B -c
@@ -86,7 +75,7 @@ jpg, gif, png, ppm, bmp, yuv, ico, togif, toppm, topng, toico \- view and conver
 [
 .I file
 ]
-.br
+.PP
 .B toico
 [
 .I file ...
@@ -96,10 +85,8 @@ These programs read, display, and write image files in public formats.
 .IR Jpg ,
 .IR gif ,
 .IR png ,
-.IR ppm ,
-.IR bmp ,
 and
-.IR yuv .
+.I ppm
 read files in the corresponding formats and, by default, display
 them in the current window; options cause them instead to convert the images
 to Plan 9 image format and write them to standard output.

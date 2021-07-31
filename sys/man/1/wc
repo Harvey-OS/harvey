@@ -43,7 +43,7 @@ but
 looks for only
 .SM ASCII
 space, tab and newline.
-.PP
+.br
 .I Wc
 should have options to count suboptimal
 .SM UTF
