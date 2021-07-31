@@ -13,7 +13,6 @@ enum
 	A88178,
 	A88179,
 	A88772,
-	S95xx,		/* SMSC */
 
 	Eaddrlen = 6,
 	Epktlen = 1514,
@@ -21,7 +20,7 @@ enum
 
 	Maxpkt	= 2000,	/* no jumbo packets here */
 	Nconns	= 8,	/* max number of connections */
-	Nbufs	= 32,	/* max number of buffers */
+	Nbufs	= 8,	/* max number of buffers */
 	Scether = 6,	/* ethernet cdc subclass */
 	Fnheader = 0,	/* Functions */
 	Fnunion = 6,
@@ -111,7 +110,6 @@ struct Etherpkt
 
 int	ethermain(Dev *dev, int argc, char **argv);
 int	asixreset(Ether*);
-int smscreset(Ether*);
 int	cdcreset(Ether*);
 int	parseaddr(uchar *m, char *s);
 void	dumpframe(char *tag, void *p, int n);

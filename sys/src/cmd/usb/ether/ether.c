@@ -73,15 +73,6 @@ Cinfo cinfo[] =
 	{0x1737, 0x0039, A88178},
 	{0x2001, 0x3c05, A88772},
 	{0x6189, 0x182d, A8817x},
-
-	/* SMSC controllers.
-	 * LAN95xx family
-	 */
-	{0x0424, 0xec00, S95xx},	/* LAN9512 (as in raspberry pi) */
-	{0x0424, 0x9500, S95xx},
-	{0x0424, 0x9505, S95xx},
-	{0x0424, 0x9E00, S95xx},
-	{0x0424, 0x9E01, S95xx},
 	{0, 0, 0},
 };
 
@@ -120,7 +111,6 @@ int etherdebug;
 Resetf ethers[] =
 {
 	asixreset,
-	smscreset,
 	cdcreset,	/* keep last */
 };
 
@@ -165,7 +155,7 @@ allocbuf(Ether *e)
 	bp = nbrecvp(e->bc);
 	if(bp == nil){
 		qlock(e);
-		if(e->nabufs < Nbufs){
+		if(e->nabufs < Nconns){
 			bp = emallocz(sizeof(Buf), 1);
 			e->nabufs++;
 			setmalloctag(bp, getcallerpc(&e));
@@ -173,10 +163,8 @@ allocbuf(Ether *e)
 		}
 		qunlock(e);
 	}
-	if(bp == nil){
-		fprint(2, "%s: blocked waiting for allocbuf\n", argv0);
+	if(bp == nil)
 		bp = recvp(e->bc);
-	}
 	bp->rp = bp->data + Hdrsize;
 	bp->ndata = 0;
 	if(0)deprint(2, "%s: allocbuf %#p\n", argv0, bp);
@@ -198,7 +186,7 @@ newconn(Ether *e)
 		if(c == nil || c->ref == 0){
 			if(c == nil){
 				c = emallocz(sizeof(Conn), 1);
-				c->rc = chancreate(sizeof(Buf*), 16);
+				c->rc = chancreate(sizeof(Buf*), 2);
 				c->nb = i;
 			}
 			c->ref = 1;
@@ -802,8 +790,7 @@ fswrite(Usbfs *fs, Fid *fid, void *data, long count, vlong)
 		if(e->nblock == 0)
 			sendp(e->wc, bp);
 		else if(nbsendp(e->wc, bp) == 0){
-			fprint(2, "%s: (out) packet lost\n", argv0);
-			e->noerrs++;
+			deprint(2, "%s: (out) packet lost\n", argv0);
 			freebuf(e, bp);
 		}
 		break;
@@ -873,7 +860,7 @@ openeps(Ether *e, int epin, int epout)
 static int
 usage(void)
 {
-	werrstr("usage: usb/ether [-a addr] [-d] [-N nb]");
+	werrstr("usage: usb/ether [-d] [-N nb]");
 	return -1;
 }
 
@@ -950,7 +937,6 @@ etherwriteproc(void *a)
 	Buf *bp;
 	Channel *wc;
 
-	threadsetname("etherwrite");
 	wc = e->wc;
 	while(e->exiting == 0){
 		bp = recvp(wc);
@@ -1001,7 +987,6 @@ etherreadproc(void *a)
 	Buf *bp, *dbp;
 	Ether *e = a;
 
-	threadsetname("etherread");
 	while(e->exiting == 0){
 		bp = nbrecvp(e->rc);
 		if(bp == nil){
@@ -1038,7 +1023,6 @@ etherreadproc(void *a)
 					dbp->type = bp->type;
 				}
 				if(nbsendp(e->conns[i]->rc, dbp) == 0){
-					fprint(2, "%s: (in) packet lost\n", argv0);
 					e->nierrs++;
 					freebuf(e, dbp);
 				}
@@ -1147,15 +1131,9 @@ ethermain(Dev *dev, int argc, char **argv)
 {
 	int epin, epout, i, devid;
 	Ether *e;
-	uchar ea[Eaddrlen];
 
 	devid = dev->id;
-	memset(ea, 0, Eaddrlen);
 	ARGBEGIN{
-	case 'a':
-		if(parseaddr(ea, EARGF(usage())) < 0)
-			return usage();
-		break;
 	case 'd':
 		if(etherdebug == 0)
 			fprint(2, "ether debug on\n");
@@ -1173,7 +1151,6 @@ ethermain(Dev *dev, int argc, char **argv)
 	e = dev->aux = emallocz(sizeof(Ether), 1);
 	e->dev = dev;
 	dev->free = etherdevfree;
-	memmove(e->addr, ea, Eaddrlen);
 
 	for(i = 0; i < nelem(ethers); i++)
 		if(ethers[i](e) == 0)
@@ -1195,7 +1172,7 @@ ethermain(Dev *dev, int argc, char **argv)
 	snprint(e->fs.name, sizeof(e->fs.name), "etherU%d", devid);
 	e->fs.dev = dev;
 	e->fs.aux = e;
-	e->bc = chancreate(sizeof(Buf*), Nbufs);
+	e->bc = chancreate(sizeof(Buf*), Nconns);
 	e->rc = chancreate(sizeof(Buf*), Nconns/2);
 	e->wc = chancreate(sizeof(Buf*), Nconns*2);
 	incref(e->dev);

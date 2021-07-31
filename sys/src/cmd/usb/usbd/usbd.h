@@ -122,7 +122,6 @@ struct Devtab
 	int	did;
 	char	*args;
 	uvlong	devmask;
-	int	noauto;
 };
 
 
