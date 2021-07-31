@@ -17,7 +17,6 @@ enum {
 	Deftarget	= 1<<30,	/* effectively disable aging */
 	Minage		= 1<<30,
 	Defagefreq	= 1<<30,	/* age names this often (seconds) */
-	Restartmins	= 600,
 
 	/* these settings will trigger frequent aging */
 //	Deftarget	= 4000,
@@ -140,7 +139,6 @@ char *opname[] =
 };
 
 ulong target = Deftarget;
-ulong start;
 Lock	dnlock;
 
 static ulong agefreq = Defagefreq;
@@ -717,17 +715,6 @@ putactivity(int recursive)
 	unlock(&dnvars);
 
 	db2cache(needrefresh);
-
-	/* if we've been running for long enough, restart */
-	if(start == 0)
-		start = time(nil);
-	if(0 && time(nil) - start > Restartmins*60){	// TODO
-		dnslog("killing all dns procs for timed restart");
-		postnote(PNGROUP, getpid(), "die");
-		dnvars.mutex = 0;
-		exits("restart");
-	}
-
 	dnageall(0);
 
 	/* let others back in */
@@ -2019,16 +2006,11 @@ rrfree(RR *rp)
 	assert(rp->magic == RRmagic);
 	assert(!rp->cached);
 
-	/* our callers often hold dnlock.  it's needed to examine dp safely. */
 	dp = rp->owner;
 	if(dp){
-		/* if someone else holds dnlock, skip the sanity check. */
-		if (canlock(&dnlock)) {
-			assert(dp->magic == DNmagic);
-			for(nrp = dp->rr; nrp; nrp = nrp->next)
-				assert(nrp != rp);   /* "rrfree of live rr" */
-			unlock(&dnlock);
-		}
+		assert(dp->magic == DNmagic);
+		for(nrp = dp->rr; nrp; nrp = nrp->next)
+			assert(nrp != rp);	/* "rrfree of live rr" */
 	}
 
 	switch(rp->type){

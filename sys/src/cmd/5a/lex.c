@@ -311,11 +311,6 @@ struct
 	"MOVWD",	LTYPE3, AMOVWD,
 	"MOVWF",		LTYPE3, AMOVWF,
 
-	"LDREX",		LTYPE3, ALDREX,
-	"LDREXD",		LTYPE3, ALDREXD,
-	"STREX",		LTYPE9, ASTREX,
-	"STREXD",		LTYPE9, ASTREXD,
-
 /*
 	"ABSF",		LTYPEI, AABSF,
 	"ABSD",		LTYPEI, AABSD,
@@ -331,8 +326,6 @@ struct
 	"NRMD",		LTYPEI,	ANRMD,
 */
 
-	"SQRTF",	LTYPEI, ASQRTF,
-	"SQRTD",	LTYPEI, ASQRTD,
 	"CMPF",		LTYPEL, ACMPF,
 	"CMPD",		LTYPEL, ACMPD,
 	"ADDF",		LTYPEK,	AADDF,
@@ -424,9 +417,9 @@ cinit(void)
 	}
 
 	pathname = allocn(pathname, 0, 100);
-	if(getwd(pathname, 99) == 0) {
+	if(mygetwd(pathname, 99) == 0) {
 		pathname = allocn(pathname, 100, 900);
-		if(getwd(pathname, 999) == 0)
+		if(mygetwd(pathname, 999) == 0)
 			strcpy(pathname, "/???");
 	}
 }

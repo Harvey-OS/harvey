@@ -57,9 +57,7 @@ option causes
 to treat
 .I 9load-parts
 as a partition environment variable constructed by
-.I 9load
-(see
-.IR 9boot (8))
+.IR 9load (8)
 and adds the defined partitions.
 This is used primarily by
 .IR boot (8)

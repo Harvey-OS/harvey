@@ -3,7 +3,7 @@
 
 /*
  * 5c/arm
- * Arm
+ * Arm 7500
  */
 #define	SZ_CHAR		1
 #define	SZ_SHORT	2
