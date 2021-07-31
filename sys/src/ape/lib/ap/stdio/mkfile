@@ -7,7 +7,6 @@ OFILES=\
 	_dtoa.$O\
 	_fconv.$O\
 	clearerr.$O\
-	atexit.$O\
 	exit.$O\
 	fclose.$O\
 	fdopen.$O\

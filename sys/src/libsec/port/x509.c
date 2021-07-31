@@ -172,7 +172,6 @@ emalloc(int n)
 		exits("out of memory");
 	}
 	memset(p, 0, n);
-	setmalloctag(p, getcallerpc(&n));
 	return p;
 }
 
@@ -260,11 +259,9 @@ ber_decode(uchar** pp, uchar* pend, Elem* pelem)
 	if(err == ASN_OK) {
 		err = length_decode(pp, pend, &length);
 		if(err == ASN_OK) {
-			if(tag.class == Universal) {
+			if(tag.class == Universal)
 				err = value_decode(pp, pend, length, tag.num, isconstr, &val);
-				if(val.tag == VSeq || val.tag == VSet)
-					setmalloctag(val.u.seqval, getcallerpc(&pp));
-			}else
+			else
 				err = value_decode(pp, pend, length, OCTET_STRING, 0, &val);
 			if(err == ASN_OK) {
 				pelem->tag = tag;
@@ -501,7 +498,6 @@ value_decode(uchar** pp, uchar* pend, int length, int kind, int isconstr, Value*
 
 	case SEQUENCE:
 		err = seq_decode(&p, pend, length, isconstr, &vl);
-		setmalloctag(vl, getcallerpc(&pp));
 		if(err == ASN_OK) {
 			pval->tag = VSeq ;
 			pval->u.seqval = vl;
@@ -510,7 +506,6 @@ value_decode(uchar** pp, uchar* pend, int length, int kind, int isconstr, Value*
 
 	case SETOF:
 		err = seq_decode(&p, pend, length, isconstr, &vl);
-		setmalloctag(vl, getcallerpc(&pp));
 		if(err == ASN_OK) {
 			pval->tag = VSet;
 			pval->u.setval = vl;
@@ -747,7 +742,6 @@ seq_decode(uchar** pp, uchar* pend, int length, int isconstr, Elist** pelist)
 	}
 	*pp = p;
 	*pelist = ans;
-	setmalloctag(ans, getcallerpc(&pp));
 	return err;
 }
 
@@ -1408,7 +1402,6 @@ mkel(Elem e, Elist* tail)
 	Elist* el;
 
 	el = (Elist*)emalloc(sizeof(Elist));
-	setmalloctag(el, getcallerpc(&e));
 	el->hd = e;
 	el->tl = tail;
 	return el;
@@ -2049,6 +2042,7 @@ verify_signature(Bytes* signature, RSApub *pk, uchar *edigest, Elem **psigalg)
 	/* see 9.2.1 of rfc2437 */
 	pkcs1 = betomp(signature->data, signature->len, nil);
 	mpexp(pkcs1, pk->ek, pk->n, pkcs1);
+	pkcs1buf = nil;
 	buflen = mptobe(pkcs1, nil, 0, &pkcs1buf);
 	buf = pkcs1buf;
 	if(buflen != nlen || buf[0] != 1) {

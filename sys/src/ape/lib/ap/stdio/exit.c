@@ -15,3 +15,13 @@ void exit(int status)
 	_doatexits();
 	_exit(status);
 }
+atexit(int (*f)(void))
+{
+	int i;
+	for(i=0; i<NONEXIT; i++)
+		if(!_atexitfns[i]){
+			_atexitfns[i] = f;
+			return(0);
+		}
+	return(1);
+}

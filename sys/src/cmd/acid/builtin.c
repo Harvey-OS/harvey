@@ -39,7 +39,6 @@ void	readfile(Node*, Node*);
 void	interpret(Node*, Node*);
 void	include(Node*, Node*);
 void	regexp(Node*, Node*);
-void dosysr1(Node*, Node*);
 
 typedef struct Btab Btab;
 struct Btab
@@ -74,7 +73,6 @@ struct Btab
 	"status",	status,
 	"stop",		stop,
 	"strace",	strace,
-	"sysr1",	dosysr1,
 	"waitstop",	waitstop,
 	"map",		map,
 	"interpret",	interpret,
@@ -111,17 +109,6 @@ installbuiltin(void)
 			mkprint(s);
 		b++;
 	}
-}
-
-void
-dosysr1(Node *r, Node*)
-{
-	extern int sysr1(void);
-	
-	r->op = OCONST;
-	r->type = TINT;
-	r->fmt = 'D';
-	r->ival = sysr1();
 }
 
 void
