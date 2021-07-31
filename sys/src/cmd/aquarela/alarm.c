@@ -37,6 +37,7 @@ alarmist(void *)
 				snooze = MaxLong;
 			else
 				snooze = vsnooze;
+			qunlock(&alarmlist);
 		}
 		else
 			snooze = 60 * 1000;
