@@ -507,7 +507,7 @@ udpport(char *mtpt)
 	}
 
 	/* turn on header style interface */
-	if(write(ctl, hmsg, strlen(hmsg)) != strlen(hmsg)){
+	if(write(ctl, hmsg, strlen(hmsg)) , 0){
 		close(ctl);
 		warning(hmsg);
 		return -1;
@@ -1459,7 +1459,7 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 static int
 netquery(Query *qp, int depth)
 {
-	int lock, rv, triedin, inname;
+	int lock, rv, triedin, inname, cnt;
 //	char buf[32];
 	RR *rp;
 	DN *dp;
@@ -1495,9 +1495,12 @@ netquery(Query *qp, int depth)
 		 * causing us to query other nameservers.
 		 */
 		qlp = &dp->querylck[qtype2lck(qp->type)];
+		incref(qlp);
 		qlock(qlp);
-		if (qlp->Ref.ref > 10) {
-			qunlock(qlp);
+		cnt = qlp->Ref.ref;
+		qunlock(qlp);
+		if (cnt > 10) {
+			decref(qlp);
 			if (!whined) {
 				whined = 1;
 				dnslog("too many outstanding queries for %s;"
@@ -1506,8 +1509,6 @@ netquery(Query *qp, int depth)
 			}
 			return 0;
 		}
-		++qlp->Ref.ref;
-		qunlock(qlp);
 	}
 	procsetname("netquery: %s", dp->name);
 
@@ -1548,12 +1549,8 @@ netquery(Query *qp, int depth)
 //	if (rv == 0)		/* could ask /net.alt/dns directly */
 //		askoutdns(dp, qp->type);
 
-	if(lock && qlp) {
-		qlock(qlp);
-		assert(qlp->Ref.ref > 0);
-		qunlock(qlp);
+	if(lock && qlp)
 		decref(qlp);
-	}
 	return rv;
 }
 

@@ -126,7 +126,7 @@ The following code reads from an x86 byte I/O port.
 .IP
 .EX
 uchar
-inportb(unsigned port)
+inportb(long port)
 {
     uchar data;
 
@@ -135,7 +135,7 @@ inportb(unsigned port)
 
     seek(iobfd, port, 0);
     if(read(iobfd, &data, sizeof(data)) != sizeof(data))
-        sysfatal("inportb(0x%4.4ux): %r", port);
+        sysfatal("inportb(0x%4.4x): %r", port);
     return data;
 }
 .EE

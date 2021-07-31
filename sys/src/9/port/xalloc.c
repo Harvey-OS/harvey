@@ -6,6 +6,7 @@
 
 enum
 {
+	Chunk		= 64*1024,
 	Nhole		= 128,
 	Magichole	= 0x484F4C45,			/* HOLE */
 };
@@ -119,7 +120,6 @@ xallocz(ulong size, int zero)
 	Xhdr *p;
 	Hole *h, **l;
 
-	/* add room for magix & size overhead, round up to nearest vlong */
 	size += BY2V + offsetof(Xhdr, data[0]);
 	size &= ~(BY2V-1);
 
@@ -137,7 +137,7 @@ xallocz(ulong size, int zero)
 			}
 			iunlock(&xlists);
 			if(zero)
-				memset(p, 0, size);
+				memset(p->data, 0, size);
 			p->magix = Magichole;
 			p->size = size;
 			return p->data;
@@ -175,20 +175,7 @@ xmerge(void *vp, void *vq)
 	p = (Xhdr*)(((ulong)vp - offsetof(Xhdr, data[0])));
 	q = (Xhdr*)(((ulong)vq - offsetof(Xhdr, data[0])));
 	if(p->magix != Magichole || q->magix != Magichole) {
-		int i;
-		ulong *wd;
-		void *badp;
-
 		xsummary();
-		badp = (p->magix != Magichole? p: q);
-		wd = (ulong *)badp - 12;
-		for (i = 24; i-- > 0; ) {
-			print("%#p: %lux", wd, *wd);
-			if (wd == badp)
-				print(" <-");
-			print("\n");
-			wd++;
-		}
 		panic("xmerge(%#p, %#p) bad magic %#lux, %#lux\n",
 			vp, vq, p->magix, q->magix);
 	}

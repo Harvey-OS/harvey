@@ -29,7 +29,6 @@ int vers;		/* incremented each clone/attach */
 
 static volatile int stop;
 
-/* holds data to be returned via read of /net/dns, perhaps multiple reads */
 struct Mfile
 {
 	Mfile		*next;		/* next free mfile */
@@ -106,11 +105,9 @@ void
 usage(void)
 {
 	fprint(2, "usage: %s [-FnorRst] [-a maxage] [-f ndb-file] [-N target] "
-		"[-T forwip] [-x netmtpt] [-z refreshprog]\n", argv0);
+		"[-x netmtpt] [-z refreshprog]\n", argv0);
 	exits("usage");
 }
-
-int addforwtarg(char *);
 
 void
 main(int argc, char *argv[])
@@ -161,9 +158,6 @@ main(int argc, char *argv[])
 	case 't':
 		testing = 1;
 		break;
-	case 'T':
-		addforwtarg(EARGF(usage()));
-		break;
 	case 'x':
 		setnetmtpt(mntpt, sizeof mntpt, EARGF(usage()));
 		setext(ext, sizeof ext, mntpt);
@@ -212,7 +206,7 @@ main(int argc, char *argv[])
 
 	srand(now*getpid());
 	db2cache(1);
-//	dnageallnever();
+	dnagenever();
 
 	if (cfg.straddle && !seerootns())
 		dnslog("straddle server misconfigured; can't see root name servers");
@@ -320,6 +314,8 @@ newfid(int fid, int needunused)
 			return mf;
 		}
 	mf = emalloc(sizeof(*mf));
+	if(mf == nil)
+		sysfatal("out of memory");
 	mf->fid = fid;
 	mf->next = mfalloc.inuse;
 	mf->user = estrdup("dummy");
@@ -723,7 +719,7 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	/*
 	 *  special commands
 	 */
-//	dnslog("rwrite got: %s", job->request.data);
+	dnslog("rwrite got: %s", job->request.data);
 	if(strcmp(job->request.data, "debug")==0){
 		debug ^= 1;
 		goto send;

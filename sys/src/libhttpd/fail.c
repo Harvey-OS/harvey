@@ -50,28 +50,16 @@ int
 hfail(HConnect *c, int reason, ...)
 {
 	Hio *hout;
-	char makeup[HBufSize], err[ERRMAX];
+	char makeup[HBufSize];
 	va_list arg;
 	int n;
 
-	rerrstr(err, sizeof err);
 	hout = &c->hout;
 	va_start(arg, reason);
 	vseprint(makeup, makeup+HBufSize, errormsg[reason].verbose, arg);
 	va_end(arg);
-	/*
-	 * this additional information has proved useful when debugging
-	 * complex http configuration problems.
-	 */
-	n = snprint(c->xferbuf, HBufSize, "<head><title>%s</title></head>\n"
-		"<body><h1>%s</h1>\n%s<p>\n"
-		"errstr: %s<br>\n"
-		"uri host: %s<br>\n"
-		"header host: %s<br>\nactual host: %s\n</body>\n",
-		errormsg[reason].concise, errormsg[reason].concise, makeup,
-		err,
-		(c->req.urihost? c->req.urihost: ""),
-		c->head.host, hmydomain);
+	n = snprint(c->xferbuf, HBufSize, "<head><title>%s</title></head>\n<body><h1>%s</h1>\n%s</body>\n",
+		errormsg[reason].concise, errormsg[reason].concise, makeup);
 
 	hprint(hout, "%s %s\r\n", hversion, errormsg[reason].num);
 	hprint(hout, "Date: %D\r\n", time(nil));
