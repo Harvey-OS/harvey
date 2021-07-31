@@ -402,7 +402,6 @@ trailer(void)
 {
 
 #ifdef LUCENT
-	Tm *t;
 	t = localtime(time(nil));
 	Bprint(&bout, TABLE "<tr height=20><td></table>\n");
 	Bprint(&bout, "<font size=-1><a href=\"http://www.lucent.com/copyright.html\">\n");
