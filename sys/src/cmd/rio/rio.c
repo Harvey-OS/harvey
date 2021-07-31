@@ -634,10 +634,9 @@ resized(void)
 				ishidden = 1;
 				break;
 			}
-		if(ishidden){
+		if(ishidden)
 			im = allocimage(display, r, screen->chan, 0, DWhite);
-			r = ZR;
-		}else
+		else
 			im = allocwindow(wscreen, r, Refbackup, DWhite);
 		if(im)
 			wsendctlmesg(w, Reshaped, r, im);

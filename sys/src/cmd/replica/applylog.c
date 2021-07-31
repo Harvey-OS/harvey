@@ -410,10 +410,7 @@ main(int argc, char **argv)
 			if(donothing)
 				break;
 			if(rd.mode&DMDIR){
-				fd = create(local, OREAD, DMDIR);
-				if(fd < 0 && isdir(local))
-					fd = open(local, OREAD);
-				if(fd  < 0){
+				if((fd = create(local, OREAD, DMDIR)) < 0){
 					error("mkdir %q: %r", name);
 					skip = 1;
 					continue;
