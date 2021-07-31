@@ -137,7 +137,6 @@ enum
 	HTLEN= 		4*1024,
 
 	Maxpath=	128,	/* size of mntpt */
-	Maxlcks=	10,	/* max. query-type locks per domain name */
 
 	RRmagic=	0xdeadbabe,
 	DNmagic=	0xa110a110,
@@ -173,7 +172,6 @@ struct Request
 	ulong	aborttime;	/* time at which we give up */
 	jmp_buf	mret;		/* where master jumps to after starting a slave */
 	int	id;
-	char	*from;		/* who asked us? */
 };
 
 /*
@@ -194,8 +192,7 @@ struct DN
 	uchar	keep;		/* flag: never age this name */
 	uchar	respcode;	/* response code */
 /* was:	char	nonexistent; /* true if we get an authoritative nx for this domain */
-	/* permit only 1 query per (domain name, type) at a time */
-	QLock	querylck[Maxlcks];
+	QLock	querylck;	/* permit only 1 query per domain name at a time */
 };
 
 /*
@@ -385,9 +382,7 @@ typedef struct {
 	ulong	tmoutcname;
 	ulong	tmoutv6;
 
-	ulong	answinmem;	/* answers in memory */
-	ulong	negans;		/* negative answers received */
-	ulong	negcached;	/* negative answers cached */
+	ulong	answinmem;	/* count: answer in memory */
 } Stats;
 
 Stats stats;

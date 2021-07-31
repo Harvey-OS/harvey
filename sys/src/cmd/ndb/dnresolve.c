@@ -53,7 +53,7 @@ struct Query {
 	Dest	*curdest;	/* pointer to one of them */
 	int	ndest;
 
-	int	udpfd;
+	int	udpfd;		/* can be shared by all udp users */
 
 	QLock	tcplock;	/* only one tcp call at a time per query */
 	int	tcpset;
@@ -290,10 +290,9 @@ static RR*
 dnresolve1(char *name, int class, int type, Request *req, int depth,
 	int recurse)
 {
-	char *cp;
-	Area *area;
 	DN *dp, *nsdp;
 	RR *rp, *nsrp, *dbnsrp;
+	char *cp;
 	Query query;
 
 	if(debug)
@@ -337,19 +336,6 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 		rrfreelist(rp);
 		if(rp)
 			return nil;
-	}
-
-	/*
-	 * if the domain name is within an area of ours,
-	 * we should have found its data in memory by now.
-	 */
-	area = inmyarea(dp->name);
-	if (area) {
-//		char buf[32];
-
-//		dnslog("%s %s: no data in area %s", dp->name,
-//			rrname(type, buf, sizeof buf), area->soarr->owner->name);
-		return nil;
 	}
 
 	queryinit(&query, dp, type, req);
@@ -820,8 +806,6 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 	DN *soaowner;
 	ulong ttl;
 
-	stats.negcached++;
-
 	/* no cache time specified, don't make anything up */
 	if(soarr != nil){
 		if(soarr->next != nil){
@@ -1021,29 +1005,6 @@ xmitquery(Query *qp, int medium, int depth, uchar *obuf, int inns, int len)
 	return 0;
 }
 
-static int lckindex[Maxlcks] = {
-	0,			/* all others map here */
-	Ta,
-	Tns,
-	Tcname,
-	Tsoa,
-	Tptr,
-	Tmx,
-	Ttxt,
-	Taaaa,
-};
-
-static int
-qtype2lck(int qtype)		/* map query type to querylck index */
-{
-	int i;
-
-	for (i = 1; i < nelem(lckindex); i++)
-		if (lckindex[i] == qtype)
-			return i;
-	return 0;
-}
-
 static int
 procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 {
@@ -1052,9 +1013,6 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	DN *ndp;
 	Query nquery;
 	RR *tp, *soarr;
-
-	if (mp->an == nil)
-		stats.negans++;
 
 	/* ignore any error replies */
 	if((mp->flags & Rmask) == Rserver){
@@ -1146,13 +1104,13 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	}
 	procsetname("recursive query for %s %s", qp->dp->name,
 		rrname(qp->type, buf, sizeof buf));
-	qunlock(&qp->dp->querylck[qtype2lck(qp->type)]);
+	qunlock(&qp->dp->querylck);
 
 	queryinit(&nquery, qp->dp, qp->type, qp->req);
 	nquery.nsrp = tp;
 	rv = netquery(&nquery, depth+1);
 
-	qlock(&qp->dp->querylck[qtype2lck(qp->type)]);
+	qlock(&qp->dp->querylck);
 	rrfreelist(tp);
 	querydestroy(&nquery);
 	return rv;
@@ -1238,9 +1196,9 @@ netquery1(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns
 		for(replywaits = 0; replywaits < ndest; replywaits++){
 			DNSmsg m;
 
-			procsetname("reading %sside reply from %I: %s %s from %s",
+			procsetname("reading %sside reply from %I for %s %s",
 				(inns? "in": "out"), obuf, qp->dp->name,
-				rrname(qp->type, buf, sizeof buf), qp->req->from);
+				rrname(qp->type, buf, sizeof buf));
 
 			/* read udp answer into m */
 			if (readreply(qp, Udp, req, ibuf, &m, endtime) >= 0)
@@ -1404,7 +1362,6 @@ static int
 netquery(Query *qp, int depth)
 {
 	int lock, rv, triedin, inname;
-	char buf[32];
 	RR *rp;
 
 	if(depth > 12)			/* in a recursive loop? */
@@ -1421,8 +1378,7 @@ netquery(Query *qp, int depth)
 	if(1)
 		lock = qp->req->isslave != 0;
 	if(1 && lock) {
-		procsetname("query lock wait: %s %s from %s", qp->dp->name,
-			rrname(qp->type, buf, sizeof buf), qp->req->from);
+		procsetname("query lock wait for %s", qp->dp->name);
 		/*
 		 * don't make concurrent queries for this name.
 		 * dozens of processes blocking here probably indicates
@@ -1430,7 +1386,7 @@ netquery(Query *qp, int depth)
 		 * recognise a zone (area) as one of our own, thus
 		 * causing us to query other nameservers.
 		 */
-		qlock(&qp->dp->querylck[qtype2lck(qp->type)]);
+		qlock(&qp->dp->querylck);
 	}
 	procsetname("netquery: %s", qp->dp->name);
 
@@ -1473,7 +1429,7 @@ netquery(Query *qp, int depth)
 //		askoutdns(qp->dp, qp->type);
 
 	if(1 && lock)
-		qunlock(&qp->dp->querylck[qtype2lck(qp->type)]);
+		qunlock(&qp->dp->querylck);
 	return rv;
 }
 
@@ -1488,7 +1444,6 @@ seerootns(void)
 	memset(&req, 0, sizeof req);
 	req.isslave = 1;
 	req.aborttime = now + Maxreqtm;
-	req.from = "internal";
 	queryinit(&query, dnlookup(root, Cin, 1), Tns, &req);
 	query.nsrp = dblookup(root, Cin, Tns, 0, 0);
 	rv = netquery(&query, 0);
