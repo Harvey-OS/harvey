@@ -1,21 +1,9 @@
 #!/bin/rc
-# fshalt [-r] - sync (flush) and, if possible, halt all file servers
-#	and optionally reboot
+# halt - sync (flush) and, if possible, halt all file servers
 rfork e
-reboot=no
-switch ($#*) {
-case 0
-case 1
-	reboot=yes
-case *
-	echo usage: $0 '[-r]' >[1=2]
-	exit usage
-}
-
 path=(/bin)
 builtin cd /
 
-unmount /mnt/consoles >[2]/dev/null
 kill consolefs | rc			# don't compete with /mnt/consoles
 sleep 1
 
@@ -87,12 +75,7 @@ fn x {
 		}
 	}
 	echo
-	echo done halting
-
-	if (~ $reboot yes) {
-		echo rebooting...
-		echo reboot >'#c/reboot'
-	}
+	echo done
 }
 
 x

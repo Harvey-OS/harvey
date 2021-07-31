@@ -17,10 +17,10 @@ struct Dict
 		ushort	offset;		/* pointer to packed name in message */
 		char	*name;		/* pointer to unpacked name in buf */
 	} x[Ndict];
-	int n;			/* size of dictionary */
-	uchar *start;		/* start of packed message */
-	char buf[4*1024];	/* buffer for unpacked names */
-	char *ep;		/* first free char in buf */
+	int	n;		/* size of dictionary */
+	uchar	*start;		/* start of packed message */
+	char	buf[4*1024];	/* buffer for unpacked names */
+	char	*ep;		/* first free char in buf */
 };
 
 #define NAME(x)		p = pname(p, ep, x, dp)
@@ -129,17 +129,17 @@ pv6addr(uchar *p, uchar *ep, char *name)
 static uchar*
 pname(uchar *p, uchar *ep, char *np, Dict *dp)
 {
-	char *cp;
 	int i;
+	char *cp;
 	char *last;		/* last component packed */
 
-	if(strlen(np) >= Domlen)	/* make sure we don't exceed DNS limits */
+	if(strlen(np) >= Domlen) /* make sure we don't exceed DNS limits */
 		return ep+1;
 
 	last = 0;
 	while(*np){
 		/* look through every component in the dictionary for a match */
-		for(i = 0; i < dp->n; i++){
+		for(i = 0; i < dp->n; i++)
 			if(strcmp(np, dp->x[i].name) == 0){
 				if(ep - p < 2)
 					return ep+1;
@@ -147,10 +147,9 @@ pname(uchar *p, uchar *ep, char *np, Dict *dp)
 				*p++ = dp->x[i].offset;
 				return p;
 			}
-		}
 
 		/* if there's room, enter this name in dictionary */
-		if(dp->n < Ndict){
+		if(dp->n < Ndict)
 			if(last){
 				/* the whole name is already in dp->buf */
 				last = strchr(last, '.') + 1;
@@ -160,7 +159,7 @@ pname(uchar *p, uchar *ep, char *np, Dict *dp)
 			} else {
 				/* add to dp->buf */
 				i = strlen(np);
-				if(dp->ep + i + 1 < &dp->buf[sizeof(dp->buf)]){
+				if(dp->ep + i + 1 < &dp->buf[sizeof dp->buf]){
 					strcpy(dp->ep, np);
 					dp->x[dp->n].name = dp->ep;
 					last = dp->ep;
@@ -169,11 +168,10 @@ pname(uchar *p, uchar *ep, char *np, Dict *dp)
 					dp->n++;
 				}
 			}
-		}
 
 		/* put next component into message */
 		cp = strchr(np, '.');
-		if(cp == 0){
+		if(cp == nil){
 			i = strlen(np);
 			cp = np + i;	/* point to null terminator */
 		} else {
