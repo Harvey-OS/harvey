@@ -22,8 +22,6 @@ enum
 	MousePS2=	2,
 };
 
-extern int mouseshifted;
-
 static QLock mousectlqlock;
 static int mousetype;
 static int intellimouse;
@@ -95,11 +93,6 @@ ps2mouseputc(int c, int shift)
 	ulong m;
 	int buttons, dx, dy;
 
-	/*
-	 * non-ps2 keyboards might not set shift
-	 * but still set mouseshifted.
-	 */
-	shift |= mouseshifted;
 	/*
 	 * Resynchronize in stream with timing; see comment above.
 	 */

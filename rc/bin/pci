@@ -1,10 +1,6 @@
 #!/bin/rc
-# pci [-v] - dump pci configuration
-rfork e
-fn verbose {
-	if (! test -f /lib/pci)
-		echo $0: no /lib/pci >[1=2]
-	awk '
+
+fn verbose { awk '
 
 	function lower(s) {
 		gsub(/A/, "a", s)
@@ -18,7 +14,7 @@ fn verbose {
 	BEGIN{
 		file="/lib/pci"
 		FS="\t"
-		while(getline <file > 0){
+		while(getline <file){
 			if(/^;/) continue
 			if(/^[0-9A-F]/){
 				vid=lower($1)
