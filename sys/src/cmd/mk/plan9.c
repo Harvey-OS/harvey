@@ -346,7 +346,7 @@ void
 dirtime(char *dir, char *path)
 {
 	int i, fd, n;
-	ulong mtime;
+	long mtime;
 	Dir *d;
 	char buf[4096];
 
