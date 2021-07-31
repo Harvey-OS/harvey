@@ -1952,7 +1952,6 @@ tinit(void)
 	
 	/* 32-bit defaults */
 	typeword = typechlp;
-	typeswitch = typechl;
 	typecmplx = typesuv;
 }
 

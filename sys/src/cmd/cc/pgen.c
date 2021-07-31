@@ -70,12 +70,8 @@ codgen(Node *n, Node *nn)
 	canreach = 1;
 	warnreach = 1;
 	gen(n);
-	if(canreach && thisfn->link->etype != TVOID){
-		if(debug['B'])
-			warn(Z, "no return at end of function: %s", n1->sym->name);
-		else
-			diag(Z, "no return at end of function: %s", n1->sym->name);
-	}
+	if(canreach && thisfn->link->etype != TVOID)
+		warn(Z, "no return at end of function: %s", n1->sym->name);
 	noretval(3);
 	gbranch(ORETURN);
 
@@ -271,15 +267,16 @@ loop:
 		complex(l);
 		if(l->type == T)
 			goto rloop;
-		if(l->op != OCONST || !typeswitch[l->type->etype]) {
-			diag(n, "case expression must be integer constant");
+		if(l->op == OCONST)
+		if(typeword[l->type->etype] && l->type->etype != TIND) {
+			casf();
+			cases->val = l->vconst;
+			cases->def = 0;
+			cases->label = pc;
+			cases->isv = typev[l->type->etype];
 			goto rloop;
 		}
-		casf();
-		cases->val = l->vconst;
-		cases->def = 0;
-		cases->label = pc;
-		cases->isv = typev[l->type->etype];
+		diag(n, "case expression must be integer constant");
 		goto rloop;
 
 	case OSWITCH:
@@ -287,7 +284,7 @@ loop:
 		complex(l);
 		if(l->type == T)
 			break;
-		if(!typeswitch[l->type->etype]) {
+		if(!typeword[l->type->etype] || l->type->etype == TIND) {
 			diag(n, "switch expression must be integer");
 			break;
 		}

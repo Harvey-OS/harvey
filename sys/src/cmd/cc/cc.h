@@ -509,7 +509,6 @@ extern	char	typechlvp[];
 extern	char	typechlp[];
 extern	char	typechlpfd[];
 
-EXTERN	char*	typeswitch;
 EXTERN	char*	typeword;
 EXTERN	char*	typecmplx;
 

@@ -23,7 +23,6 @@ ginit(void)
 	tfield = types[TINT];
 
 	typeword = typechlvp;
-	typeswitch = typechlv;
 	typecmplx = typesu;
 
 	/* TO DO */
