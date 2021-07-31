@@ -299,8 +299,6 @@ fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uchar *buf, int nbuf)
 		p = fs->cons[xcons]->name;
 		switch(i%3){
 		case 0:
-			if(fs->cons[xcons]->cfd < 0)
-				return 0;
 			snprint(name, sizeof name, "%sctl", p);
 			p = name;
 			d->qid.type = QTFILE;
@@ -308,8 +306,6 @@ fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uchar *buf, int nbuf)
 			d->qid.vers = 0;
 			break;
 		case 1:
-			if(fs->cons[xcons]->sfd < 0)
-				return 0;
 			snprint(name, sizeof name, "%sstat", p);
 			p = name;
 			d->qid.type = QTFILE;
@@ -330,7 +326,7 @@ fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uchar *buf, int nbuf)
 	d->name = p;
 	if(buf != nil)
 		return convD2M(d, buf, nbuf);
-	return 1;
+	return 0;
 }
 
 /*
@@ -792,7 +788,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 {
 	char *name;
 	Dir d;
-	int i, n, nqid, nwname;
+	int i, nqid, nwname;
 	Qid qid, wqid[MAXWELEM];
 	Fid *nf;
 	char *err;
@@ -830,12 +826,11 @@ fswalk(Fs *fs, Request *r, Fid *f)
 				qid = parentqid(qid);
 			else if(strcmp(name, ".") != 0){
 				for(i = 0; ; i++){
-					n = fsdirgen(fs, qid, i, &d, nil, 0);
-					if(n < 0){
+					if(fsdirgen(fs, qid, i, &d, nil, 0) < 0){
 						err = Eexist;
 						break;
 					}
-					if(n > 0 && strcmp(name, d.name) == 0){
+					if(strcmp(name, d.name) == 0){
 						qid = d.qid;
 						break;
 					}
@@ -997,9 +992,9 @@ fsread(Fs *fs, Request *r, Fid *f)
 		off = 0;
 		for(i=0; p<e; i++, off+=m){
 			m = fsdirgen(fs, f->qid, i, &d, p, e-p);
-			if(m < 0)
+			if(m <= BIT16SZ)
 				break;
-			if(m > BIT16SZ && off >= offset)
+			if(off >= offset)
 				p += m;
 		}
 		r->f.data = (char*)r->buf + IOHDRSZ;
@@ -1118,12 +1113,11 @@ fsstat(Fs *fs, Request *r, Fid *f)
 	q = parentqid(f->qid);
 	for(i = 0; ; i++){
 		r->f.stat = r->buf+IOHDRSZ;
-		r->f.nstat = fsdirgen(fs, q, i, &d, r->f.stat, messagesize-IOHDRSZ);
-		if(r->f.nstat < 0){
+		if((r->f.nstat = fsdirgen(fs, q, i, &d, r->f.stat, messagesize-IOHDRSZ)) <= BIT16SZ){
 			fsreply(fs, r, Eexist);
 			return;
 		}
-		if(r->f.nstat > BIT16SZ && d.qid.path == f->qid.path)
+		if(d.qid.path == f->qid.path)
 			break;
 	}
 	fsreply(fs, r, nil);
