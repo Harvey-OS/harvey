@@ -6,8 +6,8 @@ typedef struct Disk	Disk;
 struct Disk
 {
 	Bcache;
-	ulong	nb;	/* number of blocks */
-	ulong	nab;	/* number of allocation blocks */
+	int	nb;	/* number of blocks */
+	int	nab;	/* number of allocation blocks */
 	int	b2b;	/* allocation bits to a block */
 	int	p2b;	/* Dptr's per page */
 	char	name[KNAMELEN];

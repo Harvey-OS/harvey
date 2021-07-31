@@ -14,12 +14,12 @@ int	icformat(Disk*, ulong);
 int
 dinit(Disk *d, int f, int psize)
 {
-	ulong	i;
-	uvlong	length;
-	char	buf[1024];
-	Bbuf	*b;
-	Dalloc	*ba;
 	Dir	*dir;
+	char	buf[1024];
+	Dalloc	*ba;
+	uvlong	length;
+	ulong	i;
+	Bbuf	*b;
 
 	/*
 	 *  get disk size
@@ -33,8 +33,8 @@ dinit(Disk *d, int f, int psize)
 	free(dir);
 
 	/*
-	 *  read first physical block to get logical block size, # of inodes,
-	 *  and # of allocation blocks
+	 *  read first physical block to get logical block size, number of inodes,
+	 *  and number of allocation blocks
 	 */
 	if(seek(f, 0, 0) < 0){
 		perror("dinit: seek");
@@ -91,7 +91,9 @@ dinit(Disk *d, int f, int psize)
 			fprint(2, "dinit: bad name in alloc block %uld\n", i);
 			return -1;
 		}
+
 	}
+
 	return 0;
 }
 
@@ -102,10 +104,10 @@ int
 dformat(Disk *d, int f, char *name, ulong bsize, ulong psize)
 {
 	int	i;
+	Dir	*dir;
 	uvlong	length;
 	Bbuf	*b;
 	Dalloc	*ba;
-	Dir	*dir;
 	Dptr	dptr;
 
 	fprint(2, "formatting disk\n");
@@ -167,11 +169,12 @@ dformat(Disk *d, int f, char *name, ulong bsize, ulong psize)
 static ulong
 _balloc(Dalloc *ba, ulong max)
 {
-	int len;	/* number of valid words */
+	ulong *p;
+	ulong *e;
 	ulong i;	/* bit position in long */
 	ulong m;	/* 1<<i */
 	ulong v;	/* old value of long */
-	ulong *p, *e;
+	int len;	/* number of valid words */
 
 	/*
 	 *  find a word with a 0 bit
@@ -187,7 +190,7 @@ _balloc(Dalloc *ba, ulong max)
 	 *  find the first 0 bit
 	 */
 	v = *p;
-	for(m = 1, i = 0; i < BtoUL; i++, m <<= 1)
+	for(m = 1, i = 0; i<BtoUL; i++, m<<=1)
 		if((m|v) != v)
 			break;
 
@@ -213,9 +216,11 @@ _balloc(Dalloc *ba, ulong max)
 ulong
 dalloc(Disk *d, Dptr *p)
 {
-	ulong	bno, max, rv;
+	ulong	bno;
 	Bbuf	*b;
 	Dalloc	*ba;
+	ulong	rv;
+	ulong	max;
 
 	max = d->nb;
 	for(bno = 0; bno < d->nab; bno++){
@@ -245,7 +250,8 @@ ulong
 dpalloc(Disk *d, Dptr *p)
 {
 	Bbuf *b;
-	Dptr *sp, *ep;
+	Dptr *sp;
+	Dptr *ep;
 
 	if(dalloc(d, p) == Notabno)
 		return Notabno;
@@ -279,10 +285,11 @@ dpalloc(Disk *d, Dptr *p)
 int
 _bfree(Disk *d, ulong i)
 {
-	ulong bno, m;
 	ulong *p;
+	ulong m;
 	Bbuf *b;
 	Dalloc *ba;
+	ulong bno;
 
 	/*
 	 *  get correct allocation block
@@ -313,9 +320,10 @@ _bfree(Disk *d, ulong i)
 int
 dfree(Disk *d, Dptr *dp)
 {
-	ulong bno;
-	Dptr *sp, *ep;
+	Dptr *sp;
+	Dptr *ep;
 	Bbuf *b;
+	ulong bno;
 
 	bno = dp->bno;
 	dp->bno = Notabno;
@@ -341,7 +349,7 @@ dfree(Disk *d, Dptr *dp)
 	/*
 	 *  then all the pages it points to
 	 *
-	 *	DANGER: this algorithm may fail if there are more
+	 *	DANGER: this algorithm may fail is their are more
 	 *		allocation blocks than block buffers
 	 */
 	b = bcread(d, bno);
@@ -351,5 +359,6 @@ dfree(Disk *d, Dptr *dp)
 	for(ep = sp + d->p2b; sp < ep; sp++)
 		if(dfree(d, sp) < 0)
 			return -1;
+
 	return 0;
 }

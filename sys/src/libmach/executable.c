@@ -205,7 +205,7 @@ ExecTable exectab[] =
 		sizeof(Ehdr),
 		nil,
 		elfdotout },
-	{ E_MAGIC,			/* Arm 5.out and boot image */
+	{ E_MAGIC,			/* Arm 5.out */
 		"arm plan 9 executable",
 		"arm plan 9 dlm",
 		FARM,
@@ -378,10 +378,9 @@ commonboot(Fhdr *fp)
 		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 		break;
 	case FARM:
-		fp->type = FARMB;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = mach->kbase+0x8010;
 		fp->name = "ARM plan 9 boot image";
-		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
+		fp->dataddr = fp->txtaddr+fp->txtsz;
 		return;
 	case FALPHA:
 		fp->type = FALPHAB;
