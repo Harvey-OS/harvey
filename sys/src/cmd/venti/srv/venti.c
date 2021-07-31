@@ -67,7 +67,7 @@ allocminima(Allocs *all)			/* enforce minima for sanity */
 {
 	if (all->icmem < 6 * 1024 * 1024)
 		all->icmem = 6 * 1024 * 1024;
-	if (all->mem < 1024 * 1024 || all->mem == Unspecified)  /* lumps */
+	if (all->mem < 1024 * 1024 || all->mem == 0xffffffffUL)  /* lumps */
 		all->mem = 1024 * 1024;
 	if (all->bcmem < 2 * 1024 * 1024)
 		all->bcmem = 2 * 1024 * 1024;
@@ -82,8 +82,7 @@ allocbypcnt(u32int mempcnt, u32int stfree)
 	Allocs all;
 	static u32int free;
 
-	all.mem = Unspecified;
-	all.bcmem = all.icmem = 0;
+	all.mem = all.bcmem = all.icmem = 0;
 	all.mempcnt = mempcnt;
 	all.stfree = stfree;
 
@@ -123,7 +122,7 @@ sizeallocs(Allocs opt, Config *cfg)
 	all = allocbypcnt(20, opt.stfree);
 
 	/* config file parameters override */
-	if (cfg->mem && cfg->mem != Unspecified)
+	if (cfg->mem)
 		all.mem = cfg->mem;
 	if (cfg->bcmem)
 		all.bcmem = cfg->bcmem;
@@ -131,7 +130,7 @@ sizeallocs(Allocs opt, Config *cfg)
 		all.icmem = cfg->icmem;
 
 	/* command-line options override */
-	if (opt.mem && opt.mem != Unspecified)
+	if (opt.mem)
 		all.mem = opt.mem;
 	if (opt.bcmem)
 		all.bcmem = opt.bcmem;
@@ -170,9 +169,10 @@ threadmain(int argc, char *argv[])
 	haddr = nil;
 	configfile = nil;
 	webroot = nil;
-	mem = Unspecified;
+	mem = 0;
 	icmem = 0;
 	bcmem = 0;
+	stfree = 0;
 	ARGBEGIN{
 	case 'a':
 		vaddr = EARGF(usage());
@@ -246,8 +246,8 @@ threadmain(int argc, char *argv[])
 	if(configfile == nil)
 		configfile = "venti.conf";
 
-	/* remember free memory before initventi & loadbloom, for auto-sizing */
-	stfree = freemem(); 	 
+	if(mempcnt > 0)
+		stfree = freemem();   /* remember free memory for auto-sizing */
 	fprint(2, "conf...");
 	if(initventi(configfile, &config) < 0)
 		sysfatal("can't init server: %r");

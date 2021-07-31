@@ -75,7 +75,7 @@ runconfig(char *file, Config *config)
 	if(readifile(&f, file) < 0)
 		return -1;
 	memset(config, 0, sizeof *config);
-	config->mem = Unspecified;
+	config->mem = 0xFFFFFFFFUL;
 	ok = -1;
 	line = nil;
 	for(;;){
@@ -140,7 +140,7 @@ runconfig(char *file, Config *config)
 					flds[1], file);
 				break;
 			}
-			if(config->mem != Unspecified){
+			if(config->mem != 0xFFFFFFFFUL){
 				seterr(EAdmin, "duplicate mem lines in config file %s", file);
 				break;
 			}
