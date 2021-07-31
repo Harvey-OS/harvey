@@ -9,7 +9,6 @@
 #include	"pool.h"
 #include	"reboot.h"
 #include	"mp.h"
-#include	<tos.h>
 
 Mach *m;
 
@@ -24,11 +23,6 @@ Mach *m;
 #define BOOTARGS	((char*)(CONFADDR+BOOTLINELEN))
 #define	BOOTARGSLEN	(4096-0x200-BOOTLINELEN)
 #define	MAXCONF		64
-
-enum {
-	/* space for syscall args, return PC, top-of-stack struct */
-	Ustkheadroom	= sizeof(Sargs) + sizeof(uintptr) + sizeof(Tos),
-};
 
 char bootdisk[KNAMELEN];
 Conf conf;
@@ -312,7 +306,7 @@ bootargs(void *base)
 	char *cp = BOOTLINE;
 	char buf[64];
 
-	sp = (uchar*)base + BY2PG - Ustkheadroom;
+	sp = (uchar*)base + BY2PG - MAXSYSARG*BY2WD;
 
 	ac = 0;
 	av[ac++] = pusharg("/386/9dos");
@@ -420,8 +414,8 @@ confinit(void)
 		 * The patch of nimage is a band-aid, scanning the whole
 		 * page list in imagereclaim just takes too long.
 		 */
-		if(kpages > (128*MB + conf.npage*sizeof(Page))/BY2PG){
-			kpages = (128*MB + conf.npage*sizeof(Page))/BY2PG;
+		if(kpages > (64*MB + conf.npage*sizeof(Page))/BY2PG){
+			kpages = (64*MB + conf.npage*sizeof(Page))/BY2PG;
 			conf.nimage = 2000;
 			kpages += (conf.nproc*KSTACK)/BY2PG;
 		}

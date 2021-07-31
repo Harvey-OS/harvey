@@ -11,11 +11,6 @@
 #include	<bootexec.h>
 #include	"reboot.h"
 
-enum {
-	/* space for syscall args, return PC, top-of-stack struct */
-	Stkheadroom	= sizeof(Sargs) + sizeof(uintptr) + sizeof(Tos),
-};
-
 typedef struct mipsexec Mipsexec;
 
 /*
@@ -288,7 +283,7 @@ bootargs(uintptr base)
 	 * of the argument list checked in syscall.
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BY2PG - Stkheadroom - i));
+	p = UINT2PTR(STACKALIGN(base + BY2PG - sizeof(Tos) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -334,7 +329,7 @@ userinit(void)
 	 * Kernel Stack
 	 */
 	p->sched.pc = (ulong)init0;
-	p->sched.sp = (ulong)p->kstack+KSTACK-Stkheadroom;
+	p->sched.sp = (ulong)p->kstack+KSTACK-(sizeof(Sargs)+BY2WD);
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*

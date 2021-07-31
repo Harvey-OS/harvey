@@ -10,11 +10,6 @@
 
 #include "reboot.h"
 
-enum {
-	/* space for syscall args, return PC, top-of-stack struct */
-	Ustkheadroom	= sizeof(Sargs) + sizeof(uintptr) + sizeof(Tos),
-};
-
 /* Firmware compatibility */
 #define	Minfirmrev	326770
 #define	Minfirmdate	"22 Jul 2012"
@@ -331,7 +326,7 @@ bootargs(uintptr base)
 	 * of the argument list checked in syscall.
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BY2PG - Ustkheadroom - i));
+	p = UINT2PTR(STACKALIGN(base + BY2PG - sizeof(Tos) - i));
 	memmove(p, oargb, i);
 
 	/*
