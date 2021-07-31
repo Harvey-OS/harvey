@@ -100,10 +100,8 @@ gettemplate(int type)
 		n = s_read(b, ns, Bsize);
 	while(n > 0);
 	Bterm(b);
-	if(n < 0) {
-		s_free(ns);
+	if(n < 0)
 		goto Return;
-	}
 
 	s_free(cache[type].s);
 	cache[type].s = ns;

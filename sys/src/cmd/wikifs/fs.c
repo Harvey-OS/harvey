@@ -874,7 +874,6 @@ main(int argc, char **argv)
 		d.mode = perm;
 		if(dirwstat(buf, &d) < 0)
 			fprint(2, "wstat: %r\n");
-		free(buf);
 	}
 	exits(nil);
 }
