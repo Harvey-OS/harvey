@@ -320,8 +320,6 @@ struct Iplifc
 .PP
 .I Ipv6rp
 is:
-.PP
-.EX
 struct Ipv6rp
 {
 	int	mflag;
@@ -334,7 +332,6 @@ struct Ipv6rp
 	int	ttl;
 	int	routerlt;	
 };
-.EE
 .PP
 .I Dev
 contains the first 64 bytes of the device configured with this

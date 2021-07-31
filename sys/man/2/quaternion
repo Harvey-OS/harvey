@@ -2,9 +2,10 @@
 .SH NAME
 qtom, mtoq, qadd, qsub, qneg, qmul, qdiv, qunit, qinv, qlen, slerp, qmid, qsqrt \- Quaternion arithmetic
 .SH SYNOPSIS
+.PP
 .B
 #include <draw.h>
-.br
+.PP
 .B
 #include <geometry.h>
 .PP
