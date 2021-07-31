@@ -95,7 +95,7 @@ or the server specified by option
 .PP
 Option
 .B -u
-accesses the secure-store files belonging to
+access the secure-store files belonging to
 .IR user .
 .PP
 Option

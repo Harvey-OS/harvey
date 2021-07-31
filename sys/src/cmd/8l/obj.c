@@ -11,10 +11,6 @@ char	symname[]	= SYMDEF;
 char	thechar		= '8';
 char	*thestring 	= "386";
 
-char**	libdir;
-int	nlibdir	= 0;
-static	int	maxlibdir = 0;
-
 /*
  *	-H0 -T0x40004C -D0x10000000	is garbage unix
  *	-H1 -T0xd0 -R4			is unix coff
@@ -23,13 +19,6 @@ static	int	maxlibdir = 0;
  *	-H4 -Tx -Rx			is fake MS-DOS .EXE
  *	-H5 -T0x80100020 -R4096		is ELF
  */
-
-void
-usage(void)
-{
-	diag("usage: 6l [-options] objects");
-	errorexit();
-}
 
 static int
 isobjfile(char *f)
@@ -58,7 +47,6 @@ main(int argc, char *argv[])
 {
 	int i, c;
 	char *a;
-	char name[LIBNAMELEN];
 
 	Binit(&bso, 1, OWRITE);
 	cout = -1;
@@ -89,9 +77,6 @@ main(int argc, char *argv[])
 		a = ARGF();
 		if(a)
 			HEADTYPE = atolwhex(a);
-		break;
-	case 'L':
-		addlibpath(EARGF(usage()));
 		break;
 	case 'T':
 		a = ARGF();
@@ -126,20 +111,12 @@ main(int argc, char *argv[])
 		break;
 	} ARGEND
 	USED(argc);
-	if(*argv == 0)
-		usage();
+	if(*argv == 0) {
+		diag("usage: 8l [-options] objects");
+		errorexit();
+	}
 	if(!debug['9'] && !debug['U'] && !debug['B'])
 		debug[DEFAULT] = 1;
-	a = getenv("ccroot");
-	if(a != nil && *a != '\0') {
-		if(!fileexists(a)) {
-			diag("nonexistent $ccroot: %s", a);
-			errorexit();
-		}
-	}else
-		a = "";
-	snprint(name, sizeof(name), "%s/%s/lib", a, thestring);
-	addlibpath(name);
 	if(HEADTYPE == -1) {
 		if(debug['U'])
 			HEADTYPE = 1;
@@ -292,7 +269,7 @@ main(int argc, char *argv[])
 	dtype = 4;
 	cout = create(outfile, 1, 0775);
 	if(cout < 0) {
-		diag("cannot create %s: %r", outfile);
+		diag("cannot create %s", outfile);
 		errorexit();
 	}
 	version = 0;
@@ -307,7 +284,7 @@ main(int argc, char *argv[])
 			INITENTRY = "_mainp";
 		if(!debug['l'])
 			lookup(INITENTRY, 0)->type = SXREF;
-	} else if(!(*INITENTRY >= '0' && *INITENTRY <= '9'))
+	} else
 		lookup(INITENTRY, 0)->type = SXREF;
 
 	while(*argv)
@@ -358,42 +335,6 @@ main(int argc, char *argv[])
 }
 
 void
-addlibpath(char *arg)
-{
-	char **p;
-
-	if(nlibdir >= maxlibdir) {
-		if(maxlibdir == 0)
-			maxlibdir = 8;
-		else
-			maxlibdir *= 2;
-		p = malloc(maxlibdir*sizeof(*p));
-		if(p == nil) {
-			diag("out of memory");
-			errorexit();
-		}
-		memmove(p, libdir, nlibdir*sizeof(*p));
-		free(libdir);
-		libdir = p;
-	}
-	libdir[nlibdir++] = strdup(arg);
-}
-
-char*
-findlib(char *file)
-{
-	int i;
-	char name[LIBNAMELEN];
-
-	for(i = 0; i < nlibdir; i++) {
-		snprint(name, sizeof(name), "%s/%s", libdir[i], file);
-		if(fileexists(name))
-			return libdir[i];
-	}
-	return nil;
-}
-
-void
 loadlib(void)
 {
 	int i;
@@ -433,26 +374,25 @@ objfile(char *file)
 	int f, work;
 	Sym *s;
 	char magbuf[SARMAG];
-	char name[LIBNAMELEN], pname[LIBNAMELEN];
+	char name[100], pname[150];
 	struct ar_hdr arhdr;
 	char *e, *start, *stop;
 
+	if(file[0] == '-' && file[1] == 'l') {
+		if(debug['9'])
+			sprint(name, "/%s/lib/lib", thestring);
+		else
+			sprint(name, "/usr/%clib/lib", thechar);
+		strcat(name, file+2);
+		strcat(name, ".a");
+		file = name;
+	}
 	if(debug['v'])
 		Bprint(&bso, "%5.2f ldobj: %s\n", cputime(), file);
 	Bflush(&bso);
-	if(file[0] == '-' && file[1] == 'l') {
-		snprint(pname, sizeof(pname), "lib%s.a", file+2);
-		e = findlib(pname);
-		if(e == nil) {
-			diag("cannot find library: %s", file);
-			errorexit();
-		}
-		snprint(name, sizeof(name), "%s/%s", e, pname);
-		file = name;
-	}
 	f = open(file, 0);
 	if(f < 0) {
-		diag("cannot open %s: %r", file);
+		diag("cannot open file: %s", file);
 		errorexit();
 	}
 	l = read(f, magbuf, SARMAG);
@@ -538,7 +478,7 @@ int
 zaddr(uchar *p, Adr *a, Sym *h[])
 {
 	int c, t, i;
-	int l;
+	long l;
 	Sym *s;
 	Auto *u;
 
@@ -614,24 +554,25 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 void
 addlib(char *obj)
 {
-	char fn1[LIBNAMELEN], fn2[LIBNAMELEN], comp[LIBNAMELEN], *p, *name;
-	int i, search;
+	char name[1024], comp[256], *p;
+	int i;
 
 	if(histfrogp <= 0)
 		return;
 
-	name = fn1;
-	search = 0;
 	if(histfrog[0]->name[1] == '/') {
 		sprint(name, "");
 		i = 1;
-	} else if(histfrog[0]->name[1] == '.') {
+	} else
+	if(histfrog[0]->name[1] == '.') {
 		sprint(name, ".");
 		i = 0;
 	} else {
-		sprint(name, "");
+		if(debug['9'])
+			sprint(name, "/%s/lib", thestring);
+		else
+			sprint(name, "/usr/%clib", thechar);
 		i = 0;
-		search = 1;
 	}
 
 	for(; i<histfrogp; i++) {
@@ -654,25 +595,13 @@ addlib(char *obj)
 			memmove(p+strlen(thestring), p+2, strlen(p+2)+1);
 			memmove(p, thestring, strlen(thestring));
 		}
-		if(strlen(fn1) + strlen(comp) + 3 >= sizeof(fn1)) {
+		if(strlen(name) + strlen(comp) + 3 >= sizeof(name)) {
 			diag("library component too long");
 			return;
 		}
-		if(i > 0 || !search)
-			strcat(fn1, "/");
-		strcat(fn1, comp);
+		strcat(name, "/");
+		strcat(name, comp);
 	}
-
-	cleanname(name);
-
-	if(search){
-		p = findlib(name);
-		if(p != nil){
-			snprint(fn2, sizeof(fn2), "%s/%s", p, name);
-			name = fn2;
-		}
-	}
-
 	for(i=0; i<libraryp; i++)
 		if(strcmp(name, library[i]) == 0)
 			return;
@@ -1158,7 +1087,8 @@ lookup(char *symb, int v)
 	for(p=symb; c = *p; p++)
 		h = h+h+h + c;
 	l = (p - symb) + 1;
-	h &= 0xffffff;
+	if(h < 0)
+		h = ~h;
 	h %= NHASH;
 	for(s = hash[h]; s != S; s = s->link)
 		if(s->version == v)
