@@ -5,10 +5,6 @@
 #include "fns.h"
 #include "io.h"
 
-enum {
-	Max9load = 1024*1024,
-};
-
 static int
 addbytes(char **dbuf, char *edbuf, char **sbuf, char *esbuf)
 {
@@ -50,7 +46,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			b->state = READ9LOAD;
 			b->bp = (char*)0x10000;
 			b->wp = b->bp;
-			b->ep = b->bp + Max9load;
+			b->ep = b->bp + 256*1024;
 			break;
 
 		case READ9LOAD:
@@ -79,7 +75,7 @@ Endofinput:
 			b->state = FAILED;
 			return FAIL;
 		}
-		if(size < 32*1024 || size > Max9load) {
+		if(size < 32*1024 || size > 256*1024) {
 			print("got %lud byte loader; not likely\n", size);
 			b->state = FAILED;
 			return FAIL;
