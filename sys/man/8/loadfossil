@@ -20,16 +20,18 @@ using the
 .IR mkfs (8)
 prototype file
 .I proto
-and installs the configuration in
+and installs a configuration derived from
 .IR fossil.conf .
 .PP
-Simply declaring
+The
 .LR "fsys main config"
-in
+line of
 .I fossil.conf
-takes the device name from
-.L "fossil -f"
-and avoids wiring it into the configuration.
+will be replaced by a reference to
+.IR fossil ,
+so
+.I fossil
+ought to be a full path name.
 .SH EXAMPLES
 Create a standalone
 .I fossil

@@ -51,10 +51,10 @@ static char *
 ventihost(char *host)
 {
 	if(host != nil)
-		return vtStrDup(host);
+		return strdup(host);
 	host = getenv("venti");
 	if(host == nil)
-		host = vtStrDup("$venti");
+		host = strdup("$venti");
 	return host;
 }
 
@@ -1690,22 +1690,16 @@ static int
 fsysConfig(char* name, int argc, char* argv[])
 {
 	Fsys *fsys;
-	char *part;
-	char *usage = "usage: fsys name config [dev]";
+	char *usage = "usage: fsys name config dev";
 
 	ARGBEGIN{
 	default:
 		return cliError(usage);
 	}ARGEND
-	if(argc > 1)
+	if(argc != 1)
 		return cliError(usage);
 
-	if(argc == 0)
-		part = foptname;
-	else
-		part = argv[0];
-
-	if((fsys = _fsysGet(part)) != nil){
+	if((fsys = _fsysGet(argv[0])) != nil){
 		vtLock(fsys->lock);
 		if(fsys->fs != nil){
 			vtSetError(EFsysBusy, fsys->name);
@@ -1714,13 +1708,14 @@ fsysConfig(char* name, int argc, char* argv[])
 			return 0;
 		}
 		vtMemFree(fsys->dev);
-		fsys->dev = vtStrDup(part);
+		fsys->dev = vtStrDup(argv[0]);
 		vtUnlock(fsys->lock);
 	}
-	else if((fsys = fsysAlloc(name, part)) == nil)
+	else if((fsys = fsysAlloc(name, argv[0])) == nil)
 		return 0;
 
 	fsysPut(fsys);
+
 	return 1;
 }
 

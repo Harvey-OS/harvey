@@ -1824,11 +1824,11 @@ fileName(File *f)
 	static char root[] = "/";
 
 	if (f == nil)
-		return vtStrDup("/**GOK**");
+		return strdup("/**GOK**");
 
 	p = fileGetParent(f);
 	if (p == f)
-		name = vtStrDup(root);
+		name = strdup(root);
 	else {
 		pname = fileName(p);
 		if (strcmp(pname, root) == 0)
