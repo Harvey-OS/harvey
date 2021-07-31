@@ -57,7 +57,7 @@ doswit(Node *n)
 		q++;
 	}
 	qsort(iq, nc, sizeof(C1), swcmp);
-	if(debug['K'])
+	if(debug['W'])
 	for(i=0; i<nc; i++)
 		print("case %2ld: = %.8llux\n", i, (vlong)iq[i].val);
 	dup = 0;
