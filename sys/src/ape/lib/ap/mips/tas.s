@@ -1,5 +1,5 @@
 /*
- *	mips user level lock code
+ *	magnum user level lock code
  */
 
 #define	LL(base, rt)	WORD	$((060<<26)|((base)<<21)|((rt)<<16))
@@ -26,4 +26,8 @@ tas1:
 	SC(2, 3)
 	NOOP
 	BEQ	R3, tas1
+	RET
+
+	TEXT	C_fcr0(SB), $0
+	MOVW	FCR0, R1
 	RET

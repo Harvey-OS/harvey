@@ -43,8 +43,7 @@ lockinit(void)
 	case R4K:
 		break;
 	default:
-		arch = R4K;
-		break;
+		abort();
 	}
 	
 }
