@@ -7,7 +7,6 @@
 #define	SWAB	(1<<2)
 #define NERR	(1<<3)
 #define SYNC	(1<<4)
-
 int	cflag;
 int	fflag;
 char	*string;
@@ -171,8 +170,6 @@ main(int argc, char *argv[])
 				cflag |= SYNC;
 				goto cloop;
 			}
-			fprint(2, "dd: bad conv %s\n", argv[c]);
-			exits("arg");
 		}
 		fprint(2, "dd: bad arg: %s\n", key);
 		exits("arg");

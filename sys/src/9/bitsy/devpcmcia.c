@@ -407,7 +407,6 @@ pcmctlwrite(char *p, long n, ulong, PCMslot *sp)
 		if(devtab[dtx]->config(1, p, &cf) < 0)
 			error("couldn't configure device");
 		sp->dev = devtab[dtx];
-		free(cf.type);
 		wunlock(sp);
 		poperror();
 
