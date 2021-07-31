@@ -46,7 +46,6 @@ struct Con {
 	int	isconsole;		/* immutable */
 	int	noauth;			/* immutable */
 	int	noperm;			/* immutable */
-	int	wstatallow;		/* immutable */
 
 	VtLock*	lock;
 	int	state;

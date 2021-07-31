@@ -395,6 +395,26 @@ cmdEcho(int argc, char* argv[])
 	return 1;
 }
 
+static int
+cmdFixFid(int argc, char* argv[])
+{
+	char *usage;
+	extern int fixFid;
+
+	usage = "usage: fixfid fidnum\n";
+
+	ARGBEGIN{
+	default:
+		return cliError(usage);
+	}ARGEND
+
+	if(argc != 1)
+		return cliError(usage);
+
+	fixFid = atoi(argv[0]);
+	return 1;
+}
+
 int
 cmdInit(void)
 {
@@ -405,6 +425,7 @@ cmdInit(void)
 	cliAddCmd("9p", cmd9p);
 	cliAddCmd("dflag", cmdDflag);
 	cliAddCmd("echo", cmdEcho);
+	cliAddCmd("fixfid", cmdFixFid);
 
 	if(pipe(cbox.confd) < 0)
 		return 0;

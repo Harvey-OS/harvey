@@ -118,12 +118,12 @@ srvAlloc(char* service, int mode, int fd)
 static int
 cmdSrv(int argc, char* argv[])
 {
-	Con *con;
 	Srv *srv;
-	char *usage = "usage: srv [-APWdp] [service]";
-	int Aflag, Pflag, Wflag, dflag, fd[2], mode, pflag, r;
+	int Aflag, dflag, Pflag, fd[2], mode, pflag, r;
+	char *usage = "usage: srv [-Adp] [service]";
+	Con *con;
 
-	Aflag = Pflag = Wflag = dflag = pflag = 0;
+	Aflag = dflag = pflag = Pflag = 0;
 	mode = 0666;
 
 	ARGBEGIN{
@@ -132,19 +132,15 @@ cmdSrv(int argc, char* argv[])
 	case 'A':
 		Aflag = 1;
 		break;
-	case 'P':
-		Pflag = 1;
-		mode = 0600;
-		break;
-	case 'W':
-		Wflag = 1;
-		mode = 0600;
-		break;
 	case 'd':
 		dflag = 1;
 		break;
 	case 'p':
 		pflag = 1;
+		mode = 0600;
+		break;
+	case 'P':
+		Pflag = 1;
 		mode = 0600;
 		break;
 	}ARGEND
@@ -204,7 +200,6 @@ cmdSrv(int argc, char* argv[])
 			r = 1;
 			con->noauth = Aflag;
 			con->noperm = Pflag;
-			con->wstatallow = Wflag;
 		}
 	}
 	if(r == 0){
