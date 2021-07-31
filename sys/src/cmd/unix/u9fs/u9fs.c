@@ -60,7 +60,6 @@ struct Fid {
 	int diroffset;
 	int fd;
 	struct dirent *dirent;
-	int direof;
 	Fid *next;
 	Fid *prev;
 	int auth;
@@ -740,11 +739,6 @@ rread(Fcall *rx, Fcall *tx)
 			}
 			rewinddir(fid->dir);
 			fid->diroffset = 0;
-			fid->direof = 0;
-		}
-		if(fid->direof){
-			tx->count = 0;
-			return;
 		}
 
 		p = (uchar*)tx->data;
@@ -753,10 +747,8 @@ rread(Fcall *rx, Fcall *tx)
 			if(p+BIT16SZ >= ep)
 				break;
 			if(fid->dirent == nil)	/* one entry cache for when convD2M fails */
-				if((fid->dirent = readdir(fid->dir)) == nil){
-					fid->direof = 1;
+				if((fid->dirent = readdir(fid->dir)) == nil)
 					break;
-				}
 			if(strcmp(fid->dirent->d_name, ".") == 0
 			|| strcmp(fid->dirent->d_name, "..") == 0){
 				fid->dirent = nil;
