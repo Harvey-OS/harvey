@@ -30,7 +30,6 @@ THIS SOFTWARE.
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include <utf.h>
 #include "awk.h"
 #include "y.tab.h"
 
@@ -1195,9 +1194,10 @@ Cell *dopa2(Node **a, int n)	/* a[0], a[1] { a[2] } */
 Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 {
 	Cell *x = 0, *y, *ap;
-	char *s, *t, *fs = 0;
-	char temp, num[50];
-	int n, nb, sep, tempstat, arg3type;
+	char *s;
+	int sep;
+	char *t, temp, num[50], *fs = 0;
+	int n, tempstat, arg3type;
 
 	y = execute(a[0]);	/* source string */
 	s = getsval(y);
@@ -1279,15 +1279,12 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 				s++;
 		}
 	} else if (sep == 0) {	/* new: split(s, a, "") => 1 char/elem */
-		for (n = 0; *s != 0; s += nb) {
-			Rune r;
-			char buf[UTFmax+1];
-
+		for (n = 0; *s != 0; s++) {
+			char buf[2];
 			n++;
-			snprintf(num, sizeof num, "%d", n);
-			nb = chartorune(&r, s);
-			memmove(buf, s, nb);
-			buf[nb] = '\0';
+			sprintf(num, "%d", n);
+			buf[0] = *s;
+			buf[1] = 0;
 			if (isdigit(buf[0]))
 				setsymtab(num, buf, atof(buf), STR|NUM, (Array *) ap->sval);
 			else
