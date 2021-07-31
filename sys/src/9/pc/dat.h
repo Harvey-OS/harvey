@@ -214,8 +214,6 @@ struct Mach
 	int	havetsc;
 	int	havepge;
 	uvlong	tscticks;
-	int	pdballoc;
-	int	pdbfree;
 
 	vlong	mtrrcap;
 	vlong	mtrrdef;

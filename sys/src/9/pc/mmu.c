@@ -211,7 +211,6 @@ mmupdballoc(void)
 	ulong *pdb;
 
 	s = splhi();
-	m->pdballoc++;
 	if(m->pdbpool == 0){
 		spllo();
 		page = newpage(0, 0, 0);
@@ -235,14 +234,12 @@ mmupdbfree(Proc *proc, Page *p)
 {
 	if(islo())
 		panic("mmupdbfree: islo");
-	m->pdbfree++;
 	if(m->pdbcnt >= 10){
 		p->next = proc->mmufree;
 		proc->mmufree = p;
 	}else{
 		p->next = m->pdbpool;
 		m->pdbpool = p;
-		m->pdbcnt++;
 	}
 }
 
@@ -325,11 +322,10 @@ mmuswitch(Proc* proc)
 void
 mmurelease(Proc* proc)
 {
+	int s;
 	Page *page, *next;
 	ulong *pdb;
 
-	if(islo())
-		panic("mmurelease: islo");
 	taskswitch(PADDR(m->pdb), (ulong)m + BY2PG);
 	if(proc->kmaptable){
 		if(proc->mmupdb == nil)
@@ -341,12 +337,14 @@ mmurelease(Proc* proc)
 		/*
 		 * remove kmaptable from pdb before putting pdb up for reuse.
 		 */
+		s = splhi();
 		pdb = tmpmap(proc->mmupdb);
 		if(PPN(pdb[PDX(KMAP)]) != proc->kmaptable->pa)
 			panic("mmurelease: bad kmap pde %#.8lux kmap %#.8lux",
 				pdb[PDX(KMAP)], proc->kmaptable->pa);
 		pdb[PDX(KMAP)] = 0;
 		tmpunmap(pdb);
+		splx(s);
 		/*
 		 * move kmaptable to free list.
 		 */
@@ -385,8 +383,7 @@ upallocpdb(void)
 	pdb[PDX(MACHADDR)] = m->pdb[PDX(MACHADDR)];
 	tmpunmap(pdb);
 	up->mmupdb = page;
-//XXX should have this	m->tss->cr3 = up->mmupdb->pa;
-	putcr3(up->mmupdb->pa);
+	mmuflushtlb(up->mmupdb->pa);
 	splx(s);
 }
 	
@@ -396,12 +393,13 @@ upallocpdb(void)
 void
 putmmu(ulong va, ulong pa, Page*)
 {
-	int old;
+	int old, s;
 	Page *page;
 
 	if(up->mmupdb == nil)
 		upallocpdb();
 
+	s = splhi();
 	if(!(vpd[PDX(va)]&PTEVALID)){
 		if(up->mmufree == 0)
 			page = newpage(0, 0, 0);
@@ -420,8 +418,7 @@ putmmu(ulong va, ulong pa, Page*)
 	vpt[VPTX(va)] = pa|PTEUSER|PTEVALID;
 	if(old&PTEVALID)
 		flushpg(va);
-	if(getcr3() != up->mmupdb->pa)
-		print("bad cr3 %.8lux %.8lux\n", getcr3(), up->mmupdb->pa);
+	splx(s);
 }
 
 /*
@@ -575,7 +572,7 @@ vmapalloc(ulong size)
 		n = (size+4*MB-1) / (4*MB);
 		if((o = findhole(vpdb, vpdbsize, n)) != -1)
 			return VMAP + o*4*MB;
-		return 0;
+		return VMAP + o;
 	}
 	n = (size+BY2PG-1) / BY2PG;
 	for(i=0; i<vpdbsize; i++)
@@ -991,12 +988,8 @@ countpagerefs(ulong *ref, int print)
 					pg->pa, i);
 		}
 	}
-	if(!print){
+	if(!print)
 		iprint("%d pages in mach pdbpools\n", n);
-		for(i=0; i<conf.nmach; i++)
-			iprint("cpu%d: %d pdballoc, %d pdbfree\n",
-				i, MACHP(i)->pdballoc, MACHP(i)->pdbfree);
-	}
 }
 
 void

@@ -224,8 +224,6 @@ mkinstr(uvlong pc, Instr *i)
 	return 1;
 }
 
-#pragma	varargck	argpos	bprint		2
-
 static void
 bprint(Instr *i, char *fmt, ...)
 {
