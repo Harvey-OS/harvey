@@ -28,7 +28,7 @@ configip(int bargc, char **bargv, int needfs)
 
 	arg = malloc((bargc+1) * sizeof(char*));
 	if(arg == nil)
-		fatal("malloc");
+		fatal("%r");
 	memmove(arg, bargv, bargc * sizeof(char*));
 	arg[bargc] = 0;
 
@@ -61,7 +61,7 @@ configip(int bargc, char **bargv, int needfs)
 	/* let ipconfig configure the ip interface */
 	switch(pid = fork()){
 	case -1:
-		fatal("configuring ip");
+		fatal("configuring ip: %r");
 	case 0:
 		exec("/boot/ipconfig", arg);
 		fatal("execing /ipconfig");
@@ -92,8 +92,7 @@ configip(int bargc, char **bargv, int needfs)
 	while(!isvalidip(fsip)){
 		buf[0] = 0;
 		outin("filesystem IP address", buf, sizeof(buf));
-		if (parseip(fsip, buf) == -1)
-			fprint(2, "configip: can't parse fs ip %s\n", buf);
+		parseip(fsip, buf);
 	}
 
 	netndb("auth", auip);
@@ -102,8 +101,7 @@ configip(int bargc, char **bargv, int needfs)
 	while(!isvalidip(auip)){
 		buf[0] = 0;
 		outin("authentication server IP address", buf, sizeof(buf));
-		if (parseip(auip, buf) == -1)
-			fprint(2, "configip: can't parse auth ip %s\n", buf);
+		parseip(auip, buf);
 	}
 }
 
@@ -126,14 +124,10 @@ configtcp(Method*)
 int
 connecttcp(void)
 {
-	int fd;
 	char buf[64];
 
 	snprint(buf, sizeof buf, "tcp!%I!564", fsip);
-	fd = dial(buf, 0, 0, 0);
-	if (fd < 0)
-		werrstr("dial %s: %r", buf);
-	return fd;
+	return dial(buf, 0, 0, 0);
 }
 
 void
@@ -178,8 +172,7 @@ netenv(char *attr, uchar *ip)
 	if(n <= 0)
 		return;
 	buf[n] = 0;
-	if (parseip(ip, buf) == -1)
-		fprint(2, "netenv: can't parse ip %s\n", buf);
+	parseip(ip, buf);
 }
 
 static void
@@ -200,17 +193,17 @@ netndb(char *attr, uchar *ip)
 		return;
 	buf[n] = 0;
 	n = strlen(attr);
-	for(p = buf; ; p++){
+	for(p = buf;;){
 		p = strstr(p, attr);
 		if(p == nil)
 			break;
 		c = *(p-1);
 		if(*(p + n) == '=' && (p == buf || c == '\n' || c == ' ' || c == '\t')){
 			p += n+1;
-			if (parseip(ip, p) == -1)
-				fprint(2, "netndb: can't parse ip %s\n", p);
+			parseip(ip, p);
 			return;
 		}
+		p++;
 	}
 	return;
 }

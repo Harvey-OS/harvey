@@ -38,7 +38,7 @@ authentication(int cpuflag)
 	av[ac] = 0;
 	switch(fork()){
 	case -1:
-		fatal("starting factotum");
+		fatal("starting factotum: %r");
 	case 0:
 		exec("/boot/factotum", av);
 		fatal("execing /boot/factotum");
