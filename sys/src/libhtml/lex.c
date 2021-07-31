@@ -1418,7 +1418,7 @@ Tconv(Fmt *f)
 
 	t = va_arg(f->args, Token*);
 	if(t == nil)
-		snprint(buf, sizeof buf, "<null>");
+		sprint(buf, "<null>");
 	else {
 		i = 0;
 		if(dbglex > 1)
