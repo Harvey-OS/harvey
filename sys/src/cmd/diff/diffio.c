@@ -227,12 +227,10 @@ fetch(long *f, int a, int b, Biobuf *bp, char *s)
 {
 	char buf[MAXLINELEN];
 
-	if(a < 1)
-		a = 1;
 	Bseek(bp, f[a-1], 0);
 	while (a++ <= b) {
-		if(readline(bp, buf) >= 0)
-			Bprint(&stdout, "%s%s\n", s, buf);
+		readline(bp, buf);
+		Bprint(&stdout, "%s%s\n", s, buf);
 	}
 }
 
@@ -268,7 +266,6 @@ change(int a, int b, int c, int d)
 		Bputc(&stdout, verb);
 		range(c, d, ",");
 		break;
-	case 'c':
 	case 'n':
 		Bprint(&stdout, "%s:", file1);
 		range(a, b, ",");
@@ -282,20 +279,13 @@ change(int a, int b, int c, int d)
 		break;
 	}
 	Bputc(&stdout, '\n');
-	if (mode == 'c') {
-		fetch(ixold, a-4, a-1, input[0], "  ");
+	if (mode == 0 || mode == 'n') {
 		fetch(ixold, a, b, input[0], "< ");
-		fetch(ixnew, c, d, input[1], "> ");
-		fetch(ixnew, d+1, d+4, input[1], "  ");
-	} else {
-		if (mode == 0 || mode == 'n') {
-			fetch(ixold, a, b, input[0], "< ");
-			if (a <= b && c <= d)
-				Bprint(&stdout, "---\n");
-		}
-		fetch(ixnew, c, d, input[1], mode == 0 || mode == 'n' ? "> ": "");
-		if (mode != 0 && mode != 'n' && c <= d)
-			Bprint(&stdout, ".\n");
+		if (a <= b && c <= d)
+			Bprint(&stdout, "---\n");
 	}
+	fetch(ixnew, c, d, input[1], mode == 0 || mode == 'n' ? "> ": "");
+	if (mode != 0 && mode != 'n' && c <= d)
+		Bprint(&stdout, ".\n");
 }
 

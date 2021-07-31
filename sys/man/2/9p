@@ -319,10 +319,10 @@ If authentication is desired,
 the
 .I auth
 function should record that
-.IB r -> afid
+.I afid
 is the new authentication fid and
 set 
-.IB r -> afid -> qid
+.I afid->qid
 and
 .IR ofcall.qid .
 .I Auth
