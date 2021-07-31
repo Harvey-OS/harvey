@@ -784,15 +784,19 @@ TEXT fpinit(SB), $0				/* enable and init */
 	WAIT
 	RET
 
+/* fpx87save(&fpstateptr) */
 TEXT fpx87save(SB), $0				/* save state and disable */
 	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
 	FSAVE	0(AX)				/* no WAIT */
 	FPOFF
 	RET
 
+/* fpx87restore(&fpstateptr) */
 TEXT fpx87restore(SB), $0			/* enable and restore state */
 	FPON
-	MOVL	p+0(FP), AX
+	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
 	FRSTOR	0(AX)
 	WAIT
 	RET
@@ -801,8 +805,10 @@ TEXT fpstatus(SB), $0				/* get floating point status */
 	FSTSW	AX
 	RET
 
+/* fpenv(&fpstateptr) */
 TEXT fpenv(SB), $0				/* save state without waiting */
-	MOVL	p+0(FP), AX
+	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
 	FSTENV	0(AX)
 	RET
 
@@ -812,15 +818,19 @@ TEXT fpclear(SB), $0				/* clear pending exceptions */
 	FPOFF
 	RET
 
-TEXT fpssesave0(SB), $0				/* save state and disable */
-	MOVL	p+0(FP), AX
+/* fpssesave(&fpstateptr) */
+TEXT fpssesave(SB), $0				/* save state and disable */
+	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
 	FXSAVE					/* no WAIT */
 	FPOFF
 	RET
 
-TEXT fpsserestore0(SB), $0			/* enable and restore state */
+/* fpsserestore(&fpstateptr) */
+TEXT fpsserestore(SB), $0				/* enable and restore state */
 	FPON
-	MOVL	p+0(FP), AX
+	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
 	FXRSTOR
 	WAIT
 	RET

@@ -2,7 +2,8 @@ typedef struct BIOS32si	BIOS32si;
 typedef struct BIOS32ci	BIOS32ci;
 typedef struct Conf	Conf;
 typedef struct Confmem	Confmem;
-typedef union FPsave	FPsave;
+typedef union FPanystate FPanystate;
+typedef struct FPsave	FPsave;
 typedef struct FPssestate FPssestate;
 typedef struct FPstate	FPstate;
 typedef struct ISAConf	ISAConf;
@@ -86,7 +87,7 @@ struct	FPstate			/* x87 fpu state */
 	uchar	regs[80];	/* floating point registers */
 };
 
-struct	FPssestate		/* SSE fp state */
+struct	FPssestate			/* SSE fp state */
 {
 	ushort	fcw;		/* control */
 	ushort	fsw;		/* status */
@@ -101,16 +102,17 @@ struct	FPssestate		/* SSE fp state */
 	ulong	mxcsr;		/* MXCSR register state */
 	ulong	mxcsr_mask;	/* MXCSR mask register */
 	uchar	xregs[480];	/* extended registers */
-	uchar	alignpad[FPalign];
 };
 
-/*
- * the FP regs must be stored here, not somewhere pointed to from here.
- * port code assumes this.
- */
-union FPsave {
+#define FPalign	16	/* required for FXSAVE */
+
+union FPanystate {
 	FPstate;
 	FPssestate;
+};
+
+struct FPsave {
+	FPanystate *addr;	/* addr of fp state if it is alloced */ 
 };
 
 struct Confmem

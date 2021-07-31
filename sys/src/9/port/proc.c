@@ -1047,6 +1047,9 @@ pexit(char *exitstr, int freemem)
 
 	if(up->syscalltrace)
 		free(up->syscalltrace);
+	up->fpstate = FPinit;
+	if(up->fpexit)
+		up->fpexit();
 	up->alarm = 0;
 	if (up->tt)
 		timerdel(up);
