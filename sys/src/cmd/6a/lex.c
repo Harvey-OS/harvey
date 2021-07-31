@@ -509,8 +509,6 @@ jackpot:
 		if(sf < 0 || sf >= NSYM)
 			sf = 0;
 		t = g2->from.type;
-		if(t == D_ADDR)
-			t = g2->from.index;
 		if(h[sf].type == t)
 		if(h[sf].sym == s)
 			break;
@@ -531,8 +529,6 @@ jackpot:
 		if(st < 0 || st >= NSYM)
 			st = 0;
 		t = g2->to.type;
-		if(t == D_ADDR)
-			t = g2->to.index;
 		if(h[st].type == t)
 		if(h[st].sym == s)
 			break;

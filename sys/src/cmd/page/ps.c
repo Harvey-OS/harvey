@@ -26,7 +26,6 @@ struct PSInfo {
 	Page *page;
 	int npage;
 	int clueless;	/* don't know where page boundaries are */
-	long psoff;	/* location of %! in file */
 	char ctm[256];
 };
 
@@ -136,13 +135,11 @@ initps(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 	char *nargv[1];
 	char fdbuf[20];
 	int fd;
-	int i;
 	int incomments;
 	int cantranslate;
 	int trailer=0;
 	int nesting=0;
 	int dumb=0;
-	long psoff;
 	long npage, mpage;
 	Page *page;
 	Rectangle bbox = Rect(0,0,0,0);
@@ -165,22 +162,13 @@ initps(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 		argv = nargv;
 	}
 
-	/* find %!, perhaps after PCL nonsense */
+	/* sanity check */
 	Bseek(b, 0, 0);
-	psoff = 0;
-	eol = 0;
-	for(i=0; i<16; i++){
-		psoff = Boffset(b);
-		if(!(p = Brdline(b, eol='\n')) && !(p = Brdline(b, eol='\r'))) {
-			fprint(2, "cannot find end of first line\n");
-			wexits("initps");
-		}
-		if(p[0]=='\x1B')
-			p++, psoff++;
-		if(p[0] == '%' && p[1] == '!')
-			break;
+	if(!(p = Brdline(b, eol='\n')) && !(p = Brdline(b, eol='\r'))) {
+		fprint(2, "cannot find end of first line\n");
+		wexits("initps");
 	}
-	if(i == 16){
+	if(p[0] != '%' || p[1] != '!') {
 		werrstr("not ps");
 		return nil;
 	}
@@ -331,7 +319,6 @@ Keepreading:
 	ps->page = page;
 	ps->npage = npage;
 	ps->bbox = bbox;
-	ps->psoff = psoff;
 
 	d->extra = ps;
 	d->npage = ps->npage;
@@ -360,7 +347,7 @@ Keepreading:
 
 	if(dumb) {
 		fprint(ps->gsfd, "(%s) run\n", argv[0]);
-		fprint(ps->gsfd, "(/fd/3) (w) file dup (THIS IS NOT A PLAN9 BITMAP 01234567890123456789012345678901234567890123456789\\n) writestring flushfile\n");
+		fprint(ps->gsfd, "(/fd/3) (w) file dup (THIS IS NOT A PLAN9 BITMAP\\n) writestring flushfile\n");
 	}
 
 	ps->bbox = bbox;
@@ -378,7 +365,7 @@ pswritepage(Document *d, int fd, int page)
 	char buf[8192];
 
 	if(page == -1)
-		begin = ps->psoff;
+		begin = 0;
 	else
 		begin = ps->page[page].offset;
 

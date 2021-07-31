@@ -14,7 +14,6 @@
  * the LBA of the root directory.
  */
 #include "x16.h"
-#include "mem.h"
 
 #define LOADSEG		(0x10000/16)	/* where to load code (64KB) */
 #define LOADOFF		0
@@ -104,12 +103,12 @@ _start0x3E:
 	STI
 
 	LWI(confidence(SB), rSI)	/* for that warm, fuzzy feeling */
-	CALL16(BIOSputs(SB))
+	CALL(BIOSputs(SB))
 
 	LBI(0x41, rAH)			/* check extensions present */
 	LWI(0x55AA, rBX)
 	LXB(Xdrive, xBP, rDL)		/* drive */
-	BIOSCALL(0x13)			/* CF set on failure */
+	SYSCALL(0x13)			/* CF set on failure */
 	JCS _jmp01
 	CMPI(0xAA55, rBX)
 	JNE _jmp01
@@ -124,14 +123,14 @@ _start0x3E:
 	SBPW(rCX, Xdap+12)
 	SBPW(rCX, Xdap+14)
 
-	CALL16(dreset(SB))
+	CALL(dreset(SB))
 
 _jmp00:
 	LW(_volid(SB), rAX)		/* Xrootlo */
 	LW(_volid+2(SB), rDX)		/* Xroothi */
 
 	LWI(_magic+DIROFF(SB), rBX)
-	CALL16(BIOSread(SB))		/* read the root directory */
+	CALL(BIOSread(SB))		/* read the root directory */
 
 	LWI((512/Dirsz), rBX)
 
@@ -152,7 +151,7 @@ _cmp00:
 	ADDI(Dirsz, rDI)
 	JMP _cmp00
 _jmp01:
-	CALL16(buggery(SB))
+	CALL(buggery(SB))
 
 _jmp02:
 	CLR(rBX)			/* a handy value */
@@ -205,7 +204,7 @@ _jmp02:
 	LWI(LOADOFF, rBX)		/*  offset */
 
 _readboot:
-	CALL16(BIOSread(SB))		/* read the sector */
+	CALL(BIOSread(SB))		/* read the sector */
 
 	LW(_sectsize(SB), rDI)		/* bump addresses/counts */
 	ADD(rDI, rBX)
@@ -227,11 +226,11 @@ _incsecno:
 
 TEXT buggery(SB), $0
 	LWI(error(SB), rSI)
-	CALL16(BIOSputs(SB))
+	CALL(BIOSputs(SB))
 
 _wait:
 	CLR(rAX)			/* wait for almost any key */
-	BIOSCALL(0x16)
+	SYSCALL(0x16)
 
 _reset:
 	CLR(rBX)			/* set ES segment for BIOS area */
@@ -252,7 +251,7 @@ _reset:
 TEXT BIOSread(SB), $0
 	LWI(5, rDI)			/* retry count (ATAPI ZIPs suck) */
 _retry:
-	PUSHA				/* may be trashed by BIOSCALL */
+	PUSHA				/* may be trashed by SYSCALL */
 
 	SBPW(rBX, Xdap+4)		/* transfer buffer :offset */
 	MFSR(rES, rDI)			/* transfer buffer seg: */
@@ -263,19 +262,19 @@ _retry:
 	MW(rBP, rSI)			/* disk address packet */
 	LBI(0x42, rAH)			/* extended read */
 	LBPB(Xdrive, rDL)		/* form drive */
-	BIOSCALL(0x13)			/* CF set on failure */
+	SYSCALL(0x13)			/* CF set on failure */
 	JCC _BIOSreadret
 
 	POPA
 	DEC(rDI)			/* too many retries? */
 	JEQ _ioerror
 
-	CALL16(dreset(SB))
+	CALL(dreset(SB))
 	JMP _retry
 
 _ioerror:
 	LWI(ioerror(SB), rSI)
-	CALL16(BIOSputs(SB))
+	CALL(BIOSputs(SB))
 	JMP _wait
 
 _BIOSreadret:
@@ -286,7 +285,7 @@ TEXT dreset(SB), $0
 	PUSHA
 	CLR(rAX)			/* rAH == 0 == reset disc system */
 	LBPB(Xdrive, rDL)
-	BIOSCALL(0x13)
+	SYSCALL(0x13)
 	ORB(rAH, rAH)			/* status (0 == success) */
 	POPA
 	JNE _ioerror
@@ -305,7 +304,7 @@ _BIOSputs:
 	JEQ _BIOSputsret
 
 	LBI(0x0E, rAH)
-	BIOSCALL(0x10)
+	SYSCALL(0x10)
 	JMP _BIOSputs
 
 _BIOSputsret:

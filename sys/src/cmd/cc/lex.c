@@ -153,8 +153,6 @@ compile(char *file, char **defs, int ndef)
 			p = utfrune(outfile, 0);
 			if(debug['a'] && debug['n'])
 				strcat(p, ".acid");
-			else if(debug['P'] && debug['n'])
-				strcat(p, "_pickle.c");
 			else {
 				p[0] = '.';
 				p[1] = thechar;
@@ -173,7 +171,7 @@ compile(char *file, char **defs, int ndef)
 			setinclude("/sys/include");
 		}
 	}
-	if((debug['a'] || debug['P']) && !debug['n']) {
+	if(debug['a'] && !debug['n']) {
 		outfile = 0;
 		Binit(&outbuf, 1, OWRITE);
 	} else {
@@ -193,10 +191,6 @@ compile(char *file, char **defs, int ndef)
 			diag(Z, "-p option not supported on windows");
 			errorexit();
 		}
-		if(myaccess(file) < 0) {
-			diag(Z, "%s does not exist", file);
-			errorexit();
-		}
 		if(mypipe(fd) < 0) {
 			diag(Z, "pipe failed");
 			errorexit();
@@ -211,10 +205,6 @@ compile(char *file, char **defs, int ndef)
 			close(fd[1]);
 			av[0] = CPP;
 			i = 1;
-			if(debug['+']) {
-				sprint(opt, "-+");
-				av[i++] = strdup(opt);
-			}
 			for(c = 0; c < ndef; c++) {
 				sprint(opt, "-D%s", defs[c]);
 				av[i++] = strdup(opt);
@@ -246,7 +236,7 @@ compile(char *file, char **defs, int ndef)
 			newfile(file, -1);
 	}
 	yyparse();
-	if(!debug['a'] && !debug['P'])
+	if(!debug['a'])
 		gclean();
 	return nerrors;
 }
@@ -711,8 +701,11 @@ talph:
 		goto l0;
 	}
 	yylval.sym = s;
-	if(s->class == CTYPEDEF || s->class == CTYPESTR)
-		return LTYPE;
+	if(s->class == CTYPEDEF) {
+		if(s->type && typesu[s->type->etype])
+			return LCTYPE;
+		return LSTYPE;
+	}
 	return s->lexical;
 
 tnum:
@@ -1134,7 +1127,6 @@ struct
 	"struct",	LSTRUCT,	0,
 	"switch",	LSWITCH,	0,
 	"typedef",	LTYPEDEF,	0,
-	"typestr",	LTYPESTR,	0,
 	"union",	LUNION,		0,
 	"unsigned",	LUNSIGNED,	0,
 	"USED",		LUSED,		0,

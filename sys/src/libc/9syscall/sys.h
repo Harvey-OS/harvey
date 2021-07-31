@@ -38,5 +38,3 @@
 #define WRITE9P		37
 #define READ9P		38
 #define SEEK		39
-#define	PREAD		50
-#define	PWRITE		51

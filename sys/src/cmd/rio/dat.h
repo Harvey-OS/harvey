@@ -7,7 +7,6 @@ enum
 	Qwdir,
 	Qwinid,
 	Qwinname,
-	Qkbdin,
 	Qlabel,
 	Qmouse,
 	Qnew,
@@ -79,17 +78,20 @@ struct Wctlmesg
 struct Conswritemesg
 {
 	Channel	*cw;		/* chan(Stringpair) */
+	int		isflush;
 };
 
 struct Consreadmesg
 {
 	Channel	*c1;		/* chan(tuple(char*, int) == Stringpair) */
 	Channel	*c2;		/* chan(tuple(char*, int) == Stringpair) */
+	int		isflush;
 };
 
 struct Mousereadmesg
 {
 	Channel	*cm;		/* chan(Mouse) */
+	int		isflush;
 };
 
 struct Stringpair	/* rune and nrune or byte and nbyte */
@@ -235,20 +237,30 @@ struct Fid
 	uchar	rpart[UTFmax];
 };
 
+enum	/* Xfid.flushtype */
+{
+	Fconsread,
+	Fconswrite,
+	Fmouseread,
+	Fwctlread,
+	NFlush
+};
+
 struct Xfid
 {
 		Ref;
 		Xfid		*next;
 		Xfid		*free;
+		int		flushtag;	/* inability to have both ends of a channel in an alt */
+		int		flushtype;	/* requires us to receive the flush message in the window */
+		Window	*flushw;	/* rather than the associated Xfid: disgusting */
 		Fcall;
 		Channel	*c;	/* chan(void(*)(Xfid*)) */
 		Fid		*f;
 		char	*buf;
 		Filsys	*fs;
 		QLock	active;
-		int		flushing;	/* another Xfid is trying to flush us */
-		int		flushtag;	/* our tag, so flush can find us */
-		Channel	*flushc;	/* channel(int) to notify us we're being flushed */
+		int		flushing;
 };
 
 Channel*	xfidinit(void);
@@ -311,7 +323,6 @@ Image	*background;
 Image	*lightgrey;
 Image	*red;
 Window	**window;
-Window	*wkeyboard;	/* window of simulated keyboard */
 int		nwindow;
 int		snarffd;
 Window	*input;
@@ -332,4 +343,3 @@ char		srvpipe[];
 char		srvwctl[];
 int		errorshouldabort;
 int		menuing;		/* menu action is pending; waiting for window to be indicated */
-int		snarfversion;	/* updated each time it is written */

@@ -1,43 +1,23 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gsmisc.c,v 1.8 2000/09/19 19:00:30 lpd Exp $ */
-/* Miscellaneous utilities for Ghostscript library */
+   This file is part of Aladdin Ghostscript.
 
-/*
- * In order to capture the original definition of sqrt, which might be
- * either a procedure or a macro and might not have an ANSI-compliant
- * prototype (!), we need to do the following:
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
  */
-#include "std.h"
-#if defined(VMS) && defined(__GNUC__)
-/*  DEC VAX/VMS C comes with a math.h file, but GNU VAX/VMS C does not. */
-#  include "vmsmath.h"
-#else
-#  include <math.h>
-#endif
-inline private double
-orig_sqrt(double x)
-{
-    return sqrt(x);
-}
 
-/* Here is the real #include section. */
+/*$Id: gsmisc.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/* Miscellaneous utilities for Ghostscript library */
 #include "ctype_.h"
 #include "malloc_.h"
 #include "math_.h"
@@ -77,15 +57,8 @@ const char *const dprintf_file_only_format = "%10s(unkn): ";
 
 /*
  * Define the trace printout procedures.  We always include these, in case
- * other modules were compiled with DEBUG set.  Note that they must use
- * fprintf, not fput[cs], because of the way that stdout is implemented on
- * Windows platforms.
+ * other modules were compiled with DEBUG set.
  */
-void
-dflush(void)
-{
-    fflush(dstderr);
-}
 private const char *
 dprintf_file_tail(const char *file)
 {
@@ -117,8 +90,11 @@ void
 printf_program_ident(FILE * f, const char *program_name,
 		     long revision_number)
 {
-    if (program_name)
-	fprintf(f, (revision_number ? "%s " : "%s"), program_name);
+    if (program_name) {
+	fputs(program_name, f);
+	if (revision_number)
+	    fputc(' ', f);
+    }
     if (revision_number) {
 	int fpart = revision_number % 100;
 
@@ -132,7 +108,7 @@ eprintf_program_ident(FILE * f, const char *program_name,
 {
     if (program_name) {
 	printf_program_ident(f, program_name, revision_number);
-	fprintf(f, ": ");
+	fputs(": ", f);
     }
 }
 #if __LINE__			/* compiler provides it */
@@ -388,7 +364,7 @@ debug_print_string(const byte * chrs, uint len)
 
     for (i = 0; i < len; i++)
 	dputc(chrs[i]);
-    dflush();
+    fflush(dstderr);
 }
 
 /*
@@ -754,7 +730,7 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 	    denom <<= bits_8th, shift += bits_8th;
 	}
 #undef bits_8th
-	while (!(denom & (-1L << (num_bits - 1)))) {
+	while (!(denom & (1L << (num_bits - 1)))) {
 	    mincr(mds);
 	    denom <<= 1, ++shift;
 	}
@@ -851,14 +827,17 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 #undef half_mask
 
 /* Trace calls on sqrt when debugging. */
+#undef sqrt
+extern double sqrt(P1(double));
 double
 gs_sqrt(double x, const char *file, int line)
 {
     if (gs_debug_c('~')) {
-	dprintf3("[~]sqrt(%g) at %s:%d\n", x, (const char *)file, line);
-	dflush();
+	fprintf(stdout, "[~]sqrt(%g) at %s:%d\n",
+		x, (const char *)file, line);
+	fflush(stdout);
     }
-    return orig_sqrt(x);
+    return sqrt(x);
 }
 
 /*
@@ -1106,25 +1085,3 @@ gs_sincos_degrees(double ang, gs_sincos_t * psincos)
 }
 
 #endif /* USE_FPU */
-
-/*
- * Define an atan2 function that returns an angle in degrees and uses
- * the PostScript quadrant rules.  Note that it may return
- * gs_error_undefinedresult.
- */
-int
-gs_atan2_degrees(double y, double x, double *pangle)
-{
-    if (y == 0) {	/* on X-axis, special case */
-	if (x == 0)
-	    return_error(gs_error_undefinedresult);
-	*pangle = (x < 0 ? 180 : 0);
-    } else {
-	double result = atan2(y, x) * radians_to_degrees;
-
-	if (result < 0)
-	    result += 360;
-	*pangle = result;
-    }
-    return 0;
-}

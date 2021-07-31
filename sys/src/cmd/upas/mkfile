@@ -1,6 +1,6 @@
 </$objtype/mkfile
 
-LIBS=common
+LIBS=libString common
 PROGS=smtp alias fs ned misc q send scanmail mime ed
 #libs must be made first
 DIRS=$LIBS $PROGS

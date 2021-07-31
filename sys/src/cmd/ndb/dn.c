@@ -695,7 +695,7 @@ rrcopy(RR *rp, RR **last)
  *	not timed out network unauthoritative
  *	unauthoritative db
  *
- *  if flag NOneg is set, don't return negative cached entries.
+ *  if negok is not set, don't return negative cached entries.
  *  return nothing instead.
  */
 RR*
@@ -853,7 +853,7 @@ rrremneg(RR **l)
 			nl = &rp->next;
 			*nl = nil;
 		} else
-			l = &rp->next;
+			l = &(*l)->next;
 	}
 
 	return first;

@@ -342,7 +342,7 @@ filetype(int fd)
 	 * if all else fails,
 	 * print out gross classification
 	 */
-	if (nbuf < 100 && !mime)
+	if (nbuf < 100)
 		print(mime ? PLAIN : "short ");
 	if (guess == Fascii)
 		print(mime ? PLAIN : "Ascii\n");

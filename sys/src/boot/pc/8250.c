@@ -72,8 +72,7 @@ struct Uart
 	ulong	overrun;
 };
 
-static Uart com[2];
-static Uart* uart;
+Uart	uart[1];
 
 #define UartFREQ 1843200
 
@@ -197,46 +196,28 @@ uartenable(Uart *up)
 	uartrts(up, 1);
 }
 
-static void
-uartdisable(Uart* up)
-{
-	/*
- 	 * Disable interrupts.
-	 */
-	up->sticky[Iena] = 0;
-	uartwrreg(up, Iena, 0);
-	uartdtr(up, 0);
-	uartrts(up, 0);
-}
-
 void
 uartspecial(int port, void (*rx)(int), int (*tx)(void), int baud)
 {
-	Uart *up;
-	int vector;
+	Uart *up = &uart[0];
+
+	if(up->port)
+		return;
 
 	switch(port){
+
 	case 0:
-		port = 0x3F8;
-		vector = VectorUART0;
-		up = &com[0];
+		up->port = 0x3F8;
+		setvec(VectorUART0, uartintr, up);
 		break;
+
 	case 1:
-		port = 0x2F8;
-		vector = VectorUART1;
-		up = &com[1];
+		up->port = 0x2F8;
+		setvec(VectorUART1, uartintr, up);
 		break;
+
 	default:
 		return;
-	}
-
-	if(uart != nil && uart != up)
-		uartdisable(uart);
-	uart = up;
-
-	if(up->port == 0){
-		up->port = port;
-		setvec(vector, uartintr, up);
 	}
 
 	/*
@@ -261,11 +242,9 @@ uartspecial(int port, void (*rx)(int), int (*tx)(void), int baud)
 static void
 uartputc(int c)
 {
+	Uart *up = &uart[0];
 	int i;
-	Uart *up;
 
-	if((up = uart) == nil)
-		return;
 	for(i = 0; i < 100; i++){
 		if(uartrdreg(up, Lstat) & Outready)
 			break;
@@ -277,11 +256,9 @@ uartputc(int c)
 void
 uartputs(IOQ *q, char *s, int n)
 {
-	Uart *up;
+	Uart *up = &uart[0];
 	int c, x;
 
-	if((up = uart) == nil)
-		return;
 	while(n--){
 		if(*s == '\n')
 			q->putc(q, '\r');
@@ -298,11 +275,9 @@ uartputs(IOQ *q, char *s, int n)
 void
 uartdrain(void)
 {
-	Uart *up;
 	int timeo;
+	Uart *up = &uart[0];
 
-	if((up = uart) == nil)
-		return;
-	for(timeo = 0; timeo < 10000 && up->txbusy; timeo++)
-		delay(1);
+	for(timeo = 0; timeo < 10000000 && up->txbusy; timeo++)
+		;
 }

@@ -10,7 +10,7 @@ Talarm	talarm;
  * Insert new into list after where
  */
 static void
-insert(Alarm **head, Alarm *where, Alarm *new)
+insert(List **head, List *where, List *new)
 {
 	if(where == 0){
 		new->next = *head;
@@ -26,7 +26,7 @@ insert(Alarm **head, Alarm *where, Alarm *new)
  * Delete old from list.  where->next is known to be old.
  */
 static void
-delete(Alarm **head, Alarm *where, Alarm *old)
+delete(List **head, List *where, List *old)
 {
 	if(where == 0){
 		*head = old->next;

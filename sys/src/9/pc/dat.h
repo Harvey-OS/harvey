@@ -9,7 +9,6 @@ typedef struct Notsave	Notsave;
 typedef struct PCArch	PCArch;
 typedef struct Pcidev	Pcidev;
 typedef struct PCMmap	PCMmap;
-typedef struct PCMslot	PCMslot;
 typedef struct Page	Page;
 typedef struct PMMU	PMMU;
 typedef struct Proc	Proc;
@@ -149,7 +148,7 @@ struct Mach
 
 	ulong*	pdb;			/* page directory base for this processor (va) */
 	Tss*	tss;			/* tss for this processor */
-	Segdesc	gdt[NGDT];			/* gdt for this processor */
+	Segdesc	gdt[6];			/* gdt for this processor */
 
 	Proc*	proc;			/* current process on this processor */
 	Proc*	externup;		/* extern register Proc *up */
@@ -161,7 +160,6 @@ struct Mach
 	Label	sched;			/* scheduler wakeup */
 	Lock	alarmlock;		/* access to alarm list */
 	void*	alarm;			/* alarms bound to this clock */
-	int	inclockintr;
 
 	ulong	fairness;		/* for runproc */
 
@@ -246,7 +244,7 @@ struct PCArch
 /*
  *  a parsed plan9.ini line
  */
-#define ISAOPTLEN	28
+#define ISAOPTLEN	16
 #define NISAOPT		8
 
 struct ISAConf {

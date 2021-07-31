@@ -6,6 +6,7 @@
 #include "../port/error.h"
 
 #include "ip.h"
+#include "kernel.h"
 
 static void
 nullbind(Ipifc*, int, char**)

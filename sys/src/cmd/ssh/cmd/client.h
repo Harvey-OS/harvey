@@ -30,12 +30,3 @@ void			request_pty(void);
 void			window_change(void);
 int			readgeom(void);
 
-/* key.c */
-typedef struct Keyring Keyring;
-
-Keyring*		openkeyringfile(char*);
-Keyring*		openkeyringdir(char*);
-mpint*		nextkey(Keyring*);
-mpint*		keydecrypt(Keyring*, mpint*);
-void			closekeyring(Keyring*);
-

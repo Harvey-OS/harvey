@@ -1,4 +1,0 @@
-TEXT _PIPE(SB), 1, $-4
-MOVW $21, R0
-SWI 0
-RET

@@ -245,14 +245,14 @@ config(void)
 		}
 		break;
 
-	case 'o':	/* o ro part of last cw */
+	case 'o':	/* ro part of last cw */
 		if(f.lastcw == 0) {
 			cdiag("no cw to match", c);
 			goto bad;
 		}
 		return f.lastcw->cw.ro;
 
-	case 'j':	/* DD jukebox */
+	case 'j':	/* jukebox */
 		d->type = Devjuke;
 		d->j.j = config();
 		d->j.m = config();
@@ -276,11 +276,6 @@ config(void)
 		if(c != '.')
 			cdiag("dot expected", c);
 		d->part.size = cnumb();
-		break;
-
-	case 'x':	/* xD swab a device */
-		d->type = Devswab;
-		d->swab.d = config();
 		break;
 	}
 	d->dlink = f.devlist;
@@ -397,13 +392,6 @@ line:
 				goto bad;
 		goto loop;
 	}
-	if(astrcmp(word, "ipsntp") == 0) {
-		cp = getwd(word, cp);
-		if (!nzip(sntpip))
-			if (chartoip(sntpip, word))
-				goto bad;
-		goto loop;
-	}
 	if(astrcmp(word, "ipmask") == 0) {
 		cp = getwd(word, cp);
 		if(!nzip(ipaddr[aindex].defmask))
@@ -474,12 +462,12 @@ start:
 
 	d = iconfig(nvr.config);
 	devinit(d);
-	if(f.newconf) {
-		p = getbuf(d, 0, Bmod);
+	p = getbuf(d, 0, Bread);
+	if(p && f.newconf) {
 		memset(p->iobuf, 0, RBUFSIZE);
 		settag(p, Tconfig, 0);
-	} else
-		p = getbuf(d, 0, Bread|Bmod);
+		p->flags |= Bmod;
+	}
 	if(!p || checktag(p, Tconfig, 0))
 		panic("config io");
 	mergeconf(p);
@@ -493,7 +481,6 @@ start:
 				sprint(strchr(p->iobuf, 0),
 					"filsys %s %s\n", fs->name, fs->conf);
 		sprint(strchr(p->iobuf, 0), "ipauth %I\n", authip);
-		sprint(strchr(p->iobuf, 0), "ipsntp %I\n", sntpip);
 		for(i=0; i<10; i++) {
 			sprint(strchr(p->iobuf, 0),
 				"ip%d %I\n", i, ipaddr[i].sysip);
@@ -512,7 +499,6 @@ start:
 
 	print("service    %s\n", service);
 	print("ipauth  %I\n", authip);
-	print("ipsntp  %I\n", sntpip);
 	for(i=0; i<10; i++) {
 		if(nzip(ipaddr[i].sysip)) {
 			print("ip%d     %I\n", i, ipaddr[i].sysip);
@@ -704,10 +690,6 @@ loop:
 		verb = 3;
 		goto ipname;
 	}
-	if(astrcmp(word, "ipsntp") == 0) {
-		verb = 4;
-		goto ipname;
-	}
 	print("unknown config command\n");
 	print("	type end to get out\n");
 	goto loop;
@@ -734,10 +716,6 @@ ipname:
 	case 3:
 		memmove(ipaddr[aindex].defmask, localip,
 			sizeof(ipaddr[aindex].defmask));
-		break;
-	case 4:
-		memmove(sntpip, localip,
-			sizeof(sntpip));
 		break;
 	}
 	f.modconf = 1;

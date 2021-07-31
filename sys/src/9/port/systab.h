@@ -43,8 +43,6 @@ Syscall syswait;
 Syscall syswrite9p;
 Syscall sysread9p;
 Syscall sysseek;
-Syscall syspread;
-Syscall syspwrite;
 Syscall	sysdeath;
 
 Syscall *systab[]={
@@ -88,8 +86,6 @@ Syscall *systab[]={
 	[WRITE9P]	syswrite9p,
 	[READ9P]	sysread9p,
 	[SEEK]		sysseek,
-	[PREAD]		syspread,
-	[PWRITE]	syspwrite,
 };
 
 char *sysctab[]={
@@ -133,8 +129,6 @@ char *sysctab[]={
 	[WRITE9P]	"Write9p",
 	[READ9P]	"Read9p",
 	[SEEK]		"Seek",
-	[PREAD]		"Pread",
-	[PWRITE]	"Pwrite",
 };
 
 int nsyscall = (sizeof systab/sizeof systab[0]);

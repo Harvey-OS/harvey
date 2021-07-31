@@ -17,7 +17,6 @@ TARG=\
 	convkeys2\
 	login\
 	uniq\
-	iam\
 
 HFILES=/sys/include/auth.h authsrv.h
 

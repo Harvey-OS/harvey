@@ -1,22 +1,22 @@
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gxclutil.c,v 1.2.2.1 2000/11/09 23:36:53 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gxclutil.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
 /* Command list writing utilities. */
 
 #include "memory_.h"
@@ -607,48 +607,4 @@ cmd_put_params(gx_device_clist_writer *cldev,
 	    memcpy(dp, local_buf, param_length);	    /* did this when computing length */
     }
     return code;
-}
-
-/* Initialize CCITTFax filters. */
-private void
-clist_cf_init(stream_CF_state *ss, int width)
-{
-    ss->K = -1;
-    ss->Columns = width;
-    ss->EndOfBlock = false;
-    ss->BlackIs1 = true;
-    ss->DecodedByteAlign = align_bitmap_mod;
-}
-void
-clist_cfe_init(stream_CFE_state *ss, int width, gs_memory_t *mem)
-{
-    s_init_state((stream_state *)ss, &s_CFE_template, mem);
-    s_CFE_set_defaults_inline(ss);
-    clist_cf_init((stream_CF_state *)ss, width);
-    s_CFE_template.init((stream_state *)(ss));
-}
-void
-clist_cfd_init(stream_CFD_state *ss, int width, int height, gs_memory_t *mem)
-{
-    s_init_state((stream_state *)ss, &s_CFD_template, mem);
-    s_CFD_template.set_defaults((stream_state *)ss);
-    clist_cf_init((stream_CF_state *)ss, width);
-    ss->Rows = height;
-    s_CFD_template.init((stream_state *)(ss));
-}
-
-/* Initialize RunLength filters. */
-void
-clist_rle_init(stream_RLE_state *ss)
-{
-    s_init_state((stream_state *)ss, &s_RLE_template, (gs_memory_t *)0);
-    s_RLE_set_defaults_inline(ss);
-    s_RLE_init_inline(ss);
-}
-void
-clist_rld_init(stream_RLD_state *ss)
-{
-    s_init_state((stream_state *)ss, &s_RLD_template, (gs_memory_t *)0);
-    s_RLD_set_defaults_inline(ss);
-    s_RLD_init_inline(ss);
 }

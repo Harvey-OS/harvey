@@ -1,22 +1,22 @@
-/* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: zcolor2.c,v 1.3 2000/09/19 19:00:53 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: zcolor2.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* Level 2 color operators */
 #include "ghost.h"
 #include "oper.h"
@@ -110,35 +110,30 @@ zsetcolor(i_ctx_t *i_ctx_p)
 	/* Make sure *op is a real Pattern. */
 	ref *pImpl;
 
-	if (r_has_type(op, t_null)) {
-	    c.pattern = 0;
-	    n = 1;
-	} else {
-	    check_type(*op, t_dictionary);
-	    check_dict_read(*op);
-	    /*
-	     * We have no way to check for a subclass of st_pattern_instance,
-	     * so just make sure the structure is large enough.
-	     */
-	    if (dict_find_string(op, "Implementation", &pImpl) <= 0 ||
-		!r_is_struct(pImpl) ||
-		gs_object_size(imemory, r_ptr(pImpl, const void)) <
-		sizeof(gs_pattern_instance_t)
-		)
+	check_type(*op, t_dictionary);
+	check_dict_read(*op);
+	/*
+	 * We have no way to check for a subclass of st_pattern_instance,
+	 * so just make sure the structure is large enough.
+	 */
+	if (dict_find_string(op, "Implementation", &pImpl) <= 0 ||
+	    !r_is_struct(pImpl) ||
+	    gs_object_size(imemory, r_ptr(pImpl, const void)) <
+	      sizeof(gs_pattern_instance_t)
+	    )
+	    return_error(e_rangecheck);
+	pinst = r_ptr(pImpl, gs_pattern_instance_t);
+	c.pattern = pinst;
+	if (pattern_instance_uses_base_space(pinst)) {	/* uncolored */
+	    if (!pcs->params.pattern.has_base_space)
 		return_error(e_rangecheck);
-	    pinst = r_ptr(pImpl, gs_pattern_instance_t);
-	    c.pattern = pinst;
-	    if (pattern_instance_uses_base_space(pinst)) {	/* uncolored */
-		if (!pcs->params.pattern.has_base_space)
-		    return_error(e_rangecheck);
-		n = load_color_params(op - 1, &c.paint,
-				      (const gs_color_space *)&pcs->params.pattern.base_space);
-		if (n < 0)
-		    return n;
-		n++;
-	    } else
-		n = 1;
-	}
+	    n = load_color_params(op - 1, &c.paint,
+		   (const gs_color_space *)&pcs->params.pattern.base_space);
+	    if (n < 0)
+		return n;
+	    n++;
+	} else
+	    n = 1;
     } else {
 	n = load_color_params(op, &c.paint, pcs);
 	c.pattern = 0;		/* for GC */

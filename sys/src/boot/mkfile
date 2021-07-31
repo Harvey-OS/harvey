@@ -1,6 +1,5 @@
 ARCH=\
 	alphapc\
-	arm\
 	pc\
 
 all:V:

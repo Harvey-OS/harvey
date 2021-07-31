@@ -25,7 +25,6 @@ char	*menutext3[] = {
 	"crnl",
 	"nl",
 	"raw",
-	"exit",
 	0
 };
 
@@ -42,30 +41,20 @@ int	resize_flag;
 int	pagemode;
 int	olines;
 int	peekc;
-int	cursoron = 1;
 Menu	menu2;
 Menu	menu3;
 char	*histp;
 char	hist[HISTSIZ];
 int	yscrmin, yscrmax;
-int	bckcolor, frgcolor;
-int	attribute;
 
+Image	*text;
+Image	*background;
 Image	*bordercol;
 Image	*cursback;
-Image	*black;
-Image	*white;
 Image	*red;
-Image	*green;
-Image	*blue;
-Image	*cyan;
-Image	*magenta;
-Image	*yellow;
-Image	*grey;
-Image	*colortab[8];
 
 /* terminal control */
-struct ttystate ttystate[2] = { {0, 1}, {0, 1} };
+struct ttystate ttystate[2] = { {0, 1}, {0,0} };
 
 int	NS;
 int	CW;
@@ -102,7 +91,7 @@ char *term;
 struct funckey *fk;
 
 int	debug;
-int	logfd = -1;
+
 void
 main(int argc, char **argv)
 {
@@ -111,41 +100,21 @@ main(int argc, char **argv)
 }
 
 void
-useage(void)
-{
-	fprint(2, "usage: %s [-2s] [-l logfile]\n", argv0);
-	exits("usage");
-}
-
-void
 initialize(int argc, char **argv)
 {
 	int dayglo = 1;
-	char *p;
 
 	rfork(RFENVG|RFNAMEG|RFNOTEG);
 
 	term = "vt100";
 	fk = vt100fk;
 	ARGBEGIN{
-	case 'a':
-		term = "ansi";
-		fk = ansifk;
-		break;
 	case '2':
 		term = "vt220";
 		fk = vt220fk;
 		break;
 	case 's': /* for sape */
 		dayglo = 0;
-		break;
-	case 'l':
-		p = ARGF();
-		if(p == 0)
-			useage();
-		logfd = create(p, OWRITE, 0666);
-		if(logfd < 0)
-			sysfatal("could not create log file: %s: %r", p);
 		break;
 	}ARGEND;
 
@@ -166,35 +135,11 @@ initialize(int argc, char **argv)
 	blocked = 0;
 	NS = font->height ;
 	CW = stringwidth(font, "m");
+	text = allocimage(display, Rect(0,0,1,1), screen->chan, 1, dayglo?0x00F0F0F0:0);
+	background = allocimage(display, Rect(0,0,1,1), screen->chan, 1, dayglo?0x33333333:-1);
 	bordercol = allocimage(display, Rect(0,0,1,1), screen->chan, 1, 0xCCCCCCCC);
 	cursback = allocimage(display, Rect(0, 0, CW+1, NS+1), screen->chan, 0, DNofill);
-	black =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DBlack);
-	white =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DWhite);
-	red =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DRed);
-	green =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DGreen);
-	yellow =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DYellow);
-	blue =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DBlue);
-	magenta =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DMagenta);
-	cyan =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DCyan);
-	grey =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DPalegreygreen);
-
-	colortab[0] = black;
-	colortab[1] = red;
-	colortab[2] = green;
-	colortab[3] = yellow;
-	colortab[4] = blue;
-	colortab[5] = magenta;
-	colortab[6] = cyan;
-	colortab[7] = grey;
-
-	if(dayglo) {
-		bckcolor = 0;
-		frgcolor = 7;
-	} else {
-		bckcolor = 7;
-		frgcolor = 0;
-		colortab[7] = white;
-	}	
+	red =  allocimage(display, Rect(0, 0, CW+1, NS+1), screen->chan, 1, DRed);
 
 	eresized(0);
 
@@ -207,41 +152,34 @@ initialize(int argc, char **argv)
 void
 clear(Rectangle r)
 {
-	draw(screen, r, colortab[bckcolor], nil, ZP);
+	draw(screen, r, background, nil, ZP);
 }
 
 void
 newline(void)
 {
+	int M, m;
+
+	M = yscrmax ? yscrmax : ymax;
+	m = yscrmax ? yscrmin : 0;
+
 	nbacklines--;
-	if(y >= yscrmax) {
-		y = yscrmax;
-		if(pagemode && olines >= yscrmax) {
+	if(y >= M) {
+		y = M;
+		if(pagemode && olines >= M) {
 			blocked = 1;
 			return;
 		}
-		scroll(yscrmin+1, yscrmax+1, yscrmin, yscrmax);
+		scroll(m+1, M+1, m, M);
 	} else
 		y++;
 	olines++;
 }
 
 void
-cursoff(void)
-{
-	draw(screen, Rpt(subpt(pt(x, y), Pt(1, 1)), addpt(pt(x, y), Pt(CW,NS))),
-		cursback, nil, cursback->r.min);
-}
-
-void
 curson(int bl)
 {
 	Image *col;
-
-	if(!cursoron){
-		cursoff();
-		return;
-	}
 
 	draw(cursback, cursback->r, screen, nil, subpt(pt(x, y),Pt(1,1)));
 	if(bl)
@@ -252,11 +190,17 @@ curson(int bl)
 		2, col, ZP);
 }
 
+void
+cursoff(void)
+{
+	draw(screen, Rpt(subpt(pt(x, y), Pt(1, 1)), addpt(pt(x, y), Pt(CW,NS))),
+		cursback, nil, cursback->r.min);
+}
+
 int
 get_next_char(void)
 {
 	int c = peekc;
-	uchar buf[1];
 	peekc = 0;
 	if(c > 0)
 		return(c);
@@ -271,11 +215,7 @@ get_next_char(void)
 			}
 			backp = 0;
 		}
-		c = (uchar)waitchar();
-		if(c > 0 && logfd >= 0) {
-			buf[0] = c;
-			write(logfd, buf, 1);
-		}
+		c = waitchar();
 	}
 	*histp++ = c;
 	if(histp >= &hist[HISTSIZ])
@@ -422,50 +362,6 @@ waitchar(void)
 				case Kright:
 					sendfk("right key");
 					break;
-				case KF|1:
-					sendfk("F1");
-					break;
-				case KF|2:
-					sendfk("F2");
-					break;
-				case KF|3:
-					sendfk("F3");
-					break;
-				case KF|4:
-					sendfk("F4");
-					break;
-				case KF|5:
-					sendfk("F5");
-					break;
-				case KF|6:
-					sendfk("F6");
-					break;
-				case KF|7:
-					sendfk("F7");
-					break;
-				case KF|8:
-					sendfk("F8");
-					break;
-				case KF|9:
-					sendfk("F9");
-					break;
-				case KF|10:
-					sendfk("F10");
-					break;
-				case KF|11:
-					sendfk("F11");
-					break;
-				case KF|12:
-					sendfk("F12");
-					break;
-				case '\n':
-					echobuf[0] = '\r';
-					sendnchars(1, echobuf);
-					break;
-				case '\r':
-					echobuf[0] = '\n';
-					sendnchars(1, echobuf);
-					break;
 				default:
 					echobuf[0] = kbdchar;
 					sendnchars(1, echobuf);
@@ -552,7 +448,7 @@ resize(void)
 	x = 0;
 	y = 0;
 	yscrmin = 0;
-	yscrmax = ymax;
+	yscrmax = 0;
 	olines = 0;
 	exportsize();
 	clear(screen->r);
@@ -560,32 +456,11 @@ resize(void)
 }
 
 void
-setdim(int ht, int wid)
-{
-	int fd;
-	Rectangle r;
-
-	if(ht != -1)
-		ymax = ht-1;
-	if(wid != -1)
-		xmax = wid-1;
-
-	r.min = screen->r.min;
-	r.max = addpt(screen->r.min,
-			Pt((xmax+1)*CW+2*XMARGIN+2*INSET,
-				(ymax+1)*NS+2*YMARGIN+2*INSET));
-	fd = open("/dev/wctl", OWRITE);
-	if(fd < 0 || fprint(fd, "resize -dx %d -dy %d\n", Dx(r)+2*Borderwidth, Dy(r)+2*Borderwidth) < 0){
-		border(screen, r, INSET, bordercol, ZP);
-		exportsize();
-	}
-	if(fd >= 0)
-		close(fd);
-}
-
-void
 readmenu(void)
 {
+	Rectangle r;
+	int fd;
+
 	if(button3()) {
 		menu3.item[1] = ttystate[cs->raw].crnl ? "cr" : "crnl";
 		menu3.item[2] = ttystate[cs->raw].nlcr ? "nl" : "nlcr";
@@ -593,7 +468,19 @@ readmenu(void)
 
 		switch(emenuhit(3, &mouse, &menu3)) {
 		case 0:		/* 24x80 */
-			setdim(24, 80);
+			r.min = screen->r.min;
+			r.max = addpt(screen->r.min,
+				Pt(80*CW+2*XMARGIN+2*INSET,
+				24*NS+2*YMARGIN+2*INSET));
+			fd = open("/dev/wctl", OWRITE);
+			if(fd < 0 || fprint(fd, "resize -dx %d -dy %d\n", Dx(r)+2*Borderwidth, Dy(r)+2*Borderwidth) < 0){
+				border(screen, r, INSET, bordercol, ZP);
+				xmax = 79;
+				ymax = 23;
+				exportsize();
+			}
+			if(fd >= 0)
+				close(fd);
 			return;
 		case 1:		/* newline after cr? */
 			ttystate[cs->raw].crnl = !ttystate[cs->raw].crnl;
@@ -604,8 +491,6 @@ readmenu(void)
 		case 3:		/* switch raw mode */
 			cs->raw = !cs->raw;
 			return;
-		case 4:
-			exits(0);
 		}
 		return;
 	}
@@ -689,7 +574,7 @@ pt(int x, int y)
 void
 scroll(int sy, int ly, int dy, int cy)	/* source, limit, dest, which line to clear */
 {
-	draw(screen, Rpt(pt(0, dy), pt(xmax+1, dy+ly-sy)), screen, nil, pt(0, sy));
+	draw(screen, Rpt(pt(0, dy), pt(xmax+1, ly-sy)), screen, nil, pt(0, sy));
 	clear(Rpt(pt(0, cy), pt(xmax+1, cy+1)));
 }
 
@@ -713,17 +598,12 @@ bigscroll(void)			/* scroll up half a page */
 }
 
 int
-number(char *p, int *got)
+number(char *p)
 {
 	int c, n = 0;
 
-	if(got)
-		*got = 0;
-	while ((c = get_next_char()) >= '0' && c <= '9'){
-		if(got)
-			*got = 1;
+	while ((c = get_next_char()) >= '0' && c <= '9')
 		n = n*10 + c - '0';
-	}
 	*p = c;
 	return(n);
 }
@@ -823,22 +703,17 @@ funckey(int key)
 	sendnchars2(strlen(fk[key].sequence), fk[key].sequence);
 }
 
-
 void
-drawstring(Point p, char *str, int attribute)
+drawstring(Point p, char *str, int standout)
 {
 	Image *txt, *bg;
-	
-	if(!(attribute & TReverse)) {
-		txt = colortab[frgcolor];
-		bg = colortab[bckcolor];
-	} else {
-		txt = colortab[bckcolor];
-		bg = colortab[frgcolor];
-	}
-	if(attribute & THighIntensity)
-		txt = white;
 
+	txt = text;
+	bg = background;
+	if(standout){
+		txt = background;
+		bg = text;
+	}
 	draw(screen, Rpt(p, addpt(p, stringsize(font, str))), bg, nil, p);
 	string(screen, p, txt, ZP, font, str);
 }

@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1989, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: ztype.c,v 1.3 2000/09/19 19:00:55 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: ztype.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
 /* Type, attribute, and conversion operators */
 #include "math_.h"
 #include "memory_.h"
@@ -257,10 +257,14 @@ zcvi(i_ctx_t *i_ctx_p)
 
 		ref_assign(&str, op);
 		code = scan_string_token(i_ctx_p, &str, &token);
-		if (code > 0)	/* anything other than a plain token */
-		    code = gs_note_error(e_syntaxerror);
-		if (code < 0)
-		    return code;
+		switch (code) {
+		    case scan_EOF:	/* no tokens */
+		    case scan_BOS:	/* not allowed */
+			code = gs_note_error(e_syntaxerror);
+		    default:
+			if (code < 0)
+			    return code;
+		}
 		switch (r_type(&token)) {
 		    case t_integer:
 			*op = token;
@@ -310,10 +314,14 @@ zcvr(i_ctx_t *i_ctx_p)
 
 		ref_assign(&str, op);
 		code = scan_string_token(i_ctx_p, &str, &token);
-		if (code > 0)	/* anything other than a plain token */
-		    code = gs_note_error(e_syntaxerror);
-		if (code < 0)
-		    return code;
+		switch (code) {
+		    case scan_EOF:	/* no tokens */
+		    case scan_BOS:	/* not allowed */
+			code = gs_note_error(e_syntaxerror);
+		    default:
+			if (code < 0)
+			    return code;
+		}
 		switch (r_type(&token)) {
 		    case t_integer:
 			make_real(op, token.value.intval);

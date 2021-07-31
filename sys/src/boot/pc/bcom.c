@@ -78,8 +78,6 @@ static Mode modes[NMode+1] = {
 	[Manual]	{ "manual", Manual, },
 };
 
-char *defaultpartition = "new";
-
 static Medium*
 parse(char *line, char **file)
 {
@@ -108,7 +106,7 @@ boot(Medium *mp, char *file)
 	memset(&b, 0, sizeof b);
 	b.state = INIT9LOAD;
 
-//	sprint(BOOTLINE, "%s!%s", mp->name, file);
+	sprint(BOOTLINE, "%s!%s", mp->name, file);
 	return (*mp->type->boot)(mp->dev, file, &b);
 }
 
@@ -188,8 +186,6 @@ main(void)
 	alarminit();
 	spllo();
 
-	kbdinit();
-	
 	if((ulong)&end > (KZERO|(640*1024)))
 		panic("i'm too big");
 
@@ -215,6 +211,8 @@ main(void)
 		if(*p == 0)
 			p = nil;
 	}
+
+	consinit();
 
 	/*
  	 * Probe everything, to collect device names.

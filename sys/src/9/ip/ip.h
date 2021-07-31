@@ -11,8 +11,6 @@ typedef struct	Ipmulti	Ipmulti;
 typedef struct	Ipmux	Ipmux;
 typedef struct	IProuter IProuter;
 typedef struct	Ipifc	Ipifc;
-typedef struct	Iphash	Iphash;
-typedef struct	Ipht	Ipht;
 typedef struct	Netlog	Netlog;
 typedef struct	Ifclog	Ifclog;
 typedef struct	Medium	Medium;
@@ -50,7 +48,6 @@ enum
 
 enum
 {
-	Idle=		0,
 	Announcing=	1,
 	Announced=	2,
 	Connecting=	3,
@@ -149,7 +146,7 @@ struct Iplifc
 	Iplifc	*next;
 };
 
-/* binding twixt Ipself and Iplifc */
+/* binding twixt Ipself and Ipifc */
 struct Iplink
 {
 	Ipself	*self;
@@ -198,34 +195,6 @@ struct Ipmulti
 };
 
 /*
- *  hash table for 2 ip addresses + 2 ports
- */
-enum
-{
-	Nipht=		521,	/* convenient prime */
-
-	IPmatchexact=	0,	/* match on 4 tuple */
-	IPmatchany,		/* *!* */
-	IPmatchport,		/* *!port */
-	IPmatchaddr,		/* addr!* */
-	IPmatchpa,		/* addr!port */
-};
-struct Iphash
-{
-	Iphash	*next;
-	Conv	*c;
-	int	match;
-};
-struct Ipht
-{
-	Lock;
-	Iphash	*tab[Nipht];
-};
-void iphtadd(Ipht*, Conv*);
-void iphtrem(Ipht*, Conv*);
-Conv* iphtlook(Ipht *ht, uchar *sa, ushort sp, uchar *da, ushort dp);
-
-/*
  *  one per multiplexed protocol
  */
 struct Proto
@@ -235,7 +204,7 @@ struct Proto
 	int		x;		/* protocol index */
 	int		ipproto;	/* ip protocol type */
 
-	void		(*kick)(Conv*);
+	void		(*kick)(Conv*, int);
 	char*		(*connect)(Conv*, char**, int);
 	char*		(*announce)(Conv*, char**, int);
 	char*		(*bind)(Conv*, char**, int);
@@ -534,11 +503,6 @@ extern int	bootpread(char*, ulong, int);
 Chan*		commonfdtochan(int, int, int, int);
 char*		commonuser(void);
 char*		commonerror(void);
-
-/*
- * chandial.c
- */
-extern Chan*	chandial(char*, char*, char*, Chan**);
 
 /*
  *  global to all of the stack

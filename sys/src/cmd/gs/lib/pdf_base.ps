@@ -1,21 +1,21 @@
-%    Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+%    Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This file is part of Aladdin Ghostscript.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
 
-% $Id: pdf_base.ps,v 1.10 2000/09/19 18:29:11 lpd Exp $
+% $Id: pdf_base.ps,v 1.2 2000/03/10 03:58:14 lpd Exp $
 % pdf_base.ps
 % Basic parser for PDF reader.
 
@@ -69,16 +69,29 @@ pdfdict begin
    loop pop pop 3 -1 roll pop
  } bind def
 
-% Handle the PDF 1.2 #nn escape convention when reading from a file.
-% This should eventually be done in C.
-/.pdffixname {			% <execname> .pdffixname <execname'>
-  PDFversion 1.2 ge {
-    dup .namestring (#) search {
-      name#escape cvn exch pop
+% Read a token from a file, recognizing the PDF 1.2 #nn escape convention.
+% This should be done in C!
+/.pdftoken {			% <file> .pdftoken <obj> -true-
+				% <file> .pdftoken -false-
+  token {
+    dup type /nametype eq {
+      dup xcheck {
+	true
+      } {
+	PDFversion 1.2 ge {
+	  dup .namestring (#) search {
+	    name#escape cvn exch pop
+	  } {
+	    pop
+	  } ifelse
+	} if true
+      } ifelse
     } {
-      pop
+      true
     } ifelse
-  } if
+  } {
+    false
+  } ifelse
 } bind def
 /name#escape			% <post> <(#)> <pre> name#escape <string>
 { exch pop
@@ -93,37 +106,26 @@ pdfdict begin
 % Execute a file, interpreting its executable names in a given
 % dictionary.  The name procedures may do whatever they want
 % to the operand stack.
-/.pdfexectoken {		% <count> <opdict> <exectoken> .pdfexectoken ?
-  DEBUG { dup == flush } if
-  2 copy .knownget {
-    exch pop exch pop exch pop exec
-  } {
-    BXlevel 0 le {
-      (%stderr) (w) file
-      dup (****************Unknown operator: ) writestring
-      dup 2 index .writecvs dup (\n) writestring flushfile
-    } if pop pop
-    count exch sub { pop } repeat	% pop all the operands
-  } ifelse
-} bind def
 /.pdfrun {			% <file> <opdict> .pdfrun -
 	% Construct a procedure with the stack depth, file and opdict
 	% bound into it.
-  1 index cvlit count 2 sub 3 1 roll mark mark 5 2 roll
-  {	% Stack: ..operands.. count opdict file
-    token {
-      dup type /nametype eq {
-	dup xcheck {
-	  .pdfexectoken
-	} {
-	  .pdffixname
-	  exch pop exch pop DEBUG { dup ==only ( ) print flush } if
-	} ifelse
+  1 index cvlit count 2 sub 3 1 roll mark mark 5 2 roll {
+	% Stack: ..operands.. count opdict file
+    .pdftoken not { (%%EOF) cvn cvx } if
+    dup xcheck {
+      DEBUG { dup == flush } if
+      2 copy .knownget {
+	exch pop exch pop exch pop exec
       } {
-	exch pop exch pop DEBUG { dup ==only ( ) print flush } if
+	BXlevel 0 le {
+	  (%stderr) (w) file
+	  dup (****************Unknown operator: ) writestring
+	  dup 2 index .writecvs dup (\n) writestring flushfile
+	} if pop pop
+	count exch sub { pop } repeat	% pop all the operands
       } ifelse
     } {
-      (%%EOF) cvn cvx .pdfexectoken
+      exch pop exch pop DEBUG { dup ==only ( ) print flush } if
     } ifelse
   }
   aload pop .packtomark cvx
@@ -135,14 +137,10 @@ pdfdict begin
 } bind def
 
 % Execute a file, like .pdfrun, for a marking context.
-% This temporarily rebinds LocalResources and DefaultMatrix.
+% This temporarily rebinds LocalResources.
 /.pdfruncontext {		% <resdict> <file> <opdict> .pdfruncontext -
-  /.pdfrun load LocalResources DefaultMatrix
-  /LocalResources 7 -1 roll store
-  /DefaultMatrix matrix currentmatrix store
-  3 .execn
-  /DefaultMatrix exch store
-  /LocalResources exch store
+  /.pdfrun load /LocalResources LocalResources /store load
+  /LocalResources 8 -1 roll store 4 .execn
 } bind def
 
 % Get the depth of the PDF operand stack.  The main program (pdf_main.ps)
@@ -200,7 +198,7 @@ pdfdict begin
 /lstring {	% - lstring <lstring>
   [ () ]
 } bind def
-/ltype {	% <lseq> type <type>
+/ltype {	% <lseq> type <type
   0 get type
 } bind def
 /lget {		% <lseq> <index> lget <value>
@@ -238,9 +236,6 @@ pdfdict begin
   exch dup dup length 1 sub 2 copy
 		% Stack: newsublen lseq lseq len-1 lseq len-1
   get 5 -1 roll growto put
-} bind def
-/lforall {	% <lseq> <proc> lforall -
-  /forall cvx 2 packedarray cvx forall
 } bind def
 
 % We keep track of PDF objects using the following PostScript variables:
@@ -296,42 +291,40 @@ pdfdict begin
 % Note that since we represent streams by executable dictionaries
 % (see below), we need both an xcheck and a type check to determine
 % whether an object has been resolved.
-/resolved? {		% <object#> resolved? <value> true
-			% <object#> resolved? false
-  Objects 1 index lget dup xcheck {
-    dup type /integertype eq {
-		% Check whether the object is in GlobalObjects.
-      pop IsGlobal 1 index lget 0 eq {
-	pop false
-      } {
-		% Update Objects from GlobalObjects
-	DEBUG { (%Global=>local: ) print dup == } if
-	GlobalObjects 1 index get dup Objects 4 1 roll lput true
-      } ifelse
+/unresolved? {		% <object#> unresolved? <bool>
+  Objects 1 index lget dup xcheck exch type /integertype eq and {
+    IsGlobal 1 index lget 0 eq {
+      pop true
     } {
-      exch pop true
+		% Update Objects from GlobalObjects
+      DEBUG { (%Global=>local: ) print dup == } if
+      Objects exch GlobalObjects 1 index get lput false
     } ifelse
   } {
-    exch pop true
+    pop false
   } ifelse
 } bind def
 /oforce /exec load def
 /oget {		% <array> <index> oget <object>
 		% <dict> <key> oget <object>
-		% Before release 6.20, this procedure stored the resolved
-		% object back into the referring slot.  In order to support
-		% PDF linearization, we no longer do this.
-  get oforce
+  2 copy get dup xcheck {
+    exec dup 4 1 roll put
+  } {
+    exch pop exch pop
+  } ifelse
 } bind def
 % A null value in a dictionary is equivalent to an omitted key;
 % we must check for this specially.
-/knownoget {	% <dict> <key> knownoget <value> true
-		% <dict> <key> knownoget false
-		% See oget above regarding this procedure.
-  .knownget {
-    oforce dup null eq { pop false } { true } ifelse
+/knownoget {
+  2 copy .knownget {
+    dup xcheck {
+      exec dup 4 1 roll put
+    } {
+      exch pop exch pop
+    } ifelse
+    dup null eq { pop false } { true } ifelse
   } {
-    false
+    pop pop false
   } ifelse
 } bind def
 
@@ -346,19 +339,18 @@ pdfdict begin
   Generations 2 index lget 1 sub 1 index eq {
     pop true
   } {
-    QUIET not {
-      Generations 2 index lget 0 eq {
-	(Warning: reference to free object: )
-      } {
-	(Warning: wrong generation: )
-      } ifelse print 1 index =only ( ) print =only ( R) =
+    Generations 2 index lget 0 eq {
+      (Warning: reference to free object: )
     } {
-      pop
-    } ifelse false
+      (Warning: wrong generation: )
+    } ifelse print 1 index =only ( ) print =only ( R) = false
   } ifelse
 } bind def
 /R {		% <object#> <generation#> R <object>
-  /resolveR cvx 3 packedarray cvx
+  1 index unresolved?
+    { /resolveR cvx 3 packedarray cvx }
+    { checkgeneration { Objects exch lget } { pop null } ifelse }
+   ifelse
 } bind def
 
 % If we encounter an object definition while reading sequentially,
@@ -374,13 +366,11 @@ pdfdict begin
   3 1 roll
 		% Read the xref entry if we haven't yet done so.
 		% This is only needed for generation # checking.
-  1 index resolved? {
-    pop
-  } {
+  1 index unresolved? {
     PDFfile fileposition
     2 index readxrefentry pop
     PDFoffset add PDFfile exch setfileposition
-  } ifelse
+  } if
   checkgeneration {
 		% The only global objects we bother to save are
 		% (resource) dictionaries.
@@ -400,15 +390,13 @@ pdfdict begin
   valueopdict { } forall
   /endobj { endobj exit } bind
 .dicttomark readonly def
-/resolveR {		% <object#> <generation#> resolveR <object>
-  DEBUG { (%Resolving: ) print 2 copy 2 array astore == } if
-  1 index resolved? {
-    exch pop exch pop
-  } {
-    PDFfile fileposition 3 1 roll
-    1 index readxrefentry
-    3 1 roll checkgeneration {
-			% Stack: savepos objpos obj#
+/resolveR		% <object#> <generation#> resolveR <object>
+ { DEBUG { (%Resolving: ) print 2 copy 2 array astore == } if
+   1 index unresolved?
+    { PDFfile fileposition 3 1 roll
+      1 index readxrefentry
+      3 1 roll checkgeneration
+       {		% Stack: savepos objpos obj#
 	 exch PDFoffset add PDFfile exch setfileposition
 	 PDFfile token pop 2 copy ne
 	  { (xref error!) = /resolveR cvx /rangecheck signalerror
@@ -419,13 +407,16 @@ pdfdict begin
 	  }
 	 if
 	 pdf_run_resolve	% PDFfile resolveopdict .pdfrun
-    }
-    {		% Don't cache if the generation # is wrong.
+       }
+       {		% Don't cache if the generation # is wrong.
 	 pop pop null
-    } ifelse
-    exch PDFfile exch setfileposition
-  } ifelse
-} bind def      
+       }
+      ifelse exch PDFfile exch setfileposition
+    }
+    { pop Objects exch lget
+    }
+   ifelse
+ } bind def      
 
 % ================================ Streams ================================ %
 
@@ -512,7 +503,7 @@ pdfdict begin
     { filtername filter }
   } {
     {		% Stack: parms stream filtername
-      2 index 0 oget dup null eq { pop } { exch } ifelse filtername filter
+      2 index 0 get dup null eq { pop } { exch } ifelse filtername filter
       exch dup length 1 sub 1 exch getinterval exch
     }
   } ifelse forall exch pop

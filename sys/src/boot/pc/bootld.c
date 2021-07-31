@@ -61,7 +61,6 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 
 Endofinput:
 	/* end of input */
-	print("\n");
 	switch(b->state) {
 	case INIT9LOAD:
 		print("premature EOF\n");

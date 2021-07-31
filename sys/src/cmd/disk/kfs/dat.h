@@ -162,5 +162,4 @@ extern	int	writeallow;
 extern	int	wstatallow;
 extern	int	noauth;
 extern	int	allownone;
-extern	int	nosync;
 extern	Nvrsafe	nvr;

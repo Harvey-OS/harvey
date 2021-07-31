@@ -4,12 +4,11 @@ void
 peep(void)
 {
 	Reg *r, *r1, *r2;
-	Prog *p, *p1;
+	Prog *p;
 	int t;
-
-	/*
-	 * complete R structure
-	 */
+/*
+ * complete R structure
+ */
 	t = 0;
 	for(r=firstr; r!=R; r=r1) {
 		r1 = r->link;
@@ -43,34 +42,17 @@ loop1:
 	t = 0;
 	for(r=firstr; r!=R; r=r->link) {
 		p = r->prog;
-		switch(p->as) {
-		case AMOVL:
-			if(regtyp(&p->to))
-			if(regtyp(&p->from)) {
-				if(copyprop(r)) {
-					excise(r);
-					t++;
-				}
-				if(subprop(r) && copyprop(r)) {
-					excise(r);
-					t++;
-				}
+		if(p->as == AMOVL)
+		if(regtyp(&p->to))
+		if(regtyp(&p->from)) {
+			if(copyprop(r)) {
+				excise(r);
+				t++;
 			}
-			break;
-
-		case AMOVBLSX:
-		case AMOVBLZX:
-		case AMOVWLSX:
-		case AMOVWLZX:
-			if(regtyp(&p->to)) {
-				r1 = uniqs(r);
-				if(r1 != R) {
-					p1 = r1->prog;
-					if(p->as == p1->as && p->to.type == p1->from.type)
-						p1->as = AMOVL;
-				}
+			if(subprop(r) && copyprop(r)) {
+				excise(r);
+				t++;
 			}
-			break;
 		}
 	}
 	if(t)
@@ -651,8 +633,6 @@ copysub(Adr *a, Adr *v, Adr *s, int f)
 	if(regtyp(v)) {
 		t = v->type;
 		if(a->type == t+D_INDIR) {
-			if(s->type == D_BP && a->index != D_NONE)
-				return 1;	// cant use BP-base with index
 			if(f)
 				a->type = s->type+D_INDIR;
 			return 0;

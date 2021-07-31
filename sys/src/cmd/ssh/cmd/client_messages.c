@@ -167,26 +167,19 @@ user_auth(void) {
 	mpint *challenge, *mptmp;
 	uchar chalbuf[48], response[16];
 	int method;
+	FILE *userkeys;
 	char userkeyfile[128];
-	Keyring *keyring;
-	mpint *pub;
-	enum { KEYAGENT, KEYFILE };
-	int whichkeyring;
+	RSApriv *userkey;
 
 	auth_tricks = 
 		(1 << SSH_AUTH_PASSWORD) |
 		(1 << SSH_AUTH_TIS);
 
-	whichkeyring = -1;
-	auth_tricks |= (1 << SSH_AUTH_RSA);
 	snprint(userkeyfile, sizeof userkeyfile,
 		"/usr/%s/lib/userkeyring", localuser);
-	if(keyring = openkeyringdir("/mnt/auth/ssh"))
-		whichkeyring = KEYAGENT;
-	else if(keyring = openkeyringfile(userkeyfile))
-		whichkeyring = KEYFILE;
-	else
-		auth_tricks &= ~(1 << SSH_AUTH_RSA);
+	userkeys = fopen(userkeyfile, "r");
+	if(userkeys != nil)
+		auth_tricks |= (1 << SSH_AUTH_RSA);
 
 	auth_tricks &= supported_authentications_mask;
 	if (interactive == 0)
@@ -204,8 +197,8 @@ user_auth(void) {
 				fprint(2, "User successfully authenticated\n");
 			debug(DBG_AUTH, "User_auth done\n");
 			mfree(packet);
-			if (keyring)
-				closekeyring(keyring);
+			if (userkeys)
+				fclose(userkeys);
 			return;
 		case SSH_SMSG_FAILURE:
 				debug(DBG_AUTH, "Received FAILURE\n");
@@ -228,25 +221,20 @@ user_auth(void) {
 		
 			switch(i) {
 			case (1<<SSH_AUTH_RSA):
-				if((pub = nextkey(keyring)) == nil) {
-					closekeyring(keyring);
-					keyring = nil;
-					if(whichkeyring == KEYAGENT){
-						keyring = openkeyringfile(userkeyfile);
-						whichkeyring = KEYFILE;
-					}
-					if(keyring==nil || (pub = nextkey(keyring))==nil){
-						method++;
-						goto fail;
-					}
+				userkey = rsaprivalloc();
+				if (readsecretkey(userkeys, userkey) == 0) {
+					rsaprivfree(userkey);
+					fclose(userkeys);
+					userkeys = nil;
+					method++;
+					goto fail;
 				}
 				if (verbose)
 					fprint(2, "Authenticating user by responding to RSA challenge\n");
 				packet->type = SSH_CMSG_AUTH_RSA;
-				putBigInt(packet, pub);
-				
+				putBigInt(packet, userkey->pub.n);
 				debug(DBG_AUTH, "Sending SSH_CMSG_AUTH_RSA\n");
-				debug(DBG_AUTH, "Asking server about modulus %B\n", pub);
+				debug(DBG_AUTH, "Asking server about modulus %B\n", userkey->pub.n);
 				putpacket(packet, c2s);
 
 				packet = getpacket(s2c);
@@ -254,15 +242,15 @@ user_auth(void) {
 					error("Connection lost");
 				if (packet->type == SSH_SMSG_FAILURE) {
 					debug(DBG_AUTH, "Recievd SSH_SMSG_FAILURE\n");
+					rsaprivfree(userkey);
 					goto fail;
 				}
 				if (packet->type != SSH_SMSG_AUTH_RSA_CHALLENGE)
 					error("Expected Challenge, got %d\n", packet->type);
 				challenge = getBigInt(packet);
 				mfree(packet);
-				challenge = keydecrypt(keyring, mptmp=challenge);
-				if(challenge == nil)
-					challenge = mptmp;	/* it will fail, we'll go on */
+				challenge = RSADecrypt(challenge, userkey);
+				rsaprivfree(userkey);
 				mptobuf(mptmp=RSAunpad(challenge, 32), chalbuf, 32);
 				mpfree(mptmp);
 				mpfree(challenge);

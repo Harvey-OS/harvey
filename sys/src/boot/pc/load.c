@@ -40,7 +40,6 @@ extern int ether589reset(Ether*);
 extern int ne2000reset(Ether*);
 extern int wd8003reset(Ether*);
 extern int ec2treset(Ether*);
-extern int amd79c970reset(Ether*);
 
 struct {
 	char	*type;
@@ -57,7 +56,6 @@ struct {
 	{ "NE2000", ne2000reset, },
 	{ "WD8003", wd8003reset, },
 	{ "EC2T", ec2treset, },
-	{ "AMD79C970", amd79c970reset, },
 
 	{ 0, }
 };
@@ -127,7 +125,6 @@ static char *inis[] = {
 char **ini;
 
 int scsi0port;
-char *defaultpartition;
 
 static Medium*
 parse(char *line, char **file)
@@ -270,13 +267,9 @@ main(void)
 	alarminit();
 	spllo();
 
-	kbdinit();
-
 	if((ulong)&end > (KZERO|(640*1024)))
 		panic("i'm too big\n");
 
-	readlsconf();
-	
 	for(tp = types; tp->type != Tnil; tp++){
 		if(tp->type == Tether)
 			continue;
@@ -287,10 +280,7 @@ print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
 		}
 	}
 
-	apminit();
-
-	if((p = getconf("console")) != nil)
-		consinit(p, getconf("baud"));
+	consinit();
 
 	/*
  	 * Even after we find the ini file, we keep probing disks,
@@ -346,7 +336,7 @@ done:
 		print("\n");
 
 	for(;;){
-		if(getstr("boot from", line, sizeof(line), def, (mode != Manual)*15) >= 0)
+		if(getstr("boot from", line, sizeof(line), def, mode != Manual) >= 0)
 			if(mp = parse(line, &file))
 				boot(mp, file);
 		def[0] = 0;

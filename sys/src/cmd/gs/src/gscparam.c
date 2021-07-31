@@ -1,22 +1,22 @@
-/* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gscparam.c,v 1.6 2000/09/19 19:00:26 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gscparam.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
 /* Default implementation of parameter lists */
 #include "memory_.h"
 #include "string_.h"
@@ -51,93 +51,26 @@ const byte gs_param_type_base_sizes[] = {
  */
 struct gs_c_param_s {
     gs_c_param *next;
-    gs_param_key_t key;
-    bool free_key;
+    gs_param_name key;
     gs_c_param_value value;
     gs_param_type type;
     void *alternate_typed_data;
 };
 
-/* GC descriptor and procedures */
-gs_private_st_composite(st_c_param, gs_c_param, "gs_c_param",
-			c_param_enum_ptrs, c_param_reloc_ptrs);
-ENUM_PTRS_WITH(c_param_enum_ptrs, gs_c_param *param) {
-    index -= 3;
-    switch (param->type) {
-	/* Only the aggregate types are handled specially. */
-    case gs_param_type_dict:
-    case gs_param_type_dict_int_keys:
-    case gs_param_type_array:
-	return ENUM_USING(st_c_param_list, &param->value.d,
-			  sizeof(param->value.d), index);
-    default: {
-	gs_param_typed_value value;
-
-	value.value = *(const gs_param_value *)&param->value;
-	value.type = param->type;
-	return gs_param_typed_value_enum_ptrs(&value, sizeof(value), index,
-					      pep, NULL, gcst);
-    }
-    }
-}
-case 0: return ENUM_OBJ(param->next);
-case 1: return ENUM_OBJ(param->alternate_typed_data);
-case 2:
-    if (!param->key.persistent) {
-	gs_const_string key;
-
-	key.data = param->key.data;
-	key.size = param->key.size;
-	return ENUM_STRING(&key);
-    } else
-	return ENUM_OBJ(0);	/* keep going */
-ENUM_PTRS_END
-RELOC_PTRS_WITH(c_param_reloc_ptrs, gs_c_param *param) {
-    RELOC_VAR(param->next);
-    RELOC_VAR(param->alternate_typed_data);
-    if (!param->key.persistent) {
-	gs_const_string key;
-
-	key.data = param->key.data;
-	key.size = param->key.size;
-	RELOC_CONST_STRING_VAR(key);
-	param->key.data = key.data;
-    }
-    switch (param->type) {
-	/* Only the aggregate types are handled specially. */
-    case gs_param_type_dict:
-    case gs_param_type_dict_int_keys:
-    case gs_param_type_array:
-	RELOC_USING(st_c_param_list, &param->value.d, sizeof(param->value.d));
-	break;
-    default: {
-	gs_param_typed_value value;
-
-	value.value = *(gs_param_value *)&param->value;
-	value.type = param->type;
-	gs_param_typed_value_reloc_ptrs(&value, sizeof(value), NULL, gcst);
-	*(gs_param_value *)&param->value = value.value;
-    }
-    }
-}
-RELOC_PTRS_END
+/* Parameter values aren't really simple, */
+/* but since parameter lists are transient, it doesn't matter. */
+gs_private_st_ptrs2(st_c_param, gs_c_param, "gs_c_param",
+	 c_param_enum_ptrs, c_param_reloc_ptrs, next, alternate_typed_data);
 
 /* ---------------- Utilities ---------------- */
-
-gs_c_param_list *
-gs_c_param_list_alloc(gs_memory_t *mem, client_name_t cname)
-{
-    return gs_alloc_struct(mem, gs_c_param_list, &st_c_param_list, cname);
-}
 
 private gs_c_param *
 c_param_find(const gs_c_param_list *plist, gs_param_name pkey, bool any)
 {
     gs_c_param *pparam = plist->head;
-    uint len = strlen(pkey);
 
     for (; pparam != 0; pparam = pparam->next)
-	if (pparam->key.size == len && !memcmp(pparam->key.data, pkey, len))
+	if (!strcmp(pparam->key, pkey))
 	    return (pparam->type != gs_param_type_any || any ? pparam : 0);
     return 0;
 }
@@ -168,7 +101,6 @@ gs_c_param_list_write(gs_c_param_list * plist, gs_memory_t * mem)
     plist->target = 0;		/* not used for writing */
     plist->count = 0;
     plist->any_requested = false;
-    plist->persistent_keys = true;
     gs_c_param_list_write_more(plist);
 }
 
@@ -192,7 +124,6 @@ gs_c_param_list_write_more(gs_c_param_list * plist)
 void
 gs_c_param_list_release(gs_c_param_list * plist)
 {
-    gs_memory_t *mem = plist->memory;
     gs_c_param *pparam;
 
     while ((pparam = plist->head) != 0) {
@@ -211,20 +142,16 @@ gs_c_param_list_release(gs_c_param_list * plist)
 	    case gs_param_type_string_array:
 	    case gs_param_type_name_array:
 		if (!pparam->value.s.persistent)
-		    gs_free_const_object(mem, pparam->value.s.data,
+		    gs_free_const_object(plist->memory,
+					 pparam->value.s.data,
 					 "gs_c_param_list_release data");
 		break;
 	    default:
 		break;
 	}
-	if (pparam->free_key) {
-	    /* We allocated this, so we must free it. */
-	    gs_free_const_string(mem, pparam->key.data, pparam->key.size,
-				 "gs_c_param_list_release key");
-	}
-	gs_free_object(mem, pparam->alternate_typed_data,
+	gs_free_object(plist->memory, pparam->alternate_typed_data,
 		       "gs_c_param_list_release alternate data");
-	gs_free_object(mem, pparam,
+	gs_free_object(plist->memory, pparam,
 		       "gs_c_param_list_release entry");
 	plist->head = next;
 	plist->count--;
@@ -237,30 +164,12 @@ c_param_add(gs_c_param_list * plist, gs_param_name pkey)
 {
     gs_c_param *pparam =
 	gs_alloc_struct(plist->memory, gs_c_param, &st_c_param,
-			"c_param_add entry");
-    uint len = strlen(pkey);
+			"c_param_write entry");
 
     if (pparam == 0)
 	return 0;
     pparam->next = plist->head;
-    if (!plist->persistent_keys) {
-	/* We must copy the key. */
-	byte *str = gs_alloc_string(plist->memory, len, "c_param_add key");
-
-	if (str == 0) {
-	    gs_free_object(plist->memory, pparam, "c_param_add entry");
-	    return 0;
-	}
-	memcpy(str, pkey, len);
-	pparam->key.data = str;
-	pparam->key.persistent = false; /* we will free it */
-	pparam->free_key = true;
-    } else {
-	pparam->key.data = (const byte *)pkey;
-	pparam->key.persistent = true;
-	pparam->free_key = false;
-    }
-    pparam->key.size = len;
+    pparam->key = pkey;
     pparam->alternate_typed_data = 0;
     return pparam;
 }
@@ -349,8 +258,8 @@ c_param_begin_write_collection(gs_param_list * plist, gs_param_name pkey,
 {
     gs_c_param_list *const cplist = (gs_c_param_list *)plist;
     gs_c_param_list *dlist =
-	gs_c_param_list_alloc(cplist->memory,
-			      "c_param_begin_write_collection");
+	gs_alloc_struct(cplist->memory, gs_c_param_list, &st_c_param_list,
+			"c_param_begin_write_collection");
 
     if (dlist == 0)
 	return_error(gs_error_VMerror);
@@ -574,7 +483,8 @@ c_param_get_next_key(gs_param_list * plist, gs_param_enumerator_t * penum,
     if (pparam == 0)
 	return 1;
     penum->pvoid = pparam;
-    *key = pparam->key;
+    key->data = (const byte *)pparam->key;	/* was const char * */
+    key->size = strlen(pparam->key);
     return 0;
 }
 private int

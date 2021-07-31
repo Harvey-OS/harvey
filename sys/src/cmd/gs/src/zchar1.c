@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: zchar1.c,v 1.5.2.1 2000/10/26 12:45:11 igorm Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: zchar1.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* Type 1 character display operator */
 #include "memory_.h"
 #include "ghost.h"
@@ -89,7 +89,6 @@ typedef struct gs_type1exec_state_s {
     double sbw[4];
     int /*metrics_present */ present;
     gs_rect char_bbox;
-    bool use_FontBBox_as_Metrics2;
     /*
      * The following elements are only used locally to make the stack clean
      * for OtherSubrs: they don't need to be declared for the garbage
@@ -235,22 +234,8 @@ charstring_execchar(i_ctx_t *i_ctx_p, int font_type_mask)
 		return type1_call_OtherSubr(i_ctx_p, &cxs, nobbox_continue,
 					    &other_subr);
 	    case type1_result_sbw:	/* [h]sbw, just continue */
-		if (cxs.present != metricsSideBearingAndWidth) {
-		    if ((penum->FontBBox_as_Metrics2.x == 0 &&
-			 penum->FontBBox_as_Metrics2.y == 0) ||
-		        gs_rootfont(igs)->WMode == 0
-			) {
- 		        type1_cis_get_metrics(pcis, cxs.sbw);
-		        cxs.use_FontBBox_as_Metrics2 = false;
-	            } else { /* pass here if FontType==9,11 && WMode==1*/
-		        cxs.sbw[0] = penum->FontBBox_as_Metrics2.x / 2;
-		        cxs.sbw[1] = penum->FontBBox_as_Metrics2.y;
-		        cxs.sbw[2] = 0;
-		        cxs.sbw[3] = -penum->FontBBox_as_Metrics2.x; /* Sic! */
-		        cxs.use_FontBBox_as_Metrics2 = true;
-			cxs.present = metricsSideBearingAndWidth;
-		    }
-		}
+		if (cxs.present != metricsSideBearingAndWidth)
+		    type1_cis_get_metrics(pcis, cxs.sbw);
 		opstr = 0;
 		goto icont;
 	}
@@ -300,7 +285,7 @@ type1exec_bbox(i_ctx_t *i_ctx_p, gs_type1exec_state * pcxs,
 	return zchar_set_cache(i_ctx_p, pbfont, &cnref,
 			       NULL, pcxs->sbw + 2,
 			       &pcxs->char_bbox,
-			       bbox_finish_fill, bbox_finish_stroke, NULL);
+			       bbox_finish_fill, bbox_finish_stroke);
     } else {
 	/* We have the width and bounding box: */
 	/* set up the cache device now. */
@@ -310,7 +295,7 @@ type1exec_bbox(i_ctx_t *i_ctx_p, gs_type1exec_state * pcxs,
 				pcxs->sbw : NULL),
 			       pcxs->sbw + 2,
 			       &pcxs->char_bbox,
-			       bbox_finish_fill, bbox_finish_stroke, NULL);
+			       bbox_finish_fill, bbox_finish_stroke);
     }
 }
 
@@ -344,7 +329,7 @@ bbox_getsbw_continue(i_ctx_t *i_ctx_p)
 	    bbox = pcxs->char_bbox;
 	    op_type1_free(i_ctx_p);
 	    return zchar_set_cache(i_ctx_p, pbfont, op, sbw, sbw + 2, &bbox,
-				   bbox_finish_fill, bbox_finish_stroke, NULL);
+				   bbox_finish_fill, bbox_finish_stroke);
 	}
     }
 }
@@ -465,23 +450,13 @@ bbox_draw(i_ctx_t *i_ctx_p, int (*draw)(P1(gs_state *)))
 
     if (igs->in_cachedevice < 2)	/* not caching */
 	return nobbox_draw(i_ctx_p, draw);
-    if ((code = font_param(op - 3, &pfont)) < 0)
+    if ((code = gs_pathbbox(igs, &bbox)) < 0 ||
+	(code = font_param(op - 3, &pfont)) < 0
+	)
 	return code;
     penum = op_show_find(i_ctx_p);
     if (penum == 0 || !font_uses_charstrings(pfont))
 	return_error(e_undefined);
-    if ((code = gs_pathbbox(igs, &bbox)) < 0) {
-	/*
-	 * If the matrix is singular, all user coordinates map onto a
-	 * straight line.  Don't bother rendering the character at all.
-	 */
-	if (code == e_undefinedresult) {
-	    pop(4);
-	    gs_newpath(igs);
-	    return 0;
-	}
-	return code;
-    }
     if (draw == gs_stroke) {
 	/* Expand the bounding box by the line width. */
 	float width = gs_currentlinewidth(igs) * 1.41422;
@@ -737,11 +712,9 @@ nobbox_finish(i_ctx_t *i_ctx_p, gs_type1exec_state * pcxs)
 		return code;
 	    return type1exec_bbox(i_ctx_p, pcxs, pfont);
 	}
-	return zchar_set_cache(i_ctx_p, pbfont, op, NULL,
-	                       pcxs->sbw + 2,
+	return zchar_set_cache(i_ctx_p, pbfont, op, NULL, pcxs->sbw + 2,
 			       &pcxs->char_bbox,
-			       nobbox_fill, nobbox_stroke,
-			       (pcxs->use_FontBBox_as_Metrics2 ? pcxs->sbw : NULL));
+			       nobbox_fill, nobbox_stroke);
     }
 }
 /* Finish by popping the operands and filling or stroking. */
@@ -884,35 +857,14 @@ const gs_type1_data_procs_t z1_data_procs = {
 
 /* ------ Font procedures for Type 1 fonts ------ */
 
-/*
- * Get a Type 1 or Type 2 glyph outline.  This is the glyph_outline
- * procedure for the font.
- */
 int
-zchar1_glyph_outline(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
-		     gx_path *ppath)
+zcharstring_glyph_outline(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
+			  gx_path *ppath)
 {
     gs_font_type1 *const pfont1 = (gs_font_type1 *)font;
-    ref gref;
     gs_const_string charstring;
-    int code;
-
-    glyph_ref(glyph, &gref);
-    code = zchar_charstring_data(font, &gref, &charstring);
-    if (code < 0)
-	return code;
-    return zcharstring_outline(pfont1, &gref, &charstring, pmat, ppath);
-}
-/*
- * Get a glyph outline given a CharString.  The glyph_outline procedure
- * for CIDFontType 0 fonts uses this.
- */
-int
-zcharstring_outline(gs_font_type1 *pfont1, const ref *pgref,
-		    const gs_const_string *pgstr,
-		    const gs_matrix *pmat, gx_path *ppath)
-{
-    const gs_const_string *pchars = pgstr;
+    ref gref;
+    gs_const_string *pchars = &charstring;
     int code;
     gs_type1exec_state cxs;
     gs_type1_state *const pcis = &cxs.cis;
@@ -925,20 +877,24 @@ zcharstring_outline(gs_font_type1 *pfont1, const ref *pgref,
     double sbw[4];
     gs_point mpt;
 
+    glyph_ref(glyph, &gref);
+    code = zchar_charstring_data(font, &gref, &charstring);
+    if (code < 0)
+	return code;
     pdata = &pfont1->data;
-    if (pgstr->size <= max(pdata->lenIV, 0))
+    if (charstring.size <= max(pdata->lenIV, 0))
 	return_error(e_invalidfont);
     pfdict = &pfont_data(pfont1)->dict;
     if (dict_find_string(pfdict, "CDevProc", &pcdevproc) > 0)
 	return_error(e_rangecheck); /* can't call CDevProc from here */
-    switch (pfont1->WMode) {
+    switch (font->WMode) {
     default:
-	code = zchar_get_metrics2((gs_font_base *)pfont1, pgref, sbw);
+	code = zchar_get_metrics2((gs_font_base *)pfont1, &gref, sbw);
 	if (code)
 	    break;
 	/* falls through */
     case 0:
-	code = zchar_get_metrics((gs_font_base *)pfont1, pgref, sbw);
+	code = zchar_get_metrics((gs_font_base *)pfont1, &gref, sbw);
     }
     if (code < 0)
 	return code;

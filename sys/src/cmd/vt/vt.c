@@ -1,18 +1,3 @@
-/*
- * Known bugs:
- *
- * 1. We don't handle cursor movement characters inside escape sequences.
- * 	That is, ESC[2C moves two to the right, so ESC[2\bC is supposed to back
- *	up one and then move two to the right.
- *
- * 2. We don't handle tabstops past nelem(tabcol) columns.
- *
- * 3. We don't respect requests to do reverse video for the whole screen.
- *
- * 4. We ignore the ESC#n codes, so that we don't do double-width nor 
- * 	double-height lines, nor the ``fill the screen with E's'' confidence check.
- */
-
 #include <u.h>
 #include <libc.h>
 #include <draw.h>
@@ -20,35 +5,11 @@
 #include <ctype.h>
 #include "cons.h"
 
-int	wraparound = 1;
-int	originrelative = 0;
-
-int	tabcol[200];
-
 struct funckey vt100fk[NKEYS] = {
 	{ "up key",		"\033OA", },
 	{ "down key",		"\033OB", },
 	{ "left key",		"\033OD", },
 	{ "right key",		"\033OC", },
-};
-
-struct funckey ansifk[NKEYS] = {
-	{ "up key",		"\033[A", },
-	{ "down key",		"\033[B", },
-	{ "left key",		"\033[D", },
-	{ "right key",		"\033[C", },
-	{ "F1",			"\033OP", },
-	{ "F2",			"\033OQ", },
-	{ "F3",			"\033OR", },
-	{ "F4",			"\033OS", },
-	{ "F5",			"\033OT", },
-	{ "F6",			"\033OU", },
-	{ "F7",			"\033OV", },
-	{ "F8",			"\033OW", },
-	{ "F9",			"\033OX", },
-	{ "F10",		"\033OY", },
-	{ "F11",		"\033OZ", },
-	{ "F12",		"\033O1", },
 };
 
 struct funckey vt220fk[NKEYS] = {
@@ -93,28 +54,24 @@ char gmap[256] = {
 	['~']	'.',	/* centered dot: · */
 };
 
-static void setattr(int argc, int *argv);
-
 void
 emulate(void)
 {
 	char buf[BUFS+1];
 	int n;
 	int c;
-	int operand[10];
-	int noperand;
-	int savex, savey, saveattribute, saveisgraphics;
+	int standout;
+	int operand, prevOperand;
+	int savex, savey;
 	int isgraphics;
+	int M, m;
 	int g0set, g1set;
 
+	standout = 0;
 	isgraphics = 0;
 	g0set = 'B';	/* US ASCII */
 	g1set = 'B';	/* US ASCII */
 	savex = savey = 0;
-	yscrmin = 0;
-	yscrmax = ymax;
-	saveattribute = 0;
-	saveisgraphics = 0;
 
 	for (;;) {
 		if (y > ymax) {
@@ -132,7 +89,7 @@ emulate(void)
 		case '\004':
 		case '\005':
 		case '\006':
-			goto Default;
+			break;
 
 		case '\007':		/* bell */
 			ringbell();
@@ -143,27 +100,22 @@ emulate(void)
 				--x;
 			break;
 
-		case '\011':		/* tab to next tab stop; if none, tab modulo 8 */
-			for(c=x+1; c<nelem(tabcol) && !tabcol[c]; c++)
-				;
-			if(c < nelem(tabcol))
-				x = c;
-			else
-				x = (x|7)+1;
+		case '\011':		/* tab modulo 8 */
+			x = (x|7)+1;
 			break;
 
 		case '\012':		/* linefeed */
 		case '\013':
 		case '\014':
 			newline();
-			attribute = 0;
+			standout = 0;
 			if (ttystate[cs->raw].nlcr)
 				x = 0;
 			break;
 
 		case '\015':		/* carriage return */
 			x = 0;
-			attribute = 0;
+			standout = 0;
 			if (ttystate[cs->raw].crnl)
 				newline();
 			break;
@@ -186,8 +138,7 @@ emulate(void)
 		case '\030':	/* CAN: cancel escape sequence */
 		case '\031':	/* EM: cancel escape sequence, display checkerboard */
 		case '\032':	/* SUB: same as CAN */
-			goto Default;
-;
+			break;
 		/* ESC, \033, is handled below */
 		case '\034':	/* FS */
 		case '\035':	/* GS */
@@ -205,8 +156,6 @@ emulate(void)
 			case '7':
 				savex = x;
 				savey = y;
-				saveattribute = attribute;
-				saveisgraphics = isgraphics;
 				break;
 
 			/*
@@ -215,61 +164,28 @@ emulate(void)
 			case '8':
 				x = savex;
 				y = savey;
-				attribute = saveattribute;
-				isgraphics = saveisgraphics;
 				break;
 
 			/*
-			 * c - Reset terminal.
-			 */
-			case 'c':
-				cursoron = 1;
-				curson(0);
-				ttystate[cs->raw].nlcr = 0;
-				break;
-
-			/*
-			 * D - active position down a line, scroll if at bottom margin.
+			 * Received D.  Scroll forward.
 			 */
 			case 'D':
-				if(++y > yscrmax) {
-					y = yscrmax;
-					scroll(yscrmin+1, yscrmax+1, yscrmin, yscrmax);
-				}
+				M = yscrmax ? yscrmax : ymax;
+				m = yscrmax ? yscrmin : 0;
+				scroll(m+1, M+1, m, M);
 				break;
 
 			/*
-			 * E - active position to start of next line, scroll if at bottom margin.
-			 */
-			case 'E':
-				x = 0;
-				if(++y > yscrmax) {
-					y = yscrmax;
-					scroll(yscrmin+1, yscrmax+1, yscrmin, yscrmax);
-				}
-				break;
-
-			/*
-			 * H - set tab stop at current column.
-			 * (This is move to home in some VT100 docs, but that use seems deprecated.  -rsc)
-			 */
-			case 'H':
-				if(x < nelem(tabcol))
-					tabcol[x] = 1;
-				break;
-
-			/*
-			 * M - active position up a line, scroll if at top margin..
+			 * Received M.  Scroll reverse.
 			 */
 			case 'M':
-				if(--y < yscrmin) {
-					y = yscrmin;
-					scroll(yscrmin, yscrmax, yscrmin+1, yscrmin);
-				}
+				M = yscrmax ? yscrmax : ymax;
+				m = yscrmax ? yscrmin : 0;
+				scroll(m, M, m+1, m);
 				break;
 
 			/*
-			 * Z - identification.  the terminal
+			 * Z - Identification.  The terminal
 			 * emulator will return the response
 			 * code for a generic VT100.
 			 */
@@ -279,9 +195,10 @@ emulate(void)
 				break;
 
 			/*
-			 * < - enter ANSI mode
+			 * H - go home.
 			 */
-			case '<':
+			case 'H':
+				x = y = 0;
 				break;
 
 			/*
@@ -297,16 +214,11 @@ emulate(void)
 				break;
 
 			/*
-			 * # - Takes a one-digit argument
+			 * # - Takes a one-digit argument that 
+			 * we need to snarf away.
 			 */
 			case '#':
-				switch(get_next_char()){
-				case '3':		/* Top half of double-height line */
-				case '4':		/* Bottom half of double-height line */
-				case '6':		/* Double-width line */
-				case '8':		/* Fill screen with E's */
-					break;
-				}
+				get_next_char();
 				break;
 
 			/*
@@ -328,17 +240,14 @@ emulate(void)
 			 */
 			case '[':
 				/*
-				 * A semi-colon or ? delimits arguments.
+				 * A semi-colon or ? delimits arguments.  Only keep one
+				 * previous argument (plus the current one) around.
 				 */
-				memset(operand, 0, sizeof(operand));
-				operand[0] = number(buf, nil);
-				noperand = 1;
+				operand = number(buf);
+				prevOperand = 0;
 				while(buf[0] == ';' || buf[0] == '?'){
-					if(noperand < nelem(operand)) {
-						noperand++;
-						operand[noperand-1] = number(buf, nil);
-					} else
-						number(buf, nil);
+					prevOperand = operand;
+					operand = number(buf);
 				}
 
 				/*
@@ -352,152 +261,27 @@ emulate(void)
 						goto Ident;
 
 					/*
-					 * g - various tabstop manipulation
-					 */
-					case 'g':
-						switch(operand[0]){
-						case 0:	/* clear tab at current column */
-							if(x < nelem(tabcol))
-								tabcol[x] = 0;
-							break;
-						case 3:	/* clear all tabs */
-							memset(tabcol, 0, sizeof tabcol);
-							break;
-						}
-						break;
-
-					/*
-					 * l - clear various options.
+					 * l - set various options.
 					 */
 					case 'l':
-						if(noperand == 1){
-							switch(operand[0]){	
-							case 20:	/* set line feed mode */
-								ttystate[cs->raw].nlcr = 0;
-								break;
-							case 25:	/* cursor off */
-								cursoron = 0;
-								cursoff();
-								break;
-							case 30:	/* screen invisible */
-								break;
-							}
-						}else if(noperand == 2){
-							switch(operand[1]){
-							case 1:	/* set cursor key to cursor */
-								break;
-							case 2:	/* set VT52 */
-								break;
-							case 3:	/* set 80 columns */
-								setdim(-1, 80);
-								break;
-							case 4:	/* set jump scrolling */
-								break;
-							case 5:	/* set normal video on screen */
-								break;
-							case 6:	/* set origin to absolute */
-print("OL\n");
-								originrelative = 0;
-								break;
-							case 7:	/* reset auto-wrap mode */
-								wraparound = 0;
-								break;
-							case 8:	/* reset auto-repeat mode */
-								break;
-							case 9:	/* reset interlacing mode */
-								break;
-							}
-						}
 						break;
 
 					/*
-					 * h - set various options.
+					 * h - clear various options.
 					 */
 					case 'h':
-//print("h%d:%d,%d\n", noperand, operand[0], operand[1]);
-						if(noperand == 1){
-							switch(operand[0]){	
-							case 20:	/* set newline mode */
-								ttystate[cs->raw].nlcr = 1;
-								break;
-							case 25:	/* cursor on */
-								cursoron = 1;
-								curson(0);
-								break;
-							case 30:	/* screen visible */
-								break;
-							}
-						}else if(noperand == 2){
-							switch(operand[1]){
-							case 1:	/* set cursor key to application */
-								break;
-							case 2:	/* set ANSI */
-								break;
-							case 3:	/* set 132 columns */
-								setdim(-1, 132);
-							break;
-							case 4:	/* set smooth scrolling */
-								break;
-							case 5:	/* set reverse video on screen */
-								break;
-							case 6:	/* set origin to relative */
-								originrelative = 1;
-								break;
-							case 7:	/* set auto-wrap mode */
-								wraparound = 1;
-								break;
-							case 8:	/* set auto-repeat mode */
-								break;
-							case 9:	/* set interlacing mode */
-								break;
-							}
-						}
-						break;
-
-					/*
-					 * m - change character attributes.
-					 */
-					case 'm':
-						setattr(noperand, operand);
-						break;
-
-					/*
-					 * Turn on list of LEDs; turn off others.
-					 */
-					case 'q':
-						print("LED\n");
-						break;
-
-					/*
-					 * r - change scrolling region.  operand[0] is
-					 * min scrolling region and operand[1] is max
-					 * scrolling region.
-					 */
-					case 'r':
-						yscrmin = 0;
-						yscrmax = ymax;
-						switch(noperand){
-						case 2:
-							yscrmax = operand[1]-1;
-						case 1:
-							yscrmin = operand[0]-1;
-							if(yscrmin < 0)
-								yscrmin = 0;
-						}
-						x = 0;
-						y = yscrmin;
 						break;
 
 					/*
 					 * A - cursor up.
 					 */
 					case 'A':
-						if(operand[0] == 0)
-							operand[0] = 1;
-						y -= operand[0];
-						if(y < yscrmin)
-							y = yscrmin;
-						olines -= operand[0];
+						if(operand == 0)
+							operand = 1;
+						y -= operand;
+						if(y < 0)
+							y = 0;
+						olines -= operand;
 						if(olines < 0)
 							olines = 0;
 						break;
@@ -506,138 +290,107 @@ print("OL\n");
 					 * B - cursor down
 					 */
 					case 'B':
-						if(operand[0] == 0)
-							operand[0] = 1;
-						y += operand[0];
-						if(y > yscrmax)
-							y=yscrmax;
+						if(operand == 0)
+							operand = 1;
+						y += operand;
+						while(y > ymax){
+							scroll(1, ymax+1, 0, ymax);
+							y--;
+						}
 						break;
 					
 					/*
 					 * C - cursor right.
 					 */
 					case 'C':
-						if(operand[0] == 0)
-							operand[0] = 1;
-						x += operand[0];
-						/*
-						 * VT-100-UG says not to go past the
-						 * right margin.
-						 */
-						if(x > xmax)
-							x=xmax;
+						if(operand == 0)
+							operand = 1;
+						x += operand;
 						break;
 
 					/*
 					 * D - cursor left (I think)
 					 */
 					case 'D':
-						if(operand[0] == 0)
-							operand[0] = 1;
-						x -= operand[0];
+						if(operand == 0)
+							operand = 1;
+						x -= operand;
 						if(x < 0)
 							x = 0;
 						break;
 
 					/*
-					 * H and f - cursor motion.  operand[0] is row and
-					 * operand[1] the row, origin 1.
+					 * H - cursor motion.  operand is the column
+					 * and prevOperand is the row, origin 1.
 					 */
 					case 'H':
-					case 'f':
-						x = operand[1] - 1;
+						x = operand - 1;
 						if(x < 0)
 							x = 0;
-						if(x > xmax)
-							x = xmax;
-						y = operand[0] - 1;
+						y = prevOperand - 1;
 						if(y < 0)
 							y = 0;
-						if(originrelative){
-							y += yscrmin;
-							if(y > yscrmax)
-								y = ymax;
-						}else{
-							if(y > yscrmax)
-								y = yscrmax;
-						}
 						break;
 
 					/*
-					 * J - clear some or all of the display.
+					 * J - clear in display.
 					 */
 					case 'J':
-						switch (operand[0]) {
+						switch (operand) {
 							/*
 							 * operand 2:  whole screen.
 							 */
 							case 2:
 								clear(Rpt(pt(0, 0), pt(xmax+1, ymax+1)));
 								break;
+
 							/*
-							 * operand 1: start of screen to active position, inclusive.
-							 */
-							case 1:
-								clear(Rpt(pt(0, 0), pt(x, ymax+1)));
-								clear(Rpt(pt(0, y), pt(x+1, y+1)));
-								break;
-							/*
-							 * Default:  active position to end of screen, inclusive.
+							 * Default:  clear to EOP.
 							 */
 							default:
-								clear(Rpt(pt(x, y), pt(xmax+1, y+1)));
 								clear(Rpt(pt(0, y+1), pt(xmax+1, ymax+1)));
 								break;
 						}
 						break;
 
 					/*
-					 * K - clear some or all of the line.
+					 * K - clear to EOL.
 					 */
 					case 'K':
-						switch (operand[0]) {
-							/*
-							 * operand 2: whole line.
-							 */
-							case 2:
-								clear(Rpt(pt(x, y), pt(xmax+1, y+1)));
-								break;
-							/*
-							 * operand 1: start of line to active position, inclusive.
-							 */
-							case 1:
-								clear(Rpt(pt(0, y), pt(x+1, y+1)));
-								break;
-							/*
-							 * Default: active position to end of line, inclusive.
-							 */
-							default:
-								clear(Rpt(pt(x, y), pt(xmax+1, y+1)));
-								break;
-						}
+						clear(Rpt(pt(x, y), pt(xmax+1, y+1)));
 						break;
 
 					/*
 					 * L - insert a line at cursor position
 					 */
 					case 'L':
-						scroll(y, yscrmax, y+1, y);
+						M = yscrmax ? yscrmax : ymax;
+						scroll(y, M, y+1, y);
 						break;
 
 					/*
 					 * M - delete a line at the cursor position
 					 */
 					case 'M':
-						scroll(y+1, yscrmax+1, y, yscrmax);
+						M = yscrmax ? yscrmax : ymax;
+						scroll(y+1, M+1, y, M);
 						break;
 
-					case '=':
-						number(buf, nil);
-						switch(buf[0]) {
-						case 'h':
-						case 'l':
-							break;
-						}
+					/*
+					 * m - change character attributes.
+					 */
+					case 'm':
+						standout = operand;
+						break;
+
+					/*
+					 * r - change scrolling region.  prevOperand is
+					 * min scrolling region and operand is max
+					 * scrolling region.
+					 */
+					case 'r':
+						yscrmin = prevOperand-1;
+						yscrmax = operand-1;
 						break;
 
 					/*
@@ -659,18 +412,13 @@ print("OL\n");
 			break;
 
 		default:		/* ordinary char */
-Default:
 			if(isgraphics && gmap[(uchar) buf[0]])
 				buf[0] = gmap[(uchar) buf[0]];
 
 			/* line wrap */
 			if (x > xmax){
-				if(wraparound){
-					x = 0;
-					newline();
-				}else{
-					continue;
-				}
+				x = 0;
+				newline();
 			}
 			n = 1;
 			c = 0;
@@ -681,73 +429,9 @@ Default:
 			}
 			buf[n] = 0;
 //			clear(Rpt(pt(x,y), pt(x+n, y+1)));
-			drawstring(pt(x, y), buf, attribute);
+			drawstring(pt(x, y), buf, standout);
 			x += n;
 			peekc = c;
-			break;
-		}
-	}
-}
-
-static void
-setattr(int argc, int *argv)
-{
-	int i;
-
-	for(i=0; i<argc; i++) {
-		switch(argv[i]) {
-		case 0:
-			attribute = 0;
-			break;
-		case 1:
-			attribute |= THighIntensity;
-			break;		
-		case 4:
-			attribute |= TUnderline;
-			break;		
-		case 5:
-			attribute |= TBlink;
-			break;
-		case 7:
-			attribute |= TReverse;
-			break;
-		case 8:
-			attribute |= TInvisible;
-			break;
-		case 22:
-			attribute &= ~THighIntensity;
-			break;		
-		case 24:
-			attribute &= ~TUnderline;
-			break;		
-		case 25:
-			attribute &= ~TBlink;
-			break;
-		case 27:
-			attribute &= ~TReverse;
-			break;
-		case 28:
-			attribute &= ~TInvisible;
-			break;
-		case 30:
-		case 31:
-		case 32:
-		case 33:
-		case 34:
-		case 35:
-		case 36:
-		case 37:
-			frgcolor = argv[i]-30;
-			break;
-		case 40:
-		case 41:
-		case 42:
-		case 43:
-		case 44:
-		case 45:
-		case 46:
-		case 47:
-			bckcolor = argv[i]-40;
 			break;
 		}
 	}

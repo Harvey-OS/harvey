@@ -186,7 +186,7 @@ winctl(void *arg)
 	Rune *rp, *bp, *tp, *up, *kbdr;
 	uint qh;
 	int nr, nb, c, wid, i, npart, initial, lastb;
-	char *s, *t, part[3];
+	char *t, part[3];
 	Window *w;
 	Mousestate *mp, m;
 	enum { WKey, WMouse, WMouseread, WCtl, WCwrite, WCread, WWread, NWALT };
@@ -204,11 +204,15 @@ winctl(void *arg)
 	threadsetname(buf);
 
 	mrm.cm = chancreate(sizeof(Mouse), 0);
+	mrm.isflush = FALSE;
 	cwm.cw = chancreate(sizeof(Stringpair), 0);
+	cwm.isflush = FALSE;
 	crm.c1 = chancreate(sizeof(Stringpair), 0);
 	crm.c2 = chancreate(sizeof(Stringpair), 0);
+	crm.isflush = FALSE;
 	cwrm.c1 = chancreate(sizeof(Stringpair), 0);
 	cwrm.c2 = chancreate(sizeof(Stringpair), 0);
+	cwrm.isflush = FALSE;
 	
 
 	alts[WKey].c = w->ck;
@@ -399,17 +403,9 @@ winctl(void *arg)
 			if(w->deleted || w->i==nil)
 				pair.ns = sprint(pair.s, "");
 			else{
-				s = "visible";
-				for(i=0; i<nhidden; i++)
-					if(hidden[i] == w){
-						s = "hidden";
-						break;
-					}
-				t = "notcurrent";
-				if(w == input)
-					t = "current";
-				pair.ns = snprint(pair.s, pair.ns, "%11d %11d %11d %11d %s %s ",
-					w->i->r.min.x, w->i->r.min.y, w->i->r.max.x, w->i->r.max.y, t, s);
+				pair.ns = snprint(buf, sizeof buf, "%11d %11d %11d %11d ",
+					w->i->r.min.x, w->i->r.min.y, w->i->r.max.x, w->i->r.max.y);
+				memmove(pair.s, buf, 4*12);	/* avoid copying the NUL */
 			}
 			send(cwrm.c2, &pair);
 			continue;
@@ -496,14 +492,9 @@ wkeyctl(Window *w, Rune r)
 		nb = wbswidth(w, r);
 		q1 = w->q0;
 		q0 = q1-nb;
-		if(q0 < w->org){
-			q0 = w->org;
-			nb = q1-q0;
-		}
-		if(nb > 0){
+		if(nb)
 			wdelete(w, q0, q0+nb);
-			wsetselect(w, q0, q0);
-		}
+		wsetselect(w, q0, q0);
 		return;
 	}
 	/* otherwise ordinary character; just insert */
@@ -581,7 +572,6 @@ wsnarf(Window *w)
 		return;
 	nsnarf = w->q1-w->q0;
 	snarf = runerealloc(snarf, nsnarf);
-	snarfversion++;	/* maybe modified by parent */
 	runemove(snarf, w->r+w->q0, nsnarf);
 	putsnarf();
 }
@@ -592,7 +582,6 @@ wcut(Window *w)
 	if(w->q1 == w->q0)
 		return;
 	wdelete(w, w->q0, w->q1);
-	wsetselect(w, w->q0, w->q0);
 }
 
 void
@@ -1002,8 +991,6 @@ wcurrent(Window *w)
 {
 	Window *oi;
 
-	if(wkeyboard!=nil && w==wkeyboard)
-		return;
 	oi = input;
 	input = w;
 	if(oi!=w && oi!=nil)
@@ -1011,16 +998,6 @@ wcurrent(Window *w)
 	if(w !=nil){
 		wrepaint(w);
 		wsetcursor(w, 0);
-	}
-	if(w != oi){
-		if(oi){
-			oi->wctlready = 1;
-			wsendctlmesg(oi, Wakeup, ZR, nil);
-		}
-		if(w){
-			w->wctlready = 1;
-			wsendctlmesg(w, Wakeup, ZR, nil);
-		}
 	}
 }
 
@@ -1057,8 +1034,6 @@ wtop(Point pt)
 
 	w = wpointto(pt);
 	if(w){
-		if(w->topped == topped)
-			return nil;
 		topwindow(w->i);
 		wcurrent(w);
 		flushimage(display, 1);
@@ -1070,7 +1045,7 @@ wtop(Point pt)
 void
 wtopme(Window *w)
 {
-	if(w!=nil && w->i!=nil && !w->deleted && w->topped!=topped){
+	if(w!=nil && w->i!=nil && !w->deleted){
 		topwindow(w->i);
 		flushimage(display, 1);
 		w->topped = ++ topped;
@@ -1109,12 +1084,10 @@ wclosewin(Window *w)
 		input = nil;
 		wsetcursor(w, 0);
 	}
-	if(w == wkeyboard)
-		wkeyboard = nil;
 	for(i=0; i<nhidden; i++)
 		if(hidden[i] == w){
 			--nhidden;
-			memmove(hidden+i, hidden+i+1, (nhidden-i)*sizeof(hidden[0]));
+			memmove(hidden+i, hidden+i+1, nhidden-i);
 			break;
 		}
 	for(i=0; i<nwindow; i++)
@@ -1163,19 +1136,16 @@ winshell(void *args)
 	rfork(RFNAMEG|RFFDG|RFENVG);
 	if(filsysmount(filsys, w->id) < 0){
 		threadprint(2, "mount failed: %r\n");
-		sendul(pidc, 0);
 		threadexits("mount failed");
 	}
 	close(0);
 	if(open("/dev/cons", OREAD) < 0){
 		threadprint(2, "can't open /dev/cons: %r\n");
-		sendul(pidc, 0);
 		threadexits("/dev/cons");
 	}
 	close(1);
 	if(open("/dev/cons", OWRITE) < 0){
 		threadprint(2, "can't open /dev/cons: %r\n");
-		sendul(pidc, 0);
 		threadexits("open");	/* BUG? was terminate() */
 	}
 	if(wclose(w) == 0){	/* remove extra ref hanging from creation */

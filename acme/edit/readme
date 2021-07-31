@@ -1,0 +1,31 @@
+The programs collected in /acme/edit offer a sam-like command interface
+to acme windows.  The guide file
+	/acme/edit/guide
+holds templates for several editing operations implemented
+by external programs.  These programs, composed in
+a pipeline, refine the sections of a file to be modified.
+Thus in sam when one says
+	x/.*\n/ g/foo/ p
+in /acme/edit one runs
+	x '/.*\n/' | g '/foo/' | p
+The e command, unrelated to e in sam, disambiguates file names, collects
+lists of names, etc., and produces input suitable for the other tools.
+For example:
+	e /usr/rob/acme:'0,$' | x /oldname/ | c /newname/
+changes oldname to newname in all the files loaded in acme whose names match
+the literal text /usr/rob/acme.
+
+The commands in /acme/edit are
+	e
+	x
+	g
+	c
+	d
+	p
+	pipe	(like sam's | , which can't be used for syntactic reasons)
+
+p takes a -n flag analogous to grep's -n.  There is no s command.
+e has a -l flag to produce line numbers instead of the default character numbers.
+Its implementation is poor but sufficient for the mundane job of recreating
+the occasional line number for tools like acid; its use with the other commands
+in this directory is discouraged.

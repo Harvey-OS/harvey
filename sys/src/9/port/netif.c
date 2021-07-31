@@ -318,8 +318,7 @@ netifwrite(Netif *nif, Chan *c, void *a, long n)
 		p = netmulti(nif, f, binaddr, 0);
 		if(p)
 			error(p);
-	} else
-		n = -1;
+	}
 	qunlock(nif);
 	poperror();
 	return n;

@@ -44,13 +44,6 @@ int dfdin, dfdout;	/* File descriptor for connection to server */
 int DEBUG;
 
 void
-usage(void)
-{
-	fprint(2, "usage: ssh [-CiImprv] [user@]hostname [cmd [args]]\n");
-	exits("usage");
-}
-
-void
 main(int argc, char *argv[]) {
 	int n, fd;
 	char *host;
@@ -80,7 +73,7 @@ main(int argc, char *argv[]) {
 		break;
 	case 'l':
 	case 'u':
-		user = EARGF(usage());
+		user = ARGF();
 		break;
 	case 'p':
 		requestpty++;
@@ -96,12 +89,14 @@ main(int argc, char *argv[]) {
 		/* Ignore, we don't do X forwarding */
 		break;
 	default:
-		usage();
+		goto Usage;
 	} ARGEND
 
-	if (argc < 1)
-		usage();
-
+	if (argc < 1){
+	Usage:
+		fprint(2, "usage: %s [-[lu] user] [-rvI] hostname [cmd [args]]\n", progname);
+		exits("usage");
+	}
 	host = *argv++;
 	if(p = strchr(host, '@')){
 		*p++ = 0;

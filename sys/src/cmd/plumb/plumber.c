@@ -16,6 +16,9 @@ int	printerrors=1;
 jmp_buf	parsejmp;
 char	*lasterror;
 
+int threadrforkflag = RFPROC|RFMEM;
+int threadhack = 1;
+
 void
 makeports(Ruleset *rules[])
 {
@@ -26,11 +29,8 @@ makeports(Ruleset *rules[])
 }
 
 void
-mainproc(void *v)
+mainproc(Channel *c)
 {
-	Channel *c;
-
-	c = v;
 	printerrors = 0;
 	makeports(rules);
 	proccreate(startfsys, nil, 8*1024);
@@ -75,7 +75,7 @@ threadmain(int argc, char *argv[])
 	 * so we (main pid) can return to user.
 	 */
 	c = chancreate(sizeof(void*), 0);
-	proccreate(mainproc, c, 8192);
+	mainproc(c);
 	recvp(c);
 	chanfree(c);
 	threadexits(nil);
@@ -92,6 +92,7 @@ error(char *fmt, ...)
 	va_end(args);
 
 	threadprint(2, "%s: %s\n", progname, buf);
+	threadhack = 0;	/* ugly! */
 	threadexitsall("error");
 }
 

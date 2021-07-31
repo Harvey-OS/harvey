@@ -1,22 +1,22 @@
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gdevpdft.c,v 1.16 2000/09/19 19:00:17 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gdevpdft.c,v 1.3 2000/03/16 01:21:24 lpd Exp $ */
 /* Text handling for PDF-writing driver. */
 #include "math_.h"
 #include "memory_.h"
@@ -31,11 +31,9 @@
 #include "gxfont1.h"
 #include "gxfont42.h"
 #include "gxfcache.h"		/* for orig_fonts list */
-#include "gxfcid.h"
 #include "gxpath.h"		/* for getting current point */
 #include "gdevpdfx.h"
 #include "gdevpdff.h"
-#include "gdevpdfg.h"
 #include "scommon.h"
 
 /*
@@ -201,37 +199,13 @@ gdev_pdf_text_begin(gx_device * dev, gs_imager_state * pis,
     gs_fixed_point cpt;
     int code;
 
-    /* Track the dominant text rotation. */
-    {
-	gs_matrix tmat;
-	int i;
-
-	gs_matrix_multiply(&font->FontMatrix, &ctm_only(pis), &tmat);
-	if (is_xxyy(&tmat))
-	    i = (tmat.xx >= 0 ? 0 : 2);
-	else if (is_xyyx(&tmat))
-	    i = (tmat.xy >= 0 ? 1 : 3);
-	else
-	    i = 4;
-	pdf_current_page(pdev)->text_rotation.counts[i] += text->size;
-    }
-
-    code = pdf_prepare_fill(pdev, pis);
-    if (code < 0)
-	return code;
-
     if ((text->operation &
 	 ~(TEXT_FROM_STRING | TEXT_FROM_BYTES |
 	   TEXT_ADD_TO_ALL_WIDTHS | TEXT_ADD_TO_SPACE_WIDTH |
 	   TEXT_REPLACE_WIDTHS |
 	   TEXT_DO_DRAW | TEXT_RETURN_WIDTH)) != 0 ||
-	gx_path_current_point(path, &cpt) < 0 ||
-	/*
-	 * It appears that no version of Acrobat Reader handles stroked
-	 * fonts properly: they all seem to ignore the PaintType.
-	 * Therefore, we can't handle any font with non-zero PaintType.
-	 */
-	font->PaintType != 0
+	!gx_dc_is_pure(pdcolor) ||
+	gx_path_current_point(path, &cpt) < 0
 	)
 	return gx_default_text_begin(dev, pis, text, font, path, pdcolor,
 				     pcpath, mem, ppte);
@@ -245,10 +219,8 @@ gdev_pdf_text_begin(gx_device * dev, gs_imager_state * pis,
 	    return code;
 	pdf_put_clip_path(pdev, pcpath);
     }
-    if (pdf_set_drawing_color(pdev, pdcolor, &pdev->fill_color,
-			      &psdf_set_fill_color_commands) < 0)
-	return gx_default_text_begin(dev, pis, text, font, path, pdcolor,
-				     pcpath, mem, ppte);
+    pdf_set_color(pdev, gx_dc_pure_color(pdcolor), &pdev->fill_color,
+		  &psdf_set_fill_color_commands);
 
     /* Allocate and initialize the enumerator. */
 
@@ -375,11 +347,17 @@ create_pdf_font(gx_device_pdf *pdev, gs_font *font, const gs_matrix *pomat,
 		return_error(gs_error_rangecheck);
 	    }
 	}
+	/*
+	 * Acrobat Reader doesn't accept embedded Multiple Master
+	 * instances, and we haven't been able to figure out why.
+	 */
+	if (font->FontType == ft_encrypted &&
+	    ((const gs_font_type1 *)font)->data.WeightVector.count > 0)
+	    return_error(gs_error_rangecheck);
 	code = pdf_compute_font_descriptor(pdev, &fdesc, font, NULL);
 	if (code < 0)
 	    return code;
-	if (!pfd)
-	    ffid = pdf_obj_ref(pdev);
+	ffid = pdf_obj_ref(pdev);
 	goto wf;
     case FONT_EMBED_NO:
 	/*
@@ -420,7 +398,7 @@ create_pdf_font(gx_device_pdf *pdev, gs_font *font, const gs_matrix *pomat,
 	    have_widths = true;
 	}
 	if (pfd) {
-	    code = pdf_alloc_font(pdev, font->id, &ppf, NULL);
+	    code = pdf_alloc_font(pdev, font->id, &ppf, gs_no_id);
 	    if (code < 0)
 		return code;
 	    if_debug4('_',
@@ -431,22 +409,7 @@ create_pdf_font(gx_device_pdf *pdev, gs_font *font, const gs_matrix *pomat,
 	} else {
 	    int name_index = index;
 
-	    fdesc.rid = base_font->id;
-	    switch (base_font->FontType) {
-	    case ft_CID_encrypted:
-		fdesc.chars_used.size =
-		    (((const gs_font_cid0 *)base_font)->
-		     cidata.common.CIDCount + 7) >> 3;
-		break;
-	    case ft_CID_TrueType:
-		fdesc.chars_used.size =
-		    (((const gs_font_cid2 *)base_font)->
-		     cidata.common.CIDCount + 7) >> 3;
-		break;
-	    default:
-		fdesc.chars_used.size = 256/8; /* Encoding size */
-	    }
-	    code = pdf_alloc_font(pdev, font->id, &ppf, &fdesc);
+	    code = pdf_alloc_font(pdev, font->id, &ppf, base_font->id);
 	    if (code < 0)
 		return code;
 	    pfd = ppf->FontDescriptor;
@@ -460,6 +423,7 @@ create_pdf_font(gx_device_pdf *pdev, gs_font *font, const gs_matrix *pomat,
 		memcpy(pfd->FontName.chars, base_font->font_name.chars,
 		       base_font->font_name.size);
 		pfd->FontName.size = base_font->font_name.size;
+		pfd->values = fdesc.values;
 		pfd->FontFile_id = ffid;
 		pfd->base_font = base_font;
 		pfd->orig_matrix = *pomat;
@@ -474,7 +438,6 @@ create_pdf_font(gx_device_pdf *pdev, gs_font *font, const gs_matrix *pomat,
 
 		memcpy(pfd->FontName.chars, fnchars, fnsize);
 		pfd->FontName.size = fnsize;
-		memset(&pfd->values, 0, sizeof(&pfd->values));
 	    }
 	    if (!is_standard) {
 		code = pdf_adjust_font_name(pdev, pfd, name_index >= 0);
@@ -508,7 +471,6 @@ create_pdf_font(gx_device_pdf *pdev, gs_font *font, const gs_matrix *pomat,
 	     * every character in the font that is ever used.
 	     * Furthermore, if there are several subsets of the same
 	     * font in a document, it appears to be random as to which
-    case ft_CID_TrueType:
 	     * one Acrobat Reader uses to decide what the FirstChar and
 	     * LastChar values are.  Therefore, we must write the Widths
 	     * array for the entire font even for subsets.
@@ -558,7 +520,6 @@ pdf_update_text_state(pdf_text_process_state_t *ppts,
     /* PDF always uses 1000 units per em for font metrics. */
     switch (font->FontType) {
     case ft_TrueType:
-    case ft_CID_TrueType:
 	/*
 	 * ****** HACK ALERT ******
 	 *
@@ -579,7 +540,6 @@ pdf_update_text_state(pdf_text_process_state_t *ppts,
 	break;
     case ft_encrypted:
     case ft_encrypted2:
-    case ft_CID_encrypted:
 	gs_make_scaling(0.001, 0.001, &orig_matrix);
 	break;
     default:
@@ -688,7 +648,7 @@ encoding_has_glyph(gs_font_base *bfont, gs_glyph font_glyph,
 inline private void
 record_used(pdf_font_descriptor_t *pfd, int c)
 {
-    pfd->chars_used.data[c >> 3] |= 1 << (c & 7);
+    pfd->chars_used[c >> 3] |= 1 << (c & 7);
 }
 private int
 pdf_encode_char(gx_device_pdf *pdev, int chr, gs_font_base *bfont,
@@ -725,7 +685,7 @@ pdf_encode_char(gx_device_pdf *pdev, int chr, gs_font_base *bfont,
      */
     gs_glyph font_glyph, glyph;
 #define IS_USED(c)\
-  (((pfd)->chars_used.data[(c) >> 3] & (1 << ((c) & 7))) != 0)
+  (((pfd)->chars_used[(c) >> 3] & (1 << ((c) & 7))) != 0)
 
     if (ei == bei && ei != ENCODING_INDEX_UNKNOWN && pdiff == 0) {
 	/*
@@ -1043,15 +1003,9 @@ pdf_text_process(gs_text_enum_t *pte)
 
     /* Bring the text-related parameters in the output up to date. */
 
-    /*
-     * The following check is necessary, because pdf_set_text_matrix
-     * assumes that a string-showing operator will follow.
-     */
-    if (pte->index < str.size) {
-	code = pdf_write_text_process_state(pdev, &text_state, &str);
-	if (code < 0)
-	    goto dflt;
-    }
+    code = pdf_write_text_process_state(pdev, &text_state, &str);
+    if (code < 0)
+	goto dflt;
 
     if (text->operation & TEXT_REPLACE_WIDTHS) {
 	gs_point w;
@@ -1174,10 +1128,8 @@ pdf_set_font_and_size(gx_device_pdf * pdev, pdf_font_t * font, floatp size)
  * Set the text matrix for writing text.
  * The translation component of the matrix is the text origin.
  * If the non-translation components of the matrix differ from the
- * current ones, write a Tm command; if there is only a Y translation
- * and it matches the leading, set use_leading so the next text string
- * will be written with ' rather than Tj; otherwise, write either a TL
- * command or a Tj command using space pseudo-characters.
+ * current ones, write a Tm command; otherwise, write either a Td command
+ * or a Tj command using space pseudo-characters.
  */
 private int
 set_text_distance(gs_point *pdist, const gs_point *ppt, const gs_matrix *pmat)
@@ -1211,7 +1163,7 @@ pdf_set_text_matrix(gx_device_pdf * pdev, const gs_matrix * pmat)
      */
 	(pdev->context == PDF_IN_TEXT || pdev->context == PDF_IN_STRING)
 	) {
-	/* Use leading, Td or a pseudo-character. */
+	/* Use Td or a pseudo-character. */
 	gs_point dist;
 
 	set_text_distance(&dist, &pdev->text.current, pmat);
@@ -1226,11 +1178,13 @@ pdf_set_text_matrix(gx_device_pdf * pdev, const gs_matrix * pmat)
 
 	    if (space_char == 0) {
 		if (pdev->text.font != pdev->open_font)
-		    goto not_spaces;
+		    goto td;
 		code = assign_char_code(pdev);
 		if (code <= 0)
-		    goto not_spaces;
-		space_char = pdev->open_font->spaces[dx_i] = (byte)code;
+		    goto td;
+		space_char =
+		    pdev->open_font->spaces[dx_i] =
+		    (byte) code;
 		if (pdev->space_char_ids[dx_i] == 0) {
 		    /* Create the space char_proc now. */
 		    char spstr[3 + 14 + 1];
@@ -1245,29 +1199,15 @@ pdf_set_text_matrix(gx_device_pdf * pdev, const gs_matrix * pmat)
 		}
 	    }
 	    pdf_append_chars(pdev, &space_char, 1);
-	    pdev->text.current.x += dx * pmat->xx;
-	    pdev->text.use_leading = false;
+	    pdev->text.current.x += dist.x * pmat->xx;
 	    return 0;
 	}
-      not_spaces:
+      td:			/* Use Td. */
 	code = pdf_open_page(pdev, PDF_IN_TEXT);
 	if (code < 0)
 	    return code;
-	if (dist.x == 0 && dist.y < 0) {
-	    /* Use TL, if needed, + '. */
-	    float dist_y = (float)-dist.y;
-
-	    if (fabs(pdev->text.leading - dist_y) > 0.0005) {
-		pprintg1(s, "%g TL\n", dist_y);
-		pdev->text.leading = dist_y;
-	    }
-	    pdev->text.use_leading = true;
-	} else {
-	    /* Use Td. */
-	    set_text_distance(&dist, &pdev->text.line_start, pmat);
-	    pprintg2(s, "%g %g Td\n", dist.x, dist.y);
-	    pdev->text.use_leading = false;
-	}
+	set_text_distance(&dist, &pdev->text.line_start, pmat);
+	pprintg2(s, "%g %g Td\n", dist.x, dist.y);
     } else {			/* Use Tm. */
 	code = pdf_open_page(pdev, PDF_IN_TEXT);
 	if (code < 0)
@@ -1281,7 +1221,6 @@ pdf_set_text_matrix(gx_device_pdf * pdev, const gs_matrix * pmat)
 		 pmat->yx * sx, pmat->yy * sy,
 		 pmat->tx * sx, pmat->ty * sy);
 	pdev->text.matrix = *pmat;
-	pdev->text.use_leading = false;
     }
     pdev->text.line_start.x = pmat->tx;
     pdev->text.line_start.y = pmat->ty;
@@ -1348,23 +1287,20 @@ assign_char_code(gx_device_pdf * pdev)
 	pdf_end_separate(pdev);
 	pdev->embedded_encoding_id = id;
     }
-    if (font == 0 || font->num_chars == 256 || !pdev->use_open_font) {
+    if (font == 0 || font->num_chars == 256) {
 	/* Start a new synthesized font. */
-	int code = pdf_alloc_font(pdev, gs_no_id, &font, NULL);
+	int code = pdf_alloc_font(pdev, gs_no_id, &font, gs_no_id);
 	char *pc;
 
 	if (code < 0)
 	    return code;
-	if (pdev->open_font == 0)
-	    memset(font->frname, 0, sizeof(font->frname));
-	else
-	    strcpy(font->frname, pdev->open_font->frname);
+	strcpy(font->frname, pdev->open_font_name);
 	for (pc = font->frname; *pc == 'Z'; ++pc)
 	    *pc = '@';
 	if ((*pc)++ == 0)
 	    *pc = 'A', pc[1] = 0;
 	pdev->open_font = font;
-	pdev->use_open_font = true;
+	strcpy(pdev->open_font_name, font->frname);
     }
     return font->num_chars++;
 }

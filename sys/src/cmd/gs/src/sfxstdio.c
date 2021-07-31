@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1993, 1995, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: sfxstdio.c,v 1.4 2000/09/19 19:00:50 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: sfxstdio.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* File stream implementation using stdio */
 #include "stdio_.h"		/* includes std.h */
 #include "memory_.h"
@@ -41,7 +41,7 @@ private int
 private int
     s_file_switch(P2(stream *, bool));
 
-/* ------ File reading ------ */
+/* ------ File streams ------ */
 
 /* Initialize a stream for reading an OS file. */
 void
@@ -68,34 +68,12 @@ sread_file(register stream * s, FILE * file, byte * buf, uint len)
     if_debug1('s', "[s]read file=0x%lx\n", (ulong) file);
     s->file = file;
     s->file_modes = s->modes;
-    s->file_offset = 0;
-    s->file_limit = max_long;
 }
-
-/* Confine reading to a subfile.  This is primarily for reusable streams. */
-int
-sread_subfile(stream *s, long start, long length)
-{
-    if (s->file == 0 || s->modes != s_mode_read + s_mode_seek ||
-	s->file_offset != 0 || s->file_limit != max_long ||
-	((s->position < start || s->position > start + length) &&
-	 sseek(s, start) < 0)
-	)
-	return ERRC;
-    s->position -= start;
-    s->file_offset = start;
-    s->file_limit = length;
-    return 0;
-}
-
 /* Procedures for reading from a file */
 private int
 s_file_available(register stream * s, long *pl)
 {
-    long max_avail = s->file_limit - stell(s);
-    long buf_avail = sbufavailable(s);
-
-    *pl = min(max_avail, buf_avail);
+    *pl = sbufavailable(s);
     if (sseekable(s)) {
 	long pos, end;
 
@@ -105,8 +83,7 @@ s_file_available(register stream * s, long *pl)
 	end = ftell(s->file);
 	if (fseek(s->file, pos, SEEK_SET))
 	    return ERRC;
-	buf_avail += end - pos;
-	*pl = min(max_avail, buf_avail);
+	*pl += end - pos;
 	if (*pl == 0)
 	    *pl = -1;		/* EOF */
     } else {
@@ -125,9 +102,7 @@ s_file_read_seek(register stream * s, long pos)
 	s->srptr = s->cbuf + offset - 1;
 	return 0;
     }
-    if (pos < 0 || pos > s->file_limit ||
-	fseek(s->file, s->file_offset + pos, SEEK_SET) != 0
-	)
+    if (fseek(s->file, pos, SEEK_SET) != 0)
 	return ERRC;
     s->srptr = s->srlimit = s->cbuf - 1;
     s->end_status = 0;
@@ -146,36 +121,6 @@ s_file_read_close(stream * s)
     return 0;
 }
 
-/*
- * Process a buffer for a file reading stream.
- * This is the first stream in the pipeline, so pr is irrelevant.
- */
-private int
-s_file_read_process(stream_state * st, stream_cursor_read * ignore_pr,
-		    stream_cursor_write * pw, bool last)
-{
-    stream *s = (stream *)st;	/* no separate state */
-    FILE *file = s->file;
-    uint max_count = pw->limit - pw->ptr;
-    int status = 1;
-    int count;
-
-    if (s->file_limit < max_long) {
-	long limit_count = s->file_offset + s->file_limit - ftell(file);
-
-	if (max_count > limit_count)
-	    max_count = limit_count, status = EOFC;
-    }
-    count = fread(pw->ptr + 1, 1, max_count, file);
-    if (count < 0)
-	count = 0;
-    pw->ptr += count;
-    process_interrupts();
-    return (ferror(file) ? ERRC : feof(file) ? EOFC : status);
-}
-
-/* ------ File writing ------ */
-
 /* Initialize a stream for writing an OS file. */
 void
 swrite_file(register stream * s, FILE * file, byte * buf, uint len)
@@ -191,8 +136,6 @@ swrite_file(register stream * s, FILE * file, byte * buf, uint len)
     if_debug1('s', "[s]write file=0x%lx\n", (ulong) file);
     s->file = file;
     s->file_modes = s->modes;
-    s->file_offset = 0;		/* in case we switch to reading later */
-    s->file_limit = max_long;	/* ibid. */
 }
 /* Initialize for appending to an OS file. */
 void
@@ -234,6 +177,24 @@ s_file_write_close(register stream * s)
 }
 
 /*
+ * Process a buffer for a file reading stream.
+ * This is the first stream in the pipeline, so pr is irrelevant.
+ */
+private int
+s_file_read_process(stream_state * st, stream_cursor_read * ignore_pr,
+		    stream_cursor_write * pw, bool last)
+{
+    FILE *file = ((stream *) st)->file;
+    int count = fread(pw->ptr + 1, 1, (uint) (pw->limit - pw->ptr), file);
+
+    if (count < 0)
+	count = 0;
+    pw->ptr += count;
+    process_interrupts();
+    return (ferror(file) ? ERRC : feof(file) ? EOFC : 1);
+}
+
+/*
  * Process a buffer for a file writing stream.
  * This is the last stream in the pipeline, so pw is irrelevant.
  */
@@ -261,8 +222,6 @@ s_file_write_process(stream_state * st, stream_cursor_read * pr,
 	return 0;
     }
 }
-
-/* ------ File switching ------ */
 
 /* Switch a file stream to reading or writing. */
 private int

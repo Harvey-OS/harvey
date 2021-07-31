@@ -16,41 +16,29 @@
 char	Ebadwr[]		= "bad rectangle in wctl request";
 char	Ewalloc[]		= "window allocation failed in wctl request";
 
-/* >= Top are disallowed if mouse button is pressed */
 enum
 {
 	New,
 	Resize,
 	Move,
-	Scroll,
-	Noscroll,
 	Top,
 	Bottom,
 	Current,
-	Hide,
-	Unhide,
-	Delete,
 };
 
 static char *cmds[] = {
 	[New]	= "new",
 	[Resize]	= "resize",
 	[Move]	= "move",
-	[Scroll]	= "scroll",
-	[Noscroll]	= "noscroll",
 	[Top]	= "top",
 	[Bottom]	= "bottom",
 	[Current]	= "current",
-	[Hide]	= "hide",
-	[Unhide]	= "unhide",
-	[Delete]	= "delete",
 	nil
 };
 
 enum
 {
 	Cd,
-	Id,
 	Minx,
 	Miny,
 	Maxx,
@@ -63,7 +51,6 @@ enum
 
 static char *params[] = {
 	[Cd]	 	= "-cd",
-	[Id]		= "-id",
 	[Minx]	= "-minx",
 	[Miny]	= "-miny",
 	[Maxx]	= "-maxx",
@@ -133,8 +120,12 @@ newrect(void)
 	static int i = 0;
 	int minx, miny, dx, dy;
 
-	dx = min(600, Dx(screen->r) - 2*Borderwidth);
-	dy = min(400, Dy(screen->r) - 2*Borderwidth);
+	dx = 600;
+	dy = 400;
+	if(dx > Dx(screen->r))
+		dx = Dx(screen->r);
+	if(dy > Dy(screen->r))
+		dy = Dy(screen->r);
 	minx = 32 + 16*i;
 	miny = 32 + 16*i;
 	i++;
@@ -164,26 +155,8 @@ rectonscreen(Rectangle r)
 	return r;
 }
 
-/* permit square brackets, in the manner of %R */
 int
-riostrtol(char *s, char **t)
-{
-	int n;
-
-	while(*s!='\0' && (*s==' ' || *s=='\t' || *s=='['))
-		s++;
-	if(*s == '[')
-		s++;
-	n = strtol(s, t, 10);
-	if(*t != s)
-		while((*t)[0] == ']')
-			(*t)++;
-	return n;
-}
-
-
-int
-parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, char **cdp, char *s, char *err)
+parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, char **cdp, char *s, char *err)
 {
 	int cmd, param, xy, sign;
 	char *t;
@@ -200,19 +173,19 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, char **c
 	strcpy(err, "missing or bad wctl parameter");
 	while((param = word(&s, params)) >= 0){
 		if(param == R){
-			r.min.x = riostrtol(s, &t);
+			r.min.x = strtoul(s, &t, 10);
 			if(t == s)
 				return -1;
 			s = t;
-			r.min.y = riostrtol(s, &t);
+			r.min.y = strtoul(s, &t, 10);
 			if(t == s)
 				return -1;
 			s = t;
-			r.max.x = riostrtol(s, &t);
+			r.max.x = strtoul(s, &t, 10);
 			if(t == s)
 				return -1;
 			s = t;
-			r.max.y = riostrtol(s, &t);
+			r.max.y = strtoul(s, &t, 10);
 			if(t == s)
 				return -1;
 			s = t;
@@ -238,7 +211,7 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, char **c
 		}
 		if(!isdigit(*s))
 			return -1;
-		xy = riostrtol(s, &s);
+		xy = strtol(s, &s, 10);
 		switch(param){
 		case -1:
 			strcpy(err, "unrecognized wctl parameter");
@@ -260,10 +233,6 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, char **c
 			break;
 		case Deltay:
 			r.max.y = set(sign, r.max.y-xy, r.min.y+xy, r.max.y+xy);
-			break;
-		case Id:
-			if(idp != nil)
-				*idp = xy;
 			break;
 		case PID:
 			if(pidp != nil)
@@ -325,7 +294,7 @@ wctlnew(Rectangle rect, char *arg, char *dir, char *err)
 int
 writewctl(Xfid *x, char *err)
 {
-	int cnt, cmd, j, id;
+	int cnt, cmd;
 	Image *i;
 	char *arg, *dir;
 	Rectangle rect;
@@ -334,32 +303,11 @@ writewctl(Xfid *x, char *err)
 	w = x->f->w;
 	cnt = x->count;
 	x->data[cnt] = '\0';
-	id = 0;
 
 	rect = rectsubpt(w->screenr, screen->r.min);
-	cmd = parsewctl(&arg, rect, &rect, nil, &id, &dir, x->data, err);
+	cmd = parsewctl(&arg, rect, &rect, nil, &dir, x->data, err);
 	if(cmd < 0)
 		return -1;
-
-	if(mouse->buttons!=0 && cmd>=Top){
-		strcpy(err, "action disallowed when mouse active");
-		return -1;
-	}
-
-	if(id != 0){
-		for(j=0; j<nwindow; j++)
-			if(window[j]->id == id)
-				break;
-		if(j == nwindow){
-			strcpy(err, "no such window id");
-			return -1;
-		}
-		w = window[j];
-		if(w->deleted || w->i==nil){
-			strcpy(err, "window deleted");
-			return -1;
-		}
-	}
 
 	switch(cmd){
 	case New:
@@ -383,52 +331,18 @@ writewctl(Xfid *x, char *err)
 		border(i, rect, Selborder, red, ZP);
 		wsendctlmesg(w, Reshaped, i->r, i);
 		return 1;
-	case Scroll:
-		w->scrolling = 1;
-		wshow(w, w->nr);
-		wsendctlmesg(w, Wakeup, ZR, nil);
-		flushimage(display, 1);
-		return 1;
-	case Noscroll:
-		w->scrolling = 0;
-		wsendctlmesg(w, Wakeup, ZR, nil);
-		return 1;
+	/* Safest to ignore these if mouse button is pressed */
 	case Top:
-		wtopme(w);
+		if(mouse->buttons == 0)
+			wtopme(w);
 		return 1;
 	case Bottom:
-		wbottomme(w);
+		if(mouse->buttons == 0)
+			wbottomme(w);
 		return 1;
 	case Current:
-		wcurrent(w);
-		return 1;
-	case Hide:
-		switch(whide(w)){
-		case -1:
-			strcpy(err, "window already hidden");
-			return -1;
-		case 0:
-			strcpy(err, "hide failed");
-			return -1;
-		default:
-			break;
-		}
-		return 1;
-	case Unhide:
-		for(j=0; j<nhidden; j++)
-			if(hidden[j] == w)
-				break;
-		if(j == nhidden){
-			strcpy(err, "window not hidden");
-			return -1;
-		}
-		if(wunhide(j) == 0){
-			strcpy(err, "hide failed");
-			return -1;
-		}
-		return 1;
-	case Delete:
-		wsendctlmesg(w, Deleted, ZR, nil);
+		if(mouse->buttons == 0)
+			wcurrent(w);
 		return 1;
 	}
 	strcpy(err, "invalid wctl message");
@@ -439,7 +353,7 @@ void
 wctlthread(void *v)
 {
 	char *buf, *arg, *dir;
-	int cmd, id;
+	int cmd;
 	Rectangle rect;
 	char err[ERRLEN];
 	Channel *c;
@@ -450,7 +364,7 @@ wctlthread(void *v)
 
 	for(;;){
 		buf = recvp(c);
-		cmd = parsewctl(&arg, ZR, &rect, nil, &id, &dir, buf, err);
+		cmd = parsewctl(&arg, ZR, &rect, nil, &dir, buf, err);
 
 		switch(cmd){
 		case New:

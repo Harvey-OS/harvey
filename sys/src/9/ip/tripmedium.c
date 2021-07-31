@@ -7,6 +7,7 @@
 
 #include "ip.h"
 #include "trip.h"
+#include "kernel.h"
 
 static void	tripread(void *a);
 static void	tripbind(Ipifc *ifc, int argc, char **argv);

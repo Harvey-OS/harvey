@@ -98,7 +98,7 @@ checkalarms(void)
 {
 	int i, n, s;
 	Alarm *a;
-	void (*f)(Alarm*);
+	void (*f)(void*);
 	Alarm *alist[NA];
 
 	s = splhi();

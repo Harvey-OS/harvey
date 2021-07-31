@@ -4,16 +4,16 @@ TARG=vncviewer
 
 OFILES=\
 	auth.$O\
+	cache.$O\
 	color.$O\
 	dial.$O\
 	draw.$O\
-	kbd_vwr.$O\
+	kbd.$O\
 	proto.$O\
-	vncviewer.$O\
+	viewer.$O\
 	wsys.$O\
 
-HFILES=vnc.h\
-	vncv.h\
+HFILES=vnc.h
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone

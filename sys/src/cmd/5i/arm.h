@@ -41,17 +41,18 @@ struct Breakpoint
 
 enum
 {
-	Imem,
+	Iload,
+	Istore,
 	Iarith,
 	Ibranch,
+	Ireg,
 	Isyscall,
+	Ifloat,
 };
 
 enum
 {
 	Nmaxtlb = 64,
-	REGARG	= 0,
-	REGRET	= 0,
 	REGPC	= 15,
 	REGLINK	= 14,
 	REGSP	= 13,

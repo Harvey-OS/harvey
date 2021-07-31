@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>Recent changes in Ghostscript</title>
-<!-- $Id: News.htm,v 1.65.2.2 2000/11/28 01:31:25 raph Exp $ -->
+<!-- $Id: News.htm,v 1.5 2000/03/18 04:13:40 lpd Exp $ -->
 <!-- Originally: NEWS -->
 <!--
 	WARNING: do not use Pete Kaiser's emacs function "gs-toc" alone to
@@ -55,44 +55,31 @@ overview</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="Version6.31"></a>Version 6.32 (2000-11-27)</h1>
-
-<p>
-This fileset consists of xxx.
-
-<p>
-All problems registered on SourceForge numbered 110922 or lower are closed,
-except for the following: 101549, 101814, 101905, 101955, 102146, 102735,
-104118, 105289, 105558, 106340, 106652, 109350, 110445, 110898, 110922.
-
-<p>
-The following projects are in a partially completed state:
-
-<ul>
-
-<li>CID-keyed fonts in the PDF writer (gdevpdf[eftw].c) -- barely started.
-
-</ul>
-
 <pre>
+<h1><a name="Version6.01"></a>Version 6.01 (2000-03-17)</h1>
 
-<h2><a name="6.24_Incompatible_changes"></a>Incompatible changes</h2>
+This is a bug-fix release for 6.0.
 
-(Procedures)
-	- The -Zv and -ZV switches now trace alpha/transparency features.
-	- The program name is now AFPL Ghostscript rather than Aladdin
-Ghostscript.
-	- The default Windows installation directory is now c:\gs rather
-than c:\Aladdin.
-(Utilities)
-	- lib/pdfeof.ps is deleted; its functionality is included in the
-standard code.
+This release fixes the following reported bugs: #101555, #101813, #101816,
+#101818, #101827, #101830, #101871, #101853, #101906, #101949, #101950,
+#102003, #102004, #102038, #102081, #102936.
+
+<h2><a name="6.01_Incompatible_changes"></a>Incompatible changes</h2>
+
+(Platforms)
+	- OpenVMS using VAX C is no longer supported.  (OpenVMS with DEC C
+and gcc are still supported.)
 (Drivers)
-	- The X driver now implements sync_output using XSync(False) rather
-than XFlush().
+	- The third argument of psdf_set_color is changed from const char *
+to const psdf_set_color_commands_t *.
+(Interpreter)
+	- The non-standard feature of writing dictionaries in binary object
+output is now disabled by default, but can now be enabled dynamically.
 (Library)
-	- gdev_vector_dopath now never returns 1.
-	- Color space types now have a new, required, "equal" procedure.
+	- The definition of TRANSPARENCY_PER_H_P is moved from gdevmrop.h to
+gsropt.h.
+	- The handling of the source opaque, texture transparent case of
+RasterOp when TRANSPARENCY_PER_H_P is defined is changed slightly.
 
 </pre>
 
@@ -105,13 +92,13 @@ than XFlush().
 
 <p>Copyright &copy; 2000 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of AFPL Ghostscript.  See the
+<p>This file is part of Aladdin Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.
+Aladdin Ghostscript.
 
 <p>
-Ghostscript version 6.32, 27 November 2000
+Ghostscript version 6.01, 17 March 2000
 
 </font>
 

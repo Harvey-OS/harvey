@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 #include "httpd.h"
-#include "httpsrv.h"
 
 typedef struct Server	Server;
 struct Server 
@@ -28,7 +27,7 @@ Biobuf	bserv, bservr;
 void
 main(int argc, char **argv)
 {
-	HConnect *c;
+	Connect *c;
 	Hio *hout;
 	int ch, lastnl, datafd, n_to, n_from;
 	char *where, *s;
@@ -37,33 +36,27 @@ main(int argc, char **argv)
 	c = init(argc, argv);
 	hout = &c->hout;
 
-	if(c->req.search == nil){
-		hfail(c, HSyntax);
-		exits("failed");
-	}
+	if(c->req.search == nil)
+		fail(c, Syntax);
 	logit(c, "to %s", c->req.search);
 
 	/* arrange for timeout */
 	alarm(120000);
 
 	/* lookup server and connect */
-	where = hstrdup(c, c->req.search);
+	where = hstrdup(c->req.search);
 	s = strchr(where,'&');
 	if(s!=nil)
 		*s = 0;
 	for(serv = servtab; ; serv++){
-		if(serv->key == nil){
-			hfail(c, HBadSearch, where);
-			exits("failed");
-		}
+		if(serv->key==nil)
+			fail(c, BadSearch, where);
 		if(strcmp(serv->key,where) == 0)
 			break;
 	}
 	datafd = dial(serv->addr, nil, nil, nil);
-	if(datafd < 0){
-		hfail(c, HBadSearch, serv->addr);
-		exits("failed");
-	}
+	if(datafd < 0)
+		fail(c, BadSearch, serv->addr);
 	Binit(&bserv, datafd, OWRITE);
 
 	/* copy the incoming request */

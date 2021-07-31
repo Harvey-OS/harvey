@@ -1,22 +1,22 @@
-/* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gsistate.c,v 1.4 2000/09/19 19:00:29 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gsistate.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
 /* Imager state housekeeping */
 #include "gx.h"
 #include "gserrors.h"
@@ -64,10 +64,7 @@ ENUM_PTRS_BEGIN(imager_state_enum_ptrs)
     ENUM_SUPER(gs_imager_state, st_line_params, line_params, st_imager_state_num_ptrs - st_line_params_num_ptrs);
     ENUM_PTR(0, gs_imager_state, shared);
     ENUM_PTR(1, gs_imager_state, client_data);
-    ENUM_PTR(2, gs_imager_state, opacity.mask);
-    ENUM_PTR(3, gs_imager_state, shape.mask);
-    ENUM_PTR(4, gs_imager_state, transparency_stack);
-#define E1(i,elt) ENUM_PTR(i+5,gs_imager_state,elt);
+#define E1(i,elt) ENUM_PTR(i+2,gs_imager_state,elt);
     gs_cr_state_do_ptrs(E1)
 #undef E1
 ENUM_PTRS_END
@@ -76,9 +73,6 @@ private RELOC_PTRS_BEGIN(imager_state_reloc_ptrs)
     RELOC_SUPER(gs_imager_state, st_line_params, line_params);
     RELOC_PTR(gs_imager_state, shared);
     RELOC_PTR(gs_imager_state, client_data);
-    RELOC_PTR(gs_imager_state, opacity.mask);
-    RELOC_PTR(gs_imager_state, shape.mask);
-    RELOC_PTR(gs_imager_state, transparency_stack);
 #define R1(i,elt) RELOC_PTR(gs_imager_state,elt);
     gs_cr_state_do_ptrs(R1)
 #undef R1
@@ -146,10 +140,6 @@ gs_imager_state_initialize(gs_imager_state * pis, gs_memory_t * mem)
 	}
 	pis->shared = shared;
     }
-    pis->opacity.mask = 0;
-    pis->shape.mask = 0;
-    pis->transparency_stack = 0;
-    /* Color rendering state */
     pis->halftone = 0;
     {
 	int i;
@@ -183,8 +173,7 @@ gs_imager_state_initialize(gs_imager_state * pis, gs_memory_t * mem)
 
 /*
  * Make a temporary copy of a gs_imager_state.  Note that this does not
- * do all the necessary reference counting, etc.  However, it does
- * clear out the transparency stack in the destination.
+ * do all the necessary reference counting, etc.
  */
 gs_imager_state *
 gs_imager_state_copy(const gs_imager_state * pis, gs_memory_t * mem)
@@ -193,10 +182,8 @@ gs_imager_state_copy(const gs_imager_state * pis, gs_memory_t * mem)
 	gs_alloc_struct(mem, gs_imager_state, &st_imager_state,
 			"gs_imager_state_copy");
 
-    if (pis_copy) {
+    if (pis_copy)
 	*pis_copy = *pis;
-	pis_copy->transparency_stack = 0;
-    }
     return pis_copy;
 }
 
@@ -205,8 +192,6 @@ void
 gs_imager_state_copied(gs_imager_state * pis)
 {
     rc_increment(pis->shared);
-    rc_increment(pis->opacity.mask);
-    rc_increment(pis->shape.mask);
     rc_increment(pis->halftone);
     rc_increment(pis->dev_ht);
     rc_increment(pis->cie_render);
@@ -238,8 +223,6 @@ gs_imager_state_pre_assign(gs_imager_state *pto, const gs_imager_state *pfrom)
     RCCOPY(cie_render);
     RCCOPY(dev_ht);
     RCCOPY(halftone);
-    RCCOPY(shape.mask);
-    RCCOPY(opacity.mask);
     RCCOPY(shared);
 #undef RCCOPY
 }
@@ -278,8 +261,6 @@ gs_imager_state_release(gs_imager_state * pis)
     }
     RCDECR(dev_ht);
     RCDECR(halftone);
-    RCDECR(shape.mask);
-    RCDECR(opacity.mask);
     RCDECR(shared);
 #undef RCDECR
 }

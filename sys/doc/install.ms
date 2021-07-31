@@ -267,9 +267,6 @@ The install process will scan your
 disk devices and give you a list of them, 
 along with manufacturer identification strings and 
 disk partition tables.  For example, you might see:
-.\" rsc: new figure for next distribution (with new fdisk)
-.\" * p1                    0 255        (255 cylinders, 1.95GB) FATHUGE
-.\"   p3                  510 784        (274 cylinders, 2.09GB) LINUX
 .P1
 The following disk devices were found.
 
@@ -344,10 +341,6 @@ a partition in the largest contiguous empty space
 it can find.
 For example, you might see:
 .P1
-.\" rsc: new figure for new fdisk
-.\"  * p1                    0 255        (255 sectors, 1.95 GB) FATHUGE
-.\" '  p2                  255 510        (255 sectors, 1.95 GB) PLAN9
-.\"    p3                  510 784        (274 sectors, 2.09 GB) LINUX
     mbr                   0 63         (63 sectors, 31.25 KB) EMPTY
   * p1                   63 4096575    (4096512 sectors, 1.95 GB) FATHUGE
  '  p2              4096575 8193150    (4096575 sectors, 1.95 GB) PLAN9
@@ -361,12 +354,17 @@ Each line contains a partition name
 and
 .CW p4
 are the only valid names),
-the starting and ending cylinder, the size of the partition, 
+the starting and ending sector, the size of the partition, 
 and the type of partition.
 Note that partitions include the starting
-cylinder but not the ending cylinder.
+sector but not the ending sector.
 .CW >>>
 is the prompt.
+The
+.CW mbr
+``partition'' is not really a partition, but a placeholder
+to keep from partitioning the track in
+use by the master boot record.
 In this example, the
 .CW *
 next to
@@ -424,8 +422,7 @@ the install process will run
 which is used to partition the Plan 9 partition.
 The interface is very similar to
 .CW fdisk 's;
-the main differences are unrestricted names\",
-.\" rsc: the use of sectors rather than cylinders as the allocation unit,
+the main differences are unrestricted names
 and the lack of an active partition and partition types.
 Just as 
 .CW fdisk
@@ -480,7 +477,7 @@ will be dropped into a minimal shell
 that you can use to find the files.
 Specifically, the shell has three
 commands: 
-.CW cd
+.CW cw
 .I dir
 changes directories,
 .CW lc

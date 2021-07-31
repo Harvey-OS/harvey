@@ -45,27 +45,35 @@ struct Udphdr
 	uchar	udpcksum[2];	/* Checksum */
 };
 
-/* MIB II counters */
-typedef struct Udpstats Udpstats;
-struct Udpstats
+enum
 {
-	ulong	udpInDatagrams;
-	ulong	udpNoPorts;
-	ulong	udpInErrors;
-	ulong	udpOutDatagrams;
+	/* MIB II counters */
+	InDatagrams,
+	NoPorts,
+	InErrors,
+	OutDatagrams,
+
+	/* non-MIB counters */
+	CsumErrs,
+	LenErrs,
+
+	Nstats,
 };
+
+static char *statnames[] = {
+[InDatagrams]	"InDatagrams",
+[NoPorts]	"NoPorts",
+[InErrors]	"InErrors",
+[OutDatagrams]	"OutDatagrams",
+[CsumErrs]	"CsumErrs",
+[LenErrs]	"LenErrs",
+};
+
 
 typedef struct Udppriv Udppriv;
 struct Udppriv
 {
-	Ipht		ht;
-
-	/* MIB counters */
-	Udpstats	ustats;
-
-	/* non-MIB stats */
-	ulong		csumerr;		/* checksum errors */
-	ulong		lenerr;			/* short packet */
+	ulong	stats[Nstats];
 };
 
 /*
@@ -82,12 +90,9 @@ static char*
 udpconnect(Conv *c, char **argv, int argc)
 {
 	char *e;
-	Udppriv *upriv;
 
-	upriv = c->p->priv;
 	e = Fsstdconnect(c, argv, argc);
 	Fsconnected(c, e);
-	iphtadd(&upriv->ht, c);
 
 	return e;
 }
@@ -103,14 +108,11 @@ static char*
 udpannounce(Conv *c, char** argv, int argc)
 {
 	char *e;
-	Udppriv *upriv;
 
-	upriv = c->p->priv;
 	e = Fsstdannounce(c, argv, argc);
 	if(e != nil)
 		return e;
 	Fsconnected(c, nil);
-	iphtadd(&upriv->ht, c);
 
 	return nil;
 }
@@ -118,18 +120,14 @@ udpannounce(Conv *c, char** argv, int argc)
 static void
 udpcreate(Conv *c)
 {
-	c->rq = qopen(64*1024, 1, 0, 0);
-	c->wq = qopen(64*1024, 0, 0, 0);
+	c->rq = qopen(128*1024, 1, 0, 0);
+	c->wq = qopen(128*1024, 0, 0, 0);
 }
 
 static void
 udpclose(Conv *c)
 {
 	Udpcb *ucb;
-	Udppriv *upriv;
-
-	upriv = c->p->priv;
-	iphtrem(&upriv->ht, c);
 
 	c->state = 0;
 	qclose(c->rq);
@@ -147,7 +145,7 @@ udpclose(Conv *c)
 }
 
 void
-udpkick(Conv *c)
+udpkick(Conv *c, int)
 {
 	Udphdr *uh;
 	ushort rport;
@@ -238,18 +236,8 @@ udpkick(Conv *c)
 
 	hnputs(uh->udpcksum, ptclcsum(bp, UDP_IPHDR, dlen+UDP_HDRSIZE));
 
-	upriv->ustats.udpOutDatagrams++;
+	upriv->stats[OutDatagrams]++;
 	ipoput(f, bp, 0, c->ttl, c->tos);
-}
-
-Conv*
-udpincoming(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport)
-{
-	Conv *new;
-
-	new = Fsnewcall(c, raddr, rport, laddr, lport);
-	if(new == nil)
-		return nil;
 }
 
 void
@@ -257,7 +245,7 @@ udpiput(Proto *udp, uchar *ia, Block *bp)
 {
 	int len, olen, ottl;
 	Udphdr *uh;
-	Conv *c;
+	Conv *c, **p, *spec, *gen;
 	Udpcb *ucb;
 	uchar raddr[IPaddrlen], laddr[IPaddrlen];
 	ushort rport, lport;
@@ -267,7 +255,7 @@ udpiput(Proto *udp, uchar *ia, Block *bp)
 	upriv = udp->priv;
 	f = udp->f;
 
-	upriv->ustats.udpInDatagrams++;
+	upriv->stats[InDatagrams]++;
 
 	uh = (Udphdr*)(bp->rp);
 
@@ -285,7 +273,8 @@ udpiput(Proto *udp, uchar *ia, Block *bp)
 
 	if(nhgets(uh->udpcksum)) {
 		if(ptclcsum(bp, UDP_IPHDR, len+UDP_PHDRSIZE)) {
-			upriv->ustats.udpInErrors++;
+			upriv->stats[InErrors]++;
+			upriv->stats[CsumErrs]++;
 			netlog(f, Logudp, "udp: checksum error %I\n", raddr);
 			DPRINT("udp: checksum error %I\n", raddr);
 			freeblist(bp);
@@ -295,37 +284,65 @@ udpiput(Proto *udp, uchar *ia, Block *bp)
 
 	qlock(udp);
 
-	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
-	if(c == nil){
-		/* no converstation found */
-		upriv->ustats.udpNoPorts++;
-		qunlock(udp);
-		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
-			laddr, lport);
-		uh->Unused = ottl;
-		hnputs(uh->udpplen, olen);
-		icmpnoconv(f, bp);
-		freeblist(bp);
-		return;
-	}
-	ucb = (Udpcb*)c->ptcl;
+	/*
+	 *  Look for a conversation structure for this packet
+	 */
+	spec = gen = c = nil;
+	for(p = udp->conv; *p; p++) {
+		c = *p;
+		if(c->inuse == 0)
+			continue;
+		if(c->lport == lport){
+			ucb = (Udpcb*)c->ptcl;
 
-	if(c->state == Announced){
-		if(ucb->headers == 0){
-			/* create a new conversation */
+			switch(c->state){
+			case Announced:
+				/* headers + Announced is special behaviour */
+				if(ucb->headers)
+					goto found;
+				spec = c;
+				break;
+				
+			case Connected:
+				/* exact match */
+				if(c->rport == rport)
+				if(ipcmp(c->raddr, raddr) == 0 || ipisbm(c->raddr))
+					goto found;
+			}
+
+		} else if(c->lport == 0) {
+			/* generic listen for all udp ports */
+			if(c->state == Announced)
+				gen = c;
+		}
+	}
+found:
+	if(*p == nil){
+		if(spec != nil)
+			gen = spec;
+		if(gen != nil){
 			if(ipforme(f, laddr) != Runi)
 				v4tov6(laddr, ia);
-			c = Fsnewcall(c, raddr, rport, laddr, lport);
+			c = Fsnewcall(gen, raddr, rport, laddr, lport);
 			if(c == nil){
-				qunlock(udp);
 				freeblist(bp);
 				return;
 			}
-			iphtadd(&upriv->ht, c);
-			ucb = (Udpcb*)c->ptcl;
+			c->state = Connected;
+		} else {
+			upriv->stats[NoPorts]++;
+			qunlock(udp);
+			netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
+				laddr, lport);
+			uh->Unused = ottl;
+			hnputs(uh->udpplen, olen);
+			icmpnoconv(f, bp);
+			freeblist(bp);
+			return;
 		}
 	}
 
+	ucb = (Udpcb*)c->ptcl;
 	qlock(c);
 	qunlock(udp);
 
@@ -338,7 +355,8 @@ udpiput(Proto *udp, uchar *ia, Block *bp)
 		qunlock(c);
 		netlog(f, Logudp, "udp: len err %I.%d -> %I.%d\n", raddr, rport,
 			laddr, lport);
-		upriv->lenerr++;
+		upriv->stats[LenErrs]++;
+		upriv->stats[InErrors]++;
 		return;
 	}
 
@@ -386,6 +404,22 @@ udpiput(Proto *udp, uchar *ia, Block *bp)
 
 }
 
+/* close any incoming calls waiting on this conversation */
+void
+udpcloseincalls(Conv *c)
+{
+	Conv *nc;
+
+	qlock(c);
+
+	for(nc = c->incall; nc; nc = c->incall){
+		c->incall = nc->next;
+		closeconv(nc);
+	}
+
+	qunlock(c);
+}
+
 char*
 udpctl(Conv *c, char **f, int n)
 {
@@ -395,9 +429,13 @@ udpctl(Conv *c, char **f, int n)
 	if(n == 1){
 		if(strcmp(f[0], "headers4") == 0){
 			ucb->headers = 4;
+			/* close any calls that got in twixt announce and headers */
+			udpcloseincalls(c);
 			return nil;
 		} else if(strcmp(f[0], "headers") == 0){
 			ucb->headers = 6;
+			/* close any calls that got in twixt announce and headers */
+			udpcloseincalls(c);
 			return nil;
 		}
 	}
@@ -443,14 +481,16 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 int
 udpstats(Proto *udp, char *buf, int len)
 {
-	Udppriv *upriv;
+	Udppriv *priv;
+	char *p, *e;
+	int i;
 
-	upriv = udp->priv;
-	return snprint(buf, len, "%lud %lud %lud %lud",
-		upriv->ustats.udpInDatagrams,
-		upriv->ustats.udpNoPorts,
-		upriv->ustats.udpInErrors,
-		upriv->ustats.udpOutDatagrams);
+	priv = udp->priv;
+	p = buf;
+	e = p+len;
+	for(i = 0; i < Nstats; i++)
+		p = seprint(p, e, "%s: %lud\n", statnames[i], priv->stats[i]);
+	return p - buf;
 }
 
 void
@@ -471,6 +511,7 @@ udpinit(Fs *fs)
 	udp->rcv = udpiput;
 	udp->advise = udpadvise;
 	udp->stats = udpstats;
+	udp->gc = nil;
 	udp->ipproto = IP_UDPPROTO;
 	udp->nc = Nchans;
 	udp->ptclsize = sizeof(Udpcb);

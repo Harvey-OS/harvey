@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <flate.h>
 #include "gzip.h"
+#include "deflate.h"
 
 typedef struct	GZHead	GZHead;
 
@@ -24,7 +24,6 @@ static	void	error(char*, ...);
 
 static	Biobuf	bin;
 static	ulong	crc;
-static	ulong	*crctab;
 static	int	debug;
 static	char	*delfile;
 static	vlong	gzok;
@@ -70,10 +69,8 @@ main(int argc, char *argv[])
 		break;
 	}ARGEND
 
-	crctab = mkcrctab(GZCRCPOLY);
-	ok = inflateinit();
-	if(ok != FlateOk)
-		sysfatal("inflateinit failed: %s\n", flateerr(ok));
+	mkcrctab(GZCRCPOLY);
+	inflateinit();
 
 	if(argc == 0){
 		Binit(&bin, 0, OREAD);
@@ -170,7 +167,6 @@ gunzip(int ofd, char *ofile, Biobuf *bin)
 {
 	Dir d;
 	GZHead h;
-	int err;
 
 	h.file = nil;
 	gzok = 0;
@@ -190,9 +186,8 @@ gunzip(int ofd, char *ofile, Biobuf *bin)
 		if(!table && verbose)
 			fprint(2, "extracting %s to %s\n", h.file, ofile);
 
-		err = inflate((void*)ofd, crcwrite, bin, (int(*)(void*))Bgetc);
-		if(err != FlateOk)
-			error("inflate failed: %s", flateerr(err));
+		if(!inflate((void*)ofd, crcwrite, bin, (int(*)(void*))Bgetc))
+			error("inflate failed: %r");
 
 		trailer(bin, wlen);
 
@@ -323,7 +318,7 @@ crcwrite(void *out, void *buf, int n)
 	int fd, nw;
 
 	wlen += n;
-	crc = blockcrc(crctab, crc, buf, n);
+	crc = blockcrc(crc, buf, n);
 	fd = (int)out;
 	if(fd < 0)
 		return n;

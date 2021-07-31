@@ -13,45 +13,26 @@ static int useuart;
 int	debug = 0;
 
 void
-kbdchar(int c)
+consinit(void)
 {
-	c &= 0x7F;
-	if(c == 0x10)
-		warp86("\n^P\n", 0);
-	if(c == 0x12)
-		debug = !debug;
-	consiq.putc(&consiq, c);
-}
-
-static int
-consputc(void)
-{
-	return consoq.getc(&consoq);
-}
-
-void
-kbdinit(void)
-{
-	i8042init();
-	qinit(&consiq);
-}
-
-void
-consinit(char* name, char* speed)
-{
+	char *p;
 	int baud, port;
 
-	if(name == nil || cistrcmp(name, "cga") == 0)
+	qinit(&consiq);
+	kbdinit();
+
+	if((p = getconf("console")) == 0 || cistrcmp(p, "cga") == 0)
 		return;
-	port = strtoul(name, 0, 0);
-	if(port < 0 || port > 1)
-		return;
-	if(speed == nil || (baud = strtoul(speed, 0, 0)) == 0)
-		baud = 9600;
 
 	qinit(&consoq);
 
-	uartspecial(port, kbdchar, consputc, baud);
+	port = strtoul(p, 0, 0);
+	baud = 0;
+	if(p = getconf("baud"))
+		baud = strtoul(p, 0, 0);
+	if(baud == 0)
+		baud = 9600;
+	uartspecial(port, kbdchar, conschar, baud);
 	useuart = 1;
 	uartputs(&consoq, "\n", 1);
 }
@@ -64,6 +45,23 @@ consdrain(void)
 }
 
 void
+kbdchar(int c)
+{
+	c &= 0x7F;
+	if(c == 0x10)
+		panic("^p");
+	if(c == 0x12)
+		debug = !debug;
+	consiq.putc(&consiq, c);
+}
+
+int
+conschar(void)
+{
+	return consoq.getc(&consoq);
+}
+
+void
 consputs(char* s, int n)
 {
 	cgascreenputs(s, n);
@@ -71,22 +69,8 @@ consputs(char* s, int n)
 		uartputs(&consoq, s, n);
 }
 
-void
-warp86(char* s, ulong)
-{
-	if(s != nil)
-		print(s);
-	spllo();
-	consdrain();
-
-	i8042reset();
-	print("Takes a licking and keeps on ticking...\n");
-	for(;;)
-		idle();
-}
-
 static int
-getline(char *buf, int size, int timeout)
+getline(char *buf, int size, int dotimeout)
 {
 	int c, i=0;
 	ulong start;
@@ -95,13 +79,10 @@ getline(char *buf, int size, int timeout)
 	for (;;) {
 		start = m->ticks;
 		do{
-			/* timeout seconds to first char */
-			if(timeout && ((m->ticks - start) > timeout*HZ))
+			if(dotimeout && ((m->ticks - start) > 15*HZ))	/* 15 seconds to first char */
 				return -2;
 			c = consiq.getc(&consiq);
 		}while(c == -1);
-		timeout = 0;
-
 		if(c == '\r')
 			c = '\n'; 		/* turn carriage return into newline */
 		if(c == '\177')
@@ -132,24 +113,20 @@ getline(char *buf, int size, int timeout)
 }
 
 int
-getstr(char *prompt, char *buf, int size, char *def, int timeout)
+getstr(char *prompt, char *buf, int size, char *def, int dotimeout)
 {
 	int len, isdefault;
-	char pbuf[PRINTSIZE];
 
 	buf[0] = 0;
 	isdefault = (def && *def);
-	if(isdefault == 0){
-		timeout = 0;
-		sprint(pbuf, "%s: ", prompt);
-	}
-	else if(timeout)
-		sprint(pbuf, "%s[default==%s (%ds timeout)]: ", prompt, def, timeout);
-	else
-		sprint(pbuf, "%s[default==%s]: ", prompt, def);
+	if(isdefault == 0)
+		dotimeout = 0;
 	for (;;) {
-		print(pbuf);
-		len = getline(buf, size, timeout);
+		if(isdefault)
+			print("%s[default==%s]: ", prompt, def);
+		else
+			print("%s: ", prompt);
+		len = getline(buf, size, dotimeout);
 		switch(len){
 		case -1:
 			/* ^U typed */
@@ -206,16 +183,13 @@ panic(char *fmt, ...)
 	n = donprint(buf, buf+sizeof(buf), fmt, (&fmt+1)) - buf;
 	consputs(buf, n);
 	consputs("\n", 1);
-
-	if(etherdetach)
-		etherdetach();
-	if(sddetach)
-		sddetach();
-
-	consputs("\nPress almost any key to reset...", 32);
+for(;;) splhi();
+	for(n=0; n<20; n++)
+		microdelay(500);
 	spllo();
-	while(consiq.getc(&consiq) == -1)
-		;
-
-	warp86(nil, 0);
+	consdrain();
+	i8042reset();
+	print("Takes a licking and keeps on ticking...\n");
+	for(;;)
+		idle();
 }

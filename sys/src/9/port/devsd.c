@@ -10,7 +10,7 @@
 #include "ureg.h"
 #include "../port/error.h"
 
-#include "../port/sd.h"
+#include "sd.h"
 
 extern Dev sddevtab;
 extern SDifc* sdifc[];
@@ -34,7 +34,6 @@ enum {
 	Qunitdir,			/* directory per unit */
 	Qunitbase,
 	Qctl		= Qunitbase,
-	Qlog,
 	Qraw,
 	Qpart,
 };
@@ -123,6 +122,8 @@ sddelpart(SDunit* unit,  char* name)
 	}
 	if(i >= unit->npart)
 		error(Ebadctl);
+	if(strncmp(up->user, pp->user, NAMELEN) && !iseve())
+		error(Eperm);
 	pp->valid = 0;
 	pp->vers++;
 }
@@ -227,10 +228,6 @@ sdgetunit(SDev* sdev, int subno)
 		unit->perm = 0555;
 		unit->subno = subno;
 		unit->dev = sdev;
-
-		unit->log.logmask = ~0;
-		unit->log.nlog = 16*1024;
-		unit->log.minread = 4*1024;
 
 		/*
 		 * No need to lock anything here as this is only
@@ -337,15 +334,6 @@ sd2gen(Chan* c, int i, Dir* dp)
 
 	unit = sdunit[UNIT(c->qid)];
 	switch(i){
-	case Qlog:
-		q = (Qid){QID(UNIT(c->qid), PART(c->qid), Qlog), unit->vers};
-		perm = &unit->rawperm;
-		if(perm->user[0] == '\0'){
-			strncpy(perm->user, eve, NAMELEN);
-			perm->perm = 0666;
-		}
-		devdir(c, q, "log", 0, perm->user, perm->perm, dp);
-		return 1;
 	case Qctl:
 		q = (Qid){QID(UNIT(c->qid), PART(c->qid), Qctl), unit->vers};
 		perm = &unit->ctlperm;
@@ -464,7 +452,6 @@ sdgen(Chan* c, Dirtab*, int, int s, Dir* dp)
 	case Qraw:
 	case Qctl:
 	case Qpart:
-	case Qlog:
 		unit = sdunit[UNIT(c->qid)];
 		qlock(&unit->ctl);
 		r = sd2gen(c, TYPE(c->qid), dp);
@@ -538,10 +525,6 @@ sdopen(Chan* c, int omode)
 	switch(TYPE(c->qid)){
 	default:
 		break;
-	case Qlog:
-		unit = sdunit[UNIT(c->qid)];
-		logopen(&unit->log);
-		break;
 	case Qctl:
 		unit = sdunit[UNIT(c->qid)];
 		c->qid.vers = unit->vers;
@@ -584,10 +567,6 @@ sdclose(Chan* c)
 
 	switch(TYPE(c->qid)){
 	default:
-		break;
-	case Qlog:
-		unit = sdunit[UNIT(c->qid)];
-		logclose(&unit->log);
 		break;
 	case Qraw:
 		unit = sdunit[UNIT(c->qid)];
@@ -653,26 +632,6 @@ sdbio(Chan* c, int write, char* a, long len, vlong off)
 	if(!(unit->inquiry[1] & 0x80)){
 		qunlock(&unit->ctl);
 		poperror();
-	}
-
-	if(unit->log.opens) {
-		int i;
-		uchar lbuf[1+4+8], *p;
-		ulong x[3];
-
-		p = lbuf;
-		*p++ = write ? 'w' : 'r';
-		x[0] = off>>32;
-		x[1] = off;
-		x[2] = len;
-		for(i=0; i<3; i++) {
-			*p++ = x[i]>>24;
-			*p++ = x[i]>>16;
-			*p++ = x[i]>>8;
-			*p++ = x[i];
-		}
-
-		logn(&unit->log, 1, lbuf, 1+4+8);
 	}
 
 	b = sdmalloc(nb*unit->secsize);
@@ -782,9 +741,6 @@ sdread(Chan *c, void *a, long n, vlong off)
 	case Qtopdir:
 	case Qunitdir:
 		return devdirread(c, a, n, 0, 0, sdgen);
-	case Qlog:
-		unit = sdunit[UNIT(c->qid)];
-		return logread(&unit->log, a, 0, n);
 	case Qctl:
 		unit = sdunit[UNIT(c->qid)];
 		p = malloc(READSTR);
@@ -821,26 +777,18 @@ sdread(Chan *c, void *a, long n, vlong off)
 		return l;
 	case Qraw:
 		unit = sdunit[UNIT(c->qid)];
-		qlock(&unit->raw);
-		if(waserror()){
-			qunlock(&unit->raw);
-			nexterror();
-		}
 		if(unit->state == Rawdata){
 			unit->state = Rawstatus;
-			i = sdrio(unit->req, a, n);
+			return sdrio(unit->req, a, n);
 		}
 		else if(unit->state == Rawstatus){
 			status = unit->req->status;
 			unit->state = Rawcmd;
 			free(unit->req);
 			unit->req = nil;
-			i = readnum(0, a, n, status, NUMSIZE);
-		} else
-			i = 0;
-		qunlock(&unit->raw);
-		poperror();
-		return i;
+			return readnum(0, a, n, status, NUMSIZE);
+		}
+		break;
 	case Qpart:
 		return sdbio(c, 0, a, n, off);
 	}
@@ -859,10 +807,6 @@ sdwrite(Chan *c, void *a, long n, vlong off)
 	switch(TYPE(c->qid)){
 	default:
 		error(Eperm);
-
-	case Qlog:
-		error(Ebadctl);
-
 	case Qctl:
 		cb = parsecmd(a, n);
 		unit = sdunit[UNIT(c->qid)];
@@ -903,11 +847,6 @@ sdwrite(Chan *c, void *a, long n, vlong off)
 
 	case Qraw:
 		unit = sdunit[UNIT(c->qid)];
-		qlock(&unit->raw);
-		if(waserror()){
-			qunlock(&unit->raw);
-			nexterror();
-		}
 		switch(unit->state){
 		case Rawcmd:
 			if(n < 6 || n > sizeof(req->cmd))
@@ -936,12 +875,9 @@ sdwrite(Chan *c, void *a, long n, vlong off)
 			unit->state = Rawstatus;
 
 			unit->req->write = 1;
-			n = sdrio(unit->req, a, n);
+			return sdrio(unit->req, a, n);
 		}
-		qunlock(&unit->raw);
-		poperror();
-		return n;
-
+		break;
 	case Qpart:
 		return sdbio(c, 1, a, n, off);
 	}

@@ -1,22 +1,22 @@
-/* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gdevpdff.c,v 1.8.2.1 2000/11/09 20:40:29 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gdevpdff.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
 /* Font handling for pdfwrite driver. */
 #include "ctype_.h"
 #include "math_.h"
@@ -35,7 +35,6 @@
 #include "gdevpdfx.h"
 #include "gdevpdff.h"
 #include "gdevpdfo.h"
-#include "gdevpsf.h"
 #include "scommon.h"
 
 /*
@@ -270,30 +269,18 @@ pdf_font_embed_status(gx_device_pdf *pdev, gs_font *font, int *pindex,
 {
     const byte *chars = font->font_name.chars;
     uint size = font->font_name.size;
+    /* Check whether the font is in the base 14. */
+    int index = pdf_find_standard_font(chars, size);
 
-    /*
-     * The behavior of Acrobat Distiller changed between 3.0 (PDF 1.2),
-     * which will never embed the base 14 fonts, and 4.0 (PDF 1.3), which
-     * doesn't treat them any differently from any other fonts.
-     */
-#if 0	/**************** DOESN'T WORK ****************/
-    if (pdev->CompatibilityLevel < 1.3) {
-#else
-    {
-#endif
-	/* Check whether the font is in the base 14. */
-	int index = pdf_find_standard_font(chars, size);
-
-	if (index >= 0) {
-	    *pindex = index;
-	    if (font->is_resource) {
-		*psame = ~0;
-		return FONT_EMBED_STANDARD;
-	    } else if (font->FontType != ft_composite &&
-		       find_std_appearance(pdev, (gs_font_base *)font, -1,
-					   psame) == index)
-		return FONT_EMBED_STANDARD;
-	}
+    if (index >= 0) {
+	*pindex = index;
+	if (font->is_resource) {
+	    *psame = ~0;
+	    return FONT_EMBED_STANDARD;
+	} else if (font->FontType != ft_composite &&
+		   find_std_appearance(pdev, (gs_font_base *)font, -1,
+				       psame) == index)
+	    return FONT_EMBED_STANDARD;
     }
     *pindex = -1;
     *psame = 0;
@@ -353,30 +340,20 @@ pdf_find_orig_font(gx_device_pdf *pdev, gs_font *font, gs_matrix *pfmat)
  */
 int
 pdf_alloc_font(gx_device_pdf *pdev, gs_id rid, pdf_font_t **ppfres,
-	       const pdf_font_descriptor_t *pfd_in)
+	       gs_id descriptor_id)
 {
     gs_memory_t *mem = pdev->v_memory;
     pdf_font_descriptor_t *pfd = 0;
-    gs_string chars_used, glyphs_used;
     int code;
     pdf_font_t *pfres;
 
-    chars_used.data = 0;
-    glyphs_used.data = 0;
-    if (pfd_in != 0) {
+    if (descriptor_id != gs_no_id) {
 	code = pdf_alloc_resource(pdev, resourceFontDescriptor,
-				  pfd_in->rid, (pdf_resource_t **)&pfd, 0L);
+				  descriptor_id, (pdf_resource_t **)&pfd, 0L);
 	if (code < 0)
 	    return code;
-	chars_used.size = pfd_in->chars_used.size;
-	chars_used.data = gs_alloc_string(mem, chars_used.size,
-					  "pdf_alloc_font(chars_used)");
-	if (chars_used.data == 0)
-	    goto fail;
-	memset(chars_used.data, 0, chars_used.size);
-	pfd->values = pfd_in->values;
-	pfd->chars_used = chars_used;
-	pfd->glyphs_used = glyphs_used;
+	memset(&pfd->values, 0, sizeof(pfd->values));
+	memset(pfd->chars_used, 0, sizeof(pfd->chars_used));
 	pfd->subset_ok = true;
 	pfd->FontFile_id = 0;
 	pfd->base_font = 0;
@@ -385,8 +362,10 @@ pdf_alloc_font(gx_device_pdf *pdev, gs_id rid, pdf_font_t **ppfres,
     }
     code = pdf_alloc_resource(pdev, resourceFont, rid,
 			      (pdf_resource_t **)ppfres, 0L);
-    if (code < 0)
-	goto fail;
+    if (code < 0) {
+	gs_free_object(mem, pfd, "pdf_alloc_font(descriptor)");
+	return code;
+    }
     pfres = *ppfres;
     memset((byte *)pfres + sizeof(pdf_resource_t), 0,
 	   sizeof(*pfres) - sizeof(pdf_resource_t));
@@ -400,15 +379,6 @@ pdf_alloc_font(gx_device_pdf *pdev, gs_id rid, pdf_font_t **ppfres,
     pfres->char_procs = 0;
     pfres->skip = false;
     return 0;
- fail:
-    if (glyphs_used.data)
-	gs_free_string(mem, glyphs_used.data, glyphs_used.size,
-		       "pdf_alloc_font(glyphs_used)");
-    if (chars_used.data)
-	gs_free_string(mem, chars_used.data, chars_used.size,
-		       "pdf_alloc_font(chars_used)");
-    gs_free_object(mem, pfd, "pdf_alloc_font(descriptor)");
-    return code;
 }
 
 /*
@@ -563,8 +533,6 @@ pdf_char_width(pdf_font_t *ppf, int ch, gs_font *font,
 					   GLYPH_INFO_WIDTH0 << wmode,
 					   &info)) >= 0
 	    ) {
-	    gs_const_string gnstr;
-
 	    if (wmode && (w = info.width[wmode].y) != 0)
 		v = info.width[wmode].x;
 	    else
@@ -576,14 +544,8 @@ pdf_char_width(pdf_font_t *ppf, int ch, gs_font *font,
 		w *= 1000;
 	    }
 	    ppf->Widths[ch] = (int)w;
-	    /*
-	     * If the character is .notdef, don't mark the width as known,
-	     * just in case this is an incrementally defined font.
-	     */
-	    gnstr.data = (const byte *)
-		bfont->procs.callbacks.glyph_name(glyph, &gnstr.size);
-	    if (gnstr.size != 7 || memcmp(gnstr.data, ".notdef", 7))
-		ppf->widths_known[ch >> 3] |= 1 << (ch & 7);
+	    /* Mark the width as known. */
+	    ppf->widths_known[ch >> 3] |= 1 << (ch & 7);
 	} else {
 	    /* Try for MissingWidth. */
 	    static const gs_point tt_scale = {1000, 1000};
@@ -843,7 +805,7 @@ pdf_compute_font_descriptor(gx_device_pdf *pdev, pdf_font_descriptor_t *pfd,
      * and the fixed width if any.  Avoid computing the bounding box of
      * letters a second time.
      */
-    num_letters = psf_sort_glyphs(letters, num_letters);
+    num_letters = psdf_sort_glyphs(letters, num_letters);
     desc.Ascent = desc.FontBBox.q.y;
     notdef = gs_no_glyph;
     for (index = 0;
@@ -853,7 +815,7 @@ pdf_compute_font_descriptor(gx_device_pdf *pdev, pdf_font_descriptor_t *pfd,
 	gs_glyph_info_t info;
 	gs_const_string gnstr;
 
-	if (psf_sorted_glyphs_include(letters, num_letters, glyph)) {
+	if (psdf_sorted_glyphs_include(letters, num_letters, glyph)) {
 	    /* We don't need the bounding box. */
 	    code = font->procs.glyph_info(font, glyph, pmat,
 					  members - GLYPH_INFO_BBOX, &info);
@@ -887,7 +849,7 @@ pdf_compute_font_descriptor(gx_device_pdf *pdev, pdf_font_descriptor_t *pfd,
     if (desc.Ascent == 0)
 	desc.Ascent = desc.FontBBox.q.y;
     desc.Descent = desc.FontBBox.p.y;
-    if (!(desc.Flags & (FONT_IS_SYMBOLIC | FONT_IS_ALL_CAPS)) &&
+    if (!(desc.Flags & FONT_IS_ALL_CAPS) &&
 	(small_descent > desc.Descent / 3 || desc.XHeight > small_height * 0.9)
 	)
 	desc.Flags |= FONT_IS_SMALL_CAPS;

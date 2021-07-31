@@ -146,30 +146,26 @@ ready(Proc *p)
 
 	s = splhi();
 
-	if(p->fixedpri){
-		pri = p->basepri;
+	/* history counts */
+	if(p->state == Running){
+		p->rt++;
+		pri = ((p->art + (p->rt<<1))>>2)/Squantum;
 	} else {
-		/* history counts */
-		if(p->state == Running){
-			p->rt++;
-			pri = ((p->art + (p->rt<<1))>>2)/Squantum;
-		} else {
-			p->art = (p->art + (p->rt<<1))>>2;
-			p->rt = 0;
-			pri = p->art/Squantum;
-		}
-		pri = p->basepri - pri;
-		if(pri < 0)
-			pri = 0;
-	
-		/* the only intersection between the classes is at PriNormal */
-		if(pri < PriNormal && p->basepri > PriNormal)
-			pri = PriNormal;
-
-		/* stick at low priority any process waiting for a lock */
-		if(p->lockwait)
-			pri = PriLock;
+		p->art = (p->art + (p->rt<<1))>>2;
+		p->rt = 0;
+		pri = p->art/Squantum;
 	}
+	pri = p->basepri - pri;
+	if(pri < 0)
+		pri = 0;
+
+	/* the only intersection between the classes is at PriNormal */
+	if(pri < PriNormal && p->basepri > PriNormal)
+		pri = PriNormal;
+
+	/* stick at low priority any process waiting for a lock */
+	if(p->lockwait)
+		pri = PriLock;
 
 	p->priority = pri;
 	rq = &runq[p->priority];
@@ -204,6 +200,7 @@ loop:
 	 */
 	spllo();
 	for(;;){
+		idlehands();
 		if((++(m->fairness) & 0x3) == 0){
 			/*
 			 *  once in a while, run process that's been waiting longest
@@ -243,7 +240,6 @@ loop:
 				}
 			}
 		}
-		idlehands();
 	}
 
 found:
@@ -538,11 +534,11 @@ tsleep(Rendez *r, int (*fn)(void*), void *arg, int ms)
  *  Richard Miller has a better solution that doesn't require both to
  *  be held simultaneously, but I'm a paranoid - presotto.
  */
-Proc*
+int
 wakeup(Rendez *r)
 {
-	Proc *p, *rv;
-	int s;
+	Proc *p;
+	int s, rv;
 
 	rv = 0;
 	s = splhi();
@@ -557,7 +553,7 @@ wakeup(Rendez *r)
 		r->p = nil;
 		p->r = nil;
 		ready(p);
-		rv = p;
+		rv = 1;
 		unlock(&p->rlock);
 	}
 
@@ -920,7 +916,7 @@ dumpaproc(Proc *p)
 
 	s = p->psstate;
 	if(s == 0)
-		s = statename[p->state];
+		s = "kproc";
 	print("%3lud:%10s pc %8lux dbgpc %8lux  %8s (%s) ut %ld st %ld bss %lux qpc %lux\n",
 		p->pid, p->text, p->pc, dbgpc(p),  s, statename[p->state],
 		p->time[0], p->time[1], bss, p->qpc);
@@ -942,7 +938,7 @@ procdump(void)
 			continue;
 
 		dumpaproc(p);
-		prflush();
+		delay(150);
 	}
 }
 
@@ -1017,7 +1013,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 	static Pgrp *kpgrp;
 
 	p = newproc();
-	p->psstate = "kproc";
+	p->psstate = 0;
 	p->procmode = 0644;
 	p->kp = 1;
 
@@ -1060,7 +1056,6 @@ kproc(char *name, void (*func)(void *), void *arg)
 	 *  any mmu info about this process is now stale
 	 *  and has to be discarded.
 	 */
-	p->newtlb = 1;
 	flushmmu();
 }
 

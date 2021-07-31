@@ -1,22 +1,22 @@
-/* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: zpcolor.c,v 1.3 2000/09/19 19:00:55 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: zpcolor.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
 /* Pattern color */
 #include "ghost.h"
 #include "oper.h"
@@ -97,7 +97,7 @@ zbuildpattern1(i_ctx_t *i_ctx_p)
 	(code = dict_uid_param(op1, &template.uid, 1, imemory, i_ctx_p)) != 1 ||
 	(code = dict_int_param(op1, "PaintType", 1, 2, 0, &template.PaintType)) < 0 ||
 	(code = dict_int_param(op1, "TilingType", 1, 3, 0, &template.TilingType)) < 0 ||
-	(code = dict_floats_param(op1, "BBox", 4, BBox, NULL)) < 0 ||
+	(code = dict_float_array_param(op1, "BBox", 4, BBox, NULL)) != 4 ||
 	(code = dict_float_param(op1, "XStep", 0.0, &template.XStep)) != 0 ||
 	(code = dict_float_param(op1, "YStep", 0.0, &template.YStep)) != 0 ||
 	(code = dict_find_string(op1, "PaintProc", &pPaintProc)) <= 0

@@ -4,8 +4,6 @@ struct Part {
 	char ctlname[NAMELEN];
 	vlong start;
 	vlong end;
-	vlong ctlstart;
-	vlong ctlend;
 	int changed;
 };
 
@@ -32,10 +30,8 @@ struct Edit {
 	char *(*write)(Edit*);
 	void (*printctl)(Edit*, int);
 
-	char *unit;
 	void *aux;
 	vlong dot;
-	vlong end;
 
 	/* do not use fields below this line */
 	int changed;

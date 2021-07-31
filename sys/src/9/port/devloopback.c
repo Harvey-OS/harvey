@@ -21,9 +21,9 @@ struct Link
 	long	droprate;	/* drop 1/droprate packets in tq */
 	long	drops;		/* packets deliberately dropped */
 
-	vlong	delay0ns;	/* nanosec of delay in the link */
+	long	delay0ns;	/* nanosec of delay in the link */
 	long	delaynns;	/* nanosec of delay per byte */
-	vlong	delay0;		/* fastticks of delay */
+	long	delay0;		/* fastticks of delay */
 	long	delayn;
 
 	Block	*tq;		/* transmission queue */
@@ -68,7 +68,7 @@ enum
 
 	MaxQ,
 
-	Nloopbacks	= 5,
+	Nloopbacks	= 1,
 
 	Statelen	= 23*1024,	/* status buffer size */
 
@@ -181,7 +181,7 @@ loopbackattach(char *spec)
 
 	c->qid = (Qid){CHDIR|QID(0, Qtopdir), 0};
 	c->aux = lb;
-	c->dev = dev;
+	c->dev = 0;
 	return c;
 }
 
@@ -296,13 +296,8 @@ loopbackopen(Chan *c, int omode)
 
 	lb = c->aux;
 	qlock(lb);
-	if(TYPE(c->qid.path) == Qdata){
-		if(lb->link[ID(c->qid.path)].ref){
-			qunlock(lb);
-			error(Einuse);
-		}
+	if(TYPE(c->qid.path) == Qdata)
 		lb->link[ID(c->qid.path)].ref++;
-	}
 	qunlock(lb);
 
 	c->mode = openmode(omode);
@@ -423,7 +418,7 @@ loopbackread(Chan *c, void *va, long n, vlong offset)
 	case Qstatus:
 		link = &lb->link[ID(c->qid.path)];
 		buf = smalloc(Statelen);
-		rv = snprint(buf, Statelen, "delay %lld %ld\n", link->delay0ns, link->delaynns);
+		rv = snprint(buf, Statelen, "delay %ld %ld\n", link->delay0ns, link->delaynns);
 		rv += snprint(buf+rv, Statelen-rv, "limit %ld\n", link->limit);
 		rv += snprint(buf+rv, Statelen-rv, "indrop %d\n", link->indrop);
 		snprint(buf+rv, Statelen-rv, "droprate %ld\n", link->droprate);
@@ -474,8 +469,7 @@ loopbackwrite(Chan *c, void *va, long n, vlong off)
 	Link *link;
 	Cmdbuf *cb;
 	Block *bp;
-	vlong d0, d0ns;
-	long dn, dnns;
+	long d0, dn, d0ns, dnns;
 
 	switch(TYPE(c->qid.path)){
 	case Qdata:
@@ -497,7 +491,7 @@ loopbackwrite(Chan *c, void *va, long n, vlong off)
 		if(strcmp(cb->f[0], "delay") == 0){
 			if(cb->nf != 3)
 				error("usage: delay latency bytedelay");
-			d0ns = strtoll(cb->f[1], nil, 10);
+			d0ns = strtol(cb->f[1], nil, 10);
 			dnns = strtol(cb->f[2], nil, 10);
 
 			/*
@@ -527,7 +521,7 @@ loopbackwrite(Chan *c, void *va, long n, vlong off)
 			iunlock(link);
 		}else if(strcmp(cb->f[0], "limit") == 0){
 			if(cb->nf != 2)
-				error("usage: limit maxqsize");
+				error("usage: droprate ofn");
 			ilock(link);
 			link->limit = strtol(cb->f[1], nil, 0);
 			qsetlimit(link->oq, link->limit);

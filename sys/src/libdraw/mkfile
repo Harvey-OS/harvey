@@ -10,7 +10,6 @@ OFILES=	alloc.$O\
 	buildfont.$O\
 	bytesperline.$O\
 	chan.$O\
-	cloadimage.$O\
 	creadimage.$O\
 	debug.$O\
 	defont.$O\

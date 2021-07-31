@@ -2,8 +2,7 @@ enum {					/* fundamental constants/defaults */
 	NTargetID	= 8,		/* number of target IDs */
 	CtlrID		= 7,		/* default controller target ID */
 	MaxDirData	= 255,		/* max. direct data returned */
-//	MaxIOsize	= /*32*512*/ 96*1024,	/* max. I/O size */
-	MaxIOsize	= 32*1024,	/* max. I/O size */
+	MaxIOsize	= /*32*512*/ 96*1024,	/* max. I/O size */
 	LBsize		= 512,		/* default logical-block size */
 };
 
@@ -37,7 +36,6 @@ enum {					/* flags */
 	Fbfixed		= 0x0040,	/* fixed block size */
 	Fchanger	= 0x0080,	/* medium-changer device */
 	Finqok		= 0x0100,	/* inquiry data is OK */
-	Fmode6		= 0x0200,	/* use 6-byte modeselect */
 };
 
 enum {

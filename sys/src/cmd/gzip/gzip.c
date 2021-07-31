@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <flate.h>
 #include "gzip.h"
+#include "deflate.h"
 
 static	int	gzipf(char*, int);
 static	int	gzip(char*, long, int, Biobuf*);
@@ -11,7 +11,6 @@ static	int	gzwrite(void *bout, void *buf, int n);
 
 static	Biobuf	bout;
 static	ulong	crc;
-static	ulong	*crctab;
 static	int	debug;
 static	int	eof;
 static	int	level;
@@ -51,10 +50,8 @@ main(int argc, char *argv[])
 		break;
 	}ARGEND
 
-	crctab = mkcrctab(GZCRCPOLY);
-	ok = deflateinit();
-	if(ok != FlateOk)
-		sysfatal("deflateinit failed: %s\n", flateerr(ok));
+	mkcrctab(GZCRCPOLY);
+	deflateinit();
 
 	if(argc == 0){
 		Binit(&bout, 1, OWRITE);
@@ -133,7 +130,7 @@ gzipf(char *file, int stdout)
 static int
 gzip(char *file, long mtime, int ifd, Biobuf *bout)
 {
-	int flags, err;
+	int flags;
 
 	flags = 0;
 	Bputc(bout, GZMAGIC1);
@@ -158,9 +155,8 @@ gzip(char *file, long mtime, int ifd, Biobuf *bout)
 	crc = 0;
 	eof = 0;
 	totr = 0;
-	err = deflate(bout, gzwrite, (void*)ifd, crcread, level, debug);
-	if(err != FlateOk){
-		fprint(2, "gzip: deflate failed: %s\n", flateerr(err));
+	if(!deflate(bout, gzwrite, (void*)ifd, crcread, level, debug)){
+		fprint(2, "gzip: deflate failed: %r\n");
 		return 0;
 	}
 
@@ -187,13 +183,11 @@ crcread(void *fd, void *buf, int n)
 		m = read((int)fd, (char*)buf+nr, n);
 		if(m <= 0){
 			eof = 1;
-			if(m < 0)
-				return -1;
 			break;
 		}
 		nr += m;
 	}
-	crc = blockcrc(crctab, crc, buf, nr);
+	crc = blockcrc(crc, buf, nr);
 	totr += nr;
 	return nr;
 }

@@ -35,7 +35,6 @@ int	quiet;
 char	*cpu;
 char	*proto;
 Announce *announcements;
-int	debug;
 #define SEC 1000
 
 char *namespace;
@@ -58,9 +57,6 @@ main(int argc, char *argv[])
 		error("can't get cputype");
 
 	ARGBEGIN{
-	case 'D':
-		debug++;
-		break;
 	case 'd':
 		servdir = ARGF();
 		break;
@@ -238,10 +234,8 @@ scandir(char *proto, char *protodir, char *dname)
 	Dir db[32];
 
 	fd = open(dname, OREAD);
-	if(fd < 0){
-		syslog(0, listenlog, "opening %s: %r", dname);
+	if(fd < 0)
 		return;
-	}
 
 	nlen = strlen(proto);
 	while((n=dirread(fd, db, sizeof db)) > 0){

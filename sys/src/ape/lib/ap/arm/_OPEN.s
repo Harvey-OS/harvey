@@ -1,4 +1,0 @@
-TEXT _OPEN(SB), 1, $-4
-MOVW $14, R0
-SWI 0
-RET

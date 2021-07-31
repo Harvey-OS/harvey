@@ -2,6 +2,7 @@
 
 OFILES=\
 	auth.$O\
+	can.$O\
 	copy.$O\
 	csquery.$O\
 	date.$O\
@@ -20,6 +21,7 @@ OFILES=\
 
 HFILES=imap4d.h\
 	fns.h\
+	can.h\
 
 TARG=imap4d
 BIN=/$objtype/bin/ip

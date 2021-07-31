@@ -1,22 +1,22 @@
-/* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gdevdflt.c,v 1.3 2000/09/19 19:00:12 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gdevdflt.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
 /* Default device implementation */
 #include "gx.h"
 #include "gserrors.h"
@@ -96,7 +96,6 @@ gx_device_fill_in_procs(register gx_device * dev)
     fill_dev_proc(dev, create_compositor, gx_default_create_compositor);
     fill_dev_proc(dev, get_hardware_params, gx_default_get_hardware_params);
     fill_dev_proc(dev, text_begin, gx_default_text_begin);
-    fill_dev_proc(dev, finish_copydevice, gx_default_finish_copydevice);
 }
 
 int
@@ -231,13 +230,6 @@ gx_null_create_compositor(gx_device * dev, gx_device ** pcdev,
 {
     *pcdev = dev;
     return 0;
-}
-
-int
-gx_default_finish_copydevice(gx_device *dev, const gx_device *from_dev)
-{
-    /* Only allow copying the prototype. */
-    return (from_dev->memory ? gs_note_error(gs_error_rangecheck) : 0);
 }
 
 /* ---------------- Default per-instance procedures ---------------- */

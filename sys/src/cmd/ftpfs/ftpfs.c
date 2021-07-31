@@ -27,7 +27,6 @@ char	*ext;
 int	quiet;
 int	kapid = -1;
 int	dying;		/* set when any process decides to die */
-int	dokeepalive;
 
 char	*rflush(Fid*), *rnop(Fid*), *rsession(Fid*),
 	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
@@ -57,15 +56,14 @@ char 	*(*fcalls[])(Fid*) = {
 };
 
 OS oslist[] = {
-	{ Plan9,	"Plan 9", },
-	{ Plan9,	"Plan9", },
-	{ Plan9,	"UNIX Type: L8 Version: Plan 9", },
 	{ Unix,		"SUN", },
 	{ Unix,		"UNIX", },
 	{ VMS,		"VMS", },
 	{ VM,		"VM", },
 	{ Tops,		"TOPS", },
 	{ MVS,		"MVS", },
+	{ Plan9,	"Plan 9", },
+	{ Plan9,	"Plan9", },
 	{ NetWare,	"NetWare", },
 	{ OS½,		"OS/2", },
 	{ TSO,		"TSO", },
@@ -106,9 +104,6 @@ main(int argc, char *argv[])
 		break;
 	case 'd':
 		debug = 1;
-		break;
-	case 'k':
-		dokeepalive = 1;
 		break;
 	case 'm':
 		mountpoint = ARGF();
@@ -213,9 +208,6 @@ kaproc(void)
 {
 	int pid;
 
-	if(!dokeepalive)
-		return -1;
-
 	switch(pid = rfork(RFPROC|RFMEM)){
 	case -1:
 		return -1;
@@ -226,7 +218,7 @@ kaproc(void)
 	}
 
 	while(!dying){
-		sleep(5000);
+		sleep(15000);
 		nop();
 	}
 
@@ -239,7 +231,7 @@ io(void)
 {
 	char *err;
 	int n;
-
+	
 	kapid = kaproc();
 
 	while(!dying){

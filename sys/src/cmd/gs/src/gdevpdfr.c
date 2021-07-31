@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gdevpdfr.c,v 1.4 2000/09/19 19:00:17 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gdevpdfr.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
 /* Named object pdfmark processing */
 #include "memory_.h"
 #include "string_.h"
@@ -68,16 +68,17 @@ int
 pdf_create_named(gx_device_pdf *pdev, const gs_param_string *pname,
 		 cos_type_t cotype, cos_object_t **ppco, long id)
 {
+    gs_memory_t *mem = pdev->pdf_memory;
     cos_object_t *pco;
     cos_value_t value;
 
-    *ppco = pco = cos_object_alloc(pdev, "pdf_create_named");
+    *ppco = pco = cos_object_alloc(mem, "pdf_create_named");
     if (pco == 0)
 	return_error(gs_error_VMerror);
     pco->id =
 	(id == -1 ? 0L : id == 0 ? pdf_obj_ref(pdev) : id);
     if (pname) {
-	int code = cos_dict_put(pdev->named_objects, pname->data,
+	int code = cos_dict_put(pdev->named_objects, pdev, pname->data,
 				pname->size, cos_object_value(&value, pco));
 
 	if (code < 0)
@@ -248,8 +249,7 @@ pdf_scan_token(const byte **pscan, const byte * end, const byte **ptoken)
 	r.limit = end - 1;
 	w.limit = buf + sizeof(buf) - 1;
 	do {
-	    /* One picky compiler complains if we initialize to buf - 1. */
-	    w.ptr = buf;  w.ptr--;
+	    w.ptr = buf - 1;
 	    status = (*s_PSSD_template.process)
 		((stream_state *) & ss, &r, &w, true);
 	}

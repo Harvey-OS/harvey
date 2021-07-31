@@ -104,10 +104,6 @@ cgen(Node *n, Node *nn)
 			break;
 		}
 		if(l->complex >= r->complex) {
-			if(l->op == OINDEX && r->op == OCONST) {
-				gmove(r, l);
-				break;
-			}
 			reglcgen(&nod1, l, Z);
 			if(r->addable >= INDEXED) {
 				gmove(r, &nod1);
@@ -1168,40 +1164,16 @@ sugen(Node *n, Node *nn, long w)
 				break;
 			}
 
-			switch(nn->op) {
-			default:
-				t = nn->type;
-				nn->type = types[TLONG];
-				reglcgen(&nod1, nn, Z);
-				nn->type = t;
+			t = nn->type;
+			nn->type = types[TLONG];
+			reglcgen(&nod1, nn, Z);
+			nn->type = t;
 
-				if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-					gmove(nodconst((long)(n->vconst>>32)), &nod1);
-				else
-					gmove(nodconst((long)(n->vconst)), &nod1);
-				nod1.xoffset += SZ_LONG;
-				if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-					gmove(nodconst((long)(n->vconst)), &nod1);
-				else
-					gmove(nodconst((long)(n->vconst>>32)), &nod1);
+			gmove(nodconst((long)(n->vconst)), &nod1);
+			nod1.xoffset += SZ_LONG;
+			gmove(nodconst((long)(n->vconst>>32)), &nod1);
 
-				regfree(&nod1);
-				break;
-
-			case ONAME:
-			case OINDREG:
-				if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-					gins(AMOVL, nodconst((long)(n->vconst>>32)), nn);
-				else
-					gins(AMOVL, nodconst((long)(n->vconst)), nn);
-				nn->xoffset += SZ_LONG;
-				if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-					gins(AMOVL, nodconst((long)(n->vconst)), nn);
-				else
-					gins(AMOVL, nodconst((long)(n->vconst>>32)), nn);
-				nn->xoffset -= SZ_LONG;
-				break;
-			}
+			regfree(&nod1);
 			break;
 		}
 		goto copy;
@@ -1227,7 +1199,7 @@ sugen(Node *n, Node *nn, long w)
 		/*
 		 * rewrite so lhs has no fn call
 		 */
-		if(nn != Z && side(nn)) {
+		if(nn != Z && nn->complex >= FNX) {
 			nod1 = *n;
 			nod1.type = typ(TIND, n->type);
 			regret(&nod2, &nod1);
@@ -1264,7 +1236,7 @@ sugen(Node *n, Node *nn, long w)
 			nod0.op = OAS;
 			nod0.type = t;
 			nod0.left = &nod1;
-			nod0.right = nil;
+			nod0.right = 0;
 
 			nod1 = znode;
 			nod1.op = OIND;
@@ -1373,24 +1345,7 @@ copy:
 		return;
 	}
 
-	/* most common case of vlong variables */
-	if((n->op == ONAME || n->op == OINDREG) &&
-	   (nn->op == ONAME || nn->op == OINDREG) && w == 8) {
-		n->type = types[TLONG];
-		regalloc(&nod1, n, Z);
-		gins(AMOVL, n, &nod1);
-		gins(AMOVL, &nod1, nn);
-		n->xoffset += SZ_LONG;
-		nn->xoffset += SZ_LONG;
-		gins(AMOVL, n, &nod1);
-		gins(AMOVL, &nod1, nn);
-		n->xoffset -= SZ_LONG;
-		nn->xoffset -= SZ_LONG;
-		regfree(&nod1);
-		return;
-	}
-
-	/* botch, need to save in .safe */
+/* botch, need to save in .safe */
 	c = 0;
 	if(n->complex > nn->complex) {
 		t = n->type;

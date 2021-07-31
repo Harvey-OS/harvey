@@ -5,7 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-#include	"../ip/ip.h"
+#include	"ip.h"
 
 typedef struct Iphdr	Iphdr;
 typedef struct Fragment	Fragment;

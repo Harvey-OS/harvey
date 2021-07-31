@@ -297,7 +297,7 @@ readresident()
 	return;
 
     if ( printer != NULL ) {		/* use Unix 4.0 lp pathnames */
-	sprintf(buf, "%s/printers/%s", HOSTDIR, printer);
+	sprintf(buf, "/etc/lp/printers/%s/residentfonts", printer);
 	path = buf;
     } else path = residentfonts;
 

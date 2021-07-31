@@ -33,7 +33,6 @@ extern char Eisstream[];	/* seek on a stream */
 extern char Ebadexec[];		/* exec header invalid */
 extern char Etimedout[];	/* connection timed out */
 extern char Econrefused[];	/* connection refused */
-extern char Econinuse[];	/* connection in use */
 extern char Eintr[];		/* interrupted */
 extern char Enomem[];		/* kernel allocate failed */
 extern char Enoswap[];		/* swap space full */

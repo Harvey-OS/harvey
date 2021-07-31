@@ -1,21 +1,21 @@
 %    Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This file is part of Aladdin Ghostscript.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
 
-% $Id: pdf_main.ps,v 1.19.2.4 2000/11/25 21:58:19 raph Exp $
+% $Id: pdf_main.ps,v 1.2 2000/03/10 03:56:11 lpd Exp $
 % pdf_main.ps
 % PDF file- and page-level operations.
 
@@ -26,13 +26,6 @@ pdfdict begin
 
 % Patch in an obsolete variable used by some third-party software.
 /#? false def
-
-% Test whether the current output device handles pdfmark.
-/.writepdfmarkdict 1 dict dup /pdfmark null put readonly def
-/.writepdfmarks {	% - .writepdfmarks <bool>
-  currentdevice //.writepdfmarkdict .getdeviceparams
-  mark eq { false } { pop pop true } ifelse
-} bind def
 
 % For simplicity, we use a single interpretation dictionary for all
 % PDF graphics execution, even though this is too liberal.
@@ -70,37 +63,29 @@ DingbatsEncoding pop
 systemdict begin
 /.runps /run load def
 /runpdfstring 50 string def		% length is arbitrary
-/run {
-  dup type /filetype ne { (r) file } if
-  dup ( ) .peekstring {
-    (%) eq {
-      dup (  ) .peekstring {
-	(%P) eq {
-	  dup //runpdfstring {
+/run
+ { dup type /filetype ne { (r) file } if
+   dup read
+    { dup (%) 0 get eq
+       { pop dup //runpdfstring
 		% Some invalid files might have extra-long first lines....
-	    { readline } .internalstopped not { pop pop exit } if
+	  {  { readline } .internalstopped not { pop pop exit } if
 	    pop =string
-	  } loop
-	  //runpdfstring (%PDF-) anchorsearch {
-	    pop pop runpdf
-	  } {
-	    pop cvx .runexec
-	  } ifelse
-	} {
-	  cvx .runps
-	} ifelse
-      } {
-	closefile
-      } ifelse
-    } {
-      cvx .runps
-    } ifelse
-  } {
-    closefile
-  } ifelse
-} bind odef
-currentdict /runpdfstring .undef
-
+	  }
+	 loop
+	 //runpdfstring (PDF-) anchorsearch
+	  { pop pop runpdf }
+	  { pop cvx .runexec }
+	 ifelse
+       }
+       { 2 copy unread pop .runps
+       }
+      ifelse
+    }
+    { closefile
+    }
+   ifelse
+ } bind odef
 /runpdf			% <file> runpdf -
  { userdict begin
    /Page# null def
@@ -200,38 +185,13 @@ pdfdict begin
  } bind def
 
 % Open a PDF file and read the header, trailer, and cross-reference.
-/pdfopen {		% <file> pdfopen <dict>
-  pdfopenfile begin
-  pdfopencache
-  .writepdfmarks {
-	% Copy bookmarks (outline) to the output.
-    Trailer /Root oget /Outlines knownoget {
-      /First knownoget {
-	{ dup writeoutline /Next knownoget not { exit } if } loop
-      } if
-    } if
-  } if		% end .writepdfmarks
-  currentdict end
-} bind def
-/pdfopencache {		% - pdfopencache -
-	% Create and initialize some caches.
-  /PageCount pdfpagecount def
-  /PageNumbers PageCount dict def
-  /PageIndex PageCount array def
-} bind def
-/pdfopenfile {		% <file> pdfopenfile <dict>
-   pdfdict readonly pop		% can't do it any earlier than this
+/pdfopen		% <file> pdfopen <dict>
+ { pdfdict readonly pop		% can't do it any earlier than this
    15 dict begin
    /LocalResources 0 dict def
-   /DefaultMatrix null def	% establish binding
-   /Printed where { pop } {
-		% Guess whether the output device is a printer.
-     /Printed currentpagedevice /OutputFile known def
-   } ifelse
    /PSLevel1 where { pop } { /PSLevel1 false def } ifelse
    cvlit /PDFfile exch def
    /PDFsource PDFfile def
-   /Repaired false def
    PDFfile dup 0 setfileposition pdfstring readstring 
    not {/pdfopen cvx /syntaxerror signalerror} if
    (%PDF-) search not {/pdfopen cvx /syntaxerror signalerror} if
@@ -246,98 +206,70 @@ pdfdict begin
    if
 	% Read any previous cross-reference tables.
    Trailer { /Prev .knownget not { exit } if readxref } loop
-   Repaired { printrepaired } if
+	% Create and initialize some caches.
+   /PageCount pdfpagecount def
+   /PageNumbers PageCount dict def
+   /PageIndex PageCount array def
+	% Copy bookmarks (outline) to the output.
+   Trailer /Root oget /Outlines knownoget
+    { /First knownoget
+      { { dup writeoutline /Next knownoget not { exit } if } loop } if
+    }
+   if
    currentdict end
  } bind def
 
 % Skip backward over the %%EOF at the end of the PDF file, and read
-% the preceding startxref line.  The PDF specification unambiguously
-% requires that the %%EOF appear on a line by itself, and that the
-% startxref and the following position value appear on separate lines;
-% however, some applications (including, apparently, Acrobat Distiller
-% on the Macintosh) may add up to 2K of garbage after the %%EOF, and some
-% other applications also truncate the %%EOF to %%EO, and/or put the
-% startxref and the following value on the same line.
+% the preceding startxref line.  We put this in a separate procedure so
+% we can offer the option of accepting certain invalid files that Acrobat
+% Reader also accepts.
+% ****** NOTE: this will be changed in a future release so that %%EO
+% ****** (missing the F), and startxref followed by a blank rather than
+% ****** an EOL, will no longer be accepted.
 /findxref {		% - findxref <xrefpos>
-  PDFfile dup dup 0 setfileposition bytesavailable
-  dup /PDFfilelen exch def
-	% Find the last %%EOF string (within 2048 bytes)
-  2048 sub PDFoffset .max
-  2 copy setfileposition
-  PDFfilelen exch sub string 1 index exch readstring pop {
-    (\015%%EO) search {		% Adobe can handle truncated key string
-      pop pop			% if found, keep searching 'post' string
-    } {
-      (\012%%EO) search
-	{ pop pop } { exit } ifelse	% exit if neither string found
-    } ifelse
+  PDFfile dup dup 0 setfileposition bytesavailable {
+	% Scan backwards over trailing control-character garbage
+	% (nulls, ^Zs, EOLs, blanks).
+    1 sub 2 copy setfileposition 1 index read pop
+    32 gt {exit} if
   } loop
-  PDFfilelen exch length sub 4 sub PDFoffset .max exch 1 index setfileposition
-	% Stack: eofpos
-	% Check for whether this is, in fact, a valid PDF file.
-  dup PDFfilelen exch sub dup dup 7 gt exch 6 lt or {
-    pop true
-  } {
-    string PDFfile exch readstring pop
-    dup (%%EOF\n) eq exch dup (%%EOF\r) eq
-    exch (%%EOF\r\n) eq or or not
-  } ifelse {
-    (
-   **** This file has a corrupted %%EOF marker, or garbage after the %%EOF.
-) pdfformaterror
-  } if
-  PDFfile exch setfileposition
+	% Stack: file endpos
+	% The top of the stack is now the file position of the last
+	% non-garbage character.
+	% We can't use prevline to check for the %%EOF, because if the
+	% %%EOF isn't followed by an EOL, prevline will read past the
+	% end of the file, and the file will get closed.
+	% Acrobat apparently accepts files in which the %%EOF was
+	% truncated to %%EO (!); we do the same.
+  5 sub 2 copy setfileposition
+  1 index (xxxxxx) readstring pop
+  (\015%%EO) anchorsearch { pop pop } {
+    (\012%%EO) anchorsearch { pop pop } {
+      pop findxreferror
+    } ifelse
+  } ifelse
+  1 add setfileposition
 	% Now read the startxref and xref start position.
-  prevline token not { null } if dup type /integertype eq {
+  prevline token pop dup type /integertype eq {
     exch pop cvi		% xref start position
     exch PDFfile exch setfileposition
-    prevline (startxref) linene { /findxref cvx /syntaxerror signalerror } if
+    prevline (startxref) linene { findxreferror } if
     pop
   } {	% else, this file has 'startxref #####' format
-    (startxref) ne { /findxref cvx /syntaxerror signalerror } if
+    (startxref) ne { findxreferror } if
     cvi		% xref start position
-    (
-   **** The format of the startxref line in this file is invalid.
-) pdfformaterror
     exch PDFfile exch setfileposition
   } ifelse
 } bind def
-/stderrprint {		% <string> stderrprint -
-  (%stderr) (w) file dup dup 4 -1 roll writestring flushfile closefile
-} bind def
-/pdfformaterror {	% <string> pdfformaterror -
-  stderrprint
-  /Repaired true store
-} bind def
-/printrepaired {
-  Trailer /Info knownoget {
-    /Producer knownoget not { null } if
-  } {
-    null
-  } ifelse
-  dup null eq {
-    pop (\
-   **** Please notify the author of the software that produced this file
-)
-  } {
-    (   **** The file was produced by ) stderrprint
-	% Handle a Unicode Producer.
-    (\376\377) anchorsearch {
-      pop dup length 2 idiv string 0 1 2 index length 1 sub {
-		% Stack: origstr newstr i
-	1 index exch 3 index 1 index 2 mul 1 add get put
-      } for exch pop
-    } if
-    stderrprint
-    (:
-   **** please notify the author of this software
-)
-  } ifelse stderrprint
-(\
-   **** that the file does not conform to Adobe's published PDF
-   **** specification.  Processing of the file will continue normally.
-
-) stderrprint
+/findxreferror {
+  (\n) =
+  (    **** The PDF input file appears to be corrupted, or not a PDF file.) =
+  (    **** Try preceding the input file with lib/pdfeof.ps.) =
+  (    **** If the file then is processed without error, please notify the) =
+  (    **** author of the software that produced the PDF file that the file) =
+  (    **** does not conform to Adobe's published PDF specification.) =
+  (\n) = flush
+  /pdfopen cvx /syntaxerror signalerror
 } bind def
 
 % Write the outline structure for a file.  Uses linkdest (below).
@@ -407,40 +339,38 @@ pdfdict begin
 
 % Find the N'th page of the document by iterating through the Pages tree.
 % The first page is numbered 1.
-/pdffindpageref {		% <int> pdffindpage <objref>
-  dup Trailer /Root oget /Pages get
+/pdffindpage		% <int> pdffindpage <pagedict>
+ { dup Trailer /Root oget /Pages oget
     {		% We should be able to tell when we reach a leaf
 		% by finding a Type unequal to /Pages.  Unfortunately,
 		% some files distributed by Adobe lack the Type key
 		% in some of the Pages nodes!  Instead, we check for Kids.
-      dup oforce /Kids knownoget not { exit } if
+      dup /Kids knownoget not { exit } if
       exch pop null
-      0 1 3 index length 1 sub {
-         2 index exch get
-	 dup oforce dup /Kids known { /Count oget } { pop 1 } ifelse
-		% Stack: index kids null noderef count
+      0 1 3 index length 1 sub
+       { 2 index exch oget
+	 dup /Kids known { dup /Count oget } { 1 } ifelse
+		% Stack: index kids null node count
 	 dup 5 index ge { pop exch pop exit } if
 	 5 -1 roll exch sub 4 1 roll pop
-      } for exch pop
-		% Stack: index null|noderef
+       }
+      for exch pop
       dup null eq { pop pop 1 null exit } if
-    } loop
-		% Stack: index countleft noderef
+    }
+   loop
+		% Stack: index countleft node
    1 index 1 ne { pop pop /pdffindpage cvx /rangecheck signalerror } if
    exch pop
-   PageIndex 2 index 1 sub 2 index oforce put
-   PageNumbers 1 index oforce 3 index put
+   PageIndex 2 index 1 sub 2 index put
+   PageNumbers 1 index 3 index put
    exch pop
-} bind def
-/pdffindpage {		% <int> pdffindpage <pagedict>
-  pdffindpageref oforce
-} bind def
+ } bind def
 
 % Find the N'th page of the document.
 % The first page is numbered 1.
 /pdfgetpage		% <int> pdfgetpage <pagedict>
  { PageIndex 1 index 1 sub get dup null ne
-    { exch pop oforce }
+    { exch pop }
     { pop pdffindpage }
    ifelse
  } bind def
@@ -562,68 +492,77 @@ end readonly def
  { /DSCPageCount DSCPageCount 1 add store
  } bind def
 
-/.pdfshowpage_Install {	% <pagedict> [<prevproc>] .pdfshowpage_Install -
-  exch
-	% We would like to clip to the CropBox here, but the subsequent
-	% initgraphics would override it.  Instead, we have to handle it
-	% in graphicsbeginpage.
-  dup /MediaBox pget {
-    dup 0 get neg exch 1 get neg translate
-  } if
-  pop 0 get exec
+/.pdfshowpage_Install {	% <tx> <ty> [<prevproc>] .pdfshowpage_Install -
+  3 1 roll translate 0 get exec
 } bind def
 
 /pdfshowpage_setpage {	% <pagedict> pdfshowpage_setpage <pagedict>
   4 dict begin		% for setpagedevice
 	% Stack: pagedict
-  currentpagedevice /Orientation 2 index /Rotate pget not { 0 } if 90 idiv
+	% We want to look at Rotate for displays, but not for printers.
+	% The following is a hack, but we don't know a better way to do this.
+  currentpagedevice dup /OutputFile known not {
+    /Orientation 2 index /Rotate pget not { 0 } if 90 idiv
 	% Rotate specifies *clockwise* rotation!
     neg 3 and def
+  } if
 	% Stack: pagedict currentpagedict
   1 index /MediaBox pget {
 			% Set the page size.
-    boxrect 2 array astore /PageSize exch def pop pop
-  } if
-  dup /Install .knownget {
+    boxrect [ 2 index 2 index ]
+	% Stack: pagedict currentpagedict llx lly width height pagesize
+    /PageSize exch def
+			% Set the offset on the page.
+	% Stack: pagedict currentpagedict llx lly width height
+			% Make the page offset values reals to simplify the
+			% testing of the Install procedure below.
+    pop pop exch 0.0 exch sub exch 0.0 exch sub
+	% Stack: pagedict currentpagedict -llx -lly
+    [ 3 1 roll 3 index /Install .knownget {
 			% Don't let the Install procedure get more deeply
 			% nested after every page.
-      dup type dup /arraytype eq exch /packedarraytype eq or {
-	dup length 4 eq {
-	  dup 2 get /.pdfshowpage_Install load eq {
-	    1 get 0 get	% previous procedure
+      dup type /arraytype eq {
+	dup length 5 eq {
+	  dup 3 get /.pdfshowpage_Install load eq {
+	% Stack: mark tx ty [oldtx oldty [oldproc] .pdfshowpage_Install exec]
+	    aload pop pop pop
+	    5 2 roll 3 -1 roll add
+	% Stack: mark oldty [oldproc] ty newtx
+	    exch 4 -1 roll add
+	% Stack: mark [oldproc] newtx newty
+	    3 -1 roll 0 get
 	  } if
 	} if
       } if
-  } {
-    { }
-  } ifelse 1 array astore
-  2 index exch /.pdfshowpage_Install load /exec load
-  4 packedarray cvx
+      1 array astore /.pdfshowpage_Install load /exec load
+    } {
+      /translate load
+    } ifelse ] cvx
 	% Stack: pagedict currentpagedict installproc
-  /Install exch def
+    /Install exch def
+  } if
 	% Stack: pagedict currentpagedict
   pop currentdict end setpagedevice
 } bind def
 
-/pdfshowpage_finish {	% <pagedict> pdfshowpage_finish -
-
-  .writepdfmarks {
-
-	% Copy the crop box.
-    dup /CropBox knownoget {
-      mark /CropBox 3 -1 roll /PAGE pdfmark
-    } if
+/pdfshowpage_finish	% <pagedict> pdfshowpage_finish -
+ {
+	% Copy crop box.
+   dup /CropBox pget
+    { boxrect rectclip
+      dup /CropBox knownoget { mark /CropBox 3 -1 roll /PAGE pdfmark } if
+    }
+   if
 
 	% Copy annotations and links.
-    dup /Annots knownoget {
-      0 1 2 index length 1 sub
+   dup /Annots knownoget
+    { 0 1 2 index length 1 sub
        { 1 index exch oget
          dup /Subtype oget annottypes exch .knownget { exec } { pop } ifelse
        }
       for pop
-    } if
-
-  } if		% end .writepdfmarks
+    }
+   if
 
 	% Display the actual page contents.
    6 dict begin
@@ -632,109 +571,16 @@ end readonly def
    /UCRDefault currentundercolorremoval def
 	%****** DOESN'T HANDLE COLOR TRANSFER YET ******
    /TRDefault currenttransfer def
-  matrix currentmatrix 2 dict
-  2 index /CropBox knownoget {
-    boxrect 4 array astore 1 index /ClipRect 3 -1 roll put
-  } if
-  dictbeginpage /DefaultMatrix 1 index store setmatrix
-  dup		  % for showing annotations below
-  count /pdfemptycount exch store
-  gsave
-	% If the page uses any transparency features, show it within
-	% a transparency group.
-  PDFversion 1.4 lt {
-    showpagecontents
-  } {
-    dup /Group known {
-	% In PDF 1.4, Group overrides Contents.
-      DoForm
-    } {
-      dup pageusestransparency {
-	% Show the page within a fake top-level group.
-	processcolorspace setcolorspace
-	0 dict
-	currentdict /ClipRect .knownget not {
-	  gsave initclip clippath [pathbbox] grestore
-	} if aload pop
-	.begintransparencygroup {
-	  showpagecontents
-	} .internalstopped {
-	  .discardtransparencygroup stop
-	} if .endtransparencygroup
-      } {
-	showpagecontents
-      } ifelse
-    } ifelse
-  } ifelse
-  grestore
+   matrix currentmatrix beginpage setmatrix
+   dup /Contents knownoget not { 0 array } if
+   dup type /arraytype ne { 1 array astore } if
+   count 1 sub /pdfemptycount exch store
+    { oforce false resolvestream pdfopdict .pdfrun
+    } forall
    /Annots knownoget { { oforce drawannot } forall } if
    endpage
    end			% scratch dict
-} bind def
-/showpagecontents {	% <pagedict> showpagecontents -
-  /Contents knownoget not { 0 array } if
-  dup type /arraytype ne { 1 array astore } if {
-    oforce false resolvestream pdfopdict .pdfrun
-  } forall
-} bind def
-/processcolorspace {	% - processcolorspace <colorspace>
-	% The following is per the PLRM3.
-  currentdevice 1 dict dup /ProcessColorModel dup put .getdeviceparams
-  exch pop exch pop
-  dup type /nametype ne { cvn } if
-  dup { setcolorspace } .internalstopped { pop /DeviceRGB } if
-} bind def
-
-% ------ Transparency support ------ %
-
-% Determine whether a page might invoke any transparency features:
-%	- Group in the page dictionary
-%	- Non-default ca, CA, or SMask in an ExtGState
-%	- Form XObject with Group
-%	- Image XObject with SMask
-% ****** DO WE NEED TO LOOK IN RESOURCE DICTS OF OTHER CONTENT STREAMS? ******
-/pageusestransparency {		% <pagedict> pageusestransparency <bool>
-  PDFversion 1.4 lt {
-    pop false
-  } {
-    dup /Group known {
-      pop true
-    } {
-      false exch {
-	dup resourceusestransparency { pop not exit } if
-	/Parent knownoget not { exit } if
-      } loop
-    } ifelse
-  } ifelse
-} bind def
-% Check the Resources of a page or Form.
-/resourceusestransparency {	% <dict> resourceusestransparency <bool>
-  {	% Use loop to provide an exitable context.
-    /Resources knownoget not { 0 dict } if
-    dup /ExtGState knownoget {
-      false exch {
-	exch pop oforce
-	dup /ca knownoget { 1 ne { pop not exit } if } if
-	dup /CA knownoget { 1 ne { pop not exit } if } if
-	dup /SMask knownoget { /None ne { pop not exit } if } if
-	pop
-      } forall { pop true exit } if
-    } if
-    dup /XObject knownoget {
-      false exch {
-	exch pop oforce dup /Subtype get
-	dup /Image eq { 1 index /SMask known { pop pop not exit } if } if
-	/Form eq {
-	  dup /Group known { pop not exit } if
-	  resourceusestransparency { not exit } if
-	} {
-	  pop
-	} ifelse
-      } forall { pop true exit } if
-    } if
-    pop false exit
-  } loop
-} bind def
+ } bind def
 
 end			% pdfdict
 .setglobal

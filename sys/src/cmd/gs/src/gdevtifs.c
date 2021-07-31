@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 1995 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gdevtifs.c,v 1.3.2.1 2000/11/16 01:39:55 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gdevtifs.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
 /* TIFF-writing substructure */
 #include "stdio_.h"
 #include "time_.h"
@@ -108,16 +108,15 @@ tiff_fixup_tag(TIFF_dir_entry * dp)
 
 /* Begin a TIFF page. */
 int
-gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
-		     FILE * fp,
+gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs, FILE * fp,
 		     const TIFF_dir_entry * entries, int entry_count,
-		     const byte * values, int value_size, long max_strip_size)
+		     const byte * values, int value_size)
 {
-    gs_memory_t *mem = pdev->memory;
     TIFF_std_directory_entries std_entries;
     const TIFF_dir_entry *pse;
     const TIFF_dir_entry *pce;
     TIFF_dir_entry entry;
+
 #define std_entry_count\
   (sizeof(TIFF_std_directory_entries) / sizeof(TIFF_dir_entry))
     int nse, nce, ntags;
@@ -125,10 +124,9 @@ gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
 
 #define std_value_size sizeof(TIFF_std_directory_values)
 
-    tifs->mem = mem;
-    if (gdev_prn_file_is_new(pdev)) {
-	/* This is a new file; write the TIFF header. */
-	static const TIFF_header hdr = {
+    if (gdev_prn_file_is_new(pdev)) {	/* This is a new file; write the TIFF header. */
+	static const TIFF_header hdr =
+	{
 #if arch_is_big_endian
 	    TIFF_magic_big_endian,
 #else
@@ -164,6 +162,7 @@ gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
     }
     ntags += nse + nce;
     tifs->ntags = ntags;
+    tifs->vsize = std_value_size + value_size;
 
     /* Write count of tags in directory. */
     {
@@ -178,27 +177,11 @@ gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
     std_values = std_values_initial;
     std_entries.ImageWidth.value = pdev->width;
     std_entries.ImageLength.value = pdev->height;
-    if (max_strip_size == 0) {
-	tifs->strip_count = 1;
-	tifs->rows = pdev->height;
-	std_entries.RowsPerStrip.value = pdev->height;
-    } else {
-	int max_strip_rows =
-	    max_strip_size / gdev_mem_bytes_per_scan_line((gx_device *)pdev);
-        int rps = max(1, max_strip_rows);
-
-	tifs->strip_count = (pdev->height + rps - 1) / rps;
-	tifs->rows = rps;
-	std_entries.RowsPerStrip.value = rps;
-	std_entries.StripOffsets.count = tifs->strip_count;
-	std_entries.StripByteCounts.count = tifs->strip_count;
-    }
-    tifs->StripOffsets = (TIFF_ulong *)gs_alloc_bytes(mem,
-    		    (tifs->strip_count)*2*sizeof(TIFF_ulong),
-		    "gdev_tiff_begin_page(StripOffsets)");
-    tifs->StripByteCounts = &(tifs->StripOffsets[tifs->strip_count]);
-    if (tifs->StripOffsets == 0)
-	return_error(gs_error_VMerror);
+    std_entries.StripOffsets.value =
+	tifs->dir_off + sizeof(TIFF_std_directory_entries) +
+	entry_count * sizeof(TIFF_dir_entry) +
+	sizeof(TIFF_std_directory_values) + value_size;
+    std_entries.RowsPerStrip.value = pdev->height;
     std_entries.PageNumber.value = (TIFF_ulong) pdev->PageCount;
     std_values.xresValue[0] = pdev->x_pixels_per_inch;
     std_values.yresValue[0] = pdev->y_pixels_per_inch;
@@ -238,30 +221,11 @@ gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
 	    std = false, entry = *pce++, --nce;
 	else
 	    std = false, ++pse, --nse, entry = *pce++, --nce;
-	if (entry.tag == TIFFTAG_StripOffsets)  {
-	    if (tifs->strip_count > 1) {
-		tifs->offset_StripOffsets = tifs->dir_off +
-		    (ntags * sizeof(TIFF_dir_entry)) + std_value_size + value_size;
-		entry.value = tifs->offset_StripOffsets;
-	    } else {
-		tifs->offset_StripOffsets = ftell(fp) +
-		    offset_of(TIFF_dir_entry, value);
-	    }
-	}
-	if (entry.tag == TIFFTAG_StripByteCounts) {
-	    if (tifs->strip_count > 1) {
-	        tifs->offset_StripByteCounts = tifs->dir_off +
-		    (ntags * sizeof(TIFF_dir_entry)) + std_value_size + value_size +
-		    (sizeof(TIFF_ulong) * tifs->strip_count);
-	        entry.value = tifs->offset_StripByteCounts;
-	    } else {
-		tifs->offset_StripByteCounts = ftell(fp) +
-		    offset_of(TIFF_dir_entry, value);
-	    }
-	}
+	if (entry.tag == TIFFTAG_StripByteCounts)
+	    tifs->offset_StripByteCounts =
+		(int)(ftell(fp) - tifs->dir_off);
 	tiff_fixup_tag(&entry);	/* don't fix up indirects */
-	if (entry.type & TIFF_INDIRECT) {
-	    /* Fix up the offset for an indirect value. */
+	if (entry.type & TIFF_INDIRECT) {	/* Fix up the offset for an indirect value. */
 	    entry.type -= TIFF_INDIRECT;
 	    entry.value +=
 		tifs->dir_off + ntags * sizeof(TIFF_dir_entry) +
@@ -273,33 +237,7 @@ gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
     /* Write the indirect values. */
     fwrite((const char *)&std_values, sizeof(std_values), 1, fp);
     fwrite((const char *)values, value_size, 1, fp);
-    /* If StripOffsets and ByteCounts are indirect, write placeholders for them. */
-    if (tifs->strip_count > 1) 
-	fwrite(tifs->StripOffsets, sizeof(TIFF_ulong), 2 * tifs->strip_count, fp);
-    tifs->strip_index = 0;
-    tifs->StripOffsets[0] = ftell(fp);	/* start of the first strip data */
-    return 0;
-}
 
-/* End a TIFF strip. */
-/* Record the size of the current strip, update the	*/
-/* start of the next strip  and bump the strip_index	*/
-int
-gdev_tiff_end_strip(gdev_tiff_state * tifs, FILE * fp)
-{
-    TIFF_ulong strip_size;
-    TIFF_ulong next_strip_start;
-    int pad = 0;
-
-    next_strip_start = (TIFF_ulong)ftell(fp);
-    strip_size = next_strip_start - tifs->StripOffsets[tifs->strip_index];
-    if (next_strip_start & 1) {
-        next_strip_start++;	/* WORD alignment */
-	fwrite(&pad, 1, 1, fp);
-    }
-    tifs->StripByteCounts[tifs->strip_index++] = strip_size;
-    if (tifs->strip_index < tifs->strip_count)
-	tifs->StripOffsets[tifs->strip_index] = next_strip_start;
     return 0;
 }
 
@@ -307,19 +245,17 @@ gdev_tiff_end_strip(gdev_tiff_state * tifs, FILE * fp)
 int
 gdev_tiff_end_page(gdev_tiff_state * tifs, FILE * fp)
 {
-    gs_memory_t *mem = tifs->mem;
     long dir_off = tifs->dir_off;
     int tags_size = tifs->ntags * sizeof(TIFF_dir_entry);
+    TIFF_ulong cc;
 
     tifs->prev_dir =
 	dir_off + tags_size + offset_of(TIFF_std_directory_values, diroff);
     tifs->dir_off = ftell(fp);
-    /* Patch strip byte counts and offsets values. */
-    /* The offset in the file was determined at begin_page and may be indirect */
-    fseek(fp, tifs->offset_StripOffsets, SEEK_SET);
-    fwrite(tifs->StripOffsets, sizeof(TIFF_ulong), tifs->strip_count, fp);
-    fseek(fp, tifs->offset_StripByteCounts, SEEK_SET);
-    fwrite(tifs->StripByteCounts, sizeof(TIFF_ulong), tifs->strip_count, fp);
-    gs_free_object(mem, tifs->StripOffsets, "gdev_tiff_begin_page(StripOffsets)");
+    /* Patch strip byte counts value. */
+    cc = tifs->dir_off - (dir_off + tags_size + tifs->vsize);
+    fseek(fp, dir_off + tifs->offset_StripByteCounts +
+	  offset_of(TIFF_dir_entry, value), SEEK_SET);
+    fwrite(&cc, sizeof(cc), 1, fp);
     return 0;
 }

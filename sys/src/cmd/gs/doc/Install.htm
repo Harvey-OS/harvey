@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>How to install Ghostscript</title>
-<!-- $Id: Install.htm,v 1.9.2.2 2000/11/28 01:31:25 raph Exp $ -->
+<!-- $Id: Install.htm,v 1.4 2000/03/15 07:29:53 lpd Exp $ -->
 <!-- Originally: install.txt -->
 </head>
 
@@ -205,8 +205,8 @@ window (replacing <em>###</em> with the release number):
 
 <blockquote><b><tt>
 c:
-<br>mkdir \gs
-<br>cd \gs
+<br>mkdir \Aladdin
+<br>cd \Aladdin
 <br>ftp get gs<em>###</em>w32.zip
 <br>unzip gs<em>###</em>w32.zip
 </tt></b></blockquote>
@@ -221,7 +221,7 @@ unzip gs<em>###</em>w32.zip
 After unpacking the archive, create a shortcut to
 
 <blockquote>
-<b><tt>c:\gs\gs<em>#.#</em>\bin\gswin32.exe</tt></b>
+<b><tt>c:\Aladdin\gs<em>#.#</em>\bin\gswin32.exe</tt></b>
 </blockquote>
 
 <p>
@@ -331,14 +331,14 @@ If Ghostscript fails to find an environment variable, it looks for a
 registry value of the same name under the key
 
 <blockquote><b><tt>
-HKEY_CURRENT_USER\Software\AFPL Ghostscript\#.##
+HKEY_CURRENT_USER\Software\Aladdin Ghostscript\#.##
 </tt></b></blockquote>
 
 <p>
 or if that fails, under the key
 
 <blockquote><b><tt>
-HKEY_LOCAL_MACHINE\SOFTWARE\AFPL Ghostscript\#.##
+HKEY_LOCAL_MACHINE\SOFTWARE\Aladdin Ghostscript\#.##
 </tt></b></blockquote>
 
 <p>
@@ -373,43 +373,16 @@ remove "Aladdin Ghostscript #.##" and "Aladdin Ghostscript Fonts".
 <p>
 You need the file <b><tt>GS.EXE</tt></b> to run Ghostscript on OpenVMS, and
 installing Ghostscript on an OpenVMS system requires building it first:
-please read <a href="Make.htm#VMS_build">how to build Ghostscript on VMS</a>
-in the documentation on building Ghostscript.
+please
+read <a href="Make.htm#VMS_build">how to build Ghostscript on VMS</a> in the
+documentation on building Ghostscript.
 
 <p>
-The following installation steps assume that the Ghostscript directory is
-<b><tt>DISK1:[DIR.GHOSTSCRIPT]</tt></b>.  Yours will almost certainly be in
-a different location so adjust the following commands accordingly.
-
-<ul>
-
-<li>Download the fonts and unpack them into
-<b><tt>DISK1:[DIR.GHOSTSCRIPT.LIB]</tt></b>.
-
-<li>Enable access to the program and support files for all users with:
-
-<blockquote><pre>
-$ set file/prot=w:re DISK1:[DIR]GHOSTSCRIPT.dir
-$ set file/prot=w:re DISK1:[DIR.GHOSTSCRIPT...]*.*
-</pre></blockquote>
-
-<li>Optionally, add the Ghostscript help instructions to your system wide
-help file:
-
-<blockquote><pre>
-$ lib/help sys$help:HELPLIB.HLB DISK1:[DIR.GHOSTSCRIPT.DOC]GS-VMS.HLP
-</pre></blockquote>
-
-<li>Lastly, add the following lines to the appropriate system wide or user
-specific login script.
-
-<blockquote><pre>
-$ define gs_exe DISK1:[DIR.GHOSTSCRIPT.BIN]
-$ define gs_lib DISK1:[DIR.GHOSTSCRIPT.EXE]
-$ gs :== $gs_exe:gs.exe
-</pre></blockquote>
-
-</ul>
+Install all the files, including the fonts, in the same directory as the
+executable and initialization files.  By default, this is the directory in
+which you did the compilation.  Consult the
+<a href="Make.htm#VMS_build">documentation on building Ghostscript</a> for
+more details.
 
 <p>
 If you have DECWindows/Motif installed, you may wish to replace the
@@ -567,15 +540,15 @@ specified queue, use <b><tt>-sOutputFile=\\spool\NullLPT1</tt></b>, where
 
 <font size=2>
 
-<p>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights reserved.
+<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of AFPL Ghostscript.  See the
+<p>This file is part of Aladdin Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.
+Aladdin Ghostscript.
 
 <p>
-Ghostscript version 6.32, 27 November 2000
+Ghostscript version 6.0, 3 February 2000
 
 </font>
 

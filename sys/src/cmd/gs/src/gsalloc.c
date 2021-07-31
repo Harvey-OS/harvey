@@ -1,22 +1,22 @@
 /* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gsalloc.c,v 1.8 2000/09/19 19:00:25 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gsalloc.c,v 1.2 2000/03/10 04:08:23 lpd Exp $ */
 /* Standard memory allocator */
 #include "gx.h"
 #include "memory_.h"
@@ -79,13 +79,11 @@ alloc_size_is_ok(gs_memory_type_ptr_t stype)
 public_st_ref_memory();
 private 
 ENUM_PTRS_BEGIN(ref_memory_enum_ptrs) return 0;
-ENUM_PTR3(0, gs_ref_memory_t, streams, names_array, changes);
-ENUM_PTR(3, gs_ref_memory_t, saved);
+ENUM_PTR3(0, gs_ref_memory_t, streams, changes, saved);
 ENUM_PTRS_END
 private RELOC_PTRS_WITH(ref_memory_reloc_ptrs, gs_ref_memory_t *mptr)
 {
     RELOC_PTR(gs_ref_memory_t, streams);
-    RELOC_PTR(gs_ref_memory_t, names_array);
     RELOC_PTR(gs_ref_memory_t, changes);
     /* Don't relocate the saved pointer now -- see igc.c for details. */
     mptr->reloc_saved = RELOC_OBJ(mptr->saved);
@@ -209,7 +207,6 @@ ialloc_alloc_state(gs_raw_memory_t * parent, uint chunk_size)
     iimem->new_mask = 0;
     iimem->test_mask = ~0;
     iimem->streams = 0;
-    iimem->names_array = 0;
     iimem->roots = 0;
     iimem->num_contexts = 0;
     iimem->saved = 0;
@@ -330,7 +327,6 @@ ialloc_reset_free(gs_ref_memory_t * mem)
     mem->cfreed.cp = 0;
     for (i = 0, p = &mem->freelists[0]; i < num_freelists; i++, p++)
 	*p = 0;
-    mem->largest_free_size = 0;
 }
 
 /* Set the allocation limit after a change in one or more of */
@@ -765,17 +761,12 @@ i_free_object(gs_memory_t * mem, void *ptr, client_name_t cname)
 	 */
 	imem->cfreed.memory = imem;
 	if (chunk_locate(ptr, &imem->cfreed)) {
-	    obj_header_t **pfl;
+	    obj_header_t **pfl =
+		(size > max_freelist_size ?
+		 &imem->freelists[LARGE_FREELIST_INDEX] :
+		 &imem->freelists[(size + obj_align_mask) >> log2_obj_align_mod]);
 
-	    if (size > max_freelist_size) {
-		pfl = &imem->freelists[LARGE_FREELIST_INDEX];
-		if (rounded_size > imem->largest_free_size)
-		    imem->largest_free_size = rounded_size;
-	    } else {
-		pfl = &imem->freelists[(size + obj_align_mask) >>
-				      log2_obj_align_mod];
-	    }
-	    /* keep track of highest object on a freelist */
+	    /* keep track of higest object on a freelist */
 	    if ((byte *)pp >= imem->cc.int_freed_top)
 		imem->cc.int_freed_top = (byte *)ptr + rounded_size;
 	    pp->o_type = &st_free;	/* don't confuse GC */
@@ -996,10 +987,6 @@ large_freelist_alloc(gs_ref_memory_t *mem, uint size)
     uint best_fit_size = max_uint;
     obj_header_t *pfree;
     obj_header_t **ppfprev = &mem->freelists[LARGE_FREELIST_INDEX];
-    uint largest_size = 0;
-
-    if (aligned_size > mem->largest_free_size)
-	return 0;		/* definitely no block large enough */
 
     while ((pfree = *ppfprev) != 0) {
 	uint free_size = obj_align_round(pfree[-1].o_size);
@@ -1014,18 +1001,9 @@ large_freelist_alloc(gs_ref_memory_t *mem, uint size)
 		break;	/* good enough fit to spare scan of entire list */
 	}
 	ppfprev = (obj_header_t **) pfree;
-	if (free_size > largest_size)
-	    largest_size = free_size;
     }
-    if (best_fit == 0) {
-	/*
-	 * No single free chunk is large enough, but since we scanned the
-	 * entire list, we now have an accurate updated value for
-	 * largest_free_size.
-	 */
-	mem->largest_free_size = largest_size;
-	return 0;
-    }
+    if (best_fit == 0)
+	return 0;   /* no single free chunk is large enough */
 
     /* Remove from freelist & return excess memory to free */
     *best_fit_prev = *(obj_header_t **)best_fit;
@@ -1243,71 +1221,25 @@ scavenge_low_free(gs_ref_memory_t *mem, unsigned request_size)
 private void
 remove_range_from_freelist(gs_ref_memory_t *mem, void* bottom, void* top)
 {
-    int num_free[num_freelists];
-    int smallest = num_freelists, largest = -1;
-    const obj_header_t *cur;
-    uint size;
     int i;
     uint removed = 0;
-
-    /*
-     * Scan from bottom to top, a range containing only free objects,
-     * counting the number of objects of each size.
-     */
-
-    for (cur = bottom; cur != top;
-	 cur = (const obj_header_t *)
-	     ((const byte *)cur + obj_size_round(size))
-	) {
-	size = cur->o_size;
-	i = (size > max_freelist_size ? LARGE_FREELIST_INDEX :
-	     (size + obj_align_mask) >> log2_obj_align_mod);
-	if (i < smallest) {
-	    /*
-	     * 0-length free blocks aren't kept on any list, because
-	     * they don't have room for a pointer.
-	     */
-	    if (i == 0)
-		continue;
-	    if (smallest < num_freelists)
-		memset(&num_free[i], 0, (smallest - i) * sizeof(int));
-	    else
-		num_free[i] = 0;
-	    smallest = i;
-	}
-	if (i > largest) {
-	    if (largest >= 0)
-		memset(&num_free[largest + 1], 0, (i - largest) * sizeof(int));
-	    largest = i;
-	}
-	num_free[i]++;
-    }
 
     /*
      * Remove free objects from the freelists, adjusting lost.objects by
      * subtracting the size of the region being processed minus the amount
      * of space reclaimed.
      */
-
-    for (i = smallest; i <= largest; i++) {
-	int count = num_free[i];
+    for (i = 0; i < num_freelists; i++) {
         obj_header_t *pfree;
-	obj_header_t **ppfprev;
+	obj_header_t **ppfprev = &mem->freelists[i];
 
-	if (!count)
-	    continue;
-	ppfprev = &mem->freelists[i];
-	for (;;) {
-	    pfree = *ppfprev;
+	while ((pfree = *ppfprev) != 0)
 	    if (PTR_GE(pfree, bottom) && PTR_LT(pfree, top)) {
 		/* We're removing an object. */
 		*ppfprev = *(obj_header_t **) pfree;
 		removed += obj_align_round(pfree[-1].o_size);
-		if (!--count)
-		    break;
 	    } else
 		ppfprev = (obj_header_t **) pfree;
-	}
     }
     mem->lost.objects -= (char*)top - (char*)bottom - removed;
 }
@@ -1371,13 +1303,8 @@ trim_obj(gs_ref_memory_t *mem, obj_header_t *obj, uint size, chunk_t *cp)
 	if (excess_size <= max_freelist_size)
 	    pfl = &mem->freelists[(excess_size + obj_align_mask) >>
 				 log2_obj_align_mod];
-	else {
-	    uint rounded_size = obj_align_round(excess_size);
-
+	else
 	    pfl = &mem->freelists[LARGE_FREELIST_INDEX];
-	    if (rounded_size > mem->largest_free_size)
-		mem->largest_free_size = rounded_size;
-	}
 	*(obj_header_t **) (excess_pre + 1) = *pfl;
 	*pfl = excess_pre + 1;
 	mem->cfreed.memory = mem;
@@ -1442,17 +1369,9 @@ alloc_link_chunk(chunk_t * cp, gs_ref_memory_t * imem)
     chunk_t *icp;
     chunk_t *prev;
 
-    /*
-     * Allocators tend to allocate in either ascending or descending
-     * address order.  The loop will handle the latter well; check for
-     * the former first.
-     */
-    if (imem->clast && PTR_GE(cdata, imem->clast->ctop))
-	icp = 0;
-    else
-	for (icp = imem->cfirst; icp != 0 && PTR_GE(cdata, icp->ctop);
-	     icp = icp->cnext
-	    );
+    for (icp = imem->cfirst; icp != 0 && PTR_GE(cdata, icp->ctop);
+	 icp = icp->cnext
+	);
     cp->cnext = icp;
     if (icp == 0) {		/* add at end of chain */
 	prev = imem->clast;
@@ -1661,20 +1580,18 @@ void
 alloc_free_chunk(chunk_t * cp, gs_ref_memory_t * mem)
 {
     gs_raw_memory_t *parent = mem->parent;
-    byte *cdata = (byte *)cp->chead;
-    ulong csize = (byte *)cp->cend - cdata;
 
     alloc_unlink_chunk(cp, mem);
     mem->allocated -= st_chunk.ssize;
     if (mem->cfreed.cp == cp)
 	mem->cfreed.cp = 0;
     if (cp->outer == 0) {
-	mem->allocated -= csize;
+	byte *cdata = (byte *) cp->chead;
+
+	mem->allocated -= cp->cend - cdata;
 	gs_free_object(parent, cdata, "alloc_free_chunk(data)");
-    } else {
+    } else
 	cp->outer->inner_count--;
-	gs_alloc_fill(cdata, gs_alloc_fill_free, csize);
-    }
     gs_free_object(parent, cp, "alloc_free_chunk(chunk struct)");
 }
 
@@ -1692,9 +1609,6 @@ chunk_locate_ptr(const void *ptr, chunk_locator_t * clp)
 	cp = clp->memory->cfirst;
 	if (cp == 0)
 	    return false;
-	/* ptr is in the last chunk often enough to be worth checking for. */
-	if (PTR_GE(ptr, clp->memory->clast->cbase))
-	    cp = clp->memory->clast;
     }
     if (PTR_LT(ptr, cp->cbase)) {
 	do {

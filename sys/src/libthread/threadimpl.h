@@ -43,8 +43,6 @@ struct Thread {
 	jmp_buf		env;		// jump buf for launching or switching threads
 	uchar		*stk;		// top of stack (lowest address of stack)
 	uint		stksize;	// stack size
-
-	ulong	udata;			// User per-thread data pointer
 };
 
 struct Proc {
@@ -74,7 +72,6 @@ typedef struct Newproc {
 	ulong	*stackptr;
 	ulong	launcher;
 	int		grp;
-	int		rforkflag;
 } Newproc;
 
 typedef struct Execproc {

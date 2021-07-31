@@ -285,21 +285,6 @@ procwstat(Chan *c, char *db)
 	qunlock(&p->debug);
 }
 
-static long
-procoffset(long offset, char *va, int *np)
-{
-	if(offset > 0) {
-		offset -= *np;
-		if(offset < 0) {
-			memmove(va, va+*np+offset, -offset);
-			*np = -offset;
-		}
-		else
-			*np = 0;
-	}
-	return offset;
-}
-
 static int
 procfds(Proc *p, char *va, int count, long offset)
 {
@@ -322,7 +307,6 @@ procfds(Proc *p, char *va, int count, long offset)
 
 	n = readstr(0, va, count, p->dot->name->s);
 	n += snprint(va+n, count-n, "\n");
-	offset = procoffset(offset, va, &n);
 	for(i = 0; i <= f->maxfd; i++) {
 		c = f->fd[i];
 		if(c == nil)
@@ -335,7 +319,15 @@ procfds(Proc *p, char *va, int count, long offset)
 			c->offset);
 		n += readstr(0, va+n, count-n, c->name->s);
 		n += snprint(va+n, count-n, "\n");
-		offset = procoffset(offset, va, &n);
+		if(offset > 0) {
+			offset -= n;
+			if(offset < 0) {
+				memmove(va, va+n+offset, -offset);
+				n = -offset;
+			}
+			else
+				n = 0;
+		}
 	}
 	unlock(f);
 	qunlock(&p->debug);
@@ -859,15 +851,10 @@ procstopwait(Proc *p, int ctl)
 }
 
 void
-procctlclosefiles(Proc *p)
+procctlfgrp(Fgrp *f)
 {
 	int i;
 	Chan *c;
-	Fgrp *f;
-
-	f = p->fgrp;
-	if(f == nil)
-		error(Eprocdied);
 
 	lock(f);
 	f->ref++;
@@ -876,9 +863,7 @@ procctlclosefiles(Proc *p)
 		if(c != 0) {
 			f->fd[i] = 0;
 			unlock(f);
-			qunlock(&p->debug);
 			cclose(c);
-			qlock(&p->debug);
 			lock(f);
 		}
 	}
@@ -939,8 +924,18 @@ procctlreq(Proc *p, char *va, int n)
 		ready(p);
 	}
 	else
-	if(strncmp(buf, "closefiles", 10) == 0)
-		procctlclosefiles(p);
+	if(strncmp(buf, "closefiles", 10) == 0){
+		qlock(&p->debug);
+		if(waserror()){
+			qunlock(&p->debug);
+			nexterror();
+		}
+		if(p->fgrp == nil)
+			error(Eprocdied);
+		procctlfgrp(p->fgrp);
+		qunlock(&p->debug);
+		poperror();
+	}
 	else
 	if(strncmp(buf, "pri", 3) == 0) {
 		if(n < 4)
@@ -953,21 +948,6 @@ procctlreq(Proc *p, char *va, int n)
 		if(i > p->basepri && !iseve())
 			error(Eperm);
 		p->basepri = i;
-		p->fixedpri = 0;
-	}
-	else
-	if(strncmp(buf, "fixedpri", 8) == 0) {
-		if(n < 9)
-			error(Ebadctl);
-		i = atoi(buf+9);
-		if(i < 0)
-			i = 0;
-		if(i >= Nrq)
-			i = Nrq - 1;
-		if(i > p->basepri && !iseve())
-			error(Eperm);
-		p->basepri = i;
-		p->fixedpri = 1;
 	}
 	else
 	if(strncmp(buf, "wired", 5) == 0) {

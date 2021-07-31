@@ -1,21 +1,21 @@
 %    Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This file is part of Aladdin Ghostscript.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
 
-% $Id: gs_fonts.ps,v 1.9 2000/09/19 18:29:11 lpd Exp $
+% $Id: gs_fonts.ps,v 1.2 2000/03/10 07:00:28 lpd Exp $
 % Font initialization and management code.
 
 % Define the default font.
@@ -376,11 +376,12 @@ buildfontdict 3 /.buildfont3 cvx put
        }
       ifelse
       true exch
-		% If this is a CIDFont, CIDFontType takes precedence
-		% over FontType.
-      dup /CIDFontType known {
-	/.buildcidfont where {
-	  pop exch not exch	% true => false
+      dup /FontType known not {
+	% This might be a CIDFont.
+	dup /CIDFontType known {
+	  /.buildcidfont where {
+	    pop exch pop false exch
+	  } if
 	} if
       } if
       exch {
@@ -479,7 +480,9 @@ buildfontdict 3 /.buildfont3 cvx put
   [(Helv) /Helvetica 0]
   [(NewYork) /Bookman 0]
   [(Pala) /Palatino 0]
+  [(Sans) /Helvetica 0]
   [(Schlbk) /NewCenturySchlbk 0]
+  [(Serif) /Times 0]
   [(Swiss) /Helvetica 0]
   [(Symbol) /Symbol 0]
   [(Times) /Times 0]
@@ -522,16 +525,13 @@ buildfontdict 3 /.buildfont3 cvx put
   [(It) 9] [(Oblique) 1]
   [(Black) 2] [(Bd) 2] [(Bold) 2] [(bold) 2] [(Demi) 2] [(Heavy) 2] [(Sb) 2]
   [(Cn) 4] [(Cond) 4] [(Narrow) 4] [(Pkg) 4]
-  [(Serif) 8] [(Sans) -8]
+  % 8 is serif, currently only used in PDF and for (It)
 ] readonly def
-/.fontnameproperties {		% <int> <string|name> .fontnameproperties
-				%   <int'>
+/.fontnameproperties {		% <string|name> .fontnameproperties <int>
   .fontnamestring
-  .substituteproperties {
+  0 exch .substituteproperties {
     2 copy 0 get search {
-      pop pop pop dup length 1 sub 1 exch getinterval 3 -1 roll exch {
-	dup 0 ge { or } { neg not and } ifelse
-      } forall exch
+      pop pop pop 1 get 3 -1 roll or exch
     } {
       pop pop
     } ifelse
@@ -561,10 +561,6 @@ buildfontdict 3 /.buildfont3 cvx put
   /ZapfChancery-MediumItalic
     {/ZapfChancery-MediumItalic}
 .dicttomark readonly def
-/.nametostring {		% <name> .nametostring <string>
-				% <other> .nametostring <other>
-  dup type /nametype eq { .namestring } if
-} bind def
 /.fontnamestring {		% <fontname> .fontnamestring <string|name>
   dup type dup /nametype eq {
     pop .namestring
@@ -603,7 +599,7 @@ buildfontdict 3 /.buildfont3 cvx put
   1 index length mod get exec
 } bind def
 /.substitutefont {		% <fontname> .substitutefont <altname>
-  dup 0 exch .fontnameproperties .substitutefontname
+  dup .fontnameproperties .substitutefontname
 	% Only accept fonts known in the Fontmap.
    Fontmap 1 index known not { pop defaultfontname } if
 } bind def
@@ -817,16 +813,14 @@ $error /SubstituteFont { .stdsubstfont } put
 % Attempt to load a font from a file.
 /.tryloadfont {		% <fontname> .tryloadfont <font> true
 			% <fontname> .tryloadfont false
-  dup .nametostring
+  dup dup type /nametype eq { .namestring } if
 		% Hack: check for the presence of the resource machinery.
+		% Stack: fontname fontnamestring
   /.genericrfn where {
     pop
-    2 copy .fonttempstring /FontResourceDir getsystemparam .genericrfn
-    .loadfontloop {
-      exch pop exch pop true
-    } {
-      dup .nametostring .loadfontloop
-    } ifelse
+    exch 1 index .fonttempstring /FontResourceDir getsystemparam .genericrfn
+		% Stack: fontnamestring fontname resfilename
+    .loadfontloop { exch pop true } { exch .loadfontloop } ifelse
   } {
     .loadfontloop
   } ifelse

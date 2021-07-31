@@ -7,6 +7,10 @@
 
 static char Ebadlogctl[] = "unknown log ctl message";
 
+enum {
+	Nlog		= 4*1024,
+};
+
 void
 logopen(Log *alog)
 {
@@ -16,15 +20,10 @@ logopen(Log *alog)
 		nexterror();
 	}
 	if(alog->opens == 0){
-		if(alog->nlog == 0)
-			alog->nlog = 4*1024;
-		if(alog->minread == 0)
-			alog->minread = 1;
 		if(alog->buf == nil)
-			alog->buf = malloc(alog->nlog);
+			alog->buf = malloc(Nlog);
 		alog->rptr = alog->buf;
-		alog->end = alog->buf + alog->nlog;
-		alog->len = 0;
+		alog->end = alog->buf + Nlog;
 	}
 	alog->opens++;
 	unlock(alog);
@@ -53,7 +52,7 @@ logready(void *a)
 {
 	Log *alog = a;
 
-	return alog->len >= alog->minread;
+	return alog->len;
 }
 
 long
@@ -70,7 +69,7 @@ logread(Log *alog, void *a, ulong, long n)
 
 	for(;;){
 		lock(alog);
-		if(alog->len >= alog->minread || alog->len >= n){
+		if(alog->len){
 			if(n > alog->len)
 				n = alog->len;
 			d = 0;
@@ -133,22 +132,24 @@ logctl(Log *alog, int argc, char *argv[], Logflag *flags)
 }
 
 void
-logn(Log *alog, int mask, void *buf, int n)
+log(Log *alog, int mask, char *fmt, ...)
 {
-	char *fp, *t;
-	int dowake, i;
+	char buf[128], *t, *fp;
+	int i, n;
+	va_list arg;
 
 	if(!(alog->logmask & mask))
 		return;
 
+	va_start(arg, fmt);
+	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
+
 	if(alog->opens == 0)
 		return;
 
-	if(n > alog->nlog)
-		return;
-
 	lock(alog);
-	i = alog->len + n - alog->nlog;
+	i = alog->len + n - Nlog;
 	if(i > 0){
 		alog->len -= i;
 		alog->rptr += i;
@@ -163,37 +164,7 @@ logn(Log *alog, int mask, void *buf, int n)
 			t = alog->buf + (t - alog->end);
 		*t++ = *fp++;
 	}
-	dowake = alog->len >= alog->minread;
 	unlock(alog);
 
-	if(dowake)
-		wakeup(&alog->readr);
+	wakeup(&alog->readr);
 }
-
-void
-vlog(Log *alog, int mask, char *fmt, va_list arg)
-{
-	char buf[128];
-	int n;
-
-	if(!(alog->logmask & mask))
-		return;
-
-	if(alog->opens == 0)
-		return;
-
-	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
-
-	logn(alog, mask, buf, n);
-}
-
-void
-log(Log *alog, int mask, char *fmt, ...)
-{
-	va_list arg;
-
-	va_start(arg, fmt);
-	vlog(alog, mask, fmt, arg);
-	va_end(arg);
-}
-

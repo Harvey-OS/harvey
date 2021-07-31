@@ -717,6 +717,8 @@ image2psfile(int fd, Memimage *im, int dpi) {
 	Rectangle r;
 	Rectangle bbox;
 	int e;
+	int paperlength = 792;
+	int paperwidth = 612;
 	int xmargin = 36;
 	int ymargin = 36;
 	double paperaspectratio;

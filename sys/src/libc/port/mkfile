@@ -13,9 +13,6 @@ ALLOFILES=\
 	atol.$O\
 	atoll.$O\
 	charstod.$O\
-	cistrcmp.$O\
-	cistrncmp.$O\
-	cistrstr.$O\
 	cleanname.$O\
 	crypt.$O\
 	ctype.$O\
@@ -27,9 +24,8 @@ ALLOFILES=\
 	fltconv.$O\
 	floor.$O\
 	fmod.$O\
-	frexp.$O\
 	getcallerpc.$O\
-	getfields.$O\
+	getuser.$O\
 	hangup.$O\
 	hypot.$O\
 	lock.$O\
@@ -50,10 +46,8 @@ ALLOFILES=\
 	pow.$O\
 	pow10.$O\
 	print.$O\
-	printquote.$O\
 	profile.$O\
 	qsort.$O\
-	quote.$O\
 	rand.$O\
 	readn.$O\
 	rune.$O\

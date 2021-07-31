@@ -868,10 +868,7 @@ mylexprobe(int port, int irq)
 	 * it isn't a compatible board or it's broken.
 	 * If the controller has SCAM set this can take a while.
 	 */
-	if(getconf("*noscsireset") != nil)
-		outb(port+Rcontrol, Rhard);
-	else
-		outb(port+Rcontrol, Rhard|Rsbus);
+	outb(port+Rcontrol, Rhard|Rsbus);
 	for(timeo = 0; timeo < 100; timeo++){
 		if(inb(port+Rstatus) == (Inreq|Hardy))
 			break;
@@ -1260,10 +1257,7 @@ mylexdisable(SDev* sdev)
 	ctlr = sdev->ctlr;
 	port = ctlr->port;
 
-	if(getconf("*noscsireset") != nil)
-		outb(port+Rcontrol, Rhard);
-	else
-		outb(port+Rcontrol, Rhard|Rsbus);
+	outb(port+Rcontrol, Rhard|Rsbus);
 	for(timeo = 0; timeo < 100; timeo++){
 		if(inb(port+Rstatus) == (Inreq|Hardy))
 			break;

@@ -28,7 +28,6 @@ main(int argc, char *argv[])
 	char ukey[DESKEYLEN], resp[32], buf[NETCHLEN];
 	long chal;
 	int n;
-	Ndb *db2;
 
 	ARGBEGIN{
 	case 'd':
@@ -38,11 +37,7 @@ main(int argc, char *argv[])
 
 	db = ndbopen("/lib/ndb/auth");
 	if(db == 0)
-		syslog(0, AUTHLOG, "no /lib/ndb/auth");
-	db2 = ndbopen("/lib/ndb/local");
-	if(db2 == 0)
-		syslog(0, AUTHLOG, "no /lib/ndb/local");
-	db = ndbcat(db, db2);
+		syslog(0, AUTHLOG, "can't open database");
 
 	strcpy(raddr, "unknown");
 	if(argc >= 1)

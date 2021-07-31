@@ -2,24 +2,13 @@ typedef struct List {
 	void	*next;
 } List;
 
-typedef struct Alarm Alarm;
 typedef struct Alarm {
 	List;
 	int	busy;
 	long	dt;
-	void	(*f)(Alarm*);
+	void	(*f)(void*);
 	void	*arg;
 } Alarm;
-
-typedef struct Apminfo {
-	int haveinfo;
-	int ax;
-	int cx;
-	int dx;
-	int di;
-	int ebx;
-	int esi;
-} Apminfo;
 
 typedef struct Block Block;
 struct Block {
@@ -94,7 +83,7 @@ struct	Exec
 /*
  *  a parsed .ini line
  */
-#define ISAOPTLEN	32
+#define ISAOPTLEN	16
 #define NISAOPT		8
 
 typedef struct  ISAConf {
@@ -197,5 +186,3 @@ struct Boot {
 };
 
 extern int	debug;
-extern Apminfo apm;
-extern char *defaultpartition;

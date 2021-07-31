@@ -44,8 +44,6 @@ Edit edit = {
 	.okname=	cmdokname,
 	.sum=	cmdsum,
 	.write=	cmdwrite,
-
-	.unit=	"sector",
 };
 
 void
@@ -109,7 +107,6 @@ main(int argc, char **argv)
 		disk->secsize = secsize;
 		disk->secs = disk->size / secsize;
 	}
-	edit.end = disk->secs;
 
 	checkfat(disk);
 
@@ -136,7 +133,7 @@ main(int argc, char **argv)
 		autopart(&edit);
 
 	if(dowrite) {
-		runcmd(&edit, "w");
+		wrpart(&edit);
 		exits(0);
 	}
 
@@ -162,13 +159,13 @@ cmdsum(Edit *edit, Part *p, vlong a, vlong b)
 	name = p ? p->name : "empty";
 
 	sz = (b-a)*edit->disk->secsize;
-	if(sz >= 1*GB){
+	if(sz > 1*GB){
 		suf = "GB";
 		div = GB;
-	}else if(sz >= 1*MB){
+	}else if(sz > 1*MB){
 		suf = "MB";
 		div = MB;
-	}else if(sz >= 1*KB){
+	}else if(sz > 1*KB){
 		suf = "KB";
 		div = KB;
 	}else{
@@ -182,15 +179,12 @@ cmdsum(Edit *edit, Part *p, vlong a, vlong b)
 	else
 		print("%c %-12s %*lld %-*lld (%lld sectors, %lld.%.2d %s)\n", c, name,
 			edit->disk->width, a, edit->disk->width, b, b-a,
-			sz/div, (int)(((sz%div)*100)/div), suf);
+			sz/div, (int)((sz/(div/100))%100), suf);
 }
 
 static char*
 cmdadd(Edit *edit, char *name, vlong start, vlong end)
 {
-	if(start < 2 && strcmp(name, "9fat") != 0)
-		return "overlaps with the pbs and/or the partition table";
-
 	return addpart(edit, mkpart(name, start, end, 1));
 }
 

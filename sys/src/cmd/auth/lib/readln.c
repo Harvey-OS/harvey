@@ -4,7 +4,7 @@
 #include "authsrv.h"
 
 void
-getpass(char *key, char *pass, int check, int confirm)
+getpass(char *key, char *pass, int check)
 {
 	char rpass[32], npass[32];
 	char *err;
@@ -14,12 +14,10 @@ getpass(char *key, char *pass, int check, int confirm)
 
 	for(;;){
 		readln("Password: ", pass, sizeof npass, 1);
-		if(confirm){
-			readln("Confirm password: ", rpass, sizeof rpass, 1);
-			if(strcmp(pass, rpass) != 0){
-				print("mismatch, try again\n");
-				continue;
-			}
+		readln("Confirm password: ", rpass, sizeof rpass, 1);
+		if(strcmp(pass, rpass) != 0){
+			print("mismatch, try again\n");
+			continue;
 		}
 		if(!passtokey(key, pass)){
 			print("bad password, try again\n");

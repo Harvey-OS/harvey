@@ -6,10 +6,9 @@ TARG=exsort\
 	mbr\
 	mkext\
 	mkfs\
+	mk9660\
 
-DIRS=\
-	9660\
-	kfs\
+DIRS=kfs\
 	prep\
 	sacfs\
 

@@ -68,13 +68,9 @@ Print all
 simultaneously,
 each in one column.
 .TP
-.BI -n m
+.B -n
 Number the lines of each
 .IR file .
-The numeric argument
-.IR m ,
-default 5,
-sets the width of the line-number field.
 .TP
 .BI -o n
 Offset the left margin

@@ -10,18 +10,16 @@
 
 typedef struct Dospart	Dospart;
 enum {
-	NTentry = 4,
-	Mpart = 64,
+	NTentry = 4
 };
 
-static void rdpart(Edit*, ulong);
+static void rdpart(Edit*);
 static void	findmbr(Edit*);
 static void autopart(Edit*);
 static void wrpart(Edit*);
 static void blankpart(Edit*);
 static void cmdnamectl(Edit*);
-static void recover(Edit*);
-static int Dconv(va_list*, Fconv*);
+
 static int blank;
 static int dowrite;
 static int file;
@@ -30,8 +28,7 @@ static int doauto;
 static vlong mbroffset;
 static int printflag;
 static int printchs;
-static int sec2cyl;
-static int written;
+static Dospart *primary[NTentry];
 
 static void 	cmdsum(Edit*, Part*, vlong, vlong);
 static char 	*cmdadd(Edit*, char*, vlong, vlong);
@@ -42,8 +39,6 @@ static char 	*cmdokname(Edit*, char*);
 static char 	*cmdwrite(Edit*);
 static void		cmdprintctl(Edit*, int);
 
-#pragma varargck type "D" uchar*
-
 Edit edit = {
 	.add=	cmdadd,
 	.del=		cmddel,
@@ -53,39 +48,7 @@ Edit edit = {
 	.sum=	cmdsum,
 	.write=	cmdwrite,
 	.printctl=	cmdprintctl,
-
-	.unit=	"cylinder",
 };
-
-/*
- * Catch the obvious error routines to fix up the disk.
- */
-void
-sysfatal(char *fmt, ...)
-{
-	char buf[1024];
-	va_list arg;
-
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
-	if(argv0)
-		fprint(2, "%s: %s\n", argv0, buf);
-	else
-		fprint(2, "%s\n", buf);
-
-	if(written)
-		recover(&edit);
-
-	exits(buf);
-}
-
-void
-abort(void)
-{
-	fprint(2, "abort\n");
-	recover(&edit);
-}
 
 void
 usage(void)
@@ -127,8 +90,6 @@ main(int argc, char **argv)
 		break;
 	}ARGEND;
 
-	fmtinstall('D', Dconv);
-
 	if(argc != 1)
 		usage();
 
@@ -143,21 +104,18 @@ main(int argc, char **argv)
 		edit.disk->secs = edit.disk->size / secsize;
 	}
 
-	sec2cyl = edit.disk->h * edit.disk->s;
-	edit.end = edit.disk->secs / sec2cyl;
-
 	findmbr(&edit);
 
 	if(blank)
 		blankpart(&edit);
 	else
-		rdpart(&edit, 0);
+		rdpart(&edit);
 
 	if(doauto)
 		autopart(&edit);
 
 	if(dowrite)
-		runcmd(&edit, "w");
+		wrpart(&edit);
 
 	if(printflag)
 		runcmd(&edit, "P");
@@ -165,7 +123,6 @@ main(int argc, char **argv)
 	if(dowrite || printflag)
 		exits(0);
 
-	fprint(2, "cylinder = %lld bytes\n", sec2cyl*edit.disk->secsize);
 	runcmd(&edit, "p");
 	for(;;) {
 		fprint(2, ">>> ");
@@ -177,7 +134,6 @@ typedef struct Tentry	Tentry;
 typedef struct Table	Table;
 typedef struct Type	Type;
 typedef struct Tab	Tab;
-typedef struct Recover Recover;
 
 struct Tentry {
 	uchar	active;			/* active flag */
@@ -188,7 +144,7 @@ struct Tentry {
 	uchar	endh;			/* ending head */
 	uchar	ends;			/* ending sector */
 	uchar	endc;			/* ending cylinder */
-	uchar	xlba[4];			/* starting LBA from beginning of disc or ext. partition */
+	uchar	xlba[4];			/* starting LBA from beginning of disc */
 	uchar	xsize[4];		/* size in sectors */
 };
 
@@ -230,7 +186,6 @@ enum {
 	TypeBSD386	= 0xA5,
 	TypeBSDI	= 0xB7,
 	TypeBSDISWAP	= 0xB8,
-	TypeOTHER	= 0xDA,
 	TypeCPM		= 0xDB,
 	TypeSPEEDSTOR12	= 0xE1,
 	TypeSPEEDSTOR16	= 0xE4,
@@ -253,18 +208,21 @@ struct Type {
 	char *name;
 };
 
-struct Dospart {
-	Part;
+struct Tab {
 	Tentry;
-
+	uint offset;	/* sector of table */
+	uint i;		/* entry in table */
+	
 	u32int	lba;
 	u32int	size;
-	int		primary;
 };
 
-struct Recover {
-	Table	table;
-	ulong	lba;
+struct Dospart {
+	Part;
+	Tab;
+
+	Tab secondary;
+	Dospart *extend;	
 };
 
 static Type types[256] = {
@@ -302,7 +260,6 @@ static Type types[256] = {
 	[TypeBSD386]		{ "BSD386", "bsd386" },
 	[TypeBSDI]		{ "BSDI", "bsdi" },
 	[TypeBSDISWAP]		{ "BSDISWAP", "bsdiswap" },
-	[TypeOTHER]		{ "OTHER", "other" },
 	[TypeCPM]		{ "CPM", "cpm" },
 	[TypeSPEEDSTOR12]	{ "SPEEDSTOR12", "speedstor" },
 	[TypeSPEEDSTOR16]	{ "SPEEDSTOR16", "speedstor" },
@@ -311,11 +268,8 @@ static Type types[256] = {
 	[Type9]			{ "PLAN9", "plan9" },
 };
 
-static Dospart	part[Mpart];
-static int		npart;
-
 static char*
-typestr0(int type)
+typestr(int type)
 {
 	static char buf[100];
 
@@ -348,157 +302,139 @@ putle32(void* v, u32int i)
 	p[3] = i>>24;
 }
 
-static void
-diskread(Disk *disk, void *data, int ndata, u32int sec, u32int off)
+static Tab
+mktab(Tentry t, uint offset, uint base, int i)
 {
-	if(seek(disk->fd, sec*disk->secsize+off, 0) != sec*disk->secsize+off)
-		sysfatal("diskread seek %lud.%lud: %r", (ulong)sec, (ulong)off);
-	if(readn(disk->fd, data, ndata) != ndata)
-		sysfatal("diskread %lud at %lud.%lud: %r", (ulong)ndata, (ulong)sec, (ulong)off);
-}
+	Tab tb;
 
-static int
-diskwrite(Disk *disk, void *data, int ndata, u32int sec, u32int off)
-{
-	written = 1;
-	if(seek(disk->wfd, sec*disk->secsize+off, 0) != sec*disk->secsize+off)
-		goto Error;
-	if(write(disk->wfd, data, ndata) != ndata)
-		goto Error;
-	return 0;
+	tb.Tentry = t;
+	tb.lba = getle32(t.xlba)+base;
+	tb.size = getle32(t.xsize);
+	tb.offset = offset;
+	tb.i = i;
 
-Error:
-	fprint(2, "write %d bytes at %lud.%lud failed: %r\n", ndata, (ulong)sec, (ulong)off);
-	return -1;
+	if(t.type == TypeEMPTY)
+		return tb;
+
+	return tb;
 }
 
 static Dospart*
-mkpart(char *name, int primary, u32int lba, u32int size, Tentry *t)
+mkpart(Tentry *t, uint offset, uint base, int i)
 {
-	static int n;
 	Dospart *p;
 
-	p = emalloc(sizeof(*p));
+	p = malloc(sizeof *p);
+	assert(p != nil);
 
-	if(name)
-		strecpy(p->name, p->name+sizeof(p->name), name);
-	else
-		sprint(p->name, "%c%d", primary ? 'p' : 's', ++n);
-
-	if(t)
-		p->Tentry = *t;
-	else
-		memset(&p->Tentry, 0, sizeof(Tentry));
-
+	memset(p, 0, sizeof(*p));
+	p->Tab = mktab(*t, offset, base, i);
 	p->changed = 0;
-	p->start = lba/sec2cyl;
-	p->end = (lba+size)/sec2cyl;
-	p->ctlstart = lba;
-	p->ctlend = lba+size;
-	p->lba = lba;
-	p->size = size;
-	p->primary = primary;
+	p->start = p->lba;
+	p->end = p->lba+p->size;
+	p->extend = nil;
+	memset(&p->secondary, 0, sizeof(p->secondary));
+
 	return p;
 }
 
-/*
- * Recovery takes care of remembering what the various tables
- * looked like when we started, attempting to restore them when
- * we are finished.
- */
-static Recover	*rtab;
-static int		nrtab;
-
+static int next;	/* no. of extended partitions */
 static void
-addrecover(Table t, ulong lba)
+rdextend(Disk *disk, Dospart *pp, uint lba, uint base)
 {
-	if((nrtab%8) == 0) {
-		rtab = realloc(rtab, (nrtab+8)*sizeof(rtab[0]));
-		if(rtab == nil)
-			sysfatal("out of memory");
-	}
-	rtab[nrtab] = (Recover){t, lba};
-	nrtab++;
-}
-
-static void
-recover(Edit *edit)
-{
-	int err, i, ctlfd;
-	vlong offset;
-
-	err = 0;
-	for(i=0; i<nrtab; i++)
-		if(diskwrite(edit->disk, &rtab[i].table, sizeof(Table), rtab[i].lba, Toffset) < 0)
-			err = 1;
-	if(err) {
-		fprint(2, "warning: some writes failed during restoration of old partition tables\n");
-		exits("inconsistent");
-	} else {
-		fprint(2, "restored old partition tables\n");
-	}
-
-	ctlfd = edit->disk->ctlfd;
-	offset = edit->disk->offset;
-	if(ctlfd >= 0){
-		for(i=0; i<edit->npart; i++)
-			if(fprint(ctlfd, "delpart %s", edit->part[i]->ctlname)<0)
-				fprint(2, "delpart failed: %s: %r", edit->part[i]->ctlname);
-		for(i=0; i<edit->nctlpart; i++)
-			if(fprint(ctlfd, "delpart %s", edit->ctlpart[i]->name)<0)
-				fprint(2, "delpart failed: %s: %r", edit->ctlpart[i]->name);
-		for(i=0; i<edit->nctlpart; i++){
-			if(fprint(ctlfd, "part %s %lld %lld", edit->ctlpart[i]->name,
-				edit->ctlpart[i]->start+offset, edit->ctlpart[i]->end+offset) < 0){
-				fprint(2, "restored disk partition table but not kernel; reboot\n");
-				exits("inconsistent");
-			}
-		}
-	}
-	exits("restored");
-
-}
-
-/*
- * Read the partition table (including extended partition tables)
- * from the disk into the part array.
- */
-static void
-rdpart(Edit *edit, ulong lba)
-{
-	char *err;
 	Table table;
-	Tentry *tp, *ep;
+	Tentry *tp;
 	Dospart *p;
+	int i;
+	int havesec;
 
-	diskread(edit->disk, &table, sizeof table, mbroffset+lba, Toffset);
-	addrecover(table, mbroffset+lba);
-
-	if(table.magic[0] != Magic0 || table.magic[1] != Magic1) {
-		assert(lba != 0);
+	seek(disk->fd, (mbroffset+lba)*disk->secsize+Toffset, 0);
+	if(read(disk->fd, &table, sizeof(Table)) < 0){
+		fprint(2, "warning: read: %r\n");
 		return;
 	}
 
-	for(tp=table.entry, ep=tp+NTentry; tp<ep && npart < Mpart; tp++) {
-		switch(tp->type) {
+	if(table.magic[0] != Magic0 || table.magic[1] != Magic1){
+	//	fprint(2, "warning: no extended partition table found\n");
+		return;
+	}
+
+	havesec = 0;
+	for(i=0, tp=table.entry; i<NTentry; i++, tp++) {
+		switch(table.entry[i].type){
 		case TypeEMPTY:
-			break;
+			break;			
 		case TypeEXTENDED:
 		case TypeEXTHUGE:
-			rdpart(edit, lba+getle32(tp->xlba));
+			if(pp->extend != nil) {
+				fprint(2, "warning: ignoring second extended partition in table\n");
+				break;
+			}
+			p = mkpart(&table.entry[i], lba, base, i);
+			pp->extend = p;
+			sprint(p->name, "e%d", ++next);
+			rdextend(disk, p, p->lba, base);
 			break;
 		default:
-			p = mkpart(nil, lba==0, lba+getle32(tp->xlba), getle32(tp->xsize), tp);
-			if(err = addpart(edit, p))
-				fprint(2, "adding partition: %s\n", err);
+			if(havesec) {
+			//	fprint(2, "warning: ignoring second secondary partition (%s)\n",
+			//		typestr(table.entry[i].type));
+				break;
+			}
+			pp->secondary = mktab(table.entry[i], lba, base, i);
+			havesec = 1;
 			break;
 		}
+	}
+}
+
+Table ombr;
+
+static void
+rdpart(Edit *edit)
+{
+	Table table;
+	Tentry *tp;
+	Dospart *p;
+	int i;
+	char *err;
+
+	seek(edit->disk->fd, mbroffset*edit->disk->secsize+Toffset, 0);
+	if(read(edit->disk->fd, &table, sizeof(Table)) < 0)
+		sysfatal("read: %r\n");
+
+	if(table.magic[0] != Magic0 || table.magic[1] != Magic1)
+		sysfatal("no partition table found");
+
+	ombr = table;
+
+	for(i=0, tp=table.entry; i<NTentry; i++, tp++) {
+		p = mkpart(&table.entry[i], mbroffset, 0, i);
+		sprint(p->name, "p%d", i+1);
+		primary[i] = p;
+		if(tp->type == TypeEMPTY)
+			continue;
+		if(err = addpart(edit, p))
+			fprint(2, "reading mbr: %s\n", err);
+		if(tp->type == TypeEXTENDED || tp->type == TypeEXTHUGE)
+			rdextend(edit->disk, p, p->lba, p->lba);
 	}
 }
 
 static void
 blankpart(Edit *edit)
 {
+	int i;
+	Tentry t;
+	Dospart *p;
+
+	memset(&t, 0, sizeof t);
+	for(i=0; i<NTentry; i++) {
+		p = mkpart(&t, mbroffset, 0, i);
+		sprint(p->name, "p%d", i+1);
+		primary[i] = p;
+		p->changed = 1;
+	}
 	edit->changed = 1;
 }
 
@@ -507,126 +443,171 @@ findmbr(Edit *edit)
 {
 	Table table;
 	Tentry *tp;
+	Tentry t;
+	Dospart *p;
 
-	diskread(edit->disk, &table, sizeof(Table), 0, Toffset);
+	seek(edit->disk->fd, Toffset, 0);
+	if(read(edit->disk->fd, &table, sizeof(Table)) < 0)
+		sysfatal("read: %r\n");
 	if(table.magic[0] != Magic0 || table.magic[1] != Magic1)
 		sysfatal("did not find master boot record");
 
 	for(tp = table.entry; tp < &table.entry[NTentry]; tp++)
 		if(tp->type == TypeDMDDO)
-			mbroffset = edit->disk->s;
+			mbroffset = 63;
+
+	memset(&t, 0, sizeof t);
+	putle32(t.xlba, 0);
+	putle32(t.xsize, mbroffset+edit->disk->s);
+	p = mkpart(&t, mbroffset, 0, 0);
+	sprint(p->name, "mbr");
+	addpart(edit, p);
 }
 
-static int
-haveroom(Edit *edit, int primary, vlong start)
+static void
+restore(Disk *disk)
 {
-	int i, foundslot, n, lastsec;
-	Dospart *p;
-
-	if(primary) {
-		/*
-		 * must be open primary slot.
-		 * primary slots are taken by primary partitions
-		 * and runs of secondary partitions.
-		 */
-		n = 0;
-		lastsec = 0;
-		for(i=0; i<edit->npart; i++) {
-			p = (Dospart*)edit->part[i];
-			if(p->primary)
-				n++, lastsec=0;
-			else if(lastsec)
-				;
-			else
-				n++, lastsec=1;
-		}
-		return n<4;
+	if(seek(disk->wfd, mbroffset*disk->secsize+Toffset, 0) < 0) {
+		fprint(2, "could not seek; disk may be inconsistent\n");
+		exits("inconsistent");
+	}
+	if(write(disk->wfd, &ombr, sizeof(ombr)) < 0) {
+		fprint(2, "error restoring mbr; disk may be inconsistent\n");
+		exits("inconsistent");
 	}
 
-	/* 
-	 * secondary partitions can be inserted between two primary
-	 * partitions only if there is an empty primary slot.
-	 * otherwise, we can put a new secondary partition next
-	 * to a secondary partition no problem.
-	 */
-	foundslot = 0;
-	lastsec = 0;
-	n = 0;
-	for(i=0; i<edit->npart; i++) {
-		p = (Dospart*)edit->part[i];
-		if(p->primary)
-			n++, lastsec=0;
-		else if(lastsec)
-			;
-		else
-			n++, lastsec=1;
-		if(!foundslot && start < p->start) {
-			/* next to a secondary in either direction */
-			foundslot=1;
-			if(lastsec)
-				return 1;
-			if(p->primary==0)
-				return 1;
+	fprint(2, "restored old master boot record\n");
+	exits("restored");
+}
+
+static void
+writechs(Disk *disk, uchar *p, vlong lba)
+{
+	int c, h, s;
+
+	s = lba % disk->s;
+	h = (lba / disk->s) % disk->h;
+	c = lba / (disk->s * disk->h);
+
+	if(c >= 1024) {
+		c = 1023;
+		h = disk->h - 1;
+		s = disk->s - 1;
+	}
+
+	p[0] = h;
+	p[1] = ((s+1) & 0x3F) | ((c>>2) & 0xC0);
+	p[2] = c;
+}
+
+static void
+fixchs(Disk *disk, Dospart *p)
+{
+	p->lba = p->start;
+	p->size = p->end - p->start;
+
+	if(disk->c && disk->h && disk->s) {
+		writechs(disk, &p->starth, p->start);
+		writechs(disk, &p->endh, p->end-1);
+	}
+	putle32(p->xlba, p->lba);
+	putle32(p->xsize, p->size);
+}
+
+static void
+writedos(Disk *disk, Dospart *p)
+{
+	if(seek(disk->wfd, (mbroffset+p->offset)*disk->secsize+Toffset+sizeof(Tentry)*p->i, 0) < 0) {
+		fprint(2, "could not seek in disk!\n");
+		restore(disk);
+	}
+	if(write(disk->wfd, &p->Tentry, sizeof(Tentry)) != sizeof(Tentry)) {
+		fprint(2, "error writing disk!\n");
+		restore(disk);
+	}
+}
+
+static void
+wrpart(Edit *edit)
+{
+	int i;
+	Disk *disk;
+
+	disk = edit->disk;
+	if(seek(disk->wfd, mbroffset*disk->secsize+Toffset+NTentry*sizeof(Tentry), 0) < 0) {
+		fprint(2, "error seeking to magic bytes %lld: %r\n",
+			mbroffset*disk->secsize+Toffset+NTentry*sizeof(Tentry));
+		exits("restored");
+	}
+
+	if(write(disk->wfd, "\x55\xAA", 2) != 2) {
+		fprint(2, "error writing disk\n");
+		exits("restored");
+	}
+	
+	for(i=0; i<NTentry; i++) {
+		if(primary[i]->changed) {
+			writedos(disk, primary[i]);
+			primary[i]->changed = 0;
 		}
 	}
-	/* not next to a secondary, need a new primary */
-	return n<4;
+
+	cmdprintctl(edit, disk->ctlfd);
 }
 
 static void
 autopart(Edit *edit)
 {
-	char *err;
-	int active, i;
-	vlong bigstart, bigsize, start;
-	Dospart *p;
+	int i, active;
+	vlong bigstart, bigsize;
+	vlong start;
+	Part *p;
 
-	for(i=0; i<edit->npart; i++)
-		if(((Dospart*)edit->part[i])->type == Type9)
+	for(i=0; i<NTentry; i++)
+		if(primary[i]->type == Type9)
 			return;
 
-	/* look for the biggest gap in which we can put a primary partition */
-	start = 0;
+	/* look for biggest gap after the usual empty track */
+	start = edit->disk->s;
 	bigsize = 0;
 	SET(bigstart);
 	for(i=0; i<edit->npart; i++) {
-		p = (Dospart*)edit->part[i];
-		if(p->start > start && p->start - start > bigsize && haveroom(edit, 1, start)) {
+		p = edit->part[i];
+		if(p->start > start && p->start - start > bigsize) {
 			bigsize = p->start - start;
 			bigstart = start;
 		}
 		start = p->end;
 	}
 
-	if(edit->end - start > bigsize && haveroom(edit, 1, start)) {
-		bigsize = edit->end - start;
+	if(edit->disk->secs - start > bigsize) {
+		bigsize = edit->disk->secs - start;
 		bigstart = start;
 	}
-	if(bigsize < 1) {
-		fprint(2, "couldn't find space or partition slot for plan 9 partition\n");
+	if(bigsize < (1024*1024)/edit->disk->secsize) {
+		fprint(2, "couldn't find room for plan9 partition\n");
 		return;
 	}
 
-	/* set new partition active only if no others are */
-	active = Active;	
-	for(i=0; i<edit->npart; i++)
-		if(((Dospart*)edit->part[i])->primary && (((Dospart*)edit->part[i])->active & Active))
+	active = Active;
+	for(i=0; i<NTentry; i++) 
+		if(primary[i]->active & Active)
 			active = 0;
 
-	/* add new plan 9 partition */
-	bigsize *= sec2cyl;
-	bigstart *= sec2cyl;
-	if(bigstart == 0) {
-		bigstart += edit->disk->s;
-		bigsize -= edit->disk->s;
+	for(i=0; i<NTentry; i++) {
+		if(primary[i]->type == TypeEMPTY) {
+			primary[i]->start = bigstart;
+			primary[i]->end = bigstart+bigsize;
+			primary[i]->changed = 1;
+			primary[i]->type = Type9;
+			primary[i]->active = active;
+			fixchs(edit->disk, primary[i]);
+			addpart(edit, primary[i]);
+			break;
+		}
 	}
-	p = mkpart(nil, 1, bigstart, bigsize, nil);
-	p->active = active;
-	p->changed = 1;
-	p->type = Type9;
-	edit->changed = 1;
-	if(err = addpart(edit, p)) {
-		fprint(2, "error adding plan9 partition: %s\n", err);
+	if(i == NTentry) {
+		fprint(2, "couldn't find room in partition table to add plan9 partition\n");
 		return;
 	}
 }
@@ -638,41 +619,20 @@ struct Name {
 };
 Name *namelist;
 static void
-plan9print(Dospart *part, int fd)
+plan9print(Dospart *part, char *vname, vlong start, vlong end, int fd)
 {
 	int i, ok;
-	char name[NAMELEN], *vname;
+	char name[NAMELEN];
 	Name *n;
-	vlong start, end;
-	char *sep;
-
-	vname = types[part->type].name;
-	if(vname == nil)
-		return;
-
-	if(strcmp(vname, "") == 0) {
-		strcpy(part->ctlname, "");	
-		return;
-	}
-
-	start = mbroffset+part->lba;
-	end = start+part->size;
-
-	/* avoid names like plan90 */
-	i = strlen(vname) - 1;
-	if(vname[i] >= '0' && vname[i] <= '9')
-		sep = ".";
-	else
-		sep = "";
 
 	i = 0;
-	sprint(name, "%s", vname);
+	strcpy(name, vname);
 	do {
 		ok = 1;
 		for(n=namelist; n; n=n->link) {
 			if(strcmp(name, n->name) == 0) {
 				i++;
-				sprint(name, "%s%s%d", vname, sep, i);
+				sprint(name, "%s.%d", vname, i);
 				ok = 0;
 			}
 		}
@@ -703,28 +663,58 @@ freenamelist(void)
 }
 
 static void
+printtab(Dospart *part, Tab *p, int fd)
+{
+	char *ty;
+
+	assert(p->type != TypeEMPTY);
+
+	ty = types[p->type].name;
+	if(ty == nil)
+		return;
+
+	if(strcmp(ty, "") == 0) {
+		strcpy(part->ctlname, "");
+		return;
+	}
+
+	plan9print(part, ty, mbroffset+p->lba, mbroffset+p->lba+p->size, fd);
+}
+
+static void
+plan9namepart(Dospart *p, int fd, int isextra)
+{
+	if(strcmp(p->name, "mbr") == 0)
+		return;
+
+	printtab(p, &p->Tab, isextra ? fd : -1);
+	if(p->type == TypeEXTENDED || p->type == TypeEXTHUGE) {
+		printtab(p, &p->secondary, 0);
+		if(p->extend) {
+			assert(p->extend != p);
+			plan9namepart(p->extend, fd, 1);
+		}
+	}
+}
+
+static void
 cmdprintctl(Edit *edit, int ctlfd)
 {
 	int i;
 
 	freenamelist();
 	for(i=0; i<edit->npart; i++)
-		plan9print((Dospart*)edit->part[i], -1);
+		plan9namepart((Dospart*)edit->part[i], -1, 0);
 	ctldiff(edit, ctlfd);
+	for(i=0; i<edit->npart; i++)
+		plan9namepart((Dospart*)edit->part[i], ctlfd, 0);
 }
 
 static char*
 cmdokname(Edit*, char *name)
 {
-	char *q;
-
-	if(name[0] != 'p' && name[0] != 's')
-		return "name must be pN or sN";
-
-	strtol(name+1, &q, 10);
-	if(*q != '\0')
-		return "name must be pN or sN";
-
+	if(strlen(name) != 2 || name[0] != 'p' || name[1] < '1' || name[1] > '4')
+		return "name must be p1, p2, p3, or p4";
 	return nil;
 }
 
@@ -733,31 +723,21 @@ cmdokname(Edit*, char *name)
 #define KB (1024)
 
 static void
-cmdsum(Edit *edit, Part *vp, vlong a, vlong b)
+printsumline(Disk *disk, char *s, char *name, Dospart *p, vlong a, vlong b, char *ty)
 {
-	char *name, *ty;
-	char buf[3];
-	char *suf;
-	Dospart *p;
 	vlong sz, div;
+	char *suf;
 
-	p = (Dospart*)vp;
+	USED(p);
 
-	buf[0] = p && p->changed ? '\'' : ' ';
-	buf[1] = p && (p->active & Active) ? '*' : ' ';
-	buf[2] = '\0';
-
-	name = p ? p->name : "empty";
-	ty = p ? typestr0(p->type) : "";
-
-	sz = (b-a)*edit->disk->secsize*sec2cyl;
-	if(sz >= 1*GB){
+	sz = (b-a)*disk->secsize;
+	if(sz > 1*GB){
 		suf = "GB";
 		div = GB;
-	}else if(sz >= 1*MB){
+	}else if(sz > 1*MB){
 		suf = "MB";
 		div = MB;
-	}else if(sz >= 1*KB){
+	}else if(sz > 1*KB){
 		suf = "KB";
 		div = KB;
 	}else{
@@ -766,30 +746,115 @@ cmdsum(Edit *edit, Part *vp, vlong a, vlong b)
 	}
 
 	if(div == 1)
-		print("%s %-12s %*lld %-*lld (%lld cylinders, %lld %s) %s\n", buf, name,
-			edit->disk->width, a, edit->disk->width, b, b-a, sz, suf, ty);
+		print("%s %-12s %*lld %-*lld (%lld sectors, %lld %s) %s\n", s, name,
+			disk->width, a, disk->width, b, 
+			b-a, sz, suf, ty);
 	else
-		print("%s %-12s %*lld %-*lld (%lld cylinders, %lld.%.2d %s) %s\n", buf, name,
-			edit->disk->width, a, edit->disk->width, b,  b-a,
-			sz/div, (int)(((sz%div)*100)/div), suf, ty);
+		print("%s %-12s %*lld %-*lld (%lld sectors, %lld.%.2d %s) %s\n", s, name,
+			disk->width, a, disk->width, b,  b-a, sz/div, (int)((sz/(div/100))%100),
+			suf, ty);
+
+	if(printchs && p != nil)
+		print("\t%d/%d/%d %d/%d/%d\n",
+			p->startc | ((p->starts<<2) & 0x300),
+			p->starth,
+			p->starts & 63,
+			p->endc | ((p->ends<<2) & 0x300),
+			p->endh,
+			p->ends & 63);
+}
+
+static void
+sumextend(Disk *disk, Dospart *p)
+{
+	if(p->secondary.type != TypeEMPTY)
+		printsumline(disk, "  ", "", p, p->secondary.lba, p->secondary.lba+p->secondary.size, typestr(p->secondary.type));
+	if(p->extend)
+		sumextend(disk, p->extend);
+}
+
+static void
+cmdsum(Edit *edit, Part *vp, vlong a, vlong b)
+{
+	char *name, *ty;
+	char buf[3];
+	Dospart *p;
+
+	p = (Dospart*)vp;
+
+	buf[0] = p && p->changed ? '\'' : ' ';
+	buf[1] = p && (p->active & Active) ? '*' : ' ';
+	buf[2] = '\0';
+
+	name = p ? p->name : "empty";
+	ty = p ? typestr(p->type) : "";
+
+	printsumline(edit->disk, buf, name, p, a, b, ty);
+	if(p)
+		sumextend(edit->disk, p);
 }
 
 static char*
 cmdadd(Edit *edit, char *name, vlong start, vlong end)
 {
-	Dospart *p;
+	int i, sh;
+	char *err;
+	static char cylerr[128];
 
-	if(!haveroom(edit, name[0]=='p', start))
-		return "no room for partition";
-	p = mkpart(name, name[0]=='p', start*sec2cyl, (end-start)*sec2cyl, nil);
-	p->changed = 1;
-	return addpart(edit, p);
+	i = name[1]-'1';
+	assert(primary[i]->type == TypeEMPTY);
+
+	sh = edit->disk->s * edit->disk->h;
+	if((start != edit->disk->s && start % sh) || end % sh) {
+		/*
+		 * The first partition can start at C/H/S 0/1/1; I guess
+		 * it gets special treatment because of the MBR at 0/0/1.
+		 */
+		if(start < edit->disk->s)
+			start = edit->disk->s;
+		else if(start % sh)
+			start += sh - (start % sh);
+		end -= end % sh;
+		sprint(cylerr, "partition must be aligned on cylinder boundaries; try a %s %lld %lld\n",
+			name, start, end);
+		return cylerr;
+	}
+
+	primary[i]->start = start;
+	primary[i]->end = end;
+	fixchs(edit->disk, primary[i]);
+	if(err = addpart(edit, primary[i]))
+		return err;
+	primary[i]->type = Type9;
+	primary[i]->changed = 1;
+	return nil;
 }
 
 static char*
 cmddel(Edit *edit, Part *p)
 {
-	return delpart(edit, p);
+	int i;
+	char *err;
+
+	if(strcmp(p->name, "mbr") == 0)
+		return "cannot delete mbr track";
+
+	for(i=0; i<NTentry; i++) {
+		if(primary[i] == p) {
+			err = delpart(edit, primary[i]);
+			if(err == nil) {
+				primary[i]->type = TypeEMPTY;
+				primary[i]->start = 0;
+				primary[i]->end = 0;
+				primary[i]->changed = 1;
+				primary[i]->extend = nil;
+				primary[i]->secondary.type = TypeEMPTY;
+			}
+			return err;
+		}
+	}
+	assert(0);
+	return "no such partition";
 }
 
 static char*
@@ -815,30 +880,54 @@ cmdhelp(Edit*)
 static char*
 cmdactive(Edit *edit, int nf, char **f)
 {
+	Dospart *p;
 	int i;
-	Dospart *p, *ip;
 
 	if(nf != 2)
 		return "args";
 
-	if((p = (Dospart*)findpart(edit, f[1])) == nil)
-		return "unknown partition";
+	p = (Dospart*) findpart(edit, f[1]);
+	if(p == nil)
+		return "unknown name";
 
-	for(i=0; i<edit->npart; i++) {
-		ip = (Dospart*)edit->part[i];
-		if(ip->active & Active) {
-			ip->active &= ~Active;
-			ip->changed = 1;
+	if(p->type == TypeEMPTY)
+		return "can't set empty partition active";
+
+	for(i=0; i<NTentry; i++) {
+		if((primary[i]->active & Active) && primary[i] != p) {
+			primary[i]->active &= ~Active;
+			primary[i]->changed = 1;
 			edit->changed = 1;
 		}
 	}
-
 	if((p->active & Active) == 0) {
 		p->active |= Active;
 		p->changed = 1;
 		edit->changed = 1;
 	}
+	return nil;
+}
 
+static char*
+cmdempty(Edit*, int nf, char**)
+{
+	int i, n;
+
+	if(nf != 1)
+		return "args";
+
+	print("empty partitions: ");
+	n = 0;
+	for(i=0; i<NTentry; i++) {
+		if(primary[i]->type == TypeEMPTY) {
+			print(" p%d", i+1);
+			n++;
+		}
+	}
+	if(n == 0)
+		print(" none\n");
+	else
+		print("\n");
 	return nil;
 }
 
@@ -912,158 +1001,12 @@ cmdext(Edit *edit, int nf, char **f)
 	switch(f[0][0]) {
 	case 'A':
 		return cmdactive(edit, nf, f);
+	case 'e':
+		return cmdempty(edit, nf, f);
 	case 't':
 		return cmdtype(edit, nf, f);
-	case 'R':
-		recover(edit);
-		return nil;
 	default:
 		return "unknown command";
 	}
 }
 
-static int
-Dconv(va_list *va, Fconv *fp)
-{
-	char buf[60];
-	uchar *p;
-	int c, h, s;
-
-	p = va_arg(*va, uchar*);
-	h = p[0];
-	c = p[2];
-	c |= (p[1]&0xC0)<<2;
-	s = (p[1] & 0x3F);
-
-	sprint(buf, "%d/%d/%d", c, h, s);
-	strconv(buf, fp);
-	return 0;
-}
-
-static void
-writechs(Disk *disk, uchar *p, vlong lba)
-{
-	int c, h, s;
-
-	s = lba % disk->s;
-	h = (lba / disk->s) % disk->h;
-	c = lba / (disk->s * disk->h);
-
-	if(c >= 1024) {
-		c = 1023;
-		h = disk->h - 1;
-		s = disk->s - 1;
-	}
-
-	p[0] = h;
-	p[1] = ((s+1) & 0x3F) | ((c>>2) & 0xC0);
-	p[2] = c;
-}
-
-static void
-wrtentry(Disk *disk, Tentry *tp, int type, u32int lbabase, u32int lba, u32int size)
-{
-	tp->type = type;
-	writechs(disk, &tp->starth, lbabase+lba);
-	writechs(disk, &tp->endh, lbabase+lba+size-1);
-	putle32(tp->xlba, lba);
-	putle32(tp->xsize, size);
-}
-
-static int
-wrextend(Edit *edit, int i, vlong lbabase, vlong *endlba)
-{
-	int ni;
-	Table table;
-	Tentry *tp, *ep;
-	Dospart *p;
-	Disk *disk;
-
-	if(i == edit->npart)
-		return i;
-
-	p = (Dospart*)edit->part[i];
-	if(p->primary)
-		return i;
-
-	disk = edit->disk;
-	diskread(disk, &table, sizeof table, mbroffset+lbabase, Toffset);
-	tp = table.entry;
-	ep = tp+NTentry;
-
-	ni = wrextend(edit, i+1, p->end*sec2cyl, endlba);
-
-	assert(p->start*sec2cyl == lbabase);
-	*tp = p->Tentry;
-	wrtentry(disk, tp, p->type, lbabase, disk->s, p->end*sec2cyl-disk->s-lbabase);
-	tp++;
-
-	if(ni != i+1) {
-		memset(tp, 0, sizeof *tp);
-		wrtentry(disk, tp, TypeEXTENDED, lbabase, p->end*sec2cyl-lbabase, *endlba-p->end*sec2cyl);
-		tp++;
-	}
-
-	for(; tp<ep; tp++)
-		memset(tp, 0, sizeof *tp);
-
-	table.magic[0] = Magic0;
-	table.magic[1] = Magic1;
-
-	if(diskwrite(edit->disk, &table, sizeof table, mbroffset+lbabase, Toffset) < 0)
-		recover(edit);
-	return ni;
-}	
-
-static void
-wrpart(Edit *edit)
-{	
-	int i, ni;
-	Table table;
-	Tentry *tp, *ep;
-	Disk *disk;
-	vlong s, endlba;
-	Dospart *p;
-
-	disk = edit->disk;
-
-	diskread(disk, &table, sizeof table, mbroffset, Toffset);
-
-	tp = table.entry;
-	ep = tp+NTentry;
-	for(i=0; i<edit->npart && tp<ep; ) {
-		p = (Dospart*)edit->part[i];
-		if(p->start == 0)
-			s = disk->s;
-		else
-			s = p->start*sec2cyl;
-		if(p->primary) {
-			*tp = p->Tentry;
-			wrtentry(disk, tp, p->type, 0, s, p->end*sec2cyl-s);
-			tp++;
-			i++;
-		} else {
-			ni = wrextend(edit, i, p->start*sec2cyl, &endlba);
-			memset(tp, 0, sizeof *tp);
-			wrtentry(disk, tp, TypeEXTENDED, 0, s, endlba-s);
-			tp++;
-			i = ni;
-		}
-	}
-	for(; tp<ep; tp++)
-		memset(tp, 0, sizeof(*tp));
-		
-	if(i != edit->npart)
-		sysfatal("cannot happen #1");
-
-	if(diskwrite(disk, &table, sizeof table, mbroffset, Toffset) < 0)
-		recover(edit);
-
-	/* bring parts up to date */
-	freenamelist();
-	for(i=0; i<edit->npart; i++)
-		plan9print((Dospart*)edit->part[i], -1);
-
-	if(ctldiff(edit, disk->ctlfd) < 0)
-		fprint(2, "?warning: partitions could not be updated in devsd\n");
-}

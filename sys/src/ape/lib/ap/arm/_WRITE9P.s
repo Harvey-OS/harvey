@@ -1,4 +1,0 @@
-TEXT _WRITE9P(SB), 1, $-4
-MOVW $37, R0
-SWI 0
-RET

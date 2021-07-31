@@ -39,40 +39,40 @@ machine-independent
 directory entry
 laid out as follows:
 .TP 15n
-.I name\f1[28]\fP
+.IR name [28]
 file name; must be
 .B /
 if the file is the root directory of the server
 .PD 0
 .TP
-.I uid\f1[28]\fP
+.IR uid [28]
 owner name
 .TP
-.I gid\f1[28]\fP
+.IR gid [28]
 group name
 .TP
-.I qid.path\f1[4]\fP
+.IR qid.path [4]
 the file server's identification for the file
 .TP
-.I qid.vers\f1[4]\fP
+.IR qid.vers [4]
 version number for given path
 .TP
-.I mode\f1[4]\fP
+.IR mode [4]
 permissions and flags
 .TP
-.I atime\f1[4]\fP
+.IR atime [4]
 last access time
 .TP
-.I mtime\f1[4]\fP
+.IR mtime [4]
 last modification time
 .TP
-.I length\f1[8]\fP
+.IR length [8]
 length of file in bytes
 .TP
-.I type\f1[2]\fP
+.IR type [2]
 for kernel use
 .TP
-.I dev\f1[2]\fP
+.IR dev [2]
 for kernel use
 .PD
 .PP

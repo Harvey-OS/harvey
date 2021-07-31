@@ -1,22 +1,22 @@
-/* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gxhtbit.c,v 1.3 2000/09/19 19:00:37 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gxhtbit.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
 /* Halftone bit updating for imaging library */
 #include "memory_.h"
 #include "gx.h"
@@ -118,33 +118,6 @@ construct_ht_order_short(gx_ht_order *porder, const byte *thresholds)
 	}
     }
  out:
-    return 0;
-}
-
-/* Return the bit coordinate using the standard representation. */
-private int
-ht_bit_index_default(const gx_ht_order *porder, uint index, gs_int_point *ppt)
-{
-    const gx_ht_bit *phtb = &((const gx_ht_bit *)porder->bit_data)[index];
-    uint offset = phtb->offset;
-    int bit = 0;
-
-    while (!(((const byte *)&phtb->mask)[bit >> 3] & (0x80 >> (bit & 7))))
-	++bit;
-    ppt->x = (offset % porder->raster * 8) + bit;
-    ppt->y = offset / porder->raster;
-    return 0;
-}
-
-/* Return the bit coordinate using the short representation. */
-private int
-ht_bit_index_short(const gx_ht_order *porder, uint index, gs_int_point *ppt)
-{
-    uint bit_index = ((const ushort *)porder->bit_data)[index];
-    uint bit_raster = porder->raster * 8;
-
-    ppt->x = bit_index % bit_raster;
-    ppt->y = bit_index / bit_raster;
     return 0;
 }
 
@@ -269,8 +242,6 @@ render_ht_short(gx_ht_tile *pbt, int level, const gx_ht_order *porder)
 
 /* Define the procedure vectors for the order data implementations. */
 const gx_ht_order_procs_t ht_order_procs_table[2] = {
-    { sizeof(gx_ht_bit), construct_ht_order_default, ht_bit_index_default,
-      render_ht_default },
-    { sizeof(ushort), construct_ht_order_short, ht_bit_index_short,
-      render_ht_short }
+    { sizeof(gx_ht_bit), construct_ht_order_default, render_ht_default },
+    { sizeof(ushort), construct_ht_order_short, render_ht_short }
 };

@@ -24,38 +24,28 @@ Table of contents
 
         * Document roadmap by theme
              o What should I read if I'm a new user?
-                  + AFPL Ghostscript and GNU Ghostscript
+                  + Aladdin Ghostscript and GNU Ghostscript
                   + Before building Ghostscript
              o What should I read if I'm not a new user?
              o What if I'm a developer?
              o What if I'm writing documentation?
         * Presence on the World Wide Web
-             o Ghostscript's home pages
-             o Adobe PostScript, Encapsulated PostScript, and PDF
-               reference documentation
+             o Ghostscript's home page
+             o Aladdin's home page
+             o Adobe PostScript and PDF reference documentation
              o Other material on the WWW
         * Which document contains what?
-             o Primarily for users:
 
-                    Bug-form.htm    Humor.htm      Readme.htm
-                    Bug-info.htm    New-user.htm   Unix-lpr.htm
-                    Devices.htm     Ps2epsi.htm    Use.htm
-                    Helpers.htm     Ps2pdf.htm
-
-             o For both users and developers:
-
-                    Changes.htm     Hershey.htm    News.htm
-                    Commprod.htm    History*.htm   Psfiles.htm
-                    Copying.htm     Install.htm    Public.htm
-                    Current.htm     Language.htm   Tester.htm
-                    Fonts.htm       Make.htm
-
-             o Primarily for developers:
-
-                    C-style.htm     Lib.htm        Source.htm
-                    DLL.htm         Maintain.htm   Xfonts.htm
-                    Drivers.htm     Projects.htm
-                    Htmstyle.htm    Release.htm
+               Bug-form.htm    Hershey.htm    Ps2pdf.htm
+               C-style.htm     History*.htm   Psfiles.htm
+               Commprod.htm    Htmstyle.htm   Public.htm
+               Copying.htm     Humor.htm      Readme.htm
+               Current.htm     Install.htm    Release.htm
+               DLL.htm         Language.htm   Source.htm
+               Devices.htm     Lib.htm        Tester.htm
+               Drivers.htm     Make.htm       Unix-lpr.htm
+               Fonts.htm       New-user.htm   Use.htm
+               Helpers.htm     News.htm       Xfonts.htm
 
   ------------------------------------------------------------------------
 
@@ -77,16 +67,16 @@ for new users, then as many of these documents as seem useful:
      about
    * more detailed information about how to use Ghostscript under Unix with
      lpr as a filter for non-PostScript printers
-   * information about reporting problems -- but remember that Ghostscript
-     comes with NO WARRANTY and NO SUPPORT
+   * a problem-reporting form -- but remember that Ghostscript comes with NO
+     WARRANTY and NO SUPPORT
 
-AFPL Ghostscript and GNU Ghostscript
+Aladdin Ghostscript and GNU Ghostscript
 
-AFPL Ghostscript and GNU Ghostscript are different releases. If you have
-AFPL Ghostscript, not the GNU Ghostscript releases distributed by the Free
-Software Foundation, you should read (or at least skim through):
+Aladdin Ghostscript and GNU Ghostscript are different releases. If you have
+Aladdin Ghostscript, not the GNU Ghostscript releases distributed by the
+Free Software Foundation, you should read (or at least skim through):
 
-   * additional information about AFPL Ghostscript releases that is not
+   * additional information about Aladdin Ghostscript releases that is not
      relevant to GNU Ghostscript releases.
 
 If you run into any questions, or if you are going to be using Ghostscript
@@ -112,11 +102,8 @@ What should I read if I'm not a new user?
 If you have already used Ghostscript, when you receive a new release you
 should begin by reading this file, then
 
-   * News.htm, for incompatible changes and new features in the current
-     release;
+   * News.htm, for changes and new features in the current release;
    * Current.htm, for known problems in the current release;
-   * if you wish, Changes.htm, for a detailed list of changes in the current
-     release;
    * if you wish, History#.htm (currently History6.htm), for changes in
      other releases.
 
@@ -131,7 +118,7 @@ If you are going to write a new driver for Ghostscript, you should read
    * about the external font interface between Ghostscript and
      platform-supplied fonts (but read about drivers in general first)
 
-If you are considering distributing Ghostscript (either AFPL or GNU
+If you are considering distributing Ghostscript (either Aladdin or GNU
 versions) in conjunction with a commercial product, you should read the
 license carefully, and you should also read
 
@@ -172,24 +159,24 @@ Ghostscript's home page
 
 Ghostscript has a home page on the World Wide Web with helpful information
 such as the FAQ (Frequently Asked Questions) and a list of known problems
-and workarounds for the current AFPL Ghostscript release (in the "Obtaining"
-file for that release):
+and workarounds for the current Aladdin Ghostscript release (in the
+"Obtaining" file for that release):
 
      http://www.cs.wisc.edu/~ghost/
 
-More material about Ghostscript can be found at
+Aladdin's home page
+
+More material about Ghostscript can be found on Aladdin Enterprises' World
+Wide Web site at
 
      http://www.ghostscript.com/
 
-Adobe PostScript, Encapsulated PostScript, and PDF reference documentation
+Adobe PostScript and PDF reference documentation
 
-Adobe makes a wealth of technical documentation available over the Web,
-including the PostScript Language Reference Manual (Third Edition); the
-Encapsulated PostScript (EPS) Format Specification version 3, including
-Encapsulated PostScript Interchange (EPSI) format; the PDF 1.3
-specification; and the pdfmark and Acrobat Distiller parameters
-documentation. Some of these documents are also available at Adobe's ftp
-site, but not necessarily under the same filenames.
+Adobe makes a wealth of relevant technical documentation available on its
+Web site, including the PostScript Language Reference Manual (Third
+Edition), the PDF 1.3 specification, and the pdfmark and distiller
+parameters documentation.
 
 Other material on the WWW
 
@@ -202,10 +189,6 @@ German (and soon in Japanese), at:
 
      http://www.pdflib.com/gsmanual
 
-There is a translation of the Ghostscript 'man' pages into Czech at:
-
-     http://www.volny.cz/rebus/ghostscript
-
   ------------------------------------------------------------------------
 
 Which document contains what?
@@ -214,32 +197,23 @@ Here is the list in alphabetic order of Ghostscript documentation, with
 explanations of the contents.
 
 Bug-form.htm
-     A form to fill out and a-meil to report a problem with AFPL Ghostscript
-     -- but remember that Ghostscript comes with NO WARRANTY and NO SUPPORT.
-     Please read the instructions before reporting a bug.
-
-Bug-info.htm
-     Information about how to report problems with AFPL Ghostscript -- but
-     remember that Ghostscript comes with NO WARRANTY and NO SUPPORT. Please
-     read this before reporting a problem.
+     A form to fill out and send to Aladdin to report a bug in Aladdin
+     Ghostscript -- but remember that Ghostscript comes with NO WARRANTY and
+     NO SUPPORT. Please read the guidelines before reporting a bug.
 
 C-style.htm
-     Guidelines and style for C coding, which you should follow if, for
-     example, you write a new driver or add or change something in
+     Aladdin's guidelines and style for C coding, which you should follow
+     if, for example, you write a new driver or add or change something in
      Ghostscript. For developers.
-
-Changes.htm
-     A detailed list of all code changes in the current release or
-     pre-release, generated mechanically from the CVS logs. For developers.
 
 Commprod.htm
      The conditions under which Ghostscript may be distributed in a
      commercial context. See also the Aladdin Free Public License.
 
 Copying.htm
-     A reminder that AFPL Ghostscript is governed NOT by the Free Software
-     Foundation's GNU General Public License but by the Aladdin Free Public
-     License.
+     A reminder that Aladdin Ghostscript is governed NOT by the Free
+     Software Foundation's GNU General Public License but by the Aladdin
+     Free Public License.
 
 Current.htm
      Information specifically about the current release of Ghostscript. See
@@ -305,9 +279,6 @@ Lib.htm
      operations in the PostScript language and in Adobe Portable Document
      Format (PDF). For developers.
 
-Maintain.htm
-     Assorted Ghostscript maintenance procedures. For developers.
-
 Make.htm
      How to build Ghostscript executables from the source code. See also how
      to install it. It's not necessary to be a highly experienced developer
@@ -317,20 +288,10 @@ New-user.htm
      Essential information for new users of Ghostscript.
 
 News.htm
-     A brief description of the latest release or pre-release of
-     Ghostscript, and a list of any incompatible changes in it. Changes in
-     older releases are described in the history files "History*.htm", which
-     are usually installed in the documentation directory. Run "gs -h" to
-     see where that is.
-
-Projects.htm
-     A list of Ghostscript development projects with which we would like
-     help.
-
-Ps2epsi.htm
-     Detailed information on how to use Ghostscript through ps2epsi to
-     convert PostScript to Adobe Encapsulated PostScript Interchange (EPSI)
-     format.
+     Changes in the latest releases of Ghostscript. Changes in older
+     releases are described in the history files "History*.htm", which are
+     usually installed in the documentation directory. Run "gs -h" to see
+     where that is.
 
 Ps2pdf.htm
      Detailed information on how to use Ghostscript through ps2pdf to
@@ -343,7 +304,7 @@ Psfiles.htm
 
 Public.htm
      The Aladdin Free Public License, which states the conditions for using
-     and redistributing AFPL Ghostscript.
+     and redistributing Aladdin Ghostscript.
 
 Readme.htm
      This document.
@@ -376,10 +337,10 @@ Xfonts.htm
 
   ------------------------------------------------------------------------
 
-Copyright © 1996, 2000 Aladdin Enterprises. All rights reserved.
+Copyright © 1996, 1997, 1998 Aladdin Enterprises. All rights reserved.
 
-This file is part of AFPL Ghostscript. See the Aladdin Free Public License
-(the "License") for full details of the terms of using, copying, modifying,
-and redistributing AFPL Ghostscript.
+This file is part of Aladdin Ghostscript. See the Aladdin Free Public
+License (the "License") for full details of the terms of using, copying,
+modifying, and redistributing Aladdin Ghostscript.
 
-Ghostscript version 6.31, 3 November 2000
+Ghostscript version 6.0, 3 February 2000

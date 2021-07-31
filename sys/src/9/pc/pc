@@ -12,20 +12,19 @@ dev
 	ssl
 	bridge
 	loopback
-	kprof
 
-	ether	netif
-	ip	arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+	ether		netif
+	ip		arp dial inferno ip ipaux iproute kio netlog nullmedium pktmedium ptclbsum386
 
-	draw	screen vga vgax
-	mouse	mouse
+	draw		screen vga vgax
+	mouse		mouse
 	vga
 
 	sd
-	floppy	dma
+	floppy		dma
 
-	audio	dma
-	i82365	cis
+	audio		dma
+	i82365
 	lpt
 	ns16552
 
@@ -42,8 +41,6 @@ link
 	ethermedium
 	pcmciamodem
 	netdevmedium
-	loopbackmedium
-	watchdog	watchdog
 
 misc
 	archmp		mp apic

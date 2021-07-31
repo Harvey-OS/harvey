@@ -36,7 +36,6 @@ OFILES=\
 	sclose.$O\
 	setbuf.$O\
 	setvbuf.$O\
-	snprintf.$O\
 	sopenr.$O\
 	sopenw.$O\
 	sprintf.$O\
@@ -47,7 +46,6 @@ OFILES=\
 	vfprintf.$O\
 	vfscanf.$O\
 	vprintf.$O\
-	vsnprintf.$O\
 	vsprintf.$O\
 
 HFILES=/sys/include/stdio.h\

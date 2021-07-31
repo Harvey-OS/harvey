@@ -1,21 +1,21 @@
 #    Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This file is part of Aladdin Ghostscript.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+# or distributor accepts any responsibility for the consequences of using it,
+# or for whether it serves any particular purpose or works at all, unless he
+# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+# License (the "License") for full details.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# Every copy of Aladdin Ghostscript must include a copy of the License,
+# normally in a plain ASCII text file named PUBLIC.  The License grants you
+# the right to copy, modify and redistribute Aladdin Ghostscript, but only
+# under certain conditions described in the License.  Among other things, the
+# License requires that the copyright notice and this notice be preserved on
+# all copies.
 
-# $Id: contrib.mak,v 1.20 2000/09/19 19:00:09 lpd Exp $
+# $Id: contrib.mak,v 1.5 2000/03/16 08:09:42 lpd Exp $
 # makefile for contributed device drivers.
 
 # Define the name of this makefile.
@@ -28,100 +28,95 @@ CONTRIB_MAK=$(GLSRC)contrib.mak
 
 # Displays:
 #   MS-DOS (note: not usable with Desqview/X):
-#	herc	Hercules Graphics display   [MS-DOS only]
-#	pe	Private Eye display
+# *	herc	Hercules Graphics display   [MS-DOS only]
+# *	pe	Private Eye display
 #   Unix and VMS:
-#	att3b1	AT&T 3b1/Unixpc monochrome display   [3b1 only]
-#	sonyfb	Sony Microsystems monochrome display   [Sony only]
-#	sunview  SunView window system   [SunOS only]
+# *	att3b1	AT&T 3b1/Unixpc monochrome display   [3b1 only]
+# *	sonyfb	Sony Microsystems monochrome display   [Sony only]
+# *	sunview  SunView window system   [SunOS only]
 # Printers:
-#	ap3250	Epson AP3250 printer
-#	appledmp  Apple Dot Matrix Printer (should also work with Imagewriter)
-#	bj10e	Canon BubbleJet BJ10e
-#	bj200	Canon BubbleJet BJ200; also good for BJ300 in ProPrinter mode
-#		(see comments in source code)
-#	bjc600   Canon Color BubbleJet BJC-600, BJC-4000 and BJC-70
+# *	ap3250	Epson AP3250 printer
+# *	appledmp  Apple Dot Matrix Printer (should also work with Imagewriter)
+# *	bj10e	Canon BubbleJet BJ10e
+# *	bj200	Canon BubbleJet BJ200
+# *	bjc600   Canon Color BubbleJet BJC-600, BJC-4000 and BJC-70
 #               also good for Apple printers like the StyleWriter 2x00
-#	bjc800   Canon Color BubbleJet BJC-800
-#	ccr     CalComp Raster format
-#	cdeskjet  H-P DeskJet 500C with 1 bit/pixel color
-#	cdjcolor  H-P DeskJet 500C with 24 bit/pixel color and
+# *	bjc800   Canon Color BubbleJet BJC-800
+# *     ccr     CalComp Raster format
+# *	cdeskjet  H-P DeskJet 500C with 1 bit/pixel color
+# *	cdjcolor  H-P DeskJet 500C with 24 bit/pixel color and
 #		high-quality color (Floyd-Steinberg) dithering;
 #		also good for DeskJet 540C and Citizen Projet IIc (-r200x300)
-#	cdjmono  H-P DeskJet 500C printing black only;
+# *	cdjmono  H-P DeskJet 500C printing black only;
 #		also good for DeskJet 510, 520, and 540C (black only)
-#	cdj500	H-P DeskJet 500C (same as cdjcolor)
-#	cdj550	H-P DeskJet 550C/560C/660C/660Cse
-#	cljet5	H-P Color LaserJet 5/5M (see below for some notes)
-#	cljet5c  H-P Color LaserJet 5/5M (see below for some notes)
-#	coslw2p  CoStar LabelWriter II II/Plus
-#	coslwxl  CoStar LabelWriter XL
-#	cp50	Mitsubishi CP50 color printer
-#	declj250  alternate DEC LJ250 driver
-#	djet500c  H-P DeskJet 500C alternate driver
+# *	cdj500	H-P DeskJet 500C (same as cdjcolor)
+# *	cdj550	H-P DeskJet 550C/560C/660C/660Cse
+# *	coslw2p  CoStar LabelWriter II II/Plus
+# *	coslwxl  CoStar LabelWriter XL
+# *	cp50	Mitsubishi CP50 color printer
+# *	declj250  alternate DEC LJ250 driver
+# *	djet500c  H-P DeskJet 500C alternate driver
 #		(does not work on 550C or 560C)
-#	dnj650c  H-P DesignJet 650C
+# *	dnj650c  H-P DesignJet 650C
 #	epson	Epson-compatible dot matrix printers (9- or 24-pin)
-#	eps9mid  Epson-compatible 9-pin, interleaved lines
+# *	eps9mid  Epson-compatible 9-pin, interleaved lines
 #		(intermediate resolution)
-#	eps9high  Epson-compatible 9-pin, interleaved lines
+# *	eps9high  Epson-compatible 9-pin, interleaved lines
 #		(triple resolution)
-#	epsonc	Epson LQ-2550 and Fujitsu 3400/2400/1200 color printers
-#	hl7x0   Brother HL 720 and HL 730 (HL 760 is PCL compliant);
+# *	epsonc	Epson LQ-2550 and Fujitsu 3400/2400/1200 color printers
+# *	hl7x0   Brother HL 720 and HL 730 (HL 760 is PCL compliant);
 #		also usable with the MFC6550MC Fax Machine.
-#	ibmpro  IBM 9-pin Proprinter
-#	imagen	Imagen ImPress printers
-#	iwhi	Apple Imagewriter in high-resolution mode
-#	iwlo	Apple Imagewriter in low-resolution mode
-#	iwlq	Apple Imagewriter LQ in 320 x 216 dpi mode
-#	jetp3852  IBM Jetprinter ink-jet color printer (Model #3852)
-#	lbp8	Canon LBP-8II laser printer
-#	lips3	Canon LIPS III laser printer in English (CaPSL) mode
-#	lj250	DEC LJ250 Companion color printer
-#	lj3100sw H-P LaserJet 3100 (requires installed HP-Software)
-#	lj4dith  H-P LaserJet 4 with Floyd-Steinberg dithering
-#	lp8000	Epson LP-8000 laser printer
-#	lq850   Epson LQ850 printer at 360 x 360 DPI resolution;
+# *	ibmpro  IBM 9-pin Proprinter
+# *	imagen	Imagen ImPress printers
+# *	iwhi	Apple Imagewriter in high-resolution mode
+# *	iwlo	Apple Imagewriter in low-resolution mode
+# *	iwlq	Apple Imagewriter LQ in 320 x 216 dpi mode
+# *	jetp3852  IBM Jetprinter ink-jet color printer (Model #3852)
+# *	lbp8	Canon LBP-8II laser printer
+# *	lips3	Canon LIPS III laser printer in English (CaPSL) mode
+# *	lj250	DEC LJ250 Companion color printer
+# *	lj3100sw H-P LaserJet 3100 (requires installed HP-Software)
+# +	lj4dith  H-P LaserJet 4 with Floyd-Steinberg dithering
+# *	lp8000	Epson LP-8000 laser printer
+# *     lq850   Epson LQ850 printer at 360 x 360 DPI resolution;
 #               also good for Canon BJ300 with LQ850 emulation
-#	lxm5700m Lexmark 5700 monotone
-#	m8510	C.Itoh M8510 printer
-#	necp6	NEC P6/P6+/P60 printers at 360 x 360 DPI resolution
-#	nwp533  Sony Microsystems NWP533 laser printer   [Sony only]
-#	oki182	Okidata MicroLine 182
-#	okiibm	Okidata MicroLine IBM-compatible printers
-#	paintjet  alternate H-P PaintJet color printer
-#	photoex  Epson Stylus Color Photo, Photo EX, Photo 700
-#	pj	H-P PaintJet XL driver 
-#	pjetxl	alternate H-P PaintJet XL driver
-#	pjxl	H-P PaintJet XL color printer
-#	pjxl300  H-P PaintJet XL300 color printer;
+# *	lxm5700m Lexmark 5700 monotone
+# *	m8510	C.Itoh M8510 printer
+# *	necp6	NEC P6/P6+/P60 printers at 360 x 360 DPI resolution
+# *	nwp533  Sony Microsystems NWP533 laser printer   [Sony only]
+# *	oki182	Okidata MicroLine 182
+# *	okiibm	Okidata MicroLine IBM-compatible printers
+# *	paintjet  alternate H-P PaintJet color printer
+# *	pj	H-P PaintJet XL driver 
+# *	pjetxl	alternate H-P PaintJet XL driver
+# *	pjxl	H-P PaintJet XL color printer
+# *	pjxl300  H-P PaintJet XL300 color printer;
 #		also good for PaintJet 1200C and CopyJet
-#	r4081	Ricoh 4081 laser printer
-#	sj48	StarJet 48 inkjet printer
-#	sparc	SPARCprinter
-#	st800	Epson Stylus 800 printer
-#	stcolor	Epson Stylus Color
-#	t4693d2  Tektronix 4693d color printer, 2 bits per R/G/B component
-#	t4693d4  Tektronix 4693d color printer, 4 bits per R/G/B component
-#	t4693d8  Tektronix 4693d color printer, 8 bits per R/G/B component
-#	tek4696  Tektronix 4695/4696 inkjet plotter
-#	uniprint  Unified printer driver -- Configurable Color ESC/P-,
+# *	r4081	Ricoh 4081 laser printer
+# *	sj48	StarJet 48 inkjet printer
+# *	sparc	SPARCprinter
+# *	st800	Epson Stylus 800 printer
+# *	stcolor	Epson Stylus Color
+# *	t4693d2  Tektronix 4693d color printer, 2 bits per R/G/B component
+# *	t4693d4  Tektronix 4693d color printer, 4 bits per R/G/B component
+# *	t4693d8  Tektronix 4693d color printer, 8 bits per R/G/B component
+# *	tek4696  Tektronix 4695/4696 inkjet plotter
+# *	uniprint  Unified printer driver -- Configurable Color ESC/P-,
 #		ESC/P2-, HP-RTL/PCL mono/color driver
 # Fax systems:
-#	cfax	SFF format for CAPI fax interface
-#	dfaxhigh  DigiBoard, Inc.'s DigiFAX software format (high resolution)
-#	dfaxlow  DigiFAX low (normal) resolution
+# *	dfaxhigh  DigiBoard, Inc.'s DigiFAX software format (high resolution)
+# *	dfaxlow  DigiFAX low (normal) resolution
 # Other raster file formats and devices:
-#	cif	CIF file format for VLSI
-#	inferno  Inferno bitmaps
-#	mgrmono  1-bit monochrome MGR devices
-#	mgrgray2  2-bit gray scale MGR devices
-#	mgrgray4  4-bit gray scale MGR devices
-#	mgrgray8  8-bit gray scale MGR devices
-#	mgr4	4-bit (VGA) color MGR devices
-#	mgr8	8-bit color MGR devices
-#	sgirgb	SGI RGB pixmap format
-#	sunhmono  Harlequin variant of 1-bit Sun raster file
+# *	cif	CIF file format for VLSI
+# *	inferno  Inferno bitmaps
+# *	mgrmono  1-bit monochrome MGR devices
+# *	mgrgray2  2-bit gray scale MGR devices
+# *	mgrgray4  4-bit gray scale MGR devices
+# *	mgrgray8  8-bit gray scale MGR devices
+# *	mgr4	4-bit (VGA) color MGR devices
+# *	mgr8	8-bit color MGR devices
+# *	sgirgb	SGI RGB pixmap format
+# *	sunhmono  Harlequin variant of 1-bit Sun raster file
 
 # If you add drivers, it would be nice if you kept each list
 # in alphabetical order.
@@ -252,9 +247,8 @@ $(GLOBJ)gdevccr.$(OBJ) : $(GLSRC)gdevccr.c $(PDEVH)
 ###       please contact koert@zen.cais.com.                              ###
 ###   If you have questions about the lj4dith driver,                     ###
 ###       please contact Eckhard.Rueggeberg@ts.go.dlr.de.                 ###
-###   The BJC600/BJC4000, BJC800, and ESCP were originally contributed    ###
-###       by yves.arrouye@usa.net, but he no longer answers questions     ###
-###       about them.                                                     ###
+###   If you have questions about the BJC600/BJC4000, BJC800, or ESCP     ###
+###       drivers, please contact yves.arrouye@usa.net.                   ###
 
 cdeskjet_=$(GLOBJ)gdevcdj.$(OBJ) $(HPPCL)
 
@@ -320,38 +314,6 @@ $(DD)djet500c.dev : $(djet500c_) $(DD)page.dev
 $(GLOBJ)gdevdjtc.$(OBJ) : $(GLSRC)gdevdjtc.c $(PDEVH) $(malloc__h) $(gdevpcl_h)
 	$(GLCC) $(GLO_)gdevdjtc.$(OBJ) $(C_) $(GLSRC)gdevdjtc.c
 
-### -------------------- The H-P Color LaserJet 5/5M -------------------- ###
-
-### There are two different drivers for this device.
-### For questions about the cljet5/cljet5pr (more general) driver, contact
-###	Jan Stoeckenius <jan@orimp.com>
-### For questions about the cljet5c (simple) driver, contact
-###	Henry Stiles <henrys@meerkat.dimensional.com>
-### Note that this is a long-edge-feed device, so the default page size is
-### wider than it is high.  To print portrait pages, specify the page size
-### explicitly, e.g. -c letter or -c a4 on the command line.
-
-cljet5_=$(GLOBJ)gdevclj.$(OBJ) $(HPPCL)
-
-$(DD)cljet5.dev : $(DEVS_MAK) $(cljet5_) $(GLD)page.dev
-	$(SETPDEV) $(DD)cljet5 $(cljet5_)
-
-# The cljet5pr driver has hacks for trying to handle page rotation.
-# The hacks only work with one special PCL interpreter.  Don't use it!
-$(DD)cljet5pr.dev : $(DEVS_MAK) $(cljet5_) $(GLD)page.dev
-	$(SETPDEV) $(DD)cljet5pr $(cljet5_)
-
-$(GLOBJ)gdevclj.$(OBJ) : $(GLSRC)gdevclj.c $(math__h) $(PDEVH)\
- $(gx_h) $(gsparam_h) $(gdevpcl_h)
-	$(GLCC) $(GLO_)gdevclj.$(OBJ) $(C_) $(GLSRC)gdevclj.c
-
-cljet5c_=$(GLOBJ)gdevcljc.$(OBJ) $(HPPCL)
-$(DD)cljet5c.dev : $(DEVS_MAK) $(cljet5c_) $(GLD)page.dev
-	$(SETPDEV) $(DD)cljet5c $(cljet5c_)
-
-$(GLOBJ)gdevcljc.$(OBJ) : $(GLSRC)gdevcljc.c $(math__h) $(PDEVH) $(gdevpcl_h)
-	$(GLCC) $(GLO_)gdevcljc.$(OBJ) $(C_) $(GLSRC)gdevcljc.c
-
 ### --------------- The H-P LaserJet 3100 software device --------------- ###
 
 ### NOTE: This driver requires installed HP-Software to print.            ###
@@ -381,7 +343,7 @@ $(DD)coslw2p.dev : $(coslw_) $(DD)page.dev
 	$(SETPDEV) $(DD)coslw2p $(coslw_)
 
 $(DD)coslwxl.dev : $(coslw_) $(DD)page.dev
-	$(SETPDEV) $(DD)coslwxl $(coslw_)
+	$(SETPDEV) ($DD)coslwxl $(coslw_)
 
 $(GLOBJ)gdevcslw.$(OBJ) : $(GLSRC)gdevcslw.c $(PDEVH)
 	$(GLCC) $(GLO_)gdevcslw.$(OBJ) $(C_) $(GLSRC)gdevcslw.c
@@ -485,6 +447,40 @@ $(DD)uniprint.dev : $(uniprint_) $(DD)page.dev
 
 $(GLOBJ)gdevupd.$(OBJ) : $(GLSRC)gdevupd.c $(PDEVH) $(gsparam_h)
 	$(GLCC) $(GLO_)gdevupd.$(OBJ) $(C_) $(GLSRC)gdevupd.c
+
+### -------------- cdj850 - HP 850c Driver under development ------------- ###
+### For questions about this driver, please contact:                       ###
+###       Uli Wortmann (uliw@erdw.ethz.ch)                                 ###
+
+cdeskjet8_=$(GLOBJ)gdevcd8.$(OBJ) $(HPPCL)
+
+$(DD)cdj850.dev : $(cdeskjet8_) $(DD)page.dev
+	$(SETPDEV2) $(DD)cdj850 $(cdeskjet8_)
+
+$(DD)cdj670.dev : $(cdeskjet8_) $(DD)page.dev
+	$(SETPDEV2) $(DD)cdj670 $(cdeskjet8_)
+
+$(DD)cdj890.dev : $(cdeskjet8_) $(DD)page.dev
+	$(SETPDEV2) $(DD)cdj890 $(cdeskjet8_)
+
+$(DD)cdj1600.dev : $(cdeskjet8_) $(DD)page.dev
+	$(SETPDEV2) $(DD)cdj1600 $(cdeskjet8_)
+
+$(GLOBJ)gdevcd8.$(OBJ) : $(GLSRC)gdevcd8.c $(PDEVH) $(math__h)\
+ $(gsparam_h) $(gxlum_h) $(gdevpcl_h)
+	$(GLCC) $(GLO_)gdevcd8.$(OBJ) $(C_) $(GLSRC)gdevcd8.c
+
+### -------------- cdj880 - HP 880c Driver under development ------------- ###
+### Since this driver is in the development phase it is not distributed    ###
+### with Ghostscript, but is available from                                ###
+###   http://www.proaxis.com/~mgelhaus/linux/software/hp880c/hp880c.html   ###
+### For questions about this driver, please contact:                       ###
+###       Matthew Gelhaus (mgelhaus@proaxis.com)                           ###
+
+### NOTE:  Depends on the presence of the cdj850 section above.            ###
+
+$(DD)cdj880.dev : $(cdeskjet8_) $(DD)page.dev
+	$(SETPDEV2) $(DD)cdj880 $(cdeskjet8_)
 
 ### ------------ The H-P PaintJet color printer device ----------------- ###
 ### Note: this driver also supports the DEC LJ250 color printer, which   ###
@@ -638,17 +634,6 @@ $(DD)okiibm.dev : $(okiibm_) $(DD)page.dev
 $(GLOBJ)gdevokii.$(OBJ) : $(GLSRC)gdevokii.c $(PDEVH)
 	$(GLCC) $(GLO_)gdevokii.$(OBJ) $(C_) $(GLSRC)gdevokii.c
 
-### ------------------ The Epson Stylus Photo devices ------------------ ###
-### This driver was contributed by a user: please contact                ###
-###	Zoltan Kocsi (zoltan@bendor.com.au) if you have questions.       ###
-
-photoex_=$(GLOBJ)gdevphex.$(OBJ)
-$(DD)photoex.dev : $(photoex_) $(DD)page.dev
-	$(SETPDEV) $(DD)photoex $(photoex_)
-
-$(GLOBJ)gdevphex.$(OBJ) : $(GLSRC)gdevphex.c $(PDEVH)
-	$(GLCC) $(GLO_)gdevphex.$(OBJ) $(C_) $(GLSRC)gdevphex.c
-
 ### ------------- The Ricoh 4081 laser printer device ------------------ ###
 ### Note: this driver was contributed by users:                          ###
 ###       please contact kdw@oasis.icl.co.uk if you have questions.      ###
@@ -728,20 +713,6 @@ $(GLOBJ)gdevtknk.$(OBJ) : $(GLSRC)gdevtknk.c $(PDEVH) $(malloc__h)
 
 ###### ------------------------- Fax devices ------------------------- ######
 
-### ------------------------- CAPI fax devices -------------------------- ###
-### Note: this driver was contributed by a user: please contact           ###
-###       Peter Schaefer <peter.schaefer@gmx.de> if you have questions.   ###
-
-cfax_=$(GLOBJ)gdevcfax.$(OBJ)
-
-$(DD)cfax.dev : $(cfax_) $(DD)fax.dev
-	$(SETDEV) $(DD)cfax $(cfax_)
-	$(ADDMOD) $(DD)cfax -include $(DD)fax
-
-$(GLOBJ)gdevcfax.$(OBJ) : $(GLSRC)gdevcfax.c $(PDEVH)\
- $(gdevfax_h) $(scfx_h) $(strimpl_h)
-	$(GLCC) $(GLO_)gdevcfax.$(OBJ) $(C_) $(GLSRC)gdevcfax.c
-
 ### ------------------------- The DigiFAX device ------------------------ ###
 ###    This driver outputs images in a format suitable for use with       ###
 ###    DigiBoard, Inc.'s DigiFAX software.  Use -sDEVICE=dfaxhigh for     ###
@@ -760,7 +731,7 @@ $(DD)dfaxhigh.dev : $(dfax_) $(DD)tfax.dev
 	$(ADDMOD) $(GLGEN)dfaxhigh -include $(DD)tfax
 
 $(GLOBJ)gdevdfax.$(OBJ) : $(GLSRC)gdevdfax.c $(PDEVH)\
- $(gdevfax_h) $(gdevtfax_h) $(scfx_h) $(strimpl_h)
+ $(gdevtfax_h) $(scfx_h) $(strimpl_h)
 	$(GLCC) $(GLO_)gdevdfax.$(OBJ) $(C_) $(GLSRC)gdevdfax.c
 
 ###### --------------------- Raster file formats --------------------- ######

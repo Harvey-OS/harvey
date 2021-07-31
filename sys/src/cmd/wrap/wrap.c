@@ -101,7 +101,7 @@ sniffdir(char *base, char *elem, vlong *pt)
 	rv = 0;
 	p = mkpath3(base, elem, "package");
 	if(access(p, 0) >= 0)
-		rv |= FULL;
+		rv |= PKG;
 	free(p);
 
 	p = mkpath3(base, elem, "update");
@@ -121,19 +121,19 @@ updatecmp(void *va, void *vb)
 
 	a = va;
 	b = vb;
-	if(a->time == b->time)
+	if(a->utime == b->utime)
 		return 0;
-	if(a->time < b->time)
+	if(a->utime > b->utime)
 		return -1;
 	return 1;
 }
 
 static int
-openupdate(Update **up, char *dir, vlong *tfullp)
+openupdate(Update **up, char *dir, vlong *tpkgp)
 {
 	Dir d;
-	int i, type, fd;
-	vlong t, tbase, tfull;
+	int type, fd;
+	vlong t, tpkg, tpkgupd;
 	Update *u;
 	int nu;
 
@@ -148,22 +148,20 @@ openupdate(Update **up, char *dir, vlong *tfullp)
 	 * If there are no packages installed, 
 	 * grab all the updates we can find.
 	 */
-	tbase = -1;
-	tfull = -1;
+	tpkg = -1;
+	tpkgupd = -1;
 	nu = 0;
 	while(dirread(fd, &d, sizeof(d)) == sizeof(d)) {
 		switch(sniffdir(dir, d.name, &t)) {
-		case FULL:
+		case PKG:
 			nu++;
-			if(tfull < t)
-				tfull = t;
-			if(tbase < t)
-				tbase = t;
+			if(t > tpkg)
+				tpkg = t;
 			break;
-		case FULL|UPD:
+		case PKG|UPD:
 			nu++;
-			if(tfull < t)
-				tfull = t;
+			if(t > tpkgupd)
+				tpkgupd = t;
 			break;
 		case UPD:
 			nu++;
@@ -175,6 +173,12 @@ openupdate(Update **up, char *dir, vlong *tfullp)
 	if(nu == 0)
 		return -1;
 
+	/*
+	 * A new full package is better than an old package update.
+	 */
+	if(tpkg > tpkgupd)
+		tpkgupd = tpkg;
+
 	u = nil;
 	nu = 0;
 	if((fd = open(dir, OREAD)) < 0)
@@ -182,9 +186,9 @@ openupdate(Update **up, char *dir, vlong *tfullp)
 	while(dirread(fd, &d, sizeof(d)) == sizeof(d)) {
 		if((type = sniffdir(dir, d.name, &t)) == 0)
 			continue;
-		if(t < tbase)
+		if(t < tpkg)
 			continue;
-		if(t < tfull && type == UPD)
+		if(t < tpkgupd && type == UPD)
 			continue;
 		if(nu%8 == 0)
 			u = erealloc(u, (nu+8)*sizeof(u[0]));
@@ -197,38 +201,8 @@ openupdate(Update **up, char *dir, vlong *tfullp)
 		return -1;
 
 	qsort(u, nu, sizeof(u[0]), updatecmp);
-
-	/*
-	 * paranoia: i never get the bloody sort correct.
-	 * check that times ascend, and that the order of
-	 * types is FULL? FULL|UPD* UPD*
-	 */
-	type = FULL;
-	for(i=0; i<nu; i++) {
-		if(0<i)
-			assert(u[i-1].time < u[i].time);
-		if(u[i].type != type) {
-			switch(u[i].type) {
-			case FULL:
-				assert(0);
-			case FULL|UPD:
-				assert(type == FULL);
-				type = FULL|UPD;
-				break;
-			case UPD:
-				assert(type == FULL || (type == FULL|UPD));
-				type = UPD;
-				break;
-			default:
-				assert(0);
-			}
-		}
-	}
-	if(nu > 1)
-		assert(u[1].type != FULL);
-
 	*up = u;
-	*tfullp = tfull;	/* save time of last complete set of files */
+	*tpkgp = tpkgupd;	/* save time of last virtual full package */
 	return nu;
 }
 
@@ -252,7 +226,7 @@ openmount(char *name, char *root)
 	w->root = estrdup(root);
 	p = mkpath3(root, "wrap", name);
 
-	if((w->nu = openupdate(&w->u, p, &w->tfull)) < 0) {
+	if((w->nu = openupdate(&w->u, p, &w->time)) < 0) {
 		free(p);
 		closewrap(w);
 		return nil;
@@ -329,32 +303,35 @@ openwraphdr(char *name, char *root, char **prefix, int nprefix)
 	return openwrap(nname, "/mnt/wrap");
 }
 
-/*
- * Find the newest package containing file (with MD5 sum rdigest
- * when specified).  Return 0 if found, -1 if not.
- * If found and t != nil, set t to the time of the package,
- * if found and wdigest != nil, set wdigest to MD5sum.
- */
 static char *hex = "0123456789abcdef";
 int
-getfileinfo(Wrap *w, char *file, vlong *t, uchar *rdigest, uchar *wdigest)
+getfileinfo(Wrap *w, char *file, vlong *t, uchar *digest)
 {
-	int j, i, a, b;
+	int i, a, b;
 	char *p, *q;
-	uchar digest[MD5dlen];
+	Update *u;
 
 	if(w == nil)
 		return -1;
 
-	for(j=w->nu-1; j>=0; j--) {
-		if((p=Bsearch(w->u[j].bmd5, file)) == nil)
-			continue;
+	p = nil;
+	for(i=w->nu-1; i>=0; i--)
+		if(p=Bsearch(w->u[i].bmd5, file))
+			break;
 
+	if(p == nil)
+		return -1;
+
+	u = &w->u[i];
+	if(t)
+		*t = u->time;
+
+	if(digest) {
 		q = strchr(p, ' ');
 		if(q == nil)
-			continue;
+			return -1;
+	
 		q++;
-
 		for(i=0; i<MD5dlen; i++) {
 			if((p = strchr(hex, q[2*i])) == nil)
 				break;
@@ -365,20 +342,8 @@ getfileinfo(Wrap *w, char *file, vlong *t, uchar *rdigest, uchar *wdigest)
 			digest[i] = (a<<4)|b;
 		}
 		if(i != MD5dlen)
-			continue;
-
-		if(rdigest==nil || memcmp(rdigest, digest, MD5dlen)==0)
-			break;
+			return -1;
 	}
-
-	if(j < 0)
-		return -1;
-
-	if(wdigest)
-		memmove(wdigest, digest, MD5dlen);
-
-	if(t)
-		*t = w->u[j].time;
 
 	return 0;
 }

@@ -7,7 +7,6 @@ border(Image *im, Rectangle r, int i, Image *color, Point sp)
 {
 	if(i < 0){
 		r = insetrect(r, i);
-		sp = addpt(sp, Pt(i,i));
 		i = -i;
 	}
 	draw(im, Rect(r.min.x, r.min.y, r.max.x, r.min.y+i),

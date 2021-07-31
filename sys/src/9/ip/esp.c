@@ -145,6 +145,7 @@ espconnect(Conv *c, char **argv, int argc)
 	ulong spi;
 	Espcb *ecb = (Espcb*)c->ptcl;
 
+	qlock(c);
 	switch(argc) {
 	default:
 		e = "bad args to connect";
@@ -183,6 +184,7 @@ espconnect(Conv *c, char **argv, int argc)
 		nullespinit(ecb, "null", nil, 0);
 		nullahinit(ecb, "null", nil, 0);
 	}
+	qunlock(c);
 	Fsconnected(c, e);
 
 	return e;
@@ -217,10 +219,12 @@ espclose(Conv *c)
 	free(ecb->espstate);
 	free(ecb->ahstate);
 	memset(ecb, 0, sizeof(Espcb));
+	
+	qunlock(c);
 }
 
 void
-espkick(Conv *c)
+espkick(Conv *c, int)
 {
 	Esphdr *eh;
 	Esptail *et;
@@ -424,6 +428,7 @@ espctl(Conv *c, char **f, int n)
 	Espcb *ecb = c->ptcl;
 	char *e = nil;
 
+	qlock(c);
 	if(strcmp(f[0], "esp") == 0)
 		e = setalg(ecb, f, n, espalg);
 	else if(strcmp(f[0], "ah") == 0)
@@ -434,6 +439,7 @@ espctl(Conv *c, char **f, int n)
 		ecb->header = 0;
 	else
 		e = "unknown control request";
+	qunlock(c);
 	return e;
 }
 

@@ -326,7 +326,7 @@ i8042reset(void)
  *  keyboard interrupt
  */
 static void
-i8042intr(Ureg*, void*)
+kbdintr(Ureg*, void*)
 {
 	int s, c;
 	static int esc1, esc2;
@@ -410,7 +410,7 @@ i8042intr(Ureg*, void*)
 	if(!(c & Spec)){
 		if(ctl){
 			if(alt && c == Del)
-				warp86("\nCtrl-Alt-Del\n", 0);
+				panic("Ctrl-Alt-Del");
 			c &= 0x1f;
 		}
 		switch(lstate){
@@ -456,7 +456,7 @@ i8042intr(Ureg*, void*)
 static char *initfailed = "kbd init failed\n";
 
 void
-i8042init(void)
+kbdinit(void)
 {
 	int c;
 
@@ -485,5 +485,5 @@ i8042init(void)
 	if(outready() < 0)
 		print(initfailed);
 
-	setvec(VectorKBD, i8042intr, 0);
+	setvec(VectorKBD, kbdintr, 0);
 }

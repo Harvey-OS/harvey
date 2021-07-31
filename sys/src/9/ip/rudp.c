@@ -147,7 +147,6 @@ typedef struct Rudppriv Rudppriv;
 struct Rudppriv
 {
 	Rendez	vous;
-	Ipht	ht;
 
 	/* MIB counters */
 	Rudpstats	ustats;
@@ -215,13 +214,10 @@ static char*
 rudpconnect(Conv *c, char **argv, int argc)
 {
 	char *e;
-	Rudppriv *upriv;
 
-	upriv = c->p->priv;
 	rudpstartackproc(c->p);
 	e = Fsstdconnect(c, argv, argc);
 	Fsconnected(c, e);
-	iphtadd(&upriv->ht, c);
 
 	return e;
 }
@@ -247,15 +243,12 @@ static char*
 rudpannounce(Conv *c, char** argv, int argc)
 {
 	char *e;
-	Rudppriv *upriv;
 
-	upriv = c->p->priv;
 	rudpstartackproc(c->p);
 	e = Fsstdannounce(c, argv, argc);
 	if(e != nil)
 		return e;
 	Fsconnected(c, nil);
-	iphtadd(&upriv->ht, c);
 
 	return nil;
 }
@@ -272,10 +265,6 @@ rudpclose(Conv *c)
 {
 	Rudpcb *ucb;
 	Reliable *r, *nr;
-	Rudppriv *upriv;
-
-	upriv = c->p->priv;
-	iphtrem(&upriv->ht, c);
 
 	/* force out any delayed acks */
 	ucb = (Rudpcb*)c->ptcl;
@@ -307,6 +296,7 @@ rudpclose(Conv *c)
 	ucb->r = 0;
 
 	qunlock(ucb);
+	qunlock(c);
 }
 
 /*
@@ -333,7 +323,7 @@ flow(void *v)
 }
 
 void
-rudpkick(Conv *c)
+rudpkick(Conv *c, int)
 {
 	Udphdr *uh;
 	ushort rport;
@@ -479,7 +469,7 @@ rudpiput(Proto *rudp, uchar *ia, Block *bp)
 {
 	int len, olen, ottl;
 	Udphdr *uh;
-	Conv *c;
+	Conv *c, **p;
 	Rudpcb *ucb;
 	uchar raddr[IPaddrlen], laddr[IPaddrlen];
 	ushort rport, lport;
@@ -520,12 +510,33 @@ rudpiput(Proto *rudp, uchar *ia, Block *bp)
 
 	qlock(rudp);
 
-	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
-	if(c == nil){
-		/* no converstation found */
-		upriv->ustats.rudpNoPorts++;
+	/* Look for a conversation structure for this port */
+	c = nil;
+	for(p = rudp->conv; *p; p++) {
+		c = *p;
+		if(c->inuse == 0)
+			continue;
+		if(c->lport == lport){
+			ucb = (Rudpcb*)c->ptcl;
+
+			/* with headers turned on, descriminate only on local port */
+			if(ucb->headers)
+				break;
+
+			/* otherwise discriminate on lport, rport, and raddr */
+			if(c->rport == 0 || c->rport == rport)
+			if(ipisbm(c->raddr) || ipcmp(c->raddr, IPnoaddr) == 0
+			   || ipcmp(c->raddr, raddr) == 0)
+				break;
+		}
+	}
+
+	if(*p == nil) {
 		qunlock(rudp);
-		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
+		upriv->ustats.rudpNoPorts++;
+		netlog(f, Logrudp, "rudp: no conv %I!%d -> %I!%d\n", raddr, rport,
+			laddr, lport);
+		DPRINT("rudp: no conv %I!%d -> %I!%d\n", raddr, rport,
 			laddr, lport);
 		uh->Unused = ottl;
 		hnputs(uh->udpplen, olen);
@@ -533,6 +544,7 @@ rudpiput(Proto *rudp, uchar *ia, Block *bp)
 		freeblist(bp);
 		return;
 	}
+
 	ucb = (Rudpcb*)c->ptcl;
 	qlock(ucb);
 	qunlock(rudp);

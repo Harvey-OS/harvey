@@ -1,28 +1,26 @@
-/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1993, 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gsparam.h,v 1.7 2000/09/19 19:00:30 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gsparam.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
 /* Client interface to parameter dictionaries */
 
 #ifndef gsparam_INCLUDED
 #  define gsparam_INCLUDED
-
-#include "gsstype.h"
 
 /*
  * Several interfaces use parameter dictionaries to communicate sets of
@@ -138,21 +136,13 @@ typedef union gs_param_value_s {
 
 /*
  * Define a structure containing a dynamically typed value (a value along
- * with its type).
+ * with its type).  Since parameter lists are transient, we don't bother
+ * to create a GC descriptor for this.
  */
 typedef struct gs_param_typed_value_s {
     gs_param_value value;
     gs_param_type type;
 } gs_param_typed_value;
-/*
- * Garbage collection of gs_param_values depends on the value type and on
- * the 'd' member of the union.  We provide enum_ptrs and reloc_ptrs
- * procedures that handle all the other cases -- i.e., cases other than
- * heterogenous collections.
- */
-struct_proc_enum_ptrs(gs_param_typed_value_enum_ptrs);
-struct_proc_reloc_ptrs(gs_param_typed_value_reloc_ptrs);
-#define gs_param_typed_value_max_ptrs 1
 
 /*
  * Define the representation alternatives for heterogenous collections.
@@ -197,7 +187,7 @@ typedef union gs_param_enumerator_s {
     void *pvoid;
     char *pchar;
 } gs_param_enumerator_t;
-typedef gs_param_string gs_param_key_t;
+typedef gs_const_string gs_param_key_t;
 
 /*
  * Define the object procedures.  Note that the same interface is used
@@ -406,14 +396,10 @@ int param_read_int_array(P3(gs_param_list *, gs_param_name,
 			    gs_param_int_array *));
 int param_write_int_array(P3(gs_param_list *, gs_param_name,
 			     const gs_param_int_array *));
-int param_write_int_values(P5(gs_param_list *, gs_param_name,
-			      const int *, uint, bool));
 int param_read_float_array(P3(gs_param_list *, gs_param_name,
 			      gs_param_float_array *));
 int param_write_float_array(P3(gs_param_list *, gs_param_name,
 			       const gs_param_float_array *));
-int param_write_float_values(P5(gs_param_list *, gs_param_name,
-				const float *, uint, bool));
 int param_read_string_array(P3(gs_param_list *, gs_param_name,
 			       gs_param_string_array *));
 int param_write_string_array(P3(gs_param_list *, gs_param_name,
@@ -423,26 +409,14 @@ int param_read_name_array(P3(gs_param_list *, gs_param_name,
 int param_write_name_array(P3(gs_param_list *, gs_param_name,
 			      const gs_param_string_array *));
 
-/*
- * Define an abstract parameter list.  Implementations are concrete
- * subclasses.
- *
- * The persisent_keys flag allows for both statically and dynamically
- * allocated keys.  The default is static (the keys are normally C string
- * literals).
- */
+/* Define an abstract parameter dictionary.  Implementations are */
+/* concrete subclasses. */
 #define gs_param_list_common\
-    const gs_param_list_procs *procs;\
-    gs_memory_t *memory;	/* for allocating coerced arrays */\
-    bool persistent_keys
+	const gs_param_list_procs *procs;\
+	gs_memory_t *memory	/* for allocating coerced arrays */
 struct gs_param_list_s {
     gs_param_list_common;
 };
-
-/* Set whether the keys for param_write_XXX are persistent. */
-/* VMS limits procedure names to 31 characters. */
-#define gs_param_list_set_persistent_keys gs_param_list_set_persist_keys
-void gs_param_list_set_persistent_keys(P2(gs_param_list *, bool));
 
 /* Initialize a parameter list key enumerator. */
 void param_init_enumerator(P1(gs_param_enumerator_t * penum));
@@ -468,18 +442,6 @@ int gs_param_read_items(P3(gs_param_list * plist, void *obj,
 int gs_param_write_items(P4(gs_param_list * plist, const void *obj,
 			    const void *default_obj,
 			    const gs_param_item_t * items));
-
-/* Internal procedure to initialize the common part of a parameter list. */
-void gs_param_list_init(P3(gs_param_list *, const gs_param_list_procs *,
-			   gs_memory_t *));
-
-/*
- * Internal procedure to read a value, with coercion if requested, needed,
- * and possible.  If mem != 0, we can coerce int arrays to float arrays, and
- * possibly do other coercions later.
- */
-int param_coerce_typed(P3(gs_param_typed_value * pvalue,
-			  gs_param_type req_type, gs_memory_t * mem));
 
 /* ---------------- Default implementation ---------------- */
 
@@ -509,11 +471,11 @@ param_proc_requested(gs_param_requested_default);  /* always returns true */
 	    [Check code for <0]
 	}
  *
- * This implementation also has the special property that it can forward
- * unrecognized param_read_ calls to another parameter list, called the
- * target.  This allows constructing incrementally modified parameter lists.
- * Note that this is only relevant for put_params (reading from the
- * parameter list).
+ * The default implementation also has the special property that it can
+ * forward unrecognized param_read_ calls to another parameter list,
+ * called the target.  This allows constructing incrementally modified
+ * parameter lists.  Note that this is only relevant for put_params
+ * (reading from the parameter list).
  */
 
 typedef struct gs_c_param_s gs_c_param;	/* opaque here */
@@ -532,14 +494,18 @@ typedef struct gs_c_param_list_s {
 /* Set the target of a C parameter list. */
 void gs_c_param_list_set_target(P2(gs_c_param_list *, gs_param_list *));
 
-/*
- * Clients normally allocate the gs_c_param_list on the stack, but we
- * provide a procedure for allocating one in memory.
- */
-gs_c_param_list *gs_c_param_list_alloc(P2(gs_memory_t *, client_name_t));
+/* Clients normally allocate the gs_c_param_list on the stack. */
 void gs_c_param_list_write(P2(gs_c_param_list *, gs_memory_t *));
 void gs_c_param_list_write_more(P1(gs_c_param_list *)); /* switch back to writing, no init */
 void gs_c_param_list_read(P1(gs_c_param_list *));	/* switch to reading */
 void gs_c_param_list_release(P1(gs_c_param_list *));
+
+/*
+ * Internal procedure to read a value, with coercion if requested, needed,
+ * and possible.  If mem != 0, we can coerce int arrays to float arrays, and
+ * possibly do other coercions later.
+ */
+int param_coerce_typed(P3(gs_param_typed_value * pvalue,
+			  gs_param_type req_type, gs_memory_t * mem));
 
 #endif /* gsparam_INCLUDED */

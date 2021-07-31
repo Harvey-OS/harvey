@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 #include "httpd.h"
-#include "httpsrv.h"
 
 void
 usage(void)
@@ -10,29 +10,21 @@ usage(void)
 	exits("usage");
 }
 
-char	*netdir;
-char	*webroot;
-char	*HTTPLOG = "httpd/log";
+static	Connect	connect;
 
-static	HConnect	connect;
-static	HSPriv		priv;
-
-HConnect*
+Connect*
 init(int argc, char **argv)
 {
 	char *s, *vs;
 
 	hinit(&connect.hin, 0, Hread);
 	hinit(&connect.hout, 1, Hwrite);
-	hmydomain = nil;
-	connect.replog = writelog;
-	connect.private = &priv;
-	priv.remotesys = nil;
-	priv.remoteserv = nil;
-	fmtinstall('D', hdateconv);
+	mydomain = nil;
+	connect.remotesys = nil;
+	fmtinstall('D', dateconv);
 	fmtinstall('H', httpconv);
-	fmtinstall('U', hurlconv);
-	netdir = "/net";
+	fmtinstall('U', urlconv);
+	strcpy(netdir, "/net");
 	ARGBEGIN{
 	case 'b':
 		s = ARGF();
@@ -40,16 +32,18 @@ init(int argc, char **argv)
 			hload(&connect.hin, s);
 		break;
 	case 'd':
-		hmydomain = ARGF();
+		mydomain = ARGF();
 		break;
 	case 'r':
-		priv.remotesys = ARGF();
+		connect.remotesys = ARGF();
 		break;
 	case 'w':
 		webroot = ARGF();
 		break;
 	case 'N':
-		netdir = ARGF();
+		s = ARGF();
+		if(s != nil)
+			strcpy(netdir, s);
 		break;
 	case 'L':
 		s = ARGF();
@@ -71,12 +65,10 @@ init(int argc, char **argv)
 		usage();
 	}ARGEND
 
-	if(priv.remotesys == nil)
-		priv.remotesys = "unknown";
-	if(priv.remoteserv == nil)
-		priv.remoteserv = "unknown";
-	if(hmydomain == nil)
-		hmydomain = "unknown";
+	if(connect.remotesys == nil)
+		connect.remotesys = "unknown";
+	if(mydomain == nil)
+		mydomain = "unknown";
 	if(webroot == nil)
 		webroot = "/usr/web";
 

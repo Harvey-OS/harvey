@@ -420,6 +420,7 @@ naddr(Node *n, Adr *a)
 		break;
 
 
+	case OINDEX:
 	case OIND:
 		naddr(n->left, a);
 		if(a->type >= D_AX && a->type <= D_DI)
@@ -433,26 +434,10 @@ naddr(Node *n, Adr *a)
 			a->index = D_NONE;
 		} else
 			goto bad;
-		break;
-
-	case OINDEX:
-		a->type = idx.ptr;
-		if(n->left->op == OADDR)
-			naddr(n->left, a);
-		if(a->type >= D_AX && a->type <= D_DI)
-			a->type += D_INDIR;
-		else
-		if(a->type == D_CONST)
-			a->type = D_NONE+D_INDIR;
-		else
-		if(a->type == D_ADDR) {
-			a->type = a->index;
-			a->index = D_NONE;
-		} else
-			goto bad;
-		a->index = idx.reg;
-		a->scale = n->scale;
-		a->offset += n->xoffset;
+		if(n->op == OINDEX) {
+			a->index = idx.reg;
+			a->scale = n->scale;
+		}
 		break;
 
 	case OINDREG:
@@ -552,8 +537,7 @@ gmove(Node *f, Node *t)
 /*
  * load
  */
-	if(f->op == ONAME || f->op == OINDREG ||
-	   f->op == OIND || f->op == OINDEX)
+	if(f->op == ONAME || f->op == OINDREG || f->op == OIND || f->op == OINDEX)
 	switch(ft) {
 	case TCHAR:
 		a = AMOVBLSX;
@@ -905,42 +889,27 @@ gmove(Node *f, Node *t)
 }
 
 void
-doindex(Node *n)
-{
-	Node nod, nod1;
-	long v;
-
-if(debug['Y'])
-prtree(n, "index");
-
-if(n->left->complex >= FNX)
-print("botch in doindex\n");
-
-	regalloc(&nod, &regnode, Z);
-	v = constnode.vconst;
-	cgen(n->right, &nod);
-	idx.reg = nod.reg;
-	idx.ptr = D_NONE;
-	if(n->left->op != OADDR) {
-		reg[D_BP]++;	// cant be used as a base
-		regalloc(&nod1, &regnode, Z);
-		cgen(n->left, &nod1);
-		idx.ptr = nod1.reg;
-		regfree(&nod1);
-		reg[D_BP]--;
-	}
-	regfree(&nod);
-	constnode.vconst = v;
-}
-
-void
 gins(int a, Node *f, Node *t)
 {
+	Node nod;
+	long v;
 
-	if(f != Z && f->op == OINDEX)
-		doindex(f);
-	if(t != Z && t->op == OINDEX)
-		doindex(t);
+	if(f != Z && f->op == OINDEX) {
+		regalloc(&nod, &regnode, Z);
+		v = constnode.vconst;
+		cgen(f->right, &nod);
+		constnode.vconst = v;
+		idx.reg = nod.reg;
+		regfree(&nod);
+	}
+	if(t != Z && t->op == OINDEX) {
+		regalloc(&nod, &regnode, Z);
+		v = constnode.vconst;
+		cgen(t->right, &nod);
+		constnode.vconst = v;
+		idx.reg = nod.reg;
+		regfree(&nod);
+	}
 	nextpc();
 	p->as = a;
 	if(f != Z)
@@ -1150,6 +1119,20 @@ gopcode(int o, Type *ty, Node *f, Node *t)
 
 	case OASAND:
 	case OAND:
+/* BOTCH put this code in peep
+		if(f->op == OCONST &&
+		   t->op != ONAME && t->op != OINDREG &&
+		   t->op != OIND && t->op != OINDEX) {
+			if(f->vconst == 0xffff) {
+				gins(AMOVWLZX, t, t);
+				return;
+			}
+			if(f->vconst == 0xff) {
+				gins(AMOVBLZX, t, t);
+				return;
+			}
+		}
+*/
 		a = AANDL;
 		if(et == TCHAR || et == TUCHAR)
 			a = AANDB;

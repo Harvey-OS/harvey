@@ -1,22 +1,22 @@
-/* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1991, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: stat_.h,v 1.5 2000/09/19 19:00:51 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: stat_.h,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* Generic substitute for Unix sys/stat.h */
 
 #ifndef stat__INCLUDED
@@ -69,24 +69,6 @@
 #    endif
 #  endif
 #  define S_ISCHR(mode) (((mode) & S_IFMT) == S_IFCHR)
-#endif
-
-/*
- * Microsoft C doesn't define S_IRUSR or S_IWUSR.
- */
-#ifndef S_IRUSR
-#  ifndef S_IREAD
-#    define S_IRUSR _S_IREAD
-#  else
-#    define S_IRUSR S_IREAD
-#  endif
-#endif
-#ifndef S_IWUSR
-#  ifndef S_IWRITE
-#    define S_IWUSR _S_IWRITE
-#  else
-#    define S_IWUSR S_IWRITE
-#  endif
 #endif
 
 #endif /* stat__INCLUDED */

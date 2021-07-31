@@ -2,7 +2,6 @@
 
 void	aamloop(int);
 void	addconf(char*, char*);
-Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,void*,long,vlong));
 //void	addscsilink(char*, Scsiio (*)(int, ISAConf*));
 void	archinit(void);
 void	bootargs(ulong);
@@ -38,7 +37,6 @@ ulong	getcr3(void);
 ulong	getcr4(void);
 char*	getconf(char*);
 int	havecycintr(void);
-void	halt(void);	/* x86 HLT */
 int	i8042auxcmd(int);
 void	i8042auxenable(void (*)(int, int));
 void	i8042reset(void);
@@ -48,7 +46,7 @@ uvlong	i8253read(uvlong*);
 void	i8259init(void);
 int	i8259enable(Vctl*);
 void	idle(void);
-void	idlehands(void);
+#define	idlehands()			/* nothing to do in the runproc */
 int	inb(int);
 void	insb(int, void*, int);
 ushort	ins(int);
@@ -61,6 +59,7 @@ void	ioinit(void);
 int	iounused(int, int);
 int	ioalloc(int, int, int, char*);
 int	iprint(char*, ...);
+int	irqallocread(char*, long, vlong);
 int	isaconfig(char*, int, ISAConf*);
 void	kbdinit(void);
 void	lgdt(ushort[3]);
@@ -96,8 +95,7 @@ Pcidev* pcimatch(Pcidev*, int, int);
 Pcidev* pcimatchtbdf(int);
 void	pcireset(void);
 void	pcisetbme(Pcidev*);
-void	pcmcisread(PCMslot*);
-int	pcmcistuple(int, int, int, void*, int);
+int	pcmcistuple(int, int, void*, int);
 PCMmap*	pcmmap(int, ulong, int, int);
 int	pcmspecial(char*, ISAConf*);
 void	pcmspecialclose(int);
@@ -122,7 +120,6 @@ ulong	umbrwmalloc(ulong, int, int);
 void	umbrwfree(ulong, int);
 ulong	upamalloc(ulong, int, int);
 void	upafree(ulong, int);
-#define	userureg(ur) (((ur)->cs & 0xFFFF) == UESEL)
 void	vectortable(void);
 void	wrmsr(int, vlong);
 void	wbflush(void);
@@ -134,9 +131,3 @@ ulong	TK2MS(ulong);				/* ticks to milliseconds */
 #define PADDR(a)	((ulong)(a)&~KZERO)
 
 #define	dcflush(a, b)
-
-/*
- * wrapper around memmove that causes kprof to credit caller for time
- */
-// extern void	*kpmemmove(void*, void*, long);
-// #define memmove kpmemmove

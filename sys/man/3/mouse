@@ -67,9 +67,8 @@ that are managed by user-level software.
 Each event should consist of
 the letter
 .B m
-followed by delta
+followed by
 .IR x ,
-delta
 .IR y ,
 and
 .IR buttons

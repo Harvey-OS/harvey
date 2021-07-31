@@ -478,7 +478,7 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 }
 
 void
-addlib(char *obj)
+addlib(long)
 {
 	char name[MAXHIST*NAMELEN], comp[4*NAMELEN], *p;
 	int i;
@@ -531,17 +531,10 @@ addlib(char *obj)
 	for(i=0; i<libraryp; i++)
 		if(strcmp(name, library[i]) == 0)
 			return;
-	if(libraryp == nelem(library)){
-		diag("too many autolibs; skipping %s", name);
-		return;
-	}
 
 	p = malloc(strlen(name) + 1);
 	strcpy(p, name);
 	library[libraryp] = p;
-	p = malloc(strlen(obj) + 1);
-	strcpy(p, obj);
-	libraryobj[libraryp] = p;
 	libraryp++;
 }
 
@@ -756,7 +749,7 @@ loop:
 	switch(o) {
 	case AHISTORY:
 		if(p->to.offset == -1) {
-			addlib(pn);
+			addlib(p->line);
 			histfrogp = 0;
 			goto loop;
 		}
@@ -1251,8 +1244,8 @@ nuxiinit(void)
 			inuxi1[i] = c;
 		inuxi4[i] = c;
 		fnuxi4[i] = c;
-		fnuxi8[i] = c;
-		fnuxi8[i+4] = c+4;
+		fnuxi8[i] = c+4;		/* ms word first, then ls, even in little endian mode */
+		fnuxi8[i+4] = c;
 	}
 	if(debug['v']) {
 		Bprint(&bso, "inuxi = ");

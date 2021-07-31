@@ -586,7 +586,7 @@ ipmuxcreate(Conv *c)
 {
 	Ipmuxrock *r;
 
-	c->rq = qopen(64*1024, 1, 0, c);
+	c->rq = qopen(64*1024, 0, 0, c);
 	c->wq = qopen(64*1024, 0, 0, 0);
 	r = (Ipmuxrock*)(c->ptcl);
 	r->chain = nil;
@@ -619,6 +619,8 @@ ipmuxclose(Conv *c)
 	wunlock(f);
 	ipmuxtreefree(r->chain);
 	r->chain = nil;
+
+	qunlock(c);
 }
 
 /*
@@ -626,7 +628,7 @@ ipmuxclose(Conv *c)
  *  the stack
  */
 static void
-ipmuxkick(Conv *c)
+ipmuxkick(Conv *c, int)
 {
 	Block *bp;
 	Iphdr *ih;

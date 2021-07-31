@@ -193,9 +193,8 @@ char	username[NAMELEN];
 char	mboxDir[3 * NAMELEN];
 char	*servername;
 char	*site;
-char	*remote;
 Box	*selected;
-Bin	*parseBin;
+Can	*parseCan;
 
 void
 main(int argc, char *argv[])
@@ -203,29 +202,22 @@ main(int argc, char *argv[])
 	char *s, *t;
 	int preauth, n;
 
-	Binit(&bin, 0, OREAD);
-	Binit(&bout, 1, OWRITE);
-
 	preauth = 0;
 	allowPass = 0;
 	ARGBEGIN{
 	case 'a':
 		preauth = 1;
 		break;
-	case 'd':
-		site = ARGF();
-		break;
 	case 'p':
 		allowPass = 1;
 		break;
-	case 'r':
-		remote = ARGF();
+	case 'd':
+		site = ARGF();
 		break;
 	case 's':
 		servername = ARGF();
 		break;
 	default:
-		fprint(2, "usage: ip/imap4d [-ap] [-d site] [-r remotehost] [-s servername]\n");
 		bye("usage");
 		break;
 	}ARGEND
@@ -240,10 +232,8 @@ main(int argc, char *argv[])
 		servername = csquery("sys", sysname(), "dom");
 		if(servername == nil)
 			servername = sysname();
-		if(servername == nil){
-			fprint(2, "ip/imap4d can't find server name: %r\n");
+		if(servername == nil)
 			bye("can't find system name");
-		}
 	}
 	if(site == nil){
 		t = getenv("site");
@@ -261,6 +251,9 @@ main(int argc, char *argv[])
 			snprint(site, n, "%s.%s", t, s);
 		}
 	}
+
+	Binit(&bin, 0, OREAD);
+	Binit(&bout, 1, OWRITE);
 
 	rfork(RFNOTEG|RFREND);
 
@@ -302,7 +295,8 @@ imap4(int preauth)
 		clearcmd();
 		if(Bflush(&bout) < 0)
 			writeErr();
-		binfree(&parseBin);
+		freeCan(parseCan);
+		parseCan = nil;
 	}
 	for(;;){
 		if(mbLocked())
@@ -330,7 +324,8 @@ imap4(int preauth)
 
 		if(Bflush(&bout) < 0)
 			writeErr();
-		binfree(&parseBin);
+		freeCan(parseCan);
+		parseCan = nil;
 	}
 }
 
@@ -512,11 +507,11 @@ appendCmd(char *tg, char *cmd)
 
 	snprint(head, sizeof(head), "From %s %s", username, ctime(t));
 	ok = appendSave(mbox, flags, head, &bin, n);
-	crnl();
 	check();
-	if(ok)
+	if(ok){
+		crnl();
 		Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
-	else
+	}else
 		Bprint(&bout, "%s no %s message save failed\r\n", tg, cmd);
 }
 
@@ -759,7 +754,6 @@ idleCmd(char *tg, char *cmd)
 					writeErr();
 				qunlock(&imaplock);
 				sleep(15*1000);
-				enableForwarding();
 			}
 			_exits(0);
 		}
@@ -873,7 +867,7 @@ listCmd(char *tg, char *cmd)
 		ss = s;
 	}else{
 		n = strlen(ref) + strlen(mbox) + 2;
-		t = binalloc(&parseBin, n, 0);
+		t = canAlloc(&parseCan, n, 0);
 		if(t == nil)
 			parseErr("out of memory");
 		snprint(t, n, "%s/%s", ref, mbox);
@@ -972,7 +966,6 @@ noopCmd(char *tg, char *cmd)
 	crnl();
 	check();
 	Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
-	enableForwarding();
 }
 
 /*
@@ -1710,7 +1703,7 @@ searchKey(int first)
 	char *a;
 	int i, c;
 
-	sr = binalloc(&parseBin, sizeof(Search), 1);
+	sr = canAlloc(&parseCan, sizeof(Search), 1);
 	if(sr == nil)
 		parseErr("out of memory");
 
@@ -1815,7 +1808,7 @@ msgSet(void)
 			getc();
 			to = seqNo();
 		}
-		ms = binalloc(&parseBin, sizeof(MsgSet), 0);
+		ms = canAlloc(&parseCan, sizeof(MsgSet), 0);
 		if(ms == nil)
 			parseErr("out of memory");
 		ms->from = from;
@@ -1901,7 +1894,7 @@ atomString(char *disallowed, char *initial)
 	int c, ns, as;
 
 	ns = strlen(initial);
-	s = binalloc(&parseBin, ns + StrAlloc, 0);
+	s = canAlloc(&parseCan, ns + StrAlloc, 0);
 	if(s == nil)
 		parseErr("out of memory");
 	strcpy(s, initial);
@@ -1914,7 +1907,7 @@ atomString(char *disallowed, char *initial)
 		}
 		s[ns++] = c;
 		if(ns >= as){
-			s = bingrow(&parseBin, s, as, as + StrAlloc, 0);
+			s = canGrow(&parseCan, s, as, as + StrAlloc, 0);
 			if(s == nil)
 				parseErr("out of memory");
 			as += StrAlloc;
@@ -1937,7 +1930,7 @@ quoted(void)
 	int c, ns, as;
 
 	mustBe('"');
-	s = binalloc(&parseBin, StrAlloc, 0);
+	s = canAlloc(&parseCan, StrAlloc, 0);
 	if(s == nil)
 		parseErr("out of memory");
 	as = StrAlloc;
@@ -1955,7 +1948,7 @@ quoted(void)
 		}
 		s[ns++] = c;
 		if(ns >= as){
-			s = bingrow(&parseBin, s, as, as + StrAlloc, 0);
+			s = canGrow(&parseCan, s, as, as + StrAlloc, 0);
 			if(s == nil)
 				parseErr("out of memory");
 			as += StrAlloc;
@@ -1990,7 +1983,7 @@ literal(void)
 	ulong v;
 
 	v = litlen();
-	s = binalloc(&parseBin, v+1, 0);
+	s = canAlloc(&parseCan, v+1, 0);
 	if(s == nil)
 		parseErr("out of memory");
 	Bprint(&bout, "+ Ready for literal data\r\n");

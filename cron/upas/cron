@@ -1,0 +1,2 @@
+# kick mail retries (replace mailserver with your system)
+0,10,20,30,40,50 * * * *	mailserver		/bin/upas/runq -a /mail/queue /mail/lib/remotemail

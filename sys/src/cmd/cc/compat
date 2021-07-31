@@ -1,10 +1,4 @@
 
-int
-myaccess(char *f)
-{
-	return access(f, AEXIST);
-}
-
 void*
 mysbrk(ulong size)
 {
@@ -46,7 +40,8 @@ mypipe(int *fd)
 int
 systemtype(int sys)
 {
-	return sys & Plan9;
+
+	return sys&Plan9;
 }
 
 int

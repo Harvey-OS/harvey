@@ -1,21 +1,21 @@
 %    Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This file is part of Aladdin Ghostscript.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
 
-% $Id: pdf_font.ps,v 1.12.2.1 2000/11/05 17:35:46 raph Exp $
+% $Id: pdf_font.ps,v 1.2 2000/03/10 03:57:50 lpd Exp $
 % pdf_font.ps
 % PDF font operations.
 
@@ -71,17 +71,7 @@ pdfdict begin
 
 % Adjust a font according to the Encoding and Widths in the font resource.
 /adjustfont {		% <font-resource> <font> adjustfont <font'>
-		% Hack required by the PDF specification: if the
-		% font resource has Subtype = /TrueType but the actual
-		% (installed) font is not a TrueType font, ignore the
-		% Encoding in the font resource.
-  1 index /Subtype oget /TrueType eq
-  1 index /FontType get 42 ne and {
-    null
-  } {
-    getfontencoding
-  } ifelse
-  getfontmetrics 4 -1 roll pop .updatefont { renamefont } if
+  getfontencoding getfontmetrics 4 -1 roll pop .updatefont { renamefont } if
 } bind def
 
 % Get the (possibly modified) encoding of a font.
@@ -95,16 +85,15 @@ pdfdict begin
 } bdef
 
 % Get the metrics of a font, if specified.
-/getfontmetrics {	% <font-resource> <font> <Encoding|null> getfontmetrics
+/getfontmetrics		% <font-resource> <font> <Encoding|null> getfontmetrics
 			%   <font-resource> <font> <Encoding|null>
 			%   <Metrics|null>
-  2 index /Widths known {
-    dup null eq { pop dup /Encoding get } if
-    4 dict begin
+ { 2 index /Widths known
+    { dup null eq { pop dup /Encoding get } if
+      2 dict begin
       /Encoding exch def
       /Metrics Encoding length dict def
       exch
-      dup /Widths oget /Widths exch def
 		% Stack: font font-res
 		% Note that widths are always based on a 1000-unit
 		% character space, but the FontMatrix may specify
@@ -115,7 +104,7 @@ pdfdict begin
       1 index /FirstChar oget dup 1 4 index /LastChar oget
        {	% Stack: font font-res mscale first-char index
 	 Encoding 1 index get
-	 Widths 2 index 4 index sub get
+	 4 index /Widths oget 2 index 4 index sub get
 	 	% Stack: font font-res mscale first-char index charname width
 	 4 index mul
 		% There is a hack here to deal with encodings where the
@@ -158,11 +147,12 @@ pdfdict begin
       } {
 	pop
       } ifelse
-    exch Encoding Metrics end
-  } {
-    null
-  } ifelse
-} bdef
+      exch Encoding Metrics end
+    }
+    { null
+    }
+   ifelse
+ } bdef
 
 % ---------------- Descriptors ---------------- %
 
@@ -201,9 +191,6 @@ pdfdict begin
  } bdef
 
 % Find a font, and adjust its encoding if necessary.
-/.pdfdfndict mark
-  /defaultfontname /Helvetica
-.dicttomark readonly def
 /pdffindfont {		% <font-resource> <fontname> pdffindfont <font>
 		% If the font isn't available, synthesize one based on
 		% its descriptor.
@@ -219,12 +206,8 @@ pdfdict begin
 		% We should look at the fixed flag, too.
 		% Stack: font-res fontname fontdesc properties
       1 index /FontName oget exch
-		% Analyzes font name and extract "Narrow" property
-		% which is not described by the FontDescriptor Flags.
-      0 2 index .fontnameproperties 4 and or
-		% Rebind the default font name to Helvetica so that
-		% fonts with no properties are handled correctly.
-      //.pdfdfndict begin .substitutefontname end
+      1 index .fontnameproperties or
+      .substitutefontname
 		% Stack: font-res fontname fontdesc substname|null
       Fontmap 1 index known not {
 		% No available good substitution, use the standard one.
@@ -276,7 +259,6 @@ pdfdict begin
 % has the following keys and values:
 %	data - stream (filter)
 %	buffer, buffer2 - string
-%	hexify - procedure to convert buffer to hex if needed
 %	leftstr - string containing (non-negative) integer
 %	sectionstr - string containing a character 0 .. 2
 %	stream - (stream) dictionary
@@ -315,7 +297,7 @@ end readonly def
 		% at the right times.
    1 index exch
    PDFfile fileposition 3 1 roll
-   10 dict begin
+   7 dict begin
      /leftstr (          ) 10 string copy def
        dup /Length1 oget leftstr cvs pop
      /sectionstr <00> 1 string copy def
@@ -323,7 +305,6 @@ end readonly def
      true resolvestream /data exch def
      /buffer 1000 string def		% arbitrary
      /buffer2 buffer length 2.1 div cvi 1 sub string def
-     /hexify /buf2hex load def
    currentdict end
    /type1read cvx 2 array astore cvx dup 0 get /proc 2 index put
    readfontfilter
@@ -370,36 +351,16 @@ end readonly def
  } bdef
 
 % Read the next block of the initial text portion.
-/type1read1 {		% <left> type1read1 <string> <left'>
-  DEBUG { (read1 ) print } if
-  dup 0 eq {
-    pop sectionstr 0 1 put
-    stream /Length2 oget
-			% Determine whether to hexify data for eexec.
-    dup 8 lt {
-      type1read2	% Hexify.
-    } {
-      DEBUG { (read2 ) print } if
-      buffer2 type1readdata exch
-			% The check doesn't have to be 100% accurate:
-			% hexifying is always OK.
-      dup 0 8 getinterval 0 exch { or } forall
-      128 ge {
-	/hexify { } store
-	/buffer2 buffer def	% We don't need an intermediate buffer.
-      } if hexify exch
-    } ifelse
-  } {
-    buffer type1readdata
-  } ifelse
-} bdef
-
-% Convert a string from binary to hex for eexec.
-% Free variables: buffer.
-/buf2hex {		% <string> buf2hex <hexstring>
-  buffer /ASCIIHexEncode filter dup 3 -1 roll writestring closefile
-  buffer (>) search pop exch pop exch pop
-} bdef
+/type1read1		% <left> type1read1 <string> <left'>
+ { DEBUG { (read1 ) print } if
+   dup 0 eq
+    { pop sectionstr 0 1 put
+      stream /Length2 oget type1read2
+    }
+    { buffer type1readdata
+    }
+   ifelse
+ } bdef
 
 % Read the next block of the encrypted portion.
 /type1trailer
@@ -413,8 +374,8 @@ end readonly def
 0000000000000000000000000000000000000000000000000000000000000000\n\
 cleartomark\n)
 readonly def
-/type1read2 {		% <left> type1read2 <string> <left'>
-  DEBUG { (read2 ) print } if
+/type1read2		% <left> type1read2 <string> <left'>
+ { DEBUG { (read2 ) print } if
    dup 0 eq
     { pop sectionstr 0 2 put
       stream /Length3 oget
@@ -426,10 +387,12 @@ readonly def
        }
       ifelse
     }
-    { buffer2 type1readdata exch hexify exch
+    { buffer2 type1readdata exch
+      buffer /ASCIIHexEncode filter dup 3 -1 roll writestring closefile
+      buffer (>) search pop exch pop exch pop exch
     }
    ifelse
-} bdef
+ } bdef
 
 % Read the next block of the final text portion.
 % When finished, this procedure returns an empty string.
@@ -501,23 +464,10 @@ readonly def
   /TimesNewRoman,BoldItalic /Times-BoldItalic
 .dicttomark readonly def
 
-/buildTrueType {	% <TrueType-font-resource> buildTrueType <font>
-  dup /BaseFont get
-  dup TTfonts exch .knownget {
-    exch pop
-		% Hack required by the PDF specification: if the
-		% font resource has Subtype = /TrueType but the actual
-		% (installed) font is not a TrueType font, ignore the
-		% Encoding in the font resource.  However, all current
-		% versions of Acrobat Reader have the 14 base TrueType
-		% fonts built in, so this produces incorrect output for
-		% badly designed PDF files that specify these file names
-		% with /Subtype = /TrueType but no embedded definition.
-		% Compensate for this by removing the /Subtype key when
-		% looking up the font.
-    exch dup length dict copy dup /Subtype null put exch
-  } if pdffindfont
-} bdef
+/buildTrueType		% <TrueType-font-resource> buildTrueType <font>
+ { dup /BaseFont get
+   dup TTfonts exch .knownget { exch pop } if pdffindfont
+ } bdef
 
 % Read an embedded TrueType font.
 /readtruetype {		% <font-resource> <stream-dict> readtruetype <font>
@@ -530,7 +480,7 @@ readonly def
   1 index /Subtype get /CIDFontType2 eq {
     .loadttcidfont
   } {
-    null 2 index getencoding .loadpdfttfont
+    .loadttfont
   } ifelse
   exch pop
   PDFfile 3 -1 roll setfileposition
@@ -550,25 +500,25 @@ readonly def
   .currentglobal true .setglobal 3 1 roll
   /CIDInit /ProcSet findresource begin
   12 dict begin
-    begincmap
     /WMode exch def
     /CMapName exch def
+    begincmap
     /CIDSystemInfo 3 dict dup begin
       /Registry (Adobe) def
       /Ordering (Japan1) def
       /Supplement 0 def
     end def
-    %/CMapName (see above)
+    %/CMapName ... def
     /CMapVersion 1 def
     /CMapType 1 def
-    %WMode (see above)
+    %/WMode ... def
 	% The PDF documentation says that these CMaps map CIDs
-	% "1 to 65,536".  This is a misprint for 0 to 65,535.
-    1 begincodespacerange
+	% "1 to 65,536".  We think this is a misprint for 0 to 65,535.
+    2 begincodespacerange
 	% <0001> <00ff>  <0100> <ffff>
       <0000> <ffff>
     endcodespacerange
-    1 begincidrange
+    2 begincidrange
 	% <0001> <00ff> 1   <0100> <ffff> 256
       <0000> <ffff> 0
     endcidrange
@@ -580,38 +530,39 @@ readonly def
   exch .setglobal
 } bdef
 
-/buildType0 {		% <Type0-font-resource> buildType0 <font>
-  dup /BaseFont get	% FontName
-  1 index /Encoding oget
-  dup type /nametype eq {
-    dup /CMap resourcestatus {
+/buildType0		% <Type0-font-resource> buildType0 <font>
+{ 10 dict begin
+  /FontType 0 def
+  /FontMatrix 1 index /FontMatrix knownoget not { matrix } if def
+  /FontName 1 index /BaseFont get def
+  /FMapType 9 def
+  /Encoding [
+    0 1 4 index /DescendantFonts oget length 1 sub { } for
+  ] def
+  /FDepVector [
+    2 index /DescendantFonts oget { exec resourcefont } forall
+  ] def
+  /CMap 1 index /Encoding oget
+    dup type /nametype eq {
+      dup /CMap resourcestatus {
 	pop pop /CMap findresource
-    } {
+      } {
 	knownCMaps 1 index .knownget
 	  { exch pop exec } { /undefined signalerror } ifelse
-    } ifelse
-  } {
-    resolvestream
-  } ifelse		% CMap
-  [
-    3 index /DescendantFonts oget { exec resourcefont } forall
-  ]			% subfonts
-  composefont
-		% Stack: fontres font
-  1 index /FontMatrix knownoget {
-    dup aload pop true {0 0 1 0 0 1} {3 -1 roll eq and} forall {
-      1 index exch makefont exch /FontName get exch definefont
+      } ifelse
     } {
-      pop
+      resolvestream
     } ifelse
-  } if exch pop
+  def
+  FontName currentdict end definefont exch pop
 } bdef
 
 % ---------------- CIDFontType0/2 fonts ---------------- %
 
 % Insert metrics into a CIDFont, by saving the PDF W, W2, DW, and DW2
 % arrays and using a (currently very inefficient) CDevProc.
-/addCIDmetrics {	% <CIDFont-resource> <CIDFont> addCIDmetrics <fontdict>
+/addCIDmetrics {	% <CIDFont-resource> addCIDmetrics <fontdict>
+  dup /BaseFont get /CIDFont findresource
   dup length 5 add dict .copydict
   dup /FID undef
   dup /UniqueID undef
@@ -649,12 +600,10 @@ readonly def
 } bdef
 
 /buildCIDType0 {	% <CIDFontType0-font-resource> buildCIDType0 <font>
-  dup /BaseFont get /CIDFont findresource
   addCIDmetrics dup /CIDFontName get exch /CIDFont defineresource
 } bdef
 
 /buildCIDType2 {	% <CIDFontType2-font-resource> buildCIDType2 <font>
-  dup /BaseFont get /CIDFont findresource
   addCIDmetrics
 	%****** Handle CIDToGIDMap ******
   dup /BaseFont get exch /CIDFont defineresource
@@ -664,7 +613,6 @@ readonly def
 
 /fontloadprocs mark
   /Type1C /readType1C cvx
-  /CIDFontType0C /readCIDFontType0C cvx
 .dicttomark readonly def
 
 % Read an embedded compressed font.
@@ -679,24 +627,7 @@ readonly def
   PDFfile 3 -1 roll setfileposition
   /FontDescriptor oget /FontName oget findfont
   adjustfont
-} bdef
-
-% Read an embedded CFF CIDFont.
-/readCIDFontType0C {  % <font-resource> <stream-dict> readCIDFontType0C <font>
-  PDFfile fileposition 3 1 roll
-  dup true resolvestream dup readfontfilter
-		% Stack: pos resource streamdict stream filter
-  3 index /FontDescriptor oget /FontName oget
-  1 index FRD
-  closefile closefile pop
-  PDFfile 3 -1 roll setfileposition
-		% Some broken Adobe software produces PDF files in which
-		% the FontName of the CFF font and the FontName in the
-		% FontDescriptor don't match the BaseFont in the font.
-		% Use the FontName, rather than the BaseFont, here.
-  dup /FontDescriptor oget /FontName oget /CIDFont findresource
-  addCIDmetrics dup /CIDFontName get exch /CIDFont defineresource
-} bdef
+ } bdef
 
 % ---------------- Font lookup ---------------- %
 

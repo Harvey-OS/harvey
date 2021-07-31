@@ -4,12 +4,11 @@
 #include <libc.h>
 #include <bio.h>
 #include "httpd.h"
-#include "httpsrv.h"
 
 void bib_fmt(char*,char*);
 void index_fmt(char*,char*);
 void no_fmt(char*,char*);
-int send(HConnect*);
+void send(Connect*);
 
 Hio *hout;
 
@@ -145,12 +144,12 @@ bib_fmt(char*s,char*e)
 void
 main(int argc, char **argv)
 {
-	HConnect *c;
+	Connect *c;
 
 	c = init(argc, argv);
 	hout = &c->hout;
-	if(hparseheaders(c, HSTIMEOUT) >= 0)
-		send(c);
+	httpheaders(c);
+	send(c);
 	exits(nil);
 }
 
@@ -179,53 +178,26 @@ init800fs(char*name,char*pat)
 }
 
 
-static char *
-hq(char *text)
-{
-	int textlen = strlen(text), escapedlen = textlen;
-	char *escaped, *s, *w;
-
-	for(s = text; *s; s++)
-		if(*s=='<' || *s=='>' || *s=='&')
-			escapedlen += 4;
-	escaped = ezalloc(escapedlen+1);
-	for(s = text, w = escaped; *s; s++){
-		if(*s == '<'){
-			strcpy(w, "&lt;");
-			w += 4;
-		}else if(*s == '>'){
-			strcpy(w, "&gt;");
-			w += 4;
-		}else if(*s == '&'){
-			strcpy(w, "&amp;");
-			w += 5;
-		}else{
-			*w++ = *s;
-		}
-	}
-	return escaped;
-}
-
-int
-send(HConnect *c)
+void
+send(Connect *c)
 {
 	Biobuf*blist;
 	int m, n, dbi, nmatch;
 	char *pat, *s, *e;
-	HSPairs *q;
+	SPairs *q;
 
 	if(strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0)
-		return hunallowed(c, "GET, HEAD");
+		unallowed(c, "GET, HEAD");
 	if(c->head.expectother || c->head.expectcont)
-		return hfail(c, HExpectFail, nil);
+		fail(c, ExpectFail, nil);
 	if(c->req.search == nil || !*c->req.search)
-		return hfail(c, HNoData, "netlib_find");
+		fail(c, NoData, "netlib_find");
 	s = c->req.search;
 	while((s = strchr(s, '+')) != nil)
 		*s++ = ' ';
 	dbi = -1;
 	pat = nil;
-	for(q = hparsequery(c, hstrdup(c, c->req.search)); q; q = q->next){
+	for(q = parsequery(hstrdup(c->req.search)); q; q = q->next){
 		if(strcmp(q->s, "db") == 0){
 			m = atoi(q->t);
 			for(dbi = 0; m!=db[dbi].SELECT; dbi++)
@@ -244,7 +216,7 @@ send(HConnect *c)
 	blist = init800fs(db[dbi].file,pat);
 
 	if(c->req.vermaj){
-		hokheaders(c);
+		okheaders(c);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
 	}
@@ -254,7 +226,7 @@ send(HConnect *c)
 	}
 
 	hprint(hout, "<HEAD><TITLE>%s/%s</TITLE></HEAD>\r\n<BODY>\r\n",
-		db[dbi].log,hq(pat));
+		db[dbi].log,pat);
 	nmatch = 0;
 
 	while(s = Brdline(blist, '\n')){ /* get next database record */
@@ -273,5 +245,5 @@ send(HConnect *c)
 	hprint(hout, db[dbi].postlude);
 	hflush(hout);
 	writelog(c, "Reply: 200 netlib_find %ld %ld\n", hout->seek, hout->seek);
-	return 1;
+	exits(nil);
 }

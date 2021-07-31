@@ -9,10 +9,12 @@
 
 enum
 {
-	Nreply=			20,
+	Nreply=			8,
 	Maxreply=		256,
 	Maxrequest=		128,
 	Maxpath=		128,
+	Ncache=			8,		/* size of cache */
+	Secvalid=		120,		/* seconds a cache entry is valid */	
 
 	Qcs=			1,
 };
@@ -21,6 +23,7 @@ typedef struct Mfile	Mfile;
 typedef struct Mlist	Mlist;
 typedef struct Network	Network;
 typedef struct Flushreq	Flushreq;
+typedef struct CacheEntry	CacheEntry;
 typedef struct Job	Job;
 
 int vers;		/* incremented each clone/attach */
@@ -33,18 +36,6 @@ struct Mfile
 	Qid		qid;
 	int		fid;
 
-	/*
-	 *  current request
-	 */
-	char		*net;
-	char		*host;
-	char		*serv;
-	char		*rem;
-
-	/*
-	 *  result of the last lookup
-	 */
-	Network		*nextnet;
 	int		nreply;
 	char		*reply[Nreply];
 	int		replylen[Nreply];
@@ -55,6 +46,21 @@ struct Mlist
 	Mlist	*next;
 	Mfile	mf;
 };
+
+struct CacheEntry
+{
+	ulong		expire;
+	char		*question;
+	char		err[ERRLEN];
+	int		nreply;
+	char		*reply[Nreply];
+	int		replylen[Nreply];
+};
+struct {
+	Lock;
+	CacheEntry	e[Ncache];
+	int 		next;		/* next cache entry to use */
+} cache;
 
 //
 //  active requests
@@ -102,7 +108,7 @@ void	io(void);
 void	ndbinit(void);
 void	netinit(int);
 void	netadd(char*);
-int	lookup(Mfile*);
+int	lookup(Mfile*, char*, char*, char*, char*);
 char	*genquery(Mfile*, char*);
 char*	ipinfoquery(Mfile*, char**, int);
 int	needproto(Network*, Ndbtuple*);
@@ -114,7 +120,6 @@ void*	emalloc(int);
 Job*	newjob(void);
 void	freejob(Job*);
 void	setext(char*, int, char*);
-void	cleanmf(Mfile*);
 
 extern void	paralloc(void);
 
@@ -144,61 +149,6 @@ char	*paranoiafile = "cs.paranoia";
 
 char	mntpt[Maxpath];
 char	netndb[Maxpath];
-
-/*
- *  Network specific translators
- */
-Ndbtuple*	iplookup(Network*, char*, char*, int);
-char*		iptrans(Ndbtuple*, Network*, char*, char*, int);
-Ndbtuple*	telcolookup(Network*, char*, char*, int);
-char*		telcotrans(Ndbtuple*, Network*, char*, char*, int);
-Ndbtuple*	dnsiplookup(char*, Ndbs*);
-
-struct Network
-{
-	char		*net;
-	Ndbtuple	*(*lookup)(Network*, char*, char*, int);
-	char		*(*trans)(Ndbtuple*, Network*, char*, char*, int);
-	int		considered;
-	int		fasttimeouthack;
-	Network		*next;
-};
-
-enum
-{
-	Nilfast,
-	Ntcp,
-	Nil,
-	Nudp,
-	Nicmp,
-	Nrudp,
-	Ntelco,
-};
-
-/*
- *  net doesn't apply to udp, icmp, or telco (for speed)
- */
-Network network[] = {
-[Nilfast]	{ "il",		iplookup,	iptrans,	0, 1 },
-[Ntcp]		{ "tcp",	iplookup,	iptrans,	0, 0 },
-[Nil]		{ "il",		iplookup,	iptrans,	0, 0 },
-[Nudp]		{ "udp",	iplookup,	iptrans,	1, 0 },
-[Nicmp]		{ "icmp",	iplookup,	iptrans,	1, 0 },
-[Nrudp]		{ "rudp",	iplookup,	iptrans,	1, 0 },
-[Ntelco]	{ "telco",	telcolookup,	telcotrans,	1, 0 },
-		{ 0 },
-};
-
-Lock ipifclock;
-Ipifc *ipifcs;
-
-char	eaddr[Ndbvlen];		/* ascii ethernet address */
-char	ipaddr[Ndbvlen];	/* ascii internet address */
-uchar	ipa[IPaddrlen];		/* binary internet address */
-char	mysysname[Ndbvlen];
-
-Network *netlist;		/* networks ordered by preference */
-Network *last;
 
 void
 usage(void)
@@ -630,8 +580,7 @@ ropen(Job *job, Mfile *mf)
 	if(mf->qid.path & CHDIR){
 		if(mode)
 			err = "permission denied";
-	} else
-		cleanmf(mf);
+	}
 	job->reply.qid = mf->qid;
 	sendmsg(job, err);
 }
@@ -677,27 +626,17 @@ rread(Job *job, Mfile *mf)
 		}
 		job->reply.data = buf;
 	} else {
-		for(;;){
-			/* look for an answer at the right offset */
-			toff = 0;
-			for(i = 0; mf->reply[i] && i < mf->nreply; i++){
-				n = mf->replylen[i];
-				if(off < toff + n)
-					break;
-				toff += n;
-			}
-			if(i < mf->nreply)
-				break;		/* got something to return */
-
-			/* try looking up more answers */
-			if(lookup(mf) == 0){
-				/* no more */
-				n = 0;
-				goto send;
-			}
+		toff = 0;
+		for(i = 0; mf->reply[i] && i < mf->nreply; i++){
+			n = mf->replylen[i];
+			if(off < toff + n)
+				break;
+			toff += n;
 		}
-
-		/* give back a single reply (or part of one) */
+		if(i >= mf->nreply){
+			n = 0;
+			goto send;
+		}
 		job->reply.data = mf->reply[i] + (off - toff);
 		if(cnt > toff - off + n)
 			n = toff - off + n;
@@ -709,39 +648,55 @@ send:
 	sendmsg(job, err);
 }
 
-void
-cleanmf(Mfile *mf)
+CacheEntry*
+nextcache(char *question, ulong now)
 {
+	CacheEntry *cp;
 	int i;
 
-	if(mf->net)
-		free(mf->net);
-	mf->net = nil;
-	if(mf->host)
-		free(mf->host);
-	mf->host = nil;
-	if(mf->serv)
-		free(mf->serv);
-	mf->serv = nil;
-	if(mf->rem)
-		free(mf->rem);
-	mf->rem = nil;
-	for(i = 0; i < mf->nreply; i++){
-		free(mf->reply[i]);
-		mf->reply[i] = nil;
-		mf->replylen[i] = 0;
+	cp = &cache.e[cache.next];
+	cache.next = (cache.next + 1)%Ncache;
+	cp->expire = now + 120;
+
+	/* out with the old air */
+	if(cp->question){
+		free(cp->question);
+		cp->question = 0;
 	}
-	mf->nreply = 0;
-	mf->nextnet = netlist;
+	for(i = 0; i < cp->nreply; i++)
+		free(cp->reply[i]);
+	cp->err[0] = 0;
+	cp->nreply = 0;
+
+	/* in with the new */
+	cp->question = question;
+	return cp;
+}
+
+CacheEntry*
+searchcache(char *question, ulong now)
+{
+	CacheEntry *cp;
+
+	for(cp = cache.e; cp < &cache.e[Ncache]; cp++){
+		if(cp->expire > now)
+		if(strcmp(question, cp->question) == 0)
+			return cp;
+	}
+	return 0;
 }
 
 void
 rwrite(Job *job, Mfile *mf)
 {
 	int cnt, n;
-	char *err;
+	char *question, *err, errbuf[ERRLEN];
 	char *field[4];
+	int i, rv;
+	ulong now;
+	CacheEntry *cp;
 
+	now = time(0);
 	err = 0;
 	cnt = job->request.count;
 	if(mf->qid.path & CHDIR){
@@ -788,11 +743,10 @@ rwrite(Job *job, Mfile *mf)
 	 */
 	if(strncmp(job->request.data, "refresh", 7)==0){
 		netinit(1);
+		for(i = 0; i < Ncache; i++)
+			cache.e[i].expire = 0;
 		goto send;
 	}
-
-	/* start transaction with a clean slate */
-	cleanmf(mf);
 
 	/*
 	 *  look for a general query
@@ -802,38 +756,76 @@ rwrite(Job *job, Mfile *mf)
 		goto send;
 	}
 
+	/* start transaction with a clean slate */
+	for(i = 0; i < Nreply; i++){
+		if(mf->reply[i])
+			free(mf->reply[i]);
+		mf->reply[i] = 0;
+		mf->replylen[i] = 0;
+	}
+	mf->nreply = 0;
+
 	if(debug)
 		syslog(0, logfile, "write %s", job->request.data);
 	if(paranoia)
 		syslog(0, paranoiafile, "write %s by %s", job->request.data, mf->user);
 
+	/* first try cache */
+	lock(&cache);
+	cp = searchcache(job->request.data, now);
+	if(cp){
+		if(cp->err[0]){
+			memmove(errbuf, cp->err, ERRLEN);
+			err = errbuf;
+		} else {
+			for(i = 0; i < cp->nreply; i++){
+				mf->reply[i] = strdup(cp->reply[i]);
+				mf->replylen[i] = strlen(cp->reply[i]);
+			}
+			mf->nreply = cp->nreply;
+		}
+		unlock(&cache);
+		goto send;
+	}
+	unlock(&cache);
+
 	/*
 	 *  break up name
 	 */
+	question = strdup(job->request.data);
 	n = getfields(job->request.data, field, 4, 1, "!");
+	rv = -1;
 	switch(n){
 	case 1:
-		mf->net = strdup("net");
-		mf->host = strdup(field[0]);
+		rv = lookup(mf, "net", field[0], 0, 0);
+		break;
+	case 2:
+		rv = lookup(mf, field[0], field[1], 0, 0);
+		break;
+	case 3:
+		rv = lookup(mf, field[0], field[1], field[2], 0);
 		break;
 	case 4:
-		mf->rem = strdup(field[3]);
-		/* fall through */
-	case 3:
-		mf->serv = strdup(field[2]);
-		/* fall through */
-	case 2:
-		mf->host = strdup(field[1]);
-		mf->net = strdup(field[0]);
+		rv = lookup(mf, field[0], field[1], field[2], field[3]);
 		break;
 	}
 
-	/*
-	 *  do the first net worth of lookup
-	 */
-	if(lookup(mf) == 0)
+	lock(&cache);
+	cp = nextcache(question, now);
+	if(rv < 0){
 		err = "can't translate address";
-send:
+		errstr(errbuf);
+		if(strstr(errbuf, "dns:"))
+			err = errbuf;
+		strncpy(cp->err, err, ERRLEN);
+	} else {
+		for(i = 0; i < mf->nreply; i++)
+			cp->reply[i] = strdup(mf->reply[i]);
+		cp->nreply = mf->nreply;
+	}
+	unlock(&cache);
+
+    send:
 	job->reply.count = cnt;
 	sendmsg(job, err);
 }
@@ -841,7 +833,12 @@ send:
 void
 rclunk(Job *job, Mfile *mf)
 {
-	cleanmf(mf);
+	int i;
+
+	for(i = 0; i < mf->nreply; i++)
+		free(mf->reply[i]);
+	mf->nreply = 0;
+
 	mf->busy = 0;
 	mf->fid = 0;
 	sendmsg(job, 0);
@@ -916,6 +913,60 @@ error(char *s)
 	syslog(1, "cs", "%s: %r", s);
 	_exits(0);
 }
+
+/*
+ *  Network specific translators
+ */
+Ndbtuple*	iplookup(Network*, char*, char*, int);
+char*		iptrans(Ndbtuple*, Network*, char*, char*);
+Ndbtuple*	telcolookup(Network*, char*, char*, int);
+char*		telcotrans(Ndbtuple*, Network*, char*, char*);
+Ndbtuple*	dnsiplookup(char*, Ndbs*);
+
+struct Network
+{
+	char		*net;
+	int		nolookup;
+	Ndbtuple	*(*lookup)(Network*, char*, char*, int);
+	char		*(*trans)(Ndbtuple*, Network*, char*, char*);
+	int		needproto;
+	Network		*next;
+	int		considered;
+};
+
+enum
+{
+	Nil,
+	Ntcp,
+	Nudp,
+	Nicmp,
+	Nrudp,
+	Ntelco,
+};
+
+/*
+ *  net doesn't apply to udp, icmp, or telco (for speed)
+ */
+Network network[] = {
+[Nil]		{ "il",		0, iplookup,	iptrans,	1, 0, 0, },
+[Ntcp]		{ "tcp",	0, iplookup,	iptrans,	0, 0, 0, },
+[Nudp]		{ "udp",	0, iplookup,	iptrans,	0, 0, 1, },
+[Nicmp]		{ "icmp",	0, iplookup,	iptrans,	0, 0, 1, },
+[Nrudp]		{ "rudp",	0, iplookup,	iptrans,	0, 0, 1, },
+[Ntelco]	{ "telco",	0, telcolookup,	telcotrans,	0, 0, 1, },
+		{ 0,		0,  0,		0,		0, 0, 0, },
+};
+
+Lock ipifclock;
+Ipifc *ipifcs;
+
+char	eaddr[Ndbvlen];		/* ascii ethernet address */
+char	ipaddr[Ndbvlen];	/* ascii internet address */
+uchar	ipa[IPaddrlen];		/* binary internet address */
+char	mysysname[Ndbvlen];
+
+Network *netlist;		/* networks ordered by preference */
+Network *last;
 
 static int
 isvalidip(uchar *ip)
@@ -1007,11 +1058,6 @@ ipid(void)
 			}
 			ndbfree(t);
 		}
-
-		/* nothing else worked, use the ip address */
-		if(*mysysname == 0 && isvalidip(ipa))
-			strcpy(mysysname, ipaddr);
-					
 
 		/* set /dev/mysysname if we now know it */
 		if(*mysysname){
@@ -1123,118 +1169,132 @@ mktuple(char *attr, char *val)
 	return t;
 }
 
-int
-lookforproto(Ndbtuple *t, char *proto)
-{
-	for(; t != nil; t = t->entry)
-		if(strcmp(t->attr, "proto") == 0 && strcmp(t->val, proto) == 0)
-			return 1;
-	return 0;
-}
-
 /*
  *  lookup a request.  the network "net" means we should pick the
  *  best network to get there.
  */
 int
-lookup(Mfile *mf)
+lookup(Mfile *mf, char *net, char *host, char *serv, char *rem)
 {
-	Network *np;
+	Network *np, *p;
 	char *cp;
 	Ndbtuple *nt, *t;
 	char reply[Maxreply];
-	int i, rv;
-	int hack;
 
 	/* open up the standard db files */
 	if(db == 0)
 		ndbinit();
 	if(db == 0)
-		error("can't open mf->network database\n");
+		error("can't open network database\n");
 
-	rv = 0;
-
-	if(mf->net == nil)
-		return 0;	/* must have been a genquery */
-
-	if(strcmp(mf->net, "net") == 0){ 
+	nt = 0;
+	if(strcmp(net, "net") == 0){
 		/*
 		 *  go through set of default nets
 		 */
-		for(np = mf->nextnet; np; np = np->next){
-			nt = (*np->lookup)(np, mf->host, mf->serv, 1);
-			if(nt == nil)
-				continue;
-			hack = np->fasttimeouthack && !lookforproto(nt, np->net);
-			for(t = nt; mf->nreply < Nreply && t; t = t->entry){
-				cp = (*np->trans)(t, np, mf->serv, mf->rem, hack);
-				if(cp){
-					/* avoid duplicates */
-					for(i = 0; i < mf->nreply; i++)
-						if(strcmp(mf->reply[i], cp) == 0)
-							break;
-					if(i == mf->nreply){
-						/* save the reply */
-						mf->replylen[mf->nreply] = strlen(cp);
-						mf->reply[mf->nreply++] = cp;
-						rv++;
-					}
+		for(np = netlist; np; np = np->next){
+			nt = (*np->lookup)(np, host, serv, 0);
+			if(nt){
+				if(needproto(np, nt) == 0)
+					break;
+				ndbfree(nt);
+				nt = 0;
+			}
+		}
+
+		/*
+		 *   try first net that requires no table lookup
+		 */
+		if(nt == 0)
+			for(np = netlist; np; np = np->next){
+				if(np->nolookup && *host != '$'){
+					nt = (*np->lookup)(np, host, serv, 1);
+					if(nt)
+						break;
 				}
 			}
-			ndbfree(nt);
-			np = np->next;
-			break;
-		}
-		mf->nextnet = np;
-		return rv;
-	}
 
-	/*
-	 *  if not /net, we only get one lookup
-	 */
-	if(mf->nreply != 0)
-		return 0;
+		if(nt == 0)
+			return -1;
 
-	/*
-	 *  look for a specific network
-	 */
-	for(np = netlist; np->net != nil; np++){
-		if(np->fasttimeouthack)
-			continue;
-		if(strcmp(np->net, mf->net) == 0)
-			break;
-	}
-
-	if(np->net != nil){
 		/*
-		 *  known network
+		 *  create replies
 		 */
-		nt = (*np->lookup)(np, mf->host, mf->serv, 1);
-		for(t = nt; mf->nreply < Nreply && t; t = t->entry){
-			cp = (*np->trans)(t, np, mf->serv, mf->rem, 0);
-			if(cp){
-				mf->replylen[mf->nreply] = strlen(cp);
-				mf->reply[mf->nreply++] = cp;
-				rv++;
+		for(p = np; p; p = p->next){
+			for(t = nt; mf->nreply < Nreply && t; t = t->entry){
+				if(needproto(p, nt) < 0)
+					continue;
+				cp = (*p->trans)(t, p, serv, rem);
+				if(cp){
+					mf->replylen[mf->nreply] = strlen(cp);
+					mf->reply[mf->nreply++] = cp;
+				}
+			}
+		}
+		for(p = netlist; mf->nreply < Nreply && p != np; p = p->next){
+			for(t = nt; mf->nreply < Nreply && t; t = t->entry){
+				if(needproto(p, nt) < 0)
+					continue;
+				cp = (*p->trans)(t, p, serv, rem);
+				if(cp){
+					mf->replylen[mf->nreply] = strlen(cp);
+					mf->reply[mf->nreply++] = cp;
+				}
 			}
 		}
 		ndbfree(nt);
-		return rv;
+		return 0;
 	} else {
 		/*
-		 *  not a known network, don't translate host or service
+		 *  look on a specific network
 		 */
-		if(mf->serv)
-			snprint(reply, sizeof(reply), "%s/%s/clone %s!%s",
-				mntpt, mf->net, mf->host, mf->serv);
-		else
-			snprint(reply, sizeof(reply), "%s/%s/clone %s",
-				mntpt, mf->net, mf->host);
-		mf->reply[0] = strdup(reply);
-		mf->replylen[0] = strlen(reply);
-		mf->nreply = 1;
-		return 1;
+		for(p = network; p->net; p++){
+			if(strcmp(p->net, net) == 0){
+				nt = (*p->lookup)(p, host, serv, 1);
+				if (nt == 0)
+					return -1;
+
+				/* create replies */
+				for(t = nt; mf->nreply < Nreply && t; t = t->entry){
+					cp = (*p->trans)(t, p, serv, rem);
+					if(cp){
+						mf->replylen[mf->nreply] = strlen(cp);
+						mf->reply[mf->nreply++] = cp;
+					}
+				}
+				ndbfree(nt);
+				return 0;
+			}
+		}
 	}
+
+	/*
+	 *  not a known network, don't translate host or service
+	 */
+	if(serv)
+		snprint(reply, sizeof(reply), "%s/%s/clone %s!%s",
+			mntpt, net, host, serv);
+	else
+		snprint(reply, sizeof(reply), "%s/%s/clone %s",
+			mntpt, net, host);
+	mf->reply[0] = strdup(reply);
+	mf->replylen[0] = strlen(reply);
+	mf->nreply = 1;
+	return 0;
+}
+
+/*
+ *  see if we can use this protocol
+ */
+int
+needproto(Network *np, Ndbtuple *t)
+{
+	if(np->needproto == 0)
+		return 0;
+	for(; t; t = t->entry)
+		if(strcmp(t->attr, "proto")==0 && strcmp(t->val, np->net)==0)
+			return 0;
+	return -1;
 }
 
 /*
@@ -1428,7 +1488,7 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
  *  translate an ip address
  */
 char*
-iptrans(Ndbtuple *t, Network *np, char *serv, char *rem, int hack)
+iptrans(Ndbtuple *t, Network *np, char *serv, char *rem)
 {
 	char ts[Ndbvlen+1];
 	char reply[Maxreply];
@@ -1444,13 +1504,12 @@ iptrans(Ndbtuple *t, Network *np, char *serv, char *rem, int hack)
 		snprint(x, sizeof(x), "!%s", rem);
 	else
 		*x = 0;
-
 	if(*t->val == '*')
 		snprint(reply, sizeof(reply), "%s/%s/clone %s%s",
 			mntpt, np->net, ts, x);
 	else
-		snprint(reply, sizeof(reply), "%s/%s/clone %s!%s%s%s",
-			mntpt, np->net, t->val, ts, x, hack?"!fasttimeout":"");
+		snprint(reply, sizeof(reply), "%s/%s/clone %s!%s%s",
+			mntpt, np->net, t->val, ts, x);
 
 	return strdup(reply);
 }
@@ -1479,7 +1538,7 @@ telcolookup(Network *np, char *host, char *serv, int nolookup)
  *  translate a telephone address
  */
 char*
-telcotrans(Ndbtuple *t, Network *np, char *serv, char *rem, int)
+telcotrans(Ndbtuple *t, Network *np, char *serv, char *rem)
 {
 	char reply[Maxreply];
 	char x[Ndbvlen+1];

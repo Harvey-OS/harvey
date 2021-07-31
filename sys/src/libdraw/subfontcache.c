@@ -14,10 +14,8 @@ lookupsubfont(Display *d, char *name)
 {
 	if(strcmp(name, "*default*") == 0)
 		return d->defaultsubfont;
-	if(lastname && strcmp(name, lastname)==0 && d==lastsubfont->bits->display){
-		lastsubfont->ref++;
+	if(lastname && strcmp(name, lastname)==0 && d==lastsubfont->bits->display)
 		return lastsubfont;
-	}
 	return 0;
 }
 

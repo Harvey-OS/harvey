@@ -145,7 +145,8 @@ tcopy(Type *t)
 	tl = tcopy(t->link);
 	if(tl != t->link ||
 	  (et == TARRAY && t->width == 0)) {
-		tx = copytyp(t);
+		tx = typ(TXXX, 0);
+		*tx = *t;
 		tx->link = tl;
 		return tx;
 	}
@@ -551,7 +552,6 @@ suallign(Type *t)
 		w = align(w, t, Asu2);
 		t->width = w;
 		acidtype(t);
-		pickletype(t);
 		return;
 
 	case TUNION:
@@ -573,7 +573,6 @@ suallign(Type *t)
 		w = align(w, t, Asu2);
 		t->width = w;
 		acidtype(t);
-		pickletype(t);
 		return;
 
 	default:
@@ -614,7 +613,8 @@ ofnproto(Node *n)
 		return tl;
 
 	case ONAME:
-		t = copytyp(n->sym->type);
+		t = typ(TXXX, T);
+		*t = *n->sym->type;
 		t->down = T;
 		return t;
 	}
@@ -882,6 +882,7 @@ fnproto1(Node *n)
 void
 dbgdecl(Sym *s)
 {
+
 	print("decl \"%s\": C=%s [B=%d:O=%ld] T=%T\n",
 		s->name, cnames[s->class], s->block, s->offset, s->type);
 }
@@ -1214,40 +1215,23 @@ xdecl(int c, Type *t, Sym *s)
 	long o;
 
 	o = 0;
-	switch(c) {
-	case CEXREG:
+	if(c == CEXREG) {
 		o = exreg(t);
 		if(o == 0)
 			c = CEXTERN;
-		if(s->class == CGLOBL)
-			c = CGLOBL;
-		break;
-
-	case CEXTERN:
-		if(s->class == CGLOBL)
-			c = CGLOBL;
-		break;
-
-	case CXXX:
+	}
+	if(c == CXXX) {
 		c = CGLOBL;
 		if(s->class == CEXTERN)
-			s->class = CGLOBL;
-		break;
-
-	case CAUTO:
+			s->class = c;
+	}
+	if(c == CEXTERN)
+		if(s->class == CGLOBL)
+			c = CGLOBL;
+	if(c == CAUTO) {
 		diag(Z, "overspecified class: %s %s %s", s->name, cnames[c], cnames[s->class]);
 		c = CEXTERN;
-		break;
-
-	case CTYPESTR:
-		if(!typesuv[t->etype]) {
-			diag(Z, "typestr must be struct/union: %s", s->name);
-			break;
-		}
-		dclfunct(t, s);
-		break;
 	}
-
 	if(s->class == CSTATIC)
 		if(c == CEXTERN || c == CGLOBL) {
 			warn(Z, "overspecified class: %s %s %s", s->name, cnames[c], cnames[s->class]);
@@ -1350,7 +1334,8 @@ edecl(int c, Type *t, Sym *s)
 		if(c != CXXX)
 			diag(Z, "structure element cannot have class: %s", s->name);
 	t1 = t;
-	t = copytyp(t1);
+	t = typ(TXXX, T);
+	*t = *t1;
 	t->sym = s;
 	t->down = T;
 	if(lastfield) {

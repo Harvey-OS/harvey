@@ -223,16 +223,9 @@ setname(Mkaux *mkaux, Name *name, char *s1, char *s2)
 static int
 copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 {
-	Dir nd;
 	ulong xmode;
 	char *p;
 
-	setname(mkaux, &mkaux->fullname, mkaux->root, f->old ? f->old : f->new);
-	/*
-	 * Extra stat here is inefficient but accounts for binds.
-	 */
-	if(dirstat(mkaux->fullname.s, &nd) >= 0)
-		*d = nd;
 	memmove(d->name, f->elem, NAMELEN);
 	if(d->type != 'M'){
 		strncpy(d->uid, "sys", NAMELEN);
@@ -253,6 +246,7 @@ copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 			d->mode = f->mode;
 	}
 
+	setname(mkaux, &mkaux->fullname, mkaux->root, f->old ? f->old : f->new);
 	if(p = strrchr(f->new, '/'))
 		strcpy(d->name, p+1);
 	else
@@ -270,9 +264,7 @@ mkpath(Mkaux *mkaux, char *prefix, char *elem)
 
 	n = strlen(prefix) + strlen(elem) + 2;
 	p = emalloc(mkaux, n);
-	strcpy(p, prefix);
-	strcat(p, "/");
-	strcat(p, elem);
+	sprint(p, "%s/%s", prefix, elem);
 	return p;
 }
 

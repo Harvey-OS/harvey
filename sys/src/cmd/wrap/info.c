@@ -17,14 +17,14 @@ usage(void)
 	exits("usage");
 }
 
-char *xtypestr[] = { "???", "package", "update", "full update" };
+char *typestr[] = { "???", "pkg", "upd", "pkgupd" };
 
 void
 main(int argc, char **argv)
 {
 	char *tm, *q;
 	Wrap *w;
-	Update *u;
+	Update *u, *eu;
 
 	ARGBEGIN{
 	case 'r':
@@ -44,21 +44,21 @@ main(int argc, char **argv)
 	if(w == nil)
 		sysfatal("no such package found: %r");
 
-	tm = asctime(localtime(w->tfull));
+	tm = asctime(localtime(w->time));
 	if(q = strchr(tm, '\n'))
 		*q = '\0';
 
-	print("%s (complete as of %s)\n", w->name, tm);
+	print("%s (full package as of %s)\n", w->name, tm);
 
-	for(u=w->u+w->nu; --u >= w->u; ) {
+	for(u=w->u, eu=u+w->nu; u<eu; u++) {
 		tm = asctime(localtime(u->time));
 		if(q = strchr(tm, '\n'))
 			*q = '\0';
 
-		if(u->type < 0 || u->type >= nelem(xtypestr))
-			print("%s", xtypestr[0]);
+		if(u->type < 0 || u->type >= nelem(typestr))
+			print("%s", typestr[0]);
 		else
-			print("%s", xtypestr[u->type]);
+			print("%s", typestr[u->type]);
 		print(" %lld", u->time);
 		if(u->type & UPD)
 			print(" updating %lld", u->utime);

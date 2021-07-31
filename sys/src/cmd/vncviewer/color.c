@@ -1,5 +1,4 @@
 #include "vnc.h"
-#include "vncv.h"
 
 enum {
 	RGB12 = CHAN4(CIgnore, 4, CRed, 4, CGreen, 4, CBlue, 4),
@@ -7,7 +6,7 @@ enum {
 	BGR8 = CHAN3(CBlue, 2, CGreen, 3, CRed, 3),
 };
 
-void (*cvtpixels)(uchar*, uchar*, int);
+void (*cvtpixels)(uchar*, int);
 
 static void
 chan2fmt(Pixfmt *fmt, ulong chan)
@@ -38,15 +37,17 @@ chan2fmt(Pixfmt *fmt, ulong chan)
  * because we keep the server in little endian mode.
  */
 static void
-cvt32to24(uchar *dst, uchar *src, int npixel)
+cvt32to24(uchar *data, int npixel)
 {
 	int i;
+	uchar *p, *q;
 
+	p = q = data;
 	for(i=0; i<npixel; i++) {
-		*dst++ = *src++;
-		*dst++ = *src++;
-		*dst++ = *src++;
-		src++;
+		*p++ = *q++;
+		*p++ = *q++;
+		*p++ = *q++;
+		q++;
 	}
 }
 
@@ -66,14 +67,17 @@ mkrgbtab(void)
 }
 
 static void
-cvtrgb12tocmap8(uchar *dst, uchar *src, int npixel)
+cvtrgb12tocmap8(uchar *buf, int npixel)
 {
+	uchar *p, *q;
 	int i, s;
 
+	p = (uchar*)buf;
+	q = (uchar*)buf;
 	for(i=0; i<npixel; i++) {
-		s = (src[0] | (src[1]<<8)) & 0xFFF;
-		*dst++ = rgb12[s];
-		src += 2;
+		s = (q[0] | (q[1]<<8)) & 0xFFF;
+		*p++ = rgb12[s];
+		q += 2;
 	}
 }
 
@@ -99,25 +103,24 @@ mkbgrtab(void)
 }
 
 static void
-cvtbgr332tocmap8(uchar *dst, uchar *src, int npixel)
+cvtbgr332tocmap8(uchar *buf, int npixel)
 {
-	uchar *ed;
+	uchar *p, *ep;
 
-	ed = dst+npixel;
-	while(dst < ed)
-		*dst++ = bgr8[*src++];
+	p = (uchar*)buf;
+	ep = p+npixel;
+	for(; p < ep; p++)
+		*p = bgr8[*p];
 }
 
 void
 choosecolor(Vnc *v)
 {
+	char chanstr[20];
 	int bpp, depth;
 	ulong chan;
 
 	bpp = display->depth;
-	if((bpp / 8) * 8 != bpp)
-		sysfatal("screen not supported");
-
 	depth = display->depth;
 	chan = display->chan;
 
@@ -154,14 +157,14 @@ choosecolor(Vnc *v)
 	v->bigendian = 0;
 	chan2fmt(v, chan);
 	if(v->red.max == 0 || v->green.max == 0 || v->blue.max == 0)
-		sysfatal("screen not supported");
+		sysfatal("channel %s not supported\n", chantostr(chanstr, chan));
 
 	if(verbose)
-		print("%d bpp, %d depth, 0x%lx chan, %d truecolor, %d bigendian\n",
-			v->bpp, v->depth, display->chan, v->truecolor, v->bigendian);
+		print("%d bpp, %d depth, %d truecolor, %d bigendian\n",
+			v->bpp, v->depth, v->truecolor, v->bigendian);
 
 	/* send information to server */
-	vncwrchar(v, MPixFmt);
-	vncwrpixfmt(v, &v->Pixfmt);
-	vncflush(v);
+	Vwrchar(v, rfbMsgSetPixelFormat);
+	Vwrpixfmt(v, &v->Pixfmt);
+	Vflush(v);
 }

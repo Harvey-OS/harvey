@@ -6,6 +6,7 @@
 #include "../port/error.h"
 
 #include "ip.h"
+#include "kernel.h"
 
 typedef struct Etherhdr Etherhdr;
 struct Etherhdr
@@ -109,7 +110,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	char addr[2*NAMELEN];
 	char dir[2*NAMELEN];
 	char *buf;
-	int n;
+	int fd, cfd, n;
 	char *ptr;
 	Etherrock *er;
 
@@ -137,16 +138,27 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	 *  this device.
 	 */
 	snprint(addr, sizeof(addr), "%s!0x800", argv[2]);
-	mchan = chandial(addr, nil, dir, &cchan);
+	fd = kdial(addr, nil, dir, &cfd);
+	if(fd < 0)
+		error("dial 0x800 failed");
+	mchan = commonfdtochan(fd, ORDWR, 0, 1);
+	cchan = commonfdtochan(cfd, ORDWR, 0, 1);
+	kclose(fd);
+	kclose(cfd);
 
 	/*
 	 *  get mac address
 	 */
 	snprint(addr, sizeof(addr), "%s/stats", dir);
+	fd = kopen(addr, OREAD);
+	if(fd < 0)
+		error("can't read ether stats");
+
 	buf = smalloc(512);
-	achan = namec(addr, Aopen, OREAD, 0);
-	n = devtab[achan->type]->read(achan, buf, 511, 0);
-	cclose(achan);
+	n = kread(fd, buf, 511);
+	kclose(fd);
+	if(n <= 0)
+		error(Eio);
 	buf[n] = 0;
 
 	ptr = strstr(buf, "addr: ");
@@ -160,7 +172,11 @@ etherbind(Ipifc *ifc, int argc, char **argv)
  	 *  open arp conversation
 	 */
 	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);
-	achan = chandial(addr, nil, nil, nil);
+	fd = kdial(addr, nil, nil, nil);
+	if(fd < 0)
+		error("dial 0x806 failed");
+	achan = commonfdtochan(fd, ORDWR, 0, 1);
+	kclose(fd);
 
 	er = smalloc(sizeof(*er));
 	er->mchan = mchan;

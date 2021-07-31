@@ -90,6 +90,8 @@ enum {					/* Ecr */
 
 	EEstart		= 0x04,		/* start bit */
 	EEread		= 0x02,		/* read opcode */
+
+	EEaddrsz	= 6,		/* bits of address */
 };
 
 enum {					/* Mcr */
@@ -188,8 +190,7 @@ typedef struct Ctlr {
 	int	state;
 
 	int	port;
-	int	eepromsz;		/* address size in bits */
-	ushort*	eeprom;
+	ushort	eeprom[0x40];
 
 	Lock	miilock;
 
@@ -439,7 +440,7 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	len += snprint(p+len, READSTR-len, "threshold: %d\n", ctlr->threshold);
 
 	len += snprint(p+len, READSTR-len, "eeprom:");
-	for(i = 0; i < (1<<ctlr->eepromsz); i++){
+	for(i = 0; i < 0x40; i++){
 		if(i && ((i & 0x07) == 0))
 			len += snprint(p+len, READSTR-len, "\n       ");
 		len += snprint(p+len, READSTR-len, " %4.4uX", ctlr->eeprom[i]);
@@ -824,7 +825,7 @@ miiw(Ctlr* ctlr, int phyadd, int regadd, int data)
 static int
 hy93c46r(Ctlr* ctlr, int r)
 {
-	int data, i, op, size;
+	int i, op, data;
 
 	/*
 	 * Hyundai HY93C46 or equivalent serial EEPROM.
@@ -832,7 +833,6 @@ hy93c46r(Ctlr* ctlr, int r)
 	 * in the EEPROM is taken straight from Section
 	 * 3.3.4.2 of the Intel 82557 User's Guide.
 	 */
-reread:
 	csr16w(ctlr, Ecr, EEcs);
 	op = EEstart|EEread;
 	for(i = 2; i >= 0; i--){
@@ -844,14 +844,8 @@ reread:
 		microdelay(1);
 	}
 
-	/*
-	 * First time through must work out the EEPROM size.
-	 */
-	if((size = ctlr->eepromsz) == 0)
-		size = 8;
-
-	for(size = size-1; size >= 0; size--){
-		data = (((r>>size) & 0x01)<<2)|EEcs;
+	for(i = EEaddrsz-1; i >= 0; i--){
+		data = (((r>>i) & 0x01)<<2)|EEcs;
 		csr16w(ctlr, Ecr, data);
 		csr16w(ctlr, Ecr, data|EEsk);
 		delay(1);
@@ -872,12 +866,6 @@ reread:
 	}
 
 	csr16w(ctlr, Ecr, 0);
-
-	if(ctlr->eepromsz == 0){
-		ctlr->eepromsz = 8-size;
-		ctlr->eeprom = malloc((1<<ctlr->eepromsz)*sizeof(ushort));
-		goto reread;
-	}
 
 	return data;
 }
@@ -1034,12 +1022,9 @@ reset(Ether* ether)
 
 	/*
 	 * Read the EEPROM.
-	 * Do a dummy read first to get the size
-	 * and allocate ctlr->eeprom.
 	 */
-	hy93c46r(ctlr, 0);
 	sum = 0;
-	for(i = 0; i < (1<<ctlr->eepromsz); i++){
+	for(i = 0; i < 0x40; i++){
 		x = hy93c46r(ctlr, i);
 		ctlr->eeprom[i] = x;
 		sum += x;

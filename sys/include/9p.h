@@ -27,7 +27,6 @@ struct Fid
 
 struct Req
 {
-	Lock		taglock;
 	ulong	tag;
 	void*	aux;
 	Fcall		fcall;
@@ -67,8 +66,6 @@ struct Srv {
 	Fidpool*	fpool;
 	Reqpool*	rpool;
 	int	fd;
-
-	void		*aux;
 };
 
 struct File {
@@ -131,7 +128,7 @@ int		lib9p_chatty;
 void		respond(Req*, char*);
 
 /* threadsrv.c */
-void		threadpostmountsrv(Srv*, char*, char*, int);
+int		threadpostmountsrv(Srv*, char*, char*, int);
 
 /* uid.c */
 int		hasperm(File*, char*, int);
@@ -150,9 +147,3 @@ void readbuf(vlong, void*, long*, void*, long);
 
 /* crummy hack; need to work out better way */
 extern void (*endsrv)(void*);
-
-struct Reqpool {
-	Intmap	*map;
-	Srv		*srv;
-};
-

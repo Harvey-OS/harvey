@@ -12,18 +12,17 @@ static void		launcher(ulong, void (*)(void *), void *);
 static void		mainlauncher(ulong, int argc, char *argv[]);
 static void		garbageproc(Proc *);
 static Proc*	prepproc(Newproc *);
-static int		setnoteid(int);
-static int		getnoteid(void);
 
 static int		notefd;
 static int		passerpid;
-static long	totalmalloc;
+static long		totalmalloc;
 
 static Thread*	dontkill;
 
 static Tqueue	rendez;
-static Lock	rendezlock;
-int			mainstacksize;
+static Lock		rendezlock;
+int				threadrforkflag;
+int				threadhack;
 Channel*		thewaitchan;
 
 struct Pqueue	pq;
@@ -47,24 +46,7 @@ Proc			**procp;	/* Pointer to pointer to proc's Proc structure */
 	#define FIX1 *--tos = 0
 	#define FIX2 *--tos = 0
 #endif
-#ifdef Marm
-	#define FIX1
-	#define FIX2
-#endif
 
-static int
-nextID(void)
-{
-	static Lock l;
-	static id;
-	int i;
-
-	lock(&l);
-	i = ++id;
-	unlock(&l);
-	return i;
-}
-	
 static int
 notehandler(void *, char *s) {
 	Proc *p;
@@ -76,8 +58,6 @@ notehandler(void *, char *s) {
 	if (getpid() == passerpid) {
 		if (DBGNOTE & _threaddebuglevel)
 			threadprint(2, "Notepasser %d got note %s\n", passerpid, s);
-		if (strcmp(s, "kilpasser") == 0)
-			exits(nil);
 		write(notefd, s, strlen(s));
 		if (strncmp(s, "kilthr", 6) == 0 || strncmp(s, "kilgrp", 6) == 0)
 			return 1;
@@ -86,7 +66,7 @@ notehandler(void *, char *s) {
 			p = *procp;
 			id = strtoul(s+6, nil, 10);
 			if (DBGNOTE & _threaddebuglevel)
-				threadprint(2, "Thread id %d\n", id);
+				threadprint(2, "Thread id %d", id);
 			for (t = p->threads.head; t; t = t->nextt) {
 				if (t->id == id) {
 					break;
@@ -94,15 +74,10 @@ notehandler(void *, char *s) {
 			}
 			if (t == nil) {
 				if (DBGNOTE & _threaddebuglevel)
-					threadprint(2, "Thread id %d not found\n", id);
+					threadprint(2, "Thread id %d not found", id);
 				return 1;
 			}
-			if (t == p->curthread) {
-				char err[ERRLEN] = "exiting";
-				if (DBGNOTE & _threaddebuglevel)
-					threadprint(2, "Killing current thread\n");
-				errstr(err);
-			}
+			threadassert(t != p->curthread || t->state != Running);
 			threadassert(t->state != Rendezvous);
 			t->exiting = 1;
 			return 1;
@@ -135,7 +110,7 @@ threadexits(char *exitstr) {
 	_threaddebug(DBGTHRD|DBGKILL, "Exitthread()");
 	p = *procp;
 	t = p->curthread;
-	threadassert(t->state == Running);
+	assert (t->state == Running);
 	if (p->nthreads > 1) {
 		t->exiting = 1;
 		p->nthreads--;
@@ -202,42 +177,6 @@ threadexits(char *exitstr) {
 	longjmp(p->oldenv, DOEXIT);
 }
 
-static Thread *
-threadof(int id) {
-	Proc *pp;
-	Thread *t;
-
-	lock(&pq.lock);
-	for (pp = pq.head; pp->next; pp = pp->next)
-		for (t = pp->threads.head; t; t = t->nextt)
-			if (t->id == id) {
-				unlock(&pq.lock);
-				return t;
-			}
-	unlock(&pq.lock);
-	return nil;
-}
-
-int
-threadpid(int id) {
-	Proc *pp;
-	Thread *t;
-
-	if (id < 0)
-		return id;
-	if (id == 0)
-		return (*procp)->pid;
-	lock(&pq.lock);
-	for (pp = pq.head; pp->next; pp = pp->next)
-		for (t = pp->threads.head; t; t = t->nextt)
-			if (t->id == id) {
-				unlock(&pq.lock);
-				return pp->pid;
-			}
-	unlock(&pq.lock);
-	return -1;
-}
-
 void
 threadkillgrp(int grp) {
 	int fd;
@@ -252,46 +191,14 @@ threadkillgrp(int grp) {
 
 void
 threadkill(int id) {
-	char buf[16];
-	Thread *t;
-	int pid;
-	Proc *p;
+	int fd;
+	char buf[128];
 
-	if ((t = threadof(id)) == nil) {
-		if (_threaddebuglevel & DBGNOTE)
-			threadprint(2, "Can't find thread to kill\n");
-		return;
-	}
+	sprint(buf, "/proc/%d/notepg", getpid());
+	fd = open(buf, OWRITE|OCEXEC);
 	sprint(buf, "kilthr%d", id);
-	if ((pid = t->proc->pid) == 0) {
-		if (_threaddebuglevel & DBGNOTE)
-			threadprint(2, "Thread has zero pid\n");
-		if (postnote(PNGROUP, getpid(), buf) < 0)
-			threadprint(2, "postnote failed: %r\n");
-		return;
-	}
-	p = *procp;
-	if (pid == p->pid) {
-		if (_threaddebuglevel & DBGNOTE)
-			threadprint(2, "Thread in same proc\n");
-		assert(pid == getpid());
-		if (t == p->curthread) {
-			threadprint(2, "Threadkill:  killing self\n");
-			threadexits("threadicide");
-		}
-		lock(&rendezlock);
-		if (t->state == Rendezvous) {
-			if (_threaddebuglevel & DBGNOTE)
-				threadprint(2, "Thread was in rendezvous\n");
-			assert(getqbytag(&rendez, t->tag) == t);
-		}
-		t->exiting = 1;
-		unlock(&rendezlock);
-		garbagethread(t);
-		return;
-	}
-	if (postnote(PNPROC, pid, buf) < 0)
-		threadprint(2, "postnote failed: %r\n");
+	write(fd, buf, strlen(buf));
+	close(fd);
 }
 
 void
@@ -456,62 +363,55 @@ _threadrendezvous(ulong tag, ulong value) {
 }
 
 void
-main(int argc, char *argv[])
-{
-	char buf[40], err[ERRLEN];
-	int fd, id;
+main(int argc, char *argv[]) {
+	int pid;
+	Waitmsg w;
+	char buf[128], err[ERRLEN];
 
+	_threaddebuglevel = 0;
+	if(threadrforkflag){
+		pid = rfork(threadrforkflag);
+		if(pid < 0){
+			fprint(2, "libthread: initial rfork failed: %r\n");
+			exits("rfork");
+		}
+		if(pid > 0){	/* result is pid from RFPROC; parent should exit */
+			while(threadhack)
+				sleep(100);
+			exits(nil);
+		}
+	}
 	_qlockinit(_threadrendezvous);
-	id = getnoteid();
-	threadassert(id > 0);
-	rfork(RFNOTEG|RFREND);
 	atnotify(notehandler, 1);
-	switch(rfork(RFPROC|RFMEM)){
-	case -1:
-		threadassert(0);
-	case 0:
-		/* handle notes */
+	pid = rfork(RFPROC|RFMEM|RFREND|RFNOTEG);
+	threadassert(pid >= 0);
+	if (pid) {
+		int fd;
+
 		rfork(RFCFDG);
 		if (_threaddebuglevel) {
 			fd = open("/dev/cons", OWRITE);
 			dup(fd, 2);
 		}
 		passerpid = getpid();
-		/*
-		 * The noteid is attached to the fd at open.
-		 * Notefd will correspond to our current (new) noteid
-		 * even after we set our noteid back to the old one.
-		 *
-		 * We could open main's notepg file and not depend
-		 * on this behavior, but then we would depend on the fact that
-		 * when main exits its open notepg file is still writable.
-		 * We would also depend on opening the file before main
-		 * exits, which is a race I'd rather not run.
-		 */
-		sprint(buf, "/proc/%d/notepg", getpid());
+		sprint(buf, "/proc/%d/notepg", pid);
 		notefd = open(buf, OWRITE|OCEXEC);
+		/* wait for notes and pass them on */
 		if (_threaddebuglevel & DBGNOTE)
 			threadprint(2, "Passer is %d\n", passerpid);
-		if(setnoteid(id) < 0){
-			passerpid = -1;
-			exits(0);
-		}
-		for(;;){
-			if(sleep(120*1000) < 0){
+		for (;;)
+			if(wait(&w) < 0) {
 				errstr(err);
 				if (strcmp(err, "interrupted") != 0)
 					break;
 			}
-		}
 		if (_threaddebuglevel & DBGNOTE)
 			threadprint(2, "Passer %d exits\n", passerpid);
-		exits("interrupted");
-
-	default:
-		if(mainstacksize == 0)
-			mainstacksize = 512*1024;
-		initproc(mainlauncher, argc, argv, mainstacksize);
+		exits(w.msg);
 		/* never returns */
+	} else {
+		threadassert(pid == 0);
+		initproc(mainlauncher, argc, argv, 256*1024);
 	}
 }
 
@@ -529,28 +429,23 @@ char *threadgetname(void) {
 	return (*procp)->curthread->cmdname;
 }
 
-ulong*
+ulong *
 procdata(void) {
-	return &(*procp)->udata;
-}
-
-ulong*
-threaddata(void) {
-	return &(*procp)->curthread->udata;
+	return &((*procp)->udata);
 }
 
 int
-procrfork(void (*f)(void *), void *arg, uint stacksize, int rforkflag) {
+proccreate(void (*f)(void *), void *arg, uint stacksize) {
 	Newproc *np;
 	Proc *p;
-	int id;
+	int pid;
 	ulong *tos;
 
 	p = *procp;
 	/* Save old stack position */
-	if ((id = setjmp(p->curthread->env))) {
+	if ((pid = setjmp(p->curthread->env))) {
 		_threaddebug(DBGPROC, "newproc, return\n");
-		return id;	/* Return with pid of new proc */
+		return pid;	/* Return with pid of new proc */
 	}
 	np = _threadmalloc(sizeof(Newproc));
 	threadassert(np != nil);
@@ -569,7 +464,6 @@ procrfork(void (*f)(void *), void *arg, uint stacksize, int rforkflag) {
 	np->stackptr = tos;
 	np->grp = p->curthread->grp;
 	np->launcher = (long)launcher;
-	np->rforkflag = rforkflag;
 
 	_threaddebug(DBGPROC, "newproc, switch stacks\n");
 	/* Goto unshared stack and fire up new process */
@@ -577,11 +471,6 @@ procrfork(void (*f)(void *), void *arg, uint stacksize, int rforkflag) {
 	longjmp(p->oldenv, DOPROC);
 	/* no return */
 	return -1;
-}
-
-int
-proccreate(void (*f)(void*), void *arg, uint stacksize) {
-	return procrfork(f, arg, stacksize, 0);
 }
 
 int
@@ -604,9 +493,9 @@ threadcreate(void (*f)(void *arg), void *arg, uint stacksize) {
 	memset(child->stk, 0xFE, stacksize);
 	p->nthreads++;
 	child->cmdname = nil;
-	child->id = nextID();
+	child->id = ++p->nextID;
 	child->proc = p;
-	tos = (ulong *)(&child->stk[stacksize&~7]);
+	tos = (ulong *)(&child->stk[stacksize&(~7)]);
 	FIX1;
 	*--tos = (ulong)arg;
 	*--tos = (ulong)f;
@@ -752,26 +641,11 @@ _threadmalloc(long size) {
 	return m;
 }
 
-void
-threadnonotes(void)
-{
-	char buf[30];
-	int fd;
-
-	sprint(buf, "/proc/%d/note", passerpid);
-	if((fd = open(buf, OWRITE)) >= 0)
-		write(fd, "kilpasser", 9);
-	close(fd);
-}
-
-
 static void
-runproc(Proc *p)
-{
-	int action, pid, rforkflag;
+runproc(Proc *p) {
+	int action, pid;
 	Proc *pp;
 	long r;
-	int id;
 	char str[ERRLEN];
 
 	r = ~0;
@@ -808,10 +682,8 @@ runp:
 			lock(&pq.lock);
 			if (pq.head == p) {
 				pq.head = p->next;
-				if (pq.tail == p) {
+				if (pq.tail == p)
 					pq.tail = nil;
-					postnote(PNPROC, passerpid, "kilpasser");
-				}
 			} else {
 				for (pp = pq.head; pp->next; pp = pp->next) {
 					if(pp->next == p) {
@@ -830,10 +702,8 @@ runp:
 			_threaddebug(DBGPROC, "at doproc\n");
 			np = (Newproc *)p->arg;
 			pp = prepproc(np);
-			id = pp->curthread->id;	// get id before fork() to avoid race
-			rforkflag = np->rforkflag;
 			free(np);
-			if ((pid = rfork(RFPROC|RFMEM|RFNOWAIT|rforkflag)) < 0) {
+			if ((pid = rfork(RFPROC|RFMEM)) < 0) {
 				exits("donewproc: fork: %r");
 			}
 			if (pid == 0) {
@@ -844,17 +714,14 @@ runp:
 				/* No return */
 			}
 			/* Parent, return to caller */
-			r = id;			// better than returning pid
+			r = pid;
 			_threaddebug(DBGPROC, "newproc, unswitch stacks\n");
 			break;
 		default:
 			/* `Can't happen' */
-			threadprint(2, "runproc, can't happen: %d\n", action);
 			threadassert(0);
 		}
 	}
-	if (_threaddebuglevel & DBGPROC)
-		threadprint(2, "runproc, longjmp\n");
 	/* Jump into proc */
 	*procp = p;
 	longjmp(p->curthread->env, r);
@@ -872,9 +739,6 @@ initproc(void (*f)(ulong, int argc, char *argv[]), int argc, char *argv[], uint 
 
 	procp = (Proc **)&ex;	/* address of the execproc struct */
 
-	if (_threaddebuglevel & DBGPROC)
-		threadprint(2, "Initproc, f = 0x%p, argc = %d, argv = 0x%p\n",
-			f, argc, argv);
 	/* Create a stack and fill it */
 	np = _threadmalloc(sizeof(Newproc));
 	threadassert(np != nil);
@@ -883,7 +747,6 @@ initproc(void (*f)(ulong, int argc, char *argv[]), int argc, char *argv[], uint 
 	memset(np->stack, 0xFE, stacksize);
 	tos = (ulong *)(&np->stack[stacksize&(~7)]);
 	np->stacksize = stacksize;
-	np->rforkflag = 0;
 	np->grp = 0;
 	for (i = 0; i < argc; i++){
 		char *nargv;
@@ -909,8 +772,6 @@ initproc(void (*f)(ulong, int argc, char *argv[]), int argc, char *argv[], uint 
 	p = prepproc(np);
 	p->pid = getpid();
 	free(np);
-	if (_threaddebuglevel & DBGPROC)
-		threadprint(2, "calling runproc\n");
 	runproc(p);
 	/* no return; */
 }
@@ -943,7 +804,7 @@ garbagethread(Thread *t) {
 			break;
 		pr = r;
 	}
-	threadassert (r != nil);
+	assert (r != nil);
 	if (pr)
 		pr->nextt = r->nextt;
 	else
@@ -1069,7 +930,7 @@ prepproc(Newproc *np) {
 	memset(p, 0, sizeof(Proc));
 	memset(t, 0, sizeof(Thread));
 	t->cmdname = strdup("threadmain");
-	t->id = nextID();
+	t->id = ++p->nextID;
 	t->grp = np->grp;	/* Inherit grp id */
 	t->proc = p;
 	t->state = Running;
@@ -1117,41 +978,4 @@ threadprint(int fd, char *fmt, ...)
 	n = write(fd, buf, strlen(buf));
 	free(buf);
 	return n;
-}
-
-static int
-setnoteid(int id)
-{
-	char buf[40];
-	int n, fd;
-
-	sprint(buf, "/proc/%d/noteid", getpid());
-	if((fd = open(buf, OWRITE)) < 0)
-		return -1;
-
-	sprint(buf, "%d", id);
-	n = write(fd, buf, strlen(buf));
-	close(fd);
-	if(n != strlen(buf))
-		return -1;
-	return 0;
-}
-
-static int
-getnoteid(void)
-{
-	char buf[40];
-	int n, fd;
-
-	sprint(buf, "/proc/%d/noteid", getpid());
-	if((fd = open(buf, OREAD)) < 0)
-		return -1;
-
-	n = read(fd, buf, 20);
-	close(fd);
-	if(n < 0)
-		return -1;
-
-	buf[n] = '\0';
-	return atoi(buf);
 }

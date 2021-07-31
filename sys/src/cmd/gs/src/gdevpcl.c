@@ -1,22 +1,22 @@
-/* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1992, 1994, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gdevpcl.c,v 1.4 2000/09/19 19:00:16 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gdevpcl.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
 /* Utilities for PCL printers */
 #include "gdevprn.h"
 #include "gdevpcl.h"
@@ -30,11 +30,10 @@ gdev_pcl_paper_size(gx_device * dev)
     float height_inches = dev->height / dev->y_pixels_per_inch;
 
     return
-	(height_inches >= 33.2 ? PAPER_SIZE_A0 :
-	 height_inches >= 23.5 ? PAPER_SIZE_A1 :
-	 height_inches >= 17.1 ? PAPER_SIZE_A2 :
-	 height_inches >= 16.6 ? PAPER_SIZE_LEDGER : /* see gdevpcl.h */
-	 height_inches >= 14.1 ? PAPER_SIZE_A3 :
+	(height_inches >= 44.4 ? PAPER_SIZE_A0 :
+	 height_inches >= 32.0 ? PAPER_SIZE_A1 :
+	 height_inches >= 22.2 ? PAPER_SIZE_A2 :
+	 height_inches >= 15.9 ? PAPER_SIZE_A3 :
 	 height_inches >= 11.8 ? PAPER_SIZE_LEGAL :
 	 height_inches >= 11.1 ? PAPER_SIZE_A4 :
 	 PAPER_SIZE_LETTER);

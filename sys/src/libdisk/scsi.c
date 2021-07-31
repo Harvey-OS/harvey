@@ -1,14 +1,3 @@
-/*
- * Now thread-safe.
- *
- * The codeqlock guarantees that once codes != nil, that pointer will never 
- * change nor become invalid.
- *
- * The QLock in the Scsi structure moderates access to the raw device.
- * We should probably export some of the already-locked routines, but
- * there hasn't been a need.
- */
-
 #include <u.h>
 #include <libc.h>
 #include <disk.h>
@@ -18,8 +7,6 @@ int scsiverbose;
 #define codefile "/sys/lib/scsicodes"
 
 static char *codes;
-static QLock codeqlock;
-
 static void
 getcodes(void)
 {
@@ -29,21 +16,12 @@ getcodes(void)
 	if(codes != nil)
 		return;
 
-	qlock(&codeqlock);
-	if(codes != nil) {
-		qunlock(&codeqlock);
+	if(dirstat(codefile, &d) < 0 || (fd = open(codefile, OREAD)) < 0)
 		return;
-	}
-
-	if(dirstat(codefile, &d) < 0 || (fd = open(codefile, OREAD)) < 0) {
-		qunlock(&codeqlock);
-		return;
-	}
 
 	codes = malloc(d.length+1+1);
 	if(codes == nil) {
 		close(fd);
-		qunlock(&codeqlock);
 		return;
 	}
 
@@ -54,11 +32,9 @@ getcodes(void)
 	if(n < 0) {
 		free(codes);
 		codes = nil;
-		qunlock(&codeqlock);
 		return;
 	}
 	codes[n] = '\0';
-	qunlock(&codeqlock);
 }
 	
 char*
@@ -95,19 +71,15 @@ scsierror(int asc, int ascq)
 }
 
 
-static int
-_scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io, int dolock)
+int
+scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io)
 {
 	uchar resp[16];
 	int n;
 	long status;
 
-	if(dolock)
-		qlock(s);
 	if(write(s->rawfd, cmd, ccount) != ccount) {
 		werrstr("cmd write: %r");
-		if(dolock)
-			qunlock(s);
 		return -1;
 	}
 
@@ -133,12 +105,8 @@ _scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io, int do
 	memset(resp, 0, sizeof(resp));
 	if(read(s->rawfd, resp, sizeof(resp)) < 0) {
 		werrstr("resp read: %r\n");
-		if(dolock)
-			qunlock(s);
 		return -1;
 	}
-	if(dolock)
-		qunlock(s);
 
 	resp[sizeof(resp)-1] = '\0';
 	status = atoi((char*)resp);
@@ -150,19 +118,11 @@ _scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io, int do
 }
 
 int
-scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io)
-{
-	return _scsicmd(s, cmd, ccount, data, dcount, io, 1);
-}
-
-static int
-_scsiready(Scsi *s, int dolock)
+scsiready(Scsi *s)
 {
 	uchar cmd[6], resp[16];
 	int status, i;
 
-	if(dolock)
-		qlock(s);
 	for(i=0; i<3; i++) {
 		memset(cmd, 0, sizeof(cmd));
 		cmd[0] = 0x00;	/* unit ready */
@@ -179,24 +139,13 @@ _scsiready(Scsi *s, int dolock)
 		}
 		resp[sizeof(resp)-1] = '\0';
 		status = atoi((char*)resp);
-		if(status == 0 || status == 0x02) {
-			if(dolock)
-				qunlock(s);
+		if(status == 0 || status == 0x02)
 			return 0;
-		}
 		if(scsiverbose)
 			fprint(2, "target: bad status: %x\n", status);
 	bad:;
 	}
-	if(dolock)
-		qunlock(s);
 	return -1;
-}
-
-int
-scsiready(Scsi *s)
-{
-	return _scsiready(s, 1);
 }
 
 int
@@ -208,13 +157,10 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 
 	data = v;
 	SET(key, code);
-	qlock(s);
 	for(tries=0; tries<2; tries++) {
-		n = _scsicmd(s, cmd, ccount, data, dcount, io, 0);
-		if(n >= 0) {
-			qunlock(s);
+		n = scsicmd(s, cmd, ccount, data, dcount, io);
+		if(n >= 0)
 			return n;
-		}
 
 		/*
 		 * request sense
@@ -223,20 +169,18 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 		req[0] = 0x03;
 		req[4] = sizeof(sense);
 		memset(sense, 0xFF, sizeof(sense));
-		if((n=_scsicmd(s, req, sizeof(req), sense, sizeof(sense), Sread, 0)) < 14)
+		if((n=scsicmd(s, req, sizeof(req), sense, sizeof(sense), Sread)) < 14)
 			if(scsiverbose)
 				fprint(2, "reqsense scsicmd %d: %r\n", n);
 	
-		if(_scsiready(s, 0) < 0)
+		if(scsiready(s) < 0)
 			if(scsiverbose)
 				fprint(2, "unit not ready\n");
 	
 		key = sense[2];
 		code = sense[12];
-		if(code == 0x17 || code == 0x18) {	/* recovered errors */
-			qunlock(s);
+		if(code == 0x17 || code == 0x18)	/* recovered errors */
 			return dcount;
-		}
 		if(code == 0x28 && cmd[0] == 0x43) {	/* get info and media changed */
 			s->nchange++;
 			s->changetime = time(0);
@@ -247,10 +191,8 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 	/* drive not ready, or medium not present */
 	if(cmd[0] == 0x43 && key == 2 && (code == 0x3a || code == 0x04)) {
 		s->changetime = 0;
-		qunlock(s);
 		return -1;
 	}
-	qunlock(s);
 
 	if(cmd[0] == 0x43 && key == 5 && code == 0x24)	/* blank media */
 		return -1;

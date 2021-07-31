@@ -127,9 +127,9 @@ main(int argc, char *argv[])
 {
 	int	serve;
 	char	servefile[Maxpath];
+	char	buf[Maxpath];
 	char	ext[Maxpath];
 	char	*p;
-	Ipifc	*ifcs;
 
 	serve = 0;
 	setnetmtpt(mntpt, sizeof(mntpt), nil);
@@ -176,10 +176,9 @@ main(int argc, char *argv[])
 	/* start syslog before we fork */
 	fmtinstall('F', fcallconv);
 	dninit();
-	ifcs = readipifc(mntpt, nil);
-	if(ifcs == nil)
+	snprint(buf, sizeof(buf), "%s/ipifc", mntpt);
+	if(myipaddr(ipaddr, buf) < 0)
 		sysfatal("can't read my ip address");
-	ipmove(ipaddr, ifcs->ip);
 
 	syslog(0, logfile, "starting dns on %I", ipaddr);
 

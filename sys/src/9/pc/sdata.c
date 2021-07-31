@@ -7,7 +7,7 @@
 #include "ureg.h"
 #include "../port/error.h"
 
-#include "../port/sd.h"
+#include "sd.h"
 
 extern SDifc sdataifc;
 
@@ -97,7 +97,6 @@ enum {					/* Command */
 	Crd		= 0xC8,		/* Read DMA */
 	Cwd		= 0xCA,		/* Write DMA */
 	Cwdq		= 0xCC,		/* Write DMA queued */
-	Cstandby	= 0xE2,		/* Standby */
 	Cid		= 0xEC,		/* Identify Device */
 	Csf		= 0xEF,		/* Set Features */
 };
@@ -168,8 +167,12 @@ enum {					/* offsets into the identify info. */
 	Iqdepth		= 75,		/* max. queue depth */
 	Imajor		= 80,		/* major version number */
 	Iminor		= 81,		/* minor version number */
-	Icsfs		= 82,		/* command set/feature supported */
-	Icsfe		= 85,		/* command set/feature enabled */
+	Icmdset0	= 82,		/* command sets supported */
+	Icmdset1	= 83,		/* command sets supported */
+	Icmdset2	= 84,		/* command sets supported extension */
+	Icmdset3	= 85,		/* command sets enabled */
+	Icmdset4	= 86,		/* command sets enabled */
+	Icmdset5	= 87,		/* command sets enabled extension */
 	Iudma		= 88,		/* ultra DMA mode */
 	Ierase		= 89,		/* time for security erase */
 	Ieerase		= 90,		/* time for enhanced security erase */
@@ -392,21 +395,15 @@ ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 }
 
 static int
-atacsf(Drive* drive, vlong csf, int supported)
+atacsfenabled(Drive* drive, vlong csf)
 {
-	ushort *info;
 	int cmdset, i, x;
 
-	if(supported)
-		info = &drive->info[Icsfs];
-	else
-		info = &drive->info[Icsfe];
-	
 	for(i = 0; i < 3; i++){
 		x = (csf>>(16*i)) & 0xFFFF;
 		if(x == 0)
 			continue;
-		cmdset = info[i];
+		cmdset = drive->info[Icmdset3+i];
 		if(cmdset == 0 || cmdset == 0xFFFF)
 			return 0;
 		return cmdset & x;
@@ -416,9 +413,21 @@ atacsf(Drive* drive, vlong csf, int supported)
 }
 
 static int
-atadone(void* arg)
+atasf(int cmdport, int ctlport, int dev, uchar* command)
 {
-	return ((Ctlr*)arg)->done;
+	int as, i;
+
+	if(ataready(cmdport, ctlport, dev, Bsy|Drq, Drdy, 108*1000) < 0)
+		return -1;
+
+	for(i = Features; i < Dh; i++)
+		outb(cmdport+i, command[i]);
+	outb(cmdport+Command, Csf);
+	microdelay(100);
+	as = ataready(cmdport, ctlport, 0, Bsy, Drdy|Df|Err, 109*1000);
+	if(as < 0 || (as & (Df|Err)))
+		return -1;
+	return 0;
 }
 
 static int
@@ -518,7 +527,7 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
 		for(i = 0; i < 256; i++){
 			if(i && (i%16) == 0)
 				print("\n");
-			print(" %4.4uX", *sp);
+			print("%4.4uX ", *sp);
 			sp++;
 		}
 		print("\n");
@@ -788,39 +797,6 @@ atasetsense(Drive* drive, int status, int key, int asc, int ascq)
 }
 
 static int
-atastandby(Drive* drive, int period)
-{
-	Ctlr* ctlr;
-	int cmdport, done;
-
-	ctlr = drive->ctlr;
-	drive->command = Cstandby;
-	qlock(ctlr);
-
-	cmdport = ctlr->cmdport;
-	ilock(ctlr);
-	outb(cmdport+Count, period);
-	outb(cmdport+Dh, drive->dev);
-	ctlr->done = 0;
-	ctlr->curdrive = drive;
-	ctlr->command = Cstandby;	/* debugging */
-	outb(cmdport+Command, Cstandby);
-	iunlock(ctlr);
-
-	while(waserror())
-		;
-	tsleep(ctlr, atadone, ctlr, 30*1000);
-	poperror();
-
-	done = ctlr->done;
-	qunlock(ctlr);
-
-	if(!done || (drive->status & Err))
-		return atasetsense(drive, SDcheck, 4, 8, drive->error);
-	return SDok;
-}
-
-static int
 atamodesense(Drive* drive, uchar* cmd)
 {
 	int len;
@@ -889,7 +865,7 @@ ataabort(Drive* drive, int dolock)
 	 */
 	if(dolock)
 		ilock(drive->ctlr);
-	if(atacsf(drive, 0x0000000000004000LL, 0))
+	if(atacsfenabled(drive, 0x0000000000004000LL))
 		atanop(drive, 0);
 	else{
 		atasrst(drive->ctlr->ctlport);
@@ -1006,6 +982,12 @@ atadmainterrupt(Drive* drive, int count)
 	ctlr->done = 1;
 }
 
+static int
+atapktiodone(void* arg)
+{
+	return ((Ctlr*)arg)->done;
+}
+
 static void
 atapktinterrupt(Drive* drive)
 {
@@ -1110,9 +1092,9 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 	while(waserror())
 		;
 	if(!drive->pktdma)
-		sleep(ctlr, atadone, ctlr);
+		sleep(ctlr, atapktiodone, ctlr);
 	else for(timeo = 0; !ctlr->done; timeo++){
-		tsleep(ctlr, atadone, ctlr, 1000);
+		tsleep(ctlr, atapktiodone, ctlr, 1000);
 		if(ctlr->done)
 			break;
 		ilock(ctlr);
@@ -1137,6 +1119,12 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 		r = SDcheck;
 
 	return r;
+}
+
+static int
+atageniodone(void* arg)
+{
+	return ((Ctlr*)arg)->done;
 }
 
 static int
@@ -1337,7 +1325,7 @@ atagenio(Drive* drive, uchar* cmd, int)
 
 		while(waserror())
 			;
-		tsleep(ctlr, atadone, ctlr, 30*1000);
+		tsleep(ctlr, atageniodone, ctlr, 10*1000);
 		poperror();
 		if(!ctlr->done){
 			/*
@@ -1348,7 +1336,6 @@ atagenio(Drive* drive, uchar* cmd, int)
 			 */
 			atadumpstate(drive, cmd, lba, count);
 			ataabort(drive, 1);
-			qunlock(ctlr);
 			return atagenioretry(drive);
 		}
 
@@ -1499,7 +1486,7 @@ atainterrupt(Ureg*, void* arg)
 	if((drive = ctlr->curdrive) == nil){
 		iunlock(ctlr);
 		if((DEBUG & DbgDEBUG) && ctlr->command != Cedd)
-			print("Inil%2.2uX/%2.2uX+", ctlr->command, status);
+			print("Inil%2.2uX+", ctlr->command);
 		return;
 	}
 
@@ -1552,10 +1539,6 @@ atainterrupt(Ureg*, void* arg)
 	case Crd:
 	case Cwd:
 		atadmainterrupt(drive, drive->count*drive->secsize);
-		break;
-
-	case Cstandby:
-		ctlr->done = 1;
 		break;
 	}
 	iunlock(ctlr);
@@ -1793,7 +1776,6 @@ atarctl(SDunit* unit, char* p, int l)
 static int
 atawctl(SDunit* unit, Cmdbuf* cb)
 {
-	int period;
 	Ctlr *ctlr;
 	Drive *drive;
 
@@ -1831,20 +1813,6 @@ atawctl(SDunit* unit, Cmdbuf* cb)
 		else if(strcmp(cb->f[1], "off") == 0)
 			drive->rwmctl = 0;
 		else
-			error(Ebadctl);
-	}
-	else if(strcmp(cb->f[0], "standby") == 0){
-		switch(cb->nf){
-		default:
-			error(Ebadctl);
-		case 2:
-			period = strtol(cb->f[1], 0, 0);
-			if(period && (period < 30 || period > 240*5))
-				error(Ebadctl);
-			period /= 5;
-			break;
-		}
-		if(atastandby(drive, period) != SDok)
 			error(Ebadctl);
 	}
 	else

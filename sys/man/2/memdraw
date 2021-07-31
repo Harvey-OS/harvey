@@ -28,7 +28,6 @@ drawclip,
 memlinebbox,
 memlineendsize,
 allocmemsubfont,
-openmemsubfont,
 freememsubfont,
 memsubfontwidth,
 getmemdefont,
@@ -149,7 +148,6 @@ int	memlineendsize(int end)
 .nf
 Memsubfont*	allocmemsubfont(char *name, int n, int height,
 	   int ascent, Fontchar *info, Memimage *i)
-Memsubfont*	openmemsubfont(char *name)
 void	freememsubfont(Memsubfont *f)
 Point	memsubfontwidth(Memsubfont *f, char *s)
 Memsubfont*	getmemdefont(void)
@@ -286,7 +284,7 @@ The
 function reads an uncompressed bitmap 
 from the given file descriptor,
 while
-.I creadmemimage
+.I creadimage
 reads a compressed bitmap.
 .I Writememimage
 writes a compressed representation of
@@ -351,7 +349,6 @@ rather than
 .BR Image s.
 Similarly, 
 .IR allocmemsubfont ,
-.IR openmemsubfont ,
 .IR freememsubfont ,
 .IR memsubfontwidth ,
 .IR getmemdefont ,
@@ -361,7 +358,6 @@ are the
 .B Memimage
 analogues of 
 .IR allocsubfont ,
-.IR openfont ,
 .IR freesubfont ,
 .IR strsubfontwidth ,
 .IR getdefont ,

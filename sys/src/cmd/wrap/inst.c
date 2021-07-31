@@ -23,59 +23,6 @@ int verbose;
 int donothing;
 int problems;
 
-/*
- * Wrap/inst might try to overwrite itself.
- * To avoid problems with this, we copy ourselves
- * into /tmp and then re-exec.
- */
-char *rmargv0;
-
-static void
-rmself(void)
-{
-	remove(rmargv0);
-}
-
-static void
-membogus(char **argv)
-{
-	int n, fd, wfd;
-	char template[50], buf[1024];
-
-	if(strprefix(argv[0], "/tmp/_inst_")==0) {
-		rmargv0 = argv[0];
-		atexit(rmself);
-		return;
-	}
-
-	if((fd = open(argv[0], OREAD)) < 0)
-		return;
-
-	strcpy(template, "/tmp/_inst_XXXXXX");
-	if((wfd = genopentemp(template, OWRITE, 0700)) < 0)
-		return;
-
-	while((n = read(fd, buf, sizeof buf)) > 0)
-		if(write(wfd, buf, n) != n)
-			goto Error;
-
-	if(n != 0)
-		goto Error;
-
-	close(fd);
-	close(wfd);
-
-	argv[0] = template;
-	exec(template, argv);
-	fprint(2, "exec error %r\n");
-
-Error:
-	close(fd);
-	close(wfd);
-	remove(template);
-	return;
-}
-
 void
 usage(void)
 {
@@ -84,7 +31,6 @@ usage(void)
 }
 
 static int skipfd = -1;
-static int skiprmfd = -1;
 void
 skipfile(char *file, char *why, int log)
 {
@@ -103,20 +49,19 @@ skipfile(char *file, char *why, int log)
 }
 
 void
-skiprmfile(char *file, char *why, int log)
+doremove(char *fn)
 {
-	char buf[2*NAMELEN];
+	char *p;
 
-	problems = 1;
-
-	fprint(2, "not removing %s: %s\n", file, why);
-	if(log) {
-		strcpy(buf, "/tmp/wrap.skip.XXXXXX");
-		if(skiprmfd == -1)
-			skiprmfd = opentemp(buf);
-
-		fprint(skiprmfd, "%s\n", file);
+	p = mkpath(root, fn);
+	if(access(p, 0) >= 0) {
+		if(verbose || donothing)
+			print("rm %s\n", p);
+		if(!donothing)
+			if(remove(p) < 0)
+				fprint(2, "rm %s: %r\n", p);
 	}
+	free(p);
 }
 
 void
@@ -200,12 +145,9 @@ main(int argc, char **argv)
 	Arch *arch;
 	Ahdr *a;
 	uchar digest[MD5dlen], digest0[MD5dlen];
-	char *p, *q, *tm, *why;
-	int docopy;
+	char *p, *q, *tm;
 	vlong t;
 	Biobuf bin, *b;
-
-	membogus(argv);
 
 	ARGBEGIN{
 	case 'D':
@@ -242,112 +184,67 @@ main(int argc, char **argv)
 	w = openwraphdr(argv[0], root, nil, -1);
 	if(w == nil)
 		sysfatal("no such package found");
-	if(w->nu != 1)
-		sysfatal("strange package: more than one piece");
 
 	oldw = openwrap(w->name, root);
 
-	if(w->u->utime && (oldw == nil || oldw->tfull < w->u->utime)) {
+	if(w->u->utime && (oldw == nil || oldw->time < w->u->utime)) {
 		tm = asctime(localtime(w->u->utime));
 		if(q = strchr(tm, '\n'))
 			*q = '\0';
 		sysfatal("need %s version of %s already installed", tm, w->name);
 	}
-
-	why = nil;
 	while(a = gethdr(arch)) {
 		if(match(a->name, argv+1, argc-1) == 0)
 			continue;
 
 		p = mkpath(root, a->name);
-
-		/*
-		 * Decide whether to install the archived copy of the file.
-		 */
-
-		/*
-		 * If the force flag is set, always copy it.
-		 */
-		if(force)
-			docopy = 1;
-
-		/* 
-		 * If it's a directory, copying it can do no harm.
-		 */
-		else if(a->mode & CHDIR)
-			docopy = 1;
-
-		/*
-		 * If the file does not currently exist, we will install our copy.
-		 */
-		else if(md5file(p, digest) < 0)
-			docopy = 1;
-
-		/*
-		 * The file exists.  If it matches one from another package,
-		 * that date must be older than our installing package's date.
-		 */
-		else if(getfileinfo(oldw, a->name, &t, digest, nil) >= 0) {
-			if(t > w->u->time) {
-				/*
-				 * The installed file comes from a newer package
-				 * than the one being installed.  Leave it be.
-				 */
-				docopy = 0;
-				why = "version from newer package exists";
-			} else
-				docopy = 1;
+		if(force == 0 && (a->mode & CHDIR) == 0) {
+			if(getfileinfo(oldw, a->name, &t, digest) >= 0) {
+				if(md5file(p, digest0) >= 0) {
+					if(memcmp(digest, digest0, MD5dlen) != 0) {
+						if(debug)
+							fprint(2, "file %s expect %M got %M\n",
+								a->name, digest, digest0);
+						/*
+						 * Don't complain if it's the file we were
+						 * going to install.
+						 */
+						Bmd5sum(arch->b, digest, a->length);
+						if(memcmp(digest, digest0, MD5dlen) != 0)
+							skipfile(a->name, "locally updated", 1);
+						free(p);
+						continue;
+					}
+					if(t >= w->time) {
+						if(t > w->time)
+							skipfile(a->name, "newer than archive", 1);
+						/* don't warn about t == w->t; probably same archive */
+						free(p);
+						continue;
+					}
+				}
+			} else {
+				if(access(p, 0) >= 0) {
+					/*
+					 * Don't complain if it's the file we were
+					 * going to install.
+					 */
+					Bmd5sum(arch->b, digest, a->length);
+					if(md5file(p, digest0) >= 0 && memcmp(digest, digest0, MD5dlen) != 0)
+						skipfile(a->name, "locally created", 1);
+					free(p);
+					continue;
+				}
+			}
 		}
-
-		/*
-		 * The file exists.  It does not match a previously installed one.
-		 * If we expected it to previously exist, then it has been 
-		 * locally modified.  Otherwise, it has been locally created.
-		 */
-		else if(getfileinfo(oldw, a->name, nil, nil, nil) >= 0) {
-			docopy = 0;
-			why = "locally modified";
-		} else {
-			docopy = 0;
-			why = "locally created";
-		}
-
-
-		if(docopy) {
-			extract(arch, a, p);
-		} else {
-			/*
-			 * Don't whine about not writing a file if the one that
-			 * is already there is what we would have written.
-			 */
-			Bmd5sum(arch->b, digest0, a->length);
-			if(memcmp(digest, digest0, MD5dlen) == 0)
-				/* don't whine */;
-			else
-				skipfile(a->name, why, 1);
-		}
+		extract(arch, a, p);
+		free(p);
 	}
 
 	p = mkpath(w->u->dir, "remove");
 	if(b = Bopen(p, OREAD)) {
 		while(p = Bgetline(b)) {
-			/*
-			 * The file has to be the one we expected to remove.
-			 * Don't want to remove local changes.
-			 */
-			q = mkpath(root, p);
-			if(md5file(q, digest) < 0)
-				/* already gone */;
-			else if(getfileinfo(oldw, p, nil, digest, nil) < 0)
-				skiprmfile(q, "locally modified", 1);
-			else {
-				if(verbose || donothing)
-					print("rm %s\n", q);
-				if(!donothing)
-					if(remove(q) < 0)
-						fprint(2, "rm %s: %r\n", q);
-			}
-			free(q);
+			doremove(p);
 			free(p);
 		}
 	}
@@ -360,17 +257,7 @@ main(int argc, char **argv)
 			fprint(2, "\t%s \\\n", p);
 			free(p);
 		}
+		exits("some skips");
 	}
-
-	if(skiprmfd != -1) {
-		fprint(2, "# rm \\\n");
-		seek(skiprmfd, 0, 0);	/* Binit assumes this */
-		Binit(&bin, skiprmfd, OREAD);
-		while(p = Bgetline(&bin)) {
-			fprint(2, "\t%s \\\n", p);
-			free(p);
-		}
-	}
-
-	exits(problems ? "problems" : nil);
+	exits(0);
 }

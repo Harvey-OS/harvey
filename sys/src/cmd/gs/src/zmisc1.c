@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 1997, 1999 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: zmisc1.c,v 1.3 2000/09/19 19:00:54 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: zmisc1.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
 /* Miscellaneous Type 1 font operators */
 #include "memory_.h"
 #include "ghost.h"
@@ -130,33 +130,14 @@ zexD(i_ctx_t *i_ctx_p)
      * If we're reading a .PFB file, let the filter know about it,
      * so it can read recklessly to the end of the binary section.
      */
+    state.pfb_state = 0;
     if (r_has_type(op - 1, t_file)) {
 	stream *s = (op - 1)->value.pfile;
 
-	if (s->state != 0 && s->state->template == &s_PFBD_template) {
-	    stream_PFBD_state *pss = (stream_PFBD_state *)s->state;
-
-	    state.pfb_state = pss;
-	    /*
-	     * If we're reading the binary section of a PFB stream,
-	     * avoid the conversion from binary to hex and back again.
-	     */
-	    if (pss->record_type == 2) {
-		/*
-		 * The PFB decoder may have converted some data to hex
-		 * already.  Convert it back if necessary.
-		 */
-		if (pss->binary_to_hex && sbufavailable(s) > 0) {
-		    state.binary = 0;	/* start as hex */
-		    state.hex_left = sbufavailable(s);
-		} else {
-		    state.binary = 1;
-		}
-		pss->binary_to_hex = 0;
-	    }
-	    state.record_left = pss->record_left;
-	}
+	if (s->state != 0 && s->state->template == &s_PFBD_template)
+	    state.pfb_state = (stream_PFBD_state *) s->state;
     }
+    state.binary = -1;
     return filter_read(i_ctx_p, code, &s_exD_template, (stream_state *)&state, 0);
 }
 

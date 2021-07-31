@@ -4,6 +4,7 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+#include	"kernel.h"
 #include	"ip.h"
 
 /*
@@ -249,57 +250,22 @@ isv4(uchar *ip)
 	return memcmp(ip, v4prefix, IPv4off) == 0;
 }
 
-
-/*
- *  the following routines are unrolled with no memset's to speed
- *  up the usual case
- */
 void
 v4tov6(uchar *v6, uchar *v4)
 {
-	v6[0] = 0;
-	v6[1] = 0;
-	v6[2] = 0;
-	v6[3] = 0;
-	v6[4] = 0;
-	v6[5] = 0;
-	v6[6] = 0;
-	v6[7] = 0;
-	v6[8] = 0;
-	v6[9] = 0;
-	v6[10] = 0xff;
-	v6[11] = 0xff;
-	v6[12] = v4[0];
-	v6[13] = v4[1];
-	v6[14] = v4[2];
-	v6[15] = v4[3];
+	memmove(v6, v4prefix, IPv4off);
+	memmove(v6 + IPv4off, v4, IPv4addrlen);
 }
 
 int
 v6tov4(uchar *v4, uchar *v6)
 {
-	if(v6[0] == 0
-	&& v6[1] == 0
-	&& v6[2] == 0
-	&& v6[3] == 0
-	&& v6[4] == 0
-	&& v6[5] == 0
-	&& v6[6] == 0
-	&& v6[7] == 0
-	&& v6[8] == 0
-	&& v6[9] == 0
-	&& v6[10] == 0xff
-	&& v6[11] == 0xff)
-	{
-		v4[0] = v6[12];
-		v4[1] = v6[13];
-		v4[2] = v6[14];
-		v4[3] = v6[15];
-		return 0;
-	} else {
+	if(memcmp(v6, v4prefix, IPv4off) != 0){
 		memset(v4, 0, 4);
 		return -1;
 	}
+	memmove(v4, v6 + IPv4off, IPv4addrlen);
+	return 0;
 }
 
 ulong
@@ -422,139 +388,4 @@ parsemac(uchar *to, char *from, int len)
 			p++;
 	}
 	return i;
-}
-
-/*
- *  hashing tcp, udp, ... connections
- */
-ulong
-iphash(uchar *sa, ushort sp, uchar *da, ushort dp)
-{
-	return ((sa[IPaddrlen-1]<<24) ^ (sp << 16) ^ (da[IPaddrlen-1]<<8) ^ dp ) % Nhash;
-}
-
-void
-iphtadd(Ipht *ht, Conv *c)
-{
-	ulong hv;
-	Iphash *h;
-
-	hv = iphash(c->raddr, c->rport, c->laddr, c->lport);
-	h = smalloc(sizeof(*h));
-	if(ipcmp(c->raddr, IPnoaddr) != 0)
-		h->match = IPmatchexact;
-	else {
-		if(ipcmp(c->laddr, IPnoaddr) != 0){
-			if(c->lport == 0)
-				h->match = IPmatchaddr;
-			else
-				h->match = IPmatchpa;
-		} else {
-			if(c->lport == 0)
-				h->match = IPmatchany;
-			else
-				h->match = IPmatchport;
-		}
-	}
-	h->c = c;
-
-	lock(ht);
-	h->next = ht->tab[hv];
-	ht->tab[hv] = h;
-	unlock(ht);
-}
-
-void
-iphtrem(Ipht *ht, Conv *c)
-{
-	ulong hv;
-	Iphash **l, *h;
-
-	hv = iphash(c->raddr, c->rport, c->laddr, c->lport);
-	lock(ht);
-	for(l = &ht->tab[hv]; (*l) != nil; l = &(*l)->next)
-		if((*l)->c == c){
-			h = *l;
-			(*l) = h->next;
-			free(h);
-			break;
-		}
-	unlock(ht);
-}
-
-/* look for a matching conversation with the following precedence
- *	connected && raddr,rport,laddr,lport
- *	announced && laddr,lport
- *	announced && *,lport
- *	announced && laddr,*
- *	announced && *,*
- */
-Conv*
-iphtlook(Ipht *ht, uchar *sa, ushort sp, uchar *da, ushort dp)
-{
-	ulong hv;
-	Iphash *h;
-	Conv *c;
-
-	/* exact 4 pair match (connection) */
-	hv = iphash(sa, sp, da, dp);
-	lock(ht);
-	for(h = ht->tab[hv]; h != nil; h = h->next){
-		if(h->match != IPmatchexact)
-			continue;
-		c = h->c;
-		if(sp == c->rport && dp == c->lport
-		&& ipcmp(sa, c->raddr) == 0 && ipcmp(da, c->laddr) == 0){
-			unlock(ht);
-			return c;
-		}
-	}
-	
-	/* match local address and port */
-	hv = iphash(IPnoaddr, 0, da, dp);
-	for(h = ht->tab[hv]; h != nil; h = h->next){
-		if(h->match != IPmatchpa)
-			continue;
-		c = h->c;
-		if(dp == c->lport && ipcmp(da, c->laddr) == 0){
-			unlock(ht);
-			return c;
-		}
-	}
-	
-	/* match just port */
-	hv = iphash(IPnoaddr, 0, IPnoaddr, dp);
-	for(h = ht->tab[hv]; h != nil; h = h->next){
-		if(h->match != IPmatchport)
-			continue;
-		c = h->c;
-		if(dp == c->lport){
-			unlock(ht);
-			return c;
-		}
-	}
-	
-	/* match local address */
-	hv = iphash(IPnoaddr, 0, da, 0);
-	for(h = ht->tab[hv]; h != nil; h = h->next){
-		if(h->match != IPmatchaddr)
-			continue;
-		c = h->c;
-		if(ipcmp(da, c->laddr) == 0){
-			unlock(ht);
-			return c;
-		}
-	}
-	
-	/* look for something that matches anything */
-	hv = iphash(IPnoaddr, 0, IPnoaddr, 0);
-	for(h = ht->tab[hv]; h != nil; h = h->next){
-		if(h->match != IPmatchany)
-			continue;
-		c = h->c;
-		unlock(ht);
-		return c;
-	}
-	unlock(ht);
-	return nil;
 }

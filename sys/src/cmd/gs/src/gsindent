@@ -1,0 +1,33 @@
+#!/bin/sh
+# $Id: gsindent,v 1.1 2000/03/09 08:40:42 lpd Exp $
+# This script formats C source code per the Ghostscript C style guide.
+# The perl invocations work around a bug in GNU indent.
+if [ $# -ne 0 ]; then
+    for f in $*
+    do
+	$0 < $f > /tmp/$$
+	cp -p $f $f.bak
+	if ( test ! -e $f~ ) then cp -p $f $f~; fi
+	mv /tmp/$$ $f
+    done
+    exit
+fi
+exec \
+perl -pe 's{(#.*/\*)(\*.*)}{$1&$2}' | \
+indent \
+--blank-lines-after-declarations \
+--no-blank-lines-after-procedures \
+--leave-optional-blank-lines \
+--braces-on-if-line \
+--indent-level4 \
+--case-indentation4 \
+--no-space-after-function-call-names \
+--dont-star-comments \
+--declaration-indentation0 \
+--procnames-start-lines \
+--continue-at-parentheses \
+--cuddle-else \
+--no-space-after-casts \
+--leave-preprocessor-space \
+- | \
+perl -pe 's{(#.*/\*)&(\*.*)}{$1$2}'

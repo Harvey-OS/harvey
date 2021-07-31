@@ -172,7 +172,6 @@ void		rsapubfree(RSApub*);
 RSApriv*	rsaprivalloc(void);
 void		rsaprivfree(RSApriv*);
 RSApub*		rsaprivtopub(RSApriv*);
-RSApub*		X509toRSApub(uchar*,int,char*,int);
 
 /////////////////////////////////////////////////////////
 // eg

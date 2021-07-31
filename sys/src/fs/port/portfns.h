@@ -233,8 +233,6 @@ int	setlabel(Label*);
 void	settag(Iobuf*, int, long);
 void	settime(ulong);
 void	sleep(Rendez*, int(*)(void*), void*);
-void	sntpinit(void);
-void	sntprecv(Msgbuf *mb, Ifc *ifc);
 int	splhi(void);
 int	spllo(void);
 void	splx(int);
@@ -242,7 +240,6 @@ void	startprint(void);
 int	strtouid(char*);
 long	superaddr(Device*);
 void	superream(Device*, long);
-void	swab(void*, int);
 void	sync(char*);
 int	syncblock(void);
 long	syscall(Ureg*);
@@ -288,6 +285,10 @@ int	nhgets(uchar*);
 long	nhgetl(uchar*);
 void	hnputs(uchar*, int);
 void	hnputl(uchar*, long);
+
+int	eagleinit(Vmedevice*);
+void	eagleintr(Vmedevice*);
+void	eaglestart(void);
 
 void	lanceintr(uchar);
 void	lanceparity(void);

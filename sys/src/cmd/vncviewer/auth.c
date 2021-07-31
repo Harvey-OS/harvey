@@ -5,13 +5,6 @@
  * Encrypt n bytes using the password
  * as key, padded with zeros to 8 bytes.
  */
-enum
-{
-	VerLen	= 12
-};
-
-static char version[VerLen] = "RFB 003.003\n";
-
 static uchar tab[256];
 
 /* VNC reverses the bits of each byte before using as a des key */
@@ -105,14 +98,15 @@ readln(char *prompt, char *line, int len)
 }
 
 int
-vncauth(Vnc *v, int shared)
+vncauth(Vnc *v)
 {
-	char msg[VerLen+1], pw[128], *reason;
-	uchar chal[VncChalLen];
+	char msg[12+1], pw[128], *reason;
+	uchar chal[rfbChalLen];
 	ulong auth;
+	Serverinfo info;
 
-	msg[VerLen] = '\0';
-	vncrdbytes(v, msg, VerLen);
+	memset(msg, 0, sizeof msg);
+	Vrdbytes(v, msg, 12);
 	if(strncmp(msg, "RFB ", 4) != 0) {
 		werrstr("bad rfb version \"%s\"", msg);
 		return -1;
@@ -120,10 +114,10 @@ vncauth(Vnc *v, int shared)
 	if(verbose)
 		print("server version %s\n", msg);
 
-	vncwrbytes(v, version, VerLen);
-	vncflush(v);
+	Vwrbytes(v, "RFB 003.003\n", 12);
+	Vflush(v);
 
-	auth = vncrdlong(v);
+	auth = Vrdlong(v);
 	switch(auth) {
 	default:
 		werrstr("unknown auth type 0x%lux", auth);
@@ -131,69 +125,51 @@ vncauth(Vnc *v, int shared)
 			print("unknown auth type 0x%lux", auth);
 		return -1;
 
-	case AFailed:
-		reason = vncrdstring(v);
+	case rfbConnFailed:
+		reason = Vrdstring(v);
 		werrstr("%s", reason);
 		if(verbose)
 			print("auth failed: %s\n", reason);
 		return -1;
 
-	case ANoAuth:
+	case rfbNoAuth:
 		if(verbose)
 			print("no auth needed");
 		break;
 
-	case AVncAuth:
-		vncrdbytes(v, chal, VncChalLen);
+	case rfbVncAuth:
+		Vrdbytes(v, chal, sizeof(chal));
 
 		readln("password: ", pw, sizeof(pw));
 
-		vncencrypt(chal, VncChalLen, pw);
+		vncencrypt(chal, sizeof(chal), pw);
 		memset(pw, 0, sizeof pw);
-		vncwrbytes(v, chal, VncChalLen);
-		vncflush(v);
+		Vwrbytes(v, chal, sizeof(chal));
+		Vflush(v);
 
-		auth = vncrdlong(v);
+		auth = Vrdlong(v);
 		switch(auth) {
 		default:
 			werrstr("unknown auth response 0x%lux", auth);
 			return -1;
-		case VncAuthFailed:
+		case rfbVncAuthFailed:
 			werrstr("authentication failed");
 			return -1;
-		case VncAuthTooMany:
+		case rfbVncAuthTooMany:
 			werrstr("authentication failed - too many tries");
 			return -1;
-		case VncAuthOK:
+		case rfbVncAuthOK:
 			break;
 		}
 		break;
 	}
 
-	vncwrlong(v, shared);
-	vncflush(v);
+	Vwrlong(v, shared);
+	Vflush(v);
 
-	v->dim = vncrdpoint(v);
-	v->Pixfmt = vncrdpixfmt(v);
-	v->name = vncrdstring(v);
-	return 0;
-}
-
-int
-vncauth_srv(Vnc *v)
-{
-	char msg[VerLen+1];
-
-	vncwrbytes(v, version, VerLen);
-	vncflush(v);
-
-	msg[VerLen] = '\0';
-	vncrdbytes(v, msg, VerLen);
-	if(verbose)
-		print("client version: %s", msg);
-
-	vncwrlong(v, ANoAuth);
-	vncflush(v);
-
+	info.dim = Vrdpoint(v);
+	info.Pixfmt = Vrdpixfmt(v);
+	info.name = Vrdstring(v);
+	v->Serverinfo = info;
 	return 0;
 }

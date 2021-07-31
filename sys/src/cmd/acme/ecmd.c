@@ -351,8 +351,7 @@ g_cmd(Text *t, Cmd *cp)
 		warning(nil, "internal error: g_cmd f!=addr.f\n");
 		return FALSE;
 	}
-	if(rxcompile(cp->re->r) == FALSE)
-		editerror("bad regexp in g command");
+	rxcompile(cp->re->r);
 	if(rxexecute(t, nil, addr.r.q0, addr.r.q1, &sel) ^ cp->cmdc=='v'){
 		t->q0 = addr.r.q0;
 		t->q1 = addr.r.q1;
@@ -460,8 +459,7 @@ s_cmd(Text *t, Cmd *cp)
 
 	n = cp->num;
 	op= -1;
-	if(rxcompile(cp->re->r) == FALSE)
-		editerror("bad regexp in s command");
+	rxcompile(cp->re->r);
 	nrp = 0;
 	rp = nil;
 	delta = 0;
@@ -551,6 +549,7 @@ u_cmd(Text *t, Cmd *cp)
 	oseq = -1;
 	while(n-->0 && t->file->seq!=0 && t->file->seq!=oseq){
 		oseq = t->file->seq;
+warning(nil, "seq %d\n", t->file->seq);
 		undo(t, nil, nil, flag, 0, nil, 0);
 	}
 	return TRUE;
@@ -567,7 +566,7 @@ w_cmd(Text *t, Cmd *cp)
 		editerror("can't write file with pending modifications");
 	r = cmdname(f, cp->text, FALSE);
 	if(r == nil)
-		editerror("no name specified for 'w' command");
+		error("no name specified for 'w' command");
 	putfile(f, addr.r.q0, addr.r.q1, r, runestrlen(r));
 	/* r is freed by putfile */
 	return TRUE;
@@ -675,8 +674,6 @@ printposn(Text *t, int charsonly)
 {
 	long l1, l2;
 
-	if (t != nil && t->file != nil && t->file->name != nil)
-		warning(nil, "%.*S:", t->file->nname, t->file->name);
 	if(!charsonly){
 		l1 = 1+nlcount(t, 0, addr.r.q0);
 		l2 = l1+nlcount(t, addr.r.q0, addr.r.q1);
@@ -686,8 +683,7 @@ printposn(Text *t, int charsonly)
 		warning(nil, "%lud", l1);
 		if(l2 != l1)
 			warning(nil, ",%lud", l2);
-		warning(nil, "\n");
-		return;
+		warning(nil, "; ");
 	}
 	warning(nil, "#%d", addr.r.q0);
 	if(addr.r.q1 != addr.r.q0)
@@ -778,13 +774,7 @@ pdisplay(File *f)
 void
 pfilename(File *f)
 {
-	int dirty;
-	Window *w;
-
-	w = f->curtext->w;
-	/* same check for dirty as in settag, but we know ncache==0 */
-	dirty = !w->isdir && !w->isscratch && f->mod;
-	warning(nil, "%c%c%c %.*S\n", " '"[dirty],
+	warning(nil, "%c%c%c %.*S\n", " '"[f->mod],
 		'+', " ."[curtext!=nil && curtext->file==f], f->nname, f->name);
 }
 
@@ -810,8 +800,7 @@ looper(File *f, Cmd *cp, int xy)
 	r = addr.r;
 	op= xy? -1 : r.q0;
 	nest++;
-	if(rxcompile(cp->re->r) == FALSE)
-		editerror("bad regexp in %c command", cp->cmdc);
+	rxcompile(cp->re->r);
 	nrp = 0;
 	rp = nil;
 	for(p = r.q0; p<=r.q1; ){
@@ -834,7 +823,7 @@ looper(File *f, Cmd *cp, int xy)
 			else
 				tr.q0 = op, tr.q1 = sel.r[0].q0;
 		}
-		op = sel.r[0].q1;
+		op = sel.r[0].q0;
 		nrp++;
 		rp = erealloc(rp, nrp*sizeof(Range));
 		rp[nrp-1] = tr;
@@ -947,8 +936,7 @@ filelooper(Cmd *cp, int XY)
 void
 nextmatch(File *f, String *r, long p, int sign)
 {
-	if(rxcompile(r->r) == FALSE)
-		editerror("bad regexp in command address");
+	rxcompile(r->r);
 	if(sign >= 0){
 		if(!rxexecute(f->curtext, nil, p, 0x7FFFFFFFL, &sel))
 			editerror("no match for regexp");
@@ -956,7 +944,7 @@ nextmatch(File *f, String *r, long p, int sign)
 			if(++p>f->nc)
 				p = 0;
 			if(!rxexecute(f->curtext, nil, p, 0x7FFFFFFFL, &sel))
-				editerror("address");
+				error("address");
 		}
 	}else{
 		if(!rxbexecute(f->curtext, p, &sel))
@@ -965,7 +953,7 @@ nextmatch(File *f, String *r, long p, int sign)
 			if(--p<0)
 				p = f->nc;
 			if(!rxbexecute(f->curtext, p, &sel))
-				editerror("address");
+				error("address");
 		}
 	}
 }
@@ -1140,18 +1128,12 @@ filematch(File *f, String *r)
 {
 	char *buf;
 	Rune *rbuf;
-	Window *w;
-	int match, i, dirty;
+	int match, i;
 	Rangeset s;
 
-	/* compile expr first so if we get an error, we haven't allocated anything */
-	if(rxcompile(r->r) == FALSE)
-		editerror("bad regexp in file match");
+	rxcompile(r->r);	/* first so if we get an error, we haven't allocated anything */
 	buf = fbufalloc();
-	w = f->curtext->w;
-	/* same check for dirty as in settag, but we know ncache==0 */
-	dirty = !w->isdir && !w->isscratch && f->mod;
-	snprint(buf, BUFSIZE, "%c%c%c %.*S\n", " '"[dirty],
+	snprint(buf, BUFSIZE, "%c%c%c %.*S\n", " '"[f->mod],
 		'+', " ."[curtext!=nil && curtext->file==f], f->nname, f->name);
 	rbuf = bytetorune(buf, &i);
 	fbuffree(buf);

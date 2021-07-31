@@ -273,7 +273,6 @@ error(enum errtype type, char *string, ...)
 	Tokenrow *trp;
 	Source *s;
 	int i;
-	void *p;
 
 	fprintf(stderr, "cpp: ");
 	for (s=cursource; s; s=s->next)
@@ -291,10 +290,6 @@ error(enum errtype type, char *string, ...)
 			case 'd':
 				i = va_arg(ap, int);
 				fprintf(stderr, "%d", i);
-				break;
-			case 'p':
-				p = va_arg(ap, void *);
-				fprintf(stderr, "%p", p);
 				break;
 			case 't':
 				tp = va_arg(ap, Token *);

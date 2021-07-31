@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: zcontrol.c,v 1.3 2000/09/19 19:00:53 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: zcontrol.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* Control operators */
 #include "string_.h"
 #include "ghost.h"
@@ -104,7 +104,6 @@ int
 zexec(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
-
     check_op(1);
     if (!r_has_attr(op, a_executable))
 	return 0;		/* literal object just gets pushed back */
@@ -154,31 +153,11 @@ zexecn(i_ctx_t *i_ctx_p)
 }
 
 /* <obj> superexec - */
-private int end_superexec(P1(i_ctx_t *));
+/* THIS IS NOT REALLY IMPLEMENTED YET. */
 private int
 zsuperexec(i_ctx_t *i_ctx_p)
 {
-    os_ptr op = osp;
-    es_ptr ep;
-
-    check_op(1);
-    if (!r_has_attr(op, a_executable))
-	return 0;		/* literal object just gets pushed back */
-    check_estack(2);
-    ep = esp += 3;
-    make_mark_estack(ep - 2, es_other, end_superexec); /* error case */
-    make_op_estack(ep - 1,  end_superexec); /* normal case */
-    ref_assign(ep, op);
-    esfile_check_cache();
-    pop(1);
-    i_ctx_p->in_superexec++;
-    return o_push_estack;
-}
-private int
-end_superexec(i_ctx_t *i_ctx_p)
-{
-    i_ctx_p->in_superexec--;
-    return 0;
+    return zexec(i_ctx_p);
 }
 
 /* <bool> <proc> if - */
@@ -856,7 +835,6 @@ const op_def zcontrol3_op_defs[] = {
     {"0%repeat_continue", repeat_continue},
     {"0%stopped_push", stopped_push},
     {"1superexec", zsuperexec},
-    {"0%end_superexec", end_superexec},
     op_def_end(0)
 };
 

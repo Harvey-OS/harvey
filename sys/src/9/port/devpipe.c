@@ -122,6 +122,8 @@ pipegen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
 	}
 
 	id = NETID(c->qid.path);
+	if(i > 1)
+		id++;
 	if(tab==0 || i>=ntab)
 		return -1;
 	tab += i;

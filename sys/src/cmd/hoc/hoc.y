@@ -319,8 +319,7 @@ main(int argc, char* argv[])	/* hoc6 */
 
 moreinput(void)
 {
-	char *expr;
-	static char buf[64];
+	char *expr, buf[64];
 	int fd;
 	static Biobuf b;
 
@@ -354,7 +353,7 @@ moreinput(void)
 		}
 		fprint(fd, "%s\n", expr);
 		/* leave fd around; file will be removed on exit */
-		/* the following looks weird but is required for unix version */
+		/* the following looks wierd but is required for unix version */
 		bin = &b;
 		seek(fd, 0, 0);
 		Binit(bin, fd, OREAD);

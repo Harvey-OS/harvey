@@ -7,6 +7,7 @@
 #include "ureg.h"
 #include "../port/error.h"
 
+
 typedef struct IOMap IOMap;
 struct IOMap
 {
@@ -27,68 +28,23 @@ static struct
 } iomap;
 
 enum {
-	Qdir = CHDIR,
-	Qioalloc = 0,
+	Qdir,
+	Qcputype,
+	Qioalloc,
 	Qiob,
 	Qiow,
 	Qiol,
-	Qbase,
-
-	Qmax = 16,
+	Qirqalloc,
 };
 
-typedef long Rdwrfn(Chan*, void*, long, vlong);
-
-static Rdwrfn *readfn[Qmax];
-static Rdwrfn *writefn[Qmax];
-
-static Dirtab archdir[Qmax] = {
+static Dirtab ioallocdir[] = {
+	"cputype",	{ Qcputype, 0 },	0,	0444,
 	"ioalloc",	{ Qioalloc, 0 },	0,	0444,
 	"iob",		{ Qiob, 0 },		0,	0660,
 	"iow",		{ Qiow, 0 },		0,	0660,
 	"iol",		{ Qiol, 0 },		0,	0660,
+	"irqalloc",	{ Qirqalloc, 0},	0,	0444,
 };
-Lock archwlock;	/* the lock is only for changing archdir */
-int narchdir = Qbase;
-
-/*
- * Add a file to the #P listing.  Once added, you can't delete it.
- * You can't add a file with the same name as one already there,
- * and you get a pointer to the Dirtab entry so you can do things
- * like change the Qid version.  Changing the Qid path is disallowed.
- */
-Dirtab*
-addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
-{
-	int i;
-	Dirtab d;
-	Dirtab *dp;
-
-	memset(&d, 0, sizeof d);
-	strcpy(d.name, name);
-	d.perm = perm;
-
-	lock(&archwlock);
-	if(narchdir >= Qmax){
-		unlock(&archwlock);
-		return nil;
-	}
-
-	for(i=0; i<narchdir; i++)
-		if(strcmp(archdir[i].name, name) == 0){
-			unlock(&archwlock);
-			return nil;
-		}
-
-	d.qid.path = narchdir;
-	archdir[narchdir] = d;
-	readfn[narchdir] = rdfn;
-	writefn[narchdir] = wrfn;
-	dp = &archdir[narchdir++];
-	unlock(&archwlock);
-
-	return dp;
-}
 
 void
 ioinit(void)
@@ -103,6 +59,8 @@ ioinit(void)
 	// a dummy entry at 2^16
 	ioalloc(0x10000, 1, 0, "dummy");
 }
+
+static long cputyperead(char*, int, ulong);
 
 //
 //	alloc some io port space and remember who it was
@@ -158,7 +116,7 @@ ioalloc(int port, int size, int align, char *tag)
 	m->tag[sizeof(m->tag)-1] = 0;
 	*l = m;
 
-	archdir[0].qid.vers++;
+	ioallocdir[0].qid.vers++;
 
 	unlock(&iomap);
 	return m->start;
@@ -181,7 +139,7 @@ iofree(int port)
 		if((*l)->start > port)
 			break;
 	}
-	archdir[0].qid.vers++;
+	ioallocdir[0].qid.vers++;
 	unlock(&iomap);
 }
 
@@ -221,19 +179,19 @@ archattach(char* spec)
 int
 archwalk(Chan* c, char* name)
 {
-	return devwalk(c, name, archdir, narchdir, devgen);
+	return devwalk(c, name, ioallocdir, nelem(ioallocdir), devgen);
 }
 
 static void
 archstat(Chan* c, char* dp)
 {
-	devstat(c, dp, archdir, narchdir, devgen);
+	devstat(c, dp, ioallocdir, nelem(ioallocdir), devgen);
 }
 
 static Chan*
 archopen(Chan* c, int omode)
 {
-	return devopen(c, omode, archdir, narchdir, devgen);
+	return devopen(c, omode, ioallocdir, nelem(ioallocdir), devgen);
 }
 
 static void
@@ -249,17 +207,17 @@ enum
 static long
 archread(Chan *c, void *a, long n, vlong offset)
 {
-	char buf[Linelen+1], *p;
+	char *p;
+	IOMap *m;
+	char buf[Linelen+1];
 	int port;
 	ushort *sp;
 	ulong *lp;
-	IOMap *m;
-	Rdwrfn *fn;
 
-	switch(c->qid.path){
+	switch(c->qid.path & ~CHDIR){
 
 	case Qdir:
-		return devdirread(c, a, n, archdir, narchdir, devgen);
+		return devdirread(c, a, n, ioallocdir, nelem(ioallocdir), devgen);
 
 	case Qiob:
 		port = offset;
@@ -271,7 +229,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 	case Qiow:
 		if((n & 0x01) || (offset & 0x01))
 			error(Ebadarg);
-		checkport(offset, offset+n);
+		checkport(offset, offset+n+1);
 		n /= 2;
 		sp = a;
 		for(port = offset; port < offset+n; port += 2)
@@ -281,7 +239,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 	case Qiol:
 		if((n & 0x03) || (offset & 0x03))
 			error(Ebadarg);
-		checkport(offset, offset+n);
+		checkport(offset, offset+n+3);
 		n /= 4;
 		lp = a;
 		for(port = offset; port < offset+n; port += 4)
@@ -291,9 +249,13 @@ archread(Chan *c, void *a, long n, vlong offset)
 	case Qioalloc:
 		break;
 
+	case Qirqalloc:
+		return irqallocread(a, n, offset);
+
+	case Qcputype:
+		return cputyperead(a, n, offset);
+
 	default:
-		if(c->qid.path < narchdir && (fn = readfn[c->qid.path]))
-			return fn(c, a, n, offset);
 		error(Eperm);
 		break;
 	}
@@ -320,11 +282,10 @@ archread(Chan *c, void *a, long n, vlong offset)
 static long
 archwrite(Chan *c, void *a, long n, vlong offset)
 {
-	char *p;
 	int port;
 	ushort *sp;
 	ulong *lp;
-	Rdwrfn *fn;
+	char *p;
 
 	switch(c->qid.path & ~CHDIR){
 
@@ -338,7 +299,7 @@ archwrite(Chan *c, void *a, long n, vlong offset)
 	case Qiow:
 		if((n & 01) || (offset & 01))
 			error(Ebadarg);
-		checkport(offset, offset+n);
+		checkport(offset, offset+n+1);
 		n /= 2;
 		sp = a;
 		for(port = offset; port < offset+n; port += 2)
@@ -348,7 +309,7 @@ archwrite(Chan *c, void *a, long n, vlong offset)
 	case Qiol:
 		if((n & 0x03) || (offset & 0x03))
 			error(Ebadarg);
-		checkport(offset, offset+n);
+		checkport(offset, offset+n+3);
 		n /= 4;
 		lp = a;
 		for(port = offset; port < offset+n; port += 4)
@@ -356,8 +317,6 @@ archwrite(Chan *c, void *a, long n, vlong offset)
 		return n*4;
 
 	default:
-		if(c->qid.path < narchdir && (fn = writefn[c->qid.path]))
-			return fn(c, a, n, offset);
 		error(Eperm);
 		break;
 	}
@@ -578,7 +537,7 @@ cpuidentify(void)
 }
 
 static long
-cputyperead(Chan*, void *a, long n, vlong offset)
+cputyperead(char *a, int n, ulong offset)
 {
 	char str[32];
 	ulong mhz;
@@ -633,8 +592,6 @@ archinit(void)
 
 	if(X86FAMILY(m->cpuidax) >= 5)
 		coherence = wbflush;
-
-	addarchfile("cputype", 0444, cputyperead, nil);
 }
 
 void

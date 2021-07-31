@@ -76,7 +76,7 @@ faxsend(Modem *m, int argc, char *argv[])
 			 *  avanstar is even worse
 			 */
 			verbose("flow control");
-			while((r = rawmchar(m, buf)) == Eok || flow){
+			while(flow || (r = rawmchar(m, buf)) == Eok){
 				if(r != Eok){
 					if(flow-- == 0)
 						break;

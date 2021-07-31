@@ -11,23 +11,19 @@
 char*
 getline(Edit *edit)
 {
-	static int inited;
-	static Biobuf bin;
+	static char line[100];
 	char *p;
 	int n;
 
-	if(!inited){
-		Binit(&bin, 0, OREAD);
-		inited = 1;
-	}
-	p = Brdline(&bin, '\n');
-	n = Blinelen(&bin);
-	if(p == nil || n <= 1){
+	n = read(0, line, sizeof(line)-1);
+	if(n <= 0) {
 		if(edit->changed)
 			fprint(2, "?warning: changes not written\n");
 		exits(0);
 	}
-	p[n - 1] = '\0';
+
+	line[n-1] = '\0';
+	p = line;
 	while(isspace(*p))
 		p++;
 	return p;
@@ -127,7 +123,7 @@ editdot(Edit *edit, int argc, char **argv)
 	if(argc > 2)
 		return "args";
 
-	if(err = parseexpr(argv[1], edit->dot, edit->end, edit->end, &ndot))
+	if(err = parseexpr(argv[1], edit->dot, edit->disk->secs, edit->disk->secs, &ndot))
 		return err;
 
 	edit->dot = ndot;
@@ -152,23 +148,23 @@ editadd(Edit *edit, int argc, char **argv)
 	if(argc >= 3)
 		q = argv[2];
 	else {
-		fprint(2, "start %s: ", edit->unit);
+		fprint(2, "start sector: ");
 		q = getline(edit);
 	}
-	if(err = parseexpr(q, edit->dot, edit->end, edit->end, &start))
+	if(err = parseexpr(q, edit->dot, edit->disk->secs, edit->disk->secs, &start))
 		return err;
 
-	if(start < 0 || start >= edit->end)
-		return "start out of range";
+	if(start < 0 || start >= edit->disk->secs)
+		return "start sector out of range";
 
 	for(i=0; i < edit->npart; i++) {
 		if(edit->part[i]->start <= start && start < edit->part[i]->end) {
-			sprint(msg, "start %s in partition \"%s\"", edit->unit, edit->part[i]->name);
+			sprint(msg, "start sector in partition \"%s\"", edit->part[i]->name);
 			return msg;
 		}
 	}
 
-	maxend = edit->end;
+	maxend = edit->disk->secs;
 	for(i=0; i < edit->npart; i++)
 		if(start < edit->part[i]->start && edit->part[i]->start < maxend)
 			maxend = edit->part[i]->start;
@@ -179,17 +175,14 @@ editadd(Edit *edit, int argc, char **argv)
 		fprint(2, "end [%lld..%lld] ", start, maxend);
 		q = getline(edit);
 	}
-	if(err = parseexpr(q, edit->dot, maxend, edit->end, &end))
+	if(err = parseexpr(q, edit->dot, maxend, edit->disk->secs, &end))
 		return err;
 
 	if(start == end)
 		return "size zero partition";
 
 	if(end <= start || end > maxend)
-		return "end out of range";
-
-	if(argc > 4)
-		return "args";
+		return "end sector out of range";
 
 	if(err = edit->add(edit, name, start, end))
 		return err;
@@ -249,8 +242,8 @@ editprint(Edit *edit, int argc, char**)
 		edit->sum(edit, part[i], part[i]->start, part[i]->end);
 		lastend = part[i]->end;
 	}
-	if(lastend < edit->end)
-		edit->sum(edit, nil, lastend, edit->end);
+	if(lastend < edit->disk->secs)
+		edit->sum(edit, nil, lastend, edit->disk->secs);
 	return nil;
 }
 
@@ -352,12 +345,8 @@ runcmd(Edit *edit, char *cmd)
 			break;
 		}
 	}
-	if(i == nelem(cmds)){
-		if(edit->ext)
-			err = edit->ext(edit, nf, f);
-		else
-			err = "unknown command";
-	}
+	if(i == nelem(cmds))
+		err = edit->ext(edit, nf, f);
 	if(err) 
 		fprint(2, "?%s\n", err);
 	edit->lastcmd = f[0][0];
@@ -428,27 +417,11 @@ rdctlpart(Edit *edit)
 	}
 }
 
-static vlong
-ctlstart(Part *p)
-{
-	if(p->ctlstart)
-		return p->ctlstart;
-	return p->start;
-}
-
-static vlong
-ctlend(Part *p)
-{
-	if(p->ctlend)
-		return p->ctlend;
-	return p->end;
-}
-
 static int
 areequiv(Part *p, Part *q)
 {
 	return strcmp(p->ctlname, q->ctlname) == 0
-			&& ctlstart(p) == ctlstart(q) && ctlend(p) == ctlend(q);
+			&& p->start == q->start && p->end == q->end;
 }
 
 static void
@@ -490,17 +463,13 @@ ctldiff(Edit *edit, int ctlfd)
 				break;
 			}
 
-	waserr = 0;
 	/*
 	 * delete all the changed partitions except data (we'll add them back if necessary) 
 	 */
 	for(i=0; i<edit->nctlpart; i++) {
 		p = edit->ctlpart[i];
 		if(p->changed)
-		if(fprint(ctlfd, "delpart %s\n", p->ctlname)<0) {
-			fprint(2, "delpart failed: %s: %r\n", p->ctlname);
-			waserr = -1;
-		}
+			fprint(ctlfd, "delpart %s\n", p->ctlname);
 	}
 
 	/*
@@ -508,15 +477,13 @@ ctldiff(Edit *edit, int ctlfd)
 	 * this is okay since adding a parition with
 	 * information identical to what is there is a no-op.
 	 */
+	waserr = 0;
 	offset = edit->disk->offset;
 	for(i=0; i<edit->npart; i++) {
 		p = edit->part[i];
-		if(p->ctlname[0]) {
-			if(fprint(ctlfd, "part %s %lld %lld\n", p->ctlname, offset+ctlstart(p), offset+ctlend(p)) < 0) {
-				fprint(2, "adding part failed: %s: %r\n", p->ctlname);
+		if(p->ctlname[0])
+			if(fprint(ctlfd, "part %s %lld %lld\n", p->ctlname, offset+p->start, offset+p->end) < 0)
 				waserr = -1;
-			}
-		}
 	}
 	return waserr;
 }

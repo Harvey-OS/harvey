@@ -2,4 +2,5 @@
 #smtp serv net incalldir user
 
 user=`{cat /dev/user}
+9fs emelieother && bind -c /n/emelieother/queue.dump /mail/queue.dump
 exec upas/smtpd -n $3

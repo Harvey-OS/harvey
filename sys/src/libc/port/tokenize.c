@@ -1,60 +1,43 @@
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
 
-static char qsep[] = " \t\r\n";
-
-static char*
-qtoken(char *s)
+int
+getfields(char *str, char **args, int max, int mflag, char *set)
 {
-	int quoting;
-	char *t;
+	Rune r;
+	int nr, intok, narg;
 
-	quoting = 0;
-	t = s;	/* s is output string, t is input string */
-	while(*t!='\0' && (quoting || utfrune(qsep, *t)==nil)){
-		if(*t != '\''){
-			*s++ = *t++;
-			continue;
+	if(max <= 0)
+		return 0;
+
+	narg = 0;
+	args[narg] = str;
+	if(!mflag)
+		narg++;
+	intok = 0;
+	for(;; str += nr) {
+		nr = chartorune(&r, str);
+		if(r == 0)
+			break;
+		if(utfrune(set, r)) {
+			if(narg >= max)
+				break;
+			*str = 0;
+			intok = 0;
+			args[narg] = str + nr;
+			if(!mflag)
+				narg++;
+		} else {
+			if(!intok && mflag)
+				narg++;
+			intok = 1;
 		}
-		/* *t is a quote */
-		if(!quoting){
-			quoting = 1;
-			t++;
-			continue;
-		}
-		/* quoting and we're on a quote */
-		if(t[1] != '\''){
-			/* end of quoted section; absorb closing quote */
-			t++;
-			quoting = 0;
-			continue;
-		}
-		/* doubled quote; fold one quote into two */
-		t++;
-		*s++ = *t++;
 	}
-	if(*s != '\0'){
-		*s = '\0';
-		if(t == s)
-			t++;
-	}
-	return t;
+	return narg;
 }
 
 int
-tokenize(char *s, char **args, int maxargs)
+tokenize(char *str, char **args, int max)
 {
-	int nargs;
-
-	for(nargs=0; nargs<maxargs; nargs++){
-		while(*s!='\0' && utfrune(qsep, *s)!=nil)
-			s++;
-		if(*s == '\0')
-			break;
-		args[nargs] = s;
-		s = qtoken(s);
-	}
-
-	return nargs;
+	return getfields(str, args, max, 1, " \t\n\r");
 }

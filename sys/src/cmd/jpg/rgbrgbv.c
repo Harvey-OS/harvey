@@ -2,31 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 
-/*
- * This version of closest() is now (feb 20, 2001) installed as rgb2cmap in libdraw
- */
-
 int
-closest(int cr, int cg, int cb)
+closest(int r, int g, int b)
 {
-	int i, r, g, b, sq;
-	ulong rgb;
-	int best, bestsq;
-
-	best = 0;
-	bestsq = 0x7FFFFFFF;
-	for(i=0; i<256; i++){
-		rgb = cmap2rgb(i);
-		r = (rgb>>16) & 0xFF;
-		g = (rgb>>8) & 0xFF;
-		b = (rgb>>0) & 0xFF;
-		sq = (r-cr)*(r-cr)+(g-cg)*(g-cg)+(b-cb)*(b-cb);
-		if(sq < bestsq){
-			bestsq = sq;
-			best = i;
-		}
-	}
-	return best;
+	return rgb2cmap(r, g, b);
 }
 
 void

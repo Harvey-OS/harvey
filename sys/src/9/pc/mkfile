@@ -21,7 +21,6 @@ PORT=\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
-	portclock.$O\
 	print.$O\
 	proc.$O\
 	qio.$O\
@@ -52,7 +51,6 @@ OBJ=\
 	$DEVS\
 	$PORT\
 	boot$CONF.root.$O\
-	kpmemmove.$O\
 
 LIB=\
 	/$objtype/lib/libmemlayer.a\
@@ -76,6 +74,7 @@ $p$CONF.gz: $p$CONF
 
 install:V: $p$CONF $p$CONF.gz
 	cp $p$CONF $p$CONF.gz /$objtype/
+	import dinar / /n/dinar && cp $p$CONF $p$CONF.gz /n/dinar/$objtype/
 
 <../boot/bootmkfile
 <../port/portmkfile
@@ -88,9 +87,8 @@ $VGA mouse.$O:			screen.h
 devfloppy.$O: 			floppy.h
 archmp.$O mp.$O:		apbootstrap.h
 apic.$O archmp.$O mp.$O:	mp.h
-$SDEV:				../port/sd.h
+$SDEV:				sd.h
 sd53c8xx.$O:			sd53c8xx.i
-thwack.$O unthwack.$O:		../port/thwack.h
 
 sd53c8xx.i:	sd53c8xx.n
 	aux/na $prereq > $target

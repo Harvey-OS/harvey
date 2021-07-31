@@ -2,11 +2,10 @@
 #include <libc.h>
 #include <bio.h>
 #include "httpd.h"
-#include "httpsrv.h"
 
-static	Hio		*hout;
-static	Hio		houtb;
-static	HConnect	*connect;
+static	Hio	*hout;
+static	Hio	houtb;
+static	Connect	*connect;
 
 void	doconvert(char*, int);
 
@@ -21,7 +20,7 @@ error(char *title, char *fmt, ...)
 	va_end(arg);
 	*out = 0;
 
-	hprint(hout, "%s 404 %s\n", hversion, title);
+	hprint(hout, "%s 404 %s\n", version, title);
 	hprint(hout, "Date: %D\n", time(nil));
 	hprint(hout, "Server: Plan9\n");
 	hprint(hout, "Content-type: text/html\n");
@@ -93,7 +92,7 @@ manindex(int sect, int vermaj)
 	int i;
 
 	if(vermaj){
-		hokheaders(connect);
+		okheaders(connect);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
 	}
@@ -141,7 +140,7 @@ man(char *o, int sect, int vermaj)
 	}
 
 	if(vermaj){
-		hokheaders(connect);
+		okheaders(connect);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
 	}
@@ -164,10 +163,9 @@ man(char *o, int sect, int vermaj)
 void
 redirectto(char *uri)
 {
-	if(connect){
-		hmoved(connect, uri);
-		exits(0);
-	}else
+	if(connect)
+		moved(connect, uri);
+	else
 		hprint(hout, "Your selection moved to <a href=\"%U\"> here</a>.<p></body>\r\n", uri);
 }
 
@@ -262,7 +260,7 @@ dosearch(int vermaj, char *search)
 
 	if(strncmp(search, "man=", 4) == 0){
 		sect = 0;
-		search = hurlunesc(connect, search+4);
+		search = urlunesc(search+4);
 		p = strchr(search, '&');
 		if(p != nil){
 			*p++ = 0;
@@ -274,21 +272,21 @@ dosearch(int vermaj, char *search)
 	}
 
 	if(vermaj){
-		hokheaders(connect);
+		okheaders(connect);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
 	}
 
 	if(strncmp(search, "pat=", 4) == 0){
-		search = hurlunesc(connect, search+4);
-		search = hlower(search);
+		search = urlunesc(search+4);
+		search = lower(search);
 		searchfor(search);
 		return;
 	}
 
 	hprint(hout, "<head><title>illegal search</title></head>\n");
 	hprint(hout, "<body><p>Illegally formatted Plan 9 man page search</p>\n");
-	search = hurlunesc(connect, search);
+	search = urlunesc(search);
 	hprint(hout, "<body><p>%H</p>\n", search);
 	hprint(hout, "</body>");
 }
@@ -336,7 +334,7 @@ doconvert(char *uri, int vermaj)
 	}
 
 	if(vermaj){
-		hokheaders(connect);
+		okheaders(connect);
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
 	}
@@ -390,7 +388,8 @@ void
 main(int argc, char **argv)
 {
 	fmtinstall('H', httpconv);
-	fmtinstall('U', hurlconv);
+	fmtinstall('U', urlconv);
+
 
 	if(argc == 2){
 		hinit(&houtb, 1, Hwrite);
@@ -402,19 +401,16 @@ main(int argc, char **argv)
 
 	connect = init(argc, argv);
 	hout = &connect->hout;
-	if(hparseheaders(connect, HSTIMEOUT) < 0)
-		exits("failed");
+	httpheaders(connect);
 
-	if(strcmp(connect->req.meth, "GET") != 0 && strcmp(connect->req.meth, "HEAD") != 0){
-		hunallowed(connect, "GET, HEAD");
-		exits("not allowed");
-	}
-	if(connect->head.expectother || connect->head.expectcont){
-		hfail(connect, HExpectFail, nil);
-		exits("failed");
-	}
+	if(strcmp(connect->req.meth, "GET") != 0 && strcmp(connect->req.meth, "HEAD") != 0)
+		unallowed(connect, "GET, HEAD");
+	if(connect->head.expectother || connect->head.expectcont)
+		fail(connect, ExpectFail, nil);
 
-	bind("/usr/web/sys/man", "/sys/man", MREPL);
+syslog(0, HTTPLOG, "nman2html %s", connect->req.uri);
+
+//	anonymous(connect);
 
 	if(connect->req.search != nil)
 		dosearch(connect->req.vermaj, connect->req.search);

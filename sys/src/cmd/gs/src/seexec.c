@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: seexec.c,v 1.3 2000/09/19 19:00:49 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: seexec.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* eexec filters */
 #include "stdio_.h"		/* includes std.h */
 #include "strimpl.h"
@@ -70,10 +70,7 @@ s_exD_set_defaults(stream_state * st)
 {
     stream_exD_state *const ss = (stream_exD_state *) st;
 
-    ss->binary = -1;		/* unknown */
     ss->lenIV = 4;
-    ss->record_left = max_long;
-    ss->hex_left = max_long;
     /* Clear pointers for GC */
     ss->pfb_state = 0;
 }
@@ -86,6 +83,8 @@ s_exD_init(stream_state * st)
     stream_exD_state *const ss = (stream_exD_state *) st;
 
     ss->odd = -1;
+    ss->binary = -1;		/* unknown */
+    ss->record_left = max_long;
     ss->skip = ss->lenIV;
     return 0;
 }
@@ -152,23 +151,8 @@ s_exD_process(stream_state * st, stream_cursor_read * pr,
 	 * keep from reading beyond the end of the encrypted data;
 	 * but some badly coded files require us to ignore % also.
 	 */
-	stream_cursor_read r;
-	const byte *start;
-
-hp:	r = *pr;
-	start = r.ptr;
-	if (r.limit - r.ptr > ss->hex_left)
-	    r.limit = r.ptr + ss->hex_left;
-	status = s_hex_process(&r, pw, &ss->odd,
+hp:	status = s_hex_process(pr, pw, &ss->odd,
 			       hex_ignore_leading_whitespace);
-	pr->ptr = r.ptr;
-	ss->hex_left -= r.ptr - start;
-	/*
-	 * Check for having finished a prematurely decoded hex section of
-	 * a PFB file.
-	 */
-	if (ss->hex_left == 0)
-	    ss->binary = 1;
 	count = pw->ptr - q;
 	if (status < 0 && ss->odd < 0) {
 	    if (count) {

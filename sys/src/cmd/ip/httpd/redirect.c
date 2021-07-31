@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 #include "httpd.h"
-#include "httpsrv.h"
 
 enum
 {
@@ -123,7 +122,7 @@ prevslash(char *p, char *s)
 }
 
 char*
-authrealm(HConnect *hc, char *path)
+authrealm(char *path)
 {
 	Redir *redir;
 	char *s;
@@ -135,13 +134,13 @@ authrealm(HConnect *hc, char *path)
 		redir = lookup(authtab, path);
 		*s = c;
 		if(redir != nil)
-			return hstrdup(hc, redir->repl);
+			return hstrdup(redir->repl);
 	}
 	return nil;
 }
 
 char*
-redirect(HConnect *hc, char *path)
+redirect(char *path)
 {
 	Redir *redir;
 	char *s, *newpath;
@@ -154,7 +153,7 @@ redirect(HConnect *hc, char *path)
 		*s = c;
 		if(redir != nil){
 			n = strlen(redir->repl) + strlen(s+1) + 2 + UTFmax;
-			newpath = halloc(hc, n);
+			newpath = halloc(n);
 			snprint(newpath, n, "%s/%s", redir->repl, &s[c == '/']);
 			return newpath;
 		}

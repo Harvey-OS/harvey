@@ -8,6 +8,7 @@ OFILES=\
 	argv0.$O\
 	divl.$O\
 	divq.$O\
+	frexp.$O\
 	getcallerpc.$O\
 	getfcr.$O\
 	memmove.$O\

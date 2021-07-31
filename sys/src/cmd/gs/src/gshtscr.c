@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gshtscr.c,v 1.3.2.1 2000/11/09 21:26:51 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gshtscr.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
 /* Screen (Type 1) halftone processing for Ghostscript library */
 #include "math_.h"
 #include "gx.h"
@@ -202,16 +202,29 @@ gs_screen_init_memory(gs_screen_enum * penum, gs_state * pgs,
 /* Allocate and initialize a spot screen. */
 /* This is the first half of gs_screen_init_accurate. */
 int
-gs_screen_order_alloc(gx_ht_order *porder, gs_memory_t *mem)
+gs_screen_order_init_memory(gx_ht_order * porder, const gs_state * pgs,
+		gs_screen_halftone * phsp, bool accurate, gs_memory_t * mem)
 {
-    uint num_levels = porder->params.W * porder->params.D;
+    gs_matrix imat;
+    ulong max_size = pgs->ht_cache->bits_size;
+    uint num_levels;
     int code;
 
+    if (phsp->frequency < 0.1)
+	return_error(gs_error_rangecheck);
+    gs_deviceinitialmatrix(gs_currentdevice(pgs), &imat);
+    code = pick_cell_size(phsp, &imat, max_size,
+			  screen_min_screen_levels, accurate,
+			  &porder->params);
+    if (code < 0)
+	return code;
+    gx_compute_cell_values(&porder->params);
+    num_levels = porder->params.W * porder->params.D;
     if (!FORCE_STRIP_HALFTONES &&
 	((ulong)porder->params.W1 * bitmap_raster(porder->params.W) +
 	   num_levels * sizeof(*porder->levels) +
 	   porder->params.W * porder->params.W1 * sizeof(gx_ht_bit)) <=
-	porder->screen_params.max_size) {
+	max_size) {
 	/*
 	 * Allocate an order for the entire tile, but only sample one
 	 * strip.  Note that this causes the order parameters to be
@@ -229,29 +242,9 @@ gs_screen_order_alloc(gx_ht_order *porder, gs_memory_t *mem)
 				 porder->params.D, porder->params.S,
 				 num_levels, mem);
     }
-    return code;
-}
-int
-gs_screen_order_init_memory(gx_ht_order * porder, const gs_state * pgs,
-			    gs_screen_halftone * phsp, bool accurate,
-			    gs_memory_t * mem)
-{
-    gs_matrix imat;
-    ulong max_size = pgs->ht_cache->bits_size;
-    int code;
-
-    if (phsp->frequency < 0.1)
-	return_error(gs_error_rangecheck);
-    gs_deviceinitialmatrix(gs_currentdevice(pgs), &imat);
-    code = pick_cell_size(phsp, &imat, max_size,
-			  screen_min_screen_levels, accurate,
-			  &porder->params);
     if (code < 0)
 	return code;
-    gx_compute_cell_values(&porder->params);
-    porder->screen_params.matrix = imat;
-    porder->screen_params.max_size = max_size;
-    return gs_screen_order_alloc(porder, mem);
+    return 0;
 }
 
 /*
@@ -457,8 +450,7 @@ pick_cell_size(gs_screen_halftone * ph, const gs_matrix * pmat, ulong max_size,
 /* This is the second half of gs_screen_init_accurate. */
 int
 gs_screen_enum_init_memory(gs_screen_enum * penum, const gx_ht_order * porder,
-			   gs_state * pgs, const gs_screen_halftone * phsp,
-			   gs_memory_t * mem)
+	       gs_state * pgs, gs_screen_halftone * phsp, gs_memory_t * mem)
 {
     penum->pgs = pgs;		/* ensure clean for GC */
     penum->order = *porder;
@@ -498,7 +490,6 @@ gs_screen_enum_init_memory(gs_screen_enum * penum, const gx_ht_order * porder,
 	penum->mat.yy = Q * (R1 * M);
 	penum->mat.tx = -1.0;
 	penum->mat.ty = -1.0;
-	gs_matrix_invert(&penum->mat, &penum->mat_inv);
     }
     if_debug7('h', "[h]Screen: (%dx%d)/%d [%f %f %f %f]\n",
 	      porder->width, porder->height, porder->params.R,
@@ -513,8 +504,6 @@ gs_screen_currentpoint(gs_screen_enum * penum, gs_point * ppt)
 {
     gs_point pt;
     int code;
-    double sx, sy; /* spot center in spot coords (integers) */
-    gs_point spot_center; /* device coords */
 
     if (penum->y >= penum->strip) {	/* all done */
 	gx_ht_construct_spot_order(&penum->order);
@@ -525,25 +514,6 @@ gs_screen_currentpoint(gs_screen_enum * penum, gs_point * ppt)
     /* for which the spot function returns the same value. */
     if ((code = gs_point_transform(penum->x + 0.501, penum->y + 0.498, &penum->mat, &pt)) < 0)
 	return code;
-
-    /* find the spot center in device coords : */
-    sx = ceil( pt.x / 2 ) * 2;
-    sy = ceil( pt.y / 2 ) * 2;
-    if ((code = gs_point_transform(sx, sy, &penum->mat_inv, &spot_center)) < 0)
-    	return code;
-
-    /* shift the spot center to nearest pixel center : */
-    spot_center.x = floor(spot_center.x) + 0.5;
-    spot_center.y = floor(spot_center.y) + 0.5;
-
-    /* compute the spot function arguments for the shifted spot : */
-    if ((code = gs_distance_transform(penum->x - spot_center.x + 0.501, 
-                                      penum->y - spot_center.y + 0.498,
-				      &penum->mat, &pt)) < 0)
-	return code;
-    pt.x += 1;
-    pt.y += 1;
-
     if (pt.x < -1.0)
 	pt.x += ((int)(-ceil(pt.x)) + 1) & ~1;
     else if (pt.x >= 1.0)

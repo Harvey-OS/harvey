@@ -4,7 +4,6 @@
 #include <bio.h>
 #include <libsec.h>
 #include "httpd.h"
-#include "httpsrv.h"
 
 char *P2 = "tcp!netlib2.cs.bell-labs.com!575";
 enum{ CHAN_IMMEDIATE=0, CHAN_NEW, CHAN_START=12000 };
@@ -14,7 +13,7 @@ Biobuf	bserv, bservr;
 void
 main(int argc, char **argv)
 {
-	HConnect *c;
+	Connect *c;
 	Hio *hout;
 	int ch, datafd, n_to, n_from;
 	char *s;
@@ -23,10 +22,8 @@ main(int argc, char **argv)
 
 	c = init(argc, argv);
 	hout = &c->hout;
-	if(c->req.search == nil){
-		hfail(c, HSyntax);
-		exits("failed");
-	}
+	if(c->req.search==nil)
+		fail(c, Syntax);
 	alarm(120000);
 
 	n_to = strlen(c->req.search);
@@ -36,18 +33,14 @@ main(int argc, char **argv)
 	strncpy(addr, P2, sizeof addr);
 	if(bin[0] != CHAN_IMMEDIATE && bin[0] != CHAN_NEW){
 		s = strchr(addr+4, '!');
-		if(s == nil){
-			hfail(c, HInternal, "P2 addr");
-			exits("failed");
-		}
+		if(s == nil)
+			fail(c, Internal, "P2 addr");
 		s++;
 		snprint(s, sizeof addr - (s-addr), "%d", CHAN_START+bin[0]-(CHAN_NEW+1));
 	}
 	datafd = dial(addr, nil, nil, nil);
-	if(datafd < 0){
-		hfail(c, HNotFound, addr);
-		exits("failed");
-	}
+	if(datafd < 0)
+		fail(c, NotFound, addr);
 	Binit(&bserv, datafd, OWRITE);
 
 	/* copy the incoming request */

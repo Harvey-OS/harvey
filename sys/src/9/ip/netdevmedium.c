@@ -6,6 +6,7 @@
 #include "../port/error.h"
 
 #include "ip.h"
+#include "kernel.h"
 
 static void	netdevbind(Ipifc *ifc, int argc, char **argv);
 static void	netdevunbind(Ipifc *ifc);
@@ -40,13 +41,19 @@ Medium netdevmedium =
 static void
 netdevbind(Ipifc *ifc, int argc, char **argv)
 {
+	int fd;
 	Chan *mchan;
 	Netdevrock *er;
 
 	if(argc < 2)
 		error(Ebadarg);
 
-	mchan = namec(argv[2], Aopen, ORDWR, 0);
+	fd = kopen(argv[2], ORDWR);
+	if(fd < 0)
+		error("fd open failed");
+
+	mchan = commonfdtochan(fd, ORDWR, 0, 1);
+	kclose(fd);
 
 	er = smalloc(sizeof(*er));
 	er->mchan = mchan;

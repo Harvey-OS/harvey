@@ -32,25 +32,20 @@ static void
 sendreply(Req *r, int fd)
 {
 	int n;
-	char *buf;
+	char buf[MAXMSG+MAXFDATA];
 
 	r->type++;
-	r->ofcall.type = r->type;
+	r->fcall.type = r->type;
 	if(r->error)
-		setfcallerror(&r->ofcall, r->error);
+		setfcallerror(&r->fcall, r->error);
 
-	if(r->ofcall.type == Rread)
-		buf = emalloc(MAXMSG+MAXFDATA);
-	else
-		buf = emalloc(MAXMSG);
 if(lib9p_chatty)
-	fprint(2, "-> %F\n", &r->ofcall);
+	fprint(2, "-> %F\n", &r->fcall);
 	switch(r->type){
 	default:
-		sysfatal("bad type %d in reply", r->ofcall.type);
+		sysfatal("bad type %d in reply", r->fcall.type);
 		break;
 
-	case Ropen:
 	case Rnop:
 	case Rflush:
 	case Rattach:
@@ -58,6 +53,7 @@ if(lib9p_chatty)
 	case Rclone:
 	case Rwalk:
 	case Rclwalk:
+	case Ropen:
 	case Rcreate:
 	case Rread:
 	case Rwrite:
@@ -66,10 +62,9 @@ if(lib9p_chatty)
 	case Rstat:
 	case Rwstat:
 	case Rerror:
-		n = convS2M(&r->ofcall, buf);
-		if(write(fd, buf, n) != n)
-			sysfatal("write %d fails: %r", fd);
-		free(buf);
+		n = convS2M(&r->fcall, buf);
+		write(fd, buf, n);
+
 	}
 }
 
@@ -201,12 +196,12 @@ srv(Srv *srv, int fd)
 			break;
 
 		case Tsession:
-			memset(r->ofcall.authid, 0, sizeof r->ofcall.authid);
-			memset(r->ofcall.authdom, 0, sizeof r->ofcall.authdom);
-			memset(r->ofcall.chal, 0, sizeof r->ofcall.chal);
+			memset(r->fcall.authid, 0, sizeof r->fcall.authid);
+			memset(r->fcall.authdom, 0, sizeof r->fcall.authdom);
+			memset(r->fcall.chal, 0, sizeof r->fcall.chal);
 			if(srv->session)
-				srv->session(r, r->ofcall.authid,
-					r->ofcall.authdom, r->ofcall.chal);
+				srv->session(r, r->fcall.authid,
+					r->fcall.authdom, r->fcall.chal);
 			else
 				respond(r, nil);
 			break;
@@ -222,13 +217,13 @@ srv(Srv *srv, int fd)
 			strncpy(r->fid->uid, r->ofcall.uname, NAMELEN);
 			r->fid->uid[NAMELEN-1] = '\0';
 			if(srv->attach)
-				srv->attach(r, r->fid, r->ofcall.aname, &r->ofcall.qid);
+				srv->attach(r, r->fid, r->ofcall.aname, &r->fcall.qid);
 			else{		/* assume one tree, no auth */
 				if(strcmp(r->ofcall.aname, "") != 0)
 					r->error = Ebadattach;
 				else{
 					r->fid->file = srv->tree->root;
-					r->ofcall.qid = r->fid->file->qid;
+					r->fcall.qid = r->fid->file->qid;
 				}
 				respond(r, nil);
 			}
@@ -262,18 +257,18 @@ srv(Srv *srv, int fd)
 				 * the reference counts right on error or when
 				 * playing other funny games with the tree.
 				 */
-				if(f = fwalk(r->fid->file, r->fcall.name)) {
+				if(f = fwalk(r->fid->file, r->ofcall.name)) {
 					of = r->fid->file;
 					r->fid->file = f;
 					fclose(of);
-					r->ofcall.qid = f->qid;
+					r->fcall.qid = f->qid;
 					respond(r, nil);
 				}else
 					respond(r, Enotfound);
 				break;
 			}
-			r->ofcall.qid = r->fid->qid;
-			srv->walk(r, r->fid, r->fcall.name, &r->ofcall.qid);
+			r->fcall.qid = r->fid->qid;
+			srv->walk(r, r->fid, r->ofcall.name, &r->fcall.qid);
 			break;
 
 		case Topen:
@@ -281,7 +276,6 @@ srv(Srv *srv, int fd)
 				respond(r, Ebotch);
 				break;
 			}
-			r->ofcall.qid = r->fid->qid;
 			if(r->fid->file){
 				switch(r->fcall.mode&3){
 				case OREAD:	p = AREAD; break;
@@ -301,10 +295,10 @@ srv(Srv *srv, int fd)
 					respond(r, Eperm);
 					break;
 				}
-				r->ofcall.qid = r->fid->file->qid;
+				r->fcall.qid = r->fid->file->qid;
 			}
 			if(srv->open)
-				srv->open(r, r->fid, r->fcall.mode, &r->ofcall.qid);
+				srv->open(r, r->fid, r->fcall.mode, &r->fcall.qid);
 			else
 				respond(r, nil);
 			break;
@@ -321,28 +315,27 @@ srv(Srv *srv, int fd)
 				respond(r, r->error);
 			else
 				srv->create(r, r->fid, r->ofcall.name, r->ofcall.mode,
-					r->ofcall.perm, &r->ofcall.qid);
+					r->ofcall.perm, &r->fcall.qid);
 			break;
 
 		case Tread:
 			r->rbuf = emalloc(MAXFDATA);
-			r->ofcall.data = r->rbuf;
+			r->fcall.data = r->rbuf;
 			o = r->fid->omode & OMASK;
-			r->ofcall.count = r->fcall.count;
-			if(r->ofcall.count > MAXFDATA)
-				r->ofcall.count = MAXFDATA;
+			if(r->fcall.count > MAXFDATA)
+				r->fcall.count = MAXFDATA;
 			if(o != OREAD && o != ORDWR && o != OEXEC)
 				r->error = Ebotch;
-			else if(r->ofcall.count < 0)
+			else if(r->fcall.count < 0)
 				r->error = Ebadcount;
-			else if(r->ofcall.offset < 0 
+			else if(r->fcall.offset < 0 
 				|| ((r->fid->qid.path&CHDIR) && r->fcall.offset%DIRLEN))
 				r->error = Ebadoffset;
 			else if((r->fid->qid.path&CHDIR) && r->fid->file){
 				r->error = fdirread(r->fid->file, r->rbuf, 
-							&r->ofcall.count, r->fcall.offset);
+							&r->fcall.count, r->fcall.offset);
 			}else{
-				srv->read(r, r->fid, r->rbuf, &r->ofcall.count, r->fcall.offset);
+				srv->read(r, r->fid, r->rbuf, &r->fcall.count, r->fcall.offset);
 				break;
 			}
 			respond(r, r->error);
@@ -355,9 +348,8 @@ srv(Srv *srv, int fd)
 			else if(srv->write == nil)
 				r->error = Enowrite;
 			else{
-				r->ofcall.count = r->fcall.count;
 				srv->write(r, r->fid, r->fcall.data,
-					&r->ofcall.count, r->fcall.offset);
+					&r->fcall.count, r->fcall.offset);
 				break;
 			}
 			respond(r, r->error);
@@ -417,9 +409,9 @@ respond(Req *r, char *error)
 	File *f, *of;
 	Srv *srv;
 
+	srv = r->pool->srv;
 	assert(r->responded == 0);
 	r->responded = 1;
-	srv = r->pool->srv;
 
 	switch(r->type){
 	default:
@@ -437,7 +429,7 @@ respond(Req *r, char *error)
 		if(error)
 			freefid(r->fid);
 		else {
-			r->fid->qid = r->ofcall.qid;
+			r->fid->qid = r->fcall.qid;
 			closefid(r->fid);
 		}
 		r->fid = nil;
@@ -491,14 +483,14 @@ respond(Req *r, char *error)
 				r->fid->file = f;
 				fclose(of);
 				r->fid->qid = f->qid;
-				r->ofcall.qid = r->fid->qid;
+				r->fcall.qid = r->fid->qid;
 				respond(r, nil);
 			}else
 				respond(r, Enotfound);
 			break;
 		}
-		r->ofcall.qid = r->fid->qid;
-		srv->walk(r, r->fid, r->fcall.name, &r->ofcall.qid);
+		r->fcall.qid = r->fid->qid;
+		srv->walk(r, r->fid, r->ofcall.name, &r->fcall.qid);
 		break;
 
 	case Tclwalk_walk:
@@ -506,7 +498,7 @@ respond(Req *r, char *error)
 		if(error)
 			freefid(r->fid);
 		else{
-			r->fid->qid = r->ofcall.qid;
+			r->fid->qid = r->fcall.qid;
 			closefid(r->fid);
 		}
 		r->fid = nil;
@@ -514,7 +506,7 @@ respond(Req *r, char *error)
 
 	case Twalk:
 		if(error == nil)
-			r->fid->qid = r->ofcall.qid;
+			r->fid->qid = r->fcall.qid;
 		closefid(r->fid);
 		r->fid = nil;
 		break;
@@ -522,7 +514,7 @@ respond(Req *r, char *error)
 	case Topen:
 		if(error == nil){
 			r->fid->omode = r->fcall.mode;
-			r->fid->qid = r->ofcall.qid;
+			r->fid->qid = r->fcall.qid;
 		}
 		closefid(r->fid);
 		r->fid = nil;
@@ -531,7 +523,7 @@ respond(Req *r, char *error)
 	case Tcreate:
 		if(error == nil){
 			r->fid->omode = r->fcall.mode;
-			r->fid->qid = r->ofcall.qid;
+			r->fid->qid = r->fcall.qid;
 		}
 		closefid(r->fid);
 		r->fid = nil;
@@ -569,7 +561,7 @@ respond(Req *r, char *error)
 
 	case Tstat:
 		if(error == nil)
-			convD2M(&r->d, r->ofcall.stat);
+			convD2M(&r->d, r->fcall.stat);
 		closefid(r->fid);
 		r->fid = nil;
 		break;
@@ -631,7 +623,7 @@ _postfd(char *name, int pfd)
 
 	snprint(buf, sizeof buf, "/srv/%s", name);
 
-	fd = create(buf, OWRITE|ORCLOSE, 0600);
+	fd = create(buf, OWRITE|ORCLOSE|OCEXEC, 0600);
 	if(fd == -1)
 		sysfatal("post %s: %r", name);
 	fprint(fd, "%d", pfd);

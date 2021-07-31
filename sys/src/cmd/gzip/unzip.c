@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <flate.h>
 #include "zip.h"
+#include "deflate.h"
 
 enum
 {
@@ -33,7 +33,6 @@ static	void	error(char*, ...);
 
 static	Biobuf	bin;
 static	ulong	crc;
-static	ulong	*crctab;
 static	int	debug;
 static	char	*delfile;
 static	int	lower;
@@ -98,10 +97,8 @@ main(int argc, char *argv[])
 	nwant = argc;
 	want = argv;
 
-	crctab = mkcrctab(ZCrcPoly);
-	ok = inflateinit();
-	if(ok != FlateOk)
-		sysfatal("inflateinit failed: %s\n", flateerr(ok));
+	mkcrctab(ZCrcPoly);
+	inflateinit();
 
 	if(zfile == nil){
 		Binit(&bin, 0, OREAD);
@@ -191,7 +188,7 @@ sunztable(Biobuf *bin)
 	ZipHead zh;
 	vlong off;
 	ulong hcrc, hcsize, huncsize;
-	int ok, err;
+	int ok;
 
 	ok = 1;
 	for(;;){
@@ -218,9 +215,8 @@ sunztable(Biobuf *bin)
 				error("reading data for %s failed: %r", zh.file);
 		}else if(zh.meth == 8){
 			off = Boffset(bin);
-			err = inflate((void*)-1, crcwrite, bin, (int(*)(void*))Bgetc);
-			if(err != FlateOk)
-				error("inflate %s failed: %s", zh.file, flateerr(err));
+			if(!inflate((void*)-1, crcwrite, bin, (int(*)(void*))Bgetc))
+				error("inflate %s failed: %r", zh.file);
 			rlen = Boffset(bin) - off;
 		}else
 			error("can't handle compression method %d for %s", zh.meth, zh.file);
@@ -346,7 +342,7 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 	ZipHead zh;
 	char *p;
 	vlong off;
-	int fd, isdir, ok, err;
+	int fd, isdir, ok;
 
 	zh.file = nil;
 	if(setjmp(zjmp)){
@@ -408,9 +404,8 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 			error("copying data for %s failed: %r", zh.file);
 	}else if(zh.meth == 8){
 		off = Boffset(bin);
-		err = inflate((void*)fd, crcwrite, bin, (int(*)(void*))Bgetc);
-		if(err != FlateOk)
-			error("inflate failed: %s", flateerr(err));
+		if(!inflate((void*)fd, crcwrite, bin, (int(*)(void*))Bgetc))
+			error("inflate failed: %r");
 		rlen = Boffset(bin) - off;
 	}else
 		error("can't handle compression method %d for %s", zh.meth, zh.file);
@@ -615,7 +610,7 @@ crcwrite(void *out, void *buf, int n)
 	int fd, nw;
 
 	wlen += n;
-	crc = blockcrc(crctab, crc, buf, n);
+	crc = blockcrc(crc, buf, n);
 	fd = (int)out;
 	if(fd < 0)
 		return n;

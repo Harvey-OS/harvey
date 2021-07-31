@@ -149,47 +149,58 @@ dupseg(Segment **seg, int segno, int share)
 	SET(n);
 	s = seg[segno];
 
-	qlock(&s->lk);
-	if(waserror()){
-		qunlock(&s->lk);
-		nexterror();
-	}
 	switch(s->type&SG_TYPE) {
 	case SG_TEXT:		/* New segment shares pte set */
 	case SG_SHARED:
 	case SG_PHYSICAL:
 	case SG_SHDATA:
-		goto sameseg;
+		incref(s);
+		return s;
 
 	case SG_STACK:
+		qlock(&s->lk);
+		if(waserror()){
+			qunlock(&s->lk);
+			nexterror();
+		}
 		n = newseg(s->type, s->base, s->size);
+		poperror();
 		break;
 
 	case SG_BSS:		/* Just copy on write */
 	case SG_MAP:
-		if(share) {
-			if(s->ref != 1)
-				print("Fuckin A cap'n!\n");
+		qlock(&s->lk);
+		if(share && s->ref == 1) {
 			s->type = (s->type&~SG_TYPE)|SG_SHARED;
-			goto sameseg;
+			incref(s);
+			qunlock(&s->lk);
+			return s;
+		}
+		if(waserror()){
+			qunlock(&s->lk);
+			nexterror();
 		}
 		n = newseg(s->type, s->base, s->size);
+		poperror();
 		break;
 
 	case SG_DATA:		/* Copy on write plus demand load info */
-		if(segno == TSEG){
-			poperror();
-			qunlock(&s->lk);
+		if(segno == TSEG)
 			return data2txt(s);
-		}
 
-		if(share) {
-			if(s->ref != 1)
-				print("Fuckin A again cap'n!\n");
+		qlock(&s->lk);
+		if(share && s->ref == 1) {
 			s->type = (s->type&~SG_TYPE)|SG_SHDATA;
-			goto sameseg;
+			incref(s);
+			qunlock(&s->lk);
+			return s;
+		}
+		if(waserror()){
+			qunlock(&s->lk);
+			nexterror();
 		}
 		n = newseg(s->type, s->base, s->size);
+		poperror();
 
 		incref(s->image);
 		n->image = s->image;
@@ -203,15 +214,8 @@ dupseg(Segment **seg, int segno, int share)
 			n->map[i] = ptecpy(pte);
 
 	n->flushme = s->flushme;
-	poperror();
 	qunlock(&s->lk);
 	return n;
-
-sameseg:
-	incref(s);
-	poperror();
-	qunlock(&s->lk);
-	return s;
 }
 
 void

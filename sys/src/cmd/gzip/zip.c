@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <flate.h>
 #include "zip.h"
+#include "deflate.h"
 
 enum
 {
@@ -26,7 +26,6 @@ static	void	error(char*, ...);
 
 static	Biobuf	bout;
 static	ulong	crc;
-static	ulong	*crctab;
 static	int	debug;
 static	int	eof;
 static	int	level;
@@ -49,7 +48,7 @@ void
 main(int argc, char *argv[])
 {
 	char *zfile;
-	int i, fd, err;
+	int i, fd;
 
 	zfile = nil;
 	level = 6;
@@ -77,10 +76,8 @@ main(int argc, char *argv[])
 	if(argc == 0)
 		usage();
 
-	crctab = mkcrctab(ZCrcPoly);
-	err = deflateinit();
-	if(err != FlateOk)
-		sysfatal("deflateinit failed: %s\n", flateerr(err));
+	mkcrctab(ZCrcPoly);
+	deflateinit();
 
 	if(zfile == nil)
 		fd = 1;
@@ -114,7 +111,7 @@ zip(Biobuf *bout, char *file, int stdout)
 	ZipHead *zh;
 	Dir dir;
 	vlong off;
-	int fd, err;
+	int fd;
 
 	fd = open(file, OREAD);
 	if(fd < 0)
@@ -169,9 +166,8 @@ zip(Biobuf *bout, char *file, int stdout)
 		eof = 0;
 		totr = 0;
 		totw = 0;
-		err = deflate(bout, zwrite, (void*)fd, crcread, level, debug);
-		if(err != FlateOk)
-			error("deflate failed: %s: %r", flateerr(err));
+		if(!deflate(bout, zwrite, (void*)fd, crcread, level, debug))
+			error("deflate failed: %r");
 
 		zh->csize = totw;
 		zh->uncsize = totr;
@@ -327,16 +323,11 @@ crcread(void *fd, void *buf, int n)
 		m = read((int)fd, (char*)buf+nr, n);
 		if(m <= 0){
 			eof = 1;
-			if(m < 0)
-{
-fprint(2, "input error %r\n");
-				return -1;
-}
 			break;
 		}
 		nr += m;
 	}
-	crc = blockcrc(crctab, crc, buf, nr);
+	crc = blockcrc(crc, buf, nr);
 	totr += nr;
 	return nr;
 }

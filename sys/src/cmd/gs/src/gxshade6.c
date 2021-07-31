@@ -1,22 +1,22 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gxshade6.c,v 1.3 2000/09/19 19:00:40 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gxshade6.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
 /* Rendering for Coons and tensor patch shadings */
 #include "memory_.h"
 #include "gx.h"
@@ -436,34 +436,16 @@ patch_fill(patch_fill_state_t * pfs, const patch_curve_t curve[4],
 		memcpy(mu1v0.cc, cu1v0.cc.paint.values, sizeof(mu1v0.cc));
 		memcpy(mu1v1.cc, cu1v1.cc.paint.values, sizeof(mu1v1.cc));
 		memcpy(mu0v1.cc, cu0v1.cc.paint.values, sizeof(mu0v1.cc));
-/* Make this a procedure later.... */
-#define FILL_TRI(pva, pvb, pvc)\
-  BEGIN\
-    mesh_init_fill_triangle((mesh_fill_state_t *)pfs, pva, pvb, pvc, check);\
-    code = mesh_fill_triangle((mesh_fill_state_t *)pfs);\
-    if (code < 0)\
-	return code;\
-  END
-#if 0
-		FILL_TRI(&mu0v0, &mu1v1, &mu1v0);
-		FILL_TRI(&mu0v0, &mu1v1, &mu0v1);
-#else
-		{
-		    mesh_vertex_t mmid;
-		    int ci;
-
-		    (*transform)(&mmid.p, curve, interior,
-				 (u0 + u1) * 0.5, (v0 + v1) * 0.5);
-		    for (ci = 0; ci < pfs->num_components; ++ci)
-			mmid.cc[ci] =
-			    (mu0v0.cc[ci] + mu1v0.cc[ci] +
-			     mu1v1.cc[ci] + mu0v1.cc[ci]) * 0.25;
-		    FILL_TRI(&mu0v0, &mu1v0, &mmid);
-		    FILL_TRI(&mu1v0, &mu1v1, &mmid);
-		    FILL_TRI(&mu1v1, &mu0v1, &mmid);
-		    FILL_TRI(&mu0v1, &mu0v0, &mmid);
-		}
-#endif
+		mesh_init_fill_triangle((mesh_fill_state_t *)pfs,
+					&mu0v0, &mu1v1, &mu1v0, check);
+		code = mesh_fill_triangle((mesh_fill_state_t *)pfs);
+		if (code < 0)
+		    return code;
+		mesh_init_fill_triangle((mesh_fill_state_t *)pfs,
+					&mu0v0, &mu1v1, &mu0v1, check);
+		code = mesh_fill_triangle((mesh_fill_state_t *)pfs);
+		if (code < 0)
+		    return code;
 	    }
 	}
     }

@@ -180,7 +180,7 @@ inmesg(Tmesg type)
 	Posn p0, p1, p;
 	Range r;
 	String *str;
-	char *c, *wdir;
+	char *c;
 	Rune *rp;
 	Plumbmsg *pm;
 
@@ -499,22 +499,8 @@ inmesg(Tmesg type)
 		pm = emalloc(sizeof(Plumbmsg));
 		pm->src = strdup("sam");
 		pm->dst = 0;
-		/* construct current directory */
-		c = Strtoc(&f->name);
-		if(c[0] == '/')
-			pm->wdir = c;
-		else{
-			wdir = emalloc(1024);
-			getwd(wdir, 1024);
-			pm->wdir = emalloc(1024);
-			snprint(pm->wdir, 1024, "%s/%s", wdir, c);
-			cleanname(pm->wdir);
-			free(wdir);
-			free(c);
-		}
-		c = strrchr(pm->wdir, '/');
-		if(c)
-			*c = '\0';
+		pm->wdir = emalloc(1024);
+		getwd(pm->wdir, 1024);
 		pm->type = strdup("text");
 		if(p1 > p0)
 			pm->attr = nil;

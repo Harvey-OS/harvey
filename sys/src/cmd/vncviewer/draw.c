@@ -1,31 +1,17 @@
 #include "vnc.h"
-#include "vncv.h"
+
+Image *vncscreen;
 
 static struct {
-	char	*name;
-	int	num;
+	char *name;
+	int num;
 } enctab[] = {
-	"copyrect",	EncCopyRect,
-	"corre",	EncCorre,
-	"hextile",	EncHextile,
-	"raw",		EncRaw,
-	"rre",		EncRre,
+	"copyrect", rfbEncodingCopyRect,
+	"corre", rfbEncodingCoRRE,
+	"hextile", rfbEncodingHextile,
+	"raw", rfbEncodingRaw,
+	"rre", rfbEncodingRRE,
 };
-
-static	uchar	*pixbuf;
-static	uchar	*linebuf;
-static	int	vpixb;
-static	int	pixb;
-static	void	(*pixcp)(uchar*, uchar*);
-
-static void
-vncrdcolor(Vnc *v, uchar *color)
-{
-	vncrdbytes(v, color, vpixb);
-
-	if(cvtpixels)
-		(*cvtpixels)(color, color, 1);
-}
 
 void
 sendencodings(Vnc *v)
@@ -46,122 +32,88 @@ sendencodings(Vnc *v)
 		enc[nenc++] = enctab[j].num;
 	}
 
-	vnclock(v);
-	vncwrchar(v, MSetEnc);
-	vncwrchar(v, 0);
-	vncwrshort(v, nenc);
+	Vwrchar(v, rfbMsgSetEncodings);
+	Vwrchar(v, 0);
+	Vwrshort(v, nenc);
 	for(i=0; i<nenc; i++)
-		vncwrlong(v, enc[i]);
-	vncflush(v);
-	vncunlock(v);
+		Vwrlong(v, enc[i]);
+	Vflush(v);
 }
 
 void
 requestupdate(Vnc *v, int incremental)
 {
-	int x, y;
+	uchar buf[10];
+	buf[0] = rfbMsgFramebufferUpdateRequest;
+	buf[1] = incremental;
+	buf[2] = buf[3] = 0;
+	buf[4] = buf[5] = 0;
+	buf[6] = v->dim.x>>8;
+	buf[7] = v->dim.x;
+	buf[8] = v->dim.y>>8;
+	buf[9] = v->dim.y;
+	write(Bfildes(&v->out), buf, 10);
 
-	lockdisplay(display);
-	x = Dx(screen->r);
-	y = Dy(screen->r);
-	unlockdisplay(display);
-	if(x > v->dim.x)
-		x = v->dim.x;
-	if(y > v->dim.y)
-		y = v->dim.y;
-	vnclock(v);
-	vncwrchar(v, MFrameReq);
-	vncwrchar(v, incremental);
-	vncwrrect(v, Rpt(ZP, Pt(x, y)));
-	vncflush(v);
-	vncunlock(v);
+//	Vlock(v);
+//	Vwrchar(v, rfbMsgFramebufferUpdateRequest);
+//	Vwrchar(v, incremental);
+//	Vwrrect(v, Rpt(ZP, v->dim));
+//	Vflush(v);
+//	Vunlock(v);
 }
 
-static Rectangle
-clippixbuf(Rectangle r, int maxx, int maxy)
-{
-	int y, h, stride1, stride2;
-
-	if(r.min.x > maxx || r.min.y > maxy){
-		r.max.x = 0;
-		return r;
-	}
-	if(r.max.y > maxy)
-		r.max.y = maxy;
-	if(r.max.x <= maxx)
-		return r;
-
-	stride2 = Dx(r) * pixb;
-	r.max.x = maxx;
-	stride1 = Dx(r) * pixb;
-	h = Dy(r);
-	for(y = 0; y < h; y++)
-		memmove(&pixbuf[y * stride1], &pixbuf[y * stride2], stride1);
-
-	return r;
-}
-
-/* must be called with display locked */
-static void
+void
 updatescreen(Rectangle r)
 {
-	int b, bb;
+	if(vncscreen != screen)
+		draw(screen, rectaddpt(r, screen->r.min), vncscreen, nil, r.min);
+}
 
+static void
+fillrect(Rectangle r, Color c)
+{
+	Image *im;
+
+	if(cvtpixels)
+		cvtpixels((uchar*)&c, 1);
+
+	im = colorimage(c);
+	r = rectaddpt(r, vncscreen->r.min);
 	lockdisplay(display);
-	if(r.max.x > Dx(screen->r) || r.max.y > Dy(screen->r)){
-		r = clippixbuf(r, Dx(screen->r), Dy(screen->r));
-		if(r.max.x == 0){
-			unlockdisplay(display);
-			return;
-		}
-	}
-
-	/*
-	 * assume load image fails only because of resize
-	 */
-	b = Dx(r) * pixb * Dy(r);
-	bb = loadimage(screen, rectaddpt(r, screen->r.min), pixbuf, b);
-	if(bb != b && verbose)
-		print("loadimage %d on %R for %R returned %d: %r\n", b, rectaddpt(r, screen->r.min), screen->r, bb);
+	draw(vncscreen, r, im, nil, r.min);
+	updatescreen(r);
 	unlockdisplay(display);
 }
 
 static void
-fillrect(Rectangle r, int stride, uchar *color)
+Vgobble(Vnc *v, long n)
 {
-	int x, xe, y, off;
+	uchar buf[8192];
+	long m;
 
-	y = r.min.y;
-	off = y * stride;
-	for(; y < r.max.y; y++){
-		xe = off + r.max.x * pixb;
-		for(x = off + r.min.x * pixb; x < xe; x += pixb)
-			(*pixcp)(&pixbuf[x], color);
-		off += stride;
+	while(n > 0) {
+		m = n;
+		if(m > sizeof(buf))
+			m = sizeof(buf);
+		Vrdbytes(v, buf, m);
+		n -= m;
 	}
 }
 
-static void
-loadbuf(Vnc *v, Rectangle r, int stride)
-{
-	int off, y;
+static uchar rawbuf[640*480];
 
-	if(cvtpixels){
-		y = r.min.y;
-		off = y * stride;
-		for(; y < r.max.y; y++){
-			vncrdbytes(v, linebuf, Dx(r) * vpixb);
-			(*cvtpixels)(&pixbuf[off + r.min.x * pixb], linebuf, Dx(r));
-			off += stride;
-		}
-	}else{
-		y = r.min.y;
-		off = y * stride;
-		for(; y < r.max.y; y++){
-			vncrdbytes(v, &pixbuf[off + r.min.x * pixb], Dx(r) * pixb);
-			off += stride;
-		}
-	}
+static void
+loadbuf(uchar *buf, Rectangle r)
+{
+	long n, m;
+
+	m = Dy(r) * Dx(r) * display->depth/8;
+	r = rectaddpt(r, vncscreen->r.min);
+	lockdisplay(display);
+	if((n=loadimage(vncscreen, r, buf, m)) != m)
+		print("loadimage(%R, %lud) in %R = %ld: %r\n", r, m, vncscreen->r, n);
+	updatescreen(r);
+	unlockdisplay(display);
 }
 
 static Rectangle
@@ -179,46 +131,42 @@ hexrect(ushort u)
 
 
 static void
-dohextile(Vnc *v, Rectangle r, int stride)
+dohextile(Vnc *v, Rectangle r)
 {
-	ulong bg, fg, c;
-	int enc, nsub, sx, sy, w, h, th, tw;
+	Color bg, fg, c;
+	int enc, nsub, x, y;
 	Rectangle sr, ssr;
 
 	fg = bg = 0;
-	h = Dy(r);
-	w = Dx(r);
-	for(sy = 0; sy < h; sy += HextileDim){
-		th = h - sy;
-		if(th > HextileDim)
-			th = HextileDim;
-		for(sx = 0; sx < w; sx += HextileDim){
-			tw = w - sx;
-			if(tw > HextileDim)
-				tw = HextileDim;
+	for(y=r.min.y; y<r.max.y; y+=16) {
+		for(x=r.min.x; x<r.max.x; x+=16) {
+			sr = Rect(x, y, x+16, y+16);
+			rectclip(&sr, r);
 
-			sr = Rect(sx, sy, sx + tw, sy + th);
-			enc = vncrdchar(v);
-			if(enc & HextileRaw) {
-				loadbuf(v, sr, stride);
+			enc = Vrdchar(v);
+			if(enc & rfbHextileRaw) {
+				Vrdbytes(v, rawbuf, Dx(sr)*Dy(sr)*v->bpp/8);
+				if(cvtpixels)
+					cvtpixels(rawbuf, Dx(sr)*Dy(sr));
+				loadbuf(rawbuf, sr);
 				continue;
 			}
 
-			if(enc & HextileBack)
-				vncrdcolor(v, (uchar*)&bg);
-			fillrect(sr, stride, (uchar*)&bg);
+			if(enc & rfbHextileBackground)
+				bg = Vrdcolor(v);
+			fillrect(sr, bg);
 
-			if(enc & HextileFore)
-				vncrdcolor(v, (uchar*)&fg);
+			if(enc & rfbHextileForeground)
+				fg = Vrdcolor(v);
 
-			if(enc & HextileRects) {
-				nsub = vncrdchar(v);
-				(*pixcp)((uchar*)&c, (uchar*)&fg);
+			if(enc & rfbHextileAnySubrects) {
+				nsub = Vrdchar(v);
+				c = fg;
 				while(nsub-- > 0) {
-					if(enc & HextileCols)
-						vncrdcolor(v, (uchar*)&c);
-					ssr = rectaddpt(hexrect(vncrdshort(v)), sr.min);
-					fillrect(ssr, stride, (uchar*)&c);
+					if(enc & rfbHextileSubrectsColored)
+						c = Vrdcolor(v);
+					ssr = rectaddpt(hexrect(Vrdshort(v)), sr.min);
+					fillrect(ssr, c);
 				}
 			}
 		}
@@ -228,94 +176,66 @@ dohextile(Vnc *v, Rectangle r, int stride)
 static void
 dorectangle(Vnc *v)
 {
-	ulong type;
-	long n, stride;
-	ulong color;
+	ulong vbpl, dy, type;
+	long n;
+	Color c;
 	Point p;
-	Rectangle r, subr, maxr;
+	Rectangle r, subr;
 
-	r = vncrdrect(v);
-	if(!rectinrect(r, Rpt(ZP, v->dim))
-	|| r.min.x == r.max.x || r.min.y == r.max.y)
-		sysfatal("bad rectangle from server: %R not in %R", r, Rpt(ZP, v->dim));
-	stride = Dx(r) * pixb;
-	type = vncrdlong(v);
+	r = Vrdrect(v);
+	type = Vrdlong(v);
 	switch(type) {
-	default:
-		sysfatal("bad rectangle encoding from server");
-		break;
-	case EncRaw:
-		loadbuf(v, Rpt(ZP, Pt(Dx(r), Dy(r))), stride);
-		updatescreen(r);
+	case rfbEncodingRaw:
+		vbpl = Dx(r) * v->bpp/8;
+		dy = sizeof(rawbuf)/vbpl;
+		subr = r;
+		while(Dy(subr) > 0) {
+			if(dy > Dy(subr))
+				dy = Dy(subr);
+
+			Vrdbytes(v, rawbuf, vbpl*dy);
+			r = Rect(subr.min.x, subr.min.y, subr.max.x, subr.min.y+dy);
+			if(cvtpixels)
+				cvtpixels(rawbuf, Dx(r)*Dy(r));
+			loadbuf(rawbuf, r);
+			subr.min.y += dy;
+		}
 		break;
 
-	case EncCopyRect:
-		p = vncrdpoint(v);
+	case rfbEncodingCopyRect:
+		p = addpt(Vrdpoint(v), vncscreen->r.min);
+		r = rectaddpt(r, vncscreen->r.min);
+
 		lockdisplay(display);
-		p = addpt(p, screen->r.min);
-		r = rectaddpt(r, screen->r.min);
-		draw(screen, r, screen, nil, p);
+		draw(vncscreen, r, vncscreen, nil, p);
+		updatescreen(r);
 		unlockdisplay(display);
 		break;
 
-	case EncRre:
-	case EncCorre:
-		maxr = Rpt(ZP, Pt(Dx(r), Dy(r)));
-		n = vncrdlong(v);
-		vncrdcolor(v, (uchar*)&color);
-		fillrect(maxr, stride, (uchar*)&color);
+	case rfbEncodingRRE:
+		n = Vrdlong(v);
+		fillrect(r, Vrdcolor(v));
 		while(n-- > 0) {
-			vncrdcolor(v, (uchar*)&color);
-			if(type == EncRre)
-				subr = vncrdrect(v);
-			else
-				subr = vncrdcorect(v);
-			if(!rectinrect(subr, maxr))
-				sysfatal("bad encoding from server");
-			fillrect(subr, stride, (uchar*)&color);
+			c = Vrdcolor(v);
+			subr = rectaddpt(Vrdrect(v), r.min);
+			fillrect(subr, c);
 		}
-		updatescreen(r);
 		break;
 
-	case EncHextile:
-		dohextile(v, r, stride);
-		updatescreen(r);
+	case rfbEncodingCoRRE:
+		n = Vrdlong(v);
+		fillrect(r, Vrdcolor(v));
+		while(n-- > 0) {
+			c = Vrdcolor(v);
+			subr = rectaddpt(Vrdcorect(v), r.min);
+			fillrect(subr, c);
+		}
+		break;
+
+	case rfbEncodingHextile:
+		dohextile(v, r);
 		break;
 	}
-}
-
-static void
-pixcp8(uchar *dst, uchar *src)
-{
-	*dst = *src;
-}
-
-static void
-pixcp16(uchar *dst, uchar *src)
-{
-	*(ushort*)dst = *(ushort*)src;
-}
-
-static void
-pixcp32(uchar *dst, uchar *src)
-{
-	*(ulong*)dst = *(ulong*)src;
-}
-
-static void
-pixcp24(uchar *dst, uchar *src)
-{
-	dst[0] = src[0];
-	dst[1] = src[1];
-	dst[2] = src[2];
-}
-
-static int
-calcpixb(int bpp)
-{
-	if(bpp / 8 * 8 != bpp)
-		sysfatal("can't handle your screen");
-	return bpp / 8;
 }
 
 void
@@ -325,48 +245,31 @@ readfromserver(Vnc *v)
 	uchar junk[100];
 	long n;
 
-	vpixb = calcpixb(v->bpp);
-	pixb = calcpixb(display->depth);
-	switch(pixb){
-	case 1:		pixcp = pixcp8;		break;
-	case 2:		pixcp = pixcp16;	break;
-	case 3:		pixcp = pixcp24;	break;
-	case 4:		pixcp = pixcp32;	break;
-	default:
-		sysfatal("can't handle your screen");
-	}
-	linebuf = malloc(v->dim.x * vpixb);
-	pixbuf = malloc(v->dim.x * pixb * v->dim.y);
-	if(linebuf == nil || pixbuf == nil)
-		sysfatal("can't allocate pix decompression storage");
 	for(;;) {
-		type = vncrdchar(v);
+		type = Vrdchar(v);
 		switch(type) {
-		default:
-			sysfatal("bad message from server");
-			break;
-		case MFrameUpdate:
-			vncrdchar(v);
-			n = vncrdshort(v);
+		case rfbMsgFramebufferUpdate:
+			Vrdchar(v);
+			n = Vrdshort(v);
 			while(n-- > 0)
 				dorectangle(v);
 			flushimage(display, 1);
 			requestupdate(v, 1);
 			break;
 
-		case MSetCmap:
-			vncrdbytes(v, junk, 3);
-			n = vncrdshort(v);
-			vncgobble(v, n*3*2);
+		case rfbMsgSetColorMapEntries:
+			Vrdbytes(v, junk, 3);
+			n = Vrdshort(v);
+			Vgobble(v, n*3*2);
 			break;
 
-		case MBell:
+		case rfbMsgBell:
 			break;
 
-		case MSCut:
-			vncrdbytes(v, junk, 3);
-			n = vncrdlong(v);
-			writesnarf(v, n);
+		case rfbMsgServerCutText:
+			Vrdbytes(v, junk, 3);
+			n = Vrdlong(v);
+			Vgobble(v, n);
 			break;
 		}
 	}

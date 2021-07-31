@@ -13,11 +13,11 @@ typedef	struct	State	State;
 struct	State
 {
 	int	count;
-	int	match;
 	Re**	re;
 	State*	linkleft;
 	State*	linkright;
-	State*	next[256];
+	State**	next;
+	uchar	match;
 };
 struct	Re2
 {

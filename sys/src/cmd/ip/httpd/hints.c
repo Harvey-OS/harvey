@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 #include "httpd.h"
-#include "httpsrv.h"
 
 enum{ URLmax = 65536, HINTmax = 20 };
 #define RECIPLOG2 1.44269504089
@@ -234,14 +233,14 @@ urlcanon(char *url)
 }
 
 void
-hintprint(HConnect *hc, Hio *hout, char *uri, int thresh, int havej)
+hintprint(Hio *hout, char *uri, int thresh, int havej)
 {
 	int i, j, pr, prefix, fd, siz, havei, newhint = 0, n;
 	char *query, *sf, etag[32], *wurl;
 	Dir dir;
 	Hint *h, *haveh;
 
-	query = hstrdup(hc, uri);
+	query = hstrdup(uri);
 	urlcanon(query);
 	j = urllookup(hashstr(query));
 	if(j < 0)
@@ -263,7 +262,7 @@ hintprint(HConnect *hc, Hio *hout, char *uri, int thresh, int havej)
 		if(pr<thresh)
 			break;
 		n = strlen(webroot) + strlen(sf) + 1;
-		wurl = halloc(hc, n);
+		wurl = halloc(n);
 		strcpy(wurl, webroot);
 		strcat(wurl, sf);
 		fd = open(wurl, OREAD);

@@ -33,14 +33,6 @@ enum
 	MDeleted	= 1 << 3,
 	MDraft		= 1 << 4,
 	MRecent		= 1 << 5,
-
-	/*
-	 * message bogus flags
-	 */
-	NotBogus	= 0,	/* the message is displayable */
-	BogusHeader	= 1,	/* the header had bad characters */
-	BogusBody	= 2,	/* the body had bad characters */
-	BogusTried	= 4,	/* attempted to open the fake message */
 };
 
 struct Box
@@ -115,7 +107,6 @@ struct Msg
 	Msg	*next;
 	Msg	*prev;
 	Msg	*kids;
-	Msg	*parent;
 	char	*fsDir;		/* box->fsDir of enclosing message */
 	Header	head;		/* message header */
 	Header	mime;		/* mime header from enclosing multipart spec */
@@ -123,14 +114,14 @@ struct Msg
 	uchar	sendFlags;	/* flags value needs to be sent to client */
 	uchar	expunged;	/* message actually expunged, but not yet reported to client */
 	uchar	matched;	/* search succeeded? */
-	uchar	bogus;		/* implies the message is invalid, ie contains nulls; see flags above */
+	uchar	bogus;		/* implies the message is invalid, ie contains nulls */
 	ulong	uid;		/* imap unique identifier */
 	ulong	seq;		/* position in box; 1 is oldest */
 	ulong	id;		/* number of message directory in upas/fs */
 	char	*fs;		/* name of message directory */
 	char	*efs;		/* pointer after / in fs; enough space for file name */
 
-	ulong	size;		/* size of fs/rawbody, in bytes, with \r added before \n */
+	ulong	size;		/* size of fs/id/rawbody, in bytes, with \r added before \n */
 	ulong	lines;		/* number of lines in rawbody */
 
 	char	*iBuf;
@@ -361,15 +352,14 @@ struct Pair
 	ulong	stop;
 };
 
-#include "bin.h"
+#include "can.h"
 
-extern	Bin	*parseBin;
+extern	Can	*parseCan;
 extern	Biobuf	bout;
 extern	Biobuf	bin;
 extern	char	username[NAMELEN];
 extern	char	mboxDir[3 * NAMELEN];
 extern	char	*fetchPartNames[FPMax];
 extern	char	*site;
-extern	char	*remote;
 
 #include "fns.h"

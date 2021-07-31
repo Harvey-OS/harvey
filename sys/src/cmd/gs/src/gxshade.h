@@ -1,22 +1,22 @@
-/* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gxshade.h,v 1.3 2000/09/19 19:00:40 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gxshade.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
 /* Internal definitions for shading rendering */
 
 #ifndef gxshade_INCLUDED
@@ -70,43 +70,43 @@ typedef struct gs_shading_Fb_s {
     gs_shading_head_t head;
     gs_shading_Fb_params_t params;
 } gs_shading_Fb_t;
-SHADING_FILL_RECTANGLE_PROC(gs_shading_Fb_fill_rectangle);
+shading_fill_rectangle_proc(gs_shading_Fb_fill_rectangle);
 
 typedef struct gs_shading_A_s {
     gs_shading_head_t head;
     gs_shading_A_params_t params;
 } gs_shading_A_t;
-SHADING_FILL_RECTANGLE_PROC(gs_shading_A_fill_rectangle);
+shading_fill_rectangle_proc(gs_shading_A_fill_rectangle);
 
 typedef struct gs_shading_R_s {
     gs_shading_head_t head;
     gs_shading_R_params_t params;
 } gs_shading_R_t;
-SHADING_FILL_RECTANGLE_PROC(gs_shading_R_fill_rectangle);
+shading_fill_rectangle_proc(gs_shading_R_fill_rectangle);
 
 typedef struct gs_shading_FfGt_s {
     gs_shading_head_t head;
     gs_shading_FfGt_params_t params;
 } gs_shading_FfGt_t;
-SHADING_FILL_RECTANGLE_PROC(gs_shading_FfGt_fill_rectangle);
+shading_fill_rectangle_proc(gs_shading_FfGt_fill_rectangle);
 
 typedef struct gs_shading_LfGt_s {
     gs_shading_head_t head;
     gs_shading_LfGt_params_t params;
 } gs_shading_LfGt_t;
-SHADING_FILL_RECTANGLE_PROC(gs_shading_LfGt_fill_rectangle);
+shading_fill_rectangle_proc(gs_shading_LfGt_fill_rectangle);
 
 typedef struct gs_shading_Cp_s {
     gs_shading_head_t head;
     gs_shading_Cp_params_t params;
 } gs_shading_Cp_t;
-SHADING_FILL_RECTANGLE_PROC(gs_shading_Cp_fill_rectangle);
+shading_fill_rectangle_proc(gs_shading_Cp_fill_rectangle);
 
 typedef struct gs_shading_Tpp_s {
     gs_shading_head_t head;
     gs_shading_Tpp_params_t params;
 } gs_shading_Tpp_t;
-SHADING_FILL_RECTANGLE_PROC(gs_shading_Tpp_fill_rectangle);
+shading_fill_rectangle_proc(gs_shading_Tpp_fill_rectangle);
 
 /* Define a stream for decoding packed coordinate values. */
 typedef struct shade_coord_stream_s shade_coord_stream_t;

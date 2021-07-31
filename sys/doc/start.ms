@@ -795,7 +795,7 @@ the call to
 as well.
 Bind in some extra devices by adding 
 .P1
-for (i in '#S' '#t')
+for (i in '#m' '#i' '#S' '#t')
 	bind -a $i /dev >/dev/null >[2]/dev/null
 .P2
 to the top of 
@@ -803,20 +803,11 @@ to the top of
 just after the
 .CW facedom=
 line.
-Also, if you wish to start rio on the cpu server, you'll
-have to add the following lines to the end of
-.CW cpurc :
-.P1
-	aux/vga -l $vgasize
-	aux/mouse $mouseport
-	rio
-.P2
-This is assuming that both 
-.CW vgasize
-and
-.CW mouseport
-have been defined in your
-.CW plan9.ini .
+If you leave out
+.CW '#m' ,
+.I rio
+will not start when you boot your server
+(sometimes a desirable property).
 .PP
 Generate some SSH keys for the host:
 .P1

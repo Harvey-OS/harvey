@@ -26,9 +26,9 @@
 }
 %type	<sym>	ltag
 %type	<lval>	gctname cname gname tname
-%type	<lval>	gctnlist zgnlist
-%type	<type>	tlist sbody complex
-%type	<tycl>	types
+%type	<lval>	gctnlist zgnlist tnlist
+%type	<type>	tlist etlist sbody complex
+%type	<tycl>	types etypes
 %type	<node>	zarglist arglist zcexpr
 %type	<node>	name block stmnt cexpr expr xuexpr pexpr
 %type	<node>	zelist elist adecl slist uexpr string lstring
@@ -53,15 +53,15 @@
 %left	'*' '/' '%'
 %right	LMM LPP LMG '.' '[' '('
 
-%token	<sym>	LNAME LTYPE
+%token	<sym>	LNAME LCTYPE LSTYPE
 %token	<dval>	LFCONST LDCONST
 %token	<vval>	LCONST LLCONST LUCONST LULCONST LVLCONST LUVLCONST
 %token	<sval>	LSTRING LLSTRING
 %token		LAUTO LBREAK LCASE LCHAR LCONTINUE LDEFAULT LDO
 %token		LDOUBLE LELSE LEXTERN LFLOAT LFOR LGOTO
 %token	LIF LINT LLONG LREGISTER LRETURN LSHORT LSIZEOF LUSED
-%token	LSTATIC LSTRUCT LSWITCH LTYPEDEF LTYPESTR LUNION LUNSIGNED
-%token	LWHILE LVOID LENUM LSIGNED LCONSTNT LVOLATILE LSET LSIGNOF
+%token	LSTATIC LSTRUCT LSWITCH LTYPEDEF LUNION LUNSIGNED LWHILE
+%token	LVOID LENUM LSIGNED LCONSTNT LVOLATILE LSET LSIGNOF
 %%
 prog:
 |	prog xdecl
@@ -100,7 +100,7 @@ xdecl:
 		n = revertdcl();
 		if(n)
 			$6 = new(OLIST, n, $6);
-		if(!debug['a'] && !debug['P'])
+		if(!debug['a'])
 			codgen($6, $2);
 	}
 
@@ -213,12 +213,12 @@ pdlist:
  * structure element declarator
  */
 edecl:
-	tlist
+	etlist
 	{
 		lasttype = $1;
 	}
 	zedlist ';'
-|	edecl tlist
+|	edecl etlist
 	{
 		lasttype = $2;
 	}
@@ -668,11 +668,22 @@ uexpr:
 	}
 |	'+' xuexpr
 	{
-		$$ = new(OPOS, $2, Z);
+		$$ = new(OCONST, Z, Z);
+		$$->vconst = 0;
+		$$->type = types[TINT];
+		$2 = new(OSUB, $$, $2);
+
+		$$ = new(OCONST, Z, Z);
+		$$->vconst = 0;
+		$$->type = types[TINT];
+		$$ = new(OSUB, $$, $2);
 	}
 |	'-' xuexpr
 	{
-		$$ = new(ONEG, $2, Z);
+		$$ = new(OCONST, Z, Z);
+		$$->vconst = 0;
+		$$->type = types[TINT];
+		$$ = new(OSUB, $$, $2);
 	}
 |	'!' xuexpr
 	{
@@ -680,7 +691,10 @@ uexpr:
 	}
 |	'~' xuexpr
 	{
-		$$ = new(OCOM, $2, Z);
+		$$ = new(OCONST, Z, Z);
+		$$->vconst = -1;
+		$$->type = types[TINT];
+		$$ = new(OXOR, $$, $2);
 	}
 |	LPP xuexpr
 	{
@@ -891,6 +905,18 @@ zctlist:
 	}
 |	ctlist
 
+etypes:
+	complex
+	{
+		$$.t = $1;
+		$$.c = CXXX;
+	}
+|	tnlist
+	{
+		$$.t = simplet($1);
+		$$.c = simplec($1);
+	}
+
 types:
 	complex
 	{
@@ -925,6 +951,15 @@ types:
 		$$.t = garbt($$.t, $1|$3);
 		if(($1|$3) & ~BCLASS & ~BGARB || $3 & BCLASS)
 			diag(Z, "illegal combination of types 3: %Q/%T/%Q", $1, $2, $3);
+	}
+
+etlist:
+	zgnlist etypes
+	{
+		$$ = $2.t;
+		if($2.c != CXXX)
+			diag(Z, "illegal combination of class 4: %s", cnames[$2.c]);
+		$$ = garbt($$, $1);
 	}
 
 tlist:
@@ -1031,9 +1066,20 @@ complex:
 	{
 		$$ = en.tenum;
 	}
-|	LTYPE
+|	LCTYPE
 	{
 		$$ = tcopy($1->type);
+	}
+|	LSTYPE
+	{
+		$$ = tcopy($1->type);
+	}
+
+tnlist:
+	tname
+|	tnlist tname
+	{
+		$$ = typebitor($1, $2);
 	}
 
 gctnlist:
@@ -1085,10 +1131,9 @@ cname:	/* class words */
 |	LSTATIC { $$ = BSTATIC; }
 |	LEXTERN { $$ = BEXTERN; }
 |	LTYPEDEF { $$ = BTYPEDEF; }
-|	LTYPESTR { $$ = BTYPESTR; }
 |	LREGISTER { $$ = BREGISTER; }
 
-gname:	/* garbage words */
+gname:
 	LCONSTNT { $$ = BCONSTNT; }
 |	LVOLATILE { $$ = BVOLATILE; }
 
@@ -1121,5 +1166,6 @@ tag:
 	}
 ltag:
 	LNAME
-|	LTYPE
+|	LCTYPE
+|	LSTYPE
 %%

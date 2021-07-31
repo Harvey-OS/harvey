@@ -29,6 +29,7 @@ int		snarffd = -1;
 int		mainpid;
 int		plumbsendfd;
 int		plumbeditfd;
+int		threadrforkflag = RFENVG|RFNAMEG;
 
 enum{
 	NSnarf = 1000	/* less than 1024, I/O buffer size */
@@ -63,8 +64,6 @@ threadmain(int argc, char *argv[])
 	int ncol;
 	Display *d;
 	static void *arg[1];
-
-	rfork(RFENVG|RFNAMEG);
 
 	ncol = -1;
 
