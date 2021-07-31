@@ -32,13 +32,12 @@ static	char*		sysdom(void);
 static	int		notfound(HConnect *c, char *url);
 
 uchar *certificate;
-int certlen;
-PEMChain *certchain;	
+int certlen;	
 
 void
 usage(void)
 {
-	fprint(2, "usage: httpd [-c certificate] [-C CAchain] [-a srvaddress] [-d domain] [-n namespace] [-w webroot]\n");
+	fprint(2, "usage: httpd [-a srvaddress] [-d domain] [-n namespace] [-w webroot]\n");
 	exits("usage");
 }
 
@@ -59,11 +58,6 @@ main(int argc, char **argv)
 		certificate = readcert(ARGF(), &certlen);
 		if(certificate == nil)
 			sysfatal("reading certificate: %r");
-		break;
-	case 'C':
-		certchain = readcertchain(ARGF());
-		if (certchain == nil)
-			sysfatal("reading certificate chain: %r");
 		break;
 	case 'n':
 		namespace = ARGF();
@@ -218,8 +212,6 @@ dolisten(char *address)
 				memset(&conn, 0, sizeof(conn));
 				conn.cert = certificate;
 				conn.certlen = certlen;
-				if (certchain != nil)
-					conn.chain = certchain;
 				data = tlsServer(data, &conn);
 			}
 			if(data < 0){

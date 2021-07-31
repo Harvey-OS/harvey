@@ -17,11 +17,10 @@ doswit(Node *n)
 {
 	Case *c;
 	C1 *q, *iq;
-	long def, nc, i, isv;
+	long def, nc, i;
 
 	def = 0;
 	nc = 0;
-	isv = 0;
 	for(c = cases; c->link != C; c = c->link) {
 		if(c->def) {
 			if(def)
@@ -29,11 +28,8 @@ doswit(Node *n)
 			def = c->label;
 			continue;
 		}
-		isv |= c->isv;
 		nc++;
 	}
-	if(isv && !typev[n->type->etype])
-		warn(n, "32-bit switch expression with 64-bit case constant");
 
 	iq = alloc(nc*sizeof(C1));
 	q = iq;
@@ -41,10 +37,7 @@ doswit(Node *n)
 		if(c->def)
 			continue;
 		q->label = c->label;
-		if(isv)
-			q->val = c->val;
-		else
-			q->val = (long)c->val;	/* cast ensures correct value for 32-bit switch on 64-bit architecture */
+		q->val = c->val;
 		q++;
 	}
 	qsort(iq, nc, sizeof(C1), swcmp);
