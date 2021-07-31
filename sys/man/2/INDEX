@@ -726,7 +726,6 @@ v4parseip ip
 v4tov6 ip
 v6tov4 ip
 isalpharune isalpharune
-isdigitrune isalpharune
 islowerrune isalpharune
 isspacerune isalpharune
 istitlerune isalpharune
@@ -1373,6 +1372,7 @@ VtBlock venti-cache
 VtCache venti-cache
 venti-cache venti-cache
 vtblockcopy venti-cache
+vtblockdirty venti-cache
 vtblockduplock venti-cache
 vtblockput venti-cache
 vtblockwrite venti-cache
