@@ -1,6 +1,6 @@
-.TH OLD9LOAD 8
+.TH 9LOAD 8
 .SH NAME
-old9load: 9load, 9pxeload, 9loadusb, 9loadask, ld \- old PC bootstrap program
+9load, 9pxeload, 9loadusb, 9loadask, ld \- PC bootstrap program
 .SH SYNOPSIS
 .I "(Under MS-DOS)
 .br
