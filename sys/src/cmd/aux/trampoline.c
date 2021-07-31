@@ -27,42 +27,30 @@ char*		iptomac(char*, char*);
 int		macok(char*);
 
 void
-usage(void)
-{
-	fprint(2, "usage: trampoline [-9] [-a addr] [-m netdir] addr\n");
-	exits("usage");
-}
-
-void
 main(int argc, char **argv)
 {
-	char *altaddr, *checkmac, *mac;
-	int fd, fd0, fd1;
-	void (*x)(int, int);
+	int fd;
+	int checkmac = 0;
 	Endpoints *ep;
+	char *mac;
+	void (*x)(int, int);
 
-	checkmac = nil;
-	altaddr = nil;
 	x = xfer;
 	ARGBEGIN{
+	case 'm':
+		checkmac = 1;
+		break;
 	case '9':
 		x = xfer9p;
 		break;
-	case 'a':
-		altaddr = EARGF(usage());
-		break;
-	case 'm':
-		checkmac = EARGF(usage());
-		break;
-	default:
-		usage();
 	}ARGEND;
 
-	if(argc != 1)
-		usage();
-
-	if(checkmac){
-		ep = getendpoints(checkmac);
+	if(argc < 1){
+		fprint(2, "usage: %s dialstring\n", argv0);
+		exits("usage");
+	}
+	if(checkmac && argc > 1){
+		ep = getendpoints(argv[1]);
 		mac = iptomac(ep->rsys, ep->net);
 		if(!macok(mac)){
 			syslog(0, "trampoline", "badmac %s from %s!%s for %s!%s on %s",
@@ -70,29 +58,21 @@ main(int argc, char **argv)
 			exits("bad mac");
 		}
 	}
-	
-	fd0 = 0;
-	fd1 = 1;
-	if(altaddr){
-		fd0 = dial(altaddr, 0, 0, 0);
-		if(fd0 < 0)
-			sysfatal("dial %s: %r", altaddr);
-		fd1 = fd0;
-	}
 	fd = dial(argv[0], 0, 0, 0);
-	if(fd < 0)
-		sysfatal("dial %s: %r", argv[0]);
-
+	if(fd < 0){
+		fprint(2, "%s: dialing %s: %r\n", argv0, argv[0]);
+		exits("dial");
+	}
 	rfork(RFNOTEG);
 	switch(fork()){
 	case -1:
 		fprint(2, "%s: fork: %r\n", argv0);
 		exits("dial");
 	case 0:
-		(*x)(fd0, fd);
+		(*x)(0, fd);
 		break;
 	default:
-		(*x)(fd, fd1);
+		(*x)(fd, 1);
 		break;
 	}
 	postnote(PNGROUP, getpid(), "die yankee pig dog");

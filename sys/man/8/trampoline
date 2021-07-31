@@ -4,17 +4,10 @@ trampoline \- forward incoming calls to another address
 .SH SYNOPSIS
 .B aux/trampoline
 [
-.B -9
-]
-[
-.B -a
-.I altaddr
-]
-[
-.B -m
-.I netdir
+.B -m9
 ]
 .I addr
+.RI [ netdir ]
 .SH DESCRIPTION
 .I Trampoline
 can be used in a service file (see
@@ -27,22 +20,16 @@ dials
 .I addr
 and copies data between that connection
 and its own standard input and output.
-.PP
-The options are:
-.TP
+Use the
 .B -9
-The connection carries only 9P messages.  In this case
+option if the connection carries only unencrypted 9P messages, to allow
 .I trampoline
-will relay whole messages at a time.
-.TP
-.BI -a " altaddr
-Dial
-.I altaddr
-and relay between the two network connections,
-ignoring standard input and output.
-.TP
-.BI -m " netdir
-Restrict forwarding to particular machines.
+to size its buffer automatically.
+.PP
+Forwarding can be restricted to a particular calling machine,
+using the
+.B -m
+option.
 .I Netdir
 must be the incoming call directory.
 .I Trampoline
@@ -55,7 +42,6 @@ contains an entry with
 and the attribute
 .BR trampok .
 If no such entry is found, the call is rejected.
-.PD
 .SH FILES
 .TF /sys/log/trampoline
 .TP
