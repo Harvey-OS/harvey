@@ -8,6 +8,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
+#include "../port/error.h"
 
 #define DBG	if(0) pcilog
 
@@ -200,7 +201,7 @@ pcibusmap(Pcidev *root, ulong *pmema, ulong *pioa, int wrreg)
 	ntb *= (PciCIS-PciBAR0)/4;
 	table = malloc(2*ntb*sizeof(Pcisiz));
 	if(table == nil)
-		panic("pcibusmap: no memory");
+		error(Enomem);
 	itb = table;
 	mtb = table+ntb;
 
@@ -391,7 +392,7 @@ pcilscan(int bno, Pcidev** list)
 				continue;
 			p = malloc(sizeof(*p));
 			if(p == nil)
-				panic("pcilscan: no memory");
+				error(Enomem);
 			p->tbdf = tbdf;
 			p->vid = l;
 			p->did = l>>16;
