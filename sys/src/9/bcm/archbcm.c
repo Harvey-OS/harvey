@@ -1,5 +1,5 @@
 /*
- * bcm2835 (e.g. original raspberry pi) architecture-specific stuff
+ * bcm2835 (e.g. raspberry pi) architecture-specific stuff
  */
 
 #include "u.h"
@@ -16,19 +16,9 @@
 
 #define	POWERREGS	(VIRTIO+0x100000)
 
-Soc soc = {
-	.dramsize	= 512*MiB,
-	.physio		= 0x20000000,
-	.busdram	= 0x40000000,
-	.busio		= 0x7E000000,
-	.armlocal	= 0,
-	.l1ptedramattrs = Cached | Buffered,
-	.l2ptedramattrs = Cached | Buffered,
-};
-
 enum {
 	Wdogfreq	= 65536,
-	Wdogtime	= 10,	/* seconds, ≤ 15 */
+	Wdogtime	= 5,	/* seconds, ≤ 15 */
 };
 
 /*
@@ -62,7 +52,7 @@ archreboot(void)
 		;
 }
 
-void
+static void
 wdogfeed(void)
 {
 	u32int *r;
@@ -81,33 +71,10 @@ wdogoff(void)
 	r[Rstc] = Password | (r[Rstc] & ~CfgMask);
 }
 	
-char *
-cputype2name(char *buf, int size)
-{
-	seprint(buf, buf + size, "1176JZF-S");
-	return buf;
-}
-
 void
 cpuidprint(void)
 {
-	char name[64];
-
-	cputype2name(name, sizeof name);
-	delay(50);				/* let uart catch up */
-	print("cpu%d: %dMHz ARM %s\n", m->machno, m->cpumhz, name);
-}
-
-int
-getncpus(void)
-{
-	return 1;
-}
-
-int
-startcpus(uint)
-{
-	return 1;
+	print("cpu%d: %dMHz ARM1176JZF-S\n", m->machno, m->cpumhz);
 }
 
 void
@@ -119,63 +86,15 @@ archbcmlink(void)
 int
 archether(unsigned ctlrno, Ether *ether)
 {
-	ether->type = "usb";
-	ether->ctlrno = ctlrno;
-	ether->irq = -1;
-	ether->nopt = 0;
-	return 1;
-}
-
-int
-l2ap(int ap)
-{
-	return (AP(3, (ap))|AP(2, (ap))|AP(1, (ap))|AP(0, (ap)));
-}
-
-/*
- * atomic ops
- * make sure that we don't drag in the C library versions
- */
-
-long
-ainc(long *p)
-{
-	int s, v;
-
-	s = splhi();
-	v = ++*p;
-	splx(s);
-	return v;
-}
-
-long
-adec(long *p)
-{
-	int s, v;
-
-	s = splhi();
-	v = --*p;
-	splx(s);
-	return v;
-}
-
-int
-cas32(void* addr, u32int old, u32int new)
-{
-	int r, s;
-
-	s = splhi();
-	if(r = (*(u32int*)addr == old))
-		*(u32int*)addr = new;
-	splx(s);
-	if (r)
-		coherence();
-	return r;
-}
-
-int
-cmpswap(long *addr, long old, long new)
-{
-	return cas32(addr, old, new);
+	switch(ctlrno) {
+	case 0:
+		ether->type = "usb";
+		ether->ctlrno = ctlrno;
+		ether->irq = -1;
+		ether->nopt = 0;
+		ether->mbps = 100;
+		return 1;
+	}
+	return -1;
 }
 

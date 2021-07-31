@@ -3,7 +3,6 @@
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
-#include "io.h"
 #include "fns.h"
 
 #include "init.h"
@@ -194,90 +193,21 @@ ataginit(Atag *a)
 	}
 }
 
-/* enable scheduling of this cpu */
-void
-machon(uint cpu)
-{
-	ulong cpubit;
-
-	cpubit = 1 << cpu;
-	lock(&active);
-	if ((active.machs & cpubit) == 0) {	/* currently off? */
-		conf.nmach++;
-		active.machs |= cpubit;
-	}
-	unlock(&active);
-}
-
-/* disable scheduling of this cpu */
-void
-machoff(uint cpu)
-{
-	ulong cpubit;
-
-	cpubit = 1 << cpu;
-	lock(&active);
-	if (active.machs & cpubit) {		/* currently on? */
-		conf.nmach--;
-		active.machs &= ~cpubit;
-	}
-	unlock(&active);
-}
-
 void
 machinit(void)
 {
-	Mach *m0;
-
-	m->ticks = 1;
-	m->perf.period = 1;
-	m0 = MACHP(0);
-	if (m->machno != 0) {
-		/* synchronise with cpu 0 */
-		m->ticks = m0->ticks;
-	}
-}
-
-void
-mach0init(void)
-{
-	conf.nmach = 0;
-
 	m->machno = 0;
 	machaddr[m->machno] = m;
 
-	machinit();
+	m->ticks = 1;
+	m->perf.period = 1;
+
+	conf.nmach = 1;
+
+	active.machs = 1;
 	active.exiting = 0;
 
 	up = nil;
-}
-
-void
-launchinit(int ncpus)
-{
-	int mach;
-	Mach *mm;
-	PTE *l1;
-
-	if(ncpus > MAXMACH)
-		ncpus = MAXMACH;
-	for(mach = 1; mach < ncpus; mach++){
-		machaddr[mach] = mm = mallocalign(MACHSIZE, MACHSIZE, 0, 0);
-		l1 = mallocalign(L1SIZE, L1SIZE, 0, 0);
-		if(mm == nil || l1 == nil)
-			panic("launchinit");
-		memset(mm, 0, MACHSIZE);
-		mm->machno = mach;
-
-		memmove(l1, m->mmul1, L1SIZE);  /* clone cpu0's l1 table */
-		cachedwbse(l1, L1SIZE);
-		mm->mmul1 = l1;
-		cachedwbse(mm, MACHSIZE);
-
-	}
-	cachedwbse(machaddr, sizeof machaddr);
-	if((mach = startcpus(ncpus)) < ncpus)
-			print("only %d cpu%s started\n", mach, mach == 1? "" : "s");
 }
 
 static void
@@ -294,13 +224,13 @@ void
 main(void)
 {
 	extern char edata[], end[];
-	uint fw, board;
+	uint rev;
 
+	okay(1);
 	m = (Mach*)MACHADDR;
 	memset(edata, 0, end - edata);	/* clear bss */
-	mach0init();
-	m->mmul1 = (PTE*)L1;
-	machon(0);
+	machinit();
+	mmuinit1();
 
 	optionsinit("/boot/boot boot");
 	quotefmtinstall();
@@ -312,17 +242,14 @@ main(void)
 	screeninit();
 
 	print("\nPlan 9 from Bell Labs\n");
-	board = getboardrev();
-	fw = getfirmware();
-	print("board rev: %#ux firmware rev: %d\n", board, fw);
-	if(fw < Minfirmrev){
+	rev = getfirmware();
+	print("firmware: rev %d\n", rev);
+	if(rev < Minfirmrev){
 		print("Sorry, firmware (start*.elf) must be at least rev %d"
 		      " or newer than %s\n", Minfirmrev, Minfirmdate);
 		for(;;)
 			;
 	}
-	/* set clock rate to arm_freq from config.txt (default pi1:700Mhz pi2:900MHz) */
-	setclkrate(ClkArm, 0);
 	trapinit();
 	clockinit();
 	printinit();
@@ -330,10 +257,7 @@ main(void)
 	if(conf.monitor)
 		swcursorinit();
 	cpuidprint();
-	print("clocks: CPU %lud core %lud UART %lud EMMC %lud\n",
-		getclkrate(ClkArm), getclkrate(ClkCore), getclkrate(ClkUart), getclkrate(ClkEmmc));
 	archreset();
-	vgpinit();
 
 	procinit0();
 	initseg();
@@ -342,9 +266,6 @@ main(void)
 	pageinit();
 	swapinit();
 	userinit();
-	launchinit(getncpus());
-	mmuinit1();
-
 	schedinit();
 	assert(0);			/* shouldn't have returned */
 }
@@ -356,7 +277,6 @@ void
 init0(void)
 {
 	int i;
-	Chan *c;
 	char buf[2*KNAMELEN];
 
 	up->nerrlab = 0;
@@ -389,14 +309,6 @@ init0(void)
 		for(i = 0; i < nconf; i++) {
 			ksetenv(confname[i], confval[i], 0);
 			ksetenv(confname[i], confval[i], 1);
-		}
-		if(getconf("pitft")){
-			c = namec("#P/pitft", Aopen, OWRITE, 0);
-			if(!waserror()){
-				devtab[c->type]->write(c, "init", 4, 0);
-				poperror();
-			}
-			cclose(c);
 		}
 		poperror();
 	}
@@ -506,7 +418,7 @@ userinit(void)
 void
 confinit(void)
 {
-	int i, userpcnt;
+	int i;
 	ulong kpages;
 	uintptr pa;
 	char *p;
@@ -527,40 +439,8 @@ confinit(void)
 	if(conf.mem[0].limit == 0){
 		conf.mem[0].base = PHYSDRAM;
 		conf.mem[0].limit = PHYSDRAM + memsize;
-	}
-	/*
-	 * pi4 extra memory (beyond video ram) indicated by board id
-	 */
-	switch(getboardrev()&0xF00000){
-	case 0xA00000:
-		break;
-	case 0xB00000:
-		conf.mem[1].base = 1*GiB;
-		conf.mem[1].limit = 2*GiB;
-		break;
-	case 0xC00000:
-		conf.mem[1].base = 1*GiB;
-		conf.mem[1].limit = 0xFFF00000;
-		break;
-	case 0xD00000:
-		conf.mem[1].base = 1*GiB;
-		conf.mem[1].limit = 0xFFF00000;
-		break;
-	}
-	if(conf.mem[1].limit > soc.dramsize)
-		conf.mem[1].limit = soc.dramsize;
-	if(p != nil){
-		if(memsize < conf.mem[0].limit){
-			conf.mem[0].limit = memsize;
-			conf.mem[1].limit = 0;
-		}else if(memsize >= conf.mem[1].base && memsize < conf.mem[1].limit)
-			conf.mem[1].limit = memsize;
-	}
-
-	if(p = getconf("*kernelpercent"))
-		userpcnt = 100 - strtol(p, 0, 0);
-	else
-		userpcnt = 0;
+	}else if(p != nil)
+		conf.mem[0].limit = conf.mem[0].base + memsize;
 
 	conf.npage = 0;
 	pa = PADDR(PGROUND(PTR2UINT(end)));
@@ -578,12 +458,11 @@ confinit(void)
 		conf.npage += conf.mem[i].npage;
 	}
 
-	if(userpcnt < 10 || userpcnt > 99)
-		userpcnt = 90;
-	conf.upages = (conf.npage*userpcnt)/100;
-	if(conf.npage - conf.upages > 256*MiB/BY2PG)
-		conf.upages = conf.npage - 256*MiB/BY2PG;
+	conf.upages = (conf.npage*80)/100;
 	conf.ialloc = ((conf.npage-conf.upages)/2)*BY2PG;
+
+	/* only one processor */
+	conf.nmach = 1;
 
 	/* set up other configuration parameters */
 	conf.nproc = 100 + ((conf.npage*BY2PG)/MB)*5;
@@ -595,7 +474,7 @@ confinit(void)
 	conf.nswppo = 4096;
 	conf.nimage = 200;
 
-	conf.copymode = 1;		/* copy on reference, not copy on write */
+	conf.copymode = 0;		/* copy on write */
 
 	/*
 	 * Guess how much is taken by the large permanent
@@ -635,29 +514,15 @@ shutdown(int ispanic)
 	active.exiting = 1;
 	unlock(&active);
 
-	if(once) {
-		delay(m->machno*100);		/* stagger them */
+	if(once)
 		iprint("cpu%d: exiting\n", m->machno);
-	}
 	spllo();
-	if (m->machno == 0)
-		ms = 5*1000;
-	else
-		ms = 2*1000;
-	for(; ms > 0; ms -= TK2MS(2)){
+	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));
 		if(active.machs == 0 && consactive() == 0)
 			break;
 	}
-	if(active.ispanic){
-		if(!cpuserver)
-			for(;;)
-				;
-		if(getconf("*debug"))
-			delay(5*60*1000);
-		else
-			delay(10000);
-	}
+	delay(1000);
 }
 
 /*
@@ -666,21 +531,9 @@ shutdown(int ispanic)
 void
 exit(int code)
 {
-	void (*f)(ulong, ulong, ulong);
-
 	shutdown(code);
 	splfhi();
-	if(m->machno == 0)
-		archreboot();
-	else{
-		f = (void*)REBOOTADDR;
-		intrcpushutdown();
-		memmove(f, rebootcode, sizeof(rebootcode));
-		cachedwbse(f, sizeof(rebootcode));
-		cacheiinvse(f, sizeof(rebootcode));
-		(*f)(0, soc.armlocal, 0);
-		for(;;){}
-	}
+	archreboot();
 }
 
 /*
@@ -689,23 +542,9 @@ exit(int code)
 int
 isaconfig(char *class, int ctlrno, ISAConf *isa)
 {
-	char cc[32], *p;
-	int i;
-
-	if(strcmp(class, "ether") != 0)
-		return 0;
-	snprint(cc, sizeof cc, "%s%d", class, ctlrno);
-	p = getconf(cc);
-	if(p == nil)
-		return (ctlrno == 0);
-	isa->type = "";
-	isa->nopt = tokenize(p, isa->opt, NISAOPT);
-	for(i = 0; i < isa->nopt; i++){
-		p = isa->opt[i];
-		if(cistrncmp(p, "type=", 5) == 0)
-			isa->type = p + 5;
-	}
-	return 1;
+	USED(ctlrno);
+	USED(isa);
+	return strcmp(class, "ether") == 0;
 }
 
 /*
@@ -717,31 +556,14 @@ reboot(void *entry, void *code, ulong size)
 {
 	void (*f)(ulong, ulong, ulong);
 
+	print("starting reboot...");
 	writeconf();
-
-	/*
-	 * the boot processor is cpu0.  execute this function on it
-	 * so that the new kernel has the same cpu0.
-	 */
-	if (m->machno != 0) {
-		procwired(up, 0);
-		sched();
-	}
-	if (m->machno != 0)
-		print("on cpu%d (not 0)!\n", m->machno);
-
-	/* setup reboot trampoline function */
-	f = (void*)REBOOTADDR;
-	memmove(f, rebootcode, sizeof(rebootcode));
-	cachedwbse(f, sizeof(rebootcode));
-
 	shutdown(0);
 
 	/*
 	 * should be the only processor running now
 	 */
 
-	delay(500);
 	print("reboot entry %#lux code %#lux size %ld\n",
 		PADDR(entry), PADDR(code), size);
 	delay(100);
@@ -752,23 +574,29 @@ reboot(void *entry, void *code, ulong size)
 	screenputs = nil;
 
 	/* shutdown devices */
-	if(!waserror()){
-		chandevshutdown();
-		poperror();
-	}
+	chandevshutdown();
 
 	/* stop the clock (and watchdog if any) */
 	clockshutdown();
 
 	splfhi();
-	intrshutdown();
+	intrsoff();
+
+	/* setup reboot trampoline function */
+	f = (void*)REBOOTADDR;
+	memmove(f, rebootcode, sizeof(rebootcode));
+	cacheuwbinv();
 
 	/* off we go - never to return */
-	cacheuwbinv();
-	l2cacheuwbinv();
 	(*f)(PADDR(entry), PADDR(code), size);
 
 	iprint("loaded kernel returned!\n");
 	delay(1000);
 	archreboot();
+}
+
+int
+cmpswap(long *addr, long old, long new)
+{
+	return cas32(addr, old, new);
 }

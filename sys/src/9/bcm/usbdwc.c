@@ -20,7 +20,7 @@
 #include	"fns.h"
 #include	"io.h"
 #include	"../port/error.h"
-#include	"usb.h"
+#include	"../port/usb.h"
 
 #include "dwcotg.h"
 
@@ -33,25 +33,12 @@ enum
 
 	Read		= 0,
 	Write		= 1,
-
-	/*
-	 * Workaround for an unexplained glitch where an Ack interrupt
-	 * is received without Chhltd, whereupon all channels remain
-	 * permanently busy and can't be halted.  This was only seen
-	 * when the controller is reading a sequence of bulk input
-	 * packets in DMA mode.  Setting Slowbulkin=1 will avoid the
-	 * lockup by reading packets individually with an interrupt
-	 * after each.  More recent chips don't seem to exhibit the
-	 * problem, so it's probably safe to leave this off now.
-	 */
-	Slowbulkin	= 0,
 };
 
 typedef struct Ctlr Ctlr;
 typedef struct Epio Epio;
 
 struct Ctlr {
-	Lock;
 	Dwcregs	*regs;		/* controller registers */
 	int	nchan;		/* number of host channels */
 	ulong	chanbusy;	/* bitmap of in-use channels */
@@ -65,11 +52,7 @@ struct Ctlr {
 };
 
 struct Epio {
-	union {
-		QLock	rlock;
-		QLock	ctllock;
-	};
-	QLock	wlock;
+	QLock;
 	Block	*cb;
 	ulong	lastpoll;
 };
@@ -82,31 +65,13 @@ static char Ebadlen[] = "bad usb request length";
 static void clog(Ep *ep, Hostchan *hc);
 static void logdump(Ep *ep);
 
-static void
-filock(Lock *l)
-{
-	int x;
-
-	x = splfhi();
-	ilock(l);
-	l->sr = x;
-}
-
-static void
-fiunlock(Lock *l)
-{
-	iunlock(l);
-}
-
 static Hostchan*
 chanalloc(Ep *ep)
 {
 	Ctlr *ctlr;
 	int bitmap, i;
-	static int first;
 
 	ctlr = ep->hp->aux;
-retry:
 	qlock(&ctlr->chanlock);
 	bitmap = ctlr->chanbusy;
 	for(i = 0; i < ctlr->nchan; i++)
@@ -116,10 +81,8 @@ retry:
 			return &ctlr->regs->hchan[i];
 		}
 	qunlock(&ctlr->chanlock);
-	if(!first++)
-		print("usbdwc: all host channels busy - retrying\n");
-	tsleep(&up->sleep, return0, 0, 1);
-	goto retry;
+	panic("miller is a lazy git");
+	return nil;
 }
 
 static void
@@ -194,22 +157,23 @@ sofdone(void *a)
 	Dwcregs *r;
 
 	r = a;
-	return (r->gintmsk & Sofintr) == 0;
+	return r->gintsts & Sofintr;
 }
 
 static void
 sofwait(Ctlr *ctlr, int n)
 {
 	Dwcregs *r;
+	int x;
 
 	r = ctlr->regs;
 	do{
-		filock(ctlr);
 		r->gintsts = Sofintr;
+		x = splfhi();
 		ctlr->sofchan |= 1<<n;
 		r->gintmsk |= Sofintr;
-		fiunlock(ctlr);
 		sleep(&ctlr->chanintr[n], sofdone, r);
+		splx(x);
 	}while((r->hfnum & 7) == 6);
 }
 
@@ -227,7 +191,7 @@ chandone(void *a)
 static int
 chanwait(Ep *ep, Ctlr *ctlr, Hostchan *hc, int mask)
 {
-	int intr, n, ointr;
+	int intr, n, x, ointr;
 	ulong start, now;
 	Dwcregs *r;
 
@@ -235,14 +199,13 @@ chanwait(Ep *ep, Ctlr *ctlr, Hostchan *hc, int mask)
 	n = hc - r->hchan;
 	for(;;){
 restart:
-		filock(ctlr);
+		x = splfhi();
 		r->haintmsk |= 1<<n;
 		hc->hcintmsk = mask;
-		fiunlock(ctlr);
-		tsleep(&ctlr->chanintr[n], chandone, hc, 1000);
-		if((intr = hc->hcint) == 0)
-			goto restart;
+		sleep(&ctlr->chanintr[n], chandone, hc);
 		hc->hcintmsk = 0;
+		splx(x);
+		intr = hc->hcint;
 		if(intr & Chhltd)
 			return intr;
 		start = fastticks(0);
@@ -254,14 +217,13 @@ restart:
 				if((ointr != Ack && ointr != (Ack|Xfercomp)) ||
 				   intr != (Ack|Chhltd|Xfercomp) ||
 				   (now - start) > 60)
-					dprint("await %x after %ldµs %x -> %x\n",
+					dprint("await %x after %ld %x -> %x\n",
 						mask, now - start, ointr, intr);
 				return intr;
 			}
 			if((intr & mask) == 0){
-				if(intr != Nak)
-					dprint("ep%d.%d await %x after %ldµs intr %x -> %x\n",
-						ep->dev->nb, ep->nb, mask, now - start, ointr, intr);
+				dprint("ep%d.%d await %x intr %x -> %x\n",
+					ep->dev->nb, ep->nb, mask, ointr, intr);
 				goto restart;
 			}
 			now = fastticks(0);
@@ -291,8 +253,6 @@ chanintr(Ctlr *ctlr, int n)
 	int i;
 
 	hc = &ctlr->regs->hchan[n];
-	if((hc->hcint & hc->hcintmsk) == 0)
-		return 1;
 	if(ctlr->debugchan & (1<<n))
 		clog(nil, hc);
 	if((hc->hcsplt & Spltena) == 0)
@@ -386,7 +346,7 @@ chanio(Ep *ep, Hostchan *hc, int dir, int pid, void *a, int len)
 	else
 		n = len;
 	hc->hctsiz = n | npkt<<OPktcnt | pid;
-	hc->hcdma  = dmaaddr(a);
+	hc->hcdma  = PADDR(a);
 
 	nleft = len;
 	logstart(ep);
@@ -417,19 +377,13 @@ chanio(Ep *ep, Hostchan *hc, int dir, int pid, void *a, int len)
 		}
 		hc->hcchar = (hc->hcchar &~ Chdis) | Chen;
 		clog(ep, hc);
-wait:
 		if(ep->ttype == Tbulk && dir == Epin)
-			i = chanwait(ep, ctlr, hc, Chhltd);
+			i = chanwait(ep, ctlr, hc, /* Ack| */ Chhltd);
 		else if(ep->ttype == Tintr && (hc->hcsplt & Spltena))
 			i = chanwait(ep, ctlr, hc, Chhltd);
 		else
 			i = chanwait(ep, ctlr, hc, Chhltd|Nak);
 		clog(ep, hc);
-		if(hc->hcint != i){
-			dprint("chanwait intr %ux->%ux\n", i, hc->hcint);
-			if((i = hc->hcint) == 0)
-				goto wait;
-		}
 		hc->hcint = i;
 
 		if(hc->hcsplt & Spltena){
@@ -450,12 +404,12 @@ wait:
 				continue;
 			}
 			logdump(ep);
-			print("usbdwc: ep%d.%d error intr %8.8ux\n",
+			print("usbotg: ep%d.%d error intr %8.8ux\n",
 				ep->dev->nb, ep->nb, i);
 			if(i & ~(Chhltd|Ack))
 				error(Eio);
 			if(hc->hcdma != hcdma)
-				print("usbdwc: weird hcdma %ux->%ux intr %ux->%ux\n",
+				print("usbotg: weird hcdma %x->%x intr %x->%x\n",
 					hcdma, hc->hcdma, i, hc->hcint);
 		}
 		n = hc->hcdma - hcdma;
@@ -465,13 +419,13 @@ wait:
 			else
 				continue;
 		}
-		if(dir == Epin && ep->ttype == Tbulk){
+		if(dir == Epin && ep->ttype == Tbulk && n == nleft){
 			nt = (hctsiz & Xfersize) - (hc->hctsiz & Xfersize);
 			if(nt != n){
 				if(n == ROUND(nt, 4))
 					n = nt;
 				else
-					print("usbdwc: intr %8.8ux "
+					print("usbotg: intr %8.8ux "
 						"dma %8.8ux-%8.8ux "
 						"hctsiz %8.8ux-%8.ux\n",
 						i, hcdma, hc->hcdma, hctsiz,
@@ -536,7 +490,7 @@ eptrans(Ep *ep, int rw, void *a, long n)
 		nexterror();
 	}
 	chansetup(hc, ep);
-	if(Slowbulkin && rw == Read && ep->ttype == Tbulk)
+	if(rw == Read && ep->ttype == Tbulk)
 		n = multitrans(ep, hc, rw, a, n);
 	else{
 		n = chanio(ep, hc, rw == Read? Epin : Epout, ep->toggle[rw],
@@ -569,8 +523,8 @@ ctltrans(Ep *ep, uchar *req, long n)
 		if(datalen <= 0 || datalen > Maxctllen)
 			error(Ebadlen);
 		/* XXX cache madness */
-		epio->cb = b = allocb(ROUND(datalen, ep->maxpkt));
-		assert(((uintptr)b->wp & (BLOCKALIGN-1)) == 0);
+		epio->cb = b = allocb(ROUND(datalen, ep->maxpkt) + CACHELINESZ);
+		b->wp = (uchar*)ROUND((uintptr)b->wp, CACHELINESZ);
 		memset(b->wp, 0x55, b->lim - b->wp);
 		cachedwbinvse(b->wp, b->lim - b->wp);
 		data = b->wp;
@@ -595,7 +549,6 @@ ctltrans(Ep *ep, uchar *req, long n)
 		}else
 			b->wp += chanio(ep, hc, Epin, DATA1, data, datalen);
 		chanio(ep, hc, Epout, DATA1, nil, 0);
-		cachedinvse(b->rp, BLEN(b));
 		n = Rsetuplen;
 	}else{
 		if(datalen > 0)
@@ -673,7 +626,7 @@ init(Hci *hp)
 	greset(r, Rxfflsh);
 	r->grstctl = TXF_ALL;
 	greset(r, Txfflsh);
-	dprint("usbdwc: FIFO depth %d sizes rx/nptx/ptx %8.8ux %8.8ux %8.8ux\n",
+	dprint("usbotg: FIFO depth %d sizes rx/nptx/ptx %8.8ux %8.8ux %8.8ux\n",
 		n, r->grxfsiz, r->gnptxfsiz, r->hptxfsiz);
 
 	r->hport0 = Prtpwr|Prtconndet|Prtenchng|Prtovrcurrchng;
@@ -700,7 +653,6 @@ fiqintr(Ureg*, void *a)
 	ctlr = hp->aux;
 	r = ctlr->regs;
 	wakechan = 0;
-	filock(ctlr);
 	intr = r->gintsts;
 	if(intr & Hcintr){
 		haint = r->haint & r->haintmsk;
@@ -726,7 +678,6 @@ fiqintr(Ureg*, void *a)
 		ctlr->wakechan |= wakechan;
 		armtimerset(1);
 	}
-	fiunlock(ctlr);
 }
 
 static void
@@ -734,14 +685,14 @@ irqintr(Ureg*, void *a)
 {
 	Ctlr *ctlr;
 	uint wakechan;
-	int i;
+	int i, x;
 
 	ctlr = a;
-	filock(ctlr);
+	x = splfhi();
 	armtimerset(0);
 	wakechan = ctlr->wakechan;
 	ctlr->wakechan = 0;
-	fiunlock(ctlr);
+	splx(x);
 	for(i = 0; wakechan; i++){
 		if(wakechan & 1)
 			wakeup(&ctlr->chanintr[i]);
@@ -752,7 +703,7 @@ irqintr(Ureg*, void *a)
 static void
 epopen(Ep *ep)
 {
-	ddprint("usbdwc: epopen ep%d.%d ttype %d\n",
+	ddprint("usbotg: epopen ep%d.%d ttype %d\n",
 		ep->dev->nb, ep->nb, ep->ttype);
 	switch(ep->ttype){
 	case Tnone:
@@ -775,7 +726,7 @@ epopen(Ep *ep)
 static void
 epclose(Ep *ep)
 {
-	ddprint("usbdwc: epclose ep%d.%d ttype %d\n",
+	ddprint("usbotg: epclose ep%d.%d ttype %d\n",
 		ep->dev->nb, ep->nb, ep->ttype);
 	switch(ep->ttype){
 	case Tctl:
@@ -791,7 +742,6 @@ static long
 epread(Ep *ep, void *a, long n)
 {
 	Epio *epio;
-	QLock *q;
 	Block *b;
 	uchar *p;
 	ulong elapsed;
@@ -799,11 +749,10 @@ epread(Ep *ep, void *a, long n)
 
 	ddprint("epread ep%d.%d %ld\n", ep->dev->nb, ep->nb, n);
 	epio = ep->aux;
-	q = ep->ttype == Tctl? &epio->ctllock : &epio->rlock;
 	b = nil;
-	qlock(q);
+	qlock(epio);
 	if(waserror()){
-		qunlock(q);
+		qunlock(epio);
 		if(b)
 			freeb(b);
 		nexterror();
@@ -813,7 +762,7 @@ epread(Ep *ep, void *a, long n)
 		error(Egreg);
 	case Tctl:
 		nr = ctldata(ep, a, n);
-		qunlock(q);
+		qunlock(epio);
 		poperror();
 		return nr;
 	case Tintr:
@@ -823,15 +772,13 @@ epread(Ep *ep, void *a, long n)
 		/* fall through */
 	case Tbulk:
 		/* XXX cache madness */
-		b = allocb(ROUND(n, ep->maxpkt));
-		p = b->rp;
-		assert(((uintptr)p & (BLOCKALIGN-1)) == 0);
-		cachedinvse(p, n);
+		b = allocb(ROUND(n, ep->maxpkt) + CACHELINESZ);
+		p = (uchar*)ROUND((uintptr)b->base, CACHELINESZ);
+		cachedwbinvse(p, n);
 		nr = eptrans(ep, Read, p, n);
-		cachedinvse(p, nr);
 		epio->lastpoll = TK2MS(m->ticks);
 		memmove(a, p, nr);
-		qunlock(q);
+		qunlock(epio);
 		freeb(b);
 		poperror();
 		return nr;
@@ -842,18 +789,16 @@ static long
 epwrite(Ep *ep, void *a, long n)
 {
 	Epio *epio;
-	QLock *q;
 	Block *b;
 	uchar *p;
 	ulong elapsed;
 
 	ddprint("epwrite ep%d.%d %ld\n", ep->dev->nb, ep->nb, n);
 	epio = ep->aux;
-	q = ep->ttype == Tctl? &epio->ctllock : &epio->wlock;
 	b = nil;
-	qlock(q);
+	qlock(epio);
 	if(waserror()){
-		qunlock(q);
+		qunlock(epio);
 		if(b)
 			freeb(b);
 		nexterror();
@@ -869,9 +814,8 @@ epwrite(Ep *ep, void *a, long n)
 	case Tctl:
 	case Tbulk:
 		/* XXX cache madness */
-		b = allocb(n);
-		p = b->wp;
-		assert(((uintptr)p & (BLOCKALIGN-1)) == 0);
+		b = allocb(n + CACHELINESZ);
+		p = (uchar*)ROUND((uintptr)b->base, CACHELINESZ);
 		memmove(p, a, n);
 		cachedwbse(p, n);
 		if(ep->ttype == Tctl)
@@ -880,7 +824,7 @@ epwrite(Ep *ep, void *a, long n)
 			n = eptrans(ep, Write, p, n);
 			epio->lastpoll = TK2MS(m->ticks);
 		}
-		qunlock(q);
+		qunlock(epio);
 		freeb(b);
 		poperror();
 		return n;
@@ -902,11 +846,11 @@ portenable(Hci *hp, int port, int on)
 	assert(port == 1);
 	ctlr = hp->aux;
 	r = ctlr->regs;
-	dprint("usbdwc enable=%d; sts %#x\n", on, r->hport0);
+	dprint("usbotg enable=%d; sts %#x\n", on, r->hport0);
 	if(!on)
 		r->hport0 = Prtpwr | Prtena;
 	tsleep(&up->sleep, return0, 0, Enabledelay);
-	dprint("usbdwc enable=%d; sts %#x\n", on, r->hport0);
+	dprint("usbotg enable=%d; sts %#x\n", on, r->hport0);
 	return 0;
 }
 
@@ -920,7 +864,7 @@ portreset(Hci *hp, int port, int on)
 	assert(port == 1);
 	ctlr = hp->aux;
 	r = ctlr->regs;
-	dprint("usbdwc reset=%d; sts %#x\n", on, r->hport0);
+	dprint("usbotg reset=%d; sts %#x\n", on, r->hport0);
 	if(!on)
 		return 0;
 	r->hport0 = Prtpwr | Prtrst;
@@ -931,9 +875,9 @@ portreset(Hci *hp, int port, int on)
 	b = s & (Prtconndet|Prtenchng|Prtovrcurrchng);
 	if(b != 0)
 		r->hport0 = Prtpwr | b;
-	dprint("usbdwc reset=%d; sts %#x\n", on, s);
+	dprint("usbotg reset=%d; sts %#x\n", on, s);
 	if((s & Prtena) == 0)
-		print("usbdwc: host port not enabled after reset");
+		print("usbotg: host port not enabled after reset");
 	return 0;
 }
 
@@ -1003,7 +947,7 @@ reset(Hci *hp)
 	id = ctlr->regs->gsnpsid;
 	if((id>>16) != ('O'<<8 | 'T'))
 		return -1;
-	dprint("usbdwc: rev %d.%3.3x\n", (id>>12)&0xF, id&0xFFF);
+	dprint("usbotg: rev %d.%3.3x\n", (id>>12)&0xF, id&0xFFF);
 
 	intrenable(IRQtimerArm, irqintr, ctlr, 0, "dwc");
 

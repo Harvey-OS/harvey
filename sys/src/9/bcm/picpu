@@ -18,26 +18,18 @@ dev
 	kbmap
 	kbin	kbd latin1
 	uart
-	gpio	gpio
-	spi		spi
-	i2c		i2c
 
 	fakertc
-#	rtc3231		i2c
-	ether	netif
 	sd
 	usb
-	aoe
+	ether	netif
 
 link
 	archbcm
 	loopbackmedium
 	ethermedium
-	sdhost
 	usbdwc
 	etherusb
-	ether4330 emmc
-	pitft
 
 ip
 	tcp
@@ -48,14 +40,11 @@ ip
 	ipmux
 
 misc
-	armv6
-	trap
-	uartmini	gpio
+	uartmini
 	sdmmc	emmc
-	sdaoe	sdscsi
 	dma
 	vcore
-	vfp3
+	vfp3	coproc
 
 port
 	int cpuserver = 1;

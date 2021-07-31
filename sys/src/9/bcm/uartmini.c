@@ -10,10 +10,34 @@
 #include "fns.h"
 #include "io.h"
 
+#define GPIOREGS	(VIRTIO+0x200000)
 #define AUXREGS		(VIRTIO+0x215000)
 #define	OkLed		16
 #define	TxPin		14
 #define	RxPin		15
+
+/* GPIO regs */
+enum {
+	Fsel0	= 0x00>>2,
+		FuncMask= 0x7,
+		Input	= 0x0,
+		Output	= 0x1,
+		Alt0	= 0x4,
+		Alt1	= 0x5,
+		Alt2	= 0x6,
+		Alt3	= 0x7,
+		Alt4	= 0x3,
+		Alt5	= 0x2,
+	Set0	= 0x1c>>2,
+	Clr0	= 0x28>>2,
+	Lev0	= 0x34>>2,
+	PUD	= 0x94>>2,
+		Off	= 0x0,
+		Pulldown= 0x1,
+		Pullup	= 0x2,
+	PUDclk0	= 0x98>>2,
+	PUDclk1	= 0x9c>>2,
+};
 
 /* AUX regs */
 enum {
@@ -49,11 +73,56 @@ static Uart miniuart = {
 	.regs	= (u32int*)AUXREGS,
 	.name	= "uart0",
 	.freq	= 250000000,
-	.baud	= 115200,
 	.phys	= &miniphysuart,
 };
 
-static int baud(Uart*, int);
+void
+gpiosel(uint pin, int func)
+{	
+	u32int *gp, *fsel;
+	int off;
+
+	gp = (u32int*)GPIOREGS;
+	fsel = &gp[Fsel0 + pin/10];
+	off = (pin % 10) * 3;
+	*fsel = (*fsel & ~(FuncMask<<off)) | func<<off;
+}
+
+void
+gpiopulloff(uint pin)
+{
+	u32int *gp, *reg;
+	u32int mask;
+
+	gp = (u32int*)GPIOREGS;
+	reg = &gp[PUDclk0 + pin/32];
+	mask = 1 << (pin % 32);
+	gp[PUD] = Off;
+	microdelay(1);
+	*reg = mask;
+	microdelay(1);
+	*reg = 0;
+}
+
+void
+gpioout(uint pin, int set)
+{
+	u32int *gp;
+	int v;
+
+	gp = (u32int*)GPIOREGS;
+	v = set? Set0 : Clr0;
+	gp[v + pin/32] = 1 << (pin % 32);
+}
+
+int
+gpioin(uint pin)
+{
+	u32int *gp;
+
+	gp = (u32int*)GPIOREGS;
+	return (gp[Lev0 + pin/32] & (1 << (pin % 32))) != 0;
+}
 
 static void
 interrupt(Ureg*, void *arg)
@@ -104,12 +173,12 @@ enable(Uart *uart, int ie)
 	gpiosel(TxPin, Alt5);
 	gpiosel(RxPin, Alt5);
 	gpiopulloff(TxPin);
-	gpiopullup(RxPin);
+	gpiopulloff(RxPin);
 	ap[Enables] |= UartEn;
 	ap[MuIir] = 6;
 	ap[MuLcr] = Bits8;
 	ap[MuCntl] = TxEn|RxEn;
-	baud(uart, uart->baud);
+	ap[MuBaud] = 250000000/(115200*8) - 1;
 	if(ie){
 		intrenable(IRQaux, interrupt, uart, 0, "uart");
 		ap[MuIer] = RxIen|TxIen;
@@ -316,7 +385,7 @@ uartconsinit(void)
 
 	if(!uart->enabled)
 		(*uart->phys->enable)(uart, 0);
-	uartctl(uart, "l8 pn s1");
+	uartctl(uart, "b9600 l8 pn s1");
 	if(*cmd != '\0')
 		uartctl(uart, cmd);
 
@@ -348,26 +417,8 @@ void
 okay(int on)
 {
 	static int first;
-	static int okled, polarity;
-	char *p;
 
-	if(!first++){
-		p = getconf("bcm2709.disk_led_gpio");
-		if(p == nil)
-			p = getconf("bcm2708.disk_led_gpio");
-		if(p != nil)
-			okled = strtol(p, 0, 0);
-		else
-			okled = 'v';
-		p = getconf("bcm2709.disk_led_active_low");
-		if(p == nil)
-			p = getconf("bcm2708.disk_led_active_low");
-		polarity = (p == nil || *p == '1');
-		if(okled != 'v')
-			gpiosel(okled, Output);
-	}
-	if(okled == 'v')
-		vgpset(0, on);
-	else if(okled != 0)
-		gpioout(okled, on^polarity);
+	if(!first++)
+		gpiosel(OkLed, Output);
+	gpioout(OkLed, !on);
 }

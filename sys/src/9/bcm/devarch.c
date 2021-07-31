@@ -150,30 +150,9 @@ Dev archdevtab = {
 static long
 cputyperead(Chan*, void *a, long n, vlong offset)
 {
-	char name[64], str[128];
+	char str[128];
 
-	cputype2name(name, sizeof name);
-	snprint(str, sizeof str, "ARM %s %d\n", name, m->cpumhz);
-	return readstr(offset, a, n, str);
-}
-
-static long
-cputempread(Chan*, void *a, long n, vlong offset)
-{
-	char str[16];
-
-	snprint(str, sizeof str, "%ud\n", (getcputemp()+500)/1000);
-	return readstr(offset, a, n, str);
-}
-
-extern uvlong getserial(void);
-
-static long
-cpuserread(Chan*, void *a, long n, vlong offset)
-{
-	char str[16];
-
-	snprint(str, sizeof str, "%16.16llux", getserial());
+	snprint(str, sizeof str, "ARM11 %d\n", m->cpumhz);
 	return readstr(offset, a, n, str);
 }
 
@@ -181,6 +160,4 @@ void
 archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
-	addarchfile("cputemp", 0444, cputempread, nil);
-	addarchfile("serial", 0444, cpuserread, nil)->length = 16;
 }
