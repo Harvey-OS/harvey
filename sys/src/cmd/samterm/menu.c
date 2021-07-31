@@ -9,11 +9,10 @@
 #include "flayer.h"
 #include "samterm.h"
 
-uchar	**name;	/* first byte is ' ' or '\'': modified state */
-Text	**text;	/* pointer to Text associated with file */
-ushort	*tag;		/* text[i].tag, even if text[i] not defined */
+uchar	*name[MAXFILES];	/* first byte is ' ' or '\'': modified state */
+Text	*text[MAXFILES];	/* pointer to Text associated with file */
+ushort	tag[MAXFILES];		/* text[i].tag, even if text[i] not defined */
 int	nname;
-int	mname;
 int	mw;
 
 char	*genmenu3(int);
@@ -240,17 +239,8 @@ menuins(int n, uchar *s, Text *t, int m, int tg)
 {
 	int i;
 
-	if(nname == mname){
-		if(mname == 0)
-			mname = 32;
-		else
-			mname *= 2;
-		name = realloc(name, sizeof(name[0])*mname);
-		text = realloc(text, sizeof(text[0])*mname);
-		tag = realloc(tag, sizeof(tag[0])*mname);
-		if(name==nil || text==nil || tag==nil)
-			panic("realloc");
-	}
+	if(nname == MAXFILES)
+		panic("menuins");
 	for(i=nname; i>n; --i)
 		name[i]=name[i-1], text[i]=text[i-1], tag[i]=tag[i-1];
 	text[n] = t;

@@ -9,7 +9,7 @@
 
 #define STACKSIZE 16*1024
 
-extern char *srvpost;
+extern int srvpost;
 char * mntpt;
 int debug;
 int debugdebug;
@@ -41,9 +41,6 @@ makenexus(Audiofunc *af, Funcalt *alt, Unit *output)
 		switch(u->type) {
 		case INPUT_TERMINAL:
 			nx->input = u;
-			break;
-		case MIXER_UNIT:
-			nx->mixer = u;
 			break;
 		case FEATURE_UNIT:
 			nx->feat = u;
@@ -79,7 +76,7 @@ makenexus(Audiofunc *af, Funcalt *alt, Unit *output)
 	calcbounds(nx);
 	feat = nx->feat;
 	if(feat != nil) {
-		for(i = Mute_control; i < Mixer_control; i++) {
+		for(i = Mute_control; i <= Loudness_control; i++) {
 			c = &nx->control[i];
 			for(ch = 0; ch <= feat->nchan; ch++) {
 				if((feat->hascontrol[ch] & (1<<(i-1))) == 0)
@@ -89,17 +86,6 @@ makenexus(Audiofunc *af, Funcalt *alt, Unit *output)
 				if(ch > 0)
 					c->chans |= (1<<ch);
 			}
-		}
-	}
-	feat = nx->mixer;
-	if(feat != nil) {
-		c = &nx->control[Mixer_control];
-		for(ch = 1; ch <= feat->nchan; ch++) {
-			if((feat->hascontrol[((ch-1)*feat->nsource)>>5] & (1 << (((ch-1)*feat->nsource) & 31))) == 0)
-				continue;
-			c->readable = 1;
-			c->settable = 1;
-			c->chans |= (1<<ch);
 		}
 	}
 
@@ -279,7 +265,7 @@ findendpoints(void)
 void
 usage(void)
 {
-	fprint(2, "usage: usbaudio [-d] [-v volume[%%]] [-s srvname] [-m mountpoint] [ctrlno id]\n");
+	fprint(2, "usage: usbaudio [-d] [-v volume[%%]] [-m mountpoint] [ctrlno id]\n");
 	threadexitsall("usage");
 }
 
@@ -318,7 +304,7 @@ threadmain(int argc, char **argv)
 		mntpt = ARGF();
 		break;
 	case 's':
-		srvpost = ARGF();
+		srvpost = 1;
 		break;
 	default:
 		usage();
@@ -355,7 +341,7 @@ threadmain(int argc, char **argv)
 	d = opendev(ctlrno, id);
 
 	if(describedevice(d) < 0)
-		sysfatal("usbaudio: %r");
+		sysfatal("describedevice");
 
 	if(adddevice(d) < 0)
 		sysfatal("usbaudio: adddevice: %r");

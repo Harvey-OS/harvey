@@ -554,8 +554,6 @@ capabilityCmd(char *tg, char *cmd)
 {
 	crnl();
 	check();
-// nslocum's capabilities
-//	Bprint(&bout, "* CAPABILITY IMAP4 IMAP4REV1 NAMESPACE IDLE SCAN SORT MAILBOX-REFERRALS LOGIN-REFERRALS AUTH=LOGIN THREAD=ORDEREDSUBJECT\r\n");
 	Bprint(&bout, "* CAPABILITY IMAP4REV1 IDLE NAMESPACE AUTH=CRAM-MD5\r\n");
 	Bprint(&bout, "%s OK %s\r\n", tg, cmd);
 }
@@ -1139,7 +1137,7 @@ selectCmd(char *tg, char *cmd)
 			break;
 		}
 	}
-	Bprint(&bout, "* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Draft \\Deleted)]\r\n");
+	Bprint(&bout, "* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Draft)]\r\n");
 	Bprint(&bout, "* OK [UIDNEXT %ld]\r\n", selected->uidnext);
 	Bprint(&bout, "* OK [UIDVALIDITY %ld]\r\n", selected->uidvalidity);
 	s = "READ-ONLY";

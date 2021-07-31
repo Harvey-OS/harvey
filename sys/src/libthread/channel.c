@@ -10,11 +10,12 @@ static void dequeue(Alt*);
 static int canexec(Alt*);
 static int altexec(Alt*, int);
 
-static void
-_chanfree(Channel *c)
+void
+chanfree(Channel *c)
 {
 	int i, inuse;
 
+	lock(&chanlock);
 	inuse = 0;
 	for(i = 0; i < c->nentry; i++)
 		if(c->qentry[i])
@@ -23,16 +24,9 @@ _chanfree(Channel *c)
 		c->freed = 1;
 	else{
 		if(c->qentry)
-			free(c->qentry);
+			free((void*)c->qentry);
 		free(c);
 	}
-}
-
-void
-chanfree(Channel *c)
-{
-	lock(&chanlock);
-	_chanfree(c);
 	unlock(&chanlock);
 }
 
@@ -68,7 +62,7 @@ int
 alt(Alt *alts)
 {
 	Alt *a, *xa;
-	Channel volatile *c;
+	Channel *c;
 	int n, s;
 	ulong r;
 	Thread *t;
@@ -98,13 +92,8 @@ alt(Alt *alts)
 			continue;
 		
 		c = xa->c;
-		if(c==nil){
-			unlock(&chanlock);
-			_procsplx(s);
-			t->chan = Channone;
-			return -1;
-		}
-
+		if(c==nil)
+			sysfatal("alt: nil channel in entry %ld", xa-alts);
 		if(canexec(xa))
 			if(nrand(++n) == 0)
 				a = xa;
@@ -162,6 +151,8 @@ alt(Alt *alts)
 			assert(c==(Channel*)~0);
 			return -1;
 		}
+		if(c->freed)
+			chanfree(c);
 	}else{
 		altexec(a, s);	/* unlocks chanlock, does splx */
 	}
@@ -319,12 +310,18 @@ emptyentry(Channel *c)
 		if(c->qentry[i]==nil)
 			return i;
 
-	extra = 16;
+	if(i==0)
+		extra=1;
+	else{
+		extra=i;
+		if(extra > 16)
+			extra = 16;
+	}
 	c->nentry += extra;
-	c->qentry = realloc((void*)c->qentry, c->nentry*sizeof(c->qentry[0]));
+	c->qentry = (volatile void*)realloc((void*)c->qentry, c->nentry*sizeof(c->qentry[0]));
 	if(c->qentry == nil)
 		sysfatal("realloc channel entries: %r");
-	memset(&c->qentry[i], 0, extra*sizeof(c->qentry[0]));
+	memset((void*)&c->qentry[i], 0, extra*sizeof(c->qentry[0]));
 	return i;
 }
 
@@ -350,8 +347,6 @@ dequeue(Alt *a)
 		if(c->qentry[i]==a){
 			_threaddebug(DBGCHAN, "Dequeuing alt %p from channel %p", a, a->c);
 			c->qentry[i] = nil;
-			if(c->freed)
-				_chanfree(c);
 			return;
 		}
 }

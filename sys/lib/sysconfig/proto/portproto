@@ -1,4 +1,5 @@
 adm
+	timeconst
 	timezone
 		*
 	users
@@ -21,29 +22,19 @@ lib
 				+
 			times
 				+
-	keyboard
 	ndb
 		local
-		local-cs
 		common
-		friends
 	units
 	vgadb
 rc
 	+
 mail
 	fs
-	queue
-	queue.hold
-	queue.ext
-	queue.post
-	tmp
 $cputype
 	init
 	bin
 		*
-		auth
-			*
 		aux
 			*
 		disk
@@ -56,18 +47,10 @@ $cputype
 			*
 		upas
 			*
-		usb
-			*
 	include
-		+
+		*
 	lib
 		*
-		X11
-			+
-		alef
-			+
-		ape
-			+
 	mkfile
 acme
 	acid
@@ -76,20 +59,17 @@ acme
 			*
 	bin
 		*
+	edit
+		*
 		$cputype
 			*
 	mail
 		*
 		$cputype
 			*
-	news
-		*
-	wiki
-		*
 mnt
 	acme
 	apeselect
-	apm
 	cd
 	cons
 		cons
@@ -101,23 +81,16 @@ mnt
 	lp
 	plumb
 	rdb
-	temp
 	term
-	vmware
 	wsys
 n
-	9
 	9fat
-	a
-	c
-	d
 	a:
 	c:
 	d:
 	boot
 	bootes
 	bootesother
-	choline
 	dump
 	emelie
 	emelieother
@@ -132,23 +105,12 @@ srv
 sys
 	include
 		*
-		ape
-			*
 	lib
 		acid
 			*
-		ghostscript
-			+
-		lp
-			+
-		man
-			+
-		mimetype
 		newuser
 		plumb
 			*
-		postscript
-			+
 		samsave
 		ssh
 		texmf
@@ -167,19 +129,8 @@ sys
 			term
 				tab.dumb
 				tab.utf
-				tab.37
-	log
-		cs	666 sys sys	/sys/lib/pcdist/disk/empty
-		dns	666 sys sys	/sys/lib/pcdist/disk/empty
-		mail	666 sys sys	/sys/lib/pcdist/disk/empty
-		smtp	666 sys sys	/sys/lib/pcdist/disk/empty
-		smtpd	666 sys sys	/sys/lib/pcdist/disk/empty
-		listen	666 sys sys	/sys/lib/pcdist/disk/empty
-		ipboot	666 sys sys	/sys/lib/pcdist/disk/empty
 	man
 		fonts
-		1pub
-			*
 		1
 			*
 		2
@@ -196,14 +147,5 @@ sys
 			*
 		8
 			*
-	src
-		mkfile
-		mkfile.proto
-		cmd
-			mkfile
-			mklib
-			mkmany
-			mkone
-			mksyslib
 tmp
 usr

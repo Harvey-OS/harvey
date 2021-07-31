@@ -29,7 +29,7 @@ Biobuf out;
 vlong starttime, pkttime;
 int pcap;
 
-int	filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr, int);
+int	filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr);
 void	printpkt(char *p, char *e, uchar *ps, uchar *pe);
 void	mkprotograph(void);
 Proto*	findproto(char *name);
@@ -165,7 +165,7 @@ main(int argc, char **argv)
 			n = NetS(pkt);
 			if(readn(fd, pkt, n) != n)
 				break;
-			if(filterpkt(filter, pkt, pkt+n, root, 1))
+			if(filterpkt(filter, pkt, pkt+n, root))
 				if(toflag)
 					tracepkt(pkt, n);
 				else
@@ -179,7 +179,7 @@ main(int argc, char **argv)
 			if(n <= 0)
 				break;
 			pkttime = nsec();
-			if(filterpkt(filter, pkt, pkt+n, root, 1))
+			if(filterpkt(filter, pkt, pkt+n, root))
 				if(toflag)
 					tracepkt(pkt, n);
 				else
@@ -212,8 +212,6 @@ _filterpkt(Filter *f, Msg *m)
 		return 1;
 
 	switch(f->op){
-	case '!':
-		return !_filterpkt(f->l, m);
 	case LAND:
 		ma = *m;
 		return _filterpkt(f->l, &ma) && _filterpkt(f->r, m);
@@ -221,14 +219,8 @@ _filterpkt(Filter *f, Msg *m)
 		ma = *m;
 		return _filterpkt(f->l, &ma) || _filterpkt(f->r, m);
 	case WORD:
-		if(m->needroot){
-			if(m->pr != f->pr)
-				return 0;
-			m->needroot = 0;
-		}else{
-			if(m->pr != nil && !(m->pr->filter)(f, m))
-				return 0;
-		}
+		if(m->pr != nil && !(m->pr->filter)(f, m))
+			return 0;
 		if(f->l == nil)
 			return 1;
 		m->pr = f->pr;
@@ -238,14 +230,13 @@ _filterpkt(Filter *f, Msg *m)
 	return 0;
 }
 int
-filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr, int needroot)
+filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr)
 {
 	Msg m;
 
 	if(f == nil)
 		return 1;
 
-	m.needroot = needroot;
 	m.ps = ps;
 	m.pe = pe;
 	m.pr = pr;
@@ -490,9 +481,6 @@ complete(Filter *f, Proto *last)
 
 	/* do a depth first traversal of the filter tree */
 	switch(f->op){
-	case '!':
-		f->l = complete(f->l, last);
-		break;
 	case LAND:
 	case LOR:
 		f->l = complete(f->l, last);
@@ -538,13 +526,6 @@ _optimize(Filter *f)
 		return f;
 
 	switch(f->op){
-	case '!':
-		/* is child also a not */
-		if(f->l->op == '!'){
-			changed = 1;
-			return f->l->l;
-		}
-		break;
 	case LOR:
 		/* are two children the same protocol? */
 		if(f->l->op != f->r->op || f->r->op != WORD
@@ -607,21 +588,14 @@ optimize(Filter *f)
 /*
  *  find any top level nodes that aren't the root
  */
-int
+void
 findbogus(Filter *f)
 {
-	int rv;
-
 	if(f->op != WORD){
-		rv = findbogus(f->l);
-		if(f->r)
-			rv |= findbogus(f->r);
-		return rv;
-	} else if(f->pr != root){
-		fprint(2, "bad top-level protocol: %s\n", f->s);
-		return 1;
-	}
-	return 0;
+		findbogus(f->l);
+		findbogus(f->r);
+	} else if(f->pr != root)
+		fprint(2, "unknown protocol: %s\n", f->s);
 }
 
 /*
@@ -634,9 +608,6 @@ _compile(Filter *f, Proto *last)
 		return;
 
 	switch(f->op){
-	case '!':
-		_compile(f->l, last);
-		break;
 	case LOR:
 	case LAND:
 		_compile(f->l, last);
@@ -676,12 +647,11 @@ compile(Filter *f)
 	_compile(f, nil);
 
 	/* at this point, the root had better be the root proto */
-	if(findbogus(f)){
-		fprint(2, "bogus filter\n");
-		exits("bad filter");
+	if(f->pr != root){
+		findbogus(f);
+		exits("bad proto");
 	}
-
-	return f;
+	return f->l;	/* don't need the root */
 }
 
 /*
@@ -753,42 +723,27 @@ compile_cmp(char *proto, Filter *f, Field *fld)
 void
 _pf(Filter *f)
 {
-	char *s;
-
 	if(f == nil)
 		return;
 
-	s = nil;
 	switch(f->op){
-	case '!':
-		fprint(2, "!");
-		_pf(f->l);
-		break;
 	case WORD:
-		fprint(2, "%s", f->s);
+		print("%s", f->s);
 		if(f->l != nil){
-			fprint(2, "( ");
+			print("( ");
 			_pf(f->l);
-			fprint(2, " )");
+			print(" )");
 		}
 		break;
 	case LAND:
-		s = "&&";
-		goto print;
 	case LOR:
-		s = "||";
-		goto print;
 	case '=':
-	print:
 		_pf(f->l);
-		if(s)
-			fprint(2, " %s ", s);
-		else
-			fprint(2, " %c ", f->op);
+		print(" %c ", f->op);
 		_pf(f->r);
 		break;
 	default:
-		fprint(2, "???");
+		print("???");
 		break;
 	}
 }
@@ -796,9 +751,9 @@ _pf(Filter *f)
 void
 printfilter(Filter *f, char *tag)
 {
-	fprint(2, "%s: ", tag);
+	print("%s: ", tag);
 	_pf(f);
-	fprint(2, "\n");
+	print("\n");
 }
 
 void

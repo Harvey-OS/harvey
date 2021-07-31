@@ -105,7 +105,6 @@ xloop:
 	p->addr = addr;
 	p->dev = d;
 	p->flags = flag;
-	p->pc = getcallerpc(&d);
 	unlock(hp);
 	if(iobufmap(p)) {
 		if(flag & Bread) {

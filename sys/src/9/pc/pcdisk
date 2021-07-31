@@ -100,8 +100,8 @@ port
 	int cpuserver = 0;
 
 boot boot #S/sdC0/
-	il
 	local
+	il
 
 bootdir
 	bootpcdisk.out boot

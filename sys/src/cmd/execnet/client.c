@@ -168,7 +168,7 @@ matchmsgs(Client *c)
 	}
 }
 
-void
+Req*
 findrdreq(Client *c, Req *r)
 {
 	Req **l;
@@ -178,13 +178,13 @@ findrdreq(Client *c, Req *r)
 			*l = r->aux;
 			if(*l == nil)
 				c->erq = l;
-			respond(r, "flushed");
-			break;
+			return r;
 		}
 	}
+	return nil;
 }
 
-void
+Req*
 findwrreq(Client *c, Req *r)
 {
 	Req **l;
@@ -194,10 +194,10 @@ findwrreq(Client *c, Req *r)
 			*l = r->aux;
 			if(*l == nil)
 				c->ewq = l;
-			respond(r, "flushed");
-			return;
+			return r;
 		}
 	}
+	return nil;
 }
 
 void
@@ -246,6 +246,7 @@ kickwriter(Client *c)
 void
 clientflush(Req *or, Client *c)
 {
+	/* BUG: this leaks Req structures; we should closereq sometimes */
 	if(or->ifcall.type == Tread)
 		findrdreq(c, or);
 	else{
@@ -300,6 +301,10 @@ writethread(void *a)
 		n = iowrite(io, c->fd[1], r->ifcall.data, r->ifcall.count);
 		if(chatty9p)
 			fprint(2, "io->write returns %d\n", n);
+		if(c->curw == nil){
+			closereq(r);
+			continue;
+		}
 		if(n >= 0){
 			r->ofcall.count = n;
 			respond(r, nil);

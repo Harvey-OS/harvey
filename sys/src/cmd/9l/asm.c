@@ -71,7 +71,7 @@ asmb(void)
 			autosize = p->to.offset + 4;
 		}
 		if(p->pc != pc) {
-			diag("phase error %lux sb %lux",
+			diag("phase error %lux sb %lux\n",
 				p->pc, pc);
 			if(!debug['a'])
 				prasm(curp);
@@ -592,13 +592,13 @@ datblk(long s, long n)
 			for(j=l+(c-i)-1; j>=l; j--)
 				if(buf.dbuf[j]) {
 					print("%P\n", p);
-					diag("multiple initialization");
+					diag("multiple initialization\n");
 					break;
 				}
 		}
 		switch(p->to.type) {
 		default:
-			diag("unknown mode in initialization\n%P", p);
+			diag("unknown mode in initialization\n%P\n", p);
 			break;
 
 		case D_FCONST:
@@ -643,7 +643,7 @@ datblk(long s, long n)
 			cast = (char*)&d;
 			switch(c) {
 			default:
-				diag("bad nuxi %d %d\n%P", c, i, curp);
+				diag("bad nuxi %d %d\n%P\n", c, i, curp);
 				break;
 			case 1:
 				for(; i<c; i++) {
@@ -696,7 +696,7 @@ opas(int a)
 	case AJMPF:	return BJMPF;
 	case AJMPT:	return BJMPT;
 	}
-	diag("bad opas %A", a);
+	diag("bad opas %A\n", a);
 	return 0;
 }
 
@@ -715,7 +715,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	a = p->as;
 	switch(o->type) {
 	default:
-		diag("unknown type %d\n%P", o->type, p);
+		diag("unknown type %d\n%P\n", o->type, p);
 		break;
 
 	case 0:		/* pseudo ops */
@@ -1210,7 +1210,7 @@ oprrr(int a, int rb, int ra, int rc)
 
 	switch(a) {
 	default:
-		diag("bad oprrr %A", a);
+		diag("bad oprrr %A\n", a);
 	case AMOVL:	o = 0x00<<24; break;
 
 	case AADDL:	o = 0x14<<24; break;
@@ -1293,22 +1293,22 @@ opmem(int m, int a, int ir, int r)
 
 	switch(a) {
 	default:
-		diag("bad opmem %A", a);
+		diag("bad opmem %A\n", a);
 	case ALOADSET:
 		if(m != BLOAD)
-			diag("bad loadset code %A", a);
+			diag("bad loadset code %A\n", a);
 		o = 0x00<<16;
 		m = BLOADSET;
 		break;
 	case ALOADM:
 		if(m != BLOAD)
-			diag("bad loadm code %A", a);
+			diag("bad loadm code %A\n", a);
 		o = 0x00<<16;
 		m = BLOADM;
 		break;
 	case ASTOREM:
 		if(m != BSTORE)
-			diag("bad storem code %A", a);
+			diag("bad storem code %A\n", a);
 		o = 0x00<<16;
 		m = BSTOREM;
 		break;

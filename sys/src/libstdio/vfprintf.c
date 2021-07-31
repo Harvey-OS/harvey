@@ -553,6 +553,5 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 		putc(' ', f);
 		nout++;
 	}
-	freedtoa(digits);
 	return nout;
 }

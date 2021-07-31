@@ -180,7 +180,3 @@ enum {
 	NAMELEN = 28,
 	ERRLEN = 64
 };
-
-/* DES */
-void	key_setup(char key[DESKEYLEN], char expandedkey[128]);
-void	block_cipher(char expandedkey[128], char buf[8], int decrypting);

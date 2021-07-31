@@ -1730,7 +1730,6 @@ gtime(Dosdir *dp)
 	tm.mday = i & 31;
 	tm.zone[0] = '\0';
 	tm.tzoff = 0;
-	tm.yday = 0;
 
 	return tm2sec(&tm);
 }

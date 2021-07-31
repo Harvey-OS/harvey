@@ -295,10 +295,9 @@ char *name;
 		}
 	return -1;
 }
-Readdir(f, p, onlydirs)
+Readdir(f, p)
 register int f;
 register char *p;
-register int onlydirs;	/* ignored, just advisory */
 {
 	struct direct *dp=readdir(dirlist[f]);
 	if(dp==0) return 0;

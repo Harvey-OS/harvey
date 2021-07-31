@@ -47,7 +47,8 @@ Biobuf	bin;
 void
 main(int argc, char *argv[])
 {
-	int i;
+	int i, fd;
+	char buf[64];
 
 	Binit(&bin, 1, OWRITE);
 	ARGBEGIN{
@@ -71,8 +72,13 @@ main(int argc, char *argv[])
 	quotefmtinstall();
 	fmtinstall('M', dirmodefmt);
 
-	if(lflag)
-		clk = time(0);
+	if(lflag){
+		fd = open("/dev/time", OREAD);
+		if(fd<0 || read(fd, buf, sizeof buf-1)<=0)
+			fprint(2, "ls: can't open /dev/time\n");
+		close(fd);
+		clk = strtoul(buf, 0, 0);
+	}
 	if(argc == 0)
 		errs = ls(".", 0);
 	else for(i=0; i<argc; i++)

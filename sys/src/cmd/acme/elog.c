@@ -218,7 +218,7 @@ elogapply(File *f)
 	Buflog b;
 	Rune *buf;
 	uint i, n, up, mod;
-	uint q0, q1, tq0, tq1;
+	uint q0, q1;
 	Buffer *log;
 	Text *t;
 
@@ -236,12 +236,6 @@ elogapply(File *f)
 	 */
 	q0 = t->q0;
 	q1 = t->q1;
-	/*
-	 * We constrain the addresses in here (with textconstrain()) because
-	 * overlapping changes will generate bogus addresses.   We will warn
-	 * about changes out of sequence but proceed anyway; here we must
-	 * keep things in range.
-	 */
 
 	while(log->nc > 0){
 		up = log->nc-Buflogsize;
@@ -257,15 +251,14 @@ elogapply(File *f)
 				mod = TRUE;
 				filemark(f);
 			}
-			textconstrain(t, b.q0, b.q0+b.nd, &tq0, &tq1);
-			textdelete(t, tq0, tq1, TRUE);
+			textdelete(t, b.q0, b.q0+b.nd, TRUE);
 			up -= b.nr;
 			for(i=0; i<b.nr; i+=n){
 				n = b.nr - i;
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
 				bufread(log, up+i, buf, n);
-				textinsert(t, tq0+i, buf, n, TRUE);
+				textinsert(t, b.q0+i, buf, n, TRUE);
 			}
 			break;
 
@@ -274,8 +267,7 @@ elogapply(File *f)
 				mod = TRUE;
 				filemark(f);
 			}
-			textconstrain(t, b.q0, b.q0+b.nd, &tq0, &tq1);
-			textdelete(t, tq0, tq1, TRUE);
+			textdelete(t, b.q0, b.q0+b.nd, TRUE);
 			break;
 
 		case Insert:
@@ -283,14 +275,13 @@ elogapply(File *f)
 				mod = TRUE;
 				filemark(f);
 			}
-			textconstrain(t, b.q0, b.q0, &tq0, &tq1);
 			up -= b.nr;
 			for(i=0; i<b.nr; i+=n){
 				n = b.nr - i;
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
 				bufread(log, up+i, buf, n);
-				textinsert(t, tq0+i, buf, n, TRUE);
+				textinsert(t, b.q0+i, buf, n, TRUE);
 			}
 			break;
 
@@ -312,26 +303,10 @@ elogapply(File *f)
 		bufdelete(log, up, log->nc);
 	}
 	fbuffree(buf);
-	if(warned){
-		/*
-		 * Changes were out of order, so the q0 and q1
-		 * computed while generating those changes are not
-		 * to be trusted.
-		 */
-		q1 = min(q1, f->nc);
-		q0 = min(q0, q1);
-	}
 	elogterm(f);
-
-	/*
-	 * Bad addresses will cause bufload to crash, so double check.
-	 */
-	if(q0 > f->nc || q1 > f->nc || q0 > q1){
-		warning(nil, "elogapply: can't happen %d %d %d\n", q0, q1, f->nc);
-		q1 = min(q1, f->nc);
-		q0 = min(q0, q1);
-	}
 
 	t->q0 = q0;
 	t->q1 = q1;
+	if(t->q1 > f->nc)	/* can't happen */
+		t->q1 = f->nc;
 }

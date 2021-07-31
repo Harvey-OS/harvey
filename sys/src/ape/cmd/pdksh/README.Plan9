@@ -22,4 +22,3 @@ March 2000
 	bind pdksh over rc for use in mk,
 	a dubious justification.
 
-31 Dec 2002: rsc: Killed all ifdefs.

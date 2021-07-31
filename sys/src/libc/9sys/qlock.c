@@ -99,8 +99,7 @@ qunlock(QLock *q)
 int
 canqlock(QLock *q)
 {
-	if(!canlock(&q->lock))
-		return 0;
+	lock(&q->lock);
 	if(!q->locked){
 		q->locked = 1;
 		unlock(&q->lock);

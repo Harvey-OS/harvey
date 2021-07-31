@@ -85,7 +85,7 @@ loop:
 		Bprint(&bso, "%5.2f span %d\n", cputime(), n);
 	Bflush(&bso);
 	if(n > 60) {
-		diag("span must be looping");
+		diag("span must be looping\n");
 		errorexit();
 	}
 	c = INITTEXT;

@@ -22,6 +22,7 @@ static HttpObj	objs[MaxObjs];
 
 static	void		dolisten(void*);
 static	int		estats(HConnect *c);
+static	int		darenas(HConnect *c);
 static	int		dindex(HConnect *c);
 static	int		xindex(HConnect *c);
 static	int		sindex(HConnect *c);
@@ -102,7 +103,7 @@ dolisten(void *vaddress)
 		 */
 		nctl = listen(dir, ndir);
 		if(nctl < 0){
-			fprint(2, "venti: httpd can't listen on %s: %r\n", address);
+			fprint(2, "venti: httpd can't listen on %s: %r\m", address);
 			return;
 		}
 
@@ -212,7 +213,7 @@ preqtext(HConnect *c)
 	return 1;
 }
 
-static int
+static
 notfound(HConnect *c)
 {
 	int r;

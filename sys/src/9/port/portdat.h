@@ -124,15 +124,10 @@ enum
 	CCACHE	= 0x0080,		/* client cache */
 };
 
-/* flag values */
 enum
 {
 	BINTR	=	(1<<0),
 	BFREE	=	(1<<1),
-	Bipck	=	(1<<2),		/* ip checksum */
-	Budpck	=	(1<<3),		/* udp checksum */
-	Btcpck	=	(1<<4),		/* tcp checksum */
-	Bpktck	=	(1<<5),		/* packet checksum */
 };
 
 struct Block
@@ -142,10 +137,9 @@ struct Block
 	uchar*	rp;			/* first unconsumed byte */
 	uchar*	wp;			/* first empty byte */
 	uchar*	lim;			/* 1 past the end of the buffer */
-	uchar*	base;			/* start of the buffer */
+	uchar*	base;		/* start of the buffer */
 	void	(*free)(Block*);
-	ushort	flag;
-	ushort	checksum;		/* IP checksum of complete packet (minus media header) */
+	ulong	flag;
 };
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)

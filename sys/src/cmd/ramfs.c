@@ -13,7 +13,7 @@
 enum
 {
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
-	Nram	= 2048,
+	Nram	= 512,
 	Maxsize	= 512*1024*1024,
 	Maxfdata	= 8192,
 };
@@ -684,7 +684,6 @@ rwstat(Fid *f)
 uint
 ramstat(Ram *r, uchar *buf, uint nbuf)
 {
-	int n;
 	Dir dir;
 
 	dir.name = r->name;
@@ -696,10 +695,7 @@ ramstat(Ram *r, uchar *buf, uint nbuf)
 	dir.muid = r->muid;
 	dir.atime = r->atime;
 	dir.mtime = r->mtime;
-	n = convD2M(&dir, buf, nbuf);
-	if(n > 2)
-		return n;
-	return 0;
+	return convD2M(&dir, buf, nbuf);
 }
 
 Fid *

@@ -313,8 +313,6 @@ exslave(void *)
 	char *volatile err;
 	int n, ed;
 
-	while(waserror())
-		fprint(2, "exslave %d errored out of loop -- heading back in!\n", getpid());
 	ed = errdepth(-1);
 	for(;;){
 		errdepth(ed);
@@ -416,7 +414,6 @@ exslave(void *)
 		exfree(q->export);
 		free(q);
 
-		rendclearintr();
 		lock(&exq.l);
 		exq.nwaiters++;
 		unlock(&exq.l);

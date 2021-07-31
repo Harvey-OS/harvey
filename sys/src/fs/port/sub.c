@@ -1,6 +1,14 @@
 #include	"all.h"
 #include	"io.h"
 
+enum {
+	/*
+	 * set to non-0 to prevent all writes;
+	 * mainly for trying dangerous experiments.
+	 */
+	Readonly = 0,
+};
+
 Filsys*
 fsstr(char *p)
 {
@@ -1109,11 +1117,7 @@ devwrite(Device *d, long b, void *c)
 {
 	int e;
 
-	/*
-	 * set readonly to non-0 to prevent all writes;
-	 * mainly for trying dangerous experiments.
-	 */
-	if (readonly)
+	if (Readonly)
 		return 0;
 loop:
 	switch(d->type)

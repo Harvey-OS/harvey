@@ -31,7 +31,7 @@ install:V: $TARGET
 	cp $TARGET /$objtype
 
 clean nuke:V:
-	rm -f *.$O $TARGET
+	rm *.$O $TARGET
 
 %.$O:	%.s
 	$AS $stem.s

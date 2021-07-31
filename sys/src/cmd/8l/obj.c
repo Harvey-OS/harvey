@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 	} ARGEND
 	USED(argc);
 	if(*argv == 0) {
-		diag("usage: 8l [-options] objects");
+		diag("usage: 8l [-options] objects\n");
 		errorexit();
 	}
 	if(!debug['9'] && debug['r']) {
@@ -161,7 +161,7 @@ main(int argc, char *argv[])
 	Bflush(&bso);
 	for(i=1; optab[i].as; i++)
 		if(i != optab[i].as) {
-			diag("phase error in optab: %d", i);
+			diag("phase error in optab: %d\n", i);
 			errorexit();
 		}
 	maxop = i;
@@ -234,7 +234,7 @@ main(int argc, char *argv[])
 	dtype = 4;
 	cout = create(outfile, 1, 0775);
 	if(cout < 0) {
-		diag("cannot create %s", outfile);
+		diag("cannot create %s\n", outfile);
 		errorexit();
 	}
 	version = 0;
@@ -347,7 +347,7 @@ objfile(char *file)
 	Bflush(&bso);
 	f = open(file, 0);
 	if(f < 0) {
-		diag("cannot open file: %s", file);
+		diag("cannot open file: %s\n", file);
 		errorexit();
 	}
 	l = read(f, magbuf, SARMAG);
@@ -362,11 +362,11 @@ objfile(char *file)
 
 	l = read(f, &arhdr, SAR_HDR);
 	if(l != SAR_HDR) {
-		diag("%s: short read on archive file symbol header", file);
+		diag("%s: short read on archive file symbol header\n", file);
 		goto out;
 	}
 	if(strncmp(arhdr.name, symname, strlen(symname))) {
-		diag("%s: first entry not symbol header", file);
+		diag("%s: first entry not symbol header\n", file);
 		goto out;
 	}
 
@@ -414,7 +414,7 @@ objfile(char *file)
 			l = atolwhex(arhdr.size);
 			ldobj(f, l, pname);
 			if(s->type == SXREF) {
-				diag("%s: failed to load: %s", file, s->name);
+				diag("%s: failed to load: %s\n", file, s->name);
 				errorexit();
 			}
 			work = 1;
@@ -424,7 +424,7 @@ objfile(char *file)
 	return;
 
 bad:
-	diag("%s: bad or out of date archive", file);
+	diag("%s: bad or out of date archive\n", file);
 out:
 	close(f);
 }
@@ -710,7 +710,7 @@ loop:
 	if(o <= AXXX || o >= ALAST) {
 		if(o < 0)
 			goto eof;
-		diag("%s: opcode out of range %d", pn, o);
+		diag("%s: opcode out of range %d\n", pn, o);
 		print("	probably not a .8 file\n");
 		errorexit();
 	}
@@ -807,7 +807,7 @@ loop:
 			s->value = 0;
 		}
 		if(s->type != SBSS) {
-			diag("%s: redefinition: %s in %s",
+			diag("%s: redefinition: %s in %s\n",
 				pn, s->name, TNAME);
 			s->type = SBSS;
 			s->value = 0;
@@ -818,7 +818,7 @@ loop:
 
 	case ADYNT:
 		if(p->to.sym == S) {
-			diag("DYNT without a sym\n%P", p);
+			diag("DYNT without a sym\n%P\n", p);
 			break;
 		}
 		di = p->to.sym;
@@ -836,7 +836,7 @@ loop:
 		p->from.offset = di->value;
 		p->from.sym->type = SDATA;
 		if(curtext == P) {
-			diag("DYNT not in text: %P", p);
+			diag("DYNT not in text: %P\n", p);
 			break;
 		}
 		p->to.sym = curtext->from.sym;
@@ -846,11 +846,11 @@ loop:
 
 	case AINIT:
 		if(p->from.sym == S) {
-			diag("INIT without a sym\n%P", p);
+			diag("INIT without a sym\n%P\n", p);
 			break;
 		}
 		if(di == S) {
-			diag("INIT without previous DYNT\n%P", p);
+			diag("INIT without previous DYNT\n%P\n", p);
 			break;
 		}
 		p->from.offset = di->value;
@@ -868,7 +868,7 @@ loop:
 		goto loop;
 
 	case AGOK:
-		diag("%s: GOK opcode in %s", pn, TNAME);
+		diag("%s: GOK opcode in %s\n", pn, TNAME);
 		pc++;
 		goto loop;
 
@@ -882,7 +882,7 @@ loop:
 		curtext = p;
 		s = p->from.sym;
 		if(s == S) {
-			diag("%s: no TEXT symbol: %P", pn, p);
+			diag("%s: no TEXT symbol: %P\n", pn, p);
 			errorexit();
 		}
 		if(s->type != 0 && s->type != SXREF) {
@@ -890,7 +890,7 @@ loop:
 				skip = 1;
 				goto casdef;
 			}
-			diag("%s: redefinition: %s\n%P", pn, s->name, p);
+			diag("%s: redefinition: %s\n%P\n", pn, s->name, p);
 		}
 		s->type = STEXT;
 		s->value = pc;
@@ -1016,7 +1016,7 @@ loop:
 	goto loop;
 
 eof:
-	diag("truncated object file: %s", pn);
+	diag("truncated object file: %s\n", pn);
 }
 
 Sym*
@@ -1108,7 +1108,7 @@ gethunk(void)
 	}
 	h = mysbrk(nh);
 	if(h == (char*)-1) {
-		diag("out of memory");
+		diag("out of memory\n");
 		errorexit();
 	}
 	hunk = h;
@@ -1188,7 +1188,7 @@ doprof2(void)
 	s2 = lookup("_profin", 0);
 	s4 = lookup("_profout", 0);
 	if(s2->type != STEXT || s4->type != STEXT) {
-		diag("_profin/_profout not defined");
+		diag("_profin/_profout not defined\n");
 		return;
 	}
 
@@ -1352,7 +1352,7 @@ ieeedtof(Ieee *e)
 		}
 	}
 	if(exp <= -126 || exp >= 130)
-		diag("double fp to single fp overflow");
+		diag("double fp to single fp overflow\n");
 	v |= ((exp + 126) & 0xffL) << 23;
 	v |= e->h & 0x80000000L;
 	return v;

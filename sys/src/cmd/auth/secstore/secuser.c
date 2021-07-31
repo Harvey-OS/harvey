@@ -121,7 +121,6 @@ main(int argc, char **argv)
 		tm->sec = 59;
 		tm->min = 59;
 		tm->hour = 23;
-		tm->yday = 0;
 		expsecs = tm2sec(tm);
 		break;
 	}

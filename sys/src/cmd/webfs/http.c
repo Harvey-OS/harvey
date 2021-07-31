@@ -342,8 +342,6 @@ httpclose(Client *c)
 	HttpState *hs;
 
 	hs = c->aux;
-	if(hs == nil)
-		return;
 	ioclose(c->io, hs->fd);
 	hs->fd = -1;
 	free(hs->location);

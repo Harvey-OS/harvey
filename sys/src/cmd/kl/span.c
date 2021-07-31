@@ -26,7 +26,7 @@ span(void)
 				continue;
 			}
 			if(p->as != ANOP)
-				diag("zero-width instruction\n%P", p);
+				diag("zero-width instruction\n%P\n", p);
 			continue;
 		}
 		c += m;
@@ -100,7 +100,7 @@ aclass(Adr *a)
 				break;
 			t = a->sym->type;
 			if(t == 0 || t == SXREF) {
-				diag("undefined external: %s in %s",
+				diag("undefined external: %s in %s\n",
 					a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
@@ -164,7 +164,7 @@ aclass(Adr *a)
 				break;
 			t = s->type;
 			if(t == 0 || t == SXREF) {
-				diag("undefined external: %s in %s",
+				diag("undefined external: %s in %s\n",
 					s->name, TNAME);
 				s->type = SDATA;
 			}
@@ -249,7 +249,7 @@ oplook(Prog *p)
 			p->optab = (o-optab)+1;
 			return o;
 		}
-	diag("illegal combination %A %d %d %d",
+	diag("illegal combination %A %d %d %d\n",
 		p->as, a1, a2, a3);
 	if(1||!debug['a'])
 		prasm(p);
@@ -377,7 +377,7 @@ buildop(void)
 		switch(r)
 		{
 		default:
-			diag("unknown op in build: %A", r);
+			diag("unknown op in build: %A\n", r);
 			errorexit();
 		case AADD:
 			oprange[AADDX] = oprange[r];

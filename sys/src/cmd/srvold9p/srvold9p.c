@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <auth.h>
 #include <fcall.h>
-#include <libsec.h>
 #include "9p1.h"
 
 char	*user;

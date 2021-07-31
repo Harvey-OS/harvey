@@ -189,9 +189,8 @@ cmd_statw(int, char*[])
 	/* print stats in terms of (first-)disc sides */
 	dsize = wormsizeside(dev, 0);
 	if (dsize < 1) {
-		if (DEBUG)
-			print("wormsizeside returned size %ld for %Z side 0\n",
-				dsize, dev);
+		print("wormsizeside returned a size of %ld for %Z side 0\n",
+			dsize, dev);	/* mainly debugging */
 		dsize = h->wsize;	/* it's probably a fake worm */
 		if (dsize < 1)
 			dsize = 1000;	/* don't divide by zero */

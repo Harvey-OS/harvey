@@ -285,7 +285,7 @@ diag(char *fmt, ...)
 	print("%s: %s\n", tn, buf);
 
 	nerrors++;
-	if(nerrors > 20) {
+	if(nerrors > 10) {
 		print("too many errors\n");
 		errorexit();
 	}

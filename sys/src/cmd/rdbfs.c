@@ -191,6 +191,10 @@ eiaread(void*)
 	notify(noalarm);
 	while(r = recvp(rchan)){
 		DBG(2, "got %F: here goes...", &r->ifcall);
+		if(r->ifcall.type == Tflush){
+			respond(r, nil);
+			continue;
+		}
 		if(r->ifcall.count > Readlen)
 			r->ifcall.count = Readlen;
 		r->ofcall.count = r->ifcall.count;
@@ -374,6 +378,13 @@ fswrite(Req *r)
 	}
 }
 
+void
+fsflush(Req *r)
+{
+	if(sendp(rchan, r) != 1)
+		respond(r, "rdbfs sendp failed");
+}
+
 struct {
 	char *s;
 	int id;
@@ -399,6 +410,7 @@ Srv fs = {
 .open=	fsopen,
 .read=	fsread,
 .write=	fswrite,
+.flush=	fsflush,
 .end=	killall,
 };
 

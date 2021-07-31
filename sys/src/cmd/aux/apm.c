@@ -925,7 +925,6 @@ flushthread(void*)
 				*rq = or->aux;
 				if(tailp==&or->aux)
 					tailp = rq;
-				respond(or, "flushed");
 				break;
 			}
 		}

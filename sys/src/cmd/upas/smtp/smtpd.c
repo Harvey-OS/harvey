@@ -5,7 +5,6 @@
 #include <mp.h>
 #include <libsec.h>
 #include <auth.h>
-#include "../smtp/y.tab.h"
 
 char	*me;
 char	*him="";
@@ -664,15 +663,6 @@ bprintnode(Biobuf *b, Node *p)
 	return p->end+1;
 }
 
-static String*
-getaddr(Node *p)
-{
-	for(; p; p = p->next)
-		if(p->s && p->addr)
-			return p->s;
-	return nil;
-}
-
 /*
  *  pipe message to mailer with the following transformations:
  *	- change \r\n into \n.
@@ -691,7 +681,6 @@ pipemsg(int *byteswritten)
 	int sawdot;
 	Field *f;
 	Node *p;
-	Link *l;
 
 	pipesig(&status);	/* set status to 1 on write to closed pipe */
 	sawdot = 0;
@@ -742,37 +731,10 @@ pipemsg(int *byteswritten)
 	yyparse();
 
 	/*
- 	 *  look for masquerades
+	 *  add an orginator if there isn't one
 	 */
-	if(fflag){
-		if(masquerade(senders.last->p, nil))
-			nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect envelope domain\n");
-		for(f = firstfield; f; f = f->next){
-			if(f->node->c == FROM && masquerade(getaddr(f->node), him))
-				nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect From: domain\n");
-			if(f->node->c == SENDER && masquerade(getaddr(f->node), him))
-				nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect Sender: domain\n");
-		}
-	}
-
-	/*
-	 *  add an orginator and/or destination if either is missing
-	 */
-	if(originator == 0){
-		if(senders.last == nil)
-			Bprint(pp->std[0]->fp, "From: /dev/null@%s\n", him);
-		else
-			Bprint(pp->std[0]->fp, "From: %s\n", s_to_c(senders.last->p));
-	}
-	if(destination == 0){
-		Bprint(pp->std[0]->fp, "To: ");
-		for(l = rcvers.first; l; l = l->next){
-			if(l != rcvers.first)
-				Bprint(pp->std[0]->fp, ", ");
-			Bprint(pp->std[0]->fp, "%s", s_to_c(l->p));
-		}
-		Bprint(pp->std[0]->fp, "\n");
-	}
+	if(originator == 0)
+		Bprint(pp->std[0]->fp, "From: /dev/null@%s\n", him);
 
 	/*
 	 *  add sender's domain to any domainless addresses

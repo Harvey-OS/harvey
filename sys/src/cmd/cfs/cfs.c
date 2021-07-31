@@ -323,11 +323,17 @@ rversion(void)
 void
 rauth(Mfile *mf)
 {
-	if(mf->busy)
-		error("auth to used channel");
+	Mfile *amf;
 
 	if(delegate() == 0){
-		mf->qid = s.rhdr.aqid;
+		if (c.thdr.afid != NOFID){
+			amf = &mfile[c.thdr.afid];
+			if(amf->busy)
+				error("rauth afid on used channel");
+			amf->qid = s.rhdr.aqid;
+			amf->busy = 1;
+		}
+		mf->qid = s.rhdr.qid;
 		mf->busy = 1;
 	}
 }

@@ -21,10 +21,9 @@ enum
 	Delay_control				= 0x08,
 	Bassboost_control			= 0x09,
 	Loudness_control			= 0x0a,
-	Mixer_control				= 0x0b,
-	/* Items below are defined by implementation: */
-	Channel_control			= 0x0c,
-	Resolution_control			= 0x0d,
+	/* Items below are define by implementation: */
+	Channel_control			= 0x0b,
+	Resolution_control			= 0x0c,
 	Ncontrol,
 	sampling_freq_control		= 0x01,
 };
@@ -121,7 +120,7 @@ struct Unit
 			Stream		*stream;		/* associated stream */
 		};
 
-		/* for feature and mixer units: */
+		/* for feature units: */
 		struct {
 			int			*hascontrol;	/* per-channel bitmasks */
 			uchar		*fdesc;		/* saved descriptor for second pass */
@@ -150,7 +149,6 @@ struct Nexus
 	Stream		*s;
 	Unit			*input;
 	Unit			*feat;
-	Unit			*mixer;
 	Unit			*output;
 	Audiocontrol	control[Ncontrol];
 	Nexus		*next;
