@@ -14,10 +14,8 @@ char Emip[] = "Mount in progress";
 char Enopsmt[] = "Out of pseudo mount points";
 char Enomem[] = "No memory";
 char Eversion[] = "Bad 9P2000 version";
-char Ereadonly[] = "File system read only";
 
 ulong messagesize;
-int readonly;
 
 void
 Xversion(Fsrpc *t)
@@ -293,11 +291,6 @@ Xcreate(Fsrpc *t)
 	Fid *f;
 	File *nf;
 
-	if(readonly) {
-		reply(&t->work, &rhdr, Ereadonly);
-		t->busy = 0;
-		return;
-	}
 	f = getfid(t->work.fid);
 	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
@@ -340,11 +333,6 @@ Xremove(Fsrpc *t)
 	Fcall rhdr;
 	Fid *f;
 
-	if(readonly) {
-		reply(&t->work, &rhdr, Ereadonly);
-		t->busy = 0;
-		return;
-	}
 	f = getfid(t->work.fid);
 	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
@@ -382,11 +370,6 @@ Xwstat(Fsrpc *t)
 	char *strings;
 	Dir d;
 
-	if(readonly) {
-		reply(&t->work, &rhdr, Ereadonly);
-		t->busy = 0;
-		return;
-	}
 	f = getfid(t->work.fid);
 	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
@@ -430,23 +413,8 @@ slave(Fsrpc *f)
 {
 	Proc *p;
 	int pid;
-	Fcall rhdr;
 	static int nproc;
 
-	if(readonly){
-		switch(f->work.type){
-		case Twrite:
-			reply(&f->work, &rhdr, Ereadonly);
-			f->busy = 0;
-			return;
-		case Topen:
-		  	if((f->work.mode&3) == OWRITE || (f->work.mode&OTRUNC)){
-				reply(&f->work, &rhdr, Ereadonly);
-				f->busy = 0;
-				return;
-			}
-		}
-	}
 	for(;;) {
 		for(p = Proclist; p; p = p->next) {
 			if(p->busy == 0) {

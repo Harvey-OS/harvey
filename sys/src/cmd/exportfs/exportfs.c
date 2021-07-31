@@ -49,7 +49,6 @@ char	*filterp;
 char	*ealgs = "rc4_256 sha1";
 char	*aanfilter = "/bin/aan";
 int	encproto = Encnone;
-int	readonly;
 
 static void	mksecret(char *, uchar *);
 static int localread9pmsg(int, void *, uint, ulong *);
@@ -59,8 +58,7 @@ int	filter(int, char *);
 void
 usage(void)
 {
-	fprint(2, "usage:	%s [-ads] [-f dbgfile] [-m msize] [-r root] [-S srvfile] [-e 'crypt hash'] [-A announce-string]\n", argv0);
-	fprint(2, "	%s -B address\n", argv0);
+	fprint(2, "usage: %s [-ads] [-f dbgfile] [-m msize] [-r root] [-S srvfile] [-e 'crypt hash'] [-A announce-string]\n", argv0);
 	fatal("usage");
 }
 
@@ -69,15 +67,14 @@ main(int argc, char **argv)
 {
 	char buf[ERRMAX], ebuf[ERRMAX];
 	Fsrpc *r;
-	int n, fd;
-	char *dbfile, *srv, *file, *na;
+	int n;
+	char *dbfile, *srv, *file;
 	AuthInfo *ai;
 	ulong initial;
 
 	dbfile = "/tmp/exportdb";
 	srv = nil;
 	srvfd = -1;
-	na = 0;
 
 	ai = nil;
 	ARGBEGIN{
@@ -132,10 +129,6 @@ main(int argc, char **argv)
 		messagesize = strtoul(EARGF(usage()), nil, 0);
 		break;
 
-	case 'n':
-		nonone = 0;
-		break;
-
 	case 'r':
 		srv = EARGF(usage());
 		break;
@@ -152,34 +145,10 @@ main(int argc, char **argv)
 		anstring = EARGF(usage());
 		break;
 
-	case 'R':
-		readonly = 1;
-		break;
-
-	case 'B':
-		na = EARGF(usage());
-		break;
-
 	default:
 		usage();
 	}ARGEND
 	USED(argc, argv);
-
-	if(na){
-		if(srv == nil)
-			sysfatal("-B requires -s");
-
-		if((fd = dial(netmkaddr(na, 0, "importfs"), 0, 0, 0)) < 0)
-			sysfatal("can't dial %s: %r", na);
-	
-		ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client");
-		if(ai == nil)
-			sysfatal("%r: %s", na);
-
-		dup(fd, 0);
-		dup(fd, 1);
-		close(fd);
-	}
 
 	exclusions();
 
@@ -241,7 +210,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	DEBUG(DFD, "\niniting root\n");
+	DEBUG(DFD, "initing root\n");
 	initroot();
 
 	DEBUG(DFD, "exportfs: %s\n", buf);
