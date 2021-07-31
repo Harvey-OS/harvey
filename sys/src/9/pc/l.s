@@ -756,13 +756,8 @@ _aamloop:
  * FNxxx variations) so WAIT instructions must be explicitly placed in the
  * code as necessary.
  */
-#define	FPOFF(l)						 ;\
-	MOVL	CR0, AX 					 ;\
-	ANDL	$0xC, AX			/* EM, TS */	 ;\
-	CMPL	AX, $0x8					 ;\
-	JEQ 	l						 ;\
+#define	FPOFF							 ;\
 	WAIT							 ;\
-l:								 ;\
 	MOVL	CR0, AX						 ;\
 	ANDL	$~0x4, AX			/* EM=0 */	 ;\
 	ORL	$0x28, AX			/* NE=1, TS=1 */ ;\
@@ -774,7 +769,7 @@ l:								 ;\
 	MOVL	AX, CR0
 	
 TEXT fpoff(SB), $0				/* disable */
-	FPOFF(l1)
+	FPOFF
 	RET
 
 TEXT fpinit(SB), $0				/* enable and init */
@@ -790,9 +785,9 @@ TEXT fpinit(SB), $0				/* enable and init */
 	RET
 
 TEXT fpx87save(SB), $0				/* save state and disable */
-	MOVL	p+0(FP), AX
+	MOVL	p+0(FP), AX			/* points to pointer */
 	FSAVE	0(AX)				/* no WAIT */
-	FPOFF(l2)
+	FPOFF
 	RET
 
 TEXT fpx87restore(SB), $0			/* enable and restore state */
@@ -814,13 +809,13 @@ TEXT fpenv(SB), $0				/* save state without waiting */
 TEXT fpclear(SB), $0				/* clear pending exceptions */
 	FPON
 	FCLEX					/* no WAIT */
-	FPOFF(l3)
+	FPOFF
 	RET
 
 TEXT fpssesave0(SB), $0				/* save state and disable */
 	MOVL	p+0(FP), AX
 	FXSAVE					/* no WAIT */
-	FPOFF(l4)
+	FPOFF
 	RET
 
 TEXT fpsserestore0(SB), $0			/* enable and restore state */
