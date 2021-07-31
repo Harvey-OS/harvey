@@ -140,7 +140,7 @@ sysrfork(ulong *arg)
 		incref(p->pgrp);
 	}
 	if(flag & RFNOMNT)
-		p->pgrp->noattach = 1;
+		up->pgrp->noattach = 1;
 
 	if(flag & RFREND)
 		p->rgrp = newrgrp();

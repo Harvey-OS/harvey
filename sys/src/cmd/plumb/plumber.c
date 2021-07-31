@@ -15,7 +15,6 @@ Ruleset **rules;
 int	printerrors=1;
 jmp_buf	parsejmp;
 char	*lasterror;
-int mainstacksize = 20*1024;
 
 void
 makeports(Ruleset *rules[])

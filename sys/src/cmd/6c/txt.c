@@ -1,7 +1,5 @@
 #include "gc.h"
 
-static	int	resvreg[nelem(reg)];
-
 void
 ginit(void)
 {
@@ -96,7 +94,6 @@ ginit(void)
 	if(0)
 		com64init();
 
-	memset(reg, 0, sizeof(reg));
 	for(i=0; i<nelem(reg); i++) {
 		reg[i] = 1;
 		if(i >= D_AX && i <= D_R15 && i != D_SP)
@@ -104,10 +101,6 @@ ginit(void)
 		if(i >= D_X0 && i <= D_X7)
 			reg[i] = 0;
 	}
-	/* keep two external registers */
-	reg[REGEXT] = 1;
-	reg[REGEXT-1] = 1;
-	memmove(resvreg, reg, sizeof(resvreg));
 }
 
 void
@@ -118,10 +111,10 @@ gclean(void)
 
 	reg[D_SP]--;
 	for(i=D_AX; i<=D_R15; i++)
-		if(reg[i] && !resvreg[i])
+		if(reg[i])
 			diag(Z, "reg %R left allocated", i);
 	for(i=D_X0; i<=D_X7; i++)
-		if(reg[i] && !resvreg[i])
+		if(reg[i])
 			diag(Z, "reg %R left allocated", i);
 	while(mnstring)
 		outstring("", 1L);
@@ -186,7 +179,7 @@ nareg(void)
 
 	n = 0;
 	for(i=D_AX; i<=D_R15; i++)
-		if(reg[i] == 0 && !resvreg[i])
+		if(reg[i] == 0)
 			n++;
 	return n;
 }
@@ -344,7 +337,7 @@ regalloc(Node *n, Node *tn, Node *o)
 				goto out;
 		}
 		for(i=D_AX; i<=D_R15; i++)
-			if(reg[i] == 0 && !resvreg[i])
+			if(reg[i] == 0)
 				goto out;
 		diag(tn, "out of fixed registers");
 		goto err;
@@ -357,7 +350,7 @@ regalloc(Node *n, Node *tn, Node *o)
 				goto out;
 		}
 		for(i=D_X0; i<=D_X7; i++)
-			if(reg[i] == 0 && !resvreg[i])
+			if(reg[i] == 0)
 				goto out;
 		diag(tn, "out of float registers");
 		goto out;
