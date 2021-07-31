@@ -1,4 +1,5 @@
-The version of /lib/unicode is from Unicode 2.0, so it's somewhat dated.
+The version of /lib/unicode is from Unicode 2.0.  Unicode 3.0
+is now available, but has not been integrated into Plan 9.
 
 The Unicode Character Database is provided as is by Unicode, Inc. No claims   
 are made as to fitness for any particular purpose. No warranties of any kind are   
