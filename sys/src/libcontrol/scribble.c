@@ -75,16 +75,13 @@ scribmouse(Control *c, Mouse *m)
 			resetstroke(b);
 		}
 		/* mouse is down */
-		if (ptinrect(m->xy,b->rect))
-			addpoint(b, m->xy);
+		addpoint(b, m->xy);
 	} else if (b->lastbut & 0x1) {
 		/* mouse went up */
-		if (ptinrect(m->xy,b->rect)) {
-			r = recognize(b->scrib);
-			scribchar(b, r);
-			scribshow(b);
-			if (r) chanprint(b->event, b->format, b->name, r);
-		}
+		r = recognize(b->scrib);
+		scribchar(b, r);
+		scribshow(b);
+		if (r) chanprint(b->event, b->format, b->name, r);
 	}
 	b->lastbut = m->buttons;
 }
