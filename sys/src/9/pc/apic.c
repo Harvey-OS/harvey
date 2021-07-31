@@ -100,14 +100,12 @@ struct
 static ulong
 lapicr(int r)
 {
-	assert(lapicbase != 0);
 	return *(lapicbase+(r/sizeof(*lapicbase)));
 }
 
 static void
 lapicw(int r, ulong data)
 {
-	assert(lapicbase != 0);
 	*(lapicbase+(r/sizeof(*lapicbase))) = data;
 	data = *(lapicbase+(LapicID/sizeof(*lapicbase)));
 	USED(data);
@@ -158,7 +156,6 @@ lapictimerinit(void)
 					lapictimer.hz, hz);
 			lapictimer.hz = hz;
 		}
-		assert(lapictimer.hz != 0);
 		lapictimer.div = hz/lapictimer.hz;
 	}
 }
@@ -375,8 +372,6 @@ lapictimerset(uvlong next)
 	period = lapictimer.max;
 	if(next != 0){
 		period = next - fastticks(nil);
-		if (lapictimer.div == 0)
-			panic("lapictimerset: zero lapictimer.div");
 		period /= lapictimer.div;
 
 		if(period < lapictimer.min)

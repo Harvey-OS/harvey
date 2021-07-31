@@ -61,7 +61,7 @@ link
 	usbehci		usbehcipc
 
 misc
-	archmp		mp apic mpacpi
+	archmp		mp apic
 	mtrr
 
 	uarti8250
