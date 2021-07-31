@@ -589,9 +589,7 @@ aoertopctl(SDev *s, char *p, char *e)
 {
 	Ctlr *c;
 
-	if(s == nil || (c = s->ctlr) == nil)
-		return p;
-
+	c = s->ctlr;
 	return seprint(p, e, "%s aoe %s\n", s->name, c->path);
 }
 
