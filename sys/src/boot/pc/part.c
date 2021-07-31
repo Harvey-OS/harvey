@@ -152,53 +152,88 @@ isextend(int t)
 static int
 mbrpart(SDunit *unit)
 {
+	ulong mbroffset;
 	Dospart *dp;
-	ulong taboffset, start, end;
-	ulong firstxpart, nxtxpart;
+	ulong start, end;
+	ulong epart, outer, inner;
 	int havedos, i, nplan9;
 	char name[10];
 
-	taboffset = 0;
-	dp = (Dospart*)&mbrbuf[0x1BE];
-	if(1) {
-		/* get the MBR (allowing for DMDDO) */
-		if(tsdbio(unit, &unit->part[0], mbrbuf, (vlong)taboffset*unit->secsize, 1) < 0)
-			return -1;
-		for(i=0; i<4; i++)
-			if(dp[i].type == DMDDO) {
-				if(trace)
-					print("DMDDO partition found\n");
-				taboffset = 63;
-				if(tsdbio(unit, &unit->part[0], mbrbuf, (vlong)taboffset*unit->secsize, 1) < 0)
-					return -1;
-				i = -1;	/* start over */
-			}
-	}
+	if(tsdbio(unit, &unit->part[0], mbrbuf, 0, 1) < 0)
+		return -1;
 
-	/*
-	 * Read the partitions, first from the MBR and then
-	 * from successive extended partition tables.
-	 */
+	mbroffset = 0;
+	dp = (Dospart*)&mbrbuf[0x1BE];
+	for(i=0; i<4; i++, dp++)
+		if(dp->type == DMDDO) {
+			mbroffset = 63*512;
+			if(trace)
+				print("DMDDO partition found\n");
+			if(tsdbio(unit, &unit->part[0], mbrbuf, mbroffset, 1) < 0)
+				return -1;
+			i = -1;	/* start over */
+		}
+
 	nplan9 = 0;
 	havedos = 0;
-	firstxpart = 0;
-	for(;;) {
-		if(tsdbio(unit, &unit->part[0], mbrbuf, (vlong)taboffset*unit->secsize, 1) < 0)
-			return -1;
-		if(trace) {
-			if(firstxpart)
-				print("%s ext %lud ", unit->name, taboffset);
-			else
-				print("%s mbr ", unit->name);
-		}
-		nxtxpart = 0;
-		for(i=0; i<4; i++) {
-			if(trace)
-				print("dp %d...", dp[i].type);
-			start = taboffset+GLONG(dp[i].start);
-			end = start+GLONG(dp[i].len);
+	epart = 0;
+	dp = (Dospart*)&mbrbuf[0x1BE];
+	if(trace)
+		print("%s mbr ", unit->name);
+	for(i=0; i<4; i++, dp++) {
+		if(trace)
+			print("dp %d...", dp->type);
+		start = mbroffset/512+GLONG(dp->start);
+		end = start+GLONG(dp->len);
 
-			if(dp[i].type == PLAN9) {
+		if(dp->type == PLAN9) {
+			if(nplan9 == 0)
+				strcpy(name, "plan9");
+			else
+				sprint(name, "plan9.%d", nplan9);
+			sdaddpart(unit, name, start, end);
+			p9part(unit, name);
+			nplan9++;
+		}
+
+		/*
+		 * We used to take the active partition (and then the first
+		 * when none are active).  We have to take the first here,
+		 * so that the partition we call ``dos'' agrees with the
+		 * partition disk/fdisk calls ``dos''. 
+		 */
+		if(havedos==0 && isdos(dp->type)){
+			havedos = 1;
+			sdaddpart(unit, "dos", start, end);
+		}
+		if(isextend(dp->type)){
+			epart = start;
+			if(trace)
+				print("link %lud...", epart);
+		}
+	}
+	if(trace)
+		print("\n");
+
+	/*
+	 * Search through the chain of extended partition tables.
+	 */
+	outer = epart;
+	while(epart != 0) {
+		if(trace)
+			print("%s ext %lud ", unit->name, epart);
+		if(tsdbio(unit, &unit->part[0], mbrbuf, (vlong)epart*unit->secsize, 1) < 0)
+			break;
+		inner = epart;
+		epart = 0;
+		dp = (Dospart*)&mbrbuf[0x1BE];
+		for(i=0; i<4; i++, dp++) {
+			if(trace)
+				print("dp %d...", dp->type);
+			start = GLONG(dp->start);
+			if(dp->type == PLAN9){
+				start += inner;
+				end = start+GLONG(dp->len);
 				if(nplan9 == 0)
 					strcpy(name, "plan9");
 				else
@@ -207,34 +242,22 @@ mbrpart(SDunit *unit)
 				p9part(unit, name);
 				nplan9++;
 			}
-
-			/*
-			 * We used to take the active partition (and then the first
-			 * when none are active).  We have to take the first here,
-			 * so that the partition we call ``dos'' agrees with the
-			 * partition disk/fdisk calls ``dos''. 
-			 */
-			if(havedos==0 && isdos(dp[i].type)){
+			if(havedos==0 && isdos(dp->type)){
+				start += inner;
+				end = start+GLONG(dp->len);
 				havedos = 1;
 				sdaddpart(unit, "dos", start, end);
 			}
-
-			/* nxtxpart is relative to firstxpart (or 0), not taboffset */
-			if(isextend(dp[i].type)){
-				nxtxpart = start-taboffset+firstxpart;
+			if(isextend(dp->type)){
+				epart = start + outer;
 				if(trace)
-					print("link %lud...", nxtxpart);
+					print("link %lud...", epart);
 			}
 		}
 		if(trace)
 			print("\n");
-
-		if(!nxtxpart)
-			break;
-		if(!firstxpart)
-			firstxpart = nxtxpart;
-		taboffset = nxtxpart;
-	}	
+	}
+		
 	return nplan9 ? 0 : -1;
 }
 

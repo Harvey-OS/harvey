@@ -12,12 +12,13 @@ OFILES=\
 HFILES=dat.h
 LIB=
 
-BIN=/acme/bin/$objtype
+BIN=../$objtype
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
+	${TARG:%=/acme/mail/386/%}\
 
 </sys/src/cmd/mkone
 

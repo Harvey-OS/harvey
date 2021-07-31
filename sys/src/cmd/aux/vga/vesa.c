@@ -285,7 +285,7 @@ unfarptr(Vbe *vbe, uchar *p)
 	off = WORD(p);
 	if(seg==0 && off==0)
 		return nil;
-	off += seg<<4;
+	off += seg;
 	if(off >= MemSize)
 		return nil;
 	loadpage(vbe, off/PageSize);
@@ -334,10 +334,8 @@ vbecheck(Vbe *vbe)
 	strcpy((char*)p, "VBE2");
 	if(vbecall(vbe, &u) < 0)
 		return -1;
-	if(memcmp(p, "VESA", 4) != 0 || p[5] < 2){
-		werrstr("invalid vesa signature %.4H %.4H\n", p, p+4);
+	if(memcmp(p, "VESA", 4) != 0 || p[5] < 2)
 		return -1;
-	}
 	return 0;
 }
 
