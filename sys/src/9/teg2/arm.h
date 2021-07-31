@@ -51,6 +51,8 @@
 
 /*
  * Coprocessors
+ *	MCR	coproc, opcode1, Rd, CRn, CRm[, opcode2]	# arm -> coproc
+ *	MRC	coproc, opcode1, Rd, CRn, CRm[, opcode2]	# coproc -> arm
  */
 #define CpOFPA		1			/* ancient 7500 FPA */
 #define CpFP		10			/* float FP, VFP cfg. */
