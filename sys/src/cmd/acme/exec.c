@@ -1020,27 +1020,18 @@ incl(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 	}
 }
 
-enum {
-	IGlobal = -2,
-	IError = -1,
-	Ion = 0,
-	Ioff = 1,
-};
-
-static int
-indentval(Rune *s, int n)
-{
+static int indentval(Rune *s, int n){
 	if(n < 2)
-		return IError;
+		return -1;
 	if(runestrncmp(s, L"ON", n) == 0){
 		globalautoindent = TRUE;
 		warning(nil, "Indent ON\n");
-		return IGlobal;
+		return -2;
 	}
 	if(runestrncmp(s, L"OFF", n) == 0){
 		globalautoindent = FALSE;
 		warning(nil, "Indent OFF\n");
-		return IGlobal;
+		return -2;
 	}
 	return runestrncmp(s, L"on", n) == 0;
 }
@@ -1051,11 +1042,12 @@ indent(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 	Rune *a, *r;
 	Window *w;
 	int na, len, autoindent;
+	char *result;
 
-	w = nil;
-	if(et!=nil && et->w!=nil)
-		w = et->w;
-	autoindent = IError;
+	if(et==nil || et->w==nil)
+		return;
+	w = et->w;
+	autoindent = -1;
 	getarg(argt, FALSE, TRUE, &r, &len);
 	if(r!=nil && len>0)
 		autoindent = indentval(r, len);
@@ -1064,16 +1056,16 @@ indent(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 		if(a != arg)
 			autoindent = indentval(arg, narg-na);
 	}
-	if(w != nil){
-		switch(autoindent){
-		case Ion:
-		case Ioff:
-			w->autoindent = autoindent;
-			break;
-		case IGlobal:
-			w->autoindent = globalautoindent;
-			break;
-		}
+	if(autoindent >= 0)
+		w->autoindent = autoindent;
+	if(autoindent != -2){
+		result = "off";
+		if(w->autoindent)
+			result = "on";
+		if(w->body.file->nname)
+			warning(nil, "%.*S: Indent %s\n", w->body.file->nname, w->body.file->name, result);
+		else
+			warning(nil, "Indent %s\n", result);
 	}
 }
 
