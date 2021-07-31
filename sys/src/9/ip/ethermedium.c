@@ -163,7 +163,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	/*
 	 *  get mac address and speed
 	 */
-	snprint(addr, sizeof(addr), "%s/stats", argv[2]);
+	snprint(addr, sizeof(addr), "%s/stats", dir);
 	buf = smalloc(512);
 	schan = namec(addr, Aopen, OREAD, 0);
 	if(waserror()){
