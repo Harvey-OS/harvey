@@ -94,11 +94,5 @@ char*	anames[] =
 	"BXRET",
 	"DWORD",
 	"SIGNAME",
-	"SQRTF",
-	"SQRTD",
-	"LDREX",
-	"STREX",
-	"LDREXD",
-	"STREXD",
 	"LAST",
 };

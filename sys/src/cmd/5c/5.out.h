@@ -25,7 +25,6 @@
 #define	NFREG		8
 #define	FREGRET		0
 #define	FREGEXT		7
-#define	FREGTMP		15
 /* compiler allocates register variables F0 up */
 /* compiler allocates external registers F7 down */
 
@@ -93,8 +92,6 @@ enum	as
 	AMULD,
 	ADIVF,
 	ADIVD,
-//	ASQRTF,
-//	ASQRTD,
 
 	ASRL,
 	ASRA,
@@ -146,16 +143,6 @@ enum	as
 
 	ASIGNAME,
 
-	/* moved here to preserve values of older identifiers */
-	ASQRTF,
-	ASQRTD,
-
-	ALDREX,
-	ASTREX,
-	
-	ALDREXD,
-	ASTREXD,
-
 	ALAST,
 };
 
@@ -186,8 +173,7 @@ enum	as
 
 #define	D_SHIFT		(D_NONE+19)
 #define	D_FPCR		(D_NONE+20)
-#define	D_REGREG	(D_NONE+21)
-#define	D_ADDR		(D_NONE+22)
+#define 	D_REGREG	(D_NONE+21)
 
 /* name */
 #define	D_EXTERN	(D_NONE+3)
