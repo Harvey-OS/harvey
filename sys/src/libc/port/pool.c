@@ -142,6 +142,7 @@ static ulong	dsize2bsize(Pool*, ulong);
 static ulong	getdsize(Alloc*);
 static Alloc*	trim(Pool*, Alloc*, ulong);
 static Free*	listadd(Free*, Free*);
+static Free*	listdelete(Free*, Free*);
 static void		logstack(Pool*);
 static Free**	ltreewalk(Free**, ulong);
 static void		memmark(void*, int, ulong);
@@ -349,16 +350,13 @@ listadd(Free *list, Free *node)
 
 /* listdelete: remove node from a doubly linked list */
 static Free*
-listdelete(Pool *p, Free *list, Free *node)
+listdelete(Free *list, Free *node)
 {
 	if(node->next == node) {	/* singular list */
 		node->prev = node->next = Poison;
 		return nil;
 	}
-	if(node->next == nil)
-		p->panic(p, "pool->next");
-	if(node->prev == nil)
-		p->panic(p, "pool->prev");
+
 	node->next->prev = node->prev;
 	node->prev->next = node->next;
 
@@ -407,7 +405,7 @@ pooldel(Pool *p, Free *node)
 	olst = *parent;
 	assert(olst != nil /* pooldel */);
 
-	lst = listdelete(p, olst, node);
+	lst = listdelete(olst, node);
 	if(lst == nil)
 		*parent = treedelete(*parent, olst);
 	else if(lst != olst)
