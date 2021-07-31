@@ -126,7 +126,7 @@ notifyf(void *a, char *s)
 void
 main(int argc, char *argv[])
 {
-	char *defmnt, *defsrv, *srv;
+	char *defmnt;
 	int p[2];
 	char buf[12];
 	int fd;
@@ -136,7 +136,6 @@ main(int argc, char *argv[])
 	int readOnly = 1;
 
 	defmnt = "/n/vac";
-	defsrv = "vacfs";
 	ARGBEGIN{
 	case 'd':
 		fmtinstall('F', fcallfmt);
@@ -146,7 +145,7 @@ main(int argc, char *argv[])
 		ncache = atoi(ARGF());
 		break;
 	case 'i':
-		defmnt = nil;
+		defmnt = 0;
 		stdio = 1;
 		mfd[0] = 0;
 		mfd[1] = 1;
@@ -154,11 +153,8 @@ main(int argc, char *argv[])
 	case 'h':
 		host = ARGF();
 		break;
-	case 'S':
-		defsrv = ARGF();
-		/*FALLTHROUGH*/
 	case 's':
-		defmnt = nil;
+		defmnt = 0;
 		break;
 	case 'p':
 		noperm = 1;
@@ -183,14 +179,12 @@ main(int argc, char *argv[])
 		mfd[0] = p[0];
 		mfd[1] = p[0];
 		if(defmnt == 0){
-			srv = smprint("/srv/%s", defsrv);
-			fd = create(srv, OWRITE, 0666);
+			fd = create("#s/vacfs", OWRITE, 0666);
 			if(fd < 0)
-				sysfatal("create of %s failed: %r", srv);
+				sysfatal("create of /srv/vacfs failed: %r");
 			sprint(buf, "%d", p[1]);
 			if(write(fd, buf, strlen(buf)) < 0)
-				sysfatal("writing %s: %r", srv);
-			free(srv);
+				sysfatal("writing /srv/vacfs: %r");
 		}
 	}
 
@@ -215,14 +209,7 @@ main(int argc, char *argv[])
 void
 usage(void)
 {
-	fprint(2, "usage: %s"
-		" [-sd]"
-		" [-h host]"
-		" [-c ncache]"
-		" [-m mountpoint]"
-		" [-S srvname]"
-		" vacfile"
-		"\n", argv0);
+	fprint(2, "usage: %s [-sd] [-h host] [-c ncache] [-m mountpoint] vacfile\n", argv0);
 	exits("usage");
 }
 

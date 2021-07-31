@@ -43,7 +43,6 @@ UPDATE=\
 </sys/src/cmd/mkmany
 
 DIRS=mnihongo\
-	bandt2\
 	flashfs\
 	na\
 	vga

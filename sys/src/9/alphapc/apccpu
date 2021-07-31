@@ -16,7 +16,7 @@ dev
 #	loopback
 
 	ether		netif
-	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+	ip		arp chandial inferno ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
 
 	sd
 	floppy		dma
@@ -27,7 +27,6 @@ dev
 link
 	ether2114x	pci
 	ethermedium
-	loopbackmedium
 
 misc
 	arch164
@@ -51,7 +50,6 @@ port
 	int cpuserver = 1;
 
 boot cpu
-	tcp
 	il
 
 bootdir

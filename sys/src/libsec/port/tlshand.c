@@ -248,7 +248,7 @@ static uchar compressors[] = {
 	CompressionNull,
 };
 
-static TlsConnection *tlsServer2(int ctl, int hand, uchar *cert, int ncert, int (*trace)(char*fmt, ...), PEMChain *chain);
+static TlsConnection *tlsServer2(int ctl, int hand, uchar *cert, int ncert, int (*trace)(char*fmt, ...));
 static TlsConnection *tlsClient2(int ctl, int hand, uchar *csid, int ncsid, int (*trace)(char*fmt, ...));
 
 static void	msgClear(Msg *m);
@@ -337,7 +337,7 @@ tlsServer(int fd, TLSconn *conn)
 		return -1;
 	}
 	fprint(ctl, "fd %d 0x%x", fd, ProtocolVersion);
-	tls = tlsServer2(ctl, hand, conn->cert, conn->certlen, conn->trace, conn->chain);
+	tls = tlsServer2(ctl, hand, conn->cert, conn->certlen, conn->trace);
 	sprint(dname, "#a/tls/%s/data", buf);
 	data = open(dname, ORDWR);
 	close(fd);
@@ -412,27 +412,15 @@ tlsClient(int fd, TLSconn *conn)
 	return data;
 }
 
-static int
-countchain(PEMChain *p)
-{
-	int i = 0;
-
-	while (p) {
-		i++;
-		p = p->next;
-	}
-	return i;
-}
-
 static TlsConnection *
-tlsServer2(int ctl, int hand, uchar *cert, int ncert, int (*trace)(char*fmt, ...), PEMChain *chp)
+tlsServer2(int ctl, int hand, uchar *cert, int ncert, int (*trace)(char*fmt, ...))
 {
 	TlsConnection *c;
 	Msg m;
 	Bytes *csid;
 	uchar sid[SidSize], kd[MaxKeyData];
 	char *secrets;
-	int cipher, compressor, nsid, rv, numcerts, i;
+	int cipher, compressor, nsid, rv;
 
 	if(trace)
 		trace("tlsServer2\n");
@@ -510,12 +498,9 @@ tlsServer2(int ctl, int hand, uchar *cert, int ncert, int (*trace)(char*fmt, ...
 	msgClear(&m);
 
 	m.tag = HCertificate;
-	numcerts = countchain(chp);
-	m.u.certificate.ncert = 1 + numcerts;
+	m.u.certificate.ncert = 1;
 	m.u.certificate.certs = emalloc(m.u.certificate.ncert * sizeof(Bytes));
 	m.u.certificate.certs[0] = makebytes(cert, ncert);
-	for (i = 0; i < numcerts && chp; i++, chp = chp->next)
-		m.u.certificate.certs[i+1] = makebytes(chp->pem, chp->pemlen);
 	if(!msgSend(c, &m, AQueue))
 		goto Err;
 	msgClear(&m);

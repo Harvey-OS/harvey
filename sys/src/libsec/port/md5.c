@@ -28,6 +28,7 @@
  */
 
 static void encode(uchar*, u32int*, ulong);
+static void decode(u32int*, uchar*, ulong);
 
 extern void _md5block(uchar*, ulong, u32int*);
 
