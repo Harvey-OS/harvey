@@ -84,7 +84,6 @@ struct Elemlist
 	int	*off;
 	int	mustbedir;
 	int	nerror;
-	int	prefix;
 };
 
 #define SEP(c) ((c) == 0 || (c) == '/')
@@ -744,21 +743,6 @@ undomount(Chan *c, Cname *name)
 }
 
 /*
- * Walk but catch errors and return nil instead.
- */
-static Walkqid*
-ewalk(Chan *c, Chan *nc, char **name, int nname)
-{
-	Walkqid *wq;
-
-	if(waserror())
-		return nil;
-	wq = devtab[c->type]->walk(c, nc, name, nname);
-	poperror();
-	return wq;
-}
-
-/*
  * Either walks all the way or not at all.  No partial results in *cp.
  * *nerror is the number of names to display in an error message.
  */
@@ -806,10 +790,10 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 		dotdot = 0;
 		for(i=0; i<ntry; i++){
 			if(isdotdot(names[nhave+i])){
-				if(i==0){
+				if(i==0) {
 					dotdot = 1;
 					ntry = 1;
-				}else
+				} else
 					ntry = i;
 				break;
 			}
@@ -821,7 +805,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 		type = c->type;
 		dev = c->dev;
 
-		if((wq = ewalk(c, nil, names+nhave, ntry)) == nil){
+		if((wq = devtab[type]->walk(c, nil, names+nhave, ntry)) == nil){
 			/* try a union mount, if any */
 			if(mh && !nomount){
 				/*
@@ -829,7 +813,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 				 */
 				rlock(&mh->lock);
 				for(f = mh->mount->next; f; f = f->next)
-					if((wq = ewalk(f->to, nil, names+nhave, ntry)) != nil)
+					if((wq = devtab[f->to->type]->walk(f->to, nil, names+nhave, ntry)) != nil)
 						break;
 				runlock(&mh->lock);
 				if(f != nil){
@@ -989,7 +973,7 @@ growparse(Elemlist *e)
 		free(e->elems);
 		e->elems = new;
 		inew = smalloc((e->nelems+Delta+1) * sizeof(int));
-		memmove(inew, e->off, (e->nelems+1)*sizeof(int));
+		memmove(inew, e->off, e->nelems*sizeof(int));
 		free(e->off);
 		e->off = inew;
 	}
@@ -1005,11 +989,11 @@ growparse(Elemlist *e)
  * rather than a directory.
  */
 static void
-parsename(char *aname, Elemlist *e)
+parsename(char *name, Elemlist *e)
 {
-	char *name, *slash;
+	char *slash;
 
-	kstrdup(&e->name, aname);
+	kstrdup(&e->name, name);
 	name = e->name;
 	e->nelems = 0;
 	e->elems = nil;
@@ -1017,8 +1001,7 @@ parsename(char *aname, Elemlist *e)
 	e->off[0] = skipslash(name) - name;
 	for(;;){
 		name = skipslash(name);
-		if(*name == '\0'){
-			e->off[e->nelems] = name+strlen(name) - e->name;
+		if(*name=='\0'){
 			e->mustbedir = 1;
 			break;
 		}
@@ -1034,15 +1017,7 @@ parsename(char *aname, Elemlist *e)
 		*slash++ = '\0';
 		name = slash;
 	}
-	
-	if(chandebug){
-		int i;
-		
-		print("parsename %s:", e->name);
-		for(i=0; i<=e->nelems; i++)
-			print(" %d", e->off[i]);
-		print("\n");
-	}
+	e->off[e->nelems] = name - e->name;
 }
 
 void*
@@ -1060,44 +1035,12 @@ memrchr(void *va, int c, long n)
 void
 namelenerror(char *aname, int len, char *err)
 {
-	char *ename, *name, *next;
-	int i, errlen;
+	char *name;
 
-	/*
-	 * If the name is short enough, just use the whole thing.
-	 */
-	errlen = strlen(err);
-	if(len < ERRMAX/3 || len+errlen < 2*ERRMAX/3)
-		snprint(up->genbuf, sizeof up->genbuf, "%.*s", 
-			utfnlen(aname, len), aname);
-	else{
-		/*
-		 * Print a suffix of the name, but try to get a little info.
-		 */
-		ename = aname+len;
-		next = ename;
-		do{
-			name = next;
-			next = memrchr(aname, '/', name-aname);
-			if(next == nil)
-				next = aname;
-			len = ename-next;
-		}while(len < ERRMAX/3 || len + errlen < 2*ERRMAX/3);
-
-		/*
-		 * If the name is ridiculously long, chop it.
-		 */
-		if(name == ename){
-			name = ename-ERRMAX/4;
-			if(name <= aname)
-				panic("bad math in namelenerror");
-			/* walk out of current UTF sequence */
-			for(i=0; (*name&0xC0)==0x80 && i<3; i++)
-				name++;
-		}
-		snprint(up->genbuf, sizeof up->genbuf, "...%.*s",
-			utfnlen(name, ename-name), name);
-	}				
+	if(len < ERRMAX/3 || (name=memrchr(aname, '/', len))==nil || name==aname)
+		snprint(up->genbuf, sizeof up->genbuf, "%.*s", len, aname);
+	else
+		snprint(up->genbuf, sizeof up->genbuf, "...%.*s", (int)(len-(name-aname)), name);
 	snprint(up->errstr, ERRMAX, "%#q %s", up->genbuf, err);
 	nexterror();
 }
@@ -1127,7 +1070,7 @@ nameerror(char *name, char *err)
 Chan*
 namec(char *aname, int amode, int omode, ulong perm)
 {
-	int len, n, t, nomount;
+	int n, t, nomount;
 	Chan *c, *cnew;
 	Cname *cname;
 	Elemlist e;
@@ -1161,7 +1104,7 @@ namec(char *aname, int amode, int omode, ulong perm)
 		nomount = 1;
 		up->genbuf[0] = '\0';
 		n = 0;
-		while(*name != '\0' && (*name != '/' || n < 2)){
+		while(*name!='\0' && (*name != '/' || n < 2)){
 			if(n >= sizeof(up->genbuf)-1)
 				error(Efilename);
 			up->genbuf[n++] = *name++;
@@ -1198,7 +1141,6 @@ namec(char *aname, int amode, int omode, ulong perm)
 	}
 
 	e.aname = aname;
-	e.prefix = name - aname;
 	e.name = nil;
 	e.elems = nil;
 	e.off = nil;
@@ -1208,20 +1150,14 @@ namec(char *aname, int amode, int omode, ulong perm)
 		cclose(c);
 		free(e.name);
 		free(e.elems);
+		free(e.off);
 		/*
 		 * Prepare nice error, showing first e.nerror elements of name.
 		 */
 		if(e.nerror == 0)
 			nexterror();
 		strcpy(tmperrbuf, up->errstr);
-		if(e.off[e.nerror]==0)
-			print("nerror=%d but off=%d\n",
-				e.nerror, e.off[e.nerror]);
-		if(chandebug)
-			print("showing %d+%d/%d (of %d) of %s (%d %d)\n", e.prefix, e.off[e.nerror], e.nerror, e.nelems, aname, e.off[0], e.off[1]);
-		len = e.prefix+e.off[e.nerror];
-		free(e.off);
-		namelenerror(aname, len, tmperrbuf);
+		namelenerror(aname, (name-aname)+e.off[e.nerror], tmperrbuf);
 	}
 
 	/*
