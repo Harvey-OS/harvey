@@ -1,4 +1,4 @@
- # include <u.h>
+# include <u.h>
 #include <libc.h>
 #include "system.h"
 #ifdef Plan9
@@ -13,7 +13,7 @@
 # include "graphics.h"
 
 # define RESOLUTION	300
-# define MAXLEVELS	300
+# define MAXLEVELS	100
 
 void
 setscreenOP(void)
@@ -24,8 +24,7 @@ setscreenOP(void)
 	struct	object	proc, object;	
 
 /* watch out for dx & dy being <0  */
-fprintf(stderr,"setscreen stack\n");
-pstackOP();
+
 	proc = procedure() ;
 	object = real("screen");
 	angle = object.value.v_real ;
@@ -34,13 +33,13 @@ pstackOP();
 	Graphics.screen.frequency = frequency ;
 	Graphics.screen.angle = angle ;
 	Graphics.screen.proc = proc ;
-fprintf(stderr,"setscreen called freq %f %f\n", frequency, angle);
+	if(1)return;
 
 	period = RESOLUTION / frequency ;
 	dx = floor(period * cos(angle*M_PI/180) + 0.5) ;
 	dy = floor(period * sin(angle*M_PI/180) + 0.5) ;
+	fprintf(stderr,"dx=%d   dy=%d\n",dx,dy) ;
 	levels = dx*dx + dy*dy ;
-	fprintf(stderr,"dx=%d   dy=%d lev %d\n",dx,dy,levels) ;
 	if ( levels > MAXLEVELS ){
 		fprintf(stderr,"levels %d MAX %d\n",levels,MAXLEVELS);
 		pserror("limitcheck", "setscreen") ;
@@ -51,8 +50,6 @@ fprintf(stderr,"setscreen called freq %f %f\n", frequency, angle);
 	cycles = gcd(abs(dx),abs(dy)) ;
 	cyclen = levels / cycles ;	
 	smsquares = cyclen / cycles ;
-fprintf(stderr,"cycles %d cyclen %d\n",cycles, cyclen);
-	if(1)return;
 
 	k = 0 ;
 	for ( i=0 ; i<cycles ; i++ ){

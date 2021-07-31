@@ -148,7 +148,7 @@ freefp(File *fp)
 int
 iaccess(File *f, Dentry *d, int m)
 {
-	if(wstatallow)
+	if(adminallow())
 		return 0;
 	/*
 	 * other is easiest
@@ -366,7 +366,7 @@ loop:
 			putbuf(p);
 			return 0;
 		}
-		memmove(&sb->fbuf, bp->iobuf, (FEPERBUF+1)*sizeof(long));
+		memcpy(&sb->fbuf, bp->iobuf, (FEPERBUF+1)*sizeof(long));
 		putbuf(bp);
 	}
 	bp = getbuf(dev, a, Bmod);
@@ -396,7 +396,7 @@ addfree(Device dev, long addr, Superb *sb)
 		p = getbuf(dev, addr, Bmod);
 		if(p == 0)
 			panic("addfree: getbuf");
-		memmove(p->iobuf, &sb->fbuf, (FEPERBUF+1)*sizeof(long));
+		memcpy(p->iobuf, &sb->fbuf, (FEPERBUF+1)*sizeof(long));
 		settag(p, Tfree, QPNONE);
 		putbuf(p);
 		n = 0;
@@ -527,6 +527,16 @@ superream(Device dev, long addr)
 	for(i=s->fsize-1; i>=addr+2; i--)
 		addfree(dev, i, s);
 	putbuf(p);
+}
+
+/*
+ * allow su-like access for special purposes
+ */
+int
+adminallow(void)
+{
+
+	return cons.allow;
 }
 
 /*

@@ -4,26 +4,25 @@ typedef struct Xfile	Xfile;
 typedef struct Xfs	Xfs;
 typedef struct Xfsub	Xfsub;
 
-enum
-{
+enum{
 	Sectorsize = 2048
 };
 
 struct Iobuf
 {
-	Xdata*	dev;
+	Xdata	*dev;
 	long	addr;
-	Iobuf*	next;
-	Iobuf*	prev;
-	Iobuf*	hash;
+	Iobuf	*next;
+	Iobuf	*prev;
+	Iobuf	*hash;
 	int	busy;
-	uchar*	iobuf;
+	uchar	*iobuf;
 };
 
 struct Xdata
 {
-	Xdata*	next;
-	char*	name;		/* of underlying file */
+	Xdata	*next;
+	char	*name;		/* of underlying file */
 	Qid	qid;
 	short	type;
 	short	fdev;
@@ -31,8 +30,7 @@ struct Xdata
 	int	dev;		/* for read/write */
 };
 
-struct Xfsub
-{
+struct Xfsub{
 	void	(*reset)(void);
 	int	(*attach)(Xfile*);
 	void	(*clone)(Xfile*, Xfile*);
@@ -49,36 +47,32 @@ struct Xfsub
 	void	(*wstat)(Xfile*, Dir*);
 };
 
-struct Xfs
-{
-	Xdata*	d;		/* how to get the bits */
-	Xfsub*	s;		/* how to use them */
+struct Xfs{
+	Xdata	*d;		/* how to get the bits */
+	Xfsub	*s;		/* how to use them */
 	int	ref;
 	int	isplan9;	/* has Plan 9-specific directory info */
 	Qid	rootqid;
-	void*	ptr;		/* private data */
+	void	*ptr;		/* private data */
 };
 
-struct Xfile
-{
-	Xfile*	next;		/* in fid hash bucket */
-	Xfs*	xf;
+struct Xfile{
+	Xfile	*next;		/* in fid hash bucket */
+	Xfs	*xf;
 	long	fid;
 	ulong	flags;
 	Qid	qid;
 	int	len;		/* of private data */
-	void*	ptr;
+	void	*ptr;
 };
 
-enum
-{
+enum{
 	Asis,
 	Clean,
 	Clunk
 };
 
-enum
-{
+enum{
 	Oread = 1,
 	Owrite = 2,
 	Orclose = 4,

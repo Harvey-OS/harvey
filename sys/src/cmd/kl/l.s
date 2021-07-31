@@ -1,0 +1,5 @@
+TEXT	main(SB), $0
+
+	MOVW	(R1+R2), R3
+	MOVW	R3, (R1+R2)
+	RETURN

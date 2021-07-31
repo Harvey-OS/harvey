@@ -15,10 +15,6 @@ OFILES=\
 	getpid.$O\
 	getuser.$O\
 	time.$O\
-	dial.$O\
-	announce.$O\
-	netmkaddr.$O\
-	times.$O\
 
 none:Q:
 	echo usage: mk entry/install/installall/entry.all

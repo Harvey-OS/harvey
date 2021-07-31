@@ -27,4 +27,3 @@ nurp = 256
 ip = 256
 arp = 64
 frag = 128
-debugger = 1

@@ -8,8 +8,6 @@
 
 #define	COL1	32
 
-Node dummy;
-
 int
 sval(long v)
 {
@@ -201,13 +199,13 @@ regopt(Inst *p)
 				r1 = r1->next;
 			}
 			if(r1 == R) {
-				dummy.srcline = p->lineno;
-				diag(&dummy, "ref not found\n%i", p);
+				line = p->lineno;
+				diag(ZeroN, "ref not found\n%i", p);
 				continue;
 			}
 			if(r1 == r) {
-				dummy.srcline = p->lineno;
-				diag(&dummy, "ref to self\n%i", p);
+				line = p->lineno;
+				diag(ZeroN, "ref to self\n%i", p);
 				continue;
 			}
 			r->s2 = r1;
@@ -301,8 +299,8 @@ loop2:
 			bit.b[z] = (r->refahead.b[z] | r->calahead.b[z]) &
 			  ~(externs.b[z] | param.b[z] | addrs.b[z] | consts.b[z]);
 		if(bany(&bit)) {
-			dummy.srcline = r->prog->lineno;
-			warn(&dummy, "used and not set: %B", bit);
+			line = r->prog->lineno;
+			warn(ZeroN, "used and not set: %B", bit);
 			if(opt('R') && !opt('w'))
 				print("used and not set: %B\n", bit);
 		}
@@ -321,8 +319,8 @@ loop2:
 			bit.b[z] = r->set.b[z] &
 			  ~(r->refahead.b[z] | r->calahead.b[z] | addrs.b[z]);
 		if(bany(&bit)) {
-			dummy.srcline = r->prog->lineno;
-			warn(&dummy, "set and not used: %B", bit);
+			line = r->prog->lineno;
+			warn(ZeroN, "set and not used: %B", bit);
 			if(opt('R'))
 				print("set an not used: %B\n", bit);
 			excise(r);
@@ -1035,12 +1033,13 @@ blsh(int n)
 }
 
 int
-Bconv(void *o, Fconv *f)
+Bconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[128], ss[128], *s;
 	Bits bits;
 	int i;
 
+	USED(chr);
 	str[0] = 0;
 	bits = *(Bits*)o;
 	while(bany(&bits)) {
@@ -1057,7 +1056,7 @@ Bconv(void *o, Fconv *f)
 		strcat(str, s);
 		bits.b[i/32] &= ~(1L << (i%32));
 	}
-	strconv(str, f);
+	strconv(str, f1, f2, f3);
 	return sizeof(bits);
 }
 

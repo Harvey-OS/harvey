@@ -53,7 +53,6 @@ extern void	exit(int);
 extern void	pipesig(int*);
 extern void	pipesigoff(void);
 extern void	newprocgroup(void);
-extern void	becomenone(void);
 
 extern int nsysfile;
 extern int nofile;

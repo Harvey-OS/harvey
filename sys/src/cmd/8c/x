@@ -1,0 +1,28 @@
+#include	<u.h>
+#include	<libc.h>
+
+struct
+{
+	schar		sc;
+	uchar		uc;
+	short		sh;
+	ushort		uh;
+	long		sl;
+	ulong		ul;
+	float		ff;
+	double		df;
+	long		sb:15;
+	ulong		ub:15;
+} t1;
+
+#define	A	12
+#define	B	4
+#define	C	(A*B)
+
+void
+main(void)
+{
+
+	t1.sb *= t1.sc;
+	exits(0);
+}

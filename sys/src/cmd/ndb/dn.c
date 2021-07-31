@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <ip.h>
 #include "dns.h"
-#include "lock.h"
 
 /*
  *  Hash table for domain names.  The hash is based only on the
@@ -55,7 +54,10 @@ char *opname[] =
 [Ostatus]	"status",
 };
 
-Lock	dnlock;
+static int parfd[2];
+static char token[1];
+#define LOCK read(parfd[0], token, 1)
+#define UNLOCK write(parfd[1], token, 1)
 
 /*
  *  set up a pipe to use as a lock
@@ -67,8 +69,11 @@ dninit(void)
 	fmtinstall('I', eipconv);
 	fmtinstall('R', rrconv);
 
-	paralloc();
-	lockinit(&dnlock);
+	paralloc();	/* make malloc/free parallel */
+
+	if(pipe(parfd) < 0)
+		abort();
+	UNLOCK;
 }
 
 
@@ -100,19 +105,19 @@ dnlookup(char *name, int class, int enter)
 
 	l = &ht[dnhash(name)];
 	now = time(0);
-	lock(&dnlock);
+	LOCK;
 	for(dp = *l; dp; dp = dp->next) {
 		if(dp->class == class && cistrcmp(dp->name, name) == 0){
 			if(dp->reserved < now)
 				dnage(dp);
 			dp->reserved = time(0) + 5*Min;
-			unlock(&dnlock);
+			UNLOCK;
 			return dp;
 		}
 		l = &dp->next;
 	}
 	if(enter == 0){
-		unlock(&dnlock);
+		UNLOCK;
 		return 0;
 	}
 	dp = malloc(sizeof(DN));
@@ -125,7 +130,7 @@ dnlookup(char *name, int class, int enter)
 	dp->rr = 0;
 	dp->next = 0;
 	*l = dp;
-	unlock(&dnlock);
+	UNLOCK;
 	return dp;
 }
 
@@ -137,12 +142,14 @@ dnage(DN *dp)
 {
 	RR **l;
 	RR *rp, *next;
+	char buf[32];
 
 	now = time(0);
 	l = &dp->rr;
 	for(rp = dp->rr; rp; rp = next){
 		next = rp->next;
 		if(rp->ttl < now && !rp->db){
+print("%s %s timed out\n", rp->owner->name, rrname(rp->type, buf));
 			rrfree(rp);
 			*l = next;
 			continue;
@@ -223,12 +230,12 @@ rrattach(RR *rp, int auth)
 {
 	RR *next;
 
-	lock(&dnlock);
+	LOCK;
 	for(; rp; rp = next){
 		next = rp->next;
 		rrattach1(rp, auth);
 	}
-	unlock(&dnlock);
+	UNLOCK;
 }
 
 /*
@@ -369,51 +376,52 @@ rrcat(RR **start, RR *rp, int type)
  *  print conversion for rr records
  */
 int
-rrconv(void *v, Fconv *f)
+rrconv(void *v, int f1, int f2, int f3, int ch)
 {
 	RR *rp;
 	int n;
 	char buf[3*Domlen];
 
+	USED(ch);
 	rp = *((RR**)v);
-	n = snprint(buf, sizeof(buf), "%s %s", rp->owner->name, rrname(rp->type, buf));
+	n = sprint(buf, "%s %s", rp->owner->name, rrname(rp->type, buf));
 
 	switch(rp->type){
 	case Thinfo:
-		snprint(&buf[n], sizeof(buf)-n, "\t%s %s", rp->cpu->name, rp->os->name);
+		sprint(&buf[n], "\t%s %s", rp->cpu->name, rp->os->name);
 		break;
 	case Tcname:
 	case Tmb:
 	case Tmd:
 	case Tmf:
 	case Tns:
-		snprint(&buf[n], sizeof(buf)-n, "\t%s", rp->host->name);
+		sprint(&buf[n], "\t%s", rp->host->name);
 		break;
 	case Tmg:
 	case Tmr:
-		snprint(&buf[n], sizeof(buf)-n, "\t%s", rp->mb->name);
+		sprint(&buf[n], "\t%s", rp->mb->name);
 		break;
 	case Tminfo:
-		snprint(&buf[n], sizeof(buf)-n, "\t%s %s", rp->mb->name, rp->rmb->name);
+		sprint(&buf[n], "\t%s %s", rp->mb->name, rp->rmb->name);
 		break;
 	case Tmx:
-		snprint(&buf[n], sizeof(buf)-n, "\t%d %s", rp->pref, rp->host->name);
+		sprint(&buf[n], "\t%d %s", rp->pref, rp->host->name);
 		break;
 	case Ta:
-		snprint(&buf[n], sizeof(buf)-n, "\t%s", rp->ip->name);
+		sprint(&buf[n], "\t%s", rp->ip->name);
 		break;
 	case Tptr:
-		snprint(&buf[n], sizeof(buf)-n, "\t%s", rp->ptr->name);
+		sprint(&buf[n], "\t%s", rp->ptr->name);
 		break;
 	case Tsoa:
-		snprint(&buf[n], sizeof(buf)-n, "\t%s %s %d %d %d %d %d", rp->host->name,
+		sprint(&buf[n], "\t%s %s %d %d %d %d %d", rp->host->name,
 			rp->rmb->name, rp->soa->serial, rp->soa->refresh, rp->soa->retry,
 			rp->soa->expire, rp->soa->minttl);
 		break;
 	default:
 		break;
 	}
-	strconv(buf, f);
+	strconv(buf, f1, f2, f3);
 	return sizeof(RR*);
 }
 

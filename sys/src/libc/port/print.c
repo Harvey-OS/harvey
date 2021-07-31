@@ -46,15 +46,3 @@ sprint(char *buf, char *fmt, ...)
 	printcol = scol;
 	return out-buf;
 }
-
-int
-snprint(char *buf, int len, char *fmt, ...)
-{
-	char *out;
-	int scol;
-
-	scol = printcol;
-	out = doprint(buf, buf+len, fmt, DOTDOT);
-	printcol = scol;
-	return out-buf;
-}

@@ -14,10 +14,9 @@ dev
 	arp	a
 	bit	b
 	iproute	P
-	scsi	S	scsi scsibuf
+	scsi	S	scsi
 	wren	w
 	kprof	T
-	cdrom	R
 
 stream
 	fcall

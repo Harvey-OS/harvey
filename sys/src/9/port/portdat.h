@@ -230,8 +230,6 @@ enum
 	ScsiExtsens	= 0x03,
 	ScsiInquiry	= 0x12,
 	ScsiModesense	= 0x1a,
-	ScsiStartunit	= 0x1B,
-	ScsiStopunit	= 0x1B,
 	ScsiGetcap	= 0x25,
 	ScsiRead	= 0x08,
 	ScsiWrite	= 0x0a,
@@ -433,8 +431,7 @@ enum
 	RENDHASH =	32,		/* Hash to lookup rendezvous tags */
 	MNTHASH	=	32,		/* Hash to walk mount table */
 	NFD =		100,		/* Number of per process file descriptors */
-	PGHLOG  =	9,
-	PGHSIZE	=	1<<PGHLOG,	/* Page hash for image lookup */
+	PGHSIZE	=	512,		/* Page hash for image lookup */
 };
 #define REND(p,s)	((p)->rendhash[(s)%RENDHASH])
 #define MOUNTH(p,s)	((p)->mnthash[(s)->qid.path%MNTHASH])
@@ -733,7 +730,7 @@ enum
 extern	Conf	conf;
 extern	char*	conffile;
 extern	int	cpuserver;
-extern	Rune*	devchar;
+extern	char*	devchar;
 extern	Dev	devtab[];
 extern  char	eve[];
 extern	uchar	initcode[];
@@ -775,15 +772,3 @@ enum
 
 	AUTHLEN	= 8,
 };
-
-/*
- *  mouse types
- */
-enum
-{
-	Mouseother=	0,
-	Mouseserial=	1,
-	MousePS2=	2,
-};
-extern int mouseshifted;
-extern int mousetype;

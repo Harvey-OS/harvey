@@ -248,12 +248,9 @@ inmesg(Hmesg type, int count)
 	case Hclose:
 		if(whichmenu(m)<0 || (t = whichtext(m))==0)
 			break;
-		l = t->nwin;
-		for(i = 0,lp = t->l; l>0 && i<NL; i++,lp++)
-			if(lp->textfn){
+		for(i = 0,lp = t->l; i<NL; i++,lp++)
+			if(lp->textfn)
 				closeup(lp);
-				--l;
-			}
 		break;
 
 	case Hsetpat:
@@ -578,10 +575,6 @@ hsetsnarf(int nc)
 	if (n >= 0) {
 		if (!s1)
 			n = 0;
-		if (n > SNARFSIZE-1)
-			n = SNARFSIZE-1;
-		s1 = realloc(s1, n+1);
-		s1[n] = 0;
 		snarflen = n;
 		outTs(Tsetsnarf, n);
 		if(n>0 && write(1, s1, n)!=n)
@@ -663,6 +656,7 @@ hdata(int m, long a, uchar *s, int len)
 	r = buf;
 	for(i=0; i<len; i+=w,s+=w)
 		w = chartorune(r++, (char*)s);
+if(i != len) panic("i!=len");
 	return hdata1(t, a, buf, r-buf);
 }
 

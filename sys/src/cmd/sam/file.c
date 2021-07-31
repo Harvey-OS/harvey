@@ -1,4 +1,5 @@
 #include "sam.h"
+
 /*
  * Files are splayed out a factor of NDISC to reduce indirect block access
  */
@@ -7,7 +8,7 @@ Discdesc	*transcripts[NDISC];
 Buffer		*undobuf;
 static String	*ftempstr(Rune*, int);
 int		fcount;
-File		*lastfile;
+static File	*lastfile;
 
 void	puthdr_csl(Buffer*, char, short, Posn);
 void	puthdr_cs(Buffer*, char, short);
@@ -34,8 +35,6 @@ Fmark(File *f, Mod m)
 	Buffer *t = f->transcript;
 	Posn p;
 
-	if(f->state == Readerr)
-		return;
 	if(f->state == Unread)	/* this is implicit 'e' of a file */
 		return;
 	p = m==0? -1 : f->markp;
@@ -68,8 +67,6 @@ Fopen(void)
 	f->mod = 0;
 	f->dot.f = f;
 	f->ndot.f = f;
-	f->dev = ~0;
-	f->qid = ~0;
 	Strinit0(&f->name);
 	Strinit(&f->cache);
 	f->state = Unread;
@@ -96,8 +93,6 @@ Finsert(File *f, String *str, Posn p1)
 {
 	Buffer *t = f->transcript;
 
-	if(f->state == Readerr)
-		return;
 	if(str->n == 0)
 		return;
 	if(str->n<0 || str->n>STRSIZE)
@@ -139,8 +134,6 @@ Finsert(File *f, String *str, Posn p1)
 void
 Fdelete(File *f, Posn p1, Posn p2)
 {
-	if(f->state == Readerr)
-		return;
 	if(p1==p2)
 		return;
 	if(f->mod<modnum)
@@ -179,8 +172,6 @@ Fflush(File *f)
 	Buffer *t = f->transcript;
 	Posn p1 = f->cp1, p2 = f->cp2;
 
-	if(f->state == Readerr)
-		return;
 	if(p1 != p2)
 		puthdr_cll(t, 'd', p1, p2);
 	if(f->cache.n){
@@ -196,8 +187,6 @@ Fsetname(File *f, String *s)
 {
 	Buffer *t = f->transcript;
 
-	if(f->state == Readerr)
-		return;
 	if(f->state == Unread){	/* This is setting initial file name */
 		Strduplstr(&f->name, s);
 		sortname(f);
@@ -229,8 +218,6 @@ Fupdate(File *f, int mktrans, int toterm)
 	union Hdr buf;
 	Rune tmp[BLOCKSIZE+1];	/* +1 for NUL in 'f' case */
 
-	if(f->state == Readerr)
-		return FALSE;
 	if(lastfile && f!=lastfile)
 		Bclean(lastfile->transcript);	/* save memory when multifile */
 	lastfile = f;

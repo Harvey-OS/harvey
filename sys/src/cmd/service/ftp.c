@@ -98,9 +98,6 @@ int	structure;		/* file structure */
 char	data[64];		/* data address */
 int	pid;			/* transfer process */
 
-int	nonone;
-int 	ftpdir;
-
 /*
  *  read commands from the control stream and dispatch
  */
@@ -114,14 +111,8 @@ main(int argc, char **argv)
 	Biobuf in;
 	int i;
 
-	ARGBEGIN{
-	case 'N':
-		nonone = 1;
-		break;
-	case 'd':
-		ftpdir = 1;
-		break;
-	}ARGEND
+	USED(argc, argv);
+
 	Binit(&in, 0, OREAD);
 	reply("220 Plan 9 FTP server ready");
 	while(cmd = Brdline(&in, '\n')){

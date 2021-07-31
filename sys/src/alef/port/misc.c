@@ -225,7 +225,7 @@ char *treeop[] =
 void
 pargs(Node *n, char *p)
 {
-	char buf[64];
+	char buf[128];
 
 	if(n == ZeroN)
 		return;
@@ -250,12 +250,13 @@ pargs(Node *n, char *p)
 }
 
 int
-protoconv(void *t, Fconv *f)
+protoconv(void *t, int f1, int f2, int f3, int ch)
 {
 	Node *n;
-	char *p, buf[512];
+	char *p, buf[255];
 	int i;
 
+	USED(ch);
 	n = *((Node**)t);
 	i = sprint(buf, "%T %s(", n->t->next, n->sym->name);
 	if(n->left == 0)
@@ -263,28 +264,28 @@ protoconv(void *t, Fconv *f)
 	else
 		pargs(n->left, buf+i);
 
-	p = strrchr(buf, ',');
-	if(p != 0) {
-		p[0] = ')';
-		p[1] = '\0';
-	}
-
-	strconv(buf, f);
+	p = strlen(buf) + buf;
+	while(*p != ',')
+		p--;
+	p[0] = ')';
+	p[1] = '\0';
+	strconv(buf, f1, f2, f3);
 	return(sizeof(Node*));
 }
 
 int
-nodeconv(void *t, Fconv *f)
+nodeconv(void *t, int f1, int f2, int f3, int ch)
 {
 	Node *n;
 	char *p, buf[256];
 	int i;
 
+	USED(ch);
 	n = *((Node**)t);
 
 	if(n == 0) {
 		strcpy(buf, "ZeroN");
-		strconv(buf, f);
+		strconv(buf, f1, f2, f3);
 		return(sizeof(Node*));
 	}
 
@@ -334,7 +335,7 @@ nodeconv(void *t, Fconv *f)
 		break;
 	}
 
-	strconv(buf, f);
+	strconv(buf, f1, f2, f3);
 	return(sizeof(Node*));
 }
 

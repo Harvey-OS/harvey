@@ -5,43 +5,41 @@
 #include <libc.h>
 #include <ar.h>
 #include <bio.h>
-#include <mach.h>
+#include "mach.h"
+#include "obj.h"
 
-enum{
-	CHUNK	=	256	/* must be power of 2 */
-};
 
-char	*errs;			/* exit status */
-char	*filename;		/* current file */
-char	symname[]="__.SYMDEF";	/* table of contents file name */
-int	multifile,		/* processing multiple files */
-	aflag,
-	gflag,
-	hflag,
-	nflag,
-	sflag,
-	uflag,
-	vflag;
-
+Sym	*_sym;			/* for obj files */
+Sym	**sptrs;		/* for executable files */
 Sym	**fnames;		/* file path translation table */
-Biobuf	bout;
+
+char	*errs,
+	*_filename,
+	_firstname[NNAME],
+	_symname[] = "__.SYMDEF";
+int	nfname,			/* number of file name pieces for 'z' symbols*/
+	multifile,		/* processing multiple files */
+	aflag, gflag, hflag, nflag, sflag, uflag, vflag;
+
+Biobuf	*_bin;
+Biobuf	_bout;
 
 int	cmp(Sym **, Sym **);
 void	error(char*, ...),
-	execsyms(Biobuf*),
-	printsyms(Sym*, long),
-	psym(Sym**, long),
-	doar(Biobuf*),
-	dofile(Biobuf*),
-	zenter(Sym*);
+	execsyms(char *),
+	printsyms(Sym *, long),
+	printsym(Sym **, long),
+	doar(void),
+	dofile(void),
+	zenter(Sym *);
 
 void
 main(int argc, char *argv[])
 {
-	int i;
-	Biobuf	*bin;
+	char magbuf[SARMAG];
+	int i, n;
 
-	Binit(&bout, 1, OWRITE);
+	Binit(&_bout, 1, OWRITE);
 	argv0 = argv[0];
 	ARGBEGIN {
 	case 'a':	aflag = 1; break;
@@ -52,22 +50,23 @@ main(int argc, char *argv[])
 	case 'u':	uflag = 1; break;
 	case 'v':	vflag = 1; break;
 	} ARGEND
-	if (argc > 1)
-		multifile++;
+	_assure(CHUNK);
+	multifile = argc > 1;
 	for(i=0; i<argc; i++){
-		filename = argv[i];
-		bin = Bopen(filename, OREAD);
-		if(bin == 0){
-			error("cannot open %s\n", filename);
+		_filename = argv[i];
+		_bin = Bopen(_filename, OREAD);
+		if(_bin == 0){
+			fprint(2, "%s: cannot open %s\n", argv0, _filename);
 			continue;
 		}
-		if (isar(bin))
-			doar(bin);
+		n = Bread(_bin, magbuf, SARMAG);
+		if(n == SARMAG && strncmp(magbuf, ARMAG, SARMAG) == 0)
+			doar();
 		else{
-			Bseek(bin, 0, 0);
-			dofile(bin);
+			Bseek(_bin, 0, 0);
+			dofile();
 		}
-		Bclose(bin);
+		Bclose(_bin);
 	}
 	exits(errs);
 }
@@ -77,62 +76,23 @@ main(int argc, char *argv[])
  * processing the symbols for each intermediate file in it.
  */
 void
-doar(Biobuf *bp)
+doar(void)
 {
-	int offset, size, obj;
-	Sym *s;
-	long n;
-	char membername[NNAME];
-
+	_symsize = 0;
+	_off = 0;
 	multifile = 1;
-	for (offset = BOFFSET(bp);;offset += size) {
-		objreset();
-		size = nextar(bp, offset, membername);
-		if (size < 0) {
-			error("phase error on ar header %ld\n", offset);
-			return;
-		}
-		if (size == 0)
-			return;
-		if (strcmp(membername, symname) == 0)
-			continue;
-		obj = objtype(bp);
-		if (obj < 0) {
-			error("inconsistent file %s in %s\n",
-					membername, filename);
-			return;
-		}
-		if (!readar(bp, obj, offset+size)) {
-			error("invalid symbol reference in file %s\n",
-					membername);
-			return;
-		}
-		s = objbase(&n);
-		filename = membername;
-		printsyms(s, n);
-	}
+	while(_nextar())
+		_objsyms(1, 1, printsyms);
 }
 
 /*
  * process symbols in a file
  */
 void
-dofile(Biobuf *bp)
+dofile(void)
 {
-	Sym *s;
-	long n;
-	int obj;
-
-	obj = objtype(bp);
-	if (obj < 0)
-		execsyms(bp);
-	else {
-		objreset();
-		if (readobj(bp, obj)) {
-			s = objbase(&n);
-			printsyms(s, n);
-		}
-	}
+	if(_objsyms(0, 1, printsyms) == 0)
+		execsyms(_filename);
 }
 
 /*
@@ -158,36 +118,40 @@ zenter(Sym *s)
 	static int maxf = 0;
 
 	if (s->value > maxf) {
-		maxf = (s->value+CHUNK-1) &~ (CHUNK-1);
+		do {
+			maxf += CHUNK;
+		} while (s->value > maxf);
 		fnames = realloc(fnames, maxf*sizeof(*fnames));
-		if(fnames == 0) {
-			error("out of memory\n", argv0);
+		if(fnames == 0){
+			fprint(2, "%s: out of memory\n", argv0);
 			exits("memory");
 		}
 	}
 	fnames[s->value] = s;
 }
 
+/* executable nm */
+
 /*
  * get the symbol table from an executable file, if it has one
  */
 void
-execsyms(Biobuf *bp)
+execsyms(char *file)
 {
 	Fhdr f;
 	Sym *s;
 	long nsyms;
 
-	Bseek(bp, 0, 0);
-	if (crackhdr(Bfildes(bp), &f) == 0) {
-		error("Can't read header for %s\n", filename);
+	Bseek(_bin, 0, 0);
+	if (crackhdr(Bfildes(_bin), &f) == 0) {
+		error("Can't read header for %s\n", file);
 		return;
 	}
-	if (syminit(Bfildes(bp), &f) < 0)
+	if (syminit(Bfildes(_bin), &f) < 0)
 		return;
 	s = symbase(&nsyms);
 	printsyms(s, nsyms);
-	Bclose(bp);
+	Bclose(_bin);
 }
 
 void
@@ -199,11 +163,11 @@ printsyms(Sym *sp, long nsym)
 
 	n = nsym*sizeof(Sym*);
 	symptr = malloc(n);
+	memset(symptr, 0, n);
 	if (symptr == 0) {
 		error("out of memory\n");
 		return;
 	}
-	memset(symptr, 0, n);
 	for (s = sp, n = 0; nsym-- > 0; s++) {
 		s->value = beswal(s->value);
 		switch(s->type) {
@@ -252,12 +216,11 @@ printsyms(Sym *sp, long nsym)
 	}
 	if(!sflag)
 		qsort(symptr, n, sizeof(*symptr), cmp);
-	psym(symptr, n);
-	free(symptr);
+	printsym(symptr, n);
 }
 
 void
-psym(Sym **symptr, int nsym)
+printsym(Sym **symptr, int nsym)
 {
 	Sym *s;
 	char *cp;
@@ -266,23 +229,23 @@ psym(Sym **symptr, int nsym)
 	while (nsym-- > 0) {
 		s = *symptr++;
 		if (multifile && !hflag)
-			Bprint(&bout, "%s:", filename);
+			Bprint(&_bout, "%s:", _filename);
 		if (s->type == 'z') {
 			fileelem(fnames, (uchar *) s->name, path, 512);
 			cp = path;
 		} else
 			cp = s->name;
 		if (s->value || s->type == 'a' || s->type == 'p')
-			Bprint(&bout, "%8lux %c %s\n", s->value, s->type, cp);
+			Bprint(&_bout, "%8lux %c %s\n", s->value, s->type, cp);
 		else
-			Bprint(&bout, "         %c %s\n", s->type, cp);
+			Bprint(&_bout, "         %c %s\n", s->type, cp);
 	}
 }
 
 void
 error(char *fmt, ...)
 {
-	char buf[4096], *s;
+	char buf[8192], *s;
 
 	s = buf;
 	s += sprint(s, "%s: ", argv0);
@@ -290,4 +253,5 @@ error(char *fmt, ...)
 	*s++ = '\n';
 	write(2, buf, s - buf);
 	errs = "errors";
+	return;
 }

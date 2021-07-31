@@ -22,7 +22,6 @@
 # define FLAT			1
 # define CTM_SIZE		6
 # define GRAYLEVELS		256
-#define GRAYIMP	17
 
 # define FONT_DICT_LIMIT	250
 

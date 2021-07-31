@@ -31,7 +31,7 @@ int	exact;
 int	iflag;
 int	rev = 1;	/*-1 for reverse-ordered file, not implemented*/
 int	(*compare)(Rune*, Rune*);
-Rune	tab = '\t';
+int	tab;
 Rune	entry[WORDSIZ];
 Rune	word[WORDSIZ];
 Rune	key[50], orig[50];
@@ -69,6 +69,8 @@ int	ncomp(Rune*, Rune*);
 void
 main(int argc, char *argv[])
 {
+	char *arg;
+
 	Binit(&bin, 0, OREAD);
 	Binit(&bout, 1, OWRITE);
 	compare = acomp;
@@ -86,7 +88,9 @@ main(int argc, char *argv[])
 		compare = ncomp;
 		break;
 	case 't':
-		chartorune(&tab,ARGF());
+		if((arg = ARGF()) == 0)
+			goto usage;
+		tab = *arg;
 		break;
 	case 'x':
 		exact++;
@@ -236,8 +240,9 @@ acomp(Rune *s, Rune *t)
 void
 torune(char *old, Rune *new)
 {
-	do old += chartorune(new, old);
-	while(*new++);
+	for(old += chartorune(new, old);
+			*new++; old += chartorune(new, old))
+			;
 }
 
 void
@@ -245,7 +250,7 @@ rcanon(Rune *old, Rune *new)
 {
 	Rune r;
 
-	while((r = *old++) && r != tab) {
+	while((r = *old++) && r != L'\t') {
 		if (islatin1(r) && latin_fold_tab[r-0xc0])
 				r = latin_fold_tab[r-0xc0];
 		if(direc)

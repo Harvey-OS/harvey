@@ -11,7 +11,7 @@ dev
 	dup	d
 	bit	b
 	port	x
-	scsi	S	scsi scsisubs scsibuf
+	scsi	S	scsi scsisubs
 	wren	w
 	duart	t
 	lbp	l

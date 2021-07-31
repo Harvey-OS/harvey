@@ -15,11 +15,12 @@ listinit(void)
 static	Prog	*bigP;
 
 int
-Pconv(void *o, Fconv *fp)
+Pconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[STRINGSZ];
 	Prog *p;
 
+	USED(chr);
 	p = *(Prog**)o;
 	bigP = p;
 	switch(p->as) {
@@ -38,40 +39,43 @@ Pconv(void *o, Fconv *fp)
 			p->line, p->as, &p->from, p->from.scale, &p->to);
 		break;
 	}
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	bigP = P;
 	return sizeof(Prog*);
 }
 
 int
-Aconv(void *o, Fconv *fp)
+Aconv(void *o, int f1, int f2, int f3, int chr)
 {
 
-	strconv(anames[*(int*)o], fp);
+	USED(chr);
+	strconv(anames[*(int*)o], f1, f2, f3);
 	return sizeof(int);
 }
 
 int
-Xconv(void *o, Fconv *fp)
+Xconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[20];
 	int i;
 
+	USED(chr);
 	str[0] = 0;
 	i = ((int*)o)[0];
 	if(i != D_NONE)
 		sprint(str, "(%R*%d)", i, ((int*)o)[1]);
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	return sizeof(int[2]);
 }
 
 int
-Dconv(void *o, Fconv *fp)
+Dconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[40], s[20];
 	Adr *a;
 	int i;
 
+	USED(chr);
 	a = *(Adr**)o;
 	i = a->type;
 	if(i >= D_INDIR) {
@@ -148,7 +152,7 @@ brk:
 		strcat(str, s);
 	}
 conv:
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	return sizeof(Adr*);
 }
 
@@ -225,27 +229,29 @@ char*	regstr[] =
 };
 
 int
-Rconv(void *o, Fconv *fp)
+Rconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[20];
 	int r;
 
+	USED(chr);
 	r = *(int*)o;
 	if(r >= D_AL && r <= D_NONE)
 		sprint(str, "%s", regstr[r-D_AL]);
 	else
 		sprint(str, "gok(%d)", r);
 
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	return sizeof(int);
 }
 
 int
-Sconv(void *o, Fconv *fp)
+Sconv(void *o, int f1, int f2, int f3, int chr)
 {
 	int i, c;
 	char str[30], *p, *a;
 
+	USED(chr);
 	a = *(char**)o;
 	p = str;
 	for(i=0; i<sizeof(double); i++) {
@@ -282,7 +288,7 @@ Sconv(void *o, Fconv *fp)
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	return sizeof(char*);
 }
 

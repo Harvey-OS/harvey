@@ -1,6 +1,5 @@
 %{
 #include <u.h>
-#include <libc.h>
 #include <bio.h>
 #include "parl.h"
 #define Extern extern

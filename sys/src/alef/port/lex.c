@@ -8,7 +8,7 @@
 #include "y.tab.h"
 
 #define Ungetc(s)	{ if(s == '\n') line--; Bungetc(bin); }
-int Lconv(void*, Fconv*);
+int Lconv(void*, int, int, int, int);
 
 struct keywd
 {
@@ -542,7 +542,7 @@ ltytosym(Type *t)
 
 /* History algorithm from kens compiler */
 int
-Lconv(void *o, Fconv *f)
+Lconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[Strsize], s[Strsize];
 	Hist *h;
@@ -556,6 +556,7 @@ Lconv(void *o, Fconv *f)
 	long l, d;
 	int i, n;
 
+	USED(chr);
 	l = *(long*)o;
 	n = 0;
 	for(h = hist; h != H; h = h->link) {
@@ -564,7 +565,7 @@ Lconv(void *o, Fconv *f)
 		if(l < h->line)
 			break;
 		if(h->name) {
-			if(h->offset != 0) {	 /* #line directive, not #pragma */
+			if(h->offset != 0) {		/* #line directive, not #pragma */
 				if(n > 0 && n < HISTSZ && h->offset >= 0) {
 					a[n-1].line = h;
 					a[n-1].ldel = h->line - h->offset + 1;
@@ -600,7 +601,7 @@ Lconv(void *o, Fconv *f)
 	}
 	if(n == 0)
 		strcat(str, "<eof> ");
-	strconv(str, f);
+	strconv(str, f1, f2, f3);
 	return sizeof(l);
 }
 

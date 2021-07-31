@@ -4,9 +4,9 @@
 #include "diff.h"
 
 static int
-itemcmp(char **d1, char **d2)
+itemcmp(void const *d1, void const *d2)
 {
-	return strcmp(*d1, *d2);
+	return strcmp((char *) d1, (char *)d2);
 }
 
 static char **
@@ -57,21 +57,15 @@ diffdir(char *f, char *t, int level)
 	int res;
 	char fb[MAXPATHLEN+1], tb[MAXPATHLEN+1];
 
-	df = scandir(f);
-	dt = scandir(t);
-	dirf = df;
-	dirt = dt;
+	df = dirf = scandir(f);
+	dt = dirt = scandir(t);
 	while (*df || *dt) {
-		from = *df;
-		to = *dt;
-		if (from && isdotordotdot(from)) {
-			df++;
+		from = *df++;
+		to = *dt++;
+		if (from && isdotordotdot(from))
 			continue;
-		}
-		if (to && isdotordotdot(to)) {
-			dt++;
+		if (to && isdotordotdot(to))
 			continue;
-		}
 		if (!from)
 			res = 1;
 		else if (!to)
@@ -81,13 +75,11 @@ diffdir(char *f, char *t, int level)
 		if (res < 0) {
 			if (mode == 0)
 				Bprint(&stdout, "Only in %s: %s\n", f, from);
-			df++;
 			continue;
 		}
 		if (res > 0) {
 			if (mode == 0)
 				Bprint(&stdout, "Only in %s: %s\n", t, to);
-			dt++;
 			continue;
 		}
 		if (mkpathname(fb, f, from))
@@ -95,7 +87,6 @@ diffdir(char *f, char *t, int level)
 		if (mkpathname(tb, t, to))
 			continue;
 		diff(fb, tb, level+1);
-		df++; dt++;
 	}
 	for (df = dirf; *df; df++)
 		FREE(*df);

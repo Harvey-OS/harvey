@@ -12,14 +12,14 @@ dev
 	dup	d
 	proc	p
 	rtc	r
-	dk	k
+	dk	k	inconsubs
 	lpt	L
-	incon	i	inconsubs
-	ether	l	ether509 ether8003 ether2000 ether503 ether8390
+	ether	l
+	incon	i
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
 	arp	a
 	iproute	P
-	vga	v
+	config	v
 
 stream
 	fcall
@@ -33,7 +33,6 @@ misc
 
 port
 	int cpuserver = 0;
-	int incondev = 0;
 	void consdebug(void){}
 
 boot

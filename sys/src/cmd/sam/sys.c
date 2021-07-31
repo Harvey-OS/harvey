@@ -28,17 +28,8 @@ syserror(char *a)
 int
 Read(int f, void *a, int n)
 {
-	char buf[ERRLEN];
-
-	if(read(f, (char *)a, n)!=n) {
-		if (lastfile)
-			lastfile->state = Readerr;
-		errstr(buf);
-		if (downloaded)
-			fprint(2, "read error: %s\n", buf);
-		rescue();
-		exits("read");
-	}
+	if(read(f, (char *)a, n)!=n)
+		syserror("read");
 	return n;
 }
 

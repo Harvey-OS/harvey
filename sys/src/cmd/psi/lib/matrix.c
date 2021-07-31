@@ -45,6 +45,7 @@ translateOP(void)
 {
 	double		tx, ty ;
 	struct	object	object, junk;
+
 	object = pop() ;
 	switch(object.type){
 	case OB_ARRAY :
@@ -111,6 +112,7 @@ rotateOP(void)
 {
 	double		c, s, t0, t1, t2, t3;
 	struct	object	object, junk;
+
 	object = pop() ;
 	switch(object.type){
 	case OB_ARRAY :

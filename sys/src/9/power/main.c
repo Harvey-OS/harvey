@@ -198,8 +198,6 @@ init0(void)
 		poperror();
 	}
 
-	if(conf.debugger && conf.nmach > 2)
-		kproc("kdebug", debugger, 0);
 	kproc("alarm", alarmkproc, 0);
 	touser((uchar*)(USTKTOP - sizeof(argbuf)));
 }
@@ -745,3 +743,4 @@ mouseputc(IOQ *q, int c)
 	USED(c);
 	return 0;
 }
+

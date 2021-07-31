@@ -9,7 +9,6 @@ void	confprint(void);
 void	confset(char*);
 int	conschar(void);
 void	dcflush(void*, ulong);
-void	debugger(void*);
 int	duartactive(void);
 void	duartenable0(void);
 void	duartinit(void);
@@ -24,7 +23,7 @@ ulong	fcr31(void);
 void	firmware(int);
 void	flushmmu(void);
 #define	flushpage(s)	icflush((void*)(s), BY2PG)
-void	fptrap(Ureg*);
+int	fptrap(Ureg*, ulong);
 void	gettlb(int, ulong*);
 ulong	gettlbvirt(int);
 void	gotopc(ulong);
@@ -57,8 +56,7 @@ void	puttlb(ulong, ulong);
 void	puttlbx(int, ulong, ulong);
 int	readlog(ulong, char*, ulong);
 void	restfpregs(FPsave*, ulong);
-#define	screenputs syslog
-void	scsiintr(int);
+#define	screenputs
 void	setvmevec(int, void (*)(int));
 void	sinit(void);
 uchar*	smap(int, uchar*);

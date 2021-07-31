@@ -158,7 +158,7 @@ will(Biobuf *bp)
 	}
 	if(o->noway)
 		send3(Bfildes(bp), Iac, Dont, c);
-	else if(o->remote == 0)
+	else
 		rv |= send3(Bfildes(bp), Iac, Do, c);
 	if(o->remote == 0){
 		if(o->change)

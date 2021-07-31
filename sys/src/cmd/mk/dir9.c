@@ -6,23 +6,16 @@ bulkmtime(char *dir)
 	int n, i, fd;
 	Dir db[32];
 	char buf[4096];
-	char *ss;
 	char *s, *cp;
 
 	if (dir) {
 		s = dir;
 		if (strcmp(dir, "/") == 0) {
-			buf[0] = '/';
+			*buf = '/';
 			cp = buf+1;
 		} else {
 			sprint(buf, "%s/", dir);
 			cp = buf+strlen(buf);
-		}
-		*cp = 0;
-		if((dirstat(buf, db) >= 0) && ((db[0].qid.path&CHDIR) == 0)){
-			/* bugger off */
-			fprint(2, "mk: %s is not a directory path=%x\n", buf, db[0].qid.path);
-			Exit();
 		}
 	} else {
 		s = ".";
@@ -30,8 +23,7 @@ bulkmtime(char *dir)
 	}
 	if (symlook(s, S_BULKED, 0))
 		return;
-	ss = strdup(s);
-	symlook(ss, S_BULKED, ss);
+	symlook(s, S_BULKED, strdup(s));
 	if((fd = open(s, OREAD)) >= 0){
 		while((n = dirread(fd, db, sizeof db)) > 0){
 			n /= sizeof(Dir);

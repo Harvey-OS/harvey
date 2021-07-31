@@ -53,7 +53,6 @@ trapOP(void)
 	else if(object.type == OB_INT)fprintf(stderr,"trap %d\n",object.value.v_int);
 	else fprintf(stderr,"hit trap %d\n",trap++);
 }
-extern int rel, used, ct_el;
 void
 debug(void)
 {
@@ -65,7 +64,7 @@ debug(void)
 	else mdebug=toggle;
 	fprintf(stderr,"%%in debug %d ",mdebug);
 if(mdebug){
-fprintf(stderr,"used %d rel %d ct_el %d\n",used, rel, ct_el);
+printCTM("matrix");
 }
 	push(filename);
 	printOP();

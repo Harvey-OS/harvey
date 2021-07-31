@@ -16,7 +16,6 @@
 extern	GSubfont	defont0;
 GSubfont		*defont;
 
-
 struct{
 	Point	pos;
 	int	bwid;
@@ -176,11 +175,4 @@ mousetry(Ureg *ur)
 		unlock(&cursor);
 		wakeup(&mouse.r);
 	}
-}
-
-/* only 1 flavor mouse */
-void
-mousectl(char *x)
-{
-	USED(x);
 }

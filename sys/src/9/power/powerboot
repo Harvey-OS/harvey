@@ -13,7 +13,6 @@ dev
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
 	duart	t
 	boot	B
-	scsi	S	scsi scsibuf
 
 stream
 	urp

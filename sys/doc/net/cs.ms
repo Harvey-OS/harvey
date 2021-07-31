@@ -1,47 +1,44 @@
 .NH 2
 Network Database
 .PP
-On most systems several
-files such as
+Network information on most systems is held in a number
+of files such as
 .CW /etc/hosts ,
 .CW /etc/networks ,
 .CW /etc/services ,
 .CW /etc/hosts.equiv ,
 .CW /etc/bootptab ,
-and
-.CW /etc/named.d
-hold network information.
-Much time and effort is spent
-administering these files and keeping
+.CW /etc/named.d ,
+etc.
+A major component of administering a computing
+environment is maintaining these files and keeping
 them mutually consistent.
-Tools attempt to
+This has been aided by a number of tools that try to
 automatically derive one or more of the files from
-information in other files but maintenance continues to be
+information in other files.
+Despite such aids maintenance continues to be
 difficult and error prone.
+The only real reason for this plethora of files is that
+each appeared as an adjunct to some new tool.
 .PP
 Since we wrote our world from scratch, we decided to
 avoid this nightmare.
 One database on a shared server contains all the information
 needed for network administration.
-Two ASCII files comprise the main database:
+The main database is composed of two ascii files,
 .CW /lib/ndb/local
-contains locally administered information and
+containing information locally administered and
 .CW /lib/ndb/global
-contains information imported from elsewhere.
+containing information imported from elsewhere.
 The files contain sets of attribute/value pairs of the form
-.I attr=value ,
-where
-.I attr
-and
-.I value
-are alphanumeric strings.
-Systems are described by multi-line entries;
-a header line at the left margin begins each entry followed by zero or more
-indented attribute/value pairs specifying
+.I attr=value .
+An unindented line starts a new set.
+Both attribute and value can be any alphanumeric string.
+Systems are described by multi-line entries giving
 names, addresses, properties, etc.
-For example, the entry for our CPU server
+For example, the set for our main CPU server
 specifies a domain name, an IP address, an Ethernet address,
-a Datakit address, a boot file, and supported protocols.
+a Datakit address, a boot file, and protocols supported.
 .P1
 sys = helix
 	dom=helix.research.att.com
@@ -50,15 +47,16 @@ sys = helix
 	dk=nj/astro/helix
 	proto=il flavor=9cpu
 .P2
-If several systems share entries such as
+If there are many systems sharing the same entries such as
 network mask and gateway, we specify that information
 with the network or subnetwork instead of the system.
 The following entries define a class B IP network and 
 a few subnets derived from it.
-The entry for the network specifies the IP mask,
-file system, and authentication server for all systems
+The entry for the network specifies the ipmask,
+file system, and authentication server to be used by all systems
 on the network.
-Each subnetwork specifies its default IP gateway.
+Each subnetwork specifies the default IP gateway for that
+subnetwork.
 .P1
 ipnet=mh-astro-net ip=135.104.0.0 ipmask=255.255.255.0
 	fs=bootes.research.att.com
@@ -70,8 +68,8 @@ ipnet=third-floor ip=135.104.51.0
 ipnet=fourth-floor ip=135.104.52.0
 	ipgw=135.104.52.1
 .P2
-Database entries also define the mapping of service names
-to port numbers for TCP, UDP, and IL.
+The mapping of service names to port numbers for TCP, UDP, and
+IL is also contained in the database.
 .P1
 tcp=echo	port=7
 tcp=discard	port=9
@@ -79,99 +77,77 @@ tcp=systat	port=11
 tcp=daytime	port=13
 .P2
 .PP
-All programs read the database directly so
-there are no intermediate files or binary format and
-consistency problems are rare.
-However the database files can become large.
-Our global file, containing all information about
-both Datakit and Internet systems in AT&T, has 43,000
-lines.
-To speed searches, we build hash table files for each
-attribute we expect to search often.
-The hash file entries point to entries
+All programs using the database read it directly.
+There are no intermediate files or binary format.
+Therefore, consistency problems are rare.
+However the database files can become quite large.
+Our global file, which contains all information about
+both Datakit and Internet systems in AT&T, is 43000
+lines long.
+To speed up searches, we build hash table files for each
+attribute that we expect to search a lot.
+The hash files contain pointers to entries
 in the master files.
-Every hash file contains the modification time of its master
-file so we can avoid using an out-of-date hash table.
+Since hash files contain the modify time of the master
+file they pertain to, we never use out of date hash tables.
 Searches for attributes that aren't hashed or whose hash table
-is out-of-date still work, they just take longer.
+is out of date still work, they just take longer.
 .NH 2
 Connection Server
 .PP
-On each system a user level connection server process, CS, performs
+Each system runs a user level connection server process, CS, to perform
 symbolic name to address translation.
 CS uses information about available networks, the network database, and
 other servers (such as DNS) to translate names.
-CS is a file server serving a single file,
+As we stated earlier, CS is a file server that presents one file
 .CW /net/cs .
-A client writes a symbolic name to
+For any symbolic name written to
 .CW /net/cs
-then reads one line for each matching destination reachable
+CS responds with one line for each matching destination that might be reachable
 from this system.
 The lines are of the form
 .I "filename message",
 where
 .I filename
-is the path of the clone file to open for a new connection and
+is the clone file to open for a new connection and
 .I message
-is the string to write to it to make the connection.
-The following example illustrates this.
-.CW Ndb/csquery
-is a program that prompts for strings to write to
-/net/cs and prints the replies.
-.P1
-% ndb/csquery
-> net!helix!9fs
-/net/il/clone 135.104.9.31!17008
-/net/dk/clone nj/astro/helix!9fs
-.P2
+is what to write into it to make the connection.
 .PP
-CS provides meta-name translation to perform complicated
+CS provides meta-name translation to perform more complicated
 searches.
 The special network name
 .CW net
-selects any network in common between source and
-destination supporting the specified service.
+is a meta-name standing for any network in common between source and
+destination that supports the specified service.
 A host name of the form
 .I $attr
-is the name of an attribute in the network database.
-The database search returns the value
-of the matching attribute/value pair
+is a meta-name standing for a search in the network database.
+The translation comes from the value of the matching attribute/value pair
 most closely associated with the source host.
 Most closely associated is defined on a per network basis.
-For example, the symbolic name
+For example, for the symbolic name
 .I tcp!$auth!rexauth
-causes CS to search for the
-.I auth
-attribute in the database entry for the source system, then its
-subnetwork (if there is one) and then its network.
-.P1
-% ndb/csquery
-> net!$auth!rexauth
-/net/il/clone 135.104.9.34!17021
-/net/dk/clone nj/astro/p9auth!rexauth
-/net/il/clone 135.104.9.6!17021
-/net/dk/clone nj/astro/musca!rexauth
-.P2
+CS would search for first in the entry for the source system, then its
+subnetwork (if there was one) and then its network.
 .PP
-Normally CS derives naming information from its database files.
-For domain names however, CS first consults another user level
+Normally, CS derives naming information from its database files.
+For domain names, however, CS first consults another user level
 process, the domain name server (DNS).
-If no DNS is reachable, CS relies on its own tables.
+If no DNS is reachable, CS will then search its own tables.
 .PP
 Like CS, the domain name server is a user level process providing
 one file,
 .CW /net/dns .
-A client writes a request of the form
+A client writes a request into the file of the form
 .I "domain-name type" ,
 where
 .I type
 is a domain name service resource record type.
-DNS performs a recursive query through the
-Internet domain name system producing one line
-per resource record found.  The client reads
-.CW /net/dns 
-to retrieve the records.
+DNS will then perform a recursive query through the
+Internet domain name system and return one line
+per resource record found.
 Like other domain name servers, DNS caches information
 learned from the network.
-DNS is implemented as a multi-process shared memory application
-with separate processes listening for network and local requests.
+DNS also has a UDP interface to answer requests from
+other systems.
+It runs as a multi-process shared memory application.

@@ -2,19 +2,6 @@
 #include <libg.h>
 #include <gnot.h>
 
-#ifdef T386
-#define LENDIAN
-#endif
-#ifdef Thobbit
-#define LENDIAN
-#endif
-
-#ifdef	LENDIAN
-#define	PSHIFT(x, y)	x <<= y
-#else
-#define	PSHIFT(x, y)	x >>= y
-#endif
-
 int
 _setdda(int x, int y, Linedesc *l)
 {
@@ -38,7 +25,7 @@ _setdda(int x, int y, Linedesc *l)
 }
 
 /*
- * Strange, usually fast line code.
+ * Strange, short, usually fast line code.
  * Based on the observation that given src and f, src is constant
  * for the call, so we can reduce f by that symmetry.  Then we can
  * reduce it again by choosing the src we actually run with; thus
@@ -66,7 +53,7 @@ gsegment(GBitmap *b, Point p, Point q, int src, Fcode f)
 	int i, dw, dx, dy;
 	int e, e1, e2;
 	uchar m, m1, k, k0, k1, f0, f1, lom, him, him0, him1, t, *dest;
-	int ld, bpp, xshift;
+	int ld, bpp;
 	int m0, lo, lo0, lo1, kk, kk0, kk1;
 	Linedesc l;
 
@@ -82,11 +69,7 @@ gsegment(GBitmap *b, Point p, Point q, int src, Fcode f)
 	bpp = 8>>(3-ld);
 	lom = ((1<<bpp)-1);
 	him = lom<<(8-bpp);
-	xshift = (p.x&(7>>ld))<<ld;
-#ifdef	LENDIAN
-	xshift = 8-bpp - xshift;
-#endif
-	k = him>>xshift;	/* mask */
+	k = him>>((p.x&(7>>ld))<<ld);	/* mask */
 	lo = src&lom;
 
 	if(lo==lom || lo==0){
@@ -118,7 +101,7 @@ gsegment(GBitmap *b, Point p, Point q, int src, Fcode f)
 			lo1 = 0;
 		f1 &= 1;
 		him1 = (lom&lo)<<(8-bpp);
-		k1 = him1>>xshift;	/* mask */
+		k1 = him1>>((p.x&(7>>ld))<<ld);	/* mask */
 		f0 = f&3;
 		if(f0 & 2)
 			lo0 = lom & ~lo;
@@ -126,7 +109,7 @@ gsegment(GBitmap *b, Point p, Point q, int src, Fcode f)
 			lo0 = 0;
 		f0 &= 1;
 		him0 = (lom&~lo)<<(8-bpp);
-		k0 = him0>>xshift;	/* mask */
+		k0 = him0>>((p.x&(7>>ld))<<ld);	/* mask */
 		/*
 		 * develop m0, m1 as a register full of pixels containing 'lo1'
 		 */
@@ -138,12 +121,6 @@ gsegment(GBitmap *b, Point p, Point q, int src, Fcode f)
 		}
 		f = 2;
 	}
-
-#ifdef	LENDIAN
-	him >>= 8-bpp;
-	him0 >>= 8-bpp;
-	him1 >>= 8-bpp;
-#endif
 	
 	dw = b->width*sizeof(ulong);
 	if(dy < 0){
@@ -151,6 +128,7 @@ gsegment(GBitmap *b, Point p, Point q, int src, Fcode f)
 		dy = -dy;
 	}
 	dest = (uchar*)gaddr(b, p) + ((p.x&(31>>ld))>>(3-ld));
+	ld = 1<<ld;
 	e1 = 2*l.dminor;
 	e2 = e1 - 2*l.dmajor;
 	if(l.xmajor == 0)
@@ -163,7 +141,7 @@ majorx:
 		kk = 0;
 		for(i=dx; i>=0; i--){
 			kk |= k;
-			PSHIFT(k, bpp);
+			k >>= ld;
 			if(e >= 0){
 				*dest &= m|~kk;
 				dest += dw;
@@ -191,7 +169,7 @@ majorx:
 		kk = 0;
 		for(i=dx; i>=0; i--){
 			kk |= k;
-			PSHIFT(k, bpp);
+			k >>= ld;
 			if(e >= 0){
 				t = *dest;
 				*dest = (kk ^ t) | (t & m);
@@ -227,9 +205,9 @@ majorx:
 			kk |= k;
 			kk0 |= k0;
 			kk1 |= k1;
-			PSHIFT(k, bpp);
-			PSHIFT(k0, bpp);
-			PSHIFT(k1, bpp);
+			k >>= ld;
+			k0 >>= ld;
+			k1 >>= ld;
 			if(e >= 0){
 				t = *dest;
 				if(f0 == 0)
@@ -296,7 +274,7 @@ majory:
 			*dest &= m|~k;
 			dest += dw;
 			if(e >= 0){
-				PSHIFT(k, bpp);
+				k >>= ld;
 				if(k == 0){
 					dest++;
 					k = him;
@@ -313,7 +291,7 @@ majory:
 			*dest = (k ^ t) | (t & m);
 			dest += dw;
 			if(e >= 0){
-				PSHIFT(k, bpp);
+				k >>= ld;
 				if(k == 0){
 					dest++;
 					k = him;
@@ -337,9 +315,9 @@ majory:
 				*dest = (k1 ^ t) | (t & m1);
 			dest += dw;
 			if(e >= 0){
-				PSHIFT(k, bpp);
-				PSHIFT(k0, bpp);
-				PSHIFT(k1, bpp);
+				k >>= ld;
+				k0 >>= ld;
+				k1 >>= ld;
 				if(k == 0){
 					dest++;
 					k = him;

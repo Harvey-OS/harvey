@@ -134,7 +134,7 @@ Character constants have the type
 .PP
 A floating point constant consists of an integer part, a period, a fractional part,
 the letter e or E and an exponent part. The integer, fraction and exponent parts 
-must consist of decimal digits. Either the integer or fractional parts may be
+must consist of decimal digits. Either the integer of fractional parts may be
 omitted. Either the decimal point or the letter
 .CW e (E)
 and the exponent may be
@@ -182,12 +182,11 @@ a process and task is unimportant.
 .NH
 Definitions and Declarations
 .PP
-A declaration introduces an identifier and specifies its type. A definition is a
+A declaration introduces an identifiers and specifies its type. A definition is a
 declaration that also reserves storage for an identifier.
 An object is an area of memory of known type produced by a definition.
-Function prototypes, variable declarations preceded by \f(CWextern\fP, and 
-type specifiers are declarations.
-Function declarations with bodies and variable declarations are
+Function prototypes, variable declarations preceded by extern, and type specifiers
+are declarations. Function declarations with bodies and variable declarations are
 examples of definitions.
 .NH 2
 Scope
@@ -477,7 +476,7 @@ type into the language.
 .DE
 A complex type is composed of a list of members. Each member may be a complex type,
 a derived type or a basic type. Members are referenced by tag or by type. Members can
-only be referenced by the
+only referenced by the
 .CW .
 and
 .CW ->
@@ -525,7 +524,7 @@ The four combinations are:
 .P2
 Member functions are defined by type and name. The pair form a unique name for
 the function, so the same member function name can be used in many types.
-Using the last example, the member function set could be defined as:
+Using the last example, the member function set could defined as:
 .P1
 	Point
 	Point.set(Point *a)
@@ -628,7 +627,7 @@ Expressions
 .PP
 The order of expression evaluation is not defined except where noted. That is,
 unless the definition of the operator guarantees evaluation order, an operator
-may evaluate any of its operands first.
+may evaluate any of it's operands first.
 .PP
 The behaviour of exceptional conditions such as divide by zero, arithmetic overflow
 and floating point exceptions is not defined.

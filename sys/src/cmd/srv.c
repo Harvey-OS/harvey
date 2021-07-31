@@ -19,7 +19,7 @@ char	*needauth(char*);
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-m] [net!]host [srvname [mtpt]]\n", argv0);
+	fprint(2, "usage: %s [-m] [net!]host [srvename [mtpt]]\n", argv0);
 		exits("usage");
 }
 
@@ -27,24 +27,21 @@ void
 main(int argc, char *argv[])
 {
 	int fd, cfd;
-	char srv[64], mtpt[64];
+	char srv[64];
+	char mtpt[64];
 	char err[ERRLEN];
 	char dir[NAMELEN*4];
-	char *p, *p2, *auth;
-	int domount, record, try;
+	char *p, *p2;
+	int domount = 0;
+	int record = 0;
+	int try;
 
-	domount = 0;
-	record = 0;
-	auth = 0;
 	ARGBEGIN{
 	case 'm':
 		domount = 1;
 		break;
 	case 'r':
 		record = 1;
-		break;
-	case 't':
-		auth = "any";
 		break;
 	default:
 		usage();
@@ -122,9 +119,7 @@ Mount:
 	if(domount == 0)
 		exits(0);
 
-	if(!auth)
-		auth = needauth(mtpt);
-	if(mount(fd, mtpt, MREPL, "", auth) < 0){
+	if(mount(fd, mtpt, MREPL, "", needauth(mtpt)) < 0){
 		errstr(err);
 		if(strstr(err, "hungup") || strstr(err, "timed out")){
 			remove(srv);

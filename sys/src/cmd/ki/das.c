@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 #include <mach.h>
 #include <ctype.h>
+#include <bio.h>
 #define Extern extern
 #include "sparc.h"
 
@@ -828,17 +828,18 @@ void fpop(Instr *i, char *m)	/* page 108-116 */
 
 /* convert to lower case from upper, according to dascase */
 int
-Sconv(void *oa, Fconv *fp)
+Sconv(void *oa, int f1, int f2, int f3, int chr)
 {
 	char buf[128];
 	char *s, *t;
 
+	USED(chr);
 	if(dascase){
 		for(s=*(char**)oa,t=buf; *t = *s; s++,t++)
 			if('A'<=*t && *t<='Z')
 				*t += 'a'-'A';
-		strconv(buf, fp);
+		strconv(buf, f1, f2, f3);
 	}else
-		strconv(*(char**)oa, fp);
+		strconv(*(char**)oa, f1, f2, f3);
 	return sizeof(char*);
 }

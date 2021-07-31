@@ -153,5 +153,3 @@ extern	long	niob;
 extern	long	nhiob;
 extern	Hiob	*hiob;
 extern	int	chat;
-extern	int	writeallow;
-extern	int	wstatallow;

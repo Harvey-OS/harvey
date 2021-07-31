@@ -32,9 +32,14 @@ Murray Hill, New Jersey
 .vs 12p
 .ps 10
 --
-.sp |7.5i
+.sp |7i
 .nf
 .ce 1000
+AT&T \(em Proprietary
+This document contains proprietary information of 
+AT&T and is not to be disclosed or used except in
+accordance with applicable agreements.
+
 Copyright \(co 1992 AT&T
 
 Unpublished and not for publication

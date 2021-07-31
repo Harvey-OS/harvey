@@ -4,57 +4,64 @@
 #include <u.h>
 #include <libc.h>
 #include <ar.h>
+#include <a.out.h>
 #include <bio.h>
-#include <mach.h>
+#include "obj.h"
 
 enum
 {
 	RLENTSIZE	 = 4 + NNAME + 4,
 };
 
-char	symname[]="__.SYMDEF";	/* table of contents file name */
-char	*libname;		/* current archive */
-char	firstname[NNAME];	/* first file in archive */
-char	*errs;			/* exit status */
-char	verbose;
-int	nextern;		/* number of 'T' & 'D' symbols */
-int	symsize;		/* size of __.SYMDEF archive member */
+Sym	*_sym;
 
-int	readrl(Biobuf *bp);
-void	writerl(void),
+char	*errs,
+	*_filename,
+	*libname,
+	_firstname[NNAME],
+	_symname[] = "__.SYMDEF";
+int	_nsym,			/* number of symbols refed in current file */
+	verbose,
+	vflag;			/* verbose for reading of files */
+
+Biobuf	*_bin;
+Biobuf	_bout;
+
+void	readar(void),
+	writerl(void),
 	setoffsets(Sym *, int),
 	fexec(char *, char *, ...);
 
 void
 main(int argc, char *argv[])
 {
-	int i;
-	Biobuf	*bin;
+	int i, n;
+	char magbuf[SARMAG];
 
+	Binit(&_bout, 1, OWRITE);
 	argv0 = argv[0];
 	ARGBEGIN {
 	case 'v':
 		verbose = 1;
 		break;
 	} ARGEND
+	_assure(CHUNK);
 	for(i=0; i<argc; i++){
-		libname = argv[i];
-		bin = Bopen(libname, OREAD);
-		if(bin == 0){
-			fprint(2, "%s: cannot open %s\n", argv0, libname);
-			errs = "errors";
+		libname = _filename = argv[i];
+		_bin = Bopen(_filename, OREAD);
+		if(_bin == 0){
+			fprint(2, "%s: cannot open %s\n", argv0, _filename);
 			continue;
 		}
-		if (isar(bin)) {
-			if (readrl(bin) < 0)
-				errs = "errors";
-			else
-				writerl();
+		n = Bread(_bin, magbuf, SARMAG);
+		if(n == SARMAG && strncmp(magbuf, ARMAG, SARMAG) == 0){
+			readar();
+			writerl();
 		}else{
 			fprint(2, "%s: not an archive: %s\n", argv0, libname);
-			errs = "errors";
+			continue;
 		}
-		Bclose(bin);
+		Bclose(_bin);
 	}
 	exits(errs);
 }
@@ -63,88 +70,73 @@ main(int argc, char *argv[])
  * read an archive file,
  * processing the symbols for each intermediate file in it.
  */
-int
-readrl(Biobuf *bp)
+void
+readar(void)
 {
-	int i, j, offset, size, obj, lastobj;
-	Sym *s;
-	char membername[NNAME];
+	int first;
 
-	offset = BOFFSET(bp);
-	symsize = 0;
-	lastobj = -1;
-	objreset();
-	j = 0;
-	for (i = 0;;i++) {
-		size = nextar(bp, offset, membername);
-		if (size < 0) {
-			fprint(2, "%s: phase error on ar header %ld\n", argv0, offset);
-			return -1;
+	_symsize = 0;
+	_off = 0;
+	first = 1;
+	while(_nextar()){
+		if(!_objsyms(1, first, setoffsets)){
+			fprint(2, "warning: inconsistent file %s in %s\n", _filename, libname);
+			return;
 		}
-		if (size == 0)
-			return 1;
-		if (i == 0)		/* first time through */
-			strcpy(firstname, membername);
-		if (strcmp(membername, symname) == 0) {
-			symsize = size;		/* skip symbol table */
-			offset += size;
-			continue;
-		}
-		obj = objtype(bp);
-		if (lastobj < 0)	/* force match first time & after err */
-			lastobj = obj;
-		if (obj < 0 || obj != lastobj) {
-			fprint(2, "%s: inconsistent file %s in %s\n", argv0,
-					membername, libname);
-			return -1;
-		}
-		lastobj = obj;
-		if (!readar(bp, obj, offset+size)) {
-			fprint(2, "%s: invalid symbol reference in file %s\n", membername);
-			return -1;
-		}
-		while (s = objsym(j)) {
-			if (s->type == 'T' || s->type == 'D') {
-				s->value = offset-symsize;
-				nextern++;
-			}
-			j++;
-		}
-		offset += size;
+		first = 0;
 	}
-	return 1;
+	return;
+}
+
+/*
+ * set offsets for all elements in a Sym array to the current file
+ */
+void
+setoffsets(Sym *s, int nsym)
+{
+	int i;
+
+	for(i=_global; i<nsym; i++)
+		s[i].value = _off - _symsize;
 }
 
 void
 writerl(void)
 {
 	Biobuf b;
-	Sym *s;
 	long new, off;
-	int fd, i;
+	int fd, i, n;
 
-	fd = create(symname, 1, 0664);
+	fd = create(_symname, 1, 0664);
 	if(fd < 0){
-		fprint(2, "%s: cannot create %s\n", argv0, symname);
+		fprint(2, "%s: cannot create %s\n", argv0, _symname);
 		return;
 	}
 	Binit(&b, fd, OWRITE);
-	new = nextern * RLENTSIZE + SAR_HDR;
-	for(i=0; s = objsym(i); i++) {
-		if(s->type != 'T' && s->type != 'D')
+	n = 0;
+	for(i = 0; i<_nsym; i++)
+		if(_sym[i].type == 'T'
+		|| _sym[i].type == 'D')
+			n++;
+	new = n * RLENTSIZE + SAR_HDR;
+	for(i=0; i<_nsym; i++) {
+		if(_sym[i].type != 'T'
+		&& _sym[i].type != 'D')
 			continue;
-		off = s->value + new;
+		off = _sym[i].value + new;
 		if(verbose)
-			print("%10s %d %ld\n", s->name, s->type == 'D', off);
+			print("%10s %d %ld\n",
+				_sym[i].name,
+				_sym[i].type == 'D',
+				off);
 		Bputc(&b, off);
 		Bputc(&b, off>>8);
 		Bputc(&b, off>>16);
 		Bputc(&b, off>>24);
-		if (Bwrite(&b, s->name, NNAME) != NNAME) {
-			fprint(2, "%s: short write to %s\n", argv0, symname);
-			errs = "errors";
-		}
-		if(s->type == 'T')
+		n = Bwrite(&b, _sym[i].name, NNAME);
+		if(n != NNAME)
+			fprint(2, "%s: short write to %s\n", argv0, _symname);
+		if(_sym[i].type == 'T')
 			Bputc(&b, 0);
 		else
 			Bputc(&b, 1);
@@ -153,16 +145,16 @@ writerl(void)
 	}
 	Bclose(&b);
 	close(fd);
-	if(strcmp(firstname, symname) != 0)
-		if(symsize == 0)
-			fexec("/bin/ar", "ar", "rb", firstname, libname, symname, 0);
+	if(strcmp(_firstname, _symname) != 0)
+		if(_symsize == 0)
+			fexec("/bin/ar", "ar", "rb", _firstname, libname, _symname, 0);
 		else{
-			fexec("/bin/ar", "ar", "mb", firstname, libname, symname, 0);
-			fexec("/bin/ar", "ar", "r", libname, symname, 0);
+			fexec("/bin/ar", "ar", "mb", _firstname, libname, _symname, 0);
+			fexec("/bin/ar", "ar", "r", libname, _symname, 0);
 		}
 	else
-		fexec("/bin/ar", "ar", "r", libname, symname, 0);
-	remove(symname);
+		fexec("/bin/ar", "ar", "r", libname, _symname, 0);
+	remove(_symname);
 }
 
 void

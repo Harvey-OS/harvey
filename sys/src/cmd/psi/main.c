@@ -8,7 +8,7 @@
 #include "njerq.h"
 
 char *outname;
-int dontoutput=0, rotateflag = 0;
+int dontoutput=0;
 #ifdef FAX
 extern long pg_count;
 #endif
@@ -22,7 +22,6 @@ extern long pg_count;
 
 #include "object.h"
 extern int minx,miny,maxx,maxy;
-char *rot="0  792 translate -90 rotate";
 char usage[]="psi [-a x y] [-r] [-s] [files]\n\t-anchor ll to x,y -resolution_full -search";
 
 main(int argc, char *argv[])
@@ -123,9 +122,6 @@ main(int argc, char *argv[])
 					done(0);
 				}
 				break;
-			case 't':
-				rotateflag = 1;
-				break;
 			}
 			argv++;
 			arg++;
@@ -136,14 +132,6 @@ main(int argc, char *argv[])
 	if(!outname)
 		outname = "psi.out";
 	init(cacheflg) ;
-	if(rotateflag){
-		strobj = makestring(strlen(rot));
-		for(i=0,s=rot;i<strlen(rot); i++)
-			strobj.value.v_string.chars[i] = *s++;
-		strobj.xattr = XA_EXECUTABLE;
-		execpush(strobj);
-		execute();
-	}
 	if(arg < argc)while(arg++ < argc){
 		filen = argv[0];
 		argv++;

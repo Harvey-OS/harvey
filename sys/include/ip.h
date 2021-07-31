@@ -1,6 +1,6 @@
 #pragma	lib	"libip.a"
 
-int	eipconv(void*, Fconv*);
+int	eipconv(void*, int, int, int, int);
 int	parseip(uchar*, char*);
 int	parseether(uchar*, char*);
 int	myipaddr(uchar*, char*);

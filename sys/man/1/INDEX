@@ -22,7 +22,6 @@ zl 2l
 label 8½
 window 8½
 wloc 8½
-acid acid
 alef alef
 kal alef
 val alef
@@ -57,7 +56,6 @@ chmod chmod
 cmp cmp
 comm comm
 compress compress
-uncompress compress
 con con
 cu con
 hayes con
@@ -86,6 +84,7 @@ emacs emacs
 eqn eqn
 factor factor
 primes factor
+qfactor factor
 file file
 fmt fmt
 fone fone
@@ -104,10 +103,8 @@ juggle games
 life games
 mandel games
 plumb games
-quiz games
 smiley games
 swar games
-zork games
 gcan gcan
 gspool gcan
 homespool gcan
@@ -177,9 +174,9 @@ rc rc
 shift rc
 wait rc
 whatis rc
+reduce reduce
 rl rl
 rm rm
-B sam
 sam sam
 sed sed
 seq seq
@@ -187,7 +184,6 @@ size size
 sleep sleep
 sort sort
 spell spell
-split split
 start stop
 stop stop
 strings strings
@@ -195,7 +191,6 @@ strip strip
 sum sum
 syscall syscall
 tail tail
-tapefs tapefs
 tar tar
 tbl tbl
 tcs tcs

@@ -51,12 +51,13 @@ char *typestr[] =
 };
 
 int
-typeconv(void *t, Fconv *f)
+typeconv(void *t, int f1, int f2, int f3, int ch)
 {
 	char *tag, buf[128];
 	Type *type;
 	int tn, i;
 
+	USED(ch);
 	type = *((Type**)t);
 	i = 0;
 	if(type == 0)
@@ -82,7 +83,7 @@ typeconv(void *t, Fconv *f)
 		}
 	}
 
-	strconv(buf, f);
+	strconv(buf, f1, f2, f3);
 	return(sizeof(Type*));
 }
 

@@ -122,13 +122,10 @@ rtctime(void)
 {
 	uchar bcdclock[Nbcd];
 	Rtc rtc;
-	int i;
 
-	for(i = 0; i < 10000; i++){
-		outb(Paddr, Status);
-		if((inb(Pdata) & 1) == 0)
-			break;
-	}
+	outb(Paddr, Status);
+	while(inb(Pdata) & 1)
+		;
 	outb(Paddr, Seconds);	bcdclock[0] = inb(Pdata);
 	outb(Paddr, Minutes);	bcdclock[1] = inb(Pdata);
 	outb(Paddr, Hours);	bcdclock[2] = inb(Pdata);
@@ -355,11 +352,4 @@ sec2rtc(ulong secs, Rtc *rtc)
 	rtc->mon = d;
 
 	return;
-}
-
-uchar
-nvramread(int offset)
-{
-	outb(Paddr, offset);
-	return inb(Pdata);
 }

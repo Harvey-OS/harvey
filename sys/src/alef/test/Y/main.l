@@ -24,10 +24,8 @@ main(int argc, char **argv)
 	chan(Mesg) c;
 
 	f = nil;
-	if(argc > 1) {
+	if(argc > 1)
 		f = argv[1];
-		putenv("font", f);
-	}
 
 	alloc mreq, kreq, wmgr, dispatch;
 
@@ -193,13 +191,13 @@ keybd(chan(Mesg) r)
 			break;
 		p += n;
 		kbdcnt += n;
-		while(kbdcnt && fullrune(buf, kbdcnt)) {
-			w = chartorune(&m.keyb, buf);
-			memmove(buf, buf+w, kbdcnt-w);
-			kbdcnt -= w;
-			p -= w;
-			r <-= m;
-		}
+		if(!fullrune(buf, kbdcnt))
+			continue;
+		w = chartorune(&m.keyb, buf);
+		memmove(buf, buf+w, kbdcnt-w);
+		kbdcnt -= w;
+		p -= w;
+		r <-= m;
 	}
 
 }
@@ -237,7 +235,7 @@ error(char *fmt, ...)
 	char buf[128];
 	
 	doprint(buf, buf+sizeof(buf), fmt, ...);
-	fprint(2, "Y: (fatal error) %s %r\n", buf);
+	fprint(2, "Y: (error) %s %r\n", buf);
 	abort();
 }
 

@@ -1,6 +1,5 @@
 extern int squawk;
 extern int clean;
-extern char *file;
 extern int verbose;
 extern long ninput, noutput, nrunes, nerrors;
 
@@ -29,6 +28,3 @@ void isoutf_out(Rune *, int, long *);
 
 Rune runes[N];
 char obuf[5*N];	/* maximum bloat from N runes */
-
-#define		BADMAP	(0xFFFD)
-#define		ESC	033

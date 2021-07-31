@@ -152,8 +152,7 @@ rlogin(char *dest, char *cmd)
 	char *localuser;
 
 	/* only useful on TCP */
-	if(strchr(dest, '!')
-	&& (strncmp(dest, "tcp!", 4)!=0 && strncmp(dest, "net!", 4)!=0))
+	if(strchr(dest, '!') && strncmp(dest, "tcp!", 4)!=0)
 		return;
 
 	net = dodial(dest, "tcp", "login");
@@ -489,7 +488,7 @@ dodial(char *dest, char *net, char *service)
 
 	devdir[0] = 0;
 	strcpy(name, netmkaddr(dest, net, service));
-	data = dial(name, 0, devdir, &ctl);
+	data = dial(name, 0, devdir, 0);
 	if(data < 0){
 		seterr(name, devdir);
 		return -1;
@@ -580,6 +579,7 @@ system(int fd, char *cmd)
 		close(pfd[1]);
 		dup(pfd[0], 0);
 		dup(pfd[0], 1);
+		dup(pfd[0], 2);
 		close(ctl);
 		close(consctl);
 		close(fd);

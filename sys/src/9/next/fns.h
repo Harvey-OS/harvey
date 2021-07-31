@@ -53,7 +53,6 @@ void	screenputs(char*, int);
 void	scsiintr(int);
 uchar*	scsirecv(uchar *);
 void	scsirun(void);
-void	audiodmaintr(void);
 int	spl1(void);
 void	spldone(void);
 ulong	systimer(void);

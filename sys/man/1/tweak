@@ -168,3 +168,4 @@ with function
 .SH "SEE ALSO"
 .IR art (1),
 .IR bitmap (6)
+.SH BUGS

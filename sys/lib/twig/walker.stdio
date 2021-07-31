@@ -15,17 +15,15 @@
  *
  */
 
-enum{
-	FASTLIM,
-	TABLE,
-	FAIL,
-	ACCEPT,
-	TABLE2,
-	EOT	= -1,
+#define FASTLIM	0
+#define TABLE	1
+#define FAIL	2
+#define ACCEPT	3
+#define TABLE2	4
+#define EOT	-1
 
-	/* special machine state */
-	HANG	= -1,
-};
+/* special machine state */
+#define HANG	-1
 
 /*
  * In order for the walker to access the labelled leaves of a pattern,
@@ -41,25 +39,18 @@ enum{
  *
  * The table is interpreted by the _getleaves routine in the walker.
  */
-enum{
-	eSTOP		= 0,
-	ePOP		= -1,
-	eEVAL		= -2,
-	eNEXT		= -3,
-	ePUSH		= -4,
+#define	eSTOP	0
+#define	ePOP	-1
+#define eEVAL	-2
+#define eNEXT	-3
+#define ePUSH	-4
 
-	/*
-	 * Tags that indicate the type of a value
-	 * max values for shorts
-	 * CHANGE CAREFULLY!!!
-	 */
-	M_BRANCH	= 0x4000,
-	M_NODE		= 0,
-	M_LABEL		= 0x2000,
-	MAX_NODE_VALUE	= 0x1fff,
-	MTAG_SHIFT	= 9,
-};
-
+/* Tags that indicate the type of a value */
+#define M_BRANCH 010000
+#define M_NODE	0
+#define M_LABEL 01000
+#define MAX_NODE_VALUE 00777
+#define MTAG_SHIFT 9
 #define M_DETAG(x)	((x)&~(M_BRANCH|M_LABEL|M_NODE))
 
 /* predicates to tell whether a value x is of type NODE, BRANCH, or LABEL */
@@ -112,8 +103,8 @@ typedef struct __partial	__partial;
 typedef int			labelset;	/* a bit vector of labels */
 
 struct __partial {
-	short		treeno;
-	short		bits;
+	unsigned char	treeno;
+	char		bits;
 };
 
 struct skeleton {
@@ -215,7 +206,7 @@ extern short mtTable[], mtAccept[], mtMap[], mtPaths[], mtPathStart[];
 #endif
 
 #ifndef MPBLOCKSIZ
-#define MPBLOCKSIZ 10000
+#define MPBLOCKSIZ 3000
 #endif
 __match *_mpblock[MPBLOCKSIZ], **_mpbtop;
 
@@ -224,12 +215,12 @@ __match *_mpblock[MPBLOCKSIZ], **_mpbtop;
  * Basically used to support eh $%n$ construct.
  */
 __match **
-_getleaves(__match *mp, skeleton *skp)
+_getleaves(register __match *mp, register skeleton *skp)
 {
 	skeleton *stack[MAXDEPTH];
 	skeleton **stp = stack;
-	short *sip = &mtPaths[mtPathStart[mp->tree]];
-	__match **mmp = _mpbtop;
+	register short *sip = &mtPaths[mtPathStart[mp->tree]];
+	register __match **mmp = _mpbtop;
 
 	__match **mmp2 = mmp;
 	_mpbtop += *sip++ + 1;
@@ -259,9 +250,9 @@ _getleaves(__match *mp, skeleton *skp)
 }
 
 void
-_do(skeleton *sp, __match *winner, int evalall)
+_do(skeleton *sp, register __match *winner, int evalall)
 {
-	skeleton *skel;
+	register skeleton *skel;
 
 	if(winner == 0) {
 		_prskel(sp, 0);
@@ -277,9 +268,9 @@ _do(skeleton *sp, __match *winner, int evalall)
 }
 
 void
-_evalleaves(__match **mpp)
+_evalleaves(register __match **mpp)
 {
-	__match *mp;
+	register __match *mp;
 	while(*mpp){
 		mp = *mpp++;
 		_do(mp->skel, mp, 1);
@@ -287,12 +278,12 @@ _evalleaves(__match **mpp)
 }
 
 skeleton *
-_walk(skeleton *sp, int ostate)
+_walk(register skeleton *sp, int ostate)
 {
 	int state, nstate, nson;
-	__partial *pp;
-	__match *mp;
-	skeleton *nsp, *lastchild = 0;
+	register __partial *pp;
+	register __match *mp;
+	register skeleton *nsp, *lastchild = 0;
 	NODEPTR son, root;
 
 	root = sp->root;
@@ -388,7 +379,7 @@ _matchinit(void)
 int
 _machstep(short state, short input)
 {
-	short *stp = &mtTable[state];
+	register short *stp = &mtTable[state];
 	int start = 0;
 
 	if(state == HANG)
@@ -429,11 +420,11 @@ rescan:
 }
 
 void
-_addmatches(int ostate, skeleton *sp, __match *np)
+_addmatches(int ostate, register skeleton *sp, register __match *np)
 {
 	int label;
 	int state;
-	__match *mp;
+	register __match *mp;
 
         label = mtMap[np->tree];
 
@@ -479,8 +470,8 @@ _addmatches(int ostate, skeleton *sp, __match *np)
 void
 _closure(int state, int ostate, skeleton *skp)
 {
-	short *sp = &mtTable[state];
-	__match *mp;
+	register short *sp = &mtTable[state];
+	register __match *mp;
 
 	if(state == HANG || *sp != ACCEPT)
 		return;
@@ -491,8 +482,8 @@ _closure(int state, int ostate, skeleton *skp)
 			mp->tree = *sp;
 			_addmatches(ostate, skp, mp);
 		}else{
-			__partial *pp;
-			__partial *lim = &skp->partial[skp->treecnt];
+			register __partial *pp;
+			register __partial *lim = &skp->partial[skp->treecnt];
 			for(pp = skp->partial; pp < lim; pp++)
 				if(pp->treeno == *sp)
 					break;
@@ -508,9 +499,9 @@ _closure(int state, int ostate, skeleton *skp)
 void
 _merge(skeleton *old, skeleton *new)
 {
-	__partial *op = old->partial, *np = new->partial;
+	register __partial *op = old->partial, *np = new->partial;
 	int nson = new->nson;
-	__partial *lim = np + new->treecnt;
+	register __partial *lim = np + new->treecnt;
 	if(nson == 1){
 		old->treecnt = new->treecnt;
 		for(; np < lim; op++, np++) {
@@ -519,8 +510,8 @@ _merge(skeleton *old, skeleton *new)
 		}
 	}else{
 		__partial *newer = _allocpartial();
-		__partial *newerp = newer;
-		int cnt;
+		register __partial *newerp = newer;
+		register int cnt;
 		lim = op + old->treecnt;
 		for(cnt = new->treecnt; cnt-- ; np++){
 			for(op = old->partial; op < lim; op++)

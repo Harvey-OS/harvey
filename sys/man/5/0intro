@@ -478,13 +478,7 @@ All directories must support
 .B walks
 to the directory
 .B ..
-(dot-dot)
-meaning parent directory, although by convention directories
-contain no explicit entry for
-.B ..
-or
-.B .
-(dot).
+meaning parent directory.
 The parent of the root directory of a server's tree is itself.
 .SH "ACCESS PERMISSIONS"
 Each server maintains a set of user and group names.

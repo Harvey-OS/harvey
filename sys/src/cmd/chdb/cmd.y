@@ -11,7 +11,7 @@
 %token	<str>	STRING
 
 %type	<node>	pattern p1 p2 p3 p4
-%type	<lval>	expr gexpr wtype pexpr pgexpr fields field mark
+%type	<lval>	expr gexpr wtype pexpr pgexpr fields field
 
 %left	'+' '-'
 
@@ -29,7 +29,7 @@ command:
 		memmove(str+1, str+ngames, (tgames-1)*sizeof(Str));
 		ngames = tgames;
 		sortit(0);
-		sprint(chars, "     %ld games", ngames-1);
+		sprint(chars, "     %ld games", ngames);
 		prline(8);
 	}
 |	'f' 'f' ';'
@@ -47,11 +47,12 @@ command:
 	{
 		setgame($2);
 	}
-|	'k' mark ';'
+|	'k' NUMB ';'
 	{
-		if(genmark($2) == 0)
-			yyerror("illegal mark");
-		setmark($2);
+		if($2 >= 1 && $2 <= 7)
+			setmark($2);
+		else
+			yyerror("mark must be 1-7");
 	}
 |	'p' pexpr ';'
 	{
@@ -227,12 +228,14 @@ p4:
 		$$->field = $4;
 		cmd[$3.end] = c;
 	}
-|	'\'' mark
+|	'\'' NUMB
 	{
 		$$ = new(Nmark);
-		$$->mark = $2;
-		if(genmark($2) == 0)
-			yyerror("illegal mark");
+		$$->mark = 0;
+		if($2 >= 0 && $2 <= 7)
+			$$->mark = $2;
+		else
+			yyerror("mark must be 0-7");
 	}
 |	'.'
 	{
@@ -309,36 +312,4 @@ field:
 	{
 		$$ = ~0;
 	}
-
-mark:
-	NUMB
-	{
-		$$ = $1 + '0';
-	}
-|	'a'	{ $$ = 'a'; }
-|	'b'	{ $$ = 'b'; }
-|	'c'	{ $$ = 'c'; }
-|	'd'	{ $$ = 'd'; }
-|	'e'	{ $$ = 'e'; }
-|	'f'	{ $$ = 'f'; }
-|	'g'	{ $$ = 'g'; }
-|	'h'	{ $$ = 'h'; }
-|	'i'	{ $$ = 'i'; }
-|	'j'	{ $$ = 'j'; }
-|	'k'	{ $$ = 'k'; }
-|	'l'	{ $$ = 'l'; }
-|	'm'	{ $$ = 'm'; }
-|	'n'	{ $$ = 'n'; }
-|	'o'	{ $$ = 'o'; }
-|	'p'	{ $$ = 'p'; }
-|	'q'	{ $$ = 'q'; }
-|	'r'	{ $$ = 'r'; }
-|	's'	{ $$ = 's'; }
-|	't'	{ $$ = 't'; }
-|	'u'	{ $$ = 'u'; }
-|	'v'	{ $$ = 'v'; }
-|	'w'	{ $$ = 'w'; }
-|	'x'	{ $$ = 'x'; }
-|	'y'	{ $$ = 'y'; }
-|	'z'	{ $$ = 'z'; }
 %%

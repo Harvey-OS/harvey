@@ -6,8 +6,6 @@
 #include	"io.h"
 #include	"../port/error.h"
 
-#include	"devtab.h"
-
 #define DPRINT if(1)print
 
 typedef	struct Drive		Drive;
@@ -47,7 +45,7 @@ enum
 	/* file types */
 	Qdir=		0,
 
-	Maxxfer=	BY2PG,		/* maximum transfer size/cmd */
+	Maxxfer=	32*512,		/* maximum transfer size/cmd */
 	Npart=		8+2,		/* 8 sub partitions, disk, and partition */
 	Nrepl=		64,		/* maximum replacement blocks */
 };
@@ -77,8 +75,6 @@ struct Repl
  */
 struct Drive
 {
-	QLock;
-
 	Controller *cp;
 	int	drive;
 	int	confused;	/* needs to be recalibrated (or worse) */
@@ -169,20 +165,10 @@ hardreset(void)
 	Drive *dp;
 	Controller *cp;
 	int drive;
-	uchar equip;
 
 	hard = xalloc(conf.nhard * sizeof(Drive));
-	hardc = xalloc(((conf.nhard+1)/2) * sizeof(Controller));
+	hardc = xalloc(((conf.nhard+1)/2 + 1) * sizeof(Controller));
 	
-	/*
-	 *  read nvram for number of hard drives (2 max)
-	 */
-	equip = nvramread(0x12);
-	if(conf.nhard > 0 && (equip>>4) == 0)
-		conf.nhard = 0;
-	if(conf.nhard > 1 && (equip&0xf) == 0)
-		conf.nhard = 1;
-
 	for(drive = 0; drive < conf.nhard; drive++){
 		dp = &hard[drive];
 		cp = &hardc[drive/2];
@@ -216,10 +202,8 @@ hardattach(char *spec)
 	for(dp = hard; dp < &hard[conf.nhard]; dp++){
 		if(waserror()){
 			dp->online = 0;
-			qunlock(dp);
 			continue;
 		}
-		qlock(dp);
 		if(!dp->online){
 			hardparams(dp);
 			dp->online = 1;
@@ -230,7 +214,6 @@ hardattach(char *spec)
 		 *  read Plan 9 partition table
 		 */
 		hardpart(dp);
-		qunlock(dp);
 		poperror();
 	}
 	return devattach('w', spec);
@@ -288,7 +271,7 @@ hardwstat(Chan *c, char *dp)
 }
 
 long
-hardread(Chan *c, void *a, long n, ulong offset)
+hardread(Chan *c, void *a, long n)
 {
 	Drive *dp;
 	long rv, i;
@@ -309,9 +292,9 @@ hardread(Chan *c, void *a, long n, ulong offset)
 	dp = &hard[DRIVE(c->qid.path)];
 	pp = &dp->p[PART(c->qid.path)];
 
-	skip = offset % dp->bytes;
+	skip = c->offset % dp->bytes;
 	for(rv = 0; rv < n; rv += i){
-		i = hardxfer(dp, pp, Cread, offset+rv-skip, n-rv+skip, buf);
+		i = hardxfer(dp, pp, Cread, c->offset+rv-skip, n-rv+skip, buf);
 		if(i == 0)
 			break;
 		i -= skip;
@@ -328,7 +311,7 @@ hardread(Chan *c, void *a, long n, ulong offset)
 }
 
 long
-hardwrite(Chan *c, void *a, long n, ulong offset)
+hardwrite(Chan *c, void *a, long n)
 {
 	Drive *dp;
 	long rv, i, partial;
@@ -352,15 +335,15 @@ hardwrite(Chan *c, void *a, long n, ulong offset)
 	 *  read in the first sector before writing
 	 *  it out.
 	 */
-	partial = offset % dp->bytes;
+	partial = c->offset % dp->bytes;
 	if(partial){
-		hardxfer(dp, pp, Cread, offset-partial, dp->bytes, buf);
+		hardxfer(dp, pp, Cread, c->offset-partial, dp->bytes, buf);
 		if(partial+n > dp->bytes)
 			rv = dp->bytes - partial;
 		else
 			rv = n;
 		memmove(buf+partial, aa, rv);
-		hardxfer(dp, pp, Cwrite, offset-partial, dp->bytes, buf);
+		hardxfer(dp, pp, Cwrite, c->offset-partial, dp->bytes, buf);
 	} else
 		rv = 0;
 
@@ -374,7 +357,7 @@ hardwrite(Chan *c, void *a, long n, ulong offset)
 		if(i > Maxxfer)
 			i = Maxxfer;
 		memmove(buf, aa+rv, i);
-		i = hardxfer(dp, pp, Cwrite, offset+rv, i, buf);
+		i = hardxfer(dp, pp, Cwrite, c->offset+rv, i, buf);
 		if(i == 0)
 			break;
 	}
@@ -385,9 +368,9 @@ hardwrite(Chan *c, void *a, long n, ulong offset)
 	 *  it out.
 	 */
 	if(partial){
-		hardxfer(dp, pp, Cread, offset+rv, dp->bytes, buf);
+		hardxfer(dp, pp, Cread, c->offset+rv, dp->bytes, buf);
 		memmove(buf, aa+rv, partial);
-		hardxfer(dp, pp, Cwrite, offset+rv, dp->bytes, buf);
+		hardxfer(dp, pp, Cwrite, c->offset+rv, dp->bytes, buf);
 		rv += partial;
 	}
 
@@ -418,7 +401,7 @@ cmdreadywait(Controller *cp)
 
 	start = m->ticks;
 	while((inb(cp->pbase+Pstatus) & (Sready|Sbusy)) != Sready)
-		if(TK2MS(m->ticks - start) > 5){
+		if(TK2MS(m->ticks - start) > 1){
 			DPRINT("cmdreadywait failed\n");
 			error(Eio);
 		}
@@ -447,7 +430,7 @@ hardxfer(Drive *dp, Partition *pp, int cmd, long start, long len, char *buf)
 	Controller *cp;
 	long lblk;
 	int cyl, sec, head;
-	int loop, s;
+	int loop;
 
 	if(dp->online == 0)
 		error(Eio);
@@ -468,38 +451,46 @@ hardxfer(Drive *dp, Partition *pp, int cmd, long start, long len, char *buf)
 	lblk = start + pp->start;
 	if(lblk >= pp->end)
 		return 0;
-	if(lblk+len > pp->end)
-		len = pp->end - lblk;
 	cyl = lblk/(dp->sectors*dp->heads);
 	sec = (lblk % dp->sectors) + 1;
-	head =  ((lblk/dp->sectors) % dp->heads);
+	head = (dp->drive<<4) | ((lblk/dp->sectors) % dp->heads);
 
+	/*
+	 *  go for it
+	 */
 	cp = dp->cp;
 	qlock(cp);
+	cp->sofar = 0;
+	cp->buf = buf;
 	if(waserror()){
 		cp->buf = 0;
 		qunlock(cp);
 		nexterror();
 	}
 
+	/*
+	 *  can't xfer past end of disk
+	 */
+	if(lblk+len > pp->end)
+		len = pp->end - lblk;
+	cp->nsecs = len;
+
 	cmdreadywait(cp);
 
 	/*
-	 *  splhi to make command atomic
+	 *  start the transfer
 	 */
-	s = splhi();
-	cp->sofar = 0;
-	cp->buf = buf;
-	cp->nsecs = len;
 	cp->cmd = cmd;
 	cp->dp = dp;
 	cp->status = 0;
-	outb(cp->pbase+Pcount, cp->nsecs);
+
+	outb(cp->pbase+Pcount, cp->nsecs-cp->sofar);
 	outb(cp->pbase+Psector, sec);
-	outb(cp->pbase+Pdh, 0x20 | (dp->drive<<4) | head);
+	outb(cp->pbase+Pdh, 0x20 | head);
 	outb(cp->pbase+Pcyllsb, cyl);
 	outb(cp->pbase+Pcylmsb, cyl>>8);
 	outb(cp->pbase+Pcmd, cmd);
+
 	if(cmd == Cwrite){
 		loop = 0;
 		while((inb(cp->pbase+Pstatus) & Sdrq) == 0)
@@ -507,25 +498,8 @@ hardxfer(Drive *dp, Partition *pp, int cmd, long start, long len, char *buf)
 				panic("hardxfer");
 		outss(cp->pbase+Pdata, cp->buf, dp->bytes/2);
 	}
-	splx(s);
 
-	/*
-	 *  wait for command to complete.  if we get a note,
-	 *  remember it but keep waiting to let the disk finish
-	 *  the current command.
-	 */
-	loop = 0;
-	while(waserror()){
-		DPRINT("interrupted hardxfer\n");
-		if(loop++ > 10){
-			print("hard disk error\n");
-			nexterror();
-		}
-	}
 	sleep(&cp->r, cmddone, cp);
-	poperror();
-	if(loop)
-		nexterror();
 
 	if(cp->status & Serr){
 		DPRINT("hd%d err: lblk %ld status %lux, err %lux\n",
@@ -536,11 +510,10 @@ hardxfer(Drive *dp, Partition *pp, int cmd, long start, long len, char *buf)
 		error(Eio);
 	}
 	cp->buf = 0;
-	len = cp->sofar*dp->bytes;
 	qunlock(cp);
 	poperror();
 
-	return len;
+	return cp->sofar*dp->bytes;
 }
 
 /*
@@ -566,9 +539,9 @@ hardsetbuf(Drive *dp, int on)
 
 	sleep(&cp->r, cmddone, cp);
 
-/*	if(cp->status & Serr)
+	if(cp->status & Serr)
 		DPRINT("hd%d setbuf err: status %lux, err %lux\n",
-			dp-hard, cp->status, cp->error);/**/
+			dp-hard, cp->status, cp->error);
 
 	poperror();
 	qunlock(cp);
@@ -621,7 +594,6 @@ hardident(Drive *dp)
 	Controller *cp;
 	char *buf;
 	Ident *ip;
-	int s;
 
 	cp = dp->cp;
 	buf = smalloc(Maxxfer);
@@ -633,7 +605,6 @@ hardident(Drive *dp)
 
 	cmdreadywait(cp);
 
-	s = splhi();
 	cp->nsecs = 1;
 	cp->sofar = 0;
 	cp->cmd = Cident;
@@ -641,8 +612,6 @@ hardident(Drive *dp)
 	cp->buf = buf;
 	outb(cp->pbase+Pdh, 0x20 | (dp->drive<<4));
 	outb(cp->pbase+Pcmd, Cident);
-	splx(s);
-
 	sleep(&cp->r, cmddone, cp);
 	if(cp->status & Serr){
 		DPRINT("bad disk ident status\n");
@@ -664,7 +633,6 @@ hardident(Drive *dp)
 	dp->heads = ip->lheads;
 	dp->sectors = ip->ls2t;
 	dp->cap = dp->bytes * dp->cyl * dp->heads * dp->sectors;
-	cp->lastcmd = cp->cmd;
 	cp->cmd = 0;
 	cp->buf = 0;
 	free(buf);
@@ -686,7 +654,6 @@ hardprobe(Drive *dp, int cyl, int sec, int head)
 	buf = smalloc(Maxxfer);
 	qlock(cp);
 	if(waserror()){
-		free(buf);
 		qunlock(cp);
 		nexterror();
 	}
@@ -697,11 +664,10 @@ hardprobe(Drive *dp, int cyl, int sec, int head)
 	cp->dp = dp;
 	cp->status = 0;
 	cp->nsecs = 1;
-	cp->sofar = 0;
 
 	outb(cp->pbase+Pcount, 1);
 	outb(cp->pbase+Psector, sec+1);
-	outb(cp->pbase+Pdh, 0x20 | head | (dp->drive<<4));
+	outb(cp->pbase+Pdh, 0x20 | head);
 	outb(cp->pbase+Pcyllsb, cyl);
 	outb(cp->pbase+Pcylmsb, cyl>>8);
 	outb(cp->pbase+Pcmd, Cread);
@@ -966,8 +932,6 @@ hardintr(Ureg *ur)
 			inss(cp->pbase+Pdata, addr, dp->bytes/2);
 		}
 		cp->sofar++;
-		if(cp->sofar > cp->nsecs)
-			print("hardintr %d %d\n", cp->sofar, cp->nsecs);
 		if(cp->sofar >= cp->nsecs){
 			cp->lastcmd = cp->cmd;
 			if (cp->cmd == Cread)
@@ -988,8 +952,8 @@ hardintr(Ureg *ur)
 		cp->cmd = 0;
 		break;
 	default:
-		print("weird disk interrupt, cmd=%.2ux, lastcmd= %.2ux status=%.2ux\n",
-			cp->cmd, cp->lastcmd, cp->status);
+		print("weird disk interrupt, cmd=%02x, status=%02x\n",
+			cp->cmd, cp->status);
 		break;
 	}
 }

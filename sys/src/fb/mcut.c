@@ -13,7 +13,6 @@ int count[NR][NG][NB];
 struct box{
 	int lo[3], hi[3], count;
 }cmap[NMAP]={0, 0, 0, NR, NG, NB, 0}, *emap=cmap+1;
-int nmap;
 #define	RED	0
 #define	GRN	1
 #define	BLU	2
@@ -25,9 +24,7 @@ main(int argc, char *argv[]){
 	char *p;
 	PICFILE *in;
 	char *inline;
-	if((argc=getflags(argc, argv, "n:1[ncolor]"))!=1 && argc!=2) usage("[picfile]");
-	nmap=flag['n']?atoi(flag['n'][0]):NMAP;
-	if(nmap<=0 || NMAP<nmap) usage("[picfile]");
+	if((argc=getflags(argc, argv, ""))!=1 && argc!=2) usage("[picfile]");
 	in=picopen_r(argc==2?argv[1]:"IN");
 	if(in==0){
 		picerror(argc==2?argv[1]:"IN");
@@ -51,7 +48,7 @@ main(int argc, char *argv[]){
 	}
 	cmap[0].count=PIC_WIDTH(in)*PIC_HEIGHT(in);
 	shrink(cmap);
-	do;while(emap!=&cmap[nmap] && splitbig());
+	do;while(emap!=&cmap[NMAP] && splitbig());
 	outcmap();
 }
 void shrink(struct box *bp){
@@ -146,7 +143,7 @@ void outcmap(void){
 	register struct box *bp;
 	register r, g, b, racc, gacc, bacc, den, rgb;
 	char cmapbuf[NMAP*3], *cp=cmapbuf;;
-	for(bp=cmap;bp!=&cmap[nmap];bp++){
+	for(bp=cmap;bp!=&cmap[NMAP];bp++){
 		racc=gacc=bacc=den=0;
 		for(r=bp->lo[0];r!=bp->hi[0];r++)
 			for(g=bp->lo[1];g!=bp->hi[1];g++)
@@ -170,7 +167,6 @@ void outcmap(void){
 			*cp++=0;
 		}
 	}
-	qsort((char *)cmapbuf, nmap, 3, lumcmp);
-	for(;cp!=&cmapbuf[256*3];cp++) *cp=0;
+	qsort((char *)cmapbuf, NMAP, 3, lumcmp);
 	write(1, cmapbuf, sizeof cmapbuf);
 }

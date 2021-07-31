@@ -1,0 +1,78 @@
+usr
+adm
+	+
+fd
+help
+lib
+	netaddr.nonet
+	netaddr.inet
+	netaddr.tcp
+	netservice.tcp
+	font
+		bit
+			pelm
+				*
+rc
+	+
+mail
+hobbit
+	bin
+		*
+		listen
+			*
+		aux
+			*
+		disk
+			*
+		games
+			*
+		upas
+			*
+	init
+	include
+		*
+	lib
+		*
+	log
+	mkfile
+mnt
+	8.5
+	help
+	term
+mount
+n
+	boot
+	bootes
+	bootesother
+	bowell
+	coma
+	dump
+	face
+	fornax
+	pipe
+	spindle
+	tempel
+	kfs
+net
+	arp
+	dk
+	dk232
+	net
+	nonet
+	tcp
+	udp
+proc
+srv
+sys
+	games
+		+
+	lib
+		bin
+			hobbit
+				geticon
+		newuser
+		rcmain
+		samsave
+	include
+		*
+tmp

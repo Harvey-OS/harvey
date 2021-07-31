@@ -1,6 +1,5 @@
 typedef	unsigned short	ushort;
 typedef	unsigned char	uchar;
-typedef	signed char	schar;
 typedef unsigned long	ulong;
 typedef	long		vlong;
 typedef union Length	Length;

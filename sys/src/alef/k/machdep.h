@@ -301,7 +301,7 @@ int		bnum(Bits);
 Bits		blsh(int);
 int		beq(Bits, Bits);
 int		bitno(long);
-int		Bconv(void*, Fconv*);
+int		Bconv(void*, int, int, int, int);
 void		ieeedtod(Ieee*, double);
 int		vcache(Biobuf*, Adres*);
 char		*vaddr(char*, Adres*, int);

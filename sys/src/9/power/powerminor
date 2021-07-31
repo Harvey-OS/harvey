@@ -1,0 +1,15 @@
+dev
+	cons	c
+	env	e
+	mnt	M
+	duart	t
+
+port
+	long cfslen = 0; ulong cfscode[1];
+	long fslen = 0; ulong fscode[1];
+	void kproftimer(ulong pc) {USED(pc);}
+	void consdebug(void){}
+	void lanceintr(void){}
+	int cpuserver = 1;
+
+boot cpu

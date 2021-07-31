@@ -7,7 +7,6 @@ dossrv dossrv
 eject dossrv
 exportfs exportfs
 fs fs
-ftp ftpfs
 ftpfs ftpfs
 help help
 import import

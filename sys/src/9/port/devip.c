@@ -604,11 +604,6 @@ tcpstiput(Queue *q, Block *bp)
 	PUTNEXT(q, bp);
 }
 
-tcproominq(void *a)
-{
-	return !((Tcpctl *)a)->sndfull;
-}
-
 void
 tcpstoput(Queue *q, Block *bp)
 {
@@ -643,20 +638,6 @@ tcpstoput(Queue *q, Block *bp)
 	case Established:
 	case Close_wait:
 		/*
-		 * Process flow control
-	 	 */
-		if(tcb->sndfull){
-			qlock(&tcb->sndrlock);
-			if(waserror()) {
-				qunlock(&tcb->sndrlock);
-				nexterror();
-			}
-			sleep(&tcb->sndr, tcproominq, tcb);
-			poperror();
-			qunlock(&tcb->sndrlock);
-		}
-
-		/*
 		 * Push data
 		 */
 		qlock(tcb);
@@ -665,8 +646,6 @@ tcpstoput(Queue *q, Block *bp)
 			nexterror();
 		}
 		tcb->sndcnt += blen(bp);
-		if(tcb->sndcnt > Streamhi)
-			tcb->sndfull = 1;
 		if(tcb->sndq == 0)
 			tcb->sndq = bp;
 		else {
@@ -1084,7 +1063,7 @@ nextport(Ipifc *ifc, int priv)
 
 	if(priv){
 		base = PRIVPORTALLOC;
-		max = UNPRIVPORTALLOC;
+		max = PORTALLOC;
 		p = &lastport[1];
 	} else {
 		base = PORTALLOC;

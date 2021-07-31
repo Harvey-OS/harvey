@@ -1,5 +1,5 @@
 CONF=nextstation
-CONFLIST=nextstation nextstationdisk nextstationnofs nextaudio
+CONFLIST=nextstation nextstationdisk
 
 objtype=68020
 </$objtype/mkfile

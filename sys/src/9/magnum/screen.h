@@ -19,7 +19,6 @@ struct Cursorinfo{
 	Cursor;
 	Lock;
 	int	visible;	/* on screen */
-	int	disable;	/* from being used */
 	Rectangle r;		/* location */
 };
 
@@ -27,5 +26,3 @@ extern Mouseinfo	mouse;
 extern Cursorinfo	cursor;
 
 extern void		mouseupdate(int);
-
-#define	hwscreenwrite(a, b)

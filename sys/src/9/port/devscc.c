@@ -96,10 +96,9 @@ struct SCC
 	uchar	*data;		/* data register in Z8530 */
 	int	printing;	/* true if printing */
 	ulong	freq;		/* clock frequency */
-	uchar	mask;		/* bits/char */
 
 	/* console interface */
-	int	special;	/* can't use the stream interface */
+	int	nostream;	/* can't use the stream interface */
 	IOQ	*iq;		/* input character queue */
 	IOQ	*oq;		/* output character queue */
 
@@ -118,11 +117,6 @@ SCC	*scc[8];	/* up to 4 8530's */
 #define CTLS	023
 #define CTLQ	021
 
-#ifdef	Zduart
-#define	SCCTYPE	'z'
-#define	onepointseven()
-#else
-#define	SCCTYPE	't'
 void
 onepointseven(void)
 {
@@ -130,7 +124,6 @@ onepointseven(void)
 	for(i = 0; i < 20; i++)
 		;
 }
-#endif
 
 /*
  *  Access registers using the pointer in register 0.
@@ -205,23 +198,19 @@ sccbits(SCC *sp, int n)
 
 	switch(n){
 	case 5:
-		sp->mask = 0x1f;
 		rbits = Rx5bits;
 		tbits = Tx5bits;
 		break;
 	case 6:
-		sp->mask = 0x3f;
 		rbits = Rx6bits;
 		tbits = Tx6bits;
 		break;
 	case 7:
-		sp->mask = 0x7f;
 		rbits = Rx7bits;
 		tbits = Tx7bits;
 		break;
 	case 8:
 	default:
-		sp->mask = 0xff;
 		rbits = Rx8bits;
 		tbits = Tx8bits;
 		break;
@@ -282,7 +271,7 @@ sccbreak(SCC *sp, int ms)
  *  transmit and receive enabled, interrupts disabled.
  */
 static void
-sccsetup0(SCC *sp, int brsource)
+sccsetup0(SCC *sp)
 {
 	memset(sp->sticky, 0, sizeof(sp->sticky));
 
@@ -290,16 +279,14 @@ sccsetup0(SCC *sp, int brsource)
 	 *  turn on baud rate generator and set rate to 9600 baud.
 	 *  use 1 stop bit.
 	 */
-	sp->sticky[14] = brsource ? BRSource : 0;
+	sp->sticky[14] = BRSource;
 	sccwrreg(sp, 14, 0);
 	sccsetbaud(sp, 9600);
 	sp->sticky[4] = Rx1stop | X16;
 	sccwrreg(sp, 4, 0);
-	sp->sticky[11] = TxClockBR | RxClockBR | TRxCOutBR /*| TRxCOI*/;
+	sp->sticky[11] = TxClockBR | RxClockBR | TRxCOutBR | TRxCOI;
 	sccwrreg(sp, 11, 0);
-	sp->sticky[14] = BREna;
-	if(brsource)
-		sp->sticky[14] |= BRSource;
+	sp->sticky[14] = BREna | BRSource;
 	sccwrreg(sp, 14, 0);
 
 	/*
@@ -309,11 +296,10 @@ sccsetup0(SCC *sp, int brsource)
 	sccwrreg(sp, 3, 0);
 	sp->sticky[5] = TxEna | Tx8bits;
 	sccwrreg(sp, 5, 0);
-	sp->mask = 0xff;
 }
 
 void
-sccsetup(void *addr, ulong freq, int brsource)
+sccsetup(void *addr, ulong freq)
 {
 	SCCdev *dev;
 	SCC *sp;
@@ -328,13 +314,13 @@ sccsetup(void *addr, ulong freq, int brsource)
 	sp->ptr = &dev->ptra;
 	sp->data = &dev->dataa;
 	sp->freq = freq;
-	sccsetup0(sp, brsource);
+	sccsetup0(sp);
 	sp = xalloc(sizeof(SCC));
 	scc[nscc+1] = sp;
 	sp->ptr = &dev->ptrb;
 	sp->data = &dev->datab;
 	sp->freq = freq;
-	sccsetup0(sp, brsource);
+	sccsetup0(sp);
 	nscc += 2;
 }
 
@@ -381,7 +367,7 @@ sccintr0(SCC *sp, uchar x)
 		cq = sp->iq;
 		while(*sp->ptr&RxReady){
 			onepointseven();
-			ch = *sp->data & sp->mask;
+			ch = *sp->data;
 			if (ch == CTLS && sp->xonoff)
 				sp->blocked = 1;
 			else if (ch == CTLQ && sp->xonoff) {
@@ -413,21 +399,20 @@ sccintr0(SCC *sp, uchar x)
 		unlock(cq);
 	}
 }
-int
+void
 sccintr(void)
 {
 	uchar x;
-	int i, j;
+	int i;
 
-	for(i = j = 0; i < nscc; i += 2){
+	for(i = 0; i < nscc; i += 2){
 		x = sccrdreg(scc[i], 3);
 		if(x & (ExtPendB|RxPendB|TxPendB))
-			++j, sccintr0(scc[i+1], x);
+			sccintr0(scc[i+1], x);
 		x = x >> 3;
 		if(x & (ExtPendB|RxPendB|TxPendB))
-			++j, sccintr0(scc[i], x);
+			sccintr0(scc[i], x);
 	}
-	return j;
 }
 
 void
@@ -486,12 +471,11 @@ sccspecial(int port, IOQ *oq, IOQ *iq, int baud)
 {
 	SCC *sp = scc[port];
 
-	sp->special = 1;
+	sp->nostream = 1;
 	sp->oq = oq;
 	sp->iq = iq;
 	sccenable(sp);
-	if(baud)
-		sccsetbaud(sp, baud);
+	sccsetbaud(sp, baud);
 
 	if(iq){
 		/*
@@ -556,9 +540,6 @@ static void
 sccstclose(Queue *q)
 {
 	SCC *sp = q->ptr;
-
-	if(sp->special)
-		return;
 
 	qlock(sp);
 	sp->wq = 0;
@@ -696,7 +677,7 @@ sccreset(void)
 
 		/* set up queues if a stream port */
 		sp = scc[i];
-		if(sp->special)
+		if(sp->nostream)
 			continue;
 		sp->iq = xalloc(sizeof(IOQ));
 		initq(sp->iq);
@@ -714,7 +695,7 @@ sccinit(void)
 Chan*
 sccattach(char *spec)
 {
-	return devattach(SCCTYPE, spec);
+	return devattach('t', spec);
 }
 
 Chan*
@@ -752,7 +733,7 @@ sccopen(Chan *c, int omode)
 
 	if(c->qid.path != CHDIR){
 		sp = scc[STREAMID(c->qid.path)];
-		if(sp->special)
+		if(sp->nostream)
 			error(Einuse);
 		streamopen(c, &sccinfo);
 	}

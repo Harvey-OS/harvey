@@ -537,7 +537,6 @@ getdata(char *mapfile)
 	ifile = fopen(mapfile,"r");
 	if(ifile==NULL)
 		filerror("can't find map data", mapfile);
-	kx = ky = 0;
 	for(lat=lolat;lat<hilat;lat+=10.)
 		for(lon=lolon;lon<hilon;lon+=10.) {
 			if(!seeable(lat,lon))
@@ -583,7 +582,7 @@ getdata(char *mapfile)
 				if(k==1) {
 					conv(kx,&g.nlat);
 					conv(ky,&g.wlon);
-					plotpt(&g,conn);
+					conn = plotpt(&g,conn);
 				}
 			}
 		}
@@ -607,6 +606,7 @@ satellite(struct track *t)
 {
 	char sym[50];
 	char lbl[50];
+	char *s;
 	float scale;
 	register conn;
 	float lat,lon;
@@ -821,12 +821,9 @@ picut(struct place *g, struct place *og, float *cutlon)
 int
 nocut(struct place *g, struct place *og, float *cutlon)
 {
-	USED(g, og, cutlon);
-/*
 #pragma	ref g
 #pragma	ref og
 #pragma	ref cutlon
-*/
 	return(1);
 }
 
@@ -946,6 +943,7 @@ gridpt(float lat, float lon, int conn)
 void
 dobounds(float lolat, float hilat, float lolon, float hilon, int win)
 {
+	int up = win? 1: upright;
 	gridinv = win;
 	if(lolat>-90 || win && (poles&1)!=0)
 		dogrid(lolat+FUZZ,lolat+FUZZ,lolon,hilon);

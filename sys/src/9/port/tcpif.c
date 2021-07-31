@@ -100,7 +100,7 @@ tcpstart(Ipconv *s, int mode, ushort window, char tos)
 		tcpoutput(s);
 		poperror();
 		qunlock(tcb);
-		tsleep(&tcb->syner, notsyner, tcb, 120*1000);
+		sleep(&tcb->syner, notsyner, tcb);
 		if(tcb->state != Established && tcb->state != Syn_received)
 			error(Etimedout);
 		break;

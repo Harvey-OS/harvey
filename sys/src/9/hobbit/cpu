@@ -7,27 +7,18 @@ dev
 	srv	s
 	mnt	M
 	dup	d
-	iic	2
 	eia	t
 	rtc	r
 	incon	i
 	dk	k
-	scsi	S	scsi scsibuf
+	scsi	S	scsi
 	wren	w
-	ether	l
-	arp	a
-	iproute	P
-	ip	I	tcpinput tcpoutput tcptimer tcpif stil
-
 	kprof	T
 
 stream
 	urp
-	ip
 	async
 	fcall
-
-	reboot
 
 misc
 
@@ -36,22 +27,6 @@ port
 	long cfslen = 0; ulong cfscode[1];
 	long fslen = 0; ulong fscode[1];
 
-	char station[NAMELEN];			/* incon station info */
-
-	void
-	consdebug(void)
-	{
-	}
-
-	void
-	screeninit(int n)
-	{
-		USED(n);
-
-		eiaspecial(0, &printq, &kbdq, 19200);
-		eiaspecial(3, 0, &mouseq, 1200);
-	}
-
 	void
 	screenputs(char *s, int n)
 	{
@@ -59,10 +34,19 @@ port
 	}
 
 	void
-	bitdebug(void)
+	consdebug(void)
 	{
 	}
 
+	void
+	bitdebug(void)
+	{
+	}
+	/*
+	void kproftimer(ulong pc)
+	{
+	}
+	 */
 	int
 	mouseputc(IOQ *a, int b)
 	{
@@ -71,8 +55,6 @@ port
 	}
 
 boot cpu
-	il
-	tcp
 	incon	"config 1 64 restart dk"
 	9600	"#t/eia1"
 	19200	"#t/eia1"

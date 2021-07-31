@@ -15,21 +15,17 @@ allocsig(Chip *c)
 void
 addsig(Signal *s)
 {
-	Signal **ss;
-	int i;
+	register Signal **ss;
+	register i;
 
-	if(s->type&VSIG)
+	if(s->type != NORMSIG)
 		return;
 	for(i = 0; i < s->n; i++){
 		ss = (Signal **)symlook(s->coords[i].chip, S_CSMAP, (void *)0);
-		if(ss == 0){
-			fprint(2, "errk: ss=0 for %dth chip '%s'\n", i, s->coords[i].chip);
-			abort();
-		}
-		for(; s != *ss; ss++)
-			if(*ss == 0)
+		while(*ss)
+			if(s == *ss++)
 				break;
-		if(*ss != s){
+		if(*ss == 0){
 			*ss++ = s;
 			*ss = 0;
 		}

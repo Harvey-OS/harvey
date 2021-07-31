@@ -155,7 +155,7 @@ cmd_create(void)
 		if(oelem[0])
 			if(con_walk(FID2, oelem))
 				return;
-		memmove(oelem, elem, NAMELEN);
+		memcpy(oelem, elem, NAMELEN);
 	}
 	if(skipbl(1))
 		return;
@@ -196,10 +196,8 @@ cmd_clri(void)
 	if(skipbl(1))
 		return;
 	while(nextelem())
-		if(con_walk(FID2, elem)){
-			cprint("can't walk %s\n", elem);
+		if(con_walk(FID2, elem))
 			return;
-		}
 	con_clri(FID2);
 }
 
@@ -222,7 +220,7 @@ cmd_rename(void)
 				cprint("file does not exits");
 				return;
 			}
-		memmove(oelem, elem, NAMELEN);
+		memcpy(oelem, elem, NAMELEN);
 	}
 	cname(nelem);
 	if(!con_walk(FID2, nelem))
@@ -248,10 +246,8 @@ cmd_remove(void)
 	if(skipbl(1))
 		return;
 	while(nextelem())
-		if(con_walk(FID2, elem)){
-			cprint("can't walk %s\n", elem);
+		if(con_walk(FID2, elem))
 			return;
-		}
 	con_remove(FID2);
 }
 
@@ -404,20 +400,20 @@ cmd_checkuser(void)
 	p = buf + 3*NAMELEN + 4*4;
 	if(memcmp(utime, p, 4) == 0)
 		return;
-	memmove(utime, p, 4);
+	memcpy(utime, p, 4);
 	cmd_user();
 }
 
 void
 cmd_allow(void)
 {
-	wstatallow = 1;
+	cons.allow = 1;
 }
 
 void
 cmd_disallow(void)
 {
-	wstatallow = 0;
+	cons.allow = 0;
 }
 
 Command	command[] =
@@ -426,7 +422,7 @@ Command	command[] =
 	"allowoff",	cmd_disallow,	"",
 	"cfs",		cmd_cfs,	"[filsys]",
 	"check",	cmd_check,	"[rftRdPpw]",
-	"clri",		cmd_clri,	"filename",
+	"clri",		cmd_clri,	"",
 	"create",	cmd_create,	"filename user group perm [ald]",
 	"disallow",	cmd_disallow,	"",
 	"halt",		cmd_halt,	"",

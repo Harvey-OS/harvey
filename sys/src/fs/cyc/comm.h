@@ -2,6 +2,7 @@
 
 enum
 {
+	VEC	= 0xd2,				/* vme vector */
 	NRQ	= 200,				/* host->hotrod request q */
 	PRIME	= 1,
 
@@ -43,5 +44,4 @@ struct	Comm
 	 * boot rom jump pc
 	 */
 	ulong	entry;
-	uchar	vmevec;
 };

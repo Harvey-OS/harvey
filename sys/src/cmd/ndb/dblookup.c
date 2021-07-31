@@ -3,7 +3,6 @@
 #include <bio.h>
 #include <ndb.h>
 #include "dns.h"
-#include "lock.h"
 
 static Ndb *db;
 
@@ -14,21 +13,9 @@ static RR*	mxrr(Ndbtuple*, Ndbtuple*);
 static RR*	soarr(Ndbtuple*, Ndbtuple*);
 static Ndbtuple* look(Ndbtuple*, Ndbtuple*, char*);
 
-static Lock	dblock;
-
-void
-dbinit(void)
-{
-	lockinit(&dblock);
-}
-
 /*
  *  lookup an RR in the network database, look for matches
  *  against both the domain name and the wildcarded domain name.
- *
- *  the lock makes sure only one process can be accessing the data
- *  base at a time.  This is important since there's a lot of
- *  shared state there.
  *
  *  e.g. for x.research.att.com, first look for a match against
  *       the x.research.att.com.  If nothing matches, try *.research.att.com.
@@ -40,46 +27,39 @@ dblookup(char *name, int class, int type, int auth)
 	char buf[256];
 	char *wild, *cp;
 	DN *dp;
-	static int parallel;
-	static int parfd[2];
-	static char token[1];
 
+if(debug)print("dblookup %s %s\n", name, rrname(type, buf));
 	/* so far only internet lookups are implemented */
 	if(class != Cin)
 		return 0;
 
-	lock(&dblock);
-
-	rp = 0;
 	if(db == 0){
 		db = ndbopen(0);
 		if(db == 0)
-			goto out;
+			return 0;
 	}
 
 	/* first try the given name */
 	rp = dblookup1(name, type, auth);
 	if(rp)
-		goto out;
+		return rp;
 
 	/* try lower case version */
 	for(cp = name; *cp; cp++)
 		*cp = tolower(*cp);
 	rp = dblookup1(name, type, auth);
 	if(rp)
-		goto out;
+		return rp;
 
 	/* now try the given name with the first element replaced by '*' */
 	wild = strchr(name, '.');
 	if(wild == 0)
-		goto out;
-	snprint(buf, sizeof(buf), "*%s", wild);
+		return 0;
+	sprint(buf, "*%.*s", sizeof(buf)-2, wild);
 	rp = dblookup1(buf, type, auth);
 	dp = dnlookup(name, class, 1);
 	for(tp = rp; tp; tp = tp->next)
 		tp->owner = dp;
-out:
-	unlock(&dblock);
 	return rp;
 }
 
@@ -97,6 +77,7 @@ dblookup1(char *name, int type, int auth)
 	DN *dp;
 	RR *(*f)(Ndbtuple*, Ndbtuple*);
 
+if(debug)print("dblookup1 %s\n", name);
 	dp = 0;
 	switch(type){
 	case Ta:

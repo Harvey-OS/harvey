@@ -156,7 +156,7 @@ umap(char *s)
 void
 fatal(char *fmt, ...)
 {
-	char buf[512];
+	char buf[128];
 
 	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
 	fprint(2, "%s : %L (fatal compiler problem) %s\n", argv0, line, buf);
@@ -168,7 +168,7 @@ fatal(char *fmt, ...)
 void
 diag(Node *n, char *fmt, ...)
 {
-	char buf[512];
+	char buf[128];
 	int srcline;
 
 	srcline = line;
@@ -187,7 +187,7 @@ diag(Node *n, char *fmt, ...)
 void
 warn(Node *n, char *fmt, ...)
 {
-	char buf[512];
+	char buf[128];
 	int srcline;
 
 	if(Owarn == 0)
@@ -339,12 +339,13 @@ malloc(long a)
 }
 
 int
-VBconv(void *o, Fconv *f)
+VBconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[128];
 	int i, n, t, pc;
 	extern printcol;
 
+	USED(chr);
 	n = *(int*)o;
 	pc = printcol;
 	i = 0;
@@ -359,6 +360,6 @@ VBconv(void *o, Fconv *f)
 		pc++;
 	}
 	str[i] = 0;
-	strconv(str, f);
+	strconv(str, f1, f2, f3);
 	return sizeof(n);
 }

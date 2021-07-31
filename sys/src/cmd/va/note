@@ -47,5 +47,3 @@ MOVW[LR]
 	LW[LR], SW[LR]
 MOVW
 	LW, SW, LUI, M[FT]HI, M[FT]LO
-BREAK is synonym for CACHE.
-operands make the difference.

@@ -14,7 +14,6 @@ OFILES=\
 	lupdate.$O\
 	lvis.$O\
 	point.$O\
-	polysegment.$O\
 	segment.$O\
 	string.$O\
 	texture.$O\

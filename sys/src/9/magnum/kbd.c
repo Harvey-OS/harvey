@@ -287,18 +287,13 @@ lights(int l)
 {
 	KBDdev *k;
 	int s;
-	int tries;
 
 	s = splhi();
 	k = KBD;
-	for(tries = 0; tries < 2000 && (k->ctl & Sibf); tries++)
-		;
-	Xdelay(1);
+	OUTWAIT;
 	k->data = Kwrlights;
 	kbdackwait(k);
-	for(tries = 0; tries < 2000 && (k->ctl & Sibf); tries++)
-		;
-	Xdelay(1);
+	OUTWAIT;
 	k->data = kbd.l = l;
 	kbdackwait(k);
 	splx(s);

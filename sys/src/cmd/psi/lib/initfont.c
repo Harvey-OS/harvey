@@ -146,7 +146,7 @@ initfont(void)
 		encoding.value.v_array.object[i] = notdef;
 	for(i=209; i<225; i++)
 		encoding.value.v_array.object[i] = notdef;
-	for(i=228; i<232; i++)
+	for(228; i<232; i++)
 		encoding.value.v_array.object[i] = notdef;
 
 }

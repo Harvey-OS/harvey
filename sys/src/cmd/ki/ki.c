@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 #include <mach.h>
+#include <bio.h>
 #define Extern
 #include "sparc.h"
 
@@ -292,12 +292,12 @@ init(int argc, char *argv[])
 	sp = STACKTOP - 4;
 
 	/* Build exec stack */
-	size = strlen(file)+1+BY2WD+BY2WD+(BY2WD*2);	
+	size = strlen(file)+1+BY2WD+BY2WD+BY2WD;	
 	for(i = 0; i < argc; i++)
 		size += strlen(argv[i])+BY2WD+1;
 
 	sp -= size;
-	sp &= ~7;
+	sp &= ~3;
 	reg.r[1] = sp;
 	reg.r[7] = STACKTOP-4;	/* Plan 9 profiling clock */
 

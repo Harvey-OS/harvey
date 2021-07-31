@@ -40,8 +40,6 @@ evconst(Node *n)
 		if(FPCHIP && isf) {
 			et = l->type->etype;
 			if(typechlp[et]) {
-				if(typeu[et] && l->offset < 0)
-					return;		/* let runtime do it */
 				n->ud = l->offset;
 				break;
 			}

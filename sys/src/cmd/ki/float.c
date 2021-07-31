@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 #include <mach.h>
+#include <bio.h>
 #define Extern extern
 #include "sparc.h"
 
@@ -313,7 +313,7 @@ fbcc(ulong ir)
 		reg.pc += 4;
 		if(anul == 0) {
 			reg.ir = ifetch(reg.pc);
-			delay(reg.pc+4);
+			delay();
 		}
 		else
 			anulled++;
@@ -327,7 +327,7 @@ fbcc(ulong ir)
 		return;	
 	}
 	reg.ir = ifetch(reg.pc+4);
-	delay(npc);
+	delay();
 	reg.pc = npc-4;
 }
 

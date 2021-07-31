@@ -69,8 +69,7 @@ extern	int	yyerrflag;
 #endif
 YYSTYPE	yylval;
 YYSTYPE	yyval;
-#define YYEOFCODE 1
-#define YYERRCODE 2
+#define YYERRCODE 57344
 
 #line	140	"eqn.y"
 
@@ -323,11 +322,9 @@ yylex1(void)
 		if(c == 0)
 			break;
 	}
-	c = 0;
+	c = yytok2[1];	/* unknown char */
 
 out:
-	if(c == 0)
-		c = yytok2[1];	/* unknown char */
 	if(yydebug >= 3)
 		printf("lex %.4X %s\n", yychar, yytokname(c));
 	return c;
@@ -412,7 +409,6 @@ yydefault:
 				printf("%s", yystatname(yystate));
 				printf("saw %s\n", yytokname(yychar));
 			}
-yyerrlab:
 			yynerrs++;
 
 		case 1:
@@ -438,7 +434,7 @@ yyerrlab:
 			return 1;
 
 		case 3:  /* no shift yet; clobber input char */
-			if(yydebug >= YYEOFCODE)
+			if(yydebug >= 2)
 				printf("error recovery discards %s\n", yytokname(yychar));
 			if(yychar == 0)
 				return 1;

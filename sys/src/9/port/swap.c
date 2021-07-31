@@ -14,12 +14,12 @@ void	pager(void*);
 
 enum
 {
-	Maxpages = SEGMAXSIZE/BY2PG,	/* Max # of pageouts per segment pass */
+	Maxpages = 500,	/* Max number of pageouts per segment pass */
 };
 
 	Image 	swapimage;
 static 	int	swopen;
-static	Page	**iolist;
+static	Page	*iolist[Maxpages];
 static	int	ioptr;
 
 void
@@ -30,9 +30,6 @@ swapinit(void)
 	swapalloc.alloc = swapalloc.swmap;
 	swapalloc.last = swapalloc.swmap;
 	swapalloc.free = conf.nswap;
-	iolist = xalloc(Maxpages*sizeof(Page*));
-	if(swapalloc.swmap == 0 || iolist == 0)
-		panic("swapinit: not enough memory");
 }
 
 ulong

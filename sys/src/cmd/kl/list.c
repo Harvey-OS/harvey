@@ -18,12 +18,13 @@ prasm(Prog *p)
 }
 
 int
-Pconv(void *o, Fconv *fp)
+Pconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[STRINGSZ];
 	Prog *p;
 	int a;
 
+	USED(chr);
 	p = *(Prog**)o;
 	curp = p;
 	a = p->as;
@@ -45,31 +46,33 @@ Pconv(void *o, Fconv *fp)
 		sprint(str, "	%A	%D,F%d,%D", a, &p->from, p->reg, &p->to);
 	else
 		sprint(str, "	%A	%D,R%d,%D", a, &p->from, p->reg, &p->to);
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	return sizeof(p);
 }
 
 int
-Aconv(void *o, Fconv *fp)
+Aconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char *s;
 	int a;
 
+	USED(chr);
 	a = *(int*)o;
 	s = "???";
 	if(a >= AXXX && a <= AEND)
 		s = anames[a];
-	strconv(s, fp);
+	strconv(s, f1, f2, f3);
 	return sizeof(a);
 }
 
 int
-Dconv(void *o, Fconv *fp)
+Dconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[STRINGSZ];
 	Adr *a;
 	long v;
 
+	USED(chr);
 	a = *(Adr**)o;
 	switch(a->type) {
 
@@ -152,17 +155,18 @@ Dconv(void *o, Fconv *fp)
 		sprint(str, "$\"%S\"", a->sval);
 		break;
 	}
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	return sizeof(a);
 }
 
 int
-Nconv(void *o, Fconv *fp)
+Nconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[STRINGSZ];
 	Adr *a;
 	Sym *s;
 
+	USED(chr);
 	a = *(Adr**)o;
 	s = a->sym;
 	if(s == S) {
@@ -191,16 +195,17 @@ Nconv(void *o, Fconv *fp)
 		break;
 	}
 out:
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	return sizeof(a);
 }
 
 int
-Sconv(void *o, Fconv *fp)
+Sconv(void *o, int f1, int f2, int f3, int chr)
 {
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
+	USED(chr);
 	a = *(char**)o;
 	p = str;
 	for(i=0; i<sizeof(long); i++) {
@@ -233,7 +238,7 @@ Sconv(void *o, Fconv *fp)
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	return sizeof(a);
 }
 

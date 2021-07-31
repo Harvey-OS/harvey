@@ -50,7 +50,6 @@ struct Conf
 	ulong	ip;		/* Ip conversations per interface */
 	ulong	arp;		/* Arp table size */
 	ulong	frag;		/* Ip fragment assemble queue size */
-	ulong	debugger;	/* use processor 1 as a kernel debugger */
 };
 
 /*
@@ -101,7 +100,6 @@ struct Mach
 	int	lastpid;		/* last pid allocated on this machine */
 	Proc	*pidproc[NTLBPID];	/* process that owns this tlbpid on this mach */
 	Page	*ufreeme;		/* address of upage of exited process */
-	Ureg	*ur;
 
 	int	tlbfault;		/* this offset known in l.s/utlbmiss() */
 	int	tlbpurge;

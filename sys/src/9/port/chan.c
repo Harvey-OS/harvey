@@ -42,7 +42,7 @@ chandevreset(void)
 {
 	int i;
 
-	for(i=0; i<devchar[i]; i++)
+	for(i=0; i<strlen(devchar); i++)
 		(*devtab[i].reset)();
 }
 
@@ -51,7 +51,7 @@ chandevinit(void)
 {
 	int i;
 
-	for(i=0; i<devchar[i]; i++)
+	for(i=0; i<strlen(devchar); i++)
 		(*devtab[i].init)();
 }
 
@@ -429,7 +429,6 @@ namec(char *name, int amode, int omode, ulong perm)
 {
 	Chan *c, *nc, *cc;
 	int t;
-	Rune r;
 	int mntok, isdot;
 	char *p;
 	char *elem;
@@ -464,13 +463,12 @@ namec(char *name, int amode, int omode, ulong perm)
 	else
 	if(name[0] == '#') {
 		mntok = 0;
-		name++;
-		name += chartorune(&r, name);
-		if(r == 'M')
+		if(name[1]=='M')
 			error(Enonexist);
-		t = devno(r, 1);
+		t = devno(name[1], 1);
 		if(t == -1)
 			error(Ebadsharp);
+		name += 2;
 		if(*name == '/'){
 			name = skipslash(name);
 			elem[0]=0;

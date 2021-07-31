@@ -3,9 +3,7 @@
 void
 f_nop(Chan *cp, Fcall *in, Fcall *ou)
 {
-
-	USED(in);
-	USED(ou);
+	USED(in, ou);
 	if(CHAT(cp))
 		print("c_nop %d\n", cp->chan);
 }
@@ -13,11 +11,7 @@ f_nop(Chan *cp, Fcall *in, Fcall *ou)
 void
 f_flush(Chan *cp, Fcall *in, Fcall *ou)
 {
-
-	USED(in);
-	USED(ou);
-	if(CHAT(cp))
-		print("c_flush %d\n", cp->chan);
+	USED(in, ou);
 	runlock(&cp->reflock);
 	wlock(&cp->reflock);
 	wunlock(&cp->reflock);
@@ -27,12 +21,17 @@ f_flush(Chan *cp, Fcall *in, Fcall *ou)
 void
 f_session(Chan *cp, Fcall *in, Fcall *ou)
 {
-
-	USED(in);
-	USED(ou);
+	USED(in, ou);
 	if(CHAT(cp))
 		print("c_session %d\n", cp->chan);
-	fileinit(cp);
+}
+
+void
+f_auth(Chan *cp, Fcall *in, Fcall *ou)
+{
+	USED(cp);
+	ou->fid = in->fid;
+	ou->err = Eauth;
 }
 
 void
@@ -247,9 +246,9 @@ f_walk(Chan *cp, Fcall *in, Fcall *ou)
 		goto out;
 	}
 	accessdir(p, d, FREAD);
-	if(strcmp(in->name, ".") == 0)
+	if(!strcmp(in->name, "."))
 		goto setdot;
-	if(strcmp(in->name, "..") == 0) {
+	if(!strcmp(in->name, "..")) {
 		if(f->wpath == 0)
 			goto setdot;
 		putbuf(p);
@@ -388,14 +387,14 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 	switch(in->mode & 7) {
 
 	case MREAD:
-		if(iaccess(f, d, DREAD) && !writeallow)
+		if(iaccess(f, d, DREAD))
 			goto badaccess;
 		fmod = FREAD;
 		break;
 
 	case MWRITE:
 		if((d->mode & DDIR) ||
-		   (iaccess(f, d, DWRITE) && !writeallow))
+		   iaccess(f, d, DWRITE))
 			goto badaccess;
 		if(ro) {
 			ou->err = Eronly;
@@ -406,8 +405,8 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 
 	case MBOTH:
 		if((d->mode & DDIR) ||
-		   (iaccess(f, d, DREAD) && !writeallow) ||
-		   (iaccess(f, d, DWRITE) && !writeallow))
+		   iaccess(f, d, DREAD) ||
+		   iaccess(f, d, DWRITE))
 			goto badaccess;
 		if(ro) {
 			ou->err = Eronly;
@@ -429,7 +428,7 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 	}
 	if(in->mode & MTRUNC) {
 		if((d->mode & DDIR) ||
-		   (iaccess(f, d, DWRITE) && !writeallow))
+		   iaccess(f, d, DWRITE))
 			goto badaccess;
 		if(ro) {
 			ou->err = Eronly;
@@ -515,7 +514,7 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Edir2;
 		goto out;
 	}
-	if(cp != cons.chan && iaccess(f, d, DWRITE) && !writeallow) {
+	if(cp != cons.chan && iaccess(f, d, DWRITE)) {
 		ou->err = Eaccess;
 		goto out;
 	}
@@ -610,11 +609,8 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 	} else {
 		d1->uid = f->uid;
 		d1->gid = d->gid;
-		in->perm &= d->mode | ~0666;
-		if(in->perm & PDIR)
-			in->perm &= d->mode | ~0777;
 	}
-	d1->mode = DALLOC | (in->perm & 0777);
+	d1->mode = DALLOC | (d->mode & in->perm & 0777);
 	if(in->perm & PDIR) {
 		d1->mode |= DDIR;
 		qid.path |= QPDIR;
@@ -751,7 +747,7 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 				putbuf(p1);
 				goto out;
 			}
-			memmove(ou->data+nread, p1->iobuf+o, n);
+			memcpy(ou->data+nread, p1->iobuf+o, n);
 			putbuf(p1);
 		} else
 			memset(ou->data+nread, 0, n);
@@ -888,7 +884,7 @@ f_write(Chan *cp, Fcall *in, Fcall *ou)
 			ou->err = Ephase;
 			goto out;
 		}
-		memmove(p1->iobuf+o, in->data+nwrite, n);
+		memcpy(p1->iobuf+o, in->data+nwrite, n);
 		p1->flags |= Bmod;
 		putbuf(p1);
 		count -= n;
@@ -1078,10 +1074,6 @@ f_stat(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Ealloc;
 		goto out;
 	}
-	if(fakeqid(d) != f->qid.path) {
-		ou->err = Eqid;
-		goto out;
-	}
 	if(d->qid.path == QPROOT)	/* stat of root gives time */
 		d->atime = time();
 	if(convD2M(d, ou->stat) != DIRREC)
@@ -1098,11 +1090,9 @@ out:
 void
 f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 {
-	Iobuf *p, *p1;
-	Dentry *d, *d1, xd;
+	Iobuf *p;
+	Dentry *d, xd;
 	File *f;
-	int slot;
-	long addr;
 
 	if(CHAT(cp)) {
 		print("c_wstat %d\n", cp->chan);
@@ -1110,8 +1100,6 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	}
 
 	p = 0;
-	p1 = 0;
-	d1 = 0;
 	f = filep(cp, in->fid, 0);
 	if(!f) {
 		ou->err = Efid;
@@ -1121,44 +1109,20 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Eronly;
 		goto out;
 	}
-
-	/*
-	 * first get parent
-	 */
-	if(f->wpath) {
-		p1 = getbuf(f->fs->dev, f->wpath->addr, Bread);
-		d1 = getdir(p1, f->wpath->slot);
-		if(!d1 || checktag(p1, Tdir, QPNONE) || !(d1->mode & DALLOC)) {
-			ou->err = Ephase;
-			goto out;
-		}
-	}
-
 	p = getbuf(f->fs->dev, f->addr, Bread);
 	d = getdir(p, f->slot);
 	if(!d || checktag(p, Tdir, QPNONE) || !(d->mode & DALLOC)) {
 		ou->err = Ealloc;
 		goto out;
 	}
-	if(fakeqid(d) != f->qid.path) {
-		ou->err = Eqid;
-		goto out;
-	}
 
 	convM2D(in->stat, &xd);
-	if(CHAT(cp)) {
-		print("	d.name = %s\n", xd.name);
-		print("	d.uid  = %d\n", xd.uid);
-		print("	d.gid  = %d\n", xd.gid);
-		print("	d.mode = %.4x\n", xd.mode);
-	}
-
 	/*
 	 * if chown,
 	 * must be god
 	 */
 	while(xd.uid != d->uid) {
-		if(wstatallow)			/* set to allow chown during boot */
+		if(adminallow())
 			break;
 		ou->err = Enotu;
 		goto out;
@@ -1171,7 +1135,7 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	 *	b) leader of both groups
 	 */
 	while(xd.gid != d->gid) {
-		if(wstatallow || writeallow)		/* set to allow chgrp during boot */
+		if(adminallow())
 			break;
 		if(d->uid == f->uid && ingroup(f->uid, xd.gid))
 			break;
@@ -1184,56 +1148,24 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 
 	/*
 	 * if rename,
-	 * must have write permission in parent
+	 * must have write permission in dir or be adm
 	 */
 	while(strncmp(d->name, xd.name, sizeof(d->name)) != 0) {
 		if(checkname(xd.name)) {
 			ou->err = Ename;
 			goto out;
 		}
-
-		/*
-		 * drop entry to prevent lock, then
-		 * check that destination name is unique,
-		 */
-		putbuf(p);
-		for(addr=0;; addr++) {
-			p = dnodebuf(p1, d1, addr, 0);
-			if(!p)
-				break;
-			if(checktag(p, Tdir, d1->qid.path)) {
-				putbuf(p);
-				continue;
-			}
-			for(slot=0; slot<DIRPERBUF; slot++) {
-				d = getdir(p, slot);
-				if(!(d->mode & DALLOC))
-					continue;
-				if(!strncmp(xd.name, d->name, sizeof(xd.name))) {
-					ou->err = Eexist;
-					goto out;
-				}
-			}
-			putbuf(p);
-		}
-
-		/*
-		 * reacquire entry
-		 */
-		p = getbuf(f->fs->dev, f->addr, Bread);
-		d = getdir(p, f->slot);
-		if(!d || checktag(p, Tdir, QPNONE) || !(d->mode & DALLOC)) {
-			ou->err = Ephase;
-			goto out;
-		}
-
-		if(wstatallow || writeallow) /* set to allow rename during boot */
+		if(cp == cons.chan)
 			break;
-		if(!d1 || iaccess(f, d1, DWRITE)) {
-			ou->err = Eaccess;
-			goto out;
-		}
-		break;
+		if(adminallow())
+			break;
+/*
+ * BUG -- owner of file instead
+ */
+		if(d->uid == f->uid)
+			break;
+		ou->err = Enotu;
+		goto out;
 	}
 
 	/*
@@ -1242,7 +1174,7 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	 *	b) leader of either group
 	 */
 	while((d->mode^xd.mode) & (DAPND|DLOCK|0777)) {
-		if(wstatallow)			/* set to allow chmod during boot */
+		if(adminallow())
 			break;
 		if(d->uid == f->uid)
 			break;
@@ -1256,9 +1188,11 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	d->uid = xd.uid;
 	d->gid = xd.gid;
 	d->mode = (xd.mode & (DAPND|DLOCK|0777)) | (d->mode & (DALLOC|DDIR));
-
+/*
+ * BUG -- look for name
+ */
 	strncpy(d->name, xd.name, sizeof(d->name));
-	if(wstatallow) {
+	if(adminallow()) {
 		p->flags |= Bmod;
 		if(xd.atime)
 			d->atime = xd.atime;
@@ -1270,17 +1204,7 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 out:
 	if(p)
 		putbuf(p);
-	if(p1)
-		putbuf(p1);
 	if(f)
 		qunlock(f);
 	ou->fid = in->fid;
-}
-
-void
-f_auth(Chan *cp, Fcall *in, Fcall *ou)
-{
-	USED(cp);
-	ou->fid = in->fid;
-	ou->err = Eauth;
 }

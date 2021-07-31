@@ -32,7 +32,7 @@ int
 mpatof(char *s, double *d)
 {
 	Mp a, b;
-	int dp, c, f, ef, ex, zer;
+	int dp, c, f, ex, zer;
 	double d1, d2;
 
 	dp = 0;		/* digits after decimal point */
@@ -72,24 +72,7 @@ mpatof(char *s, double *d)
 			continue;
 		case 'E':
 		case 'e':
-			ex = 0;
-			ef = 0;
-			for(;;) {
-				c = *s++;
-				if(c == '+' || c == ' ' || c == '\t')
-					continue;
-				if(c == '-') {
-					ef = 1;
-					continue;
-				}
-				if(c >= '0' && c <= '9') {
-					ex = ex*10 + (c-'0');
-					continue;
-				}
-				break;
-			}
-			if(ef)
-				ex = -ex;
+			ex = atoi(s);
 		case 0:
 			break;
 		}

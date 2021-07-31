@@ -99,12 +99,13 @@ bset(Bits a, unsigned n)
 */
 
 int
-Bconv(void *o, Fconv *fp)
+Bconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
 	int i;
 
+	USED(chr);
 	str[0] = 0;
 	bits = *(Bits*)o;
 	while(bany(&bits)) {
@@ -121,6 +122,6 @@ Bconv(void *o, Fconv *fp)
 		strcat(str, s);
 		bits.b[i/32] &= ~(1L << (i%32));
 	}
-	strconv(str, fp);
+	strconv(str, f1, f2, f3);
 	return sizeof(bits);
 }

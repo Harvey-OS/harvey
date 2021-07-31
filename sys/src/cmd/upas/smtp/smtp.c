@@ -17,7 +17,6 @@ char*	domainify(char*, char*);
 void	putcrnl(char*, int);
 char*	getcrnl(String*);
 void	printdate(Node*);
-char	*rewritezone(char *);
 int	mxdial(char*, int*, char*);
 int	dBprint(char*, ...);
 
@@ -32,7 +31,6 @@ int	filter;
 int	gateway;	/* true if we are traversing a mail gateway */
 char	ddomain[1024];	/* domain name of destination machine */
 char	*gdomain;	/* domain name of gateway */
-char	*uneaten;	/* first character after rfc822 headers */
 Biobuf	bin;
 Biobuf	bout;
 Biobuf	berr;
@@ -118,9 +116,6 @@ main(int argc, char **argv)
 		Binit(&bin, 0, OREAD);
 		Binit(&bout, 1, OWRITE);
 	} else {
-		/* 10 minutes to get through the initial handshake */
-		alarm(10*60*1000);
-
 		if((rv = connect(addr)) != 0)
 			exits(rv);
 		if((rv = hello(hostdomain)) != 0)
@@ -130,8 +125,6 @@ main(int argc, char **argv)
 		while(*argv)
 			if((rv = rcptto(*argv++))!=0)
 				goto error;
-
-		alarm(0);
 	}
 	rv = data(s_to_c(from), domain, unix);
 	if(rv != 0)
@@ -295,23 +288,18 @@ data(char *from, char *domain, int unix)
 	 *  send header.  add a sender and a date if there
 	 *  isn't one
 	 */
-	uneaten = buf;
 	if(!unix){
 		if(originator==0 && usender)
 			Bprint(&bout, "From: %s\r\n", from);
 		if(date==0 && udate)
 			printdate(udate);
-		if (usys)
-			uneaten = usys->end + 1;
 		printheader();
-		if (*uneaten != '\n')
-			putcrnl("\n", 1);
 	}
 
 	/*
 	 *  send body
 	 */
-	putcrnl(uneaten, buf+n - uneaten);
+	putcrnl(yystart, buf+n - yystart);
 	if(eof == 0)
 		while(n = read(0, buf, sizeof(buf)))
 			putcrnl(buf, n);
@@ -479,10 +467,8 @@ printheader(void)
 				cp = s_to_c(p->white);
 				putcrnl(cp, strlen(cp));
 			}
-			uneaten = p->end;
 		}
 		putcrnl("\n", 1);
-		uneaten++;		/* skip newline */
 	}
 }
 
@@ -579,10 +565,7 @@ printdate(Node *p)
 		if(p->s){
 			if(sep == 0)
 				Bputc(&bout, ' ');
-			if (p->next)
-				Bprint(&bout, "%s", s_to_c(p->s));
-			else
-				Bprint(&bout, "%s", rewritezone(s_to_c(p->s)));
+			Bprint(&bout, "%s", s_to_c(p->s));
 			sep = 0;
 		} else {
 			Bputc(&bout, p->c);
@@ -590,54 +573,6 @@ printdate(Node *p)
 		}
 	}
 	Bprint(&bout, "\r\n");
-}
-
-char *
-rewritezone(char *z)
-{
-	Tm *t;
-	int h, m, offset;
-	char sign, *p;
-	char *zones = "ECMP";
-	static char numeric[6];
-
-	t = localtime(0);
-	if (t->hour >= 12) {
-		sign = '-';
-		if (t->min == 0) {
-			h = 24 - t->hour;
-			m = 0;
-		}
-		else {
-			h = 23 - t->hour;
-			m = 60 - t->min;
-		}
-	}
-	else {
-		sign = '+';
-		h = t->hour;
-		m = t->min;
-	}
-	sprint(numeric, "%c%.2d%.2d", sign, h, m);
-
-	/* leave zone alone if we didn't generate it */
-	if (strncmp(z, t->zone, 4) != 0)
-		return z;
-	if (strcmp(z, "GMT") == 0 || strcmp(z, "UT") == 0)
-		if (t->hour == 0 && t->min == 0)
-			return z;
-		else
-			return numeric;
-	/* check for North American time zone */
-	if (z[2] == 'T' && (z[1] == 'S' || z[1] == 'D')) {
-		p = strchr(zones, z[0]);
-		if (p) {
-			offset = 24 - 5 - (p - zones) + (z[1] == 'D');
-			if (offset == t->hour)
-				return z;
-		}
-	}
-	return numeric;
 }
 
 /*

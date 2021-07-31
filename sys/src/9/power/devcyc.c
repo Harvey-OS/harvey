@@ -163,9 +163,6 @@ cycopen(Chan *c, int omode)
 		memset(cp->addr->replyq, 0, NRQ*sizeof(ulong));
 		cp->addr->replyp = 0;
 
-		/* Set the interrupt vector for the cyclone to pick up */
-		cp->addr->vmevec = Vmevec;
-
 		/*
 		 * Issue reset
 		 */

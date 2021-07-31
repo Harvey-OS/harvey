@@ -16,7 +16,7 @@ opendir(const char *filename)
 	int f;
 	DIR *d;
 
-	f = __open(filename, O_RDONLY);
+	f = open(filename, O_RDONLY);
 	if(f < 0){
 		_syserrno();
 		return NULL;

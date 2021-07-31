@@ -1,10 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include "lock.h"
-
-/*
- *  mutex malloc
- */
+#include "dns.h"
 
 enum
 {
@@ -28,15 +24,25 @@ struct Arena
 };
 static Arena arena;
 
-static Lock mlock;
+static int parallel;
+static int parfd[2];
+static char token[1];
+#define LOCK if(parallel) read(parfd[0], token, 1)
+#define UNLOCK if(parallel) write(parfd[1], token, 1)
 
 #define datoff		((int)((Bucket*)0)->data)
 #define nil		((void*)0)
 
+/*
+ *  turn on parallel alloc
+ */
 void
 paralloc(void)
 {
-	lockinit(&mlock);
+	parallel = 1;
+	if(pipe(parfd) < 0)
+		abort();
+	UNLOCK;
 }
 
 void*
@@ -45,12 +51,12 @@ malloc(long size)
 	int pow;
 	Bucket *bp;
 
-	lock(&mlock);
+	LOCK;
 	for(pow = 1; pow < MAX2SIZE; pow++) {
 		if(size <= (1<<pow))
 			goto good;
 	}
-	unlock(&mlock);
+	UNLOCK;
 
 	return nil;
 good:
@@ -58,7 +64,7 @@ good:
 	bp = arena.btab[pow];
 	if(bp) {
 		arena.btab[pow] = bp->next;
-		unlock(&mlock);
+		UNLOCK;
 
 		if(bp->magic != 0)
 			abort();
@@ -70,7 +76,7 @@ good:
 	}
 	size = sizeof(Bucket)+(1<<pow);
 	bp = sbrk(size);
-	unlock(&mlock);
+	UNLOCK;
 	if((int)bp < 0)
 		return nil;
 
@@ -95,11 +101,11 @@ free(void *ptr)
 		abort();
 
 	bp->magic = 0;
-	lock(&mlock);
+	LOCK;
 	l = &arena.btab[bp->size];
 	bp->next = *l;
 	*l = bp;
-	unlock(&mlock);
+	UNLOCK;
 }
 
 void*

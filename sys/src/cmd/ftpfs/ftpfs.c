@@ -389,10 +389,9 @@ rcreate(Fid *f)
 	if(rhdr.perm & CHDIR){
 		if(createdir(f->node) < 0)
 			return "permission denied";
+		uncache(f->node->parent);
 	} else
 		filedirty(f->node);
-	invalidate(f->node->parent);
-	uncache(f->node->parent);
 
 	thdr.qid = f->node->d.qid;
 	return 0;
@@ -472,8 +471,7 @@ char *
 rclunk(Fid *f)
 {
 	if(fileisdirty(f->node)){
-		if(createfile(f->node) < 0)
-			fprint(2, "ftpfs: couldn't create %s\n", f->node->d.name);
+		createfile(f->node);
 		fileclean(f->node);
 	}
 	f->busy = 0;
@@ -635,10 +633,8 @@ invalidate(Node *node)
 	Node *np;
 
 	/* invalidate children */
-	for(np = node->children; np; np = np->sibs){
-		UNCACHED(np);
+	for(np = node->children; np; np = np->sibs)
 		np->d.dev = 0;
-	}
 }
 
 /*

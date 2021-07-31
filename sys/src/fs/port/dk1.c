@@ -102,7 +102,7 @@ stats(Dk *dk)
 	Chan *up;
 	char flag[10], *fp;
 	int i, n, l, w;
-	Msgbuf *mb, *mb1;
+	Msgbuf *mb;
 
 	print("dkstats %d\n", dk-dkctlr);
 	n = 0;
@@ -126,21 +126,7 @@ stats(Dk *dk)
 					w++;
 					mb = mb->next;
 				}
-				if(w >= 100) {
-					*fp++ = '*';
-					*fp++ = '*';
-					mb = up->dkp.outmsg;
-					up->dkp.outmsg = 0;
-					while(mb) {
-						mb1 = mb;
-						mb = mb->next;
-						mbfree(mb1);
-					}
-				} else {
-					if(w >= 10)
-						*fp = w/10 + '0';
-					*fp++ = w%10 + '0';
-				}
+				*fp++ = 'A'+w;
 			}
 		}
 		if(up->dkp.dkstate == OPENED)
@@ -151,16 +137,6 @@ stats(Dk *dk)
 			print("	cno=%3d %s\n",
 				up->dkp.cno,
 				flag);
-		}
-		if(i == CCCHAN || i == SRCHAN) {
-			print("chan %d\n", i);
-			print("	nout     %d\n", up->dkp.nout);
-			print("	mout     %d\n", up->dkp.mout);
-			print("	mcount   %d\n", up->dkp.mcount);
-			print("	urpstate %d\n", up->dkp.urpstate);
-			print("	dkstate  %d\n", up->dkp.dkstate);
-			print("	timeout  %d\n", up->dkp.timeout);
-			print("	outmsg   %lux\n", up->dkp.outmsg);
 		}
 		if(l)
 			qunlock(&up->dkp);

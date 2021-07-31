@@ -26,7 +26,7 @@ main(int argc, char *argv[])
 		fprint(2, "usage: dumphash db-file attribute\n");
 		exits("usage");
 	}
-	snprint(file, sizeof(file), "%s.%s", argv[1], argv[2]);
+	sprint(file, "%s.%s", argv[1], argv[2]);
 	fd = open(file, OREAD);
 	if(fd < 0){
 		fprint(2, "%s opening %s\n", syserr(), file);

@@ -1,0 +1,519 @@
+# Tests of the Unix sort utility
+
+# Designed for v10, which differs from some older versions thus:
+#	-n fields admit e-format numbers
+#	-M option sorts by months
+
+# Checksum programs vary across installations. 
+# We need one that is relatively dumb - insensitive to
+# permutation of the lines in a file.  In v10, that 
+# function is provided by "sum -5" (which is the same
+# as plain "sum" in Sys V).
+
+fn sumit{ sum -5 $1 | sed 's/[^0-9 ]//g
+s/  */_/g' }
+
+#---------------------------------------------------------------
+echo test 1
+cat >in <<!
+2
+1
+10
+.2
+!
+cat >out <<!
+.2
+1
+2
+10
+!
+sort -n in -o in
+cmp in out || echo test 1 failed
+sort -c -n in || echo test 1a failed
+
+#---------------------------------------------------------------
+echo test 2 
+cat >in <<!
+.99999999999999999999
+099999999999999999999e-21
+099999999999999999999e-19
+.1e1
+!
+cat >out <<!
+099999999999999999999e-21
+.99999999999999999999
+.1e1
+099999999999999999999e-19
+!
+sort -n in -o in
+cmp in out || echo test 2 failed '(not standard)'
+sort -n -c in || echo test 2a failed
+
+#---------------------------------------------------------------
+echo test 3
+cat >in <<!
+-99.0
+-99.1
+-.0002
+-10
+2
+0010.000000000000000000000000000000000001
+10
+3x
+x
+!
+cat >out <<!
+-99.1
+-99.0
+-10
+-.0002
+x
+2
+3x
+10
+0010.000000000000000000000000000000000001
+!
+sort -n in -o in 
+cmp in out || echo test 3 failed
+sort -c -n in || echo test 3a failed
+
+#---------------------------------------------------------------
+echo test 4
+cat >in <<!
++0
+-0
+0.10
++.1
+-.1
+-100e-3
+x
+!
+cat >out <<!
+-.1
+-100e-3
++0
+-0
+x
++.1
+0.10
+!
+sort -n in -o in
+cmp in out || echo test 4 failed '(not standard)'
+sort -nu in -o in
+switch (`{sed -n '$=' in}) {
+case 3
+	sort -c -n in || echo test 4a failed
+case *
+	echo test 4b failed
+}
+
+#---------------------------------------------------------------
+echo test 5
+cat >in <<!
+  b
+ a
+!
+cat >out <<!
+  b
+ a
+!
+sort -b in -o in
+cmp in out || echo test 5 failed
+sort -cb in || echo test 5a failed
+sort -cr in >[2]/dev/null && echo test 5b failed
+sort -cbr in >[2]/dev/null && echo test 5c failed
+
+#---------------------------------------------------------------
+echo test 6
+cat >in <<!
+  b
+ a
+!
+cat >out <<!
+ a
+  b
+!
+sort -b +0 in -o in
+cmp in out || echo test 6 failed
+sort -cb +0 in || echo test 6a failed
+
+#---------------------------------------------------------------
+echo test 7
+cat >in <<!
+b b p
+a b q
+x a
+!
+cat >out <<!
+x a
+a b q
+b b p
+!
+sort +1 -2 in -o in
+cmp in out || echo test 7 failed
+sort +1 -2 +2r in -o in
+cmp in out || echo test 7a failed
+sort -c +1 in >[2]/dev/null && echo test 7b failed
+
+#---------------------------------------------------------------
+echo test 8
+cat >in <<!
+a:
+a 
+!
+cat >out <<!
+a:
+a 
+!
+sort -t:r +0 in -o in
+cmp in out || echo test 8 failed
+sort -t: +0 -1 in -o in
+cmp in out || echo test 8a failed
+sort -c -rt: +0 in || echo test 8b failed
+sort -ct: +0 -1 in || echo test 8c failed
+
+#---------------------------------------------------------------
+echo test 9
+cat >in <<!
+: ab
+:bac
+!
+cat >out <<!
+:bac
+: ab
+!
+sort -b -t: +1.1 in -o in
+cmp in out || echo test 9 failed
+sort -t: +1.1r in -o in
+cmp in out || echo test 9a failed
+
+#---------------------------------------------------------------
+echo test 10
+cat >in <<'!'
+a
+A
+z
+Z
+@
+`
+[
+{
+!
+cat >out <<'!'
+@
+a
+A
+z
+Z
+[
+`
+{
+!
+sort +0f +0r in -o in
+cmp in out || echo test 10 failed
+sort -c +0f +0r in || echo test 10a failed
+sort -c +0f in >[2]/dev/null && echo test 10b failed
+sort -cf +0 +0r in || echo test 10c failed
+
+#---------------------------------------------------------------
+echo test 11
+cat >in <<!
+a
+b
+c
+d
+!
+sort     in in in in in in in in in in in in in in in in in in in in -o out
+sort -mu in in in in in in in in in in in in in in in in in in in in -o in
+sort -m  in in in in in in in in in in in in in in in in in in in in -o in
+cmp in out || echo test 11 failed
+switch (`{sed -n '$=' in}) {
+case 80
+	sort -c in || echo test 11a failed
+case *
+	echo test 11b failed
+}
+
+#---------------------------------------------------------------
+echo test 12
+awk '
+BEGIN {	x="x"
+	for(i=1; i<=12; i++) x = x x
+	for(i=1; i<=5; i++) print x i
+}' >in
+awk '
+BEGIN {	x="x"
+	for(i=1; i<=12; i++) x = x x
+	for(i=5; i>=1; i--) print x i
+}' >out
+sort -r in -o in
+cmp in out || echo test 12 failed
+
+#---------------------------------------------------------------
+echo test 13 '(long)'
+awk '
+BEGIN { for(i=0; i<100000; i++) print rand(); }
+' >in
+S=`{sumit in}
+sort in -o in
+switch (`{sumit in}) {
+case $S
+	sort -c in || echo test 13 failed
+case *
+	echo test 13a failed
+}
+awk '$0 "x" != x { print ; x = $0 "x" } ' in >out
+sort -u in -o in
+cmp in out || echo test 13b failed
+
+#---------------------------------------------------------------
+echo test 14
+awk '
+BEGIN { for(i=-100; i<=100; i+=2) printf "%.10d\n", i }
+' >in
+awk '
+BEGIN { for(i=-99; i<=100; i+=2) printf "%.10d\n", i }
+' | sort -nr in - |
+awk ' $0+0 != 101-NR { print "test 14 failed"; exit } '
+
+#---------------------------------------------------------------
+echo test 15
+awk '
+BEGIN { for(i=-100; i<=100; i+=2) printf "%.10d\n", i }
+' >in
+awk '
+BEGIN { for(i=-99; i<=100; i+=2) printf "%.10d\n", i }
+' >out
+sort -mn in out |
+awk ' $0+0 != -101+NR { print "test 15 failed"; exit } '
+
+#---------------------------------------------------------------
+echo test 16
+cat >in <<!
+a-B
+a+b
+a b
+A+b
+a	b
+!
+cat >out <<!
+a	b
+a b
+A+b
+a-B
+a+b
+!
+sort -df +0 +0d in -o in
+cmp in out || echo test 16 failed
+
+#---------------------------------------------------------------
+echo test 17
+cat >in <<!
+12	y
+13	z
+12	x
+!
+cat >out <<!
+12	x
+12	y
+13	z
+!
+sort +0 -1 in -o in
+cmp in out  || echo test 17 failed
+sort -u +0 -1 in -o in
+switch (`{sed -n '$=' in}) {
+case 2
+	sort -cu in || echo test 17a failed
+case *
+	echo test 17b failed
+}
+
+#---------------------------------------------------------------
+echo test 18
+cat >in <<!
+jan 10 1900
+Feb 26 1900
+feb 25 1900
+January xx 1900
+August 11 1900
+jan 15 1990
+feb 22 1990
+mar 15 1990
+apr 1 1990
+may 45 1990
+jun 14 1990
+jul 4 1990
+aug 11 1990
+sep 1 1990
+oct 12 1990
+nov 24 1990
+dec 25 1990
+never 3 1990
+!
+cat >out <<!
+January xx 1900
+jan 10 1900
+feb 25 1900
+Feb 26 1900
+August 11 1900
+never 3 1990
+jan 15 1990
+feb 22 1990
+mar 15 1990
+apr 1 1990
+may 45 1990
+jun 14 1990
+jul 4 1990
+aug 11 1990
+sep 1 1990
+oct 12 1990
+nov 24 1990
+dec 25 1990
+!
+sort +2n +0M +1n in -o in
+cmp in out || echo test 18 failed
+sort -cn +2 +0M +1 in || echo test 18a failed
+
+#---------------------------------------------------------------
+echo test 19
+awk '
+BEGIN {	for(i=0;i<256;i++) {
+		if(i==10)	# \n
+			continue
+		printf("%c %.3d\n",i,i)
+	}
+}' >in
+awk '
+BEGIN {	printf("%c %.3d\n",32,32)	# space
+	for(i=0; i<32; i++) 
+		if(i != 10)
+			printf("%c %.3d\n",i,i)
+	for(i=127; i<256; i++) 
+		printf("%c %.3d\n",i,i)
+	for(i=33; i<127; i++)
+		printf("%c %.3d\n",i,i)
+} ' >out
+sort -i in -o in
+cmp in out || echo test 19 failed
+
+#---------------------------------------------------------------
+echo test 20
+cat >in <<!
+x
+jun
+jan
+dec
+!
+cat >out <<!
+dec
+jun
+jan
+x
+!
+sort -Mr in -o in
+cmp in out || echo test 20 failed
+
+#---------------------------------------------------------------
+echo test 21
+cat >in <<!
+0:1:2:3:4:5:6:7:8:9:10:11:12:13:a:y
+0:1:2:3:4:5:6:7:8:9:10:11:12:13:b:x
+!
+cat >out <<!
+0:1:2:3:4:5:6:7:8:9:10:11:12:13:b:x
+0:1:2:3:4:5:6:7:8:9:10:11:12:13:a:y
+!
+sort -t: +15 in -o in
+cmp in out || echo test 21 failed
+
+#---------------------------------------------------------------
+echo test 22
+cat >in <<!
+a
+ab
+ab
+bc
+!
+cat >out <<!
+Z
+a
+aa
+ac
+c
+!
+sort -m in out -o in
+switch (`{sed -n '$=' in}) {
+case 9
+	sort in | diff - in || echo test 22 failed
+case *
+	echo test 22a failed
+}
+
+#---------------------------------------------------------------
+echo test 23
+cat >in <<!
+ b
+'C
+a
+!
+sort -d in | diff - in || echo test23 failed
+sort -f in | diff - in || echo test23a failed
+
+#---------------------------------------------------------------
+
+#---------------------------------------------------------------
+echo test 24
+cat >in <<!
+ b
+'C
+a
+!
+cat >out <<!
+ b
+a
+'C
+!
+sort -dfb in -o in
+cmp in out || echo test 24 failed
+
+#---------------------------------------------------------------
+echo test 25
+cat >in <<!
+a	2
+a	1
+b	2
+b	1
+!
+cat >out <<!
+b	1
+b	2
+a	1
+a	2
+!
+sort -r +0 -1 +1n in -o in
+cmp in out || echo test 25 failed
+
+#---------------------------------------------------------------
+echo test 26
+rm -f in
+sort -o in </dev/null
+cmp in /dev/null || echo test 26 failed
+
+#---------------------------------------------------------------
+echo test 27
+awk '
+BEGIN { for(i=0; i<2000; i++) print rand(); }
+' >in
+S=`{sumit in}
+sort -y1000 in -o out
+switch(`{sumit out}) {
+case $S
+	sort -c out || echo test 27 failed
+case *
+	echo test 27a failed
+}
+awk '$0 "x" != x { print ; x = $0 "x" } ' out >out1
+sort -y1000 -u in -o in
+cmp in out1 || echo test 27b failed
+rm out1
+

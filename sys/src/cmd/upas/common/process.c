@@ -56,7 +56,7 @@ stream_free(stream *sp)
 
 /* start a new process */
 extern process *
-proc_start(char *cmd, stream *inp, stream *outp, stream *errp, int newpg, int none)
+proc_start(char *cmd, stream *inp, stream *outp, stream *errp, int newpg)
 {
 	process *pp;
 	int i;
@@ -80,8 +80,6 @@ proc_start(char *cmd, stream *inp, stream *outp, stream *errp, int newpg, int no
 	case 0:
 		if(newpg)
 			newprocgroup();
-		if(none)
-			becomenone();
 		for (i=0; i<3; i++)
 			if (pp->std[i] != 0)
 				close(Bfildes(pp->std[i]->fp));

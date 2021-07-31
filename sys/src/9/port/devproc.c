@@ -344,11 +344,7 @@ procread(Chan *c, void *va, long n, ulong offset)
 		sps = p->psstate;
 		if(sps == 0)
 			sps = statename[p->state];
-		memset(statbuf, ' ', sizeof statbuf);
-		memmove(statbuf+0*NAMELEN, p->text, strlen(p->text));
-		memmove(statbuf+1*NAMELEN, p->user, strlen(p->user));
-		memmove(statbuf+2*NAMELEN, sps, strlen(sps));
-		j = 2*NAMELEN + 12;
+		j = sprint(statbuf, "%-27s %-27s %-11s ", p->text, p->user, sps);
 
 		for(i = 0; i < 6; i++) {
 			l = p->time[i];
@@ -571,16 +567,11 @@ procctlreq(Proc *p, char *va, int n)
 	if(strncmp(buf, "stop", 4) == 0)
 		procstopwait(p, Proc_stopme);
 	else if(strncmp(buf, "kill", 4) == 0) {
-		switch(p->state) {
-		case Broken:
-			unbreak(p);
-			break;
-		case Stopped:
-			postnote(p, 0, "sys: killed", NExit);
-			p->procctl = Proc_exitme;
+		if(p->state == Broken)
 			ready(p);
-			break;
-		default:
+		else{
+			if(p->state == Stopped)
+				ready(p);
 			postnote(p, 0, "sys: killed", NExit);
 			p->procctl = Proc_exitme;
 		}
@@ -674,7 +665,7 @@ procctlmemio(Proc *p, ulong offset, int n, void *va, int read)
 	return n;
 }
 
-Segment*
+Segment *
 txt2data(Proc *p, Segment *s)
 {
 	int i;
@@ -697,21 +688,6 @@ txt2data(Proc *p, Segment *s)
 	putseg(s);
 	qlock(&ps->lk);
 	p->seg[i] = ps;
-
-	return ps;
-}
-
-Segment*
-data2txt(Segment *s)
-{
-	Segment *ps;
-
-	ps = newseg(SG_TEXT, s->base, s->size);
-	ps->image = s->image;
-	incref(ps->image);
-	ps->fstart = s->fstart;
-	ps->flen = s->flen;
-	ps->flushme = 1;
 
 	return ps;
 }

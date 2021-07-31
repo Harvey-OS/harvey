@@ -9,7 +9,6 @@ static Keymap keys[] = {
 	"name", NULLFN, 1,
 	"alg", NULLFN, 2,
 	"route", NULLFN, 3,
-	"layout", NULLFN, 4,
 	0
 };
 static Keymap algs[] = {
@@ -51,12 +50,6 @@ f_route(char *s)
 		case 3:
 			if (signal)
 				f_coords(s, &signal->nr, &signal->routes);
-			break;
-		case 4:
-			if (signal){
-				NUM(s, signal->nlayout)
-				signal->layout = f_pins(s, 1, signal->nlayout);
-			}
 			break;
 		default:
 			f_minor("bad field in signal route '%s'", s);

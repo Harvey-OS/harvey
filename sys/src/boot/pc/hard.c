@@ -148,17 +148,16 @@ Drive		*hard;
 
 static void	hardintr(Ureg*);
 static long	hardxfer(Drive*, Partition*, int, long, long);
-static int	hardident(Drive*);
+static long	hardident(Drive*);
 static void	hardsetbuf(Drive*, int);
 static void	hardpart(Drive*);
-static int	hardparams(Drive*);
+static void	hardparams(Drive*);
 static void	hardrecal(Drive*);
 static int	hardprobe(Drive*, int, int, int);
 
 /*
  *  we assume drives 0 and 1 are on the first controller, 2 and 3 on the
- *  second, etc.  Discover drive parameters.  BUG! we are only guessing about
- *  the port locations for disks other than 0 and 1.
+ *  second, etc.  Discover drive parameters.
  */
 int
 hardinit(void)
@@ -167,9 +166,6 @@ hardinit(void)
 	Controller *cp;
 	int drive;
 	int disks;
-
-	if(conf.nhard == 0)
-		return 0;
 
 	disks = 0;
 
@@ -185,18 +181,14 @@ hardinit(void)
 		if((drive&1) == 0){
 			cp->buf = ialloc(Maxxfer, 0);
 			cp->cmd = 0;
-			cp->pbase = Pbase + (cp-hardc)*8;
-			/*
-			 *  clear any pending intr from drive
-			 */
-			inb(cp->pbase+Pstatus);
-			setvec(Hardvec + (cp-hardc)*8, hardintr);
+			cp->pbase = Pbase + (cp-hardc)*8;	/* BUG!! guessing */
+			setvec(Hardvec + (cp-hardc)*8, hardintr); /* BUG!! guessing */
 		}
 	}
 
 	for(dp = hard; dp < &hard[conf.nhard]; dp++){
-		hardsetbuf(dp, 0);
-		if(hardparams(dp) == 0){
+		if(hardident(dp) == 0){
+			hardparams(dp);
 			dp->online = 1;
 			hardpart(dp);
 			hardsetbuf(dp, 1);
@@ -228,8 +220,8 @@ hardwait(Controller *cp)
 		if(cp->cmd == Cident2 && TK2SEC(m->ticks - start) >= 1)
 			break;
 	if(TK2SEC(m->ticks - start) >= Timeout){
-		print("hardwait timed out %ux\n", inb(cp->pbase+Pstatus));
 		hardintr(0);
+		print("hardwait timed out, cmd=%lux\n", cp->cmd);
 	}
 	splx(x);
 }
@@ -473,7 +465,7 @@ hardsetbuf(Drive *dp, int on)
 /*
  *  get parameters from the drive
  */
-static int
+static long
 hardident(Drive *dp)
 {
 	Controller *cp;
@@ -494,11 +486,11 @@ hardident(Drive *dp)
 
 	hardwait(cp);
 
-	if(cp->status & Serr)
+	if(cp->status & Serr){
+		print("bad disk status\n");
 		return -1;
+	}
 	
-	hardwait(cp);
-
 	ip = (Ident*)cp->buf;
 	dp->cyl = ip->lcyls;
 	dp->heads = ip->lheads;
@@ -546,32 +538,36 @@ hardprobe(Drive *dp, int cyl, int sec, int head)
 /*
  *  figure out the drive parameters
  */
-static int
+static void
 hardparams(Drive *dp)
 {
-	int i, hi, lo;
+	int i, lo, hi;
 
 	/*
 	 *  first try the easy way, ask the drive and make sure it
 	 *  isn't lying.
 	 */
 	dp->bytes = 512;
-	if(hardident(dp) < 0)
-		return -1;
 	if(hardprobe(dp, dp->cyl-1, dp->sectors-1, dp->heads-1) == 0)
-		return 0;
+		return;
 
 	/*
-	 *  the drive lied, determine parameters by seeing which ones
+	 *  the drive lied, determine sectors and heads by seeing which ones
 	 *  work to read sectors.
 	 */
-	for(i = 0; i < 32; i++)
+	for(i = 0; i < 32; i++){
 		if(hardprobe(dp, 0, 0, i) < 0)
 			break;
+		if(hardprobe(dp, 0, 1, i) < 0)
+			break;
+	}
 	dp->heads = i;
-	for(i = 0; i < 128; i++)
+	for(i = 0; i < 128; i++){
 		if(hardprobe(dp, 0, i, 0) < 0)
 			break;
+		if(hardprobe(dp, 1, i, 0) < 0)
+			break;
+	}
 	dp->sectors = i;
 	for(i = 512; ; i += 512)
 		if(hardprobe(dp, i, dp->sectors-1, dp->heads-1) < 0)
@@ -587,7 +583,6 @@ hardparams(Drive *dp)
 	}
 	dp->cyl = lo + 1;
 	dp->cap = dp->bytes * dp->cyl * dp->heads * dp->sectors;
-	return 0;
 }
 
 /*

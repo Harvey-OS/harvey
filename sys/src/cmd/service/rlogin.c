@@ -6,15 +6,12 @@ void	getstr(int, char*, int);
 void
 main(int argc, char **argv)
 {
-	char luser[128], ruser[128], term[128], err[128];
-	int trusted;
+	char luser[128];
+	char ruser[128];
+	char term[128];
+	char err[128];
 
-	trusted = 0;
-	ARGBEGIN{
-	case 't':
-		trusted = 1;
-		break;
-	}ARGEND
+	USED(argc, argv);
 
 	getstr(0, err, sizeof(err));
 	getstr(0, ruser, sizeof(ruser));
@@ -25,10 +22,7 @@ main(int argc, char **argv)
 	if(luser[0] == '\0')
 		strncpy(luser, ruser, NAMELEN-1);
 	luser[NAMELEN-1] = '\0';
-	if(trusted)
-		execl("/bin/aux/telnetd", "telnetd", "-n", "-t", 0);
-	else
-		execl("/bin/aux/telnetd", "telnetd", "-n", "-u", luser, 0);
+	execl("/bin/aux/telnetd", "telnetd", "-n", "-u", luser, 0);
 	fprint(2, "can't exec con service: %r\n");
 	exits("can't exec");
 }
@@ -39,7 +33,7 @@ getstr(int fd, char *str, int len)
 	char c;
 	int n;
 
-	while(--len > 0){
+	while(len) {
 		n = read(fd, &c, 1);
 		if(n < 0)
 			return;
@@ -48,6 +42,6 @@ getstr(int fd, char *str, int len)
 		*str++ = c;
 		if(c == 0)
 			break;
+		len--;
 	}
-	*str = '\0';
 }

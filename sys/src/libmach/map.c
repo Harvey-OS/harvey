@@ -1,10 +1,9 @@
 /*
  * file map routines
  */
-#include <u.h>
-#include <libc.h>
-#include <bio.h>
-#include <mach.h>
+#include "u.h"
+#include "libc.h"
+#include "mach.h"
 
 static int	reloc(Map *, int, ulong, long *);
 static int	rreloc(Map *, int, ulong, long *);
@@ -55,8 +54,6 @@ loadmap(Map *map, int fd, Fhdr *fp)
 {
 	map = newmap(map, fd);
 	if (map == 0)
-		return 0;
-	if (mach == 0)
 		return 0;
 	map->seg[SEGTEXT].b = fp->txtaddr;
 	map->seg[SEGTEXT].e = fp->txtaddr+fp->txtsz;
@@ -114,9 +111,6 @@ mput(Map *map, int s, ulong addr, char *buf, int size)
 static int
 reloc(Map *map, int s, ulong addr, long *offp)
 {
-	if(map == 0)
-		return 0;
-
 	switch(s) {
 	case SEGANY:
 		if (rreloc(map, SEGTEXT, addr, offp))

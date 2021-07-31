@@ -181,7 +181,9 @@ getfile(char *filnam, int cnt, int omode)
 		if (wtflag)
 			f = create(filnam, 1, 0666);
 	if (f < 0) {
-		dprint("cannot open `%s': %r\n", filnam);
+		char err[ERRLEN];
+		errstr(err);
+		dprint("cannot open `%s': %s\n", filnam, err);
 		return -1;
 	}
 	return f;

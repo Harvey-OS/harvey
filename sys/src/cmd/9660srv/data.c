@@ -14,8 +14,7 @@ char	*deffile = 0;
 
 extern Xfsub	isosub;
 
-Xfsub*	xsublist[] =
-{
+Xfsub	*xsublist[] = {
 	&isosub,
 	0
 };

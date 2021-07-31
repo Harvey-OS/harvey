@@ -31,7 +31,6 @@ typedef struct Hifichan
 	QLock;			/* access to struct */
 	int	hdlc;		/* hdlc mode enabled */
 	int	hangup;		/* hangup pending */
-	int	nohup;		/* hangups ignored */
 
 	int	renable;	/* reading enabled */
 	Block *	inb[NB];	/* input buffer */
@@ -77,13 +76,12 @@ static void	hifixmitdis(Hifichan*, int);
 static void	hifixmiten(Hifichan*, int);
 
 enum {
-	Qdir, Qdev, Qstats, Qdebug
+	Qdir, Qdev, Qstats
 };
 
 Dirtab hifidir[]={
 	"dev",		{Qdev},		0,	0666,
 	"stats",	{Qstats},	0,	0444,
-	"debug",	{Qdebug},	0,	0666,
 };
 #define	NHIFI	(sizeof hifidir/sizeof(Dirtab))
 
@@ -96,7 +94,7 @@ static void hifistopen(Queue*, Stream*);
 static void hifistclose(Queue*);
 Qinfo hifiinfo = { hifiiput, hifioput, hifistopen, hifistclose, "hifi" };
 
-int	hifidebug;
+int	hifidebug = 1;
 
 void
 hifireset(void)
@@ -163,7 +161,6 @@ hifiopen(Chan *c, int omode)
 	}else switch(STREAMTYPE(c->qid.path)){
 	case Qdev:
 	case Qstats:
-	case Qdebug:
 		break;
 	default:
 		DPRINT("hifiopen dev=%d\n", c->dev);
@@ -193,7 +190,7 @@ long
 hifiread(Chan *c, void *buf, long n, ulong offset)
 {
 	Hifichan *hp = &hifichan[c->dev];
-	char nbuf[512], *p;
+	char nbuf[512], *p; int k;
 
 	if(n <= 0)
 		return 0;
@@ -201,9 +198,10 @@ hifiread(Chan *c, void *buf, long n, ulong offset)
 		return devdirread(c, buf, n, hifidir, NHIFI, streamgen);
 	}else switch(STREAMTYPE(c->qid.path)){
 	case Qdev:
-		sprint(nbuf, "0x%2.2ux = 0x%2.2ux\n",
+		p = nbuf;
+		p += sprint(p, "0x%2.2ux = 0x%2.2ux\n",
 			hp->devaddr, isdnpeek(hp->udev, (void *)hp->devaddr));
-		return readstr(offset, buf, n, nbuf);
+		goto Readnbuf;
 
 	case Qstats:
 		p = nbuf;
@@ -216,12 +214,14 @@ hifiread(Chan *c, void *buf, long n, ulong offset)
 		p += sprint(p, "toolong  %10lud\n", hp->toolong);
 		p += sprint(p, "underrun %10lud\n", hp->underrun);
 		p += sprint(p, "outchars %10lud\n", hp->outchars);
-		USED(p);
-		return readstr(offset, buf, n, nbuf);
-
-	case Qdebug:
-		sprint(nbuf, "%d\n", hifidebug);
-		return readstr(offset, buf, n, nbuf);
+	Readnbuf:
+		k = p - nbuf;
+		if (offset >= k)
+			return 0;
+		if (offset+n > k)
+			n = k - offset;
+		memmove(buf, &nbuf[offset], n);
+		return n;
 	}
 	if(!hp->renable)
 		hifirecven(hp, 1);
@@ -246,13 +246,6 @@ hifiwrite(Chan *c, void *buf, long n, ulong offset)
 		hp->devaddr = (int)hp->hdev + strtoul(nbuf,0,0);
 		if(p = strchr(nbuf, '='))	/* assign = */
 			isdnpoke(hp->udev, (void *)hp->devaddr, strtoul(++p,0,0));
-		return n;
-	case Qdebug:
-		if (n>sizeof nbuf)
-			n = sizeof nbuf;
-		memmove(nbuf, buf, n);
-		nbuf[n-1] = 0;
-		hifidebug = strtoul(nbuf,0,0);
 		return n;
 	}
 	return streamwrite(c, buf, n, 0);
@@ -316,7 +309,6 @@ hifistclose(Queue * q)
 	qlock(hp);
 	hp->rq = 0;
 	hp->hangup = 0;
-	hp->nohup = 0;
 	if(tActive(hp)){
 		if(!hp->wactive || waserror()){
 			hifixmitdis(hp, 1);
@@ -339,9 +331,8 @@ hifiiput(Queue *q, Block *bp)
 	Hifichan *hp = (Hifichan *)q->ptr;
 
 	if(bp->type == M_HANGUP){
-		DPRINT("hifiiput %d M_HANGUP (%d)\n", hp-hifichan, hp->nohup);
-		if(!hp->nohup)
-			hifirecven(hp, 0);
+		DPRINT("hifiiput %d M_HANGUP\n", hp-hifichan);
+		hifirecven(hp, 0);
 	}
 	freeb(bp);
 }
@@ -375,8 +366,6 @@ hifioput(Queue *q, Block *bp)
 			hifirecven(hp, 0);
 		}else if(streamparse("recven", bp)){
 			hifirecven(hp, 1);
-		}else if(streamparse("nohup", bp)){
-			hp->nohup = 1;
 		}
 		freeb(bp);
 		return;
@@ -672,7 +661,7 @@ Loop:
 	if(!(bp = hp->out)){	/* assign = */
 		if(hp->ro == hp->wo){
 			DPRINT("hifixmit %d: [%d] empty\n",
-				hp-hifichan, TK2MS(MACHP(0)->ticks));
+				TK2MS(MACHP(0)->ticks), hp-hifichan);
 			return wake;
 		}
 		hp->out = bp = hp->outb[hp->ro];

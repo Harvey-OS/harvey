@@ -37,8 +37,8 @@ typedef struct __partial	__partial;
 typedef int			labelset;	/* a bit vector of labels */
 
 struct __partial {
-	short		treeno;
-	short		bits;
+	unsigned char	treeno;
+	char		bits;
 };
 
 struct skeleton {

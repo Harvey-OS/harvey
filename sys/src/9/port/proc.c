@@ -440,24 +440,23 @@ postnote(Proc *p, int dolock, char *n, int flag)
 		splx(s);
 	}
 
-	if(p->state != Rendezvous)
-		return ret;
-
-	/* Try and pull out of a rendezvous */
-	lock(p->pgrp);
 	if(p->state == Rendezvous) {
-		p->rendval = ~0;
-		l = &REND(p->pgrp, p->rendtag);
-		for(d = *l; d; d = d->rendhash) {
-			if(d == p) {
-				*l = p->rendhash;
-				break;
+		lock(p->pgrp);
+		if(p->state == Rendezvous) {
+			p->rendval = ~0;
+			l = &REND(p->pgrp, p->rendtag);
+			for(d = *l; d; d = d->rendhash) {
+				if(d == p) {
+					*l = p->rendhash;
+					break;
+				}
+				l = &d->rendhash;
 			}
-			l = &d->rendhash;
+			ready(p);
 		}
-		ready(p);
+		unlock(p->pgrp);
 	}
-	unlock(p->pgrp);
+
 	return ret;
 }
 
@@ -465,45 +464,36 @@ postnote(Proc *p, int dolock, char *n, int flag)
  * weird thing: keep at most NBROKEN around
  */
 #define	NBROKEN 4
-struct
-{
-	QLock;
+struct{
+	Lock;
 	int	n;
 	Proc	*p[NBROKEN];
 }broken;
 
 void
-addbroken(Proc *p)
+addbroken(Proc *c)
 {
-	qlock(&broken);
-	if(broken.n == NBROKEN) {
+	int b;
+
+	lock(&broken);
+	if(broken.n == NBROKEN){
 		ready(broken.p[0]);
 		memmove(&broken.p[0], &broken.p[1], sizeof(Proc*)*(NBROKEN-1));
 		--broken.n;
 	}
-	broken.p[broken.n++] = p;
-	qunlock(&broken);
-
-	p->state = Broken;
-	p->psstate = 0;
-	sched();
-}
-
-void
-unbreak(Proc *p)
-{
-	int b;
-
-	qlock(&broken);
-	for(b=0; b < broken.n; b++)
-		if(broken.p[b] == p) {
+	broken.p[broken.n++] = c;
+	unlock(&broken);
+	c->state = Broken;
+	c->psstate = 0;
+	sched();		/* until someone lets us go */
+	lock(&broken);
+	for(b=0; b<NBROKEN; b++)
+		if(broken.p[b] == c){
 			broken.n--;
-			memmove(&broken.p[b], &broken.p[b+1],
-					sizeof(Proc*)*(NBROKEN-(b+1)));
-			ready(p);
+			memmove(&broken.p[b], &broken.p[b+1], sizeof(Proc*)*(NBROKEN-(b+1)));
 			break;
 		}
-	qunlock(&broken);
+	unlock(&broken);
 }
 
 int
@@ -511,14 +501,12 @@ freebroken(void)
 {
 	int i, n;
 
-	qlock(&broken);
+	lock(&broken);
 	n = broken.n;
-	for(i=0; i<n; i++) {
+	for(i=0; i<n; i++)
 		ready(broken.p[i]);
-		broken.p[i] = 0;
-	}
 	broken.n = 0;
-	qunlock(&broken);
+	unlock(&broken);
 	return n;
 }
 
@@ -528,7 +516,7 @@ pexit(char *exitstr, int freemem)
 	int n;
 	long utime, stime;
 	Proc *p, *c;
-	Segment **s, **es;
+	Segment **s, **es, *os;
 	Waitq *wq, *f, *next;
 
 	c = u->p;
@@ -546,8 +534,7 @@ pexit(char *exitstr, int freemem)
 	 * do some housekeeping.
 	 */
 	if(c->kp == 0) {
-		p = c->parent;
-		if(p == 0) {
+		if((p = c->parent) == 0) {
 			if(exitstr == 0)
 				exitstr = "unknown";
 			panic("boot process died: %s", exitstr);
@@ -570,8 +557,7 @@ pexit(char *exitstr, int freemem)
 		if(exitstr && exitstr[0]){
 			n = sprint(wq->w.msg, "%s %d:", c->text, c->pid);
 			strncpy(wq->w.msg+n, exitstr, ERRLEN-n);
-		}
-		else
+		}else
 			wq->w.msg[0] = '\0';
 
 		lock(&p->exl);
@@ -601,8 +587,10 @@ pexit(char *exitstr, int freemem)
 
 	es = &c->seg[NSEG];
 	for(s = c->seg; s < es; s++)
-		if(*s)
-			putseg(*s);
+		if(os = *s) {
+			*s = 0;
+			putseg(os);
+		}
 
 	lock(&c->exl);		/* Prevent my children from leaving waits */
 	c->pid = 0;

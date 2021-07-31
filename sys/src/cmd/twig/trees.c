@@ -8,8 +8,7 @@ struct _mem node_mem;
 void
 TreeFree(Node *root)
 {
-	if(!root)
-		return;
+	if(root==NULL) return;
 	TreeFree(root->children);
 	TreeFree(root->siblings);
 	free(root);
@@ -18,41 +17,39 @@ TreeFree(Node *root)
 void
 TreePrint(Node *tree, int flag)
 {
-	if(!tree)
+	if(tree==NULL)
 		return;
-	print("%s(", (tree->sym)->name);
+	printf("%s", (tree->sym)->name);
+	putchar('(');
 	TreePrint(tree->children, 0);
-	print(")");
-	if(tree->siblings != NULL){
-		print(",");
+	putchar(')');
+	if(tree->siblings!=NULL) {
+		putchar(',');
 		TreePrint(tree->siblings, 0);
 	}
-	if(flag)
-		print("\n");
+	if(flag) putchar('\n');
 }
 
 Node *
 rev(Node *sl, Node *nl, int *nlleaves)
 {
 	Node *sl2;
-
-	if(!sl)
-		return nl;
+	if(sl==NULL)
+		return(nl);
 	sl2 = sl->siblings;
 	sl->siblings = nl;
 	*nlleaves += sl->nlleaves;
-	return rev(sl2, sl, nlleaves);
+	return (rev (sl2, sl, nlleaves));
 }
 
 Node *
 TreeBuild(SymbolEntry *symp, Node *children)
 {
-	Node *np = (struct node*)mem_get(&node_mem);
-
+	Node *np = (struct node *) mem_get(&node_mem);
 	np->sym = symp;
 	np->nlleaves = symp->attr==A_LABEL ? 1 : 0;
-	np->children = rev(children, NULL, &np->nlleaves);
-	return np;
+	np->children = rev (children, NULL, &np->nlleaves);
+	return(np);
 }
 
 void
@@ -64,7 +61,6 @@ TreeInit(void)
 int
 cntnodes(Node *np)
 {
-	if(!np)
-		return 0;
-	return 1 + cntnodes(np->children) + cntnodes(np->siblings);
+	if(np==NULL) return(0);
+	else return(1+cntnodes(np->children)+cntnodes(np->siblings));
 }

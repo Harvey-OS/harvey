@@ -1,4 +1,4 @@
-.\" 10/22/92 activate next line before installing
+.\" 5/6/92 activate next line before installing
 .pi /$objtype/bin/aux/pm
 .
 .		\" IZ - initialization
@@ -193,7 +193,7 @@
 .de TL
 .br
 .if !\\n(1T .BG
-....hy 0
+.hy 0
 .ft 3
 .ps \\n(PS+2p
 .vs \\n(VS+2p

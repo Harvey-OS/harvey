@@ -164,7 +164,6 @@ preamble(int mountroot)
 	 */
 	remroot = newnode(0, "/");
 	remroot->d.qid.path |= CHDIR;
-	remroot->d.mode = CHDIR|0777;
 	remdir = remroot;
 
 	/*

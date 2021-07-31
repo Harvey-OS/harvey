@@ -131,24 +131,15 @@ trap(Ureg *ur)
 void
 dumpstack(void)
 {
-	ulong l, v, i;
+	ulong l, v;
 	extern ulong etext;
 
-	if(u==0)
-		return;
-
-	i = 0;
-	for(l=(ulong)&l; l<USERADDR+BY2PG; l+=4){
-		v = *(ulong*)l;
-		if(KTZERO < v && v < (ulong)&etext){
-			print("%lux\t", v);
-			if(++i == 4){
-				i = 0;
-				print("\n");
-			}
+	if(u)
+		for(l=(ulong)&l; l<USERADDR+BY2PG; l+=4){
+			v = *(ulong*)l;
+			if(KTZERO < v && v < (ulong)&etext)
+				print("%lux=%lux\n", l, v);
 		}
-	}
-	print("\n");
 }
 
 void

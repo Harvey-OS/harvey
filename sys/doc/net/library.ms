@@ -1,21 +1,20 @@
 .NH
 Library routines
 .PP
-The section on protocol devices described the details
-of making and receiving connections across a network.
-The dance is straightforward but tedious.
-Library routines are provided to relieve
-the programmer of the details.
+The details of making and receiving connections across a network
+were described in the section on protocol devices.
+While straightforward, the dance is complicated enough to
+be tedious.
+The routines described here are provided to relieve the
+programmer of most of the tedium.
 .NH 2
 Connecting
 .PP
-The
-.I dial (2)
-library call establishes a connection to a remote destination.
-It
-returns an open file descriptor for the
-.CW data
-file in the connection directory.
+Making a connection to a remote destination uses a single
+library call,
+.I dial (2).
+.I Dial
+returns a file descriptor for the open data file of the connection.
 .P1
 int  dial(char *dest, char *local, char *dir, int *cfdp)
 .P2
@@ -23,38 +22,36 @@ int  dial(char *dest, char *local, char *dir, int *cfdp)
 is the symbolic name/address of the destination.
 .IP \fIlocal\fP
 is the local address.
-Since most networks do not support this, it is
+Since most networks do not allow this to be specified, it is
 almost always zero.
 .IP \fIdir\fP
-is a pointer to a buffer to hold the path name of the protocol directory
+is a pointer to a buffer for the path name of the protocol directory
 representing this connection.
 .I Dial
 fills this buffer if the pointer is non-zero.
 .IP \fIcfdp\fP
-is a pointer to a file descriptor for the
-.CW ctl
-file of the connection.
+is a pointer to a file descriptor for the control file of the connection.
 If the pointer is non-zero,
 .CW dial
-opens the control file and tucks the file descriptor here.
+opens the control file.
 .LP
 Most programs call
 .I dial
-with a destination name and all other arguments zero.
-.I Dial
-uses CS to
-translate the symbolic name to all possible destination addresses
-and attempts to connect to each in turn until one works.
-Specifying the special name
+with only a destination name and all the other arguments 0.
+Using CS,
+.I dial
+translates the symbolic name into all possible destination addresses.
+It then attempts connecting to each one in turn until one works.
+By using the special name
 .CW net
-in the network portion of the destination
-allows CS to pick a network/protocol in common
-with the destination for which the requested service is valid.
-For example, assume the system
+as a network,
+the user requests the system to pick a network/protocol in common
+with the destination host and for which the requested service is valid.
+For example, assume that the system
 .I research.att.com
 has the Datakit address
 .I nj/astro/research
-and IP addresses
+and the IP addresses
 .I 135.104.117.5
 and
 .I 129.11.4.1.
@@ -62,7 +59,7 @@ The call
 .P1
 fd = dial("net!research.att.com!login", 0, 0, 0, 0);
 .P2
-tries in succession to connect to
+will try in succession to connect to
 .I nj/astro/research!login
 on the Datakit and both
 .I 135.104.117.5!513
@@ -70,23 +67,27 @@ and
 .I 129.11.4.1!513
 across the Internet.
 .PP
-.I Dial
-accepts addresses instead of symbolic names.
+A programmer may also use addresses instead of symbolic names
+to dial out.
 For example, the destinations
 .I tcp!135.104.117.5!513
 and
 .I tcp!research.att.com!login
-are equivalent
-references to the same machine.
+are both valid arguments to
+.I dial
+for the same machine.
+Since we use unicode representations everywhere,
+no commands or library routines need make
+a distinction between the use of addresses
+and names.
 .NH 2
 Listening
 .PP
-A program uses
-four routines to listen for incoming connections.
-It first
+Four routines are used to listen for incoming connections.
+A program first
 .I announce (2)'s
-its intention to receive connections,
-then
+its intention to receive connections.
+It then
 .I listen (2)'s
 for calls and finally
 .I accept (2)'s
@@ -94,34 +95,28 @@ or
 .I reject (2)'s
 them.
 .I Announce
-returns an open file descriptor for the
-.CW ctl
-file of a connection and fills
-.I dir
-with the
-path of the protocol directory
+returns a file descriptor for the control file and the
+path name of the protocol directory (in
+.I dir )
 for the announcement.
 .P1
 int  announce(char *addr, char *dir)
 .P2
 .I Addr
-is the symbolic name/address announced;
-if it does not contain a service, the announcement is for
+is the symbolic name/address announced.
+If it does not contain a service, the announcement is for
 all services not explicitly announced.
 Thus, one can easily write the equivalent of the
 .CW inetd
-program without
+program to listen for incoming requests without
 having to announce each separate service.
-An announcement remains in force until the control file is
+The announcement remains in force until the control file is
 closed.
 .LP
 .I Listen
-returns an open file descriptor for the
-.CW ctl
-file and fills
-.I ldir
-with the path
-of the protocol directory
+returns a file descriptor for the control file and the path
+name of the protocol directory (in
+.I ldir )
 for the received connection.
 It is passed
 .I dir
@@ -135,18 +130,18 @@ and
 .I reject
 are called with the control file descriptor and
 .I ldir
-returned by
+from the call to
 .I listen.
-Some networks such as Datakit accept a reason for a rejection;
-networks such as IP ignore the third argument.
+Some networks such as Datakit allow the reason for the rejection.
+Networks such as IP ignore the argument.
 .P1
 int  accept(int ctl, char *ldir)
 int  reject(int ctl, char *ldir, char *reason)
 .P2
 .PP
-The following code implements a typical TCP listener.
-It announces itself, listens for connections and forks a new
-process for each.
+The following is the code for a prototype TCP listener.
+The code announces itself, listens for connections and forks a new
+process for each connection.
 The new process echoes data on the connection until the
 remote end closes it.
 The "*" in the symbolic name means the announcement is valid for
@@ -155,7 +150,7 @@ any addresses bound to the machine the program is run on.
 int
 echo_server(void)
 {
-	int dfd, lcfd;
+	int dfd, acfd, lcfd;
 	char adir[40], ldir[40];
 	int n;
 	char buf[256];

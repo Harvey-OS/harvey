@@ -1,574 +1,292 @@
 #include	"u.h"
 #include	"../port/lib.h"
 
-enum
-{
-	SIZE	= 1024,
-	IDIGIT	= 30,
-	MAXCONV	= 40,
-	FDIGIT	= 30,
-	FDEFLT	= 6,
-	NONE	= -1000,
-	MAXFMT	= 512,
-
-	FPLUS	= (1<<0),
-	FMINUS	= (1<<1),
-	FSHARP	= (1<<2),
-	FLONG	= (1<<3),
-	FSHORT	= (1<<4),
-	FUNSIGN	= (1<<5),
-	FVLONG	= (1<<6),
-};
-
 #define	PTR	sizeof(char*)
 #define	SHORT	sizeof(int)
 #define	INT	sizeof(int)
 #define	LONG	sizeof(long)
-#define	VLONG	sizeof(vlong)
+#define	IDIGIT	30
+#define	MAXCON	30
 
-int	printcol;
+static	int	convcount  = { 10 };
 
-static	int	convcount;
-static	char	fmtindex[MAXFMT];
+#define	PUT(o, c)	if((o)->p < (o)->ep) *(o)->p++ = c
 
-static	int	noconv(void*, Fconv*);
-static	int	flags(void*, Fconv*);
-
-static	int	cconv(void*, Fconv*);
-static	int	sconv(void*, Fconv*);
-static	int	percent(void*, Fconv*);
-
-int	numbconv(void*, Fconv*);
+static	int	noconv(Op*);
+static	int	cconv(Op*);
+static	int	dconv(Op*);
+static	int	hconv(Op*);
+static	int	lconv(Op*);
+static	int	oconv(Op*);
+static	int	sconv(Op*);
+static	int	uconv(Op*);
+static	int	xconv(Op*);
+static	int	percent(Op*);
 
 static
-int	(*fmtconv[MAXCONV])(void*, Fconv*) =
+int	(*fmtconv[MAXCON])(Op*) =
 {
-	noconv
+	noconv,
+	cconv, dconv, hconv, lconv,
+	oconv, sconv, uconv, xconv,
+	percent,
+};
+static
+char	fmtindex[128] =
+{
+	['c'] 1,
+	['d'] 2,
+	['h'] 3,
+	['l'] 4,
+	['o'] 5,
+	['s'] 6,
+	['u'] 7,
+	['x'] 8,
+	['%'] 9,
 };
 
-static
-void
-initfmt(void)
-{
-	int cc;
-
-	cc = 0;
-	fmtconv[cc] = noconv;
-	cc++;
-
-	fmtconv[cc] = flags;
-	fmtindex['+'] = cc;
-	fmtindex['-'] = cc;
-	fmtindex['#'] = cc;
-	fmtindex['h'] = cc;
-	fmtindex['l'] = cc;
-	fmtindex['u'] = cc;
-	cc++;
-
-	fmtconv[cc] = numbconv;
-	fmtindex['d'] = cc;
-	fmtindex['o'] = cc;
-	fmtindex['x'] = cc;
-	fmtindex['X'] = cc;
-	cc++;
-
-	fmtconv[cc] = cconv;
-	fmtindex['c'] = cc;
-	fmtindex['C'] = cc;
-	cc++;
-
-	fmtconv[cc] = sconv;
-	fmtindex['s'] = cc;
-	fmtindex['S'] = cc;
-	cc++;
-
-	fmtconv[cc] = percent;
-	fmtindex['%'] = cc;
-	cc++;
-
-	convcount = cc;
-}
-
 int
-fmtinstall(int c, int (*f)(void*, Fconv*))
+fmtinstall(char c, int (*f)(Op*))
 {
 
-	if(convcount == 0)
-		initfmt();
-	if(c < 0 || c >= MAXFMT)
-		return 1;
-	if(convcount >= MAXCONV)
-		return 1;
-	fmtconv[convcount] = f;
-	fmtindex[c] = convcount;
-	convcount++;
+	c &= 0177;
+	if(fmtindex[c] == 0) {
+		if(convcount >= MAXCON)
+			return 1;
+		fmtindex[c] = convcount++;
+	}
+	fmtconv[fmtindex[c]] = f;
 	return 0;
 }
 
 char*
-doprint(char *s, char *es, char *fmt, void *argp)
+doprint(char *p, char *ep, char *fmt, void *argp)
 {
-	int n, c;
-	Rune rune;
-	Fconv local;
+	int sf1, c;
+	Op o;
 
-	local.out = s;
-	local.eout = es-4;		/* room for multi-byte character and 0 */
+	o.p = p;
+	o.ep = ep;
+	o.argp = argp;
 
 loop:
-	c = *fmt & 0xff;
-	if(c >= Runeself) {
-		n = chartorune(&rune, fmt);
-		fmt += n;
-		c = rune;
-	} else
-		fmt++;
-	switch(c) {
-	case 0:
-		*local.out = 0;
-		return local.out;
-	
-	default:
-		printcol++;
-		goto common;
-
-	case '\n':
-		printcol = 0;
-		goto common;
-
-	case '\t':
-		printcol = (printcol+8) & ~7;
-		goto common;
-
-	common:
-		if(local.out < local.eout)
-			if(c >= Runeself) {
-				rune = c;
-				n = runetochar(local.out, &rune);	/* BUG */
-				local.out += n;
-			} else
-				*local.out++ = c;
-		goto loop;
-
-	case '%':
-		break;
-	}
-	local.f1 = NONE;
-	local.f2 = NONE;
-	local.f3 = 0;
-
-	/*
-	 * read one of the following
-	 *	1. number, => f1, f2 in order.
-	 *	2. '*' same as number (from args)
-	 *	3. '.' ignored (separates numbers)
-	 *	4. flag => f3
-	 *	5. verb and terminate
-	 */
-l0:
-	c = *fmt & 0xff;
-	if(c >= Runeself) {
-		n = chartorune(&rune, fmt);
-		fmt += n;
-		c = rune;
-	} else
-		fmt++;
-
-l1:
-	if(c == 0) {
-		fmt--;
-		goto loop;
-	}
-	if(c == '.') {
-		if(local.f1 == NONE)
-			local.f1 = 0;
-		local.f2 = 0;
-		goto l0;
-	}
-	if((c >= '1' && c <= '9') ||
-	   (c == '0' && local.f1 != NONE)) {	/* '0' is a digit for f2 */
-		n = 0;
-		while(c >= '0' && c <= '9') {
-			n = n*10 + c-'0';
-			c = *fmt++;
+	c = *fmt++;
+	if(c != '%') {
+		if(c == 0) {
+			if(o.p < o.ep)
+				*o.p = 0;
+			return o.p;
 		}
-		if(local.f1 == NONE)
-			local.f1 = n;
-		else
-			local.f2 = n;
+		PUT(&o, c);
+		goto loop;
+	}
+	o.f1 = 0;
+	o.f2 = -1;
+	o.f3 = 0;
+	c = *fmt++;
+	sf1 = 0;
+	if(c == '-') {
+		sf1 = 1;
+		c = *fmt++;
+	}
+	while(c >= '0' && c <= '9') {
+		o.f1 = o.f1*10 + c-'0';
+		c = *fmt++;
+	}
+	if(sf1)
+		o.f1 = -o.f1;
+	if(c != '.')
+		goto l1;
+	c = *fmt++;
+	while(c >= '0' && c <= '9') {
+		if(o.f2 < 0)
+			o.f2 = 0;
+		o.f2 = o.f2*10 + c-'0';
+		c = *fmt++;
+	}
+l1:
+	if(c == 0)
+		fmt--;
+	c = (*fmtconv[fmtindex[c&0177]])(&o);
+	if(c < 0) {
+		o.f3 |= -c;
+		c = *fmt++;
 		goto l1;
 	}
-	if(c == '*') {
-		n = *(int*)argp;
-		argp = (char*)argp + INT;
-		if(local.f1 == NONE)
-			local.f1 = n;
-		else
-			local.f2 = n;
-		goto l0;
-	}
-	n = 0;
-	if(c >= 0 && c < MAXFMT)
-		n = fmtindex[c];
-	local.chr = c;
-	n = (*fmtconv[n])(argp, &local);
-	if(n < 0) {
-		local.f3 |= -n;
-		goto l0;
-	}
-	argp = (char*)argp + n;
+	o.argp = (char*)o.argp + c;
 	goto loop;
 }
 
 int
-numbconv(void *o, Fconv *fp)
+numbconv(Op *op, int base)
 {
-	char s[IDIGIT];
-	int i, f, n, r, b, ucase;
-	short h;
+	char b[IDIGIT];
+	int i, f, n, r;
 	long v;
-	vlong vl;
-
-	SET(v);
-	SET(vl);
-
-	ucase = 0;
-	b = fp->chr;
-	switch(fp->chr) {
-	case 'u':
-		fp->f3 |= FUNSIGN;
-	case 'd':
-		b = 10;
-		break;
-
-	case 'o':
-		b = 8;
-		break;
-
-	case 'X':
-		ucase = 1;
-	case 'x':
-		b = 16;
-		break;
-	}
+	short h;
 
 	f = 0;
-	switch(fp->f3 & (FVLONG|FLONG|FSHORT|FUNSIGN)) {
-	case FVLONG|FLONG:
-		vl = *(vlong*)o;
-		r = VLONG;
-		break;
-
+	switch(op->f3 & (FLONG|FSHORT|FUNSIGN)) {
 	case FLONG:
-		v = *(long*)o;
+		v = *(long*)op->argp;
 		r = LONG;
 		break;
 
 	case FUNSIGN|FLONG:
-		v = *(ulong*)o;
+		v = *(unsigned long*)op->argp;
 		r = LONG;
 		break;
 
 	case FSHORT:
-		h = *(int*)o;
+		h = *(int*)op->argp;
 		v = h;
 		r = SHORT;
 		break;
 
 	case FUNSIGN|FSHORT:
-		h = *(int*)o;
-		v = (ushort)h;
+		h = *(int*)op->argp;
+		v = (unsigned short)h;
 		r = SHORT;
 		break;
 
 	default:
-		v = *(int*)o;
+		v = *(int*)op->argp;
 		r = INT;
 		break;
 
 	case FUNSIGN:
-		v = *(unsigned*)o;
+		v = *(unsigned*)op->argp;
 		r = INT;
 		break;
 	}
-	if(!(fp->f3 & FUNSIGN) && v < 0) {
+	if(!(op->f3 & FUNSIGN) && v < 0) {
 		v = -v;
 		f = 1;
 	}
-	s[IDIGIT-1] = 0;
+	b[IDIGIT-1] = 0;
 	for(i = IDIGIT-2;; i--) {
-		if(fp->f3 & FVLONG)
-			n = vl % b;
-		else
-			n = (ulong)v % b;
+		n = (unsigned long)v % base;
 		n += '0';
-		if(n > '9') {
+		if(n > '9')
 			n += 'a' - ('9'+1);
-			if(ucase)
-				n += 'A'-'a';
-		}
-		s[i] = n;
+		b[i] = n;
 		if(i < 2)
 			break;
-		if(fp->f3 & FVLONG)
-			vl = vl / b;
-		else
-			v = (ulong)v / b;
-		if(fp->f2 != NONE && i >= IDIGIT-fp->f2)
+		v = (unsigned long)v / base;
+		if(op->f2 >= 0 && i >= IDIGIT-op->f2)
 			continue;
-		if(fp->f3 & FVLONG)
-			if(vl <= 0)
-				break;
 		if(v <= 0)
 			break;
 	}
-	if(fp->f3 & FSHARP)
-	if(s[i] != '0') {
-		if(b == 8)
-			s[--i] = '0';
-		else
-		if(b == 16) {
-			if(ucase)
-				s[--i] = 'X';
-			else
-				s[--i] = 'x';
-			s[--i] = '0';
-		}
-	}
+sout:
 	if(f)
-		s[--i] = '-';
-	fp->f2 = NONE;
-	strconv(s+i, fp);
+		b[--i] = '-';
+	strconv(b+i, op, op->f1, -1);
 	return r;
 }
 
 void
-Strconv(Rune *s, Fconv *fp)
+strconv(char *o, Op *op, int f1, int f2)
 {
-	int n, c, i;
-	Rune rune;
+	int n, c;
+	char *p;
 
-	if(fp->f3 & FMINUS)
-		fp->f1 = -fp->f1;
-	n = 0;
-	if(fp->f1 != NONE && fp->f1 >= 0) {
-		for(; s[n]; n++)
-			;
-		while(n < fp->f1) {
-			if(fp->out < fp->eout)
-				*fp->out++ = ' ';
-			printcol++;
+	n = strlen(o);
+	if(f1 >= 0)
+		while(n < f1) {
+			PUT(op, ' ');
 			n++;
 		}
-	}
-	for(;;) {
-		c = *s++;
-		if(c == 0)
-			break;
-		n++;
-		if(fp->f2 == NONE || fp->f2 > 0) {
-			if(fp->out < fp->eout)
-				if(c >= Runeself) {
-					rune = c;
-					i = runetochar(fp->out, &rune);
-					fp->out += i;
-				} else
-					*fp->out++ = c;
-			if(fp->f2 != NONE)
-				fp->f2--;
-			switch(c) {
-			default:
-				printcol++;
-				break;
-			case '\n':
-				printcol = 0;
-				break;
-			case '\t':
-				printcol = (printcol+8) & ~7;
-				break;
-			}
+	for(p=o; c = *p++;)
+		if(f2 != 0) {
+			PUT(op, c);
+			f2--;
 		}
-	}
-	if(fp->f1 != NONE && fp->f1 < 0) {
-		fp->f1 = -fp->f1;
-		while(n < fp->f1) {
-			if(fp->out < fp->eout)
-				*fp->out++ = ' ';
-			printcol++;
+	if(f1 < 0) {
+		f1 = -f1;
+		while(n < f1) {
+			PUT(op, ' ');
 			n++;
 		}
 	}
 }
 
-void
-strconv(char *s, Fconv *fp)
+static	int
+noconv(Op *op)
 {
-	int n, c, i;
-	Rune rune;
 
-	if(fp->f3 & FMINUS)
-		fp->f1 = -fp->f1;
-	n = 0;
-	if(fp->f1 != NONE && fp->f1 >= 0) {
-		n = utflen(s);
-		while(n < fp->f1) {
-			if(fp->out < fp->eout)
-				*fp->out++ = ' ';
-			printcol++;
-			n++;
-		}
-	}
-	for(;;) {
-		c = *s & 0xff;
-		if(c >= Runeself) {
-			i = chartorune(&rune, s);
-			s += i;
-			c = rune;
-		} else
-			s++;
-		if(c == 0)
-			break;
-		n++;
-		if(fp->f2 == NONE || fp->f2 > 0) {
-			if(fp->out < fp->eout)
-				if(c >= Runeself) {
-					rune = c;
-					i = runetochar(fp->out, &rune);
-					fp->out += i;
-				} else
-					*fp->out++ = c;
-			if(fp->f2 != NONE)
-				fp->f2--;
-			switch(c) {
-			default:
-				printcol++;
-				break;
-			case '\n':
-				printcol = 0;
-				break;
-			case '\t':
-				printcol = (printcol+8) & ~7;
-				break;
-			}
-		}
-	}
-	if(fp->f1 != NONE && fp->f1 < 0) {
-		fp->f1 = -fp->f1;
-		while(n < fp->f1) {
-			if(fp->out < fp->eout)
-				*fp->out++ = ' ';
-			printcol++;
-			n++;
-		}
-	}
-}
-
-static
-int
-noconv(void *o, Fconv *fp)
-{
-	int n;
-	char s[10];
-
-	if(convcount == 0) {
-		initfmt();
-		n = 0;
-		if(fp->chr >= 0 && fp->chr < MAXFMT)
-			n = fmtindex[fp->chr];
-		return (*fmtconv[n])(o, fp);
-	}
-	sprint(s, "*%c*", fp->chr);
-	fp->f1 = 0;
-	fp->f2 = NONE;
-	fp->f3 = 0;
-	strconv(s, fp);
+	strconv("***", op, 0, -1);
 	return 0;
 }
 
-static
-int
-cconv(void *o, Fconv *fp)
+static	int
+cconv(Op *op)
 {
-	char s[10];
-	Rune rune;
+	char b[2];
 
-	rune = *(int*)o;
-	if(fp->chr == 'c')
-		rune &= 0xff;
-	s[runetochar(s, &rune)] = 0;
-
-	fp->f2 = NONE;
-	strconv(s, fp);
+	b[0] = *(int*)op->argp;
+	b[1] = 0;
+	strconv(b, op, op->f1, -1);
 	return INT;
 }
 
-static
-int
-sconv(void *o, Fconv *fp)
+static	int
+dconv(Op *op)
 {
-	char *s;
-	Rune *r;
 
-	if(fp->chr == 's') {
-		s = *(char**)o;
-		if(s == 0)
-			s = "<null>";
-		strconv(s, fp);
-	} else {
-		r = *(Rune**)o;
-		if(r == 0)
-			r = L"<null>";
-		Strconv(r, fp);
-	}
+	return numbconv(op, 10);
+}
+
+static	int
+hconv(Op *op)
+{
+
+	USED(op);
+	return -FSHORT;
+}
+
+static	int
+lconv(Op *op)
+{
+
+	USED(op);
+	return -FLONG;
+}
+
+static	int
+oconv(Op *op)
+{
+
+	return numbconv(op, 8);
+}
+
+static	int
+sconv(Op *op)
+{
+
+	strconv(*(char**)op->argp, op, op->f1, op->f2);
 	return PTR;
 }
 
-static
-int
-percent(void *o, Fconv *fp)
+static	int
+uconv(Op *op)
 {
 
-	USED(o);
-	if(fp->out < fp->eout)
-		*fp->out++ = '%';
-	return 0;
+	USED(op);
+	return -FUNSIGN;
 }
 
-static
-int
-flags(void *o, Fconv *fp)
+static	int
+xconv(Op *op)
 {
-	int f;
 
-	USED(o);
+	return numbconv(op, 16);
+}
 
-	f = 0;
-	switch(fp->chr) {
-	case '+':
-		f = FPLUS;
-		break;
+static	int
+percent(Op *op)
+{
 
-	case '-':
-		f = FMINUS;
-		break;
-
-	case '#':
-		f = FSHARP;
-		break;
-
-	case 'h':
-		f = FSHORT;
-		break;
-
-	case 'l':
-		f = FLONG;
-		if(fp->f3 & FLONG)
-			f = FVLONG;
-		break;
-
-	case 'u':
-		f = FUNSIGN;
-		break;
-	}
-	return -f;
+	PUT(op, '%');
+	return 0;
 }

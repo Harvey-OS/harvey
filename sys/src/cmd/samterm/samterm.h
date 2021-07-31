@@ -40,10 +40,8 @@ struct Text
 
 enum Resource
 {
-	Eextern		= 0x08,
 	Ehost		= 0x04,
 	RHost		= Ehost,
-	RExtern		= Eextern,
 	RKeyboard	= Ekeyboard,
 	RMouse		= Emouse,
 };
@@ -81,7 +79,6 @@ void	cursorset(Point);
 void	getmouse(void);
 void	mouseunblock(void);
 void	kbdblock(void);
-void	extstart(void);
 int	button(int but);
 int	load(char*, int);
 int	waitforio(void);
@@ -106,7 +103,7 @@ void	Strgrow(Rune**, long*, int);
 int	RESHAPED(void);
 void	reshape(void);
 void	rcv(void);
-void	type(Flayer*, int);
+void	type(Flayer*);
 void	menu2hit(void);
 void	menu3hit(void);
 void	scroll(Flayer*, int);

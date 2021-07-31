@@ -10,8 +10,6 @@ Device * devtype;
 int extra, more;
 int interact, DEBUG, pflag;
 
-void prtype(void);
-
 void
 main(int argc, char **argv)
 {
@@ -51,25 +49,12 @@ main(int argc, char **argv)
 			interact = 1;
 			break;
 		case 't':
-			if(argv[1][2]) {
-				if(argv[1][2] == '?') {
-					prtype();
-					GOODEND;
-				}
-				gettype(&argv[1][2]);
-			}
-			else {
-				argc--;
-				argv++;
-				if(argv[1][0] == '?') {
-					prtype();
-					GOODEND;
-				}
-				gettype(argv[1]);
-			}
+			argc--;
+			argv++;
+			gettype(argv[1]);
 			break;
 		default:
-			fprintf(stderr,"unknown option %c\n",argv[1][1]);
+			fprint(2,"unknown option %c\n",argv[1][1]);
 			BADEND;
 		}
 		argc--;
@@ -82,7 +67,7 @@ main(int argc, char **argv)
 		name = argv[0];
 		if(s = strrchr(name, '.')) *s = 0;
 	}
-	fprintf(stderr, "inputs %d outputs %d\n", hshused-noutputs, noutputs);
+	fprint(2, "inputs %d outputs %d\n", hshused-noutputs, noutputs);
 	if(pflag) {
 		assigned();
 		GOODEND;
@@ -97,7 +82,7 @@ again:
 		for(pkgno = 0; pkgno < npackages; ++pkgno) {
 			cnt = assign(pkgno,0);
 			total += cnt;
-			fprintf(stderr, "pkg %d %d pins ", pkgno, cnt);
+			fprint(2, "pkg %d %d pins ", pkgno, cnt);
 			if(cnt >= most) {
 				mostpno = pkgno;
 				most = cnt;
@@ -107,7 +92,7 @@ again:
 				leastpno = pkgno;
 			}
 		}
-		if((most <= 0) && (--more < 0)) {
+		if((--more < 0) && (most <= 0)) {
 			printpkg();
 			jstart();
 			for(i = 0; i < npackages; ++i) out(i);
@@ -119,10 +104,10 @@ again:
 			leastpno = pick(npackages);
 			while((mostpno = pick(npackages)) == leastpno);
 		}	
-		fprintf(stderr, "%d %d<->%d\n", total, leastpno, mostpno);
+		fprint(2, "%d %d<->%d\n", total, leastpno, mostpno);
 		bwk(mostpno, leastpno);
 	}
-	fprintf(stderr, "no can do\n");
+	fprint(2, "no can do\n");
 	printpkg();
 	if(interact) {
 		while((i = fgetc(stdin)) == '\n');
@@ -143,7 +128,7 @@ bwk(int a, int b)
 	n = ((nb > na) ? na : nb);
 	while(1) {
 		best = assign(a,0) + assign(b,0);
-/*fprintf(stderr, " i = 0 best = %d\n", best); */
+fprint(2, " i = 0 best = %d\n", best); 
 		bi = 0;
 		for(i = 0; i < na ; ++i) 
 			packages[a]->index[i] = 0;
@@ -151,7 +136,7 @@ bwk(int a, int b)
 			packages[b]->index[i] = 0;
 		for(i = 1; i <= n ; ++i) {
 			newbest = improve(a,b);
-/*fprintf(stderr, " i = %d best = %d\n", i, newbest);*/
+fprint(2, " i = %d best = %d\n", i, newbest);
 			packages[a]->index[besti] = i;
 			packages[b]->index[bestj] = i;
 			swap(besti, bestj);
@@ -249,10 +234,10 @@ printpkg(void)
 	int i,j, cnt;
 	Depend *dp;
 	for(i = 0; i < npackages;++i) {
-		fprintf(stderr, "package %d type %s: \n", i, packages[i]->type->name);
+		fprint(2, "package %d type %s: \n", i, packages[i]->type->name);
 		for(j = 0; j < packages[i]->type->nouts; ++j) {
 			if(packages[i]->outputs[j] == (Hshtab *) 0) continue;
-			fprintf(stderr, "\t%s\tnum minterms = %d\t%s %s %s %s\n",
+			fprint(2, "\t%s\tnum minterms = %d\t%s %s %s %s\n",
 				(packages[i]->outputs[j])->name,
 				(packages[i]->outputs[j])->nminterm,
 				((packages[i]->outputs[j])->type&CLOCKED)?
@@ -266,14 +251,14 @@ printpkg(void)
 			dp = (packages[i]->outputs[j])->depends;
 			cnt = 0;
 			while(dp->name) {
-				if(cnt == 0) fprintf(stderr, "\t\t");
-				fprintf(stderr, " %s", dp->name->name);
-				if((cnt = (cnt+1)%10) == 0) fprintf(stderr, "\n");
+				if(cnt == 0) fprint(2, "\t\t");
+				fprint(2, " %s", dp->name->name);
+				if((cnt = (cnt+1)%10) == 0) fprint(2, "\n");
 				dp = dp->next;
 			}
-			if(cnt != 0)  fprintf(stderr, "\n");
+			if(cnt != 0)  fprint(2, "\n");
 		}
-		fprintf(stderr, "number of pins = %d\n", countpins(packages[i])); 
+		fprint(2, "number of pins = %d\n", countpins(packages[i])); 
 	}
 }
 
@@ -314,8 +299,8 @@ void
 cantdo(int ono)
 {
 	printpkg();
-	fprintf(stderr, "can't assign");
-	fprintf(stderr, "\t%s\tnum minterms = %d\t%s %s %s %s\n",
+	fprint(2, "can't assign");
+	fprint(2, "\t%s\tnum minterms = %d\t%s %s %s %s\n",
 		(outputs[ono])->name,
 		(outputs[ono])->nminterm,
 		(outputs[ono]->type&CLOCKED)?
@@ -343,7 +328,7 @@ newpkg(Device * devtype)
 	Package * pkg;
 	int  i;
 	if(npackages > NPKG) {
-		fprintf(stderr, "Too many packages\n");
+		fprint(2, "Too many packages\n");
 		BADEND;
 	}
 	pkg = (Package *) lmalloc((long) sizeof(Package));
@@ -392,7 +377,7 @@ rdfile(char *fname)
 
 	fp = fopen(fname, "r");
 	if(fp == 0) {
-		fprintf(stderr, "can't open %s\n", fname);
+		fprint(2, "can't open %s\n", fname);
 		BADEND;
 	}
 	nminterm = 0;
@@ -418,7 +403,7 @@ rdfile(char *fname)
 			strcat(buf2, root);
 			hp = lookup(buf2,1);
 			if(hp->type) {
-				fprintf(stderr, "two inverts for %s\n", root);
+				fprint(2, "two inverts for %s\n", root);
 				BADEND;
 			}
 			hpinit(hp);
@@ -452,7 +437,7 @@ rdfile(char *fname)
 				strcat(buf2, root);
 				hp1 = lookup(buf2,1);
 				if(hp1->type) {
-					fprintf(stderr, "two sets for %s\n", root);
+					fprint(2, "two sets for %s\n", root);
 					BADEND;
 				}
 				hp->set = hp1;
@@ -474,7 +459,7 @@ rdfile(char *fname)
 				strcat(buf2, root);
 				hp1 = lookup(buf2,1);
 				if(hp1->type) {
-					fprintf(stderr, "two clears for %s\n", root);
+					fprint(2, "two clears for %s\n", root);
 					BADEND;
 				}
 				hp->clr = hp1;
@@ -497,7 +482,7 @@ rdfile(char *fname)
 				strcat(buf2, root);
 				hp1 = lookup(buf2,1);
 				if(hp1->type) {
-					fprintf(stderr, "two enables for %s\n", root);
+					fprint(2, "two enables for %s\n", root);
 					BADEND;
 				}
 				hp1->type = ENABLE;
@@ -517,7 +502,7 @@ rdfile(char *fname)
 			if(suffix&SFX_CLK) {
 				s = nextwd(s, root, &suffix);
 				if(*root == 0) {
-					fprintf(stderr, "clock for %s empty string\n",
+					fprint(2, "clock for %s empty string\n",
 						hp->name);
 					continue;
 				}
@@ -559,12 +544,10 @@ rdfile(char *fname)
 		if(hp->name && hp->name[0] == '~') {
 			hp1 = lookup(&hp->name[1], 0);
 			if(!hp1) {
-				fprintf(stderr, "%s has invert only\n", &hp->name[1]);
+				fprint(2, "%s has invert only\n", &hp->name[1]);
 				BADEND;
 			}
-			if((hp->nminterm < hp1->nminterm)
-			   && !(hp1->set)
-			   && !(hp1->clr))
+			if(hp->nminterm < hp1->nminterm) 
 				swmins(hp1, hp);
 		}
 	}
@@ -579,7 +562,7 @@ getmins(char * s, Hshtab **ins, int nins)
 	int index, i, term, mask;
 	for(s1 = s; *s1 && (*s1 != ':'); ++s1);
 	if(*s1 == 0) {
-		fprintf(stderr, "getmins: no : in %s\n", s);
+		fprint(2, "getmins: no : in %s\n", s);
 		BADEND;
 	}
 	*s1++ = 0;
@@ -669,7 +652,7 @@ nextwd(char *s, char *rtp, int* sfxp)
 				return(s);
 			}
 		}
-	fprintf(stderr, "nextwd: error\n"); BADEND;
+	fprint(2, "nextwd: error\n"); BADEND;
 	return((char *) 0);
 }
 		
@@ -710,7 +693,7 @@ lookup(char *string, int ent)
 		return 0;
 	hshused++;
 	if(hshused >= HSHSIZ) {
-		fprintf(stderr, "Symbol table overflow\n");
+		fprint(2, "Symbol table overflow\n");
 		BADEND;
 	}
 	rp->name = f_strdup(string);
@@ -876,7 +859,7 @@ assign(int pkgno, int final)
 			key |= CLOCKED;
 			msk |= CLOCKED;
 			if(hp_clock && (hp_clock != hp->clock)) {
-				fprintf(stderr, "2 clocks %s and %s on pkq%d\n",
+				fprint(2, "2 clocks %s and %s on pkq%d\n",
 					hp_clock, hp->clock, pkgno);
 			}
  			else hp_clock = hp->clock;
@@ -924,11 +907,11 @@ assign(int pkgno, int final)
 			pinassgn[pno].name = hp;
 			pinassgn[pno].type = key;
 if(DEBUG)
-	fprintf(stderr, "output assign: %s type 0x%x key 0x%x pno = %d\n", hp->name, hp->type, key, pno);
+	fprint(2, "output assign: %s type 0x%x key 0x%x pno = %d\n", hp->name, hp->type, key, pno);
 		}
 		else {
 		    if(final)
-			fprintf(stderr, "can't assign %s key 0x%x mask 0x%x\n", hp->name, key, msk);
+			fprint(2, "can't assign %s key 0x%x mask 0x%x\n", hp->name, key, msk);
 		    else return(BIG);
 		}
 /* Global enable */
@@ -937,7 +920,7 @@ if(DEBUG)
 			hp1 = getenab(hp->enab);
 			if(hp_enab && (hp_enab != hp1)) {
 			   if(final)
-				fprintf(stderr, "2 global enables %s and %s on pkq%d\n",
+				fprint(2, "2 global enables %s and %s on pkq%d\n",
 					hp_enab->name, hp->enab->name, pkgno);
 			   else return(BIG);
 			}
@@ -950,7 +933,7 @@ if(DEBUG)
 	if(hp = hp_clock) {
 		if((pno = find(CLOCK, CLOCK, 0, hp)) == 0) {
 		    if(final)
-			fprintf(stderr, "can't assign %s clock\n", hp->name);
+			fprint(2, "can't assign %s clock\n", hp->name);
 		    else return(BIG);
 		}
 		if((devtype->pins[pno-1].type & PINPUT)
@@ -959,21 +942,21 @@ if(DEBUG)
 				pinassgn[pno].name = hp;
 				pinassgn[pno].type = INPUT|CLOCK;
 if(DEBUG)
-	fprintf(stderr, "clk assign: %s key 0x%x pno = %d\n", hp->name, INPUT|CLOCK, pno);
+	fprint(2, "clk assign: %s key 0x%x pno = %d\n", hp->name, INPUT|CLOCK, pno);
 		}
 		else {
 			pinassgn[pno].name = hp;
 			pinassgn[pno].type = CLOCK;
 			remov(&dpstart, hp, CLOCK);
 if(DEBUG)
-	fprintf(stderr, "clk assign: %s key 0x%x pno = %d\n", hp->name, CLOCK, pno);
+	fprint(2, "clk assign: %s key 0x%x pno = %d\n", hp->name, CLOCK, pno);
 		}
 	}
 /* global enables */
 	if(hp = hp_enab) {
 		if((pno = find(ENABLE, ENABLE, 0, hp)) == 0) {
 		    if(final)
-			fprintf(stderr, "can't assign %s global enable\n", hp->name);
+			fprint(2, "can't assign %s global enable\n", hp->name);
 		    else return(BIG);
 		}
 		if((devtype->pins[pno-1].type & PINPUT)
@@ -982,14 +965,14 @@ if(DEBUG)
 				pinassgn[pno].name = hp;
 				pinassgn[pno].type = ENABLE|INPUT;
 if(DEBUG)
-	fprintf(stderr, "global enab assign: %s key 0x%x pno = %d\n", hp->name, ENABLE|INPUT, pno);
+	fprint(2, "global enab assign: %s key 0x%x pno = %d\n", hp->name, ENABLE|INPUT, pno);
 		}
 		else {
 			remov(&dpstart, hp, ENABLE);
 			pinassgn[pno].name = hp;
 			pinassgn[pno].type = ENABLE;
 if(DEBUG)
-	fprintf(stderr, "global enab assign: %s key 0x%x pno = %d\n", hp->name, ENABLE, pno);
+	fprint(2, "global enab assign: %s key 0x%x pno = %d\n", hp->name, ENABLE, pno);
 		}
 	}
 /* rest */
@@ -998,15 +981,15 @@ if(DEBUG)
 		hp = dpp->name;
 		if((pno = find(PINPUT, PINPUT, 0, hp)) == 0) {
 			if(final) 
-			   fprintf(stderr, "can't assign %s key 0x%x mask 0x%x\n", hp->name, dpp->type, PINPUT);
+			   fprint(2, "can't assign %s key 0x%x mask 0x%x\n", hp->name, dpp->type, PINPUT);
 			else cost += CANTFIT;
 		}
 		pinassgn[pno].name = hp;
 		pinassgn[pno].type = INPUT;
 if(DEBUG)
-	fprintf(stderr, "input assign: %s key 0x%x pno = %d\n", hp->name, dpp->type, pno);
+	fprint(2, "input assign: %s key 0x%x pno = %d\n", hp->name, dpp->type, pno);
 	}
-	if(final) if(pinassgn[0].type) fprintf(stderr, "not assigned %s\n", pinassgn[0].name->name);
+	if(final) if(pinassgn[0].type) fprint(2, "not assigned %s\n", pinassgn[0].name->name);
 	if(!final) while((pno=find(PINPUT, PINPUT, 0, (Hshtab *) 0)) != 0) {
 		pinassgn[pno].type = INPUT;
 		--cost;
@@ -1027,7 +1010,7 @@ outm(int pkgno)
 	else sprint(buf, "%s%2.2d.m", name, pkgno);
 	fp = fopen(buf, "w");
 	if(fp == 0) {
-		fprintf(stderr, "can't open %s\n", buf);
+		fprint(2, "can't open %s\n", buf);
 		BADEND;
 	}
 	fprintf(fp, ".x %s\n", &devtype->name[3]);
@@ -1062,7 +1045,7 @@ Hshtab *
 getenab(Hshtab * hp)
 {
 	if(hp->nins != 1) {
-		fprintf(stderr, "no enable for %s\n", hp->name);
+		fprint(2, "no enable for %s\n", hp->name);
 		return((Hshtab *) 0);
 	}
 	else return(hp->ins[0]);
@@ -1106,7 +1089,7 @@ putmins(FILE *fp, Hshtab * hp, int first)
 				++i;
 				index <<= 1;
 				if(i == hp->nins) {
-					fprintf(stderr, "putmins: can't find input %s in %s",
+					fprint(2, "putmins: can't find input %s in %s",
 						s1, hp->name);
 					BADEND;
 				}
@@ -1141,7 +1124,7 @@ outp(int pkgno)
 	else sprint(buf, "%s%2.2d.p", name, pkgno);
 	fp = fopen(buf, "w");
 	if(fp == 0) {
-		fprintf(stderr, "can't open %s\n", buf);
+		fprint(2, "can't open %s\n", buf);
 		BADEND;
 	}
 	pnp = &pinassgn[1];
@@ -1258,7 +1241,7 @@ jstart(void)
 	sprint(buf, "%s.j", name);
 	fpj = fopen(buf, "w");
 	if(fpj == 0) {
-		fprintf(stderr, "can't open %s\n", buf);
+		fprint(2, "can't open %s\n", buf);
 		BADEND;
 	}
 	y = Y0;
@@ -1349,6 +1332,55 @@ pick(int n)
 }
 
 void
+gettype(char * t)
+{
+			if(strcmp(t, "22V10") == 0) {
+				devtype = &dev22v10;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else if(strcmp(t, "26CV12") == 0) {
+				devtype = &dev26cv12;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else if(strcmp(t, "18V10") == 0) {
+				devtype = &dev18v10;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else if(strcmp(t, "26V12") == 0) {
+				devtype = &dev26v12;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else if(strcmp(t, "16R8") == 0) {
+				devtype = &dev16r8;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else if(strcmp(t, "16R6") == 0) {
+				devtype = &dev16r6;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else if(strcmp(t, "16R4") == 0) {
+				devtype = &dev16r4;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else if(strcmp(t, "20R4") == 0) {
+				devtype = &dev20r4;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else if(strcmp(t, "16L8") == 0) {
+				devtype = &dev16l8;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else if(strcmp(t, "20L8") == 0) {
+				devtype = &dev20l8;
+				fprint(2, "type = %s\n", devtype->name);
+			}
+			else {
+				fprint(2, "Unknown type %s\n", t);
+				BADEND;
+			}
+}
+
+void
 assigned(void)
 {
 	char buf[100];
@@ -1396,7 +1428,7 @@ passign(int pkgno, FILE *fp) {
 	for(ttp = ttline; *ttp; ++ttp) {
 		if((*ttp == '2') || (*ttp == '3') || (*ttp == '4') || (*ttp == 'b')) {
 			if(oused == devtype->nouts) {
-				fprintf(stderr, "too many outputs for devtype %s\n", devtype->name);
+				fprint(2, "too many outputs for devtype %s\n", devtype->name);
 				BADEND;
 			}
 			pkg->outputs[oused++] = pinassgn[(ttp-ttline)+1].name;
@@ -1444,7 +1476,7 @@ readp(FILE *fp) {
 			s = nextwd(s+1, root, &foo);
 			if(*root) {
 				if((hp = lookup(root, 0)) == 0) {
-					fprintf(stderr, "can't lookup pin name %s\n", root);
+					fprint(2, "can't lookup pin name %s\n", root);
 					BADEND;
 				}
 				nextwd(s, root, &foo);
@@ -1461,45 +1493,3 @@ readp(FILE *fp) {
 				
 			
 			
-
-/* cistrcmp -- Case Insensitive strcmp */
-
-#define mklow(c) (((c) >= 'A' && (c) <= 'Z') ? (c) + 'a' - 'A' : (c))
-
-int cistrcmp (char *s1, char *s2)
-{
-    if (s1 == NULL || s2 == NULL) {
-    fprintf(stderr, "cistrcmp: Can't compare NULL string!\n");
-	return -1;
-    } /* if NULL */
-
-    while (*s1 && mklow (*s1) == mklow (*s2))
-	s1++, s2++;
-
-    return (mklow (*s1) < mklow (*s2)) ? -1 : ((mklow (*s1) == mklow (*s2)) ?
-	    0 : 1);
-} /* cistrcmp */
-
-
-void
-prtype(void)
-{
-	int i;
-	for(i =	0; types[i].name != (char *) 0; ++i)
-		fprintf(stderr, "%s\n", types[i].device->name);
-}
-
-void
-gettype(char * t)
-{
-	int i;
-	for(i =	0; types[i].name != (char *) 0; ++i) 
-			if(cistrcmp(t, types[i].name) == 0) {
-				fprintf(stderr, "type = %s\n", types[i].device->name);
-				devtype = types[i].device;
-				return;
-			}
-	fprintf(stderr, "Unknown type %s\n", t);
-	BADEND;
-	return;
-} /* gettype */

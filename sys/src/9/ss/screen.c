@@ -14,7 +14,6 @@
 
 extern	GSubfont	defont0;
 GSubfont		*defont;
-int	islcd;
 
 struct{
 	Point	pos;
@@ -543,13 +542,4 @@ rep(ulong v, int n)
 	for(o = 32 - n; o >= 0; o -= n)
 		rv |= (v << o);
 	return rv;
-}
-
-/*
- *  set/change mouse configuration
- */
-void
-mousectl(char *arg)
-{
-	USED(arg);
 }

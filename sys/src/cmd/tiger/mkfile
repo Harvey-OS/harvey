@@ -6,7 +6,6 @@ OFILES=\
 	draw.$O\
 	tiger.$O\
 	name.$O\
-	place.$O\
 	sphere.$O\
 	subr.$O\
 	data.$O\

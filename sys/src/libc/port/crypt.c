@@ -11,7 +11,7 @@ static	long	ip_low(char [8]);
 static	long	ip_high(char [8]);
 static	void	fp(long, long, char[8]);
 static	void	key_setup(char[DESKEYLEN], char[128]);
-static	void	block_cipher(char[128], char[8], int);
+static	void	block_cipher(char[DESKEYLEN], char[8], int);
 
 /*
  * destructively encrypt the buffer, which
@@ -20,22 +20,21 @@ static	void	block_cipher(char[128], char[8], int);
 int
 encrypt(void *key, void *vbuf, int n)
 {
-	char ekey[128], *buf;
+	char *buf;
 	int i, r;
 
 	if(n < 8)
 		return 0;
-	key_setup(key, ekey);
 	buf = vbuf;
 	n--;
 	r = n % 7;
 	n /= 7;
 	for(i = 0; i < n; i++){
-		block_cipher(ekey, buf, 0);
+		block_cipher(key, buf, 0);
 		buf += 7;
 	}
 	if(r)
-		block_cipher(ekey, buf - 7 + r, 0);
+		block_cipher(key, buf - 7 + r, 0);
 	return 1;
 }
 
@@ -46,22 +45,21 @@ encrypt(void *key, void *vbuf, int n)
 int
 decrypt(void *key, void *vbuf, int n)
 {
-	char ekey[128], *buf;
+	char *buf;
 	int i, r;
 
 	if(n < 8)
 		return 0;
-	key_setup(key, ekey);
 	buf = vbuf;
 	n--;
 	r = n % 7;
 	n /= 7;
 	buf += n * 7;
 	if(r)
-		block_cipher(ekey, buf - 7 + r, 1);
+		block_cipher(key, buf - 7 + r, 1);
 	for(i = 0; i < n; i++){
 		buf -= 7;
-		block_cipher(ekey, buf, 1);
+		block_cipher(key, buf, 1);
 	}
 	return 1;
 }
@@ -162,12 +160,24 @@ static long  s7p[] = {
  *	DES electronic codebook encryption of one block
  */
 static void
-block_cipher(char expanded_key[128], char text[8], int decrypting)
+block_cipher(char short_key[DESKEYLEN], char text[8], int decrypting)
 {
-	char *key;
-	long crypto, temp, right, left;
-	int i, key_offset;
+	register char *key;
+	register long crypto, temp;
+	register long right, left;
+	register i;
+	register key_offset;
+	static char lastkey[DESKEYLEN];
+	static char expanded_key[128];
 
+	temp = 0;
+	for (i = 0; i < DESKEYLEN; i++)
+		if (lastkey[i] != short_key[i]) {
+			lastkey[i] = short_key[i];
+			temp = 1;
+		}
+	if (temp)
+		key_setup(short_key, expanded_key);
 	key = expanded_key;
 	left = ip_low(text);
 	right = ip_high(text);
@@ -211,7 +221,7 @@ static long
 ip_low(char block[8])
 {
 	int i;
-	long l;
+	register long l;
 
 	l = 0;
 	for(i = 0; i < 8; i++){
@@ -225,7 +235,7 @@ static long
 ip_high(char block[8])
 {
 	int i;
-	long l;
+	register long l;
 
 	l = 0;
 	for(i = 0; i < 8; i++){

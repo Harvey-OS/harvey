@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <stdio.h>
 
 static char *nextmem = 0;
 static long sizemem = 0;
@@ -15,7 +14,7 @@ getmem(void)
 
 	h = (char *) sbrk(HUNK);
 	if(h == (char *)-1){
-		fprintf(stderr, "getmem didn't\n");
+		fprint(2, "getmem didn't\n");
 		abort();
 	}
 	if(nextmem == 0)
@@ -51,7 +50,7 @@ f_strdup(char *s)
 	nextmem += n;
 	sizemem -= n;
 	if(sizemem < 0){
-		fprintf(stderr, "strdup screwed up %ld\n", n);
+		fprint(2, "strdup screwed up %ld\n", n);
 		abort();
 	}
 	return(s);

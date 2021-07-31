@@ -33,4 +33,3 @@ uart scc
 scsi scsi
 srv srv
 stream stream
-vga vga

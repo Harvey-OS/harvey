@@ -191,6 +191,7 @@ loop1:
 	}
 
 more:
+	up->dkp.timeout = DKTIME(20);
 	if(up->dkp.nout >= up->dkp.maxout)
 		goto loop;
 	n = up->dkp.mout * up->dkp.mlen;
@@ -257,7 +258,6 @@ more:
 	dk->orate.count += c;
 	up->dkp.nout++;
 	up->dkp.mout++;
-	up->dkp.timeout = DKTIME(20);
 	goto more;
 }
 

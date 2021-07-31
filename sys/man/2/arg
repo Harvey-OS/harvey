@@ -7,7 +7,7 @@ ARG \(mi process option letters from argv
 .B ARGBEGIN {
 .B } ARGEND
 .B char *ARGF();
-.B Rune ARGC();
+.B char ARGC();
 .PP
 .B extern char *argv0;
 .fi

@@ -4,6 +4,7 @@
 #include "sym.h"
 #include "y.tab.h"
 
+FILE *fin;
 int yyline = 1;
 char token_buffer[MAXIDSIZE+1];
 extern YYSTYPE yylval;
@@ -21,35 +22,37 @@ yylex(void)
 
 	yylval.y_nodep = (struct node *) NULL;
 	cp = token_buffer;
-	while((c = Bgetc(bin)) != Beof) {
+	while((c=getc(fin))!=EOF) {
 		switch(c) {
 		case ' ': case '\t': case '\f':
 			continue;
 		case '@': case '[': case ']': case ';': case ':':
 		case '(': case ')': case ',': case '=':
 		case '*':
-			if(debug_flag&DB_LEX)
-				fprint(2, "%c\n", c);
+			if(debug_flag&DB_LEX) {
+				putc(c,stderr);
+				putc('\n', stderr);
+			}
 			*cp++ = c;
 			*cp = '\0';
-			return c;
+			return(c);
 
 		case '{':
 			ScanCodeBlock();
 			yylval.y_code = curCdBlock;
 			curCdBlock = NULL;
 			*cp++ = '{'; *cp = '}';
-			return CBLOCK;
+			return(CBLOCK);
 
 		case '\n':
 			yyline++;
 			continue;
 		case '/':
-			if (Bgetc(bin) == '*') {
+			if ((c=getc(fin))=='*') {
 				ScanComment(get);
 				continue;
 			} else {
-				Bungetc(bin);
+				ungetc(c, fin);
 				c = '/';
 			}
 			/* FALL THRU */
@@ -63,11 +66,11 @@ yylex(void)
 						yyerror("number too long");
 						errs++;
 					} else *cp++ = c;
-					c = Bgetc(bin);
+					c = getc(fin);
 				} while (isdigit(c));
 				if(isalpha(c))
 					yyerror2("illegal digit '%c'", c);
-				Bungetc(bin);
+				ungetc(c, fin);
 				if(errs)
 					return(ERROR);
 				yylval.y_int = atoi(token_buffer);
@@ -82,15 +85,15 @@ yylex(void)
 						yyerror("ID too long");
 						errs++;
 					} else *cp++ = c;
-					c = Bgetc(bin);
+					c = getc(fin);
 				} while (isalpha(c)||isdigit(c)||c=='_');
-				Bungetc(bin);
+				ungetc(c, fin);
 				if(errs)
 					return(ERROR);
 				*cp = '\0';
 
 				sp = SymbolLookup (token_buffer);
-				if (sp == NULL) {
+				if (sp==NULL) {
 					/* undefined */
 				    yylval.y_symp = SymbolAllocate(token_buffer);
 				} else {
@@ -100,14 +103,14 @@ yylex(void)
 				    yylval.y_symp = sp;
 				}
 				if(debug_flag&DB_LEX)
-					fprint(2, "ID\n");
+					fprintf(stderr, "ID\n");
 				return(ID);
 			}
 			yyerror2("illegal character (\\%03o)", c);
 		}
 	}
 	strcpy(token_buffer, "EOF");
-	return 0;
+	return(0);
 }
 
 void
@@ -127,24 +130,27 @@ lexCleanup(void)
 static char
 getput(void)
 {
+	/* keutzer
+	char c;
+	*/
 	int c;
-	c = Bgetc(bin);
-	if(c == '\n')
-		yyline++;
-	if(c != Beof)
+	c = getc(fin);
+	if(c=='\n') yyline++;
+	if(c!=EOF)
 		curCdBlock = CodeStoreChar(curCdBlock, c);
-	return c;
+	return(c);
 }
 
 static char
 get(void)
 {
+	/* keutzer
+	char c;
+	*/
 	int c;
-
-	c = Bgetc(bin);
-	if(c == '\n')
-		yyline++;
-	return c;
+	c = getc(fin);
+	if(c=='\n') yyline++;
+	return(c);
 }
 
 extern int nerrors;
@@ -153,11 +159,13 @@ static void
 ScanComment(char (*rdfunc)(void))
 {
 	int startline = yyline;
+	/* keutzer
+	char c;
+	*/
 	int c;
 	int saw_star = 0;
-
-	while((c = rdfunc()) != Beof) {
-		if (c == '*')
+	while ((c=rdfunc())!=EOF) {
+		if (c=='*')
 			saw_star++;
 		else if(c=='/' && saw_star) {
 			return;
@@ -172,10 +180,13 @@ static void
 ScanString(char (*rdfunc)(void))
 {
 	int startline = yyline;
+	/* keutzer
+	char c;
+	*/
 	int c;
 	int saw_backsl = 0;
 
-	while((c=rdfunc()) != Beof) {
+	while((c=rdfunc())!=EOF) {
 		if (c=='"' && !saw_backsl)
 			return;
 		if (c=='\\' && !saw_backsl) {
@@ -194,10 +205,13 @@ static void
 ScanChar(void)
 {
 	int startline = yyline;
+	/* keutzer
+	char c;
+	*/
 	int c;
 	int saw_backsl = 0;
 
-	while((c=getput()) != Beof) {
+	while((c=getput())!=EOF) {
 		if (c=='\'' && !saw_backsl)
 			return;
 		if (c=='\\' && !saw_backsl) {
@@ -217,14 +231,17 @@ static void
 ScanTreeReference(void)
 {
 
+	/* keutzer
+	char c;
+	*/
 	int c;
-	c = Bgetc(bin);
+	c = getc(fin);
 	if(c=='%') {
 		curCdBlock = CodeStoreString (curCdBlock, "_ll[(");
-		while ((c = Bgetc(bin)) != Beof && c != '$') {
+		while ((c=getc(fin))!=EOF && c!='$') {
 			if(!isdigit(c)) {
 				yyerror("unclosed $ reference");
-				Bungetc(bin);
+				ungetc(c,fin);
 				break;
 			}
 			curCdBlock = CodeStoreChar(curCdBlock, c);
@@ -239,11 +256,11 @@ ScanTreeReference(void)
 	do {
 		if(!isdigit(c) && c!='.') {
 			yyerror("unclosed $ reference");
-			Bungetc(bin);
+			ungetc(c,fin);
 			break;
 		}
 		curCdBlock = CodeStoreChar(curCdBlock, c=='.' ? ',' : c);
-	} while((c = Bgetc(bin)) != Beof && c != '$');
+	} while((c=getc(fin))!=EOF && c!='$');
 	curCdBlock = CodeStoreString(curCdBlock, ", -1)");
 }
 
@@ -251,31 +268,30 @@ static void
 ScanCodeBlock(void)
 {
 	int startline = yyline;
+	/* keutzer
+	char c;
+	*/
 	int c;
 	if(curCdBlock==NULL) {
 		curCdBlock = CodeGetBlock();
 		curCdBlock = CodeMarkLine(curCdBlock,yyline);
 	}
-	while((c = Bgetc(bin)) != Beof){
-		if(c=='}')
+	while((c=getc(fin))!=EOF) {
+		if (c=='}')
 			return;
-		else if(c=='$')
-			ScanTreeReference();
-		else
-			curCdBlock = CodeStoreChar(curCdBlock, c);
-		if(c=='\n')
-			yyline++;
-		if(c=='"')
-			ScanString(getput);
-		else if(c=='\'')
-			ScanChar();
-		else if(c=='/'){
-			if(Bgetc(bin) == '*'){
+		else if (c=='$') ScanTreeReference();
+		else curCdBlock = CodeStoreChar(curCdBlock, c);
+		if (c=='\n') yyline++;
+		if (c=='"') ScanString(getput);
+		else if (c=='\'') ScanChar();
+		else if (c=='/') {
+			if ((c=getc(fin))=='*') {
 				curCdBlock = CodeStoreChar(curCdBlock, '*');
 				ScanComment(getput);
-			}else
-				Bungetc(bin);
-		}else if (c=='{'){
+			}
+			else ungetc(c, fin);
+		}
+		else if (c=='{') {
 			ScanCodeBlock();
 			curCdBlock = CodeStoreChar (curCdBlock, '}');
 		}

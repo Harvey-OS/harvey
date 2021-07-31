@@ -29,7 +29,6 @@ enum kwtype { KIF, KIFDEF, KIFNDEF, KELIF, KELSE, KENDIF, KINCLUDE, KDEFINE,
 #define	ISMAC		010	/* builtin macro, e.g. __LINE__ */
 
 #define	EOB	0xFE		/* sentinel for end of input buffer */
-#define	EOFC	0xFD		/* sentinel for end of input file */
 #define	XPWS	1		/* token flag: white space to assure token sep. */
 
 typedef struct token {
@@ -133,7 +132,6 @@ void	prhideset(int);
 int	newhideset(int, Nlist *);
 int	unionhideset(int, int);
 void	iniths(void);
-void	setobjname(char *);
 #define	rowlen(tokrow)	((tokrow)->lp - (tokrow)->bp)
 
 extern	char *outp;
@@ -143,9 +141,7 @@ extern	char *curtime;
 extern	int incdepth;
 extern	int ifdepth;
 extern	int ifsatisfied[NIF];
-extern	int Mflag;
 extern	int skipping;
 extern	int verbose;
 extern	int Cplusplus;
-extern	Nlist *kwdefined;
 extern	Includelist includelist[NINCLUDE];

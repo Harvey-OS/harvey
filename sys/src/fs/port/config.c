@@ -15,12 +15,17 @@ struct
 } f;
 
 void
-cdiag(char *s, int c1)
+cdiag(char *s)
 {
+	int c;
 
 	f.charp--;
 	if(f.error == 0) {
-		print("config diag: %s -- <%c>\n", s, c1);
+		print("diag: %s\n", s);
+		c = *f.charp;
+		*f.charp = 0;
+		print("	%*s<%c>%s\n", f.icharp, c, f.charp+1);
+		*f.charp = c;
 		f.error = 1;
 	}
 }
@@ -48,12 +53,12 @@ cnumb(void)
 		}
 		n = cnumb();
 		if(*f.charp++ != '-') {
-			cdiag("- expected", f.charp[-1]);
+			cdiag("- expected");
 			return 0;
 		}
 		c = cnumb();
 		if(*f.charp++ != '>') {
-			cdiag("> expected", f.charp[-1]);
+			cdiag("> expected");
 			return 0;
 		}
 		f.nextiter = n+1;
@@ -61,7 +66,7 @@ cnumb(void)
 		return n;
 	}
 	if(c < '0' || c > '9') {
-		cdiag("number expected", c);
+		cdiag("number expected");
 		return 0;
 	}
 	n = 0;
@@ -91,7 +96,7 @@ config(void)
 	c = *f.charp++;
 	switch(c) {
 	default:
-		cdiag("unknown type", c);
+		cdiag("unknown type");
 		goto bad;
 
 	case '(':	/* (d+) one or multiple cat */
@@ -176,7 +181,7 @@ config(void)
 		d.unit = cnumb();
 		c = *f.charp++;
 		if(c != '.')
-			cdiag("dot expected", c);
+			cdiag("dot expected");
 		d.part = cnumb();
 		break;
 	}
@@ -209,7 +214,7 @@ iconfig(char *s)
 	f.charp = f.icharp;
 	d = config();
 	if(*f.charp) {
-		cdiag("junk on end", *f.charp);
+		cdiag("junk on end");
 		f.error = 1;
 	}
 	return d;
@@ -337,7 +342,7 @@ start:
 	mergeconf(p);
 	if(f.modconf) {
 		memset(p->iobuf, 0, BUFSIZE);
-		p->flags |= Bmod|Bimm;
+		p->flags |= Bmod;
 		if(service[0])
 			sprint(strchr(p->iobuf, 0), "service %s\n", service);
 		for(fs=filsys; fs->name; fs++)
@@ -481,7 +486,7 @@ loop:
 		cp = getwd(word, line);
 	}
 	if(strcmp(word, "y1") == 0) {
-		strcpy(line, "filsys main c[w2w4w5w6](r10.<0-29>)");
+		strcpy(line, "filsys main c[w2w4w5w6](r10.<0-24>)");
 		cp = getwd(word, line);
 	}
 	if(strcmp(word, "y2") == 0) {

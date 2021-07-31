@@ -8,14 +8,15 @@
 
 #include "machine.h"
 
+#define MHz	20
+
 void
 delay(int ms)
 {
-	extern Eeprom eeprom;
-
-	ms *= 1000*ROUNDUP(eeprom.clock, 2)/2;
+	ms *= 1000*ROUNDUP(MHz, 2)/2;
 	while(ms-- > 0)
 		;
+
 }
 
 void
@@ -41,7 +42,7 @@ clockintr(int ctlrno, Ureg *ur)
 	checkalarms();
 	eiaclock();
 	kproftimer(ur->pc);
-	if(u && p && p->state == Running){
+	if(u && (ur->psw & PSW_IPL) == PSW_IPL && p && p->state == Running){
 		if(anyready()){
 			if(p->hasspin)
 				p->hasspin = 0;

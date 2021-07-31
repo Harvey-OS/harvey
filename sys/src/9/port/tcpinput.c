@@ -559,11 +559,6 @@ update(Ipconv *s, Tcp *seg)
 
 	tcb->flags &= ~RETRAN;
 	tcb->backoff = 0;
-
-	if(tcb->sndfull && tcb->sndcnt < Streamhi/2){
-		wakeup(&tcb->sndr);
-		tcb->sndfull = 0;
-	}
 }
 
 int

@@ -1,19 +1,19 @@
 TEXT strncmp(SB), $0
-	ADD	s1+0(FP), n+8(FP)
+	ADD	R4, R12
 _strncmp0:
-	CMPEQ	s1+0(FP), n+8(FP)
+	CMPEQ	R4, R12
 	JMPTN	_strncmp2
 
-	CMPEQ	*s2+4(FP).B, *s1+0(FP).B
+	CMPEQ	*R8.B, *R4.B
 	JMPTY	_strncmp1
 
-	SUB3	*s2+4(FP).B, *s1+0(FP).B
+	SUB3	*R8.B, *R4.B
 	RETURN
 _strncmp1:
-	CMPEQ	$0, *s1+0(FP).B
-	ADD	$1, s1+0(FP)
-	ADD	$1, s2+4(FP)
+	CMPEQ	$0, *R4.B
+	ADD	$1, R4
+	ADD	$1, R8
 	JMPFY	_strncmp0
 _strncmp2:
-	MOV	$0, s1+0(FP)
+	MOV	$0, R4
 	RETURN

@@ -24,12 +24,12 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 	p = strrchr(clone, '/');
 	*p = 0;
 	if(dir)
-		snprint(dir, 2*NAMELEN, "%s/%s", clone, name);
-	snprint(data, sizeof(data), "%s/%s/data", clone, name);
+		sprint(dir, "%.*s/%.*s", 2*NAMELEN+1, clone, NAMELEN, name);
+	sprint(data, "%.*s/%.*s/data", 2*NAMELEN+1, clone, NAMELEN, name);
 
 	/* set local side (port number, for example) if we need to */
 	if(local){
-		snprint(name, sizeof(name), "announce %s", local);
+		sprint(name, "announce %s", 2*NAMELEN, local);
 		if(write(cfd, name, strlen(name)) < 0){
 			close(cfd);
 			return -1;
@@ -37,7 +37,7 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 	}
 
 	/* connect */
-	snprint(name, sizeof(name), "connect %s", dest);
+	sprint(name, "connect %.*s", 2*NAMELEN, dest);
 	if(write(cfd, name, strlen(name)) < 0){
 		close(cfd);
 		return -1;
@@ -69,7 +69,7 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 	/* go for a standard form net!... */
 	p = strchr(dest, '!');
 	if(p == 0){
-		snprint(net, sizeof(net), "net!%s", dest);
+		sprint(net, "net!%.*s", sizeof(net)-5, dest);
 	} else {
 		strncpy(net, dest, sizeof(net)-1);
 		net[sizeof(net)-1] = 0;
@@ -81,7 +81,7 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 		/* no connection server, don't translate */
 		p = strchr(net, '!');
 		*p++ = 0;
-		snprint(clone, sizeof(clone), "/net/%s/clone", net);
+		sprint(clone, "/net/%s/clone", net);
 		return call(clone, p, cfdp, dir, local);
 	}
 

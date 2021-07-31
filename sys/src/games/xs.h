@@ -279,8 +279,6 @@ pause(int t)
 {
 	Event e;
 
-	while(ecanread(Etimer))
-		eread(Etimer, &e);
 	while(eread(Etimer, &e))
 		if((t -= tsleep) < 0)
 			break;

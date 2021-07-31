@@ -7,77 +7,69 @@
 #include "../port/error.h"
 
 enum {
-	NCtlr		= 1,		/* number of controllers */
+	Bits5 =		0x00,		/* mr1 */
+	Bits6 =		0x01,
+	Bits7 =		0x02,
+	Bits8 =		0x03,
+	BitsMask =	0x03,
+	ParityEven =	0x00,
+	ParityOdd =	0x04,
+	ParityOn =	0x00,
+	ParityOff =	0x10,
+	ParityMask =	0x18,
 
-	NPort		= 4,		/* number of ports per controller */
-	NDirent		= 2,		/* number of directory entries per port -
-					 *  data + ctl
-					 */
-};
+	StopBits1 =	0x07,		/* mr2 */
+	StopBits2 =	0x0F,
 
-enum {
-	Bits5		= 0x00,		/* mr1 */
-	Bits6		= 0x01,
-	Bits7		= 0x02,
-	Bits8		= 0x03,
-	BitsMask	= 0x03,
-	ParityEven	= 0x00,
-	ParityOdd	= 0x04,
-	ParityOn	= 0x00,
-	ParityOff	= 0x10,
-	ParityMask	= 0x18,
+	RxEnable =	0x01,		/* cr */
+	RxDisable =	0x02,
+	TxEnable =	0x04,
+	TxDisable =	0x08,
 
-	StopBits1	= 0x07,		/* mr2 */
-	StopBits2	= 0x0F,
+	MrReset =	0x10,
+	RxReset =	0x20,
+	TxReset =	0x30,
+	ErrReset =	0x40,
+	BrkReset =	0x50,
+	BrkStart =	0x60,
+	BrkStop =	0x70,
 
-	RxEnable	= 0x01,		/* cr */
-	RxDisable	= 0x02,
-	TxEnable	= 0x04,
-	TxDisable	= 0x08,
+	BD110 =		0x11,		/* csr */
+	BD38400 =	0x22,
+	BD300 =		0x44,
+	BD1200 =	0x66,
+	BD2400 =	0x88,
+	BD4800 =	0x99,
+	BD9600 =	0xBB,
+	BD19200 =	0xCC,
 
-	MrReset		= 0x10,
-	RxReset		= 0x20,
-	TxReset		= 0x30,
-	ErrReset	= 0x40,
-	BrkReset	= 0x50,
-	BrkStart	= 0x60,
-	BrkStop		= 0x70,
+	RxRDY =		0x01,		/* sr */
+	FFULL = 	0x02,
+	TxRDY =		0x04,
+	TxEMT =		0x08,
+	RxERR =		0x70,
+	RxBrk =		0x80,
 
-	BD110		= 0x11,		/* csr */
-	BD38400		= 0x22,
-	BD300		= 0x44,
-	BD600		= 0x55,
-	BD1200		= 0x66,
-	BD2400		= 0x88,
-	BD4800		= 0x99,
-	BD9600		= 0xBB,
-	BD19200		= 0xCC,
+	TimerD16 =	0x70,		/* acr */
+	BRGSet1 =	0x00,
+	BRGSet2 =	0x80,
 
-	RxRDY		= 0x01,		/* sr */
-	FFULL 		= 0x02,
-	TxRDY		= 0x04,
-	TxEMT		= 0x08,
-	RxERR		= 0x70,
-	RxBrk		= 0x80,
+	TxRDYa =	0x01,		/* isr/imr */
+	RxRDYa =	0x02,
+	CtrRDY =	0x08,
+	TxRDYb =	0x10,
+	RxRDYb =	0x20,
 
-	TimerD16	= 0x70,		/* acr */
-	BRGSet1		= 0x00,
-	BRGSet2		= 0x80,
+	TxAvail0 =	0x08,		/* cir */
+	RxAvail =	0x0C,
+	CtAvail =	0x14,
+	TxAvail1 =	0x18,
+	RxAvailErr =	0x1C,
+	TypeMask =	0x1C,
 
-	TxRDYa		= 0x01,		/* isr/imr */
-	RxRDYa		= 0x02,
-	CtrRDY		= 0x08,
-	TxRDYb		= 0x10,
-	RxRDYb		= 0x20,
+	Crystal =	3686400,
 
-	TxAvail0	= 0x08,		/* cir */
-	RxAvail		= 0x0C,
-	CtAvail		= 0x14,
-	TxAvail1	= 0x18,
-	RxAvailErr	= 0x1C,
-	TypeMask	= 0x1C,
-
-	Crystal		= 3686400,
+	NCtlr =		1,
 };
 
 typedef struct {
@@ -122,7 +114,6 @@ eiarawputc(int c)
 
 	if(c == '\n')
 		eiarawputc('\r');
-	uart->cr = TxEnable;
 	while((uart->sr & TxRDY) == 0)
 		delay(4);
 	uart->txfifo = c;
@@ -144,14 +135,11 @@ void
 eiarawprint(char *fmt, ...)
 {
 	char buf[PRINTSIZE];
-	int s;
 
-	s = splhi();
 	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
 	eiarawputs(buf);
-	splx(s);
 }
-#endif
+#endif /* notdef */
 
 static void
 uartsetbaud(Port *port, int rate)
@@ -182,10 +170,6 @@ uartsetbaud(Port *port, int rate)
 		rate = BD1200;
 		break;
 
-	case 600:
-		rate = BD600;
-		break;
-
 	case 300:
 		rate = BD300;
 		break;
@@ -205,7 +189,7 @@ uartsetbreak(Port *port, int ms)
 
 	if(ms == 0)
 		ms = 100;
-	imr = (uart == (Uart*)duart) ? TxRDYa: TxRDYb;
+	imr = (uart == (Uart *)duart) ? TxRDYa: TxRDYb;
 	*port->imr &= ~imr;
 	duart->imr = *port->imr;
 	uart->cr = BrkStart|TxEnable;
@@ -246,7 +230,6 @@ uartsetlength(Port *port, int bits)
 	}
 	port->mr1 = (port->mr1 & ~BitsMask)|bits;
 	uart->cr = MrReset;
-	delay(1);
 	uart->mr = port->mr1;
 }
 
@@ -259,7 +242,7 @@ uartsetdtr(Port *port, int set)
 		port->iopcr |= 0x40;
 	else
 		port->iopcr &= ~0xC0;
-	if(port->uart == (Uart*)port->duart){
+	if(port->uart == (Uart *)port->duart){
 		port->duart->iopcra = port->iopcr;
 		if(set)
 			opr |= 0x20;
@@ -298,7 +281,6 @@ uartsetparity(Port *port, uchar type)
 	}
 	port->mr1 = (port->mr1 & ~ParityMask)|parity;
 	uart->cr = MrReset;
-	delay(1);
 	uart->mr = port->mr1;
 }
 
@@ -311,7 +293,7 @@ uartsetrts(Port *port, int set)
 		port->iopcr |= 0x10;
 	else
 		port->iopcr &= ~0x30;
-	if(port->uart == (Uart*)port->duart){
+	if(port->uart == (Uart *)port->duart){
 		port->duart->iopcra = port->iopcr;
 		if(set)
 			opr |= 0x10;
@@ -382,13 +364,13 @@ uartenable(Port *port)
 		port->oq->puts = uartputs;
 		port->oq->ptr = port;
 		uart->cr = TxEnable;
-		imr |= (uart == (Uart*)duart) ? TxRDYa: TxRDYb;
+		imr |= (uart == (Uart *)duart) ? TxRDYa: TxRDYb;
 	}
 
 	if(port->iq){
 		port->iq->ptr = port;
 		uart->cr = RxEnable;
-		imr |= (uart == (Uart*)duart) ? RxRDYa: RxRDYb;
+		imr |= (uart == (Uart *)duart) ? RxRDYa: RxRDYb;
 	}
 
 	*port->imr |= imr;
@@ -413,12 +395,11 @@ uartsetup(Port *port)
 	delay(1);
 
 	uart->cr = MrReset;
-	delay(1);
 	port->mr1 = ParityOff|Bits8;
 	uart->mr = port->mr1;
 	port->mr2 = StopBits1;
 	uart->mr = port->mr2;
-	uart->csr = BD19200;
+	uart->csr = BD9600;
 }
 
 static void
@@ -479,7 +460,7 @@ eiaintr(int ctlrno, Ureg *ur)
 }
 
 static Vector vector[NCtlr] = {
-	{ IRQQUART, 0, eiaintr, "eia0", },
+	{ 0x0002, 0, eiaintr, "eia0", },
 };
 
 void
@@ -493,7 +474,7 @@ eiasetup(int ctlrno, void *addr)
 		return;
 	ctlr = &eiactlr[ctlrno];
 	ctlr->quart = quart = addr;
-	ctlr->port = port = xalloc(sizeof(Port)*NPort);
+	ctlr->port = port = xalloc(sizeof(Port)*4);
 
 	quart->ack = 0;
 	quart->icr = 0;
@@ -532,9 +513,8 @@ clockinit(void)
 	ulong x;
 
 	duart->acr = BRGSet2|TimerD16;
-	x = (Crystal/(2*16*HZ));
-	duart->ctu = x>>8;
-	duart->ctl = x & 0xFF;
+	duart->ctu = (Crystal/(2*16*HZ))>>8;
+	duart->ctl = (Crystal/(2*16*HZ)) & 0xFF;
 
 	*port->imr |= CtrRDY;
 	duart->imr = *port->imr;
@@ -548,10 +528,10 @@ eiaspecial(int portno, IOQ *oq, IOQ *iq, int baud)
 	Port *port;
 	int ctlrno;
 
-	ctlrno = portno/NPort;
+	ctlrno = portno/4;
 	if(ctlrno >= neiactlr)
 		return;
-	port = eiactlr[ctlrno].port+(portno%NPort);
+	port = eiactlr[ctlrno].port+(portno%4);
 
 	port->nostream = 1;
 	port->oq = oq;
@@ -562,58 +542,6 @@ eiaspecial(int portno, IOQ *oq, IOQ *iq, int baud)
 		kbdq.putc = kbdcr2nl;
 }
 
-/*
- * Hacks for the serial keyboard:
- *	eiasetrts
- *	eiasetparity
- *	eiarawput
- */
-static Port*
-eiagetport(int portno)
-{
-	int ctlrno;
-
-	ctlrno = portno/NPort;
-	if(ctlrno >= neiactlr)
-		return 0;
-	return eiactlr[ctlrno].port+(portno%NPort);
-}
-
-void
-eiasetrts(int portno, int set)
-{
-	Port *port;
-
-	if(port = eiagetport(portno))
-		uartsetrts(port, set);
-}
-
-void
-eiasetparity(int portno, uchar type)
-{
-	Port *port;
-
-	if(port = eiagetport(portno))
-		uartsetparity(port, type);
-}
-
-void
-eiarawput(int portno, int c)
-{
-	Port *port;
-	Uart *uart;
-
-	if(port = eiagetport(portno)){
-		uart = port->uart;
-		uart->cr = TxEnable;
-		while((uart->sr & TxRDY) == 0)
-			delay(4);
-		uart->txfifo = c;
-		while((uart->sr & TxEMT) == 0)
-			delay(4);
-	}
-}
-
 void
 eiaclock(void)
 {
@@ -622,7 +550,7 @@ eiaclock(void)
 	IOQ *ioq;
 
 	for(ctlrno = 0; ctlrno < neiactlr; ctlrno++){
-		for(port = eiactlr[ctlrno].port, i = 0; i < NPort; i++, port++){
+		for(port = eiactlr[ctlrno].port, i = 0; i < 4; i++, port++){
 			ioq = port->iq;
 			if(port->wq && cangetc(ioq))
 				wakeup(&ioq->r);
@@ -660,7 +588,7 @@ eiastopen(Queue *q, Stream *s)
 	Port *port;
 	char name[NAMELEN];
 
-	port = eiactlr[s->id/NPort].port+(s->id%NPort);
+	port = eiactlr[s->id/4].port+(s->id%4);
 	qlock(port);
 	port->wq = WR(q);
 	WR(q)->ptr = port;
@@ -668,7 +596,7 @@ eiastopen(Queue *q, Stream *s)
 	qunlock(port);
 	if(port->kstarted == 0){
 		port->kstarted = 1;
-		sprint(name, "eia%dkproc", s->id);
+		sprint(name, "eia%d", s->id);
 		kproc(name, eiakproc, port);
 	}
 }
@@ -705,7 +633,7 @@ eiaoput(Queue *q, Block *bp)
 	if(bp->type == M_CTL){
 		while(cangetc(ioq))
 			sleep(&ioq->r, cangetc, ioq);
-		n = strtoul((char*)(bp->rptr+1), 0, 0);
+		n = strtoul((char *)(bp->rptr+1), 0, 0);
 		switch(*bp->rptr){
 
 		case 'B':
@@ -776,10 +704,10 @@ eiareset(void)
 	int ctlrno, i, portno;
 	Dirtab *dp;
 
-	eiadir = xalloc(NDirent * NPort*neiactlr * sizeof(Dirtab));
+	eiadir = xalloc(2 * 4*neiactlr * sizeof(Dirtab));
 	dp = eiadir;
 	for(ctlrno = 0, portno = 0; ctlrno < neiactlr; ctlrno++){
-		for(port = eiactlr[ctlrno].port, i = 0; i < NPort; i++, portno++, port++){
+		for(port = eiactlr[ctlrno].port, i = 0; i < 4; i++, portno++, port++){
 			sprint(dp->name, "eia%d", portno);
 			dp->length = 0;
 			dp->qid.path = STREAMQID(portno, Sdataqid);
@@ -822,7 +750,7 @@ eiaclone(Chan *c, Chan *nc)
 int
 eiawalk(Chan *c, char *name)
 {
-	return devwalk(c, name, eiadir, NDirent * NPort*neiactlr, devgen);
+	return devwalk(c, name, eiadir, 2 * 4*neiactlr, devgen);
 }
 
 void
@@ -833,10 +761,10 @@ eiastat(Chan *c, char *dp)
 	i = STREAMID(c->qid.path);
 	switch(STREAMTYPE(c->qid.path)){
 	case Sdataqid:
-		streamstat(c, dp, eiadir[NDirent*i].name, eiadir[NDirent*i].perm);
+		streamstat(c, dp, eiadir[2*i].name, eiadir[2*i].perm);
 		break;
 	default:
-		devstat(c, dp, eiadir, NDirent * NPort*neiactlr, devgen);
+		devstat(c, dp, eiadir, 2 * 4*neiactlr, devgen);
 		break;
 	}
 }
@@ -847,12 +775,12 @@ eiaopen(Chan *c, int omode)
 	Port *port;
 
 	if(c->qid.path != CHDIR){
-		port = eiactlr[STREAMID(c->qid.path)/NPort].port+(STREAMID(c->qid.path)%NPort);
+		port = eiactlr[STREAMID(c->qid.path)/4].port+(STREAMID(c->qid.path)%4);
 		if(port->nostream)
 			error(Einuse);
 		streamopen(c, &eiainfo);
 	}
-	return devopen(c, omode, eiadir, NDirent * NPort*neiactlr, devgen);
+	return devopen(c, omode, eiadir, 2 * 4*neiactlr, devgen);
 }
 
 void
@@ -875,7 +803,7 @@ eiaread(Chan *c, void *va, long n, ulong offset)
 	char id[8];
 
 	if(c->qid.path == CHDIR)
-		return devdirread(c, va, n, eiadir, NDirent * NPort*neiactlr, devgen);
+		return devdirread(c, va, n, eiadir, 2 * 4*neiactlr, devgen);
 
 	switch(STREAMTYPE(c->qid.path)){
 

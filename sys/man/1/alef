@@ -131,6 +131,4 @@ directory for ALEF libraries
 .IR nm (1),
 .IR db (1)
 .br
-.I
-ALEF Reference Manual,
-Phil Winterbottom
+Phil Winterbottom, "ALEF Reference Manual"

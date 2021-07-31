@@ -1,9 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 #include <mach.h>
-
-#define	HUGEINT	0x7fffffff
 
 char *symerror = 0;			/* error message */
 
@@ -185,44 +182,30 @@ pc2line(ulong pc)
 	return -1;
 }
 /*
- *	find the pc associated with a line number
- *	basepc and endpc are text addresses bounding the search.
- *	if endpc == 0, the end of the table is used (i.e., no upper bound).
- *	usually, basepc and endpc contain the first text address in
- *	a file and the first text address in the following file, respectively.
+ *	find the pc given a line and the pc of the first text symbol in a file
  */
 long
-line2addr(ulong line, ulong basepc, ulong endpc)
+line2addr(ulong line, ulong basepc)
 {
 	uchar *c;
 	uchar u;
-	ulong currpc;
-	long currline;
-	long delta, d;
-	long pc, found;
+	ulong currpc, lastpc;
+	long currline, lastline;
 
 	if(pcline == 0 || line == 0)
 		return -1;
-	currline = 0;
-	currpc = txtstart - mach->pcquant;
-	pc = -1;
-	found = 0;
-	delta = HUGEINT;
+	lastline = currline = 0;
+	lastpc = currpc = txtstart - mach->pcquant;
 
 	for (c = pcline; c < pclineend; c++) {
-		if (endpc && currpc >= endpc)	/* end of file of interest */
-			break;
-		if (currpc >= basepc) {		/* proper file */
-			if (currline >= line) {
-				d = currline-line;
-				found = 1;
-			} else
-				d = line-currline;
-			if (d < delta) {
-				delta = d;
-				pc = currpc;
-			}
+		if (currpc >= basepc && currline >= line) {
+			if (currline-line < line-lastline)
+				return currpc;
+			else
+				return lastpc;
 		}
+		lastpc = currpc;
+		lastline = currline;
 		u = *c;
 		if (u == 0) {
 			currline += (c[1]<<24)|(c[2]<<16)|(c[3]<<8)|c[4];
@@ -235,8 +218,6 @@ line2addr(ulong line, ulong basepc, ulong endpc)
 			currpc += mach->pcquant*(u-129);
 		currpc += mach->pcquant;
 	}
-	if (found)
-		return pc;
 	return -1;
 }
 

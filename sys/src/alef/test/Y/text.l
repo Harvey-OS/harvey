@@ -297,6 +297,7 @@ textsel(Window *w, int op)
 
 	case Send:
 		nchar = w->sp1 - w->sp0;
+
 		wop = w->input-w->origin;
 		check wop >= 0;
 

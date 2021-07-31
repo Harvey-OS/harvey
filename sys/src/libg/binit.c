@@ -45,26 +45,28 @@ bwrite(void)
 }
 
 int
-Rconv(void *oa, Fconv *f)
+Rconv(void *oa, int f1, int f2, int f3, int c)
 {
 	Rectangle *r;
 	char buf[128];
 
+	USED(c);
 	r = oa;
 	sprint(buf, "%P %P", r->min, r->max);
-	strconv(buf, f);
+	strconv(buf, f1, f2, f3);
 	return sizeof(Rectangle);
 }
 
 int
-Pconv(void *oa, Fconv *f)
+Pconv(void *oa, int f1, int f2, int f3, int c)
 {
 	Point *p;
 	char buf[64];
 
+	USED(c);
 	p = oa;
 	sprint(buf, "[%ld %ld]", p->x, p->y);
-	strconv(buf, f);
+	strconv(buf, f1, f2, f3);
 	return sizeof(Point);
 }
 

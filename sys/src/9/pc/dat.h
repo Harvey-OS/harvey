@@ -4,7 +4,6 @@ typedef struct Label	Label;
 typedef struct Lock	Lock;
 typedef struct MMU	MMU;
 typedef struct Mach	Mach;
-typedef struct PCArch	PCArch;
 typedef struct Page	Page;
 typedef struct PMMU	PMMU;
 typedef struct Segdesc	Segdesc;
@@ -76,12 +75,12 @@ struct Conf
 	ulong	base0;		/* base of bank 0 */
 	ulong	base1;		/* base of bank 1 */
 	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
+	ulong	ipif;		/* Ip protocol interfaces */
+	ulong	ip;		/* Ip conversations per interface */
 	ulong	arp;		/* Arp table size */
+	ulong	frag;		/* Ip fragment assemble queue size */
 	ulong	nfloppy;	/* number of floppy drives */
 	ulong	nhard;		/* number of hard drives */
-	ulong	ldepth;		/* screen depth */
-	ulong	maxx;		/* screen width */
-	ulong	maxy;		/* screen length */
 };
 
 /*
@@ -178,26 +177,14 @@ struct
 	short	exiting;
 }active;
 
-/*
- *  routines for things outside the PC model, like power management
- */
-struct PCArch
-{
-	char	*id;
-	void	(*reset)(void);		/* this should be in the model */
-	int	(*cpuspeed)(int);	/* 0 = low, 1 = high */
-	void	(*buzz)(int, int);	/* make a noise */
-	void	(*lights)(int);		/* turn lights or icons on/off */
-	int	(*serialpower)(int);	/* 1 == on, 0 == off */
-	int	(*modempower)(int);	/* 1 == on, 0 == off */
-	int	(*extvga)(int);		/* 1 == external, 0 == internal */
-};
-
 extern Mach	*m;
 extern User	*u;
 
 extern int	flipD[];	/* for flipping bitblt destination polarity */
 
-#define BOOTLINE ((char *)0x80000100) /*  bootline passed by boot program */
+/*
+ *  bootline passed by boot program
+ */
+#define BOOTLINE ((char *)0x80000100)
 
-extern PCArch *arch;			/* PC architecture */
+extern char	machtype[];

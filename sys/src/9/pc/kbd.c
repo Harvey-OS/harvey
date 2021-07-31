@@ -4,13 +4,10 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"io.h"
-#include	"../port/error.h"
 
 #include	<libg.h>
 #include	<gnot.h>
 #include	"screen.h"
-
-extern Mouseinfo mouse;
 
 enum {
 	Data=		0x60,	/* data port */
@@ -52,10 +49,6 @@ enum {
 	Pgdown=	View,
 	Ins=	KF|20,
 	Del=	0x7F,
-
-	Rbutton=4,
-	Mbutton=2,
-	Lbutton=1,
 };
 
 uchar kbtab[] = 
@@ -111,23 +104,22 @@ uchar kbtabesc1[] =
  */
 KIOQ	kbdq;
 
+static int mousebuttons;
 static int keybuttons;
-static uchar ccc;
-static int shift;
+
+/*
+ *  predeclared
+ */
+static void	kbdintr(Ureg*);
 
 enum
 {
-	/* controller command byte */
-	Cscs1=		(1<<6),		/* scan code set 1 */
-	Cmousedis=	(1<<5),		/* mouse disable */
-	Ckbddis=	(1<<4),		/* kbd disable */
-	Csf=		(1<<2),		/* system flag */
-	Cmouseint=	(1<<1),		/* mouse interrupt enable */
-	Ckbdint=	(1<<0),		/* kbd interrupt enable */
+	/* what kind of mouse */
+	Mouseother=	0,
+	Mouseserial=	1,
+	MousePS2=	2,
 };
-
-static void	kbdintr(Ureg*);
-static int	ps2mouseputc(IOQ*, int);
+static int mousetype;
 
 /*
  *  wait for output no longer busy
@@ -137,11 +129,9 @@ outready(void)
 {
 	int tries;
 
-	for(tries = 0; (inb(Status) & Outbusy); tries++){
-		if(tries > 500)
+	for(tries = 0; (inb(Status) & Outbusy); tries++)
+		if(tries > 1000)
 			return -1;
-		delay(2);
-	}
 	return 0;
 }
 
@@ -153,11 +143,9 @@ inready(void)
 {
 	int tries;
 
-	for(tries = 0; !(inb(Status) & Inready); tries++){
-		if(tries > 500)
+	for(tries = 0; !(inb(Status) & Inready); tries++)
+		if(tries > 1000)
 			return -1;
-		delay(2);
-	}
 	return 0;
 }
 
@@ -171,26 +159,21 @@ mousecmd(int cmd)
 	int tries;
 
 	c = 0;
-	tries = 0;
 	do{
-		if(tries++ > 5)
-			break;
-		if(outready() < 0)
-			break;
-		outb(Cmd, 0xD4);
-		if(outready() < 0)
-			break;
-		outb(Data, cmd);
-		if(outready() < 0)
-			break;
-		if(inready() < 0)
-			break;
-		c = inb(Data);
-	} while(c == 0xFE || c == 0);
-	if(c != 0xFA){
-		kprint("mouse returns %2.2ux to the %2.2ux command\n", c, cmd);
+		for(tries=0; tries < 10; tries++){
+			if(outready() < 0)
+				return -1;
+			outb(Cmd, 0xD4);
+			if(outready() < 0)
+				return -1;
+			outb(Data, cmd);
+			if(inready() < 0)
+				return -1;
+			c = inb(Data);
+		}
+	} while(c == 0xFE);
+	if(c != 0xFA)
 		return -1;
-	}
 	return 0;
 }
 
@@ -213,19 +196,10 @@ i8042a20(void)
 void
 i8042reset(void)
 {
-	/*
-	 *  this works for dhog
-	 */
-	outready();
-	outb(Cmd, 0xFE);	/* pulse reset line */
-	outready();
-	/*
-	 *  this is the old IBM way
-	 */
 	outready();
 	outb(Cmd, 0xD1);
 	outready();
-	outb(Data, 0xDE);	/* set reset line high */
+	outb(Data, 0xDE);
 	outready();
 }
 
@@ -235,90 +209,96 @@ kbdinit(void)
 	int c;
 
 	setvec(Kbdvec, kbdintr);
-	bigcursor();
 
 	/* wait for a quiescent controller */
 	while((c = inb(Status)) & (Outbusy | Inready))
 		if(c & Inready)
 			inb(Data);
 
-	/* get current controller command byte */
-	outb(Cmd, 0x20);
-	if(inready() < 0){
-		print("kbdinit: can't read ccc\n");
-		ccc = 0;
-	} else
-		ccc = inb(Data);
-
 	/* enable kbd xfers and interrupts */
-	ccc &= ~Ckbddis;
-	ccc |= Csf | Ckbdint | Cscs1;
-	if(outready() < 0)
-		print("kbd init failed\n");
 	outb(Cmd, 0x60);
 	if(outready() < 0)
 		print("kbd init failed\n");
-	outb(Data, ccc);
-	outready();
+	outb(Data, 0x65);
 }
 
 /*
  *  setup a serial mouse
  */
-static void
-serialmouse(int port, char *type, int setspeed)
+void
+mouseserial(int port)
 {
 	if(mousetype)
-		error(Emouseset);
-
-	if(port >= 2 || port < 0)
-		error(Ebadarg);
+		return;
 
 	/* set up /dev/eia0 as the mouse */
-	uartspecial(port, 0, &mouseq, setspeed ? 1200 : 0);
-	if(type && *type == 'M')
-		mouseq.putc = m3mouseputc;
+	uartspecial(port, 0, &mouseq, 1200);
 	mousetype = Mouseserial;
 }
 
 /*
  *  set up a ps2 mouse
  */
-static void
-ps2mouse(void)
+void
+mouseps2(void)
 {
-	int x;
-
 	if(mousetype)
-		error(Emouseset);
+		return;
+
+	bigcursor();
+	setvec(Mousevec, kbdintr);
 
 	/* enable kbd/mouse xfers and interrupts */
-	setvec(Mousevec, kbdintr);
-	x = splhi();
-	ccc &= ~Cmousedis;
-	ccc |= Cmouseint;
-	if(outready() < 0)
-		print("mouse init failed\n");
 	outb(Cmd, 0x60);
 	if(outready() < 0)
-		print("mouse init failed\n");
-	outb(Data, ccc);
+		print("kbd init failed\n");
+	outb(Data, 0x47);
 	if(outready() < 0)
-		print("mouse init failed\n");
+		print("kbd init failed\n");
 	outb(Cmd, 0xA8);
-	if(outready() < 0)
-		print("mouse init failed\n");
 
 	/* make mouse streaming, enabled */
 	mousecmd(0xEA);
 	mousecmd(0xF4);
-	splx(x);
-
 	mousetype = MousePS2;
 }
 
 /*
- *  ps/2 mouse message is three bytes
+ *  turn mouse acceleration on/off
+ */
+void
+mouseaccelerate(int on)
+{
+
+	switch(mousetype){
+	case MousePS2:
+		if(on)
+			mousecmd(0xE7);
+		else
+			mousecmd(0xE6);
+		break;
+	}
+}
+
+/*
+ *  set mouse resolution
+ */
+void
+mouseres(int res)
+{
+
+	switch(mousetype){
+	case MousePS2:
+		mousecmd(0xE8);
+		mousecmd(res);
+		break;
+	}
+}
+
+static int shift;
+
+/*
+ *  mouse message is three bytes
  *
  *	byte 0 -	0 0 SDY SDX 1 M R L
  *	byte 1 -	DX
@@ -326,19 +306,20 @@ ps2mouse(void)
  *
  *  shift & left button is the same as middle button
  */
-static int
-ps2mouseputc(IOQ *q, int c)
+static void
+mymouseputc(int c)
 {
 	static short msg[3];
 	static int nb;
 	static uchar b[] = {0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 2, 5, 2, 3, 6, 7 };
+	static lastdx, lastdy;
+	extern Mouseinfo mouse;
 
-	USED(q);		/* not */
 	/* 
 	 *  check byte 0 for consistency
 	 */
 	if(nb==0 && (c&0xc8)!=0x08)
-		return 0;
+		return;
 
 	msg[nb] = c;
 	if(++nb == 3){
@@ -348,69 +329,13 @@ ps2mouseputc(IOQ *q, int c)
 		if(msg[0] & 0x20)
 			msg[2] |= 0xFF00;
 
-		mouse.newbuttons = b[(msg[0]&7) | (shift ? 8 : 0)] | keybuttons;
+		mousebuttons = b[(msg[0]&7) | (shift ? 8 : 0)];
+		mouse.newbuttons = mousebuttons | keybuttons;
 		mouse.dx = msg[1];
 		mouse.dy = -msg[2];
 		mouse.track = 1;
+		spllo();		/* mouse tracking kills uart0 */
 		mouseclock();
-	}
-	return 0;
-}
-
-/*
- *  set/change mouse configuration
- */
-void
-mousectl(char *arg)
-{
-	int n, x;
-	char *field[3];
-
-	n = getfields(arg, field, 3, ' ');
-	if(strncmp(field[0], "serial", 6) == 0){
-		switch(n){
-		case 1:
-			serialmouse(atoi(field[0]+6), 0, 1);
-			break;
-		case 2:
-			serialmouse(atoi(field[1]), 0, 0);
-			break;
-		case 3:
-		default:
-			serialmouse(atoi(field[1]), field[2], 0);
-			break;
-		}
-	} else if(strcmp(field[0], "ps2") == 0){
-		ps2mouse();
-	} else if(strcmp(field[0], "accelerated") == 0){
-		switch(mousetype){
-		case MousePS2:
-			x = splhi();
-			mousecmd(0xE7);
-			splx(x);
-			break;
-		}
-	} else if(strcmp(field[0], "linear") == 0){
-		switch(mousetype){
-		case MousePS2:
-			x = splhi();
-			mousecmd(0xE6);
-			splx(x);
-			break;
-		}
-	} else if(strcmp(field[0], "res") == 0){
-		if(n < 2)
-			n = 1;
-		else
-			n = atoi(field[1]);
-		switch(mousetype){
-		case MousePS2:
-			x = splhi();
-			mousecmd(0xE8);
-			mousecmd(n);
-			splx(x);
-			break;
-		}
 	}
 }
 
@@ -421,13 +346,23 @@ static void
 mbon(int val)
 {
 	keybuttons |= val;
-	mousebuttons(keybuttons);
+	mouse.newbuttons = mousebuttons | keybuttons;
+	mouse.dx = 0;
+	mouse.dy = 0;
+	mouse.track = 1;
+	spllo();		/* mouse tracking kills uart0 */
+	mouseclock();
 }
 static void
 mboff(int val)
 {
 	keybuttons &= ~val;
-	mousebuttons(keybuttons);
+	mouse.newbuttons = mousebuttons | keybuttons;
+	mouse.dx = 0;
+	mouse.dy = 0;
+	mouse.track = 1;
+	spllo();		/* mouse tracking kills uart0 */
+	mouseclock();
 }
 
 /*
@@ -461,7 +396,7 @@ kbdintr0(void)
 	 *  if it's the mouse...
 	 */
 	if(s & Minready){
-		ps2mouseputc(&mouseq, c);
+		mymouseputc(c);
 		return 0;
 	}
 
@@ -503,19 +438,19 @@ kbdintr0(void)
 	if(keyup){
 		switch(c){
 		case Shift:
-			mouseshifted = shift = 0;
+			shift = 0;
 			break;
 		case Ctrl:
 			ctl = 0;
 			break;
 		case KF|1:
-			mboff(Rbutton);
+			mboff(4);
 			break;
 		case KF|2:
-			mboff(Mbutton);
+			mboff(2);
 			break;
 		case KF|3:
-			mboff(Lbutton);
+			mboff(1);
 			break;
 		}
 		return 0;
@@ -570,7 +505,7 @@ kbdintr0(void)
 			num ^= 1;
 			return 0;
 		case Shift:
-			mouseshifted = shift = 1;
+			shift = 1;
 			return 0;
 		case Latin:
 			lstate = 1;
@@ -579,13 +514,13 @@ kbdintr0(void)
 			ctl = 1;
 			return 0;
 		case KF|1:
-			mbon(Rbutton);
+			mbon(4);
 			return 0;
 		case KF|2:
-			mbon(Mbutton);
+			mbon(2);
 			return 0;
 		case KF|3:
-			mbon(Lbutton);
+			mbon(1);
 			return 0;
 		}
 	}

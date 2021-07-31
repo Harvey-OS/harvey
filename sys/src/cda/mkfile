@@ -6,7 +6,6 @@ PROGS=LDE\
 	cdmglob\
 	drawp\
 	espresso\
-	gerber\
 	gnet\
 	graw\
 	grawp\
@@ -29,7 +28,6 @@ PROGS=LDE\
 	xnf\
 	xpal\
 	xpart\
-	xy\
 
 DIRS=$LIBS $PROGS		# libs must be made first
 
@@ -38,9 +36,9 @@ none:Q:
 	echo usage: mk entry
 
 all:V:
-	for(dir in $DIRS) @{
-		cd $dir
-		echo --- $dir ---
+	for(i in $DIRS) @{
+		cd $i
+		echo --- $i ---
 		mk all
 	}
 

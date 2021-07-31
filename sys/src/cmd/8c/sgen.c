@@ -458,12 +458,6 @@ xcom(Node *n)
 		}
 		break;
 
-	case OINDEX:
-		xcom(l);
-		xcom(r);
-		n->addable = 9;
-		break;
-
 	case OIND:
 		xcom(l);
 		if(l->op == OADDR) {

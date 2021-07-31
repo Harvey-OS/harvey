@@ -64,23 +64,21 @@ menu2hit(void)
 {
 	Text *t=(Text *)which->user1;
 	int w = which-t->l;
-	int m;
 
-	m = menuhit(2, &mouse, t==&cmd? &menu2c : &menu2);
-	if(lock || t->lock)
-		return;
-
-	switch(m){
+	switch(menuhit(2, &mouse, t==&cmd? &menu2c : &menu2)){
 	case Cut:
-		cut(t, w, 1, 1);
+		if(!lock && !t->lock)
+			cut(t, w, 1, 1);
 		break;
 
 	case Paste:
-		paste(t, w);
+		if(!lock && !t->lock)
+			paste(t, w);
 		break;
 
 	case Snarf:
-		snarf(t, w);
+		if(!lock && !t->lock)
+			snarf(t, w);
 		break;
 
 	case Exch:
@@ -177,7 +175,7 @@ menu3hit(void)
 						i = 0;
 				while(i!=t->front && t->l[i].textfn==0);
 			current(&t->l[i]);
-		}else if(!lock)
+		}else
 			sweeptext(0, tag[m-NMENU3]);
 		break;
 	}
@@ -235,7 +233,7 @@ menuins(int n, uchar *s, Text *t, int m, int tg)
 	name[n][0] = m;
 	strcpy((char*)name[n]+1, (char*)s);
 	nname++;
-	menu3.lasthit = n+NMENU3;
+	menu3.lasthit = n;
 }
 
 void

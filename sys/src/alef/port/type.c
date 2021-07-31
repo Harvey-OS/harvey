@@ -9,15 +9,29 @@
 
 static Type **agtail;
 
+int
+sizearray(Type *t, ulong size)
+{
+	if(t == 0)
+		return size;
+
+	if(t->size == 0)
+		return 0;
+
+	t->size *= sizearray(t->next, size);
+	return t->size;
+}
+
 void
 applyarray(Node *n, Type *newt)
 {
 	int sz;
 	char *s;
 	Node *f;
+	Type **tail, *array;
 
 	s = n->sym->name;
-
+	tail = &n->t;
 	for(f = n->left; f; f = f->right) {		/* OARRAY */
 		sz = 0;
 		if(f->left) {
@@ -33,10 +47,14 @@ applyarray(Node *n, Type *newt)
 			diag(n, "%s[%d] dimension must be positive constant", s, sz);
 			break;
 		}
-		newt = at(TARRAY, newt);
-		newt->size = newt->next->size*sz;
+		array = at(TARRAY, 0);
+		array->size = sz;
+		*tail = array;
+		tail = &array->next;
 	}
-	n->t = newt;
+
+	sizearray(n->t, newt->size);
+	*tail = newt;
 }
 
 /* 

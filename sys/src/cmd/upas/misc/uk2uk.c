@@ -19,6 +19,6 @@ main(int ac, char **av)
 	}
 	strcat(buf, av[1]);
 	strcat(buf, av[2]);
-	print("%s\n", buf);
+	print("%s", buf);
 	exits(0);
 }

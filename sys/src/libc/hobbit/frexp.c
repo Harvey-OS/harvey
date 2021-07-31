@@ -59,11 +59,6 @@ modf(double d, double *ip)
 	int e;
 
 	if(d < 1) {
-		if(d < 0) {
-			x.d = modf(-d, ip);
-			*ip = -*ip;
-			return -x.d;
-		}
 		*ip = 0;
 		return d;
 	}

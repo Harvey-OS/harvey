@@ -1,5 +1,5 @@
 /*
- * kobj.c - identify and parse a sparc object file
+ * k - print symbols in a .k file
  */
 #include <u.h>
 #include <libc.h>
@@ -13,10 +13,12 @@ struct Addr
 	char	type;
 	char	sym;
 	char	name;
+	ulong	off;
+	char	sconst[NSNAME+1];
+	uchar	fconst[8];
 };
-static Addr addr(Biobuf*);
+static Addr addr(void);
 static char type2char(int);
-static	void	skip(Biobuf*, int);
 
 
 int
@@ -29,76 +31,88 @@ _isk(char *s)
 }
 
 
-int
-_readk(Biobuf *bp, Prog *p)
+Prog *
+_readk(Prog *p)
 {
 	int i, as, c;
 	Addr a;
+	Addr b;
 
-	as = Bgetc(bp);			/* as */
+	as = Bgetc(_bin);			/* as */
 	if(as < 0)
 		return 0;
 	p->kind = aNone;
 	if(as == ANAME){
 		p->kind = aName;
-		p->type = type2char(Bgetc(bp));		/* type */
-		p->sym = Bgetc(bp);			/* sym */
-		c = Bgetc(bp);
+		p->type = type2char(Bgetc(_bin));		/* type */
+		p->sym = Bgetc(_bin);			/* sym */
+		c = Bgetc(_bin);
 		for(i=0; i < NNAME && c > 0; i++){
 			p->id[i] = c;
-			c = Bgetc(bp);
+			c = Bgetc(_bin);
 		}
 		if(i < NNAME)
 			p->id[i] = c;
-		return 1;
+		return p;
 	}
 	if(as == ATEXT)
 		p->kind = aText;
 	else if(as == AGLOBL)
 		p->kind = aData;
-	skip(bp, 5);		/* reg (1 byte); lineno (4 bytes) */
-	a = addr(bp);
-	addr(bp);
-	if(a.type != D_OREG || a.name != D_STATIC && a.name != D_EXTERN)
+	Bgetc(_bin);			/* reg */
+	Bgetc(_bin);			/* lineno(low) */
+	Bgetc(_bin);			/* lineno(high) */
+	Bgetc(_bin);			/* lineno(lowhigh) */
+	Bgetc(_bin);			/* lineno(highhigh) */
+	a = addr();
+	b = addr();
+	if(a.type != D_OREG
+	|| a.name != D_STATIC && a.name != D_EXTERN)
 		p->kind = aNone;
 	p->sym = a.sym;
-	return 1;
+	return p;
 }
 
 static Addr
-addr(Biobuf *bp)
+addr(void)
 {
 	Addr a;
-	long off;
+	int i;
+	long off = 0;
 
-	a.type = Bgetc(bp);	/* a.type */
-	skip(bp, 1);		/* reg */
-	a.sym = Bgetc(bp);	/* sym index */
-	a.name = Bgetc(bp);	/* sym type */
+	memset(&a, 0, sizeof(a));
+	a.type = Bgetc(_bin);	/* a.type */
+	Bgetc(_bin);	/* reg */
+	a.sym = Bgetc(_bin);	/* sym index */
+	a.name = Bgetc(_bin);	/* sym type */
 	switch(a.type) {
 	default:
+		fprint(2, "%s: unknown type in addr %d\n", argv0, a.type);
+		exits("type");
 	case D_NONE: case D_REG: case D_FREG: case D_CREG: case D_PREG:
 		break;
 	case D_BRANCH:
 	case D_OREG:
 	case D_ASI:
 	case D_CONST:
-		off = Bgetc(bp);
-		off |= Bgetc(bp) << 8;
-		off |= Bgetc(bp) << 16;
-		off |= Bgetc(bp) << 24;
-		if(off < 0)
-			off = -off;
-		if(a.sym!=0 && (a.name==D_PARAM || a.name==D_AUTO))
-			_offset(a.sym, off);
+		off = Bgetc(_bin);
+		off |= Bgetc(_bin) << 8;
+		off |= Bgetc(_bin) << 16;
+		off |= Bgetc(_bin) << 24;
+		off = off<0 ? -off : off;
 		break;
 	case D_SCONST:
-		skip(bp, NSNAME);
+		for(i=0; i<NSNAME; i++)
+			a.sconst[i] = Bgetc(_bin);
 		break;
 	case D_FCONST:
-		skip(bp, 8);
+		for(i=0; i<8; i++)
+			a.fconst[i] = Bgetc(_bin);
 		break;
 	}
+	if(a.sym!=0 && (a.name==D_PARAM || a.name==D_AUTO))
+		_offset(a.sym, type2char(a.name), off);
+	a.off = off;
 	return a;
 }
 
@@ -113,11 +127,4 @@ type2char(int t)
 	case D_PARAM:		return 'p';
 	default:		return UNKNOWN;
 	}
-}
-
-static void
-skip(Biobuf *bp, int n)
-{
-	while (n-- > 0)
-		Bgetc(bp);
 }

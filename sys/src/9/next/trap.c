@@ -87,7 +87,6 @@ trapinit(void)
 			| (1<<28)		/* ether xmit complete */
 			| (1<<27)		/* ether rcv complete */
 			| (1<<12)		/* scsi device int */
-			| (1<<23)		/* sound out dma */
 			;
 }
 
@@ -126,30 +125,30 @@ trap(Ureg *ur)
 
 	user = !(ur->sr&SUPER);
 
+
 	if(u)
 		u->dbgreg = ur;
 
-	if(!user) {
+	if(user){
+		vo = (ur->vo & 0x0FFF) >> 2;
+		if(49<=vo && vo<=55){
+			if(fptrap(ur))
+				return;
+		}else{
+			splhi();
+			procsave(u->p);
+			spllo();
+		}
+		sprint(buf, "sys: %s", excname(ur->vo, ur->pc));
+		postnote(u->p, 1, buf, NDebug);
+	}else{
 		print("kernel trap %s pc=0x%lux\n", excname(ur->vo, ur->pc), ur->pc);
 		print("ISR=%.8lux IMR=%.8lux\n", *(ulong*)ISR, *(ulong*)IMR);
 		dumpregs(ur);
 		exit(1);
 	}
-
-	vo = (ur->vo & 0x0FFF) >> 2;
-
-	if(49<=vo && vo<=55){
-		if(fptrap(ur))
-			return;
-	}
-	else {
-		splhi();
-		procsave(u->p);
-		spllo();
-	}
-	sprint(buf, "sys: %s", excname(ur->vo, ur->pc));
-	postnote(u->p, 1, buf, NDebug);
-	notify(ur);
+	if(user)
+		notify(ur);
 }
 
 /*
@@ -267,40 +266,29 @@ void
 auto6(Ureg *ur)
 {
 	int found;
-	ulong isr;
 
 	USED(ur);
 	found = 0;
-	isr = *(ulong*)ISR;
-
-	if(isr & (1<<23)){
-		found = 1;
-		audiodmaintr();
-	}
-	if(isr & (1<<27)){
+	if(*(ulong*)ISR & (1<<27)){
 		found = 1;
 		etherdmarintr();
 	}
-	if(isr & (1<<28)){
+	if(*(ulong*)ISR & (1<<28)){
 		found = 1;
 		etherdmaxintr();
 	}
 	if(found == 0)
-		print("unknown auto6 %lux\n", isr);
+		print("unknown auto6 %lux\n", *(ulong*)ISR);
 }
 
 void
 auto5(Ureg *ur)
 {
-	ulong isr;
-
 	USED(ur);
-	isr = *(ulong*)ISR;
-
-	if(isr & (1<<17))
+	if(*(ulong*)ISR & (1<<17))
 		sccintr();
 	else
-		print("unknown auto5 %lux\n", isr);
+		print("unknown auto5 %lux\n", *(ulong*)ISR);
 }
 
 void
@@ -309,21 +297,22 @@ auto3(Ureg *ur)
 	static int npoweroff;
 	extern int altcmd;
 	int found;
-	ulong isr;
 
 	found = 0;
-	isr = *(ulong*)ISR;
-
-	if(isr & (1<<7)){
+	if(*(ulong*)ISR & (1<<7)){
 		found = 1;
 		floppyintr();
 	}
-	if(isr & (1<<3)){
+	if(*(ulong*)ISR & (1<<5)){
+		found = 1;
+		clock(ur);
+	}
+	if(*(ulong*)ISR & (1<<3)){
 		found = 1;
 		npoweroff = 0;
 		kbdmouseintr();
 	}
-	if(isr & (1<<2)){
+	if(*(ulong*)ISR & (1<<2)){
 		found = 1;
 		/* power off only if left alt and command keys are depressed */
 		if(altcmd == 3)
@@ -331,24 +320,20 @@ auto3(Ureg *ur)
 		else
 			putcc(0x31, getcc(0x31)|0x01);	/* clear interrupt */
 	}
-	if(isr & (1<<9)){
+	if(*(ulong*)ISR & (1<<9)){
 		found = 1;
 		etherrintr();
 	}
-	if(isr & (1<<10)){
+	if(*(ulong*)ISR & (1<<10)){
 		found = 1;
 		etherxintr();
 	}
-	if(isr & (1<<12)){
+	if(*(ulong*)ISR & (1<<12)){
 		found = 1;
 		scsiintr(Scsidevice);
 	}
-	if(isr & (1<<5)){
-		found = 1;
-		clock(ur);
-	}
 	if(found == 0)
-		print("unknown auto3 %lux\n", isr);
+		print("unknown auto3 %lux\n", *(ulong*)ISR);
 }
 
 void

@@ -1,11 +1,10 @@
 TEXT strchr(SB), $0
-	MOV	c+4(FP), c+4(FP).B
 _strchr0:
-	CMPEQ	*s+0(FP).B, c+4(FP).B
+	CMPEQ	*R4.B, R11.B
 	JMPTN	_strchr1
-	CMPEQ	$0, *s+0(FP).B
-	ADD	$1, s+0(FP)
+	CMPEQ	$0, *R4.B
+	ADD	$1, R4
 	JMPFY	_strchr0
-	MOV	$0, s+0(FP)
+	MOV	$0, R4
 _strchr1:
 	RETURN
