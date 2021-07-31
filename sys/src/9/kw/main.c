@@ -327,16 +327,13 @@ reboot(void *entry, void *code, ulong size)
 	print("shutting down...\n");
 	delay(200);
 
+	splhi();
+
 	/* turn off buffered serial console */
 	serialoq = nil;
 
 	/* shutdown devices */
 	devtabshutdown();
-
-	/* call off the dog */
-	clockshutdown();
-
-	splhi();
 
 	/* setup reboot trampoline function */
 	f = (void*)REBOOTADDR;
@@ -357,7 +354,7 @@ reboot(void *entry, void *code, ulong size)
 	(*f)(PADDR(entry), PADDR(code), size);
 
 	iprint("loaded kernel returned!\n");
-	delay(1000);
+	delay(500);
 	archreboot();
 }
 

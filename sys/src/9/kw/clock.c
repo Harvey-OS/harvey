@@ -10,31 +10,8 @@
 
 #include "ureg.h"
 
-#define TIMERREG	((TimerReg*)AddrTimer)
-
 enum {
 	Tcycles = CLOCKFREQ / HZ,		/* cycles per clock tick */
-
-	/* timer ctl bits */
-	Tmr0enable	= 1<<0,
-	Tmr0periodic	= 1<<1,
-	Tmr1enable	= 1<<2,
-	Tmr1periodic	= 1<<3,
-	TmrWDenable	= 1<<4,
-	TmrWDperiodic	= 1<<5,
-};
-
-typedef struct TimerReg TimerReg;
-struct TimerReg
-{
-	ulong	ctl;
-	ulong	pad[3];
-	ulong	reload0;
-	ulong	timer0;
-	ulong	reload1;
-	ulong	timer1;
-	ulong	reloadwd;
-	ulong	timerwd;
 };
 
 static void
@@ -47,14 +24,6 @@ clockintr(Ureg *ureg, void*)
 	intrclear(Irqbridge, IRQcputimer0);
 }
 
-/* stop clock interrupts and disable the watchdog timer */
-void
-clockshutdown(void)
-{
-	TIMERREG->ctl = 0;
-	coherence();
-}
-
 void
 clockinit(void)
 {
@@ -62,7 +31,8 @@ clockinit(void)
 	long cyc;
 	TimerReg *tmr = TIMERREG;
 
-	clockshutdown();
+	tmr->ctl = 0;
+	coherence();
 	intrenable(Irqbridge, IRQcputimer0, clockintr, nil, "clock");
 
 	s = spllo();			/* risky */
@@ -93,7 +63,8 @@ clockinit(void)
 			panic("clock running very slowly");
 	}
 
-	clockshutdown();
+	tmr->ctl = 0;
+	coherence();
 	tmr->timer0  = Tcycles;
 	tmr->reload0 = Tcycles;
 	tmr->timerwd = CLOCKFREQ;

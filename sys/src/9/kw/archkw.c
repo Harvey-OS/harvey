@@ -14,8 +14,6 @@
 #include "etherif.h"
 // #include "../port/flashif.h"
 
-#define SDRAMDREG	((SDramdReg*)AddrSDramd)
-
 typedef struct GpioReg GpioReg;
 struct GpioReg {
 	ulong	dataout;
@@ -40,51 +38,6 @@ struct L2uncache {
 enum {
 	/* L2win->base bits */
 	L2enable	= 1<<0,
-};
-
-typedef struct Dramctl Dramctl;
-struct Dramctl {
-	ulong	ctl;
-	ulong	ddrctllo;
-	struct {
-		ulong	lo;
-		ulong	hi;
-	} time;
-	ulong	addrctl;
-	ulong	opagectl;
-	ulong	oper;
-	ulong	mode;
-	ulong	extmode;
-	ulong	ddrctlhi;
-	ulong	ddr2timelo;
-	ulong	operctl;
-	struct {
-		ulong	lo;
-		ulong	hi;
-	} mbusctl;
-	ulong	mbustimeout;
-	ulong	ddrtimehi;
-	ulong	sdinitctl;
-	ulong	extsdmode1;
-	ulong	extsdmode2;
-	struct {
-		ulong	lo;
-		ulong	hi;
-	} odtctl;
-	ulong	ddrodtctl;
-	ulong	rbuffsel;
-
-	ulong	accalib;
-	ulong	dqcalib;
-	ulong	dqscalib;
-};
-
-typedef struct SDramdReg SDramdReg;
-struct SDramdReg {
-	struct {
-		ulong	base;
-		ulong	size;
-	} win[4];
 };
 
 typedef struct Addrmap Addrmap;
@@ -167,7 +120,6 @@ addrmap(void)
 void
 l2cacheon(void)
 {
-	CpucsReg *cpu;
 	L2uncache *l2p;
 
 	l1cachesoff();
@@ -183,13 +135,8 @@ l2cacheon(void)
 
 	cacheuwbinv();
 
-	/* marvell guideline GL-CPU-130 */
-	cpu = CPUCSREG;
-	cpu->cpucfg |= Cfgiprefetch | Cfgdprefetch;
-
 	/* writeback requires extra care */
-	cpu->l2cfg |= L2on | L2ecc | L2writethru;
-	cpu->l2tm1 = cpu->l2tm0 = 0x66666666; /* marvell guideline GL-CPU-120 */
+	CPUCSREG->l2cfg |= L2on | L2ecc | L2writethru;
 	coherence();
 
 	cachedinv();
@@ -197,7 +144,7 @@ l2cacheon(void)
 	l2cachecfgon();
 	l1cacheson();
 
-	print("l2 cache enabled as write-through\n");
+	print("l2 cache enabled write-through\n");
 }
 
 /* called late in main */
@@ -243,9 +190,8 @@ archreset(void)
 {
 	ulong clocks;
 	CpucsReg *cpu;
-	Dramctl *dram;
 
-	clockshutdown();		/* watchdog disabled */
+	TIMERREG->ctl = 0;		/* watchdog disabled */
 
 	/* configure gpios */
 	((GpioReg*)AddrGpio0)->dataout = KWOEValLow;
@@ -258,18 +204,11 @@ archreset(void)
 	cpu = CPUCSREG;
 	cpu->mempm = 0;			/* turn everything on */
 	coherence();
-
 	clocks = (1<<10) - 1;
 	clocks |= ((1<<21) - 1) & ~((1<<14) - 1);
 	clocks &= ~(1<<18 | 1<<1);	/* reserved bits */
 	cpu->clockgate |= clocks;	/* enable all the clocks */
 	cpu->l2cfg &= ~L2on;
-	coherence();
-
-	dram = (Dramctl *)AddrSDramc;
-	dram->ddrctllo &= ~(1<<6);	/* marvell guideline GL-MEM-70 */
-
-	*(ulong *)AddrAnalog = 0x68;	/* marvell guideline GL-MISC-40 */
 	coherence();
 }
 
