@@ -96,11 +96,11 @@ enum {
 };
 
 /*
- * until 5[cl] inline vlong ops, avoid them where possible,
+ * until 5[cal] inline vlong ops, avoid them where possible,
  * they are currently slow function calls.
  */
-typedef union Vlong Vlong;
-union Vlong {
+typedef union Counter Counter;
+union Counter {
 	uvlong	uvl;
 	struct {			/* little-endian */
 		ulong	low;
@@ -583,26 +583,25 @@ lcycles(void)
 uvlong
 fastticks(uvlong *hz)
 {
-	int s;
-	ulong newticks;
-	Vlong *fcp;
+	vlong fastticks;
+	Counter now;
 
 	if(hz)
 		*hz = Basetickfreq;
-
-	fcp = (Vlong *)&m->fastclock;
 	/* avoid reentry on interrupt or trap, to prevent recursion */
-	s = splhi();
-	newticks = perfticks();
-	if(newticks < fcp->low)		/* low word must have wrapped */
-		fcp->high++;
-	fcp->low = newticks;
-	splx(s);
-
-	if (fcp->low == 0 && fcp->high == 0 && m->ticks > HZ/10)
+	ilock(&m->clklck);
+	fastticks = m->fastclock;
+	if (m->ticks > HZ/10 && fastticks == 0)
 		panic("fastticks: zero m->fastclock; ticks %lud fastclock %#llux",
-			m->ticks, m->fastclock);
-	return m->fastclock;
+			m->ticks, fastticks);
+
+	now.uvl = fastticks;
+	now.low = perfticks();
+	if(now.uvl < fastticks)		/* low bits must have wrapped */
+		now.high++;
+	m->fastclock = now.uvl;
+	iunlock(&m->clklck);
+	return now.uvl;
 }
 
 void
