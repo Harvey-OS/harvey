@@ -233,6 +233,7 @@ sslgen(Chan *c, char*, Dirtab *d, int nd, int s, Dir *dp)
 		devdir(c, c->qid, sslnames[TYPE(c->qid)], 0, nm, 0660, dp);
 		return 1;
 	}
+	return -1;
 }
 
 static Chan*
