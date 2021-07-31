@@ -34,10 +34,6 @@ typedef struct Qtree Qtree;
 typedef struct Isoio Isoio;
 typedef struct Poll Poll;
 
-enum {
-	Debug = 0,
-};
-
 /*
  * EHCI interface registers and bits
  */
@@ -3228,8 +3224,6 @@ addrmapdump(void)
 	Kwusb *map;
 	Usbwin *win;
 
-	if (!Debug)
-		return;
 	map = (Kwusb *)(Addrusb + 0x300);
 	for (i = 0; i < nelem(map->win); i++) {
 		win = &map->win[i];
@@ -3238,8 +3232,8 @@ addrmapdump(void)
 			targ = WINTARG(ctl);
 			attr = WINATTR(ctl);
 			size64k = WIN64KSIZE(ctl);
-			print("usbehci: addr map window %d: targ %ld "
-				"attr %#lux size %,ld addr %#lux\n",
+			print("usbehci: address map window %d: "
+				"targ %ld attr %#lux size %,ld addr %#lux\n",
 				i, targ, attr, size64k * 64*1024, win->base);
 		}
 	}

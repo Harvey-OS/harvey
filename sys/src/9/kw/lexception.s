@@ -1,7 +1,8 @@
 /*
  * arm exception handlers
  */
-#include "arm.s"
+#include "mem.h"
+#include "arm.h"
 
 #undef B					/* B is for 'botch' */
 
@@ -100,14 +101,6 @@ _vswitch:
 	ORR	$(PsrDirq|PsrDfiq|PsrMsvc), R14
 	MOVW	R14, CPSR		/* switch! */
 
-	/*
-	 * execute barrier instructions (without changing R0) to force new CPSR
-	 * to take effect.
-	 */
-	MOVW	$0, R4
-	MCR	CpSC, 0, R4, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
-	MCR	CpSC, 0, R4, C(CpCACHE), C(CpCACHEinvi), CpCACHEwait
-
 	AND.S	$0xf, R1, R4		/* interrupted code kernel or user? */
 	BEQ	_userexcep
 
@@ -128,6 +121,7 @@ _vswitch:
 	MOVW	$setR12(SB), R12	/* Make sure we've got the kernel's SB loaded */
 
 	MOVW	R13, R0			/* first arg is pointer to ureg */
+//	BL	printr0(SB)
 	SUB	$(4*2), R13		/* space for argument+link (for debugger) */
 	MOVW	$0xdeaddead, R11	/* marker */
 
@@ -184,13 +178,9 @@ TEXT setr13(SB), 1, $-4
 	BIC	$PsrMask, R2, R3
 	ORR	R0, R3
 	MOVW	R3, CPSR
-	BARRIERS
 
-	MOVW	R13, R3
+	MOVW	R13, R0
 	MOVW	R1, R13
 
 	MOVW	R2, CPSR
-	BARRIERS
-
-	MOVW	R3, R0
 	RET

@@ -16,17 +16,17 @@
 
 enum {
 	Tcycles		= CLOCKFREQ / HZ,	/* cycles per clock tick */
-	Dogperiod	= 5 * CLOCKFREQ, /* at most 21 s.; must fit in ulong */
+	Dogperiod	= 5 * CLOCKFREQ,	// TODO tune
 	MaxPeriod	= Tcycles,
 	MinPeriod	= MaxPeriod / 100,
 
 	/* timer ctl bits */
 	Tmr0enable	= 1<<0,
-	Tmr0reload	= 1<<1,	/* at 0 count, load timer0 from reload0 */
+	Tmr0periodic	= 1<<1,	/* at 0 count, load timer0 from reload0 */
 	Tmr1enable	= 1<<2,
-	Tmr1reload	= 1<<3,	/* at 0 count, load timer1 from reload1 */
+	Tmr1periodic	= 1<<3,	/* at 0 count, load timer1 from reload1 */
 	TmrWDenable	= 1<<4,
-	TmrWDreload	= 1<<5,
+	TmrWDperiodic	= 1<<5,
 };
 
 typedef struct TimerReg TimerReg;
@@ -42,24 +42,17 @@ struct TimerReg
 	ulong	timerwd;
 };
 
-static int ticks; /* for sanity checking; m->ticks doesn't always get updated */
+static int ticks; /* for sanity checking; m->ticks doesn't always get called */
 
 static void
 clockintr(Ureg *ureg, void *arg)
 {
 	TimerReg *tmr = arg;
-	static int nesting;
 
 	tmr->timerwd = Dogperiod;		/* reassure the watchdog */
 	ticks++;
 	coherence();
-
-	if (nesting == 0) {	/* if the clock interrupted itself, bail out */
-		++nesting;
-		timerintr(ureg, 0);
-		--nesting;
-	}
-
+	timerintr(ureg, 0);
 	intrclear(Irqbridge, IRQcputimer0);
 }
 
@@ -83,7 +76,7 @@ clockinit(void)
 	 * verify sanity of timer0
 	 */
 
-	intrenable(Irqbridge, IRQcputimer0, clockintr, tmr, "clock0");
+	intrenable(Irqbridge, IRQcputimer0, clockintr, tmr, "clock");
 	s = spllo();			/* risky */
 	/* take any deferred clock (& other) interrupts here */
 	splx(s);
@@ -120,8 +113,7 @@ clockinit(void)
 	tmr->reload1 = tmr->timer1 = ~0;	/* cycle clock */
 	tmr->timerwd = Dogperiod;		/* watch dog timer */
 	coherence();
-	tmr->ctl = Tmr0enable | Tmr0reload | Tmr1enable | Tmr1reload |
-		TmrWDenable;
+	tmr->ctl = Tmr0enable | Tmr1enable | Tmr1periodic | TmrWDenable;
 	CPUCSREG->rstout |= RstoutWatchdog;
 	coherence();
 }
