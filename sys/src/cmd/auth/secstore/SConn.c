@@ -206,7 +206,8 @@ readstr(SConn *conn, char *s)
 			n = -1;
 		}
 	}else{
-		strcpy(s, "connection read error");
+		strcpy(s, "read error");
 	}
 	return n;
 }
+
