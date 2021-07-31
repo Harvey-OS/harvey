@@ -365,11 +365,8 @@ rwalk(void)
 	}
 
 	if(waserror()){
-		/*
-		 * if nf != nil, nf == f, which is derived from req->newfid,
-		 * so we can't clunk req->newfid with xfile, which would put
-		 * f back on the free list, until we're done with f below.
-		 */
+		if(nf != nil)
+			xfile(req->newfid, Clunk);
 		if(rep->nwqid == req->nwname){
 			if(oldlen)
 				free(oldptr);
@@ -381,8 +378,6 @@ rwalk(void)
 			f->ptr = oldptr;
 			f->len = oldlen;
 		}
-		if(nf != nil)
-			xfile(req->newfid, Clunk);
 		if(rep->nwqid==req->nwname || rep->nwqid > 0){
 			err_msg[0] = '\0';
 			return;
