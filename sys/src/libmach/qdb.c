@@ -295,7 +295,7 @@ pglobal(Instr *i, uvlong off, int anyoff, char *reg)
 	uvlong off1;
 
 	if(findsym(off, CANY, &s) &&
-	   off-s.value < 4096 &&
+	   s.value-off < 4096 &&
 	   (s.class == CDATA || s.class == CTEXT)) {
 		if(off==s.value && s.name[0]=='$'){
 			off1 = 0;
@@ -322,7 +322,7 @@ address(Instr *i)
 {
 	if (i->ra == REGSP && plocal(i) >= 0)
 		return;
-	if (i->ra == REGSB && mach->sb && pglobal(i, mach->sb+i->imm64, 0, "(SB)"))
+	if (i->ra == REGSB && mach->sb && pglobal(i, mach->sb+i->imm64, 0, "(SB)") >= 0)
 		return;
 	if(i->simm < 0)
 		bprint(i, "-%x(R%d)", -i->simm, i->ra);
@@ -358,12 +358,12 @@ branch(Opcode *o, Instr *i)
 		if(bo != 20) {
 			bi = i->bi&3;
 			sprint(buf, "B%s%%L", bo==12? tcrbits[bi]: fcrbits[bi]);
-			format(buf, i, nil);
+			format(buf, i, 0);
 			bprint(i, "\t");
 			if(i->bi > 4)
 				bprint(i, "CR(%d),", i->bi/4);
 		} else
-			format("BR%L\t", i, nil);
+			format("BR%L\t", i, 0);
 		if(i->op == 16)
 			format(0, i, "%J");
 		else if(i->op == 19 && i->xo == 528)
@@ -411,7 +411,7 @@ addis(Opcode *o, Instr *i)
 		if(i->rd != i->ra)
 			bprint(i, ",R%d", i->rd);
 	} else {
-		format(o->mnemonic, i, nil);
+		format(o->mnemonic, i, 0);
 		bprint(i, "\t$%ld,R%d", v, i->ra);
 		if(i->rd != i->ra)
 			bprint(i, ",R%d", i->rd);
@@ -501,7 +501,7 @@ dcb(Opcode *o, Instr *i)
 static void
 lw(Opcode *o, Instr *i, char r)
 {
-	format(o->mnemonic, i, nil);
+	format(o->mnemonic, i, 0);
 	bprint(i, "\t");
 	address(i);
 	bprint(i, ",%c%d", r, i->rd);
@@ -523,28 +523,29 @@ static void
 sw(Opcode *o, Instr *i, char r)
 {
 	int offset;
+	char *m;
 	Symbol s;
 
+	m = o->mnemonic;
 	if (i->rs == REGSP) {
 		if (findsym(i->addr, CTEXT, &s) && findlocal(&s, FRAMENAME, &s)) {
 			offset = s.value-i->imm64;
 			if (offset > 0 && getauto(&s, offset, CAUTO, &s)) {
-				format(o->mnemonic, i, nil);
-				bprint(i, "\t%c%d,%s-%d(SP)", r, i->rd, s.name, offset);
+				bprint(i, "%s\t%c%d,%s-%d(SP)", m, r, i->rd,
+					s.name, offset);
 				return;
 			}
 		}
 	}
 	if (i->rs == REGSB && mach->sb) {
-		format(o->mnemonic, i, nil);
-		bprint(i, "\t%c%d,", r, i->rd);
+		bprint(i, "%s\t%c%d,", m, r, i->rd);
 		address(i);
 		return;
 	}
 	if (r == 'F')
-		format(o->mnemonic, i, "F%d,%l");
+		format(m, i, "F%d,%l");
 	else
-		format(o->mnemonic, i, o->ken);
+		format(m, i, o->ken);
 }
 
 static void
@@ -591,7 +592,7 @@ add(Opcode *o, Instr *i)
 static void
 sub(Opcode *o, Instr *i)
 {
-	format(o->mnemonic, i, nil);
+	format(o->mnemonic, i, 0);
 	bprint(i, "\t");
 	if(i->op == 31) {
 		bprint(i, "\tR%d,R%d", i->ra, i->rb);	/* subtract Ra from Rb */
@@ -604,7 +605,7 @@ sub(Opcode *o, Instr *i)
 static void
 qdiv(Opcode *o, Instr *i)
 {
-	format(o->mnemonic, i, nil);
+	format(o->mnemonic, i, 0);
 	if(i->op == 31)
 		bprint(i, "\tR%d,R%d", i->rb, i->ra);
 	else
@@ -639,7 +640,7 @@ or(Opcode *o, Instr *i)
 	if (i->op == 31) {
 		/* Rb,Rs,Ra */
 		if (i->rs == 0 && i->ra == 0 && i->rb == 0)
-			format("NOP", i, nil);
+			format("NOP", i, 0);
 		else if (i->rs == i->rb)
 			format("MOVW", i, "R%b,R%a");
 		else
@@ -651,7 +652,7 @@ or(Opcode *o, Instr *i)
 static void
 shifted(Opcode *o, Instr *i)
 {
-	format(o->mnemonic, i, nil);
+	format(o->mnemonic, i, 0);
 	bprint(i, "\t$%lux,", (ulong)i->uimm<<16);
 	if (i->rs == i->ra)
 		bprint(i, "R%d", i->ra);
@@ -672,7 +673,7 @@ static	char	ir2[] = "R%a,R%d";		/* reverse of IBM order */
 static	char	ir3[] = "R%b,R%a,R%d";
 static	char	ir3r[] = "R%a,R%b,R%d";
 static	char	il3[] = "R%b,R%s,R%a";
-static	char	il2u[] = "%I,R%d,R%a";
+static	char	il2u[] = "%I,R%a,R%d";
 static	char	il3s[] = "$%k,R%s,R%a";
 static	char	il2[] = "R%s,R%a";
 static	char	icmp3[] = "R%a,R%b,%D";
@@ -857,8 +858,6 @@ static Opcode opcodes[] = {
 	{31,	659,	ALL,	"MOVW",		gen,	"SEG(R%b),R%d"},
 	{31,	323,	ALL,	"MOVW",		gen,	"DCR(%Q),R%d"},
 	{31,	451,	ALL,	"MOVW",		gen,	"R%s,DCR(%Q)"},
-	{31,	259,	ALL,	"MOVW",		gen,	"DCR(R%a),R%d"},
-	{31,	387,	ALL,	"MOVW",		gen,	"R%s,DCR(R%a)"},
 	{31,	144,	ALL,	"MOVFL",	gen,	"R%s,%m,CR"},
 	{63,	70,	ALL,	"MTFSB0%C",	gencc,	"%D"},
 	{63,	38,	ALL,	"MTFSB1%C",	gencc,	"%D"},
@@ -908,8 +907,7 @@ static Opcode opcodes[] = {
 	{31,	24,	ALL,	"SLW%C",	shift,	il3},
 
 	{31,	794,	ALL,	"SRAD%C",	shift,	il3},	/* 64 */
-	{31,	(413<<1)|0,	ALL,	"SRAD%C",	shifti,	il3s},	/* 64 */
-	{31,	(413<<1)|1,	ALL,	"SRAD%C",	shifti,	il3s},	/* 64 */
+	{31,	413,	ALL,	"SRAD%C",	shifti,	il3s},	/* 64 */
 	{31,	792,	ALL,	"SRAW%C",	shift,	il3},
 	{31,	824,	ALL,	"SRAW%C",	shifti,	il3s},
 

@@ -47,7 +47,11 @@ main(int argc, char **argv)
 	for(i=0; i<32; i++)
 		bits[i] = 1L << (31-i);
 
-	fpreginit();
+	reg.fd[27] = 4503601774854144.0;
+	reg.fd[29] = 0.5;	/* Normally initialised by the kernel */
+	reg.fd[28] = 0.0;
+	reg.fd[30] = 1.0;
+	reg.fd[31] = 2.0;
 	cmd();
 }
 
@@ -259,7 +263,11 @@ reset(void)
 	Breakpoint *b;
 
 	memset(&reg, 0, sizeof(Registers));
-	fpreginit();
+	reg.fd[27] = 4503601774854144.0;
+	reg.fd[29] = 0.5;	/* Normally initialised by the kernel */
+	reg.fd[28] = 0.0;
+	reg.fd[30] = 1.0;
+	reg.fd[31] = 2.0;
 	for(i = 0; i > Nseg; i++) {
 		s = &memory.seg[i];
 		l = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
@@ -348,8 +356,7 @@ itrace(char *fmt, ...)
 	va_start(ap, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, ap);
 	va_end(ap);
-	Bprint(bioout, "%8lux %.8lux %s\n", reg.pc, reg.ir, buf);
-Bflush(bioout);
+	Bprint(bioout, "%8lux %.8lux %s\n", reg.pc, reg.ir, buf);	
 }
 
 void
@@ -379,16 +386,13 @@ dumpdreg(void)
 {
 	int i;
 	char buf[64];
-	FPdbleword d;
 
 	i = 0;
 	while(i < 32) {
-		d.x = reg.fd[i];
-		ieeedftos(buf, sizeof(buf), d.hi, d.lo);
+		ieeedftos(buf, sizeof(buf), (ulong)(reg.dv[i]>>32), (ulong)reg.dv[i]);
 		Bprint(bioout, "F%-2d %s\t", i, buf);
 		i++;
-		d.x = reg.fd[i];
-		ieeedftos(buf, sizeof(buf), d.hi, d.lo);
+		ieeedftos(buf, sizeof(buf), (ulong)(reg.dv[i]>>32), (ulong)reg.dv[i]);
 		Bprint(bioout, "\tF%-2d %s\n", i, buf);
 		i++;
 	}

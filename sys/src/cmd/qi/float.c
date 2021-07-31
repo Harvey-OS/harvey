@@ -71,40 +71,6 @@ Inst	op63b[] = {
 Inset	ops63b = {op63b, nelem(op63b)};
 
 void
-fpreginit(void)
-{
-	int i;
-
-	/* Normally initialised by the kernel */
-	reg.fd[27] = 4503601774854144.0;
-	reg.fd[29] = 0.5;
-	reg.fd[28] = 0.0;
-	reg.fd[30] = 1.0;
-	reg.fd[31] = 2.0;
-	for(i = 0; i < 27; i++)
-		reg.fd[i] = reg.fd[28];
-}
-
-static double
-v2fp(uvlong v)
-{
-	FPdbleword f;
-
-	f.hi = v>>32;
-	f.lo = v;
-	return f.x;
-}
-
-static uvlong
-fp2v(double d)
-{
-	FPdbleword f;
-
-	f.x = d;
-	return ((uvlong)f.hi<<32) | f.lo;
-}
-
-void
 lfs(ulong ir)
 {
 	ulong ea;
@@ -182,7 +148,7 @@ lfd(ulong ir)
 	if(trace)
 		itrace("%s\tf%d,%ld(r%d) ea=%lux", ci->name, rd, imm, ra, ea);
 
-	reg.fd[rd] = v2fp(getmem_v(ea));
+	reg.dv[rd] = getmem_v(ea);
 }
 
 void
@@ -207,7 +173,7 @@ lfdx(ulong ir)
 			itrace("%s\tf%d,(r%d) ea=%lux", ci->name, rd, rb, ea);
 	}
 
-	reg.fd[rd] = v2fp(getmem_v(ea));
+	reg.dv[rd] = getmem_v(ea);
 }
 
 void
@@ -289,7 +255,7 @@ stfd(ulong ir)
 		itrace("%s\tf%d,%ld(r%d) %lux=%g",
 					ci->name, rd, imm, ra, ea, reg.fd[rd]);
 
-	putmem_v(ea, fp2v(reg.fd[rd]));
+	putmem_v(ea, reg.dv[rd]);
 }
 
 void
@@ -314,7 +280,7 @@ stfdx(ulong ir)
 			itrace("%s\tf%d,(r%d) %lux=%g", ci->name, rd, rb, ea, reg.fd[rd]);
 	}
 
-	putmem_v(ea, fp2v(reg.fd[rd]));
+	putmem_v(ea, reg.dv[rd]);
 }
 
 void
@@ -345,14 +311,11 @@ void
 mffs(ulong ir)
 {
 	int rd, ra, rb;
-	FPdbleword d;
 
 	getarrr(ir);
 	if(ra || rb)
 		undef(ir);
-	d.hi = 0xFFF80000UL;
-	d.lo = reg.fpscr;
-	reg.fd[rd] = d.x;
+	reg.dv[rd] = ((uvlong)0xFFF8000L<<16)|reg.fpscr;
 	/* it's anyone's guess how CR1 should be set when ir&1 */
 	reg.cr &= ~mkCR(1, 0xE);	/* leave SO, reset others */
 	if(trace)
@@ -394,15 +357,13 @@ void
 mtfsf(ulong ir)
 {
 	int fm, rb, i;
-	FPdbleword d;
 	ulong v;
 
 	if(ir & ((1L << 25)|(1L << 16)))
 		undef(ir);
 	rb = (ir >> 11) & 0x1F;
 	fm = (ir >> 17) & 0xFF;
-	d.x = reg.fd[rb];
-	v = d.lo;
+	v = reg.dv[rb];
 	for(i=0; i<8; i++)
 		if(fm & (1 << (7-i)))
 			reg.fpscr = (reg.fpscr & ~mkCR(i, 0xF)) | mkCR(i, getCR(i, v));
@@ -600,7 +561,7 @@ farith(ulong ir)
 			vl = 0x80000000;
 		else
 			vl = d;
-		reg.fd[rd] = v2fp(vl);
+		reg.dv[rd] = vl;
 		fmt = 1;
 		nocc = 1;
 		break;

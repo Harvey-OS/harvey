@@ -28,7 +28,6 @@ dev
 
 	sd
 	floppy		dma
-	aoe
 	lpt
 
 	audio		dma
@@ -80,7 +79,6 @@ misc
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
 	sdiahci		pci sdscsi
-	sdaoe
 
 	uarti8250
 	uartpci		pci

@@ -162,7 +162,7 @@ main(int argc, char *argv[]) {
 	}ARGEND;
 	readDESC();
 	if (argc == 0) {
-		if ((binp = (Biobuf *)malloc(sizeof(Biobuf))) == nil) {
+		if ((binp = (Biobuf *)malloc(sizeof(Biobuf))) < (Biobuf *)0) {
 			Bprint(Bstderr, "malloc failed.\n");
 			exits("malloc");
 		}

@@ -35,7 +35,7 @@ void
 xcom(Node *n)
 {
 	Node *l, *r;
-	int v, nr;
+	int v;
 
 	if(n == Z)
 		return;
@@ -193,23 +193,14 @@ xcom(Node *n)
 	if(l != Z)
 		n->complex = l->complex;
 	if(r != Z) {
-		nr = 1;
-		if(r->type != T && typev[r->type->etype] || n->type != T && typev[n->type->etype]) {
-			nr = 2;
-			if(n->op == OMUL || n->op == OLMUL)
-				nr += 3;
-		}
 		if(r->complex == n->complex)
-			n->complex = r->complex+nr;
+			n->complex = r->complex+1;
 		else
 		if(r->complex > n->complex)
 			n->complex = r->complex;
 	}
-	if(n->complex == 0){
+	if(n->complex == 0)
 		n->complex++;
-		if(n->type != T && typev[n->type->etype])
-			n->complex++;
-	}
 
 	if(com64(n))
 		return;

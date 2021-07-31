@@ -123,7 +123,7 @@ struct	Type
 	long	width;
 	long	offset;
 	long	lineno;
-	schar	shift;
+	char	shift;
 	char	nbits;
 	char	etype;
 	char	garb;
@@ -319,7 +319,6 @@ enum
 	TSTRUCT,
 	TUNION,
 	TENUM,
-	TDOT,
 	NTYPE,
 
 	TAUTO	= NTYPE,
@@ -332,6 +331,7 @@ enum
 	TVOLATILE,
 	TUNSIGNED,
 	TSIGNED,
+	TDOT,
 	TFILE,
 	TOLD,
 	NALLTYPES,
@@ -432,7 +432,6 @@ EXTERN	Type*	firstargtype;
 EXTERN	Decl*	firstdcl;
 EXTERN	int	fperror;
 EXTERN	Sym*	hash[NHASH];
-EXTERN	int	hasdoubled;
 EXTERN	char*	hunk;
 EXTERN	char*	include[20];
 EXTERN	Io*	iofree;
