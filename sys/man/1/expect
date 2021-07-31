@@ -13,10 +13,12 @@ atcommand
 .br
 .B dial/expect
 [
-.B -iq
+.B -q
 ] [
 .B -t
 .I seconds
+] [
+.B -i
 ]
 .I goodstring
 [
