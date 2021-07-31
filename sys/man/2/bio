@@ -271,9 +271,7 @@ to occur and there is an error,
 a negative value
 .RB ( Beof )
 is returned.
-Otherwise, 
-.I Bprint
-returns zero.
+Otherwise, the number of bytes output is returned.
 .I Bvprint
 does the same except it takes as argument a
 .B va_list
