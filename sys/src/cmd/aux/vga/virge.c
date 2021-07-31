@@ -153,7 +153,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 	case 0x8A22:				/* Savage4 */
 	case 0x8A25:				/* ProSavage PN133 */
 	case 0x8A26:				/* ProSavage KN133 */
-	case 0x8D04:				/* ProSavage DDR, K.Okamoto */
 		vga->r[1] = 4;
 		vga->m[1] = 511;
 		vga->n[1] = 127;
@@ -188,7 +187,6 @@ options(Vga *vga, Ctlr* ctlr)
 	case 0x8A22:				/* Savage4 */
 	case 0x8A25:				/* ProSavage PN133 */
 	case 0x8A26:				/* ProSavage KN133 */
-	case 0x8D04:				/* ProSavabe DDR, K.Okamoto */
 		/*
 		 * Round up so stride is multiple of 16.
 		 */
@@ -411,14 +409,7 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->crt[0x90] &= ~0x07;
 		vga->crt[0x90] |= (x>>8) & 0x07;
 
-	case 0x8D04:				/* ProSavage DDR, K.Okamoto */
-		x = mode->x * ((mode->z + 7) / 8);
-		x = (x + 7) / 8;
-		vga->crt[0x91] = x & 0xFF;
-		vga->crt[0x90] = (x >> 8) | 0x80;
-
 		/*FALLTHROUGH*/
-
 	case 0x8A22:				/* Savage4 */
 	case 0x8A25:				/* ProSavage PN133 */
 	case 0x8A26:				/* ProSavage KN133 */
@@ -437,7 +428,7 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->crt[0x51] |= (width>>7) & 0x30;
 
 		/* pull screen width from GBD for graphics engine. */
-		vga->crt[0x50] = 0xC1;	/* set color mode */
+		vga->crt[0x50] = 0xC1;
 
 		/*
 		 * The high nibble is the mode; or'ing in 0x02 turns
@@ -524,7 +515,6 @@ init(Vga* vga, Ctlr* ctlr)
 		case 0x8A22:			/* Savage4 */
 		case 0x8A25:			/* ProSavage PN133 */
 		case 0x8A26:			/* ProSavage KN133 */
-		case 0x8D04:			/* ProSavage DDR, K.Okamoto */
 			vga->sequencer[0x12] = (vga->r[0]<<6)|(vga->n[0] & 0x3F);
 			vga->sequencer[0x39] &= ~0x01;
 			vga->sequencer[0x29] &= ~0x1C;
@@ -611,7 +601,6 @@ load(Vga* vga, Ctlr* ctlr)
 	case 0x8A22:				/* Savage4 */
 	case 0x8A25:				/* ProSavage PN133 */
 	case 0x8A26:				/* ProSavage KN133 */
-	case 0x8D04:				/* ProSavage DDR, K.Okamoto */
 		vgaxo(Seqx, 0x29, vga->sequencer[0x29]);
 		vgaxo(Seqx, 0x39, vga->sequencer[0x39]);
 		break;
@@ -647,9 +636,6 @@ load(Vga* vga, Ctlr* ctlr)
 		vgaxo(Crtx, 0x51, vga->crt[0x51]);
 		vgaxo(Crtx, 0x85, vga->crt[0x85]);
 		break;
-	case 0x8D04:				/* ProSavage DDR, K.Okamoto */
-		vgaxo(Crtx, 0x90, vga->crt[0x90]);		//K.Okamoto
-		vgaxo(Crtx, 0x91, vga->crt[0x91]);		//K.Okamoto
 	case 0x8C2E:				/* SuperSavage/IXC16 (let's try this -rsc) */
 	case 0x8C12:				/* Savage4/IX-MV */
 	case 0x8A22:				/* Savage4 */
@@ -720,7 +706,6 @@ dump(Vga* vga, Ctlr* ctlr)
 	case 0x8A22:				/* Savage4 */
 	case 0x8A25:				/* ProSavage PN133 */
 	case 0x8A26:				/* ProSavage KN133 */
-	case 0x8D04:				/* Prosavage DDR, K.Okamoto */
 		m = vga->sequencer[0x13] & 0xFF;
 		if(vga->sequencer[0x29] & (1<<3))
 			m |= 0x100;

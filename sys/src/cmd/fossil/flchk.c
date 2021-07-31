@@ -54,8 +54,6 @@ main(int argc, char *argv[])
 		usage();
 	case 'c':
 		csize = atoi(ARGF());
-		if(csize <= 0)
-			usage();
 		break;
 	case 'd':
 		dumpblocks = 1;
@@ -291,7 +289,7 @@ chkEpoch(u32int epoch)
 	Block *b;
 
 	print("chkEpoch %ud\n", epoch);
-
+	
 	/* find root block */
 	for(a=0; a<nblocks; a++){
 		if(!readLabel(&l, (a+hint)%nblocks)){
@@ -396,7 +394,7 @@ chkFree(void)
 
 static Source *
 openSource(Source *s, char *name, uchar *bm, u32int offset, u32int gen, int dir)
-{
+{	
 	Source *r;
 
 	if(getBit(bm, offset)){
@@ -444,7 +442,7 @@ offsetCmp(void *s0, void *s1)
 	return 0;
 }
 
-/*
+/* 
  * Check that MetaBlock has reasonable header, sorted entries,
  */
 int
@@ -523,7 +521,7 @@ chkDir(char *name, Source *source, Source *meta)
 	}
 
 	bm = vtMemAllocZ(sourceGetDirSize(source)/8 + 1);
-
+	
 	nb = (sourceGetSize(meta) + meta->dsize - 1)/meta->dsize;
 	for(o=0; o<nb; o++){
 		b = sourceBlock(meta, o, OReadOnly);
@@ -578,7 +576,7 @@ if(0)fprint(2, "source %V:%d block %d addr %d\n", source->score, source->offset,
 				free(nn);
 				continue;
 			}
-
+			
 			chkDir(nn, r, mr);
 
 			sourceClose(mr);
@@ -607,7 +605,7 @@ if(0)fprint(2, "source %V:%d block %d addr %d\n", source->score, source->offset,
 		}
 		sourceClose(r);
 	}
-
+	
 	sourceUnlock(source);
 	sourceUnlock(meta);
 	vtMemFree(bm);
