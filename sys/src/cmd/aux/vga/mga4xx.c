@@ -1125,11 +1125,11 @@ init(Vga* vga, Ctlr* ctlr)
 		mga->maxpclk	= 250000000;
 
 	if (mode->frequency < 50000)
-		error("mga: Too little Frequency %d : Minimum supported by PLL is %d\n", 
+		error("mga: Too little Frequency %d : Minimum supported by PLL is %d", 
 			mode->frequency, 50000);
 
 	if (mode->frequency > mga->maxpclk)
-		error("mga: Too big Frequency %d : Maximum supported by PLL is %ld\n",
+		error("mga: Too big Frequency %d : Maximum supported by PLL is %ld",
 			mode->frequency, mga->maxpclk);
 	
 	trace("mga: revision ID is %x\n", mga->revid);

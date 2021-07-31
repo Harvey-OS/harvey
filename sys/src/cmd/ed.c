@@ -856,7 +856,7 @@ void
 browse(void)
 {
 	int forward, n;
-	static int bformat, bnum; /* 0 */
+	static bformat, bnum; /* 0 */
 
 	forward = 1;
 	peekc = getchr();

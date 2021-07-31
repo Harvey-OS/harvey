@@ -1200,7 +1200,7 @@ statusCmd(char *tg, char *cmd)
 		return;
 	}
 
-	Bprint(&bout, "* STATUS %s (", mbox);
+	Bprint(&bout, "* STATUS (");
 	s = "";
 	for(i = 0; statusItems[i].name != nil; i++){
 		if(si & statusItems[i].v){
