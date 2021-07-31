@@ -134,6 +134,7 @@ main(int argc, char **argv)
 	int nservenet;
 	char *a;
 	Tm tl, tg;
+	int already = 0;
 
 	type = Fs;		// by default, sync with the file system
 	debug = 0;
@@ -373,8 +374,9 @@ main(int argc, char **argv)
 		if(type == Ntp)
 			s->stime = s->ltime + diff;
 
-		// if the sample was bad, ignore it
-		if(s->stime < 0){
+		// if the sample was bad or if this is the first sample, ignore it
+		if(s->stime < 0 || !already){
+			already = 1;
 			free(s);
 			continue;
 		}
