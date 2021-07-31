@@ -303,13 +303,13 @@ pciecap(Pcidev *p, int cap)
 	uint off, i;
 
 	off = 0x100;
-	while(((i = pcicfgr32(p, off)) & 0xffff) != cap){
+	while(((i = pcicfgr32(p, off))&0xffff) != cap){
 		off = i >> 20;
-		print("m10g: pciecap offset = %ud",  off);
+		print("pciecap offset = %ud\n",  off);
 		if(off < 0x100 || off >= 4*KiB - 1)
 			return 0;
 	}
-	print("m10g: pciecap found = %ud",  off);
+	print("pciecap found = %ud\n",  off);
 	return off;
 }
 
@@ -344,22 +344,22 @@ whichfw(Pcidev *p)
 
 	/* check AERC register.  we need it on.  */
 	off = pciecap(p, PcieAERC);
-	print("; offset %d returned\n", off);
+	print("%d offset\n", off);
 	cap = 0;
 	if(off != 0){
 		off += AercCCR;
 		cap = pcicfgr32(p, off);
-		print("m10g: %lud cap\n", cap);
+		print("%lud cap\n", cap);
 	}
 	ecrc = (cap>>4) & 0xf;
 	/* if we don't like the aerc, kick it here. */
 
-	print("m10g: %d lanes; ecrc=%d; ", lanes, ecrc);
+	print("m10g %d lanes; ecrc=%d; ", lanes, ecrc);
 	if(s = getconf("myriforce")){
 		i = atoi(s);
 		if(i != 4*KiB || i != 2*KiB)
 			i = 2*KiB;
-		print("fw = %d [forced]\n", i);
+		print("fw=%d [forced]\n", i);
 		return i;
 	}
 	if(lanes <= 4){
@@ -778,11 +778,11 @@ reset(Ether *e, Ctlr *c)
 	rdmacmd(c, 1);
 	sz = c->tx.segsz;
 	i = dmatestcmd(c, DMAread, c->done.busaddr, sz);
-	print("m10g: read %lud MB/s;", ((i>>16)*sz*2) / (i&0xffff));
+	print("\t" "read: %lud MB/s\n", ((i>>16)*sz*2) / (i&0xffff));
 	i = dmatestcmd(c, DMAwrite, c->done.busaddr, sz);
-	print(" write %lud MB/s;", ((i>>16)*sz*2) / (i&0xffff));
+	print("\t" "write: %lud MB/s\n", ((i>>16)*sz*2) / (i&0xffff));
 	i = dmatestcmd(c, DMAwrite|DMAread, c->done.busaddr, sz);
-	print(" r/w %lud MB/s\n", ((i>>16)*sz*2*2) / (i&0xffff));
+	print("\t" "r/w: %lud MB/s\n", ((i>>16)*sz*2*2) / (i&0xffff));
 	memset(c->done.entry, 0, c->done.n * sizeof *c->done.entry);
 
 	maccmd(c, CSmac, c->ra);
@@ -931,7 +931,7 @@ replenish(Rx *rx)
 		e -= 8;
 	}
 	if(e && p->n > 7+1)
-		print("m10g: should panic? pool->n = %d\n", p->n);
+		print("should panic? pool->n = %d\n", p->n);
 }
 
 /*
@@ -1123,7 +1123,7 @@ txcleanup(Tx *tx, ulong n)
 		if(tx->cnt == tx->i)
 			return;
 		if(l++ == m){
-			iprint("m10g: tx ovrun: %lud %lud\n", n, tx->npkt);
+			iprint("tx ovrun: %lud %lud\n", n, tx->npkt);
 			return;
 		}
 	}
@@ -1569,7 +1569,7 @@ m10gpci(void)
 //		kickthebaby(p, c);
 		pcisetbme(p);
 		if(setmem(p, c) == -1){
-			print("m10g: setmem failed\n");
+			print("m10g failed\n");
 			free(c);
 			/* cleanup */
 			continue;
