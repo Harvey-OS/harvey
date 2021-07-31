@@ -213,4 +213,3 @@ extern Apminfo	apm;
 extern char	*defaultpartition;
 extern int	iniread;
 extern int	pxe;
-extern int	vga;
