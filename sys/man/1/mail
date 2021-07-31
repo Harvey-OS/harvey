@@ -90,11 +90,7 @@ If
 .B /mail/box/$user/gone.msg
 exists, it
 will be sent (just once) to everyone who
-sends you mail that lists your address in a
-.L To
-or
-.L Cc
-header;
+sends you mail;
 if not,
 .B /mail/lib/gone.msg
 will be sent.
