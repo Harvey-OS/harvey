@@ -292,43 +292,31 @@ ahciwait(Aportc *c, int ms)
 	return -1;
 }
 
-/* fill in cfis boilerplate */
-static uchar *
-cfissetup(Aportc *pc)
-{
-	uchar *cfis;
-
-	cfis = pc->m->ctab->cfis;
-	memset(cfis, 0, 0x20);
-	cfis[0] = 0x27;
-	cfis[1] = 0x80;
-	cfis[7] = Obs;
-	return cfis;
-}
-
-/* initialise pc's list */
-static void
-listsetup(Aportc *pc, int flags)
-{
-	Alist *list;
-
-	list = pc->m->list;
-	list->flags = flags | 5;
-	list->len = 0;
-	list->ctab = PCIWADDR(pc->m->ctab);
-	list->ctabhi = 0;
-}
-
 static int
 nop(Aportc *pc)
 {
 	uchar *c;
+	Actab *t;
+	Alist *l;
 
 	if((pc->m->feat & Dnop) == 0)
 		return -1;
-	c = cfissetup(pc);
-	c[2] = 0;
-	listsetup(pc, Lwrite);
+
+	t = pc->m->ctab;
+	c = t->cfis;
+
+	memset(c, 0, 0x20);
+	c[0] = 0x27;
+	c[1] = 0x80;
+	c[2] = 0x00;
+	c[7] = Obs;
+
+	l = pc->m->list;
+	l->flags = Lwrite | 0x5;
+	l->len = 0;
+	l->ctab = PCIWADDR(t);
+	l->ctabhi = 0;
+
 	return ahciwait(pc, 3*1000);
 }
 
@@ -336,11 +324,25 @@ static int
 setfeatures(Aportc *pc, uchar f)
 {
 	uchar *c;
+	Actab *t;
+	Alist *l;
 
-	c = cfissetup(pc);
+	t = pc->m->ctab;
+	c = t->cfis;
+
+	memset(c, 0, 0x20);
+	c[0] = 0x27;
+	c[1] = 0x80;
 	c[2] = 0xef;
 	c[3] = f;
-	listsetup(pc, Lwrite);
+	c[7] = Obs;
+
+	l = pc->m->list;
+	l->flags = Lwrite | 0x5;
+	l->len = 0;
+	l->ctab = PCIWADDR(t);
+	l->ctabhi = 0;
+
 	return ahciwait(pc, 3*1000);
 }
 
@@ -348,15 +350,30 @@ static int
 setudmamode(Aportc *pc, uchar f)
 {
 	uchar *c;
+	Actab *t;
+	Alist *l;
 
 	/* hack */
 	if((pc->p->sig >> 16) == 0xeb14)
 		return 0;
-	c = cfissetup(pc);
+
+	t = pc->m->ctab;
+	c = t->cfis;
+
+	memset(c, 0, 0x20);
+	c[0] = 0x27;
+	c[1] = 0x80;
 	c[2] = 0xef;
 	c[3] = 3;		/* set transfer mode */
+	c[7] = Obs;
 	c[12] = 0x40 | f;	/* sector count */
-	listsetup(pc, Lwrite);
+
+	l = pc->m->list;
+	l->flags = Lwrite | 0x5;
+	l->len = 0;
+	l->ctab = PCIWADDR(t);
+	l->ctabhi = 0;
+
 	return ahciwait(pc, 3*1000);
 }
 
@@ -393,15 +410,30 @@ static int
 smart(Aportc *pc, int n)
 {
 	uchar *c;
+	Actab *t;
+	Alist *l;
 
 	if((pc->m->feat&Dsmart) == 0)
 		return -1;
-	c = cfissetup(pc);
+
+	t = pc->m->ctab;
+	c = t->cfis;
+
+	memset(c, 0, 0x20);
+	c[0] = 0x27;
+	c[1] = 0x80;
 	c[2] = 0xb0;
 	c[3] = 0xd8 + n;	/* able smart */
 	c[5] = 0x4f;
 	c[6] = 0xc2;
-	listsetup(pc, Lwrite);
+	c[7] = Obs;
+
+	l = pc->m->list;
+	l->flags = Lwrite | 0x5;
+	l->len = 0;
+	l->ctab = PCIWADDR(t);
+	l->ctabhi = 0;
+
 	if(ahciwait(pc, 1000) == -1 || pc->p->task & (1|32)){
 		dprint("ahci: smart fail %lux\n", pc->p->task);
 //		preg(pc->m->fis.r, 20);
@@ -416,13 +448,26 @@ static int
 smartrs(Aportc *pc)
 {
 	uchar *c;
+	Actab *t;
+	Alist *l;
 
-	c = cfissetup(pc);
+	t = pc->m->ctab;
+	c = t->cfis;
+
+	memset(c, 0, 0x20);
+	c[0] = 0x27;
+	c[1] = 0x80;
 	c[2] = 0xb0;
 	c[3] = 0xda;		/* return smart status */
 	c[5] = 0x4f;
 	c[6] = 0xc2;
-	listsetup(pc, Lwrite);
+	c[7] = Obs;
+
+	l = pc->m->list;
+	l->flags = Lwrite | 0x5;
+	l->len = 0;
+	l->ctab = PCIWADDR(t);
+	l->ctabhi = 0;
 
 	c = pc->m->fis.r;
 	if(ahciwait(pc, 1000) == -1 || pc->p->task & (1|32)){
@@ -438,14 +483,30 @@ smartrs(Aportc *pc)
 static int
 ahciflushcache(Aportc *pc)
 {
-	uchar *c;
+	uchar *c, llba;
+	Actab *t;
+	Alist *l;
+	static uchar tab[2] = {0xe7, 0xea};
 
-	c = cfissetup(pc);
-	c[2] = pc->m->feat & Dllba? 0xea: 0xe7;
-	listsetup(pc, Lwrite);
+	llba = pc->m->feat&Dllba? 1: 0;
+	t = pc->m->ctab;
+	c = t->cfis;
+
+	memset(c, 0, 0x20);
+	c[0] = 0x27;
+	c[1] = 0x80;
+	c[2] = tab[llba];
+	c[7] = Obs;
+
+	l = pc->m->list;
+	l->flags = Lwrite | 0x5;
+	l->len = 0;
+	l->ctab = PCIWADDR(t);
+	l->ctabhi = 0;
+
 	if(ahciwait(pc, 60000) == -1 || pc->p->task & (1|32)){
 		dprint("ahciflushcache: fail %lux\n", pc->p->task);
-//		preg(pc->m->fis.r, 20);
+//		preg( pc->m->fis.r, 20);
 		return -1;
 	}
 	return 0;
@@ -487,18 +548,32 @@ static int
 ahciidentify0(Aportc *pc, void *id, int atapi)
 {
 	uchar *c;
+	Actab *t;
+	Alist *l;
 	Aprdt *p;
 	static uchar tab[] = { 0xec, 0xa1, };
 
-	c = cfissetup(pc);
+	t = pc->m->ctab;
+	c = t->cfis;
+
+	memset(c, 0, 0x20);
+	c[0] = 0x27;
+	c[1] = 0x80;
 	c[2] = tab[atapi];
-	listsetup(pc, 1<<16);
+	c[7] = Obs;
+
+	l = pc->m->list;
+	l->flags = 1<<16 | 0x5;
+	l->len = 0;
+	l->ctab = PCIWADDR(t);
+	l->ctabhi = 0;
 
 	memset(id, 0, 0x100);
-	p = &pc->m->ctab->prdt;
+	p = &t->prdt;
 	p->dba = PCIWADDR(id);
 	p->dbahi = 0;
 	p->count = 1<<31 | (0x200-2) | 1;
+
 	return ahciwait(pc, 3*1000);
 }
 
@@ -586,6 +661,8 @@ static int
 ahcicomreset(Aportc *pc)
 {
 	uchar *c;
+	Actab *t;
+	Alist *l;
 
 	dprint("ahcicomreset\n");
 	dreg("ahci: comreset ", pc->p);
@@ -595,10 +672,21 @@ ahcicomreset(Aportc *pc)
 	}
 	dreg("comreset ", pc->p);
 
-	c = cfissetup(pc);
-	c[1] = 0;
+	t = pc->m->ctab;
+	c = t->cfis;
+
+	memset(c, 0, 0x20);
+	c[0] = 0x27;
+	c[1] = 0x00;
+	c[7] = Obs;
 	c[15] = 1<<2;		/* srst */
-	listsetup(pc, Lclear | Lreset);
+
+	l = pc->m->list;
+	l->flags = Lclear | Lreset | 0x5;
+	l->len = 0;
+	l->ctab = PCIWADDR(t);
+	l->ctabhi = 0;
+
 	if(ahciwait(pc, 500) == -1){
 		dprint("ahcicomreset: first command failed\n");
 		return -1;
@@ -606,9 +694,17 @@ ahcicomreset(Aportc *pc)
 	microdelay(250);
 	dreg("comreset ", pc->p);
 
-	c = cfissetup(pc);
-	c[1] = 0;
-	listsetup(pc, Lwrite);
+	memset(c, 0, 0x20);
+	c[0] = 0x27;
+	c[1] = 0x00;
+	c[7] = Obs;
+
+	l = pc->m->list;
+	l->flags = Lwrite | 0x5;
+	l->len = 0;
+	l->ctab = PCIWADDR(t);
+	l->ctabhi = 0;
+
 	if(ahciwait(pc, 150) == -1){
 		dprint("ahcicomreset: second command failed\n");
 		return -1;
