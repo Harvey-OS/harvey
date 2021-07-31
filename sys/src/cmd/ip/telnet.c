@@ -84,11 +84,11 @@ main(int argc, char *argv[])
 int
 dodial(char *dest)
 {
-	char *name;
+	char name[2*NETPATHLEN];
 	int data;
-	char devdir[NETPATHLEN];
+	char devdir[40];
 
-	name = netmkaddr(dest, "tcp", "telnet");
+	strcpy(name, netmkaddr(dest, "tcp", "telnet"));
 	data = dial(name, 0, devdir, 0);
 	if(data < 0)
 		fatal("%r", 0, 0);
