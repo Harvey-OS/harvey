@@ -345,7 +345,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 	 * we should have found its data in memory by now.
 	 */
 	area = inmyarea(dp->name);
-	if (area || strncmp(dp->name, "local#", 6) == 0) {
+	if (area) {
 //		char buf[32];
 
 //		dnslog("%s %s: no data in area %s", dp->name,
@@ -1057,7 +1057,6 @@ static int
 procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 {
 	int rv;
-//	int lcktype;
 	char buf[32];
 	DN *ndp;
 	Query nquery;
@@ -1148,6 +1147,9 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 
 	/*
 	 *  if we've been given better name servers, recurse.
+	 *  we're called from udpquery, called from
+	 *  netquery, which current holds qp->dp->querylck,
+	 *  so release it now and acquire it upon return.
 	 *  if we're a pure resolver, don't recurse, we have
 	 *  to forward to a fixed set of named servers.
 	 */
@@ -1160,19 +1162,13 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	}
 	procsetname("recursive query for %s %s", qp->dp->name,
 		rrname(qp->type, buf, sizeof buf));
-	/*
-	 *  we're called from udpquery, called from
-	 *  netquery, which current holds qp->dp->querylck,
-	 *  so release it now and acquire it upon return.
-	 */
-//	lcktype = qtype2lck(qp->type);
-//	qunlock(&qp->dp->querylck[lcktype]);
+	qunlock(&qp->dp->querylck[qtype2lck(qp->type)]);
 
 	queryinit(&nquery, qp->dp, qp->type, qp->req);
 	nquery.nsrp = tp;
 	rv = netquery(&nquery, depth+1);
 
-//	qlock(&qp->dp->querylck[lcktype]);
+	qlock(&qp->dp->querylck[qtype2lck(qp->type)]);
 	rrfreelist(tp);
 	querydestroy(&nquery);
 	return rv;
@@ -1218,7 +1214,7 @@ tcpquery(Query *qp, DNSmsg *mp, int depth, uchar *ibuf, uchar *obuf, int len,
  *  name server, recurse.
  */
 static int
-queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns)
+netquery1(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns)
 {
 	int ndest, len, replywaits, rv;
 	ushort req;
@@ -1280,7 +1276,7 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns)
 			}
 
 			/* find responder */
-			// dnslog("queryns got reply from %I", srcip);
+			// dnslog("netquery1 got reply from %I", srcip);
 			for(p = qp->dest; p < qp->curdest; p++)
 				if(memcmp(p->a, srcip, sizeof p->a) == 0)
 					break;
@@ -1307,7 +1303,7 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns)
 	}
 
 //	if (qp->dp->respcode)
-//		dnslog("queryns setting Rserver for %s", qp->dp->name);
+//		dnslog("netquery1 setting Rserver for %s", qp->dp->name);
 
 	free(qp->dest);
 	qp->dest = qp->curdest = nil;		/* prevent accidents */
@@ -1419,7 +1415,7 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	qp->req->aborttime = time(nil) + MS2S(3*wait); /* for all udp queries */
 
 	qp->udpfd = fd;
-	rv = queryns(qp, depth, ibuf, obuf, MS2S(wait), inns);
+	rv = netquery1(qp, depth, ibuf, obuf, MS2S(wait), inns);
 	close(fd);
 	qp->udpfd = -1;
 
@@ -1428,11 +1424,11 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	return rv;
 }
 
-/* look up (qp->dp->name,qp->type) rr in dns, via *nsrp with results in *reqp */
+/* look up (dp->name,type) via *nsrp with results in *reqp */
 static int
 netquery(Query *qp, int depth)
 {
-	int lock, rv, triedin, inname, lcktype;
+	int lock, rv, triedin, inname;
 	char buf[32];
 	RR *rp;
 
@@ -1446,12 +1442,10 @@ netquery(Query *qp, int depth)
 	 * many children already, we're still the same process.
 	 */
 
-	/*
-	 * don't lock before call to slave so only children can block.
-	 * just lock at top-level invocation.
-	 */
-	lock = depth <= 1 && qp->req->isslave != 0;
-	if(lock) {
+	/* don't lock before call to slave so only children can block */
+	if(1)
+		lock = qp->req->isslave != 0;
+	if(1 && lock) {
 		procsetname("query lock wait: %s %s from %s", qp->dp->name,
 			rrname(qp->type, buf, sizeof buf), qp->req->from);
 		/*
@@ -1461,10 +1455,8 @@ netquery(Query *qp, int depth)
 		 * recognise a zone (area) as one of our own, thus
 		 * causing us to query other nameservers.
 		 */
-		lcktype = qtype2lck(qp->type);
-		qlock(&qp->dp->querylck[lcktype]);
-	} else
-		lcktype = 0;
+		qlock(&qp->dp->querylck[qtype2lck(qp->type)]);
+	}
 	procsetname("netquery: %s", qp->dp->name);
 
 	/* prepare server RR's for incremental lookup */
@@ -1505,8 +1497,8 @@ netquery(Query *qp, int depth)
 //	if (rv == 0)		/* could ask /net.alt/dns directly */
 //		askoutdns(qp->dp, qp->type);
 
-	if(lock)
-		qunlock(&qp->dp->querylck[lcktype]);
+	if(1 && lock)
+		qunlock(&qp->dp->querylck[qtype2lck(qp->type)]);
 	return rv;
 }
 
