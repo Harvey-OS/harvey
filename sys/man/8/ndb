@@ -44,7 +44,7 @@ query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnsquery, dnsdebug \- n
 .B -s
 ]
 [
-.I server
+.B server
 [
 .I addr...
 ]
@@ -55,7 +55,7 @@ query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnsquery, dnsdebug \- n
 .B -nrRs
 ] [
 .B -a
-.I maxage
+maxage
 ] [
 .B -f
 .I dbfile
@@ -232,8 +232,7 @@ By default
 serves only requests written to
 .BR /net/dns .
 The options are:
-.TP
-.B -a
+.TP -a
 sets the maximum time in seconds that an unreferenced
 domain name will remain cached.
 The default is one hour (3600).
@@ -253,7 +252,7 @@ attribute below).
 .B -N
 sets the goal for the number of domain names cached to
 .I target
-rather than the default of 8,000.
+rather than the default of 4,000.
 .TP
 .B -r
 send `recursive' queries, asking the other servers
