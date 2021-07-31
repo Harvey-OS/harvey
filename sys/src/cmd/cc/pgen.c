@@ -573,8 +573,7 @@ bcomplex(Node *n, Node *c)
 	}
 	if(c != Z && n->op == OCONST && deadheads(c))
 		return 1;
-	/* this is not quite right yet, so ignore it for now */
-	if(0 && newvlongcode && typev[n->type->etype] && machcap(Z)) {
+	if(newvlongcode && typev[n->type->etype] && machcap(Z)) {
 		b = &nod;
 		b->op = ONE;
 		b->left = n;
