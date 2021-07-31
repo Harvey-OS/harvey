@@ -598,15 +598,7 @@ rxinit(Ctlr *c)
 	coherence();
 	while (!(c->reg[Rxdctl] & Renable))
 		;
-	c->reg[Rxctl] |= Rxen | (is598? Dmbyps: 0);
-
-	if (is598){
-		print("82598: autoc %#ux; lms %d (3 is 10g sfp)\n",
-			c->reg[Autoc], ((c->reg[Autoc]>>Lmsshift) & Lmsmask));
-		c->reg[Autoc] |= Flu;
-		coherence();
-		delay(50);
-	}
+	c->reg[Rxctl] |= Rxen | (c->type == I82598? Dmbyps: 0);
 }
 
 static void
@@ -1102,17 +1094,15 @@ pnp(Ether *e)
 	e->mbps = 10000;
 	e->maxmtu = ETHERMAXTU;
 	memmove(e->ea, c->ra, Eaddrlen);
-
 	e->arg = e;
 	e->attach = attach;
-	e->detach = shutdown;
-	e->transmit = transmit;
-	e->interrupt = interrupt;
-	e->ifstat = ifstat;
-	e->shutdown = shutdown;
 	e->ctl = ctl;
+	e->ifstat = ifstat;
+	e->interrupt = interrupt;
 	e->multicast = multicast;
 	e->promiscuous = promiscuous;
+	e->shutdown = shutdown;
+	e->transmit = transmit;
 
 	return 0;
 }
