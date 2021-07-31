@@ -111,6 +111,5 @@ readfile(char *file)
 		free(buf);
 		return nil;
 	}
-	buf[n] = '\0';
 	return buf;
 }

@@ -13,7 +13,7 @@ yesterday, diffy \- print file names from the dump
 ]
 .I files ...
 .PP
-.B diffy
+.I diffy
 [
 .B -abcefmnrw
 ]
@@ -145,8 +145,6 @@ diffy -r /sys/src
 .B /n/dump
 .SH SOURCE
 .B /rc/bin/yesterday
-.br
-.B /rc/bin/diffy
 .SH SEE ALSO
 .IR history (1),
 .IR bind (1),
