@@ -50,6 +50,8 @@ enum
 	CMstop,
 	CMwaitstop,
 	CMwired,
+	CMfair,
+	CMunfair,
 	CMtrace,
 	/* real time */
 	CMperiod,
@@ -113,6 +115,8 @@ Cmdtab proccmd[] = {
 	CMstop,			"stop",			1,
 	CMwaitstop,		"waitstop",		1,
 	CMwired,		"wired",		2,
+	CMfair,			"fair",			1,
+	CMunfair,		"unfair",		1,
 	CMtrace,		"trace",		0,
 	CMperiod,		"period",		2,
 	CMdeadline,		"deadline",		2,
