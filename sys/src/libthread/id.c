@@ -55,11 +55,10 @@ threadgetgrp(void)
 }
 
 void
-threadsetname(char *fmt, ...)
+threadsetname(char *name)
 {
-	int fd;
-	char buf[128];
-	va_list arg;
+	int fd, n;
+	char buf[128], *s;
 	Proc *p;
 	Thread *t;
 
@@ -67,13 +66,12 @@ threadsetname(char *fmt, ...)
 	t = p->thread;
 	if (t->cmdname)
 		free(t->cmdname);
-	va_start(arg, fmt);
-	t->cmdname = vsmprint(fmt, arg);
-	va_end(arg);
-	if(t->cmdname && p->nthreads == 1){
+	t->cmdname = strdup(name);
+	if(p->nthreads == 1){
 		snprint(buf, sizeof buf, "#p/%d/args", getpid());
 		if((fd = open(buf, OWRITE)) >= 0){
-			write(fd, t->cmdname, strlen(t->cmdname)+1);
+			n = strlen(name)+1;
+			write(fd, name, n);
 			close(fd);
 		}
 	}
