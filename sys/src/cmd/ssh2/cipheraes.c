@@ -57,32 +57,12 @@ encryptaes(CipherState *cs, uchar *buf, int nbuf)
 }
 
 static void
-encryptaesctr(CipherState *cs, uchar *buf, int nbuf)
-{
-	if(cs->state.setup != 0xcafebabe || cs->state.rounds > AESmaxrounds)
-		return;
-	qlock(&aeslock);
-	aesCTRencrypt(buf, nbuf, &cs->state);
-	qunlock(&aeslock);
-}
-
-static void
 decryptaes(CipherState *cs, uchar *buf, int nbuf)
 {
 	if(cs->state.setup != 0xcafebabe || cs->state.rounds > AESmaxrounds)
 		return;
 	qlock(&aeslock);
 	aesCBCdecrypt(buf, nbuf, &cs->state);
-	qunlock(&aeslock);
-}
-
-static void
-decryptaesctr(CipherState *cs, uchar *buf, int nbuf)
-{
-	if(cs->state.setup != 0xcafebabe || cs->state.rounds > AESmaxrounds)
-		return;
-	qlock(&aeslock);
-	aesCTRdecrypt(buf, nbuf, &cs->state);
 	qunlock(&aeslock);
 }
 
@@ -94,14 +74,6 @@ Cipher cipheraes128 = {
 	decryptaes,
 };
 
-Cipher cipheraes128ctr = {
-	"aes128-ctr",
-	AESbsize,
-	initaes128,
-	encryptaesctr,
-	decryptaesctr,
-};
-
 Cipher cipheraes192 = {
 	"aes192-cbc",
 	AESbsize,
@@ -110,26 +82,10 @@ Cipher cipheraes192 = {
 	decryptaes,
 };
 
-Cipher cipheraes192ctr = {
-	"aes192-ctr",
-	AESbsize,
-	initaes192,
-	encryptaesctr,
-	decryptaesctr,
-};
-
 Cipher cipheraes256 = {
 	"aes256-cbc",
 	AESbsize,
 	initaes256,
 	encryptaes,
 	decryptaes,
-};
-
-Cipher cipheraes256ctr = {
-	"aes256-ctr",
-	AESbsize,
-	initaes256,
-	encryptaesctr,
-	decryptaesctr,
 };
