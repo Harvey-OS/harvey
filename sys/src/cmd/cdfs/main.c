@@ -98,9 +98,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 			*qid = (Qid){Qctl, 0, 0};
 			return nil;
 		}
-		if(strcmp(name, "wa") == 0 && drive->writeok &&
-		    (drive->subtype == Subtypenone ||
-		     drive->subtype == Subtypecd)) {
+		if(strcmp(name, "wa") == 0 && drive->writeok) {
 			*qid = (Qid){Qwa, drive->nchange, QTDIR};
 			return nil;
 		}
@@ -151,11 +149,6 @@ fscreate(Req *r)
 		return;
 
 	case Qwa:
-		if (drive->subtype != Subtypenone &&
-		    drive->subtype != Subtypecd) {
-			respond(r, "audio supported only on cd");
-			return;
-		}
 		type = TypeAudio;
 		break;
 
@@ -232,9 +225,7 @@ fillstat(ulong qid, Dir *d)
 		break;
 
 	case Qwa:
-		if(drive->writeok == 0 ||
-		    drive->subtype != Subtypenone &&
-		    drive->subtype != Subtypecd)
+		if(drive->writeok == 0)
 			return 0;
 		d->name = "wa";
 		d->qid.type = QTDIR;
@@ -665,7 +656,7 @@ main(int argc, char **argv)
 			if(fd != 1 && fd != 2)
 				close(fd);
 			vflag++;
-			scsiverbose = 2; /* verbose but no Readtoc errs */
+			scsiverbose++;
 		}
 		break;
 	default:
