@@ -1670,7 +1670,7 @@ fswstat(Chan* chan, Fcall* f, Fcall*, char *strs)
 	d->mode = (mode & (DAPND|DLOCK|0777)) | (d->mode & (DALLOC|DDIR));
 
 	strncpy(d->name, dir.name, sizeof(d->name));
-	accessdir(p, d, FWSTAT);
+	accessdir(p, d, FREAD);
 
 out:
 	if(p != nil)
