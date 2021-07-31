@@ -634,20 +634,10 @@ addtoar(int ar, char *file, char *shortf)
 	ulong blksleft, blksread;
 	Hdr *hbp;
 	Dir *dir;
-	String *name = nil;
-
-	if (shortf[0] == '#') {
-		name = s_new();
-		s_append(name, "./");
-		s_append(name, shortf);
-		shortf = s_to_c(name);
-	}
 
 	fd = open(shortf, OREAD);
 	if (fd < 0) {
 		fprint(2, "%s: can't open %s: %r\n", argv0, file);
-		if (name)
-			s_free(name);
 		return;
 	}
 	dir = dirfstat(fd);
@@ -660,8 +650,6 @@ addtoar(int ar, char *file, char *shortf)
 		putbackblk(ar);
 		free(dir);
 		close(fd);
-		if (name)
-			s_free(name);
 		return;
 	}
 	putblk(ar);
@@ -691,8 +679,6 @@ addtoar(int ar, char *file, char *shortf)
 		if (verbose)
 			fprint(2, "%s\n", file);
 	}
-	if (name)
-		s_free(name);
 }
 
 static char *
@@ -797,7 +783,7 @@ cantcreate(char *s, int mode)
 {
 	int len;
 	static char *last;
-
+	
 	/*
 	 * Always print about files.  Only print about directories
 	 * we haven't printed about.  (Assumes archive is ordered
@@ -819,7 +805,7 @@ cantcreate(char *s, int mode)
 	}
 	fprint(2, "%s: can't create %s: %r\n", argv0, s);
 }
-
+	
 static int
 makedir(char *s)
 {
@@ -840,7 +826,7 @@ mkpdirs(char *s)
 {
 	int err;
 	char *p;
-
+	
 	p = s;
 	err = 0;
 	while (!err && (p = strchr(p+1, '/')) != nil) {
