@@ -383,7 +383,8 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 	long bno, nb, len, off, n;
 	ulong path;
 	char buf[1024], *p;
-	char *s, *e;
+	char *s;
+	char *e;
 	Umsc *lun;
 	Ums *ums;
 	Qid q;
@@ -589,8 +590,10 @@ findendpoints(Ums *ums)
 {
 	Ep *ep;
 	Usbdev *ud;
-	ulong csp, sc;
-	int i, epin, epout;
+	ulong csp;
+	ulong sc;
+	int i;
+	int epin, epout;
 
 	epin = epout = -1;
 	ud = ums->dev->usb;
@@ -658,7 +661,7 @@ findendpoints(Ums *ums)
 static int
 usage(void)
 {
-	werrstr("usage: usb/disk [-d] [-N nb]");
+	werrstr("usage: usb/disk [-d]");
 	return -1;
 }
 
@@ -689,23 +692,18 @@ diskmain(Dev *dev, int argc, char **argv)
 {
 	Ums *ums;
 	Umsc *lun;
-	int i, devid;
+	int i;
 
-	devid = dev->id;
 	ARGBEGIN{
 	case 'd':
 		scsidebug(diskdebug);
 		diskdebug++;
 		break;
-	case 'N':
-		devid = atoi(EARGF(usage()));
-		break;
 	default:
 		return usage();
 	}ARGEND
-	if(argc != 0) {
+	if(argc != 0)
 		return usage();
-	}
 
 	ums = dev->aux = emallocz(sizeof(Ums), 1);
 	ums->maxlun = -1;
@@ -730,7 +728,7 @@ diskmain(Dev *dev, int argc, char **argv)
 	for(i = 0; i <= ums->maxlun; i++){
 		lun = &ums->lun[i];
 		lun->fs = diskfs;
-		snprint(lun->fs.name, sizeof(lun->fs.name), "sdU%d.%d", devid, i);
+		snprint(lun->fs.name, sizeof(lun->fs.name), "sdU%d.%d", dev->id, i);
 		lun->fs.dev = dev;
 		incref(dev);
 		lun->fs.aux = lun;

@@ -94,8 +94,6 @@ struct Port
 	uchar	pwrctl;
 	Dev	*dev;		/* attached device (if non-nil) */
 	Hub	*hub;		/* non-nil if hub attached */
-	int	devnb;		/* device number */
-	uvlong	*devmaskp;	/* ptr to dev mask */
 };
 
 
@@ -119,14 +117,11 @@ struct Devtab
 	int	vid;
 	int	did;
 	char	*args;
-	uvlong	devmask;
 };
 
 
 Hub*	newhub(char *fn, Dev *d);
 int	startdev(Port *pp);
-int	getdevnb(uvlong *maskp);
-void	putdevnb(uvlong *maskp, int nb);
 void	threadmain(int argc, char **argv);
 
 extern Usbfs usbdfsops;

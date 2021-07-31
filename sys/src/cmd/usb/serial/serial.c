@@ -296,7 +296,7 @@ serdumpst(Serialport *p, char *buf, int bufsz)
 	s = seprint(s, e, "framing(%d) ", p->nframeerr);
 	s = seprint(s, e, "overruns(%d) ", p->novererr);
 	s = seprint(s, e, "berr(%d) ", p->nbreakerr);
-	s = seprint(s, e, " serr(%d)\n", p->nparityerr);
+	s = seprint(s, e, " serr(%d) ", p->nparityerr);
 	return s;
 }
 
@@ -391,17 +391,16 @@ static int
 dopen(Usbfs *fs, Fid *fid, int)
 {
 	ulong path;
-	Serialport *p;
+	// Serialport *p;
 
 	path = fid->qid.path & ~fs->qid;
-	p = fs->aux;
+	// p = fs->aux;
 	switch(path){		/* BUG: unneeded? */
 	case Qdata:
 		dsprint(2, "serial, opened data\n");
 		break;
 	case Qctl:
 		dsprint(2, "serial, opened ctl\n");
-		serialctl(p, "l8 i1");	/* default line parameters */
 		break;
 	}
 	return 0;
@@ -757,15 +756,11 @@ serialmain(Dev *dev, int argc, char* argv[])
 	Serial *ser;
 	Serialport *p;
 	char buf[50];
-	int i, devid;
+	int i;
 
-	devid = dev->id;
 	ARGBEGIN{
 	case 'd':
 		serialdebug++;
-		break;
-	case 'N':
-		devid = atoi(EARGF(usage()));
 		break;
 	default:
 		return usage();
@@ -827,10 +822,7 @@ serialmain(Dev *dev, int argc, char* argv[])
 		}
 
 		dsprint(2, "serial: adding interface %d, %p\n", p->interfc, p);
-		if(i == 0)
-			snprint(p->fs.name, sizeof p->fs.name, "eiaU%d", devid);
-		else
-			snprint(p->fs.name, sizeof p->fs.name, "eiaU%d.%d", devid, i);
+		snprint(p->fs.name, sizeof p->fs.name, "eiaU%d", dev->id+i-1);
 		fprint(2, "%s\n", p->fs.name);
 		p->fs.dev = dev;
 		incref(dev);

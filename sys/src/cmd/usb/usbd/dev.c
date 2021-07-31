@@ -14,35 +14,9 @@
 #include "usb.h"
 #include "usbd.h"
 
-static Lock masklck;
 extern Devtab devtab[];
 static char* cputype;
 
-int
-getdevnb(uvlong *maskp)
-{
-	int i;
-
-	lock(&masklck);
-	for(i = 0; i < 8 * sizeof *maskp; i++)
-		if((*maskp & (1ULL<<i)) == 0){
-			*maskp |= 1ULL<<i;
-			unlock(&masklck);
-			return i;
-		}
-	unlock(&masklck);
-	return -1;
-}
-
-void
-putdevnb(uvlong *maskp, int id)
-{
-	lock(&masklck);
-	if(id >= 0)
-		*maskp &= ~(1ULL<<id);
-	unlock(&masklck);
-}
-		
 static int
 cspmatch(Devtab *dt, int dcsp)
 {
@@ -124,26 +98,20 @@ startdevproc(void *a)
 	Dev	*d;
 	Devtab *dt;
 	int	argc;
-	char *args, *argse, **argv;
+	char *args, **argv;
 	char *fname;
 
-	threadsetgrp(threadid());
 	d = sa->pp->dev;
 	dt = sa->dt;
 	args = sa->args;
-	argse = sa->args + sizeof sa->args;
 	argv = sa->argv;
 	fname = sa->fname;
-	sa->pp->devmaskp = &dt->devmask;
-	sa->pp->devnb = getdevnb(&dt->devmask);
-	if(sa->pp->devnb < 0){
-		sa->pp->devmaskp = nil;
-		sa->pp->devnb = 0;
-	}else
-		args = seprint(args, argse, "-N %d", sa->pp->devnb);
+
+	threadsetgrp(threadid());
 	if(dt->args != nil)
-		seprint(args, argse, " %s", dt->args);
-	args = sa->args;
+		strncpy(args, dt->args, sizeof(sa->args));
+	else
+		args[0] = 0;
 	dprint(2, "%s: start: %s %s\n", argv0, dt->name, args);
 	argv[0] = dt->name;
 	argc = 1;

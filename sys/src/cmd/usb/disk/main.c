@@ -18,7 +18,7 @@ enum
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-Dd] [-N nb] [-m mnt] [-s srv] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-Dd] [-m mnt] [-s srv] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
 
@@ -33,7 +33,10 @@ void
 threadmain(int argc, char **argv)
 {
 	char args[Arglen];
-	char *as, *ae, *srv, *mnt;
+	char *as;
+	char *ae;
+	char *srv;
+	char *mnt;
 
 	srv = nil;
 	mnt = "/n/disk";
@@ -48,9 +51,6 @@ threadmain(int argc, char **argv)
 	case 'd':
 		usbdebug++;
 		as = seprint(as, ae, " -d");
-		break;
-	case 'N':
-		as = seprint(as, ae, " -N %s", EARGF(usage()));
 		break;
 	case 'm':
 		mnt = EARGF(usage());

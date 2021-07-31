@@ -16,7 +16,7 @@ enum
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-dkm] [-a n] [-N nb] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-dkm] [-a n] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
 
@@ -24,8 +24,10 @@ void
 threadmain(int argc, char **argv)
 {
 	char args[Arglen];
-	char *as, *ae;
-	int accel, pena, devid;
+	char *as;
+	char *ae;
+	int accel;
+	int pena;
 	int csps[] = { KbdCSP, PtrCSP, 0 };
 
 	quotefmtinstall();
@@ -39,8 +41,7 @@ threadmain(int argc, char **argv)
 		break;
 	case 'd':
 		usbdebug++;
-		as = seprint(as, ae, " -d");
-		break;
+		/* fall */
 	case 'k':
 		as = seprint(as, ae, " -k");
 		pena = 0;
@@ -48,10 +49,6 @@ threadmain(int argc, char **argv)
 	case 'm':
 		as = seprint(as, ae, " -m");
 		pena = 1;
-		break;
-	case 'N':
-		devid = atoi(EARGF(usage()));		/* ignore dev number */
-		USED(devid);
 		break;
 	default:
 		usage();

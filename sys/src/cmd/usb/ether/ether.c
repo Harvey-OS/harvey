@@ -576,7 +576,7 @@ fsread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 {
 	int cn, qt;
 	char *s, *se;
-	char buf[2048];		/* keep this large for ifstats */
+	char buf[128];
 	Buf *bp;
 	Conn *c;
 	Ether *e;
@@ -859,7 +859,7 @@ openeps(Ether *e, int epin, int epout)
 static int
 usage(void)
 {
-	werrstr("usage: usb/ether [-d] [-N nb]");
+	werrstr("usage: usb/ether [-d]");
 	return -1;
 }
 
@@ -1128,25 +1128,21 @@ etherinit(Ether *e, int *ei, int *eo)
 int
 ethermain(Dev *dev, int argc, char **argv)
 {
-	int epin, epout, i, devid;
+	int epin, epout, i;
 	Ether *e;
 
-	devid = dev->id;
 	ARGBEGIN{
 	case 'd':
 		if(etherdebug == 0)
 			fprint(2, "ether debug on\n");
 		etherdebug++;
 		break;
-	case 'N':
-		devid = atoi(EARGF(usage()));
-		break;
 	default:
 		return usage();
 	}ARGEND
-	if(argc != 0) {
+	if(argc != 0)
 		return usage();
-	}
+
 	e = dev->aux = emallocz(sizeof(Ether), 1);
 	e->dev = dev;
 	dev->free = etherdevfree;
@@ -1168,7 +1164,7 @@ ethermain(Dev *dev, int argc, char **argv)
 	if(openeps(e, epin, epout) < 0)
 		return -1;
 	e->fs = etherfs;
-	snprint(e->fs.name, sizeof(e->fs.name), "etherU%d", devid);
+	snprint(e->fs.name, sizeof(e->fs.name), "etherU%d", dev->id);
 	e->fs.dev = dev;
 	e->fs.aux = e;
 	e->bc = chancreate(sizeof(Buf*), Nconns);
