@@ -868,7 +868,6 @@ listensrv(Srv *os, char *addr)
 		}
 
 		data = accept(ctl, ndir);
-		close(nctl);
 		if(data < 0){
 			fprint(2, "wikifs accept %s: %r\n", ndir);
 			_exits(nil);
@@ -879,7 +878,6 @@ listensrv(Srv *os, char *addr)
 		s->aux = getremotesys(ndir);
 		s->infd = s->outfd = data;
 		srv(s);
-		close(data);
 		free(s);
 		free(s->aux);
 		_exits(nil);
