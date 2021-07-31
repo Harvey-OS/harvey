@@ -1501,6 +1501,7 @@ iscontig(Xfs *xf, Dosdir *d)
 			return 0;
 		clust = next;
 	}
+	return 0;	/* not reached */
 }
 
 /*

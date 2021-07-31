@@ -476,7 +476,6 @@ EXTERN	int	packflg;
 EXTERN	int	fproundflg;
 EXTERN	int	profileflg;
 EXTERN	Bits	zbits;
-EXTERN	int	little;
 
 extern	char	*onames[], *tnames[], *gnames[];
 extern	char	*cnames[], *qnames[], *bnames[];

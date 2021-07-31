@@ -7,28 +7,27 @@
 
 /*
  * known debug flags
- *	-a		acid declaration output
- *	-A		!B
- *	-B		non ANSI
- *	-d		print declarations
- *	-D name		define
- *	-F		format specification check
- *	-i		print initialization
- *	-I path		include
- *	-l		generate little-endian code
- *	-L		print every NAME symbol
- *	-M		constant multiplication
- *	-m		print add/sub/mul trees
- *	-n		print acid to file (%.c=%.acid) (with -a or -aa)
  *	-o file		output file
- *	-p		use standard cpp ANSI preprocessor (not on windows)
- *	-r		print registerization
- *	-s		print structure offsets (with -a or -aa)
+ *	-D name		define
+ *	-I path		include
+ *	-a		acid declaration output
+ *	-M		constant multiplication
+ *	-B		non ANSI
+ *	-A		!B
+ *	-d		print declarations
  *	-t		print type trees
- *	-V		enable void* conversion warnings
+ *	-L		print every NAME symbol
+ *	-i		print initialization
+ *	-F		format specification check
+ *	-r		print registerization
  *	-v		verbose printing
- *	-w		print warnings
  *	-X		abort on error
+ *	-w		print warnings
+ *	-m		print add/sub/mul trees
+ *	-s		print structure offsets (with -a or -aa)
+ *	-n		print acid to file (%.c=%.acid) (with -a or -aa)
+ *	-p		use standard cpp ANSI preprocessor (not on windows)
+ *	-V		enable void* conversion warnings
  */
 
 void
@@ -53,16 +52,6 @@ main(int argc, char *argv[])
 		c = ARGC();
 		if(c >= 0 && c < sizeof(debug))
 			debug[c]++;
-		break;
-
-	case 'l':			/* for little-endian mips */
-		if(thechar != 'v'){
-			print("can only use -l with vc");
-			errorexit();
-		}
-		thechar = '0';
-		thestring = "spim";
-		little = 1;
 		break;
 
 	case 'o':

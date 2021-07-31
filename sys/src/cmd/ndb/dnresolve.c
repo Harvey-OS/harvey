@@ -389,6 +389,8 @@ readreply(int fd, DN *dp, int type, ushort req,
 
 		return 0;
 	}
+
+	return 0;	/* never reached */
 }
 
 /*

@@ -237,7 +237,6 @@ EXTERN	int	version;
 EXTERN	char	xcmp[32][32];
 EXTERN	Prog	zprg;
 EXTERN	int	dtype;
-EXTERN	int	little;
 
 EXTERN	struct
 {
@@ -299,7 +298,6 @@ void	loadlib(void);
 void	listinit(void);
 Sym*	lookup(char*, int);
 void	lput(long);
-void	bput(long);
 void	mkfwd(void);
 void*	mysbrk(ulong);
 void	names(void);
