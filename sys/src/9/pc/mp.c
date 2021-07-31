@@ -145,14 +145,13 @@ mkioapic(PCMPioapic* p)
 	/*
 	 * Map the I/O APIC.
 	 */
-	if((va = vmap(p->addr, 1024)) == nil)
+	if((va = vmap(p->addr, 1024)) == 0)
 		return 0;
 
 	apic = &mpapic[p->apicno];
 	apic->type = PcmpIOAPIC;
 	apic->apicno = p->apicno;
 	apic->addr = va;
-	apic->paddr = p->addr;
 	apic->flags = p->flags;
 
 	return apic;
@@ -484,7 +483,6 @@ mpinit(void)
 	 */
 	if((va = vmap(pcmp->lapicbase, 1024)) == nil)
 		return;
-	print("LAPIC: %.8lux %.8lux\n", pcmp->lapicbase, (ulong)va);
 
 	bpapic = nil;
 
@@ -516,7 +514,6 @@ mpinit(void)
 			 * first in the table before the others.
 			 */
 			apic->addr = va;
-			apic->paddr = pcmp->lapicbase;
 			if(apic->flags & PcmpBP)
 				bpapic = apic;
 		}
@@ -670,7 +667,6 @@ mpintrenablex(Vctl* v, int tbdf)
 			vno = lo & 0xFF;
 			n = mpintrinit(bus, aintr->intr, vno, v->irq);
 			n |= ApicLOGICAL;
-			lo &= ~(ApicRemoteIRR|ApicDELIVS);
 			if(n != lo || !(n & ApicLEVEL)){
 				print("mpintrenable: multiple botch irq%d, tbdf %uX, lo %8.8uX, n %8.8uX\n",
 					v->irq, tbdf, lo, n);

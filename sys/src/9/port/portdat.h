@@ -416,7 +416,6 @@ struct Segment
 	Pte	**map;
 	int	mapsize;
 	Pte	*ssegmap[SSEGMAPSIZE];
-	ulong	mark;	/* portcountrefs */
 };
 
 enum
@@ -495,7 +494,6 @@ struct Palloc
 	Page	*head;			/* most recently used */
 	Page	*tail;			/* least recently used */
 	ulong	freecount;		/* how many pages on free list now */
-	Page	*pages;			/* array of all pages */
 	ulong	user;			/* how many user pages */
 	Page	*hash[PGHSIZE];
 	Lock	hashlock;

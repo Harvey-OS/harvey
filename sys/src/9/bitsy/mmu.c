@@ -505,12 +505,4 @@ peekmmu(ulong va)
 	}
 }
 
-void
-checkmmu(ulong, ulong)
-{
-}
-
-void
-countpagerefs(ulong*, int)
-{
-}
+void checkmmu(ulong, ulong) { }

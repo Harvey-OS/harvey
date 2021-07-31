@@ -157,7 +157,6 @@ typedef struct Apic {
 	int	type;
 	int	apicno;
 	ulong*	addr;			/* register base address */
-	ulong	paddr;
 	int	flags;			/* PcmpBP|PcmpEN */
 
 	Lock;				/* I/O APIC: register access */

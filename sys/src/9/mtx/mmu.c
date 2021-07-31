@@ -231,12 +231,4 @@ putmmu(ulong va, ulong pa, Page *pg)
 	}
 }
 
-void
-checkmmu(ulong, ulong)
-{
-}
-
-void
-countpagerefs(ulong*, int)
-{
-}
+void checkmmu(ulong, ulong) { }
