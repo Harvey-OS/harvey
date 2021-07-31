@@ -72,15 +72,13 @@ ibrk(uintptr addr, int seg)
 		return s->top;
 
 	qlock(&s->lk);
-	if(waserror()){
-		qunlock(&s->lk);
-		nexterror();
-	}
 
 	/* We may start with the bss overlapping the data */
 	if(addr < s->base) {
-		if(seg != BSEG || up->seg[DSEG] == 0 || addr < up->seg[DSEG]->base)
+		if(seg != BSEG || up->seg[DSEG] == 0 || addr < up->seg[DSEG]->base) {
+			qunlock(&s->lk);
 			error(Enovmem);
+		}
 		addr = s->base;
 	}
 
@@ -93,11 +91,12 @@ ibrk(uintptr addr, int seg)
 		 * to-be-freed address space may have been passed to the kernel
 		 * already by another proc and is past the validaddr stage.
 		 */
-		if(s->ref > 1)
+		if(s->ref > 1){
+			qunlock(&s->lk);
 			error(Einuse);
+		}
 		mfreeseg(s, newtop, s->top);
 		s->top = newtop;
-		poperror();
 		s->size = newsize;
 		qunlock(&s->lk);
 		mmuflush();
@@ -108,13 +107,17 @@ ibrk(uintptr addr, int seg)
 		ns = up->seg[i];
 		if(ns == 0 || ns == s)
 			continue;
-		if(newtop >= ns->base && newtop < ns->top)
+		if(newtop >= ns->base && newtop < ns->top) {
+			qunlock(&s->lk);
 			error(Esoverlap);
+		}
 	}
 
 	mapsize = HOWMANY(newsize, PTEPERTAB);
-	if(mapsize > SEGMAPSIZE)
+	if(mapsize > SEGMAPSIZE) {
+		qunlock(&s->lk);
 		error(Enovmem);
+	}
 	if(mapsize > s->mapsize){
 		map = smalloc(mapsize*sizeof(Pte*));
 		memmove(map, s->map, s->mapsize*sizeof(Pte*));
@@ -126,8 +129,6 @@ ibrk(uintptr addr, int seg)
 
 	s->top = newtop;
 	s->size = newsize;
-
-	poperror();
 	qunlock(&s->lk);
 
 	return newtop;
