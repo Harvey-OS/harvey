@@ -13,8 +13,6 @@ dev
 	tls
 	cap
 	kprof
-	aoe
-	sd
 #	flash
 #	pnp		pci
 
@@ -44,7 +42,6 @@ misc
 	softfpu
 	syscall
 	uartkw
-	sdaoe		sdscsi
 
 port
 	int cpuserver = 1;

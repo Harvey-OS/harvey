@@ -3232,7 +3232,7 @@ addrmapdump(void)
 			targ = WINTARG(ctl);
 			attr = WINATTR(ctl);
 			size64k = WIN64KSIZE(ctl);
-			print("usbehci: address map window %d: "
+			print("usb address map window %d: "
 				"targ %ld attr %#lux size %,ld addr %#lux\n",
 				i, targ, attr, size64k * 64*1024, win->base);
 		}
@@ -3262,14 +3262,11 @@ ctlrreset(Ctlr *ctlr)
 	coherence();
 }
 
-/*
- * configure window `win' as 256MB dram with attribute `attr' and
- * base address
- */
 static void
 setaddrwin(Kwusb *kw, int win, int attr, ulong base)
 {
-	kw->win[win].ctl = Winenable | Targdram << 4 | attr << 8 |
+	/* target 0, size 256MB */
+	kw->win[win].ctl = Winenable | 0 << 4 | attr << 8 |
 		SIZETO64KSIZE(256*MB) << 16;
 	kw->win[win].base = base;
 }
@@ -3287,8 +3284,7 @@ ehcireset(Ctlr *ctlr)
 	opio = ctlr->opio;
 
 	kw = (Kwusb *)(Addrusb + 0x300);
-	kw->bic = 0;
-	kw->bim = (1<<4) - 1;		/* enable all defined intrs */
+	kw->bic = kw->bim = 0;
 	ctlrreset(ctlr);
 
 	/*
@@ -3324,16 +3320,16 @@ ehcireset(Ctlr *ctlr)
 		kw->win[i].ctl = kw->win[i].base = 0;
 	coherence();
 
-	setaddrwin(kw, 0, Attrcs0, 0);
-	setaddrwin(kw, 1, Attrcs1, 256*MB);
-//	setaddrwin(kw, 2, Attrcs0, (ulong)KADDR(0));
-//	setaddrwin(kw, 3, Attrcs1, (ulong)KADDR(256*MB));
+	setaddrwin(kw, 0, 0xe, 0);		/* attr 0xe: sdram cs 0 */
+	setaddrwin(kw, 1, 0xd, 256*MB);		/* attr 0xd: sdram cs 1 */
+	setaddrwin(kw, 2, 0xe, (ulong)KADDR(0));      /* attr 0xe: sdram cs 0 */
+	setaddrwin(kw, 3, 0xd, (ulong)KADDR(256*MB)); /* attr 0xd: sdram cs 1 */
 	coherence();
 
 	if (kw->bcs & (1 << 4))
-		print("usbehci: not swapping bytes\n");
+		print("usb BS bit is one, thus no byte swapping\n");
 	else
-		print("usbehci: swapping bytes\n");
+		print("usb BS bit is zero, thus byte swapping\n");
 	addrmapdump();				/* verify sanity */
 
 	kw->pwrctl |= 1 << 0 | 1 << 1;		/* Pu | PuPll */
