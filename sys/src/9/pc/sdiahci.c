@@ -1936,7 +1936,6 @@ loop:
 			d->portno = i;
 			d->driveno = -1;
 			d->sectors = 0;
-			d->serial[0] = ' ';
 			d->ctlr = c;
 			if((c->hba->pi & (1<<i)) == 0)
 				continue;
