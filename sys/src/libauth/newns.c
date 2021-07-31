@@ -22,58 +22,57 @@ static int	catch(void*, char*);
 int newnsdebug;
 
 static int
-freecloserpc(AuthRpc *rpc)
-{
-	if(rpc){
-		close(rpc->afd);
-		auth_freerpc(rpc);
-	}
-	return -1;
-}
-
-static int
 buildns(int newns, char *user, char *file)
 {
 	Biobuf *b;
 	char home[4*ANAMELEN];
-	int afd, cdroot;
-	char *path;
+	int afd;
 	AuthRpc *rpc;
+	int cdroot;
+	char *path;
 
 	rpc = nil;
 	/* try for factotum now because later is impossible */
 	afd = open("/mnt/factotum/rpc", ORDWR);
-	if(afd < 0 && newnsdebug)
+	if (afd < 0 && newnsdebug)
 		fprint(2, "open /mnt/factotum/rpc: %r\n");
 	if(afd >= 0){
 		rpc = auth_allocrpc(afd);
-		if(rpc == nil)
+		if(rpc == nil){
 			close(afd);
+			afd = -1;
+		}
 	}
-	/* rpc != nil iff afd >= 0 */
-
 	if(file == nil){
 		if(!newns){
 			werrstr("no namespace file specified");
-			return freecloserpc(rpc);
+			return -1;
 		}
 		file = "/lib/namespace";
 	}
 	b = Bopen(file, OREAD);
 	if(b == 0){
 		werrstr("can't open %s: %r", file);
-		return freecloserpc(rpc);
+		close(afd);
+		auth_freerpc(rpc);
+		return -1;
 	}
 	if(newns){
 		rfork(RFENVG|RFCNAMEG);
 		setenv("user", user);
-		snprint(home, sizeof home, "/usr/%s", user);
+		snprint(home, 2*ANAMELEN, "/usr/%s", user);
 		setenv("home", home);
 	}
-
+	/*
+	 * if rpc==nil here, a suicide will result when it's
+	 * dereferenced, typically in memmove, from auth_rpc.
+	 */
 	cdroot = nsfile(newns ? "newns" : "addns", b, rpc);
 	Bterm(b);
-	freecloserpc(rpc);
+	if(rpc){
+		close(rpc->afd);
+		auth_freerpc(rpc);
+	}
 
 	/* make sure we managed to cd into the new name space */
 	if(newns && !cdroot){
@@ -127,7 +126,6 @@ famount(int fd, AuthRpc *rpc, char *mntpt, int flags, char *aname)
 {
 	int afd;
 	AuthInfo *ai;
-	int ret;
 
 	afd = fauth(fd, aname);
 	if(afd >= 0){
@@ -135,10 +133,7 @@ famount(int fd, AuthRpc *rpc, char *mntpt, int flags, char *aname)
 		if(ai != nil)
 			auth_freeAI(ai);
 	}
-	ret = mount(fd, afd, mntpt, flags, aname);
-	if(afd >= 0)
-		close(afd);
-	return ret;
+	return mount(fd, afd, mntpt, flags, aname);
 }
 
 static int

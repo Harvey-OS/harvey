@@ -131,14 +131,14 @@ main(int argc, char **argv)
 		}
 		break;
 	case 'k':
-		keyspec = smprint("%s %s", keyspec, EARGF(usage()));
+		keyspec = EARGF(usage());
 		break;
 	case 'P':
 		patternfile = EARGF(usage());
 		break;
 	case 'u':
 		user = EARGF(usage());
-		keyspec = smprint("%s user=%s", keyspec, user);
+		keyspec = smprint("user=%s", user);
 		break;
 	default:
 		usage();

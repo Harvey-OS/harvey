@@ -29,7 +29,6 @@ main(int argc, char **argv)
 	char *nsfile, err[ERRMAX];
 	int add;
 
-	rfork(RFNAMEG);
 	add = 0;
 	nsfile = "/lib/namespace";
 	ARGBEGIN{
