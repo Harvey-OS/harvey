@@ -2234,19 +2234,6 @@ setdebug(Hci*, int d)
 	debug = d;
 }
 
-static void
-shutdown(Hci *hp)
-{
-	Ctlr *ctlr;
-
-	ctlr = hp->aux;
-
-	ilock(ctlr);
-	uhcirun(ctlr, 0);
-	delay(100);
-	iunlock(ctlr);
-}
-
 static int
 reset(Hci *hp)
 {
@@ -2302,7 +2289,6 @@ reset(Hci *hp)
 	hp->portenable = portenable;
 	hp->portreset = portreset;
 	hp->portstatus = portstatus;
-	hp->shutdown = shutdown;
 	hp->debug = setdebug;
 	hp->type = "uhci";
 	return 0;
