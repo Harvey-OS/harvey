@@ -1680,7 +1680,8 @@ char isfrog[256]={
 static char*
 validname0(char *aname, int slashok, int dup, ulong pc)
 {
-	char *ename, *name, *s;
+	char *p, *ename, *name, *s;
+	uint t;
 	int c, n;
 	Rune r;
 
@@ -1689,7 +1690,12 @@ validname0(char *aname, int slashok, int dup, ulong pc)
 		validaddr((ulong)name, 1, 0);
 		if(!dup)
 			print("warning: validname called from %lux with user pointer", pc);
-		ename = vmemchr(name, 0, (1<<16));
+		p = name;
+		t = BY2PG-((ulong)p&(BY2PG-1));
+		while((ename=vmemchr(p, 0, t)) == nil){
+			p += t;
+			t = BY2PG;
+		}
 	}else
 		ename = memchr(name, 0, (1<<16));
 
