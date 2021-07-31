@@ -1,6 +1,5 @@
 #include "vnc.h"
 #include <keyboard.h>
-#include "utf2ksym.h"
 
 enum {
 	Xshift = 0xFFE1,
@@ -89,8 +88,7 @@ void
 readkbd(Vnc *v)
 {
 	char buf[256], k[10];
-	ulong ks;
-	int ctlfd, fd, kr, kn, w, shift, ctl, alt;
+	int ctlfd, fd, kr, kn, ks, w, shift, ctl, alt;
 	Rune r;
 
 	snprint(buf, sizeof buf, "%s/cons", display->devdir);
@@ -145,12 +143,6 @@ readkbd(Vnc *v)
 					shift = 1;
 					keyevent(v, Xshift, 1);
 				}
-				/*
-				 * map an xkeysym onto a utf-8 char.
-				 * allows Xvnc to read us, see utf2ksym.h
-				 */
-				if((ks & 0xff00) && ks < nelem(utf2ksym) && utf2ksym[ks] != 0)
-					ks = utf2ksym[ks];
 				keyevent(v, ks, 1);
 				/*
 				 * up event needed by vmware inside linux vnc server,
