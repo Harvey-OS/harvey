@@ -8,7 +8,7 @@ LDFLAGS=
 YFLAGS=-d
 
 NOTSYS=sml|dup
-BUGGERED=gc|lmlvideo|dwb|unix|perl|celp|mosml|ovac|vfs|aviation|_vnc|postscript|nventi|cvsold|cvs
+BUGGERED=gc|lmlvideo|dwb|unix|perl|celp|mosml|ovac|vfs|aviation|_vnc|postscript
 OUTOFDATE=old|ssls
 
 NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
@@ -116,14 +116,11 @@ $O.cj:	cj.$O
 compilers:V:
 	@{
 		cd cc
-		mk clean
 		mk installall
 		mk clean
 	}
-	for(i in ?c)
-	if(! ~ $i cc rc) @{
+	for(i in 1c 2c 5c 7c 8c kc qc vc) @{
 		cd $i;
-		mk clean
 		mk installall
 		mk clean
 	}

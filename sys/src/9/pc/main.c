@@ -70,9 +70,7 @@ options(void)
 	}
 }
 
-extern void mmuinit0(void);
-extern void (*i8237alloc)(void);
-
+void mmuinit0(void);
 void
 main(void)
 {
@@ -95,8 +93,6 @@ main(void)
 	confinit();
 	archinit();
 	xinit();
-	if(i8237alloc != nil)
-		i8237alloc();
 	trapinit();
 	printinit();
 	cpuidprint();

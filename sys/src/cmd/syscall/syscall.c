@@ -3,7 +3,7 @@
 #include <sys.h>
 #include <fcall.h>
 
-char	buf[1048576];
+char	buf[8192];
 #define	NARG	5
 uintptr	arg[NARG];
 
