@@ -212,12 +212,12 @@ main(int argc, char **argv)
 	char cmdline[4*1024];
 	Cmd cmd;
 	Ctype *cp;
+	char *err;
 	int n, cflag;
 	char *av[4];
 	String *prompt;
-	char *err, *file, *singleton;
+	char *file, *singleton;
 
-	quotefmtinstall();
 	Binit(&out, 1, OWRITE);
 
 	file = nil;
@@ -1709,8 +1709,12 @@ tomailer(char **av)
 		return -1;
 	case 0:
 		Bprint(&out, "!/bin/upas/marshal");
-		for(i = 1; av[i]; i++)
-			Bprint(&out, " %q", av[i]);
+		for(i = 1; av[i]; i++){
+			if(strchr(av[i], ' ') != nil)
+				Bprint(&out, " '%s'", av[i]);
+			else
+				Bprint(&out, " %s", av[i]);
+		}
 		Bprint(&out, "\n");
 		Bflush(&out);
 		av[0] = "marshal";

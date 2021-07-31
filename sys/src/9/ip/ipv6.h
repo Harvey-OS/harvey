@@ -20,6 +20,10 @@
 #define optexsts(np)	(nhgets((np)->ploadlen) > 24)
 #define issmcast(addr)	(memcmp((addr), v6solicitednode, 13) == 0)
 
+#ifndef MIN
+#define MIN(a, b) ((a) <= (b)? (a): (b))
+#endif
+
 enum {				/* Header Types */
 	HBH		= 0,	/* hop-by-hop multicast routing protocol */
 	ICMP		= 1,
