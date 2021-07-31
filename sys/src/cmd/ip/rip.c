@@ -202,7 +202,7 @@ void
 main(int argc, char *argv[])
 {
 	int i, n;
-	OUdphdr *up;
+	Udphdr *up;
 	Ripmsg *m;
 	Rip *r;
 	Route route;
@@ -212,7 +212,6 @@ main(int argc, char *argv[])
 	long diff;
 	char *p;
 	static long btime;
-	uchar raddr[Pasize];
 
 
 	setnetmtpt(netdir, sizeof(netdir), nil);
@@ -292,24 +291,23 @@ main(int argc, char *argv[])
 		if(n <= 0)
 			continue;
 
-		n = (n-OUdphdrsize-4)/sizeof(Rip);
+		n = (n-Udphdrsize-4)/sizeof(Rip);
 		if(n <= 0)
 			continue;
 
-		up = (OUdphdr*)buf;
-		m = (Ripmsg*)(buf+OUdphdrsize);
+		up = (Udphdr*)buf;
+		m = (Ripmsg*)(buf+Udphdrsize);
 		if(m->type != Response || m->vers != Version)
 			continue;
-		v6tov4(raddr, up->raddr);
 
 		/* ignore our own messages */
 		for(i = 0; i < ialloc.nifc; i++)
-			if(equivip(ialloc.ifc[i].addr, raddr))
+			if(equivip(ialloc.ifc[i].addr, up->raddr))
 				continue;
 
 		now = time(0);
 		for(r = m->rip; r < &m->rip[n]; r++){
-			memmove(route.gate, raddr, Pasize);
+			memmove(route.gate, up->raddr, Pasize);
 			memmove(route.mask, getmask(r->addr), Pasize);
 			v4maskip(r->addr, route.mask, route.dest);
 			route.metric = nhgetl(r->metric) + 1;
@@ -332,9 +330,8 @@ openport(void)
 	ripctl = announce(data, devdir);
 	if(ripctl < 0)
 		fatal(1, "can't announce");
-	if(fprint(ripctl, "headers") < 0)
+	if(write(ripctl, "headers4", sizeof("headers")) < 0)
 		fatal(1, "can't set header mode");
-	fprint(ripctl, "oldheaders");
 
 	sprint(data, "%s/data", devdir);
 
@@ -615,17 +612,15 @@ sendto(Ifc *ip)
 {
 	int h, n;
 	Route *r;
-	uchar mbuf[OUdphdrsize+512];
+	uchar mbuf[Udphdrsize+512];
 	Ripmsg *m;
-	OUdphdr *u;
-	uchar raddr[Pasize];
+	Udphdr *u;
 
-	u = (OUdphdr*)mbuf;
+	u = (Udphdr*)mbuf;
 	for(n = 0; n < Pasize; n++)
-		raddr[n] = ip->net[n] | ~(ip->mask[n]);
-	v4tov6(u->raddr, raddr);
+		u->raddr[n] = ip->net[n] | ~(ip->mask[n]);
 	hnputs(u->rport, 520);
-	m = (Ripmsg*)(mbuf+OUdphdrsize);
+	m = (Ripmsg*)(mbuf+Udphdrsize);
 	m->type = Response;
 	m->vers = Version;
 	if(debug)
@@ -666,14 +661,14 @@ sendto(Ifc *ip)
 				fprint(2, " %16V & %16V -> %16V %2d\n", r->dest, r->mask, r->gate, r->metric);
 
 			if(++n == Maxroutes && !readonly){
-				write(ripfd, mbuf, OUdphdrsize+4+n*20);
+				write(ripfd, mbuf, Udphdrsize+4+n*20);
 				n = 0;
 			}
 		}
 	}
 
 	if(n && !readonly)
-		write(ripfd, mbuf, OUdphdrsize+4+n*20);
+		write(ripfd, mbuf, Udphdrsize+4+n*20);
 }
 void
 broadcast(void)

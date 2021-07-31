@@ -243,7 +243,6 @@ walkup(char *name)
  *  into "headers" mode.
  */
 static char *hmsg = "headers";
-static char *ohmsg = "oldheaders";
 
 static int
 udpport(void)
@@ -266,7 +265,6 @@ udpport(void)
 		warning(hmsg);
 		return -1;
 	}
-	write(ctl, ohmsg, strlen(ohmsg));
 
 	/* grab the data file */
 	snprint(ds, sizeof(ds), "%s/data", adir);
