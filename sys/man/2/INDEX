@@ -568,6 +568,8 @@ scanf fscanf
 sscanf fscanf
 vfscanf fscanf
 fversion fversion
+genrandom genrandom
+prng genrandom
 getcallerpc getcallerpc
 getenv getenv
 putenv getenv
@@ -1072,13 +1074,11 @@ unquoterunestrdup quote
 unquotestrdup quote
 fastrand rand
 frand rand
-genrandom rand
 lnrand rand
 lrand rand
 nfastrand rand
 nrand rand
 ntruerand rand
-prng rand
 rand rand
 srand rand
 truerand rand
