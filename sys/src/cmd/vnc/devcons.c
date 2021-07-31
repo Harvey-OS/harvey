@@ -230,7 +230,7 @@ consopen(Chan *c, int omode)
 		qunlock(&kbd);
 		break;
 	case Qsnarf:
-		if((c->mode&3) == OWRITE || (c->mode&3) == ORDWR)
+		if(c->mode == OWRITE || c->mode == ORDWR)
 			c->aux = smalloc(sizeof(Snarf));
 		break;
 	}
@@ -289,9 +289,8 @@ consclose(Chan *c)
 static long
 consread(Chan *c, void *buf, long n, vlong off)
 {
-	char *cbuf, ch;
-	int i, eol;
-	int	send;
+	char *cbuf;
+	int i, ch, eol;
 
 	if(n <= 0)
 		return n;
@@ -316,40 +315,48 @@ consread(Chan *c, void *buf, long n, vlong off)
 			qunlock(&kbd);
 			nexterror();
 		}
-		while(!qcanread(lineq)){
-			qread(kbdq, &ch, 1);
-			send = 0;
-			if(ch == 0){
-				/* flush output on rawoff -> rawon */
-				if(kbd.x > 0)
-					send = !qcanread(kbdq);
-			}else if(kbd.raw){
-				kbd.line[kbd.x++] = ch;
-				send = !qcanread(kbdq);
-			}else{
+		if(kbd.raw){
+			cbuf = buf;
+			if(qcanread(lineq))
+				n = qread(lineq, buf, n);
+			else {
+				/* read as much as possible */
+				do {
+					i = qread(kbdq, cbuf, n);
+					cbuf += i;
+					n -= i;
+				} while (n>0 && qcanread(kbdq));
+				n = cbuf - (char*)buf;
+			}
+		} else {
+			while(!qcanread(lineq)){
+				qread(kbdq, &kbd.line[kbd.x], 1);
+				ch = kbd.line[kbd.x];
+				eol = 0;
 				switch(ch){
 				case '\b':
-					if(kbd.x > 0)
+					if(kbd.x)
 						kbd.x--;
 					break;
-				case 0x15:	/* ^U */
+				case 0x15:
 					kbd.x = 0;
 					break;
 				case '\n':
-				case 0x04:	/* ^D */
-					send = 1;
+				case 0x04:
+					eol = 1;
 				default:
-					if(ch != 0x04)
-						kbd.line[kbd.x++] = ch;
+					kbd.line[kbd.x++] = ch;
 					break;
 				}
+				if(kbd.x == sizeof(kbd.line) || eol){
+					if(ch == 0x04)
+						kbd.x--;
+					qwrite(lineq, kbd.line, kbd.x);
+					kbd.x = 0;
+				}
 			}
-			if(send || kbd.x == sizeof kbd.line){
-				qwrite(lineq, kbd.line, kbd.x);
-				kbd.x = 0;
-			}
+			n = qread(lineq, buf, n);
 		}
-		n = qread(lineq, buf, n);
 		qunlock(&kbd);
 		poperror();
 		return n;
@@ -366,7 +373,6 @@ conswrite(Chan *c, void *va, long n, vlong)
 {
 	Snarf *t;
 	char buf[256], *a;
-	char ch;
 
 	switch((ulong)c->qid.path){
 	case Qcons:
@@ -380,12 +386,18 @@ conswrite(Chan *c, void *va, long n, vlong)
 		buf[n] = 0;
 		for(a = buf; a;){
 			if(strncmp(a, "rawon", 5) == 0){
+				qlock(&kbd);
+				if(kbd.x){
+					qwrite(kbdq, kbd.line, kbd.x);
+					kbd.x = 0;
+				}
 				kbd.raw = 1;
-				/* clumsy hack - wake up reader */
-				ch = 0;
-				qwrite(kbdq, &ch, 1);			
+				qunlock(&kbd);
 			} else if(strncmp(a, "rawoff", 6) == 0){
+				qlock(&kbd);
 				kbd.raw = 0;
+				kbd.x = 0;
+				qunlock(&kbd);
 			}
 			if(a = strchr(a, ' '))
 				a++;

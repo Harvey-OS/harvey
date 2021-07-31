@@ -81,8 +81,6 @@ catch(void *a, char *msg)
 	USED(a);
 	if(strstr(msg, "alarm"))
 		noted(NCONT);
-	else if(strstr(msg, "die"))
-		exits("errors");
 	else
 		noted(NDFLT);
 }
@@ -96,7 +94,7 @@ clean(ushort seq, vlong now, Icmp *ip)
 	for(l = &first; *l; ){
 		r = *l;
 
-		if(ip && r->seq == seq){
+		if(r->seq == seq){
 			r->rtt = now-r->time;
 			r->ttl = ip->ttl;
 			reply(r, ip);
@@ -105,8 +103,7 @@ clean(ushort seq, vlong now, Icmp *ip)
 		if(now-r->time > MINUTE){
 			*l = r->next;
 			r->rtt = now-r->time;
-			if(ip)
-				r->ttl = ip->ttl;
+			r->ttl = ip->ttl;
 			if(r->replied == 0)
 				lost(r, ip);
 			free(r);
@@ -180,15 +177,14 @@ rcvr(int fd, int msglen, int interval, int nmsg, int senderpid)
 	ip = (Icmp*)buf;
 	sum = 0;
 
-	while(lostmsgs+rcvdmsgs < nmsg){
+	while(!done || first != nil){
 		alarm((nmsg-lostmsgs-rcvdmsgs)*interval+5000);
 		n = read(fd, buf, sizeof(buf));
 		alarm(0);
 		now = nsec();
-		if(n <= 0){	/* read interrupted - time to go */
-fprint(2, "clean\n");
-			clean(0, now+MINUTE, nil);
-			continue;
+		if(n <= 0){
+			print("read: %r\n");
+			break;
 		}
 		if(n < msglen){
 			print("bad len %d/%d\n", n, msglen);
@@ -217,6 +213,7 @@ fprint(2, "clean\n");
 
 	if(lostmsgs)
 		print("%d out of %d messages lost\n", lostmsgs, lostmsgs+rcvdmsgs);
+	postnote(PNPROC, senderpid, "die");
 }
 
 void
@@ -232,7 +229,6 @@ main(int argc, char **argv)
 	int fd;
 	int msglen, interval, nmsg;
 	int pid;
-	char err[ERRMAX];
 
 	nsec();		/* make sure time file is already open */
 
@@ -303,10 +299,9 @@ main(int argc, char **argv)
 void
 reply(Req *r, Icmp *ip)
 {
+	rcvdmsgs++;
 	r->rtt /= 1000LL;
 	sum += r->rtt;
-	if(!r->replied)
-		rcvdmsgs++;
 	if(!quiet && !lostonly){
 		if(addresses)
 			print("%ud: %V->%V rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
@@ -326,11 +321,14 @@ lost(Req *r, Icmp *ip)
 {
 	if(!quiet){
 		if(addresses)
-			print("lost %ud: %V->%V\n", r->seq-firstseq,
-				ip->src, ip->dst);
+			print("lost %ud: %V->%V avg rtt %lld µs\n",
+				r->seq-firstseq,
+				ip->src, ip->dst,
+				sum/rcvdmsgs);
 		else
-			print("lost %ud\n", r->seq-firstseq);
+			print("lost %ud: avg rtt %lld µs\n",
+				r->seq-firstseq,
+				sum/rcvdmsgs);
 	}
 	lostmsgs++;
 }
-
