@@ -17,6 +17,7 @@ UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/ip/%}\
 
 </sys/src/cmd/mkone
 

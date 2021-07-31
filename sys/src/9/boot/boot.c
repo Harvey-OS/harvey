@@ -39,10 +39,10 @@ boot(int argc, char *argv[])
 	bind("#c", "/dev", MAFTER);
 	/*
 	 * init will reinitialize its namespace.
-	 * #ec gets us plan9.ini settings (*var variables).
+	 * #ec gets us plan9.ini settings.
 	 */
-	bind("#ec", "/env", MREPL);
-	bind("#e", "/env", MBEFORE|MCREATE);
+	bind("#ec", "/env", MREPL|MCREATE);
+	bind("#e", "/env", MAFTER);
 	bind("#s", "/srv", MREPL|MCREATE);
 #ifdef DEBUG
 	print("argc=%d\n", argc);

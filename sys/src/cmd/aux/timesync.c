@@ -41,7 +41,6 @@ vlong avgdelay;
 vlong lastutc;
 uchar rootid[4];
 char *sysid;
-int myprec;
 
 // list of time samples
 typedef struct Sample Sample;
@@ -82,6 +81,7 @@ struct NTPserver
 	uchar	precision;
 	vlong	rootdelay;
 	vlong	rootdisp;
+	vlong	disp;
 	vlong	rtt;
 	vlong	dt;
 };
@@ -100,7 +100,6 @@ static void	background(void);
 static int	caperror(vlong dhz, int tsecs, vlong taccuracy);
 static long	fstime(void);
 static int	gettime(vlong *nsec, uvlong *ticks, uvlong *hz); // returns time, ticks, hz
-static int	getclockprecision(vlong);
 static void	hnputts(void *p, vlong nsec);
 static void	hnputts(void *p, vlong nsec);
 static void	inittime(void);
@@ -266,7 +265,6 @@ main(int argc, char **argv)
 	gettime(0, 0, &hz);
 	minhz = hz - (hz>>2);
 	maxhz = hz + (hz>>2);
-	myprec = getclockprecision(hz);
 
 	// convert the accuracy from nanoseconds to ticks
 	taccuracy = hz*accuracy/SEC;
@@ -973,7 +971,12 @@ ntpsample(void)
 	for(tns = ntpservers; tns != nil; tns = tns->next){
 		if(ntptimediff(tns) < 0)
 			continue;
-		x = vabs(tns->rootdisp) + (vabs(tns->rtt+tns->rootdelay)>>1);
+		if(tns->stratum == 0)
+			x = 0xff;
+		else
+			x = tns->stratum;
+		x *= SEC;
+		x += (vabs(tns->rootdelay+tns->rtt)>>1) + tns->rootdisp + tns->rtt;
 		if(debug)
 			fprint(2, "ntp %s rootdelay %lld rootdisp %lld metric %lld\n",
 				tns->name, tns->rootdelay, tns->rootdisp, x);
@@ -988,9 +991,10 @@ ntpsample(void)
 
 	// save data for our server
 	rootdisp = ns->rootdisp;
-	rootdelay = ns->rootdelay;
+	rootdelay = ns->rootdelay+ns->rtt;
 	mydelay = ns->rtt;
-	mydisp = avgerr;
+	x = vabs(ns->dt);
+	mydisp = ns->disp+avgerr;
 	if(ns->stratum == 0)
 		stratum = 0;
 	else
@@ -1096,7 +1100,6 @@ ntpserver(char *servenet)
 
 		ntp->mode = (vers<<3)|4;
 		ntp->stratum = stratum;
-		ntp->precision = myprec;
 		hnputfp(ntp->rootdelay, rootdelay + mydelay);
 		hnputfp(ntp->rootdisp, rootdisp + mydisp);
 		hnputts(ntp->refts, lastutc);
@@ -1282,17 +1285,4 @@ background(void)
 		}
 	}
 	inbackground = 1;
-}
-
-static int
-getclockprecision(vlong hz)
-{
-	int i;
-
-	i = 8;
-	while(hz > 0){
-		i--;
-		hz >>= 1;
-	}
-	return i;
 }

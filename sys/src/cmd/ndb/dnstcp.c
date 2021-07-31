@@ -13,7 +13,6 @@ char	*dbfile;
 int	debug;
 int	cachedb = 1;
 int	testing;
-int traceactivity;
 int	needrefresh;
 int 	resolver;
 char	mntpt[Maxpath];

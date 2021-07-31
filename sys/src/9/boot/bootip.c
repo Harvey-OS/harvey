@@ -12,9 +12,8 @@ static int isvalidip(uchar*);
 static void netndb(char*, uchar*);
 static void netenv(char*, uchar*);
 
-
 void
-configip(int bargc, char **bargv, int needfs)
+configip(void)
 {
 	int argc, pid;
 	char **argv, *p;
@@ -57,6 +56,7 @@ configip(int bargc, char **bargv, int needfs)
 	bind("#l3", mpoint, MAFTER);
 	werrstr("");
 
+	print("ip...");
 	/* let ipconfig configure the ip interface */
 	switch(pid = fork()){
 	case -1:
@@ -80,9 +80,6 @@ configip(int bargc, char **bargv, int needfs)
 			fatal("configuring ip");
 		free(w);
 	}
-
-	if(!needfs)
-		return;
 
 	/* if we didn't get a file and auth server, query user */
 	netndb("fs", fsip);
@@ -116,7 +113,13 @@ setauthaddr(char *proto, int port)
 void
 configtcp(Method*)
 {
-	configip(bargc, bargv, 1);
+	sleep(100);
+	print("t");
+	sleep(100);
+	configip();
+	sleep(100);
+	print(".");
+	sleep(100);
 	setauthaddr("tcp", 567);
 }
 
@@ -132,7 +135,7 @@ connecttcp(void)
 void
 configil(Method*)
 {
-	configip(bargc, bargv, 1);
+	configip();
 	setauthaddr("tcp", 567);
 }
 

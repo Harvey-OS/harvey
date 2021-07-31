@@ -1670,7 +1670,7 @@ post(char *name, char *envname, int srvfd)
 
 	fd = create(name, OWRITE, 0600);
 	if(fd < 0)
-		error("post failed");
+		return;
 	sprint(buf, "%d",srvfd);
 	if(write(fd, buf, strlen(buf)) != strlen(buf))
 		error("srv write");

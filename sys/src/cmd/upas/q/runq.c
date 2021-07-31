@@ -35,7 +35,6 @@ int	npid = 50;
 int	sflag;			/* single thread per directory */
 int	aflag;			/* all directories */
 int	Eflag;			/* ignore E.xxxxxx dates */
-int	Rflag;			/* no giving up, ever */
 
 void
 usage(void)
@@ -62,9 +61,6 @@ main(int argc, char **argv)
 		break;
 	case 'E':
 		Eflag++;
-		break;
-	case 'R':	/* no giving up -- just leave stuff in the queue */
-		Rflag++;
 		break;
 	case 'a':
 		aflag++;
@@ -471,7 +467,7 @@ dofile(Dir *dp)
 		if(wm->msg[0]){
 			if(debug)
 				fprint(2, "[%d] wm->msg == %s\n", getpid(), wm->msg);
-			if(!Rflag && strstr(wm->msg, "Retry")==0){
+			if(strstr(wm->msg, "Retry")==0){
 				/* return the message and remove it */
 				if(returnmail(av, dp->name, wm->msg) == 0)
 					remmatch(dp->name);

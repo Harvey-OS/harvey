@@ -883,7 +883,7 @@ regexp(Node *r, Node *args)
 	free(rp);
 }
 
-char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVxXYZ";
+char vfmt[] = "aBbcCdDfFgGiIoOqQrRsuUVxXYZ";
 
 void
 fmt(Node *r, Node *args)

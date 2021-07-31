@@ -23,7 +23,6 @@ int	debug;
 int	cachedb;
 ulong	now;
 int	testing;
-int traceactivity;
 char	*trace;
 int	needrefresh;
 int	resolver;

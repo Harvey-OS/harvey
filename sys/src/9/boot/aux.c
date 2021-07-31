@@ -109,10 +109,8 @@ setenv(char *name, char *val)
 
 	snprint(ename, sizeof ename, "#e/%s", name);
 	f = create(ename, 1, 0666);
-	if(f < 0){
-		fprint(2, "create %s: %r\n", ename);
+	if(f < 0)
 		return;
-	}
 	write(f, val, strlen(val));
 	close(f);
 }
@@ -140,13 +138,13 @@ srvcreate(char *name, int fd)
 	close(f);
 }
 
-void
+static int
 catchint(void *a, char *note)
 {
 	USED(a);
 	if(strcmp(note, "alarm") == 0)
-		noted(NCONT);
-	noted(NDFLT);
+		return 1;
+	return 0;
 }
 
 int
@@ -155,24 +153,21 @@ outin(char *prompt, char *def, int len)
 	int n;
 	char buf[256];
 
-	if(len >= sizeof buf)
-		len = sizeof(buf)-1;
-
-	if(cpuflag){
-		notify(catchint);
+	atnotify(catchint, 1);
+	if(cpuflag)
 		alarm(15*1000);
-	}
-	print("%s[%s]: ", prompt, *def ? def : "no default");
-	memset(buf, 0, sizeof buf);
-	n = read(0, buf, len);
-	if(cpuflag){
+	do{
+		print("%s[%s]: ", prompt, *def ? def : "no default");
+		n = read(0, buf, len);
+		if(cpuflag)
+			alarm(15*1000);
+	}while(n==0);
+	if(cpuflag)
 		alarm(0);
-		notify(0);
-	}
-
+	atnotify(catchint, 0);
 	if(n < 0)
 		return 1;
-	if(n > 1){
+	if(n != 1){
 		buf[n-1] = 0;
 		strcpy(def, buf);
 	}

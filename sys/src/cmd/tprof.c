@@ -50,19 +50,14 @@ main(int argc, char *argv[])
 	Biobuf outbuf;
 	Fhdr f;
 	struct COUNTER *cp;
-	char filebuf[128], *file;
+	char file[128];
 
-	if(argc != 2 && argc != 3)
-		error(0, "usage: tprof pid [binary]");
+	if(argc != 2)
+		error(0, "usage: tprof pid");
 	/*
 	 * Read symbol table
 	 */
-	if(argc == 2){
-		file = filebuf;
-		snprint(filebuf, sizeof filebuf, "/proc/%s/text", argv[1]);
-	}else
-		file = argv[2];
-
+	sprint(file, "/proc/%s/text", argv[1]);
 	fd = open(file, OREAD);
 	if(fd < 0)
 		error(1, file);
