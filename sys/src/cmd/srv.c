@@ -64,7 +64,7 @@ void
 main(int argc, char *argv[])
 {
 	int fd, doexec;
-	char *srv, *mtpt;
+	char srv[64], mtpt[64];
 	char dir[1024];
 	char err[ERRMAX];
 	char *p, *p2;
@@ -127,27 +127,26 @@ main(int argc, char *argv[])
 	case 1:	/* calculate srv and mtpt from address */
 		p = strrchr(argv[0], '/');
 		p = p ? p+1 : argv[0];
-		srv = smprint("/srv/%s", p);
+		snprint(srv, sizeof(srv), "/srv/%.28s", p);
 		p2 = strchr(p, '!');
 		p2 = p2 ? p2+1 : p;
-		mtpt = smprint("/n/%s", p2);
+		snprint(mtpt, sizeof(mtpt), "/n/%.28s", p2);
 		break;
 	case 2:	/* calculate mtpt from address, srv given */
-		srv = smprint("/srv/%s", argv[1]);
+		snprint(srv, sizeof(srv), "/srv/%.28s", argv[1]);
 		p = strrchr(argv[0], '/');
 		p = p ? p+1 : argv[0];
 		p2 = strchr(p, '!');
 		p2 = p2 ? p2+1 : p;
-		mtpt = smprint("/n/%s", p2);
+		snprint(mtpt, sizeof(mtpt), "/n/%.28s", p2);
 		break;
 	case 3:	/* srv and mtpt given */
 		domount = 1;
 		reallymount = 1;
-		srv = smprint("/srv/%s", argv[1]);
-		mtpt = smprint("%s", argv[2]);
+		snprint(srv, sizeof(srv), "/srv/%.28s", argv[1]);
+		snprint(mtpt, sizeof(mtpt), "%.28s", argv[2]);
 		break;
 	default:
-		srv = mtpt = nil;
 		usage();
 	}
 
