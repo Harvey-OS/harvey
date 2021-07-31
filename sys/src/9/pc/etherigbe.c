@@ -1948,7 +1948,7 @@ igbepci(void)
 				break;
 			case 0x00:
 			case 0xFF:
-				print("igbe: unusable CLS - %d\n", cls*4);
+				print("igbe: unusable CLS\n");
 				continue;
 			case 0x08:
 			case 0x10:

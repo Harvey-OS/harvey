@@ -306,9 +306,7 @@ static char netaspam[256] = {
 static int
 delaysecs(void)
 {
-	if (trusted)
-		return 0;
-	if (0 && netaspam[rsysip[0]])
+	if (netaspam[rsysip[0]])
 		return 20;
 	return 12;
 }
