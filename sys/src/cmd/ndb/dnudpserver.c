@@ -25,7 +25,7 @@ struct Inprogress
 	int	inuse;
 	Udphdr	uh;
 	DN	*owner;
-	ushort	type;
+	int	type;
 	int	id;
 };
 Inprogress inprog[Maxactive+2];
@@ -60,8 +60,6 @@ clientrxmit(DNSmsg *req, uchar *buf)
 	empty->id = req->id;
 	empty->owner = req->qd->owner;
 	empty->type = req->qd->type;
-	if (empty->type != req->qd->type)
-		dnslog("clientrxmit: bogus req->qd->type %d", req->qd->type);
 	memmove(&empty->uh, uh, Udphdrsize);
 	empty->inuse = 1;
 	return empty;
@@ -104,7 +102,7 @@ restart:
 	while((fd = udpannounce(mntpt)) < 0)
 		sleep(5000);
 
-	procsetname("udp server");
+	procsetname("udp server loop");
 	memset(&req, 0, sizeof req);
 	if(setjmp(req.mret))
 		putactivity(0);
@@ -199,7 +197,6 @@ restart:
 		p->inuse = 0;
 freereq:
 		free(req.from);
-		req.from = nil;
 		freeanswers(&reqmsg);
 		if(req.isslave){
 			putactivity(0);

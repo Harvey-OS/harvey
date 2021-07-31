@@ -165,7 +165,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 static RR*
 doextquery(DNSmsg *mp, Request *req, int recurse)
 {
-	ushort type;
+	int type;
 	char *name;
 	RR *rp, *neg;
 

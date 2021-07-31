@@ -26,8 +26,7 @@ typedef struct Job	Job;
 typedef struct Network	Network;
 
 int vers;		/* incremented each clone/attach */
-
-static volatile int stop;
+volatile int stop;
 
 struct Mfile
 {
@@ -412,14 +411,13 @@ io(void)
 	 */
 	if(setjmp(req.mret))
 		putactivity(0);
-	procsetname("9p server");
+	procsetname("main 9p reading loop");
 	req.isslave = 0;
 	stop = 0;
 	while(!stop){
 		n = read9pmsg(mfd[0], mdata, sizeof mdata);
 		if(n<=0){
-			dnslog("error reading 9P from %s: %r", mntpt);
-			sleep(2000);		/* don't thrash */
+			dnslog("error reading mntpt: %r");
 			exits(0);
 		}
 
@@ -465,7 +463,6 @@ io(void)
 			rread(job, mf);
 			break;
 		case Twrite:
-			/* &req is handed to dnresolve() */
 			rwrite(job, mf, &req);
 			break;
 		case Tclunk:
