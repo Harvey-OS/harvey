@@ -11,7 +11,7 @@ etype(Entry *e)
 {
 	uint t;
 
-	if(e->flags&_VtEntryDir)
+	if(e->flags&VtEntryDir)
 		t = BtDir;
 	else
 		t = BtData;

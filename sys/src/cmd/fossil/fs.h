@@ -6,11 +6,6 @@ typedef struct DirEntryEnum DirEntryEnum;
 #pragma incomplete File
 #pragma incomplete DirEntryEnum
 
-enum
-{
-	STACK = 32*1024,
-};
-
 /* modes */
 
 enum {
@@ -26,7 +21,7 @@ void	fsClose(Fs*);
 int	fsEpochLow(Fs*, u32int);
 File	*fsGetRoot(Fs*);
 int	fsHalt(Fs*);
-Fs	*fsOpen(char*, VtConn*, long, int);
+Fs	*fsOpen(char*, VtSession*, long, int);
 int	fsRedial(Fs*, char*);
 void	fsSnapshotCleanup(Fs*, u32int);
 int	fsSnapshot(Fs*, char*, char*, int);

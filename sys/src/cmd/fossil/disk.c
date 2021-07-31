@@ -15,16 +15,16 @@ enum {
 };
 
 struct Disk {
-	QLock lk;
+	VtLock *lk;
 	int ref;
 
 	int fd;
 	Header h;
 
-	Rendez flow;
-	Rendez starve;
-	Rendez flush;
-	Rendez die;
+	VtRendez *flow;
+	VtRendez *starve;
+	VtRendez *flush;
+	VtRendez *die;
 
 	int nqueue;
 
@@ -49,23 +49,25 @@ diskAlloc(int fd)
 	Disk *disk;
 
 	if(pread(fd, buf, HeaderSize, HeaderOffset) < HeaderSize){
-		werrstr("short read: %r");
+		vtSetError("short read: %r");
+		vtOSError();
 		return nil;
 	}
 
 	if(!headerUnpack(&h, buf)){
-		werrstr("bad disk header");
+		vtSetError("bad disk header");
 		return nil;
 	}
-	disk = vtmallocz(sizeof(Disk));
-	disk->starve.l = &disk->lk;
-	disk->flow.l = &disk->lk;
-	disk->flush.l = &disk->lk;
+	disk = vtMemAllocZ(sizeof(Disk));
+	disk->lk = vtLockAlloc();
+	disk->starve = vtRendezAlloc(disk->lk);
+	disk->flow = vtRendezAlloc(disk->lk);
+	disk->flush = vtRendezAlloc(disk->lk);
 	disk->fd = fd;
 	disk->h = h;
 
 	disk->ref = 2;
-	proccreate(diskThread, disk, STACK);
+	vtThread(diskThread, disk);
 
 	return disk;
 }
@@ -76,14 +78,18 @@ diskFree(Disk *disk)
 	diskFlush(disk);
 
 	/* kill slave */
-	qlock(&disk->lk);
-	disk->die.l = &disk->lk;
-	rwakeup(&disk->starve);
+	vtLock(disk->lk);
+	disk->die = vtRendezAlloc(disk->lk);
+	vtWakeup(disk->starve);
 	while(disk->ref > 1)
-		rsleep(&disk->die);
-	qunlock(&disk->lk);
+		vtSleep(disk->die);
+	vtUnlock(disk->lk);
+	vtRendezFree(disk->flow);
+	vtRendezFree(disk->starve);
+	vtRendezFree(disk->die);
+	vtLockFree(disk->lk);
 	close(disk->fd);
-	vtfree(disk);
+	vtMemFree(disk);
 }
 
 static u32int
@@ -128,7 +134,7 @@ diskReadRaw(Disk *disk, int part, u32int addr, uchar *buf)
 	end = partEnd(disk, part);
 
 	if(addr >= end-start){
-		werrstr(EBadAddr);
+		vtSetError(EBadAddr);
 		return 0;
 	}
 
@@ -137,11 +143,11 @@ diskReadRaw(Disk *disk, int part, u32int addr, uchar *buf)
 	while(n > 0){
 		nn = pread(disk->fd, buf, n, offset);
 		if(nn < 0){
-			werrstr("%r");
+			vtOSError();
 			return 0;
 		}
 		if(nn == 0){
-			werrstr("eof reading disk");
+			vtSetError("eof reading disk");
 			return 0;
 		}
 		n -= nn;
@@ -162,18 +168,18 @@ diskWriteRaw(Disk *disk, int part, u32int addr, uchar *buf)
 	end = partEnd(disk, part);
 
 	if(addr >= end - start){
-		werrstr(EBadAddr);
+		vtSetError(EBadAddr);
 		return 0;
 	}
 
 	offset = ((u64int)(addr + start))*disk->h.blockSize;
 	n = pwrite(disk->fd, buf, disk->h.blockSize, offset);
 	if(n < 0){
-		werrstr("%r");
+		vtOSError();
 		return 0;
 	}
 	if(n < disk->h.blockSize) {
-		werrstr("short write");
+		vtSetError("short write");
 		return 0;
 	}
 
@@ -185,9 +191,9 @@ diskQueue(Disk *disk, Block *b)
 {
 	Block **bp, *bb;
 
-	qlock(&disk->lk);
+	vtLock(disk->lk);
 	while(disk->nqueue >= QueueSize)
-		rsleep(&disk->flow);
+		vtSleep(disk->flow);
 	if(disk->cur == nil || b->addr > disk->cur->addr)
 		bp = &disk->cur;
 	else
@@ -201,9 +207,9 @@ diskQueue(Disk *disk, Block *b)
 	b->ionext = bb;
 	*bp = b;
 	if(disk->nqueue == 0)
-		rwakeup(&disk->starve);
+		vtWakeup(disk->starve);
 	disk->nqueue++;
-	qunlock(&disk->lk);
+	vtUnlock(disk->lk);
 }
 
 
@@ -232,7 +238,7 @@ diskWriteAndWait(Disk *disk, Block *b)
 	/*
 	 * If b->nlock > 1, the block is aliased within
 	 * a single thread.  That thread is us.
-	 * DiskWrite does some funny stuff with QLock
+	 * DiskWrite does some funny stuff with VtLock
 	 * and blockPut that basically assumes b->nlock==1.
 	 * We humor diskWrite by temporarily setting
 	 * nlock to 1.  This needs to be revisited.
@@ -242,7 +248,7 @@ diskWriteAndWait(Disk *disk, Block *b)
 		b->nlock = 1;
 	diskWrite(disk, b);
 	while(b->iostate != BioClean)
-		rsleep(&b->ioready);
+		vtSleep(b->ioready);
 	b->nlock = nlock;
 }
 
@@ -257,15 +263,15 @@ diskFlush(Disk *disk)
 {
 	Dir dir;
 
-	qlock(&disk->lk);
+	vtLock(disk->lk);
 	while(disk->nqueue > 0)
-		rsleep(&disk->flush);
-	qunlock(&disk->lk);
+		vtSleep(disk->flush);
+	vtUnlock(disk->lk);
 
 	/* there really should be a cleaner interface to flush an fd */
 	nulldir(&dir);
 	if(dirfwstat(disk->fd, &dir) < 0){
-		werrstr("%r");
+		vtOSError();
 		return 0;
 	}
 	return 1;
@@ -302,13 +308,13 @@ diskThread(void *a)
 	double t;
 	int nio;
 
-	threadsetname("disk");
+	vtThreadSetName("disk");
 
 //fprint(2, "diskThread %d\n", getpid());
 
-	buf = vtmalloc(disk->h.blockSize);
+	buf = vtMemAlloc(disk->h.blockSize);
 
-	qlock(&disk->lk);
+	vtLock(disk->lk);
 	if (Timing) {
 		nio = 0;
 		t = -nsec();
@@ -324,9 +330,9 @@ diskThread(void *a)
 					t = 0;
 				}
 			}
-			if(disk->die.l != nil)
+			if(disk->die != nil)
 				goto Done;
-			rsleep(&disk->starve);
+			vtSleep(disk->starve);
 			if (Timing)
 				t -= nsec();
 		}
@@ -338,7 +344,7 @@ diskThread(void *a)
 		}
 		b = disk->cur;
 		disk->cur = b->ionext;
-		qunlock(&disk->lk);
+		vtUnlock(disk->lk);
 
 		/*
 		 * no one should hold onto blocking in the
@@ -347,7 +353,7 @@ diskThread(void *a)
 		 */
 if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 		bwatchLock(b);
-		qlock(&b->lk);
+		vtLock(b->lk);
 		b->pc = mypc(0);
 		assert(b->nlock == 1);
 		switch(b->iostate){
@@ -382,19 +388,19 @@ if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 		}
 
 		blockPut(b);		/* remove extra reference, unlock */
-		qlock(&disk->lk);
+		vtLock(disk->lk);
 		disk->nqueue--;
 		if(disk->nqueue == QueueSize-1)
-			rwakeup(&disk->flow);
+			vtWakeup(disk->flow);
 		if(disk->nqueue == 0)
-			rwakeup(&disk->flush);
+			vtWakeup(disk->flush);
 		if(Timing)
 			nio++;
 	}
 Done:
 //fprint(2, "diskThread done\n");
 	disk->ref--;
-	rwakeup(&disk->die);
-	qunlock(&disk->lk);
-	vtfree(buf);
+	vtWakeup(disk->die);
+	vtUnlock(disk->lk);
+	vtMemFree(buf);
 }

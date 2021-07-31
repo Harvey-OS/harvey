@@ -10,7 +10,7 @@ static void
 usage(void)
 {
 	fprint(2, "usage: %s [-c cachesize] [-h host] file\n", argv0);
-	threadexitsall("usage");
+	exits("usage");
 }
 
 #pragma	varargck	argpos	flprint	1
@@ -52,10 +52,10 @@ flclose(Fsck*, Block *b, u32int epoch)
 }
 
 void
-threadmain(int argc, char *argv[])
+main(int argc, char *argv[])
 {
 	int csize = 1000;
-	VtConn *z;
+	VtSession *z;
 	char *host = nil;
 	
 	fsck.useventi = 1;
@@ -82,25 +82,28 @@ threadmain(int argc, char *argv[])
 	if(argc != 1)
 		usage();
 
+	vtAttach();
+
 	fmtinstall('L', labelFmt);
 	fmtinstall('V', scoreFmt);
+	fmtinstall('R', vtErrFmt);
 
 	/*
 	 * Connect to Venti.
 	 */
-	z = vtdial(host);
+	z = vtDial(host, 0);
 	if(z == nil){
 		if(fsck.useventi)
-			sysfatal("could not connect to server: %r");
-	}else if(vtconnect(z) < 0)
-		sysfatal("vtconnect: %r");
+			vtFatal("could not connect to server: %s", vtGetError());
+	}else if(!vtConnect(z, 0))
+		vtFatal("vtConnect: %s", vtGetError());
 
 	/*
 	 * Initialize file system.
 	 */
 	fsck.fs = fsOpen(argv[0], z, csize, OReadOnly);
 	if(fsck.fs == nil)
-		sysfatal("could not open file system: %r");
+		vtFatal("could not open file system: %R");
 
 	fsck.print = flprint;
 	fsck.clre = flclre;
@@ -110,6 +113,6 @@ threadmain(int argc, char *argv[])
 
 	fsCheck(&fsck);
 
-	threadexitsall(0);
+	exits(0);
 }
 

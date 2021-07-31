@@ -20,28 +20,29 @@ struct Arch
 	uint diskSize;
 	Cache *c;
 	Fs *fs;
-	VtConn *z;
+	VtSession *z;
 
-	QLock lk;
-	Rendez starve;
-	Rendez die;
+	VtLock *lk;
+	VtRendez *starve;
+	VtRendez *die;
 };
 
 Arch *
-archInit(Cache *c, Disk *disk, Fs *fs, VtConn *z)
+archInit(Cache *c, Disk *disk, Fs *fs, VtSession *z)
 {
 	Arch *a;
 
-	a = vtmallocz(sizeof(Arch));
+	a = vtMemAllocZ(sizeof(Arch));
 
 	a->c = c;
 	a->z = z;
 	a->fs = fs;
 	a->blockSize = diskBlockSize(disk);
-	a->starve.l = &a->lk;
+	a->lk = vtLockAlloc();
+	a->starve = vtRendezAlloc(a->lk);
 
 	a->ref = 2;
-	proccreate(archThread, a, STACK);
+	vtThread(archThread, a);
 
 	return a;
 }
@@ -50,13 +51,16 @@ void
 archFree(Arch *a)
 {
 	/* kill slave */
-	qlock(&a->lk);
-	a->die.l = &a->lk;
-	rwakeup(&a->starve);
+	vtLock(a->lk);
+	a->die = vtRendezAlloc(a->lk);
+	vtWakeup(a->starve);
 	while(a->ref > 1)
-		rsleep(&a->die);
-	qunlock(&a->lk);
-	vtfree(a);
+		vtSleep(a->die);
+	vtUnlock(a->lk);
+	vtRendezFree(a->starve);
+	vtRendezFree(a->die);
+	vtLockFree(a->lk);
+	vtMemFree(a);
 }
 
 static int
@@ -67,21 +71,21 @@ ventiSend(Arch *a, Block *b, uchar *data)
 
 	if(DEBUG > 1)
 		fprint(2, "ventiSend: sending %#ux %L to venti\n", b->addr, &b->l);
-	n = vtzerotruncate(vtType[b->l.type], data, a->blockSize);
+	n = vtZeroTruncate(vtType[b->l.type], data, a->blockSize);
 	if(DEBUG > 1)
 		fprint(2, "ventiSend: truncate %d to %d\n", a->blockSize, n);
-	if(vtwrite(a->z, score, vtType[b->l.type], data, n) < 0){
-		fprint(2, "ventiSend: vtwrite block %#ux failed: %r\n", b->addr);
+	if(!vtWrite(a->z, score, vtType[b->l.type], data, n)){
+		fprint(2, "ventiSend: vtWrite block %#ux failed: %R\n", b->addr);
 		return 0;
 	}
-	if(vtsha1check(score, data, n) < 0){
+	if(!vtSha1Check(score, data, n)){
 		uchar score2[VtScoreSize];
-		vtsha1(score2, data, n);
-		fprint(2, "ventiSend: vtwrite block %#ux failed vtsha1check %V %V\n",
+		vtSha1(score2, data, n);
+		fprint(2, "ventiSend: vtWrite block %#ux failed vtSha1Check %V %V\n",
 			b->addr, score, score2);
 		return 0;
 	}
-	if(vtsync(a->z) < 0)
+	if(!vtSync(a->z))
 		return 0;
 	return 1;
 }
@@ -125,7 +129,7 @@ struct Param
 static void
 shaBlock(uchar score[VtScoreSize], Block *b, uchar *data, uint bsize)
 {
-	vtsha1(score, data, vtzerotruncate(vtType[b->l.type], data, bsize));
+	vtSha1(score, data, vtZeroTruncate(vtType[b->l.type], data, bsize));
 }
 
 static uint
@@ -133,7 +137,7 @@ etype(Entry *e)
 {
 	uint t;
 
-	if(e->flags&_VtEntryDir)
+	if(e->flags&VtEntryDir)
 		t = BtDir;
 	else
 		t = BtData;
@@ -145,7 +149,7 @@ copyBlock(Block *b, u32int blockSize)
 {
 	uchar *data;
 
-	data = vtmalloc(blockSize);
+	data = vtMemAlloc(blockSize);
 	if(data == nil)
 		return nil;
 	memmove(data, b->data, blockSize);
@@ -179,17 +183,15 @@ archWalk(Param *p, u32int addr, uchar type, u32int tag)
 	Label l;
 	Entry *e;
 	WalkPtr w;
-	char err[ERRMAX];
 
 	p->nvisit++;
 
 	b = cacheLocalData(p->c, addr, type, tag, OReadWrite,0);
 	if(b == nil){
-		fprint(2, "archive(%ud, %#ux): cannot find block: %r\n", p->snapEpoch, addr);
-		rerrstr(err, sizeof err);
-		if(strcmp(err, ELabelMismatch) == 0){
+		fprint(2, "archive(%ud, %#ux): cannot find block: %R\n", p->snapEpoch, addr);
+		if(strcmp(vtGetError(), ELabelMismatch) == 0){
 			/* might as well plod on so we write _something_ to Venti */
-			memmove(p->score, vtzeroscore, VtScoreSize);
+			memmove(p->score, vtZeroScore, VtScoreSize);
 			return ArchFaked;
 		}
 		return ArchFailure;
@@ -219,7 +221,7 @@ archWalk(Param *p, u32int addr, uchar type, u32int tag)
 						}
 						w.data = data;
 					}
-					memmove(e->score, vtzeroscore, VtScoreSize);
+					memmove(e->score, vtZeroScore, VtScoreSize);
 					e->depth = 0;
 					e->size = 0;
 					e->tag = 0;
@@ -237,15 +239,15 @@ archWalk(Param *p, u32int addr, uchar type, u32int tag)
 				p->dsize= e->dsize;
 				p->psize = e->psize;
 			}
-			qunlock(&b->lk);
+			vtUnlock(b->lk);
 			x = archWalk(p, addr, type, tag);
-			qlock(&b->lk);
+			vtLock(b->lk);
 			if(e){
 				p->dsize = dsize;
 				p->psize = psize;
 			}
 			while(b->iostate != BioClean && b->iostate != BioDirty)
-				rsleep(&b->ioready);
+				vtSleep(b->ioready);
 			switch(x){
 			case ArchFailure:
 				fprint(2, "archWalk %#ux failed; ptr is in %#ux offset %d\n",
@@ -329,7 +331,7 @@ if(0) fprint(2, "ventisend %V %p %p %p\n", p->score, data, b->data, w.data);
 	p->l = b->l;
 Out:
 	if(data != b->data)
-		vtfree(data);
+		vtMemFree(data);
 	p->depth--;
 	blockPut(b);
 	return ret;
@@ -347,15 +349,15 @@ archThread(void *v)
 	uchar rbuf[VtRootSize];
 	VtRoot root;
 
-	threadsetname("arch");
+	vtThreadSetName("arch");
 
 	for(;;){
 		/* look for work */
-		wlock(&a->fs->elk);
+		vtLock(a->fs->elk);
 		b = superGet(a->c, &super);
 		if(b == nil){
-			wunlock(&a->fs->elk);
-			fprint(2, "archThread: superGet: %r\n");
+			vtUnlock(a->fs->elk);
+			fprint(2, "archThread: superGet: %R\n");
 			sleep(60*1000);
 			continue;
 		}
@@ -368,15 +370,15 @@ archThread(void *v)
 		}else
 			addr = super.current;
 		blockPut(b);
-		wunlock(&a->fs->elk);
+		vtUnlock(a->fs->elk);
 
 		if(addr == NilBlock){
 			/* wait for work */
-			qlock(&a->lk);
-			rsleep(&a->starve);
-			if(a->die.l != nil)
+			vtLock(a->lk);
+			vtSleep(a->starve);
+			if(a->die != nil)
 				goto Done;
-			qunlock(&a->lk);
+			vtUnlock(a->lk);
 			continue;
 		}
 
@@ -394,7 +396,7 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 		default:
 			abort();
 		case ArchFailure:
-			fprint(2, "archiveBlock %#ux: %r\n", addr);
+			fprint(2, "archiveBlock %#ux: %R\n", addr);
 			sleep(60*1000);
 			continue;
 		case ArchSuccess:
@@ -412,25 +414,26 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 
 		/* tie up vac root */
 		memset(&root, 0, sizeof root);
+		root.version = VtRootVersion;
 		strecpy(root.type, root.type+sizeof root.type, "vac");
 		strecpy(root.name, root.name+sizeof root.name, "fossil");
 		memmove(root.score, p.score, VtScoreSize);
 		memmove(root.prev, super.last, VtScoreSize);
-		root.blocksize = a->blockSize;
-		vtrootpack(&root, rbuf);
-		if(vtwrite(a->z, p.score, VtRootType, rbuf, VtRootSize) < 0
-		|| vtsha1check(p.score, rbuf, VtRootSize) < 0){
-			fprint(2, "vtWriteBlock %#ux: %r\n", addr);
+		root.blockSize = a->blockSize;
+		vtRootPack(&root, rbuf);
+		if(!vtWrite(a->z, p.score, VtRootType, rbuf, VtRootSize)
+		|| !vtSha1Check(p.score, rbuf, VtRootSize)){
+			fprint(2, "vtWriteBlock %#ux: %R\n", addr);
 			sleep(60*1000);
 			continue;
 		}
 
 		/* record success */
-		wlock(&a->fs->elk);
+		vtLock(a->fs->elk);
 		b = superGet(a->c, &super);
 		if(b == nil){
-			wunlock(&a->fs->elk);
-			fprint(2, "archThread: superGet: %r\n");
+			vtUnlock(a->fs->elk);
+			fprint(2, "archThread: superGet: %R\n");
 			sleep(60*1000);
 			continue;
 		}
@@ -439,15 +442,15 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 		superPack(&super, b->data);
 		blockDirty(b);
 		blockPut(b);
-		wunlock(&a->fs->elk);
+		vtUnlock(a->fs->elk);
 
 		consPrint("archive vac:%V\n", p.score);
 	}
 
 Done:
 	a->ref--;
-	rwakeup(&a->die);
-	qunlock(&a->lk);
+	vtWakeup(a->die);
+	vtUnlock(a->lk);
 }
 
 void
@@ -457,7 +460,7 @@ archKick(Arch *a)
 		fprint(2, "warning: archKick nil\n");
 		return;
 	}
-	qlock(&a->lk);
-	rwakeup(&a->starve);
-	qunlock(&a->lk);
+	vtLock(a->lk);
+	vtWakeup(a->starve);
+	vtUnlock(a->lk);
 }

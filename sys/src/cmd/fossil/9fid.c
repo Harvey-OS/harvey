@@ -3,7 +3,7 @@
 #include "9.h"
 
 static struct {
-	QLock	lock;
+	VtLock*	lock;
 
 	Fid*	free;
 	int	nfree;
@@ -14,11 +14,11 @@ static void
 fidLock(Fid* fid, int flags)
 {
 	if(flags & FidFWlock){
-		wlock(&fid->lock);
+		vtLock(fid->lock);
 		fid->flags = flags;
 	}
 	else
-		rlock(&fid->lock);
+		vtRLock(fid->lock);
 
 	/*
 	 * Callers of file* routines are expected to lock fsys->fs->elk
@@ -47,10 +47,10 @@ fidUnlock(Fid* fid)
 		fsysFsRUnlock(fid->fsys);
 	if(fid->flags & FidFWlock){
 		fid->flags = 0;
-		wunlock(&fid->lock);
+		vtUnlock(fid->lock);
 		return;
 	}
-	runlock(&fid->lock);
+	vtRUnlock(fid->lock);
 }
 
 static Fid*
@@ -58,17 +58,19 @@ fidAlloc(void)
 {
 	Fid *fid;
 
-	qlock(&fbox.lock);
+	vtLock(fbox.lock);
 	if(fbox.nfree > 0){
 		fid = fbox.free;
 		fbox.free = fid->hash;
 		fbox.nfree--;
 	}
 	else{
-		fid = vtmallocz(sizeof(Fid));
+		fid = vtMemAllocZ(sizeof(Fid));
+		fid->lock = vtLockAlloc();
+		fid->alock = vtLockAlloc();
 	}
 	fbox.inuse++;
-	qunlock(&fbox.lock);
+	vtUnlock(fbox.lock);
 
 	fid->con = nil;
 	fid->fidno = NOFID;
@@ -103,11 +105,11 @@ fidFree(Fid* fid)
 	fidUnlock(fid);
 
 	if(fid->uid != nil){
-		vtfree(fid->uid);
+		vtMemFree(fid->uid);
 		fid->uid = nil;
 	}
 	if(fid->uname != nil){
-		vtfree(fid->uname);
+		vtMemFree(fid->uname);
 		fid->uname = nil;
 	}
 	if(fid->excl != nil)
@@ -122,11 +124,11 @@ fidFree(Fid* fid)
 		fid->fsys = nil;
 	}
 	if(fid->cuname != nil){
-		vtfree(fid->cuname);
+		vtMemFree(fid->cuname);
 		fid->cuname = nil;
 	}
 
-	qlock(&fbox.lock);
+	vtLock(fbox.lock);
 	fbox.inuse--;
 	if(fbox.nfree < 10){
 		fid->hash = fbox.free;
@@ -134,9 +136,11 @@ fidFree(Fid* fid)
 		fbox.nfree++;
 	}
 	else{
-		vtfree(fid);
+		vtLockFree(fid->alock);
+		vtLockFree(fid->lock);
+		vtMemFree(fid);
 	}
-	qunlock(&fbox.lock);
+	vtUnlock(fbox.lock);
 }
 
 static void
@@ -178,7 +182,7 @@ fidGet(Con* con, u32int fidno, int flags)
 		return nil;
 
 	hash = &con->fidhash[fidno % NFidHash];
-	qlock(&con->fidlock);
+	vtLock(con->fidlock);
 	for(fid = *hash; fid != nil; fid = fid->hash){
 		if(fid->fidno != fidno)
 			continue;
@@ -188,17 +192,17 @@ fidGet(Con* con, u32int fidno, int flags)
 		 * when called from attach, clone or walk.
 		 */
 		if(flags & FidFCreate){
-			qunlock(&con->fidlock);
-			werrstr("%s: fid 0x%ud in use", argv0, fidno);
+			vtUnlock(con->fidlock);
+			vtSetError("%s: fid 0x%ud in use", argv0, fidno);
 			return nil;
 		}
 		fid->ref++;
-		qunlock(&con->fidlock);
+		vtUnlock(con->fidlock);
 
 		fidLock(fid, flags);
 		if((fid->open & FidOCreate) || fid->fidno == NOFID){
 			fidPut(fid);
-			werrstr("%s: fid invalid", argv0);
+			vtSetError("%s: fid invalid", argv0);
 			return nil;
 		}
 		return fid;
@@ -224,7 +228,7 @@ fidGet(Con* con, u32int fidno, int flags)
 		fid->next = nil;
 
 		con->nfid++;
-		qunlock(&con->fidlock);
+		vtUnlock(con->fidlock);
 
 		/*
 		 * The FidOCreate flag is used to prevent any
@@ -235,19 +239,19 @@ fidGet(Con* con, u32int fidno, int flags)
 		fid->open &= ~FidOCreate;
 		return fid;
 	}
-	qunlock(&con->fidlock);
+	vtUnlock(con->fidlock);
 
-	werrstr("%s: fid not found", argv0);
+	vtSetError("%s: fid not found", argv0);
 	return nil;
 }
 
 void
 fidPut(Fid* fid)
 {
-	qlock(&fid->con->fidlock);
+	vtLock(fid->con->fidlock);
 	assert(fid->ref > 0);
 	fid->ref--;
-	qunlock(&fid->con->fidlock);
+	vtUnlock(fid->con->fidlock);
 
 	if(fid->ref == 0 && fid->fidno == NOFID){
 		fidFree(fid);
@@ -261,12 +265,12 @@ fidClunk(Fid* fid)
 {
 	assert(fid->flags & FidFWlock);
 
-	qlock(&fid->con->fidlock);
+	vtLock(fid->con->fidlock);
 	assert(fid->ref > 0);
 	fid->ref--;
 	fidUnHash(fid);
 	fid->fidno = NOFID;
-	qunlock(&fid->con->fidlock);
+	vtUnlock(fid->con->fidlock);
 
 	if(fid->ref > 0){
 		/* not reached - fidUnHash requires ref == 0 */
@@ -282,18 +286,19 @@ fidClunkAll(Con* con)
 	Fid *fid;
 	u32int fidno;
 
-	qlock(&con->fidlock);
+	vtLock(con->fidlock);
 	while(con->fhead != nil){
 		fidno = con->fhead->fidno;
-		qunlock(&con->fidlock);
+		vtUnlock(con->fidlock);
 		if((fid = fidGet(con, fidno, FidFWlock)) != nil)
 			fidClunk(fid);
-		qlock(&con->fidlock);
+		vtLock(con->fidlock);
 	}
-	qunlock(&con->fidlock);
+	vtUnlock(con->fidlock);
 }
 
 void
 fidInit(void)
 {
+	fbox.lock = vtLockAlloc();
 }

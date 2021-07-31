@@ -14,7 +14,7 @@ struct Srv {
 };
 
 static struct {
-	RWLock	lock;
+	VtLock*	lock;
 
 	Srv*	head;
 	Srv*	tail;
@@ -33,11 +33,11 @@ srvFd(char* name, int mode, int fd, char** mntpnt)
 	 */
 	p = smprint("/srv/%s", name);
 	if((srvfd = create(p, ORCLOSE|OWRITE, mode)) < 0){
-		vtfree(p);
+		vtMemFree(p);
 		p = smprint("#s/%s", name);
 		if((srvfd = create(p, ORCLOSE|OWRITE, mode)) < 0){
-			werrstr("create %s: %r", p);
-			vtfree(p);
+			vtSetError("create %s: %r", p);
+			vtMemFree(p);
 			return -1;
 		}
 	}
@@ -45,8 +45,8 @@ srvFd(char* name, int mode, int fd, char** mntpnt)
 	n = snprint(buf, sizeof(buf), "%d", fd);
 	if(write(srvfd, buf, n) < 0){
 		close(srvfd);
-		werrstr("write %s: %r", p);
-		vtfree(p);
+		vtSetError("write %s: %r", p);
+		vtMemFree(p);
 		return -1;
 	}
 
@@ -69,9 +69,9 @@ srvFree(Srv* srv)
 
 	if(srv->srvfd != -1)
 		close(srv->srvfd);
-	vtfree(srv->service);
-	vtfree(srv->mntpnt);
-	vtfree(srv);
+	vtMemFree(srv->service);
+	vtMemFree(srv->mntpnt);
+	vtMemFree(srv);
 }
 
 static Srv*
@@ -82,7 +82,7 @@ srvAlloc(char* service, int mode, int fd)
 	int srvfd;
 	char *mntpnt;
 
-	wlock(&sbox.lock);
+	vtLock(sbox.lock);
 	for(srv = sbox.head; srv != nil; srv = srv->next){
 		if(strcmp(srv->service, service) != 0)
 			continue;
@@ -92,8 +92,8 @@ srvAlloc(char* service, int mode, int fd)
 		 */
 		if((dir = dirfstat(srv->srvfd)) != nil){
 			free(dir);
-			werrstr("srv: already serving '%s'", service);
-			wunlock(&sbox.lock);
+			vtSetError("srv: already serving '%s'", service);
+			vtUnlock(sbox.lock);
 			return nil;
 		}
 		srvFree(srv);
@@ -101,14 +101,14 @@ srvAlloc(char* service, int mode, int fd)
 	}
 
 	if((srvfd = srvFd(service, mode, fd, &mntpnt)) < 0){
-		wunlock(&sbox.lock);
+		vtUnlock(sbox.lock);
 		return nil;
 	}
 	close(fd);
 
-	srv = vtmallocz(sizeof(Srv));
+	srv = vtMemAllocZ(sizeof(Srv));
 	srv->srvfd = srvfd;
-	srv->service = vtstrdup(service);
+	srv->service = vtStrDup(service);
 	srv->mntpnt = mntpnt;
 
 	if(sbox.tail != nil){
@@ -120,7 +120,7 @@ srvAlloc(char* service, int mode, int fd)
 		srv->prev = nil;
 	}
 	sbox.tail = srv;
-	wunlock(&sbox.lock);
+	vtUnlock(sbox.lock);
 
 	return srv;
 }
@@ -168,7 +168,7 @@ cmdSrv(int argc, char* argv[])
 	}ARGEND
 
 	if(pflag && (conflags&ConNoPermCheck)){
-		werrstr("srv: cannot use -P with -p");
+		vtSetError("srv: cannot use -P with -p");
 		return 0;
 	}
 
@@ -176,27 +176,27 @@ cmdSrv(int argc, char* argv[])
 	default:
 		return cliError(usage);
 	case 0:
-		rlock(&sbox.lock);
+		vtRLock(sbox.lock);
 		for(srv = sbox.head; srv != nil; srv = srv->next)
 			consPrint("\t%s\t%d\n", srv->service, srv->srvfd);
-		runlock(&sbox.lock);
+		vtRUnlock(sbox.lock);
 
 		return 1;
 	case 1:
 		if(!dflag)
 			break;
 
-		wlock(&sbox.lock);
+		vtLock(sbox.lock);
 		for(srv = sbox.head; srv != nil; srv = srv->next){
 			if(strcmp(srv->service, argv[0]) != 0)
 				continue;
 			srvFree(srv);
 			break;
 		}
-		wunlock(&sbox.lock);
+		vtUnlock(sbox.lock);
 
 		if(srv == nil){
-			werrstr("srv: '%s' not found", argv[0]);
+			vtSetError("srv: '%s' not found", argv[0]);
 			return 0;
 		}
 
@@ -204,7 +204,7 @@ cmdSrv(int argc, char* argv[])
 	}
 
 	if(pipe(fd) < 0){
-		werrstr("srv pipe: %r");
+		vtSetError("srv pipe: %r");
 		return 0;
 	}
 	if((srv = srvAlloc(argv[0], mode, fd[0])) == nil){
@@ -223,9 +223,9 @@ cmdSrv(int argc, char* argv[])
 	}
 	if(r == 0){
 		close(fd[1]);
-		wlock(&sbox.lock);
+		vtLock(sbox.lock);
 		srvFree(srv);
-		wunlock(&sbox.lock);
+		vtUnlock(sbox.lock);
 	}
 
 	return r;
@@ -234,6 +234,8 @@ cmdSrv(int argc, char* argv[])
 int
 srvInit(void)
 {
+	sbox.lock = vtLockAlloc();
+
 	cliAddCmd("srv", cmdSrv);
 
 	return 1;

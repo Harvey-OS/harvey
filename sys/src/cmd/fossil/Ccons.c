@@ -8,9 +8,9 @@ enum {
 };
 
 typedef struct Q {
-	QLock	lock;
-	Rendez	full;
-	Rendez	empty;
+	VtLock*	lock;
+	VtRendez* full;
+	VtRendez* empty;
 
 	char	q[Nq];
 	int	n;
@@ -19,7 +19,7 @@ typedef struct Q {
 } Q;
 
 typedef struct Cons {
-	QLock	lock;
+	VtLock*	lock;
 	int	ref;
 	int	closed;
 	int	fd;
@@ -45,18 +45,18 @@ static struct {
 static void
 consClose(Cons* cons)
 {
-	qlock(&cons->lock);
+	vtLock(cons->lock);
 	cons->closed = 1;
 
 	cons->ref--;
 	if(cons->ref > 0){
-		qlock(&cons->iq->lock);
-		rwakeup(&cons->iq->full);
-		qunlock(&cons->iq->lock);
-		qlock(&cons->oq->lock);
-		rwakeup(&cons->oq->empty);
-		qunlock(&cons->oq->lock);
-		qunlock(&cons->lock);
+		vtLock(cons->iq->lock);
+		vtWakeup(cons->iq->full);
+		vtUnlock(cons->iq->lock);
+		vtLock(cons->oq->lock);
+		vtWakeup(cons->oq->empty);
+		vtUnlock(cons->oq->lock);
+		vtUnlock(cons->lock);
 		return;
 	}
 
@@ -72,8 +72,9 @@ consClose(Cons* cons)
 		close(cons->fd);
 		cons->fd = -1;
 	}
-	qunlock(&cons->lock);
-	vtfree(cons);
+	vtUnlock(cons->lock);
+	vtLockFree(cons->lock);
+	vtMemFree(cons);
 	console.nopens--;
 }
 
@@ -85,7 +86,7 @@ consIProc(void* v)
 	int n, w;
 	char buf[Nq/4];
 
-	threadsetname("consI");
+	vtThreadSetName("consI");
 
 	cons = v;
 	q = cons->iq;
@@ -96,9 +97,9 @@ consIProc(void* v)
 		 */
 		if(cons->closed || (n = read(cons->fd, buf, Nq/4)) < 0)
 			break;
-		qlock(&q->lock);
+		vtLock(q->lock);
 		while(Nq - q->n < n && !cons->closed)
-			rsleep(&q->full);
+			vtSleep(q->full);
 		w = Nq - q->w;
 		if(w < n){
 			memmove(&q->q[q->w], buf, w);
@@ -108,8 +109,8 @@ consIProc(void* v)
 			memmove(&q->q[q->w], buf, n);
 		q->w = (q->w + n) % Nq;
 		q->n += n;
-		rwakeup(&q->empty);
-		qunlock(&q->lock);
+		vtWakeup(q->empty);
+		vtUnlock(q->lock);
 	}
 	consClose(cons);
 }
@@ -122,15 +123,15 @@ consOProc(void* v)
 	char buf[Nq];
 	int lastn, n, r;
 
-	threadsetname("consO");
+	vtThreadSetName("consO");
 
 	cons = v;
 	q = cons->oq;
-	qlock(&q->lock);
+	vtLock(q->lock);
 	lastn = 0;
 	for(;;){
 		while(lastn == q->n && !cons->closed)
-			rsleep(&q->empty);
+			vtSleep(q->empty);
 		if((n = q->n - lastn) > Nq)
 			n = Nq;
 		if(n > q->w){
@@ -141,11 +142,11 @@ consOProc(void* v)
 		else
 			memmove(buf, &q->q[q->w - n], n);
 		lastn = q->n;
-		qunlock(&q->lock);
+		vtUnlock(q->lock);
 		if(cons->closed || write(cons->fd, buf, n) < 0)
 			break;
-		qlock(&q->lock);
-		rwakeup(&q->empty);
+		vtLock(q->lock);
+		vtWakeup(q->empty);
 	}
 	consClose(cons);
 }
@@ -155,7 +156,8 @@ consOpen(int fd, int srvfd, int ctlfd)
 {
 	Cons *cons;
 
-	cons = vtmallocz(sizeof(Cons));
+	cons = vtMemAllocZ(sizeof(Cons));
+	cons->lock = vtLockAlloc();
 	cons->fd = fd;
 	cons->srvfd = srvfd;
 	cons->ctlfd = ctlfd;
@@ -163,20 +165,20 @@ consOpen(int fd, int srvfd, int ctlfd)
 	cons->oq = console.oq;
 	console.nopens++;
 
-	qlock(&cons->lock);
+	vtLock(cons->lock);
 	cons->ref = 2;
 	cons->closed = 0;
-	if(proccreate(consOProc, cons, STACK) < 0){
+	if(vtThread(consOProc, cons) < 0){
 		cons->ref--;
-		qunlock(&cons->lock);
+		vtUnlock(cons->lock);
 		consClose(cons);
 		return 0;
 	}
-	qunlock(&cons->lock);
+	vtUnlock(cons->lock);
 
 	if(ctlfd >= 0)
 		consIProc(cons);
-	else if(proccreate(consIProc, cons, STACK) < 0){
+	else if(vtThread(consIProc, cons) < 0){
 		consClose(cons);
 		return 0;
 	}
@@ -189,7 +191,7 @@ qWrite(Q* q, char* p, int n)
 {
 	int w;
 
-	qlock(&q->lock);
+	vtLock(q->lock);
 	if(n > Nq - q->w){
 		w = Nq - q->w;
 		memmove(&q->q[q->w], p, w);
@@ -201,8 +203,8 @@ qWrite(Q* q, char* p, int n)
 		q->w += n;
 	}
 	q->n += n;
-	rwakeup(&q->empty);
-	qunlock(&q->lock);
+	vtWakeup(q->empty);
+	vtUnlock(q->lock);
 
 	return n;
 }
@@ -212,9 +214,10 @@ qAlloc(void)
 {
 	Q *q;
 
-	q = vtmallocz(sizeof(Q));
-	q->full.l = &q->lock;
-	q->empty.l = &q->lock;
+	q = vtMemAllocZ(sizeof(Q));
+	q->lock = vtLockAlloc();
+	q->full = vtRendezAlloc(q->lock);
+	q->empty = vtRendezAlloc(q->lock);
 	q->n = q->r = q->w = 0;
 
 	return q;
@@ -229,14 +232,14 @@ consProc(void*)
 	char procname[64];
 
 	snprint(procname, sizeof procname, "cons %s", currfsysname);
-	threadsetname(procname);
+	vtThreadSetName(procname);
 
 	q = console.iq;
 	qWrite(console.oq, console.prompt, console.np);
-	qlock(&q->lock);
+	vtLock(q->lock);
 	for(;;){
 		while((n = q->n) == 0)
-			rsleep(&q->empty);
+			vtSleep(q->empty);
 		r = Nq - q->r;
 		if(r < n){
 			memmove(buf, &q->q[q->r], r);
@@ -246,8 +249,8 @@ consProc(void*)
 			memmove(buf, &q->q[q->r], n);
 		q->r = (q->r + n) % Nq;
 		q->n -= n;
-		rwakeup(&q->full);
-		qunlock(&q->lock);
+		vtWakeup(q->full);
+		vtUnlock(q->lock);
 
 		for(i = 0; i < n; i++){
 			switch(buf[i]){
@@ -278,7 +281,7 @@ consProc(void*)
 				break;
 			case '\027':				/* ^W */
 				console.l[console.nl] = '\0';
-				wbuf = vtmalloc(console.nl+1);
+				wbuf = vtMemAlloc(console.nl+1);
 				memmove(wbuf, console.l, console.nl+1);
 				argc = tokenize(wbuf, argv, nelem(argv));
 				if(argc > 0)
@@ -288,7 +291,7 @@ consProc(void*)
 				for(i = 0; i < argc; i++)
 					lp += sprint(lp, "%q ", argv[i]);
 				console.nl = lp - console.l;
-				vtfree(wbuf);
+				vtMemFree(wbuf);
 				qWrite(console.oq, "^W\n", 3);
 				if(console.nl == 0)
 					break;
@@ -308,7 +311,7 @@ consProc(void*)
 			qWrite(console.oq, console.prompt, console.np);
 		}
 
-		qlock(&q->lock);
+		vtLock(q->lock);
 	}
 }
 
@@ -330,9 +333,9 @@ consPrompt(char* prompt)
 	if(prompt == nil)
 		prompt = "prompt";
 
-	vtfree(console.prompt);
+	vtMemFree(console.prompt);
 	console.np = snprint(buf, sizeof(buf), "%s: ", prompt);
-	console.prompt = vtstrdup(buf);
+	console.prompt = vtStrDup(buf);
 
 	return console.np;
 }
@@ -347,7 +350,7 @@ consTTY(void)
 	if((fd = open(name, ORDWR)) < 0){
 		name = "#c/cons";
 		if((fd = open(name, ORDWR)) < 0){
-			werrstr("consTTY: open %s: %r", name);
+			vtSetError("consTTY: open %s: %r", name);
 			return 0;
 		}
 	}
@@ -355,14 +358,14 @@ consTTY(void)
 	p = smprint("%sctl", name);
 	if((ctl = open(p, OWRITE)) < 0){
 		close(fd);
-		werrstr("consTTY: open %s: %r", p);
+		vtSetError("consTTY: open %s: %r", p);
 		free(p);
 		return 0;
 	}
 	if(write(ctl, "rawon", 5) < 0){
 		close(ctl);
 		close(fd);
-		werrstr("consTTY: write %s: %r", p);
+		vtSetError("consTTY: write %s: %r", p);
 		free(p);
 		return 0;
 	}
@@ -386,8 +389,8 @@ consInit(void)
 
 	consPrompt(nil);
 
-	if(proccreate(consProc, nil, STACK) < 0){
-		sysfatal("can't start console proc");
+	if(vtThread(consProc, nil) < 0){
+		vtFatal("can't start console proc");
 		return 0;
 	}
 

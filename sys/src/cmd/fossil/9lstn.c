@@ -14,7 +14,7 @@ struct Lstn {
 };
 
 static struct {
-	RWLock	lock;
+	VtLock*	lock;
 
 	Lstn*	head;
 	Lstn*	tail;
@@ -23,7 +23,7 @@ static struct {
 static void
 lstnFree(Lstn* lstn)
 {
-	wlock(&lbox.lock);
+	vtLock(lbox.lock);
 	if(lstn->prev != nil)
 		lstn->prev->next = lstn->next;
 	else
@@ -32,12 +32,12 @@ lstnFree(Lstn* lstn)
 		lstn->next->prev = lstn->prev;
 	else
 		lbox.tail = lstn->prev;
-	wunlock(&lbox.lock);
+	vtUnlock(lbox.lock);
 
 	if(lstn->afd != -1)
 		close(lstn->afd);
-	vtfree(lstn->address);
-	vtfree(lstn);
+	vtMemFree(lstn->address);
+	vtMemFree(lstn);
 }
 
 static void
@@ -47,7 +47,7 @@ lstnListen(void* a)
 	int dfd, lfd;
 	char newdir[NETPATHLEN];
 	
- 	threadsetname("listen");
+ 	vtThreadSetName("listen");
 
 	lstn = a;
 	for(;;){
@@ -71,24 +71,24 @@ lstnAlloc(char* address, int flags)
 	Lstn *lstn;
 	char dir[NETPATHLEN];
 
-	wlock(&lbox.lock);
+	vtLock(lbox.lock);
 	for(lstn = lbox.head; lstn != nil; lstn = lstn->next){
 		if(strcmp(lstn->address, address) != 0)
 			continue;
-		werrstr("listen: already serving '%s'", address);
-		wunlock(&lbox.lock);
+		vtSetError("listen: already serving '%s'", address);
+		vtUnlock(lbox.lock);
 		return nil;
 	}
 
 	if((afd = announce(address, dir)) < 0){
-		werrstr("listen: announce '%s': %r", address);
-		wunlock(&lbox.lock);
+		vtSetError("listen: announce '%s': %r", address);
+		vtUnlock(lbox.lock);
 		return nil;
 	}
 
-	lstn = vtmallocz(sizeof(Lstn));
+	lstn = vtMemAllocZ(sizeof(Lstn));
 	lstn->afd = afd;
-	lstn->address = vtstrdup(address);
+	lstn->address = vtStrDup(address);
 	lstn->flags = flags;
 	memmove(lstn->dir, dir, NETPATHLEN);
 
@@ -101,10 +101,10 @@ lstnAlloc(char* address, int flags)
 		lstn->prev = nil;
 	}
 	lbox.tail = lstn;
-	wunlock(&lbox.lock);
+	vtUnlock(lbox.lock);
 
-	if(proccreate(lstnListen, lstn, STACK) < 0){
-		werrstr("listen: thread '%s': %r", lstn->address);
+	if(vtThread(lstnListen, lstn) < 0){
+		vtSetError("listen: thread '%s': %r", lstn->address);
 		lstnFree(lstn);
 		return nil;
 	}
@@ -139,10 +139,10 @@ cmdLstn(int argc, char* argv[])
 	default:
 		return cliError(usage);
 	case 0:
-		rlock(&lbox.lock);
+		vtRLock(lbox.lock);
 		for(lstn = lbox.head; lstn != nil; lstn = lstn->next)
 			consPrint("\t%s\t%s\n", lstn->address, lstn->dir);
-		runlock(&lbox.lock);
+		vtRUnlock(lbox.lock);
 		break;
 	case 1:
 		if(!dflag){
@@ -151,7 +151,7 @@ cmdLstn(int argc, char* argv[])
 			break;
 		}
 
-		wlock(&lbox.lock);
+		vtLock(lbox.lock);
 		for(lstn = lbox.head; lstn != nil; lstn = lstn->next){
 			if(strcmp(lstn->address, argv[0]) != 0)
 				continue;
@@ -161,10 +161,10 @@ cmdLstn(int argc, char* argv[])
 			}
 			break;
 		}
-		wunlock(&lbox.lock);
+		vtUnlock(lbox.lock);
 
 		if(lstn == nil){
-			werrstr("listen: '%s' not found", argv[0]);
+			vtSetError("listen: '%s' not found", argv[0]);
 			return 0;
 		}
 		break;
@@ -176,6 +176,8 @@ cmdLstn(int argc, char* argv[])
 int
 lstnInit(void)
 {
+	lbox.lock = vtLockAlloc();
+
 	cliAddCmd("listen", cmdLstn);
 
 	return 1;

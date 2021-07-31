@@ -44,7 +44,7 @@ struct WEntry
 
 struct WMap
 {
-	QLock lk;
+	VtLock *lk;
 
 	WEntry *hchild[HashSize];
 	WEntry *hparent[HashSize];
@@ -84,7 +84,7 @@ allocWEntry(void)
 
 	w = pool;
 	if(w == nil){
-		w = vtmallocz(1024*sizeof(WEntry));
+		w = vtMemAllocZ(1024*sizeof(WEntry));
 		for(i=0; i<1024; i++)
 			freeWEntry(&w[i]);
 		w = pool;
@@ -195,15 +195,16 @@ addChild(uchar p[VtEntrySize], uchar c[VtEntrySize], int off)
 void
 bwatchReset(uchar score[VtScoreSize])
 {
-	qlock(&map.lk);
+	vtLock(map.lk);
 	_bwatchResetParent(score);
 	_bwatchResetChild(score);
-	qunlock(&map.lk);
+	vtUnlock(map.lk);
 }
 
 void
 bwatchInit(void)
 {
+	map.lk = vtLockAlloc();
 	wp = privalloc();
 	*wp = nil;
 }
@@ -221,7 +222,7 @@ getWThread(void)
 
 	w = *wp;
 	if(w == nil || w->pid != getpid()){
-		w = vtmallocz(sizeof(WThread));
+		w = vtMemAllocZ(sizeof(WThread));
 		*wp = w;
 		w->pid = getpid();
 	}
@@ -240,7 +241,7 @@ bwatchDependency(Block *b)
 	if(bwatchDisabled)
 		return;
 
-	qlock(&map.lk);
+	vtLock(map.lk);
 	_bwatchResetParent(b->score);
 
 	switch(b->l.type){
@@ -263,7 +264,7 @@ bwatchDependency(Block *b)
 			addChild(b->score, b->data+i*VtScoreSize, i);
 		break;
 	}
-	qunlock(&map.lk);
+	vtUnlock(map.lk);
 }
 
 static int
@@ -375,7 +376,7 @@ bwatchLock(Block *b)
 	if(b->part != PartData)
 		return;
 
-	qlock(&map.lk);
+	vtLock(map.lk);
 	w = getWThread();
 	for(i=0; i<w->nb; i++){
 		if(lockConflicts(w->b[i]->score, b->score)){
@@ -384,7 +385,7 @@ bwatchLock(Block *b)
 			stop();
 		}
 	}
-	qunlock(&map.lk);
+	vtUnlock(map.lk);
 	if(w->nb >= MaxLock){
 		fprint(2, "%d: too many blocks held\n", w->pid);
 		stop();

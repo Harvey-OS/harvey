@@ -8,7 +8,7 @@ typedef struct {
 } Cmd;
 
 static struct {
-	QLock	lock;
+	VtLock*	lock;
 	Cmd*	cmd;
 	int	ncmd;
 	int	hi;
@@ -26,7 +26,7 @@ cliError(char* fmt, ...)
 
 	va_start(arg, fmt);
 	p = vsmprint(fmt, arg);
-	werrstr("%s", p);
+	vtSetError("%s", p);
 	free(p);
 	va_end(arg);
 
@@ -39,32 +39,32 @@ cliExec(char* buf)
 	int argc, i, r;
 	char *argv[20], *p;
 
-	p = vtstrdup(buf);
+	p = vtStrDup(buf);
 	if((argc = tokenize(p, argv, nelem(argv)-1)) == 0){
-		vtfree(p);
+		vtMemFree(p);
 		return 1;
 	}
 	argv[argc] = 0;
 
 	if(argv[0][0] == '#'){
-		vtfree(p);
+		vtMemFree(p);
 		return 1;
 	}
 
-	qlock(&cbox.lock);
+	vtLock(cbox.lock);
 	for(i = 0; i < cbox.hi; i++){
 		if(strcmp(cbox.cmd[i].argv0, argv[0]) == 0){
-			qunlock(&cbox.lock);
+			vtUnlock(cbox.lock);
 			if(!(r = cbox.cmd[i].cmd(argc, argv)))
-				consPrint("%r\n");
-			vtfree(p);
+				consPrint("%s\n", vtGetError());
+			vtMemFree(p);
 			return r;
 		}
 	}
-	qunlock(&cbox.lock);
+	vtUnlock(cbox.lock);
 
 	consPrint("%s: - eh?\n", argv[0]);
-	vtfree(p);
+	vtMemFree(p);
 
 	return 0;
 }
@@ -75,16 +75,16 @@ cliAddCmd(char* argv0, int (*cmd)(int, char*[]))
 	int i;
 	Cmd *opt;
 
-	qlock(&cbox.lock);
+	vtLock(cbox.lock);
 	for(i = 0; i < cbox.hi; i++){
 		if(strcmp(argv0, cbox.cmd[i].argv0) == 0){
-			qunlock(&cbox.lock);
+			vtUnlock(cbox.lock);
 			return 0;
 		}
 	}
 	if(i >= cbox.hi){
 		if(cbox.hi >= cbox.ncmd){
-			cbox.cmd = vtrealloc(cbox.cmd,
+			cbox.cmd = vtMemRealloc(cbox.cmd,
 					(cbox.ncmd+NCmdIncr)*sizeof(Cmd));
 			memset(&cbox.cmd[cbox.ncmd], 0, NCmdIncr*sizeof(Cmd));
 			cbox.ncmd += NCmdIncr;
@@ -95,7 +95,7 @@ cliAddCmd(char* argv0, int (*cmd)(int, char*[]))
 	opt->argv0 = argv0;
 	opt->cmd = cmd;
 	cbox.hi++;
-	qunlock(&cbox.lock);
+	vtUnlock(cbox.lock);
 
 	return 1;
 }
@@ -103,7 +103,8 @@ cliAddCmd(char* argv0, int (*cmd)(int, char*[]))
 int
 cliInit(void)
 {
-	cbox.cmd = vtmallocz(NCmdIncr*sizeof(Cmd));
+	cbox.lock = vtLockAlloc();
+	cbox.cmd = vtMemAllocZ(NCmdIncr*sizeof(Cmd));
 	cbox.ncmd = NCmdIncr;
 	cbox.hi = 0;
 

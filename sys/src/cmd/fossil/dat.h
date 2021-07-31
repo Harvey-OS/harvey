@@ -37,6 +37,7 @@ enum {
 	Nowaitlock,
 	Waitlock,
 
+	NilBlock	= (~0UL),
 	MaxBlock	= (1UL<<31),
 };
 
@@ -78,7 +79,7 @@ struct Fs {
 	int	mode;		/* immutable */
 	int	noatimeupd;	/* immutable */
 	int	blockSize;	/* immutable */
-	VtConn *z;		/* immutable */
+	VtSession *z;		/* immutable */
 	Snap	*snap;		/* immutable */
 	/* immutable; copy here & Fsys to ease error reporting */
 	char	*name;
@@ -93,7 +94,7 @@ struct Fs {
 	 * Deletion and creation of snapshots occurs under a write lock of elk,
 	 * ensuring no file operations are occurring concurrently.
 	 */
-	RWLock	elk;		/* epoch lock */
+	VtLock	*elk;		/* epoch lock */
 	u32int	ehi;		/* epoch high */
 	u32int	elo;		/* epoch low */
 
@@ -135,7 +136,7 @@ struct Source {
 	Source	*parent;	/* immutable */
 	File	*file;		/* immutable; point back */
 
-	QLock	lk;
+	VtLock	*lk;
 	int	ref;
 	/*
 	 * epoch for the source
@@ -232,7 +233,7 @@ struct Block {
 	int	nlock;
 	uintptr	pc;		/* pc that fetched this block from the cache */
 
-	QLock	lk;
+	VtLock	*lk;
 
 	int 	part;
 	u32int	addr;
@@ -260,7 +261,7 @@ struct Block {
 
 	Block	*ionext;
 	int	iostate;
-	Rendez	ioready;
+	VtRendez *ioready;
 };
 
 /* tree walker, for gc and archiver */

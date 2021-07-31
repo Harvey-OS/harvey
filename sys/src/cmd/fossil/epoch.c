@@ -8,11 +8,11 @@ void
 usage(void)
 {
 	fprint(2, "usage: fossil/epoch fs [new-low-epoch]\n");
-	threadexitsall("usage");
+	exits("usage");
 }
 
 void
-threadmain(int argc, char **argv)
+main(int argc, char **argv)
 {
 	int fd;
 	Header h;
@@ -47,5 +47,5 @@ threadmain(int argc, char **argv)
 		if(pwrite(fd, buf, h.blockSize, (vlong)h.super*h.blockSize) != h.blockSize)
 			sysfatal("writing super block: %r");
 	}
-	threadexitsall(0);
+	exits(0);
 }
