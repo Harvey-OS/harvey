@@ -38,7 +38,6 @@ enum {
 	i82545gmc	= (0x1026<<16)|0x8086,
 	i82547gi   	= (0x1075<<16)|0x8086,
 	i82541gi   	= (0x1076<<16)|0x8086,
-	i82541gi2		= (0x1077<<16)|0x8086,
 	i82546gb   	= (0x1079<<16)|0x8086,
 	i82541pi	= (0x107c<<16)|0x8086,
 	i82546eb	= (0x1010<<16)|0x8086,
@@ -831,7 +830,6 @@ igbelproc(void* arg)
 		case i82540em:
 		case i82540eplp:
 		case i82547gi:
-		case i82541gi2:
 		case i82541gi:
 		case i82541pi:
 			break;
@@ -888,7 +886,6 @@ igbetxinit(Ctlr* ctlr)
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
-	case i82541gi2:
 		r = 8;
 		break;
 	}
@@ -922,7 +919,6 @@ igbetxinit(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82547gi:
-	case i82541gi2:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -1061,7 +1057,6 @@ igberxinit(Ctlr* ctlr)
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
-	case i82541gi2:
 		csr32w(ctlr, Radv, 64);
 		break;
 	}
@@ -1452,7 +1447,6 @@ igbemii(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82547gi:
-	case i82541gi2:
 	case i82541gi:
 	case i82541pi:
 	case i82545gmc:
@@ -1486,7 +1480,6 @@ igbemii(Ctlr* ctlr)
 	 */
 	switch(ctlr->id){
 	case i82547gi:
-	case i82541gi2:
 	case i82541gi:
 	case i82541pi:
 	case i82545gmc:
@@ -1622,7 +1615,6 @@ at93c46r(Ctlr* ctlr)
 	case i82541gi:
 	case i82541pi:
 	case i82547gi:
-	case i82541gi2:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -1707,7 +1699,6 @@ igbedetach(Ctlr* ctlr)
 	case i82541gi:
 	case i82541pi:
 	case i82547gi:
-	case i82541gi2:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -1876,9 +1867,8 @@ igbepci(void)
 		case i82547ei:
 		case i82540em:
 		case i82540eplp:
-		case i82541gi:
 		case i82547gi:
-		case i82541gi2:
+		case i82541gi:
 		case i82541pi:
 		case i82545gmc:
 		case i82546gb:

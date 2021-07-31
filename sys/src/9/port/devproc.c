@@ -740,9 +740,8 @@ procread(Chan *c, void *va, long n, vlong off)
 		}
 		for(i=0; i<nelem(conf.mem); i++){
 			cm = &conf.mem[i];
-			/* klimit-1 because klimit might be zero! */
-			if(cm->kbase <= offset && offset <= cm->klimit-1){
-				if(offset+n >= cm->klimit-1)
+			if(cm->kbase <= offset && offset < cm->klimit){
+				if(offset+n > cm->klimit)
 					n = cm->klimit - offset;
 				memmove(a, (char*)offset, n);
 				return n;

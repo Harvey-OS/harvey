@@ -31,7 +31,7 @@ dev
 link
 	apm		apmjump
 	ether82557	pci
-	ethervt6102	pci ethermii
+	etherrhine	pci ethermii
 	ethermedium
 	netdevmedium
 	loopbackmedium

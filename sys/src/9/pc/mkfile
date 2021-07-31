@@ -1,6 +1,6 @@
 CONF=pc
 CONFLIST=pc pccpu pcf pccpuf pcdisk pcauth
-CRAPLIST=pccd pcflop
+CRAPLIST=pccd pcflop pcmartha
 EXTRACOPIES=
 #EXTRACOPIES=lookout boundary	# copy to these servers on install
 
