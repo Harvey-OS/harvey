@@ -96,11 +96,9 @@ gettemplate(int type)
 		goto Return;
 
 	ns = s_reset(nil);
-	do
-		n = s_read(b, ns, Bsize);
-	while(n > 0);
+	n = s_read(b, ns, 10000);
 	Bterm(b);
-	if(n < 0)
+	if(n <= 0)
 		goto Return;
 
 	s_free(cache[type].s);
@@ -542,7 +540,6 @@ s_appendbrk(String *s, char *p, char *prefix, int dosharp)
 {
 	char *e, *w, *x;
 	int first, l;
-	Rune r;
 
 	first = 1;
 	while(*p){
@@ -552,12 +549,11 @@ s_appendbrk(String *s, char *p, char *prefix, int dosharp)
 			e = s_to_c(s);
 		else
 			e++;
-		if(utflen(e) <= LINELEN)
+		l = utflen(e);
+		if(l <= LINELEN)
 			break;
-		x = e; l=LINELEN;
-		while(l--)
-			x+=chartorune(&r,x);
-		x = strchr(x, ' ');
+		/* BUG: should be LINELEN utf chars not LINELEN bytes */
+		x = strchr(e+LINELEN, ' ');
 		if(x){
 			*x = '\0';
 			w = strrchr(e, ' ');

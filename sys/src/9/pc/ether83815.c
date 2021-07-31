@@ -659,19 +659,21 @@ eeidle(Ctlr *ctlr)
 static int
 eegetw(Ctlr *ctlr, int a)
 {
-	int d, i, w, v;
+	int d, i, w;
 
 	eeidle(ctlr);
 	eeclk(ctlr, 0);
 	eeclk(ctlr, Eeclk);
 	d = 0x180 | a;
 	for(i=0x400; i; i>>=1){
-		v = (d & i) ? Eedi : 0;
-		eeclk(ctlr, v);
-		eeclk(ctlr, Eeclk|v);
+		if(d & i)
+			csr32w(ctlr, Rmear, Eesel|Eedi);
+		else
+			csr32w(ctlr, Rmear, Eesel);
+		eeclk(ctlr, Eeclk);
+		eeclk(ctlr, 0);
+		microdelay(2);
 	}
-	eeclk(ctlr, 0);
-
 	w = 0;
 	for(i=0x8000; i; i >>= 1){
 		eeclk(ctlr, Eeclk);

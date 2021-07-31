@@ -9,16 +9,15 @@ adm	- adm adm
 mail	- upas upas
 	box	- upas upas
 		glenda	- glenda glenda
-			L.mbox	l666 glenda glenda
-			mbox	a662 glenda glenda
-	faxoutqueue	d777 upas upas
-	faxqueue	d777 upas upas
-		*	- upas upas
+			+	- glenda glenda
+	faxoutqueue	- upas upas
+	faxqueue	- upas upas
+		+	- upas upas
 	fs	- upas upas
 	lib	- upas upas
 		+	- upas upas
-	queue	d777 upas upas
-	tmp	d777 upas upas
+	queue	- upas upas
+	tmp	- upas upas
 
 # glenda owns her home directory
 usr	- sys sys
@@ -50,7 +49,7 @@ sparc	- sys sys
 # everything else is owned by sys
 acme	- sys sys
 	+	- sys sys
-cron	d777 sys sys
+cron	- sys sys
 	upas	- upas sys
 		+	- upas sys
 fd	- sys sys
@@ -60,10 +59,7 @@ env	- sys sys
 lib	- sys sys
 	+	- sys sys
 lp	- sys sys
-	log	d777 sys sys
-	prob	d777 sys sys
-	queue	d777 sys sys
-	tmp	d777 sys sys
+	+	- sys sys
 mnt	- sys sys
 	+	- sys sys
 n	- sys sys
@@ -71,79 +67,7 @@ n	- sys sys
 rc	- sys sys
 	+	- sys sys
 sys	- sys sys
-	doc	- sys sys
-		+	- sys sys
-	games	- sys sys
-		+	- sys sys
-	include	- sys sys
-		+	- sys sys
-	lib	- sys sys
-		*	- sys sys
-		acid	- sys sys
-			+	- sys sys
-		antiword	- sys sys
-			+	- sys sys
-		astar	- sys sys
-			+	- sys sys
-		dist	- sys sys
-			+	- sys sys
-		fax	- sys sys
-			+	- sys sys
-		ghostscript	- sys sys
-			+	- sys sys
-		lex	- sys sys
-			+	- sys sys
-		lp	- sys sys
-			*	- sys sys
-			bin	- sys sys
-				+	- sys sys
-			daemon	- sys sys
-				+	- sys sys
-			kill	- sys sys
-				+	- sys sys
-			log	d777 sys sys
-			perm	- sys sys
-				+	- sys sys
-			process	- sys sys
-				+	- sys sys
-			sched	- sys sys
-				+	- sys sys
-			spooler	- sys sys
-				+	- sys sys
-			stat	- sys sys
-				+	- sys sys
-			tmp	d777 sys sys
-		man	- sys sys
-			+	- sys sys
-		plumb	- sys sys
-			+	- sys sys
-		postscript	- sys sys
-			+	- sys sys
-		scribble	- sys sys
-			+	- sys sys
-		ssh	- sys sys
-			+	- sys sys
-		sysconfig	- sys sys
-			+	- sys sys
-		texmf	- sys sys
-			+	- sys sys
-		tls	- sys sys
-			+	- sys sys
-		tmac	- sys sys
-			+	- sys sys
-		troff	- sys sys
-			+	- sys sys
-		wiki	- sys sys
-			+	- sys sys
-	log	- sys sys
-		*	a666 sys sys 
-		timesync.d	d775 sys sys
-		httpd	- sys sys
-			*	666 sys sys
-	man	- sys sys
-		+	- sys sys
-	src	- sys sys
-		+	- sys sys
+	+	- sys sys
 tmp	- sys sys
 	+	- sys sys
 

@@ -50,9 +50,6 @@ True if the file exists and is append-only.
 .BI -L " file"
 True if the file exists and is exclusive-use.
 .TP
-.BI -T "file"
-True if the file exists and is temporary.
-.TP
 .IB s1 " = " s2
 True
 if the strings

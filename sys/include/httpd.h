@@ -229,7 +229,6 @@ int			hgetc(Hio*);
 int			hgethead(HConnect *c, int many);
 int			hinit(Hio*, int, int);
 int			hiserror(Hio *h);
-int			hlflush(Hio*);
 int			hload(Hio*, char*);
 char			*hlower(char*);
 HContent		*hmkcontent(HConnect *c, char *generic, char *specific, HContent *next);

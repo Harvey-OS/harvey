@@ -391,8 +391,8 @@ hprint(Hio *h, char *fmt, ...)
 	return n;
 }
 
-static int
-_hflush(Hio* h, int dolength)
+int
+hflush(Hio *h)
 {
 	uchar *s;
 	int w;
@@ -415,8 +415,6 @@ _hflush(Hio* h, int dolength)
 		h->pos[1] = '\n';
 		w = &h->pos[2] - s;
 	}
-	if (dolength)
-		fprint(h->fd, "Content-Length: %d\r\n\r\n", w);
 	if(write(h->fd, s, w) != w){
 		h->state = Herr;
 		h->stop = h->pos;
@@ -425,18 +423,6 @@ _hflush(Hio* h, int dolength)
 	h->seek += w;
 	h->pos = h->start;
 	return 0;
-}
-
-int
-hflush(Hio *h)
-{
-	return _hflush(h, 0);
-}
-
-int
-hlflush(Hio* h)
-{
-	return _hflush(h, 1);
 }
 
 int

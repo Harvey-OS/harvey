@@ -90,11 +90,9 @@ is any combination of the letters
 (execute),
 .B a
 (append only),
-.B l
-(exclusive access),
 and
-.B t
-(temporary file).
+.B l
+(exclusive access).
 .PP
 Only the owner of a file or the group leader of its group
 may change the file's mode.
