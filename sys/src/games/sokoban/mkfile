@@ -7,7 +7,6 @@ OFILES=\
 	move.$O\
 	graphics.$O\
 	level.$O\
-	route.$O\
 
 
 HFILES=sokoban.h\
