@@ -1312,7 +1312,7 @@ printmesg(char *fmt, uchar *a, int plsprnt)
 		SET(p);
 		USED(fmt);
 		USED(a);
-		p = buf;
+		USED(buf);
 		USED(p);
 		USED(q);
 		USED(s);
