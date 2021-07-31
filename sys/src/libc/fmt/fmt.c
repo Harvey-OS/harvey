@@ -124,13 +124,7 @@ void*
 _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 {
 	Rune rune, r;
-	int i, n, w, p;
-	ulong fl;
-	void *ret;
-
-	w = f->width;
-	p = f->prec;
-	fl = f->flags;
+	int i, n;
 
 	f->flags = 0;
 	f->width = f->prec = 0;
@@ -146,8 +140,7 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 		f->r = r;
 		switch(r){
 		case '\0':
-			ret = nil;
-			goto end;
+			return nil;
 		case '.':
 			f->flags |= FmtWidth|FmtPrec;
 			continue;
@@ -201,18 +194,9 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 			goto numflag;
 		}
 		n = (*fmtfmt(r))(f);
-		if(n < 0){
-			ret = nil;
-			break;
-		}
-		if(n == 0){
-			ret = fmt;
-			break;
-		}
+		if(n < 0)
+			return nil;
+		if(n == 0)
+			return fmt;
 	}
-end:
-	f->width = w;
-	f->prec = p;
-	f->flags = fl;
-	return ret;
 }
