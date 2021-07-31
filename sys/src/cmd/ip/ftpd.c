@@ -167,14 +167,6 @@ logit(char *fmt, ...)
 	werrstr(errstr, sizeof errstr);
 }
 
-static void
-usage(void)
-{
-	syslog(0, "ftp", "usage: %s [-aAde] [-n nsfile]", argv0);
-	fprint(2, "usage: %s [-aAde] [-n nsfile]\n", argv0);
-	exits("usage");
-}
-
 /*
  *  read commands from the control stream and dispatch
  */
@@ -189,6 +181,9 @@ main(int argc, char **argv)
 	int i;
 
 	ARGBEGIN{
+	case 'd':
+		debug++;
+		break;
 	case 'a':		/* anonymous OK */
 		anon_ok = 1;
 		break;
@@ -196,18 +191,13 @@ main(int argc, char **argv)
 		anon_ok = 1;
 		anon_only = 1;
 		break;
-	case 'd':
-		debug++;
-		break;
 	case 'e':
 		anon_ok = 1;
 		anon_everybody = 1;
 		break;
 	case 'n':
-		namespace = EARGF(usage());
+		namespace = ARGF();
 		break;
-	default:
-		usage();
 	}ARGEND
 
 	/* open log file before doing a newns */
@@ -224,13 +214,12 @@ main(int argc, char **argv)
 	strcpy(mailaddr, "?");
 	id = getpid();
 
-	/* figure out which binaries to bind in later (only for none) */
+	/* figure out which binaries to bind in later */
 	arg = getenv("cputype");
 	if(arg)
 		strecpy(cputype, cputype+sizeof cputype, arg);
 	else
 		strcpy(cputype, "mips");
-	/* shurely /%s/bin */
 	snprint(bindir, sizeof(bindir), "/bin/%s/bin", cputype);
 
 	Binit(&in, 0, OREAD);
