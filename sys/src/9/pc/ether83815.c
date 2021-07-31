@@ -598,13 +598,9 @@ ctlrinit(Ether* ether)
 	 * unmask interrupts and start the transmit side
 	 */
 	ctlr->rdr = malloc(ctlr->nrdr*sizeof(Des));
-	if (ctlr->rdr == nil)
-		error(Enomem);
 	last = nil;
 	for(des = ctlr->rdr; des < &ctlr->rdr[ctlr->nrdr]; des++){
 		des->bp = iallocb(Rbsz);
-		if (des->bp == nil)
-			error(Enomem);
 		des->cmdsts = Rbsz;
 		des->addr = PADDR(des->bp->rp);
 		if(last != nil)
@@ -689,10 +685,13 @@ eegetw(Ctlr *ctlr, int a)
 }
 
 static void
-resetctlr(Ctlr *ctlr)
+softreset(Ctlr* ctlr, int resetphys)
 {
-	int i;
+	int i, w;
 
+	/*
+	 * Soft-reset the controller
+	 */
 	csr32w(ctlr, Rcr, Rst);
 	for(i=0;; i++){
 		if(i > 100)
@@ -702,27 +701,7 @@ resetctlr(Ctlr *ctlr)
 			break;
 		delay(1);
 	}
-}
 
-static void
-shutdown(Ether* ether)
-{
-	Ctlr *ctlr = ether->ctlr;
-
-print("ether83815 shutting down\n");
-	csr32w(ctlr, Rcr, Rxd|Txd);	/* disable transceiver */
-	resetctlr(ctlr);
-}
-
-static void
-softreset(Ctlr* ctlr, int resetphys)
-{
-	int i, w;
-
-	/*
-	 * Soft-reset the controller
-	 */
-	resetctlr(ctlr);
 	csr32w(ctlr, Rccsr, Pmests);
 	csr32w(ctlr, Rccsr, 0);
 	csr32w(ctlr, Rcfg, csr32r(ctlr, Rcfg) | Pint_acen);
@@ -974,11 +953,11 @@ reset(Ether* ether)
 	ether->transmit = transmit;
 	ether->interrupt = interrupt;
 	ether->ifstat = ifstat;
+	ether->multicast = multicast;
 
 	ether->arg = ether;
 	ether->promiscuous = promiscuous;
-	ether->multicast = multicast;
-	ether->shutdown = shutdown;
+
 	return 0;
 }
 

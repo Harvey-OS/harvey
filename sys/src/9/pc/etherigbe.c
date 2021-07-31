@@ -1631,13 +1631,6 @@ igbedetach(Ctlr* ctlr)
 		;
 }
 
-static void
-igbeshutdown(Ether* ether)
-{
-print("etherigbe shutting down\n");
-	igbedetach(ether->ctlr);
-}
-
 static int
 igbereset(Ctlr* ctlr)
 {
@@ -1853,7 +1846,6 @@ igbepnp(Ether* edev)
 
 	edev->arg = edev;
 	edev->promiscuous = igbepromiscuous;
-	edev->shutdown = igbeshutdown;
 	edev->multicast = igbemulticast;
 
 	return 0;

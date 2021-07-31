@@ -25,8 +25,8 @@ typedef struct Desc Desc;
 typedef struct Ctlr Ctlr;
 
 enum {
-	Ntxd = 16,
-	Nrxd = 64,
+	Ntxd = 8,
+	Nrxd = 16,
 	Nwait = 50,
 	Ntxstats = 9,
 	Nrxstats = 8,
@@ -480,8 +480,7 @@ promiscuous(void *arg, int enable)
 	edev = arg;
 	ctlr = edev->ctlr;
 	ilock(&ctlr->lock);
-	iow8(ctlr, Rcr, (ior8(ctlr, Rcr) & ~(RxProm|RxBcast)) |
-		(enable ? RxProm : RxBcast));
+	iow8(ctlr, Rcr, ior8(ctlr, Rcr) | (enable ? RxProm : RxBcast));
 	iunlock(&ctlr->lock);
 }
 
@@ -544,19 +543,17 @@ miiwrite(Mii *mii, int phy, int reg, int data)
 	return 0;
 }
 
-/* multicast already on, don't need to do anything */
 static void
-multicast(void*, uchar*, int)
+init(Ether *edev)
 {
-}
-
-static void
-shutdown(Ether *edev)
-{
+	Ctlr *ctlr;
+	MiiPhy *phy;
 	int i;
-	Ctlr *ctlr = edev->ctlr;
+
+	ctlr = edev->ctlr;
 
 	ilock(&ctlr->lock);
+
 	pcisetbme(ctlr->pci);
 
 	iow16(ctlr, Cr, ior16(ctlr, Cr) | Stop);
@@ -569,20 +566,7 @@ shutdown(Ether *edev)
 	}
 	if (i == Nwait)
 		iprint("etherrhine: reset timeout\n");
-	iunlock(&ctlr->lock);
-}
 
-static void
-init(Ether *edev)
-{
-	Ctlr *ctlr;
-	MiiPhy *phy;
-	int i;
-
-	shutdown(edev);
-
-	ctlr = edev->ctlr;
-	ilock(&ctlr->lock);
 	iow8(ctlr, Eecsr, ior8(ctlr, Eecsr) | EeAutoLoad);
 	for (i = 0; i < Nwait; ++i) {
 		if ((ior8(ctlr, Eecsr) & EeAutoLoad) == 0)
@@ -614,7 +598,6 @@ init(Ether *edev)
 
 	iow16(ctlr, Imr, 0);
 	iow16(ctlr, Cr, ior16(ctlr, Cr) | Stop);
-	iow8(ctlr, Rcr, ior8(ctlr, Rcr) | RxMcast);
 
 	iunlock(&ctlr->lock);
 }
@@ -722,8 +705,7 @@ pnp(Ether *edev)
 	edev->transmit = transmit;
 	edev->ifstat = ifstat;
 	edev->promiscuous = promiscuous;
-	edev->multicast = multicast;
-	edev->shutdown = shutdown;
+
 	return 0;
 }
 
