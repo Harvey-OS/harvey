@@ -447,13 +447,14 @@ aoerio(SDreq *r)
 	cmd = r->cmd;
 	name = unit->name;
 
-	if(*cmd == ScmdSynccache || *cmd == ScmdSynccache16)
+	if(r->cmd[0] == 0x35 || r->cmd[0] == 0x91){
 //		qlock(c);
 //		i = flushcache();
 //		qunlock(c);
 //		if(i == 0)
 //			return sdsetsense(r, SDok, 0, 0, 0);
 		return sdsetsense(r, SDcheck, 3, 0xc, 2);
+	}
 
 	if((i = sdfakescsi(r, c->ident, sizeof c->ident)) != SDnostatus){
 		r->status = i;
@@ -461,12 +462,12 @@ aoerio(SDreq *r)
 	}
 
 	switch(*cmd){
-	case ScmdRead16:
-	case ScmdExtread:
+	case 0x88:
+	case 0x28:
 		rio = devtab[c->c->type]->read;
 		break;
-	case ScmdWrite16:
-	case ScmdExtwrite:
+	case 0x8a:
+	case 0x2a:
 		rio = devtab[c->c->type]->write;
 		break;
 	default:
