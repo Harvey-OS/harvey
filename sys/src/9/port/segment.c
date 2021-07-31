@@ -344,8 +344,6 @@ imagereclaim(void)
 			if(p->ref == 0) {
 				n++;
 				uncachepage(p);
-				pageunchain(p);
-				pagechainhead(p);
 			}
 			unlock(p);
 		}
