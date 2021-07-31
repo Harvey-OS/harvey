@@ -50,7 +50,7 @@ send_notify(char *slave, RR *soa, Request *req)
 {
 	int i, len, n, reqno, status, fd;
 	char *err;
-	uchar ibuf[Maxpayload+Udphdrsize], obuf[Maxpayload+Udphdrsize];
+	uchar ibuf[Maxudp+Udphdrsize], obuf[Maxudp+Udphdrsize];
 	RR *rp;
 	Udphdr *up = (Udphdr*)obuf;
 	DNSmsg repmsg;
