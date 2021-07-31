@@ -528,10 +528,6 @@ Filemagic long0tab[] = {
 	070707,		0xFFFF,		"cpio archive\n", OCTET,
 	0x2F7,		0xFFFF,		"tex dvi\n", "application/dvi",
 	0xfaff,		0xfeff,		"mp3 audio\n",	"audio/mpeg",
-	0xfeff0000,	0xffffffff,	"utf-32be\n",	"text/plain charset=utf-32be",
-	0xfffe,		0xffffffff,	"utf-32le\n",	"text/plain charset=utf-32le",
-	0xfeff,		0xffff,		"utf-16be\n",	"text/plain charset=utf-16be",
-	0xfffe,		0xffff,		"utf-16le\n",	"text/plain charset=utf-16le",
 };
 
 int
@@ -1248,7 +1244,7 @@ ismsdos(void)
 int
 iself(void)
 {
-	static char *cpu[] = {		/* NB: incomplete and arbitary list */
+	char *cpu[] = {		/* NB: incomplete and arbitary list */
 	[1]	"WE32100",
 	[2]	"SPARC",
 	[3]	"i386",
@@ -1271,18 +1267,12 @@ iself(void)
 	[62]	"AMD64",
 	[75]	"VAX",
 	};
-	static char *type[] = {
-	[1]	"relocatable object",
-	[2]	"executable",
-	[3]	"shared library",
-	[4]	"core dump",
-	};
+
 
 	if (memcmp(buf, "\x7fELF", 4) == 0){
 		if (!mime){
 			int n = (buf[19] << 8) | buf[18];
 			char *p = "unknown";
-			char *t = "unknown";
 
 			if (n > 0 && n < nelem(cpu) && cpu[n])
 				p = cpu[n];
@@ -1292,10 +1282,7 @@ iself(void)
 				if (n > 0 && n < nelem(cpu) && cpu[n])
 					p = cpu[n];
 			}
-			n = buf[16];
-			if(n>0 && n < nelem(type) && type[n])
-				t = type[n];
-			print("%s ELF %s\n", p, t);
+			print("%s ELF executable\n", p);
 		}
 		else
 			print("application/x-elf-executable");

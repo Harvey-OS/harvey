@@ -1152,7 +1152,7 @@ data(void)
 		rejectcount++;
 		return;
 	}
-	if(!trusted && sendermxcheck()){
+	if(sendermxcheck()){
 		rerrstr(errx, sizeof errx);
 		if(strncmp(errx, "rejected:", 9) == 0)
 			reply("554 %s\r\n", errx);
