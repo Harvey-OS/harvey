@@ -541,20 +541,6 @@ vncnegotiate_srv(Vnc *v)
 	return 0;
 }
 
-static int
-encoding_ok(int x)
-{
-	switch(x) {
-	default:
-		return 0;
-	case EncRaw:
-	case EncRre:
-	case EncCorre:
-	case EncHextile:
-		return 1;
-	}
-}
-
 static void
 vnc_srv(Vncs *v, int dfd, int cfd)
 {
@@ -654,8 +640,7 @@ vnc_srv(Vncs *v, int dfd, int cfd)
 					v->usecopyrect = 1;
 				else if (x == EncMouseWarp)
 					v->canwarp = 1;
-				else if(v->preferredencoding == -1 &&
-					encoding_ok(x))
+				else if(v->preferredencoding == -1)
 					v->preferredencoding = x;
 			}
 			if(v->preferredencoding == -1)

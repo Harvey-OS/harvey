@@ -49,6 +49,7 @@ struct User {
 	User *next;
 };
 
+typedef struct Fid Fid;
 struct Fid {
 	int fid;
 	char *path;
@@ -61,8 +62,6 @@ struct Fid {
 	struct dirent *dirent;
 	Fid *next;
 	Fid *prev;
-	int auth;
-	void *authmagic;
 };
 
 void*	emalloc(size_t);
@@ -94,7 +93,6 @@ User*	uid2user(int);
 User*	gid2user(int);
 
 Fid*	newfid(int, char**);
-Fid*	oldfidex(int, int, char**);
 Fid*	oldfid(int, char**);
 int	fidstat(Fid*, char**);
 void	freefid(Fid*);
@@ -149,7 +147,6 @@ User*	none;
 
 Auth *authmethods[] = {	/* first is default */
 	&authrhosts,
-	&authp9any,
 	&authnone,
 };
 
@@ -659,16 +656,8 @@ rread(Fcall *rx, Fcall *tx)
 		return;
 	}
 
-	if((fid = oldfidex(rx->fid, -1, &e)) == nil){
+	if((fid = oldfid(rx->fid, &e)) == nil){
 		seterror(tx, e);
-		return;
-	}
-
-	if (fid->auth) {
-		char *e;
-		e = auth->read(rx, tx);
-		if (e)
-			seterror(tx, e);
 		return;
 	}
 
@@ -738,16 +727,8 @@ rwrite(Fcall *rx, Fcall *tx)
 		return;
 	}
 
-	if((fid = oldfidex(rx->fid, -1, &e)) == nil){
+	if((fid = oldfid(rx->fid, &e)) == nil){
 		seterror(tx, e);
-		return;
-	}
-
-	if (fid->auth) {
-		char *e;
-		e = auth->write(rx, tx);
-		if (e)
-			seterror(tx, e);
 		return;
 	}
 
@@ -769,20 +750,11 @@ rclunk(Fcall *rx, Fcall *tx)
 	char *e;
 	Fid *fid;
 
-	if((fid = oldfidex(rx->fid, -1, &e)) == nil){
+	if((fid = oldfid(rx->fid, &e)) == nil){
 		seterror(tx, e);
 		return;
 	}
-	if (fid->auth) {
-		if (auth->clunk) {
-			e = (*auth->clunk)(rx, tx);
-			if (e) {
-				seterror(tx, e);
-				return;
-			}
-		}
-	}
-	else if(fid->omode != -1 && fid->omode&ORCLOSE)
+	if(fid->omode != -1 && fid->omode&ORCLOSE)
 		remove(fid->path);
 	freefid(fid);
 }
@@ -1155,6 +1127,11 @@ estrpath(char *p, char *q)
 	return r;
 }
 
+Fid *newfid(int, char**);
+Fid *oldfid(int, char**);
+int fidstat(Fid*, char**);
+void freefid(Fid*);
+
 Fid *fidtab[1];
 
 Fid*
@@ -1190,19 +1167,7 @@ newfid(int fid, char **ep)
 }
 
 Fid*
-newauthfid(int fid, void *magic, char **ep)
-{
-	Fid *af;
-	af = newfid(fid, ep);
-	if (af == nil)
-		return nil;
-	af->auth = 1;
-	af->authmagic = magic;
-	return af;
-}
-
-Fid*
-oldfidex(int fid, int auth, char **ep)
+oldfid(int fid, char **ep)
 {
 	Fid *f;
 
@@ -1211,34 +1176,10 @@ oldfidex(int fid, int auth, char **ep)
 		return nil;
 	}
 
-	if (auth != -1 && f->auth != auth) {
-		*ep = Ebadfid;
+	if(userchange(f->u, ep) < 0)
 		return nil;
-	}
-
-	if (!f->auth) {
-		if(userchange(f->u, ep) < 0)
-			return nil;
-	}
 
 	return f;
-}
-
-Fid*
-oldfid(int fid, char **ep)
-{
-	return oldfidex(fid, 0, ep);
-}
-
-Fid*
-oldauthfid(int fid, void **magic, char **ep)
-{
-	Fid *af;
-	af = oldfidex(fid, 1, ep);
-	if (af == nil)
-		return nil;
-	*magic = af->authmagic;
-	return af;
 }
 
 void

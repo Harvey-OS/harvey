@@ -159,8 +159,6 @@ qidtype(char *s, uchar t)
 		*p++ = 'l';
 	if(t & QTMOUNT)
 		*p++ = 'm';
-	if(t & QTAUTH)
-		*p++ = 'A';
 	*p = '\0';
 	return s;
 }

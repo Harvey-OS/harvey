@@ -23,7 +23,6 @@ LDTAIL=
 OFILES=\
 	authnone.o\
 	authrhosts.o\
-	authp9any.o\
 	convD2M.o\
 	convM2D.o\
 	convM2S.o\
@@ -37,7 +36,6 @@ OFILES=\
 	readn.o\
 	remotehost.o\
 	rune.o\
-	safecpy.o\
 	strecpy.o\
 	tokenize.o\
 	u9fs.o\
