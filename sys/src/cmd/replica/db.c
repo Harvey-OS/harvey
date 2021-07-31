@@ -58,12 +58,10 @@ static int
 entrycmp(Avl *a, Avl *b)
 {
 	Entry *ea, *eb;
-	int r;
 
 	ea = (Entry*)a;
 	eb = (Entry*)b;
-	r = strcmp(ea->name, eb->name);
-	return r > 0 ? 1 : r < 0 ? -1 : 0;
+	return strcmp(ea->name, eb->name);
 }
 
 Db*

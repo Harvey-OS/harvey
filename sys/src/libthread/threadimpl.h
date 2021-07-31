@@ -180,8 +180,6 @@ void*	_threadrendezvous(void*, void*);
 void	_threadsignal(void);
 void	_threadsysfatal(char*, va_list);
 void**	_workerdata(void);
-void	_xinc(long*);
-long	_xdec(long*);
 
 extern int			_threaddebuglevel;
 extern char*		_threadexitsallstatus;

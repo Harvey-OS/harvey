@@ -97,8 +97,7 @@ initdvi(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 Document*
 inittroff(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 {
-	/* Added -H to eliminate header page [sape] */
-	return initfilt(b, argc, argv, buf, nbuf, "troff", "lp -H -dstdout", 1);
+	return initfilt(b, argc, argv, buf, nbuf, "troff", "lp -dstdout", 1);
 }
 
 Document*

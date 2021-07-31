@@ -191,8 +191,7 @@ p_filter(Filter *f, Msg *m)
 static int
 p_seprint(Msg *m)
 {
-	int f, len, hl;
-	uchar *p;
+	int f, len;
 	Hdr *h;
 
 	if(m->pe - m->ps < IPHDR)
@@ -211,22 +210,11 @@ p_seprint(Msg *m)
 		m->pe = m->ps + len;
 
 	/* next header */
-	hl = (h->vihl  &0xf) << 2;
+	m->ps += (h->vihl  &0xf) << 2;
 
-	m->p = seprint(m->p, m->e, "s=%V d=%V id=%4.4ux frag=%4.4ux ttl=%3d pr=%d ln=%d hl=%d",
+	m->p = seprint(m->p, m->e, "s=%V d=%V id=%4.4ux frag=%4.4ux ttl=%3d pr=%d ln=%d",
 		h->src, h->dst, NetS(h->id), NetS(h->frag), h->ttl, h->proto,
-		NetS(h->length),
-		(h->vihl & 0xf) << 2);
-
-	m->ps += hl;
-	p = (uchar *)(h + 1);
-	if(p < m->ps){
-		m->p = seprint(m->p, m->e, " opts=(");
-		while(p < m->ps)
-			m->p = seprint(m->p, m->e, "%.2ux", *p++);
-		m->p = seprint(m->p, m->e, ")");
-	}
-
+		NetS(h->length));
 	return 0;
 }
 
