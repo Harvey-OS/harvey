@@ -130,7 +130,7 @@ mkqid(int n, int t)
 {
 	uvlong q;
 
-	q = (n&0xFFFFFF) << 8 | t&0xFF;
+	q =  (n&0xFFFFFF) << 8 | t&0xFF;
 	return q;
 }
 
@@ -265,7 +265,7 @@ seprintifstats(char *s, char *se, Ether *e)
 	qlock(e);
 	s = seprint(s, se, "ctlr id: %#x\n", e->cid);
 	s = seprint(s, se, "phy: %#x\n", e->phy);
-	s = seprint(s, se, "exiting: %s\n", e->exiting ? "y" : "n");
+	s = seprint(s, se, "exiting: %#x\n", e->exiting);
 	s = seprint(s, se, "conns: %d\n", e->nconns);
 	s = seprint(s, se, "allocated bufs: %d\n", e->nabufs);
 	s = seprint(s, se, "used bufs: %d\n", e->nbufs);
@@ -349,7 +349,7 @@ rootdirgen(Usbfs *fs, Qid, int i, Dir *d, void *)
 	}
 	filldir(fs, d, tab, cn);
 	return 0;
-
+	
 }
 
 static int
@@ -369,11 +369,12 @@ conndirgen(Usbfs *fs, Qid q, int i, Dir *d, void *)
 static int
 fswalk(Usbfs *fs, Fid *fid, char *name)
 {
-	int cn, i;
+	Ether *e;
+	int i;
+	Qid qid;
 	char *es;
 	Dirtab *tab;
-	Ether *e;
-	Qid qid;
+	int cn;
 
 	e = fs->aux;
 	qid = fid->qid;
@@ -430,8 +431,9 @@ fswalk(Usbfs *fs, Fid *fid, char *name)
 static Dirtab*
 qdirtab(vlong q)
 {
-	int i, qt;
+	int qt;
 	Dirtab *tab;
+	int i;
 
 	qt = qtype(q);
 	if(qt < nelem(rootdirtab) - 1){	/* null terminated */
@@ -455,11 +457,11 @@ fsstat(Usbfs *fs, Qid qid, Dir *d)
 static int
 fsopen(Usbfs *fs, Fid *fid, int omode)
 {
-	int qt;
-	vlong qid;
-	Conn *c;
-	Dirtab *tab;
 	Ether *e;
+	int qt;
+	Dirtab *tab;
+	Conn *c;
+	vlong qid;
 
 	qid = fid->qid.path & ~fs->qid;
 	e = fs->aux;
@@ -507,11 +509,11 @@ prom(Ether *e, int set)
 static void
 fsclunk(Usbfs *fs, Fid *fid)
 {
+	Ether *e;
 	int qt;
+	Conn *c;
 	vlong qid;
 	Buf *bp;
-	Conn *c;
-	Ether *e;
 
 	e = fs->aux;
 	qid = fid->qid.path & ~fs->qid;
@@ -545,7 +547,8 @@ fsclunk(Usbfs *fs, Fid *fid)
 int
 parseaddr(uchar *m, char *s)
 {
-	int i, n;
+	int i;
+	int n;
 	uchar v;
 
 	if(strlen(s) < 12)
@@ -575,13 +578,15 @@ parseaddr(uchar *m, char *s)
 static long
 fsread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 {
-	int cn, qt;
-	char *s, *se;
-	char buf[128];
-	Buf *bp;
-	Conn *c;
-	Ether *e;
 	Qid q;
+	Buf *bp;
+	Ether *e;
+	int qt;
+	int cn;
+	char buf[128];
+	char *s;
+	char *se;
+	Conn *c;
 
 	q = fid->qid;
 	q.path &= ~fs->qid;
@@ -702,7 +707,7 @@ etherctl(Ether *e, Conn *c, char *buf)
 		c->headersonly = 1;
 		return 0;
 	}
-	if(strncmp(buf, "addmulti ", 9) == 0 || strncmp(buf, "remmulti ", 9) == 0){
+	if(!strncmp(buf, "addmulti ", 9) || !strncmp(buf, "remmulti ", 9)){
 		if(parseaddr(addr, buf+9) < 0){
 			werrstr("bad address");
 			return -1;
@@ -729,12 +734,8 @@ etherbread(Ether *e, Buf *bp)
 {
 	deprint(2, "%s: etherbread\n", argv0);
 	bp->rp = bp->data + Hdrsize;
-	bp->ndata = -1;
 	bp->ndata = read(e->epin->dfd, bp->rp, sizeof(bp->data)-Hdrsize);
-	if(bp->ndata < 0)
-		deprint(2, "%s: etherbread: %r\n", argv0);
-	else
-		deprint(2, "%s: etherbread: got %d bytes\n", argv0, bp->ndata);
+	deprint(2, "%s: etherbread got %d bytes\n", argv0, bp->ndata);
 	return bp->ndata;
 }
 
@@ -745,15 +746,12 @@ etherbwrite(Ether *e, Buf *bp)
 
 	deprint(2, "%s: etherbwrite %d bytes\n", argv0, bp->ndata);
 	n = write(e->epout->dfd, bp->rp, bp->ndata);
-	if(n < 0)
-		deprint(2, "%s: etherbwrite: %r\n", argv0);
-	else
-		deprint(2, "%s: etherbwrite wrote %ld bytes\n", argv0, n);
+	deprint(2, "%s: etherbwrite wrote %ld bytes\n", argv0, n);
 	if(n <= 0)
 		return n;
 	if((bp->ndata % e->epout->maxpkt) == 0){
 		deprint(2, "%s: short pkt write\n", argv0);
-		write(e->epout->dfd, "", 1);
+		write(e->epout->dfd, "", 0);
 	}
 	return n;
 }
@@ -761,12 +759,13 @@ etherbwrite(Ether *e, Buf *bp)
 static long
 fswrite(Usbfs *fs, Fid *fid, void *data, long count, vlong)
 {
-	int cn, qt;
-	char buf[128];
-	Buf *bp;
-	Conn *c;
-	Ether *e;
 	Qid q;
+	Ether *e;
+	int qt;
+	int cn;
+	char buf[128];
+	Conn *c;
+	Buf *bp;
 
 	q = fid->qid;
 	q.path &= ~fs->qid;
@@ -843,17 +842,13 @@ openeps(Ether *e, int epin, int epout)
 		closedev(e->epout);
 		return -1;
 	}
-	dprint(2, "ether: ep in %s maxpkt %d; ep out %s maxpkt %d\n",
-		e->epin->dir, e->epin->maxpkt, e->epout->dir, e->epout->maxpkt);
-
-	/* time outs are not activated for I/O endpoints */
+	dprint(2, "ether: ep in %s out %s\n", e->epin->dir, e->epout->dir);
 
 	if(usbdebug > 2 || etherdebug > 2){
 		devctl(e->epin, "debug 1");
 		devctl(e->epout, "debug 1");
 		devctl(e->dev, "debug 1");
 	}
-
 	return 0;
 }
 
@@ -874,16 +869,6 @@ static Usbfs etherfs = {
 };
 
 static void
-shutdownchan(Channel *c)
-{
-	Buf *bp;
-
-	while((bp=nbrecvp(c)) != nil)
-		free(bp);
-	chanfree(c);
-}
-
-static void
 etherfree(Ether *e)
 {
 	int i;
@@ -893,7 +878,7 @@ etherfree(Ether *e)
 		e->free(e);
 	closedev(e->epin);
 	closedev(e->epout);
-	if(e->rc == nil){	/* not really started */
+	if(e->rc == nil){
 		free(e);
 		return;
 	}
@@ -904,21 +889,14 @@ etherfree(Ether *e)
 			chanfree(e->conns[i]->rc);
 			free(e->conns[i]);
 		}
-	shutdownchan(e->bc);
-	shutdownchan(e->rc);
-	shutdownchan(e->wc);
+	while((bp = nbrecvp(e->bc)) != nil)
+		free(bp);
+	chanfree(e->bc);
+	chanfree(e->rc);
+	/* chanfree(e->wc);	released by writeproc */
 	e->epin = e->epout = nil;
 	free(e);
-
-}
-
-static void
-etherdevfree(void *a)
-{
-	Ether *e = a;
-
-	if(e != nil)
-		etherfree(e);
+	
 }
 
 /* must return 1 if c wants bp; 0 if not */
@@ -945,50 +923,31 @@ etherwriteproc(void *a)
 		e->nout++;
 		if(e->bwrite(e, bp) < 0)
 			e->noerrs++;
-		if(isloopback(e, bp) && e->exiting == 0)
+		if(isloopback(e, bp))
 			sendp(e->rc, bp); /* send to input queue */
 		else
 			freebuf(e, bp);
 	}
+	while((bp = nbrecvp(wc)) != nil)
+		free(bp);
+	chanfree(wc);
 	deprint(2, "%s: writeproc exiting\n", argv0);
-	closedev(e->dev);
-}
-
-static void
-setbuftype(Buf *bp)
-{
-	uchar *p;
-
-	bp->type = 0;
-	if(bp->ndata >= Ehdrsize){
-		p = bp->rp + Eaddrlen*2;
-		bp->type = p[0]<<8 | p[1];
-	}
-}
-
-static void
-etherexiting(Ether *e)
-{
-	devctl(e->dev, "detach");
-	e->exiting = 1;
-	close(e->epin->dfd);
-	e->epin->dfd = -1;
-	close(e->epout->dfd);
-	e->epout->dfd = -1;
-	nbsend(e->wc, nil);
 }
 
 static void
 etherreadproc(void *a)
 {
-	int i, n, nwants;
-	Buf *bp, *dbp;
 	Ether *e = a;
+	int i;
+	int n;
+	Buf *bp;
+	Buf *dbp;
+	int nwants;
 
 	while(e->exiting == 0){
 		bp = nbrecvp(e->rc);
 		if(bp == nil){
-			bp = allocbuf(e);	/* leak() may think we leak */
+			bp = allocbuf(e);	/* seems to leak bps kept at bc */
 			if(e->bread(e, bp) < 0){
 				freebuf(e, bp);
 				break;
@@ -998,8 +957,7 @@ etherreadproc(void *a)
 				if(0)dprint(2, "%s: read: short\n", argv0);
 				freebuf(e, bp);
 				continue;
-			}else
-				setbuftype(bp);
+			}
 		}
 		e->nin++;
 		nwants = 0;
@@ -1018,7 +976,6 @@ etherreadproc(void *a)
 					dbp = allocbuf(e);
 					memmove(dbp->rp, bp->rp, n);
 					dbp->ndata = n;
-					dbp->type = bp->type;
 				}
 				if(nbsendp(e->conns[i]->rc, dbp) < 0){
 					e->nierrs++;
@@ -1027,28 +984,62 @@ etherreadproc(void *a)
 			}
 		freebuf(e, bp);
 	}
+	while(e->exiting == 0)	/* give them time... */
+		yield();
+	while((bp = nbrecvp(e->rc)) != nil)
+		free(bp);
 	deprint(2, "%s: writeproc exiting\n", argv0);
-	etherexiting(e);
-	closedev(e->dev);
+	etherfree(e);
+}
+
+static void
+etherdevfree(void *a)
+{
+	Ether *e = a;
+
+	if(e == nil)
+		return;
+	if(e->free != nil)
+		e->free(e);
+	if(e->rc == nil){
+		/* no readproc; free everything ourselves */
+		etherfree(e);
+		return;
+	}
+	/* ether resources released by etherreadproc
+	 * It will exit its main look for sure, because
+	 * the endpoints must be detached by now.
+	 */
+	close(e->epin->dfd);
+	e->epin->dfd = -1;
+	close(e->epout->dfd);
+	e->epout->dfd = -1;
+	e->exiting = 1;
 }
 
 static void
 setalt(Dev *d, int ifcid, int altid)
 {
-	if(usbcmd(d, Rh2d|Rstd|Riface, Rsetiface, altid, ifcid, nil, 0) < 0)
+	int r;
+
+	r = Rh2d|Rstd|Riface;
+	if(usbcmd(d, r, Rsetiface, altid, ifcid, nil, 0) < 0)
 		dprint(2, "%s: setalt ifc %d alt %d: %r\n", argv0, ifcid, altid);
 }
 
 static int
 ifaceinit(Ether *e, Iface *ifc, int *ei, int *eo)
 {
+	int i;
 	Ep *ep;
-	int epin, epout, i;
+	int epin;
+	int epout;
+	int altid;
 
 	if(ifc == nil)
 		return -1;
 
-	epin = epout = -1;
+	altid = epin = epout = -1;
 	for(i = 0; (epin < 0 || epout < 0) && i < nelem(ifc->ep); i++)
 		if((ep = ifc->ep[i]) != nil && ep->type == Ebulk){
 			if(ep->dir == Eboth || ep->dir == Ein)
@@ -1060,11 +1051,14 @@ ifaceinit(Ether *e, Iface *ifc, int *ei, int *eo)
 		}
 	if(epin == -1 || epout == -1)
 		return -1;
-
 	dprint(2, "ether: ep ids: in %d out %d\n", epin, epout);
 	for(i = 0; i < nelem(ifc->altc); i++)
-		if(ifc->altc[i] != nil)
-			setalt(e->dev, ifc->id, i);
+		if(ifc->altc[i] != nil){
+			altid = ifc->altc[i]->attrib;
+			break;
+		}
+	if(altid != -1)
+		setalt(e->dev, ifc->id, altid);
 
 	*ei = epin;
 	*eo = epout;
@@ -1074,50 +1068,17 @@ ifaceinit(Ether *e, Iface *ifc, int *ei, int *eo)
 static int
 etherinit(Ether *e, int *ei, int *eo)
 {
-	int ctlid, datid, i, j;
-	Conf *c;
-	Desc *desc;
-	Iface *ctlif, *datif;
 	Usbdev *ud;
+	Conf *c;
+	int i;
+	int j;
 
 	*ei = *eo = -1;
 	ud = e->dev->usb;
-
-	/* look for union descriptor with ethernet ctrl interface */
-	for(i = 0; i < nelem(ud->ddesc); i++){
-		if((desc = ud->ddesc[i]) == nil)
-			continue;
-		if(desc->data.bLength < 5 || desc->data.bbytes[0] != Cdcunion)
-			continue;
-
-		ctlid = desc->data.bbytes[1];
-		datid = desc->data.bbytes[2];
-
-		if((c = desc->conf) == nil)
-			continue;
-
-		ctlif = datif = nil;
-		for(j = 0; j < nelem(c->iface); j++){
-			if(c->iface[j] == nil)
-				continue;
-			if(c->iface[j]->id == ctlid)
-				ctlif = c->iface[j];
-			if(c->iface[j]->id == datid)
-				datif = c->iface[j];
-
-			if(datif != nil && ctlif != nil){
-				if(Subclass(ctlif->csp) == Scether &&
-				    ifaceinit(e, datif, ei, eo) != -1)
-					return 0;
-				break;
-			}
-		}
-	}
-	/* try any other one that seems to be ok */
 	for(i = 0; i < nelem(ud->conf); i++)
 		if((c = ud->conf[i]) != nil)
 			for(j = 0; j < nelem(c->iface); j++)
-				if(ifaceinit(e, c->iface[j], ei, eo) != -1)
+				if(ifaceinit(e,c->iface[j],ei,eo) != -1)
 					return 0;
 	dprint(2, "%s: no valid endpoints", argv0);
 	return -1;
@@ -1126,8 +1087,10 @@ etherinit(Ether *e, int *ei, int *eo)
 int
 ethermain(Dev *dev, int argc, char **argv)
 {
-	int epin, epout, i;
 	Ether *e;
+	int epin;
+	int epout;
+	int i;
 
 	ARGBEGIN{
 	case 'd':
@@ -1168,9 +1131,7 @@ ethermain(Dev *dev, int argc, char **argv)
 	e->bc = chancreate(sizeof(Buf*), Nconns);
 	e->rc = chancreate(sizeof(Buf*), Nconns/2);
 	e->wc = chancreate(sizeof(Buf*), Nconns*2);
-	incref(e->dev);
 	proccreate(etherwriteproc, e, 16*1024);
-	incref(e->dev);
 	proccreate(etherreadproc, e, 16*1024);
 	deprint(2, "%s: dev ref %ld\n", argv0, dev->ref);
 	usbfsadd(&e->fs);

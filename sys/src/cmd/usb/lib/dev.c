@@ -53,10 +53,7 @@ openep(Dev *d, int id)
 	snprint(name, sizeof(name), "/dev/usb/ep%d.%d", d->id, id);
 	if(access(name, AEXIST) == 0){
 		dprint(2, "%s: %s already exists; trying to open\n", argv0, name);
-		epd = opendev(name);
-		if(epd != nil)
-			epd->maxpkt = ep->maxpkt;	/* guess */
-		return epd;
+		return opendev(name);
 	}
 	if(devctl(d, "new %d %d %s", id, ep->type, mode) < 0){
 		dprint(2, "%s: %s: new: %r\n", argv0, d->dir);
@@ -303,7 +300,7 @@ closedev(Dev *d)
 			free(ud->ep[i]);
 		for(i = 0; i < nelem(ud->ddesc); i++)
 			free(ud->ddesc[i]);
-
+				
 		for(i = 0; i < nelem(ud->conf); i++)
 			closeconf(ud->conf[i]);
 		free(ud);

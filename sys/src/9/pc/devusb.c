@@ -89,7 +89,6 @@ enum
 	CMaddress,		/* address (address is assigned) */
 	CMdebugep,		/* debug n (set/clear debug for this ep) */
 	CMname,			/* name str (show up as #u/name as well) */
-	CMtmout,		/* timeout n (activate timeouts for ep) */
 
 	/* Hub feature selectors */
 	Rportenable	= 1,
@@ -133,7 +132,6 @@ static Cmdtab epctls[] =
 	{CMdebugep,	"debug",	2},
 	{CMclrhalt,	"clrhalt",	1},
 	{CMname,	"name",		2},
-	{CMtmout,	"timeout",	2},
 };
 
 static Dirtab usbdir[] =
@@ -305,8 +303,6 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		s = seprint(s, se, " idx %d", ep->idx);
 		if(ep->name != nil)
 			s = seprint(s, se, " name '%s'", ep->name);
-		if(ep->tmout != 0)
-			s = seprint(s, se, " tmout");
 		if(ep == ep->ep0){
 			s = seprint(s, se, " ctlrno %#x", ep->hp->ctlrno);
 			s = seprint(s, se, " eps:");
@@ -340,7 +336,7 @@ epalloc(Hci *hp)
 		qunlock(&epslck);
 		free(ep);
 		print("usb: bug: too few endpoints.\n");
-		return nil;
+		return nil;	
 	}
 	ep->idx = i;
 	if(epmax <= i)
@@ -471,7 +467,6 @@ newdev(Hci *hp, int ishub, int isroot)
 	ep->dev = d;
 	ep->ep0 = ep;			/* no ref counted here */
 	ep->ttype = Tctl;
-	ep->tmout = Xfertmout;
 	ep->mode = ORDWR;
 	dprint("newdev %#p ep%d.%d %#p\n", d, d->nb, ep->nb, ep);
 	return ep;
@@ -500,20 +495,11 @@ newdevep(Ep *ep, int i, int tt, int mode)
 	nep->mode = mode;
 	nep->ttype = tt;
 	nep->debug = ep->debug;
-	/* set defaults */
-	switch(tt){
-	case Tctl:
-		nep->tmout = Xfertmout;
-		break;
-	case Tintr:
+	if(tt == Tintr || tt == Tiso)	/* assign defaults */
 		nep->pollival = 10;
-		break;
-	case Tiso:
-		nep->tmout = Xfertmout;
-		nep->pollival = 10;
+	if(tt == Tiso){
 		nep->samplesz = 4;
 		nep->hz = 44100;
-		break;
 	}
 	deprint("newdevep ep%d.%d %#p\n", d->nb, nep->nb, nep);
 	return ep;
@@ -657,7 +643,7 @@ usbgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 Fail:
 	if(0)ddprint("fail\n");
 	return -1;
-
+	
 }
 
 static Hci*
@@ -1310,14 +1296,6 @@ epctl(Ep *ep, Chan *c, void *a, long n)
 		deprint("usb epctl %s %s\n", cb->f[0], cb->f[1]);
 		validname(cb->f[1], 0);
 		kstrdup(&ep->name, cb->f[1]);
-		break;
-	case CMtmout:
-		deprint("usb epctl %s\n", cb->f[0]);
-		if(ep->ttype == Tiso || ep->ttype == Tctl)
-			error("ctl ignored for this endpoint type");
-		ep->tmout = strtoul(cb->f[1], nil, 0);
-		if(ep->tmout != 0 && ep->tmout < Xfertmout)
-			ep->tmout = Xfertmout;
 		break;
 	default:
 		panic("usb: unknown epctl %d", ct->index);
