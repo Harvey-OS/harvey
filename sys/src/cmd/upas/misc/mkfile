@@ -1,32 +1,36 @@
-RCFILES=mail\
-	go.fishing\
 
-all:VQ:
+RCFILES=mail.rc\
+
+all:Q:
 	;
 
-installall:VQ:	install
+installall:Q:	install
 	;
 
-install:V: mail go.fishing gone.msg gone.fishing
-	cp mail go.fishing /rc/bin
-	cp gone.msg gone.fishing /mail/lib
+install:V:
+	cp mail.rc /rc/bin/mail
 
-safeinstall:V: install
+safeinstall:V:
+	cp mail.rc /rc/bin/mail
 
-safeinstallall:V: install
+safeinstallall:V:
+	cp mail.rc /rc/bin/mail
 
-clean:VQ:
+clean:Q:
 	;
 nuke:V:
-	;	# rm /rc/bin/^(mail gone.fishing)
+	rm /rc/bin/mail
 
 UPDATE=\
-	go.fishing\
 	gone.fishing\
 	gone.msg\
-	mail\
+	mail.c\
+	mail.rc\
+	mail.sh\
+	makefile\
 	mkfile\
 	namefiles\
+	omail.rc\
 	qmail\
 	remotemail\
 	rewrite\
