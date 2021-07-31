@@ -1,6 +1,5 @@
 </$objtype/mkfile
 
-# order matters here.  build lib first and usbd last.
 DIRS=\
 	lib\
 	audio\
