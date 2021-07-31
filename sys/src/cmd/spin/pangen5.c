@@ -1,15 +1,14 @@
 /***** spin: pangen5.c *****/
 
-/* Copyright (c) 1999-2003 by Lucent Technologies, Bell Laboratories.     */
+/* Copyright (c) 1999-2000 by Lucent Technologies - Bell Laboratories     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/* Permission is given to distribute this code provided that this intro-  */
+/* ductory message is not removed and no monies are exchanged.            */
+/* No guarantee is expressed or implied by the distribution of this code. */
+/* Written by Gerard J. Holzmann.                                         */
 
 #include "spin.h"
+#include "version.h"
 #ifdef PC
 #include "y_tab.h"
 #else
@@ -22,28 +21,24 @@ typedef struct BuildStack {
 } BuildStack;
 
 extern ProcList	*rdy;
-extern int verbose, eventmapnr, claimnr, rvopt, export_ast, u_sync;
+extern int verbose, eventmapnr, claimnr, rvopt, xspin;
 extern Element *Al_El;
 
+static FSM_state *fsm;
 static FSM_state *fsm_free;
 static FSM_trans *trans_free;
+static FSM_use   *use_free;
 static BuildStack *bs, *bf;
+static FSM_state **fsm_tbl;
 static int max_st_id;
 static int cur_st_id;
-int o_max;
-FSM_state *fsm;
-FSM_state **fsm_tbl;
-FSM_use   *use_free;
+static int o_max;
 
 static void ana_seq(Sequence *);
 static void ana_stmnt(FSM_trans *, Lextok *, int);
+extern int	has_global(Lextok *);
 
-extern void AST_slice(void);
-extern void AST_store(ProcList *, int);
-extern int  has_global(Lextok *);
-extern void exit(int);
-
-static void
+void
 fsm_table(void)
 {	FSM_state *f;
 	max_st_id += 2;
@@ -123,8 +118,28 @@ good_dead(Element *e, FSM_use *u)
 }
 
 #if 0
-static int howdeep = 0;
+static int
+badjump(Element *e)
+{	Element *g;
+
+	/* e->n->ntyp == GOTO */
+	g = get_lab(e->n, 1);
+	g = huntele(g, e->status);
+	if (g && g->n) 
+	{	switch (g->n->ntyp) {
+		case ATOMIC:
+		case NON_ATOMIC:
+		case D_STEP:
+		case IF:
+		case DO:
+		case UNLESS:
+		case ELSE:
+			return 1;
+	}	}
+	return 0;
+}
 #endif
+static int howdeep = 0;
 
 static int
 eligible(FSM_trans *v)
@@ -140,9 +155,9 @@ eligible(FSM_trans *v)
 	||  (el->status&CHECK2)		/* remotely referenced */
 	||  lt->ntyp == ATOMIC
 	||  lt->ntyp == NON_ATOMIC	/* used for inlines -- should be able to handle this */
+#if 1
 	||  lt->ntyp == IF
-	||  lt->ntyp == C_CODE
-	||  lt->ntyp == C_EXPR
+#endif
 	||  has_lab(el, 0)		/* any label at all */
 
 	||  lt->ntyp == DO
@@ -154,13 +169,48 @@ eligible(FSM_trans *v)
 	||  lt->ntyp == 'r'
 	||  lt->ntyp == 's')
 		return 0;
-
+#if 0
+	if (lt && lt->ntyp == GOTO && badjump(el))
+		return 0;
+#endif
 	if (!(el->status&(2|4)))	/* not atomic */
 	{	int unsafe = (el->status&I_GLOB)?1:has_global(el->n);
 		if (unsafe)
 			return 0;
 	}
+#if 0
+	if (lt->ntyp == IF)
+	{	SeqList *h;
+		Element *g;
+		int cnt=0, has_else=0;
 
+		/* is it clearly deterministic? */
+
+		for (h = v->step->sub; h; h = h->nxt, cnt++)
+		{	g = huntstart(h->this->frst);
+			if (!g 	|| g->esc || !g->n)
+				return 0;
+			switch (g->n->ntyp) {
+			case ELSE:
+				has_else=1;
+				/* fall through */
+			case 'c':
+				break;
+			default:
+				return 0;
+			}
+		}
+		if (cnt != 2 || !has_else)
+			return 0;
+
+/* should also be no GOTO, BREAK, or ineligible stmnts in either sequence */
+
+printf("spin: %s:%d: may have handled if\n",
+	lt->fn?lt->fn->name:"", lt->ln);
+
+		return 0;
+	}
+#endif
 	return 1;
 }
 
@@ -216,13 +266,13 @@ static int
 build_step(FSM_trans *v)
 {	FSM_state *f;
 	Element	*el = v->step;
-#if 0
 	Lextok	*lt = ZN;
-#endif
 	int	st  = v->to;
 	int	r;
 
 	if (!el) return -1;
+
+	lt = v->step->n;
 
 	if (v->step->merge)
 		return v->step->merge;	/* already done */
@@ -235,7 +285,6 @@ build_step(FSM_trans *v)
 
 	f = fsm_tbl[st];
 #if 0
-	lt = v->step->n;
 	if (verbose&32)
 	{	if (++howdeep == 1)
 			printf("spin: %s, line %3d, merge:\n",
@@ -250,10 +299,7 @@ build_step(FSM_trans *v)
 	v->step->merge = (r == -1) ? st : r;
 #if 0
 	if (verbose&32)
-	{	printf("	merge value: %d (st=%d,r=%d, line %d)\n",
-			v->step->merge, st, r, el->n->ln);
 		howdeep--;
-	}
 #endif
 	popbuild();
 
@@ -261,7 +307,7 @@ build_step(FSM_trans *v)
 }
 
 static void
-FSM_MERGER(char *pname_unused)	/* find candidates for safely merging steps */
+FSM_MERGER(char *pname)	/* find candidates for safely merging steps */
 {	FSM_state *f, *g;
 	FSM_trans *t;
 	Lextok	*lt;
@@ -323,19 +369,11 @@ FSM_MERGER(char *pname_unused)	/* find candidates for safely merging steps */
 			continue;
 
 		lt = t->step->n;
-#if 0
-	4.1.3:
-	an rv send operation inside an atomic, *loses* atomicity
-	when executed
-	and should therefore never be merged with a subsequent
-	statement within the atomic sequence
-	the same is not true for non-rv send operations
-#endif
 
-		if (lt->ntyp == 'c'	/* potentially blocking stmnts */
+		if (lt->ntyp == 'c'
 		||  lt->ntyp == 'r'
-		||  (lt->ntyp == 's' && u_sync == 0))	/* added !u_sync in 4.1.3 */
-		{	if (!canfill_in(t))		/* atomic, non-global, etc. */
+		||  lt->ntyp == 's')	/* blocking stmnts */
+		{	if (!canfill_in(t))
 				continue;
 
 			g = fsm_tbl[t->to];
@@ -382,7 +420,6 @@ FSM_ANA(void)
 			u->special = n+1;	/* means, reset to 0 after use */
 	}
 
-	if (!export_ast)
 	for (f = fsm; f; f = f->nxt)
 	for (t = f->t; t; t = t->nxt)
 	for (n = 0; n < 2; n++)
@@ -393,7 +430,7 @@ FSM_ANA(void)
 				t->Val[n] = v;
 			else
 				w->nxt = v;
-#if q
+#if 0
 			if (verbose&32)
 			{	printf("%s : %3d:  %d -> %d \t",
 					t->step->n->fn->name,
@@ -416,7 +453,7 @@ FSM_ANA(void)
 	}	}
 }
 
-void
+static void
 rel_use(FSM_use *u)
 {
 	if (!u) return;
@@ -482,9 +519,12 @@ mkstate(int s)
 	return f;
 }
 
-static FSM_trans *
-get_trans(int to)
-{	FSM_trans *t;
+static void
+FSM_EDGE(int from, int to, Element *e)
+{	FSM_state *f;
+	FSM_trans *t;
+
+	f = mkstate(from);	/* find it or else make it */
 
 	if (trans_free)
 	{	t = trans_free;
@@ -492,32 +532,13 @@ get_trans(int to)
 		trans_free = trans_free->nxt;
 	} else
 		t = (FSM_trans *) emalloc(sizeof(FSM_trans));
-
 	t->to = to;
-	return t;
-}
-
-static void
-FSM_EDGE(int from, int to, Element *e)
-{	FSM_state *f;
-	FSM_trans *t;
-
-	f = mkstate(from);	/* find it or else make it */
-	t = get_trans(to);
-
 	t->step = e;
 	t->nxt = f->t;
 	f->t = t;
 
 	f = mkstate(to);
 	f->in++;
-
-	if (export_ast)
-	{	t = get_trans(from);
-		t->step = e;
-		t->nxt = f->p;	/* from is a predecessor of to */
-		f->p = t;
-	}
 
 	if (t->step)
 		ana_stmnt(t, t->step->n, 0);
@@ -530,13 +551,10 @@ static void
 ana_var(FSM_trans *t, Lextok *now, int usage)
 {	FSM_use *u, *v;
 
-	if (!t || !now || !now->sym)
-		return;
-
-	if (now->sym->name[0] == '_'
-	&&  (strcmp(now->sym->name, "_") == 0
-	||   strcmp(now->sym->name, "_pid") == 0
-	||   strcmp(now->sym->name, "_last") == 0))
+	if (!t
+	|| !now
+	|| !now->sym
+	||  now->sym->name[0] == '_')
 		return;
 
 	v = t->Val[usage];
@@ -588,8 +606,6 @@ ana_stmnt(FSM_trans *t, Lextok *now, int usage)
 	case ATOMIC:
 	case NON_ATOMIC:
 	case D_STEP:
-	case C_CODE:
-	case C_EXPR:
 		break;
 
 	case '!':	
@@ -625,8 +641,8 @@ ana_stmnt(FSM_trans *t, Lextok *now, int usage)
 	case AND:
 	case LSHIFT:
 	case RSHIFT:
-		ana_stmnt(t, now->lft, RVAL);
-		ana_stmnt(t, now->rgt, RVAL);
+		ana_stmnt(t,now->lft, RVAL);
+		ana_stmnt(t,now->rgt, RVAL);
 		break;
 
 	case ASGN:
@@ -638,11 +654,6 @@ ana_stmnt(FSM_trans *t, Lextok *now, int usage)
 	case RUN:
 		for (v = now->lft; v; v = v->rgt)
 			ana_stmnt(t, v->lft, RVAL);
-		break;
-
-	case PRINTM:
-		if (now->lft && !now->lft->ismtyp)
-			ana_stmnt(t, now->lft, RVAL);
 		break;
 
 	case 's':
@@ -666,10 +677,8 @@ ana_stmnt(FSM_trans *t, Lextok *now, int usage)
 
 	case '?':
 		ana_stmnt(t, now->lft, RVAL);
-		if (now->rgt)
-		{	ana_stmnt(t, now->rgt->lft, RVAL);
-			ana_stmnt(t, now->rgt->rgt, RVAL);
-		}
+		ana_stmnt(t, now->rgt->lft, RVAL);
+		ana_stmnt(t, now->rgt->rgt, RVAL);
 		break;
 
 	case NAME:
@@ -683,18 +692,17 @@ ana_stmnt(FSM_trans *t, Lextok *now, int usage)
 		break;
 
 	default:
-		printf("spin: bad node type %d line %d (ana_stmnt)\n", now->ntyp, now->ln);
+		printf("spin: bad node type %d (ana_stmnt)\n", now->ntyp);
 		fatal("aborting", (char *) 0);
 	}
 }
 
 void
-ana_src(int dataflow, int merger)	/* called from main.c and guided.c */
+ana_src(int dataflow, int merger)
 {	ProcList *p;
 	Element *e;
-#if 0
 	int counter = 1;
-#endif
+
 	for (p = rdy; p; p = p->nxt)
 	{	if (p->tn == eventmapnr
 		||  p->tn == claimnr)
@@ -716,14 +724,11 @@ ana_src(int dataflow, int merger)	/* called from main.c and guided.c */
 		}
 		if (merger)
 		{	FSM_MERGER(p->n->name);
-			huntele(e, e->status, -1)->merge_in = 1; /* start-state */
+			huntele(e, e->status)->merge_in = 1; /* start-state */
 #if 0
 			printf("\n");
 #endif
 		}
-		if (export_ast)
-			AST_store(p, huntele(e, e->status, -1)->seqno);
-
 		FSM_DEL();
 	}
 	for (e = Al_El; e; e = e->Nxt)
@@ -737,14 +742,24 @@ ana_src(int dataflow, int merger)	/* called from main.c and guided.c */
 		}
 		e->status &= ~DONE;
 	}
-	if (export_ast)
-	{	AST_slice();
-		exit(0);
-	}
 }
 
+#if 0
 void
-spit_recvs(FILE *f1, FILE *f2)	/* called from pangen2.c */
+whichnodeis(int s)
+{	Element *e;
+	for (e = Al_El; e; e = e->Nxt)
+		if (e->seqno == s)
+		{	printf("\n\tnode %s:%d: ",
+				e->n->fn->name, e->n->ln);
+			comment(stdout, e->n, 0);
+			printf("\n");
+		}
+}
+#endif
+
+void
+spit_recvs(FILE *f1, FILE *f2)
 {	Element *e;
 	Sequence *s;
 	extern int Unique;
@@ -834,10 +849,10 @@ ana_seq(Sequence *s)
 		} else 
 		{	if (e->n->ntyp == GOTO)
 			{	g = get_lab(e->n, 1);
-				g = huntele(g, e->status, -1);
+				g = huntele(g, e->status);
 				To = g->seqno;
 			} else if (e->nxt)
-			{	g = huntele(e->nxt, e->status, -1);
+			{	g = huntele(e->nxt, e->status);
 				To = g->seqno;
 			} else
 				To = 0;

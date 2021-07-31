@@ -34,19 +34,7 @@ ppp, pppoe, pptp, pptpd \- point to point protocol
 .PP
 .B ip/pppoe
 [
-.B -Pd
-]
-[
-.B -A
-.I acname
-]
-[
-.B -S
-.I srvname
-]
-[
-.B -k
-.I keyspec
+.B -dP
 ]
 [
 .B -m
@@ -56,9 +44,7 @@ ppp, pppoe, pptp, pptpd \- point to point protocol
 .B -x
 .I pppnetmntpt
 ]
-[
-.I ether
-]
+.I etherdir
 .PP
 .B ip/pptp
 [
@@ -194,9 +180,7 @@ the ethernet device mounted at
 .I etherdir
 (default
 .BR /net/ether0 ).
-The 
-.I pppoe -specific
-options are:
+The options are:
 .TP
 .B A
 insist on an access concentrator named
@@ -214,10 +198,29 @@ and pass
 .B -d
 to 
 .I ppp
+.TP
+.B m
+pass
+.B -m
+.I mtu
+to 
+.IR ppp ,
+default 1492
+.TP
+.B k
+pass
+.B -k
+.I keyspec
+to
+.I ppp
+.TP
+.B x
+pass
+.B -x
+.I pppnetmntpt
+to 
+.I ppp
 .PD
-.PP
-The other options are relayed to 
-.IR ppp .
 .PP
 .I Pptp
 is a client for a PPTP encrypted tunnel.

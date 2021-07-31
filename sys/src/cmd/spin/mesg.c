@@ -1,13 +1,14 @@
 /***** spin: mesg.c *****/
 
-/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
+/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/* Permission is given to distribute this code provided that this intro-  */
+/* ductory message is not removed and no monies are exchanged.            */
+/* No guarantee is expressed or implied by the distribution of this code. */
+/* Software written by Gerard J. Holzmann as part of the book:            */
+/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
+/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
+/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "spin.h"
 #ifdef PC
@@ -16,9 +17,7 @@
 #include "y.tab.h"
 #endif
 
-#ifndef MAXQ
 #define MAXQ	2500		/* default max # queues  */
-#endif
 
 extern RunList	*X;
 extern Symbol	*Fname;
@@ -59,7 +58,7 @@ int
 qmake(Symbol *s)
 {	Lextok *m;
 	Queue *q;
-	int i;
+	int i; extern int analyze;
 
 	if (!s->ini)
 		return 0;
@@ -371,13 +370,10 @@ s_snd(Queue *q, Lextok *n)
 				||  strcmp(m->lft->sym->name, "_") != 0)
 					i = eval(m->lft);
 				else	i = 0;
-
-				if (verbose&8)
 				sr_talk(n_rem,i,"Recv ","<-",j,q_rem);
 			}
-			if (verbose&8)
 			for (i = j; i < q->nflds; i++)
-				sr_talk(n_rem, 0, "Recv ", "<-", j, q_rem);
+			sr_talk(n_rem, 0, "Recv ", "<-", j, q_rem);
 			if (columns == 2)
 				putarrow(depth, depth);
 		}
@@ -389,7 +385,7 @@ s_snd(Queue *q, Lextok *n)
 
 void
 channm(Lextok *n)
-{	char lbuf[512];
+{	char lbuf[256];
 
 	if (n->sym->type == CHAN)
 		strcat(Buf, n->sym->name);
@@ -401,7 +397,6 @@ channm(Lextok *n)
 			r = findloc(r);
 		ini_struct(r);
 		printf("%s", r->name);
-		strcpy(lbuf, "");
 		struct_name(n->lft, r, 1, lbuf);
 		strcat(Buf, lbuf);
 	} else
@@ -414,7 +409,8 @@ channm(Lextok *n)
 
 static void
 difcolumns(Lextok *n, char *tr, int v, int j, Queue *q)
-{	extern int pno;
+{	int cnt = 1; extern int pno;
+	Lextok *nn = ZN;
 
 	if (j == 0)
 	{	Buf[0] = '\0';
@@ -538,7 +534,7 @@ sr_talk(Lextok *n, int v, char *tr, char *a, int j, Queue *q)
 void
 sr_buf(int v, int j)
 {	int cnt = 1; Lextok *n;
-	char lbuf[256];
+	char lbuf[128];
 
 	for (n = Mtype; n && j; n = n->rgt, cnt++)
 		if (cnt == v)
@@ -598,16 +594,7 @@ nochan_manip(Lextok *p, Lextok *n, int d)
 {	int e = 1;
 
 	if (d == 0 && p->sym && p->sym->type == CHAN)
-	{	setaccess(p->sym, ZS, 0, 'L');
-
-		if (n && n->ntyp == CONST)
-			fatal("invalid asgn to chan", (char *) 0);
-
-		if (n && n->sym && n->sym->type == CHAN)
-		{	setaccess(n->sym, ZS, 0, 'V');
-			return;
-		}	
-	}
+		setaccess(p->sym, ZS, 0, 'L');
 
 	if (!n || n->ntyp == LEN || n->ntyp == RUN)
 		return;

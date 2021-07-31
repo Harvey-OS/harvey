@@ -1,16 +1,14 @@
 /***** tl_spin: tl_buchi.c *****/
 
-/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
+/* Copyright (c) 1995-2000 by Lucent Technologies - Bell Laboratories     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
-
+/* Permission is given to distribute this code provided that this intro-  */
+/* ductory message is not removed and no monies are exchanged.            */
+/* No guarantee is expressed or implied by the distribution of this code. */
+/* Written by Gerard J. Holzmann, Bell Laboratories, U.S.A.               */
 /* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
 /* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
+/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "tl.h"
 
@@ -79,6 +77,12 @@ Prune(Node *p)
 		if (!p->rgt)
 			return p->lft;
 		return p;
+#if 0
+/* 3.3.9 */
+	case V_OPER:
+		releasenode(1, p->lft);
+		return Prune(p->rgt);
+#endif
 	}
 	releasenode(1, p);
 	return ZN;
@@ -114,7 +118,7 @@ Dfs(State *b)
 	b->reachable = 1;
 
 	if (b->redundant)
-		printf("/* redundant state %s */\n",
+		printf("spin: internal error, Dfs hits redundant state %s\n",
 			b->name->name);
 	for (t = b->trans; t; t = t->nxt)
 	{	if (!t->redundant)
@@ -136,8 +140,12 @@ retarget(char *from, char *to)
 
 	for (b = never; b; b = b->nxt)
 	{	if (!strcmp(b->name->name, from))
-			b->redundant = 1;
-		else
+		{	b->redundant = 1;
+			for (t = b->trans; t; t = t->nxt)
+			{	/* releasenode(1, t->cond); */
+				t->cond = ZN;
+			}
+		} else
 		for (t = b->trans; t; t = t->nxt)
 		{	if (!strcmp(t->name->name, from))
 				t->name = To;
@@ -181,7 +189,7 @@ combination(Node *s, Node *t)
 #ifdef NXT
 	Node *a = nonxt(s);
 	Node *b = nonxt(t);
-
+#if 1
 	if (tl_verbose)
 	{	printf("\tnonxtA: "); dump(a);
 		printf("\n\tnonxtB: "); dump(b);
@@ -192,6 +200,22 @@ combination(Node *s, Node *t)
 		nc = True;
 	else
 		nc = tl_nn(OR, a, b);
+#else
+	if (!a)
+	{	releasenode(1, s);
+		if (!b)
+		{	releasenode(1, t);
+			nc = False;
+		} else
+		{	nc = b;
+		}
+	} else if (!b)
+	{	releasenode(1, t);
+		nc = a;
+	} else
+	{	nc = tl_nn(OR, a, b);
+	}
+#endif
 #else
 	nc = tl_nn(OR, s, t);
 #endif
@@ -285,7 +309,7 @@ showtrans(State *a)
 }
 
 static int
-mergetrans(void)
+mergetrans(int v)
 {	State *b;
 	Transition *s, *t;
 	Node *nc; int cnt = 0;
@@ -365,11 +389,7 @@ done:
 		s->marked = 0;
 	return result;
 }
-
-#ifndef NO_OPT
 #define BUCKY
-#endif
-
 #ifdef BUCKY
 static int
 all_bucky(State *a, State *b)
@@ -457,12 +477,7 @@ buckyballs(void)
 					}
 
 					if (a->accepting && !b->accepting)
-					{	if (strcmp(b->name->name, "T0_init") == 0)
-						{	c = a; d = b;
-							b->accepting = 1;
-						} else
-						{	c = b; d = a;
-						}
+					{	c = b; d = a;
 					} else
 					{	c = a; d = b;
 					}
@@ -486,10 +501,10 @@ static int
 mergestates(int v)
 {	State *a, *b;
 	int m, cnt=0;
-
+#if 1
 	if (tl_verbose)
 		return 0;
-
+#endif
 	do {
 		m = 0; cnt++;
 		for (a = never; a; a = a->nxt)
@@ -523,8 +538,7 @@ mergestates(int v)
 #if 0
 				else if (tl_verbose)
 				{	printf("\n%d: state %s differs from state %s [%d,%d]\n",
-						cnt, a->name->name, b->name->name,
-						a->accepting, b->accepting);
+					cnt, a->name->name, b->name->name, a->accepting, b->accepting);
 					showtrans(a);
 					printf("==\n");
 					showtrans(b);
@@ -560,12 +574,6 @@ printstate(State *b)
 	b->reachable = 0;	/* print only once */
 	fprintf(tl_out, "%s:\n", b->name->name);
 
-	if (tl_verbose)
-	{	fprintf(tl_out, "	/* ");
-		dump(b->colors->Other);
-		fprintf(tl_out, " */\n");
-	}
-
 	if (strncmp(b->name->name, "accept", 6) == 0
 	&&  Max_Red == 0)
 		fprintf(tl_out, "T0%s:\n", &(b->name->name[6]));
@@ -587,11 +595,11 @@ addtrans(Graph *col, char *from, Node *op, char *to)
 	t->name = tl_lookup(to);
 	t->cond = Prune(dupnode(op));
 
-	if (tl_verbose)
-	{	printf("\n%s <<\t", from); dump(op);
-		printf("\n\t"); dump(t->cond);
-		printf(">> %s\n", t->name->name);
-	}
+if (tl_verbose)
+{ printf("\n<<\t"); dump(op);
+  printf("\n\t"); dump(t->cond);
+  printf(">> %s\n", t->name->name);
+}
 	if (t->cond) t->cond = rewrite(t->cond);
 
 	for (b = never; b; b = b->nxt)
@@ -639,7 +647,7 @@ fsm_print(void)
 	do {
 		clr_reach();
 		Dfs(b);
-		cnt1 = mergetrans();
+		cnt1 = mergetrans(1);
 		cnt2 = mergestates(1);
 		if (tl_verbose)
 			printf("/* >>%d,%d<< */\n", cnt1, cnt2);
@@ -650,7 +658,7 @@ fsm_print(void)
 	clr_reach();
 	Dfs(b);
 #endif
-	if (b && b->accepting)
+	if (Max_Red == 0)
 		fprintf(tl_out, "accept_init:\n");
 
 	if (!b && !never)

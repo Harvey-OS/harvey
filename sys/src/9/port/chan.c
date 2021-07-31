@@ -77,13 +77,11 @@ typedef struct Elemlist Elemlist;
 
 struct Elemlist
 {
-	char	*aname;	/* original name */
 	char	*name;	/* copy of name, so '/' can be overwritten */
 	int	nelems;
 	char	**elems;
 	int	*off;
 	int	mustbedir;
-	int	nerror;
 };
 
 #define SEP(c) ((c) == 0 || (c) == '/')
@@ -899,7 +897,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 	cclose(*cp);
 	*cp = c;
 	if(nerror)
-		*nerror = nhave;
+		*nerror = 0;
 	return 0;
 }
 
@@ -1017,7 +1015,6 @@ parsename(char *name, Elemlist *e)
 		*slash++ = '\0';
 		name = slash;
 	}
-	e->off[e->nelems] = name - e->name;
 }
 
 void*
@@ -1033,22 +1030,19 @@ memrchr(void *va, int c, long n)
 }
 
 void
-namelenerror(char *aname, int len, char *err)
+nameerror(char *name, char *error)
 {
-	char *name;
+	int len;
+	char tmperr[ERRMAX], *p;
 
-	if(len < ERRMAX/3 || (name=memrchr(aname, '/', len))==nil || name==aname)
-		snprint(up->genbuf, sizeof up->genbuf, "%.*s", len, aname);
+	strcpy(tmperr, error);	/* error might be in genbuf or tmperr */
+	len = strlen(name);
+	if(len < ERRMAX/3 || (p=strrchr(name, '/'))==nil || p==name)
+		snprint(up->genbuf, sizeof up->genbuf, "%s", name);
 	else
-		snprint(up->genbuf, sizeof up->genbuf, "...%.*s", (int)(len-(name-aname)), name);
-	snprint(up->errstr, ERRMAX, "%#q %s", up->genbuf, err);
+		snprint(up->genbuf, sizeof up->genbuf, "...%s", p);
+	snprint(up->errstr, ERRMAX, "%#q %s", up->genbuf, tmperr);
 	nexterror();
-}
-
-void
-nameerror(char *name, char *err)
-{
-	namelenerror(name, strlen(name), err);
 }
 
 /*
@@ -1070,7 +1064,7 @@ nameerror(char *name, char *err)
 Chan*
 namec(char *aname, int amode, int omode, ulong perm)
 {
-	int n, t, nomount;
+	int n, t, nomount, npath;
 	Chan *c, *cnew;
 	Cname *cname;
 	Elemlist e;
@@ -1079,14 +1073,14 @@ namec(char *aname, int amode, int omode, ulong perm)
 	char *createerr, tmperrbuf[ERRMAX];
 	char *name;
 
-	if(aname[0] == '\0')
+	name = aname;
+	if(name[0] == '\0')
 		error("empty file name");
-	aname = validnamedup(aname, 1);
+	name = validnamedup(name, 1);
 	if(waserror()){
-		free(aname);
+		free(name);
 		nexterror();
 	}
-	name = aname;
 
 	/*
 	 * Find the starting off point (the current slash, the root of
@@ -1140,24 +1134,17 @@ namec(char *aname, int amode, int omode, ulong perm)
 		break;
 	}
 
-	e.aname = aname;
 	e.name = nil;
 	e.elems = nil;
 	e.off = nil;
 	e.nelems = 0;
-	e.nerror = 0;
 	if(waserror()){
 		cclose(c);
 		free(e.name);
 		free(e.elems);
 		free(e.off);
-		/*
-		 * Prepare nice error, showing first e.nerror elements of name.
-		 */
-		if(e.nerror == 0)
-			nexterror();
-		strcpy(tmperrbuf, up->errstr);
-		namelenerror(aname, (name-aname)+e.off[e.nerror], tmperrbuf);
+//dumpmount();
+		nexterror();
 	}
 
 	/*
@@ -1171,8 +1158,8 @@ namec(char *aname, int amode, int omode, ulong perm)
 	if(amode == Acreate){
 		/* perm must have DMDIR if last element is / or /. */
 		if(e.mustbedir && !(perm&DMDIR)){
-			e.nerror = e.nelems;
-			error("create without DMDIR");
+			npath = e.nelems;
+			nameerror(aname, "create without DMDIR");
 		}
 
 		/* don't try to walk the last path element just yet. */
@@ -1181,19 +1168,23 @@ namec(char *aname, int amode, int omode, ulong perm)
 		e.nelems--;
 	}
 
-	if(walk(&c, e.elems, e.nelems, nomount, &e.nerror) < 0){
-		if(e.nerror < 0 || e.nerror > e.nelems){
-			print("namec %s walk error nerror=%d\n", aname, e.nerror);
-			e.nerror = 0;
+	if(walk(&c, e.elems, e.nelems, nomount, &npath) < 0){
+		if(npath < 0 || npath > e.nelems){
+			print("namec %s walk error npath=%d\n", aname, npath);
+			nexterror();
 		}
-		nexterror();
+		nameerror(aname, up->errstr);
 	}
 
-	if(e.mustbedir && !(c->qid.type&QTDIR))
-		error("not a directory");
+	if(e.mustbedir && !(c->qid.type&QTDIR)){
+		npath = e.nelems;
+		nameerror(aname, "not a directory");
+	}
 
-	if(amode == Aopen && (omode&3) == OEXEC && (c->qid.type&QTDIR))
+	if(amode == Aopen && (omode&3) == OEXEC && (c->qid.type&QTDIR)){
+		npath = e.nelems;
 		error("cannot exec directory");
+	}
 
 	switch(amode){
 	case Abind:
@@ -1285,7 +1276,6 @@ if(c->umh != nil){
 		 * If omode&OEXCL is set, just give up.
 		 */
 		e.nelems++;
-		e.nerror++;
 		if(walk(&c, e.elems+e.nelems-1, 1, nomount, nil) == 0){
 			if(omode&OEXCL)
 				error(Eexist);

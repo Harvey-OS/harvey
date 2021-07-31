@@ -1,13 +1,14 @@
 /***** spin: pangen1.c *****/
 
-/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
+/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* No guarantee whatsoever is expressed or implied by the distribution of */
-/* this code.  Permission is given to distribute this code provided that  */
-/* this introductory message is not removed and no monies are exchanged.  */
-/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
-/*             http://spinroot.com/                                       */
-/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/* Permission is given to distribute this code provided that this intro-  */
+/* ductory message is not removed and no monies are exchanged.            */
+/* No guarantee is expressed or implied by the distribution of this code. */
+/* Software written by Gerard J. Holzmann as part of the book:            */
+/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
+/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
+/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "spin.h"
 #ifdef PC
@@ -28,9 +29,7 @@ extern int	lineno, verbose, Pid, separate;
 extern int	nrRdy, nqs, mst, Mpars, claimnr, eventmapnr;
 extern short	has_sorted, has_random, has_provided;
 
-int	Npars=0, u_sync=0, u_async=0, hastrack = 1;
-short	has_io = 0;
-short	has_state=0;	/* code contains c_state */
+int	Npars=0, u_sync=0, u_async=0;
 
 static Symbol	*LstSet=ZS;
 static int	acceptors=0, progressors=0, nBits=0;
@@ -57,10 +56,7 @@ void
 genheader(void)
 {	ProcList *p; int i;
 
-	if (separate == 2)
-	{	putunames(th);
-		goto here;
-	}
+	if (separate == 2) goto here;
 
 	fprintf(th, "#define SYNC	%d\n", u_sync);
 	fprintf(th, "#define ASYNC	%d\n\n", u_async);
@@ -86,39 +82,29 @@ here:
 
 	ntimes(th, 0, 1, Head0);
 
-	if (separate != 2)
-	{	extern void c_add_stack(FILE *);
-
+	if (separate == 2)
+	{	ntimes(th, 0, 1, Head1);
+		LstSet = ZS;
+		(void) doglobal("", PUTV);
+		fprintf(th, "	uchar sv[VECTORSZ];\n");
+		fprintf(th, "} State;\n\n");
+	} else
+	{
 		ntimes(th, 0, 1, Header);
-		c_add_stack(th);
-		ntimes(th, 0, 1, Header0);
-	}
-	ntimes(th, 0, 1, Head1);
+		ntimes(th, 0, 1, Head1);
 
-	LstSet = ZS;
-	(void) doglobal("", PUTV);
-
-	hastrack = c_add_sv(th);
-
-	fprintf(th, "	uchar sv[VECTORSZ];\n");
-	fprintf(th, "} State");
-#ifdef SOLARIS
-	fprintf(th,"\n#ifdef GCC\n");
-	fprintf(th, "\t__attribute__ ((aligned(8)))");
-	fprintf(th, "\n#endif\n\t");
-#endif
-	fprintf(th, ";\n\n");
-
-	fprintf(th, "#define HAS_TRACK	%d\n", hastrack);
-
-	if (separate != 2)
+		LstSet = ZS;
+		(void) doglobal("", PUTV);
+		fprintf(th, "	uchar sv[VECTORSZ];\n");
+		fprintf(th, "} State;\n\n");
 		dohidden();
+	}
 }
 
 void
 genaddproc(void)
 {	ProcList *p;
-	int i = 0;
+	int i;
 
 	if (separate ==2) goto shortcut;
 
@@ -131,7 +117,7 @@ genaddproc(void)
 	ntimes(tc, 0, 1, Addp1);
 
 	if (has_provided)
-	{	fprintf(tt, "\nint\nprovided(int II, unsigned char ot, ");
+	{	fprintf(tt, "\nint\nprovided(int II, int ot, ");
 		fprintf(tt, "int tt, Trans *t)\n");
 		fprintf(tt, "{\n\tswitch(ot) {\n");
 	}
@@ -155,14 +141,6 @@ shortcut:
 	else
 		ntimes(tc, 1, nrRdy, R5);
 	ntimes(tc, 0, 1, R8a);
-}
-
-void
-do_locinits(FILE *fd)
-{	ProcList *p;
-
-	for (p = rdy; p; p = p->nxt)
-		c_add_locinit(fd, p->tn, p->n->name);
 }
 
 void
@@ -212,9 +190,7 @@ genother(void)
 	ntimes(th, nrRdy+1, nrRdy+2, R2); /* +1 for np_ */
 
 	fprintf(tc, "	iniglobals();\n");
-	ntimes(tc, 0,     1, Code2a);
-	ntimes(tc, 0,     1, Code2b);	/* bfs option */
-	ntimes(tc, 0,     1, Code2c);
+	ntimes(tc, 0,     1, Code2);
 	ntimes(tc, 0,     nrRdy, R4);
 	fprintf(tc, "}\n\n");
 
@@ -269,7 +245,7 @@ end_labs(Symbol *s, int i)
 					ln[j].s);
 				goto complain;
 			}
-			if (j > 0 && (l->e->status & ATOM))
+			if (l->e->status & ATOM)
 			{	sprintf(foo, "%s label inside atomic",
 					ln[j].s);
 		complain:	lineno = l->e->n->ln;
@@ -341,7 +317,7 @@ checktype(Symbol *sp, char *s)
 	} else if (!(sp->hidden&4))
 	{	if (!(verbose&32)) return;
 		sputtype(buf, sp->type);
-		i = (int) strlen(buf);
+		i = strlen(buf);
 		while (buf[--i] == ' ') buf[i] = '\0';
 		prehint(sp);
 		if (sp->context)
@@ -353,7 +329,7 @@ checktype(Symbol *sp, char *s)
 	} else if (sp->type != BYTE && !(sp->hidden&8))
 	{	if (!(verbose&32)) return;
 		sputtype(buf, sp->type);
-		i = (int) strlen(buf);
+		i = strlen(buf);
 		while (buf[--i] == ' ') buf[i] = '\0';
 		prehint(sp);
 		if (sp->context)
@@ -366,7 +342,7 @@ checktype(Symbol *sp, char *s)
 }
 
 int
-dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s)
+dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s, char *how)
 {	int h, j, k=0; extern int nr_errs;
 	Ordered *walk;
 	Symbol *sp;
@@ -388,7 +364,7 @@ dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s)
 					break;
 				sprintf(buf, "%s%s:", pre, s);
 				{ sprintf(buf2, "\", ((P%d *)pptr(h))->", p);
-				  sprintf(buf3, ");\n");
+				  sprintf(buf3, ");\n", p);
 				}
 				do_var(ofd, dowhat, "", sp, buf, buf2, buf3);
 				break;
@@ -409,160 +385,6 @@ dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s)
 	return k;
 }
 
-void
-c_chandump(FILE *fd)
-{	Queue *q;
-	char buf[256];
-	int i;
-
-	if (!qtab)
-	{	fprintf(fd, "void\nc_chandump(int unused) ");
-		fprintf(fd, "{ unused = unused++; /* avoid complaints */ }\n");
-		return;
-	}
-
-	fprintf(fd, "void\nc_chandump(int from)\n");
-	fprintf(fd, "{	uchar *z; int slot;\n");
-
-	fprintf(fd, "	from--;\n");
-	fprintf(fd, "	if (from >= (int) now._nr_qs || from < 0)\n");
-	fprintf(fd, "	{	printf(\"pan: bad qid %%d\\n\", from+1);\n");
-	fprintf(fd, "		return;\n");
-	fprintf(fd, "	}\n");
-	fprintf(fd, "	z = qptr(from);\n");
-	fprintf(fd, "	switch (((Q0 *)z)->_t) {\n");
-
-	for (q = qtab; q; q = q->nxt)
-	{	fprintf(fd, "	case %d:\n\t\t", q->qid);
-		sprintf(buf, "((Q%d *)z)->", q->qid);
-
-		fprintf(fd, "for (slot = 0; slot < %sQlen; slot++)\n\t\t", buf);
-		fprintf(fd, "{	printf(\" [\");\n\t\t");
-		for (i = 0; i < q->nflds; i++)
-		{	if (q->fld_width[i] == MTYPE)
-			{	fprintf(fd, "\tprintm(%scontents[slot].fld%d);\n\t\t",
-				buf, i);
-			} else
-			fprintf(fd, "\tprintf(\"%%d,\", %scontents[slot].fld%d);\n\t\t",
-				buf, i);
-		}
-		fprintf(fd, "	printf(\"],\");\n\t\t");
-		fprintf(fd, "}\n\t\t");
-		fprintf(fd, "break;\n");
-	}
-	fprintf(fd, "	}\n");
-	fprintf(fd, "	printf(\"\\n\");\n}\n");
-}
-
-void
-c_var(FILE *fd, char *pref, Symbol *sp)
-{	char buf[256];
-	int i;
-
-	switch (sp->type) {
-	case STRUCT:
-		/* c_struct(fd, pref, sp); */
-		fprintf(fd, "\t\tprintf(\"\t(struct %s)\\n\");\n",
-			sp->name);
-		sprintf(buf, "%s%s.", pref, sp->name);
-		c_struct(fd, buf, sp);
-		break;
-	case BIT:   case BYTE:
-	case SHORT: case INT:
-	case UNSIGNED:
-		sputtype(buf, sp->type);
-		if (sp->nel == 1)
-		fprintf(fd, "\tprintf(\"\t%s %s:\t%%d\\n\", %s%s);\n",
-			buf, sp->name, pref, sp->name);
-		else
-		for (i = 0; i < sp->nel; i++)
-		fprintf(fd, "\tprintf(\"\t%s %s[%d]:\t%%d\\n\", %s%s[%d]);\n",
-			buf, sp->name, i, pref, sp->name, i);
-		break;
-	case CHAN:
-		if (sp->nel == 1)
-		{  fprintf(fd, "\tprintf(\"\tchan %s (=%%d):\tlen %%d:\\t\", ",
-			sp->name);
-		   fprintf(fd, "%s%s, q_len(%s%s));\n",
-			pref, sp->name, pref, sp->name);
-		   fprintf(fd, "\tc_chandump(%s%s);\n", pref, sp->name);
-		} else
-		for (i = 0; i < sp->nel; i++)
-		{  fprintf(fd, "\tprintf(\"\tchan %s[%d] (=%%d):\tlen %%d:\\t\", ",
-			sp->name, i);
-		   fprintf(fd, "%s%s[%d], q_len(%s%s[%d]));\n",
-			pref, sp->name, i, pref, sp->name, i);
-		   fprintf(fd, "\tc_chandump(%s%s[%d]);\n",
-			pref, sp->name, i);
-		}
-		break;
-	}
-}
-
-void
-c_splurge(FILE *fd, ProcList *p)
-{	Ordered *walk;
-	Symbol *sp;
-	char pref[64];
-
-	if (strcmp(p->n->name, ":never:") != 0
-	&&  strcmp(p->n->name, ":trace:") != 0
-	&&  strcmp(p->n->name, ":notrace:") != 0)
-	for (walk = all_names; walk; walk = walk->next)
-	{	sp = walk->entry;
-		if (!sp->context
-		||  strcmp(sp->context->name, p->n->name) != 0
-		||  sp->owner || (sp->hidden&1)
-		|| (sp->type == MTYPE && ismtype(sp->name)))
-			continue;
-
-		sprintf(pref, "((P%d *)pptr(pid))->", p->tn);
-		c_var(fd, pref, sp);
-	}
-}
-
-void
-c_wrapper(FILE *fd)	/* allow pan.c to print out global sv entries */
-{	Ordered *walk;
-	ProcList *p;
-	Symbol *sp;
-	Lextok *n;
-	extern Lextok *Mtype;
-	int j;
-
-	fprintf(fd, "void\nc_globals(void)\n{\t/* int i; */\n");
-	fprintf(fd, "	printf(\"global vars:\\n\");\n");
-	for (walk = all_names; walk; walk = walk->next)
-	{	sp = walk->entry;
-		if (sp->context || sp->owner || (sp->hidden&1)
-		|| (sp->type == MTYPE && ismtype(sp->name)))
-			continue;
-
-		c_var(fd, "now.", sp);
-	}
-	fprintf(fd, "}\n");
-
-	fprintf(fd, "void\nc_locals(int pid, int tp)\n{\t/* int i; */\n");
-	fprintf(fd, "	switch(tp) {\n");
-	for (p = rdy; p; p = p->nxt)
-	{	fprintf(fd, "	case %d:\n", p->tn);
-		fprintf(fd, "	\tprintf(\"local vars proc %%d (%s):\\n\", pid);\n",
-			p->n->name);
-		c_splurge(fd, p);
-		fprintf(fd, "	\tbreak;\n");
-	}
-	fprintf(fd, "	}\n}\n");
-
-	fprintf(fd, "void\nprintm(int x)\n{\n");
-	fprintf(fd, "	switch (x) {\n");
-        for (n = Mtype, j = 1; n && j; n = n->rgt, j++)
-                fprintf(fd, "\tcase %d: Printf(\"%s\"); break;\n",
-			j, n->lft->sym->name);
-	fprintf(fd, "	default: Printf(\"%%d\", x);\n");
-	fprintf(fd, "	}\n");
-	fprintf(fd, "}\n");
-}
-
 static int
 doglobal(char *pre, int dowhat)
 {	Ordered *walk;
@@ -574,6 +396,7 @@ doglobal(char *pre, int dowhat)
 	{	sp = walk->entry;
 		if (!sp->context
 		&&  !sp->owner
+	/*	&&  !(sp->hidden&1)	*/
 		&&  sp->type == Types[j])
 		{	if (Types[j] != MTYPE || !ismtype(sp->name))
 			switch (dowhat) {
@@ -690,29 +513,15 @@ static void
 put_ptype(char *s, int i, int m0, int m1)
 {	int k;
 
-	if (strcmp(s, ":init:") == 0)
-		fprintf(th, "#define Pinit	((P%d *)this)\n", i);
-
-	if (strcmp(s, ":never:") != 0
-	&&  strcmp(s, ":trace:") != 0
-	&&  strcmp(s, ":notrace:") != 0
-	&&  strcmp(s, ":init:")  != 0
-	&&  strcmp(s, "_:never_template:_") != 0
-	&&  strcmp(s, "np_")     != 0)
-		fprintf(th, "#define P%s	((P%d *)this)\n", s, i);
-
 	fprintf(th, "typedef struct P%d { /* %s */\n", i, s);
 	fprintf(th, "	unsigned _pid : 8;  /* 0..255 */\n");
 	fprintf(th, "	unsigned _t   : %d; /* proctype */\n", blog(m1));
 	fprintf(th, "	unsigned _p   : %d; /* state    */\n", blog(m0));
 	LstSet = ZS;
 	nBits = 8 + blog(m1) + blog(m0);
-	k = dolocal(tc, "", PUTV, i, s);	/* includes pars */
-
-	c_add_loc(th, s);
-
+	k = dolocal(tc, "", PUTV, i, s, "");	/* includes pars */
 	fprintf(th, "} P%d;\n", i);
-	if ((!LstSet && k > 0) || has_state)
+	if (!LstSet && k > 0)
 		fprintf(th, "#define Air%d	0\n", i);
 	else
 	{	fprintf(th, "#define Air%d	(sizeof(P%d) - ", i, i);
@@ -722,8 +531,15 @@ put_ptype(char *s, int i, int m0, int m1)
 		}
 		if ((LstSet->type != BIT && LstSet->type != UNSIGNED)
 		||   LstSet->nel != 1)
-		{	fprintf(th, "Offsetof(P%d, %s) - %d*sizeof(",
-				i, LstSet->name, LstSet->nel);
+		{	fprintf(th, "Offsetof(P%d, %s%s) - %d*sizeof(",
+				i,
+				LstSet->name,
+#if 1
+				"",
+#else
+				(LstSet->nel > 1)?"[0]":"",
+#endif
+				LstSet->nel);
 		}
 		switch(LstSet->type) {
 		case UNSIGNED:
@@ -792,7 +608,7 @@ put_pinit(ProcList *P)
 	&&  separate == 2)
 		return;
 
-	ini = huntele(e, e->status, -1)->seqno;
+	ini = huntele(e, e->status)->seqno;
 	fprintf(th, "#define start%d	%d\n", i, ini);
 	if (i == claimnr)
 	fprintf(th, "#define start_claim	%d\n", ini);
@@ -832,7 +648,7 @@ put_pinit(ProcList *P)
 		{	if (full_name(tc, t, t->sym, 1))
 			{	lineno = t->ln;
 				Fname  = t->fn;
-				fatal("hidden array in parameter %s",
+				fatal("hidden array in parameter, %s",
 				t->sym->name);
 			}
 		} else
@@ -840,17 +656,12 @@ put_pinit(ProcList *P)
 		fprintf(tc, " = par%d;\n", j);
 	}
 	fprintf(tc, "\t\t/* locals: */\n");
-	k = dolocal(tc, "", INIV, i, s->name);
+	k = dolocal(tc, "", INIV, i, s->name, "");
 	if (k > 0)
 	{	fprintf(tc, "#ifdef VAR_RANGES\n");
-		(void) dolocal(tc, "logval(\"", LOGV, i, s->name);
+		(void) dolocal(tc, "logval(\"", LOGV, i, s->name, "");
 		fprintf(tc, "#endif\n");
 	}
-
-	fprintf(tc, "#ifdef HAS_CODE\n");
-	fprintf(tc, "\t\tlocinit%d(h);\n", i);
-	fprintf(tc, "#endif\n");
-
 	dumpclaims(tc, i, s->name);
 	fprintf(tc, "\t	break;\n");
 }
@@ -858,35 +669,28 @@ put_pinit(ProcList *P)
 Element *
 huntstart(Element *f)
 {	Element *e = f;
-	Element *elast = (Element *) 0;
-	int cnt = 0;
 
-	while (elast != e && cnt++ < 20)	/* new 4.0.8 */
-	{	elast = e;
-		if (e->n)
-		{	if (e->n->ntyp == '.' && e->nxt)
-				e = e->nxt;
-			else if (e->n->ntyp == UNLESS)
-				e = e->sub->this->frst;
-	}	}
-
-	if (cnt >= 20 || !e)
-		fatal("confusing control structure", (char *) 0);
+	if (e->n)
+	{	if (e->n->ntyp == '.' && e->nxt)
+			e = e->nxt;
+		else if (e->n->ntyp == ATOMIC
+		     ||  e->n->ntyp == D_STEP
+		     ||  e->n->ntyp == NON_ATOMIC)
+			e->n->sl->this->last->nxt = e->nxt;
+		else if (e->n->ntyp == UNLESS)
+			return e->sub->this->frst;
+	}
 	return e;
 }
 
 Element *
-huntele(Element *f, int o, int stopat)
+huntele(Element *f, int o)
 {	Element *g, *e = f;
-	int cnt=0; /* a precaution against loops */
+	int cnt; /* a precaution against loops */
 
 	if (e)
-	for (cnt = 0; cnt < 20 && e->n; cnt++)
-	{
-		if (e->seqno == stopat)
-			break;
-
-		switch (e->n->ntyp) {
+	for (cnt=0; cnt < 10 && e->n; cnt++)
+	{	switch (e->n->ntyp) {
 		case GOTO:
 			g = get_lab(e->n,1);
 			cross_dsteps(e->n, g->n);
@@ -898,20 +702,19 @@ huntele(Element *f, int o, int stopat)
 			g = e->nxt;
 			break;
 		case UNLESS:
-			g = huntele(e->sub->this->frst, o, stopat);
+			g = huntele(e->sub->this->frst, o);
 			break;
 		case D_STEP:
 		case ATOMIC:
 		case NON_ATOMIC:
-		default:
+			e->n->sl->this->last->nxt = e->nxt;
+		default:	/* fall through */
 			return e;
 		}
 		if ((o & ATOM) && !(g->status & ATOM))
 			return e;
 		e = g;
 	}
-	if (cnt >= 20 || !e)
-		fatal("confusing control structure", (char *) 0);
 	return e;
 }
 
@@ -940,7 +743,6 @@ typ2c(Symbol *sp)
 			nBits++;
 			break;
 		} /* else fall through */
-		if (!(sp->hidden&1) && (verbose&32))
 		printf("spin: warning: bit-array %s[%d] mapped to byte-array\n",
 			sp->name, sp->nel);
 		nBits += 8*sp->nel; /* mapped onto array of uchars */
@@ -966,7 +768,6 @@ typ2c(Symbol *sp)
 			sp->name);
 		LstSet = ZS;
 		break;
-	case CODE_FRAG:
 	case PREDEF:
 		return;
 	default:
@@ -990,48 +791,21 @@ ncases(FILE *fd, int p, int n, int m, char *c[])
 }
 
 void
-qlen_type(int qmax)
-{
-	fprintf(th, "\t");
-	if (qmax < 256)
-		fprintf(th, "uchar");
-	else if (qmax < 65535)
-		fprintf(th, "ushort");
-	else
-		fprintf(th, "uint");
-	fprintf(th, " Qlen;	/* q_size */\n");
-}
-
-void
 genaddqueue(void)
 {	char buf0[256];
-	int j, qmax = 0;
+	int j;
 	Queue *q;
 
 	ntimes(tc, 0, 1, Addq0);
-	if (has_io && !nqs)
-		fprintf(th, "#define NQS	1 /* nqs=%d, but has_io */\n", nqs);
-	else
-		fprintf(th, "#define NQS	%d\n", nqs);
 	fprintf(th, "short q_flds[%d];\n", nqs+1);
 	fprintf(th, "short q_max[%d];\n", nqs+1);
-
-	for (q = qtab; q; q = q->nxt)
-		if (q->nslots > qmax)
-			qmax = q->nslots;
-
 	for (q = qtab; q; q = q->nxt)
 	{	j = q->qid;
 		fprintf(tc, "\tcase %d: j = sizeof(Q%d);", j, j);
 		fprintf(tc, " q_flds[%d] = %d;", j, q->nflds);
 		fprintf(tc, " q_max[%d] = %d;", j, max(1,q->nslots));
 		fprintf(tc, " break;\n");
-
-		fprintf(th, "typedef struct Q%d {\n", j);
-		qlen_type(qmax);	/* 4.2.2 */
-		fprintf(th, "	uchar _t;	/* q_type */\n");
-		fprintf(th, "	struct {\n");
-
+		ntimes(th, j, j+1, R9);
 		for (j = 0; j < q->nflds; j++)
 		{	switch (q->fld_width[j]) {
 			case BIT:
@@ -1058,12 +832,7 @@ genaddqueue(void)
 		fprintf(th, "	} contents[%d];\n", max(1, q->nslots));
 		fprintf(th, "} Q%d;\n", q->qid);
 	}
-
-	fprintf(th, "typedef struct Q0 {\t/* generic q */\n");
-	qlen_type(qmax);	/* 4.2.2 */
-	fprintf(th, "	uchar _t;\n");
-	fprintf(th, "} Q0;\n");
-
+	ntimes(th, 0, 1, R10);
 	ntimes(tc, 0, 1, Addq1);
 
 	if (has_random)
@@ -1097,7 +866,6 @@ genaddqueue(void)
 		fprintf(tc, "}\n");
 	}
 
-	fprintf(tc, "#if NQS>0\n");
 	fprintf(tc, "void\nqsend(int into, int sorted");
 	for (j = 0; j < Mpars; j++)
 		fprintf(tc, ", int fld%d", j);
@@ -1111,35 +879,33 @@ genaddqueue(void)
 		if (q->nslots == 0)	/* reset handshake point */
 			fprintf(tc, "\t\t(trpt+2)->o_m = 0;\n");
 
-		if (has_sorted)
-		{	fprintf(tc, "\t\tif (!sorted) goto append%d;\n", q->qid);
-			fprintf(tc, "\t\tfor (j = 0; j < %sQlen; j++)\n", buf0);
-			fprintf(tc, "\t\t{\t/* find insertion point */\n");
-			sprintf(buf0, "((Q%d *)z)->contents[j].fld", q->qid);
-			for (j = 0; j < q->nflds; j++)
-			{	fprintf(tc, "\t\t\tif (fld%d > %s%d) continue;\n",
-						j, buf0, j);
-				fprintf(tc, "\t\t\tif (fld%d < %s%d) ", j, buf0, j);
-				fprintf(tc, "goto found%d;\n\n", q->qid);
-			}
-			fprintf(tc, "\t\t}\n");
-			fprintf(tc, "\tfound%d:\n", q->qid);
-			sprintf(buf0, "((Q%d *)z)->", q->qid);
-			fprintf(tc, "\t\tfor (k = %sQlen - 1; k >= j; k--)\n", buf0);
-			fprintf(tc, "\t\t{\t/* shift up */\n");
-			for (j = 0; j < q->nflds; j++)
-			{	fprintf(tc, "\t\t\t%scontents[k+1].fld%d = ",
-					buf0, j);
-				fprintf(tc, "%scontents[k].fld%d;\n",
-					buf0, j);
-			}
-			fprintf(tc, "\t\t}\n");
-			fprintf(tc, "\tappend%d:\t/* insert in slot j */\n", q->qid);
+	if (has_sorted)
+	{	fprintf(tc, "\t\tif (!sorted) goto append%d;\n", q->qid);
+		fprintf(tc, "\t\tfor (j = 0; j < %sQlen; j++)\n", buf0);
+		fprintf(tc, "\t\t{\t/* find insertion point */\n");
+		sprintf(buf0, "((Q%d *)z)->contents[j].fld", q->qid);
+		for (j = 0; j < q->nflds; j++)
+		{	fprintf(tc, "\t\t\tif (fld%d > %s%d) continue;\n",
+					j, buf0, j);
+			fprintf(tc, "\t\t\tif (fld%d < %s%d) ", j, buf0, j);
+			fprintf(tc, "goto found%d;\n\n", q->qid);
 		}
+		fprintf(tc, "\t\t}\n");
+		fprintf(tc, "\tfound%d:\n", q->qid);
+		sprintf(buf0, "((Q%d *)z)->", q->qid);
+		fprintf(tc, "\t\tfor (k = %sQlen - 1; k >= j; k--)\n", buf0);
+		fprintf(tc, "\t\t{\t/* shift up */\n");
+		for (j = 0; j < q->nflds; j++)
+		{	fprintf(tc, "\t\t\t%scontents[k+1].fld%d = ",
+				buf0, j);
+			fprintf(tc, "%scontents[k].fld%d;\n",
+				buf0, j);
+		}
+		fprintf(tc, "\t\t}\n");
+		fprintf(tc, "\tappend%d:\t/* insert in slot j */\n", q->qid);
+	}
 
-		fprintf(tc, "#ifdef HAS_SORTED\n");
-		fprintf(tc, "\t\t(trpt+1)->ipt = j;\n");	/* ipt was bup.oval */
-		fprintf(tc, "#endif\n");
+		fprintf(tc, "\t\t(trpt+1)->bup.oval = j;\n");
 		fprintf(tc, "\t\t%sQlen = %sQlen + 1;\n", buf0, buf0);
 		sprintf(buf0, "((Q%d *)z)->contents[j].fld", q->qid);
 		for (j = 0; j < q->nflds; j++)
@@ -1173,23 +939,16 @@ genaddqueue(void)
 			fprintf(tc, "\t\t}\n");
 		}
 		fprintf(tc, "\t\tif (done)\n");
-		if (q->nslots == 0)
-		{	fprintf(tc, "\t\t{	j = %sQlen - 1;\n",  buf0);
-			fprintf(tc, "\t\t	%sQlen = 0;\n", buf0);
-			sprintf(buf0, "\t\t\t((Q%d *)z)->contents", q->qid);
-		} else
-	 	{	fprintf(tc, "\t\t{	j = %sQlen;\n",  buf0);
-			fprintf(tc, "\t\t	%sQlen = --j;\n", buf0);
-			fprintf(tc, "\t\t	for (k=slot; k<j; k++)\n");
-			fprintf(tc, "\t\t	{\n");
-			sprintf(buf0, "\t\t\t((Q%d *)z)->contents", q->qid);
-			for (j = 0; j < q->nflds; j++)
-			{	fprintf(tc, "\t%s[k].fld%d = \n", buf0, j);
-				fprintf(tc, "\t\t%s[k+1].fld%d;\n", buf0, j);
-			}
-			fprintf(tc, "\t\t	}\n");
-	 	}
-
+		fprintf(tc, "\t\t{	j = %sQlen;\n",  buf0);
+		fprintf(tc, "\t\t	%sQlen = --j;\n", buf0);
+		fprintf(tc, "\t\t	for (k=slot; k<j; k++)\n");
+		fprintf(tc, "\t\t	{\n");
+		sprintf(buf0, "\t\t\t((Q%d *)z)->contents", q->qid);
+		for (j = 0; j < q->nflds; j++)
+		{	fprintf(tc, "\t%s[k].fld%d = \n", buf0, j);
+			fprintf(tc, "\t\t%s[k+1].fld%d;\n", buf0, j);
+		}
+		fprintf(tc, "\t\t	}\n");
 		for (j = 0; j < q->nflds; j++)
 			fprintf(tc, "%s[j].fld%d = 0;\n", buf0, j);
 		fprintf(tc, "\t\t\tif (fld+1 != %d)\n\t\t\t", q->nflds);
