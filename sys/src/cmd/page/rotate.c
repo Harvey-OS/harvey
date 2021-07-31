@@ -189,10 +189,6 @@ rot180(Image *im)
 
 	mask = xallocimage(display, rmask, GREY1, 1, DTransparent);
 	mtmp = xallocimage(display, rmask, GREY1, 1, DTransparent);
-	if(mask == nil || mtmp == nil) {
-		fprint(2, "out of memory during rot180: %r\n");
-		wexits("memory");
-	}
 	rmask.max.x = gran;
 	drawop(mask, rmask, display->opaque, nil, ZP, S);
 //	writefile("mask", mask, gran);
@@ -206,10 +202,6 @@ rot180(Image *im)
 	rmask.max = (Point){100, 2*gran};
 	mask = xallocimage(display, rmask, GREY1, 1, DTransparent);
 	mtmp = xallocimage(display, rmask, GREY1, 1, DTransparent);
-	if(mask == nil || mtmp == nil) {
-		fprint(2, "out of memory during rot180: %r\n");
-		wexits("memory");
-	}
 	rmask.max.y = gran;
 	drawop(mask, rmask, display->opaque, nil, ZP, S);
 	shuffle(im, tmp, Yaxis, Dy(im->r), mask, gran, 0);
@@ -230,14 +222,10 @@ rot90(Image *im)
 	dx = Dx(im->r);
 	dy = Dy(im->r);
 	tmp = xallocimage(display, Rect(0, 0, dy, dx), im->chan, 0, DCyan);
-	if(tmp == nil) {
-		fprint(2, "out of memory during rot90: %r\n");
-		wexits("memory");
-	}
 
 	for(j = 0; j < dx; j++) {
 		for(i = 0; i < dy; i++) {
-			drawop(tmp, Rect(i, j, i+1, j+1), im, nil, Pt(j, dy-(i+1)), S);
+			draw(tmp, Rect(i, j, i+1, j+1), im, nil, Pt(j, dy-(i+1)));
 		}
 	}
 	freeimage(im);
@@ -370,6 +358,7 @@ resample(Image *from, Image *to)
 		K[i] /= v;
 
 	switch(from->chan){
+
 	case GREY8:
 	case RGB24:
 	case RGBA32:
@@ -389,19 +378,15 @@ resample(Image *from, Image *to)
 		tchan = GREY8;
 	Convert:
 		/* use library to convert to byte-per-chan form, then convert back */
-		t1 = xallocimage(display, Rect(0, 0, Dx(from->r), Dy(from->r)), tchan, 0, DNofill);
-		if(t1 == nil) {
-			fprint(2, "out of memory for temp image 1 in resample: %r\n");
-			wexits("memory");
-		}
-		drawop(t1, t1->r, from, nil, ZP, S);
-		t2 = xallocimage(display, to->r, tchan, 0, DNofill);
-		if(t2 == nil) {
-			fprint(2, "out of memory temp image 2 in resample: %r\n");
-			wexits("memory");
-		}
+		t1 = allocimage(display, from->r, tchan, 0, DNofill);
+		if(t1 == nil)
+			sysfatal("can't allocate temporary image: %r");
+		draw(t1, t1->r, from, nil, ZP);
+		t2 = allocimage(display, to->r, tchan, 0, DNofill);
+		if(t2 == nil)
+			sysfatal("can't allocate temporary image: %r");
 		resample(t1, t2);
-		drawop(to, to->r, t2, nil, ZP, S);
+		draw(to, to->r, t2, nil, ZP);
 		freeimage(t1);
 		freeimage(t2);
 		return to;

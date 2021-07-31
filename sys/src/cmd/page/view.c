@@ -118,8 +118,6 @@ menugen(int n)
 void
 showpage(int page, Menu *m)
 {
-	Image *tmp;
-
 	if(doc->fwdonly)
 		m->lasthit = 0;	/* this page */
 	else
@@ -145,17 +143,6 @@ showpage(int page, Menu *m)
 	}else if(resizing){
 		resize(Dx(im->r), Dy(im->r));
 	}
-	if(im->r.min.x > 0 || im->r.min.y > 0) {
-		tmp = xallocimage(display, Rect(0, 0, Dx(im->r), Dy(im->r)), im->chan, 0, DNofill);
-		if(tmp == nil) {
-			fprint(2, "out of memory during showpage: %r\n");
-			wexits("memory");
-		}
-		drawop(tmp, tmp->r, im, nil, im->r.min, S);
-		freeimage(im);
-		im = tmp;
-	}
-
 	if(upside)
 		rot180(im);
 
@@ -269,23 +256,24 @@ viewer(Document *dd)
 	Rectangle r;
 	Image *tmp;
 	static char *fwditems[] = { "this page", "next page", "exit", 0 };
- 	static char *miditems[] = {
- 		"orig size",
- 		"zoom in",
- 		"fit window",
- 		"rotate 90",
- 		"upside down",
- 		"",
- 		"next",
- 		"prev",
- 		"", 
- 		"reverse",
- 		"discard",
- 		"write",
- 		"", 
- 		"quit", 
- 		0 
- 	};
+	static char *miditems[] = {
+		"orig size",
+		"zoom in",
+		"fit window",
+		"rotate 90",
+		"upside down",
+		"",
+		"next",
+		"prev",
+		"", 
+		"reverse",
+		"discard",
+		"write",
+		"", 
+		"quit", 
+		0 
+	};
+
 	char *s;
 	enum { Eplumb = 4 };
 	Plumbmsg *pm;
@@ -528,7 +516,7 @@ viewer(Document *dd)
 					{
 						double delta;
 						Rectangle r;
-
+						
 						r = egetrect(Middle, &m);
 						if((rectclip(&r, rectaddpt(im->r, ul)) == 0) ||
 							Dx(r) == 0 || Dy(r) == 0)
@@ -540,13 +528,9 @@ viewer(Document *dd)
 							delta = (double)Dy(im->r)/(double)Dy(r);
 
 						esetcursor(&reading);
-						tmp = xallocimage(display, 
+						tmp = allocimage(display, 
 								Rect(0, 0, (int)((double)Dx(im->r)*delta), (int)((double)Dy(im->r)*delta)), 
 								im->chan, 0, DBlack);
-						if(tmp == nil) {
-							fprint(2, "out of memory during zoom: %r\n");
-							wexits("memory");
-						}
 						resample(im, tmp);
 						freeimage(im);
 						im = tmp;
@@ -567,11 +551,7 @@ viewer(Document *dd)
 
 						r = Rect(0, 0, (int)((double)Dx(im->r)*delta), (int)((double)Dy(im->r)*delta));
 						esetcursor(&reading);
-						tmp = xallocimage(display, r, im->chan, 0, DBlack);
-						if(tmp == nil) {
-							fprint(2, "out of memory during fit: %r\n");
-							wexits("memory");
-						}
+						tmp = allocimage(display, r, im->chan, 0, DBlack);
 						resample(im, tmp);
 						freeimage(im);
 						im = tmp;
