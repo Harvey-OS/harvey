@@ -58,8 +58,6 @@ struct Etherops
 	int	(*multicast)(Ether*, uchar*, int);
 	char*	(*seprintstats)(char*, char*, Ether*);
 	void	(*free)(Ether*);
-	int	bufsize;
-	char	*name;
 	void*	aux;
 };
 

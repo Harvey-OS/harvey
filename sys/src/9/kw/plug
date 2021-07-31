@@ -57,7 +57,6 @@ misc
 	rdb
 	coproc
 	sdaoe		sdscsi
-	sdmmc		sdio
 	softfpu
 	syscall
 	uartkw
