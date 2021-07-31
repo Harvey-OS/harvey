@@ -9,7 +9,7 @@ typedef	long long	vlong;
 typedef	unsigned long long uvlong;
 typedef unsigned long	uintptr;
 typedef unsigned long	usize;
-typedef	uint		Rune;
+typedef	ushort		Rune;
 typedef 	union FPdbleword FPdbleword;
 typedef long	jmp_buf[2];
 #define	JMPBUFSP	0
