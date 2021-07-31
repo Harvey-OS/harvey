@@ -13,7 +13,7 @@
 enum
 {
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
-	Nram	= 1024,
+	Nram	= 4096,
 	Maxsize	= 768*1024*1024,
 	Maxfdata	= 8192,
 	Maxulong= (1ULL << 32) - 1,
@@ -62,8 +62,7 @@ enum
 
 ulong	path;		/* incremented for each new file */
 Fid	*fids;
-Ram	*ram;
-int	maxnram = Nram;
+Ram	ram[Nram];
 int	nram;
 int	mfd[2];
 char	*user;
@@ -83,7 +82,6 @@ void	*emalloc(ulong);
 char	*estrdup(char*);
 void	usage(void);
 int	perm(Fid*, Ram*, int);
-Ram	*ramexpand(Ram*);
 
 char	*rflush(Fid*), *rversion(Fid*), *rauth(Fid*),
 	*rattach(Fid*), *rwalk(Fid*),
@@ -211,7 +209,6 @@ main(int argc, char *argv[])
 
 	user = getuser();
 	notify(notifyf);
-	ram = emalloc(maxnram*sizeof(Ram));
 	nram = 1;
 	r = &ram[0];
 	r->busy = 1;
@@ -462,7 +459,7 @@ rcreate(Fid *f)
 		if(strcmp((char*)name, r->name)==0)
 			return Einuse;
 	for(r=ram; r->busy; r++)
-		if(r == &ram[maxnram-1] && (r = ramexpand(r)) == nil)
+		if(r == &ram[Nram-1])
 			return "no free ram resources";
 	r->busy = 1;
 	r->qid.path = ++path;
@@ -640,8 +637,6 @@ rremove(Fid *f)
 	f->open = 0;
 	r = f->ram;
 	f->ram = 0;
-	if(r->busy == 0)
-		return Enotexist;
 	if(r->qid.path == 0 || !perm(f, &ram[r->parent], Pwrite))
 		return Eperm;
 	ram[r->parent].mtime = time(0);
@@ -691,11 +686,10 @@ rwstat(Fid *f)
 	}
 
 	/*
-	 * To change mode or mtime, must be owner or group leader.
+	 * To change mode, must be owner or group leader.
 	 * Because of lack of users file, leader=>group itself.
 	 */
-	if(dir.mode!=~0 && r->perm!=dir.mode ||
-	   dir.mtime!=~0 && dir.mtime!=r->mtime){
+	if(dir.mode!=~0 && r->perm!=dir.mode){
 		if(strcmp(f->user, r->user) != 0)
 		if(strcmp(f->user, r->group) != 0)
 			return Enotowner;
@@ -723,8 +717,6 @@ rwstat(Fid *f)
 		dir.mode |= r->perm&DMDIR;
 		r->perm = dir.mode;
 	}
-	if(dir.mtime != ~0)
-		r->mtime = dir.mtime;
 	if(dir.name[0] != '\0'){
 		free(r->name);
 		r->name = estrdup(dir.name);
@@ -865,26 +857,6 @@ perm(Fid *f, Ram *r, int p)
 	return 0;
 }
 
-Ram*
-ramexpand(Ram *r)
-{
-	Ram *newram;
-	Fid *f;
-	uintptr offs;
-
-	newram = (Ram*)realloc(ram, (maxnram+Nram)*sizeof(Ram));
-	if(newram == nil)
-		return nil;
-	memset(newram + maxnram, 0, Nram*sizeof(Ram));
-	offs = (uintptr)newram - (uintptr)ram;
-	for(f = fids; f; f = f->next)
-		if(f->busy && f->ram != nil)
-			f->ram = (Ram*)((uintptr)f->ram + offs);
-	maxnram += Nram;
-	ram = newram;
-	return (Ram*)((uintptr)r + offs);
-}
-
 void
 error(char *s)
 {
@@ -908,7 +880,7 @@ void *
 erealloc(void *p, ulong n)
 {
 	p = realloc(p, n);
-	if(n != 0 && !p)
+	if(!p)
 		error("out of memory");
 	return p;
 }
