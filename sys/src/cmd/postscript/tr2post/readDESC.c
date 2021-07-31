@@ -136,5 +136,4 @@ readDESC(void) {
 		}
 	}
 	Bterm(Bfd);
-	return(TRUE);
 }

@@ -144,7 +144,6 @@ tcsetpgrp(int fd, pid_t pgrpid)
 		_syserrno();
 		return -1;
 	}
-	return 0;
 }
 
 pid_t

@@ -319,7 +319,6 @@ alarmhandler(int sig) {
 	error("alarm at %d - %s\n", dbgstate, dbgstrings[dbgstate]);
 }
 
-void
 main()
 {
 	unsigned char *ap, *bp, *cp, *savbufpnt;

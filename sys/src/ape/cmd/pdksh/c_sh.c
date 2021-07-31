@@ -614,7 +614,6 @@ c_brkcont(wp)
 
 	unwind(*wp[0] == 'b' ? LBREAK : LCONTIN);
 	/*NOTREACHED*/
-	return 0;
 }
 
 int

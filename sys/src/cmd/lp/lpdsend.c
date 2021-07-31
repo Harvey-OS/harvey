@@ -278,7 +278,6 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	return addr;
 }
 
-void
 main(int argc, char *argv[])
 {
 	int c, usgflg = 0, inputfd, printerfd, sendport;

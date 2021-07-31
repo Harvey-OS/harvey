@@ -103,5 +103,4 @@ strerror_r(int n, char *buf, int len)
 {
 	strncpy(buf, strerror(n), len);
 	buf[len-1] = 0;
-	return buf;
 }

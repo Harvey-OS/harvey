@@ -20,7 +20,6 @@ uchar	bittab[]  = {
 		128
 	};
 
-void
 main(int argc, char **argv)
 {
 

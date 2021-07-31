@@ -290,5 +290,4 @@ main(int argc, char **argv)
 	}
 	close_infile();
 	exit(0);
-	return 0;
 }

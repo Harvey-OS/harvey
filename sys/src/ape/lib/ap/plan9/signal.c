@@ -111,7 +111,6 @@ _notehandler(Ureg *u, char *msg)
 	}
 	_doatexits();
 	_NOTED(1); /* NDFLT */
-	return 0;
 }
 
 int
