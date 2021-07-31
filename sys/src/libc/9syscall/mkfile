@@ -110,15 +110,6 @@ install:V:
 				MOVW R3,4(R8)'
 			}
 			echo RETURN
-		case power64
-			if(~ $i seek)
-				echo TEXT _seek'(SB)', 1, '$0'
-			if not
-				echo TEXT $i'(SB)', 1, '$0'
-			echo MOVD R3, '0(FP)'
-			echo MOVW '$'$n, R3
-			echo SYSCALL
-			echo RETURN
 		}} > $i.s
 		$AS $i.s
 	}
