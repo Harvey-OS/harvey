@@ -6,6 +6,7 @@
 
 #include "arm.h"
 
+#define FEXT(d, o, w)	(((d)>>(o)) & ((1<<(w))-1))
 #define L1X(va)		FEXT((va), 20, 12)
 #define L2X(va)		FEXT((va), 12, 8)
 

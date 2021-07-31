@@ -295,7 +295,7 @@ sysexec(ulong *arg)
 
 	data = l2be(exec.data);
 	bss = l2be(exec.bss);
-	t = UTROUND(UTZERO+sizeof(Exec)+text);
+	t = (UTZERO+sizeof(Exec)+text+(BY2PG-1)) & ~(BY2PG-1);
 	d = (t + data + (BY2PG-1)) & ~(BY2PG-1);
 	bssend = t + data + bss;
 	b = (bssend + (BY2PG-1)) & ~(BY2PG-1);
