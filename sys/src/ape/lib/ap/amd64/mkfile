@@ -1,4 +1,5 @@
 APE=/sys/src/ape
+objtype=amd64
 <$APE/config
 LIB=/$objtype/lib/ape/libap.a
 OFILES=\
