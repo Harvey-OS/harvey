@@ -179,15 +179,6 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 		case '*':
 			i = va_arg(f->args, int);
 			if(i < 0){
-				/*
-				 * negative precision =>
-				 * ignore the precision.
-				 */
-				if(f->flags & FmtPrec){
-					f->flags &= ~FmtPrec;
-					f->prec = 0;
-					continue;
-				}
 				i = -i;
 				f->flags |= FmtLeft;
 			}
