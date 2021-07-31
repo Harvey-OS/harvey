@@ -3229,12 +3229,8 @@ ehcireset(Ctlr *ctlr)
 	}
 	dprint("ehci: %d frames\n", ctlr->nframes);
 
-	/*
-	 * Marvell errata FE-USB-340 workaround: 1 << 4 magic.
-	 * Magic 3 from the linux driver makes it work.  Ick.
-	 */
-	opio->usbmode |= 1 << 4 | 3;
-	coherence();
+	/* Marvell errata FE-USB-340 workaround */
+	opio->usbmode |= 1 << 4;	/* magic from marvell */
 
 	/*
 	 * Marvell guideline GL-USB-160.
