@@ -714,7 +714,7 @@ divsubr(int o)
 	case AMODLU:
 		return prog_modlu;
 	default:
-		diag("bad op %A in divsubr", o);
+		diag("bad op %O in divsubr", o);
 		return prog_modlu;
 	}
 }

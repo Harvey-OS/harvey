@@ -141,8 +141,6 @@ EXTERN union
 #pragma	varargck	type	"R"	int
 #pragma	varargck	type	"S"	char*
 
-#pragma	varargck	argpos	diag 1
-
 EXTERN	long	HEADR;
 EXTERN	long	HEADTYPE;
 EXTERN	long	INITDAT;
