@@ -3,6 +3,8 @@
 TARG=\
 	gpsfs\
 	gpsevermore\
+
+HFILES=dat.h\
 	
 OFILES=\
 	util.$O
