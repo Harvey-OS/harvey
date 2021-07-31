@@ -47,8 +47,7 @@ static	char	dmsize[12] =
 static	int	dysize(int);
 static	void	ct_numb(char*, int);
 
-#define	TZSIZE	((136*2)+10)		/* 1970-2106; match tm2sec.c */
-
+#define	TZSIZE	150
 static	void	readtimezone(void);
 static	int	rd_name(char**, char*);
 static	int	rd_long(char**, long*);
@@ -59,7 +58,7 @@ struct
 	char	dlname[4];
 	long	stdiff;
 	long	dldiff;
-	ulong	dlpairs[TZSIZE];
+	long	dlpairs[TZSIZE];
 } timezone;
 
 char*
@@ -69,13 +68,12 @@ ctime(long t)
 }
 
 Tm*
-localtime(long atim)		/* should be ulong, but it's too late */
+localtime(long tim)
 {
 	Tm *ct;
-	ulong tim, t, *p;
+	long t, *p;
 	int dlflag;
 
-	tim = atim;
 	if(timezone.stname[0] == 0)
 		readtimezone();
 	t = tim + timezone.stdiff;
@@ -99,19 +97,17 @@ localtime(long atim)		/* should be ulong, but it's too late */
 }
 
 Tm*
-gmtime(long atim)		/* should be ulong, but it's too late */
+gmtime(long tim)
 {
 	int d0, d1;
 	long hms, day;
-	ulong tim;
 	static Tm xtime;
 
 	/*
 	 * break initial number into days
 	 */
-	tim = atim;
-	hms = tim % 86400L;
-	day = tim / 86400L;
+	hms = (ulong)tim % 86400L;
+	day = (ulong)tim / 86400L;
 	if(hms < 0) {
 		hms += 86400L;
 		day -= 1;
@@ -186,7 +182,7 @@ asctime(Tm *t)
 	cbuf[22] = *ncp;
 	if(t->year >= 100) {
 		cbuf[24] = '2';
-		cbuf[25] = '0';
+		cbuf[25] = t->year >= 200? '1': '0';  
 	}
 	ct_numb(cbuf+26, t->year+100);
 	return cbuf;
@@ -238,12 +234,12 @@ readtimezone(void)
 	if(rd_long(&p, &timezone.dldiff))
 		goto error;
 	for(i=0; i<TZSIZE; i++) {
-		if(rd_long(&p, (long *)&timezone.dlpairs[i]))
+		if(rd_long(&p, &timezone.dlpairs[i]))
 			goto error;
 		if(timezone.dlpairs[i] == 0)
 			return;
 	}
-	/* array too small for input */
+
 error:
 	timezone.stdiff = 0;
 	strcpy(timezone.stname, "GMT");
