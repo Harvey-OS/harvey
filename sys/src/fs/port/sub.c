@@ -1114,8 +1114,6 @@ devread(Device *d, Off b, void *c)
 			return wrenread(d, b, c);
 		case Devide:
 			return ideread(d, b, c);
-		case Devmarvsata:
-			return mvideread(d, b, c);
 
 		case Devworm:
 		case Devlworm:
@@ -1180,8 +1178,6 @@ devwrite(Device *d, Off b, void *c)
 			return wrenwrite(d, b, c);
 		case Devide:
 			return idewrite(d, b, c);
-		case Devmarvsata:
-			return mvidewrite(d, b, c);
 
 		case Devworm:
 		case Devlworm:
@@ -1235,8 +1231,6 @@ devsize(Device *d)
 			return wrensize(d);
 		case Devide:
 			return idesize(d);
-		case Devmarvsata:
-			return mvidesize(d);
 
 		case Devworm:
 		case Devlworm:
@@ -1416,10 +1410,6 @@ devinit(Device *d)
 
 		case Devide:
 			ideinit(d);
-			return;
-
-		case Devmarvsata:
-			mvideinit(d);
 			return;
 
 		case Devworm:
