@@ -2554,7 +2554,7 @@ connect(int fd, int cfd)
 
 		p = buf;
 		lineno = 0;
-		for(;;) {
+		while (1) {
 			char *_args[3];
 
 			if ((s = strchr(p, '\n')) == nil)

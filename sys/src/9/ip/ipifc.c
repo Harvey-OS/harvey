@@ -831,7 +831,6 @@ ipifcctl(Conv* c, char**argv, int argc)
 	return "unsupported ctl";
 }
 
-int
 ipifcstats(Proto *ipifc, char *buf, int len)
 {
 	return ipstats(ipifc->f, buf, len);

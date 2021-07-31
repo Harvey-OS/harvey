@@ -24,7 +24,6 @@
  *	-p		use standard cpp ANSI preprocessor (not on windows)
  *	-r		print registerization
  *	-s		print structure offsets (with -a or -aa)
- *	-S		print assembly
  *	-t		print type trees
  *	-V		enable void* conversion warnings
  *	-v		verbose printing

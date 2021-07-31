@@ -406,7 +406,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 		}
 		strecpy(c->pass, c->pass+sizeof c->pass, s);
 	}
-	for(;;){
+	while(1){
 		if(verbose)
 			fprint(2, "dialing %s\n", dest);
 		if((fd = dial(dest, nil, nil, nil)) < 0){
