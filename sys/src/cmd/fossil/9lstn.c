@@ -59,7 +59,6 @@ lstnListen(void* a)
 			conAlloc(dfd, newdir, lstn->flags);
 		else
 			fprint(2, "listen: accept %s: %r\n", newdir);
-		close(lfd);
 	}
 	lstnFree(lstn);
 }
