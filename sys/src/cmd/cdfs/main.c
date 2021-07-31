@@ -192,7 +192,7 @@ fsremove(Req *r)
 	case Qwd:
 		if(drive->fixate(drive) < 0)
 			respond(r, geterrstr());
-// let us see if it can figure this out:	drive->writeok = No;	
+// let us see if it can figure this out:	drive->writeok = 0;	
 		else
 			respond(r, nil);
 		checktoc(drive);
@@ -229,9 +229,9 @@ disctype(Drive *drive)
 	}
 	rw = "";
 	if (drive->mmctype != Mmcnone && drive->dvdtype == nil)
-		if (drive->erasable == Yes)
+		if (drive->erasable == 1)
 			rw = drive->mmctype == Mmcbd? "re": "rw";
-		else if (drive->recordable == Yes)
+		else if (drive->recordable == 1)
 			rw = "r";
 		else
 			rw = "rom";
@@ -271,7 +271,7 @@ fillstat(ulong qid, Dir *d)
 		break;
 
 	case Qwa:
-		if(drive->writeok == No ||
+		if(drive->writeok == 0 ||
 		    drive->mmctype != Mmcnone &&
 		    drive->mmctype != Mmccd)
 			return 0;
@@ -281,7 +281,7 @@ fillstat(ulong qid, Dir *d)
 		break;
 
 	case Qwd:
-		if(drive->writeok == No)
+		if(drive->writeok == 0)
 			return 0;
 		d->name = "wd";
 		d->qid.type = QTDIR;
