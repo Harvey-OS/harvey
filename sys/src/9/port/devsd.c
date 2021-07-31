@@ -159,30 +159,20 @@ sddelpart(SDunit* unit,  char* name)
 	pp->vers++;
 }
 
-static void
-sdincvers(SDunit *unit)
+static int
+sdinitpart(SDunit* unit)
 {
-	int i;
+	int i, nf;
+	ulong start, end;
+	char *f[4], *p, *q, buf[10];
 
 	unit->vers++;
+	unit->sectors = unit->secsize = 0;
 	if(unit->part){
 		for(i = 0; i < unit->npart; i++){
 			unit->part[i].valid = 0;
 			unit->part[i].vers++;
 		}
-	}
-}
-
-static int
-sdinitpart(SDunit* unit)
-{
-	int nf;
-	ulong start, end;
-	char *f[4], *p, *q, buf[10];
-
-	if(unit->sectors > 0){
-		unit->sectors = unit->secsize = 0;
-		sdincvers(unit);
 	}
 
 	if(unit->inquiry[0] & 0xC0)
@@ -200,7 +190,6 @@ sdinitpart(SDunit* unit)
 	if(unit->dev->ifc->online)
 		unit->dev->ifc->online(unit);
 	if(unit->sectors){
-		sdincvers(unit);
 		sdaddpart(unit, "data", 0, unit->sectors);
 
 		/*
@@ -850,8 +839,10 @@ sdrio(SDreq* r, void* a, long n)
 	r->dlen = n;
 
 	if(waserror()){
-		sdfree(data);
-		r->data = nil;
+		if(data != nil){
+			sdfree(data);
+			r->data = nil;
+		}
 		nexterror();
 	}
 
@@ -860,8 +851,10 @@ sdrio(SDreq* r, void* a, long n)
 
 	if(!r->write && r->rlen > 0)
 		memmove(a, data, r->rlen);
-	sdfree(data);
-	r->data = nil;
+	if(data != nil){
+		sdfree(data);
+		r->data = nil;
+	}
 	poperror();
 
 	return r->rlen;
@@ -987,7 +980,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 		else
 			len = sizeof unit->inquiry;
 		if(r->data && r->dlen >= len){
-			memmove(r->data, unit->inquiry, len);
+			memmove(r->data, r->sense, len);
 			r->rlen = len;
 		}
 		return sdsetsense(r, SDok, 0, 0, 0);
@@ -1318,7 +1311,10 @@ sdwrite(Chan* c, void* a, long n, vlong off)
 			error(Ebadusefd);
 
 		case Rawdata:
+			if(unit->state != Rawdata)
+				error(Ebadusefd);
 			unit->state = Rawstatus;
+
 			unit->req->write = 1;
 			n = sdrio(unit->req, a, n);
 		}
