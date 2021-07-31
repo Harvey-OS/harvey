@@ -1,6 +1,5 @@
 /*
- * 6in4 - tunnel client for automatic 6to4 or configured v6-in-v4 tunnels.
- *	see rfc3056.
+ * 6in4 - tunnel client for automatic 6to4 or configured v6-in-v4 tunnels
  */
 
 #include <u.h>
@@ -8,30 +7,12 @@
 #include <ip.h>
 
 enum {
-	IP_IPV6PROTO	= 41,		/* IPv4 protocol number for IPv6 */
+	IP_IPV6PROTO	= 41,
 	V6to4pfx	= 0x2002,
 };
 
-typedef struct Iphdr Iphdr;
-struct Iphdr
-{
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	cksum[2];	/* Header checksum */
-	uchar	src[4];		/* Ip source (uchar ordering unimportant) */
-	uchar	dst[4];		/* Ip destination (uchar ordering unimportant) */
-};
-
-#define STFHDR sizeof(Iphdr)
-
 int anysender;
 int gateway;
-int debug;
 
 uchar local6[IPaddrlen];
 uchar remote6[IPaddrlen];
@@ -58,29 +39,44 @@ usage(void)
 	exits("Usage");
 }
 
-static char *
-defv6addr(void)
+void
+main(int argc, char **argv)
 {
-	uchar *ipv4 = &myip[IPaddrlen - IPv4addrlen];
+	int n, tunnel, ifc, cfd;
+	char *p, *cl, *ir, *loc6;
+	char buf[128], path[64];
 
-	return smprint("%ux:%2.2x%2.2x:%2.2x%2.2x::1/48", V6to4pfx,
-		ipv4[0], ipv4[1], ipv4[2], ipv4[3]);
-}
+	fmtinstall('I', eipfmt);
+	fmtinstall('V', eipfmt);
+	fmtinstall('M', eipfmt);
 
-/* process non-option arguments */
-static void
-procargs(int argc, char **argv)
-{
-	char *p, *loc6;
+	ARGBEGIN {
+	case 'a':
+		anysender++;
+		break;
+	case 'g':
+		gateway++;
+		break;
+	case 'x':
+		net = EARGF(usage());
+		break;
+	default:
+		usage();
+	} ARGEND
+
+	if (myipaddr(myip, net) < 0)
+		sysfatal("can't find my ipv4 address on %s", net);
 
 	if (argc < 1)
-		loc6 = defv6addr();
-	else if (strcmp(argv[0], "-") == 0) {
-		loc6 = defv6addr();
+		loc6 = smprint("%ux:%2.2x%2.2x:%2.2x%2.2x::1/48",
+			V6to4pfx,
+			myip[IPaddrlen - IPv4addrlen],
+			myip[IPaddrlen - IPv4addrlen + 1],
+			myip[IPaddrlen - IPv4addrlen + 2],
+			myip[IPaddrlen - IPv4addrlen + 3]);
+	else {
+		loc6 = argv[0];
 		argv++;
-		argc--;
-	} else {
-		loc6 = *argv++;
 		argc--;
 	}
 
@@ -95,31 +91,30 @@ procargs(int argc, char **argv)
 	if (isv4(local6))
 		usage();
 	if (argc >= 1 && argv[0][0] == '/') {
-		parseipmask(localmask, *argv++);
+		parseipmask(localmask, argv[0]);
+		argv++;
 		argc--;
 	}
-	if (debug)
-		fprint(2, "local6 %I %M\n", local6, localmask);
 
 	/* remote v4 address (defaults to anycast 6to4) */
 	if (argc >= 1) {
-		parseip(remote4, *argv++);
-		argc--;
+		parseip(remote4, argv[0]);
 		if (!isv4(remote4))
 			usage();
+		argv++;
+		argc--;
 	} else {
 		v4tov6(remote4, anycast6to4);
 		anysender++;
 	}
-	if (debug)
-		fprint(2, "remote4 %I\n", remote4);
 
 	/* remote v6 address (defaults to link-local w/ v4 as interface part) */
 	if (argc >= 1) {
-		parseip(remote6, *argv++);
-		argc--;
+		parseip(remote6, argv[0]);
 		if (isv4(remote4))
 			usage();
+		argv++;
+		argc--;
 	} else {
 		remote6[0] = 0xFE;		/* link local */
 		remote6[1] = 0x80;
@@ -130,135 +125,87 @@ procargs(int argc, char **argv)
 		usage();
 
 	maskip(local6, localmask, localnet);
-	if (debug)
-		fprint(2, "localnet %I remote6 %I\n", localnet, remote6);
-}
-
-static void
-setup(int *v6net, int *tunp)
-{
-	int n, cfd;
-	char *p, *cl, *ir;
-	char buf[128], path[64];
 
 	/*
-	 * gain access to IPv6-in-IPv4 packets
+	 * open IPv6-in-IPv4 tunnel
 	 */
-	p = seprint(buf, buf + sizeof buf, "%s/ipmux!proto=%2.2x",
-		net, IP_IPV6PROTO);
-	if (1)
-		seprint(p, buf + sizeof buf, ";dst=%V", myip + IPv4off);
+	p = seprint(buf, buf + sizeof buf, "ipmux!proto=%2.2x;dst=%V",
+		IP_IPV6PROTO, myip + IPv4off);
 	if (!anysender)
 		seprint(p, buf + sizeof buf, ";src=%V", remote4 + IPv4off);
-	*tunp = dial(buf, 0, 0, 0);
-	if (*tunp < 0)
-		sysfatal("can't access ipv6-in-ipv4 with dial str %s: %r", buf);
-	if (debug)
-		fprint(2, "dialed %s for v6-in-v4 access\n", buf);
+	tunnel = dial(buf, 0, 0, 0);
+	if (tunnel < 0)
+		sysfatal("can't make 6in4 tunnel with dial str %s: %r", buf);
 
 	/*
 	 * open local IPv6 interface (as a packet interface)
 	 */
-
 	cl = smprint("%s/ipifc/clone", net);
 	cfd = open(cl, ORDWR);			/* allocate a conversation */
+	free(cl);
 	n = 0;
 	if (cfd < 0 || (n = read(cfd, buf, sizeof buf - 1)) <= 0)
-		sysfatal("can't make packet interface %s: %r", cl);
-	if (debug)
-		fprint(2, "cloned %s as local v6 interface\n", cl);
-	free(cl);
+		sysfatal("can't make packet interface: %r");
 	buf[n] = 0;
 
 	snprint(path, sizeof path, "%s/ipifc/%s/data", net, buf);
-	*v6net = open(path, ORDWR);
-	if (*v6net < 0 || fprint(cfd, "bind pkt") < 0)
+	ifc = open(path, ORDWR);
+	if (ifc < 0 || fprint(cfd, "bind pkt") < 0)
 		sysfatal("can't bind packet interface: %r");
 	/* 1280 is MTU, apparently from rfc2460 */
 	if (fprint(cfd, "add %I /128 %I 1280", local6, remote6) <= 0)
 		sysfatal("can't set local ipv6 address: %r");
 	close(cfd);
-	if (debug)
-		fprint(2, "opened & bound %s as local v6 interface\n", path);
 
 	if (gateway) {
 		/* route global addresses through the tunnel to remote6 */
 		ir = smprint("%s/iproute", net);
 		cfd = open(ir, OWRITE);
-		if (cfd >= 0 && debug)
-			fprint(2, "injected 2000::/3 %I into %s\n", remote6, ir);
 		free(ir);
 		if (cfd < 0 || fprint(cfd, "add 2000:: /3 %I", remote6) <= 0)
 			sysfatal("can't set default global route: %r");
 	}
-}
 
-static void
-runtunnel(int v6net, int tunnel)
-{
 	/* run the tunnel copying in the background */
 	switch (rfork(RFPROC|RFNOWAIT|RFMEM|RFNOTEG)) {
-	case -1:
-		sysfatal("rfork");
 	default:
 		exits(nil);
 	case 0:
 		break;
+	case -1:
+		sysfatal("rfork");
 	}
 
 	switch (rfork(RFPROC|RFNOWAIT|RFMEM)) {
-	case -1:
-		sysfatal("rfork");
 	default:
-		tunnel2ip(tunnel, v6net);
+		tunnel2ip(tunnel, ifc);
 		break;
 	case 0:
-		ip2tunnel(v6net, tunnel);
+		ip2tunnel(ifc, tunnel);
 		break;
+	case -1:
+		sysfatal("rfork");
 	}
 	exits("tunnel gone");
 }
 
-void
-main(int argc, char **argv)
+typedef struct Iphdr Iphdr;
+struct Iphdr
 {
-	int tunnel, v6net;
+	uchar	vihl;		/* Version and header length */
+	uchar	tos;		/* Type of service */
+	uchar	length[2];	/* packet length */
+	uchar	id[2];		/* Identification */
+	uchar	frag[2];	/* Fragment information */
+	uchar	ttl;		/* Time to live */
+	uchar	proto;		/* Protocol */
+	uchar	cksum[2];	/* Header checksum */
+	uchar	src[4];		/* Ip source (uchar ordering unimportant) */
+	uchar	dst[4];		/* Ip destination (uchar ordering unimportant) */
+};
 
-	fmtinstall('I', eipfmt);
-	fmtinstall('V', eipfmt);
-	fmtinstall('M', eipfmt);
+#define STFHDR (sizeof(Iphdr))
 
-	ARGBEGIN {
-	case 'a':
-		anysender++;
-		break;
-	case 'd':
-		debug++;
-		break;
-	case 'g':
-		gateway++;
-		break;
-	case 'x':
-		net = EARGF(usage());
-		break;
-	default:
-		usage();
-	} ARGEND
-
-	if (myipaddr(myip, net) < 0)
-		sysfatal("can't find my ipv4 address on %s", net);
-	if (!isv4(myip))
-		sysfatal("my ip, %I, is not a v4 address", myip);
-
-	procargs(argc, argv);
-	setup(&v6net, &tunnel);
-	runtunnel(v6net, tunnel);
-}
-
-/*
- * encapsulate v6 packets from the packet interface in v4 ones
- * and send them into the tunnel.
- */
 static void
 ip2tunnel(int in, int out)
 {
@@ -267,7 +214,6 @@ ip2tunnel(int in, int out)
 	Iphdr *op;
 	Ip6hdr *ip;
 
-	/* populate v4 header */
 	op = (Iphdr*)buf;
 	op->vihl = 0x45;		/* v4, hdr is 5 longs? */
 	memcpy(op->src, myip + IPv4off, sizeof op->src);
@@ -311,10 +257,6 @@ ip2tunnel(int in, int out)
 	}
 }
 
-/*
- * decapsulate v6 packets from v4 ones from the tunnel
- * and forward them to the packet interface
- */
 static void
 tunnel2ip(int in, int out)
 {
@@ -334,7 +276,7 @@ tunnel2ip(int in, int out)
 			break;
 		}
 
-		/* if not IPv4 nor IPv4 protocol IPv6, drop it */
+		/* if not IPv4 nor IP protocol IPv6, drop it */
 		if ((ip->vihl&0xF0) != 0x40 || ip->proto != IP_IPV6PROTO)
 			continue;
 
@@ -348,10 +290,8 @@ tunnel2ip(int in, int out)
 		op = (Ip6hdr*)(buf + IPaddrlen + STFHDR);
 		n -= STFHDR;
 
-		/*
-		 * don't relay: just accept packets for local host/subnet
-		 * (this blocks link-local and multicast addresses as well)
-		 */
+		/* don't relay: just accept packets for local host/subnet */
+		/* (this blocks link-local and multicast addresses as well) */
 		maskip(op->dst, localmask, a);
 		if (!equivip6(a, localnet)) {
 			syslog(0, "6in4", "ingress filtered %I -> %I",
@@ -360,10 +300,7 @@ tunnel2ip(int in, int out)
 		}
 
 		/* pass V6 packet to the interface */
-		if (write(out, op, n) != n) {
-			syslog(0, "6in4", "error writing to packet interface (%r), giving up");
-			break;
-		}
+		write(out, op, n);
 	}
 }
 

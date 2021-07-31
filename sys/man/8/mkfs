@@ -187,5 +187,4 @@ disk/mkext -u -d /n/newfs < arch
 .SH "SEE ALSO"
 .IR prep (8),
 .IR kfscmd (8),
-.IR sd (3),
-.IR tar (1)
+.IR sd (3)
