@@ -5,8 +5,7 @@ diff \- differential file comparator
 .B diff
 [
 .B -abcefmnrw
-] 
-.I file1 ... file2
+] file1 ... file2
 .SH DESCRIPTION
 .I Diff
 tells what lines must be changed in two files to bring them

@@ -8,8 +8,6 @@
 #include "usbaudio.h"
 #include "usbaudioctl.h"
 
-int attachok;
-
 #define STACKSIZE 16*1024
 
 enum
@@ -156,7 +154,7 @@ post(char *name, char *envname, int srvfd)
 	int fd;
 	char buf[32];
 
-	fd = create(name, OWRITE, attachok?0666:0600);
+	fd = create(name, OWRITE, 0600);
 	if(fd < 0)
 		return;
 	sprint(buf, "%d",srvfd);
@@ -273,7 +271,7 @@ rattach(Fid *f)
 	f->flags |= Busy;
 	f->dir = &dirs[Qdir];
 	rhdr.qid = f->dir->qid;
-	if(attachok == 0 && strcmp(thdr.uname, user) != 0)
+	if(strcmp(thdr.uname, user) != 0)
 		return Eperm;
 	return 0;
 }
@@ -388,8 +386,9 @@ ropen(Fid *f)
 
 	if(f->dir == &dirs[Qaudio] || f->dir == &dirs[Qaudioin])
 		return Eperm;
-	if(thdr.mode != OREAD && (f->dir->mode & 0x2) == 0)
-		return Eperm;
+	if(thdr.mode != OREAD)
+		if((f->dir->mode & 0x2) == 0)
+			return Eperm;
 	qlock(f);
 	if(f->dir == &dirs[Qaudioctl] && f->fiddata == nil)
 		f->fiddata = allocaudioctldata();
