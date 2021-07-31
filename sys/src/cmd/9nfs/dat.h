@@ -89,15 +89,12 @@ struct Reject
 
 struct Rpccall
 {
-	/* corresponds to Udphdr */
 	uchar	prefix0[12];
-	ulong	host;		/* ipv4 subset: prefixed to RPC message */
+	ulong	host;		/* prefixed to RPC message */
 	uchar	prefix1[12];
-	ulong	lhost;		/* ipv4 subset: prefixed to RPC message */
-	/* ignore ifcaddr */
+	ulong	lhost;		/* prefixed to RPC message */
 	ulong	port;		/* prefixed to RPC message */
 	ulong	lport;		/* prefixed to RPC message */
-
 	ulong	xid;		/* transaction id */
 	ulong	mtype;		/* CALL or REPLY */
 	union{
