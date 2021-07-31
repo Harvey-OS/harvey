@@ -71,8 +71,7 @@ flash2gen(Chan *c, ulong p, Dir *dp)
 		return 1;
 	case Qctl:
 		snprint(up->genbuf, sizeof(up->genbuf), "%sctl", fp->name);
-		/* no harm in letting everybody read the ctl files */
-		devdir(c, q, up->genbuf, 0, eve, 0664, dp);
+		devdir(c, q, up->genbuf, 0, eve, 0660, dp);
 		return 1;
 	default:
 		return -1;
