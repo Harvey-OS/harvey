@@ -47,10 +47,9 @@ dnnotify(DNSmsg *reqp, DNSmsg *repp, Request *)
 static void
 ding(void*, char *msg)
 {
-	if(strstr(msg, "alarm") != nil) {
-		stats.alarms++;
+	if(strstr(msg, "alarm") != nil)
 		noted(NCONT);		/* resume with system call error */
-	} else
+	else
 		noted(NDFLT);		/* die */
 }
 
@@ -137,6 +136,10 @@ void
 notifyproc(void)
 {
 	Request req;
+//	static int already;
+
+//	if(already)
+//		return;
 
 	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
 	case -1:

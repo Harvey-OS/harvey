@@ -1453,7 +1453,6 @@ slave(Request *req)
 		 * stacks, thus giving us two copies of `req', one in each
 		 * process.
 		 */
-		alarm(0);
 		longjmp(req->mret, 1);
 	}
 }

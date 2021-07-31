@@ -170,7 +170,6 @@ main(int argc, char *argv[])
 
 	if(testing)
 		mainmem->flags |= POOL_NOREUSE | POOL_ANTAGONISM;
-	mainmem->flags |= POOL_ANTAGONISM;
 	rfork(RFREND|RFNOTEG);
 
 	cfg.inside = (*mntpt == '\0' || strcmp(mntpt, "/net") == 0);
@@ -265,7 +264,7 @@ mountinit(char *service, char *mntpt)
 	switch(rfork(RFFDG|RFPROC|RFNAMEG)){
 	case 0:			/* child: hang around and (re)start main proc */
 		close(p[1]);
-		procsetname("%s restarter", mntpt);
+		procsetname("restarter");
 		break;
 	case -1:
 		abort(); /* "fork failed\n" */;
@@ -413,20 +412,17 @@ io(void)
 	 */
 	if(setjmp(req.mret))
 		putactivity(0);
-//	procsetname("9p server");
+	procsetname("9p server");
 	req.isslave = 0;
 	stop = 0;
 	while(!stop){
-		procsetname("served %d 9p; %d alarms; %d rpcs read",
-			stats.qrecvd9p, stats.alarms, stats.qrecvd9prpc);
 		n = read9pmsg(mfd[0], mdata, sizeof mdata);
 		if(n<=0){
 			dnslog("error reading 9P from %s: %r", mntpt);
 			sleep(2000);		/* don't thrash */
-			return;
+			exits(0);
 		}
 
-		stats.qrecvd9prpc++;
 		job = newjob();
 		if(convM2S(mdata, n, &job->request) != n){
 			freejob(job);
@@ -639,7 +635,7 @@ rread(Job *job, Mfile *mf)
 	ulong cnt;
 	vlong off;
 	char *err;
-	uchar buf[IOHDRSZ+Maxfdata];
+	uchar buf[Maxfdata];
 	Dir dir;
 
 	n = 0;
@@ -651,7 +647,6 @@ rread(Job *job, Mfile *mf)
 	if(mf->qid.type & QTDIR){
 		clock = time(nil);
 		if(off == 0){
-			memset(&dir, 0, sizeof dir);
 			dir.name = "dns";
 			dir.qid.type = QTFILE;
 			dir.qid.vers = vers;
@@ -712,7 +707,6 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	/*
 	 *  special commands
 	 */
-	dnslog("rwrite got: %s", job->request.data);
 	if(strcmp(job->request.data, "debug")==0){
 		debug ^= 1;
 		goto send;
@@ -864,7 +858,6 @@ rstat(Job *job, Mfile *mf)
 	Dir dir;
 	uchar buf[IOHDRSZ+Maxfdata];
 
-	memset(&dir, 0, sizeof dir);
 	if(mf->qid.type & QTDIR){
 		dir.name = ".";
 		dir.mode = DMDIR|0555;

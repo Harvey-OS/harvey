@@ -150,7 +150,7 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 			rrfreelist(rrremneg(&rp));
 		}
 		if(drp != nil)
-			rrfreelist(drp);
+			rrfreelist(drp);	/* was rrfree */
 		procsetname(procname);
 		free(procname);
 		return rp;
@@ -545,7 +545,6 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 		dnslog("mkreq: bogus type %d", type);
 	len = convDNS2M(&m, &buf[Udphdrsize], Maxudp);
 	rrfree(m.qd);
-	memset(&m, 0, sizeof m);		/* cause trouble */
 	return len;
 }
 
@@ -647,12 +646,8 @@ readreply(Query *qp, int medium, ushort req, uchar *ibuf, DNSmsg *mp,
 	uchar *reply;
 	uchar srcip[IPaddrlen];
 	RR *rp;
-	static int first = 1;
 
-	if (first) {
-		first = 0;
-		notify(ding);
-	}
+	notify(ding);
 
 	queryck(qp);
 	rv = 0;
@@ -1309,7 +1304,6 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns)
 				break;		/* timed out on this dest */
 			} else {
 				/* whoops, it was truncated! ask again via tcp */
-				freeanswers(&m);
 				rv = tcpquery(qp, &m, depth, ibuf, obuf, len,
 					waitsecs, inns, req);  /* answer in m */
 				if (rv < 0) {
