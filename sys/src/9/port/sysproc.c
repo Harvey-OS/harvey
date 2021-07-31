@@ -16,9 +16,6 @@ extern void checkpages(void);
 long
 sysr1(ulong*)
 {
-	extern int chandebug;
-	
-	chandebug = !chandebug;
 	checkpages();
 	return 0;
 }
