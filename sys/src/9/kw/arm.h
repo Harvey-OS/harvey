@@ -21,8 +21,6 @@
 /*
  * Coprocessors
  */
-#define CpFP		10			/* float FP, VFP cfg. */
-#define CpDFP		11			/* double FP */
 #define CpSC		15			/* System Control */
 
 /*
@@ -71,10 +69,6 @@
 /*
  * CpCACHE Secondary (CRm) registers and opcode2 fields.
  * In ARM-speak, 'flush' means invalidate and 'clean' means writeback.
- * In arm arch v6, these must be available in user mode:
- *	CpCACHEinvi, CpCACHEwait (prefetch flush)
- *	CpCACHEwb, CpCACHEwait (DSB: data sync barrier)
- *	CpCACHEwb, CpCACHEdmbarr (DMB: data memory barrier)
  */
 #define CpCACHEintr	0			/* interrupt */
 #define CpCACHEinvi	5			/* instruction */
@@ -88,7 +82,6 @@
 #define CpCACHEsi	2			/* set/index */
 #define CpCACHEtest	3			/* test loop */
 #define CpCACHEwait	4			/* wait */
-#define CpCACHEdmbarr	5			/* wb: data memory barrier */
 
 /*
  * CpTLB Secondary (CRm) registers and opcode2 fields.
