@@ -1,6 +1,6 @@
 .TH ISALPHARUNE 2
 .SH NAME
-isalpharune, isbaserune, islowerrune, isspacerune, istitlerune, isupperrune, isdigitrune, tobaserune, tolowerrune, totitlerune, toupperrune \- Unicode character classes and cases
+isalpharune, islowerrune, isspacerune, istitlerune, isupperrune, isdigitrune, tolowerrune, totitlerune, toupperrune \- Unicode character classes and cases
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -8,9 +8,6 @@ isalpharune, isbaserune, islowerrune, isspacerune, istitlerune, isupperrune, isd
 .PP
 .B
 int isalpharune(Rune c)
-.PP
-.B
-int isbaserune(Rune c)
 .PP
 .B
 int islowerrune(Rune c)
@@ -26,9 +23,6 @@ int isupperrune(Rune c)
 .PP
 .B
 int isdigitrune(Rune c)
-.PP
-.B
-Rune tobaserune(Rune c)
 .PP
 .B
 Rune tolowerrune(Rune c)

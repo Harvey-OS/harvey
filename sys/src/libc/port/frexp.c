@@ -9,24 +9,18 @@
 #define	MASK	0x7ffL
 #define	SHIFT	20
 #define	BIAS	1022L
-#define	SIG	52
 
 double
 frexp(double d, int *ep)
 {
-	FPdbleword x, a;
+	FPdbleword x;
 
-	*ep = 0;
-	/* order matters: only isNaN can operate on NaN */
-	if(isNaN(d) || isInf(d, 0) || d == 0)
-		return d;
-	x.x = d;
-	a.x = fabs(d);
-	if((a.hi >> SHIFT) == 0){	/* normalize subnormal numbers */
-		x.x = (double)(1ULL<<SIG) * d;
-		*ep = -SIG;
+	if(d == 0) {
+		*ep = 0;
+		return 0;
 	}
-	*ep += ((x.hi >> SHIFT) & MASK) - BIAS;
+	x.x = d;
+	*ep = ((x.hi >> SHIFT) & MASK) - BIAS;
 	x.hi &= ~(MASK << SHIFT);
 	x.hi |= BIAS << SHIFT;
 	return x.x;

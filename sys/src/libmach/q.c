@@ -3,7 +3,6 @@
  *	forsyth@terzarima.net
  */
 #include <u.h>
-#include <libc.h>
 #include <bio.h>
 #include "/power/include/ureg.h"
 #include <mach.h>

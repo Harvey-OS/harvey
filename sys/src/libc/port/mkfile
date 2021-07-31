@@ -60,8 +60,6 @@ CFILES=\
 	rand.c\
 	readn.c\
 	rune.c\
-	runebase.c\
-	runebsearch.c\
 	runestrcat.c\
 	runestrchr.c\
 	runestrcmp.c\

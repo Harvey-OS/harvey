@@ -6,7 +6,7 @@ int
 Bputrune(Biobufhdr *bp, long c)
 {
 	Rune rune;
-	char str[UTFmax];
+	char str[4];
 	int n;
 
 	rune = c;

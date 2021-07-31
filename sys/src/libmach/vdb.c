@@ -415,9 +415,7 @@ static void
 sll(Opcode *o, Instr *i)
 {
 	if (i->w0 == 0)
-		bprint(i, "NOOP");		/* unofficial nop */
-	else if (i->w0 == 0xc0)			/* 0xc0: SLL $3,R0 */
-		bprint(i, "EHB");
+		bprint(i, "NOOP");
 	else if (i->rd == i->rt)
 		format(o->mnemonic, i, "$%a,R%d");
 	else
@@ -964,12 +962,8 @@ cop0(Instr *i)
 			m = "RFE";
 			break;
 	
-		case 24:
-			m = "ERET";
-			break;
-
 		case 32:
-			m = "WAIT";
+			m = "ERET";
 			break;
 		}
 		if (m) {

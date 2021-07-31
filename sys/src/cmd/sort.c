@@ -71,7 +71,7 @@ struct	Field
 	int	end2;
 
 	long	flags;
-	uchar	mapto[1+0xffff];	/* this is not Runemax to keep this table small */
+	uchar	mapto[256];
 
 	void	(*dokey)(Key*, uchar*, uchar*, Field*);
 };
@@ -95,6 +95,7 @@ struct args
 	long	mline;			/* max lines per file */
 } args;
 
+extern	int	latinmap[];
 extern	Rune*	month[12];
 
 void	buildkey(Line*);
@@ -1292,26 +1293,15 @@ dokey_dfi(Key *k, uchar *lp, uchar *lpe, Field *f)
 		/*
 		 * for characters out of range,
 		 * the table does not do Rflag.
-		 * ignore is based on mapto[nelem(f->mapto)]
+		 * ignore is based on mapto[255]
 		 */
 		if(c != 0 && c < nelem(f->mapto)) {
 			c = f->mapto[c];
 			if(c == 0)
 				continue;
-		} else {
+		} else
 			if(f->mapto[nelem(f->mapto)-1] == 0)
 				continue;
-			/*
-			 * consider building maps as necessary
-			 */
-			if(f->flags & Fflag)
-				c = tolowerrune(tobaserune(c));
-			if(f->flags & Dflag && !isalpharune(c) &&
-			    !isdigitrune(c) && !isspacerune(c))
-				continue;
-			if((f->flags & Wflag) && isspacerune(c))
-				continue;
-		}
 
 		/*
 		 * put it in the key
@@ -1440,8 +1430,7 @@ buildkey(Line *l)
 	k->klen = cl;
 
 	if(args.vflag) {
-		if(write(2, l->line, l->llen) != l->llen)
-			exits("write");
+		write(2, l->line, l->llen);
 		for(i=0; i<k->klen; i++) {
 			fprint(2, " %.2x", k->key[i]);
 			if(k->key[i] == 0x00 || k->key[i] == 0xff)
@@ -1477,7 +1466,7 @@ makemapm(Field *f)
 void
 makemapd(Field *f)
 {
-	int i, c;
+	int i, j, c;
 
 	for(i=0; i<nelem(f->mapto); i++) {
 		c = i;
@@ -1491,12 +1480,24 @@ makemapd(Field *f)
 			if(!(c == ' ' || c == '\t' ||
 			    (c >= 'a' && c <= 'z') ||
 			    (c >= 'A' && c <= 'Z') ||
-			    (c >= '0' && c <= '9'))){
-				if(!isupperrune(c = toupperrune(c)))
+			    (c >= '0' && c <= '9'))) {
+				for(j=0; latinmap[j]; j+=3)
+					if(c == latinmap[j+0] ||
+					   c == latinmap[j+1])
+						break;
+				if(latinmap[j] == 0)
 					c = -1;
 			}
-		if((f->flags & Fflag) && c >= 0)
-			c = toupperrune(tobaserune(c));
+		if((f->flags & Fflag) && c >= 0) {
+			if(c >= 'a' && c <= 'z')
+				c += 'A' - 'a';
+			for(j=0; latinmap[j]; j+=3)
+				if(c == latinmap[j+0] ||
+				   c == latinmap[j+1]) {
+					c = latinmap[j+2];
+					break;
+				}
+		}
 		if((f->flags & Rflag) && c >= 0 && i > 0 && i < Runeself)
 			c = ~c & 0xff;
 		if(c < 0)
@@ -1511,6 +1512,41 @@ makemapd(Field *f)
 		}
 	}
 }
+
+int	latinmap[] =
+{
+/*	lcase	ucase	fold	*/
+	L'à',	L'À',	L'A',	
+	L'á',	L'Á',	L'A',	
+	L'â',	L'Â',	L'A',	
+	L'ä',	L'Ä',	L'A',	
+	L'ã',	L'Ã',	L'A',	
+	L'å',	L'Å',	L'A',	
+	L'è',	L'È',	L'E',	
+	L'é',	L'É',	L'E',	
+	L'ê',	L'Ê',	L'E',	
+	L'ë',	L'Ë',	L'E',	
+	L'ì',	L'Ì',	L'I',	
+	L'í',	L'Í',	L'I',	
+	L'î',	L'Î',	L'I',	
+	L'ï',	L'Ï',	L'I',	
+	L'ò',	L'Ò',	L'O',	
+	L'ó',	L'Ó',	L'O',	
+	L'ô',	L'Ô',	L'O',	
+	L'ö',	L'Ö',	L'O',	
+	L'õ',	L'Õ',	L'O',	
+	L'ø',	L'Ø',	L'O',	
+	L'ù',	L'Ù',	L'U',	
+	L'ú',	L'Ú',	L'U',	
+	L'û',	L'Û',	L'U',	
+	L'ü',	L'Ü',	L'U',	
+	L'æ',	L'Æ',	L'A',	
+	L'ð',	L'Ð',	L'D',	
+	L'ñ',	L'Ñ',	L'N',	
+	L'ý',	L'Ý',	L'Y',	
+	L'ç',	L'Ç',	L'C',	
+	0,
+};
 
 Rune*	month[12] =
 {

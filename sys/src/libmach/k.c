@@ -2,7 +2,6 @@
  * sparc definition
  */
 #include <u.h>
-#include <libc.h>
 #include <bio.h>
 #include "/sparc/include/ureg.h"
 #include <mach.h>

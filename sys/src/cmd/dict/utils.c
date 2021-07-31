@@ -230,6 +230,34 @@ Rune *multitab[Nmulti] = {
 [MES-MULTI]	L"  ",
 };
 
+#define	risupper(r)	(L'A' <= (r) && (r) <= L'Z')
+#define	rislatin1(r)	(0xC0 <= (r) && (r) <= 0xFF)
+#define	rtolower(r)	((r)-'A'+'a')
+
+static Rune latin_fold_tab[] =
+{
+/*	Table to fold latin 1 characters to ASCII equivalents
+			based at Rune value 0xc0
+
+	 À    Á    Â    Ã    Ä    Å    Æ    Ç
+	 È    É    Ê    Ë    Ì    Í    Î    Ï
+	 Ð    Ñ    Ò    Ó    Ô    Õ    Ö    ×
+	 Ø    Ù    Ú    Û    Ü    Ý    Þ    ß
+	 à    á    â    ã    ä    å    æ    ç
+	 è    é    ê    ë    ì    í    î    ï
+	 ð    ñ    ò    ó    ô    õ    ö    ÷
+	 ø    ù    ú    û    ü    ý    þ    ÿ
+*/
+	'a', 'a', 'a', 'a', 'a', 'a', 'a', 'c',
+	'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i',
+	'd', 'n', 'o', 'o', 'o', 'o', 'o',  0 ,
+	'o', 'u', 'u', 'u', 'u', 'y',  0 ,  0 ,
+	'a', 'a', 'a', 'a', 'a', 'a', 'a', 'c',
+	'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i',
+	'd', 'n', 'o', 'o', 'o', 'o', 'o',  0 ,
+	'o', 'u', 'u', 'u', 'u', 'y',  0 , 'y',
+};
+
 static Rune 	*ttabstack[20];
 static int	ntt;
 
@@ -398,7 +426,7 @@ outnl(int ind)
 /*
  * Fold the runes in null-terminated rp.
  * Use the sort(1) definition of folding (uppercase to lowercase,
- * accented characters to corresponding unaccented chars)
+ * latin1-accented characters to corresponding unaccented chars)
  */
 void
 fold(Rune *rp)
@@ -406,9 +434,10 @@ fold(Rune *rp)
 	Rune r;
 
 	while((r = *rp) != 0) {
-		r = tobaserune(r);
-		if(isupperrune(r))
-			r = tolowerrune(r);
+		if (rislatin1(r) && latin_fold_tab[r-0xc0])
+				r = latin_fold_tab[r-0xc0];
+		if(risupper(r))
+			r = rtolower(r);
 		*rp++ = r;
 	}
 }
@@ -426,9 +455,10 @@ foldre(char *new, char *old)
 
 	while(*old) {
 		old += chartorune(&r, old);
-		r = tobaserune(r);
-		if(isupperrune(r))
-			r = tolowerrune(r);
+		if (rislatin1(r) && latin_fold_tab[r-0xc0])
+				r = latin_fold_tab[r-0xc0];
+		if(risupper(r))
+			r = rtolower(r);
 		new += runetochar(new, &r);
 	}
 	*new = 0;
