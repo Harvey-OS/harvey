@@ -1,3 +1,4 @@
+
 enum {
 	master_chan		= 0x00,
 	Speed_control		= 0x00,
@@ -55,7 +56,6 @@ enum {
 	maxpkt_only = 0x80,	/* packets must be padded to max size */
 };
 
-extern int setrec;
 extern int defaultspeed[2];
 extern Device *ad;
 extern Channel *controlchan;

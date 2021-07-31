@@ -18,7 +18,6 @@ Channel *controlchan;
 
 char audstr[]		= "Enabled 0x000101";	/* audio.control.0 */
 
-int setrec = 0;
 int defaultspeed[2] = {44100, 44100};
 
 static void
@@ -160,8 +159,7 @@ controlproc(void *)
 }
 
 void
-buttonproc(void *)
-{
+buttonproc(void *) {
 	int	i, fd, b;
 	char fname[64], err[32];
 	byte buf[1];
@@ -242,8 +240,7 @@ findendpoints(void)
 void
 usage(void)
 {
-	fprint(2, "usage: usbaudio [-pV] [-m mountpoint] [-s srvname] "
-		"[-v volume] [ctrlno n]\n");
+	fprint(2, "usage: usbaudio [-V] [-v volume] [-m mountpoint] [-s srvname] [ctrlno n]\n");
 	threadexitsall("usage");
 }
 
@@ -251,12 +248,14 @@ void
 threadmain(int argc, char **argv)
 {
 	int ctlrno, id, i, sfd;
-	long value[8], volume[8];
+	long value[8];
+	long volume[8];
 	Audiocontrol *c;
 	char buf[32], *p, line[256];
 	extern int attachok;
 
-	ctlrno = id = -1;
+	ctlrno = -1;
+	id = -1;
 	volume[0] = Undef;
 	for (i = 0; i<8; i++)
 		value[i] = 0;
@@ -264,28 +263,27 @@ threadmain(int argc, char **argv)
 	quotefmtinstall();
 
 	ARGBEGIN{
-	case 'd':
-		debug = strtol(EARGF(usage()), nil, 0);
-		if (debug == -1)
-			debugdebug++;
+	case 'V':
 		verbose++;
 		break;
-	case 'm':
-		mntpt = EARGF(usage());
-		break;
-	case 'p':
-		attachok++;
-		break;
-	case 's':
-		srvpost = EARGF(usage());
+	case 'd':
+		debug = strtol(EARGF(usage()), nil, 0);
+		if (debug == -1) debugdebug++;
+		verbose++;
 		break;
 	case 'v':
 		volume[0] = strtol(EARGF(usage()), &p, 0);
 		for(i = 1; i < 8; i++)
 			volume[i] = volume[0];
 		break;
-	case 'V':
-		verbose++;
+	case 'm':
+		mntpt = EARGF(usage());
+		break;
+	case 's':
+		srvpost = EARGF(usage());
+		break;
+	case 'p':
+		attachok++;
 		break;
 	default:
 		usage();
@@ -320,6 +318,7 @@ threadmain(int argc, char **argv)
 	}
 
 	ad = opendev(ctlrno, id);
+
 	if (describedevice(ad) < 0)
 		sysfatal("describedevice");
 
@@ -346,53 +345,45 @@ threadmain(int argc, char **argv)
 		}
 		value[0] = 2;
 		if (setcontrol(Play, "channels", value) == Undef)
-			sysfatal("Can't set play channels");
+			sysfatal("Can't set play channels\n");
 		value[0] = 16;
 		if (setcontrol(Play, "resolution", value) == Undef)
-			sysfatal("Can't set play resolution");
+			sysfatal("Can't set play resolution\n");
 	}
 
 	if(endpt[Record] >= 0){
-		setrec = 1;
 		if(verbose)
-			fprint(2, "Setting default record parameters: "
-				"%d Hz, %d channels at %d bits\n",
+			fprint(2, "Setting default record parameters: %d Hz, %d channels at %d bits\n",
 				defaultspeed[Record], 2, 16);
 		i = 2;
-		while(findalt(Record, i, 16, defaultspeed[Record]) < 0)
+		while(findalt(Record, i, 16, defaultspeed[Record]) < 0){
 			if(i == 2 && controls[Record][Channel_control].max == 1){
-				fprint(2, "Warning, can't configure stereo "
-					"recording, configuring mono instead\n");
+				fprint(2, "Warning, can't configure stereo recording, configuring mono instead\n");
 				i = 1;
-			} else
-				break;
-		if(findalt(Record, i, 16, 48000) < 0) {
-			endpt[Record] = -1;	/* disable recording */
-			setrec = 0;
-			fprint(2, "Warning, can't configure record for %d Hz or %d Hz\n",
+				continue;
+			}
+			if(findalt(Record, i, 16, 48000) < 0)
+				sysfatal("Can't configure record for %d or %d Hz", defaultspeed[Record], 48000);
+			fprint(2, "Warning, can't configure record for %d Hz, configuring for %d Hz instead\n",
 				defaultspeed[Record], 48000);
-		} else
-			fprint(2, "Warning, can't configure record for %d Hz, "
-				"configuring for %d Hz instead\n",
-				defaultspeed[Record], 48000);
-		defaultspeed[Record] = 48000;
-		if (setrec) {
-			value[0] = i;
-			if (setcontrol(Record, "channels", value) == Undef)
-				sysfatal("Can't set record channels");
-			value[0] = 16;
-			if (setcontrol(Record, "resolution", value) == Undef)
-				sysfatal("Can't set record resolution");
+			defaultspeed[Record] = 48000;
+			break;
 		}
+		value[0] = i;
+		if (setcontrol(Record, "channels", value) == Undef)
+			sysfatal("Can't set record channels\n");
+		value[0] = 16;
+		if (setcontrol(Record, "resolution", value) == Undef)
+			sysfatal("Can't set record resolution\n");
 	}
 
 	getcontrols();	/* Get the initial value of all controls */
 	value[0] = defaultspeed[Play];
 	if (endpt[Play] >= 0 && setcontrol(Play, "speed", value) < 0)
-		sysfatal("can't set play speed");
+		sysfatal("Can't set play speed\n");
 	value[0] = defaultspeed[Record];
 	if (endpt[Record] >= 0 && setcontrol(Record, "speed", value) < 0)
-		fprint(2, "%s: can't set record speed\n", argv0);
+		fprint(2, "Can't set record speed\n");
 	value[0] = 0;
 	setcontrol(Play, "mute", value);
 
@@ -404,7 +395,7 @@ threadmain(int argc, char **argv)
 		if (c->settable)
 			setcontrol(Play, "volume", volume);
 		c = &controls[Record][Volume_control];
-		if (c->settable && setrec)
+		if (c->settable)
 			setcontrol(Record, "volume", volume);
 	}
 
