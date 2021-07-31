@@ -1,9 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <ip.h>
-#include <bio.h>
-#include <ndb.h>
 #include "dns.h"
+#include "ip.h"
 
 enum
 {
@@ -286,13 +284,13 @@ static char *hmsg = "headers";
 static char *ohmsg = "oldheaders";
 
 int
-udpport(char *mtpt)
+udpport(void)
 {
 	int fd, ctl;
 	char ds[64], adir[64];
 
 	/* get a udp port */
-	snprint(ds, sizeof ds, "%s/udp!*!0", (mtpt? mtpt: "/net"));
+	snprint(ds, sizeof(ds), "%s/udp!*!0", mntpt);
 	ctl = announce(ds, adir);
 	if(ctl < 0){
 		/* warning("can't get udp port"); */
@@ -308,11 +306,11 @@ udpport(char *mtpt)
 	write(ctl, ohmsg, strlen(ohmsg));
 
 	/* grab the data file */
-	snprint(ds, sizeof ds, "%s/data", adir);
+	snprint(ds, sizeof(ds), "%s/data", adir);
 	fd = open(ds, ORDWR);
 	close(ctl);
 	if(fd < 0)
-		warning("can't open udp port %s: %r", ds);
+		warning("can't open udp port: %r");
 	return fd;
 }
 
@@ -477,88 +475,11 @@ ipisbm(uchar *ip)
 	return 0;
 }
 
-static Ndbtuple *indoms, *innmsrvs, *outnmsrvs;
-static QLock readlock;
-
-/*
- * is this domain (or DOMAIN or Domain or dOMAIN)
- * internal to our organisation (behind our firewall)?
- */
-static int
-insideaddr(char *dom)
-{
-	int domlen, vallen;
-	Ndb *db;
-	Ndbs s;
-	Ndbtuple *t;
-
-	if (0 && indoms == nil) {	/* not ready for prime time */
-		db = ndbopen("/lib/ndb/local");
-		if (db != nil) {
-			qlock(&readlock);
-			if (indoms == nil) {	/* retest under lock */
-				free(ndbgetvalue(db, &s, "sys", "inside-dom",
-					"dom", &indoms));
-				free(ndbgetvalue(db, &s, "sys", "inside-ns",
-					"ip", &innmsrvs));
-				free(ndbgetvalue(db, &s, "sys", "outside-ns",
-					"ip", &outnmsrvs));
-			}
-			qunlock(&readlock);
-			ndbclose(db);	/* destroys *indoms, *innmsrvs? */
-		}
-	}
-	if (indoms == nil)
-		return 1;	/* no "inside" sys, try inside nameservers */
-
-	domlen = strlen(dom);
-	for (t = indoms; t != nil; t = t->entry) {
-		if (strcmp(t->attr, "dom") != 0)
-			continue;
-		vallen = strlen(t->val);
-		if (cistrcmp(dom, t->val) == 0 ||
-		    domlen > vallen &&
-		     cistrcmp(dom + domlen - vallen, t->val) == 0 &&
-		     dom[domlen - vallen - 1] == '.')
-			return 1;
-	}
-	return 0;
-}
-
-static int
-insidens(uchar *ip)
-{
-	uchar ipa[IPaddrlen];
-	Ndbtuple *t;
-
-	for (t = innmsrvs; t != nil; t = t->entry)
-		if (strcmp(t->attr, "ip") == 0) {
-			parseip(ipa, t->val);
-			if (memcmp(ipa, ip, sizeof ipa) == 0)
-				return 1;
-		}
-	return 0;
-}
-
-static uchar *
-outsidens(void)
-{
-	Ndbtuple *t;
-	static uchar ipa[IPaddrlen];
-
-	for (t = outnmsrvs; t != nil; t = t->entry)
-		if (strcmp(t->attr, "ip") == 0) {
-			parseip(ipa, t->val);
-			return ipa;
-		}
-	return nil;
-}
-
 /*
  *  Get next server address
  */
 static int
-serveraddrs(DN *dp, RR *nsrp, Dest *dest, int nd, int depth, Request *reqp)
+serveraddrs(RR *nsrp, Dest *dest, int nd, int depth, Request *reqp)
 {
 	RR *rp, *arp, *trp;
 	Dest *cur;
@@ -618,8 +539,7 @@ serveraddrs(DN *dp, RR *nsrp, Dest *dest, int nd, int depth, Request *reqp)
 			break;
 		cur = &dest[nd];
 		parseip(cur->a, trp->ip->name);
-		if (ipisbm(cur->a) ||
-		    !insideaddr(dp->name) && insidens(cur->a))
+		if(ipisbm(cur->a))
 			continue;
 		cur->nx = 0;
 		cur->s = trp->owner;
@@ -674,7 +594,7 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
  */
 static int
 netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
-	uchar *ibuf, uchar *obuf, int waitsecs, int inns)
+	uchar *ibuf, uchar *obuf)
 {
 	int ndest, j, len, replywaits, rv;
 	ulong endtime;
@@ -707,25 +627,13 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
 
 		/* get a server address if we need one */
 		if(ndest > l - p){
-			j = serveraddrs(dp, nsrp, dest, l - p, depth, reqp);
+			j = serveraddrs(nsrp, dest, l - p, depth, reqp);
 			l = &dest[j];
 		}
 
 		/* no servers, punt */
 		if(l == dest)
-			if (0 && inside) {	/* not ready for prime time */
-				/* HACK: use sys=outside ips */
-				if (0 && outsidens() == nil)
-					sysfatal("no outside-ns in ndb");
-				p = dest;
-				memmove(p->a, outsidens(), sizeof p->a);
-				p->s = dnlookup("outside", Cin, 1);
-				p->nx = p->code = 0;
-				l = p + 1;
-			} else {
-syslog(0, LOG, "netquery1: no servers for %s", dp->name);	// DEBUG
-				break;
-			}
+			break;
 
 		/* send to first 'ndest' destinations */
 		j = 0;
@@ -740,15 +648,13 @@ syslog(0, LOG, "netquery1: no servers for %s", dp->name);	// DEBUG
 			if((1<<p->nx) > ndest)
 				continue;
 
-			memmove(obuf, p->a, sizeof p->a);
-			procsetname("req slave: %sside query to %I/%s %s %s",
-				(inns? "in": "out"), obuf, p->s->name, dp->name,
+			procsetname("req slave: query to %I/%s %s %s",
+				obuf, p->s->name, dp->name,
 				rrname(type, buf, sizeof buf));
+			memmove(obuf, p->a, sizeof p->a);
 			if(debug)
 				logsend(reqp->id, depth, obuf, p->s->name,
 					dp->name, type);
-
-			/* actually send the UDP packet */
 			if(write(fd, obuf, len + OUdphdrsize) < 0)
 				warning("sending udp msg %r");
 			p->nx++;
@@ -756,15 +662,14 @@ syslog(0, LOG, "netquery1: no servers for %s", dp->name);	// DEBUG
 		if(j == 0)
 			break;		/* no destinations left */
 
-		endtime = time(0) + waitsecs;
+		/* wait up to 5 seconds for replies */
+		endtime = time(0) + 5;
 		if(endtime > reqp->aborttime)
 			endtime = reqp->aborttime;
 
 		for(replywaits = 0; replywaits < ndest; replywaits++){
-			procsetname(
-			    "req slave: reading %sside reply from %I for %s %s",
-				(inns? "in": "out"), obuf, dp->name,
-				rrname(type, buf, sizeof buf));
+			procsetname("req slave: reading reply from %I for %s %s",
+				obuf, dp->name, rrname(type, buf, sizeof buf));
 			memset(&m, 0, sizeof m);
 			if(readreply(fd, dp, type, req, ibuf, &m, endtime, reqp) < 0)
 				break;		/* timed out */
@@ -816,7 +721,7 @@ syslog(0, LOG, "netquery1: no servers for %s", dp->name);	// DEBUG
 				ndp = m.ns->owner;
 				rrattach(m.ns, 0);
 			} else
-				ndp = nil;
+				ndp = 0;
 
 			/* free the question */
 			if(m.qd)
@@ -845,10 +750,8 @@ syslog(0, LOG, "netquery1: no servers for %s", dp->name);	// DEBUG
 			rrfreelist(soarr);
 
 			/*
-			 *  if we've been given better name servers,
-			 *  recurse.  we're called from udpquery, called from
-			 *  netquery, which current holds dp->querylck,
-			 *  so release it now and acquire it upon return.
+			 *  if we've been given better name servers
+			 *  recurse
 			 */
 			if(m.ns){
 				tp = rrlookup(ndp, Tns, NOneg);
@@ -857,10 +760,8 @@ syslog(0, LOG, "netquery1: no servers for %s", dp->name);	// DEBUG
 					 "req slave: recursive query for %s %s",
 						dp->name,
 						rrname(type, buf, sizeof buf));
-					qunlock(&dp->querylck);
 					rv = netquery(dp, type, tp, reqp,
 						depth + 1);
-					qlock(&dp->querylck);
 					rrfreelist(tp);
 					return rv;
 				} else
@@ -878,98 +779,40 @@ syslog(0, LOG, "netquery1: no servers for %s", dp->name);	// DEBUG
 	return 0;
 }
 
-enum { Hurry, Patient, };
-enum { Outns, Inns, };
-
-static int
-udpquery(char *mntpt, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
-	int patient, int inns)
-{
-	int fd, rv = 0;
-	uchar *obuf, *ibuf;
-
-	/* use alloced buffers rather than ones from the stack */
-	ibuf = emalloc(Maxudpin+OUdphdrsize);
-	obuf = emalloc(Maxudp+OUdphdrsize);
-
-	fd = udpport(mntpt);
-	if(fd >= 0) {
-		reqp->aborttime = time(0) + (patient? Maxreqtm: Maxreqtm/2);
-		rv = netquery1(fd, dp, type, nsrp, reqp, depth,
-			ibuf, obuf, (patient? 15: 10), inns);
-		close(fd);
-	}
-
-	free(obuf);
-	free(ibuf);
-	return rv;
-}
-
-/* look up (dp->name,type) via *nsrp with results in *reqp */
 static int
 netquery(DN *dp, int type, RR *nsrp, Request *reqp, int depth)
 {
-	int lock, rv, triedin;
+	int fd, rv;
+//	int pid;
+	uchar *obuf, *ibuf;
 	RR *rp;
 
 	if(depth > 12)			/* in a recursive loop? */
 		return 0;
 
-	slave(reqp);			/* might fork */
-	/* if so, parent process longjmped to req->mret; we're child slave */
-	if (!reqp->isslave)
-		syslog(0, LOG,
-			"[%d] netquery: slave returned with reqp->isslave==0",
-			getpid());
+	/* use alloced buffers rather than ones from the stack */
+	ibuf = emalloc(Maxudpin+OUdphdrsize);
+	obuf = emalloc(Maxudp+OUdphdrsize);
 
-	/* don't lock before call to slave so only children can block */
-	lock = reqp->isslave != 0;
-	if(lock) {
-		procsetname("waiting for query lock on %s", dp->name);
-		/* don't make concurrent queries for this name */
-		qlock(&dp->querylck);
-		procsetname("netquery: %s", dp->name);
-	}
+//	pid = getpid();
+	slave(reqp);
+	/* parent process longjmped to req->mret; we're the child slave */
 
 	/* prepare server RR's for incremental lookup */
 	for(rp = nsrp; rp; rp = rp->next)
 		rp->marker = 0;
 
-	rv = 0;				/* pessimism */
-	triedin = 0;
-	/*
-	 * don't bother to query the broken inside nameservers for outside
-	 * addresses.
-	 */
-	if (!inside || insideaddr(dp->name)) {
-		rv = udpquery(mntpt, dp, type, nsrp, reqp, depth, Hurry,
-			(inside? Inns: Outns));
-		triedin = 1;
-	}
-
-	/*
-	 * if we're still looking and have an outside address,
-	 * try it on our outside interface, if any.
-	 */
-	if (rv == 0 && inside && !insideaddr(dp->name)) {
-		if (triedin)
-			syslog(0, LOG,
-	   "[%d] netquery: internal nameservers failed for %s; trying external",
-				getpid(), dp->name);
-
-		/* prepare server RR's for incremental lookup */
-		for(rp = nsrp; rp; rp = rp->next)
-			rp->marker = 0;
-
-		rv = udpquery("/net.alt", dp, type, nsrp, reqp, depth, Patient,
-			Outns);
-		if (rv == 0)
-			syslog(0, LOG, "[%d] netquery: no luck for %s",
-				getpid(), dp->name);
-	}
-
-	if(lock)
-		qunlock(&dp->querylck);
+//	if (pid != getpid())
+//		syslog(0, LOG, "[%d] netquery: forked child for %s",
+//			getpid(), dp->name);
+	fd = udpport();
+	if(fd < 0)
+		rv = 0;
+	else
+		rv = netquery1(fd, dp, type, nsrp, reqp, depth, ibuf, obuf);
+	close(fd);
+	free(ibuf);
+	free(obuf);
 
 	return rv;
 }

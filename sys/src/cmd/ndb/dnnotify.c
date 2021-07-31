@@ -78,7 +78,7 @@ send_notify(char *slave, RR *soa, Request *req)
 		rrfree(rp);
 	}
 
-	fd = udpport(nil);
+	fd = udpport();
 	if(fd < 0)
 		return;
 

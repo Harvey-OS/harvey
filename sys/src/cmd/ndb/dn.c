@@ -387,19 +387,12 @@ dnageall(int doit)
 			if(dp->rr == 0 && dp->refs == 0){
 				assert(dp->magic == DNmagic);
 				*l = dp->next;
-
 				if(dp->name)
 					free(dp->name);
 				dp->magic = ~dp->magic;
 				dnvars.names--;
-				if (canqlock(&dp->querylck))
-					qunlock(&dp->querylck);
-				else
-					syslog(0, "dns",
-				    "dnageall: freeing DN with querylck held");
 				memset(dp, 0, sizeof *dp); /* cause trouble */
 				free(dp);
-
 				continue;
 			}
 			l = &dp->next;
@@ -1357,6 +1350,7 @@ void
 slave(Request *req)
 {
 	int ppid;
+	static int slaveid;
 
 	if(req->isslave)
 		return;		/* we're already a slave process */
@@ -1377,7 +1371,6 @@ slave(Request *req)
 		return;
 	}
 
-	/* parent returns to main loop, child does the work */
 	ppid = getpid();
 	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
 	case -1:
@@ -1391,11 +1384,6 @@ slave(Request *req)
 		req->isslave = 1;	/* why not `= getpid()'? */
 		break;
 	default:
-		/*
-		 * this relies on rfork producing separate, initially-identical
-		 * stacks, thus giving us two copies of `req', one in each
-		 * process.
-		 */
 		longjmp(req->mret, 1);
 	}
 }

@@ -97,14 +97,11 @@ restart:
 		close(fd);
 	while((fd = udpannounce(mntpt)) < 0)
 		sleep(5000);
-
-	procsetname("udp server loop");
 	memset(&req, 0, sizeof req);
 	if(setjmp(req.mret))
 		putactivity(0);
 	req.isslave = 0;
-	req.id = 0;
-	req.aborttime = 0;
+	procsetname("udp server loop");
 
 	/* loop on requests */
 	for(;; putactivity(0)){

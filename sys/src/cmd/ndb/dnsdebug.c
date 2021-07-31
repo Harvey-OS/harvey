@@ -8,6 +8,7 @@
 
 enum {
 	Maxrequest=		128,
+	Maxpath=		128,
 };
 
 static char *servername;
@@ -18,7 +19,6 @@ int	cachedb;
 char	*dbfile;
 int	debug;
 uchar	ipaddr[IPaddrlen];	/* my ip address */
-int	inside;
 char	*logfile = "dns";
 int	maxage  = 60;
 char	mntpt[Maxpath];

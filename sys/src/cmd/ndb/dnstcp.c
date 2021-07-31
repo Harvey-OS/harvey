@@ -1,26 +1,27 @@
-/*
- * dnstcp - serve dns via tcp
- */
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
 #include "dns.h"
 
-char	*LOG;
-int	cachedb = 1;
-char	*caller = "";
+enum
+{
+	Maxpath=		128,
+};
+
+char	*logfile = "dns";
 char	*dbfile;
 int	debug;
-uchar	ipaddr[IPaddrlen];	/* my ip address */
-int	inside;
-char	*logfile = "dns";
-int	maxage = 60;
-char	mntpt[Maxpath];
-int	needrefresh;
-ulong	now;
-int 	resolver;
+int	cachedb = 1;
 int	testing;
-int	traceactivity;
+int traceactivity;
+int	needrefresh;
+int 	resolver;
+char	mntpt[Maxpath];
+char	*caller = "";
+ulong	now;
+int	maxage = 60;
+uchar	ipaddr[IPaddrlen];	/* my ip address */
+char	*LOG;
 char	*zonerefreshprogram;
 
 static int	readmsg(int, uchar*, int);
@@ -40,11 +41,11 @@ void
 main(int argc, char *argv[])
 {
 	int len, errflags;
+	Request req;
+	DNSmsg reqmsg, repmsg;
 	uchar buf[512];
 	char tname[32];
 	char *err, *ext = "";
-	Request req;
-	DNSmsg reqmsg, repmsg;
 
 	ARGBEGIN{
 	case 'd':
@@ -75,7 +76,7 @@ main(int argc, char *argv[])
 
 	dninit();
 
-	snprint(mntpt, sizeof mntpt, "/net%s", ext);
+	snprint(mntpt, sizeof(mntpt), "/net%s", ext);
 	if(myipaddr(ipaddr, mntpt) < 0)
 		sysfatal("can't read my ip address");
 	syslog(0, logfile, "dnstcp call from %s to %I", caller, ipaddr);
