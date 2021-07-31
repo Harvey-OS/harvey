@@ -13,7 +13,6 @@ PROTO=\
 	pass.$O\
 	rsa.$O\
 	wep.$O\
-	wpapsk.$O\
 
 FOFILES=\
 	$PROTO\
