@@ -166,6 +166,7 @@ void	release(Blk *p);
 Blk*	dcgetwd(Blk *p);
 void	putwd(Blk *p, Blk *c);
 Blk*	lookwd(Blk *p);
+char*	nalloc(char *p, unsigned nbytes);
 int	getstk(void);
 
 /********debug only**/
@@ -1222,7 +1223,7 @@ init(int argc, char *argv[])
 	readptr = &readstk[0];
 	k=0;
 	sp = sptr = &symlst[0];
-	while(sptr < &symlst[TBLSZ-1]) {
+	while(sptr < &symlst[TBLSZ]) {
 		sptr->next = ++sp;
 		sptr++;
 	}
@@ -2103,14 +2104,14 @@ copy(Blk *hptr, int size)
 	if(size > maxsize)
 		maxsize = size;
 	sz = length(hptr);
-	ptr = malloc(size);
+	ptr = nalloc(hptr->beg, size);
 	if(ptr == 0) {
-		Bprint(&bout,"copy size %d\n",size);
-		ospace("copy");
+		garbage("copy");
+		if((ptr = nalloc(hptr->beg, size)) == 0) {
+			Bprint(&bout,"copy size %d\n",size);
+			ospace("copy");
+		}
 	}
-	memmove(ptr, hptr->beg, sz);
-	if (size-sz > 0)
-		memset(ptr+sz, 0, size-sz);
 	if((hdr = hfree) == 0)
 		hdr = morehd();
 	hfree = (Blk *)hdr->rd;
@@ -2271,6 +2272,19 @@ lookwd(Blk *p)
 	if(wp->rdw == wp->wtw)
 		return(0);
 	return(*wp->rdw);
+}
+
+char*
+nalloc(char *p, unsigned nbytes)
+{
+	char *q, *r;
+
+	q = r = malloc(nbytes);
+	if(q==0)
+		return(0);
+	while(nbytes--)
+		*q++ = *p++;
+	return(r);
 }
 
 int
