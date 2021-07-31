@@ -1041,7 +1041,6 @@ indent(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 	Rune *a, *r;
 	Window *w;
 	int na, len, autoindent;
-	char *result;
 
 	if(et==nil || et->w==nil)
 		return;
@@ -1057,15 +1056,8 @@ indent(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 	}
 	if(autoindent >= 0)
 		w->autoindent = autoindent;
-	if(autoindent != -2){
-		result = "off";
-		if(w->autoindent)
-			result = "on";
-		if(w->body.file->nname)
-			warning(nil, "%.*S: Indent %s\n", w->body.file->nname, w->body.file->name, result);
-		else
-			warning(nil, "Indent %s\n", result);
-	}
+	if(autoindent != -2)
+		warning(nil, "%.*S: Indent %s\n", w->body.file->nname, w->body.file->name, w->autoindent? "on" : "off");
 }
 
 void
