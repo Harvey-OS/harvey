@@ -55,7 +55,6 @@ snapfs snap
 srv srv
 srvold9p srv
 srvssh srv
-ssh ssh
 32vfs tapefs
 cpiofs tapefs
 tapefs tapefs

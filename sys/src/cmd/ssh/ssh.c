@@ -1,4 +1,3 @@
-/* remote login via ssh v1 */
 #include "ssh.h"
 
 int cooked = 0;		/* user wants cooked mode */
