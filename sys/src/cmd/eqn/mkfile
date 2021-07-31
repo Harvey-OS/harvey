@@ -35,7 +35,7 @@ BIN=/$objtype/bin
 CC=pcc
 LD=pcc
 YFLAGS=-d -S
-CFLAGS=-FTV -c
+CFLAGS=-c
 
 eqn.c:	y.tab.c prevy.tab.h
 	mv y.tab.c $target

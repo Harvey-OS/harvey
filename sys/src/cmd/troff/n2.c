@@ -137,6 +137,7 @@ void outweird(int k)	/* like ptchname() but ascii */
 
 void outascii(Tchar i)	/* print i in best-guess ascii */
 {
+	char *p;
 	int j = cbits(i);
 
 /* is this ever called with NROFF set? probably doesn't work at all. */

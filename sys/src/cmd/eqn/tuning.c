@@ -137,7 +137,6 @@ void init_tune(void)
 
 void ftune(char *s, char *t)	/* brute force for now */
 {
-	double dummy;
 	double f = atof(t);
 	double *target;
 
@@ -147,8 +146,6 @@ void ftune(char *s, char *t)	/* brute force for now */
 		target = &Subbase;
 	else if (eq(s, "Supshift"))
 		target = &Supshift;
-	else
-		target = &dummy;
 	if (t[0] == '+' || t[0] == '-')
 		*target += f;
 	else

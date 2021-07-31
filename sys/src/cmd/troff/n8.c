@@ -306,11 +306,12 @@ Tchar *chkvow(Tchar *w)
 
 void digram(void)
 {
-	int maxval, val;
-	Tchar *nhyend, *maxw, *w;
+	Tchar *w;
+	int val;
+	Tchar *nhyend, *maxw;
+	int maxval;
 	extern char bxh[26][13], bxxh[26][13], xxh[26][13], xhx[26][13], hxx[26][13];
 
-	maxw = 0;
 again:
 	if (!(w = chkvow(hyend + 1)))
 		return;

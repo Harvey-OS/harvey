@@ -331,18 +331,20 @@ void casefc(void)
 
 Tchar setfield(int x)
 {
-	Tchar rchar, ii, jj, *fp;
+	Tchar ii, jj, *fp;
+	int i, j;
+	int length, ws, npad, temp, type;
 	Tchar **pp, *padptr[NPP];
 	Tchar fbuf[FBUFSZ];
-	int i, j, length, ws, npad, temp, type, savepos, savfc, savtc, savlc;
+	int savfc, savtc, savlc;
+	Tchar rchar;
+	int savepos;
 	static Tchar wbuf[] = { WORDSP, 0};
 
 	if (x == tabch) 
 		rchar = tabc | chbits;
-	else if (x == ldrch) 
+	else if (x ==  ldrch) 
 		rchar = dotc | chbits;
-	else
-		rchar = 0;
 	temp = npad = ws = 0;
 	savfc = fc;
 	savtc = tabch;

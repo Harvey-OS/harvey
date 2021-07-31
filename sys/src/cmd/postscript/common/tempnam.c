@@ -1,10 +1,7 @@
 #if defined(V9) || defined(BSD4_2) || defined(plan9)
-#define _BSD_EXTENSION
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>

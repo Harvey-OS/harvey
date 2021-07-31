@@ -11,7 +11,7 @@ OFILES=pslib.$O\
 
 BIN=$POSTBIN
 
-LIB=
+LIB=/$objtype/lib/libmemdraw.a
 < /sys/src/cmd/mkone
 
-CFLAGS=$CFLAGS -I$COMMONDIR
+CFLAGS=-w -I$COMMONDIR

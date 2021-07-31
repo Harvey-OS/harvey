@@ -27,7 +27,7 @@ BIN=/$objtype/bin
 CC=pcc
 LD=pcc
 YFLAGS = -d -S
-CFLAGS=-FTV -c
+CFLAGS=-c
 
 grap.c:	y.tab.c
 	mv $prereq $target
