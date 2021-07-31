@@ -143,29 +143,13 @@ printea(uchar *ea)
 		ea[0], ea[1], ea[2], ea[3], ea[4], ea[5]);
 }
 
-enum {
-	/* this is only true of IPv4, but we're not doing v6 yet */
-	Min_udp_payload = ETHERMINTU - ETHERHDRSIZE - UDP_HDRSIZE,
-};
-
 static void
 udpsend(int ctlrno, Netaddr *a, void *data, int dlen)
 {
-	char payload[ETHERMAXTU];
 	Udphdr *uh;
 	Etherhdr *ip;
 	Etherpkt pkt;
 	int len, ptcllen;
-
-	/*
-	 * if packet is too short, make it longer rather than relying
-	 * on ethernet interface or lower layers to pad it.
-	 */
-	if (dlen < Min_udp_payload) {
-		memmove(payload, data, dlen);
-		data = payload;
-		dlen = Min_udp_payload;
-	}
 
 	uh = (Udphdr*)&pkt;
 
@@ -280,7 +264,7 @@ if(debug) print("not ip...");
 		}
 
 		if(h->udpproto != IP_UDPPROTO) {
-if(debug) print("not udp (%d)...", h->udpproto);
+if(debug) print("not udp...");
 			continue;
 		}
 
@@ -329,14 +313,6 @@ if(debug) print("bad ip\n");
 
 static int tftpblockno;
 
-/*
- * format of a request packet, from the RFC:
- *
-            2 bytes     string    1 byte     string   1 byte
-            ------------------------------------------------
-           | Opcode |  Filename  |   0  |    Mode    |   0  |
-            ------------------------------------------------
- */
 static int
 tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 {
@@ -345,8 +321,8 @@ tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 
 	buf[0] = 0;
 	buf[1] = Tftp_READ;
-	len = 2 + sprint(buf+2, "%s", name) + 1;
-	len += sprint(buf+len, "octet") + 1;
+	len = sprint(buf+2, "%s", name) + 2;
+	len += sprint(buf+len+1, "octet") + 2;
 
 	oport = a->port;
 	for(i = 0; i < 5; i++){
@@ -420,11 +396,11 @@ tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 	return -1;
 }
 
-static int
-bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
+int
+bootp(int ctlrno, char *file, Boot *b)
 {
-	Bootp req;
-	int i, n;
+	Bootp req, rep;
+	int i, dlen;
 	uchar *ea;
 	char name[128], *filename, *sysname;
 
@@ -444,6 +420,7 @@ bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 		else
 			filename = name;
 	}
+		
 
 	memset(&req, 0, sizeof(req));
 	req.op = Bootrequest;
@@ -459,19 +436,18 @@ bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 	myaddr.port = BPportsrc;
 	memmove(myaddr.ea, ea, Eaddrlen);
 
-	etherrxflush(ctlrno);
 	for(i = 0; i < 10; i++) {
 		server.ip = Bcastip;
 		server.port = BPportdst;
 		memmove(server.ea, broadcast, sizeof(server.ea));
 		udpsend(ctlrno, &server, &req, sizeof(req));
-		if(udprecv(ctlrno, &server, rep, sizeof(*rep)) <= 0)
+		if(udprecv(ctlrno, &server, &rep, sizeof(rep)) <= 0)
 			continue;
-		if(memcmp(req.chaddr, rep->chaddr, Eaddrlen))
+		if(memcmp(req.chaddr, rep.chaddr, Eaddrlen))
 			continue;
-		if(rep->htype != 1 || rep->hlen != Eaddrlen)
+		if(rep.htype != 1 || rep.hlen != Eaddrlen)
 			continue;
-		if(sysname == 0 || strcmp(sysname, rep->sname) == 0)
+		if(sysname == 0 || strcmp(sysname, rep.sname) == 0)
 			break;
 	}
 	if(i >= 10) {
@@ -479,161 +455,35 @@ bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 		return -1;
 	}
 
-	if(!dotftpopen)
-		return 0;
+	if(filename == 0 || *filename == 0)
+		filename = rep.file;
 
-	if(filename == 0 || *filename == 0){
-		if(strcmp(rep->file, "/386/9pxeload") == 0)
-			return -1;
-		filename = rep->file;
-	}
-
-	if(rep->sname[0] != '\0')
-		 print("%s ", rep->sname);
+	if(rep.sname[0] != '\0')
+		 print("%s ", rep.sname);
 	print("(%d.%d.%d.%d!%d): %s\n",
-		rep->siaddr[0],
-		rep->siaddr[1],
-		rep->siaddr[2],
-		rep->siaddr[3],
+		rep.siaddr[0],
+		rep.siaddr[1],
+		rep.siaddr[2],
+		rep.siaddr[3],
 		server.port,
 		filename);
 
-	myaddr.ip = nhgetl(rep->yiaddr);
+	myaddr.ip = nhgetl(rep.yiaddr);
 	myaddr.port = tftpport++;
-	server.ip = nhgetl(rep->siaddr);
+	server.ip = nhgetl(rep.siaddr);
 	server.port = TFTPport;
 
-	if((n = tftpopen(ctlrno, &server, filename, &tftpb)) < 0)
+	if((dlen = tftpopen(ctlrno, &server, filename, &tftpb)) < 0)
 		return -1;
 
-	return n;
-}
-
-int
-bootpboot(int ctlrno, char *file, Boot *b)
-{
-	int n;
-	Bootp rep;
-
-	if((n = bootpopen(ctlrno, file, &rep, 1)) < 0)
-		return -1;
-
-	while(bootpass(b, tftpb.data, n) == MORE){
-		n = tftpread(ctlrno, &server, &tftpb, sizeof(tftpb.data));
-		if(n < sizeof(tftpb.data))
+	while(bootpass(b, tftpb.data, dlen) == MORE)
+		if((dlen = tftpread(ctlrno, &server, &tftpb, sizeof(tftpb.data))) < sizeof(tftpb.data))
 			break;
-	}
 
-	if(0 < n && n < sizeof(tftpb.data))	/* got to end of file */
-		bootpass(b, tftpb.data, n);
+	if(0 < dlen && dlen < sizeof(tftpb.data))	/* got to end of file */
+		bootpass(b, tftpb.data, dlen);
 	else
 		nak(ctlrno, &server, 3, "ok", 0);	/* tftpclose to abort transfer */
 	bootpass(b, nil, 0);	/* boot if possible */
 	return -1;
-}
-
-#include "fs.h"
-
-#define INIPATHLEN	64
-
-static struct {
-	Fs	fs;
-	char	ini[INIPATHLEN];
-} pxether[MaxEther];
-
-static vlong
-pxediskseek(Fs*, vlong)
-{
-	return -1LL;
-}
-
-static long
-pxediskread(Fs*, void*, long)
-{
-	return -1;
-}
-
-static long
-pxeread(File* f, void* va, long len)
-{
-	int n;
-	Bootp rep;
-	char *p, *v;
-
-	if((n = bootpopen(f->fs->dev, pxether[f->fs->dev].ini, &rep, 1)) < 0)
-		return -1;
-
-	p = v = va;
-	while(n > 0) {
-		if((p-v)+n > len)
-			n = len - (p-v);
-		memmove(p, tftpb.data, n);
-		p += n;
-		if(n != Segsize)
-			break;
-		if((n = tftpread(f->fs->dev, &server, &tftpb, sizeof(tftpb.data))) < 0)
-			return -1;
-	}
-	return p-v;
-}
-
-static int
-pxewalk(File* f, char* name)
-{
-	Bootp rep;
-	char *ini;
-
-	switch(f->walked){
-	default:
-		return -1;
-	case 0:
-		if(strcmp(name, "cfg") == 0){
-			f->walked = 1;
-			return 1;
-		}
-		break;
-	case 1:
-		if(strcmp(name, "pxe") == 0){
-			f->walked = 2;
-			return 1;
-		}
-		break;
-	case 2:
-		if(strcmp(name, "%E") != 0)
-			break;
-		f->walked = 3;
-
-		if(bootpopen(f->fs->dev, nil, &rep, 0) < 0)
-			return 0;
-
-		ini = pxether[f->fs->dev].ini;
-		snprint(ini, INIPATHLEN, "/cfg/pxe/%E", rep.chaddr);
-		f->path = ini;
-
-		return 1;
-	}
-	return 0;
-}
-
-void*
-pxegetfspart(int ctlrno, char* part, int)
-{
-	if(!pxe)
-		return nil;
-	if(strcmp(part, "*") != 0)
-		return nil;
-	if(ctlrno >= MaxEther)
-		return nil;
-
-	pxether[ctlrno].fs.dev = ctlrno;
-	pxether[ctlrno].fs.diskread = pxediskread;
-	pxether[ctlrno].fs.diskseek = pxediskseek;
-
-	pxether[ctlrno].fs.read = pxeread;
-	pxether[ctlrno].fs.walk = pxewalk;
-
-	pxether[ctlrno].fs.root.fs = &pxether[ctlrno].fs;
-	pxether[ctlrno].fs.root.walked = 0;
-
-	return &pxether[ctlrno].fs;
 }

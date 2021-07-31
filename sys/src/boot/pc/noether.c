@@ -28,13 +28,7 @@ etherrxpkt(int, Etherpkt*, int)
 }
 
 int
-bootpboot(int, char*, Boot*)
+bootp(int, char*, Boot*)
 {
 	return -1;
-}
-
-void*
-pxegetfspart(int, char*, int)
-{
-	return nil;
 }

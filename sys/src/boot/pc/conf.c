@@ -311,22 +311,15 @@ getconf(char *name)
 void
 addconf(char *fmt, ...)
 {
-	va_list arg;
-
-	va_start(arg, fmt);
-	vseprint(BOOTARGS+strlen(BOOTARGS), BOOTARGS+BOOTARGSLEN, fmt, arg);
-	va_end(arg);
+	donprint(BOOTARGS+strlen(BOOTARGS), BOOTARGS+BOOTARGSLEN, fmt, (&fmt+1));
 }
 
 void
 changeconf(char *fmt, ...)
 {
-	va_list arg;
 	char *p, *q, pref[20], buf[128];
 
-	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof buf, fmt, arg);
-	va_end(arg);
+	donprint(buf, buf+sizeof buf, fmt, (&fmt+1));
 	strncpy(pref+1, buf, 19);
 	pref[19] = '\0';
 	if(p = strchr(pref, '='))

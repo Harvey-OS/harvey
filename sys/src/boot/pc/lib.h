@@ -25,38 +25,18 @@ extern	long	strlen(char*);
 extern	char*	strrchr(char*, char);
 extern	char*	strstr(char*, char*);
 
-
 /*
  * print routines
  */
-typedef struct Fmt	Fmt;
-typedef int (*Fmts)(Fmt*);
-struct Fmt{
-	uchar	runes;			/* output buffer is runes or chars? */
-	void	*start;			/* of buffer */
-	void	*to;			/* current place in the buffer */
-	void	*stop;			/* end of the buffer; overwritten if flush fails */
-	int	(*flush)(Fmt *);	/* called when to == stop */
-	void	*farg;			/* to make flush a closure */
-	int	nfmt;			/* num chars formatted so far */
-	va_list	args;			/* args passed to dofmt */
-	int	r;			/* % format Rune */
-	int	width;
-	int	prec;
-	ulong	flags;
-};
-extern	int	print(char*, ...);
-extern	char*	vseprint(char*, char*, char*, va_list);
+extern	char*	donprint(char*, char*, char*, void*);
 extern	int	sprint(char*, char*, ...);
 extern 	int	snprint(char*, int, char*, ...);
-extern	int	fmtinstall(int, int (*)(Fmt*));
+extern	int	print(char*, ...);
 
-#pragma	varargck	argpos	fmtprint	2
-#pragma	varargck	argpos	print		1
-#pragma	varargck	argpos	seprint		3
-#pragma	varargck	argpos	snprint		3
-#pragma	varargck	argpos	sprint		2
-#pragma varargck	type	"H" void*
+#define	PRINTSIZE	256
+#pragma varargck argpos print 1
+#pragma varargck argpos snprint 3
+#pragma varargck argpos sprint 2
 
 #pragma	varargck	type	"lld"	vlong
 #pragma	varargck	type	"llx"	vlong
@@ -86,9 +66,6 @@ extern	int	fmtinstall(int, int (*)(Fmt*));
 #pragma	varargck	type	"|"	int
 #pragma	varargck	type	"p"	void*
 #pragma varargck	type	"lux"	void*
-#pragma	varargck	type	"E"	uchar*
-
-#define PRINTSIZE	256
 
 /*
  * one-of-a-kind

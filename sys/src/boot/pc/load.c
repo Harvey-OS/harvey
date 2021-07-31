@@ -7,59 +7,35 @@
 
 #include "fs.h"
 
-static char *diskparts[] = { "dos", "9fat", "fs", "data", "cdboot", 0 };
-static char *etherparts[] = { "*", 0 };
-
-static char *diskinis[] = {
-	"plan9/plan9.ini",
-	"plan9.ini",
-	0
-};
-static char *etherinis[] = {
-	"/cfg/pxe/%E",
-	0
-};
-
 Type types[] = {
 	{	Tfloppy,
 		Fini|Ffs,
 		floppyinit, floppyinitdev,
 		floppygetfspart, 0, floppyboot,
 		floppyprintdevs,
-		diskparts,
-		diskinis,
 	},
 	{	Tcd,
 		Fini|Ffs,
 		cdinit, sdinitdev,
 		sdgetfspart, sdaddconf, sdboot,
 		sdprintdevs,
-		diskparts,
-		diskinis,
 	},
 	{	Tether,
-		Fini|Fbootp,
+		Fbootp,
 		etherinit, etherinitdev,
-		pxegetfspart, 0, bootpboot,
+		0, 0, bootp,
 		etherprintdevs,
-		etherparts,
-		etherinis,
 	},
 	{	Tsd,
 		Fini|Ffs,
 		sdinit, sdinitdev,
 		sdgetfspart, sdaddconf, sdboot,
 		sdprintdevs,
-		diskparts,
-		diskinis,
 	},
 	{	Tnil,
 		0,
-		nil, nil, nil, nil, nil, nil,
-		nil,
-		nil,
-		0,
-		nil,
+		0, 0, 0, 0,
+		{ 0, },
 	},
 };
 
@@ -131,6 +107,12 @@ static Mode modes[NMode+1] = {
 	[Manual]	{ "manual", Manual, },
 };
 
+static char *inis[] = {
+	"plan9/plan9.ini",
+	"plan9.ini",
+	0
+};
+
 char **ini;
 
 int scsi0port;
@@ -196,6 +178,8 @@ allocm(Type *tp)
 	return *l;
 }
 
+char *parts[] = { "dos", "9fat", "fs", "data", "cdboot", 0 };
+
 Medium*
 probe(int type, int flag, int dev)
 {
@@ -237,15 +221,15 @@ probe(int type, int flag, int dev)
 
 			if(mp->flag & Fini){
 				mp->flag &= ~Fini;
-				for(partp = tp->parts; *partp; partp++){
+				for(partp = parts; *partp; partp++){
 					if((fs = (*tp->getfspart)(i, *partp, 0)) == nil)
 						continue;
 
-					for(ini = tp->inis; *ini; ini++){
+					for(ini = inis; *ini; ini++){
 						if(fswalk(fs, *ini, &f) > 0){
 							mp->inifs = fs;
 							mp->part = *partp;
-							mp->ini = f.path;
+							mp->ini = *ini;
 							mp->flag |= Fini;
 							goto Break2;
 						}
@@ -283,8 +267,8 @@ main(void)
 
 	readlsconf();
 	for(tp = types; tp->type != Tnil; tp++){
-		//if(tp->type == Tether)
-		//	continue;
+		if(tp->type == Tether)
+			continue;
 		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
 			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
 			iniread = !dotini(mp->inifs);
@@ -329,7 +313,7 @@ done:
 		if(mode == Mlocal)
 			flag &= ~Fbootp;
 		if((mp = probe(Tany, flag, Dany)) && mp->type->type != Tfloppy)
-			boot(mp, "");
+			boot(mp, 0);
 	}
 
 	def[0] = 0;

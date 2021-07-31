@@ -96,5 +96,3 @@ struct Netaddr
 	ushort	port;
 	char	ea[Eaddrlen];
 };
-
-extern int	eipfmt(Fmt*);

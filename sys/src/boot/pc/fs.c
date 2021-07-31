@@ -21,7 +21,7 @@ nextelem(char *path, char *elem)
 	if(*path==0 || *path==' ')
 		return 0;
 	for(i=0; *path!='\0' && *path!='/' && *path!=' '; i++){
-		if(i==NAMELEN){
+		if(i==28){
 			print("name component too long\n");
 			return 0;
 		}
@@ -40,7 +40,6 @@ fswalk(Fs *fs, char *path, File *f)
 	if(BADPTR(fs->walk))
 		panic("fswalk bad pointer fs->walk");
 
-	f->path = path;
 	while(path = nextelem(path, element)){
 		switch(fs->walk(f, element)){
 		case -1:
