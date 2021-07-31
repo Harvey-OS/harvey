@@ -57,9 +57,6 @@ enum {					/* Error */
 enum {					/* Features */
 	Dma		= 0x01,		/* data transfer via DMA (PACKET) */
 	Ovl		= 0x02,		/* command overlapped (PACKET) */
-
-	Lba48a	= 0x02,		/* first write of 48-bit LBA */
-	Lba48b	= 0x03,		/* second write of 48-bit LBA */
 };
 
 enum {					/* Interrupt Reason */
@@ -72,8 +69,6 @@ enum {					/* Device/Head */
 	Dev0		= 0xA0,		/* Master */
 	Dev1		= 0xB0,		/* Slave */
 	Lba		= 0x40,		/* LBA mode */
-	Lba48	= 0x100,		/* LBA48 mode (internal use only) */
-	Lba48always	= 0x200,	/* LBA48 mode always (internal use only) */
 };
 
 enum {					/* Status, Alternate Status */
@@ -180,7 +175,6 @@ enum {					/* offsets into the identify info. */
 	Ierase		= 89,		/* time for security erase */
 	Ieerase		= 90,		/* time for enhanced security erase */
 	Ipower		= 91,		/* current advanced power management */
-	Ilba48		= 100,		/* LBA 48-bit size (64 bits in 100-103) */
 	Irmsn		= 127,		/* removable status notification */
 	Istatus		= 128,		/* security status */
 };
@@ -231,7 +225,7 @@ typedef struct Drive {
 	int	c;			/* cylinder */
 	int	h;			/* head */
 	int	s;			/* sector */
-	vlong	sectors;		/* total */
+	int	sectors;		/* total */
 	int	secsize;		/* sector size */
 
 	int	dma;			/* DMA R/W possible */
@@ -277,7 +271,7 @@ pc87415ienable(Ctlr* ctlr)
 }
 
 static void
-atadumpstate(Drive* drive, uchar* cmd, ulong lba, int count)
+atadumpstate(Drive* drive, uchar* cmd, int lba, int count)
 {
 	Prd *prd;
 	Pcidev *p;
@@ -295,7 +289,7 @@ atadumpstate(Drive* drive, uchar* cmd, ulong lba, int count)
 		drive->data, drive->limit, drive->dlen,
 		drive->status, drive->error);
 	if(cmd != nil){
-		print("lba %d -> %lud, count %d -> %d (%d)\n",
+		print("lba %d -> %d, count %d -> %d (%d)\n",
 			(cmd[2]<<24)|(cmd[3]<<16)|(cmd[4]<<8)|cmd[5], lba,
 			(cmd[7]<<8)|cmd[8], count, drive->count);
 	}
@@ -544,7 +538,6 @@ atadrive(int cmdport, int ctlport, int dev)
 	int as, i, pkt;
 	uchar buf[512], *p;
 	ushort iconfig, *sp;
-	vlong sectors;
 
 	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
 	pkt = 1;
@@ -608,25 +601,8 @@ retry:
 			drive->sectors = (drive->info[Ilba1]<<16)
 					 |drive->info[Ilba0];
 			drive->dev |= Lba;
-			if(drive->info[Icapabilities] & 0x0400){
-				sectors = drive->info[Ilba48]
-					| (drive->info[Ilba48+1]<<16)
-					| ((vlong)drive->info[Ilba48+2]<<32);
-				/*
-				 * BUG: I'm not convinced that Icap & 0x0400
-				 * is the right bit to check for Lba48, because
-				 * most drives seem to have it set, and the ones
-				 * that are smaller than 137GB have sectors == 0.
-				 * Let's ignore those.
-				 */
-				if(sectors){
-					drive->sectors = sectors;
-					drive->dev |= Lba48|Lba;
-					print("LLBA %llux\n", sectors);
-				}
-				
-			}
-		}else
+		}
+		else
 			drive->sectors = drive->c*drive->h*drive->s;
 		atarwmmode(drive, cmdport, ctlport, dev);
 	}
@@ -1225,22 +1201,17 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 }
 
 static int
-atageniostart(Drive* drive, ulong lba)
+atageniostart(Drive* drive, int lba)
 {
 	Ctlr *ctlr;
-	int as, c, cmdport, ctlport, h, len, s, use48;
+	int as, c, cmdport, ctlport, h, len, s;
 
-	use48 = 0;
-	if((drive->dev&Lba48always) || (lba>>28)){
-		if(!(drive->dev & Lba48))
-			return -1;
-		use48 = 1;
-		c = h = s = 0;
-	}else if(drive->dev & Lba){
+	if(drive->dev & Lba){
 		c = (lba>>8) & 0xFFFF;
 		h = (lba>>24) & 0x0F;
 		s = lba & 0xFF;
-	}else{
+	}
+	else{
 		c = lba/(drive->s*drive->h);
 		h = ((lba/drive->s) % drive->h);
 		s = (lba % drive->s) + 1;
@@ -1275,27 +1246,11 @@ atageniostart(Drive* drive, ulong lba)
 	}
 	drive->limit = drive->data + drive->count*drive->secsize;
 
-	if(use48){
-		outb(cmdport+Features, Lba48a);
-		outb(cmdport+Count, lba);
-		outb(cmdport+Sector, lba>>8);
-		outb(cmdport+Cyllo, lba>>16);
-		outb(cmdport+Cylhi, lba>>24);
-		outb(cmdport+Dh, drive->dev);
-
-		outb(cmdport+Features, Lba48b);
-		outb(cmdport+Count, drive->count);
-		outb(cmdport+Sector, drive->count>>8);
-		outb(cmdport+Cyllo, 0);	/* lba>>32 if lba were a vlong */
-		outb(cmdport+Cylhi, 0);	/* lba>>40 if lba were a vlong */
-		outb(cmdport+Dh, drive->dev);
-	}else{
-		outb(cmdport+Count, drive->count);
-		outb(cmdport+Sector, s);
-		outb(cmdport+Dh, drive->dev|h);
-		outb(cmdport+Cyllo, c);
-		outb(cmdport+Cylhi, c>>8);
-	}
+	outb(cmdport+Count, drive->count);
+	outb(cmdport+Sector, s);
+	outb(cmdport+Dh, drive->dev|h);
+	outb(cmdport+Cyllo, c);
+	outb(cmdport+Cylhi, c>>8);
 	ctlr->done = 0;
 	ctlr->curdrive = drive;
 	ctlr->command = drive->command;	/* debugging */
@@ -1346,8 +1301,7 @@ atagenio(Drive* drive, uchar* cmd, int)
 {
 	uchar *p;
 	Ctlr *ctlr;
-	int count, len;
-	ulong lba;
+	int count, lba, len;
 
 	/*
 	 * Map SCSI commands into ATA commands for discs.
@@ -2036,20 +1990,6 @@ atawctl(SDunit* unit, Cmdbuf* cb)
 		}
 		if(atastandby(drive, period) != SDok)
 			error(Ebadctl);
-	}
-	else if(strcmp(cb->f[0], "48always") == 0){
-		switch(cb->nf){
-		default:
-			error(Ebadctl);
-		case 2:
-			if(strcmp(cb->f[1], "on") == 0)
-				drive->dev |= Lba48always;
-			else if(strcmp(cb->f[1], "off") == 0)
-				drive->dev &= ~Lba48always;
-			else
-				error(Ebadctl);
-			break;
-		}
 	}
 	else
 		error(Ebadctl);
