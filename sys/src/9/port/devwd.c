@@ -99,12 +99,8 @@ wdautostop(void)
 	iprint("watchdog: disabled before open\n");
 }
 
-/*
- * user processes exist and up is non-nil when the
- * device init routines are called.
- */
 static void
-wdinit(void)
+wdreset(void)
 {
 	wdautostart();
 }
@@ -222,8 +218,8 @@ Dev wddevtab = {
 	'w',
 	"watchdog",
 
-	devreset,
-	wdinit,
+	wdreset,
+	devinit,
 	wdshutdown,
 	wdattach,
 	wdwalk,
