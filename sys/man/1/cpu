@@ -1,6 +1,6 @@
 .TH CPU 1
 .SH NAME
-cpu \- connection to CPU server
+cpu \- connection to cpu server
 .SH SYNOPSIS
 .B cpu
 [
@@ -24,13 +24,6 @@ cpu \- connection to CPU server
 ] [
 .B -c
 .I cmd args ...
-]
-.PP
-.B cpu
-[
-.B -R
-|
-.B -O
 ]
 .SH DESCRIPTION
 .I Cpu
@@ -139,7 +132,7 @@ for details on possible algorithms.  The argument
 .L clear
 specifies no encryption algorithm and can be used to talk
 to older versions of the
-.I cpu
+.B cpu
 service.
 .PP
 The
@@ -162,23 +155,9 @@ the
 and
 .B objtype
 environment variables reflect the server's architecture.
-.PP
-The
-.B -R
-flag causes
-.I cpu
-to run the server (remote) side of the protocol.
-It is run from service files such as
-.BR /bin/service/tcp17010 .
-The
-.B -O
-flag is similar but simulates the pre-9P2000 version
-of the 
-.I cpu
-protocol.
 .SH FILES
 The name space of the terminal side of the
-.I cpu
+.B cpu
 command is mounted, via
 .IR exportfs (4),
 on the CPU side on directory
