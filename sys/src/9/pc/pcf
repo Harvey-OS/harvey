@@ -24,7 +24,6 @@ dev
 	mouse		mouse
 	vga
 	kbmap
-	kbin
 
 	sd
 	floppy		dma

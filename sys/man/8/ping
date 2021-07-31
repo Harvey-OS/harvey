@@ -2,7 +2,7 @@
 .SH NAME
 ping, gping, traceroute, hogports \- probe the Internet
 .SH SYNOPSIS
-.B ip/ping
+.B ping
 [
 .B -6aflqr
 ] [
@@ -17,7 +17,7 @@ ping, gping, traceroute, hogports \- probe the Internet
 ]
 .I destination
 .PP
-.B ip/gping
+.B gping
 [
 .B -r
 ] [
@@ -31,7 +31,7 @@ ping, gping, traceroute, hogports \- probe the Internet
 .I destination
 \&... ]
 .PP
-.B ip/traceroute
+.B traceroute
 [
 .B -dn
 ][
@@ -46,7 +46,7 @@ ping, gping, traceroute, hogports \- probe the Internet
 ]
 .I dest
 .PP
-.B ip/hogports
+.B hogports
 .B [\fImtpt\fP/]\fIproto\fP!\fIaddress\fP!\fIstartport\fP[-\fIendport\fP]
 .SH DESCRIPTION
 .I Ping

@@ -1,8 +1,6 @@
-# small kernel used to install from cd
 dev
 	root
 	cons
-
 	arch
 	pnp		pci
 	env
@@ -16,7 +14,6 @@ dev
 	tls
 	cap
 	kprof
-	fs
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -25,7 +22,6 @@ dev
 	mouse		mouse
 	vga
 	kbmap
-	kbin
 
 	sd
 	floppy		dma
@@ -59,17 +55,14 @@ link
 	etherga620	pci
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
-	ethervt6102	pci ethermii
+	etherga620	pci
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
-#	etherm10g
-#	ether82598	pci
 	pcmciamodem
 	netdevmedium
 	usbuhci
-	usbohci
 
 misc
 	archmp		mp apic
@@ -81,7 +74,6 @@ misc
 
 	uarti8250
 	uartpci		pci
-	uartisa
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur
