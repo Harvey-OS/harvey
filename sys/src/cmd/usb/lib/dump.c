@@ -495,8 +495,7 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			ep = de->bEndpointAddress & 0xf;
 			if (d->ep[ep] == nil)
 				d->ep[ep] = newendpt(d, ep, class);
-			if(d->ep[ep]->maxpkt < GET2(de->wMaxPacketSize))
-				d->ep[ep]->maxpkt = GET2(de->wMaxPacketSize);
+			d->ep[ep]->maxpkt = GET2(de->wMaxPacketSize);
 			d->ep[ep]->addr = de->bEndpointAddress;
 			d->ep[ep]->csp = csp;
 			d->ep[ep]->conf = d->config[c];
