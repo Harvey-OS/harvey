@@ -19,7 +19,6 @@
 #include	"io.h"
 #include	"../port/error.h"
 #include	"../port/usb.h"
-#include	"../port/portusbehci.h"
 #include	"usbehci.h"
 #include	"uncached.h"
 

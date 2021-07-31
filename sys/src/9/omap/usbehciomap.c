@@ -12,7 +12,6 @@
 #include	"io.h"
 #include	"../port/error.h"
 #include	"../port/usb.h"
-#include	"../port/portusbehci.h"
 #include	"usbehci.h"
 
 static Ctlr* ctlrs[Nhcis];
@@ -54,8 +53,7 @@ ehcireset(Ctlr *ctlr)
 	}
 
 	/* requesting more interrupts per µframe may miss interrupts */
-	opio->cmd &= ~Citcmask;
-	opio->cmd |= 1 << Citcshift;		/* max of 1 intr. per 125 µs */
+	opio->cmd |= Citc8;		/* 1 intr. per ms */
 	coherence();
 	switch(opio->cmd & Cflsmask){
 	case Cfls1024:

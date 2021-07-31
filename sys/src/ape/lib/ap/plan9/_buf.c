@@ -469,5 +469,4 @@ copynotehandler(void *u, char *msg)
 	if(_finishing)
 		_finish(0, 0);
 	_NOTED(1);
-	return 0;
 }
