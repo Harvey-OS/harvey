@@ -1,11 +1,11 @@
-/*
- *  search the network database for matches
- */
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
 #include <ndb.h>
 
+/*
+ *  search the database for matches
+ */
 void
 usage(void)
 {
@@ -16,9 +16,10 @@ usage(void)
 void
 search(Ndb *db, char *attr, char *val, char *rattr)
 {
-	char *p;
 	Ndbs s;
-	Ndbtuple *t, *nt;
+	Ndbtuple *t;
+	Ndbtuple *nt;
+	char *p;
 
 	if(rattr){
 		p = ndbgetvalue(db, &s, attr, val, rattr, nil);
@@ -42,16 +43,15 @@ search(Ndb *db, char *attr, char *val, char *rattr)
 void
 main(int argc, char **argv)
 {
-	int reps = 1;
-	char *rattr = nil, *dbfile = nil;
+	char *rattr = 0;
 	Ndb *db;
+	char *dbfile = 0;
+	int reps = 1;
 
 	ARGBEGIN{
 	case 'f':
 		dbfile = ARGF();
 		break;
-	default:
-		usage();
 	}ARGEND;
 
 	switch(argc){
