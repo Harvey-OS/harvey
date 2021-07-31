@@ -1,8 +1,8 @@
-.TH 8C 1
+.TH 2C 1
 .SH NAME
-0c, 5c, 6c, 8c, 9c, kc, qc, vc \- C compilers
+0c, 2c, 5c, 6c, 8c, 9c, kc, qc, vc \- C compilers
 .SH SYNOPSIS
-.B 8c
+.B 2c
 [
 .I option ...
 ]
@@ -28,6 +28,9 @@ for example
 .TP
 .B "0c spim
 little-endian MIPS 3000 family
+.TP
+.B "2c 68020
+Motorola MC68020
 .TP
 .B "5c arm
 little-endian ARM
@@ -58,6 +61,8 @@ which must be run separately.
 Let the first letter of the compiler name be
 .IR O =
 .BR 0 ,
+.BR 1 ,
+.BR 2 ,
 .BR 5 ,
 .BR 6 ,
 .BR 8 ,
@@ -404,7 +409,7 @@ as is done for shorter
 .I unsigned
 expressions).
 .SH EXAMPLE
-For the 386, produce a program
+For the 68020, produce a program
 .B prog
 from C files
 .BR main.c
@@ -412,8 +417,8 @@ and
 .BR sub.c :
 .IP
 .EX
-8c -FVw main.c sub.c
-8l -o prog main.8 sub.8
+2c -FVw main.c sub.c
+2l -o prog main.2 sub.2
 .EE
 .SH FILES
 .TF /$objtype/include
@@ -428,16 +433,16 @@ system area for machine-dependent
 .B #include
 directives.
 .SH SOURCE
-.TF /sys/src/cmd/8c,\ etc.
+.TF /sys/src/cmd/2c,\ etc.
 .TP
 .B /sys/src/cmd/cc
 machine-independent part
 .TP
-.BR /sys/src/cmd/8c ,\ etc.
+.BR /sys/src/cmd/2c ,\ etc.
 machine-dependent part
 .SH "SEE ALSO"
-.IR 8a (1),
-.IR 8l (1),
+.IR 2a (1),
+.IR 2l (1),
 .IR cpp (1),
 .IR mk (1),
 .IR nm (1),

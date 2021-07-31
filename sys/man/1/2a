@@ -1,8 +1,8 @@
-.TH 8A 1 
+.TH 2A 1 
 .SH NAME
-0a, 5a, 6a, 8a, 9a, ka, qa, va \- assemblers
+0a, 2a, 5a, 6a, 8a, 9a, ka, qa, va \- assemblers
 .SH SYNOPSIS
-.B 8a
+.B 2a
 [
 .I option ...
 ]
@@ -15,10 +15,10 @@ etc.
 These programs
 assemble the named files into object files
 for the corresponding architectures; see
-.IR 8c (1)
+.IR 2c (1)
 for the correspondence between an architecture and the character
-.RB ( 6 ,
-.RB 8 ,
+.RB ( 1 ,
+.RB 2 ,
 etc.) that specifies it.
 The assemblers handle the most common C preprocessor directives and the associated
 command-line options
@@ -46,11 +46,11 @@ is searched for include files after
 machine-dependent files in
 .BR /$objtype/include .
 .SH SOURCE
-.BR /sys/src/cmd/8a ,
+.BR /sys/src/cmd/2a ,
 etc.
 .SH SEE ALSO
-.IR 8c (1),
-.IR 8l (1).
+.IR 2c (1),
+.IR 2l (1).
 .PP
 Rob Pike, ``A manual for the Plan 9 assembler''
 .SH BUGS

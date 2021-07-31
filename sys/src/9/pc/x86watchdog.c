@@ -48,14 +48,9 @@ interval(void)
 static void
 runoncpu(int cpu)
 {
-	if (m->machno != cpu) {
-		if (up == nil)
-			panic("x86watchdog: nil up");
+	while (m->machno != cpu) {
 		procwired(up, cpu);
 		sched();
-		if (m->machno != cpu)
-			panic("x86watchdog: runoncpu: can't switch to cpu%d",
-				cpu);
 	}
 }
 

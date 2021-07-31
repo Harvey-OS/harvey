@@ -1192,7 +1192,6 @@ segbrk segbrk
 segflush segflush
 semacquire semacquire
 semrelease semacquire
-tsemacquire semacquire
 longjmp setjmp
 notejmp setjmp
 setjmp setjmp

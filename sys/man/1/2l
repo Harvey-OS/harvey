@@ -1,8 +1,8 @@
-.TH 8L 1 
+.TH 2L 1 
 .SH NAME
-0l, 5l, 6l, 8l, 9l, kl, ql, vl \- loaders
+0l, 2l, 5l, 6l, 8l, 9l, kl, ql, vl \- loaders
 .SH SYNOPSIS
-.B 8l
+.B 2l
 [
 .I option ...
 ]
@@ -16,10 +16,10 @@ These commands
 load the named
 .I files
 into executable files for the corresponding architectures; see
-.IR 8c (1)
+.IR 2c (1)
 for the correspondence between an architecture and the character
-.RB ( 6 ,
-.RB 8 ,
+.RB ( 1 ,
+.RB 2 ,
 etc.) that specifies it.
 The files should be object files or libraries (archives of object files)
 for the appropriate architecture.
@@ -34,7 +34,7 @@ where
 is one of
 .BR 386 ,
 etc. as listed in
-.IR 8c (1).
+.IR 2c (1).
 The libraries must have tables of contents
 (see
 .IR ar (1)).
@@ -44,7 +44,7 @@ In practice,
 options are rarely necessary as the header files for
 the libraries cause their archives to be included automatically in the load
 (see
-.IR 8c (1)).
+.IR 2c (1)).
 For example, any program that includes header file
 .B libc.h
 causes the loader
@@ -201,11 +201,11 @@ for
 .BI -l lib
 arguments.
 .SH SOURCE
-.B /sys/src/cmd/8l
+.B /sys/src/cmd/2l
 etc.
 .SH "SEE ALSO"
-.IR 8c (1),
-.IR 8a (1),
+.IR 2c (1),
+.IR 2a (1),
 .IR ar (1),
 .IR nm (1),
 .IR db (1),
