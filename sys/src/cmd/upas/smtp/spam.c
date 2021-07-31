@@ -62,7 +62,7 @@ findkey(char *val, Keyword *p)
 char*
 actstr(int a)
 {
-	static char buf[32];
+	char buf[32];
 	Keyword *p;
 
 	for(p=actions; p->name; p++)

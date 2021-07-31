@@ -28,7 +28,6 @@ void
 realmode(Ureg *ureg)
 {
 	int s;
-	ulong cr3;
 	extern void realmode0(void);	/* in l.s */
 	extern void i8259off(void), i8259on(void);
 
@@ -43,7 +42,6 @@ realmode(Ureg *ureg)
 
 	s = splhi();
 	m->pdb[PDX(0)] = m->pdb[PDX(KZERO)];	/* identity map low */
-	cr3 = getcr3();
 	putcr3(PADDR(m->pdb));
 	i8259off();
 	realmode0();
@@ -53,9 +51,9 @@ realmode(Ureg *ureg)
 		 * Don't turn interrupts on before the kernel is ready!
 		 */
 		i8259on();
+		putcr3(m->tss->cr3);
 	}
 	m->pdb[PDX(0)] = 0;	/* remove low mapping */
-	putcr3(cr3);
 	splx(s);
 	*ureg = realmoderegs;
 	unlock(&rmlock);

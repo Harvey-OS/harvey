@@ -894,7 +894,7 @@ fileSetQidSpace(File *f, u64int offset, u64int max)
 	f->dir.qidSpace = 1;
 	f->dir.qidOffset = offset;
 	f->dir.qidMax = max;
-	ret = fileMetaFlush2(f, nil)>=0;
+	ret = fileMetaFlush2(f, nil);
 	fileMetaUnlock(f);
 	fileUnlock(f);
 	return ret;
@@ -965,22 +965,22 @@ fileGetSize(File *f, uvlong *size)
 	return 1;
 }
 
-int
+void
 fileMetaFlush(File *f, int rec)
 {
 	File **kids, *p;
 	int nkids;
-	int i, rv;
+	int i;
 
 	fileMetaLock(f);
-	rv = fileMetaFlush2(f, nil);
+	fileMetaFlush2(f, nil);
 	fileMetaUnlock(f);
 
 	if(!rec || !fileIsDir(f))
-		return rv;
+		return;
 
 	if(!fileLock(f))
-		return rv;
+		return;
 	nkids = 0;
 	for(p=f->down; p; p=p->next)
 		nkids++;
@@ -993,11 +993,10 @@ fileMetaFlush(File *f, int rec)
 	fileUnlock(f);
 
 	for(i=0; i<nkids; i++){
-		rv |= fileMetaFlush(kids[i], 1);
+		fileMetaFlush(kids[i], 1);
 		fileDecRef(kids[i]);
 	}
 	vtMemFree(kids);
-	return rv;
 }
 
 /* assumes metaLock is held */
@@ -1012,7 +1011,7 @@ fileMetaFlush2(File *f, char *oelem)
 	u32int boff;
 
 	if(!f->dirty)
-		return 0;
+		return 1;
 
 	if(oelem == nil)
 		oelem = f->dir.elem;
@@ -1022,7 +1021,7 @@ fileMetaFlush2(File *f, char *oelem)
 	fp = f->up;
 
 	if(!sourceLock(fp->msource, -1))
-		return -1;
+		return 0;
 	/* can happen if source is clri'ed out from under us */
 	if(f->boff == NilBlock)
 		goto Err1;
@@ -1091,7 +1090,7 @@ Err:
 	blockPut(b);
 Err1:
 	sourceUnlock(fp->msource);
-	return -1;
+	return 0;
 }
 
 static int

@@ -162,14 +162,6 @@ man(char *o, int sect, int vermaj)
 }
 
 void
-strlwr(char *p)
-{
-	for(; *p; p++)
-		if('A' <= *p && *p <= 'Z')
-			*p += 'a'-'A';
-}
-
-void
 redirectto(char *uri)
 {
 	if(connect){
@@ -321,20 +313,11 @@ doconvert(char *uri, int vermaj)
 	p = strstr(uri, "/intro");
 
 	if(p == nil){
-		while(*uri == '/')
-			uri++;
 		/* redirect section requests */
 		snprint(file, sizeof(file), "/sys/man/%s", uri);
 		d = dirstat(file);
-		if(d == nil){
-			strlwr(file);
-			if(dirstat(file) != nil){
-				snprint(file, sizeof(file), "/magic/man2html/%s", uri);
-				strlwr(file);
-				redirectto(file);
-			}
+		if(d == nil)
 			error(uri, "man page not found");
-		}
 		x = d->qid.type;
 		free(d);
 		if(x & QTDIR){

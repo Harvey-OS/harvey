@@ -289,12 +289,12 @@ panic(char *fmt, ...)
 	va_start(arg, fmt);
 	n = vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
-	iprint("%s\n", buf);
+	buf[n] = '\n';
+	uartputs(buf, n+1);
 	if(consdebug)
 		(*consdebug)();
 	spllo();
 	prflush();
-	buf[n] = '\n';
 	putstrn(buf, n+1);
 	dumpstack();
 

@@ -25,7 +25,6 @@ Block* cacheGlobal(Cache*, uchar[VtScoreSize], int, u32int, int);
 Block* cacheAllocBlock(Cache*, int, u32int, u32int, u32int);
 void cacheFlush(Cache*, int);
 u32int cacheLocalSize(Cache*, int);
-int cacheDirty(Cache*);
 int readLabel(Cache*, Label*, u32int addr);
 
 Block* blockCopy(Block*, u32int, u32int, u32int);
