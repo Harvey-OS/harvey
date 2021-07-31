@@ -134,10 +134,7 @@ pname(uchar *p, uchar *ep, char *np, Dict *dp)
 			if(strcmp(np, dp->x[i].name) == 0){
 				if(ep - p < 2)
 					return ep+1;
-				if ((dp->x[i].offset>>8) & 0xc0)
-					dnslog("convDNS2M: offset too big for "
-						"DNS packet format");
-				*p++ = dp->x[i].offset>>8 | 0xc0;
+				*p++ = (dp->x[i].offset>>8) | 0xc0;
 				*p++ = dp->x[i].offset;
 				return p;
 			}
