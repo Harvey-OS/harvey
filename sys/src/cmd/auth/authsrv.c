@@ -339,17 +339,15 @@ static char*
 domainname(void)
 {
 	static char sysname[Maxpath];
-	static char *domain;
+	static char domain[Ndbvlen];
+	Ndbtuple *t;
 	int n;
 
-	if(domain)
+	if(*domain)
 		return domain;
+
 	if(*sysname)
 		return sysname;
-
-	domain = csgetvalue(0, "sys", sysname, "dom", nil);
-	if(domain)
-		return domain;
 
 	n = readfile("/dev/sysname", sysname, sizeof(sysname)-1);
 	if(n < 0){
@@ -358,7 +356,12 @@ domainname(void)
 	}
 	sysname[n] = 0;
 
-	return sysname;
+	t = csgetval(0, "sys", sysname, "dom", domain);
+	if(t == 0)
+		return sysname;
+
+	ndbfree(t);
+	return domain;
 }
 
 static int

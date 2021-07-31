@@ -95,16 +95,17 @@ nstat(char *net, void (*f)(char*, Dir*))
 char*
 getport(char *net, char *p)
 {
-	static char port[10];
+	static char buf[Ndbvlen];
+	Ndbtuple *t;
 
-	strncpy(port, p, sizeof(port)-1);
-	port[sizeof(port)-1] = 0;
-	if(notrans || (p = csgetvalue(netroot, "port", p, net, nil)) == nil)
-		return port;
-	strncpy(port, p, sizeof(port)-1);
-	port[sizeof(port)-1] = 0;
-	free(p);
-	return port;
+	if(notrans)
+		return p;
+	t = csgetval(netroot, "port", p, net, buf);
+	if(t)
+		ndbfree(t);
+	if(buf[0] == 0)
+		return p;
+	return buf;
 }
 
 void
@@ -112,7 +113,8 @@ pip(char *net, Dir *db)
 {
 	int n, fd;
 	char buf[128], *p;
-	char *dname;
+	Ndbtuple *tp;
+	char dname[Ndbvlen];
 
 	if(strcmp(db->name, "clone") == 0)
 		return;
@@ -179,14 +181,15 @@ pip(char *net, Dir *db)
 		Bprint(&out, "%-10s %s\n", getport(net, p), buf);
 		return;
 	}
-	dname = csgetvalue(netroot, "ip", buf, "dom", nil);
-	if(dname == nil) {
+	tp = csgetval(netroot, "ip", buf, "dom", dname);
+	if(tp)
+		ndbfree(tp);
+	if(dname[0] == 0) {
 		Bprint(&out, "%-10s %s\n", getport(net, p), buf);
 		return;
 	}
 	Bprint(&out, "%-10s %s\n", getport(net, p), dname);
 	Bflush(&out);
-	free(dname);
 }
 
 void

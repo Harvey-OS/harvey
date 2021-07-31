@@ -19,13 +19,13 @@ search(Ndb *db, char *attr, char *val, char *rattr)
 	Ndbs s;
 	Ndbtuple *t;
 	Ndbtuple *nt;
-	char *p;
+	char buf[Ndbvlen];
 
 	if(rattr){
-		p = ndbgetvalue(db, &s, attr, val, rattr, nil);
-		if(p){
-			print("%s\n", p);
-			free(p);
+		t = ndbgetval(db, &s, attr, val, rattr, buf);
+		if(t){
+			print("%s\n", buf);
+			ndbfree(t);
 		}
 		return;
 	}

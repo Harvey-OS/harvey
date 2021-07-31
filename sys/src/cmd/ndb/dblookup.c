@@ -33,13 +33,6 @@ static int	implemented[Tall] =
 	[Ttxt]		1,
 };
 
-static void
-nstrcpy(char *to, char *from, int len)
-{
-	strncpy(to, from, len);
-	to[len-1] = 0;
-}
-
 int
 opendatabase(void)
 {
@@ -160,7 +153,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 	Ndbtuple *t, *nt;
 	RR *rp, *list, **l;
 	Ndbs s;
-	char dname[Domlen];
+	char val[Ndbvlen], dname[Ndbvlen];
 	char *attr;
 	DN *dp;
 	RR *(*f)(Ndbtuple*, Ndbtuple*);
@@ -206,21 +199,21 @@ dblookup1(char *name, int type, int auth, int ttl)
 	/*
 	 *  find a matching entry in the database
 	 */
-	free(ndbgetvalue(db, &s, "dom", name, attr, &t));
+	t = ndbgetval(db, &s, "dom", name, attr, val);
 
 	/*
 	 *  hack for local names
 	 */
 	if(t == 0 && strchr(name, '.') == 0)
-		free(ndbgetvalue(db, &s, "sys", name, attr, &t));
+		t = ndbgetval(db, &s, "sys", name, attr, val);
 	if(t == 0)
 		return nil;
 
 	/* search whole entry for default domain name */
-	strncpy(dname, name, sizeof dname);
+	strncpy(dname, name, Ndbvlen);
 	for(nt = t; nt; nt = nt->entry)
 		if(strcmp(nt->attr, "dom") == 0){
-			nstrcpy(dname, nt->val, sizeof dname);
+			strcpy(dname, nt->val);
 			break;
 		}
 
@@ -246,7 +239,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 	l = &list;
 	for(nt = s.t;; ){
 		if(found == 0 && strcmp(nt->attr, "dom") == 0){
-			nstrcpy(dname, nt->val, sizeof dname);
+			strcpy(dname, nt->val);
 			found = 1;
 		}
 		if(cistrcmp(attr, nt->attr) == 0){

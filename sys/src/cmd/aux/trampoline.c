@@ -212,10 +212,15 @@ iptomac(char *ip, char *net)
 int
 macok(char *mac)
 {
-	char *p;
+	Ndbtuple *tp;
+	char buf[Ndbvlen];
 
 	if(mac == nil)
 		return 0;
-	free(p = csgetvalue("/net", "ether", mac, "trampok", nil));
-	return !(p == nil);
+	tp = csgetval("/net", "ether", mac, "trampok", buf);
+	if(tp == nil)
+		return 0;
+	ndbfree(tp);
+	return 1;
 }
+

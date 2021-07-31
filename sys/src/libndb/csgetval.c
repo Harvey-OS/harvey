@@ -10,19 +10,15 @@
  *
  *  return 0 if not found.
  */
-char*
-csgetvalue(char *netroot, char *attr, char *val, char *rattr, Ndbtuple **pp)
+Ndbtuple*
+csgetvalue(char *netroot, char *attr, char *val, char *rattr, char *buf, int len)
 {
 	Ndbtuple *t, *first, *last;
 	int n, linefound;
 	char line[1024];
 	int fd;
-	int oops = 0;
-	char *rv;
 
-	if(pp)
-		*pp = nil;
-	rv = nil;
+	buf[0] = 0;
 
 	if(netroot)
 		snprint(line, sizeof(line), "%s/cs", netroot);
@@ -39,6 +35,7 @@ csgetvalue(char *netroot, char *attr, char *val, char *rattr, Ndbtuple **pp)
 	}
 	seek(fd, 0, 0);
 
+	werrstr("");
 	first = last = 0;
 	linefound = 0;
 	for(;;){
@@ -61,47 +58,26 @@ csgetvalue(char *netroot, char *attr, char *val, char *rattr, Ndbtuple **pp)
 			last = last->entry;
 
 		for(; t; t = t->entry){
-			if(linefound == 0){
+			if(buf[0] == 0 || linefound == 0)
 				if(strcmp(rattr, t->attr) == 0){
-					linefound = 1;
-					rv = strdup(t->val);
+					strncpy(buf, t->val, len);
+					buf[len-1] = 0;
+					if(strlen(t->val) >= len)
+						werrstr("return value truncated");
 				}
-			}
+			if(linefound == 0)
+				if(strcmp(attr, t->attr) == 0)
+					linefound = 1;
 		}
 	}
 	close(fd);
 
-	if(oops){
-		werrstr("buffer too short");
-		ndbfree(first);
-		return nil;
-	}
-
-	if(pp){
-		setmalloctag(first, getcallerpc(&netroot));
-		*pp = first;
-	} else
-		ndbfree(first);
-
-	return rv;
+	setmalloctag(first, getcallerpc(&netroot));
+	return first;
 }
 
 Ndbtuple*
 csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 {
-	Ndbtuple *t;
-	char *p;
-
-	p = csgetvalue(netroot, attr, val, rattr, &t);
-	if(p == nil){
-		if(buf != nil)
-			*buf = 0;
-	} else {
-		if(buf != nil){
-			strncpy(buf, p, Ndbvlen-1);
-			buf[Ndbvlen-1] = 0;
-		}
-		free(p);
-	}
-	return t;
+	return csgetvalue(netroot, attr, val, rattr, buf, Ndbvlen);
 }

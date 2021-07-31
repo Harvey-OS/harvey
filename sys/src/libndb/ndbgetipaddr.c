@@ -8,9 +8,10 @@
 Ndbtuple*
 ndbgetipaddr(Ndb *db, char *val)
 {
-	char *attr, *p;
+	char *attr;
 	Ndbtuple *it, *first, *last, *next;
 	Ndbs s;
+	char buf[Ndbvlen];
 
 	/* already an IP address? */
 	attr = ipattr(val);
@@ -20,10 +21,9 @@ ndbgetipaddr(Ndb *db, char *val)
 	}
 
 	/* look it up */
-	p = ndbgetvalue(db, &s, attr, val, "ip", &it);
-	if(p == nil)
+	it = ndbgetvalue(db, &s, attr, val, "ip", buf, sizeof(buf));
+	if(it == nil)
 		return nil;
-	free(p);
 
 	/* remove the non-ip entries */
 	first = last = nil;
