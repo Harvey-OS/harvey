@@ -262,5 +262,3 @@ mmudump(void)
 			iprint("lvl2 %lux\n", lvl2->va);
 	}
 }
-
-void checkmmu(ulong, ulong) { }

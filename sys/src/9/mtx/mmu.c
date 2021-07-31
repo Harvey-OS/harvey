@@ -230,5 +230,3 @@ putmmu(ulong va, ulong pa, Page *pg)
 		break;
 	}
 }
-
-void checkmmu(ulong, ulong) { }

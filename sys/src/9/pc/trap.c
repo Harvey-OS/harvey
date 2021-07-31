@@ -571,8 +571,6 @@ unexpected(Ureg* ureg, void*)
 	print("unexpected trap %lud; ignoring\n", ureg->trap);
 }
 
-extern void checkpages(void);
-
 static void
 fault386(Ureg* ureg, void*)
 {
@@ -595,7 +593,6 @@ fault386(Ureg* ureg, void*)
 			dumpregs(ureg);
 			panic("fault: 0x%lux\n", addr);
 		}
-		checkpages();
 		sprint(buf, "sys: trap: fault %s addr=0x%lux",
 			read? "read" : "write", addr);
 		postnote(up, 1, buf, NDebug);

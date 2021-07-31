@@ -504,5 +504,3 @@ peekmmu(ulong va)
 		break;
 	}
 }
-
-void checkmmu(ulong, ulong) { }
