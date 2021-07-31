@@ -70,6 +70,15 @@ lib.$O.a:	$CLIB
 	cd lib
 	mk
 
+all:V:	$DIRS
+
+$DIRS:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk all
+	}
+
 install:V:	installdirs $BIN/status $BIN/enable $BIN/disable
 
 installdirs:V:

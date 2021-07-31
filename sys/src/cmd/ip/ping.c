@@ -168,7 +168,7 @@ sender(int fd, int msglen, int interval, int n)
 }
 
 void
-rcvr(int fd, int msglen, int interval, int nmsg)
+rcvr(int fd, int msglen, int interval, int nmsg, int senderpid)
 {
 	uchar buf[64*1024+512];
 	Icmp *ip;
@@ -231,6 +231,8 @@ main(int argc, char **argv)
 {
 	int fd;
 	int msglen, interval, nmsg;
+	int pid;
+	char err[ERRMAX];
 
 	nsec();		/* make sure time file is already open */
 
@@ -284,11 +286,12 @@ main(int argc, char **argv)
 
 	print("sending %d %d byte messages %d ms apart\n", nmsg, msglen, interval);
 
+	pid = getpid();
 	switch(rfork(RFPROC|RFMEM|RFFDG)){
 	case -1:
 		fprint(2, "%s: can't fork: %r\n", argv0);
 	case 0:
-		rcvr(fd, msglen, interval, nmsg);
+		rcvr(fd, msglen, interval, nmsg, pid);
 		exits(0);
 	default:
 		sender(fd, msglen, interval, nmsg);
