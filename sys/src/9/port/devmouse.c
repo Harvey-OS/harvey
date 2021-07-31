@@ -47,7 +47,6 @@ struct Mouseinfo
 enum
 {
 	CMbuttonmap,
-	CMscrollswap,
 	CMswap,
 	CMwildcard,
 };
@@ -55,7 +54,6 @@ enum
 static Cmdtab mousectlmsg[] =
 {
 	CMbuttonmap,	"buttonmap",	0,
-	CMscrollswap,	"scrollswap",	0,
 	CMswap,		"swap",		1,
 	CMwildcard,	"*",		0,
 };
@@ -89,7 +87,7 @@ static uchar buttonmap[8] = {
 	0, 1, 2, 3, 4, 5, 6, 7,
 };
 static int mouseswap;
-static int scrollswap;
+
 extern	Memimage*	gscreen;
 
 static void
@@ -212,7 +210,7 @@ mouseclose(Chan *c)
 static long
 mouseread(Chan *c, void *va, long n, vlong off)
 {
-	char buf[1+4*12+1];
+	char buf[4*12+1];
 	uchar *p;
 	static int map[8] = {0, 4, 2, 6, 1, 5, 3, 7 };
 	ulong offset = off;
@@ -267,12 +265,7 @@ mouseread(Chan *c, void *va, long n, vlong off)
 		b = buttonmap[m.buttons&7];
 		/* put buttons 4 and 5 back in */
 		b |= m.buttons & (3<<3);
-		if (scrollswap)
-			if (b == 8)
-				b = 16;
-			else if (b == 16)
-				b = 8;
-		sprint(buf, "m%11d %11d %11d %11lud ",
+		sprint(buf, "m%11d %11d %11d %11lud",
 			m.xy.x, m.xy.y,
 			b,
 			m.msec);
@@ -379,10 +372,6 @@ mousewrite(Chan *c, void *va, long n, vlong)
 			else
 				setbuttonmap("321");
 			mouseswap ^= 1;
-			break;
-
-		case CMscrollswap:
-			scrollswap ^= 1;
 			break;
 
 		case CMbuttonmap:

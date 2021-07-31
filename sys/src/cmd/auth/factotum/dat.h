@@ -223,4 +223,3 @@ extern Proto pass;			/* pass.c */
 extern Proto sshrsa;			/* sshrsa.c */
 extern Proto rsa;			/* rsa.c */
 extern Proto wep;			/* wep.c */
-/* extern Proto srs;			/* srs.c */
