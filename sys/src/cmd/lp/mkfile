@@ -1,13 +1,12 @@
 </$objtype/mkfile
 
-TARG=\
-	LOCK \
-	lpdaemon \
-	lpdsend \
+TARG=lpdsend \
 	lpsend \
-	tonet \
+	LOCK \
+	lpdaemon
 
 OFILES=
+
 HFILES=
 
 BIN=/$objtype/bin/aux
@@ -17,8 +16,8 @@ CFLAGS=-Dplan9
 installall:V:	/sys/lib/lp/bin/lpsend.rc
 
 /sys/lib/lp/bin/lpsend.rc:	lpsend.rc
-	cp $prereq $target
-
+	cp $target $prereq
+	
 $O.lpdsend:	lpdsend.$O
 	pcc -o $target lpdsend.$O
 

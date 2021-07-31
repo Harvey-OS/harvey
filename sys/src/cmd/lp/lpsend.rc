@@ -1,13 +1,18 @@
 #!/bin/rc
-# lpsend.rc dialstring - run lpsend network!dialstring!printer
-if (! ~ $DEBUG '')
-	flag x +
-if (! test -e /net/tcp/clone)
-	exit 'no tcp'
+if (! ~ $DEBUG '') { flag x + }
+if (test -e /net/tcp/clone) {
+	dialstring=`{ndb/query sys $1 dom}
+	network=tcp
+	if (~ $#dialstring 0 || ! ~ $dialstring '') {
+		dialstring=$1
+	}
+	if(lpsend $network^!^$dialstring^!printer) exit ''
+	rv='tcp failed'
+}
+if not rv='no tcp'
 
-dialstring=`{ndb/query sys $1 dom}
-if (~ $#dialstring 0 || ~ $dialstring '')	# no dom for sys in ndb?
-	dialstring=$1				# use arg unchanged
 
-lpsend tcp!^$dialstring^!printer
-exit $status
+if (! ~ $dialstring '')
+	exit 'lpsend: no dialstring'
+if not
+	exit 'lpsend: '^$rv
