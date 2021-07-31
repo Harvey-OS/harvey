@@ -31,7 +31,6 @@ misc
 	sdmylex		pci sdscsi
 	sdiahci		pci sdscsi
 #	sdflop
-	sdvirtio	pci sdscsi
 
 port
 	int cpuserver = 1;
