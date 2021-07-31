@@ -7,8 +7,7 @@
 #include	"edf.h"
 #include	<trace.h>
 
-int	coopsched;
-int	schedgain = 30;	/* units in seconds */
+int	coopsched = 1;
 int	nrdy;
 Ref	noteidalloc;
 
@@ -34,11 +33,18 @@ enum
 {
 	Q=10,
 	DQ=4,
-	Scaling=2,
 };
 
 Schedq	runq[Nrq];
 ulong	runvec;
+static int	quanta[Npriq] =
+{
+	Q+19*DQ, Q+18*DQ, Q+17*DQ, Q+16*DQ,
+	Q+15*DQ, Q+14*DQ, Q+13*DQ, Q+12*DQ,
+	Q+11*DQ, Q+10*DQ, Q+ 9*DQ, Q+ 8*DQ,
+	Q+ 7*DQ, Q+ 6*DQ, Q+ 5*DQ, Q+ 4*DQ,
+	Q+ 3*DQ, Q+ 2*DQ, Q+ 1*DQ, Q+ 0*DQ,
+};
 
 char *statename[] =
 {	/* BUG: generate automatically */
@@ -149,7 +155,6 @@ sched(void)
 	}
 	if(p != m->readied)
 		m->schedticks = m->ticks + HZ/10;
-	m->readied = 0;
 	up = p;
 	up->state = Running;
 	up->mach = MACHP(m->machno);
@@ -254,12 +259,12 @@ void
 updatecpu(Proc *p)
 {
 	int n, t, ocpu;
-	int D = schedgain*HZ*Scaling;
+	enum { D = 30*HZ };
 
 	if(p->edf)
 		return;
 
-	t = MACHP(0)->ticks*Scaling + Scaling/2;
+	t = MACHP(0)->ticks;
 	n = t - p->lastupdate;
 	p->lastupdate = t;
 
@@ -424,16 +429,16 @@ void
 yield(void)
 {
 	if(anyready()){
-		/* pretend we just used 1/2 tick */
-		up->lastupdate -= Scaling/2;  
+		/* pretend we just used 10ms */
+		up->lastupdate -= HZ/100;
 		sched();
 	}
 }
 
 /*
- *  recalculate priorities once a second.  We need to do this
- *  since priorities will otherwise only be recalculated when
- *  the running process blocks.
+ * move up any process waiting more than its quanta
+ * called once per clock tick on processor 0.
+ * we reduce this to once per second via blaancetime.
  */
 ulong balancetime;
 
@@ -626,8 +631,12 @@ newproc(void)
 	p->mp = 0;
 	p->wired = 0;
 	procpriority(p, PriNormal, 0);
-	p->cpu = 0;
-	p->lastupdate = MACHP(0)->ticks*Scaling;
+
+	/* a priori, somewhere below interactive but above the cpu hogs */
+	p->cpu = 1000000/(5*MACHP(0)->load+1);
+	if(p->cpu > 1000)
+		p->cpu = 1000;
+	p->priority = reprioritize(p);
 	p->edf = nil;
 
 	return p;
@@ -677,8 +686,10 @@ procpriority(Proc *p, int pri, int fixed)
 	p->basepri = pri;
 	p->priority = pri;
 	if(fixed){
+		// p->quanta = 0xfffff;
 		p->fixedpri = 1;
 	} else {
+		// p->quanta = quanta[pri];
 		p->fixedpri = 0;
 	}
 }

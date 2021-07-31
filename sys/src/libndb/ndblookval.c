@@ -9,18 +9,14 @@
  *  then in the whole entry.
  */
 Ndbtuple*
-ndblookvalue(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to, int len)
+ndblookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 {
 	Ndbtuple *nt;
 
 	/* first look on same line (closer binding) */
-	werrstr("");
 	for(nt = line;;){
 		if(strcmp(attr, nt->attr) == 0){
-			strncpy(to, nt->val, len);
-			to[len-1] = 0;
-			if(strlen(nt->val) >= len)
-				werrstr("return value truncated");
+			strncpy(to, nt->val, Ndbvlen);
 			return nt;
 		}
 		nt = nt->line;
@@ -31,17 +27,8 @@ ndblookvalue(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to, int len)
 	/* search whole tuple */
 	for(nt = entry; nt; nt = nt->entry)
 		if(strcmp(attr, nt->attr) == 0){
-			strncpy(to, nt->val, len);
-			to[len-1] = 0;
-			if(strlen(nt->val) >= len)
-				werrstr("return value truncated");
+			strncpy(to, nt->val, Ndbvlen);
 			return nt;
 		}
 	return 0;
-}
-
-Ndbtuple*
-ndblookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
-{
-	return ndblookvalue(entry, line, attr, to, Ndbvlen);
 }

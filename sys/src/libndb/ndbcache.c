@@ -42,7 +42,12 @@ ndbcopy(Ndb *db, Ndbtuple *from_t, Ndbs *from_s, Ndbs *to_s)
 	first = nil;
 	line = nil;
 	for(; from_t != nil; from_t = from_t->entry){
-		to_t = ndbnew(from_t->attr, from_t->val);
+		to_t = malloc(sizeof *to_t);
+		if(to_t == nil){
+			ndbfree(first);
+			return nil;
+		}
+		*to_t = *from_t;
 
 		/* have s point to matching tuple */
 		if(from_s->t == from_t)

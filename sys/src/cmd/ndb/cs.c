@@ -6,7 +6,6 @@
 #include <ctype.h>
 #include <ndb.h>
 #include <ip.h>
-#include <String.h>
 
 enum
 {
@@ -15,8 +14,6 @@ enum
 	Maxrequest=		128,
 	Maxpath=		128,
 	Maxfdata=		8192,
-	Maxhost=		64,		/* maximum host name size */
-	Maxservice=		64,		/* maximum service name size */
 
 	Qdir=			0,
 	Qcs=			1,
@@ -155,13 +152,12 @@ enum
 	Nil,
 	Nudp,
 	Nicmp,
-	Nicmpv6,
 	Nrudp,
 	Ntelco,
 };
 
 /*
->  *  net doesn't apply to (r)udp, icmp(v6), or telco (for speed)
+ *  net doesn't apply to udp, icmp, or telco (for speed)
  */
 Network network[] = {
 [Nilfast]	{ "il",		iplookup,	iptrans,	0, 1 },
@@ -169,7 +165,6 @@ Network network[] = {
 [Nil]		{ "il",		iplookup,	iptrans,	0, 0 },
 [Nudp]		{ "udp",	iplookup,	iptrans,	1, 0 },
 [Nicmp]		{ "icmp",	iplookup,	iptrans,	1, 0 },
-[Nicmpv6]	{ "icmpv6",	iplookup,	iptrans,	1, 0 },
 [Nrudp]		{ "rudp",	iplookup,	iptrans,	1, 0 },
 [Ntelco]	{ "telco",	telcolookup,	telcotrans,	1, 0 },
 		{ 0 },
@@ -178,21 +173,13 @@ Network network[] = {
 Lock ipifclock;
 Ipifc *ipifcs;
 
-char	eaddr[16];		/* ascii ethernet address */
-char	ipaddr[64];		/* ascii internet address */
+char	eaddr[Ndbvlen];		/* ascii ethernet address */
+char	ipaddr[Ndbvlen];	/* ascii internet address */
 uchar	ipa[IPaddrlen];		/* binary internet address */
-char	*mysysname;
+char	mysysname[Ndbvlen];
 
 Network *netlist;		/* networks ordered by preference */
 Network *last;
-
-static void
-nstrcpy(char *to, char *from, int len)
-{
-	strncpy(to, from, len);
-	to[len-1] = 0;
-}
-
 
 void
 usage(void)
@@ -970,8 +957,9 @@ ipid(void)
 	int f;
 	char buf[Maxpath];
 
+
 	/* use environment, ether addr, or ipaddr to get system name */
-	if(mysysname == 0){
+	if(*mysysname == 0){
 		/*
 		 *  environment has priority.
 		 *
@@ -983,7 +971,7 @@ ipid(void)
 		if(p){
 			attr = ipattr(p);
 			if(strcmp(attr, "ip") != 0)
-				mysysname = strdup(p);
+				strcpy(mysysname, p);
 		}
 
 		/*
@@ -991,11 +979,11 @@ ipid(void)
 		 *  figured out from DHCP.  use that name if
 		 *  there is one. 
 		 */
-		if(mysysname == 0 && netdb != nil){
+		if(*mysysname == 0 && netdb != nil){
 			ndbreopen(netdb);
 			for(tt = t = ndbparse(netdb); t != nil; t = t->entry){
 				if(strcmp(t->attr, "sys") == 0){
-					mysysname = strdup(t->val);
+					strcpy(mysysname, t->val);
 					break;
 				}
 			}
@@ -1003,37 +991,32 @@ ipid(void)
 		}
 
 		/* next network database, ip address, and ether address to find a name */
-		if(mysysname == 0){
+		if(*mysysname == 0){
 			t = nil;
 			if(isvalidip(ipa))
-				t = ndbgetvalue(db, &s, "ip", ipaddr, "sys", nil, 0);
-			if(t == nil){
+				t = ndbgetval(db, &s, "ip", ipaddr, "sys", mysysname);
+			else {
 				for(f = 0; f < 3; f++){
 					snprint(buf, sizeof buf, "%s/ether%d", mntpt, f);
 					if(myetheraddr(addr, buf) >= 0){
 						snprint(eaddr, sizeof(eaddr), "%E", addr);
-						t = ndbgetvalue(db, &s, "ether", eaddr, "sys",
-							nil, 0);
+						t = ndbgetval(db, &s, "ether", eaddr, "sys",
+							mysysname);
 						if(t != nil)
 							break;
 					}
 				}
 			}
-			for(tt = t; tt != nil; tt = tt->entry)
-				if(strcmp(t->attr, "sys") == 0){
-					mysysname = strdup(t->val);
-					break;
-				}
 			ndbfree(t);
 		}
 
 		/* nothing else worked, use the ip address */
-		if(mysysname == 0 && isvalidip(ipa))
-			mysysname = strdup(ipaddr);
+		if(*mysysname == 0 && isvalidip(ipa))
+			strcpy(mysysname, ipaddr);
 					
 
 		/* set /dev/sysname if we now know it */
-		if(mysysname){
+		if(*mysysname){
 			f = open("/dev/sysname", OWRITE);
 			if(f >= 0){
 				write(f, mysysname, strlen(mysysname));
@@ -1088,7 +1071,7 @@ netinit(int background)
 
 	if(debug)
 		syslog(0, logfile, "mysysname %s eaddr %s ipaddr %s ipa %I\n",
-			mysysname?mysysname:"???", eaddr, ipaddr, ipa);
+			mysysname, eaddr, ipaddr, ipa);
 
 	if(background){
 		unlock(&netlock);
@@ -1122,6 +1105,23 @@ netadd(char *p)
 			np->considered = 1;
 		}
 	}
+}
+
+/*
+ *  make a tuple
+ */
+Ndbtuple*
+mktuple(char *attr, char *val)
+{
+	Ndbtuple *t;
+
+	t = emalloc(sizeof(Ndbtuple));
+	strcpy(t->attr, attr);
+	strncpy(t->val, val, sizeof(t->val));
+	t->val[sizeof(t->val)-1] = 0;
+	t->line = t;
+	t->entry = 0;
+	return t;
 }
 
 int
@@ -1195,23 +1195,22 @@ lookup(Mfile *mf)
 	 */
 	if(mf->nreply != 0)
 		return 0;
+
 	/*
 	 *  look for a specific network
 	 */
-	for(np = netlist; np && np->net != nil; np++){
+	for(np = netlist; np->net != nil; np++){
 		if(np->fasttimeouthack)
 			continue;
 		if(strcmp(np->net, mf->net) == 0)
 			break;
 	}
 
-	if(np && np->net != nil){
+	if(np->net != nil){
 		/*
 		 *  known network
 		 */
-syslog(0, logfile, "specific lookup %s", np->net);
 		nt = (*np->lookup)(np, mf->host, mf->serv, 1);
-syslog(0, logfile, "returned %p", nt);
 		for(t = nt; mf->nreply < Nreply && t; t = t->entry){
 			cp = (*np->trans)(t, np, mf->serv, mf->rem, 0);
 			if(cp){
@@ -1246,12 +1245,12 @@ syslog(0, logfile, "returned %p", nt);
  *  the service '*' needs no translation.
  */
 char*
-ipserv(Network *np, char *name, char *buf, int blen)
+ipserv(Network *np, char *name, char *buf)
 {
 	char *p;
 	int alpha = 0;
 	int restr = 0;
-	char port[10];
+	char port[Ndbvlen];
 	Ndbtuple *t, *nt;
 	Ndbs s;
 
@@ -1272,7 +1271,7 @@ ipserv(Network *np, char *name, char *buf, int blen)
 			return 0;
 	}
 	if(alpha){
-		t = ndbgetvalue(db, &s, np->net, name, "port", port, sizeof(port));
+		t = ndbgetval(db, &s, np->net, name, "port", port);
 		if(t == 0)
 			return 0;
 	} else {
@@ -1281,9 +1280,11 @@ ipserv(Network *np, char *name, char *buf, int blen)
 		 */
 		t = nil;
 		if(atoi(name) < 1024 && strcmp(np->net, "tcp") == 0)
-			t = ndbgetvalue(db, &s, "port", name, "port", port, sizeof(port));
-		if(t == nil)
-			nstrcpy(port, name, sizeof(port));
+			t = ndbgetval(db, &s, "port", name, "port", port);
+		if(t == nil){
+			strncpy(port, name, sizeof(port));
+			port[sizeof(port)-1] = 0;
+		}
 	}
 
 	if(t){
@@ -1292,7 +1293,7 @@ ipserv(Network *np, char *name, char *buf, int blen)
 				restr = 1;
 		ndbfree(t);
 	}
-	snprint(buf, blen, "%s%s", port, restr ? "!r" : ""); 
+	sprint(buf, "%s%s", port, restr ? "!r" : ""); 
 	return buf;
 }
 
@@ -1300,7 +1301,7 @@ ipserv(Network *np, char *name, char *buf, int blen)
  *  lookup an ip attribute
  */
 int
-ipattrlookup(Ndb *db, char *ipa, char *attr, char *val, int vlen)
+ipattrlookup(Ndb *db, char *ipa, char *attr, char *val)
 {
 	
 	Ndbtuple *t, *nt;
@@ -1312,7 +1313,7 @@ ipattrlookup(Ndb *db, char *ipa, char *attr, char *val, int vlen)
 		return 0;
 	for(nt = t; nt != nil; nt = nt->entry){
 		if(strcmp(nt->attr, attr) == 0){
-			nstrcpy(val, nt->val, vlen);
+			strcpy(val, nt->val);
 			ndbfree(t);
 			return 1;
 		}
@@ -1332,9 +1333,9 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	char *attr;
 	Ndbtuple *t, *nt;
 	Ndbs s;
-	char ts[Maxservice];
-	char th[Maxhost];
-	char dollar[Maxhost];
+	char ts[Ndbvlen+1];
+	char th[Ndbvlen+1];
+	char dollar[Ndbvlen+1];
 	uchar ip[IPaddrlen];
 	uchar net[IPaddrlen];
 	uchar tnet[IPaddrlen];
@@ -1348,27 +1349,27 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	 *  and costs the least
 	 */
 	werrstr("can't translate address");
-	if(serv==0 || ipserv(np, serv, ts, sizeof ts) == 0){
+	if(serv==0 || ipserv(np, serv, ts) == 0){
 		werrstr("can't translate service");
 		return 0;
 	}
 
 	/* for dial strings with no host */
 	if(strcmp(host, "*") == 0)
-		return ndbnew("ip", "*");
+		return mktuple("ip", "*");
 
 	/*
 	 *  hack till we go v6 :: = 0.0.0.0
 	 */
 	if(strcmp("::", host) == 0)
-		return ndbnew("ip", "*");
+		return mktuple("ip", "*");
 
 	/*
 	 *  '$' means the rest of the name is an attribute that we
 	 *  need to search for
 	 */
 	if(*host == '$'){
-		if(ipattrlookup(db, ipaddr, host+1, dollar, sizeof dollar))
+		if(ipattrlookup(db, ipaddr, host+1, dollar))
 			host = dollar;
 	}
 
@@ -1385,7 +1386,7 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	 */
 	attr = ipattr(host);
 	if(strcmp(attr, "ip") == 0)
-		return ndbnew("ip", host);
+		return mktuple("ip", host);
 
 	/*
 	 *  give the domain name server the first opportunity to
@@ -1396,8 +1397,10 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	if(strcmp(attr, "dom") == 0)
 		t = dnsiplookup(host, &s);
 	if(t == 0)
-		t = ndbgetvalue(db, &s, attr, host, "ip", th, sizeof(th));
+		t = ndbgetval(db, &s, attr, host, "ip", th);
 	if(t == 0)
+		t = dnsiplookup(host, &s);
+	if(t == 0 && strcmp(attr, "dom") != 0)
 		t = dnsiplookup(host, &s);
 	if(t == 0)
 		return 0;
@@ -1439,14 +1442,14 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 char*
 iptrans(Ndbtuple *t, Network *np, char *serv, char *rem, int hack)
 {
-	char ts[Maxservice];
+	char ts[Ndbvlen+1];
 	char reply[Maxreply];
-	char x[Maxservice];
+	char x[Ndbvlen+1];
 
 	if(strcmp(t->attr, "ip") != 0)
 		return 0;
 
-	if(serv == 0 || ipserv(np, serv, ts, sizeof ts) == 0){
+	if(serv == 0 || ipserv(np, serv, ts) == 0){
 		werrstr("can't translate service");
 		return 0;
 	}
@@ -1473,14 +1476,14 @@ telcolookup(Network *np, char *host, char *serv, int nolookup)
 {
 	Ndbtuple *t;
 	Ndbs s;
-	char th[Maxhost];
+	char th[Ndbvlen+1];
 
 	USED(np, nolookup, serv);
 
 	werrstr("can't translate address");
-	t = ndbgetvalue(db, &s, "sys", host, "telco", th, sizeof(th));
+	t = ndbgetval(db, &s, "sys", host, "telco", th);
 	if(t == 0)
-		return ndbnew("telco", host);
+		return mktuple("telco", host);
 
 	return reorder(t, s.t);
 }
@@ -1492,7 +1495,7 @@ char*
 telcotrans(Ndbtuple *t, Network *np, char *serv, char *rem, int)
 {
 	char reply[Maxreply];
-	char x[Maxservice];
+	char x[Ndbvlen+1];
 
 	if(strcmp(t->attr, "telco") != 0)
 		return 0;
@@ -1568,7 +1571,7 @@ slave(void)
 Ndbtuple*
 dnsiplookup(char *host, Ndbs *s)
 {
-	char buf[Maxreply];
+	char buf[Ndbvlen + 4];
 	Ndbtuple *t;
 
 	unlock(&dblock);
@@ -1620,23 +1623,23 @@ qmatch(Ndbtuple *t, char **attr, char **val, int n)
 void
 qreply(Mfile *mf, Ndbtuple *t)
 {
+	int i;
 	Ndbtuple *nt;
-	String *s;
+	char buf[2048];
 
-	s = s_new();
+	buf[0] = 0;
 	for(nt = t; mf->nreply < Nreply && nt; nt = nt->entry){
-		s_append(s, nt->attr);
-		s_append(s, "=");
-		s_append(s, nt->val);
-
-		if(nt->line != nt->entry){
-			mf->replylen[mf->nreply] = s_len(s);
-			mf->reply[mf->nreply++] = strdup(s_to_c(s));
-			s_restart(s);
+		strcat(buf, nt->attr);
+		strcat(buf, "=");
+		strcat(buf, nt->val);
+		i = strlen(buf);
+		if(nt->line != nt->entry || sizeof(buf) - i < 2*Ndbvlen+2){
+			mf->replylen[mf->nreply] = strlen(buf);
+			mf->reply[mf->nreply++] = strdup(buf);
+			buf[0] = 0;
 		} else
-			s_append(s, " ");
+			strcat(buf, " ");
 	}
-	s_free(s);
 }
 
 enum
