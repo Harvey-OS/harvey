@@ -209,13 +209,11 @@ struct Boot {
 };
 
 extern int	debug;
-extern int	debugload;
 extern Apminfo	apm;
 extern char	*defaultpartition;
 extern int	iniread;
 extern int	pxe;
 extern int	vga;
-
 extern int	onlybios0;
 extern int	biosinited;
 extern int	biosload;

@@ -1,59 +1,42 @@
 #!/bin/rc
-# usbfat: [disk [mtpt]] - mount a USB disk's MS FAT file system
+# usbfat: [-fl] [disk [mtpt]] - mount a USB disk's MS FAT file system
 rfork e
-disk = ()
+opts=()
+while (! ~ $#* 0 && ~ $1 -*) {
+	switch ($1) {
+	case -f -l -lf -fl
+		opts=($opts $1)
+	case -*
+		echo usage: $0 '[-fl] [disk [mtpt]]' >[1=2]
+		exit usage
+	}
+	shift
+}
+disk = /n/disk/0/data
 mtpt = /n/usb
 
-test -e /dev/usb || bind -a '#u' /dev || {
-	echo no '#u/usb' >[1=2]
-	exit nousb
-}
-test -e /dev/usbdctl || mount -a /srv/usb /dev || {
-	echo cannot mount /srv/usb >[1=2]
-	exit nousbd
-}
-
-disks=()
-mtpt=()
 switch ($#*) {
 case 0
 	;
 case 1
-	disks = $1
+	disk = $1
 case 2
-	disks = $1
+	disk = $1
 	mtpt = $2
 case *
-	echo usage: $0 ' [disk [mtpt]]' >[1=2]
+	echo usage: $0 '[-fl] [disk [mtpt]]' >[1=2]
 	exit usage
 }
 
-if (~ $#disks 0){
-	if(! test -e /dev/sdU*/data){
-		echo no usb disks >[1=2]
-		exit nodisk
-	}
-	disks = `{echo /dev/sdU*/data}
-}
-for(d in $disks){
-	if(~ $d sdU*.[0-9]*)
-		d=/dev/$d/data
-	if(test -e $d){
-		name=`{echo $d | sed 's/.*(sdU[0-9]+\.[0-9]+).*/\1/'}
-		if(~ $#mtpt 0)
-			mnt=/n/$name
-		if not
-			mnt=$mtpt
-		# don't mount it if it seems to be already mounted.
-		if(! test -e $mnt/*)
-		if(grep -s geometry /dev/$name/ctl){
-			blk = `{disk/fdisk -p $d | awk '/^part dos / {print $3}'}
-			if (! ~ $#blk 0 &&  ~ $blk [0-9]*)
-				d=$d:$blk
-			mount -c <{dossrv -sf $d >[2]/dev/null} $mnt && echo $mnt
-		}
+if (! test -f /srv/usbfat.$user) {
+	if (! test -e $disk)
+		usb/disk $opts || exit 'no disk'
+	blk = `{disk/fdisk -p $disk | awk '/^part dos / {print $3}'}
+	if (~ $#blk 0 || ! ~ $blk [0-9]*) {
+		echo $0: warning: no fdisk dos partition found... >[1=2]
+		dossrv -f $disk usbfat.$user || exit dossrv
 	}
 	if not
-		echo $d does not exist
+		dossrv -f $disk:$blk usbfat.$user || exit dossrv
 }
-exit ''
+mount -c /srv/usbfat.$user $mtpt

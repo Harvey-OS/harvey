@@ -1,0 +1,12 @@
+#!/bin/rc
+# usbprint - bind usb printer endpoint to /dev/lp
+rfork e
+for (id in /dev/usb[0-9]*/[0-9]*)
+	if (grep -s 'Enabled 0x020107' $id/status >[2]/dev/null){
+		echo -n 'ep 2 bulk w 64 32' >$id/ctl
+		aux/stub /dev/lp
+		bind $id/ep2data /dev/lp
+		exit ''
+	}
+echo $0: no usb printer found >[1=2]
+exit 'no printer'

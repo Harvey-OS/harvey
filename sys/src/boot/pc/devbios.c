@@ -140,8 +140,7 @@ biosinit(void)
 		if (lba < 0) {
 			if (devid > 0)
 				continue;
-			if (debugload)
-				print("bios call failed; bios loading disabled\n");	
+			print("bios call failed; bios loading disabled\n");	
 			biosload = 0;
 			return 0;
 		}

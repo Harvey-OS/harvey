@@ -1,8 +1,6 @@
-# tiny kernel used to install from floppy
 dev
 	root
 	cons
-
 	arch
 	pnp		pci
 	env
@@ -34,7 +32,6 @@ dev
 	i82365		cis
 	uart
 #	usb
-#	kbin
 
 link
 	realmode
@@ -56,22 +53,17 @@ link
 	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
-	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
+	etherigbe	pci ethermii
 	ethervt6102	pci ethermii
-#	ethervt6105m	pci ethermii
 #	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
-#	etherm10g
-#	ether82598	pci
 	pcmciamodem
 	netdevmedium
 	loopbackmedium
 #	usbuhci
-#	usbohci
-#	usbehci
 
 misc
 #	archmp		mp apic
@@ -79,7 +71,6 @@ misc
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
-#	sdiahci		pci sdscsi
 
 	uarti8250
 #	uartpci		pci
@@ -113,6 +104,7 @@ ip
 	ipifc
 	icmp
 	icmp6
+#	il
 
 port
 	int cpuserver = 0;
@@ -124,4 +116,3 @@ bootdir
 	bootpcflop.out boot
 	/sys/lib/dist/bin/386/bzfs kfs
 	/sys/lib/dist/pc/root.bz2 bzroot
-#	/386/bin/usb/usbd

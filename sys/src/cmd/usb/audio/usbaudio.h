@@ -19,11 +19,6 @@ enum {
 	Selector_control	= 0x0d,
 
 	sampling_freq_control	= 0x01,
-
-	Audiocsp = 0x000101, /* audio.control.0 */
-
-	AUDIO_INTERFACE = 0x24,
-	AUDIO_ENDPOINT = 0x25,
 };
 
 
@@ -60,19 +55,14 @@ enum {
 	maxpkt_only = 0x80,	/* packets must be padded to max size */
 };
 
-typedef uchar byte;
-
 extern int setrec;
-extern int verbose;
 extern int defaultspeed[2];
-extern Dev *ad;
-extern Dev *buttondev;
+extern Device *ad;
 extern Channel *controlchan;
-extern Dev *epdev[2];
 
-void	audio_interface(Dev *d, Desc *dd);
-void	setalt(Dev *d, int endpt, int value);
-int	getalt(Dev *d, int endpt);
+void	audio_interface(Device *d, int n, ulong csp, void *bb, int nb);
+void	setalt(Device *d, int endpt, int value);
+int	getalt(Device *d, int endpt);
 int	setspeed(int rec, int speed);
 int	setcontrol(int rec, char *name, long *value);
 int	getspecialcontrol(int rec, int ctl, int req, long *value);

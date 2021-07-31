@@ -16,34 +16,6 @@
 #include "usb.h"
 #include "hid.h"
 
-enum
-{
-	Awakemsg=0xdeaddead,
-	Diemsg = 0xbeefbeef,
-};
-
-typedef struct KDev KDev;
-typedef struct Kin Kin;
-
-struct KDev
-{
-	Dev*	dev;		/* usb device*/
-	Dev*	ep;		/* endpoint to get events */
-	Kin*	in;		/* used to send events to kernel */
-	Channel*repeatc;	/* only for keyboard */
-	int	accel;		/* only for mouse */
-};
-
-/*
- * Kbdin and mousein files must be shared among all instances.
- */
-struct Kin
-{
-	int	ref;
-	int	fd;
-	char*	name;
-};
-
 /*
  * Map for the logitech bluetooth mouse with 8 buttons and wheels.
  *	{ ptr ->mouse}
@@ -62,7 +34,7 @@ struct Kin
  * key code to scan code; for the page table used by
  * the logitech bluetooth keyboard.
  */
-static char sctab[256] = 
+char sctab[256] = 
 {
 [0x00]	0x0,	0x0,	0x0,	0x0,	0x1e,	0x30,	0x2e,	0x20,
 [0x08]	0x12,	0x21,	0x22,	0x23,	0x17,	0x24,	0x25,	0x26,
@@ -98,45 +70,61 @@ static char sctab[256] =
 [0xf8]	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,
 };
 
-static QLock inlck;
-static Kin kbdin =
-{
-	.ref = 0,
-	.name = "#Ι/kbin",
-	.fd = -1,
+typedef struct Dev Dev;
+struct Dev {
+	char*	name;		/* debug */
+	void	(*proc)(void*);	/* handler process */
+	int	csp;		/* the csp we want */
+	int	enabled;	/* can we start it? */
+	int	ctlrno;		/* controller number, for probing*/
+	int	id;		/* device id, for probing*/
+	int	ep;		/* endpoint used to get events */
+	int	msz;		/* message size */
+	int	fd;		/* to the endpoint data file */
+	Device*	dev;		/* usb device*/
 };
-static Kin ptrin =
-{
-	.ref = 0,
-	.name = "#m/mousein",
-	.fd = -1,
+
+
+Dev	kf, pf;			/* kbd and pointer drivers*/
+Channel *repeatc;		/* channel to request key repeating*/
+
+void (*dprinter[])(Device *, int, ulong, void *b, int n) = {
+	[STRING] pstring,
+	[DEVICE] pdevice,
+	[HID] phid,
 };
 
-static int kbdebug;
+int	accel;
+int	hdebug;
+int	dryrun;
+int	verbose;
 
-static void
-kbfatal(KDev *kd, char *sts)
+int mainstacksize = 32*1024;
+
+int
+robusthandler(void*, char *s)
 {
-	Dev *dev;
+	if(hdebug)
+		fprint(2, "inthandler: %s\n", s);
+	return (s && (strstr(s, "interrupted")|| strstr(s, "hangup")));
+}
 
-	if(sts != nil)
-		fprint(2, "kd: %s: fatal: %s\n", kd->ep->dir, sts);
-	dev = kd->dev;
-	devctl(dev, "detach");
-	if(kd->repeatc != nil)
-		sendul(kd->repeatc, Diemsg);
-	closedev(kd->ep);
-	kd->ep = nil;
-	kd->dev = nil;
-	closedev(dev);
-	/*
-	 * free(kd); done by closedev.
-	 */
-	threadexits(sts);
+long
+robustread(int fd, void *buf, long sz)
+{
+	long r;
+	char err[ERRMAX];
+
+	do {
+		r = read(fd , buf, sz);
+		if(r < 0)
+			rerrstr(err, sizeof err);
+	} while(r < 0 && robusthandler(nil, err));
+	return r;
 }
 
 static int
-scale(KDev *f, int x)
+scale(int x)
 {
 	int sign = 1;
 
@@ -151,10 +139,10 @@ scale(KDev *f, int x)
 	case 3:
 		break;
 	case 4:
-		x = 6 + (f->accel>>2);
+		x = 6 + (accel>>2);
 		break;
 	case 5:
-		x = 9 + (f->accel>>1);
+		x = 9 + (accel>>1);
 		break;
 	default:
 		x *= MaxAcc;
@@ -163,54 +151,44 @@ scale(KDev *f, int x)
 	return sign*x;
 }
 
-/*
- * ps2 mouse is processed mostly at interrupt time.
- * for usb we do what we can.
- */
-static void
-sethipri(void)
-{
-	char fn[30];
-	int fd;
-
-	snprint(fn, sizeof(fn), "/proc/%d/ctl", getpid());
-	fd = open(fn, OWRITE);
-	if(fd < 0)
-		return;
-	fprint(fd, "pri 13");
-	close(fd);
-}
-
-static void
+void
 ptrwork(void* a)
 {
-	static char maptab[] = {0x0, 0x1, 0x4, 0x5, 0x2, 0x3, 0x6, 0x7};
-	int x, y, b, c, ptrfd;
-	int	mfd;
+	int x, y, b, c, mfd, ptrfd;
 	char	buf[32];
-	char	mbuf[80];
-	KDev*	f = a;
-	int	hipri;
+	Dev*	f = a;
+	static char maptab[] = {0x0, 0x1, 0x4, 0x5, 0x2, 0x3, 0x6, 0x7};
 
-	hipri = 0;
-	ptrfd = f->ep->dfd;
-	mfd = f->in->fd;
-
-	if(f->ep->maxpkt < 3 || f->ep->maxpkt > sizeof buf)
-		kbfatal(f, "weird maxpkt");
+	ptrfd = f->fd;
+	if(ptrfd < 0)
+		return;
+	mfd = -1;
+	if(f->msz < 3 || f->msz > sizeof buf)
+		sysfatal("bug: ptrwork: bad mouse maxpkt");
+	if(!dryrun){
+		mfd = open("#m/mousein", OWRITE);
+		if(mfd < 0)
+			sysfatal("%s: mousein: %r", f->name);
+	}
 	for(;;){
 		memset(buf, 0, sizeof buf);
-		c = read(ptrfd, buf, f->ep->maxpkt);
+		c = robustread(ptrfd, buf, f->msz);
+		if(c == 0)
+			fprint(2, "%s: %s: eof\n", argv0, f->name);
 		if(c < 0)
-			fprint(2, "kb: %s: read: %r\n", f->ep->dir);
-		if(c <= 0)
-			kbfatal(f, nil);
+			fprint(2, "%s: %s: read: %r\n", argv0, f->name);
+		if(c <= 0){
+			if(!dryrun)
+				close(mfd);
+			close(f->fd);
+			threadexits("read");
+		}
 		if(c < 3)
 			continue;
-		if(f->accel){
-			x = scale(f, buf[1]);
-			y = scale(f, buf[2]);
-		}else{
+		if(accel) {
+			x = scale(buf[1]);
+			y = scale(buf[2]);
+		} else {
 			x = buf[1];
 			y = buf[2];
 		}
@@ -219,28 +197,27 @@ ptrwork(void* a)
 			b |= 0x08;
 		if(c > 3 && buf[3] == -1)	/* down */
 			b |= 0x10;
-		if(kbdebug)
-			fprint(2, "%s: ptr: m%11d %11d %11d\n", argv0, x, y, b);
-		seprint(mbuf, mbuf+sizeof(mbuf), "m%11d %11d %11d", x, y,b);
-		if(write(mfd, mbuf, strlen(mbuf)) < 0){
-			fprint(2, "%s: #m/mousein: write: %r", argv0);
-			kbfatal(f, "mousein");
-		}
-		if(hipri == 0){
-			sethipri();
-			hipri = 1;
-		}
+		if(hdebug)
+			fprint(2, "%s: %s: m%11d %11d %11d\n",
+				argv0, f->name, x, y, b);
+		if(!dryrun)
+			if(fprint(mfd, "m%11d %11d %11d", x, y, b) < 0){
+				fprint(2, "%s: #m/mousein: write: %r", argv0);
+				close(mfd);
+				close(f->fd);
+				threadexits("write");
+			}
 	}
 }
 
 static void
-stoprepeat(KDev *f)
+stoprepeat(void)
 {
-	sendul(f->repeatc, Awakemsg);
+	sendul(repeatc, Awakemsg);
 }
 
 static void
-startrepeat(KDev *f, uchar esc1, uchar sc)
+startrepeat(uchar esc1, uchar sc)
 {
 	ulong c;
 
@@ -248,84 +225,76 @@ startrepeat(KDev *f, uchar esc1, uchar sc)
 		c = SCesc1 << 8 | (sc & 0xff);
 	else
 		c = sc;
-	sendul(f->repeatc, c);
+	sendul(repeatc, c);
 }
 
+static int kbinfd = -1;
+
 static void
-putscan(int kbinfd, uchar esc, uchar sc)
+putscan(uchar esc, uchar sc)
 {
-	uchar s[2] = {SCesc1, 0};
+	static uchar s[2] = {SCesc1, 0};
 
 	if(sc == 0x41){
-		kbdebug++;
+		hdebug = 1;
 		return;
 	}
 	if(sc == 0x42){
-		kbdebug = 0;
+		hdebug = 0;
 		return;
 	}
-	if(kbdebug)
+	if(kbinfd < 0 && !dryrun)
+		kbinfd = open("#Ι/kbin", OWRITE);
+	if(kbinfd < 0 && !dryrun)
+		sysfatal("/dev/kbin: %r");
+	if(hdebug)
 		fprint(2, "sc: %x %x\n", (esc? SCesc1: 0), sc);
-	s[1] = sc;
-	if(esc && sc != 0)
-		write(kbinfd, s, 2);
-	else if(sc != 0)
-		write(kbinfd, s+1, 1);
+	if(!dryrun){
+		s[1] = sc;
+		if(esc && sc != 0)
+			write(kbinfd, s, 2);
+		else if(sc != 0)
+			write(kbinfd, s+1, 1);
+	}
 }
 
 static void
-repeatproc(void* a)
+repeatproc(void*)
 {
-	KDev *f;
-	Channel *repeatc;
-	int kbdinfd;
-	ulong l, t, i;
+	ulong l;
 	uchar esc1, sc;
 
-	/*
-	 * too many jumps here.
-	 * Rewrite instead of debug, if needed.
-	 */
-	f = a;
-	repeatc = f->repeatc;
-	kbdinfd = f->in->fd;
-	l = Awakemsg;
-Repeat:
-	if(l == Diemsg)
-		goto Abort;
-	while(l == Awakemsg)
-		l = recvul(repeatc);
-	if(l == Diemsg)
-		goto Abort;
-	esc1 = l >> 8;
-	sc = l;
-	t = 160;
-	for(;;){
-		for(i = 0; i < t; i += 5){
-			if(l = nbrecvul(repeatc))
-				goto Repeat;
-			sleep(5);
-		}
-		putscan(kbdinfd, esc1, sc);
-		t = 30;
-	}
-Abort:
-	chanfree(repeatc);
-	threadexits("aborted");
+	assert(sizeof(int) <= sizeof(void*));
 
+	for(;;){
+		l = recvul(repeatc);		/*  wait for work*/
+		if(l == 0xdeaddead)
+			continue;
+		esc1 = l >> 8;
+		sc = l;
+		for(;;){
+			putscan(esc1, sc);
+			sleep(80);
+			l = nbrecvul(repeatc);
+			if(l != 0){		/*  stop repeating*/
+				if(l != Awakemsg)
+					fprint(2, "kb: race: should be awake mesg\n");
+				break;
+			}
+		}
+	}
 }
 
 
 #define hasesc1(sc)	(((sc) > 0x47) || ((sc) == 0x38))
 
 static void
-putmod(int fd, uchar mods, uchar omods, uchar mask, uchar esc, uchar sc)
+putmod(uchar mods, uchar omods, uchar mask, uchar esc, uchar sc)
 {
-	/* BUG: Should be a single write */
 	if((mods&mask) && !(omods&mask))
-		putscan(fd, esc, sc);
+		putscan(esc, sc);
 	if(!(mods&mask) && (omods&mask))
-		putscan(fd, esc, Keyup|sc);
+		putscan(esc, Keyup|sc);
 }
 
 /*
@@ -336,19 +305,42 @@ putmod(int fd, uchar mods, uchar omods, uchar mask, uchar esc, uchar sc)
  * The aim is to allow future addition of other keycode pages
  * for other keyboards.
  */
-static uchar
-putkeys(KDev *f, uchar buf[], uchar obuf[], int n, uchar dk)
+static void
+putkeys(uchar buf[], uchar obuf[], int n)
 {
 	int i, j;
-	uchar uk;
-	int fd;
+	uchar sc;
+	static int repeating = 0, times = 0;
+	static uchar last = 0;
 
-	fd = f->in->fd;
-	putmod(fd, buf[0], obuf[0], Mctrl, 0, SCctrl);
-	putmod(fd, buf[0], obuf[0], (1<<Mlshift), 0, SClshift);
-	putmod(fd, buf[0], obuf[0], (1<<Mrshift), 0, SCrshift);
-	putmod(fd, buf[0], obuf[0], Mcompose, 0, SCcompose);
-	putmod(fd, buf[0], obuf[0], Maltgr, 1, SCcompose);
+	putmod(buf[0], obuf[0], Mctrl, 0, SCctrl);
+	putmod(buf[0], obuf[0], (1<<Mlshift), 0, SClshift);
+	putmod(buf[0], obuf[0], (1<<Mrshift), 0, SCrshift);
+	putmod(buf[0], obuf[0], Mcompose, 0, SCcompose);
+	putmod(buf[0], obuf[0], Maltgr, 1, SCcompose);
+
+	/*
+	 * If we get three times the same (single) key, we start
+	 * repeating. Otherwise, we stop repeating and
+	 * perform normal processing.
+	 */
+	if(buf[2] != 0 && buf[3] == 0 && buf[2] == last){
+		if(repeating)
+			return;	/* already being done */
+		times++;
+		if(times >= 2){
+			repeating = 1;
+			sc = sctab[buf[2]];
+			startrepeat(hasesc1(sc), sc);
+			return;
+		}
+	} else
+		times = 0;
+	last = buf[2];
+	if(repeating){
+		repeating = 0;
+		stoprepeat();
+	}
 
 	/* Report key downs */
 	for(i = 2; i < n; i++){
@@ -356,28 +348,21 @@ putkeys(KDev *f, uchar buf[], uchar obuf[], int n, uchar dk)
 			if(buf[i] == obuf[j])
 			 	break;
 		if(j == n && buf[i] != 0){
-			dk = sctab[buf[i]];
-			putscan(fd, hasesc1(dk), dk);
-			startrepeat(f, hasesc1(dk), dk);
+			sc = sctab[buf[i]];
+			putscan(hasesc1(sc), sc);
 		}
 	}
 
 	/* Report key ups */
-	uk = 0;
 	for(i = 2; i < n; i++){
 		for(j = 2; j < n; j++)
 			if(obuf[i] == buf[j])
 				break;
 		if(j == n && obuf[i] != 0){
-			uk = sctab[obuf[i]];
-			putscan(fd, hasesc1(uk), uk|Keyup);
+			sc = sctab[obuf[i]];
+			putscan(hasesc1(sc), sc|Keyup);
 		}
 	}
-	if(uk && (dk == 0 || dk == uk)){
-		stoprepeat(f);
-		dk = 0;
-	}
-	return dk;
 }
 
 static int
@@ -391,178 +376,262 @@ kbdbusy(uchar* buf, int n)
 	return 1;
 }
 
-static void
+void
 kbdwork(void *a)
 {
 	int c, i, kbdfd;
 	uchar buf[64], lbuf[64];
-	KDev *f = a;
-	uchar dk;
+	Dev *f = a;
 
-	kbdfd = f->ep->dfd;
-
-	if(f->ep->maxpkt < 3 || f->ep->maxpkt > sizeof buf)
-		kbfatal(f, "weird maxpkt");
-
-	f->repeatc = chancreate(sizeof(ulong), 0);
-	if(f->repeatc == nil)
-		kbfatal(f, "chancreate failed");
-
-	proccreate(repeatproc, f, Stack);
+	kbdfd = f->fd;
+	if(kbdfd < 0)
+		return;
+	if(f->msz < 3 || f->msz > sizeof buf)
+		sysfatal("bug: ptrwork: bad kbd maxpkt");
+	repeatc = chancreate(sizeof(ulong), 0);
+	if(repeatc == nil)
+		sysfatal("repeat chan: %r");
+	proccreate(repeatproc, nil, 32*1024);
 	memset(lbuf, 0, sizeof lbuf);
-	dk = 0;
-	for(;;){
+	for(;;) {
 		memset(buf, 0, sizeof buf);
-		c = read(kbdfd, buf, f->ep->maxpkt);
-		if(c < 0)
-			fprint(2, "%s: %s: read: %r\n", argv0, f->ep->dir);
-		if(c <= 0)
-			kbfatal(f, "eof");
+		c = robustread(kbdfd, buf, f->msz);
+		if(c == 0)
+			fprint(2, "%s: %s: eof\n", argv0, f->name);
+		else if(c < 0)
+			fprint(2, "%s: %s: read: %r\n", argv0, f->name);
+		if(c <= 0){
+			if(!dryrun)
+				close(kbinfd);
+			close(f->fd);
+			threadexits("read");
+		}
 		if(c < 3)
 			continue;
 		if(kbdbusy(buf + 2, c - 2))
 			continue;
-		if(usbdebug > 1 || kbdebug > 1){
+		if(hdebug > 1){
 			fprint(2, "kbd mod %x: ", buf[0]);
 			for(i = 2; i < c; i++)
 				fprint(2, "kc %x ", buf[i]);
 			fprint(2, "\n");
 		}
-		dk = putkeys(f, buf, lbuf, f->ep->maxpkt, dk);
+		putkeys(buf, lbuf, f->msz);
 		memmove(lbuf, buf, c);
 	}
 }
 
 static int
-setbootproto(KDev* f, int eid)
+probeif(Dev* f, int ctlrno, int i, int kcsp, int csp, int, int)
 {
-	int r, id;
+	int found, n, sfd;
+	char buf[256], cspstr[50], kcspstr[50];
 
-	r = Rh2d|Rclass|Riface;
-	id = f->dev->usb->ep[eid]->iface->id;
-	return usbcmd(f->dev, r, Setproto, Bootproto, id, nil, 0);
-}
-
-static void
-freekdev(void *a)
-{
-	KDev *kd;
-
-	kd = a;
-	if(kd->in != nil){
-		qlock(&inlck);
-		if(--kd->in->ref == 0){
-			close(kd->in->fd);
-			kd->in->fd = -1;
-		}
-		qunlock(&inlck);
+	seprint(cspstr, cspstr + sizeof cspstr, "0x%0.06x", csp);
+	seprint(buf, buf + sizeof buf, "/dev/usb%d/%d/status", ctlrno, i);
+	sfd = open(buf, OREAD);
+	if(sfd < 0)
+		return -1;
+	n = read(sfd, buf, sizeof buf - 1);
+	if(n <= 0){
+		close(sfd);
+		return -1;
 	}
-	free(kd);
-}
+	buf[n] = 0;
+	close(sfd);
+	/*
+	 * Mouse + keyboard combos may report the interface as Kbdcsp,
+	 * because it's the endpoint the one with the right csp.
+	 */
+	sprint(cspstr, "Enabled 0x%0.06x", csp);
+	found = (strncmp(buf, cspstr, strlen(cspstr)) == 0);
+	if(!found){
+		sprint(cspstr, " 0x%0.06x", csp);
+		sprint(kcspstr, "Enabled 0x%0.06x", kcsp);
+		if(strncmp(buf, kcspstr, strlen(kcspstr)) == 0 &&
+		   strstr(buf, cspstr) != nil)
+			found = 1;
+	}
+	if(found){
+		f->ctlrno = ctlrno;
+		f->id = i;
+		f->enabled = 1;
+		if(hdebug)
+			fprint(2, "%s: csp 0x%x at /dev/usb%d/%d\n",
+				f->name, csp, f->ctlrno, f->id);
+		return 0;
+	}
+	if(hdebug)
+		fprint(2, "%s: not found %s\n", f->name, cspstr);
+	return -1;
 
-static void
-kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), int accel)
-{
-	KDev *kd;
-
-	qlock(&inlck);
-	if(in->fd < 0){
-		in->fd = open(in->name, OWRITE);
-		if(in->fd < 0){
-			fprint(2, "kb: %s: %r\n", in->name);
-			qunlock(&inlck);
-			return;
-		}
-	}
-	qunlock(&inlck);
-	kd = d->aux;
-	if(kd == nil){
-		kd = d->aux = emallocz(sizeof(KDev), 1);
-		d->free = freekdev;
-		kd->in = in;
-		qlock(&inlck);
-		kd->in->ref++;
-		qunlock(&inlck);
-		kd->dev = d;
-		if(setbootproto(kd, ep->id) < 0){
-			fprint(2, "kb: %s: bootproto: %r\n", d->dir);
-			return;
-		}
-	}
-	kd->accel = accel;
-	kd->ep = openep(d, ep->id);
-	if(kd->ep == nil){
-		fprint(2, "kb: %s: openep %d: %r\n", d->dir, ep->id);
-		return;
-	}
-	if(opendevdata(kd->ep, OREAD) < 0){
-		fprint(2, "kb: %s: opendevdata: %r\n", kd->ep->dir);
-		closedev(kd->ep);
-		kd->ep = nil;
-		return;
-	}
-
-	incref(d);
-	proccreate(f, kd, Stack);
 }
 
 static int
-usage(void)
+probedev(Dev* f, int kcsp, int csp, int vid, int did)
 {
-	werrstr("usage: usb/kb [-dkmn] [-a n]");
+	int c, i;
+
+	for(c = 0; c < 16; c++)
+		if(f->ctlrno == 0 || c == f->ctlrno)
+			for(i = 1; i < 128; i++)
+				if(f->id == 0 || i == f->id)
+				if(probeif(f, c, i, kcsp, csp, vid, did) != -1){
+					f->csp = csp;
+					return 0;
+				}
+	f->enabled = 0;
+	if(hdebug || verbose)
+		fprint(2, "%s: csp 0x%x: not found\n", f->name, csp);
 	return -1;
 }
 
-int
-kbmain(Dev *d, int argc, char* argv[])
+static void
+initdev(Dev* f)
 {
 	int i;
-	int kena;
-	int pena;
-	int accel;
-	char *as;
-	Usbdev *ud;
-	Ep *ep;
 
-	kena = pena = 1;
-	accel = 0;
+	f->dev = opendev(f->ctlrno, f->id);
+	if(f->dev == nil || describedevice(f->dev) < 0) {
+		fprint(2, "init failed: %s: %r\n", f->name);
+		f->enabled = 0;
+		f->ctlrno = f->id = -1;
+		return;
+	}
+	memset(f->dev->config, 0, sizeof f->dev->config);
+	for(i = 0; i < f->dev->nconf; i++){
+		f->dev->config[i] = mallocz(sizeof *f->dev->config[i], 1);
+		loadconfig(f->dev, i);
+	}
+	if(verbose || hdebug){
+		fprint(2, "%s found: ctlrno=%d id=%d\n",
+			f->name, f->ctlrno, f->id);
+//		printdevice(f->dev);	// TODO
+	}
+}
+
+static int
+setbootproto(Dev* f)
+{
+	int r, id;
+	Endpt* ep;
+
+	ep = f->dev->ep[0];
+	r = RH2D | Rclass | Rinterface;
+	id = f->dev->ep[f->ep]->iface->interface;
+	return setupreq(ep, r, SET_PROTO, BOOT_PROTO, id, 0);
+}
+
+static void
+startdev(Dev* f)
+{
+	int i;
+	char buf[128];
+	Endpt* ep;
+
+	f->ep = -1;
+	ep = nil;
+	for(i = 0; i < Nendpt; i++)
+		if((ep = f->dev->ep[i]) != nil &&
+		    ep->csp == f->csp && ep->type == Eintr && ep->dir == Ein){
+			f->ep = i;
+			f->msz = ep->maxpkt;
+			break;
+		}
+	if(ep == nil){
+		fprint(2, "%s: %s: bug: no endpoint\n", argv0, f->name);
+		return;
+	}
+	sprint(buf, "ep %d 10 r %d", f->ep, f->msz);
+	if(hdebug)
+		fprint(2, "%s: %s: ep %d: ctl %s\n", argv0, f->name, f->ep, buf);
+	if(write(f->dev->ctl, buf, strlen(buf)) != strlen(buf)){
+		fprint(2, "%s: %s: startdev: %r\n", argv0, f->name);
+		return;
+	}
+	sprint(buf, "/dev/usb%d/%d/ep%ddata", f->ctlrno, f->id, f->ep);
+	f->fd = open(buf, OREAD);
+	if(f->fd < 0){
+		fprint(2, "%s: opening %s: %s: %r", argv0, f->name, buf);
+		return;
+	}
+	if(setbootproto(f) < 0)
+		fprint(2, "%s: %s: setbootproto: %r\n", argv0, f->name);
+	if(hdebug)
+		fprint(2, "starting %s\n", f->name);
+	proccreate(f->proc, f, 32*1024);
+}
+
+static void
+usage(void)
+{
+	fprint(2, "usage: %s [-dkmn] [-a n] [ctlrno usbport]\n", argv0);
+	threadexitsall("usage");
+}
+
+void
+threadmain(int argc, char **argv)
+{
+
+	quotefmtinstall();
+	usbfmtinit();
+
+	pf.enabled = kf.enabled = 1;
 	ARGBEGIN{
 	case 'a':
-		as = ARGF();
-		if(as == nil)
-			return usage();
-		accel = strtol(as, nil, 0);
+		accel = strtol(EARGF(usage()), nil, 0);
 		break;
 	case 'd':
-		kbdebug++;
+		hdebug++;
+		usbdebug++;
 		break;
 	case 'k':
-		kena = 1;
-		pena = 0;
+		kf.enabled = 1;
+		pf.enabled = 0;
 		break;
 	case 'm':
-		kena = 0;
-		pena = 1;
+		kf.enabled = 0;
+		pf.enabled = 1;
+		break;
+	case 'n':
+		dryrun = 1;
 		break;
 	default:
-		return usage();
+		usage();
 	}ARGEND;
-	if(argc != 0){
-		return usage();
+
+	switch(argc){
+	case 0:
+		break;
+	case 2:
+		pf.ctlrno = kf.ctlrno = atoi(argv[0]);
+		pf.id = kf.id = atoi(argv[1]);
+		break;
+	default:
+		usage();
 	}
-	ud = d->usb;
-	d->aux = nil;
-	dprint(2, "kb: main: dev %s ref %ld\n", d->dir, d->ref);
-	for(i = 0; i < nelem(ud->ep); i++){
-		if((ep = ud->ep[i]) == nil)
-			break;
-		if(kena && ep->type == Eintr && ep->dir == Ein)
-		if(ep->iface->csp == KbdCSP)
-			kbstart(d, ep, &kbdin, kbdwork, accel);
-		if(pena && ep->type == Eintr && ep->dir == Ein)
-		if(ep->iface->csp == PtrCSP)
-			kbstart(d, ep, &ptrin, ptrwork, accel);
-	}
-	closedev(d);
-	return 0;
+	threadnotify(robusthandler, 1);
+
+	kf.name = "kbd";
+	kf.proc = kbdwork;
+	pf.name = "mouse";
+	pf.proc = ptrwork;
+
+	if(kf.enabled)
+		probedev(&kf, KbdCSP, KbdCSP, 0, 0);
+	if(kf.enabled)
+		initdev(&kf);
+	if(pf.enabled)
+		probedev(&pf, KbdCSP, PtrCSP, 0, 0);
+	if(pf.enabled)
+		if(kf.enabled && pf.ctlrno == kf.ctlrno && pf.id == kf.id)
+			pf.dev = kf.dev;
+		else
+			initdev(&pf);
+	rfork(RFNOTEG);
+	if(kf.enabled)
+		startdev(&kf);
+	if(pf.enabled)
+		startdev(&pf);
+	threadexits(nil);
 }

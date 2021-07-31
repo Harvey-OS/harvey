@@ -2,17 +2,14 @@
 
 LIB=usb.a$O
 OFILES=\
-	dev.$O\
-	devs.$O\
+	device.$O\
 	dump.$O\
-	parse.$O\
-	fs.$O\
-	fsdir.$O\
+	fmt.$O\
+	setup.$O\
+	util.$O\
 
 HFILES=\
 	usb.h\
-	usbfs.h\
-
 
 UPDATE=\
 	$HFILES\
@@ -23,7 +20,3 @@ UPDATE=\
 
 install:V:	$LIB
 	date
-nuke:V:
-	rm -f *.[$OS] y.tab.? y.output y.error
-	rm -f $LIB
-	rm -f usbdev.a8

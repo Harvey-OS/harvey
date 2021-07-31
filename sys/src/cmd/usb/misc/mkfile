@@ -1,27 +1,23 @@
 </$objtype/mkfile
 
-TARG=usbaudio
-OFILES=\
-	audiofs.$O\
-	audiosub.$O\
-	usbaudio.$O\
-	usbaudioctl.$O\
+TARG=\
+	usbmouse\
+#	readir\
 
 HFILES=\
-	usbaudio.h\
-	usbaudioctl.h\
 	../lib/usb.h\
+
+LIB=../lib/usb.a$O
 
 UPDATE=\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 	mkfile\
-	/sys/man/3/usb\
-
-LIB=../lib/usb.a$O
+	print\
+	probe\
 
 BIN=/$objtype/bin/usb
-</sys/src/cmd/mkone
+</sys/src/cmd/mkmany
 
 CFLAGS=-I../lib $CFLAGS
 
@@ -29,3 +25,8 @@ $LIB:
 	cd ../lib
 	mk install
 	mk clean
+
+$BIN/print: print
+	cp -x $newprereq $target
+$BIN/probe: probe
+	cp -x $newprereq $target

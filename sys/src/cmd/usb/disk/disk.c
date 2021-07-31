@@ -1,712 +1,1019 @@
 /*
  * usb/disk - usb mass storage file server
- * BUG: supports only the scsi command interface.
- * BUG: This should use /dev/sdfile to
- * use the kernel ether device code.
  */
-
 #include <u.h>
 #include <libc.h>
 #include <ctype.h>
+#include <bio.h>
 #include <fcall.h>
 #include <thread.h>
+#include <9p.h>
 #include "scsireq.h"
 #include "usb.h"
-#include "usbfs.h"
-#include "ums.h"
 
-enum
-{
+/*
+ * mass storage transport protocols and subclasses,
+ * from usb mass storage class specification overview rev 1.2
+ */
+enum {
+	Protocbi =	0,	/* control/bulk/interrupt; mainly floppies */
+	Protocb =	1,	/*   "  with no interrupt; mainly floppies */
+	Protobulk =	0x50,	/* bulk only */
+
+	Subrbc =	1,	/* reduced blk cmds */
+	Subatapi =	2,	/* cd/dvd using sff-8020i or mmc-2 cmd blks */
+	Subqic =	3,	/* QIC-157 tapes */
+	Subufi =	4,	/* floppy */
+	Sub8070 =	5,	/* removable media, atapi-like */
+	Subscsi =	6,	/* scsi transparent cmd set */
+	Subisd200 =	7,	/* ISD200 ATA */
+	Subdev =	0xff,	/* use device's value */
+};
+
+enum {
+	GET_MAX_LUN_T =	RD2H | Rclass | Rinterface,
+	GET_MAX_LUN =	0xFE,
+	UMS_RESET_T =	RH2D | Rclass | Rinterface,
+	UMS_RESET =	0xFF,
+
+	MaxIOsize	= 256*1024,	/* max. I/O size */
+//	Maxlun		= 256,
+	Maxlun		= 32,
+};
+
+#define PATH(type, n)	((type) | (n)<<8)
+#define TYPE(path)	((uchar)(path))
+#define NUM(path)	((uint)(path)>>8)
+
+enum {
 	Qdir = 0,
 	Qctl,
+	Qn,
 	Qraw,
 	Qdata,
-	Qmax,
+
+	CMreset = 1,
+
+	Pcmd = 0,
+	Pdata,
+	Pstatus,
+};
+
+static char *subclass[] = {
+	"?",
+	"rbc",
+	"atapi",
+	"qic tape",
+	"ufi floppy",
+	"8070 removable",
+	"scsi transparent",
+	"isd200 ata",
 };
 
 typedef struct Dirtab Dirtab;
-struct Dirtab
-{
+struct Dirtab {
 	char	*name;
 	int	mode;
 };
-
-static Dirtab dirtab[] =
-{
-	[Qdir]	"/",	DMDIR|0555,
-	[Qctl]	"ctl",	0444,
-	[Qraw]	"raw",	0640,
-	[Qdata]	"data",	0640,
+Dirtab dirtab[] = {
+	".",	DMDIR|0555,
+	"ctl",	0640,
+	nil,	DMDIR|0750,
+	"raw",	0640,
+	"data",	0640,
 };
 
-/*
- * These are used by scuzz scsireq
- */
-int exabyte, force6bytecmds;
+Cmdtab cmdtab[] = {
+	CMreset,	"reset",	1,
+};
+
+/* these are 600 bytes each; ScsiReq is not tiny */
+typedef struct Umsc Umsc;
+struct Umsc {
+	ScsiReq;
+	ulong	blocks;
+	vlong	capacity;
+	uchar 	rawcmd[10];
+	uchar	phase;
+	char	*inq;
+};
+
+typedef struct Ums Ums;
+struct Ums {
+	Umsc	*lun;
+	uchar	maxlun;
+	int	fd2;
+	int	fd;
+	int	setupfd;
+	int	ctlfd;
+	uchar	epin;
+	uchar	epout;
+	char	dev[64];
+};
+
+int exabyte, force6bytecmds, needmaxlun;
+long starttime;
 long maxiosize = MaxIOsize;
 
-static int diskdebug;
+volatile int timedout;
 
-static int
-getmaxlun(Dev *dev)
+char *owner;
+
+static Ums ums;
+static int freakout;		/* flag: if true, drive freaks out if reset */
+
+extern int debug;
+
+static void umsreset(Ums *umsc, int doinit);
+
+/*
+ * USB transparent SCSI devices
+ */
+typedef struct Cbw Cbw;			/* command block wrapper */
+struct Cbw {
+	char	signature[4];		/* "USBC" */
+	long	tag;
+	long	datalen;
+	uchar	flags;
+	uchar	lun;
+	uchar	len;
+	char	command[16];
+};
+
+typedef struct Csw Csw;			/* command status wrapper */
+struct Csw {
+	char	signature[4];		/* "USBS" */
+	long	tag;
+	long	dataresidue;
+	uchar	status;
+};
+
+enum {
+	CbwLen		= 31,
+	CbwDataIn	= 0x80,
+	CbwDataOut	= 0x00,
+	CswLen		= 13,
+	CswOk		= 0,
+	CswFailed	= 1,
+	CswPhaseErr	= 2,
+};
+
+int
+statuscmd(int fd, int type, int req, int value, int index, char *data,
+	int count)
 {
-	uchar max;
-	int r;
+	char *wp;
 
-	max = 0;
-	r = Rd2h|Rclass|Riface;
-	if(usbcmd(dev, r, Getmaxlun, 0, 0, &max, 1) < 0){
-		dprint(2, "disk: %s: getmaxlun failed: %r\n", dev->dir);
-	}else
-		dprint(2, "disk: %s: maxlun %d\n", dev->dir, max);
-	return max;
-}
-
-static int
-umsreset(Ums *ums)
-{
-	int r;
-
-	r = Rh2d|Rclass|Riface;
-	if(usbcmd(ums->dev, r, Umsreset, 0, 0, nil, 0) < 0){
-		fprint(2, "disk: reset: %r\n");
+	wp = emalloc9p(count + 8);
+	wp[0] = type;
+	wp[1] = req;
+	PUT2(wp + 2, value);
+	PUT2(wp + 4, index);
+	PUT2(wp + 6, count);
+	if(data != nil)
+		memmove(wp + 8, data, count);
+	if(write(fd, wp, count + 8) != count + 8){
+		fprint(2, "%s: statuscmd: %r\n", argv0);
 		return -1;
 	}
 	return 0;
 }
 
-static int
-umsrecover(Ums *ums)
+int
+statusread(int fd, char *buf, int count)
 {
-	if(umsreset(ums) < 0)
+	if(read(fd, buf, count) < 0){
+		fprint(2, "%s: statusread: %r\n", argv0);
 		return -1;
-	if(unstall(ums->dev, ums->epin, Ein) < 0)
-		dprint(2, "disk: unstall epin: %r\n");
+	}
+	return 0;
+}
 
-	/* do we need this when epin == epout? */
-	if(unstall(ums->dev, ums->epout, Eout) < 0)
-		dprint(2, "disk: unstall epout: %r\n");
+void
+getmaxlun(Ums *ums)
+{
+	uchar max;
+
+	if(needmaxlun &&
+	    statuscmd(ums->setupfd, GET_MAX_LUN_T, GET_MAX_LUN, 0, 0, nil, 0)
+	    == 0 && statusread(ums->setupfd, (char *)&max, 1) == 0)
+		fprint(2, "%s: maxlun %d\n", argv0, max);	// DEBUG
+	else
+		max = 0;
+	ums->lun = mallocz((max + 1) * sizeof *ums->lun, 1);
+	assert(ums->lun);
+	ums->maxlun = max;
+}
+
+int
+umsinit(Ums *ums, int epin, int epout)
+{
+	uchar data[8], i;
+	char fin[128];
+	Umsc *lun;
+
+	if(ums->ctlfd == -1) {
+		snprint(fin, sizeof fin, "%s/ctl", ums->dev);
+		if((ums->ctlfd = open(fin, OWRITE)) == -1)
+			return -1;
+		if(epin == epout) {
+			if(fprint(ums->ctlfd, "ep %d bulk rw 64 16", epin) < 0)
+				return -1;
+		} else {
+			if(fprint(ums->ctlfd, "ep %d bulk r 64 16", epin) < 0 ||
+			   fprint(ums->ctlfd, "ep %d bulk w 64 16", epout) < 0)
+				return -1;
+		}
+		snprint(fin, sizeof fin, "%s/ep%ddata", ums->dev, epin);
+		if((ums->fd = open(fin, OREAD)) == -1)
+			return -1;
+		snprint(fin, sizeof fin, "%s/ep%ddata", ums->dev, epout);
+		if((ums->fd2 = open(fin, OWRITE)) == -1)
+			return -1;
+		snprint(fin, sizeof fin, "%s/setup", ums->dev);
+		if ((ums->setupfd = open(fin, ORDWR)) == -1)
+			return -1;
+	}
+
+	ums->epin = epin;
+	ums->epout = epout;
+	umsreset(ums, 0);
+	getmaxlun(ums);
+	for(i = 0; i <= ums->maxlun; i++) {
+		lun = &ums->lun[i];
+		lun->lun = i;
+		lun->umsc = lun;			/* pointer to self */
+		lun->flags = Fopen | Fusb | Frw10;
+		if(SRinquiry(lun) == -1)
+			return -1;
+		lun->inq = smprint("%.48s", (char *)lun->inquiry+8);
+		SRstart(lun, 1);
+		if (SRrcapacity(lun, data) == -1 &&
+		    SRrcapacity(lun, data) == -1) {
+			lun->blocks = 0;
+			lun->capacity = 0;
+			lun->lbsize = 0;
+		} else {
+			lun->lbsize = data[4]<<24|data[5]<<16|data[6]<<8|data[7];
+			lun->blocks = data[0]<<24|data[1]<<16|data[2]<<8|data[3];
+			lun->blocks++; /* SRcapacity returns LBA of last block */
+			lun->capacity = (vlong)lun->blocks * lun->lbsize;
+		}
+	}
 	return 0;
 }
 
 static void
-umsfatal(Ums *ums)
+unstall(Ums *ums, int ep)
 {
-	int i;
+	if(fprint(ums->ctlfd, "unstall %d", ep & 0xF) < 0)
+		fprint(2, "ctl write failed\n");
+	if(fprint(ums->ctlfd, "data %d 0", ep & 0xF) < 0)
+		fprint(2, "ctl write failed\n");
 
-	devctl(ums->dev, "detach");
-	for(i = 0; i < ums->maxlun; i++)
-		usbfsdel(&ums->lun[i].fs);
+	statuscmd(ums->setupfd, RH2D | Rstandard | Rendpt, CLEAR_FEATURE, 0,
+		0<<8 | ep, nil, 0);
 }
 
-static int
-umscapacity(Umsc *lun)
+static void
+umsreset(Ums *umsc, int doinit)
 {
-	uchar data[32];
+	if (!freakout)
+		statuscmd(umsc->setupfd, UMS_RESET_T, UMS_RESET, 0, 0, nil, 0);
 
-	lun->blocks = 0;
-	lun->capacity = 0;
-	lun->lbsize = 0;
-	if(SRrcapacity(lun, data) < 0 && SRrcapacity(lun, data)  < 0)
-		return -1;
-	lun->blocks = GETBELONG(data);
-	lun->lbsize = GETBELONG(data+4);
-	if(lun->blocks == 0xFFFFFFFF){
-		if(SRrcapacity16(lun, data) < 0){
-			lun->lbsize = 0;
-			lun->blocks = 0;
-			return -1;
-		}else{
-			lun->lbsize = GETBELONG(data + 8);
-			lun->blocks = (uvlong)GETBELONG(data)<<32 | GETBELONG(data + 4);
-		}
-	}
-	lun->blocks++; /* SRcapacity returns LBA of last block */
-	lun->capacity = (vlong)lun->blocks * lun->lbsize;
-	return 0;
+	unstall(umsc, umsc->epin|0x80);
+	unstall(umsc, umsc->epout);
+	if(doinit && umsinit(&ums, umsc->epin, umsc->epout) < 0)
+		sysfatal("device error");
 }
 
-static int
-umsinit(Ums *ums)
-{
-	uchar i;
-	Umsc *lun;
-	int some;
-
-	umsreset(ums);
-	ums->maxlun = getmaxlun(ums->dev);
-	ums->lun = mallocz((ums->maxlun+1) * sizeof(*ums->lun), 1);
-	some = 0;
-	for(i = 0; i <= ums->maxlun; i++){
-		lun = &ums->lun[i];
-		lun->ums = ums;
-		lun->umsc = lun;
-		lun->lun = i;
-		lun->flags = Fopen | Fusb | Frw10;
-		if(SRinquiry(lun) < 0 && SRinquiry(lun) < 0)
-			continue;
-		if(lun->inquiry[0] != 0x00){
-			/* not a disk */
-			fprint(2, "%s: lun %d is not a disk (type %#02x)\n",
-				argv0, i, lun->inquiry[0]);
-			continue;
-		}
-		SRstart(lun, 1);
-		/*
-		 * we ignore the device type reported by inquiry.
-		 * Some devices return a wrong value but would still work.
-		 */
-		some++;
-		lun->inq = smprint("%.48s", (char *)lun->inquiry+8);
-		umscapacity(lun);
-	}
-	if(some == 0){
-		devctl(ums->dev, "detach");
-		return -1;
-	}
-	return 0;
-}
-
-
-/*
- * called by SR*() commands provided by scuzz's scsireq
- */
 long
 umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	Cbw cbw;
 	Csw csw;
 	int n;
-	Ums *ums;
-
-	ums = umsc->ums;
+	static int seq = 0;
 
 	memcpy(cbw.signature, "USBC", 4);
-	cbw.tag = ++ums->seq;
+	cbw.tag = ++seq;
 	cbw.datalen = data->count;
 	cbw.flags = data->write? CbwDataOut: CbwDataIn;
 	cbw.lun = umsc->lun;
-	if(cmd->count < 1 || cmd->count > 16)
-		print("%s: umsrequest: bad cmd count: %ld\n", argv0, cmd->count);
-	
 	cbw.len = cmd->count;
-	assert(cmd->count <= sizeof(cbw.command));
 	memcpy(cbw.command, cmd->p, cmd->count);
 	memset(cbw.command + cmd->count, 0, sizeof(cbw.command) - cmd->count);
 
-	werrstr("");		/* we use %r later even for n == 0 */
-
-	if(diskdebug){
-		fprint(2, "disk: cmd: tag %#lx: ", cbw.tag);
-		for(n = 0; n < cbw.len; n++)
+	if(debug) {
+		fprint(2, "cmd:");
+		for (n = 0; n < cbw.len; n++)
 			fprint(2, " %2.2x", cbw.command[n]&0xFF);
 		fprint(2, " datalen: %ld\n", cbw.datalen);
 	}
-	if(write(ums->epout->dfd, &cbw, CbwLen) != CbwLen){
-		fprint(2, "disk: cmd: %r\n");
-		goto Fail;
+	if(write(ums.fd2, &cbw, CbwLen) != CbwLen){
+		fprint(2, "usbscsi: write cmd: %r\n");
+		goto reset;
 	}
-	if(data->count != 0){
+	if(data->count != 0) {
 		if(data->write)
-			n = write(ums->epout->dfd, data->p, data->count);
-		else{
-			memset(data->p, data->count, 0);
-			n = read(ums->epin->dfd, data->p, data->count);
-		}
-		if(diskdebug)
-			if(n < 0)
-				fprint(2, "disk: data: %r\n");
+			n = write(ums.fd2, data->p, data->count);
+		else
+			n = read(ums.fd, data->p, data->count);
+		if(n == -1){
+			if(debug)
+				fprint(2, "usbscsi: data %sput: %r\n",
+					data->write? "out": "in");
+			if(data->write)
+				unstall(&ums, ums.epout);
 			else
-				fprint(2, "disk: data: %d bytes\n", n);
-		if(n <= 0)
-			if(data->write == 0)
-				unstall(ums->dev, ums->epin, Ein);
+				unstall(&ums, ums.epin | 0x80);
+		}
 	}
-	n = read(ums->epin->dfd, &csw, CswLen);
-	if(n <= 0){
-		/* n == 0 means "stalled" */
-		unstall(ums->dev, ums->epin, Ein);
-		n = read(ums->epin->dfd, &csw, CswLen);
+	n = read(ums.fd, &csw, CswLen);
+	if(n == -1){
+		unstall(&ums, ums.epin | 0x80);
+		n = read(ums.fd, &csw, CswLen);
 	}
 	if(n != CswLen || strncmp(csw.signature, "USBS", 4) != 0){
-		dprint(2, "disk: read n=%d: status: %r\n", n);
-		goto Fail;
+		fprint(2, "usbscsi: read status: %r\n");
+		goto reset;
 	}
-	if(csw.tag != cbw.tag){
-		dprint(2, "disk: status tag mismatch\n");
-		goto Fail;
+	if(csw.tag != cbw.tag) {
+		fprint(2, "usbscsi: status tag mismatch\n");
+		goto reset;
 	}
 	if(csw.status >= CswPhaseErr){
-		dprint(2, "disk: phase error\n");
-		goto Fail;
+		fprint(2, "usbscsi: phase error\n");
+		goto reset;
 	}
-	if(diskdebug){
+	if(debug) {
 		fprint(2, "status: %2.2ux residue: %ld\n",
 			csw.status, csw.dataresidue);
-		if(cbw.command[0] == ScmdRsense){
+		if(cbw.command[0] == ScmdRsense) {
 			fprint(2, "sense data:");
-			for(n = 0; n < data->count - csw.dataresidue; n++)
+			for (n = 0; n < data->count - csw.dataresidue; n++)
 				fprint(2, " %2.2x", data->p[n]);
 			fprint(2, "\n");
 		}
 	}
-	switch(csw.status){
-	case CswOk:
+
+	if(csw.status == CswOk)
 		*status = STok;
-		break;
-	case CswFailed:
+	else
 		*status = STcheck;
-		break;
-	default:
-		dprint(2, "disk: phase error\n");
-		goto Fail;
-	}
-	ums->nerrs = 0;
 	return data->count - csw.dataresidue;
 
-Fail:
+reset:
+	umsreset(&ums, 0);
 	*status = STharderr;
-	if(ums->nerrs++ > 15){
-		fprint(2, "disk: %s: too many errors: device detached\n", ums->dev->dir);
-		umsfatal(ums);
-	}else
-		umsrecover(ums);
 	return -1;
 }
 
-static int
-dwalk(Usbfs *fs, Fid *fid, char *name)
+int
+findendpoints(Device *d, int *epin, int *epout)
 {
-	int i;
-	Qid qid;
+	Endpt *ep;
+	ulong csp;
+	int i, addr, nendpt;
 
-	qid = fid->qid;
-	if((qid.type & QTDIR) == 0){
-		werrstr("walk in non-directory");
+	*epin = *epout = -1;
+	nendpt = 0;
+	if(d->nconf < 1)
 		return -1;
+	for(i=0; i<d->nconf; i++) {
+		if (d->config[i] == nil)
+			d->config[i] = mallocz(sizeof(*d->config[i]),1);
+		loadconfig(d, i);
 	}
+	for(i = 0; i < Nendpt; i++){
+		if((ep = d->ep[i]) == nil)
+			continue;
+		nendpt++;
+		csp = ep->csp;
+		if(!(Class(csp) == CL_STORAGE && (Proto(csp) == 0x50)))
+			continue;
+		if(ep->type == Ebulk) {
+			addr = ep->addr;
+			if (debug)
+				print("findendpoints: bulk; ep->addr %ux\n",
+					ep->addr);
+			if (ep->dir == Eboth || addr&0x80)
+				if(*epin == -1)
+					*epin =  addr&0xF;
+			if (ep->dir == Eboth || !(addr&0x80))
+				if(*epout == -1)
+					*epout = addr&0xF;
+		}
+	}
+	if(nendpt == 0) {
+		if(*epin == -1)
+			*epin = *epout;
+		if(*epout == -1)
+			*epout = *epin;
+	}
+	if (*epin == -1 || *epout == -1)
+		return -1;
+	return 0;
+}
+
+int
+timeoutok(void)
+{
+	if (freakout)
+		return 1;	/* OK; keep trying */
+	else {
+		fprint(2, "%s: no response from device.  unplug and replug "
+			"it and try again with -f\n", argv0);
+		return 0;	/* die */
+	}
+}
+
+int
+notifyf(void *, char *s)
+{
+	if(strcmp(s, "alarm") != 0)
+		return 0;		/* die */
+	if (!timeoutok()) {
+		fprint(2, "%s: timed out\n", argv0);
+		return 0;		/* die */
+	}
+	alarm(120*1000);
+	fprint(2, "%s: resetting alarm\n", argv0);
+	timedout = 1;
+	return 1;			/* keep going */
+}
+
+int
+devokay(int ctlrno, int id)
+{
+	int epin = -1, epout = -1;
+	long time;
+	Device *d;
+	static int beenhere;
+
+	if (!beenhere) {
+		atnotify(notifyf, 1);
+		beenhere = 1;
+	}
+	time = alarm(15*1000);
+	d = opendev(ctlrno, id);
+	if (describedevice(d) < 0) {
+		perror("");
+		closedev(d);
+		alarm(time);
+		return 0;
+	}
+	if (findendpoints(d, &epin, &epout) < 0) {
+		fprint(2, "%s: bad usb configuration for ctlr %d id %d\n",
+			argv0, ctlrno, id);
+		closedev(d);
+		alarm(time);
+		return 0;
+	}
+	closedev(d);
+
+	snprint(ums.dev, sizeof ums.dev, "/dev/usb%d/%d", ctlrno, id);
+	if (umsinit(&ums, epin, epout) < 0) {
+		alarm(time);
+		fprint(2, "%s: initialisation: %r\n", argv0);
+		return 0;
+	}
+	alarm(time);
+	return 1;
+}
+
+static char *
+subclname(int subcl)
+{
+	if ((unsigned)subcl < nelem(subclass))
+		return subclass[subcl];
+	return "**GOK**";		/* traditional */
+}
+
+static int
+scanstatus(int ctlrno, int id)
+{
+	int winner;
+	ulong csp;
+	char *p, *hex;
+	char buf[64];
+	Biobuf *f;
+
+	/* read port status file */
+	sprint(buf, "/dev/usb%d/%d/status", ctlrno, id);
+	f = Bopen(buf, OREAD);
+	if (f == nil)
+		sysfatal("can't open %s: %r", buf);
+	if (debug)
+		fprint(2, "%s: reading %s\n", argv0, buf);
+	winner = 0;
+	while (!winner && (p = Brdline(f, '\n')) != nil) {
+		p[Blinelen(f)-1] = '\0';
+		if (debug && *p == 'E')			/* Enabled? */
+			fprint(2, "%s: %s\n", argv0, p);
+		for (hex = p; *hex != '\0' && *hex != '0'; hex++)
+			continue;
+		csp = atol(hex);
+
+		if (Class(csp) == CL_STORAGE && Proto(csp) == Protobulk) {
+			if (0)
+				fprint(2, "%s: /dev/usb%d/%d: bulk storage "
+					"of subclass %s\n", argv0, ctlrno, id,
+					subclname(Subclass(csp)));
+			switch (Subclass(csp)) {
+			case Subatapi:
+			case Sub8070:
+			case Subscsi:
+				winner++;
+				break;
+			}
+		}
+	}
+	Bterm(f);
+	return winner;
+}
+
+static int
+findums(int *ctlrp, int *idp)
+{
+	int ctlrno, id, winner, devfd, ctlrfd, nctlr, nport;
+	char buf[64];
+	Dir *ctlrs, *cdp, *ports, *pdp;
+
+	*ctlrp = *idp = -1;
+	winner = 0;
+
+	/* walk controllers */
+	devfd = open("/dev", OREAD);
+	if (devfd < 0)
+		sysfatal("can't open /dev: %r");
+	nctlr = dirreadall(devfd, &ctlrs);
+	if (nctlr < 0)
+		sysfatal("can't read /dev: %r");
+	for (cdp = ctlrs; nctlr-- > 0 && !winner; cdp++) {
+		if (strncmp(cdp->name, "usb", 3) != 0)
+			continue;
+		ctlrno = atoi(cdp->name + 3);
+
+		/* walk ports within a controller */
+		snprint(buf, sizeof buf, "/dev/%s", cdp->name);
+		ctlrfd = open(buf, OREAD);
+		if (ctlrfd < 0)
+			sysfatal("can't open %s: %r", buf);
+		nport = dirreadall(ctlrfd, &ports);
+		if (nport < 0)
+			sysfatal("can't read %s: %r", buf);
+		for (pdp = ports; nport-- > 0 && !winner; pdp++) {
+			if (!isdigit(*pdp->name))
+				continue;
+			id = atoi(pdp->name);
+
+			/* read port status file */
+			winner = scanstatus(ctlrno, id);
+			if (winner)
+				if (devokay(ctlrno, id)) {
+					*ctlrp = ctlrno;
+					*idp = id;
+				} else
+					winner = 0;
+		}
+		free(ports);
+		close(ctlrfd);
+	}
+	free(ctlrs);
+	close(devfd);
+	if (!winner)
+		return -1;
+	else
+		return 0;
+}
+
+void
+rattach(Req *r)
+{
+	r->ofcall.qid.path = PATH(Qdir, 0);
+	r->ofcall.qid.type = dirtab[Qdir].mode >> 24;
+	r->fid->qid = r->ofcall.qid;
+	respond(r, nil);
+}
+
+char*
+rwalk1(Fid *fid, char *name, Qid *qid)
+{
+	int i, n;
+	char buf[32];
+	ulong path;
+
+	path = fid->qid.path;
+	if(!(fid->qid.type & QTDIR))
+		return "walk in non-directory";
 
 	if(strcmp(name, "..") == 0)
-		return 0;
-
-	for(i = 1; i < nelem(dirtab); i++)
-		if(strcmp(name, dirtab[i].name) == 0){
-			qid.path = i | fs->qid;
-			qid.vers = 0;
-			qid.type = dirtab[i].mode >> 24;
-			fid->qid = qid;
-			return 0;
+		switch(TYPE(path)) {
+		case Qn:
+			qid->path = PATH(Qn, NUM(path));
+			qid->type = dirtab[Qn].mode >> 24;
+			return nil;
+		case Qdir:
+			return nil;
+		default:
+			return "bug in rwalk1";
 		}
-	werrstr(Enotfound);
+
+	for(i = TYPE(path)+1; i < nelem(dirtab); i++) {
+		if(i==Qn){
+			n = atoi(name);
+			snprint(buf, sizeof buf, "%d", n);
+			if(n <= ums.maxlun && strcmp(buf, name) == 0){
+				qid->path = PATH(i, n);
+				qid->type = dirtab[i].mode>>24;
+				return nil;
+			}
+			break;
+		}
+		if(strcmp(name, dirtab[i].name) == 0) {
+			qid->path = PATH(i, NUM(path));
+			qid->type = dirtab[i].mode >> 24;
+			return nil;
+		}
+		if(dirtab[i].mode & DMDIR)
+			break;
+	}
+	return "directory entry not found";
+}
+
+void
+dostat(int path, Dir *d)
+{
+	Dirtab *t;
+
+	memset(d, 0, sizeof(*d));
+	d->uid = estrdup9p(owner);
+	d->gid = estrdup9p(owner);
+	d->qid.path = path;
+	d->atime = d->mtime = starttime;
+	t = &dirtab[TYPE(path)];
+	if(t->name)
+		d->name = estrdup9p(t->name);
+	else {
+		d->name = smprint("%ud", NUM(path));
+		if(d->name == nil)
+			sysfatal("out of memory");
+	}
+	if(TYPE(path) == Qdata)
+		d->length = ums.lun[NUM(path)].capacity;
+	d->qid.type = t->mode >> 24;
+	d->mode = t->mode;
+}
+
+static int
+dirgen(int i, Dir *d, void*)
+{
+	i += Qdir + 1;
+	if(i <= Qn) {
+		dostat(i, d);
+		return 0;
+	}
+	i -= Qn;
+	if(i <= ums.maxlun) {
+		dostat(PATH(Qn, i), d);
+		return 0;
+	}
 	return -1;
 }
 
-static void
-dostat(Usbfs *fs, int path, Dir *d)
-{
-	Dirtab *t;
-	Umsc *lun;
-
-	t = &dirtab[path];
-	d->qid.path = path;
-	d->qid.type = t->mode >> 24;
-	d->mode = t->mode;
-	d->name = t->name;
-	lun = fs->aux;
-	if(path == Qdata)
-		d->length = lun->capacity;
-	else
-		d->length = 0;
-}
-
 static int
-dirgen(Usbfs *fs, Qid, int i, Dir *d, void*)
+lungen(int i, Dir *d, void *aux)
 {
-	i++;	/* skip dir */
-	if(i >= Qmax)
-		return -1;
-	else{
-		dostat(fs, i, d);
-		d->qid.path |= fs->qid;
+	int *c;
+
+	c = aux;
+	i += Qn + 1;
+	if(i <= Qdata){
+		dostat(PATH(i, NUM(*c)), d);
 		return 0;
 	}
+	return -1;
 }
 
-static int
-dstat(Usbfs *fs, Qid qid, Dir *d)
+void
+rstat(Req *r)
 {
-	int path;
-
-	path = qid.path & ~fs->qid;
-	dostat(fs, path, d);
-	d->qid.path |= fs->qid;
-	return 0;
+	dostat((long)r->fid->qid.path, &r->d);
+	respond(r, nil);
 }
 
-static int
-dopen(Usbfs *fs, Fid *fid, int)
+void
+ropen(Req *r)
 {
 	ulong path;
-	Umsc *lun;
 
-	path = fid->qid.path & ~fs->qid;
-	lun = fs->aux;
-	switch(path){
+	path = r->fid->qid.path;
+	switch(TYPE(path)) {
 	case Qraw:
-		lun->phase = Pcmd;
+		ums.lun[NUM(path)].phase = Pcmd;
 		break;
 	}
-	return 0;
+	respond(r, nil);
 }
 
-/*
- * Upon SRread/SRwrite errors we assume the medium may have changed,
- * and ask again for the capacity of the media.
- * BUG: How to proceed to avoid confussing dossrv??
- */
-static long
-dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
+void
+rread(Req *r)
 {
-	long bno, nb, len, off, n;
+	int bno, nb, len, offset, n;
 	ulong path;
-	char buf[1024], *p;
-	char *s;
-	char *e;
+	uchar i;
+	char buf[8192], *p;
 	Umsc *lun;
-	Ums *ums;
-	Qid q;
 
-	q = fid->qid;
-	path = fid->qid.path & ~fs->qid;
-	ums = fs->dev->aux;
-	lun = fs->aux;
-	qlock(ums);
-	switch(path){
+	path = r->fid->qid.path;
+	switch(TYPE(path)) {
 	case Qdir:
-		count = usbdirread(fs, q, data, count, offset, dirgen, nil);
+		dirread9p(r, dirgen, 0);
+		break;
+	case Qn:
+		dirread9p(r, lungen, &path);
 		break;
 	case Qctl:
-		e = buf + sizeof(buf);
-		s = seprint(buf, e, "%s lun %ld: ", fs->dev->dir, lun - &ums->lun[0]);
-		if(lun->flags & Finqok)
-			s = seprint(s, e, "inquiry %s ", lun->inq);
-		if(lun->blocks > 0)
-			s = seprint(s, e, "geometry %llud %ld", lun->blocks,
-				lun->lbsize);
-		s = seprint(s, e, "\n");
-		count = usbreadbuf(data, count, offset, buf, s - buf);
+		n = 0;
+		for(i = 0; i <= ums.maxlun; i++) {
+			lun = &ums.lun[i];
+			n += snprint(buf + n, sizeof buf - n, "%d: ", i);
+			if(lun->flags & Finqok)
+				n += snprint(buf + n, sizeof buf - n,
+					"inquiry %s ", lun->inq);
+			if(lun->blocks > 0)
+				n += snprint(buf + n, sizeof buf - n,
+					"geometry %ld %ld", lun->blocks,
+					lun->lbsize);
+			n += snprint(buf + n, sizeof buf - n, "\n");
+		}
+		readbuf(r, buf, n);
 		break;
 	case Qraw:
-		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
-			qunlock(ums);
-			return -1;
+		lun = &ums.lun[NUM(path)];
+		if(lun->lbsize <= 0) {
+			respond(r, "no media on this lun");
+			return;
 		}
-		switch(lun->phase){
+		switch(lun->phase) {
 		case Pcmd:
-			qunlock(ums);
-			werrstr("phase error");
-			return -1;
+			respond(r, "phase error");
+			return;
 		case Pdata:
-			lun->data.p = (uchar*)data;
-			lun->data.count = count;
+			lun->data.p = (uchar*)r->ofcall.data;
+			lun->data.count = r->ifcall.count;
 			lun->data.write = 0;
-			count = umsrequest(lun,&lun->cmd,&lun->data,&lun->status);
+			n = umsrequest(lun, &lun->cmd, &lun->data, &lun->status);
 			lun->phase = Pstatus;
-			if(count < 0){
-				lun->lbsize = 0;	/* medium may have changed */
-				qunlock(ums);
-				return -1;
+			if (n == -1) {
+				respond(r, "IO error");
+				return;
 			}
+			r->ofcall.count = n;
 			break;
 		case Pstatus:
 			n = snprint(buf, sizeof buf, "%11.0ud ", lun->status);
-			count = usbreadbuf(data, count, 0LL, buf, n);
+			if (r->ifcall.count < n)
+				n = r->ifcall.count;
+			memmove(r->ofcall.data, buf, n);
+			r->ofcall.count = n;
 			lun->phase = Pcmd;
 			break;
 		}
 		break;
 	case Qdata:
-		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
-			qunlock(ums);
-			return -1;
+		lun = &ums.lun[NUM(path)];
+		if(lun->lbsize <= 0) {
+			respond(r, "no media on this lun");
+			return;
 		}
-		bno = offset / lun->lbsize;
-		nb = (offset + count + lun->lbsize - 1) / lun->lbsize - bno;
+		bno = r->ifcall.offset / lun->lbsize;
+		nb = (r->ifcall.offset + r->ifcall.count + lun->lbsize - 1)
+			/ lun->lbsize - bno;
 		if(bno + nb > lun->blocks)
 			nb = lun->blocks - bno;
-		if(bno >= lun->blocks || nb == 0){
-			count = 0;
+		if(bno >= lun->blocks || nb == 0) {
+			r->ofcall.count = 0;
 			break;
 		}
 		if(nb * lun->lbsize > maxiosize)
 			nb = maxiosize / lun->lbsize;
-		p = emallocz(nb * lun->lbsize, 0);	/* could use a static buffer */
-		lun->offset = offset / lun->lbsize;
-		n = SRread(lun, p, nb * lun->lbsize);
-		if(n < 0){
-			free(p);
-			lun->lbsize = 0;	/* medium may have changed */
-			qunlock(ums);
-			return -1;
+		p = malloc(nb * lun->lbsize);
+		if (p == 0) {
+			respond(r, "no mem");
+			return;
 		}
-		len = count;
-		off = offset % lun->lbsize;
-		if(off + len > n)
-			len = n - off;
-		count = len;
-		memmove(data, p + off, len);
+		lun->offset = r->ifcall.offset / lun->lbsize;
+		n = SRread(lun, p, nb * lun->lbsize);
+		if(n == -1) {
+			free(p);
+			respond(r, "IO error");
+			return;
+		}
+		len = r->ifcall.count;
+		offset = r->ifcall.offset % lun->lbsize;
+		if(offset + len > n)
+			len = n - offset;
+		r->ofcall.count = len;
+		memmove(r->ofcall.data, p + offset, len);
 		free(p);
 		break;
 	}
-	qunlock(ums);
-	return count;
+	respond(r, nil);
 }
 
-static long
-dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong offset)
+void
+rwrite(Req *r)
 {
-	int bno, nb, len, off;
+	int n, bno, nb, len, offset;
 	ulong path;
 	char *p;
-	Ums *ums;
+	Cmdbuf *cb;
+	Cmdtab *ct;
 	Umsc *lun;
-	char *data;
 
-	ums = fs->dev->aux;
-	lun = fs->aux;
-	path = fid->qid.path & ~fs->qid;
-	data = buf;
-	qlock(ums);
-	switch(path){
-	default:
-		qunlock(ums);
-		werrstr(Eperm);
-		return -1;
-	case Qraw:
-		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
-			qunlock(ums);
-			return -1;
+	n = r->ifcall.count;
+	r->ofcall.count = 0;
+	path = r->fid->qid.path;
+	switch(TYPE(path)) {
+	case Qctl:
+		cb = parsecmd(r->ifcall.data, n);
+		ct = lookupcmd(cb, cmdtab, nelem(cmdtab));
+		if(ct == 0) {
+			respondcmderror(r, cb, "%r");
+			return;
 		}
-		switch(lun->phase){
+		switch(ct->index) {
+		case CMreset:
+			umsreset(&ums, 1);
+		}
+		break;
+	case Qraw:
+		lun = &ums.lun[NUM(path)];
+		if(lun->lbsize <= 0) {
+			respond(r, "no media on this lun");
+			return;
+		}
+		n = r->ifcall.count;
+		switch(lun->phase) {
 		case Pcmd:
-			if(count != 6 && count != 10){
-				qunlock(ums);
-				werrstr("bad command length");
-				return -1;
+			if(n != 6 && n != 10) {
+				respond(r, "bad command length");
+				return;
 			}
-			memmove(lun->rawcmd, data, count);
+			memmove(lun->rawcmd, r->ifcall.data, n);
 			lun->cmd.p = lun->rawcmd;
-			lun->cmd.count = count;
+			lun->cmd.count = n;
 			lun->cmd.write = 1;
 			lun->phase = Pdata;
 			break;
 		case Pdata:
-			lun->data.p = (uchar*)data;
-			lun->data.count = count;
+			lun->data.p = (uchar*)r->ifcall.data;
+			lun->data.count = n;
 			lun->data.write = 1;
-			count = umsrequest(lun,&lun->cmd,&lun->data,&lun->status);
+			n = umsrequest(lun, &lun->cmd, &lun->data, &lun->status);
 			lun->phase = Pstatus;
-			if(count < 0){
-				lun->lbsize = 0;	/* medium may have changed */
-				qunlock(ums);
-				return -1;
+			if(n == -1) {
+				respond(r, "IO error");
+				return;
 			}
 			break;
 		case Pstatus:
 			lun->phase = Pcmd;
-			qunlock(ums);
-			werrstr("phase error");
-			return -1;
+			respond(r, "phase error");
+			return;
 		}
 		break;
 	case Qdata:
-		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
-			qunlock(ums);
-			return -1;
+		lun = &ums.lun[NUM(path)];
+		if(lun->lbsize <= 0) {
+			respond(r, "no media on this lun");
+			return;
 		}
-		bno = offset / lun->lbsize;
-		nb = (offset + count + lun->lbsize-1) / lun->lbsize - bno;
+		bno = r->ifcall.offset / lun->lbsize;
+		nb = (r->ifcall.offset + r->ifcall.count + lun->lbsize-1)
+			/ lun->lbsize - bno;
 		if(bno + nb > lun->blocks)
 			nb = lun->blocks - bno;
-		if(bno >= lun->blocks || nb == 0){
-			count = 0;
+		if(bno >= lun->blocks || nb == 0) {
+			r->ofcall.count = 0;
 			break;
 		}
 		if(nb * lun->lbsize > maxiosize)
 			nb = maxiosize / lun->lbsize;
-		p = emallocz(nb * lun->lbsize, 0);
-		off = offset % lun->lbsize;
-		len = count;
-		if(off || (len % lun->lbsize) != 0){
-			lun->offset = offset / lun->lbsize;
-			count = SRread(lun, p, nb * lun->lbsize);
-			if(count < 0){
+		p = malloc(nb * lun->lbsize);
+		if(p == 0) {
+			respond(r, "no mem");
+			return;
+		}
+		offset = r->ifcall.offset % lun->lbsize;
+		len = r->ifcall.count;
+		if(offset || (len % lun->lbsize) != 0) {
+			lun->offset = r->ifcall.offset / lun->lbsize;
+			n = SRread(lun, p, nb * lun->lbsize);
+			if(n == -1) {
 				free(p);
-				lun->lbsize = 0;	/* medium may have changed */
-				qunlock(ums);
-				return -1;
+				respond(r, "IO error");
+				return;
 			}
-			if(off + len > count)
-				len = count - off;
+			if(offset + len > n)
+				len = n - offset;
 		}
-		memmove(p+off, data, len);
-		lun->offset = offset / lun->lbsize;
-		count = SRwrite(lun, p, nb * lun->lbsize);
-		if(count < 0){
+		memmove(p+offset, r->ifcall.data, len);
+		lun->offset = r->ifcall.offset / lun->lbsize;
+		n = SRwrite(lun, p, nb * lun->lbsize);
+		if(n == -1) {
 			free(p);
-			lun->lbsize = 0;	/* medium may have changed */
-			qunlock(ums);
-			return -1;
+			respond(r, "IO error");
+			return;
 		}
-		if(off+len > count)
-			len = count - off;
-		count = len;
+		if(offset+len > n)
+			len = n - offset;
+		r->ofcall.count = len;
 		free(p);
 		break;
 	}
-	qunlock(ums);
-	return count;
+	r->ofcall.count = n;
+	respond(r, nil);
 }
 
-int
-findendpoints(Ums *ums)
-{
-	Ep *ep;
-	Usbdev *ud;
-	ulong csp;
-	ulong sc;
-	int i;
-	int epin, epout;
-
-	epin = epout = -1;
-	ud = ums->dev->usb;
-	for(i = 0; i < nelem(ud->ep); i++){
-		if((ep = ud->ep[i]) == nil)
-			continue;
-		csp = ep->iface->csp;
-		sc = Subclass(csp);
-		if(!(Class(csp) == Clstorage && (Proto(csp) == Protobulk)))
-			continue;
-		if(sc != Subatapi && sc != Sub8070 && sc != Subscsi)
-			fprint(2, "disk: subclass %#ulx not supported. trying anyway\n", sc);
-		if(ep->type == Ebulk){
-			if(ep->dir == Eboth || ep->dir == Ein)
-				if(epin == -1)
-					epin =  ep->id;
-			if(ep->dir == Eboth || ep->dir == Eout)
-				if(epout == -1)
-					epout = ep->id;
-		}
-	}
-	dprint(2, "disk: ep ids: in %d out %d\n", epin, epout);
-	if(epin == -1 || epout == -1)
-		return -1;
-	ums->epin = openep(ums->dev, epin);
-	if(ums->epin == nil){
-		fprint(2, "disk: openep %d: %r\n", epin);
-		return -1;
-	}
-	if(epout == epin){
-		incref(ums->epin);
-		ums->epout = ums->epin;
-	}else
-		ums->epout = openep(ums->dev, epout);
-	if(ums->epout == nil){
-		fprint(2, "disk: openep %d: %r\n", epout);
-		closedev(ums->epin);
-		return -1;
-	}
-	if(ums->epin == ums->epout)
-		opendevdata(ums->epin, ORDWR);
-	else{
-		opendevdata(ums->epin, OREAD);
-		opendevdata(ums->epout, OWRITE);
-	}
-	if(ums->epin->dfd < 0 || ums->epout->dfd < 0){
-		fprint(2, "disk: open i/o ep data: %r\n");
-		closedev(ums->epin);
-		closedev(ums->epout);
-		return -1;
-	}
-	dprint(2, "disk: ep in %s out %s\n", ums->epin->dir, ums->epout->dir);
-
-	if(usbdebug > 1 || diskdebug > 2){
-		devctl(ums->epin, "debug 1");
-		devctl(ums->epout, "debug 1");
-		devctl(ums->dev, "debug 1");
-	}
-	return 0;
-}
-
-static int
-usage(void)
-{
-	werrstr("usage: usb/disk [-d]");
-	return -1;
-}
-
-static void
-umsdevfree(void *a)
-{
-	Ums *ums = a;
-
-	if(ums == nil)
-		return;
-	closedev(ums->epin);
-	closedev(ums->epout);
-	ums->epin = ums->epout = nil;
-	free(ums->lun);
-	free(ums);
-}
-
-static Usbfs diskfs = {
-	.walk = dwalk,
-	.open =	 dopen,
-	.read =	 dread,
-	.write = dwrite,
-	.stat =	 dstat,
+Srv usbssrv = {
+	.attach = rattach,
+	.walk1 = rwalk1,
+	.open =	 ropen,
+	.read =	 rread,
+	.write = rwrite,
+	.stat =	 rstat,
 };
 
-int
-diskmain(Dev *dev, int argc, char **argv)
+void (*dprinter[])(Device *, int, ulong, void *b, int n) = {
+	[STRING] pstring,
+	[DEVICE] pdevice,
+};
+
+void
+usage(void)
 {
-	Ums *ums;
-	Umsc *lun;
-	int i;
+	fprint(2, "usage: %s [-Ddfl] [-m mountpoint] [-s srvname] [ctrno id]\n",
+		argv0);
+	exits("usage");
+}
+
+void
+main(int argc, char **argv)
+{
+	int ctlrno, id;
+	char *srvname, *mntname;
+
+	mntname = "/n/disk";
+	srvname = nil;
+	ctlrno = 0;
+	id = 1;
 
 	ARGBEGIN{
 	case 'd':
-		scsidebug(diskdebug);
-		diskdebug++;
+		debug = Dbginfo;
+		break;
+	case 'f':
+		freakout++;
+		break;
+	case 'l':
+		needmaxlun++;
+		break;
+	case 'm':
+		mntname = EARGF(usage());
+		break;
+	case 's':
+		srvname = EARGF(usage());
+		break;
+	case 'D':
+		++chatty9p;
 		break;
 	default:
-		return usage();
+		usage();
 	}ARGEND
-	if(argc != 0)
-		return usage();
 
-	ums = dev->aux = emallocz(sizeof(Ums), 1);
-	ums->maxlun = -1;
-	ums->dev = dev;
-	dev->free = umsdevfree;
-	if(findendpoints(ums) < 0){
-		werrstr("disk: endpoints not found");
-		return -1;
-	}
-	if(umsinit(ums) < 0){
-		dprint(2, "disk: umsinit: %r\n");
-		return -1;
-	}
+	ums.ctlfd = ums.setupfd = ums.fd = ums.fd2 = -1;
+	ums.maxlun = -1;
+	if (argc == 0) {
+		if (findums(&ctlrno, &id) < 0) {
+			sleep(5*1000);
+			if (findums(&ctlrno, &id) < 0)
+				sysfatal("no usb mass storage device found");
+		}
+	} else if (argc == 2 && isdigit(argv[0][0]) && isdigit(argv[1][0])) {
+		ctlrno = atoi(argv[0]);
+		id = atoi(argv[1]);
+		if (!devokay(ctlrno, id))
+			sysfatal("no usable usb mass storage device at %d/%d",
+				ctlrno, id);
+	} else
+		usage();
 
-	for(i = 0; i <= ums->maxlun; i++){
-		lun = &ums->lun[i];
-		lun->fs = diskfs;
-		snprint(lun->fs.name, sizeof(lun->fs.name), "sdU%d.%d", dev->id, i);
-		lun->fs.dev = dev;
-		incref(dev);
-		lun->fs.aux = lun;
-		usbfsadd(&lun->fs);
-	}
-	closedev(dev);
-	return 0;
+	starttime = time(0);
+	owner = getuser();
+
+	postmountsrv(&usbssrv, srvname, mntname, 0);
+	exits(0);
 }
