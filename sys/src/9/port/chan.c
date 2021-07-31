@@ -191,7 +191,6 @@ chandevreset(void)
 {
 	int i;
 
-	todinit();	/* avoid later reentry causing infinite recursion */
 	for(i=0; devtab[i] != nil; i++)
 		devtab[i]->reset();
 }
