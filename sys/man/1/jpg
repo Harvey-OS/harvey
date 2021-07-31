@@ -157,7 +157,8 @@ but force the image to RGB even if it is originally grey-scale.
 .PP
 .I Jpg
 has two extra options used to process the output of the LML
-video card:
+video card (see
+.IR lml (1)):
 .TP
 .B -f
 Merge two adjacent images, which represent the two fields of a video picture,
@@ -222,6 +223,7 @@ space in the image.  The icon file is written to standard output.
 .SH SOURCE
 .B /sys/src/cmd/jpg
 .SH "SEE ALSO"
+.IR lml (1),
 .IR page (1),
 .IR image (6).
 .SH BUGS
