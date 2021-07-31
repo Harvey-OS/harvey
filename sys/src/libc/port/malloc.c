@@ -42,9 +42,9 @@ Pool *imagmem = &sbrkmem;
 static void*
 sbrkalloc(ulong n)
 {
-	ulong *x;
+	long *x;
 
-	n += 2*sizeof(ulong);	/* two longs for us */
+	n += 8;	/* two longs for us */
 	x = sbrk(n);
 	if((int)x == -1)
 		return nil;
@@ -56,7 +56,7 @@ sbrkalloc(ulong n)
 static int
 sbrkmerge(void *x, void *y)
 {
-	ulong *lx, *ly;
+	long *lx, *ly;
 
 	lx = x;
 	if(lx[-1] != 0xDeadBeef)
