@@ -2,7 +2,7 @@
 enum {
 	master_chan		= 0x00,
 	Speed_control		= 0x00,
-	/* Items below are  defined by USB standard: */
+	/* Items below are  defined for feature controls by USB standard: */
 	Mute_control		= 0x01,
 	Volume_control		= 0x02,
 	Bass_control		= 0x03,
@@ -18,6 +18,8 @@ enum {
 	Resolution_control	= 0x0c,
 	Ncontrol,
 	sampling_freq_control	= 0x01,
+	/* Sreaming terminal control by USB standard K.Okamoto */
+	pitch_control	=	0x02,
 };
 
 
@@ -62,8 +64,7 @@ void	audio_interface(Device *d, int n, ulong csp, void *bb, int nb);
 void	setalt(Device *d, int endpt, int value);
 int	getalt(Device *d, int endpt);
 int	setspeed(int rec, int speed);
-int	setcontrol(int rec, char *name, long *value);
-int	getspecialcontrol(int rec, int ctl, int req, long *value);
+int	setcontrol(int rec, char *name, long *value, int unit);
 int	getcontrol(int rec, char *name, long *value);
 int	findalt(int rec, int nchan, int res, int speed);
 void	getcontrols(void);
