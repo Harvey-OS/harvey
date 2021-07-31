@@ -909,8 +909,6 @@ serveraddrs(Query *qp, int nd, int depth)
 	lock(&dnlock);
 	rrfreelist(arp);
 	unlock(&dnlock);
-	if(nd >= Maxdest)		/* dest array is full? */
-		return Maxdest - 1;
 	return nd;
 }
 
@@ -980,7 +978,7 @@ mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
 {
 	int rv = -1, nfd;
 	char *domain;
-	char conndir[NETPATHLEN], net[NETPATHLEN];
+	char conndir[40], net[40];
 	uchar belen[2];
 	NetConnInfo *nci;
 
@@ -1443,7 +1441,7 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, ulong waitms, int inns)
 			/* remove all addrs of responding server from list */
 			for(np = qp->dest; np < qp->curdest; np++)
 				if(np->s == p->s)
-					np->nx = Maxtrans;
+					p->nx = Maxtrans;
 
 			/* free or incorporate RRs in m */
 			rv = procansw(qp, &m, srcip, depth, p);
