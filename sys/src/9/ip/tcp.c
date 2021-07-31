@@ -128,7 +128,6 @@ struct Tcp4hdr
 	uchar	tcplen[2];
 	uchar	tcpsrc[4];
 	uchar	tcpdst[4];
-	/* same as v6 from here on */
 	uchar	tcpsport[2];
 	uchar	tcpdport[2];
 	uchar	tcpseq[4];
@@ -150,7 +149,6 @@ struct Tcp6hdr
 	uchar	ttl;
 	uchar	tcpsrc[IPaddrlen];
 	uchar	tcpdst[IPaddrlen];
-	/* same as v4 from here on */
 	uchar	tcpsport[2];
 	uchar	tcpdport[2];
 	uchar	tcpseq[4];
