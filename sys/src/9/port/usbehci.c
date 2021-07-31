@@ -365,6 +365,7 @@ union Ed
 int ehcidebug = 0;
 
 static Edpool edpool;
+static char Ebug[] = "not yet implemented";
 static char* qhsname[] = { "idle", "install", "run", "done", "close", "FREE" };
 
 Ecapio* ehcidebugcapio;

@@ -437,15 +437,15 @@ enum {
 static int rbtab[] = {
 	0,
 	9014,
-	ETHERMAXTU,
-	ETHERMAXTU,
+	1514,
+	1514,
 	9234,
 	9234,
 	8192,				/* terrible performance above 8k */
-	ETHERMAXTU,
-	ETHERMAXTU,
-	ETHERMAXTU,
-	ETHERMAXTU,
+	1514,
+	1514,
+	1514,
+	1514,
 	9018,
 };
 
@@ -1432,7 +1432,7 @@ i82563detach(Ctlr* ctlr)
 		r += ctlr->pba & 0xffff;
 		r >>= 1;
 		csr32w(ctlr, Pba, r);
-	} else if(ctlr->type == i82573 && ctlr->rbsz > ETHERMAXTU)
+	} else if(ctlr->type == i82573 && ctlr->rbsz > 1514)
 		csr32w(ctlr, Pba, 14);
 	ctlr->pba = csr32r(ctlr, Pba);
 
@@ -1684,13 +1684,7 @@ i82563pci(void)
 		ctlr->port = io;
 		ctlr->pcidev = p;
 		ctlr->type = type;
-		/*
-		 * on the assumption that allowing jumbo packets makes
-		 * the controller much slower (as is true of the 82579),
-		 * never allow jumbos.
-		 */
-		// ctlr->rbsz = rbtab[type];
-		ctlr->rbsz = ETHERMAXTU;
+		ctlr->rbsz = rbtab[type];
 		ctlr->nic = mem;
 
 		if(i82563reset(ctlr)){

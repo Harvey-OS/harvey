@@ -15,6 +15,8 @@
 extern Dev sddevtab;
 extern SDifc* sdifc[];
 
+static char Echange[] = "media or partition has changed";
+
 static char devletters[] = "0123456789"
 	"abcdefghijklmnopqrstuvwxyz"
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ";

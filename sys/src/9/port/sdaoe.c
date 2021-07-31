@@ -13,6 +13,9 @@
 #include "../port/netif.h"
 #include "../port/aoe.h"
 
+extern	char	Echange[];
+extern	char	Enotup[];
+
 #define uprint(...)	snprint(up->genbuf, sizeof up->genbuf, __VA_ARGS__);
 
 enum {
@@ -497,7 +500,7 @@ aoerio(SDreq *r)
 
 	if(waserror()){
 		if(strcmp(up->errstr, Echange) == 0 ||
-		    strcmp(up->errstr, Eaoedown) == 0)
+		    strcmp(up->errstr, Enotup) == 0)
 			unit->sectors = 0;
 		nexterror();
 	}

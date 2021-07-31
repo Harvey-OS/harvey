@@ -73,3 +73,6 @@ typedef struct {
 } Aoeqc;
 
 #define AOEQCSZ		offsetof(Aoeqc, payload[0])
+
+extern char Echange[];
+extern char Enotup[];

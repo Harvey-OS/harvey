@@ -61,6 +61,7 @@ static Ctlr dwc;
 static int debug;
 
 static char Ebadlen[] = "bad usb request length";
+static char Enotconfig[] = "usb endpoint not configured";
 
 static void clog(Ep *ep, Hostchan *hc);
 static void logdump(Ep *ep);
@@ -707,7 +708,7 @@ epopen(Ep *ep)
 		ep->dev->nb, ep->nb, ep->ttype);
 	switch(ep->ttype){
 	case Tnone:
-		error(Enotconf);
+		error(Enotconfig);
 	case Tintr:
 		assert(ep->pollival > 0);
 		/* fall through */

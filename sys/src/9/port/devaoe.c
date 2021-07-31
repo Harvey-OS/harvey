@@ -257,6 +257,9 @@ static int	debug;
 static int	autodiscover	= 1;
 static int	rediscover;
 
+char 	Enotup[] 	= "aoe device is down";
+char	Echange[]	= "media or partition has changed";
+
 static Srb*
 srballoc(ulong sz)
 {
@@ -430,7 +433,7 @@ downdev(Aoedev *d, char *err)
 	f = d->frames;
 	e = f + d->nframes;
 	for(; f < e; f->tag = Tfree, f->srb = nil, f++)
-		frameerror(d, f, Eaoedown);
+		frameerror(d, f, Enotup);
 	d->inprocess = nil;
 	eventlog("%æ: removed; %s\n", d, err);
 }
@@ -942,7 +945,7 @@ aoeopen(Chan *c, int omode)
 		nexterror();
 	}
 	if(!UP(d))
-		error(Eaoedown);
+		error(Enotup);
 	c = devopen(c, omode, 0, 0, aoegen);
 	d->nopen++;
 	poperror();
@@ -1272,11 +1275,11 @@ unitread(Chan *c, void *db, long len, vlong off)
 		return rw(d, Read, db, len, off);
 	case Qconfig:
 		if (!UP(d))
-			error(Eaoedown);
+			error(Enotup);
 		return readmem(off, db, len, d->config, d->nconfig);
 	case Qident:
 		if (!UP(d))
-			error(Eaoedown);
+			error(Enotup);
 		return readmem(off, db, len, d->ident, sizeof d->ident);
 	}
 }
@@ -1391,7 +1394,7 @@ configwrite(Aoedev *d, void *db, long len)
 	Srb *srb;
 
 	if(!UP(d))
-		error(Eaoedown);
+		error(Enotup);
 	if(len > ETHERMAXTU - AOEQCSZ)
 		error(Etoobig);
 	srb = srballoc(len);
@@ -2415,7 +2418,7 @@ removeaoedev(Aoedev *d)
 	d->ndl = 0;
 	qunlock(d);
 	for(i = 0; i < d->nframes; i++)
-		frameerror(d, d->frames+i, Eaoedown);
+		frameerror(d, d->frames+i, Enotup);
 
 	if(p)
 		p->next = d->next;

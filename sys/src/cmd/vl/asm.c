@@ -172,7 +172,7 @@ void
 asmb(void)
 {
 	Prog *p;
-	vlong t, etext;
+	long t, etext;
 	Optab *o;
 
 	if(debug['v'])
@@ -187,7 +187,8 @@ asmb(void)
 			autosize = p->to.offset + 4;
 		}
 		if(p->pc != pc) {
-			diag("phase error %llux sb %llux", p->pc, pc);
+			diag("phase error %lux sb %lux",
+				p->pc, pc);
 			if(!debug['a'])
 				prasm(curp);
 			pc = p->pc;
@@ -444,9 +445,6 @@ asmb(void)
 		break;
 	case 6:
 		break;
-	case 7:
-		elf64(MIPSR4K, little? ELFDATA2LSB: ELFDATA2MSB, 0, nil);
-		break;
 	}
 	cflush();
 }
@@ -601,9 +599,9 @@ putsymb(char *s, int t, long v, int ver)
 void
 asmlc(void)
 {
-	long oldlc, v, s;
-	vlong oldpc;
+	long oldpc, oldlc;
 	Prog *p;
+	long v, s;
 
 	oldpc = INITTEXT;
 	oldlc = 0;
@@ -612,7 +610,8 @@ asmlc(void)
 			if(p->as == ATEXT)
 				curtext = p;
 			if(debug['V'])
-				Bprint(&bso, "%6llux %P\n", p->pc, p);
+				Bprint(&bso, "%6lux %P\n",
+					p->pc, p);
 			continue;
 		}
 		if(debug['V'])
@@ -644,7 +643,8 @@ asmlc(void)
 				else
 					Bprint(&bso, " lc%ld(%d,%ld)\n",
 						s, 0, s);
-				Bprint(&bso, "%6llux %P\n", p->pc, p);
+				Bprint(&bso, "%6lux %P\n",
+					p->pc, p);
 			}
 			lcsize += 5;
 			continue;
@@ -653,13 +653,15 @@ asmlc(void)
 			CPUT(0+s);	/* 1-64 +lc */
 			if(debug['V']) {
 				Bprint(&bso, " lc+%ld(%ld)\n", s, 0+s);
-				Bprint(&bso, "%6llux %P\n", p->pc, p);
+				Bprint(&bso, "%6lux %P\n",
+					p->pc, p);
 			}
 		} else {
 			CPUT(64-s);	/* 65-128 -lc */
 			if(debug['V']) {
 				Bprint(&bso, " lc%ld(%ld)\n", s, 64-s);
-				Bprint(&bso, "%6llux %P\n", p->pc, p);
+				Bprint(&bso, "%6lux %P\n",
+					p->pc, p);
 			}
 		}
 		lcsize++;
@@ -952,7 +954,7 @@ asmout(Prog *p, Optab *o, int aflag)
 			if(o2) {
 				o1 += 1;
 				if(debug['a'])
-					Bprint(&bso, " %.8llux: %.8lux %.8lux%P\n",
+					Bprint(&bso, " %.8lux: %.8lux %.8lux%P\n",
 						p->pc, o1, o2, p);
 				LPUT(o1);
 				LPUT(o2);

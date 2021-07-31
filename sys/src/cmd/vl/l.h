@@ -60,7 +60,7 @@ struct	Prog
 	} u0;
 	Prog*	cond;
 	Prog*	link;
-	vlong	pc;
+	long	pc;
 	long	line;
 	uchar	mark;
 	uchar	optab;
@@ -77,7 +77,7 @@ struct	Sym
 	short	version;
 	short	become;
 	short	frame;
-	vlong	value;
+	long	value;
 	Sym*	link;
 };
 struct	Autom
@@ -187,10 +187,10 @@ EXTERN union
 
 EXTERN	long	HEADR;			/* length of header */
 EXTERN	int	HEADTYPE;		/* type of header */
-EXTERN	vlong	INITDAT;		/* data location */
-EXTERN	vlong	INITRND;		/* data round above text location */
-EXTERN	vlong	INITTEXT;		/* text location */
-EXTERN	vlong	INITTEXTP;		/* text location (physical) */
+EXTERN	long	INITDAT;		/* data location */
+EXTERN	long	INITRND;		/* data round above text location */
+EXTERN	long	INITTEXT;		/* text location */
+EXTERN	long	INITTEXTP;		/* text location (physical) */
 EXTERN	char*	INITENTRY;		/* entry point */
 EXTERN	long	autosize;
 EXTERN	Biobuf	bso;
@@ -231,11 +231,11 @@ EXTERN	long	instoffset;
 EXTERN	Opcross	opcross[10];
 EXTERN	Oprang	oprange[ALAST];
 EXTERN	char*	outfile;
-EXTERN	vlong	pc;
+EXTERN	long	pc;
 EXTERN	uchar	repop[ALAST];
 EXTERN	long	symsize;
 EXTERN	Prog*	textp;
-EXTERN	vlong	textsize;
+EXTERN	long	textsize;
 EXTERN	long	thunk;
 EXTERN	int	version;
 EXTERN	char	xcmp[32][32];
@@ -279,7 +279,7 @@ void	asmb(void);
 void	asmlc(void);
 int	asmout(Prog*, Optab*, int);
 void	asmsym(void);
-vlong	atolwhex(char*);
+long	atolwhex(char*);
 Prog*	brloop(Prog*);
 void	buildop(void);
 void	buildrep(int, int);
@@ -319,7 +319,6 @@ void*	mysbrk(ulong);
 void	names(void);
 void	nocache(Prog*);
 void	noops(void);
-void	nopstat(char*, Count*);
 void	nuxiinit(void);
 void	objfile(char*);
 int	ocmp(const void*, const void*);
@@ -334,7 +333,7 @@ int	pseudo(Prog*);
 void	putsymb(char*, int, long, int);
 long	regoff(Adr*);
 int	relinv(int);
-vlong	rnd(vlong, long);
+long	rnd(long, long);
 void	sched(Prog*, Prog*);
 void	span(void);
 void	strnput(char*, int);
@@ -344,3 +343,4 @@ void	wputl(long);
 void	xdefine(char*, int, long);
 void	xfol(Prog*);
 void	xfol(Prog*);
+void	nopstat(char*, Count*);

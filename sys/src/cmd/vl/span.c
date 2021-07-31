@@ -37,7 +37,7 @@ span(void)
 	Sym *setext, *s;
 	Optab *o;
 	int m, bflag, i;
-	vlong c, otxt, v;
+	long c, otxt, v;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f span\n", cputime());
@@ -154,7 +154,7 @@ span(void)
 	if(INITRND)
 		INITDAT = rnd(c, INITRND);
 	if(debug['v'])
-		Bprint(&bso, "tsize = %llux\n", textsize);
+		Bprint(&bso, "tsize = %lux\n", textsize);
 	Bflush(&bso);
 }
 		

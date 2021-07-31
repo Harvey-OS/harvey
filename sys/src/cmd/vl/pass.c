@@ -22,7 +22,7 @@ dodata(void)
 				s->type, s->name, p);
 		v = p->from.offset + p->reg;
 		if(v > s->value)
-			diag("initialize bounds (%lld): %s\n%P",
+			diag("initialize bounds (%ld): %s\n%P",
 				s->value, s->name, p);
 	}
 
@@ -135,8 +135,7 @@ dodata(void)
 			if(strlen(s->name) >= 10)	/* has loader address */ 
 				sprint(literal, "$%p.%lux", s, p->from.offset);
 			else
-				sprint(literal, "$%s.%d.%lux", s->name,
-					s->version, p->from.offset);
+				sprint(literal, "$%s.%d.%lux", s->name, s->version, p->from.offset);
 		} else {
 			if(p->from.name != D_NONE)
 				continue;
@@ -339,7 +338,7 @@ loop:
 void
 patch(void)
 {
-	vlong c, vexit;
+	long c, vexit;
 	Prog *p, *q;
 	Sym *s;
 	int a;
@@ -379,7 +378,7 @@ patch(void)
 			q = q->link;
 		}
 		if(q == P) {
-			diag("branch out of range %lld\n%P", c, p);
+			diag("branch out of range %ld\n%P", c, p);
 			p->to.type = D_NONE;
 		}
 		p->cond = q;
@@ -450,10 +449,10 @@ brloop(Prog *p)
 	return P;
 }
 
-vlong
+long
 atolwhex(char *s)
 {
-	vlong n;
+	long n;
 	int f;
 
 	n = 0;
@@ -490,8 +489,8 @@ atolwhex(char *s)
 	return n;
 }
 
-vlong
-rnd(vlong v, long r)
+long
+rnd(long v, long r)
 {
 	long c;
 
