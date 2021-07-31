@@ -114,7 +114,7 @@ enum {					/* Tcr */
 	Macv15		= 0x38800000,	/* RTL8100E */
 	Macv25		= 0x28000000,	/* RTL8168D */
 	Macv2c		= 0x2c000000,	/* RTL8168E */
-	Macv34		= 0x2c800000,	/* RTL8168E/8111E */
+	Macv2ca		= 0x2c800000,	/* RTL8111E */
 	Ifg0		= 0x01000000,	/* Interframe Gap 0 */
 	Ifg1		= 0x02000000,	/* Interframe Gap 1 */
 };
@@ -295,10 +295,6 @@ typedef struct Ctlr {
 	int	tcr;			/* transmit configuration register */
 	int	rcr;			/* receive configuration register */
 	int	imr;
-
-//	Watermark wmrb;
-	Watermark wmrd;
-	Watermark wmtd;
 
 	QLock	slock;			/* statistics */
 	Dtcc*	dtcc;
@@ -512,10 +508,8 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 		nexterror();
 	}
 
-	dtcc = ctlr->dtcc;
-	assert(dtcc);
 	csr32w(ctlr, Dtccr+4, 0);
-	csr32w(ctlr, Dtccr, PCIWADDR(dtcc)|Cmd);
+	csr32w(ctlr, Dtccr, PCIWADDR(ctlr->dtcc)|Cmd);
 	for(timeo = 0; timeo < 1000; timeo++){
 		if(!(csr32r(ctlr, Dtccr) & Cmd))
 			break;
@@ -572,10 +566,6 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil)
 		miidumpphy(ctlr->mii, p, e);
-//	p = seprintmark(p, e, &ctlr->wmrb);
-	p = seprintmark(p, e, &ctlr->wmrd);
-	p = seprintmark(p, e, &ctlr->wmtd);
-	USED(p);
 
 	n = readstr(offset, a, n, alloc);
 
@@ -746,7 +736,7 @@ rtl8169init(Ether* edev)
 	case Macv15:
 	case Macv25:
 	case Macv2c:
-	case Macv34:
+	case Macv2ca:
 		break;
 	}
 
@@ -857,10 +847,8 @@ rtl8169attach(Ether* edev)
 			qunlock(&ctlr->alock);
 			error(Enomem);
 		}
+		memset(ctlr->dtcc, 0, sizeof(Dtcc));	/* paranoia */
 		rtl8169init(edev);
-//		initmark(&ctlr->wmrb, Nrb, "rcv bufs unprocessed");
-		initmark(&ctlr->wmrd, Nrd-1, "rcv descrs processed at once");
-		initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
 		ctlr->init = 1;
 	}
 	qunlock(&ctlr->alock);
@@ -965,8 +953,6 @@ rtl8169transmit(Ether* edev)
 		coherence();
 		d->control |= Own|Fs|Ls|((BLEN(bp)<<TxflSHIFT) & TxflMASK);
 
-		/* note size of queue of tds awaiting transmission */
-		notemark(&ctlr->wmtd, (x + Ntd - ctlr->tdh) % Ntd);
 		x = NEXT(x, ctlr->ntd);
 		ctlr->ntq++;
 	}
@@ -984,7 +970,7 @@ static void
 rtl8169receive(Ether* edev)
 {
 	D *d;
-	int rdh, passed;
+	int rdh;
 	Block *bp;
 	Ctlr *ctlr;
 	u32int control;
@@ -992,7 +978,6 @@ rtl8169receive(Ether* edev)
 	ctlr = edev->ctlr;
 
 	rdh = ctlr->rdh;
-	passed = 0;
 	for(;;){
 		d = &ctlr->rd[rdh];
 
@@ -1036,7 +1021,6 @@ rtl8169receive(Ether* edev)
 				break;
 			}
 			etheriq(edev, bp, 1);
-			passed++;
 		}
 		else{
 			if(!(control & Res))
@@ -1052,8 +1036,6 @@ rtl8169receive(Ether* edev)
 		if(ctlr->nrdfree < ctlr->nrd/2)
 			rtl8169replenish(ctlr);
 	}
-	/* note how many rds had full buffers */
-	notemark(&ctlr->wmrd, passed);
 	ctlr->rdh = rdh;
 }
 

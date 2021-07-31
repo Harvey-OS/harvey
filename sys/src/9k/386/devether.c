@@ -148,7 +148,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	ep = &ether->f[Ntypes];
 
 	multi = pkt->d[0] & 1;
-	/* check for valid multicast addresses */
+	/* check for valid multcast addresses */
 	if(multi && memcmp(pkt->d, ether->bcast, sizeof(pkt->d)) != 0 && ether->prom == 0){
 		if(!activemulti(ether, pkt->d, sizeof(pkt->d))){
 			if(fromwire){
@@ -233,8 +233,6 @@ etheroq(Ether* ether, Block* bp)
 	}
 
 	if(!loopback){
-		if(qfull(ether->oq))
-			print("etheroq: WARNING: ether->oq full!\n");
 		qbwrite(ether->oq, bp);
 		if(ether->transmit != nil)
 			ether->transmit(ether);
@@ -268,13 +266,13 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 			return n;
 		}
 		free(cb);
-		if(ether->ctl != nil)
-			return ether->ctl(ether, buf, n);
+		if(ether->ctl!=nil)
+			return ether->ctl(ether,buf,n);
 
 		error(Ebadctl);
 	}
 
-	if(n > ether->mtu)
+	if(n > ether->maxmtu)
 		error(Etoobig);
 	if(n < ether->minmtu)
 		error(Etoosmall);
@@ -311,7 +309,7 @@ etherbwrite(Chan* chan, Block* bp, vlong)
 	}
 	ether = etherxx[chan->devno];
 
-	if(n > ether->mtu){
+	if(n > ether->maxmtu){
 		freeb(bp);
 		error(Etoobig);
 	}
@@ -371,15 +369,12 @@ etherprobe(int cardno, int ctlrno)
 	char buf[128], name[32];
 
 	ether = malloc(sizeof(Ether));
-	if(ether == nil)
-		error(Enomem);
 	memset(ether, 0, sizeof(Ether));
 	ether->ctlrno = ctlrno;
 	ether->tbdf = -1;
 	ether->mbps = 10;
 	ether->minmtu = ETHERMINTU;
 	ether->maxmtu = ETHERMAXTU;
-	ether->mtu = ETHERMAXTU;
 
 	if(cardno < 0){
 		if(isaconfig("ether", ctlrno, ether) == 0){
@@ -426,12 +421,8 @@ etherprobe(int cardno, int ctlrno)
 	if(ether->irq >= 0)
 		intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 
-	i = sprint(buf, "#l%d: %s: ", ctlrno, cards[cardno].type);
-	if(ether->mbps >= 1000)
-		i += sprint(buf+i, "%dGbps", ether->mbps/1000);
-	else
-		i += sprint(buf+i, "%dMbps", ether->mbps);
-	i += sprint(buf+i, " port %#p irq %d", ether->port, ether->irq);
+	i = sprint(buf, "#l%d: %s: %dMbps port %#p irq %d",
+		ctlrno, cards[cardno].type, ether->mbps, ether->port, ether->irq);
 	if(ether->mem)
 		i += sprint(buf+i, " addr %#p", ether->mem);
 	if(ether->size)
@@ -442,15 +433,16 @@ etherprobe(int cardno, int ctlrno)
 	sprint(buf+i, "\n");
 	print(buf);
 
-	if(ether->mbps >= 1000){
+	if (ether->mbps >= 1000) {
 		netifinit(ether, name, Ntypes, 512*1024);
 		if(ether->oq == 0)
 			ether->oq = qopen(512*1024, Qmsg, 0, 0);
-	}else if(ether->mbps >= 100){
+	} else if(ether->mbps >= 100){
 		netifinit(ether, name, Ntypes, 256*1024);
 		if(ether->oq == 0)
 			ether->oq = qopen(256*1024, Qmsg, 0, 0);
-	}else{
+	}
+	else{
 		netifinit(ether, name, Ntypes, 128*1024);
 		if(ether->oq == 0)
 			ether->oq = qopen(128*1024, Qmsg, 0, 0);
@@ -505,7 +497,7 @@ ethershutdown(void)
 		if(ether == nil)
 			continue;
 		if(ether->shutdown == nil) {
-			print("#l%d: no shutdown function\n", i);
+			print("#l%d: no shutdown fuction\n", i);
 			continue;
 		}
 		(*ether->shutdown)(ether);

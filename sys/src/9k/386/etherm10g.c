@@ -1,12 +1,10 @@
 /*
- * myricom 10g-pcie-8a 10 Gb ethernet driver
+ * myricom 10 Gb ethernet driver
  * © 2007 erik quanstrom, coraid
  *
  * the card is big endian.
- * we use uvlong rather than uintptr to hold addresses so that
+ * we use u64int rather than uintptr to hold addresses so that
  * we don't get "warning: stupid shift" on 32-bit architectures.
- *
- * appears to have massively-bloated buffers.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -37,9 +35,9 @@ static char	Etimeout[]	= "timeout";
 
 enum {
 	Epromsz	= 256,
-	Maxslots= 1024,		/* rcv descriptors; wasteful: only 9 needed */
+	Maxslots= 1024,
 	Align	= 4096,
-	Maxmtu	= 9000,		/* jumbos; bad idea */
+	Maxmtu	= 9000,
 	Noconf	= 0xffffffff,
 
 	Fwoffset= 1*MiB,
@@ -100,8 +98,8 @@ typedef union {
 
 typedef ulong Slot;
 typedef struct {
-	ushort	cksum;
-	ushort	len;
+	u16int	cksum;
+	u16int	len;
 } Slotparts;
 
 enum {
@@ -112,10 +110,10 @@ enum {
 };
 
 typedef struct {
-	ulong	high;
-	ulong	low;
-	ushort	hdroff;
-	ushort	len;
+	u32int	high;
+	u32int	low;
+	u16int	hdroff;
+	u16int	len;
 	uchar	pad;
 	uchar	nrdma;
 	uchar	chkoff;
@@ -129,7 +127,7 @@ typedef struct {
 	Block	**bring;
 //	uchar	*wcfifo;	/* what the heck is a w/c fifo? */
 	int	size;		/* of buffers in the z8's memory */
-	ulong	segsz;
+	u32int	segsz;
 	uint	n;		/* rxslots */
 	uint	m;		/* mask; rxslots must be a power of two */
 	uint	i;		/* number of segments (not frames) queued */
@@ -152,7 +150,7 @@ static Bpool	bgpool	= { .size = Maxmtu, };
 
 typedef struct {
 	Bpool	*pool;		/* free buffers */
-	ulong	*lanai;		/* rx ring; we have no permanent host shadow */
+	u32int	*lanai;		/* rx ring; we have no permanent host shadow */
 	Block	**host;		/* called "info" in myricom driver */
 //	uchar	*wcfifo;	/* cmd submission fifo */
 	uint	m;
@@ -187,7 +185,7 @@ enum {
 
 typedef struct {
 	Slot 	*entry;
-	uvlong	busaddr;
+	u64int	busaddr;
 	uint	m;
 	uint	n;
 	uint	i;
@@ -198,7 +196,7 @@ typedef struct Ctlr {
 	QLock;
 	int	state;
 	int	kprocs;
-	uvlong	port;
+	u64int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	int	active;
@@ -209,32 +207,32 @@ typedef struct Ctlr {
 	int	ramsz;
 	uchar	*ram;
 
-	ulong	*irqack;
-	ulong	*irqdeass;
-	ulong	*coal;
+	u32int	*irqack;
+	u32int	*irqdeass;
+	u32int	*coal;
 
 	char	eprom[Epromsz];
 	ulong	serial;		/* unit serial number */
 
 	QLock	cmdl;
 	Cmd	*cmd;		/* address of command return */
-	uvlong	cprt;		/* bus address of command */
+	u64int	cprt;		/* bus address of command */
 
-	uvlong	boot;		/* boot address */
+	u64int	boot;		/* boot address */
 
 	Done	done;
 	Tx	tx;
 	Rx	sm;
 	Rx	bg;
 	Stats	*stats;
-	uvlong	statsprt;
+	u64int	statsprt;
 
 	Rendez	rxrendez;
 	Rendez	txrendez;
 
 	int	msi;
-	ulong	linkstat;
-	ulong	nrdma;
+	u32int	linkstat;
+	u32int	nrdma;
 } Ctlr;
 
 static Ctlr 	*ctlrs;
@@ -306,13 +304,13 @@ pciecap(Pcidev *p, int cap)
 	uint off, i;
 
 	off = 0x100;
-	while(((i = pcicfgr32(p, off)) & 0xffff) != cap){
+	while(((i = pcicfgr32(p, off))&0xffff) != cap){
 		off = i >> 20;
-		print("m10g: pciecap offset = %ud",  off);
+		print("pciecap offset = %ud\n",  off);
 		if(off < 0x100 || off >= 4*KiB - 1)
 			return 0;
 	}
-	print("m10g: pciecap found = %ud",  off);
+	print("pciecap found = %ud\n",  off);
 	return off;
 }
 
@@ -335,7 +333,7 @@ whichfw(Pcidev *p)
 {
 	char *s;
 	int i, off, lanes, ecrc;
-	ulong cap;
+	u32int cap;
 
 	/* check the number of configured lanes. */
 	off = pcicap(p, PciCapPCIe);
@@ -347,30 +345,33 @@ whichfw(Pcidev *p)
 
 	/* check AERC register.  we need it on.  */
 	off = pciecap(p, PcieAERC);
-	print("; offset %d returned\n", off);
+	print("%d offset\n", off);
 	cap = 0;
 	if(off != 0){
 		off += AercCCR;
 		cap = pcicfgr32(p, off);
-		print("m10g: %lud cap\n", cap);
+		print("%ud cap\n", cap);
 	}
 	ecrc = (cap>>4) & 0xf;
 	/* if we don't like the aerc, kick it here. */
 
-	print("m10g: %d lanes; ecrc=%d; ", lanes, ecrc);
+	print("m10g %d lanes; ecrc=%d; ", lanes, ecrc);
 	if(s = getconf("myriforce")){
 		i = atoi(s);
 		if(i != 4*KiB || i != 2*KiB)
 			i = 2*KiB;
-		print("fw = %d [forced]\n", i);
+		print("fw=%d [forced]\n", i);
 		return i;
 	}
-	if(lanes <= 4)
+	if(lanes <= 4){
 		print("fw = 4096 [lanes]\n");
-	else if(ecrc & 10)
+		return 4*KiB;
+	}
+	if(ecrc & 10){
 		print("fw = 4096 [ecrc set]\n");
-	else
-		print("fw = 4096 [default]\n");
+		return 4*KiB;
+	}
+	print("fw = 4096 [default]\n");
 	return 4*KiB;
 }
 
@@ -402,10 +403,10 @@ parseeprom(Ctlr *c)
 	return 0;
 }
 
-static ushort
-pbit16(ushort i)
+static u16int
+pbit16(u16int i)
 {
-	ushort j;
+	u16int j;
 	uchar *p;
 
 	p = (uchar*)&j;
@@ -414,20 +415,20 @@ pbit16(ushort i)
 	return j;
 }
 
-static ushort
+static u16int
 gbit16(uchar i[2])
 {
-	ushort j;
+	u16int j;
 
 	j  = i[1];
 	j |= i[0]<<8;
 	return j;
 }
 
-static ulong
-pbit32(ulong i)
+static u32int
+pbit32(u32int i)
 {
-	ulong j;
+	u32int j;
 	uchar *p;
 
 	p = (uchar*)&j;
@@ -438,10 +439,10 @@ pbit32(ulong i)
 	return j;
 }
 
-static ulong
+static u32int
 gbit32(uchar i[4])
 {
-	ulong j;
+	u32int j;
 
 	j  = i[3];
 	j |= i[2]<<8;
@@ -451,7 +452,7 @@ gbit32(uchar i[4])
 }
 
 static void
-prepcmd(ulong *cmd, int i)
+prepcmd(uint *cmd, int i)
 {
 	while(i-- > 0)
 		cmd[i] = pbit32(cmd[i]);
@@ -468,10 +469,10 @@ prepcmd(ulong *cmd, int i)
  * 40 byte = 5 int pad.
  */
 
-ulong
-cmd(Ctlr *c, int type, uvlong data)
+u32int
+cmd(Ctlr *c, int type, u64int data)
 {
-	ulong buf[16], i;
+	u32int buf[16], i;
 	Cmd *cmd;
 
 	qlock(&c->cmdl);
@@ -487,31 +488,30 @@ cmd(Ctlr *c, int type, uvlong data)
 	coherence();
 	memmove(c->ram + Cmdoff, buf, sizeof buf);
 
-	if(waserror()){
-		qunlock(&c->cmdl);
+	if(waserror())
 		nexterror();
-	}
 	for(i = 0; i < 15; i++){
 		if(cmd->i[1] != Noconf){
 			poperror();
 			i = gbit32(cmd->c);
 			qunlock(&c->cmdl);
 			if(cmd->i[1] != 0)
-				dprint("[%lux]", i);
-			return i;	/* normal return */
+				dprint("[%ux]", i);
+			return i;
 		}
 		tsleep(&up->sleep, return0, 0, 1);
 	}
+	qunlock(&c->cmdl);
 	iprint("m10g: cmd timeout [%ux %ux] cmd=%d\n",
 		cmd->i[0], cmd->i[1], type);
 	error(Etimeout);
 	return ~0;			/* silence! */
 }
 
-ulong
+u32int
 maccmd(Ctlr *c, int type, uchar *m)
 {
-	ulong buf[16], i;
+	u32int buf[16], i;
 	Cmd *cmd;
 
 	qlock(&c->cmdl);
@@ -527,21 +527,20 @@ maccmd(Ctlr *c, int type, uchar *m)
 	coherence();
 	memmove(c->ram + Cmdoff, buf, sizeof buf);
 
-	if(waserror()){
-		qunlock(&c->cmdl);
+	if(waserror())
 		nexterror();
-	}
 	for(i = 0; i < 15; i++){
 		if(cmd->i[1] != Noconf){
 			poperror();
 			i = gbit32(cmd->c);
 			qunlock(&c->cmdl);
 			if(cmd->i[1] != 0)
-				dprint("[%lux]", i);
-			return i;	/* normal return */
+				dprint("[%ux]", i);
+			return i;
 		}
 		tsleep(&up->sleep, return0, 0, 1);
 	}
+	qunlock(&c->cmdl);
 	iprint("m10g: maccmd timeout [%ux %ux] cmd=%d\n",
 		cmd->i[0], cmd->i[1], type);
 	error(Etimeout);
@@ -554,10 +553,10 @@ enum {
 	DMAwrite= 0x1,
 };
 
-ulong
-dmatestcmd(Ctlr *c, int type, uvlong addr, int len)
+u32int
+dmatestcmd(Ctlr *c, int type, u64int addr, int len)
 {
-	ulong buf[16], i;
+	u32int buf[16], i;
 
 	memset(buf, 0, sizeof buf);
 	memset(c->cmd, Noconf, sizeof *c->cmd);
@@ -571,12 +570,15 @@ dmatestcmd(Ctlr *c, int type, uvlong addr, int len)
 	coherence();
 	memmove(c->ram + Cmdoff, buf, sizeof buf);
 
+	if(waserror())
+		nexterror();
 	for(i = 0; i < 15; i++){
 		if(c->cmd->i[1] != Noconf){
 			i = gbit32(c->cmd->c);
 			if(i == 0)
 				error(Eio);
-			return i;	/* normal return */
+			poperror();
+			return i;
 		}
 		tsleep(&up->sleep, return0, 0, 5);
 	}
@@ -584,10 +586,10 @@ dmatestcmd(Ctlr *c, int type, uvlong addr, int len)
 	return ~0;			/* silence! */
 }
 
-ulong
+u32int
 rdmacmd(Ctlr *c, int on)
 {
-	ulong buf[16], i;
+	u32int buf[16], i;
 
 	memset(buf, 0, sizeof buf);
 	c->cmd->i[0] = 0;
@@ -601,31 +603,35 @@ rdmacmd(Ctlr *c, int on)
 	prepcmd(buf, 6);
 	memmove(c->ram + Rdmaoff, buf, sizeof buf);
 
+	if(waserror())
+		nexterror();
 	for(i = 0; i < 20; i++){
-		if(c->cmd->i[0] == Noconf)
-			return gbit32(c->cmd->c);	/* normal return */
+		if(c->cmd->i[0] == Noconf){
+			poperror();
+			return gbit32(c->cmd->c);
+		}
 		tsleep(&up->sleep, return0, 0, 1);
 	}
-	iprint("m10g: rdmacmd timeout\n");
 	error(Etimeout);
+	iprint("m10g: rdmacmd timeout\n");
 	return ~0;			/* silence! */
 }
 
 static int
 loadfw(Ctlr *c, int *align)
 {
-	ulong *f, *s, sz;
+	uint *f, *s, sz;
 	int i;
 
 	if((*align = whichfw(c->pcidev)) == 4*KiB){
-		f = (ulong*)fw4k;
+		f = (u32int*)fw4k;
 		sz = sizeof fw4k;
 	}else{
-		f = (ulong*)fw2k;
+		f = (u32int*)fw2k;
 		sz = sizeof fw2k;
 	}
 
-	s = (ulong*)(c->ram + Fwoffset);
+	s = (u32int*)(c->ram + Fwoffset);
 	for(i = 0; i < sz / 4; i++)
 		s[i] = f[i];
 	return sz & ~3;
@@ -635,7 +641,7 @@ static int
 bootfw(Ctlr *c)
 {
 	int i, sz, align;
-	ulong buf[16];
+	uint buf[16];
 	Cmd* cmd;
 
 	if((sz = loadfw(c, &align)) == 0)
@@ -662,7 +668,7 @@ bootfw(Ctlr *c)
 			break;
 		delay(1);
 	}
-	dprint("[%lux %lux]", gbit32(cmd->c), gbit32(cmd->c+4));
+	dprint("[%ux %ux]", gbit32(cmd->c), gbit32(cmd->c+4));
 	if(i == 20){
 		print("m10g: cannot load fw\n");
 		return -1;
@@ -676,13 +682,13 @@ static int
 kickthebaby(Pcidev *p, Ctlr *c)
 {
 	/* don't kick the baby! */
-	ulong code;
+	u32int code;
 
 	pcicfgw8(p,  0x10 + c->boot, 0x3);
 	pcicfgw32(p, 0x18 + c->boot, 0xfffffff0);
 	code = pcicfgr32(p, 0x14 + c->boot);
 
-	dprint("reboot status = %lux\n", code);
+	dprint("reboot status = %ux\n", code);
 	if(code != 0xfffffff0)
 		return -1;
 	return 0;
@@ -706,7 +712,7 @@ enum {
 };
 
 static char *
-fwtype(ulong type)
+fwtype(u32int type)
 {
 	switch(type){
 	case Tmx:
@@ -724,20 +730,21 @@ fwtype(ulong type)
 static int
 chkfw(Ctlr *c)
 {
-	ulong off, type;
+	uintptr off;
 	Fwhdr *h;
+	u32int type;
 
 	off = gbit32(c->ram+0x3c);
-	dprint("firmware %lux\n", off);
+	dprint("firmware %llux\n", (u64int)off);
 	if((off&3) || off + sizeof *h > c->ramsz){
-		print("!m10g: bad firmware %lux\n", off);
+		print("!m10g: bad firmware %llux\n", (u64int)off);
 		return -1;
 	}
 	h = (Fwhdr*)(c->ram + off);
 	type = gbit32(h->type);
 	dprint("\t" "type	%s\n", fwtype(type));
 	dprint("\t" "vers	%s\n", h->version);
-	dprint("\t" "ramsz	%lux\n", gbit32(h->ramsz));
+	dprint("\t" "ramsz	%ux\n", gbit32(h->ramsz));
 	if(type != Teth){
 		print("!m10g: bad card type %s\n", fwtype(type));
 		return -1;
@@ -749,7 +756,7 @@ chkfw(Ctlr *c)
 static int
 reset(Ether *e, Ctlr *c)
 {
-	ulong i, sz;
+	u32int i, sz;
 
 	if(waserror()){
 		print("m10g: reset error\n");
@@ -762,22 +769,22 @@ reset(Ether *e, Ctlr *c)
 
 	cmd(c, CSintrqsz, c->done.n * sizeof *c->done.entry);
 	cmd(c, CSintrqdma, c->done.busaddr);
-	c->irqack =   (ulong*)(c->ram + cmd(c, CGirqackoff, 0));
+	c->irqack =   (u32int*)(c->ram + cmd(c, CGirqackoff, 0));
 	/* required only if we're not doing msi? */
-	c->irqdeass = (ulong*)(c->ram + cmd(c, CGirqdeassoff, 0));
+	c->irqdeass = (u32int*)(c->ram + cmd(c, CGirqdeassoff, 0));
 	/* this is the driver default, why fiddle with this? */
-	c->coal = (ulong*)(c->ram + cmd(c, CGcoaloff, 0));
+	c->coal = (u32int*)(c->ram + cmd(c, CGcoaloff, 0));
 	*c->coal = pbit32(25);
 
 	dprint("dma stats:\n");
 	rdmacmd(c, 1);
 	sz = c->tx.segsz;
 	i = dmatestcmd(c, DMAread, c->done.busaddr, sz);
-	print("m10g: read %lud MB/s;", ((i>>16)*sz*2) / (i&0xffff));
+	print("\t" "read: %ud MB/s\n", ((i>>16)*sz*2)/(i&0xffff));
 	i = dmatestcmd(c, DMAwrite, c->done.busaddr, sz);
-	print(" write %lud MB/s;", ((i>>16)*sz*2) / (i&0xffff));
+	print("\t" "write: %ud MB/s\n", ((i>>16)*sz*2)/(i&0xffff));
 	i = dmatestcmd(c, DMAwrite|DMAread, c->done.busaddr, sz);
-	print(" r/w %lud MB/s\n", ((i>>16)*sz*2*2) / (i&0xffff));
+	print("\t" "r/w: %ud MB/s\n", ((i>>16)*sz*2*2)/(i&0xffff));
 	memset(c->done.entry, 0, c->done.n * sizeof *c->done.entry);
 
 	maccmd(c, CSmac, c->ra);
@@ -807,8 +814,8 @@ ctlrfree(Ctlr *c)
 static int
 setmem(Pcidev *p, Ctlr *c)
 {
-	ulong i;
-	uvlong raddr;
+	u32int i;
+	u64int raddr;
 	Done *d;
 	void *mem;
 
@@ -856,25 +863,27 @@ whichrx(Ctlr *c, int sz)
 static Block*
 balloc(Rx* rx)
 {
-	Block *bp;
+	Block *b;
 
 	ilock(rx->pool);
-	if((bp = rx->pool->head) != nil){
-		rx->pool->head = bp->next;
-		bp->next = nil;
-//		ainc(&bp->ref);	/* prevent bp from being freed */
+	if((b = rx->pool->head) != nil){
+		rx->pool->head = b->next;
+		b->next = nil;
 		rx->pool->n--;
 	}
 	iunlock(rx->pool);
-	return bp;
+	return b;
 }
 
 static void
-rbfree(Block *b, Bpool *p)
+smbfree(Block *b)
 {
-	b->rp = b->wp = (uchar*)ROUNDUP((uintptr)b->base, 4*KiB);
-	b->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
+	Bpool *p;
 
+	b->rp = b->wp = (uchar*)ROUNDUP((uintptr)b->base, 4*KiB);
+	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
+
+	p = &smpool;
 	ilock(p);
 	b->next = p->head;
 	p->head = b;
@@ -884,21 +893,26 @@ rbfree(Block *b, Bpool *p)
 }
 
 static void
-smbfree(Block *b)
-{
-	rbfree(b, &smpool);
-}
-
-static void
 bgbfree(Block *b)
 {
-	rbfree(b, &bgpool);
+	Bpool *p;
+
+	b->rp = b->wp = (uchar*)ROUNDUP((uintptr)b->base, 4*KiB);
+	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
+
+	p = &bgpool;
+	ilock(p);
+	b->next = p->head;
+	p->head = b;
+	p->n++;
+	p->cnt++;
+	iunlock(p);
 }
 
 static void
 replenish(Rx *rx)
 {
-	ulong buf[16], i, idx, e;
+	u32int buf[16], i, idx, e;
 	Bpool *p;
 	Block *b;
 
@@ -912,7 +926,7 @@ replenish(Rx *rx)
 		idx = rx->cnt & rx->m;
 		for(i = 0; i < 8; i++){
 			b = balloc(rx);
-			buf[i*2]   = pbit32((uvlong)PCIWADDR(b->wp) >> 32);
+			buf[i*2]   = pbit32((u64int)PCIWADDR(b->wp) >> 32);
 			buf[i*2+1] = pbit32(PCIWADDR(b->wp));
 			rx->host[idx+i] = b;
 			assert(b);
@@ -923,7 +937,7 @@ replenish(Rx *rx)
 		e -= 8;
 	}
 	if(e && p->n > 7+1)
-		print("m10g: should panic? pool->n = %d\n", p->n);
+		print("should panic? pool->n = %d\n", p->n);
 }
 
 /*
@@ -973,7 +987,7 @@ open0(Ether *e, Ctlr *c)
 	entries = cmd(c, CGrxrgsz, 0)/8;
 	c->sm.pool = &smpool;
 	cmd(c, CSsmallsz, c->sm.pool->size);
-	c->sm.lanai = (ulong*)(c->ram + cmd(c, CGsmallrxoff, 0));
+	c->sm.lanai = (u32int*)(c->ram + cmd(c, CGsmallrxoff, 0));
 	c->sm.n = entries;
 	c->sm.m = entries-1;
 	c->sm.host = emalign(entries * sizeof *c->sm.host);
@@ -981,7 +995,7 @@ open0(Ether *e, Ctlr *c)
 	c->bg.pool = &bgpool;
 	c->bg.pool->size = nextpow(2 + e->maxmtu);  /* 2-byte alignment pad */
 	cmd(c, CSbigsz, c->bg.pool->size);
-	c->bg.lanai = (ulong*)(c->ram + cmd(c, CGbigrxoff, 0));
+	c->bg.lanai = (u32int*)(c->ram + cmd(c, CGbigrxoff, 0));
 	c->bg.n = entries;
 	c->bg.m = entries-1;
 	c->bg.host = emalign(entries * sizeof *c->bg.host);
@@ -1012,7 +1026,7 @@ static Block*
 nextblock(Ctlr *c)
 {
 	uint i;
-	ushort l, k;
+	u16int l, k;
 	Block *b;
 	Done *d;
 	Rx *rx;
@@ -1090,7 +1104,7 @@ m10rx(void *v)
 }
 
 static void
-txcleanup(Tx *tx, ulong n)
+txcleanup(Tx *tx, u32int n)
 {
 	Block *b;
 	uint j, l, m;
@@ -1115,7 +1129,7 @@ txcleanup(Tx *tx, ulong n)
 		if(tx->cnt == tx->i)
 			return;
 		if(l++ == m){
-			iprint("m10g: tx ovrun: %lud %lud\n", n, tx->npkt);
+			iprint("tx ovrun: %ud %uld\n", n, tx->npkt);
 			return;
 		}
 	}
@@ -1186,8 +1200,8 @@ nsegments(Block *b, int segsz)
 static void
 m10gtransmit(Ether *e)
 {
-	ushort slen;
-	ulong i, cnt, rdma, nseg, count, end, bus, len, segsz;
+	u16int slen;
+	u32int i, cnt, rdma, nseg, count, end, bus, len, segsz;
 	uchar flags;
 	Block *b;
 	Ctlr *c;
@@ -1214,7 +1228,7 @@ m10gtransmit(Ether *e)
 		rdma = nseg = nsegments(b, segsz);
 		bus = PCIWADDR(b->rp);
 		for(; len; len -= slen){
-			end = (bus + segsz) & ~(segsz-1);
+			end = bus + segsz & ~(segsz-1);
 			slen = end - bus;
 			if(slen > len)
 				slen = len;
@@ -1230,7 +1244,7 @@ m10gtransmit(Ether *e)
 			flags &= ~SFfirst;
 			rdma = 1;
 		}
-		tx->bring[(i + nseg - 1) & tx->m] = b;
+		tx->bring[i + nseg - 1 & tx->m] = b;
 		if(1 || count > 0){
 			submittx(tx, count);
 			count = 0;
@@ -1245,7 +1259,7 @@ m10gtransmit(Ether *e)
 static void
 checkstats(Ether *e, Ctlr *c, Stats *s)
 {
-	ulong i;
+	u32int i;
 
 	if(s->updated == 0)
 		return;
@@ -1260,7 +1274,7 @@ checkstats(Ether *e, Ctlr *c, Stats *s)
 	}
 	i = gbit32(s->nrdma);
 	if(i != c->nrdma){
-		dprint("m10g: rdma timeout %ld\n", i);
+		dprint("m10g: rdma timeout %d\n", i);
 		c->nrdma = i;
 	}
 }
@@ -1342,7 +1356,7 @@ m10gdetach(Ctlr *c)
 	dprint("m10gdetach\n");
 //	reset(e->ctlr);
 	vunmap(c->ram, c->pcidev->mem[0].size);
-	ctlrfree(c);		/* this is a bad idea: don't free c */
+	ctlrfree(c);
 	return -1;
 }
 
@@ -1360,30 +1374,32 @@ lstcount(Block *b)
 static long
 m10gifstat(Ether *e, void *v, long n, ulong off)
 {
+	int l, lim;
 	char *p;
 	Ctlr *c;
 	Stats s;
 
 	c = e->ctlr;
-	p = malloc(READSTR+1);
-	if(p == nil)
-		error(Enomem);
+	lim = 2*READSTR-1;
+	p = malloc(lim+1);
+	l = 0;
 	/* no point in locking this because this is done via dma. */
 	memmove(&s, c->stats, sizeof s);
 
-	snprint(p, READSTR,
-		"txcnt = %lud\n"  "linkstat = %lud\n" 	"dlink = %lud\n"
-		"derror = %lud\n" "drunt = %lud\n" 	"doverrun = %lud\n"
-		"dnosm = %lud\n"  "dnobg = %lud\n"	"nrdma = %lud\n"
+	// l +=
+	snprint(p+l, lim,
+		"txcnt = %ud\n"	  "linkstat = %ud\n" 	"dlink = %ud\n"
+		"derror = %ud\n"  "drunt = %ud\n" 	"doverrun = %ud\n"
+		"dnosm = %ud\n"	  "dnobg = %ud\n"	"nrdma = %ud\n"
 		"txstopped = %ud\n" "down = %ud\n" 	"updated = %ud\n"
 		"valid = %ud\n\n"
-		"tx pkt = %lud\n"  "tx bytes = %lld\n"
+		"tx pkt = %uld\n" "tx bytes = %lld\n"
 		"tx cnt = %ud\n"  "tx n = %ud\n"	"tx i = %ud\n"
 		"sm cnt = %ud\n"  "sm i = %ud\n"	"sm n = %ud\n"
 		"sm lst = %ud\n"
 		"bg cnt = %ud\n"  "bg i = %ud\n"	"bg n = %ud\n"
 		"bg lst = %ud\n"
-		"segsz = %lud\n"   "coal = %lud\n",
+		"segsz = %ud\n"   "coal = %d\n",
 		gbit32(s.txcnt),  gbit32(s.linkstat),	gbit32(s.dlink),
 		gbit32(s.derror), gbit32(s.drunt),	gbit32(s.doverrun),
 		gbit32(s.dnosm),  gbit32(s.dnobg),	gbit32(s.nrdma),
@@ -1550,30 +1566,18 @@ m10gpci(void)
 	Ctlr *t, *c;
 
 	t = 0;
-	for(p = 0; p = pcimatch(p, 0x14c1, 0); ){
-		switch(p->did){
-		case 0x8:		/* 8a */
-			break;
-		case 0x9:		/* 8a with msi-x fw */
-		case 0xa:		/* 8b */
-		case 0xb:		/* 8b2 */
-		case 0xc:		/* 2-8b2 */
-			/* untested */
-			break;
-		default:
-			print("etherm10g: unknown myricom did %#ux\n", p->did);
-			continue;
-		}
+	for(p = 0; p = pcimatch(p, 0x14c1, 0x0008); ){
 		c = malloc(sizeof *c);
 		if(c == nil)
-			break;
+			continue;
+		memset(c, 0, sizeof *c);
 		c->pcidev = p;
 		c->id = p->did<<16 | p->vid;
 		c->boot = pcicap(p, PciCapVND);
 //		kickthebaby(p, c);
 		pcisetbme(p);
 		if(setmem(p, c) == -1){
-			print("m10g: setmem failed\n");
+			print("m10g failed\n");
 			free(c);
 			/* cleanup */
 			continue;
@@ -1616,11 +1620,13 @@ m10gpnp(Ether *e)
 	e->interrupt = m10ginterrupt;
 	e->ifstat = m10gifstat;
 	e->ctl = m10gctl;
+//	e->power = m10gpower;
 	e->shutdown = m10gshutdown;
 
 	e->arg = e;
 	e->promiscuous = m10gpromiscuous;
 	e->multicast = m10gmulticast;
+
 	return 0;
 }
 

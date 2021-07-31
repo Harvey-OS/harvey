@@ -1,6 +1,10 @@
 /*
  * ahci serial ata driver
  * copyright © 2007-8 coraid, inc.
+ *
+ * there was a great deal of locking of single operations (e.g.,
+ * atomic assignments); it's not clear what that locking was intended to
+ * prevent.
  */
 
 #include "u.h"
@@ -950,7 +954,7 @@ updatedrive(Drive *d)
 		case Devpresent:		/* device but no phy comm. */
 			if((p->sstatus & Intpm) == Intslumber ||
 			   (p->sstatus & Intpm) == Intpartpwr)
-				d->state = Dnew;	/* slumbering */
+				d->state = Dnew; /* slumbering */
 			else
 				d->state = Derror;
 			break;
@@ -967,7 +971,7 @@ updatedrive(Drive *d)
 			diskstates[s0], diskstates[d->state], p->sstatus);
 		/* print pulled message here. */
 		if(s0 == Dready && d->state != Dready)
-			idprint("%s: pulled\n", name);		/* wtf? */
+			idprint("%s: pulled\n", name);
 		if(d->state != Dready)
 			d->portm.flag |= Ferror;
 		ewake = 1;
@@ -1023,14 +1027,6 @@ configdrive(Drive *d)
 }
 
 static void
-setstate(Drive *d, int state)
-{
-	ilock(d);
-	d->state = state;
-	iunlock(d);
-}
-
-static void
 resetdisk(Drive *d)
 {
 	uint state, det, stat;
@@ -1058,10 +1054,10 @@ resetdisk(Drive *d)
 	iunlock(d);
 
 	qlock(&d->portm);
-	if(p->cmd&Ast && ahciswreset(&d->portc) == -1)
-		setstate(d, Dportreset);	/* get a bigger stick. */
-	else {
-		setstate(d, Dmissing);
+	if(p->cmd&Ast && ahciswreset(&d->portc) == -1){
+		d->state = Dportreset;	/* get a bigger stick. */
+	} else {
+		d->state = Dmissing;
 		configdrive(d);
 	}
 	dprint("ahci: %s: resetdisk: %s → %s\n", (d->unit? d->unit->name: nil),
@@ -1099,7 +1095,9 @@ newdrive(Drive *d)
 		if(ahcirecover(c) == -1)
 			goto lose;
 	}
-	setstate(d, Dready);
+
+	d->state = Dready;
+
 	qunlock(c->pm);
 
 	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->name,
@@ -1109,7 +1107,7 @@ newdrive(Drive *d)
 
 lose:
 	idprint("%s: can't be initialized\n", d->unit->name);
-	setstate(d, Dnull);
+	d->state = Dnull;
 	qunlock(c->pm);
 	return -1;
 }
@@ -1297,12 +1295,9 @@ isctlrjabbering(Ctlr *c, ulong cause)
 		c->intrs = 0;
 		c->lastintr0 = now;
 	}
-	if (++c->intrs > Maxintrspertick) {
-		iprint("sdiahci: %lud intrs per tick for no serviced "
-			"drive; cause %#lux mport %d\n",
-			c->intrs, cause, c->mport);
-		c->intrs = 0;
-	}
+	if (++c->intrs > Maxintrspertick)
+		panic("sdiahci: too many intrs per tick for no serviced "
+			"drive; cause %#lux mport %d", cause, c->mport);
 }
 
 static void
@@ -1315,11 +1310,9 @@ isdrivejabbering(Drive *d)
 		d->intrs = 0;
 		d->lastintr0 = now;
 	}
-	if (++d->intrs > Maxintrspertick) {
-		iprint("sdiahci: %lud interrupts per tick for %s\n",
-			d->intrs, d->unit->name);
-		d->intrs = 0;
-	}
+	if (++d->intrs > Maxintrspertick)
+		panic("sdiahci: too many interrupts per tick for %s",
+			d->unit->name);
 }
 
 static void
@@ -1650,7 +1643,7 @@ waitready(Drive *d)
 		esleep(250);
 	}
 	print("%s: not responding; offline\n", d->unit->name);
-	setstate(d, Doffline);
+	d->state = Doffline;
 	return -1;
 }
 
@@ -1660,7 +1653,7 @@ lockready(Drive *d)
 	int i;
 
 	qlock(&d->portm);
-	while ((i = waitready(d)) == 1) {	/* could wait forever? */
+	while ((i = waitready(d)) == 1) {
 		qunlock(&d->portm);
 		esleep(1);
 		qlock(&d->portm);
@@ -1717,7 +1710,6 @@ retry:
 		esleep(1);
 		goto retry;
 	}
-	/* d->portm qlock held here */
 
 	ilock(d);
 	d->portm.flag = 0;
@@ -1731,15 +1723,8 @@ retry:
 
 	while(waserror())
 		;
-	/* don't sleep here forever */
-	tsleep(&d->portm, ahciclear, &as, 3*1000);
+	sleep(&d->portm, ahciclear, &as);
 	poperror();
-	if(!ahciclear(&as)) {
-		qunlock(&d->portm);
-		print("%s: ahciclear not true after 3 seconds\n", name);
-		r->status = SDcheck;
-		return SDcheck;
-	}
 
 	d->active--;
 	ilock(d);
@@ -1861,7 +1846,6 @@ retry:
 			esleep(1);
 			goto retry;
 		}
-		/* d->portm qlock held here */
 		ilock(d);
 		d->portm.flag = 0;
 		iunlock(d);
@@ -1874,15 +1858,8 @@ retry:
 
 		while(waserror())
 			;
-		/* don't sleep here forever */
-		tsleep(&d->portm, ahciclear, &as, 3*1000);
+		sleep(&d->portm, ahciclear, &as);
 		poperror();
-		if(!ahciclear(&as)) {
-			qunlock(&d->portm);
-			print("%s: ahciclear not true after 3 seconds\n", name);
-			r->status = SDcheck;
-			return SDcheck;
-		}
 
 		d->active--;
 		ilock(d);
@@ -1923,8 +1900,7 @@ retry:
 }
 
 /*
- * configure drives 0-5 as ahci sata (c.f. errata).
- * what about 6 & 7, as claimed by marvell 0x9123?
+ * configure drives 0-5 as ahci sata  (c.f. errata)
  */
 static int
 iaahcimode(Pcidev *p)
@@ -1959,8 +1935,7 @@ didtype(Pcidev *p)
 		/*
 		 * 0x27c4 is the intel 82801 in compatibility (not sata) mode.
 		 */
-		if (p->did == 0x1e02 ||			/* c210 */
-		    p->did == 0x24d1 ||			/* 82801eb/er */
+		if (p->did == 0x24d1 ||			/* 82801eb/er */
 		    (p->did & 0xfffb) == 0x27c1 ||	/* 82801g[bh]m ich7 */
 		    p->did == 0x2821 ||			/* 82801h[roh] */
 		    (p->did & 0xfffe) == 0x2824 ||	/* 82801h[b] */
@@ -1978,13 +1953,15 @@ didtype(Pcidev *p)
 		}
 		break;
 	case 0x1b4b:
-		if (p->did == 0x9123)
-			print("ahci: marvell sata 3 controller has delusions "
-				"of something on unit 7\n");
+		/* can't cope with sata 3 yet; touching sd files will hang */
+		if (p->did == 0x9123) {
+			print("ahci: ignoring sata 3 controller\n");
+			return -1;
+		}
 		break;
 	}
 	if(p->ccrb == Pcibcstore && p->ccru == Pciscsata && p->ccrp == 1){
-		print("ahci: Tunk: vid %#4.4ux did %#4.4ux\n", p->vid, p->did);
+		print("ahci: Tunk: VID %#4.4ux DID %#4.4ux\n", p->vid, p->did);
 		return Tunk;
 	}
 	return -1;
@@ -2192,9 +2169,7 @@ forcemode(Drive *d, char *mode)
 			break;
 	if(i == nelem(modename))
 		i = 0;
-	ilock(d);
 	d->mode = i;
-	iunlock(d);
 }
 
 static void
@@ -2223,7 +2198,7 @@ forcestate(Drive *d, char *state)
 			break;
 	if(i == nelem(diskstates))
 		error(Ebadctl);
-	setstate(d, i);
+	d->state = i;
 }
 
 /*
