@@ -60,9 +60,8 @@ mmudump(PTE *l1)
 			startva, endva-1, startpa, rngtype);
 }
 
-/* identity map the megabyte containing va, uncached */
 static void
-idmap(PTE *l1, ulong va)
+idmap(PTE *l1, ulong va)	/* identity map the megabyte starting at va */
 {
 	l1[L1X(va)] = va | Dom0 | L1AP(Krw) | Section;
 }
@@ -70,7 +69,6 @@ idmap(PTE *l1, ulong va)
 void
 mmuinit(void)
 {
-	int i;
 	uintptr pa;
 	PTE *l1, *l2;
 
@@ -86,8 +84,7 @@ mmuinit(void)
 	idmap(l1, PHYSSMS);
 	idmap(l1, PHYSDRC);
 	idmap(l1, PHYSGPMC);
-	for (i = 0; i < 16; i++)	/* just need 16MB */
-		idmap(l1, PHYSNAND + i*MB);
+	idmap(l1, PHYSNAND);
 
 	/* map high vectors to start of dram, but only 4K, not 1MB */
 	pa -= MACHSIZE+2*1024;
