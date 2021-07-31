@@ -296,6 +296,9 @@ enum {
 	MFS60by	= 15<<2,
 	MFS64by	= 16<<2,
 
+	/* receive descriptor */
+#define Bufsize(v)	((v)<<3)
+
 	/* receive descriptor status */
 	RCSmacerr	= 1<<0,
 	RCSmacmask	= 3<<1,
@@ -489,6 +492,7 @@ rxfreeb(Block *b)
 {
 	/* freeb(b) will have previously decremented b->ref to 0; raise to 1 */
 	_xinc(&b->ref);
+//iprint("fr %ld ", b->ref);
 	b->wp = b->rp =
 		(uchar*)((uintptr)(b->lim - Rxblklen) & ~(Bufalign - 1));
 	assert(((uintptr)b->rp & (Bufalign - 1)) == 0);
@@ -556,16 +560,18 @@ rxreplenish(Ctlr *ctlr)
 
 		ctlr->rxb[ctlr->rxtail] = b;
 
-		/* set up uncached receive descriptor */
+		/* set up receive descriptor */
 		r = &ctlr->rx[ctlr->rxtail];
 		assert(((uintptr)r & (Descralign - 1)) == 0);
-		r->countsize = ROUNDUP(Rxblklen, 8);
+		r->countsize = Bufsize(Rxblklen);
 		r->buf = PADDR(b->rp);
-		coherence();
+		cachedwbse(r, sizeof *r);
+		l2cacheuwbse(r, sizeof *r);
 
 		/* and fire */
 		r->cs = RCSdmaown | RCSenableintr;
-		coherence();
+		cachedwbse(&r->cs, BY2WD);
+		l2cacheuwbse(&r->cs, BY2WD);
 
 		ctlr->rxtail = NEXT(ctlr->rxtail, Nrx);
 	}
@@ -609,12 +615,14 @@ receive(Ether *ether)
 
 	ethercheck(ether);
 	for (i = Nrx-2; i > 0; i--) {
-		r = &ctlr->rx[ctlr->rxhead];	/* *r is uncached */
+		r = &ctlr->rx[ctlr->rxhead];
 		assert(((uintptr)r & (Descralign - 1)) == 0);
-		if(r->cs & RCSdmaown)		/* descriptor busy? */
+		l2cacheuinvse(r, sizeof *r);
+		cachedinvse(r, sizeof *r);
+		if(r->cs & RCSdmaown)
 			break;
 
-		b = ctlr->rxb[ctlr->rxhead];	/* got input buffer? */
+		b = ctlr->rxb[ctlr->rxhead];
 		if (b == nil)
 			panic("ether1116: nil ctlr->rxb[ctlr->rxhead] "
 				"in receive");
@@ -622,7 +630,7 @@ receive(Ether *ether)
 		ctlr->rxhead = NEXT(ctlr->rxhead, Nrx);
 
 		if((r->cs & (RCSfirst|RCSlast)) != (RCSfirst|RCSlast)) {
-			ctlr->nofirstlast++;	/* partial packet */
+			ctlr->nofirstlast++;
 			freeb(b);
 			continue;
 		}
@@ -634,7 +642,6 @@ receive(Ether *ether)
 		n = r->countsize >> 16;		/* TODO includes 2 pad bytes? */
 		assert(n >= 2 && n < 2048);
 
-		/* clear any cached packet or part thereof */
 		l2cacheuinvse(b->rp, n+2);
 		cachedinvse(b->rp, n+2);
 		b->wp = b->rp + n;
@@ -661,7 +668,8 @@ txreplenish(Ether *ether)			/* free transmitted packets */
 
 	ctlr = ether->ctlr;
 	while(ctlr->txtail != ctlr->txhead) {
-		/* ctlr->tx is uncached */
+		l2cacheuinvse(&ctlr->tx[ctlr->txtail].cs, BY2WD);
+		cachedinvse(&ctlr->tx[ctlr->txtail].cs, BY2WD);
 		if(ctlr->tx[ctlr->txtail].cs & TCSdmaown)
 			break;
 		if(ctlr->txb[ctlr->txtail] == nil)
@@ -692,12 +700,14 @@ transmit(Ether *ether)
 	ilock(ctlr);
 	txreplenish(ether);			/* reap old packets */
 
-	/* queue new packets; use at most half the tx descs to avoid livelock */
+	/* queue new packets; don't use more than half the tx descs. */
 	kick = 0;
 	for (i = Ntx/2 - 2; i > 0; i--) {
-		t = &ctlr->tx[ctlr->txhead];	/* *t is uncached */
+		t = &ctlr->tx[ctlr->txhead];
 		assert(((uintptr)t & (Descralign - 1)) == 0);
-		if(t->cs & TCSdmaown) {		/* descriptor busy? */
+		l2cacheuinvse(t, sizeof *t);
+		cachedinvse(t, sizeof *t);
+		if(t->cs & TCSdmaown) {		/* free descriptor? */
 			ctlr->txringfull++;
 			break;
 		}
@@ -719,12 +729,14 @@ transmit(Ether *ether)
 		/* set up the transmit descriptor */
 		t->buf = PADDR(b->rp);
 		t->countchk = len << 16;
-		coherence();
+		cachedwbse(t, sizeof *t);
+		l2cacheuwbse(t, sizeof *t);
 
 		/* and fire */
 		t->cs = TCSpadding | TCSfirst | TCSlast | TCSdmaown |
 			TCSenableintr;
-		coherence();
+		cachedwbse(&t->cs, BY2WD);
+		l2cacheuwbse(&t->cs, BY2WD);
 
 		kick++;
 		ctlr->txhead = NEXT(ctlr->txhead, Ntx);
@@ -849,8 +861,10 @@ interrupt(Ureg*, void *arg)
 			handled++;
 	}
 	if (irq & Isum) {
-		if (irq & Irxerr) {  /* nil desc. ptr. or desc. owned by cpu */
+		if (irq & Irxerr) {
 			ether->buffs++;		/* approx. error */
+			/* null descriptor pointer or descriptor owned by cpu */
+//			iprint("#l%d: rx err - input ring full\n", ether->ctlrno);
 
 			/* if the input ring is full, drain it */
 			ctlr->haveinput = 1;
@@ -1424,26 +1438,24 @@ ctlralloc(Ctlr *ctlr)
 	}
 	iunlock(&freeblocks);
 
-	/*
-	 * allocate uncached rx ring descriptors because rings are shared
-	 * with the ethernet controller and more than one fits in a cache line.
-	 */
-	ctlr->rx = ucallocalign(Nrx * sizeof(Rx), Descralign, 0);
+	ctlr->rx = xspanalloc(Nrx * sizeof(Rx), Descralign, 0);
 	if(ctlr->rx == nil)
 		panic("ether1116: no memory for rx ring");
 	for(i = 0; i < Nrx; i++) {
 		r = &ctlr->rx[i];
 		assert(((uintptr)r & (Descralign - 1)) == 0);
-		r->cs = 0;	/* owned by software until r->buf is non-nil */
+		r->cs = 0;	/* not owned by hardware until r->buf is set */
 		r->buf = 0;
 		r->next = PADDR(&ctlr->rx[NEXT(i, Nrx)]);
 		ctlr->rxb[i] = nil;
 	}
 	ctlr->rxtail = ctlr->rxhead = 0;
-	rxreplenish(ctlr);
 
-	/* allocate uncached tx ring descriptors */
-	ctlr->tx = ucallocalign(Ntx * sizeof(Tx), Descralign, 0);
+	rxreplenish(ctlr);
+	cachedwb();
+	l2cacheuwb();
+
+	ctlr->tx = xspanalloc(Ntx * sizeof(Tx), Descralign, 0);
 	if(ctlr->tx == nil)
 		panic("ether1116: no memory for tx ring");
 	for(i = 0; i < Ntx; i++) {
@@ -1455,6 +1467,8 @@ ctlralloc(Ctlr *ctlr)
 		ctlr->txb[i] = nil;
 	}
 	ctlr->txtail = ctlr->txhead = 0;
+	cachedwb();
+	l2cacheuwb();
 }
 
 static void

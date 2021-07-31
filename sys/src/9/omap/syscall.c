@@ -42,8 +42,8 @@ noted(Ureg* cur, uintptr arg0)
 
 	/* sanity clause */
 	if(!okaddr(PTR2UINT(nf), sizeof(NFrame), 0)){
-		qunlock(&up->debug);
 		pprint("bad ureg in noted %#p\n", nf);
+		qunlock(&up->debug);
 		pexit("Suicide", 0);
 	}
 
@@ -151,8 +151,8 @@ notify(Ureg* ureg)
 
 	sp = ureg->sp - sizeof(NFrame);
 	if(!okaddr(sp, sizeof(NFrame), 1)){
-		qunlock(&up->debug);
 		pprint("suicide: notify stack address %#p\n", sp);
+		qunlock(&up->debug);
 		pexit("Suicide", 0);
 	}
 

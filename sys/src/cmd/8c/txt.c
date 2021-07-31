@@ -306,6 +306,7 @@ regalloc(Node *n, Node *tn, Node *o)
 			if(reg[i] == 0)
 				goto out;
 		diag(tn, "out of fixed registers");
+abort();
 		goto err;
 
 	case TFLOAT:

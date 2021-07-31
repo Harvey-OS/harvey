@@ -43,7 +43,6 @@ main(int argc, char *argv[])
 	int i, n;
 	Fmt fmt;
 	
-	doquote = needsrcquote;
 	quotefmtinstall();
 	argv0 = argv[0];	/* for sysfatal */
 	
