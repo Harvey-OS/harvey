@@ -154,7 +154,7 @@ addtok(char *p, int val)
 {
 	if(p==0)
 		return 0;
-	if(p >= &tok[NTOK]){
+	if(p==&tok[NTOK-1]){
 		*p = 0;
 		yyerror("token buffer too short");
 		return 0;
@@ -170,7 +170,7 @@ addutf(char *p, int c)
 	int i;
 
 	p = addtok(p, c);	/* 1-byte UTF runes are special */
-	if(c < Runeself)
+	if(onebyte(c))
 		return p;
 
 	m = 0xc0;
