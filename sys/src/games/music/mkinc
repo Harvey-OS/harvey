@@ -1,9 +1,0 @@
-base = ..
-CFLAGS=$CFLAGS $DEFINES
-
-all:
-
-dep:Q:
-	mkdep $INCLUDES $CFILES > mk.dep
-
-< mk.dep

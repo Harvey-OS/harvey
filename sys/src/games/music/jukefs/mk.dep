@@ -1,6 +1,0 @@
-catset.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/bio.h object.h catset.h
-fs.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/bio.h /sys/include/fcall.h object.h
-parse.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/bio.h /sys/include/ctype.h object.h catset.h parse.h
-print.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/ctype.h /sys/include/bio.h /sys/include/thread.h object.h parse.h catset.h
-search.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/bio.h /sys/include/thread.h object.h parse.h search.h
-server.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/bio.h /sys/include/fcall.h object.h parse.h print.h catset.h

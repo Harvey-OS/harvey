@@ -1,5 +1,0 @@
-main.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/fcall.h playlist.h
-fs.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/fcall.h /sys/include/pool.h playlist.h
-player.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/fcall.h /sys/include/pool.h playlist.h
-volume.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/fcall.h /sys/include/pool.h playlist.h
-boilerplate.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/fcall.h playlist.h
