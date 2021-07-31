@@ -213,7 +213,7 @@ ready(Proc *p)
 {
 	int s, pri;
 	Schedq *rq;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int);
 
 	s = splhi();
 
@@ -258,8 +258,7 @@ ready(Proc *p)
 	p->readytime = m->ticks;
 	p->state = Ready;
 	pt = proctrace;
-	if(pt)
-		pt(p, SReady, 0);
+	if(pt) pt(p, SReady);
 	unlock(runq);
 	splx(s);
 }
@@ -364,7 +363,7 @@ runproc(void)
 	Proc *p;
 	ulong start, now;
 	int i;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int);
 
 	start = perfticks();
 
@@ -420,8 +419,7 @@ found:
 		edfunlock();
 	}
 	pt = proctrace;
-	if(pt)
-		pt(p, SRun, 0);
+	if(pt) pt(p, SRun);
 	return p;
 }
 
@@ -591,7 +589,7 @@ void
 sleep(Rendez *r, int (*f)(void*), void *arg)
 {
 	int s;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int);
 
 	s = splhi();
 
@@ -627,8 +625,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		 *  change state and call scheduler
 		 */
 		pt = proctrace;
-		if(pt)
-			pt(up, SSleep, 0);
+		if(pt) pt(up, SSleep);
 		up->state = Wakeme;
 		up->r = r;
 
@@ -915,14 +912,13 @@ pexit(char *exitstr, int freemem)
 	Rgrp *rgrp;
 	Pgrp *pgrp;
 	Chan *dot;
-	void (*pt)(Proc*, int, vlong);
+	void (*pt)(Proc*, int);
 
 	up->alarm = 0;
 	if (up->tt)
 		timerdel(up);
 	pt = proctrace;
-	if(pt)
-		pt(up, SDead, 0);
+	if(pt) pt(up, SDead);
 
 	/* nil out all the resources under lock (free later) */
 	qlock(&up->debug);

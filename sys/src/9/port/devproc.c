@@ -155,7 +155,7 @@ static Lock tlock;
 static int topens;
 static int tproduced, tconsumed;
 static Rendez teventr;
-void	(*proctrace)(Proc*, int, vlong); 
+void	(*proctrace)(Proc*, int); 
 
 extern int unfair;
 
@@ -265,23 +265,18 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 }
 
 static void
-_proctrace(Proc*p, Tevent etype, vlong ts)
+_proctrace(Proc*p, Tevent etype)
 {
 	Traceevent *te;
 
-	if (p->trace == 0 || topens == 0)
+	if (p->trace == 0 || topens == 0 || 
+			(tproduced - tconsumed >= Nevents))
 		return;
 
-	if(tproduced - tconsumed >= Nevents)
-		tconsumed = tproduced - Nevents + 1;
-		/* discard oldest, never mind the race */
 	te = &tevents[tproduced&Emask];
 	te->pid = p->pid;
 	te->etype = etype;
-	if (ts == 0)
-		te->time = todget(nil);
-	else
-		te->time = ts;
+	te->time = todget(nil);
 	tproduced++;
 
 	/* To avoid circular wakeup when used in combination with 
