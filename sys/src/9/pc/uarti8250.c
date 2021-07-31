@@ -496,7 +496,6 @@ i8250interrupt(Ureg*, void* arg)
 			uartkick(uart);
 			break;
 		case Irda:		/* Received Data Available */
-		case Irls:		/* Receiver Line Status */
 		case Ictoi:		/* Character Time-out Indication */
 			/*
 			 * Consume any received data.
