@@ -530,7 +530,7 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 
 	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
 	if(c == nil){
-		/* no conversation found */
+		/* no converstation found */
 		upriv->ustats.rudpNoPorts++;
 		qunlock(rudp);
 		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
