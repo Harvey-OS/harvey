@@ -1125,7 +1125,6 @@ pgpfilter(int *pid, int fd, int pgpflag)
 	v = av = emalloc(sizeof(char*)*8);
 	ac = 0;
 	v[ac++] = "pgp";
-	v[ac++] = "-fat";		/* operate as a filter, generate text */
 	if(pgpflag & PGPsign)
 		v[ac++] = "-s";
 	if(pgpflag & PGPencrypt)
@@ -1145,9 +1144,7 @@ pgpfilter(int *pid, int fd, int pgpflag)
 		dup(fd, 1);
 		close(fd);
 
-		/* add newline to avoid confusing pgp output with 822 headers */
-		write(1, "\n", 1);
-		exec("/bin/pgp", av);
+		exec("/bin/upas/pgp", av);
 		fatal("execing: %r");
 		break;
 	default:

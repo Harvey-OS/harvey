@@ -144,7 +144,8 @@ sender(int fd, int msglen, int interval, int n)
 		}
 		r = malloc(sizeof *r);
 		if(r != nil){
-			hnputs(ip->seq, seq);
+			ip->seq[0] = seq;
+			ip->seq[1] = seq>>8;
 			r->seq = seq;
 			r->next = nil;
 			lock(&listlock);
@@ -199,7 +200,7 @@ fprint(2, "clean\n");
 				munged++;
 		if(munged)
 			print("currupted reply\n");
-		x = nhgets(ip->seq);
+		x = (ip->seq[1]<<8)|ip->seq[0];
 		if(ip->type != EchoReply || ip->code != 0) {
 			print("bad sequence/code/type %d/%d/%d\n",
 				ip->type, ip->code, x);
