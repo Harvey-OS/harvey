@@ -18,7 +18,7 @@ int	debug;
 int	grefd;
 uchar localip[IPaddrlen];
 int	localwin;
-char	*keyspec;
+char	*namesecret;
 int	now;
 char	*pppnetmntpt;
 int	pid;
@@ -70,8 +70,8 @@ threadmain(int argc, char **argv)
 	case 'd':
 		debug++;
 		break;
-	case 'k':
-		keyspec = EARGF(usage());
+	case 's':
+		namesecret = EARGF(usage());
 		break;
 	case 'w':
 		localwin = atoi(EARGF(usage()));
@@ -628,9 +628,9 @@ pushppp(int fd)
 		argv[argc++] = "-x";
 		argv[argc++] = pppnetmntpt;
 	}
-	if(keyspec){
-		argv[argc++] = "-k";
-		argv[argc++] = keyspec;
+	if(namesecret){
+		argv[argc++] = "-s";
+		argv[argc++] = namesecret;
 	}
 	argv[argc] = nil;
 

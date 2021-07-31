@@ -31,6 +31,7 @@ TARG=\
 	trampoline\
 	typepasswd\
 	write\
+	X509gen\
 
 BIN=/$objtype/bin/aux
 

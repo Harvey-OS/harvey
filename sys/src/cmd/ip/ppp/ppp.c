@@ -21,7 +21,6 @@ static	char	*chatfile;
 
 int	debug;
 char*	LOG = "ppp";
-char*	keyspec = "";
 
 enum
 {
@@ -109,14 +108,14 @@ static	void		sendtermreq(PPP*, Pstate*);
 static	void		setphase(PPP*, int);
 static	void		terminate(PPP*, int);
 static	int		validv4(Ipaddr);
-static  void		dmppkt(char *s, uchar *a, int na);
 
 void
 pppopen(PPP *ppp, int mediain, int mediaout, char *net,
 	Ipaddr ipaddr, Ipaddr remip,
-	int mtu, int framing)
+	int mtu, int framing,
+	char *secret)
 {
-	UserPasswd *up;
+	char *p;
 
 	ppp->ipfd = -1;
 	ppp->ipcfd = -1;
@@ -143,12 +142,17 @@ pppopen(PPP *ppp, int mediain, int mediaout, char *net,
 	ppp->mru = mtu;
 	ppp->framing = framing;
 	ppp->net = net;
-
-	up = auth_getuserpasswd(auth_getkey,"proto=pass service=ppp %s", keyspec);
-	if(up != nil){
-		strcpy(ppp->chapname, up->user);
-		strcpy(ppp->secret, up->passwd);
-	}		
+	strcpy(ppp->chapname, getuser());
+	if(secret){
+		p = strchr(secret, ':');
+		if(p != nil){
+			*p++ = 0;
+			strncpy(ppp->secret, p, sizeof(ppp->secret));
+			if(*secret)
+				strncpy(ppp->chapname, secret, sizeof(ppp->chapname));
+		} else
+			strncpy(ppp->secret, secret, sizeof(ppp->secret));
+	}
 
 	init(ppp);
 	switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
@@ -386,7 +390,6 @@ getframe(PPP *ppp, int *protop)
 		b = allocb(2000);
 		len = b->lim - b->wptr;
 		n = read(ppp->mediain, b->wptr, len);
- 		dmppkt("RX", b->wptr, n);
 		if(n <= 0 || n == len){
 			freeb(b);
 
@@ -431,7 +434,6 @@ getframe(PPP *ppp, int *protop)
 				buf->wptr = buf->rptr;
 				return nil;
 			}
- 			dmppkt("RX", buf->wptr, n);
 			buf->wptr += n;
 		}
 
@@ -577,7 +579,6 @@ putframe(PPP *ppp, int proto, Block *b)
 
 	/* send */
 	buf->wptr = to;
- 	dmppkt("TX", buf->rptr, BLEN(buf));
 	if(write(ppp->mediaout, buf->rptr, BLEN(buf)) < 0){
 		qunlock(&ppp->outlock);
 		return -1;
@@ -699,14 +700,6 @@ config(PPP *ppp, Pstate *p, int newid)
 {syslog(0, "ppp", "requesting %I", ppp->local);
 			putv4o(b, Oipaddr, ppp->local);
 }
-		if(primary && (p->optmask & Fipdns))
-			putv4o(b, Oipdns, ppp->dns[0]);
-		if(primary && (p->optmask & Fipdns2))
-			putv4o(b, Oipdns2, ppp->dns[1]);
-		if(primary && (p->optmask & Fipwins))
-			putv4o(b, Oipwins, ppp->wins[0]);
-		if(primary && (p->optmask & Fipwins2))
-			putv4o(b, Oipwins2, ppp->wins[1]);
 		/*
 		 * don't ask for header compression while data compression is still pending.
 		 * perhaps we should restart ipcp negotiation if compression negotiation fails.
@@ -879,7 +872,7 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 				}
 				if(rejecting)
 					continue;
-				if(x & 1) {
+				if(x == 0x41) {
 					ctype = &cmppc;
 					ppp->sendencrypted = (o->data[3]&0x40) == 0x40;
 					continue;
@@ -1008,43 +1001,12 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 
 	return rejecting || nacking;
 }
-static void
-dmppkt(char *s, uchar *a, int na)
-{
-	int i;
-
-	if (debug < 3)
-		return;
-
-	fprint(2, "%s", s);
-	for(i = 0; i < na; i++)
-		fprint(2, " %.2ux", a[i]);
-	fprint(2, "\n");
-}
 
 static void
 dropoption(Pstate *p, Lcpopt *o)
 {
-	unsigned n = o->type;
-
-	switch(n){
-		case Oipdns:
-			p->optmask &= ~Fipdns;
-			break;
-		case Oipwins:
-			p->optmask &= ~Fipwins;
-			break;
-		case Oipdns2:
-			p->optmask &= ~Fipdns2;
-			break;
-		case Oipwins2:
-			p->optmask &= ~Fipwins2;
-			break;
-		default:
-			if(o->type < 8*sizeof(p->optmask))
-				p->optmask &= ~(1<<o->type);
-			break;
-	}
+	if(o->type < 8*sizeof(p->optmask))
+		p->optmask &= ~(1<<o->type);
 }
 
 /*
@@ -1126,62 +1088,6 @@ syslog(0, "ppp", "rejected addr %I with %V", ppp->local, o->data);
 
 				/* if he gives us something different, use it anyways */
 				v4tov6(ppp->local, o->data);
-				dropoption(p, o);
-				break;
-			case Oipdns:
-				if (!validv4(ppp->dns[0])){
-					v4tov6(ppp->dns[0], o->data);
-					dropoption(p, o);
-					break;
-				}
-				v4tov6(newip, o->data);
-				if(!validv4(newip)){
-					invalidate(ppp->dns[0]);
-					break;
-				}
-				v4tov6(ppp->dns[0], o->data);
-				dropoption(p, o);
-				break;
-			case Oipwins:
-				if (!validv4(ppp->wins[0])){
-					v4tov6(ppp->wins[0], o->data);
-					dropoption(p, o);
-					break;
-				}
-				v4tov6(newip, o->data);
-				if(!validv4(newip)){
-					invalidate(ppp->wins[0]);
-					break;
-				}
-				v4tov6(ppp->wins[0], o->data);
-				dropoption(p, o);
-				break;
-			case Oipdns2:
-				if (!validv4(ppp->dns[1])){
-					v4tov6(ppp->dns[1], o->data);
-					dropoption(p, o);
-					break;
-				}
-				v4tov6(newip, o->data);
-				if(!validv4(newip)){
-					invalidate(ppp->dns[1]);
-					break;
-				}
-				v4tov6(ppp->dns[1], o->data);
-				dropoption(p, o);
-				break;
-			case Oipwins2:
-				if (!validv4(ppp->wins[1])){
-					v4tov6(ppp->wins[1], o->data);
-					dropoption(p, o);
-					break;
-				}
-				v4tov6(newip, o->data);
-				if(!validv4(newip)){
-					invalidate(ppp->wins[1]);
-					break;
-				}
-				v4tov6(ppp->wins[1], o->data);
 				dropoption(p, o);
 				break;
 			default:
@@ -1428,13 +1334,6 @@ ptimer(PPP *ppp, Pstate *p)
 	}
 }
 
-/* paptimer -- pap timer event handler
- *
- * If PAP authorization hasn't come through, resend an authreqst.  If
- * the maximum number of requests have been sent (~ 30 seconds), give
- * up.
- *
- */
 static void
 authtimer(PPP* ppp)
 {
@@ -2300,6 +2199,13 @@ getpap(PPP *ppp, Block *b)
 	freeb(b);
 }
 
+/* paptimer -- pap timer event handler
+ *
+ * If PAP authorization hasn't come through, resend an authreqst.  If
+ * the maximum number of requests have been sent (~ 30 seconds), give
+ * up.
+ *
+ */
 static void
 printopts(Pstate *p, Block *b, int send)
 {
@@ -2631,7 +2537,7 @@ int interactive;
 void
 usage(void)
 {
-	fprint(2, "usage: ppp [-cCdfPSu] [-b baud] [-k keyspec] [-m mtu] [-p dev] [-s username] [-x netmntpt] [-t modemcmd] [local-addr [remote-addr]]\n");
+	fprint(2, "usage: ppp [-cCdfPSu] [-b baud] [-m mtu] [-p dev] [-s username:secret] [-x netmntpt] [-t modemcmd] [local-addr [remote-addr]]\n");
 	exits("usage");
 }
 
@@ -2640,7 +2546,7 @@ main(int argc, char **argv)
 {
 	int mtu, baud, framing, user, mediain, mediaout, cfd;
 	Ipaddr ipaddr, remip;
-	char *dev, *modemcmd;
+	char *dev, *secret, *modemcmd, *p;
 	char net[128];
 	PPP *ppp;
 	char buf[128];
@@ -2652,6 +2558,7 @@ main(int argc, char **argv)
 	fmtinstall('E', eipfmt);
 
 	dev = nil;
+	secret = nil;
 
 	invalidate(ipaddr);
 	invalidate(remip);
@@ -2665,7 +2572,10 @@ main(int argc, char **argv)
 
 	ARGBEGIN{
 	case 'b':
-		baud = atoi(EARGF(usage()));
+		p = ARGF();
+		if(p == nil)
+			usage();
+		baud = atoi(p);
 		if(baud < 0)
 			baud = 0;
 		break;
@@ -2684,11 +2594,11 @@ main(int argc, char **argv)
 	case 'F':
 		pppframing = 0;
 		break;
-	case 'k':
-		keyspec = EARGF(usage());
-		break;
 	case 'm':
-		mtu = atoi(EARGF(usage()));
+		p = ARGF();
+		if(p == nil)
+			usage();
+		mtu = atoi(p);
 		if(mtu < Minmtu)
 			mtu = Minmtu;
 		if(mtu > Maxmtu)
@@ -2698,26 +2608,35 @@ main(int argc, char **argv)
 		chatfile = EARGF(usage());
 		break;
 	case 'p':
-		dev = EARGF(usage());
+		dev = ARGF();
 		break;
 	case 'P':
 		primary = 1;
+		break;
+	case 's':
+		secret = ARGF();
 		break;
 	case 'S':
 		server = 1;
 		break;
 	case 't':
-		modemcmd = EARGF(usage());
+		p = ARGF();
+		if(p == nil)
+			usage();
+		modemcmd = p;
 		break;
 	case 'u':
 		user = 1;
 		break;
 	case 'x':
-		setnetmtpt(net, sizeof net, EARGF(usage()));
+		p = ARGF();
+		if(p == nil)
+			usage();
+		setnetmtpt(net, sizeof(net), p);
 		break;
 	default:
-		fprint(2, "unknown option %c\n", ARGC());
-		usage();
+		fprint(2, "unknown option %c\n", _argc);
+		break;
 	}ARGEND;
 
 	switch(argc){
@@ -2785,7 +2704,7 @@ main(int argc, char **argv)
 		fprint(mediaout, "%s\r", modemcmd);
 
 	ppp = mallocz(sizeof(*ppp), 1);
-	pppopen(ppp, mediain, mediaout, net, ipaddr, remip, mtu, framing);
+	pppopen(ppp, mediain, mediaout, net, ipaddr, remip, mtu, framing, secret);
 
 	if(primary){
 		/* wait until ip is configured */
