@@ -4,11 +4,9 @@
  * Shouldn't really call this sys_errlist or make it
  * externally visible, but too many programs in X assume it...
  */
-#include <string.h>
 #include <errno.h>
 
 #include "iolib.h"
-
 char *sys_errlist[] = {
 	"Error 0",
 	"Too big",
@@ -83,9 +81,7 @@ char *sys_errlist[] = {
 int sys_nerr = _IO_nerr;
 extern char _plan9err[];
 
-char *
-strerror(int n)
-{
+char *strerror(int n){
 	if(n == EPLAN9)
 		return _plan9err;
 	if(n >= 0 && n < _IO_nerr)
@@ -96,11 +92,4 @@ strerror(int n)
 		return "Range error";
 	else
 		return "Unknown error";
-}
-
-char *
-strerror_r(int n, char *buf, int len)
-{
-	strncpy(buf, strerror(n), len);
-	buf[len-1] = 0;
 }

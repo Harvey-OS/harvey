@@ -149,10 +149,6 @@ extern pid_t tcgetpgrp(int);
 extern int tcsetpgrp(int, pid_t);
 #endif
 
-#ifdef _REENTRANT_SOURCE
-extern char *getlogin_r(char *, int);
-#endif
-
 /* berkeley specific functions */
 #ifdef _BSD_EXTENSION
 #include <bsd.h>
