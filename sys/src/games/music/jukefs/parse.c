@@ -11,7 +11,7 @@
 
 Biobuf *f;
 static int str;
-char *file;
+char file[256];
 
 Token tokenlistinit[] = {
 	{ "category",	Obj,	Category	, "music"	, {nil,0}},
@@ -165,7 +165,7 @@ getobject(Type t, Object *parent)
 	o->flags |= Hier;
 	if(parent == nil){
 		root = o;
-		o->path = strdup(startdir);
+		o->path = startdir;
 		setmalloctag(o->path, 0x100001);
 	}
 	if(gettoken(token) != BraceO)
@@ -372,7 +372,7 @@ getinclude(Object *o)
 {
 		char *savetext;
 		Biobuf *savef = f;
-		char *savefile, fname[256];
+		char savefile[256], fname[256];
 		Object *oo;
 		int savestr = str;
 		char token[MAXTOKEN], *dirname, *filename;
@@ -384,10 +384,10 @@ getinclude(Object *o)
 			setmalloctag(savetext, 0x100006);
 		}else
 			savetext = nil;
+		strncpy(savefile, file, 256);
 		if((f = Bopen(o->value, OREAD)) == nil)
 			sysfatal("getinclude: %s: %r", o->value);
-		savefile = file;
-		file = strdup(o->value);
+		strncpy(file, o->value, 256);
 		strncpy(fname, o->value, 256);
 		if((filename = strrchr(fname, '/'))){
 			*filename = 0;
@@ -417,8 +417,7 @@ getinclude(Object *o)
 		curtext = nil;
 		if(savetext)
 			curtext = savetext;
-		free(file);
-		file = savefile;
+		strncpy(file, savefile, 256);
 		str = savestr;
 		Bterm(f);
 		f = savef;

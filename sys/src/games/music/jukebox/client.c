@@ -17,24 +17,22 @@ getroot(void)
 void
 fillbrowsebot(char *onum)
 {
-	char *name, *p, *q;
+	char name[256], *p, *q;
 	Biobuf *b, *d;
 	int c;
 
-	name = smprint("%s/%s/children", srvmount, onum);
+	snprint(name, sizeof name, "%s/%s/children", srvmount, onum);
 	b = Bopen(name, OREAD);
 	if(b == nil)
-		sysfatal("getchildren: %s: %r", name);
-	free(name);
+abort();//		sysfatal("getchildren: %s: %r", name);
 	while(p = Brdline(b, '\n')){
 		c = strtol(p, &q, 0);
 		assert(*q == '\n');
 		*q = 0;
-		name = smprint("%s/%d/type", srvmount, c);
+		snprint(name, sizeof name, "%s/%d/type", srvmount, c);
 		d = Bopen(name, OREAD);
 		if(d == nil)
 			sysfatal("getchildren: %s: %r", name);
-		free(name);
 		q = Brdstr(d, '\n', 1);
 		if(q == nil){
 			abort();
@@ -42,11 +40,10 @@ fillbrowsebot(char *onum)
 		Bterm(d);
 		if(strcmp(q, "performance") == 0)
 			continue;
-		name = smprint("%s/%d/digest", srvmount, c);
+		snprint(name, sizeof name, "%s/%d/digest", srvmount, c);
 		d = Bopen(name, OREAD);
 		if(d == nil)
 			sysfatal("getchildren: %s: %r", name);
-		free(name);
 		q = Brdstr(d, '\n', 1);
 		if(q == nil){
 			Bterm(d);
@@ -60,11 +57,11 @@ fillbrowsebot(char *onum)
 
 void
 doplay(char *onum){
-	char *name, *p, *q;
+	char name[256], *p, *q;
 	Biobuf *b;
 	int m;
 
-	name = smprint("%s/%s/files", srvmount, onum);
+	snprint(name, sizeof name, "%s/%s/files", srvmount, onum);
 	b = Bopen(name, OREAD);
 	if(b == nil)
 abort();//		sysfatal("doplay: %s: %r", name);
@@ -78,22 +75,20 @@ abort();//		sysfatal("doplay: %s: %r", name);
 		*q++ = '\0';
 		sendplaylist(strdup(q), strdup(p));
 	}
-	free(name);
 	Bterm(b);
 }
 
 void
 fillbrowsetop(char *onum)
 {
-	char *name, *p;
+	char name[256], *p;
 	Biobuf *b;
 	int m;
 
-	name = smprint("%s/%s/parentage", srvmount, onum);
+	snprint(name, sizeof name, "%s/%s/parentage", srvmount, onum);
 	b = Bopen(name, OREAD);
 	if(b == nil)
 abort();//		sysfatal("gettopwin: %s: %r", name);
-	free(name);
 	while(p = Brdline(b, '\n')){
 		m = Blinelen(b);
 		assert(p[m-1] == '\n');
@@ -106,15 +101,14 @@ abort();//		sysfatal("gettopwin: %s: %r", name);
 void
 fillplaytext(char *onum)
 {
-	char *name, *p;
+	char name[256], *p;
 	Biobuf *b;
 	int m;
 
-	name = smprint("%s/%s/parentage", srvmount, onum);
+	snprint(name, sizeof name, "%s/%s/parentage", srvmount, onum);
 	b = Bopen(name, OREAD);
 	if(b == nil)
 		sysfatal("fillplaytext: %s: %r", name);
-	free(name);
 	while(p = Brdline(b, '\n')){
 		m = Blinelen(b);
 		assert(p[m-1] == '\n');
@@ -127,14 +121,13 @@ fillplaytext(char *onum)
 char *
 getoneliner(char *onum)
 {
-	char *name, *p;
+	char name[256], *p;
 	Biobuf *b;
 
-	name = smprint("%s/%s/miniparentage", srvmount, onum);
+	snprint(name, sizeof name, "%s/%s/miniparentage", srvmount, onum);
 	b = Bopen(name, OREAD);
 	if(b == nil)
 		sysfatal("gettopwin: %s: %r", name);
-	free(name);
 	p = Brdstr(b, '\n', 1);
 	Bterm(b);
 	return p;
@@ -143,14 +136,13 @@ getoneliner(char *onum)
 char *
 getparent(char *onum)
 {
-	char *name, *p;
+	char name[256], *p;
 	Biobuf *b;
 
-	name = smprint("%s/%s/parent", srvmount, onum);
+	snprint(name, sizeof name, "%s/%s/parent", srvmount, onum);
 	b = Bopen(name, OREAD);
 	if(b == nil)
 abort();//		sysfatal("gettopwin: %s: %r", name);
-	free(name);
 	p = Brdstr(b, '\n', 1);
 	Bterm(b);
 	return p;

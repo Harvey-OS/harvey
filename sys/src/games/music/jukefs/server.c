@@ -14,7 +14,7 @@ int		p[2];
 int		mfd[2];
 int		debug = 0; //DBGSERVER|DBGSTATE|DBGPICKLE|DBGPLAY;
 Biobuf		*f;
-char		*file;
+char		file[64];
 
 Object *root;
 
@@ -131,15 +131,11 @@ threadmain(int argc, char *argv[]) {
 
 	if((f = Bopen(mapname, OREAD)) == nil)
 		sysfatal("%s: %r", mapname);
-	free(file);
 	file = strdup(mapname);
-	free(startdir);
-	startdir = strdup(mapname);
-	if ((q = strrchr(startdir, '/')))
-		*q = '\0';
-	else
-		startdir[0] = '\0';
+	if ((q = strrchr(file, '/'))) *q = 0;
 	inittokenlist();
+	startdir = strdup(q?file:"");
+	free(file);
 	getobject(Root, nil);
 	Bterm(f);
 	f = nil;
@@ -184,7 +180,7 @@ reread(void)
 
 	assert(f == nil);
 	if((f = Bopen(mapname, OREAD)) == nil)
-		fprint(2, "reread: %s: %r\n", mapname);
+		fprint(2, "reread: %s: %r\n", file);
 	freetree(root);
 	root = nil;
 	for(i = 0; i< ntoken; i++){
@@ -199,14 +195,10 @@ reread(void)
 	tokenlist = nil;
 	ntoken = Ntoken;
 	inittokenlist();
-	free(file);
 	file = strdup(mapname);
-	free(startdir);
-	startdir = strdup(mapname);
-	if ((q = strrchr(startdir, '/')))
-		*q = '\0';
-	else
-		startdir[0] = '\0';
+	if ((q = strrchr(file, '/'))) *q = 0;
+	startdir = strdup(q?file:"");
+	free(file);
 	getobject(Root, nil);
 	root->parent = root;
 	Bterm(f);
