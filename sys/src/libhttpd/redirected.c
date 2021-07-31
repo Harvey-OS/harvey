@@ -7,15 +7,13 @@ int
 hredirected(HConnect *c, char *how, char *uri)
 {
 	Hio *hout;
-	char *s, *ss, *scheme, *host;
-	char sayport[NETPATHLEN];
+	char *s, *ss, *host;
 	int n;
 
-	scheme = c->scheme? c->scheme: "http";
 	host = c->head.host;
-	if(strchr(uri, ':') != nil)
+	if(strchr(uri, ':')){
 		host = "";
-	else if(uri[0] != '/'){
+	}else if(uri[0] != '/'){
 		s = strrchr(c->req.uri, '/');
 		if(s != nil)
 			*s = '\0';
@@ -25,13 +23,6 @@ hredirected(HConnect *c, char *how, char *uri)
 		if(s != nil)
 			*s = '/';
 	}
-
-	if((strcmp(scheme, "http") == 0 && atoi(c->port) == 80) ||
-	   (strcmp(scheme, "https") == 0 && atoi(c->port) == 443) ||
-	    strchr(host, ':') != nil)
-		sayport[0] = '\0';
-	else
-		snprint(sayport, sizeof sayport, ":%s", c->port);
 
 	n = snprint(c->xferbuf, HBufSize, 
 			"<head><title>Redirection</title></head>\r\n"
@@ -47,8 +38,7 @@ hredirected(HConnect *c, char *how, char *uri)
 	if(host == nil || host[0] == 0)
 		hprint(hout, "Location: %U\r\n", uri);
 	else
-		hprint(hout, "Location: %s://%U%s%U\r\n",
-			scheme, host, sayport, uri);
+		hprint(hout, "Location: http://%U%U\r\n", host, uri);
 	if(c->head.closeit)
 		hprint(hout, "Connection: close\r\n");
 	else if(!http11(c))
@@ -58,12 +48,12 @@ hredirected(HConnect *c, char *how, char *uri)
 	if(strcmp(c->req.meth, "HEAD") != 0)
 		hwrite(hout, c->xferbuf, n);
 
-	if(c->replog)
+	if(c->replog){
 		if(host == nil || host[0] == 0)
 			c->replog(c, "Reply: %s\nRedirect: %U\n", how, uri);
 		else
-			c->replog(c, "Reply: %s\nRedirect: %s://%U%s%U\n",
-				how, scheme, host, sayport, uri);
+			c->replog(c, "Reply: %s\nRedirect: http://%U%U\n", how, host, uri);
+	}
 	return hflush(hout);
 }
 

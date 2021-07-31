@@ -15,6 +15,7 @@ struct Strings
 };
 
 char	*netdir;
+char	*webroot;
 char	*HTTPLOG = "httpd/log";
 
 static	char		netdirb[256];
@@ -142,7 +143,7 @@ becomenone(char *namespace)
 }
 
 static HConnect*
-mkconnect(char *scheme, char *port)
+mkconnect(void)
 {
 	HConnect *c;
 
@@ -150,8 +151,6 @@ mkconnect(char *scheme, char *port)
 	c->hpos = c->header;
 	c->hstop = c->header;
 	c->replog = writelog;
-	c->scheme = scheme;
-	c->port = port;
 	return c;
 }
 
@@ -170,7 +169,7 @@ dolisten(char *address)
 	HSPriv *hp;
 	HConnect *c;
 	NetConnInfo *nci;
-	char ndir[NETPATHLEN], dir[NETPATHLEN], *p, *scheme;
+	char ndir[NETPATHLEN], dir[NETPATHLEN], *p;
 	int ctl, nctl, data, t, ok, spotchk;
 	TLSconn conn;
 
@@ -223,9 +222,7 @@ dolisten(char *address)
 				if (certchain != nil)
 					conn.chain = certchain;
 				data = tlsServer(data, &conn);
-				scheme = "https";
-			}else
-				scheme = "http";
+			}
 			if(data < 0){
 				syslog(0, HTTPLOG, "can't open %s/data: %r", ndir);
 				exits(nil);
@@ -238,7 +235,7 @@ dolisten(char *address)
 			close(nctl);
 
 			nci = getnetconninfo(ndir, -1);
-			c = mkconnect(scheme, nci->lserv);
+			c = mkconnect();
 			hp = mkhspriv();
 			hp->remotesys = nci->rsys;
 			hp->remoteserv = nci->rserv;
@@ -368,7 +365,6 @@ magic:
 		}
 		hp = c->private;
 		execl(c->xferbuf, magic, "-d", hmydomain, "-w", webroot,
-			"-s", c->scheme, "-p", c->port,
 			"-r", hp->remotesys, "-N", netdir, "-b", hb,
 			"-L", logfd0, logfd1, "-R", c->header,
 			c->req.meth, vers, uri, c->req.search, nil);

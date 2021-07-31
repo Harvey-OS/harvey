@@ -75,5 +75,3 @@ void			writelog(HConnect*, char*, ...);
 
 /* authorize.c */
 int authorize(HConnect*, char*);
-
-char *webroot;

@@ -6,9 +6,8 @@
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-b inbuf] [-d domain] [-p localport]"
-		" [-r remoteip] [-s uri-scheme] [-w webroot]"
-		" [-L logfd0 logfd1] [-N netdir] [-R reqline]"
+	fprint(2, "usage: %s [-b inbuf] [-d domain] [-r remoteip] [-w webroot]"
+		" [-N netdir] [-L logfd0 logfd1] [-R reqline]"
 		" method version uri [search]\n", argv0);
 	exits("usage");
 }
@@ -29,8 +28,6 @@ init(int argc, char **argv)
 	hinit(&connect.hout, 1, Hwrite);
 	hmydomain = nil;
 	connect.replog = writelog;
-	connect.scheme = "http";
-	connect.port = "80";
 	connect.private = &priv;
 	priv.remotesys = nil;
 	priv.remoteserv = nil;
@@ -45,14 +42,8 @@ init(int argc, char **argv)
 	case 'd':
 		hmydomain = EARGF(usage());
 		break;
-	case 'p':
-		connect.port = EARGF(usage());
-		break;
 	case 'r':
 		priv.remotesys = EARGF(usage());
-		break;
-	case 's':
-		connect.scheme = EARGF(usage());
 		break;
 	case 'w':
 		webroot = EARGF(usage());
