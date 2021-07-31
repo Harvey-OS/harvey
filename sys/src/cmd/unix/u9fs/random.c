@@ -35,17 +35,17 @@ randombytes(uchar *r, uint nr)
 
 	if(!seeded){
 		seeded=1;
-		srandom(getseed());
+		srand48(getseed());
 	}
 	for(i=0; i+4<=nr; i+=4,r+=4){
-		l = (ulong)random();
+		l = (ulong)mrand48();
 		r[0] = l;
 		r[1] = l>>8;
 		r[2] = l>>16;
 		r[3] = l>>24;
 	}
 	if(i<nr){
-		l = (ulong)random();
+		l = (ulong)mrand48();
 		switch(nr-i){
 		case 3:
 			r[2] = l>>16;

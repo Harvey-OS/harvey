@@ -70,7 +70,6 @@ enum {
 
 Intfeat intfeats[] = {
 //	0x21,		"incr. streaming writable",
-//	0x25,		"write once",
 	Featdfctmgmt,	"hw defect mgmt.",
 	Featedfctrpt,	"enhanced defect reporting",
 	0x38,		"pseudo-overwrite",
@@ -1642,41 +1641,29 @@ static long
 mmcxwrite(Otrack *o, void *v, long nblk)
 {
 	int r;
-	long bs;
 	uchar cmd[10];
-	Drive *drive;
 	Mmcaux *aux;
 
 	assert(o->omode == OWRITE);
-	bs = o->track->bs;
-	drive = o->drive;
-	aux = drive->aux;
-	if (aux->mmcnwa == -1 && scsiready(drive) < 0) {
+	aux = o->drive->aux;
+	if (aux->mmcnwa == -1 && scsiready(o->drive) < 0) {
 		werrstr("device not ready to write");
 		return -1;
 	}
 	if (aux->mmcnwa == -1 ||
-	    drive->end != 0 && aux->mmcnwa + nblk > drive->end) {
+	    o->drive->end != 0 && aux->mmcnwa + nblk > o->drive->end) {
 		werrstr("writing past last block");
 		return -1;
 	}
 	if (nblk <= 0)
 		fprint(2, "mmcxwrite: nblk %ld <= 0\n", nblk);
-	aux->ntotby += nblk * bs;
+	aux->ntotby += nblk*o->track->bs;
 	aux->ntotbk += nblk;
 
-	while (scsiready(drive) < 0)		/* paranoia */
+	while (scsiready(o->drive) < 0)		/* paranoia */
 		sleep(0);
 
-	/*
-	 * "write and verify" (ScmdExtwritever) only works on write-once media
-	 * and not on CDs (mmc-6 §6.48.1).
-	 */
-	if (drive->mmctype != Mmccd &&
-	    drive->recordable == Yes && drive->erasable == No)
-		initcdb(cmd, sizeof cmd, ScmdExtwritever);
-	else
-		initcdb(cmd, sizeof cmd, ScmdExtwrite);	/* write (10) */
+	initcdb(cmd, sizeof cmd, ScmdExtwritever);
 	cmd[2] = aux->mmcnwa>>24;
 	cmd[3] = aux->mmcnwa>>16;
 	cmd[4] = aux->mmcnwa>>8;
@@ -1693,11 +1680,12 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	 * but explicit attempts to rewrite a given sector on write-once
 	 * media are guaranteed to fail.
 	 */
-	r = scsi(drive, cmd, sizeof(cmd), v, nblk * bs, Swrite);
+	r = scsi(o->drive, cmd, sizeof(cmd), v, nblk*o->track->bs, Swrite);
 	if (r < 0)
 		fprint(2, "%s: write+verify error at blk offset %,ld = "
 			"offset %,lld / bs %ld: %r\n",
-			argv0, aux->mmcnwa, (vlong)aux->mmcnwa * bs, bs);
+			argv0, aux->mmcnwa, (vlong)aux->mmcnwa * o->track->bs,
+			o->track->bs);
 	else
 		aux->mmcnwa += nblk;
 	return r;

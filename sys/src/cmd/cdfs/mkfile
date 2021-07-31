@@ -6,7 +6,6 @@ OFILES=\
 	buf.$O\
 	main.$O\
 	mmc.$O\
-	scsi.$O\
 
 HFILES=\
 	dat.h\
