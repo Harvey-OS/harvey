@@ -403,7 +403,6 @@ TEXT now16real(SB), $0
 
 TEXT realmodeintrinst(SB), $0
 	INT $0x00
-	CLI			/* who knows what evil the bios got up to */
 
 	/* save the registers after the call */
 
