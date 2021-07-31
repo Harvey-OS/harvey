@@ -28,7 +28,6 @@ main(int argc, char *argv[])
 {
 	int f;
 
-	argv0 = argv[0];
 	bsize = SIZE;
 	b1 = malloc(bsize);
 	b2 = malloc(bsize);
@@ -50,12 +49,16 @@ main(int argc, char *argv[])
 			continue;
 		}
 		f = open(argv[1], 0);
-		if(f < 0)
-			sysfatal("cannot open %s", argv[1]);
+		if(f < 0) {
+			fprint(2, "cannot open %s\n", argv[1]);
+			exits("open");
+		}
 		break;
 	}
-	if(argc > 2)
-		sysfatal("unexpected argument %s", argv[2]);
+	if(argc > 2) {
+		fprint(2, "unexpected argument %s\n", argv[2]);
+		exits("arg");
+	}
 	Binit(&fin, f, OREAD);
 	Binit(&fout, 1, OWRITE);
 
@@ -91,8 +94,10 @@ gline(char *buf)
 	p = Brdline(&fin, '\n');
 	if(p == 0)
 		return 1;
-	if(fin.rdline >= bsize-1)
-		sysfatal("line too long");
+	if(fin.rdline >= bsize-1) {
+		fprint(2, "line too long\n");
+		exits("too long");
+	}
 	memmove(buf, p, fin.rdline);
 	buf[fin.rdline-1] = 0;
 	return 0;
@@ -101,6 +106,7 @@ gline(char *buf)
 void
 pline(char *buf)
 {
+
 	switch(mode) {
 
 	case 'u':
