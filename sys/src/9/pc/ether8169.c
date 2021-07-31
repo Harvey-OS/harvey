@@ -585,7 +585,6 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 static void
 rtl8169halt(Ctlr* ctlr)
 {
-	csr32w(ctlr, Timerint, 0);
 	csr8w(ctlr, Cr, 0);
 	csr16w(ctlr, Imr, 0);
 	csr16w(ctlr, Isr, ~0);
@@ -656,14 +655,16 @@ rtl8169replenish(Ctlr* ctlr)
 static int
 rtl8169init(Ether* edev)
 {
+	int i;
 	u32int r;
+	Block *bp;
 	Ctlr *ctlr;
 	u8int cplusc;
 
 	ctlr = edev->ctlr;
 	ilock(&ctlr->ilock);
 
-	rtl8169reset(ctlr);
+	rtl8169halt(ctlr);
 
 	/*
 	 * MAC Address is not settable on some (all?) chips.
@@ -686,6 +687,11 @@ rtl8169init(Ether* edev)
 	ctlr->nrdfree = ctlr->rdh = ctlr->rdt = 0;
 	ctlr->rd[ctlr->nrd-1].control = Eor;
 
+	for(i = 0; i < ctlr->nrd; i++)
+		if((bp = ctlr->rb[i]) != nil){
+			ctlr->rb[i] = nil;
+			freeb(bp);
+		}
 	rtl8169replenish(ctlr);
 	ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Am|Apm;
 
@@ -849,8 +855,10 @@ rtl8169attach(Ether* edev)
 	}
 	qunlock(&ctlr->alock);
 
-	/* Don't wait long for link to be ready. */
-	for(timeo = 0; timeo < 10; timeo++){
+	/*
+	 * Wait for link to be ready.
+	 */
+	for(timeo = 0; timeo < 35; timeo++){
 		if(miistatus(ctlr->mii) == 0)
 			break;
 		delay(100);		/* print fewer miistatus messages */
