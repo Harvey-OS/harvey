@@ -153,8 +153,6 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 		switch(len){
 		case 0:
 			/* RETURN */
-			if(isdefault)
-				break;
 			continue;
 		case -1:
 			/* ^U typed */

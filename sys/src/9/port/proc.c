@@ -676,7 +676,6 @@ twakeup(Ureg*, Timer *t)
 	}
 }
 
-/* Sleep until todget() >= ns.  NOTE: ns is not an interval */
 void
 tnsleep(Rendez *r, int (*fn)(void*), void *arg, vlong ns)
 {
@@ -684,7 +683,7 @@ tnsleep(Rendez *r, int (*fn)(void*), void *arg, vlong ns)
 		timerdel(up);
 	up->tns = ns;
 	up->tf = twakeup;
-	up->tmode = Tabsolute;
+	up->tmode = Trelative;
 	up->ta = up;
 	up->trend = r;
 	up->tfn = fn;

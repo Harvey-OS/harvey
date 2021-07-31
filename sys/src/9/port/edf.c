@@ -209,26 +209,16 @@ releaseintr(Ureg*, Timer *t)
 		release(p);
 		edfunlock();
 		ready(p);
-		if (up){
-			up->delaysched++;
-			delayedscheds++;
-		}
+		sched();
+//		if (up){
+//			up->delaysched++;
+ //			delayedscheds++;
+//		}
 		return;
 	case Running:
 		release(p);
 		edfrun(p, 1);
 		break;
-	case Wakeme:
-		release(p);
-		edfunlock();
-		if (p->trend)
-			wakeup(p->trend);
-		p->trend = nil;
-		if (up){
-			up->delaysched++;
-			delayedscheds++;
-		}
-		return;
 	}
 	edfunlock();
 }
@@ -406,12 +396,6 @@ edfstop(Proc *p)
 	}
 }
 
-static int
-yfn(void *)
-{
-	return todget(nil) >= up->edf->r;
-}
-
 void
 edfyield(void)
 {
@@ -419,23 +403,14 @@ edfyield(void)
 	Edf *e;
 	void	(*pt)(Proc*, int);
 
-	edflock();
 	e = up->edf;
 	if(pt = proctrace)
 		pt(up, SYield);
-	while(e->t < now)
-		e->t += e->T;
-	e->r = e->t;
+	now = todget(nil);
 	e->flags |= Yield;
 	e->d = now;
-	up->tns = e->t;
-	up->tf = releaseintr;
-	up->tmode = Tabsolute;
-	up->ta = up;
-	up->trend = &up->sleep;
-	timeradd(up);
-	edfunlock();
-	sleep(&up->sleep, yfn, nil);
+	DPRINT("%t edfyield %lud\n", now, up->pid);
+	sched();
 }
 
 int

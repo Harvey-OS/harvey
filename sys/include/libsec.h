@@ -133,7 +133,7 @@ enum
 typedef struct DigestState DigestState;
 struct DigestState
 {
-	uvlong len;
+	ulong len;
 	u32int state[5];
 	uchar buf[128];
 	int blen;

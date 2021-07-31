@@ -28,8 +28,8 @@ struct Msg {
 
 	int	state;
 
-	Msg*	behind;			/* proc flush */
-	Msg*	before;
+	Msg*	fnext;			/* proc flush */
+	Msg*	fprev;
 };
 
 enum {
