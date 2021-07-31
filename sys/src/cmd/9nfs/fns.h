@@ -1,5 +1,4 @@
 int	auth2unix(Auth*, Authunix*);
-int	authhostowner(Session*);
 int	canlock(Lock*);
 void	chat(char*, ...);
 void	chatsrv(char*);
