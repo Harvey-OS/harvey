@@ -48,11 +48,7 @@
 #define CpTESTCFG	15			/* test config. (arm926) */
 
 /*
- * CpID Secondary (CRm) registers.
- */
-#define CpIDidct	0
-/*
- * CpID op1==0 opcode2 fields.
+ * CpID opcode2 fields.
  */
 #define CpIDid		0			/* main ID */
 #define CpIDct		1			/* cache type */

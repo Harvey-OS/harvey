@@ -198,7 +198,6 @@ cputype2name(char *buf, int size)
 	if (pci->devid != 0x6281)
 		socrev = "unknown";
 	else
-		// TODO: record rev somewhere for benefit of usb initialisation
 		switch (rev) {
 		case 0:
 			socrev = "Z0";
@@ -254,6 +253,13 @@ nsread(Chan*, void *a, long n, vlong offset)
 
 	snprint(str, sizeof(str), "%16.16llux", (tb/700)* 1000);
 	return readstr(offset, a, n, str);
+}
+
+uvlong
+fastns(void)
+{
+//	return gettbl();
+	return 0;
 }
 
 void
