@@ -57,7 +57,7 @@ dorecipe(Node *node)
 			if(r->attr&META)
 				subst(aa->stem, w->s, buf, sizeof(buf));
 			else
-				strecpy(buf, buf + sizeof buf - 1, w->s);
+				strcpy(buf, w->s);
 			aw->next = newword(buf);
 			aw = aw->next;
 			if((s = symlook(buf, S_NODE, 0)) == 0)

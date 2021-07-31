@@ -83,8 +83,6 @@ static Mode modes[NMode+1] = {
 
 char *defaultpartition = "new";
 
-int vga;
-
 static Medium*
 parse(char *line, char **file)
 {
