@@ -1,4 +1,3 @@
-# pc - a normal pc terminal
 dev
 	root
 	cons
@@ -37,16 +36,11 @@ dev
 	uart
 	usb
 
-	wd
 
 link
 	realmode
 	devpccard
 	devi82365
-
-# order of ethernet drivers should match that in ../pcboot/boot so that
-# devices are detected in the same order by bootstraps and kernels
-# and thus given the same controller numbers.
 	ether2000	ether8390
 	ether2114x	pci
 	ether589	etherelnk3
@@ -54,8 +48,7 @@ link
 	ether8003	ether8390
 	ether8139	pci
 	ether8169	pci ethermii
-# should be obsoleted by igbe
-	ether82543gc	pci
+#	ether82543gc	pci
 	ether82563	pci
 	ether82557	pci
 	ether83815	pci
@@ -71,21 +64,17 @@ link
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
-	etherm10g
+#	etherm10g
 	ether82598	pci
-
 	pcmciamodem
 	netdevmedium
 	loopbackmedium
-
 	usbuhci
 	usbohci
 	usbehci		usbehcipc
 
-	x86watchdog
-
 misc
-	archmp		mp apic mpacpi
+	archmp		mp apic
 	mtrr
 
 	sdata		pci sdscsi
@@ -112,7 +101,6 @@ misc
 	vgamga4xx	+cur
 	vganeomagic	+cur
 	vganvidia	+cur
-	vgaradeon	+cur
 	vgargb524	=cur
 	vgas3		+cur vgasavage
 	vgat2r4		+cur
@@ -138,7 +126,7 @@ boot
 	tcp
 
 bootdir
-	boot$CONF.out boot
+	bootpc.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
 	/386/bin/usb/usbd

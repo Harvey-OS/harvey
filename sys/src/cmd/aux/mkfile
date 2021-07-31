@@ -34,7 +34,6 @@ TARG=\
 	timesync\
 	trampoline\
 	usage\
-	watchdog\
 	write\
 	zerotrunc\
 
