@@ -45,11 +45,8 @@ getPW(char *id, int dead_or_alive)
 	char *f1, *f2; // fields 1, 2 = attribute, value
 
 	if((bin = openPW(id, OREAD)) == 0){
-		id = "FICTITIOUS";
-		if((bin = openPW(id, OREAD)) == 0){
-			werrstr("account does not exist");
-			return nil;
-		}
+		werrstr("no such account");
+		return nil;
 	}
 	pw = emalloc(sizeof(*pw));
 	pw->id = estrdup(id);

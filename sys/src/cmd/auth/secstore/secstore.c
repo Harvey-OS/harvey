@@ -50,15 +50,11 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 		fprint(2, "remote: %s\n", s);
 		return -1;
 	}
-	len = atoi(s);
-	if(len == -1){
+	if((len = atoi(s)) < 0){
 		fprint(2, "remote file %s does not exist\n", gf);
 		return -1;
-	}else if(len == -3){
-		fprint(2, "implausible filesize for %s\n", gf);
-		return -1;
-	}else if(len < 0){
-		fprint(2, "GET refused for %s\n", gf);
+	}else if(len > MAXFILESIZE){//assert
+		fprint(2, "implausible filesize %d for %s\n", len, gf);
 		return -1;
 	}
 	if(buf != nil){
