@@ -1,3 +1,2 @@
 #!/bin/rc
-mount '#s/boot' /root $rootspec
-exec /bin/exportfs -r /root
+exec /bin/exportfs -s

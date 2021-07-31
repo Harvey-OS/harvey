@@ -1,6 +1,5 @@
 /*
  * Encapsulating Security Payload for IPsec for IPv4, rfc1827.
- * extended to IPv6.
  * rfc2104 defines hmac computation.
  *	currently only implements tunnel mode.
  * TODO: verify aes algorithms;
