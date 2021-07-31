@@ -385,14 +385,8 @@ irq(Ureg* ureg)
 //			splhi();		/* in case v->f lowered pl */
 			handled++;
 		}
-	if(!handled) {
-		print("unknown interrupt: irq %d", irqno);
-		if(irqno < nelem(vctl)) {
-			intcmask(irqno);
-			print(", now masked");
-		}
-		print("\n");
-	}
+	if(!handled)
+		print("unknown interrupt: irq %d\n", irqno);
 	t = perfticks();
 	ninterrupt++;
 	if(t < ticks)
