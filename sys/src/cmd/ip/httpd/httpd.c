@@ -6,24 +6,12 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-enum {
-	Nbuckets	= 256,
-};
-
 typedef struct Strings		Strings;
-typedef struct System		System;
 
 struct Strings
 {
 	char	*s1;
 	char	*s2;
-};
-struct System {
-	char	*rsys;
-	ulong	reqs;
-	ulong	first;
-	ulong	last;
-	System	*next;			/* next in chain */
 };
 
 char	*netdir;
@@ -31,7 +19,6 @@ char	*HTTPLOG = "httpd/log";
 
 static	char		netdirb[256];
 static	char		*namespace;
-static	System		syss[Nbuckets];
 
 static	void		becomenone(char*);
 static	char		*csquery(char*, char*, char*);
@@ -177,77 +164,6 @@ mkhspriv(void)
 	return p;
 }
 
-static uint 
-hashstr(char* key)
-{
-	/* asu works better than pjw for urls */
-	uchar *k = (unsigned char*)key;
-	uint h = 0;
-
-	while(*k!=0)
-		h = 65599*h + *k++;
-        return h;
-}
-
-static System *
-hashsys(char *rsys)
-{
-	int notme;
-	System *sys;
-
-	sys = syss + hashstr(rsys) % nelem(syss);
-	/* if the bucket is empty, just use it, else find or allocate ours */
-	if(sys->rsys != nil) {
-		/* find match or chain end */
-		for(; notme = (strcmp(sys->rsys, rsys) != 0) &&
-		    sys->next != nil; sys = sys->next)
-			;
-		if(notme) {
-			sys->next = malloc(sizeof *sys);  /* extend chain */
-			sys = sys->next;
-		} else
-			return sys;
-	}
-	if(sys != nil) {
-		memset(sys, 0, sizeof *sys);
-		sys->rsys = strdup(rsys);
-	}
-	return sys;
-}
-
-/*
- * be sure to call this at least once per listen in the parent,
- * to update the hash chains.
- * it's okay to call it in the child too, but then sys->reqs only gets
- * updated in the child.
- */
-static int
-isswamped(char *rsys)
-{
-	ulong period;
-	System *sys = hashsys(rsys);
-
-	if(sys == nil)
-		return 0;
-	sys->last = time(nil);
-	if(sys->first == 0)
-		sys->first = sys->last;
-	period = sys->first - sys->last;
-	return ++sys->reqs > 30 && period > 30 && sys->reqs / period >= 2;
-}
-
-/* must only be called in child */
-static void
-throttle(int nctl, NetConnInfo *nci, int swamped)
-{
-	if(swamped || isswamped(nci->rsys)) {		/* shed load */
-		syslog(0, HTTPLOG, "overloaded by %s", nci->rsys);
-		sleep(30);
-		close(nctl);
-		exits(nil);
-	}
-}
-
 static void
 dolisten(char *address)
 {
@@ -255,7 +171,7 @@ dolisten(char *address)
 	HConnect *c;
 	NetConnInfo *nci;
 	char ndir[NETPATHLEN], dir[NETPATHLEN], *p, *scheme;
-	int ctl, nctl, data, t, ok, spotchk, swamped;
+	int ctl, nctl, data, t, ok, spotchk;
 	TLSconn conn;
 
 	spotchk = 0;
@@ -287,10 +203,6 @@ dolisten(char *address)
 			syslog(0, HTTPLOG, "ctls = %d", ctl);
 			return;
 		}
-		swamped = 0;
-		nci = getnetconninfo(ndir, -1);
-		if (nci)
-			swamped = isswamped(nci->rsys);
 
 		/*
 		 *  start a process for the service
@@ -325,8 +237,7 @@ dolisten(char *address)
 			close(ctl);
 			close(nctl);
 
-			if (nci == nil)
-				nci = getnetconninfo(ndir, -1);
+			nci = getnetconninfo(ndir, -1);
 			c = mkconnect(scheme, nci->lserv);
 			hp = mkhspriv();
 			hp->remotesys = nci->rsys;
@@ -342,7 +253,6 @@ dolisten(char *address)
 			 * only works for http/1.1 or later.
 			 */
 			for(t = 15*60*1000; ; t = 15*1000){
-				throttle(nctl, nci, swamped);
 				if(hparsereq(c, t) <= 0)
 					exits(nil);
 				ok = doreq(c);

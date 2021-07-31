@@ -652,9 +652,7 @@ partition and then executes the boot block for
 that partition.
 The partition boot block then loads a bootstrap
 program such as
-.I 9load
-(see
-.IR 9boot (8)),
+.IR 9load (8),
 which then loads the operating system.
 If MS-DOS or Windows is already installed
 on your disk, the master boot record
@@ -732,7 +730,7 @@ assembler source for
 .IR floppy (3),
 .IR sd (3),
 .IR usb (4),
-.IR 9boot (8),
+.IR 9load (8),
 .IR mkusbboot (8),
 .IR partfs (8)
 .SH BUGS

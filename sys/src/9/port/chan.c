@@ -185,7 +185,7 @@ kstrdup(char **p, char *s)
 	free(prev);
 }
 
-static int debugstart = 1;
+static int debugstart;
 
 void
 chandevreset(void)
@@ -1378,11 +1378,7 @@ namec(char *aname, int amode, int omode, ulong perm)
 		t = devno(r, 1);
 		if(t == -1)
 			error(Ebadsharp);
-		if(debugstart && !devtab[t]->attached)
-			print("attach #%C...", devtab[t]->dc);
 		c = devtab[t]->attach(up->genbuf+n);
-		if(debugstart && c != nil)
-			devtab[t]->attached = 1;
 		break;
 
 	default:
