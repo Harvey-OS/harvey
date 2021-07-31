@@ -4,7 +4,7 @@
 
 OS=578qv
 CPUS=arm alpha 386 power mips
-CFLAGS=-FVw
+CFLAGS=-FTVw
 LEX=lex
 YACC=yacc
 MK=/bin/mk
