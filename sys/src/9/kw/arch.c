@@ -151,11 +151,6 @@ userureg(Ureg* ureg)
 	return (ureg->psr & PsrMask) == PsrMusr;
 }
 
-/*
- * atomic ops
- * make sure that we don't drag in the C library versions
- */
-
 long
 _xdec(long *p)
 {
@@ -178,28 +173,6 @@ _xinc(long *p)
 }
 
 int
-ainc(int *p)
-{
-	int s, v;
-
-	s = splhi();
-	v = ++*p;
-	splx(s);
-	return v;
-}
-
-int
-adec(int *p)
-{
-	int s, v;
-
-	s = splhi();
-	v = --*p;
-	splx(s);
-	return v;
-}
-
-int
 cas32(void* addr, u32int old, u32int new)
 {
 	int r, s;
@@ -208,7 +181,6 @@ cas32(void* addr, u32int old, u32int new)
 	if(r = (*(u32int*)addr == old))
 		*(u32int*)addr = new;
 	splx(s);
-	if (r)
-		coherence();
+
 	return r;
 }

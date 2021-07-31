@@ -13,8 +13,7 @@
 #include "arm.h"
 
 enum {
-	Ntimevec = 20,			/* # of time buckets for each intr */
-	Nvecs = 256,
+	Ntimevec = 20			/* # of time buckets for each intr */
 };
 
 extern int notify(Ureg*);
@@ -34,7 +33,7 @@ static Vctl* vctl[32];
 
 uvlong ninterrupt;
 uvlong ninterruptticks;
-ulong intrtimes[Nvecs][Ntimevec];
+ulong intrtimes[256][Ntimevec];
 
 typedef struct Handler Handler;
 struct Handler {
@@ -86,7 +85,6 @@ intrtime(Mach*, int vno)
 	diff /= (m->cpuhz/1000000)*100;		/* quantum = 100µsec */
 	if(diff >= Ntimevec)
 		diff = Ntimevec-1;
-	assert(vno >= 0 && vno < Nvecs);
 	intrtimes[vno][diff]++;
 }
 
@@ -187,7 +185,6 @@ intrs(Ureg *ur, int sort)
 	Handler *h;
 	Irq irq;
 
-	assert(sort >= 0 && sort < nelem(irqs));
 	irq = irqs[sort];
 	ibits = *irq.irq;
 	ibits &= *irq.irqmask;
@@ -265,9 +262,6 @@ trapinit(void)
 
 	intrenable(Irqlo, IRQ0hisum, intrhi, nil, "hi");
 	intrenable(Irqlo, IRQ0bridge, intrbridge, nil, "bridge");
-
-	/* enable watchdog & access-error interrupts */
-	cpu->irqmask = 1<<IRQcputimerwd | 1<<IRQaccesserr;
 }
 
 static char *trapnames[PsrMask+1] = {
