@@ -601,8 +601,10 @@ tcomo(Node *n, int f)
 			goto bad;
 		n->type = l->type->link;
 		if(!debug['B'])
-			if(l->type->down == T || l->type->down->etype == TOLD)
+			if(l->type->down == T || l->type->down->etype == TOLD) {
+				nerrors--;
 				diag(n, "function args not checked: %F", l);
+			}
 		dpcheck(n);
 		break;
 
@@ -1029,23 +1031,6 @@ loop:
 	case OASADD:
 		ccom(l);
 		ccom(r);
-		if(n->op == OASMOD || n->op == OASLMOD || n->op == OASDIV || n->op == OASLDIV)
-		if(r->op == OCONST){
-			if(!typefd[r->type->etype] && r->vconst == 0) {
-				if(n->op == OASMOD || n->op == OASLMOD)
-					diag(n, "modulo by zero");
-				else
-					diag(n, "divide by zero");
-				r->vconst = ~0;
-			}
-			if(typefd[r->type->etype] && r->fconst == 0.) {
-				if(n->op == OASMOD || n->op == OASLMOD)
-					diag(n, "modulo by zero");
-				else
-					diag(n, "divide by zero");
-				r->fconst = 1e10;
-			}
-		}
 		if(n->op == OASLSHR || n->op == OASASHR || n->op == OASASHL)
 		if(r->op == OCONST) {
 			t = n->type->width * 8;	/* bits per byte */
@@ -1055,8 +1040,6 @@ loop:
 		break;
 
 	case OCAST:
-		if(castucom(n))
-			warn(n, "32-bit unsigned complement zero-extended to 64 bits");
 		ccom(l);
 		if(l->op == OCONST) {
 			evconst(n);

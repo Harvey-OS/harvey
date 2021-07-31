@@ -28,8 +28,7 @@ entryvalue(void)
 	return s->value;
 }
 
-/* these need to take long arguments to be compatible with elf.c */
-void
+/* these need to take long arguments to be compatible with elf.c */void
 wputl(long w)
 {
 	cput(w);

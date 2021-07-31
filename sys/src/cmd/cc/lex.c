@@ -161,7 +161,7 @@ main(int argc, char *argv[])
 int
 compile(char *file, char **defs, int ndef)
 {
-	char ofile[400], incfile[200];
+	char ofile[400], incfile[20];
 	char *p, **av, opt[256];
 	int i, c, fd[2];
 	static int first = 1;
@@ -199,18 +199,9 @@ compile(char *file, char **defs, int ndef)
 		setinclude(p);
 	} else {
 		if(systemtype(Plan9)) {
-			p = getenv("ccroot");
-			if(p == nil)
-				p = "";
-			snprint(incfile, sizeof(incfile), "%s/%s/include", p, thestring);
+			sprint(incfile, "/%s/include", thestring);
 			setinclude(strdup(incfile));
-			snprint(incfile, sizeof(incfile), "%s/sys/include", p);
-			setinclude(strdup(incfile));
-			if(*p != '\0') {
-				snprint(incfile, sizeof(incfile), "%s/include", p);
-				if(myaccess(incfile) >= 0)
-					setinclude(strdup(incfile));
-			}
+			setinclude("/sys/include");
 		}
 	}
 	if (first)

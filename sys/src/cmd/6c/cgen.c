@@ -2,6 +2,7 @@
 
 /* ,x/^(print|prtree)\(/i/\/\/ */
 int castup(Type*, Type*);
+void checkmask(Node*, Node*);
 
 void
 cgen(Node *n, Node *nn)
@@ -257,6 +258,8 @@ cgen(Node *n, Node *nn)
 				break;
 			}
 		}
+		if(n->op == OAND)
+			checkmask(n, r);
 		if(r->addable >= INDEXED && !hardconst(r)) {
 			regalloc(&nod, l, nn);
 			cgen(l, &nod);
@@ -472,6 +475,8 @@ cgen(Node *n, Node *nn)
 			goto asand;
 		if(l->op == OBIT)
 			goto asbitop;
+		if(typefd[n->type->etype])
+			goto asand;	/* can this happen? */
 
 		/*
 		 * get nod to be D_CX
@@ -519,6 +524,8 @@ cgen(Node *n, Node *nn)
 			goto asbitop;
 		if(typefd[l->type->etype] || typefd[r->type->etype])
 			goto asfop;
+		if(o == OASAND)
+			checkmask(n, r);
 		if(l->complex >= r->complex) {
 			if(hardleft)
 				reglcgen(&nod, l, Z);
@@ -1859,6 +1866,22 @@ castup(Type *t1, Type *t2)
 		return ft == TULONG || ft == TUINT || ft == TUSHORT;
 	}
 	return 0;
+}
+
+/*
+ * vl &= ~ul or vl & ~ul
+ * create a ul mask with top bits zero, which is usually wrong
+ */
+void
+checkmask(Node *n, Node *r)
+{
+	Node *rl;
+
+	if((n->op == OAND || n->op == OASAND) &&
+	   r->op == OCAST &&
+	   (rl = r->left)->op == OCOM &&
+	   typesuv[n->type->etype] && typeu[rl->type->etype] && typechl[rl->type->etype])
+		warn(n, "32-bit mask zero-extended to 64 bits");
 }
 
 void
