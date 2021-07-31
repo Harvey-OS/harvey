@@ -79,7 +79,8 @@ enum {
 	v6MINTU		= 1280,
 	HOP_LIMIT	= 255,
 	ETHERHDR_LEN	= 14,
-	IP6HDR		= 20,		/* sizeof(Ip6hdr) */
+	IPV6HDR_LEN	= 40,
+	IPV4HDR_LEN	= 20,
 
 	/* option types */
 

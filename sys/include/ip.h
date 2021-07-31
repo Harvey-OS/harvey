@@ -8,10 +8,6 @@ enum
 	IPv4off=	12,
 	IPllen=		4,
 	IPV4HDR_LEN=	20,
-
-	/* vihl & vcf[0] values */
-	IP_VER4= 	0x40,
-	IP_VER6=	0x60,
 };
 
 /*
@@ -132,7 +128,7 @@ struct Ip6hdr {
  */
 typedef struct Icmp6hdr Icmp6hdr;
 struct Icmp6hdr {
-	uchar	_0_[8];
+	uchar	unused[8];
 	uchar	laddr[IPaddrlen];	/* local address */
 	uchar	raddr[IPaddrlen];	/* remote address */
 };
