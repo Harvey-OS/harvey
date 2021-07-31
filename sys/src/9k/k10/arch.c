@@ -95,8 +95,6 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 	p->kparg = arg;
 }
 
-static int idle_spin;
-
 /*
  *  put the processor in the halt state if we've no processes to run.
  *  an interrupt will get us going again.
@@ -104,16 +102,6 @@ static int idle_spin;
 void
 idlehands(void)
 {
-	/*
-	 * we used to halt only on single-core setups. halting in an smp system
-	 * can result in a startup latency for processes that become ready.
-	 * if idle_spin is zero, we care more about saving energy
-	 * than reducing this latency.
-	 *
-	 * the performance loss with idle_spin == 0 seems to be slight
-	 * and it reduces lock contention (thus system time and real time)
-	 * on many-core systems with large values of NPROC.
-	 */
-	if(sys->nonline == 1 || idle_spin == 0)
+	if(sys->nonline == 1)
 		halt();
 }
