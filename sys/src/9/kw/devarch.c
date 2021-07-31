@@ -155,29 +155,29 @@ cputype2name(char *buf, int size)
 {
 	ulong id, archid, rev;
 	char *manu, *arch, *socrev;
-	char unk[32], socnm[32], revname[32];
+	char unk[32], soc[32], revname[32];
 	Pciex *pci;
 
-	m->cputype = *(ulong *)soc.devid;
+	m->cputype = *(ulong *)AddrDevid;
 #ifdef OLD
 	switch(m->cputype & 3) {
 	case 0:
-		socnm = "88F6[12]80";
+		soc = "88F6[12]80";
 		break;
 	case 1:
-		socnm = "88F619[02]";
+		soc = "88F619[02]";
 		break;
 	case 2:
-		socnm = "88F6281";
+		soc = "88F6281";
 		break;
 	default:
-		socnm = "unknown";
+		soc = "unknown";
 		break;
 	}
 #endif
 	/* strange way to get this information, but it's what u-boot does */
-	pci = (Pciex *)soc.pci;
-	snprint(socnm, sizeof socnm, "88F%ux", pci->devid);
+	pci = (Pciex *)Addrpci;
+	snprint(soc, sizeof soc, "88F%ux", pci->devid);
 	/* stash rev for benefit of later usb initialisation */
 	m->socrev = rev = pci->revid & MASK(4);
 
@@ -217,7 +217,7 @@ cputype2name(char *buf, int size)
 		}
 	seprint(buf, buf + size,
 		"%s %s %s; arm926ej-s arch %s rev %ld.%ld part %lux",
-		manu, socnm, socrev, arch, (id >> 20) & MASK(4),
+		manu, soc, socrev, arch, (id >> 20) & MASK(4),
 		id & MASK(4), (id >> 4) & MASK(12));
 	return buf;
 }

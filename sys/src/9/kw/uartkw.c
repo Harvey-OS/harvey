@@ -59,6 +59,8 @@ enum {
 
 extern PhysUart kwphysuart;
 
+#define UART0REG	((UartReg*)AddrUart0)
+
 typedef struct UartReg UartReg;
 struct UartReg
 {
@@ -90,7 +92,7 @@ struct Ctlr {
 
 static Ctlr kirkwoodctlr[] = {
 {
-	.regs   = nil,			/* filled in below */
+	.regs   = UART0REG,
 	.irq    = IRQ1uart0, },
 };
 
@@ -134,11 +136,6 @@ kw_intr(Ureg*, void *arg)
 	UartReg *regs = ctlr->regs;
 	ulong v;
 
-	if(regs == 0) {
-		kirkwoodctlr[0].regs = (UartReg *)soc.uart[0];
-		regs = (UartReg *)soc.uart[0];		/* caution */
-		coherence();
-	}
 	v = regs->iir;
 	if(v & IRRthrempty)
 		uartkick(uart);
@@ -151,8 +148,6 @@ kw_intr(Ureg*, void *arg)
 static Uart*
 kw_pnp(void)
 {
-	kirkwoodctlr[0].regs = (UartReg *)soc.uart[0];
-	coherence();
 	return kirkwooduart;
 }
 
@@ -162,11 +157,6 @@ kw_enable(Uart* uart, int ie)
 	Ctlr *ctlr = uart->regs;
 	UartReg *regs = ctlr->regs;
 
-	if(regs == 0) {
-		kirkwoodctlr[0].regs = (UartReg *)soc.uart[0];
-		regs = (UartReg *)soc.uart[0];		/* caution */
-		coherence();
-	}
 	USED(ie);
 	regs->fcr = FCRenable|FCRrxtrigger4;
 	regs->ier = IERrx|IERtx;
@@ -288,16 +278,9 @@ kw_putc(Uart *uart, int c)
 	Ctlr *ctlr = uart->regs;
 	UartReg *regs = ctlr->regs;
 
-	/* can be called from iprint, among many other places */
-	if(regs == 0) {
-		kirkwoodctlr[0].regs = (UartReg *)soc.uart[0];
-		regs = (UartReg *)soc.uart[0];		/* caution */
-		coherence();
-	}
 	while((regs->lsr&LSRthre) == 0)
 		;
 	regs->thr = c;
-	coherence();
 }
 
 PhysUart kwphysuart = {
@@ -337,16 +320,14 @@ void
 serialputc(int c)
 {
 	int cnt, s;
-	UartReg *regs = (UartReg *)soc.uart[0];
 
 	s = splhi();
 	cnt = m->cpuhz;
 	if (cnt <= 0)			/* cpuhz not set yet? */
 		cnt = 1000000;
-	while((regs->lsr & LSRthre) == 0 && --cnt > 0)
+	while((UART0REG->lsr & LSRthre) == 0 && --cnt > 0)
 		;
-	regs->thr = c;
-	coherence();
+	UART0REG->thr = c;
 	delay(1);
 	splx(s);
 }

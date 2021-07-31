@@ -12,6 +12,8 @@
 
 #include "ureg.h"
 
+#define TIMERREG	((TimerReg *)AddrTimer)
+
 enum {
 	Tcycles		= CLOCKFREQ / HZ,	/* cycles per clock tick */
 	Dogperiod	= 15 * CLOCKFREQ, /* at most 21 s.; must fit in ulong */
@@ -65,9 +67,7 @@ clockintr(Ureg *ureg, void *arg)
 void
 clockshutdown(void)
 {
-	TimerReg *tmr = (TimerReg *)soc.clock;
-
-	tmr->ctl = 0;
+	TIMERREG->ctl = 0;
 	coherence();
 }
 
@@ -75,8 +75,8 @@ void
 clockinit(void)
 {
 	int i, s;
-	CpucsReg *cpu = (CpucsReg *)soc.cpu;
-	TimerReg *tmr = (TimerReg *)soc.clock;
+	CpucsReg *cpu = CPUCSREG;
+	TimerReg *tmr = TIMERREG;
 
 	clockshutdown();
 
@@ -131,7 +131,7 @@ void
 timerset(Tval next)
 {
 	int offset;
-	TimerReg *tmr = (TimerReg *)soc.clock;
+	TimerReg *tmr = TIMERREG;
 
 	offset = next - fastticks(nil);
 	if(offset < MinPeriod)
@@ -163,9 +163,7 @@ fastticks(uvlong *hz)
 ulong
 perfticks(void)
 {
-	TimerReg *tmr = (TimerReg *)soc.clock;
-
-	return ~tmr->timer1;
+	return ~TIMERREG->timer1;
 }
 
 long

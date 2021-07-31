@@ -224,7 +224,7 @@ dumpbytes(uchar *bp, long max)
 static void
 spiprobe(void)
 {
-	Spiregs *rp = (Spiregs *)soc.spi;
+	Spiregs *rp = (Spiregs *)AddrSpi;
 
 	rp->ictl |= Csnact;
 	coherence();
