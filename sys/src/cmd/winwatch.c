@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <draw.h>
 #include <event.h>
-#include <regexp.h>
 
 typedef struct Win Win;
 struct Win {
@@ -12,9 +11,6 @@ struct Win {
 	Rectangle r;
 };
 
-
-
-Reprog  *exclude  = nil;
 Win *win;
 int nwin;
 int mwin;
@@ -64,7 +60,6 @@ estrdup(char *s)
 	return t;
 }
 
-
 void
 refreshwin(void)
 {
@@ -88,9 +83,6 @@ refreshwin(void)
 			if(m < 0)
 				continue;
 			label[m] = '\0';
-			if(exclude != nil && regexec(exclude,label,nil,0))
-				continue;
-
 			if(nw < nwin && win[nw].n == n && strcmp(win[nw].label, label)==0){
 				nw++;
 				continue;
@@ -100,7 +92,6 @@ refreshwin(void)
 				free(win[nw].label);
 				win[nw].label = nil;
 			}
-			
 			if(nw >= mwin){
 				mwin += 8;
 				win = erealloc(win, mwin*sizeof(win[0]));
@@ -236,7 +227,7 @@ click(Mouse m)
 void
 usage(void)
 {
-	fprint(2, "usage: winwatch [-e exclude] [-f font]\n");
+	fprint(2, "usage: winwatch [-f font]\n");
 	exits("usage");
 }
 
@@ -251,11 +242,6 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 'f':
 		fontname = EARGF(usage());
-		break;
-	case 'e':
-		exclude = regcomp(EARGF(usage()));
-		if(exclude == nil)
-			sysfatal("Bad regexp");
 		break;
 	default:
 		usage();

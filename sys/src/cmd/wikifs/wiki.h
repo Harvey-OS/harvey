@@ -18,7 +18,6 @@ enum {
 	Wman,
 	Wplain,
 	Wpre,
-	Whr,
 	Nwtxt,
 };
 
