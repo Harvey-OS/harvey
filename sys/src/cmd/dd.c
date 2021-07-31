@@ -1,8 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
-#define	BIG	((1UL<<31)-1)
-#define VBIG	((1ULL<<63)-1)
+#define	BIG	2147483647
 #define	LCASE	(1<<0)
 #define	UCASE	(1<<1)
 #define	SWAB	(1<<2)
@@ -11,18 +10,15 @@
 
 int	cflag;
 int	fflag;
-
 char	*string;
 char	*ifile;
 char	*ofile;
 char	*ibuf;
 char	*obuf;
-
 vlong	skip;
 vlong	oseekn;
 vlong	iseekn;
 vlong	count;
-
 long	files	= 1;
 long	ibs	= 512;
 long	obs	= 512;
@@ -36,23 +32,19 @@ long	nipr;
 long	nofr;
 long	nopr;
 long	ntrunc;
-
 int dotrunc = 1;
 int	ibf;
 int	obf;
-
 char	*op;
 int	nspace;
-
 uchar	etoa[256];
 uchar	atoe[256];
 uchar	atoibm[256];
-
 int	quiet;
 
 void	flsh(void);
 int	match(char *s);
-vlong	number(vlong big);
+vlong	number(long big);
 void	cnull(int cc);
 void	null(int c);
 void	ascii(int cc);
@@ -114,19 +106,19 @@ main(int argc, char *argv[])
 			continue;
 		}
 		if(iskey("skip")) {
-			skip = number(VBIG);
+			skip = number(BIG);
 			continue;
 		}
 		if(iskey("seek") || iskey("oseek")) {
-			oseekn = number(VBIG);
+			oseekn = number(BIG);
 			continue;
 		}
 		if(iskey("iseek")) {
-			iseekn = number(VBIG);
+			iseekn = number(BIG);
 			continue;
 		}
 		if(iskey("count")) {
-			count = number(VBIG);
+			count = number(BIG);
 			continue;
 		}
 		if(iskey("files")) {
@@ -342,10 +334,10 @@ true:
 }
 
 vlong
-number(vlong big)
+number(long big)
 {
 	char *cs;
-	uvlong n;
+	vlong n;
 
 	cs = string;
 	n = 0;
@@ -358,6 +350,11 @@ number(vlong big)
 		n *= 1024;
 		continue;
 
+/*	case 'w':
+		n *= sizeof(int);
+		continue;
+*/
+
 	case 'b':
 		n *= 512;
 		continue;
@@ -365,11 +362,11 @@ number(vlong big)
 /*	case '*':*/
 	case 'x':
 		string = cs;
-		n *= number(VBIG);
+		n *= number(BIG);
 
 	case '\0':
-		if(n > big) {
-			fprint(2, "dd: argument %llud out of range\n", n);
+		if(n>=big || n<0) {
+			fprint(2, "dd: argument %lld out of range\n", n);
 			exits("range");
 		}
 		return n;

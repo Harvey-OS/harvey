@@ -4,7 +4,6 @@
 
 void	usage(void);
 void	catch(void*, char*);
-
 char *keyspec = "";
 
 int
@@ -106,6 +105,6 @@ catch(void *x, char *m)
 void
 usage(void)
 {
-	fprint(2, "usage: mount [-a|-b] [-cnq] [-k keypattern] /srv/service dir [spec]\n");
+	fprint(2, "usage: mount [-a|-b] [-cnrq] [-k keypattern] /srv/service dir [spec]\n");
 	exits("usage");
 }
