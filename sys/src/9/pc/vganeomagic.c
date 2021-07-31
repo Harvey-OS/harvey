@@ -34,8 +34,6 @@ neomagicenable(VGAscr* scr)
 	 * scr->mmio holds the virtual address of the cursor registers
 	 * in the MMIO space. This may need to change for older chips
 	 * which have the MMIO space offset in the framebuffer region.
-	 *
-	 * scr->io holds the offset into mmio of the CursorNM struct.
 	 */
 	if(scr->mmio)
 		return;
@@ -90,7 +88,7 @@ neomagicenable(VGAscr* scr)
 	 * last 2KB of the framebuffer.
 	 */
 	scr->storage = vmsize-2*1024;
-	scr->io = curoff;
+	scr->mmio = (ulong*)((uchar*)scr->mmio + curoff);
 	vgalinearpci(scr);
 	if(scr->paddr)
 		addvgaseg("neomagicscreen", scr->paddr, scr->apsize);
@@ -103,7 +101,7 @@ neomagiccurdisable(VGAscr* scr)
 
 	if(scr->mmio == 0)
 		return;
-	cursornm = (void*)((char*)scr->mmio + scr->io);
+	cursornm = (void*)scr->mmio;
 	cursornm->enable = 0;
 }
 
@@ -114,7 +112,7 @@ neomagicinitcursor(VGAscr* scr, int xo, int yo, int index)
 	uint p0, p1;
 	int x, y;
 
-	p = (uchar*)scr->vaddr;
+	p = (uchar*)scr->mmio;
 	p += scr->storage + index*1024;
 
 	for(y = yo; y < 16; y++){
@@ -158,7 +156,7 @@ neomagiccurload(VGAscr* scr, Cursor* curs)
 
 	if(scr->mmio == 0)
 		return;
-	cursornm = (void*)((char*)scr->mmio + scr->io);
+	cursornm = (void*)scr->mmio;
 
 	cursornm->enable = 0;
 	memmove(&scr->Cursor, curs, sizeof(Cursor));
@@ -174,7 +172,7 @@ neomagiccurmove(VGAscr* scr, Point p)
 
 	if(scr->mmio == 0)
 		return 1;
-	cursornm = (void*)((char*)scr->mmio + scr->io);
+	cursornm = (void*)scr->mmio;
 
 	index = 0;
 	if((x = p.x+scr->offset.x) < 0){
@@ -213,7 +211,7 @@ neomagiccurenable(VGAscr* scr)
 	neomagicenable(scr);
 	if(scr->mmio == 0)
 		return;
-	cursornm = (void*)((char*)scr->mmio + scr->io);
+	cursornm = (void*)scr->mmio;
 	cursornm->enable = 0;
 
 	/*

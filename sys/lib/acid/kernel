@@ -319,21 +319,17 @@ defn segaddr(s, a) {
 	}
 
 	complex Page pg;
-	return (KZERO|(pg.pa+(a%BY2PG)))\X;
-}
-
-defn kzero() {
-	return main - (main & 0x0FFFFFFF);
+	return (0x80000000|(pg.pa+(a%BY2PG)))\X;
 }
 
 // PC only
+MACHADDR = 0x80004000;
 PTEMAPMEM = (1024*1024);
 BY2PG = 4096;
 PTEPERTAB = (PTEMAPMEM/BY2PG);
 defn up() {
 	local mach;
 
-	MACHADDR = KZERO+0x4000;
 	mach = MACHADDR;
 	complex Mach mach;
 	return mach.externup;
@@ -366,22 +362,20 @@ defn needacid(s){
 	print("\tinclude(\"/sys/src/9/", kdir, "/", s, ".acid\")\n");
 }
 
-defn kinit() {
 if (map()[2]) != {} then {	// map has more than two elements -> active proc
 	kdir = "unknown";
-	KZERO = kzero();
-	
+
 	if objtype == "386" then {
-		map({"*data", KZERO, 0xffffffff, KZERO});
+		map({"*data", 0x80000000, 0xffffffff, 0x80000000});
 		kdir="pc";
 	}
 	if (objtype == "mips" || objtype == "mips2") then {
 		kdir = "ch";
 	}
 	if objtype == "alpha" then {
-		map({"*data", KZERO, 0xffffffff, KZERO});
+		map({"*data", 0x80000000, 0xffffffff, 0x80000000});
 		kdir = "alpha";
 	}
 	needacid("proc");
 }
-}
+

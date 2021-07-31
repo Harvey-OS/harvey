@@ -591,7 +591,6 @@ unexpected(Ureg* ureg, void*)
 	print("unexpected trap %lud; ignoring\n", ureg->trap);
 }
 
-extern void checkpages(void);
 static void
 fault386(Ureg* ureg, void*)
 {
