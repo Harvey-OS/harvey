@@ -32,7 +32,7 @@ OFILES=\
 
 BIN=/$objtype/bin/games
 # need a way to ignore this on non-386en
-LIB=/$objtype/lib/lib387.a
+LIB=
 </sys/src/cmd/mkone
 
 CC=pcc
