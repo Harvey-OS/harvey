@@ -1,7 +1,6 @@
 #include "e.h"
 #include "y.tab.h"
 #include <ctype.h>
-#include <utf.h>
 
 #define	CSSIZE	1000
 char	cs[CSSIZE+20];	/* text string converted into this */
@@ -43,14 +42,14 @@ int textc(void)	/* read next UTF rune from psp */
 	wchar_t r;
 	int w;
 
-	w = mbtowc(&r, psp, UTFmax);
+	w = mbtowc(&r, psp, 3);
 	if(w == 0){
 		psp++;
 		return 0;
 	}
 	if(w < 0){
 		psp += 1;
-		return Runeerror;	/* Plan 9-ism */
+		return 0x80;	/* Plan 9-ism */
 	}
 	psp += w;
 	return r;
@@ -113,13 +112,17 @@ void text(int t, char *p1)	/* convert text string p1 of type t */
 	printf(".ds %d \"%s\n", yyval, p);
 }
 
+int isalpharune(int c)
+{
+	return ('a'<=c && c<='z') || ('A'<=c && c<='Z');
+}
+
 int isdigitrune(int c)
 {
 	return ('0'<=c && c<='9');
 }
 
-int
-trans(int c, char *)
+trans(int c, char *p1)
 {
 	int f;
 
