@@ -43,7 +43,6 @@ enum {
 	i82540eplp = (0x101E<<16)|0x8086,
 	i82547gi   = (0x1075<<16)|0x8086,
 	i82541gi   = (0x1076<<16)|0x8086,
-	i82541gi2  = (0x1077<<16)|0x8086,
 	i82546gb   = (0x1079<<16)|0x8086,
 	i82541pi   = (0x107c<<16)|0x8086,
 	i82573pl   = (0x109a<<16)|0x8086,
@@ -852,7 +851,6 @@ igbeinit(Ether* edev)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
-	case i82541gi2:
 	case i82541pi:
 	case i82546gb:
 	case i82546eb:
@@ -896,7 +894,6 @@ igbeinit(Ether* edev)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
-	case i82541gi2:
 	case i82541pi:
 	case i82546gb:
 	case i82546eb:
@@ -940,7 +937,6 @@ igbeinit(Ether* edev)
 	case i82546gb:
 	case i82546eb:
 	case i82541gi:
-	case i82541gi2:
 	case i82573pl:
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
@@ -1170,7 +1166,6 @@ igbemii(Ctlr* ctlr)
 	case i82540eplp:
 	case i82547gi:
 	case i82541gi:
-	case i82541gi2:
 	case i82541pi:
 	case i82546gb:
 	case i82546eb:
@@ -1208,7 +1203,6 @@ igbemii(Ctlr* ctlr)
 	switch(ctlr->id){
 	case i82547gi:
 	case i82541gi:
-	case i82541gi2:
 	case i82541pi:
 	case i82546gb:
 	case i82546eb:
@@ -1339,7 +1333,6 @@ at93c46r(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
-	case i82541gi2:
 	case i82541pi:
 	case i82547gi:
 	case i82546gb:
@@ -1422,7 +1415,6 @@ detach(Ctlr *ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
-	case i82541gi2:
 	case i82541pi:
 	case i82547gi:
 	case i82546gb:
@@ -1618,7 +1610,6 @@ igbepci(void)
 		case i82540eplp:
 		case i82547gi:
 		case i82541gi:
-		case i82541gi2:
 		case i82541pi:
 		case i82546gb:
 		case i82546eb:

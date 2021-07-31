@@ -128,6 +128,14 @@ cpumain(int argc, char **argv)
 	case 'c':
 		system = EARGF(usage());
 		break;
+	case 'd':
+		dbg++;
+		break;
+	case 'e':
+		ealgs = EARGF(usage());
+		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
+			ealgs = nil;
+		break;
 	case 'C':
 		cflag++;
 		cmd[0] = '!';
@@ -137,22 +145,14 @@ cpumain(int argc, char **argv)
 			strcat(cmd, p);
 		}
 		break;
-	case 'd':
-		dbg++;
-		break;
-	case 'e':
-		ealgs = EARGF(usage());
-		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
-			ealgs = nil;
-		break;
 	case 'k':
 		keyspec = EARGF(usage());
 		break;
-	case 's':
-		secstoreserver = EARGF(usage());
-		break;
 	case 'u':
 		user = EARGF(usage());
+		break;
+	case 's':
+		secstoreserver = EARGF(usage());
 		break;
 	default:
 		usage();
