@@ -2266,6 +2266,5 @@ SDifc sdataifc = {
 	scsibio,			/* bio */
 	ataprobew,			/* probe */
 	ataclear,			/* clear */
-	atastat,			/* rtopctl */
-	nil,				/* wtopctl */
+	atastat,			/* stat */
 };
