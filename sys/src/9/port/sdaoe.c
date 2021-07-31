@@ -23,7 +23,7 @@ enum {
 	Maxpath	= 128,
 
 	Probeintvl	= 100,		/* ms. between probes */
-	Probemax	= 10,		/* max probes */
+	Probemax	= 10*1000,	/* max ms. to wait */
 };
 
 enum {
@@ -272,7 +272,7 @@ aoeprobe(char *path, SDev *s)
 	poperror();
 	cclose(c);
 
-	for(i = 0; i < Probemax; i++){
+	for(i = 0; i <= Probemax; i += Probeintvl){
 		tsleep(&up->sleep, return0, 0, Probeintvl);
 		uprint("%s/ident", path);
 		if(!waserror()) {
@@ -282,7 +282,7 @@ aoeprobe(char *path, SDev *s)
 			break;
 		}
 	}
-	if(i >= Probemax)
+	if(i > Probemax)
 		error(Etimedout);
 	uprint("%s/ident", path);
 	ctlr = newctlr(path);
@@ -346,7 +346,6 @@ static Ctlr*
 pnpprobe(SDev *sd)
 {
 	int j;
-	ulong start, duration;
 	char *p;
 	static int i;
 
@@ -358,23 +357,20 @@ pnpprobe(SDev *sd)
 	if(p[1] == '!')
 		p += 2;
 
-	start = TK2MS(MACHP(0)->ticks);
-	for(j = 0; j < Probemax; j++){
+	for(j = 0; j <= Probemax; j += Probeintvl){
 		if(!waserror()){
-			/* aoeprobe does a similar round of probing */
 			sd = aoeprobe(p, sd);
 			poperror();
 			break;
 		}
 		tsleep(&up->sleep, return0, 0, Probeintvl);
 	}
-	duration = TK2MS(MACHP(0)->ticks) - start;
-	if(j >= Probemax){
-		print("#æ: pnpprobe failed in %lud ms: %s: %s\n", duration,
-			probef[i-1], up->errstr);
+	if(j > Probemax){
+		print("#æ: pnpprobe failed in %d ms: %s: %s\n",
+			j, probef[i-1], up->errstr);
 		return nil;
 	}
-	print("#æ: pnpprobe established %s in %lud ms\n", probef[i-1], duration);
+	print("#æ: pnpprobe established %s in %d ms\n", probef[i-1], j);
 	return sd->ctlr;
 }
 
