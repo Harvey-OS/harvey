@@ -14,6 +14,7 @@ fn catmsg {
 	t=`{cat type}
 	switch($t){
 	case text/html
+		cp body /tmp/xxx
 		echo '
 			,x/<!--(-?[^\-]|--[^>]|\n)*-->/ c//
 			,x/<[^>]+>/d
