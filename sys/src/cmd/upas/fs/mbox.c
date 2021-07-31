@@ -478,7 +478,6 @@ headerline(char **pp, String *hl)
 	return 1;
 }
 
-/* returns nil iff there are no addressees */
 static String*
 addr822(char *p)
 {
@@ -572,7 +571,7 @@ addr822(char *p)
 	}
 	s_free(s);
 
-	if(n == 0){		/* no addressees given, just the keyword */
+	if(n == 0){
 		s_free(list);
 		return nil;
 	}
@@ -593,7 +592,7 @@ to822(Message *m, Header *h, char *p)
 	s = addr822(p);
 	if (m->to822 == nil)
 		m->to822 = s;
-	else if (s != nil) {
+	else {
 		s_append(m->to822, " ");
 		s_append(m->to822, s_to_c(s));
 		s_free(s);
@@ -609,7 +608,7 @@ cc822(Message *m, Header *h, char *p)
 	s = addr822(p);
 	if (m->cc822 == nil)
 		m->cc822 = s;
-	else if (s != nil) {
+	else {
 		s_append(m->cc822, " ");
 		s_append(m->cc822, s_to_c(s));
 		s_free(s);
@@ -625,7 +624,7 @@ bcc822(Message *m, Header *h, char *p)
 	s = addr822(p);
 	if (m->bcc822 == nil)
 		m->bcc822 = s;
-	else if (s != nil) {
+	else {
 		s_append(m->bcc822, " ");
 		s_append(m->bcc822, s_to_c(s));
 		s_free(s);
