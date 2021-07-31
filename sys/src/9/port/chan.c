@@ -1700,7 +1700,6 @@ validname0(char *aname, int slashok, int dup, ulong pc)
 		s[n] = 0;
 		aname = s;
 		name = s;
-		setmalloctag(s, pc);
 	}
 	
 	while(*name){
@@ -1730,7 +1729,7 @@ validname(char *aname, int slashok)
 char*
 validnamedup(char *aname, int slashok)
 {
-	return validname0(aname, slashok, 1, getcallerpc(&aname));
+	return validname0(aname, slashok, 1, 0);
 }
 
 void

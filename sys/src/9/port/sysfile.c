@@ -1037,7 +1037,6 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 		c0 = devtab[ret]->attach((char*)&bogus);
 
 		poperror();	/* spec */
-		free(spec);
 		poperror();	/* ac bc */
 		if(ac)
 			cclose(ac);

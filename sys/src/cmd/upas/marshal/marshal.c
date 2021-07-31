@@ -10,7 +10,7 @@ struct Attach {
 	Attach	*next;
 	char	*path;
 	char	*type;
-	int	ainline;
+	int	inline;
 	Ctype	*ctype;
 };
 
@@ -382,7 +382,7 @@ main(int argc, char **argv)
 		Bprint(&out, "\tboundary=\"%s\"\n\n", boundary);
 		Bprint(&out, "This is a multi-part message in MIME format.\n");
 		Bprint(&out, "--%s\n", boundary);
-		Bprint(&out, "Content-Disposition: ainline\n");
+		Bprint(&out, "Content-Disposition: inline\n");
 	}
 
 	if(!nflag){
@@ -679,8 +679,8 @@ attachment(Attach *a, Biobuf *out)
 	if(strcmp(a->type, "text/plain") != 0)
 		Bprint(out, "Content-Type: %s\n", a->type);
 
-	if(a->ainline){
-		Bprint(out, "Content-Disposition: ainline\n");
+	if(a->inline){
+		Bprint(out, "Content-Disposition: inline\n");
 	} else {
 		p = strrchr(a->path, '/');
 		if(p == nil)
@@ -806,7 +806,7 @@ printinreplyto(Biobuf *out, char *dir)
 }
 
 Attach*
-mkattach(char *file, char *type, int ainline)
+mkattach(char *file, char *type, int inline)
 {
 	Ctype *c;
 	Attach *a;
@@ -824,7 +824,7 @@ mkattach(char *file, char *type, int ainline)
 	a->path = file;
 	a->next = nil;
 	a->type = type;
-	a->ainline = ainline;
+	a->inline = inline;
 	a->ctype = nil;
 	if(type != nil){
 		for(c = ctype; ; c++)

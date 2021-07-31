@@ -12,7 +12,7 @@ int	yyparse(void);
 void	settype(char *);
 int	getdata(void);
 int	getline(char *);
-void	inlineeq(void);
+void	inline(void);
 void	init(void);
 void	init_tbl(void);
 
@@ -123,7 +123,7 @@ getdata(void)
 			printf(".lf %d\n", curfile->lineno+1);
 		}
 		else if (type == lefteq)
-			inlineeq();
+			inline();
 		else if (in[0] == '.' && in[1] == 'l' && in[2] == 'f') {
 			if (sscanf(in+3, "%d %s", &ln, fname) == 2) {
 				free(curfile->fname);
@@ -154,7 +154,7 @@ getline(char *s)
 	return(c);
 }
 
-void inlineeq(void)
+void inline(void)
 {
 	int ds, n, sz1 = 0;
 
