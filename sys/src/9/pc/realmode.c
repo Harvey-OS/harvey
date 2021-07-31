@@ -30,6 +30,7 @@ realmode(Ureg *ureg)
 	int s;
 	ulong cr3;
 	extern void realmode0(void);	/* in l.s */
+	extern void i8259off(void), i8259on(void);
 
 	if(getconf("*norealmode"))
 		return;
@@ -44,20 +45,14 @@ realmode(Ureg *ureg)
 	m->pdb[PDX(0)] = m->pdb[PDX(KZERO)];	/* identity map low */
 	cr3 = getcr3();
 	putcr3(PADDR(m->pdb));
-	if (arch)
-		arch->introff();
-	else
-		i8259off();
+	i8259off();
 	realmode0();
 	if(m->tss){
 		/*
 		 * Called from memory.c before initialization of mmu.
 		 * Don't turn interrupts on before the kernel is ready!
 		 */
-		if (arch)
-			arch->intron();
-		else
-			i8259on();
+		i8259on();
 	}
 	m->pdb[PDX(0)] = 0;	/* remove low mapping */
 	putcr3(cr3);
