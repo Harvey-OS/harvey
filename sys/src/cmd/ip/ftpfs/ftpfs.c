@@ -59,7 +59,6 @@ char 	*(*fcalls[])(Fid*) = {
 	[Twstat]	rwstat,
 };
 
-/* these names are matched as prefixes, so VMS must precede VM */
 OS oslist[] = {
 	{ Plan9,	"Plan 9", },
 	{ Plan9,	"Plan9", },

@@ -6,7 +6,6 @@ if(test -r '#U'/usb0) {
 	usb/usbd
 	usb/usbmouse -a 2
 	usb/kb -k
-	usb/usbaudio -s usbaudio.$sysname # -V
+	usb/usbaudio
 	# usb/print
 }
-exit ''

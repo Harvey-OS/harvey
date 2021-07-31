@@ -298,26 +298,26 @@ main(int argc, char **argv)
 	case Fs:
 		fd = open(timeserver, ORDWR);
 		if(fd < 0)
-			sysfatal("opening %s: %r", timeserver);
+			sysfatal("opening %s: %r\n", timeserver);
 		if(amount(fd, "/n/boot", MREPL, "") < 0)
-			sysfatal("mounting %s: %r", timeserver);
+			sysfatal("mounting %s: %r\n", timeserver);
 		close(fd);
 		break;
 	case Rtc:
 		bind("#r", "/dev", MAFTER);
 		if(access("/dev/rtc", AREAD) < 0)
-			sysfatal("accessing /dev/rtc: %r");
+			sysfatal("accessing /dev/rtc: %r\n");
 		break;
 	case Utc:
 		fd = open(timeserver, OREAD);
 		if(fd < 0)
-			sysfatal("opening %s: %r", timeserver);
+			sysfatal("opening %s: %r\n", timeserver);
 		utcfil = fd;
 		break;
 	case Gps:
 		fd = open(timeserver, OREAD);
 		if(fd < 0)
-			sysfatal("opening %s: %r", timeserver);
+			sysfatal("opening %s: %r\n", timeserver);
 		gpsfil = fd;
 		break;
 	}

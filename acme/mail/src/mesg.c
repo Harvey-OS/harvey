@@ -22,18 +22,15 @@ struct{
 	char	*port;
 	char *suffix;
 } ports[] = {
-	"text/",			"edit",		".txt",
-	/* text must be first for plumbport() */
-	"image/gif",			"image",	".gif",
-	"image/jpeg",			"image",	".jpg",
-	"image/jpeg",			"image",	".jpeg",
-	"image/png",			"image",	".png",
-	"image/tiff",			"image",	".tif",
+	"text/",			"edit",	".txt", /* must be first for plumbport() */
+	"image/gif",		"image",	".gif",
+	"image/jpeg",		"image",	".jpg",
+	"image/jpeg",		"image",	".jpeg",
+	"image/png",		"image",	".png",
 	"application/postscript",	"postscript",	".ps",
-	"application/pdf",		"postscript",	".pdf",
-	"application/msword",		"msword",	".doc",
-	"application/rtf",		"msword",	".rtf",
-	"audio/x-wav",			"wav",		".wav",
+	"application/pdf",	"postscript",	".pdf",
+	"application/msword",	"msword",	".doc",
+	"application/rtf",	"msword",	".rtf",
 	nil,	nil
 };
 

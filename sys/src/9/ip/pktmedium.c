@@ -24,6 +24,7 @@ Medium pktmedium =
 .unbind=	pktunbind,
 .bwrite=	pktbwrite,
 .pktin=		pktin,
+.unbindonclose=	1,
 };
 
 /*
@@ -31,9 +32,8 @@ Medium pktmedium =
  *  called with ifc wlock'd
  */
 static void
-pktbind(Ipifc*, int argc, char **argv)
+pktbind(Ipifc*, int, char**)
 {
-	USED(argc, argv);
 }
 
 /*

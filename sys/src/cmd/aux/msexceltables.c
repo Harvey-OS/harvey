@@ -96,7 +96,7 @@ cell(int r, int c, int f, int type, void *val)
 		Ncols = c;
 
 	if((ncol = malloc(sizeof(Col))) == nil)
-		sysfatal("no memory");
+		sysfatal("no memory\n");
 	ncol->c = c;
 	ncol->f = f;
 	ncol->type = type;
@@ -108,12 +108,12 @@ cell(int r, int c, int f, int type, void *val)
 	case Tindex:	ncol->index = *(int *)val;	break;
 	case Tbool:	ncol->bool = *(int *)val;	break;
 	case Terror:	ncol->error = *(int *)val;	break;
-	default:	sysfatal("can't happen error");
+	default:	sysfatal("can't happen error\n");
 	}
 
 	if(Root == nil || Root->r > r){
 		if((nrow = malloc(sizeof(Row))) == nil)
-			sysfatal("no memory");
+			sysfatal("no memory\n");
 		nrow->col = ncol;
 		ncol->next = nil;
 		nrow->r = r;
@@ -141,7 +141,7 @@ cell(int r, int c, int f, int type, void *val)
 
 		if(row->next == nil || row->next->r > r){
 			if((nrow = malloc(sizeof(Row))) == nil)
-				sysfatal("no memory");
+				sysfatal("no memory\n");
 			nrow->col = ncol;
 			nrow->r = r;
 			nrow->next = row->next;
@@ -149,7 +149,7 @@ cell(int r, int c, int f, int type, void *val)
 			return;
 		}
 	}
-	sysfatal("cannot happen error");
+	sysfatal("cannot happen error\n");
 }
 
 struct Tm *
@@ -242,7 +242,7 @@ dump(void)
 				break;
 			case Tindex:
 				if(c->index < 0 || c->index >= Nstrtab)
-					sysfatal("SST string out of range - corrupt file?");
+					sysfatal("SST string out of range - corrupt file?\n");
 				Bprint(bo, "%-*.*q", min, max, Strtab[c->index]);
 				break;
 			case Terror:
@@ -252,7 +252,7 @@ dump(void)
 					Bprint(bo, "%-*.*q", min, max, Errmsgs[c->error]);
 				break;
 			default:
-				sysfatal("cannot happen error");
+				sysfatal("cannot happen error\n");
 				break;
 			}
 
@@ -305,7 +305,7 @@ skip(Biff *b, int len)
 {
 	assert(len <= b->len);
 	if(Bseek(b->bp, len, 1) == -1)
-		sysfatal("seek failed - %r");
+		sysfatal("seek failed - %r\n");
 	b->len -= len;
 }
 
@@ -313,9 +313,9 @@ void
 gmem(Biff *b, void *p, int n)
 {
 	if(b->len < n)
-		sysfatal("short record %d < %d", b->len, n);
+		sysfatal("short record %d < %d\n", b->len, n);
 	if(Bread(b->bp, p, n) != n)
-		sysfatal("unexpected EOF - %r");
+		sysfatal("unexpected EOF - %r\n");
 	b->len -= n;
 }
 
@@ -355,13 +355,13 @@ getrec(Biff *b)
 		return -1;		// real EOF
 	b->op = c;
 	if((c = Bgetc(b->bp)) == -1)
-		sysfatal("unexpected EOF - %r");
+		sysfatal("unexpected EOF - %r\n");
 	b->op |= c << 8;
 	if((c = Bgetc(b->bp)) == -1)
-		sysfatal("unexpected EOF - %r");
+		sysfatal("unexpected EOF - %r\n");
 	b->len = c;
 	if((c = Bgetc(b->bp)) == -1)
-		sysfatal("unexpected EOF - %r");
+		sysfatal("unexpected EOF - %r\n");
 	b->len |= c << 8;
 	if(b->op == 0 && b->len == 0)
 		return -1;
@@ -383,7 +383,7 @@ gint(Biff *b, int n)
 	rc = 0;
 	for(i = 0; i < n; i++){
 		if((c = Bgetc(b->bp)) == -1)
-			sysfatal("unexpected EOF - %r");
+			sysfatal("unexpected EOF - %r\n");
 		b->len--;
 		vl = c;
 		rc |= vl << (8*i);
@@ -437,22 +437,22 @@ gstr(Biff *b, int len_width)
 
 	if(b->len < len_width){
 		if(getrec(b) == -1)
-			sysfatal("starting STRING expected CONTINUE, got EOF");
+			sysfatal("starting STRING expected CONTINUE, got EOF\n");
 		if(b->op != 0x03c)
-			sysfatal("starting STRING expected CONTINUE, got op=0x%x", b->op);
+			sysfatal("starting STRING expected CONTINUE, got op=0x%x\n", b->op);
 	}
 
 	ln = gint(b, len_width);
 	if(Biffver != Ver8){
 		if((buf = calloc(ln+1, sizeof(char))) == nil)
-			sysfatal("no memory");
+			sysfatal("no memory\n");
 		gmem(b, buf, ln);
 		return buf;
 	}
 
 
 	if((buf = calloc(ln+1, sizeof(char)*UTFmax)) == nil)
-		sysfatal("no memory");
+		sysfatal("no memory\n");
 	p = buf;
 
 	if(ln == 0)
@@ -483,9 +483,9 @@ gstr(Biff *b, int len_width)
 			}
 		}
 		if(getrec(b) == -1)
-			sysfatal("in STRING expected CONTINUE, got EOF");
+			sysfatal("in STRING expected CONTINUE, got EOF\n");
 		if(b->op != 0x03c)	
-			sysfatal("in STRING expected CONTINUE, got op=0x%x", b->op);
+			sysfatal("in STRING expected CONTINUE, got op=0x%x\n", b->op);
 		opt = gint(b, 1);
 	}
 }
@@ -498,7 +498,7 @@ sst(Biff *b)
 	skip(b, 4);			// total # strings
 	Nstrtab = gint(b, 4);		// # unique strings
 	if((Strtab = calloc(Nstrtab, sizeof(char *))) == nil)
-		sysfatal("no memory");
+		sysfatal("no memory\n");
 	for(n = 0; n < Nstrtab; n++)
 		Strtab[n] = gstr(b, 2);
 
@@ -612,7 +612,7 @@ wanted(char *range, int sheet)
 
 			break;
 		default:
-			sysfatal(" %s malformed range spec", range);
+			sysfatal(" %s malformed range spec\n", range);
 			break;
 		}
 		if (*p == ',')
@@ -668,9 +668,9 @@ colinfo(Biff *b)
 	int w  = gint(b, 2);
 
 	if(c1 < 0)
-		sysfatal("negative column number (%d)", c1);
+		sysfatal("negative column number (%d)\n", c1);
 	if(c2 >= Nwidths)
-		sysfatal("too many columns (%d > %d)", c2, Nwidths);
+		sysfatal("too many columns (%d > %d)\n", c2, Nwidths);
 	w /= 256;
 
 	if(w > 100)
@@ -693,7 +693,7 @@ xf(Biff *b)
 	if(nalloc >= Nxf){
 		nalloc += 20;
 		if((Xf = realloc(Xf, nalloc*sizeof(int))) == nil)
-			sysfatal("no memory");
+			sysfatal("no memory\n");
 	}
 	Xf[Nxf++] = fmt;
 }
@@ -795,7 +795,7 @@ main(int argc, char *argv[])
 	if(argc > 0) {
 		for(i = 0; i < argc; i++){
 			if((bp = Bopen(argv[i], OREAD)) == nil)
-				sysfatal("%s cannot open - %r", argv[i]);
+				sysfatal("%s cannot open - %r\n", argv[i]);
 			xls2csv(bp);
 			Bterm(bp);
 		}

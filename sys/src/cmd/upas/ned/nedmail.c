@@ -2483,6 +2483,6 @@ exitfs(char *rv)
 {
 	if(startedfs)
 		unmount(nil, "/mail/fs");
-	chdir("/sys/src/cmd/upas/ned");		/* for profiling? */
+chdir("/sys/src/cmd/upas/ned");
 	exits(rv);
 }

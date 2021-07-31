@@ -130,7 +130,7 @@ main(int argc, char **argv)
 
 	switch(notewatcher = fork()){
 	case -1:
-		sysfatal("fork");
+		sysfatal("fork\n");
 		exits(0);
 	default:
 		break;

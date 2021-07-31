@@ -700,7 +700,7 @@ blockLoad(ulong addr, int type)
 		return b;
 	}
 	if(j < 0)
-		sysfatal("no empty spots in cache!");
+		sysfatal("no empty spots in cache!\n");
 	b = &cache[j];
 	assert(b->ref == 0);
 

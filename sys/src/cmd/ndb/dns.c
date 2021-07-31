@@ -114,7 +114,6 @@ main(int argc, char *argv[])
 {
 	int kid, pid;
 	char servefile[Maxpath], ext[Maxpath];
-	Dir *dir;
 
 	setnetmtpt(mntpt, sizeof mntpt, nil);
 	ext[0] = 0;
@@ -194,14 +193,8 @@ main(int argc, char *argv[])
 	nowns = nsec();
 
 	snprint(servefile, sizeof servefile, "#s/dns%s", ext);
-	dir = dirstat(servefile);
-	if (dir)
-		sysfatal("%s exists; another dns instance is running",
-			servefile);
-	free(dir);
-//	unmount(servefile, mntpt);
-//	remove(servefile);
-
+	unmount(servefile, mntpt);
+	remove(servefile);
 	mountinit(servefile, mntpt);	/* forks, parent exits */
 
 	srand(now*getpid());

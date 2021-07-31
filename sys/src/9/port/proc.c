@@ -582,7 +582,6 @@ canpage(Proc *p)
 Proc*
 newproc(void)
 {
-	char msg[64];
 	Proc *p;
 
 	lock(&procalloc);
@@ -590,10 +589,8 @@ newproc(void)
 		if(p = procalloc.free)
 			break;
 
-		snprint(msg, sizeof msg, "no procs; %s forking",
-			up? up->text: "kernel");
 		unlock(&procalloc);
-		resrcwait(msg);
+		resrcwait("no procs");
 		lock(&procalloc);
 	}
 	procalloc.free = p->qnext;

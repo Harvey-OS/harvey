@@ -308,8 +308,7 @@ patch(void)
 					Bprint(&bso, "%s calls %s\n", TNAME, s->name);
 				switch(s->type) {
 				default:
-					/* diag prints TNAME first */
-					diag("%s is undefined", s->name);
+					diag("undefined: %s in %s", s->name, TNAME);
 					s->type = STEXT;
 					s->value = vexit;
 					break;	/* or fall through to set offset? */
