@@ -1513,7 +1513,6 @@ windup:
 		else {
 			rejectcount++;
 			reply("535 5.7.1 Authentication failed\r\n");
-			syslog(0, "smtpd", "authentication failed: %r");
 		}
 		goto bomb_out;
 	}

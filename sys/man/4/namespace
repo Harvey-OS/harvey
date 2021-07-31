@@ -342,6 +342,8 @@ The communications point for the Domain Name Server,
 (see
 .IR ndb (8)).
 .TP
+.B /net/il
+.TP
 .B /net/tcp
 .TP
 .B /net/udp
