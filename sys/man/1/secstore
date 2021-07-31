@@ -4,22 +4,33 @@ aescbc, ipso, secstore \- secstore commands
 .SH SYNOPSIS
 .B auth/secstore
 [
-.B -cinv
-] [
-.B -(g|G)
-.I getfile
-] [
-.B -p
-.I putfile
-] [
-.B -r
-.I rmfile
-] [
 .B -s
 .I server
-] [
+]
+[
+.B -(g|G)
+.I getfile
+]
+[
+.B -p
+.I putfile
+]
+[
+.B -r
+.I rmfile
+]
+[
+.B -c
+]
+[
 .B -u
 .I user
+]
+[
+.B -v
+]
+[
+.B -i
 ]
 .PP
 .B auth/aescbc
@@ -40,16 +51,17 @@ aescbc, ipso, secstore \- secstore commands
 \&...
 ]
 .SH DESCRIPTION
+.PP
 .I Secstore
-authenticates to a secure-store server
+authenticates to the server
 using a password and optionally a hardware token,
 then saves or retrieves a file.
 This is intended to be a credentials store (public/private keypairs,
 passwords, and other secrets) for a factotum.
 .PP
 Option
-.B -c
-prompts for a password change.
+.B -p
+stores a file on the secstore.
 .PP
 Option
 .B -g
@@ -59,10 +71,21 @@ option
 writes it to standard output instead.
 Specifying
 .I getfile
-of
-.L \&.
-will send to standard output
+of . will send to standard output
 a list of remote files with dates, lengths and SHA1 hashes.
+.PP
+Option
+.B -r
+removes a file from the secstore.
+.PP
+Option
+.B -c
+prompts for a password change.
+.PP
+Option
+.B -v
+produces more verbose output, in particular providing a few
+bits of feedback to help the user detect mistyping.
 .PP
 Option
 .B -i
@@ -78,28 +101,15 @@ says that the password should be read from NVRAM
 instead of from
 .BR /dev/cons .
 .PP
-Option
-.B -p
-stores a file on the secstore.
-.PP
-Option
-.B -r
-removes a file from the secstore.
-.PP
 The server is
 .BR tcp!$auth!secstore  ,
 or the server specified by option
 .BR -s .
 .PP
-Option
-.B -v
-produces more verbose output, in particular providing a few
-bits of feedback to help the user detect mistyping.
-.PP
 For example, to add a secret to the file read by
 .IR factotum (4)
 at startup, open a new window, type
-.LP
+.sp
 .EX
   % ramfs -p; cd /tmp
   % auth/secstore -g factotum
@@ -109,7 +119,7 @@ at startup, open a new window, type
   secstore password:
   % read -m factotum > /mnt/factotum/ctl
 .EE
-.LP
+.PP
 and delete the window.
 The first line creates an ephemeral memory-resident workspace,
 invisible to others and automatically removed when the window is deleted.
@@ -141,9 +151,7 @@ grabs all the user's files from
 .I secstore
 for editing.
 .PP
-By default,
-.I ipso
-will edit the
+By default, ipso will edit the
 .I secstore
 files and, if
 one of them is named
