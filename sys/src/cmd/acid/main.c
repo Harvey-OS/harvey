@@ -496,20 +496,14 @@ checkqid(int f1, int pid)
 		return;
 
 	d1 = dirfstat(f1);
-	if(d1 == nil){
-		print("checkqid: (qid not checked) dirfstat: %r\n");
-		return;
-	}
+	if(d1 == nil)
+		fatal("checkqid: (qid not checked) dirfstat: %r");
 
 	sprint(buf, "/proc/%d/text", pid);
+	SET(d2);
 	fd = open(buf, OREAD);
-	if(fd < 0 || (d2 = dirfstat(fd)) == nil){
-		print("checkqid: (qid not checked) dirstat %s: %r\n", buf);
-		free(d1);
-		if(fd >= 0)
-			close(fd);
-		return;
-	}
+	if(fd < 0 || (d2 = dirfstat(fd)) == nil)
+		fatal("checkqid: (qid not checked) dirstat %s: %r", buf);
 
 	close(fd);
 

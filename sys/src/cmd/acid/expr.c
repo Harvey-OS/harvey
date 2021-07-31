@@ -932,11 +932,7 @@ ocall(Node *n, Node *res)
 	chklval(n->left);
 	s = n->left->sym;
 
-	if(n->builtin && !s->builtin){
-		error("no builtin %s", s->name);
-		return;
-	}
-	if(s->builtin && (n->builtin || s->proc == 0)) {
+	if(s->builtin) {
 		(*s->builtin)(res, n->right);
 		return;
 	}

@@ -35,7 +35,6 @@ struct Vncs
 	int		snarfvers;
 
 	Memimage	*image;
-	ulong	imagechan;
 };
 
 /* rre.c */

@@ -160,7 +160,6 @@ struct Node
 	Node*	left;
 	Node*	right;
 	Lsym*	sym;
-	int	builtin;
 	Store;
 };
 #define ZN	(Node*)0
