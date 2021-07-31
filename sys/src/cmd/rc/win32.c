@@ -369,7 +369,7 @@ trimdirs(Dir *d, int nd)
  * the globber work harder.
  */
 int
-Readdir(int f, void *p, int onlydirs)
+Readdir(int f, char *p, int onlydirs)
 {
 	int n;
 
@@ -446,13 +446,13 @@ Unlink(char *name)
 }
 
 long
-Write(int fd, void *buf, long cnt)
+Write(int fd, char *buf, long cnt)
 {
 	return write(fd, buf, (long)cnt);
 }
 
 long
-Read(int fd, void *buf, long cnt)
+Read(int fd, char *buf, long cnt)
 {
 	return read(fd, buf, cnt);
 }
@@ -548,9 +548,9 @@ Abort(void)
 }
 
 void
-Memcpy(void *a, void *b, long n)
+Memcpy(char *a, char *b, long n)
 {
-	memmove(a, b, n);
+	memmove(a, b, (long)n);
 }
 
 void*

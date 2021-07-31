@@ -3,13 +3,14 @@
 int
 dorecipe(Node *node)
 {
-	int did = 0;
-	char buf[BIGBLOCK], cwd[256];
-	Arc *a, *aa;
-	Node *n;
+	char buf[BIGBLOCK];
+	register Node *n;
 	Rule *r = 0;
-	Symtab *s;
+	Arc *a, *aa;
 	Word head, ahead, lp, ln, *w, *ww, *aw;
+	Symtab *s;
+	int did = 0;
+	char cwd[128];
 
 	aa = 0;
 	/*
@@ -24,11 +25,9 @@ dorecipe(Node *node)
 	if(r == 0){
 		if(!(node->flags&VIRTUAL) && !(node->flags&NORECIPE)){
 			if(getwd(cwd, sizeof cwd))
-				fprint(2, "mk: no recipe to make '%s' in directory %s\n",
-					node->name, cwd);
+				fprint(2, "mk: no recipe to make '%s' in directory %s\n", node->name, cwd);
 			else
-				fprint(2, "mk: no recipe to make '%s'\n",
-					node->name);
+				fprint(2, "mk: no recipe to make '%s'\n", node->name);
 			Exit();
 		}
 		if(strchr(node->name, '(') && node->time == 0)
@@ -39,8 +38,7 @@ dorecipe(Node *node)
 			if(!(node->flags&VIRTUAL))
 				touch(node->name);
 			else if(explain)
-				Bprint(&bout, "no touch of virtual '%s'\n",
-					node->name);
+				Bprint(&bout, "no touch of virtual '%s'\n", node->name);
 		}
 		return(did);
 	}
@@ -75,8 +73,7 @@ dorecipe(Node *node)
 			}
 			ww->next = newword(buf);
 			ww = ww->next;
-			if(n == node)
-				continue;
+			if(n == node) continue;
 			n->next = node->next;
 			node->next = n;
 		}
@@ -96,8 +93,7 @@ dorecipe(Node *node)
 					addw(&ln, a->n->name);
 					if(explain)
 						fprint(1, "%s(%ld) < %s(%ld)\n",
-							n->name, n->time,
-							a->n->name, a->n->time);
+							n->name, n->time, a->n->name, a->n->time);
 				}
 			} else {
 				if(explain)
@@ -107,9 +103,8 @@ dorecipe(Node *node)
 		}
 		MADESET(n, BEINGMADE);
 	}
-/*	print("lt=%s ln=%s lp=%s\n",wtos(head.next, ' '),wtos(ln.next, ' '),wtos(lp.next, ' ')); /**/
-	run(newjob(r, node, aa->stem, aa->match, lp.next, ln.next, head.next,
-		ahead.next));
+/*	print("lt=%s ln=%s lp=%s\n",wtos(head.next, ' '),wtos(ln.next, ' '),wtos(lp.next, ' '));/**/
+	run(newjob(r, node, aa->stem, aa->match, lp.next, ln.next, head.next, ahead.next));
 	return(1);
 }
 

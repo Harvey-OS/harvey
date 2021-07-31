@@ -109,9 +109,9 @@ buildenv(Job *j, int slot)
 	else
 		envupd("stem", newword(j->stem));
 	envupd("prereq", wdup(j->p));
-	snprint(buf, sizeof buf, "%d", getpid());
+	sprint(buf, "%d", getpid());
 	envupd("pid", newword(buf));
-	snprint(buf, sizeof buf, "%d", slot);
+	sprint(buf, "%d", slot);
 	envupd("nproc", newword(buf));
 	envupd("newprereq", wdup(j->np));
 	envupd("alltarget", wdup(j->at));

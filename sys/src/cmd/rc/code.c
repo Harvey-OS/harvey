@@ -66,11 +66,10 @@ char*
 fnstr(tree *t)
 {
 	io *f = openstr();
-	void *v;
+	char *v;
 	extern char nl;
 	char svnl = nl;
-
-	nl = ';';
+	nl=';';
 	pfmt(f, "%t", t);
 	nl = svnl;
 	v = f->strp;

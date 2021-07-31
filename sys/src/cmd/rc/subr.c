@@ -3,11 +3,10 @@
 #include "io.h"
 #include "fns.h"
 
-void *
+char*
 emalloc(long n)
 {
-	void *p = Malloc(n);
-
+	char *p = (char *)Malloc(n);
 	if(p==0)
 		panic("Can't malloc %d bytes", n);
 /*	if(err){ pfmt(err, "malloc %d->%p\n", n, p); flush(err); } /**/
@@ -15,15 +14,13 @@ emalloc(long n)
 }
 
 void
-efree(void *p)
+efree(char *p)
 {
 /*	pfmt(err, "free %p\n", p); flush(err); /**/
 	if(p)
 		free(p);
-	else
-		pfmt(err, "free 0\n");
+	else pfmt(err, "free 0\n");
 }
-
 extern int lastword, lastdol;
 
 void
@@ -42,20 +39,18 @@ yyerror(char *m)
 	flush(err);
 	lastword = 0;
 	lastdol = 0;
-	while(lastc!='\n' && lastc!=EOF)
-		advance();
+	while(lastc!='\n' && lastc!=EOF) advance();
 	nerror++;
 	setvar("status", newword(m, (word *)0));
 }
-
 char *bp;
 
 static void
 iacvt(int n)
 {
 	if(n<0){
-		*bp++ = '-';
-		n = -n;	/* doesn't work for n==-inf */
+		*bp++='-';
+		n=-n;	/* doesn't work for n==-inf */
 	}
 	if(n/10)
 		iacvt(n/10);

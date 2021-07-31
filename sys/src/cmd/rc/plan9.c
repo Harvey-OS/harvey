@@ -8,11 +8,6 @@
 #include "io.h"
 #include "fns.h"
 #include "getflags.h"
-
-enum {
-	Maxenvname = 256,	/* undocumented limit */
-};
-
 char *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigalrm",	"sigkill",	"sigfpe",	"sigterm",
@@ -31,12 +26,10 @@ char *syssigname[] = {
 };
 char Rcmain[]="/rc/lib/rcmain";
 char Fdprefix[]="/fd/";
-
 void execfinit(void);
 void execbind(void);
 void execmount(void);
 void execnewpgrp(void);
-
 builtin Builtin[] = {
 	"cd",		execcd,
 	"whatis",	execwhatis,
@@ -57,7 +50,6 @@ execnewpgrp(void)
 {
 	int arg;
 	char *s;
-
 	switch(count(runq->argv->words)){
 	case 1:
 		arg = RFENVG|RFNAMEG|RFNOTEG;
@@ -105,12 +97,12 @@ execnewpgrp(void)
 void
 Vinit(void)
 {
-	int dir, f, len, i, n, nent;
-	char *buf, *s;
-	char envname[Maxenvname];
+	int dir, f, len;
 	word *val;
+	char *buf, *s;
 	Dir *ent;
-
+	int i, nent;
+	char envname[256];
 	dir = open("/env", OREAD);
 	if(dir<0){
 		pfmt(err, "rc: can't open /env: %r\n");
@@ -124,23 +116,17 @@ Vinit(void)
 		for(i = 0; i<nent; i++){
 			len = ent[i].length;
 			if(len && strncmp(ent[i].name, "fn#", 3)!=0){
-				snprint(envname, sizeof envname, "/env/%s",
-					ent[i].name);
+				snprint(envname, sizeof envname, "/env/%s", ent[i].name);
 				if((f = open(envname, 0))>=0){
-					buf = emalloc(len+1);
-					n = readn(f, buf, len);
-					if (n <= 0)
-						buf[0] = '\0';
-					else
-						buf[n] = '\0';
+					buf = emalloc((int)len+1);
+					read(f, buf, (long)len);
 					val = 0;
 					/* Charitably add a 0 at the end if need be */
 					if(buf[len-1])
 						buf[len++]='\0';
 					s = buf+len-1;
 					for(;;){
-						while(s!=buf && s[-1]!='\0')
-							--s;
+						while(s!=buf && s[-1]!='\0') --s;
 						val = newword(s, val);
 						if(s==buf)
 							break;
@@ -157,17 +143,16 @@ Vinit(void)
 	}
 	close(dir);
 }
-
 int envdir;
 
 void
 Xrdfn(void)
 {
 	int f, len;
-	Dir *e;
-	char envname[Maxenvname];
 	static Dir *ent, *allocent;
 	static int nent;
+	Dir *e;
+	char envname[256];
 
 	for(;;){
 		if(nent == 0){
@@ -182,8 +167,7 @@ Xrdfn(void)
 			nent--;
 			len = e->length;
 			if(len && strncmp(e->name, "fn#", 3)==0){
-				snprint(envname, sizeof envname, "/env/%s",
-					e->name);
+				snprint(envname, sizeof envname, "/env/%s", e->name);
 				if((f = open(envname, 0))>=0){
 					execcmds(openfd(f));
 					return;
@@ -194,7 +178,6 @@ Xrdfn(void)
 	close(envdir);
 	Xreturn();
 }
-
 union code rdfns[4];
 
 void
@@ -243,19 +226,16 @@ Waitfor(int pid, int)
 	}
 
 	errstr(errbuf, sizeof errbuf);
-	if(strcmp(errbuf, "interrupted")==0)
-		return -1;
+	if(strcmp(errbuf, "interrupted")==0) return -1;
 	return 0;
 }
 
-char **
-mkargv(word *a)
+char*
+*mkargv(word *a)
 {
 	char **argv = (char **)emalloc((count(a)+2)*sizeof(char *));
 	char **argp = argv+1;	/* leave one at front for runcoms */
-
-	for(; a; a = a->next)
-		*argp++ = a->word;
+	for(;a;a = a->next) *argp++=a->word;
 	*argp = 0;
 	return argv;
 }
@@ -263,19 +243,18 @@ mkargv(word *a)
 void
 addenv(var *v)
 {
-	char envname[Maxenvname];
+	char envname[256];
 	word *w;
 	int f;
 	io *fd;
-
 	if(v->changed){
 		v->changed = 0;
 		snprint(envname, sizeof envname, "/env/%s", v->name);
 		if((f = Creat(envname))<0)
 			pfmt(err, "rc: can't open %s: %r\n", envname);
 		else{
-			for(w = v->val; w; w = w->next)
-				write(f, w->word, strlen(w->word) + 1);
+			for(w = v->val;w;w = w->next)
+				write(f, w->word, strlen(w->word)+1L);
 			close(f);
 		}
 	}
@@ -308,9 +287,8 @@ void
 Updenv(void)
 {
 	var *v, **h;
-
-	for(h = gvar; h != &gvar[NVAR]; h++)
-		for(v = *h; v; v = v->next)
+	for(h = gvar;h!=&gvar[NVAR];h++)
+		for(v=*h;v;v = v->next)
 			addenv(v);
 	if(runq)
 		updenvlocal(runq->local);
@@ -351,36 +329,32 @@ Execute(word *args, word *path)
 	char **argv = mkargv(args);
 	char file[1024];
 	int nc;
-
 	Updenv();
-	for(; path; path = path->next){
+	for(;path;path = path->next){
 		nc = strlen(path->word);
-		if(nc < sizeof file - 1){	/* 1 for / */
+		if(nc<1024){
 			strcpy(file, path->word);
 			if(file[0]){
 				strcat(file, "/");
 				nc++;
 			}
-			if(nc + strlen(argv[1]) < sizeof file){
+			if(nc+strlen(argv[1])<1024){
 				strcat(file, argv[1]);
 				exec(file, argv+1);
 			}
-			else
-				werrstr("command name too long");
+			else werrstr("command name too long");
 		}
 	}
 	rerrstr(file, sizeof file);
 	pfmt(err, "%s: %s\n", argv[1], file);
 	efree((char *)argv);
 }
-
-#define	NDIR	256		/* should be a better way */
+#define	NDIR	256		/* shoud be a better way */
 
 int
 Globsize(char *p)
 {
 	int isglob = 0, globlen = NDIR+1;
-
 	for(;*p;p++){
 		if(*p==GLOB){
 			p++;
@@ -393,9 +367,8 @@ Globsize(char *p)
 	}
 	return isglob?globlen:0;
 }
-
 #define	NFD	50
-
+#define	NDBUF	32
 struct{
 	Dir	*dbuf;
 	int	i;
@@ -407,7 +380,6 @@ Opendir(char *name)
 {
 	Dir *db;
 	int f;
-
 	f = open(name, 0);
 	if(f==-1)
 		return f;
@@ -440,11 +412,11 @@ trimdirs(Dir *d, int nd)
  * onlydirs is advisory -- it means you only
  * need to return the directories.  it's okay to
  * return files too (e.g., on unix where you can't
- * tell during the readdir), but that just makes
+ * tell during the readdir), but that just makes 
  * the globber work harder.
  */
 int
-Readdir(int f, void *p, int onlydirs)
+Readdir(int f, char *p, int onlydirs)
 {
 	int n;
 
@@ -460,7 +432,7 @@ Again:
 				n = trimdirs(dir[f].dbuf, n);
 				if(n == 0)
 					goto Again;
-			}
+			}	
 			dir[f].n = n;
 		}else
 			dir[f].n = 0;
@@ -484,20 +456,15 @@ Closedir(int f)
 	}
 	close(f);
 }
-
 int interrupted = 0;
-
 void
 notifyf(void*, char *s)
 {
 	int i;
-
-	for(i = 0; syssigname[i]; i++)
-		if(strncmp(s, syssigname[i], strlen(syssigname[i])) == 0){
-			if(strncmp(s, "sys: ", 5) != 0)
-				interrupted = 1;
-			goto Out;
-		}
+	for(i = 0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
+		if(strncmp(s, "sys: ", 5)!=0) interrupted = 1;
+		goto Out;
+	}
 	pfmt(err, "rc: note: %s\n", s);
 	noted(NDFLT);
 	return;
@@ -526,13 +493,13 @@ Unlink(char *name)
 }
 
 long
-Write(int fd, void *buf, long cnt)
+Write(int fd, char *buf, long cnt)
 {
-	return write(fd, buf, cnt);
+	return write(fd, buf, (long)cnt);
 }
 
 long
-Read(int fd, void *buf, long cnt)
+Read(int fd, char *buf, long cnt)
 {
 	return read(fd, buf, cnt);
 }
@@ -552,7 +519,7 @@ Executable(char *file)
 	statbuf = dirstat(file);
 	if(statbuf == nil)
 		return 0;
-	ret = ((statbuf->mode&0111) != 0 && !(statbuf->mode&DMDIR));
+	ret = ((statbuf->mode&0111)!=0 && (statbuf->mode&DMDIR)==0);
 	free(statbuf);
 	return ret;
 }
@@ -560,7 +527,7 @@ Executable(char *file)
 int
 Creat(char *file)
 {
-	return create(file, 1, 0666);
+	return create(file, 1, 0666L);
 }
 
 int
@@ -620,9 +587,9 @@ Abort(void)
 }
 
 void
-Memcpy(void *a, void *b, long n)
+Memcpy(char *a, char *b, long n)
 {
-	memmove(a, b, n);
+	memmove(a, b, (long)n);
 }
 
 void*
@@ -647,7 +614,7 @@ void
 delwaitpid(int pid)
 {
 	int r, w;
-
+	
 	for(r=w=0; r<nwaitpids; r++)
 		if(waitpids[r] != pid)
 			waitpids[w++] = waitpids[r];

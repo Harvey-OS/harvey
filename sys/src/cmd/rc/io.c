@@ -2,9 +2,6 @@
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
-
-enum { Stralloc = 100, };
-
 int pfmtnest = 0;
 
 void
@@ -12,11 +9,10 @@ pfmt(io *f, char *fmt, ...)
 {
 	va_list ap;
 	char err[ERRMAX];
-
 	va_start(ap, fmt);
 	pfmtnest++;
-	for(; *fmt; fmt++)
-		if(*fmt != '%')
+	for(;*fmt;fmt++)
+		if(*fmt!='%')
 			pchr(f, *fmt);
 		else switch(*++fmt){
 		case '\0':
@@ -66,8 +62,7 @@ pchr(io *b, int c)
 {
 	if(b->bufp==b->ebuf)
 		fullbuf(b, c);
-	else
-		*b->bufp++ = c;
+	else *b->bufp++=c;
 }
 
 int
@@ -75,18 +70,17 @@ rchr(io *b)
 {
 	if(b->bufp==b->ebuf)
 		return emptybuf(b);
-	return *b->bufp++;
+	return *b->bufp++ & 0xFF;
 }
 
 void
 pquo(io *f, char *s)
 {
 	pchr(f, '\'');
-	for(; *s; s++)
+	for(;*s;s++)
 		if(*s=='\'')
 			pfmt(f, "''");
-		else
-			pchr(f, *s);
+		else pchr(f, *s);
 	pchr(f, '\'');
 }
 
@@ -94,14 +88,10 @@ void
 pwrd(io *f, char *s)
 {
 	char *t;
-
-	for(t = s; *t; t++)
-		if(!wordchr(*t))
-			break;
+	for(t = s;*t;t++) if(!wordchr(*t)) break;
 	if(t==s || *t)
 		pquo(f, s);
-	else
-		pstr(f, s);
+	else pstr(f, s);
 }
 
 void
@@ -112,11 +102,9 @@ pptr(io *f, void *v)
 
 	p = (uintptr)v;
 	if(sizeof(uintptr) == sizeof(uvlong) && p>>32)
-		for(n = 60; n >= 32; n -= 4)
-			pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
+		for(n = 60;n>=32;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
 
-	for(n = 28; n >= 0; n -= 4)
-		pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
+	for(n = 28;n>=0;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
 }
 
 void
@@ -124,15 +112,14 @@ pstr(io *f, char *s)
 {
 	if(s==0)
 		s="(null)";
-	while(*s)
-		pchr(f, *s++);
+	while(*s) pchr(f, *s++);
 }
 
 void
 pdec(io *f, int n)
 {
 	if(n<0){
-		n = -n;
+		n=-n;
 		if(n>=0){
 			pchr(f, '-');
 			pdec(f, n);
@@ -163,11 +150,11 @@ pval(io *f, word *a)
 {
 	if(a){
 		while(a->next && a->next->word){
-			pwrd(f, (char *)a->word);
+			pwrd(f, a->word);
 			pchr(f, ' ');
 			a = a->next;
 		}
-		pwrd(f, (char *)a->word);
+		pwrd(f, a->word);
 	}
 }
 
@@ -175,32 +162,32 @@ int
 fullbuf(io *f, int c)
 {
 	flush(f);
-	return *f->bufp++ = c;
+	return *f->bufp++=c;
 }
 
 void
 flush(io *f)
 {
 	int n;
-
+	char *s;
 	if(f->strp){
-		n = f->ebuf - f->strp;
-		f->strp = realloc(f->strp, n+Stralloc+1);
+		n = f->ebuf-f->strp;
+		f->strp = realloc(f->strp, n+101);
 		if(f->strp==0)
-			panic("Can't realloc %d bytes in flush!", n+Stralloc+1);
-		f->bufp = f->strp + n;
-		f->ebuf = f->bufp + Stralloc;
-		memset(f->bufp, '\0', Stralloc+1);
+			panic("Can't realloc %d bytes in flush!", n+101);
+		f->bufp = f->strp+n;
+		f->ebuf = f->bufp+100;
+		for(s = f->bufp;s<=f->ebuf;s++) *s='\0';
 	}
 	else{
 		n = f->bufp-f->buf;
-		if(n && Write(f->fd, f->buf, n) != n){
-			Write(2, "Write error\n", 12);
+		if(n && Write(f->fd, f->buf, n) < 0){
+			Write(3, "Write error\n", 12);
 			if(ntrap)
 				dotrap();
 		}
 		f->bufp = f->buf;
-		f->ebuf = f->buf + NBUF;
+		f->ebuf = f->buf+NBUF;
 	}
 }
 
@@ -208,7 +195,6 @@ io*
 openfd(int fd)
 {
 	io *f = new(struct io);
-
 	f->fd = fd;
 	f->bufp = f->ebuf = f->buf;
 	f->strp = 0;
@@ -219,14 +205,13 @@ io*
 openstr(void)
 {
 	io *f = new(struct io);
-
-	f->fd = -1;
-	f->bufp = f->strp = emalloc(Stralloc+1);
-	f->ebuf = f->bufp + Stralloc;
-	memset(f->bufp, '\0', Stralloc+1);
+	char *s;
+	f->fd=-1;
+	f->bufp = f->strp = emalloc(101);
+	f->ebuf = f->bufp+100;
+	for(s = f->bufp;s<=f->ebuf;s++) *s='\0';
 	return f;
 }
-
 /*
  * Open a corebuffer to read.  EOF occurs after reading len
  * characters from buf.
@@ -236,11 +221,10 @@ io*
 opencore(char *s, int len)
 {
 	io *f = new(struct io);
-	uchar *buf = emalloc(len);
-
-	f->fd = -1 /*open("/dev/null", 0)*/;
+	char *buf = emalloc(len);
+	f->fd= -1 /*open("/dev/null", 0)*/;
 	f->bufp = f->strp = buf;
-	f->ebuf = buf + len;
+	f->ebuf = buf+len;
 	Memcpy(buf, s, len);
 	return f;
 }
@@ -248,32 +232,30 @@ opencore(char *s, int len)
 void
 rewind(io *io)
 {
-	if(io->fd == -1)
+	if(io->fd==-1)
 		io->bufp = io->strp;
 	else{
 		io->bufp = io->ebuf = io->buf;
-		Seek(io->fd, 0, 0);
+		Seek(io->fd, 0L, 0);
 	}
 }
 
 void
 closeio(io *io)
 {
-	if(io->fd >= 0)
+	if(io->fd>=0)
 		close(io->fd);
 	if(io->strp)
 		efree(io->strp);
-	efree(io);
+	efree((char *)io);
 }
 
 int
 emptybuf(io *f)
 {
 	int n;
-
-	if(f->fd == -1 || (n = Read(f->fd, f->buf, NBUF)) <= 0)
-		return EOF;
+	if(f->fd==-1 || (n = Read(f->fd, f->buf, NBUF))<=0) return EOF;
 	f->bufp = f->buf;
-	f->ebuf = f->buf + n;
-	return *f->bufp++;
+	f->ebuf = f->buf+n;
+	return *f->bufp++&0xff;
 }
