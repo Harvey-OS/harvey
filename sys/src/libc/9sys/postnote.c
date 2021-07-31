@@ -9,10 +9,10 @@ postnote(int group, int pid, char *note)
 
 	switch(group) {
 	case PNPROC:
-		snprint(file, sizeof file, "/proc/%d/note", pid);
+		sprint(file, "/proc/%d/note", pid);
 		break;
 	case PNGROUP:
-		snprint(file, sizeof file, "/proc/%d/notepg", pid);
+		sprint(file, "/proc/%d/notepg", pid);
 		break;
 	default:
 		return -1;

@@ -60,13 +60,13 @@ pushtls(int fd, char *hashalg, char *encalg, int isclient, char *secret, char *d
 		sprint(dir, "#a/tls/%s", buf);
 
 	// get application fd
-	snprint(dname, sizeof dname, "#a/tls/%s/data", buf);
+	sprint(dname, "#a/tls/%s/data", buf);
 	data = open(dname, ORDWR);
 	if(data < 0)
 		goto error;
 
 	// get handshake fd
-	snprint(dname, sizeof dname, "#a/tls/%s/hand", buf);
+	sprint(dname, "#a/tls/%s/hand", buf);
 	hand = open(dname, ORDWR);
 	if(hand < 0)
 		goto error;
