@@ -52,8 +52,6 @@ pktbwrite(Ipifc *ifc, Block *bp, int, uchar*)
 {
 	/* enqueue onto the conversation's rq */
 	bp = concatblock(bp);
-	if(ifc->conv->snoopers.ref > 0)
-		qpass(ifc->conv->sq, copyblock(bp, BLEN(bp)));
 	qpass(ifc->conv->rq, bp);
 }
 
@@ -65,11 +63,8 @@ pktin(Fs *f, Ipifc *ifc, Block *bp)
 {
 	if(ifc->lifc == nil)
 		freeb(bp);
-	else {
-		if(ifc->conv->snoopers.ref > 0)
-			qpass(ifc->conv->sq, copyblock(bp, BLEN(bp)));
+	else
 		ipiput4(f, ifc, bp);
-	}
 }
 
 void

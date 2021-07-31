@@ -3,6 +3,9 @@
 
 #pragma	varargck	argpos	chanprint	2
 
+typedef struct Proc	Proc;
+typedef struct Thread	Thread;
+typedef struct Tqueue	Tqueue;
 typedef struct Alt	Alt;
 typedef struct Channel	Channel;
 typedef struct Ref	Ref;

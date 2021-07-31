@@ -128,22 +128,18 @@ ipifcbind(Conv *c, char **argv, int argc)
 		nexterror();
 	}
 
-	/* do medium specific binding */
 	(*m->bind)(ifc, argc, argv);
-
-	/* set the bound device name */
 	if(argc > 2)
 		strncpy(ifc->dev, argv[2], sizeof(ifc->dev));
 	else
 		sprint(ifc->dev, "%s%d", m->name, c->x);
 	ifc->dev[sizeof(ifc->dev)-1] = 0;
-
-	/* set up parameters */
 	ifc->m = m;
 	ifc->minmtu = ifc->m->minmtu;
 	ifc->maxmtu = ifc->m->maxmtu;
 	if(ifc->m->unbindonclose == 0)
 		ifc->conv->inuse++;
+
 	ifc->rp.mflag	= 0;		// default not managed
 	ifc->rp.oflag	= 0;
 	ifc->rp.maxraint	= 600000;	// millisecs
@@ -152,15 +148,9 @@ ipifcbind(Conv *c, char **argv, int argc)
 	ifc->rp.reachtime	= 0;
 	ifc->rp.rxmitra	= 0;
 	ifc->rp.ttl	= MAXTTL;
-	ifc->rp.routerlt	= 3*(ifc->rp.maxraint);
+	ifc->rp.routerlt	= 3*(ifc->rp.maxraint);	
 
-	/* any ancillary structures (like routes) no longer pertain */
 	ifc->ifcid++;
-
-	/* reopen all the queues closed by a previous unbind */
-	qreopen(c->rq);
-	qreopen(c->eq);
-	qreopen(c->sq);
 
 	wunlock(ifc);
 	poperror();
@@ -198,10 +188,9 @@ ipifcunbind(Ipifc *ifc)
 	ifc->arg = nil;
 	ifc->reassemble = 0;
 
-	/* close queues to stop queuing of packets */
-	qclose(ifc->conv->rq);
-	qclose(ifc->conv->wq);
-	qclose(ifc->conv->sq);
+	/* hangup queues to stop queuing of packets */
+	qhangup(ifc->conv->rq, "unbind");
+	qhangup(ifc->conv->wq, "unbind");
 
 	/* disassociate logical interfaces */
 	av[0] = "remove";
@@ -312,7 +301,8 @@ ipifckick(void *x)
 }
 
 /*
- *  called when a new ipifc structure is created
+ *  we'll have to have a kick routine at
+ *  some point to deal with these
  */
 static void
 ipifccreate(Conv *c)
@@ -320,7 +310,6 @@ ipifccreate(Conv *c)
 	Ipifc *ifc;
 
 	c->rq = qopen(QMAX, 0, 0, 0);
-	c->sq = qopen(2*QMAX, 0, 0, 0);
 	c->wq = qopen(QMAX, Qkick, ipifckick, c);
 	ifc = (Ipifc*)c->ptcl;
 	ifc->conv = c;
@@ -579,7 +568,7 @@ ipifcrem(Ipifc *ifc, char **argv, int argc, int dolock)
 
 	/*
 	 *  find address on this interface and remove from chain.
-	 *  for pt to pt we actually specify the remote address as the
+	 *  for pt to pt we actually specify the remote address at the
 	 *  addresss to remove.
 	 */
 	l = &ifc->lifc;

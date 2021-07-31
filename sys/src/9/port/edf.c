@@ -213,6 +213,8 @@ edfreleasetimer(void)
 	if ((t = qwaitrelease.head) == nil)
 		return;
 	DPRINT("edfreleasetimer clock\n");
+	if (releasetimer[m->machno].when)
+		timerdel(&releasetimer[m->machno]);
 	releasetimer[m->machno].when = t->r;
 	if (releasetimer[m->machno].when <= now)
 		releasetimer[m->machno].when = now;
@@ -354,6 +356,8 @@ edfadmit(Task *t)
 		}
 		assert(t->runq.n > 0 || (up && up->task == t));
 		edfpush(t);
+		if (deadlinetimer[m->machno].when)
+			timerdel(&deadlinetimer[m->machno]);
 		deadlinetimer[m->machno].when = t->d;
 		timeradd(&deadlinetimer[m->machno]);
 	}else{
@@ -427,11 +431,14 @@ edfreleaseintr(Ureg*, Timer*)
 
 	DPRINT("%d edfreleaseintr\n", m->machno);
 
+	timerdel(&releasetimer[m->machno]);
+	releasetimer[m->machno].when = 0;
+
 	if(panicking || active.exiting)
 		return;
 
-	now = fastticks(nil);
 	ilock(&edflock);
+	now = fastticks(nil);
 	while((t = qwaitrelease.head) && t->r <= now){
 		/* There's something waiting to be released and its time has come */
 		edfdequeue(&qwaitrelease);
@@ -444,7 +451,7 @@ edfreleaseintr(Ureg*, Timer*)
 }
 
 static void
-edfdeadlineintr(Ureg*, Timer *)
+edfdeadlineintr(Ureg*, Timer *timer)
 {
 	/* Task reached deadline */
 
@@ -457,18 +464,20 @@ edfdeadlineintr(Ureg*, Timer *)
 
 	DPRINT("%d edfdeadlineintr\n", m->machno);
 
+	if (timer)
+		timer->when = 0;
+
 	if(panicking || active.exiting)
 		return;
 
-	now = fastticks(nil);
 	ilock(&edflock);
 	// If up is not set, we're running inside the scheduler
 	// for non-real-time processes.
 	noted = 0;
 	if (up && isedf(up)) {
-		t = up->task;
+		now = fastticks(nil);
 
-		assert(t->state == EdfRunning);
+		t = up->task;
 		assert(t->scheduled > 0);
 	
 		used = now - t->scheduled;
@@ -514,7 +523,7 @@ edfdeadlineintr(Ureg*, Timer *)
 	}
 	iunlock(&edflock);
 	if (noted)
-		postnote(up, 0, buf, NUser);
+		postnote(up, 1, buf, NUser);
 	sched();
 	splhi();
 }
@@ -729,7 +738,6 @@ edfrunproc(void)
 		nilcount++;
 		return nil;
 	}
-
 	/* Figure out if the current proc should be preempted*/
 	ilock(&edflock);
 	now = fastticks(nil);
@@ -765,7 +773,7 @@ edfrunproc(void)
 		/* released task is better than current */
 		DPRINT("%d edfrunproc: released\n", m->machno);
 		edfdequeue(&qreleased);
-		assert(nt->runq.n >= 1 || (up && up->task == nt));
+		assert(nt->runq.n >= 1);
 		edfpush(nt);
 		t = nt;
 		t->scheduled = now;
@@ -797,9 +805,12 @@ runt:
 		DPRINT("%d edftimer: %T too late\n", m->machno, ticks2time(now-when));
 		when = now;
 	}
-	if(deadlinetimer[m->machno].when == when){
-		iunlock(&edflock);
-		return p;
+	if (deadlinetimer[m->machno].when){
+		if(deadlinetimer[m->machno].when == when){
+			iunlock(&edflock);
+			return p;
+		}
+		timerdel(&deadlinetimer[m->machno]);
 	}
 	deadlinetimer[m->machno].when = when;
 	timeradd(&deadlinetimer[m->machno]);
@@ -1068,7 +1079,8 @@ resacquire(Task *t, CSN *c)
 	if (t->curcsn)
 		t->curcsn->S -= used;
 	when = now + c->S;
-	if (deadlinetimer[m->machno].when == 0 || when < deadlinetimer[m->machno].when){
+	if (when < deadlinetimer[m->machno].when){
+		timerdel(&deadlinetimer[m->machno]);
 		deadlinetimer[m->machno].when = when;
 		timeradd(&deadlinetimer[m->machno]);
 	}
@@ -1106,6 +1118,8 @@ resrelease(Task *t)
 		t->Delta = Infinity;
 	c->S = 0LL;	/* don't allow reuse */
 	if(devrt) devrt(t, now, SResrel);
+	if (deadlinetimer[m->machno].when)
+		timerdel(&deadlinetimer[m->machno]);
 	deadlinetimer[m->machno].when = when;
 	timeradd(&deadlinetimer[m->machno]);
 

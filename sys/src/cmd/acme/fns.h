@@ -1,8 +1,6 @@
 #pragma	varargck	argpos	warning	2
-#pragma	varargck	argpos	warningew	2
 
 void	warning(Mntdir*, char*, ...);
-void	warningew(Window*, Mntdir*, char*, ...);
 
 #define	fbufalloc()	emalloc(BUFSIZE)
 #define	fbuffree(x)	free(x)
@@ -25,7 +23,7 @@ void	clearmouse(void);
 void	allwindows(void(*)(Window*, void*), void*);
 uint loadfile(int, uint, int*, int(*)(void*, uint, Rune*, int), void*);
 
-Window*	errorwin(Mntdir*, int, Window*);
+Window*	errorwin(Mntdir*, int);
 Runestr cleanrname(Runestr);
 void	run(Window*, char*, Rune*, int, int, char*, char*, int);
 void fsysclose(void);
