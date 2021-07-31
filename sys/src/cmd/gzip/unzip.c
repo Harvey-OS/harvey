@@ -268,6 +268,8 @@ sunztable(Biobuf *bin)
 		free(zh.file);
 		zh.file = nil;
 	}
+
+	return ok;
 }
 
 /*
@@ -336,6 +338,8 @@ sunzip(Biobuf *bin)
 		if(eok < 0)
 			return 0;
 	}
+
+	return 1;
 }
 
 /*

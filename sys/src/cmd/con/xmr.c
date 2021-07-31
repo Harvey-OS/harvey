@@ -170,6 +170,7 @@ receive(int fd, uchar seqno)
 			send(Nak);
 		}
 	}
+	return -1;
 }
 
 int

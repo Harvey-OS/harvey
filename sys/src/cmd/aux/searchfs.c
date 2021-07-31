@@ -266,6 +266,7 @@ searchsearch(Search *search, char *where, char *end, int *np)
 
 		where = e;
 	}
+	return nil;
 }
 
 /*

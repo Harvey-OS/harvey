@@ -431,6 +431,10 @@ int BZ_API(BZ2_bzDecompress) ( bz_stream *strm )
          if (s->state != BZ_X_OUTPUT) return r;
       }
    }
+
+   AssertH ( 0, 6001 );
+
+   return 0;  /*NOTREACHED*/
 }
 
 

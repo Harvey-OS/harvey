@@ -2009,6 +2009,7 @@ cacheFlushBlock(Cache *c)
 		if(c->bw < c->be)
 			c->baddr[c->bw++] = *p;
 	}
+	return 0;
 }
 
 /*

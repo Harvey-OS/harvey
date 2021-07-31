@@ -824,6 +824,7 @@ type(char *buf, char *tag)
 			p += runetochar(p, &r);
 		}
 	}
+	return 0;	/* shut up compiler */
 }
 
 void

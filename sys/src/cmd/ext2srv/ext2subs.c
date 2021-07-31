@@ -194,6 +194,7 @@ getext2(Xfs *xf, char type, int n)
 		break;
 	default:
 		goto error;
+		break;
 	}
 	return e;
 error:
@@ -1426,7 +1427,8 @@ add_entry(Xfile *f, char *name, int inr)
 		}
 		de = (DirEntry *)((char *)de + de->rec_len);
 	}
-	/* not reached */
+	putbuf(ibuf);
+	return -1;
 }
 int
 unlink( Xfile *file )

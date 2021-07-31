@@ -139,9 +139,6 @@ main(int argc, char *argv[])
 	case 'r':
 		resolver = 1;
 		break;
-	case 'R':
-		norecursion = 1;
-		break;
 	case 's':
 		serve = 1;	/* serve network */
 		cachedb = 1;

@@ -319,6 +319,7 @@ getra(char *p)
 			break;
 		}
 	}
+	return 0;
 }
 
 double

@@ -84,6 +84,7 @@ getpassm(char *prompt)
 			p = line;
 		}
 	}
+	return nil;  // NOT REACHED
 }
 
 char *

@@ -234,7 +234,8 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 	default:
 		return "bad programming";
 	}
-	/* not reached */
+
+	assert(0);
 
 Gotfile:
 	t = qidtype(qid->path);

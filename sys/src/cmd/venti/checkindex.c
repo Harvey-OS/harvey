@@ -57,6 +57,7 @@ if(1)
 if(1)		fprint(2, "spurious entry in index for score=%V; found %d entries expected %d\n",
 			&eib.data[ei * IEntrySize], eib.n, ib->n);
 		ok = 0;
+		break;
 	}
 	putDBlock(eb);
 	return ok;
@@ -79,6 +80,7 @@ u64int found = 0;
 	if(b == nil || z == nil || ies == nil){
 		ok = 0;
 		goto breakout;
+		return 0;
 	}
 	ok = 1;
 	next = 0;

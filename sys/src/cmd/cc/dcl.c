@@ -995,6 +995,7 @@ rsametype(Type *t1, Type *t2, int n, int f)
 				return 1;
 		}
 	}
+	return 0;
 }
 
 typedef struct Typetab Typetab;

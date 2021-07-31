@@ -1017,6 +1017,7 @@ getnsc(void)
 		}
 		c = GETC();
 	}
+	return 0;
 }
 
 void

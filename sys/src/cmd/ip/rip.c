@@ -318,7 +318,7 @@ main(int argc, char *argv[])
 			considerroute(&route);
 		}
 	}
-	/* not reached */
+	exits(0);
 }
 
 int

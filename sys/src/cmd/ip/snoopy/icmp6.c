@@ -249,6 +249,7 @@ opt_seprint(Msg *m)
 			a += osz;
 			m->ps = a;
 			return p;			
+			break;
 
 		case mtu:
 			if ((pktsz < osz) || (osz != 8)) { 

@@ -19,4 +19,5 @@ utflen(char *s)
 			s += chartorune(&rune, s);
 		n++;
 	}
+	return 0;
 }

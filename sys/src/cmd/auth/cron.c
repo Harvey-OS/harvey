@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 		if(x - now < 2)
 			sleep((2 - (x - now))*60*1000);
 	}
-	/* not reached */
+	exits(0);
 }
 
 void

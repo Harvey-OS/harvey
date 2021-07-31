@@ -971,7 +971,7 @@ main(int argc, char **argv)
 		yyinit(argc, argv);
 		for(;;)
 			yyparse();
-		/* not reached */
+		exits(0);
 	}
 	pipe(p);
 	if(fork() == 0) {

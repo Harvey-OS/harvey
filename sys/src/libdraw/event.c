@@ -100,6 +100,7 @@ eread(ulong keys, Event *e)
 			}
 		extract();
 	}
+	return 0;
 }
 
 int
@@ -138,6 +139,7 @@ ecanread(ulong keys)
 			return 0;
 		extract();
 	}
+	return -1;
 }
 
 ulong

@@ -120,4 +120,5 @@ main(int argc, char **argv)
 			break;
 		}
 	}
+	exits(nil);
 }

@@ -87,6 +87,7 @@ getcmdstr(void)
 			}
 		}
 	}
+	return nil;
 }
 
 static char *

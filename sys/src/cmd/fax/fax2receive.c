@@ -165,6 +165,7 @@ receive(Modem *m, char *spool)
 	default:
 		return r;
 	}
+	goto loop;
 }
 
 int

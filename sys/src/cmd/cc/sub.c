@@ -9,12 +9,7 @@ new(int t, Node *l, Node *r)
 	n->op = t;
 	n->left = l;
 	n->right = r;
-	if(l && t != OGOTO)
-		n->lineno = l->lineno;
-	else if(r)
-		n->lineno = r->lineno;
-	else
-		n->lineno = lineno;
+	n->lineno = lineno;
 	newflag = 1;
 	return n;
 }
@@ -108,7 +103,7 @@ prtree1(Node *n, int d, int f)
 		print(" %T", n->type);
 	if(n->complex != 0)
 		print(" (%d)", n->complex);
-	print(" %L\n", n->lineno);
+	print("\n");
 	if(i & 2)
 		prtree1(n->left, d, 1);
 	if(i & 1)

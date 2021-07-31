@@ -419,16 +419,15 @@ recordack(int n)
 void
 waitacks(void)
 {
-/*
 	int start;
 
+return;
 	start = now;
 	while(seq-ack > remwin && now-start < Sendtimeout){
 		print("seq %d ack %d remwin %d now %d start %d\n",
 			seq, ack, remwin, now, start);
 		recvul(tickchan);
 	}
-*/
 }
 
 void

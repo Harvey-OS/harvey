@@ -475,9 +475,6 @@ EXTERN	int	nterm;
 EXTERN	int	packflg;
 EXTERN	int	fproundflg;
 EXTERN	int	profileflg;
-EXTERN	int	ncontin;
-EXTERN	int	canreach;
-EXTERN	int	warnreach;
 EXTERN	Bits	zbits;
 
 extern	char	*onames[], *tnames[], *gnames[];

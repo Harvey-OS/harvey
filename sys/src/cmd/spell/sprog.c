@@ -588,7 +588,7 @@ main(int argc, char *argv[])
 		} else if(affix[0] != 0 && affix[0] != '.')
 			print("%s\t%s\n", affix, original);
 	}
-	/* not reached */
+	exits(0);
 }
 
 /*	strip exactly one suffix and do

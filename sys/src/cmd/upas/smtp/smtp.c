@@ -1007,6 +1007,7 @@ getcrnl(String *s)
 			break;
 		}
 	}
+	return 0;
 }
 
 /*

@@ -257,6 +257,7 @@ httpheaders(HttpState *hs)
 			}
 		}
 	}
+	return 0;
 }
 
 int

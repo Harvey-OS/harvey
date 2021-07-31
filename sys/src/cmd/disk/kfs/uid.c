@@ -62,6 +62,7 @@ fname(char *name)
 		if(i < NAMELEN-1)
 			name[i] = c;
 	}
+	return -1;
 }
 
 #ifdef sometime

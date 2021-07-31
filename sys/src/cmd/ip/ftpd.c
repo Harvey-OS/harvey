@@ -487,6 +487,7 @@ loginuser(char *user, char *nsfile, int gotoslash)
 	if(nsfile != nil && newns(user, nsfile) < 0){
 		logit("namespace file %s does not exist", nsfile);
 		return reply("530 Not logged in: login out of service");
+		return -1;
 	}
 	getwd(curdir, sizeof(curdir));
 	if(gotoslash){
@@ -688,6 +689,7 @@ typecmd(char *arg)
 			break;
 		default:
 			return reply("501 Unimplemented type %s", x);
+			break;
 		}
 	}
 	return reply("200 Type %s", type==Tascii ? "Ascii" : "Image");
@@ -705,6 +707,7 @@ modecmd(char *arg)
 			break;
 		default:
 			return reply("501 Unimplemented mode %c", *arg);
+			break;
 		}
 		arg++;
 	}
@@ -723,6 +726,7 @@ structcmd(char *arg)
 			break;
 		default:
 			return reply("501 Unimplemented structure %c", *arg);
+			break;
 		}
 	}
 	return reply("200 File structure");

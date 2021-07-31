@@ -299,6 +299,8 @@ mk8dot3name(Xfile *f, Dosptr *ndp, char *name, char *sname)
 			return Long;
 		putsect(tmpdp.p);
 	}
+	abort();
+	return -1;
 }
 
 /*

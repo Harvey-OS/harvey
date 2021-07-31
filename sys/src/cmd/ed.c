@@ -738,6 +738,7 @@ gety(void)
 		if(p >= &linebuf[LBSIZE-2])
 			error(Q);
 	}
+	return 0;
 }
 
 int

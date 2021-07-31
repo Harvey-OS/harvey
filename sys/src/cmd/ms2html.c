@@ -892,6 +892,7 @@ getnext(void)
 		/* escape backslash */
 		case 'e':
 			return "\\";
+			break;
 
 		/* font change */
 		case 'f':

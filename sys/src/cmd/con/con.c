@@ -338,6 +338,7 @@ menu(int net)
 			break;
 		case 'q':
 			return -1;
+			break;
 		case 'i':
 			buf[0] = 0x1c;
 			if(msgfd <= 0)

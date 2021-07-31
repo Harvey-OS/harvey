@@ -501,5 +501,6 @@ main(int argc, char **argv)
 				mousemoved();
 			break;
 		}
-	/* not reached */
+
+	exits(0);
 }

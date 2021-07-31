@@ -627,6 +627,7 @@ _cname(char *name)
 			name[i] = c;
 		cons.arg++;
 	}
+	return 0;
 }
 
 char*

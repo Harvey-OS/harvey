@@ -29,4 +29,5 @@ passtokey(char *key, char *p)
 		}
 		encrypt(key, t, 8);
 	}
+	return 1;	/* not reached */
 }

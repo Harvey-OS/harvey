@@ -643,6 +643,7 @@ packetCmp(Packet *pkt0, Packet *pkt1)
 			n1 = FRAGSIZE(f1);
 		}
 	}
+	return 0; /* for ken */
 }
 	
 

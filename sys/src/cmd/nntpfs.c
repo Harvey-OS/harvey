@@ -247,6 +247,8 @@ nntpcmd(Netbuf *n, char *cmd, int e)
 		if(indial || tried++ || nntpconnect(n) < 0)
 			return -1;
 	}
+
+	return -1;	/* shut up 8c */
 }
 
 int
@@ -477,6 +479,7 @@ Nreaddata(Netbuf *n)
 		strcat(p+l, "\n");
 		l += strlen(p+l);
 	}
+	return nil;	/* shut up 8c */
 }
 
 /*

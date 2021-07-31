@@ -1025,7 +1025,7 @@ loop:
 		pc++;
 		goto loop;
 	}
-	/* not reached */
+	goto loop;
 
 eof:
 	diag("%s: truncated object file in %s", pn, TNAME);

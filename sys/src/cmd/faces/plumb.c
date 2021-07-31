@@ -239,6 +239,7 @@ logrecv(char **sender, ulong *xtime)
 		if(parselog(buf, sender, xtime))
 			return 1;
 	}
+	return -1;
 }
 
 char*
@@ -309,6 +310,7 @@ nextface(void)
 		f->str[Sdigest] = digestp;
 		return f;
 	}
+	return nil;
 }
 
 char*

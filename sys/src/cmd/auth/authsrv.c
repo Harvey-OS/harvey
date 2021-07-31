@@ -100,7 +100,7 @@ main(int argc, char *argv[])
 			exits(0);
 		}
 	}
-	/* not reached */
+	exits(0);
 }
 
 int
