@@ -1,40 +1,42 @@
-typedef struct Serial Serial;
 typedef struct Serialops Serialops;
-typedef struct Serialport Serialport;
+typedef struct Serial Serial;
 
 struct Serialops {
-	int	(*seteps)(Serialport*);
-	int	(*init)(Serialport*);
-	int	(*getparam)(Serialport*);
-	int	(*setparam)(Serialport*);
-	int	(*clearpipes)(Serialport*);
+	int	(*seteps)(Serial*);
+	int	(*init)(Serial*);
+	int	(*getparam)(Serial*);
+	int	(*setparam)(Serial*);
+	int	(*clearpipes)(Serial*);
 	int	(*reset)(Serial*);
-	int	(*sendlines)(Serialport*);
-	int	(*modemctl)(Serialport*, int);
-	int	(*setbreak)(Serialport*, int);
-	int	(*readstatus)(Serialport*);
-	int	(*wait4data)(Serialport*, uchar *, int);
-	int	(*wait4write)(Serialport*, uchar *, int);
+	int	(*sendlines)(Serial*);
+	int	(*modemctl)(Serial*, int);
+	int	(*setbreak)(Serial*, int);
+	int	(*readstatus)(Serial*);
+	int	(*wait4data)(Serial*, uchar *, int);
+	int	(*wait4write)(Serial*, uchar *, int);
 };
 
-enum {
+enum{
 	DataBufSz = 8*1024,
-	Maxifc = 16,
 };
 
-
-struct Serialport {
-	Serial	*s;		/* device we belong to */
-	int	isjtag;
-
-	Dev	*epintr;	/* may not exist */
-
+/*
+ * TODO: this should have an array of serial devices and
+ * have the common part separated.  Means rethinking locking though.
+ */
+struct Serial {
+	QLock;
+	Dev	*dev;		/* usb device*/
+	Dev	*ep;		/* endpoint to get events */
+	Dev	*epintr;
 	Dev	*epin;
 	Dev	*epout;
-
 	Usbfs	fs;
-	uchar	ctlstate;
+	int	type;
+	int	recover;
+	int	hasepintr;
 
+	uchar	ctlstate;
 	/* serial parameters */
 	uint	baud;
 	int	stop;
@@ -59,37 +61,21 @@ struct Serialport {
 	int	novererr;
 	int	enabled;
 
-	int	interfc;	/* interfc on the device for ftdi */
-
-	Channel *w4data;
-	Channel *gotdata;
-	Channel *readc;		/* to uncouple reads, only used in ftdi... */
-	int	ndata;
-	uchar	data[DataBufSz];
-};
-
-struct Serial {
-	QLock;
-	Dev	*dev;		/* usb device*/
-
-	int	type;		/* serial model subtype */
-	int	recover;	/* # of non-fatal recovery tries */
-	Serialops;
-
-	int	hasepintr;
-
-	int	jtag;		/* index of jtag interface, -1 none */
-	int	nifcs;		/* # of serial interfaces, including JTAG */
-	Serialport p[Maxifc];
-	int	maxrtrans;
-	int	maxwtrans;
-
 	int	maxread;
 	int	maxwrite;
 
 	int	inhdrsz;
 	int	outhdrsz;
+	Serialops;
+
 	int	baudbase;	/* for special baud base settings, see ftdi */
+	int	interfc;	/* interfc on the device for ftdi */
+
+	Channel *w4data;
+	Channel *gotdata;
+	Channel *w4empty;
+	int	ndata;
+	uchar	data[DataBufSz];
 };
 
 enum {
@@ -122,4 +108,7 @@ extern int serialdebug;
 
 int	serialrecover(Serial *ser, char *err);
 int	serialreset(Serial *ser);
-char	*serdumpst(Serialport *p, char *buf, int bufsz);
+char	*serdumpst(Serial *ser, char *buf, int bufsz);
+
+int	serialnop(Serial *);
+int	serialnopctl(Serial *, int);

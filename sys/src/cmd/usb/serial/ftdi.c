@@ -15,6 +15,7 @@
 Cinfo ftinfo[] = {
 	{ FTVid, FTACTZWAVEDid },
 	{ FTSheevaVid, FTSheevaDid },
+	{ FTVid, FTOpenrdDid },
 	{ FTVid, FTIRTRANSDid },
 	{ FTVid, FTIPLUSDid },
 	{ FTVid, FTSIODid },
@@ -199,59 +200,50 @@ Cinfo ftinfo[] = {
 	{ ICOMID1Vid, ICOMID1Did },
 	{ PAPOUCHVid, PAPOUCHTMUDid },
 	{ FTVid, FTACGHFDUALDid },
-	{ FT8U232AMDid, FT4232HDid },
 	{ 0,	0 },
 };
 
 enum {
-	Packsz		= 64,		/* default size */
-	Maxpacksz	= 512,
-	Bufsiz		= 4 * 1024,
+	Packsz = 1024,
 };
 
 static int
-ftdiread(Serialport *p, int val, int index, int req, uchar *buf)
+ftdiread(Serial *ser, int val, int index, int req, uchar *buf)
 {
 	int res;
-	Serial *ser;
-
-	ser = p->s;
 
 	if(req != FTGETE2READ)
-		index |= p->interfc + 1;
-	dsprint(2, "serial: ftdiread %#p [%d] req: %#x val: %#x idx:%d buf:%p\n",
-		p, p->interfc, req, val, index, buf);
+		index |= ser->interfc + 1;
+	dsprint(2, "serial: ftdiread req: %#x val: %#x idx:%d buf:%p\n",
+		req, val, index, buf);
 	res = usbcmd(ser->dev,  Rd2h | Rftdireq | Rdev, req, val, index, buf, 1);
 	dsprint(2, "serial: ftdiread res:%d\n", res);
 	return res;
 }
 
 static int
-ftdiwrite(Serialport *p, int val, int index, int req)
+ftdiwrite(Serial *ser, int val, int index, int req)
 {
 	int res;
-	Serial *ser;
 
-	ser = p->s;
-
-	index |= p->interfc + 1;
-	dsprint(2, "serial: ftdiwrite %#p [%d] req: %#x val: %#x idx:%d\n",
-		p, p->interfc, req, val, index);
+	index |= ser->interfc + 1;
+	dsprint(2, "serial: ftdiwrite  req: %#x val: %#x idx:%d\n",
+		req, val, index);
 	res = usbcmd(ser->dev, Rh2d | Rftdireq | Rdev, req, val, index, nil, 0);
 	dsprint(2, "serial: ftdiwrite res:%d\n", res);
 	return res;
 }
 
 static int
-ftmodemctl(Serialport *p, int set)
+ftmodemctl(Serial *ser, int set)
 {
 	if(set == 0){
-		p->mctl = 0;
-		ftdiwrite(p, 0, 0, FTSETMODEMCTRL);
+		ser->mctl = 0;
+		ftdiwrite(ser, 0, 0, FTSETMODEMCTRL);
 		return 0;
 	}
-	p->mctl = 1;
-	ftdiwrite(p, 0, FTRTSCTSHS, FTSETFLOWCTRL);
+	ser->mctl = 1;
+	ftdiwrite(ser, 0, FTRTSCTSHS, FTSETFLOWCTRL);
 	return 0;
 }
 
@@ -386,9 +378,6 @@ ftbaudcalcdiv(Serial *ser, int baud)
  		break;
 	case FT232BM:
 	case FT2232C:
-	case FTKINDR:
-	case FT2232H:
-	case FT4232H:
 		if(baud <= 3000000)
 			divval = ft232bmbaud2div(baud);
 		else
@@ -402,20 +391,20 @@ ftbaudcalcdiv(Serial *ser, int baud)
 }
 
 static int
-ftsetparam(Serialport *p)
+ftsetparam(Serial *ser)
 {
 	int res;
 	ushort val;
 	ulong bauddiv;
 
 	val = 0;
-	if(p->stop == 1)
+	if(ser->stop == 1)
 		val |= FTSETDATASTOPBITS1;
-	else if(p->stop == 2)
+	else if(ser->stop == 2)
 		val |= FTSETDATASTOPBITS2;
-	else if(p->stop == 15)
+	else if(ser->stop == 15)
 		val |= FTSETDATASTOPBITS15;
-	switch(p->parity){
+	switch(ser->parity){
 	case 0:
 		val |= FTSETDATAParNONE;
 		break;
@@ -435,16 +424,16 @@ ftsetparam(Serialport *p)
 
 	dsprint(2, "serial: setparam\n");
 
-	res = ftdiwrite(p, val, 0, FTSETDATA);
+	res = ftdiwrite(ser, val, 0, FTSETDATA);
 	if(res < 0)
 		return res;
 
-	res = ftmodemctl(p, p->mctl);
+	res = ftmodemctl(ser, ser->mctl);
 	if(res < 0)
 		return res;
 
-	bauddiv = ftbaudcalcdiv(p->s, p->baud);
-	res = ftdiwrite(p, bauddiv, (bauddiv>>16) & 1, FTSETBaudRate);
+	bauddiv = ftbaudcalcdiv(ser, ser->baud);
+	res = ftdiwrite(ser, bauddiv, 0x1&(bauddiv>>16), FTSETBaudRate);
 
 	dsprint(2, "serial: setparam res: %d\n", res);
 	return res;
@@ -454,46 +443,40 @@ ftsetparam(Serialport *p)
 static void
 ftgettype(Serial *ser)
 {
-	int i, outhdrsz, dno, pksz;
+	int inter, nifcs, i, outhdrsz, dno;
 	ulong baudbase;
 	Conf *cnf;
 
-	pksz = Packsz;
+	inter = 0;
  	/* Assume it is not the original SIO device for now. */
 	baudbase = ClockNew / 2;
 	outhdrsz = 0;
+	nifcs = 0;
 	dno = ser->dev->usb->dno;
 	cnf = ser->dev->usb->conf[0];
-	ser->nifcs = 0;
 	for(i = 0; i < Niface; i++)
 		if(cnf->iface[i] != nil)
-			ser->nifcs++;
-	if(ser->nifcs > 1) {
+			nifcs++;
+	if(nifcs> 1) {
+		/* Multiple interfaces.  Assume FT2232C. */
+		ser->type = FT2232C;
 		/*
-		 * Multiple interfaces.  default assume FT2232C,
+		 * BUG: If there is more than one interface, we use the second.
+		 * We only support 1 interface at the moment...
+		 * This works well for the sheeva/JTAG, but in other
+		 * cases we are ignoring nifcs-1 interfaces and using
+		 * the second (weird).  The problem is we have to rethink
+		 * the whole scheme to make it work with various ifaces.
 		 */
-		if(dno == 0x500)
-			ser->type = FT2232C;
-		else if(dno == 0x600)
-			ser->type = FTKINDR;
-		else if(dno == 0x700){
-			ser->type = FT2232H;
-			pksz = Maxpacksz;
-		} else if(dno == 0x800){
-			ser->type = FT4232H;
-			pksz = Maxpacksz;
-		} else
-			ser->type = FT2232C;
-
-		ser->jtag = 0;
+		inter = PITA;
 
 		/*
 		 * BM-type devices have a bug where dno gets set
 		 * to 0x200 when serial is 0.
 		 */
 		if(dno < 0x500)
-			fprint(2, "serial: warning: dno %d too low for "
-				"multi-interface device\n", dno);
+			fprint(2, "serial: warning: dno too low for "
+				"multi-interface device\n");
 	} else if(dno < 0x200) {
 		/* Old device.  Assume it is the original SIO. */
 		ser->type = SIO;
@@ -509,11 +492,10 @@ ftgettype(Serial *ser)
 	else			/* Assume it is an FT232BM (or FT245BM) */
 		ser->type = FT232BM;
 
-	ser->maxrtrans = ser->maxwtrans = pksz;
 	ser->baudbase = baudbase;
 	ser->outhdrsz = outhdrsz;
 	ser->inhdrsz = 2;
-
+	ser->interfc = inter;
 	dsprint (2, "serial: detected type: %#x\n", ser->type);
 }
 
@@ -539,87 +521,81 @@ ftmatch(Serial *ser, char *info)
 }
 
 static int
-ftuseinhdr(Serialport *p, uchar *b)
+ftuseinhdr(Serial *ser, uchar *b)
 {
 	if(b[0] & FTICTS)
-		p->cts = 1;
+		ser->cts = 1;
 	else
-		p->cts = 0;
+		ser->cts = 0;
 	if(b[0] & FTIDSR)
-		p->dsr = 1;
+		ser->dsr = 1;
 	else
-		p->dsr = 0;
+		ser->dsr = 0;
 	if(b[0] & FTIRI)
-		p->ring = 1;
+		ser->ring = 1;
 	else
-		p->ring = 0;
+		ser->ring = 0;
 	if(b[0] & FTIRLSD)
-		p->rlsd = 1;
+		ser->rlsd = 1;
 	else
-		p->rlsd = 0;
+		ser->rlsd = 0;
 
 	if(b[1] & FTIOE)
-		p->novererr++;
+		ser->novererr++;
 	if(b[1] & FTIPE)
-		p->nparityerr++;
+		ser->nparityerr++;
 	if(b[1] & FTIFE)
-		p->nframeerr++;
+		ser->nframeerr++;
 	if(b[1] & FTIBI)
-		p->nbreakerr++;
+		ser->nbreakerr++;
 	return 0;
 }
 
 static int
-ftsetouthdr(Serialport *p, uchar *b, int len)
+ftsetouthdr(Serial *ser, uchar *b, int len)
 {
-	if(p->s->outhdrsz != 0)
+	if(ser->outhdrsz != 0)
 		b[0] = FTOPORT | (FTOLENMSK & len);
-	return p->s->outhdrsz;
+	return ser->outhdrsz;
 }
 
 static int
-wait4data(Serialport *p, uchar *data, int count)
+wait4data(Serial *ser, uchar *data, int count)
 {
-	int d;
-	Serial *ser;
-
-	ser = p->s;
-
 	qunlock(ser);
-	d = sendul(p->w4data, 1);
-	if(d <= 0)
-		return -1;
+	recvul(ser->w4data);
 	qlock(ser);
-	if(p->ndata >= count)
-		p->ndata -= count;
+	if(ser->ndata >= count)
+		ser->ndata -= count;
 	else{
-		count = p->ndata;
-		p->ndata = 0;
+		count = ser->ndata;
+		ser->ndata = 0;
 	}
 	assert(count >= 0);
-	assert(p->ndata >= 0);
-	memmove(data, p->data, count);
-	if(p->ndata != 0)
-		memmove(p->data, p->data+count, p->ndata);
+	assert(ser->ndata >= 0);
+	memmove(data, ser->data, count);
+	if(ser->ndata != 0)
+		memmove(ser->data, ser->data+count, ser->ndata);
 
-	recvul(p->gotdata);
+	sendul(ser->gotdata, 1);
 	return count;
 }
 
 static int
-wait4write(Serialport *p, uchar *data, int count)
+wait4write(Serial *ser, uchar *data, int count)
 {
 	int off, fd;
 	uchar *b;
-	Serial *ser;
 
-	ser = p->s;
+	// qunlock(ser);
+	// recvul(ser->w4empty);	should I really?
+	// qlock(ser);
 
 	b = emallocz(count+ser->outhdrsz, 1);
-	off = ftsetouthdr(p, b, count);
+	off = ftsetouthdr(ser, b, count);
 	memmove(b+off, data, count);
 
-	fd = p->epout->dfd;
+	fd = ser->epout->dfd;
 	qunlock(ser);
 	count = write(fd, b, count+off);
 	qlock(ser);
@@ -630,110 +606,62 @@ wait4write(Serialport *p, uchar *data, int count)
 typedef struct Packser Packser;
 struct Packser{
 	int	nb;
-	uchar	b[Bufsiz];
+	uchar	b[Packsz];
 };
 
 typedef struct Areader Areader;
 struct Areader{
-	Serialport	*p;
+	Serial	*s;
 	Channel	*c;
 };
 
 static void
-shutdownchan(Channel *c)
-{
-	Packser *bp;
-
-	while((bp=nbrecvp(c)) != nil)
-		free(bp);
-	chanfree(c);
-}
-
-int
-cpdata(Serial *ser, Serialport *port, uchar *out, uchar *in, int sz)
-{
-	int i, ncp, ntotcp, pksz;
-
-	pksz = ser->maxrtrans;
-	ntotcp = 0;
-
-	for(i = 0; i < sz; i+= pksz){
-		ftuseinhdr(port, in + i);
-		if(sz - i > pksz)
-			ncp = pksz - ser->inhdrsz;
-		else
-			ncp = sz - i - ser->inhdrsz;
-		memmove(out, in + i + ser->inhdrsz, ncp);
-		out += ncp;
-		ntotcp += ncp;
-	}
-	return ntotcp;
-}
-
-static void
 epreader(void *u)
 {
-	int dfd, rcount, cl;
+	int dfd, rcount;
 	char err[40];
 	Areader *a;
 	Channel *c;
-	Packser *pk;
+	Packser *p;
 	Serial *ser;
-	Serialport *p;
 
 	threadsetname("epreader proc");
 	a = u;
-	p = a->p;
-	ser = p->s;
+	ser = a->s;
 	c = a->c;
 	free(a);
 
 	qlock(ser);
-	dfd = p->epin->dfd;
+	dfd = ser->epin->dfd;
 	qunlock(ser);
 
-	pk = nil;
+	p = nil;
 	do {
-		if (pk == nil)
-			pk = emallocz(sizeof(Packser), 1);
-		rcount = read(dfd, pk->b, sizeof pk->b);
+		if (p == nil)
+			p = emallocz(sizeof(Packser), 1);
+		rcount = read(dfd, p->b, sizeof p->b);
 		if(serialdebug > 5)
-			dsprint(2, "%d %#ux%#ux ", rcount, p->data[0],
-				p->data[1]);
-		if(rcount < 0)
+			dsprint(2, "%d %#ux%#ux ", rcount, ser->data[0],
+				ser->data[1]);
+		if(rcount <= 0)
 			break;
-		if(rcount == 0)
-			continue;
 		if(rcount >= ser->inhdrsz){
-			rcount = cpdata(ser, p, pk->b, pk->b, rcount);
+			ftuseinhdr(ser, p->b);
+			rcount -= ser->inhdrsz;
+			memmove(p->b, p->b + ser->inhdrsz, rcount);
 			if(rcount != 0){
-				pk->nb = rcount;
-				cl = sendp(c, pk);
-				if(cl < 0){
-					/*
-					 * if it was a time-out, I don't want
-					 * to give back an error.
-					 */
-					rcount = 0;
-					break;
-				}
-			}else
-				free(pk);
-			pk = nil;
+				p->nb = rcount;
+				sendp(c, p);
+				p = nil;
+			}
 		}
 	} while(rcount >= 0 || (rcount < 0 && strstr(err, "timed out") != nil));
 
 	if(rcount < 0)
-		fprint(2, "%s: error reading %s: %r\n", argv0, p->fs.name);
-	free(pk);
-	nbsendp(c, nil);
-	if(p->w4data != nil)
-		chanclose(p->w4data);
-	if(p->gotdata != nil)
-		chanclose(p->gotdata);
-	devctl(ser->dev, "detach");
+		fprint(2, "%s: error reading %s: %r\n", argv0, ser->fs.name);
+	free(p);
+	sendp(c, nil);
 	closedev(ser->dev);
-	usbfsdel(&p->fs);
 }
 
 static void
@@ -741,123 +669,106 @@ statusreader(void *u)
 {
 	Areader *a;
 	Channel *c;
-	Packser *pk;
-	Serialport *p;
+	Packser *p;
 	Serial *ser;
-	int cl;
 
-	p = u;
-	ser = p->s;
+	ser = u;
 	threadsetname("statusreader thread");
 	/* big buffering, fewer bytes lost */
 	c = chancreate(sizeof(Packser *), 128);
 	a = emallocz(sizeof(Areader), 1);
-	a->p = p;
+	a->s = ser;
 	a->c = c;
 	incref(ser->dev);
 	proccreate(epreader, a, 16*1024);
 
-	while((pk = recvp(c)) != nil){
-		memmove(p->data, pk->b, pk->nb);
-		p->ndata = pk->nb;
-		free(pk);
-		dsprint(2, "serial: status reader %d \n", p->ndata);
+	while((p = recvp(c)) != nil){
+		memmove(ser->data, p->b, p->nb);
+		ser->ndata = p->nb;
+		free(p);
+		dsprint(2, "serial: status reader %d \n", ser->ndata);
 		/* consume it all */
-		while(p->ndata != 0){
+		while(ser->ndata != 0){
 			dsprint(2, "serial: status reader to consume: %d\n",
-				p->ndata);
-			cl = recvul(p->w4data);
-			if(cl  < 0)
-				break;
-			cl = sendul(p->gotdata, 1);
-			if(cl  < 0)
-				break;
+				ser->ndata);
+			sendul(ser->w4data, 1);
+			recvul(ser->gotdata);
 		}
 	}
-
-	shutdownchan(c);
-	devctl(ser->dev, "detach");
+	/* don't free a; epreader may still be using it. */
+	free(c);
 	closedev(ser->dev);
-	usbfsdel(&p->fs);
 }
 
 static int
 ftreset(Serial *ser)
 {
-	Serialport *p;
-	int i;
-
-	p = ser->p;
-	for(i = 0; i < Maxifc; i++)
-		if(!p[i].isjtag && p[i].s != nil)
-			ftdiwrite(&p[i], FTRESETCTLVAL, 0, FTRESET);
+	ftdiwrite(ser, FTRESETCTLVAL, 0, FTRESET);
 	return 0;
 }
 
 static int
-ftinit(Serialport *p)
+ftinit(Serial *ser)
 {
-	Serial *ser;
+	qlock(ser);
+	serialreset(ser);
+	qunlock(ser);
 
-	ser = p->s;
 	incref(ser->dev);
-	threadcreate(statusreader, p, 8*1024);
+	threadcreate(statusreader, ser, 8*1024);
 	return 0;
 }
 
 static int
-ftsetbreak(Serialport *p, int val)
+ftsetbreak(Serial *ser, int val)
 {
-	return ftdiwrite(p, (val != 0? FTSETBREAK: 0), 0, FTSETDATA);
+	return ftdiwrite(ser, (val != 0? FTSETBREAK: 0), 0, FTSETDATA);
 }
 
 static int
-ftclearpipes(Serialport *p)
+ftclearpipes(Serial *ser)
 {
 	/* maybe can be done in one... */
-	ftdiwrite(p, FTRESETCTLVALPURGETX, 0, FTRESET);
-	ftdiwrite(p, FTRESETCTLVALPURGERX, 0, FTRESET);
+	ftdiwrite(ser, FTRESETCTLVALPURGETX, 0, FTRESET);
+	ftdiwrite(ser, FTRESETCTLVALPURGERX, 0, FTRESET);
 	return 0;
 }
 
 static int
-setctlline(Serialport *p, uchar val)
+setctlline(Serial *ser, uchar val)
 {
-	return ftdiwrite(p, val | (val << 8), 0, FTSETMODEMCTRL);
+	return ftdiwrite(ser, val | (val << 8), 0, FTSETMODEMCTRL);
 }
 
 static void
-updatectlst(Serialport *p, int val)
+updatectlst(Serial *ser, int val)
 {
-	if(p->rts)
-		p->ctlstate |= val;
+	if(ser->rts)
+		ser->ctlstate |= val;
 	else
-		p->ctlstate &= ~val;
+		ser->ctlstate &= ~val;
 }
 
 static int
-setctl(Serialport *p)
+setctl(Serial *ser)
 {
 	int res;
-	Serial *ser;
-
-	ser = p->s;
 
 	if(ser->dev->usb->vid == FTVid && ser->dev->usb->did ==  FTHETIRA1Did){
 		fprint(2, "serial: cannot set lines for this device\n");
-		updatectlst(p, CtlRTS|CtlDTR);
-		p->rts = p->dtr = 1;
+		updatectlst(ser, CtlRTS|CtlDTR);
+		ser->rts = ser->dtr = 1;
 		return -1;
 	}
 
 	/* NB: you can not set DTR and RTS with one control message */
-	updatectlst(p, CtlRTS);
-	res = setctlline(p, (CtlRTS<<8)|p->ctlstate);
+	updatectlst(ser, CtlRTS);
+	res = setctlline(ser, (CtlRTS<<8)|ser->ctlstate);
 	if(res < 0)
 		return res;
 
-	updatectlst(p, CtlDTR);
-	res = setctlline(p, (CtlDTR<<8)|p->ctlstate);
+	updatectlst(ser, CtlDTR);
+	res = setctlline(ser, (CtlDTR<<8)|ser->ctlstate);
 	if(res < 0)
 		return res;
 
@@ -865,30 +776,25 @@ setctl(Serialport *p)
 }
 
 static int
-ftsendlines(Serialport *p)
+ftsendlines(Serial *ser)
 {
 	int res;
 
-	dsprint(2, "serial: sendlines: %#2.2x\n", p->ctlstate);
-	res = setctl(p);
+	dsprint(2, "serial: sendlines: %#2.2x\n", ser->ctlstate);
+	res = setctl(ser);
 	dsprint(2, "serial: sendlines res: %d\n", res);
 	return 0;
 }
 
 static int
-ftseteps(Serialport *p)
+ftseteps(Serial *ser)
 {
 	char *s;
-	Serial *ser;
 
-	ser = p->s;
-
-	s = smprint("maxpkt %d", ser->maxrtrans);
-	devctl(p->epin, s);
-	free(s);
-
-	s = smprint("maxpkt %d", ser->maxwtrans);
-	devctl(p->epout, s);
+	s = smprint("maxpkt %d", Packsz);
+	devctl(ser->epin, s);
+	devctl(ser->epout, s);
+	ser->maxread = ser->maxwrite = Packsz;
 	free(s);
 	return 0;
 }

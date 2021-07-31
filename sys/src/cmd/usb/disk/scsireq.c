@@ -916,30 +916,30 @@ SRopen(ScsiReq *rp, char *unit)
 			rp->status = Status_SW;
 			break;
 
-		case Devdir:
-		case Devcd:
-		case Devmo:
+		case 0x00:	/* Direct access (disk) */
+		case 0x05:	/* CD-ROM */
+		case 0x07:	/* rewriteable MO */
 			if(dirdevopen(rp) == -1)
 				break;
 			return 0;
 
-		case Devseq:
+		case 0x01:	/* Sequential eg: tape */
 			rp->flags |= Fseqdev;
 			if(seqdevopen(rp) == -1)
 				break;
 			return 0;
 
-		case Devprint:
+		case 0x02:	/* Printer */
 			rp->flags |= Fprintdev;
 			return 0;
 
-		case Devworm:
+		case 0x04:	/* Worm */
 			rp->flags |= Fwormdev;
 			if(wormdevopen(rp) == -1)
 				break;
 			return 0;
 
-		case Devjuke:
+		case 0x08:	/* medium-changer */
 			rp->flags |= Fchanger;
 			return 0;
 		}

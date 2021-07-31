@@ -101,7 +101,8 @@ usbfsdelnth(int i)
 			dprint(2, "no dev\n");
 		if(fs[i]->end != nil)
 			fs[i]->end(fs[i]);
-		closedev(fs[i]->dev);
+		else
+			closedev(fs[i]->dev);
 		fsused--;
 	}
 	fs[i] = nil;
