@@ -2,7 +2,6 @@
 
 PORTDIRS=9sys 9syscall fmt port
 DIRS=$PORTDIRS $CPUS
-OLDCPUS=68000 68020 sparc
 
 all install:V:
 	for(i in $PORTDIRS $objtype)@{
@@ -44,7 +43,7 @@ installall:V:
 
 everything:V:
 	rm -f */*.[012456789kqvxz]
-	for(objtype in $CPUS $OLDCPUS)@{
+	for(objtype in 68000 68020 arm alpha 386 sparc power mips)@{
 		echo $objtype
 		mk $MKFLAGS install
 	}
