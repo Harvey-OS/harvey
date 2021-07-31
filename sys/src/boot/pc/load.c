@@ -329,7 +329,6 @@ main(void)
 		panic("i'm too big\n");
 
 	readlsconf();
-	print("initial probe, to find plan9.ini...");
 	/* find and read plan9.ini, setting configuration variables */
 	for(tp = types; tp->type != Tnil; tp++){
 		/* skip bios until we have read plan9.ini */
@@ -341,7 +340,6 @@ main(void)
 			break;
 		}
 	}
-	print("\n");
 	apminit();
 
 	debugload = getconf("*debugload") != nil;
