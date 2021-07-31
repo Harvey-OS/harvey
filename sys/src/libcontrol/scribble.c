@@ -110,9 +110,9 @@ scribchar(Scrib *b, Rune r)
 	else if(r == ' ')
 		strcpy(b->lastchar, "' '");
 	else if(r < ' ')
-		snprint(b->lastchar, sizeof b->lastchar, "ctl-%c", r+'@');
+		sprint(b->lastchar, "ctl-%c", r+'@');
 	else
-		snprint(b->lastchar, sizeof b->lastchar, "%C", r);
+		sprint(b->lastchar, "%C", r);
 }
 
 
