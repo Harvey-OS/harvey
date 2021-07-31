@@ -7,8 +7,10 @@
 /* `The order of operands is from left to right in dataflow order' - asm man */
 #define	STREX(v,a,r)	WORD	$(0xe<<28|0x01800f90 | (a)<<16 | (r)<<12 | (v)<<0)
 
-TEXT	cas+0(SB),0,$0		/* r0 holds p */
-TEXT	casp+0(SB),0,$0		/* r0 holds p */
+TEXT	cas+0(SB),0,$12		/* r0 holds p */
+	B	_casp		/* must not fall through; would push LR again */
+TEXT	casp+0(SB),0,$12	/* r0 holds p */
+_casp:
 	MOVW	ov+4(FP), R1
 	MOVW	nv+8(FP), R2
 spincas:
