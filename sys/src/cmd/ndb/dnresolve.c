@@ -755,9 +755,8 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp, int depth)
 
 	fd = udpport();
 	if(fd < 0)
-		rv = 0;
-	else
-		rv = netquery1(fd, dp, type, nsrp, reqp, depth, ibuf, obuf);
+		return 0;
+	rv = netquery1(fd, dp, type, nsrp, reqp, depth, ibuf, obuf);
 	close(fd);
 	free(ibuf);
 	free(obuf);

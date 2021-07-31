@@ -47,6 +47,7 @@ struct
 	"alef",		Alword,
 	"array",	Lword,
 	"block",	Fword,
+	"chan",		Alword,
 	"char",		Cword,
 	"common",	Fword,
 	"con",		Lword,
