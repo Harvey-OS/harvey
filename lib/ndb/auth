@@ -1,3 +1,4 @@
+# see auth(6)
 #         Data Base
 #           An ndb(2) database file exists for the authentication
 #           server.  The attribute types used by the AS are hostid and
