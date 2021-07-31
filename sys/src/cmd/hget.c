@@ -62,7 +62,6 @@ void	unreadline(char*);
 int	verbose;
 char	*net;
 char	tcpdir[64];
-int	headerprint;
 
 struct {
 	char	*name;
@@ -77,7 +76,7 @@ struct {
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-hv] [-o outfile] [-p body] [-x netmtpt] url\n", argv0);
+	fprint(2, "usage: %s [-v] [-o outfile] [-p body] [-x netmtpt] url\n", argv0);
 	exits("usage");
 }
 
@@ -105,9 +104,6 @@ main(int argc, char **argv)
 		break;
 	case 'd':
 		debug = 1;
-		break;
-	case 'h':
-		headerprint = 1;
 		break;
 	case 'v':
 		verbose = 1;
@@ -597,8 +593,6 @@ getheader(int fd, char *buf, int n)
 			}
 		}
 	}
-	if(headerprint)
-		print("%s\n", buf);
 
 	if(debug)
 		fprint(2, "%d <- %s\n", fd, buf);
