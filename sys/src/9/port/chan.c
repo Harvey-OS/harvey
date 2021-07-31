@@ -1550,8 +1550,8 @@ if(c->umh != nil){
 	free(e.elems);
 	free(e.off);
 	poperror();	/* e c */
-	free(aname);
-	poperror();	/* aname */
+	free(name);
+	poperror();	/* name */
 
 	return c;
 }
