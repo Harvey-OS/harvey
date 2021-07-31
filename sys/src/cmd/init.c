@@ -112,16 +112,6 @@ pass(int fd)
 	}
 }
 
-static int gotnote;
-
-void
-pinhead(void*, char *msg)
-{
-	gotnote = 1;
-	fprint(2, "init got note '%s'\n", msg);
-	noted(NCONT);
-}
-
 void
 fexec(void (*execfn)(void))
 {
@@ -139,12 +129,8 @@ fexec(void (*execfn)(void))
 		exits("fork");
 	default:
 	casedefault:
-		notify(pinhead);
-		gotnote = 0;
 		w = wait();
 		if(w == nil){
-			if(gotnote)
-				goto casedefault;
 			print("init: wait error: %r\n");
 			break;
 		}
