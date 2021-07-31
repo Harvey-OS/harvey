@@ -89,9 +89,6 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 #ifndef STAGESIZE
 #define STAGESIZE 64
 #endif
-#ifndef MAXBY2PG
-#define MAXBY2PG BY2PG		/* rounding for UTZERO in executables */
-#endif
 
 struct Ref
 {

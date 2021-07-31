@@ -2411,18 +2411,7 @@ removeaoedev(Aoedev *d)
 				break;
 	qlock(d);
 	d->flag &= ~Dup;
-
-	/*
-	 * Changing the version number is, strictly speaking, correct,
- 	 * but doing so means that deleting a LUN that is not in use
-	 * invalidates all other LUNs too.  If your file server has
-	 * venti arenas or fossil file systems on 1.0, and you delete 1.1,
-	 * since you no longer need it, 1.0 will become inaccessible to your
-	 * file server, which will eventually panic.  Note that newdev()
-	 * does not change the version number.
-	 */
-	// newvers(d);
-
+	newvers(d);
 	d->ndl = 0;
 	qunlock(d);
 	for(i = 0; i < d->nframes; i++)

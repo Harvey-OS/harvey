@@ -82,7 +82,7 @@ rebootcmd(int argc, char *argv[])
 		error(Ebadexec);
 
 	/* round text out to page boundary */
-	rtext = ROUNDUP(entry+text, MAXBY2PG) - entry;
+	rtext = PGROUND(entry+text)-entry;
 	size = rtext + data;
 	p = malloc(size);
 	if(p == nil)
