@@ -493,8 +493,6 @@ dumpfile(char *sender)
 	return "/dev/null";
 }
 
-char *validator = "/mail/lib/validateaddress";
-
 int
 recipok(char *user)
 {
@@ -502,34 +500,6 @@ recipok(char *user)
 	char buf[512];
 	int n;
 	Biobuf *bp;
-	int pid;
-	Waitmsg *w;
-
-	if(shellchars(user)){
-		syslog(0, "smtpd", "shellchars in user name");
-		return 0;
-	}
-
-	if(access(validator, AEXEC) == 0)
-	switch(pid = fork()) {
-	case -1:
-		break;
-	case 0:
-		execl(validator, "validateaddress", user, nil);
-		exits(0);
-	default:
-		while(w = wait()) {
-			if(w->pid != pid)
-				continue;
-			if(w->msg[0] != 0){
-				/*
-				syslog(0, "smtpd", "validateaddress %s: %s", user, w->msg);
-				*/
-				return 0;
-			}
-			break;
-		}
-	}
 
 	snprint(buf, sizeof(buf), "%s/names.blocked", UPASLIB);
 	bp = sysopen(buf, "r", 0);
@@ -553,7 +523,6 @@ recipok(char *user)
 		if(p > cp){
 			*p = 0;
 			if(cistrcmp(user, cp) == 0){
-				syslog(0, "smtpd", "names.blocked blocks %s", user);
 				Bterm(bp);
 				return 0;
 			}

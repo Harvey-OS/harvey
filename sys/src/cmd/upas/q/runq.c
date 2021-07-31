@@ -445,14 +445,10 @@ dofile(Dir *dp)
 		close(dfd);
 		close(2);
 		efd = open(file(dp->name, 'E'), OWRITE);
-		if(efd < 0){
-			if(debug) syslog(0, "runq", "open %s as %s: %r", file(dp->name,'E'), getuser());
-			efd = create(file(dp->name, 'E'), OWRITE, 0666);
-			if(efd < 0){
-				if(debug) syslog(0, "runq", "create %s as %s: %r", file(dp->name, 'E'), getuser());
-				exits("could not open error file - Retry");
-			}
-		}
+		if(efd < 0)
+			efd = create(file(dp->name, 'E'), OWRITE, 0664);
+		if(efd < 0)
+			exits("");
 		seek(efd, 0, 2);
 		exec(cmd, av);
 		error("can't exec %s", cmd);
@@ -466,15 +462,13 @@ dofile(Dir *dp)
 				break;
 			free(wm);
 		}
-		if(debug)
-			fprint(2, "wm->pid %d wm->msg == %s\n", wm->pid, wm->msg);
 
 		if(wm->msg[0]){
 			if(debug)
 				fprint(2, "[%d] wm->msg == %s\n", getpid(), wm->msg);
 			if(!Rflag && strstr(wm->msg, "Retry")==0){
 				/* return the message and remove it */
-				if(returnmail(av, dp->name, wm->msg) != 0)
+				if(returnmail(av, dp->name, wm->msg) == 0)
 					logit("returnmail failed", dp->name, av);
 				remmatch(dp->name);
 			} else {
@@ -544,14 +538,11 @@ returnmail(char **av, char *name, char *msg)
 		return 0;
 	}
 
-	if(pipe(pfd) < 0){
-		logit("runq - pipe failed", name, av);
+	if(pipe(pfd) < 0)
 		return -1;
-	}
 
 	switch(rfork(RFFDG|RFPROC|RFENVG)){
 	case -1:
-		logit("runq - fork failed", name, av);
 		return -1;
 	case 0:
 		logit("returning", name, av);
@@ -593,17 +584,9 @@ returnmail(char **av, char *name, char *msg)
 	close(pfd[1]);
 out:
 	wm = wait();
-	if(wm == nil){
-		syslog(0, "runq", "wait: %r");
-		logit("wait failed", name, av);
+	if(wm == nil)
 		return -1;
-	}
-	i = 0;
-	if(wm->msg[0]){
-		i = -1;
-		syslog(0, "runq", "returnmail child: %s", wm->msg);
-		logit("returnmail child failed", name, av);
-	}
+	i = wm->msg[0] ? -1 : 0;
 	free(wm);
 	return i;
 }
