@@ -130,12 +130,12 @@ readdisk(uchar *buf, vlong offset, int len)
 	int i, j, k, n;
 
 	if(offset >= partend){
-		memset(buf, 0xFB, len);
+		memset(buf, 0xFB, sizeof buf);
 		return buf;
 	}
 	
 	if(offset+len > partend){
-		memset(buf, 0xFB, len);
+		memset(buf, 0xFB, sizeof buf);
 		len = partend - offset;
 	}
 
