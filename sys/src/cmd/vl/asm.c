@@ -1,12 +1,5 @@
 #include	"l.h"
 
-/* can't include a.out.h due to name clashes, but these are taken from it */
-#define	_MAGIC(f, b)	((f)|((((4*(b))+0)*(b))+7))
-#define	V_MAGIC		_MAGIC(0, 16)		/* mips 3000 BE */
-#define	M_MAGIC		_MAGIC(0, 18)		/* mips 4000 BE */
-#define	N_MAGIC		_MAGIC(0, 22)		/* mips 4000 LE */
-#define	P_MAGIC		_MAGIC(0, 24)		/* mips 3000 LE */
-
 long	OFFSET;
 /*
 long	BADOFFSET	=	-1;
@@ -327,11 +320,12 @@ asmb(void)
 		lput(~0L);			/* gp value ?? */
 		lput(0L);			/* complete mystery */
 		break;
-	case 2:					/* plan 9 format */
+	case 2:
 		if (little)
-			lput(P_MAGIC);		/* mips 3000 LE */
+			t = 24;
 		else
-			lput(V_MAGIC);		/* mips 3000 BE */
+			t = 16;
+		lput(((((4*t)+0)*t)+7));	/* magic */
 		lput(textsize);			/* sizes */
 		lput(datsize);
 		lput(bsssize);
