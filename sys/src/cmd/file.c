@@ -156,7 +156,6 @@ int	ismung(void);
 int	isp9bit(void);
 int	isp9font(void);
 int	isrtf(void);
-int	ismsdos(void);
 int	istring(void);
 int	long0(void);
 int	p9bitnum(uchar*);
@@ -182,7 +181,6 @@ int	(*call[])(void) =
 	isp9bit,	/* plan 9 image (as from /dev/window) */
 	isenglish,	/* char frequency English */
 	isrtf,		/* rich text format */
-	ismsdos,	/* msdos exe (virus file attachement) */
 	0
 };
 
@@ -1117,17 +1115,7 @@ int
 isrtf(void)
 {
 	if(strstr((char *)buf, "\\rtf1")){
-		print(mime ? "application/rtf\n" : "rich text format\n");
-		return 1;
-	}
-	return 0;
-}
-
-int
-ismsdos(void)
-{
-	if (buf[0] == 0x4d && buf[1] == 0x5a){
-		print(mime ? "application/x-msdownload\n" : "MSDOS executable\n");
+		print(mime ? "application/rtf" : "rich text format");
 		return 1;
 	}
 	return 0;
