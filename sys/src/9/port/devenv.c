@@ -262,7 +262,7 @@ static long
 envwrite(Chan *c, void *a, long n, vlong off)
 {
 	char *s;
-	ulong vend;
+	int vend;
 	Egrp *eg;
 	Evalue *e;
 	ulong offset = off;
