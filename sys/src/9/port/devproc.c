@@ -434,7 +434,7 @@ procopen(Chan *c, int omode)
 		break;
 
 	default:
-		pprint("procopen %#lux\n", QID(c->qid));
+		pprint("procopen %lux\n", c->qid);
 		error(Egreg);
 	}
 
