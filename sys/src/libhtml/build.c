@@ -283,7 +283,7 @@ static Item*		newifloat(Item* it, int side);
 static Item*		newiformfield(Formfield* ff);
 static Item*		newiimage(Rune* src, Rune* altrep, int align, int width, int height,
 					int hspace, int vspace, int border, int ismap, Map* map);
-static Item*		newirule(int align, int size, int noshade, int color, Dimen wspec);
+static Item*		newirule(int align, int size, int noshade, Dimen wspec);
 static Item*		newispacer(int spkind);
 static Item*		newitable(Table* t);
 static ItemSource*	newitemsource(Docinfo* di);
@@ -415,7 +415,6 @@ getitems(ItemSource* is, uchar* data, int datalen)
 	int	bramt;
 	int	sty;
 	int	nosh;
-	int	color;
 	int	oldcuranchor;
 	int	dfltbd;
 	int	v;
@@ -1021,8 +1020,7 @@ getitems(ItemSource* is, uchar* data, int datalen)
 				if(dimenkind(wd) == Dnone)
 					wd = makedimen(Dpercent, 100);
 				nosh = aflagval(tok, Anoshade);
-				color = acolorval(tok, Acolor, 0);
-				additem(ps, newirule(al, sz, nosh, color, wd), tok);
+				additem(ps, newirule(al, sz, nosh, wd), tok);
 				addbrk(ps, 0, 0);
 				break;
 
@@ -3097,7 +3095,7 @@ newitext(Rune* s, int fnt, int fg, int voff, int ul)
 }
 
 static Item*
-newirule(int align, int size, int noshade, int color, Dimen wspec)
+newirule(int align, int size, int noshade, Dimen wspec)
 {
 	Irule* r;
 
@@ -3106,7 +3104,6 @@ newirule(int align, int size, int noshade, int color, Dimen wspec)
 	r->align = align;
 	r->size = size;
 	r->noshade = noshade;
-	r->color = color;
 	r->wspec = wspec;
 	return (Item*)r;
 }
