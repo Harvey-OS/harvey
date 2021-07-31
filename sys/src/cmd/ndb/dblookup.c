@@ -1035,7 +1035,6 @@ createptrs(void)
 				continue;
 			}
 			parseipmask(mask, nt->val);
-			ndbfree(t);
 			n = 5;
 			break;
 		default:

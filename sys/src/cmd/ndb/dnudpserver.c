@@ -3,10 +3,6 @@
 #include <ip.h>
 #include "dns.h"
 
-enum {
-	Logqueries = 0,
-};
-
 static int	udpannounce(char*);
 static void	reply(int, uchar*, DNSmsg*, Request*);
 
@@ -133,7 +129,7 @@ restart:
 			/* first bytes in buf are source IP addr */
 			dnslog("server: input error: %s from %I", err, buf);
 			free(err);
-			goto freereq;
+			continue;
 		}
 		if (rcode == 0)
 			if(reqmsg.qdcount < 1){
@@ -163,7 +159,7 @@ restart:
 			goto freereq;
 		}
 
-		if (Logqueries) {
+		if (0) {
 			RR *rr;
 
 			for (rr = reqmsg.qd; rr; rr = rr->next)
