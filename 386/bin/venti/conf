@@ -67,4 +67,5 @@ if(! cmp <{sed 1q /tmp/venticonf.$pid} <{echo venti config}){
 }
 
 sed 1d /tmp/venticonf.$pid
-exit ''
+exit 0
+
