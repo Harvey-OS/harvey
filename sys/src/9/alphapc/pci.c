@@ -197,14 +197,15 @@ pciscan(int bno, Pcidev** list)
 static void
 pcicfginit(void)
 {
-	char *p;
+/*	char *p; */
 
 	lock(&pcicfginitlock);
 	if(pcicfgmode == -1){
 		pcicfgmode = 0;
-		pcimaxdno = 15;		/* was 20; what is correct value??? */
-		if(p = getconf("*pcimaxdno"))
-			pcimaxdno = strtoul(p, 0, 0);
+/*		if(p = getconf("*pcimaxdno"))
+			pcimaxdno = strtoul(p, 0, 0); */
+pcimaxdno = 15 /* was 20; what is correct value??? */;
+
 		pciscan(0, &pciroot);
 	}
 	unlock(&pcicfginitlock);

@@ -10,7 +10,7 @@
 
 #include "etherif.h"
 
-static volatile Ether *etherxx[MaxEther];
+static Ether *etherxx[MaxEther];
 
 Chan*
 etherattach(char* spec)
@@ -176,8 +176,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 				else if(xbp = iallocb(len)){
 					memmove(xbp->wp, pkt, len);
 					xbp->wp += len;
-					if(qpass(f->in, xbp) < 0)
-						ether->soverflows++;
+					qpass(f->in, xbp);
 				}
 				else
 					ether->soverflows++;
@@ -240,26 +239,21 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 {
 	Ether *ether;
 	Block *bp;
-	int nn;
 
 	ether = etherxx[chan->dev];
-	if(NETTYPE(chan->qid.path) != Ndataqid) {
-		nn = netifwrite(ether, chan, buf, n);
-		if(nn >= 0)
-			return nn;
+	if(NETTYPE(chan->qid.path) != Ndataqid){
+
 		if(n == sizeof("nonblocking")-1 && strncmp((char*)buf, "nonblocking", n) == 0){
 			qnoblock(ether->oq, 1);
 			return n;
 		}
-		if(ether->ctl!=nil)
-			return ether->ctl(ether,buf,n);
 
-		error(Ebadctl);
+		return netifwrite(ether, chan, buf, n);
 	}
 
-	if(n > ether->maxmtu)
+	if(n > ETHERMAXTU)
 		error(Etoobig);
-	if(n < ether->minmtu)
+	if(n < ETHERMINTU)
 		error(Etoosmall);
 
 	bp = allocb(n);
@@ -282,23 +276,18 @@ etherbwrite(Chan* chan, Block* bp, ulong)
 	long n;
 
 	n = BLEN(bp);
+	ether = etherxx[chan->dev];
 	if(NETTYPE(chan->qid.path) != Ndataqid){
-		if(waserror()) {
-			freeb(bp);
-			nexterror();
-		}
-		n = etherwrite(chan, bp->rp, n, 0);
-		poperror();
+		n = netifwrite(ether, chan, bp->rp, n);
 		freeb(bp);
 		return n;
 	}
-	ether = etherxx[chan->dev];
 
-	if(n > ether->maxmtu){
+	if(n > ETHERMAXTU){
 		freeb(bp);
-		error(Etoobig);
+		error(Ebadarg);
 	}
-	if(n < ether->minmtu){
+	if(n < ETHERMINTU){
 		freeb(bp);
 		error(Etoosmall);
 	}
@@ -331,7 +320,7 @@ parseether(uchar *to, char *from)
 	int i;
 
 	p = from;
-	for(i = 0; i < Eaddrlen; i++){
+	for(i = 0; i < 6; i++){
 		if(*p == 0)
 			return -1;
 		nip[0] = *p++;
@@ -351,7 +340,7 @@ etherreset(void)
 {
 	Ether *ether;
 	int i, n, ctlrno;
-	char name[32], buf[256];
+	char name[32], buf[128];
 
 	for(ether = 0, ctlrno = 0; ctlrno < MaxEther; ctlrno++){
 		if(ether == 0)
@@ -370,9 +359,9 @@ etherreset(void)
 			for(i = 0; i < ether->nopt; i++){
 				if(strncmp(ether->opt[i], "ea=", 3))
 					continue;
-				if(parseether(ether->ea, &ether->opt[i][3]))
+				if(parseether(ether->ea, &ether->opt[i][3]) == -1)
 					memset(ether->ea, 0, Eaddrlen);
-			}
+			}	
 			if(cards[n].reset(ether))
 				break;
 
@@ -384,17 +373,10 @@ etherreset(void)
 			if(ether->irq == 2 && BUSTYPE(ether->tbdf) != BusPCI)
 				ether->irq = 9;
 			snprint(name, sizeof(name), "ether%d", ctlrno);
-			/*
-			 * If ether->irq is 0, it is a hack to indicate no
-			 * interrupt used by ethersink.
-			 */
-			if(ether->irq > 0)
-				intrenable(ether->irq, ether->interrupt,
-					ether, ether->tbdf, name);
+			intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 
-			i = sprint(buf, "#l%d (%s): %s: %dMbps port 0x%luX irq %lud",
-				ctlrno, name, ether->type, ether->mbps,
-				ether->port, ether->irq);
+			i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %lud",
+				ctlrno, ether->type, ether->mbps, ether->port, ether->irq);
 			if(ether->mem)
 				i += sprint(buf+i, " addr 0x%luX", PADDR(ether->mem));
 			if(ether->size)
@@ -429,26 +411,6 @@ etherreset(void)
 	if(ether)
 		free(ether);
 }
-
-/* imported from ../pc; not ready for use yet */
-static void
-ethershutdown(void)
-{
-	Ether *ether;
-	int i;
-
-	for(i = 0; i < MaxEther; i++){
-		ether = etherxx[i];
-		if(ether == nil)
-			continue;
-		if(ether->shutdown == nil) {
-			print("#l%d: no shutdown fuction\n", i);
-			continue;
-		}
-		(*ether->shutdown)(ether);
-	}
-}
-
 
 #define POLY 0xedb88320
 

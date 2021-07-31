@@ -50,6 +50,7 @@ OBJ=\
 	trap.$O\
 	$DEVS\
 	$PORT\
+	boot$CONF.root.$O\
 
 LIB=\
 	/$objtype/lib/libmemlayer.a\
@@ -74,7 +75,6 @@ install:V: $p$CONF
 
 <../boot/bootmkfile
 <../port/portmkfile
-<|../port/mkbootrules $CONF
 
 clock.$O devether.$O main.$O trap.$O:	/$objtype/include/ureg.h
 

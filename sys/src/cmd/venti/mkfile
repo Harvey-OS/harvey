@@ -61,7 +61,6 @@ TARG=\
 	sync\
 	read\
 	write\
-	copy\
 #	dumparena\
 
 CFILES=${TARG:%=%.c} $LIBCFILES

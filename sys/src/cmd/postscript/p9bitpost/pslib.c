@@ -665,7 +665,7 @@ imagebits(Biobuf *ioutb, Memimage *im)
 			fprint(2, "p9bitpost: allocmemimage failed: %r\n");
 			exits("alloc");
 		}
-		memimagedraw(tmp, r, im, im->r.min, nil, ZP, S);
+		memimagedraw(tmp, r, im, im->r.min, nil, ZP);
 		im = tmp;
 	}
 	lsf = 0;
@@ -732,7 +732,7 @@ image2psfile(int fd, Memimage *im, int dpi) {
 		tmp = allocmemimage(im->r, strtochan("b8g8r8"));
 		if(tmp == nil)
 			return 1;
-		memimagedraw(tmp, tmp->r, im, im->r.min, nil, ZP, S);
+		memimagedraw(tmp, tmp->r, im, im->r.min, nil, ZP);
 		freememimage(im);
 		im = tmp;
 	}

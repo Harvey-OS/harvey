@@ -211,8 +211,9 @@ main(int argc, char **argv)
 	if(srv == nil && srvfd == -1 && write(0, "OK", 2) != 2)
 		fatal("open ack write");
 
-	if (readn(netfd, &initial, sizeof(ulong)) < sizeof(ulong))
+	if ((n = readn(netfd, &initial, sizeof(ulong))) < 0)
 		fatal("can't read initial string: %r\n");
+	assert(n == sizeof(ulong));
 
 	if (!strncmp((char *)&initial, "impo", sizeof(ulong))) {
 		char buf[128], *p, *args[3];

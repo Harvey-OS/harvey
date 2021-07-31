@@ -52,6 +52,7 @@ OBJ=\
 	trap.$O\
 	$DEVS\
 	$PORT\
+	boot$CONF.root.$O\
 
 LIB=\
 	/$objtype/lib/libmemlayer.a\
@@ -76,7 +77,6 @@ install:V: $p$CONF
 
 <../boot/bootmkfile
 <../port/portmkfile
-<|../port/mkbootrules $CONF
 
 init.h:	initcode /sys/src/libc/9syscall/sys.h
 	$AS initcode
@@ -96,7 +96,6 @@ sd53c8xx.i:	../pc/sd53c8xx.n
 devfloppy.$O:	../pc/devfloppy.c
 ether2114x.$O:	../pc/ether2114x.c
 mouse.$O:	../pc/mouse.c
-screen.$O:	../pc/screen.c
 sdata.$O:	../pc/sdata.c
 sdscsi.$O:	../pc/sdscsi.c
 uarti8250.$O:	../pc/uarti8250.c

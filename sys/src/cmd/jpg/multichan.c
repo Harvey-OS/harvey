@@ -49,6 +49,6 @@ memmultichan(Memimage *i)
 	ni = allocmemimage(i->r, RGB24);
 	if(ni == nil)
 		return ni;
-	memimagedraw(ni, ni->r, i, i->r.min, nil, i->r.min, S);
+	memimagedraw(ni, ni->r, i, i->r.min, nil, i->r.min);
 	return ni;
 }

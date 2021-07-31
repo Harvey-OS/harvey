@@ -12,7 +12,6 @@ struct Draw
 	Memlayer		*dstlayer;
 	Memimage	*src;
 	Memimage	*mask;
-	int	op;
 };
 
 static
@@ -48,11 +47,11 @@ ldrawop(Memimage *dst, Rectangle screenr, Rectangle clipr, void *etc, int insave
 		if(!ok)
 			return;
 	}
-	memdraw(dst, r, d->src, p0, d->mask, p1, d->op);
+	memdraw(dst, r, d->src, p0, d->mask, p1);
 }
 
 void
-memdraw(Memimage *dst, Rectangle r, Memimage *src, Point p0, Memimage *mask, Point p1, int op)
+memdraw(Memimage *dst, Rectangle r, Memimage *src, Point p0, Memimage *mask, Point p1)
 {
 	struct Draw d;
 	Rectangle srcr, tr, mr;
@@ -71,7 +70,7 @@ if(drawdebug)	iprint("mask->layer != nil\n");
 
     Top:
 	if(dst->layer==nil && src->layer==nil){
-		memimagedraw(dst, r, src, p0, mask, p1, op);
+		memimagedraw(dst, r, src, p0, mask, p1);
 		return;
 	}
 
@@ -142,7 +141,7 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
 			memlhide(dst, srcr);
 		}
 		memdraw(dl->save, rectsubpt(r, dl->delta), dl->save,
-			subpt(srcr.min, src->layer->delta), mask, p1, op);
+			subpt(srcr.min, src->layer->delta), mask, p1);
 		memlexpose(dst, r);
 		return;
 	}
@@ -181,7 +180,6 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
 	d.deltam = subpt(p1, r.min);
 	d.dstlayer = dl;
 	d.src = src;
-	d.op = op;
 	d.mask = mask;
 	_memlayerop(ldrawop, dst, r, r, &d);
 }

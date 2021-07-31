@@ -24,6 +24,9 @@ link
 	netdevmedium
 
 misc
+	ipconfig.root
+	factotum.root
+
 	uarti8250
 
 ip
@@ -39,8 +42,3 @@ port
 
 boot
 	il
-
-bootdir
-	bootmtx.out boot
-	ipconfig.hack ipconfig
-	factotum.hack factotum

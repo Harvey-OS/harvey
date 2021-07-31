@@ -3,7 +3,6 @@
 buildindex,
 checkarenas,
 checkindex,
-copy,
 fmtarenas,
 fmtindex,
 fmtisect,
@@ -40,17 +39,6 @@ write \- Venti maintenance and debugging commands
 ]
 .I venti.config
 .I tmp
-.PP
-.B venti/copy
-[
-.B -f
-]
-.I src
-.I dst
-.I score
-[
-.I type
-]
 .PP
 .B venti/fmtarenas
 [
@@ -95,10 +83,11 @@ write \- Venti maintenance and debugging commands
 .B -h
 .I host
 ]
-.I score
 [
+.B -t
 .I type
 ]
+.I score
 .PP
 .B venti/wrarena
 [
@@ -402,7 +391,9 @@ of which arenas have been processed.)
 .I Read
 and
 .I write
-read and write blocks from a running Venti server.
+interact with a running
+Venti
+server rather than access the data directly.
 They are intended to ease debugging of the server.
 The default
 .I host
@@ -412,20 +403,7 @@ followed by the network metaname
 .BR $venti .
 The
 .I type
-is the decimal type of block to be read or written.
-If no 
-.I type
-is specified for
-.I read ,
-all types are tried, and a command-line is printed to
-show the type that eventually worked.
-If no
-.I type
-is specified for
-.I write ,
-.B VtDataType
-(13)
-is used.
+sets the block type to read or write; it is a decimal number.
 .I Read
 reads the block named by
 .I score
@@ -435,30 +413,6 @@ from the Venti server and writes it to standard output.
 reads a block from standard input and attempts to write
 it to the Venti server.
 If successful, it prints the score of the block on the server.
-.PP
-.I Copy
-walks the entire tree of blocks rooted at
-.I score ,
-copying all the blocks visited during the walk from
-the Venti server at network address
-.I src
-to the Venti server at network address
-.I dst .
-If
-.I type
-(a decimal block type for
-.IR score )
-is omitted, all types will be tried in sequence
-until one is found that works.
-The
-.B -f
-flag runs the copy in ``fast'' mode: if a block is already on
-.IR dst ,
-the walk does not descend below it, on the assumption that all its
-children are also already on
-.IR dst .
-Without this flag, the copy often transfers many times more
-data than necessary.
 .SH SOURCE
 .B /sys/src/cmd/venti
 .SH "SEE ALSO"

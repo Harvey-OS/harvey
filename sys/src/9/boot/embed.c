@@ -28,7 +28,7 @@ connectembed(void)
 	Dir *dir;
 	char **arg, **argp;
 
-	dir = dirstat("/boot/paqfs");
+	dir = dirstat("/paqfs");
 	if(dir == nil)
 		return -1;
 	free(dir);
@@ -51,7 +51,7 @@ connectembed(void)
 	case 0:
 		arg = malloc((bargc+5)*sizeof(char*));
 		argp = arg;
-		*argp++ = "/boot/paqfs";
+		*argp++ = "/paqfs";
 		*argp++ = "-iv";
 		*argp++ = paqfile;
 		for(i=1; i<bargc; i++)
@@ -62,7 +62,7 @@ connectembed(void)
 		dup(p[1], 1);
 		close(p[0]);
 		close(p[1]);
-		exec("/boot/paqfs", arg);
+		exec("/paqfs", arg);
 		fatal("can't exec paqfs");
 	default:
 		break;

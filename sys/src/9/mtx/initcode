@@ -19,7 +19,6 @@ loop:
 	BR	loop
 
 DATA	boot+0(SB)/5,$"/boot"
-DATA	boot+5(SB)/5,$"/boot"
-DATA	bootv+0(SB)/4,$boot+6(SB)
-GLOBL	boot+0(SB),$11
+DATA	bootv+0(SB)/4,$boot+1(SB)
+GLOBL	boot+0(SB),$6
 GLOBL	bootv+0(SB),$8

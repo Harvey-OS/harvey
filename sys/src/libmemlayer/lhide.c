@@ -27,7 +27,7 @@ lhideop(Memimage *src, Rectangle screenr, Rectangle clipr, void *etc, int insave
 	l = etc;
 	if(src != l->save){	/* do nothing if src is already in save area */
 		r = rectsubpt(screenr, l->delta);
-		memdraw(l->save, r, src, screenr.min, nil, screenr.min, S);
+		memdraw(l->save, r, src, screenr.min, nil, screenr.min);
 	}
 }
 
@@ -54,7 +54,7 @@ lexposeop(Memimage *dst, Rectangle screenr, Rectangle clipr, void *etc, int insa
 	l = etc;
 	r = rectsubpt(screenr, l->delta);
 	if(l->save)
-		memdraw(dst, screenr, l->save, r.min, nil, r.min, S);
+		memdraw(dst, screenr, l->save, r.min, nil, r.min);
 	else
 		l->refreshfn(dst, r, l->refreshptr);
 }

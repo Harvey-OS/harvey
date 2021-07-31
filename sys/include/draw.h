@@ -102,8 +102,6 @@ enum
 	DoverS	= DinS|DoutS|SoutD,
 	DatopS	= DinS|SoutD,
 	DxorS	= DoutS|SoutD,	/* == SxorD */
-
-	Ncomp = 12,
 };
 
 /*

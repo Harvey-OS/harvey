@@ -60,6 +60,11 @@ link
 misc
 	archmp		mp apic
 
+	ipconfig.root
+	kfs.root
+	factotum.root
+	cfs.root
+
 	sdata		pci sdscsi
 	sd53c8xx		pci sdscsi
 	sdmylex		pci sdscsi
@@ -100,12 +105,5 @@ port
 	int cpuserver = 0;
 
 boot boot #S/sdC0/
-	local
 	il
-
-bootdir
-	bootpcdisk.out boot
-	/386/bin/ip/ipconfig
-	factotum.hack factotum
-	/386/bin/disk/kfs
-	/386/bin/cfs
+	local

@@ -39,7 +39,7 @@ memlorigin(Memimage *i, Point log, Point scr)
 	wasclear = l->clear;
 	if(nsave){
 		if(!wasclear)
-			memimagedraw(nsave, nsave->r, l->save, l->save->r.min, nil, Pt(0,0), S);
+			memimagedraw(nsave, nsave->r, l->save, l->save->r.min, nil, Pt(0,0));
 		freememimage(l->save);
 		l->save = nsave;
 	}
@@ -90,7 +90,7 @@ memlorigin(Memimage *i, Point log, Point scr)
 	 * Everything's covered.  Copy to new position and delete shadow window.
 	 */
 	if(wasclear)
-		memdraw(s->image, newr, s->image, oldr.min, nil, Pt(0,0), S);
+		memdraw(s->image, newr, s->image, oldr.min, nil, Pt(0,0));
 	else
 		memlexpose(i, newr);
 	memldelete(shad);
