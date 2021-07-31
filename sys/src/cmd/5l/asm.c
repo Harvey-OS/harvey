@@ -84,7 +84,6 @@ asmb(void)
 		seek(cout, OFFSET, 0);
 		break;
 	case 3:
-	case 6:	/* no header, padded segments */
 		OFFSET = rnd(HEADR+textsize, 4096);
 		seek(cout, OFFSET, 0);
 		break;
@@ -120,7 +119,6 @@ asmb(void)
 			seek(cout, OFFSET, 0);
 			break;
 		case 3:
-		case 6:	/* no header, padded segments */
 			OFFSET += rnd(datsize, 4096);
 			seek(cout, OFFSET, 0);
 			break;
@@ -149,7 +147,6 @@ asmb(void)
 	seek(cout, OFFSET, 0);
 	switch(HEADTYPE) {
 	case 0:	/* no header */
-	case 6:	/* no header, padded segments */
 		break;
 	case 1:	/* aif for risc os */
 		lputl(0xe1a00000);		/* NOP - decompress code */
