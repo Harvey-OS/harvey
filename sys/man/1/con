@@ -1,6 +1,6 @@
 .TH CON 1
 .SH NAME
-con, telnet, rx, hayes, xms, xmr \- remote login, execution, and XMODEM file transfer
+con, telnet, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
 .SH SYNOPSIS
 .B con
 [
@@ -28,6 +28,9 @@ con, telnet, rx, hayes, xms, xmr \- remote login, execution, and XMODEM file tra
 ]
 .RI [ net !] machine
 .PP
+.B cu
+.I number
+.PP
 .B rx
 [
 .B -eTr
@@ -39,15 +42,6 @@ con, telnet, rx, hayes, xms, xmr \- remote login, execution, and XMODEM file tra
 .RI [ net !] machine
 [
 .I command-word ...
-]
-.PP
-.B hayes
-[
-.B -pv
-]
-.I number
-[
-.I device
 ]
 .PP
 .B xms
@@ -80,10 +74,7 @@ but instead wait for the remote end to hang up.
 .B -l
 with an argument causes
 .I user
-to be used as the account name on the remote system
-when performing BSD
-.I rlogin
-authentication.
+to be used as the account name on the remote system.
 Without an argument this option disables automatic login
 and a normal login session ensues.
 .TP
@@ -94,6 +85,8 @@ forces cooked mode, that is, local echo.
 runs
 .I cmd
 as if it had been typed as a command from the escape mode.
+This is used by
+.IR cu .
 .TP
 .B -v
 (verbose mode) causes information about connection attempts
@@ -184,9 +177,10 @@ a zero length message will not be written to the
 connection when standard input is closed.
 .TP
 .B \-l
-runs as
+allows
 .I user
-on the remote machine if the remote is a BSD machine.
+to be used on the remote machine if the remote
+is a BSD machine.
 .TP
 .B \-r
 same as for
@@ -205,18 +199,6 @@ have the form
 .IB network ! machine\f1.
 Supported networks are those listed in
 .BR /net .
-.PP
-.I Hayes
-dials
-.I number
-on a Hayes-compatible modem,
-.IR device .
-Under
-.BR -p ,
-it uses pulse dialing.
-Upon connecting,
-bytes are copied bidirectionally
-between the connection and standard input and output.
 .PP
 The commands
 .I xms
@@ -257,25 +239,19 @@ eqn paper | rx kremvax troff -ms | rx deepthought lp
 Parallel processing:
 do each stage of a pipeline on a different machine.
 .SH SOURCE
-.TF /sys/src/cmd/ip/telnet.c
-.TP
-.B /sys/src/cmd/rx.c
-.TP
-.B /sys/src/cmd/ip/telnet.c
+.TF /sys/src/cmd/con
 .TP
 .B /sys/src/cmd/con
-for all other commands
-.SH SEE ALSO
-.IR cpu (1),
-.IR ssh (1),
-.IR telco (4)
-.SH BUGS
-.I Con
+for
+.IR con ,
+.IR xms ,
 and
-.I telnet
-are merely obsolescent;
-the other commands are obsolete and deprecated.
-.PP
+.IR xmr .
+.TP
+.B /sys/src/cmd/ip
+for
+.IR telnet .
+.SH BUGS
 Under
 .IR rx ,
 a program

@@ -277,6 +277,7 @@ dnpurge(void)
 
 /*
  *  check the age of resource records, free any that have timed out
+ *  TODO: keep root NS records.
  */
 void
 dnage(DN *dp)
@@ -286,7 +287,7 @@ dnage(DN *dp)
 	ulong diff;
 
 	diff = now - dp->referenced;
-	if(diff < Reserved || dp->keep)
+	if(diff < Reserved)
 		return;
 
 	l = &dp->rr;
@@ -304,18 +305,34 @@ dnage(DN *dp)
 	}
 }
 
+#define REF(x) upref(x)
+
+static void
+upref(DN *dp)
+{
+	if (dp != nil)
+		dp->refs++;
+}
+
 /*
  *  this comment used to say `our target is 4000 names cached, this should
  *  be larger on large servers'.  dns at Bell Labs starts off with
- *  about 1780 names.
+ *  about 1780 names, so 4000 is not a lot.
  */
 enum {
-	Deftarget = 3000,
+	Deftarget = 8000,
 };
 
 ulong target = Deftarget;
 
-#define MARK(dp)	{ if (dp) (dp)->keep = 1; }
+#define MARK(x) mark(x)
+
+static void
+mark(DN *dp)
+{
+	if (dp != nil)
+		dp->keep = 1;
+}
 
 /* mark all current domain names as never to be aged */
 void
@@ -329,8 +346,7 @@ dnagenever(void)
 
 	/* mark all referenced domain names */
 	for(i = 0; i < HTLEN; i++)
-		for(dp = ht[i]; dp; dp = dp->next) {
-			MARK(dp);
+		for(dp = ht[i]; dp; dp = dp->next)
 			for(rp = dp->rr; rp; rp = rp->next){
 				MARK(rp->owner);
 				if(rp->negative){
@@ -380,7 +396,6 @@ dnagenever(void)
 					break;
 				}
 			}
-		}
 
 	unlock(&dnlock);
 
@@ -389,8 +404,6 @@ dnagenever(void)
 		dnslog("more initial domain names (%ld) than target (%ld)",
 			dnvars.names, target);
 }
-
-#define REF(dp)	{ if (dp) (dp)->refs++; }
 
 /*
  *  periodicly sweep for old records and remove unreferenced domain names
@@ -401,7 +414,7 @@ void
 dnageall(int doit)
 {
 	DN *dp, **l;
-	int i, n;
+	int i;
 	RR *rp;
 	static ulong nextage;
 
@@ -492,12 +505,6 @@ dnageall(int doit)
 				assert(dp->magic == DNmagic);
 				*l = dp->next;
 
-				for (n = 0; n < Maxlcks; n++)
-					if (canqlock(&dp->querylck[n]))
-						qunlock(&dp->querylck[n]);
-					else
-						dnslog("dnageall: %s querylck[%d] held when freeing",
-							dp->name, n);
 				if(dp->name)
 					free(dp->name);
 				dp->magic = ~dp->magic;
@@ -647,12 +654,10 @@ putactivity(int recursive)
 }
 
 /*
- *  Attach a single resource record to a domain name (new->owner).
+ *  Attach a single resource record to a domain name.
  *	- Avoid duplicates with already present RR's
  *	- Chain all RR's of the same type adjacent to one another
  *	- chain authoritative RR's ahead of non-authoritative ones
- *	- remove any expired RR's
- *  Must be called with dnlock held.
  */
 static void
 rrattach1(RR *new, int auth)
@@ -741,7 +746,10 @@ rrattach1(RR *new, int auth)
 
 /*
  *  Attach a list of resource records to a domain name.
- *  See rrattach1 for properties preserved.
+ *	- Avoid duplicates with already present RR's
+ *	- Chain all RR's of the same type adjacent to one another
+ *	- chain authoritative RR's ahead of non-authoritative ones
+ *	- remove any expired RR's
  */
 void
 rrattach(RR *rp, int auth)
@@ -1820,7 +1828,6 @@ mkptr(DN *dp, char *ptr, ulong ttl)
 /*
  *  look for all ip addresses in this network and make
  *  pointer records for them.
- *  TODO: v6 ptr algorithm (nibble.nibble.....ip6.arpa), rfc3596
  */
 void
 dnptr(uchar *net, uchar *mask, char *dom, int bytes, int ttl)
@@ -1856,7 +1863,7 @@ dnptr(uchar *net, uchar *mask, char *dom, int bytes, int ttl)
 	for(rp = first; rp != nil; rp = nrp){
 		nrp = rp->next;
 		rp->next = nil;
-		rrattach(rp, Authoritative);
+		rrattach(rp, 1);
 	}
 }
 
