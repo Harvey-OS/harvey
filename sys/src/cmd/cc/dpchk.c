@@ -428,7 +428,7 @@ pragprofile(void)
 		profileflg = atoi(s->name+1);
 		if(strcmp(s->name, "on") == 0 ||
 		   strcmp(s->name, "yes") == 0)
-			fproundflg = 1;
+			profileflg = 1;
 	}
 	while(getnsc() != '\n')
 		;
