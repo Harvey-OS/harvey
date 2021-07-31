@@ -599,7 +599,6 @@ is automatically executed after each change to the user
 table by the
 .I uname
 command.
-.PP
 .I Who
 prints a list of users attached to each active connection.
 .SS File system configuration
