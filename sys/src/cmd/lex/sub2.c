@@ -106,6 +106,7 @@ add(int **array, int n)
 	nxtpos = temp;
 	if(nxtpos >= positions+maxpos)
 		error("Too many positions %s",(maxpos== MAXPOS?"\nTry using %p num":""));
+	return;
 }
 
 void
@@ -537,6 +538,7 @@ pstate(int s)
 		if(j%30 == 0)print("\n");
 	}
 	print("\n");
+	return;
 }
 # endif
 
@@ -653,6 +655,7 @@ acompute(int s)	/* compute action list = set of poss. actions */
 # endif
 	Bprint(&fout,"0,\n");
 	aptr++;
+	return;
 }
 
 # ifdef DEBUG
@@ -685,6 +688,7 @@ pccl(void) {
 		}
 	}
 	print("\n");
+	return;
 }
 # endif
 
@@ -702,6 +706,7 @@ mkmatch(void)
 	/* tab[i] = principal char for new ccl i */
 	for(i = 1; i<NCH; i++)
 		match[i] = tab[cindex[i]];
+	return;
 }
 
 void

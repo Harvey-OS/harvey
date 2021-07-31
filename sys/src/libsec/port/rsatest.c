@@ -6,15 +6,16 @@
 void
 main(void)
 {
-	int n;
-	vlong start;
-	char *p;
-	uchar buf[4096];
-	Biobuf b;
 	RSApriv *rsa;
+	Biobuf b;
+	char *p;
+	int n;
 	mpint *clr, *enc, *clr2;
+	uchar buf[4096];
+	uchar *e;
+	vlong start;
 
-	fmtinstall('B', mpfmt);
+	fmtinstall('B', mpconv);
 
 	rsa = rsagen(1024, 16, 0);
 	if(rsa == nil)

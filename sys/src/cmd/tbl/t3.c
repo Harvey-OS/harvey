@@ -1,6 +1,5 @@
 /* t3.c: interpret commands affecting whole table */
 # include "t.h"
-
 struct optstr {
 	char	*optnam; 
 	int	*optadd;
@@ -25,8 +24,8 @@ struct optstr {
 	"LINESIZE", &linsize,
 	"delim", &delim1,
 	"DELIM", &delim1,
-	0, 0
-};
+	0, 0};
+
 
 void
 getcomm(void)
@@ -85,7 +84,9 @@ getcomm(void)
 	}
 	cp++;
 	backrest(cp);
+	return;
 }
+
 
 void
 backrest(char *cp)
@@ -97,4 +98,7 @@ backrest(char *cp)
 	un1getc('\n');
 	while (s > cp)
 		un1getc(*--s);
+	return;
 }
+
+

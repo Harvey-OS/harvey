@@ -850,7 +850,6 @@ Computing Science Technical Report No. \\*(MN
 .vs \\n(VSp
 .vs \\nvu
 .ft 1
-.in 0
 .di
 .br
 .sp \\n(DVu

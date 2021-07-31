@@ -1,9 +1,6 @@
 /* tc.c: find character not in table to delimit fields */
 # include "t.h"
 
-# define COMMON "\002\003\005\006\007!%&#/?,:;<=>@`^~_{}+-*" \
-	"ABCDEFGHIJKMNOPQRSTUVWXZabcdefgjkoqrstwxyz"
-
 void
 choochar(void)
 {
@@ -15,7 +12,9 @@ choochar(void)
 		had[icol] = 0;
 	F1 = F2 = 0;
 	for (ilin = 0; ilin < nlin; ilin++) {
-		if (instead[ilin] || fullbot[ilin])
+		if (instead[ilin]) 
+			continue;
+		if (fullbot[ilin]) 
 			continue;
 		for (icol = 0; icol < ncol; icol++) {
 			k = ctype(ilin, icol);
@@ -23,18 +22,24 @@ choochar(void)
 				continue;
 			s = table[ilin][icol].col;
 			if (point(s))
-				for (; *s; s++)
-					if((unsigned char)*s < 128)
-						had[(unsigned char)*s] = 1;
+ 				while (*s) {
+ 					if((unsigned char)*s < 128)
+ 						had[(unsigned char)*s] = 1;
+ 					s++;
+ 				}
 			s = table[ilin][icol].rcol;
 			if (point(s))
-				for (; *s; s++)
-					if((unsigned char)*s < 128)
-						had[(unsigned char)*s] = 1;
+ 				while (*s) {
+ 					if((unsigned char)*s < 128)
+ 						had[(unsigned char)*s] = 1;
+ 					s++;
+ 				}
 		}
 	}
 				/* choose first funny character */
-	for (s = COMMON "Y"; *s; s++) {
+	for (
+	    s = "\002\003\005\006\007!%&#/?,:;<=>@`^~_{}+-*ABCDEFGHIJKMNOPQRSTUVWXYZabcdefgjkoqrstwxyz"; 
+	    *s; s++) {
 		if (had[*s] == 0) {
 			F1 = *s;
 			had[F1] = 1;
@@ -42,7 +47,9 @@ choochar(void)
 		}
 	}
 				/* choose second funny character */
-	for (s = COMMON "u"; *s; s++) {
+	for (
+	    s = "\002\003\005\006\007:_~^`@;,<=>#%&!/?{}+-*ABCDEFGHIJKMNOPQRSTUVWXZabcdefgjkoqrstuwxyz"; 
+	    *s; s++) {
 		if (had[*s] == 0) {
 			F2 = *s;
 			break;
@@ -50,12 +57,13 @@ choochar(void)
 	}
 	if (F1 == 0 || F2 == 0)
 		error("couldn't find characters to use for delimiters");
+	return;
 }
 
 int
 point(char *ss)
 {
-	vlong s = (uintptr)ss;
+	int s = (int)(uintptr)ss;
 
 	return(s >= 128 || s < 0);
 }

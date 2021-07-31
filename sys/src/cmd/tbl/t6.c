@@ -193,6 +193,7 @@ maktab(void)			/* define the tab stops of the table */
 		Bprint(&tabout, ".nr TW +((%d*\\n(%d)/2)\n", tsep, TMP);
 	Bprint(&tabout,
 	    ".if t .if (\\n(TW+\\n(.o)>7.65i .tm Table at line %d file %s is too wide - \\n(TW units\n", iline - 1, ifile);
+	return;
 }
 
 
