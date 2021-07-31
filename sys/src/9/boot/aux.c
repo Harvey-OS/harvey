@@ -40,6 +40,7 @@ plumb(char *dir, char *dest, int *efd, char *here)
 	}
 	return efd[1];
 }
+ */
 
 int
 sendmsg(int fd, char *msg)
@@ -51,7 +52,6 @@ sendmsg(int fd, char *msg)
 		return -1;
 	return 0;
 }
- */
 
 void
 warning(char *s)

@@ -64,7 +64,7 @@ dnsquery(char *net, char *val, char *type)
 
 	/*
 	 * TODO: make fd static and keep it open to reduce 9P traffic
-	 * walking to /net*^/dns.  Must be prepared to re-open it on error.
+	 * walking to /net*^/dns.
 	 */
 	close(fd);
 	ndbsetmalloctag(t, getcallerpc(&net));
