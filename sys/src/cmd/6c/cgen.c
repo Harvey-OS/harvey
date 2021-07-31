@@ -574,7 +574,7 @@ cgen(Node *n, Node *nn)
 				reglcgen(&nod, l, Z);
 			else
 				nod = *l;
-			if(o != OASMUL && o != OASADD || !typefd[l->type->etype]) {
+			if(o != OASMUL && o != OASADD) {
 				regalloc(&nod2, r, Z);
 				gmove(&nod, &nod2);
 				gopcode(o, r->type, &nod1, &nod2);
