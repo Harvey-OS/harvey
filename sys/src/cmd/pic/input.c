@@ -245,7 +245,7 @@ input(void)
 		printf(" <%c>", c);
 	if (ep >= ebuf + sizeof ebuf)
 		ep = ebuf;
-	return *(unsigned char *)ep++ = c;
+	return *ep++ = c;
 }
 
 nextchar(void)

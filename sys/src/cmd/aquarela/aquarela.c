@@ -176,8 +176,8 @@ cifsaccept(SmbCifsSession *s, SMBCIFSWRITEFN **writep)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-d debug-opt] [-n] [-p] [-u 1|0] [-w workgroup]\n", argv0);
-	threadexitsall("usage");
+	print("usage: aquarela [-u unicodevalue]\n");
+	threadexitsall("");
 }
 
 static void
