@@ -877,44 +877,12 @@ parsesearch(char **pp)
 	return regcomp(p);
 }
 
-static char *
-num2msg(Message **mp, int sign, int n, Message *first, Message *cur)
-{
-	Message *m;
-
-	m = nil;
-	switch(sign){
-	case 0:
-		for(m = first; m != nil; m = m->next)
-			if(m->id == n)
-				break;
-		break;
-	case -1:
-		if(cur != &top)
-			for(m = cur; m != nil && n > 0; n--)
-				m = m->prev;
-		break;
-	case 1:
-		if(cur == &top){
-			n--;
-			cur = first;
-		}
-		for(m = cur; m != nil && n > 0; n--)
-			m = m->next;
-		break;
-	}
-	if(m == nil)
-		return "address";
-	*mp = m;
-	return nil;
-}
-
 char*
 parseaddr(char **pp, Message *first, Message *cur, Message *unspec, Message **mp)
 {
 	int n;
 	Message *m;
-	char *p, *err;
+	char *p;
 	Reprog *prog;
 	int c, sign;
 	char buf[256];
@@ -932,17 +900,6 @@ parseaddr(char **pp, Message *first, Message *cur, Message *unspec, Message **mp
 		*pp = p;
 	} else
 		sign = 0;
-
-	/*
-	 * TODO: verify & install this.
-	 * make + and - mean +1 and -1, as in ed.  then -,.d won't
-	 * delete all messages up to the current one.  - geoff
-	 */
-	if(sign && (!isascii(*p) || !isdigit(*p))) {
-		err = num2msg(mp, sign, 1, first, cur);
-		if (err != nil)
-			return err;
-	}
 
 	switch(*p){
 	default:
@@ -962,11 +919,31 @@ parseaddr(char **pp, Message *first, Message *cur, Message *unspec, Message **mp
 				*mp = &top;
 			break;
 		}
-		/* fall through */
 	number:
-		err = num2msg(mp, sign, n, first, cur);
-		if (err != nil)
-			return err;
+		m = nil;
+		switch(sign){
+		case 0:
+			for(m = first; m != nil; m = m->next)
+				if(m->id == n)
+					break;
+			break;
+		case -1:
+			if(cur != &top)
+				for(m = cur; m != nil && n > 0; n--)
+					m = m->prev;
+			break;
+		case 1:
+			if(cur == &top){
+				n--;
+				cur = first;
+			}
+			for(m = cur; m != nil && n > 0; n--)
+				m = m->next;
+			break;
+		}
+		if(m == nil)
+			return "address";
+		*mp = m;
 		break;
 	case '%':
 	case '/':
@@ -1014,8 +991,7 @@ parseaddr(char **pp, Message *first, Message *cur, Message *unspec, Message **mp
 		*pp = p+1;
 		break;
 	case ',':
-		if (*mp == nil)
-			*mp = first;
+		*mp = first;
 		*pp = p;
 		break;
 	}
@@ -1166,7 +1142,7 @@ parsecmd(char *p, Cmd *cmd, Message *first, Message *cur)
 			err = parseaddr(&p, first, cur, last, &e);
 			if(err != nil)
 				return err;
-
+	
 			// select all messages in the range
 			for(; s != nil; s = s->next){
 				*l = s;
