@@ -1,4 +1,4 @@
-.TH 2C 1
+.TH 2C 1 
 .SH NAME
 0c, 1c, 2c, 5c, 6c, 7c, 8c, kc, qc, vc \- C compilers
 .SH SYNOPSIS
@@ -23,9 +23,7 @@ compilations running concurrently.
 Associated with each compiler is a string
 .IR objtype ,
 for example
-.TF "6c amd64 "
-.PD
-.TP
+.TP 1.5i
 .B "0c spim
 little-endian MIPS 3000 family
 .TP
@@ -101,9 +99,7 @@ for preconditioning
 .IR mk (1).
 .PP
 The compiler options are:
-.TF Dname
-.PD
-.TP
+.TP 1i
 .BI -o " obj"
 Place output in file
 .I obj
@@ -146,11 +142,11 @@ of extensions, below.
 .BI -I \*Sdir
 An
 .L #include
-file whose name does not begin with
+file whose name does not begin with 
 slash
 or is enclosed in double quotes
 is always
-sought first in the directory
+sought first in the directory 
 of the
 .I file
 argument.  If this fails,
@@ -159,7 +155,7 @@ the
 flag is given or the name is enclosed in
 .BR <> ,
 it is then sought
-in directories named in
+in directories named in 
 .B -I
 options,
 then in
@@ -219,8 +215,6 @@ for input
 and not on standard output.
 .PP
 The compilers support several extensions to ANSI C:
-.TF \|
-.PD
 .TP
 \-
 A structure or union may contain unnamed substructures and subunions.
@@ -232,7 +226,7 @@ that is only legal for the unnamed substructure, the compiler promotes
 the type and adjusts the pointer value to point at the substructure.
 If the unnamed structure or union is of a type with a tag name specified by a
 .B typedef
-statement,
+statement, 
 the unnamed structure or union can be explicitly referenced
 by <struct variable>.<tagname>.
 .TP
@@ -482,7 +476,7 @@ Some features of C99, the 1999 ANSI C standard,
 are implemented.
 .PP
 .B switch
-expressions may not be either signedness of
+expressions may not be either flavor of
 .B vlong
 on 32-bit architectures
 .RI ( 8c

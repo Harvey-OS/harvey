@@ -221,8 +221,6 @@ main(int argc, char **argv)
 		fprint(2, "page: initdraw failed: %r\n");
 		wexits("initdraw");
 	}
-	display->locking = 1;
-
 	truecolor = screen->depth > 8;
 	viewer(doc);
 	wexits(0);

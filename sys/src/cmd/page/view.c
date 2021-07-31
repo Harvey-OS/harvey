@@ -15,7 +15,6 @@
 
 Document *doc;
 Image *im;
-Image *tofree;
 int page;
 int angle = 0;
 int showbottom = 0;		/* on the next showpage, move the image so the bottom is visible. */
@@ -58,16 +57,6 @@ enum {
 
 	RMenu = 3,
 };
-
-static void
-delayfreeimage(Image *m)
-{
-	if(m == tofree)
-		return;
-	if(tofree)
-		freeimage(tofree);
-	tofree = m;
-}
 
 void
 unhide(void)
@@ -129,18 +118,55 @@ menugen(int n)
 void
 showpage(int page, Menu *m)
 {
+	Image *tmp;
+
 	if(doc->fwdonly)
 		m->lasthit = 0;	/* this page */
 	else
 		m->lasthit = reverse ? doc->npage-1-page : page;
 	
 	esetcursor(&reading);
-	delayfreeimage(nil);
-	im = cachedpage(doc, angle, page);
-	if(im == nil)
-		wexits(0);
-	if(resizing)
+	freeimage(im);
+	if((page < 0 || page >= doc->npage) && !doc->fwdonly){
+		im = nil;
+		return;
+	}
+	im = doc->drawpage(doc, page);
+	if(im == nil) {
+		if(doc->fwdonly)	/* this is how we know we're out of pages */
+			wexits(0);
+
+		im = xallocimage(display, Rect(0,0,50,50), GREY1, 1, DBlack);
+		if(im == nil) {
+			fprint(2, "out of memory: %r\n");
+			wexits("memory");
+		}
+		string(im, ZP, display->white, ZP, display->defaultfont, "?");
+	}else if(resizing){
 		resize(Dx(im->r), Dy(im->r));
+	}
+	if(im->r.min.x > 0 || im->r.min.y > 0) {
+		tmp = xallocimage(display, Rect(0, 0, Dx(im->r), Dy(im->r)), im->chan, 0, DNofill);
+		if(tmp == nil) {
+			fprint(2, "out of memory during showpage: %r\n");
+			wexits("memory");
+		}
+		drawop(tmp, tmp->r, im, nil, im->r.min, S);
+		freeimage(im);
+		im = tmp;
+	}
+
+	switch(angle){
+	case 90:
+		im = rot90(im);
+		break;
+	case 180:
+		rot180(im);
+		break;
+	case 270:
+		im = rot270(im);
+		break;
+	}
 
 	esetcursor(nil);
 	if(showbottom){
@@ -318,10 +344,7 @@ viewer(Document *dd)
 		 * a fair amount.  we don't care about doc->npage anymore, and
 		 * all that can be done is select the next page.
 		 */
-		unlockdisplay(display);
-		i = eread(Emouse|Ekeyboard|Eplumb, &e);
-		lockdisplay(display);
-		switch(i){
+		switch(eread(Emouse|Ekeyboard|Eplumb, &e)){
 		case Ekeyboard:
 			if(e.kbdc <= 0xFF && isdigit(e.kbdc)) {
 				nxt = nxt*10+e.kbdc-'0';
@@ -373,8 +396,12 @@ viewer(Document *dd)
 			case 'u':
 				if(im==nil)
 					break;
+				esetcursor(&reading);
+				rot180(im);
+				esetcursor(nil);
 				angle = (angle+180) % 360;
-				showpage(page, &menu);
+				redraw(screen);
+				flushimage(display, 1);
 				break;
 			case '-':
 			case '\b':
@@ -459,9 +486,7 @@ viewer(Document *dd)
 					dxy = subpt(m.xy, oxy);
 					oxy = m.xy;	
 					translate(dxy);
-					unlockdisplay(display);
 					m = emouse();
-					lockdisplay(display);
 				} while(m.buttons == Left);
 				if(m.buttons) {
 					dxy = subpt(xy0, oxy);
@@ -473,9 +498,7 @@ viewer(Document *dd)
 				if(doc->npage == 0)
 					break;
 
-				unlockdisplay(display);
 				n = emenuhit(Middle, &m, &midmenu);
-				lockdisplay(display);
 				if(n == -1)
 					break;
 				switch(n){
@@ -538,8 +561,8 @@ viewer(Document *dd)
 							wexits("memory");
 						}
 						resample(im, tmp);
+						freeimage(im);
 						im = tmp;
-						delayfreeimage(tmp);
 						esetcursor(nil);
 						ul = screen->r.min;
 						redraw(screen);
@@ -563,8 +586,8 @@ viewer(Document *dd)
 							wexits("memory");
 						}
 						resample(im, tmp);
+						freeimage(im);
 						im = tmp;
-						delayfreeimage(tmp);
 						esetcursor(nil);
 						ul = screen->r.min;
 						redraw(screen);
@@ -572,12 +595,22 @@ viewer(Document *dd)
 						break;
 					}
 				case Rot:	/* rotate 90 */
+					esetcursor(&reading);
+					im = rot90(im);
+					esetcursor(nil);
 					angle = (angle+90) % 360;
-					showpage(page, &menu);
+					redraw(screen);
+					flushimage(display, 1);
 					break;
 				case Upside: 	/* upside-down */
+					if(im==nil)
+						break;
+					esetcursor(&reading);
+					rot180(im);
+					esetcursor(nil);
 					angle = (angle+180) % 360;
-					showpage(page, &menu);
+					redraw(screen);
+					flushimage(display, 1);
 					break;
 				case Restore:	/* restore */
 					showpage(page, &menu);
@@ -629,9 +662,7 @@ viewer(Document *dd)
 					break;
 
 				oldpage = page;
-				unlockdisplay(display);
 				n = emenuhit(RMenu, &m, &menu);
-				lockdisplay(display);
 				if(n == -1)
 					break;
 	
