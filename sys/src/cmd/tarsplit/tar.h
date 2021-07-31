@@ -4,10 +4,8 @@
 #define isreallink(lf)	((lf) == Lflink)
 #define issymlink(lf)	((lf) == Lfsymlink1 || (lf) == Lfsymlink2)
 
-#define HOWMANY(a, size)	(((a) + (size) - 1) / (size))
-#define ROUNDUP(a, size)	(HOWMANY(a, size) * (size))
-
-#define TAPEBLKS(bytes)		HOWMANY(bytes, Tblock)
+#define ROUNDUP(n, size) ((n) + ((size) - (n) % (size)))
+#define TAPEBLKS(bytes) (((bytes) + (Tblock-1)) / Tblock)
 
 enum {
 	Tblock = 512u,
@@ -51,7 +49,7 @@ int	closeout(int outf, char *, int prflag);
 int	getdir(Hblock *, int in, vlong *);
 ulong	otoi(char *s);
 void	newarch(void);
-uvlong	passtar(Hblock *hp, int in, int outf, vlong bytes);
+void	passtar(Hblock *hp, int in, int outf, vlong bytes);
 void	putempty(int out);
 void	readtar(int in, char *buffer, long size);
 uvlong	writetar(int outf, char *buffer, ulong size);

@@ -274,8 +274,6 @@ com64(Node *n)
 		case ORETURN:
 		case OAS:
 		case OIND:
-		case OLIST:
-		case OCOMMA:
 			return 1;
 		case OADD:
 			a = nodaddv;
