@@ -16,11 +16,7 @@ dirBufAlloc(File* file)
 
 	db = vtMemAllocZ(sizeof(DirBuf));
 	db->dee = deeOpen(file);
-	if(db->dee == nil){
-		/* can happen if dir is removed from under us */
-		vtMemFree(db);
-		return nil;
-	}
+
 	return db;
 }
 
@@ -104,11 +100,8 @@ dirRead(Fid* fid, uchar* p, int count, vlong offset)
 		fid->db = nil;
 	}
 
-	if(fid->db == nil){
+	if(fid->db == nil)
 		fid->db = dirBufAlloc(fid->file);
-		if(fid->db == nil)
-			return -1;
-	}
 
 	db = fid->db;
 

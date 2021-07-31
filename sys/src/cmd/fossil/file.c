@@ -1423,11 +1423,6 @@ deeRead(DirEntryEnum *dee, DirEntry *de)
 	File *f;
 	u32int nb;
 
-	if(dee == nil){
-		vtSetError("cannot happen in deeRead");
-		return -1;
-	}
-
 	f = dee->file;
 	if(!fileRLock(f))
 		return -1;
