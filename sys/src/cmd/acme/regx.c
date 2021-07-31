@@ -49,10 +49,10 @@ struct Ilist
 	uint	startp;		/* first char of match */
 };
 
-#define	NLIST	127
+#define	NLIST	128
 
 Ilist	*tl, *nl;	/* This list, next list */
-Ilist	list[2][NLIST+1];	/* +1 for trailing null */
+Ilist	list[2][NLIST];
 static	Rangeset sempty;
 
 /*
@@ -109,7 +109,7 @@ int	Nclass;		/* high water mark */
 Rune	**class;
 int	negateclass;
 
-int	addinst(Ilist *l, Inst *inst, Rangeset *sep);
+void	addinst(Ilist *l, Inst *inst, Rangeset *sep);
 void	newmatch(Rangeset*);
 void	bnewmatch(Rangeset*);
 void	pushand(Inst*, Inst*);
@@ -524,7 +524,7 @@ classmatch(int classno, int c, int negate)
  * 	*l must be pending when addinst called; if *l has been looked
  *		at already, the optimization is a bug.
  */
-int
+void
 addinst(Ilist *l, Inst *inst, Rangeset *sep)
 {
 	Ilist *p;
@@ -533,13 +533,12 @@ addinst(Ilist *l, Inst *inst, Rangeset *sep)
 		if(p->inst==inst){
 			if((sep)->r[0].q0 < p->se.r[0].q0)
 				p->se= *sep;	/* this would be bug */
-			return 0;	/* It's already there */
+			return;	/* It's already there */
 		}
 	}
 	p->inst = inst;
 	p->se= *sep;
 	(p+1)->inst = nil;
-	return 1;
 }
 
 int
@@ -610,14 +609,14 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 		nnl = 0;
 		if(sel.r[0].q0<0 && (!wrapped || p<startp || startp==eof)){
 			/* Add first instruction to this list */
-			sempty.r[0].q0 = p;
-			if(addinst(tl, startinst, &sempty))
 			if(++ntl >= NLIST){
 	Overflow:
 				warning(nil, "regexp list overflow\n");
 				sel.r[0].q0 = -1;
 				goto Return;
 			}
+			sempty.r[0].q0 = p;
+			addinst(tl, startinst, &sempty);
 		}
 		/* Execute machine until this list is empty */
 		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
@@ -626,9 +625,9 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 			default:	/* regular character */
 				if(inst->type==c){
 	Addinst:
-					if(addinst(nl, inst->next, &tlp->se))
 					if(++nnl >= NLIST)
 						goto Overflow;
+					addinst(nl, inst->next, &tlp->se);
 				}
 				break;
 			case LBRA:
@@ -666,9 +665,9 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 				break;
 			case OR:
 				/* evaluate right choice later */
-				if(addinst(tl, inst->right, &tlp->se))
 				if(++ntl >= NLIST)
 					goto Overflow;
+				addinst(tlp, inst->right, &tlp->se);
 				/* efficiency: advance and re-evaluate */
 				inst = inst->left;
 				goto Switchstmt;
@@ -747,15 +746,15 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 		nnl = 0;
 		if(sel.r[0].q0<0 && (!wrapped || p>startp)){
 			/* Add first instruction to this list */
-			/* the minus is so the optimizations in addinst work */
-			sempty.r[0].q0 = -p;
-			if(addinst(tl, bstartinst, &sempty))
 			if(++ntl >= NLIST){
 	Overflow:
 				warning(nil, "regexp list overflow\n");
 				sel.r[0].q0 = -1;
 				goto Return;
 			}
+			/* the minus is so the optimizations in addinst work */
+			sempty.r[0].q0 = -p;
+			addinst(tl, bstartinst, &sempty);
 		}
 		/* Execute machine until this list is empty */
 		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
@@ -764,9 +763,9 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 			default:	/* regular character */
 				if(inst->type == c){
 	Addinst:
-					if(addinst(nl, inst->next, &tlp->se))
 					if(++nnl >= NLIST)
 						goto Overflow;
+					addinst(nl, inst->next, &tlp->se);
 				}
 				break;
 			case LBRA:
@@ -804,9 +803,9 @@ rxbexecute(Text *t, uint startp, Rangeset *rp)
 				break;
 			case OR:
 				/* evaluate right choice later */
-				if(addinst(tl, inst->right, &tlp->se))
 				if(++ntl >= NLIST)
 					goto Overflow;
+				addinst(tlp, inst->right, &tlp->se);
 				/* efficiency: advance and re-evaluate */
 				inst = inst->left;
 				goto Switchstmt;

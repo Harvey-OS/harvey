@@ -44,10 +44,10 @@ struct Ilist
 	Posn	startp;		/* first char of match */
 };
 
-#define	NLIST	127
+#define	NLIST	128
 
 Ilist	*tl, *nl;	/* This list, next list */
-Ilist	list[2][NLIST+1];	/* +1 for trailing null */
+Ilist	list[2][NLIST];
 static	Rangeset sempty;
 
 /*
@@ -104,7 +104,7 @@ int	Nclass;		/* high water mark */
 Rune	**class;
 int	negateclass;
 
-int	addinst(Ilist *l, Inst *inst, Rangeset *sep);
+void	addinst(Ilist *l, Inst *inst, Rangeset *sep);
 void	newmatch(Rangeset*);
 void	bnewmatch(Rangeset*);
 void	pushand(Inst*, Inst*);
@@ -531,7 +531,7 @@ classmatch(int classno, int c, int negate)
  * 	*l must be pending when addinst called; if *l has been looked
  *		at already, the optimization is a bug.
  */
-int
+void
 addinst(Ilist *l, Inst *inst, Rangeset *sep)
 {
 	Ilist *p;
@@ -540,13 +540,12 @@ addinst(Ilist *l, Inst *inst, Rangeset *sep)
 		if(p->inst==inst){
 			if((sep)->p[0].p1 < p->se.p[0].p1)
 				p->se= *sep;	/* this would be bug */
-			return 0;	/* It's already there */
+			return;	/* It's already there */
 		}
 	}
 	p->inst = inst;
 	p->se= *sep;
 	(p+1)->inst = 0;
-	return 1;
 }
 
 int
@@ -593,11 +592,11 @@ execute(File *f, Posn startp, Posn eof)
 		nnl = 0;
 		if(sel.p[0].p1<0 && (!wrapped || p<startp || startp==eof)){
 			/* Add first instruction to this list */
-			sempty.p[0].p1 = p;
-			if(addinst(tl, startinst, &sempty))
 			if(++ntl >= NLIST)
 	Overflow:
 				error(Eoverflow);
+			sempty.p[0].p1 = p;
+			addinst(tl, startinst, &sempty);
 		}
 		/* Execute machine until this list is empty */
 		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
@@ -606,9 +605,9 @@ execute(File *f, Posn startp, Posn eof)
 			default:	/* regular character */
 				if(inst->type==c){
 	Addinst:
-					if(addinst(nl, inst->next, &tlp->se))
 					if(++nnl >= NLIST)
 						goto Overflow;
+					addinst(nl, inst->next, &tlp->se);
 				}
 				break;
 			case LBRA:
@@ -646,9 +645,9 @@ execute(File *f, Posn startp, Posn eof)
 				break;
 			case OR:
 				/* evaluate right choice later */
-				if(addinst(tl, inst->right, &tlp->se))
 				if(++ntl >= NLIST)
 					goto Overflow;
+				addinst(tlp, inst->right, &tlp->se);
 				/* efficiency: advance and re-evaluate */
 				inst = inst->left;
 				goto Switchstmt;
@@ -718,12 +717,12 @@ bexecute(File *f, Posn startp)
 		nnl = 0;
 		if(sel.p[0].p1<0 && (!wrapped || p>startp)){
 			/* Add first instruction to this list */
-			/* the minus is so the optimizations in addinst work */
-			sempty.p[0].p1 = -p;
-			if(addinst(tl, bstartinst, &sempty))
 			if(++ntl >= NLIST)
 	Overflow:
 				error(Eoverflow);
+			/* the minus is so the optimizations in addinst work */
+			sempty.p[0].p1 = -p;
+			addinst(tl, bstartinst, &sempty);
 		}
 		/* Execute machine until this list is empty */
 		for(tlp = tl; inst = tlp->inst; tlp++){	/* assignment = */
@@ -732,9 +731,9 @@ bexecute(File *f, Posn startp)
 			default:	/* regular character */
 				if(inst->type == c){
 	Addinst:
-					if(addinst(nl, inst->next, &tlp->se))
 					if(++nnl >= NLIST)
 						goto Overflow;
+					addinst(nl, inst->next, &tlp->se);
 				}
 				break;
 			case LBRA:
@@ -772,9 +771,9 @@ bexecute(File *f, Posn startp)
 				break;
 			case OR:
 				/* evaluate right choice later */
-				if(addinst(tl, inst->right, &tlp->se))
 				if(++ntl >= NLIST)
 					goto Overflow;
+				addinst(tlp, inst->right, &tlp->se);
 				/* efficiency: advance and re-evaluate */
 				inst = inst->left;
 				goto Switchstmt;
