@@ -85,7 +85,6 @@ sleepuntil(ulong tm)
 }
 
 #pragma varargck	argpos clog 1
-#pragma varargck	argpos fatal 1
 
 static void
 clog(char *fmt, ...)
@@ -99,49 +98,6 @@ clog(char *fmt, ...)
 	syslog(0, CRONLOG, msg);
 }
 
-static void
-fatal(char *fmt, ...)
-{
-	char msg[256];
-	va_list arg;
-
-	va_start(arg, fmt);
-	vseprint(msg, msg + sizeof msg, fmt, arg);
-	va_end(arg);
-	clog("%s", msg);
-	error("%s", msg);
-}
-
-static int
-openlock(char *file)
-{
-	return create(file, ORDWR, 0600);
-}
-
-static int
-mklock(char *file)
-{
-	int fd;
-	Dir *dir;
-
-	fd = openlock(file);
-	if (fd < 0)
-		return -1;
-
-	/* make it a lock file if it wasn't */
-	dir = dirfstat(fd);
-	if (dir == nil)
-		error("%s vanished: %r", file);
-	dir->mode |= DMEXCL;
-	dir->qid.type |= QTEXCL;
-	dirfwstat(fd, dir);
-	free(dir);
-
-	/* reopen in case it wasn't a lock file at last open */
-	close(fd);
-	return openlock(file);
-}
-
 void
 main(int argc, char *argv[])
 {
@@ -149,7 +105,7 @@ main(int argc, char *argv[])
 	Tm tm;
 	Time t;
 	ulong now, last;		/* in seconds */
-	int i, lock;
+	int i;
 
 	debug = 0;
 	ARGBEGIN{
@@ -169,14 +125,11 @@ main(int argc, char *argv[])
 		exits(0);
 	}
 
-	lock = mklock("/cron/lock");
-	if (lock < 0)
-		fatal("cron already running: %r");
 	initcap();
 
 	switch(fork()){
 	case -1:
-		fatal("can't fork");
+		error("can't fork");
 	case 0:
 		break;
 	default:
@@ -222,8 +175,6 @@ main(int argc, char *argv[])
 					&& j->time.mon & t.mon)
 						rexec(&users[i], j);
 		}
-		seek(lock, 0, 0);
-		write(lock, "x", 1);	/* keep the lock alive */
 		/*
 		 * if we're not at next minute yet, sleep until a second past
 		 * (to allow for sleep intervals being approximate),
@@ -270,11 +221,10 @@ readalljobs(void)
 
 	fd = open("/cron", OREAD);
 	if(fd < 0)
-		fatal("can't open /cron\n");
+		error("can't open /cron\n");
 	while((n = dirread(fd, &d)) > 0){
 		for(i = 0; i < n; i++){
-			if(strcmp(d[i].name, "log") == 0 ||
-			    !(d[i].qid.type & QTDIR))
+			if(strcmp(d[i].name, "log") == 0)
 				continue;
 			if(strcmp(d[i].name, d[i].uid) != 0){
 				syslog(1, CRONLOG, "cron for %s owned by %s\n",
@@ -622,7 +572,7 @@ emalloc(ulong n)
 
 	if(p = mallocz(n, 1))
 		return p;
-	fatal("out of memory");
+	error("out of memory");
 	return 0;
 }
 
@@ -631,7 +581,7 @@ erealloc(void *p, ulong n)
 {
 	if(p = realloc(p, n))
 		return p;
-	fatal("out of memory");
+	error("out of memory");
 	return 0;
 }
 
