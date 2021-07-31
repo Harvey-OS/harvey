@@ -44,7 +44,6 @@ writelog(HConnect *c, char *fmt, ...)
 
 	if(c == nil)
 		return;
-	p = c->private;
 	bufe = buf + sizeof(buf);
 	now = time(nil);
 	tm = gmtime(now);
@@ -53,6 +52,7 @@ writelog(HConnect *c, char *fmt, ...)
 	/* verbose logfile, for research on web traffic */
 	logfd = logall[today & 1];
 	if(logfd > 0){
+		p = c->private;
 		if(c->hstop == c->header || c->hstop[-1] != '\n')
 			*c->hstop = '\n';
 		*c->hstop = '\0';
