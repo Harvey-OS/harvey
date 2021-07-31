@@ -830,12 +830,12 @@ Computing Science Technical Report No. \\*(MN
 .nr DV .5v	\" space before start of program
 .
 .de P1
-.RS
+.nr P1 .4i	\" program indent in .P1
+.if \\n(.$ .nr P1 \\$1
 .br
 .nr v \\n(.v
 .di p1
-.if \\n(.$ .IP "" \\$1
-.ie .IP "" 2m
+.in \\n(P1u
 .nf
 .ps -\\n(XP
 .vs -\\n(XVu
@@ -850,6 +850,7 @@ Computing Science Technical Report No. \\*(MN
 .vs \\n(VSp
 .vs \\nvu
 .ft 1
+.in -\\n(P1u
 .di
 .br
 .sp \\n(DVu
@@ -857,9 +858,9 @@ Computing Science Technical Report No. \\*(MN
 .if \\n(.$=0 .ne \\n(dnu  \" -\\n(DVu
 .nf
 .p1
-.RE
 .sp \\n(DVu
-.RT
+.br
+.fi
 ..
 .
 .de ME
@@ -1254,7 +1255,7 @@ ABSTRACT
 .ie \\n(ID>0 .sp \\n(IDu
 .el .sp \\n(PDu
 .nr IU \\n(IR+1
-.if \\n(.$>1 .nr I\\n(IU \\n(I\\n(IRu+\\$2n
+.if \\n(.$>1 .nr I\\n(IU \\$2n+\\n(I\\n(IRu
 .if \\n(I\\n(IU=0 .nr I\\n(IU \\n(PIu+\\n(I\\n(IRu
 .in \\n(I\\n(IUu
 .nr TY \\n(TZ-\\n(.i
@@ -1290,8 +1291,8 @@ ABSTRACT
 .nr IS \\n(IP
 .RT
 .nr IP \\n(IS
-.nr IR \\n(IU
-.nr IU +1
+.nr IU \\n(IR
+.nr IR +1
 .if !\\n(I\\n(IR .nr I\\n(IR \\n(I\\n(IU+\\n(PIu
 .in \\n(I\\n(IRu
 .nr TY \\n(TZ-\\n(.i
@@ -1302,7 +1303,6 @@ ABSTRACT
 .nr IS \\n(IP
 .RT
 .nr IP \\n(IS
-.nr IU \\n(IR
 .if \\n(IR>0 .nr IR -1
 .in \\n(I\\n(IRu
 ..
