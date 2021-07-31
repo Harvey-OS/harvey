@@ -98,7 +98,6 @@ Htmlesc htmlesc[] =
 	{ "&yuml;",	L'ÿ', },
 
 	{ "&quot;",	L'"', },
-	{ "&#39;",	L'\'', }, /* Note &apos; is valid XML but not valid HTML */
 	{ "&amp;",	L'&', },
 	{ "&lt;",	L'<', },
 	{ "&gt;",	L'>', },

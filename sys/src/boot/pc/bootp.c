@@ -7,8 +7,6 @@
 
 #include "ip.h"
 
-extern int debugload;
-
 uchar broadcast[Eaddrlen] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 };
@@ -443,8 +441,6 @@ bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 	uchar *ea;
 	char name[128], *filename, *sysname;
 
-	if (debugload)
-		print("bootpopen: ether%d!%s...", ctlrno, file);
 	if((ea = etheraddr(ctlrno)) == 0){
 		print("invalid ctlrno %d\n", ctlrno);
 		return -1;
@@ -641,8 +637,6 @@ pxegetfspart(int ctlrno, char* part, int)
 	if(strcmp(part, "*") != 0)
 		return nil;
 	if(ctlrno >= MaxEther)
-		return nil;
-	if(iniread && getconf("*pxeini") != nil)
 		return nil;
 
 	pxether[ctlrno].fs.dev = ctlrno;

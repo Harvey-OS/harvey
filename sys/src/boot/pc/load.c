@@ -7,10 +7,6 @@
 #include "sd.h"
 #include "fs.h"
 
-#ifndef VERBOSE
-#define VERBOSE 0
-#endif
-
 /*
  * "cache" must be in this list so that 9load will pass the definition of
  * the cache partition into the kernel so that the disk named by the `cfs'
@@ -184,7 +180,7 @@ int scsi0port;
 char *defaultpartition;
 int iniread;
 
-int debugload;
+static int debugload;
 
 static Medium*
 parse(char *line, char **file)
@@ -327,8 +323,8 @@ main(void)
 	alarminit();
 	meminit(0);
 	spllo();
-	consinit("0", "9600");
 	kbdinit();
+
 	if((ulong)&end > (KZERO|(640*1024)))
 		panic("i'm too big\n");
 
@@ -339,8 +335,6 @@ main(void)
 		/* skip bios until we have read plan9.ini */
 		if(!pxe && tp->type == Tether || tp->type == Tbios)
 			continue;
-		if (VERBOSE)
-			print("probing %s...", typename(tp->type));
 		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
 			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
 			iniread = !dotini(mp->inifs);
@@ -611,6 +605,7 @@ warp9(ulong entry)
 		floppydetach();
 	if(sddetach)
 		sddetach();
+
 	consdrain();
 
 	splhi();

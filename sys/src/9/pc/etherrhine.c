@@ -8,27 +8,25 @@
 	arbitrary tx lengths, which it should..): first for alignment and
 	second for rest of the frame. Rx-part should be worth doing.
 */
+
 #include "u.h"
-#include "lib.h"
+#include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
-
-typedef struct QLock { int r; } QLock;
-#define qlock(i)	while(0)
-#define qunlock(i)	while(0)
-#define iprint		print
-
+#include "../port/error.h"
+#include "../port/netif.h"
 #include "etherif.h"
+
 #include "ethermii.h"
 
 typedef struct Desc Desc;
 typedef struct Ctlr Ctlr;
 
 enum {
-	Ntxd = 4,
-	Nrxd = 4,
+	Ntxd = 16,
+	Nrxd = 64,
 	Nwait = 50,
 	Ntxstats = 9,
 	Nrxstats = 8,
@@ -62,7 +60,7 @@ struct Ctlr {
 	Desc *rxd;
 
 	QLock attachlck;
-	Lock tlock;
+	Lock lock;
 };
 
 #define ior8(c, r)	(inb((c)->port+(r)))
@@ -336,8 +334,9 @@ txstart(Ether *edev)
 {
 	Ctlr *ctlr;
 	Desc *txd, *td;
+	Block *b;
 	int i, txused, n;
-	RingBuf *tb;
+	ulong size;
 
 	ctlr = edev->ctlr;
 
@@ -346,21 +345,20 @@ txstart(Ether *edev)
 	txused = ctlr->txused;
 	n = 0;
 	while (txused < Ntxd) {
-		tb = &edev->tb[edev->ti];
-		if(tb->owner != Interface)
+		if ((b = qget(edev->oq)) == nil)
 			break;
 
 		td = &txd[i];
-		memmove(td->buf, tb->pkt, tb->len);
-		td->size = tb->len | TxChainStart | TxChainEnd | TxInt; /* could reduce number of ints here */
+
+		size = BLEN(b);
+		memmove(td->buf, b->rp, size);
+		freeb(b);
+		td->size = size | TxChainStart | TxChainEnd | TxInt; /* could reduce number of ints here */
 		coherence();
 		td->stat = OwnNic;
 		i = (i + 1) % Ntxd;
 		txused++;
 		n++;
-
-		tb->owner = Host;
-		edev->ti = NEXT(edev->ti, edev->ntb);
 	}
 	if (n)
 		iow16(ctlr, Cr, ior16(ctlr, Cr) | Tdmd);
@@ -374,9 +372,9 @@ transmit(Ether *edev)
 {
 	Ctlr *ctlr;
 	ctlr = edev->ctlr;
-	ilock(&ctlr->tlock);
+	ilock(&ctlr->lock);
 	txstart(edev);
-	iunlock(&ctlr->tlock);
+	iunlock(&ctlr->lock);
 }
 
 static void
@@ -418,11 +416,10 @@ interrupt(Ureg *, void *arg)
 {
 	Ether *edev;
 	Ctlr *ctlr;
-	RingBuf *rb;
 	ushort  isr, misr;
 	ulong stat;
 	Desc *rxd, *rd;
-	int i, n, j, size;
+	int i, n, j;
 
 	edev = (Ether*)arg;
 	ctlr = edev->ctlr;
@@ -432,6 +429,8 @@ interrupt(Ureg *, void *arg)
 	misr = ior16(ctlr, MiscIsr) & ~(3<<5); /* don't care about used defined ints */
 
 	if (isr & RxOk) {
+		Block *b;
+		int size;
 		rxd = ctlr->rxd;
 		i = ctlr->rxtail;
 
@@ -447,15 +446,10 @@ interrupt(Ureg *, void *arg)
 				iprint("rx: %lux\n", stat & 0xFF);
 
 			size = ((rd->stat>>16) & 2047) - 4;
-
-			rb = &edev->rb[edev->ri];
-			if(rb->owner == Interface){
-				rb->owner = Host;
-				rb->len = size;
-				memmove(rb->pkt, rd->buf, size);
-				edev->ri = NEXT(edev->ri, edev->nrb);
-			}
-
+			b = iallocb(sizeof(Etherpkt));
+			memmove(b->wp, rd->buf, size);
+			b->wp += size;
+			etheriq(edev, b, 1);
 			rd->size = sizeof(Etherpkt)+4;
 			coherence();
 			rd->stat = OwnNic;
@@ -485,9 +479,10 @@ promiscuous(void *arg, int enable)
 
 	edev = arg;
 	ctlr = edev->ctlr;
-	ilock(&ctlr->tlock);
-	iow8(ctlr, Rcr, ior8(ctlr, Rcr) | (enable ? RxProm : RxBcast));
-	iunlock(&ctlr->tlock);
+	ilock(&ctlr->lock);
+	iow8(ctlr, Rcr, (ior8(ctlr, Rcr) & ~(RxProm|RxBcast)) |
+		(enable ? RxProm : RxBcast));
+	iunlock(&ctlr->lock);
 }
 
 static int
@@ -549,42 +544,45 @@ miiwrite(Mii *mii, int phy, int reg, int data)
 	return 0;
 }
 
+/* multicast already on, don't need to do anything */
 static void
-reset(Ctlr* ctlr)
+multicast(void*, uchar*, int)
+{
+}
+
+static void
+shutdown(Ether *edev)
 {
 	int i;
+	Ctlr *ctlr = edev->ctlr;
+
+	ilock(&ctlr->lock);
+	pcisetbme(ctlr->pci);
 
 	iow16(ctlr, Cr, ior16(ctlr, Cr) | Stop);
 	iow16(ctlr, Cr, ior16(ctlr, Cr) | Reset);
 
 	for (i = 0; i < Nwait; ++i) {
 		if ((ior16(ctlr, Cr) & Reset) == 0)
-			return;
+			break;
 		delay(5);
 	}
-	iprint("etherrhine: reset timeout\n");
-}
-
-static void
-detach(Ether* edev)
-{
-	reset(edev->ctlr);
+	if (i == Nwait)
+		iprint("etherrhine: reset timeout\n");
+	iunlock(&ctlr->lock);
 }
 
 static void
 init(Ether *edev)
 {
 	Ctlr *ctlr;
+	MiiPhy *phy;
 	int i;
 
+	shutdown(edev);
+
 	ctlr = edev->ctlr;
-
-	ilock(&ctlr->tlock);
-
-	pcisetbme(ctlr->pci);
-
-	reset(ctlr);
-
+	ilock(&ctlr->lock);
 	iow8(ctlr, Eecsr, ior8(ctlr, Eecsr) | EeAutoLoad);
 	for (i = 0; i < Nwait; ++i) {
 		if ((ior8(ctlr, Eecsr) & EeAutoLoad) == 0)
@@ -611,11 +609,14 @@ init(Ether *edev)
 				ctlr->mii.curphy = ctlr->mii.phy[i];
 
 	miistatus(&ctlr->mii);
+	phy = ctlr->mii.curphy;
+	edev->mbps = phy->speed;
 
 	iow16(ctlr, Imr, 0);
 	iow16(ctlr, Cr, ior16(ctlr, Cr) | Stop);
+	iow8(ctlr, Rcr, ior8(ctlr, Rcr) | RxMcast);
 
-	iunlock(&ctlr->tlock);
+	iunlock(&ctlr->lock);
 }
 
 static Pcidev *
@@ -625,37 +626,76 @@ rhinematch(ulong)
 	int nfound = 0;
 	Pcidev *p = nil;
 
-	while(p = pcimatch(p, 0x1106, 0)){
-		if(p->ccrb != Pcibcnet || p->ccru != Pciscether)
-			continue;
-		switch((p->did<<16)|p->vid){
-		default:
-			continue;
-		case (0x3053<<16)|0x1106:	/* Rhine III in Soekris */
-		case (0x3065<<16)|0x1106:	/* Rhine II */
-		case (0x3106<<16)|0x1106:	/* Rhine III */
+	while (p = pcimatch(p, 0x1106, 0))
+		if (p->did == 0x3065)
 			if (++nfound > nrhines) {
 				nrhines++;
-				return p;
+				break;
 			}
-			break;
-		}
-	}
 	return p;
 }
+static long
+ifstat(Ether* edev, void* a, long n, ulong offset)
+{
+	int l = 0, i;
+	char *p;
+	Ctlr *ctlr;
+	ctlr = edev->ctlr;
+	p = malloc(BIGSTR);
 
-int
-rhinepnp(Ether *edev)
+	for (i = 0; i < Ntxstats; ++i)
+		if (txstatnames[i])
+			l += snprint(p+l, BIGSTR - l, "tx: %s: %lud\n", txstatnames[i], ctlr->txstats[i]);
+
+	for (i = 0; i < Nrxstats; ++i)
+		if (rxstatnames[i])
+			l += snprint(p+l, BIGSTR - l, "rx: %s: %lud\n", rxstatnames[i], ctlr->rxstats[i]);
+
+/*
+	for (i = 0; i < NMiiPhyr; ++i) {
+		if ((i % 8) == 0)
+			l += snprint(p + l, BIGSTR - l, "\nmii 0x%02x:", i);
+		reg=miimir(&ctlr->mii, i);
+		reg=miimir(&ctlr->mii, i);
+		l += snprint(p + l, BIGSTR - l, " %4ux", reg);
+	}
+
+	for (i = 0; i < 0x100; i+=1) {
+		if ((i % 16) == 0)
+			l += snprint(p + l, BIGSTR - l, "\nreg 0x%02x:", i);
+		else if ((i % 2) == 0)
+			l += snprint(p + l, BIGSTR - l, " ");
+		reg=ior8(ctlr, i);
+		l += snprint(p + l, BIGSTR - l, "%02x", reg);
+	}
+	l += snprint(p + l, BIGSTR - l, " \n");
+*/
+
+
+	n = readstr(offset, a, n, p);
+	free(p);
+
+	return n;
+}
+
+static int
+pnp(Ether *edev)
 {
 	Pcidev *p;
 	Ctlr *ctlr;
 	ulong port;
+	ulong size;
 
 	p = rhinematch(edev->port);
 	if (p == nil)
 		return -1;
 
 	port = p->mem[0].bar & ~1;
+	size = p->mem[0].size;
+	if (ioalloc(port, size, 0, "rhine") < 0) {
+		print("etherrhine: couldn't allocate port %lud\n", port);
+		return -1;
+	}
 
 	if ((ctlr = malloc(sizeof(Ctlr))) == nil) {
 		print("etherrhine: couldn't allocate memory for ctlr\n");
@@ -675,11 +715,20 @@ rhinepnp(Ether *edev)
 
 	init(edev);
 
+	edev->interrupt = interrupt;
+	edev->arg = edev;
 
 	edev->attach = attach;
 	edev->transmit = transmit;
-	edev->interrupt = interrupt;
-	edev->detach = detach;
-
+	edev->ifstat = ifstat;
+	edev->promiscuous = promiscuous;
+	edev->multicast = multicast;
+	edev->shutdown = shutdown;
 	return 0;
+}
+
+void
+etherrhinelink(void)
+{
+	addethercard("rhine", pnp);
 }
