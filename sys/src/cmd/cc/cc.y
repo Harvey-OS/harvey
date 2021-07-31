@@ -417,7 +417,7 @@ forexpr:
 	zcexpr
 |	ctlist adlist
 	{
-		$$ = $2;
+		$$ = Z;
 	}
 
 ulstmnt:

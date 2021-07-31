@@ -551,8 +551,6 @@ bool64(Node *n)
 {
 	Node *n1;
 
-	if(machcap(Z))
-		return;
 	if(typev[n->type->etype]) {
 		n1 = new(OXXX, 0, 0);
 		*n1 = *n;

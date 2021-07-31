@@ -7,8 +7,6 @@ OFILES=\
 	list.$O\
 	mul.$O\
 	peep.$O\
-	pgen.$O\
-	pswt.$O\
 	reg.$O\
 	sgen.$O\
 	swt.$O\
@@ -28,9 +26,6 @@ $LIB:
 	cd ../cc
 	mk install
 	mk clean
-
-%.$O: ../cc/%.c
-	$CC $CFLAGS ../cc/$stem.c
 
 t:V:	$O.out
 	$O.out -S t

@@ -2681,19 +2681,7 @@ void
 testv(Node *n, int true)
 {
 	Type *t;
-	Node *nn, nod, *b;
-
-	if(machcap(Z)) {
-		b = &nod;
-		b->op = true ? ONE : OEQ;
-		b->left = n;
-		b->right = new(0, Z, Z);
-		*b->right = *nodconst(0);
-		b->right->type = n->type;
-		b->type = types[TLONG];
-		cgen64(b, Z);
-		return;
-	}
+	Node *nn, nod;
 
 	switch(n->op) {
 	case OINDREG:

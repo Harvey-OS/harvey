@@ -1,17 +1,59 @@
 #include "gc.h"
 
-void
-swit1(C1 *q, int nc, long def, Node *n)
+int
+swcmp(void *a1, void *a2)
 {
+	C1 *p1, *p2;
+
+	p1 = a1;
+	p2 = a2;
+	if(p1->val < p2->val)
+		return -1;
+	return  p1->val > p2->val;
+}
+
+void
+doswit(Node *n)
+{
+	Case *c;
+	C1 *q, *iq;
+	long def, nc, i;
 	Node tn;
-	
+
+	def = 0;
+	nc = 0;
+	for(c = cases; c->link != C; c = c->link) {
+		if(c->def) {
+			if(def)
+				diag(n, "more than one default in switch");
+			def = c->label;
+			continue;
+		}
+		nc++;
+	}
+
+	iq = alloc(nc*sizeof(C1));
+	q = iq;
+	for(c = cases; c->link != C; c = c->link) {
+		if(c->def)
+			continue;
+		q->label = c->label;
+		q->val = c->val;
+		q++;
+	}
+	qsort(iq, nc, sizeof(C1), swcmp);
+	if(def == 0)
+		def = breakpc;
+	for(i=0; i<nc-1; i++)
+		if(iq[i].val == iq[i+1].val)
+			diag(n, "duplicate cases in switch %ld", iq[i].val);
 	regalloc(&tn, &regnode, Z);
-	swit2(q, nc, def, n, &tn);
+	swit1(iq, nc, def, n, &tn);
 	regfree(&tn);
 }
 
 void
-swit2(C1 *q, int nc, long def, Node *n, Node *tn)
+swit1(C1 *q, int nc, long def, Node *n, Node *tn)
 {
 	C1 *r;
 	int i;
@@ -45,10 +87,20 @@ swit2(C1 *q, int nc, long def, Node *n, Node *tn)
 	gbranch(OGOTO);
 	p->as = ABEQ;
 	patch(p, r->label);
-	swit2(q, i, def, n, tn);
+	swit1(q, i, def, n, tn);
 
 	patch(sp, pc);
-	swit2(r+1, nc-i-1, def, n, tn);
+	swit1(r+1, nc-i-1, def, n, tn);
+}
+
+void
+cas(void)
+{
+	Case *c;
+
+	c = alloc(sizeof(*c));
+	c->link = cases;
+	cases = c;
 }
 
 void

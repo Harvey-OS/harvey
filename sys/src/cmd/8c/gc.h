@@ -64,7 +64,6 @@ struct	Case
 	long	val;
 	long	label;
 	char	def;
-	char isv;
 };
 #define	C	((Case*)0)
 
@@ -132,7 +131,6 @@ struct	Rgn
 };
 
 EXTERN	long	breakpc;
-EXTERN	long	nbreak;
 EXTERN	Case*	cases;
 EXTERN	Node	constnode;
 EXTERN	Node	fconstnode;

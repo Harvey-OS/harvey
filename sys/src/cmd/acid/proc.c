@@ -276,4 +276,5 @@ waitfor(int pid)
 			return w;
 		free(w);
 	}
+	return nil;	/* ken */
 }

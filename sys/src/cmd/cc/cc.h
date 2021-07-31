@@ -503,9 +503,6 @@ extern	char	typechlvp[];
 extern	char	typechlp[];
 extern	char	typechlpfd[];
 
-EXTERN	char*	typeword;
-EXTERN	char*	typecmplx;
-
 extern	ulong	thash1;
 extern	ulong	thash2;
 extern	ulong	thash3;

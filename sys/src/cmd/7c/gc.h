@@ -61,7 +61,6 @@ struct	Case
 	long	val;
 	long	label;
 	char	def;
-	char isv;
 };
 #define	C	((Case*)0)
 
@@ -135,7 +134,6 @@ struct	Rgn
 };
 
 EXTERN long	breakpc;
-EXTERN long	nbreak;
 EXTERN Case*	cases;
 EXTERN Node	constnode;
 EXTERN Node	fconstnode;
@@ -177,28 +175,27 @@ EXTERN long	exfregoffset;
 #define	CINF	1000
 #define	LOOP	3
 
-EXTERN	Rgn	region[NRGN];
-EXTERN	Rgn*	rgp;
-EXTERN	int	nregion;
-EXTERN	int	nvar;
+EXTERN Rgn	region[NRGN];
+EXTERN Rgn*	rgp;
+EXTERN int	nregion;
+EXTERN int	nvar;
 
-EXTERN	Bits	externs;
-EXTERN	Bits	params;
-EXTERN	Bits	consts;
-EXTERN	Bits	addrs;
-EXTERN	Bits	zbits;
+EXTERN Bits	externs;
+EXTERN Bits	params;
+EXTERN Bits	consts;
+EXTERN Bits	addrs;
+EXTERN Bits	zbits;
 
-EXTERN	long	regbits;
-EXTERN	long	exregbits;
+EXTERN long	regbits;
+EXTERN long	exregbits;
 
-EXTERN	int	change;
-EXTERN	int	suppress;
+EXTERN int	change;
 
-EXTERN	Reg*	firstr;
-EXTERN	Reg*	lastr;
-EXTERN	Reg	zreg;
-EXTERN	Reg*	freer;
-EXTERN	Var	var[NVAR];
+EXTERN Reg*	firstr;
+EXTERN Reg*	lastr;
+EXTERN Reg	zreg;
+EXTERN Reg*	freer;
+EXTERN Var	var[NVAR];
 EXTERN	long*	idom;
 EXTERN	Reg**	rpo2r;
 EXTERN	long	maxnr;
@@ -214,7 +211,7 @@ void	gen(Node*);
 void	usedset(Node*, int);
 void	noretval(int);
 void	xcom(Node*);
-int	bcomplex(Node*, Node*);
+void	bcomplex(Node*);
 
 /*
  * cgen.c
@@ -267,8 +264,7 @@ void	gpseudo(int, Sym*, Node*);
  */
 int	swcmp(void*, void*);
 void	doswit(Node*);
-void	swit1(C1*, int, long, Node*);
-void	swit2(C1*, int, long, Node*, Node*);
+void	swit1(C1*, int, long, Node*, Node*);
 void	cas(void);
 void	bitload(Node*, Node*, Node*, Node*, Node*);
 void	bitstore(Node*, Node*, Node*, Node*, Node*);

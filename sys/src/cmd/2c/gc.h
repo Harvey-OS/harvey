@@ -188,7 +188,6 @@ EXTERN	Reg*	freer;
 
 EXTERN	long	argoff;
 EXTERN	long	breakpc;
-EXTERN	long	nbreak;
 EXTERN	Case*	cases;
 EXTERN	long	continpc;
 EXTERN	Prog*	firstp;

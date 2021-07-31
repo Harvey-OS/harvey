@@ -21,9 +21,6 @@ ginit(void)
 	lastp = P;
 	tfield = types[TLONG];
 
-	typeword = typechlvp;
-	typecmplx = typesu;
-
 	zprog.link = P;
 	zprog.as = AGOK;
 	zprog.reg = NREG;

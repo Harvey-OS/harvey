@@ -57,7 +57,6 @@ struct	Case
 	long	val;
 	long	label;
 	char	def;
-	char isv;
 };
 #define	C	((Case*)0)
 
@@ -129,7 +128,6 @@ struct	Rgn
 };
 
 EXTERN	long	breakpc;
-EXTERN	long	nbreak;
 EXTERN	Case*	cases;
 EXTERN	Node	constnode;
 EXTERN	Node	fconstnode;
@@ -185,7 +183,6 @@ EXTERN	long	regbits;
 EXTERN	long	exregbits;
 
 EXTERN	int	change;
-EXTERN	int	suppress;
 
 EXTERN	Reg*	firstr;
 EXTERN	Reg*	lastr;
@@ -207,7 +204,7 @@ void	gen(Node*);
 void	usedset(Node*, int);
 void	noretval(int);
 void	xcom(Node*);
-int	bcomplex(Node*, Node*);
+void	bcomplex(Node*);
 
 /*
  * cgen.c
@@ -258,8 +255,7 @@ void	gpseudo(int, Sym*, Node*);
  */
 int	swcmp(const void*, const void*);
 void	doswit(Node*);
-void	swit1(C1*, int, long, Node*);
-void	swit2(C1*, int, long, Node*, Node*);
+void	swit1(C1*, int, long, Node*, Node*);
 void	cas(void);
 void	bitload(Node*, Node*, Node*, Node*, Node*);
 void	bitstore(Node*, Node*, Node*, Node*, Node*);
