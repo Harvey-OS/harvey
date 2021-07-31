@@ -8,7 +8,6 @@ enum
 	FDIGIT	= 30,
 	FDEFLT	= 6,
 	NSIGNIF	= 17,
-	NEXP10	= 308,
 };
 
 static int
@@ -295,13 +294,8 @@ found:
 int
 _floatfmt(Fmt *fmt, double f)
 {
-	char s[1+NEXP10+1+FDIGIT+1];
+	char s[FDIGIT+10];
 
-	/*
-	 * The max length of a %f string is
-	 *	'[+-]'+"max exponent"+'.'+"max precision"+'\0'
-	 * which is 341 currently.
-	 */	
 	xdtoa(fmt, s, f);
 	fmt->flags &= FmtWidth|FmtLeft;
 	_fmtcpy(fmt, s, strlen(s), strlen(s));
