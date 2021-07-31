@@ -1133,9 +1133,8 @@ copyfromar(int ar, int fd, char *fname, ulong blksleft, Off bytes)
 			"%s not fully extracted\n", argv0, bytes, arname, fname);
 }
 
-/* update fd's metadata.  called after writing all data to it. */
 static void
-wrmeta(int fd, int ustar, char *user, char *group, long mtime, int mode)
+wrmeta(int fd, Hdr *hp, long mtime, int mode)		/* update metadata */
 {
 	Dir nd;
 
@@ -1143,15 +1142,12 @@ wrmeta(int fd, int ustar, char *user, char *group, long mtime, int mode)
 	nd.mtime = mtime;
 	nd.mode = mode;
 	dirfwstat(fd, &nd);
-	if (ustar) {
+	if (isustar(hp)) {
 		nulldir(&nd);
-		nd.gid = group;
-		/* needs extracting user to be in gname, often fails */
+		nd.gid = hp->gname;
 		dirfwstat(fd, &nd);
-
 		nulldir(&nd);
-		nd.uid = user;
-		/* needs permissions off, very often fails */
+		nd.uid = hp->uname;
 		dirfwstat(fd, &nd);
 	}
 }
@@ -1163,12 +1159,11 @@ wrmeta(int fd, int ustar, char *user, char *group, long mtime, int mode)
 static void
 extract1(int ar, Hdr *hp, char *fname)
 {
-	int fd = -1, dir = 0, ustar;
+	int fd = -1, dir = 0;
 	long mtime = strtol(hp->mtime, nil, 8);
 	ulong mode = strtoul(hp->mode, nil, 8) & 0777;
 	Off bytes = hdrsize(hp);		/* for printing */
 	ulong blksleft = BYTES2TBLKS(arsize(hp));
-	char *user, *group;
 
 	/* fiddle name, figure out mode and blocks */
 	if (isdir(hp)) {
@@ -1201,16 +1196,6 @@ extract1(int ar, Hdr *hp, char *fname)
 	} else
 		print("%s\n", fname);
 
-	/*
-	 * copyfromar may read into tpblks, so save user & group from Hdr first,
-	 * iff settime and this is a US-tar archive.
-	 */
-	ustar = isustar(hp);
-	user = group = nil;
-	if (ustar && settime) {
-		user  = hp->uname? strdup(hp->uname): nil;
-		group = hp->gname? strdup(hp->gname): nil;
-	}
 	copyfromar(ar, fd, fname, blksleft, bytes);
 
 	/* touch up meta data and close */
@@ -1220,11 +1205,9 @@ extract1(int ar, Hdr *hp, char *fname)
 		 * creating files in them, but we don't do that.
 		 */
 		if (settime)
-			wrmeta(fd, ustar, user, group, mtime, mode);
+			wrmeta(fd, hp, mtime, mode);
 		close(fd);
 	}
-	free(user);
-	free(group);
 }
 
 static char *
