@@ -191,8 +191,8 @@ which is created with mode
 The name space is the directory tree rooted at 
 .IR path .
 The
-.BR -d ,
-.BR -P ,
+.B -d ,
+.B -P ,
 and
 .B -R
 options, if present, are relayed to

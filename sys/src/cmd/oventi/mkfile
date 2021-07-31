@@ -12,7 +12,7 @@ UPDATE=mkfile\
 	$HFILES\
 	$CFILES\
 
-BIN=/$objtype/bin/venti
+BIN=/$objtype/bin/oventi
 
 </sys/src/cmd/mkone
 
