@@ -263,6 +263,8 @@ provides functions to
 extract symbol references from object files.
 The remainder provides the following processing
 of executable files or memory images:
+.RS
+.LP
 .IP \(bu
 Header interpretation.
 .IP \(bu
@@ -278,6 +280,7 @@ Exception and floating point number interpretation.
 .IP \(bu
 Architecture-independent read and write access through a
 relocation map.
+.RE
 .LP
 Header file
 .CW /sys/include/mach.h
