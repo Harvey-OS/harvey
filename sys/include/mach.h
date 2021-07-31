@@ -17,7 +17,6 @@
  *		powerpc,
  *		powerpc64
  *		alpha
- *		arm64
  */
 enum
 {
@@ -37,7 +36,6 @@ enum
 	MSPARC64,
 	MAMD64,
 	MPOWER64,
-	MARM64,
 				/* types of executables */
 	FNONE = 0,		/* unidentified */
 	FMIPS,			/* v.out */
@@ -67,8 +65,6 @@ enum
 	FAMD64B,		/* 6.out bootable */
 	FPOWER64,		/* 9.out */
 	FPOWER64B,		/* 9.out bootable */
-	FARM64,			/* arm64 */
-	FARM64B,		/* arm64 bootable */
 
 	ANONE = 0,		/* dissembler types */
 	AMIPS,
@@ -86,7 +82,6 @@ enum
 	ASPARC64,
 	AAMD64,
 	APOWER64,
-	AARM64,
 				/* object file types */
 	Obj68020 = 0,		/* .2 */
 	ObjSparc,		/* .k */
@@ -104,7 +99,6 @@ enum
 	ObjAmd64,		/* .6 */
 	ObjSpim,		/* .0 */
 	ObjPower64,		/* .9 */
-	ObjArm64,		/* .4? */
 	Maxobjtype,
 
 	CNONE  = 0,		/* symbol table classes */
