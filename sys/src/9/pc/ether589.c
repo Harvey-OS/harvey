@@ -140,7 +140,6 @@ reset(Ether* ether)
 		if((slot = pcmspecial(type, ether)) >= 0)
 			break;
 	}
-	ether->type = type;	/* must be set before calling configASIC */
 	if(slot < 0){
 		iofree(port);
 		return -1;
