@@ -190,7 +190,6 @@ struct Srv {
 	int		outfd;
 	int		nopipe;
 	int		srvfd;
-	int		leavefdsopen;	/* magic for acme win */
 
 /* below is implementation-specific; don't use */
 	Fidpool*	fpool;

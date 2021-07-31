@@ -39,21 +39,21 @@ readrsapriv(Key *k)
 
 	priv = rsaprivalloc();
 
-	if((a=_strfindattr(k->attr, "ek"))==nil || (priv->pub.ek=strtomp(a, nil, 16, nil))==nil)
+	if((a=_str_findattr(k->attr, "ek"))==nil || (priv->pub.ek=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	if((a=_strfindattr(k->attr, "n"))==nil || (priv->pub.n=strtomp(a, nil, 16, nil))==nil)
+	if((a=_str_findattr(k->attr, "n"))==nil || (priv->pub.n=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!p"))==nil || (priv->p=strtomp(a, nil, 16, nil))==nil)
+	if((a=_str_findattr(k->privattr, "!p"))==nil || (priv->p=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!q"))==nil || (priv->q=strtomp(a, nil, 16, nil))==nil)
+	if((a=_str_findattr(k->privattr, "!q"))==nil || (priv->q=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!kp"))==nil || (priv->kp=strtomp(a, nil, 16, nil))==nil)
+	if((a=_str_findattr(k->privattr, "!kp"))==nil || (priv->kp=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!kq"))==nil || (priv->kq=strtomp(a, nil, 16, nil))==nil)
+	if((a=_str_findattr(k->privattr, "!kq"))==nil || (priv->kq=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!c2"))==nil || (priv->c2=strtomp(a, nil, 16, nil))==nil)
+	if((a=_str_findattr(k->privattr, "!c2"))==nil || (priv->c2=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	if((a=_strfindattr(k->privattr, "!dk"))==nil || (priv->dk=strtomp(a, nil, 16, nil))==nil)
+	if((a=_str_findattr(k->privattr, "!dk"))==nil || (priv->dk=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
 	return priv;
 
@@ -68,7 +68,7 @@ sshrsainit(Proto*, Fsstate *fss)
 	int iscli;
 	State *s;
 
-	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
+	if((iscli = isclient(_str_findattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
 	if(iscli==0)
 		return failure(fss, "sshrsa server unimplemented");

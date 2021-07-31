@@ -115,16 +115,16 @@ debugfactotumkeys(void)
 		}
 		a = _parseattr(s+4);
 		free(s);
-		proto = _strfindattr(a, "proto");
+		proto = _str_findattr(a, "proto");
 		if(proto==nil || strcmp(proto, "p9sk1")!=0)
 			continue;
-		dom = _strfindattr(a, "dom");
+		dom = _str_findattr(a, "dom");
 		if(dom == nil){
 			print("p9sk1 key with no dom: %A\n", a);
 			_freeattr(a);
 			continue;
 		}
-		user = _strfindattr(a, "user");
+		user = _str_findattr(a, "user");
 		if(user == nil){
 			print("p9sk1 key with no user: %A\n", a);
 			_freeattr(a);
