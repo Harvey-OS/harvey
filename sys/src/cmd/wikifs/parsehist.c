@@ -88,8 +88,6 @@ Brdwhist(Biobuf *b)
 			w[n].time = t;
 			w[n].author = author;
 			w[n].comment = comment;
-			comment = nil;
-			author = nil;
 			w[n].wtxt = Brdpage(Brdwline, b);
 			w[n].conflict = conflict;
 			if(w[n].wtxt == nil)
@@ -97,6 +95,8 @@ Brdwhist(Biobuf *b)
 			if(!conflict)
 				current = n;
 			n++;
+			comment = nil;
+			author = nil;
 			conflict = 0;
 			t = -1;
 		}
@@ -112,18 +112,14 @@ Brdwhist(Biobuf *b)
 	h->ndoc = n;
 	h->current = current;
 	incref(h);
-	setmalloctag(h, getcallerpc(&b));
 	return h;
 
 Error:
 	free(title);
 	free(author);
 	free(comment);
-	for(i=0; i<n; i++){
-		free(w[i].author);
-		free(w[i].comment);
+	for(i=0; i<n; i++)
 		freepage(w[i].wtxt);
-	}
 	free(w);
 	return nil;
 }

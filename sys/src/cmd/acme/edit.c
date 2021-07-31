@@ -59,7 +59,7 @@ void	freecmd(void);
 void	okdelim(int);
 
 Rune	*cmdstartp;
-Rune	*cmdendp;
+Rune *cmdendp;
 Rune	*cmdp;
 Channel	*editerrc;
 
@@ -252,11 +252,11 @@ growlist(List *l)
 {
 	if(l->listptr==0 || l->nalloc==0){
 		l->nalloc = INCR;
-		l->listptr = emalloc(INCR*sizeof(void*));
+		l->listptr = emalloc(INCR*sizeof(long));
 		l->nused = 0;
 	}else if(l->nused == l->nalloc){
-		l->listptr = erealloc(l->listptr, (l->nalloc+INCR)*sizeof(void*));
-		memset(l->ptr+l->nalloc, 0, INCR*sizeof(void*));
+		l->listptr = erealloc(l->listptr, (l->nalloc+INCR)*sizeof(long));
+		memset((void*)(l->longptr+l->nalloc), 0, INCR*sizeof(long));
 		l->nalloc += INCR;
 	}
 }
@@ -267,7 +267,7 @@ growlist(List *l)
 void
 dellist(List *l, int i)
 {
-	memmove(&l->ptr[i], &l->ptr[i+1], (l->nused-(i+1))*sizeof(void*));
+	memmove(&l->longptr[i], &l->longptr[i+1], (l->nused-(i+1))*sizeof(long));
 	l->nused--;
 }
 
@@ -275,11 +275,11 @@ dellist(List *l, int i)
  * Add a new element, whose position is i, to the list
  */
 void
-inslist(List *l, int i, void *v)
+inslist(List *l, int i, long val)
 {
 	growlist(l);
-	memmove(&l->ptr[i+1], &l->ptr[i], (l->nused-i)*sizeof(void*));
-	l->ptr[i] = v;
+	memmove(&l->longptr[i+1], &l->longptr[i], (l->nused-i)*sizeof(long));
+	l->longptr[i] = val;
 	l->nused++;
 }
 
@@ -315,7 +315,7 @@ newcmd(void){
 	Cmd *p;
 
 	p = emalloc(sizeof(Cmd));
-	inslist(&cmdlist, cmdlist.nused, p);
+	inslist(&cmdlist, cmdlist.nused, (long)p);
 	return p;
 }
 
@@ -325,7 +325,7 @@ newstring(int n)
 	String *p;
 
 	p = allocstring(n);
-	inslist(&stringlist, stringlist.nused, p);
+	inslist(&stringlist, stringlist.nused, (long)p);
 	return p;
 }
 
@@ -335,7 +335,7 @@ newaddr(void)
 	Addr *p;
 
 	p = emalloc(sizeof(Addr));
-	inslist(&addrlist, addrlist.nused, p);
+	inslist(&addrlist, addrlist.nused, (long)p);
 	return p;
 }
 
