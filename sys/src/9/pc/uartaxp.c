@@ -207,7 +207,7 @@ typedef struct Ctlr {
 	uchar*	mem;
 	Gcb*	gcb;
 
-	int	im;		/* interrupt mask */
+	int	im;
 	Cc	cc[16];
 } Ctlr;
 
@@ -222,7 +222,7 @@ extern PhysUart axpphysuart;
 static int
 axpccdone(void* ccb)
 {
-	return !((Ccb*)ccb)->cc;	/* hw sets ccb->cc to zero */
+	return !((Ccb*)ccb)->cc;
 }
 
 static void
@@ -235,12 +235,13 @@ axpcc(Cc* cc, int cmd)
 	ccb = cc->ccb;
 	ccb->cc = cmd;
 
-	if(!cc->ctlr->im)
+	if(!cc->ctlr->im){
 		for(timeo = 0; timeo < 1000000; timeo++){
 			if(!ccb->cc)
 				break;
 			microdelay(1);
 		}
+	}
 	else
 		tsleep(cc, axpccdone, ccb, 1000);
 
@@ -321,10 +322,6 @@ axpdtr(Uart* uart, int on)
 	ccb->mc = mc;
 }
 
-/*
- * can be called from uartstageinput() during an input interrupt,
- * with uart->rlock ilocked or the uart qlocked, sometimes both.
- */
 static void
 axprts(Uart* uart, int on)
 {
@@ -502,7 +499,6 @@ axpbreak(Uart* uart, int ms)
 	ccb->mc = mc & ~Ab;
 }
 
-/* only called from interrupt service */
 static void
 axpmc(Cc* cc)
 {
@@ -536,13 +532,12 @@ axpmc(Cc* cc)
 	}
 }
 
-/* called from uartkick() with uart->tlock ilocked */
 static void
 axpkick(Uart* uart)
 {
 	Cc *cc;
 	Ccb *ccb;
-	uchar *ep, *mem, *rp, *wp, *bp;
+	uchar *ep, *mem, *rp, *wp;
 
 	if(uart->cts == 0 || uart->blocked)
 		return;
@@ -551,26 +546,20 @@ axpkick(Uart* uart)
 	ccb = cc->ccb;
 
 	mem = (uchar*)cc->ctlr->gcb;
-	bp = mem + ccb->obsa;
 	rp = mem + ccb->obrp;
 	wp = mem + ccb->obwp;
 	ep = mem + ccb->obea;
-	while(wp != rp-1 && (rp != bp || wp != ep)){
-		/*
-		 * if we've exhausted the uart's output buffer,
-		 * ask for more from the output queue, and quit if there
-		 * isn't any.
-		 */
+
+	while(wp != rp-1){
 		if(uart->op >= uart->oe && uartstageoutput(uart) == 0)
 			break;
-		*wp++ = *(uart->op++);
 		if(wp > ep)
-			wp = bp;
+			wp = mem + ccb->obsa;
+		*wp++ = *(uart->op++);
 		ccb->obwp = wp - mem;
 	}
 }
 
-/* only called from interrupt service */
 static void
 axprecv(Cc* cc)
 {
@@ -585,56 +574,52 @@ axprecv(Cc* cc)
 	ep = mem + ccb->ibea;
 
 	while(rp != wp){
-		uartrecv(cc, *rp++);		/* ilocks cc->tlock */
 		if(rp > ep)
 			rp = mem + ccb->ibsa;
+		uartrecv(cc, *rp++);
 		ccb->ibrp = rp - mem;
 	}
+
 }
 
 static void
 axpinterrupt(Ureg*, void* arg)
 {
-	int work;
 	Cc *cc;
 	Ctlr *ctlr;
 	u32int ics;
 	u16int r, sr;
 
-	work = 0;
 	ctlr = arg;
 	ics = csr32r(ctlr, Ics);
 	if(ics & 0x0810C000)
 		print("%s: unexpected interrupt %#ux\n", ctlr->name, ics);
-	if(!(ics & 0x00002000)) {
-		print("%s: non-doorbell interrupt\n", ctlr->name);
-		// ctlr->gcb->gcw2 = 0x0001;	/* set Gintack */
+	if(!(ics & 0x00002000))
 		return;
-	}
 
 //	while(work to do){
 		cc = ctlr->cc;
 		for(sr = xchgw(&ctlr->gcb->isr, 0); sr != 0; sr >>= 1){
 			if(sr & 0x0001)
-				work++, axprecv(cc);
+				axprecv(cc);
 			cc++;
 		}
 		cc = ctlr->cc;
 		for(sr = xchgw(&ctlr->gcb->osr, 0); sr != 0; sr >>= 1){
 			if(sr & 0x0001)
-				work++, uartkick(&cc->Uart);
+				uartkick(&cc->Uart);
 			cc++;
 		}
 		cc = ctlr->cc;
 		for(sr = xchgw(&ctlr->gcb->csr, 0); sr != 0; sr >>= 1){
 			if(sr & 0x0001)
-				work++, wakeup(cc);
+				wakeup(cc);
 			cc++;
 		}
 		cc = ctlr->cc;
 		for(sr = xchgw(&ctlr->gcb->msr, 0); sr != 0; sr >>= 1){
 			if(sr & 0x0001)
-				work++, axpmc(cc);
+				axpmc(cc);
 			cc++;
 		}
 		cc = ctlr->cc;
@@ -647,17 +632,12 @@ axpinterrupt(Ureg*, void* arg)
 					cc->perr++;
 				if(r & Fe)
 					cc->ferr++;
-				if (r & (Oe|Pe|Fe))
-					work++;
 			}
 			cc++;
 		}
 //	}
-	/* only meaningful if we don't share the irq */
-	if (0 && !work)
-		print("%s: interrupt with no work\n", ctlr->name);
-	csr32w(ctlr, Pdb, 1);		/* clear doorbell interrupt */
-	ctlr->gcb->gcw2 = 0x0001;	/* set Gintack */
+	csr32w(ctlr, Pdb, 1);
+	ctlr->gcb->gcw2 = 0x0001;
 }
 
 static void
@@ -823,10 +803,11 @@ axpalloc(int ctlrno, Pcidev* pcidev)
 		print("%s: control programme too big\n", ctlr->name);
 		return axpdealloc(ctlr);
 	}
-	/* TODO: is this right for more than 1 card? devastar does the same */
+	/* TODO: is this right for more than 1 card? */
 	csr32w(ctlr, Remap, 0xA0000001);
 	for(i = 0; i < sizeof(uartaxpcp); i++)
 		ctlr->mem[i] = uartaxpcp[i];
+
 	/*
 	 * Execute downloaded code and wait for it
 	 * to signal ready.
@@ -864,7 +845,7 @@ axpalloc(int ctlrno, Pcidev* pcidev)
 		cc->uartno = i;
 		cc->ctlr = ctlr;
 
-		cc->regs = cc;		/* actually Uart->regs */
+		cc->regs = cc;
 		seprint(name, name+sizeof(name), "uartaxp%d%2.2d", ctlrno, i);
 		kstrdup(&cc->name, name);
 		cc->freq = 0;
@@ -880,7 +861,6 @@ axpalloc(int ctlrno, Pcidev* pcidev)
 	}
 	ctlr->cc[n-1].next = nil;
 
-	ctlr->next = nil;
 	if(axpctlrhead != nil)
 		axpctlrtail->next = ctlr;
 	else
