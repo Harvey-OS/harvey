@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-#include <tos.h>
 #define Extern
 #include "mips.h"
 
@@ -292,22 +291,12 @@ void
 initstk(int argc, char *argv[])
 {
 	ulong size;
-	ulong sp, ap, tos;
+	ulong sp, ap;
 	int i;
 	char *p;
 
 	initmap();
-	tos = STACKTOP - sizeof(Tos)*2;	/* we'll assume twice the host's is big enough */
-	sp = tos;
-	for (i = 0; i < sizeof(Tos)*2; i++)
-		putmem_b(tos + i, 0);
-
-	/*
-	 * pid is second word from end of tos and needs to be set for nsec().
-	 * we know mips is a 32-bit cpu, so we'll assume knowledge of the Tos
-	 * struct for now, and use our pid.
-	 */
-	putmem_w(tos + 4*4 + 2*sizeof(ulong) + 3*sizeof(uvlong), getpid());
+	sp = STACKTOP - 4;
 
 	/* Build exec stack */
 	size = strlen(file)+1+BY2WD+BY2WD+BY2WD;	
@@ -317,7 +306,7 @@ initstk(int argc, char *argv[])
 	sp -= size;
 	sp &= ~3;
 	reg.r[29] = sp;
-	reg.r[1] = tos;			/* Plan 9 profiling clock, etc. */
+	reg.r[1] = STACKTOP-4;	/* Plan 9 profiling clock */
 
 	/* Push argc */
 	putmem_w(sp, argc+1);

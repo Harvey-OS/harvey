@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-#include <tos.h>
 #define Extern
 #include "power.h"
 
@@ -52,12 +51,6 @@ main(int argc, char **argv)
 	cmd();
 }
 
-/*
- * we're rounding segment boundaries to the nearest 1MB on power now,
- * and mach->pgsize is actually what to round segment boundaries up to.
- */
-#define SEGROUND mach->pgsize
-
 void
 initmap(void)
 {
@@ -65,10 +58,10 @@ initmap(void)
 	ulong t, d, b, bssend;
 	Segment *s;
 
-	t = (fhdr.txtaddr+fhdr.txtsz+(SEGROUND-1)) & ~(SEGROUND-1);
-	d = (t + fhdr.datsz + (SEGROUND-1)) & ~(SEGROUND-1);
+	t = (fhdr.txtaddr+fhdr.txtsz+(BY2PG-1)) & ~(BY2PG-1);
+	d = (t + fhdr.datsz + (BY2PG-1)) & ~(BY2PG-1);
 	bssend = t + fhdr.datsz + fhdr.bsssz;
-	b = (bssend + (SEGROUND-1)) & ~(SEGROUND-1);
+	b = (bssend + (BY2PG-1)) & ~(BY2PG-1);
 
 	s = &memory.seg[Text];
 	s->type = Text;
@@ -285,22 +278,12 @@ reset(void)
 void
 initstk(int argc, char *argv[])
 {
-	ulong size, sp, ap, tos;
+	ulong size, sp, ap;
 	int i;
 	char *p;
 
 	initmap();
-	tos = STACKTOP - sizeof(Tos)*2;	/* we'll assume twice the host's is big enough */
-	sp = tos;
-	for (i = 0; i < sizeof(Tos)*2; i++)
-		putmem_b(tos + i, 0);
-
-	/*
-	 * pid is second word from end of tos and needs to be set for nsec().
-	 * we know power is a 32-bit cpu, so we'll assume knowledge of the Tos
-	 * struct for now, and use our pid.
-	 */
-	putmem_w(tos + 4*4 + 2*sizeof(ulong) + 3*sizeof(uvlong), getpid());
+	sp = STACKTOP - 4;
 
 	/* Build exec stack */
 	size = strlen(file)+1+BY2WD+BY2WD+(BY2WD*2);	
@@ -310,7 +293,7 @@ initstk(int argc, char *argv[])
 	sp -= size;
 	sp &= ~7;
 	reg.r[1] = sp;
-	reg.r[3] = tos;		/* Plan 9 profiling clock, etc. */
+	reg.r[3] = STACKTOP-4;	/* Plan 9 profiling clock */
 
 	/* Push argc */
 	putmem_w(sp, argc+1);
