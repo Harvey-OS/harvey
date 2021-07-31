@@ -218,7 +218,7 @@ enum {					/* General Descriptor control */
  */
 enum {					/* Ring sizes  (<= 1024) */
 	Ntd		= 64,		/* Transmit Ring */
-	Nrd		= 1024,		/* Receive Ring */
+	Nrd		= 256,		/* Receive Ring */
 
 	Mtu		= ETHERMAXTU,
 	Mps		= ROUNDUP(ETHERMAXTU+4, 128),
@@ -516,7 +516,6 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 	}
 	if(csr32r(ctlr, Dtccr) & Cmd)
 		error(Eio);
-
 	dtcc = ctlr->dtcc;
 
 	edev->oerrs = dtcc->txer;
@@ -845,7 +844,6 @@ rtl8169attach(Ether* edev)
 			qunlock(&ctlr->alock);
 			error(Enomem);
 		}
-		memset(ctlr->dtcc, 0, sizeof(Dtcc));	/* paranoia */
 		rtl8169init(edev);
 		ctlr->init = 1;
 	}
@@ -1213,7 +1211,7 @@ rtl8169pnp(Ether* edev)
 	edev->port = ctlr->port;
 	edev->irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
-	edev->mbps = 1000;
+	edev->mbps = 100;
 	edev->maxmtu = Mtu;
 
 	/*
