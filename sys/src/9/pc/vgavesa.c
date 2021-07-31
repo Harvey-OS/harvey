@@ -13,9 +13,6 @@
 #include <cursor.h>
 #include "screen.h"
 
-
-static void *hardscreen;
-
 #define WORD(p) ((p)[0] | ((p)[1]<<8))
 #define LONG(p) ((p)[0] | ((p)[1]<<8) | ((p)[2]<<16) | ((p)[3]<<24))
 #define PWORD(p, v) (p)[0] = (v); (p)[1] = (v)>>8
@@ -27,7 +24,7 @@ static uchar*
 vbesetup(Ureg *u, int ax)
 {
 	ulong pa;
-
+	
 	pa = PADDR(RMBUF);
 	memset(u, 0, sizeof *u);
 	u->ax = ax;
@@ -83,7 +80,7 @@ vbemodeinfo(int mode)
 }
 
 static void
-vesalinear(VGAscr *, int, int)
+vesalinear(VGAscr* scr, int, int)
 {
 	int i, mode, size;
 	uchar *p;
@@ -113,7 +110,7 @@ vesalinear(VGAscr *, int, int)
 	 */
 	pci = nil;
 	while((pci = pcimatch(pci, 0, 0)) != nil){
-		if(pci->ccrb != Pcibcdisp)
+		if(pci->ccrb != 3)
 			continue;
 		for(i=0; i<nelem(pci->mem); i++)
 			if(paddr == (pci->mem[i].bar&~0x0F)){
@@ -130,38 +127,7 @@ vesalinear(VGAscr *, int, int)
 		size = ROUND(size, 1024*1024);
 
 havesize:
-	if(size > 16*1024*1024)		/* probably arbitrary; could increase */
-		size = 16*1024*1024;
-	hardscreen = vmap(paddr, size);
-	mtrr(paddr, size, "wc");
-//	vgalinearaddr(scr, paddr, size);
-}
-
-static void
-vesaflush(VGAscr *scr, Rectangle r)
-{
-	int t, w, wid, off;
-	ulong *hp, *sp, *esp;
-
-	if(rectclip(&r, scr->gscreen->r) == 0)
-		return;
-
-	hp = hardscreen;
-	sp = (ulong*)(scr->gscreendata->bdata + scr->gscreen->zero);
-	t = (r.max.x * scr->gscreen->depth + 2*BI2WD-1) / BI2WD;
-	w = (r.min.x * scr->gscreen->depth) / BI2WD;
-	w = (t - w) * BY2WD;
-	wid = scr->gscreen->width;
-	off = r.min.y * wid + (r.min.x * scr->gscreen->depth) / BI2WD;
-
-	hp += off;
-	sp += off;
-	esp = sp + Dy(r) * wid;
-	while(sp < esp){
-		memmove(hp, sp, w);
-		hp += wid;
-		sp += wid;
-	}
+	vgalinearaddr(scr, paddr, size);
 }
 
 VGAdev vgavesadev = {
@@ -174,5 +140,6 @@ VGAdev vgavesadev = {
 	0,
 	0,
 	0,
-	vesaflush,
+	0,
 };
+
