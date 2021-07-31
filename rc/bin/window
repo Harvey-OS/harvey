@@ -1,6 +1,5 @@
 #!/bin/rc
-# window [many options] cmd [arg...] - create new window and run cmd in it
-rfork e
+
 fn checkwsys{
 	if(~ $wsys ''){
 		echo  'window: $wsys not defined'

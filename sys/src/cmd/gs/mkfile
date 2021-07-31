@@ -77,7 +77,6 @@ DRIVERS=\
 	cdj850\
 	cdj890\
 	dfaxlow\
-	epsonc\
 	epswrite\
 	inferno\
 	jpeg\
@@ -126,7 +125,7 @@ update:V:
 CC=pcc
 CFLAGS=-c -DPlan9 -D_POSIX_SOURCE -D_BSD_EXTENSION\
 	-I. -Isrc -Ijpeg -Izlib -Iicclib -DT$objtype '-DGS_INIT="gs_init.ps"'
-LD=pcc
+
 
 obj/gconfig.$O obj/gconf.$O obj/gscdef.$O\
  obj/gscdefs.$O obj/iconf.$O obj/iconfig.$O: src/gconfig.h
@@ -173,7 +172,7 @@ libinstall:V:
 	cp lib/* /sys/lib/ghostscript
 
 nuke clean:V:
-	rm -f *.[$OS] obj/* [$OS].out y.tab.? y.debug y.output $TARG src/plan9.mak
+	rm -f *.[$OS] obj/* [$OS].out y.tab.? y.debug y.output $TARG
 
 #################################################################################
 
@@ -196,7 +195,7 @@ fakecc:V:
 		status='''' ' >$target
 	chmod +x $target
 
-src/plan9.mak:	src/unixansi.mak /sys/src/cmd/gs/contrib9.mak src/contrib.mak
+src/plan9.mak:	src/unixansi.mak /sys/src/cmd/gs/contrib9.mak
 	devlist='$(DD)'^$DRIVERS^'.dev'
 	devlist=$"devlist
 	sed 's#^GS_LIB_DEFAULT=.*#GS_LIB_DEFAULT=/sys/lib/ghostscript:/sys/lib/ghostscript/font:/sys/lib/postscript/font#
@@ -286,4 +285,3 @@ clean-%:V:
 	for (i in gs$stem/*)
 		unmount $i >[2]/dev/null || status=''
 	rm -rf gs$stem ghostscript-$stem.tar.gz
-

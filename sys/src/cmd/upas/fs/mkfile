@@ -7,7 +7,6 @@ OFILES=\
 	imap4.$O\
 	mbox.$O\
 	plan9.$O\
-	planb.$O\
 	pop3.$O\
 	strtotm.$O\
 
