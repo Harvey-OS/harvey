@@ -143,16 +143,6 @@ static ulong agefreq = Defagefreq;
 static int rrequiv(RR *r1, RR *r2);
 static int sencodefmt(Fmt*);
 
-static void
-ding(void*, char *msg)
-{
-	if(strstr(msg, "alarm") != nil) {
-		stats.alarms++;
-		noted(NCONT);		/* resume with system call error */
-	} else
-		noted(NDFLT);		/* die */
-}
-
 void
 dninit(void)
 {
@@ -166,8 +156,6 @@ dninit(void)
 	dnvars.oldest = maxage;
 	dnvars.names = 0;
 	dnvars.id = truerand();	/* don't start with same id every time */
-
-	notify(ding);
 }
 
 /*

@@ -4,9 +4,6 @@ APE=/sys/src/ape
 LIB=/$objtype/lib/ape/libnet.a
 OFILES=dial.$O\
 	announce.$O\
-	netmkaddr.$O\
-	hangup.$O\
-	
 
 </sys/src/cmd/mksyslib
 
