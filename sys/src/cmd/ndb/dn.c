@@ -5,10 +5,6 @@
 #include <ctype.h>
 #include "dns.h"
 
-enum {
-	Minage = 10*60,
-};
-
 /*
  *  Hash table for domain names.  The hash is based only on the
  *  first element of the domain name.
@@ -416,8 +412,6 @@ dnageall(int doit)
 		dnslog("more names (%lud) than target (%lud)", dnvars.names,
 			target);
 		dnvars.oldest /= 2;
-		if (dnvars.oldest < Minage)
-			dnvars.oldest = Minage;		/* don't be silly */
 	}
 	nextage = now + maxage;
 
