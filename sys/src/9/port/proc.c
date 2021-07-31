@@ -790,13 +790,12 @@ void
 twakeup(Ureg*, Timer *t)
 {
 	Proc *p;
-	Rendez *trend;
 
 	p = t->ta;
-	trend = p->trend;
-	p->trend = 0;
-	if(trend)
-		wakeup(trend);
+	if(p->trend){
+		wakeup(p->trend);
+		p->trend = 0;
+	}
 }
 
 /* Sleep until todget() >= ns.  NOTE: ns is not an interval */
