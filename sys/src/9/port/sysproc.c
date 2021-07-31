@@ -14,7 +14,7 @@ int	shargs(char*, int, char**);
 extern void checkpages(void);
 
 long
-sysr1(ulong*)
+sysr1(ulong *arg)
 {
 	checkpages();
 	return 0;
