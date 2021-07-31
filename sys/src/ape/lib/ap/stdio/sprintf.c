@@ -5,6 +5,7 @@
 int sprintf(char *buf, const char *fmt, ...){
 	int n;
 	va_list args;
+	char *v;
 	FILE *f=_IO_sopenw();
 	if(f==NULL)
 		return 0;

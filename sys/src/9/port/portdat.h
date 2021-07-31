@@ -40,6 +40,7 @@ typedef struct RWlock	RWlock;
 typedef struct Sargs	Sargs;
 typedef struct Schedq	Schedq;
 typedef struct Segment	Segment;
+typedef struct Talarm	Talarm;
 typedef struct Timer	Timer;
 typedef struct Timers	Timers;
 typedef struct Uart	Uart;
@@ -86,6 +87,12 @@ struct RWlock
 	Proc	*wproc;		/* writing proc */
 	int	readers;	/* number of readers */
 	int	writer;		/* number of writers */
+};
+
+struct Talarm
+{
+	Lock;
+	Proc	*list;
 };
 
 struct Alarms
@@ -356,6 +363,7 @@ struct Pte
 	Page	*pages[PTEPERTAB];	/* Page map for this chunk of pte */
 	Page	**first;		/* First used entry */
 	Page	**last;			/* Last used entry */
+	Pte	*next;			/* Free list */
 };
 
 /* Segment types */
@@ -408,7 +416,7 @@ struct Segment
 	Pte	**map;
 	int	mapsize;
 	Pte	*ssegmap[SSEGMAPSIZE];
-	ulong	mark;		/* portcountrefs */
+	ulong	mark;	/* portcountrefs */
 };
 
 enum
@@ -591,6 +599,8 @@ enum
 	PriRoot		= 13,		/* base priority for root processes */
 };
 
+typedef uvlong	Ticks;
+
 struct Schedq
 {
 	Lock;
@@ -758,6 +768,7 @@ extern	Queue*	serialoq;
 extern	char*	statename[];
 extern	Image	swapimage;
 extern	char*	sysname;
+extern	Talarm	talarm;
 extern	uint	qiomaxatomic;
 
 enum

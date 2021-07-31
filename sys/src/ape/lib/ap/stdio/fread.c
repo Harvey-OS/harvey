@@ -7,7 +7,7 @@
 #define BIGN (BUFSIZ/2)
 
 size_t fread(void *p, size_t recl, size_t nrec, FILE *f){
-	char *s;
+	char *s, *es;
 	int n, d, c;
 
 	s=(char *)p;
