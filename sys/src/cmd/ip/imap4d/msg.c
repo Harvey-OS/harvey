@@ -133,7 +133,6 @@ freeMsg(Msg *m)
 		k = k->next;
 		freeMsg(last);
 	}
-	free(m->fs);
 	free(m);
 }
 
