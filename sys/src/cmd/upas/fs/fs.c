@@ -2,7 +2,6 @@
 #include <auth.h>
 #include <fcall.h>
 #include <libsec.h>
-#include <ctype.h>
 #include "dat.h"
 
 enum
@@ -140,7 +139,7 @@ int	logging;
 void
 usage(void)
 {
-	fprint(2, "usage: upas/fs [-bdlnps] [-f mboxfile] [-m mountpoint]\n");
+	fprint(2, "usage: %s [-b -m mountpoint]\n", argv0);
 	exits("usage");
 }
 
@@ -177,10 +176,10 @@ main(int argc, char *argv[])
 		break;
 	case 'f':
 		fflag = 1;
-		mboxfile = EARGF(usage());
+		mboxfile = ARGF();
 		break;
 	case 'm':
-		mntpt = EARGF(usage());
+		mntpt = ARGF();
 		break;
 	case 'd':
 		debug = 1;
@@ -201,8 +200,6 @@ main(int argc, char *argv[])
 		usage();
 	}ARGEND
 
-	if(argc)
-		usage();
 	if(pipe(p) < 0)
 		error("pipe failed");
 	mfd[0] = p[0];
@@ -1352,12 +1349,32 @@ hdrlen(char *p, char *e)
 	return ep - p;
 }
 
-// rfc2047 non-ascii: =?charset?q?encoded-text?=
+// rfc2047 non-ascii
+typedef struct Charset Charset;
+struct Charset {
+	char *name;
+	int len;
+	int convert;
+	char *tcsname;
+} charsets[] =
+{
+	{ "us-ascii",		8,	1, nil, },
+	{ "utf-8",		5,	0, nil, },
+	{ "iso-8859-1",		10,	1, nil, },
+	{ "iso-8859-2",		10,	2, "8859-2", },
+	{ "big5",		4,	2, "big5", },
+	{ "iso-2022-jp",	11, 2, "jis", },
+	{ "windows-1251",	12,	2, "cp1251"},
+	{ "koi8-r",		6,	2, "koi8"},
+};
+
 int
 rfc2047convert(String *s, char *token, int len)
 {
-	char charset[100], decoded[1024], *e, *x;
-	int l;
+	char decoded[1024];
+	char utfbuf[2*1024];
+	int i;
+	char *e, *x;
 
 	if(len == 0)
 		return -1;
@@ -1365,13 +1382,15 @@ rfc2047convert(String *s, char *token, int len)
 	e = token+len-2;
 	token += 2;
 
-	x = memchr(token, '?', e-token);
-	if(x == nil || (l=x-token) >= sizeof charset)
+	// bail if we don't understand the character set
+	for(i = 0; i < nelem(charsets); i++)
+		if(cistrncmp(charsets[i].name, token, charsets[i].len) == 0)
+		if(token[charsets[i].len] == '?'){
+			token += charsets[i].len + 1;
+			break;
+		}
+	if(i >= nelem(charsets))
 		return -1;
-	memmove(charset, token, l);
-	charset[l] = 0;
-
-	token = x+1;
 
 	// bail if it doesn't fit 
 	if(e-token > sizeof(decoded)-1)
@@ -1391,12 +1410,24 @@ rfc2047convert(String *s, char *token, int len)
 	} else
 		return -1;
 
-	if(xtoutf(charset, &x, decoded, decoded+len) <= 0)
+	switch(charsets[i].convert){
+	case 0:
 		s_append(s, decoded);
-	else {
-		s_append(s, x);
-		free(x);
+		break;
+	case 1:
+		latin1toutf(utfbuf, decoded, decoded+len);
+		s_append(s, utfbuf);
+		break;
+	case 2:
+		if(xtoutf(charsets[i].tcsname, &x, decoded, decoded+len) <= 0){
+			s_append(s, decoded);
+		} else {
+			s_append(s, x);
+			free(x);
+		}
+		break;
 	}
+
 	return 0;
 }
 
@@ -1435,20 +1466,21 @@ rfc2047start(char *start, char *end)
 String*
 stringconvert(String *s, char *uneaten, int len)
 {
-	char *token, *p, *e;
+	char *token;
+	char *p;
+	int i;
 
 	s = s_reset(s);
 	p = uneaten;
-	for(e = p+len; p < e; ){
-		while(*p++ == '=' && (token = rfc2047start(uneaten, p))){
-			s_nappend(s, uneaten, token-uneaten);
-			if(rfc2047convert(s, token, p - token) < 0)
-				s_nappend(s, token, p - token);
-			uneaten = p;
-			for(; p<e && isspace(*p);)
-				p++;
-			if(p+2 < e && p[0] == '=' && p[1] == '?')
-				uneaten = p;	// paste
+	for(i = 0; i < len; i++){
+		if(*p++ == '='){
+			token = rfc2047start(uneaten, p);
+			if(token != nil){
+				s_nappend(s, uneaten, token-uneaten);
+				if(rfc2047convert(s, token, p - token) < 0)
+					s_nappend(s, token, p - token);
+				uneaten = p;
+			}
 		}
 	}
 	if(p > uneaten)

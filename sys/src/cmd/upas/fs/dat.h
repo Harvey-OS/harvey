@@ -132,6 +132,8 @@ void		convert(Message*);
 void		decode(Message*);
 int		cistrncmp(char*, char*, int);
 int		cistrcmp(char*, char*);
+int		latin1toutf(char*, char*, char*);
+int		windows1257toutf(char*, char*, char*);
 int		decquoted(char*, char*, char*, int);
 int		xtoutf(char*, char**, char*, char*);
 void		countlines(Message*);
