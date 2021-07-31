@@ -491,7 +491,7 @@ char *srvname;
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-Dr] [-d sdname] [-m mtpt] [-s srvname] diskimage\n",
+	fprint(2, "usage: %s [-D] [-f file] [-s srvname] [-m mtpt] [sdXX]\n",
 		argv0);
 	fprint(2, "\tdefault mtpt is /dev\n");
 	exits("usage");
@@ -504,6 +504,7 @@ main(int argc, char **argv)
 	char *file, *cname;
 	Dir *dir;
 
+	file = nil;
 	quotefmtinstall();
 	time0 = time(0);
 
@@ -511,8 +512,8 @@ main(int argc, char **argv)
 	case 'D':
 		chatty9p++;
 		break;
-	case 'd':
-		sdname = EARGF(usage());
+	case 'f':
+		file = EARGF(usage());
 		break;
 	case 'm':
 		mtpt = EARGF(usage());
@@ -527,9 +528,12 @@ main(int argc, char **argv)
 		usage();
 	}ARGEND
 
-	if(argc != 1)
+	if(argc > 1)
 		usage();
-	file = argv[0];
+	if(argc == 1)
+		sdname = argv[0];
+	if(!file)
+		sysfatal("no underlying file named");
 	dir = dirstat(file);
 	if(!dir)
 		sysfatal("%s: %r", file);
