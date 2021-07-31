@@ -318,7 +318,6 @@ ipifckick(void *x)
 	else
 		(*ifc->m->pktin)(c->p->f, ifc, bp);
 	runlock(ifc);
-	poperror();
 }
 
 /*

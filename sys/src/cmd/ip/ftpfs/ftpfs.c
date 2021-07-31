@@ -82,7 +82,6 @@ char *nouid = "?uid?";
 #define S2P(x) (((ulong)(x)) & 0xffffff)
 
 char *nosuchfile = "file does not exist";
-char *keyspec = "";
 
 void
 usage(void)
@@ -115,9 +114,6 @@ main(int argc, char *argv[])
 		debug = 1;
 		break;
 	case 'k':
-		keyspec = EARGF(usage());
-		break;
-	case 'K':
 		dokeepalive = 1;
 		break;
 	case 'm':
@@ -155,7 +151,7 @@ main(int argc, char *argv[])
 	/* initial handshakes with remote side */
 	hello(*argv);
 	if (cpassword == 0)
-		rlogin(*argv, keyspec);
+		rlogin(*argv);
 	else
 		clogin("anonymous", cpassword);
 	preamble(mountroot);
