@@ -87,7 +87,7 @@ labelshow(Label *l)
 		l->font->font->height, l->align);
 	_string(l->screen, p, l->textcolor->image,
 		ZP, l->font->font, l->text, nil, strlen(l->text),
-		r, nil, ZP, SoverD);
+		r, nil, ZP);
 	flushimage(display, 1);
 }
 

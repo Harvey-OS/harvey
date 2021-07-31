@@ -5,47 +5,24 @@
 Point
 stringbg(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Image *bg, Point bgp)
 {
-	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, bg, bgp, SoverD);
-}
-
-Point
-stringbgop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Image *bg, Point bgp, int op)
-{
-	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, bg, bgp, op);
+	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, bg, bgp);
 }
 
 Point
 stringnbg(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, int len, Image *bg, Point bgp)
 {
-	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, bg, bgp, SoverD);
-}
-
-Point
-stringnbgop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, int len, Image *bg, Point bgp, int op)
-{
-	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, bg, bgp, op);
+	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, bg, bgp);
 }
 
 Point
 runestringbg(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r, Image *bg, Point bgp)
 {
-	return _string(dst, pt, src, sp, f, nil, r, 1<<24, dst->clipr, bg, bgp, SoverD);
-}
-
-Point
-runestringbgop(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r, Image *bg, Point bgp, int op)
-{
-	return _string(dst, pt, src, sp, f, nil, r, 1<<24, dst->clipr, bg, bgp, op);
+	return _string(dst, pt, src, sp, f, nil, r, 1<<24, dst->clipr, bg, bgp);
 }
 
 Point
 runestringnbg(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r, int len, Image *bg, Point bgp)
 {
-	return _string(dst, pt, src, sp, f, nil, r, len, dst->clipr, bg, bgp, SoverD);
+	return _string(dst, pt, src, sp, f, nil, r, len, dst->clipr, bg, bgp);
 }
 
-Point
-runestringnbgop(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r, int len, Image *bg, Point bgp, int op)
-{
-	return _string(dst, pt, src, sp, f, nil, r, len, dst->clipr, bg, bgp, op);
-}

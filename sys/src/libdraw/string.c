@@ -10,53 +10,29 @@ enum
 Point
 string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s)
 {
-	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, nil, ZP, SoverD);
-}
-
-Point
-stringop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Drawop op)
-{
-	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, nil, ZP, op);
+	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, nil, ZP);
 }
 
 Point
 stringn(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, int len)
 {
-	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, nil, ZP, SoverD);
-}
-
-Point
-stringnop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, int len, Drawop op)
-{
-	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, nil, ZP, op);
+	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, nil, ZP);
 }
 
 Point
 runestring(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r)
 {
-	return _string(dst, pt, src, sp, f, nil, r, 1<<24, dst->clipr, nil, ZP, SoverD);
-}
-
-Point
-runestringop(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r, Drawop op)
-{
-	return _string(dst, pt, src, sp, f, nil, r, 1<<24, dst->clipr, nil, ZP, op);
+	return _string(dst, pt, src, sp, f, nil, r, 1<<24, dst->clipr, nil, ZP);
 }
 
 Point
 runestringn(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r, int len)
 {
-	return _string(dst, pt, src, sp, f, nil, r, len, dst->clipr, nil, ZP, SoverD);
+	return _string(dst, pt, src, sp, f, nil, r, len, dst->clipr, nil, ZP);
 }
 
 Point
-runestringnop(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r, int len, Drawop op)
-{
-	return _string(dst, pt, src, sp, f, nil, r, len, dst->clipr, nil, ZP, op);
-}
-
-Point
-_string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Rune *r, int len, Rectangle clipr, Image *bg, Point bgp, Drawop op)
+_string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Rune *r, int len, Rectangle clipr, Image *bg, Point bgp)
 {
 	int m, n, wid, max;
 	ushort cbuf[Max], *c, *ec;
@@ -72,7 +48,7 @@ _string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Rune *r, i
 	}else
 		sptr = &s;
 	if(r == nil){
-		r = (Rune*) L"";
+		r = L"";
 		rptr = nil;
 	}else
 		rptr = &r;
@@ -82,8 +58,6 @@ _string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Rune *r, i
 			max = len;
 		n = cachechars(f, sptr, rptr, cbuf, max, &wid, &subfontname);
 		if(n > 0){
-			_setdrawop(dst->display, op);
-
 			m = 47+2*n;
 			if(bg)
 				m += 4+2*4;

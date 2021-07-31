@@ -381,7 +381,7 @@ ctokenize(char *s, CParse *cp)
 	cp->nargs = tokenize(s, cp->args, nelem(cp->pargs));
 }
 
-static int
+int
 ctlparse(CParse *cp, char *s, int hasreceiver)
 {
 	int i;

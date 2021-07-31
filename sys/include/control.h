@@ -140,6 +140,7 @@ void		_activategroup(Control*);
 void		_deactivategroup(Control*);
 int		_ctllookup(char *s, char *tab[], int ntab);
 void		_ctlprint(Control *c, char *fmt, ...);
+int		ctlparse(CParse*, char*, int);
 
 /* images */
 CImage*	_getctlimage(char*);
