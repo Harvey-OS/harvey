@@ -52,9 +52,9 @@ bind(int fd, void *a, int alen)
 	}
 	lip = (struct sockaddr_in*)&r->addr;
 	if(lip->sin_port > 0)
-		snprintf(msg, sizeof msg, "bind %d", ntohs(lip->sin_port));
+		sprintf(msg, "bind %d", ntohs(lip->sin_port));
 	else
-		strcpy(msg, "bind *");
+		sprintf(msg, "bind *");
 	n = write(cfd, msg, strlen(msg));
 	if(n < 0){
 		errno = EOPNOTSUPP;	/* Improve error reporting!!! */

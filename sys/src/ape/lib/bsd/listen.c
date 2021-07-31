@@ -142,11 +142,10 @@ listen(fd, backlog)
 				close(cfd);
 				return -1;
 			}
-			snprintf(msg, sizeof msg, "announce %d",
-				ntohs(lip->sin_port));
+			sprintf(msg, "announce %d", ntohs(lip->sin_port));
 		}
 		else
-			strcpy(msg, "announce *");
+			sprintf(msg, "announce *");
 		n = write(cfd, msg, strlen(msg));
 		if(n < 0){
 			errno = EOPNOTSUPP;	/* Improve error reporting!!! */

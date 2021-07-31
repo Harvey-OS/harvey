@@ -13,7 +13,6 @@
 
 #include "priv.h"
 
-/* we can't avoid overrunning npath because we don't know how big it is. */
 void
 _sock_srvname(char *npath, char *path)
 {
@@ -32,7 +31,7 @@ int
 _sock_srv(char *path, int fd)
 {
 	int sfd;
-	char msg[8+256+1];
+	char msg[128];
 
 	/* change the path to something in srv */
 	_sock_srvname(msg, path);
@@ -47,7 +46,7 @@ _sock_srv(char *path, int fd)
 		_syserrno();
 		return -1;
 	}
-	snprintf(msg, sizeof msg, "%d", fd);
+	sprintf(msg, "%d", fd);
 	if(write(sfd, msg, strlen(msg)) < 0){
 		_syserrno();
 		close(sfd);

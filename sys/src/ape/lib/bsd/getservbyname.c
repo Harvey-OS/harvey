@@ -50,9 +50,9 @@ getservbyname(char *name, char *proto)
 
 	/* construct the query, always expect an ip# back */
 	if(num)
-		snprintf(buf, sizeof buf, "!port=%s %s=*", name, proto);
+		sprintf(buf, "!port=%s %s=*", name, proto);
 	else
-		snprintf(buf, sizeof buf, "!%s=%s port=*", proto, name);
+		sprintf(buf, "!%s=%s port=*", proto, name);
 
 	/* query the server */
 	if(write(fd, buf, strlen(buf)) < 0){

@@ -52,13 +52,13 @@ gethostbyname(char *name)
 	/* construct the query, always expect an ip# back */
 	switch(t){
 	case Tsys:
-		snprintf(buf, sizeof buf, "!sys=%s ip=*", name);
+		sprintf(buf, "!sys=%s ip=*", name);
 		break;
 	case Tdom:
-		snprintf(buf, sizeof buf, "!dom=%s ip=*", name);
+		sprintf(buf, "!dom=%s ip=*", name);
 		break;
 	case Tip:
-		snprintf(buf, sizeof buf, "!ip=%s", name);
+		sprintf(buf, "!ip=%s", name);
 		break;
 	}
 

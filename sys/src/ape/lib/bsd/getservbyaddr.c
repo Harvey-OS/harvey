@@ -13,6 +13,6 @@ getservbyport(int port, char *proto)
 {
 	char buf[32];
 
-	snprintf(buf, sizeof buf, "%d", port);
+	sprintf(buf, "%d", port);
 	return getservbyname(buf, proto);
 }
