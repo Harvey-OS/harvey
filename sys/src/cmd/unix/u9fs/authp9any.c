@@ -15,6 +15,7 @@ typedef struct	Authenticator	Authenticator;
 enum
 {
 	DOMLEN=		48,		/* length of an authentication domain name */
+/*	DESKEYLEN=	7,		/* length of a des key for encrypt/decrypt */
 	CHALLEN=	8		/* length of a challenge */
 };
 
@@ -335,6 +336,7 @@ static char*
 p9anyauth(Fcall *rx, Fcall *tx)
 {
 	AuthSession *sp;
+	int result;
 	Fid *f;
 	char *ep;
 
@@ -390,6 +392,7 @@ p9anyread(Fcall *rx, Fcall *tx)
 {
 	AuthSession *sp;
 	char *ep;
+	char buf[100];
 
 	Fid *f;
 	f = oldauthfid(rx->afid, (void **)&sp, &ep);

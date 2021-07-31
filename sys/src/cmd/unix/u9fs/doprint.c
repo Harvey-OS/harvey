@@ -138,9 +138,8 @@ pchar(Rune c, Fconv *fp)
 }
 
 char*
-doprint(char *s, char *es, char *fmt, ...)
+doprint(char *s, char *es, char *fmt, va_list argp)
 {
-	va_list argp;
 	int n, c;
 	Rune rune;
 	Fconv local;
@@ -153,8 +152,6 @@ doprint(char *s, char *es, char *fmt, ...)
 	local.out = s;
 	local.eout = es-1;
 
-	va_start(argp, fmt);
-
 loop:
 	c = *fmt & 0xff;
 	if(c >= Runeself) {
@@ -166,7 +163,6 @@ loop:
 	switch(c) {
 	case 0:
 		*local.out = 0;
-		va_end(argp);
 		return local.out;
 	
 	default:
