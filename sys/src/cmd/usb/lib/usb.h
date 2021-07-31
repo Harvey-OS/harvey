@@ -164,22 +164,6 @@ enum
 	Noclass = 0,
 	Hubclass,
 	Otherclass,
-
-	/* endpoint direction */
-	Ein = 0,
-	Eout,
-
-	/* endpoint type */
-	Econtrol = 0,
-	Eiso = 1,
-	Ebulk = 2,
-	Eintr = 3,
-
-	/* endpoint isotype */
-	Eunknown = 0,
-	Easync = 1,
-	Eadapt = 2,
-	Esync = 3,
 };
 
 enum
@@ -195,7 +179,7 @@ enum
 
 struct Endpt
 {
-	uchar	addr;		/* endpoint address, 0-15 (|0x80 if direction==Ein) */
+	uchar	addr;		/* endpoint address, 0-15 */
 	uchar	dir;		/* direction, Ein/Eout */
 	uchar	type;		/* Econtrol, Eiso, Ebulk, Eintr */
 	uchar	isotype;	/* Eunknown, Easync, Eadapt, Esync */
