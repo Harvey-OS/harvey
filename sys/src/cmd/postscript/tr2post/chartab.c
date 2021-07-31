@@ -39,7 +39,7 @@ void
 mountfont(int pos, char *fontname) {
 	int i;
 
-	if (debug) fprint(2, "mountfont(%d, %s)\n", pos, fontname);
+	if (debug) Bprint(Bstderr, "mountfont(%d, %s)\n", pos, fontname);
 	if (pos < 0 || pos >= fontmnt)
 		error(FATAL, "cannot mount a font at position %d,\n  can only mount into postions 0-%d\n",
 			pos, fontmnt-1);
@@ -58,7 +58,7 @@ settrfont(void) {
 		error(FATAL, "Font at position %d was not initialized, botch!\n", fontpos);
 
 	curtrofffontid = findtfn(fontmtab[fontpos], 1);
-	if (debug) fprint(2, "settrfont()-> curtrofffontid=%d\n", curtrofffontid);
+	if (debug) Bprint(Bstderr, "settrfont()-> curtrofffontid=%d\n", curtrofffontid);
 	curfontpos = fontpos;
 	if (curtrofffontid < 0) {
 		int i;
@@ -120,23 +120,23 @@ findpfn(char *fontname, int insflg) {
 	return(-1);
 }
 
-char postroffdirname[] = "/sys/lib/postscript/troff"; /* "/sys/lib/postscript/troff/"; */
-char troffmetricdirname[] = "/sys/lib/troff/font"; /* "/sys/lib/troff/font/devutf/"; */
+char postroffdirname[] = "/sys/lib/postscript/troff";		/* "/sys/lib/postscript/troff/"; */
+char troffmetricdirname[] = "/sys/lib/troff/font";	/* "/sys/lib/troff/font/devutf/"; */
 
 int
 readpsfontdesc(char *fontname, int trindex) {
-	int errorflg = 0, line = 1, rv, start, end, offset;
+	static char *filename = 0;
+	Biobuf *bfd;
+	Biobufhdr *Bfd;
+	int warn = 0, errorflg = 0, line =1, rv;
+	int start, end, offset;
 	int startfont, endfont, startchar, endchar, i, pfid;
 	char psfontnam[128];
 	struct troffont *tp;
-	Biobuf *bfd;
-	Biobufhdr *Bfd;
-	static char *filename = 0;
+	struct charent *cp[];
 
-	if (debug)
-		fprint(2, "readpsfontdesc(%s,%d)\n", fontname, trindex);
-	filename = galloc(filename, strlen(postroffdirname)+1+strlen(fontname)+1,
-		"readpsfontdesc: cannot allocate memory\n");
+	if (debug) Bprint(Bstderr, "readpsfontdesc(%s,%d)\n", fontname, trindex);
+	filename=galloc(filename, strlen(postroffdirname)+1+strlen(fontname)+1, "readpsfontdesc: cannot allocate memory\n");
 	sprint(filename, "%s/%s", postroffdirname, fontname);
 
 	bfd = Bopen(filename, OREAD);
@@ -144,7 +144,7 @@ readpsfontdesc(char *fontname, int trindex) {
 		error(WARNING, "cannot open file %s\n", filename);
 		return(0);
 	}
-	Bfd = &bfd->Biobufhdr;
+	Bfd = &(bfd->Biobufhdr);
 
 	do {
 		offset = 0;
@@ -156,15 +156,14 @@ readpsfontdesc(char *fontname, int trindex) {
 			errorflg = 1;
 			error(WARNING, "file %s:%d illegal end value\n", filename, line);
 		} else if (rv < 0) break;
-		if (Bgetfield(Bfd, 'd', &offset, 0) < 0) {
+		if ((rv=Bgetfield(Bfd, 'd', &offset, 0)) < 0) {
 			errorflg = 1;
 			error(WARNING, "file %s:%d illegal offset value\n", filename, line);
 		}
 		if ((rv=Bgetfield(Bfd, 's', psfontnam, 128)) == 0) {
 			errorflg = 1;
 			error(WARNING, "file %s:%d illegal fontname value\n", filename, line);
-		} else if (rv < 0)
-			break;
+		} else if (rv < 0) break;
 		Brdline(Bfd, '\n');
 		if (!errorflg) {
 			struct psfent *psfentp;
@@ -175,25 +174,22 @@ readpsfontdesc(char *fontname, int trindex) {
 			pfid = findpfn(psfontnam, 1);
 			if (startfont != endfont) {
 				error(WARNING, "font descriptions must not cross 256 glyph block boundary\n");
+				errorflg = 1;
 				break;
 			}
-			tp = &troffontab[trindex];
-			tp->psfmap = galloc(tp->psfmap, ++tp->psfmapsize *
-				sizeof(struct psfent),
-				"readpsfontdesc():psfmap");
+			tp = &(troffontab[trindex]);
+			tp->psfmap = galloc(tp->psfmap, ++(tp->psfmapsize)*sizeof(struct psfent), "readpsfontdesc():psfmap");
 			psfentp = &(tp->psfmap[tp->psfmapsize-1]);
 			psfentp->start = start;
 			psfentp->end = end;
 			psfentp->offset = offset;
 			psfentp->psftid = pfid;
 			if (debug) {
-				fprint(2, "\tpsfmap->start=0x%x\n", start);
-				fprint(2, "\tpsfmap->end=0x%x\n", end);
-				fprint(2, "\tpsfmap->offset=0x%x\n", offset);
-				fprint(2, "\tpsfmap->pfid=0x%x\n", pfid);
+				Bprint(Bstderr, "\tpsfmap->start=0x%x\n", start);
+				Bprint(Bstderr, "\tpsfmap->end=0x%x\n", end);
+				Bprint(Bstderr, "\tpsfmap->offset=0x%x\n", offset);
+				Bprint(Bstderr, "\tpsfmap->pfid=0x%x\n", pfid);
 			}
-			SET(i);
-			USED(i, startchar, endchar);
 /*
 			for (i=startchar; i<=endchar; i++) {
 				tp->charent[startfont][i].postfontid = pfid;
@@ -201,10 +197,9 @@ readpsfontdesc(char *fontname, int trindex) {
 			}
  */
 			if (debug) {
-				fprint(2, "%x %x ", start, end);
-				if (offset)
-					fprint(2, "%x ", offset);
-				fprint(2, "%s\n", psfontnam);
+				Bprint(Bstderr, "%x %x ", start, end);
+				if (offset) Bprint(Bstderr, "%x ", offset);
+				Bprint(Bstderr, "%s\n", psfontnam);
 			}
 			line++;
 		}
@@ -215,21 +210,20 @@ readpsfontdesc(char *fontname, int trindex) {
 
 int
 readtroffmetric(char *fontname, int trindex) {
-	int ntoken, errorflg = 0, line = 1, rv;
-	int width, flag, charnum, thisfont, thischar;
-	char stoken[128], *str;
-	struct charent **cp;
-	BOOLEAN specharflag;
+	static char *filename = 0;
 	Biobuf *bfd;
 	Biobufhdr *Bfd;
+	int warn = 0, errorflg = 0, line =1, rv;
+	struct troffont *tp;
+	struct charent **cp;
+	char stoken[128], *str;
+	int ntoken;
 	Rune troffchar, quote;
-	static char *filename = 0;
+	int width, flag, charnum, thisfont, thischar;
+	BOOLEAN specharflag;
 
-	if (debug)
-		fprint(2, "readtroffmetric(%s,%d)\n", fontname, trindex);
-	filename = galloc(filename, strlen(troffmetricdirname) + 4 +
-		strlen(devname) + 1 + strlen(fontname) + 1,
-		"readtroffmetric():filename");
+	if (debug) Bprint(Bstderr, "readtroffmetric(%s,%d)\n", fontname, trindex);
+	filename=galloc(filename, strlen(troffmetricdirname)+4+strlen(devname)+1+strlen(fontname)+1, "readtroffmetric():filename");
 	sprint(filename, "%s/dev%s/%s", troffmetricdirname, devname, fontname);
 
 	bfd = Bopen(filename, OREAD);
@@ -237,19 +231,18 @@ readtroffmetric(char *fontname, int trindex) {
 		error(WARNING, "cannot open file %s\n", filename);
 		return(0);
 	}
-	Bfd = &bfd->Biobufhdr;
+	Bfd = &(bfd->Biobufhdr);
 	do {
-		/*
-		 * deal with the few lines at the beginning of the
+		/* deal with the few lines at the beginning of the
 		 * troff font metric files.
 		 */
 		if ((rv=Bgetfield(Bfd, 's', stoken, 128)) == 0) {
 			errorflg = 1;
 			error(WARNING, "file %s:%d illegal token\n", filename, line);
-		} else if (rv < 0)
-			break;
-		if (debug)
-			fprint(2, "%s\n", stoken);
+		} else if (rv < 0) break;
+		if (debug) {
+			Bprint(Bstderr, "%s\n", stoken);
+		}
 
 		if (strcmp(stoken, "name") == 0) {
 			if ((rv=Bgetfield(Bfd, 's', stoken, 128)) == 0) {
@@ -278,7 +271,7 @@ readtroffmetric(char *fontname, int trindex) {
 
 			if (*cp == 0) *cp = galloc(0, sizeof(struct charent), "readtroffmetric:charent");
 			(*cp)->postfontid = thisfont;
-			(*cp)->postcharid = thischar;
+			(*cp)->postcharid = thischar; 
 			(*cp)->troffcharwidth = ntoken;
 			(*cp)->name = galloc(0, 2, "readtroffmetric: char name");
 			(*cp)->next = 0;
@@ -289,7 +282,7 @@ readtroffmetric(char *fontname, int trindex) {
 			line++;
 			break;
 		}
-		if (!errorflg) {
+		if (!errorflg) {		
 			line++;
 		}
 	} while(!errorflg && rv>=0);
@@ -303,14 +296,15 @@ readtroffmetric(char *fontname, int trindex) {
 		/* if this character is a quote we have to use the previous characters info */
 		if ((rv=Bgetfield(Bfd, 'r', &quote, 0)) == 0) {
 			errorflg = 1;
-			error(WARNING, "file %s:%d illegal width or quote token <0x%x> rv=%d\n",
-				filename, line, quote, rv);
+			error(WARNING, "file %s:%d illegal width or quote token <0x%x> rv=%d\n", filename, line, quote, rv);
 		} else if (rv < 0) break;
 		if (quote == '"') {
 			/* need some code here */
+
 			goto flush;
-		} else
+		} else {
 			Bungetrune(Bfd);
+		}
 
 		if ((rv=Bgetfield(Bfd, 'd', &width, 0)) == 0) {
 			errorflg = 1;
@@ -323,24 +317,23 @@ readtroffmetric(char *fontname, int trindex) {
 		if ((rv=Bgetfield(Bfd, 'd', &charnum, 0)) == 0) {
 			errorflg = 1;
 			error(WARNING, "file %s:%d illegal character number token <0x%x> rv=%d\n", filename, line, troffchar, rv);
-		} else if (rv < 0)
-			break;
+		} else if (rv < 0) break;
 flush:
 		str = Brdline(Bfd, '\n');
 		/* stash the crap from the end of the line for debugging */
 		if (debug) {
 			if (str == 0) {
-				fprint(2, "premature EOF\n");
+				Bprint(Bstderr, "premature EOF\n");
 				return(0);
 			}
 			str[Blinelen(Bfd)-1] = '\0';
 		}
 		line++;
 		chartorune(&troffchar, stoken);
-		if (specharflag)
+		if (specharflag) {
 			if (debug)
-				fprint(2, "%s %d  %d 0x%x %s # special\n",
-					stoken, width, flag, charnum, str);
+				Bprint(Bstderr, "%s %d  %d 0x%x %s # special\n",stoken, width, flag, charnum, str);
+		}
 		if (strcmp(stoken, "---") == 0) {
 			thisfont = RUNEGETGROUP(charnum);
 			thischar = RUNEGETCHAR(charnum);
@@ -349,30 +342,25 @@ flush:
 			thisfont = RUNEGETGROUP(troffchar);
 			thischar = RUNEGETCHAR(troffchar);
 		}
-		for (cp = &troffontab[trindex].charent[thisfont][thischar];
-		    *cp != 0; cp = &(*cp)->next)
+		for (cp = &(troffontab[trindex].charent[thisfont][thischar]); *cp != 0; cp = &((*cp)->next))
 			if ((*cp)->name) {
-				if (debug)
-					fprint(2, "installing <%s>, found <%s>\n",
-						stoken, (*cp)->name);
+				if (debug) Bprint(Bstderr, "installing <%s>, found <%s>\n", stoken, (*cp)->name);
 				if  (strcmp((*cp)->name, stoken) == 0)
 					break;
 			}
-		if (*cp == 0)
-			*cp = galloc(0, sizeof(struct charent),
-				"readtroffmetric:charent");
+		if (*cp == 0) *cp = galloc(0, sizeof(struct charent), "readtroffmetric:charent");
 		(*cp)->postfontid = RUNEGETGROUP(charnum);
-		(*cp)->postcharid = RUNEGETCHAR(charnum);
+		(*cp)->postcharid = RUNEGETCHAR(charnum); 
 		(*cp)->troffcharwidth = width;
 		(*cp)->name = galloc(0, strlen(stoken)+1, "readtroffmetric: char name");
 		(*cp)->next = 0;
 		strcpy((*cp)->name, stoken);
 		if (debug) {
 			if (specharflag)
-				fprint(2, "%s", stoken);
+				Bprint(Bstderr, "%s", stoken);
 			else
-				fprint(2, "%C", troffchar);
-			fprint(2, " %d  %d 0x%x %s # psfontid=0x%x pscharid=0x%x thisfont=0x%x thischar=0x%x\n",
+				Bputrune(Bstderr, troffchar);
+			Bprint(Bstderr, " %d  %d 0x%x %s # psfontid=0x%x pscharid=0x%x thisfont=0x%x thischar=0x%x\n",
 				width, flag, charnum, str,
 				(*cp)->postfontid,
 				(*cp)->postcharid,
@@ -396,8 +384,10 @@ findtfn(char *fontname, BOOLEAN insflg) {
 	struct troffont *tp;
 	int i, j;
 
-	if (debug)
-		fprint(2, "findtfn(%s,%d)\n", fontname, insflg);
+	if (debug) {
+		if (fontname==0) fprint(2, "findtfn(0x%x,%d)\n", fontname, insflg);
+		else fprint(2, "findtfn(%s,%d)\n", fontname, insflg);
+	}
 	for (i=0; i<troffontcnt; i++) {
 		if (troffontab[i].trfontid==0) {
 			error(WARNING, "findtfn:troffontab[%d].trfontid=0x%x, botch!\n",
@@ -408,9 +398,7 @@ findtfn(char *fontname, BOOLEAN insflg) {
 			return(i);
 	}
 	if (insflg) {
-		tp = (struct troffont *)galloc(troffontab,
-			sizeof(struct troffont)*(troffontcnt+1),
-			"findtfn: struct troffont:");
+		tp = (struct troffont *)galloc(troffontab, sizeof(struct troffont)*(troffontcnt+1), "findtfn: struct troffont:");
 		if (tp == 0)
 			return(-2);
 		troffontab = tp;

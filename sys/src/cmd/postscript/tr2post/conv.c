@@ -6,15 +6,16 @@
 
 void
 conv(Biobufhdr *Bp) {
-	long n;
+	long c, n;
 	int r;
 	char special[10];
 	int save;
 
 	inputlineno = 1;
-	if (debug)
-		fprint(2, "conv(Biobufhdr *Bp=%#p)\n", Bp);
+	if (debug) Bprint(Bstderr, "conv(Biobufhdr *Bp=0x%x)\n", Bp);
 	while ((r = Bgetrune(Bp)) >= 0) {
+/* Bprint(Bstderr, "r=<%c>,0x%x\n", r, r); */
+/*		Bflush(Bstderr); */
 		switch (r) {
 		case 's':	/* set point size */
 			Bgetfield(Bp, 'd', &fontsize, 0);
@@ -94,8 +95,6 @@ conv(Biobufhdr *Bp) {
 		}
 	}
 	endpage();
-	if (debug) {
-		fprint(2, "r=%#ux\n", r);
-		fprint(2, "leaving conv\n");
-	}
+	if (debug) Bprint(Bstderr, "r=0x%x\n", r);
+	if (debug) Bprint(Bstderr, "leaving conv\n");
 }
