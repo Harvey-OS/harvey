@@ -5,7 +5,6 @@ struct io{
 	int	fd;
 	uchar	*bufp, *ebuf, *strp;
 	uchar	buf[NBUF];
-	uchar	output;		/* flag */
 };
 io *err;
 
@@ -14,7 +13,6 @@ int emptybuf(io*);
 void pchr(io*, int);
 int rchr(io*);
 int rutf(io*, char*, Rune*);
-void rewind(io*);
 void closeio(io*);
 void flush(io*);
 int fullbuf(io*, int);

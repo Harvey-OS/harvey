@@ -1,43 +1,35 @@
 #include "rc.h"
 #include "exec.h"
 #include "io.h"
+#include "getflags.h"
 #include "fns.h"
-
-Rune getnext(void);
+int getnext(void);
 
 int
-wordchr(Rune c)		/* is c in the alphabet of words (non-delimiters)? */
+wordchr(int c)
 {
-	return c != EOF &&
-		(c >= Runeself || strchr("\n \t#;&|^$=`'{}()<>", c) == nil);
+	return !strchr("\n \t#;&|^$=`'{}()<>", c) && c!=EOF;
 }
 
-/*
- * is c in the alphabet of identifiers?  as in the c compiler, treat
- * non-ascii as alphabetic.
- */
 int
-idchr(Rune c)
+idchr(int c)
 {
 	/*
 	 * Formerly:
 	 * return 'a'<=c && c<='z' || 'A'<=c && c<='Z' || '0'<=c && c<='9'
 	 *	|| c=='_' || c=='*';
 	 */
-	return c != EOF && (c >= Runeself ||
-		c > ' ' &&
-		  strchr("!\"#$%&'()+,-./:;<=>?@[\\]^`{|}~", c) == nil);
+	return c>' ' && !strchr("!\"#$%&'()+,-./:;<=>?@[\\]^`{|}~", c);
 }
-
-Rune future = EOF;
+int future = EOF;
 int doprompt = 1;
-int inquote;		/* are we processing a quoted word ('...')? */
-int incomm;		/* are we ignoring input in a comment (#...\n)? */
+int inquote;
+int incomm;
 /*
  * Look ahead in the input stream
  */
 
-Rune
+int
 nextc(void)
 {
 	if(future==EOF)
@@ -48,26 +40,23 @@ nextc(void)
  * Consume the lookahead character.
  */
 
-Rune
+int
 advance(void)
 {
-	Rune c = nextc();
-
+	int c = nextc();
 	lastc = future;
 	future = EOF;
 	return c;
 }
 /*
  * read a character from the input stream
- */
+ */	
 
-Rune
+int
 getnext(void)
 {
-	Rune c;
-	char buf[UTFmax+1];
-	static Rune peekc = EOF;
-
+	int c;
+	static int peekc = EOF;
 	if(peekc!=EOF){
 		c = peekc;
 		peekc = EOF;
@@ -77,9 +66,9 @@ getnext(void)
 		return EOF;
 	if(doprompt)
 		pprompt();
-	rutf(runq->cmdfd, buf, &c);
+	c = rchr(runq->cmdfd);
 	if(!inquote && c=='\\'){
-		rutf(runq->cmdfd, buf, &c);
+		c = rchr(runq->cmdfd);
 		if(c=='\n' && !incomm){		/* don't continue a comment */
 			doprompt = 1;
 			c=' ';
@@ -116,8 +105,7 @@ pprompt(void)
 void
 skipwhite(void)
 {
-	Rune c;
-
+	int c;
 	for(;;){
 		c = nextc();
 		/* Why did this used to be  if(!inquote && c=='#') ?? */
@@ -141,22 +129,18 @@ skipwhite(void)
 void
 skipnl(void)
 {
-	Rune c, c0;
-
-	for(c0 = nextc(); ; c0 = c){
+	int c;
+	for(;;){
 		skipwhite();
 		c = nextc();
-		if(c != c0)
-			lastword = 0; /* change of whitespace or c is not ws */
 		if(c!='\n')
 			return;
-		lastword = 0;			/* new line; continue */
 		advance();
 	}
 }
 
 int
-nextis(Rune c)
+nextis(int c)
 {
 	if(nextc()==c){
 		advance();
@@ -166,16 +150,38 @@ nextis(Rune c)
 }
 
 char*
-addutf(char *p, Rune c)
+addtok(char *p, int val)
 {
 	if(p==0)
 		return 0;
-	if(p >= &tok[NTOK-1-UTFmax*2]){
+	if(p >= &tok[NTOK]){
 		*p = 0;
 		yyerror("token buffer too short");
 		return 0;
 	}
-	p += runetochar(p, &c);
+	*p++=val;
+	return p;
+}
+
+char*
+addutf(char *p, int c)
+{
+	uchar b, m;
+	int i;
+
+	p = addtok(p, c);	/* 1-byte UTF runes are special */
+	if(c < Runeself)
+		return p;
+
+	m = 0xc0;
+	b = 0x80;
+	for(i=1; i < UTFmax; i++){
+		if((c&m) == b)
+			break;
+		p = addtok(p, advance());
+		b = m;
+		m = (m >> 1)|0x80;
+	}
 	return p;
 }
 
@@ -185,17 +191,16 @@ int lastword;	/* was the last token read a word or compound word terminator? */
 int
 yylex(void)
 {
-	Rune c, d = nextc();
+	int c, d = nextc();
 	char *w = tok;
 	struct tree *t;
-
 	yylval.tree = 0;
 	/*
-	 * Embarrassing sneakiness: if the last token read was a quoted or
-	 * unquoted WORD then we alter the meaning of what follows.  If the
-	 * next character is `(', we return SUB (a subscript paren) and
-	 * consume the `('.  Otherwise, if the next character is the first
-	 * character of a simple or compound word, we insert a `^' before it.
+	 * Embarassing sneakiness:  if the last token read was a quoted or unquoted
+	 * WORD then we alter the meaning of what follows.  If the next character
+	 * is `(', we return SUB (a subscript paren) and consume the `('.  Otherwise,
+	 * if the next character is the first character of a simple or compound word,
+	 * we insert a `^' before it.
 	 */
 	if(lastword){
 		lastword = 0;
@@ -209,6 +214,7 @@ yylex(void)
 			return '^';
 		}
 	}
+	inquote = 0;
 	skipwhite();
 	switch(c = advance()){
 	case EOF:
@@ -351,22 +357,23 @@ yylex(void)
 		t = token(tok, WORD);
 		t->quoted = 1;
 		yylval.tree = t;
-		inquote = 0;
 		return t->type;
 	}
 	if(!wordchr(c)){
 		lastdol = 0;
-		addutf(tok, c);
+		tok[0] = c;
+		tok[1]='\0';
 		return c;
 	}
 	for(;;){
 		if(c=='*' || c=='[' || c=='?' || c==GLOB)
-			w = addutf(w, GLOB);
+			w = addtok(w, GLOB);
 		w = addutf(w, c);
 		c = nextc();
 		if(lastdol?!idchr(c):!wordchr(c)) break;
 		advance();
 	}
+
 	lastword = 1;
 	lastdol = 0;
 	if(w!=0)

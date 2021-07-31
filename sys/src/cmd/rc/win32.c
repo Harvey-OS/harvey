@@ -7,6 +7,7 @@
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
+#include "getflags.h"
 char *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigalrm",	"sigkill",	"sigfpe",	"sigterm",
@@ -455,6 +456,12 @@ long
 Read(int fd, void *buf, long cnt)
 {
 	return read(fd, buf, cnt);
+}
+
+long
+Seek(int fd, long cnt, long whence)
+{
+	return seek(fd, cnt, whence);
 }
 
 int

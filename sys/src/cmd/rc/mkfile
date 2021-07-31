@@ -4,6 +4,7 @@ TARG=rc
 COMMONOFILES=\
 	code.$O\
 	exec.$O\
+	getflags.$O\
 	glob.$O\
 	here.$O\
 	io.$O\
@@ -28,6 +29,7 @@ HFILES=rc.h\
 	io.h\
 	exec.h\
 	fns.h\
+	getflags.h\
 
 YFILES=syn.y
 

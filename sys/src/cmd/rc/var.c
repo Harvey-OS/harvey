@@ -67,10 +67,7 @@ gvlook(char *name)
 {
 	int h = hash(name, NVAR);
 	var *v;
-
-	for (v = gvar[h]; v; v = v->next)
-		if (strcmp(v->name, name) == 0)
-			return v;
+	for(v = gvar[h];v;v = v->next) if(strcmp(v->name, name)==0) return v;
 	return gvar[h] = newvar(strdup(name), gvar[h]);
 }
 
@@ -78,11 +75,9 @@ var*
 vlook(char *name)
 {
 	var *v;
-
-	if (runq)
-		for (v = runq->local; v; v = v->next)
-			if (strcmp(v->name, name) == 0)
-				return v;
+	if(runq)
+		for(v = runq->local;v;v = v->next)
+			if(strcmp(v->name, name)==0) return v;
 	return gvlook(name);
 }
 

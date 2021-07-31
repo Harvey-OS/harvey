@@ -1,7 +1,9 @@
 #include "rc.h"
+#include "getflags.h"
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
+#include <String.h>
 
 int havefork = 1;
 
@@ -81,10 +83,11 @@ Xbackq(void)
 	int pfd[2];
 	char *stop;
 	char utf[UTFmax+1];
-	io *f, *wd;
+	struct io *f;
 	var *ifs = vlook("ifs");
 	word *v, *nextv;
 	Rune r;
+	String *word;
 
 	stop = ifs->val? ifs->val->word: "";
 	if(pipe(pfd)<0){
@@ -107,26 +110,26 @@ Xbackq(void)
 		addwaitpid(pid);
 		close(pfd[PWR]);
 		f = openfd(pfd[PRD]);
-		wd = openstr();
+		word = s_new();
 		v = nil;
 		/* rutf requires at least UTFmax+1 bytes in utf */
 		while((n = rutf(f, utf, &r)) != EOF){
 			utf[n] = '\0';
 			if(utfutf(stop, utf) == nil)
-				pstr(wd, utf);	/* append utf to word */
+				s_nappend(word, utf, n);
 			else
 				/*
 				 * utf/r is an ifs rune (e.g., \t, \n), thus
 				 * ends the current word, if any.
 				 */
-				if(*(char *)wd->strp != '\0'){
-					v = newword((char *)wd->strp, v);
-					rewind(wd);
+				if(s_len(word) > 0){
+					v = newword(s_to_c(word), v);
+					s_reset(word);
 				}
 		}
-		if(*(char *)wd->strp != '\0')
-			v = newword((char *)wd->strp, v);
-		closeio(wd);
+		if(s_len(word) > 0)
+			v = newword(s_to_c(word), v);
+		s_free(word);
 		closeio(f);
 		Waitfor(pid, 0);
 		/* v points to reversed arglist -- reverse it onto argv */

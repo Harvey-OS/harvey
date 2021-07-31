@@ -1,15 +1,12 @@
 #include "rc.h"
+#include "getflags.h"
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
-
-char flagset[] = "<flag>";	/* anything non-nil will do */
-char *flag[NFLAG];
-
 /*
  * Start executing the given code at the given pc with the given redirection
  */
-char *argv0;
+char *argv0="rc";
 
 void
 start(code *c, int pc, var *local)
@@ -116,8 +113,6 @@ var*
 newvar(char *name, var *next)
 {
 	var *v = new(var);
-
-	assert(name != nil);
 	v->name = name;
 	v->val = 0;
 	v->fn = 0;
@@ -126,99 +121,62 @@ newvar(char *name, var *next)
 	v->next = next;
 	return v;
 }
-
-/* fabricate bootstrap code (*=(argv);. /rc/lib/rcmain $*; exit) */
-static void
-loadboot(code *base, int nel, char *rcmain)
-{
-	code *bs;
-
-	bs = base;
-	bs++->i = 1;			/* reference count */
-	bs++->f = Xmark;		/* "* = $*" */
-	bs++->f = Xword;
-	bs++->s="*";
-	bs++->f = Xassign;
-	bs++->f = Xmark;
-	bs++->f = Xmark;
-	bs++->f = Xword;
-	bs++->s="*";
-	bs++->f = Xdol;
-	bs++->f = Xword;
-	bs++->s = rcmain;		/* ". /rc/lib/rcmain $*" */
-	bs++->f = Xword;
-	bs++->s=".";
-	bs++->f = Xsimple;
-	bs++->f = Xexit;		/* exit */
-	bs++->i = 0;			/* not reached */
-	if (bs > base + nel)
-		panic("bootstrap array too small", 0);
-}
-
-void
-usage(void)
-{
-	pfmt(err, "Usage: rc [-srdiIlxepvV] [-c arg] [-m command] "
-		"[file [arg ...]]\n");
-	Exit("bad flags");
-}
-
 /*
  * get command line flags, initialize keywords & traps.
  * get values from environment.
  * set $pid, $cflag, $*
- * fabricate bootstrap code and start it
+ * fabricate bootstrap code and start it (*=(argv);. /usr/lib/rcmain $*)
  * start interpreting code
  */
+
 void
 main(int argc, char *argv[])
 {
 	code bootstrap[17];
-	char num[12];
+	char num[12], *rcmain;
 	int i;
-
-	err = openfd(2);
-	ARGBEGIN {
-	case 'd': case 'e': case 'i': case 'l':
-	case 'p': case 'r': case 's': case 'v':
-	case 'x': case 'I': case 'V':
-		flag[ARGC()] = flagset;
-		break;
-	case 'c':
-	case 'm':
-		if (flag[ARGC()])
-			usage();
-		flag[ARGC()] = EARGF(usage());
-		break;
-	default:
-		usage();
-		break;
-	} ARGEND
-	if(argc < 0)
-		usage();
-	if(argv0 == nil)
-		argv0 = "rc";
-	if(argv0[0]=='-')			/* login shell? */
+	argc = getflags(argc, argv, "SsrdiIlxepvVc:1m:1[command]", 1);
+	if(argc==-1)
+		usage("[file [arg ...]]");
+	if(argv[0][0]=='-')
 		flag['l'] = flagset;
 	if(flag['I'])
 		flag['i'] = 0;
-	else if(flag['i']==0 && argc==0 && Isatty(0))
-		flag['i'] = flagset;		/* force interactive */
-
+	else if(flag['i']==0 && argc==1 && Isatty(0)) flag['i'] = flagset;
+	rcmain = flag['m']?flag['m'][0]:Rcmain; 
+	err = openfd(2);
 	kinit();
 	Trapinit();
 	Vinit();
 	inttoascii(num, mypid = getpid());
 	setvar("pid", newword(num, (word *)0));
-	setvar("cflag", flag['c']? newword(flag['c'], (word *)0): (word *)0);
-	setvar("rcname", newword(argv0, (word *)0));
-
-	loadboot(bootstrap, nelem(bootstrap), (flag['m']? flag['m']: Rcmain));
+	setvar("cflag", flag['c']?newword(flag['c'][0], (word *)0)
+				:(word *)0);
+	setvar("rcname", newword(argv[0], (word *)0));
+	i = 0;
+	memset(bootstrap, 0, sizeof bootstrap);
+	bootstrap[i++].i = 1;
+	bootstrap[i++].f = Xmark;
+	bootstrap[i++].f = Xword;
+	bootstrap[i++].s="*";
+	bootstrap[i++].f = Xassign;
+	bootstrap[i++].f = Xmark;
+	bootstrap[i++].f = Xmark;
+	bootstrap[i++].f = Xword;
+	bootstrap[i++].s="*";
+	bootstrap[i++].f = Xdol;
+	bootstrap[i++].f = Xword;
+	bootstrap[i++].s = rcmain;
+	bootstrap[i++].f = Xword;
+	bootstrap[i++].s=".";
+	bootstrap[i++].f = Xsimple;
+	bootstrap[i++].f = Xexit;
+	bootstrap[i].i = 0;
 	start(bootstrap, 1, (var *)0);
 	/* prime bootstrap argv */
 	pushlist();
-	for(i = argc-1; i >= 0; --i)
-		pushword(argv[i]);
+	argv0 = strdup(argv[0]);
+	for(i = argc-1;i!=0;--i) pushword(argv[i]);
 	for(;;){
 		if(flag['r'])
 			pfnc(err, runq);
@@ -228,7 +186,6 @@ main(int argc, char *argv[])
 			dotrap();
 	}
 }
-
 /*
  * Opcode routines
  * Arguments on stack (...)
@@ -269,14 +226,13 @@ main(int argc, char *argv[])
  * Xpipewait
  * Xpopm(value)				pop value from stack
  * Xpopredir
- * Xqdol(name)				concatenate variable components
  * Xrdcmds
  * Xrdfn
  * Xrdwr(file)[fd]			open file for reading and writing
  * Xread(file)[fd]			open file to read
+ * Xqdol(name)				concatenate variable components
  * Xreturn				kill thread
  * Xsimple(args)			run command and wait
- * Xsettrue
  * Xsub
  * Xsubshell{... Xexit}			execute {} in a subshell and wait
  * Xtrue{...}				execute {} if true
@@ -307,7 +263,7 @@ Xappend(void)
 		Xerror("can't open");
 		return;
 	}
-	seek(f, 0, 2);
+	Seek(f, 0L, 2);
 	pushredir(ROPEN, f, runq->code[runq->pc].i);
 	runq->pc++;
 	poplist();
@@ -736,7 +692,7 @@ word*
 copynwords(word *a, word *tail, int n)
 {
 	word *v, **end;
-
+	
 	v = 0;
 	end = &v;
 	while(n-- > 0){
@@ -974,45 +930,24 @@ Xrdcmds(void)
 }
 
 void
-pargv0(io *f)
-{
-	if(strcmp(argv0, "rc")==0 || strcmp(argv0, "/bin/rc")==0)
-		pfmt(f, "rc: ");
-	else
-		pfmt(f, "rc (%s): ", argv0);
-}
-
-void
-hisfault(io *f)
-{
-	thread *t;
-
-	for(t = runq; !t->cmdfile && t->ret != 0; t = t->ret)
-		;
-	if(t->cmdfile && !t->iflag)
-		pfmt(f, "%s:%d ", t->cmdfile, t->lineno);
-}
-
-void
 Xerror(char *s)
 {
-	io *msg = openstr();
-
-	pargv0(msg);
-	hisfault(msg);		/* capture errstr before another sys call */
-	pfmt(err, "%s%s: %r\n", (char *)msg->strp, s);
-	closeio(msg);
+	if(strcmp(argv0, "rc")==0 || strcmp(argv0, "/bin/rc")==0)
+		pfmt(err, "rc: %s: %r\n", s);
+	else
+		pfmt(err, "rc (%s): %s: %r\n", argv0, s);
 	flush(err);
 	setstatus("error");
 	while(!runq->iflag) Xreturn();
 }
 
 void
-Xerror1(char *s)			/* omit errstr */
+Xerror1(char *s)
 {
-	pargv0(err);
-	hisfault(err);
-	pfmt(err, "%s\n", s);
+	if(strcmp(argv0, "rc")==0 || strcmp(argv0, "/bin/rc")==0)
+		pfmt(err, "rc: %s\n", s);
+	else
+		pfmt(err, "rc (%s): %s\n", argv0, s);
 	flush(err);
 	setstatus("error");
 	while(!runq->iflag) Xreturn();
