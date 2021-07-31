@@ -87,7 +87,6 @@ extern int	noconfig;
 extern int	ipv6auto;
 extern int	debug;
 extern int	dodhcp;
-extern int	dolog;
 extern int	nip;
 extern int	plan9;
 extern int	dupl_disc;
@@ -135,7 +134,6 @@ void	putndb(void);
 void	tweakservers(void);
 void	usage(void);
 int	validip(uchar*);
-void	warning(char *fmt, ...);
 void	writendb(char*, int, int);
 
 /*
