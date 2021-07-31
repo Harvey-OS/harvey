@@ -210,7 +210,8 @@ timersinit(void)
 	Timer *t;
 
 	/*
-	 * T->tf == nil means the HZ clock for this processor.
+	 * This is only called on the bootstrap processor; hence,
+	 * the Hzclock will only be active on that processor
 	 */
 	todinit();
 	t = malloc(sizeof(*t));

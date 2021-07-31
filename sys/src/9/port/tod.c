@@ -5,9 +5,8 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-/*
- * Compute nanosecond epoch time from the fastest ticking clock
- * on the system.  Converting the time to nanoseconds requires
+/* compute nanosecond epoch time from the fastest ticking clock
+ * on the system.  converting the time to nanoseconds requires
  * the following formula
  *
  *	t = (((1000000000<<31)/f)*ticks)>>31
@@ -31,11 +30,11 @@
  */
 
 /* frequency of the tod clock */
-#define TODFREQ		1000000000ULL
+#define TODFREQ	1000000000ULL
 #define MicroFREQ	1000000ULL
 
 struct {
-	int	init;		// true if initialized
+	int		init;		// true if initialized
 	ulong	cnt;
 	Lock;
 	uvlong	multiplier;	// ns = off + (multiplier*ticks)>>31
@@ -50,8 +49,6 @@ struct {
 	ulong	sstart;		// ...
 	ulong	send;		// ...
 } tod;
-
-static void todfix(void);
 
 void
 todinit(void)
@@ -183,7 +180,7 @@ tod2fastticks(vlong ns)
 /*
  *  called regularly to avoid calculation overflows
  */
-static void
+void
 todfix(void)
 {
 	vlong ticks, diff;
@@ -242,9 +239,8 @@ us2fastticks(uvlong us)
 	return res;
 }
 
-/*
- *  convert milliseconds to fast ticks
- */
+//  convert milliseconds to fast ticks
+//
 uvlong
 ms2fastticks(ulong ms)
 {

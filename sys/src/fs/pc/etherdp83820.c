@@ -563,17 +563,15 @@ dp83820rbfree(Block *bp)
 static void
 dp83820halt(Ctlr* ctlr)
 {
-	int i, timeo;
+	int i;
 
 	ilock(&ctlr->ilock);
 	csr32w(ctlr, Imr, 0);
 	csr32w(ctlr, Ier, 0);
 	csr32w(ctlr, Cr, Rxd|Txd);
-	for(timeo = 0; timeo < 1000; timeo++){
-		if(!(csr32r(ctlr, Cr) & (Rxe|Txe)))
-			break;
-		microdelay(1);
-	}
+	/* TODO: limit this; don't wait forever with a lock held */
+	while(csr32r(ctlr, Cr) & (Rxe|Txe))
+		;
 	csr32w(ctlr, Mibc, Frz);
 	iunlock(&ctlr->ilock);
 
@@ -680,8 +678,7 @@ dp83820init(Ether* edev)
 		csr32w(ctlr, Rfcr, i);
 		csr32w(ctlr, Rfdr, (edev->ea[i+1]<<8)|edev->ea[i]);
 	}
-	/* for now, accept all multicast packets */
-	csr32w(ctlr, Rfcr, Rfen|Aab|Apm|Aam);
+	csr32w(ctlr, Rfcr, Rfen|Aab|Apm);
 
 	ctlr->rxcfg = Stripcrc|(((2*(ETHERMINTU+4))/8)<<RxdrthSHFT);
 	ctlr->imr |= Rxorn|Rxidle|Rxearly|Rxdesc|Rxok;
@@ -720,12 +717,6 @@ dp83820init(Ether* edev)
 	iunlock(&ctlr->ilock);
 }
 
-/* multicast already on, don't need to do anything */
-static void
-multicast(void*, uchar*, int)
-{
-}
-
 static void
 dp83820attach(Ether* edev)
 {
@@ -749,7 +740,6 @@ err:
 			free(ctlr->alloc);
 			ctlr->alloc = nil;
 		}
-		qunlock(&ctlr->alock);
 		nexterror();
 	}
 
@@ -777,12 +767,7 @@ err:
 	 * allocate receive Blocks+buffers, add all to receive Block+buffer pool
 	 */
 	for(ctlr->nrb = 0; ctlr->nrb < Nrb; ctlr->nrb++){
-		if((bp = iallocb(Rbsz)) == nil) {
-			print(
-		"dp83820attach: iallocb failed with %d rcv bufs allocated\n",
-				ctlr->nrb);
-			error(Enomem);
-		}
+		bp = iallocb(Rbsz);
 #ifdef FS
 		bp->flags |= Mbrcvbuf;
 #endif
@@ -875,17 +860,17 @@ dp83820interrupt(Ureg*, void* arg)
 	Ctlr *ctlr;
 	Desc *desc;
 	Ether *edev;
-	int cmdsts, i, isr, r, x, rcvd = 0;
+	int i, isr, r, x, rcvd = 0;
 
 	edev = arg;
 	ctlr = edev->ctlr;
 
 	for(isr = csr32r(ctlr, Isr); isr & ctlr->imr; isr = csr32r(ctlr, Isr)){
-		if(isr & (Rxorn|Rxidle|Rxearly|Rxerr|Rxdesc|Rxok)){
+		if(isr & (Rxorn|Rxidle|Rxearly|Rxdesc|Rxok)){
 			x = ctlr->rdx;
 			desc = &ctlr->rd[x];
-			while((cmdsts = desc->cmdsts) & Own){
-				if((cmdsts & Ok) && desc->bp != nil){
+			while(desc->cmdsts & Own){
+				if((desc->cmdsts & Ok) && desc->bp != nil){
 					/* unlink rcv. Block from Desc */
 					bp = desc->bp;
 					desc->bp = nil;
@@ -913,19 +898,7 @@ dp83820interrupt(Ureg*, void* arg)
 				ctlr->rxidle++;
 			}
 
-			isr &= ~(Rxorn|Rxidle|Rxearly|Rxerr|Rxdesc|Rxok);
-		}
-
-		if(isr & Txurn){
-			x = (ctlr->txcfg & TxdrthMASK)>>TxdrthSHFT;
-			r = (ctlr->txcfg & FlthMASK)>>FlthSHFT;
-			if(x < ((TxdrthMASK)>>TxdrthSHFT)
-			&& x < (2048/32 - r)){
-				ctlr->txcfg &= ~TxdrthMASK;
-				x++;
-				ctlr->txcfg |= x<<TxdrthSHFT;
-				csr32w(ctlr, Txcfg, ctlr->txcfg);
-			}
+			isr &= ~(Rxorn|Rxidle|Rxearly|Rxdesc|Rxok);
 		}
 
 		if(isr & (Txurn|Txidle|Txdesc|Txok)){
@@ -998,7 +971,7 @@ dp83820ifstat(Ether* edev, void* a, long n, ulong offset)
 		l += snprint(p+l, READSTR-l, " %4.4uX", ctlr->eeprom[i]);
 	}
 	l += snprint(p+l, READSTR-l, "\n");
-	USED(l);
+
 	if(0 && ctlr->mii != nil && (phy = ctlr->mii->curphy) != nil){
 		l += snprint(p+l, READSTR, "phy:");
 		for(i = 0; i < NMiiPhyr; i++){
@@ -1093,28 +1066,6 @@ reread:
 	return data;
 }
 
-static void
-resetctlr(Ctlr *ctlr)
-{
-	csr32w(ctlr, Cr, Rst);
-	delay(1);
-	/* TODO: limit this; don't wait forever */
-	while(csr32r(ctlr, Cr) & Rst)
-		delay(1);
-
-	atc93c46r(ctlr, 0);
-}
-
-static void
-shutdown(Ether* ether)
-{
-	Ctlr *ctlr = ether->ctlr;
-
-print("ether83820 shutting down\n");
-	csr32w(ctlr, Cr, Txd|Rxd);	/* disable transceiver */
-	resetctlr(ctlr);
-}
-
 int
 dp83820reset(Ctlr* ctlr)
 {
@@ -1127,7 +1078,13 @@ dp83820reset(Ctlr* ctlr)
 	 * of the Cfg and Gpior bits which should be cleared by
 	 * the reset.
 	 */
-	resetctlr(ctlr);
+	csr32w(ctlr, Cr, Rst);
+	delay(1);
+	/* TODO: limit this; don't wait forever */
+	while(csr32r(ctlr, Cr) & Rst)
+		delay(1);
+
+	atc93c46r(ctlr, 0);
 	sum = 0;
 	for(i = 0; i < 0x0E; i++){
 		r = atc93c46r(ctlr, i);
@@ -1194,7 +1151,7 @@ enum {
 static void
 dp83820pci(void)
 {
-	void *mem;
+	int port;
 	Pcidev *p;
 	Ctlr *ctlr;
 
@@ -1206,20 +1163,18 @@ dp83820pci(void)
 		switch((p->did<<16)|p->vid){
 		default:
 			continue;
-		case (0x0022<<16)|0x100B:	/* NS DP83820 (Gig-NIC) */
-/*		case (0x1032<<16)|0x1737:	/* linksys eg1032 */
+		case (0x0022<<16)|0x100B:	/* DP83820 (Gig-NIC) */
 			break;
 		}
 
-		/* cast for FS */
-		mem = (void *)vmap(p->mem[1].bar & ~0x0F, p->mem[1].size);
-		if(mem == 0){
+		port = upamalloc(p->mem[1].bar & ~0x0F, p->mem[1].size, 0);
+		if(port == 0){
 			print("DP83820: can't map %8.8lux\n", p->mem[1].bar);
 			continue;
 		}
 		/* malloc only zeroes storage if Npadlong!=0, so use mallocz */
 		ctlr = mallocz(sizeof(Ctlr), 1);
-		ctlr->port = p->mem[1].bar & ~0x0F;
+		ctlr->port = port;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
 
@@ -1235,7 +1190,7 @@ dp83820pci(void)
 			continue;
 		}
 #endif
-		ctlr->nic = mem;
+		ctlr->nic = KADDR(ctlr->port);
 		if(dp83820reset(ctlr)){
 			free(ctlr);
 			continue;
@@ -1300,8 +1255,6 @@ dp83820pnp(Ether* edev)
 #ifndef FS
 	edev->ifstat = dp83820ifstat;
 	edev->arg = edev;
-	edev->shutdown = shutdown;
-	edev->multicast = multicast;
 	edev->promiscuous = dp83820promiscuous;
 #endif
 	return 0;
@@ -1312,11 +1265,5 @@ void
 etherdp83820link(void)
 {
 	addethercard("DP83820", dp83820pnp);
-}
-
-void
-etherdp83820bothlink(void)
-{
-	etherdp83820link();
 }
 #endif

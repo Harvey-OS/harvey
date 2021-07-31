@@ -173,15 +173,14 @@ boot(int argc, char *argv[])
 	fatal(cmd);
 }
 
-static Method*
+Method*
 findmethod(char *a)
 {
 	Method *mp;
 	int i, j;
 	char *cp;
 
-	if((i = strlen(a)) == 0)
-		return nil;
+	i = strlen(a);
 	cp = strchr(a, '!');
 	if(cp)
 		i = cp - a;
@@ -194,7 +193,7 @@ findmethod(char *a)
 	}
 	if(mp->name)
 		return mp;
-	return nil;
+	return 0;
 }
 
 /*
@@ -238,18 +237,23 @@ rootserver(char *arg)
 		strcpy(reply, method->name);
 
 	/* parse replies */
-	do{
+	for(;;){
 		outin(prompt, reply, sizeof(reply));
+		if(strlen(reply) == 0)
+			continue;
 		mp = findmethod(reply);
-	}while(mp == nil);
+		if(mp){
+	    HaveMethod:
+			bargc = tokenize(reply, bargv, Nbarg-2);
+			bargv[bargc] = nil;
+			cp = strchr(reply, '!');
+			if(cp)
+				strcpy(sys, cp+1);
+			return mp;
+		}
+	}
 
-HaveMethod:
-	bargc = tokenize(reply, bargv, Nbarg-2);
-	bargv[bargc] = nil;
-	cp = strchr(reply, '!');
-	if(cp)
-		strcpy(sys, cp+1);
-	return mp;
+	return 0;		/* not reached */
 }
 
 static void
