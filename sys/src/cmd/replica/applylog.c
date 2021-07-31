@@ -18,6 +18,7 @@ vlong	off;
 int errors;
 int nconf;
 int donothing;
+char **conf;
 int verbose;
 char **match;
 int nmatch;
@@ -36,7 +37,6 @@ ulong maxnow;
 int maxn;
 char *timefile;
 int timefd;
-int samecontents(char*, char*);
 
 Db *copyerr;
 
@@ -288,8 +288,6 @@ main(int argc, char **argv)
 			delce(local);
 			if(!havelocal)	/* doesn't exist; who cares? */
 				break;
-			if(access(remote, AEXIST) >= 0)	/* got recreated! */
-				break;
 			if(!ismatch(name)){
 				if(!skip)
 					fprint(2, "stopped updating log apply time because of %s\n", name);
@@ -309,10 +307,6 @@ main(int argc, char **argv)
 			assert(havelocal && havedb);
 			if(dbd.mtime > rd.mtime)		/* we have a newer file than what was deleted */
 				break;
-			if(samecontents(local, remote) > 0){	/* going to get recreated */
-				chat("= %q %luo %q %q %lud\n", name, rd.mode, rd.uid, rd.gid, rd.mtime);
-				break;
-			}
 			if(!(dbd.mode&DMDIR) && (dbd.mtime != ld.mtime || dbd.length != ld.length)){	/* locally modified since we downloaded it */
 				if(resolve1 == 's')
 					goto DoRemove;
@@ -325,11 +319,11 @@ main(int argc, char **argv)
 		    DoRemove:
 			USED(checkedmatch1);
 			assert(ismatch(name));
-			chat("a %q %luo %q %q %lud\n", name, rd.mode, rd.uid, rd.gid, rd.mtime);
+			chat("d %q\n", name);
 			if(donothing)
 				break;
 			if(remove(local) < 0){
-				error("removing %q: %r", name);
+				error("removing %q", name);
 				skip = 1;
 				continue;
 			}
@@ -352,10 +346,6 @@ main(int argc, char **argv)
 					goto DoCreate;
 				if((ld.mode&DMDIR) && (rd.mode&DMDIR))
 					break;
-				if(samecontents(local, remote) > 0){
-					chat("= %q %luo %q %q %lud\n", name, rd.mode, rd.uid, rd.gid, rd.mtime);
-					goto DoCreateDb;
-				}
 				if(resolve1 == 's')
 					goto DoCreate;
 				else if(resolve1 == 'c')
@@ -377,10 +367,6 @@ main(int argc, char **argv)
 					continue;
 				}
 				SET(checkedmatch2);
-				if(samecontents(local, remote) > 0){
-					chat("= %q %luo %q %q %lud\n", name, rd.mode, rd.uid, rd.gid, rd.mtime);
-					goto DoCreateDb;
-				}
 				if(dbd.mtime==ld.mtime && dbd.length==ld.length)
 					goto DoCreate;
 				if(resolve1=='s')
@@ -463,10 +449,6 @@ main(int argc, char **argv)
 					goto DoCopy;
 				else if(resolve1=='c')
 					goto DoCopyDb;
-				if(samecontents(local, remote) > 0){
-					chat("= %q %luo %q %q %lud\n", name, rd.mode, rd.uid, rd.gid, rd.mtime);
-					goto DoCopyDb;
-				}
 				if(havelocal)
 					conflict(name, "locally created; will not update");
 				else
@@ -504,15 +486,11 @@ main(int argc, char **argv)
 					/* no skip=1 */
 					break;
 				}
-				if(samecontents(local, remote) > 0){
-					chat("= %q %luo %q %q %lud\n", name, rd.mode, rd.uid, rd.gid, rd.mtime);
-					goto DoCopyDb;
-				}
 				if(resolve1 == 's')
 					goto DoCopy;
 				else if(resolve1 == 'c')
 					break;
-				conflict(name, "locally modified; will not update [%llud %lud -> %llud %lud]", dbd.length, dbd.mtime, ld.length, ld.mtime);
+				conflict(name, "locally modified; will not update");
 				skip = 1;
 				continue;
 			}
@@ -618,7 +596,7 @@ main(int argc, char **argv)
 					continue;
 				}
 				SET(checkedmatch4);
-				if(resolve1 == 's' || samecontents(local, remote) > 0)
+				if(resolve1 == 's')
 					goto DoMeta;
 				else if(resolve1 == 'c')
 					break;
@@ -754,10 +732,13 @@ conflict(char *name, char *f, ...)
 	s = vsmprint(f, arg);
 	va_end(arg);
 
-	fprint(2, "! %s: %s\n", name, s);
+	fprint(2, "%s: %s\n", name, s);
 	free(s);
 
 	nconf++;
+//	if(nconf%16 == 0)
+//		conf = erealloc(conf, (nconf+16)*sizeof(conf[0]));
+//	conf[nconf++] = estrdup(name);
 }
 
 void
@@ -804,27 +785,6 @@ localdirstat(char *name, Dir *d)
 }
 
 enum { DEFB = 8192 };
-
-static int
-cmp1(int fd1, int fd2)
-{
-	char buf1[DEFB];
-	char buf2[DEFB];
-	int n1, n2;
-	
-	for(;;){
-		n1 = readn(fd1, buf1, DEFB);
-		n2 = readn(fd2, buf2, DEFB);
-		if(n1 < 0 || n2 < 0)
-			return -1;
-		if(n1 != n2)
-			return 0;
-		if(n1 == 0)
-			return 1;
-		if(memcmp(buf1, buf2, n1) != 0)
-			return 0;
-	}
-}
 
 static int
 copy1(int fdf, int fdt, char *from, char *to)
@@ -1097,80 +1057,6 @@ okay:
 
 	close(wfd);
 	return 0;
-}
-
-int
-samecontents(char *local, char *remote)
-{
-	Dir *d0, *d1;
-	int rfd, tfd, lfd, ret;
-	char tmp[32];
-
-	/* quick check: sizes must match */
-	d1 = nil;
-	if((d0 = dirstat(local)) == nil || (d1 = dirstat(remote)) == nil){
-		free(d0);
-		free(d1);
-		return -1;
-	}
-	if(d0->length != d1->length){
-		free(d0);
-		free(d1);
-		return 0;
-	}
-
-Again:
-	if((rfd = open(remote, OREAD)) < 0)
-		return -1;
-	d0 = dirfstat(rfd);
-	if(d0 == nil){
-		close(rfd);
-		return -1;
-	}
-
-	strcpy(tmp, "/tmp/replicaXXXXXXXX");
-	tfd = opentemp(tmp);
-	if(tfd < 0){
-		close(rfd);
-		free(d0);
-		return -1;
-	}
-	if(copy1(rfd, tfd, remote, tmp) < 0 || (d1 = dirfstat(rfd)) == nil){
-		close(rfd);
-		close(tfd);
-		free(d0);
-		return -1;
-	}
-	close(rfd);
-	if(d0->qid.path != d1->qid.path
-	|| d0->qid.vers != d1->qid.vers
-	|| d0->mtime != d1->mtime
-	|| d0->length != d1->length){
-		/* file changed underfoot; go around again */
-		close(tfd);
-		free(d0);
-		free(d1);
-		goto Again;
-	}
-	free(d1);
-	free(d0);
-	if(seek(tfd, 0, 0) != 0){
-		close(tfd);
-		return -1;
-	}
-
-	/*
-	 * now compare
-	 */
-	if((lfd = open(local, OREAD)) < 0){
-		close(tfd);
-		return -1;
-	}
-	
-	ret = cmp1(lfd, tfd);
-	close(lfd);
-	close(tfd);
-	return ret;
 }
 
 /*
