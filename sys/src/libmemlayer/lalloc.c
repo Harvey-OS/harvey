@@ -63,7 +63,7 @@ memlalloc(Memscreen *s, Rectangle screenr, Refreshfn refreshfn, void *refreshptr
 	l->clear = 0;
 
 	/* now pull new window to front */
-	_memltofrontfill(n, val != DNofill);
+	memltofront(n);
 	l->refreshptr = refreshptr;
 
 	/*
