@@ -1,4 +1,4 @@
-# sheeva plug, openrd-client and others based on marvell's kirkwood soc
+# marvell sheeva plug
 dev
 	root
 	cons
@@ -21,12 +21,6 @@ dev
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
 
-##	draw		screen vga vgax
-##	mouse		mouse
-##	vga
-#	kbmap
-##	kbin
-
 	uart
 	usb
 
@@ -37,7 +31,6 @@ link
 	loopbackmedium
 	netdevmedium
 	usbehci
-
 ip
 	tcp
 	udp
@@ -53,7 +46,6 @@ misc
 	syscall
 	uartkw
 	sdaoe		sdscsi
-##	vgavesa
 
 port
 	int cpuserver = 1;
