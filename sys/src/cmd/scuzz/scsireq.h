@@ -2,12 +2,8 @@ enum {					/* fundamental constants/defaults */
 	NTargetID	= 8,		/* number of target IDs */
 	CtlrID		= 7,		/* default controller target ID */
 	MaxDirData	= 255,		/* max. direct data returned */
-	/*
-	 * default & maximum `maximum i/o size'; overridden by -m.
-	 * limits kernel memory consumption.
-	 * 240K is exabyte maximum block size.
-	 */
-	MaxIOsize	= 240*1024,
+//	MaxIOsize	= /*32*512*/ 96*1024,	/* max. I/O size */
+	MaxIOsize	= 126*512,	/* max. I/O size (e.g. exabyte @ tar 126) */
 	LBsize		= 512,		/* default logical-block size */
 };
 
