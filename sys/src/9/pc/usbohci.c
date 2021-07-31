@@ -18,7 +18,7 @@
 #include	"io.h"
 #include	"../port/error.h"
 
-#include	"../port/usb.h"
+#include	"usb.h"
 
 typedef struct Ctlio Ctlio;
 typedef struct Ctlr Ctlr;

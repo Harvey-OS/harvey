@@ -17,7 +17,6 @@
 #include "../port/netif.h"
 #include "etherif.h"
 #include "../port/flashif.h"
-#include "../port/usb.h"
 #include "usbehci.h"
 
 #define FREQSEL(x) ((x) << 4)
