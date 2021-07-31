@@ -210,7 +210,6 @@ hint(RR **last, RR *rp)
 	case Tmb:
 	case Tmf:
 	case Tmd:
-		assert(rp->host != nil);
 		hp = rrlookup(rp->host, Ta, NOneg);
 		if(hp == nil)
 			hp = dblookup(rp->host->name, Cin, Ta, 0, 0);
@@ -218,8 +217,7 @@ hint(RR **last, RR *rp)
 			hp = rrlookup(rp->host, Taaaa, NOneg);
 		if(hp == nil)
 			hp = dblookup(rp->host->name, Cin, Taaaa, 0, 0);
-		if (hp && hp->owner && hp->owner->name &&
-		    strncmp(hp->owner->name, "local#", 6) == 0)
+		if (hp && strncmp(hp->owner->name, "local#", 6) == 0)
 			dnslog("returning %s as hint", hp->owner->name);
 		lock(&dnlock);
 		rrcat(last, hp);
