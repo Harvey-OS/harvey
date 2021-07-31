@@ -970,7 +970,7 @@ readipinterfaces(void)
 {
 	if(myipaddr(ipa, mntpt) != 0)
 		ipmove(ipa, IPnoaddr);
-	snprint(ipaddr, sizeof ipaddr, "%I", ipa);
+	sprint(ipaddr, "%I", ipa);
 	if (debug)
 		syslog(0, "dns", "ipaddr is %s\n", ipaddr);
 }
