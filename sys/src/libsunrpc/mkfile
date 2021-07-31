@@ -16,7 +16,6 @@ OFILES=\
 	prog.$O\
 	rpc.$O\
 	server.$O\
-	suncall.$O\
 	udp.$O\
 	$PROTO\
 

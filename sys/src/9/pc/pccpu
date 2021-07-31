@@ -68,7 +68,6 @@ port
 
 boot cpu
 	il
-	tcp
 
 bootdir
 	bootpccpu.out boot

@@ -167,7 +167,6 @@ SunStatus sunCallPack(SunProg*, uchar*, uchar*, uchar**, SunCall*);
 SunStatus sunCallUnpack(SunProg*, uchar*, uchar*, uchar**, SunCall*);
 SunStatus sunCallUnpackAlloc(SunProg*, SunCallType, uchar*, uchar*, uchar**, SunCall**);
 uint sunCallSize(SunProg*, SunCall*);
-void sunCallSetup(SunCall*, SunProg*, uint);
 
 /*
  * Formatting
