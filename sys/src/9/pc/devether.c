@@ -228,8 +228,7 @@ etheroq(Ether* ether, Block* bp)
 
 	if(!loopback){
 		qbwrite(ether->oq, bp);
-		if(ether->transmit != nil)
-			ether->transmit(ether);
+		ether->transmit(ether);
 	} else
 		freeb(bp);
 
