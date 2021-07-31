@@ -480,7 +480,7 @@ createImp(Box *box, Qid *qid)
 static int
 parseImp(Biobuf *b, Box *box)
 {
-	Msg *m, *mm = nil;
+	Msg *m, *mm;
 	char *s, *t, *toks[3];
 	ulong uid, u;
 	int match, n;
@@ -539,8 +539,7 @@ parseImp(Biobuf *b, Box *box)
 			for(; m != nil && m->uid; m = m->next)
 				;
 			for(mm = m; mm != nil; mm = mm->next){
-				if(mm->info[IDigest] != nil &&
-				    strcmp(mm->info[IDigest], toks[0]) == 0){
+				if(strcmp(mm->info[IDigest], toks[0]) == 0){
 					if(!mm->uid)
 						mm->flags = 0;
 					if(!impFlags(box, mm, toks[2]))
@@ -570,8 +569,7 @@ parseImp(Biobuf *b, Box *box)
 		 * since it comes before all other messages, and therefore
 		 * must be in the .imp file if they should be.
 		 */
-		match = mm != nil && mm->info[IDigest] != nil &&
-			strcmp(m->info[IDigest], toks[0]) == 0;
+		match = strcmp(m->info[IDigest], toks[0]) == 0;
 		if(uid && (m->uid == uid || !m->uid && match)){
 			if(!match)
 				bye("inconsistent uid");
