@@ -102,7 +102,6 @@ allocmsg(Conn *c, int type, int len)
 void
 unrecvmsg(Conn *c, Msg *m)
 {
-	debug(DBG_PROTO, "unreceived %s len %d\n", msgnames[m->type], m->ep - m->rp);
 	free(c->unget);
 	c->unget = m;
 }
