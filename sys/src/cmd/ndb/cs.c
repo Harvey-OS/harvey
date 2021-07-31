@@ -920,27 +920,23 @@ isvalidip(uchar *ip)
 	return ipcmp(ip, IPnoaddr) != 0 && ipcmp(ip, v4prefix) != 0;
 }
 
-static uchar loopbacknet[IPaddrlen] = {
-	0, 0, 0, 0,
-	0, 0, 0, 0,
-	0, 0, 0xff, 0xff,
-	127, 0, 0, 0
-};
-static uchar loopbackmask[IPaddrlen] = {
-	0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff,
-	0xff, 0, 0, 0
-};
-
 void
 readipinterfaces(void)
 {
-	if(myipaddr(ipa, mntpt) != 0)
-		ipmove(ipa, IPnoaddr);
-	sprint(ipaddr, "%I", ipa);
-	if (debug)
-		syslog(0, "dns", "ipaddr is %s\n", ipaddr);
+	Ipifc *nifc;
+	Iplifc *lifc;
+
+	ipifcs = readipifc(mntpt, ipifcs, -1);
+	for(nifc = ipifcs; nifc; nifc = nifc->next)
+		for(lifc = nifc->lifc; lifc; lifc = lifc->next)
+			if(ipcmp(lifc->ip, IPnoaddr) != 0){
+				ipmove(ipa, lifc->ip);
+				sprint(ipaddr, "%I", ipa);
+				if(debug)
+					syslog(0, "dns", "ipaddr is %s\n", ipaddr);
+				return;
+			}
+	ipmove(ipa, IPnoaddr);
 }
 
 /*
