@@ -9,7 +9,7 @@ mkwidth(Disk *disk)
 {
 	char buf[40];
 
-	snprint(buf, sizeof buf, "%lld", disk->size);
+	sprint(buf, "%lld", disk->size);
 	disk->width = strlen(buf);
 	return disk;
 }
