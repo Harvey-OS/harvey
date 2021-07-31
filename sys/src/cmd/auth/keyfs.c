@@ -797,23 +797,22 @@ writeusers(void)
 int
 weirdfmt(Fmt *f)
 {
-	char *s, *p, *ep, buf[ANAMELEN*4 + 1];
-	int i, n;
+	char *s, buf[ANAMELEN*4 + 1];
+	int i, j, n;
 	Rune r;
 
 	s = va_arg(f->args, char*);
-	p = buf;
-	ep = buf + sizeof buf;
+	j = 0;
 	for(i = 0; i < ANAMELEN; i += n){
 		n = chartorune(&r, s + i);
 		if(r == Runeerror)
-			p = seprint(p, ep, "[%.2x]", buf[i]);
+			j += sprint(buf+j, "[%.2x]", buf[i]);
 		else if(isascii(r) && iscntrl(r))
-			p = seprint(p, ep, "[%.2x]", r);
+			j += sprint(buf+j, "[%.2x]", r);
 		else if(r == ' ' || r == '/')
-			p = seprint(p, ep, "[%c]", r);
+			j += sprint(buf+j, "[%c]", r);
 		else
-			p = seprint(p, ep, "%C", r);
+			j += sprint(buf+j, "%C", r);
 	}
 	return fmtstrcpy(f, buf);
 }

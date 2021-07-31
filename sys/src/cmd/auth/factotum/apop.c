@@ -119,7 +119,7 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		case AuthCram:
 			hmac_md5((uchar*)a, n, (uchar*)v, strlen(v),
 				digest, nil);
-			snprint(s->resp, sizeof s->resp, "%.*H", MD5dlen, digest);
+			sprint(s->resp, "%.*H", MD5dlen, digest);
 			break;
 		case AuthApop:
 			ds = md5((uchar*)a, n, nil, nil);
