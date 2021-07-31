@@ -89,8 +89,7 @@ or
 .I push
 to print a summary of what it is doing.
 Each status line is of the form
-.ift .sp 0.5
-.ifn .sp
+.sp 0.5
 \h'0.25i'
 .I verb
 .I path
@@ -100,8 +99,7 @@ Each status line is of the form
 .I gid
 .I mtime
 .I length
-.ift .sp 0.5
-.ifn .sp
+.sp 0.5
 .I Verb
 describes the event:
 addition of a file
