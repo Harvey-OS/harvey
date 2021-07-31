@@ -70,8 +70,6 @@ threadmain(int argc, char *argv[])
 	tag = estrdup(dir);
 	tag = eappend(estrdup(tag), "/-", name);
 	win = newwindow();
-	snprint(buf, sizeof buf, "%d", win->id);
-	putenv("winid", buf);
 	winname(win, tag);
 	wintagwrite(win, "Send Noscroll", 5+8);
 	threadcreate(mainctl, win, STACK);
