@@ -1,6 +1,6 @@
 /*
  * Bootstrap driver for
- * Intel 82563, 82571, 82573, 82575, 82576
+ * Intel 82563, 82571, 82573, 82575
  * GbE PCI-Express Controllers.
  */
 #include "u.h"
@@ -306,7 +306,7 @@ enum {					/* [RT]xdctl */
 	PthreshSHIFT	= 0,
 	HthreshMASK	= 0x00003F00,	/* Host Threshold */
 	HthreshSHIFT	= 8,
-	WthreshMASK	= 0x003F0000,	/* Writeback Threshold */
+	WthreshMASK	= 0x003F0000,	/* Writebacj Threshold */
 	WthreshSHIFT	= 16,
 	Gran		= 0x01000000,	/* Granularity */
 	Qenable		= 0x02000000,	/* Queue Enable (82575eb) */
@@ -420,7 +420,6 @@ enum {
 	i82572,
 	i82573,
 	i82575,
-	i82576,
 };
 
 static char *tname[] = {
@@ -431,7 +430,6 @@ static char *tname[] = {
 	"i82572",
 	"i82573",
 	"i82575",
-	"i82576",
 };
 
 typedef struct Ctlr Ctlr;
@@ -647,7 +645,7 @@ int	interesting(void*);
 static void
 i82563interrupt(Ureg*, void* arg)
 {
-	int icr, im, rdh, txdw = 0, rxcnt;
+	int icr, im, rdh, txdw = 0;
 	Block *bp;
 	Ctlr *ctlr;
 	Ether *edev;
@@ -660,7 +658,6 @@ i82563interrupt(Ureg*, void* arg)
 	csr32w(ctlr, Imc, ~0);
 	im = ctlr->im;
 
-	rxcnt = 0;
 	for(icr = csr32r(ctlr, Icr); icr & ctlr->im; icr = csr32r(ctlr, Icr)){
 		if(icr & (Rxseq|Lsc)){
 			/* should be more here */
@@ -687,13 +684,9 @@ i82563interrupt(Ureg*, void* arg)
 					tname[ctlr->type], rdesc->errors);
 			rdesc->status = 0;
 			rdh = NEXT(rdh, Nrdesc);
-			if (++rxcnt >= 16 && ctlr->type == i82576) {
-				i82563replenish(ctlr);
-				rxcnt = 0;
-			}
 		}
 		ctlr->rdh = rdh;
-		if(icr & Rxdmt0 || ctlr->type == i82576)
+		if(icr & Rxdmt0)
 			i82563replenish(ctlr);
 		if(icr & Txdw){
 			im &= ~Txdw;
@@ -716,7 +709,7 @@ i82563init(Ether* edev)
 	ctlr = edev->ctlr;
 
 	rctl = Dpf | Bsize2048 | Bam | RdtmsHALF;
-	if(ctlr->type == i82575 || ctlr->type == i82576){
+	if(ctlr->type == i82575){
 		/*
 		 * Setting Qenable in Rxdctl does not
 		 * appear to stick unless Ren is on.
@@ -727,7 +720,7 @@ i82563init(Ether* edev)
 		csr32w(ctlr, Rxdctl, r);
 	}
 	csr32w(ctlr, Rctl, rctl);
-	ctlr->rdba = mallocalign(Nrdesc*sizeof(Rdesc), 256, 0, 0); /* 256 was 128 */
+	ctlr->rdba = mallocalign(Nrdesc*sizeof(Rdesc), 128, 0, 0);
 	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
 	csr32w(ctlr, Rdbah, 0);
 	csr32w(ctlr, Rdlen, Nrdesc*sizeof(Rdesc));
@@ -750,7 +743,7 @@ i82563init(Ether* edev)
 	csr32w(ctlr, Tipg, 6<<20 | 8<<10 | 8);
 	csr32w(ctlr, Tidv, 1);
 
-	ctlr->tdba = mallocalign(Ntdesc*sizeof(Tdesc), 256, 0, 0); /* 256 was 128 */
+	ctlr->tdba = mallocalign(Ntdesc*sizeof(Tdesc), 128, 0, 0);
 	memset(ctlr->tdba, 0, Ntdesc*sizeof(Tdesc));
 	csr32w(ctlr, Tdbal, PCIWADDR(ctlr->tdba));
 
@@ -763,9 +756,9 @@ i82563init(Ether* edev)
 	ctlr->tb = malloc(sizeof(Block*)*Ntdesc);
 
 	r = csr32r(ctlr, Txdctl);
-	r &= ~(WthreshMASK|PthreshMASK);
+	r &= ~(WthreshMASK|PthreshSHIFT);
 	r |= 4<<WthreshSHIFT | 4<<PthreshSHIFT;
-	if(ctlr->type == i82575 || ctlr->type == i82576)
+	if(ctlr->type == i82575)
 		r |= Qenable;
 	csr32w(ctlr, Txdctl, r);
 
@@ -1044,11 +1037,6 @@ i82563pci(void)
 //			break;
 		case 0x10a7:		/* 82575eb */
 			type = i82575;
-			break;
-		case 0x10c9:		/* 82576 copper */
-		case 0x10e6:		/* 82576 fiber */
-		case 0x10e7:		/* 82576 serdes */
-			type = i82576;
 			break;
 		default:
 			continue;
