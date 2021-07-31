@@ -157,7 +157,8 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	v->name[KNAMELEN-1] = 0;
 
 	ilock(&vctllock);
-	v->next = vctl[vno];
+	if(vctl[vno])
+		v->next = vctl[vno]->next;
 	vctl[vno] = v;
 	iunlock(&vctllock);
 }
