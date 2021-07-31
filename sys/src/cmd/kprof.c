@@ -43,8 +43,7 @@ main(int argc, char *argv[])
 	long i, j, k, n;
 	char *name;
 	ulong *data;
-	vlong tbase;
-	ulong sum;
+	ulong tbase, sum;
 	long delta;
 	Symbol s;
 	Biobuf outbuf;
@@ -95,7 +94,7 @@ main(int argc, char *argv[])
 	if (!textsym(&s, 0))
 		error(0, "no text symbols");
 	tbase = s.value & ~(mach->pgsize-1);	/* align down to page */
-	print("KTZERO %.8llux\n", tbase);
+	print("KTZERO %.8lux\n", tbase);
 	/*
 	 * Accumulate counts for each function
 	 */
