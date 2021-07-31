@@ -590,7 +590,7 @@ runpipe(Text *t, int cmd, Rune *cr, int ncr, int state)
 
 	r = skipbl(cr, ncr, &n);
 	if(n == 0)
-		editerror("no command specified for %c", cmd);
+		editerror("no command specified for >");
 	w = nil;
 	if(state == Inserting){
 		w = t->w;

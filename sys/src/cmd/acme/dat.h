@@ -232,7 +232,6 @@ struct Window
 	uchar	isscratch;
 	uchar	filemenu;
 	uchar	dirty;
-	uchar	autoindent;
 	int		id;
 	Range	addr;
 	Range	limit;
@@ -530,7 +529,6 @@ int			plumbeditfd;
 char			wdir[];
 int			editing;
 int			messagesize;		/* negotiated in 9P version setup */
-int			globalautoindent;
 
 Channel	*ckeyboard;	/* chan(Rune)[10] */
 Channel	*cplumb;		/* chan(Plumbmsg*) */

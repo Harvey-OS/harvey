@@ -382,7 +382,7 @@ xfidwrite(Xfid *x)
 	x->data[x->count] = 0;
 	switch(qid){
 	case Qcons:
-		w = errorwin(x->f->mntdir, 'X');
+		w = errorwin(x->f->mntdir, 'X', nil);
 		t=&w->body;
 		goto BodyTag;
 
@@ -542,9 +542,6 @@ xfidwrite(Xfid *x)
 	}
 	if(w)
 		winunlock(w);
-	qlock(&row);
-	flushwarnings();
-	qunlock(&row);
 }
 
 void
@@ -815,7 +812,6 @@ xfideventwrite(Xfid *x, Window *w)
 			qunlock(&row);
 			goto Rescue;
 		}
-		flushwarnings();
 		qunlock(&row);
 
 	}
@@ -1033,7 +1029,6 @@ xfidindexread(Xfid *x)
 			b[n++] = '\n';
 		}
 	}
-	flushwarnings();
 	qunlock(&row);
 	off = x->offset;
 	cnt = x->count;

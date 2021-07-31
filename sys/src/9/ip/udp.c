@@ -125,11 +125,7 @@ udpconnect(Conv *c, char **argv, int argc)
 static int
 udpstate(Conv *c, char *state, int n)
 {
-	return snprint(state, n, "%s qin %d qout %d",
-		c->inuse ? "Open" : "Closed",
-		c->rq ? qlen(c->rq) : 0,
-		c->wq ? qlen(c->wq) : 0
-	);
+	return snprint(state, n, "%s", c->inuse?"Open":"Closed");
 }
 
 static char*

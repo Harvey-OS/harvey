@@ -70,9 +70,6 @@ threadmain(int argc, char *argv[])
 
 	loadfile = nil;
 	ARGBEGIN{
-	case 'a':
-		globalautoindent = TRUE;
-		break;
 	case 'b':
 		bartflag = TRUE;
 		break;
@@ -101,7 +98,7 @@ threadmain(int argc, char *argv[])
 		break;
 	default:
 	Usage:
-		fprint(2, "usage: acme -a -c ncol -f fontname -F fixedwidthfontname -l loadfile\n");
+		fprint(2, "usage: acme -c ncol -f fontname -F fixedwidthfontname -l loadfile\n");
 		exits("usage");
 	}ARGEND
 
@@ -379,9 +376,6 @@ keyboardthread(void *)
 				winlock(t->w, 'K');
 				wincommit(t->w, t);
 				winunlock(t->w);
-				qlock(&row);
-				flushwarnings();
-				qunlock(&row);
 				flushimage(display, 1);
 			}
 			alts[KTimer].c = nil;
@@ -408,9 +402,6 @@ keyboardthread(void *)
 			}
 			if(nbrecv(keyboardctl->c, &r) > 0)
 				goto casekeyboard;
-			qlock(&row);
-			flushwarnings();
-			qunlock(&row);
 			flushimage(display, 1);
 			break;
 		}
@@ -451,9 +442,6 @@ mousethread(void *)
 				error("attach to window");
 			scrlresize();
 			rowresize(&row, screen->clipr);
-			qlock(&row);
-			flushwarnings();
-			qunlock(&row);
 			flushimage(display, 1);
 			break;
 		case MPlumb:
@@ -464,9 +452,6 @@ mousethread(void *)
 				else if(strcmp(act, "showdata")==0)
 					plumbshow(pm);
 			}
-			qlock(&row);
-			flushwarnings();
-			qunlock(&row);
 			flushimage(display, 1);
 			plumbfree(pm);
 			break;
@@ -552,7 +537,6 @@ mousethread(void *)
 				goto Continue;
 			}
     Continue:
-			flushwarnings();
 			flushimage(display, 1);
 			qunlock(&row);
 			break;

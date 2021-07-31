@@ -140,8 +140,6 @@ boot(int argc, char *argv[])
 	setenv("rootdir", rp);
 
 	settime(islocal, afd, rsp);
-	if(afd > 0)
-		close(afd);
 	swapproc();
 
 	cmd = getenv("init");
