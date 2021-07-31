@@ -63,6 +63,7 @@ hello(char *dest)
 {
 	char *p;
 	char dir[Maxpath];
+	int ts;
 	TLSconn conn;
 
 	Binit(&stdin, 0, OREAD);	/* init for later use */

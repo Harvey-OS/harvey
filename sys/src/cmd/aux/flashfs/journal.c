@@ -81,8 +81,6 @@ lddisc(char *mesg)
 {
 	if(debug)
 		fprint(2, "discard %s\n", mesg);
-	else
-		USED(mesg);
 }
 
 static Sect *

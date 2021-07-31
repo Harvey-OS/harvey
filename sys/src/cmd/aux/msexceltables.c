@@ -343,6 +343,7 @@ xd(Biff *b)
 		Bprint(bo, "\n");
 	}
 	Bseek(b->bp, off, 0);
+	off = Boffset(b->bp);
 }
 
 static int 
