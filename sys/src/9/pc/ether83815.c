@@ -26,7 +26,7 @@
 
 #include "etherif.h"
 
-#define DEBUG		(0)
+#define DEBUG		(1)
 #define debug		if(DEBUG)print
 
 enum {
