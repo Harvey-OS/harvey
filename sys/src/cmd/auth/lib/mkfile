@@ -27,4 +27,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 
 </sys/src/cmd/mksyslib
-CFLAGS=$CFLAGS -I..
+CFLAGS=-w -I..
