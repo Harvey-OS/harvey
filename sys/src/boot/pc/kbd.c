@@ -234,7 +234,6 @@ enum
 };
 
 static uchar ccc;
-static int nokbd = 1;
 
 int
 latin1(int k1, int k2)
@@ -299,17 +298,14 @@ void
 i8042reset(void)
 {
 	int i, x;
+#ifdef notdef
+	ushort *s = (ushort*)(KZERO|0x472);
 
-	if(nokbd)
-		return;
+	*s = 0x1234;		/* BIOS warm-boot flag */
+#endif /* notdef */
 
-	*((ushort*)KADDR(0x472)) = 0x1234;	/* BIOS warm-boot flag */
-
-	/*
-	 *  newer reset the machine command
-	 */
 	outready();
-	outb(Cmd, 0xFE);
+	outb(Cmd, 0xFE);	/* pulse reset line (means resend on AT&T machines) */
 	outready();
 
 	/*
@@ -457,7 +453,7 @@ i8042intr(Ureg*, void*)
 	kbdchar(c);
 }
 
-static char *initfailed = "i8042: kbdinit failed\n";
+static char *initfailed = "kbd init failed\n";
 
 static int
 outbyte(int port, int c)
@@ -492,7 +488,7 @@ i8042init(void)
 	/* get current controller command byte */
 	outb(Cmd, 0x20);
 	if(inready() < 0){
-		print("i8042: kbdinit can't read ccc\n");
+		print("kbdinit: can't read ccc\n");
 		ccc = 0;
 	} else
 		ccc = inb(Data);
@@ -505,12 +501,8 @@ i8042init(void)
 		print(initfailed);
 		return;
 	}
-
-	nokbd = 0;
-
-	/* disable mouse */
 	if (outbyte(Cmd, 0x60) < 0 || outbyte(Data, ccc) < 0)
-		print("i8042: kbdinit mouse disable failed\n");
+		return;
 
 	setvec(VectorKBD, i8042intr, 0);
 }
