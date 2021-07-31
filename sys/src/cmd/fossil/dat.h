@@ -34,9 +34,6 @@ enum {
 };
 
 enum {
-	Nowaitlock,
-	Waitlock,
-
 	NilBlock	= (~0UL),
 	MaxBlock	= (1UL<<31),
 };

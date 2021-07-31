@@ -3,7 +3,7 @@
 #include "9.h"
 
 typedef struct Lstn Lstn;
-struct Lstn {
+typedef struct Lstn {
 	int	afd;
 	int	flags;
 	char*	address;
@@ -11,7 +11,7 @@ struct Lstn {
 
 	Lstn*	next;
 	Lstn*	prev;
-};
+} Lstn;
 
 static struct {
 	VtLock*	lock;

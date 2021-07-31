@@ -9,14 +9,14 @@ static struct {
 	Excl*	tail;
 } ebox;
 
-struct Excl {
+typedef struct Excl {
 	Fsys*	fsys;
 	uvlong	path;
 	ulong	time;
 
 	Excl*	next;
 	Excl*	prev;
-};
+} Excl;
 
 enum {
 	LifeTime	= (5*60),

@@ -9,6 +9,9 @@ typedef struct FreeList FreeList;
 typedef struct BAddr BAddr;
 
 enum {
+	Nowaitlock,
+	Waitlock,
+
 	BadHeap = ~0,
 };
 
@@ -22,6 +25,7 @@ enum {
 struct Cache
 {
 	VtLock	*lk;
+	VtLock	*dirtylk;
 	int 	ref;
 	int	mode;
 
@@ -159,6 +163,7 @@ cacheAlloc(Disk *disk, VtSession *z, ulong nblocks, int mode)
 	nbl = nblocks * 4;
 
 	c->lk = vtLockAlloc();
+	c->dirtylk = vtLockAlloc();	/* allowed to dirty blocks */
 	c->ref = 1;
 	c->disk = disk;
 	c->z = z;
@@ -556,15 +561,12 @@ fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
 		switch(b->iostate){
 		default:
 			abort();
-		case BioLabel:
-			if(mode == OOverWrite)
-				/*
-				 * leave iostate as BioLabel because data
-				 * hasn't been read.
-				 */
-				return b;
-			/* fall through */
 		case BioEmpty:
+		case BioLabel:
+			if(mode == OOverWrite){
+				blockSetIOState(b, BioClean);
+				return b;
+			}
 			diskRead(c->disk, b);
 			vtSleep(b->ioready);
 			break;
@@ -1096,14 +1098,16 @@ blockDirty(Block *b)
 
 	if(b->iostate == BioDirty)
 		return 1;
-	assert(b->iostate == BioClean || b->iostate == BioLabel);
+	assert(b->iostate == BioClean);
 
+	vtLock(c->dirtylk);
 	vtLock(c->lk);
 	b->iostate = BioDirty;
 	c->ndirty++;
 	if(c->ndirty > (c->maxdirty>>1))
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);
+	vtUnlock(c->dirtylk);
 
 	return 1;
 }
@@ -1167,7 +1171,7 @@ blockRollback(Block *b, uchar *buf)
  *	Otherwise, bail.
  */
 int
-blockWrite(Block *b, int waitlock)
+blockWrite(Block *b)
 {
 	uchar *dmap;
 	Cache *c;
@@ -1191,7 +1195,7 @@ blockWrite(Block *b, int waitlock)
 		}
 
 		lockfail = 0;
-		bb = _cacheLocalLookup(c, p->part, p->addr, p->vers, waitlock,
+		bb = _cacheLocalLookup(c, p->part, p->addr, p->vers, Nowaitlock,
 			&lockfail);
 		if(bb == nil){
 			if(lockfail)
@@ -1472,13 +1476,10 @@ blockRemoveLink(Block *b, u32int addr, int type, u32int tag, int recurse)
 	bl.next = nil;
 	bl.recurse = recurse;
 
-	if(b->part == PartSuper && b->iostate == BioClean)
-		p = nil;
-	else
-		p = blistAlloc(b);
+	p = blistAlloc(b);
 	if(p == nil){
 		/*
-		 * b has already been written to disk.
+		 * We were out of blists so blistAlloc wrote b to disk.
 		 */
 		doRemoveLink(b->c, &bl);
 		return;
@@ -2007,7 +2008,7 @@ cacheFlushBlock(Cache *c)
 		b = _cacheLocalLookup(c, p->part, p->addr, p->vers, Nowaitlock,
 			&lockfail);
 
-		if(b && blockWrite(b, Nowaitlock)){
+		if(b && blockWrite(b)){
 			c->nflush++;
 			blockPut(b);
 			return 1;
@@ -2087,6 +2088,12 @@ flushThread(void *a)
 void
 cacheFlush(Cache *c, int wait)
 {
+	/*
+	 * Lock c->dirtylk so that more blocks aren't being dirtied
+	 * while we try to write out what's already here.
+	 * Otherwise we might not ever finish!
+	 */
+	vtLock(c->dirtylk);
 	vtLock(c->lk);
 	if(wait){
 		while(c->ndirty){
@@ -2099,6 +2106,7 @@ cacheFlush(Cache *c, int wait)
 	}else if(c->ndirty)
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);
+	vtUnlock(c->dirtylk);
 }
 
 /*

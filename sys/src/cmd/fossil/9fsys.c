@@ -4,6 +4,8 @@
 #include "fns.h"
 #include "9.h"
 
+typedef struct Fsys Fsys;
+
 struct Fsys {
 	VtLock* lock;
 
@@ -660,7 +662,7 @@ fsysLabel(Fsys* fsys, int argc, char* argv[])
 			goto Out1;
 		n = 0;
 		for(;;){
-			if(blockWrite(bb, Waitlock)){
+			if(blockWrite(bb)){
 				while(bb->iostate != BioClean){
 					assert(bb->iostate == BioWriting);
 					vtSleep(bb->ioready);
@@ -842,9 +844,9 @@ fsysDf(Fsys *fsys, int argc, char* argv[])
 
 	fs = fsys->fs;
 	cacheCountUsed(fs->cache, fs->elo, &used, &tot, &bsize);
-	consPrint("\t%s: %,llud used + %,llud free = %,llud (%.1f%% used)\n",
+	consPrint("\t%s: %,llud used + %,llud free = %,llud (%llud%% used)\n",
 		fsys->name, used*(vlong)bsize, (tot-used)*(vlong)bsize,
-		tot*(vlong)bsize, used*100.0/tot);
+		tot*(vlong)bsize, used*100LL/tot);
 	return 1;
 }
 
