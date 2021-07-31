@@ -98,7 +98,7 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 				return 0;
 			q.type = QTDIR;
 			q.path = NETQID(i, N3rdqid);
-			snprint(up->genbuf, sizeof up->genbuf, "%d", i);
+			sprint(up->genbuf, "%d", i);
 			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
 			break;
 		}
@@ -216,11 +216,9 @@ netifread(Netif *nif, Chan *c, void *a, long n, vlong off)
 		return readnum(offset, a, n, NETID(c->qid.path), NUMSIZE);
 	case Nstatqid:
 		p = malloc(READSTR);
-		if(p == nil)
-			error(Enomem);
-		j = snprint(p, READSTR, "in: %llud\n", nif->inpackets);
+		j = snprint(p, READSTR, "in: %d\n", nif->inpackets);
 		j += snprint(p+j, READSTR-j, "link: %d\n", nif->link);
-		j += snprint(p+j, READSTR-j, "out: %llud\n", nif->outpackets);
+		j += snprint(p+j, READSTR-j, "out: %d\n", nif->outpackets);
 		j += snprint(p+j, READSTR-j, "crc errs: %d\n", nif->crcs);
 		j += snprint(p+j, READSTR-j, "overflows: %d\n", nif->overflows);
 		j += snprint(p+j, READSTR-j, "soft overflows: %d\n", nif->soverflows);
@@ -238,8 +236,6 @@ netifread(Netif *nif, Chan *c, void *a, long n, vlong off)
 		return n;
 	case Naddrqid:
 		p = malloc(READSTR);
-		if(p == nil)
-			error(Enomem);
 		j = 0;
 		for(i = 0; i < nif->alen; i++)
 			j += snprint(p+j, READSTR-j, "%2.2ux", nif->addr[i]);

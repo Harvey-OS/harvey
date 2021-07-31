@@ -133,16 +133,16 @@ static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
 
 /*
  * Qids are, in path:
- *	 5 bits of file type (qids above)
- *	26 bits of process slot number + 1
+ *	 4 bits of file type (qids above)
+ *	23 bits of process slot number + 1
  *	     in vers,
  *	32 bits of pid, for consistency checking
  * If notepg, c->pgrpid.path is pgrp slot, .vers is noteid.
  */
 #define QSHIFT	5	/* location in qid of proc slot # */
 
-#define QID(q)		((((ulong)(q).path) & ((1<<QSHIFT)-1)) >> 0)
-#define SLOT(q)		(((((ulong)(q).path) & ~(1UL<<31)) >> QSHIFT) - 1)
+#define QID(q)		((((ulong)(q).path)&0x0000001F)>>0)
+#define SLOT(q)		(((((ulong)(q).path)&0x07FFFFFE0)>>QSHIFT)-1)
 #define PID(q)		((q).vers)
 #define NOTEID(q)	((q).vers)
 
@@ -213,7 +213,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 
 		if((p = psincref(s)) == nil || (pid = p->pid) == 0)
 			return 0;
-		snprint(up->genbuf, sizeof up->genbuf, "%d", pid);
+		sprint(up->genbuf, "%d", pid);
 		/*
 		 * String comparison is done in devwalk so
 		 * name must match its formatted pid.
@@ -239,7 +239,6 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 	tab = &procdir[s];
 	path = c->qid.path&~(((1<<QSHIFT)-1));	/* slot component */
 
-	/* p->procmode determines default mode for files in /proc */
 	if((p = psincref(SLOT(c->qid))) == nil)
 		return -1;
 	perm = tab->perm;
@@ -290,7 +289,7 @@ _proctrace(Proc* p, Tevent etype, vlong ts)
 static void
 procinit(void)
 {
-	if(PROCMAX >= (1<<(31-QSHIFT))-1)
+	if(PROCMAX >= (1<<(16-QSHIFT))-1)
 		print("warning: too many procs for devproc\n");
 	addclock0link((void (*)(void))profclock, 113);	/* Relative prime to HZ */
 }
@@ -390,7 +389,6 @@ procopen(Chan *c, int omode)
 		tc = proctext(c, p);
 		tc->offset = 0;
 		poperror();
-		cclose(c);
 		qunlock(&p->debug);
 		psdecref(p);
 		return tc;
@@ -508,7 +506,6 @@ procwstat(Chan *c, uchar *db, long n)
 		else
 			kstrdup(&p->user, d->uid);
 	}
-	/* p->procmode determines default mode for files in /proc */
 	if(d->mode != ~0UL)
 		p->procmode = d->mode&0777;
 
@@ -541,7 +538,7 @@ procqidwidth(Chan *c)
 {
 	char buf[32];
 
-	return snprint(buf, sizeof buf, "%lud", c->qid.vers);
+	return sprint(buf, "%lud", c->qid.vers);
 }
 
 int
@@ -926,8 +923,7 @@ procread(Chan *c, void *va, long n, vlong off)
 			sg = p->seg[i];
 			if(sg == 0)
 				continue;
-			j += snprint(statbuf+j, sizeof statbuf - j,
-				"%-6s %c%c %p %p %4d\n",
+			j += sprint(statbuf+j, "%-6s %c%c %p %p %4d\n",
 				sname[sg->type&SG_TYPE],
 				sg->type&SG_RONLY ? 'R' : ' ',
 				sg->profile ? 'P' : ' ',
@@ -993,8 +989,6 @@ procread(Chan *c, void *va, long n, vlong off)
 		if(p->pgrp == nil || p->pid != PID(c->qid))
 			error(Eprocdied);
 		mw = c->aux;
-		if(mw == nil)
-			error(Enomem);
 		if(mw->cddone){
 			poperror();
 			qunlock(&p->debug);
@@ -1255,10 +1249,8 @@ proctext(Chan *c, Proc *p)
 		error(Eprocdied);
 	}
 
-	if(p->pid != PID(c->qid)){
-		cclose(tc);
+	if(p->pid != PID(c->qid))
 		error(Eprocdied);
-	}
 
 	poperror();
 	unlock(i);

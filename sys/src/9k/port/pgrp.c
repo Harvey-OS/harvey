@@ -5,10 +5,6 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-enum {
-	Whinesecs = 10,		/* frequency of out-of-resources printing */
-};
-
 static Ref pgrpid;
 static Ref mountid;
 
@@ -299,9 +295,7 @@ mountfree(Mount *mount)
 void
 resrcwait(char *reason)
 {
-	ulong now;
 	char *p;
-	static ulong lastwhine;
 
 	if(up == nil)
 		panic("resrcwait");
@@ -309,12 +303,7 @@ resrcwait(char *reason)
 	p = up->psstate;
 	if(reason) {
 		up->psstate = reason;
-		now = seconds();
-		/* don't tie up the console with complaints */
-		if(now - lastwhine > Whinesecs) {
-			lastwhine = now;
-			print("%s\n", reason);
-		}
+		print("%s\n", reason);
 	}
 
 	tsleep(&up->sleep, return0, 0, 300);

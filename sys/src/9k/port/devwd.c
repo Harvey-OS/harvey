@@ -1,6 +1,3 @@
-/*
- * watchdog framework
- */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -14,103 +11,23 @@ enum {
 	Qwdctl,
 };
 
-/*
- * these are exposed so that delay() and the like can disable the watchdog
- * before busy looping for a long time.
- */
-Watchdog*watchdog;
-int	watchdogon;
-
 static Watchdog *wd;
-static int wdautopet;
-static int wdclock0called;
-static Ref refs;
 static Dirtab wddir[] = {
-	".",		{ Qdir, 0, QTDIR },	0,		0555,
-	"wdctl",	{ Qwdctl, 0 },		0,		0664,
+	".",		{ Qdir, 0, QTDIR },	0,		0550,
+	"wdctl",	{ Qwdctl, 0 },		0,		0660,
 };
 
 
 void
-addwatchdog(Watchdog *wdog)
+addwatchdog(Watchdog *watchdog)
 {
 	if(wd){
 		print("addwatchdog: watchdog already installed\n");
 		return;
 	}
-	wd = watchdog = wdog;
+	wd = watchdog;
 	if(wd)
 		wd->disable();
-}
-
-static int
-wdallowed(void)
-{
-	return getconf("*nowatchdog") == nil;
-}
-
-static void
-wdshutdown(void)
-{
-	if (wd) {
-		wd->disable();
-		watchdogon = 0;
-	}
-}
-
-/* called from clock interrupt, so restart needs ilock internally */
-static void
-wdpet(void)
-{
-	/* watchdog could be paused; if so, don't restart */
-	if (wdautopet && watchdogon)
-		wd->restart();
-}
-
-/*
- * reassure the watchdog from the clock interrupt
- * until the user takes control of it.
- */
-static void
-wdautostart(void)
-{
-	if (wdautopet || !wd || !wdallowed())
-		return;
-	if (waserror()) {
-		print("watchdog: automatic enable failed\n");
-		return;
-	}
-	wd->enable();
-	poperror();
-
-	wdautopet = watchdogon = 1;
-	if (!wdclock0called) {
-		addclock0link(wdpet, 200);
-		wdclock0called = 1;
-	}
-}
-
-/*
- * disable strokes from the clock interrupt.
- * have to disable the watchdog to mark it `not in use'.
- */
-static void
-wdautostop(void)
-{
-	if (!wdautopet)
-		return;
-	wdautopet = 0;
-	wdshutdown();
-}
-
-/*
- * user processes exist and up is non-nil when the
- * device init routines are called.
- */
-static void
-wdinit(void)
-{
-	wdautostart();
 }
 
 static Chan*
@@ -134,18 +51,12 @@ wdstat(Chan *c, uchar *dp, long n)
 static Chan*
 wdopen(Chan* c, int omode)
 {
-	wdautostop();
-	c = devopen(c, omode, wddir, nelem(wddir), devgen);
-	if (c->qid.path == Qwdctl)
-		incref(&refs);
-	return c;
+	return devopen(c, omode, wddir, nelem(wddir), devgen);
 }
 
 static void
-wdclose(Chan *c)
+wdclose(Chan*)
 {
-	if(c->qid.path == Qwdctl && c->flag&COPEN && decref(&refs) <= 0)
-		wdshutdown();
 }
 
 static long
@@ -215,8 +126,8 @@ Dev wddevtab = {
 	"watchdog",
 
 	devreset,
-	wdinit,
-	wdshutdown,
+	devinit,
+	devshutdown,
 	wdattach,
 	wdwalk,
 	wdstat,

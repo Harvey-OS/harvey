@@ -45,13 +45,11 @@ static void	uartflow(void*);
 /*
  *  enable/disable uart and add/remove to list of enabled uarts
  */
-Uart*
+static Uart*
 uartenable(Uart *p)
 {
 	Uart **l;
 
-	if(p->enabled)
-		return p;
 	if(p->iq == nil){
 		if((p->iq = qopen(8*1024, 0, uartflow, p)) == nil)
 			return nil;
@@ -91,11 +89,7 @@ uartenable(Uart *p)
 		uartctl(p, "b9600");
 	(*p->phys->enable)(p, 1);
 
-	/*
-	 * use ilock because uartclock can otherwise interrupt here
-	 * and would hang on an attempt to lock uartalloc.
-	 */
-	ilock(&uartalloc);
+	lock(&uartalloc);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p)
 			break;
@@ -105,7 +99,7 @@ uartenable(Uart *p)
 		uartalloc.elist = p;
 	}
 	p->enabled = 1;
-	iunlock(&uartalloc);
+	unlock(&uartalloc);
 
 	return p;
 }
@@ -115,11 +109,9 @@ uartdisable(Uart *p)
 {
 	Uart **l;
 
-	if(!p->enabled)
-		return;
 	(*p->phys->disable)(p);
 
-	ilock(&uartalloc);
+	lock(&uartalloc);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p){
 			*l = p->elist;
@@ -127,7 +119,7 @@ uartdisable(Uart *p)
 		}
 	}
 	p->enabled = 0;
-	iunlock(&uartalloc);
+	unlock(&uartalloc);
 }
 
 Uart*
@@ -220,15 +212,15 @@ uartreset(void)
 	p = uartlist;
 	for(i = 0; i < uartnuart; i++){
 		/* 3 directory entries per port */
-		snprint(dp->name, sizeof dp->name, "eia%d", i);
+		sprint(dp->name, "eia%d", i);
 		dp->qid.path = UARTQID(i, Qdata);
 		dp->perm = 0660;
 		dp++;
-		snprint(dp->name, sizeof dp->name, "eia%dctl", i);
+		sprint(dp->name, "eia%dctl", i);
 		dp->qid.path = UARTQID(i, Qctl);
 		dp->perm = 0660;
 		dp++;
-		snprint(dp->name, sizeof dp->name, "eia%dstatus", i);
+		sprint(dp->name, "eia%dstatus", i);
 		dp->qid.path = UARTQID(i, Qstat);
 		dp->perm = 0444;
 		dp++;
@@ -532,8 +524,6 @@ uartwrite(Chan *c, void *buf, long n, vlong)
 		break;
 	case Qctl:
 		cmd = malloc(n+1);
-		if(cmd == nil)
-			error(Enomem);
 		memmove(cmd, buf, n);
 		cmd[n] = 0;
 		qlock(p);
@@ -712,7 +702,7 @@ uartrecv(Uart *p,  char ch)
 	/* receive the character */
 	if(p->putc)
 		p->putc(p->iq, ch);
-	else if (p->iw) {		/* maybe the line isn't enabled yet */
+	else{
 		ilock(&p->rlock);
 		next = p->iw + 1;
 		if(next == p->ie)
@@ -786,14 +776,8 @@ uartgetc(void)
 void
 uartputc(int c)
 {
-	char c2;
-
-	if(consuart == nil || consuart->phys->putc == nil) {
-		c2 = c;
-		if (lprint)
-			(*lprint)(&c2, 1);
+	if(consuart == nil || consuart->phys->putc == nil)
 		return;
-	}
 	consuart->phys->putc(consuart, c);
 }
 
@@ -802,11 +786,9 @@ uartputs(char *s, int n)
 {
 	char *e;
 
-	if(consuart == nil || consuart->phys->putc == nil) {
-		if (lprint)
-			(*lprint)(s, n);
+	if(consuart == nil || consuart->phys->putc == nil)
 		return;
-	}
+
 	e = s+n;
 	for(; s<e; s++){
 		if(*s == '\n')

@@ -10,7 +10,6 @@ typedef struct Dirtab	Dirtab;
 typedef struct Edf	Edf;
 typedef struct Egrp	Egrp;
 typedef struct Evalue	Evalue;
-typedef struct Execvals	Execvals;
 typedef struct Fastcall Fastcall;
 typedef struct Fgrp	Fgrp;
 typedef struct Image	Image;
@@ -79,7 +78,6 @@ struct QLock
 	Proc	*head;		/* next process waiting for object */
 	Proc	*tail;		/* last process waiting for object */
 	int	locked;		/* flag */
-	uintptr	qpc;		/* pc of the holder */
 };
 
 struct RWlock
@@ -143,7 +141,6 @@ struct Block
 	void	(*free)(Block*);
 	ushort	flag;
 	ushort	checksum;		/* IP checksum of complete packet (minus media header) */
-	ulong	magic;
 };
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)
@@ -519,8 +516,7 @@ struct Timer
 	/* Internal */
 	Lock;
 	Timers	*tt;		/* Timers queue this timer runs on */
-	Tval	tticks;		/* tns converted to ticks */
-	Tval	twhen;		/* ns represented in fastticks */
+	vlong	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
 };
 
@@ -767,12 +763,6 @@ enum
 	READSTR =	4000,		/* temporary buffer size for device reads */
 };
 
-struct Execvals {
-	uvlong	entry;
-	ulong	textsize;
-	ulong	datasize;
-};
-
 extern	char*	conffile;
 extern	char	configfile[];
 extern	int	cpuserver;
@@ -784,7 +774,6 @@ extern	Ref	noteidalloc;
 extern	int	nphysseg;
 extern	int	nsyscall;
 extern	Palloc	palloc;
-	int	(*parseboothdr)(Chan *, ulong, Execvals *);
 extern	Physseg	physseg[];
 extern	Procalloc	procalloc;
 extern	uint	qiomaxatomic;
@@ -935,8 +924,6 @@ struct Uart
 };
 
 extern	Uart*	consuart;
-
-void (*lprint)(char *, int);
 
 /*
  *  performance timers, all units in perfticks

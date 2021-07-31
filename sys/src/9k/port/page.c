@@ -244,7 +244,7 @@ newpage(int clear, Segment *s, uintptr va, int locked)
 
 	lock(p);
 	if(p->ref != 0)
-		panic("newpage: p->ref %d != 0", p->ref);
+		panic("newpage");
 
 	uncachepage(p);
 	p->ref++;
