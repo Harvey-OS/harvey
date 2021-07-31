@@ -20,7 +20,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 	char tname[32];
 	DN *nsdp, *dp;
 	Area *myarea;
-	RR *tp, *neg, *rp;
+	RR *tp, *neg;
 
 	dncheck(nil, 1);
 
@@ -109,9 +109,8 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 			if(repp->ns){
 				/* don't pass on anything we know is wrong */
 				if(repp->ns->negative){
-					rp = repp->ns;
+					rrfreelist(repp->ns);
 					repp->ns = nil;
-					rrfreelist(rp);
 				}
 				break;
 			}

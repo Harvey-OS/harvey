@@ -17,23 +17,12 @@ enum
 	Udp, Tcp,
 
 	Maxdest=	24,	/* maximum destinations for a request message */
-	Maxoutstanding=	15,	/* max. outstanding queries per domain name */
+	Maxtrans=	3,	/* maximum transmissions to a server */
+	Maxretries=	3, /* cname+actual resends: was 32; have pity on user */
+	Maxwaitms=	1000,	/* wait no longer for a remote dns query */
+	Minwaitms=	100,	/* willing to wait for a remote dns query */
 	Remntretry=	15,	/* min. sec.s between /net.alt remount tries */
-
-	/*
-	 * these are the old values; we're trying longer timeouts now
-	 * primarily for the benefit of remote nameservers querying us
-	 * during times of bad connectivity.
-	 */
-//	Maxtrans=	3,	/* maximum transmissions to a server */
-//	Maxretries=	3, /* cname+actual resends: was 32; have pity on user */
-//	Maxwaitms=	1000,	/* wait no longer for a remote dns query */
-//	Minwaitms=	100,	/* willing to wait for a remote dns query */
-
-	Maxtrans=	5,	/* maximum transmissions to a server */
-	Maxretries=	5, /* cname+actual resends: was 32; have pity on user */
-	Maxwaitms=	5000,	/* wait no longer for a remote dns query */
-	Minwaitms=	500,	/* willing to wait for a remote dns query */
+	Maxoutstanding=	15,	/* max. outstanding queries per domain name */
 
 	Destmagic=	0xcafebabe,
 	Querymagic=	0xdeadbeef,
@@ -125,18 +114,6 @@ procgetname(void)
 		return strdup("");
 	*rp = '\0';
 	return strdup(lp+1);
-}
-
-void
-rrfreelistptr(RR **rpp)
-{
-	RR *rp;
-
-	if (rpp == nil || *rpp == nil)
-		return;
-	rp = *rpp;
-	*rpp = nil;		/* update pointer in memory before freeing */
-	rrfreelist(rp);
 }
 
 /*
@@ -631,10 +608,11 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 void
 freeanswers(DNSmsg *mp)
 {
-	rrfreelistptr(&mp->qd);
-	rrfreelistptr(&mp->an);
-	rrfreelistptr(&mp->ns);
-	rrfreelistptr(&mp->ar);
+	rrfreelist(mp->qd);
+	rrfreelist(mp->an);
+	rrfreelist(mp->ns);
+	rrfreelist(mp->ar);
+	mp->qd = mp->an = mp->ns = mp->ar = nil;
 }
 
 /* timed read of reply.  sets srcip */
@@ -678,7 +656,7 @@ readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
 			dnslog("readnet: %s: tcp fd unset for dest %I",
 				qp->dp->name, qp->tcpip);
 		else if (readn(fd, lenbuf, 2) != 2) {
-			dnslog("readnet: short read of 2-byte tcp msg size from %I",
+			dnslog("readnet: short read of tcp size from %I",
 				qp->tcpip);
 			/* probably a time-out */
 			notestats(startns, 1, qp->type);
@@ -915,8 +893,10 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 
 	/* no cache time specified, don't make anything up */
 	if(soarr != nil){
-		if(soarr->next != nil)
-			rrfreelistptr(&soarr->next);
+		if(soarr->next != nil){
+			rrfreelist(soarr->next);
+			soarr->next = nil;
+		}
 		soaowner = soarr->owner;
 	} else
 		soaowner = nil;
@@ -1189,7 +1169,8 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 				p->code = Rserver;
 			return -1;
 		}
-		rrfreelistptr(&mp->ns);
+		rrfreelist(mp->ns);
+		mp->ns = nil;
 	}
 
 	/* remove any soa's from the authority section */
@@ -1201,7 +1182,6 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	unique(mp->ns);
 	unique(mp->ar);
 	unlock(&dnlock);
-
 	if(mp->an)
 		rrattach(mp->an, (mp->flags & Fauth) != 0);
 	if(mp->ar)
@@ -1211,12 +1191,15 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 		rrattach(mp->ns, Notauthoritative);
 	} else {
 		ndp = nil;
-		rrfreelistptr(&mp->ns);
+		rrfreelist(mp->ns);
+		mp->ns = nil;
 	}
 
 	/* free the question */
-	if(mp->qd)
-		rrfreelistptr(&mp->qd);
+	if(mp->qd) {
+		rrfreelist(mp->qd);
+		mp->qd = nil;
+	}
 
 	/*
 	 *  Any reply from an authoritative server,
@@ -1271,7 +1254,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	 *  netquery, which current holds qp->dp->querylck,
 	 *  so release it now and acquire it upon return.
 	 */
-//	lcktype = qtype2lck(qp->type);		/* someday try this again */
+//	lcktype = qtype2lck(qp->type);
 //	qunlock(&qp->dp->querylck[lcktype]);
 
 	nqp = emalloc(sizeof *nqp);

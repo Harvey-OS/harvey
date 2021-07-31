@@ -847,7 +847,7 @@ rrattach1(RR *new, int auth)
 void
 rrattach(RR *rp, int auth)
 {
-	RR *next, *tp;
+	RR *next;
 	DN *dp;
 
 	lock(&dnlock);
@@ -865,9 +865,8 @@ rrattach(RR *rp, int auth)
 			if (0 && rrlistlen(dp->rr) > 50 && !dp->keep) {
 				dnslog("rrattach(%s): rr list too long; "
 					"freeing it", dp->name);
-				tp = dp->rr;
+				rrfreelist(dp->rr);
 				dp->rr = nil;
-				rrfreelist(tp);
 			} else
 				USED(dp);
 			rrattach1(rp, auth);
