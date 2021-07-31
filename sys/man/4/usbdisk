@@ -1,0 +1,167 @@
+.TH USBDISK 4
+.SH NAME
+usbdisk, usbfat: - serve USB mass storage devices
+.SH SYNOPSIS
+.B usb/disk
+[
+.B -dDfl
+] [
+.B -m
+.I mountpoint
+] [
+.B -s
+.I srvname
+] [
+.I ctrlno
+.I id
+]
+.LP
+.B usbfat:
+[
+.B -fl
+] [
+.I disk
+[
+.I mntpt
+] ]
+.SH DESCRIPTION
+.I Disk
+serves a directory named
+.I mountpoint
+(default
+.BR /n/disk )
+containing the files
+.B ctl
+and
+.IR n ,
+where
+.I n
+is the number of a LUN to access,
+for all detected LUNs of the named or found USB device.
+.I Disk
+searches for a USB device with class 8 (storage),
+subclass 2 (ATAPI CD/DVD/BD),
+5 (removable, ATAPI-like) or
+6 (SCSI transparent),
+and
+protocol 0x50 (bulk), or uses
+.BI /dev/usb/ ctrlno / id
+if specified.
+In every LUN directory are the files
+.B data
+and
+.BR raw .
+.B data
+gives read/write access to blocks of the device.
+.B raw
+is a raw SCSI-like interface (talk to it with
+.IR scuzz (8)).
+.PP
+The root directory's
+.B ctl
+file accepts the command
+.LR reset ,
+which tells
+.I disk
+to again fetch the information about all LUNs,
+and yields the device geometries when read.
+.PP
+The
+.B -d
+option generates debugging output.
+The
+.B -f
+option avoids freaking out some cheap USB flash disks by not issuing
+UMS reset commands to them.
+The
+.B -l
+option asks the device for its maximum LUN.
+By default,
+.I disk
+assumes a maximum LUN of zero, since some devices
+get upset if you ask them for their maximum LUN.
+Flash memory devices are likely to have multiple LUNs.
+The
+.B -m
+option mounts the served hierarchy on
+.I mountpoint
+instead of
+.BR /n/disk .
+The
+.B -s
+option posts a mountable file descriptor as
+.BI /srv/ srvname.
+The
+.B -D
+option prints all 9P messages.
+.SH EXAMPLES
+Access the usual preformatted FAT partition:
+.IP
+.EX
+% usb/usbd
+% usb/disk -l
+% disk/fdisk -p /n/disk/0/data
+part dos 7 31559
+% dossrv -f /n/disk/0/data:7 usbstorage
+dossrv: serving #s/usbstorage
+% mount /srv/usbstorage /n/d:
+% ls -l /n/d:
+alrw-rw-rw- M 39 bill trog 180364 Oct  5 18:14 /n/d:/9LOAD
+d-rwxrwxrwx M 39 bill trog      0 Nov 13 14:30 /n/d:/benedict
+.EE
+.LP
+The latter part of the above example, from
+.B disk/fdisk
+to
+.BR mount ,
+has been packaged up as
+.IR usbfat: ,
+which mounts the FAT file system in the DOS partition of the named
+.I disk
+(by default
+.BR /n/disk/0/data )
+on
+.I mntpt
+(by default
+.BR /n/usb ).
+.SH FILES
+.TF /srv/usbsfs.ctlr.id
+.TP
+.B /n/disk
+default mountpoint
+.TP
+.B /n/usb
+default mountpoint for FAT file system on the disk
+.TP
+.B /srv/usbfat.$user
+FAT file system service
+.SH SOURCE
+.B /sys/src/cmd/usb/disk
+.br
+.B /rc/bin/usbfat:
+.SH SEE ALSO
+.IR fs (3),
+.IR sd (3),
+.IR usb (3),
+.IR partfs (8),
+.IR prep (8),
+.IR scuzz (8)
+.SH BUGS
+Should implement
+.IR sd (3)'s
+interface for each LUN.
+Currently,
+if there are multiple partitions, you can use
+.IR fs (3)
+to manage them.
+If
+.L "fdisk -p"
+prints nothing,
+there is no partition table on the device,
+so one can invoke
+.IR dossrv (4)
+directly.
+.PP
+USB 1 flash disks' I/O rates are slow and variable.
+Reading and writing in large units (e.g., 4KB) seems to be faster
+by an order of magnitude when transferring large volumes of data.
