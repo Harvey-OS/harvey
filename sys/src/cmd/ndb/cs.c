@@ -1274,13 +1274,8 @@ ipserv(Network *np, char *name, char *buf)
 		if(t == 0)
 			return 0;
 	} else {
-		/* look up only for tcp ports < 1024 to get the restricted
-		 * attribute
-		 */
-		t = nil;
-		if(atoi(name) < 1024 && strcmp(np->net, "tcp") == 0)
-			t = ndbgetval(db, &s, "port", name, "port", port);
-		if(t == nil){
+		t = ndbgetval(db, &s, "port", name, "port", port);
+		if(t == 0){
 			strncpy(port, name, sizeof(port));
 			port[sizeof(port)-1] = 0;
 		}
