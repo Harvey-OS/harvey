@@ -606,12 +606,6 @@ addtreetoar(int ar, char *file, char *shortf, int fd)
 	s_free(name);
 	free(dirents);
 
-	/*
-	 * this assumes that shortf is just one component, which is true
-	 * during directory descent, but not necessarily true of command-line
-	 * arguments.  Our caller (or addtoar's) must reset the working
-	 * directory if necessary.
-	 */
 	if (chdir("..") < 0)
 		sysfatal("chdir %s/..: %r", file);
 	if (DEBUG)
@@ -717,10 +711,8 @@ replace(char **argv)
 		curblk--;
 	}
 
-	for (i = 0; argv[i] != nil; i++) {
+	for (i = 0; argv[i] != nil; i++)
 		addtoar(ar, argv[i], argv[i]);
-		chdir(origdir);		/* for correctness & profiling */
-	}
 
 	/* write end-of-archive marker */
 	getblkz(ar);
@@ -1026,6 +1018,7 @@ main(int argc, char *argv[])
 		if (getwd(origdir, sizeof origdir) == nil)
 			strcpy(origdir, "/tmp");
 		ret = replace(argv);
+		chdir(origdir);		/* for profiling */
 		break;
 	default:
 		usage();
