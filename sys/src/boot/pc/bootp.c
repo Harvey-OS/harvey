@@ -8,7 +8,6 @@
 #include "ip.h"
 
 extern int debugload;
-extern char *persist;
 
 uchar broadcast[Eaddrlen] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -532,16 +531,10 @@ bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 {
 	int n;
 
-	/*
-	 * originally, we looped if we were pxeload or if *bootppersist was set.
-	 * this doesn't work well for pxeload where bootp will never succeed
-	 * on the first interface, so don't loop just because we're pxeload.
-	 */
 	while ((n = bootpopen1(ctlrno, file, rep, dotftpopen)) < 0 &&
-	    persist != nil) {
-		print("pausing before retry...");
+	    (pxe || getconf("*bootppersist") != nil)) {
+		print("pausing before retry\n");
 		delay(30*1000);
-		print("\n");
 	}
 	return n;
 }

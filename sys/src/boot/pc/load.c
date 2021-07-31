@@ -90,6 +90,14 @@ static char *typenm[] = {
 	[Tbios]		"bios",
 };
 
+static char *
+typename(int type)
+{
+	if (type < 0 || type >= nelem(typenm) || typenm[type] == nil)
+		return "**gok**";
+	return typenm[type];
+}
+
 extern SDifc sdataifc;
 extern SDifc sdiahciifc;
 extern SDifc sdaoeifc;
@@ -173,15 +181,6 @@ char *defaultpartition;
 int iniread;
 int debugload;
 int vga;
-char *persist;
-
-static char *
-typename(int type)
-{
-	if (type < 0 || type >= nelem(typenm) || typenm[type] == nil)
-		return "**gok**";
-	return typenm[type];
-}
 
 static Medium*
 parse(char *line, char **file)
@@ -362,7 +361,6 @@ main(void)
 	/*
 	 * we should now have read plan9.ini, if any.
 	 */
-	persist = getconf("*bootppersist");
 	debugload = getconf("*debugload") != nil;
 	if((p = getconf("console")) != nil)
 		consinit(p, getconf("baud"));
