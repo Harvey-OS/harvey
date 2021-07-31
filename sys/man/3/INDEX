@@ -10,7 +10,6 @@ dup dup
 env env
 ether ether
 floppy floppy
-fs fs
 i82365 i82365
 ip ip
 kprof kprof

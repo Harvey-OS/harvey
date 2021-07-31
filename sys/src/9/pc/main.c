@@ -684,7 +684,6 @@ isaconfig(char *class, int ctlrno, ISAConf *isa)
 	if(p == nil)
 		return 0;
 
-	isa->type = "";
 	isa->nopt = tokenize(p, isa->opt, NISAOPT);
 	for(i = 0; i < isa->nopt; i++){
 		p = isa->opt[i];
