@@ -1,5 +1,5 @@
 #define MAXSAME 16
-#define MAXSAMECHAR 1024
+#define MAXSAMECHAR 128
 
 /* status of a destination*/
 typedef enum {
