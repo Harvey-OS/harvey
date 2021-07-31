@@ -107,7 +107,6 @@ retry:
 			return 0;
 		return 1;
 	case R4K:
-	default:		/* silence compiler */
 		if(C_4ktas(&lk->val))
 			return 0;
 		return 1;
@@ -150,7 +149,6 @@ retry:
 	case MAGNUMII:
 		return C_3ktas(p);
 	case R4K:
-	default:		/* silence compiler */
 		return C_4ktas(p);
 	case POWER:
 		/* Use low order lock bits to generate hash */

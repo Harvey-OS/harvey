@@ -146,7 +146,7 @@
 .txt		text		plain		-		y
 .ucert		application	x-x509-user-cert	-	y # DER X.509 user certificate
 .ustar		application	x-ustar		-		m
-.vcf		text		x-vcard		-		y # vCard
+.vcf		text		directory	-		y # vCard
 .wav		audio		x-wav		-		y
 .wbmp		image		vnd.wap.wbmp	-		y # wireless bitmap
 .wml		text		vnd.wap.wml	-		m # WML doc
