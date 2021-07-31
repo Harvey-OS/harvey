@@ -43,10 +43,6 @@ misc
 	syscall
 	uartkw
 
-port
-	int cpuserver = 1;
-	int i8250freq = 3686000;
-
 boot cpu
 	tcp
 
@@ -55,4 +51,8 @@ bootdir
 	/arm/bin/ip/ipconfig ipconfig
 	/arm/bin/auth/factotum factotum
 #	/arm/bin/usb/usbd
-	nvram
+#	nvram
+
+port
+	int cpuserver = 1;
+	int i8250freq = 3686000;
