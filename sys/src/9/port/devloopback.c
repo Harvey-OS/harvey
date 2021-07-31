@@ -177,6 +177,7 @@ loopbackattach(char *spec)
 static int
 loopbackgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 {
+	Loop *lb;
 	Dirtab *tab;
 	int len, type;
 	Qid qid;
@@ -233,6 +234,10 @@ loopbackgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 		if(tab == nil)
 			panic("loopbackgen: unknown type: %d", type);
 		len = tab->length;
+		if(type == Qdata){
+			lb = c->aux;
+			len = qlen(lb->link[ID(c->qid.path)].iq);
+		}
 		devdir(c, c->qid, tab->name, len, eve, tab->perm, dp);
 		return 1;
 	}

@@ -43,7 +43,6 @@ extern	void	trunc(Dir*, Dir**);
 extern	long	tseek(long, int);
 extern	void	twrite(char*, long);
 extern	void	usage(void);
-static	int	isseekable(int fd);
 
 #define JUMP(o,p) tseek(o,p), copy()
 
@@ -92,7 +91,7 @@ main(int argc, char **argv)
 		usage();
 	if(argc > 1 && (file=open(argv[1],0)) < 0)
 		fatal(argv[1]);
-	seekable = isseekable(file);
+	seekable = seek(file,0L,0) == 0;
 
 	if(!seekable && origin==END)
 		keep();
@@ -360,21 +359,4 @@ usage(void)
 {
 	fprint(2, "%s\n", umsg);
 	exits("usage");
-}
-
-/* return true if seeks work and if the file is > 0 length */
-static int
-isseekable(int fd)
-{	
-	vlong m, n;
-
-	m = seek(fd, 0, 1);
-	if(m < 0)
-		return 0;
-	n = seek(fd, 0, 2);
-	if(n <= 0)
-		return 0;
-	if(seek(fd, m, 0) < 0)
-		return 0;
-	return 1;
 }
