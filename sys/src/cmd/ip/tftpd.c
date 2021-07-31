@@ -364,7 +364,7 @@ setuser(void)
 }
 
 char*
-lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
+lookup(char *sattr, char *sval, char *tattr, char *tval)
 {
 	static Ndb *db;
 	char *attrs[1];
@@ -382,8 +382,7 @@ lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
 	t = ndbipinfo(db, sattr, sval, attrs, 1);
 	if(t == nil)
 		return nil;
-	strncpy(tval, t->val, len);
-	tval[len-1] = 0;
+	strcpy(tval, t->val);
 	ndbfree(t);
 	return tval;
 }
@@ -399,8 +398,8 @@ sunkernel(char *name)
 	ulong addr;
 	uchar v4[IPv4addrlen];
 	uchar v6[IPaddrlen];
-	char buf[256];
-	char ipbuf[128];
+	char buf[Ndbvlen];
+	char ipbuf[Ndbvlen];
 
 	if(strlen(name) != 14 || strncmp(name + 8, ".SUN", 4) != 0)
 		return name;
@@ -412,7 +411,7 @@ sunkernel(char *name)
 	v4[3] = addr;
 	v4tov6(v6, v4);
 	sprint(ipbuf, "%I", v6);
-	return lookup("ip", ipbuf, "bootf", buf, sizeof buf);
+	return lookup("ip", ipbuf, "bootf", buf);
 }
 
 void

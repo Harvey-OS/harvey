@@ -30,7 +30,7 @@ char	*device = "ether0";
 int	debug;
 Ndb	*db;
 
-char*	lookup(char*, char*, char*, char*, int);
+char*	lookup(char*, char*, char*, char*);
 
 void
 error(char *s)
@@ -55,8 +55,8 @@ main(int argc, char *argv[])
 	uchar buf[2048];
 	long n;
 	Rarp *rp;
-	char ebuf[16];
-	char ipbuf[64];
+	char ebuf[Ndbvlen];
+	char ipbuf[Ndbvlen];
 	char file[128];
 	int arp;
 	char *p, *ndbfile;
@@ -139,7 +139,7 @@ main(int argc, char *argv[])
 				 rp->sha, rp->spa, rp->tha, rp->tpa);
 
 		sprint(ebuf, "%E", rp->tha);
-		if(lookup("ether", ebuf, "ip", ipbuf, sizeof ipbuf) == nil){
+		if(lookup("ether", ebuf, "ip", ipbuf) == nil){
 			syslog(debug, rlog, "client lookup failed: %s", ebuf);
 			continue;
 		}
@@ -167,7 +167,7 @@ main(int argc, char *argv[])
 }
 
 char*
-lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
+lookup(char *sattr, char *sval, char *tattr, char *tval)
 {
 	static Ndb *db;
 	char *attrs[1];
@@ -185,8 +185,7 @@ lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
 	t = ndbipinfo(db, sattr, sval, attrs, 1);
 	if(t == nil)
 		return nil;
-	strncpy(tval, t->val, len);
-	tval[len-1] = 0;
+	strcpy(tval, t->val);
 	ndbfree(t);
 	return tval;
 }

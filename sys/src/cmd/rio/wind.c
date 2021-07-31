@@ -494,7 +494,7 @@ showcandidates(Window *w, Completion *c)
 	nr = runestrlen(rp);
 
 	q0 = w->q0;
-	q0 += winsert(w, rp, runestrlen(rp), qline) - qline;
+	winsert(w, rp, runestrlen(rp), qline);
 	free(rp);
 	wsetselect(w, q0+nr, q0+nr);
 }

@@ -24,17 +24,6 @@ evconst(Node *n)
 	default:
 		return;
 
-	case ONEG:
-		if(isf)
-			d = -l->fconst;
-		else
-			v = -l->vconst;
-		break;
-
-	case OCOM:
-		v = ~l->vconst;
-		break;
-
 	case OCAST:
 		if(et == TVOID)
 			return;
@@ -244,13 +233,6 @@ acom(Node *n)
 	case OSTRING:
 	case OINDREG:
 	case OREGISTER:
-		return;
-
-	case ONEG:
-		l = n->left;
-		if(addo(n) && addo(l))
-			break;
-		acom(l);
 		return;
 
 	case OADD:
@@ -534,10 +516,6 @@ acom1(vlong v, Node *n)
 		acom1(v, n->left);
 		break;
 
-	case ONEG:
-		acom1(-v, n->left);
-		break;
-
 	case OADD:
 		acom1(v, n->left);
 		acom1(v, n->right);
@@ -582,7 +560,6 @@ addo(Node *n)
 			return 1;
 		break;
 
-	case ONEG:
 	case OADD:
 	case OSUB:
 		return 1;

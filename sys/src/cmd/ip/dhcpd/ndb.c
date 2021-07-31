@@ -85,9 +85,7 @@ lookupip(uchar *ipaddr, Info *iip, int gate)
 	*p++ = "@ipgw";
 	if(!gate){
 		*p++ = "bootf";
-		*p++ = "bootf2";
 		*p++ = "@tftp";
-		*p++ = "@tftp2";
 		*p++ = "rootpath";
 		*p++ = "dhcp";
 		*p++ = "vendorclass";

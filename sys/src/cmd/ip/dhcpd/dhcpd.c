@@ -868,11 +868,10 @@ bootp(Req *rp)
 	Iplifc *lifc;
 	Info *iip;
 
-	warning(0, "bootp %s %I->%I from %s via %I, file %s",
+	warning(0, "bootp %s %I->%I from %s via %I",
 		rp->genrequest ? "generic" : (rp->p9request ? "p9" : ""),
 		rp->up->raddr, rp->up->laddr,
-		rp->id, rp->gii.ipaddr,
-		rp->bp->file);
+		rp->id, rp->gii.ipaddr);
 
 	if(nobootp)
 		return;

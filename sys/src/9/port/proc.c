@@ -184,7 +184,8 @@ hzsched(void)
 	if(anyhigher()
 	|| (!up->fixedpri && m->ticks > m->schedticks && anyready())){
 		m->readied = nil;	/* avoid cooperative scheduling */
-		up->delaysched++;
+		sched();
+		splhi();
 	}
 }
 
@@ -439,7 +440,7 @@ ulong balancetime;
 static void
 rebalance(void)
 {
-	int pri, npri, t, x;
+	int pri, npri, t;
 	Schedq *rq;
 	Proc *p;
 
@@ -460,11 +461,11 @@ another:
 		updatecpu(p);
 		npri = reprioritize(p);
 		if(npri != pri){
-			x = splhi();
+			splhi();
 			p = dequeueproc(rq, p);
 			if(p)
 				queueproc(&runq[npri], p);
-			splx(x);
+			spllo();
 			goto another;
 		}
 	}
@@ -534,7 +535,8 @@ found:
 	p->state = Scheding;
 	p->mp = MACHP(m->machno);
 
-	if(edflock(p)){
+	if(p->edf && (p->edf->flags & Admitted)){
+		edflock();
 		edfrun(p, rq == &runq[PriEdf]);	/* start deadline timer and do admin */
 		edfunlock();
 	}
@@ -715,8 +717,8 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	s = splhi();
 
 	if(up->nlocks.ref)
-		print("process %lud sleeps with %lud locks held, last lock 0x%p locked at pc 0x%lux, sleep called from 0x%lux\n",
-			up->pid, up->nlocks.ref, up->lastlock, up->lastlock->pc, getcallerpc(&r));
+		print("process %lud sleeps with %lud locks held, last lock 0x%p locked at pc 0x%lux\n",
+			up->pid, up->nlocks.ref, up->lastlock, up->lastlock->pc);
 	lock(r);
 	lock(&up->rlock);
 	if(r->p){
@@ -783,7 +785,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 int
 tfn(void *arg)
 {
-	return up->trend == nil || up->tfn(arg);
+	return MACHP(0)->ticks >= up->twhen || up->tfn(arg);
 }
 
 void
@@ -802,10 +804,8 @@ twakeup(Ureg*, Timer *t)
 void
 tnsleep(Rendez *r, int (*fn)(void*), void *arg, vlong ns)
 {
-	if (up->tt){
-		print("tnsleep: timer active: mode %d, tf 0x%lux\n", up->tmode, up->tf);
+	if (up->tt)
 		timerdel(up);
-	}
 	up->tns = ns;
 	up->tf = twakeup;
 	up->tmode = Tabsolute;
@@ -828,10 +828,8 @@ tnsleep(Rendez *r, int (*fn)(void*), void *arg, vlong ns)
 void
 tsleep(Rendez *r, int (*fn)(void*), void *arg, ulong ms)
 {
-	if (up->tt){
-		print("tsleep: timer active: mode %d, tf 0x%lux\n", up->tmode, up->tf);
+	if (up->tt)
 		timerdel(up);
-	}
 	up->tns = MS2NS(ms);
 	up->tf = twakeup;
 	up->tmode = Trelative;

@@ -219,9 +219,6 @@ com64(Node *n)
 
 		case OANDAND:
 		case OOROR:
-			if(machcap(n))
-				return 1;
-
 			if(rv) {
 				r = new(OFUNC, nodtestv, r);
 				n->right = r;
@@ -232,9 +229,6 @@ com64(Node *n)
 
 		case OCOND:
 		case ONOT:
-			if(machcap(n))
-				return 1;
-
 			l = new(OFUNC, nodtestv, l);
 			n->left = l;
 			l->complex = FNX;
@@ -246,8 +240,6 @@ com64(Node *n)
 	}
 
 	if(rv) {
-		if(machcap(n))
-			return 1;
 		switch(n->op) {
 		case OANDAND:
 		case OOROR:
@@ -261,8 +253,6 @@ com64(Node *n)
 	}
 
 	if(typev[n->type->etype]) {
-		if(machcap(n))
-			return 1;
 		switch(n->op) {
 		default:
 			diag(n, "unknown vlong %O", n->op);
@@ -435,8 +425,6 @@ com64(Node *n)
 
 	if(n->op == OCAST) {
 		if(l->type && typev[l->type->etype]) {
-			if(machcap(n))
-				return 1;
 			switch(n->type->etype) {
 			case TDOUBLE:
 				a = nodv2d;
@@ -508,8 +496,6 @@ setvinc:
 	return 1;
 
 setbool:
-	if(machcap(n))
-		return 1;
 	n->left = a;
 	n->right = new(OLIST, l, r);
 	n->complex = FNX;

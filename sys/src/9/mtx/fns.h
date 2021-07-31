@@ -62,7 +62,6 @@ int	isaconfig(char*, int, ISAConf*);
 void	kbdinit(void);
 void	kbdreset(void);
 void	kernelmmu(void);
-#define kexit(a)
 #define	kmapinval()
 void	links(void);
 void	mathinit(void);

@@ -63,7 +63,6 @@ int lostonly;
 int lostmsgs;
 int rcvdmsgs;
 int done;
-int rint;
 vlong sum;
 ushort firstseq;
 int addresses;
@@ -120,7 +119,7 @@ sender(int fd, int msglen, int interval, int n)
 {
 	char buf[64*1024+512];
 	Icmp *ip;
-	int i, extra;
+	int i;
 	Req *r;
 	ushort seq;
 
@@ -135,10 +134,8 @@ sender(int fd, int msglen, int interval, int n)
 	ip->code = 0;
 
 	for(i = 0; i < n; i++){
-		if(i != 0){
-			extra = rint? nrand(interval): 0;
-			sleep(interval + extra);
-		}
+		if(i != 0)
+			sleep(interval);
 		r = malloc(sizeof *r);
 		if(r != nil){
 			ip->seq[0] = seq;
@@ -257,9 +254,6 @@ main(int argc, char **argv)
 		break;
 	case 'q':
 		quiet = 1;
-		break;
-	case 'r':
-		rint = 1;
 		break;
 	} ARGEND;
 	if(msglen < 32)

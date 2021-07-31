@@ -1494,10 +1494,8 @@ pea(Instr *ip)
 	else {
 		if (ip->base < 0)
 			immediate(ip, ip->disp);
-		else {
-			bprint(ip, "%lux", ip->disp);
+		else
 			bprint(ip,"(%s%s)", ANAME(ip), reg[ip->base]);
-		}
 	}
 	if (ip->index >= 0)
 		bprint(ip,"(%s%s*%d)", ANAME(ip), reg[ip->index], 1<<ip->ss);

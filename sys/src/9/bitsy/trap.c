@@ -440,19 +440,15 @@ trap(Ureg *ureg)
 		}
 		break;
 	}
-	splhi();
-
-	/* delaysched set because we held a lock or because our quantum ended */
-	if(up && up->delaysched){
-		sched();
-		splhi();
-	}
 
 	if(user){
+		if(up->delaysched)
+			sched();
+		splhi();
 		if(up->procctl || up->nnote)
 			notify(ureg);
-		kexit(ureg);
-	}
+	}else
+		splhi();
 }
 
 /*

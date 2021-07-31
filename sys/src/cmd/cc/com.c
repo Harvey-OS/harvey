@@ -446,20 +446,18 @@ tcomo(Node *n, int f)
 		if(isfunct(n))
 			break;
 
-		if(!machcap(n)) {
-			r = l;
-			l = new(OCONST, Z, Z);
-			l->vconst = 0;
-			l->type = types[TINT];
-			n->op = OSUB;
-			n->right = r;
-			n->left = l;
+		r = l;
+		l = new(OCONST, Z, Z);
+		l->vconst = 0;
+		l->type = types[TINT];
+		n->op = OSUB;
+		n->right = r;
+		n->left = l;
 
-			if(tcom(l))
-				goto bad;
-			if(tcompat(n, l->type, r->type, tsub))
-				goto bad;
-		}
+		if(tcom(l))
+			goto bad;
+		if(tcompat(n, l->type, r->type, tsub))
+			goto bad;
 		arith(n, 1);
 		break;
 
@@ -469,20 +467,18 @@ tcomo(Node *n, int f)
 		if(isfunct(n))
 			break;
 
-		if(!machcap(n)) {
-			r = l;
-			l = new(OCONST, Z, Z);
-			l->vconst = -1;
-			l->type = types[TINT];
-			n->op = OXOR;
-			n->right = r;
-			n->left = l;
+		r = l;
+		l = new(OCONST, Z, Z);
+		l->vconst = -1;
+		l->type = types[TINT];
+		n->op = OXOR;
+		n->right = r;
+		n->left = l;
 
-			if(tcom(l))
-				goto bad;
-			if(tcompat(n, l->type, r->type, tand))
-				goto bad;
-		}
+		if(tcom(l))
+			goto bad;
+		if(tcompat(n, l->type, r->type, tand))
+			goto bad;
 		arith(n, 1);
 		break;
 
@@ -897,6 +893,7 @@ loop:
 	l = n->left;
 	r = n->right;
 	switch(n->op) {
+
 	case OAS:
 	case OASXOR:
 	case OASAND:

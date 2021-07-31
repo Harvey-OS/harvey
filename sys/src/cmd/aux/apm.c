@@ -951,7 +951,7 @@ answerany(void)
 
 		l = 0;
 		buf = r->ofcall.data;
-		m = r->ifcall.count;
+		m = r->ofcall.count;
 		while(rp != wp){
 			if(l+strlen(eventq[rp]) <= m){
 				strcpy(buf+l, eventq[rp]);

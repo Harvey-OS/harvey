@@ -1,10 +1,5 @@
 #include "../dhcp.h"
 
-enum
-{
-	Maxstr=	256,
-};
-
 typedef struct Binding Binding;
 struct Binding
 {
@@ -28,9 +23,9 @@ typedef struct Info	Info;
 struct Info
 {
 	int	indb;			/* true if found in database */
-	char	domain[Maxstr];	/* system domain name */
-	char	bootf[Maxstr];		/* boot file */
-	char	bootf2[Maxstr];	/* alternative boot file */
+	char	domain[Ndbvlen];	/* system domain name */
+	char	bootf[Ndbvlen];		/* boot file */
+	char	bootf2[Ndbvlen];	/* alternative boot file */
 	uchar	tftp[NDB_IPlen];	/* ip addr of tftp server */
 	uchar	tftp2[NDB_IPlen];	/* ip addr of alternate server */
 	uchar	ipaddr[NDB_IPlen];	/* ip address of system */
@@ -40,9 +35,9 @@ struct Info
 	uchar	gwip[NDB_IPlen];	/* gateway ip address */
 	uchar	fsip[NDB_IPlen];	/* file system ip address */
 	uchar	auip[NDB_IPlen];	/* authentication server ip address */
-	char	rootpath[Maxstr];	/* rootfs for diskless nfs clients */
-	char	dhcpgroup[Maxstr];
-	char	vendor[Maxstr];	/* vendor info */
+	char	rootpath[Ndbvlen];	/* rootfs for diskless nfs clients */
+	char	dhcpgroup[Ndbvlen];
+	char	vendor[Ndbvlen];	/* vendor info */
 };
 
 

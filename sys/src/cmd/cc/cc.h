@@ -282,7 +282,6 @@ enum
 	OTST,		/* used in some compilers */
 	OINDEX,
 	OFAS,
-	OREGPAIR,
 
 	OEND
 };
@@ -484,7 +483,6 @@ extern	char	typeh[];
 extern	char	typeil[];
 extern	char	typeilp[];
 extern	char	typechl[];
-extern	char	typechlv[];
 extern	char	typechlp[];
 extern	char	typechlpfd[];
 
@@ -727,11 +725,6 @@ double	convvtof(vlong);
 vlong	convftov(double);
 double	convftox(double, int);
 vlong	convvtox(vlong, int);
-
-/*
- * machcap
- */
-int	machcap(Node*);
 
 #pragma	varargck	argpos	warn	2
 #pragma	varargck	argpos	diag	2

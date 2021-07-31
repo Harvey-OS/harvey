@@ -10,9 +10,6 @@ OFILES=\
 	txt.$O\
 	reg.$O\
 	peep.$O\
-	machcap.$O\
-	cgen64.$O\
-	bound.$O\
 
 HFILES=\
 	gc.h\
@@ -20,6 +17,7 @@ HFILES=\
 	../cc/cc.h\
 
 LIB=../cc/cc.a$O
+
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
@@ -29,4 +27,3 @@ $LIB:
 	mk install
 	mk clean
 
-bound.$O:	bound.h

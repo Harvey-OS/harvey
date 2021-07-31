@@ -171,7 +171,7 @@ struct Mach
 	int	inclockintr;
 
 	Proc*	readied;		/* for runproc */
-	ulong	schedticks;		/* next forced context switch */
+	ulong	schedticks;	/* next forced context switch */
 
 	int	tlbfault;
 	int	tlbpurge;
@@ -223,7 +223,6 @@ struct
 	int	machs;			/* bitmap of active CPUs */
 	int	exiting;		/* shutdown */
 	int	ispanic;		/* shutdown in response to a panic */
-	int	thunderbirdsarego;	/* lets the added processors continue to schedinit */
 }active;
 
 /*

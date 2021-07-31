@@ -83,14 +83,11 @@ lock(Lock *l)
 		lockstats.inglare++;
 		i = 0;
 		while(l->key){
-			if(conf.nmach < 2 && up && up->edf && (up->edf->flags & Admitted)){
-				/*
-				 * Priority inversion, yield on a uniprocessor; on a
-				 * multiprocessor, the other processor will unlock
-				 */
+			if(up && up->edf && (up->edf->flags & Admitted)){
+				/* priority inversion, yield */
 				print("inversion 0x%lux pc 0x%lux proc %lud held by pc 0x%lux proc %lud\n",
 					l, pc, up ? up->pid : 0, l->pc, l->p ? l->p->pid : 0);
-				up->edf->d = todget(nil);	/* yield to process with lock */ 
+				edfyield();
 			}
 			if(i++ > 100000000){
 				i = 0;
@@ -215,8 +212,9 @@ iunlock(Lock *l)
 	l->key = 0;
 	coherence();
 
+	m->splpc = getcallerpc(&l);
 	m->ilockdepth--;
 	if(up)
 		up->lastilock = nil;
-	splx(sr);
+	splxpc(sr);
 }
