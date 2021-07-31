@@ -14,14 +14,11 @@
  * figure it out.
  */
 enum {
-	Deftarget	= 1<<30,	/* effectively disable aging */
-	Minage		= 1<<30,
-	Defagefreq	= 1<<30,	/* age names this often (seconds) */
-
-	/* these settings will trigger frequent aging */
-//	Deftarget	= 4000,
-//	Minage		=  5*60,
-//	Defagefreq	= 15*60,	/* age names this often (seconds) */
+	Deftarget = 8000,
+};
+enum {
+	Minage		= 10*60,
+	Defagefreq	= 30*60,	/* age names this often (seconds) */
 };
 
 /*
