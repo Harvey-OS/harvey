@@ -122,8 +122,6 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 static int
 connsalloc(Dest *dp, int addrs)
 {
-	Conn *conn;
-
 	free(dp->conn);
 	dp->connend = nil;
 	assert(addrs > 0);
@@ -132,8 +130,6 @@ connsalloc(Dest *dp, int addrs)
 	if(dp->conn == nil)
 		return -1;
 	dp->connend = dp->conn + addrs;
-	for(conn = dp->conn; conn < dp->connend; conn++)
-		conn->cfd = conn->dfd = -1;
 	return 0;
 }
 
@@ -149,7 +145,7 @@ freedest(Dest *dp)
 static void
 closeopenfd(int *fdp)
 {
-	if (*fdp >= 0) {
+	if (*fdp > 0) {
 		close(*fdp);
 		*fdp = -1;
 	}
@@ -283,7 +279,7 @@ pickuperr(char *besterr, char *err)
 static int
 dialmulti(DS *ds, Dest *dp)
 {
-	int rv, kid, kidme, oalarm;
+	int rv, kid, kidme;
 	char *clone, *dest;
 	char err[ERRMAX], besterr[ERRMAX];
 
@@ -296,9 +292,7 @@ dialmulti(DS *ds, Dest *dp)
 		if (kid < 0)
 			--dp->nkid;
 		else if (kid == 0) {
-			/* don't override outstanding alarm */
-			oalarm = alarm(0);
-			alarm(oalarm > 0? oalarm: Maxconnms);
+			alarm(Maxconnms);
 			*besterr = '\0';
 			rv = call(clone, dest, ds, dp, &dp->conn[kidme]);
 			if(rv < 0)
