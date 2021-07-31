@@ -1,10 +1,7 @@
 /*
  * pANS stdio -- vsnprintf
  */
-#define _C99_SNPRINTF_EXTENSION
-
 #include "iolib.h"
-
 int vsnprintf(char *buf, size_t nbuf, const char *fmt, va_list args){
 	int n;
 	FILE *f=_IO_sopenw();

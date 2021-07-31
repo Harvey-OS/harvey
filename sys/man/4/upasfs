@@ -167,9 +167,9 @@ is used to direct
 .I fs
 to open/close new mailboxes or to delete groups of messages atomically.
 The messages that can be written to this file are:
-.TF "delete\fI mboxname number ...\fP
-.TP
-.BI open " path mboxname"
+.TP 2i
+.PD 0
+.B "open \fIpath mboxname\fP
 opens a new mailbox.
 .I path
 is the file to open, and
@@ -177,14 +177,14 @@ is the file to open, and
 is the name that appears under
 .BR /mail/fs .
 .TP
-.BI close " mboxname"
+.B "close \fImboxname\fP
 close
 .IR mboxname .
 The close takes affect only after all files open under
 .BI /mail/fs/ mboxname
 have been closed.
 .TP
-.BI delete " mboxname number ..."
+.B "delete \fImboxname number ...\fP
 Delete the messages with the given numbers from
 .IR mboxname.
 .PD
@@ -266,12 +266,8 @@ cleartext POP with password authentication
 .B apop
 cleartext POP with challenge-response (APOP) authentication
 .TP
-.B pops
-.TP
 .B poptls
 TLS-encrypted POP with password authentication
-.TP
-.B apops
 .TP
 .B apoptls
 TLS-encrypted POP with challenge-response (APOP) authentication
@@ -292,16 +288,20 @@ and
 .B apoptls
 connect to port 110 in plaintext and start TLS using the POP
 STLS command.
-.B Pops
-and
-.B apops
-connect to port 995 and start TLS before initiating the POP conversation.
 .B Imaps
 connects to port 993 and starts TLS before initiating the IMAP conversation.
-There should probably be an
+There should probably be
+.BR pops ,
+.BR apops ,
+and
 .B imaptls
-protocol as well.
-.RB ( Imaptls
+protocols as well.
+.RB ( Pops
+and
+.B apops
+would connect to port 995 and start TLS before initiating the POP conversation,
+and
+.B imaptls
 would connect to port 143 in plaintext and start TLS using the IMAP
 STARTTLS command.
 (That's the nice thing about standards\(emthere's so many to choose from.))

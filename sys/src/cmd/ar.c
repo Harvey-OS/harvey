@@ -698,13 +698,11 @@ getdir(Biobuf *b)
 		free(bp);
 		return 0;
 	}
-	if(strncmp(bp->hdr.fmag, ARFMAG, sizeof(bp->hdr.fmag)) != 0)
+	if(strncmp(bp->hdr.fmag, ARFMAG, sizeof(bp->hdr.fmag)))
 		phaseerr(Boffset(b));
 	strncpy(name, bp->hdr.name, sizeof(bp->hdr.name));
 	cp = name+sizeof(name)-1;
-	*cp = '\0';
-	/* skip trailing spaces and (gnu-produced) slashes */
-	while(*--cp == ' ' || *cp == '/')
+	while(*--cp==' ')
 		;
 	cp[1] = '\0';
 	file = name;

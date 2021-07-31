@@ -97,12 +97,13 @@ static char* bustypes[] = {
 	"XPRESS",
 };
 
+#pragma	varargck	type	"T"	int
+
 static int
 tbdffmt(Fmt* fmt)
 {
 	char *p;
-	int l, r;
-	uint type, tbdf;
+	int l, r, type, tbdf;
 
 	if((p = malloc(READSTR)) == nil)
 		return fmtstrcpy(fmt, "(tbdfconv)");
@@ -110,17 +111,13 @@ tbdffmt(Fmt* fmt)
 	switch(fmt->r){
 	case 'T':
 		tbdf = va_arg(fmt->args, int);
-		if(tbdf == BUSUNKNOWN)
-			snprint(p, READSTR, "unknown");
-		else{
-			type = BUSTYPE(tbdf);
-			if(type < nelem(bustypes))
-				l = snprint(p, READSTR, bustypes[type]);
-			else
-				l = snprint(p, READSTR, "%d", type);
-			snprint(p+l, READSTR-l, ".%d.%d.%d",
-				BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
-		}
+		type = BUSTYPE(tbdf);
+		if(type < nelem(bustypes))
+			l = snprint(p, READSTR, bustypes[type]);
+		else
+			l = snprint(p, READSTR, "%d", type);
+		snprint(p+l, READSTR-l, ".%d.%d.%d",
+			BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
 		break;
 
 	default:

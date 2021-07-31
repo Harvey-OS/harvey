@@ -17,7 +17,7 @@ char	*thestring 	= "power";
 /*
  *	-H0 -T0x200000 -R0		is boot
  *	-H1 -T0x100000 -R4		is Be boot
- *	-H2 -T0x100020 -R0x100000	is plan9 format (was -T4128 -R4096)
+ *	-H2 -T4128 -R4096		is plan9 format
  *	-H3 -T0x02010000 -D0x00001000	is raw
  *	-H4 -T0x1000200 -D0x20000e00 -R4	is aix xcoff executable
  *	-H5 -T0x80010000 -t0x10000	ELF, phys = 10000, vaddr = 0x8001...
@@ -153,11 +153,11 @@ main(int argc, char *argv[])
 	case 2:	/* plan 9 */
 		HEADR = 32L;
 		if(INITTEXT == -1)
-			INITTEXT = 0x100020;
+			INITTEXT = 4128;
 		if(INITDAT == -1)
 			INITDAT = 0;
 		if(INITRND == -1)
-			INITRND = 0x100000;
+			INITRND = 4096;
 		break;
 	case 3:	/* raw */
 		HEADR = 0;
@@ -1224,24 +1224,16 @@ void
 doprof2(void)
 {
 	Sym *s2, *s4;
-	Prog *p, *q, *q2, *ps2, *ps4;
+	Prog *p, *q, *ps2, *ps4;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f profile 2\n", cputime());
 	Bflush(&bso);
 
-	if(debug['e']){
-		s2 = lookup("_tracein", 0);
-		s4 = lookup("_traceout", 0);
-	}else{
-		s2 = lookup("_profin", 0);
-		s4 = lookup("_profout", 0);
-	}
+	s2 = lookup("_profin", 0);
+	s4 = lookup("_profout", 0);
 	if(s2->type != STEXT || s4->type != STEXT) {
-		if(debug['e'])
-			diag("_tracein/_traceout not defined %d %d", s2->type, s4->type);
-		else
-			diag("_profin/_profout not defined");
+		diag("_profin/_profout not defined");
 		return;
 	}
 
@@ -1282,20 +1274,7 @@ doprof2(void)
 			q->line = p->line;
 			q->pc = p->pc;
 			q->link = p->link;
-			if(debug['e']){		/* embedded tracing */
-				q2 = prg();
-				p->link = q2;
-				q2->link = q;
-
-				q2->line = p->line;
-				q2->pc = p->pc;
-
-				q2->as = ABR;
-				q2->to.type = D_BRANCH;
-				q2->to.sym = p->to.sym;
-				q2->cond = q->link;
-			}else
-				p->link = q;
+			p->link = q;
 			p = q;
 			p->as = ABL;
 			p->to.type = D_BRANCH;
@@ -1305,17 +1284,7 @@ doprof2(void)
 			continue;
 		}
 		if(p->as == ARETURN) {
-			/*
-			 * RETURN (default)
-			 */
-			if(debug['e']){		/* embedded tracing */
-				q = prg();
-				q->line = p->line;
-				q->pc = p->pc;
-				q->link = p->link;
-				p->link = q;
-				p = q;
-			}
+
 			/*
 			 * RETURN
 			 */

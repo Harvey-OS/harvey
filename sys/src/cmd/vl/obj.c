@@ -1171,24 +1171,15 @@ void
 doprof2(void)
 {
 	Sym *s2, *s4;
-	Prog *p, *q, *q2, *ps2, *ps4;
+	Prog *p, *q, *ps2, *ps4;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f profile 2\n", cputime());
 	Bflush(&bso);
-
-	if(debug['e']){
-		s2 = lookup("_tracein", 0);
-		s4 = lookup("_traceout", 0);
-	}else{
-		s2 = lookup("_profin", 0);
-		s4 = lookup("_profout", 0);
-	}
+	s2 = lookup("_profin", 0);
+	s4 = lookup("_profout", 0);
 	if(s2->type != STEXT || s4->type != STEXT) {
-		if(debug['e'])
-			diag("_tracein/_traceout not defined %d %d", s2->type, s4->type);
-		else
-			diag("_profin/_profout not defined");
+		diag("_profin/_profout not defined");
 		return;
 	}
 
@@ -1227,20 +1218,7 @@ doprof2(void)
 			q->line = p->line;
 			q->pc = p->pc;
 			q->link = p->link;
-			if(debug['e']){		/* embedded tracing */
-				q2 = prg();
-				p->link = q2;
-				q2->link = q;
-
-				q2->line = p->line;
-				q2->pc = p->pc;
-
-				q2->as = AJMP;
-				q2->to.type = D_BRANCH;
-				q2->to.sym = p->to.sym;
-				q2->cond = q->link;
-			}else
-				p->link = q;
+			p->link = q;
 			p = q;
 			p->as = AJAL;
 			p->to.type = D_BRANCH;
@@ -1250,17 +1228,6 @@ doprof2(void)
 			continue;
 		}
 		if(p->as == ARET) {
-			/*
-			 * RET (default)
-			 */
-			if(debug['e']){		/* embedded tracing */
-				q = prg();
-				q->line = p->line;
-				q->pc = p->pc;
-				q->link = p->link;
-				p->link = q;
-				p = q;
-			}
 			/*
 			 * RET
 			 */
