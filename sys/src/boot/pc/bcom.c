@@ -1,6 +1,3 @@
-/*
- * ld - DOS boot loader of Plan 9
- */
 #include "u.h"
 #include "lib.h"
 #include "mem.h"
