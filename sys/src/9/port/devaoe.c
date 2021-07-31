@@ -861,7 +861,6 @@ aoegen(Chan *c, char *, Dirtab *, int, int s, Dir *dp)
 	case Qctl:
 	case Qdata:
 	case Qconfig:
-	case Qident:
 		return unitgen(c, TYPE(c->qid), dp);
 	case Qdevlinkdir:
 		i = UNIT(c->qid);
@@ -1688,7 +1687,7 @@ getdev(long major, long minor, int n)
 	for(d = devs.d; d; d = d->next)
 		if(d->major == major && d->minor == minor)
 			break;
-	if (d == nil) {
+	if (d) {
 		d = newdev(major, minor, n);
 		d->next = devs.d;
 		devs.d = d;
@@ -1760,8 +1759,8 @@ getmtu(Chan *m)
 	int n, mtu;
 	char buf[36];
 
-	mtu = 1514;
-	if(m == nil || waserror())
+	mtu = 8192;
+	if(waserror())
 		return mtu;
 	n = devtab[m->type]->read(m, buf, sizeof buf - 1, 0);
 	if(n > 12){
@@ -2100,10 +2099,8 @@ netrdaoe(void *v)
 	if(autodiscover)
 		discover(0xffff, 0xff);
 	for (;;) {
-		if((nl->flag & Dup) == 0)
+		if((nl->flag&Dup) == 0)
 			ERROR("netlink is down");
-		if (nl->dc == nil)
-			panic("netrdaoe: nl->dc == nil");
 		b = devtab[nl->dc->type]->bread(nl->dc, 1<<16, 0);
 		if(b == nil)
 			ERROR("nil read from network");
@@ -2142,8 +2139,6 @@ getaddr(char *path, uchar *ea)
 		cclose(c);
 		nexterror();
 	}
-	if (c == nil)
-		panic("æ: getaddr: c == nil");
 	n = devtab[c->type]->read(c, buf, sizeof buf-1, 0);
 	poperror();
 	cclose(c);
@@ -2163,12 +2158,7 @@ netbind(char *path)
 	snprint(addr, sizeof addr, "%s!0x%x", path, Aoetype);
 	dc = chandial(addr, nil, nil, &cc);
 	snprint(addr, sizeof addr, "%s/mtu", path);
-	if(waserror())
-		mtu = nil;
-	else {
-		mtu = namec(addr, Aopen, OREAD, 0);
-		poperror();
-	}
+	mtu = namec(addr, Aopen, OREAD, 0);
 
 	if(waserror()){
 		cclose(dc);

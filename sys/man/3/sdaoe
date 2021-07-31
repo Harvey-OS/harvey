@@ -47,7 +47,7 @@ as
 as root over Ethernet interfaces 0 and 1,
 .IP
 .EX
-aoeif=ether0 ether1
+etherif=ether0 ether1
 aoedev=e!#æ/aoe/42.0
 .EE
 .SH SOURCE
