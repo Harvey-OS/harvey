@@ -654,7 +654,7 @@ fileTruncate(File *f, char *uid)
 	sourceUnlock(f->source);
 	fileUnlock(f);
 
-	fileWAccess(f, uid);
+	fileWAccess(f->up, uid);
 
 	return 1;
 }

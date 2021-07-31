@@ -30,13 +30,6 @@ struct Fid
 	int	nr;		/* fid number */
 	int	mid;		/* Mount id */
 	Fid	*next;		/* hash link */
-
-	/* for preaddir -- ARRGH! */
-	Dir	*dir;		/* buffer for reading directories */
-	int	ndir;		/* number of entries in dir */
-	int	cdir;		/* number of consumed entries in dir */
-	int	gdir;		/* glue index */
-	vlong	offset;		/* offset in virtual directory */
 };
 
 struct File
@@ -99,8 +92,7 @@ Extern char	psmap[Npsmpt];
 Extern Qidtab	*qidtab[Nqidtab];
 Extern ulong	messagesize;
 Extern char	Enomem[];
-Extern int	srvfd;
-Extern char*	patternfile;
+Extern int		srvfd;
 
 /* File system protocol service procedures */
 void Xattach(Fsrpc*);
@@ -138,7 +130,4 @@ Qidtab* uniqueqid(Dir*);
 void	freeqid(Qidtab*);
 char*	estrdup(char*);
 void*	emallocz(uint);
-int	readmessage(int, char*, int);
-void	exclusions(void);
-int	excludefile(char*);
-int	preaddir(Fid*, uchar*, int, vlong);
+int		readmessage(int, char*, int);

@@ -47,9 +47,8 @@ int	srvfd = -1;
 int	nonone = 1;
 char	*filterp;
 char	*ealgs = "rc4_256 sha1";
-char	*aanfilter = "/bin/aan";
-int	encproto = Encnone;
-
+char *aanfilter = "/bin/aan";
+int encproto = Encnone;
 static void	mksecret(char *, uchar *);
 static int localread9pmsg(int, void *, uint, ulong *);
 static char *anstring  = "tcp!*!0";
@@ -137,10 +136,6 @@ main(int argc, char **argv)
 		srv = "/";
 		break;
 
-	case 'p':
-		patternfile = EARGF(usage());
-		break;
-
 	case 'A':
 		anstring = EARGF(usage());
 		break;
@@ -149,8 +144,6 @@ main(int argc, char **argv)
 		usage();
 	}ARGEND
 	USED(argc, argv);
-
-	exclusions();
 
 	if(dbg) {
 		n = create(dbfile, OWRITE|OTRUNC, 0666);
@@ -424,10 +417,6 @@ freefid(int nr)
 				freefile(f->f);
 				f->f = nil;
 			}
-			if(f->dir){
-				free(f->dir);
-				f->dir = nil;
-			}
 			*l = f->next;
 			f->next = fidfree;
 			fidfree = f;
@@ -550,10 +539,6 @@ file(File *parent, char *name)
 	DEBUG(DFD, "\tfile: 0x%p %s name %s\n", parent, parent->name, name);
 
 	path = makepath(parent, name);
-	if(patternfile != nil && excludefile(path)){
-		free(path);
-		return nil;
-	}
 	dir = dirstat(path);
 	free(path);
 	if(dir == nil)
