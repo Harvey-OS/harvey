@@ -43,7 +43,10 @@ setinp(int argc, char **argv)
 	sargv = argv;
 	sargc--; 
 	sargv++;
-	if (sargc == 0 || swapin() == 0) {
+	if (sargc > 0) {
+		if(swapin() == 0)
+			error("flags but no input files");
+	} else {
 		tabin = (Biobuf*)getcore(sizeof(Biobuf), 1);
 		Binit(tabin, 0, OREAD);
 	}
