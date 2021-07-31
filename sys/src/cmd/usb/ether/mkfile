@@ -8,7 +8,6 @@ LIBDOFILES=\
 	ether.$O\
 	asix.$O\
 	smsc.$O\
-	lan78xx.$O\
 	cdc.$O\
 
 HFILES=\
