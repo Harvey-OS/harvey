@@ -70,9 +70,6 @@ directives into the output.
 .B -+
 Understand C++ comments.
 .TP
-.B -.
-Inhibit include search in the source's directory.
-.TP
 .B -i
 Print the list of directories searched when
 .I #include

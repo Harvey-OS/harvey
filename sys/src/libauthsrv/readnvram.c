@@ -138,22 +138,15 @@ findnvram(Nvrwhere *locp)
 	cputype = getenv("cputype");
 	if(cputype == nil)
 		cputype = strdup("mips");
-	if(strcmp(cputype, "386")==0 || strcmp(cputype, "alpha")==0) {
-		free(cputype);
+	if(strcmp(cputype, "386")==0 || strcmp(cputype, "alpha")==0)
 		cputype = strdup("pc");
-	}
 
 	fd = -1;
 	safeoff = -1;
 	safelen = -1;
-	if(nvrfile != nil && *nvrfile != '\0'){
+	if(nvrfile != nil){
 		/* accept device and device!file */
 		i = gettokens(nvrfile, v, nelem(v), "!");
-		if (i < 1) {
-			i = 1;
-			v[0] = "";
-			v[1] = nil;
-		}
 		fd = open(v[0], ORDWR);
 		if (fd < 0)
 			fd = open(v[0], OREAD);
@@ -179,6 +172,7 @@ findnvram(Nvrwhere *locp)
 		}
 		free(nvroff);
 		free(nvrlen);
+		free(nvrfile);
 	}else
 		for(i=0; i<nelem(nvtab); i++){
 			if(strcmp(cputype, nvtab[i].cputype) != 0)
@@ -197,7 +191,6 @@ findnvram(Nvrwhere *locp)
 			}
 			break;
 		}
-	free(nvrfile);
 	free(cputype);
 	locp->fd = fd;
 	locp->safelen = safelen;
