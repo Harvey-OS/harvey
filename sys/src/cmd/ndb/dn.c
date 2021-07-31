@@ -342,20 +342,13 @@ dnpurge(void)
 }
 
 /*
- *  delete head of *l and free the old head.
+ *  delete rp from *l, free rp.
  *  call with dnlock held.
  */
 static void
-rrdelhead(RR **l)
+rrdelete(RR **l, RR *rp)
 {
-	RR *rp;
-
-	if (canlock(&dnlock))
-		abort();	/* rrdelhead called with dnlock not held */
-	rp = *l;
-	if(rp == nil)
-		return;
-	*l = rp->next;		/* unlink head */
+	*l = rp->next;
 	rp->cached = 0;		/* avoid blowing an assertion in rrfree */
 	rrfree(rp);
 }
@@ -371,8 +364,6 @@ dnage(DN *dp)
 	RR *rp, *next;
 	ulong diff;
 
-	if (canlock(&dnlock))
-		abort();	/* dnage called with dnlock not held */
 	diff = now - dp->referenced;
 	if(diff < Reserved || dp->keep)
 		return;
@@ -382,7 +373,7 @@ dnage(DN *dp)
 		assert(rp->magic == RRmagic && rp->cached);
 		next = rp->next;
 		if(!rp->db && (rp->expire < now || diff > dnvars.oldest))
-			rrdelhead(l); /* rp == *l before; *l == rp->next after */
+			rrdelete(l, rp);
 		else
 			l = &rp->next;
 	}
@@ -795,9 +786,8 @@ rrattach1(RR *new, int auth)
 		if(rp->db == new->db && rp->auth == new->auth){
 			/* negative drives out positive and vice versa */
 			if(rp->negative != new->negative) {
-				/* rp == *l before; *l == rp->next after */
-				rrdelhead(l);
-				continue;	
+				rrdelete(l, rp);
+				continue;		/* *l == rp->next */
 			}
 			/* all things equal, pick the newer one */
 			else if(rp->arg0 == new->arg0 && rp->arg1 == new->arg1){
@@ -807,9 +797,8 @@ rrattach1(RR *new, int auth)
 					rrfree(new);
 					return;
 				}
-				/* rp == *l before; *l == rp->next after */
-				rrdelhead(l);
-				continue;
+				rrdelete(l, rp);
+				continue;		/* *l == rp->next */
 			}
 			/*
 			 *  Hack for pointer records.  This makes sure
@@ -861,7 +850,7 @@ rrattach(RR *rp, int auth)
 		if(cfg.cachedb && !rp->db && inmyarea(rp->owner->name))
 			rrfree(rp);
 		else {
-			/* ameliorate the memory leak (someday delete this) */
+			/* ameliorate the memory leak */
 			if (0 && rrlistlen(dp->rr) > 50 && !dp->keep) {
 				dnslog("rrattach(%s): rr list too long; "
 					"freeing it", dp->name);
@@ -887,8 +876,6 @@ rrcopy(RR *rp, RR **last)
 	Sig *sig;
 	Txt *t, *nt, **l;
 
-	if (canlock(&dnlock))
-		abort();	/* rrcopy called with dnlock not held */
 	nrp = rralloc(rp->type);
 	setmalloctag(nrp, getcallerpc(&rp));
 	switch(rp->type){
@@ -1100,8 +1087,6 @@ rrcat(RR **start, RR *rp)
 	RR *olp, *nlp;
 	RR **last;
 
-	if (canlock(&dnlock))
-		abort();	/* rrcat called with dnlock not held */
 	/* check for duplicates */
 	for (olp = *start; 0 && olp; olp = olp->next)
 		for (nlp = rp; nlp; nlp = nlp->next)
