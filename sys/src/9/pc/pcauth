@@ -46,7 +46,6 @@ link
 
 misc
 	realmode
-	mtrr
 	sdata		pci sdscsi
 
 	uarti8250
