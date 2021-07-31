@@ -1,10 +1,6 @@
 /*
  * myricom 10 Gb ethernet driver
  * © 2007 erik quanstrom, coraid
- *
- * the card is big endian.
- * we use u64int rather than uintptr to hold addresses so that
- * we don't get "warning: stupid shift" on 32-bit architectures.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -15,16 +11,14 @@
 #include "../port/error.h"
 #include "../port/netif.h"
 
-#include "../pc/etherif.h"
+#include "etherif.h"
 
-#ifndef KiB
-#define KiB		1024u			/* Kibi 0x0000000000000400 */
-#define MiB		1048576u		/* Mebi 0x0000000000100000 */
-#endif /* KiB */
+#define	K	* 1024
+#define	MB	* 1024 K
 
 #define	dprint(...)	if(debug) print(__VA_ARGS__)
-#define	pcicapdbg(...)
-#define malign(n)	mallocalign((n), 4*KiB, 0, 0)
+#define	pcicapdbg(...)	
+#define malign(n)	xspanalloc(n, 4 K, 0)
 
 #include "etherm10g2k.i"
 #include "etherm10g4k.i"
@@ -39,7 +33,7 @@ enum {
 	Maxmtu	= 9000,
 	Noconf	= 0xffffffff,
 
-	Fwoffset= 1*MiB,
+	Fwoffset= 1 MB,
 	Cmdoff	= 0xf80000,	/* command port offset */
 	Fwsubmt	= 0xfc0000,	/* firmware submission command port offset */
 	Rdmaoff	= 0xfc01c0,	/* rdma command port offset */
@@ -95,11 +89,10 @@ typedef union {
 	uchar	c[8];
 } Cmd;
 
-typedef ulong Slot;
 typedef struct {
 	u16int	cksum;
 	u16int	len;
-} Slotparts;
+} Slot;
 
 enum {
 	SFsmall	= 1,
@@ -144,8 +137,8 @@ typedef struct {
 	uint	cnt;
 } Bpool;
 
-static Bpool	smpool 	= { .size = 128, };
-static Bpool	bgpool	= { .size = Maxmtu, };
+Bpool	smpool 	= { .size = 128, };
+Bpool	bgpool	= { .size = Maxmtu, };
 
 typedef struct {
 	Bpool	*pool;		/* free buffers */
@@ -184,7 +177,7 @@ enum {
 
 typedef struct {
 	Slot 	*entry;
-	u64int	busaddr;
+	uintptr	busaddr;
 	uint	m;
 	uint	n;
 	uint	i;
@@ -195,7 +188,7 @@ typedef struct Ctlr {
 	QLock;
 	int	state;
 	int	kprocs;
-	u64int	port;
+	uintptr	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	int	active;
@@ -215,16 +208,16 @@ typedef struct Ctlr {
 
 	QLock	cmdl;
 	Cmd	*cmd;		/* address of command return */
-	u64int	cprt;		/* bus address of command */
+	uintptr	cprt;		/* bus address of command */
 
-	u64int	boot;		/* boot address */
+	uintptr	boot;		/* boot address */
 
 	Done	done;
 	Tx	tx;
 	Rx	sm;
 	Rx	bg;
 	Stats	*stats;
-	u64int	statsprt;
+	uintptr	statsprt;
 
 	Rendez	rxrendez;
 	Rendez	txrendez;
@@ -268,7 +261,7 @@ enum {
 	PcieMRD	= 0x7000,	/* maximum read size */
 };
 
-static int
+int
 pcicap(Pcidev *p, int cap)
 {
 	int i, c, off;
@@ -297,7 +290,7 @@ pcicap(Pcidev *p, int cap)
  * this function doesn't work because pcicgr32 doesn't have access
  * to the pcie extended configuration space.
  */
-static int
+int
 pciecap(Pcidev *p, int cap)
 {
 	uint off, i;
@@ -306,7 +299,7 @@ pciecap(Pcidev *p, int cap)
 	while(((i = pcicfgr32(p, off))&0xffff) != cap){
 		off = i >> 20;
 		print("pciecap offset = %ud\n",  off);
-		if(off < 0x100 || off >= 4*KiB - 1)
+		if(off < 0x100 || off >= 4 K - 1)
 			return 0;
 	}
 	print("pciecap found = %ud\n",  off);
@@ -357,21 +350,21 @@ whichfw(Pcidev *p)
 	print("m10g %d lanes; ecrc=%d; ", lanes, ecrc);
 	if(s = getconf("myriforce")){
 		i = atoi(s);
-		if(i != 4*KiB || i != 2*KiB)
-			i = 2*KiB;
+		if(i != 4 K || i != 2 K)
+			i = 2 K;
 		print("fw=%d [forced]\n", i);
 		return i;
 	}
 	if(lanes <= 4){
 		print("fw = 4096 [lanes]\n");
-		return 4*KiB;
+		return 4 K;
 	}
 	if(ecrc & 10){
 		print("fw = 4096 [ecrc set]\n");
-		return 4*KiB;
+		return 4K;
 	}
 	print("fw = 4096 [default]\n");
-	return 4*KiB;
+	return 4 K;
 }
 
 static int
@@ -402,7 +395,7 @@ parseeprom(Ctlr *c)
 	return 0;
 }
 
-static u16int
+u16int
 pbit16(u16int i)
 {
 	u16int j;
@@ -414,7 +407,7 @@ pbit16(u16int i)
 	return j;
 }
 
-static u16int
+u16int
 gbit16(uchar i[2])
 {
 	u16int j;
@@ -424,7 +417,7 @@ gbit16(uchar i[2])
 	return j;
 }
 
-static u32int
+u32int
 pbit32(u32int i)
 {
 	u32int j;
@@ -467,9 +460,9 @@ prepcmd(uint *cmd, int i)
  * response (low)
  * 40 byte = 5 int pad.
  */
-
+	
 u32int
-cmd(Ctlr *c, int type, u64int data)
+cmd(Ctlr *c, int type, u32int data)
 {
 	u32int buf[16], i;
 	Cmd *cmd;
@@ -480,8 +473,6 @@ cmd(Ctlr *c, int type, u64int data)
 	memset(buf, 0, sizeof buf);
 	buf[0] = type;
 	buf[1] = data;
-	buf[2] = data >> 32;
-	buf[4] = c->cprt >> 32;
 	buf[5] = c->cprt;
 	prepcmd(buf, 6);
 	coherence();
@@ -520,7 +511,6 @@ maccmd(Ctlr *c, int type, uchar *m)
 	buf[0] = type;
 	buf[1] = m[0]<<24 | m[1]<<16 | m[2]<<8 | m[3];
 	buf[2] = m[4]<< 8 | m[5];
-	buf[4] = c->cprt >> 32;
 	buf[5] = c->cprt;
 	prepcmd(buf, 6);
 	coherence();
@@ -551,9 +541,9 @@ enum {
 	DMAread	= 0x10000,
 	DMAwrite= 0x1,
 };
-
+	
 u32int
-dmatestcmd(Ctlr *c, int type, u64int addr, int len)
+dmatestcmd(Ctlr *c, int type, u32int addr, int len)
 {
 	u32int buf[16], i;
 
@@ -561,9 +551,7 @@ dmatestcmd(Ctlr *c, int type, u64int addr, int len)
 	memset(c->cmd, Noconf, sizeof *c->cmd);
 	buf[0] = Cdmatest;
 	buf[1] = addr;
-	buf[2] = addr >> 32;
 	buf[3] = len * type;
-	buf[4] = c->cprt >> 32;
 	buf[5] = c->cprt;
 	prepcmd(buf, 6);
 	coherence();
@@ -593,10 +581,8 @@ rdmacmd(Ctlr *c, int on)
 	memset(buf, 0, sizeof buf);
 	c->cmd->i[0] = 0;
 	coherence();
-	buf[0] = c->cprt >> 32;
 	buf[1] = c->cprt;
 	buf[2] = Noconf;
-	buf[3] = c->cprt >> 32;
 	buf[4] = c->cprt;
 	buf[5] = on;
 	prepcmd(buf, 6);
@@ -622,7 +608,7 @@ loadfw(Ctlr *c, int *align)
 	uint *f, *s, sz;
 	int i;
 
-	if((*align = whichfw(c->pcidev)) == 4*KiB){
+	if((*align = whichfw(c->pcidev)) == 4 K){
 		f = (u32int*)fw4k;
 		sz = sizeof fw4k;
 	}else{
@@ -651,7 +637,7 @@ bootfw(Ctlr *c)
 	memset(buf, 0, sizeof buf);
 	c->cmd->i[0] = 0;
 	coherence();
-	buf[0] = c->cprt >> 32;	/* upper dma target address */
+	buf[0] = 0;		/* upper 32 bits of dma target address */
 	buf[1] = c->cprt;	/* lower */
 	buf[2] = Noconf;	/* writeback */
 	buf[3] = Fwoffset + 8,
@@ -677,15 +663,15 @@ bootfw(Ctlr *c)
 	return 0;
 }
 
-static int
+int
 kickthebaby(Pcidev *p, Ctlr *c)
 {
 	/* don't kick the baby! */
 	u32int code;
 
-	pcicfgw8(p,  0x10 + c->boot, 0x3);
-	pcicfgw32(p, 0x18 + c->boot, 0xfffffff0);
-	code = pcicfgr32(p, 0x14 + c->boot);
+	pcicfgw8(p,  0x10+c->boot, 0x3);
+	pcicfgw32(p, 0x18+c->boot, 0xfffffff0);
+	code = pcicfgr32(p, 0x14+c->boot);
 
 	dprint("reboot status = %ux\n", code);
 	if(code != 0xfffffff0)
@@ -710,7 +696,7 @@ enum {
 	Tmcp0	= 0x4d435030,
 };
 
-static char *
+char*
 fwtype(u32int type)
 {
 	switch(type){
@@ -726,7 +712,7 @@ fwtype(u32int type)
 	return "*GOK*";
 }
 
-static int
+int
 chkfw(Ctlr *c)
 {
 	uintptr off;
@@ -734,9 +720,9 @@ chkfw(Ctlr *c)
 	u32int type;
 
 	off = gbit32(c->ram+0x3c);
-	dprint("firmware %llux\n", (u64int)off);
+	dprint("firmware %ulx\n", off);
 	if((off&3) || off + sizeof *h > c->ramsz){
-		print("!m10g: bad firmware %llux\n", (u64int)off);
+		print("!m10g: bad firmware %ulx\n", off);
 		return -1;
 	}
 	h = (Fwhdr*)(c->ram + off);
@@ -766,7 +752,7 @@ reset(Ether *e, Ctlr *c)
 	chkfw(c);
 	cmd(c, Creset, 0);
 
-	cmd(c, CSintrqsz, c->done.n * sizeof *c->done.entry);
+	cmd(c, CSintrqsz, c->done.n*sizeof *c->done.entry);
 	cmd(c, CSintrqdma, c->done.busaddr);
 	c->irqack =   (u32int*)(c->ram + cmd(c, CGirqackoff, 0));
 	/* required only if we're not doing msi? */
@@ -813,13 +799,12 @@ ctlrfree(Ctlr *c)
 static int
 setmem(Pcidev *p, Ctlr *c)
 {
-	u32int i;
-	u64int raddr;
+	u32int i, raddr;
 	Done *d;
 	void *mem;
 
 	c->tx.segsz = 2048;
-	c->ramsz = 2*MiB - (2*48*KiB + 32*KiB) - 0x100;
+	c->ramsz = 2 MB - (2*48 K + 32 K) - 0x100;
 	if(c->ramsz > p->mem[0].size)
 		return -1;
 
@@ -829,7 +814,7 @@ setmem(Pcidev *p, Ctlr *c)
 		print("m10g: can't map %8.8lux\n", p->mem[0].bar);
 		return -1;
 	}
-	dprint("%llux <- vmap(mem[0].size = %ux)\n", raddr, p->mem[0].size);
+	dprint("%ux <- vmap(mem[0].size = %ux)\n", raddr, p->mem[0].size);
 	c->port = raddr;
 	c->ram = mem;
 	c->cmd = malign(sizeof *c->cmd);
@@ -921,8 +906,7 @@ replenish(Rx *rx)
 		idx = rx->cnt & rx->m;
 		for(i = 0; i < 8; i++){
 			b = balloc(rx);
-			buf[i*2]   = pbit32((u64int)PCIWADDR(b->wp) >> 32);
-			buf[i*2+1] = pbit32(PCIWADDR(b->wp));
+			buf[i*2 + 1] = pbit32(PCIWADDR(b->wp));
 			rx->host[idx+i] = b;
 			assert(b);
 		}
@@ -935,7 +919,7 @@ replenish(Rx *rx)
 		print("should panic? pool->n = %d\n", p->n);
 }
 
-/*
+/* 
  * future:
  * if (c->mtrr >= 0) {
  *	c->tx.wcfifo = c->ram+0x200000;
@@ -949,7 +933,7 @@ nextpow(int j)
 {
 	int i;
 
-	for(i = 0; j > (1 << i); i++)
+	for(i = 0; j > (1<<i); i++)
 		;
 	return 1 << i;
 }
@@ -972,7 +956,7 @@ open0(Ether *e, Ctlr *c)
 	Block *b;
 	int i, sz, entries;
 
-	entries = cmd(c, CGsendrgsz, 0) / sizeof *c->tx.lanai;
+	entries = cmd(c, CGsendrgsz, 0)/sizeof *c->tx.lanai;
 	c->tx.lanai = (Send*)(c->ram + cmd(c, CGsendoff, 0));
 	c->tx.host  = emalign(entries * sizeof *c->tx.host);
 	c->tx.bring = emalign(entries * sizeof *c->tx.bring);
@@ -1026,17 +1010,15 @@ nextblock(Ctlr *c)
 	Done *d;
 	Rx *rx;
 	Slot *s;
-	Slotparts *sp;
 
 	d = &c->done;
 	s = d->entry;
 	i = d->i & d->m;
-	sp = (Slotparts *)(s + i);
-	l = sp->len;
+	l = s[i].len;
 	if(l == 0)
 		return 0;
-	k = sp->cksum;
-	s[i] = 0;
+	k = s[i].cksum;
+	*(u32int*)(s+i) = 0;
 	d->i++;
 	l = gbit16((uchar*)&l);
 //dprint("nextb: i=%d l=%d\n", d->i, l);
@@ -1067,14 +1049,12 @@ rxcansleep(void *v)
 {
 	Ctlr *c;
 	Slot *s;
-	Slotparts *sp;
 	Done *d;
 
 	c = v;
 	d = &c->done;
 	s = c->done.entry;
-	sp = (Slotparts *)(s + (d->i & d->m));
-	if(sp->len != 0)
+	if(s[d->i & d->m].len != 0)
 		return -1;
 	c->irqack[0] = pbit32(3);
 	return 0;
@@ -1098,7 +1078,7 @@ m10rx(void *v)
 	}
 }
 
-static void
+void
 txcleanup(Tx *tx, u32int n)
 {
 	Block *b;
@@ -1108,10 +1088,8 @@ txcleanup(Tx *tx, u32int n)
 		return;
 	l = 0;
 	m = tx->m;
-	/*
-	 * if tx->cnt == tx->i, yet tx->npkt == n-1, we just
-	 * caught ourselves and myricom card updating.
-	 */
+	/* if tx->cnt == tx->i, yet tx->npkt == n-1 we just */
+	/* caught ourselves and myricom card updating. */
 	for(;; tx->cnt++){
 		j = tx->cnt & tx->m;
 		if(b = tx->bring[j]){
@@ -1141,7 +1119,7 @@ txcansleep(void *v)
 	return 0;
 }
 
-static void
+void
 txproc(void *v)
 {
 	Ether *e;
@@ -1152,12 +1130,12 @@ txproc(void *v)
 	c = e->ctlr;
 	tx = &c->tx;
 	for(;;){
- 		sleep(&c->txrendez, txcansleep, c);
+ 		sleep(&c->txrendez, txcansleep, c); 		
 		txcleanup(tx, gbit32(c->stats->txcnt));
 	}
 }
 
-static void
+void
 submittx(Tx *tx, int n)
 {
 	Send *l, *h;
@@ -1173,7 +1151,7 @@ submittx(Tx *tx, int n)
 //	coherence();
 }
 
-static int
+int
 nsegments(Block *b, int segsz)
 {
 	uintptr bus, end, slen, len;
@@ -1209,10 +1187,10 @@ m10gtransmit(Ether *e)
 
 	qlock(tx);
 	count = 0;
-	s = tx->host + (tx->i & tx->m);
+	s = tx->host+(tx->i & tx->m);
 	cnt = tx->cnt;
-	s0 =   tx->host + (cnt & tx->m);
-	s0m8 = tx->host + ((cnt - 8) & tx->m);
+	s0 =   tx->host+(cnt & tx->m);
+	s0m8 = tx->host+(cnt - 8 & tx->m);
 	i = tx->i;
 	for(; s >= s0 || s < s0m8; i += nseg){
 		if((b = qget(e->oq)) == nil)
@@ -1244,8 +1222,8 @@ m10gtransmit(Ether *e)
 			submittx(tx, count);
 			count = 0;
 			cnt = tx->cnt;
-			s0 =   tx->host + (cnt & tx->m);
-			s0m8 = tx->host + ((cnt - 8) & tx->m);
+			s0 =   tx->host+(cnt & tx->m);
+			s0m8 = tx->host+(cnt - 8 & tx->m);
 		}
 	}
 	qunlock(tx);
@@ -1365,7 +1343,7 @@ lstcount(Block *b)
 		i++;
 	return i;
 }
-
+		
 static long
 m10gifstat(Ether *e, void *v, long n, ulong off)
 {
@@ -1381,8 +1359,8 @@ m10gifstat(Ether *e, void *v, long n, ulong off)
 	/* no point in locking this because this is done via dma. */
 	memmove(&s, c->stats, sizeof s);
 
-	// l +=
-	snprint(p+l, lim,
+	// l += 
+	snprint(p+l, lim, 
 		"txcnt = %ud\n"	  "linkstat = %ud\n" 	"dlink = %ud\n"
 		"derror = %ud\n"  "drunt = %ud\n" 	"doverrun = %ud\n"
 		"dnosm = %ud\n"	  "dnobg = %ud\n"	"nrdma = %ud\n"
@@ -1390,10 +1368,8 @@ m10gifstat(Ether *e, void *v, long n, ulong off)
 		"valid = %ud\n\n"
 		"tx pkt = %uld\n" "tx bytes = %lld\n"
 		"tx cnt = %ud\n"  "tx n = %ud\n"	"tx i = %ud\n"
-		"sm cnt = %ud\n"  "sm i = %ud\n"	"sm n = %ud\n"
-		"sm lst = %ud\n"
-		"bg cnt = %ud\n"  "bg i = %ud\n"	"bg n = %ud\n"
-		"bg lst = %ud\n"
+		"sm cnt = %ud\n"  "sm i = %ud\n"	"sm n = %ud\n"		"sm lst = %ud\n"
+		"bg cnt = %ud\n"  "bg i = %ud\n"	"bg n = %ud\n"		"bg lst = %ud\n"
 		"segsz = %ud\n"   "coal = %d\n",
 		gbit32(s.txcnt),  gbit32(s.linkstat),	gbit32(s.dlink),
 		gbit32(s.derror), gbit32(s.drunt),	gbit32(s.doverrun),
@@ -1410,7 +1386,7 @@ m10gifstat(Ether *e, void *v, long n, ulong off)
 	return n;
 }
 
-//static void
+//void
 //summary(Ether *e)
 //{
 //	char *buf;
@@ -1435,21 +1411,18 @@ m10gifstat(Ether *e, void *v, long n, ulong off)
 //	free(buf);
 //}
 
-static void
+void
 rxring(Ctlr *c)
 {
 	Done *d;
 	Slot *s;
-	Slotparts *sp;
 	int i;
 
 	d = &c->done;
 	s = d->entry;
-	for(i = 0; i < d->n; i++) {
-		sp = (Slotparts *)(s + i);
-		if(sp->len)
-			iprint("s[%d] = %d\n", i, sp->len);
-	}
+	for(i = 0; i < d->n; i++)
+		if(s[i].len)
+			iprint("s[%d] = %d\n", i, s[i].len);
 }
 
 enum {
@@ -1489,7 +1462,10 @@ m10gctl(Ether *e, void *v, long n)
 	t = lookupcmd(c, ctab, nelem(ctab));
 	switch(t->index){
 	case CMdebug:
-		debug = (strcmp(c->f[1], "on") == 0);
+		if(strcmp(c->f[1], "on") == 0)
+			debug = 1;
+		else
+			debug = 0;
 		break;
 	case CMcoal:
 		i = atoi(c->f[1]);

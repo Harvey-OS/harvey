@@ -23,7 +23,7 @@
 
 enum {
 	Maxunits	= 0xff,
-	Maxframes	= 128,
+	Maxframes	= 24,
 	Ndevlink	= 6,
 	Nea		= 6,
 	Nnetlink	= 6,
@@ -967,7 +967,7 @@ atarw(Aoedev *d, Frame *f)
 	bcnt = d->maxbcnt;
 	if(bcnt > srb->len)
 		bcnt = srb->len;
-	f->nhdr = AOEATASZ;
+	f->nhdr = sizeof *ah;
 	memset(f->hdr, 0, f->nhdr);
 	ah = (Aoeata*)f->hdr;
 	if(hset(d, f, ah, ACata) == -1)
@@ -1370,7 +1370,7 @@ configwrite(Aoedev *d, void *db, long len)
 
 	if(!UP(d))
 		error(Enotup);
-	if(len > ETHERMAXTU - AOEQCSZ)
+	if(len > ETHERMAXTU-sizeof *ch)
 		error(Etoobig);
 	srb = srballoc(len);
 	s = malloc(len);
@@ -1396,7 +1396,7 @@ configwrite(Aoedev *d, void *db, long len)
 		tsleep(&up->sleep, return0, 0, 100);
 		poperror();
 	}
-	f->nhdr = AOEQCSZ;
+	f->nhdr = sizeof *ch;
 	memset(f->hdr, 0, f->nhdr);
 	ch = (Aoeqc*)f->hdr;
 	if(hset(d, f, ch, ACconfig) == -1)
@@ -1460,7 +1460,7 @@ devmaxdata(Aoedev *d)
 	}
 	if(mtu == 100000)
 		mtu = 0;
-	mtu -= AOEATASZ;
+	mtu -= sizeof(Aoeata);
 	return mtu;
 }
 
@@ -1533,7 +1533,7 @@ unitctlwrite(Aoedev *d, void *db, long n)
 			if(ct->index == Maxbno)
 				m *= Aoesectsz;
 			else{
-				m -= AOEATASZ;
+				m -= sizeof(Aoeata);
 				m &= ~(Aoesectsz-1);
 			}
 			if(m > maxbcnt)
@@ -1650,7 +1650,7 @@ newdev(long major, long minor, int n)
 	Frame *f, *e;
 
 	d = mallocz(sizeof *d, 1);
-	f = mallocz(sizeof *f * n, 1);
+	f = mallocz(sizeof *f*n, 1);
 	if (!d || !f) {
 		free(d);
 		free(f);
@@ -1757,7 +1757,7 @@ ataident(Aoedev *d)
 	f = freeframe(d);
 	if(f == nil)
 		return;
-	f->nhdr = AOEATASZ;
+	f->nhdr = sizeof *a;
 	memset(f->hdr, 0, f->nhdr);
 	a = (Aoeata*)f->hdr;
 	if(hset(d, f, a, ACata) == -1)
@@ -1877,7 +1877,7 @@ qcfgrsp(Block *b, Netlink *nl)
 			return;
 		}
 		cslen = nhgets(ch->cslen);
-		blen = BLEN(b) - AOEQCSZ;
+		blen = BLEN(b) - sizeof *ch;
 		if(cslen < blen)
 			eventlog("%æ: cfgrsp: tag %.8ux oversized %d %d\n",
 				d, n, cslen, blen);
@@ -1928,7 +1928,7 @@ qcfgrsp(Block *b, Netlink *nl)
 	d->nconfig = n;
 	memmove(d->config, ch + 1, n);
 	if(l != 0 && d->flag & Djumbo){
-		n = getmtu(nl->mtu) - AOEATASZ;
+		n = getmtu(nl->mtu) - sizeof(Aoeata);
 		n /= Aoesectsz;
 		if(n > ch->scnt)
 			n = ch->scnt;
@@ -2072,12 +2072,12 @@ atarsp(Block *b)
 		switch(ahout->cmdstat){
 		case Crd:
 		case Crdext:
-			if(BLEN(b) - AOEATASZ < n){
+			if(BLEN(b) - sizeof *ahin < n){
 				eventlog("%æ: runt read blen %ld expect %d\n",
 					d, BLEN(b), n);
 				goto bail;
 			}
-			memmove(f->dp, (uchar *)ahin + AOEATASZ, n);
+			memmove(f->dp, ahin+1, n);
 		case Cwr:
 		case Cwrext:
 			if(n > Dbcnt)
@@ -2090,12 +2090,12 @@ atarsp(Block *b)
 			}
 			break;
 		case Cid:
-			if(BLEN(b) - AOEATASZ < 512){
+			if(BLEN(b) - sizeof *ahin < 512){
 				eventlog("%æ: runt identify blen %ld expect %d\n",
 					d, BLEN(b), n);
 				goto bail;
 			}
-			identify(d, (ushort*)((uchar *)ahin + AOEATASZ));
+			identify(d, (ushort*)(ahin + 1));
 			break;
 		default:
 			eventlog("%æ: unknown ata command %.2ux \n",
