@@ -29,13 +29,13 @@ ulong	msize(void *ptr)
 void	setmalloctag(void *ptr, ulong tag)
 .PP
 .B
-ulong	getmalloctag(void *ptr)
+ulong	getmalloctag(void *ptr, ulong tag)
 .PP
 .B
 void	setrealloctag(void *ptr, ulong tag)
 .PP
 .B
-ulong	getrealloctag(void *ptr)
+ulong	getrealloctag(void *ptr, ulong tag)
 .PP
 .B
 void*	malloctopoolblock(void*)

@@ -10,7 +10,7 @@
 
 extern int verbose;
 
-char VERSION[] = "secstore";
+extern char VERSION[] = "secstore";
 static char *feedback[] = {"alpha","bravo","charlie","delta","echo","foxtrot","golf","hotel"};
 
 typedef struct PAKparams{

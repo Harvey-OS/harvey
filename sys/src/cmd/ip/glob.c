@@ -22,20 +22,14 @@ globnew(void)
 }
 
 static void
-globfree1(Glob *g)
-{
-	s_free(g->glob);
-	free(g);
-}
-
-static void
 globfree(Glob *g)
 {
 	Glob *next;
 
 	for(; g != nil; g = next){
 		next = g->next;
-		globfree1(g);
+		s_free(g->glob);
+		free(g);
 	}
 }
 
@@ -181,25 +175,6 @@ globnext(Globlist *gl, char *pattern)
 
 	if(gl->first != nil)
 		globnext(gl, pattern);
-}
-
-char *
-globiter(Globlist *gl)
-{
-	Glob *g;
-	char *s;
-
-	if(gl->first == nil)
-		return nil;
-	g = gl->first;
-	gl->first = g->next;
-	if(gl->first == nil)
-		gl->l = &gl->first;
-	s = strdup(s_to_c(g->glob));
-	if(s == nil)
-		sysfatal("globiter: %r");
-	globfree1(g);
-	return s;
 }
 
 Globlist*

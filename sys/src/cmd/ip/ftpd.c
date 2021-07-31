@@ -308,7 +308,7 @@ main(int argc, char **argv)
 		alarm(Maxwait);
 	}
 	if(pid)
-		postnote(PNPROC, pid, "kill");
+		postnote(PNGROUP, pid, "kill");
 }
 
 /*
@@ -392,8 +392,7 @@ transfer(char *cmd, char *a1, char *a2, char *a3, int image)
 	case -1:
 		return reply("450 Out of processes: %r");
 	case 0:
-		logit("running %s %s %s %s pid %d",
-			cmd, a1?a1:"", a2?a2:"" , a3?a3:"",getpid());
+logit("running tar %d\n", getpid());
 		close(pfd[1]);
 		close(dfd);
 		dup(pfd[0], 1);
@@ -455,7 +454,7 @@ transfer(char *cmd, char *a1, char *a2, char *a3, int image)
 			break;
 		free(w);
 	}
-	if(w != nil && w->msg != nil && w->msg[0] != 0){
+	if(w != nil && w->msg != nil){
 		bytes = -1;
 		logit("%s", w->msg);
 		logit("%s %s %s %s failed %s", cmd, a1?a1:"", a2?a2:"" , a3?a3:"", w->msg);
@@ -658,7 +657,7 @@ quitcmd(char *arg)
 	USED(arg);
 	reply("200 Bye");
 	if(pid)
-		postnote(PNPROC, pid, "kill");
+		postnote(PNGROUP, pid, "kill");
 	return -1;
 }
 
@@ -853,7 +852,8 @@ void
 listfile(Biobufhdr *b, char *name, int lflag, char *dname)
 {
 	char ts[32];
-	int n, links, pad;
+	char buf[256];
+	int n, links;
 	long now;
 	char *x;
 	Dir *d;
@@ -867,8 +867,8 @@ listfile(Biobufhdr *b, char *name, int lflag, char *dname)
 	if(isnone){
 		if(strncmp(x, "/incoming/", sizeof("/incoming/")-1) != 0)
 			d->mode &= ~0222;
-		d->uid = "none";
-		d->gid = "none";
+		strcpy(d->uid, "none");
+		strcpy(d->gid, "none");
 	}
 
 	strcpy(ts, ctime(d->mtime));
@@ -884,27 +884,24 @@ listfile(Biobufhdr *b, char *name, int lflag, char *dname)
 		} else
 			links = 1;
 		
-		Bprint(b, "%s %3d %-8s %-8s %7lld %s ",
-			mode2asc(d->mode), links,
+		n = snprint(buf, sizeof(buf), "%s %3d %-8s %-8s %7lld %s ", mode2asc(d->mode), links,
 			d->uid, d->gid, d->length, ts+4);
-	}
-	if(Cflag && maxnamelen < 40){
-		n = strlen(name);
-		pad = ((col+maxnamelen)/(maxnamelen+1))*(maxnamelen+1);
-		if(pad+maxnamelen+1 < 60){
-			Bprint(b, "%*s", pad-col+n, name);
-			col = pad+n;
+	} else
+		n = 0;
+	if(dname)
+		n += snprint(buf+n, sizeof(buf)-n, "%s/", dname);
+	n += snprint(buf+n, sizeof(buf)-n, "%s", name);
+	if(Cflag && col + maxnamelen + 1 < 40){
+		if(n < maxnamelen+1){
+			memset(buf+n, ' ', maxnamelen+1-n);
+			buf[maxnamelen+1] = 0;
 		}
-		else{
-			Bprint(b, "\r\n%s", name);
-			col = n;
-		}
+		col += maxnamelen + 1;
+	} else {
+		n += snprint(buf+n, sizeof(buf)-n, "\r\n");
+		col = 0;
 	}
-	else{
-		if(dname)
-			Bprint(b, "%s/", dname);
-		Bprint(b, "%s\r\n", name);
-	}
+	Bwrite(b, buf, n);
 	free(d);
 }
 int
@@ -926,7 +923,7 @@ void
 listdir(char *name, Biobufhdr *b, int lflag, int *printname, Globlist *gl)
 {
 	Dir *p;
-	int fd, n, i, l;
+	int fd, n, i;
 	char *dname;
 	uvlong total;
 
@@ -947,11 +944,9 @@ listdir(char *name, Biobufhdr *b, int lflag, int *printname, Globlist *gl)
 	n = dirreadall(fd, &p);
 	close(fd);
 	if(Cflag){
-		for(i = 0; i < n; i++){
-			l = strlen(p[i].name);
-			if(l > maxnamelen)
-				maxnamelen = l;
-		}
+		for(i = 0; i < n; i++)
+			if(strlen(p[i].name) > maxnamelen)
+				maxnamelen = strlen(p[i].name);
 	}
 
 	/* Unix style total line */
@@ -985,10 +980,11 @@ list(char *arg, int lflag)
 	int dfd, printname;
 	int i, n, argc;
 	char *alist[Narg];
+	char path[Maxpath];
 	char **argv;
 	Biobufhdr bh;
 	uchar buf[512];
-	char *p, *s;
+	char *p;
 
 	if(arg == 0)
 		arg = "";
@@ -1039,10 +1035,11 @@ list(char *arg, int lflag)
 		argv = alist;
 		argv[0] = ".";
 	}
-
 	for(i = 0; i < argc; i++){
 		chdir(curdir);
-		gl = glob(argv[i]);
+		strncpy(path, argv[i], sizeof(path));
+		path[sizeof(path)-1] = 0;
+		gl = glob(path);
 		if(gl == nil)
 			continue;
 		
@@ -1053,24 +1050,20 @@ list(char *arg, int lflag)
 			for(g = gl->first; g; g = g->next)
 				if(g->glob && (n = strlen(s_to_c(g->glob))) > maxnamelen)
 					maxnamelen = n;
-		while(s = globiter(gl)){
+
+		for(g = gl->first; g; g = g->next){
 			if(debug)
-				logit("glob %s", s);
-			p = abspath(s);
-			if(p == nil){
-				free(s);
+				logit("glob %s", s_to_c(g->glob));
+			p = abspath(s_to_c(g->glob));
+			if(p == nil)
 				continue;
-			}
 			d = dirstat(p);
-			if(d == nil){
-				free(s);
+			if(d == nil)
 				continue;
-			}
 			if(d->qid.type & QTDIR)
-				listdir(s, &bh, lflag, &printname, gl);
+				listdir(s_to_c(g->glob), &bh, lflag, &printname, gl);
 			else
-				listfile(&bh, s, lflag, 0);
-			free(s);
+				listfile(&bh, s_to_c(g->glob), lflag, 0);
 			free(d);
 		}
 		globlistfree(gl);
@@ -1180,29 +1173,28 @@ retrievedir(char *arg)
 {
 	int n;
 	char *p;
-	String *file;
+	char file[Maxpath];
 
 	if(type != Timage){
 		reply("550 This file requires type binary/image");
 		return;
 	}
 
-	file = s_copy(arg);
-	p = strrchr(s_to_c(file), '/');
-	if(p != s_to_c(file)){
+	strcpy(file, arg);
+	p = strrchr(arg, '/');
+	if(p != arg){
 		*p++ = 0;
-		chdir(s_to_c(file));
+		chdir(arg);
 	} else {
 		chdir("/");
-		p = s_to_c(file)+1;
+		p = arg+1;
 	}
 
 	n = transfer("/bin/tar", "c", p, 0, 1);
 	if(n < 0)
-		logit("get %s failed", arg);
+		logit("get %s failed", file);
 	else
-		logit("get %s OK %d", arg, n);
-	s_free(file);
+		logit("get %s OK %d", file, n);
 }
 void
 retrieve(char *arg, int arg2)
@@ -1435,7 +1427,7 @@ storeucmd(char *arg)
 	USED(arg);
 	if(isnone)
 		return reply("550 Permission denied");
-	strncpy(name, "ftpXXXXXXXXXXX", sizeof name);
+	strcpy(name, "ftpXXXXXXXXXXX");
 	mktemp(name);
 	fd = create(name, OWRITE, createperm);
 	if(fd == -1)
@@ -1488,14 +1480,8 @@ int
 abortcmd(char *arg)
 {
 	USED(arg);
-
-	logit("abort pid %d", pid);
-	if(pid){
-		if(postnote(PNPROC, pid, "kill") == 0)
-			reply("426 Command aborted");
-		else
-			logit("postnote pid %d %r", pid);
-	}
+	if(pid && postnote(PNGROUP, pid, "kill") == 0)
+		reply("426 Command aborted");
 	return reply("226 Abort processed");
 }
 
@@ -1533,7 +1519,7 @@ helpcmd(char *arg)
 /*
  *  renaming a file takes two commands
  */
-static String *filepath;
+static char filepath[256];
 
 int
 rnfrcmd(char *from)
@@ -1545,20 +1531,16 @@ rnfrcmd(char *from)
 	from = abspath(from);
 	if(from == 0)
 		return reply("550 Permission denied");
-	if(filepath == nil)
-		filepath = s_copy(from);
-	else{
-		s_reset(filepath);
-		s_append(filepath, from);
-	}
-	return reply("350 Rename %s to ...", s_to_c(filepath));
+	strncpy(filepath, from, sizeof(filepath));
+	filepath[sizeof(filepath)-1] = 0;
+	return reply("350 Rename %s to ...", filepath);
 }
 int
 rntocmd(char *to)
 {
-	int r;
 	Dir nd;
-	char *fp, *tp;
+	char *fp;
+	char *tp;
 
 	if(isnone)
 		return reply("550 Permission denied");
@@ -1567,26 +1549,24 @@ rntocmd(char *to)
 	to = abspath(to);
 	if(to == 0)
 		return reply("550 Permission denied");
-	if(filepath == nil || *(s_to_c(filepath)) == 0)
+	if(*filepath == 0)
 		return reply("503 Rnto must be preceeded by an rnfr");
 
 	tp = strrchr(to, '/');
-	fp = strrchr(s_to_c(filepath), '/');
+	fp = strrchr(filepath, '/');
 	if((tp && fp == 0) || (fp && tp == 0)
-	|| (fp && tp && (fp-s_to_c(filepath) != tp-to || memcmp(s_to_c(filepath), to, tp-to))))
+	|| (fp && tp && (fp-filepath != tp-to || memcmp(filepath, to, tp-to))))
 		return reply("550 Rename can't change directory");
 	if(tp)
 		to = tp+1;
 
 	nulldir(&nd);
 	nd.name = to;
-	if(dirwstat(s_to_c(filepath), &nd) < 0)
-		r = reply("550 Can't rename %s to %s: %r\n", s_to_c(filepath), to);
-	else
-		r = reply("250 %s now %s", s_to_c(filepath), to);
-	s_reset(filepath);
+	if(dirwstat(filepath, &nd) < 0)
+		return reply("550 Can't rename %s to %s: %r\n", filepath, to);
 
-	return r;
+	filepath[0] = 0;
+	return reply("250 %s now %s", filepath, to);
 }
 
 /*
@@ -1625,15 +1605,75 @@ dialdata(void)
 	return fd;
 }
 
+/*
+ *  to circumscribe the accessible files we have to eliminate ..'s
+ *  and resolve all names from the root.  We also remove any /bin/rc
+ *  special characters to avoid later problems with executed commands.
+ */
+char *special = "`;| ";
+
+char*
+abspath(char *origpath)
+{
+	int n, c;
+	char *p, *sp, *path;
+	char work[Maxpath];
+	static char rpath[Maxpath];
+
+	if(origpath == 0)
+		*work = 0;
+	else
+		strncpy(work, origpath, sizeof(work));
+	path = work;
+
+	for(sp = special; *sp; sp++){
+		p = strchr(path, *sp);
+		if(p)
+			*p = 0;
+	}
+
+	if(*path == '/')
+		rpath[0] = 0;
+	else
+		strcpy(rpath, curdir);
+	n = strlen(rpath);
+
+	while(*path && n < Maxpath-2){
+		p = strchr(path, '/');
+		if(p)
+			*p++ = 0;
+		if(strcmp(path, "..") == 0){
+			while(n > 1){
+				n--;
+				c = rpath[n];
+				rpath[n] = 0;
+				if(c == '/')
+					break;
+			}
+		} else if(strcmp(path, ".") == 0)
+			n = n;
+		else if(n == 1)
+			n += snprint(rpath+n, Maxpath - n, "%s", path);
+		else
+			n += snprint(rpath+n, Maxpath - n - 1, "/%s", path);
+		if(p)
+			path = p;
+		else
+			break;
+	}
+
+	if(!accessok(rpath))
+		return nil;
+
+	return rpath;
+}
+
 int
 postnote(int group, int pid, char *note)
 {
 	char file[128];
 	int f, r;
 
-	/*
-	 * Use #p because /proc may not be in the namespace.
-	 */
 	switch(group) {
 	case PNPROC:
 		sprint(file, "#p/%d/note", pid);
@@ -1658,54 +1698,12 @@ postnote(int group, int pid, char *note)
 	return 0;
 }
 
-/*
- *  to circumscribe the accessible files we have to eliminate ..'s
- *  and resolve all names from the root.  We also remove any /bin/rc
- *  special characters to avoid later problems with executed commands.
- */
-char *special = "`;| ";
-
-char*
-abspath(char *origpath)
-{
-	char *p, *sp, *path;
-	static String *rpath;
-
-	if(rpath == nil)
-		rpath = s_new();
-	else
-		s_reset(rpath);
-
-	if(origpath == nil)
-		s_append(rpath, curdir);
-	else{
-		if(*origpath != '/'){
-			s_append(rpath, curdir);
-			s_append(rpath, "/");
-		}
-		s_append(rpath, origpath);
-	}
-	path = s_to_c(rpath);
-
-	for(sp = special; *sp; sp++){
-		p = strchr(path, *sp);
-		if(p)
-			*p = 0;
-	}
-
-	cleanname(s_to_c(rpath));
-	rpath->ptr = rpath->base+strlen(rpath->base);
-
-	if(!accessok(s_to_c(rpath)))
-		return nil;
-
-	return s_to_c(rpath);
-}
+static char *pfile = "/.httplogin";
 
 typedef struct Path Path;
 struct Path {
 	Path	*next;
-	String	*path;
+	char	*path;
 	int	inuse;
 	int	ok;
 };
@@ -1721,33 +1719,32 @@ Path *pathlevel[Maxlevel];
 Path*
 unlinkpath(char *path, int level)
 {
-	String *s;
 	Path **l, *p;
 	int n;
 
 	n = 0;
 	for(l = &pathlevel[level]; *l; l = &(*l)->next){
 		p = *l;
-		/* hit */
-		if(strcmp(s_to_c(p->path), path) == 0){
+		if(strcmp(p->path, path) == 0){
 			*l = p->next;
 			p->next = nil;
 			return p;
 		}
-		/* reuse */
-		if(++n >= Maxperlevel){
-			*l = p->next;
-			s = p->path;
-			s_reset(p->path);
-			memset(p, 0, sizeof *p);
-			p->path = s_append(s, path);
-			return p;
-		}
+		if(++n >= Maxperlevel - 1 || p->next == nil)
+			break;
 	}
-
-	/* allocate */
-	p = mallocz(sizeof *p, 1);
-	p->path = s_copy(path);
+	if(*l){
+		/* reuse */
+		p = *l;
+		*l = p->next;
+		free(p->path);
+		memset(p, 0, sizeof *p);
+		
+	} else {
+		/* allocate */
+		p = mallocz(sizeof *p, 1);
+	}
+	p->path = strdup(path);
 	return p;
 }
 
@@ -1768,12 +1765,11 @@ addpath(Path *p, int level, int ok)
 }
 
 int
-_accessok(String *s, int level)
+_accessok(char *path, int level)
 {
 	Path *p;
 	char *cp;
-	int lvl, offset;
-	static char httplogin[] = "/.httplogin";
+	int lvl;
 
 	if(level < 0)
 		return 1;
@@ -1781,56 +1777,46 @@ _accessok(String *s, int level)
 	if(lvl >= Maxlevel)
 		lvl = Maxlevel - 1;
 
-	p = unlinkpath(s_to_c(s), lvl);
+	p = unlinkpath(path, lvl);
 	if(p->inuse){
 		/* move to front */
 		linkpath(p, lvl);
 		return p->ok;
 	}
-	cp = strrchr(s_to_c(s), '/');
+	cp = strrchr(path, '/');
 	if(cp == nil)
-		offset = 0;
-	else
-		offset = cp - s_to_c(s);
-	s_append(s, httplogin);
-	if(access(s_to_c(s), AEXIST) == 0){
+		cp = path;
+	p->path = strdup(path);
+	strcat(path, pfile);
+	if(access(path, AEXIST) == 0){
 		addpath(p, lvl, 0);
 		return 0;
 	}
-
-	/*
-	 * There's no way to shorten a String without
-	 * knowing the implementation.
-	 */
-	s->ptr = s->base+offset;
-	s_terminate(s);
-	addpath(p, lvl, _accessok(s, level-1));
-
+	*cp = 0;
+	addpath(p, lvl, _accessok(path, level-1));
 	return p->ok;
 }
 
 /*
- * check for a subdirectory containing .httplogin
- * at each level of the path.
+ *  work down from the root
  */
 int
 accessok(char *path)
 {
-	int level, r;
+	int level, n;
 	char *p;
-	String *npath;
+	char npath[Maxpath+1];
 
-	npath = s_copy(path);
-	p = s_to_c(npath)+1;
-	for(level = 1; level < Maxlevel; level++){
+	strcpy(npath, path);
+	n = strlen(path)-1;
+	if(npath[n] == '/')
+		npath[n] = 0;
+	p = npath+1;
+	for(level = 1; p >= path && level < Maxlevel; level++){
 		p = strchr(p, '/');
 		if(p == nil)
 			break;
 		p++;
 	}
-
-	r = _accessok(npath, level-1);
-	s_free(npath);
-
-	return r;
+	return _accessok(npath, level-1);
 }

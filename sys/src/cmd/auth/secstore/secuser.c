@@ -27,12 +27,11 @@ ensure_exists(char *f, ulong perm)
 }
 
 
-int
+void
 main(int argc, char **argv)
 {
 	int isnew;
-	char *id, buf[Maxmsg], home[Maxmsg], prompt[100], *hexHi;
-	char *pass, *passck;
+	char *id, buf[Maxmsg], passck[Maxmsg], home[Maxmsg], prompt[100], *hexHi;
 	long expsecs;
 	mpint *H = mpnew(0), *Hi = mpnew(0);
 	PW *pw;
@@ -77,38 +76,32 @@ main(int argc, char **argv)
 			snprint(prompt, sizeof(prompt), "%s password: ", id);
 		else
 			snprint(prompt, sizeof(prompt), "%s password [default = don't change]: ", id);
-		pass = getpass(prompt);
-		if(pass == nil){
+		if(getpasswd(prompt, buf, sizeof(buf)) < 0){
 			print("getpass failed\n");
 			exits("getpass failed");
 		}
 		if(verbose)
-			print("%ld characters\n", strlen(pass));
-		if(pass[0] == '\0' && isnew == 0)
+			print("%ld characters\n", strlen(buf));
+		if(buf[0] == '\0' && isnew == 0)
 			break;
-		if(strlen(pass) >= 7)
+		if(strlen(buf) >= 7)
 			break;
 		print("password must be at least 7 characters\n");
 	}
 
-	if(pass[0] != '\0'){
+	if(buf[0] != '\0'){
 		snprint(prompt, sizeof(prompt), "retype password: ");
 		if(verbose)
 			print("confirming...\n");
-		passck = getpass(prompt);
-		if(passck == nil){
+		if(getpasswd(prompt, passck, sizeof(passck)) < 0){
 			print("getpass failed\n");
 			exits("getpass failed");
 		}
-		if(strcmp(pass, passck) != 0){
+		if(strcmp(buf, passck) != 0){
 			print("passwords didn't match\n");
 			exits("no match");
 		}
-		memset(passck, 0, strlen(passck));
-		free(passck);
-		hexHi = PAK_Hi(id, pass, H, Hi);
-		memset(pass, 0, strlen(pass));
-		free(pass);
+		hexHi = PAK_Hi(id, buf, H, Hi);
 		free(hexHi);
 		mpfree(H);
 		pw->Hi = Hi;
@@ -216,7 +209,6 @@ main(int argc, char **argv)
 	}
 
 	exits("");
-	return 1;  /* keep  other compilers happy */
 }
 
 

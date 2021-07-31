@@ -14,7 +14,6 @@ if ( ~ $#* 0 )
 				s/^• / /g
 				s/\n/ /g
 				s/\[\/news\/nationworld\/wire\//|/
-				s/sns-ap-//
 				s/,[0-9]+,[0-9]+\.story.*$//
 				p
 		}' |
@@ -27,14 +26,12 @@ if ( ~ $#* 0 )
 		}'
 
 if not
-	hget $wire/sns-ap-^$1^.story |
+	hget $wire/^$1^.story |
 		htmlfmt |
 		sed '
 			s/\| Article licensing.*$//
 			/^Copyright ©/p
 			/^Copyright ©/,$d
-			/^Subscribe to Newsday/d
 			1,/^Top Stories$/d
-			s/[ 	]*$//
-			s/^\* __$//
-		' #| fmt
+			/^$/,/^$/d
+		'

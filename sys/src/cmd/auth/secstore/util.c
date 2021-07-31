@@ -27,10 +27,11 @@ estrdup(char *s)
 	return s;
 }
 
-char*
-getpass(char *prompt)
+// name changed from getpass() to avoid conflict with Irix stdlib.h
+int
+getpasswd(char *prompt, char *line, int len)
 {
-	char *p, line[4096];
+	char *p;
 	int n, nr;
 	static int cons, consctl;  // closing and reopening fails in ssh environment
 
@@ -55,15 +56,13 @@ getpass(char *prompt)
 		if(n < 0){
 			fprint(consctl, "rawoff");
 			fprint(cons, "\n");
-			return nil;
+			return -1;
 		}
 		if(n == 0 || *p == '\n' || *p == '\r' || *p == 0x7f){
 			*p = '\0';
 			fprint(consctl, "rawoff");
 			fprint(cons, "\n");
-			p = strdup(line);
-			memset(line, 0, nr);
-			return p;
+			return nr;
 		}
 		if(*p == '\b'){
 			if(nr > 0){
@@ -78,11 +77,11 @@ getpass(char *prompt)
 			nr++;
 			p++;
 		}
-		if(nr+1 == sizeof line){
+		if(nr == len){
 			fprint(cons, "line too long; try again\n%s", prompt);
 			nr = 0;
 			p = line;
 		}
 	}
-	return nil;  // NOT REACHED
+	return -1;  // NOT REACHED
 }

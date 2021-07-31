@@ -11,7 +11,7 @@
 #include <libsec.h>
 #include <authsrv.h>
 
-extern char* getpass(char*);
+int getpasswd(char*, char*, int);
 
 enum{ CHK = 16, BUF = 4096 };
 
@@ -41,12 +41,11 @@ saferead(uchar *buf, int n)
 	exits("read error");
 }
 
-int
+void
 main(int argc, char **argv)
 {
 	int encrypt = 0;  /* 0=decrypt, 1=encrypt */
 	int n, nkey, pass_stdin = 0, pass_nvram = 0;
-	char *pass;
 	uchar key[AESmaxkey], key2[SHA1dlen];
 	uchar buf[BUF+SHA1dlen];    /* assumption: CHK <= SHA1dlen */
 	AESstate aes;
@@ -85,13 +84,7 @@ main(int argc, char **argv)
 		strecpy((char*)buf, (char*)buf+sizeof buf, (char*)nvr.config);
 		n = strlen((char*)buf);
 	}else{
-		pass = getpass("aescbc key:");
-		n = strlen(pass);
-		if(n >= BUF)
-			exits("key too long");
-		strcpy((char*)buf, pass);
-		memset(pass, 0, n);
-		free(pass);
+		n = getpasswd("password:", (char*)buf, sizeof buf);
 	}
 	if(n <= 0){
 		fprint(2,"no key\n");
@@ -162,5 +155,4 @@ main(int argc, char **argv)
 		}
 	}
 	exits("");
-	return 1;  /* keep  other compilers happy */
 }
