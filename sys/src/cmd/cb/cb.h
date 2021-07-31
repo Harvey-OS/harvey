@@ -169,4 +169,3 @@ void copy(char *);
 void clearif(struct indent *);
 char puttmp(char, int);
 void error(char *);
-int cpp_comment(int);
