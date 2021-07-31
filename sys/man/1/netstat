@@ -6,9 +6,6 @@ netstat \- summarize network connections
 [
 .B -in
 ] [
-.B -p
-.I proto
-] [
 .I netmtpt
 ]
 .SH DESCRIPTION
@@ -17,32 +14,23 @@ prints information about network mounted at
 .IR netmtpt ,
 default
 .BR /net .
+With the
+.B \-i
+option, it reports one line per network interface listing the
+device, MTU, local address, masl, remote address, packets in,
+packets out, errors in, and errors out for this interface.
 For
 .I IP
-connections,
+connections
 .I netstat
-reports the protocol, connection number, user,
+reports the connection number, user,
 connection state, local port, remote port and
 remote address.
-.PP
-The options are:
-.TP
-.B -i
-Instead of the usual listing, print one line per network interface.
-Each line gives the
-device, MTU, local address, mask, remote address, packets in,
-packets out, errors in, and errors out for this interface.
-.TP
-.B -n
-By default,
-.I netstat
+.I Netstat
 looks up port numbers and addresses in the network databases
-to print symbolic names if possible.
-This option disables such translation.
-.TP
-.B -p
-Show only connections with the given protocol.
-.PD
+to print symbolic names if possible, but if the
+.B -n
+option is specified, it does not translate to symbolic form.
 .SH FILES
 .B /net/*/*
 .SH SOURCE

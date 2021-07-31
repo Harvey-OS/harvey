@@ -284,8 +284,7 @@ fsysClose(Fsys* fsys, int argc, char* argv[])
 	if(argc)
 		return cliError(usage);
 
-	return cliError("close isn't working yet; halt %s and then kill fossil",
-		fsys->name);
+	return cliError("close isn't working yet; sync and then kill fossil");
 
 	/*
 	 * Oooh. This could be hard. What if fsys->ref != 1?
@@ -293,6 +292,7 @@ fsysClose(Fsys* fsys, int argc, char* argv[])
 	 * gracefully detect it's still busy?
 	 *
 	 * More thought and care needed here.
+	 */
 	fsClose(fsys->fs);
 	fsys->fs = nil;
 	vtClose(fsys->session);
@@ -304,7 +304,6 @@ fsysClose(Fsys* fsys, int argc, char* argv[])
 	}
 
 	return 1;
-	 */
 }
 
 static int

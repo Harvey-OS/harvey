@@ -57,7 +57,6 @@ enum
 };
 
 static Dirtab lm78dir[] = {
-	".",			{ Qdir, 0, QTDIR},	0,	0555,
 	"lm78vram",	{ Qlm78vram, 0 },	0,	0444,
 };
 

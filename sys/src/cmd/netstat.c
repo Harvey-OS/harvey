@@ -10,14 +10,11 @@ void	pipifc(void);
 
 Biobuf	out;
 char	*netroot;
-char *proto[20];
-int nproto;
 int	notrans;
 
 void
-usage(void)
-{
-	fprint(2, "usage: %s [-in] [-p proto] [network-dir]\n", argv0);
+usage(void){
+	fprint(2, "usage: %s [-in] [network-dir]\n", argv0);
 	exits("usage");
 }
 
@@ -30,16 +27,11 @@ main(int argc, char *argv[])
 	char buf[128];
 
 	ARGBEGIN{
-	case 'i':
-		justinterfaces = 1;
-		break;
 	case 'n':
 		notrans = 1;
 		break;
-	case 'p':
-		if(nproto >= nelem(proto))
-			sysfatal("too many protos");
-		proto[nproto++] = EARGF(usage());
+	case 'i':
+		justinterfaces = 1;
 		break;
 	default:
 		usage();
@@ -67,19 +59,15 @@ main(int argc, char *argv[])
 	if(fd < 0)
 		sysfatal("open %s: %r", netroot);
 
-	if(nproto){
-		for(i=0; i<nproto; i++)
-			nstat(proto[i], pip);
-	}else{
-		tot = dirreadall(fd, &d);
-		for(i=0; i<tot; i++){
-			if(strcmp(d[i].name, "ipifc") == 0)
-				continue;
-			snprint(buf, sizeof buf, "%s/%s/0/local", netroot, d[i].name);
-			if(access(buf, 0) >= 0)
-				nstat(d[i].name, pip);
-		}
+	tot = dirreadall(fd, &d);
+	for(i=0; i<tot; i++){
+		if(strcmp(d[i].name, "ipifc") == 0)
+			continue;
+		snprint(buf, sizeof buf, "%s/%s/0/local", netroot, d[i].name);
+		if(access(buf, 0) >= 0)
+			nstat(d[i].name, pip);
 	}
+
 	exits(0);
 }
 

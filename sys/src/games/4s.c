@@ -1,6 +1,20 @@
-#include "xs.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <thread.h>
+#include <cursor.h>
+#include <mouse.h>
+#include <keyboard.h>
 
-int N = 4;
+#define	N	4
+
+typedef struct Piece Piece;
+struct Piece{
+	short	rot;
+	short	tx;
+	Point	sz;
+	Point	d[N];
+};
 
 Piece pieces[]={
 	{ 0, 0, 4,1,  { 0,0,  1,0,  1,0,  1,0 }},
@@ -39,5 +53,4 @@ Piece pieces[]={
 	{ 3, 6, 2,3,  { 0,0,  0,1,  1,0,  0,1 }},
 };
 
-int NP = nelem(pieces);
-
+#include "xs.h"
