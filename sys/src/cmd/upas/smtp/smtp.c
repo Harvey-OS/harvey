@@ -44,10 +44,9 @@ int	ping;
 int	quitting;	/* when error occurs in quit */
 int	tryauth;	/* Try to authenticate, if supported */
 int	trysecure;	/* Try to use TLS if the other side supports it */
-int	okunksecure;	/* okay to use TLS to unknown servers */
 
 char	*quitrv;	/* deferred return value when in quit */
-char	ddomain[Maxdomain]; /* domain name of destination machine */
+char	ddomain[1024];	/* domain name of destination machine */
 char	*gdomain;	/* domain name of gateway */
 char	*uneaten;	/* first character after rfc822 headers */
 char	*farend;	/* system we are trying to send to */
@@ -144,9 +143,6 @@ main(int argc, char **argv)
 		break;
 	case 'i':
 		insecure = 1;
-		break;
-	case 'o':
-		okunksecure = 1;
 		break;
 	case 'p':
 		alarmscale = 10*1000;	/* tens of seconds */
@@ -317,37 +313,6 @@ connect(char* net)
 static char smtpthumbs[] =	"/sys/lib/tls/smtp";
 static char smtpexclthumbs[] =	"/sys/lib/tls/smtp.exclude";
 
-static char *
-ckthumbs(TLSconn *c)
-{
-	Thumbprint *goodcerts;
-	char *h, *err;
-	uchar hash[SHA1dlen];
-
-	err = nil;
-	goodcerts = initThumbprints(smtpthumbs, smtpexclthumbs);
-	if (goodcerts == nil) {
-		if (!okunksecure)
-			syslog(0, "smtp", "bad thumbprints in %s", smtpthumbs);
-		return Giveup;		/* how to recover? TLS is started */
-	}
-
-	/* compute sha1 hash of remote's certificate, see if we know it */
-	sha1(c->cert, c->certlen, hash, nil);
-	if (!okThumbprint(hash, goodcerts) && !okunksecure) {
-		h = malloc(2*sizeof hash + 1);
-		if (h != nil) {
-			enc16(h, 2*sizeof hash + 1, hash, sizeof hash);
-			syslog(0, "smtp", "remote cert. has bad thumbprint: "
-				"x509 sha1=%s server=%q", h, ddomain);
-			free(h);
-		}
-		err = Giveup;		/* how to recover? TLS is started */
-	}
-	freeThumbprints(goodcerts);
-	return err;
-}
-
 /*
  *  exchange names with remote host, attempt to
  *  enable encryption and optionally authenticate.
@@ -357,8 +322,10 @@ static char *
 dotls(char *me)
 {
 	TLSconn *c;
-	char *err;
+	Thumbprint *goodcerts;
+	char *h;
 	int fd;
+	uchar hash[SHA1dlen];
 
 	c = mallocz(sizeof(*c), 1);	/* Note: not freed on success */
 	if (c == nil)
@@ -373,14 +340,32 @@ dotls(char *me)
 		syslog(0, "smtp", "tlsClient to %q: %r", ddomain);
 		return Giveup;
 	}
-
-	err = ckthumbs(c);
-	if (err && !okunksecure) {
+	goodcerts = initThumbprints(smtpthumbs, smtpexclthumbs);
+	if (goodcerts == nil) {
 		free(c);
 		close(fd);
-		return err;		/* how to recover? TLS is started */
+		syslog(0, "smtp", "bad thumbprints in %s", smtpthumbs);
+		return Giveup;		/* how to recover? TLS is started */
 	}
 
+	/* compute sha1 hash of remote's certificate, see if we know it */
+	sha1(c->cert, c->certlen, hash, nil);
+	if (!okThumbprint(hash, goodcerts)) {
+		/* TODO? if not excluded, add hash to thumb list */
+		free(c);
+		close(fd);
+		h = malloc(2*sizeof hash + 1);
+		if (h != nil) {
+			enc16(h, 2*sizeof hash + 1, hash, sizeof hash);
+			// fprint(2, "x509 sha1=%s", h);
+			syslog(0, "smtp",
+		"remote cert. has bad thumbprint: x509 sha1=%s server=%q",
+				h, ddomain);
+			free(h);
+		}
+		return Giveup;		/* how to recover? TLS is started */
+	}
+	freeThumbprints(goodcerts);
 	Bterm(&bin);
 	Bterm(&bout);
 

@@ -1,6 +1,5 @@
 enum {
 	Maxbustedmx = 100,
-	Maxdomain = 1024,
 };
 
 typedef struct Node Node;
@@ -47,22 +46,22 @@ extern int	debug;
 extern int	messageid;
 extern char	*bustedmxs[Maxbustedmx];
 
-Node*	address(Node*);
 Node*	anonymous(Node*);
+Node*	address(Node*);
 int	badfieldname(Node*);
 Node*	bang(Node*, Node*);
-int	cistrcmp(char*, char*);
 Node*	colon(Node*, Node*);
-void	dial_string_parse(char*, DS*);
-void	freefield(Field*);
-void	freenode(Node*);
+int	cistrcmp(char*, char*);
 Node*	link2(Node*, Node*);
 Node*	link3(Node*, Node*, Node*);
-int	mxdial(char*, char*, char*);
+void	freenode(Node*);
 void	newfield(Node*, int);
+void	freefield(Field*);
+void	yyinit(char*, int);
+int	yyparse(void);
+int	yylex(void);
+String*	yywhite(void);
 Node*	whiten(Node*);
 void	yycleanup(void);
-void	yyinit(char*, int);
-int	yylex(void);
-int	yyparse(void);
-String*	yywhite(void);
+int	mxdial(char*, char*, char*);
+void	dial_string_parse(char*, DS*);

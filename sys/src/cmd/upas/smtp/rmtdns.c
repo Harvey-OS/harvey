@@ -1,12 +1,11 @@
 #include	"common.h"
-#include	"smtp.h"
 #include	<ndb.h>
 
 int
 rmtdns(char *net, char *path)
 {
 	int fd, n, nb, r;
-	char *domain, *cp, buf[Maxdomain + 5];
+	char *domain, *cp, buf[1024];
 
 	if(net == 0 || path == 0)
 		return 0;

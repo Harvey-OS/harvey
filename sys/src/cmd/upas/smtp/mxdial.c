@@ -4,29 +4,28 @@
 
 enum
 {
-	Nmx=		16,
+	Nmx=	16,
 	Maxstring=	256,
-	Maxipstr=	8*5,		/* ipv6 */
 };
 
 typedef struct Mx	Mx;
 struct Mx
 {
-	char	host[Maxstring];
-	char	ip[Maxipstr];
-	int	pref;
+	char host[256];
+	char ip[24];
+	int pref;
 };
 
 char	*bustedmxs[Maxbustedmx];
 Ndb *db;
 
-static Mx mx[Nmx];
-
-static int	callmx(DS*, char*, char*);
-static int	compar(void*, void*);
-static void	expand_meta(DS *ds);
 static int	mxlookup(DS*, char*);
 static int	mxlookup1(DS*, char*);
+static int	compar(void*, void*);
+static int	callmx(DS*, char*, char*);
+static void expand_meta(DS *ds);
+
+static Mx mx[Nmx];
 
 int
 mxdial(char *addr, char *ddomain, char *gdomain)
@@ -81,12 +80,6 @@ timedwrite(int fd, void *buf, long len, long ms)
 	return n;
 }
 
-static int
-isloopback(char *ip)
-{
-	return strcmp(ip, "127.0.0.1") == 0 || strcmp(ip, "::1") == 0;
-}
-
 /*
  *  take an address and return all the mx entries for it,
  *  most preferred first
@@ -95,7 +88,6 @@ static int
 callmx(DS *ds, char *dest, char *domain)
 {
 	int fd, i, nmx;
-	char *ip;
 	char addr[Maxstring];
 
 	/* get a list of mx entries */
@@ -110,21 +102,14 @@ callmx(DS *ds, char *dest, char *domain)
 		return dial(dest, 0, 0, 0);
 	}
 
-	/* refuse to honor loopback addresses given by dns.  catch \n too. */
-	for(i = 0; i < nmx; i++) {
-		ip = mx[i].ip;
-		if(strchr(ip, '\n') != nil){
-			if(debug)
-				fprint(2, "mxlookup ip contains newline\n");
-			werrstr("illegal: newline in mail server ip");
-			return -1;
-		}else if(isloopback(ip)){
+	/* refuse to honor loopback addresses given by dns */
+	for(i = 0; i < nmx; i++)
+		if(strcmp(mx[i].ip, "127.0.0.1") == 0){
 			if(debug)
 				fprint(2, "mxlookup returns loopback\n");
-			werrstr("illegal: domain lists %s as mail server", ip);
+			werrstr("illegal: domain lists 127.0.0.1 as mail server");
 			return -1;
 		}
-	}
 
 	/* sort by preference */
 	if(nmx > 1)
@@ -135,11 +120,6 @@ callmx(DS *ds, char *dest, char *domain)
 		if (busted(mx[i].host)) {
 			if (debug)
 				fprint(2, "mxdial skipping busted mx %s\n",
-					mx[i].host);
-			continue;
-		}else if(isloopback(mx[i].host)){
-			if(debug)
-				fprint(2, "host ip %s is loopback\n",
 					mx[i].host);
 			continue;
 		}
@@ -190,9 +170,8 @@ static int
 mxlookup1(DS *ds, char *domain)
 {
 	int i, n, fd, nmx;
-	char buf[Maxdomain], dnsname[Maxstring];
+	char buf[1024], dnsname[Maxstring];
 	char *fields[4];
-	Mx *mxp;
 
 	snprint(dnsname, sizeof dnsname, "%s/dns", ds->netdir);
 
@@ -223,7 +202,6 @@ mxlookup1(DS *ds, char *domain)
 		 */
 		seek(fd, 0, 0);
 		while(nmx < Nmx && (n = read(fd, buf, sizeof buf-1)) > 0){
-			mxp = &mx[nmx];
 			buf[n] = 0;
 			if(debug)
 				fprint(2, "dns mx: %s\n", buf);
@@ -234,9 +212,8 @@ mxlookup1(DS *ds, char *domain)
 			if(strchr(domain, '.') == 0)
 				strcpy(domain, fields[0]);
 
-			strncpy(mxp->host, fields[3], sizeof mxp->host - 1);
-			mxp->host[sizeof mxp->host - 1] = '\0';
-			mxp->pref = atoi(fields[2]);
+			strncpy(mx[nmx].host, fields[3], sizeof(mx[n].host)-1);
+			mx[nmx].pref = atoi(fields[2]);
 			nmx++;
 		}
 		if(debug)
@@ -261,10 +238,9 @@ mxlookup1(DS *ds, char *domain)
 	 * look up all ip addresses
 	 */
 	for(i = 0; i < nmx; i++){
-		mxp = &mx[i];
 		seek(fd, 0, 0);
-		snprint(buf, sizeof buf, "%s ip", mxp->host);
-		mxp->ip[0] = 0;
+		snprint(buf, sizeof buf, "%s ip", mx[i].host);
+		mx[i].ip[0] = 0;
 		/*
 		 * don't hang indefinitely in the write to /net/dns.
 		 */
@@ -276,14 +252,13 @@ mxlookup1(DS *ds, char *domain)
 		buf[n] = 0;
 		if(getfields(buf, fields, 4, 1, " \t") < 3)
 			goto no;
-		strncpy(mxp->ip, fields[2], sizeof mxp->ip - 1);
-		mxp->ip[sizeof mxp->ip - 1] = '\0';
+		strncpy(mx[i].ip, fields[2], sizeof(mx[i].ip)-1);
 		continue;
 
 	no:
 		/* remove mx[i] and go around again */
 		nmx--;
-		*mxp = mx[nmx];
+		mx[i] = mx[nmx];
 		i--;
 	}
 	return nmx;
