@@ -367,7 +367,7 @@ pcigen(Chan *c, int t, int tbdf, Dir *dp)
 		return 1;
 	case Qpciraw:
 		sprint(up->genbuf, "%d.%d.%draw", BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
-		devdir(c, q, up->genbuf, 128, eve, 0660, dp);
+		devdir(c, q, up->genbuf, 128, eve, 0444, dp);
 		return 1;
 	}
 	return -1;
@@ -552,22 +552,17 @@ pnpread(Chan *c, void *va, long n, vlong offset)
 			return 0;
 		if(n+offset > 256)
 			n = 256-offset;
+		if(offset%4)
+			error(Ebadarg);
 		r = offset;
-		if(!(r & 3) && n == 4){
+		for(i = 0; i+4 <= n; i+=4) {
 			x = pcicfgr32(p, r);
-			PBIT32(a, x);
-			return 4;
-		}
-		if(!(r & 1) && n == 2){
-			x = pcicfgr16(p, r);
-			PBIT16(a, x);
-			return 2;
-		}
-		for(i = 0; i <  n; i++){
-			x = pcicfgr8(p, r);
-			PBIT8(a, x);
-			a++;
-			r++;
+			a[0] = x;
+			a[1] = (x>>8);
+			a[2] = (x>>16);
+			a[3] = (x>>24);
+			a += 4;
+			r += 4;
 		}
 		return i;
 	default:
@@ -577,17 +572,15 @@ pnpread(Chan *c, void *va, long n, vlong offset)
 }
 
 static long
-pnpwrite(Chan *c, void *va, long n, vlong offset)
+pnpwrite(Chan *c, void *a, long n, vlong)
 {
+	int csn;
 	Card *cp;
-	Pcidev *p;
-	ulong port, x;
-	char *a, buf[256];
-	int csn, i, r, tbdf;
+	ulong port;
+	char buf[256];
 
 	if(n >= sizeof(buf))
 		n = sizeof(buf)-1;
-	a = va;
 	strncpy(buf, a, n);
 	buf[n] = 0;
 
@@ -622,33 +615,6 @@ pnpwrite(Chan *c, void *va, long n, vlong offset)
 		if(!wrconfig(cp, buf))
 			error(Ebadctl);
 		break;
-	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((ulong)c->qid.path);
-		p = pcimatchtbdf(tbdf);
-		if(p == nil)
-			error(Egreg);
-		if(offset > 256)
-			return 0;
-		if(n+offset > 256)
-			n = 256-offset;
-		r = offset;
-		if(!(r & 3) && n == 4){
-			x = GBIT32(a);
-			pcicfgw32(p, r, x);
-			return 4;
-		}
-		if(!(r & 1) && n == 2){
-			x = GBIT16(a);
-			pcicfgw16(p, r, x);
-			return 2;
-		}
-		for(i = 0; i <  n; i++){
-			x = GBIT8(a);
-			pcicfgw8(p, r, x);
-			a++;
-			r++;
-		}
-		return i;
 	default:
 		error(Egreg);
 	}
