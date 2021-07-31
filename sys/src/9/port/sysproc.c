@@ -206,7 +206,7 @@ sysrfork(ulong *arg)
 	return pid;
 }
 
-ulong
+static ulong
 l2be(long l)
 {
 	uchar *cp;
