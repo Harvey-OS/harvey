@@ -1,8 +1,6 @@
 #!/bin/rc
-# validateattachment mboxfile
-rfork en
-upastmp=/mail/tmp
-#
+rfork n
+
 # exit status matching:
 #
 #	*discard* - is really bad, refuse the message 
@@ -16,14 +14,12 @@ if(! ~ $#* 1){
 }
 
 echo validating >[1=2]
+9fs other
 fn save {
 	d=`{date -n}
-	cp body $upastmp/$d.$1
-	cp raw  $upastmp/$d.$1.raw
-	whatis x >$upastmp/$d.$1.file
-}
-fn sigexit {
-	rm -f $upastmp/$d.$1^('' .raw .file)
+	cp body /n/other/upas/tmp/$d.$1
+	cp raw /n/other/upas/tmp/$d.$1.raw
+	whatis x >/n/other/upas/tmp/$d.$1.file
 }
 
 upas/fs -f $1
@@ -62,3 +58,5 @@ case *MSDOS*
 
 save wrap
 exit wrap
+
+
