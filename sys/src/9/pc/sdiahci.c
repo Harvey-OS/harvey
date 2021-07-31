@@ -1,10 +1,6 @@
 /*
  * ahci serial ata driver
  * copyright © 2007-8 coraid, inc.
- *
- * there was a great deal of locking of single operations (e.g.,
- * atomic assignments); it's not clear what that locking was intended to
- * prevent.
  */
 
 #include "u.h"
@@ -32,7 +28,7 @@ enum {
 	Read	= 0,
 	Write,
 
-	Nms	= 256,			/* ms. between drive checks */
+	Nms	= 256,
 	Mphywait=  2*1024/Nms - 1,
 	Midwait	= 16*1024/Nms - 1,
 	Mcomrwait= 64*1024/Nms - 1,
@@ -498,7 +494,7 @@ ahciidentify0(Aportc *pc, void *id, int atapi)
 	c[2] = tab[atapi];
 	listsetup(pc, 1<<16);
 
-	memset(id, 0, 0x100);			/* magic */
+	memset(id, 0, 0x100);
 	p = &pc->m->ctab->prdt;
 	p->dba = PCIWADDR(id);
 	p->dbahi = 0;
@@ -691,7 +687,7 @@ malign(int size, int align)
 static void
 setupfis(Afis *f)
 {
-	f->base = malign(0x100, 0x100);		/* magic */
+	f->base = malign(0x100, 0x100);
 	f->d = f->base + 0;
 	f->p = f->base + 0x20;
 	f->r = f->base + 0x40;
@@ -769,26 +765,28 @@ ahciconfigdrive(Drive *d)
 	return 0;
 }
 
-static void
+static int
 ahcienable(Ahba *h)
 {
 	h->ghc |= Hie;
+	return 0;
 }
 
-static void
+static int
 ahcidisable(Ahba *h)
 {
 	h->ghc &= ~Hie;
+	return 0;
 }
 
 static int
 countbits(ulong u)
 {
-	int n;
+	int i, n;
 
 	n = 0;
-	for (; u != 0; u >>= 1)
-		if(u & 1)
+	for(i = 0; i < 32; i++)
+		if(u & (1<<i))
 			n++;
 	return n;
 }
@@ -1058,9 +1056,14 @@ resetdisk(Drive *d)
 
 	qlock(&d->portm);
 	if(p->cmd&Ast && ahciswreset(&d->portc) == -1){
+		ilock(d);
 		d->state = Dportreset;	/* get a bigger stick. */
+		iunlock(d);
 	} else {
+		ilock(d);
 		d->state = Dmissing;
+		iunlock(d);
+
 		configdrive(d);
 	}
 	dprint("ahci: %s: resetdisk: %s → %s\n", (d->unit? d->unit->name: nil),
@@ -1099,7 +1102,9 @@ newdrive(Drive *d)
 			goto lose;
 	}
 
+	ilock(d);
 	d->state = Dready;
+	iunlock(d);
 
 	qunlock(c->m);
 
@@ -1110,7 +1115,9 @@ newdrive(Drive *d)
 
 lose:
 	idprint("%s: can't be initialized\n", d->unit->name);
+	ilock(d);
 	d->state = Dnull;
+	iunlock(d);
 	qunlock(c->m);
 	return -1;
 }
@@ -1192,7 +1199,6 @@ checkdrive(Drive *d, int i)
 		d->wait = 0;
 	}
 	westerndigitalhung(d);
-
 	switch(d->state){
 	case Dnull:
 	case Dready:
@@ -1254,7 +1260,7 @@ reset:
 		break;
 	case Dportreset:
 portreset:
-		if(d->wait++ & 0xff && (s & Intactive) == 0)
+		if(d->wait++ & 0xff && (s & 0x100) == 0)
 			break;
 		/* device is active */
 		dprint("%s: portreset [%s]: mode %d; status %06#ux\n",
@@ -1262,7 +1268,7 @@ portreset:
 		d->portm.flag |= Ferror;
 		clearci(d->port);
 		wakeup(&d->portm);
-		if((s & Devdet) == 0){	/* no device */
+		if((s & 7) == 0){	/* no device */
 			d->state = Dmissing;
 			break;
 		}
@@ -1356,59 +1362,6 @@ iainterrupt(Ureg*, void *a)
 	iunlock(c);
 }
 
-/* checkdrive, called from satakproc, will prod the drive while we wait */
-static void
-awaitspinup(Drive *d)
-{
-	int ms;
-	ushort s;
-	char *name;
-
-	ilock(d);
-	if(d->unit == nil || d->port == nil) {
-		panic("awaitspinup: nil d->unit or d->port");
-		iunlock(d);
-		return;
-	}
-	name = (d->unit? d->unit->name: nil);
-	s = d->port->sstatus;
-	if(!(s & Devpresent)) {			/* never going to be ready */
-		dprint("awaitspinup: %s absent, not waiting\n", name);
-		iunlock(d);
-		return;
-	}
-
-	for (ms = 20000; ms > 0; ms -= 50)
-		switch(d->state){
-		case Dnull:
-			/* absent; done */
-			iunlock(d);
-			dprint("awaitspinup: %s in null state\n", name);
-			return;
-		case Dready:
-		case Dnew:
-			if(d->sectors || d->mediachange) {
-				/* ready to use; done */
-				iunlock(d);
-				dprint("awaitspinup: %s ready!\n", name);
-				return;
-			}
-			/* fall through */
-		default:
-		case Dmissing:			/* normal waiting states */
-		case Dreset:
-		case Doffline:			/* transitional states */
-		case Derror:
-		case Dportreset:
-			iunlock(d);
-			asleep(50);
-			ilock(d);
-			break;
-		}
-	print("awaitspinup: %s didn't spin up after 20 seconds\n", name);
-	iunlock(d);
-}
-
 static int
 iaverify(SDunit *u)
 {
@@ -1423,13 +1376,6 @@ iaverify(SDunit *u)
 	iunlock(d);
 	iunlock(c);
 	checkdrive(d, d->driveno);		/* c->d0 + d->driveno */
-
-	/*
-	 * hang around until disks are spun up and thus available as
-	 * nvram, dos file systems, etc.  you wouldn't expect it, but
-	 * the intel 330 ssd takes a while to `spin up'.
-	 */
-	awaitspinup(d);
 	return 1;
 }
 
@@ -1638,15 +1584,16 @@ waitready(Drive *d)
 		ilock(d);
 		s = d->port->sstatus;
 		iunlock(d);
-		if((s & Intpm) == 0 && δ > 1500)
+		if((s & 0x700) == 0 && δ > 1500)
 			return -1;	/* no detect */
-		if(d->state == Dready &&
-		    (s & Devdet) == (Devphycomm|Devpresent))
+		if(d->state == Dready && (s & 7) == 3)
 			return 0;	/* ready, present & phy. comm. */
 		esleep(250);
 	}
 	print("%s: not responding; offline\n", d->unit->name);
+	ilock(d);
 	d->state = Doffline;
+	iunlock(d);
 	return -1;
 }
 
@@ -2170,7 +2117,9 @@ forcemode(Drive *d, char *mode)
 			break;
 	if(i == nelem(modename))
 		i = 0;
+	ilock(d);
 	d->mode = i;
+	iunlock(d);
 }
 
 static void
@@ -2199,7 +2148,9 @@ forcestate(Drive *d, char *state)
 			break;
 	if(i == nelem(diskstates))
 		error(Ebadctl);
+	ilock(d);
 	d->state = i;
+	iunlock(d);
 }
 
 /*
