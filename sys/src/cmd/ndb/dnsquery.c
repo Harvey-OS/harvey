@@ -6,13 +6,28 @@
 #include "dns.h"
 #include "ip.h"
 
-static int domount;
-static char *mtpt, *dns, *srv;
-
-static int
-setup(int argc, char **argv)
+void
+main(int argc, char *argv[])
 {
-	int fd;
+	int fd, n, len, domount;
+	Biobuf in;
+	char line[1024], *lp, *p, *np, *mtpt, *srv, *dns;
+	char buf[1024];
+
+	dns = "/net/dns";
+	mtpt = "/net";
+	srv = "/srv/dns";
+	domount = 1;
+	ARGBEGIN {
+	case 'x':
+		dns = "/net.alt/dns";
+		mtpt = "/net.alt";
+		srv = "/srv/dns_net.alt";
+		break;
+	default:
+		fprint(2, "usage: %s -x [dns-mount-point]\n", argv0);
+		exits("usage");
+	} ARGEND;
 
 	if(argc == 1){
 		domount = 0;
@@ -40,35 +55,6 @@ setup(int argc, char **argv)
 			exits(0);
 		}
 	}
-	return fd;
-}
-
-static void
-querydns(int fd, char *line, int n)
-{
-	char buf[1024];
-
-	seek(fd, 0, 0);
-	if(write(fd, line, n) != n) {
-		print("!%r\n");
-		return;
-	}
-	seek(fd, 0, 0);
-	buf[0] = '\0';
-	while((n = read(fd, buf, sizeof(buf))) > 0){
-		buf[n] = '\0';
-		print("%s\n", buf);
-	}
-}
-
-static void
-query(int fd)
-{
-	int n, len;
-	char line[1024], *lp, *p, *np;
-	char buf[1024];
-	Biobuf in;
-
 	Binit(&in, 0, OREAD);
 	for(print("> "); lp = Brdline(&in, '\n'); print("> ")){
 		n = Blinelen(&in) -1;
@@ -82,9 +68,8 @@ query(int fd)
 		if(!*lp)
 			continue;
 		strcpy(line, lp);
-
 		/* default to an "ip" request if alpha, "ptr" if numeric */
-		if(strchr(line, ' ') == nil)
+		if(strchr(line, ' ')==0) {
 			if(strcmp(ipattr(line), "ip") == 0) {
 				strcat(line, " ptr");
 				n += 4;
@@ -92,10 +77,11 @@ query(int fd)
 				strcat(line, " ip");
 				n += 3;
 			}
+		}
 
 		/* inverse queries may need to be permuted */
-		if(n > 4 && strcmp("ptr", &line[n-3]) == 0 &&
-		    cistrstr(line, "in-addr") == 0){
+		if(n > 4 && strcmp("ptr", &line[n-3]) == 0
+		&& strstr(line, "IN-ADDR") == 0 && strstr(line, "in-addr") == 0){
 			for(p = line; *p; p++)
 				if(*p == ' '){
 					*p = '.';
@@ -119,29 +105,16 @@ query(int fd)
 			n = strlen(line);
 		}
 
-		querydns(fd, line, n);
+		seek(fd, 0, 0);
+		if(write(fd, line, n) < 0) {
+			print("!%r\n");
+			continue;
+		}
+		seek(fd, 0, 0);
+		while((n = read(fd, buf, sizeof(buf))) > 0){
+			buf[n] = 0;
+			print("%s\n", buf);
+		}
 	}
-	Bterm(&in);
-}
-
-void
-main(int argc, char *argv[])
-{
-	mtpt = "/net";
-	dns = "/net/dns";
-	srv = "/srv/dns";
-	domount = 1;
-	ARGBEGIN {
-	case 'x':
-		mtpt = "/net.alt";
-		dns = "/net.alt/dns";
-		srv = "/srv/dns_net.alt";
-		break;
-	default:
-		fprint(2, "usage: %s [-x] [dns-mount-point]\n", argv0);
-		exits("usage");
-	} ARGEND;
-
-	query(setup(argc, argv));
 	exits(0);
 }

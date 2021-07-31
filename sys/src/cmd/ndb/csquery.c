@@ -22,7 +22,7 @@ query(char *addr)
 	fd = open(server, ORDWR);
 	if(fd < 0)
 		sysfatal("cannot open %s: %r", server);
-	if(write(fd, addr, strlen(addr)) != strlen(addr)){
+	if(write(fd, addr, strlen(addr)) <= 0){
 		if(!statusonly)
 			fprint(2, "translating %s: %r\n", addr);
 		status = "errors";

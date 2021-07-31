@@ -155,7 +155,7 @@ the dial would connect to the SMTP port of
 A number of attributes are meaningful to programs and thus
 reserved.
 They are:
-.TF dnsdomain
+.TF restricted
 .TP
 .B sys
 system name
@@ -254,20 +254,11 @@ a time server to use (for DHCP)
 a Windows name server (for DHCP)
 .TP
 .B mx
-mail exchanger (for DNS and DHCP);
-also
-.BR pref .
-.TP
-.B srv
-service location (for DNS);
-also
-.BR pri ,
-.B weight
-and
-.BR port .
+mail exchanger (for DNS and DHCP)
 .TP
 .B soa
 start of area (for DNS)
+.sp
 .PD
 .PP
 .I Cs
