@@ -5,9 +5,9 @@
 #include <ndb.h>
 #include "dat.h"
 
-/*
- *	ala rfc2131
- */
+//
+//	ala rfc2131
+//
 
 typedef struct Req Req;
 struct Req
@@ -24,8 +24,8 @@ struct Req
 	uchar	giaddr[IPaddrlen];
 
 	/* parsed options */
-	int	p9request;		/* flag: this is a bootp with plan9 options */
-	int	genrequest;		/* flag: this is a bootp with generic options */
+	int	p9request;		/* true if this is a bootp with plan9 options */
+	int	genrequest;		/* true if this is a bootp with generic options */
 	int	dhcptype;		/* dhcp message type */
 	int	leasetime;		/* dhcp lease */
 	uchar	ip[IPaddrlen];		/* requested address */
@@ -45,7 +45,6 @@ struct Req
 };
 
 #define TFTP "/lib/tftpd"
-
 char	*blog = "ipboot";
 char	mysysname[64];
 Ipifc	*ipifcs;
@@ -55,10 +54,9 @@ long	now;
 int	slowstat, slowdyn;
 char	net[256];
 
-int	pptponly;	/* only answer request that came from the pptp server */
+int	pptponly;	// only answer request that came from the pptp server
 int	mute, mutestat;
 int	minlease = MinLease;
-int	staticlease = StaticLease;
 
 ulong	start;
 
@@ -164,8 +162,6 @@ void	byteopt(Req*, int, uchar);
 void	dhcp(Req*);
 void	fatal(int, char*, ...);
 void	hexopt(Req*, int, char*);
-void	logdhcp(Req*);
-void	logdhcpout(Req *, char *);
 void	longopt(Req*, int, long);
 void	maskopt(Req*, int, uchar*);
 void	miscoptions(Req*, uchar*);
@@ -177,7 +173,6 @@ void	rcvdiscover(Req*);
 void	rcvinform(Req*);
 void	rcvrelease(Req*);
 void	rcvrequest(Req*);
-int	readlast(int, uchar*, int);
 char*	readsysname(void);
 void	remrequested(Req*, int);
 void	sendack(Req*, uchar*, int, int);
@@ -188,6 +183,9 @@ void	termopt(Req*);
 int	validip(uchar*);
 void	vectoropt(Req*, int, uchar*, int);
 void	warning(int, char*, ...);
+void	logdhcp(Req*);
+void	logdhcpout(Req *, char *);
+int	readlast(int, uchar*, int);
 
 void
 timestamp(char *tag)
@@ -201,8 +199,7 @@ timestamp(char *tag)
 void
 usage(void)
 {
-	fprint(2, "usage: dhcp [-dmnprsSZ] [-f directory] [-M minlease] "
-		"[-x netmtpt] [-Z staticlease] addr n [addr n] ...\n");
+	fprint(2, "usage: dhcp [-dmsnp] [-f directory] [-x netmtpt] [-M minlease] addr n [addr n ...]\n");
 	exits("usage");
 }
 
@@ -210,29 +207,34 @@ void
 main(int argc, char **argv)
 {
 	int i, n, fd;
+	char *p;
 	uchar ip[IPaddrlen];
 	Req r;
 
-	setnetmtpt(net, sizeof net, nil);
+	setnetmtpt(net, sizeof(net), nil);
 
 	fmtinstall('E', eipfmt);
 	fmtinstall('I', eipfmt);
 	fmtinstall('V', eipfmt);
 	fmtinstall('M', eipfmt);
 	ARGBEGIN {
+	case 'm':
+		mute = 1;
+		break;
 	case 'd':
 		debug = 1;
 		break;
 	case 'f':
-		ndbfile = EARGF(usage());
+		p = ARGF();
+		if(p == nil)
+			usage();
+		ndbfile = p;
 		break;
-	case 'm':
-		mute = 1;
+	case 's':
+		slowstat = 1;
 		break;
-	case 'M':
-		minlease = atoi(EARGF(usage()));
-		if(minlease <= 0)
-			minlease = MinLease;
+	case 'S':
+		slowdyn = 1;
 		break;
 	case 'n':
 		nobootp = 1;
@@ -243,22 +245,19 @@ main(int argc, char **argv)
 	case 'r':
 		mutestat = 1;
 		break;
-	case 's':
-		slowstat = 1;
-		break;
-	case 'S':
-		slowdyn = 1;
-		break;
 	case 'x':
-		setnetmtpt(net, sizeof net, EARGF(usage()));
+		p = ARGF();
+		if(p == nil)
+			usage();
+		setnetmtpt(net, sizeof(net), p);
 		break;
-	case 'Z':
-		staticlease = atoi(EARGF(usage()));
-		if(staticlease <= 0)
-			staticlease = StaticLease;
-		break;
-	default:
-		usage();
+	case 'M':
+		p = ARGF();
+		if(p == nil)
+			usage();
+		minlease = atoi(p);
+		if(minlease <= 0)
+			minlease = MinLease;
 		break;
 	} ARGEND;
 
@@ -280,7 +279,8 @@ main(int argc, char **argv)
 			optname[i] = smprint("%d", i);
 
 	/* what is my name? */
-	strcpy(mysysname, readsysname());
+	p = readsysname();
+	strcpy(mysysname, p);
 
 	/* put process in background */
 	if(!debug) switch(rfork(RFNOTEG|RFPROC|RFFDG)) {
@@ -428,7 +428,7 @@ rcvdiscover(Req *rp)
 	Binding *b, *nb;
 
 	if(rp->staticbinding){
-		sendoffer(rp, rp->ii.ipaddr, (staticlease > minlease? staticlease: minlease));
+		sendoffer(rp, rp->ii.ipaddr, (StaticLease > minlease ? StaticLease : minlease));
 		return;
 	}
 
@@ -486,7 +486,7 @@ rcvrequest(Req *rp)
 		/* check for hard assignment */
 		if(rp->staticbinding){
 			if(forme(rp->server))
-				sendack(rp, rp->ii.ipaddr, (staticlease > minlease? staticlease: minlease), 1);
+				sendack(rp, rp->ii.ipaddr, (StaticLease > minlease ? StaticLease : minlease), 1);
 			else
 				warning(0, "!Request(%s via %I): for server %I not me",
 					rp->id, rp->gii.ipaddr, rp->server);
@@ -543,7 +543,7 @@ rcvrequest(Req *rp)
 					rp->id, rp->gii.ipaddr, rp->ip, rp->bp->chaddr);
 				sendnak(rp, "not valid");
 			}
-			sendack(rp, rp->ii.ipaddr, (staticlease > minlease? staticlease: minlease), 1);
+			sendack(rp, rp->ii.ipaddr, (StaticLease > minlease ? StaticLease : minlease), 1);
 			return;
 		}
 
@@ -585,7 +585,7 @@ rcvrequest(Req *rp)
 					rp->id, rp->gii.ipaddr, rp->ciaddr);
 				sendnak(rp, "not valid");
 			}
-			sendack(rp, rp->ii.ipaddr, (staticlease > minlease? staticlease: minlease), 1);
+			sendack(rp, rp->ii.ipaddr, (StaticLease > minlease ? StaticLease : minlease), 1);
 			return;
 		}
 
@@ -887,7 +887,7 @@ bootp(Req *rp)
 	Info *iip;
 
 	warning(0, "bootp %s %I->%I from %s via %I, file %s",
-		rp->genrequest? "generic": (rp->p9request? "p9": ""),
+		rp->genrequest ? "generic" : (rp->p9request ? "p9" : ""),
 		rp->up->raddr, rp->up->laddr,
 		rp->id, rp->gii.ipaddr,
 		rp->bp->file);
@@ -1131,10 +1131,8 @@ miscoptions(Req *rp, uchar *ip)
 		addropt(rp, OBrouter, rp->giaddr);
 	}
 
-	/*
-	 * OBhostname for the HP4000M switches
-	 * (this causes NT to log infinite errors - tough shit)
-	 */
+	// OBhostname for the HP4000M switches
+	// (this causes NT to log infinite errors - tough shit )
 	if(*rp->ii.domain){
 		remrequested(rp, OBhostname);
 		stringopt(rp, OBhostname, rp->ii.domain);
@@ -1238,10 +1236,10 @@ miscoptions(Req *rp, uchar *ip)
 			break;
 		}
 
-	/* add plan9 specific options */
+	// add plan9 specific options
 	if(strncmp((char*)rp->vendorclass, "plan9_", 6) == 0
 	|| strncmp((char*)rp->vendorclass, "p9-", 3) == 0){
-	/* point to temporary area */
+		// point to temporary area
 		op = rp->p;
 		omax = rp->max;
 		rp->p = vopts;
@@ -1252,7 +1250,7 @@ miscoptions(Req *rp, uchar *ip)
 		j = lookupserver("auth", addrs, t);
 		addrsopt(rp, OP9auth, addrs, j);
 
-	/* point back */
+		// point back
 		j = rp->p - vopts;
 		rp->p = op;
 		rp->max = omax;
@@ -1266,7 +1264,8 @@ int
 openlisten(char *net)
 {
 	int fd, cfd;
-	char data[128], devdir[40];
+	char data[128];
+	char devdir[40];
 
 	sprint(data, "%s/udp!*!bootp", net);
 	cfd = announce(data, devdir);

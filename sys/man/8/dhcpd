@@ -4,14 +4,12 @@ dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
 .SH SYNOPSIS
 .PP
 .B ip/dhcpd
-.RB [ -dmnprsSZ ]
+.RB [ -mdsSnpr ]
 .RB [ -f
 .IR ndb-file ]
-.RB [ -M
-.IR secs ]
 .RB [ -x
 .IR netmtpt ]
-.RB [ -Z
+.RB [ -M
 .IR secs ]
 [
 .I address
@@ -167,20 +165,23 @@ The options are:
 .B d
 Print debugging to standard output.
 .TP
-.B f
-Specify a file other than
-.B /lib/ndb/local
-as the network database.
-.TP
 .B m
 Mute: don't reply to requests, just log them and what
 .I dhcpd
 would have done.
 .TP
-.B M
-Use
-.I secs
-as the minimum lease time for dynamic addresses.
+.B f
+Specify a file other than
+.B /lib/ndb/local
+as the network database.
+.TP
+.B s
+Sleep 2 seconds before answering requests for static addresses.
+This is used to make a server
+be a backup only.
+.TP
+.B S
+Sleep 2 seconds before answering requests for dynamic addresses.
 .TP
 .B n
 Don't answer
@@ -200,23 +201,16 @@ just log them and what
 .I dhcpd
 would have done.
 .TP
-.B s
-Sleep 2 seconds before answering requests for static addresses.
-This is used to make a server be a backup only.
-.TP
-.B S
-Sleep 2 seconds before answering requests for dynamic addresses.
-.TP
 .B x
 The IP stack to use is mounted at 
 .IR netmtpt .
 The default is
 .BR /net .
 .TP
-.B Z
+.B M
 Use
 .I secs
-as the minimum lease time for static addresses.
+as the minimum lease time.
 .PD
 .PP
 .I Dhcpleases

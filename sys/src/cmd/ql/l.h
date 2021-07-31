@@ -50,7 +50,7 @@ struct	Prog
 	short	line;
 	short	mark;
 	short	optab;		/* could be uchar */
-	ushort	as;
+	uchar	as;
 	char	reg;
 };
 struct	Sym
@@ -75,7 +75,7 @@ struct	Autom
 };
 struct	Optab
 {
-	ushort	as;
+	uchar	as;
 	char	a1;
 	char	a2;
 	char	a3;
