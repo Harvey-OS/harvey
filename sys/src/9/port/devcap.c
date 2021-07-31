@@ -5,6 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+#include	"netif.h"
 #include	<libsec.h>
 
 enum
