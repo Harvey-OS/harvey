@@ -61,7 +61,6 @@ extern void l2cacheuwbinv(void);
 extern void lastresortprint(char *buf, long bp);
 extern int log2(ulong);
 extern void machinit(void);
-extern void mmuidmap(uintptr phys, int mbs);
 extern void mmuinvalidate(void);		/* 'mmu' or 'tlb'? */
 extern void mmuinvalidateaddr(u32int);		/* 'mmu' or 'tlb'? */
 extern void mousectl(Cmdbuf *cb);
