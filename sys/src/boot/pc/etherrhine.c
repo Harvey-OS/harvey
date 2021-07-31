@@ -625,22 +625,12 @@ rhinematch(ulong)
 	int nfound = 0;
 	Pcidev *p = nil;
 
-	while(p = pcimatch(p, 0x1106, 0)){
-		if(p->ccrb != Pcibcnet || p->ccru != Pciscether)
-			continue;
-		switch((p->did<<16)|p->vid){
-		default:
-			continue;
-		case (0x3053<<16)|0x1106:	/* Rhine III in Soekris */
-		case (0x3065<<16)|0x1106:	/* Rhine II */
-		case (0x3106<<16)|0x1106:	/* Rhine III */
+	while (p = pcimatch(p, 0x1106, 0))
+		if (p->did == 0x3065)
 			if (++nfound > nrhines) {
 				nrhines++;
-				return p;
+				break;
 			}
-			break;
-		}
-	}
 	return p;
 }
 
