@@ -1,9 +1,5 @@
-/*
- * keyfs
- */
 #include <u.h>
 #include <libc.h>
-#include <ctype.h>
 #include <authsrv.h>
 #include <fcall.h>
 #include <bio.h>
@@ -11,14 +7,12 @@
 #include <libsec.h>
 #include "authcmdlib.h"
 
-#pragma	varargck	type	"W"	char*
-
 char authkey[8];
 
 typedef struct Fid	Fid;
 typedef struct User	User;
 
-enum {
+enum{
 	Qroot,
 	Quser,
 	Qkey,
@@ -30,18 +24,17 @@ enum {
 	Qmax,
 
 	Nuser	= 512,
-	MAXBAD	= 10,	/* max # of bad attempts before disabling the account */
-	/* file must be randomly addressible, so names have fixed length */
-	Namelen	= ANAMELEN,
+	MAXBAD	= 10,			/* max number of bad attempts before disabling the account */
+	Namelen	= ANAMELEN,		/* file must be randomly addressible, so names have fixed length */
 };
 
-enum {
+enum{
 	Sok,
 	Sdisabled,
 	Smax,
 };
 
-struct Fid {
+struct Fid{
 	int	fid;
 	ulong	qtype;
 	User	*user;
@@ -49,13 +42,13 @@ struct Fid {
 	Fid	*next;
 };
 
-struct User {
+struct User{
 	char	*name;
 	char	key[DESKEYLEN];
 	char	secret[SECRETLEN];
 	ulong	expire;			/* 0 == never */
 	uchar	status;
-	ulong	bad;		/* # of consecutive bad authentication attempts */
+	ulong	bad;			/* number of consecutive bad authentication attempts */
 	int	ref;
 	char	removed;
 	uchar	warnings;
@@ -106,7 +99,6 @@ Qid	mkqid(User*, ulong);
 int	dostat(User*, ulong, void*, int);
 int	newkeys(void);
 void	warning(void);
-int	wierdfmt(Fmt *f);
 
 char	*Auth(Fid*), *Attach(Fid*), *Version(Fid*),
 	*Flush(Fid*), *Walk(Fid*),
@@ -129,41 +121,28 @@ char 	*(*fcalls[])(Fid*) = {
 	[Twstat]	Wstat,
 };
 
-static void
-usage(void)
-{
-	fprint(2, "usage: %s [-p] [-m mtpt] [-w warn] [keyfile]\n", argv0);
-	exits("usage");
-}
-
 void
 main(int argc, char *argv[])
 {
 	char *mntpt;
 	int p[2];
 
-	fmtinstall('W', wierdfmt);
 	mntpt = "/mnt/keys";
 	ARGBEGIN{
 	case 'm':
-		mntpt = EARGF(usage());
+		mntpt = ARGF();
+		break;
+	case 'w':
+		warnarg = ARGF();
 		break;
 	case 'p':
 		usepass = 1;
-		break;
-	case 'w':
-		warnarg = EARGF(usage());
-		break;
-	default:
-		usage();
 		break;
 	}ARGEND
 	argv0 = "keyfs";
 
 	userkeys = "/adm/keys";
-	if(argc > 1)
-		usage();
-	if(argc == 1)
+	if(argc > 0)
 		userkeys = argv[0];
 
 	if(pipe(p) < 0)
@@ -173,7 +152,7 @@ main(int argc, char *argv[])
 		getpass(authkey, nil, 0, 0);
 	} else {
 		if(!getauthkey(authkey))
-			print("keyfs: warning: can't read NVRAM\n");
+			print("keyfs: warning: can't read /dev/key\n");
 	}
 
 	switch(rfork(RFPROC|RFNAMEG|RFNOTEG|RFNOWAIT|RFENVG|RFFDG)){
@@ -795,65 +774,6 @@ writeusers(void)
 }
 
 int
-wierdfmt(Fmt *f)
-{
-	char *s, buf[ANAMELEN*4 + 1];
-	int i, j, n;
-	Rune r;
-
-	s = va_arg(f->args, char*);
-	j = 0;
-	for(i = 0; i < ANAMELEN; i += n){
-		n = chartorune(&r, s + i);
-		if(r == Runeerror)
-			j += sprint(buf+j, "[%.2x]", buf[i]);
-		else if(isascii(r) && iscntrl(r))
-			j += sprint(buf+j, "[%.2x]", r);
-		else if(r == ' ' || r == '/')
-			j += sprint(buf+j, "[%c]", r);
-		else
-			j += sprint(buf+j, "%C", r);
-	}
-	return fmtstrcpy(f, buf);
-}
-
-int
-userok(char *user, int nu)
-{
-	int i, n, rv;
-	Rune r;
-	char buf[ANAMELEN+1];
-
-	memset(buf, 0, sizeof buf);
-	memmove(buf, user, ANAMELEN);
-
-	if(buf[ANAMELEN-1] != 0){
-		fprint(2, "keyfs: %d: no termination: %W\n", nu, buf);
-		return -1;
-	}
-
-	rv = 0;
-	for(i = 0; buf[i]; i += n){
-		n = chartorune(&r, buf+i);
-		if(r == Runeerror){
-//			fprint(2, "keyfs: name %W bad rune byte %d\n", buf, i);
-			rv = -1;
-		} else if(isascii(r) && iscntrl(r) || r == ' ' || r == '/'){
-//			fprint(2, "keyfs: name %W bad char %C\n", buf, r);
-			rv = -1;
-		}
-	}
-
-	if(i == 0){
-		fprint(2, "keyfs: %d: nil name\n", nu);
-		return -1;
-	}
-	if(rv == -1)
-		fprint(2, "keyfs: %d: bad syntax: %W\n", nu, buf);
-	return rv;
-}
-
-int
 readusers(void)
 {
 	int fd, i, n, nu;
@@ -892,8 +812,6 @@ readusers(void)
 	nu = 0;
 	for(i = KEYDBOFF; i < n; i += KEYDBLEN){
 		ep = buf + i;
-		if(userok((char*)ep, i/KEYDBLEN) < 0)
-			continue;
 		u = finduser((char*)ep);
 		if(u == 0)
 			u = installuser((char*)ep);
@@ -1041,7 +959,7 @@ io(int in, int out)
 		thdr.fid = rhdr.fid;
 		if(!fcalls[rhdr.type])
 			err = "fcall request";
-		else
+		else		
 			err = (*fcalls[rhdr.type])(findfid(rhdr.fid));
 		thdr.tag = rhdr.tag;
 		thdr.type = rhdr.type+1;
@@ -1055,8 +973,7 @@ io(int in, int out)
 
 		now = time(0);
 		if(warnarg && (now - lastwarning > 24*60*60)){
-			syslog(0, "auth", "keyfs starting warnings: %lux %lux",
-				now, lastwarning);
+			syslog(0, "auth", "keyfs starting warnings: %lux %lux", now, lastwarning);
 			warning();
 			lastwarning = now;
 		}

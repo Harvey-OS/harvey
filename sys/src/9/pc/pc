@@ -15,7 +15,6 @@ dev
 	tls
 	cap
 	kprof
-	fs
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -34,7 +33,6 @@ dev
 	i82365		cis
 	uart
 	usb
-
 	tv
 
 link
@@ -49,7 +47,6 @@ link
 	ether8139	pci
 	ether8169	pci ethermii
 	ether82543gc	pci
-	ether82563	pci
 	ether82557	pci
 	ether83815	pci
 	etherec2t	ether8390
@@ -62,7 +59,6 @@ link
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
-#	etherm10g
 	pcmciamodem
 	netdevmedium
 	loopbackmedium
@@ -74,7 +70,6 @@ misc
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
-	sd63xxesb	pci sdscsi
 
 	uarti8250
 	uartpci		pci
@@ -110,16 +105,12 @@ ip
 	icmp
 	icmp6
 	gre
-	ipmux
-	esp
-#	il
 
 port
 	int cpuserver = 0;
 
 boot
 	tcp
-#	il
 
 bootdir
 	bootpc.out boot

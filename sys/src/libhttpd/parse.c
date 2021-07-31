@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <ctype.h>
 #include <libsec.h>
 #include <bin.h>
 #include <httpd.h>
@@ -47,7 +46,6 @@ static void	mimeagent(Hlex*, char*);
 static void	mimeauthorization(Hlex*, char*);
 static void	mimeconnection(Hlex*, char*);
 static void	mimecontlen(Hlex*, char*);
-static void	mimecookie(Hlex*, char*);
 static void	mimeexpect(Hlex*, char*);
 static void	mimefresh(Hlex*, char*);
 static void	mimefrom(Hlex*, char*);
@@ -79,7 +77,6 @@ static MimeHead	mimehead[] =
 	{"authorization",	mimeauthorization},
 	{"connection",		mimeconnection},
 	{"content-length",	mimecontlen},
-	{"cookie",		mimecookie},
 	{"expect",		mimeexpect},
 	{"fresh",		mimefresh},
 	{"from",		mimefrom},
@@ -676,27 +673,6 @@ mimetransenc(Hlex *h, char *)
 }
 
 static void
-mimecookie(Hlex *h, char *)
-{
-	char *s;
-	HSPairs *p;
-
-	p = nil;
-	for(;;){
-		while(lex(h) != Word)
-			if(h->tok != ';' && h->tok != ',')
-				goto breakout;
-		s = hstrdup(h->c, h->wordval);
-		while (lex(h) != Word && h->tok != QString)
-			if (h->tok != '=')
-				goto breakout;
-		p = hmkspairs(h->c, s, hstrdup(h->c, h->wordval), p);
-	}
-breakout:
-	h->c->head.cookie = hrevspairs(p);
-}
-
-static void
 mimefresh(Hlex *h, char *)
 {
 	char *s;
@@ -753,10 +729,14 @@ lexbase64(Hlex *h)
 	lex1(h, 1);
 
 	while((c = getc(h)) >= 0){
-		if(!(isascii(c) && isalnum(c) || c == '+' || c == '/')){
+		if(!(c >= 'A' && c <= 'Z'
+		|| c >= 'a' && c <= 'z'
+		|| c >= '0' && c <= '9'
+		|| c == '+' || c == '/')){
 			ungetc(h);
 			break;
 		}
+
 		if(n < HMaxWord-1)
 			h->wordval[n++] = c;
 	}

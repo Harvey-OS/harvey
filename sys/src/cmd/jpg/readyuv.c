@@ -6,12 +6,27 @@
 #include <ctype.h>
 #include "imagefile.h"
 
+/*
+ * ITU/CCIR Rec601 states:
+ *
+ * R = y + 1.402 * Cr
+ * B = Y + 1.77305 * Cb
+ * G = Y - 0.72414 * Cr - 0.34414 * Cb
+ *
+ *	using 8 bit traffic
+ * Y = 16 + 219 * Y
+ * Cr = 128 + 224 * Cr
+ * Cb = 128 + 224 * Cb
+ * 	or, if 10bit is used
+ * Y = 64 + 876 * Y
+ * Cr = 512 + 896 * Cr
+ * Cb = 512 + 896 * Cb
+ */
 
 enum {
 	pixels = 720,
 	r601pal = 576,
-	r601ntsc = 486,
-	Shift = 13
+	r601ntsc = 486
 };
 
 
@@ -60,7 +75,7 @@ looksize(char *file, vlong size, int *pixels, int *lines, int *bits)
 static int 
 clip(int x)
 {
-	x >>= (Shift+2); // +2 as we assume all input images are 10 bit
+	x >>= 18;
 
 	if (x > 255)
 		return 0xff;
@@ -80,7 +95,6 @@ Breadyuv(Biobuf *bp, int colourspace)
 	uchar *buf, *r, *g, *b;
 	int y1, y2, cb, cr, c, l, w, base;
 	int bits, lines, pixels;
-	int F1, F2, F3, F4;
 
 	frm = nil;
 	buf = nil;
@@ -147,7 +161,7 @@ Breadyuv(Biobuf *bp, int colourspace)
 
 			base = l * pixels * 2;
 			for (w = 0; w < pixels * 2; w++)
-				frm[base + w] |= (buf[w / 4] >> lsbtab[w % 4]) & 3;
+				frm[base + w] |= buf[w / 4] >> lsbtab[w % 4];
 		}
 
 	mux = frm;
@@ -156,36 +170,22 @@ Breadyuv(Biobuf *bp, int colourspace)
 	g = a->chans[1];
 	b = a->chans[2];
 
-	if(pixels * lines != 414720){	// 625
-		F1 = floor(1.402 * (1 << Shift));
-		F2 = floor(0.34414 * (1 << Shift));
-		F3 = floor(0.71414 * (1 << Shift));
-		F4 = floor(1.772 * (1 << Shift));
-	}
-	else{				// 525
-		F1 = floor(1.5748 * (1 << Shift));
-		F2 = floor(0.1874 * (1 << Shift));
-		F3 = floor(0.4681 * (1 << Shift));
-		F4 = floor(1.8560 * (1 << Shift));
-	}
-
 	/*
 	 * Fixme: fixed colourspace conversion at present
 	 */
 	while (mux < end) {
-
 		cb = *mux++ - 512;
-		y1 = (int)*mux++ << Shift;
+		y1 = (*mux++ - 64) * 76310;
 		cr = *mux++ - 512;
-		y2 = (int)*mux++ << Shift;
+		y2 = (*mux++ - 64) * 76310;
 
-		*r++ = clip(y1 + F1*cr);
-		*g++ = clip(y1 - F2*cb - F3*cr);
-		*b++ = clip((y1 + F4*cb));
+		*r++ = clip((104635 * cr) + y1);
+		*g++ = clip((-25690 * cb + -53294 * cr) + y1);
+		*b++ = clip((132278 * cb) + y1);
 
-		*r++ = clip(y2 + F1*cr);
-		*g++ = clip(y2 - F2*cb - F3*cr);
-		*b++ = clip((y2 + F4*cb));
+		*r++ = clip((104635 * cr) + y2);
+		*g++ = clip((-25690 * cb + -53294 * cr) + y2);
+		*b++ = clip((132278 * cb) + y2);
 	}
 	free(frm);
 	free(buf);

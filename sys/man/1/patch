@@ -44,9 +44,7 @@ and is stored in
 creates a new patch consisting of the changes to
 the listed files, reading
 a description of the patch from standard input.
-Please provide an explanation of what the change is supposed to do,
-some context, and a rationale for the change.
-Test data or pointers to same to verify that the fix works are also welcome.
+Please provide some context and justification for the change.
 The
 .I email
 address, if not
