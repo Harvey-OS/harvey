@@ -3,17 +3,13 @@
 #		programs
 #
 TARG=\
-	asn12dsa\
 	asn12rsa\
 	authsrv\
 	changeuser\
-	convkeys2\
 	convkeys\
+	convkeys2\
 	cron\
 	debug\
-	dsa2pub\
-	dsa2ssh\
-	dsagen\
 	guard.srv\
 	keyfs\
 	login\
@@ -24,12 +20,12 @@ TARG=\
 	pemdecode\
 	pemencode\
 	printnetkey\
+	rsagen\
+	rsafill\
 	rsa2csr\
 	rsa2pub\
 	rsa2ssh\
 	rsa2x509\
-	rsafill\
-	rsagen\
 	uniq\
 	warning\
 	wrkey\
@@ -114,7 +110,6 @@ nuke:V:
 	rm -f *.[$OS] *.[$OS].a [$OS].* y.tab.? y.debug y.output $TARG *.acid
 
 $O.%: lib.$O.a
-$O.dsa2ssh $O.dsafill $O.dsa2x509 $O.dsa2pub $O.dsa2csr: rsa2any.$O
 $O.rsa2ssh $O.rsafill $O.rsa2x509 $O.rsa2pub $O.rsa2csr: rsa2any.$O
 $O.authsrv $O.guard.srv: secureidcheck.$O
 

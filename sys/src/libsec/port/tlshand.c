@@ -2251,7 +2251,8 @@ get16(uchar *p)
 	return (p[0]<<8)|p[1];
 }
 
-#define OFFSET(x, s) offsetof(s, x)
+/* ANSI offsetof() */
+#define OFFSET(x, s) ((int)(&(((s*)0)->x)))
 
 /*
  * malloc and return a new Bytes structure capable of

@@ -10,7 +10,7 @@ testcrt(mpint **p)
 	mpint *m, *x, *y;
 	int i;
 
-	fmtinstall('B', mpfmt);
+	fmtinstall('B', mpconv);
 
 	// get a modulus and a test number
 	m = mpnew(1024+160);
