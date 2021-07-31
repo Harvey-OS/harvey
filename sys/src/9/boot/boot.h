@@ -27,7 +27,6 @@ extern uchar	hostkey[];
 extern uchar	statbuf[Statsz];
 extern int	bargc;
 extern char	*bargv[Nbarg];
-extern int	pcload;
 
 /* libc equivalent */
 extern int	cache(int);
@@ -39,7 +38,6 @@ extern int	outin(char*, char*, int);
 extern int	plumb(char*, char*, int*, char*);
 extern int	readfile(char*, char*, int);
 extern long	readn(int, void*, long);
-extern void	run(char *file, ...);
 extern int	sendmsg(int, char*);
 extern void	setenv(char*, char*);
 extern void	settime(int, int, char*);
@@ -52,6 +50,9 @@ extern int		old9p(int);
 extern int	parsefields(char*, char**, int, char*);
 
 /* methods */
+extern void	configil(Method*);
+extern int	connectil(void);
+
 extern void	configtcp(Method*);
 extern int	connecttcp(void);
 

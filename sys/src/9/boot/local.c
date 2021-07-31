@@ -129,22 +129,28 @@ connectlocalkfs(void)
 	return p[0];
 }
 
-void
+static void
 run(char *file, ...)
 {
-	int i, pid;
+	char buf[64];
+	Waitmsg *w;
+	int pid;
 
 	switch(pid = fork()){
 	case -1:
 		fatal("fork");
 	case 0:
 		exec(file, &file);
-		fatal(smprint("can't exec %s: %r", file));
+		snprint(buf, sizeof buf, "can't exec %s", file);
+		fatal(buf);
 	default:
-		while ((i = waitpid()) != pid && i != -1)
-			;
-		if(i == -1)
-			fatal(smprint("wait failed running %s", file));
+		while((w = wait()) != nil)
+			if(w->pid == pid)
+				break;
+		if(w == nil){
+			snprint(buf, sizeof buf, "wait returned nil running %s", file);
+			fatal(buf);
+		}
 	}
 }
 

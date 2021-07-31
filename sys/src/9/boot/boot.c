@@ -297,17 +297,38 @@ old9p(int fd)
 		close(fd);
 		close(p[0]);
 	}
-	return p[1];
+	return p[1];	
+}
+
+static void
+run(char *prog, char **args)
+{
+	int i, pid;
+
+	if (access(args[0], AEXIST) < 0)
+		return;			/* avoid error messages */
+//	print("%s...", prog);
+	USED(prog);
+	switch(pid = fork()){
+	case -1:
+		fatal("fork");
+	case 0:
+		exec(args[0], args);
+		fatal(smprint("can't exec %s: %r", args[0]));
+	}
+	while ((i = waitpid()) != pid && i != -1)
+		;
+	if(i == -1)
+		fatal(smprint("waitpid for %s failed", args[0]));
 }
 
 static void
 usbinit(void)
 {
-	static char usbd[] = "/boot/usbd";
+	static char *darg[] = { "/boot/usbd", nil };
 
-	if(access("#u/usb/ctl", 0) >= 0 && bind("#u", "/dev", MAFTER) >= 0 &&
-	    access(usbd, AEXIST) >= 0)
-		run(usbd, nil);
+	if(access("#u/usb/ctl", 0) >= 0 && bind("#u", "/dev", MAFTER) >= 0)
+		run("usbd", darg);
 }
 
 static void
