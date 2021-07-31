@@ -1,7 +1,6 @@
 #include "tdef.h"
 #include "fns.h"
 #include "ext.h"
-#include <assert.h>
 
 #define	HY_BIT	0200	/* stuff in here only works for 7-bit ascii */
 			/* this value is used (as a literal) in suftab.c */
@@ -11,7 +10,7 @@
 
 /*
  * troff8.c
- *
+ * 
  * hyphenation
  */
 
@@ -59,7 +58,7 @@ void hyphen(Tchar *wp)
 
 	/* this appears to sort hyphenation points into increasing order */
 	*hyp++ = 0;
-	if (*hyptr)
+	if (*hyptr) 
 		for (j = 1; j; ) {
 			j = 0;
 			for (hyp = hyptr + 1; *hyp != 0; hyp++) {
@@ -194,7 +193,7 @@ int exword(void)
 			return(0);
 		w = wdstart;
 		while (*e && w <= hyend && (*e & 0177) == maplow(cbits(*w))) {
-			e++;
+			e++; 
 			w++;
 		}
 		if (!*e) {
@@ -209,10 +208,10 @@ int exword(void)
 				}
 				return(1);
 			} else {
-				e++;
+				e++; 
 				continue;
 			}
-		} else
+		} else 
 			while (*e++)
 				;
 	}
@@ -249,7 +248,7 @@ again:
 	}
 	s = s0 + i - 1;
 	w = hyend;
-	if (*s0 & HY_BIT)
+	if (*s0 & HY_BIT) 
 		goto mark;
 	while (s > s0) {
 		w--;
@@ -273,7 +272,7 @@ mark:
 
 maplow(int i)
 {
-	if (isupper(i))
+	if (isupper(i)) 
 		i = tolower(i);
 	return(i);
 }
@@ -327,7 +326,7 @@ again:
 			val *= dilook('a', cbits(*w), bxh);
 		else if (w == wdstart + 1)
 			val *= dilook(cbits(*(w-1)), cbits(*w), bxxh);
-		else
+		else 
 			val *= dilook(cbits(*(w-1)), cbits(*w), xxh);
 		val *= dilook(cbits(*w), cbits(*(w+1)), xhx);
 		val *= dilook(cbits(*(w+1)), cbits(*(w+2)), hxx);
@@ -400,7 +399,7 @@ static int texit(Tchar *start, Tchar *end)	/* hyphenate as in tex, return # foun
 	for (i = 0; i <= nw; i++)
 		cnt[i] = '0';
 
-	for (wp = w; wp+1 < w+nw; wp++) {
+	for (wp = w; wp < w + nw; wp++) {
 		for (pp = trie[trieindex(*wp, *(wp+1))]; pp < nextpat; ) {
 			if (pp == 0		/* no trie entry */
 			 || *pp != *wp		/* no match on 1st letter */
@@ -537,9 +536,5 @@ static void fixup(void)	/* build indexes of where . a b c ... start */
 
 static int trieindex(int d1, int d2)
 {
-	int i;
-
-	i = 27*(d1 == '.'? 0: d1 - 'a' + 1) + (d2 == '.'? 0: d2 - 'a' + 1);
-	assert(0 <= i && i < 27*27);
-	return i;
+	return 27 * (d1 == '.' ? 0 : d1 - 'a' + 1) + (d2 == '.' ? 0 : d2 - 'a' + 1);
 }

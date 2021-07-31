@@ -558,7 +558,7 @@ matchtoken(char *p, char *token)
 }
 
 void
-hnputv(void *p, uvlong v)
+hnputv(void *p, vlong v)
 {
 	uchar *a;
 
@@ -568,7 +568,7 @@ hnputv(void *p, uvlong v)
 }
 
 void
-hnputl(void *p, uint v)
+hnputl(void *p, ulong v)
 {
 	uchar *a;
 
@@ -589,7 +589,7 @@ hnputs(void *p, ushort v)
 	a[1] = v;
 }
 
-uvlong
+vlong
 nhgetv(void *p)
 {
 	uchar *a;
@@ -598,7 +598,7 @@ nhgetv(void *p)
 	return ((vlong)nhgetl(a) << 32) | nhgetl(a+4);
 }
 
-uint
+ulong
 nhgetl(void *p)
 {
 	uchar *a;

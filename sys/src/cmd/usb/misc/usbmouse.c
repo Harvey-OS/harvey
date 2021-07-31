@@ -1,7 +1,3 @@
-/*
- * usbmouse - listen for usb mouse events and turn them into
- *	writes on /dev/mousein.
- */
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
@@ -35,7 +31,7 @@ int
 robusthandler(void*, char *s)
 {
 	if (debug) fprint(2, "inthandler: %s\n", s);
-	return s && (strstr(s, "interrupted") || strstr(s, "hangup"));
+	return (s && (strstr(s, "interrupted")|| strstr(s, "hangup")));
 }
 
 long
@@ -144,9 +140,7 @@ threadmain(int argc, char *argv[])
 		ctlrno = atoi(argv[0]);
 		i = atoi(argv[1]);
 		ep = 1;			/* a guess */
-		if (verbose)
-			fprint(2, "assuming endpoint %d\n", ep);
-found:
+	found:
 		snprint(ctlfile, sizeof ctlfile, ctlfmt, ctlrno, i);
 		snprint(msefile, sizeof msefile, msefmt, ctlrno, i, ep);
 		break;
