@@ -91,8 +91,6 @@ static int
 pipegen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid q;
-	int len;
-	Pipe *p;
 
 	if(i == DEVDOTDOT){
 		devdir(c, c->qid, "#|", 0, eve, DMDIR|0555, dp);
@@ -103,20 +101,8 @@ pipegen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 		return -1;
 
 	tab += i;
-	p = c->aux;
-	switch((ulong)tab->qid.path){
-	case Qdata0:
-		len = qlen(p->q[0]);
-		break;
-	case Qdata1:
-		len = qlen(p->q[1]);
-		break;
-	default:
-		len = tab->length;
-		break;
-	}
 	mkqid(&q, NETQID(NETID(c->qid.path), tab->qid.path), 0, QTFILE);
-	devdir(c, q, tab->name, len, eve, tab->perm, dp);
+	devdir(c, q, tab->name, 0, eve, tab->perm, dp);
 	return 1;
 }
 
@@ -151,20 +137,17 @@ pipewalk(Chan *c, Chan *nc, char **name, int nname)
 static int
 pipestat(Chan *c, uchar *db, int n)
 {
-	Pipe *p;
 	Dir dir;
-
-	p = c->aux;
 
 	switch(NETTYPE(c->qid.path)){
 	case Qdir:
 		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, &dir);
 		break;
 	case Qdata0:
-		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0600, &dir);
+		devdir(c, c->qid, "data", 0, eve, 0600, &dir);
 		break;
 	case Qdata1:
-		devdir(c, c->qid, "data1", qlen(p->q[1]), eve, 0600, &dir);
+		devdir(c, c->qid, "data1", 0, eve, 0600, &dir);
 		break;
 	default:
 		panic("pipestat");

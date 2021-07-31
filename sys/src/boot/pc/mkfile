@@ -164,8 +164,6 @@ install:V:
 		mk $MKFLAGS $i.install
 
 %.install:V:	$BIN/%
-	import lookout / /n/lookout
-	cp $prereq /n/lookout/$prereq
 
 $BIN/%:	%
 	cp $stem $BIN/$stem
