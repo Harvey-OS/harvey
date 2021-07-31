@@ -92,8 +92,6 @@ struct Nvidia {
 	ulong	dither;
 
 	int	islcd;
-	int	fpwidth;
-	int	fpheight;
 	int	twoheads;
 	int	twostagepll;
 	int	crtcnumber;
@@ -268,14 +266,8 @@ snarf(Vga* vga, Ctlr* ctlr)
 			nv->dither = nv->pramdac[0x083C/4];
 	}
 
-	/*
-	 * DFP.
-	 */
-	if (nv->pixel & 0x80){
+	if (nv->pixel & 0x80)
 		nv->islcd = 1;
-       		nv->fpwidth = nv->pramdac[0x0820/4] + 1;
-       		nv->fpheight = nv->pramdac[0x0800/4] + 1;
-	}
 
 	nv->crtcnumber = 0;
 
@@ -883,12 +875,6 @@ dump(Vga* vga, Ctlr* ctlr)
 	Bprint(&stdout, " %d\n", nv->twostagepll);
 	printitem(ctlr->name, "crtcnumber");
 	Bprint(&stdout, " %d\n", nv->crtcnumber);
-
-	printitem(ctlr->name, "fpwidth");
-	Bprint(&stdout, " %d\n", nv->fpwidth);
-	printitem(ctlr->name, "fpheight");
-	Bprint(&stdout, " %d\n", nv->fpheight);
-
 }
 
 

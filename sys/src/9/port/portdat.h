@@ -960,4 +960,3 @@ enum
 #pragma	varargck	type	"M"	uchar*
 #pragma	varargck	type	"p"	void*
 #pragma	varargck	type	"q"	char*
-#pragma varargck	flag	','

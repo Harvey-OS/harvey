@@ -1,6 +1,5 @@
 #!/bin/rc
 
-rfork e
 if(! test -d /n/sources/patch){
 	rfork n
 	9fs sources

@@ -180,7 +180,7 @@ d_to(dest *list)
 			if(strncmp(cp, "local!", 6) == 0)
 				cp += 6;
 
-			if(n > 20){	/* 20 to appease mailers complaining about long lines */
+			if(n > 40){
 				s_append(s, "\n\t");
 				n = 0;
 			}

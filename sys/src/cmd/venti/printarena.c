@@ -2,7 +2,6 @@
 #include "dat.h"
 #include "fns.h"
 
-int wanttype;
 int readonly = 1;	/* for part.c */
 
 void
@@ -58,8 +57,7 @@ rdArena(Arena *arena, u64int offset)
 				break;
 			}
 		}
-		if(wanttype == 0 || cl.info.type == wanttype)
-			print("%V %d\n", score, cl.info.type);
+		print("%V %d\n", score, cl.info.type);
 		freeZBlock(lump);
 	}
 	print("end offset %llud\n", aa);
@@ -78,9 +76,6 @@ main(int argc, char *argv[])
 
 	aoffset = 0;
 	ARGBEGIN{
-	case 't':
-		wanttype = atoi(EARGF(usage()));
-		break;
 	case 'o':
 		aoffset = strtoull(EARGF(usage()), 0, 0);
 		break;
