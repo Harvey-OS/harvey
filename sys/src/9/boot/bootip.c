@@ -64,10 +64,10 @@ configip(int bargc, char **bargv, int needfs)
 	/* let ipconfig configure the ip interface */
 	switch(pid = fork()){
 	case -1:
-		fatal("fork configuring ip: %r");
+		fatal("configuring ip");
 	case 0:
 		exec("/boot/ipconfig", arg);
-		fatal("execing /boot/ipconfig: %r");
+		fatal("execing /ipconfig");
 	default:
 		break;
 	}
