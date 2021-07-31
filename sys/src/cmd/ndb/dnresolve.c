@@ -8,6 +8,10 @@
 #include <ndb.h>
 #include "dns.h"
 
+#define NS2MS(ns) ((ns) / 1000000L)
+#define S2MS(s)   ((s)  * 1000)
+#define MS2S(ms)  ((ms) / 1000)
+
 typedef struct Dest Dest;
 typedef struct Ipaddr Ipaddr;
 typedef struct Query Query;
@@ -15,20 +19,14 @@ typedef struct Query Query;
 enum
 {
 	Udp, Tcp,
-
 	Maxdest=	24,	/* maximum destinations for a request message */
 	Maxtrans=	3,	/* maximum transmissions to a server */
-	Maxretries=	3, /* cname+actual resends: was 32; have pity on user */
-	Maxwaitms=	1000,	/* wait no longer for a remote dns query */
-	Minwaitms=	100,	/* willing to wait for a remote dns query */
-	Remntretry=	15,	/* min. sec.s between /net.alt remount tries */
-	Maxoutstanding=	15,	/* max. outstanding queries per domain name */
-
 	Destmagic=	0xcafebabe,
 	Querymagic=	0xdeadbeef,
 };
 enum { Hurry, Patient, };
 enum { Outns, Inns, };
+enum { Remntretry = 15, };	/* min. sec.s between remount attempts */
 
 struct Ipaddr {
 	Ipaddr *next;
@@ -119,12 +117,6 @@ procgetname(void)
 /*
  *  lookup 'type' info for domain name 'name'.  If it doesn't exist, try
  *  looking it up as a canonical name.
- *
- *  this process can be quite slow if time-outs are set too high when querying
- *  nameservers that just don't respond to certain query types.  in that case,
- *  there will be multiple udp retries, multiple nameservers will be queried,
- *  and this will be repeated for a cname query.  the whole thing will be
- *  retried several times until we get an answer or a time-out.
  */
 RR*
 dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
@@ -177,8 +169,7 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 		 */
 		dp = dnlookup(name, class, 0);
 		if(type != Tptr && dp->respcode != Rname)
-			for(loops = 0; rp == nil && loops < Maxretries; loops++){
-				/* retry cname, then the actual type */
+			for(loops = 0; rp == nil && loops < 32; loops++){
 				rp = dnresolve1(name, class, Tcname, req,
 					depth, recurse);
 				if(rp == nil)
@@ -572,9 +563,9 @@ freeanswers(DNSmsg *mp)
 	mp->qd = mp->an = mp->ns = mp->ar = nil;
 }
 
-/* timed read of reply.  sets srcip */
+/* sets srcip */
 static int
-readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
+readnet(Query *qp, int medium, uchar *ibuf, ulong endtime, uchar **replyp,
 	uchar *srcip)
 {
 	int len, fd;
@@ -583,18 +574,18 @@ readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
 	uchar *reply;
 	uchar lenbuf[2];
 
-	len = -1;			/* pessimism */
-	ms = endms - NS2MS(startns);
-	if (ms <= 0)
-		return -1;		/* taking too long */
-
+	/* timed read of reply */
+	ms = S2MS(endtime) - NS2MS(startns);
+	if (ms < 2000)
+		ms = 2000;	/* give the remote ns a fighting chance */
 	reply = ibuf;
+	len = -1;			/* pessimism */
 	memset(srcip, 0, IPaddrlen);
-	alarm(ms);
 	if (medium == Udp)
 		if (qp->udpfd <= 0)
 			dnslog("readnet: qp->udpfd closed");
 		else {
+			alarm(ms);
 			len = read(qp->udpfd, ibuf, Udphdrsize+Maxudpin);
 			alarm(0);
 			notestats(startns, len < 0, qp->type);
@@ -608,6 +599,7 @@ readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
 	else {
 		if (!qp->tcpset)
 			dnslog("readnet: tcp params not set");
+		alarm(ms);
 		fd = qp->tcpfd;
 		if (fd <= 0)
 			dnslog("readnet: %s: tcp fd unset for dest %I",
@@ -627,9 +619,9 @@ readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
 				len = -1;
 			}
 		}
+		alarm(0);
 		memmove(srcip, qp->tcpip, IPaddrlen);
 	}
-	alarm(0);
 	*replyp = reply;
 	return len;
 }
@@ -637,13 +629,13 @@ readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
 /*
  *  read replies to a request and remember the rrs in the answer(s).
  *  ignore any of the wrong type.
- *  wait at most until endms.
+ *  wait at most until endtime.
  */
 static int
 readreply(Query *qp, int medium, ushort req, uchar *ibuf, DNSmsg *mp,
-	uvlong endms)
+	ulong endtime)
 {
-	int len;
+	int len, rv;
 	char *err;
 	char tbuf[32];
 	uchar *reply;
@@ -651,12 +643,16 @@ readreply(Query *qp, int medium, ushort req, uchar *ibuf, DNSmsg *mp,
 	RR *rp;
 
 	queryck(qp);
+	rv = 0;
 	memset(mp, 0, sizeof *mp);
+	if (time(nil) >= endtime)
+		return -1;		/* timed out before we started */
+
 	memset(srcip, 0, sizeof srcip);
 	if (0)
 		len = -1;
-	for (; timems() < endms &&
-	    (len = readnet(qp, medium, ibuf, endms, &reply, srcip)) >= 0;
+	for (; time(nil) < endtime &&
+	    (len = readnet(qp, medium, ibuf, endtime, &reply, srcip)) >= 0;
 	    freeanswers(mp)){
 		/* convert into internal format  */
 		memset(mp, 0, sizeof *mp);
@@ -691,10 +687,10 @@ readreply(Query *qp, int medium, ushort req, uchar *ibuf, DNSmsg *mp,
 			/* remember what request this is in answer to */
 			for(rp = mp->an; rp; rp = rp->next)
 				rp->query = qp->type;
-			return 0;
+			return rv;
 		}
 	}
-	if (timems() >= endms) {
+	if (time(nil) >= endtime) {
 		;				/* query expired */
 	} else if (0) {
 		/* this happens routinely when a read times out */
@@ -976,7 +972,7 @@ xmitquery(Query *qp, int medium, int depth, uchar *obuf, int inns, int len)
 	Dest *p;
 
 	queryck(qp);
-	if(timems() >= qp->req->aborttime)
+	if(time(nil) >= qp->req->aborttime)
 		return -1;
 
 	/*
@@ -1223,14 +1219,14 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
  */
 static int
 tcpquery(Query *qp, DNSmsg *mp, int depth, uchar *ibuf, uchar *obuf, int len,
-	ulong waitms, int inns, ushort req)
+	int waitsecs, int inns, ushort req)
 {
 	int rv = 0;
-	uvlong endms;
+	ulong endtime;
 
-	endms = timems() + waitms;
-	if(endms > qp->req->aborttime)
-		endms = qp->req->aborttime;
+	endtime = time(nil) + waitsecs;
+	if(endtime > qp->req->aborttime)
+		endtime = qp->req->aborttime;
 
 	if (0)
 		dnslog("%s: udp reply truncated; retrying query via tcp to %I",
@@ -1240,7 +1236,7 @@ tcpquery(Query *qp, DNSmsg *mp, int depth, uchar *ibuf, uchar *obuf, int len,
 	memmove(obuf, ibuf, IPaddrlen);		/* send back to respondent */
 	/* sets qp->tcpip from obuf's udp header */
 	if (xmitquery(qp, Tcp, depth, obuf, inns, len) < 0 ||
-	    readreply(qp, Tcp, req, ibuf, mp, endms) < 0)
+	    readreply(qp, Tcp, req, ibuf, mp, endtime) < 0)
 		rv = -1;
 	if (qp->tcpfd > 0) {
 		hangup(qp->tcpctlfd);
@@ -1257,11 +1253,11 @@ tcpquery(Query *qp, DNSmsg *mp, int depth, uchar *ibuf, uchar *obuf, int len,
  *  name server, recurse.
  */
 static int
-queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, ulong waitms, int inns)
+queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns)
 {
 	int ndest, len, replywaits, rv;
 	ushort req;
-	uvlong endms;
+	ulong endtime;
 	char buf[12];
 	uchar srcip[IPaddrlen];
 	Dest *p, *np, *dest;
@@ -1291,9 +1287,9 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, ulong waitms, int inns)
 		if (xmitquery(qp, Udp, depth, obuf, inns, len) < 0)
 			break;
 
-		endms = timems() + waitms;
-		if(endms > qp->req->aborttime)
-			endms = qp->req->aborttime;
+		endtime = time(nil) + waitsecs;
+		if(endtime > qp->req->aborttime)
+			endtime = qp->req->aborttime;
 
 		for(replywaits = 0; replywaits < ndest; replywaits++){
 			DNSmsg m;
@@ -1303,7 +1299,7 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, ulong waitms, int inns)
 				rrname(qp->type, buf, sizeof buf), qp->req->from);
 
 			/* read udp answer into m */
-			if (readreply(qp, Udp, req, ibuf, &m, endms) >= 0)
+			if (readreply(qp, Udp, req, ibuf, &m, endtime) >= 0)
 				memmove(srcip, ibuf, IPaddrlen);
 			else if (!(m.flags & Ftrunc)) {
 				freeanswers(&m);
@@ -1312,7 +1308,7 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, ulong waitms, int inns)
 				/* whoops, it was truncated! ask again via tcp */
 				freeanswers(&m);
 				rv = tcpquery(qp, &m, depth, ibuf, obuf, len,
-					waitms, inns, req);  /* answer in m */
+					waitsecs, inns, req);  /* answer in m */
 				if (rv < 0) {
 					freeanswers(&m);
 					break;		/* failed via tcp too */
@@ -1383,17 +1379,15 @@ system(int fd, char *cmd)
 	return "lost child";
 }
 
-/* compute wait, weighted by probability of success, with bounds */
+/* compute wait, weighted by probability of success, with minimum */
 static ulong
 weight(ulong ms, unsigned pcntprob)
 {
 	ulong wait;
 
 	wait = (ms * pcntprob) / 100;
-	if (wait < Minwaitms)
-		wait = Minwaitms;
-	if (wait > Maxwaitms)
-		wait = Maxwaitms;
+	if (wait < 1500)
+		wait = 1500;
 	return wait;
 }
 
@@ -1407,8 +1401,7 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 {
 	int fd, rv;
 	long now;
-	ulong pcntprob;
-	uvlong wait, reqtm;
+	ulong pcntprob, wait, reqtm;
 	char *msg;
 	uchar *obuf, *ibuf;
 	static QLock mntlck;
@@ -1424,7 +1417,7 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 		/* HACK: remount /net.alt */
 		now = time(nil);
 		if (now < lastmount + Remntretry)
-			sleep(S2MS(lastmount + Remntretry - now));
+			sleep((lastmount + Remntretry - now)*1000);
 		qlock(&mntlck);
 		fd = udpport(mntpt);	/* try again under lock */
 		if (fd < 0) {
@@ -1437,7 +1430,7 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 			if (msg && *msg) {
 				dnslog("[%d] can't remount /net.alt: %s",
 					getpid(), msg);
-				sleep(10*1000);	/* don't spin remounting */
+				sleep(10*1000);		/* don't spin wildly */
 			} else
 				fd = udpport(mntpt);
 		}
@@ -1450,21 +1443,23 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	}
 
 	/*
-	 * Our QIP servers are busted and respond to AAAA and CNAME queries
-	 * with (sometimes malformed [too short] packets and) no answers and
-	 * just NS RRs but not Rname errors.  so make time-to-wait
-	 * proportional to estimated probability of an RR of that type existing.
+	 * Our QIP servers are busted, don't answer AAAA and
+	 * take forever to answer CNAME if there isn't one.
+	 * They rarely set Rname.
+	 * make time-to-wait proportional to estimated probability of an
+	 * RR of that type existing.
 	 */
 	if (qp->type >= nelem(likely))
 		pcntprob = 35;			/* unpopular query type */
 	else
 		pcntprob = likely[qp->type];
-	reqtm = (patient? 2 * Maxreqtm: Maxreqtm);
-	wait = weight(reqtm / 3, pcntprob);	/* time for one udp query */
-	qp->req->aborttime = timems() + 3*wait; /* for all udp queries */
+	reqtm = (patient? 2*Maxreqtm: Maxreqtm);
+	/* time for a single outgoing udp query */
+	wait = weight(S2MS(reqtm)/3, pcntprob);
+	qp->req->aborttime = time(nil) + MS2S(3*wait); /* for all udp queries */
 
 	qp->udpfd = fd;
-	rv = queryns(qp, depth, ibuf, obuf, wait, inns);
+	rv = queryns(qp, depth, ibuf, obuf, MS2S(wait), inns);
 	close(fd);
 	qp->udpfd = -1;
 
@@ -1473,15 +1468,12 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	return rv;
 }
 
-/*
- * look up (qp->dp->name, qp->type) rr in dns,
- * using nameservers in qp->nsrp.
- */
+/* look up (qp->dp->name,qp->type) rr in dns, via *nsrp with results in *reqp */
 static int
 netquery(Query *qp, int depth)
 {
 	int lock, rv, triedin, inname;
-	char buf[32];
+//	char buf[32];
 	RR *rp;
 	DN *dp;
 	Querylck *qlp;
@@ -1506,8 +1498,8 @@ netquery(Query *qp, int depth)
 	dp = qp->dp;		/* ensure that it doesn't change underfoot */
 	qlp = nil;
 	if(lock) {
-		procsetname("query lock wait: %s %s from %s", dp->name,
-			rrname(qp->type, buf, sizeof buf), qp->req->from);
+//		procsetname("query lock wait: %s %s from %s", dp->name,
+//			rrname(qp->type, buf, sizeof buf), qp->req->from);
 		/*
 		 * don't make concurrent queries for this name.
 		 * dozens of processes blocking here probably indicates
@@ -1517,7 +1509,7 @@ netquery(Query *qp, int depth)
 		 */
 		qlp = &dp->querylck[qtype2lck(qp->type)];
 		qlock(qlp);
-		if (qlp->Ref.ref > Maxoutstanding) {
+		if (qlp->Ref.ref > 10) {
 			qunlock(qlp);
 			if (!whined) {
 				whined = 1;
@@ -1588,7 +1580,7 @@ seerootns(void)
 
 	memset(&req, 0, sizeof req);
 	req.isslave = 1;
-	req.aborttime = timems() + Maxreqtm;
+	req.aborttime = now + Maxreqtm;
 	req.from = "internal";
 	qp = emalloc(sizeof *qp);
 	queryinit(qp, dnlookup(root, Cin, 1), Tns, &req);
