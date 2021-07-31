@@ -21,10 +21,6 @@
 #define	MAXCONF		64
 #define MAXCONFLINE	160
 
-enum {
-	Minmem	= 256*MB,			/* conservative default */
-};
-
 #define isascii(c) ((uchar)(c) > 0 && (uchar)(c) < 0177)
 
 uintptr kseg0 = KZERO;
@@ -228,15 +224,12 @@ wave('l');
 	/* want plan9.ini to be able to affect memory sizing in confinit */
 	plan9iniinit();		/* before we step on plan9.ini in low memory */
 
-	trapinit();		/* so confinit can probe memory to size it */
-	confinit();		/* figures out amount of memory */
+	confinit();
 	/* xinit prints (if it can), so finish up the banner here. */
 	delay(500);
 	iprint("l Labs\n\n");
 	delay(500);
 	xinit();
-
-	mainmem->flags |= POOL_ANTAGONISM /* | POOL_PARANOIA */ ;
 
 	/*
 	 * Printinit will cause the first malloc call.
@@ -251,6 +244,9 @@ wave('l');
 	 *
 	 * (Should be) boilerplate from here on.
 	 */
+	trapinit();
+
+	archconfinit();
 
 	archreset();			/* configure clock signals */
 	clockinit();			/* start clocks */
@@ -582,23 +578,9 @@ Confmem omapmem[nelem(conf.mem)] = {
 	/*
 	 * Memory available to Plan 9:
 	 */
-	{ .base = PHYSDRAM, .limit = PHYSDRAM + Minmem, },
+	{ .base = PHYSDRAM, .limit = PHYSDRAM + 256*MB, },
 };
-ulong memsize = Minmem;
-
-static int
-gotmem(uintptr sz)
-{
-	uintptr addr;
-
-	addr = PHYSDRAM + sz - BY2WD;
-	mmuidmap(addr, 1);
-	if (probeaddr(addr) >= 0) {
-		memsize = sz;
-		return 0;
-	}
-	return -1;
-}
+ulong memsize = 256*MB;			/* default */
 
 void
 confinit(void)
@@ -615,19 +597,11 @@ confinit(void)
 		iprint("memory configuration botch\n");
 		exit(1);
 	}
+	/* plan9.ini isn't parsed yet; drat */
 	if((p = getconf("*maxmem")) != nil) {
 		memsize = strtoul(p, 0, 0) - PHYSDRAM;
 		if (memsize < 16*MB)		/* sanity */
 			memsize = 16*MB;
-	}
-
-	/*
-	 * see if all that memory exists; if not, find out how much does.
-	 * trapinit must have been called first.
-	 */
-	if (gotmem(memsize) < 0 && gotmem(256*MB) < 0 && gotmem(128*MB) < 0) {
-		iprint("can't find any memory, assuming %dMB\n", Minmem / MB);
-		memsize = Minmem;
 	}
 
 	omapmem[0].limit = PHYSDRAM + memsize;
