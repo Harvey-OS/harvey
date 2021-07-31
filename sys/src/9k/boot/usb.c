@@ -106,7 +106,7 @@ mountusb(void)
 	dprint("mount usbd...");
 	fd = open("/srv/usb", ORDWR);
 	if(fd < 0)
-		dprint("can't open /srv/usb");
+		warning("can't open /srv/usb");
 	else if(mount(fd, -1, "/dev", MBEFORE, "") < 0) {
 		warning("mount -a /srv/usb /dev");
 		close(fd);
