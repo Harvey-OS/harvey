@@ -2,7 +2,6 @@ void		accounttime(void);
 Timer*		addclock0link(void (*)(void), int);
 int		addphysseg(Physseg*);
 void		addbootfile(char*, uchar*, ulong);
-void		addwatchdog(Watchdog*);
 Block*		adjustblock(Block*, int);
 void		alarmkproc(void*);
 Block*		allocb(int);
