@@ -252,7 +252,6 @@ and show the modified times of the MIPS C compiler
 over all dumps in February, 1992:
 .IP
 .EX
-cwfs w0
 9fs dump
 ls -l /n/dump/1992/02??/mips/bin/vc
 .EE
@@ -262,6 +261,15 @@ To get only one line of output for each version of the compiler:
 .EX
 ls -lp /n/dump/1992/02??/mips/bin/vc | uniq
 .EE
+.PP
+Make the
+.B other
+file system available in directory
+.BR /n/emelieother :
+.IP
+.EX
+mount -c /srv/boot /n/emelieother other
+.EE
 .SH SOURCE
 .B /sys/src/cmd/cwfs
 .SH SEE ALSO
@@ -270,8 +278,7 @@ ls -lp /n/dump/1992/02??/mips/bin/vc | uniq
 .IR sd (3),
 .IR fs (4),
 .IR srv (4),
-.IR fs (8),
-.IR fsconfig (8)
+.IR fs (8)
 .br
 Sean Quinlan,
 ``A Cached WORM File System'',

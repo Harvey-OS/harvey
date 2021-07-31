@@ -185,17 +185,6 @@ ipifcunbind(Ipifc *ifc)
 		ifc->conv->inuse--;
 	ifc->ifcid++;
 
-	/* disassociate logical interfaces (before zeroing ifc->arg) */
-	while(ifc->lifc){
-		err = ipifcremlifc(ifc, ifc->lifc);
-		/*
-		 * note: err non-zero means lifc not found,
-		 * which can't happen in this case.
-		 */
-		if(err)
-			error(err);
-	}
-
 	/* disassociate device */
 	if(ifc->m && ifc->m->unbind)
 		(*ifc->m->unbind)(ifc);
@@ -207,6 +196,13 @@ ipifcunbind(Ipifc *ifc)
 	qclose(ifc->conv->rq);
 	qclose(ifc->conv->wq);
 	qclose(ifc->conv->sq);
+
+	/* disassociate logical interfaces */
+	while(ifc->lifc){
+		err = ipifcremlifc(ifc, ifc->lifc);
+		if(err)
+			error(err);
+	}
 
 	ifc->m = nil;
 	wunlock(ifc);
