@@ -18,55 +18,64 @@ extern void Xerror1(char*);
  * i.e. word0->word1->word2->word3->0
  */
 struct word{
-	char *word;
-	word *next;
+	char	*word;
+	word	*next;
 };
 struct list{
-	word *words;
-	list *next;
+	word	*words;
+	list	*next;
 };
+
 word *newword(char *, word *), *copywords(word *, word *);
+
 struct redir{
-	char type;			/* what to do */
-	short from, to;			/* what to do it to */
+	char	type;			/* what to do */
+	short	from, to;			/* what to do it to */
 	struct redir *next;		/* what else to do (reverse order) */
 };
+
 #define	NSTATUS	ERRMAX			/* length of status (from plan 9) */
+
 /*
  * redir types
  */
 #define	ROPEN	1			/* dup2(from, to); close(from); */
 #define	RDUP	2			/* dup2(from, to); */
 #define	RCLOSE	3			/* close(from); */
+
 struct thread{
 	union code *code;		/* code for this thread */
-	int pc;				/* code[pc] is the next instruction */
+	int	pc;			/* code[pc] is the next instruction */
 	struct list *argv;		/* argument stack */
 	struct redir *redir;		/* redirection stack */
 	struct redir *startredir;	/* redir inheritance point */
 	struct var *local;		/* list of local variables */
-	char *cmdfile;			/* file name in Xrdcmd */
+	char	*cmdfile;		/* file name in Xrdcmd */
 	struct io *cmdfd;		/* file descriptor for Xrdcmd */
-	int iflast;			/* static `if not' checking */
-	int eof;			/* is cmdfd at eof? */
-	int iflag;			/* interactive? */
-	int lineno;			/* linenumber */
-	int pid;			/* process for Xpipewait to wait for */
-	char status[NSTATUS];		/* status for Xpipewait */
-	tree *treenodes;		/* tree nodes created by this process */
-	thread *ret;		/* who continues when this finishes */
+	int	iflast;			/* static `if not' checking */
+	int	eof;			/* is cmdfd at eof? */
+	int	iflag;			/* interactive? */
+	int	lineno;			/* linenumber */
+	int	pid;			/* process for Xpipewait to wait for */
+	char	status[NSTATUS];	/* status for Xpipewait */
+	tree	*treenodes;		/* tree nodes created by this process */
+	thread	*ret;			/* who continues when this finishes */
 };
 thread *runq;
+
 code *codecopy(code*);
+
 code *codebuf;				/* compiler output */
-int ntrap;				/* number of outstanding traps */
-int trap[NSIG];				/* number of outstanding traps per type */
+int ntrap;				/* # of outstanding traps */
+int trap[NSIG];				/* # of outstanding traps per type */
+
 struct builtin{
-	char *name;
-	void (*fnc)(void);
+	char	*name;
+	void	(*fnc)(void);
 };
+
 extern struct builtin Builtin[];
-int eflagok;			/* kludge flag so that -e doesn't exit in startup */
+int eflagok;		/* kludge flag so that -e doesn't exit in startup */
 int havefork;
 
 void execcd(void), execwhatis(void), execeval(void), execexec(void);
