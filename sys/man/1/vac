@@ -169,8 +169,6 @@ to standard error.
 If listing files, print metadata in addition to the names.
 .SH SOURCE
 .B /sys/src/cmd/vac
-.br
-.B /sys/src/cmd/unvac
 .SH "SEE ALSO"
 .IR vacfs (4),
 .IR venti (8)
