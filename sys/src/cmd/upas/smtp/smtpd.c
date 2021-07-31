@@ -1347,7 +1347,7 @@ auth(String *mech, String *resp)
 		goto bomb_out;
 
  	syslog(0, "smtpd", "auth(%s, %s) from %s", s_to_c(mech),
-		"(protected)", him);
+		resp==nil?"nil":s_to_c(resp), him);
 
 	if (authenticated) {
 	bad_sequence:

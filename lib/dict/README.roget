@@ -1,5 +1,0 @@
-To get the Project Gutenberg Roget's thesaurus use
-
-	9fs sources
-	cp /n/sources/extra/roget/* /lib/dict
-
