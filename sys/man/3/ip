@@ -889,20 +889,12 @@ of a packet to match.  The possible relations are:
 the IP protocol number must be
 .IR n .
 .TP
-.BI data[ n : m ]= expr
+.BI dat[ n : m ]= expr
 bytes
 .I n
 through
 .I m
 following the IP packet must match
-.IR expr .
-.TP
-.BI iph[ n : m ]= expr
-bytes
-.I n
-through
-.I m
-of the IP packet header must match
 .IR expr .
 .TP
 .BI ifc= expr
@@ -938,10 +930,7 @@ and
 .B src
 the value is a dot-formatted IP address and the mask is a dot-formatted
 IP mask.  In the case of
-.BR data ,
-.B iph
-and
-.BR proto ,
+.BR dat ,
 both value and mask are strings of 2 character hexadecimal digits representing
 8 bit values.
 .PP
@@ -959,8 +948,7 @@ longer matches > shorter matches
 older > younger
 .PP
 So far this has just been used to implement a version of
-OSPF in Inferno
-and 6to4 tunnelling.
+OSPF in Inferno.
 .SS Statistics
 .PP
 The
