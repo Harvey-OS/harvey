@@ -31,7 +31,8 @@ growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
 	if(fd >= f->nfd+DELTAFD)
 		return -1;	/* out of range */
 	/*
-	 * Unbounded allocation is unwise
+	 * Unbounded allocation is unwise; besides, there are only 16 bits
+	 * of fid in 9P
 	 */
 	if(f->nfd >= 5000){
     Exhausted:
