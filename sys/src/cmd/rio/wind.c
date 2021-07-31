@@ -710,7 +710,7 @@ wrepaint(Window *w)
 {
 	wsetcols(w);
 	if(!w->mouseopen)
-		_frredraw(w, w->Frame.r.min, w->cols[TEXT], nil);
+		_frredraw(w, w->Frame.r.min, w->cols[TEXT], w->cols[BACK]);
 	if(w == input){
 		wborder(w, Selborder);
 		wsetcursor(w, 0);
