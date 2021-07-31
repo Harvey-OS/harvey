@@ -974,26 +974,6 @@ dp83820multicast(void*, uchar*, int)
 }
 
 static int
-dp83820detach(Ctlr* ctlr)
-{
-	/*
-	 * Soft reset the controller.
-	 */
-	csr32w(ctlr, Cr, Rst);
-	delay(1);
-	while(csr32r(ctlr, Cr) & Rst)
-		delay(1);
-	return 0;
-}
-
-static void
-dp83820shutdown(Ether* ether)
-{
-print("dp83820shutdown\n");
-	dp83820detach(ether->ctlr);
-}
-
-static int
 atc93c46r(Ctlr* ctlr, int address)
 {
 	int data, i, mear, r, size;
@@ -1076,13 +1056,14 @@ dp83820reset(Ctlr* ctlr)
 	 * of the Cfg and Gpior bits which should be cleared by
 	 * the reset.
 	 */
-	dp83820detach(ctlr);
+	csr32w(ctlr, Cr, Rst);
+	delay(1);
+	while(csr32r(ctlr, Cr) & Rst)
+		delay(1);
 
 	atc93c46r(ctlr, 0);
-	if(ctlr->eeprom == nil) {
-		print("dp83820reset: no eeprom\n");
+	if(ctlr->eeprom == nil)
 		return -1;
-	}
 	sum = 0;
 	for(i = 0; i < 0x0E; i++){
 		r = atc93c46r(ctlr, i);
@@ -1147,7 +1128,7 @@ dp83820pci(void)
 
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){
-		if(p->ccrb != Pcibcnet || p->ccru != Pciscether)
+		if(p->ccrb != 0x02 || p->ccru != 0)
 			continue;
 
 		switch((p->did<<16)|p->vid){
@@ -1220,11 +1201,12 @@ dp83820pnp(Ether* edev)
 	 * loading the station address in the hardware.
 	 */
 	memset(ea, 0, Eaddrlen);
-	if(memcmp(ea, edev->ea, Eaddrlen) == 0)
+	if(memcmp(ea, edev->ea, Eaddrlen) == 0){
 		for(i = 0; i < Eaddrlen/2; i++){
 			edev->ea[2*i] = ctlr->eeprom[0x0C-i];
 			edev->ea[2*i+1] = ctlr->eeprom[0x0C-i]>>8;
 		}
+	}
 
 	edev->attach = dp83820attach;
 	edev->transmit = dp83820transmit;
@@ -1234,7 +1216,7 @@ dp83820pnp(Ether* edev)
 	edev->arg = edev;
 	edev->promiscuous = dp83820promiscuous;
 	edev->multicast = dp83820multicast;
-	edev->shutdown = dp83820shutdown;
+//	edev->shutdown = dp83820shutdown;
 
 	return 0;
 }

@@ -270,14 +270,6 @@ probe(int type, int flag, int dev)
 	return 0;
 }
 
-static char *typenm[] = {
-	[Tnil]		"nil",
-	[Tfloppy]	"Tfloppy",
-	[Tsd]		"Tsd",
-	[Tether]	"Tether",
-	[Tcd]		"Tcd",
-};
-
 void
 main(void)
 {
@@ -300,8 +292,8 @@ main(void)
 
 	readlsconf();
 	for(tp = types; tp->type != Tnil; tp++){
-		if(!pxe && tp->type == Tether)
-			continue;
+		//if(tp->type == Tether)
+		//	continue;
 		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
 			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
 			iniread = !dotini(mp->inifs);

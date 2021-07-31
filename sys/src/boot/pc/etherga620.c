@@ -323,25 +323,16 @@ ga620command(Ctlr* ctlr, int cmd, int flags, int index)
 }
 
 static void
-ga620attach(Ether* )
-{
-}
-
-static void
-waitforlink(Ether *edev)
+ga620attach(Ether* edev)
 {
 	int i;
 
 	if (edev->mbps == 0) {
-		print("#l%d: ga620: waiting for link", edev->ctlrno);
-		/* usually takes about 10 seconds */
-		for (i = 0; i < 20 && edev->mbps == 0; i++) {
+		print("ga620: waiting for link...");
+		for (i = 0; i < 30 && edev->mbps == 0; i++) {
 			print(".");
 			delay(1000);
 		}
-		print("\n");
-		if (i == 20 && edev->mbps == 0)
-			edev->mbps = 1;			/* buggered */
 	}
 }
 
@@ -389,7 +380,6 @@ _ga620transmit(Ether* edev)
 	 * ring and try to fill it back up. Tuning comes later.
 	 */
 	ctlr = edev->ctlr;
-	waitforlink(edev);
 	ilock(&ctlr->srlock);
 
 	/*
