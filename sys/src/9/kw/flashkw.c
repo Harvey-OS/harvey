@@ -31,8 +31,9 @@
 #include	"io.h"
 #include	"../port/error.h"
 
-#include	"../port/flashif.h"
-#include	"../port/nandecc.h"
+#include	"flashif.h"
+// #include	"../port/flashif.h"
+#include	"nandecc.h"
 
 #define NANDFREG ((Nandreg*)AddrNandf)
 
@@ -185,69 +186,11 @@ nandunclaim(Flash*)
 	coherence();
 }
 
-
-void	mmuidmap(uintptr phys, int mbs);
-
-Nandtab *
-findflash(Flash *f, uintptr pa, uchar *id4p)
-{
-	int i;
-	ulong sts;
-	uchar maker, device, id3, id4;
-	Nandtab *chip;
-
-	mmuidmap(pa, 16);
-	f->addr = (void *)pa;
-
-	/* make sure controller is idle */
-	nandclaim(f);
-	nandcmd(f, Resetf);
-	nandunclaim(f);
-
-	nandclaim(f);
-	nandcmd(f, Readstatus);
-	sts = nandread(f);
-	nandunclaim(f);
-	for (i = 10; i > 0 && !(sts & SReady); i--) {
-		delay(50);
-		nandclaim(f);
-		nandcmd(f, Readstatus);
-		sts = nandread(f);
-		nandunclaim(f);
-	}
-	if(!(sts & SReady))
-		return nil;
-
-	nandclaim(f);
-	nandcmd(f, Readid);
-	nandaddr(f, 0);
-	maker = nandread(f);
-	device = nandread(f);
-	id3 = nandread(f);
-	USED(id3);
-	id4 = nandread(f);
-	nandunclaim(f);
-	if (id4p)
-		*id4p = id4;
-
-	for(i = 0; i < nelem(nandtab); i++) {
-		chip = &nandtab[i];
-		if(chip->vid == maker && chip->did == device)
-			return chip;
-	}
-	return nil;
-}
-
-int
-flashat(Flash *f, uintptr pa)
-{
-	return findflash(f, pa, nil) != nil;
-}
-
 static int
 idchip(Flash *f)
 {
-	uchar id4;
+	int i;
+	uchar maker, device, id3, id4;
 	Flashregion *r;
 	Nandtab *chip;
 	static int blocksizes[4] = { 64*1024, 128*1024, 256*1024, 0 };
@@ -257,22 +200,38 @@ idchip(Flash *f)
 	f->id = 0;
 	f->devid = 0;
 	f->width = 1;
-	chip = findflash(f, (uintptr)f->addr, &id4);
-	if (chip == nil)
+	nandclaim(f);
+	nandcmd(f, Readid);
+	nandaddr(f, 0);
+	maker = nandread(f);
+	device = nandread(f);
+	id3 = nandread(f);
+	USED(id3);
+	id4 = nandread(f);
+	nandunclaim(f);
+
+//iprint("man=%#ux device=%#ux id3=%#ux id4=%ux\n", maker, device, id3, id4);
+	chip = nil;
+	for(i = 0; i < nelem(nandtab); i++) {
+		chip = &nandtab[i];
+		if(chip->vid == maker && chip->did == device)
+			break;
+	}
+	if (i >= nelem(nandtab)) {
+		print("flashkw: vendor %#.2ux device %#.2ux not recognised\n",
+			maker, device);
 		return -1;
-	f->id = chip->vid;
-	f->devid = chip->did;
-	f->size = chip->size;
+	}
+
+	f->id = maker;
+	f->devid = device;
 	f->width = 1;
 	f->nr = 1;
+	f->size = chip->size;
 
 	r = &f->regions[0];
 	r->pagesize = pagesizes[id4 & MASK(2)];
 	r->erasesize = blocksizes[(id4 >> 4) & MASK(2)];
-	if (r->pagesize == 0 || r->erasesize == 0) {
-		iprint("flashkw: bogus flash sizes\n");
-		return -1;
-	}
 	r->n = f->size / r->erasesize;
 	r->start = 0;
 	r->end = f->size;

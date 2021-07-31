@@ -130,12 +130,11 @@
 
 /* from 0x80000000 up is uncached by L2 (see archkw.c) */
 #define PHYSCESASRAM	0xc8010000
-// #define PHYSSPIFLASH	0xe8000000		/* ignore spi flash */
+#define PHYSSPIFLASH	0xe8000000
 /* this address is configured by u-boot, and is 0xd0000000 at reset */
 #define PHYSIO		0xf1000000		/* internal registers */
 #define PHYSCONS	(PHYSIO + 0x12000)	/* uart */
-#define PHYSNAND1	0xf9000000		/* sheeva/openrd (remapped) */
-#define PHYSNAND2	0xd8000000		/* guru */
+#define PHYSNAND	0xf9000000
 #define PHYSBOOTROM	0xffff0000		/* boot rom */
 
 #define FLASHSIZE	(512*MiB)		/* but not addressed linearly */

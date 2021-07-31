@@ -411,8 +411,6 @@ enum {
 	Attrbootrom	= 0x1d,
 	Attrspi		= 0x1e,
 	Attrnand	= 0x2f,
-
-	Winenable	= 1<<0,
 };
 
 typedef struct Pciex Pciex;
