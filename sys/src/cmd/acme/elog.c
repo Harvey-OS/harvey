@@ -218,25 +218,13 @@ elogapply(File *f)
 	Buflog b;
 	Rune *buf;
 	uint i, n, up, mod;
-	uint q0, q1;
 	Buffer *log;
-	Text *t;
 
 	elogflush(f);
 	log = f->elogbuf;
-	t = f->curtext;
 
 	buf = fbufalloc();
 	mod = FALSE;
-
-	/*
-	 * The edit commands have already updated the selection in t->q0, t->q1.
-	 * The textinsert and textdelete calls below will update it again, so save the
-	 * current setting and restore it at the end.
-	 */
-	q0 = t->q0;
-	q1 = t->q1;
-
 	while(log->nc > 0){
 		up = log->nc-Buflogsize;
 		bufread(log, up, (Rune*)&b, Buflogsize);
@@ -251,15 +239,17 @@ elogapply(File *f)
 				mod = TRUE;
 				filemark(f);
 			}
-			textdelete(t, b.q0, b.q0+b.nd, TRUE);
+			textdelete(f->curtext, b.q0, b.q0+b.nd, TRUE);
 			up -= b.nr;
 			for(i=0; i<b.nr; i+=n){
 				n = b.nr - i;
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
 				bufread(log, up+i, buf, n);
-				textinsert(t, b.q0+i, buf, n, TRUE);
+				textinsert(f->curtext, b.q0+i, buf, n, TRUE);
 			}
+			f->curtext->q0 = b.q0;
+			f->curtext->q1 = b.q0+b.nr;
 			break;
 
 		case Delete:
@@ -267,7 +257,9 @@ elogapply(File *f)
 				mod = TRUE;
 				filemark(f);
 			}
-			textdelete(t, b.q0, b.q0+b.nd, TRUE);
+			textdelete(f->curtext, b.q0, b.q0+b.nd, TRUE);
+			f->curtext->q0 = b.q0;
+			f->curtext->q1 = b.q0;
 			break;
 
 		case Insert:
@@ -281,8 +273,10 @@ elogapply(File *f)
 				if(n > RBUFSIZE)
 					n = RBUFSIZE;
 				bufread(log, up+i, buf, n);
-				textinsert(t, b.q0+i, buf, n, TRUE);
+				textinsert(f->curtext, b.q0+i, buf, n, TRUE);
 			}
+			f->curtext->q0 = b.q0;
+			f->curtext->q1 = b.q0+b.nr;
 			break;
 
 /*		case Filename:
@@ -304,9 +298,4 @@ elogapply(File *f)
 	}
 	fbuffree(buf);
 	elogterm(f);
-
-	t->q0 = q0;
-	t->q1 = q1;
-	if(t->q1 > f->nc)	/* can't happen */
-		t->q1 = f->nc;
 }

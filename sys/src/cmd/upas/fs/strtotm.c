@@ -95,7 +95,7 @@ strtotm(char *p, Tm *tmp)
 			continue;
 		}
 		if(strspn(p, "0123456789") == q-p){
-			j = strtol(p, nil, 10);
+			j = atoi(p);
 			if(1 <= j && j <= 31)
 				tm.mday = j;
 			if(j >= 1900)
