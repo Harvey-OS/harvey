@@ -348,7 +348,6 @@ TEXT cachedwbse(SB), $-4			/* D writeback SE */
 	MOVW	CPSR, R3
 	CPSID					/* splhi */
 
-	BARRIERS			/* force outstanding stores to cache */
 	MOVW	R2, R0
 	MOVW	4(FP), R1
 	ADD	R0, R1				/* R1 is end address */
@@ -367,7 +366,7 @@ TEXT cachedwbinvse(SB), $-4			/* D writeback+invalidate SE */
 	MOVW	CPSR, R3
 	CPSID					/* splhi */
 
-	BARRIERS			/* force outstanding stores to cache */
+	DSB
 	MOVW	R2, R0
 	MOVW	4(FP), R1
 	ADD	R0, R1				/* R1 is end address */
@@ -382,7 +381,7 @@ _wait:						/* drain write buffer */
 	BARRIERS
 	/* drain L1 write buffer, also drains L2 eviction buffer on sheeva */
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
-	ISB
+	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
 	RET
@@ -393,7 +392,7 @@ TEXT cachedinvse(SB), $-4			/* D invalidate SE */
 	MOVW	CPSR, R3
 	CPSID					/* splhi */
 
-	BARRIERS			/* force outstanding stores to cache */
+	DSB
 	MOVW	R2, R0
 	MOVW	4(FP), R1
 	ADD	R0, R1				/* R1 is end address */

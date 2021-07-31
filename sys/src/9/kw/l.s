@@ -328,7 +328,6 @@ TEXT cachedwb(SB), 1, $-4			/* D writeback */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
 
-	BARRIERS			/* force outstanding stores to cache */
 	/* keep writing back dirty cache lines until no more exist */
 _dwb:
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwb), CpCACHEtest
@@ -346,7 +345,6 @@ TEXT cachedwbse(SB), 1, $-4			/* D writeback SE */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
 
-	BARRIERS			/* force outstanding stores to cache */
 	MOVW	4(FP), R1			/* second arg: size */
 
 //	CMP.S	$(4*1024), R1
@@ -369,7 +367,7 @@ TEXT cachedwbinv(SB), 1, $-4			/* D writeback+invalidate */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
 
-	BARRIERS			/* force outstanding stores to cache */
+	DSB
 	/* keep writing back dirty cache lines until no more exist */
 _dwbinv:
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwbi), CpCACHEtest
@@ -387,7 +385,6 @@ TEXT cachedwbinvse(SB), 1, $-4			/* D writeback+invalidate SE */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
 
-	BARRIERS			/* force outstanding stores to cache */
 	MOVW	4(FP), R1			/* second arg: size */
 
 	DSB
@@ -436,7 +433,7 @@ TEXT cacheuwbinv(SB), 1, $-4			/* D+I writeback+invalidate */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
 
-	BARRIERS			/* force outstanding stores to cache */
+	DSB
 	/* keep writing back dirty cache lines until no more exist */
 _uwbinv:					/* D writeback+invalidate */
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwbi), CpCACHEtest
@@ -469,9 +466,6 @@ _dinv:
 
 /*
  * l2 cache
- *
- * these functions assume that the necessary l1 cache operations have been
- * or will be done explicitly by the caller.
  */
 
 /* enable l2 cache in config coproc. reg.  do this while l1 caches are off. */
@@ -499,8 +493,9 @@ TEXT l2cachecfgoff(SB), 1, $-4
 	RET
 
 TEXT l2cacheuwb(SB), 1, $-4			/* L2 unified writeback */
+	BARRIERS
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
-	ISB
+	BARRIERS
 	RET
 
 TEXT l2cacheuwbse(SB), 1, $-4			/* L2 unified writeback SE */
@@ -519,7 +514,7 @@ _l2wbse:
 	ADD	$CACHELINESZ, R2
 	CMP.S	R2, R1
 	BGT	_l2wbse
-	ISB
+	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
 	RET
@@ -529,10 +524,11 @@ TEXT l2cacheuwbinv(SB), 1, $-4		/* L2 unified writeback+invalidate */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
 
+	DSB
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
-	ISB
+	BARRIERS
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
-	ISB
+	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
 	RET
@@ -546,23 +542,25 @@ TEXT l2cacheuwbinvse(SB), 1, $-4	/* L2 unified writeback+invalidate SE */
 
 	MOVW	4(FP), R1			/* second arg: size */
 
+	DSB
 	ADD	R2, R1
 	BIC	$(CACHELINESZ-1), R2
 _l2wbinvse:
 	MCR	CpSC, CpL2, R2, C(CpTESTCFG), C(CpTCl2flush), CpTCl2seva
-	ISB
+	BARRIERS
 	MCR	CpSC, CpL2, R2, C(CpTESTCFG), C(CpTCl2inv), CpTCl2seva
 	ADD	$CACHELINESZ, R2
 	CMP.S	R2, R1
 	BGT	_l2wbinvse
-	ISB
+	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
 	RET
 
 TEXT l2cacheuinv(SB), 1, $-4			/* L2 unified invalidate */
+	BARRIERS
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
-	ISB
+	BARRIERS
 	RET
 
 TEXT l2cacheuinvse(SB), 1, $-4			/* L2 unified invalidate SE */
@@ -574,6 +572,7 @@ TEXT l2cacheuinvse(SB), 1, $-4			/* L2 unified invalidate SE */
 
 	MOVW	4(FP), R1			/* second arg: size */
 
+	DSB
 	ADD	R2, R1
 	BIC	$(CACHELINESZ-1), R2
 _l2invse:
@@ -581,7 +580,7 @@ _l2invse:
 	ADD	$CACHELINESZ, R2
 	CMP.S	R2, R1
 	BGT	_l2invse
-	ISB
+	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
 	RET
