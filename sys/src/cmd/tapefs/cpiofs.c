@@ -36,13 +36,12 @@ union hblock {
 } dblock;
 
 int	tapefile;
-vlong	getoct(char*, int);
+int	getoct(char*, int);
 
 void
 populate(char *name)
 {
-	vlong offset;
-	long isabs, magic, namesize, mode;
+	long offset, isabs, magic, namesize, mode;
 	Fileinf f;
 
 	tapefile = open(name, OREAD);
@@ -77,7 +76,7 @@ populate(char *name)
 		f.size = getoct(dblock.dbuf.size, sizeof(dblock.dbuf.size));
 		f.mdate = getoct(dblock.dbuf.mtime, sizeof(dblock.dbuf.mtime));
 		namesize = getoct(dblock.dbuf.namesize, sizeof(dblock.dbuf.namesize));
-		f.addr = offset+sizeof(struct header)+namesize;
+		f.addr = (void*)(offset+sizeof(struct header)+namesize);
 		isabs = dblock.nbuf.name[0]=='/';
 		f.name = &dblock.nbuf.name[isabs];
 		poppath(f, 1);
@@ -85,10 +84,10 @@ populate(char *name)
 	}
 }
 
-vlong
+int
 getoct(char *p, int l)
 {
-	vlong r;
+	int r;
 
 	for (r=0; l>0; p++, l--){
 		r <<= 3;
@@ -110,9 +109,10 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, vlong off, long cnt)
+doread(Ram *r, long off, long cnt)
 {
-	seek(tapefile, r->addr+off, 0);
+
+	seek(tapefile, (vlong)r->data+off, 0);
 	if (cnt>sizeof(dblock.tbuf))
 		error("read too big");
 	read(tapefile, dblock.tbuf, cnt);

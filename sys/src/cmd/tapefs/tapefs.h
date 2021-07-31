@@ -38,8 +38,7 @@ struct Ram
 	ulong	mtime;
 	char	*user;
 	char	*group;
-	vlong addr;
-	void *data;
+	void	*data;
 	long	ndata;
 };
 
@@ -60,9 +59,8 @@ typedef struct idmap {
 
 typedef struct fileinf {
 	char	*name;
-	vlong	addr;
-	void	*data;
-	vlong	size;
+	void	*addr;
+	long	size;
 	int	mode;
 	int	uid;
 	int	gid;
@@ -82,7 +80,7 @@ char	*estrdup(char*);
 void	populate(char *);
 void	dotrunc(Ram*);
 void	docreate(Ram*);
-char	*doread(Ram*, vlong, long);
+char	*doread(Ram*, long, long);
 void	dowrite(Ram*, char*, long, long);
 int	dopermw(Ram*);
 Idmap	*getpass(char*);

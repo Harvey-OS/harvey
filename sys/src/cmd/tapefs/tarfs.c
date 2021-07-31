@@ -48,14 +48,11 @@ populate(char *name)
 			break;
 		if (dblock.dbuf.name[0]=='\0')
 			break;
-		f.addr = blkno+1;
+		f.addr = (void*)(blkno+1);
 		f.mode = strtoul(dblock.dbuf.mode, 0, 8);
 		f.uid = strtoul(dblock.dbuf.uid, 0, 8);
 		f.gid = strtoul(dblock.dbuf.gid, 0, 8);
-		if((uchar)dblock.dbuf.size[0] == 0x80)
-			f.size = g8byte(dblock.dbuf.size+3);
-		else
-			f.size = strtoull(dblock.dbuf.size, 0, 8);
+		f.size = strtoul(dblock.dbuf.size, 0, 8);
 		f.mdate = strtoul(dblock.dbuf.mtime, 0, 8);
 		chksum = strtoul(dblock.dbuf.chksum, 0, 8);
 		/* the mode test is ugly but sometimes necessary */
@@ -101,9 +98,10 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, vlong off, long cnt)
+doread(Ram *r, long off, long cnt)
 {
-	seek(tapefile, TBLOCK*r->addr+off, 0);
+
+	seek(tapefile, (TBLOCK * (vlong)r->data)+off, 0);
 	if (cnt>sizeof(dblock.tbuf))
 		error("read too big");
 	read(tapefile, dblock.tbuf, cnt);
@@ -132,8 +130,8 @@ dopermw(Ram *r)
 int
 checksum()
 {
-	int i;
-	char *cp;
+	register i;
+	register char *cp;
 
 	for (cp = dblock.dbuf.chksum; cp < &dblock.dbuf.chksum[sizeof(dblock.dbuf.chksum)]; cp++)
 		*cp = ' ';

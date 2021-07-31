@@ -2,8 +2,8 @@
 #include <libc.h>
 #include <auth.h>
 #include <fcall.h>
+#include <tapefs.h>
 #include <bio.h>
-#include "tapefs.h"
 
 Idmap *
 getpass(char *file)
@@ -93,8 +93,7 @@ poppath(Fileinf fi, int new)
 		}
 		if (new)  {
 			ent->ndata = fi.size;
-			ent->addr = fi.addr;
-			ent->data = fi.data;
+			ent->data = fi.addr;
 			ent->perm = fi.mode;
 			ent->mtime = fi.mdate;
 			ent->user = mapid(uidmap, fi.uid);
@@ -131,8 +130,7 @@ popfile(Ram *dir, Fileinf fi)
 	ent->user = mapid(uidmap, fi.uid);
 	ent->group = mapid(gidmap, fi.gid);
 	ent->ndata = fi.size;
-	ent->data = fi.data;
-	ent->addr = fi.addr;
+	ent->data = fi.addr;
 	ent->replete |= replete;
 	return ent;
 }
