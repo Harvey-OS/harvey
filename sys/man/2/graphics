@@ -3,6 +3,7 @@
 Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, openfont, buildfont, freefont, Pfmt, Rfmt, strtochan, chantostr, chantodepth \- interactive graphics
 .SH SYNOPSIS
 .nf
+.PP
 .ft L
 #include <u.h>
 #include <libc.h>
@@ -43,7 +44,7 @@ Font*	getdefont(Display *d)
 int	flushimage(Display *d, int vis)
 .PP
 .B
-uchar*	bufimage(Display *d, int n)
+int	bufimage(Display *d, int n)
 .PP
 .B
 void	lockdisplay(Display *d)
