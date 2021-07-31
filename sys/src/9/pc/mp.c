@@ -616,13 +616,13 @@ mpintrenablex(Vctl* v, int tbdf)
 	type = BUSTYPE(tbdf);
 	bno = BUSBNO(tbdf);
 	dno = BUSDNO(tbdf);
-	if(type == BusISA)
-		bno = mpisabus;
+	n = 0;
 	for(bus = mpbus; bus != nil; bus = bus->next){
 		if(bus->type != type)
 			continue;
-		if(bus->busno == bno)
+		if(n == bno)
 			break;
+		n++;
 	}
 	if(bus == nil){
 		print("ioapicirq: can't find bus type %d\n", type);

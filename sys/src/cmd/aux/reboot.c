@@ -55,6 +55,14 @@ main(int argc, char **argv)
 	char *p;
 	Dir *d;
 
+	switch(rfork(RFPROC|RFNOWAIT|RFNOTEG|RFCFDG)){
+	case 0:
+		break;
+	default:
+		exits(0);
+	}
+
+	notify(ding);
 	if(argc > 1)
 		strecpy(file, file+sizeof file, argv[1]);
 	else{
@@ -66,20 +74,8 @@ main(int argc, char **argv)
 		strcat(file, p);
 		strcat(file, "/lib");
 	}
-	if (access(file, AREAD) < 0)
-		sysfatal("%s not readable: %r", file);
 
-	switch(rfork(RFPROC|RFNOWAIT|RFNOTEG|RFCFDG)){
-	case 0:
-		break;
-	default:
-		exits(0);
-	}
-
-	notify(ding);
 	fd = open(file, OREAD);
-	if (fd < 0)
-		exits("no file");
 
 	//  the logic here is to make a request every 5 minutes.
 	//  If the request alarms out, that's OK, the file server
@@ -87,7 +83,7 @@ main(int argc, char **argv)
 	//  reason, it's probably because the connection went
 	//  away so reboot.
 	for(;;){
-		alarm(1000*60);
+		alarm(1000*60*5);
 		alarmed = 0;
 
 		d = dirfstat(fd);
@@ -96,6 +92,6 @@ main(int argc, char **argv)
 			if(!alarmed)
 				reboot();
 		alarm(0);
-		sleep(60*1000*5);
+		sleep(60*1000);
 	}
 }

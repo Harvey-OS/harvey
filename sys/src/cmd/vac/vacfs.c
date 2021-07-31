@@ -215,12 +215,14 @@ main(int argc, char *argv[])
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-dips]"
-		" [-c ncache]"
+	fprint(2, "usage: %s"
+		" [-sd]"
 		" [-h host]"
+		" [-c ncache]"
 		" [-m mountpoint]"
 		" [-S srvname]"
-		" vacfile\n", argv0);
+		" vacfile"
+		"\n", argv0);
 	exits("usage");
 }
 
