@@ -557,20 +557,11 @@ w_scaninfo(Ether* ether, Ctlr *ctlr, int len)
 	Netfile **ep, *f, **fp;
 	Block *bp;
 	WScan *wsp;
-	ushort *scanbuf;
 
-	scanbuf = malloc(len*2);
-	if(scanbuf == nil)
-		return;
-	
 	for (i = 0; i < len ; i++)
-		scanbuf[i] = csr_ins(ctlr, WR_Data1);
+		ctlr->scanbuf[i] = csr_ins(ctlr, WR_Data1);
 
-	/* calculate number of samples */
-	len /= 25;
-	if(len == 0)
-		goto out;
-
+	len *= 2;
 	i = ether->scan;
 	ep = &ether->f[Ntypes];
 	for(fp = ether->f; fp < ep && i > 0; fp++){
@@ -578,14 +569,14 @@ w_scaninfo(Ether* ether, Ctlr *ctlr, int len)
 		if(f == nil || f->scan == 0)
 			continue;
 
-		bp = iallocb(100*len);
+		bp = iallocb(2048);
 		if(bp == nil)
 			break;
-		for(j = 0; j < len; j++){
-			wsp = (WScan*)(&scanbuf[j*25]);
+		for(j = 0; j < len/(2*25); j++){
+			wsp = (WScan*)(&ctlr->scanbuf[j*25]);
 			if(wsp->ssid_len > 32)
 				wsp->ssid_len = 32;
-			bp->wp = (uchar*)seprint((char*)bp->wp, (char*)bp->lim,
+			bp->wp += snprint((char*)bp->wp, 2048,
 				"ssid=%.*s;bssid=%E;signal=%d;noise=%d;chan=%d%s\n",
 				wsp->ssid_len, wsp->ssid, wsp->bssid, wsp->signal,
 				wsp->noise, wsp->chan, (wsp->capinfo&(1<<4))?";wep":"");
@@ -593,8 +584,6 @@ w_scaninfo(Ether* ether, Ctlr *ctlr, int len)
 		qpass(f->in, bp);
 		i--;
 	}
-out:
-	free(scanbuf);
 }
 
 static int
@@ -690,7 +679,7 @@ w_timer(void* arg)
 
 	ctlr->timerproc = up;
 	for(;;){
-		tsleep(&up->sleep, return0, 0, MSperTick);
+		tsleep(&ctlr->timer, return0, 0, MSperTick);
 		ctlr = (Ctlr*)ether->ctlr;
 		if(ctlr == 0)
 			break;
@@ -1208,7 +1197,7 @@ wavelanreset(Ether* ether, Ctlr *ctlr)
 	ether->scanbs = w_scanbs;
 	ether->arg = ether;
 
-	DEBUG("#l%d: irq %lud port %lx type %s",
+	DEBUG("#l%d: irq %ld port %lx type %s",
 		ether->ctlrno, ether->intnum, ether->ports[0].port,	ether->type);
 	DEBUG(" %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX\n",
 		ether->ea[0], ether->ea[1], ether->ea[2],

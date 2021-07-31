@@ -1,7 +1,6 @@
 char Enoerror[] = "no error";
 char Emount[] = "inconsistent mount";
 char Eunmount[] = "not mounted";
-char Eismtpt[] = "is a mount point";
 char Eunion[] = "not in union";
 char Emountrpc[] = "mount rpc error";
 char Eshutdown[] = "device shut down";
