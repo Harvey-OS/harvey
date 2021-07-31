@@ -403,16 +403,15 @@ ctl(Ether *, void *, long)
 static Block*
 rballoc(void)
 {
-	Block *bp;
+	Block *b;
 
 	ilock(&rblock);
-	if((bp = rbpool) != nil){
-		rbpool = bp->next;
-		bp->next = 0;
-		_xinc(&bp->ref);	/* prevent bp from being freed */
+	if(b = rbpool){
+		rbpool = b->next;
+		b->next = 0;
 	}
 	iunlock(&rblock);
-	return bp;
+	return b;
 }
 
 void
