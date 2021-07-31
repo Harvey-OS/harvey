@@ -9,8 +9,6 @@
 #include "ip.h"
 #include "ipv6.h"
 
-#include "etherif.h"
-
 typedef struct Etherhdr Etherhdr;
 struct Etherhdr
 {
@@ -96,6 +94,9 @@ struct Etherrock
  */
 enum
 {
+	ETARP		= 0x0806,
+	ETIP4		= 0x0800,
+	ETIP6		= 0x86DD,
 	ARPREQUEST	= 1,
 	ARPREPLY	= 2,
 };
@@ -414,7 +415,7 @@ etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
 	int version;
 
 	version = multicastea(mac, a);
-	snprint(buf, sizeof buf, "addmulti %E", mac);
+	sprint(buf, "addmulti %E", mac);
 	switch(version){
 	case V4:
 		er->cchan4->dev->write(er->cchan4, buf, strlen(buf), 0);
@@ -436,7 +437,7 @@ etherremmulti(Ipifc *ifc, uchar *a, uchar *)
 	int version;
 
 	version = multicastea(mac, a);
-	snprint(buf, sizeof buf, "remmulti %E", mac);
+	sprint(buf, "remmulti %E", mac);
 	switch(version){
 	case V4:
 		er->cchan4->dev->write(er->cchan4, buf, strlen(buf), 0);

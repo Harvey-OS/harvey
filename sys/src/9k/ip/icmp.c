@@ -368,7 +368,7 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	case EchoRequest:
 		if (iplen < n)
 			bp = trimblock(bp, 0, iplen);
-		r = mkechoreply(concatblock(bp));
+		r = mkechoreply(bp);
 		ipriv->out[EchoReply]++;
 		ipoput4(icmp->f, r, 0, MAXTTL, DFLTTOS, nil);
 		break;
@@ -395,7 +395,7 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 		break;
 	case TimeExceed:
 		if(p->code == 0){
-			snprint(m2, sizeof m2, "ttl exceeded at %V", p->src);
+			sprint(m2, "ttl exceeded at %V", p->src);
 
 			bp->rp += ICMP_IPSIZE+ICMP_HDRSIZE;
 			if(blocklen(bp) < MinAdvise){

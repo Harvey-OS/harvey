@@ -523,10 +523,10 @@ enum
 char *aformat = "%-6.6s %-8.8s %-40.40I %-32.32s\n";
 
 static void
-convmac(char *p, char *ep, uchar *mac, int n)
+convmac(char *p, uchar *mac, int n)
 {
 	while(n-- > 0)
-		p = seprint(p, ep, "%2.2ux", *mac++);
+		p += sprint(p, "%2.2ux", *mac++);
 }
 
 int
@@ -552,9 +552,8 @@ arpread(Arp *arp, char *p, ulong offset, int len)
 		}
 		len--;
 		qlock(arp);
-		convmac(mac, &mac[sizeof mac], a->mac, a->type->maclen);
-		n += snprint(p+n, Alinelen+1, aformat, a->type->name,
-			arpstate[a->state], a->ip, mac);	/* +1 for NUL */
+		convmac(mac, a->mac, a->type->maclen);
+		n += sprint(p+n, aformat, a->type->name, arpstate[a->state], a->ip, mac);
 		qunlock(arp);
 	}
 

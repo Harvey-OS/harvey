@@ -38,7 +38,7 @@ enum
 	Addrlen=	64,
 	Maxproto=	20,
 	Nhash=		64,
-	Maxincall=	128,	/* max. conn.s in listen q not accepted yet */
+	Maxincall=	128,
 	Nchans=		1024,
 	MAClen=		16,		/* longest mac address */
 

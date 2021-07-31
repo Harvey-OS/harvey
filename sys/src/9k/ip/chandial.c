@@ -66,7 +66,7 @@ call(char *clone, char *dest, DS *ds)
 	name[n] = 0;
 	for(p = name; *p == ' '; p++)
 		;
-	snprint(name, sizeof name, "%lud", strtoul(p, 0, 0));
+	sprint(name, "%lud", strtoul(p, 0, 0));
 	p = strrchr(clone, '/');
 	*p = 0;
 	if(ds->dir)
