@@ -30,7 +30,7 @@ int little;
 void
 usage(void)
 {
-	diag("usage: %s [-options] objects", argv0);
+	diag("usage: 6l [-options] objects");
 	errorexit();
 }
 
