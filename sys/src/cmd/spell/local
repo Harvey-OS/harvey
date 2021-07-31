@@ -51,8 +51,8 @@ ASCII	d,nopref
 ASR	pc,nopref
 Assoc	d,nopref
 Asthana	pc,nopref
-AT&TTJ	pc,nopref
 Atal	n,nopref
+AT&TTJ	pc,nopref
 Audix	pc,nopref
 autodecrement	v,er
 autoincrement	v,er
@@ -157,7 +157,6 @@ codimension	n,na
 coinbox	n
 Coker	n,nopref
 Colbry	n,nopref
-Collyer	n,nopref
 Comm	d,nopref
 compand	n
 compandor	n
@@ -230,7 +229,6 @@ download	v,er,va
 DPCM	pc,nopref
 DSP	n,nopref
 Dunellen	pc,nopref
-e.g	n,nopref
 Earley	n,nopref
 EBCDIC	pc,nopref
 ECC	n,nopref
@@ -245,8 +243,6 @@ EISPACK	pc,nopref
 elementwise	d
 Elko	pc,nopref
 Emlin	pc,nopref
-endian	a
-executable	n
 EOF	n,nopref
 EOT	n,nopref
 Erdos	pc,nopref
@@ -274,7 +270,6 @@ Flemington	pc,nopref
 Florham	d,nopref
 FOCS	d,nopref
 Fostik	n,nopref
-FPU	n
 Fredman	n,nopref
 Freeny	n,nopref
 Frobenius	pc,nopref
@@ -289,7 +284,6 @@ GCOS	pc,nopref
 Geffrard	n,nopref
 Gehani	n,nopref
 GEI	pc,nopref
-Geoff	n,nopref
 Gerardo	pc,nopref
 Geri	pc,nopref
 Gersho	n,nopref
@@ -339,7 +333,6 @@ Hunterdon	pc,nopref
 Hwang	pc,nopref
 hypertext	n
 Hz	pc,nopref
-i.e	n,nopref
 IC	n,nopref
 Ichbiah	pc,nopref
 ICL	pc,nopref
@@ -376,7 +369,6 @@ Juergen	pc,nopref
 Jukl	n,nopref
 Julesz	n,nopref
 junctor	n
-K&R	pc,nopref
 Kac	pc,nopref
 Kadota	n,nopref
 Kagi	n,nopref
@@ -404,12 +396,12 @@ Kinnelon	pc,nopref
 Kleene	pc,nopref
 Klinger	n,nopref
 kludge	pc,y
-kludgey	a
 Knuth	pc,nopref
 Kolmogorov	pc
 Korn	pc
 Kornfeld	n,nopref
 Kosaraju	pc,nopref
+K&R	pc,nopref
 Krishan	pc,nopref
 Krishnakumar	n,nopref
 Kroon	pc,nopref
@@ -437,10 +429,6 @@ Ledgard	pc,nopref
 Lehmer	pc,nopref
 Lempel	pc,nopref
 Lesk	n,nopref
-libc	n
-libmach	n
-libmp	n
-libsec	n
 Liberman	n,nopref
 lightpen	n
 Lincroft	pc,nopref
@@ -448,7 +436,6 @@ Linderman	n,nopref
 linewidth	n
 Linhart	n,nopref
 Linotron	pc,nopref
-linux	n,nopref
 Liskov	pc,nopref
 Litman	n,nopref
 livelock	n,ed
@@ -505,7 +492,6 @@ MH	pc,nopref
 MHCC	pc,nopref
 MHz	pc,nopref
 Mihalis	pc,nopref
-MII	n
 Millburn	pc,nopref
 Millington	pc,nopref
 Milne	pc,nopref
@@ -514,7 +500,6 @@ Minkowski	pc,nopref
 MIPS	pc,nopref
 Mitch	pc,nopref
 Mitra	n,nopref
-mkfile	n
 ML	pc,nopref
 mm	d
 MMU	n,nopref
@@ -524,7 +509,6 @@ monoid	n
 Montville	pc,nopref
 MOS	pc,nopref
 Mosteller	pc,nopref
-MOVW	n
 MTBF	d,nopref
 MTS	n,nopref
 Multics	pc,nopref
@@ -549,7 +533,6 @@ Netcong	pc,nopref
 Netravali	n,nopref
 newline	n
 NMOS	pc,nopref
-NOP	n
 NP	pc,nopref
 NPA	pc,nopref
 NPL	pc,nopref
@@ -561,12 +544,12 @@ NTT	pc,nopref
 nullary	d
 Nutley	pc,nopref
 NYNEX	pc,nopref
-O'Gorman	pc,nopref
 OCLC	pc,nopref
 OCR	pc,nopref
 Odlyzko	n,nopref
 OEM	n,nopref
 Ogielski	n,nopref
+O'Gorman	pc,nopref
 Oldwick	pc,nopref
 ONR	pc,nopref
 OOH	pc,nopref
@@ -603,7 +586,6 @@ perceptron	n
 Perlis	pc,nopref
 Petajan	n,nopref
 phreak	n
-PHY	n
 Phys	pc,nopref
 Pierrehumbert	n,nopref
 Pinson	n,nopref
@@ -724,7 +706,6 @@ Skokie	pc,nopref
 Sleator	pc,nopref
 Slepian	n,nopref
 Snobol	pc,nopref
-SoC	n,nopref
 Softech	pc,nopref
 Sondhi	n,nopref
 Speakerphone	pc,nopref
@@ -765,7 +746,6 @@ Tewksbury	pc,nopref
 Thu	pc,nopref
 Tillman	n,nopref
 Tishby	n,nopref
-TLB	n
 TM	s,nopref
 Toeplitz	pc,nopref
 TOMS	pc,nopref
@@ -829,7 +809,6 @@ Winterbottom	n
 wirewrap	n,v,ms
 Wirth	pc,nopref
 Witsenhausen	n,nopref
-workaround	n,nopref
 Wulf	pc,nopref
 Wyk	n,nopref
 Yannakakis	n,nopref
