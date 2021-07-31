@@ -218,7 +218,6 @@ extern register Proc* up;			/* R9 */
 extern uintptr kseg0;
 extern Mach* machaddr[MAXMACH];
 extern ulong memsize;
-extern int normalprint;
 
 /*
  *  a parsed plan9.ini line

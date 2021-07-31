@@ -206,6 +206,7 @@ putstrn(char *str, int n)
 }
 
 int noprint;
+extern int normalprint;
 
 int
 print(char *fmt, ...)
