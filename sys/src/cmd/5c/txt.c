@@ -561,8 +561,7 @@ void
 gmove(Node *f, Node *t)
 {
 	int ft, tt, a;
-	Node nod, nod1;
-	Prog *p1;
+	Node nod;
 
 	ft = f->type->etype;
 	tt = t->type->etype;
@@ -691,53 +690,21 @@ gmove(Node *f, Node *t)
 		}
 		break;
 	case TUINT:
-	case TULONG:
-		if(tt == TFLOAT || tt == TDOUBLE) {
-			// ugly and probably longer than necessary,
-			// but vfp has a single instruction for this,
-			// so hopefully it won't last long.
-			//
-			//	tmp = f
-			//	tmp1 = tmp & 0x80000000
-			//	tmp ^= tmp1
-			//	t = float(int32(tmp))
-			//	if(tmp1)
-			//		t += 2147483648.
-			//
-			regalloc(&nod, f, Z);
-			regalloc(&nod1, f, Z);
-			gins(AMOVW, f, &nod);
-			gins(AMOVW, &nod, &nod1);
-			gins(AAND, nodconst(0x80000000), &nod1);
-			gins(AEOR, &nod1, &nod);
-			if(tt == TFLOAT)
-				gins(AMOVWF, &nod, t);
-			else
-				gins(AMOVWD, &nod, t);
-			gins(ACMP, nodconst(0), Z);
-			raddr(&nod1, p);
-			gins(ABEQ, Z, Z);
-			regfree(&nod);
-			regfree(&nod1);
-			p1 = p;
-			regalloc(&nod, t, Z);
-			gins(AMOVF, nodfconst(2147483648.), &nod);
-			gins(AADDF, &nod, t);
-			regfree(&nod);
-			patch(p1, pc);
-			return;
-		}
-		// fall through
-
 	case TINT:
+	case TULONG:
 	case TLONG:
 	case TIND:
 		switch(tt) {
 		case TDOUBLE:
+		case TVLONG:
 			gins(AMOVWD, f, t);
+			if(ft == TULONG) {
+			}
 			return;
 		case TFLOAT:
 			gins(AMOVWF, f, t);
+			if(ft == TULONG) {
+			}
 			return;
 		case TINT:
 		case TUINT:
@@ -755,6 +722,7 @@ gmove(Node *f, Node *t)
 	case TSHORT:
 		switch(tt) {
 		case TDOUBLE:
+		case TVLONG:
 			regalloc(&nod, f, Z);
 			gins(AMOVH, f, &nod);
 			gins(AMOVWD, &nod, t);
@@ -784,6 +752,7 @@ gmove(Node *f, Node *t)
 	case TUSHORT:
 		switch(tt) {
 		case TDOUBLE:
+		case TVLONG:
 			regalloc(&nod, f, Z);
 			gins(AMOVHU, f, &nod);
 			gins(AMOVWD, &nod, t);
@@ -813,6 +782,7 @@ gmove(Node *f, Node *t)
 	case TCHAR:
 		switch(tt) {
 		case TDOUBLE:
+		case TVLONG:
 			regalloc(&nod, f, Z);
 			gins(AMOVB, f, &nod);
 			gins(AMOVWD, &nod, t);
@@ -842,6 +812,7 @@ gmove(Node *f, Node *t)
 	case TUCHAR:
 		switch(tt) {
 		case TDOUBLE:
+		case TVLONG:
 			regalloc(&nod, f, Z);
 			gins(AMOVBU, f, &nod);
 			gins(AMOVWD, &nod, t);
