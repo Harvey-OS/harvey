@@ -89,7 +89,6 @@ void	outs(int, ushort);
 void	outss(int, void*, int);
 void	outl(int, ulong);
 void	outsl(int, void*, int);
-void	pause(void);
 int	pciscan(int, Pcidev**);
 ulong	pcibarsize(Pcidev*, int);
 int	pcicfgr8(Pcidev*, int);

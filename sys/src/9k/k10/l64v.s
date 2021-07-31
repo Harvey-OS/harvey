@@ -409,10 +409,6 @@ TEXT setlabel(SB), 1, $-4
 	MOVL	$0, AX				/* return 0 */
 	RET
 
-TEXT pause(SB), 1, $-4
-	PAUSE
-	RET
-
 TEXT halt(SB), 1, $-4
 	CLI
 	CMPL	nrdy(SB), $0
