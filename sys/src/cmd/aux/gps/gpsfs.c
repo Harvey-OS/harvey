@@ -255,7 +255,6 @@ gpstrack(void *)
 	static char buf[256], *t[32];
 	int n, i, k, tp;
 	vlong localtime;
-	double d;
 
 	setline();
 	fix.messages = 0;
@@ -313,11 +312,8 @@ gpstrack(void *)
 				break;
 			if(isdigit(*t[7]))
 				fix.satellites = strtol(t[7], nil, 10);
-			if(isdigit(*t[8])){
-				d = strtod(t[8], nil);
-				if(!isNaN(d))
-					fix.hdop = d;
-			}
+			if(isdigit(*t[8]))
+				fix.hdop = strtod(t[8], nil);
 			getalt(t[9], t[10], &fix);
 			getsea(t[11], t[12], &fix);
 			fix.localtime = localtime;
@@ -343,21 +339,9 @@ gpstrack(void *)
 			fix.messages |= 1 << tp;
 			break;
 		case GPGSA:
-			if(*t[15]){
-				d = strtod(t[15], nil);
-				if(!isNaN(d))
-					fix.pdop = d;
-			}
-			if(*t[16]){
-				d = strtod(t[16], nil);
-				if(!isNaN(d))
-					fix.hdop = d;
-			}
-			if(*t[17]){
-				d = strtod(t[17], nil);
-				if(!isNaN(d))
-					fix.vdop = d;
-			}
+			if(*t[15]) fix.pdop = strtod(t[15], nil);
+			if(*t[16]) fix.hdop = strtod(t[16], nil);
+			if(*t[17]) fix.vdop = strtod(t[17], nil);
 			fix.messages |= 1 << tp;
 			break;
 		case GPGLL:
@@ -639,13 +623,9 @@ gettime(Fix *f){
 
 int
 getzulu(char *s, Fix *f){
-	double d;
-
 	if(*s == '\0') return 0;
 	if(isdigit(*s)){
-		d = strtod(s, nil);
-		if(!isNaN(d))
-			f->zulu = d;
+		f->zulu = strtod(s, nil);
 		return 1;
 	}
 	return 0;
@@ -662,28 +642,22 @@ getdate(char *s, Fix *f){
 }
 
 int
-getgs(char *s, Fix *f){
-	double d;
+getgs(char *s1, Fix *f){
 
-	if(*s == 0) return 0;
-	if(isdigit(*s)){
-		d = strtod(s, nil);
-		if(!isNaN(d))
-			f->groundspeed = d;
+	if(*s1 == 0) return 0;
+	if(isdigit(*s1)){
+		f->groundspeed = strtod(s1, nil);
 		return 1;
 	}
 	return 0;
 }
 
 int
-getkmh(char *s, Fix *f){
-	double d;
+getkmh(char *s1, Fix *f){
 
-	if(*s == 0) return 0;
-	if(isdigit(*s)){
-		d = strtod(s, nil);
-		if(!isNaN(d))
-			f->kmh = d;
+	if(*s1 == 0) return 0;
+	if(isdigit(*s1)){
+		f->kmh = strtod(s1, nil);
 		return 1;
 	}
 	return 0;
@@ -691,13 +665,10 @@ getkmh(char *s, Fix *f){
 
 int
 getcrs(char *s1, Fix *f){
-	double d;
 
 	if(*s1 == 0) return 0;
 	if(isdigit(*s1)){
-		d = strtod(s1, nil);
-		if(!isNaN(d))
-			f->course = d;
+		f->course = strtod(s1, nil);
 		return 1;
 	}
 	return 0;
@@ -705,13 +676,10 @@ getcrs(char *s1, Fix *f){
 
 int
 gethdg(char *s1, Fix *f){
-	double d;
 
 	if(*s1 == 0) return 0;
 	if(isdigit(*s1)){
-		d = strtod(s1, nil);
-		if(!isNaN(d))
-			f->heading = d;
+		f->heading = strtod(s1, nil);
 		return 1;
 	}
 	return 0;
@@ -724,7 +692,7 @@ getalt(char *s1, char *s2, Fix *f){
 	if(*s1 == 0) return 0;
 	if(isdigit(*s1)){
 		alt = strtod(s1, nil);
-		if(*s2 == 'M' && !isNaN(alt)){
+		if(*s2 == 'M'){
 			f->altitude = alt;
 			return 1;
 		}
@@ -759,10 +727,6 @@ getlat(char *s1, char *s2, Fix *f){
 		return -1;
 	}
 	lat = strtod(s1+2, nil);
-	if(isNaN(lat)){
-		badlat++;
-		return -1;
-	}
 	lat /= 60.0;
 	lat += 10*(s1[0] - '0') + s1[1] - '0';
 	if(lat < 0 || lat > 90.0){
@@ -798,13 +762,8 @@ getlon(char *s1, char *s2, Fix *f){
 		badlon++;
 		return -1;
 	}
-	lon = strtod(s1+3, nil);
-	if(isNaN(lon)){
-		badlon++;
-		return -1;
-	}
-	lon /= 60.0;
-	lon += 100*(s1[0] - '0') + 10*(s1[1] - '0') + s1[2] - '0';
+	lon = 100*(s1[0] - '0') + 10*(s1[1] - '0') + s1[2] - '0' +
+		strtod(s1+3, nil)/60.0;
 	if(lon < 0 || lon > 180.0){
 		badlon++;
 		return -1;
@@ -835,11 +794,8 @@ getmagvar(char *s1, char *s2, Fix *f){
 
 	if(*s1 == 0) return 0;
 	if(isdigit(*s1) && strlen(s1) > 5){
-		magvar = strtod(s1+3, nil);
-		if(isNaN(magvar))
-			return 0;
-		magvar /= 60.0;
-		magvar += 100*(s1[0] - '0') + 10*(s1[1] - '0') + s1[2] - '0';
+		magvar = 100*(s1[0] - '0') + 10*(s1[1] - '0') + s1[2] - '0' +
+			strtod(s1+3, nil)/60.0;
 		if(*s2 == 'W'){
 			f->magvar = -magvar;
 			return 1;

@@ -260,7 +260,7 @@ typedef struct Ctlr {
 	int	rdt;			/* tail - consumer index (host) */
 	int	nrdfree;
 
-	int	tcr;			/* transmit configuration register */
+	int	tcr;			/* receive configuration register */
 	int	rcr;			/* receive configuration register */
 
 	QLock	slock;			/* statistics */
