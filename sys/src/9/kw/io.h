@@ -237,12 +237,6 @@ enum {
 };
 
 enum {
-	Socrevz0,
-	Socreva0 = 2,
-	Socreva1,
-};
-
-enum {
 	/* registers */
 	PciBAR0		= Addrpcibase + 4,	/* base address */
 	PciBAR1		= Addrpcibase + 8,

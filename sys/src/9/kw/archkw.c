@@ -113,7 +113,7 @@ enum {
 };
 
 /*
- * sheeva/openrd u-boot leaves us with this address map:
+ * u-boot leaves us with this address map:
  *
  * 0 targ 4 attr 0xe8 size 256MB addr 0x9::  remap addr 0x9::	pci mem
  * 1 targ 1 attr 0x2f size   8MB addr 0xf9:: remap addr 0xf9::	nand flash
@@ -153,13 +153,12 @@ praddrwin(Addrwin *win, int i)
 static void
 fixaddrmap(void)
 {
-	int i;
-//	int sawspi;
+	int i, sawspi;
 	ulong ctl, targ, attr, size64k;
 	Addrmap *map;
 	Addrwin *win;
 
-//	sawspi = 0;
+	sawspi = 0;
 	map = (Addrmap *)AddrWin;
 	for (i = 0; i < nelem(map->win); i++) {
 		win = &map->win[i];
@@ -168,33 +167,31 @@ fixaddrmap(void)
 		attr = WINATTR(ctl);
 		size64k = WIN64KSIZE(ctl);
 
-//		if (targ == Targflash && attr == Attrspi &&
-//		    size64k == 16*MB/(64*1024)) {
-//			win->ctl &= ~Winenable;
-//			coherence();
-//			if (i < 4) {
-//				// TODO set the remap addr; it's 0 now
-//			}
-//			praddrwin(win, i);
-//		} else if (targ == Targflash && attr == Attrspi &&
-//		    size64k == 128*MB/(64*1024)) {
-//			sawspi = 1;
-//			if (!(ctl & Winenable)) {
-//				win->ctl |= Winenable;
-//				coherence();
-//				praddrwin(win, i);
-//			}
-//		} else
-		USED(attr, size64k);
-		if (targ == Targcesasram) {
+		if (targ == Targflash && attr == Attrspi &&
+		    size64k == 16*MB/(64*1024)) {
+			win->ctl &= ~Winenable;
+			coherence();
+			if (i < 4) {
+				// TODO set the remap addr; it's 0 now
+			}
+			praddrwin(win, i);
+		} else if (targ == Targflash && attr == Attrspi &&
+		    size64k == 128*MB/(64*1024)) {
+			sawspi = 1;
+			if (!(ctl & Winenable)) {
+				win->ctl |= Winenable;
+				coherence();
+				praddrwin(win, i);
+			}
+		} else if (targ == Targcesasram) {
 			win->ctl |= Winenable;
 			win->base = PHYSCESASRAM;
 			coherence();
 			praddrwin(win, i);
 		}
 	}
-//	if (!sawspi)
-//		print("cpu address map: no existing window for spi\n");
+	if (!sawspi)
+		panic("cpu address map: no existing window for spi");
 	if (map->dirba != PHYSIO)
 		panic("dirba not %#ux", PHYSIO);
 }
@@ -377,8 +374,7 @@ archconfinit(void)
 	m->cpuhz = 1200*1000*1000;
 	m->delayloop = m->cpuhz/2000; 	 /* initial estimate */
 	fixaddrmap();
-	if (Debug)
-		praddrmap();
+//	praddrmap();
 	prcachecfg();
 
 	l2cacheon();
@@ -394,7 +390,7 @@ archether(unsigned ctlno, Ether *ether)
 {
 	if(ctlno >= 2)
 		return -1;
-	ether->type = "88e1116";
+	ether->type = "kirkwood";
 	ether->port = ctlno;
 //	ether->mbps = 1000;
 	return 1;
@@ -480,8 +476,6 @@ void
 archflashwp(Flash*, int)
 {
 }
-
-int	flashat(Flash *f, uintptr pa);
 
 /*
  * for ../port/devflash.c:/^flashreset
