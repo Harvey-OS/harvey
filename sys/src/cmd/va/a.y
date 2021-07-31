@@ -4,7 +4,7 @@
 %union
 {
 	Sym	*sym;
-	vlong	lval;
+	long	lval;
 	double	dval;
 	char	sval[8];
 	Gen	gen;
