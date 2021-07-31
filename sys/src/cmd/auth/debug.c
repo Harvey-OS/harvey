@@ -103,7 +103,7 @@ debugfactotumkeys(void)
 
 	b = Bopen("/mnt/factotum/ctl", OREAD);
 	if(b == nil){
-		fprint(2, "debug: cannot open /mnt/factotum/ctl\n");
+		fprint(2, "cannot open /mnt/factotum/ctl");
 		return;
 	}
 	found = 0;

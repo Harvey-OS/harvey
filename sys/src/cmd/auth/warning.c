@@ -266,7 +266,8 @@ mail(Fs *f, char *rcvr, char *user, long et)
 	execl("/bin/upas/send", "send", "-r", rcvr, nil);
 
 	/* just in case */
-	sysfatal("can't exec send: %r");
+	fprint(2, "warning can't exec send: %r\n");
+	exits("exec send");
 
 	return 0;		/* for compiler */
 }

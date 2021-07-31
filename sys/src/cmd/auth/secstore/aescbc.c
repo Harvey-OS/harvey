@@ -22,15 +22,23 @@ Biobuf bout;
 void
 safewrite(uchar *buf, int n)
 {
-	if(Bwrite(&bout, buf, n) != n)
-		sysfatal("write error");
+	int i = Bwrite(&bout, buf, n);
+
+	if(i == n)
+		return;
+	fprint(2, "write error\n");
+	exits("write error");
 }
 
 void
 saferead(uchar *buf, int n)
 {
-	if(Bread(&bin, buf, n) != n)
-		sysfatal("read error");
+	int i = Bread(&bin, buf, n);
+
+	if(i == n)
+		return;
+	fprint(2, "read error\n");
+	exits("read error");
 }
 
 int
@@ -85,8 +93,10 @@ main(int argc, char **argv)
 		memset(pass, 0, n);
 		free(pass);
 	}
-	if(n <= 0)
-		sysfatal("no key");
+	if(n <= 0){
+		fprint(2,"no key\n");
+		exits("key");
+	}
 	dstate = sha1((uchar*)"aescbc file", 11, nil, nil);
 	sha1(buf, n, key2, dstate);
 	memcpy(key, key2, 16);
@@ -102,8 +112,10 @@ main(int argc, char **argv)
 		dstate = hmac_sha1(buf+AESbsize, AESbsize, key2, MD5dlen, 0, 0);
 		while(1){
 			n = Bread(&bin, buf, BUF);
-			if(n < 0)
-				sysfatal("read error");
+			if(n < 0){
+				fprint(2,"read error\n");
+				exits("read error");
+			}
 			aesCBCencrypt(buf, n, &aes);
 			safewrite(buf, n);
 			dstate = hmac_sha1(buf, n, key2, MD5dlen, 0, dstate);
@@ -127,8 +139,10 @@ main(int argc, char **argv)
 				memmove(buf, buf+n, SHA1dlen);  /* these bytes are not yet decrypted */
 			}
 			hmac_sha1(0, 0, key2, MD5dlen, buf+SHA1dlen, dstate);
-			if(memcmp(buf, buf+SHA1dlen, SHA1dlen) != 0)
-				sysfatal("decrypted file failed to authenticate");
+			if(memcmp(buf, buf+SHA1dlen, SHA1dlen) != 0){
+				fprint(2,"decrypted file failed to authenticate\n");
+				exits("decrypted file failed to authenticate");
+			}
 		}else{ /* compatibility with past mistake */
 			// if file was encrypted with bad aescbc use this:
 			//         memset(key, 0, AESmaxkey);
@@ -141,8 +155,10 @@ main(int argc, char **argv)
 				safewrite(buf, n);
 				memmove(buf, buf+n, CHK);
 			}
-			if(memcmp(buf, "XXXXXXXXXXXXXXXX", CHK) != 0)
-				sysfatal("decrypted file failed to authenticate");
+			if(memcmp(buf, "XXXXXXXXXXXXXXXX", CHK) != 0){
+				fprint(2,"decrypted file failed to authenticate\n");
+				exits("decrypted file failed to authenticate");
+			}
 		}
 	}
 	exits("");
