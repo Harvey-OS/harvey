@@ -1,6 +1,6 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/utsname.h>
+#include <stdio.h>
 
 #define	ARGBEGIN	for((argv0=*argv),argv++,argc--;\
 			    argv[0] && argv[0][0]=='-' && argv[0][1];\
@@ -15,20 +15,7 @@
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
 #define	ARGC()		_argc
-
 char *argv0;
-
-static int started;
-
-static void
-prword(char *w)
-{
-	if (started)
-		putchar(' ');
-	else
-		started = 1;
-	fputs(w, stdout);
-}
 
 main(int argc, char **argv)
 {
@@ -41,26 +28,23 @@ main(int argc, char **argv)
 	}
 	ARGBEGIN {
 	case 'a':
-		prword(u.sysname);
-		prword(u.nodename);
-		prword(u.release);
-		prword(u.version);
-		prword(u.machine);
+		printf("%s %s %s %s %s ", u.sysname, u.nodename,
+			u.release, u.version, u.machine);
 		break;
 	case 'm':
-		prword(u.machine);
+		printf("%s ", u.machine);
 		break;
 	case 'n':
-		prword(u.nodename);
+		printf("%s ", u.nodename);
 		break;
 	case 'r':
-		prword(u.release);
+		printf("%s ", u.release);
 		break;
 	case 's':
-		prword(u.sysname);
+		printf("%s ", u.sysname);
 		break;
 	case 'v':
-		prword(u.version);
+		printf("%s ", u.version);
 		break;
 	} ARGEND
 	printf("\n");
