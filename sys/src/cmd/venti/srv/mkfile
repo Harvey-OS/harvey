@@ -13,7 +13,6 @@ LIBOFILES=\
 	dump.$O\
 	graph.$O\
 	hdisk.$O\
-	hproc.$O\
 	httpd.$O\
 	icache.$O\
 	icachewrite.$O\
@@ -46,8 +45,6 @@ LIB=$SLIB # /$objtype/lib/libventi.a
 HFILES=	dat.h\
 	fns.h\
 	stdinc.h\
-	/sys/include/venti.h\
-	/sys/include/httpd.h\
 
 TARG=\
 	venti\

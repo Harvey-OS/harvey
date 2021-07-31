@@ -38,7 +38,6 @@ struct {
 	{ "i82557", i82557reset, 0, },
 	{ "igbe",  igbepnp, 0, },
 	{ "i82563",i82563pnp, 0, },
-	{ "igbepcie",i82563pnp, 0, },
 	{ "elnk3", elnk3reset, 0, },
 	{ "3C509", elnk3reset, 0, },
 	{ "3C575", elnk3reset, 0, },
