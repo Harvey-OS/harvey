@@ -42,7 +42,6 @@ i81xpcimatch(void)
 		case 0x1102:
 		case 0x1112:
 		case 0x1132:
-		case 0x3577:	/* IBM R31 uses intel 830M chipset */
 			return p;
 		}
 	}

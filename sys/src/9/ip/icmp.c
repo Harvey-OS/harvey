@@ -28,6 +28,7 @@ typedef struct Icmp {
 
 enum {			/* Packet Types */
 	EchoReply	= 0,
+	UnreachableV6	= 1,
 	Unreachable	= 3,
 	SrcQuench	= 4,
 	Redirect	= 5,
@@ -51,6 +52,7 @@ enum
 
 char *icmpnames[Maxtype+1] =
 {
+[UnreachableV6]		"UnreachableV6",
 [EchoReply]		"EchoReply",
 [Unreachable]		"Unreachable",
 [SrcQuench]		"SrcQuench",
@@ -104,36 +106,32 @@ struct Icmppriv
 	ulong	out[Maxtype+1];
 };
 
-static void icmpkick(void *x);
-
-static void
-icmpcreate(Conv *c)
-{
-	c->rq = qopen(64*1024, Qmsg, 0, c);
-	c->wq = qopen(64*1024, Qkick, icmpkick, c);
-}
-
-extern char*
+static char*
 icmpconnect(Conv *c, char **argv, int argc)
 {
 	char *e;
 
 	e = Fsstdconnect(c, argv, argc);
-	if(e != nil)
-		return e;
 	Fsconnected(c, e);
 
-	return nil;
+	return e;
 }
 
-extern int
+static int
 icmpstate(Conv *c, char *state, int n)
 {
 	USED(c);
 	return snprint(state, n, "%s", "Datagram");
 }
 
-extern char*
+static void
+icmpcreate(Conv *c)
+{
+	c->rq = qopen(64*1024, 1, 0, c);
+	c->wq = qopen(64*1024, 0, 0, 0);
+}
+
+static char*
 icmpannounce(Conv *c, char **argv, int argc)
 {
 	char *e;
@@ -146,7 +144,7 @@ icmpannounce(Conv *c, char **argv, int argc)
 	return nil;
 }
 
-extern void
+static void
 icmpclose(Conv *c)
 {
 	qclose(c->rq);
@@ -157,9 +155,8 @@ icmpclose(Conv *c)
 }
 
 static void
-icmpkick(void *x)
+icmpkick(Conv *c)
 {
-	Conv *c = x;
 	Icmp *p;
 	Block *bp;
 	Icmppriv *ipriv;
@@ -173,7 +170,6 @@ icmpkick(void *x)
 		return;
 	}
 	p = (Icmp *)(bp->rp);
-	p->vihl = IP_VER4;
 	ipriv = c->p->priv;
 	if(p->type <= Maxtype)	
 		ipriv->out[p->type]++;
@@ -185,24 +181,23 @@ icmpkick(void *x)
 	memset(p->cksum, 0, sizeof(p->cksum));
 	hnputs(p->cksum, ptclcsum(bp, ICMP_IPSIZE, blocklen(bp) - ICMP_IPSIZE));
 	ipriv->stats[OutMsgs]++;
-	ipoput4(c->p->f, bp, 0, c->ttl, c->tos);
+	ipoput(c->p->f, bp, 0, c->ttl, c->tos);
 }
 
 extern void
-icmpttlexceeded(Fs *f, uchar *ia, Block *bp)
+icmpttlexceeded(Fs *f, Ipifc *ifc, Block *bp)
 {
 	Block	*nbp;
 	Icmp	*p, *np;
 
 	p = (Icmp *)bp->rp;
-	p->vihl = IP_VER4;
 
 	netlog(f, Logicmp, "sending icmpttlexceeded -> %V\n", p->src);
 	nbp = allocb(ICMP_IPSIZE + ICMP_HDRSIZE + ICMP_IPSIZE + 8);
 	nbp->wp += ICMP_IPSIZE + ICMP_HDRSIZE + ICMP_IPSIZE + 8;
 	np = (Icmp *)nbp->rp;
 	memmove(np->dst, p->src, sizeof(np->dst));
-	v6tov4(np->src, ia);
+	v6tov4(np->src, ifc->lifc->local);
 	memmove(np->data, bp->rp, ICMP_IPSIZE + 8);
 	np->type = TimeExceed;
 	np->code = 0;
@@ -211,7 +206,7 @@ icmpttlexceeded(Fs *f, uchar *ia, Block *bp)
 	hnputs(np->seq, 0);
 	memset(np->cksum, 0, sizeof(np->cksum));
 	hnputs(np->cksum, ptclcsum(nbp, ICMP_IPSIZE, blocklen(nbp) - ICMP_IPSIZE));
-	ipoput4(f, nbp, 0, MAXTTL, DFLTTOS);
+	ipoput(f, nbp, 0, MAXTTL, DFLTTOS);
 
 }
 
@@ -224,7 +219,6 @@ icmpnoconv(Fs *f, Block *bp)
 	uchar	addr[IPaddrlen];
 
 	p = (Icmp *)bp->rp;
-	p->vihl = IP_VER4;
 
 	/* only do this for unicast sources and destinations */
 	v4tov6(addr, p->dst);
@@ -250,7 +244,7 @@ icmpnoconv(Fs *f, Block *bp)
 	hnputs(np->seq, 0);
 	memset(np->cksum, 0, sizeof(np->cksum));
 	hnputs(np->cksum, ptclcsum(nbp, ICMP_IPSIZE, blocklen(nbp) - ICMP_IPSIZE));
-	ipoput4(f, nbp, 0, MAXTTL, DFLTTOS);
+	ipoput(f, nbp, 0, MAXTTL, DFLTTOS);
 }
 
 static void
@@ -285,7 +279,6 @@ mkechoreply(Block *bp)
 	uchar	ip[4];
 
 	q = (Icmp *)bp->rp;
-	q->vihl = IP_VER4;
 	memmove(ip, q->src, sizeof(q->dst));
 	memmove(q->src, q->dst, sizeof(q->src));
 	memmove(q->dst, ip,  sizeof(q->dst));
@@ -302,7 +295,7 @@ static char *unreachcode[] =
 [1]	"host unreachable",
 [2]	"protocol unreachable",
 [3]	"port unreachable",
-[4]	"fragmentation needed and DF set",
+[4]	"unfragmentable",
 [5]	"source route failed",
 };
 
@@ -316,6 +309,9 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	char	*msg;
 	char	m2[128];
 	Icmppriv *ipriv;
+	int	code;
+	ushort	x;
+	uchar	dst[IPaddrlen];
 
 	ipriv = icmp->priv;
 	
@@ -348,17 +344,29 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 
 	switch(p->type) {
 	case EchoRequest:
-		if (iplen < n)
-			bp = trimblock(bp, 0, iplen);
 		r = mkechoreply(bp);
 		ipriv->out[EchoReply]++;
-		ipoput4(icmp->f, r, 0, MAXTTL, DFLTTOS);
+		ipoput(icmp->f, r, 0, MAXTTL, DFLTTOS);
 		break;
 	case Unreachable:
-		if(p->code > 5 || p->code < 0)
+		code = p->code;
+		x = 0;
+		switch(code){
+		default:
 			msg = unreachcode[1];
-		else
+			break;
+		case 5:
+			x = nhgets(p->seq);
 			msg = unreachcode[p->code];
+			break;
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			msg = unreachcode[p->code];
+			break;
+		}
 
 		bp->rp += ICMP_IPSIZE+ICMP_HDRSIZE;
 		if(blocklen(bp) < MinAdvise){
@@ -366,6 +374,10 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 			goto raise;
 		}
 		p = (Icmp *)bp->rp;
+		if(code == 5){
+			v4tov6(dst, p->dst);
+			update_mtucache(dst, x);
+		}
 		pr = Fsrcvpcolx(icmp->f, p->proto);
 		if(pr != nil && pr->advise != nil) {
 			(*pr->advise)(pr, bp, msg);
@@ -458,6 +470,7 @@ icmpinit(Fs *fs)
 	icmp = smalloc(sizeof(Proto));
 	icmp->priv = smalloc(sizeof(Icmppriv));
 	icmp->name = "icmp";
+	icmp->kick = icmpkick;
 	icmp->connect = icmpconnect;
 	icmp->announce = icmpannounce;
 	icmp->state = icmpstate;

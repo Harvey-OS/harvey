@@ -1,12 +1,14 @@
 #include "acd.h"
 
 int
-msfconv(Fmt *fp)
+msfconv(va_list *va, Fconv *fp)
 {
 	Msf m;
+	char buf[40];
 
-	m = va_arg(fp->args, Msf);
-	fmtprint(fp, "%d.%d.%d", m.m, m.s, m.f);
+	m = va_arg(*va, Msf);
+	sprint(buf, "%d.%d.%d", m.m, m.s, m.f);
+	strconv(buf, fp);
 	return 0;
 }
 
@@ -189,7 +191,7 @@ DPRINT(2, "%d %d\n", resp[3], resp[2]);
 		return -1;
 
 	if(s->changetime != t->changetime || s->nchange != t->nchange) {
-		fprint(2, "disk changed underfoot; repeating\n");
+		threadprint(2, "disk changed underfoot; repeating\n");
 		goto Again;
 	}
 
@@ -213,7 +215,7 @@ dumptoc(Toc *t)
 {
 	int i;
 
-	fprint(1, "%d tracks\n", t->ntrack);
+	threadprint(1, "%d tracks\n", t->ntrack);
 	for(i=0; i<t->ntrack; i++)
 		print("%d. %M-%M (%lud-%lud)\n", i+1,
 			t->track[i].start, t->track[i].end,

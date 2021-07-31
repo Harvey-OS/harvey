@@ -16,12 +16,7 @@ struct {
 void
 qlock(QLock *q)
 {
-	Proc *p;
-
-	if(m->ilockdepth != 0)
-		print("qlock: %lux: ilockdepth %d", getcallerpc(&q), m->ilockdepth);
-	if(up != nil && up->nlocks)
-		print("qlock: %lux: nlocks %lud", getcallerpc(&q), up->nlocks);
+	Proc *p, *mp;
 
 	lock(&q->use);
 	rwstats.qlock++;
@@ -30,21 +25,22 @@ qlock(QLock *q)
 		unlock(&q->use);
 		return;
 	}
-	if(up == 0)
-		panic("qlock");
 	rwstats.qlockq++;
 	p = q->tail;
+	mp = up;
+	if(mp == nil)
+		panic("qlock");
 	if(p == 0)
-		q->head = up;
+		q->head = mp;
 	else
-		p->qnext = up;
-	q->tail = up;
-	up->qnext = 0;
-	up->state = Queueing;
+		p->qnext = mp;
+	q->tail = mp;
+	mp->qnext = 0;
+	mp->state = Queueing;
 	up->qpc = getcallerpc(&q);
 	unlock(&q->use);
-	if(edf->isedf(up))
-		edf->edfblock(up);
+	if (isedf(mp))
+		edfblock(mp);
 	sched();
 }
 
@@ -69,7 +65,7 @@ qunlock(QLock *q)
 
 	lock(&q->use);
 	p = q->head;
-	if(p){
+	if(p) {
 		q->head = p->qnext;
 		if(q->head == 0)
 			q->tail = 0;
@@ -84,7 +80,7 @@ qunlock(QLock *q)
 void
 rlock(RWlock *q)
 {
-	Proc *p;
+	Proc *p, *mp;
 
 	lock(&q->use);
 	rwstats.rlock++;
@@ -97,18 +93,19 @@ rlock(RWlock *q)
 
 	rwstats.rlockq++;
 	p = q->tail;
-	if(up == nil)
+	mp = up;
+	if(mp == nil)
 		panic("rlock");
 	if(p == 0)
-		q->head = up;
+		q->head = mp;
 	else
-		p->qnext = up;
-	q->tail = up;
-	up->qnext = 0;
-	up->state = QueueingR;
+		p->qnext = mp;
+	q->tail = mp;
+	mp->qnext = 0;
+	mp->state = QueueingR;
 	unlock(&q->use);
-	if (edf->isedf(up))
-		edf->edfblock(up);
+	if (isedf(mp))
+		edfblock(mp);
 	sched();
 }
 
@@ -138,7 +135,7 @@ runlock(RWlock *q)
 void
 wlock(RWlock *q)
 {
-	Proc *p;
+	Proc *p, *mp;
 
 	lock(&q->use);
 	rwstats.wlock++;
@@ -154,18 +151,19 @@ wlock(RWlock *q)
 	/* wait */
 	rwstats.wlockq++;
 	p = q->tail;
-	if(up == nil)
+	mp = up;
+	if(mp == nil)
 		panic("wlock");
 	if(p == nil)
-		q->head = up;
+		q->head = mp;
 	else
-		p->qnext = up;
-	q->tail = up;
-	up->qnext = 0;
-	up->state = QueueingW;
+		p->qnext = mp;
+	q->tail = mp;
+	mp->qnext = 0;
+	mp->state = QueueingW;
 	unlock(&q->use);
-	if (edf->isedf(up))
-		edf->edfblock(up);
+	if (isedf(mp))
+		edfblock(mp);
 	sched();
 }
 

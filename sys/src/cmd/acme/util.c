@@ -56,7 +56,7 @@ error(char *s)
 }
 
 Window*
-errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
+errorwin(Rune *dir, int ndir, Rune **incl, int nincl)
 {
 	Window *w;
 	Rune *r;
@@ -79,26 +79,6 @@ errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
 		r = runemalloc(n);
 		runemove(r, incl[i], n);
 		winaddincl(w, r, n);
-	}
-	return w;
-}
-
-/* make new window, if necessary; return with it locked */
-Window*
-errorwin(Mntdir *md, int owner)
-{
-	Window *w;
-
-	for(;;){
-		if(md == nil)
-			w = errorwin1(nil, 0, nil, 0);
-		else
-			w = errorwin1(md->dir, md->ndir, md->incl, md->nincl);
-		winlock(w, owner);
-		if(w->col != nil)
-			break;
-		/* window was deleted too fast */
-		winunlock(w);
 	}
 	return w;
 }
@@ -127,7 +107,17 @@ warning(Mntdir *md, char *s, ...)
 			error("initializing columns in warning()");
 	}
 
-	w = errorwin(md, 'E');
+	if(md)
+		for(;;){
+			w = errorwin(md->dir, md->ndir, md->incl, md->nincl);
+			winlock(w, 'E');
+			if(w->col != nil)
+				break;
+			/* window was deleted too fast */
+			winunlock(w);
+		}
+	else
+		w = errorwin(nil, 0, nil, 0);
 	t = &w->body;
 	owner = w->owner;
 	if(owner == 0)
@@ -139,7 +129,8 @@ warning(Mntdir *md, char *s, ...)
 	textscrdraw(t);
 	w->owner = owner;
 	w->dirty = FALSE;
-	winunlock(w);
+	if(md)
+		winunlock(w);
 	free(r);
 }
 

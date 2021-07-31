@@ -130,7 +130,6 @@ struct DN
 	ushort	class;		/* RR class */
 	char	refs;		/* for mark and sweep */
 	char	nonexistent;	/* true if we get an authoritative nx for this domain */
-	ulong	ordinal;
 };
 
 /*
@@ -188,7 +187,7 @@ struct RR
 	uchar	auth;		/* authoritative */
 	uchar	db;		/* from database */
 	uchar	cached;		/* rr in cache */
-	ulong	marker;		/* used locally when scanning rrlists */
+	uchar	marker;		/* used locally when scanning rrlists */
 	union {
 		DN	*negsoaowner;	/* soa for cached negative response */
 		DN	*host;	/* hostname - soa, cname, mb, md, mf, mx, ns */
@@ -307,7 +306,6 @@ extern int	subsume(char*, char*);
 extern RR*	randomize(RR*);
 extern void*	emalloc(int);
 extern char*	estrdup(char*);
-extern void	dnptr(uchar*, uchar*, char*, int, int);
 
 /* dblookup.c */
 extern RR*	dblookup(char*, int, int, int, int);
@@ -316,6 +314,7 @@ extern int	baddelegation(RR*, RR*, uchar*);
 extern RR*	dnsservers(int);
 extern RR*	domainlist(int);
 extern int	opendatabase(void);
+extern char*	dorfc2317(char *canonical, char *name);
 
 /* dns.c */
 extern char*	walkup(char*);

@@ -140,7 +140,7 @@ ZZZ is this a good idea?
 		if(ifc->lifc == nil)
 			freeb(bp);
 		else
-			ipiput4(er->f, ifc, bp);
+			ipiput(er->f, ifc, bp);
 		runlock(ifc);
 		poperror();
 	}

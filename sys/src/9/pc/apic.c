@@ -94,7 +94,7 @@ struct
 	uvlong	hz;
 	ulong	max;
 	ulong	min;
-	ulong	div;
+	ulong	mult;	/* factor to mutiply fast ticks by to get lapicticks<<16 */
 } lapictimer;
 
 static int
@@ -149,10 +149,7 @@ lapictimerinit(void)
 		lapictimer.hz = (0xffffffffUL-lapicr(LapicTCCR))*10;
 		lapictimer.max = lapictimer.hz/HZ;
 		lapictimer.min = lapictimer.hz/(100*HZ);
-
-		if(lapictimer.hz > hz)
-			panic("lapic clock faster than cpu clock");
-		lapictimer.div = hz/lapictimer.hz;
+		lapictimer.mult = (lapictimer.hz<<16)/hz;
 	}
 }
 
@@ -354,17 +351,18 @@ lapictimerset(uvlong next)
 
 	x = splhi();
 	lock(&m->apictimerlock);
-
 	period = lapictimer.max;
 	if(next != 0){
 		period = next - fastticks(nil);
-		period /= lapictimer.div;
+		period *= lapictimer.mult;
+		period >>= 16;
 
 		if(period < lapictimer.min)
 			period = lapictimer.min;
 		else if(period > lapictimer.max - lapictimer.min)
 			period = lapictimer.max;
 	}
+
 	lapicw(LapicTICR, period);
 
 	unlock(&m->apictimerlock);

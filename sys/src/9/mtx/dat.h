@@ -141,7 +141,7 @@ struct Mach
 
 	ulong	pcclast;
 	uvlong	fastclock;
-	Perf	perf;			/* performance counters */
+	vlong	intrts;			/* time stamp of last interrupt */
 
 	int	tlbfault;		/* only used by devproc; no access to tlb */
 	int	tlbpurge;		/* ... */

@@ -1,3 +1,2 @@
-# dns debug
-# write "dump" to /net/dns
-# lots of output here
+# dns debugging file; writing dump to /net/dns
+# causes lots of output here

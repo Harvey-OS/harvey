@@ -26,12 +26,8 @@ main(int argc, char **argv)
 	char *listname, *alfile;
 	Waitmsg *w;
 	int fd;
-	char *replytoname = nil;
 
 	ARGBEGIN{
-	case 'r':
-		replytoname = ARGF();
-		break;
 	}ARGEND;
 
 	rfork(RFENVG|RFREND);
@@ -40,8 +36,6 @@ main(int argc, char **argv)
 		usage();
 	alfile = argv[0];
 	listname = argv[1];
-	if(replytoname == nil)
-		replytoname = listname;
 
 	readaddrs(alfile);
 
@@ -77,7 +71,7 @@ main(int argc, char **argv)
 	fd = startmailer(listname);
 
 	/* send message adding our own reply-to and precedence */
-	printmsg(fd, msg, replytoname);
+	printmsg(fd, msg, listname);
 	close(fd);
 
 	/* wait for mailer to end */

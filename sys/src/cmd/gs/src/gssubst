@@ -1,0 +1,23 @@
+#!/usr/bin/tclsh
+# $Id: gssubst,v 1.1 2000/03/09 08:40:42 lpd Exp $
+if {$argc < 2} {
+    puts stderr "Usage: $argv0 (-t type | -u word | fromword toword) file ..."
+    puts stderr "  -t word = word word_t"
+    puts stderr "  -u word = word WORD"
+    exit 1
+}
+set a0 [lindex $argv 0]
+set a1 [lindex $argv 1]
+switch -- $a0 {
+    -t {set from $a1; set to ${from}_t}
+    -u {set from $a1; set to [string toupper ${from}]}
+    default {set from $a0; set to $a1}
+}
+puts "$from => $to"
+flush stdout
+set tmp /tmp/[pid]
+foreach f [lreplace $argv 0 1] {
+    if {![file exists $f~]} {exec cp -p $f $f~}
+    exec perl -pe "s\{\\b${from}\\b\}\{${to}\}g" < $f > $tmp
+    exec mv $tmp $f
+}

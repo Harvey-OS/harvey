@@ -36,7 +36,6 @@ static Field p_fields[] =
 static Mux p_mux[] =
 {
 	{"bootp",	67, },
-	{"ninep",	6346, },	/* tvs */
 	{0},
 };
 
@@ -53,7 +52,7 @@ p_compile(Filter *f)
 		if(strcmp(f->s, m->name) == 0){
 			f->pr = m->pr;
 			f->ulv = m->val;
-			f->subop = Osd;
+			f->subop = Od;
 			return;
 		}
 	sysfatal("unknown udp field or protocol: %s", f->s);
@@ -112,5 +111,4 @@ Proto udp =
 	p_seprint,
 	p_mux,
 	p_fields,
-	defaultframer,
 };

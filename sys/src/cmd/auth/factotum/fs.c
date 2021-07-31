@@ -97,8 +97,6 @@ main(int argc, char **argv)
 	if(!debug)
 		private();
 
-	initcap();
-
 	quotefmtinstall();
 	fmtinstall('A', _attrfmt);
 	fmtinstall('N', attrnamefmt);

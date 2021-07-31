@@ -5,20 +5,14 @@
 #include "fns.h"
 #include "io.h"
 
-#include "fs.h"
+#include "dosfs.h"
 
 Type types[] = {
 	{	Tfloppy,
-		Fini|Ffs,
+		Fini|Fdos,
 		floppyinit, floppyinitdev,
-		floppygetfspart, 0, floppyboot,
+		floppygetdospart, 0, floppyboot,
 		floppyprintdevs,
-	},
-	{	Tcd,
-		Fini|Ffs,
-		cdinit, sdinitdev,
-		sdgetfspart, sdaddconf, sdboot,
-		sdprintdevs,
 	},
 	{	Tether,
 		Fbootp,
@@ -27,9 +21,9 @@ Type types[] = {
 		etherprintdevs,
 	},
 	{	Tsd,
-		Fini|Ffs,
+		Fini|Fdos,
 		sdinit, sdinitdev,
-		sdgetfspart, sdaddconf, sdboot,
+		sdgetdospart, sdaddconf, sdboot,
 		sdprintdevs,
 	},
 	{	Tnil,
@@ -74,7 +68,7 @@ struct Medium {
 	int	dev;
 	char name[NAMELEN];
 
-	Fs *inifs;
+	Dos *inidos;
 	char *part;
 	char *ini;
 
@@ -165,7 +159,7 @@ allocm(Type *tp)
 	return *l;
 }
 
-char *parts[] = { "dos", "9fat", "fs", "data", "cdboot", 0 };
+char *parts[] = { "dos", "9fat", "data", 0 };
 
 Medium*
 probe(int type, int flag, int dev)
@@ -173,8 +167,8 @@ probe(int type, int flag, int dev)
 	Type *tp;
 	int i;
 	Medium *mp;
-	File f;
-	Fs *fs;
+	Dosfile df;
+	Dos *dos;
 	char **partp;
 
 	for(tp = types; tp->type != Tnil; tp++){
@@ -209,12 +203,12 @@ probe(int type, int flag, int dev)
 			if(mp->flag & Fini){
 				mp->flag &= ~Fini;
 				for(partp = parts; *partp; partp++){
-					if((fs = (*tp->getfspart)(i, *partp, 0)) == nil)
+					if((dos = (*tp->getdospart)(i, *partp, 0)) == nil)
 						continue;
 
 					for(ini = inis; *ini; ini++){
-						if(fswalk(fs, *ini, &f) > 0){
-							mp->inifs = fs;
+						if(dosstat(dos, *ini, &df) > 0){
+							mp->inidos = dos;
 							mp->part = *partp;
 							mp->ini = *ini;
 							mp->flag |= Fini;
@@ -231,7 +225,7 @@ probe(int type, int flag, int dev)
 
 	return 0;
 }
-
+	
 void
 main(void)
 {
@@ -258,7 +252,7 @@ main(void)
 			continue;
 		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
 			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
-			dotini(mp->inifs);
+			dotini(mp->inidos);
 			break;
 		}
 	}
@@ -406,7 +400,7 @@ ialloc(ulong n, int align)
 	int a;
 
 	if(palloc == 0)
-		palloc = 12*1024*1024;
+		palloc = 3*1024*1024;
 
 	p = palloc;
 	if(align <= 0)

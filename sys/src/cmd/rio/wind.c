@@ -34,7 +34,7 @@ static	Image	*lightholdcol;
 static	Image	*paleholdcol;
 
 Window*
-wmk(Image *i, Mousectl *mc, Channel *ck, Channel *cctl, int scrolling)
+wmk(Image *i, Mousectl *mc, Channel *ck, Channel *cctl)
 {
 	Window *w;
 	Rectangle r;

@@ -850,9 +850,7 @@ mesgopen(char *s)
 	proccreate(wineventproc, m->w, STACK);
 	p[strlen(p)-strlen("article")] = '\0';
 	winname(m->w, p);
-	if(canpost)
-		wintagwrite(m->w, "Reply ", 6);
-	wintagwrite(m->w, "Headers ", 8);
+	wintagwrite(m->w, "Reply Headers ", 6+8);
 
 	free(p);
 	if(mlist){
@@ -998,9 +996,7 @@ threadmain(int argc, char **argv)
 	proccreate(timerproc, w, STACK);
 
 	winname(w, dir);
-	if(canpost)
-		wintagwrite(w, "Newpost ", 8);
-	wintagwrite(w, "More ", 5);
+	wintagwrite(w, "Newpost More ", 8+5);
 	dirwindow(w);
 	threadcreate(dirthread, w, STACK);
 	threadexits(nil);

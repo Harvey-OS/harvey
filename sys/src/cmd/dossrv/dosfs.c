@@ -106,13 +106,13 @@ rwalk(void)
 	f = xfile(req->fid, Asis);
 	if(f == nil){
 		chat("\tno xfile\n");
-		goto error2;
+		goto error;
 	}
 	if(req->fid != req->newfid){
 		nf = doclone(f, req->newfid);
 		if(nf == nil){
 			chat("\tclone failed\n");
-			goto error2;
+			goto error;
 		}
 		f = nf;
 	}
@@ -175,7 +175,6 @@ error:
 	memmove(f->ptr, savedp, sizeof(Dosptr));
 	if(nf != nil)
 		xfile(req->newfid, Clunk);
-error2:
 	if(!errno && !rep->nwqid)
 		errno = Enonexist;
 }

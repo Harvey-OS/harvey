@@ -24,14 +24,13 @@ void *alloc(unsigned int);
 void
 main(int argc, char *argv[])
 {
-	int i, fd, ahead;
+	int i, fd;
 	long now;
 	char *line;
 	Tm *tm;
 	Date *first, *last, *d;
 	char buf[1024];
 
-	ahead = 0;
 	ARGBEGIN{
 	case 'y':
 		matchyear = 1;
@@ -39,11 +38,8 @@ main(int argc, char *argv[])
 	case 'd':
 		debug = 1;
 		break;
-	case 'p':
-		ahead = atoi(ARGF());
-		break;
 	default:
-		fprint(2, "usage: calendar [-y] [-d] [files ...]\n");
+		fprint(2, "usage: calendar [-d] [files ...]\n");
 		exits("usage");
 	}ARGEND;
 
@@ -61,12 +57,6 @@ main(int argc, char *argv[])
 	}
 	if(tm->wday == 0){
 		now += Secondsperday;
-		tm = localtime(now);
-		dates(&last, tm);
-	}
-	if(ahead){
-		now = time(0);
-		now += ahead * Secondsperday;
 		tm = localtime(now);
 		dates(&last, tm);
 	}

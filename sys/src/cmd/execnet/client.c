@@ -46,8 +46,8 @@ die(Client *c)
 
 	c->moribund = 1;
 	kickwriter(c);
-	iointerrupt(c->readerproc);
-	iointerrupt(c->writerproc);
+	c->readerproc->interrupt(c->readerproc);
+	c->writerproc->interrupt(c->writerproc);
 	if(--c->activethread == 0){
 		if(c->cmd != nocmd){
 			free(c->cmd);
@@ -94,8 +94,8 @@ closeclient(Client *c)
 		c->fd[0] = c->fd[1] = -1;
 		c->moribund = 1;
 		kickwriter(c);
-		iointerrupt(c->readerproc);
-		iointerrupt(c->writerproc);		
+		c->readerproc->interrupt(c->readerproc);
+		c->writerproc->interrupt(c->writerproc);		
 		c->activethread++;
 		die(c);
 	}
@@ -223,7 +223,7 @@ readthread(void *a)
 
 	buf = emalloc(8192);
 	io = c->readerproc;
-	while((n = ioread(io, c->fd[0], buf, 8192)) >= 0){
+	while((n = io->read(io, c->fd[0], buf, 8192)) >= 0){
 		m = emalloc(sizeof(Msg)+n);
 		m->rp = (uchar*)&m[1];
 		m->ep = m->rp + n;
@@ -252,12 +252,12 @@ clientflush(Req *or, Client *c)
 	else{
 		if(c->execreq == or){
 			c->execreq = nil;
-			iointerrupt(c->writerproc);
+			c->writerproc->interrupt(c->writerproc);
 		}
 		findwrreq(c, or);
 		if(c->curw == or){
 			c->curw = nil;
-			iointerrupt(c->writerproc);
+			c->writerproc->interrupt(c->writerproc);
 			kickwriter(c);
 		}
 	}
@@ -298,7 +298,7 @@ writethread(void *a)
 		r = c->wq;
 		c->wq = r->aux;
 		c->curw = r;
-		n = iowrite(io, c->fd[1], r->ifcall.data, r->ifcall.count);
+		n = io->write(io, c->fd[1], r->ifcall.data, r->ifcall.count);
 		if(chatty9p)
 			fprint(2, "io->write returns %d\n", n);
 		if(c->curw == nil){

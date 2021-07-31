@@ -1,24 +1,46 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include <thread.h>
 #include <9p.h>
-#include "post.h"
 
 void
 postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 {
-	Postcrud *p;
+	int fd[2];
 
-	p = _post1(s, name, mtpt, flag);
+	if(s->nopipe){
+		if(name || mtpt)
+			sysfatal("postmountsrv: can't post or mount with nopipe");
+	}else{
+		if(pipe(fd) < 0)
+			sysfatal("pipe: %r");
+		if(name)
+			if(postfd(name, fd[0]) < 0)
+				sysfatal("postfd %s: %r", name);
+		s->infd = fd[1];
+		s->outfd = fd[1];
+	}
+
 	switch(rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG|RFMEM)){
 	case -1:
-		sysfatal("rfork: %r");
+		sysfatal("fork: %r");
 	case 0:
-		_post2(s);
-		exits(nil);
+		if(!s->nopipe)
+			close(fd[0]);
+		srv(s);
+		if(s->end)
+			s->end(s);
+		_exits(0);
 	default:
-		_post3(p);
+		if(!s->nopipe){
+			if(mtpt)
+				if(amount(fd[0], mtpt, flag, "") == -1)
+					sysfatal("mount %s: %r\n", mtpt);
+			close(fd[0]);
+		}
+		break;
 	}
 }
 

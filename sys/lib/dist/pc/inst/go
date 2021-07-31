@@ -1,0 +1,17 @@
+#!/bin/rc
+
+cd /bin/inst
+echo blanktime 0 >/dev/vgactl
+. defs
+
+switch($#mouseport){
+case 1
+	startwin 640 480
+case *
+	# text-only install
+	tailfsrv &
+	while(! test -f /srv/log)
+		sleep 1
+	log `{time} Installation process started
+	inst/mainloop
+}

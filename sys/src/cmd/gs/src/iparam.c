@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1993, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: iparam.c,v 1.5 2000/09/19 19:00:46 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: iparam.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
 /* Interpreter implementations of parameter dictionaries */
 #include "memory_.h"
 #include "string_.h"
@@ -61,9 +61,8 @@ ref_to_key(const ref * pref, gs_param_key_t * key, iparam_list *plist)
 	name_string_ref(pref, &nref);
 	key->data = nref.value.const_bytes;
 	key->size = r_size(&nref);
-	key->persistent = false; /* names may be freed */
     } else if (r_has_type(pref, t_integer)) {
-	char istr[sizeof(long) * 8 / 3 + 2];
+	char istr[22];		/* big enough for signed 64-bit value */
 	int len;
 	byte *buf;
 
@@ -75,7 +74,6 @@ ref_to_key(const ref * pref, gs_param_key_t * key, iparam_list *plist)
 	    return_error(e_VMerror);
 	key->data = buf;
 	key->size = len;
-	key->persistent = true;
     } else
 	return_error(e_typecheck);
     return 0;
@@ -352,8 +350,8 @@ private void
 ref_param_write_init(iparam_list * plist, const ref * pwanted,
 		     gs_ref_memory_t *imem)
 {
-    gs_param_list_init((gs_param_list *)plist, &ref_write_procs,
-		       (gs_memory_t *)imem);
+    plist->procs = &ref_write_procs;
+    plist->memory = (gs_memory_t *)imem;
     plist->ref_memory = imem;
     if (pwanted == 0)
 	make_null(&plist->u.w.wanted);
@@ -447,7 +445,7 @@ dict_param_enumerate(iparam_list * plist, gs_param_enumerator_t * penum,
     if (index < 0)
 	return 1;
     *type = r_type(&elt[1]);
-    code = ref_to_key(&elt[0], key, plist);
+    code = ref_to_key(&elt[1], key, plist);
     penum->intval = index;
     return code;
 }
@@ -729,33 +727,21 @@ ref_param_read_typed(gs_param_list * plist, gs_param_name pkey,
 		pvalue->value.d.size = 0;
 		return 0;
 	    }
-	    /*
-	     * We have to guess at the array type.  First we guess based
-	     * on the type of the first element of the array.  If that
-	     * fails, we try again with more general types.
-	     */
+	    /* Get array type based on type of 1st element of array */
 	    array_get(loc.pvalue, 0, &elt);
-	    switch (r_type(&elt)) {
+	    switch (r_type(&elt)) {	/* redundant key lookup, but cached */
 		case t_integer:
 		    pvalue->type = gs_param_type_int_array;
-		    code = ref_param_read_int_array(plist, pkey,
-						    &pvalue->value.ia);
-		    if (code != e_typecheck)
-			return code;
-		    /* This might be a float array.  Fall through. */
-		    *loc.presult = 0;  /* reset error */
+		    return ref_param_read_int_array(plist, pkey, &pvalue->value.ia);
 		case t_real:
 		    pvalue->type = gs_param_type_float_array;
-		    return ref_param_read_float_array(plist, pkey,
-						      &pvalue->value.fa);
+		    return ref_param_read_float_array(plist, pkey, &pvalue->value.fa);
 		case t_string:
 		    pvalue->type = gs_param_type_string_array;
-		    return ref_param_read_string_array(plist, pkey,
-						       &pvalue->value.sa);
+		    return ref_param_read_string_array(plist, pkey, &pvalue->value.sa);
 		case t_name:
 		    pvalue->type = gs_param_type_name_array;
-		    return ref_param_read_string_array(plist, pkey,
-						       &pvalue->value.na);
+		    return ref_param_read_string_array(plist, pkey, &pvalue->value.na);
 		default:
 		    break;
 	    }
@@ -941,8 +927,8 @@ private int
 ref_param_read_init(iparam_list * plist, uint count, const ref * ppolicies,
 		    bool require_all, gs_ref_memory_t *imem)
 {
-    gs_param_list_init((gs_param_list *)plist, &ref_read_procs,
-		       (gs_memory_t *)imem);
+    plist->procs = &ref_read_procs;
+    plist->memory = (gs_memory_t *)imem;
     plist->ref_memory = imem;
     if (ppolicies == 0)
 	make_null(&plist->u.r.policies);

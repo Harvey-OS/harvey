@@ -11,12 +11,11 @@ dev
 	dup
 	rtc
 	ssl
-	tls
 	cap
 	kprof
 
 	ether		netif
-	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+	ip		arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
 	draw		screen vga vgax
 	mouse		mouse
@@ -34,6 +33,7 @@ link
 	netdevmedium
 
 misc
+	edf
 	factotum.root
 	ipconfig.root
 	kfs.root
@@ -51,7 +51,6 @@ ip
 	udp
 	ipifc
 	icmp
-	icmp6
 
 port
 	int cpuserver = 1;

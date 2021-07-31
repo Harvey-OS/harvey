@@ -1,20 +1,13 @@
 objtype=mips
-</power/mkfile
+</mips/mkfile
 
 LIB=/$objtype/lib/libmp.a
-SFILES=\
-	mpvecadd.s\
-	mpvecsub.s\
-	mpvecdigmuladd.s\
-	mpvecdigmulsub.s\
-	mpdigdiv.s\
+OFILES=	mpvecadd.$O\
+	mpvecsub.$O\
+	mpvecdigmuladd.$O\
+	mpvecdigmulsub.$O\
+	mpdigdiv.$O\
 
 HFILES=/$objtype/include/u.h /sys/include/mp.h ../port/dat.h
-
-OFILES=${SFILES:%.s=%.$O}
-
-UPDATE=mkfile\
-	$HFILES\
-	$SFILES\
 
 </sys/src/cmd/mksyslib

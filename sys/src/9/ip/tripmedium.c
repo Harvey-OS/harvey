@@ -142,7 +142,7 @@ tripread(void *a)
 	for(;;) {
 		bp = devtab[er->mchan->type]->bread(er->mchan, ifc->maxmtu, 0);
 		ifc->in++;
-		ipiput4(er->fs, ifc, bp);
+		ipiput(er->fs, ifc, bp);
 	}
 
 	pexit("hangup", 1);

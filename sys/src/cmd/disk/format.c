@@ -348,23 +348,6 @@ getdriveno(Disk *disk)
 	return 0x80;
 }
 
-long
-writen(int fd, void *buf, long n)
-{
-	/* write 8k at a time, to be nice to the disk subsystem */
-	
-	long m, tot;
-
-	for(tot=0; tot<n; tot+=m){
-		m = n - tot;
-		if(m > 8192)
-			m = 8192;
-		if(write(fd, (uchar*)buf+tot, m) != m)
-			break;
-	}
-	return tot;
-}
-
 void
 dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc, char *argv[], int commit)
 {
@@ -372,7 +355,7 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc, char *argv[], int
 	Dosboot *b;
 	uchar *buf, *pbsbuf, *p;
 	Dir *d;
-	int i, data, newclusters, npbs, n, sysfd;
+	int npbs, n, sysfd;
 	ulong x;
 	vlong length;
 	vlong secsize;
@@ -488,52 +471,23 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc, char *argv[], int
 
 		if(clustersize == 0)
 			clustersize = t->cluster;
-		/*
-		 * the number of fat bits depends on how much disk is left
-		 * over after you subtract out the space taken up by the fat tables. 
-		 * try both.  what a crock.
-		 */
-		fatbits = 12;
-Tryagain:
+		clusters = length/(secsize*clustersize);
+		if(clusters < 4087)
+			fatbits = 12;
+		else if(clusters < 65527)	/* no idea if this is right -rsc */
+			fatbits = 16;
+		else
+			fatal("disk too big; implement fat32");
+	
 		volsecs = length/secsize;
-		/*
-		 * here's a crock inside a crock.  even having fixed fatbits,
-		 * the number of fat sectors depends on the number of clusters,
-		 * but of course we don't know yet.  maybe iterating will get us there.
-		 * or maybe it will cycle.
-		 */
-		clusters = 0;
-		for(i=0;; i++){
-			fatsecs = (fatbits*clusters + 8*secsize - 1)/(8*secsize);
-			rootsecs = volsecs/200;
-			rootfiles = rootsecs * (secsize/sizeof(Dosdir));
-			if(rootfiles > 512){
-				rootfiles = 512;
-				rootsecs = rootfiles/(secsize/sizeof(Dosdir));
-			}
-			data = nresrv + 2*fatsecs + (rootfiles*sizeof(Dosdir) + secsize-1)/secsize;
-			newclusters = 2 + (volsecs - data)/clustersize;
-			if(newclusters == clusters)
-				break;
-			clusters = newclusters;
-			if(i > 10)
-				fatal("can't decide how many clusters to use (%d? %d?)", clusters, newclusters);
-if(chatty) print("clusters %d\n", clusters);
+		fatsecs = (fatbits*clusters + 8*secsize - 1)/(8*secsize);
+		rootsecs = volsecs/200;
+		rootfiles = rootsecs * (secsize/sizeof(Dosdir));
+		if(rootfiles > 512){
+			rootfiles = 512;
+			rootsecs = rootfiles/(secsize/sizeof(Dosdir));
 		}
-				
-if(chatty) print("try %d fatbits => %d clusters of %d\n", fatbits, clusters, clustersize);
-		switch(fatbits){
-		case 12:
-			if(clusters >= 4087){
-				fatbits = 16;
-				goto Tryagain;
-			}
-			break;
-		case 16:
-			if(clusters >= 65527)
-				fatal("disk too big; implement fat32");
-			break;
-		}
+
 		PUTSHORT(b->sectsize, secsize);
 		b->clustsize = clustersize;
 		PUTSHORT(b->nresrv, nresrv);
@@ -649,11 +603,11 @@ if(chatty) print("files @%lluX\n", seek(disk->wfd, 0LL, 1));
 			if((buf = malloc(length)) == 0)
 				fatal("out of memory");
 	
-			if(readn(sysfd, buf, d->length) != d->length)
+			if(read(sysfd, buf, d->length) < 0)
 				fatal("read %s: %r", *argv);
 			memset(buf+d->length, 0, length-d->length);
 if(chatty) print("%s @%lluX\n", d->name, seek(disk->wfd, 0LL, 1));
-			if(commit && writen(disk->wfd, buf, length) != length)
+			if(commit && write(disk->wfd, buf, length) < 0)
 				fatal("write %s: %r", *argv);
 			free(buf);
 
@@ -678,7 +632,6 @@ if(chatty) print("%s @%lluX\n", d->name, seek(disk->wfd, 0LL, 1));
 		/*
 		 * Add the filename to the root.
 		 */
-fprint(2, "add %s at clust %lux\n", d->name, x);
 		addrname(p, d, *argv, x);
 		free(d);
 	}

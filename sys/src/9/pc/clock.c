@@ -44,17 +44,15 @@ microdelay(int microsecs)
 	aamloop(microsecs);
 }
 
-/*  
- *  performance measurement ticks.  must be low overhead.
- *  doesn't have to count over a second.
- */
 ulong
-perfticks(void)
+TK2MS(ulong ticks)
 {
-	uvlong x;
+	uvlong t, hz;
 
-	if(!m->havetsc)
-		return ticks;
-	rdtsc(&x);
-	return x;
+	t = ticks;
+	hz = HZ;
+	t *= 1000L;
+	t = t/hz;
+	ticks = t;
+	return ticks;
 }

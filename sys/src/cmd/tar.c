@@ -265,11 +265,8 @@ getdir(void)
 		exits("checksum error");
 	}
 	sp->qid.type = 0;
-	/* the mode test is ugly but sometimes necessary */
-	if (dblock.dbuf.linkflag == '5' || (sp->mode&0170000) == 040000) {
+	if(dblock.dbuf.linkflag == '5')
 		sp->qid.type |= QTDIR;
-		sp->mode |= DMDIR;
-	}
 }
 
 void
@@ -581,7 +578,7 @@ readtar(char *buffer)
 	int i;
 
 	if (recno >= nblock || first == 0) {
-		if ((i = readn(mt, tbuf, TBLOCK*nblock)) <= 0) {
+		if ((i = read(mt, tbuf, TBLOCK*nblock)) <= 0) {
 			fprint(2, "tar: archive read error: %r\n");
 			exits("archive read");
 		}

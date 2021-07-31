@@ -64,7 +64,7 @@ static int pcimaxdno;
 static Pcidev* pciroot;
 static Pcidev* pcilist;
 static Pcidev* pcitail;
-static int nobios, nopcirouting;
+static int nobios;
 
 static int pcicfgrw32(int, int, int, int);
 static int pcicfgrw8(int, int, int, int);
@@ -669,7 +669,7 @@ pcirouting(void)
 	router_t *r;
 	int size, i, fn, tbdf;
 	Pcidev *sbpci, *pci;
-	uchar *p, *m, pin, irq, link;
+	uchar *p, *m, pin, irq;
 
 	// Search for PCI interrupt routing table in BIOS
 	for(p = (uchar *)KADDR(0xf0000); p < (uchar *)KADDR(0xfffff); p += 16)
@@ -696,7 +696,7 @@ pcirouting(void)
 			break;
 
 	if(i == nelem(southbridges)) {
-		print("pcirouting: ignoring south bridge %T %.4uX/%.4uX\n", tbdf, sbpci->vid, sbpci->did);
+		print("pcirouting: south bridge %.4uX/%.4uX (unknown type)\n", sbpci->vid, sbpci->did);
 		return;
 	}
 	southbridge = &southbridges[i];
@@ -723,17 +723,16 @@ pcirouting(void)
 				continue;
 
 			m = &e->e_maps[(pin - 1) * 3];
-			link = m[0];
-			irq = southbridge->get(sbpci, link);
+			irq = southbridge->get(sbpci, m[0]);
 			if(irq == 0 || irq == pci->intl)
 				continue;
 			if(pci->intl != 0 && pci->intl != 0xFF) {
-				print("pcirouting: BIOS workaround: %T at pin %d link %d irq %d -> %d\n",
-					  tbdf, pin, link, irq, pci->intl);
-				southbridge->set(sbpci, link, pci->intl);
+				print("pcirouting: BIOS workaround: %T at pin %d irq %d -> %d\n",
+					  tbdf, pin, irq, pci->intl);
+				southbridge->set(sbpci, m[0], pci->intl);
 				continue;
 			}
-			print("pcirouting: %T at pin %d link %d irq %d\n", tbdf, pin, link, irq);
+			print("pcirouting: %T at pin %d irq %d\n", tbdf, pin, irq);
 			pcicfgw8(pci, PciINTL, irq);
 			pci->intl = irq;
 		}
@@ -754,27 +753,24 @@ pcicfginit(void)
 
 	if (getconf("*nobios"))
 		nobios = 1;
-	if (getconf("*nopcirouting"))
-		nopcirouting = 1;
-
 	/*
 	 * Try to determine which PCI configuration mode is implemented.
 	 * Mode2 uses a byte at 0xCF8 and another at 0xCFA; Mode1 uses
 	 * a DWORD at 0xCF8 and another at 0xCFC and will pass through
 	 * any non-DWORD accesses as normal I/O cycles. There shouldn't be
-	 * a device behind these addresses so if Mode1 accesses fail try
-	 * for Mode2 (Mode2 is deprecated).
+	 * a device behind these addresses so if Mode2 accesses fail try
+	 * for Mode1 (which is preferred, Mode2 is deprecated).
 	 */
-	outl(PciADDR, 0);
-	if(inl(PciADDR) == 0){
-		pcicfgmode = 1;
-		pcimaxdno = 31;
+	outb(PciCSE, 0);
+	if(inb(PciCSE) == 0){
+		pcicfgmode = 2;
+		pcimaxdno = 15;
 	}
-	else{
-		outb(PciCSE, 0);
-		if(inb(PciCSE) == 0){
-			pcicfgmode = 2;
-			pcimaxdno = 15;
+	else {
+		outl(PciADDR, 0);
+		if(inl(PciADDR) == 0){
+			pcicfgmode = 1;
+			pcimaxdno = 31;
 		}
 	}
 	
@@ -847,14 +843,11 @@ pcicfginit(void)
 		return;
 	}
 
-	if (!nopcirouting)
-		pcirouting();
+	pcirouting();
 
 out:
 	unlock(&pcicfginitlock);
 
-	if(getconf("*pcihinv"))
-		pcihinv(nil);
 }
 
 static int

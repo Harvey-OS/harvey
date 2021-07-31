@@ -44,11 +44,6 @@ enum {
 	Nhdr,
 };
 
-enum {
-	PGPsign = 1,
-	PGPencrypt = 2,
-};
-
 char *hdrs[Nhdr] = {
 [Hfrom]		"from:",
 [Hto]		"to:",
@@ -90,7 +85,6 @@ Ctype ctype[] = {
 };
 
 int pid = -1;
-int pgppid = -1;
 
 Attach*	mkattach(char*, char*, int);
 int	readheaders(Biobuf*, int*, String**, Addr**);
@@ -99,24 +93,20 @@ char*	mkboundary(void);
 int	printdate(Biobuf*);
 int	printfrom(Biobuf*);
 int	printto(Biobuf*, Addr*);
-int	printcc(Biobuf*, Addr*);
 int	printsubject(Biobuf*, char*);
-int	sendmail(Addr*, Addr*, int*, char*);
+int	sendmail(Addr*, int*, char*);
 void	attachment(Attach*, Biobuf*);
 int	cistrncmp(char*, char*, int);
 int	cistrcmp(char*, char*);
-char*	waitforsubprocs(void);
+char*	waitforsendmail(int);
 int	enc64(char*, int, uchar*, int);
 Addr*	expand(int, char**);
 Alias*	readaliases(void);
 Addr*	expandline(String**, Addr*);
 void	Bdrain(Biobuf*);
 void	freeaddr(Addr *);
-int	pgpopts(char*);
-int	pgpfilter(int*, int, int);
 
 int rflag, lbflag, xflag, holding, nflag, Fflag, eightflag;
-int pgpflag = 0;
 char *user;
 char *login;
 Alias *aliases;
@@ -134,7 +124,7 @@ enum
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-Fr#xn] [-s subject] [-c ccrecipient] [-t type] [-aA attachment] [-p[es]] -8 | recipient-list\n",
+	fprint(2, "usage: %s [-Fr#xn] [-s subject] [-t type] [-aA attachment] -8 | recipient-list\n",
 		argv0);
 	exits("usage");
 }
@@ -147,8 +137,6 @@ fatal(char *fmt, ...)
 
 	if(pid >= 0)
 		postnote(PNPROC, pid, "die");
-	if(pgppid >= 0)
-		postnote(PNPROC, pgppid, "die");
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -166,11 +154,8 @@ main(int argc, char **argv)
 	int flags, fd;
 	Biobuf in, out, *b;
 	Addr *to;
-	Addr *cc;
 	String *file, *hdrstring;
 	int noinput, headersrv;
-	int ccargc;
-	char *ccargv[32];
 
 	noinput = 0;
 	subject = nil;
@@ -178,8 +163,6 @@ main(int argc, char **argv)
 	l = &first;
 	type = nil;
 	hdrstring = nil;
-	ccargc = 0;
-
 	ARGBEGIN{
 	case 't':
 		type = ARGF();
@@ -198,14 +181,6 @@ main(int argc, char **argv)
 		type = nil;
 		*l = a;
 		l = &a->next;
-		break;
-	case 'C':
-		if(ccargc >= nelem(ccargv)-1)
-			sysfatal("too many cc's");
-		ccargv[ccargc] = ARGF();
-		if(ccargv[ccargc] == nil)
-			usage();
-		ccargc++;
 		break;
 	case 's':
 		subject = ARGF();
@@ -227,10 +202,6 @@ main(int argc, char **argv)
 		break;
 	case '8':			// read recipients from rfc822 header
 		eightflag = 1;
-		break;
-	case 'p':			// pgp flag: encrypt, sign, or both
-		if(pgpopts(ARGF()) < 0)
-			sysfatal("bad pgp options");
 		break;
 	default:
 		usage();
@@ -255,13 +226,10 @@ main(int argc, char **argv)
 		usage();
 
 	aliases = readaliases();
-	if(!eightflag){
+	if(!eightflag)
 		to = expand(argc, argv);
-		cc = expand(ccargc, ccargv);
-	} else {
+	else
 		to = nil;
-		cc = nil;
-	}
 
 	flags = 0;
 	headersrv = Nomessage;
@@ -291,12 +259,12 @@ main(int argc, char **argv)
 		}
 	}
 
-	fd = sendmail(to, cc, &pid, Fflag ? argv[0] : nil);
+	fd = sendmail(to, &pid, Fflag ? argv[0] : nil);
 	if(fd < 0)
 		sysfatal("execing sendmail: %r\n:");
 	if(xflag || lbflag){
 		close(fd);
-		exits(waitforsubprocs());
+		exits(waitforsendmail(pid));
 	}
 	
 	if(Binit(&out, fd, OWRITE) < 0)
@@ -335,21 +303,10 @@ main(int argc, char **argv)
 	if((flags & (1<<Hto)) == 0)
 		if(printto(&out, to) < 0)
 			fatal("writing");
-	if((flags & (1<<Hcc)) == 0)
-		if(printcc(&out, cc) < 0)
-			fatal("writing");
 	if((flags & (1<<Hsubject)) == 0 && subject != nil)
 		if(printsubject(&out, subject) < 0)
 			fatal("writing");
 	Bprint(&out, "MIME-Version: 1.0\n");
-
-	if(pgpflag){	// interpose pgp process between us and sendmail to handle body
-		Bflush(&out);
-		Bterm(&out);
-		fd = pgpfilter(&pgppid, fd, pgpflag);
-		if(Binit(&out, fd, OWRITE) < 0)
-			fatal("can't Binit 1: %r");
-	}
 
 	// if attachments, stick in multipart headers
 	boundary = nil;
@@ -383,28 +340,7 @@ main(int argc, char **argv)
 
 	Bterm(&out);
 	close(fd);
-	exits(waitforsubprocs());
-}
-
-// evaluate pgp option string
-int
-pgpopts(char *s)
-{
-	if(s == nil || s[0] == '\0')
-		return -1;
-	while(*s){
-		switch(*s++){
-		case 's':  case 'S':
-			pgpflag |= PGPsign;
-			break;
-		case 'e': case 'E':
-			pgpflag |= PGPencrypt;
-			break;
-		default:
-			return -1;
-		}
-	}
-	return 0;
+	exits(waitforsendmail(pid));
 }
 
 // read headers from stdin into a String, expanding local aliases,
@@ -695,31 +631,15 @@ printfrom(Biobuf *b)
 }
 
 int
-printto(Biobuf *b, Addr *a)
+printto(Biobuf *b, Addr *to)
 {
-	if(Bprint(b, "To: %s", a->v) < 0)
+	if(Bprint(b, "To: %s", to->v) < 0)
 		return -1;
-	for(a = a->next; a != nil; a = a->next)
-		if(Bprint(b, ", %s", a->v) < 0)
+	for(to = to->next; to != nil; to = to->next)
+		if(Bprint(b, ", %s", to->v) < 0)
 			return -1;
 	if(Bprint(b, "\n") < 0)
 		return -1;
-	return 0;
-}
-
-int
-printcc(Biobuf *b, Addr *a)
-{
-	if(a == nil)
-		return 0;
-	if(Bprint(b, "CC: %s", a->v) < 0)
-		return -1;
-	for(a = a->next; a != nil; a = a->next)
-		if(Bprint(b, ", %s", a->v) < 0)
-			return -1;
-	if(Bprint(b, "\n") < 0)
-		return -1;
-	return 0;
 }
 
 int
@@ -870,7 +790,7 @@ foldername(char *folder, char *rcvr)
 
 // start up sendmail and return an fd to talk to it with
 int
-sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
+sendmail(Addr *to, int *pid, char *rcvr)
 {
 	char **av, **v;
 	int ac, fd;
@@ -890,8 +810,6 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 	ac = 0;
 	for(a = to; a != nil; a = a->next)
 		ac++;
-	for(a = cc; a != nil; a = a->next)
-		ac++;
 	v = av = malloc(sizeof(char*)*(ac+8));
 	if(av == nil)
 		fatal("%r");
@@ -904,8 +822,6 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 	if(lbflag)
 		v[ac++] = "-#";
 	for(a = to; a != nil; a = a->next)
-		v[ac++] = a->v;
-	for(a = cc; a != nil; a = a->next)
 		v[ac++] = a->v;
 	v[ac] = 0;
 
@@ -957,67 +873,22 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 	return pfd[1];
 }
 
-// start up pgp process and return an fd to talk to it with.
-// its standard output will be the original fd, which goes to sendmail.
-int
-pgpfilter(int *pid, int fd, int pgpflag)
-{
-	char **av, **v;
-	int ac;
-	int pfd[2];
 
-	v = av = malloc(sizeof(char*)*8);
-	if(av == nil)
-		fatal("%r");
-	ac = 0;
-	v[ac++] = "pgp";
-	if(pgpflag & PGPsign)
-		v[ac++] = "-s";
-	if(pgpflag & PGPencrypt)
-		v[ac++] = "-e";
-	v[ac] = 0;
-
-	if(pipe(pfd) < 0)
-		fatal("%r");
-	switch(*pid = fork()){
-	case -1:
-		fatal("%r");
-		break;
-	case 0:
-		close(pfd[1]);
-		dup(pfd[0], 0);
-		close(pfd[0]);
-		dup(fd, 1);
-		close(fd);
-
-		exec("/bin/upas/pgp", av);
-		fatal("execing: %r");
-		break;
-	default:
-		close(pfd[0]);
-		break;
-	}
-	close(fd);
-	return pfd[1];
-}
-
-// wait for sendmail and pgp to exit; exit here if either failed
+// wait for sendmail to exit
 char*
-waitforsubprocs(void)
+waitforsendmail(int pid)
 {
 	Waitmsg *w;
-	char *err;
 
-	err = nil;
 	while((w = wait()) != nil){
-		if(w->pid == pid || w->pid == pgppid){
+		if(w->pid == pid){
 			if(w->msg[0] != 0)
-				err = strdup(w->msg);
+				exits(w->msg);
+			free(w);
+			break;
 		}
 		free(w);
 	}
-	if(err)
-		exits(err);
 	return nil;
 }
 
@@ -1295,8 +1166,6 @@ expand(int ac, char **av)
 {
 	Addr *first, **l;
 	int i;
-
-	first = nil;
 
 	// make a list of the starting addresses
 	l = &first;

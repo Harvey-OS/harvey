@@ -23,7 +23,7 @@ struct Rarp
 	uchar	tpa[4];
 };
 
-uchar	myip[IPaddrlen];
+uchar	myip[4];
 uchar	myether[6];
 char	rlog[] = "ipboot";
 char	*device = "ether0";
@@ -90,7 +90,6 @@ main(int argc, char *argv[])
 
 	fmtinstall('E', eipfmt);
 	fmtinstall('I', eipfmt);
-	fmtinstall('V', eipfmt);
 
 	db = ndbopen(ndbfile);
 	if(db == 0)
@@ -135,7 +134,7 @@ main(int argc, char *argv[])
 		}
 
 		if(debug)
-			syslog(debug, rlog, "rcv se %E si %V te %E ti %V",
+			syslog(debug, rlog, "rcv se %E si %I te %E ti %I",
 				 rp->sha, rp->spa, rp->tha, rp->tpa);
 
 		sprint(ebuf, "%E", rp->tha);
@@ -146,22 +145,22 @@ main(int argc, char *argv[])
 		v4parseip(rp->tpa, ipbuf);
 
 		memmove(rp->sha, myether, sizeof(rp->sha));
-		v6tov4(rp->spa, myip);
+		memmove(rp->spa, myip, sizeof(rp->spa));
 
 		rp->op[0] = 0;
 		rp->op[1] = 4;
 		memmove(rp->edst, rp->esrc, sizeof(rp->edst));
 
 		if(debug)
-			syslog(debug, rlog, "send se %E si %V te %E ti %V",
+			syslog(debug, rlog, "send se %E si %I te %E ti %I",
 				 rp->sha, rp->spa, rp->tha, rp->tpa);
 
-		if(write(edata, buf, 60) != 60)
+		if(write(edata, buf, 42) != 42)
 			error("write failed");
 
 		if(arp < 0)
 			continue;
-		if(fprint(arp, "add %E %V", rp->esrc, rp->tpa) < 0)
+		if(fprint(arp, "add %E %I", rp->esrc, rp->tpa) < 0)
 			fprint(2, "can't write arp entry\n");
 	}
 }

@@ -291,6 +291,7 @@ trap(Ureg *ur)
 	char buf[ERRMAX];
 	int user, x;
 
+	m->intrts = fastticks(nil);
 	user = ur->status&UMODE;
 
 	if(user){
@@ -521,13 +522,6 @@ notify(Ureg *ur)
 	spllo();
 	qlock(&up->debug);
 	up->notepending = 0;
-
-	if(up->fpstate == FPactive){
-		savefpregs(&up->fpsave);
-		up->fpstate = FPinactive;
-	}
-	up->fpstate |= FPillegal;
-
 	n = &up->note[0];
 	if(strncmp(n->msg, "sys:", 4) == 0) {
 		l = strlen(n->msg);
@@ -617,8 +611,6 @@ print("call to noted() when not notified\n");
 		pexit("Suicide", 0);
 	}
 	up->notified = 0;
-
-	up->fpstate &= ~FPillegal;
 
 	nur = up->ureg;
 
@@ -790,7 +782,6 @@ linkproc(void)
 {
 	spllo();
 	up->kpfun(up->kparg);
-	pexit("kproc exiting", 0);
 }
 
 void

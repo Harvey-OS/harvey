@@ -15,7 +15,7 @@
 % requires that the copyright notice and this notice be preserved on all
 % copies.
 
-% $Id: gs_icc.ps,v 1.2 2001/06/12 16:02:39 rayjj Exp $
+% $Id: gs_icc.ps,v 1.1 2001/03/17 01:15:41 raph Exp $
 % PostScript portion of ICCBased color space support
 
 //userdict /.icc_comp_map_dict
@@ -95,18 +95,12 @@ colorspacedict /ICCBased
 
     % if CIE spaces are not use, just take the alternate space
     NOCIE
-      { pop //null }
-      { % check for native support
+      { pop null }
+      {
+        % check for native support
         /.seticcspace where
-          { pop dup 1 get
-	    % Acrobat Reader silently ignores errors with ICC profiles
-	    % and uses the alternate color space -- do the same.
-	    mark exch { .seticcspace } stopped
-	      { cleartomark pop //null }
-	      { pop }
-	    ifelse
-	  }
-          { pop //null }
+          { pop dup 1 get .seticcspace }
+          { pop null }
         ifelse
       }
     ifelse

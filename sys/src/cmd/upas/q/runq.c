@@ -559,7 +559,6 @@ returnmail(char **av, char *name, char *msg)
 	}
 
 	close(pfd[0]);
-	fprint(pfd[1], "\n");	/* get out of headers */
 	if(av[1]){
 		fprint(pfd[1], "Your request ``%.20s ", av[1]);
 		for(n = 3; av[n]; n++)

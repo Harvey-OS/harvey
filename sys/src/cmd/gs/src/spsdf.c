@@ -1,22 +1,22 @@
-/* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: spsdf.c,v 1.5 2001/04/01 00:35:26 raph Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: spsdf.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* Common utilities for PostScript and PDF format printing */
 #include "stdio_.h"		/* for stream.h */
 #include "string_.h"
@@ -48,25 +48,25 @@ s_write_ps_string(stream * s, const byte * str, uint size, int print_ok)
 
     if (print_ok & PRINT_BINARY_OK) {
 	/* Only need to escape (, ), \, CR, EOL. */
-	stream_putc(s, '(');
+	pputc(s, '(');
 	for (i = 0; i < size; ++i) {
 	    byte ch = str[i];
 
 	    switch (ch) {
 		case char_CR:
-		    stream_puts(s, "\\r");
+		    pputs(s, "\\r");
 		    continue;
 		case char_EOL:
-		    stream_puts(s, "\\n");
+		    pputs(s, "\\n");
 		    continue;
 		case '(':
 		case ')':
 		case '\\':
-		    stream_putc(s, '\\');
+		    pputc(s, '\\');
 	    }
-	    stream_putc(s, ch);
+	    pputc(s, ch);
 	}
-	stream_putc(s, ')');
+	pputc(s, ')');
 	return;
     }
     for (i = 0; i < size; ++i) {
@@ -83,13 +83,13 @@ s_write_ps_string(stream * s, const byte * str, uint size, int print_ok)
     if (added < size || (print_ok & PRINT_HEX_NOT_OK)) {
 	/* More efficient, or mandatory, to represent as PostScript string. */
 	template = &s_PSSE_template;
-	stream_putc(s, '(');
+	pputc(s, '(');
     } else {
 	/* More efficient, and permitted, to represent as hex string. */
 	template = &s_AXE_template;
 	st = (stream_state *) & state;
 	s_AXE_init_inline(&state);
-	stream_putc(s, '<');
+	pputc(s, '<');
     }
 
     {
@@ -102,10 +102,9 @@ s_write_ps_string(stream * s, const byte * str, uint size, int print_ok)
 	r.limit = r.ptr + size;
 	w.limit = buf + sizeof(buf) - 1;
 	do {
-	    /* One picky compiler complains if we initialize to buf - 1. */
-	    w.ptr = buf;  w.ptr--;
+	    w.ptr = buf - 1;
 	    status = (*template->process) (st, &r, &w, true);
-	    stream_write(s, buf, (uint) (w.ptr + 1 - buf));
+	    pwrite(s, buf, (uint) (w.ptr + 1 - buf));
 	}
 	while (status == 1);
     }
@@ -147,8 +146,8 @@ int
 s_init_param_printer(printer_param_list_t *prlist,
 		     const param_printer_params_t * ppp, stream * s)
 {
-    gs_param_list_init((gs_param_list *)prlist, &printer_param_list_procs,
-		       NULL);
+    prlist->procs = &printer_param_list_procs;
+    prlist->memory = 0;
     prlist->strm = s;
     prlist->params = *ppp;
     prlist->any = false;
@@ -177,7 +176,7 @@ s_release_param_printer(printer_param_list_t *prlist)
 {
     if (prlist) {
 	if (prlist->any && prlist->params.suffix)
-	    stream_puts(prlist->strm, prlist->params.suffix);
+	    pputs(prlist->strm, prlist->params.suffix);
     }
 }
 void
@@ -200,18 +199,18 @@ param_print_typed(gs_param_list * plist, gs_param_name pkey,
 
     if (!prlist->any) {
 	if (prlist->params.prefix)
-	    stream_puts(s, prlist->params.prefix);
+	    pputs(s, prlist->params.prefix);
 	prlist->any = true;
     }
     if (prlist->params.item_prefix)
-	stream_puts(s, prlist->params.item_prefix);
+	pputs(s, prlist->params.item_prefix);
     pprints1(s, "/%s", pkey);
     switch (pvalue->type) {
 	case gs_param_type_null:
-	    stream_puts(s, " null");
+	    pputs(s, " null");
 	    break;
 	case gs_param_type_bool:
-	    stream_puts(s, (pvalue->value.b ? " true" : " false"));
+	    pputs(s, (pvalue->value.b ? " true" : " false"));
 	    break;
 	case gs_param_type_int:
 	    pprintd1(s, " %d", pvalue->value.i);
@@ -228,20 +227,20 @@ param_print_typed(gs_param_list * plist, gs_param_name pkey,
 	    break;
 	case gs_param_type_name:
 	    /****** SHOULD USE #-ESCAPES FOR PDF ******/
-	    stream_putc(s, '/');
-	    stream_write(s, pvalue->value.n.data, pvalue->value.n.size);
+	    pputc(s, '/');
+	    pwrite(s, pvalue->value.n.data, pvalue->value.n.size);
 	    break;
 	case gs_param_type_int_array:
 	    {
 		uint i;
 		char sepr = (pvalue->value.ia.size <= 10 ? ' ' : '\n');
 
-		stream_putc(s, '[');
+		pputc(s, '[');
 		for (i = 0; i < pvalue->value.ia.size; ++i) {
 		    pprintd1(s, "%d", pvalue->value.ia.data[i]);
-		    stream_putc(s, sepr);
+		    pputc(s, sepr);
 		}
-		stream_putc(s, ']');
+		pputc(s, ']');
 	    }
 	    break;
 	case gs_param_type_float_array:
@@ -249,12 +248,12 @@ param_print_typed(gs_param_list * plist, gs_param_name pkey,
 		uint i;
 		char sepr = (pvalue->value.fa.size <= 10 ? ' ' : '\n');
 
-		stream_putc(s, '[');
+		pputc(s, '[');
 		for (i = 0; i < pvalue->value.fa.size; ++i) {
 		    pprintg1(s, "%g", pvalue->value.fa.data[i]);
-		    stream_putc(s, sepr);
+		    pputc(s, sepr);
 		}
-		stream_putc(s, ']');
+		pputc(s, ']');
 	    }
 	    break;
 	    /*case gs_param_type_string_array: */
@@ -263,6 +262,6 @@ param_print_typed(gs_param_list * plist, gs_param_name pkey,
 	    return_error(gs_error_typecheck);
     }
     if (prlist->params.item_suffix)
-	stream_puts(s, prlist->params.item_suffix);
+	pputs(s, prlist->params.item_suffix);
     return 0;
 }

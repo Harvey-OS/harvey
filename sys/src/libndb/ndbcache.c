@@ -14,7 +14,7 @@ struct Ndbcache
 
 enum
 {
-	Maxcached=	128,
+	Maxcached=	32,
 };
 
 static void

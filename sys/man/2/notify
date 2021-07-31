@@ -60,7 +60,6 @@ system call leaves the handler registered in
 both the parent and the child;
 .IR exec (2)
 restores the default behavior.
-Handlers may not perform floating point operations.
 .PP
 After a note is posted,
 the handler is called with two arguments:

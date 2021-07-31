@@ -29,7 +29,7 @@ struct Lock
 	ulong	key;
 	ulong	sr;
 	ulong	pc;
-	Proc	*p;
+	Proc	*	p;
 	ushort	isilock;
 };
 
@@ -45,13 +45,9 @@ struct Label
  */
 enum
 {
-	/* this is a state */
-	FPinit=		0,
-	FPactive=	1,
-	FPinactive=	2,
-
-	/* the following is a bit that can be or'd into the state */
-	FPillegal=	0x100,
+	FPinit,
+	FPactive,
+	FPinactive,
 };
 
 struct	FPsave
@@ -179,9 +175,9 @@ struct Mach
 	int	syscall;
 	int	load;
 	int	intr;
+	vlong	intrts;			/* time stamp of last interrupt */
 	int	flushmmu;		/* make current proc flush it's mmu state */
-	int	ilockdepth;
-	Perf	perf;			/* performance counters */
+	int		ilockdepth;
 
 	ulong	spuriousintr;
 	int	lastintr;
@@ -251,7 +247,7 @@ struct PCArch
 #define NISAOPT		8
 
 struct ISAConf {
-	char	*type;
+	char		*type;
 	ulong	port;
 	ulong	irq;
 	ulong	dma;
@@ -283,13 +279,13 @@ extern Mach	*m;
  */
 typedef struct {
 	ulong	port;	
-	int	size;
+	int		size;
 } port_t;
 
 struct DevConf
 {
-	ulong	intnum;	/* interrupt number */
-	char	*type;		/* card type, malloced */
-	int	nports;		/* Number of ports */
-	port_t	*ports;		/* The ports themselves */
+	ulong	interrupt;	/* interrupt number */
+	char		*type;	/* card type, malloced */
+	int		nports;	/* Number of ports */
+	port_t	*ports;	/* The ports themselves */
 };

@@ -1,10 +1,8 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Guide to Ghostscript source code</title>
-<!-- $Id: Source.htm,v 1.13.2.2 2002/02/01 05:31:25 raph Exp $ -->
+<!-- $Id: Source.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
 <!-- Originally: source.txt -->
-<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -12,7 +10,11 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<h1>Guide to Ghostscript source code</h1>
+<table width="100%" border="0">
+<tr><th align="center" bgcolor="#CCCC00"><font size=6>
+Guide to Ghostscript source code
+</font>
+</table>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -38,7 +40,7 @@
 
 <p>For other information, see the <a href="Readme.htm">Ghostscript
 overview</a> and the documents on <a href="Make.htm">how to build
-Ghostscript</a> from source, <a href="C-style.htm">Ghostscript C coding
+Ghostscript</a> from source, <a href="C-style.htm">Aladdin's C coding
 guidelines</a>, <a href="Drivers.htm">drivers</a>, the
 <a href="Lib.htm">Ghostscript library</a> and <a href="Install.htm">how to
 install Ghostscript</a>.
@@ -51,7 +53,7 @@ install Ghostscript</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h2><a name="Overview"></a>Conceptual overview</h2>
+<h1><a name="Overview"></a>Conceptual overview</h1>
 
 <p>
 The Ghostscript source code is divided conceptually as follows:
@@ -96,7 +98,7 @@ The Ghostscript source code is divided conceptually as follows:
 
 <hr>
 
-<h2><a name="PostScript_interpreter"></a>PostScript Interpreter</h2>
+<h1><a name="PostScript_interpreter"></a>PostScript Interpreter</h1>
 
 <p>
 <b><tt>gs.c</tt></b> is the main program for the interactive language
@@ -131,7 +133,7 @@ useful for printing PostScript objects when debugging.
 
 <hr>
 
-<h2><a name="PDF_interpreter"></a>PDF interpreter</h2>
+<h1><a name="PDF_interpreter"></a>PDF interpreter</h1>
 
 <p>
 The PDF interpreter is written entirely in PostScript.  Its main loop is
@@ -142,7 +144,7 @@ This redefinition is near the beginning of <b><tt>pdf_main.ps</tt></b>.
 
 <hr>
 
-<h2><a name="Graphics_library"></a>Graphics library</h2>
+<h1><a name="Graphics_library"></a>Graphics library</h1>
 
 <p>
 Files beginning with <b><tt>gs</tt></b>, <b><tt>gx</tt></b>, or
@@ -160,7 +162,7 @@ including the Level 2 PostScript "filters" supported by Ghostscript.  See
 <b><tt>stream.h</tt></b>, <b><tt>scommon.h</tt></b>, and
 <b><tt>strimpl.h</tt></b> for all the details.
 
-<h3><a name="Drivers"></a>Device drivers</h3>
+<h2><a name="Drivers"></a>Device drivers</h2>
 
 <p>
 The interface between the graphics library and device drivers is the only
@@ -191,7 +193,7 @@ devices: probably the simplest non-printer driver for reading is
 <b><tt>gdevm8.c</tt></b>, which implements 8-bit-deep devices that only
 store the bits in memory.
 
-<h3><a name="Platform_specific_code"></a>Platform-specific code</h3>
+<h2><a name="Platform_specific_code"></a>Platform-specific code</h2>
 
 <p>
 There are very few platform dependencies in Ghostscript.  Ghostscript deals
@@ -275,7 +277,7 @@ a new makefile and a new <b><tt>gp_</tt></b>XXX<b><tt>.c</tt></b> file.
 
 <hr>
 
-<h2><a name="Makefiles"></a>Makefiles</h2>
+<h1><a name="Makefiles"></a>Makefiles</h1>
 
 <p>
 This section is only for advanced developers who need to integrate
@@ -362,18 +364,19 @@ and so on.
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<p>
-<small>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All
-rights reserved.</small>
+<font size=2>
 
-<p>
-<small>This file is part of AFPL Ghostscript.  See the
+<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+
+<p>This file is part of Aladdin Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.</small>
+Aladdin Ghostscript.
 
 <p>
-<small>Ghostscript version 7.04, 31 January 2002
+Ghostscript version 6.0, 3 February 2000
+
+</font>
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

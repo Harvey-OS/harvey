@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: iscan.c,v 1.5 2000/09/19 19:00:46 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: iscan.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* Token scanner for Ghostscript interpreter */
 #include "ghost.h"
 #include "memory_.h"
@@ -222,15 +222,6 @@ RELOC_PTRS_END
 /* Structure type */
 public_st_scanner_state();
 
-/* Initialize a scanner. */
-void
-scanner_state_init_options(scanner_state *sstate, int options)
-{
-    sstate->s_scan_type = scanning_none;
-    sstate->s_pstack = 0;
-    sstate->s_options = options;
-}
-
 /* Handle a scan_Refill return from scan_token. */
 /* This may return o_push_estack, 0 (meaning just call scan_token again), */
 /* or an error code. */
@@ -242,8 +233,8 @@ scan_handle_refill(i_ctx_t *i_ctx_p, const ref * fop, scanner_state * sstate,
     uint avail = sbufavailable(s);
     int status;
 
-    if (s->end_status == EOFC) {
-	/* More data needed, but none available, so this is a syntax error. */
+    if (s->end_status == EOFC) {	/* More data needed, but none available, */
+	/* so this is a syntax error. */
 	return_error(e_syntaxerror);
     }
     status = s_process_read_buf(s);
@@ -291,22 +282,18 @@ scan_handle_refill(i_ctx_t *i_ctx_p, const ref * fop, scanner_state * sstate,
     return_error(e_Fatal);
 }
 
-/*
- * Handle a comment.  The 'saved' argument is needed only for
- * tracing printout.
- */
+/* Handle a comment.  The 'saved' argument is needed only for */
+/* tracing printout. */
 private int
-scan_comment(i_ctx_t *i_ctx_p, ref *pref, scanner_state *pstate,
-	     const byte * base, const byte * end, bool saved)
+scan_comment(const byte * base, const byte * end, bool saved)
 {
     uint len = (uint) (end - base);
-    int code;
+
 #ifdef DEBUG
     const char *sstr = (saved ? ">" : "");
-#endif
 
-    if (len > 1 && (base[1] == '%' || base[1] == '!')) {
-	/* Process as a DSC comment if requested. */
+#endif
+    if (len > 1 && base[1] == '%' && scan_dsc_proc != NULL) {
 #ifdef DEBUG
 	if (gs_debug_c('%')) {
 	    dlprintf2("[%%%%%s%c]", sstr, (len >= 3 ? '+' : '-'));
@@ -314,51 +301,26 @@ scan_comment(i_ctx_t *i_ctx_p, ref *pref, scanner_state *pstate,
 	    dputs("\n");
 	}
 #endif
-	if (scan_dsc_proc != NULL) {
-	    code = scan_dsc_proc(base, len);
-	    return (code < 0 ? code : 0);
-	}
-	if (pstate->s_options & SCAN_PROCESS_DSC_COMMENTS) {
-	    code = scan_DSC_Comment;
-	    goto comment;
-	}
-	/* Treat as an ordinary comment. */
-    }
+	if (end - base >= 3)
+	    return (*scan_dsc_proc) (base, len);
+    } else if (scan_comment_proc != NULL) {
 #ifdef DEBUG
-    else {
 	if (gs_debug_c('%')) {
 	    dlprintf2("[%% %s%c]", sstr, (len >= 2 ? '+' : '-'));
 	    fwrite(base, 1, len, dstderr);
 	    dputs("\n");
 	}
-    }
 #endif
-    if (scan_comment_proc != NULL) {
-	code = scan_comment_proc(base, len);
-	return (code < 0 ? code : 0);
-    }
-    if (pstate->s_options & SCAN_PROCESS_COMMENTS) {
-	code = scan_Comment;
-	goto comment;
+	if (end - base >= 2)
+	    return (*scan_comment_proc) (base, len);
     }
     return 0;
- comment:
-    {
-	byte *cstr = ialloc_string(len, "scan_comment");
-
-	if (cstr == 0)
-	    return_error(e_VMerror);
-	memcpy(cstr, base, len);
-	make_string(pref, a_all | icurrent_space, len, cstr);
-    }
-    return code;
 }
 
 /* Read a token from a string. */
 /* Update the string if succesful. */
 int
-scan_string_token_options(i_ctx_t *i_ctx_p, ref * pstr, ref * pref,
-			  int options)
+scan_string_token(i_ctx_t *i_ctx_p, ref * pstr, ref * pref)
 {
     stream st;
     stream *s = &st;
@@ -368,12 +330,8 @@ scan_string_token_options(i_ctx_t *i_ctx_p, ref * pstr, ref * pref,
     if (!r_has_attr(pstr, a_read))
 	return_error(e_invalidaccess);
     sread_string(s, pstr->value.bytes, r_size(pstr));
-    scanner_state_init_options(&state, options | SCAN_FROM_STRING);
+    scanner_state_init(&state, true);
     switch (code = scan_token(i_ctx_p, s, pref, &state)) {
-	default:		/* error or comment */
-	    if (code < 0)
-		break;
-	    /* falls through */
 	case 0:		/* read a token */
 	case scan_BOS:
 	    {
@@ -385,15 +343,17 @@ scan_string_token_options(i_ctx_t *i_ctx_p, ref * pstr, ref * pref,
 	    break;
 	case scan_Refill:	/* error */
 	    code = gs_note_error(e_syntaxerror);
-	case scan_EOF:
-	    break;
+	default:		/* error */
+	    ;
     }
     return code;
 }
 
 /*
- * Read a token from a stream.  Return 0 if an ordinary token was read,
- * >0 for special situations (see iscan.h).
+ * Read a token from a stream.
+ * Return 0 if an ordinary token was read,
+ * scan_BOS for a binary object sequence, scan_EOF for end-of-stream,
+ * scan_Refill if more data needed, or a (negative) error code.
  * If the token required a terminating character (i.e., was a name or
  * number) and the next character was whitespace, read and discard
  * that character.  Note that the state is relevant for e_VMerror
@@ -442,7 +402,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
     const byte *const decoder = scan_char_decoder;
     int status;
     int sign;
-    const bool check_only = (pstate->s_options & SCAN_CHECK_ONLY) != 0;
+    const bool check_only = pstate->s_check_only;
     scanner_state sstate;
 
 #define pstack sstate.s_pstack
@@ -460,15 +420,13 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
     /* Check whether we are resuming after an interruption. */
     if (pstate->s_scan_type != scanning_none) {
 	sstate = *pstate;
-	if (!da.is_dynamic && da.base != da.buf) {
-	    /* The da contains some self-referencing pointers. */
+	if (!da.is_dynamic && da.base != da.buf) {	/* The da contains some self-referencing pointers. */
 	    /* Fix them up now. */
-	    uint next = da.next - da.base;
-	    uint limit = da.limit - da.base;
+	    uint size = da.next - da.base;
 
 	    da.base = da.buf;
-	    da.next = da.buf + next;
-	    da.limit = da.buf + limit;
+	    da.next = da.buf + size;
+	    da.limit = da.buf + da_buf_size;
 	}
 	daptr = da.next;
 	switch (scan_type) {
@@ -494,7 +452,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
     /* scan_type == scanning_none. */
     pstack = pstate->s_pstack;
     pdepth = pstate->s_pdepth;
-    sstate.s_options = pstate->s_options;
+    sstate.s_check_only = check_only;
     scan_begin_inline();
     /*
      * Loop invariants:
@@ -597,8 +555,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 	    break;
 	case '(':
 	    sstate.s_ss.pssd.from_string =
-		((pstate->s_options & SCAN_FROM_STRING) != 0) &&
-		!scan_enable_level2;
+		pstate->s_from_string && !scan_enable_level2;
 	    s_PSSD_init_inline(&sstate.s_ss.pssd);
 	    sstate.s_ss.st.template = &s_PSSD_template;
 	    goto str;
@@ -725,10 +682,9 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 			    if (sptr[1] == char_EOL)
 				sptr++;
 			  cend:	/* Check for externally processed comments. */
-			    retcode = scan_comment(i_ctx_p, myref, &sstate,
-						   base, end, false);
-			    if (retcode != 0)
-				goto comment;
+			    retcode = scan_comment(base, end, false);
+			    if (retcode < 0)
+				goto sret;
 			    goto top;
 			case char_EOL:
 			case '\f':
@@ -786,11 +742,9 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 		    case char_CR:
 		    case char_EOL:
 		    case '\f':
-		      end_comment:
-			retcode = scan_comment(i_ctx_p, pref, &sstate,
-					       comment_line, daptr, true);
-			if (retcode != 0)
-			    goto comment;
+		      end_comment:retcode = scan_comment(comment_line, daptr, true);
+			if (retcode < 0)
+			    goto sret;
 			goto top;
 		}
 	    }
@@ -1155,14 +1109,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
     if (pstack != 0)
 	osp--;			/* myref */
   save:
+    sstate.s_from_string = pstate->s_from_string;
     *pstate = sstate;
     return retcode;
-
-    /* Handle a scanned comment. */
- comment:
-    if (retcode < 0)
-	goto sret;
-    scan_end_inline();
-    scan_type = scanning_none;
-    goto save;
 }

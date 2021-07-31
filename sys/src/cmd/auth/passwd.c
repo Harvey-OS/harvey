@@ -40,16 +40,14 @@ asrdresp(int fd, char *buf, int len)
 void
 main(int argc, char **argv)
 {
-	int fd;
+	int n, fd;
 	Ticketreq tr;
 	Ticket t;
 	Passwordreq pr;
 	char tbuf[TICKETLEN];
 	char key[DESKEYLEN];
 	char buf[512];
-	char *s, *user;
-
-	user = getuser();
+	char *s;
 
 	ARGBEGIN{
 	}ARGEND
@@ -60,15 +58,10 @@ main(int argc, char **argv)
 		exits("boofhead");
 	}
 
-	s = nil;
-	if(argc > 0){
-		user = argv[0];
-		s = strchr(user, '@');
-		if(s != nil)
-			*s++ = 0;
-		if(*user == 0)
-			user = getuser();
-	}
+	if(argc > 0)
+		s = argv[0];
+	else
+		s = nil;
 
 	fd = authdial(nil, s);
 	if(fd < 0)
@@ -76,7 +69,10 @@ main(int argc, char **argv)
 
 	/* send ticket request to AS */
 	memset(&tr, 0, sizeof(tr));
-	strcpy(tr.uid, user);
+	if(argc == 0)
+		strcpy(tr.uid, getuser());
+	else
+		strcpy(tr.uid, argv[0]);
 	tr.type = AuthPass;
 	convTR2M(&tr, buf);
 	if(write(fd, buf, TICKREQLEN) != TICKREQLEN)
@@ -140,5 +136,16 @@ main(int argc, char **argv)
 	}
 	close(fd);
 
+	if(*pr.new){
+		/* if this is the hostowner's key, try to change the key in the kernel */
+		n = readfile("/dev/hostowner", buf, sizeof(buf)-1);
+		if(n > 0){
+			buf[n] = 0;
+			if(strcmp(buf, tr.uid) == 0){
+				passtokey(key, pr.new);
+				writefile("/dev/key", key, DESKEYLEN);
+			}
+		}
+	}
 	exits(0);
 }

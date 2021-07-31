@@ -97,9 +97,6 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 	npg = (s->len + Pagesize-1)/Pagesize;
 	s->npg = npg;
 
-	if(s->npg == 0)
-		return s;
-
 	pp = emalloc(sizeof(*pp)*npg);
 	s->pg = pp;
 	*ps = s;

@@ -335,9 +335,8 @@ ilclose(Conv *c)
 }
 
 void
-ilkick(void *x)
+ilkick(Conv *c)
 {
-	Conv *c = x;
 	Ilhdr *ih;
 	Ilcb *ic;
 	int dlen;
@@ -368,7 +367,6 @@ ilkick(void *x)
 	/* Make space to fit il & ip */
 	bp = padblock(bp, IL_IPSIZE+IL_HDRSIZE);
 	ih = (Ilhdr *)(bp->rp);
-	ih->vihl = IP_VER4;
 
 	/* Ip fields */
 	ih->frag[0] = 0;
@@ -388,7 +386,7 @@ ilkick(void *x)
 	ack = ic->recvd;
 	hnputl(ih->ilack, ack);
 	ic->acksent = ack;
-	ic->acktime = NOW + AckDelay;
+	ic->acktime = msec + AckDelay;
 	ih->iltype = Ildata;
 	ih->ilspec = 0;
 	ih->ilsum[0] = 0;
@@ -408,9 +406,9 @@ ilkick(void *x)
 		ic->rttlen = dlen + IL_IPSIZE + IL_HDRSIZE;
 	}
 
-	if(later(NOW, ic->timeout, nil))
+	if(later(msec, ic->timeout, nil))
 		ilsettimeout(ic);
-	ipoput4(f, bp, 0, c->ttl, c->tos);
+	ipoput(f, bp, 0, c->ttl, c->tos);
 	priv->stats[OutMsgs]++;
 }
 
@@ -418,7 +416,7 @@ static void
 ilcreate(Conv *c)
 {
 	c->rq = qopen(64*1024, 0, 0, c);
-	c->wq = qopen(64*1024, Qkick, ilkick, c);
+	c->wq = qopen(64*1024, 0, 0, 0);
 }
 
 int
@@ -598,7 +596,7 @@ iliput(Proto *il, Ipifc*, Block *bp)
 			goto raise;
 		}
 
-		new = Fsnewcall(s, raddr, dp, laddr, sp, V4);
+		new = Fsnewcall(s, raddr, dp, laddr, sp);
 		if(new == nil){
 			qunlock(il);
 			netlog(il->f, Logil, "il: bad newcall %I/%ud->%ud\n", raddr, sp, dp);
@@ -642,8 +640,8 @@ _ilprocess(Conv *s, Ilhdr *h, Block *bp)
 
 	ic = (Ilcb*)s->ptcl;
 
-	ic->lastrecv = NOW;
-	ic->querytime = NOW + QueryTime;
+	ic->lastrecv = msec;
+	ic->querytime = msec + QueryTime;
 	priv = s->p->priv;
 	priv->stats[InMsgs]++;
 
@@ -805,7 +803,6 @@ ilrexmit(Ilcb *ic)
 		return;
 
 	h = (Ilhdr*)nb->rp;
-	h->vihl = IP_VER4;
 
 	h->iltype = Ildataquery;
 	hnputl(h->ilack, ic->recvd);
@@ -822,7 +819,7 @@ ilrexmit(Ilcb *ic)
 
 	ilbackoff(ic);
 
-	ipoput4(c->p->f, nb, 0, ic->conv->ttl, ic->conv->tos);
+	ipoput(c->p->f, nb, 0, ic->conv->ttl, ic->conv->tos);
 
 	/* statistics */
 	ic->rxtot++;
@@ -982,7 +979,6 @@ ilsendctl(Conv *ipc, Ilhdr *inih, int type, ulong id, ulong ack, int ilspec)
 	bp->wp += IL_IPSIZE+IL_HDRSIZE;
 
 	ih = (Ilhdr *)(bp->rp);
-	ih->vihl = IP_VER4;
 
 	/* Ip fields */
 	ih->proto = IP_ILPROTO;
@@ -1008,7 +1004,7 @@ ilsendctl(Conv *ipc, Ilhdr *inih, int type, ulong id, ulong ack, int ilspec)
 		hnputl(ih->ilack, ack);
 		ic = (Ilcb*)ipc->ptcl;
 		ic->acksent = ack;
-		ic->acktime = NOW;
+		ic->acktime = msec;
 		ttl = ipc->ttl;
 		tos = ipc->tos;
 	}
@@ -1019,7 +1015,6 @@ ilsendctl(Conv *ipc, Ilhdr *inih, int type, ulong id, ulong ack, int ilspec)
 
 	if(ilcksum)
 		hnputs(ih->ilsum, ptclcsum(bp, IL_IPSIZE, IL_HDRSIZE));
-
 if(ipc==nil)
 	panic("ipc is nil caller is %.8lux", getcallerpc(&ipc));
 if(ipc->p==nil)
@@ -1029,7 +1024,7 @@ if(ipc->p==nil)
 		iltype[ih->iltype], nhgetl(ih->ilid), nhgetl(ih->ilack), 
 		nhgets(ih->ilsrc), nhgets(ih->ildst));
 
-	ipoput4(ipc->p->f, bp, 0, ttl, tos);
+	ipoput(ipc->p->f, bp, 0, ttl, tos);
 }
 
 void
@@ -1042,7 +1037,6 @@ ilreject(Fs *f, Ilhdr *inih)
 	bp->wp += IL_IPSIZE+IL_HDRSIZE;
 
 	ih = (Ilhdr *)(bp->rp);
-	ih->vihl = IP_VER4;
 
 	/* Ip fields */
 	ih->proto = IP_ILPROTO;
@@ -1063,7 +1057,7 @@ ilreject(Fs *f, Ilhdr *inih)
 	if(ilcksum)
 		hnputs(ih->ilsum, ptclcsum(bp, IL_IPSIZE, IL_HDRSIZE));
 
-	ipoput4(f, bp, 0, MAXTTL, DFLTTOS);
+	ipoput(f, bp, 0, MAXTTL, DFLTTOS);
 }
 
 void
@@ -1077,7 +1071,7 @@ ilsettimeout(Ilcb *ic)
 		+ AckDelay;
 	if(pt > MaxTimeout)
 		pt = MaxTimeout;
-	ic->timeout = NOW + pt;
+	ic->timeout = msec + pt;
 }
 
 void
@@ -1094,10 +1088,10 @@ ilbackoff(Ilcb *ic)
 		pt = pt + (pt>>1);
 	if(pt > MaxTimeout)
 		pt = MaxTimeout;
-	ic->timeout = NOW + pt;
+	ic->timeout = msec + pt;
 
 	if(ic->fasttimeout)
-		ic->timeout = NOW+Iltickms;
+		ic->timeout = msec+Iltickms;
 
 	ic->rexmit++;
 }
@@ -1145,7 +1139,7 @@ loop:
 		case Illistening:
 			break;
 		case Ilclosing:
-			if(later(NOW, ic->timeout, "timeout0")) {
+			if(later(msec, ic->timeout, "timeout0")) {
 				if(ic->rexmit > MaxRexmit){
 					ilhangup(p, nil);
 					break;
@@ -1157,7 +1151,7 @@ loop:
 
 		case Ilsyncee:
 		case Ilsyncer:
-			if(later(NOW, ic->timeout, "timeout1")) {
+			if(later(msec, ic->timeout, "timeout1")) {
 				if(ic->rexmit > MaxRexmit){
 					ilhangup(p, etime);
 					break;
@@ -1169,21 +1163,21 @@ loop:
 
 		case Ilestablished:
 			if(ic->recvd != ic->acksent)
-			if(later(NOW, ic->acktime, "acktime"))
+			if(later(msec, ic->acktime, "acktime"))
 				ilsendctl(p, nil, Ilack, ic->next, ic->recvd, 0);
 
-			if(later(NOW, ic->querytime, "querytime")){
-				if(later(NOW, ic->lastrecv+DeathTime, "deathtime")){
+			if(later(msec, ic->querytime, "querytime")){
+				if(later(msec, ic->lastrecv+DeathTime, "deathtime")){
 					netlog(il->f, Logil, "il: hangup: deathtime\n");
 					ilhangup(p, etime);
 					break;
 				}
 				ilsendctl(p, nil, Ilquery, ic->next, ic->recvd, ilnextqt(ic));
-				ic->querytime = NOW + QueryTime;
+				ic->querytime = msec + QueryTime;
 			}
 
 			if(ic->unacked != nil)
-			if(later(NOW, ic->timeout, "timeout2")) {
+			if(later(msec, ic->timeout, "timeout2")) {
 				if(ic->rexmit > MaxRexmit){
 					netlog(il->f, Logil, "il: hangup: too many rexmits\n");
 					ilhangup(p, etime);
@@ -1219,8 +1213,8 @@ ilcbinit(Ilcb *ic)
 	ic->delay = DefRtt<<LogAGain;
 	ic->mdev = DefRtt<<LogDGain;
 	ic->rate = DefByteRate<<LogAGain;
-	ic->querytime = NOW + QueryTime;
-	ic->lastrecv = NOW;	/* or we'll timeout right away */
+	ic->querytime = msec + QueryTime;
+	ic->lastrecv = msec;	/* or we'll timeout right away */
 	ilsettimeout(ic);
 }
 
@@ -1254,7 +1248,7 @@ ilstart(Conv *c, int type, int fasttimeout)
 	if(fasttimeout){
 		/* timeout if we can't connect quickly */
 		ic->fasttimeout = 1;
-		ic->timeout = NOW+Iltickms;
+		ic->timeout = msec+Iltickms;
 		ic->rexmit = MaxRexmit - 4;
 	};
 
@@ -1379,6 +1373,7 @@ ilinit(Fs *f)
 	il = smalloc(sizeof(Proto));
 	il->priv = smalloc(sizeof(Ilpriv));
 	il->name = "il";
+	il->kick = ilkick;
 	il->connect = ilconnect;
 	il->announce = ilannounce;
 	il->state = ilstate;

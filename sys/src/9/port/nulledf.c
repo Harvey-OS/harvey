@@ -6,69 +6,36 @@
 #include	"../port/error.h"
 #include	"../port/edf.h"
 
-static int
+int
 isedf(Proc*)
 {
 	return 0;
 }
 
-static void
+void
 edfbury(Proc*)
 {
 }
 
-static int
+int
 edfanyready(void)
 {
 	return 0;
 }
 
-static void
+void
 edfready(Proc*)
 {
 }
 
-static Proc*
+Proc*
 edfrunproc(void)
 {
 	return nil;
 }
 
-static void
+void
 edfblock(Proc*)
 {
 }
 
-static void
-edfinit(void)
-{
-}
-
-static void
-edfexpel(Task*)
-{
-}
-
-static char *
-edfadmit(Task*)
-{
-	return "No edf";
-}
-
-static void
-edfdeadline(Proc*)
-{
-}
-
-Edfinterface nulledf = {
-	.isedf		= isedf,
-	.edfbury		= edfbury,
-	.edfanyready	= edfanyready,
-	.edfready		= edfready,
-	.edfrunproc	= edfrunproc,
-	.edfblock		= edfblock,
-	.edfinit		= edfinit,
-	.edfexpel		= edfexpel,
-	.edfadmit		= edfadmit,
-	.edfdeadline	= edfdeadline,
-};

@@ -214,6 +214,7 @@ trap(Ureg *ureg)
 	int ecode, user;
 	char buf[ERRMAX], *s;
 
+	m->intrts = fastticks(nil);
 	ecode = (ureg->cause >> 8) & 0xff;
 	user = (ureg->srr1 & MSR_PR) != 0;
 	if(user)

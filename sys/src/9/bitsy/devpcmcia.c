@@ -333,38 +333,21 @@ pcmctlwrite(char *p, long n, ulong, PCMslot *sp)
 		}
 
 		/* configure device */
-		memset(&cf, 0, sizeof cf);
+		cf.type = nil;
 		kstrdup(&cf.type, cmd->f[2]);
 		cf.mem = (ulong)sp->mem;
 		cf.port = (ulong)sp->regs;
 		cf.itype = GPIOfalling;
-		cf.irq = bitno(sp == slot ? GPIO_CARD_IRQ0_i : GPIO_CARD_IRQ1_i);
+		cf.interrupt = bitno(sp == slot ? GPIO_CARD_IRQ0_i : GPIO_CARD_IRQ1_i);
+		cf.size = 0;
 		if(devtab[dtx]->config(1, p, &cf) < 0)
 			error("couldn't configure device");
-		sp->dev = devtab[dtx];
+
 		wunlock(sp);
 		poperror();
 
 		/* don't let the power turn off */
 		increfp(sp);
-	}else if(strcmp(cmd->f[0], "remove") == 0){
-		/* see if driver exists and is configurable */
-		if(cmd->nf != 2)
-			error(Ebadarg);
-		p = cmd->f[1];
-		if(*p++ != '#')
-			error(Ebadarg);
-		p += chartorune(&r, p);
-		dtx = devno(r, 1);
-		if(dtx < 0)
-			error("no such device type");
-		if(devtab[dtx]->config == nil)
-			error("not a dynamicly configurable device");
-		if(devtab[dtx]->config(0, p, nil) < 0)
-			error("couldn't unconfigure device");
-
-		/* let the power turn off */
-		decrefp(sp);
 	}
 	free(cmd);
 
@@ -397,56 +380,6 @@ pcmciawrite(Chan *c, void *a, long n, vlong off)
 	return -1;	/* not reached */
 }
 
-/*
- * power up/down pcmcia
- */
-void
-pcmciapower(int on)
-{
-	PCMslot *sp;
-
-	/* if there's no pcmcia sleave, no interrupts */
-iprint("pcmciapower %d\n", on);
-
-	if (on){
-		/* set timing to the default, 300 */
-		slottiming(0, 300, 300, 300, 0);
-		slottiming(1, 300, 300, 300, 0);
-
-		/* if there's no pcmcia sleave, no interrupts */
-		if(gpioregs->level & GPIO_OPT_IND_i){
-			iprint("pcmciapower: no sleeve\n");
-			return;
-		}
-
-		for (sp = slot; sp < slot + nslot; sp++){
-			if (sp->dev){
-				increfp(sp);
-				iprint("pcmciapower: %s\n", sp->verstr);
-				delay(10000);
-				if (sp->dev->power)
-					sp->dev->power(on);
-			}
-		}
-	}else{
-		if(gpioregs->level & GPIO_OPT_IND_i){
-			iprint("pcmciapower: no sleeve\n");
-			return;
-		}
-
-		for (sp = slot; sp < slot + nslot; sp++){
-			if (sp->dev){
-				if (sp->dev->power)
-					sp->dev->power(on);
-				decrefp(sp);
-			}
-			sp->occupied = 0;
-			sp->cisread = 0;
-		}
-		egpiobits(EGPIO_exp_nvram_power|EGPIO_exp_full_power, 0);
-	}
-}
-
 Dev pcmciadevtab = {
 	'y',
 	"pcmcia",
@@ -466,7 +399,6 @@ Dev pcmciadevtab = {
 	devbwrite,
 	devremove,
 	devwstat,
-	pcmciapower,
 };
 
 /* see what's there */
@@ -509,9 +441,7 @@ increfp(PCMslot *sp)
 		nexterror();
 	}
 
-iprint("increfp %ld\n", sp - slot);
 	if(incref(&pcmcia) == 1){
-iprint("increfp full power\n");
 		egpiobits(EGPIO_exp_nvram_power|EGPIO_exp_full_power, 1);
 		delay(200);
 		egpiobits(EGPIO_pcmcia_reset, 1);
@@ -532,16 +462,13 @@ iprint("increfp full power\n");
 static void
 decrefp(PCMslot *sp)
 {
-iprint("decrefp %ld\n", sp - slot);
 	decref(&sp->ref);
-	if(decref(&pcmcia) == 0){
-iprint("increfp power down\n");
+	if(decref(&pcmcia) == 0)
 		egpiobits(EGPIO_exp_nvram_power|EGPIO_exp_full_power, 0);
-	}
 }
 
 /*
- *  the regions are staticly mapped
+ *  the regions are staticly masped
  */
 static void
 slotmap(int slotno, ulong regs, ulong attr, ulong mem)

@@ -25,11 +25,5 @@ HFILES=\
 	dat.h\
 	fns.h\
 
-UPDATE=\
-	mkfile\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-	${TARG:%=/386/bin/%}\
-
 </sys/src/cmd/mkone
 

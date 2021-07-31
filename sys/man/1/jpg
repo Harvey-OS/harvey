@@ -145,6 +145,19 @@ Like
 but force the image to RGB even if it is originally grey-scale.
 .PD
 .PP
+.I Jpg
+has two extra options used to process the output of the LML
+video card (see
+.IR lml (1)):
+.TP
+.B -f
+Merge two adjacent images, which represent the two fields of a video picture,
+into a single image.
+.TP
+.B -F
+The input is a motion JPEG file, with multiple images representing frames of the movie.  Sets
+.BR -f .
+.PD
 .PP
 The
 .IR togif
@@ -175,7 +188,6 @@ By default, the images are displayed as fast as they can be rendered.
 This option specifies the time, in milliseconds, to pause while
 displaying the next named
 .IR file .
-.PD
 .PP
 .I Gif
 translates files that contain a `transparency' index by attaching
@@ -183,6 +195,7 @@ an alpha channel to the converted image.
 .SH SOURCE
 .B /sys/src/cmd/jpg
 .SH "SEE ALSO"
+.IR lml (1),
 .IR page (1),
 .IR image (6).
 .SH BUGS

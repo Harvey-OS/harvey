@@ -17,13 +17,15 @@ aescbc, secstore \- secstore commands
 .br
 .B auth/aescbc
 -e
-.I <cleartext
-.I >cryptext
+.I password
+.I cleartext
+.I cryptext
 .br
 .B auth/aescbc
 -d
-.I <cryptext
-.I >cleartext
+.I password
+.I cryptext
+.I cleartext
 .PP
 .SH DESCRIPTION
 .PP
@@ -93,8 +95,6 @@ encrypts and decrypts using AES (Rijndael) in cipher
 block chaining (CBC) mode.  This is the file encryption
 used internally by
 .IR secstore .
-The encryption key is passed to the command as 32 hex digits in
-.I /env/HEX .
 .SH SOURCE
 .B /sys/src/cmd/auth/secstore
 .SH SEE ALSO

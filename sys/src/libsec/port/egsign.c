@@ -15,10 +15,9 @@ egsign(EGpriv *priv, mpint *m)
 	kinv = mpnew(0);
 	r = mpnew(0);
 	s = mpnew(0);
-	k = mpnew(0);
 	mpsub(p, mpone, pm1);
 	while(1){
-		mprand(plen, genrandom, k);
+		k = mprand(plen, genrandom, nil);
 		if((mpcmp(mpone, k) > 0) || (mpcmp(k, pm1) >= 0))
 			continue;
 		mpextendedgcd(k, pm1, r, kinv, s);

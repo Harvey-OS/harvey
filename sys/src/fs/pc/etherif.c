@@ -5,7 +5,6 @@
 #include "../ip/ip.h"
 #include "etherif.h"
 
-extern int etherga620reset(Ether*);
 extern int ether21140reset(Ether*);
 extern int etherelnk3reset(Ether*);
 extern int etheri82557reset(Ether*);
@@ -16,7 +15,6 @@ static struct
 	int	(*reset)(Ether*);
 } etherctlr[] =
 {
-	{ "ga620", etherga620reset, },
 	{ "21140", ether21140reset, },
 	{ "2114x", ether21140reset, },
 	{ "3C509", etherelnk3reset, },
@@ -129,7 +127,7 @@ ethero(void)
 		}
 		if(len < ETHERMINTU) {
 			memset(mb->data+len, 0, ETHERMINTU-len);
-			mb->count = len = ETHERMINTU;
+			len = ETHERMINTU;
 		}
 		memmove(((Enpkt*)(mb->data))->s, ifc->ea, sizeof(ifc->ea));
 

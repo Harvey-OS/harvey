@@ -476,6 +476,5 @@ Proto dhcp =
 	p_seprint,
 	nil,
 	nil,
-	defaultframer,
 };
 

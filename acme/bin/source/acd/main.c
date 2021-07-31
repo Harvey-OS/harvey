@@ -5,7 +5,7 @@ int debug;
 void
 usage(void)
 {
-	fprint(2, "usage: acd dev\n");
+	threadprint(2, "usage: acd dev\n");
 	threadexitsall("usage");
 }
 

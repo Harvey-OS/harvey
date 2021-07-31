@@ -247,10 +247,7 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 		nn = netifwrite(ether, chan, buf, n);
 		if(nn >= 0)
 			return nn;
-		if(n == sizeof("nonblocking")-1 && strncmp((char*)buf, "nonblocking", n) == 0){
-			qnoblock(ether->oq, 1);
-			return n;
-		}
+
 		if(ether->ctl!=nil)
 			return ether->ctl(ether,buf,n);
 			
@@ -331,7 +328,7 @@ parseether(uchar *to, char *from)
 	int i;
 
 	p = from;
-	for(i = 0; i < Eaddrlen; i++){
+	for(i = 0; i < 6; i++){
 		if(*p == 0)
 			return -1;
 		nip[0] = *p++;
@@ -419,12 +416,12 @@ etherprobe(int cardno, int ctlrno)
 	if(ether->mbps >= 100){
 		netifinit(ether, name, Ntypes, 256*1024);
 		if(ether->oq == 0)
-			ether->oq = qopen(256*1024, Qmsg, 0, 0);
+			ether->oq = qopen(256*1024, 1, 0, 0);
 	}
 	else{
-		netifinit(ether, name, Ntypes, 128*1024);
+		netifinit(ether, name, Ntypes, 65*1024);
 		if(ether->oq == 0)
-			ether->oq = qopen(128*1024, Qmsg, 0, 0);
+			ether->oq = qopen(65*1024, 1, 0, 0);
 	}
 	if(ether->oq == 0)
 		panic("etherreset %s", name);

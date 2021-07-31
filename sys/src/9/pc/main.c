@@ -24,11 +24,11 @@ Mach *m;
 #define	MAXCONF		64
 
 char bootdisk[KNAMELEN];
-Conf conf;
+Conf	conf;
 char *confname[MAXCONF];
 char *confval[MAXCONF];
 int nconf;
-uchar *sp;	/* user stack of init proc */
+uchar	*sp;	/* user stack of init proc */
 
 
 static void
@@ -105,7 +105,6 @@ main(void)
 	links();
 conf.monitor = 1;
 	chandevreset();
-	i8253link();
 	pageinit();
 	swapinit();
 	userinit();
@@ -423,12 +422,14 @@ confinit(void)
 
 static char* mathmsg[] =
 {
-	nil,	/* handled below */
-	"denormalized operand",
-	"division by zero",
-	"numeric overflow",
-	"numeric underflow",
-	"precision loss",
+	"invalid",
+	"denormalized",
+	"div-by-zero",
+	"overflow",
+	"underflow",
+	"precision",
+	"stack",
+	"error",
 };
 
 static void
@@ -444,23 +445,14 @@ mathnote(void)
 	 * Some attention should probably be paid here to the
 	 * exception masks and error summary.
 	 */
-	msg = "unknown exception";
-	for(i = 1; i <= 5; i++){
+	msg = "unknown";
+	for(i = 0; i < 8; i++){
 		if(!((1<<i) & status))
 			continue;
 		msg = mathmsg[i];
 		break;
 	}
-	if(status & 0x01){
-		if(status & 0x30){
-			if(status & 0x200)
-				msg = "stack overflow";
-			else
-				msg = "stack underflow";
-		}else
-			msg = "invalid operation";
-	}
-	sprint(note, "sys: fp: %s fppc=0x%lux status=0x%lux", msg, up->fpsave.pc, status);
+	sprint(note, "sys: fp: %s fppc=0x%lux", msg, up->fpsave.pc);
 	postnote(up, 1, note, NDebug);
 }
 
@@ -494,11 +486,6 @@ matherror(Ureg *ur, void*)
 static void
 mathemu(Ureg*, void*)
 {
-	if(up->fpstate & FPillegal){
-		/* someone did floating point in a note handler */
-		postnote(up, 1, "sys: floating point in note handler", NDebug);
-		return;
-	}
 	switch(up->fpstate){
 	case FPinit:
 		fpinit();

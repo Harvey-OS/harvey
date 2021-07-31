@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gdevprn.h,v 1.6 2000/09/19 19:00:21 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gdevprn.h,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
 /* Common header file for memory-buffered printers */
 
 #ifndef gdevprn_INCLUDED
@@ -48,7 +48,7 @@
 #define PRN_MIN_MEMORY_LEFT_SMALL 32000
 /* Define parameters for machines with great big hulking RAMs.... */
 #define PRN_MAX_BITMAP_LARGE 10000000L
-#define PRN_BUFFER_SPACE_LARGE 4000000L
+#define PRN_BUFFER_SPACE_LARGE 1000000L
 #define PRN_MIN_MEMORY_LEFT_LARGE 500000L
 /* Define parameters valid on all machines. */
 #define PRN_MIN_BUFFER_SPACE 10000	/* give up if less than this */
@@ -336,8 +336,7 @@ prn_dev_proc_buffer_page(gx_default_buffer_page); /* returns an error */
 	NULL,	/* map_color_rgb_alpha */\
 	NULL,	/* create_compositor */\
 	NULL,	/* get_hardware_params */\
-	NULL,	/* text_begin */\
-	NULL	/* finish_copydevice */\
+	NULL	/* text_begin */\
 }
 
 /* The standard printer device procedures */
@@ -355,14 +354,12 @@ extern const gx_device_procs prn_std_procs;
  * also specify the displacement of the device (0,0) point from the
  * upper left corner.  We should provide macros that allow specifying
  * all 6 values independently, but we don't yet.
- *
- * Note that print_page and print_page_copies must not both be defaulted.
  */
-#define prn_device_body_rest2_(print_page, print_page_copies)\
+#define prn_device_body_rest_(print_page)\
 	 { 0 },		/* std_procs */\
 	 { 0 },		/* skip */\
 	 { print_page,\
-	   print_page_copies,\
+	   gx_default_print_page_copies,\
 	   { gx_default_create_buf_device,\
 	     gx_default_size_buf_device,\
 	     gx_default_setup_buf_device,\
@@ -386,10 +383,6 @@ extern const gx_device_procs prn_std_procs;
 	0/*false*/, 0, 0, 0, /* file_is_new ... buf */\
 	0, 0, 0, 0, 0/*false*/, 0, 0, /* buffer_memory ... clist_dis'_mask */\
 	{ 0 }	/* ... orig_procs */
-#define prn_device_body_rest_(print_page)\
-  prn_device_body_rest2_(print_page, gx_default_print_page_copies)
-#define prn_device_body_copies_rest_(print_page_copies)\
-  prn_device_body_rest2_(gx_print_page_single_copy, print_page_copies)
 
 /* The Sun cc compiler won't allow \ within a macro argument list. */
 /* This accounts for the short parameter names here and below. */
@@ -424,23 +417,6 @@ extern const gx_device_procs prn_std_procs;
   prn_device_std_margins_body(dtype, procs, dname, w10, h10, xdpi, ydpi,\
     lm, tm, lm, bm, rm, tm, color_bits, print_page)
 
-#define prn_device_std_margins_body_copies(dtype, procs, dname, w10, h10, xdpi, ydpi, lo, to, lm, bm, rm, tm, color_bits, print_page_copies)\
-	std_device_std_color_full_body_type(dtype, &procs, dname, &st_device_printer,\
-	  (int)((long)(w10) * (xdpi) / 10),\
-	  (int)((long)(h10) * (ydpi) / 10),\
-	  xdpi, ydpi, color_bits,\
-	  -(lo) * (xdpi), -(to) * (ydpi),\
-	  (lm) * 72.0, (bm) * 72.0,\
-	  (rm) * 72.0, (tm) * 72.0\
-	),\
-	prn_device_body_copies_rest_(print_page_copies)
-
-#define prn_device_std_body_copies(dtype, procs, dname, w10, h10, xdpi, ydpi, lm, bm, rm, tm, color_bits, print_page_copies)\
-  prn_device_std_margins_body_copies(dtype, procs, dname, w10, h10, xdpi, ydpi,\
-    lm, tm, lm, bm, rm, tm, color_bits, print_page_copies)
-
-     /* Note that the following macros add { } around the data. */
-
 #define prn_device_margins(procs, dname, w10, h10, xdpi, ydpi, lo, to, lm, bm, rm, tm, color_bits, print_page)\
 { prn_device_std_margins_body(gx_device_printer, procs, dname,\
     w10, h10, xdpi, ydpi, lo, to, lm, bm, rm, tm, color_bits, print_page)\
@@ -448,16 +424,7 @@ extern const gx_device_procs prn_std_procs;
 
 #define prn_device(procs, dname, w10, h10, xdpi, ydpi, lm, bm, rm, tm, color_bits, print_page)\
   prn_device_margins(procs, dname, w10, h10, xdpi, ydpi,\
-    lm, tm, lm, bm, rm, tm, color_bits, print_page)
-
-#define prn_device_margins_copies(procs, dname, w10, h10, xdpi, ydpi, lo, to, lm, bm, rm, tm, color_bits, print_page_copies)\
-{ prn_device_std_margins_body_copies(gx_device_printer, procs, dname,\
-    w10, h10, xdpi, ydpi, lo, to, lm, bm, rm, tm, color_bits, print_page_copies)\
-}
-
-#define prn_device_copies(procs, dname, w10, h10, xdpi, ydpi, lm, bm, rm, tm, color_bits, print_page_copies)\
-  prn_device_margins_copies(procs, dname, w10, h10, xdpi, ydpi,\
-    lm, tm, lm, bm, rm, tm, color_bits, print_page_copies)
+    lm, tm, lm, bm, rm, tm, color_bits, print_page)\
 
 /* ------ Utilities ------ */
 /* These are defined in gdevprn.c. */
@@ -474,10 +441,10 @@ int gdev_prn_open_printer_seekable(P3(gx_device *dev, bool binary_mode,
 int gdev_prn_open_printer(P2(gx_device * dev, bool binary_mode));
 /*
  * Test whether the printer's output file was just opened, i.e., whether
- * this is the first page being written to this file.  This is only valid
- * at the entry to a driver's print_page procedure.
+ * this is the first page being written to this file.  The result is only
+ * valid immediately after calling open_printer[_positionable].
  */
-bool gdev_prn_file_is_new(P1(const gx_device_printer *pdev));
+#define gdev_prn_file_is_new(pdev) ((pdev)->file_is_new)
 
 /*
  * Determine the number of bytes required for one scan line of output to
@@ -588,9 +555,6 @@ void gdev_prn_clear_trailing_bits(P4(byte *data, uint raster, int height,
  * Close the printer's output file.
  */
 int gdev_prn_close_printer(P1(gx_device *));
-
-/* Print a single copy of a page by calling print_page_copies. */
-prn_dev_proc_print_page(gx_print_page_single_copy);
 
 /*
  * Define a default print_page_copies procedure just calls print_page

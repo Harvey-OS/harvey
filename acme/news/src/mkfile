@@ -6,13 +6,7 @@ OFILES=\
 	util.$O\
 	win.$O\
 
-HFILES=
+HFILES=news.h
 
 BIN=/acme/bin/$objtype
-UPDATE=\
-	mkfile\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-	${TARG:%=/acme/bin/386/%}\
-
 </sys/src/cmd/mkone

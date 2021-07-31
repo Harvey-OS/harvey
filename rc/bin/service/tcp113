@@ -1,4 +1,3 @@
 #!/bin/rc
 x=`{read|sed 's///'}
-y=`{echo -n $x | sed 's/ //g'}
-echo $y^:USERID:UNIX:none
+echo $x:USERID:none

@@ -14,7 +14,7 @@ typedef struct SDpart {
 	char	user[NAMELEN];
 	ulong	perm;
 	int	valid;
-	void *crud;
+	void *dos;
 } SDpart;
 
 typedef struct SDunit {

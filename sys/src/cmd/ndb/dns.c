@@ -457,7 +457,7 @@ rversion(Job *job)
 void
 rauth(Job *job)
 {
-	sendmsg(job, "dns: authentication not required");
+	sendmsg(job, "authentication not required");
 }
 
 /*

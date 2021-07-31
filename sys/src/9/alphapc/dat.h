@@ -47,13 +47,9 @@ struct Label
  */
 enum
 {
-	/* floating point states */
 	FPinit,
 	FPactive,
 	FPinactive,
-
-	/* bit or'd with the state */
-	FPillegal= 0x100,
 };
 
 struct	FPsave
@@ -150,7 +146,7 @@ struct Mach
 	vlong	cpuhz;			/* hwrpb->cfreq */
 	ulong	pcclast;
 	uvlong	fastclock;
-	Perf	perf;			/* performance counters */
+	vlong	intrts;			/* time stamp of last interrupt */
 
 	int	tlbfault;		/* only used by devproc; no access to tlb */
 	int	tlbpurge;		/* ... */
@@ -247,7 +243,7 @@ typedef struct {
 
 struct DevConf
 {
-	ulong	intnum;	/* interrupt number */
+	ulong	interrupt;	/* interrupt number */
 	char		*type;	/* card type, malloced */
 	int		nports;	/* Number of ports */
 	port_t	*ports;	/* The ports themselves */

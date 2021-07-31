@@ -1,7 +1,0 @@
-#!/bin/rc
-
-if(! ~ $#* 3){
-	echo 'usage: tlssrvtunnel plainaddr cryptaddr cert.pem' >[1=2]
-	exit usage
-}
-aux/listen1 -tv $2 /bin/tlssrv -c $3 -llisten /bin/aux/trampoline $1 &

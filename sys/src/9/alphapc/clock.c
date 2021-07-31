@@ -58,16 +58,6 @@ fastticks(uvlong* hz)
 	return ticks;
 }
 
-/*  
- *  performance measurement ticks.  must be low overhead.
- *  doesn't have to count over a second.
- */
-ulong
-perfticks(void)
-{
-	return rpcc(nil);
-}
-
 void
 timerset(uvlong)
 {
@@ -103,4 +93,17 @@ clock(Ureg *ureg)
 	count -= 1024;
 
 	timerintr(ureg, 0);
+}
+
+ulong
+TK2MS(ulong ticks)
+{
+	uvlong t, hz;
+
+	t = ticks;
+	hz = HZ;
+	t *= 1000L;
+	t = t/hz;
+	ticks = t;
+	return ticks;
 }

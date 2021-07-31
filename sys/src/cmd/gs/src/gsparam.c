@@ -1,22 +1,22 @@
 /* Copyright (C) 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gsparam.c,v 1.4 2000/09/19 19:00:30 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gsparam.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
 /* Support for parameter lists */
 #include "memory_.h"
 #include "string_.h"
@@ -24,73 +24,6 @@
 #include "gserrors.h"
 #include "gsparam.h"
 #include "gsstruct.h"
-
-/* GC procedures */
-ENUM_PTRS_WITH(gs_param_typed_value_enum_ptrs, gs_param_typed_value *pvalue) return 0;
-    case 0:
-    switch (pvalue->type) {
-    case gs_param_type_string:
-	return ENUM_STRING(&pvalue->value.s);
-    case gs_param_type_name:
-	return ENUM_STRING(&pvalue->value.n);
-    case gs_param_type_int_array:
-	return ENUM_OBJ(pvalue->value.ia.data);
-    case gs_param_type_float_array:
-	return ENUM_OBJ(pvalue->value.fa.data);
-    case gs_param_type_string_array:
-	return ENUM_OBJ(pvalue->value.sa.data);
-    case gs_param_type_name_array:
-	return ENUM_OBJ(pvalue->value.na.data);
-    default:
-	return ENUM_OBJ(0);	/* don't stop early */
-    }
-ENUM_PTRS_END
-RELOC_PTRS_WITH(gs_param_typed_value_reloc_ptrs, gs_param_typed_value *pvalue) {
-    switch (pvalue->type) {
-    case gs_param_type_string:
-    case gs_param_type_name: {
-	gs_const_string str;
-
-	str.data = pvalue->value.s.data; /* n == s */
-	str.size = pvalue->value.s.size;
-	RELOC_CONST_STRING_VAR(str);
-	pvalue->value.s.data = str.data;
-	break;
-    }
-    case gs_param_type_int_array:
-	RELOC_VAR(pvalue->value.ia.data);
-	break;
-    case gs_param_type_float_array:
-	RELOC_VAR(pvalue->value.fa.data);
-	break;
-    case gs_param_type_string_array:
-	RELOC_VAR(pvalue->value.sa.data);
-	break;
-    case gs_param_type_name_array:
-	RELOC_VAR(pvalue->value.na.data);
-	break;
-    default:
-	break;
-    }
-}
-RELOC_PTRS_END
-
-/* Internal procedure to initialize the common part of a parameter list. */
-void
-gs_param_list_init(gs_param_list *plist, const gs_param_list_procs *procs,
-		   gs_memory_t *mem)
-{
-    plist->procs = procs;
-    plist->memory = mem;
-    plist->persistent_keys = true;
-}
-
-/* Set whether the keys for param_write_XXX are persistent. */
-void
-gs_param_list_set_persistent_keys(gs_param_list *plist, bool persistent)
-{
-    plist->persistent_keys = persistent;
-}
 
 /* Reset a gs_param_key_t enumerator to its initial state */
 void
@@ -408,28 +341,10 @@ param_write_int_array(gs_param_list * plist, gs_param_name pkey,
     RETURN_WRITE_TYPED(ia, gs_param_type_int_array);
 }
 int
-param_write_int_values(gs_param_list * plist, gs_param_name pkey,
-		       const int *values, uint size, bool persistent)
-{
-    gs_param_int_array ia;
-
-    ia.data = values, ia.size = size, ia.persistent = persistent;
-    return param_write_int_array(plist, pkey, &ia);
-}
-int
 param_write_float_array(gs_param_list * plist, gs_param_name pkey,
 			const gs_param_float_array * pvalue)
 {
     RETURN_WRITE_TYPED(fa, gs_param_type_float_array);
-}
-int
-param_write_float_values(gs_param_list * plist, gs_param_name pkey,
-			 const float *values, uint size, bool persistent)
-{
-    gs_param_float_array fa;
-
-    fa.data = values, fa.size = size, fa.persistent = persistent;
-    return param_write_float_array(plist, pkey, &fa);
 }
 int
 param_write_string_array(gs_param_list * plist, gs_param_name pkey,

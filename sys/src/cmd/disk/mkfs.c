@@ -523,7 +523,7 @@ skipdir(void)
 	char *p, c;
 	int level;
 
-	if(indent < 0 || b == nil)	/* b is nil when copying adm/users */
+	if(indent < 0)
 		return;
 	level = indent;
 	for(;;){
@@ -713,15 +713,12 @@ setusers(void)
 	file.elem = "adm";
 	file.old = 0;
 	setnames(&file);
-	strcpy(oldfile, file.new);	/* Don't use root for /adm */
 	mkfile(&file);
 	file.new = "/adm/users";
 	file.old = users;
 	file.elem = "users";
 	file.mode = 0664;
 	setnames(&file);
-	if (file.old)
-		strcpy(oldfile, file.old);	/* Don't use root for /adm/users */
 	mkfile(&file);
 	kfscmd("user");
 	mkfile(&file);
@@ -730,7 +727,6 @@ setusers(void)
 	file.old = "/adm";
 	file.elem = "adm";
 	setnames(&file);
-	strcpy(oldfile, file.old);	/* Don't use root for /adm */
 	mkfile(&file);
 	modes = m;
 }

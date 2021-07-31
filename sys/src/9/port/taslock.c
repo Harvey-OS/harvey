@@ -99,7 +99,7 @@ ilock(Lock *l)
 	if(tas(&l->key) == 0){
 		m->ilockdepth++;
 		if(up)
-			up->lastilock = l;
+			up->lastlock = l;
 		l->sr = x;
 		l->pc = pc;
 		l->p = up;
@@ -122,7 +122,7 @@ ilock(Lock *l)
 		if(tas(&l->key) == 0){
 			m->ilockdepth++;
 			if(up)
-				up->lastilock = l;
+				up->lastlock = l;
 			l->sr = x;
 			l->pc = pc;
 			l->p = up;

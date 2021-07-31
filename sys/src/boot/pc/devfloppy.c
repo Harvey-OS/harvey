@@ -7,7 +7,7 @@
 #include	"io.h"
 #include	"ureg.h"
 
-#include	"fs.h"
+#include	"dosfs.h"
 #include	"devfloppy.h"
 
 
@@ -219,7 +219,7 @@ floppyprintdevs(int i)
 int
 floppyboot(int dev, char *file, Boot *b)
 {
-	Fs *fs;
+	Dos *dos;
 
 	if(strncmp(file, "dos!", 4) == 0)
 		file += 4;
@@ -228,11 +228,11 @@ floppyboot(int dev, char *file, Boot *b)
 		return -1;
 	}
 
-	fs = floppygetfspart(dev, "dos", 1);
-	if(fs == nil)
+	dos = floppygetdospart(dev, "dos", 1);
+	if(dos == nil)
 		return -1;
 
-	return fsboot(fs, file, b);
+	return dosboot(dos, file, b);
 }
 
 void
@@ -327,7 +327,7 @@ readtrack(FDrive *dp, int cyl, int head)
 }
 
 long
-floppyread(Fs *fs, void *a, long n)
+floppyread(Dos *dos, void *a, long n)
 {
 	FDrive *dp;
 	long rv, offset;
@@ -336,7 +336,7 @@ floppyread(Fs *fs, void *a, long n)
 	uchar *aa;
 
 	aa = a;
-	dp = &fl.d[fs->dev];
+	dp = &fl.d[dos->dev];
 
 	offset = dp->offset;
 	floppyon(dp);
@@ -363,9 +363,9 @@ floppyread(Fs *fs, void *a, long n)
 }
 
 void*
-floppygetfspart(int i, char *name, int chatty)
+floppygetdospart(int i, char *name, int chatty)
 {
-	static Fs fs;
+	static Dos dos;
 
 	if(strcmp(name, "dos") != 0){
 		if(chatty)
@@ -373,17 +373,18 @@ floppygetfspart(int i, char *name, int chatty)
 		return nil;
 	}
 
-	fs.dev = i;
-	fs.diskread = floppyread;
-	fs.diskseek = floppyseek;
+	dos.dev = i;
+	dos.read = floppyread;
+	dos.seek = floppyseek;
+	dos.start = 0;
 
 	/* sometimes we get spurious errors and doing it again works */
-	if(dosinit(&fs) < 0 && dosinit(&fs) < 0){
+	if(dosinit(&dos) < 0 && dosinit(&dos) < 0){
 		if(chatty)
 			print("fd%d!%s does not contain a FAT file system\n", i, name);
 		return nil;
 	}
-	return &fs;
+	return &dos;
 }
 
 static int

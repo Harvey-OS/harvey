@@ -40,7 +40,7 @@ Xauth(Fsrpc *t)
 {
 	Fcall rhdr;
 
-	reply(&t->work, &rhdr, "exportfs: authentication not required");
+	reply(&t->work, &rhdr, "exportfs: no authentication required");
 	t->busy = 0;
 }
 

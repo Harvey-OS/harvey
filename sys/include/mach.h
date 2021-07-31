@@ -30,7 +30,6 @@ enum
 	MARM,
 	MPOWER,
 	MALPHA,
-	NMIPS,
 				/* types of executables */
 	FNONE = 0,		/* unidentified */
 	FMIPS,			/* v.out */
@@ -54,7 +53,6 @@ enum
 	FMIPS2LE,		/* 4k little endian */
 	FALPHA,		/* 7.out */
 	FALPHAB,		/* DEC Alpha bootable */
-	FMIPSLE,		/* 3k little endian */
 
 	ANONE = 0,		/* dissembler types */
 	AMIPS,

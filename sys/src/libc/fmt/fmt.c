@@ -53,11 +53,31 @@ static Convfmt knownfmt[] = {
 
 int	(*doquote)(int);
 
-/*
- * _fmtlock() must be set
- */
-static int
-_fmtinstall(int c, Fmts f)
+static Fmts
+fmtfmt(int c)
+{
+	Convfmt *p, *ep;
+
+	ep = &fmtalloc.fmt[fmtalloc.nfmt];
+	for(p=fmtalloc.fmt; p<ep; p++)
+		if(p->c == c)
+			return p->fmt;
+
+	/* is this a predefined format char? */
+	for(p=knownfmt; p->c; p++)
+		if(p->c == c){
+			/* no need to lock; fmtinstall is idempotent */
+			fmtinstall(p->c, p->fmt);
+			while(p->fmt == nil)	/* loop until value is updated */
+				;
+			return p->fmt;
+		}
+
+	return _badfmt;
+}
+
+int
+fmtinstall(int c, Fmts f)
 {
 	Convfmt *p, *ep;
 
@@ -66,13 +86,17 @@ _fmtinstall(int c, Fmts f)
 	if(!f)
 		f = _badfmt;
 
+	_fmtlock();
+
 	ep = &fmtalloc.fmt[fmtalloc.nfmt];
 	for(p=fmtalloc.fmt; p<ep; p++)
 		if(p->c == c)
 			break;
 
-	if(p == &fmtalloc.fmt[Maxfmt])
+	if(p == &fmtalloc.fmt[Maxfmt]){
+		_fmtunlock();
 		return -1;
+	}
 
 	p->fmt = f;
 	if(p == ep){	/* installing a new format character */
@@ -80,44 +104,8 @@ _fmtinstall(int c, Fmts f)
 		p->c = c;
 	}
 
+	_fmtunlock();
 	return 0;
-}
-
-int
-fmtinstall(int c, Fmts f)
-{
-	int ret;
-
-	_fmtlock();
-	ret = _fmtinstall(c, f);
-	_fmtunlock();
-	return ret;
-}
-
-static Fmts
-fmtfmt(int c)
-{
-	Convfmt *p, *ep;
-
-	ep = &fmtalloc.fmt[fmtalloc.nfmt];
-	for(p=fmtalloc.fmt; p<ep; p++)
-		if(p->c == c){
-			while(p->fmt == nil)	/* loop until value is updated */
-				;
-			return p->fmt;
-		}
-
-	/* is this a predefined format char? */
-	_fmtlock();
-	for(p=knownfmt; p->c; p++)
-		if(p->c == c){
-			_fmtinstall(p->c, p->fmt);
-			_fmtunlock();
-			return p->fmt;
-		}
-	_fmtunlock();
-
-	return _badfmt;
 }
 
 void*

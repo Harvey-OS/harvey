@@ -5,7 +5,7 @@
 #include "fns.h"
 #include "io.h"
 
-#include "fs.h"
+#include "dosfs.h"
 
 /*
  * Where configuration info is left for the loaded programme.
@@ -351,18 +351,18 @@ static char inibuf[BOOTARGSLEN];
 static char id[8] = "ZORT 0\r\n";
 
 int
-dotini(Fs *fs)
+dotini(Dos *dos)
 {
-	File rc;
+	Dosfile rc;
 	int blankline, i, incomment, inspace, n;
 	char *cp, *p, *q, *line[MAXCONF];
 
-	if(fswalk(fs, *ini, &rc) <= 0)
+	if(dosstat(dos, *ini, &rc) <= 0)
 		return -1;
 
 	cp = inibuf;
 	*cp = 0;
-	n = fsread(&rc, cp, BOOTARGSLEN-1);
+	n = dosread(&rc, cp, BOOTARGSLEN-1);
 	if(n <= 0)
 		return -1;
 

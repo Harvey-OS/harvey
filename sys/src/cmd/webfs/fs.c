@@ -515,7 +515,7 @@ fsflush(Req *r)
 
 	c = client[NUM(path)];
 	sendp(c->creq, r);
-	iointerrupt(c->io);
+	c->io->interrupt(c->io);
 }
 
 static void

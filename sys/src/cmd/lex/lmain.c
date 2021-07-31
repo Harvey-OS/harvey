@@ -16,7 +16,6 @@ uchar	*slptr = slist;
 
 char	*cname = "/sys/lib/lex/ncform";
 
-int nine;
 int ccount = 1;
 int casecount = 1;
 int aptr = 1;
@@ -108,9 +107,6 @@ main(int argc, char **argv)
 			break;
 		case 'n': case 'N':
 			report = 0;
-			break;
-		case '9':
-			nine = 1;
 			break;
 		default:
 			warning("Unknown option %c", ARGC());

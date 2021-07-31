@@ -260,11 +260,8 @@ challuser(char *user)
 	ch->nresp = strlen(response);
 	ai = auth_response(ch);
 	auth_freechal(ch);
-	if(ai == nil){
-		rerrstr(response, sizeof response);
-		print("!%s\n", response);
+	if(ai == nil)
 		return -1;
-	}
 	if(auth_chuid(ai, nil) < 0)
 		return -1;
 	return 0;

@@ -1,33 +1,31 @@
-/* Copyright (C) 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This file is part of Aladdin Ghostscript.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+  or distributor accepts any responsibility for the consequences of using it,
+  or for whether it serves any particular purpose or works at all, unless he
+  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+  License (the "License") for full details.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  Every copy of Aladdin Ghostscript must include a copy of the License,
+  normally in a plain ASCII text file named PUBLIC.  The License grants you
+  the right to copy, modify and redistribute Aladdin Ghostscript, but only
+  under certain conditions described in the License.  Among other things, the
+  License requires that the copyright notice and this notice be preserved on
+  all copies.
 */
 
-/*$Id: gdevbmpa.c,v 1.3 2000/09/19 19:00:11 lpd Exp $ */
+/*$Id: gdevbmpa.c,v 1.1 2000/03/09 08:40:40 lpd Exp $ */
 /* .BMP file format output drivers: Demo of ASYNC rendering */
 
-/* 2000-04-20 ghost@aladdin.com - Makes device structures const, changing
-   makefile entry from DEV to DEV2. */
-/* 1998/12/29 ghost@aladdin.com - Modified to use gdev_prn_render_lines,
-   which replaces the former "overlay" calls */
-/* 1998/11/23 ghost@aladdin.com - Removed pointless restriction to
-   single-page output */
+/* Initial version 2/2/98 by John Desrosiers (soho@crl.com) */
 /* 1998/7/28 ghost@aladdin.com - Factored out common BMP format code
    to gdevbmpc.c */
-/* Initial version 2/2/98 by John Desrosiers (soho@crl.com) */
+/* 1992/11/23 ghost@aladdin.com - Removed pointless restriction to
+   single-page output */
+/* 1998/12/29 ghost@aladdin.com - Modified to use gdev_prn_render_lines,
+   which replaces the former "overlay" calls */
 
 #include "stdio_.h"
 #include "gserrors.h"
@@ -83,9 +81,9 @@ private prn_dev_proc_get_space_params(bmpa_get_space_params);
 
 /* Monochrome. */
 
-private const gx_device_procs bmpamono_procs =
+private gx_device_procs bmpamono_procs =
   prn_procs(bmpa_writer_open, gdev_prn_output_page, gdev_prn_close);
-const gx_device_async gs_bmpamono_device =
+gx_device_async gs_bmpamono_device =
   async_device(bmpamono_procs, "bmpamono",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -100,11 +98,11 @@ const gx_device_async gs_bmpamono_device =
     bmpa_get_params, bmpa_put_params,\
     p_map_cmyk_color, NULL, NULL, NULL, gx_page_device_get_page_device
 
-private const gx_device_procs bmpasep1_procs = {
+private gx_device_procs bmpasep1_procs = {
     bmpa_cmyk_procs(bmpa_cmyk_writer_open, cmyk_1bit_map_color_rgb,
 		    cmyk_1bit_map_cmyk_color)
 };
-const gx_device_async gs_bmpasep1_device = {
+gx_device_async gs_bmpasep1_device = {
   prn_device_body(gx_device_async, bmpasep1_procs, "bmpasep1",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -114,11 +112,11 @@ const gx_device_async gs_bmpasep1_device = {
 
 /* 8-bit-per-plane separated CMYK color. */
 
-private const gx_device_procs bmpasep8_procs = {
+private gx_device_procs bmpasep8_procs = {
     bmpa_cmyk_procs(bmpa_cmyk_writer_open, cmyk_8bit_map_color_rgb,
 		    cmyk_8bit_map_cmyk_color)
 };
-const gx_device_async gs_bmpasep8_device = {
+gx_device_async gs_bmpasep8_device = {
   prn_device_body(gx_device_async, bmpasep8_procs, "bmpasep8",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -128,10 +126,10 @@ const gx_device_async gs_bmpasep8_device = {
 
 /* 4-bit (EGA/VGA-style) color. */
 
-private const gx_device_procs bmpa16_procs =
+private gx_device_procs bmpa16_procs =
   prn_color_procs(bmpa_writer_open, gdev_prn_output_page, gdev_prn_close,
     pc_4bit_map_rgb_color, pc_4bit_map_color_rgb);
-const gx_device_async gs_bmpa16_device =
+gx_device_async gs_bmpa16_device =
   async_device(bmpa16_procs, "bmpa16",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -141,10 +139,10 @@ const gx_device_async gs_bmpa16_device =
 /* 8-bit (SuperVGA-style) color. */
 /* (Uses a fixed palette of 3,3,2 bits.) */
 
-private const gx_device_procs bmpa256_procs =
+private gx_device_procs bmpa256_procs =
   prn_color_procs(bmpa_writer_open, gdev_prn_output_page, gdev_prn_close,
     pc_8bit_map_rgb_color, pc_8bit_map_color_rgb);
-const gx_device_async gs_bmpa256_device =
+gx_device_async gs_bmpa256_device =
   async_device(bmpa256_procs, "bmpa256",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -153,10 +151,10 @@ const gx_device_async gs_bmpa256_device =
 
 /* 24-bit color. */
 
-private const gx_device_procs bmpa16m_procs =
+private gx_device_procs bmpa16m_procs =
   prn_color_procs(bmpa_writer_open, gdev_prn_output_page, gdev_prn_close,
     bmp_map_16m_rgb_color, bmp_map_16m_color_rgb);
-const gx_device_async gs_bmpa16m_device =
+gx_device_async gs_bmpa16m_device =
   async_device(bmpa16m_procs, "bmpa16m",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -169,7 +167,7 @@ private const gx_device_procs bmpa32b_procs = {
     bmpa_cmyk_procs(bmpa_writer_open, gx_default_map_color_rgb,
 		    gx_default_cmyk_map_cmyk_color)
 };
-const gx_device_async gs_bmpa32b_device =
+gx_device_async gs_bmpa32b_device =
   async_device(bmpa32b_procs, "bmpa32b",
 	       DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	       X_DPI, Y_DPI,

@@ -338,24 +338,26 @@ void*
 vmemchr(void *s, int c, int n)
 {
 	int m;
+	char *t;
 	ulong a;
-	void *t;
 
+    loop:
 	a = (ulong)s;
-	while(PGROUND(a) != PGROUND(a+n-1)){
-		/* spans pages; handle this page */
-		m = BY2PG - (a & (BY2PG-1));
-		t = memchr((void*)a, c, m);
+	m = BY2PG - (a & (BY2PG-1));
+	if(m < n){
+		t = memchr(s, c, m);
 		if(t)
 			return t;
-		a += m;
-		n -= m;
 		if((a & KZERO) != KZERO)
-			validaddr(a, 1, 0);
+			validaddr(a+m, 1, 0);
+		s = (void*)(a+m);
+		n -= m;
+		goto loop;
 	}
-
-	/* fits in one page */
-	return memchr((void*)a, c, n);
+	/*
+	 * All in one page
+	 */
+	return memchr(s, c, n);
 }
 
 Segment*

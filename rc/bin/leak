@@ -50,7 +50,8 @@ x=`{echo $"* | tr ' ' ,}
 echo 'leakdump({'$x'})' | acid -lpool -lleak $1 $FLAGf | aux/acidleak $xflag $binary |
 {
 	if(~ $#FLAGs 1)
-		awk '{print $4}' |
+		# awk '{print $4}' |
+		sed 's/[^ ]+ +[^ ]+ +[^ ]+ +([^ ]+).*/\1/' |
 			sort | uniq -c | sort -nr |
 			sed 's! *(.*) (0x.*)!src(\2); // \1!'
 	if not

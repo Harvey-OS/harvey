@@ -2,23 +2,14 @@
 
 LIB=/$objtype/lib/libhtml.a
 
-FILES=\
-	build\
-	lex\
-	strinttab\
-	utils\
+OFILES=\
+	build.$O\
+	lex.$O\
+	strinttab.$O\
+	utils.$O\
 
 HFILES=\
 	/sys/include/html.h\
 	impl.h\
-
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libhtml.a\
-	$HFILES\
-	$CFILES\
 
 </sys/src/cmd/mksyslib

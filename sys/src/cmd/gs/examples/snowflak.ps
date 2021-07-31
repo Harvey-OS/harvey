@@ -3,7 +3,6 @@
 %% zwicky@erg.sri.com
 %% multiflake
 
-/snowflaksave save def		% prevent left over effects
 /newflake
 {/seed usertime def
 seed srand
@@ -89,5 +88,3 @@ inheight {
 
 
 showpage
-clear cleardictstack
-snowflaksave restore

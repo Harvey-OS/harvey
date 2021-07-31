@@ -23,7 +23,7 @@ enum
 {
 	IP_ESPPROTO	= 50,
 	EsphdrSize	= 28,	// includes IP header
-	IphdrSize	= 20,	// options have been striped
+	IphdrSize	= 20,	// options have been stripped
 	EsptailSize	= 2,	// does not include pad or auth data
 	UserhdrSize	= 4,	// user visable header size - if enabled
 };
@@ -120,7 +120,6 @@ static	void shaahinit(Espcb*, char*, uchar *key, int keylen);
 static	void md5ahinit(Espcb*, char*, uchar *key, int keylen);
 static	void desespinit(Espcb *ecb, char *name, uchar *k, int n);
 static	void rc4espinit(Espcb *ecb, char *name, uchar *k, int n);
-static	void espkick(void *x);
 
 static Algorithm espalg[] =
 {
@@ -199,8 +198,8 @@ espstate(Conv *c, char *state, int n)
 static void
 espcreate(Conv *c)
 {
-	c->rq = qopen(64*1024, Qmsg, 0, 0);
-	c->wq = qopen(64*1024, Qkick, espkick, c);
+	c->rq = qopen(64*1024, 1, 0, 0);
+	c->wq = qopen(64*1024, 0, 0, 0);
 }
 
 static void
@@ -220,10 +219,9 @@ espclose(Conv *c)
 	memset(ecb, 0, sizeof(Espcb));
 }
 
-static void
-espkick(void *x)
+void
+espkick(Conv *c)
 {
-	Conv *c = x;
 	Esphdr *eh;
 	Esptail *et;
 	Userhdr *uh;
@@ -287,7 +285,6 @@ espkick(void *x)
 	auth = bp->rp + EsphdrSize + payload + pad + EsptailSize;
 
 	// fill in head
-	eh->vihl = IP_VER4;
 	hnputl(eh->espspi, ecb->spi);
 	hnputl(eh->espseq, ++ecb->seq);
 	v6tov4(eh->espsrc, c->laddr);
@@ -299,8 +296,8 @@ espkick(void *x)
 	ecb->auth(ecb, bp->rp+IphdrSize, (EsphdrSize-IphdrSize)+payload+pad+EsptailSize, auth);
 
 	qunlock(c);
-	//print("esp: pass down: %uld\n", BLEN(bp));
-	ipoput4(c->p->f, bp, 0, c->ttl, c->tos);
+//print("esp: pass down: %uld\n", BLEN(bp));
+	ipoput(c->p->f, bp, 0, c->ttl, c->tos);
 }
 
 void
@@ -847,6 +844,7 @@ espinit(Fs *fs)
 	esp = smalloc(sizeof(Proto));
 	esp->priv = smalloc(sizeof(Esppriv));
 	esp->name = "esp";
+	esp->kick = espkick;
 	esp->connect = espconnect;
 	esp->announce = nil;
 	esp->ctl = espctl;

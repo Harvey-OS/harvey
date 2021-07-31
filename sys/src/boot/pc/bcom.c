@@ -5,18 +5,18 @@
 #include "fns.h"
 #include "io.h"
 
-#include "fs.h"
+#include "dosfs.h"
 
 Type types[] = {
 	{	Tfloppy,
-		Fini|Ffs,
+		Fini|Fdos,
 		floppyinit, floppyinitdev,
-		floppygetfspart, 0, floppyboot,
+		floppygetdospart, 0, floppyboot,
 	},
 	{	Tsd,
-		Fini|Ffs,
+		Fini|Fdos,
 		sdinit, sdinitdev,
-		sdgetfspart, sdaddconf, sdboot,
+		sdgetdospart, sdaddconf, sdboot,
 	},
 	{	Tnil,
 		0,
@@ -59,7 +59,7 @@ struct Medium {
 	int	flag;
 	int	dev;
 	char name[NAMELEN];
-	Fs*	inifs;
+	Dos *inidos;
 
 	Medium*	next;
 };
@@ -126,7 +126,7 @@ allocm(Type *tp)
 	return *l;
 }
 
-char *parts[] = { "dos", "9fat", "fs", 0 };
+char *parts[] = { "dos", "9fat", 0 };
 
 Medium*
 probe(int type, int flag, int dev)

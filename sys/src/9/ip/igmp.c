@@ -86,7 +86,6 @@ igmpsendreport(Media *m, byte *addr)
 	if(bp == nil)
 		return;
 	p = (IGMPpkt*)bp->wp;
-	p->vihl = IP_VER4;
 	bp->wp += sizeof(IGMPpkt);
 	memset(bp->rp, 0, sizeof(IGMPpkt));
 	hnputl(p->src, Mediagetaddr(m));
@@ -97,7 +96,7 @@ igmpsendreport(Media *m, byte *addr)
 	hnputs(p->igmpcksum, ptclcsum(bp, IGMP_IPHDRSIZE, IGMP_HDRSIZE));
 	netlog(Logigmp, "igmpreport %I\n", p->group);
 	stats.outreports++;
-	ipoput4(bp, 0, 1, DFLTTOS);	/* TTL of 1 */
+	ipoput(bp, 0, 1, DFLTTOS);	/* TTL of 1 */
 }
 
 static int
@@ -167,7 +166,7 @@ igmpproc(void *a)
 }
 
 void
-igmpiput(Media *m, Ipifc *, Block *bp)
+igmpiput(Media *m, Ipifc*, Block *bp)
 {
 	int n;
 	IGMPpkt *ghp;
@@ -274,6 +273,7 @@ void
 igmpinit(Fs *fs)
 {
 	igmp.name = "igmp";
+	igmp.kick = nil;
 	igmp.connect = nil;
 	igmp.announce = nil;
 	igmp.ctl = nil;

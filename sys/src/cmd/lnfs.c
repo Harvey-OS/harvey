@@ -81,7 +81,7 @@ char 	*(*fcalls[])(Fid*) = {
 
 char	Eperm[] =	"permission denied";
 char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"lnfs: authentication not required";
+char	Enoauth[] =	"no authentication in ramfs";
 char	Enotexist[] =	"file does not exist";
 char	Einuse[] =	"file in use";
 char	Eexist[] =	"file exists";
@@ -204,7 +204,7 @@ rversion(Fid*)
 char*
 rauth(Fid*)
 {
-	return Enoauth;
+	return "lfs: no authentication required";
 }
 
 char*

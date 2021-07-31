@@ -63,49 +63,55 @@ struct Fcall
 	ushort	tag;
 	union {
 		struct {
-			u32int	msize;	/* Tversion, Rversion */
+			u32int	msize;		/* Tversion, Rversion */
 			char	*version;	/* Tversion, Rversion */
 		};
 		struct {
-			ushort	oldtag;	/* Tflush */
+			u32int	oldtag;		/* Tflush */
 		};
 		struct {
-			char	*ename;	/* Rerror */
+			char	*ename;		/* Rerror */
 		};
 		struct {
-			Qid	qid;	/* Rattach, Ropen, Rcreate */
-			u32int	iounit;	/* Ropen, Rcreate */
+			Qid	qid;		/* Rattach, Ropen, Rcreate */
+			u32int	iounit;		/* Ropen, Rcreate */
+			ushort	nrauth;		/* Rattach */
+			uchar	*rauth;		/* Rattach */
 		};
 		struct {
-			Qid	aqid;	/* Rauth */
+			char	*uname;		/* Tattach */
+			char	*aname;		/* Tattach */
+			ushort	nauth;		/* Tattach */
+			uchar	*auth;		/* Tattach */
 		};
 		struct {
-			u32int	afid;	/* Tauth, Tattach */
-			char	*uname;	/* Tauth, Tattach */
-			char	*aname;	/* Tauth, Tattach */
+			char	*authid;	/* Rsession */
+			char	*authdom;	/* Rsession */
+			ushort	nchal;		/* Tsession/Rsession */
+			uchar	*chal;		/* Tsession/Rsession */
 		};
 		struct {
-			u32int	perm;	/* Tcreate */ 
-			char	*name;	/* Tcreate */
-			uchar	mode;	/* Tcreate, Topen */
+			u32int	perm;		/* Tcreate */ 
+			char	*name;		/* Tcreate */
+			uchar	mode;		/* Tcreate, Topen */
 		};
 		struct {
-			u32int	newfid;	/* Twalk */
-			ushort	nwname;	/* Twalk */
+			u32int	newfid;		/* Twalk */
+			ushort	nwname;		/* Twalk */
 			char	*wname[MAXWELEM];	/* Twalk */
 		};
 		struct {
-			ushort	nwqid;	/* Rwalk */
-			Qid	wqid[MAXWELEM];	/* Rwalk */
+			ushort	nwqid;		/* Rwalk */
+			Qid	wqid[MAXWELEM];		/* Rwalk */
 		};
 		struct {
-			vlong	offset;	/* Tread, Twrite */
-			u32int	count;	/* Tread, Twrite, Rread */
-			char	*data;	/* Twrite, Rread */
+			vlong	offset;		/* Tread, Twrite */
+			u32int	count;		/* Tread, Twrite, Rread */
+			char	*data;		/* Twrite, Rread */
 		};
 		struct {
-			ushort	nstat;	/* Twstat, Rstat */
-			uchar	*stat;	/* Twstat, Rstat */
+			ushort	nstat;		/* Twstat, Rstat */
+			uchar	*stat;		/* Twstat, Rstat */
 		};
 	};
 } Fcall;
@@ -139,10 +145,10 @@ For all message types, the
 field of an
 .B Fcall
 holds one of
-.BR Tversion ,
-.BR Rversion ,
-.BR Tattach ,
-.BR Rattach ,
+.BR Tnop ,
+.BR Rnop ,
+.BR Tsession ,
+.BR Rsession ,
 etc. (defined in an enumerated type in
 .BR <fcall.h> ).
 .B Fid
@@ -309,7 +315,7 @@ in other words,
 is 2 plus the sum of the sizes of the entry itself.
 .I Statcheck
 also verifies that the length field has the correct value (that is,
-.IB nbuf -2\f1).
+.IB nbuf -2\r1).
 It returns
 .B 0
 for a valid entry and

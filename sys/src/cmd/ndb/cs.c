@@ -503,7 +503,7 @@ rversion(Job *job)
 void
 rauth(Job *job)
 {
-	sendmsg(job, "cs: authentication not required");
+	sendmsg(job, "no authentication required");
 }
 
 /*
@@ -930,7 +930,6 @@ readipinterfaces(void)
 				sprint(ipaddr, "%I", ipa);
 				if(debug)
 					syslog(0, "dns", "ipaddr is %s\n", ipaddr);
-				return;
 			}
 	ipmove(ipa, IPnoaddr);
 }

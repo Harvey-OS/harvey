@@ -6,8 +6,6 @@
 char *server = "freedb.freedb.org";
 int debug;
 #define DPRINT if(debug)fprint
-int tflag;
-int Tflag;
 
 typedef struct Track Track;
 struct Track {
@@ -51,24 +49,11 @@ estrdup(char *s)
 static void
 dumpcddb(Toc *t)
 {
-	int i, n, s;
+	int i;
 
 	print("title	%s\n", t->title);
-	for(i=0; i<t->ntrack; i++){
-		if(tflag){
-			n = t->track[i+1].n;
-			if(i == t->ntrack-1)
-				n *= 75;
-			s = (n - t->track[i].n)/75;
-			print("%d\t%s\t%d:%2.2d\n", i+1, t->track[i].title, s/60, s%60);
-		}
-		else
-			print("%d\t%s\n", i+1, t->track[i].title);
-	}
-	if(Tflag){
-		s = t->track[i].n;
-		print("Total time: %d:%2.2d\n", s/60, s%60);
-	}
+	for(i=0; i<t->ntrack; i++)
+		print("%d	%s\n", i+1, t->track[i].title);
 }
 
 char*
@@ -206,7 +191,7 @@ DPRINT(2, "cddb %s\n", p);
 void
 usage(void)
 {
-	fprint(2, "usage: aux/cddb [-DTt] [-s server] query diskid n ...\n");
+	fprint(2, "usage: aux/cddb [-D] [-s server] query diskid n ...\n");
 	exits("usage");
 }
 
@@ -222,12 +207,6 @@ main(int argc, char **argv)
 		break;
 	case 's':
 		server = EARGF(usage());
-		break;
-	case 'T':
-		Tflag = 1;
-		/*FALLTHROUGH*/
-	case 't':
-		tflag = 1;
 		break;
 	}ARGEND
 

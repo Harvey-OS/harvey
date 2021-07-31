@@ -1,6 +1,6 @@
 .TH DHCPD 8
 .SH NAME
-dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
+dhcpd, rarpd, tftpd \- Internet booting
 .SH SYNOPSIS
 .PP
 .B ip/dhcpd
@@ -15,8 +15,6 @@ dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
 .I address
 .I n
 ]*
-.PP
-.B ip/dhcpleases
 .PP
 .B ip/rarpd
 .RB [ -d ]
@@ -202,11 +200,6 @@ Use
 .I secs
 as the minimum lease time.
 .PD
-.PP
-.I Dhcpleases
-prints out the currently valid DHCP leases found in the
-.B /lib/ndb/dhcp
-directory.
 .PP
 .I Rarpd
 performs the Reverse Address Resolution Protocol, translating

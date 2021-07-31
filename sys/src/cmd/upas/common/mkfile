@@ -11,11 +11,6 @@ OFILES=aux.$O\
 HFILES=common.h\
 	sys.h\
 
-UPDATE=\
-	mkfile\
-	${OFILES:%.$O=%.c}\
-	$HFILES\
-
 </sys/src/cmd/mklib
 
 nuke:V:

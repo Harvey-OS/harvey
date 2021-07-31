@@ -4,7 +4,7 @@ ssh, sshnet, scp, sshserve, ssh_genkey \- secure login and file copy from/to Uni
 .SH SYNOPSIS
 .B ssh
 [
-.B -CiImPpRrw
+.B -CiImPpRrvw
 ]
 [
 .B -A
@@ -118,6 +118,9 @@ strip carriage returns.
 .TP
 .B -R
 put the allocated pseudoterminal, if any, in raw mode.
+.TP
+.B -v
+enable verbose feedback during the connection and authentication process. 
 .TP
 .B -w
 notify the remote side whenever the window changes size.

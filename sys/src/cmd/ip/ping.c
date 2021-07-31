@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <ip.h>
 
 typedef struct Icmp Icmp;
 struct Icmp
@@ -47,9 +46,8 @@ struct Req
 {
 	int	seq;	// sequence number
 	vlong	time;	// time sent
-	vlong	rtt;
+	int	rtt;
 	int	ttl;
-	int	replied;
 	Req	 *next;
 };
 Req	*first;		// request list
@@ -63,12 +61,11 @@ int lostmsgs;
 int rcvdmsgs;
 int done;
 vlong sum;
-ushort firstseq;
-int addresses;
+
 
 void usage(void);
 void lost(Req*);
-void reply(Req*, Icmp*);
+void reply(Req*);
 
 #define SECOND 1000000000LL
 #define MINUTE (60LL*SECOND)
@@ -91,26 +88,21 @@ catch(void *a, char *msg)
 }
 
 void
-clean(ushort seq, vlong now, Icmp *ip)
+clean(ushort seq, vlong now, int ttl)
 {
 	Req **l, *r;
 
 	lock(&listlock);
 	for(l = &first; *l; ){
 		r = *l;
-
-		if(r->seq == seq){
-			r->rtt = now-r->time;
-			r->ttl = ip->ttl;
-			reply(r, ip);
-		}
-
-		if(now-r->time > MINUTE){
+		if(now-r->time > MINUTE || r->seq == seq){
 			*l = r->next;
-			r->rtt = now-r->time;
-			r->ttl = ip->ttl;
-			if(r->replied == 0)
+			r->time = now-r->time;
+			r->ttl = ttl;
+			if(r->seq != seq)
 				lost(r);
+			else
+				reply(r);
 			free(r);
 		} else {
 			last = r;
@@ -132,7 +124,7 @@ sender(int fd, int msglen, int interval, int n)
 	ip = (Icmp*)buf;
 
 	srand(time(0));
-	firstseq = seq = rand();
+	seq = rand();
 
 	for(i = 32; i < msglen; i++)
 		buf[i] = i;
@@ -155,7 +147,6 @@ sender(int fd, int msglen, int interval, int n)
 				last->next = r;
 			last = r;
 			unlock(&listlock);
-			r->replied = 0;
 			r->time = nsec();
 			if(write(fd, ip, msglen) < msglen){
 				fprint(2, "%s: write failed: %r\n", argv0);
@@ -203,13 +194,12 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 				ip->type, ip->code, x);
 			continue;
 		}
-		clean(x, now, ip);
+		clean(x, now, ip->ttl);
 	}
 	
 	lock(&listlock);
 	for(r = first; r; r = r->next)
-		if(r->replied == 0)
-			lostmsgs++;
+		lostmsgs++;
 	unlock(&listlock);
 
 	if(lostmsgs)
@@ -223,8 +213,6 @@ main(int argc, char **argv)
 	int msglen, interval, nmsg;
 
 	nsec();		/* make sure time file is already open */
-
-	fmtinstall('V', eipfmt);
 
 	msglen = interval = 0;
 	nmsg = MAXMSG;
@@ -240,9 +228,6 @@ main(int argc, char **argv)
 		break;
 	case 'n':
 		nmsg = atoi(ARGF());
-		break;
-	case 'a':
-		addresses = 1;
 		break;
 	case 'q':
 		quiet = 1;
@@ -288,21 +273,12 @@ lost(Req *)
 }
 
 void
-reply(Req *r, Icmp *ip)
+reply(Req *r)
 {
 	rcvdmsgs++;
-	r->rtt /= 1000LL;
-	sum += r->rtt;
-	if(!quiet){
-		if(addresses)
-			print("%ud: %V->%V rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
-				r->seq-firstseq,
-				ip->src, ip->dst,
-				r->rtt, sum/rcvdmsgs, r->ttl);
-		else
-			print("%ud: rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
-				r->seq-firstseq,
-				r->rtt, sum/rcvdmsgs, r->ttl);
-	}
-	r->replied = 1;
+	r->time /= 1000LL;
+	sum += r->time;
+	if(!quiet)
+		print("rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
+			r->time, sum/rcvdmsgs, r->ttl);
 }
