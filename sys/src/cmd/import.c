@@ -201,7 +201,7 @@ main(int argc, char **argv)
 	alarm(0);
 
 	if(backwards && argc > 1){
-		execv(argv[1], &argv[1]);
+		execl(argv[1], &argv[1], nil);
 		sysfatal("exec: %r");
 	}
 	exits(0);

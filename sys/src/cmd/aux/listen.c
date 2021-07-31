@@ -41,12 +41,6 @@ Announce *announcements;
 char *namespace;
 
 void
-usage(void)
-{
-	error("usage: listen [-q] [-n namespace] [-d servdir] [-t trustdir] [proto [name]]");
-}
-
-void
 main(int argc, char *argv[])
 {
 	Service *s;
@@ -77,7 +71,7 @@ main(int argc, char *argv[])
 		namespace = ARGF();
 		break;
 	default:
-		usage();
+		error("usage: listen [-d servdir] [-t trustdir] [proto]");
 	}ARGEND;
 
 	if(!servdir && !trustdir)
@@ -95,7 +89,7 @@ main(int argc, char *argv[])
 	case 0:
 		break;
 	default:
-		usage();
+		error("usage: listen [-d servdir] [-t trustdir] [proto]");
 	}
 
 	syslog(0, listenlog, "started");
