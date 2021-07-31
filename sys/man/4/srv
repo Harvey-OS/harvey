@@ -4,7 +4,7 @@ srv, srvold9p, 9fs, srvssh \- start network file service
 .SH SYNOPSIS
 .B srv
 [
-.B -abceCmnq
+.B -abceCmq
 ]
 [
 .B -s
@@ -107,13 +107,10 @@ The
 .BR a ,
 .BR b ,
 .BR c ,
-.BR C ,
 and
-.B n
+.B C 
 flags are used to control the mount flag as in
-.I mount
-(see
-.IR bind (1)).
+.IR bind (1).
 The
 .B e
 flag causes

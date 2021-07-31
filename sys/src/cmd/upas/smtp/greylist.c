@@ -23,17 +23,17 @@ typedef struct {
 enum {
 	Nonspammax = 14*60*60,  /* must call back within this time if real */
 };
-static char whitelist[] = "/mail/grey/whitelist";
+static char whitelist[] = "/mail/lib/whitelist";
 
 /*
  * matches ip addresses or subnets in whitelist against nci->rsys.
- * ignores comments and blank lines in /mail/grey/whitelist.
+ * ignores comments and blank lines in /mail/lib/whitelist.
  */
 static int
 onwhitelist(void)
 {
 	int lnlen;
-	char *line, *parse, *p;
+	char *line, *parse;
 	char input[128];
 	uchar ip[IPaddrlen], ipmasked[IPaddrlen];
 	uchar mask4[IPaddrlen], addr4[IPaddrlen];
@@ -52,19 +52,15 @@ onwhitelist(void)
 	if (wl == nil)
 		return 1;
 	while ((line = Brdline(wl, '\n')) != nil) {
+		if (line[0] == '#' || line[0] == '\n')
+			continue;
 		lnlen = Blinelen(wl);
 		line[lnlen-1] = '\0';		/* clobber newline */
 
-		p = strpbrk(line, " \t");
-		if (p)
-			*p = 0;
-		if (line[0] == '#' || line[0] == 0)
-			continue;
-		
 		/* default mask is /32 (v4) or /128 (v6) for bare IP */
 		parse = line;
 		if (strchr(line, '/') == nil) {
-			strecpy(input, input+sizeof input-5, line);
+			strncpy(input, line, sizeof input - 5);
 			if (strchr(line, '.') != nil)
 				strcat(input, "/32");
 			else
@@ -223,7 +219,7 @@ isrcptrecent(char *rcpt)
 		user++;
 
 	/* check & try to update the grey list entry */
-	snprint(file, sizeof file, "/mail/grey/tmp/%s/%s/%s",
+	snprint(file, sizeof file, "/mail/grey/%s/%s/%s",
 		nci->lsys, nci->rsys, user);
 	memset(gsp, 0, sizeof *gsp);
 	addgreylist(file, gsp);
@@ -263,9 +259,9 @@ vfysenderhostok(void)
 		if (fd >= 0) {
 			seek(fd, 0, 2);			/* paranoia */
 			if ((fqdn = csgetvalue(nil, "ip", nci->rsys, "dom", nil)) != nil)
-				fprint(fd, "%s %s\n", nci->rsys, fqdn);
+				fprint(fd, "# %s\n%s\n\n", fqdn, nci->rsys);
 			else
-				fprint(fd, "%s\n", nci->rsys);
+				fprint(fd, "# unknown\n%s\n\n", nci->rsys);
 			close(fd);
 		}
 	} else {
