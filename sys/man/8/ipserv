@@ -150,7 +150,6 @@ options are:
 .TP 4
 .B a
 allow anonymous access
-.TP
 .B A
 allow
 .I only

@@ -231,7 +231,7 @@ disctype(Drive *drive)
 	rw = "";
 	if (drive->mmctype != Mmcnone && drive->dvdtype == nil)
 		if (drive->erasable)
-			rw = drive->mmctype == Mmcbd? "re": "rw";
+			rw = "rw";
 		else if (drive->recordable)
 			rw = "r";
 		else
