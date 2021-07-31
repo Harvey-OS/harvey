@@ -1,40 +1,41 @@
 #include "stdinc.h"
+
 #include "9.h"
 
 /*
- * To do: This will become something else ('vprint'?).
+ * Dummy for now.
  */
-int
-consVPrint(char* fmt, va_list args)
-{
-	int len, ret;
-	char buf[256];
 
-	len = vsnprint(buf, sizeof(buf), fmt, args);
-	ret = consWrite(buf, len);
-
-	while (len-- > 0 && buf[len] == '\n')
-		buf[len] = '\0';
-	/*
-	 * if we do this, checking the root fossil (if /sys/log/fossil is there)
-	 * will spew all over the console.
-	 */
-	if (0)
-		syslog(0, "fossil", "%s", buf);
-	return ret;
-}
-
-/*
- * To do: This will become 'print'.
- */
 int
 consPrint(char* fmt, ...)
 {
-	int ret;
+	int len;
 	va_list args;
+	char buf[ERRMAX];
 
+	/*
+	 * To do:
+	 * This will be integrated with logging and become 'print'.
+	 */
 	va_start(args, fmt);
-	ret = consVPrint(fmt, args);
+	len = vsnprint(buf, sizeof(buf), fmt, args);
 	va_end(args);
-	return ret;
+
+	return consWrite(buf, len);
+}
+
+int
+consVPrint(char* fmt, va_list args)
+{
+	int len;
+	char buf[ERRMAX];
+
+	/*
+	 * To do:
+	 * This will be integrated with logging and become
+	 * something else ('vprint'?).
+	 */
+	len = vsnprint(buf, sizeof(buf), fmt, args);
+
+	return consWrite(buf, len);
 }

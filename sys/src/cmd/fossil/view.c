@@ -301,8 +301,6 @@ copyMetaBlock(MetaBlock mb)
  * visualizer 
  */
 
-#pragma	varargck	argpos	stringnode	1
-
 Tnode*
 stringnode(char *fmt, ...)
 {

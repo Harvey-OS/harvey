@@ -179,8 +179,7 @@ fdsize(int fd)
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-b blocksize] [-h host] [-i file offset] "
-		"[-l label] [-v score] [-y] file\n", argv0);
+	fprint(2, "usage: %s [-b blocksize] [-h host] [-i file offset] [-l label] [-v score] [-y] file\n", argv0);
 	exits("usage");
 }
 
@@ -570,3 +569,4 @@ parseScore(uchar *score, char *buf)
 	}
 	return 1;
 }
+

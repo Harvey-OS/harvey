@@ -527,12 +527,16 @@ unfraglen(Block *bp, uchar *nexthdr, int setfh)
 	ufl = IP6HDR;
 	p += ufl;
 
-	while (*nexthdr == HBH || *nexthdr == RH) {
-		*nexthdr = *p;
-		hs = ((int)*(p+1) + 1) * 8;
-		ufl += hs;
-		q = p;
-		p += hs;
+	for(;;) {
+		if(*nexthdr == HBH || *nexthdr == RH) {
+			*nexthdr = *p;
+			hs = ((int)*(p+1) + 1) * 8;
+			ufl += hs;
+			q = p;
+			p += hs;
+		}
+		else
+			break;
 	}
 
 	if(*nexthdr == FH)
