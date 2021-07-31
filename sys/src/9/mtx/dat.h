@@ -202,5 +202,3 @@ extern Mach		mach0;
 
 extern register Mach	*m;
 extern register Proc	*up;
-
-extern FPsave initfp;
