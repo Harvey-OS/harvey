@@ -239,7 +239,6 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 	tab = &procdir[s];
 	path = c->qid.path&~(((1<<QSHIFT)-1));	/* slot component */
 
-	/* p->procmode determines default mode for files in /proc */
 	p = proctab(SLOT(c->qid));
 	perm = tab->perm;
 	if(perm == 0)
@@ -496,7 +495,6 @@ procwstat(Chan *c, uchar *db, int n)
 		else
 			kstrdup(&p->user, d->uid);
 	}
-	/* p->procmode determines default mode for files in /proc */
 	if(d->mode != ~0UL)
 		p->procmode = d->mode&0777;
 
