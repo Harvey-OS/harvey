@@ -73,16 +73,6 @@ modf(double d, double *ip)
 	Cheat x;
 	int e;
 
-	x.d = d;
-	e = (x.ms >> SHIFT) & MASK;
-	if(e == MASK){
-		*ip = d;
-		if(x.ls != 0 || (x.ms & 0xfffffL) != 0)	/* NaN */
-			return d;
-		/* ±Inf */
-		x.ms &= 0x80000000L;
-		return x.d;
-	}
 	if(d < 1) {
 		if(d < 0) {
 			f = modf(-d, ip);
@@ -92,7 +82,8 @@ modf(double d, double *ip)
 		*ip = 0;
 		return d;
 	}
-	e -= BIAS;
+	x.d = d;
+	e = ((x.ms >> SHIFT) & MASK) - BIAS;
 	if(e <= SHIFT+1) {
 		x.ms &= ~(0x1fffffL >> e);
 		x.ls = 0;
