@@ -213,7 +213,6 @@ commnds(void)
 		}
 		switch(c) {
 		case ' ':
-		case '\t':
 		case '\n':
 		case -1:
 			continue;

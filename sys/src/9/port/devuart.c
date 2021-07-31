@@ -41,8 +41,6 @@ uartenable(Uart *p)
 {
 	Uart **l;
 
-	if(p->enabled)
-		return p;
 	if(p->iq == nil){
 		if((p->iq = qopen(8*1024, 0, uartflow, p)) == nil)
 			return nil;
@@ -106,8 +104,6 @@ uartdisable(Uart *p)
 {
 	Uart **l;
 
-	if(!p->enabled)
-		return;
 	(*p->phys->disable)(p);
 
 	ilock(&uartalloc);
@@ -205,15 +201,15 @@ uartreset(void)
 	p = uartlist;
 	for(i = 0; i < uartnuart; i++){
 		/* 3 directory entries per port */
-		snprint(dp->name, sizeof dp->name, "eia%d", i);
+		sprint(dp->name, "eia%d", i);
 		dp->qid.path = NETQID(i, Ndataqid);
 		dp->perm = 0660;
 		dp++;
-		snprint(dp->name, sizeof dp->name, "eia%dctl", i);
+		sprint(dp->name, "eia%dctl", i);
 		dp->qid.path = NETQID(i, Nctlqid);
 		dp->perm = 0660;
 		dp++;
-		snprint(dp->name, sizeof dp->name, "eia%dstatus", i);
+		sprint(dp->name, "eia%dstatus", i);
 		dp->qid.path = NETQID(i, Nstatqid);
 		dp->perm = 0444;
 		dp++;

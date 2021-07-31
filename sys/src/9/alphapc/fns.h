@@ -66,7 +66,6 @@ ulong 	meminit(void);
 void	mmudump(void);
 void	mmuinit(void);
 void	mmupark(void);
-#define mtrr(a, b, c)
 ulong	pcibarsize(Pcidev*, int);
 int	pcicfgr8(Pcidev*, int);
 int	pcicfgr16(Pcidev*, int);

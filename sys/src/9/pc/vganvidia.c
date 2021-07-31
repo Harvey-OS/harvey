@@ -116,8 +116,10 @@ nvidiaenable(VGAscr* scr)
 	addvgaseg("nvidiammio", p->mem[0].bar&~0x0F, p->mem[0].size);
 
 	vgalinearpci(scr);
-	if(scr->apsize)
+	if(scr->apsize) {
 		addvgaseg("nvidiascreen", scr->paddr, scr->apsize);
+		mtrr(scr->paddr, scr->apsize, "wc");
+	}
 
 	/* find video memory size */
 	switch (scr->id & 0x0ff0) {

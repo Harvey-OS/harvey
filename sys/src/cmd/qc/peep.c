@@ -423,6 +423,8 @@ subprop(Reg *r0)
 		case AREMU:
 		case ARLWNM:
 		case ARLWNMCC:
+		case ARLWMI:
+		case ARLWMICC:
 
 		case AFADD:
 		case AFADDS:
@@ -619,6 +621,7 @@ copyu(Prog *p, Adr *v, Adr *s)
 			print(" (???)");
 		return 2;
 
+
 	case ANOP:	/* read, write */
 	case AMOVW:
 	case AMOVH:
@@ -663,12 +666,6 @@ copyu(Prog *p, Adr *v, Adr *s)
 			return 1;
 		return 0;
 
-	case ARLWMI:	/* read read rar */
-	case ARLWMICC:
-		if(copyas(&p->to, v))
-			return 2;
-		/* fall through */
-
 	case AADD:	/* read read write */
 	case AADDC:
 	case AADDE:
@@ -696,6 +693,8 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case ADIVWU:
 	case AREM:
 	case AREMU:
+	case ARLWMI:
+	case ARLWMICC:
 	case ARLWNM:
 	case ARLWNMCC:
 

@@ -291,6 +291,7 @@ vgactl(Cmdbuf *cb)
 		return;
 
 	case CMsize:
+
 		x = strtoul(cb->f[1], &p, 0);
 		if(x == 0 || x > 10240)
 			error(Ebadarg);
@@ -351,9 +352,8 @@ vgactl(Cmdbuf *cb)
 		return;
 
 	case CMdrawinit:
-		if(scr->gscreen == nil)
-			error("drawinit: no gscreen");
-		if(scr->dev && scr->dev->drawinit)
+		memimagedraw(scr->gscreen, scr->gscreen->r, memblack, ZP, nil, ZP, S);
+		if(scr && scr->dev && scr->dev->drawinit)
 			scr->dev->drawinit(scr);
 		return;
 	

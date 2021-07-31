@@ -2154,7 +2154,7 @@ drawblankscreen(int blank)
 		return;
 	if(!candlock())
 		return;
-	if(screenimage == nil){
+	if(!initscreenimage()){
 		dunlock();
 		return;
 	}
