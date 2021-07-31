@@ -1197,8 +1197,7 @@ lookup(Mfile *mf)
 						mf->replylen[mf->nreply] = strlen(cp);
 						mf->reply[mf->nreply++] = cp;
 						rv++;
-					}else
-						free(cp);
+					}
 				}
 			}
 			ndbfree(nt);
