@@ -208,12 +208,7 @@ control(Tokenrow *trp)
 
 	case KERROR:
 		trp->tp = tp+1;
-		error(ERROR, "#error directive: %r", trp);
-		break;
-
-	case KWARNING:
-		trp->tp = tp+1;
-		error(WARNING, "#warning directive: %r", trp);
+		error(WARNING, "#error directive: %r", trp);
 		break;
 
 	case KLINE:
