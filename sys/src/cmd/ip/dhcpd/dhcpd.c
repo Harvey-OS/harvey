@@ -51,14 +51,14 @@ Ipifc	*ipifcs;
 int	debug;
 int	nobootp;
 long	now;
-int	slowstat, slowdyn;
+int	slow;
 char	net[256];
 
 int	pptponly;	// only answer request that came from the pptp server
-int	mute, mutestat;
+int	mute;
 int	minlease = MinLease;
 
-ulong	start;
+ulong	start;	
 
 /* option magic */
 char plan9opt[4] = { 'p', '9', ' ', ' ' };
@@ -231,19 +231,13 @@ main(int argc, char **argv)
 		ndbfile = p;
 		break;
 	case 's':
-		slowstat = 1;
-		break;
-	case 'S':
-		slowdyn = 1;
+		slow = 1;
 		break;
 	case 'n':
 		nobootp = 1;
 		break;
 	case 'p':
 		pptponly = 1;
-		break;
-	case 'r':
-		mutestat = 1;
 		break;
 	case 'x':
 		p = ARGF();
@@ -390,13 +384,6 @@ proto(Req *rp, int n)
 timestamp("done");
 }
 
-static void
-slowdelay(Req *rp)
-{
-	if(slowstat && rp->staticbinding || slowdyn && !rp->staticbinding)
-		sleep(2000);
-}
-
 void
 dhcp(Req *rp)
 {
@@ -404,7 +391,8 @@ dhcp(Req *rp)
 
 	switch(rp->dhcptype){
 	case Discover:
-		slowdelay(rp);
+		if(slow)
+			sleep(500);
 		rcvdiscover(rp);
 		break;
 	case Request:
@@ -503,7 +491,7 @@ rcvrequest(Req *rp)
 				sendnak(rp, "no offer for you");
 			return;
 		}
-
+	
 		/* if not for me, retract offer */
 		if(!forme(rp->server)){
 			b->expoffer = 0;
@@ -696,12 +684,6 @@ setsiaddr(uchar *siaddr, uchar *saddr, uchar *laddr)
 	}
 }
 
-int
-ismuted(Req *rp)
-{
-	return mute || (mutestat && rp->staticbinding);
-}
-
 void
 sendoffer(Req *rp, uchar *ip, int offer)
 {
@@ -758,7 +740,7 @@ sendoffer(Req *rp, uchar *ip, int offer)
 	 *  send
 	 */
 	n = rp->p - rp->buf;
-	if(!ismuted(rp) && write(rp->fd, rp->buf, n) != n)
+	if(!mute && write(rp->fd, rp->buf, n) != n)
 		warning(0, "offer: write failed: %r");
 }
 
@@ -819,7 +801,7 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 	 *  send
 	 */
 	n = rp->p - rp->buf;
-	if(!ismuted(rp) && write(rp->fd, rp->buf, n) != n)
+	if(!mute && write(rp->fd, rp->buf, n) != n)
 		warning(0, "ack: write failed: %r");
 }
 
@@ -872,7 +854,7 @@ sendnak(Req *rp, char *msg)
 	 *  send nak
 	 */
 	n = rp->p - rp->buf;
-	if(!ismuted(rp) && write(rp->fd, rp->buf, n) != n)
+	if(!mute && write(rp->fd, rp->buf, n) != n)
 		warning(0, "nak: write failed: %r");
 }
 
@@ -911,8 +893,8 @@ bootp(Req *rp)
 			warning(0, "bootp for server %s", bp->sname);
 			return;
 		}
-	} else
-		slowdelay(rp);
+	} else if(slow)
+		sleep(500);
 
 	/* ignore if we don't know what file to load */
 	if(*bp->file == 0){
@@ -1008,7 +990,7 @@ bootp(Req *rp)
 	 *  send
 	 */
 	n = rp->p - rp->buf;
-	if(!ismuted(rp) && write(rp->fd, rp->buf, n) != n)
+	if(!mute && write(rp->fd, rp->buf, n) != n)
 		warning(0, "bootp: write failed: %r");
 
 	warning(0, "bootp via %I: file %s xid(%ux)flag(%ux)ci(%V)gi(%V)yi(%V)si(%V) %s",
@@ -1038,7 +1020,7 @@ parseoptions(Req *rp)
 		p += n;
 		if(p > rp->e)
 			return;
-
+		
 		switch(code){
 		case ODipaddr:	/* requested ip address */
 			if(n == IPv4addrlen)

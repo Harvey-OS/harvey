@@ -301,12 +301,6 @@ promiscuous(void* arg, int on)
 }
 
 static void
-multicast(void* arg, uchar*, int)
-{
-	promiscuous(arg, 1);
-}
-
-static void
 txstart(Ether* ether)
 {
 	Ctlr *ctlr;
@@ -632,8 +626,6 @@ reset(Ether* ether)
 
 	ether->arg = ether;
 	ether->promiscuous = promiscuous;
-	ether->multicast = multicast;
-//	ether->shutdown = shutdown;
 
 	return 0;
 }
