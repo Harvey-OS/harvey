@@ -357,33 +357,6 @@ enum {					/* Tdesc status */
 	CssSHIFT	= 8,
 };
 
-typedef struct {
-	ushort	*reg;
-	ulong	*reg32;
-	int	sz;
-} Flash;
-
-enum {
-	/* 16 and 32-bit flash registers for ich flash parts */
-	Bfpr	= 0x00/4,		/* flash base 0:12; lim 16:28 */
-	Fsts	= 0x04/2,		/* flash status; Hsfs */
-	Fctl	= 0x06/2,		/* flash control */
-	Faddr	= 0x08/4,		/* flash address to r/w */
-	Fdata	= 0x10/4,		/* data @ address */
-
-	/* status register */
-	Fdone	= 1<<0,			/* flash cycle done */
-	Fcerr	= 1<<1,			/* cycle error; write 1 to clear */
-	Ael	= 1<<2,			/* direct access error log; 1 to clear */
-	Scip	= 1<<5,			/* spi cycle in progress */
-	Fvalid	= 1<<14,		/* flash descriptor valid */
-
-	/* control register */
-	Fgo	= 1<<0,			/* start cycle */
-	Flcycle	= 1<<1,			/* two bits: r=0; w=2 */
-	Fdbc	= 1<<8,			/* bytes to read; 5 bits */
-};
-
 enum {
 	Nrd		= 256,		/* power of two */
 	Ntd		= 128,		/* power of two */
@@ -391,7 +364,6 @@ enum {
 };
 
 enum {
-	Iany,
 	i82563,
 	i82566,
 	i82571,
@@ -400,7 +372,6 @@ enum {
 };
 
 static int rbtab[] = {
-	0,
 	9014,
 	1514,
 	9234,
@@ -409,13 +380,13 @@ static int rbtab[] = {
 };
 
 static char *tname[] = {
-	"any",
 	"i82563",
 	"i82566",
 	"i82571",
 	"i82572",
 	"i82573",
 };
+#define Type	tname[ctlr->type]
 
 typedef struct Ctlr Ctlr;
 struct Ctlr {
@@ -470,6 +441,7 @@ struct Ctlr {
 	Rendez	trendez;
 	QLock	tlock;
 	int	tbusy;
+	int	tdfree;
 	Td	*tdba;			/* transmit descriptor base address */
 	Block	**tb;			/* transmit buffers */
 	int	tdh;			/* transmit descriptor head */
@@ -626,7 +598,7 @@ i82563ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	p = seprint(p, e, "speeds: 10:%ud 100:%ud 1000:%ud ?:%ud\n",
 		ctlr->speeds[0], ctlr->speeds[1], ctlr->speeds[2], ctlr->speeds[3]);
-	p = seprint(p, e, "type: %s\n", tname[ctlr->type]);
+	p = seprint(p, e, "type: %s\n", Type);
 
 //	p = seprint(p, e, "eeprom:");
 //	for(i = 0; i < 0x40; i++){
@@ -791,6 +763,7 @@ i82563txinit(Ctlr* ctlr)
 		}
 		memset(&ctlr->tdba[i], 0, sizeof(Td));
 	}
+	ctlr->tdfree = ctlr->ntd;
 	csr32w(ctlr, Tidv, 128);
 	r = csr32r(ctlr, Txdctl);
 	r &= ~WthreshMASK;
@@ -1319,7 +1292,7 @@ i82563shutdown(Ether* ether)
 }
 
 static ushort
-eeread(Ctlr *ctlr, int adr)
+eeread(Ctlr* ctlr, int adr)
 {
 	csr32w(ctlr, Eerd, EEstart | adr << 2);
 	while ((csr32r(ctlr, Eerd) & EEdone) == 0)
@@ -1328,7 +1301,7 @@ eeread(Ctlr *ctlr, int adr)
 }
 
 static int
-eeload(Ctlr *ctlr)
+eeload(Ctlr* ctlr)
 {
 	ushort sum;
 	int data, adr;
@@ -1343,93 +1316,15 @@ eeload(Ctlr *ctlr)
 }
 
 static int
-fcycle(Ctlr *, Flash *f)
-{
-	ushort s, i;
-
-	s = f->reg[Fsts];
-	if((s&Fvalid) == 0)
-		return -1;
-	f->reg[Fsts] |= Fcerr | Ael;
-	for(i = 0; i < 10; i++){
-		if((s&Scip) == 0)
-			return 0;
-		delay(1);
-		s = f->reg[Fsts];
-	}
-	return -1;
-}
-
-static int
-fread(Ctlr *c, Flash *f, int ladr)
-{
-	ushort s;
-
-	delay(1);
-	if(fcycle(c, f) == -1)
-		return -1;
-	f->reg[Fsts] |= Fdone;
-	f->reg32[Faddr] = ladr;
-
-	/* setup flash control register */
-	s = f->reg[Fctl];
-	s &= ~(0x1f << 8);
-	s |= (2-1) << 8;		/* 2 bytes */
-	s &= ~(2*Flcycle);		/* read */
-	f->reg[Fctl] = s | Fgo;
-
-	while((f->reg[Fsts] & Fdone) == 0)
-		;
-	if(f->reg[Fsts] & (Fcerr|Ael))
-		return -1;
-	return f->reg32[Fdata] & 0xffff;
-}
-
-static int
-fload(Ctlr *c)
-{
-	ulong data, io, r, adr;
-	ushort sum;
-	Flash f;
-
-	io = c->pcidev->mem[1].bar & ~0x0f;
-	f.reg = vmap(io, c->pcidev->mem[1].size);
-	if(f.reg == nil)
-		return -1;
-	f.reg32 = (ulong*)f.reg;
-	f.sz = f.reg32[Bfpr];
-	if(csr32r(c, Eec) & (1<<22)){
-		r = (f.sz >> 16) & 0x1fff;
-		r = (r+1) << 12;
-	}else
-		r = (f.sz & 0x1fff) << 12;
-
-	sum = 0;
-	for (adr = 0; adr < 0x40; adr++) {
-		data = fread(c, &f, r + adr*2);
-		if(data == -1)
-			break;
-		c->eeprom[adr] = data;
-		sum += data;
-	}
-	vunmap(f.reg, c->pcidev->mem[1].size);
-	return sum;
-}
-
-static int
 i82563reset(Ctlr *ctlr)
 {
 	int i, r;
 
 	if(i82563detach(ctlr))
 		return -1;
-	if(ctlr->type == i82566)
-		r = fload(ctlr);
-	else
-		r = eeload(ctlr);
+	r = eeload(ctlr);
 	if (r != 0 && r != 0xBABA){
-		print("%s: bad EEPROM checksum - %#.4ux\n",
-			tname[ctlr->type], r);
+		print("%s: bad EEPROM checksum - %#.4ux\n", Type, r);
 		return -1;
 	}
 
@@ -1530,12 +1425,9 @@ static int
 pnp(Ether* edev, int type)
 {
 	Ctlr *ctlr;
-	static int done;
 
-	if(!done) {
+	if(i82563ctlrhead == nil)
 		i82563pci();
-		done = 1;
-	}
 
 	/*
 	 * Any adapter matches if no edev->port is supplied,
@@ -1544,7 +1436,7 @@ pnp(Ether* edev, int type)
 	for(ctlr = i82563ctlrhead; ctlr != nil; ctlr = ctlr->next){
 		if(ctlr->active)
 			continue;
-		if(type != Iany && ctlr->type != type)
+		if(type != 0 && ctlr->type != type)
 			continue;
 		if(edev->port == 0 || edev->port == ctlr->port){
 			ctlr->active = 1;
@@ -1582,7 +1474,7 @@ pnp(Ether* edev, int type)
 static int
 anypnp(Ether *e)
 {
-	return pnp(e, Iany);
+	return pnp(e, 0);
 }
 
 static int

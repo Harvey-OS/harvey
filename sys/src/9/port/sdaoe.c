@@ -102,10 +102,10 @@ gbit16(void *a)
 	return i[1] << 8 | i[0];
 }
 
-static ulong
+static u32int
 gbit32(void *a)
 {
-	ulong j;
+	u32int j;
 	uchar *i;
 
 	i = a;

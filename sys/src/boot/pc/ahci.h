@@ -78,15 +78,15 @@ enum {
 };
 
 typedef struct {
-	ulong	cap;
-	ulong	ghc;
-	ulong	isr;
-	ulong	pi;		/* ports implemented */
-	ulong	ver;
-	ulong	ccc;		/* coaleasing control */
-	ulong	cccports;
-	ulong	emloc;
-	ulong	emctl;
+	u32int	cap;
+	u32int	ghc;
+	u32int	isr;
+	u32int	pi;		/* ports implemented */
+	u32int	ver;
+	u32int	ccc;		/* coaleasing control */
+	u32int	cccports;
+	u32int	emloc;
+	u32int	emctl;
 } Ahba;
 
 enum {
@@ -179,24 +179,24 @@ enum {
 #define	sactive	scr3
 
 typedef struct {
-	ulong	list;		/* PxCLB must be 1kb aligned. */
-	ulong	listhi;
-	ulong	fis;		/* 256-byte aligned */
-	ulong	fishi;
-	ulong	isr;
-	ulong	ie;		/* interrupt enable */
-	ulong	cmd;
-	ulong	res1;
-	ulong	task;
-	ulong	sig;
-	ulong	scr0;
-	ulong	scr2;
-	ulong	scr1;
-	ulong	scr3;
-	ulong	ci;		/* command issue */
-	ulong	ntf;
+	u32int	list;		/* PxCLB must be 1kb aligned. */
+	u32int	listhi;
+	u32int	fis;		/* 256-byte aligned */
+	u32int	fishi;
+	u32int	isr;
+	u32int	ie;		/* interrupt enable */
+	u32int	cmd;
+	u32int	res1;
+	u32int	task;
+	u32int	sig;
+	u32int	scr0;
+	u32int	scr2;
+	u32int	scr1;
+	u32int	scr3;
+	u32int	ci;		/* command issue */
+	u32int	ntf;
 	uchar	res2[8];
-	ulong	vendor;
+	u32int	vendor;
 } Aport;
 
 /* in host's memory; not memory mapped */
@@ -206,7 +206,7 @@ typedef struct {
 	uchar	*p;
 	uchar	*r;
 	uchar	*u;
-	ulong	*devicebits;
+	u32int	*devicebits;
 } Afis;
 
 enum {
@@ -223,18 +223,18 @@ enum {
 
 /* in hosts memory; memory mapped */
 typedef struct {
-	ulong	flags;
-	ulong	len;
-	ulong	ctab;
-	ulong	ctabhi;
+	u32int	flags;
+	u32int	len;
+	u32int	ctab;
+	u32int	ctabhi;
 	uchar	reserved[16];
 } Alist;
 
 typedef struct {
-	ulong	dba;
-	ulong	dbahi;
-	ulong	pad;
-	ulong	count;
+	u32int	dba;
+	u32int	dbahi;
+	u32int	pad;
+	u32int	count;
 } Aprdt;
 
 typedef struct {
