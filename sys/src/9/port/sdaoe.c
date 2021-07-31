@@ -300,9 +300,14 @@ static int 	nprobe;
 static int
 pnpprobeid(char *s)
 {
+	int id;
+
 	if(strlen(s) < 2)
 		return 0;
-	return s[1] == '!'? s[0]: 'e';
+	id = 'e';
+	if(s[1] == '!')
+		id = s[0];
+	return id;
 }
 
 static SDev*

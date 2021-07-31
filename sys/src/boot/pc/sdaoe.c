@@ -200,7 +200,7 @@ ataidentify(Ctlr *c, ushort *id)
 	idmove(c->firmware, id+23, 8);
 	idmove(c->model, id+27, 40);
 
-	print("sdaoe: discovered %d.%d: %s %s\n",
+	print("aoe: discovered %d.%d: %s %s\n",
 		c->major, c->minor, c->model, c->serial);
 
 	c->sectors = s;
@@ -236,7 +236,7 @@ chktag(int *out, int nout, int tag)
 	for(j = 0; j <= nout; j++)
 		if(out[j] == tag)
 			return 0;
-	print("sdaoe: chktag: wrong aoe tag: ");
+	print("wrong aoe tag\n");
 	for(j = 0; j <= nout; j++)
 		print("%.8ux != %.8ux\n", out[j], tag);
 	return -1;
@@ -282,7 +282,7 @@ identify(Ctlr *c)
 	i = 0;
 	do {
 		if(i == Probetries){
-			print("sdaoe: identify: timeout\n");
+			print("aoe: identify timeout\n");
 			return -1;
 		}
 		tag[i] = idpkt(c, a);
@@ -305,7 +305,7 @@ next:
 		if(chktag(tag, i, nhgetl(a->tag)) == -1)
 			goto next;
 		if(a->cmdstat & 0xa9){
-			print("sdaoe: ata error on identify: %2ux\n", a->cmdstat);
+			print("aoe: ata error on identify: %2ux\n", a->cmdstat);
 			return -1;
 		}
 	} while (a->scnt != 1);
@@ -390,15 +390,16 @@ aoeprobe(int major, int minor, SDev *s)
 	Etherpkt p;
 	int n, i;
 
-	n = -1;
-	ctlr = nil;
-	for(i = 0; n <= 0 || ctlr == nil; i += Probeintvl){
+	for(i = 0; ; i += Probeintvl){
 		if(i > Probemax)
 			return -1;
 		discover(major, minor);
-		while ((n = etherrxany(&p, Probeintvl)) > 0 &&
-		    (ctlr = newctlr(&p)) == nil)
-			;
+again:
+		n = etherrxany(&p, Probeintvl);
+		if(n > 0 && (ctlr = newctlr(&p)) != nil)
+			break;
+		if(n > 0)
+			goto again;
 	}
 	s->ctlr = ctlr;
 	s->ifc = &sdaoeifc;
@@ -470,7 +471,7 @@ probeshelf(char *s, int *shelf, int *slot)
 
 	*shelf = a;
 	*slot = b;
-//	print("sdaoe: found shelf=%d.%d\n", a, b);
+//	print("aoe: found shelf=%d.%d\n", a, b);
 	return 0;
 }
 
@@ -482,10 +483,10 @@ pnpprobe(SDev *sd)
 	static int i;
 
 	if(i >= nprobe)
-		return nil;
+		return 0;
 	p = probef[i++];
 	if(strlen(p) < 2)
-		return nil;
+		return 0;
 	if(p[1] == '!'){
 		sd->idno = p[0];
 		p += 2;
@@ -493,7 +494,7 @@ pnpprobe(SDev *sd)
 	if(probeshelf(p, &shelf, &slot) == -1 ||
 	    aoeprobe(shelf, slot, sd) == -1 ||
 	    identify(sd->ctlr) == -1)
-		return nil;
+		return 0;
 	return sd->ctlr;
 }
 
@@ -526,7 +527,6 @@ aoepnp(void)
 		s->ifc = &sdaoeifc;
 		s->nunit = 1;
 		pnpprobe(s);
-		/* if pnpprobe failed, *s may contain rubbish */
 
 		if(h)
 			t->next = s;
@@ -593,14 +593,14 @@ again:
 		    nhgets(a->major) != c->major || a->minor != c->minor)
 			goto again;
 		if(a->cmdstat & 0xa9){
-			print("sdaoe: ata rio error: %2ux\n", a->cmdstat);
+			print("aoe: ata rio error: %2ux\n", a->cmdstat);
 			return 0;
 		}
 		switch(cmd){
 		case Crd:
 		case Crdext:
 			if(n - sizeof *a < scnt * 512){
-				print("sdaoe: runt expect %d got %d\n",
+				print("aoe: runt expect %d got %d\n",
 					scnt*512 + sizeof *a, n);
 				return 0;
 			}
@@ -613,7 +613,7 @@ again:
 			break;
 		}
 	}
-	print("sdaoe: rio timeout\n");
+	print("aoe: rio timeout\n");
 	return 0;
 }
 
@@ -673,7 +673,7 @@ aoebuild(Ctlr *c, uchar *cmd, char *data, vlong lba, int scnt)
 		n = sizeof *a;
 		break;
 	default:
-		print("sdaoe: bad cmd 0x%.2ux\n", cmd[0]);
+		print("aoe: bad cmd 0x%.2ux\n", cmd[0]);
 		return -1;
 	}
 	return n;
