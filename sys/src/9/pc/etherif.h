@@ -9,6 +9,8 @@ struct Ether {
 
 	int	ctlrno;
 	int	tbdf;			/* type+busno+devno+funcno */
+	int	minmtu;
+	int 	maxmtu;
 	uchar	ea[Eaddrlen];
 
 	void	(*attach)(Ether*);	/* filled in by reset routine */

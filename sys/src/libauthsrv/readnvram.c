@@ -4,8 +4,6 @@
 
 static long	finddosfile(int, char*);
 
-static int nvramdebug;
-
 static int
 check(void *x, int len, uchar sum, char *msg)
 {
@@ -139,15 +137,11 @@ static char *nvrfile = nil, *cputype = nil;
 static void
 findnvram(Nvrwhere *locp)
 {
-	char *nvrlen, *nvroff, *nvrcopy, *db, *v[2];
+	char *nvrlen, *nvroff, *nvrcopy, *v[2];
 	int fd, i, safeoff, safelen;
 
-	if (nvrfile == nil) {
+	if (nvrfile == nil)
 		nvrfile = getenv("nvram");
-		db = getenv("nvramdebug");
-		nvramdebug = db != nil;
-		free(db);
-	}
 	if (cputype == nil)
 		cputype = getenv("cputype");
 	if(cputype == nil)
@@ -169,8 +163,6 @@ findnvram(Nvrwhere *locp)
 			v[0] = "";
 			v[1] = nil;
 		}
-		if(nvramdebug)
-			fprint(2, "nvram at %s?...", v[0]);
 		fd = open(v[0], ORDWR);
 		if (fd < 0)
 			fd = open(v[0], OREAD);
@@ -201,10 +193,7 @@ findnvram(Nvrwhere *locp)
 		for(i=0; i<nelem(nvtab); i++){
 			if(strcmp(cputype, nvtab[i].cputype) != 0)
 				continue;
-			if(nvramdebug)
-				fprint(2, "nvram at %s?...", nvtab[i].file);
-			if((fd = open(nvtab[i].file, ORDWR)) < 0 &&
-			   (fd = open(nvtab[i].file, OREAD)) < 0)
+			if((fd = open(nvtab[i].file, ORDWR)) < 0)
 				continue;
 			safeoff = nvtab[i].off;
 			safelen = nvtab[i].len;
@@ -262,8 +251,7 @@ readnvram(Nvrsafe *safep, int flag)
 		safe = safep;
 	else {
 		memset(safep, 0, sizeof(*safep));
-		if(loc.fd >= 0)
-			werrstr("");
+		werrstr("");
 		if(loc.fd < 0
 		|| seek(loc.fd, loc.safeoff, 0) < 0
 		|| read(loc.fd, buf, loc.safelen) != loc.safelen){
@@ -328,8 +316,7 @@ readnvram(Nvrsafe *safep, int flag)
 		safe->authdomsum = nvcsum(safe->authdom, sizeof safe->authdom);
 
 		*(Nvrsafe*)buf = *safe;
-		if(loc.fd >= 0)
-			werrstr("");
+		werrstr("");
 		if(loc.fd < 0
 		|| seek(loc.fd, loc.safeoff, 0) < 0
 		|| write(loc.fd, buf, loc.safelen) != loc.safelen){
