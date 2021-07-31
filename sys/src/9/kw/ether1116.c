@@ -599,8 +599,7 @@ ethercheck(Ether *ether)
 	if (ether->starttime != 0 &&
 	    TK2MS(MACHP(0)->ticks)/1000 - ether->starttime > Etherstuck) {
 		etheractive(ether);
-		if (ether->ctlrno == 0)	/* only complain about main ether */
-			iprint("#l%d: ethernet stuck\n", ether->ctlrno);
+		iprint("ethernet stuck\n");
 	}
 }
 
