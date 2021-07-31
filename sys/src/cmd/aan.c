@@ -79,13 +79,13 @@ static void
 usage(void)
 {
 	fprint(2, "Usage: %s [-cd] [-m maxto] dialstring|netdir\n", progname);
-	threadexitsall("usage");
+	exits("usage");
 }
 
 static int
 catch(void *, char *s)
 {
-	if (strcmp(s, "alarm") == 0) {
+	if (!strcmp(s, "alarm")) {
 		syslog(0, Logname, "Timed out while waiting for client on %s, exiting...",
 			   devdir);
 		threadexitsall(nil);
