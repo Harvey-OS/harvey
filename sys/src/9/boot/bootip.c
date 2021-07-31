@@ -29,8 +29,7 @@ configip(int bargc, char **bargv, int needfs)
 	arg = malloc((bargc+1) * sizeof(char*));
 	if(arg == nil)
 		fatal("%r");
-	memmove(arg, bargv, bargc * sizeof(char*));
-	arg[bargc] = 0;
+	memmove(arg, bargv, (bargc+1) * sizeof(char*));
 
 	argc = bargc;
 	argv = arg;
