@@ -980,7 +980,7 @@ ipid(void)
 		 *
 		 */
 		p = getenv("sysname");
-		if(p && *p){
+		if(p){
 			attr = ipattr(p);
 			if(strcmp(attr, "ip") != 0)
 				mysysname = strdup(p);
