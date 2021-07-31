@@ -82,12 +82,11 @@ Xbackq(void)
 	char *stop;
 	char utf[UTFmax+1];
 	io *f, *wd;
+	var *ifs = vlook("ifs");
 	word *v, *nextv;
 	Rune r;
 
- 	stop = "";
- 	if(runq->argv && runq->argv->words)
- 		stop = runq->argv->words->word;	
+	stop = ifs->val? ifs->val->word: "";
 	if(pipe(pfd)<0){
 		Xerror("can't make pipe");
 		return;
@@ -130,7 +129,6 @@ Xbackq(void)
 		closeio(wd);
 		closeio(f);
 		Waitfor(pid, 0);
-		poplist();	/* ditch split in "stop" */
 		/* v points to reversed arglist -- reverse it onto argv */
 		while(v){
 			nextv = v->next;
