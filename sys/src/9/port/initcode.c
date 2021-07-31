@@ -12,7 +12,7 @@ char srv[] = "/srv";
 char env[] = "/env";
 
 void
-startboot(char *argv0, char **argv)
+main(void)
 {
 	open(cons, OREAD);
 	open(cons, OWRITE);
@@ -21,6 +21,6 @@ startboot(char *argv0, char **argv)
 	bind(ec, env, MAFTER);
 	bind(e, env, MCREATE|MAFTER);
 	bind(s, srv, MREPL|MCREATE);
-	exec(boot, argv);
+	execl(boot, boot, nil);
 	for(;;);
 }

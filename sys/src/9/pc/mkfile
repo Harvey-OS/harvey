@@ -94,10 +94,9 @@ devusb.$O usbuhci.$O usbohci.$O:	usb.h
 sd53c8xx.i:	sd53c8xx.n
 	aux/na $prereq > $target
 
-init.h:	../port/initcode.c init9.c
+init.h:	../port/initcode.c /sys/src/libc/9syscall/sys.h
 	$CC ../port/initcode.c
-	$CC init9.c
-	$LD -l -R1 -o init.out init9.$O initcode.$O /386/lib/libc.a
+	$LD -l -R1 -o init.out initcode.$O /386/lib/libc.a
 	{echo 'uchar initcode[]={'
 	 strip < init.out | xd -1x |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
