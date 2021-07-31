@@ -164,14 +164,7 @@ system name
 Internet domain name
 .TP
 .B ip
-Internet address,
-v4 or v6.
-.TP
-.B ipv6
-IPv6 Internet address.
-For DNS, an
-.L AAAA
-record.
+Internet address
 .TP
 .B ether
 Ethernet address
