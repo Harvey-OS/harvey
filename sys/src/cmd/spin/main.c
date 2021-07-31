@@ -17,11 +17,14 @@
 #include <time.h>
 #ifdef PC
 #include <io.h>
+#include "y_tab.h"
+
 extern int unlink(const char *);
+
 #else
 #include <unistd.h>
-#endif
 #include "y.tab.h"
+#endif
 
 extern int	DstepStart, lineno, tl_terse;
 extern FILE	*yyin, *yyout, *tl_out;
@@ -79,7 +82,7 @@ static void	explain(int);
 #ifdef SOLARIS
 #define CPP	"/usr/ccs/lib/cpp"
 #else
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 #define CPP	"cpp"
 #else
 #define CPP	"/bin/cpp"	/* classic Unix systems */
@@ -353,7 +356,7 @@ main(int argc, char *argv[])
 
 		default : usage(); break;
 		}
-		argc--; argv++;
+		argc--, argv++;
 	}
 	if (usedopts && !analyze)
 		printf("spin: warning -o[123] option ignored in simulations\n");
@@ -487,6 +490,13 @@ non_fatal(char *s1, char *s2)
 		printf(s1, s2);
 	else
 		printf(s1);
+#if 0
+	if (yychar != -1 && yychar != 0)
+	{	printf("	saw '");
+		explain(yychar);
+		printf("'");
+	}
+#endif
 	if (yytext && strlen(yytext)>1)
 		printf(" near '%s'", yytext);
 	printf("\n");
@@ -503,9 +513,6 @@ fatal(char *s1, char *s2)
 char *
 emalloc(int n)
 {	char *tmp;
-
-	if (n == 0)
-		return NULL;	/* robert shelton 10/20/06 */
 
 	if (!(tmp = (char *) malloc(n)))
 		fatal("not enough memory", (char *)0);
@@ -527,7 +534,7 @@ trapwonly(Lextok *n, char *unused)
 		return;
 
 	if (realread)
-	n->sym->hidden |= 128;	/* var is read at least once */
+	n->sym->hidden |= 32;	/* var is read at least once */
 }
 
 void

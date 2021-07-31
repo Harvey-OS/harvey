@@ -10,7 +10,11 @@
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 extern FILE	*th;
 extern int	claimnr, eventmapnr;
@@ -58,8 +62,7 @@ putfnm(int j, Symbol *s)
 static void
 putfnm_flush(int j)
 {
-	if (lastfnm)
-		fprintf(th, "{ %s, %d, %d }\n",
+	fprintf(th, "{ %s, %d, %d }\n",
 			lastfnm->name,
 			lastfrom, j);
 }

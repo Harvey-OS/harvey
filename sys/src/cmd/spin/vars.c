@@ -10,7 +10,11 @@
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 extern Ordered	*all_names;
 extern RunList	*X, *LastX;
@@ -274,12 +278,8 @@ dumpglobals(void)
 void
 dumplocal(RunList *r)
 {	static Lextok *dummy = ZN;
-	Symbol *z, *s;
+	Symbol *z, *s = r->symtab;
 	int i;
-
-	if (!r) return;
-
-	s = r->symtab;
 
 	if (!dummy)
 		dummy = nn(ZN, NAME, nn(ZN,CONST,ZN,ZN), ZN);

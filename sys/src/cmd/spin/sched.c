@@ -11,7 +11,11 @@
 
 #include <stdlib.h>
 #include "spin.h"
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 extern int	verbose, s_trail, analyze, no_wrapup;
 extern char	*claimproc, *eventmap, Buf[];
@@ -178,31 +182,6 @@ enable(Lextok *m)
 }
 
 void
-check_param_count(int i, Lextok *m)
-{	ProcList *p;
-	Symbol *s = m->sym;	/* proctype name */
-	Lextok *f, *t;		/* formal pars */
-	int cnt = 0;
-
-	for (p = rdy; p; p = p->nxt)
-	{	if (strcmp(s->name, p->n->name) == 0)
-		{	if (m->lft)	/* actual param list */
-			{	lineno = m->lft->ln;
-				Fname  = m->lft->fn;
-			}
-			for (f = p->p;   f; f = f->rgt) /* one type at a time */
-			for (t = f->lft; t; t = t->rgt)	/* count formal params */
-			{	cnt++;
-			}
-			if (i != cnt)
-			{	printf("spin: saw %d parameters, expected %d\n", i, cnt);
-				non_fatal("wrong number of parameters", "");
-			}
-			break;
-	}	}
-}
-
-void
 start_claim(int n)
 {	ProcList *p;
 	RunList  *r, *q = (RunList *) 0;
@@ -312,7 +291,6 @@ static Element *
 silent_moves(Element *e)
 {	Element *f;
 
-	if (e->n)
 	switch (e->n->ntyp) {
 	case GOTO:
 		if (Rvous) break;
@@ -332,33 +310,29 @@ silent_moves(Element *e)
 	return e;
 }
 
-static RunList *
-pickproc(RunList *Y)
+static void
+pickproc(void)
 {	SeqList *z; Element *has_else;
 	short Choices[256];
 	int j, k, nr_else = 0;
 
 	if (nproc <= nstop+1)
 	{	X = run;
-		return NULL;
+		return;
 	}
 	if (!interactive || depth < jumpsteps)
 	{	/* was: j = (int) Rand()%(nproc-nstop); */
 		if (Priority_Sum < nproc-nstop)
 			fatal("cannot happen - weights", (char *)0);
 		j = (int) Rand()%Priority_Sum;
-
 		while (j - X->priority >= 0)
 		{	j -= X->priority;
-			Y = X;
 			X = X->nxt;
-			if (!X) { Y = NULL; X = run; }
+			if (!X) X = run;
 		}
 	} else
 	{	int only_choice = -1;
 		int no_choice = 0, proc_no_ch, proc_k;
-
-		Tval = 0;	/* new 4.2.6 */
 try_again:	printf("Select a statement\n");
 try_more:	for (X = run, k = 1; X; X = X->nxt)
 		{	if (X->pid > 255) break;
@@ -470,8 +444,7 @@ try_more:	for (X = run, k = 1; X; X = X->nxt)
 				goto try_again;
 		}	}
 		MadeChoice = 0;
-		Y = NULL;
-		for (X = run; X; Y = X, X = X->nxt)
+		for (X = run; X; X = X->nxt)
 		{	if (!X->nxt
 			||   X->nxt->pid > 255
 			||   j < Choices[X->nxt->pid])
@@ -480,13 +453,12 @@ try_more:	for (X = run, k = 1; X; X = X->nxt)
 				break;
 		}	}
 	}
-	return Y;
 }
 
 void
 sched(void)
 {	Element *e;
-	RunList *Y = NULL;	/* previous process in run queue */
+	RunList *Y=0;	/* previous process in run queue */
 	RunList *oX;
 	int go, notbeyond = 0;
 #ifdef PC
@@ -517,7 +489,7 @@ sched(void)
 	printf("warning: trace assertion not used in random simulation\n");
 
 	X = run;
-	Y = pickproc(Y);
+	pickproc();
 
 	while (X)
 	{	context = X->n;
@@ -592,7 +564,7 @@ sched(void)
 
 			if (X->pc->n->ntyp == '@'
 			&&  X->pid == (nproc-nstop-1))
-			{	if (X != run && Y != NULL)
+			{	if (X != run)
 					Y->nxt = X->nxt;
 				else
 					run = X->nxt;
@@ -606,8 +578,6 @@ sched(void)
 				if (!interactive) Tval = 0;
 				if (nproc == nstop) break;
 				memset(is_blocked, 0, 256);
-				/* proc X is no longer in runlist */
-				X = (X->nxt) ? X->nxt : run;
 			} else
 			{	if (p_blocked(X->pid))
 				{	if (Tval) break;
@@ -618,7 +588,8 @@ sched(void)
 						dotag(stdout, "timeout\n");
 						X = oX;
 		}	}	}	}
-		Y = pickproc(X);
+		Y = X;
+		pickproc();
 		notbeyond = 0;
 	}
 	context = ZS;

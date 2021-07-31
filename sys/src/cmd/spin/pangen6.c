@@ -17,7 +17,11 @@
 /*      AST_criteria to process the slice criteria          */
 
 #include "spin.h"
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 extern Ordered	 *all_names;
 extern FSM_use   *use_free;
@@ -503,7 +507,8 @@ AST_mutual(Lextok *a, Lextok *b, int toplevel)
 	if (strcmp(as->name, bs->name) != 0)
 		return 0;
 
-	if (as->type == STRUCT && a->rgt && b->rgt)
+	if (as->type == STRUCT
+	&&  a && a->rgt && b && b->rgt)
 		return AST_mutual(a->rgt->lft, b->rgt->lft, 0);
 
 	return 1;
@@ -2190,7 +2195,7 @@ init_dom(AST *a)
 				f->dom[i] = (ulong) ~0;			/* all 1's */
 
 			if (a->nstates % BPW)
-			for (i = (a->nstates % BPW); i < (int) BPW; i++)
+			for (i = a->nstates % BPW; i < BPW; i++)
 				f->dom[a->nwords-1] &= ~(1<<i);	/* clear tail */
 
 			for (cnt = 0; cnt < a->nstates; cnt++)

@@ -10,7 +10,11 @@
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 #ifndef MAXQ
 #define MAXQ	2500		/* default max # queues  */
@@ -534,15 +538,11 @@ sr_talk(Lextok *n, int v, char *tr, char *a, int j, Queue *q)
 void
 sr_buf(int v, int j)
 {	int cnt = 1; Lextok *n;
-	char lbuf[512];
+	char lbuf[256];
 
 	for (n = Mtype; n && j; n = n->rgt, cnt++)
 		if (cnt == v)
-		{	if(strlen(n->lft->sym->name) >= sizeof(lbuf))
-			{	non_fatal("mtype name %s too long", n->lft->sym->name);
-				break;
-			}
-			sprintf(lbuf, "%s", n->lft->sym->name);
+		{	sprintf(lbuf, "%s", n->lft->sym->name);
 			strcat(Buf, lbuf);
 			return;
 		}
@@ -625,20 +625,4 @@ nochan_manip(Lextok *p, Lextok *n, int d)
 
 	nochan_manip(p, n->lft, e);
 	nochan_manip(p, n->rgt, 1);
-}
-
-void
-no_internals(Lextok *n)
-{	char *sp;
-
-	if (!n->sym
-	||  !n->sym->name)
-		return;
-
-	sp = n->sym->name;
-
-	if ((strlen(sp) == strlen("_nr_pr") && strcmp(sp, "_nr_pr") == 0)
-	||  (strlen(sp) == strlen("_p") && strcmp(sp, "_p") == 0))
-	{	fatal("attempt to assign value to system variable %s", sp);
-	}
 }

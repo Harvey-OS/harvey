@@ -10,7 +10,11 @@
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 #define MAXDSTEP	1024	/* was 512 */
 
@@ -164,10 +168,7 @@ CollectGuards(FILE *fd, Element *e, int inh)
 			break;
 		case ELSE:
 			if (inh++ > 0) fprintf(fd, " || ");
-/* 4.2.5 */		if (Pid != claimnr)
-				fprintf(fd, "(boq == -1 /* else */)");
-			else
-				fprintf(fd, "(1 /* else */)");
+			fprintf(fd, "(1 /* else */)");
 			break;
 		case 'R':
 			if (inh++ > 0) fprintf(fd, " || ");
@@ -386,7 +387,7 @@ putCode(FILE *fd, Element *f, Element *last, Element *next, int isguard)
 			{	sprintf(NextOpt, "goto S_%.3d_%d",
 					e->Seqno, i);
 				NextLab[++Level] = NextOpt;
-				N = (e->n && e->n->ntyp == DO) ? e : e->nxt;
+				N = (e->n->ntyp == DO) ? e : e->nxt;
 				putCode(fd, h->this->frst,
 					h->this->extent, N, 1);
 				Level--;

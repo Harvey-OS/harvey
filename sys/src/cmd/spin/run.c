@@ -11,7 +11,11 @@
 
 #include <stdlib.h>
 #include "spin.h"
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 extern RunList	*X, *run;
 extern Symbol	*Fname;
@@ -437,9 +441,9 @@ int
 interprint(FILE *fd, Lextok *n)
 {	Lextok *tmp = n->lft;
 	char c, *s = n->sym->name;
-	int i, j; char lbuf[512];
+	int i, j; char lbuf[16];
 	extern char Buf[];
-	char tBuf[4096];
+	char tBuf[1024];
 
 	Buf[0] = '\0';
 	if (!no_print)
@@ -490,7 +494,7 @@ append:			 strcat(Buf, lbuf);
 		}
 		dotag(fd, Buf);
 	}
-	if (strlen(Buf) > 4096) fatal("printf string too long", 0);
+	if (strlen(Buf) > 1024) fatal("printf string too long", 0);
 	return 1;
 }
 

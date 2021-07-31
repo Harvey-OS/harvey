@@ -10,7 +10,11 @@
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 extern Symbol	*Fname, *owner;
 extern int	lineno, depth, verbose, NamesNotAdded, deadvar;
@@ -175,7 +179,6 @@ trackchanuse(Lextok *m, Lextok *w, int t)
 void
 setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
 {	int oln = lineno, cnt = 1; extern int Expand_Ok;
-
 	while (n)
 	{	if (n->sym->type && !(n->sym->hidden&32))
 		{ lineno = n->ln; Fname = n->fn;
@@ -190,7 +193,7 @@ setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
 			setaccess(n->sym, ZS, cnt, 'F');
 		}
 		if (t == UNSIGNED)
-		{	if (n->sym->nbits < 0 || n->sym->nbits >= 32)
+		{	if (n->sym->nbits < 0)
 			fatal("(%s) has invalid width-field", n->sym->name);
 			if (n->sym->nbits == 0)
 			{	n->sym->nbits = 16;
@@ -272,7 +275,7 @@ setxus(Lextok *p, int t)
 	if (!context)
 	{	lineno = p->ln;
 		Fname = p->fn;
-		fatal("non-local x[rs] assertion", (char *)0);
+		non_fatal("non-local x[rs] assertion", (char *)0);
 	}
 	for (m = p; m; m = m->rgt)
 	{	Lextok *Xu_new = (Lextok *) emalloc(sizeof(Lextok));
@@ -322,7 +325,7 @@ setmtype(Lextok *m)
 
 		/* label the name */
 		if (n->lft->sym->type != MTYPE)
-		{	n->lft->sym->hidden |= 128;	/* is used */
+		{	n->lft->sym->hidden |= 32;
 			n->lft->sym->type = MTYPE;
 			n->lft->sym->ini = nn(ZN,CONST,ZN,ZN);
 			n->lft->sym->ini->val = cnt;
@@ -474,7 +477,7 @@ chan_check(Symbol *sp)
 		return;
 report:
 	chname(sp);
-	for (i = d = 0; i < (int) (sizeof(xx)/sizeof(struct X)); i++)
+	for (i = d = 0; i < sizeof(xx)/sizeof(struct X); i++)
 	{	b = 0;
 		for (a = sp->access; a; a = a->lnk)
 			if (a->typ == xx[i].typ) b++;
@@ -510,7 +513,7 @@ chanaccess(void)
 		case SHORT:
 		case INT:
 		case UNSIGNED:
-			if ((walk->entry->hidden&128))	/* was: 32 */
+			if ((walk->entry->hidden&32))
 				continue;
 
 			if (!separate
