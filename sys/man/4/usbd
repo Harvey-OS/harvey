@@ -10,7 +10,7 @@ usbd \- Universal Serial Bus daemon
 .I bitmask
 ] [
 .B -u
-.I root-hub-num
+root-hub-num
 ]
 .SH DESCRIPTION
 .I Usbd

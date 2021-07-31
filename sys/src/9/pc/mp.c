@@ -775,8 +775,7 @@ mpintrenable(Vctl* v)
 		if(vno != -1)
 			return vno;
 	}
-	print("mpintrenable: out of choices eisa %d isa %d tbdf %#ux irq %d\n",
-		mpeisabus, mpisabus, v->tbdf, v->irq);
+	print("mpintrenable: out of choices %d %d\n", mpeisabus, mpisabus);
 	return -1;
 }
 
