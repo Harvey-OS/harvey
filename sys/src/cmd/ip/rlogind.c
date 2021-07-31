@@ -18,7 +18,7 @@ main(void)
 		strncpy(luser, ruser, sizeof luser);
 	luser[sizeof luser-1] = '\0';
 	syslog(0, "telnet", "rlogind %s", luser);
-	execl("/bin/ip/telnetd", "telnetd", "-n", "-u", luser, nil);
+	execl("/bin/ip/telnetd", "telnetd", "-n", "-u", luser, 0);
 	fprint(2, "can't exec con service: %r\n");
 	exits("can't exec");
 }

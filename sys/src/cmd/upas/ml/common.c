@@ -170,7 +170,7 @@ sendnotification(char *addr, char *listname, int rem)
 		close(pfd[1]);
 		dup(pfd[0], 0);
 		close(pfd[0]);
-		execl("/bin/upas/send", "mlnotify", addr, nil);
+		execl("/bin/upas/send", "mlnotify", addr, 0);
 		sysfatal("execing mailer: %r");
 		break;
 	default:

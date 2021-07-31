@@ -1024,7 +1024,7 @@ warning(void)
 			seek(2, 0, 2);
 			close(i);
 		}
-		execl("/bin/auth/warning", "warning", warnarg, nil);
+		execl("/bin/auth/warning", "warning", warnarg, 0);
 		error("can't exec warning");
 	}
 }

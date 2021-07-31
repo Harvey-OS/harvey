@@ -102,7 +102,7 @@ ysearch(char *file, char *ndump)
 		if(verb)
 			print("mounting dump %s\n", ndump);
 		if(rfork(RFFDG|RFPROC) == 0) {
-			execl("/bin/rc", "rc", "9fs", ndump, nil);
+			execl("/bin/rc", "rc", "9fs", ndump, 0);
 			exits(0);
 		}
 		w = wait();
@@ -163,9 +163,9 @@ ysearch(char *file, char *ndump)
 			switch(rfork(RFFDG|RFPROC)){
 			case 0:
 				if(diffb)
-					execl("/bin/diff", "diff", "-nb", pair[toggle ^ 1], pair[toggle], nil);
+					execl("/bin/diff", "diff", "-nb", pair[toggle ^ 1], pair[toggle], 0);
 				else
-					execl("/bin/diff", "diff", "-n", pair[toggle ^ 1], pair[toggle], nil);
+					execl("/bin/diff", "diff", "-n", pair[toggle ^ 1], pair[toggle], 0);
 				fprint(2, "can't exec diff: %r\n");
 				exits(0);
 			case -1:

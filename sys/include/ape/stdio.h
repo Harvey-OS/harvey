@@ -41,11 +41,7 @@ typedef struct{
 }FILE;
 typedef long long fpos_t;
 #ifndef NULL
-#ifdef __cplusplus
-#define NULL 0
-#else
-#define NULL ((void*)0)
-#endif
+#define	NULL	0
 #endif
 /*
  * Third arg of setvbuf

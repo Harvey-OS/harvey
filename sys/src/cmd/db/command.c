@@ -291,7 +291,7 @@ shell(void)
 		rdc();
 	if ((unixpid=fork())==0) {
 		*lp=0;
-		execl("/bin/rc", "rc", "-c", argp, nil);
+		execl("/bin/rc", "rc", "-c", argp, 0);
 		exits("execl");				/* botch */
 	} else if (unixpid == -1) {
 		error("cannot fork");

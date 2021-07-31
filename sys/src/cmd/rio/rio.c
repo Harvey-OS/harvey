@@ -288,7 +288,7 @@ initcmd(void *arg)
 
 	cmd = arg;
 	rfork(RFENVG|RFFDG|RFNOTEG|RFNAMEG);
-	procexecl(nil, "/bin/rc", "rc", "-c", cmd, nil);
+	procexecl(nil, "/bin/rc", "rc", "-c", cmd, 0);
 	fprint(2, "rio: exec failed: %r\n");
 	exits("exec");
 }

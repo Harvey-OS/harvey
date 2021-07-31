@@ -910,7 +910,7 @@ callunix(void)
 	*p = 0;
 	pid = fork();
 	if(pid == 0) {
-		execl("/bin/rc", "rc", "-c", buf, nil);
+		execl("/bin/rc", "rc", "-c", buf, 0);
 		exits("execl failed");
 	}
 	waiting = 1;

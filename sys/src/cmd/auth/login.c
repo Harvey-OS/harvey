@@ -125,7 +125,7 @@ startfactotum(char *user, char *password, char *srvname)
 	case -1:
 		sysfatal("can't start factotum: %r");
 	case 0:
-		execl("/boot/factotum", "loginfactotum", "-ns", srvname+5, nil);
+		execl("/boot/factotum", "loginfactotum", "-ns", srvname+5, 0);
 		sysfatal("starting factotum: %r");
 		break;
 	}
@@ -211,6 +211,6 @@ main(int argc, char *argv[])
 		chdir("/");
 
 	/* read profile and start interactive rc */
-	execl("/bin/rc", "rc", "-li", nil);
+	execl("/bin/rc", "rc", "-li", 0);
 	exits(0);
 }

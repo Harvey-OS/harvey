@@ -873,7 +873,7 @@ mkattach(char *file, char *type, int inline)
 		dup(pfd[0], 0);
 		close(1);
 		dup(pfd[0], 1);
-		execl("/bin/file", "file", "-m", file, nil);
+		execl("/bin/file", "file", "-m", file, 0);
 		exits(0);
 	default:
 		close(pfd[0]);

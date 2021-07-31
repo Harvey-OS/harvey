@@ -100,7 +100,7 @@ mkfile(char *file, int omode, int *pid)
 		}
 		close(fd[0]);
 		close(fd[1]);
-		execl("/bin/rc", "rc", "-c", file, nil);
+		execl("/bin/rc", "rc", "-c", file, 0);
 		exits("exec");
 	}
 	close(fd[0]);
