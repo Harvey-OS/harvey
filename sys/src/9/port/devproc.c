@@ -60,7 +60,6 @@ enum
 	CMsporadic,
 	CMdeadlinenotes,
 	CMadmit,
-	CMextra,
 	CMexpel,
 };
 
@@ -116,14 +115,13 @@ Cmdtab proccmd[] = {
 	CMwired,		"wired",		2,
 	CMfair,			"fair",			1,
 	CMunfair,		"unfair",		1,
-	CMtrace,		"trace",		0,
+	CMtrace,		"trace",		1,
 	CMperiod,		"period",		2,
 	CMdeadline,		"deadline",		2,
 	CMcost,			"cost",			2,
 	CMsporadic,		"sporadic",		1,
 	CMdeadlinenotes,	"deadlinenotes",	1,
 	CMadmit,		"admit",		1,
-	CMextra,		"extra",		1,
 	CMexpel,		"expel",		1,
 };
 
@@ -1390,16 +1388,7 @@ procctlreq(Proc *p, char *va, int n)
 		procwired(p, atoi(cb->f[1]));
 		break;
 	case CMtrace:
-		switch(cb->nf){
-		case 1:
-			p->trace ^= 1;
-			break;
-		case 2:
-			p->trace = atoi(cb->f[1])?1:0;
-			break;
-		default:
-			error("args");
-		}
+		p->trace ^= 1;
 		break;
 	/* real time */
 	case CMperiod:
@@ -1441,11 +1430,6 @@ procctlreq(Proc *p, char *va, int n)
 			error("edf params");
 		if(e = edfadmit(p))
 			error(e);
-		break;
-	case CMextra:
-		if(p->edf == nil)
-			edfinit(p);
-		p->edf->flags |= Extratime;
 		break;
 	case CMexpel:
 		if(p->edf)

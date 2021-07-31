@@ -559,7 +559,7 @@ procrestore(Proc *p)
 {
 	uvlong t;
 
-	if(p->kp)
+	if(p->kp || m->havetsc == 0)
 		return;
 	cycles(&t);
 	p->pcycles -= t;
@@ -573,8 +573,10 @@ procsave(Proc *p)
 {
 	uvlong t;
 
-	cycles(&t);
-	p->pcycles += t;
+	if(m->havetsc){
+		cycles(&t);
+		p->pcycles += t;
+	}
 	if(p->fpstate == FPactive){
 		if(p->state == Moribund)
 			fpoff();

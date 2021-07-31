@@ -627,7 +627,8 @@ ga620interrupt(Ureg*, void* arg)
 
 	if(!(csr32r(ctlr, Mhc) & Is))
 		return;
-	cycles(&tsc0);
+	if(m->havetsc)
+		cycles(&tsc0);
 
 	ctlr->interrupts++;
 	csr32w(ctlr, Hi, 1);
@@ -659,7 +660,8 @@ ga620interrupt(Ureg*, void* arg)
 		work = 0;
 	}
 
-	cycles(&tsc1);
+	if(m->havetsc)
+		cycles(&tsc1);
 	ctlr->ticks += tsc1-tsc0;
 }
 
