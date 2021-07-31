@@ -669,7 +669,7 @@ rowload(Row *row, char *file, int initing)
 				rune = Bgetrune(b);
 				if(rune == '\n')
 					line++;
-				if(rune == (Rune)Beof){
+				if(rune == Beof){
 					free(r);
 					Bterm(bout);
 					free(bout);
