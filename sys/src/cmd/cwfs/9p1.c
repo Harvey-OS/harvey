@@ -37,7 +37,7 @@ mkchallenge(Authinfo *aip)
 {
 	int i;
 
-	srand((uintptr)aip + time(nil));
+	srand((ulong)aip + time(nil));
 	for(i = 0; i < CHALLEN; i++)
 		aip->chal[i] = nrand(256);
 

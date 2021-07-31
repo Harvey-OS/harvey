@@ -21,7 +21,7 @@ char	*ndboptions;
 
 Ipifc	*ifc;
 
-/* possible verbs */
+// possible verbs
 enum
 {
 	Vadd,
@@ -33,20 +33,20 @@ enum
 };
 
 struct {
-	/* locally generated */
+	// locally generated
 	char	*type;
 	char	*dev;
 	char	mpoint[32];
-	int	cfd;			/* ifc control channel */
+	int	cfd;			// ifc control channel
 	char	*cputype;
-	uchar	hwa[32];		/* hardware address */
+	uchar	hwa[32];		// hardware address
 	int	hwatype;
 	int	hwalen;
 	uchar	cid[32];
 	int	cidlen;
 	char	*baud;
 
-	/* learned info */
+	// learned info
 	uchar	gaddr[IPaddrlen];
 	uchar	laddr[IPaddrlen];
 	uchar	mask[IPaddrlen];
@@ -57,7 +57,7 @@ struct {
 	uchar	ntp[IPaddrlen];
 	int	mtu;
 
-	/* dhcp specific */
+	// dhcp specific
 	int	state;
 	int	fd;
 	ulong	xid;
@@ -89,11 +89,9 @@ struct Option
 	int	type;
 };
 
-/*
- * I was too lazy to look up the types for each of these
- * options.  If someone feels like it, please mail me a
- * corrected array -- presotto
- */
+// I was too lazy to look up the types for each of these
+// options.  If someone feels like it, please mail me a
+// corrected array -- presotto
 Option option[256] =
 {
 [OBmask]		{ "ipmask",		Taddr },
@@ -238,9 +236,7 @@ Ctl *firstctl, **ctll;
 void
 usage(void)
 {
-	fprint(2,
-"usage: %s [-ndDrGX] [-x netmtpt] [-m mtu] [-b baud] [-g gateway] [-h hostname] [-c ctlmsg]* type device [verb] [localaddr [mask [remoteaddr [fsaddr [authaddr]]]]]\n",
-		argv0);
+	fprint(2, "usage: %s [-ndDrGX] [-x netmtpt] [-m mtu] [-b baud] [-g gateway] [-h hostname] [-c control-string]* type device [verb] [localaddr [mask [remoteaddr [fsaddr [authaddr]]]]]\n", argv0);
 	exits("usage");
 }
 
@@ -265,7 +261,7 @@ main(int argc, char **argv)
 	retry = 0;
 	ctll = &firstctl;
 
-	/* init set of requested parameters with the default */
+	// init set of requested parameters with the default
 	nrequested = sizeof(defrequested);
 	memcpy(requested, defrequested, nrequested);
 
@@ -288,68 +284,81 @@ main(int argc, char **argv)
 	case 'P':
 		beprimary = 0;
 	case 'b':
-		conf.baud = EARGF(usage());
+		p = ARGF();
+		if(p == nil)
+			usage();
+		conf.baud = p;
 		break;
 	case 'c':
+		p = ARGF();
+		if(p == nil)
+			usage();
 		cp = malloc(sizeof(*cp));
 		if(cp == nil)
 			sysfatal("%r");
 		*ctll = cp;
 		ctll = &cp->next;
 		cp->next = nil;
-		cp->ctl = EARGF(usage());
+		cp->ctl = p;
 		break;
 	case 'd':
 		dodhcp = 1;
 		break;
 	case 'g':
-		if (parseip(conf.gaddr, EARGF(usage())) == -1)
+		p = ARGF();
+		if(p == nil)
 			usage();
+		parseip(conf.gaddr, p);
 		break;
 	case 'h':
-		snprint(conf.hostname, sizeof conf.hostname, "%s",
-			EARGF(usage()));
+		p = ARGF();
+		if(p == nil)
+			usage();
+		snprint(conf.hostname, sizeof(conf.hostname), "%s", p);
 		sendhostname = 1;
 		break;
 	case 'n':
 		noconfig = 1;
 		break;
 	case 'm':
-		conf.mtu = atoi(EARGF(usage()));
+		p = ARGF();
+		if(p == nil)
+			usage();
+		conf.mtu = atoi(p);
 		break;
 	case 'r':
 		retry = 1;
 		break;
 	case 'x':
-		setnetmtpt(conf.mpoint, sizeof conf.mpoint, EARGF(usage()));
+		p = ARGF();
+		if(p == nil)
+			usage();
+		setnetmtpt(conf.mpoint, sizeof(conf.mpoint), p);
 		break;
 	case 'X':
 		nodhcpwatch = 1;
 		break;
 	case 'o':
-		if(addoption(EARGF(usage())) < 0)
+		if(addoption(ARGF()) < 0)
 			usage();
-		break;
-	default:
-		usage();
 		break;
 	} ARGEND;
 
-	/* default to any host name we already have */
+	// default to any host name we already have
 	if(*conf.hostname == 0){
 		p = getenv("sysname");
 		if(p == nil || *p == 0)
 			p = sysname();
 		if(p != nil)
 			strncpy(conf.hostname, p, sizeof(conf.hostname)-1);
-	}
+	}		
 
-	/* default */
+	// default
 	conf.type = "ether";
 	conf.dev = "/net/ether0";
 	action = Vadd;
 
-	/* get verb, default is "add" */
+	// get verb, default is "add"
 	while(argc > 0){
 		verb = parseverb(argv[0]);
 		switch(verb){
@@ -373,33 +382,23 @@ main(int argc, char **argv)
 		argc--, argv++;
 	}
 
-	/* get addresses */
+	// get addresses
 	switch(argc){
 	case 5:
-		if (parseip(conf.auth, argv[4]) == -1)
-			usage();
+		parseip(conf.auth, argv[4]);
 		/* fall through */
 	case 4:
-		if (parseip(conf.fs, argv[3]) == -1)
-			usage();
+		parseip(conf.fs, argv[3]);
 		/* fall through */
 	case 3:
-		if (parseip(conf.raddr, argv[2]) == -1)
-			usage();
+		parseip(conf.raddr, argv[2]);
 		/* fall through */
 	case 2:
 		if(strcmp(argv[1], "0") != 0)
-			if (parseipmask(conf.mask, argv[1]) == -1)
-				usage();
+			parseipmask(conf.mask, argv[1]);
 		/* fall through */
 	case 1:
-		if (parseip(conf.laddr, argv[0]) == -1)
-			usage();
-		break;
-	case 0:
-		break;
-	default:
-		usage();
+		parseip(conf.laddr, argv[0]);
 		break;
 	}
 
@@ -440,12 +439,12 @@ doadd(int retry)
 {
 	int tries;
 
-	/* get number of preexisting interfaces */
+	// get number of preexisting interfaces
 	nip = nipifcs(conf.mpoint);
 	if(beprimary == -1 && (nip == 0 || !havendb(conf.mpoint)))
 		beprimary = 1;
 
-	/* get ipifc into name space and condition device for ip */
+	// get ipifc into name space and condition device for ip
 	if(!noconfig){
 		lookforip(conf.mpoint);
 		controldevice();
@@ -459,7 +458,7 @@ doadd(int retry)
 			dodhcp = 1;
 	}
 
-	/* run dhcp if we need something */
+	// run dhcp if we need something
 	if(dodhcp){
 		mkclientid();
 		for(tries = 0; tries < 6; tries++){
@@ -488,7 +487,7 @@ doadd(int retry)
 			dhcpwatch(0);
 	}
 
-	/* leave everything we've learned somewhere other procs can find it */
+	// leave everything we've learned somewhere other procs can find it
 	if(beprimary == 1){
 		putndb();
 		tweakservers();
@@ -556,7 +555,7 @@ dounbind(void)
 	}
 }
 
-/* set the default route */
+// set the default route
 void
 adddefroute(char *mpoint, uchar *gaddr)
 {
@@ -574,7 +573,7 @@ adddefroute(char *mpoint, uchar *gaddr)
 	close(cfd);
 }
 
-/* create a client id */
+// create a client id
 void
 mkclientid(void)
 {
@@ -592,7 +591,7 @@ mkclientid(void)
 	}
 }
 
-/* bind ip into the namespace */
+// bind ip into the namespace
 void
 lookforip(char *net)
 {
@@ -604,7 +603,7 @@ lookforip(char *net)
 	sysfatal("no ip stack bound onto %s", net);
 }
 
-/* send some ctls to a device */
+// send some ctls to a device
 void
 controldevice(void)
 {
@@ -629,27 +628,26 @@ controldevice(void)
 			sysfatal("ctl message %s: %r", cp->ctl);
 		seek(fd, 0, 0);
 	}
-//	close(fd);		/* or does it need to be left hanging? */
 }
 
-/* bind an ip stack to a device, leave the control channel open */
+// bind an ip stack to a device, leave the control channel open
 void
 binddevice(void)
 {
 	char buf[256];
 
 	if(myifc < 0){
-		/* get a new ip interface */
+		// get a new ip interface
 		snprint(buf, sizeof(buf), "%s/ipifc/clone", conf.mpoint);
 		conf.cfd = open(buf, ORDWR);
 		if(conf.cfd < 0)
 			sysfatal("opening %s/ipifc/clone: %r", conf.mpoint);
 
-		/* specify the medium as an ethernet, and bind the interface to it */
+		// specify the medium as an ethernet, and bind the interface to it
 		if(fprint(conf.cfd, "bind %s %s", conf.type, conf.dev) < 0)
 			sysfatal("binding device: %r");
 	} else {
-		/* open the old interface */
+		// open the old interface
 		snprint(buf, sizeof(buf), "%s/ipifc/%d/ctl", conf.mpoint, myifc);
 		conf.cfd = open(buf, ORDWR);
 		if(conf.cfd < 0)
@@ -658,7 +656,7 @@ binddevice(void)
 
 }
 
-/* add a logical interface to the ip stack */
+// add a logical interface to the ip stack
 int
 ipconfig(void)
 {
@@ -692,7 +690,7 @@ ipconfig(void)
 	return 0;
 }
 
-/* remove a logical interface to the ip stack */
+// remove a logical interface to the ip stack
 void
 ipunconfig(void)
 {
@@ -715,7 +713,7 @@ ipunconfig(void)
 	ipmove(conf.raddr, IPnoaddr);
 	ipmove(conf.mask, IPnoaddr);
 
-	/* forget configuration info */
+	// forget configuration info
 	if(beprimary==1)
 		writendb("", 0, 0);
 }
@@ -741,7 +739,7 @@ dhcpquery(int needconfig, int startstate)
 	}
 	notify(ding);
 
-	/* try dhcp for 10 seconds */
+	// try dhcp for 10 seconds
 	conf.xid = lrand();
 	conf.starttime = time(0);
 	conf.state = startstate;
@@ -791,14 +789,14 @@ dhcpwatch(int needconfig)
 		break;
 	}
 
-	/* keep trying to renew the lease */
+	// keep trying to renew the lease
 	for(;;){
 		if(conf.lease == 0)
 			secs = 5;
 		else
 			secs = conf.lease>>1;
 
-		/* avoid overflows */
+		// avoid overflows
 		for(s = secs; s > 0; s -= t){
 			if(s > MAXSLEEP)
 				t = MAXSLEEP;
@@ -808,10 +806,8 @@ dhcpwatch(int needconfig)
 		}
 
 		if(conf.lease > 0){
-			/*
-			 * during boot, the starttime can be bogus so avoid
-			 * spurious ipinconfig's
-			 */
+			// during boot, the starttime can be bogus so avoid
+			// spurious ipinconfig's
 			t = time(0) - conf.starttime;
 			if(t > (3*secs)/2)
 				t = secs;
@@ -831,7 +827,7 @@ dhcpwatch(int needconfig)
 				sysfatal("can't start ip: %r");
 			needconfig = 0;
 
-			/* leave everything we've learned somewhere other procs can find it */
+			// leave everything we've learned somewhere other procs can find it
 			if(beprimary==1){
 				putndb();
 				tweakservers();
@@ -923,7 +919,7 @@ dhcpsend(int type)
 	default:
 		sysfatal("dhcpsend: unknown message type: %d", type);
 	case Discover:
-		ipmove(up->raddr, IPv4bcast);	/* broadcast */
+		ipmove(up->raddr, IPv4bcast);	// broadcast
 		if(*conf.hostname && sendhostname)
 			p = optaddstr(p, OBhostname, conf.hostname);
 		if(plan9){
@@ -941,11 +937,11 @@ dhcpsend(int type)
 			v6tov4(bp.ciaddr, conf.laddr);
 			break;
 		case Srebinding:
-			ipmove(up->raddr, IPv4bcast);	/* broadcast */
+			ipmove(up->raddr, IPv4bcast);	// broadcast
 			v6tov4(bp.ciaddr, conf.laddr);
 			break;
 		case Srequesting:
-			ipmove(up->raddr, IPv4bcast);	/* broadcast */
+			ipmove(up->raddr, IPv4bcast);	// broadcast
 			p = optaddaddr(p, ODipaddr, conf.laddr);
 			p = optaddaddr(p, ODserverid, conf.server);
 			break;
@@ -958,7 +954,7 @@ dhcpsend(int type)
 		p = optaddvec(p, ODparams, requested, nrequested);
 		if(*conf.hostname && sendhostname)
 			p = optaddstr(p, OBhostname, conf.hostname);
-		break;
+		break;	
 	case Release:
 		ipmove(up->raddr, conf.server);
 		v6tov4(bp.ciaddr, conf.laddr);
@@ -1055,7 +1051,7 @@ dhcprecv(void)
 		if(conf.state != Srebinding)
 			break;
 
-		/* ignore a bad lease */
+		// ignore a bad lease
 		lease = optgetulong(bp->optdata, ODlease);
 		if(lease == 0){
 			/*
@@ -1067,7 +1063,7 @@ dhcprecv(void)
 		}
 		DEBUG("lease=%lud ", lease);
 
-		/* address and mask */
+		// address and mask
 		if(!validip(conf.laddr) || !Oflag)
 			v4tov6(conf.laddr, bp->yiaddr);
 		if(!validip(conf.mask) || !Oflag){
@@ -1076,10 +1072,8 @@ dhcprecv(void)
 		}
 		DEBUG("ipaddr=%I ipmask=%M ", conf.laddr, conf.mask);
 
-		/*
-		 * get a router address either from the router option
-		 * or from the router that forwarded the dhcp packet
-		 */
+		// get a router address either from the router option
+		// or from the router that forwarded the dhcp packet
 		if(!validip(conf.gaddr) || !Oflag){
 			if(optgetaddr(bp->optdata, OBrouter, conf.gaddr)){
 				DEBUG("ipgw=%I ", conf.gaddr);
@@ -1093,28 +1087,28 @@ dhcprecv(void)
 		else
 			DEBUG("ipgw=%I ", conf.gaddr);
 
-		/* get dns servers */
+		// get dns servers
 		memset(conf.dns, 0, sizeof(conf.dns));
 		n = optgetaddrs(bp->optdata, OBdnserver, conf.dns,
 				sizeof(conf.dns)/IPaddrlen);
 		for(i = 0; i < n; i++)
 			DEBUG("dns=%I ", conf.dns+i*IPaddrlen);
 
-		/* get ntp servers */
+		// get ntp servers
 		memset(conf.ntp, 0, sizeof(conf.ntp));
 		n = optgetaddrs(bp->optdata, OBntpserver, conf.ntp,
 				sizeof(conf.ntp)/IPaddrlen);
 		for(i = 0; i < n; i++)
 			DEBUG("ntp=%I ", conf.ntp+i*IPaddrlen);
 
-		/* get names */
+		// get names
 		optgetstr(bp->optdata, OBhostname, conf.hostname, sizeof(conf.hostname));
 		optgetstr(bp->optdata, OBdomainname, conf.domainname, sizeof(conf.domainname));
 
-		/* get anything else we asked for */
+		// get anything else we asked for
 		getoptions(bp->optdata);
 
-		/* get plan9 specific options */
+		// get plan9 specific options
 		n = optgetvec(bp->optdata, OBvendorinfo, vopts, sizeof(vopts)-1);
 		if(n > 0 && parseoptions(vopts, n) == 0){
 			if(validip(conf.fs) && Oflag)
@@ -1163,7 +1157,7 @@ openlisten()
 		if(!noconfig)
 			sysfatal("can't announce for dhcp: %r");
 
-		/* might be another client - wait and try again */
+		// might be another client - wait and try again
 		fprint(2, "%s: can't announce: %r\n", argv0);
 		sleep((nrand(10)+1)*1000);
 		if(n > 10)
@@ -1234,7 +1228,7 @@ optaddstr(uchar *p, int op, char *v)
 {
 	int n;
 
-	n = strlen(v)+1;	/* microsoft leaves on the null, so we do too */
+	n = strlen(v)+1;	// microsoft leaves on the null, so we do too
 	p[0] = op;
 	p[1] = n;
 	memmove(p+2, v, n);
@@ -1354,11 +1348,9 @@ optgetstr(uchar *p, int op, char *s, int n)
 	return len;
 }
 
-/*
- * sanity check options area
- * 	- options don't overflow packet
- * 	- options end with an OBend
- */
+// sanity check options area
+//	- options don't overflow packet
+//	- options end with an OBend
 int
 parseoptions(uchar *p, int n)
 {
@@ -1385,19 +1377,17 @@ parseoptions(uchar *p, int n)
 			return -1;
 		}
 		p += len;
-		n -= len;
+		n -= len;		
 	}
 
-	/* make sure packet ends with an OBend all the optget code */
+	// make sure packet ends with an OBend all the optget code
 	*p = OBend;
 	return 0;
 }
 
-/*
- * sanity check received packet:
- * 	- magic is dhcp magic
- * 	- options don't overflow packet
- */
+//  sanity check received packet:
+//	- magic is dhcp magic
+//	- options don't overflow packet
 Bootp *
 parsebootp(uchar *p, int n)
 {
@@ -1437,7 +1427,7 @@ parsebootp(uchar *p, int n)
 	return bp;
 }
 
-/* write out an ndb entry */
+// write out an ndb entry
 void
 writendb(char *s, int n, int append)
 {
@@ -1454,7 +1444,7 @@ writendb(char *s, int n, int append)
 	close(fd);
 }
 
-/* put server addresses into the ndb entry */
+// put server addresses into the ndb entry
 char*
 putaddrs(char *p, char *e, char *attr, uchar *a, int len)
 {
@@ -1468,7 +1458,7 @@ putaddrs(char *p, char *e, char *attr, uchar *a, int len)
 	return p;
 }
 
-/* make an ndb entry and put it into /net/ndb for the servers to see */
+// make an ndb entry and put it into /net/ndb for the servers to see
 void
 putndb(void)
 {
@@ -1508,12 +1498,13 @@ putndb(void)
 		writendb(buf, p-buf, append);
 }
 
-/* get an ndb entry someone else wrote */
+// get an ndb entry someone else wrote
 int
 getndb(void)
 {
 	char buf[1024];
-	int fd, n;
+	int fd;
+	int n;
 	char *p;
 
 	snprint(buf, sizeof buf, "%s/ndb", conf.mpoint);
@@ -1531,7 +1522,7 @@ getndb(void)
 	return 0;
 }
 
-/* tell a server to refresh */
+// tell a server to refresh
 void
 tweakserver(char *server)
 {
@@ -1546,7 +1537,7 @@ tweakserver(char *server)
 	close(fd);
 }
 
-/* tell all servers to refresh their information */
+// tell all servers to refresh their information
 void
 tweakservers(void)
 {
@@ -1554,7 +1545,7 @@ tweakservers(void)
 	tweakserver("cs");
 }
 
-/* return number of networks */
+// return number of networks
 int
 nipifcs(char *net)
 {
@@ -1581,7 +1572,7 @@ nipifcs(char *net)
 	return n;
 }
 
-/* return true if this is a valid v4 address */
+// return true if this is a valid v4 address
 int
 validip(uchar *addr)
 {
@@ -1593,23 +1584,26 @@ char *verbs[] = {
 [Vremove]	"remove",
 [Vunbind]	"unbind",
 [Vether]	"ether",
-[Vgbe]		"gbe",
+[Vgbe]	"gbe",
 [Vloopback]	"loopback",
 };
 
-/* look for an action */
+// look for an action
 int
 parseverb(char *name)
 {
 	int i;
 
-	for(i = 0; i < nelem(verbs); i++)
-		if(verbs[i] != nil && strcmp(name, verbs[i]) == 0)
+	for(i = 0; i < nelem(verbs); i++){
+		if(verbs[i] == 0)
+			continue;
+		if(strcmp(name, verbs[i]) == 0)
 			return i;
+	}
 	return -1;
 }
 
-/* get everything out of ndb */
+// get everything out of ndb
 void
 ndbconfig(void)
 {
@@ -1625,8 +1619,7 @@ ndbconfig(void)
 	db = ndbopen(0);
 	if(db == nil)
 		sysfatal("can't open ndb: %r");
-	if((strcmp(conf.type, "ether") != 0 && strcmp(conf.type, "gbe") != 0) ||
-	    myetheraddr(conf.hwa, conf.dev) != 0)
+	if((strcmp(conf.type, "ether") != 0 && strcmp(conf.type, "gbe") != 0) || myetheraddr(conf.hwa, conf.dev) != 0)
 		sysfatal("can't read hardware address");
 	sprint(etheraddr, "%E", conf.hwa);
 	nattr = 0;
@@ -1639,21 +1632,23 @@ ndbconfig(void)
 	attrs[nattr++] = "@auth";
 	attrs[nattr] = nil;
 	t = ndbipinfo(db, "ether", etheraddr, attrs, nattr);
-	for(nt = t; nt != nil; nt = nt->entry)
-		if(strcmp(nt->attr, "ip") == 0)
+	for(nt = t; nt != nil; nt = nt->entry){
+		if(strcmp(nt->attr, "ip") == 0){
 			parseip(conf.laddr, nt->val);
-		else if(strcmp(nt->attr, "ipmask") == 0)
+		} else if(strcmp(nt->attr, "ipmask") == 0){
 			parseipmask(conf.mask, nt->val);
-		else if(strcmp(nt->attr, "ipgw") == 0)
+		} else if(strcmp(nt->attr, "ipgw") == 0){
 			parseip(conf.gaddr, nt->val);
-		else if(ndns < 2 && strcmp(nt->attr, "dns") == 0)
+		} else if(ndns < 2 && strcmp(nt->attr, "dns") == 0){
 			parseip(conf.dns+IPaddrlen*ndns, nt->val);
-		else if(strcmp(nt->attr, "ntp") == 0)
+		} else if(strcmp(nt->attr, "ntp") == 0){
 			parseip(conf.ntp, nt->val);
-		else if(nfs < 2 && strcmp(nt->attr, "fs") == 0)
+		} else if(nfs < 2 && strcmp(nt->attr, "fs") == 0){
 			parseip(conf.fs+IPaddrlen*nfs, nt->val);
-		else if(nauth < 2 && strcmp(nt->attr, "auth") == 0)
+		} else if(nauth < 2 && strcmp(nt->attr, "auth") == 0){
 			parseip(conf.auth+IPaddrlen*nauth, nt->val);
+		}
+	}
 	ndbfree(t);
 	if(!validip(conf.laddr))
 		sysfatal("address not found in ndb");

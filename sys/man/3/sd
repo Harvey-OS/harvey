@@ -241,9 +241,8 @@ or
 .SH BUGS
 Still in development.
 .PP
-LUNs (logical unit numbers) are not implemented.
 For (S)ATA drives,
-LUNs are not merely ignored but are actively
+LUNs (logical unit numbers) are not merely ignored but are actively
 prevented from working except for INQUIRY commands.
 .PP
 The 4 controller limit for ATA(PI) is not enforced.

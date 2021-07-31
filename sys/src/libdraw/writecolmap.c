@@ -18,10 +18,8 @@ writecolmap(Display *d, RGB *m)
 	sprint(buf, "/dev/draw/%d/colormap", d->dirno);
 	fd = open(buf, OWRITE);
 	if(fd < 0)
-		drawerror(d, "writecolmap: open colormap failed");
+		drawerror(d, "wrcolmap: open colormap failed");
 	t = malloc(8192);
-	if (t == nil)
-		drawerror(d, "writecolmap: no memory");
 	n = 0;
 	for(i = 0; i < 256; i++) {
 		r = m[i].red>>24;
@@ -33,5 +31,5 @@ writecolmap(Display *d, RGB *m)
 	free(t);
 	close(fd);
 	if(i != n)
-		drawerror(d, "writecolmap: bad write");
+		drawerror(d, "wrcolmap: bad write");
 }
