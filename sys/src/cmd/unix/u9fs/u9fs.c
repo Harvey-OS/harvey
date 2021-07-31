@@ -1,9 +1,10 @@
 /* already in plan9.h #include <sys/types.h> *//* for struct passwd, struct group, struct stat ... */
 /* plan9.h is first to get the large file support definitions as early as possible */
 #include <plan9.h>
+
 #include <sys/stat.h>	/* for stat, umask */
-#include <stdlib.h>	/* for malloc */
-#include <string.h>	/* for strcpy, memmove */
+#include <stdlib.h>		/* for malloc */
+#include <string.h>		/* for strcpy, memmove */
 #include <pwd.h>	/* for getpwnam, getpwuid */
 #include <grp.h>	/* for getgrnam, getgrgid */
 #include <unistd.h>	/* for gethostname, pread, pwrite, read, write */
@@ -240,6 +241,7 @@ getfcall(int fd, Fcall *fc)
 	}
 
 	/* auto-detect */
+
 	if(readn(fd, rxbuf, 3) != 3)
 		sysfatal("couldn't read message");
 
@@ -266,8 +268,6 @@ isowner(User *u, Fid *f)
 {
 	return u->id == f->st.st_uid;
 }
-
-
 
 void
 serve(int rfd, int wfd)
@@ -1091,12 +1091,10 @@ void
 sysfatal(char *fmt, ...)
 {
 	char buf[1024];
-	va_list va, temp;
+	va_list va;
 
 	va_start(va, fmt);
-	va_copy(temp, va);
-	doprint(buf, buf+sizeof buf, fmt, &temp);
-	va_end(temp);
+	doprint(buf, buf+sizeof buf, fmt, va);
 	va_end(va);
 	fprint(2, "u9fs: %s\n", buf);
 	fprint(2, "last unix error: %s\n", strerror(errno));
@@ -1696,7 +1694,6 @@ main(int argc, char **argv)
 			sysfatal("chroot '%s' failed", argv[0]);
 
 	none = uname2user("none");
-
 	serve(0, 1);
 	return 0;
 }
