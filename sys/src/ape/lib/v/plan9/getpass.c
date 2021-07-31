@@ -7,8 +7,8 @@
 char *
 getpass(char *prompt)
 {
-	int c;
-	char *p;
+	register char *p;
+	register c;
 	FILE *fi;
 	static char pbuf[9];
 	void (*sig)(int);
@@ -16,24 +16,16 @@ getpass(char *prompt)
 	if ((fi = fopen("/dev/cons", "r")) == NULL)
 		fi = stdin;
 	else
-		setbuf(fi, NULL);
+		setbuf(fi, (char *)NULL);
 	sig = signal(SIGINT, SIG_IGN);
 	tty_echooff(fileno(fi));
-	fprintf(stderr, "%s", prompt);
-	fflush(stderr);
-
-	for (p = pbuf; (c = getc(fi)) != '\n' && c != EOF; )
-		if (c == ('u' & 037))
-			p = pbuf;
-		else if (c == '\b') {
-			if (p > pbuf)
-				p--;
-		} else if (p < &pbuf[8])
+	fprintf(stderr, "%s", prompt); fflush(stderr);
+	for (p=pbuf; (c = getc(fi))!='\n' && c!=EOF;) {
+		if (p < &pbuf[8])
 			*p++ = c;
+	}
 	*p = '\0';
-
-	fprintf(stderr, "\n");
-	fflush(stderr);
+	fprintf(stderr, "\n"); fflush(stderr);
 	tty_echoon(fileno(fi));
 	signal(SIGINT, sig);
 	if (fi != stdin)
