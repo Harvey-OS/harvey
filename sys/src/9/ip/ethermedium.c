@@ -156,7 +156,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	}
 
 	/*
-	 *  open ipv4 converstation
+	 *  open ip converstation
 	 *
 	 *  the dial will fail if the type is already open on
 	 *  this device.
@@ -204,7 +204,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	achan = chandial(addr, nil, nil, nil);
 
 	/*
-	 *  open ipv6 conversation
+	 *  open ip conversation
 	 *
 	 *  the dial will fail if the type is already open on
 	 *  this device.
