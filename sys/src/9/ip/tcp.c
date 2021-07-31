@@ -430,11 +430,6 @@ static char*
 tcpconnect(Conv *c, char **argv, int argc)
 {
 	char *e;
-	Tcpctl *tcb;
-
-	tcb = (Tcpctl*)(c->ptcl);
-	if(tcb->state != Closed)
-		return Econinuse;
 
 	e = Fsstdconnect(c, argv, argc);
 	if(e != nil)
@@ -475,11 +470,6 @@ static char*
 tcpannounce(Conv *c, char **argv, int argc)
 {
 	char *e;
-	Tcpctl *tcb;
-
-	tcb = (Tcpctl*)(c->ptcl);
-	if(tcb->state != Closed)
-		return Econinuse;
 
 	e = Fsstdannounce(c, argv, argc);
 	if(e != nil)
@@ -1241,7 +1231,7 @@ sndrst(Proto *tcp, uchar *source, uchar *dest, ushort length, Tcp *seg, uchar ve
 	Tcp4hdr ph4;
 	Tcp6hdr ph6;
 
-	netlog(tcp->f, Logtcp, "sndrst: %s\n", reason);
+	netlog(tcp->f, Logtcp, "sndrst: %s", reason);
 
 	tpriv = tcp->priv;
 
@@ -1607,7 +1597,7 @@ tcpincoming(Conv *s, Tcp *segp, uchar *src, uchar *dst, uchar version)
 	/* find a call in limbo */
 	h = hashipa(src, segp->source);
 	for(l = &tpriv->lht[h]; (lp = *l) != nil; l = &lp->next){
-		netlog(s->p->f, Logtcp, "tcpincoming s %I,%ux/%I,%ux d %I,%ux/%I,%ux v %d/%d\n",
+		netlog(s->p->f, Logtcp, "tcpincoming s %I,%ux/%I,%ux d %I,%ux/%I,%ux v %d/%d",
 			src, segp->source, lp->raddr, lp->rport,
 			dst, segp->dest, lp->laddr, lp->lport,
 			version, lp->version
@@ -1622,7 +1612,7 @@ tcpincoming(Conv *s, Tcp *segp, uchar *src, uchar *dst, uchar version)
 
 		/* we're assuming no data with the initial SYN */
 		if(segp->seq != lp->irs+1 || segp->ack != lp->iss+1){
-			netlog(s->p->f, Logtcp, "tcpincoming s %lux/%lux a %lux %lux\n",
+			netlog(s->p->f, Logtcp, "tcpincoming s %lux/%lux a %lux %lux",
 				segp->seq, lp->irs+1, segp->ack, lp->iss+1);
 			lp = nil;
 		} else {
@@ -1928,7 +1918,7 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 	Tcp6hdr *h6;
 	int hdrlen;
 	Tcpctl *tcb;
-	ushort length, csum;
+	ushort length;
 	uchar source[IPaddrlen], dest[IPaddrlen];
 	Conv *s;
 	Fs *f;
@@ -1991,12 +1981,10 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 		h6->ttl = proto;
 		hnputl(h6->vcf, length);
 		if((h6->tcpcksum[0] || h6->tcpcksum[1]) &&
-		    (csum = ptclcsum(bp, TCP6_IPLEN, length+TCP6_PHDRSIZE)) != 0) {
+			ptclcsum(bp, TCP6_IPLEN, length+TCP6_PHDRSIZE)) {
 			tpriv->stats[CsumErrs]++;
 			tpriv->stats[InErrs]++;
-			netlog(f, Logtcp,
-			    "bad tcpv6 proto cksum: got %#ux, computed %#ux\n",
-				h6->tcpcksum[0]<<8 | h6->tcpcksum[1], csum);
+			netlog(f, Logtcp, "bad tcp proto cksum\n");
 			freeblist(bp);
 			return;
 		}
@@ -2008,7 +1996,7 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 		if(hdrlen < 0){
 			tpriv->stats[HlenErrs]++;
 			tpriv->stats[InErrs]++;
-			netlog(f, Logtcp, "bad tcpv6 hdr len\n");
+			netlog(f, Logtcp, "bad tcp hdr len\n");
 			return;
 		}
 
@@ -2018,7 +2006,7 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 		if(bp == nil){
 			tpriv->stats[LenErrs]++;
 			tpriv->stats[InErrs]++;
-			netlog(f, Logtcp, "tcpv6 len < 0 after trim\n");
+			netlog(f, Logtcp, "tcp len < 0 after trim\n");
 			return;
 		}
 	}
@@ -2029,7 +2017,7 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 	/* Look for a matching conversation */
 	s = iphtlook(&tpriv->ht, source, seg.source, dest, seg.dest);
 	if(s == nil){
-		netlog(f, Logtcp, "iphtlook failed\n");
+		netlog(f, Logtcp, "iphtlook failed");
 reset:
 		qunlock(tcp);
 		sndrst(tcp, source, dest, length, &seg, version, "no conversation");

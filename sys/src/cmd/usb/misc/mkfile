@@ -13,8 +13,8 @@ UPDATE=\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 	mkfile\
-	print\
-	probe\
+	usbprint\
+	usbprobe\
 
 BIN=/$objtype/bin/usb
 </sys/src/cmd/mkmany
@@ -26,7 +26,7 @@ $LIB:
 	mk install
 	mk clean
 
-$BIN/print: print
+$BIN/usbprint: usbprint
 	cp -x $newprereq $target
-$BIN/probe: probe
+$BIN/usbprobe: usbprobe
 	cp -x $newprereq $target

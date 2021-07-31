@@ -3,7 +3,7 @@
 #include <thread.h>
 #include "usb.h"
 
-int debug, debugdebug, usbdebug, verbose;
+int debug, debugdebug, verbose;
 
 char *
 namefor(Namelist *list, int item)
