@@ -67,7 +67,7 @@ dumpopts(void)
 {
 	int i;
 
-	print("dumpopts: found /alpha/conf options at %#p\n",
+	print("dumpopts: found /alpha/conf options at 0x%lux\n",
 		bootconf->bootargs);
 	for(i = 0; i < nconf; i++)
 		print("dumpopts: read %s=%s\n", confname[i], confval[i]);
