@@ -40,7 +40,6 @@ typedef struct RWlock	RWlock;
 typedef struct Sargs	Sargs;
 typedef struct Schedq	Schedq;
 typedef struct Segment	Segment;
-typedef struct Sema	Sema;
 typedef struct Timer	Timer;
 typedef struct Timers	Timers;
 typedef struct Uart	Uart;
@@ -390,15 +389,6 @@ struct Physseg
 	void	(*pgfree)(Page*);
 };
 
-struct Sema
-{
-	Rendez;
-	long	*addr;
-	int	waiting;
-	Sema	*next;
-	Sema	*prev;
-};
-
 struct Segment
 {
 	Ref;
@@ -417,8 +407,6 @@ struct Segment
 	Pte	**map;
 	int	mapsize;
 	Pte	*ssegmap[SSEGMAPSIZE];
-	Lock	semalock;
-	Sema	sema;
 	ulong	mark;		/* portcountrefs */
 };
 

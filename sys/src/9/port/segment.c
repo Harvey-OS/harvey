@@ -70,8 +70,6 @@ newseg(int type, ulong base, ulong size)
 	s->base = base;
 	s->top = base+(size*BY2PG);
 	s->size = size;
-	s->sema.prev = &s->sema;
-	s->sema.next = &s->sema;
 
 	mapsize = ROUND(size, PTEPERTAB)/PTEPERTAB;
 	if(mapsize > nelem(s->ssegmap)){
@@ -791,4 +789,3 @@ segclock(ulong pc)
 		s->profile[pc>>LRESPROF] += TK2MS(1);
 	}
 }
-

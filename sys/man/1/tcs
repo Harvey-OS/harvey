@@ -48,11 +48,12 @@ The
 .B -c
 option forces the output to contain only correctly converted characters;
 otherwise,
-.B Runeerror
-(0xFFFD)
+.B 0x80
 characters will be substituted for
 .SM UTF
-encoding errors and unknown characters.
+encoding errors and
+.B 0xFFFD
+characters will substituted for unknown characters.
 .PP
 The
 .B -v

@@ -12,7 +12,7 @@ int	cistrcmp(char*, char*);
 int	cistrncmp(char*, char*, int);
 void	cpuidprint(void);
 void	cserve(ulong, ulong);
-#define cycles(x)	do{}while(0)
+#define cycles(x)
 void	timeradd(Timer *);
 void	timerdel(Timer *);
 int	dmacount(int);

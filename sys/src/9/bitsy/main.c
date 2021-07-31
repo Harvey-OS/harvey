@@ -522,34 +522,21 @@ getconf(char*)
 long
 _xdec(long *p)
 {
-	int s;
+	int x;
 	long v;
 
-	s = splhi();
+	x = splhi();
 	v = --*p;
-	splx(s);
+	splx(x);
 	return v;
 }
 
 void
 _xinc(long *p)
 {
-	int s;
+	int x;
 
-	s = splhi();
+	x = splhi();
 	++*p;
-	splx(s);
+	splx(x);
 }
-
-int
-cmpswap(long *addr, long old, long new)
-{
-	int r, s;
-	
-	s = splhi();
-	if(r = (*addr==old))
-		*addr = new;
-	splx(s);
-	return r;
-}
-

@@ -73,8 +73,6 @@ dumpopts(void)
 		print("dumpopts: read %s=%s\n", confname[i], confval[i]);
 }
 
-extern void (*i8237alloc)(void);
-
 void
 main(void)
 {
@@ -89,8 +87,6 @@ main(void)
 	archinit();
 	xinit();
 	memholes();
-	if(i8237alloc != nil)
-		i8237alloc();
 	mmuinit();
 	if(arch->coreinit)
 		arch->coreinit();
