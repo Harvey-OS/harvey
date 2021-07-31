@@ -57,8 +57,7 @@ _main:
 	/* disable l2 cache.  do this while l1 caches are off */
 	MRC	CpSC, CpL2, R1, C(CpTESTCFG), C(CpTCl2cfg), CpTCl2conf
 	/* disabling write allocation is probably for cortex-a8 errata 460075 */
-	/* l2 off, no wr alloc, no streaming */
-	BIC	$(CpTCl2ena | CpTCl2wralloc | CpTCldcstream), R1
+	BIC	$(1<<22 | 1<<28 | 1<<29), R1 /* l2 off, no wr alloc, no streaming */
 	MCR	CpSC, CpL2, R1, C(CpTESTCFG), C(CpTCl2cfg), CpTCl2conf
 	BARRIERS
 
@@ -418,7 +417,7 @@ _dinv:
 TEXT l2cachecfgon(SB), 1, $-4
 	BARRIERS
 	MRC	CpSC, CpL2, R1, C(CpTESTCFG), C(CpTCl2cfg), CpTCl2conf
-	ORR	$(CpTCl2ena | CpTCl2prefdis), R1  /* l2 on, prefetch off */
+	ORR	$(1<<22 | 1<<24), R1		/* l2 on, prefetch off */
 	MCR	CpSC, CpL2, R1, C(CpTESTCFG), C(CpTCl2cfg), CpTCl2conf
 	BARRIERS
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all

@@ -96,7 +96,7 @@ struct Addrmap {
 		ulong	remaplo;
 		ulong	remaphi;
 	} win[8];
-	ulong	dirba;		/* device internal reg's base addr.: PHYSIO */
+	ulong	dirba;		/* device internal reg's base addr.: Regbase */
 };
 
 enum {
