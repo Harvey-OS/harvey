@@ -16,7 +16,7 @@ void runcmd(int, int, char *, char *, char *, char *);
 int errfd, toppid, sflag, tflag, prevent;
 int debug;
 char *idstring;
-char *netdir;				/* /net/ssh/<conn> */
+char *netdir = "/net";
 char *nsfile = nil;
 char *restdir;
 char *shell;
@@ -89,37 +89,32 @@ auth(char *buf, int n, int ctlfd)
 }
 
 /*
- * mount tunnel if there isn't one visible.
+ * start tunnel if there isn't one, though it's probably too late
+ * since caphash will likely be closed.
  */
 static void
 mounttunnel(int ctlfd)
 {
 	int fd;
-	char *p, *np, *q;
+	char *p;
 
 	if (access(netdir, AEXIST) >= 0)
 		return;
 
 	p = smprint("/srv/%s", srvpt? srvpt: "ssh");
-	np = strdup(netdir);
-	if (p == nil || np == nil)
-		sysfatal("out of memory");
-	q = strstr(np, "/ssh");
-	if (q != nil)
-		*q = '\0';
-	fd = open(p, ORDWR);
+	fd = -1;
+	if (p)
+		fd = open(p, ORDWR);
 	if (fd < 0) {
 		syslog(0, "ssh", "can't open %s: %r", p);
 		hangup(ctlfd);
 		exits("open");
 	}
-	if (mount(fd, -1, np, MBEFORE, "") < 0) {
-		syslog(0, "ssh", "can't mount %s in %s: %r", p, np);
+	if (mount(fd, -1, netdir, MBEFORE, "") < 0) {
+		syslog(0, "ssh", "can't mount in /net: %r");
 		hangup(ctlfd);
 		exits("can't mount");
 	}
-	free(p);
-	free(np);
 }
 
 static int

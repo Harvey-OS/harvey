@@ -33,7 +33,6 @@ bind -a #I /net
 mount -a /srv/cs /net
 mount -a /srv/dns /net
 mount -a /srv/net /net
-mount -b /srv/ssh /net
 
 # usbd, mainly disks
 mount /srv/usb /n/usb
