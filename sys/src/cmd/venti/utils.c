@@ -191,9 +191,9 @@ fatal(char *fmt, ...)
 	char buf[256];
 
 	fmtfdinit(&f, 2, buf, sizeof buf);
-	fmtprint(&f, "fatal %s error: ", argv0);
+	fmtprint(&f, "fatal %s error:", argv0);
 	va_start(arg, fmt);
-	fmtvprint(&f, fmt, arg);
+	fmtprint(&f, fmt, arg);
 	va_end(arg);
 	fmtprint(&f, "\n");
 	fmtfdflush(&f);

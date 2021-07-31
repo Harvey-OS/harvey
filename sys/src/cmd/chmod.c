@@ -54,7 +54,7 @@ parsemode(char *spec, ulong *pmask, ulong *pmode)
 	char *s;
 
 	s = spec;
-	mask = DMAPPEND | DMEXCL | DMTMP;
+	mask = DMAPPEND | DMEXCL;
 	for(done=0; !done; ){
 		switch(*s){
 		case 'u':
@@ -91,8 +91,6 @@ parsemode(char *spec, ulong *pmask, ulong *pmode)
 			mode |= DMAPPEND; break;
 		case 'l':
 			mode |= DMEXCL; break;
-		case 't':
-			mode |= DMTMP; break;
 		default:
 			return 0;
 		}

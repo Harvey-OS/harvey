@@ -44,9 +44,8 @@ HFILES=\
 	fs.h\
 	error.h\
 	9.h\
-	flfmt9660.h\
 
-CFILES=${TARG:%=%.c} $LIBCFILES flfmt9660.c
+CFILES=${TARG:%=%.c} $LIBCFILES
 
 UPDATE=\
 	mkfile\

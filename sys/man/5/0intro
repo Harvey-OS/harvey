@@ -588,19 +588,14 @@ if bit 27
 .RB ( DMAUTH )
 is set, the file is an authentication file established by
 .B auth
-messages;
-if bit 26
-.RB ( DMTMP )
-is set, the contents of the file (or directory) are not included in nightly archives.
+messages.
 (Bit 28 is skipped for historical reasons.)
 These bits are reproduced, from the top bit down, in the type byte of the Qid:
 .BR QTDIR ,
 .BR QTAPPEND ,
 .BR QTEXCL ,
-(skipping one bit)
-.BR QTAUTH ,
-and
-.BR QTTMP .
+and (skipping one bit)
+.BR QTAUTH .
 The name
 .BR QTFILE ,
 defined to be zero,
