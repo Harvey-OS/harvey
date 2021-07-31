@@ -12,10 +12,10 @@ enum
 	MaxUsbDev = 32,	/* max # of attached USB devs, including root hub (Udev*) */
 
 	/* request type */
-	RH2D = 0<<7,		/* output */
-	RD2H = 1<<7,		/* input */
+	RH2D = 0<<7,
+	RD2H = 1<<7,
 	Rstandard = 0<<5,
-	Rclass	= 1<<5,
+	Rclass = 1<<5,
 	Rvendor = 2<<5,
 
 	Rdevice = 0,
@@ -32,15 +32,10 @@ enum
 /* for OHCI */
 typedef struct ED ED;
 struct ED {
-	ulong	ctrl;
-	ulong	tail;		/* transfer descriptor */
-	ulong	head;
-	ulong	next;
-};
-
-enum{
-	Dirout,
-	Dirin,
+	ulong ctrl;
+	ulong tail;		/* transfer descriptor */
+	ulong head;
+	ulong next;
 };
 
 /*
@@ -48,52 +43,54 @@ enum{
  */
 struct Endpt
 {
+	ED *ined;		/* for OHCI */
+	ED *outed;		/* for OHCI */
 	Ref;
 	Lock;
 	int	x;		/* index in Udev.ep */
-	struct{		/* OHCI */
-		char*	err;	/* needs to be global for unstall; fix? */
-		int	xdone;
-		int	xstarted;
-		int	queued;	/* # of TDs queued on ED */
-		Rendez	rend;
-	}	dir[2];
-	int	epmode;
-	int	epnewmode;
+	struct {		/* OHCI */
+		int epmode;
+		int	nbuf;	/* number of buffers allowed */
+		int	ntd;
+		int	mps;
+	} out;
+	struct {		/* OHCI */
+		int epmode;
+		int	nbuf;	/* number of buffers allowed */
+		int	sched;	/* schedule index; -1 if undefined or aperiodic */
+		int	pollms;	/* polling interval in msec */
+		int	ntd;
+		int	mps;
+	} in;
 	int	id;		/* hardware endpoint address */
 	int	maxpkt;		/* maximum packet size (from endpoint descriptor) */
  	uchar	wdata01;	/* 0=DATA0, 1=DATA1 for output direction */
  	uchar	rdata01;	/* 0=DATA0, 1=DATA1 for input direction */
- 	int	override;	/* a data command sets this and prevents
- 				 * auto setting of rdata01 or wdata01
- 				 */
 	uchar	eof;
 	ulong	csp;
 	uchar	mode;		/* OREAD, OWRITE, ORDWR */
 	uchar	nbuf;		/* number of buffers allowed */
+	uchar	iso;
 	uchar	debug;
 	uchar	active;		/* listed for examination by interrupts */
 	int	setin;
-	/* ISO is all half duplex, so need only one copy of these: */
-	ulong	bw;		/* bandwidth requirement (OHCI) */
+	/* ISO related: */
 	int	hz;
 	int	remain;		/* for packet size calculations */
-	int	partial;	/* last iso packet may have been half full */
-	Block	*bpartial;
 	int	samplesz;
 	int	sched;		/* schedule index; -1 if undefined or aperiodic */
 	int	pollms;		/* polling interval in msec */
 	int	psize;		/* (remaining) size of this packet */
 	int	off;		/* offset into packet */
 	/* Real-time iso stuff */
-	vlong	foffset;	/* file offset (to detect seeks) */
+	ulong	foffset;	/* file offset (to detect seeks) */
 	ulong	poffset;	/* offset of next packet to be queued */
-	short	frnum;		/* frame number associated with poffset */
-	int	rem;		/* remainder after rounding Hz to samples/ms */
-	vlong	toffset;	/* offset associated with time */
+	ulong	toffset;	/* offset associated with time */
 	vlong	time;		/* time associated with offset */
 	int	buffered;	/* bytes captured but unread, or written but unsent */
 	/* end ISO stuff */
+
+	ulong	bw;		/* bandwidth requirement (OHCI) */
 
 	Udev*	dev;		/* owning device */
 
@@ -107,12 +104,15 @@ struct Endpt
 	 * except perhaps err.
 	 */
 	QLock	rlock;
+	Rendez	rr;
 	Queue*	rq;
 
 	QLock	wlock;
+	Rendez	wr;
 	Queue*	wq;
 
 	int	ntd;
+	char*	err;		/* needs to be global for unstall; fix? */
 
 	Endpt*	activef;	/* active endpoint list */
 };
@@ -122,9 +122,7 @@ enum {
 	Nomode,
 	Ctlmode,
 	Bulkmode,
-	Intrmode,
-	Isomode,
-	Nmodes,
+	Intrmode
 };
 
 /* device parameters */
@@ -142,13 +140,6 @@ enum
 	Hubclass = 9,
 };
 
-typedef enum {
-	Fullspeed,	/* Don't change order, used in ehci h/w interface */
-	Lowspeed,
-	Highspeed,
-	Nospeed,
-} Speed;	/* Device speed */
-
 /*
  * active USB device
  */
@@ -165,7 +156,7 @@ struct Udev
 	ulong	csp;
 	ushort	vid;		/* vendor id */
 	ushort	did;		/* product id */
-	Speed	speed;	
+	int	ls;
 	int	npt;
 	Endpt*	ep[16];		/* active end points */
 
@@ -197,7 +188,6 @@ struct Usbhost
 	void	(*epopen)(Usbhost*, Endpt*);
 	void	(*epclose)(Usbhost*, Endpt*);
 	void	(*epmode)(Usbhost*, Endpt*);
-	void	(*epmaxpkt)(Usbhost*, Endpt*);
 
 	long	(*read)(Usbhost*, Endpt*, void*, long, vlong);
 	long	(*write)(Usbhost*, Endpt*, void*, long, vlong, int);
