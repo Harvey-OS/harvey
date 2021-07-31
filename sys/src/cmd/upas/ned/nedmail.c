@@ -1329,14 +1329,12 @@ decrlf(char *buf, int n)
 	char *nl;
 	int left;
 
-	for(nl = buf, left = n;
-	    left >= 2 && (nl = memchr(nl, '\r', left)) != nil;
-	    left = n - (nl - buf))
-		if(nl[1] == '\n'){	/* newline? delete the cr */
-			--n;	/* portion left is about to get smaller */
-			memmove(nl, nl+1, n - (nl - buf));
-		}else
-			nl++;
+	for (nl = buf, left = n; left >= 2 &&
+	    (nl = memchr(nl, '\r', left)) != nil; left = n - (nl - buf))
+		if (nl[1] == '\n'){
+			memmove(nl, nl+1, left-1);	/* delete the cr */
+			--n;
+		}
 	return n;
 }
 
@@ -1359,7 +1357,7 @@ printpart(String *s, char *part)
 		if(interrupted)
 			break;
 		n = decrlf(buf, n);
-		if(n > 0 && Bwrite(&out, buf, n) <= 0)
+		if(Bwrite(&out, buf, n) <= 0)
 			break;
 		tot += n;
 	}
@@ -1424,7 +1422,8 @@ compress(char *p)
 static Message*
 bestalt(Message *m)
 {
-	Message *nm, *realplain, *realhtml, *realcal;
+	Message *nm;
+	Message *realplain, *realhtml, *realcal;
 	Ctype *cp;
 
 	realplain = realhtml = realcal = nil;
@@ -1475,8 +1474,6 @@ pcmd(Cmd*, Message *m)
 	String *s;
 	char buf[128];
 
-	if(m == nil)
-		return m;
 	if(m == &top)
 		return &top;
 	if(m->parent == &top)
@@ -1529,6 +1526,7 @@ pcmd(Cmd*, Message *m)
 		Bprint(&out, "\n!--- using plumber to display message of type %s\n", m->type);
 	else
 		Bprint(&out, "\n!--- cannot display messages of type %s\n", m->type);
+		
 	return m;
 }
 
