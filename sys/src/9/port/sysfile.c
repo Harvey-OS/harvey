@@ -833,10 +833,8 @@ sseek(ulong *arg)
 			error(Eisdir);
 		lock(c);	/* lock for read/write update */
 		off = o.v + c->offset;
-		if(off < 0){
-			unlock(c);
+		if(off < 0)
 			error(Enegoff);
-		}
 		c->offset = off;
 		unlock(c);
 		break;
