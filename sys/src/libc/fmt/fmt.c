@@ -10,7 +10,7 @@ enum
 typedef struct Convfmt Convfmt;
 struct Convfmt
 {
-	Rune	c;
+	int	c;
 	volatile	Fmts	fmt;	/* for spin lock in fmtfmt; avoids race due to write order */
 };
 
@@ -57,7 +57,7 @@ int	(*doquote)(int);
  * _fmtlock() must be set
  */
 static int
-_fmtinstall(Rune c, Fmts f)
+_fmtinstall(int c, Fmts f)
 {
 	Convfmt *p, *ep;
 
@@ -95,12 +95,9 @@ fmtinstall(int c, Fmts f)
 }
 
 static Fmts
-fmtfmt(Rune c)
+fmtfmt(int c)
 {
 	Convfmt *p, *ep;
-
-	if (c == '\0')
-		return _badfmt;
 
 	ep = &fmtalloc.fmt[fmtalloc.nfmt];
 	for(p=fmtalloc.fmt; p<ep; p++)
