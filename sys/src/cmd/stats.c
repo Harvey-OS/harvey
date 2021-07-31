@@ -575,7 +575,7 @@ connectexportfs(char *addr)
 	return fd;
 }
 
-int
+void
 initmach(Machine *m, char *name)
 {
 	int n, fd;
@@ -583,9 +583,10 @@ initmach(Machine *m, char *name)
 	char *p, mpt[256], buf[256];
 
 	p = strchr(name, '!');
-	if(p)
+	if(p){
 		p++;
-	else
+		m->name = estrdup(p+1);
+	}else
 		p = name;
 	m->name = estrdup(p);
 	m->remote = (strcmp(p, mysysname) != 0);
@@ -596,7 +597,7 @@ initmach(Machine *m, char *name)
 		fd = connectexportfs(name);
 		if(fd < 0){
 			fprint(2, "can't connect to %s: %r\n", name);
-			return 0;
+			killall("connect");
 		}
 		/* BUG? need to use amount() now? */
 		if(mount(fd, -1, mpt, MREPL, "") < 0){
@@ -604,7 +605,7 @@ initmach(Machine *m, char *name)
 			strcpy(mpt, "/n/sid");
 			if(mount(fd, -1, mpt, MREPL, "") < 0){
 				fprint(2, "stats: mount %s on %s failed: %r\n", name, mpt);
-				return 0;
+				killall("mount");
 			}
 		}
 	}
@@ -637,6 +638,11 @@ initmach(Machine *m, char *name)
 
 	snprint(buf, sizeof buf, "%s/net/ether0/ifstats", mpt);
 	m->ifstatsfd = open(buf, OREAD);
+	if(m->ifstatsfd < 0){
+		/* try the old place - this code will disappear on Nov 18th - presotto */
+		snprint(buf, sizeof buf, "%s/net/ether0/0/ifstats", mpt);
+		m->ifstatsfd = open(buf, OREAD);
+	}
 	if(loadbuf(m, &m->ifstatsfd)){
 		/* need to check that this is a wavelan interface */
 		if(strncmp(m->buf, "Signal: ", 8) == 0 && readnums(m, nelem(m->netetherifstats), a, 1))
@@ -655,7 +661,6 @@ initmach(Machine *m, char *name)
 		if(loadbuf(m, &m->bitsybatfd) && readnums(m, 1, a, 0))
 			memmove(m->batterystats, a, sizeof(m->batterystats));
 	}
-	return 1;
 }
 
 jmp_buf catchalarm;
@@ -715,18 +720,10 @@ readmach(Machine *m, int init)
 			if(display != nil)	/* else we're still initializing */
 				eresized(0);
 		}
-		if (m->disable++ >= 5)
-			m->disable = 0; /* give it another chance */
+		m->disable = 1;
 		memmove(m->devsysstat, m->prevsysstat, sizeof m->devsysstat);
 		memmove(m->netetherstats, m->prevetherstats, sizeof m->netetherstats);
 		return;
-	}
-	snprint(buf, sizeof buf, "%s", m->name);
-	if (strcmp(m->name, buf) != 0){
-		free(m->name);
-		m->name = estrdup(buf);
-		if(display != nil)	/* else we're still initializing */
-			eresized(0);
 	}
 	if(m->remote){
 		notify(alarmed);
@@ -990,7 +987,7 @@ dropgraph(int which)
 	present[which] = 0;
 }
 
-int
+void
 addmachine(char *name)
 {
 	if(ngraph > 0){
@@ -1001,11 +998,8 @@ addmachine(char *name)
 		nmach = 0;	/* a little dance to get us started with local machine by default */
 	mach = erealloc(mach, (nmach+1)*sizeof(Machine));
 	memset(mach+nmach, 0, sizeof(Machine));
-	if (initmach(mach+nmach, name)){
-		nmach++;
-		return 1;
-	} else
-		return 0;
+	initmach(mach+nmach, name);
+	nmach++;
 }
 
 void
@@ -1265,9 +1259,9 @@ main(int argc, char *argv[])
 		initmach(&mach[0], mysysname);
 		readmach(&mach[0], 1);
 	}else{
-		for(i=j=0; i<argc; i++){
-			if (addmachine(argv[i]))
-				readmach(&mach[j++], 1);
+		for(i=0; i<argc; i++){
+			addmachine(argv[i]);
+			readmach(&mach[i], 1);
 		}
 	}
 
