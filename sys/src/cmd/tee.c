@@ -7,7 +7,7 @@
 
 int	uflag;
 int	aflag;
-int	*openf;
+int	openf[100];
 
 char in[8192];
 
@@ -38,10 +38,7 @@ main(int argc, char **argv)
 		exits("usage");
 	} ARGEND
 
-	openf = malloc((1+argc)*sizeof(int));
-	if(openf == nil)
-		sysfatal("out of memory: %r");
-
+	USED(argc);
 	n = 0;
 	while(*argv) {
 		if(aflag) {
