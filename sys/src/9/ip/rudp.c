@@ -1,5 +1,4 @@
 /*
- *  Reliable User Datagram Protocol, currently only for IPv4.
  *  This protocol is compatible with UDP's packet format.
  *  It could be done over UDP if need be.
  */

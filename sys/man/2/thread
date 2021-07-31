@@ -129,9 +129,9 @@ int	threadnotify(int (*f)(void*, char*), int in)
 The thread library provides parallel programming support similar to that
 of the languages
 Alef and Newsqueak.
-.I Threads
+Threads
 and
-.I procs
+procs
 occupy a shared address space,
 communicating and synchronizing through
 .I channels
@@ -139,7 +139,7 @@ and shared variables.
 .PP
 A
 .I proc
-is a Plan 9 process that contains one or more cooperatively-scheduled
+is a Plan 9 process that contains one or more cooperatively scheduled
 .IR threads .
 Programs using threads must replace
 .I main
@@ -161,7 +161,7 @@ initialized to the desired value
 .B mainstacksize
 .B =
 .BR 1024 ).
-.SS Creation
+.PP
 .I Threadcreate
 creates a new thread in the calling proc, returning a unique integer
 identifying the thread; the thread
@@ -217,8 +217,8 @@ terminates all procs in the program,
 using
 .I status
 as the exit status.
-.SS Scheduling
-The threads in a proc are coroutines, scheduled non-preemptively
+.PP
+The threads in a proc are coroutines, scheduled nonpreemptively
 in a round-robin fashion.
 A thread must explicitly relinquish control of the processor
 before another thread in the same proc is run.
@@ -236,13 +236,7 @@ and
 .I send
 and
 .IR recv \(emsee
-their descriptions further on),
-plus these from
-.IR lock (2):
-.IR qlock ,
-.IR rlock ,
-.IR wlock ,
-.IR rsleep .
+their descriptions further on).
 Procs are scheduled by the operating system.
 Therefore, threads in different procs can preempt one another
 in arbitrary ways and should synchronize their
@@ -293,7 +287,7 @@ and
 .I threadkillgrp
 will not terminate a thread that never relinquishes
 the processor.
-.SS Names and per-thread data
+.PP
 Primarily for debugging,
 threads can have string names associated with them.
 .I Threadgetname
@@ -312,7 +306,7 @@ per-thread storage.
 Similarly, 
 .I procdata
 returns a pointer to a per-proc pointer.
-.SS Executing new programs
+.PP
 .I Procexecl
 and
 .I procexec
@@ -360,7 +354,7 @@ These
 structures have been allocated with
 .IR malloc (2)
 and should be freed after use.
-.SS Channels
+.PP
 A
 .B Channel
 is a buffered or unbuffered queue for fixed-size messages.
@@ -522,7 +516,7 @@ The string delivered by
 is allocated with
 .IR malloc (2)
 and should be freed upon receipt.
-.SS Errors, notes and resources
+.PP
 Thread library functions do not return on failure;
 if errors occur, the entire program is aborted.
 .PP
@@ -568,22 +562,19 @@ same rendezvous group; do not change the rendezvous
 group with
 .IR rfork .
 .SH FILES
-.TF /sys/lib/acid/thread
-.TP
 .B /sys/lib/acid/thread
-useful
+contains useful
 .IR acid (1)
 functions for debugging threaded programs.
-.TP
+.PP
 .B /sys/src/libthread/example.c
-a full example program.
-.TP
+contains a full example program.
+.PP
 .B /mnt/temp
-a place to create pipes by
+is used as a place to create pipes by
 .IR procexec .
 .SH SOURCE
 .B /sys/src/libthread
 .SH SEE ALSO
 .IR intro (2),
-.IR ioproc (2),
-.IR lock (2)
+.IR ioproc (2)
