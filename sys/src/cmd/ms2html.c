@@ -1461,7 +1461,6 @@ closel(void)
 void
 g_IP(int argc, char **argv)
 {
-	dohanginghead();
 	switch(list){
 	default:
 		closel();
@@ -1604,7 +1603,6 @@ g_NH(int argc, char **argv)
 	closel();
 	closefont();
 
-	dohanginghead();
 	dohangingcenter();
 	if(argc == 1)
 		level = 0;
