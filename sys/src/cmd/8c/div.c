@@ -181,7 +181,7 @@ smod2(long c, int v, Node *l, Node *n)
 	Node nod;
 
 	if(c == 1) {
-		zeroregm(n);
+		gins(AANDL, nodconst(1), n);
 		return;
 	}
 
