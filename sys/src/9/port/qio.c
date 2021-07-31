@@ -1300,9 +1300,6 @@ qwrite(Queue *q, void *vp, int len)
 /*
  *  used by print() to write to a queue.  Since we may be splhi or not in
  *  a process, don't qlock.
- *
- *  this routine merges adjacent blocks if block n+1 will fit into
- *  the free space of block n.
  */
 int
 qiwrite(Queue *q, void *vp, int len)
@@ -1327,10 +1324,8 @@ qiwrite(Queue *q, void *vp, int len)
 
 		ilock(q);
 
-		/* we use an artificially high limit for kernel prints since anything
-		 * over the limit gets dropped
-		 */
-		if(q->dlen >= 16*1024){
+		/* don't queue over the limit, just lose the bytes */
+		if(q->len >= q->limit){
 			iunlock(q);
 			freeb(b);
 			break;

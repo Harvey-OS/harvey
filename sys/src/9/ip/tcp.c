@@ -447,11 +447,10 @@ tcpstate(Conv *c, char *state, int n)
 	s = (Tcpctl*)(c->ptcl);
 
 	return snprint(state, n,
-		"%s srtt %d mdev %d cwin %lud swin %lud>>%d rwin %lud>>%d timer.start %d timer.count %d rerecv %d katimer.start %d katimer.count %d\n",
+		"%s srtt %d mdev %d cwin %lud swin %lud>>%d rwin %lud>>%d timer.start %d timer.count %d rerecv %d\n",
 		tcpstates[s->state], s->srtt, s->mdev,
 		s->cwind, s->snd.wnd, s->rcv.scale, s->rcv.wnd, s->snd.scale,
-		s->timer.start, s->timer.count, s->rerecv,
-		s->katimer.start, s->katimer.count);
+		s->timer.start, s->timer.count, s->rerecv);
 }
 
 static int
@@ -2066,8 +2065,8 @@ reset:
 	/* fix up window */
 	seg.wnd <<= tcb->rcv.scale;
 
-	/* every input packet in puts off the keep alive time out */
-	tcpsetkacounter(tcb);
+	if(tcb->kacounter > 0)
+		tcpsetkacounter(tcb);
 
 	switch(tcb->state) {
 	case Closed:
@@ -2577,9 +2576,8 @@ tcpoutput(Conv *s)
 		}
 
 		tpriv->stats[OutSegs]++;
-
-		/* put off the next keep alive */
-		tcpgo(tpriv, &tcb->katimer);
+		if(tcb->kacounter > 0)
+			tcpgo(tpriv, &tcb->katimer);
 
 		switch(version){
 		case V4:
@@ -2661,7 +2659,8 @@ tcpsendka(Conv *s)
 }
 
 /*
- *  set connection to time out after 12 minutes
+ *  if we've timed out, close the connection
+ *  otherwise, send a keepalive and restart the timer
  */
 void
 tcpsetkacounter(Tcpctl *tcb)
@@ -2670,11 +2669,6 @@ tcpsetkacounter(Tcpctl *tcb)
 	if(tcb->kacounter < 3)
 		tcb->kacounter = 3;
 }
-
-/*
- *  if we've timed out, close the connection
- *  otherwise, send a keepalive and restart the timer
- */
 void
 tcpkeepalive(void *v)
 {
@@ -2710,8 +2704,6 @@ tcpstartka(Conv *s, char **f, int n)
 	int x;
 
 	tcb = (Tcpctl*)s->ptcl;
-	if(tcb->state != Established)
-		return "connection must be in Establised state";
 	if(n > 1){
 		x = atoi(f[1]);
 		if(x >= MSPTICK)

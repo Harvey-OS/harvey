@@ -108,7 +108,7 @@ allowed(char *dir)
 	int	okay;
 	Resub	match;
 
-	if (strcmp(dir, "..") == 0 || strncmp(dir, "../", 3) == 0)
+	if (strstr(dir, ".."))
 		return(0);
 	if (aio == nil)
 		return(0);
