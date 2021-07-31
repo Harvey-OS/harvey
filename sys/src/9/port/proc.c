@@ -866,10 +866,8 @@ wakeup(Rendez *r)
 
 	if(p != nil){
 		lock(&p->rlock);
-		if(p->state != Wakeme || p->r != r){
-			iprint("%p %p %d\n", p->r, r, p->state);
+		if(p->state != Wakeme || p->r != r)
 			panic("wakeup: state");
-		}
 		r->p = nil;
 		p->r = nil;
 		ready(p);
@@ -1101,30 +1099,28 @@ pexit(char *exitstr, int freemem)
 
 		lock(&p->exl);
 		/*
-		 * Check that parent is still alive.
+		 *  If my parent is no longer alive, or if there would be more
+		 *  than 128 zombie child processes for my parent, then don't
+		 *  leave a wait record behind.  This helps prevent badly
+		 *  written daemon processes from accumulating lots of wait
+		 *  records.
 		 */
-		if(p->pid == up->parentpid && p->state != Broken) {
+		if(p->pid == up->parentpid && p->state != Broken && p->nwait < 128) {
 			p->nchild--;
 			p->time[TCUser] += utime;
 			p->time[TCSys] += stime;
-			/*
-			 * If there would be more than 128 wait records
-			 * processes for my parent, then don't leave a wait
-			 * record behind.  This helps prevent badly written
-			 * daemon processes from accumulating lots of wait
-			 * records.
-		 	 */
-			if(p->nwait < 128) {
-				wq->next = p->waitq;
-				p->waitq = wq;
-				p->nwait++;
-				wq = nil;
-				wakeup(&p->waitr);
-			}
+
+			wq->next = p->waitq;
+			p->waitq = wq;
+			p->nwait++;
+
+			wakeup(&p->waitr);
+			unlock(&p->exl);
 		}
-		unlock(&p->exl);
-		if(wq)
+		else {
+			unlock(&p->exl);
 			free(wq);
+		}
 	}
 
 	if(!freemem)
