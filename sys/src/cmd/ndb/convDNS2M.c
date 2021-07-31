@@ -44,7 +44,7 @@ psym(uchar *p, uchar *ep, char *np)
 	if(ep - p < n+1)		/* see if it fits in the buffer */
 		return ep+1;
 	*p++ = n;
-	memmove(p, np, n);
+	memcpy(p, np, n);
 	return p + n;
 }
 
@@ -59,7 +59,7 @@ pstr(uchar *p, uchar *ep, char *np)
 	if(ep - p < n+1)		/* see if it fits in the buffer */
 		return ep+1;
 	*p++ = n;
-	memmove(p, np, n);
+	memcpy(p, np, n);
 	return p + n;
 }
 
@@ -68,7 +68,7 @@ pbytes(uchar *p, uchar *ep, uchar *np, int n)
 {
 	if(ep - p < n)
 		return ep+1;
-	memmove(p, np, n);
+	memcpy(p, np, n);
 	return p + n;
 }
 
@@ -183,7 +183,7 @@ pname(uchar *p, uchar *ep, char *np, Dict *dp)
 		if(ep-p < i+1)
 			return ep+1;
 		*p++ = i;		/* count of chars in label */
-		memmove(p, np, i);
+		memcpy(p, np, i);
 		np = cp;
 		p += i;
 	}
