@@ -165,37 +165,40 @@ void
 main(int argc, char *argv[])
 {
 	int pfd[2];
-	int fd, mnt, srv, stdio, verify;
-	char buf[64], *mntpoint, *srvname, *p;
+	int fd;
+	int stdio = 0;
+	int verify = 0;
+	char buf[64], *defmnt, *p, *service;
 
 	fmtinstall('V', sha1fmt);
 
-	mntpoint = "/n/paq";
-	srvname = "paqfs";
-	mnt = 1;
-	srv = stdio = verify = 0;
-
+	defmnt = "/n/paq";
+	service = "paqfs";
 	ARGBEGIN{
-	default:
-		usage();
-	case 'a':
-		noauth = 1;
-		break;
 	case 'c':
 		p = EARGF(usage());
 		cachesize = atoi(p);
+		break;
+	case 'a':
+		noauth = 1;
+		break;
+	case 'v':
+		verify = 1;
 		break;
 	case 'd':
 		debug = 1;
 		break;
 	case 'i':
-		mnt = 0;
+		defmnt = nil;
 		stdio = 1;
 		pfd[0] = 0;
 		pfd[1] = 1;
 		break;
+	case 's':
+		defmnt = nil;
+		break;
 	case 'm':
-		mntpoint = EARGF(usage());
+		defmnt = EARGF(usage());
 		break;
 	case 'M':
 		p = EARGF(usage());
@@ -205,23 +208,15 @@ main(int argc, char *argv[])
 		if(mesgsize > 128*1024)
 			mesgsize = 128*1024;
 		break;
-	case 'p':
-		srv = 1;
-		mnt = 1;
+	case 'S':
+		defmnt = 0;
+		service = EARGF(usage());
 		break;
 	case 'q':
 		qflag = 1;
 		break;
-	case 's':
-		srv = 1;
-		mnt = 0;
-		break;
-	case 'S':
-		srvname = EARGF(usage());
-		break;
-	case 'v':
-		verify = 1;
-		break;
+	default:
+		usage();
 	}ARGEND
 
 	if(argc != 1)
@@ -231,14 +226,14 @@ main(int argc, char *argv[])
 	
 	if(!stdio){
 		if(pipe(pfd) < 0)
-			sysfatal("pipe: %r");
-		if(srv){
-			snprint(buf, sizeof buf, "#s/%s", srvname);
+			sysfatal("pipe failed");
+		if(defmnt == 0){
+			snprint(buf, sizeof buf, "#s/%s", service);
 			fd = create(buf, OWRITE, 0666);
 			if(fd < 0)
 				sysfatal("create %s: %r", buf);
 			if(fprint(fd, "%d", pfd[0]) < 0)
-				sysfatal("write %s: %r", buf);
+				sysfatal("writing /srv/paqfs");
 		}
 	}
 
@@ -253,8 +248,8 @@ main(int argc, char *argv[])
 		break;
 	default:
 		close(pfd[1]);	/* don't deadlock if child fails */
-		if(mnt && mount(pfd[0], -1, mntpoint, MREPL|MCREATE, "") < 0)
-			sysfatal("mount %s: %r", mntpoint);
+		if(defmnt && mount(pfd[0], -1, defmnt, MREPL|MCREATE, "") < 0)
+			sysfatal("mount failed");
 	}
 	exits(0);
 }
