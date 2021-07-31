@@ -492,7 +492,6 @@ RR*	dnsservers(int);
 RR*	domainlist(int);
 int	insideaddr(char *dom);
 int	insidens(uchar *ip);
-int	myaddr(char *addr);
 int	opendatabase(void);
 uchar*	outsidens(int);
 
