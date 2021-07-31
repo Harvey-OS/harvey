@@ -66,7 +66,7 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 
 	/* second level contains clone plus all the conversations */
 	t = NETTYPE(c->qid.path);
-	if(t == N2ndqid || t == Ncloneqid || t == Naddrqid || t == Nstatqid || t == Nifstatqid){
+	if(t == N2ndqid || t == Ncloneqid || t == Naddrqid){
 		switch(i) {
 		case DEVDOTDOT:
 			q.type = QTDIR;
@@ -378,10 +378,8 @@ netifwstat(Netif *nif, Chan *c, uchar *db, int n)
 		free(dir);
 		error(Eshortstat);
 	}
-	if(!emptystr(dir[0].uid)){
-		strncpy(f->owner, dir[0].uid, KNAMELEN-1);
-		f->owner[KNAMELEN-1] = 0;
-	}
+	if(!emptystr(dir[0].uid))
+		strncpy(f->owner, dir[0].uid, KNAMELEN);
 	if(dir[0].mode != ~0UL)
 		f->mode = dir[0].mode;
 	free(dir);
@@ -477,8 +475,7 @@ netown(Netfile *p, char *o, int omode)
 			return -1;
 		}
 	}
-	strncpy(p->owner, o, KNAMELEN-1);
-	p->owner[KNAMELEN-1] = 0;
+	strncpy(p->owner, o, KNAMELEN);
 	p->mode = 0660;
 	unlock(&netlock);
 	return 0;
