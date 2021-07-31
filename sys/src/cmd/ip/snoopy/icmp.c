@@ -54,7 +54,7 @@ static Mux p_mux[] =
 	{0},
 };
 
-char *icmpmsg[256] =
+char *icmpmsg[236] =
 {
 [EchoRep]	"EchoRep",
 [Unreachable]	"Unreachable",
