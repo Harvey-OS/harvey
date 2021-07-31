@@ -54,7 +54,6 @@ static int Trunc = 0;		// truncate cells to colum width
 static int All = 0;		// dump all sheet types, Worksheets only by default
 static char *Delim = " ";	// field delimiter
 static char *Sheetrange = nil;	// range of sheets wanted
-static char *Columnrange = nil;	// range of collums wanted
 static int Debug = 0;
 
 // file scope
@@ -66,7 +65,6 @@ static int Nstrtab = 0;		// # of above
 static int *Xf;			// array of extended format indices
 static int Nxf = 0;		// # of above
 static Biobuf *bo;		// stdout (sic)
-static int Doquote = 1;		// quote text fields if they are rc(1) unfriendly
 
 // table scope
 static int Width[Nwidths];	// array of colum widths
@@ -86,47 +84,6 @@ static char *Errmsgs[] = {
 	[0x24]	"#NUM!",	// value range overflow
 	[0x2a]	"#N/A!",	// argument of function not available
 };
-
-int
-wanted(char *range, int here)
-{
-	int n, s;
-	char *p;
-
-	if (! range)
-		return 1;
-
-	s = -1;
-	p = range;
-	while(1){
-		n = strtol(p, &p, 10);
-		switch(*p){
-		case 0:
-			if(n == here)
-				return 1;
-			if(s != -1 && here > s && here < n)
-				return 1;
-			return 0;
-		case ',':
-			if(n == here)
-				return 1;
-			if(s != -1 && here > s && here < n)
-				return 1;
-			s = -1;
-			p++;
-			break;
-		case '-':
-			if(n == here)
-				return 1;
-			s = n;
-			p++;
-			break;
-		default:
-			sysfatal("%s malformed range spec", range);
-			break;
-		}
-	}
-}
 
 	
 void
@@ -257,22 +214,11 @@ void
 dump(void)
 {
 	Row *r;
-	Col *c, *c1;
-	char *strfmt;
-	int i, n, last, min, max;
-
-	if(Doquote)
-		strfmt = "%-*.*q";
-	else
-		strfmt = "%-*.*s";
+	Col *c;
+	int i, min, max;
 
 	for(r = Root; r; r = r->next){
-		n = 1;
 		for(c = r->col; c; c = c->next){
-			n++;
-			if(! wanted(Columnrange, n))
-				continue;
-
 			if(c->c < 0 || c->c >= Nwidths || (min = Width[c->c]) == 0)
 				min = Defwidth;
 			if((c->next && c->c == c->next->c) || Nopad)
@@ -289,35 +235,28 @@ dump(void)
 					numfmt(Xf[c->f], min, max, c->number);
 				break;
 			case Tlabel:
-				Bprint(bo, strfmt, min, max, c->label);
+				Bprint(bo, "%-*.*q", min, max, c->label);
 				break;
 			case Tbool:
-				Bprint(bo, strfmt, min, max, (c->bool)? "True": "False");
+				Bprint(bo, "%-*.*s", min, max, (c->bool)? "True": "False");
 				break;
 			case Tindex:
 				if(c->index < 0 || c->index >= Nstrtab)
 					sysfatal("SST string out of range - corrupt file?");
-				Bprint(bo, strfmt, min, max, Strtab[c->index]);
+				Bprint(bo, "%-*.*q", min, max, Strtab[c->index]);
 				break;
 			case Terror:
 				if(c->error < 0 || c->error >= nelem(Errmsgs) || !Errmsgs[c->error])
 					Bprint(bo, "#ERR=%d", c->index);
 				else
-					Bprint(bo, strfmt, min, max, Errmsgs[c->error]);
+					Bprint(bo, "%-*.*q", min, max, Errmsgs[c->error]);
 				break;
 			default:
 				sysfatal("cannot happen error");
 				break;
 			}
 
-			last = 1;
-			for(i = n+1, c1 = c->next; c1; c1 = c1->next, i++)
-				if(wanted(Columnrange, i)){
-					last = 0;
-					break;
-				}
-
-			if(! last){
+			if(c->next){
 				if(c->next->c == c->c)		// bar charts
 					Bprint(bo, "=");
 				else{
@@ -648,6 +587,40 @@ datemode(Biff *b)
 	Datemode = gint(b, 2);
 }
 
+int
+wanted(char *range, int sheet)
+{
+	int i, j;
+	char *p;
+
+	if (! range)
+		return 1;
+
+	p = range;
+	while(*p){
+		i = strtol(p, &p, 10);
+		switch(*p){
+		case '\0':
+		case ',':
+			if (i == sheet)
+				return 1;
+			break;
+		case '-':
+			j = strtol(p+1, &p, 10);
+			if(sheet >= i && sheet <= j)
+				return 1;
+
+			break;
+		default:
+			sysfatal(" %s malformed range spec", range);
+			break;
+		}
+		if (*p == ',')
+			p++;
+	}
+	return 0;
+}
+
 void
 eof(Biff *b)
 {
@@ -778,7 +751,7 @@ xls2csv(Biobuf *bp)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-Danqt] [-w worksheets] [-c columns] [-d delim] /mnt/doc/Workbook\n", argv0);
+	fprint(2, "usage: %s [-Dant] [-w worksheets] [-d delim] /mnt/doc/Workbook\n", argv0);
 	exits("usage");
 }
 
@@ -795,9 +768,6 @@ main(int argc, char *argv[])
 	case 'a':
 		All = 1;
 		break;
-	case 'q':
-		Doquote = 0;
-		break;
 	case 'd':
 		Delim = EARGF(usage());
 		break;
@@ -806,9 +776,6 @@ main(int argc, char *argv[])
 		break;
 	case 't':
 		Trunc = 1;
-		break;
-	case 'c':
-		Columnrange = EARGF(usage());
 		break;
 	case 'w':
 		Sheetrange = EARGF(usage());
