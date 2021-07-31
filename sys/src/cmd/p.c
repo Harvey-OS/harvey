@@ -37,7 +37,6 @@ main(int argc, char *argv[])
 				continue;
 			}
 			printfile(f);
-			close(f);
 		}
 	}
 	if(n == 0)
@@ -62,10 +61,8 @@ printfile(int f)
 				if(n > 0)	/* line too long for Brdline */
 					for(j=0; j<n; j++)
 						Bputc(&bout, Bgetc(b));
-				else{		/* true EOF */
-					free(b);
+				else		/* true EOF */
 					return;
-				}
 			}else{
 				Bwrite(&bout, s, Blinelen(b)-1);
 				if(i < pglen)
