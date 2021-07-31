@@ -400,14 +400,16 @@ save(Part *p, char *file)
 static char*
 savetmp(Part *p)
 {
-	char *name;
+	char *buf, *name;
 	int fd;
 
-	name = mktemp(smprint("%s/vf.XXXXXXXXXXX", UPASTMP));
+	buf = smprint("%s/vf.XXXXXXXXXXX", UPASTMP);
+	name = mktemp(buf);
 	if((fd = create(name, OWRITE|OEXCL, 0666)) < 0){
 		fprint(2, "%s: error creating temporary file: %r\n", argv0);
 		refuse("can't create temporary file");
 	}
+	free(buf);
 	close(fd);
 	if(save(p, name) < 0){
 		fprint(2, "%s: error saving temporary file: %r\n", argv0);
@@ -424,7 +426,7 @@ savetmp(Part *p)
 		refuse("error reading temporary file");
 	}
 	Bseek(p->tmpbuf, bodyoff, 0);
-	return name;
+	return strdup(name);
 }
 
 /*
