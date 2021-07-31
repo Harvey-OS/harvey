@@ -21,7 +21,6 @@ enum
 };
 
 int	_is2(char*),		/* in [$OS].c */
-	_is4(char*),
 	_is5(char*),
 	_is6(char*),
 	_is7(char*),
@@ -32,7 +31,6 @@ int	_is2(char*),		/* in [$OS].c */
 	_isv(char*),
 	_isu(char*),
 	_read2(Biobuf*, Prog*),
-	_read4(Biobuf*, Prog*),
 	_read5(Biobuf*, Prog*),
 	_read6(Biobuf*, Prog*),
 	_read7(Biobuf*, Prog*),
@@ -65,7 +63,6 @@ static Obj	obj[] =
 	[ObjMips]	"mips .v",	_isv, _readv,
 	[ObjSparc64]	"sparc64 .u",	_isu, _readu,
 	[ObjPower64]	"power64 .9",	_is9, _read9,
-	[ObjMips2]	"mips64 .4",	_is4, _read4,
 	[Maxobjtype]	0, 0
 };
 

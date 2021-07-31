@@ -80,7 +80,6 @@ regopt(Prog *p)
 		case ADATA:
 		case AGLOBL:
 		case ANAME:
-		case ASIGNAME:
 			continue;
 		}
 		r = rega();
@@ -285,8 +284,6 @@ loop2:
 					print(" rb=%B", r->refbehind);
 				if(bany(&r->calbehind))
 					print(" cb=%B", r->calbehind);
-				if(bany(&r->regdiff))
-					print(" rd=%B", r->regdiff);
 			}
 			print("\n");
 		}
@@ -411,7 +408,6 @@ brk:
 			case ADATA:
 			case AGLOBL:
 			case ANAME:
-			case ASIGNAME:
 				break;
 			}
 		}
@@ -602,7 +598,7 @@ out:
 	if(n == D_PARAM)
 		for(z=0; z<BITS; z++)
 			params.b[z] |= bit.b[z];
-	if(v->etype != et || (!typechlpfd[et] && !typev[et]))	/* funny punning */
+	if(v->etype != et || !typechlpfd[et])	/* funny punning */
 		for(z=0; z<BITS; z++)
 			addrs.b[z] |= bit.b[z];
 	if(t == D_CONST) {
@@ -729,7 +725,7 @@ rpolca(long *idom, long rpo1, long rpo2)
 		while(rpo1 < rpo2){
 			t = idom[rpo2];
 			if(t >= rpo2)
-				fatal(Z, "bad idom");
+				sysfatal("bad idom");
 			rpo2 = t;
 		}
 	}
@@ -785,7 +781,7 @@ loopit(Reg *r, long nr)
 
 	d = postorder(r, rpo2r, 0);
 	if(d > nr)
-		fatal(Z, "too many reg nodes");
+		sysfatal("too many reg nodes");
 	nr = d;
 	for(i = 0; i < nr / 2; i++){
 		r1 = rpo2r[i];

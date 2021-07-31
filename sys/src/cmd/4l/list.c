@@ -137,7 +137,7 @@ Dconv(Fmt *fp)
 			sprint(str, "%N(HI)(REG)", a);
 		break;
 
-	case D_BRANCH:	/* botch */
+	case D_BRANCH:	/* botch */	/* XXX */
 		if(curp->cond != P) {
 			v = curp->cond->pc;
 			if(v >= INITTEXT)
@@ -148,9 +148,13 @@ Dconv(Fmt *fp)
 				sprint(str, "%.5lux(BRANCH)", v);
 		} else
 			if(a->sym != S)
-				sprint(str, "%s+%lld(APC)", a->sym->name, a->offset);
+				sprint(str, "%s+%ld(APC)", a->sym->name, a->offset);
 			else
-				sprint(str, "%lld(APC)", a->offset);
+				sprint(str, "%ld(APC)", a->offset);
+		break;
+
+	case D_VCONST:
+		sprint(str, "$%lld", *a->vval);
 		break;
 
 	case D_FCONST:
@@ -179,35 +183,35 @@ Nconv(Fmt *fp)
 		break;
 
 	case D_NONE:
-		sprint(str, "%lld", a->offset);
+		sprint(str, "%ld", a->offset);
 		break;
 
 	case D_EXTERN:
 		if(s == S)
-			sprint(str, "%lld(SB)", a->offset);
+			sprint(str, "%ld(SB)", a->offset);
 		else
-			sprint(str, "%s+%lld(SB)", s->name, a->offset);
+			sprint(str, "%s+%ld(SB)", s->name, a->offset);
 		break;
 
 	case D_STATIC:
 		if(s == S)
-			sprint(str, "<>+%lld(SB)", a->offset);
+			sprint(str, "<>+%ld(SB)", a->offset);
 		else
-			sprint(str, "%s<>+%lld(SB)", s->name, a->offset);
+			sprint(str, "%s<>+%ld(SB)", s->name, a->offset);
 		break;
 
 	case D_AUTO:
 		if(s == S)
-			sprint(str, "%lld(SP)", a->offset);
+			sprint(str, "%ld(SP)", a->offset);
 		else
-			sprint(str, "%s-%lld(SP)", s->name, -a->offset);
+			sprint(str, "%s-%ld(SP)", s->name, -a->offset);
 		break;
 
 	case D_PARAM:
 		if(s == S)
-			sprint(str, "%lld(FP)", a->offset);
+			sprint(str, "%ld(FP)", a->offset);
 		else
-			sprint(str, "%s+%lld(FP)", s->name, a->offset);
+			sprint(str, "%s+%ld(FP)", s->name, a->offset);
 		break;
 	}
 

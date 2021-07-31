@@ -1,8 +1,8 @@
 #include	"../cc/cc.h"
-#include	"../4c/4.out.h"
+#include	"../vc/v.out.h"
 
 /*
- * 4c/mips64
+ * 4c/mips2
  * Mips 4000
  */
 #define	SZ_CHAR		1
@@ -27,8 +27,9 @@ typedef	struct	Rgn	Rgn;
 
 struct	Adr
 {
-	vlong	offset;
+	long	offset;
 	double	dval;
+	vlong	vval;
 	char	sval[NSNAME];
 	Ieee	ieee;
 
@@ -55,16 +56,15 @@ struct	Prog
 struct	Case
 {
 	Case*	link;
-	vlong	val;
-	long	label;
+	long	val;
+	u64int	label;
 	char	def;
-	char isv;
 };
 #define	C	((Case*)0)
 
 struct	C1
 {
-	vlong	val;
+	long	val;
 	long	label;
 };
 
@@ -90,7 +90,7 @@ struct	Var
 
 struct	Reg
 {
-	long	pc;
+	u64int	pc;
 	long	rpo;		/* reverse post ordering */
 
 	Bits	set;
@@ -120,7 +120,7 @@ struct	Reg
 };
 #define	R	((Reg*)0)
 
-#define	NRGN	1000		/* was 600; raised for paranoia.c */
+#define	NRGN	600
 struct	Rgn
 {
 	Reg*	enter;
@@ -130,7 +130,6 @@ struct	Rgn
 };
 
 EXTERN	long	breakpc;
-EXTERN	long	nbreak;
 EXTERN	Case*	cases;
 EXTERN	Node	constnode;
 EXTERN	Node	fconstnode;
@@ -142,6 +141,7 @@ EXTERN	Prog*	lastp;
 EXTERN	long	maxargsafe;
 EXTERN	int	mnstring;
 EXTERN	Multab	multab[20];
+EXTERN	int	retok;
 EXTERN	int	hintabsize;
 EXTERN	Node*	nodrat;
 EXTERN	Node*	nodret;
@@ -149,15 +149,15 @@ EXTERN	Node*	nodsafe;
 EXTERN	long	nrathole;
 EXTERN	long	nstring;
 EXTERN	Prog*	p;
-EXTERN	long	pc;
+EXTERN	u64int	pc;
 EXTERN	Node	regnode;
 EXTERN	char	string[NSNAME];
 EXTERN	Sym*	symrathole;
 EXTERN	Node	znode;
 EXTERN	Prog	zprog;
 EXTERN	char	reg[NREG+NREG];
-EXTERN	long	exregoffset;
-EXTERN	long	exfregoffset;
+EXTERN	u64int	exregoffset;
+EXTERN	u64int	exfregoffset;
 
 #define	BLOAD(r)	band(bnot(r->refbehind), r->refahead)
 #define	BSTORE(r)	band(bnot(r->calbehind), r->calahead)
@@ -185,7 +185,6 @@ EXTERN	long	regbits;
 EXTERN	long	exregbits;
 
 EXTERN	int	change;
-EXTERN	int	suppress;
 
 EXTERN	Reg*	firstr;
 EXTERN	Reg*	lastr;
@@ -206,7 +205,7 @@ void	codgen(Node*, Node*);
 void	gen(Node*);
 void	noretval(int);
 void	xcom(Node*);
-int	bcomplex(Node*, Node*);
+void	bcomplex(Node*);
 void	usedset(Node*, int);
 
 /*
@@ -229,7 +228,6 @@ void	nextpc(void);
 void	gargs(Node*, Node*, Node*);
 void	garg1(Node*, Node*, Node*, int, Node**);
 Node*	nodconst(long);
-Node*	nod32const(vlong);
 Node*	nodfconst(double);
 void	nodreg(Node*, Node*, int);
 void	regret(Node*, Node*);
@@ -259,15 +257,15 @@ void	gpseudo(int, Sym*, Node*);
  */
 int	swcmp(const void*, const void*);
 void	doswit(Node*);
-void	swit1(C1*, int, long, Node*);
-void	swit2(C1*, int, long, Node*, Node*);
-void	casf(void);
+void	swit1(C1*, int, long, Node*, Node*);
+void	cas(void);
 void	bitload(Node*, Node*, Node*, Node*, Node*);
 void	bitstore(Node*, Node*, Node*, Node*, Node*);
 long	outstring(char*, long);
 int	mulcon(Node*, Node*);
 Multab*	mulcon0(long);
 void	nullwarn(Node*, Node*);
+void	sextern(Sym*, Node*, long, long);
 void	gextern(Sym*, Node*, long, long);
 void	outcode(void);
 void	ieeedtod(Ieee*, double);

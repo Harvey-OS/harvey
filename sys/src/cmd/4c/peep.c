@@ -34,7 +34,6 @@ peep(void)
 		case ADATA:
 		case AGLOBL:
 		case ANAME:
-		case ASIGNAME:
 			p = p->link;
 		}
 	}
@@ -43,7 +42,7 @@ loop1:
 	t = 0;
 	for(r=firstr; r!=R; r=r->link) {
 		p = r->prog;
-		if(/*p->as == AMOVW ||*/ p->as == AMOVV || p->as == AMOVF || p->as == AMOVD)
+		if(p->as == AMOVW || p->as == AMOVF || p->as == AMOVD)
 		if(regtyp(&p->to)) {
 			if(regtyp(&p->from))
 			if(p->from.type == p->to.type) {
@@ -85,8 +84,6 @@ loop1:
 		case AMOVHU:
 		case AMOVB:
 		case AMOVBU:
-		case AMOVW:
-		case AMOVWU:
 			if(p->to.type != D_REG)
 				continue;
 			break;
@@ -232,18 +229,6 @@ subprop(Reg *r0)
 		case ADIV:
 		case ADIVU:
 
-		case AADDV:
-		case AADDVU:
-		case ASUBV:
-		case ASUBVU:
-		case ASLLV:
-		case ASRLV:
-		case ASRAV:
-		case AMULV:
-		case AMULVU:
-		case ADIVV:
-		case ADIVVU:
-
 		case AADDD:
 		case AADDF:
 		case ASUBD:
@@ -263,7 +248,6 @@ subprop(Reg *r0)
 		case AMOVF:
 		case AMOVD:
 		case AMOVW:
-		case AMOVV:
 			if(p->to.type == v1->type)
 			if(p->to.reg == v1->reg)
 				goto gotit;
@@ -431,23 +415,16 @@ copyu(Prog *p, Adr *v, Adr *s)
 
 	case ANOP:	/* read, write */
 	case AMOVW:
-	case AMOVV:
 	case AMOVF:
 	case AMOVD:
 	case AMOVH:
 	case AMOVHU:
 	case AMOVB:
 	case AMOVBU:
-	case AMOVFD:
-	case AMOVDF:
 	case AMOVDW:
 	case AMOVWD:
-	case AMOVFW:
-	case AMOVWF:
-	case AMOVDV:
-	case AMOVVD:
-	case AMOVFV:
-	case AMOVVF:
+	case AMOVFD:
+	case AMOVDF:
 		if(s != A) {
 			if(copysub(&p->from, v, s, 1))
 				return 1;
@@ -485,18 +462,6 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case AMULU:
 	case ADIV:
 	case ADIVU:
-
-	case AADDV:
-	case AADDVU:
-	case ASUBV:
-	case ASUBVU:
-	case ASLLV:
-	case ASRLV:
-	case ASRAV:
-	case AMULV:
-	case AMULVU:
-	case ADIVV:
-	case ADIVVU:
 
 	case AADDF:
 	case AADDD:
@@ -603,6 +568,7 @@ copyu(Prog *p, Adr *v, Adr *s)
 				return 3;
 		return 0;
 	}
+	return 0;
 }
 
 int
@@ -634,18 +600,6 @@ a2type(Prog *p)
 	case AMULU:
 	case ADIV:
 	case ADIVU:
-
-	case AADDV:
-	case AADDVU:
-	case ASUBV:
-	case ASUBVU:
-	case ASLLV:
-	case ASRLV:
-	case ASRAV:
-	case AMULV:
-	case AMULVU:
-	case ADIVV:
-	case ADIVVU:
 		return D_REG;
 
 	case ACMPEQD:

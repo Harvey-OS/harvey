@@ -1,18 +1,19 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include "../4c/4.out.h"
+#include "../vc/v.out.h"
 
 #ifndef	EXTERN
 #define	EXTERN	extern
 #endif
+
+#define	MAXALIGN	7
 
 typedef	struct	Sym	Sym;
 typedef	struct	Gen	Gen;
 typedef	struct	Io	Io;
 typedef	struct	Hist	Hist;
 
-#define	MAXALIGN	7
 #define	FPCHIP		1
 #define	NSYMB		8192
 #define	BUFSIZ		8192
@@ -62,12 +63,13 @@ EXTERN	struct
 struct	Gen
 {
 	Sym*	sym;
-	vlong	offset;
+	long	offset;
 	short	type;
 	short	reg;
 	short	name;
 	double	dval;
 	char	sval[8];
+	vlong	vval;
 };
 
 struct	Hist
@@ -84,7 +86,7 @@ enum
 	CLAST,
 	CMACARG,
 	CMACRO,
-	CPREPROC
+	CPREPROC,
 };
 
 EXTERN	char	debug[256];
@@ -168,7 +170,7 @@ enum				/* keep in synch with ../cc/cc.h */
 {
 	Plan9	= 1<<0,
 	Unix	= 1<<1,
-	Windows	= 1<<2
+	Windows	= 1<<2,
 };
 int	mywait(int*);
 int	mycreat(char*, int);

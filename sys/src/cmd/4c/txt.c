@@ -22,11 +22,6 @@ ginit(void)
 	lastp = P;
 	tfield = types[TLONG];
 
-	/* 64-bit machine */
-	typeword = typechlvp;
-	typeswitch = typechlv;
-	typecmplx = typesu;
-
 	zprog.link = P;
 	zprog.as = AGOK;
 	zprog.reg = NREG;
@@ -82,12 +77,10 @@ ginit(void)
 	nodret = new(OIND, nodret, Z);
 	complex(nodret);
 
-	for(i=0; i<nelem(reg); i++) {
-		reg[i] = 0;
-		if(i == REGZERO ||
-		  (i >= NREG && ((i-NREG)&1)))
-			reg[i] = 1;
-	}
+	memset(reg, 0, sizeof(reg));
+	for(i=NREG; i<NREG+NREG; i+=2)
+		reg[i+1] = 1;
+	reg[REGZERO] = 1;
 }
 
 void
@@ -193,7 +186,7 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 			sugen(n, tn2, n->type->width);
 		return;
 	}
-	if(REGARG && curarg == 0 && typeword[n->type->etype]) {
+	if(REGARG && curarg == 0 && typechlp[n->type->etype]) {
 		regaalloc1(tn1, n);
 		if(n->complex >= FNX) {
 			cgen(*fnxp, tn1);
@@ -222,13 +215,6 @@ Node*
 nodconst(long v)
 {
 	constnode.vconst = v;
-	return &constnode;
-}
-
-Node*
-nod32const(vlong v)
-{
-	constnode.vconst = v & MASK(32);
 	return &constnode;
 }
 
@@ -276,7 +262,7 @@ void
 regalloc(Node *n, Node *tn, Node *o)
 {
 	int i, j;
-	static int lasti;
+	static lasti;
 
 	switch(tn->type->etype) {
 	case TCHAR:
@@ -330,10 +316,10 @@ regalloc(Node *n, Node *tn, Node *o)
 	}
 	diag(tn, "unknown type in regalloc: %T", tn->type);
 err:
-	nodreg(n, tn, 0);
-	return;
+	i = 0;
 out:
-	reg[i]++;
+	if(i)
+		reg[i]++;
 	lasti++;
 	if(lasti >= 5)
 		lasti = 0;
@@ -508,6 +494,10 @@ naddr(Node *n, Adr *a)
 		if(typefd[n->type->etype]) {
 			a->type = D_FCONST;
 			a->dval = n->fconst;
+		} else
+		if(llconst(n)) {
+			a->type = D_VCONST;
+			a->vval = n->vconst;
 		} else {
 			a->type = D_CONST;
 			a->offset = n->vconst;
@@ -682,14 +672,10 @@ gmove(Node *f, Node *t)
 			a = AMOVW;
 			break;
 		case TUCHAR:
-			a = AMOVBU;
-			break;
 		case TCHAR:
 			a = AMOVB;
 			break;
 		case TUSHORT:
-			a = AMOVHU;
-			break;
 		case TSHORT:
 			a = AMOVH;
 			break;
@@ -744,12 +730,12 @@ gmove(Node *f, Node *t)
 			a = AMOVW;
 			break;
 		case TDOUBLE:
-			gins(AMOVV, f, t);
-			gins(AMOVVD, t, t);
+			gins(AMOVW, f, t);
+			gins(AMOVWD, t, t);
 			return;
 		case TFLOAT:
-			gins(AMOVV, f, t);
-			gins(AMOVVF, t, t);
+			gins(AMOVW, f, t);
+			gins(AMOVWF, t, t);
 			return;
 		}
 		break;
@@ -876,7 +862,7 @@ gmove(Node *f, Node *t)
 		case TUSHORT:
 		case TCHAR:
 		case TUCHAR:
-			a = AMOVV;
+			a = AMOVW;
 			break;
 		}
 		break;
@@ -909,7 +895,7 @@ gmove(Node *f, Node *t)
 		case TUSHORT:
 		case TCHAR:
 		case TUCHAR:
-			a = AMOVV;
+			a = AMOVW;
 			break;
 		}
 		break;
@@ -942,7 +928,7 @@ gmove(Node *f, Node *t)
 			break;
 		case TCHAR:
 		case TUCHAR:
-			a = AMOVV;
+			a = AMOVW;
 			break;
 		}
 		break;
@@ -975,14 +961,14 @@ gmove(Node *f, Node *t)
 			break;
 		case TCHAR:
 		case TUCHAR:
-			a = AMOVV;
+			a = AMOVW;
 			break;
 		}
 		break;
 	}
 	if(a == AGOK)
 		diag(Z, "bad opcode in gmove %T -> %T", f->type, t->type);
-	if((a == AMOVW && ewidth[ft] == ewidth[tt]) || a == AMOVF || a == AMOVD || a == AMOVV)
+	if(a == AMOVW || a == AMOVF || a == AMOVD || a == AMOVV)
 	if(samaddr(f, t))
 		return;
 	gins(a, f, t);
@@ -1011,10 +997,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 
 	et = TLONG;
 	if(f1 != Z && f1->type != T)
-		if(f1-> op == OCONST && t != Z && t->type != T)
-			et = t->type->etype;
-		else
-			et = f1->type->etype;
+		et = f1->type->etype;
 	ett = TLONG;
 	if(t != Z && t->type != T)
 		ett = t->type->etype;
@@ -1358,8 +1341,7 @@ gpseudo(int a, Sym *s, Node *n)
 	p->as = a;
 	p->from.type = D_OREG;
 	p->from.sym = s;
-	if(a == ATEXT)
-		p->reg = (profileflg ? 0 : NOPROF);
+	p->reg = (profileflg ? 0 : NOPROF);
 	p->from.name = D_EXTERN;
 	if(s->class == CSTATIC)
 		p->from.name = D_STATIC;
@@ -1376,7 +1358,7 @@ sconst(Node *n)
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= (vlong)(-32766) && vv < (vlong)32766)
+			if(vv >= -32766LL && vv < 32766LL)
 				return 1;
 		}
 	}
@@ -1386,12 +1368,13 @@ sconst(Node *n)
 int
 llconst(Node *n)
 {
-	long l;
+	vlong vv;
 
 	if(n != Z && n->op == OCONST) {
 		if(typev[n->type->etype] || n->type->etype == TIND) {
-			l = n->vconst;
-			return (vlong)l != n->vconst;
+			vv = n->vconst >> 32;
+			if(vv != 0 && vv != -1)
+				return 1;
 		}
 	}
 	return 0;
