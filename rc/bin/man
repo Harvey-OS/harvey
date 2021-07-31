@@ -112,7 +112,7 @@ for(i in $fils) {
 			roff t $i
 
 		case p
-			roff t $i | grep -v '^x X html' | proof
+			roff t $i | proof
 
 		case P
 			roff t $i | page

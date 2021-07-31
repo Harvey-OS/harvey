@@ -5,9 +5,10 @@
 extern	long	_callpc(void**);
 extern	long	_savearg(void);
 
-static	ulong	khz;
-static	ulong	perr;
-static	int	havecycles;
+ulong	khz;
+ulong	perr;
+uvlong	cyclefreq;
+int		havecycles;
 
 typedef	struct	Plink	Plink;
 struct	Plink

@@ -1010,6 +1010,7 @@ vfGetVtEntry(VacFile *vf, VtEntry *e)
 	return res;
 }
 
+#ifdef notdef
 int
 vfGetBlockScore(VacFile *vf, ulong bn, uchar score[VtScoreSize])
 {
@@ -1034,6 +1035,7 @@ vfGetBlockScore(VacFile *vf, ulong bn, uchar score[VtScoreSize])
 
 	return ret;
 }
+#endif
 
 VacFile *
 vfGetParent(VacFile *vf)

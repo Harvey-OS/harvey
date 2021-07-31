@@ -176,13 +176,13 @@ miistatus(Mii* mii)
 	bmsr = mii->mir(mii, phyno, Bmsr);
 	if(!(bmsr & (BmsrAnc|BmsrAna)))
 {
-print("miistatus: auto-neg incomplete\n");
+print("miistatus 1\n");
 		return -1;
 }
 
 	bmsr = mii->mir(mii, phyno, Bmsr);
 	if(!(bmsr & BmsrLs)){
-print("miistatus: link down\n");
+print("miistatus 2\n");
 		phy->link = 0;
 		return -1;
 	}
@@ -216,7 +216,7 @@ print("miistatus: link down\n");
 	}
 	if(phy->speed == 0)
 {
-print("miistatus: phy speed 0\n");
+print("miistatus 3\n");
 		return -1;
 }
 

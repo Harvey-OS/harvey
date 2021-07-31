@@ -26,8 +26,6 @@
 #define	BUFPERCLUST	64	/* 64*Sectorsize = 128kb */
 #define	NCLUST		16
 
-int nclust = NCLUST;
-
 static Ioclust*	iohead;
 static Ioclust*	iotail;
 static Ioclust*	getclust(Xdata*, long);
@@ -42,14 +40,13 @@ iobuf_init(void)
 	Iobuf *b;
 	uchar *mem;
 
-	n = nclust*sizeof(Ioclust) +
-		nclust*BUFPERCLUST*(sizeof(Iobuf)+Sectorsize);
+	n = NCLUST*sizeof(Ioclust)+NCLUST*BUFPERCLUST*(sizeof(Iobuf)+Sectorsize);
 	mem = sbrk(n);
 	if(mem == (void*)-1)
 		panic(0, "iobuf_init");
 	memset(mem, 0, n);
 
-	for(i=0; i<nclust; i++){
+	for(i=0; i<NCLUST; i++){
 		c = (Ioclust*)mem;
 		mem += sizeof(Ioclust);
 		c->addr = -1;

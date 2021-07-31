@@ -158,7 +158,6 @@ arginit(void)
 	argflag('.', Fignor);
 	argflag('#', Fignor);
 	argflag('u', Fignor);
-	argflag('h', Fignor);
 	argflag('+', Fignor);
 	argflag('-', Fignor);
 

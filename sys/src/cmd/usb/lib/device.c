@@ -110,20 +110,12 @@ describedevice(Device *d)
 {
 	DDevice *dd;
 	byte buf[1023];
-	int nr;
+	int nr = -1;
 
-	werrstr("");
-	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR,
-	     DEVICE<<8|0, 0, sizeof buf) < 0) {
-		fprint(2,
-"%s: describedevice: error writing usb device request: get device descriptor: %r\n",
-			argv0);
-		return -1;
-	}
-	if ((nr = setupreply(d->ep[0], buf, sizeof buf)) < DDEVLEN) {
-		fprint(2,
-"%s: describedevice: error reading usb device descriptor, got %d of %d: %r\n",
-			argv0, nr, DDEVLEN);
+	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR, (DEVICE<<8)|0, 0, sizeof(buf)) < 0 ||
+	   (nr = setupreply(d->ep[0], buf, sizeof(buf))) < DDEVLEN) {
+		fprint(2, "usb: error reading device descriptor, got %d of %d\n",
+			nr, DDEVLEN);
 		return -1;
 	}
 	/* extract gubbins */
@@ -145,14 +137,11 @@ int
 loadconfig(Device *d, int n)
 {
 	byte buf[1023];
-	int nr = -1, len;
+	int nr, len;
 
-	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR,
-	     CONFIGURATION<<8|n, 0, sizeof buf) < 0 ||
-	    (nr = setupreply(d->ep[0], buf, sizeof buf)) < 1) {
-		fprint(2,
-	"%s: error reading usb configuration descriptor: read %d bytes: %r\n",
-			argv0, nr);
+	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR, (CONFIGURATION<<8)|n, 0, sizeof(buf)) < 0 ||
+	   (nr = setupreply(d->ep[0], buf, sizeof(buf))) < 1) {
+		fprint(2, "usb: error reading configuration descriptor\n");
 		return -1;
 	}
 	if (buf[1] == CONFIGURATION) {

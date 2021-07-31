@@ -4,7 +4,11 @@ dossrv, 9660srv, a:, b:, c:, d:, 9fat:, dosmnt, eject \- DOS and ISO9660 file sy
 .SH SYNOPSIS
 .B dossrv
 [
-.B -rsv
+.B -v
+] [
+.B -r
+] [
+.B -s
 ] [
 .B -f
 .I file
@@ -14,10 +18,11 @@ dossrv, 9660srv, a:, b:, c:, d:, 9fat:, dosmnt, eject \- DOS and ISO9660 file sy
 .PP
 .B 9660srv
 [
-.B -9Jsv
+.B -9J
 ] [
-.B -c
-.I clusters
+.B -v
+] [
+.B -s
 ] [
 .B -f
 .I file
@@ -186,15 +191,6 @@ while the
 .B -J
 flag causes it to
 ignore the Joliet tree.
-The
-.B -c
-option sets the size of the RAM cache to
-.I clusters
-clusters of 128KB.
-The default
-.I clusters
-is 16,
-but a value of 5600 will cache an entire CD incrementally.
 .PP
 If the floppy drive has an ejection motor,
 .I eject

@@ -416,13 +416,12 @@ trap(Ureg* ureg)
 	}
 	else{
 		if(vno == VectorNMI){
-			/*
-			 * Don't re-enable, it confuses the crash dumps.
 			nmienable();
-			 */
-			iprint("cpu%d: PC %#8.8lux\n", m->machno, ureg->pc);
-			while(m->machno != 0)
-				;
+			if(m->machno != 0){
+				print("cpu%d: PC %8.8luX\n",
+					m->machno, ureg->pc);
+				for(;;);
+			}
 		}
 		dumpregs(ureg);
 		if(!user){
@@ -455,18 +454,18 @@ void
 dumpregs2(Ureg* ureg)
 {
 	if(up)
-		iprint("cpu%d: registers for %s %lud\n",
+		print("cpu%d: registers for %s %lud\n",
 			m->machno, up->text, up->pid);
 	else
-		iprint("cpu%d: registers for kernel\n", m->machno);
-	iprint("FLAGS=%luX TRAP=%luX ECODE=%luX PC=%luX",
+		print("cpu%d: registers for kernel\n", m->machno);
+	print("FLAGS=%luX TRAP=%luX ECODE=%luX PC=%luX",
 		ureg->flags, ureg->trap, ureg->ecode, ureg->pc);
-	iprint(" SS=%4.4luX USP=%luX\n", ureg->ss & 0xFFFF, ureg->usp);
-	iprint("  AX %8.8luX  BX %8.8luX  CX %8.8luX  DX %8.8luX\n",
+	print(" SS=%4.4luX USP=%luX\n", ureg->ss & 0xFFFF, ureg->usp);
+	print("  AX %8.8luX  BX %8.8luX  CX %8.8luX  DX %8.8luX\n",
 		ureg->ax, ureg->bx, ureg->cx, ureg->dx);
-	iprint("  SI %8.8luX  DI %8.8luX  BP %8.8luX\n",
+	print("  SI %8.8luX  DI %8.8luX  BP %8.8luX\n",
 		ureg->si, ureg->di, ureg->bp);
-	iprint("  CS %4.4luX  DS %4.4luX  ES %4.4luX  FS %4.4luX  GS %4.4luX\n",
+	print("  CS %4.4luX  DS %4.4luX  ES %4.4luX  FS %4.4luX  GS %4.4luX\n",
 		ureg->cs & 0xFFFF, ureg->ds & 0xFFFF, ureg->es & 0xFFFF,
 		ureg->fs & 0xFFFF, ureg->gs & 0xFFFF);
 }
@@ -485,17 +484,17 @@ dumpregs(Ureg* ureg)
 	 * CR4. If there is a CR4 and machine check extensions, read the machine
 	 * check address and machine check type registers if RDMSR supported.
 	 */
-	iprint("  CR0 %8.8lux CR2 %8.8lux CR3 %8.8lux",
+	print("  CR0 %8.8lux CR2 %8.8lux CR3 %8.8lux",
 		getcr0(), getcr2(), getcr3());
 	if(m->cpuiddx & 0x9A){
-		iprint(" CR4 %8.8lux", getcr4());
+		print(" CR4 %8.8lux", getcr4());
 		if((m->cpuiddx & 0xA0) == 0xA0){
 			rdmsr(0x00, &mca);
 			rdmsr(0x01, &mct);
-			iprint("\n  MCA %8.8llux MCT %8.8llux", mca, mct);
+			print("\n  MCA %8.8llux MCT %8.8llux", mca, mct);
 		}
 	}
-	iprint("\n  ur %lux up %lux\n", ureg, up);
+	print("\n  ur %lux up %lux\n", ureg, up);
 }
 
 
@@ -515,7 +514,7 @@ callwithureg(void (*fn)(Ureg*))
 static void
 _dumpstack(Ureg *ureg)
 {
-	uintptr l, v, i, estack;
+	ulong l, v, i, estack;
 	extern ulong etext;
 	int x;
 
@@ -526,53 +525,38 @@ _dumpstack(Ureg *ureg)
 	iprint("dumpstack\n");
 
 	x = 0;
-	x += iprint("ktrace /kernel/path %.8lux %.8lux <<EOF\n", ureg->pc, ureg->sp);
+	x += print("ktrace /kernel/path %.8lux %.8lux <<EOF\n", ureg->pc, ureg->sp);
 	i = 0;
 	if(up
-	&& (uintptr)&l >= (uintptr)up->kstack
-	&& (uintptr)&l <= (uintptr)up->kstack+KSTACK)
-		estack = (uintptr)up->kstack+KSTACK;
-	else if((uintptr)&l >= (uintptr)m->stack
-	&& (uintptr)&l <= (uintptr)m+MACHSIZE)
-		estack = (uintptr)m+MACHSIZE;
+	&& (ulong)&l >= (ulong)up->kstack
+	&& (ulong)&l <= (ulong)up->kstack+KSTACK)
+		estack = (ulong)up->kstack+KSTACK;
+	else if((ulong)&l >= (ulong)m->stack
+	&& (ulong)&l <= (ulong)m+BY2PG)
+		estack = (ulong)m+MACHSIZE;
 	else
 		return;
-	x += iprint("estackx %p\n", estack);
+	x += print("estackx %.8lux\n", estack);
 
-	for(l = (uintptr)&l; l < estack; l += sizeof(uintptr)){
-		v = *(uintptr*)l;
-		if((KTZERO < v && v < (uintptr)&etext) || estack-l < 32){
+	for(l=(ulong)&l; l<estack; l+=4){
+		v = *(ulong*)l;
+		if((KTZERO < v && v < (ulong)&etext) || estack-l<32){
 			/*
-			 * Could Pick off general CALL (((uchar*)v)[-5] == 0xE8)
-			 * and CALL indirect through AX
-			 * (((uchar*)v)[-2] == 0xFF && ((uchar*)v)[-2] == 0xD0),
+			 * we could Pick off general CALL (((uchar*)v)[-5] == 0xE8)
+			 * and CALL indirect through AX (((uchar*)v)[-2] == 0xFF && ((uchar*)v)[-2] == 0xD0),
 			 * but this is too clever and misses faulting address.
 			 */
-			x += iprint("%.8p=%.8p ", l, v);
+			x += print("%.8lux=%.8lux ", l, v);
 			i++;
 		}
 		if(i == 4){
 			i = 0;
-			x += iprint("\n");
+			x += print("\n");
 		}
 	}
 	if(i)
-		iprint("\n");
-	iprint("EOF\n");
-
-	if(ureg->trap != VectorNMI)
-		return;
-
-	i = 0;
-	for(l = (uintptr)&l; l < estack; l += sizeof(uintptr)){
-		iprint("%.8p ", *(uintptr*)l);
-		if(++i == 8){
-			i = 0;
-			iprint("\n");
-		}
-	}
-	if(i)
-		iprint("\n");
+		print("\n");
+	print("EOF\n");
 }
 
 void
@@ -798,16 +782,13 @@ notify(Ureg* ureg)
 		splhi();
 		return 0;
 	}
-
+		
 	if(!up->notify){
 		qunlock(&up->debug);
 		pexit(n->msg, n->flag!=NDebug);
 	}
 	sp = ureg->usp;
-	sp -= 256;	/* debugging: preserve context causing problem */
 	sp -= sizeof(Ureg);
-if(0) print("%s %lud: notify %.8lux %.8lux %.8lux %s\n", 
-	up->text, up->pid, ureg->pc, ureg->usp, sp, n->msg);
 
 	if(!okaddr((ulong)up->notify, 1, 0)
 	|| !okaddr(sp-ERRMAX-4*BY2WD, sizeof(Ureg)+ERRMAX+4*BY2WD, 1)){
@@ -890,8 +871,6 @@ noted(Ureg* ureg, ulong arg0)
 	switch(arg0){
 	case NCONT:
 	case NRSTR:
-if(0) print("%s %lud: noted %.8lux %.8lux\n", 
-	up->text, up->pid, nureg->pc, nureg->usp);
 		if(!okaddr(nureg->pc, 1, 0) || !okaddr(nureg->usp, BY2WD, 0)){
 			qunlock(&up->debug);
 			pprint("suicide: trap in noted\n");

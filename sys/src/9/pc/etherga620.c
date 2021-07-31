@@ -550,37 +550,23 @@ ga620replenish(Ctlr* ctlr)
 }
 
 static void
-ga620event(Ether *edev, int eci, int epi)
+ga620event(Ctlr* ctlr, int eci, int epi)
 {
 	int event;
-	ulong gls, fls;
-	Ctlr *ctlr;
 
-	ctlr = edev->ctlr;
 	while(eci != epi){
 		event = ctlr->er[eci].event;
 		switch(event>>24){
 		case 0x01:		/* firmware operational */
 			ga620command(ctlr, 0x01, 0x01, 0x00);
 			ga620command(ctlr, 0x0B, 0x00, 0x00);
-print("ga620: %8.8uX: %8.8uX\n", ctlr->port, event);
+print("%8.8uX: %8.8uX\n", ctlr->port, event);
 			break;
 		case 0x04:		/* statistics updated */
 			break;
 		case 0x06:		/* link state changed */
-print("ga620: %8.8uX: %8.8uX %8.8uX %8.8uX\n",
+print("%8.8uX: %8.8uX %8.8uX %8.8uX\n",
     ctlr->port, event, csr32r(ctlr, Gls), csr32r(ctlr, Fls));
-			gls = csr32r(ctlr, Gls);
-			fls = csr32r(ctlr, Fls);
-			if ((gls&(Le|L1000MB)) == (Le|L1000MB))
-				edev->mbps = 1000;
-			else if ((fls&(Le|L100MB)) == (Le|L100MB))
-				edev->mbps = 100;
-			else if ((fls&(Le|L10MB)) == (Le|L10MB))
-				edev->mbps = 10;
-			else
-				break;
-			print("#l%d: %dMbps\n", edev->ctlrno, edev->mbps);
 			break;
 		case 0x07:		/* event error */
 		default:
@@ -659,7 +645,7 @@ ga620interrupt(Ureg*, void* arg)
 
 		csr = csr32r(ctlr, Eci);
 		if(csr != ctlr->epi[0]){
-			ga620event(edev, csr, ctlr->epi[0]);
+			ga620event(ctlr, csr, ctlr->epi[0]);
 			work = 1;
 		}
 
@@ -1175,12 +1161,6 @@ ga620pci(void)
 	}
 }
 
-/* multicast may already be on, so we don't need to do anything */
-static void
-ga620multicast(void*, uchar*, int)
-{
-}
-
 static int
 ga620pnp(Ether* edev)
 {
@@ -1209,7 +1189,7 @@ ga620pnp(Ether* edev)
 	edev->port = ctlr->port;
 	edev->irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
-	edev->mbps = 1000;		/* placeholder */
+	edev->mbps = 1000;
 
 	/*
 	 * Check if the adapter's station address is to be overridden.
@@ -1230,11 +1210,10 @@ ga620pnp(Ether* edev)
 	edev->interrupt = ga620interrupt;
 	edev->ifstat = ga620ifstat;
 	edev->ctl = ga620ctl;
+	edev->shutdown = ga620shutdown;
 
 	edev->arg = edev;
 	edev->promiscuous = nil;
-	edev->multicast = ga620multicast;
-	edev->shutdown = ga620shutdown;
 
 	return 0;
 }

@@ -664,8 +664,7 @@ cpuidprint(void)
 	i = sprint(buf, "cpu%d: %dMHz ", m->machno, m->cpumhz);
 	if(m->cpuidid[0])
 		i += sprint(buf+i, "%12.12s ", m->cpuidid);
-	seprint(buf+i, buf + sizeof buf - 1,
-		"%s (cpuid: AX 0x%4.4uX DX 0x%4.4uX)\n",
+	sprint(buf+i, "%s (cpuid: AX 0x%4.4uX DX 0x%4.4uX)\n",
 		m->cpuidtype, m->cpuidax, m->cpuiddx);
 	print(buf);
 }
@@ -959,12 +958,6 @@ uvlong
 fastticks(uvlong *hz)
 {
 	return (*arch->fastclock)(hz);
-}
-
-ulong
-µs(void)
-{
-	return fastticks2us((*arch->fastclock)(nil));
 }
 
 /*

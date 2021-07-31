@@ -292,15 +292,15 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 
 		if(a->port != 0 && nhgets(h->udpsport) != a->port) {
 			if(debug)
-				print("udpport %ux not %ux\n",
+				print("udpport %ux %ux\n",
 					nhgets(h->udpsport), a->port);
 			continue;
 		}
 
 		addr = nhgetl(h->udpsrc);
-		if(a->ip != Bcastip && a->ip != addr) {
+		if(a->ip != Bcastip && addr != a->ip) {
 			if(debug)
-				print("bad ip %lux not %lux\n", addr, a->ip);
+				print("bad ip\n");
 			continue;
 		}
 
