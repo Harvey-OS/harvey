@@ -49,7 +49,6 @@ link
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
-	etherrhine	pci ethermii
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
@@ -63,7 +62,7 @@ misc
 	archmp		mp apic
 
 	sdata		pci sdscsi
-	sd53c8xx	pci sdscsi
+	sd53c8xx		pci sdscsi
 	sdmylex		pci sdscsi
 
 	uarti8250
@@ -103,8 +102,8 @@ port
 	int cpuserver = 0;
 
 boot boot #S/sdC0/
-	tcp
 	il
+	tcp
 	local
 
 bootdir

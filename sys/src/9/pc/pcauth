@@ -31,7 +31,6 @@ dev
 link
 	apm		apmjump
 	ether82557	pci
-	etherrhine	pci ethermii
 	ethermedium
 	netdevmedium
 	loopbackmedium
@@ -57,8 +56,8 @@ port
 	int cpuserver = 1;
 
 boot cpu boot #S/sdC0/
-	tcp
 	il
+	tcp
 	local
 
 bootdir

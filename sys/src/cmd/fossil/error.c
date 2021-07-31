@@ -35,4 +35,3 @@ char ERoot[] = "cannot remove root";
 char ESnapOld[] = "snapshot has been deleted";
 char ESnapRO[] = "snapshot is read only";
 char ETooBig[] = "file too big";
-char EVentiIO[] = "venti i/o error";

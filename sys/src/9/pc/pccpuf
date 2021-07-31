@@ -16,7 +16,6 @@ dev
 	sdp		thwack unthwack
 	cap
 	kprof
-	fs
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -43,7 +42,6 @@ link
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
-	etherrhine	pci ethermii
 	ethersink
 	ethermedium
 	netdevmedium
@@ -98,8 +96,8 @@ port
 	int cpuserver = 1;
 
 boot cpu boot #S/sdC0/
-	tcp
 	il
+	tcp
 	local
 
 bootdir

@@ -37,7 +37,6 @@ link
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
-	etherrhine	pci ethermii
 	ethersink
 	ethermedium
 	loopbackmedium
@@ -68,8 +67,8 @@ port
 	int cpuserver = 1;
 
 boot cpu
-	tcp
 	il
+	tcp
 
 bootdir
 	bootpccpu.out boot
