@@ -12,6 +12,7 @@
  *	finish autonegotiation code;
  *	integrate fiber stuff back in (this ONLY handles
  *	the CAT5 cards at the moment);
+ *	add checksum-offload;
  *	add tuning control via ctl file;
  *	this driver is little-endian specific.
  */
@@ -1104,9 +1105,9 @@ igberxinit(Ctlr* ctlr)
 	csr32w(ctlr, Rxdctl, (8<<WthreshSHIFT)|(8<<HthreshSHIFT)|4);
 
 	/*
-	 * Disable checksum offload as it has known bugs.
+	 * Enable checksum offload.
 	 */
-	csr32w(ctlr, Rxcsum, ETHERHDRSIZE<<PcssSHIFT);
+	csr32w(ctlr, Rxcsum, Tuofl|Ipofl|(ETHERHDRSIZE<<PcssSHIFT));
 }
 
 static int
@@ -1476,10 +1477,8 @@ igbemii(Ctlr* ctlr)
 		 * so bail.
 		 */
 		r = csr32r(ctlr, Ctrlext);
-		if(!(r & Mdro)) {
-			print("igbe: 82543gc Mdro not set\n");
+		if(!(r & Mdro))
 			return -1;
-		}
 		csr32w(ctlr, Ctrlext, r);
 		delay(20);
 		r = csr32r(ctlr, Ctrlext);
@@ -1962,14 +1961,18 @@ igbepci(void)
 		}
 		cls = pcicfgr8(p, PciCLS);
 		switch(cls){
-		default:
-			print("igbe: p->cls %#ux, setting to 0x10\n", p->cls);
-			p->cls = 0x10;
-			pcicfgw8(p, PciCLS, p->cls);
-			break;
-		case 0x08:
-		case 0x10:
-			break;
+			default:
+				print("igbe: unexpected CLS - %d\n", cls*4);
+				break;
+			case 0x00:
+			case 0xFF:
+				/* bogus value; use a sane default */
+				cls = CACHELINESZ/sizeof(long);
+				pcicfgw8(p, PciCLS, cls);
+				continue;
+			case 0x08:
+			case 0x10:
+				break;
 		}
 		ctlr = malloc(sizeof(Ctlr));
 		if(ctlr == nil) {
