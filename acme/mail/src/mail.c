@@ -151,7 +151,7 @@ threadmain(int argc, char *argv[])
 	s = estrstrdup(maildir, "ctl");
 	mbox.ctlfd = open(s, ORDWR|OCEXEC);
 	if(mbox.ctlfd < 0)
-		error("can't open %s: %r", s);
+		error("can't open %s: %r\n", s);
 
 	fsname = estrdup(name);
 	if(newdir && argc > 0){
@@ -163,7 +163,7 @@ threadmain(int argc, char *argv[])
 			err[0] = '\0';
 			errstr(err, sizeof err);
 			if(strstr(err, "mbox name in use") == nil)
-				error("can't create directory %s for mail: %s", name, err);
+				error("can't create directory %s for mail: %s\n", name, err);
 			free(fsname);
 			fsname = emalloc(strlen(name)+10);
 			sprint(fsname, "%s-%d", name, i);

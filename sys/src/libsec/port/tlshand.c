@@ -2068,12 +2068,9 @@ mptobytes(mpint* big)
 	uchar *a;
 	Bytes* ans;
 
-	a = nil;
 	n = (mpsignif(big)+7)/8;
 	m = mptobe(big, nil, n, &a);
 	ans = makebytes(a, m);
-	if(a != nil)
-		free(a);
 	return ans;
 }
 
