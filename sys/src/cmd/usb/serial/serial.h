@@ -21,7 +21,6 @@ struct Serial {
 	Dev	*epout;
 	Usbfs	fs;
 	int	type;
-	int	recover;
 
 	uchar	ctlstate;
 	/* serial parameters */

@@ -50,7 +50,7 @@ struct Umsc
 {
 	ScsiReq;
 	uvlong	blocks;
-	vlong	capacity;
+	uvlong	capacity;
 	uchar 	rawcmd[10];
 	uchar	phase;
 	char	*inq;

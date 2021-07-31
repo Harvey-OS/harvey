@@ -94,9 +94,11 @@ extern Ep* mkep(Usbdev *, int);
 static int
 parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uchar *b, int n, Ep **epp)
 {
-	int i, dir, epid;
 	Ep *ep;
 	DEp *dep;
+	int epid;
+	int dir;
+	int i;
 
 	assert(d != nil && c != nil && ip != nil && altc != nil);
 	if(n < Deplen){
@@ -117,7 +119,7 @@ parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uchar *b, int n, Ep **epp)
 	if(ep == nil){
 		ep = mkep(d, epid);
 		ep->dir = dir;
-	}else if((ep->addr & 0x80) != (dep->bEndpointAddress & 0x80))
+	}else if((ep->addr&0x80) != (dep->bEndpointAddress & 0x80))
 		ep->dir = Eboth;
 	ep->maxpkt = GET2(dep->wMaxPacketSize);
 	ep->ntds = 1 + ((ep->maxpkt >> 11) & 3);
@@ -131,8 +133,7 @@ parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uchar *b, int n, Ep **epp)
 		if(ip->ep[i] == nil)
 			break;
 	if(i == nelem(ip->ep)){
-		werrstr("parseendpt: bug: too many end points on interface "
-			"with csp %#lux", ip->csp);
+		werrstr("parseendpt: bug: too many end points");
 		fprint(2, "%s: %r\n", argv0);
 		return -1;
 	}
@@ -158,10 +159,12 @@ dname(int dtype)
 int
 parsedesc(Usbdev *d, Conf *c, uchar *b, int n)
 {
-	int	len, nd, tot;
+	int	len;
+	int	tot;
 	Iface	*ip;
 	Ep 	*ep;
 	Altc	*altc;
+	int	nd;
 	char	*hd;
 
 	assert(d != nil && c != nil);
@@ -205,10 +208,7 @@ parsedesc(Usbdev *d, Conf *c, uchar *b, int n)
 			break;
 		default:
 			if(nd == nelem(d->ddesc)){
-				fprint(2, "%s: parsedesc: too many "
-					"device-specific descriptors for device"
-					" %s %s\n",
-					argv0, d->vendor, d->product);
+				fprint(2, "%s: parsedesc: too many ddesc\n", argv0);
 				break;
 			}
 			d->ddesc[nd] = emallocz(sizeof(Desc)+b[0], 0);

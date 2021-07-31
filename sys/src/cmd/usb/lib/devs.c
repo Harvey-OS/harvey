@@ -5,18 +5,20 @@
 
 typedef struct Parg Parg;
 
-enum {
-	Ndevs = 32,
-	Arglen = 500,
-	Nargs = 64,
+enum
+{
+	Ndevs = 10,
+	Arglen = 80,
+	Nargs = 10,
 	Stack = 16 * 1024,
 };
 
-struct Parg {
+struct Parg
+{
 	char*	args;
 	Dev*	dev;
 	int 	(*f)(Dev*,int,char**);
-	Channel*rc;
+	Channel*	rc;
 };
 
 static void
@@ -111,11 +113,13 @@ finddevs(int (*matchf)(char*,void*), void *farg, char** dirs, int ndirs)
 void
 startdevs(char *args, char *argv[], int argc, int (*mf)(char*,void*), void*ma, int (*df)(Dev*,int,char**))
 {
-	int i, ndirs, ndevs;
 	char *dirs[Ndevs];
 	char **dp;
 	Parg *parg;
+	int ndirs;
+	int ndevs;
 	Dev *dev;
+	int i;
 	Channel *rc;
 
 	if(access("/dev/usb", AEXIST) < 0 && bind("#u", "/dev", MBEFORE) < 0)
