@@ -35,7 +35,7 @@
 %type	<node>	xdecor xdecor2 labels label ulstmnt
 %type	<node>	adlist edecor tag qual qlist
 %type	<node>	abdecor abdecor1 abdecor2 abdecor3
-%type	<node>	zexpr lexpr init ilist forexpr
+%type	<node>	zexpr lexpr init ilist
 
 %left	';'
 %left	','
@@ -62,7 +62,6 @@
 %token	LIF LINT LLONG LREGISTER LRETURN LSHORT LSIZEOF LUSED
 %token	LSTATIC LSTRUCT LSWITCH LTYPEDEF LTYPESTR LUNION LUNSIGNED
 %token	LWHILE LVOID LENUM LSIGNED LCONSTNT LVOLATILE LSET LSIGNOF
-%token	LRESTRICT LINLINE
 %%
 prog:
 |	prog xdecl
@@ -147,13 +146,26 @@ xdecor2:
  * automatic declarator
  */
 adecl:
-	ctlist ';'
+	{
+		$$ = Z;
+	}
+|	adecl ctlist ';'
 	{
 		$$ = dodecl(adecl, lastclass, lasttype, Z);
+		if($1 != Z)
+			if($$ != Z)
+				$$ = new(OLIST, $1, $$);
+			else
+				$$ = $1;
 	}
-|	ctlist adlist ';'
+|	adecl ctlist adlist ';'
 	{
-		$$ = $2;
+		$$ = $1;
+		if($3 != Z) {
+			$$ = $3;
+			if($1 != Z)
+				$$ = new(OLIST, $1, $3);
+		}
 	}
 
 adlist:
@@ -359,11 +371,11 @@ arglist:
 	}
 
 block:
-	'{' slist '}'
+	'{' adecl slist '}'
 	{
-		$$ = invert($2);
-	//	if($2 != Z)
-	//		$$ = new(OLIST, $2, $$);
+		$$ = invert($3);
+		if($2 != Z)
+			$$ = new(OLIST, $2, $$);
 		if($$ == Z)
 			$$ = new(OLIST, Z, Z);
 	}
@@ -371,10 +383,6 @@ block:
 slist:
 	{
 		$$ = Z;
-	}
-|	slist adecl
-	{
-		$$ = new(OLIST, $1, $2);
 	}
 |	slist stmnt
 	{
@@ -413,13 +421,6 @@ stmnt:
 		$$ = new(OLIST, $1, $2);
 	}
 
-forexpr:
-	zcexpr
-|	ctlist adlist
-	{
-		$$ = Z;
-	}
-
 ulstmnt:
 	zcexpr ';'
 |	{
@@ -447,16 +448,9 @@ ulstmnt:
 		if($7 == Z)
 			warn($3, "empty else body");
 	}
-|	{ markdcl(); } LFOR '(' forexpr ';' zcexpr ';' zcexpr ')' stmnt
+|	LFOR '(' zcexpr ';' zcexpr ';' zcexpr ')' stmnt
 	{
-		$$ = revertdcl();
-		if($$){
-			if($4)
-				$4 = new(OLIST, $$, $4);
-			else
-				$4 = $$;
-		}
-		$$ = new(OFOR, new(OLIST, $6, new(OLIST, $4, $8)), $10);
+		$$ = new(OFOR, new(OLIST, $5, new(OLIST, $3, $7)), $9);
 	}
 |	LWHILE '(' cexpr ')' stmnt
 	{
@@ -1135,12 +1129,10 @@ cname:	/* class words */
 |	LTYPEDEF { $$ = BTYPEDEF; }
 |	LTYPESTR { $$ = BTYPESTR; }
 |	LREGISTER { $$ = BREGISTER; }
-|	LINLINE { $$ = 0; }
 
 gname:	/* garbage words */
 	LCONSTNT { $$ = BCONSTNT; }
 |	LVOLATILE { $$ = BVOLATILE; }
-|	LRESTRICT { $$ = 0; }
 
 name:
 	LNAME

@@ -8,27 +8,12 @@
  *	optionally use memory-mapped registers;
  *	detach for PCI reset problems (also towards loadable drivers).
  */
-#ifdef FS
 #include "all.h"
 #include "io.h"
 #include "mem.h"
+
 #include "../ip/ip.h"
-
-#else
-
-#include "u.h"
-#include "../port/lib.h"
-#include "mem.h"
-#include "dat.h"
-#include "fns.h"
-#include "io.h"
-#include "../port/error.h"
-#include "../port/netif.h"
-#endif			/* FS */
-
 #include "etherif.h"
-#include "ethermii.h"
-#include "compat.h"
 
 enum {
 	Nrfd		= 64,		/* receive frame area */
@@ -47,7 +32,6 @@ enum {					/* CSR */
 	Fcr		= 0x0C,		/* Flash control register */
 	Ecr		= 0x0E,		/* EEPROM control register */
 	Mcr		= 0x10,		/* MDI control register */
-	Gstatus		= 0x1D,		/* General status register */
 };
 
 enum {					/* Status */
@@ -102,6 +86,8 @@ enum {					/* Ecr */
 
 	EEstart		= 0x04,		/* start bit */
 	EEread		= 0x02,		/* read opcode */
+
+	EEaddrsz	= 6,		/* bits of address */
 };
 
 enum {					/* Mcr */
@@ -166,7 +152,7 @@ typedef struct Cb {
 		};
 	};
 
-	Block*	bp;
+	Msgbuf*	mb;
 	Cb*	next;
 } Cb;
 
@@ -195,33 +181,28 @@ enum {					/* CbTransmit count */
 	CbEOF		= 0x8000,
 };
 
-typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
 	Lock	slock;			/* attach */
 	int	state;
 
 	int	port;
-	Pcidev*	pcidev;
-	Ctlr*	next;
-	int	active;
-
-	int	eepromsz;		/* address size in bits */
-	ushort*	eeprom;
+	ushort	eeprom[0x40];
 
 	Lock	miilock;
 
+	Rendez	timer;			/* watchdog timer for receive lockup errata */
 	int	tick;
+	char	wname[NAMELEN];
 
 	Lock	rlock;			/* registers */
 	int	command;		/* last command issued */
 
-	Block*	rfdhead;		/* receive side */
-	Block*	rfdtail;
+	Msgbuf*	rfdhead;		/* receive side */
+	Msgbuf*	rfdtail;
 	int	nrfd;
 
 	Lock	cblock;			/* transmit side */
 	int	action;
-	int	nop;
 	uchar	configdata[24];
 	int	threshold;
 	int	ncb;
@@ -232,14 +213,9 @@ typedef struct Ctlr {
 	int	cbqmax;
 	int	cbqmaxhw;
 
-	Rendez	timer;			/* for watchdog */
-
 	Lock	dlock;			/* dump statistical counters */
 	ulong	dump[17];
 } Ctlr;
-
-static Ctlr* ctlrhead;
-static Ctlr* ctlrtail;
 
 static uchar configdata[24] = {
 	0x16,				/* byte count */
@@ -278,8 +254,6 @@ static uchar configdata[24] = {
 static void
 command(Ctlr* ctlr, int c, int v)
 {
-	int timeo;
-
 	ilock(&ctlr->rlock);
 
 	/*
@@ -295,17 +269,8 @@ command(Ctlr* ctlr, int c, int v)
 	}
 	 */
 
-	for(timeo = 0; timeo < 100; timeo++){
-		if(!csr8r(ctlr, CommandR))
-			break;
-		microdelay(1);
-	}
-	if(timeo >= 100){
-		ctlr->command = -1;
-		iunlock(&ctlr->rlock);
-		iprint("i82557: command %#ux %#ux timeout\n", c, v);
-		return;
-	}
+	while(csr8r(ctlr, CommandR))
+		;
 
 	switch(c){
 
@@ -335,43 +300,41 @@ command(Ctlr* ctlr, int c, int v)
 	iunlock(&ctlr->rlock);
 }
 
-static Block*
+static Msgbuf*
 rfdalloc(ulong link)
 {
-	Block *bp;
+	Msgbuf *mb;
 	Rfd *rfd;
 
-	if(bp = iallocb(sizeof(Rfd))){
-		rfd = (Rfd*)bp->rp;
+	if(mb = mballoc(sizeof(Rfd), 0, Maeth2)){
+		rfd = (Rfd*)mb->data;
 		rfd->field = 0;
 		rfd->link = link;
 		rfd->rbd = NullPointer;
 		rfd->count = 0;
-		rfd->size = sizeof(Etherpkt);
+		rfd->size = sizeof(Enpkt);
 	}
 
-	return bp;
+	return mb;
 }
 
-#ifdef FS
 static int
 return0(void*)
 {
 	return 0;
 }
-#endif
 
 static void
-watchdog(PROCARG(void* arg))
+watchdog(void)
 {
 	Ether *ether;
 	Ctlr *ctlr;
 	static void txstart(Ether*);
-	static Rendez timer;		/* for FS */
 
-	ether = GETARG(arg);
+	ether = getarg();
 	for(;;){
-		tsleep(&timer, return0, 0, 4000);
+		ctlr = ether->ctlr;
+		tsleep(&ctlr->timer, return0, 0, 4000);
 
 		/*
 		 * Hmmm. This doesn't seem right. Currently
@@ -379,16 +342,8 @@ watchdog(PROCARG(void* arg))
 		 * the future.
 		 */
 		ctlr = ether->ctlr;
-		if(ctlr == nil || ctlr->state == 0){
-#ifdef FS
-			print("i82557: watchdog: exiting\n");
-			for (;;)
-				tsleep(&timer, return0, 0, 10000);
-#else
-			print("%s: exiting\n", up->text);
-			pexit("disabled", 0);
-#endif
-		}
+		if(ctlr == nil || ctlr->state == 0)
+			continue;
 
 		ilock(&ctlr->cblock);
 		if(ctlr->tick++){
@@ -403,7 +358,6 @@ static void
 attach(Ether* ether)
 {
 	Ctlr *ctlr;
-	char name[KNAMELEN];
 
 	ctlr = ether->ctlr;
 	lock(&ctlr->slock);
@@ -411,7 +365,7 @@ attach(Ether* ether)
 		ilock(&ctlr->rlock);
 		csr8w(ctlr, Interrupt, 0);
 		iunlock(&ctlr->rlock);
-		command(ctlr, RUstart, PADDR(ctlr->rfdhead->rp));
+		command(ctlr, RUstart, PADDR(ctlr->rfdhead->data));
 		ctlr->state = 1;
 
 		/*
@@ -420,112 +374,26 @@ attach(Ether* ether)
 		 * omitted.
 		 */
 		if((ctlr->eeprom[0x03] & 0x0003) != 0x0003){
-			snprint(name, KNAMELEN, "#l%dwatchdog", ether->ctlrno);
-			kproc(name, watchdog, ether);
+			sprint(ctlr->wname, "ether%dwatchdog", ether->ctlrno);
+			userinit(watchdog, ether, ctlr->wname);
 		}
 	}
 	unlock(&ctlr->slock);
 }
 
-#ifndef FS
-static long
-ifstat(Ether* ether, void* a, long n, ulong offset)
-{
-	char *p;
-	int i, len, phyaddr;
-	Ctlr *ctlr;
-	ulong dump[17];
-
-	ctlr = ether->ctlr;
-	lock(&ctlr->dlock);
-
-	/*
-	 * Start the command then
-	 * wait for completion status,
-	 * should be 0xA005.
-	 */
-	ctlr->dump[16] = 0;
-	command(ctlr, DumpSC, 0);
-	while(ctlr->dump[16] == 0)
-		;
-
-	ether->oerrs = ctlr->dump[1]+ctlr->dump[2]+ctlr->dump[3];
-	ether->crcs = ctlr->dump[10];
-	ether->frames = ctlr->dump[11];
-	ether->buffs = ctlr->dump[12]+ctlr->dump[15];
-	ether->overflows = ctlr->dump[13];
-
-	if(n == 0){
-		unlock(&ctlr->dlock);
-		return 0;
-	}
-
-	memmove(dump, ctlr->dump, sizeof(dump));
-	unlock(&ctlr->dlock);
-
-	p = malloc(READSTR);
-	len = snprint(p, READSTR, "transmit good frames: %lud\n", dump[0]);
-	len += snprint(p+len, READSTR-len, "transmit maximum collisions errors: %lud\n", dump[1]);
-	len += snprint(p+len, READSTR-len, "transmit late collisions errors: %lud\n", dump[2]);
-	len += snprint(p+len, READSTR-len, "transmit underrun errors: %lud\n", dump[3]);
-	len += snprint(p+len, READSTR-len, "transmit lost carrier sense: %lud\n", dump[4]);
-	len += snprint(p+len, READSTR-len, "transmit deferred: %lud\n", dump[5]);
-	len += snprint(p+len, READSTR-len, "transmit single collisions: %lud\n", dump[6]);
-	len += snprint(p+len, READSTR-len, "transmit multiple collisions: %lud\n", dump[7]);
-	len += snprint(p+len, READSTR-len, "transmit total collisions: %lud\n", dump[8]);
-	len += snprint(p+len, READSTR-len, "receive good frames: %lud\n", dump[9]);
-	len += snprint(p+len, READSTR-len, "receive CRC errors: %lud\n", dump[10]);
-	len += snprint(p+len, READSTR-len, "receive alignment errors: %lud\n", dump[11]);
-	len += snprint(p+len, READSTR-len, "receive resource errors: %lud\n", dump[12]);
-	len += snprint(p+len, READSTR-len, "receive overrun errors: %lud\n", dump[13]);
-	len += snprint(p+len, READSTR-len, "receive collision detect errors: %lud\n", dump[14]);
-	len += snprint(p+len, READSTR-len, "receive short frame errors: %lud\n", dump[15]);
-	len += snprint(p+len, READSTR-len, "nop: %d\n", ctlr->nop);
-	if(ctlr->cbqmax > ctlr->cbqmaxhw)
-		ctlr->cbqmaxhw = ctlr->cbqmax;
-	len += snprint(p+len, READSTR-len, "cbqmax: %d\n", ctlr->cbqmax);
-	ctlr->cbqmax = 0;
-	len += snprint(p+len, READSTR-len, "threshold: %d\n", ctlr->threshold);
-
-	len += snprint(p+len, READSTR-len, "eeprom:");
-	for(i = 0; i < (1<<ctlr->eepromsz); i++){
-		if(i && ((i & 0x07) == 0))
-			len += snprint(p+len, READSTR-len, "\n       ");
-		len += snprint(p+len, READSTR-len, " %4.4ux", ctlr->eeprom[i]);
-	}
-
-	if((ctlr->eeprom[6] & 0x1F00) && !(ctlr->eeprom[6] & 0x8000)){
-		phyaddr = ctlr->eeprom[6] & 0x00FF;
-		len += snprint(p+len, READSTR-len, "\nphy %2d:", phyaddr);
-		for(i = 0; i < 6; i++){
-			static int miir(Ctlr*, int, int);
-
-			len += snprint(p+len, READSTR-len, " %4.4ux",
-				miir(ctlr, phyaddr, i));
-		}
-	}
-
-	snprint(p+len, READSTR-len, "\n");
-	n = readstr(offset, a, n, p);
-	free(p);
-
-	return n;
-}
-#endif
-
 static void
 txstart(Ether* ether)
 {
 	Ctlr *ctlr;
-	Block *bp;
+	Msgbuf *mb;
 	Cb *cb;
 
 	ctlr = ether->ctlr;
 	while(ctlr->cbq < (ctlr->ncb-1)){
 		cb = ctlr->cbhead->next;
 		if(ctlr->action == 0){
-			bp = etheroq(ether);
-			if(bp == nil)
+			mb = etheroq(ether);
+			if(mb == nil)
 				break;
 
 			cb->command = CbS|CbSF|CbTransmit;
@@ -533,9 +401,9 @@ txstart(Ether* ether)
 			cb->count = 0;
 			cb->threshold = ctlr->threshold;
 			cb->number = 1;
-			cb->tba = PADDR(bp->rp);
-			cb->bp = bp;
-			cb->tbasz = BLEN(bp);
+			cb->tba = PADDR(mb->data);
+			cb->mb = mb;
+			cb->tbasz = mb->count;
 		}
 		else if(ctlr->action == CbConfigure){
 			cb->command = CbS|CbConfigure;
@@ -544,7 +412,7 @@ txstart(Ether* ether)
 		}
 		else if(ctlr->action == CbIAS){
 			cb->command = CbS|CbIAS;
-			memmove(cb->data, ether->ea, Eaddrlen);
+			memmove(cb->data, ether->ea, Easize);
 			ctlr->action = 0;
 		}
 		else if(ctlr->action == CbMAS){
@@ -553,25 +421,16 @@ txstart(Ether* ether)
 			ctlr->action = 0;
 		}
 		else{
-			print("#l%d: action %#ux\n", ether->ctlrno, ctlr->action);
+			print("#l%d: action 0x%ux\n", ether->ctlrno, ctlr->action);
 			ctlr->action = 0;
 			break;
 		}
 		cb->status = 0;
 
-		coherence();
+		//coherence();
 		ctlr->cbhead->command &= ~CbS;
 		ctlr->cbhead = cb;
 		ctlr->cbq++;
-	}
-
-	/*
-	 * Workaround for some broken HUB chips
-	 * when connected at 10Mb/s half-duplex.
-	 */
-	if(ctlr->nop){
-		command(ctlr, CUnop, 0);
-		microdelay(1);
 	}
 	command(ctlr, CUresume, 0);
 
@@ -608,19 +467,6 @@ configure(Ether* ether, int promiscuous)
 }
 
 static void
-promiscuous(void* arg, int on)
-{
-	configure(arg, on);
-}
-
-static void
-multicast(void* arg, uchar *addr, int on)
-{
-	USED(addr, on);
-	configure(arg, 1);
-}
-
-static void
 transmit(Ether* ether)
 {
 	Ctlr *ctlr;
@@ -637,11 +483,11 @@ receive(Ether* ether)
 	Rfd *rfd;
 	Ctlr *ctlr;
 	int count;
-	Block *bp, *pbp, *xbp;
+	Msgbuf *mb, *pmb, *xmb;
 
 	ctlr = ether->ctlr;
-	bp = ctlr->rfdhead;
-	for(rfd = (Rfd*)bp->rp; rfd->field & RfdC; rfd = (Rfd*)bp->rp){
+	mb = ctlr->rfdhead;
+	for(rfd = (Rfd*)mb->data; rfd->field & RfdC; rfd = (Rfd*)mb->data){
 		/*
 		 * If it's an OK receive frame
 		 * 1) save the count 
@@ -653,31 +499,31 @@ receive(Ether* ether)
 		 *	  actual data received;
 		 *	initialise the replacement buffer to point to
 		 *	  the next in the ring;
-		 *	initialise bp to point to the replacement;
+		 *	initialise mb to point to the replacement;
 		 * 4) if there's a good packet, pass it on for disposal.
 		 */
 		if(rfd->field & RfdOK){
-			pbp = nil;
+			pmb = nil;
 			count = rfd->count & 0x3FFF;
-			if((count < ETHERMAXTU/4) && (pbp = iallocb(count))){
-				memmove(pbp->rp, bp->rp+offsetof(Rfd, data[0]),
-					count);
-				SETWPCNT(bp, count);
+			if((count < ETHERMAXTU/4) && (pmb = mballoc(count, 0, Maeth3))){
+				memmove(pmb->data, mb->data+sizeof(Rfd)-sizeof(rfd->data), count);
+				pmb->count = count;
+
 				rfd->count = 0;
 				rfd->field = 0;
 			}
-			else if(xbp = rfdalloc(rfd->link)){
-				bp->rp += offsetof(Rfd, data[0]);
-				SETWPCNT(bp, count);
+			else if(xmb = rfdalloc(rfd->link)){
+				mb->data += sizeof(Rfd)-sizeof(rfd->data);
+				mb->count = count;
 
-				xbp->next = bp->next;
-				bp->next = 0;
+				xmb->next = mb->next;
+				mb->next = 0;
 
-				pbp = bp;
-				bp = xbp;
+				pmb = mb;
+				mb = xmb;
 			}
-			if(pbp != nil)
-				ETHERIQ(ether, pbp, 1);
+			if(pmb != nil)
+				etheriq(ether, pmb);
 		}
 		else{
 			rfd->count = 0;
@@ -694,12 +540,12 @@ receive(Ether* ether)
 		 * been allocated above, ensure that the new tail points
 		 * to it (next and link).
 		 */
-		rfd = (Rfd*)ctlr->rfdtail->rp;
+		rfd = (Rfd*)ctlr->rfdtail->data;
 		ctlr->rfdtail = ctlr->rfdtail->next;
-		ctlr->rfdtail->next = bp;
-		((Rfd*)ctlr->rfdtail->rp)->link = PADDR(bp->rp);
-		((Rfd*)ctlr->rfdtail->rp)->field |= RfdS;
-		coherence();
+		ctlr->rfdtail->next = mb;
+		((Rfd*)ctlr->rfdtail->data)->link = PADDR(mb->data);
+		((Rfd*)ctlr->rfdtail->data)->field |= RfdS;
+		//coherence();
 		rfd->field &= ~RfdS;
 
 		/*
@@ -707,8 +553,8 @@ receive(Ether* ether)
 		 * head, move on to the next and maintain the sentinel
 		 * between tail and head.
 		 */
-		ctlr->rfdhead = bp->next;
-		bp = ctlr->rfdhead;
+		ctlr->rfdhead = mb->next;
+		mb = ctlr->rfdhead;
 	}
 }
 
@@ -759,9 +605,9 @@ interrupt(Ureg*, void* arg)
 			while(ctlr->cbq){
 				if(!(cb->status & CbC))
 					break;
-				if(cb->bp){
-					freeb(cb->bp);
-					cb->bp = nil;
+				if(cb->mb){
+					mbfree(cb->mb);
+					cb->mb = nil;
 				}
 				if((cb->status & CbU) && ctlr->threshold < 0xE0)
 					ctlr->threshold++;
@@ -778,7 +624,7 @@ interrupt(Ureg*, void* arg)
 		}
 
 		if(status & (StatCX|StatFR|StatCNA|StatRNR|StatMDI|StatSWI))
-			panic("#l%d: status %#ux\n", ether->ctlrno, status);
+			panic("#l%d: status %ux\n", ether->ctlrno, status);
 	}
 }
 
@@ -786,7 +632,7 @@ static void
 ctlrinit(Ctlr* ctlr)
 {
 	int i;
-	Block *bp;
+	Msgbuf *mb;
 	Rfd *rfd;
 	ulong link;
 
@@ -800,16 +646,16 @@ ctlrinit(Ctlr* ctlr)
 	 */
 	link = NullPointer;
 	for(i = 0; i < Nrfd; i++){
-		bp = rfdalloc(link);
+		mb = rfdalloc(link);
 		if(ctlr->rfdhead == nil)
-			ctlr->rfdtail = bp;
-		bp->next = ctlr->rfdhead;
-		ctlr->rfdhead = bp;
-		link = PADDR(bp->rp);
+			ctlr->rfdtail = mb;
+		mb->next = ctlr->rfdhead;
+		ctlr->rfdhead = mb;
+		link = PADDR(mb->data);
 	}
 	ctlr->rfdtail->next = ctlr->rfdhead;
-	rfd = (Rfd*)ctlr->rfdtail->rp;
-	rfd->link = PADDR(ctlr->rfdhead->rp);
+	rfd = (Rfd*)ctlr->rfdtail->data;
+	rfd->link = PADDR(ctlr->rfdhead->data);
 	rfd->field |= RfdS;
 	ctlr->rfdhead = ctlr->rfdhead->next;
 
@@ -818,7 +664,7 @@ ctlrinit(Ctlr* ctlr)
 	 * transmit side.
 	 */
 	ilock(&ctlr->cblock);
-	ctlr->cbr = malloc(ctlr->ncb*sizeof(Cb));
+	ctlr->cbr = ialloc(ctlr->ncb*sizeof(Cb), 0);
 	for(i = 0; i < ctlr->ncb; i++){
 		ctlr->cbr[i].status = CbC|CbOK;
 		ctlr->cbr[i].command = CbS|CbNOP;
@@ -883,7 +729,7 @@ miiw(Ctlr* ctlr, int phyadd, int regadd, int data)
 static int
 hy93c46r(Ctlr* ctlr, int r)
 {
-	int data, i, op, size;
+	int i, op, data;
 
 	/*
 	 * Hyundai HY93C46 or equivalent serial EEPROM.
@@ -891,7 +737,6 @@ hy93c46r(Ctlr* ctlr, int r)
 	 * in the EEPROM is taken straight from Section
 	 * 3.3.4.2 of the Intel 82557 User's Guide.
 	 */
-reread:
 	csr16w(ctlr, Ecr, EEcs);
 	op = EEstart|EEread;
 	for(i = 2; i >= 0; i--){
@@ -903,14 +748,8 @@ reread:
 		microdelay(1);
 	}
 
-	/*
-	 * First time through must work out the EEPROM size.
-	 */
-	if((size = ctlr->eepromsz) == 0)
-		size = 8;
-
-	for(size = size-1; size >= 0; size--){
-		data = (((r>>size) & 0x01)<<2)|EEcs;
+	for(i = EEaddrsz-1; i >= 0; i--){
+		data = (((r>>i) & 0x01)<<2)|EEcs;
 		csr16w(ctlr, Ecr, data);
 		csr16w(ctlr, Ecr, data|EEsk);
 		delay(1);
@@ -932,77 +771,54 @@ reread:
 
 	csr16w(ctlr, Ecr, 0);
 
-	if(ctlr->eepromsz == 0){
-		ctlr->eepromsz = 8-size;
-		ctlr->eeprom = malloc((1<<ctlr->eepromsz)*sizeof(ushort));
-		goto reread;
-	}
-
 	return data;
+}
+
+typedef struct Adapter {
+	int	port;
+	int	irq;
+	int	tbdf;
+} Adapter;
+static Msgbuf* adapter;
+
+static void
+i82557adapter(Msgbuf** mbb, int port, int irq, int tbdf)
+{
+	Msgbuf *mb;
+	Adapter *ap;
+
+	mb = mballoc(sizeof(Adapter), 0, Maeth1);
+	ap = (Adapter*)mb->data;
+	ap->port = port;
+	ap->irq = irq;
+	ap->tbdf = tbdf;
+
+	mb->next = *mbb;
+	*mbb = mb;
 }
 
 static void
 i82557pci(void)
 {
 	Pcidev *p;
-	Ctlr *ctlr;
-	int nop, port;
 
 	p = nil;
-	nop = 0;
 	while(p = pcimatch(p, 0x8086, 0)){
 		switch(p->did){
 		default:
 			continue;
-		case 0x1031:		/* Intel 82562EM */
-		case 0x1050:		/* Intel 82562EZ */
-		case 0x1039:		/* Intel 82801BD PRO/100 VE */
-		case 0x103A:		/* Intel 82562 PRO/100 VE */
-		case 0x1064:		/* Intel 82562 PRO/100 VE */
-		case 0x2449:		/* Intel 82562ET */
-			nop = 1;
-			/*FALLTHROUGH*/
 		case 0x1209:		/* Intel 82559ER */
 		case 0x1229:		/* Intel 8255[789] */
-		case 0x1030:		/* Intel 82559 InBusiness 10/100  */
+		case 0x1031:		/* Intel 82562EM */
+		case 0x2449:		/* Intel 82562ET */
 			break;
 		}
-#ifndef FS
-		if(pcigetpms(p) > 0){
-			int i;
-
-			pcisetpms(p, 0);
-	
-			for(i = 0; i < 6; i++)
-				pcicfgw32(p, PciBAR0+i*4, p->mem[i].bar);
-			pcicfgw8(p, PciINTL, p->intl);
-			pcicfgw8(p, PciLTR, p->ltr);
-			pcicfgw8(p, PciCLS, p->cls);
-			pcicfgw16(p, PciPCR, p->pcr);
-		}
-#endif
 		/*
 		 * bar[0] is the memory-mapped register address (4KB),
 		 * bar[1] is the I/O port register address (32 bytes) and
 		 * bar[2] is for the flash ROM (1MB).
 		 */
-		port = p->mem[1].bar & ~0x01;
-		if(ioalloc(port, p->mem[1].size, 0, "i82557") < 0){
-			print("i82557: port %#ux in use\n", port);
-			continue;
-		}
-
-		ctlr = malloc(sizeof(Ctlr));
-		ctlr->port = port;
-		ctlr->pcidev = p;
-		ctlr->nop = nop;
-
-		if(ctlrhead != nil)
-			ctlrtail->next = ctlr;
-		else
-			ctlrhead = ctlr;
-		ctlrtail = ctlr;
-
+		i82557adapter(&adapter, p->mem[1].bar & ~0x01, p->intl, p->tbdf);
 		pcisetbme(p);
 	}
 }
@@ -1019,83 +835,54 @@ static char* mediatable[9] = {
 	"100BASE-FXFD",
 };
 
-static int
-scanphy(Ctlr* ctlr)
-{
-	int i, oui, x;
-
-	for(i = 0; i < 32; i++){
-		if((oui = miir(ctlr, i, 2)) == -1 || oui == 0 || oui == 0xFFFF)
-			continue;
-		oui <<= 6;
-		x = miir(ctlr, i, 3);
-		oui |= x>>10;
-		//print("phy%d: oui %#ux reg1 %#ux\n", i, oui, miir(ctlr, i, 1));
-
-		ctlr->eeprom[6] = i;
-		if(oui == 0xAA00)
-			ctlr->eeprom[6] |= 0x07<<8;
-		else if(oui == 0x80017){
-			if(x & 0x01)
-				ctlr->eeprom[6] |= 0x0A<<8;
-			else
-				ctlr->eeprom[6] |= 0x04<<8;
-		}
-		return i;
-	}
-	return -1;
-}
-
-static void
-shutdown(Ether* ether)
-{
-	Ctlr *ctlr = ether->ctlr;
-
-print("ether82557 shutting down\n");
-	csr32w(ctlr, Port, 0);
-	delay(1);
-	csr8w(ctlr, Interrupt, InterruptM);
-}
-
-
 int
 etheri82557reset(Ether* ether)
 {
-	int anar, anlpar, bmcr, bmsr, i, k, medium, phyaddr, x;
+	int anar, anlpar, bmcr, bmsr, i, k, medium, phyaddr, port, x;
 	unsigned short sum;
-	uchar ea[Eaddrlen];
+	Msgbuf *mb, **mbb;
+	Adapter *ap;
+	uchar ea[Easize];
 	Ctlr *ctlr;
+	static int scandone;
 
-	if(ctlrhead == nil)
+	if(scandone == 0){
 		i82557pci();
+		scandone = 1;
+	}
 
 	/*
-	 * Any adapter matches if no ether->port is supplied,
+	 * Any adapter matches if no port is supplied,
 	 * otherwise the ports must match.
 	 */
-	for(ctlr = ctlrhead; ctlr != nil; ctlr = ctlr->next){
-		if(ctlr->active)
-			continue;
-		if(ether->port == 0 || ether->port == ctlr->port){
-			ctlr->active = 1;
+	port = 0;
+	mbb = &adapter;
+	for(mb = *mbb; mb; mb = mb->next){
+		ap = (Adapter*)mb->data;
+		if(ether->port == 0 || ether->port == ap->port){
+			port = ap->port;
+			ether->irq = ap->irq;
+			ether->tbdf = ap->tbdf;
+			*mbb = mb->next;
+			mbfree(mb);
 			break;
 		}
+		mbb = &mb->next;
 	}
-	if(ctlr == nil)
+	if(port == 0)
 		return -1;
 
 	/*
-	 * Initialise the Ctlr structure.
+	 * Allocate a controller structure and start to initialise it.
 	 * Perform a software reset after which should ensure busmastering
 	 * is still enabled. The EtherExpress PRO/100B appears to leave
 	 * the PCI configuration alone (see the 'To do' list above) so punt
 	 * for now.
 	 * Load the RUB and CUB registers for linear addressing (0).
 	 */
-	ether->ctlr = ctlr;
-	ether->port = ctlr->port;
-	ether->irq = ctlr->pcidev->intl;
-	ether->tbdf = ctlr->pcidev->tbdf;
+	ether->ctlr = ialloc(sizeof(Ctlr), 0);
+	ctlr = ether->ctlr;
+	ctlr->port = port;
 
 	ilock(&ctlr->rlock);
 	csr32w(ctlr, Port, 0);
@@ -1115,49 +902,25 @@ etheri82557reset(Ether* ether)
 
 	/*
 	 * Read the EEPROM.
-	 * Do a dummy read first to get the size
-	 * and allocate ctlr->eeprom.
 	 */
-	hy93c46r(ctlr, 0);
 	sum = 0;
-	for(i = 0; i < (1<<ctlr->eepromsz); i++){
+	for(i = 0; i < 0x40; i++){
 		x = hy93c46r(ctlr, i);
 		ctlr->eeprom[i] = x;
 		sum += x;
 	}
 	if(sum != 0xBABA)
-		print("#l%d: EEPROM checksum - %#4.4ux\n", ether->ctlrno, sum);
+		print("#l%d: EEPROM checksum - 0x%4.4ux\n", ether->ctlrno, sum);
 
 	/*
 	 * Eeprom[6] indicates whether there is a PHY and whether
 	 * it's not 10Mb-only, in which case use the given PHY address
 	 * to set any PHY specific options and determine the speed.
-	 * Unfortunately, sometimes the EEPROM is blank except for
-	 * the ether address and checksum; in this case look at the
-	 * controller type and if it's am 82558 or 82559 it has an
-	 * embedded PHY so scan for that.
 	 * If no PHY, assume 82503 (serial) operation.
 	 */
-	if((ctlr->eeprom[6] & 0x1F00) && !(ctlr->eeprom[6] & 0x8000))
+	if((ctlr->eeprom[6] & 0x1F00) && !(ctlr->eeprom[6] & 0x8000)){
 		phyaddr = ctlr->eeprom[6] & 0x00FF;
-	else
-	switch(ctlr->pcidev->rid){
-	case 0x01:			/* 82557 A-step */
-	case 0x02:			/* 82557 B-step */
-	case 0x03:			/* 82557 C-step */
-	default:
-		phyaddr = -1;
-		break;
-	case 0x04:			/* 82558 A-step */
-	case 0x05:			/* 82558 B-step */
-	case 0x06:			/* 82559 A-step */
-	case 0x07:			/* 82559 B-step */
-	case 0x08:			/* 82559 C-step */
-	case 0x09:			/* 82559ER A-step */
-		phyaddr = scanphy(ctlr);
-		break;
-	}
-	if(phyaddr >= 0){
+
 		/*
 		 * Resolve the highest common ability of the two
 		 * link partners. In descending order:
@@ -1289,6 +1052,8 @@ etheri82557reset(Ether* ether)
 
 		if(bmcr & 0x2000)
 			ether->mbps = 100;
+		else
+			ether->mbps = 10;
 
 		ctlr->configdata[8] = 1;
 		ctlr->configdata[15] &= ~0x80;
@@ -1299,22 +1064,8 @@ etheri82557reset(Ether* ether)
 	}
 
 	/*
-	 * Workaround for some broken HUB chips when connected at 10Mb/s
-	 * half-duplex.
-	 * This is a band-aid, but as there's no dynamic auto-negotiation
-	 * code at the moment, only deactivate the workaround code in txstart
-	 * if the link is 100Mb/s.
-	 */
-	if(ether->mbps != 10)
-		ctlr->nop = 0;
-
-	/*
 	 * Load the chip configuration and start it off.
 	 */
-#ifndef FS
-	if(ether->oq == 0)
-		ether->oq = qopen(256*1024, Qmsg, 0, 0);
-#endif
 	configure(ether, 0);
 	command(ctlr, CUstart, PADDR(&ctlr->cbr->status));
 
@@ -1323,9 +1074,9 @@ etheri82557reset(Ether* ether)
 	 * If not, read it from the EEPROM and set in ether->ea prior to loading
 	 * the station address with the Individual Address Setup command.
 	 */
-	memset(ea, 0, Eaddrlen);
-	if(memcmp(ea, ether->ea, Eaddrlen) == 0){
-		for(i = 0; i < Eaddrlen/2; i++){
+	memset(ea, 0, Easize);
+	if(memcmp(ea, ether->ea, Easize) == 0){
+		for(i = 0; i < Easize/2; i++){
 			x = ctlr->eeprom[i];
 			ether->ea[2*i] = x;
 			ether->ea[2*i+1] = x>>8;
@@ -1340,24 +1091,10 @@ etheri82557reset(Ether* ether)
 	/*
 	 * Linkage to the generic ethernet driver.
 	 */
+	ether->port = port;
 	ether->attach = attach;
 	ether->transmit = transmit;
 	ether->interrupt = interrupt;
-#ifndef FS
-	ether->ifstat = ifstat;
 
-	ether->arg = ether;
-	ether->promiscuous = promiscuous;
-	ether->shutdown = shutdown;
-	ether->multicast = multicast;
-#endif
 	return 0;
 }
-
-#ifndef FS
-void
-ether82557bothlink(void)
-{
-	addethercard("i82557",  etheri82557reset);
-}
-#endif
