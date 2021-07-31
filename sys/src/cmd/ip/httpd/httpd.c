@@ -284,19 +284,17 @@ doreq(HConnect *c)
 	Strings ss;
 	char *magic, *uri, *newuri, *origuri, *newpath, *hb;
 	char virtualhost[100], logfd0[10], logfd1[10], vers[16];
-	int n, nredirect, permmove;
+	int n, nredirect;
 
 	/*
 	 * munge uri for magic
 	 */
 	uri = c->req.uri;
 	nredirect = 0;
-	permmove = 0;
 top:
 	if(++nredirect > 10){
 		if(hparseheaders(c, 15*60*1000) < 0)
 			exits("failed");
-		werrstr("redirection loop");
 		return hfail(c, HNotFound, uri);
 	}
 	ss = stripmagic(c, uri);
@@ -317,30 +315,20 @@ top:
 		c->req.uri = newpath;
 		newuri = newpath;
 	}else if(origuri[0]=='/' && origuri[1]==0){
-		/* can't redirect / until we read the headers below */
+		/* can't redirect / until we read the headers */
 		newuri = nil;
 	}else
 		newuri = redirect(c, origuri);
 	
 	if(newuri != nil){
-		if(isdecorated(newuri)){
-			if(newuri[0] == Modperm)
-				permmove = 1;
-			c->req.uri = uri = undecorated(newuri);
+		if(newuri[0] == '@'){
+			c->req.uri = newuri+1;
+			uri = newuri+1;
 			goto top;
 		}
 		if(hparseheaders(c, 15*60*1000) < 0)
 			exits("failed");
-		/*
-		 * try temporary redirect instead of permanent,
-		 * unless explicitly overridden.
-		 */
-		if (permmove)
-			return hmoved(c, newuri);
-		if (http11(c))
-			return hredirected(c, "307 Temporary Redirect", newuri);
-		else
-			return hredirected(c, "302 Temporary Redirect", newuri);
+		return hmoved(c, newuri);
 	}
 
 	/*
@@ -536,7 +524,7 @@ static int
 notfound(HConnect *c, char *url)
 {
 	c->xferbuf[0] = 0;
-	rerrstr(c->xferbuf, sizeof c->xferbuf);
+	errstr(c->xferbuf, sizeof c->xferbuf);
 	if(strstr(c->xferbuf, "file does not exist") != nil)
 		return hfail(c, HNotFound, url);
 	if(strstr(c->xferbuf, "permission denied") != nil)
