@@ -803,9 +803,9 @@ cpuidentify(void)
 	 * are supported enable them in CR4 and clear any other set extensions.
 	 * If machine check was enabled clear out any lingering status.
 	 */
-	if(m->cpuiddx & (Pge|Mce|Pse)){
+	if(m->cpuiddx & (Pge|Mce|0x8)){
 		cr4 = 0;
-		if(m->cpuiddx & Pse)
+		if(m->cpuiddx & 0x08)
 			cr4 |= 0x10;		/* page size extensions */
 		if(p = getconf("*nomce"))
 			nomce = strtoul(p, 0, 0);

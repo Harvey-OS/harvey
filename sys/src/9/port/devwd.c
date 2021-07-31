@@ -16,8 +16,8 @@ enum {
 
 static Watchdog *wd;
 static Dirtab wddir[] = {
-	".",		{ Qdir, 0, QTDIR },	0,		0555,
-	"wdctl",	{ Qwdctl, 0 },		0,		0664,
+	".",		{ Qdir, 0, QTDIR },	0,		0550,
+	"wdctl",	{ Qwdctl, 0 },		0,		0660,
 };
 
 
