@@ -1456,7 +1456,7 @@ exhausted(char *resource)
 {
 	char buf[ERRMAX];
 
-	snprint(buf, sizeof buf, "no free %s", resource);
+	sprint(buf, "no free %s", resource);
 	iprint("%s\n", buf);
 	error(buf);
 }
