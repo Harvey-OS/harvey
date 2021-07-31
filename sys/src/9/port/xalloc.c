@@ -263,19 +263,11 @@ xsummary(void)
 	for(h = xlists.flist; h; h = h->link)
 		i++;
 
-	print("%d holes free", i);
+	print("%d holes free\n", i);
 	i = 0;
 	for(h = xlists.table; h; h = h->link) {
-		if (0) {
-			print("addr %#.8lux top %#.8lux size %lud\n",
-				h->addr, h->top, h->size);
-			delay(10);
-		}
+		print("%.8lux %.8lux %lud\n", h->addr, h->top, h->size);
 		i += h->size;
-		if (h == h->link) {
-			print("xsummary: infinite loop broken\n");
-			break;
-		}
 	}
-	print(" %d bytes free\n", i);
+	print("%d bytes free\n", i);
 }
