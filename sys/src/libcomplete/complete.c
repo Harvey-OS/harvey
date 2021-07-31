@@ -58,10 +58,8 @@ complete(char *dir, char *s)
 		return nil;
 
 	n = dirreadall(fd, &dirp);
-	if(n <= 0){
-		close(fd);
+	if(n <= 0)
 		return nil;
-	}
 
 	/* find longest string, for allocation */
 	len = 0;
@@ -139,6 +137,5 @@ complete(char *dir, char *s)
 	free(name);
 	free(mode);
 	free(dirp);
-	close(fd);
 	return c;
 }
