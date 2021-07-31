@@ -1,8 +1,6 @@
 /*
  * Storage Device.
  */
-#include <diskcmd.h>
-
 typedef struct SDev SDev;
 typedef struct SDifc SDifc;
 typedef struct SDio SDio;
