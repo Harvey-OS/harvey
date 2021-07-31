@@ -90,8 +90,7 @@ without interference.
 .IR dup (2),
 .IR open (2),
 .IR pipe (2),
-.IR readv (2),
-.IR read (5)
+.IR readv (2)
 .SH DIAGNOSTICS
 These functions set
 .IR errstr .
