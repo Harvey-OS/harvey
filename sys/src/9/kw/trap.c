@@ -659,7 +659,7 @@ probeaddr(uintptr addr)
 	probing = 1;
 	coherence();
 
-	v = *(ulong *)addr;	/* this may cause a fault (okay under ilock) */
+	v = *(ulong *)addr;	/* this may cause a fault */
 	USED(probing);
 	coherence();
 

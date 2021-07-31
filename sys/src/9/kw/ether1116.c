@@ -1613,8 +1613,6 @@ ifstat(Ether *ether, void *a, long n, ulong off)
 	char *buf, *p, *e;
 
 	buf = p = malloc(READSTR);
-	if(p == nil)
-		panic("ether1116 ifstat: no memory");
 	e = p + READSTR;
 
 	ilock(ctlr);
@@ -1684,8 +1682,6 @@ reset(Ether *ether)
 	Ctlr *ctlr;
 
 	ether->ctlr = ctlr = malloc(sizeof *ctlr);
-	if (ctlr == nil)
-		panic("ether1116 reset: no memory");
 	switch(ether->ctlrno) {
 	case 0:
 		ether->irq = IRQ0gbe0sum;
