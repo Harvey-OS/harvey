@@ -335,7 +335,7 @@ filetype(int fd)
 		return;
 	}
 	if(mbuf->mode & DMDIR) {
-		print(mime ? OCTET : "directory\n");
+		print(mime ? "text/directory\n" : "directory\n");
 		return;
 	}
 	if(mbuf->type != 'M' && mbuf->type != '|') {

@@ -133,10 +133,7 @@ returns the integer file descriptor of the associated open file.
 .PP
 .I Bterm
 flushes the buffer for
-.IR bp
-and returns
-.IR Bflush 's
-return value.
+.IR bp .
 If the buffer was allocated by
 .IR Bopen ,
 the buffer is
