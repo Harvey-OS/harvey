@@ -1,11 +1,9 @@
 #include <windows.h>
-#include <ws2tcpip.h>
 #include "u.h"
 #include "lib.h"
 #include "dat.h"
 #include "fns.h"
 #include "error.h"
-#include "ip.h"
 
 #include "devip.h"
 
@@ -16,26 +14,6 @@
 #undef listen
 #undef accept
 #undef bind
-
-static int
-family(unsigned char *addr)
-{
-	if(isv4(addr))
-		return AF_INET;
-	return AF_INET6;
-}
-
-static int
-addrlen(struct sockaddr_storage *ss)
-{
-	switch(ss->ss_family){
-	case AF_INET:
-		return sizeof(struct sockaddr_in);
-	case AF_INET6:
-		return sizeof(struct sockaddr_in6);
-	}
-	return 0;
-}
 
 void
 osipinit(void)
@@ -51,7 +29,7 @@ osipinit(void)
 }
 
 int
-so_socket(int type, unsigned char *addr)
+so_socket(int type)
 {
 	int fd, one;
 
@@ -66,7 +44,7 @@ so_socket(int type, unsigned char *addr)
 		break;
 	}
 
-	fd = socket(family(addr), type, 0);
+	fd = socket(AF_INET, type, 0);
 	if(fd < 0)
 		oserror();
 
@@ -81,51 +59,34 @@ so_socket(int type, unsigned char *addr)
 
 
 void
-so_connect(int fd, unsigned char *raddr, unsigned short rport)
+so_connect(int fd, unsigned long raddr, unsigned short rport)
 {
-	struct sockaddr_storage ss;
+	struct sockaddr_in sin;
 
-	memset(&ss, 0, sizeof(ss));
+	memset(&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	hnputs(&sin.sin_port, rport);
+	hnputl(&sin.sin_addr.s_addr, raddr);
 
-	ss.ss_family = family(raddr);
-
-	switch(ss.ss_family){
-	case AF_INET:
-		hnputs(&((struct sockaddr_in*)&ss)->sin_port, rport);
-		v6tov4((unsigned char*)&((struct sockaddr_in*)&ss)->sin_addr.s_addr, raddr);
-		break;
-	case AF_INET6:
-		hnputs(&((struct sockaddr_in6*)&ss)->sin6_port, rport);
-		memcpy(&((struct sockaddr_in6*)&ss)->sin6_addr.s6_addr, raddr, sizeof(struct in6_addr));
-		break;
-	}
-
-	if(connect(fd, (struct sockaddr*)&ss, addrlen(&ss)) < 0)
+	if(connect(fd, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 		oserror();
 }
 
 void
-so_getsockname(int fd, unsigned char *laddr, unsigned short *lport)
+so_getsockname(int fd, unsigned long *laddr, unsigned short *lport)
 {
 	int len;
-	struct sockaddr_storage ss;
+	struct sockaddr_in sin;
 
-	len = sizeof(ss);
-	if(getsockname(fd, (struct sockaddr*)&ss, &len) < 0)
+	len = sizeof(sin);
+	if(getsockname(fd, (struct sockaddr*)&sin, &len) < 0)
 		oserror();
 
-	switch(ss.ss_family){
-	case AF_INET:
-		v4tov6(laddr, (unsigned char*)&((struct sockaddr_in*)&ss)->sin_addr.s_addr);
-		*lport = nhgets(&((struct sockaddr_in*)&ss)->sin_port);
-		break;
-	case AF_INET6:
-		memcpy(laddr, &((struct sockaddr_in6*)&ss)->sin6_addr.s6_addr, sizeof(struct in6_addr));
-		*lport = nhgets(&((struct sockaddr_in6*)&ss)->sin6_port);
-		break;
-	default:
-		error("not AF_INET or AF_INET6");
-	}
+	if(sin.sin_family != AF_INET || len != sizeof(sin))
+		error("not AF_INET");
+
+	*laddr = nhgetl(&sin.sin_addr.s_addr);
+	*lport = nhgets(&sin.sin_port);
 }
 
 void
@@ -136,77 +97,53 @@ so_listen(int fd)
 }
 
 int
-so_accept(int fd, unsigned char *raddr, unsigned short *rport)
+so_accept(int fd, unsigned long *raddr, unsigned short *rport)
 {
-	int nfd;
-	int len;
-	struct sockaddr_storage ss;
+	int nfd, len;
+	struct sockaddr_in sin;
 
-	len = sizeof(ss);
-	nfd = accept(fd, (struct sockaddr*)&ss, &len);
+	len = sizeof(sin);
+	nfd = accept(fd, (struct sockaddr*)&sin, &len);
 	if(nfd < 0)
 		oserror();
 
-	switch(ss.ss_family){
-	case AF_INET:
-		v4tov6(raddr, (unsigned char*)&((struct sockaddr_in*)&ss)->sin_addr.s_addr);
-		*rport = nhgets(&((struct sockaddr_in*)&ss)->sin_port);
-		break;
-	case AF_INET6:
-		memcpy(raddr, &((struct sockaddr_in6*)&ss)->sin6_addr.s6_addr, sizeof(struct in6_addr));
-		*rport = nhgets(&((struct sockaddr_in6*)&ss)->sin6_port);
-		break;
-	default:
-		error("not AF_INET or AF_INET6");
-	}
+	if(sin.sin_family != AF_INET || len != sizeof(sin))
+		error("not AF_INET");
+
+	*raddr = nhgetl(&sin.sin_addr.s_addr);
+	*rport = nhgets(&sin.sin_port);
 	return nfd;
 }
 
 void
-so_bind(int fd, int su, unsigned short port, unsigned char *addr)
+so_bind(int fd, int su, unsigned short port)
 {
 	int i, one;
-	struct sockaddr_storage ss;
+	struct sockaddr_in sin;
 
 	one = 1;
 	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof(one)) < 0){
 		oserrstr();
-		print("setsockopt: %r");
+		print("setsockopt: %s", up->errstr);
 	}
 
 	if(su) {
 		for(i = 600; i < 1024; i++) {
-			memset(&ss, 0, sizeof(ss));
-			ss.ss_family = family(addr);
+			memset(&sin, 0, sizeof(sin));
+			sin.sin_family = AF_INET;
+			sin.sin_port = i;
 
-			switch(ss.ss_family){
-			case AF_INET:
-				((struct sockaddr_in*)&ss)->sin_port = i;
-				break;
-			case AF_INET6:
-				((struct sockaddr_in6*)&ss)->sin6_port = i;
-				break;
-			}
-
-			if(bind(fd, (struct sockaddr*)&ss, addrlen(&ss)) >= 0)	
+			if(bind(fd, (struct sockaddr*)&sin, sizeof(sin)) >= 0)	
 				return;
 		}
 		oserror();
 	}
 
-	memset(&ss, 0, sizeof(ss));
-	ss.ss_family = family(addr);
+	memset(&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	hnputs(&sin.sin_port, port);
 
-	switch(ss.ss_family){
-	case AF_INET:
-		hnputs(&((struct sockaddr_in*)&ss)->sin_port, port);
-		break;
-	case AF_INET6:
-		hnputs(&((struct sockaddr_in6*)&ss)->sin6_port, port);
-		break;
-	}
-
-	if(bind(fd, (struct sockaddr*)&ss, addrlen(&ss)) < 0)
+	if(bind(fd, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 		oserror();
 }
 
@@ -237,7 +174,7 @@ hostlookup(char *host)
 {
 	char buf[100];
 	uchar *p;
-	struct hostent *he;
+	HOSTENT *he;
 
 	he = gethostbyname(host);
 	if(he != 0 && he->h_addr_list[0]) {

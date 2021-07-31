@@ -3,10 +3,14 @@
 #include "dat.h"
 #include "fns.h"
 #include "error.h"
-#include "ip.h"
 
 #include "devip.h"
 
+void		hnputl(void *p, unsigned long v);
+void		hnputs(void *p, unsigned short v);
+unsigned long	nhgetl(void *p);
+unsigned short	nhgets(void *p);
+unsigned long	parseip(char *to, char *from);
 void	csclose(Chan*);
 long	csread(Chan*, void*, long, vlong);
 long	cswrite(Chan*, void*, long, vlong);
@@ -33,7 +37,6 @@ enum
 #define CONV(x) 	((int)(((x).path >> 4)&0xfff))
 #define PROTO(x) 	((int)(((x).path >> 16)&0xff))
 #define QID(p, c, y) 	(((p)<<16) | ((c)<<4) | (y))
-#define ipzero(x)	memset(x, 0, IPaddrlen)
 
 typedef struct Proto	Proto;
 typedef struct Conv	Conv;
@@ -45,9 +48,9 @@ struct Conv
 	int	perm;
 	char	owner[KNAMELEN];
 	char*	state;
-	uchar	laddr[IPaddrlen];
+	ulong	laddr;
 	ushort	lport;
-	uchar	raddr[IPaddrlen];
+	ulong	raddr;
 	ushort	rport;
 	int	restricted;
 	char	cerr[KNAMELEN];
@@ -68,6 +71,7 @@ struct Proto
 
 static	int	np;
 static	Proto	proto[MAXPROTO];
+int	eipfmt(Fmt*);
 
 static	Conv*	protoclone(Proto*, char*, int);
 static	void	setladdr(Conv*);
@@ -218,7 +222,7 @@ Chan *
 ipopen(Chan *c, int omode)
 {
 	Proto *p;
-	uchar raddr[IPaddrlen];
+	ulong raddr;
 	ushort rport;
 	int perm, sfd;
 	Conv *cv, *lcv;
@@ -282,13 +286,13 @@ ipopen(Chan *c, int omode)
 	case Qlisten:
 		p = &proto[PROTO(c->qid)];
 		lcv = p->conv[CONV(c->qid)];
-		sfd = so_accept(lcv->sfd, raddr, &rport);
+		sfd = so_accept(lcv->sfd, &raddr, &rport);
 		cv = protoclone(p, up->user, sfd);
 		if(cv == 0) {
 			close(sfd);
 			error(Enodev);
 		}
-		ipmove(cv->raddr, raddr);
+		cv->raddr = raddr;
 		cv->rport = rport;
 		setladdr(cv);
 		cv->state = "Established";
@@ -320,8 +324,8 @@ ipclose(Chan *c)
 		strcpy(cc->owner, "network");
 		cc->perm = 0666;
 		cc->state = "Closed";
-		ipzero(cc->laddr);
-		ipzero(cc->raddr);
+		cc->laddr = 0;
+		cc->raddr = 0;
 		cc->lport = 0;
 		cc->rport = 0;
 		close(cc->sfd);
@@ -335,7 +339,7 @@ ipread(Chan *ch, void *a, long n, vlong offset)
 	int r;
 	Conv *c;
 	Proto *x;
-	uchar ip[IPaddrlen];
+	uchar ip[4];
 	char buf[128], *p;
 
 /*print("ipread %s %lux\n", c2name(ch), (long)ch->qid.path);*/
@@ -354,12 +358,12 @@ ipread(Chan *ch, void *a, long n, vlong offset)
 		return readstr(offset, p, n, buf);
 	case Qremote:
 		c = proto[PROTO(ch->qid)].conv[CONV(ch->qid)];
-		ipmove(ip, c->raddr);
+		hnputl(ip, c->raddr);
 		sprint(buf, "%I!%d\n", ip, c->rport);
 		return readstr(offset, p, n, buf);
 	case Qlocal:
 		c = proto[PROTO(ch->qid)].conv[CONV(ch->qid)];
-		ipmove(ip, c->laddr);
+		hnputl(ip, c->laddr);
 		sprint(buf, "%I!%d\n", ip, c->lport);
 		return readstr(offset, p, n, buf);
 	case Qstatus:
@@ -382,7 +386,7 @@ ipread(Chan *ch, void *a, long n, vlong offset)
 static void
 setladdr(Conv *c)
 {
-	so_getsockname(c->sfd, c->laddr, &c->lport);
+	so_getsockname(c->sfd, &c->laddr, &c->lport);
 }
 
 static void
@@ -391,27 +395,23 @@ setlport(Conv *c)
 	if(c->restricted == 0 && c->lport == 0)
 		return;
 
-	if(c->sfd == -1)
-		c->sfd = so_socket(c->p->stype, c->laddr);
-
-	so_bind(c->sfd, c->restricted, c->lport, c->laddr);
+	so_bind(c->sfd, c->restricted, c->lport);
 }
 
 static void
 setladdrport(Conv *c, char *str)
 {
-	char *p;
-	uchar addr[IPaddrlen];
+	char *p, addr[4];
 
 	p = strchr(str, '!');
 	if(p == 0) {
 		p = str;
-		ipzero(c->laddr);
+		c->laddr = 0;
 	}
 	else {
 		*p++ = 0;
 		parseip(addr, str);
-		ipmove(c->laddr, addr);
+		c->laddr = nhgetl((uchar*)addr);
 	}
 	if(*p == '*')
 		c->lport = 0;
@@ -424,15 +424,14 @@ setladdrport(Conv *c, char *str)
 static char*
 setraddrport(Conv *c, char *str)
 {
-	char *p;
-	uchar addr[IPaddrlen];
+	char *p, addr[4];
 
 	p = strchr(str, '!');
 	if(p == 0)
 		return "malformed address";
 	*p++ = 0;
 	parseip(addr, str);
-	ipmove(c->raddr, addr);
+	c->raddr = nhgetl((uchar*)addr);
 	c->rport = atoi(p);
 	p = strchr(p, '!');
 	if(p) {
@@ -481,8 +480,6 @@ ipwrite(Chan *ch, void *a, long n, vlong offset)
 				setlport(c);
 				break;
 			}
-			if(c->sfd == -1)
-				c->sfd = so_socket(c->p->stype, c->raddr);
 			so_connect(c->sfd, c->raddr, c->rport);
 			setladdr(c);
 			c->state = "Established";
@@ -568,16 +565,157 @@ protoclone(Proto *p, char *user, int nfd)
 	c->perm = 0660;
 	c->state = "Closed";
 	c->restricted = 0;
-	ipzero(c->laddr);
-	ipzero(c->raddr);
+	c->laddr = 0;
+	c->raddr = 0;
 	c->lport = 0;
 	c->rport = 0;
 	c->sfd = nfd;
+	if(nfd == -1)
+		c->sfd = so_socket(p->stype);
 
 	unlock(&c->r.lk);
 	unlock(&p->l);
 	poperror();
 	return c;
+}
+
+enum
+{
+	Isprefix= 16,
+};
+
+uchar prefixvals[256] =
+{
+/*0x00*/ 0 | Isprefix,
+		   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0x10*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0x20*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0x30*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0x40*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0x50*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0x60*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0x70*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0x80*/ 1 | Isprefix,
+		   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0x90*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0xA0*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0xB0*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0xC0*/ 2 | Isprefix,
+		   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0xD0*/	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0xE0*/ 3 | Isprefix,
+		   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/*0xF0*/ 4 | Isprefix,
+		   0, 0, 0, 0, 0, 0, 0, 
+/*0xF8*/ 5 | Isprefix,
+		   0, 0, 0, 
+/*0xFC*/ 6 | Isprefix,
+		   0,
+/*0xFE*/ 7 | Isprefix,
+/*0xFF*/ 8 | Isprefix,
+};
+
+int
+eipfmt(Fmt *f)
+{
+	char buf[5*8];
+	static char *efmt = "%.2lux%.2lux%.2lux%.2lux%.2lux%.2lux";
+	static char *ifmt = "%d.%d.%d.%d";
+	uchar *p, ip[16];
+	ulong ul;
+
+	switch(f->r) {
+	case 'E':		/* Ethernet address */
+		p = va_arg(f->args, uchar*);
+		snprint(buf, sizeof buf, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
+		return fmtstrcpy(f, buf);
+
+	case 'I':
+		ul = va_arg(f->args, ulong);
+		hnputl(ip, ul);
+		snprint(buf, sizeof buf, ifmt, ip[0], ip[1], ip[2], ip[3]);
+		return fmtstrcpy(f, buf);
+	}
+	return fmtstrcpy(f, "(eipfmt)");
+}
+
+void
+hnputl(void *p, unsigned long v)
+{
+	unsigned char *a;
+
+	a = p;
+	a[0] = v>>24;
+	a[1] = v>>16;
+	a[2] = v>>8;
+	a[3] = v;
+}
+
+void
+hnputs(void *p, unsigned short v)
+{
+	unsigned char *a;
+
+	a = p;
+	a[0] = v>>8;
+	a[1] = v;
+}
+
+unsigned long
+nhgetl(void *p)
+{
+	unsigned char *a;
+	a = p;
+	return (a[0]<<24)|(a[1]<<16)|(a[2]<<8)|(a[3]<<0);
+}
+
+unsigned short
+nhgets(void *p)
+{
+	unsigned char *a;
+	a = p;
+	return (a[0]<<8)|(a[1]<<0);
+}
+
+#define CLASS(p) ((*(unsigned char*)(p))>>6)
+
+unsigned long
+parseip(char *to, char *from)
+{
+	int i;
+	char *p;
+
+	p = from;
+	memset(to, 0, 4);
+	for(i = 0; i < 4 && *p; i++){
+		to[i] = strtoul(p, &p, 10);
+		if(*p != '.' && *p != 0){
+			memset(to, 0, 4);
+			return 0;
+		}
+		if(*p == '.')
+			p++;
+	}
+	switch(CLASS(to)){
+	case 0:	/* class A - 1 byte net */
+	case 1:
+		if(i == 3){
+			to[3] = to[2];
+			to[2] = to[1];
+			to[1] = 0;
+		} else if (i == 2){
+			to[3] = to[1];
+			to[1] = 0;
+		}
+		break;
+	case 2:	/* class B - 2 byte net */
+		if(i == 3){
+			to[3] = to[2];
+			to[2] = 0;
+		}
+		break;
+	}
+	return nhgetl(to);
 }
 
 void
@@ -718,17 +856,23 @@ lookupport(char *s)
 	return 0;
 }
 
-static int
-lookuphost(char *s, uchar *to)
+static ulong
+lookuphost(char *s)
 {
-	ipzero(to);
-	if(parseip(to, s) != -1)
-		return 0;
-	if((s = hostlookup(s)) == nil)
-		return -1;
+	char to[4];
+	ulong ip;
+
+	memset(to, 0, sizeof to);
 	parseip(to, s);
+	ip = nhgetl(to);
+	if(ip != 0)
+		return ip;
+	if((s = hostlookup(s)) == nil)
+		return 0;
+	parseip(to, s);
+	ip = nhgetl(to);
 	free(s);
-	return 0;
+	return ip;
 }
 
 long
@@ -736,7 +880,7 @@ cswrite(Chan *c, void *a, long n, vlong offset)
 {
 	char *f[4];
 	char *s, *ns;
-	uchar ip[IPaddrlen];
+	ulong ip;
 	int nf, port;
 
 	s = malloc(n+1);
@@ -756,7 +900,8 @@ cswrite(Chan *c, void *a, long n, vlong offset)
 	if(port <= 0)
 		error("no translation for port found");
 
-	if(lookuphost(f[1], ip) < 0)
+	ip = lookuphost(f[1]);
+	if(ip == 0)
 		error("no translation for host found");
 
 	ns = smprint("/net/%s/clone %I!%d", f[0], ip, port);

@@ -289,5 +289,5 @@ typedef struct {
 
 typedef struct {
 	Aport	*p;
-	Aportm	*pm;
+	Aportm	*m;
 } Aportc;
