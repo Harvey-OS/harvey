@@ -27,22 +27,19 @@ rune2html(Rune r)
 			sysfatal("fork: %r");
 		case 0:
 			dup(p[0], 0);
-			dup(p[1], 1);
-			close(p[0]);
+			dup(p[0], 1);
 			close(p[1]);
 			execl("/bin/tcs", "tcs", "-t", "html", nil);
 			_exits(0);
 		default:
+			close(p[0]);
 			fd = p[1];
-			Binit(&b, p[0], OREAD);
+			Binit(&b, fd, OREAD);
 			break;
 		}
 	}
-	/* HACK: extra newlines force rune+\n through tcs now */
-	fprint(fd, "%C\n\n\n\n", r);
+	fprint(fd, "%C\n", r);
 	q = Brdline(&b, '\n');
-	while (q != nil && *q == '\n')
-		q = Brdline(&b, '\n');
 	if(q == nil)
 		sysfatal("tcs: early eof");
 	q[Blinelen(&b)-1] = 0;
