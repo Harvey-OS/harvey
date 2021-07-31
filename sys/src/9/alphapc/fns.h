@@ -40,7 +40,6 @@ int		i8042auxcmd(int);
 void		i8042auxenable(void (*)(int, int));
 void		i8042reset(void);
 void	i8250console(void);
-void	i8250mouse(char*, int(*)(Queue*,int), int);
 void		i8259init(void);
 int		i8259enable(int, int, Vctl*);
 #define	idlehands()			/* nothing to do in the runproc */

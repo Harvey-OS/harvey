@@ -501,26 +501,28 @@ rtl8139receive(Ether* edev)
 		p = ctlr->rbstart+capr;
 		capr = (capr+length) % ctlr->rblen;
 
+/*
+ * there's a real conflict here; the 83820 driver uses compat.h's 
+ *	#define rp data
+ * rp and wp presumably can't both be data.
+ */
+#ifdef FS
+#define wp data
+#endif
 		if((bp = iallocb(length)) != nil){
-			SETWPCNT(bp, 0);
 			if(p+length >= ctlr->rbstart+ctlr->rblen){
 				l = ctlr->rbstart+ctlr->rblen - p;
-				memmove(ENDDATA(bp), p, l);
-				INCRPTR(bp, l);
+				memmove(bp->wp, p, l);
+				bp->wp += l;
 				length -= l;
 				p = ctlr->rbstart;
 			}
 			if(length > 0){
-				memmove(ENDDATA(bp), p, length);
-				INCRPTR(bp, length);
+				memmove(bp->wp, p, length);
+				bp->wp += length;
 			}
-			INCRPTR(bp, -4);
-			if (BLEN(bp) < 0) {
-				print("rtl8139receive: input packet of negative length\n");
-				SETWPCNT(bp, 0);
-				freeb(bp);
-			} else
-				ETHERIQ(edev, bp, 1);
+			bp->wp -= 4;
+			ETHERIQ(edev, bp, 1);
 		}
 
 		capr = ROUNDUP(capr, 4);

@@ -449,7 +449,6 @@ found:
 	n = vtRead(c->z, score, type, b->data, size);
 	if(n < 0) {
 fprint(2, "vtRead failed: %V %d %d: %R\n", score, type, size);
-abort();
 		lumpDecRef(b, 1);
 		return nil;
 	}
@@ -458,8 +457,8 @@ abort();
 		lumpDecRef(b, 1);
 		return nil;
 	}
-	vtZeroExtend(type, b->data, n, size);
-	b->asize = size;
+
+	b->asize = n;
 	lumpSetState(b, LumpVenti);
 
 	return b;
