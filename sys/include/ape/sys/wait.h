@@ -20,11 +20,8 @@ extern "C" {
 
 pid_t wait(int *);
 pid_t waitpid(pid_t, int *, int);
-#ifdef _BSD_EXTENSION
-struct rusage;
-pid_t wait3(int *, int, struct rusage *);
-pid_t wait4(pid_t, int *, int, struct rusage *);
-#endif
+pid_t wait3(int *, int, void *);
+pid_t wait4(pid_t, int *, int, void *);
 
 #ifdef __cplusplus
 }
