@@ -7,7 +7,6 @@
 #include <ndb.h>
 
 static int all, multiple;
-static Biobuf bout;
 
 void
 usage(void)
@@ -23,7 +22,7 @@ prmatch(Ndbtuple *nt, char *rattr)
 {
 	for(; nt; nt = nt->entry)
 		if (strcmp(nt->attr, rattr) == 0)
-			Bprint(&bout, "%s\n", nt->val);
+			print("%s\n", nt->val);
 }
 
 void
@@ -39,7 +38,7 @@ search(Ndb *db, char *attr, char *val, char *rattr)
 		if (multiple)
 			prmatch(t, rattr);
 		else if(p)
-			Bprint(&bout, "%s\n", p);
+			print("%s\n", p);
 		ndbfree(t);
 		free(p);
 		return;
@@ -58,8 +57,8 @@ search(Ndb *db, char *attr, char *val, char *rattr)
 	/* all entries */
 	for(t = ndbsearch(db, &s, attr, val); t; t = ndbsnext(&s, attr, val)){
 		for(nt = t; nt; nt = nt->entry)
-			Bprint(&bout, "%s=%s ", nt->attr, nt->val);
-		Bprint(&bout, "\n");
+			print("%s=%s ", nt->attr, nt->val);
+		print("\n");
 		ndbfree(t);
 	}
 }
@@ -70,7 +69,7 @@ main(int argc, char **argv)
 	int reps = 1;
 	char *rattr = nil, *dbfile = nil;
 	Ndb *db;
-	
+
 	ARGBEGIN{
 	case 'a':
 		all++;
@@ -79,7 +78,7 @@ main(int argc, char **argv)
 		multiple++;
 		break;
 	case 'f':
-		dbfile = EARGF(usage());
+		dbfile = ARGF();
 		break;
 	default:
 		usage();
@@ -98,9 +97,7 @@ main(int argc, char **argv)
 	default:
 		usage();
 	}
-
-	if(Binit(&bout, 1, OWRITE) == -1)
-		sysfatal("Binit: %r");
+	
 	db = ndbopen(dbfile);
 	if(db == nil){
 		fprint(2, "%s: no db files\n", argv0);
