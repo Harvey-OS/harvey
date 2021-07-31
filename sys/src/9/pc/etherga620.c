@@ -1201,13 +1201,13 @@ ga620promiscuous(void *arg, int on)
 }
 
 static void
-ga620multicast(void *arg, uchar *addr, int add)
+ga620multicast(void *arg, uchar *addr, int on)
 {
 	Ether *ether = arg;
 
 	USED(addr);
-	if (add)
-		ga620command(ether->ctlr, 0xe, 1, 0);	/* 1 == enable */
+	/* 3rd arg: 1 enables, 2 disables */
+	ga620command(ether->ctlr, 0xe, (on? 1: 2), 0);
 }
 
 static int

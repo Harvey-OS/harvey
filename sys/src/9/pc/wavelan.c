@@ -12,9 +12,9 @@
 	long. When it gets robust, locks should be revisited.
 
 	BUGS: check endian, alignment and mem/io issues;
+	      multicast;
 	      receive watchdog interrupts.
 	TODO: automatic power management;
-	      multicast filtering;
 	      improve locking.
  */
 #include "u.h"
@@ -736,11 +736,9 @@ w_timer(void* arg)
 }
 
 void
-w_multicast(void *ether, uchar*, int add)
+w_multicast(void*, uchar*, int)
 {
-	/* BUG: use controller's multicast filter */
-	if (add)
-		w_promiscuous(ether, 1);
+	// BUG: to be added.
 }
 
 void
