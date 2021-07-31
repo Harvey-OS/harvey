@@ -3,7 +3,8 @@
 #define listen  pm_listen
 #define sleep	ksleep
 #define wakeup	kwakeup
-#define strtod		fmtstrtod
+#define strtod		libstrtod
+#define pow10	libpow10
 
 /* conflicts on some os's */
 #define encrypt	libencrypt
@@ -199,8 +200,7 @@ enum{
 	FmtComma	= FmtVLong << 1,
 	FmtByte	= FmtComma << 1,
 
-	FmtFlag		= FmtByte << 1,
-	FmtLDouble	= FmtFlag << 1
+	FmtFlag		= FmtByte << 1
 };
 
 extern	int	print(char*, ...);
@@ -253,10 +253,8 @@ void		hnputs(void *p, unsigned short v);
 extern	int	dofmt(Fmt*, char*);
 extern	double	__NaN(void);
 extern	int	__isNaN(double);
-extern	double	strtod(const char*, char**);
+extern	double	strtod(char*, char**);
 extern	int	utfnlen(char*, long);
 extern	double	__Inf(int);
 extern	int	__isInf(double, int);
-
-extern int (*fmtdoquote)(int);
-
+extern	double	pow10(int);
