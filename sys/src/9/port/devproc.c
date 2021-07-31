@@ -1554,7 +1554,7 @@ txt2data(Proc *p, Segment *s)
 	for(i = 0; i < NSEG; i++)
 		if(p->seg[i] == s)
 			break;
-	if(i == NSEG)
+	if(p->seg[i] != s)
 		panic("segment gone");
 
 	qunlock(&s->lk);
