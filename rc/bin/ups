@@ -1,7 +1,10 @@
 #!/bin/rc
 
 # lucent web proxy caches the page; defeat it
-rfork n
+#LU rfork n
+#LU if(! test -d /net.alt/tcp) import achille /net.alt
+#LU bind /net.alt /net
+
 
 if(! ~ $#* 1) {
 	echo usage: ups 1ZA41W190338680961 >[1=2]
