@@ -97,6 +97,7 @@ misc
 	vgavmware	+cur
 
 ip
+	il
 	tcp
 	udp
 	ipifc
@@ -107,6 +108,7 @@ port
 	int cpuserver = 0;
 
 boot boot #S/sdD0/data
+	il
 	tcp
 	local
 

@@ -90,6 +90,7 @@ misc
 	vgavmware	+cur
 
 ip
+	il
 	tcp
 	udp
 	ipifc
@@ -100,6 +101,7 @@ port
 	int cpuserver = 0;
 
 boot boot #S/sdC0/
+	il
 	local
 
 bootdir

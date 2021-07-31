@@ -47,6 +47,7 @@ misc
 	vgas3 		+cur vgasavage
 
 ip
+	il
 	tcp
 	udp
 	ipifc
@@ -58,6 +59,7 @@ port
 
 boot cpu boot #S/sdC0/
 	tcp
+	il
 	local
 
 bootdir

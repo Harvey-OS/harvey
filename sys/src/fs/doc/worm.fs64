@@ -1,0 +1,81 @@
+# 4k blocks
+fs64: printconf
+config w0
+service fs64
+filsys main w0
+ipauth 0.0.0.0
+ipsntp 216.240.55.164
+ip0 216.240.55.167
+ipmask0 255.255.255.224
+end
+fs64: 
+
+# 4k blocks
+Wed Sep  1 17:46:10 PDT 2004
+fs64: printconf
+config w0
+service fs64
+filsys main cp(w0)0.20fp(w0)20.80
+filsys dump o
+ipauth 0.0.0.0
+ipsntp 216.240.55.164
+ip0 216.240.55.167
+ipmask0 255.255.255.224
+end
+fs64: 
+
+# 8k blocks, preparing for worm jukebox
+Thu Sep  2 00:17:19 PDT 2004
+fs64: printconf
+config w0
+service fs64
+filsys main cp(w0)0.20fp(w0)20.80
+filsys dump o
+ipauth 0.0.0.0
+ipsntp 216.240.55.164
+ip0 216.240.55.167
+ipmask0 255.255.255.224
+end
+fs64: 
+
+# 8k blocks with hp 160fx worm jukebox
+# only 1 MO disc inside currently
+Fri Sep  3 23:06:30 PDT 2004
+fs64: printconf
+config w0
+service fs64
+filsys main cp(w0)1.99j(w1.<1-5>.0)(l<0-15>l<16-31>)
+filsys dump o
+ipauth 0.0.0.0
+ipsntp 216.240.55.164
+ip0 216.240.55.167
+ipmask0 255.255.255.224
+end
+
+# add two ide disks: one is the juke's mirror, the other is new other
+Thu Sep 30 00:38:38 PDT 2004
+fs64: printconf
+config w0
+service fs64
+filsys main cp(w0)1.99{h0j(w1.<1-5>.0)(l<0-15>l<16-31>)}
+filsys dump o
+filsys other h2
+ipauth 0.0.0.0
+ipsntp 216.240.55.164
+ip0 216.240.55.167
+ipmask0 255.255.255.224
+end
+
+# now has 8 WO disks and 1 RW disk currently (25 nov 2004),
+# treat 8 WO disks as one set of disks.
+fs64: printconf
+config w0
+service fs64
+filsys main cp(w0)1.99{h0j(w1.<1-5>.0)(l<0-7>l<64-71>l<8-62>l<72-126>)}
+filsys dump o
+filsys other h2
+ipauth 0.0.0.0
+ipsntp 216.240.55.164
+ip0 216.240.55.167
+ipmask0 255.255.255.224
+end

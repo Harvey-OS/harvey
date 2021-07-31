@@ -46,6 +46,7 @@ misc
 	vgatvp3026	=cur
 
 ip
+	il
 	tcp
 	udp
 	ipifc
@@ -57,6 +58,7 @@ port
 
 boot
 	tcp
+	il
 
 bootdir
 	bootapc.out boot

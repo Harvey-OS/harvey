@@ -38,6 +38,7 @@ misc
 	uarti8250
 
 ip
+	il
 	tcp
 	udp
 	ipifc
@@ -51,6 +52,7 @@ port
 
 boot cpu
 	tcp
+	il
 
 bootdir
 	bootapccpu.out boot

@@ -10,13 +10,7 @@ enum {
 	Nibmask = (1<<Nibwidth) - 1,
 	V6maxrevdomdepth = 128 / Nibwidth,	/* bits / bits-per-nibble */
 
-	/*
-	 * ttl for generated ptr records.  it was zero, which might seem
-	 * like a good idea, but some dns implementations seem to be
-	 * confused by a zero ttl, and instead of using the data and then
-	 * discarding the RR, they conclude that they don't have valid data.
-	 */
-	Ptrttl = 300,
+	Ptrttl = 300,		/* ttl for generated ptr records; was 0 */
 };
 
 static Ndb *db;

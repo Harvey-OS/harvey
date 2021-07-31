@@ -28,6 +28,7 @@ misc
 	m8260
 
 ip
+	il
 	tcp
 	udp
 	ipifc
@@ -38,6 +39,7 @@ port
 	int cpuserver = 1;
 
 boot cpu
+	il
 	tcp
 
 bootdir

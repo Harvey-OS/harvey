@@ -1,0 +1,3 @@
+DEVFILES=`{builtin cd ../dev;echo *.c | sed 's/ /|/g; s/\.c//g'}
+^($DEVFILES)\.$O:R:	'../dev/\1.c'
+	$CC $CFLAGS -I. ../dev/$stem1.c
