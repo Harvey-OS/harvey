@@ -24,7 +24,6 @@ typedef struct Rgrp		Rgrp;
 typedef struct Tqueue	Tqueue;
 typedef struct Thread	Thread;
 typedef struct Execargs	Execargs;
-typedef struct Execjob	Execjob;
 typedef struct Proc		Proc;
 
 /* must match list in sched.c */
@@ -100,14 +99,6 @@ struct Execargs
 	char		*prog;
 	char		**args;
 	int		fd[2];
-};
-
-struct Execjob
-{
-	int *fd;
-	char *cmd;
-	char **argv;
-	Channel *c;
 };
 
 struct Proc
