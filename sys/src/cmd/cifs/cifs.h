@@ -472,16 +472,14 @@ typedef struct {
 	char	*user;
 } Fileinfo;
 
-extern int Active;
-extern int Checkcase;
 extern int Dfstout;
 extern char *Debug;
-extern char *Host;
-extern Session *Sess;
 extern Share Ipc;
+extern Session *Sess;
+extern int Active;
 
-extern Share Shares[MAX_SHARES];
-extern int Nshares;
+Share Shares[MAX_SHARES];
+int Nshares;
 
 /* main.c */
 Qid	mkqid(char *, int, long, int, long);
@@ -522,7 +520,6 @@ char	*mapfile(char *);
 int	mapshare(char *, Share **);
 int	redirect(Session *, Share *s, char *);
 int	dfscacheinfo(Fmt *);
-char	*trimshare(char *);
 
 /* doserrstr.c */
 char	*doserrstr(uint);

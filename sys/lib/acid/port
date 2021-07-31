@@ -508,8 +508,7 @@ defn next()
 
 defn dump(addr, n, fmt)
 {
-	// see definition of dump in acid manual: it does n+1 iterations
-	loop 0, n do {
+	loop 1, n do {
 		print(fmt(addr, 'X'), ": ");
 		addr = mem(addr, fmt);
 	}
