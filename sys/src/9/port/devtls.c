@@ -732,7 +732,7 @@ tlsrecread(TlsRec *tr)
 {
 	OneWay *volatile in;
 	Block *volatile b;
-	uchar *p, seq[8], header[RecHdrLen], hmac[MaxMacLen];
+	uchar *p, seq[8], header[RecHdrLen], hmac[MD5dlen];
 	int volatile nconsumed;
 	int len, type, ver, unpad_len;
 
@@ -1323,7 +1323,7 @@ tlsbwrite(Chan *c, Block *b, ulong offset)
 
 	tr = tlsdevs[CONV(c->qid)];
 	if(tr == nil)
-		panic("tlsbwrite");
+		panic("tlsbread");
 
 	ty = TYPE(c->qid);
 	switch(ty) {

@@ -2,6 +2,8 @@
 #include <libc.h>
 #include "plumb.h"
 
+static char attrbuf[4096];
+
 int
 plumbopen(char *name, int omode)
 {
@@ -68,20 +70,20 @@ Strcpy(char *s, char *t)
 
 /* quote attribute value, if necessary */
 static char*
-quote(char *s, char *buf, char *bufe)
+quote(char *s)
 {
 	char *t;
 	int c;
 
 	if(s == nil){
-		buf[0] = '\0';
-		return buf;
+		attrbuf[0] = '\0';
+		return attrbuf;
 	}
 	if(strpbrk(s, " '=\t") == nil)
 		return s;
-	t = buf;
+	t = attrbuf;
 	*t++ = '\'';
-	while(t < bufe-2){
+	while(t < attrbuf+sizeof attrbuf-2){
 		c = *s++;
 		if(c == '\0')
 			break;
@@ -91,7 +93,7 @@ quote(char *s, char *buf, char *bufe)
 	}
 	*t++ = '\'';
 	*t = '\0';
-	return buf;
+	return attrbuf;
 }
 
 char*
@@ -99,21 +101,16 @@ plumbpackattr(Plumbattr *attr)
 {
 	int n;
 	Plumbattr *a;
-	char *s, *t, *buf, *bufe;
+	char *s, *t;
 
 	if(attr == nil)
 		return nil;
-	if((buf = malloc(4096)) == nil)
-		return nil;
-	bufe = buf + 4096;
 	n = 0;
 	for(a=attr; a!=nil; a=a->next)
-		n += Strlen(a->name) + 1 + Strlen(quote(a->value, buf, bufe)) + 1;
+		n += Strlen(a->name) + 1 + Strlen(quote(a->value)) + 1;
 	s = malloc(n);
-	if(s == nil) {
-		free(buf);
+	if(s == nil)
 		return nil;
-	}
 	t = s;
 	*t = '\0';
 	for(a=attr; a!=nil; a=a->next){
@@ -121,12 +118,11 @@ plumbpackattr(Plumbattr *attr)
 			*t++ = ' ';
 		strcpy(t, a->name);
 		strcat(t, "=");
-		strcat(t, quote(a->value, buf, bufe));
+		strcat(t, quote(a->value));
 		t += strlen(t);
 	}
 	if(t > s+n)
 		abort();
-	free(buf);
 	return s;
 }
 
@@ -240,13 +236,9 @@ Plumbattr*
 plumbunpackattr(char *p)
 {
 	Plumbattr *attr, *prev, *a;
-	char *q, *v, *buf, *bufe;
+	char *q, *v;
 	int c, quoting;
 
-	buf = malloc(4096);
-	if(buf == nil)
-		return nil;
-	bufe = buf + 4096;
 	attr = prev = nil;
 	while(*p!='\0' && *p!='\n'){
 		while(*p==' ' || *p=='\t')
@@ -270,10 +262,10 @@ plumbunpackattr(char *p)
 		a->name[q-p] = '\0';
 		/* process quotes in value */
 		q++;	/* skip '=' */
-		v = buf;
+		v = attrbuf;
 		quoting = 0;
 		while(*q!='\0' && *q!='\n'){
-			if(v >= bufe)
+			if(v >= attrbuf+sizeof attrbuf)
 				break;
 			c = *q++;
 			if(quoting){
@@ -295,14 +287,14 @@ plumbunpackattr(char *p)
 			}
 			*v++ = c;
 		}
-		a->value = malloc(v-buf+1);
+		a->value = malloc(v-attrbuf+1);
 		if(a->value == nil){
 			free(a->name);
 			free(a);
 			break;
 		}
-		memmove(a->value, buf, v-buf);
-		a->value[v-buf] = '\0';
+		memmove(a->value, attrbuf, v-attrbuf);
+		a->value[v-attrbuf] = '\0';
 		a->next = nil;
 		if(prev == nil)
 			attr = a;
@@ -311,7 +303,6 @@ plumbunpackattr(char *p)
 		prev = a;
 		p = q;
 	}
-	free(buf);
 	return attr;
 }
 

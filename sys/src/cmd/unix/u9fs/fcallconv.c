@@ -76,8 +76,7 @@ fcallconv(va_list *arg, Fconv *f1)
 			f->qid.path, f->qid.vers, qidtype(tmp, f->qid.type), f->iounit);
 		break;
 	case Tcreate:	/* 114 */
-		sprint(buf, "Tcreate tag %ud fid %ud name %s perm %M mode %d",
-			tag, fid, f->name, (ulong)f->perm, f->mode);
+		sprint(buf, "Tcreate tag %ud fid %ud perm %M mode %d", tag, fid, (ulong)f->perm, f->mode);
 		break;
 	case Rcreate:
 		sprint(buf, "Rcreate tag %ud qid " QIDFMT " iounit %ud ", tag,

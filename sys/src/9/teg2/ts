@@ -68,13 +68,13 @@ misc
 	uarti8250
 	ucalloc
 	ucallocb
-# include vfp3 to use hardware fp, otherwise include softfpu
-	vfp3
-#	softfpu
-# emulated arm7500 fp
+# hardware fp; can't get 5l to generate the right opcodes
+#	vfp3
+# emulated fp
 	fpi
 	fpiarm
 	fpimem
+	softfpu
 
 port
 	int cpuserver = 1;

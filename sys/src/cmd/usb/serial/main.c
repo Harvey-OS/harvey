@@ -7,7 +7,6 @@
 #include "ucons.h"
 #include "prolific.h"
 #include "ftdi.h"
-#include "silabs.h"
 
 enum {
 	Arglen = 80,
@@ -27,7 +26,7 @@ static int
 matchserial(char *info, void*)
 {
 	if(uconsmatch(info) == 0 || plmatch(info) == 0 ||
-	    ftmatch(nil, info) == 0 || slmatch(info) == 0)
+	    ftmatch(nil, info) == 0)
 		return 0;
 	return -1;
 }

@@ -38,7 +38,6 @@ runefmtstrinit(Fmt *f)
 	f->start = malloc(sizeof(Rune)*n);
 	if(f->start == nil)
 		return -1;
-	setmalloctag(f->start, getcallerpc(&f));
 	f->to = f->start;
 	f->stop = (Rune*)f->start + n - 1;
 	f->flush = runeFmtStrFlush;
@@ -60,13 +59,12 @@ runevsmprint(char *fmt, va_list args)
 		return nil;
 	f.args = args;
 	n = dofmt(&f, fmt);
-	if(f.start == nil)		/* realloc failed? */
+	if(f.start == nil)
 		return nil;
 	if(n < 0){
 		free(f.start);
 		return nil;
 	}
-	setmalloctag(f.start, getcallerpc(&fmt));
 	*(Rune*)f.to = '\0';
 	return f.start;
 }

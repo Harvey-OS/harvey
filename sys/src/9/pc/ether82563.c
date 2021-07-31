@@ -1,6 +1,7 @@
 /*
  * Intel Gigabit Ethernet PCI-Express Controllers.
- *	8256[36], 8257[1-79]
+ *	8256[36], 8257[124], 82573[ev]
+ *	82575eb, 82576, 82577
  * Pretty basic, does not use many of the chip smarts.
  * The interrupt mitigation tuning for each chip variant
  * is probably different. The reset/initialisation
@@ -58,7 +59,7 @@ enum {
 	/* Receive */
 
 	Rctl		= 0x0100,	/* Control */
-	Ert		= 0x2008,	/* Early Receive Threshold (573[EVL], 579 only) */
+	Ert		= 0x2008,	/* Early Receive Threshold (573[EVL] only) */
 	Fcrtl		= 0x2160,	/* Flow Control RX Threshold Low */
 	Fcrth		= 0x2168,	/* Flow Control Rx Threshold High */
 	Psrctl		= 0x2170,	/* Packet Split Receive Control */
@@ -426,7 +427,6 @@ enum {
 	i82575,
 	i82576,
 	i82577,
-	i82579,
 };
 
 static int rbtab[] = {
@@ -441,7 +441,6 @@ static int rbtab[] = {
 	1514,
 	1514,
 	1514,
-	9018,
 };
 
 static char *tname[] = {
@@ -456,7 +455,6 @@ static char *tname[] = {
 	"i82575",
 	"i82576",
 	"i82577",
-	"i82579",
 };
 
 typedef struct Ctlr Ctlr;
@@ -997,7 +995,7 @@ i82563rxinit(Ctlr* ctlr)
 	}
 	csr32w(ctlr, Rctl, rctl);
 
-	if(ctlr->type == i82573 || ctlr->type == i82577 || ctlr->type == i82579)
+	if(ctlr->type == i82573 || ctlr->type == i82577)
 		csr32w(ctlr, Ert, 1024/8);
 
 	if(ctlr->type == i82566 || ctlr->type == i82567)
@@ -1377,7 +1375,7 @@ i82563detach(Ctlr* ctlr)
 	delay(10);
 
 	r = csr32r(ctlr, Ctrl);
-	if(ctlr->type == i82566 || ctlr->type == i82567 || ctlr->type == i82579)
+	if(ctlr->type == i82566 || ctlr->type == i82567)
 		r |= Phyrst;
 	csr32w(ctlr, Ctrl, Devrst | r);
 	delay(1);
@@ -1521,7 +1519,7 @@ fload(Ctlr *c)
 	f.sz = f.reg32[Bfpr];
 	r = f.sz & 0x1fff;
 	if(csr32r(c, Eec) & (1<<22))
-		r += c->type == i82579? 16 : 1;
+		++r;
 	r <<= 12;
 
 	sum = 0;
@@ -1543,8 +1541,7 @@ i82563reset(Ctlr *ctlr)
 
 	if(i82563detach(ctlr))
 		return -1;
-	if(ctlr->type == i82566 || ctlr->type == i82567 ||
-	   ctlr->type == i82577 || ctlr->type == i82579)
+	if(ctlr->type == i82566 || ctlr->type == i82567 || ctlr->type == i82577)
 		r = fload(ctlr);
 	else
 		r = eeload(ctlr);
@@ -1581,8 +1578,7 @@ i82563reset(Ctlr *ctlr)
 	 */
 	csr32w(ctlr, Fcal, 0x00C28001);
 	csr32w(ctlr, Fcah, 0x0100);
-	if(ctlr->type != i82579)
-		csr32w(ctlr, Fct, 0x8808);
+	csr32w(ctlr, Fct, 0x8808);
 	csr32w(ctlr, Fcttv, 0x0100);
 
 	ctlr->fcrtl = ctlr->fcrth = 0;
@@ -1651,10 +1647,6 @@ i82563pci(void)
 			break;
 		case 0x10ea:		/* 82577lm */
 			type = i82577;
-			break;
-		case 0x1502:		/* 82579lm */
-		case 0x1503:		/* 82579v */
-			type = i82579;
 			break;
 		}
 
@@ -1787,12 +1779,6 @@ i82575pnp(Ether *e)
 	return pnp(e, i82575);
 }
 
-static int
-i82579pnp(Ether *e)
-{
-	return pnp(e, i82579);
-}
-
 void
 ether82563link(void)
 {
@@ -1803,6 +1789,5 @@ ether82563link(void)
 	addethercard("i82572", i82572pnp);
 	addethercard("i82573", i82573pnp);
 	addethercard("i82575", i82575pnp);
-	addethercard("i82579", i82579pnp);
 	addethercard("igbepcie", anypnp);
 }

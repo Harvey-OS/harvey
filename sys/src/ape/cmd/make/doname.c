@@ -288,7 +288,7 @@ if(nproc1 < nproc)
 
 for( ; q ; q = q->nxtshblock )
 	{
-	subst(q->shbp, string, &string[sizeof string - 1]);
+	subst(q->shbp,string);
 	ign = ignerr;
 	nopr = NO;
 	doit = NO;
