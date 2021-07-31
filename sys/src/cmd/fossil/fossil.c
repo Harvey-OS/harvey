@@ -12,7 +12,7 @@ usage(void)
 	fprint(2, "usage: %s"
 		" [-Dt]"
 		" [-c cmd]"
-		" [-f partition]\n"
+		" [-f partition]"
 		, argv0);
 	exits("usage");
 }
