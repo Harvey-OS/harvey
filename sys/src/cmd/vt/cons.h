@@ -70,17 +70,15 @@ extern void	drawstring(Point, char*, int);
 
 extern int	debug;
 extern int	yscrmin, yscrmax;
-extern int	attr;
-extern int	defattr;
-
-extern Image *fgcolor;
-extern Image *bgcolor;
-extern Image *colors[];
-extern Image *hicolors[];
-extern Image *bgdefault;
-extern Image *fgdefault;
-
+extern int	attribute;
+extern int	attdefault;
+extern int	frgcolor;
+extern int	bckcolor;
+extern int	frgdefault;
+extern int	bckdefault;
 extern int cursoron;
+extern Font *fnt;
+extern int	wflag;
 
 extern void curson(int);
 extern void cursoff(void);

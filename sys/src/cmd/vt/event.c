@@ -7,6 +7,7 @@
 #define	BUFSIZ	4000
 
 extern int	outfd;
+extern int	wctlout;
 
 int	hostpid;
 
@@ -31,8 +32,15 @@ start_host(void)
 		exits("consctl");
 	}
 
+	if(wflag){
+		bind("#|", "/mnt/temp", MREPL);
+		wctlout = open("/mnt/temp/data", OWRITE);
+	}
+
 	switch((hostpid = rfork(RFPROC|RFNAMEG|RFFDG|RFNOTEG))) {
 	case 0:
+		if(wflag)
+			bind("/mnt/temp/data1", "/dev/wctl", MREPL);
 		fd = open("/dev/cons", OREAD);
 		dup(fd,0);
 		if(fd != 0)

@@ -139,7 +139,7 @@ emulate(void)
 	int c;
 	int operand[10];
 	int noperand;
-	int savex, savey, saveattr, saveisgraphics;
+	int savex, savey, saveattribute, saveisgraphics;
 	int isgraphics;
 	int g0set, g1set;
 	int dch;
@@ -150,7 +150,7 @@ emulate(void)
 	savex = savey = 0;
 	yscrmin = 0;
 	yscrmax = ymax;
-	saveattr = 0;
+	saveattribute = 0;
 	saveisgraphics = 0;
 	/* set initial tab stops to DEC-standard 8-column spacing */
 	for(c=0; (c+=8)<nelem(tabcol);)
@@ -196,12 +196,14 @@ emulate(void)
 		case '\013':
 		case '\014':
 			newline();
+			//attribute = attdefault;
 			if (ttystate[cs->raw].nlcr)
 				x = 0;
 			break;
 
 		case '\015':		/* carriage return */
 			x = 0;
+			//attribute = attdefault;
 			if (ttystate[cs->raw].crnl)
 				newline();
 			break;
@@ -256,7 +258,7 @@ emulate(void)
 //print("save\n");
 				savex = x;
 				savey = y;
-				saveattr = attr;
+				saveattribute = attribute;
 				saveisgraphics = isgraphics;
 				break;
 
@@ -267,7 +269,7 @@ emulate(void)
 //print("restore\n");
 				x = savex;
 				y = savey;
-				attr = saveattr;
+				attribute = saveattribute;
 				isgraphics = saveisgraphics;
 				break;
 
@@ -429,6 +431,7 @@ print("resetterminal\n");
 						if(noperand == 1){
 							switch(operand[0]){	
 							case 20:	/* set line feed mode */
+print("linefeedmode\n");
 								ttystate[cs->raw].nlcr = 1;
 								break;
 							case 30:	/* screen invisible (? not supported through VT220) */
@@ -448,6 +451,7 @@ print("resetterminal\n");
 							case 5:	/* set normal video on screen */
 								break;
 							case 6:	/* set origin to absolute */
+//print("OL\n");
 								originrelative = 0;
 								x = y = 0;
 								break;
@@ -475,11 +479,14 @@ print("resetterminal\n");
 					 * h - set various options.
 					 */
 					case 'h':
+//print("h%d:%d,%d\n", noperand, operand[0], operand[1]);
 						if(noperand == 1){
 							switch(operand[0]){
 							default:
+//print("escape2 'h' unknown operand %d (n:%d)\n", operand[0], noperand-1);
 								break;
 							case 20:	/* set newline mode */
+print("newlinemode\n");
 								ttystate[cs->raw].nlcr = 0;
 								break;
 							case 30:	/* screen visible (? not supported through VT220) */
@@ -488,6 +495,7 @@ print("resetterminal\n");
 						}else while(--noperand > 0){
 							switch(operand[noperand]){
 							default:
+//print("escape2 'h' operand: %d (n:%d)\n", operand[noperand], noperand);
 								break;
 							case 1:	/* set cursor keys to send application function: ESC O A..D */
 								break;
@@ -501,6 +509,7 @@ print("resetterminal\n");
 							case 5:	/* set screen to reverse video (not implemented) */
 								break;
 							case 6:	/* set origin to relative */
+//print("origin relative\n");
 								originrelative = 1;
 								x = 0;
 								y = yscrmin;
@@ -520,7 +529,7 @@ print("resetterminal\n");
 						break;
 
 					/*
-					 * m - change character attrs.
+					 * m - change character attributes.
 					 */
 					case 'm':
 						setattr(noperand, operand);
@@ -535,6 +544,7 @@ print("resetterminal\n");
 							sendnchars2(4, "\033[0n");	/* terminal ok */
 							break;
 						case 6:	/* cursor position */
+//print("cursor pos\n");
 							sendnchars2(sprint(buf, "\033[%d;%dR",
 								originrelative ? y+1 - yscrmin : y+1, x+1), buf);
 							break;
@@ -545,6 +555,7 @@ print("resetterminal\n");
 					 * q - turn on list of LEDs; turn off others.
 					 */
 					case 'q':
+//print("LED\n");
 						break;
 
 					/*
@@ -553,6 +564,7 @@ print("resetterminal\n");
 					 * scrolling region.
 					 */
 					case 'r':
+//print("scrolling region: n:%d %d %d\n", noperand, operand[1], operand[0]);
 						yscrmin = 0;
 						yscrmax = ymax;
 						switch(noperand){
@@ -862,7 +874,7 @@ Default:
 			}
 			buf[n] = 0;
 //			clear(Rpt(pt(x,y), pt(x+n, y+1)));
-			drawstring(pt(x, y), buf, attr);
+			drawstring(pt(x, y), buf, attribute);
 			x += n;
 			peekc = c;
 			break;
@@ -878,39 +890,39 @@ setattr(int argc, int *argv)
 	for(i=0; i<argc; i++) {
 		switch(argv[i]) {
 		case 0:
-			attr = defattr;
-			fgcolor = fgdefault;
-			bgcolor = bgdefault;
+			attribute = attdefault;
+			frgcolor = frgdefault;
+			bckcolor = bckdefault;
 			break;
 		case 1:
-			attr |= THighIntensity;
+			attribute |= THighIntensity;
 			break;		
 		case 4:
-			attr |= TUnderline;
+			attribute |= TUnderline;
 			break;		
 		case 5:
-			attr |= TBlink;
+			attribute |= TBlink;
 			break;
 		case 7:
-			attr |= TReverse;
+			attribute |= TReverse;
 			break;
 		case 8:
-			attr |= TInvisible;
+			attribute |= TInvisible;
 			break;
 		case 22:
-			attr &= ~THighIntensity;
+			attribute &= ~THighIntensity;
 			break;		
 		case 24:
-			attr &= ~TUnderline;
+			attribute &= ~TUnderline;
 			break;		
 		case 25:
-			attr &= ~TBlink;
+			attribute &= ~TBlink;
 			break;
 		case 27:
-			attr &= ~TReverse;
+			attribute &= ~TReverse;
 			break;
 		case 28:
-			attr &= ~TInvisible;
+			attribute &= ~TInvisible;
 			break;
 		case 30:	/* black */
 		case 31:	/* red */
@@ -920,10 +932,10 @@ setattr(int argc, int *argv)
 		case 35:	/* purple */
 		case 36:	/* cyan */
 		case 37:	/* white */
-			fgcolor = colors[argv[i]-30];
+			frgcolor = argv[i]-30;
 			break;
 		case 39:
-			fgcolor = fgdefault;
+			frgcolor = frgdefault;
 			break;
 		case 40:	/* black */
 		case 41:	/* red */
@@ -933,10 +945,10 @@ setattr(int argc, int *argv)
 		case 45:	/* purple */
 		case 46:	/* cyan */
 		case 47:	/* white */
-			bgcolor = colors[argv[i]-40];
+			bckcolor = argv[i]-40;
 			break;
 		case 49:
-			bgcolor = bgdefault;
+			bckcolor = bckdefault;
 			break;
 		}
 	}
