@@ -323,7 +323,7 @@ filldir(Usbfs *fs, Dir *d, Dirtab *tab, int cn)
 	else
 		d->qid.type = QTFILE;
 	if(tab->qid == Qndir)
-		snprint(d->name, Namesz, "%d", cn);
+		sprint(d->name, "%d", cn);
 	else
 		d->name = tab->name;
 }

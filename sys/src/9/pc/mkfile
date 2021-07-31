@@ -1,5 +1,5 @@
 CONF=pc
-CONFLIST=pc pccpu pcf pcdisk # pccpuf pcauth
+CONFLIST=pc pccpu pcf pccpuf pcdisk pcauth
 CRAPLIST=pccd pcflop
 EXTRACOPIES=
 #EXTRACOPIES=lookout boundary	# copy to these servers on install
