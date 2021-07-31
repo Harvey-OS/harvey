@@ -15,7 +15,7 @@
 #define	Maxfdata 8192
 #define MaxStr 128
 
-void	remoteside(void);
+void	remoteside(int);
 void	fatal(int, char*, ...);
 void	lclnoteproc(int);
 void	rmtnoteproc(void);
@@ -171,8 +171,12 @@ main(int argc, char **argv)
 	case 'f':
 		/* ignored but accepted for compatibility */
 		break;
+	case 'O':
+		p9authproto = "p9sk2";
+		remoteside(1);				/* From listen */
+		break;
 	case 'R':				/* From listen */
-		remoteside();
+		remoteside(0);
 		break;
 	case 'h':
 		system = EARGF(usage());
@@ -281,9 +285,49 @@ fatal(int syserr, char *fmt, ...)
 
 char *negstr = "negotiating authentication method";
 
+char bug[256];
+
+int
+old9p(int fd)
+{
+	int p[2];
+
+	if(pipe(p) < 0)
+		fatal(1, "pipe");
+
+	switch(rfork(RFPROC|RFFDG|RFNAMEG)) {
+	case -1:
+		fatal(1, "rfork srvold9p");
+	case 0:
+		if(fd != 1){
+			dup(fd, 1);
+			close(fd);
+		}
+		if(p[0] != 0){
+			dup(p[0], 0);
+			close(p[0]);
+		}
+		close(p[1]);
+		if(0){
+			fd = open("/sys/log/cpu", OWRITE);
+			if(fd != 2){
+				dup(fd, 2);
+				close(fd);
+			}
+			execl("/bin/srvold9p", "srvold9p", "-ds", nil);
+		} else
+			execl("/bin/srvold9p", "srvold9p", "-s", nil);
+		fatal(1, "exec srvold9p");
+	default:
+		close(fd);
+		close(p[0]);
+	}
+	return p[1];	
+}
+
 /* Invoked with stdin, stdout and stderr connected to the network connection */
 void
-remoteside(void)
+remoteside(int old)
 {
 	char user[MaxStr], home[MaxStr], buf[MaxStr], xdir[MaxStr], cmd[MaxStr];
 	int i, n, fd, badchdir, gotcmd;
@@ -339,6 +383,9 @@ remoteside(void)
 	n = read(fd, buf, sizeof(buf));
 	if(n != 2 || buf[0] != 'O' || buf[1] != 'K')
 		exits("remote tree");
+
+	if(old)
+		fd = old9p(fd);
 
 	/* make sure buffers are big by doing fversion explicitly; pick a huge number; other side will trim */
 	strcpy(buf, VERSION9P);
