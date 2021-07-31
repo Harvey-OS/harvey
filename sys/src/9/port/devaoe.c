@@ -36,6 +36,7 @@ enum {
 #define Q3(l, u, t)	((l)<<8 | QID(u, t))
 #define UP(d)		((d)->flag & Dup)
 
+#define	Ticks		MACHP(0)->ticks
 #define	Ms2tk(t)	(((t)*HZ)/1000)
 #define	Tk2ms(t)	(((t)*1000)/HZ)
 
@@ -82,11 +83,6 @@ enum {
 	Cwr		= 0x30,
 	Cwrext		= 0x34,
 	Cid		= 0xec,
-};
-
-enum {
-	Read,
-	Write,
 };
 
 /*
@@ -257,7 +253,7 @@ srballoc(ulong sz)
 
 	srb = malloc(sizeof *srb+sz);
 	srb->dp = srb->data = srb+1;
-	srb->ticksent = MACHP(0)->ticks;
+	srb->ticksent = Ticks;
 	return srb;
 }
 
@@ -268,7 +264,7 @@ srbkalloc(void *db, ulong)
 
 	srb = malloc(sizeof *srb);
 	srb->dp = srb->data = db;
-	srb->ticksent = MACHP(0)->ticks;
+	srb->ticksent = Ticks;
 	return srb;
 }
 
@@ -382,7 +378,7 @@ eventcount(void)
 	else if(events.wp < events.rp)
 		n = Nevents - (events.rp - events.wp);
 	else
-		n = events.wp - events.rp;
+		n = events.wp-events.rp;
 	unlock(&events);
 	return n/Eventlen;
 }
@@ -392,7 +388,7 @@ tsince(int tag)
 {
 	int n;
 
-	n = MACHP(0)->ticks & 0xffff;
+	n = Ticks & 0xffff;
 	n -= tag & 0xffff;
 	if(n < 0)
 		n += 1<<16;
@@ -406,7 +402,7 @@ newtag(Aoedev *d)
 
 	do {
 		t = ++d->lasttag << 16;
-		t |= MACHP(0)->ticks & 0xffff;
+		t |= Ticks & 0xffff;
 	} while (t == Tfree || t == Tmgmt);
 	return t;
 }
@@ -493,7 +489,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 		downdev(d, "resend fails; no netlink/ea");
 		return -1;
 	}
-	if(f->srb && MACHP(0)->ticks - f->srb->ticksent > Srbtimeout){
+	if(f->srb && Ticks-f->srb->ticksent > Srbtimeout){
 		eventlog("%æ: srb timeout\n", d);
 		frameerror(d, f, Etimedout);
 		return -1;
@@ -511,7 +507,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 	f->dl = l;
 	f->nl = l->nl;
 	f->eaidx = i;
-	f->ticksent = MACHP(0)->ticks;
+	f->ticksent = Ticks;
 
 	return f->tag;
 }
@@ -569,7 +565,6 @@ discover(int major, int minor)
 		h->minor = minor;
 		h->cmd = ACconfig;
 		poperror();
-		/* send b down the queue */
 		devtab[nl->dc->type]->bwrite(nl->dc, b, 0);
 	}
 }
@@ -579,7 +574,7 @@ discover(int major, int minor)
  * outstanding for 200% of the device round trip time average.
  */
 static void
-aoesweepproc(void*)
+aoesweep(void*)
 {
 	ulong i, tx, timeout, nbc;
 	vlong starttick;
@@ -599,7 +594,7 @@ loop:
 		}
 		nbc = Nbcms/Nms;
 	}
-	starttick = MACHP(0)->ticks;
+	starttick = Ticks;
 	rlock(&devs);
 	for(d = devs.d; d; d = d->next){
 		if(!canqlock(d))
@@ -622,7 +617,7 @@ loop:
 			if(d->nout == d->maxout){
 				if(d->maxout > 1)
 					d->maxout--;
-				d->lastwadj = MACHP(0)->ticks;
+				d->lastwadj = Ticks;
 			}
 			a = (Aoeata*)f->hdr;
 			if(a->scnt > Dbcnt / Aoesectsz &&
@@ -641,14 +636,14 @@ loop:
 			}
 		}
 		if(d->nout == d->maxout && d->maxout < d->nframes &&
-		   TK2MS(MACHP(0)->ticks - d->lastwadj) > 10*1000){
+		   TK2MS(Ticks-d->lastwadj) > 10*1000){
 			d->maxout++;
-			d->lastwadj = MACHP(0)->ticks;
+			d->lastwadj = Ticks;
 		}
 		qunlock(d);
 	}
 	runlock(&devs);
-	i = Nms - TK2MS(MACHP(0)->ticks - starttick);
+	i = Nms - TK2MS(Ticks - starttick);
 	if(i > 0)
 		tsleep(&up->sleep, return0, 0, i);
 	goto loop;
@@ -699,13 +694,16 @@ aoeinit(void)
 
 	if(!canqlock(&l))
 		return;
-	if(init == 0){
-		fmtinstall(L'æ', fmtæ);
-		events.rp = events.wp = events.buf;
-		kproc("aoesweep", aoesweepproc, nil);
-		aoecfg();
-		init = 1;
+	if(init++ > 0){
+		qunlock(&l);
+		return;
 	}
+
+	fmtinstall(L'æ', fmtæ);
+	events.rp = events.wp = events.buf;
+	kproc("aoesweep", aoesweep, nil);
+	aoecfg();
+
 	qunlock(&l);
 }
 
@@ -716,9 +714,11 @@ aoeattach(char *spec)
 
 	if(*spec)
 		error(Enonexist);
+
 	aoeinit();
 	c = devattach(L'æ', spec);
 	mkqid(&c->qid, Qzero, 0, QTDIR);
+
 	return c;
 }
 
@@ -738,6 +738,7 @@ unit2dev(ulong unit)
 	runlock(&devs);
 	uprint("unit lookup failure: %lux pc %p", unit, getcallerpc(&unit));
 	error(up->genbuf);
+//	error("unit lookup failure");
 	return nil;
 }
 
@@ -1156,7 +1157,7 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 	}
 	nlen = len;
 	srb->write = write;
-	do {
+	for (;;) {
 		if(!UP(d))
 			error(Eio);
 		srb->sector = off / Aoesectsz;
@@ -1165,17 +1166,19 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 		if(n > Srbsz)
 			n = Srbsz;
 		srb->len = n;
-		if(write && !copy)
+		if(write == 1 && copy == 0)
 			memmove(srb->data, db, n);
 		strategy(d, srb);
 		if(srb->error)
 			error(srb->error);
-		if(!write && !copy)
+		if(write == 0 && copy == 0)
 			memmove(db, srb->data, n);
 		nlen -= n;
+		if(nlen == 0)
+			break;
 		db += n;
 		off += n;
-	} while (nlen > 0);
+	}
 	poperror();
 	srbfree(srb);
 	return len;
@@ -1251,7 +1254,7 @@ unitread(Chan *c, void *db, long len, vlong off)
 	case Qctl:
 		return pstat(d, db, len, off);
 	case Qdata:
-		return rw(d, Read, db, len, off);
+		return rw(d, 0, db, len, off);
 	case Qconfig:
 		if (!UP(d))
 			error(Enotup);
@@ -1488,8 +1491,7 @@ unitctlwrite(Aoedev *d, void *db, long n)
 		Setsize,
 	};
 	Cmdbuf *cb;
-	Cmdtab *ct;
-	static Cmdtab cmds[] = {
+	Cmdtab *ct, cmds[] = {
 		{Failio, 	"failio", 	1 },
 		{Ident, 	"identify", 	1 },
 		{Jumbo, 	"jumbo", 	0 },
@@ -1578,7 +1580,7 @@ unitwrite(Chan *c, void *db, long n, vlong off)
 	case Qident:
 		error(Eperm);
 	case Qdata:
-		return rw(d, Write, db, n, off);
+		return rw(d, 1, db, n, off);
 	case Qconfig:
 		if(off + n > sizeof d->config)
 			error(Etoobig);
@@ -1603,19 +1605,21 @@ addnet(char *path, Chan *cc, Chan *dc, Chan *mtu, uchar *ea)
 	}
 	nl = netlinks.nl;
 	e = nl + nelem(netlinks.nl);
-	for(; nl < e && nl->cc; nl++)
-		continue;
-	if (nl >= e)
-		error("out of netlink structures");
-	nl->cc = cc;
-	nl->dc = dc;
-	nl->mtu = mtu;
-	strncpy(nl->path, path, sizeof nl->path);
-	memmove(nl->ea, ea, sizeof nl->ea);
-	poperror();
-	nl->flag |= Dup;
-	unlock(&netlinks);
-	return nl;
+	for(; nl < e; nl++){
+		if(nl->cc)
+			continue;
+		nl->cc = cc;
+		nl->dc = dc;
+		nl->mtu = mtu;
+		strncpy(nl->path, path, sizeof nl->path);
+		memmove(nl->ea, ea, sizeof nl->ea);
+		poperror();
+		nl->flag |= Dup;
+		unlock(&netlinks);
+		return nl;
+	}
+	error("out of netlink structures");
+	return nil;
 }
 
 static int
@@ -2115,8 +2119,10 @@ bail:
 	qunlock(d);
 }
 
+#define ERROR(x) do{ uprint("%s: %s", name, x); error(up->genbuf); }while(0)
+
 static void
-netrdaoeproc(void *v)
+netrdaoe(void *v)
 {
 	int idx;
 	char name[Maxpath+1], *s;
@@ -2138,17 +2144,13 @@ netrdaoeproc(void *v)
 	if(autodiscover)
 		discover(0xffff, 0xff);
 	for (;;) {
-		if(!(nl->flag & Dup)) {
-			uprint("%s: netlink is down", name);
-			error(up->genbuf);
-		}
+		if((nl->flag & Dup) == 0)
+			ERROR("netlink is down");
 		if (nl->dc == nil)
 			panic("netrdaoe: nl->dc == nil");
 		b = devtab[nl->dc->type]->bread(nl->dc, 1<<16, 0);
-		if(b == nil) {
-			uprint("%s: nil read from network", name);
-			error(up->genbuf);
-		}
+		if(b == nil)
+			ERROR("nil read from network");
 		h = (Aoehdr*)b->rp;
 		if(h->verflag & AFrsp)
 			if(s = aoeerror(h)){
@@ -2224,7 +2226,7 @@ netbind(char *path)
 	getaddr(path, ea);
 	nl = addnet(path, cc, dc, mtu, ea);
 	snprint(addr, sizeof addr, "netrdaoe@%s", path);
-	kproc(addr, netrdaoeproc, nl);
+	kproc(addr, netrdaoe, nl);
 	poperror();
 }
 
@@ -2393,6 +2395,7 @@ discoverstr(char *f)
 static long
 topctlwrite(void *db, long n)
 {
+	char *f;
 	enum {
 		Autodiscover,
 		Bind,
@@ -2403,10 +2406,8 @@ topctlwrite(void *db, long n)
 		Remove,
 		Unbind,
 	};
-	char *f;
 	Cmdbuf *cb;
-	Cmdtab *ct;
-	static Cmdtab cmds[] = {
+	Cmdtab *ct, cmds[] = {
 		{ Autodiscover,	"autodiscover",	0	},
 		{ Bind, 	"bind", 	2	},
 		{ Debug, 	"debug", 	0	},
