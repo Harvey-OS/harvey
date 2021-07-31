@@ -24,7 +24,7 @@ font = /lib/font/bit/pelm/euro.9.font
 switch($x^service){
 case terminal
 	plumber
-	startupasfs
+	upas/fs
 	echo -n accelerated > '#m/mousectl'
 	echo -n 'res 3' > '#m/mousectl'
 	prompt=('term% ' '	')
@@ -42,7 +42,7 @@ case cpu
 	bind -a /mnt/term/dev /dev
 	prompt=('cpu% ' '	')
 	fn cpu%{ $x^* }
-	startupasfs
+	upas/fs
 	news
 	if (! test -e /mnt/term/mnt/wsys) {
 		# cpu call from drawterm
@@ -53,7 +53,6 @@ case cpu
 	}
 case con
 	prompt=('cpu% ' '	')
-	startupasfs
 	news
 }
 !
