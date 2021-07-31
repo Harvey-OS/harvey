@@ -5,7 +5,7 @@
 
 char	buf[8192];
 #define	NARG	5
-uintptr	arg[NARG];
+long	arg[NARG];
 
 /* system calls not defined in libc.h */
 int	sysr1(void);
@@ -35,7 +35,7 @@ struct{
 	0,		0
 };
 
-uintptr parse(char *);
+long parse(char *);
 void catch(void*, char*);
 
 char*
@@ -167,19 +167,18 @@ main(int argc, char *argv[])
 	exits("unknown");
 }
 
-uintptr
+long
 parse(char *s)
 {
 	char *t;
-	uintptr l;
+	long l;
 
 	if(strcmp(s, "buf") == 0)
-		return (uintptr)buf;
-	
-	l = strtoull(s, &t, 0);
+		return (int)buf;
+	l = strtoul(s, &t, 0);
 	if(t>s && *t==0)
 		return l;
-	return (uintptr)s; 
+	return (long)s; 
 }
 
 void

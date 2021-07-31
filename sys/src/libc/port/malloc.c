@@ -46,7 +46,7 @@ sbrkalloc(ulong n)
 
 	n += 2*sizeof(ulong);	/* two longs for us */
 	x = sbrk(n);
-	if(x == (void*)-1)
+	if((int)x == -1)
 		return nil;
 	x[0] = (n+7)&~7;	/* sbrk rounds size up to mult. of 8 */
 	x[1] = 0xDeadBeef;

@@ -31,7 +31,7 @@ char*	system(int, char*);
 int	echochange(Biobuf*, int);
 int	termsub(Biobuf*, uchar*, int);
 int	xlocsub(Biobuf*, uchar*, int);
-void*	share(ulong);
+void*	share(int);
 
 static int islikeatty(int);
 
@@ -520,16 +520,14 @@ islikeatty(int fd)
  *  end of process memory.
  */
 void*
-share(ulong len)
+share(int len)
 {
 	uchar *vastart;
 
 	vastart = sbrk(0);
-	if(vastart == (void*)-1)
-		return 0;
 	vastart += 2*1024*1024;
 
-	if(segattach(0, "shared", vastart, len) == (void*)-1)
+	if(segattach(0, "shared", vastart, len) < 0)
 		return 0;
 
 	return vastart;

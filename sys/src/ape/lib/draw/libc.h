@@ -132,6 +132,3 @@ extern	int	_IOUNIT(int);
 #define atnotify(x, y) signal(SIGTERM, ekill)
 
 #define ERRMAX 128
-
-extern	void	setmalloctag(void*, ulong);
-extern	ulong	getcallerpc(void*);

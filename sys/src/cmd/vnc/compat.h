@@ -164,5 +164,3 @@ int		mounter(char *mntpt, int how, int fds, int n);
 void		shutdown(void);
 
 void		screeninit(int, int, char*);
-
-#pragma	varargck	argpos	panic		1

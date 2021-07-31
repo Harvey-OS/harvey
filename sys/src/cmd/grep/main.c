@@ -1,7 +1,7 @@
 #define	EXTERN
 #include	"grep.h"
 
-char *validflags = "1bchiLlnsv";
+char *validflags = "bchiLlnsv";
 void
 usage(void)
 {

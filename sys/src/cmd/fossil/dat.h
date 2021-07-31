@@ -214,7 +214,7 @@ struct Block {
 	Cache *c;
 	int ref;
 	int nlock;
-	uintptr	pc;		/* pc that fetched this block from the cache */
+	ulong	pc;		/* pc that fetched this block from the cache */
 
 	VtLock *lk;
 

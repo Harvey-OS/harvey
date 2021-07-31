@@ -10,7 +10,7 @@ fmtStrFlush(Fmt *f)
 
 	if(f->start == nil)
 		return 0;
-	n = (int)(uintptr)f->farg;
+	n = (int)f->farg;
 	n *= 2;
 	s = f->start;
 	f->start = realloc(s, n);

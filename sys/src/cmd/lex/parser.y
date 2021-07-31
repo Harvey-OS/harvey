@@ -120,13 +120,13 @@ r:	CHAR
 			}
 		else
 			p = psave;
-		$$.i = mnp(RCCL, (uchar*)p);
+		$$.i = mn1(RCCL,(int)p);
 		cclinter(1);
 		}
 	| CCL
-	={	$$.i = mnp(RCCL,$1.cp); }
+	={	$$.i = mn1(RCCL,$1.i); }
 	| NCCL
-	={	$$.i = mnp(RNCCL,$1.cp); }
+	={	$$.i = mn1(RNCCL,$1.i); }
 	| r '*'
 	={	$$.i = mn1(STAR,$1.i); }
 	| r '+'
@@ -228,7 +228,6 @@ yylex(void)
 
 # ifdef DEBUG
 	yylval.i = 0;
-	yylval.p = 0;
 # endif
 
 	if(sect == DEFSECTION) {		/* definitions section */

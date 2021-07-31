@@ -84,8 +84,8 @@ struct Thread
 
 	int		inrendez;
 	Thread		*rendhash;	/* Trgrp linked list */
-	void*		rendtag;	/* rendezvous tag */
-	void*		rendval;	/* rendezvous value */
+	ulong		rendtag;	/* rendezvous tag */
+	ulong		rendval;	/* rendezvous value */
 	int		rendbreak;	/* rendezvous has been taken */
 
 	Chanstate	chan;		/* which channel operation is current */
@@ -175,7 +175,7 @@ void		_threadinitstack(Thread*, void(*)(void*), void*);
 void*	_threadmalloc(long, int);
 void		_threadnote(void*, char*);
 void		_threadready(Thread*);
-void*	_threadrendezvous(void*, void*);
+ulong	_threadrendezvous(ulong, ulong);
 void		_threadsignal(void);
 void		_threadsysfatal(char*, va_list);
 long		_xdec(long*);

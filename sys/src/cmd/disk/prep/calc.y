@@ -80,7 +80,6 @@ mkOP(int ty, Exp *e1, Exp *e2)
 static char *inp;
 static jmp_buf jmp;
 static vlong dot, size, dollar;
-static char** errp;
 
 static int
 yylex(void)
@@ -102,8 +101,7 @@ yylex(void)
 static void
 yyerror(char *s)
 {
-	*errp = s;
-	longjmp(jmp, 1);
+	longjmp(jmp, (int)s);
 }
 
 static vlong
@@ -145,8 +143,7 @@ parseexpr(char *s, vlong xdot, vlong xdollar, vlong xsize, vlong *result)
 {
 	char *err;
 
-	errp = &err;
-	if(setjmp(jmp))
+	if(err = (char*)setjmp(jmp))
 		return err;
 
 	inp = s;
