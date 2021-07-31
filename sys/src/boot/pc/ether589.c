@@ -153,8 +153,7 @@ if(debug) print("none found\n");
 	 */
 	memset(ea, 0, sizeof ea);
 	if(memcmp(ea, ether->ea, 6) == 0 && strcmp(type, "3C562") == 0) {
-		if(debug)
-			print("read 562...");
+if(debug) print("read 562...");
 		if(pcmcistuple(slot, 0x88, ea, 6) == 6) {
 			for(i = 0; i < 6; i += 2){
 				t = ea[i];
@@ -162,8 +161,10 @@ if(debug) print("none found\n");
 				ea[i+1] = t;
 			}
 			memmove(ether->ea, ea, 6);
-			if(debug)
-				print("ea %E", ea);
+if(debug) {
+	print("ea ");
+	printea(ether->ea);
+}
 		}
 	}
 	/*

@@ -136,6 +136,13 @@ ip_csum(uchar *addr)
 	return (sum^0xffff);
 }
 
+void
+printea(uchar *ea)
+{
+	print("%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
+		ea[0], ea[1], ea[2], ea[3], ea[4], ea[5]);
+}
+
 enum {
 	/* this is only true of IPv4, but we're not doing v6 yet */
 	Min_udp_payload = ETHERMINTU - ETHERHDRSIZE - UDP_HDRSIZE,
@@ -250,12 +257,16 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 			continue;
 
 		h = (Udphdr*)&pkt;
-		if(debug)
-			print("udprecv %E to %E...\n", h->s, h->d);
+if(debug) {
+	print("udprecv ");
+	printea(h->s);
+	print(" to ");
+	printea(h->d);
+	print("...\n");
+}
 
 		if(nhgets(h->type) != ET_IP) {
-			if(debug)
-				print("not ip...");
+if(debug) print("not ip...");
 			continue;
 		}
 
@@ -269,13 +280,11 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 		}
 
 		if(h->udpproto != IP_UDPPROTO) {
-			if(debug)
-				print("not udp (%d)...", h->udpproto);
+if(debug) print("not udp (%d)...", h->udpproto);
 			continue;
 		}
 
-		if(debug)
-			print("okay udp...");
+if(debug) print("okay udp...");
 
 		h->ttl = 0;
 		len = nhgets(h->udplen);
@@ -284,30 +293,25 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 		if(nhgets(h->udpcksum)) {
 			csm = ptcl_csum(&h->ttl, len+UDP_PHDRSIZE);
 			if(csm != 0) {
-				print("udp chksum error csum #%4ux len %d\n",
-					csm, n);
+				print("udp chksum error csum #%4ux len %d\n", csm, n);
 				break;
 			}
 		}
 
 		if(a->port != 0 && nhgets(h->udpsport) != a->port) {
-			if(debug)
-				print("udpport %ux %ux\n",
-					nhgets(h->udpsport), a->port);
+if(debug) print("udpport %ux %ux\n", nhgets(h->udpsport), a->port);
 			continue;
 		}
 
 		addr = nhgetl(h->udpsrc);
 		if(a->ip != Bcastip && addr != a->ip) {
-			if(debug)
-				print("bad ip\n");
+if(debug) print("bad ip\n");
 			continue;
 		}
 
 		len -= UDP_HDRSIZE-UDP_PHDRSIZE;
 		if(len > dlen) {
-			print("udp: packet too big: %d > %d; from addr %E\n",
-				len, dlen, h->udpsrc);
+			print("udp: packet too big: %d > %d; from addr 0x%.8lux\n", len, dlen, addr);
 			continue;
 		}
 

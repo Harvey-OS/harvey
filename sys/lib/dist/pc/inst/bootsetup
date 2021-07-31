@@ -111,8 +111,7 @@ case go
 	}
 
 case checkdone
-	xxxfat=(/dev/sd*/9fat)
-	if(! isfat $xxxfat(1) || ! ~ $didbootsetup 1){
+	if(! isfat /dev/sd*/9fat || ! ~ $didbootsetup 1){
 		bootsetup=ready
 		export bootsetup
 	}
