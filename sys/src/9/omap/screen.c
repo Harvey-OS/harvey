@@ -25,7 +25,6 @@
 
 enum {
 	Tabstop	= 4,		/* should be 8 */
-	Scroll	= 8,		/* lines to scroll at one time */
 	/*
 	 * screen settings for Wid and Ht, should a bit more dynamic?
 	 * http://www.epanorama.net/faq/vga2rgb/calc.html
@@ -73,6 +72,12 @@ enum {
 	Stntft		= 1 << 3,
 	Digitalen	= 1 << 1,
 //	Lcden		= 1 << 0,	/* unused */
+};
+
+enum {					/* settings indices */
+	Res800x600,
+	Res1024x768,
+	Res1280x1024,
 };
 
 typedef struct Dispcregs Dispc;
@@ -159,14 +164,20 @@ Cursor	arrow = {
 	},
 };
 
+#ifdef notdef
+#define MINX 8
+
+static struct {
+	Point	pos;
+	int	bwid;
+} out;
+#endif
+
 OScreen oscreen;
 OScreen settings[] = {
-[Res800x600]   { 0,  800,  600, 60, RGB16,  40000,
-		 	 87<<20, 39<<8, 127, 23<<20, 1<<8, 4, },
-[Res1024x768]  { 0, 1024,  768, 60, RGB16,  65000,
-			159<<20, 23<<8, 135, 29<<20, 3<<8, 6, },
-[Res1280x1024] { 0, 1280, 1024, 60, RGB16, 108000,
-			247<<20, 47<<8, 111, 38<<20, 1<<8, 3, },
+	0,  800,  600, 60, RGB16,  40000,  87<<20, 39<<8, 127, 23<<20, 1<<8, 4,
+	0, 1024,  768, 60, RGB16,  65000, 159<<20, 23<<8, 135, 29<<20, 3<<8, 6,
+	0, 1280, 1024, 60, RGB16, 108000, 247<<20, 47<<8, 111, 38<<20, 1<<8, 3,
 };
 Omap3fb *framebuf;
 Memimage *gscreen;
@@ -232,7 +243,6 @@ dssstart(void)
 {
 	/* should reset the dss system */
 	dss->sysconf |= 1;
-	coherence();
 }
 
 static void
@@ -292,19 +302,12 @@ lcdon(int enable)
 }
 
 static void
-lcdstop(void)
+lcdinit(void)
 {
 	configscreengpio();
 	screenclockson();
 
 	lcdoff();
-}
-
-static void
-lcdinit(void)
-{
-	lcdstop();
-
 	dssstart();
 	configdispc();
 }
@@ -347,30 +350,18 @@ setcursor(Cursor* curs)	// TODO
 //	cursorload(scr, curs);
 }
 
-/* called from main and possibly later from devdss to change resolution */
 void
 screeninit(void)
 {
-	static int first = 1;
-
-	if (first) {
-		iprint("screeninit...");
-		oscreen = settings[Res1280x1024];
-
-		lcdstop();
-		if (framebuf)
-			free(framebuf);
-		/* mode is 16*32 = 512 */
-		framebuf = xspanalloc(sizeof *framebuf, 16*32, 0);
-	}
+	iprint("screeninit...");
+	oscreen = settings[Res1280x1024];
+	/* mode is 16*32 = 512 */
+	framebuf = xspanalloc(sizeof *framebuf, 16*32, 0);
 
 	lcdinit();
 	lcdon(1);
-	if (first) {
-		memimageinit();
-		memdefont = getmemdefont();
-		screentest();
-	}
+
+	screentest();
 
 	xgdata.ref = 1;
 	xgdata.bdata = (uchar *)framebuf->pixel;
@@ -382,21 +373,23 @@ screeninit(void)
 	gscreen->width = Wid * (Depth / BI2BY) / BY2WD;
 	flushmemscreen(gscreen->r);
 
-	if (first) {
-		iprint("on: blue for 3 seconds...");
-		delay(3*1000);
-		iprint("\n");
-	}
+	iprint("on: blue for 2 seconds...");
+	delay(2*1000);
+	iprint("\n");
 
+	memimageinit();
+	memdefont = getmemdefont();
+
+#ifdef notdef
+	out.pos.x = MINX;
+	out.pos.y = 0;
+	out.bwid = memdefont->info[' '].width;
+#endif
 	blanktime = 3;				/* minutes */
 
-	if (first) {
-		screenwin();		/* draw border & top orange bar */
-		screenputs = omapscreenputs;
-		iprint("screen: frame buffer at %#p for %dx%d\n",
-			framebuf, oscreen.wid, oscreen.ht);
-		first = 0;
-	}
+	screenwin();			/* draw border & top orange bar */
+	screenputs = omapscreenputs;
+	iprint("screen: frame buffer at %#p\n", framebuf);
 }
 
 /* flushmemscreen should change buffer? */
@@ -538,14 +531,14 @@ scroll(void)
 	Point p;
 	Rectangle r;
 
-	/* move window contents up Scroll text lines */
-	o = Scroll * h;
+	/* move window contents up 8 text lines */
+	o = 8 * h;
 	r = Rpt(window.min, Pt(window.max.x, window.max.y - o));
 	p = Pt(window.min.x, window.min.y + o);
 	memimagedraw(gscreen, r, gscreen, p, nil, p, S);
 	flushmemscreen(r);
 
-	/* clear the bottom Scroll text lines */
+	/* clear the bottom 8 text lines */
 	r = Rpt(Pt(window.min.x, window.max.y - o), window.max);
 	memimagedraw(gscreen, r, back, ZP, nil, ZP, S);
 	flushmemscreen(r);

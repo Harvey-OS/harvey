@@ -477,7 +477,6 @@ trap(Ureg *ureg)
 	case PsrMirq:
 		ldrexvalid = 0;
 		clockintr = irq(ureg);
-		m->intr++;
 		break;
 	case PsrMabt:			/* prefetch fault */
 		ldrexvalid = 0;
