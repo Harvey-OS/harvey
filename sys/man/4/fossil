@@ -1,6 +1,6 @@
 .TH FOSSIL 4
 .SH NAME
-fossil, flchk, flfmt \- archival file server
+fossil \- archival file server
 .SH SYNOPSIS
 .B fossil/fossil
 [
