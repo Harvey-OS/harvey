@@ -10,7 +10,6 @@ fault(uintptr addr, int read)
 {
 	Segment *s;
 	char *sps;
-	int i, color;
 
 	if(up == nil)
 		panic("fault: nil up");
@@ -22,7 +21,7 @@ fault(uintptr addr, int read)
 	spllo();
 
 	m->pfault++;
-	for(i = 0;; i++) {
+	for(;;) {
 		s = seg(up, addr, 1);		/* leaves s->lk qlocked if seg != nil */
 		if(s == nil) {
 			up->psstate = sps;
@@ -35,10 +34,7 @@ fault(uintptr addr, int read)
 			return -1;
 		}
 
-		color = s->color;
-		if(i > 3)
-			color = -1;
-		if(fixfault(s, addr, read, 1, color) == 0)	/* qunlocks s->lk */
+		if(fixfault(s, addr, read, 1) == 0)	/* qunlocks s->lk */
 			break;
 
 		/*
@@ -71,7 +67,7 @@ void	(*checkaddr)(ulong, Segment *, Page *);
 ulong	addr2check;
 
 int
-fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
+fixfault(Segment *s, uintptr addr, int read, int dommuput)
 {
 	int type;
 	int ref;
@@ -104,7 +100,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
 
 	case SG_TEXT: 			/* Demand load */
 		if(pagedout(*pg))
-			pio(s, addr, soff, pg, color);
+			pio(s, addr, soff, pg);
 
 		mmuphys = PPN((*pg)->pa) | PTERONLY|PTEVALID;
 		(*pg)->modref = PG_REF;
@@ -114,7 +110,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
 	case SG_SHARED:			/* Zero fill on demand */
 	case SG_STACK:
 		if(*pg == nil) {
-			new = newpage(1, s, addr, s->lg2pgsize, color, 1);
+			new = newpage(1, s, addr, 1);
 			if(new == nil)
 				return -1;
 
@@ -125,7 +121,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
 	case SG_DATA:
 	common:			/* Demand load/pagein/copy on write */
 		if(pagedout(*pg))
-			pio(s, addr, soff, pg, color);
+			pio(s, addr, soff, pg);
 
 		/*
 		 *  It's only possible to copy on write if
@@ -151,7 +147,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
 		unlock(lkp);
 
 		if(ref > 1) {
-			new = newpage(0, s, addr, s->lg2pgsize, color, 1);
+			new = newpage(0, s, addr, 1);
 			if(new == nil)
 				return -1;
 			*pg = new;
@@ -198,7 +194,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
 }
 
 void
-pio(Segment *s, uintptr addr, uintptr soff, Page **p, int color)
+pio(Segment *s, uintptr addr, uintptr soff, Page **p)
 {
 	Page *new;
 	KMap *k;
@@ -227,7 +223,7 @@ pio(Segment *s, uintptr addr, uintptr soff, Page **p, int color)
 		ask = pgsize;
 	qunlock(&s->lk);
 
-	new = newpage(0, s, addr, s->lg2pgsize, color, 0);
+	new = newpage(0, s, addr, 0);
 	if(new == nil)
 		panic("pio");	/* can't happen, s wasn't locked */
 

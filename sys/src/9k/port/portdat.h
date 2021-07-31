@@ -26,7 +26,7 @@ typedef struct Note	Note;
 typedef struct Page	Page;
 typedef struct Path	Path;
 typedef struct Palloc	Palloc;
-typedef struct Pallocpg	Pallocpg;
+typedef struct Pallocmem	Pallocmem;
 typedef struct Perf	Perf;
 typedef struct PhysUart	PhysUart;
 typedef struct Pgrp	Pgrp;
@@ -340,7 +340,6 @@ struct Image
 	Image	*hash;			/* Qid hash chains */
 	Image	*next;			/* Free list */
 	int	notext;			/* no file associated */
-	int	color;
 };
 
 struct Pte
@@ -391,15 +390,12 @@ struct Sema
 	Sema*	prev;
 };
 
-#define NOCOLOR -1
-
 struct Segment
 {
 	Ref;
 	QLock	lk;
 	ushort	steal;		/* Page stealer lock */
 	ushort	type;		/* segment type */
-	int	color;
 	uintptr	base;		/* virtual base */
 	uintptr	top;		/* virtual top */
 	usize	size;		/* size in pages */
@@ -483,18 +479,21 @@ enum
 	DELTAFD	= 20		/* incremental increase in Fgrp.fd's */
 };
 
-struct Pallocpg
+struct Pallocmem
 {
-	Page	*head;		/* most recently used */
-	Page	*tail;		/* least recently used */
-	ulong	count;		/* how many pages made */
-	ulong	freecount;	/* how many pages on free list now */
+	uintmem	base;
+	uintmem	limit;
+	int	color;
 };
 
 struct Palloc
 {
 	Lock;
-	Pallocpg	avail[32];	/* indexed by log2 of page size (Page.lgsize) */
+	Pallocmem mem[32];
+	Page	*head;			/* most recently used */
+	Page	*tail;			/* least recently used */
+	ulong	freecount;		/* how many pages on free list now */
+	Page	*pages;			/* array of all pages */
 	ulong	user;			/* how many user pages */
 	Page	*hash[PGHSIZE];
 	Lock	hashlock;
@@ -741,7 +740,6 @@ struct Proc
 
 	void	*ureg;		/* User registers for notes */
 	void	*dbgreg;	/* User registers for devproc */
-	int	color;
 
 	Fastcall* fc;
 	int	fcount;

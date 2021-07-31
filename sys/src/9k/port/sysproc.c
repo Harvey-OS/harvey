@@ -206,7 +206,6 @@ sysrfork(Ar0* ar0, va_list list)
 		strncpy((char*)&ptarg, p->text, sizeof ptarg);
 		pt(p, SName, 0, ptarg);
 	}
-	p->color = up->color;
 	ready(p);
 	sched();
 
@@ -357,8 +356,6 @@ sysexec(Ar0* ar0, va_list list)
 	|| datalim < textlim || bsslim < datalim)
 		error(Ebadexec);
 
-	up->color = corecolor(m->machno);
-
 	/*
 	 * The new stack is created in ESEG, temporarily mapped elsewhere.
 	 * The stack contains, in descending address order:
@@ -381,7 +378,6 @@ sysexec(Ar0* ar0, va_list list)
 		nexterror();
 	}
 	up->seg[ESEG] = newseg(SG_STACK, TSTKTOP-USTKSIZE, TSTKTOP);
-	up->seg[ESEG]->color = up->color;
 
 	/*
 	 * Stack is a pointer into the temporary stack
@@ -545,21 +541,17 @@ sysexec(Ar0* ar0, va_list list)
 	/* Text.  Shared. Attaches to cache image if possible */
 	/* attachimage returns a locked cache image */
 
-	img = attachimage(SG_TEXT|SG_RONLY, chan, up->color, UTZERO, textmin);
+	img = attachimage(SG_TEXT|SG_RONLY, chan, UTZERO, textmin);
 	s = img->s;
 	up->seg[TSEG] = s;
 	s->flushme = 1;
 	s->fstart = 0;
 	s->flen = hdrsz+textsz;
-	if(img->color != up->color){
-		up->color = img->color;
-	}
 	unlock(img);
 
 	/* Data. Shared. */
 	s = newseg(SG_DATA, textlim, datalim);
 	up->seg[DSEG] = s;
-	s->color = up->color;
 
 	/* Attached by hand */
 	incref(img);
@@ -569,7 +561,6 @@ sysexec(Ar0* ar0, va_list list)
 
 	/* BSS. Zero fill on demand */
 	up->seg[BSEG] = newseg(SG_BSS, datalim, bsslim);
-	up->seg[BSEG]->color= up->color;
 
 	/*
 	 * Move the stack
