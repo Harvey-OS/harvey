@@ -75,13 +75,13 @@ Type types[] = {
 #include "sd.h"
 
 extern SDifc sdataifc;
-extern SDifc sdiahciifc;
+extern SDifc sd63xxesbifc;
 
 #ifdef NOSCSI
 
 SDifc* sdifc[] = {
 	&sdataifc,
-	&sdiahciifc,
+	&sd63xxesbifc,
 	nil,
 };
 
@@ -93,7 +93,7 @@ SDifc* sdifc[] = {
 	&sdataifc,
 	&sdmylexifc,
 	&sd53c8xxifc,
-	&sdiahciifc,
+	&sd63xxesbifc,
 	nil,
 };
 

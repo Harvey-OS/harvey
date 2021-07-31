@@ -584,16 +584,10 @@ promiscuous(void* arg, int on)
 }
 
 static void
-multicast(void* ether, uchar *addr, int add)
+multicast(void* arg, uchar *addr, int on)
 {
-	USED(addr);
-	/*
-	 * TODO: if (add) add addr to list of mcast addrs in controller
-	 *	else remove addr from list of mcast addrs in controller
-	 * enable multicast input (see CbMAS) instead of promiscuous mode.
-	 */
-	if (add)
-		configure(ether, 1);
+	USED(addr, on);
+	configure(arg, 1);
 }
 
 static void

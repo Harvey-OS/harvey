@@ -580,7 +580,6 @@ static X86type x86intel[] =
 	{ 6,	7,	16,	"PentiumIII/Xeon", },
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
 	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
-	{ 6,	0xF,	16,	"Xeon5000-series", },
 	{ 0xF,	1,	16,	"P4", },	/* P4 */
 	{ 0xF,	2,	16,	"PentiumIV/Xeon", },
 
@@ -716,10 +715,10 @@ cpuidentify(void)
 	/*
 	 *  if there is one, set tsc to a known value
 	 */
-	if(m->cpuiddx & Tsc){
+	if(m->cpuiddx & 0x10){
 		m->havetsc = 1;
 		cycles = _cycles;
-		if(m->cpuiddx & Cpumsr)
+		if(m->cpuiddx & 0x20)
 			wrmsr(0x10, 0);
 	}
 
@@ -733,7 +732,7 @@ cpuidentify(void)
 	 * are supported enable them in CR4 and clear any other set extensions.
 	 * If machine check was enabled clear out any lingering status.
 	 */
-	if(m->cpuiddx & (Pge|Mce|0x8)){
+	if(m->cpuiddx & 0x2088){
 		cr4 = 0;
 		if(m->cpuiddx & 0x08)
 			cr4 |= 0x10;		/* page size extensions */
@@ -741,7 +740,7 @@ cpuidentify(void)
 			nomce = strtoul(p, 0, 0);
 		else
 			nomce = 0;
-		if((m->cpuiddx & Mce) && !nomce){
+		if((m->cpuiddx & 0x80) && !nomce){
 			cr4 |= 0x40;		/* machine check enable */
 			if(family == 5){
 				rdmsr(0x00, &mca);
@@ -764,13 +763,13 @@ cpuidentify(void)
 		 * the PGE bit in CR4, writing to CR3, and then
 		 * restoring the PGE bit.
 		 */
-		if(m->cpuiddx & Pge){
+		if(m->cpuiddx & 0x2000){
 			cr4 |= 0x80;		/* page global enable bit */
 			m->havepge = 1;
 		}
 
 		putcr4(cr4);
-		if(m->cpuiddx & Mce)
+		if(m->cpuiddx & 0x80)
 			rdmsr(0x01, &mct);
 	}
 
@@ -805,8 +804,6 @@ archctlread(Chan*, void *a, long nn, vlong offset)
 		n += snprint(buf+n, sizeof buf-n, "mb386\n");
 	else if(coherence == mb586)
 		n += snprint(buf+n, sizeof buf-n, "mb586\n");
-	else if(coherence == mfence)
-		n += snprint(buf+n, sizeof buf-n, "mfence\n");
 	else if(coherence == nop)
 		n += snprint(buf+n, sizeof buf-n, "nop\n");
 	else
@@ -867,11 +864,8 @@ archctlwrite(Chan*, void *a, long n, vlong)
 			if(X86FAMILY(m->cpuidax) < 5)
 				error("invalid coherence ctl on this cpu family");
 			coherence = mb586;
-		}else if(strcmp(cb->f[1], "mfence") == 0){
-			if((m->cpuiddx & Sse2) == 0)
-				error("invalid coherence ctl on this cpu family");
-			coherence = mfence;
-		}else if(strcmp(cb->f[1], "nop") == 0){
+		}
+		else if(strcmp(cb->f[1], "nop") == 0){
 			/* only safe on vmware */
 			if(conf.nmach > 1)
 				error("cannot disable coherence on a multiprocessor");
@@ -936,9 +930,6 @@ archinit(void)
 
 	if(X86FAMILY(m->cpuidax) >= 5)
 		coherence = mb586;
-
-	if(m->cpuiddx & Sse2)
-		coherence = mfence;
 
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("archctl", 0664, archctlread, archctlwrite);

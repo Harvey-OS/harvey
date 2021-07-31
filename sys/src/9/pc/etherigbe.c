@@ -62,7 +62,6 @@ enum {
 	Fcttv		= 0x00000170,	/* Flow Control Transmit Timer Value */
 	Txcw		= 0x00000178,	/* Transmit Configuration Word */
 	Rxcw		= 0x00000180,	/* Receive Configuration Word */
-	/* on the oldest cards (8254[23]), the Mta register is at 0x200 */
 	Tctl		= 0x00000400,	/* Transmit Control */
 	Tipg		= 0x00000410,	/* Transmit IPG */
 	Tbt		= 0x00000448,	/* Transmit Burst Timer */
@@ -722,11 +721,11 @@ igbepromiscuous(void* arg, int on)
 		rctl |= Upe|Mpe;
 	else
 		rctl &= ~(Upe|Mpe);
-	csr32w(ctlr, Rctl, rctl|Mpe);	/* temporarily keep Mpe on */
+	csr32w(ctlr, Rctl, rctl);
 }
 
 static void
-igbemulticast(void* arg, uchar* addr, int add)
+igbemulticast(void* arg, uchar* addr, int on)
 {
 	int bit, x;
 	Ctlr *ctlr;
@@ -737,17 +736,10 @@ igbemulticast(void* arg, uchar* addr, int add)
 
 	x = addr[5]>>1;
 	bit = ((addr[5] & 1)<<4)|(addr[4]>>4);
-	/*
-	 * multiple ether addresses can hash to the same filter bit,
-	 * so it's never safe to clear a filter bit.
-	 * if we want to clear filter bits, we need to keep track of
-	 * all the multicast addresses in use, clear all the filter bits,
-	 * then set the ones corresponding to in-use addresses.
-	 */
-	if(add)
+	if(on)
 		ctlr->mta[x] |= 1<<bit;
-//	else
-//		ctlr->mta[x] &= ~(1<<bit);
+	else
+		ctlr->mta[x] &= ~(1<<bit);
 
 	csr32w(ctlr, Mta+x*4, ctlr->mta[x]);
 }
@@ -1044,8 +1036,7 @@ igberxinit(Ctlr* ctlr)
 	int i;
 	Block *bp;
 
-	/* temporarily keep Mpe on */
-	csr32w(ctlr, Rctl, Dpf|Bsize2048|Bam|RdtmsHALF|Mpe);
+	csr32w(ctlr, Rctl, Dpf|Bsize2048|Bam|RdtmsHALF);
 
 	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
 	csr32w(ctlr, Rdbah, 0);
