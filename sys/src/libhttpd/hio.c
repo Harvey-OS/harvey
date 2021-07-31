@@ -400,8 +400,6 @@ _hflush(Hio *h, int force, int dolength)
 	uchar *s;
 	int w;
 
-	if(h == nil)
-		return -1;
 	if(h->state != Hwrite){
 		h->state = Herr;
 		h->stop = h->pos;
