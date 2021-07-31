@@ -801,6 +801,7 @@ rrcopy(RR *rp, RR **last)
 	RR *nrp;
 	SOA *soa;
 	Sig *sig;
+	Srv *srv;
 	Txt *t, *nt, **l;
 
 	nrp = rralloc(rp->type);
@@ -826,8 +827,9 @@ rrcopy(RR *rp, RR **last)
 		nrp->soa->slaves = copyserverlist(rp->soa->slaves);
 		break;
 	case Tsrv:
+		srv = nrp->srv;
 		*nrp = *rp;
-		nrp->srv = emalloc(sizeof *nrp->srv);
+		nrp->srv = srv;
 		*nrp->srv = *rp->srv;
 		break;
 	case Tkey:
@@ -1853,8 +1855,6 @@ rralloc(int type)
 	rp->magic = RRmagic;
 	rp->pc = getcallerpc(&type);
 	rp->type = type;
-	if (rp->type != type)
-		dnslog("rralloc: bogus type %d", type);
 	setmalloctag(rp, rp->pc);
 	switch(type){
 	case Tsoa:
