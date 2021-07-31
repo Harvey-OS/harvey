@@ -1,3 +1,4 @@
+--------/sys/lib/lp/process/generic--------
 #!/bin/rc
 # Tries to determine what type of file you are printing and do the correct
 # thing with it.
