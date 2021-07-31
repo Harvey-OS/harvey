@@ -74,7 +74,7 @@
  */
 #define PTEPERTAB	(256)
 #define PTEMAPMEM	(PTEPERTAB*PGSZ)
-#define SEGMAPSIZE	65536
+#define SEGMAPSIZE	1984
 #define SSEGMAPSIZE	16
 
 /*
