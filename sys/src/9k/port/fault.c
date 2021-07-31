@@ -315,7 +315,7 @@ vmemchr(void *s, int c, int n)
 			return t;
 		a += r;
 		n -= r;
-		if(!iskaddr(a))
+		if(a < KZERO)
 			validaddr(UINT2PTR(a), 1, 0);
 	}
 

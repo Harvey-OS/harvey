@@ -755,7 +755,7 @@ procread(Chan *c, void *va, long n, vlong off)
 		return readstr(offset, va, n, p->syscalltrace);
 
 	case Qmem:
-		if(!iskaddr(offset)
+		if(offset < KZERO
 		|| (offset >= USTKTOP-USTKSIZE && offset < USTKTOP)){
 			r = procctlmemio(p, offset, n, va, 1);
 			psdecref(p);
