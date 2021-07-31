@@ -230,8 +230,6 @@ reset(Ether* ether)
 
 	ether->ctlr = malloc(sizeof(Dp8390));
 	ctlr = ether->ctlr;
-	if(ctlr == nil)
-		error(Enomem);
 	ctlr->ram = 1;
 
 	if((id & 0xFE) == 0x2A)

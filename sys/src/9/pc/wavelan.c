@@ -847,8 +847,6 @@ w_ifstat(Ether* ether, void* a, long n, ulong offset)
 		return 0;
 
 	p = malloc(READSTR);
-	if(p == nil)
-		error(Enomem);
 	l = 0;
 
 	PRINTSTAT("Signal: %d\n", ctlr->signal-149);

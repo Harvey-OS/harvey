@@ -266,8 +266,6 @@ srballoc(ulong sz)
 	Srb *srb;
 
 	srb = malloc(sizeof *srb+sz);
-	if(srb == nil)
-		error(Enomem);
 	srb->dp = srb->data = srb+1;
 	srb->ticksent = MACHP(0)->ticks;
 	return srb;
@@ -279,8 +277,6 @@ srbkalloc(void *db, ulong)
 	Srb *srb;
 
 	srb = malloc(sizeof *srb);
-	if(srb == nil)
-		error(Enomem);
 	srb->dp = srb->data = db;
 	srb->ticksent = MACHP(0)->ticks;
 	return srb;
@@ -1233,8 +1229,6 @@ pstat(Aoedev *d, char *db, int len, int off)
 	char *state, *s, *p, *e;
 
 	s = p = malloc(READSTR);
-	if(s == nil)
-		error(Enomem);
 	e = p + READSTR;
 
 	state = "down";
@@ -1301,8 +1295,6 @@ devlinkread(Chan *c, void *db, int len, int off)
 	l = d->dl + i;
 
 	s = p = malloc(READSTR);
-	if(s == nil)
-		error(Enomem);
 	e = s + READSTR;
 
 	p = seprint(p, e, "addr: ");
@@ -1336,8 +1328,6 @@ topctlread(Chan *, void *db, int len, int off)
 	Netlink *n;
 
 	s = p = malloc(READSTR);
-	if(s == nil)
-		error(Enomem);
 	e = s + READSTR;
 
 	p = seprint(p, e, "debug: %d\n", debug);
@@ -1401,8 +1391,6 @@ configwrite(Aoedev *d, void *db, long len)
 		error(Etoobig);
 	srb = srballoc(len);
 	s = malloc(len);
-	if(s == nil)
-		error(Enomem);
 	memmove(s, db, len);
 	if(waserror()){
 		srbfree(srb);
@@ -1620,8 +1608,6 @@ unitwrite(Chan *c, void *db, long n, vlong off)
 		if(off + n > sizeof d->config)
 			error(Etoobig);
 		buf = malloc(sizeof d->config);
-		if(buf == nil)
-			error(Enomem);
 		if(waserror()){
 			free(buf);
 			nexterror();

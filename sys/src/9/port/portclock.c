@@ -5,7 +5,6 @@
 #include "fns.h"
 #include "io.h"
 #include "ureg.h"
-#include "../port/error.h"
 
 struct Timers
 {
@@ -215,8 +214,6 @@ timersinit(void)
 	 */
 	todinit();
 	t = malloc(sizeof(*t));
-	if(t == nil)
-		error(Enomem);
 	t->tmode = Tperiodic;
 	t->tt = nil;
 	t->tns = 1000000000/HZ;
@@ -232,8 +229,6 @@ addclock0link(void (*f)(void), int ms)
 
 	/* Synchronize to hztimer if ms is 0 */
 	nt = malloc(sizeof(Timer));
-	if(nt == nil)
-		error(Enomem);
 	if(ms == 0)
 		ms = 1000/HZ;
 	nt->tns = (vlong)ms*1000000LL;

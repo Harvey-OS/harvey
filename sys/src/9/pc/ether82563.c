@@ -617,10 +617,6 @@ i82563ifstat(Ether* edev, void* a, long n, ulong offset)
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
 	p = s = malloc(READSTR);
-	if(p == nil) {
-		qunlock(&ctlr->slock);
-		error(Enomem);
-	}
 	e = p + READSTR;
 
 	for(i = 0; i < Nstatistics; i++){
@@ -1657,10 +1653,6 @@ i82563pci(void)
 			continue;
 		}
 		ctlr = malloc(sizeof(Ctlr));
-		if(ctlr == nil) {
-			vunmap(mem, p->mem[0].size);
-			error(Enomem);
-		}
 		ctlr->port = io;
 		ctlr->pcidev = p;
 		ctlr->type = type;

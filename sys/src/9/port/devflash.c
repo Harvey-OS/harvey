@@ -241,8 +241,6 @@ flashread(Chan *c, void *buf, long n, vlong offset)
 		return n;
 	case Qctl:
 		s = malloc(READSTR);
-		if(s == nil)
-			error(Enomem);
 		if(waserror()){
 			free(s);
 			nexterror();
@@ -478,8 +476,6 @@ addflashcard(char *name, int (*reset)(Flash*))
 	Flashtype *f, **l;
 
 	f = (Flashtype*)malloc(sizeof(*f));
-	if(f == nil)
-		error(Enomem);
 	f->name = name;
 	f->reset = reset;
 	f->next = nil;

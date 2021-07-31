@@ -260,10 +260,9 @@ axpstatus(Uart* uart, void* buf, long n, long offset)
 	Ccb *ccb;
 	u16int bs, fstat, ms;
 
-	p = malloc(READSTR);
-	if(p == nil)
-		error(Enomem);
 	ccb = ((Cc*)(uart->regs))->ccb;
+
+	p = malloc(READSTR);
 	bs = ccb->bs;
 	fstat = ccb->df;
 	ms = ccb->ms;
@@ -764,8 +763,6 @@ axpalloc(int ctlrno, Pcidev* pcidev)
 	int i, n, timeo;
 
 	ctlr = malloc(sizeof(Ctlr));
-	if(ctlr == nil)
-		error(Enomem);
 	seprint(name, name+sizeof(name), "uartaxp%d", ctlrno);
 	kstrdup(&ctlr->name, name);
 	ctlr->pcidev = pcidev;

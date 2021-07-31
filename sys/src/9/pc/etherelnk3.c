@@ -446,8 +446,6 @@ init905(Ctlr* ctlr)
 	 *	make sure each entry is 8-byte aligned.
 	 */
 	ctlr->upbase = malloc((ctlr->nup+1)*sizeof(Pd));
-	if(ctlr->upbase == nil)
-		error(Enomem);
 	ctlr->upr = (Pd*)ROUNDUP((ulong)ctlr->upbase, 8);
 
 	prev = ctlr->upr;
@@ -467,10 +465,6 @@ init905(Ctlr* ctlr)
 	ctlr->uphead = ctlr->upr;
 
 	ctlr->dnbase = malloc((ctlr->ndn+1)*sizeof(Pd));
-	if(ctlr->dnbase == nil) {
-		free(ctlr->upbase);
-		error(Enomem);
-	}
 	ctlr->dnr = (Pd*)ROUNDUP((ulong)ctlr->dnbase, 8);
 
 	prev = ctlr->dnr;
@@ -1181,8 +1175,6 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	iunlock(&ctlr->wlock);
 
 	p = malloc(READSTR);
-	if(p == nil)
-		error(Enomem);
 	len = snprint(p, READSTR, "interrupts: %lud\n", ctlr->interrupts);
 	len += snprint(p+len, READSTR-len, "bogusinterrupts: %lud\n", ctlr->bogusinterrupts);
 	len += snprint(p+len, READSTR-len, "timer: %lud %lud\n",
@@ -1251,8 +1243,6 @@ tcmadapter(int port, int irq, Pcidev* pcidev)
 	Ctlr *ctlr;
 
 	ctlr = malloc(sizeof(Ctlr));
-	if(ctlr == nil)
-		error(Enomem);
 	ctlr->port = port;
 	ctlr->irq = irq;
 	ctlr->pcidev = pcidev;

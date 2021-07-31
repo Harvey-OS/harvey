@@ -1086,8 +1086,7 @@ sdread(Chan *c, void *a, long n, vlong off)
 	case Qtopctl:
 		m = 64*1024;	/* room for register dumps */
 		p = buf = malloc(m);
-		if(p == nil)
-			error(Enomem);
+		assert(p);
 		e = p + m;
 		qlock(&devslock);
 		for(i = 0; i < nelem(devs); i++){
@@ -1112,8 +1111,6 @@ sdread(Chan *c, void *a, long n, vlong off)
 		unit = sdev->unit[UNIT(c->qid)];
 		m = 16*1024;	/* room for register dumps */
 		p = malloc(m);
-		if(p == nil)
-			error(Enomem);
 		l = snprint(p, m, "inquiry %.48s\n",
 			(char*)unit->inquiry+8);
 		qlock(&unit->ctl);
@@ -1510,7 +1507,7 @@ Dev sddevtab = {
 	devremove,
 	sdwstat,
 	devpower,
-	sdconfig,	/* probe; only called for pcmcia-like devices */
+	sdconfig,
 };
 
 /*
@@ -1548,8 +1545,6 @@ getnewport(DevConf* dc)
 	Devport *p;
 
 	p = (Devport *)malloc((dc->nports + 1) * sizeof(Devport));
-	if(p == nil)
-		error(Enomem);
 	if(dc->nports > 0){
 		memmove(p, dc->ports, dc->nports * sizeof(Devport));
 		free(dc->ports);

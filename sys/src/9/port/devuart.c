@@ -513,8 +513,6 @@ uartwrite(Chan *c, void *buf, long n, vlong)
 		break;
 	case Nctlqid:
 		cmd = malloc(n+1);
-		if(cmd == nil)
-			error(Enomem);
 		memmove(cmd, buf, n);
 		cmd[n] = 0;
 		qlock(p);

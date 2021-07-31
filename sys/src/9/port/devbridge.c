@@ -794,8 +794,6 @@ cachedump(Bridge *b)
 	n *= 51;	// change if print format is changed
 	n += 10;	// some slop at the end
 	buf = malloc(n);
-	if(buf == nil)
-		error(Enomem);
 	p = buf;
 	ep = buf + n;
 	ce = b->cache;

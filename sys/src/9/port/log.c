@@ -22,8 +22,6 @@ logopen(Log *alog)
 			alog->minread = 1;
 		if(alog->buf == nil)
 			alog->buf = malloc(alog->nlog);
-		if(alog->buf == nil)
-			error(Enomem);
 		alog->rptr = alog->buf;
 		alog->end = alog->buf + alog->nlog;
 		alog->len = 0;
