@@ -1,13 +1,8 @@
 .TH DOC2TXT 1
 .SH NAME
-doc2txt, wdoc2txt, xls2txt, olefs, mswordstrings, msexceltable \- extract printable strings from Microsoft Office documents
+doc2txt, xls2txt olefs, mswordstrings msexceltable \- extract printable strings from Microsoft Office documents
 .SH SYNOPSIS
 .B doc2txt
-[
-.I file.doc
-]
-.br
-.B wdoc2txt
 [
 .I file.doc
 ]
@@ -40,19 +35,11 @@ doc2txt, wdoc2txt, xls2txt, olefs, mswordstrings, msexceltable \- extract printa
 .I /mnt/doc/Workbook
 .SH DESCRIPTION
 .I Doc2txt
-is an
-.IR rc (1)
-script that uses 
+is a shell script that uses 
 .I olefs
 and
 .I mswordstrings
-to extract the printable text from the body of a Microsoft Word document and write it on the standard output.
-.I Wdoc2txt
-is similar, but uses
-.IR plumb (1)
-to send the output to a new
-.IR acme (1)
-window instead.
+to extract the printable text from the body of a Microsoft Word document.
 .I Xls2txt
 performs a similar function for Microsoft Excel documents.
 .PP
@@ -101,17 +88,15 @@ are seperated by commas, sheet ranges are seperated by a minus.
 	unmount /mnt/doc
 .EE
 .SH SOURCE
-.B /rc/bin/doc2txt
-.br
-.B /rc/bin/wdoc2txt
-.br
-.B /rc/bin/xls2txt
+.B /sys/src/cmd/aux/mswordstrings.c
 .br
 .B /sys/src/cmd/aux/msexceltables.c
 .br
-.B /sys/src/cmd/aux/mswordstrings.c
-.br
 .B /sys/src/cmd/aux/olefs.c
+.br
+.B /rc/bin/xls2txt
+.br
+.B /rc/bin/doc2txt
 .SH SEE ALSO
 .IR strings (1)
 .br
