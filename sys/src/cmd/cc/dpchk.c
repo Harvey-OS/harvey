@@ -447,11 +447,7 @@ pragincomplete(void)
 
 	s = getsym();
 	if(s){
-		if(strcmp(s->name, "_off_") == 0)
-			debug['T'] = 0;
-		else if(strcmp(s->name, "_on_") == 0)
-			debug['T'] = 1;
-		else if(s->type == T)
+		if(s->type == T)
 			diag(Z, "unknown type %s in pragma incomplete", s->name);
 		else
 			s->type->garb |= GINCOMPLETE;
