@@ -70,15 +70,10 @@ enum {
 	Tfree		= -1,
 	Tmgmt,
 
-	/*
-	 * round trip bounds, timeouts, in ticks.
-	 * timeouts should be long enough that rebooting
-	 * the coraid (which takes under two minutes)
-	 * doesn't trigger a timeout.
-	 */
+	/* round trip bounds, timeouts, in ticks */
 	Rtmax		= Ms2tk(320),
 	Rtmin		= Ms2tk(20),
-	Srbtimeout	= 3*60*HZ,		/* was 45*HZ */
+	Srbtimeout	= 45*HZ,
 
 	Dbcnt		= 1024,
 
@@ -588,7 +583,7 @@ aoesweepproc(void*)
 {
 	ulong i, tx, timeout, nbc;
 	vlong starttick;
-	enum { Nms = 100, Nbcms = 30*1000, };		/* magic */
+	enum { Nms = 100, Nbcms = 30*1000, };
 	uchar *ea;
 	Aoeata *a;
 	Aoedev *d;
@@ -646,7 +641,7 @@ loop:
 			}
 		}
 		if(d->nout == d->maxout && d->maxout < d->nframes &&
-		   TK2MS(MACHP(0)->ticks - d->lastwadj) > 10*1000){ /* more magic */
+		   TK2MS(MACHP(0)->ticks - d->lastwadj) > 10*1000){
 			d->maxout++;
 			d->lastwadj = MACHP(0)->ticks;
 		}
