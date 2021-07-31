@@ -345,7 +345,7 @@ mnp(int a, void *p)
 		if(strlen(p) == 0) nullstr[tptr] = TRUE;
 		break;
 	default:
-		error("bad switch mnp %d %P", a, p);
+		warning("bad switch mnp %d %P", a, p);
 		break;
 	}
 	if(tptr > treesize)
@@ -440,9 +440,7 @@ dupl(int n)
 	switch(i){
 	case RNULLS:
 		return(mn0(i));
-	case RCCL: case RNCCL:
-		return(mnp(i,ptr[n]));
-	case FINAL: case S1FINAL: case S2FINAL:
+	case RCCL: case RNCCL: case FINAL: case S1FINAL: case S2FINAL:
 		return(mn1(i,left[n]));
 	case STAR: case QUEST: case PLUS: case CARAT:
 		return(mn1(i,dupl(left[n])));
@@ -552,11 +550,11 @@ treedump(void)
 				break;
 			case RCCL:
 				print("ccl ");
-				allprint(ptr[t]);
+				allprint(left[t]);
 				break;
 			case RNCCL:
 				print("nccl ");
-				allprint(ptr[t]);
+				allprint(left[t]);
 				break;
 			case DIV:
 				print("/ %d %d",left[t],right[t]);

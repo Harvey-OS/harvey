@@ -5,11 +5,6 @@
 #include "win.h"
 #include "adict.h"
 
-enum
-{
-	STACK = 8192,
-};
-
 char *prog = "adict";
 char *lprog = "/bin/adict";
 char *xprog  = "/bin/dict";
@@ -27,11 +22,9 @@ int getaddr(char*);
 void
 usage(void)
 {
-		fprint(2, "usage: %s [-d dictname] [pattern]\n", argv0);
+		threadprint(2, "usage: %s [-d dictname] [pattern]\n", argv0);
 		threadexitsall(nil);
 }
-
-int mainstacksize = STACK;
 
 void
 threadmain(int argc, char** argv)
@@ -53,7 +46,7 @@ threadmain(int argc, char** argv)
 		pattern = pbuffer;
 		strcpy(pattern,argv[0]);
 		if(dict == nil)
-			dict = "pgw";
+			dict = "oed";
 		break;
 	case 0:
 		break;
@@ -96,7 +89,7 @@ procrexec(char *xprog, ...)
 	rexarg[2] = fpipe;
 	rexarg[3] = c;
 
-	proccreate(rexec, rexarg, STACK);
+	proccreate(rexec, rexarg, 8192);
 	recvul(c);
 	chanfree(c);
 	close(fpipe[1]);
@@ -137,7 +130,7 @@ if(bufptr[0] == 0)
 	}
 	curaddr[i] = nil;
 	if (i == MAXMATCH)
-		fprint(2, "Too many matches!\n");
+		threadprint(2, "Too many matches!\n");
 	Bterm(&inbuf);
 	close(fd);
 
@@ -156,7 +149,7 @@ getpattern(char *addr)
 	sprint(buffer,"%sh", addr);
 	fd = procrexec(xprog, "-d", dict, "-c", buffer, nil);
 	if (read(fd, pbuffer, 80) > 80)
-		fprint(2, "Error in getting addres from dict.\n");
+		threadprint(2, "Error in getting addres from dict.\n");
 	else {
 		t = pbuffer;
 		/* remove trailing whitespace, newline */
@@ -189,7 +182,7 @@ chgaddr(int dir)
 		sprint(buffer,"%s+a", curone);
 	fd = procrexec(xprog, "-d", dict, "-c", buffer, nil);
 	if (read(fd, abuffer, 80) > 80)
-		fprint(2, "Error in getting addres from dict.\n");
+		threadprint(2, "Error in getting addres from dict.\n");
 	else {
 		res = abuffer;
 		while (*res != '#') res++;
@@ -359,7 +352,7 @@ procopenwin(char *name, char *buttons, Win *twin, int wintype)
 	arg[2] = twin;
 	arg[3] = (void*)wintype;
 	arg[4] = c;
-	proccreate(vopenwin, arg, STACK);
+	proccreate(vopenwin, arg, 8192);
 	recvul(c);
 	chanfree(c);
 }
@@ -384,7 +377,7 @@ rexec(void *v)
 	close(fd[1]);
 	close(fd[0]);
 	procexec(c, prog, args);
-	fprint(2, "Remote pipe execution failed: %s %r\n", prog);
+	threadprint(2, "Remote pipe execution failed: %s %r\n", prog);
 abort();
 	threadexits(nil);
 }
@@ -403,7 +396,7 @@ pexec(void *v)
 	c = arg[2];
 
 	procexec(c, prog, args);
-	fprint(2, "Remote execution failed: %s %r\n", prog);
+	threadprint(2, "Remote execution failed: %s %r\n", prog);
 abort();
 	threadexits(nil);
 }
@@ -419,7 +412,7 @@ procpexec(char *prog, char **args)
 	rexarg[1] = args;
 	rexarg[2] = c;
 
-	proccreate(pexec, rexarg, STACK);
+	proccreate(pexec, rexarg, 8192);
 	recvul(c);
 	chanfree(c);
 }
@@ -510,19 +503,19 @@ handle(Win *w, int wintype)
 		wevent(w, &e);
 		switch(e.c2){
 		default:
-			/* fprint(2,"unknown message %c%c\n", e.c1, e.c2); */
+			/* threadprint(2,"unknown message %c%c\n", e.c1, e.c2); */
 			break;
 		case 'i':
-			/* fprint(2,"'%s' inserted in tag at %d\n", e.b, e.q0);*/
+			/* threadprint(2,"'%s' inserted in tag at %d\n", e.b, e.q0);*/
 			break;
 		case 'I':
-			/* fprint(2,"'%s' inserted in body at %d\n", e.b, e.q0);*/
+			/* threadprint(2,"'%s' inserted in body at %d\n", e.b, e.q0);*/
 			break;
 		case 'd':
-			/* fprint(2, "'%s' deleted in tag at %d\n", e.b, e.q0);*/
+			/* threadprint(2, "'%s' deleted in tag at %d\n", e.b, e.q0);*/
 			break;
 		case 'D':
-			/* fprint(2, "'%s' deleted in body at %d\n", e.b, e.q0);*/
+			/* threadprint(2, "'%s' deleted in body at %d\n", e.b, e.q0);*/
 			break;
 		case 'x':
 		case 'X':				/* Execute command. */
