@@ -60,15 +60,15 @@ and
 .I NNN
 is the track number.
 .PP
-If the device can write discs
-and contains a writable disc, the top-level
+If the device is capable of writing discs
+and contains a writable disc, the top level
 directory also contains an empty directory
 .B wd
 and, for CDs only,
 an empty directory
 .BR wa .
 Files created in these directories
-appear in the top-level directory
+appear in the top level directory
 as new data or audio tracks, respectively, regardless of name.
 .PP
 At any time, any number of tracks
@@ -100,7 +100,7 @@ also contains a
 file, into which control messages
 may be echoed.
 The current control messages are:
-.TF \fLquickblank
+.TF \fLformat
 .TP
 .B format
 Format the rewritable disc (\c
@@ -179,12 +179,13 @@ Additional lines may further describe the current disc.
 takes 4 optional arguments.
 The
 .B -s
-option makes
+option causes
 .I aux/cddb
-use
+to use a different
 .I server
-for the query instead of
-.LR freedb.freedb.org .
+for the query
+(default is
+.LR freedb.freedb.org ).
 The
 .B -D
 option causes the raw database response from the server to be dumped
@@ -195,12 +196,10 @@ option causes the time of each track to be appended to the normal output.
 .B -T
 is like
 .B -t
-but prints a final line with the total time.
+but prints a line with the total time at the end.
 .PD
 .SH EXAMPLE
 Backup to a BD-R disc:
-.br
-.ne 3
 .IP
 .EX
 9fs boot
@@ -251,8 +250,7 @@ while the drive burns the unused part of the track reservation
 Thus only a single DVD-R track can be written on a DVD-R disc;
 use other media if you need more than one track per disc.
 .PP
-There are too many combinations of optical media, each with unique quirks,
-approximately
+There are too many combinations of optical media, approximately
 the cross-product of these tuples:
 (CD DVD- DVD+ BD),
 (single-layer dual-layer),

@@ -6,5 +6,4 @@ if (! ~ $#* 1) {
 	exit usage
 }
 # see /sys/src/9/port/proc.c:/^killbig
-pids=`{psu | awk '$NF ~ /'$1'/ {print $2}'}
-~ $#pids 0 || chmod -w /proc/^$pids^/ctl
+exec chmod -w /proc/^`{psu | awk '$NF ~ /'$1'/ {print $2}'}^/ctl
