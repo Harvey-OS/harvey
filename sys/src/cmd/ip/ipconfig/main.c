@@ -28,8 +28,6 @@ enum
 	Vgbe,
 	Vppp,
 	Vloopback,
-	Vtorus,
-	Vtree,
 };
 
 enum
@@ -168,8 +166,6 @@ char *verbs[] = {
 [Vloopback]	"loopback",
 [Vaddpref6]	"add6",
 [Vra6]		"ra6",
-[Vtorus]	"torus",
-[Vtree]		"tree",
 };
 
 void	adddefroute(char*, uchar*);
@@ -391,8 +387,6 @@ parseargs(int argc, char **argv)
 		case Vgbe:
 		case Vppp:
 		case Vloopback:
-		case Vtorus:
-		case Vtree:
 			conf.type = *argv++;
 			argc--;
 			if(argc > 0){
@@ -412,8 +406,6 @@ parseargs(int argc, char **argv)
 		case Vgbe:
 		case Vppp:
 		case Vloopback:
-		case Vtorus:
-		case Vtree:
 			sysfatal("medium %s already specified", conf.type);
 		case Vadd:
 		case Vremove:
