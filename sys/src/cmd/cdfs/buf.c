@@ -40,16 +40,16 @@ bread(Buf *b, void *v, long n, vlong off)
 	/* Refill buffer */
 	if(b->off > off || off >= b->off+b->ndata) {
 		noff = off - off % b->bs;
-		if(vflag > 1)
+		if(vflag)
 			fprint(2, "try refill at %lld...", noff);
 		if((m = b->fn(b, b->data, b->nblock, noff/b->bs)) <= 0) {
 			if (vflag)
-				fprint(2, "read failed: %r\n");
+				fprint(2, "failed\n");
 			return m;
 		}
 		b->ndata = b->bs * m;
 		b->off = noff;
-		if(vflag > 1)
+		if(vflag)
 			fprint(2, "got %ld\n", b->ndata);
 	}
 
