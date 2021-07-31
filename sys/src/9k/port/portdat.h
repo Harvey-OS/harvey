@@ -325,8 +325,6 @@ struct Page
 	Page	*hash;			/* Image hash chains */
 };
 
-#define	pagesize(p)	(1<<(p)->lg2size)
-
 struct Image
 {
 	Ref;

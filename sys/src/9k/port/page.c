@@ -257,7 +257,7 @@ newpage(int clear, Segment *s, uintptr va, int locked)
 
 	if(clear) {
 		k = kmap(p);
-		memset((void*)VA(k), 0, pagesize(p));
+		memset((void*)VA(k), 0, 1<<p->lg2size);
 		kunmap(k);
 	}
 
@@ -427,7 +427,7 @@ copypage(Page *f, Page *t)
 		panic("copypage");
 	ks = kmap(f);
 	kd = kmap(t);
-	memmove((void*)VA(kd), (void*)VA(ks), pagesize(t));
+	memmove((void*)VA(kd), (void*)VA(ks), 1<<t->lg2size);
 	kunmap(ks);
 	kunmap(kd);
 }
