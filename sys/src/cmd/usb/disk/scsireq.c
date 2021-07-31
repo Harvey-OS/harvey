@@ -15,7 +15,6 @@
 
 #include <u.h>
 #include <libc.h>
-#include <fcall.h>
 #include "scsireq.h"
 
 enum {
@@ -209,14 +208,14 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 	uchar cmd[10];
 	long n;
 
-	if(rp->lbsize == 0 || (nbytes % rp->lbsize) || nbytes > Maxiosize){
+	if((nbytes % rp->lbsize) || nbytes > maxiosize){
 		if(diskdebug)
 			if (nbytes % rp->lbsize)
 				fprint(2, "disk: i/o size %ld %% %ld != 0\n",
 					nbytes, rp->lbsize);
 			else
-				fprint(2, "disk: i/o size %ld > %d\n",
-					nbytes, Maxiosize);
+				fprint(2, "disk: i/o size %ld > %ld\n",
+					nbytes, maxiosize);
 		rp->status = Status_BADARG;
 		return -1;
 	}
@@ -273,14 +272,14 @@ SRwrite(ScsiReq *rp, void *buf, long nbytes)
 	uchar cmd[10];
 	long n;
 
-	if(rp->lbsize == 0 || (nbytes % rp->lbsize) || nbytes > Maxiosize){
+	if((nbytes % rp->lbsize) || nbytes > maxiosize){
 		if(diskdebug)
 			if (nbytes % rp->lbsize)
 				fprint(2, "disk: i/o size %ld %% %ld != 0\n",
 					nbytes, rp->lbsize);
 			else
-				fprint(2, "disk: i/o size %ld > %d\n",
-					nbytes, Maxiosize);
+				fprint(2, "disk: i/o size %ld > %ld\n",
+					nbytes, maxiosize);
 		rp->status = Status_BADARG;
 		return -1;
 	}
@@ -354,10 +353,8 @@ SRseek(ScsiReq *rp, long offset, int type)
 	rp->data.count = 0;
 	rp->data.write = 1;
 	SRrequest(rp);
-	if(rp->status == STok) {
-		rp->offset = offset;
-		return offset;
-	}
+	if(rp->status == STok)
+		return rp->offset = offset;
 	return -1;
 }
 
@@ -571,7 +568,6 @@ request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 
 	/* read or write actual data */
 	werrstr("");
-//	alarm(5*1000);
 	if(data->write)
 		n = write(fd, data->p, data->count);
 	else {
@@ -581,7 +577,6 @@ request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 		else if (n < data->count)
 			memset(data->p + n, 0, data->count - n);
 	}
-//	alarm(0);
 	if (n != data->count && n <= 0) {
 		if (debug)
 			fprint(2,
@@ -786,7 +781,7 @@ retry:
 		werrstr("%s", scsierr(rp));
 		return -1;
 	case STbusy:
-		sleep(1000);		/* TODO: try a shorter sleep? */
+		sleep(1000);
 		goto retry;
 	default:
 		if(debug || exabyte)
