@@ -160,7 +160,6 @@ void	rdmsr(int, vlong*);
 void	realmode(Ureg*);
 void	screeninit(void);
 void	(*screenputs)(char*, int);
-void*	sigsearch(char*);
 void	syncclock(void);
 void	syscallfmt(int syscallno, ulong pc, va_list list);
 void	sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop);
