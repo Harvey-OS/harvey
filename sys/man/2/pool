@@ -15,7 +15,6 @@ void*	poolalloc(Pool* pool, ulong size)
 .B
 void*	poolallocalignspan(Pool *pool, ulong size, 
 .br
-.B
                 ulong align, long offset, ulong span)
 .PP
 .B

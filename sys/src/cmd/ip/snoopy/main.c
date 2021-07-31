@@ -1,13 +1,9 @@
-/*
- * snoopy - network sniffer
- */
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
 #include <bio.h>
 #include <fcall.h>
 #include <libsec.h>
-#include <ndb.h>
 #include "dat.h"
 #include "protos.h"
 #include "y.tab.h"
@@ -739,7 +735,6 @@ void
 compile_cmp(char *proto, Filter *f, Field *fld)
 {
 	uchar x[IPaddrlen];
-	char *v;
 
 	if(f->op != '=')
 		sysfatal("internal error: compile_cmp %s: not a cmp", proto);
@@ -753,31 +748,13 @@ compile_cmp(char *proto, Filter *f, Field *fld)
 				f->ulv = atoi(f->r->s);
 				break;
 			case Fether:
-				v = csgetvalue(nil, "sys", (char*)f->r->s,
-					"ether", 0);
-				if(v){
-					parseether(f->a, v);
-					free(v);
-				} else
-					parseether(f->a, f->r->s);
+				parseether(f->a, f->r->s);
 				break;
 			case Fv4ip:
-				v = csgetvalue(nil, "sys", (char*)f->r->s,
-					"ip", 0);
-				if(v){
-					f->ulv = parseip(x, v);
-					free(v);
-				}else
-					f->ulv = parseip(x, f->r->s);
+				f->ulv = parseip(x, f->r->s);
 				break;
 			case Fv6ip:
-				v = csgetvalue(nil, "sys", (char*)f->r->s,
-					"ipv6", 0);
-				if(v){
-					parseip(f->a, v);
-					free(v);
-				}else
-					parseip(f->a, f->r->s);
+				parseip(f->a, f->r->s);
 				break;
 			case Fba:
 				parseba(f->a, f->r->s);

@@ -466,6 +466,7 @@ i8042intr(Ureg*, void*)
 			return;
 		case Altgr:
 			kbscan.altgr = 1;
+			kbscan.collecting = 0;
 			return;
 		case Kmouse|1:
 		case Kmouse|2:
