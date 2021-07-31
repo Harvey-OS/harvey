@@ -61,4 +61,3 @@ void		*emalloc(ulong);
 void		*erealloc(void*, ulong);
 char		*estrdup(char*);
 char		*findfile(Face*, char*, char*);
-void		addmaildir(char*);

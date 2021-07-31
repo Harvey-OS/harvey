@@ -11,8 +11,6 @@ static int		seefd = -1;
 static int		logfd = -1;
 static char	*user;
 static char	*logtag;
-static char	**maildirs;
-static int		nmaildirs;
 
 void
 initplumb(void)
@@ -31,13 +29,6 @@ initplumb(void)
 		logtag = emalloc(32+strlen(user)+1);
 		sprint(logtag, " delivered %s From ", user);
 	}
-}
-
-void
-addmaildir(char *dir)
-{
-	maildirs = erealloc(maildirs, (nmaildirs+1)*sizeof(char*));
-	maildirs[nmaildirs++] = dir;
 }
 
 char*
@@ -260,7 +251,6 @@ tweakdate(char *d)
 Face*
 nextface(void)
 {
-	int i;
 	Face *f;
 	Plumbmsg *m;
 	char *t, *senderp, *showmailp, *digestp;
@@ -283,13 +273,10 @@ nextface(void)
 				plumbfree(m);
 				continue;
 			}
-			for(i=0; i<nmaildirs; i++)
-				if(strncmp(m->data, maildirs[i], strlen(maildirs[i])) != 0)
-					goto Found;
-			plumbfree(m);
-			continue;
-
-		Found:
+			if(strncmp(m->data, maildir, strlen(maildir)) != 0){	/* not about this mailbox */
+				plumbfree(m);
+				continue;
+			}
 			xtime = parsedate(value(m->attr, "date", date));
 			digestp = value(m->attr, "digest", nil);
 			if(alreadyseen(digestp)){
