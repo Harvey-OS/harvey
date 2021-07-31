@@ -3,7 +3,6 @@
 #include <authsrv.h>
 #include <mp.h>
 #include <libsec.h>
-#include <bio.h>
 #include "authcmdlib.h"
 
 char	authkey[DESKEYLEN];

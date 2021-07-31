@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <ctype.h>
-#include <bio.h>
 #include "authcmdlib.h"
 
 /*

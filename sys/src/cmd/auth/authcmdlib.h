@@ -1,5 +1,7 @@
 #pragma lib "./lib.$O.a"
 
+typedef Biobuf;
+
 enum{
 	PASSLEN		= 10,
 	MAXNETCHAL	= 100000,		/* max securenet challenge */

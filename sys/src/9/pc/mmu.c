@@ -429,11 +429,8 @@ putmmu(ulong va, ulong pa, Page*)
 	
 	s = splhi();
 	if(!(vpd[PDX(va)]&PTEVALID)){
-		if(up->mmufree == 0){
-			spllo();
+		if(up->mmufree == 0)
 			page = newpage(0, 0, 0);
-			splhi();
-		}
 		else{
 			page = up->mmufree;
 			up->mmufree = page->next;
