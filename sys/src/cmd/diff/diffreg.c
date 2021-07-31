@@ -313,7 +313,6 @@ output(void)
 	}
 	if (m == 0)
 		change(1, 0, 1, len[1]);
-	flushchanges();
 }
 
 #define BUF 4096

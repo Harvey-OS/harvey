@@ -362,7 +362,6 @@ fsopen(Req *r)
 {
 	int i, *p, perm;
 	static int need[4] = {4, 2, 6, 1};
-	int n;
 	Fsstate *fss;
 
 	p = nil;
@@ -379,8 +378,7 @@ fsopen(Req *r)
 	}else
 		perm = 5;
 
-	n = need[r->ifcall.mode&3];
-	if((r->ifcall.mode&~(3|OTRUNC)) || ((perm&n) != n)){
+	if((r->ifcall.mode&~(3|OTRUNC)) || !(perm & need[r->ifcall.mode&3])){
 		respond(r, "permission denied");
 		return;
 	}
