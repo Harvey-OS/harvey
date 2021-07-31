@@ -15,7 +15,6 @@ static void	calcd(Route*);
 Route*	v4freelist;
 Route*	v6freelist;
 RWlock	routelock;
-ulong	v4routegeneration, v6routegeneration;
 
 static void
 freeroute(Route *r)
@@ -317,7 +316,6 @@ v4addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int type)
 		}
 		wunlock(&routelock);
 	}
-	v4routegeneration++;
 
 	ipifcaddroute(f, Rv4, a, mask, gate, type);
 }
@@ -363,7 +361,6 @@ v6addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int type)
 		}
 		wunlock(&routelock);
 	}
-	v6routegeneration++;
 
 	ipifcaddroute(f, 0, a, mask, gate, type);
 }
@@ -432,7 +429,6 @@ v4delroute(Fs *f, uchar *a, uchar *mask, int dolock)
 		if(dolock)
 			wunlock(&routelock);
 	}
-	v4routegeneration++;
 
 	ipifcremroute(f, Rv4, a, mask);
 }
@@ -476,20 +472,16 @@ v6delroute(Fs *f, uchar *a, uchar *mask, int dolock)
 		if(dolock)
 			wunlock(&routelock);
 	}
-	v6routegeneration++;
 
 	ipifcremroute(f, 0, a, mask);
 }
 
 Route*
-v4lookup(Fs *f, uchar *a, Conv *c)
+v4lookup(Fs *f, uchar *a)
 {
 	Route *p, *q;
 	ulong la;
 	uchar gate[IPaddrlen];
-
-	if(c != nil && c->r != nil && c->rgen == v4routegeneration)
-		return c->r;
 
 	la = nhgetl(a);
 	q = nil;
@@ -514,16 +506,12 @@ v4lookup(Fs *f, uchar *a, Conv *c)
 			return nil;
 		q->ifcid = q->ifc->ifcid;
 	}
-	if(c != nil){
-		c->r = q;
-		c->rgen = v4routegeneration;
-	}
 
 	return q;
 }
 
 Route*
-v6lookup(Fs *f, uchar *a, Conv *c)
+v6lookup(Fs *f, uchar *a)
 {
 	Route *p, *q;
 	ulong la[IPllen];
@@ -532,13 +520,10 @@ v6lookup(Fs *f, uchar *a, Conv *c)
 	uchar gate[IPaddrlen];
 
 	if(memcmp(a, v4prefix, IPv4off) == 0){
-		q = v4lookup(f, a+IPv4off, c);
+		q = v4lookup(f, a+IPv4off);
 		if(q != nil)
 			return q;
 	}
-
-	if(c != nil && c->r != nil && c->rgen == v6routegeneration)
-		return c->r;
 
 	for(h = 0; h < IPllen; h++)
 		la[h] = nhgetl(a+4*h);
@@ -582,10 +567,6 @@ next:		;
 		if(q->ifc == nil)
 			return nil;
 		q->ifcid = q->ifc->ifcid;
-	}
-	if(c != nil){
-		c->r = q;
-		c->rgen = v6routegeneration;
 	}
 	
 	return q;

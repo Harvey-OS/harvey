@@ -310,11 +310,26 @@ trap(Ureg* ureg)
 		if(ctl->eoi)
 			ctl->eoi(vno);
 
-		if(ctl->isintr){
+		/* 
+		 *  preemptive scheduling.  to limit stack depth,
+		 *  make sure process has a chance to return from
+		 *  the current interrupt before being preempted a
+		 *  second time.
+		 */
+		if(ctl->isintr && ctl->irq != IrqTIMER && ctl->irq != IrqCLOCK)
+		if(up && up->state == Running)
+		if(anyhigher())
+		if(up->preempted == 0)
+		if(!active.exiting){
+			up->preempted = 1;
 			intrtime(m, vno);
-			if(up && ctl->irq != IrqTIMER && ctl->irq != IrqCLOCK)
-				preempted();
+			sched();
+			splhi();
+			up->preempted = 0;
+			return;
 		}
+		if(ctl->isintr)
+			intrtime(m, vno);
 	}
 	else if(vno <= nelem(excname) && user){
 		spllo();

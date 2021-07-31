@@ -386,7 +386,22 @@ intr(Ureg *ureg)
 	if(ctl->eoi)
 		ctl->eoi(vno);
 
-	preempted();
+	/* 
+	 *  preemptive scheduling.  to limit stack depth,
+	 *  make sure process has a chance to return from
+	 *  the current interrupt before being preempted a
+	 *  second time.
+	 */
+	if(up && up->state == Running)
+	if(anyhigher())
+	if(up->preempted == 0)
+	if(!active.exiting){
+		up->preempted = 1;
+		sched();
+		splhi();
+		up->preempted = 0;
+		return;
+	}
 }
 
 char*

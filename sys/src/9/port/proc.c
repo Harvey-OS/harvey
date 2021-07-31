@@ -20,22 +20,7 @@ static struct Procalloc
 	Proc*	free;
 } procalloc;
 
-enum
-{
-	Q=(HZ/20)*4,
-	DQ=((HZ-Q)/40)*2,
-};
-
 static Schedq	runq[Nrq];
-static ulong	runvec;
-static int	quanta[Nrq] =
-{
-	Q+19*DQ, Q+18*DQ, Q+17*DQ, Q+16*DQ,
-	Q+15*DQ, Q+14*DQ, Q+13*DQ, Q+12*DQ,
-	Q+11*DQ, Q+10*DQ, Q+ 9*DQ, Q+ 8*DQ,
-	Q+ 7*DQ, Q+ 6*DQ, Q+ 5*DQ, Q+ 4*DQ,
-	Q+ 3*DQ, Q+ 2*DQ, Q+ 1*DQ, Q+ 0*DQ,
-};
 
 extern Edfinterface	nulledf;
 
@@ -143,69 +128,29 @@ sched(void)
 int
 anyready(void)
 {
-	return runvec || edf->edfanyready();
+	return nrdy || edf->edfanyready();
 }
 
 int
 anyhigher(void)
 {
-	return runvec & ~((1<<(up->priority+1))-1);
-}
+	Schedq *rq;
 
-/*
- *  here once per clock tick to see if we should resched
- */
-void
-hzsched(void)
-{
-	/* another cycle, another quantum */
-	up->quanta--;
+	if(nrdy == 0)
+		return 0;
 
-	/* edf scheduler always gets first chance */
-	if(edf->isedf(up))
-		return;
+	for(rq = &runq[Nrq-1]; rq > &runq[up->priority]; rq--)
+		if(rq->head != nil)
+			return 1;
 
-	/* don't bother unless someone is elegible */
-	if(anyhigher() || (!up->fixedpri && anyready())){
-		sched();
-		splhi();
-	}
-}
-
-/*
- *  here at the end of non-clock interrupts to see if we should preempt the
- *  current process.  Returns 1 if preempted, 0 otherwise.
- */
-int
-preempted(void)
-{
-	if(up && up->state == Running)
-	if(up->preempted == 0)
-	if(anyhigher())
-	if(!active.exiting){
-		up->preempted = 1;
-		sched();
-		splhi();
-		up->preempted = 0;
-		return 1;
-	}
 	return 0;
 }
 
-/*
- *  ready(p) picks a new priority for a process and sticks it in the
- *  runq for that priority.
- *
- *  - fixed priority processes never move
- *  - a process that uses all its quanta before blocking goes down a
- *    priority level
- *  - a process that uses less than half its quanta before blocking
- *    goes up a priority level
- *  - a process that blocks after using up half or more of it's quanta
- *    stays at the same level
- *
- *  new quanta are assigned each time a process blocks or changes level
- */
+enum
+{
+	Squantum = 1,
+};
+
 void
 ready(Proc *p)
 {
@@ -219,30 +164,34 @@ ready(Proc *p)
 		splx(s);
 		return;
 	}
-
-	pri = p->priority;
-
 	if(p->fixedpri){
 		pri = p->basepri;
-		p->quanta = HZ;
-	} else if(p->state == Running){
-		if(p->quanta <= 0){
-			/* degrade priority of anyone that used their whole quanta */
-			if(pri > 0)
-				pri--;
-			p->quanta = quanta[pri];
-		}
 	} else {
-		if(p->quanta > quanta[pri]/2){
-			/* blocked before using half its quanta, go up */
-			if(++pri > p->basepri)
-				pri = p->basepri;
+		/* history counts */
+		if(p->state == Running){
+			p->rt++;
+			pri = (p->art + p->rt)/2;
+		} else {
+			p->art = (p->art + p->rt + 2)/2;
+			pri = (p->art + p->rt)/2;
+			p->rt = 0;
 		}
-		p->quanta = quanta[pri];
+		pri = p->basepri - (pri/Squantum);
+		if(pri < 0)
+			pri = 0;
+
+		/* the only intersection between the classes is at PriNormal */
+		if(pri < PriNormal && p->basepri > PriNormal)
+			pri = PriNormal;
+
+		/* stick at low priority any process waiting for a lock */
+		if(p->lockwait)
+			pri = PriLock;
 	}
 
-	rq = &runq[pri];
 	p->priority = pri;
+	rq = &runq[p->priority];
+
 	lock(runq);
 	p->rnext = 0;
 	if(rq->tail)
@@ -252,7 +201,6 @@ ready(Proc *p)
 	rq->tail = p;
 	rq->n++;
 	nrdy++;
-	runvec |= 1<<pri;
 	p->readytime = m->ticks;
 	p->state = Ready;
 	unlock(runq);
@@ -262,10 +210,10 @@ ready(Proc *p)
 Proc*
 runproc(void)
 {
-	Schedq *rq;
-	Proc *p, *l, *tp;
+	Schedq *rq, *xrq;
+	Proc *p, *l;
+	ulong rt;
 	ulong start, now;
-	int i;
 
 	start = perfticks();
 
@@ -273,32 +221,55 @@ runproc(void)
 		return p;
 
 loop:
+
 	/*
 	 *  find a process that last ran on this processor (affinity),
-	 *  or one that hasn't moved in a while (load balancing).  Every
-	 *  time around the loop affinity goes down.
+	 *  or one that hasn't moved in a while (load balancing).
 	 */
 	spllo();
-	for(i = 0;; i++){
-		/*
-		 *  find the highest priority target process that this
-		 *  processor can run given affinity constraints
-		 */
-		for(rq = &runq[Nrq-1]; rq >= runq; rq--){
-			tp = rq->head;
-			if(tp == 0)
-				continue;
-			for(; tp; tp = tp->rnext){
-				if(tp->mp == nil || tp->mp == MACHP(m->machno)
-				|| (!tp->wired && i > 0))
-					goto found;
+	for(;;){
+		if((++(m->fairness) & 0x3) == 0){
+			/*
+			 *  once in a while, run process that's been waiting longest
+			 *  regardless of movetime
+			 */
+			rt = 0xffffffff;
+			xrq = nil;
+			for(rq = runq; rq < &runq[Nrq]; rq++){
+				p = rq->head;
+				if(p == 0)
+					continue;
+				if(p->readytime < rt){
+					xrq = rq;
+					rt = p->readytime;
+				}
+			}
+			if(xrq != nil){
+				rq = xrq;
+				p = rq->head;
+				if(p != nil && p->wired == nil)
+					p->movetime = 0;
+				goto found;
+			}
+		} else {
+			/*
+			 *  get highest priority process that this
+			 *  processor can run given affinity constraints
+			 */
+			for(rq = &runq[Nrq-1]; rq >= runq; rq--){
+				p = rq->head;
+				if(p == 0)
+					continue;
+				for(; p; p = p->rnext){
+					if(p->mp == MACHP(m->machno)
+					|| p->movetime < MACHP(0)->ticks)
+						goto found;
+				}
 			}
 		}
 
-		/* waste time or halt the CPU */
-		idlehands();
-
 		/* remember how much time we're here */
+		idlehands();
 		now = perfticks();
 		m->perf.inidle += now-start;
 		start = now;
@@ -309,13 +280,9 @@ found:
 	if(!canlock(runq))
 		goto loop;
 
-	/*
-	 *  the queue may have changed before we locked runq,
-	 *  refind the target process.
-	 */
 	l = 0;
 	for(p = rq->head; p; p = p->rnext){
-		if(p == tp)
+		if(p->mp == MACHP(m->machno) || p->movetime <= MACHP(0)->ticks)
 			break;
 		l = p;
 	}
@@ -333,8 +300,6 @@ found:
 		l->rnext = p->rnext;
 	else
 		rq->head = p->rnext;
-	if(rq->head == nil)
-		runvec &= ~(1<<(rq-runq));
 	rq->n--;
 	nrdy--;
 	if(p->state != Ready)
@@ -342,6 +307,8 @@ found:
 	unlock(runq);
 
 	p->state = Scheding;
+	if(p->mp != MACHP(m->machno))
+		p->movetime = MACHP(0)->ticks + HZ/10;
 	p->mp = MACHP(m->machno);
 
 	return p;
@@ -399,15 +366,20 @@ newproc(void)
 	p->kp = 0;
 	p->procctl = 0;
 	p->notepending = 0;
+	p->mp = 0;
+	p->movetime = 0;
+	p->wired = 0;
 	p->ureg = 0;
 	p->privatemem = 0;
 	p->noswap = 0;
+	p->lockwait = nil;
 	p->errstr = p->errbuf0;
 	p->syserrstr = p->errbuf1;
 	p->errbuf0[0] = '\0';
 	p->errbuf1[0] = '\0';
 	p->nlocks = 0;
 	p->delaysched = 0;
+	p->movetime = 0;
 	kstrdup(&p->user, "*nouser");
 	kstrdup(&p->text, "*notext");
 	kstrdup(&p->args, "");
@@ -421,11 +393,6 @@ newproc(void)
 		panic("pidalloc");
 	if(p->kstack == 0)
 		p->kstack = smalloc(KSTACK);
-
-	/* sched params */
-	p->mp = 0;
-	p->wired = 0;
-	procpriority(p, PriNormal, 0);
 
 	p->task = nil;
 
@@ -463,25 +430,8 @@ procwired(Proc *p, int bm)
 	}
 
 	p->wired = MACHP(bm);
+	p->movetime = 0xffffffff;
 	p->mp = p->wired;
-}
-
-void
-procpriority(Proc *p, int pri, int fixed)
-{
-	if(pri >= Nrq)
-		pri = Nrq - 1;
-	else if(pri < 0)
-		pri = 0;
-	p->basepri = pri;
-	p->priority = pri;
-	if(fixed){
-		p->quanta = 0xfffff;
-		p->fixedpri = 1;
-	} else {
-		p->quanta = quanta[pri];
-		p->fixedpri = 0;
-	}
 }
 
 void
@@ -1017,9 +967,9 @@ dumpaproc(Proc *p)
 	s = p->psstate;
 	if(s == 0)
 		s = statename[p->state];
-	print("%3lud:%10s pc %8lux dbgpc %8lux  %8s (%s) ut %ld st %ld bss %lux qpc %lux nl %lud nd %lud lpc %lux pri %lud\n",
+	print("%3lud:%10s pc %8lux dbgpc %8lux  %8s (%s) ut %ld st %ld bss %lux qpc %lux nl %lud nd %lud lpc %lux\n",
 		p->pid, p->text, p->pc, dbgpc(p),  s, statename[p->state],
-		p->time[0], p->time[1], bss, p->qpc, p->nlocks, p->delaysched, p->lastlock ? p->lastlock->pc : 0, p->priority);
+		p->time[0], p->time[1], bss, p->qpc, p->nlocks, p->delaysched, p->lastlock ? p->lastlock->pc : 0);
 }
 
 void
@@ -1097,7 +1047,8 @@ scheddump(void)
 			continue;
 		print("rq%ld:", rq-runq);
 		for(p = rq->head; p; p = p->rnext)
-			print(" %lud(%lud)", p->pid, m->ticks - p->readytime);
+			print(" %lud(%lud, %lud)", p->pid, m->ticks - p->readytime,
+				MACHP(0)->ticks - p->movetime);
 		print("\n");
 		delay(150);
 	}
@@ -1132,7 +1083,8 @@ kproc(char *name, void (*func)(void *), void *arg)
 	p->ureg = 0;
 	p->dbgreg = 0;
 
-	procpriority(p, PriKproc, 0);
+	p->basepri = PriKproc;
+	p->priority = p->basepri;
 
 	kprocchild(p, func, arg);
 

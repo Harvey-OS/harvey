@@ -568,8 +568,6 @@ closeconv(Conv *cv)
 	while((mp = cv->multi) != nil)
 		ipifcremmulti(cv, mp->ma, mp->ia);
 
-	cv->r = nil;
-	cv->rgen = 0;
 	cv->p->close(cv);
 	cv->state = Idle;
 	qunlock(cv);
@@ -1292,8 +1290,6 @@ retry:
 	c->state = Idle;
 	ipmove(c->laddr, IPnoaddr);
 	ipmove(c->raddr, IPnoaddr);
-	c->r = nil;
-	c->rgen = 0;
 	c->lport = 0;
 	c->rport = 0;
 	c->restricted = 0;

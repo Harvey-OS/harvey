@@ -1291,13 +1291,13 @@ sndrst(Proto *tcp, uchar *source, uchar *dest, ushort length, Tcp *seg, uchar ve
 		hbp = htontcp4(seg, nil, &ph4, nil);
 		if(hbp == nil)
 			return;
-		ipoput4(tcp->f, hbp, 0, MAXTTL, DFLTTOS, nil);
+		ipoput4(tcp->f, hbp, 0, MAXTTL, DFLTTOS);
 		break;
 	case V6:
 		hbp = htontcp6(seg, nil, &ph6, nil);
 		if(hbp == nil)
 			return;
-		ipoput6(tcp->f, hbp, 0, MAXTTL, DFLTTOS, nil);
+		ipoput6(tcp->f, hbp, 0, MAXTTL, DFLTTOS);
 		break;
 	default:
 		panic("sndrst2: version %d", version);
@@ -1332,12 +1332,12 @@ tcphangup(Conv *s)
 			case V4:
 				tcb->protohdr.tcp4hdr.vihl = IP_VER4;
 				hbp = htontcp4(&seg, nil, &tcb->protohdr.tcp4hdr, tcb);
-				ipoput4(s->p->f, hbp, 0, s->ttl, s->tos, s);
+				ipoput4(s->p->f, hbp, 0, s->ttl, s->tos);
 				break;
 			case V6:
 				tcb->protohdr.tcp6hdr.vcf[0] = IP_VER6;
 				hbp = htontcp6(&seg, nil, &tcb->protohdr.tcp6hdr, tcb);
-				ipoput6(s->p->f, hbp, 0, s->ttl, s->tos, s);
+				ipoput6(s->p->f, hbp, 0, s->ttl, s->tos);
 				break;
 			default:
 				panic("tcphangup: version %d", s->ipversion);
@@ -1409,13 +1409,13 @@ sndsynack(Proto *tcp, Limbo *lp)
 		hbp = htontcp4(&seg, nil, &ph4, nil);
 		if(hbp == nil)
 			return -1;
-		ipoput4(tcp->f, hbp, 0, MAXTTL, DFLTTOS, nil);
+		ipoput4(tcp->f, hbp, 0, MAXTTL, DFLTTOS);
 		break;
 	case V6:
 		hbp = htontcp6(&seg, nil, &ph6, nil);
 		if(hbp == nil)
 			return -1;
-		ipoput6(tcp->f, hbp, 0, MAXTTL, DFLTTOS, nil);
+		ipoput6(tcp->f, hbp, 0, MAXTTL, DFLTTOS);
 		break;
 	default:
 		panic("sndsnack: version %d", lp->version);
@@ -2585,13 +2585,13 @@ tcpoutput(Conv *s)
 
 		switch(version){
 		case V4:
-			if(ipoput4(f, hbp, 0, s->ttl, s->tos, s) < 0){
+			if(ipoput4(f, hbp, 0, s->ttl, s->tos) < 0){
 				/* a negative return means no route */
 				localclose(s, "no route");
 			}
 			break;
 		case V6:
-			if(ipoput6(f, hbp, 0, s->ttl, s->tos, s) < 0){
+			if(ipoput6(f, hbp, 0, s->ttl, s->tos) < 0){
 				/* a negative return means no route */
 				localclose(s, "no route");
 			}
@@ -2648,7 +2648,7 @@ tcpsendka(Conv *s)
 			freeblist(dbp);
 			return;
 		}
-		ipoput4(s->p->f, hbp, 0, s->ttl, s->tos, s);
+		ipoput4(s->p->f, hbp, 0, s->ttl, s->tos);
 	}
 	else {
 		/* Build header, link data and compute cksum */
@@ -2658,7 +2658,7 @@ tcpsendka(Conv *s)
 			freeblist(dbp);
 			return;
 		}
-		ipoput6(s->p->f, hbp, 0, s->ttl, s->tos, s);
+		ipoput6(s->p->f, hbp, 0, s->ttl, s->tos);
 	}
 }
 

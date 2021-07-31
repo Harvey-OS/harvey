@@ -225,12 +225,8 @@ pullupblock(Block *bp, int n)
 			nbp->rp += n;
 			QDEBUG checkb(bp, "pullupblock 1");
 			return bp;
-		} else {
-			/* shouldn't happen but why crash if it does */
-			if(i < 0){
-				print("pullup negative length packet\n");
-				i = 0;
-			}
+		}
+		else {
 			memmove(bp->wp, nbp->rp, i);
 			pullupblockcnt++;
 			bp->wp += i;
