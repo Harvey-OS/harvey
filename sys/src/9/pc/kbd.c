@@ -317,10 +317,10 @@ i8042intr(Ureg*, void*)
 	/*
 	 *  get status
 	 */
-	ilock(&i8042lock);
+	lock(&i8042lock);
 	s = inb(Status);
 	if(!(s&Inready)){
-		iunlock(&i8042lock);
+		unlock(&i8042lock);
 		return;
 	}
 
@@ -328,7 +328,7 @@ i8042intr(Ureg*, void*)
 	 *  get the character
 	 */
 	c = inb(Data);
-	iunlock(&i8042lock);
+	unlock(&i8042lock);
 
 	/*
 	 *  if it's the aux port...
