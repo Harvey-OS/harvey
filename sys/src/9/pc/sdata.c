@@ -577,7 +577,6 @@ atadmamode(Drive* drive)
 		drive->dma = (dma>>8) & dma;
 		if(drive->dma)
 			drive->dma |= 'U'<<16;
-		drive->dmactl = drive->dma;
 	}
 
 	return dma;
