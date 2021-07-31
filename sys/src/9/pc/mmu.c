@@ -938,7 +938,7 @@ paddr(void *v)
 	
 	va = (ulong)v;
 	if(va < KZERO)
-		panic("paddr: va=%#.8lux pc=%#.8lux", va, getcallerpc(&v));
+		panic("paddr: va=%#.8lux pc=%#.8lux", va, getcallerpc(&va));
 	return va-KZERO;
 }
 
