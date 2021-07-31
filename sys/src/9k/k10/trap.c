@@ -61,7 +61,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	}
 	if(vctl[vno]){
 		iunlock(&vctllock);
-		panic("vno %d for %s already allocated by %s",
+		panic("vno %d for %s already allocated by %s\n",
 			vno, v->name, vctl[vno]->name);
 	}
 	v->vno = vno;
@@ -140,7 +140,7 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	Vctl *v;
 
 	if(vno < 0 || vno >= 256)
-		panic("trapenable: vno %d", vno);
+		panic("trapenable: vno %d\n", vno);
 	v = malloc(sizeof(Vctl));
 	v->tbdf = BUSUNKNOWN;
 	v->f = f;
@@ -149,7 +149,8 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	v->name[KNAMELEN-1] = 0;
 
 	ilock(&vctllock);
-	v->next = vctl[vno];
+	if(vctl[vno])
+		v->next = vctl[vno]->next;
 	vctl[vno] = v;
 	iunlock(&vctllock);
 }
@@ -241,7 +242,7 @@ intrtime(Mach*, int vno)
 	if(up == nil && m->perf.inidle > diff)
 		m->perf.inidle -= diff;
 
-	diff /= m->cpumhz*100;		/* quantum = 100µsec */
+	diff /= m->cpumhz*100;	// quantum = 100µsec
 	if(diff >= Ntimevec)
 		diff = Ntimevec-1;
 	intrtimes[vno][diff]++;
@@ -320,20 +321,19 @@ trap(Ureg* ureg)
 				preempted();
 		}
 	}
-	else if(vno < nelem(excname) && user){
+	else if(vno <= nelem(excname) && user){
 		spllo();
-		snprint(buf, sizeof buf, "sys: trap: %s", excname[vno]);
+		sprint(buf, "sys: trap: %s", excname[vno]);
 		postnote(up, 1, buf, NDebug);
 	}
 	else{
 		if(vno == IdtNMI){
-			/*
-			 * Don't re-enable, it confuses the crash dumps.
 			nmienable();
-			 */
-			iprint("cpu%d: NMI PC %#llux\n", m->machno, ureg->ip);
-			while(m->machno != 0)
-				;
+			if(m->machno != 0){
+				iprint("cpu%d: PC %#llux\n",
+					m->machno, ureg->ip);
+				for(;;);
+			}
 		}
 		dumpregs(ureg);
 #ifdef notdef
@@ -343,7 +343,7 @@ trap(Ureg* ureg)
 		}
 		if(vno < nelem(excname))
 			panic("%s", excname[vno]);
-		panic("unknown trap/intr: %d", vno);
+		panic("unknown trap/intr: %d\n", vno);
 #else
 		iprint("vno %d: buggeration @ %#p...\n", vno, ureg->ip);
 		/* We get this one and didn't track it down yet */
@@ -445,9 +445,8 @@ dumpstackwithureg(Ureg* ureg)
 	uintptr l, v, i, estack;
 	extern ulong etext;
 	int x;
-	char *s;
 
-	if((s = getconf("*nodumpstack")) != nil && strcmp(s, "0") != 0){
+	if(getconf("*nodumpstack")){
 		iprint("dumpstack disabled\n");
 		return;
 	}
@@ -502,7 +501,7 @@ debugbpt(Ureg* ureg, void*)
 		panic("kernel bpt");
 	/* restore pc to instruction that caused the trap */
 	ureg->ip--;
-	snprint(buf, sizeof buf, "sys: breakpoint");
+	sprint(buf, "sys: breakpoint");
 	postnote(up, 1, buf, NDebug);
 }
 
@@ -536,7 +535,7 @@ faultamd64(Ureg* ureg, void*)
 	 * initialisation before the system is fully up.
 	 */
 	if(up == nil){
-		panic("fault with up == nil; pc %#llux addr %#llux",
+		panic("fault with up == nil; pc %#llux addr %#llux\n",
 			ureg->ip, addr);
 	}
 	read = !(ureg->error & 2);
@@ -557,9 +556,9 @@ faultamd64(Ureg* ureg, void*)
 		 */
 		if(!user && (!insyscall || up->nerrlab == 0)){
 			dumpregs(ureg);
-			panic("fault: %#llux", addr);
+			panic("fault: %#llux\n", addr);
 		}
-		snprint(buf, sizeof buf, "sys: trap: fault %s addr=%#llux",
+		sprint(buf, "sys: trap: fault %s addr=%#llux",
 			read? "read": "write", addr);
 		postnote(up, 1, buf, NDebug);
 		if(insyscall)
