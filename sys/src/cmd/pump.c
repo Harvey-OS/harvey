@@ -153,8 +153,7 @@ dooutput(int f)
 
 		lock(&arithlock);
 		if(c != n) {
-			fprint(2, "%s: write error at offset %,lld: %r\n",
-				argv0, seek(f, 0, 1));
+			fprint(2, "%s: write error: %r\n", argv0);
 			break;
 		}
 		nout += c;
