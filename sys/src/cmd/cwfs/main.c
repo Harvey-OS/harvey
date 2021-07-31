@@ -105,15 +105,8 @@ mapinit(char *mapfile)
 		map->from = strdup(fields[0]);
 		map->to =   strdup(fields[1]);
 		map->fdev = iconfig(fields[0]);
-		map->tdev = nil;
-		if (access(map->to, AEXIST) < 0) {
-			/*
-			 * map->to isn't an existing file, so it had better be
-			 * a config string for a device.
-			 */
-			if(testconfig(fields[1]) == 0)
-				map->tdev = iconfig(fields[1]);
-		}
+		if(testconfig(fields[1]) == 0)
+			map->tdev = iconfig(fields[1]);
 		/* else map->to is the replacement file name */
 		map->next = devmap;
 		devmap = map;
@@ -562,7 +555,7 @@ inqsize(char *file)
 	strcpy(data, file);
 	end = strstr(data, "/data");
 	if (end == nil)
-		strcat(data, "/ctl");
+		strcat(end, "/ctl");
 	else
 		strcpy(end, "/ctl");
 	bp = Bopen(data, OREAD);

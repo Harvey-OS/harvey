@@ -448,7 +448,6 @@ found:
 	
 	n = vtRead(c->z, score, type, b->data, size);
 	if(n < 0) {
-		fprint(2, "read %V: %r\n", score);
 		lumpDecRef(b, 1);
 		return nil;
 	}

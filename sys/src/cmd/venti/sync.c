@@ -1,34 +1,26 @@
-#include <u.h>
-#include <libc.h>
-#include <thread.h>
-#include <venti.h>
+#include "stdinc.h"
+#include "dat.h"
+#include "fns.h"
 
 char *host;
-int donothing;
 
 void
 usage(void)
 {
 	fprint(2, "usage: sync [-h host]\n");
-	threadexitsall("usage");
+	exits("usage");
 }
 
-void
-threadmain(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
-	VtConn *z;
+	VtSession *z;
 
-	fmtinstall('V', vtscorefmt);
-	fmtinstall('F', vtfcallfmt);
-	
 	ARGBEGIN{
 	case 'h':
 		host = EARGF(usage());
 		if(host == nil)
 			usage();
-		break;
-	case 'x':
-		donothing = 1;
 		break;
 	default:
 		usage();
@@ -38,17 +30,23 @@ threadmain(int argc, char *argv[])
 	if(argc != 0)
 		usage();
 
-	z = vtdial(host);
+	vtAttach();
+
+	fmtinstall('V', vtScoreFmt);
+	fmtinstall('R', vtErrFmt);
+
+	z = vtDial(host, 0);
 	if(z == nil)
-		sysfatal("could not connect to server: %r");
+		vtFatal("could not connect to server: %R");
 
-	if(vtconnect(z) < 0)
-		sysfatal("vtconnect: %r");
+	if(!vtConnect(z, 0))
+		sysfatal("vtConnect: %r");
 
-	if(!donothing)
-	if(vtsync(z) < 0)
-		sysfatal("vtsync: %r");
+	if(!vtSync(z))
+		sysfatal("vtSync: %r");
 
-	vthangup(z);
-	threadexitsall(0);
+	vtClose(z);
+	vtDetach();
+	exits(0);
+	return 0;	/* shut up compiler */
 }

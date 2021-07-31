@@ -5,7 +5,7 @@ typedef uvlong	u64int;
 typedef	uchar	u8int;
 typedef ushort	u16int;
 
-#include "oventi.h"
+#include "venti.h"
 #include "vac.h"
 #include "fs.h"
 

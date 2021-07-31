@@ -1,28 +1,23 @@
-#include <u.h>
-#include <libc.h>
-#include <venti.h>
-#include <libsec.h>
-#include <thread.h>
+#include "stdinc.h"
+#include "dat.h"
+#include "fns.h"
+
+char *host;
 
 void
 usage(void)
 {
 	fprint(2, "usage: write [-z] [-h host] [-t type] <datablock\n");
-	threadexitsall("usage");
+	exits("usage");
 }
 
-void
-threadmain(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
-	char *host;
-	int dotrunc, n, type;
 	uchar *p, score[VtScoreSize];
-	VtConn *z;
+	int type, n, dotrunc;
+	VtSession *z;
 
-	fmtinstall('F', vtfcallfmt);
-	fmtinstall('V', vtscorefmt);
-
-	host = nil;
 	dotrunc = 0;
 	type = VtDataType;
 	ARGBEGIN{
@@ -43,20 +38,27 @@ threadmain(int argc, char *argv[])
 	if(argc != 0)
 		usage();
 
-	p = vtmallocz(VtMaxLumpSize+1);
+	vtAttach();
+
+	fmtinstall('V', vtScoreFmt);
+	fmtinstall('R', vtErrFmt);
+
+	p = vtMemAllocZ(VtMaxLumpSize+1);
 	n = readn(0, p, VtMaxLumpSize+1);
 	if(n > VtMaxLumpSize)
-		sysfatal("input too big: max block size is %d", VtMaxLumpSize);
-	z = vtdial(host);
+		vtFatal("data too big");
+	z = vtDial(host, 0);
 	if(z == nil)
-		sysfatal("could not connect to server: %r");
-	if(vtconnect(z) < 0)
-		sysfatal("vtconnect: %r");
+		vtFatal("could not connect to server: %R");
+	if(!vtConnect(z, 0))
+		vtFatal("vtConnect: %r");
 	if(dotrunc)
-		n = vtzerotruncate(type, p, n);
-	if(vtwrite(z, score, type, p, n) < 0)
-		sysfatal("vtwrite: %r");
-	vthangup(z);
+		n = vtZeroTruncate(type, p, n);
+	if(!vtWrite(z, score, type, p, n))
+		vtFatal("vtWrite: %R");
+	vtClose(z);
 	print("%V\n", score);
-	threadexitsall(0);
+	vtDetach();
+	exits(0);
+	return 0;	/* shut up compiler */
 }

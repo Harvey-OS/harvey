@@ -1,7 +1,6 @@
-#include <u.h>
-#include <libc.h>
-#include <venti.h>
-#include <thread.h>
+#include "stdinc.h"
+#include "dat.h"
+#include "fns.h"
 
 char *host;
 
@@ -9,15 +8,15 @@ void
 usage(void)
 {
 	fprint(2, "usage: mkroot [-h host] name type score blocksize prev\n");
-	threadexitsall("usage");
+	exits("usage");
 }
 
-void
-threadmain(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	uchar score[VtScoreSize];
 	uchar buf[VtRootSize];
-	VtConn *z;
+	VtSession *z;
 	VtRoot root;
 
 	ARGBEGIN{
@@ -32,30 +31,32 @@ threadmain(int argc, char *argv[])
 	if(argc != 5)
 		usage();
 
-	fmtinstall('V', vtscorefmt);
-	fmtinstall('F', vtfcallfmt);
+	vtAttach();
+	fmtinstall('V', vtScoreFmt);
+	fmtinstall('R', vtErrFmt);
 
+	root.version = VtRootVersion;
 	strecpy(root.name, root.name+sizeof root.name, argv[0]);
 	strecpy(root.type, root.type+sizeof root.type, argv[1]);
-	if(vtparsescore(argv[2], nil, root.score) < 0)
-		sysfatal("bad score '%s'", argv[2]);
-	root.blocksize = atoi(argv[3]);
-	if(vtparsescore(argv[4], nil, root.prev) < 0)
-		sysfatal("bad score '%s'", argv[4]);
-	vtrootpack(&root, buf);
+	if(!vtParseScore(argv[2], strlen(argv[2]), root.score))
+		vtFatal("bad score '%s'", argv[2]);
+	root.blockSize = atoi(argv[3]);
+	if(!vtParseScore(argv[4], strlen(argv[4]), root.prev))
+		vtFatal("bad score '%s'", argv[4]);
+	vtRootPack(&root, buf);
 
-	z = vtdial(host);
+	z = vtDial(host, 0);
 	if(z == nil)
-		sysfatal("could not connect to server: %r");
+		vtFatal("could not connect to server: %R");
 
-	if(vtconnect(z) < 0)
-		sysfatal("vtconnect: %r");
+	if(!vtConnect(z, 0))
+		sysfatal("vtConnect: %r");
 
-	if(vtwrite(z, score, VtRootType, buf, VtRootSize) < 0)
-		sysfatal("vtwrite: %r");
-	if(vtsync(z) < 0)
-		sysfatal("vtsync: %r");
-	vthangup(z);
+	if(!vtWrite(z, score, VtRootType, buf, VtRootSize))
+		vtFatal("vtWrite: %R");
+	vtClose(z);
 	print("%V\n", score);
-	threadexitsall(0);
+	vtDetach();
+	exits(0);
+	return 0;
 }
