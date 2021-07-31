@@ -43,14 +43,12 @@ pair2idmap(char *server, ulong clientip)
 		free(m);
 		break;
 	}
-	if(rpcdebug)
-		fprint(2, "looking for %lux\n", clientip);
+fprint(2, "looking for %lux\n", clientip);
 	if(getdom(clientip, dom, sizeof dom)<0){
 		clog("auth: unknown ip address");
 		return nil;
 	}
-	if(rpcdebug)
-		fprint(2, "dom is %s\n", dom);
+fprint(2, "dom is %s\n", dom);
 	for(r=idhead; r; r=r->next){
 		if(r->u.timestamp == 0 || r->g.timestamp == 0)
 			continue;
