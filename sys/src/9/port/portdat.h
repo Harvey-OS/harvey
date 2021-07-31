@@ -515,7 +515,6 @@ struct Timer
 	void	(*tf)(Ureg*, Timer*);
 	void	*ta;
 	/* Internal */
-	Lock;
 	Timers	*tt;		/* Timers queue this timer runs on */
 	uvlong	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
