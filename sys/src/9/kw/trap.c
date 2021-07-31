@@ -647,7 +647,6 @@ idlehands(void)
 	_idlehands();
 }
 
-/* assumes that addr is already mapped suitable (e.g., by mmuidmap) */
 vlong
 probeaddr(uintptr addr)
 {
