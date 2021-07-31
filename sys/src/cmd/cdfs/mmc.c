@@ -772,7 +772,6 @@ mmcgettoc(Drive *drive)
 	 */
 	mmcreadtoc(drive, 0, 0, resp, sizeof(resp));
 	if(drive->Scsi.changetime == 0) {	/* no media present */
-		drive->mmctype = Mmcnone;
 		drive->ntrack = 0;
 		return 0;
 	}
