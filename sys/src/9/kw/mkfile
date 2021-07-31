@@ -90,7 +90,9 @@ $OBJ: $HFILES
 install:V: /$objtype/$p$CONF
 
 /$objtype/$p$CONF:D: $p$CONF s$p$CONF
-	cp -x $p$CONF s$p$CONF /$objtype &
+	{ cp -x $p$CONF s$p$CONF /$objtype } &
+	{ 9fs lookout &&  cp -x $p$CONF s$p$CONF /n/lookout/$objtype } &
+#	{ 9fs piestand && cp -x $p$CONF s$p$CONF /n/piestand/$objtype } &
 	wait
 	touch $target
 
