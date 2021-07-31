@@ -22,6 +22,7 @@
 #define ISIDENT(r) (isascii(r) && isalnum(r) || (r) == '_' || (r) >= Runeself)
 
 /* safe macros */
+#define newatom(in, atom)	(*(atom) = '\0', Bgetrune(in))
 #define checksys(atom)		strbsearch(atom, sysword, nelem(sysword))
 
 enum {
@@ -115,7 +116,6 @@ int activep = 0;			/* current function being output */
 
 char *infile;
 int lineno = 1;				/* line number of input */
-int prevc = '\n', thisc = '\n';
 
 /* options */
 int terse = 1;				/* track functions only once */
@@ -169,28 +169,6 @@ hash(char *s)
 	for(cp = (unsigned char *)s; *cp; h += *cp++)
 		h *= 1119;
 	return h;
-}
-
-int
-nextc(Biobuf *in)
-{
-	prevc = thisc;
-	thisc = Bgetrune(in);
-	return thisc;
-}
-
-int
-ungetc(Biobuf *in)
-{
-	prevc = thisc;
-	return Bungetrune(in);
-}
-
-int
-newatom(Biobuf *in, char *atom)
-{
-	atom[0] = '\0';
-	return nextc(in);
 }
 
 /*
@@ -490,20 +468,21 @@ skipcomments(Biobuf *in, int firstc)
 {
 	int c;
 
-	for (c = firstc; isascii(c) && isspace(c) || c == '/'; c = nextc(in)) {
+	for (c = firstc; isascii(c) && isspace(c) || c == '/';
+	     c = Bgetrune(in)) {
 		if (c == '\n')
 			lineno++;
 		if (c != '/')
 			continue;
-		c = nextc(in);			/* read ahead */
+		c = Bgetrune(in);		/* read ahead */
 		if (c == Beof)
 			break;
 		if (c != '*' && c != '/') {	/* not comment start? */
-			ungetc(in);		/* push back readahead */
+			Bungetrune(in);		/* push back readahead */
 			return '/';
 		}
 		if (c == '/') {			/* c++ style */
-			while ((c = nextc(in)) != '\n' && c != Beof)
+			while ((c = Bgetrune(in)) != '\n' && c != Beof)
 				;
 			if (c == '\n')
 				lineno++;
@@ -511,16 +490,16 @@ skipcomments(Biobuf *in, int firstc)
 		}
 		for (;;) {
 			/* skip to possible closing delimiter */
-			while ((c = nextc(in)) != '*' && c != Beof)
+			while ((c = Bgetrune(in)) != '*' && c != Beof)
 				if (c == '\n')
 					lineno++;
 			if (c == Beof)
 				break;
 			/* else c == '*' */
-			c = nextc(in);		 /* read ahead */
+			c = Bgetrune(in);	 /* read ahead */
 			if (c == Beof || c == '/') /* comment end? */
 				break;
-			ungetc(in);		/* push back readahead */
+			Bungetrune(in);	/* push back readahead */
 		}
 	}
 	return c;
@@ -544,17 +523,17 @@ isfndefn(Biobuf *in)
 {
 	int c;
 
-	c = skipcomments(in, nextc(in));
+	c = skipcomments(in, Bgetrune(in));
 	while (c != ')' && c != Beof)	/* consume arg. decl.s */
-		c = nextc(in);
+		c = Bgetrune(in);
 	if (c == Beof)
 		return 1;		/* definition at Beof */
-	c = skipcomments(in, nextc(in)); /* skip blanks between ) and ; */
+	c = skipcomments(in, Bgetrune(in)); /* skip blanks between ) and ; */
 
 	if (c == ';' || c == ',')
 		return 0;		/* an extern declaration */
 	if (c != Beof)
-		ungetc(in);
+		Bungetrune(in);
 	return 1;			/* a definition */
 }
 
@@ -611,12 +590,11 @@ seen(char *atom)
 int
 getfunc(Biobuf *in, char *atom)
 {
-	int c, nf, last, ss, quote;
-	char *ln, *nm, *ap, *ep = &atom[Maxid-1-UTFmax];
-	char *flds[4];
+	int c, ss, quote;
+	char *ap, *ep = &atom[Maxid-1-UTFmax];
 	Rune r;
 
-	c = nextc(in);
+	c = Bgetrune(in);
 	while (c != Beof) {
 		if (ISIDENT(c)) {
 			ap = atom;
@@ -627,13 +605,13 @@ getfunc(Biobuf *in, char *atom)
 					r = c;
 					ap += runetochar(ap, &r);
 				}
-				c = nextc(in);
+				c = Bgetrune(in);
 			} while(ap < ep && ISIDENT(c));
 			*ap = '\0';
 			if (ap >= ep) {	/* uncommon case: id won't fit */
 				/* consume remainder of too-long id */
 				while (ISIDENT(c))
-					c = nextc(in);
+					c = Bgetrune(in);
 			}
 		}
 
@@ -648,48 +626,31 @@ getfunc(Biobuf *in, char *atom)
 		case '\f':
 		case '\r':
 		case '/':		/* potential comment? */
-			c = skipcomments(in, nextc(in));
+			c = skipcomments(in, Bgetrune(in));
 			break;
 		case Backslash:		/* consume a newline or something */
 		case ')':		/* end of parameter list */
 		default:
 			c = newatom(in, atom);
 			break;
-		case '#':
-			if (prevc != '\n') {	/* cpp # or ## operator? */
-				c = nextc(in);	/* read ahead */
-				break;
-			}
-			/* it's a cpp directive */
-			ln = Brdline(in, '\n');
-			if (ln == nil)
-				thisc = c = Beof;
-			else {
-				nf = tokenize(ln, flds, nelem(flds));
-				if (nf >= 3 && strcmp(flds[0], "line") == 0) {
-					lineno = atoi(flds[1]);
-					free(infile);
-					nm = flds[2];
-					if (nm[0] == '"')
-						nm++;
-					last = strlen(nm) - 1;
-					if (nm[last] == '"')
-						nm[last] = '\0';
-					infile = strdup(nm);
-				} else
-					lineno++;
-				c = nextc(in);	/* read ahead */
+		case '#':	/* eat C compiler line control info */
+			/* CPP output will not span lines */
+			while ((c = Bgetrune(in)) != '\n' && c != Beof)
+				;
+			if (c == '\n') {
+				lineno++;
+				c = Bgetrune(in);
 			}
 			break;
 		case Quote:		/* character constant */
 		case '\"':		/* string constant */
 			quote = c;
 			atom[0] = '\0';
-			while ((c = nextc(in)) != quote && c != Beof)
+			while ((c = Bgetrune(in)) != quote && c != Beof)
 				if (c == Backslash)
-					nextc(in);
+					Bgetrune(in);
 			if (c == quote)
-				c = nextc(in);
+				c = Bgetrune(in);
 			break;
 		case '{':		/* start of a block */
 			bracket++;
@@ -710,7 +671,7 @@ getfunc(Biobuf *in, char *atom)
 					if (isfndefn(in))
 						return Defn;
 					else {
-						c = nextc(in);
+						c = Bgetrune(in);
 						break;		/* ext. decl. */
 					}
 				ss = seen(atom);
@@ -840,8 +801,7 @@ scanfiles(int argc, char **argv)
 			return;
 		}
 
-		free(infile);
-		infile = strdup(argv[i]);
+		infile = s_to_c(cmd);
 		lineno = 1;
 		addfuncs(infd);
 
