@@ -1,4 +1,3 @@
-/* cdfs - CD, DVD and BD reader and writer file system */
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
@@ -11,8 +10,8 @@
 
 typedef struct Aux Aux;
 struct Aux {
-	int	doff;
-	Otrack	*o;
+	int doff;
+	Otrack *o;
 };
 
 static void checktoc(Drive*);
@@ -201,16 +200,13 @@ fillstat(ulong qid, Dir *d)
 {
 	Track *t;
 
-	nulldir(d);
-	d->type = L'M';
-	d->dev = 1;
-	d->length = 0;
+	memset(d, 0, sizeof(Dir));
 	d->uid = "cd";
 	d->gid = "cd";
 	d->muid = "";
 	d->qid = (Qid){qid, drive->nchange, 0};
 	d->atime = time(0);
-	d->mtime = drive->changetime;
+	d->atime = drive->changetime;
 
 	switch(qid){
 	case Qdir:
@@ -566,7 +562,7 @@ checktoc(Drive *drive)
 		switch(t->type){
 		case TypeNone:
 			t->name[0] = 'u';
-//			t->mode = 0;
+			t->mode = 0;
 			break;
 		case TypeData:
 			t->name[0] = 'd';
@@ -633,10 +629,10 @@ main(int argc, char **argv)
 		chatty9p++;
 		break;
 	case 'd':
-		dev = EARGF(usage());
+		dev = ARGF();
 		break;
 	case 'm':
-		mtpt = EARGF(usage());
+		mtpt = ARGF();
 		break;
 	case 'v':
 		if((fd = create("/tmp/cdfs.log", OWRITE, 0666)) >= 0) {

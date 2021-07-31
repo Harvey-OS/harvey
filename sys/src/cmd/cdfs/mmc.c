@@ -1,40 +1,28 @@
-/*
- * multi-media commands
- *
- * as of mmc-6, mode page 0x2a (capabilities & mechanical status) is legacy
- * and read-only, last defined in mmc-3.  mode page 5 (write parameters)
- * applies only to cd-r(w) and dvd-r(w); *-rom, dvd+* and bd-* are right out.
- */
 #include <u.h>
 #include <libc.h>
 #include <disk.h>
-#include "../scuzz/scsireq.h"
 #include "dat.h"
 #include "fns.h"
 
 enum
 {
 	Pagesz		= 255,
-
-	Pagwrparams	= 5,		/* write parameters */
-	Pagcache	= 8,
-	Pagcapmechsts	= 0x2a,
 };
 
 static Dev mmcdev;
 
 typedef struct Mmcaux Mmcaux;
 struct Mmcaux {
-	uchar	page05[Pagesz];		/* (cd|dvd)-r(w) write parameters */
-	int	page05ok;
+	uchar page05[Pagesz];
+	int page05ok;
 
-	int	pagecmdsz;
-	ulong	mmcnwa;
+	int pagecmdsz;
+	ulong mmcnwa;
 
-	int	nropen;
-	int	nwopen;
-	vlong	ntotby;
-	long	ntotbk;
+	int nropen;
+	int nwopen;
+	long ntotby;
+	long ntotbk;
 };
 
 static ulong
@@ -71,42 +59,6 @@ hexdump(void *v, int n)
 		print("\n");
 }
 
-/*
- * SCSI CCBs (cmd arrays) are 6, 10, 12, 16 or 32 bytes long.
- * The mode sense/select commands implicitly refer to
- * a mode parameter list, which consists of an 8-byte
- * mode parameter header, followed by zero or more block
- * descriptors and zero or more mode pages (MMC-2 §5.5.2).
- * We'll ignore mode sub-pages.
- * Integers are stored big-endian.
- *
- * The format of the mode parameter (10) header is:
- *	ushort	mode_data_length;		// of following bytes
- *	uchar	medium_type;
- *	uchar	device_specific;
- *	uchar	reserved[2];
- *	ushort	block_descriptor_length;	// zero
- *
- * The format of the mode parameter (6) header is:
- *	uchar	mode_data_length;		// of following bytes
- *	uchar	medium_type;
- *	uchar	device_specific;
- *	uchar	block_descriptor_length;	// zero
- *
- * The format of the mode pages is:
- *	uchar	page_code_and_PS;
- *	uchar	page_len;			// of following bytes
- *	uchar	parameter[page_len];
- *
- * see SPC-3 §4.3.4.6 for allocation length and §7.4 for mode parameter lists.
- */
-
-enum {
-	Mode10parmhdrlen= 8,
-	Mode6parmhdrlen	= 4,
-	Modepaghdrlen	= 2,
-};
-
 static int
 mmcgetpage10(Drive *drive, int page, void *v)
 {
@@ -114,32 +66,22 @@ mmcgetpage10(Drive *drive, int page, void *v)
 	int n, r;
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMsense10;
+	cmd[0] = 0x5A;
 	cmd[2] = page;
-	cmd[8] = 255;			/* allocation length: buffer size */
-
-//	print("get: sending cmd\n");
-//	hexdump(cmd, 10);
-
+	cmd[8] = 255;
 	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
-	if(n < Mode10parmhdrlen)
+	if(n < 8)
 		return -1;
 
-	r = (resp[6]<<8) | resp[7];	/* block descriptor length */
-	n -= Mode10parmhdrlen + r;
+	r = (resp[6]<<8) | resp[7];
+	n -= 8+r;
 
 	if(n < 0)
 		return -1;
 	if(n > Pagesz)
 		n = Pagesz;
 
-	memmove(v, &resp[Mode10parmhdrlen + r], n);
-
-//	print("get: got cmd\n");
-//	hexdump(cmd, 10);
-//	print("page\n");
-//	hexdump(v, n);
-
+	memmove(v, &resp[8+r], n);
 	return n;
 }
 
@@ -150,21 +92,20 @@ mmcgetpage6(Drive *drive, int page, void *v)
 	int n;
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMsense6;
+	cmd[0] = 0x1A;
 	cmd[2] = page;
-	cmd[4] = 255;			/* allocation length */
-
+	cmd[4] = 255;
 	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
-	if(n < Mode6parmhdrlen)
+	if(n < 4)
 		return -1;
 
-	n -= Mode6parmhdrlen + resp[3];
+	n -= 4+resp[3];
 	if(n < 0)
 		return -1;
 	if(n > Pagesz)
 		n = Pagesz;
 
-	memmove(v, &resp[Mode6parmhdrlen + resp[3]], n);
+	memmove(v, &resp[4+resp[3]], n);
 	return n;
 }
 
@@ -174,34 +115,22 @@ mmcsetpage10(Drive *drive, int page, void *v)
 	uchar cmd[10], *p, *pagedata;
 	int len, n;
 
-	/* allocate parameter list, copy in mode page, fill in header */
 	pagedata = v;
 	assert(pagedata[0] == page);
-	len = Mode10parmhdrlen + Modepaghdrlen + pagedata[1];
+	len = 8+2+pagedata[1];
 	p = emalloc(len);
-	memmove(p + Mode10parmhdrlen, pagedata, pagedata[1]);
-	/* parameter list header */
-	p[0] = 0;
-	p[1] = len - 2;
-
-	/* set up CCB */
+	memmove(p+8, pagedata, pagedata[1]);
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMselect10;
-	cmd[1] = 0x10;			/* format not vendor-specific */
+	cmd[0] = 0x55;
+	cmd[1] = 0x10;
 	cmd[8] = len;
 
-//	print("set: sending cmd\n");
+//	print("cmd\n");
 //	hexdump(cmd, 10);
-//	print("parameter list header\n");
-//	hexdump(p, Mode10parmhdrlen);
 //	print("page\n");
-//	hexdump(p + Mode10parmhdrlen, len - Mode10parmhdrlen);
+//	hexdump(p, len);
 
 	n = scsi(drive, cmd, sizeof(cmd), p, len, Swrite);
-
-//	print("set: got cmd\n");
-//	hexdump(cmd, 10);
-
 	free(p);
 	if(n < len)
 		return -1;
@@ -213,18 +142,15 @@ mmcsetpage6(Drive *drive, int page, void *v)
 {
 	uchar cmd[6], *p, *pagedata;
 	int len, n;
-
-	if (vflag)
-		print("mmcsetpage6 called!\n");
+	
 	pagedata = v;
 	assert(pagedata[0] == page);
-	len = Mode6parmhdrlen + Modepaghdrlen + pagedata[1];
+	len = 4+2+pagedata[1];
 	p = emalloc(len);
-	memmove(p + Mode6parmhdrlen, pagedata, pagedata[1]);
-
+	memmove(p+4, pagedata, pagedata[1]);
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMselect6;
-	cmd[1] = 0x10;			/* format not vendor-specific */
+	cmd[0] = 0x15;
+	cmd[1] = 0x10;
 	cmd[4] = len;
 
 	n = scsi(drive, cmd, sizeof(cmd), p, len, Swrite);
@@ -274,7 +200,7 @@ mmcstatus(Drive *drive)
 	uchar cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdCDstatus;			/* mechanism status */
+	cmd[0] = 0xBD;
 	return scsi(drive, cmd, sizeof(cmd), nil, 0, Sread);
 }
 
@@ -284,14 +210,14 @@ mmcgetspeed(Drive *drive)
 	int n, maxread, curread, maxwrite, curwrite;
 	uchar buf[Pagesz];
 
-	n = mmcgetpage(drive, Pagcapmechsts, buf);
+	n = mmcgetpage(drive, 0x2A, buf);
 	maxread = (buf[8]<<8)|buf[9];
 	curread = (buf[14]<<8)|buf[15];
 	maxwrite = (buf[18]<<8)|buf[19];
 	curwrite = (buf[20]<<8)|buf[21];
 
 	if(n < 22 || (maxread && maxread < 170) || (curread && curread < 170))
-		return;			/* bogus data */
+		return;	/* bogus data */
 
 	drive->readspeed = curread;
 	drive->writespeed = curwrite;
@@ -305,21 +231,20 @@ mmcprobe(Scsi *scsi)
 	Mmcaux *aux;
 	Drive *drive;
 	uchar buf[Pagesz];
-	int cap, n;
+	int cap;
 
-	/* BUG: confirm mmc better! */
-	if (vflag)
-		print("mmcprobe: inquiry: %s\n", scsi->inquire);
+	/* BUG: confirm mmc better? */
+
 	drive = emalloc(sizeof(Drive));
 	drive->Scsi = *scsi;
 	drive->Dev = mmcdev;
 	aux = emalloc(sizeof(Mmcaux));
 	drive->aux = aux;
 
-	/* attempt to read CD capabilities page, but it's now legacy */
-	if(mmcgetpage10(drive, Pagcapmechsts, buf) >= 0)
+	/* attempt to read CD capabilities page */
+	if(mmcgetpage10(drive, 0x2A, buf) >= 0)
 		aux->pagecmdsz = 10;
-	else if(mmcgetpage6(drive, Pagcapmechsts, buf) >= 0)
+	else if(mmcgetpage6(drive, 0x2A, buf) >= 0)
 		aux->pagecmdsz = 6;
 	else {
 		werrstr("not an mmc device");
@@ -328,7 +253,7 @@ mmcprobe(Scsi *scsi)
 	}
 
 	cap = 0;
-	if(buf[3] & 3)		/* 2=cdrw, 1=cdr */
+	if(buf[3] & 3)	/* 2=cdrw, 1=cdr */
 		cap |= Cwrite;
 	if(buf[5] & 1)
 		cap |= Ccdda;
@@ -336,8 +261,8 @@ mmcprobe(Scsi *scsi)
 //	print("read %d max %d\n", biges(buf+14), biges(buf+8));
 //	print("write %d max %d\n", biges(buf+20), biges(buf+18));
 
-	/* cache optional page 05 (write parameter page) */
-	if((cap & Cwrite) && mmcgetpage(drive, Pagwrparams, aux->page05) >= 0)
+	/* cache page 05 (write parameter page) */
+	if((cap & Cwrite) && mmcgetpage(drive, 0x05, aux->page05) >= 0)
 		aux->page05ok = 1;
 	else
 		cap &= ~Cwrite;
@@ -345,21 +270,6 @@ mmcprobe(Scsi *scsi)
 	drive->cap = cap;
 
 	mmcgetspeed(drive);
-
-	/*
-	 * we can't actually control caching much.
-	 * see SBC-2 §6.3.3 but also MMC-6 §7.6.
-	 */
-	n = mmcgetpage(drive, Pagcache, buf);
-	if (n >= 0) {
-		/* n == 255; buf[1] == 10 (10 bytes after buf[1]) */
-		assert(buf[0] == Pagcache);
-		assert(buf[1] >= 10);
-		buf[2] = Ccwce;
-		if (mmcsetpage(drive, Pagcache, buf) < 0)
-			if (vflag)
-				print("mmcprobe: cache control NOT set\n");
-	}
 	return drive;
 }
 
@@ -374,7 +284,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 
 	aux = drive->aux;
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdRtrackinfo;
+	cmd[0] = 0x52;	/* get track info */
 	cmd[1] = 1;
 	cmd[2] = t>>24;
 	cmd[3] = t>>16;
@@ -404,24 +314,19 @@ mmctrackinfo(Drive *drive, int t, int i)
 		type = TypeAudio;
 		bs = BScdda;
 		break;
-	case 1:		/* 2 audio channels, with pre-emphasis 50/15 μs */
+	case 1:	/* 2 audio channels, with pre-emphasis 50/15 μs */
 		if(vflag)
 			print("audio channels with preemphasis on track %d (u%.3d)\n", t, i);
 		type = TypeNone;
 		break;
-	case 4:		/* data track, recorded uninterrupted */
+	case 4:	/* data track, recorded uninterrupted */
 		type = TypeData;
 		bs = BScdrom;
 		break;
-	case 5:		/* data track, recorded interrupted */
-		/* treat it as cdrom; probably dvd or bd */
-		type = TypeData;
-		bs = BScdrom;
-		break;
+	case 5:	/* data track, recorded interrupted */
 	default:
 		if(vflag)
 			print("unknown track type %d\n", tmode);
-		break;
 	}
 
 	drive->track[i].mtime = drive->changetime;
@@ -448,7 +353,7 @@ mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 	uchar cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdRTOC;
+	cmd[0] = 0x43;
 	cmd[1] = type;
 	cmd[6] = track;
 	cmd[7] = nbytes>>8;
@@ -464,7 +369,7 @@ mmcreaddiscinfo(Drive *drive, void *data, int nbytes)
 	int n;
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdRdiscinfo;
+	cmd[0] = 0x51;
 	cmd[7] = nbytes>>8;
 	cmd[8] = nbytes;
 	n = scsi(drive, cmd, sizeof(cmd), data, nbytes, Sread);
@@ -532,7 +437,7 @@ mmcgettoc(Drive *drive)
 		 */
 		if(mmcreaddiscinfo(drive, resp, sizeof(resp)) < 0)
 			return -1;
-		if(resp[4] != 1)
+		if(resp[4] != 1) 
 			print("multi-session disc %d\n", resp[4]);
 		first = resp[3];
 		last = resp[6];
@@ -616,9 +521,6 @@ mmcgettoc(Drive *drive)
 	return 0;
 }
 
-/*
- * this uses page 5, which is optional.
- */
 static int
 mmcsetbs(Drive *drive, int bs)
 {
@@ -626,14 +528,14 @@ mmcsetbs(Drive *drive, int bs)
 	Mmcaux *aux;
 
 	aux = drive->aux;
-	if (!aux->page05ok)
-		return 0;			/* harmless; assume 2k */
+
+	assert(aux->page05ok);
 
 	p = aux->page05;
 	p[2] = 0x01;				/* track-at-once */
 //	if(xflag)
 //		p[2] |= 0x10;			/* test-write */
-
+	
 	switch(bs){
 	case BScdrom:
 		p[3] = (p[3] & ~0x07)|0x04;	/* data track, uninterrupted */
@@ -657,7 +559,7 @@ mmcsetbs(Drive *drive, int bs)
 		assert(0);
 	}
 
-	if(mmcsetpage(drive, Pagwrparams, p) < 0)
+	if(mmcsetpage(drive, 0x05, p) < 0)
 		return -1;
 	return 0;
 }
@@ -687,8 +589,7 @@ mmcread(Buf *buf, void *v, long nblock, long off)
 	if(off > o->track->end - 2) {
 		werrstr("read past end of track");
 		if(vflag)
-			fprint(2, "end of track (%ld->%ld off %ld)",
-				o->track->beg, o->track->end - 2, off);
+			fprint(2, "end of track (%ld->%ld off %ld)", o->track->beg, o->track->end-2, off);
 		return -1;
 	}
 	if(off == o->track->end - 2)
@@ -697,55 +598,42 @@ mmcread(Buf *buf, void *v, long nblock, long off)
 	if(off+nblock > o->track->end - 2)
 		nblock = o->track->end - 2 - off;
 
-	/*
-	 * `read cd' only works for CDs; for everybody else,
-	 * we'll try plain `read (12)'.
-	 */
 	memset(cmd, 0, sizeof(cmd));
-	if (drive->type == TypeCD) {
-		cmd[0] = ScmdReadcd;
-		cmd[2] = off>>24;
-		cmd[3] = off>>16;
-		cmd[4] = off>>8;
-		cmd[5] = off>>0;
-		cmd[6] = nblock>>16;
-		cmd[7] = nblock>>8;
-		cmd[8] = nblock>>0;
-		cmd[9] = 0x10;
-		switch(bs){
-		case BScdda:
-			cmd[1] = 0x04;
-			break;
-		case BScdrom:
-			cmd[1] = 0x08;
-			break;
-		case BScdxa:
-			cmd[1] = 0x0C;
-			break;
-		default:
-			werrstr("unknown bs %d", bs);
-			return -1;
-		}
-	} else {			/* e.g., TypeDA */
-		cmd[0] = ScmdRead12;
-		cmd[2] = off>>24;
-		cmd[3] = off>>16;
-		cmd[4] = off>>8;
-		cmd[5] = off>>0;
-		cmd[6] = nblock>>24;
-		cmd[7] = nblock>>16;
-		cmd[8] = nblock>>8;
-		cmd[9] = nblock;
-		// cmd[10] = 0x80;	/* streaming */
+	cmd[0] = 0xBE;
+	cmd[2] = off>>24;
+	cmd[3] = off>>16;
+	cmd[4] = off>>8;
+	cmd[5] = off>>0;
+	cmd[6] = nblock>>16;
+	cmd[7] = nblock>>8;
+	cmd[8] = nblock>>0;
+	cmd[9] = 0x10;
+
+	switch(bs){
+	case BScdda:
+		cmd[1] = 0x04;
+		break;
+
+	case BScdrom:
+		cmd[1] = 0x08;
+		break;
+
+	case BScdxa:
+		cmd[1] = 0x0C;
+		break;
+
+	default:
+		werrstr("unknown bs %d", bs);
+		return -1;
 	}
+
 	n = nblock*bs;
 	nn = scsi(drive, cmd, sizeof(cmd), v, n, Sread);
 	if(nn != n) {
 		if(nn != -1)
 			werrstr("short read %ld/%ld", nn, n);
 		if(vflag)
-			print("read off %lud nblock %ld bs %d failed\n",
-				off, nblock, bs);
+			print("read off %lud nblock %ld bs %d failed\n", off, nblock, bs);
 		return -1;
 	}
 
@@ -794,7 +682,7 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	aux->ntotby += nblk*o->track->bs;
 	aux->ntotbk += nblk;
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdExtwrite;		/* write (10) */
+	cmd[0] = 0x2a;	/* write */
 	cmd[2] = aux->mmcnwa>>24;
 	cmd[3] = aux->mmcnwa>>16;
 	cmd[4] = aux->mmcnwa>>8;
@@ -840,7 +728,7 @@ mmccreate(Drive *drive, int type)
 		return nil;
 	}
 
-	if(mmctrackinfo(drive, 0xFF, Maxtrack)) {	/* the invisible track */
+	if(mmctrackinfo(drive, 0xFF, Maxtrack)) {		/* the invisible track */
 		werrstr("CD not writable");
 		return nil;
 	}
@@ -848,7 +736,7 @@ mmccreate(Drive *drive, int type)
 		werrstr("cannot set bs mode");
 		return nil;
 	}
-	if(mmctrackinfo(drive, 0xFF, Maxtrack)) {	/* the invisible track */
+	if(mmctrackinfo(drive, 0xFF, Maxtrack)) {		/* the invisible track */
 		werrstr("CD not writable 2");
 		return nil;
 	}
@@ -887,11 +775,11 @@ mmcsynccache(Drive *drive)
 	Mmcaux *aux;
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdSynccache;		/* flush */
+	cmd[0] = 0x35;	/* flush */
 	scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
 	if(vflag) {
 		aux = drive->aux;
-		print("mmcsynccache: bytes = %lld blocks = %ld, mmcnwa 0x%luX\n",
+		print("mmcsynccache: bytes = %ld blocks = %ld, mmcnwa 0x%luX\n",
 			aux->ntotby, aux->ntotbk, aux->mmcnwa);
 	}
 /* rsc: seems not to work on some drives; 	mmcclose(1, 0xFF); */
@@ -924,7 +812,7 @@ mmcxclose(Drive *drive, int ts, int trackno)
 	 * ts: 1 == track, 2 == session
 	 */
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdClosetracksess;
+	cmd[0] = 0x5B;
 	cmd[2] = ts;
 	if(ts == 1)
 		cmd[5] = trackno;
@@ -942,13 +830,12 @@ mmcfixate(Drive *drive)
 		return -1;
 	}
 
-	drive->nchange = -1;		/* force reread toc */
+	drive->nchange = -1;	/* force reread toc */
 
-	/* TODO: page 5 is legacy and now read-only */
 	aux = drive->aux;
 	p = aux->page05;
-	p[3] &= ~0xC0;
-	if(mmcsetpage(drive, Pagwrparams, p) < 0)
+	p[3] = (p[3] & ~0xC0);
+	if(mmcsetpage(drive, 0x05, p) < 0)
 		return -1;
 
 /* rsc: seems not to work on some drives; 	mmcclose(1, 0xFF); */
@@ -963,11 +850,10 @@ mmcsession(Drive *drive)
 
 	drive->nchange = -1;	/* force reread toc */
 
-	/* TODO: page 5 is legacy and now read-only */
 	aux = drive->aux;
 	p = aux->page05;
-	p[3] &= ~0xC0;
-	if(mmcsetpage(drive, Pagwrparams, p) < 0)
+	p[3] = (p[3] & ~0xC0);
+	if(mmcsetpage(drive, 0x05, p) < 0)
 		return -1;
 
 /* rsc: seems not to work on some drives; 	mmcclose(1, 0xFF); */
@@ -979,10 +865,10 @@ mmcblank(Drive *drive, int quick)
 {
 	uchar cmd[12];
 
-	drive->nchange = -1;		/* force reread toc */
+	drive->nchange = -1;	/* force reread toc */
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdBlank;		/* blank cd-rw media */
+	cmd[0] = 0xA1;	/* blank */
 	/* cmd[1] = 0 means blank the whole disc; = 1 just the header */
 	cmd[1] = quick ? 0x01 : 0x00;
 
@@ -995,7 +881,7 @@ start(Drive *drive, int code)
 	uchar cmd[6];
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdStart;		/* start/stop unit */
+	cmd[0] = 0x1B;
 	cmd[4] = code;
 	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
 }
@@ -1032,7 +918,7 @@ mmcsetspeed(Drive *drive, int r, int w)
 	uchar cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdSetcdspeed;
+	cmd[0] = 0xBB;
 	cmd[2] = r>>8;
 	cmd[3] = r;
 	cmd[4] = w>>8;

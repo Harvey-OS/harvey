@@ -140,7 +140,7 @@ putclust(Ioclust *c)
 }
 
 Iobuf*
-getbuf(Xdata *dev, ulong addr)
+getbuf(Xdata *dev, long addr)
 {
 	int off;
 	Ioclust *c;
