@@ -607,9 +607,8 @@ axpinterrupt(Ureg*, void* arg)
 	if(ics & 0x0810C000)
 		print("%s: unexpected interrupt %#ux\n", ctlr->name, ics);
 	if(!(ics & 0x00002000)) {
-		/* we get a steady stream of these on consoles */
-		// print("%s: non-doorbell interrupt\n", ctlr->name);
-		ctlr->gcb->gcw2 = 0x0001;	/* set Gintack */
+		print("%s: non-doorbell interrupt\n", ctlr->name);
+		// ctlr->gcb->gcw2 = 0x0001;	/* set Gintack */
 		return;
 	}
 
