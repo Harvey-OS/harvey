@@ -446,9 +446,8 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 			break;
 
 		case 301:	/* Moved Permanently */
-		case 302:	/* Moved Temporarily (actually Found) */
+		case 302:	/* Moved Temporarily */
 		case 303:	/* See Other */
-		case 307:	/* Temporary Redirect (HTTP/1.1) */
 			redirect = 1;
 			u->postbody = nil;
 			break;
