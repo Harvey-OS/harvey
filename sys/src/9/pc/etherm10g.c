@@ -5,8 +5,6 @@
  * the card is big endian.
  * we use uvlong rather than uintptr to hold addresses so that
  * we don't get "warning: stupid shift" on 32-bit architectures.
- *
- * appears to have massively-bloated buffers.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -36,9 +34,9 @@ static char	Etimeout[]	= "timeout";
 
 enum {
 	Epromsz	= 256,
-	Maxslots= 1024,		/* rcv descriptors; wasteful: only 9 needed */
+	Maxslots= 1024,
 	Align	= 4096,
-	Maxmtu	= 9000,		/* jumbos; bad idea */
+	Maxmtu	= 9000,
 	Noconf	= 0xffffffff,
 
 	Fwoffset= 1*MiB,

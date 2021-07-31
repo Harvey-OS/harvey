@@ -113,7 +113,8 @@ sdaddpart(SDunit* unit, char* name, uvlong start, uvlong end)
 	if (fprint(unit->ctl, "part %s %lld %lld\n", name, start, end) < 0)
 		fprint(2, "can't update %s's devsd partition table for %s: %r\n",
 			unit->name, name);
-	dprint("part %s %lld %lld\n", name, start, end);
+	if (debugboot)
+		print("part %s %lld %lld\n", name, start, end);
 }
 
 static long
@@ -192,7 +193,8 @@ oldp9part(SDunit *unit)
 	pp->start = unit->sectors - 2;
 	pp->end = unit->sectors - 1;
 
-	dprint("oldp9part %s\n", unit->name);
+	if(debugboot)
+		print("oldp9part %s\n", unit->name);
 	if(sdreadblk(unit, pp, partbuf, 0, 0) < 0)
 		return;
 
@@ -263,7 +265,8 @@ p9part(SDunit *unit, char *name)
 	uvlong start, end;
 	int i, n;
 
-	dprint("p9part %s %s\n", unit->name, name);
+	if(debugboot)
+		print("p9part %s %s\n", unit->name, name);
 	p = sdfindpart(unit, name);
 	if(p == nil)
 		return;

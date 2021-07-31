@@ -48,7 +48,6 @@ typedef struct Uart	Uart;
 typedef struct Waitq	Waitq;
 typedef struct Walkqid	Walkqid;
 typedef struct Watchdog	Watchdog;
-typedef struct Watermark	Watermark;
 typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 #pragma incomplete DevConf
@@ -992,15 +991,6 @@ struct Watchdog
 	void	(*disable)(void);	/* watchdog disable */
 	void	(*restart)(void);	/* watchdog restart */
 	void	(*stat)(char*, char*);	/* watchdog statistics */
-};
-
-struct Watermark
-{
-	int	highwater;
-	int	curr;
-	int	max;
-	int	hitmax;		/* count: how many times hit max? */
-	char	*name;
 };
 
 

@@ -89,27 +89,6 @@ fpsavealloc(void)
 		panic("cpu%d: can't allocate fpsavalign", m->machno);
 }
 
-static int
-isa20on(void)
-{
-	int r;
-	ulong o;
-	ulong *zp, *mb1p;
-
-	zp = (ulong *)KZERO;
-	mb1p = (ulong *)(KZERO|MB);
-	o = *zp;
-
-	*zp = 0x1234;
-	*mb1p = 0x8765;
-	coherence();
-	wbinvd();
-	r = *zp != *mb1p;
-
-	*zp = o;
-	return r;
-}
-
 void
 main(void)
 {
@@ -132,8 +111,6 @@ main(void)
 	meminit();
 	confinit();
 	archinit();
-	if(!isa20on())
-		panic("bootstrap didn't leave a20 address line enabled");
 	xinit();
 	if(i8237alloc != nil)
 		i8237alloc();
@@ -410,8 +387,7 @@ confinit(void)
 {
 	char *p;
 	int i, userpcnt;
-	unsigned mb;
-	ulong kpages, ksize;
+	ulong kpages;
 
 	if(p = getconf("*kernelpercent"))
 		userpcnt = 100 - strtol(p, 0, 0);
@@ -444,13 +420,10 @@ confinit(void)
 		 * The patch of nimage is a band-aid, scanning the whole
 		 * page list in imagereclaim just takes too long.
 		 */
-		for (mb = 400; mb >= 100; mb /= 2) {
-			ksize = mb*MB + conf.npage*sizeof(Page);
-			if(kpages > ksize/BY2PG && cankaddr(ksize)) {
-				kpages = ksize/BY2PG + (conf.nproc*KSTACK)/BY2PG;
-				conf.nimage = 2000;
-				break;
-			}
+		if(kpages > (200*MB + conf.npage*sizeof(Page))/BY2PG){
+			kpages = (200*MB + conf.npage*sizeof(Page))/BY2PG;
+			conf.nimage = 2000;
+			kpages += (conf.nproc*KSTACK)/BY2PG;
 		}
 	} else {
 		if(userpcnt < 10) {

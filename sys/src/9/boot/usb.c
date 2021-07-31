@@ -13,6 +13,8 @@ enum {
 	Post,
 };
 
+int	debugboot;
+
 static char usbdisk0[] = "/dev/sdU0.0";
 static char sdxxctl[]  = "/dev/sdXX/ctl";
 
@@ -32,12 +34,14 @@ start(char *name, char **argv, char *file)
 		return -1;
 	}
 
-	dprint("%s...", name);
+	if(debugboot)
+		fprint(2, "%s...", name);
 	runv(argv);
 	for(cnt = 10; cnt > 0 && access(file, AEXIST) < 0; cnt--)
 		sleep(100);
 	if (cnt <= 0) {
-		dprint("no %s...", file);
+		if(debugboot)
+			fprint(2, "no %s...", file);
 		return -1;
 	}
 	return 0;
@@ -50,7 +54,8 @@ chmod(char *file, int mode)
 
 	dir = dirstat(file);
 	if (dir == nil) {
-		dprint("can't stat %s: %r\n", file);
+		if(debugboot)
+			fprint(2, "can't stat %s: %r\n", file);
 		return -1;
 	}
 	dir->mode &= ~0777;
@@ -103,7 +108,8 @@ mountusb(void)
 {
 	int fd;
 
-	dprint("mount usbd...");
+	if(debugboot)
+		fprint(2, "mount usbd...");
 	fd = open("/srv/usb", ORDWR);
 	if(fd < 0)
 		warning("can't open /srv/usb");
@@ -134,7 +140,8 @@ usbinit(int post)
 
 	if(access("#u/usb/ctl", AEXIST) < 0 || bind("#u", "/dev", MAFTER) < 0)
 		return;
-	dprint("usbinit...");
+	if(debugboot)
+		fprint(2, "usbinit...");
 	start("usbd", usbdv, "/srv/usb");
 
 	/* allow a little time for usbd's device discovery */
@@ -142,6 +149,6 @@ usbinit(int post)
 		sleep(100);
 	if(cnt > 0)
 		startpartfs(post);
-	else
-		dprint("no usb disk...");
+	else if(debugboot)
+		fprint(2, "no usb disk...");
 }
