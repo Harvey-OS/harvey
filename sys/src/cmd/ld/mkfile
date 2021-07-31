@@ -1,2 +1,0 @@
-all clean nuke install installall safeinstall safeinstallall:V:
-	date
