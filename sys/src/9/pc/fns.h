@@ -121,7 +121,6 @@ void	outsl(int, void*, int);
 ulong	paddr(void*);
 ulong	pcibarsize(Pcidev*, int);
 void	pcibussize(Pcidev*, ulong*, ulong*);
-int	pcicap(Pcidev*, int);
 int	pcicfgr8(Pcidev*, int);
 int	pcicfgr16(Pcidev*, int);
 int	pcicfgr32(Pcidev*, int);
