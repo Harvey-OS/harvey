@@ -108,7 +108,7 @@ fillplaytext(char *onum)
 	snprint(name, sizeof name, "%s/%s/parentage", srvmount, onum);
 	b = Bopen(name, OREAD);
 	if(b == nil)
-		sysfatal("fillplaytext: %s: %r", name);
+abort();//		sysfatal("fillplaytext: %s: %r", name);
 	while(p = Brdline(b, '\n')){
 		m = Blinelen(b);
 		assert(p[m-1] == '\n');
