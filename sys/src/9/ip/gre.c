@@ -42,8 +42,6 @@ typedef struct GREhdr
 typedef struct GREpriv GREpriv;
 struct GREpriv
 {
-	int		raw;			/* Raw GRE mode */
-
 	/* non-MIB stats */
 	ulong		csumerr;		/* checksum errors */
 	ulong		lenerr;			/* short packet */
@@ -145,20 +143,18 @@ grekick(void *x, Block *bp)
 	ghp = (GREhdr *)(bp->rp);
 	ghp->vihl = IP_VER4;
 
-	if(!((GREpriv*)c->p->priv)->raw){
-		v4tov6(raddr, ghp->dst);
-		if(ipcmp(raddr, v4prefix) == 0)
-			memmove(ghp->dst, c->raddr + IPv4off, IPv4addrlen);
-		v4tov6(laddr, ghp->src);
-		if(ipcmp(laddr, v4prefix) == 0){
-			if(ipcmp(c->laddr, IPnoaddr) == 0)
-				findlocalip(c->p->f, c->laddr, raddr); /* pick interface closest to dest */
-			memmove(ghp->src, c->laddr + IPv4off, IPv4addrlen);
-		}
-		hnputs(ghp->eproto, c->rport);
+	v4tov6(raddr, ghp->dst);
+	if(ipcmp(raddr, v4prefix) == 0)
+		memmove(ghp->dst, c->raddr + IPv4off, IPv4addrlen);
+	v4tov6(laddr, ghp->src);
+	if(ipcmp(laddr, v4prefix) == 0){
+		if(ipcmp(c->laddr, IPnoaddr) == 0)
+			findlocalip(c->p->f, c->laddr, raddr); /* pick interface closest to dest */
+		memmove(ghp->src, c->laddr + IPv4off, IPv4addrlen);
 	}
 
 	ghp->proto = IP_GREPROTO;
+	hnputs(ghp->eproto, c->rport);
 	ghp->frag[0] = 0;
 	ghp->frag[1] = 0;
 
@@ -180,6 +176,7 @@ greiput(Proto *gre, Ipifc*, Block *bp)
 
 	v4tov6(raddr, ghp->src);
 	eproto = nhgets(ghp->eproto);
+
 	qlock(gre);
 
 	/* Look for a conversation structure for this port and address */
@@ -188,8 +185,7 @@ greiput(Proto *gre, Ipifc*, Block *bp)
 		c = *p;
 		if(c->inuse == 0)
 			continue;
-		if(c->rport == eproto && 
-			(gpriv->raw || ipcmp(c->raddr, raddr) == 0))
+		if(c->rport == eproto && ipcmp(c->raddr, raddr) == 0)
 			break;
 	}
 
@@ -238,25 +234,6 @@ grestats(Proto *gre, char *buf, int len)
 	return snprint(buf, len, "gre: len %lud\n", gpriv->lenerr);
 }
 
-char*
-grectl(Conv *c, char **f, int n)
-{
-	GREpriv *gpriv;
-
-	gpriv = c->p->priv;
-	if(n == 1){
-		if(strcmp(f[0], "raw") == 0){
-			gpriv->raw = 1;
-			return nil;
-		}
-		else if(strcmp(f[0], "cooked") == 0){
-			gpriv->raw = 0;
-			return nil;
-		}
-	}
-	return "unknown control request";
-}
-
 void
 greinit(Fs *fs)
 {
@@ -271,7 +248,7 @@ greinit(Fs *fs)
 	gre->create = grecreate;
 	gre->close = greclose;
 	gre->rcv = greiput;
-	gre->ctl = grectl;
+	gre->ctl = nil;
 	gre->advise = nil;
 	gre->stats = grestats;
 	gre->ipproto = IP_GREPROTO;

@@ -477,7 +477,7 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 
 	addselfcache(f, ifc, lifc, ip, Runi);
 
-	if((type & (Rproxy|Rptpt)) == (Rproxy|Rptpt)){
+	if((type & (Rptpt|Rproxy)) == (Rptpt|Rproxy)){
 		ipifcregisterproxy(f, ifc, rem);
 		goto out;
 	}
@@ -1417,7 +1417,7 @@ ipproxyifc(Fs *f, Ipifc *ifc, uchar *ip)
 	r = v6lookup(f, ip, nil);
 	if(r == nil)
 		return 0;
-	if((r->type & (Rifc|Rproxy)) != (Rifc|Rproxy))
+	if((r->type & (Rifc|Rptpt|Rproxy)) != (Rifc|Rptpt|Rproxy))
 		return 0;
 
 	/* see if this is on the right interface */
