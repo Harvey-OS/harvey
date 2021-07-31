@@ -765,7 +765,6 @@ static struct {
 	int	id;
 } rtl8169pci[] = {
 	{ "rtl8169",	(0x8169<<16)|0x10EC, },	/* generic */
-	{ "CG-LAPCIGT",	(0xC107<<16)|0x1259, },	/* Corega CG-LAPCIGT */
 	{ nil },
 };
 
