@@ -108,8 +108,7 @@ ioinit(void)
 	iomap.free = iomap.maps;
 
 	/*
-	 * This is necessary to make the IBM X20 boot.
-	 * Have not tracked down the reason.
+	 * Someone needs to explain why this was here...
 	 */
 	ioalloc(0x0fff, 1, 0, "dummy");	// i82557 is at 0x1000, the dummy
 					// entry is needed for swappable devs.
