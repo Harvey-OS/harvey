@@ -10,9 +10,9 @@
 static Biobuf*
 openPW(char *id, int mode)
 {
+	Biobuf *b;
 	int nfn = strlen(SECSTORE_DIR)+strlen(id)+20;
 	char *fn;
-	Biobuf *b;
 
 	if(validatefile(id) == nil || strcmp(id,".") == 0)
 		return nil;
@@ -26,86 +26,83 @@ openPW(char *id, int mode)
 static ulong
 mtimePW(char *id)
 {
-	ulong mt;
-	char *fn;
 	Dir *d;
+	int nfn = strlen(SECSTORE_DIR)+strlen(id)+20;
+	char *fn = emalloc(nfn);
+	ulong mt;
 
-	fn = smprint("%s/who/%s", SECSTORE_DIR, id);
+	snprint(fn, nfn, "%s/who/%s", SECSTORE_DIR, id);
 	d = dirstat(fn);
-	mt = (d? d->mtime: 0);
-	free(d);
 	free(fn);
+	mt = d->mtime;
+	free(d);
 	return mt;
 }
 
 PW *
 getPW(char *id, int dead_or_alive)
 {
-	ulong now = time(0);
-	char *f1, *f2, *oid;		/* fields 1, 2 = attribute, value */
+	uint now = time(0);
 	Biobuf *bin;
 	PW *pw;
+	char *f1, *f2; // fields 1, 2 = attribute, value
 
-	oid = id;
 	if((bin = openPW(id, OREAD)) == 0){
 		id = "FICTITIOUS";
 		if((bin = openPW(id, OREAD)) == 0){
-			werrstr("accounts %s and FICTITIOUS do not exist", oid);
+			werrstr("account does not exist");
 			return nil;
 		}
 	}
-	pw = emalloc(sizeof *pw);
+	pw = emalloc(sizeof(*pw));
 	pw->id = estrdup(id);
 	pw->status |= Enabled;
 	while( (f1 = Brdline(bin, '\n')) != 0){
 		f1[Blinelen(bin)-1] = 0;
-		for(f2 = f1; *f2 && *f2 != ' ' && *f2 != '\t'; f2++)
-			;
+		for(f2 = f1; *f2 && (*f2!=' ') && (*f2!='\t'); f2++){}
 		if(*f2)
-			for(*f2++ = 0; *f2 && (*f2==' ' || *f2=='\t'); f2++)
-				;
-		if(strcmp(f1, "exp") == 0)
+			for(*f2++ = 0; *f2 && (*f2==' ' || *f2=='\t'); f2++){}
+		if(strcmp(f1, "exp") == 0){
 			pw->expire = strtoul(f2, 0, 10);
-		else if(strcmp(f1, "DISABLED") == 0)
+		}else if(strcmp(f1, "DISABLED") == 0){
 			pw->status &= ~Enabled;
-		else if(strcmp(f1, "STA") == 0)
+		}else if(strcmp(f1, "STA") == 0){
 			pw->status |= STA;
-		else if(strcmp(f1, "failed") == 0)
+		}else if(strcmp(f1, "failed") == 0){
 			pw->failed = strtoul(f2, 0, 10);
-		else if(strcmp(f1, "other") == 0)
+		}else if(strcmp(f1, "other") == 0){
 			pw->other = estrdup(f2);
-		else if(strcmp(f1, "PAK-Hi") == 0)
+		}else if(strcmp(f1, "PAK-Hi") == 0){
 			pw->Hi = strtomp(f2, nil, 64, nil);
+		}
 	}
 	Bterm(bin);
 	if(pw->Hi == nil){
-		werrstr("corrupted account file for %s", pw->id);
+		werrstr("corrupted account file");
 		freePW(pw);
 		return nil;
 	}
 	if(dead_or_alive)
-		return pw;  /* return for editing, whether valid now or not */
-	if(pw->expire != 0 && pw->expire <= now){
-		/* %.28s excludes ctime's newline */
-		werrstr("account %s expired at %.28s", pw->id,
-			ctime(pw->expire));
+		return pw;  // return PW entry for editing, whether currently valid or not
+	if(pw->expire <= now){
+		werrstr("account expired");
 		freePW(pw);
 		return nil;
 	}
 	if((pw->status & Enabled) == 0){
-		werrstr("account %s disabled", pw->id);
+		werrstr("account disabled");
 		freePW(pw);
 		return nil;
 	}
 	if(pw->failed < 10)
-		return pw;	/* success */
+		return pw;  // success
 	if(now < mtimePW(id)+300){
 		werrstr("too many failures; try again in five minutes");
 		freePW(pw);
 		return nil;
 	}
 	pw->failed = 0;
-	putPW(pw);	/* reset failed-login-counter after five minutes */
+	putPW(pw);  // reset failed-login-counter after five minutes
 	return pw;
 }
 
@@ -116,7 +113,7 @@ putPW(PW *pw)
 	char *hexHi;
 
 	if((bout = openPW(pw->id, OWRITE|OTRUNC)) ==0){
-		werrstr("can't open PW file for %s", pw->id);
+		werrstr("can't open PW file");
 		return -1;
 	}
 	Bprint(bout, "exp	%lud\n", pw->expire);
@@ -144,3 +141,4 @@ freePW(PW *pw)
 	mpfree(pw->Hi);
 	free(pw);
 }
+
