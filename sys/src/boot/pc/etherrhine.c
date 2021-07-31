@@ -82,8 +82,7 @@ enum Regs {
 	Cr		= 0x8,
 	Isr		= 0xc,
 	Imr		= 0xe,
-	Mcfilt0		= 0x10,		/* Multicast Filter 0 */
-	Mcfilt1		= 0x14,		/* Multicast Filter 1 */
+	McastAddr	= 0x10,
 	RxdAddr		= 0x18,
 	TxdAddr		= 0x1C,
 	Bcr0		= 0x6E,		/* Bus Control */
@@ -545,8 +544,6 @@ reset(Ctlr* ctlr)
 
 	r = csr8r(ctlr, Rcr) & ~(RrftMASK|Prom|Ar|Sep);
 	csr8w(ctlr, Rcr, r|Ab|Am);
-	csr32w(ctlr, Mcfilt0, ~0UL);	/* accept all multicast */
-	csr32w(ctlr, Mcfilt1, ~0UL);
 
 	r = csr8r(ctlr, Tcr) & ~(RtsfMASK|Ofset|Lb1|Lb0);
 	csr8w(ctlr, Tcr, r);
