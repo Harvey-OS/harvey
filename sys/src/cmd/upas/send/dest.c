@@ -11,7 +11,7 @@ d_new(String *addr)
 {
 	dest *dp;
 
-	dp = (dest *)mallocz(sizeof(dest), 1);
+	dp = (dest *)malloc(sizeof(dest));
 	if (dp == 0) {
 		perror("d_new");
 		exit(1);

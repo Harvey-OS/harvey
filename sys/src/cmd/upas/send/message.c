@@ -39,11 +39,12 @@ m_new(void)
 {
 	message *mp;
 
-	mp = (message *)mallocz(sizeof(message), 1);
+	mp = (message *)malloc(sizeof(message));
 	if (mp == 0) {
 		perror("message:");
 		exit(1);
 	}
+	memset(mp, 0, sizeof(*mp));
 	mp->sender = s_new();
 	mp->replyaddr = s_new();
 	mp->date = s_new();
