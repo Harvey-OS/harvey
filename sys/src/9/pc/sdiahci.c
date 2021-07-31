@@ -112,7 +112,6 @@ typedef struct {
 	uchar	smartrs;
 
 	uvlong	sectors;
-	ulong	secsize;
 	ulong	intick;		/* start tick of current transfer */
 	ulong	lastseen;
 	int	wait;
@@ -913,17 +912,14 @@ identify(Drive *d)
 	osectors = d->sectors;
 	memmove(oserial, d->serial, sizeof d->serial);
 
-	u = d->unit;
 	d->sectors = s;
-	d->secsize = u->secsize;
-	if(d->secsize == 0)
-		d->secsize = 512;		/* default */
 	d->smartrs = 0;
 
 	idmove(d->serial, id+10, 20);
 	idmove(d->firmware, id+23, 8);
 	idmove(d->model, id+27, 40);
 
+	u = d->unit;
 	memset(u->inquiry, 0, sizeof u->inquiry);
 	u->inquiry[2] = 2;
 	u->inquiry[3] = 2;
@@ -1113,7 +1109,7 @@ resetdisk(Drive *d)
 static int
 newdrive(Drive *d)
 {
-	char *name;
+	char *name, *s;
 	Aportc *c;
 	Aportm *m;
 
@@ -1147,9 +1143,12 @@ newdrive(Drive *d)
 
 	qunlock(c->m);
 
-	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->name,
-		(m->feat & Dllba? "L": ""), d->sectors, d->model, d->firmware,
-		d->serial, d->mediachange? "[mediachange]": "");
+	s = "";
+	if(m->feat & Dllba)
+		s = "L";
+	idprint("%s: %sLBA %,llud sectors\n", d->unit->name, s, d->sectors);
+	idprint("  %s %s %s %s\n", d->model, d->firmware, d->serial,
+		d->mediachange? "[mediachange]": "");
 	return 0;
 
 lose:
@@ -1437,7 +1436,7 @@ iaonline(SDunit *unit)
 		d->mediachange = 0;
 		/* devsd resets this after online is called; why? */
 		unit->sectors = d->sectors;
-		unit->secsize = 512;		/* default size */
+		unit->secsize = 512;	/* TODO */
 	} else if(d->state == Dready)
 		r = 1;
 	iunlock(d);
@@ -1446,16 +1445,14 @@ iaonline(SDunit *unit)
 
 /* returns locked list! */
 static Alist*
-ahcibuild(Drive *d, uchar *cmd, void *data, int n, vlong lba)
+ahcibuild(Aportm *m, uchar *cmd, void *data, int n, vlong lba)
 {
 	uchar *c, acmd, dir, llba;
 	Alist *l;
 	Actab *t;
-	Aportm *m;
 	Aprdt *p;
 	static uchar tab[2][2] = { 0xc8, 0x25, 0xca, 0x35, };
 
-	m = &d->portm;
 	dir = *cmd != 0x28;
 	llba = m->feat&Dllba? 1: 0;
 	acmd = tab[dir][llba];
@@ -1498,9 +1495,7 @@ ahcibuild(Drive *d, uchar *cmd, void *data, int n, vlong lba)
 	p = &t->prdt;
 	p->dba = PCIWADDR(data);
 	p->dbahi = 0;
-	if(d->unit == nil)
-		panic("ahcibuild: nil d->unit");
-	p->count = 1<<31 | (d->unit->secsize*n - 2) | 1;
+	p->count = 1<<31 | (512*n - 2) | 1;
 
 	return l;
 }
@@ -1757,7 +1752,7 @@ retry:
 		n = count;
 		if(n > max)
 			n = max;
-		ahcibuild(d, cmd, data, n, lba);
+		ahcibuild(&d->portm, cmd, data, n, lba);
 		switch(waitready(d)){
 		case -1:
 			qunlock(&d->portm);
@@ -2008,11 +2003,8 @@ iarctl(SDunit *u, char *p, int l)
 	Ctlr *c;
 	Drive *d;
 
-	c = u->dev->ctlr;
-	if(c == nil) {
-print("iarctl: nil u->dev->ctlr\n");
+	if((c = u->dev->ctlr) == nil)
 		return 0;
-	}
 	d = c->drive[u->subno];
 	o = d->port;
 
@@ -2037,9 +2029,7 @@ print("iarctl: nil u->dev->ctlr\n");
 	p = seprint(p, e, "reg\ttask %lux cmd %lux serr %lux %s ci %lux is %lux; "
 		"sig %lux sstatus %04lux\n", o->task, o->cmd, o->serror, buf,
 		o->ci, o->isr, o->sig, o->sstatus);
-	if(d->unit == nil)
-		panic("iarctl: nil d->unit");
-	p = seprint(p, e, "geometry %llud %lud\n", d->sectors, d->unit->secsize);
+	p = seprint(p, e, "geometry %llud 512\n", d->sectors); /* TODO */
 	return p - op;
 }
 
