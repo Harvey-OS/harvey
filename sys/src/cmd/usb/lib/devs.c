@@ -68,10 +68,14 @@ matchdevcsp(char *info, void *a)
 int
 finddevs(int (*matchf)(char*,void*), void *farg, char** dirs, int ndirs)
 {
-	int fd, i, n, nd, nr;
-	char *nm;
-	char dbuf[512], fbuf[40];
+	int fd;
+	char fbuf[40];
+	char dbuf[512];
 	Dir *d;
+	int nd, nr;
+	int n;
+	int i;
+	char *nm;
 
 	fd = open("/dev/usb", OREAD);
 	if(fd < 0)
@@ -105,8 +109,7 @@ finddevs(int (*matchf)(char*,void*), void *farg, char** dirs, int ndirs)
 }
 
 void
-startdevs(char *args, char *argv[], int argc, int (*mf)(char*, void*),
-	void *ma, int (*df)(Dev*, int, char**))
+startdevs(char *args, char *argv[], int argc, int (*mf)(char*,void*), void*ma, int (*df)(Dev*,int,char**))
 {
 	int i, ndirs, ndevs;
 	char *dirs[Ndevs];
@@ -134,26 +137,27 @@ startdevs(char *args, char *argv[], int argc, int (*mf)(char*, void*),
 	for(i = 0; i < ndirs; i++){
 		fprint(2, "%s: startdevs: opening #%d %s\n", argv0, i, dp[i]);
 		dev = opendev(dp[i]);
-		if(dev == nil)
+		if(dev != nil){
+			if(configdev(dev) < 0){
+				fprint(2, "%s: %s: config: %r\n", argv0, dp[i]);
+				closedev(dev);
+			}else{
+				dprint(2, "%s: %U", argv0, dev);
+				parg = emallocz(sizeof(Parg), 0);
+				parg->args = estrdup(args);
+				parg->dev = dev;
+				parg->rc = rc;
+				parg->f = df;
+				proccreate(workproc, parg, Stack);
+				if(recvul(rc) == 0)
+					ndevs++;
+			}
+		}else
 			fprint(2, "%s: %s: %r\n", argv0, dp[i]);
-		else if(configdev(dev) < 0){
-			fprint(2, "%s: %s: config: %r\n", argv0, dp[i]);
-			closedev(dev);
-		}else{
-			dprint(2, "%s: %U", argv0, dev);
-			parg = emallocz(sizeof(Parg), 0);
-			parg->args = estrdup(args);
-			parg->dev = dev;
-			parg->rc = rc;
-			parg->f = df;
-			proccreate(workproc, parg, Stack);
-			if(recvul(rc) == 0)
-				ndevs++;
-		}
 		if(dp != argv)
 			free(dirs[i]);
 	}
 	chanfree(rc);
 	if(ndevs == 0)
-		sysfatal("no unhandled devices found");
+		sysfatal("no device found");
 }
