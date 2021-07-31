@@ -1250,8 +1250,7 @@ sdwrite(Chan* c, void* a, long n, vlong off)
 			error(Ebadctl);
 		poperror();
 		poperror();
-		if (sdev)
-			decref(&sdev->r);
+		decref(&sdev->r);
 		free(cb);
 		break;
 

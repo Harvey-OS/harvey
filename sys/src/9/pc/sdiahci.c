@@ -154,7 +154,6 @@ static	int	niactlr;
 static	Drive	*iadrive[NDrive];
 static	int	niadrive;
 
-/* these are fiddled in iawtopctl() */
 static	int	debug;
 static	int	prid = 1;
 static	int	datapi;
@@ -2220,8 +2219,6 @@ iawtopctl(SDev *, Cmdbuf *cmd)
 	f = cmd->f;
 	v = 0;
 
-	if (f[0] == nil)
-		return 0;
 	if(strcmp(f[0], "debug") == 0)
 		v = &debug;
 	else if(strcmp(f[0], "idprint") == 0)
@@ -2238,10 +2235,7 @@ iawtopctl(SDev *, Cmdbuf *cmd)
 		*v ^= 1;
 		break;
 	case 2:
-		if(f[1])
-			*v = strcmp(f[1], "on") == 0;
-		else
-			*v ^= 1;
+		*v = (strcmp(f[1], "on") == 0);
 		break;
 	}
 	return 0;
