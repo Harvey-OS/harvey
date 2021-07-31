@@ -1,5 +1,6 @@
 </$objtype/mkfile
 BIN=/$objtype/bin/auth
+# CFLAGS=-Fw
 HFILES =\
 	SConn.h\
 	secstore.h\
@@ -11,7 +12,7 @@ OFILES =\
 	util.$O\
 
 
-TARG = secstore secstored secuser aescbc descbc
+TARG = secstore secstored secuser aescbc
 DEBUG = secchk
 
 UPDATE=\
@@ -23,11 +24,9 @@ UPDATE=\
 	mkfile\
 	/sys/man/1/secstore\
 
-default:V: all
+default:V: $O.aescbc $O.secstore $O.secstored $O.secuser
 
 $O.aescbc: aescbc.$O util.$O
-	$LD -o $target $prereq
-$O.descbc: descbc.$O util.$O
 	$LD -o $target $prereq
 
 $O.secstore: secstore.$O  $OFILES
