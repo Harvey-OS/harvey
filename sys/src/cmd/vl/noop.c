@@ -1,5 +1,30 @@
 #include	"l.h"
 
+/*
+ * workaround for 24k erratum #48, costs about 0.5% in space.
+ * inserts a NOP before the last of 3 consecutive stores.
+ */
+static int
+add24knop(Prog *p)
+{
+	Prog *p1, *p2;
+
+	if(p->to.type == D_OREG){			/* store? */
+		p1 = p->link;
+		if (p1 && p1->to.type == D_OREG) {	/* 2nd store? */
+			p2 = p1->link;
+			if(p2 && p2->to.type == D_OREG){ /* 3rd store? */
+				p1->mark |= LABEL|SYNC;
+				addnop(p1);
+				nop.mfrom.count++;
+				nop.mfrom.outof++;
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
 void
 noops(void)
 {
@@ -56,6 +81,8 @@ noops(void)
 				p->mark |= LABEL|SYNC;
 				break;
 			}
+			if (add24knop(p))
+				break;
 			if(p->from.type == D_FCREG ||
 			   p->from.type == D_MREG) {
 				p->mark |= LABEL|SYNC;
