@@ -646,23 +646,18 @@ texttype(Text *t, Rune r)
 	switch(r){
 	case Kleft:
 		if(t->q0 > 0){
-			wincommit(t->w, t);
+			textcommit(t, TRUE);
 			textshow(t, t->q0-1, t->q0-1, TRUE);
 		}
 		return;
 	case Kright:
 		if(t->q1 < t->file->nc){
-			wincommit(t->w, t);
+			textcommit(t, TRUE);
 			textshow(t, t->q1+1, t->q1+1, TRUE);
 		}
 		return;
 	case Kdown:
 		n = t->maxlines/3;
-		goto case_Down;
-	case Kscrollonedown:
-		n = mousescrollsize(t->maxlines);
-		if(n <= 0)
-			n = 1;
 		goto case_Down;
 	case Kpgdown:
 		n = 2*t->maxlines/3;
@@ -672,9 +667,6 @@ texttype(Text *t, Rune r)
 		return;
 	case Kup:
 		n = t->maxlines/3;
-		goto case_Up;
-	case Kscrolloneup:
-		n = mousescrollsize(t->maxlines);
 		goto case_Up;
 	case Kpgup:
 		n = 2*t->maxlines/3;

@@ -22,12 +22,6 @@ enum
 	QMAX,
 };
 
-enum
-{
-	Kscrolloneup = KF|0x20,
-	Kscrollonedown = KF|0x21,
-};
-
 #define	STACK	8192
 
 typedef	struct	Consreadmesg Consreadmesg;

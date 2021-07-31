@@ -556,7 +556,7 @@ void
 wkeyctl(Window *w, Rune r)
 {
 	uint q0 ,q1;
-	int n, nb, nr;
+	int nb, nr;
 	Rune *rp;
 	int *notefd;
 
@@ -567,52 +567,34 @@ wkeyctl(Window *w, Rune r)
 	/* navigation keys work only when mouse is not open */
 	if(!w->mouseopen)
 		switch(r){
-		case Kdown:
-			n = w->maxlines/3;
-			goto case_Down;
-		case Kscrollonedown:
-			n = mousescrollsize(w->maxlines);
-			if(n <= 0)
-				n = 1;
-			goto case_Down;
-		case Kpgdown:
-			n = 2*w->maxlines/3;
-		case_Down:
-			q0 = w->org+frcharofpt(w, Pt(w->Frame.r.min.x, w->Frame.r.min.y+n*w->font->height));
+		case Kdown: /* down arrow ↓ scrolls down */
+		case Kpgdown: /* page down scrolls down */
+			q0 = w->org+frcharofpt(w, Pt(w->Frame.r.min.x, w->Frame.r.min.y+(w->maxlines/2)*w->font->height));
 			wsetorigin(w, q0, TRUE);
 			return;
-		case Kup:
-			n = w->maxlines/3;
-			goto case_Up;
-		case Kscrolloneup:
-			n = mousescrollsize(w->maxlines);
-			if(n <= 0)
-				n = 1;
-			goto case_Up;
-		case Kpgup:
-			n = 2*w->maxlines/3;
-		case_Up:
-			q0 = wbacknl(w, w->org, n);
+		case Kup:	/* up arrow ↑ scrolls up */
+		case Kpgup: /* page up scrolls up */
+			q0 = wbacknl(w, w->org, w->maxlines/2);
 			wsetorigin(w, q0, TRUE);
 			return;
-		case Kleft:
+		case Kleft: /* left arrow ← cursors left */
 			if(w->q0 > 0){
 				q0 = w->q0-1;
 				wsetselect(w, q0, q0);
 				wshow(w, q0);
 			}
 			return;
-		case Kright:
+		case Kright: /* right arrow → cursors right */
 			if(w->q1 < w->nr){
 				q1 = w->q1+1;
 				wsetselect(w, q1, q1);
 				wshow(w, q1);
 			}
 			return;
-		case Khome:
+		case Khome: /* home goes to beginning of text */
 			wshow(w, 0);
 			return;
-		case Kend:
+		case Kend: /* end goes to end of text */
 		case 0x05:
 			wshow(w, w->nr);
 			return;
@@ -839,14 +821,8 @@ wmousectl(Window *w)
 		but = 2;
 	else if(w->mc.buttons == 4)
 		but = 3;
-	else{
-		if(w->mc.buttons == 8)
-			wkeyctl(w, Kscrolloneup);
-		if(w->mc.buttons == 16)
-			wkeyctl(w, Kscrollonedown);
+	else
 		return;
-	}
-
 	incref(w);		/* hold up window while we track */
 	if(w->deleted)
 		goto Return;

@@ -251,16 +251,6 @@ control(Tokenrow *trp)
 }
 
 void *
-dorealloc(void *ptr, int size)
-{
-	void *p = realloc(ptr, size);
-
-	if (p==NULL)
-		error(FATAL, "Out of memory from realloc");
-	return p;
-}
-
-void *
 domalloc(int size)
 {
 	void *p = malloc(size);
