@@ -29,16 +29,11 @@ dhcpd dhcpd
 dhcpleases dhcpd
 rarpd dhcpd
 tftpd dhcpd
-disksim disksim
 drawterm drawterm
 fossilcons fossilcons
 exsort fs
 fs fs
 fsconfig fsconfig
-getflags getflags
-usage getflags
-gpsevermore gpsfs
-gpsfs gpsfs
 httpd httpd
 imagemap httpd
 man2html httpd
@@ -160,7 +155,6 @@ smtp smtp
 smtpd smtp
 snoopy snoopy
 stats stats
-statusbar statusbar
 stub stub
 swap swap
 timesync timesync

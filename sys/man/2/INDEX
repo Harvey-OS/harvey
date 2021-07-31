@@ -11,7 +11,6 @@ postmountsrv 9p
 readbuf 9p
 readstr 9p
 respond 9p
-responderror 9p
 srv 9p
 threadpostmountsrv 9p
 9pcmdbuf 9pcmdbuf
@@ -428,9 +427,9 @@ estart event
 estartfn event
 etimer event
 event event
+_clock exec
 _nprivates exec
 _privates exec
-_tos exec
 exec exec
 execl exec
 _exits exits
@@ -586,6 +585,8 @@ buildfont graphics
 chantodepth graphics
 chantostr graphics
 closedisplay graphics
+cursorset graphics
+cursorswitch graphics
 drawerror graphics
 flushimage graphics
 freefont graphics
@@ -862,6 +863,7 @@ memory memory
 memset memory
 mktemp mktemp
 closemouse mouse
+cursorswitch mouse
 drawgetrect mouse
 getrect mouse
 initmouse mouse
