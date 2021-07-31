@@ -129,7 +129,6 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	Route *r, *sr;
 	IP *ip;
 	int rv = 0;
-	uchar v4dst[IPv4addrlen];
 
 	ip = f->ip;
 
@@ -170,11 +169,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		gate = eh->dst;
 	else
 	if(r->type & (Rbcast|Rmulti)) {
-		if(nhgetl(r->v4.gate) == 0){
-			hnputl(v4dst, r->v4.address);
-			gate = v4dst;
-		}else
-			gate = eh->dst;
+		gate = eh->dst;
 		sr = v4lookup(f, eh->src, nil);
 		if(sr != nil && (sr->type & Runi))
 			ifc = sr->ifc;
