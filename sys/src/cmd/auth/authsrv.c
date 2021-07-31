@@ -570,6 +570,7 @@ chap(Ticketreq *tr)
 	uchar digest[MD5dlen];
 	char chal[CHALLEN];
 	OChapreply reply;
+	int n;
 
 	/*
 	 *  Create a challenge and send it.  
@@ -716,11 +717,9 @@ nthash(uchar hash[MShashlen], char *passwd)
 	uchar buf[512];
 	int i;
 	
-	for (i = 0; *passwd && i + 1 < sizeof(buf);) {
-		Rune r;
-		passwd += chartorune(&r, passwd);
-		buf[i++] = r;
-		buf[i++] = r >> 8;
+	for(i=0; *passwd && i<sizeof(buf); passwd++) {
+		buf[i++] = *passwd;
+		buf[i++] = 0;
 	}
 
 	memset(hash, 0, 16);
