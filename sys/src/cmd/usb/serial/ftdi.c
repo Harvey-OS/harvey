@@ -201,7 +201,6 @@ Cinfo ftinfo[] = {
 	{ PAPOUCHVid, PAPOUCHTMUDid },
 	{ FTVid, FTACGHFDUALDid },
 	{ FT8U232AMDid, FT4232HDid },
-	{ FTVid, AMONKEYDid },
 	{ 0,	0 },
 };
 

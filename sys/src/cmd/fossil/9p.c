@@ -867,12 +867,6 @@ rTwalk(Msg* m)
 		qid.type = QTFILE;
 		if(fileIsDir(file))
 			qid.type = QTDIR;
-		if(fileIsAppend(file))
-			qid.type |= QTAPPEND;
-		if(fileIsTemporary(file))
-			qid.type |= QTTMP;
-		if(fileIsExclusive(file))
-			qid.type |= QTEXCL;
 		qid.vers = fileGetMcount(file);
 		qid.path = fileGetId(file);
 		r->wqid[r->nwqid++] = qid;

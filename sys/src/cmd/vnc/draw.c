@@ -106,7 +106,6 @@ clippixbuf(Rectangle r, int maxx, int maxy)
 static void
 updatescreen(Rectangle r)
 {
-	Image* img;
 	int b, bb;
 
 	lockdisplay(display);
@@ -121,15 +120,10 @@ updatescreen(Rectangle r)
 	/*
 	 * assume load image fails only because of resize
 	 */
-	img = allocimage(display, r, screen->chan, 0, DNofill);
-	if(img == nil)
-		sysfatal("updatescreen: %r");
 	b = Dx(r) * pixb * Dy(r);
-	bb = loadimage(img, r, pixbuf, b);
+	bb = loadimage(screen, rectaddpt(r, screen->r.min), pixbuf, b);
 	if(bb != b && verbose)
 		fprint(2, "loadimage %d on %R for %R returned %d: %r\n", b, rectaddpt(r, screen->r.min), screen->r, bb);
-	draw(screen, rectaddpt(r, screen->r.min), img, nil, r.min);
-	freeimage(img);
 	unlockdisplay(display);
 }
 
