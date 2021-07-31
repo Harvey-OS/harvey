@@ -70,11 +70,13 @@ opendatabase(void)
 		return 0;
 
 	xdb = ndbopen(dbfile);		/* /lib/ndb */
+	if(xdb)
+		xdb->nohash = 1;	/* seems odd */
 
 	snprint(netdbnm, sizeof netdbnm, "%s/ndb", mntpt);
 	netdb = ndbopen(netdbnm);	/* /net/ndb */
-	if(netdb)
-		netdb->nohash = 1;
+//	if(netdb)
+//		netdb->nohash = 1;	/* cs does this; seems right */
 
 	db = ndbcat(netdb, xdb);	/* both */
 	return db? 0: -1;
@@ -865,7 +867,6 @@ myaddr(char *addr)
 }
 
 static char *locdns[20];
-static QLock locdnslck;
 
 static void
 addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
@@ -874,6 +875,7 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	DN *nsdp;
 	RR *rp;
 	char buf[32];
+	static QLock locdnslck;
 
 	/* reject our own ip addresses so we don't query ourselves via udp */
 	if (myaddr(ipaddr))
@@ -889,7 +891,7 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 		}
 	if (n < nelem(locdns))
 		if (locdns[n] == nil || ++n < nelem(locdns))
-			locdns[n] = strdup(ipaddr); /* remember 1st few local ns */
+			locdns[n] = strdup(ipaddr); /* remember first few local ns */
 	qunlock(&locdnslck);
 
 	/* ns record for name server, make up an impossible name */
@@ -925,7 +927,7 @@ RR*
 dnsservers(int class)
 {
 	int i, n;
-	char *p;
+	char *p, *buf;
 	char *args[5];
 	Ndbtuple *t, *nt;
 	RR *nsrp;
@@ -938,10 +940,11 @@ dnsservers(int class)
 
 	p = getenv("DNSSERVER");		/* list of ip addresses */
 	if(p != nil){
-		n = tokenize(p, args, nelem(args));
+		buf = estrdup(p);
+		n = tokenize(buf, args, nelem(args));
 		for(i = 0; i < n; i++)
 			addlocaldnsserver(dp, class, args[i], i);
-		free(p);
+		free(buf);
 	} else {
 		t = lookupinfo("@dns");		/* @dns=ip1 @dns=ip2 ... */
 		if(t == nil)
@@ -1131,7 +1134,7 @@ createv6ptrs(void)
 		buf[sizeof buf-1] = 0;
 		/* buf contains something like 2.0.0.2.ip6.arpa (n==6) */
 		n = getfields(buf, f, nelem(f), 0, ".");
-		pfxnibs = n - 2;		/* 2 for .ip6.arpa */
+		pfxnibs = n - 2;
 		if (pfxnibs < 0 || pfxnibs > V6maxrevdomdepth)
 			continue;
 
@@ -1152,6 +1155,7 @@ createv6ptrs(void)
 		/*
 		 * go through all domain entries looking for RR's
 		 * in this network and create ptrs.
+		 * +2 for .ip6.arpa.
 		 */
 		dnptr(net, mask, dom, Taaaa, V6maxrevdomdepth - pfxnibs, Ptrttl);
 	}
