@@ -368,10 +368,6 @@ number(vlong big)
 	for(;;)
 	switch(*cs++) {
 
-	case 'm':
-		n *= 1024*1024;
-		continue;
-
 	case 'k':
 		n *= 1024;
 		continue;
