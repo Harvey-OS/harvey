@@ -163,24 +163,15 @@ lapictimerinit(void)
 void
 lapicinit(Apic* apic)
 {
-	ulong dfr, ldr, lvt;
+	ulong r, lvt;
 
 	if(lapicbase == 0)
 		lapicbase = apic->addr;
 
-	/*
-	 * These don't really matter in Physical mode;
-	 * set the defaults anyway.
-	 */
-	if(strncmp(m->cpuidid, "AuthenticAMD", 12) == 0)
-		dfr = 0xf0000000;
-	else
-		dfr = 0xffffffff;
-	ldr = 0x00000000;
-
-	lapicw(LapicDFR, dfr);
-	lapicw(LapicLDR, ldr);
-	lapicw(LapicTPR, 0xff);
+	lapicw(LapicDFR, 0xFFFFFFFF);
+	r = (lapicr(LapicID)>>24) & 0xFF;
+	lapicw(LapicLDR, (1<<r)<<24);
+	lapicw(LapicTPR, 0xFF);
 	lapicw(LapicSVR, LapicENABLE|(VectorPIC+IrqSPURIOUS));
 
 	lapictimerinit();
