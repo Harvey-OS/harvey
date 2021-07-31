@@ -11,44 +11,26 @@
 
 %{
 #include "spin.h"
-#include <sys/types.h>
-#ifndef PC
-#include <unistd.h>
-#endif
 #include <stdarg.h>
 
 #define YYDEBUG	0
 #define Stop	nn(ZN,'@',ZN,ZN)
-#define PART0	"place initialized var decl of "
-#define PART1	"place initialized chan decl of "
-#define PART2	" at start of proctype "
-
-static	Lextok *ltl_to_string(Lextok *);
 
 extern  Symbol	*context, *owner;
-extern	Lextok *for_body(Lextok *, int);
-extern	void for_setup(Lextok *, Lextok *, Lextok *);
-extern	Lextok *for_index(Lextok *, Lextok *);
-extern	Lextok *sel_index(Lextok *, Lextok *, Lextok *);
-extern  int	u_sync, u_async, dumptab, scope_level;
-extern	int	initialization_ok, split_decl;
+extern  int	u_sync, u_async, dumptab;
 extern	short	has_sorted, has_random, has_enabled, has_pcvalue, has_np;
 extern	short	has_code, has_state, has_io;
 extern	void	count_runs(Lextok *);
 extern	void	no_internals(Lextok *);
 extern	void	any_runs(Lextok *);
-extern	void	ltl_list(char *, char *);
 extern	void	validref(Lextok *, Lextok *);
 extern	char	yytext[];
 
 int	Mpars = 0;	/* max nr of message parameters  */
-int	nclaims = 0;	/* nr of never claims */
-int	ltl_mode = 0;	/* set when parsing an ltl formula */
+int	runsafe = 1;	/* 1 if all run stmnts are in init */
 int	Expand_Ok = 0, realread = 1, IArgs = 0, NamesNotAdded = 0;
-int	in_for = 0;
 char	*claimproc = (char *) 0;
 char	*eventmap = (char *) 0;
-static	char *ltl_name;
 
 static	int	Embedded = 0, inEventMap = 0, has_ini = 0;
 
@@ -59,7 +41,7 @@ static	int	Embedded = 0, inEventMap = 0, has_ini = 0;
 %token	RUN LEN ENABLED EVAL PC_VAL
 %token	TYPEDEF MTYPE INLINE LABEL OF
 %token	GOTO BREAK ELSE SEMI
-%token	IF FI DO OD FOR SELECT IN SEP DOTDOT
+%token	IF FI DO OD SEP
 %token	ATOMIC NON_ATOMIC D_STEP UNLESS
 %token  TIMEOUT NONPROGRESS
 %token	ACTIVE PROCTYPE D_PROCTYPE
@@ -68,16 +50,12 @@ static	int	Embedded = 0, inEventMap = 0, has_ini = 0;
 %token	FULL EMPTY NFULL NEMPTY
 %token	CONST TYPE XU			/* val */
 %token	NAME UNAME PNAME INAME		/* sym */
-%token	STRING CLAIM TRACE INIT	LTL	/* sym */
+%token	STRING CLAIM TRACE INIT		/* sym */
 
 %right	ASGN
 %left	SND O_SND RCV R_RCV /* SND doubles as boolean negation */
-%left	IMPLIES EQUIV			/* ltl */
 %left	OR
 %left	AND
-%left	ALWAYS EVENTUALLY		/* ltl */
-%left	UNTIL WEAK_UNTIL RELEASE	/* ltl */
-%right	NEXT				/* ltl */
 %left	'|'
 %left	'^'
 %left	'&'
@@ -103,7 +81,6 @@ units	: unit
 unit	: proc		/* proctype { }       */
 	| init		/* init { }           */
 	| claim		/* never claim        */
-	| ltl		/* ltl formula        */
 	| events	/* event assertions   */
 	| one_decl	/* variables, chans   */
 	| utype		/* user defined types */
@@ -114,7 +91,7 @@ unit	: proc		/* proctype { }       */
 	;
 
 proc	: inst		/* optional instantiator */
-	  proctype NAME	{ 
+	  proctype NAME	{
 			  setptype($3, PROCTYPE, ZN);
 			  setpname($3);
 			  context = $3->sym;
@@ -129,22 +106,13 @@ proc	: inst		/* optional instantiator */
 	  Opt_priority
 	  Opt_enabler
 	  body		{ ProcList *rl;
+			  rl = ready($3->sym, $6, $11->sq, $2->val, $10);
 			  if ($1 != ZN && $1->val > 0)
 			  {	int j;
-				rl = ready($3->sym, $6, $11->sq, $2->val, $10, A_PROC);
 			  	for (j = 0; j < $1->val; j++)
-				{	runnable(rl, $9?$9->val:1, 1);
-				}
+				runnable(rl, $9?$9->val:1, 1);
 				announce(":root:");
 				if (dumptab) $3->sym->ini = $1;
-			  } else
-			  {	rl = ready($3->sym, $6, $11->sq, $2->val, $10, P_PROC);
-			  }
-			  if (rl && has_ini == 1)	/* global initializations, unsafe */
-			  {	/* printf("proctype %s has initialized data\n",
-					$3->sym->name);
-				 */
-				rl->unsafe = 1;
 			  }
 			  context = ZS;
 			}
@@ -165,10 +133,10 @@ inst	: /* empty */	{ $$ = ZN; }
 			  $$ = nn(ZN,CONST,ZN,ZN);
 			  $$->val = 0;
 			  if (!$3->sym->type)
-				fatal("undeclared variable %s",
+				non_fatal("undeclared variable %s",
 					$3->sym->name);
 			  else if ($3->sym->ini->ntyp != CONST)
-				fatal("need constant initializer for %s\n",
+				non_fatal("need constant initializer for %s\n",
 					$3->sym->name);
 			  else
 				$$->val = $3->sym->ini->val;
@@ -178,54 +146,21 @@ inst	: /* empty */	{ $$ = ZN; }
 init	: INIT		{ context = $1->sym; }
 	  Opt_priority
 	  body		{ ProcList *rl;
-			  rl = ready(context, ZN, $4->sq, 0, ZN, I_PROC);
+			  rl = ready(context, ZN, $4->sq, 0, ZN);
 			  runnable(rl, $3?$3->val:1, 1);
 			  announce(":root:");
 			  context = ZS;
         		}
 	;
 
-ltl	: LTL optname2		{ ltl_mode = 1; ltl_name = $2->sym->name; }
-	  ltl_body		{ if ($4) ltl_list($2->sym->name, $4->sym->name);
-			  ltl_mode = 0;
-			}
-	;
-
-ltl_body: '{' full_expr OS '}' { $$ = ltl_to_string($2); }
-	| error		{ $$ = NULL; }
-	;
-
-claim	: CLAIM	optname	{ if ($2 != ZN)
-			  {	$1->sym = $2->sym;	/* new 5.3.0 */
-			  }
-			  nclaims++;
-			  context = $1->sym;
-			  if (claimproc && !strcmp(claimproc, $1->sym->name))
-			  {	fatal("claim %s redefined", claimproc);
-			  }
+claim	: CLAIM		{ context = $1->sym;
+			  if (claimproc)
+				non_fatal("claim %s redefined", claimproc);
 			  claimproc = $1->sym->name;
 			}
-	  body		{ (void) ready($1->sym, ZN, $4->sq, 0, ZN, N_CLAIM);
+	  body		{ (void) ready($1->sym, ZN, $3->sq, 0, ZN);
         		  context = ZS;
         		}
-	;
-
-optname : /* empty */	{ char tb[32];
-			  memset(tb, 0, 32);
-			  sprintf(tb, "never_%d", nclaims);
-			  $$ = nn(ZN, NAME, ZN, ZN);
-			  $$->sym = lookup(tb);
-			}
-	| NAME		{ $$ = $1; }
-	;
-
-optname2 : /* empty */ { char tb[32]; static int nltl = 0;
-			  memset(tb, 0, 32);
-			  sprintf(tb, "ltl_%d", nltl++);
-			  $$ = nn(ZN, NAME, ZN, ZN);
-			  $$->sym = lookup(tb);
-			}
-	| NAME		{ $$ = $1; }
 	;
 
 events : TRACE		{ context = $1->sym;
@@ -234,12 +169,7 @@ events : TRACE		{ context = $1->sym;
 			  eventmap = $1->sym->name;
 			  inEventMap++;
 			}
-	  body		{
-			  if (strcmp($1->sym->name, ":trace:") == 0)
-			  {	(void) ready($1->sym, ZN, $3->sq, 0, ZN, E_TRACE);
-			  } else
-			  {	(void) ready($1->sym, ZN, $3->sq, 0, ZN, N_TRACE);
-			  }
+	  body		{ (void) ready($1->sym, ZN, $3->sq, 0, ZN);
         		  context = ZS;
 			  inEventMap--;
 			}
@@ -322,12 +252,7 @@ cexpr	: C_EXPR		{ Symbol *s;
 
 body	: '{'			{ open_seq(1); }
           sequence OS		{ add_seq(Stop); }
-          '}'			{ $$->sq = close_seq(0);
-				  if (scope_level != 0)
-				  {	non_fatal("missing '}' ?", 0);
-					scope_level = 0;
-				  }
-				}
+          '}'			{ $$->sq = close_seq(0); }
 	;
 
 sequence: step			{ if ($1) add_seq($1); }
@@ -352,9 +277,7 @@ asgn:	/* empty */
 	| ASGN
 	;
 
-one_decl: vis TYPE var_list	{ setptype($3, $2->val, $1);
-				  $$ = $3;
-				}
+one_decl: vis TYPE var_list	{ setptype($3, $2->val, $1); $$ = $3; }
 	| vis UNAME var_list	{ setutype($3, $2->sym, $1);
 				  $$ = expand($3, Expand_Ok);
 				}
@@ -391,34 +314,17 @@ ivar    : vardcl           	{ $$ = $1;
 				  $1->sym->ini = nn(ZN,CONST,ZN,ZN);
 				  $1->sym->ini->val = 0;
 				}
-	| vardcl ASGN expr   	{ $$ = $1;
-				  $1->sym->ini = $3;
-				  trackvar($1,$3);
-				  if ($3->ntyp == CONST
-				  || ($3->ntyp == NAME && $3->sym->context))
-				  {	has_ini = 2; /* local init */
-				  } else
-				  {	has_ini = 1; /* possibly global */
-				  }
-				  if (!initialization_ok && split_decl)
-				  {	nochan_manip($1, $3, 0);
-				  	no_internals($1);
-					non_fatal(PART0 "'%s'" PART2, $1->sym->name);
-				  }
+	| vardcl ASGN expr   	{ $1->sym->ini = $3; $$ = $1;
+				  trackvar($1,$3); has_ini = 1;
 				}
 	| vardcl ASGN ch_init	{ $1->sym->ini = $3;
 				  $$ = $1; has_ini = 1;
-				  if (!initialization_ok && split_decl)
-				  {	non_fatal(PART1 "'%s'" PART2, $1->sym->name);
-				  }
 				}
 	;
 
 ch_init : '[' CONST ']' OF
-	  '{' typ_list '}'	{ if ($2->val)
-					u_async++;
-				  else
-					u_sync++;
+	  '{' typ_list '}'	{ if ($2->val) u_async++;
+				  else u_sync++;
         			  {	int i = cnt_mpars($6);
 					Mpars = max(Mpars, i);
 				  }
@@ -436,18 +342,13 @@ vardcl  : NAME  		{ $1->sym->nel = 1; $$ = $1; }
 				  }
 				  $1->sym->nel = 1; $$ = $1;
 				}
-	| NAME '[' CONST ']'	{ $1->sym->nel = $3->val; $1->sym->isarray = 1; $$ = $1; }
+	| NAME '[' CONST ']'	{ $1->sym->nel = $3->val; $$ = $1; }
 	;
 
 varref	: cmpnd			{ $$ = mk_explicit($1, Expand_Ok, NAME); }
 	;
 
-pfld	: NAME			{ $$ = nn($1, NAME, ZN, ZN);
-				  if ($1->sym->isarray && !in_for)
-				  {	non_fatal("missing array index for '%s'",
-						$1->sym->name);
-				  }
-				}
+pfld	: NAME			{ $$ = nn($1, NAME, ZN, ZN); }
 	| NAME			{ owner = ZS; }
 	  '[' expr ']'		{ $$ = nn($1, NAME, $4, ZN); }
 	;
@@ -462,7 +363,7 @@ cmpnd	: pfld			{ Embedded++;
 				  Embedded--;
 				  if (!Embedded && !NamesNotAdded
 				  &&  !$1->sym->type)
-				   fatal("undeclared variable: %s",
+				   non_fatal("undeclared variable: %s",
 						$1->sym->name);
 				  if ($3) validref($1, $3->lft);
 				  owner = ZS;
@@ -473,18 +374,12 @@ sfld	: /* empty */		{ $$ = ZN; }
 	| '.' cmpnd %prec DOT	{ $$ = nn(ZN, '.', $2, ZN); }
 	;
 
-stmnt	: Special		{ $$ = $1; initialization_ok = 0; }
-	| Stmnt			{ $$ = $1; initialization_ok = 0;
+stmnt	: Special		{ $$ = $1; }
+	| Stmnt			{ $$ = $1;
 				  if (inEventMap)
 				   non_fatal("not an event", (char *)0);
 				}
 	;
-
-for_pre : FOR '('				{ in_for = 1; }
-	  varref			{ $$ = $4; }
-	;
-
-for_post: '{' sequence OS '}' ;
 
 Special : varref RCV		{ Expand_Ok++; }
 	  rargs			{ Expand_Ok--; has_io++;
@@ -496,18 +391,6 @@ Special : varref RCV		{ Expand_Ok++; }
 				  $$ = nn($1, 's', $1, $4);
 				  $$->val=0; trackchanuse($4, ZN, 'S');
 				  any_runs($4);
-				}
-	| for_pre ':' expr DOTDOT expr ')'	{
-				  for_setup($1, $3, $5); in_for = 0;
-				}
-	  for_post			{ $$ = for_body($1, 1);
-				}
-	| for_pre IN varref ')'	{ $$ = for_index($1, $3); in_for = 0;
-				}
-	  for_post			{ $$ = for_body($5, 1);
-				}
-	| SELECT '(' varref ':' expr DOTDOT expr ')' {
-				  $$ = sel_index($3, $5, $7);
 				}
 	| IF options FI 	{ $$ = nn($1, IF, ZN, ZN);
         			  $$->sl = $2->sl;
@@ -539,7 +422,7 @@ Special : varref RCV		{ Expand_Ok++; }
 				}
 	;
 
-Stmnt	: varref ASGN full_expr	{ $$ = nn($1, ASGN, $1, $3);
+Stmnt	: varref ASGN expr	{ $$ = nn($1, ASGN, $1, $3);
 				  trackvar($1, $3);
 				  nochan_manip($1, $3, 0);
 				  no_internals($1);
@@ -599,9 +482,7 @@ Stmnt	: varref ASGN full_expr	{ $$ = nn($1, ASGN, $1, $3);
         			  $$->sl = seqlist(close_seq(3), 0);
         			  make_atomic($$->sl->this, 0);
         			}
-	| D_STEP '{'		{ open_seq(0);
-				  rem_Seq();
-				}
+	| D_STEP '{'		{ open_seq(0); rem_Seq(); }
           sequence OS '}'   	{ $$ = nn($1, D_STEP, ZN, ZN);
         			  $$->sl = seqlist(close_seq(4), 0);
         			  make_atomic($$->sl->this, D_ATOM);
@@ -667,8 +548,10 @@ expr    : '(' expr ')'		{ $$ = $2; }
 
 	| RUN aname		{ Expand_Ok++;
 				  if (!context)
-				   fatal("used 'run' outside proctype",
+				  fatal("used 'run' outside proctype",
 					(char *) 0);
+				  if (strcmp(context->name, ":init:") != 0)
+					runsafe = 0;
 				}
 	  '(' args ')'
 	  Opt_priority		{ Expand_Ok--;
@@ -689,7 +572,7 @@ expr    : '(' expr ')'		{ $$ = $2; }
 				  $$ = nn($1, 'R', $1, $5);
 				  $$->val = has_random = 1;
 				}
-	| varref		{ $$ = $1; trapwonly($1 /*, "varref" */); }
+	| varref		{ $$ = $1; trapwonly($1, "varref"); }
 	| cexpr			{ $$ = $1; }
 	| CONST 		{ $$ = nn(ZN,CONST,ZN,ZN);
 				  $$->ismtyp = $1->ismtyp;
@@ -708,7 +591,6 @@ expr    : '(' expr ')'		{ $$ = $2; }
 	  			{ $$ = rem_var($1->sym, $3, $6->sym, $6->lft); }
 	| PNAME '@' NAME	{ $$ = rem_lab($1->sym, ZN, $3->sym); }
 	| PNAME ':' pfld	{ $$ = rem_var($1->sym, ZN, $3->sym, $3->lft); }
-	| ltl_expr		{ $$ = $1; }
 	;
 
 Opt_priority:	/* none */	{ $$ = ZN; }
@@ -716,39 +598,7 @@ Opt_priority:	/* none */	{ $$ = ZN; }
 	;
 
 full_expr:	expr		{ $$ = $1; }
-	| Expr		{ $$ = $1; }
-	;
-
-ltl_expr: expr UNTIL expr	{ $$ = nn(ZN, UNTIL,   $1, $3); }
-	| expr RELEASE expr	{ $$ = nn(ZN, RELEASE, $1, $3); }
-	| expr WEAK_UNTIL expr	{ $$ = nn(ZN, ALWAYS, $1, ZN);
-				  $$ = nn(ZN, OR, $$, nn(ZN, UNTIL, $1, $3));
-				}
-	| expr IMPLIES expr	{
-				$$ = nn(ZN, '!', $1, ZN);
-				$$ = nn(ZN, OR,  $$, $3);
-				}
-	| expr EQUIV expr	{ $$ = nn(ZN, EQUIV,   $1, $3); }
-	| NEXT expr       %prec NEG { $$ = nn(ZN, NEXT,  $2, ZN); }
-	| ALWAYS expr     %prec NEG { $$ = nn(ZN, ALWAYS,$2, ZN); }
-	| EVENTUALLY expr %prec NEG { $$ = nn(ZN, EVENTUALLY, $2, ZN); }
-	;
-
-	/* an Expr cannot be negated - to protect Probe expressions */
-Expr	: Probe			{ $$ = $1; }
-	| '(' Expr ')'		{ $$ = $2; }
-	| Expr AND Expr		{ $$ = nn(ZN, AND, $1, $3); }
-	| Expr AND expr		{ $$ = nn(ZN, AND, $1, $3); }
-	| expr AND Expr		{ $$ = nn(ZN, AND, $1, $3); }
-	| Expr OR  Expr		{ $$ = nn(ZN,  OR, $1, $3); }
-	| Expr OR  expr		{ $$ = nn(ZN,  OR, $1, $3); }
-	| expr OR  Expr		{ $$ = nn(ZN,  OR, $1, $3); }
-	;
-
-Probe	: FULL '(' varref ')'	{ $$ = nn($3,  FULL, $3, ZN); }
-	| NFULL '(' varref ')'	{ $$ = nn($3, NFULL, $3, ZN); }
-	| EMPTY '(' varref ')'	{ $$ = nn($3, EMPTY, $3, ZN); }
-	| NEMPTY '(' varref ')'	{ $$ = nn($3,NEMPTY, $3, ZN); }
+	|	Expr		{ $$ = $1; }
 	;
 
 Opt_enabler:	/* none */	{ $$ = ZN; }
@@ -763,6 +613,23 @@ Opt_enabler:	/* none */	{ $$ = ZN; }
 				  non_fatal("usage: provided ( ..expr.. )",
 					(char *)0);
 				}
+	;
+
+	/* an Expr cannot be negated - to protect Probe expressions */
+Expr	: Probe			{ $$ = $1; }
+	| '(' Expr ')'		{ $$ = $2; }
+	| Expr AND Expr		{ $$ = nn(ZN, AND, $1, $3); }
+	| Expr AND expr		{ $$ = nn(ZN, AND, $1, $3); }
+	| Expr OR  Expr		{ $$ = nn(ZN,  OR, $1, $3); }
+	| Expr OR  expr		{ $$ = nn(ZN,  OR, $1, $3); }
+	| expr AND Expr		{ $$ = nn(ZN, AND, $1, $3); }
+	| expr OR  Expr		{ $$ = nn(ZN,  OR, $1, $3); }
+	;
+
+Probe	: FULL '(' varref ')'	{ $$ = nn($3,  FULL, $3, ZN); }
+	| NFULL '(' varref ')'	{ $$ = nn($3, NFULL, $3, ZN); }
+	| EMPTY '(' varref ')'	{ $$ = nn($3, EMPTY, $3, ZN); }
+	| NEMPTY '(' varref ')'	{ $$ = nn($3,NEMPTY, $3, ZN); }
 	;
 
 basetype: TYPE			{ $$->sym = ZS;
@@ -809,9 +676,9 @@ arg     : expr			{ if ($1->ntyp == ',')
 	;
 
 rarg	: varref		{ $$ = $1; trackvar($1, $1);
-				  trapwonly($1 /*, "rarg" */); }
+				  trapwonly($1, "rarg"); }
 	| EVAL '(' expr ')'	{ $$ = nn(ZN,EVAL,$3,ZN);
-				  trapwonly($1 /*, "eval rarg" */); }
+				  trapwonly($1, "eval rarg"); }
 	| CONST 		{ $$ = nn(ZN,CONST,ZN,ZN);
 				  $$->ismtyp = $1->ismtyp;
 				  $$->val = $1->val;
@@ -847,98 +714,6 @@ nlst	: NAME			{ $$ = nn($1, NAME, ZN, ZN);
 	| nlst ','		{ $$ = $1; /* commas optional */ }
 	;
 %%
-
-#define binop(n, sop)	fprintf(fd, "("); recursive(fd, n->lft); \
-			fprintf(fd, ") %s (", sop); recursive(fd, n->rgt); \
-			fprintf(fd, ")");
-#define unop(n, sop)	fprintf(fd, "%s (", sop); recursive(fd, n->lft); \
-			fprintf(fd, ")");
-
-static void
-recursive(FILE *fd, Lextok *n)
-{
-	if (n)
-	switch (n->ntyp) {
-	case NEXT:
-		unop(n, "X");
-		break;
-	case ALWAYS:
-		unop(n, "[]");
-		break;
-	case EVENTUALLY:
-		unop(n, "<>");
-		break;
-	case '!':
-		unop(n, "!");
-		break;
-	case UNTIL:
-		binop(n, "U");
-		break;
-	case WEAK_UNTIL:
-		binop(n, "W");
-		break;
-	case RELEASE: /* see http://en.wikipedia.org/wiki/Linear_temporal_logic */
-		binop(n, "V");
-		break;
-	case OR:
-		binop(n, "||");
-		break;
-	case AND:
-		binop(n, "&&");
-		break;
-	case IMPLIES:
-		binop(n, "->");
-		break;
-	case EQUIV:
-		binop(n, "<->");
-		break;
-	default:
-		comment(fd, n, 0);
-		break;
-	}
-}
-
-#define TMP_FILE	"_S_p_I_n_.tmp"
-
-extern int unlink(const char *);
-
-static Lextok *
-ltl_to_string(Lextok *n)
-{	Lextok *m = nn(ZN, 0, ZN, ZN);
-	char *retval;
-	char formula[1024];
-	FILE *tf = fopen(TMP_FILE, "w+"); /* tmpfile() fails on Windows 7 */
-
-	/* convert the parsed ltl to a string
-	   by writing into a file, using existing functions,
-	   and then passing it to the existing interface for
-	   conversion into a never claim
-	  (this means parsing everything twice, which is
-	   a little redundant, but adds only miniscule overhead)
-	 */
-
-	if (!tf)
-	{	fatal("cannot create temporary file", (char *) 0);
-	}
-	recursive(tf, n);
-	(void) fseek(tf, 0L, SEEK_SET);
-
-	memset(formula, 0, sizeof(formula));
-	retval = fgets(formula, sizeof(formula), tf);
-	fclose(tf);
-	(void) unlink(TMP_FILE);
-
-	if (!retval)
-	{	printf("%p\n", retval);
-		fatal("could not translate ltl formula", 0);
-	}
-
-	if (1) printf("ltl %s: %s\n", ltl_name, formula);
-
-	m->sym = lookup(formula);
-
-	return m;
-}
 
 void
 yyerror(char *fmt, ...)

@@ -18,7 +18,7 @@ extern Symbol	*Fname;
 extern Element	*LastStep;
 extern int	Rvous, lineno, Tval, interactive, MadeChoice;
 extern int	TstOnly, verbose, s_trail, xspin, jumpsteps, depth;
-extern int	analyze, nproc, nstop, no_print, like_java;
+extern int	nproc, nstop, no_print, like_java;
 
 static long	Seed = 1;
 static int	E_Check = 0, Escape_Check = 0;
@@ -57,9 +57,9 @@ Element *
 eval_sub(Element *e)
 {	Element *f, *g;
 	SeqList *z;
-	int i, j, k, only_pos;
+	int i, j, k;
 
-	if (!e || !e->n)
+	if (!e->n)
 		return ZE;
 #ifdef DEBUG
 	printf("\n\teval_sub(%d %s: line %d) ",
@@ -69,13 +69,8 @@ eval_sub(Element *e)
 #endif
 	if (e->n->ntyp == GOTO)
 	{	if (Rvous) return ZE;
-		LastStep = e;
-		f = get_lab(e->n, 1);
-		f = huntele(f, e->status, -1); /* 5.2.3: was missing */
+		LastStep = e; f = get_lab(e->n, 1);
 		cross_dsteps(e->n, f->n);
-#ifdef DEBUG
-		printf("GOTO leads to %d\n", f->seqno);
-#endif
 		return f;
 	}
 	if (e->n->ntyp == UNLESS)
@@ -85,7 +80,6 @@ eval_sub(Element *e)
 	{	Element *has_else = ZE;
 		Element *bas_else = ZE;
 		int nr_else = 0, nr_choices = 0;
-		only_pos = -1;
 
 		if (interactive
 		&& !MadeChoice && !E_Check
@@ -95,10 +89,8 @@ eval_sub(Element *e)
 		{	printf("Select stmnt (");
 			whoruns(0); printf(")\n");
 			if (nproc-nstop > 1)
-			{	printf("\tchoice 0: other process\n");
-				nr_choices++;
-				only_pos = 0;
-		}	}
+			printf("\tchoice 0: other process\n");
+		}
 		for (z = e->sub, j=0; z; z = z->nxt)
 		{	j++;
 			if (interactive
@@ -121,21 +113,13 @@ eval_sub(Element *e)
 				if (!Enabled0(z->this->frst))
 					printf("unexecutable, ");
 				else
-				{	nr_choices++;
-					only_pos = j;
-				}
+					nr_choices++;
 				comment(stdout, z->this->frst->n, 0);
 				printf("\n");
 		}	}
 
 		if (nr_choices == 0 && has_else)
-		{	printf("\tchoice %d: (else)\n", nr_else);
-			only_pos = nr_else;
-		}
-
-		if (nr_choices <= 1 && only_pos != -1 && !MadeChoice)
-		{	MadeChoice = only_pos;
-		}
+			printf("\tchoice %d: (else)\n", nr_else);
 
 		if (interactive && depth >= jumpsteps
 		&& !Escape_Check
@@ -148,11 +132,8 @@ eval_sub(Element *e)
 				else
 					printf("Select [0-%d]: ", j);
 				fflush(stdout);
-				if (scanf("%64s", buf) <= 0)
-				{	printf("no input\n");
-					return ZE;
-				}
-				if (isdigit((int)buf[0]))
+				scanf("%s", buf);
+				if (isdigit(buf[0]))
 					k = atoi(buf);
 				else
 				{	if (buf[0] == 'q')
@@ -174,7 +155,6 @@ eval_sub(Element *e)
 			else
 				k = Rand()%j;	/* nondeterminism */
 		}
-
 		has_else = ZE;
 		bas_else = ZE;
 		for (i = 0, z = e->sub; i < j+k; i++)
@@ -254,9 +234,6 @@ eval_sub(Element *e)
 			if (!(e->status & D_ATOM))	/* escapes don't reach inside d_steps */
 			/* 4.2.4: only the guard of a d_step can have an escape */
 #endif
-#if 1
-			if (!s_trail)	/* trail determines selections, new 5.2.5 */
-#endif
 			{	Escape_Check++;
 				if (like_java)
 				{	if ((g = rev_escape(e->esc)) != ZE)
@@ -269,11 +246,7 @@ eval_sub(Element *e)
 				{	for (x = e->esc; x; x = x->nxt)
 					{	if ((g = eval_sub(x->this->frst)) != ZE)
 						{	if (verbose&4)
-							{	printf("\tEscape taken ");
-								if (g->n && g->n->fn)
-									printf("%s:%d", g->n->fn->name, g->n->ln);
-								printf("\n");
-							}
+								printf("\tEscape taken\n");
 							Escape_Check--;
 							return g;
 				}	}	}
@@ -413,17 +386,13 @@ eval(Lextok *now)
 	case PRINTM: return TstOnly?1:printm(stdout, now);
 	case  ASGN: return assign(now);
 
-	case C_CODE: if (!analyze)
-		     {	printf("%s:\t", now->sym->name);
-		     	plunk_inline(stdout, now->sym->name, 0, 1);
-		     }
+	case C_CODE: printf("%s:\t", now->sym->name);
+		     plunk_inline(stdout, now->sym->name, 0);
 		     return 1; /* uninterpreted */
 
-	case C_EXPR: if (!analyze)
-		     {	printf("%s:\t", now->sym->name);
-		     	plunk_expr(stdout, now->sym->name);
-		     	printf("\n");
-		     }
+	case C_EXPR: printf("%s:\t", now->sym->name);
+		     plunk_expr(stdout, now->sym->name);
+		     printf("\n");
 		     return 1; /* uninterpreted */
 
 	case ASSERT: if (TstOnly || eval(now->lft)) return 1;
@@ -457,6 +426,7 @@ printm(FILE *fd, Lextok *n)
 			j = n->lft->val;
 		else
 			j = eval(n->lft);
+		Buf[0] = '\0';
 		sr_buf(j, 1);
 		dotag(fd, Buf);
 	}
@@ -467,9 +437,9 @@ int
 interprint(FILE *fd, Lextok *n)
 {	Lextok *tmp = n->lft;
 	char c, *s = n->sym->name;
-	int i, j; char lbuf[512]; /* matches value in sr_buf() */
-	extern char Buf[];	/* global, size 4096 */
-	char tBuf[4096];	/* match size of global Buf[] */
+	int i, j; char lbuf[512];
+	extern char Buf[];
+	char tBuf[4096];
 
 	Buf[0] = '\0';
 	if (!no_print)
@@ -520,7 +490,7 @@ append:			 strcat(Buf, lbuf);
 		}
 		dotag(fd, Buf);
 	}
-	if (strlen(Buf) >= 4096) fatal("printf string too long", 0);
+	if (strlen(Buf) > 4096) fatal("printf string too long", 0);
 	return 1;
 }
 
@@ -630,4 +600,3 @@ pc_enabled(Lextok *n)
 		}
 	return result;
 }
-

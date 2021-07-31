@@ -48,6 +48,7 @@ tl_factor(void)
 		break;
 	case ALWAYS:
 		tl_yychar = tl_yylex();
+
 		ptr = tl_factor();
 #ifndef NO_OPT
 		if (ptr->ntyp == FALSE
@@ -384,10 +385,7 @@ tl_formula(void)
 
 void
 tl_parse(void)
-{	Node *n;
-
-	/* tl_verbose = 1; */
-	n = tl_formula();
+{	Node *n = tl_formula();
 	if (tl_verbose)
 	{	printf("formula: ");
 		dump(n);

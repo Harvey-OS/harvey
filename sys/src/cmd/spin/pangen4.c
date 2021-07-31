@@ -307,8 +307,6 @@ genunio(void)
 	ntimes(tc, 0, 1, R15);
 }
 
-extern void explain(int);
-
 int
 proper_enabler(Lextok *n)
 {
@@ -323,9 +321,7 @@ proper_enabler(Lextok *n)
 			return 1;
 		return (!(n->sym->context));
 
-	case C_EXPR:
-	case CONST:
-	case TIMEOUT:
+	case CONST:	case TIMEOUT:
 		has_provided = 1;
 		return 1;
 
@@ -344,8 +340,5 @@ proper_enabler(Lextok *n)
 	default:
 		break;
 	}
-	printf("spin: saw ");
-	explain(n->ntyp);
-	printf("\n");
 	return 0;
 }

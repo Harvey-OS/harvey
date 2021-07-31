@@ -13,10 +13,10 @@
 #include "y.tab.h"
 
 extern FILE	*th;
-extern int	eventmapnr;
+extern int	claimnr, eventmapnr;
 
 typedef struct SRC {
-	int ln, st;	/* linenr, statenr */
+	short ln, st;	/* linenr, statenr */
 	Symbol *fn;	/* filename */
 	struct SRC *nxt;
 } SRC;
@@ -27,8 +27,6 @@ static Symbol	lastdef;
 static int	lastfrom;
 static SRC	*frst = (SRC *) 0;
 static SRC	*skip = (SRC *) 0;
-
-extern int	ltl_mode;
 
 extern void	sr_mesg(FILE *, int, int);
 
@@ -49,7 +47,7 @@ putfnm(int j, Symbol *s)
 		return;
 
 	if (lastfnm)
-		fprintf(th, "{ \"%s\", %d, %d },\n\t",
+		fprintf(th, "{ %s, %d, %d },\n\t",
 			lastfnm->name,
 			lastfrom,
 			j-1);
@@ -61,7 +59,7 @@ static void
 putfnm_flush(int j)
 {
 	if (lastfnm)
-		fprintf(th, "{ \"%s\", %d, %d }\n",
+		fprintf(th, "{ %s, %d, %d }\n",
 			lastfnm->name,
 			lastfrom, j);
 }
@@ -74,7 +72,7 @@ putskip(int m)	/* states that need not be reached */
 		if (tmp->st == m)
 			return;
 	tmp = (SRC *) emalloc(sizeof(SRC));
-	tmp->st  = m;
+	tmp->st = (short) m;
 	tmp->nxt = skip;
 	skip = tmp;
 }
@@ -87,7 +85,7 @@ unskip(int m)	/* a state that needs to be reached after all */
 		if (tmp->st == m)
 		{	if (tmp == skip)
 				skip = skip->nxt;
-			else if (lst)	/* always true, but helps coverity */
+			else
 				lst->nxt = tmp->nxt;
 			break;
 		}
@@ -106,13 +104,13 @@ putsrc(Element *e)	/* match states to source lines */
 	for (tmp = frst; tmp; tmp = tmp->nxt)
 		if (tmp->st == m)
 		{	if (tmp->ln != n || tmp->fn != e->n->fn)
-			printf("putsrc mismatch seqno %d, line %d - %d, file %s\n", m, n,
+			printf("putsrc mismatch %d - %d, file %s\n", n,
 				tmp->ln, tmp->fn->name);
 			return;
 		}
 	tmp = (SRC *) emalloc(sizeof(SRC));
-	tmp->ln = n;
-	tmp->st = m;
+	tmp->ln = (short) n;
+	tmp->st = (short) m;
 	tmp->fn = e->n->fn;
 	tmp->nxt = frst;
 	frst = tmp;
@@ -139,9 +137,8 @@ dumpskip(int n, int m)
 			putnr(0);
 	}
 	fprintf(th, "};\n");
-
-	fprintf(th, "uchar *loopstate%d;\n", m);
-
+	if (m == claimnr)
+		fprintf(th, "#define reached_claim	reached%d\n", m);
 	if (m == eventmapnr)
 		fprintf(th, "#define reached_event	reached%d\n", m);
 
@@ -152,7 +149,6 @@ void
 dumpsrc(int n, int m)
 {	SRC *tmp, *lst;
 	int j;
-	static int did_claim = 0;
 
 	fprintf(th, "short src_ln%d [] = {\n\t", m);
 	for (j = 0, col = 0; j <= n; j++)
@@ -168,7 +164,7 @@ dumpsrc(int n, int m)
 	fprintf(th, "};\n");
 
 	lastfnm = (Symbol *) 0;
-	lastdef.name = "-";
+	lastdef.name = "\"-\"";
 	fprintf(th, "S_F_MAP src_file%d [] = {\n\t", m);
 	for (j = 0, col = 0; j <= n; j++)
 	{	lst = (SRC *) 0;
@@ -187,10 +183,8 @@ dumpsrc(int n, int m)
 	putfnm_flush(j);
 	fprintf(th, "};\n");
 
-	if (pid_is_claim(m) && !did_claim)
-	{	fprintf(th, "short *src_claim;\n");
-		did_claim++;
-	}
+	if (m == claimnr)
+		fprintf(th, "#define src_claim	src_ln%d\n", m);
 	if (m == eventmapnr)
 		fprintf(th, "#define src_event	src_ln%d\n", m);
 
@@ -243,27 +237,7 @@ comwork(FILE *fd, Lextok *now, int m)
 	case GT:	Cat1(">"); break;
 	case LT:	Cat1("<"); break;
 	case NE:	Cat1("!="); break;
-	case EQ:
-			if (ltl_mode
-			&&  now->lft->ntyp == 'p'
-			&&  now->rgt->ntyp == 'q')	/* remote ref */
-			{	Lextok *p = now->lft->lft;
-
-				fprintf(fd, "(");
-				fprintf(fd, "%s", p->sym->name);
-				if (p->lft)
-				{	fprintf(fd, "[");
-					putstmnt(fd, p->lft, 0); /* pid */
-					fprintf(fd, "]");
-				}
-				fprintf(fd, "@");
-				fprintf(fd, "%s", now->rgt->sym->name);
-				fprintf(fd, ")");
-				break;
-			}
-			Cat1("==");
-			break;
-
+	case EQ:	Cat1("=="); break;
 	case OR:	Cat1("||"); break;
 	case AND:	Cat1("&&"); break;
 	case LSHIFT:	Cat1("<<"); break;
@@ -375,22 +349,9 @@ comwork(FILE *fd, Lextok *now, int m)
 			comwork(fd, now->lft, m);
 			fprintf(fd, ")");
 			break;
-	case NAME:
-			putname(fd, "", now, m, "");
+	case NAME:	putname(fd, "", now, m, "");
 			break;
-
-	case   'p':	if (ltl_mode)
-			{	fprintf(fd, "%s", now->lft->sym->name); /* proctype */
-				if (now->lft->lft)
-				{	fprintf(fd, "[");
-					putstmnt(fd, now->lft->lft, 0); /* pid */
-					fprintf(fd, "]");
-				}
-				fprintf(fd, ":");	/* remote varref */
-				fprintf(fd, "%s", now->sym->name);	/* varname */
-				break;
-			}
-			putremote(fd, now, m);
+	case   'p':	putremote(fd, now, m);
 			break;
 	case   'q':	fprintf(fd, "%s", now->sym->name);
 			break;

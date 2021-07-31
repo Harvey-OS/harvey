@@ -82,7 +82,7 @@ Symbol	*tl_lookup(char *);
 Symbol	*getsym(Symbol *);
 Symbol	*DoDump(Node *);
 
-extern char	*emalloc(size_t);	/* in main.c */
+char	*emalloc(int);	/* in main.c */
 
 int	anywhere(int, Node *, Node *);
 int	dump_cond(Node *, Node *, int);
@@ -100,10 +100,6 @@ void	exit(int);
 void	Fatal(char *, char *);
 void	fatal(char *, char *);
 void	fsm_print(void);
-void	ini_buchi(void);
-void	ini_cache(void);
-void	ini_rewrt(void);
-void	ini_trans(void);
 void	releasenode(int, Node *);
 void	tfree(void *);
 void	tl_explain(int);

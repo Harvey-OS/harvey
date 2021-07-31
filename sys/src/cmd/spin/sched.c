@@ -20,7 +20,7 @@ extern Symbol	*Fname, *context;
 extern int	lineno, nr_errs, dumptab, xspin, jumpsteps, columns;
 extern int	u_sync, Elcnt, interactive, TstOnly, cutoff;
 extern short	has_enabled;
-extern int	limited_vis, old_scope_rules, product, nclaims;
+extern int	limited_vis;
 
 RunList		*X   = (RunList  *) 0;
 RunList		*run = (RunList  *) 0;
@@ -42,16 +42,13 @@ runnable(ProcList *p, int weight, int noparams)
 
 	r->n  = p->n;
 	r->tn = p->tn;
-	r->b  = p->b;
 	r->pid = nproc++ - nstop + Skip_claim;
 
-	if (!noparams && ((verbose&4) || (verbose&32)))
-		printf("Starting %s with pid %d\n",
-			p->n?p->n->name:"--", r->pid);
+	if ((verbose&4) || (verbose&32))
+		printf("Starting %s with pid %d\n", p->n->name, r->pid);
 
 	if (!p->s)
-		fatal("parsing error, no sequence %s",
-			p->n?p->n->name:"--");
+		fatal("parsing error, no sequence %s", p->n?p->n->name:"--");
 
 	r->pc = huntele(p->s->frst, p->s->frst->status, -1);
 	r->ps = p->s;
@@ -62,15 +59,13 @@ runnable(ProcList *p, int weight, int noparams)
 	r->nxt = run;
 	r->prov = p->prov;
 	r->priority = weight;
-
 	if (noparams) setlocals(r);
 	Priority_Sum += weight;
-
 	run = r;
 }
 
 ProcList *
-ready(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov, enum btypes b)
+ready(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov)
 	/* n=name, p=formals, s=body det=deterministic prov=provided */
 {	ProcList *r = (ProcList *) emalloc(sizeof(ProcList));
 	Lextok *fp, *fpt; int j; extern int Npars;
@@ -78,12 +73,8 @@ ready(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov, enum btypes b)
 	r->n = n;
 	r->p = p;
 	r->s = s;
-	r->b = b;
 	r->prov = prov;
 	r->tn = nrRdy++;
-	if (det != 0 && det != 1)
-	{	fprintf(stderr, "spin: bad value for det (cannot happen)\n");
-	}
 	r->det = (short) det;
 	r->nxt = rdy;
 	rdy = r;
@@ -144,7 +135,6 @@ announce(char *w)
 
 	if (dumptab
 	||  analyze
-	||  product
 	||  s_trail
 	|| !(verbose&4))
 		return;
@@ -218,29 +208,26 @@ start_claim(int n)
 	RunList  *r, *q = (RunList *) 0;
 
 	for (p = rdy; p; p = p->nxt)
-		if (p->tn == n && p->b == N_CLAIM)
+		if (p->tn == n
+		&&  strcmp(p->n->name, ":never:") == 0)
 		{	runnable(p, 1, 1);
 			goto found;
 		}
-	printf("spin: couldn't find claim %d (ignored)\n", n);
-	if (verbose&32)
-	for (p = rdy; p; p = p->nxt)
-		printf("\t%d = %s\n", p->tn, p->n->name);
-
+	printf("spin: couldn't find claim (ignored)\n");
 	Skip_claim = 1;
 	goto done;
 found:
 	/* move claim to far end of runlist, and reassign it pid 0 */
 	if (columns == 2)
-	{	extern char Buf[];
-		depth = 0;
-		sprintf(Buf, "%d:%s", 0, p->n->name);
-		pstext(0, Buf);
+	{	depth = 0;
+		pstext(0, "0::never:");
 		for (r = run; r; r = r->nxt)
-		{	if (r->b != N_CLAIM)
-			{	sprintf(Buf, "%d:%s", r->pid+1, r->n->name);
-				pstext(r->pid+1, Buf);
-	}	}	}
+		{	if (!strcmp(r->n->name, ":never:"))
+				continue;
+			sprintf(Buf, "%d:%s",
+				r->pid+1, r->n->name);
+			pstext(r->pid+1, Buf);
+	}	}
 
 	if (run->pid == 0) return; /* it is the first process started */
 
@@ -470,12 +457,9 @@ try_more:	for (X = run, k = 1; X; X = X->nxt)
 		} else
 		{	char buf[256];
 			fflush(stdout);
-			if (scanf("%64s", buf) == 0)
-			{	printf("\tno input\n");
-				goto try_again;
-			}
+			scanf("%s", buf);
 			j = -1;
-			if (isdigit((int) buf[0]))
+			if (isdigit(buf[0]))
 				j = atoi(buf);
 			else
 			{	if (buf[0] == 'q')
@@ -500,24 +484,6 @@ try_more:	for (X = run, k = 1; X; X = X->nxt)
 }
 
 void
-multi_claims(void)
-{	ProcList *p, *q = NULL;
-
-	if (nclaims > 1)
-	{	printf("  the model contains %d never claims:", nclaims);
-		for (p = rdy; p; p = p->nxt)
-		{	if (p->b == N_CLAIM)
-			{	printf("%s%s", q?", ":" ", p->n->name);
-				q = p;
-		}	}
-		printf("\n");
-		printf("  only one claim is used in a verification run\n");
-		printf("  choose which one with ./pan -N name (defaults to -N %s)\n",
-			q?q->n->name:"--");
-	}
-}
-
-void
 sched(void)
 {	Element *e;
 	RunList *Y = NULL;	/* previous process in run queue */
@@ -538,16 +504,10 @@ sched(void)
 		printf("models with synchronous channels.\n");
 		nr_errs++;
 	}
-	if (product)
-	{	sync_product();
-		alldone(0);
-	}
 	if (analyze)
 	{	gensrc();
-		multi_claims();
 		return;
-	}
-	if (s_trail)
+	} else if (s_trail)
 	{	match_trail();
 		return;
 	}
@@ -583,7 +543,7 @@ sched(void)
 		depth++; LastStep = ZE;
 		oX = X;	/* a rendezvous could change it */
 		go = 1;
-		if (X->prov && X->pc
+		if (X && X->prov && X->pc
 		&& !(X->pc->status & D_ATOM)
 		&& !eval(X->prov))
 		{	if (!xspin && ((verbose&32) || (verbose&4)))
@@ -610,8 +570,7 @@ sched(void)
 				if (xspin)
 					printf("\n");
 			}
-			if (oX != X
-			||  (X->pc->status & (ATOM|D_ATOM)))		/* new 5.0 */
+			if (oX != X)
 			{	e = silent_moves(e);
 				notbeyond = 0;
 			}
@@ -628,12 +587,10 @@ sched(void)
 			}
 		} else
 		{	depth--;
-			if (oX->pc && (oX->pc->status & D_ATOM))
-			{	non_fatal("stmnt in d_step blocks", (char *)0);
-			}
-			if (X->pc
-			&&  X->pc->n
-			&&  X->pc->n->ntyp == '@'
+			if (oX->pc->status & D_ATOM)
+			 non_fatal("stmnt in d_step blocks", (char *)0);
+
+			if (X->pc->n->ntyp == '@'
 			&&  X->pid == (nproc-nstop-1))
 			{	if (X != run && Y != NULL)
 					Y->nxt = X->nxt;
@@ -661,9 +618,6 @@ sched(void)
 						dotag(stdout, "timeout\n");
 						X = oX;
 		}	}	}	}
-
-		if (!run || !X) break;	/* new 5.0 */
-
 		Y = pickproc(X);
 		notbeyond = 0;
 	}
@@ -738,9 +692,7 @@ addsymbol(RunList *r, Symbol  *s)
 	int i;
 
 	for (t = r->symtab; t; t = t->next)
-		if (strcmp(t->name, s->name) == 0
-		&& (old_scope_rules
-		 || strcmp((const char *)t->bscp, (const char *)s->bscp) == 0))
+		if (strcmp(t->name, s->name) == 0)
 			return;		/* it's already there */
 
 	t = (Symbol *) emalloc(sizeof(Symbol));
@@ -752,18 +704,13 @@ addsymbol(RunList *r, Symbol  *s)
 	t->ini  = s->ini;
 	t->setat = depth;
 	t->context = r->n;
-
-	t->bscp  = (unsigned char *) emalloc(strlen((const char *)s->bscp)+1);
-	strcpy((char *)t->bscp, (const char *)s->bscp);
-
 	if (s->type != STRUCT)
 	{	if (s->val)	/* if already initialized, copy info */
 		{	t->val = (int *) emalloc(s->nel*sizeof(int));
 			for (i = 0; i < s->nel; i++)
 				t->val[i] = s->val[i];
 		} else
-		{	(void) checkvar(t, 0);	/* initialize it */
-		}
+			(void) checkvar(t, 0);	/* initialize it */
 	} else
 	{	if (s->Sval)
 			fatal("saw preinitialized struct %s", s->name);
@@ -812,7 +759,7 @@ oneparam(RunList *r, Lextok *t, Lextok *a, ProcList *p)
 
 	if (!a)
 		fatal("missing actual parameters: '%s'", p->n->name);
-	if (t->sym->nel > 1 || t->sym->isarray)
+	if (t->sym->nel != 1)
 		fatal("array in parameter list, %s", t->sym->name);
 	k = eval(a->lft);
 
@@ -821,7 +768,7 @@ oneparam(RunList *r, Lextok *t, Lextok *a, ProcList *p)
 	ft = Sym_typ(t);
 
 	if (at != ft && (at == CHAN || ft == CHAN))
-	{	char buf[256], tag1[64], tag2[64];
+	{	char buf[128], tag1[64], tag2[64];
 		(void) sputtype(tag1, ft);
 		(void) sputtype(tag2, at);
 		sprintf(buf, "type-clash in params of %s(..), (%s<-> %s)",
@@ -862,8 +809,7 @@ findloc(Symbol *s)
 		return ZS;
 	}
 	for (r = X->symtab; r; r = r->next)
-		if (strcmp(r->name, s->name) == 0
-		&& (old_scope_rules || strcmp((const char *)r->bscp, (const char *)s->bscp) == 0))
+		if (strcmp(r->name, s->name) == 0)
 			break;
 	if (!r)
 	{	addsymbol(X, s);
@@ -949,7 +895,6 @@ talk(RunList *r)
 void
 p_talk(Element *e, int lnr)
 {	static int lastnever = -1;
-	static char nbuf[128];
 	int newnever = -1;
 
 	if (e && e->n)
@@ -973,22 +918,9 @@ p_talk(Element *e, int lnr)
 
 	whoruns(lnr);
 	if (e)
-	{	if (e->n)
-		{	char *ptr = e->n->fn->name;
-			char *qtr = nbuf;
-			while (*ptr != '\0')
-			{	if (*ptr != '"')
-				{	*qtr++ = *ptr;
-				}
-				ptr++;
-			}
-			*qtr = '\0';
-		} else
-		{	strcpy(nbuf, "-");
-		}
-		printf("%s:%d (state %d)",
-			nbuf,
+	{	printf("line %3d %s (state %d)",
 			e->n?e->n->ln:-1,
+			e->n?e->n->fn->name:"-",
 			e->seqno);
 		if (!xspin
 		&&  ((e->status&ENDSTATE) || has_lab(e, 2)))	/* 2=end */
@@ -1046,7 +978,7 @@ remotevar(Lextok *n)
 		printf("	%s: i=%d, prno=%d, ->pid=%d\n", Y->n->name, i, prno, Y->pid);
 	}
 #endif
-	i = nproc - nstop + Skip_claim;	/* 6.0: added Skip_claim */
+	i = nproc - nstop;
 	for (Y = run; Y; Y = Y->nxt)
 	if (--i == prno)
 	{	if (strcmp(Y->n->name, n->lft->sym->name) != 0)

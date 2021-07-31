@@ -15,7 +15,6 @@
 #include "tl.h"
 
 extern int tl_verbose, tl_clutter, Total, Max_Red;
-extern char *claim_name;
 
 FILE	*tl_out;	/* if standalone: = stdout; */
 
@@ -38,13 +37,6 @@ typedef struct State {
 
 static State *never = (State *) 0;
 static int hitsall;
-
-void
-ini_buchi(void)
-{
-	never = (State *) 0;
-	hitsall = 0;
-}
 
 static int
 sametrans(Transition *s, Transition *t)
@@ -634,13 +626,13 @@ fsm_print(void)
 	if (tl_clutter) clutter();
 
 	b = findstate("T0_init");
-	if (b && (Max_Red == 0))
+	if (Max_Red == 0)
 		b->accepting = 1;
 
 	mergestates(0); 
 	b = findstate("T0_init");
 
-	fprintf(tl_out, "never %s {    /* ", claim_name?claim_name:"");
+	fprintf(tl_out, "never {    /* ");
 		put_uform();
 	fprintf(tl_out, " */\n");
 

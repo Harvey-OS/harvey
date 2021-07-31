@@ -18,12 +18,6 @@ extern int	tl_verbose;
 
 static Node	*can = ZN;
 
-void
-ini_rewrt(void)
-{
-	can = ZN;
-}
-
 Node *
 right_linked(Node *n)
 {
@@ -152,10 +146,7 @@ addcan(int tok, Node *n)
 	prev = ZN;
 	for (m = can; m->ntyp == tok && m->rgt; prev = m, m = m->rgt)
 	{	t = DoDump(m->lft);
-		if (t != ZS)
-			cmp = strcmp(s->name, t->name);
-		else
-			cmp = 0;
+		cmp = strcmp(s->name, t->name);
 		if (cmp == 0)	/* duplicate */
 			return;
 		if (cmp < 0)
