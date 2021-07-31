@@ -436,8 +436,6 @@ void	ifclog(Fs*, uchar *, int);
 void	ifclogopen(Fs*, Chan*);
 void	ifclogclose(Fs*, Chan*);
 
-#pragma varargck argpos netlog	3
-
 /*
  *  iproute.c
  */
