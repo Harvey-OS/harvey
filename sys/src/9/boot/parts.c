@@ -111,8 +111,7 @@ sdaddpart(SDunit* unit, char* name, uvlong start, uvlong end)
 
 	/* update devsd's in-memory partition table */
 	if (fprint(unit->ctl, "part %s %lld %lld\n", name, start, end) < 0)
-		fprint(2, "can't update %s's devsd partition table for %s: %r\n",
-			unit->name, name);
+		fprint(2, "can't update devsd's partition table\n");
 	if (debugboot)
 		print("part %s %lld %lld\n", name, start, end);
 }
