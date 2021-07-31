@@ -17,57 +17,6 @@ static	char*		getword(HConnect*);
 static	Strings		parseuri(HConnect *c, char*);
 static	Strings		stripsearch(char*);
 
-int
-hparseuri(HConnect *c, char *uri)
-{
-	Strings ss;
-	char *search, *origuri;
-
-	/*
-	 * the fragment is not supposed to be sent
-	 * strip it 'cause some clients send it
-	 */
-	origuri = uri;
-	uri = strchr(origuri, '#');
-	if(uri != nil)
-		*uri = 0;
-
-	/*
-	 * http/1.1 requires the server to accept absolute
-	 * or relative uri's.  convert to relative with an absolute path
-	 */
-	if(http11(c)){
-		ss = parseuri(c, origuri);
-		uri = ss.s1;
-		c->req.urihost = ss.s2;
-		if(uri == nil){
-			hfail(c, HBadReq, uri);
-			return -1;
-		}
-		origuri = uri;
-	}
-
-	/*
-	 * munge uri for search, protection, and magic
-	 */
-	ss = stripsearch(origuri);
-	origuri = ss.s1;
-	search = ss.s2;
-	uri = hurlunesc(c, origuri);
-	uri = abspath(c, uri, "/");
-	if(uri == nil || uri[0] == '\0'){
-		hfail(c, HNotFound, "no object specified");
-		return -1;
-	}
-
-	c->req.uri = uri;
-	c->req.search = search;
-	if(search)
-		c->req.searchpairs = hparsequery(c, hstrdup(c, search));
-
-	return 1;
-}
-
 /*
  * parse the next request line
  * returns:
@@ -78,7 +27,8 @@ hparseuri(HConnect *c, char *uri)
 int
 hparsereq(HConnect *c, int timeout)
 {
-	char *vs, *v, *uri, *extra;
+	Strings ss;
+	char *vs, *v, *search, *uri, *origuri, *extra;
 
 	if(c->bin != nil){
 		hfail(c, HInternal);
@@ -140,7 +90,50 @@ hparsereq(HConnect *c, int timeout)
 			return -1;
 		}
 	}
-	return hparseuri(c, uri);
+
+	/*
+	 * the fragment is not supposed to be sent
+	 * strip it 'cause some clients send it
+	 */
+	origuri = uri;
+	uri = strchr(origuri, '#');
+	if(uri != nil)
+		*uri = 0;
+
+	/*
+	 * http/1.1 requires the server to accept absolute
+	 * or relative uri's.  convert to relative with an absolute path
+	 */
+	if(http11(c)){
+		ss = parseuri(c, origuri);
+		uri = ss.s1;
+		c->req.urihost = ss.s2;
+		if(uri == nil){
+			hfail(c, HBadReq, uri);
+			return -1;
+		}
+		origuri = uri;
+	}
+
+	/*
+	 * munge uri for search, protection, and magic
+	 */
+	ss = stripsearch(origuri);
+	origuri = ss.s1;
+	search = ss.s2;
+	uri = hurlunesc(c, origuri);
+	uri = abspath(c, uri, "/");
+	if(uri == nil || uri[0] == '\0'){
+		hfail(c, HNotFound, "no object specified");
+		return -1;
+	}
+
+	c->req.uri = uri;
+	c->req.search = search;
+	if(search)
+		c->req.searchpairs = hparsequery(c, hstrdup(c, search));
+
+	return 1;
 }
 
 static Strings
