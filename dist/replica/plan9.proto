@@ -52,6 +52,7 @@ cron	d777 sys sys
 fd	- sys sys
 	+	- sys sys
 env	- sys sys
+	+	- sys sys
 lib	- sys sys
 	+	- sys sys
 lp	- sys sys
