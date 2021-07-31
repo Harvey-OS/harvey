@@ -1406,7 +1406,7 @@ setVersion(TlsConnection *c, int version)
 	switch(version) {
 	case SSL3Version:
 		c->finished.n = SSL3FinishedLen;
-		return -1;
+		break;
 	case TLS10Version:
 	case TLS11Version:
 	case TLS12Version:
