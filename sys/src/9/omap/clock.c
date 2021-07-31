@@ -112,7 +112,8 @@ resetwait(Timerregs *tn)
 {
 	long bound;
 
-	for (bound = 400*Mhz; !(tn->tistat & Resetdone) && bound > 0; bound--)
+	for (bound = 400*1000*1000; !(tn->tistat & Resetdone) && bound > 0;
+	    bound--)
 		;
 	if (bound <= 0)
 		iprint("clock reset didn't complete\n");
@@ -214,7 +215,7 @@ clockshutdown(void)
 }
 
 enum {
-	Instrs		= 10*Mhz,
+	Instrs		= 10*1000*1000,
 };
 
 static long

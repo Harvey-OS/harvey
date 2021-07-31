@@ -8,10 +8,6 @@
 #define	MS2HZ		(1000/HZ)		/* millisec per clock tick */
 #define	TK2SEC(t)	((t)/HZ)		/* ticks to seconds */
 
-enum {
-	Mhz	= 1000 * 1000,
-};
-
 /*
  * More accurate time
  */
