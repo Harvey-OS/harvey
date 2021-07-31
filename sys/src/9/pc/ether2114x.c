@@ -185,7 +185,6 @@ enum {					/* PHY registers */
 
 enum {					/* Variants */
 	Tulip0		= (0x0009<<16)|0x1011,
-	Tulip1		= (0x0014<<16)|0x1011,
 	Tulip3		= (0x0019<<16)|0x1011,
 	Pnic		= (0x0002<<16)|0x11AD,
 	Pnic2		= (0xC115<<16)|0x11AD,
@@ -741,7 +740,7 @@ sromr(Ctlr* ctlr, int r)
 
 	/*
 	 * This sequence for reading a 16-bit register 'r'
-	 * in the EEPROM is taken (pretty much) straight from Section
+	 * in the EEPROM is taken straight from Section
 	 * 7.4 of the 21140 Hardware Reference Manual.
 	 */
 reread:
@@ -760,16 +759,9 @@ reread:
 
 	/*
 	 * First time through must work out the EEPROM size.
-	 * This doesn't seem to work on the 21041 as implemented
-	 * in Virtual PC for the Mac, so wire any 21041 to 6,
-	 * it's the only 21041 this code will ever likely see.
 	 */
-	if((size = ctlr->sromsz) == 0){
-		if(ctlr->id == Tulip1)
-			ctlr->sromsz = size = 6;
-		else
-			size = 8;
-	}
+	if((size = ctlr->sromsz) == 0)
+		size = 8;
 
 	for(size = size-1; size >= 0; size--){
 		data = Rd|Ss|(((r>>size) & 0x01)<<2)|Scs;
@@ -777,7 +769,7 @@ reread:
 		csr9w(ctlr, data|Sclk);
 		csr9w(ctlr, data);
 		microdelay(1);
-		if(ctlr->sromsz == 0 && !(csr32r(ctlr, 9) & Sdo))
+		if(!(csr32r(ctlr, 9) & Sdo))
 			break;
 	}
 
@@ -902,7 +894,7 @@ typephylink(Ctlr* ctlr, uchar*)
 	else
 		x = 0x0800;
 
-	csr6 = Sc|Mbo|Hbd|Ps|Ca|TrMODE|Sb;
+	csr6 = Sc|Mbo|Hbd|Ps|Ca|Sb|TrMODE;
 	if(ctlr->fdx & x)
 		csr6 |= Fd;
 	if(ctlr->ttm & x)
@@ -959,7 +951,7 @@ typephymode(Ctlr* ctlr, uchar* block, int wait)
 	phyx = block[2];
 	ctlr->curphyad = ctlr->phy[phyx];
 
-	ctlr->csr6 = 0;//Sc|Mbo|Hbd|Ps|Ca|TrMODE|Sb;
+	ctlr->csr6 = 0;//Sc|Mbo|Hbd|Ps|Ca|Sb|TrMODE;
 	//csr32w(ctlr, 6, ctlr->csr6);
 	if(typephylink(ctlr, block))
 		return 0;
@@ -981,7 +973,7 @@ typephymode(Ctlr* ctlr, uchar* block, int wait)
 	type5block(ctlr, &block[3]);
 	debug("\n");
 
-	ctlr->csr6 = 0;//Sc|Mbo|Hbd|Ps|Ca|TrMODE|Sb;
+	ctlr->csr6 = 0;//Sc|Mbo|Hbd|Ps|Ca|Sb|TrMODE;
 	//csr32w(ctlr, 6, ctlr->csr6);
 	if(typephylink(ctlr, block))
 		return 0;
@@ -1033,7 +1025,7 @@ type2mode(Ctlr* ctlr, uchar* block, int)
 	uchar *p;
 	int csr6, csr13, csr14, csr15, gpc, gpd;
 
-	csr6 = Sc|Mbo|Ca|TrMODE|Sb;
+	csr6 = Sc|Mbo|Ca|Sb|TrMODE;
 	debug("type2mode: medium 0x%2.2uX\n", block[2]);
 
 	/*
@@ -1124,7 +1116,7 @@ type0mode(Ctlr* ctlr, uchar* block, int wait)
 {
 	int csr6, m, timeo;
 
-	csr6 = Sc|Mbo|Hbd|Ca|TrMODE|Sb;
+	csr6 = Sc|Mbo|Hbd|Ca|Sb|TrMODE;
 debug("type0: medium 0x%uX, fd %d: 0x%2.2uX 0x%2.2uX 0x%2.2uX 0x%2.2uX\n",
     ctlr->medium, ctlr->fd, block[0], block[1], block[2], block[3]); 
 	switch(block[0]){
@@ -1167,85 +1159,6 @@ debug("type0: medium 0x%uX, fd %d: 0x%2.2uX 0x%2.2uX 0x%2.2uX 0x%2.2uX\n",
 			return 0;
 		delay(100);
 	}
-
-	return -1;
-}
-
-static int
-media21041(Ether* ether, int wait)
-{
-	Ctlr* ctlr;
-	uchar *block;
-	int csr6, csr13, csr14, csr15, medium, timeo;
-
-	ctlr = ether->ctlr;
-	block = ctlr->infoblock[ctlr->curk];
-	debug("media21041: block[0] %2.2uX, medium %4.4uX sct %4.4uX\n",
-		block[0], ctlr->medium, ctlr->sct);
-
-	medium = block[0] & 0x3F;
-	if(ctlr->medium >= 0 && medium != ctlr->medium)
-		return 0;
-	if(ctlr->sct != 0x0800 && (ctlr->sct & 0x3F) != medium)
-		return 0;
-
-	csr6 = Sc|Mbo|Ca|TrMODE|Sb;
-	if(block[0] & 0x40){
-		csr13 = (block[2]<<8)|block[1];
-		csr14 = (block[4]<<8)|block[3];
-		csr15 = (block[6]<<8)|block[5];
-	}
-	else switch(medium){
-	default:
-		return -1;
-	case 0x00:		/* 10BASE-T */
-		csr13 = 0xEF01;
-		csr14 = 0xFF3F;
-		csr15 = 0x0008;
-		break;
-	case 0x01:		/* 10BASE-2 */
-		csr13 = 0xEF09;
-		csr14 = 0xF73D;
-		csr15 = 0x0006;
-		break;
-	case 0x02:		/* 10BASE-5 */
-		csr13 = 0xEF09;
-		csr14 = 0xF73D;
-		csr15 = 0x000E;
-		break;
-	case 0x04:		/* 10BASE-TFD */
-		csr13 = 0xEF01;
-		csr14 = 0xFF3D;
-		csr15 = 0x0008;
-		break;
-	}
-
-	csr32w(ctlr, 13, 0);
-	csr32w(ctlr, 14, csr14);
-	csr32w(ctlr, 15, csr15);
-	csr32w(ctlr, 13, csr13);
-	delay(10);
-
-	if(medium == 0x04)
-		csr6 |= Fd;
-	ctlr->csr6 = csr6;
-	csr32w(ctlr, 6, ctlr->csr6);
-
-	debug("media21041: csr6 %8.8uX csr13 %4.4uX csr14 %4.4uX csr15 %4.4uX\n",
-		csr6, csr13, csr14, csr15);
-
-	if(!wait)
-		return 0;
-
-	for(timeo = 0; timeo < 30; timeo++){
-		if(!(csr32r(ctlr, 12) & 0x0002)){
-			debug("media21041: ok: csr12 %4.4luX timeo %d\n",
-				csr32r(ctlr, 12), timeo);
-			return 10;
-		}
-		delay(100);
-	}
-	debug("media21041: !ok: csr12 %4.4luX\n", csr32r(ctlr, 12));
 
 	return -1;
 }
@@ -1322,14 +1235,7 @@ media(Ether* ether, int wait)
 
 	ctlr = ether->ctlr;
 	for(k = 0; k < ctlr->k; k++){
-		switch(ctlr->id){
-		default:
-			mbps = mediaxx(ether, wait);
-			break;
-		case Tulip1:			/* 21041 */
-			mbps = media21041(ether, wait);
-			break;
-		}
+		mbps = mediaxx(ether, wait);
 		if(mbps > 0)
 			return mbps;
 		if(ctlr->curk == 0)
@@ -1455,16 +1361,6 @@ srom(Ctlr* ctlr)
 		ctlr->srom[2*i+1] = x>>8;
 	}
 
-	if(DEBUG){
-		print("srom:");
-		for(i = 0; i < ((1<<ctlr->sromsz)*sizeof(ushort)); i++){
-			if(i && ((i & 0x0F) == 0))
-				print("\n     ");
-			print(" %2.2uX", ctlr->srom[i]);
-		}
-		print("\n");
-	}
-
 	/*
 	 * There are at least 2 SROM layouts:
 	 *	e.g. Digital EtherWORKS	station address at offset 20;
@@ -1541,7 +1437,7 @@ srom(Ctlr* ctlr)
 	ctlr->leaf = p;
 	ctlr->sct = *p++;
 	ctlr->sct |= *p++<<8;
-	if(ctlr->id != Tulip3 && ctlr->id != Tulip1){
+	if(ctlr->id != Tulip3){
 		csr32w(ctlr, 12, Gpc|*p++);
 		delay(200);
 	}
@@ -1552,20 +1448,11 @@ srom(Ctlr* ctlr)
 	phy = 0;
 	for(k = 0; k < ctlr->k; k++){
 		ctlr->infoblock[k] = p;
-		if(ctlr->id == Tulip1){
-			debug("type21041: 0x%2.2uX\n", p[0]); 
-			if(ctlr->sct != 0x0800 && *p == (ctlr->sct & 0xFF))
-				ctlr->sctk = k;
-			if(*p & 0x40)
-				p += 7;
-			else
-				p += 1;
-		}
 		/*
 		 * The RAMIX PMC665 has a badly-coded SROM,
 		 * hence the test for 21143 and type 3.
 		 */
-		else if((*p & 0x80) || (ctlr->id == Tulip3 && *(p+1) == 3)){
+		if((*p & 0x80) || (ctlr->id == Tulip3 && *(p+1) == 3)){
 			*p |= 0x80;
 			if(*(p+1) == 1 || *(p+1) == 3)
 				phy = 1;
@@ -1592,7 +1479,7 @@ srom(Ctlr* ctlr)
 				continue;
 			if((oui = miir(ctlr, k, 2)) == -1 || oui == 0)
 				continue;
-			debug("phy reg 2 %4.4uX\n", oui);
+debug("phy reg 2 %4.4uX\n", oui);
 			if(DEBUG){
 				oui = (oui & 0x3FF)<<6;
 				oui |= miir(ctlr, k, 3)>>10;
@@ -1631,12 +1518,12 @@ dec2114xpci(void)
 			 * Exit sleep mode.
 			 */
 			x = pcicfgr32(p, 0x40);
-			x &= ~0xC0000000;
+			x &= ~0xc0000000;
 			pcicfgw32(p, 0x40, x);
 			/*FALLTHROUGH*/
 
 		case Tulip0:			/* 21140 */
-		case Tulip1:			/* 21041 */
+		case Pnic:			/* PNIC */
 		case Pnic2:			/* PNIC-II */
 		case CentaurP:			/* ADMtek */
 			break;
