@@ -14,12 +14,10 @@ enum
 static int	setenv(char*, char*);
 static char	*expandarg(char*, char*);
 static int	splitargs(char*, char*[], char*, int);
-static int	nsfile(char*, Biobuf *, AuthRpc *);
-static int	nsop(char*, int, char*[], AuthRpc*);
+static int	nsfile(Biobuf *, AuthRpc *);
+static int	nsop(int, char*[], AuthRpc*);
 static int	callexport(char*, char*);
 static int	catch(void*, char*);
-
-int newnsdebug;
 
 static int
 buildns(int newns, char *user, char *file)
@@ -34,8 +32,6 @@ buildns(int newns, char *user, char *file)
 	rpc = nil;
 	/* try for factotum now because later is impossible */
 	afd = open("/mnt/factotum/rpc", ORDWR);
-	if (afd < 0 && newnsdebug)
-		fprint(2, "open /mnt/factotum/rpc: %r\n");
 	if(afd >= 0){
 		rpc = auth_allocrpc(afd);
 		if(rpc == nil){
@@ -63,7 +59,7 @@ buildns(int newns, char *user, char *file)
 		snprint(home, 2*ANAMELEN, "/usr/%s", user);
 		setenv("home", home);
 	}
-	cdroot = nsfile(newns ? "newns" : "addns", b, rpc);
+	cdroot = nsfile(b, rpc);
 	Bterm(b);
 	if(rpc){
 		close(rpc->afd);
@@ -83,13 +79,12 @@ buildns(int newns, char *user, char *file)
 }
 
 static int
-nsfile(char *fn, Biobuf *b, AuthRpc *rpc)
+nsfile(Biobuf *b, AuthRpc *rpc)
 {
 	int argc;
 	char *cmd, *argv[NARG+1], argbuf[MAXARG*NARG];
-	int cdroot;
+	int cdroot = 0;
 
-	cdroot = 0;
 	atnotify(catch, 1);
 	while(cmd = Brdline(b, '\n')){
 		cmd[Blinelen(b)-1] = '\0';
@@ -99,7 +94,7 @@ nsfile(char *fn, Biobuf *b, AuthRpc *rpc)
 			continue;
 		argc = splitargs(cmd, argv, argbuf, NARG);
 		if(argc)
-			cdroot |= nsop(fn, argc, argv, rpc);
+			cdroot |= nsop(argc, argv, rpc);
 	}
 	atnotify(catch, 0);
 	return cdroot;
@@ -133,22 +128,16 @@ famount(int fd, AuthRpc *rpc, char *mntpt, int flags, char *aname)
 }
 
 static int
-nsop(char *fn, int argc, char *argv[], AuthRpc *rpc)
+nsop(int argc, char *argv[], AuthRpc *rpc)
 {
 	char *argv0;
 	ulong flags;
-	int fd, i;
+	int fd;
 	Biobuf *b;
-	int cdroot;
+	int cdroot = 0;
 
-	cdroot = 0;
 	flags = 0;
 	argv0 = 0;
-	if (newnsdebug){
-		for (i = 0; i < argc; i++)
-			fprint(2, "%s ", argv[i]);
-		fprint(2, "\n");
-	}
 	ARGBEGIN{
 	case 'a':
 		flags |= MAFTER;
@@ -171,39 +160,34 @@ nsop(char *fn, int argc, char *argv[], AuthRpc *rpc)
 		b = Bopen(argv[0], OREAD);
 		if(b == nil)
 			return 0;
-		cdroot |= nsfile(fn, b, rpc);
+		cdroot |= nsfile(b, rpc);
 		Bterm(b);
-	}else if(strcmp(argv0, "clear") == 0 && argc == 0)
+	} else if(strcmp(argv0, "clear") == 0 && argc == 0)
 		rfork(RFCNAMEG);
-	else if(strcmp(argv0, "bind") == 0 && argc == 2){
-		if(bind(argv[0], argv[1], flags) < 0 && newnsdebug)
-			fprint(2, "%s: bind: %s %s: %r\n", fn, argv[0], argv[1]);
-	}else if(strcmp(argv0, "unmount") == 0){
+	else if(strcmp(argv0, "bind") == 0 && argc == 2)
+		bind(argv[0], argv[1], flags);
+	else if(strcmp(argv0, "unmount") == 0){
 		if(argc == 1)
 			unmount(nil, argv[0]);
 		else if(argc == 2)
 			unmount(argv[0], argv[1]);
-	}else if(strcmp(argv0, "mount") == 0){
+	} else if(strcmp(argv0, "mount") == 0){
 		fd = open(argv[0], ORDWR);
-		if(argc == 2){
-			if(famount(fd, rpc, argv[1], flags, "") < 0 && newnsdebug)
-				fprint(2, "%s: mount: %s %s: %r\n", fn, argv[0], argv[1]);
-		}else if(argc == 3){
-			if(famount(fd, rpc, argv[1], flags, argv[2]) < 0 && newnsdebug)
-				fprint(2, "%s: mount: %s %s %s: %r\n", fn, argv[0], argv[1], argv[2]);
-		}
+		if(argc == 2)
+			famount(fd, rpc, argv[1], flags, "");
+		else if(argc == 3)
+			famount(fd, rpc, argv[1], flags, argv[2]);
 		close(fd);
-	}else if(strcmp(argv0, "import") == 0){
+	} else if(strcmp(argv0, "import") == 0){
 		fd = callexport(argv[0], argv[1]);
 		if(argc == 2)
 			famount(fd, rpc, argv[1], flags, "");
 		else if(argc == 3)
 			famount(fd, rpc, argv[2], flags, "");
 		close(fd);
-	}else if(strcmp(argv0, "cd") == 0 && argc == 1){
+	} else if(strcmp(argv0, "cd") == 0 && argc == 1)
 		if(chdir(argv[0]) == 0 && *argv[0] == '/')
 			cdroot = 1;
-	}
 	return cdroot;
 }
 
@@ -237,65 +221,23 @@ callexport(char *sys, char *tree)
 	return fd;
 }
 
-static char*
-unquote(char *s)
-{
-	char *r, *w;
-	int inquote;
-	
-	inquote = 0;
-	for(r=w=s; *r; r++){
-		if(*r != '\''){
-			*w++ = *r;
-			continue;
-		}
-		if(inquote){
-			if(*(r+1) == '\''){
-				*w++ = '\'';
-				r++;
-			}else
-				inquote = 0;
-		}else
-			inquote = 1;
-	}
-	*w = 0;
-	return s;
-}
-
 static int
 splitargs(char *p, char *argv[], char *argbuf, int nargv)
 {
 	char *q;
 	int i, n;
 
-	n = gettokens(p, argv, nargv, " \t\r");
+	n = gettokens(p, argv, nargv, " \t'\r");
 	if(n == nargv)
 		return 0;
 	for(i = 0; i < n; i++){
 		q = argv[i];
 		argv[i] = argbuf;
 		argbuf = expandarg(q, argbuf);
-		if(argbuf == nil)
+		if(!argbuf)
 			return 0;
-		unquote(argv[i]);
 	}
 	return n;
-}
-
-static char*
-nextdollar(char *arg)
-{
-	char *p;
-	int inquote;
-	
-	inquote = 0;
-	for(p=arg; *p; p++){
-		if(*p == '\'')
-			inquote = !inquote;
-		if(*p == '$' && !inquote)
-			return p;
-	}
-	return nil;
 }
 
 /*
@@ -311,22 +253,29 @@ nextdollar(char *arg)
 static char *
 expandarg(char *arg, char *buf)
 {
-	char env[3+ANAMELEN], *p, *x;
+	char env[3+ANAMELEN], *p, *q, *x;
 	int fd, n, len;
 
 	n = 0;
-	while(p = nextdollar(arg)){
+	while(p = utfrune(arg, L'$')){
 		len = p - arg;
 		if(n + len + ANAMELEN >= MAXARG-1)
 			return 0;
 		memmove(&buf[n], arg, len);
 		n += len;
 		p++;
-		arg = strpbrk(p, "/.!'$");
-		if(arg == nil)
-			arg = p+strlen(p);
+		arg = utfrune(p, L'\0');
+		q = utfrune(p, L'/');
+		if(q && q < arg)
+			arg = q;
+		q = utfrune(p, L'.');
+		if(q && q < arg)
+			arg = q;
+		q = utfrune(p, L'$');
+		if(q && q < arg)
+			arg = q;
 		len = arg - p;
-		if(len == 0 || len >= ANAMELEN)
+		if(len >= ANAMELEN)
 			continue;
 		strcpy(env, "#e/");
 		strncpy(env+3, p, len);
