@@ -17,7 +17,7 @@ typedef struct Ether Ether;
 struct Ether {
 	ISAConf;			/* hardware info */
 	int	ctlrno;
-	int	state;			/* 0: unfound, 1: found, 2: attaching */
+	int	state;
 	int	tbdf;
 
 	void	(*attach)(Ether*);	/* filled in by reset routine */
@@ -36,8 +36,7 @@ struct Ether {
 
 	ushort	th;			/* first transmit buffer belonging to host */	
 	ushort	ti;			/* first transmit buffer belonging to card */
-	int	tbusy;			/* transmitter is busy */
-	int	mbps;			/* zero means link down */	
+	int	tbusy;			/* transmitter is busy */	
 };
 
 extern void etherrloop(Ether*, Etherpkt*, long);
