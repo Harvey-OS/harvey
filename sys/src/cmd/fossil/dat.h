@@ -303,7 +303,7 @@ struct Fsck
 	int nclri;
 };
 
-/* disk partitions; keep in sync with partname[] in disk.c */
+/* disk partitions */
 enum {
 	PartError,
 	PartSuper,
