@@ -65,7 +65,6 @@ _string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Rune *r, i
 	char **sptr;
 	Rune **rptr;
 	Font *def;
-	Subfont *sf;
 
 	if(s == nil){
 		s = "";
@@ -77,7 +76,6 @@ _string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Rune *r, i
 		rptr = nil;
 	}else
 		rptr = &r;
-	sf = nil;
 	while((*s || *r) && len){
 		max = Max;
 		if(len < max)
@@ -126,18 +124,13 @@ _string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Rune *r, i
 			len -= n;
 		}
 		if(subfontname){
-			freesubfont(sf);
-			if((sf=_getsubfont(f->display, subfontname)) == 0){
-				def = f->display ? f->display->defaultfont : nil;
+			if(_getsubfont(f->display, subfontname) == 0){
+				def = f->display->defaultfont;
 				if(def && f!=def)
 					f = def;
 				else
 					break;
 			}
-			/* 
-			 * must not free sf until cachechars has found it in the cache
-			 * and picked up its own reference.
-			 */
 		}
 	}
 	return pt;
