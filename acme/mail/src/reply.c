@@ -90,8 +90,7 @@ mkreply(Message *m, char *label, char *to, Plumbattr *attr, char *quotetext)
 	sprint(r->name, "%s%s%d", mbox.name, label, ++replyid);
 	r->w = newwindow();
 	winname(r->w, r->name);
-	ctlprint(r->w->ctl, "cleartag");
-	wintagwrite(r->w, "fmt Look Post Undo", 4+5+5+4);
+	wintagwrite(r->w, "|fmt Post", 5+4);
 	r->tagposted = 1;
 	threadcreate(mesgctl, r, STACK);
 	winopenbody(r->w, OWRITE);
