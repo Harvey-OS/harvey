@@ -167,7 +167,7 @@ _readmbox(Mailbox *mb, int doplumb, Mlock *lk)
 	int fd, n;
 	String *tmp;
 	Dir *d;
-	static char err[Errlen];
+	static char err[128];
 	Message *m, **l;
 	Inbuf *inb;
 	char *x;
@@ -393,7 +393,7 @@ plan9syncmbox(Mailbox *mb, int doplumb)
 char*
 plan9mbox(Mailbox *mb, char *path)
 {
-	static char err[Errlen];
+	static char err[64];
 	String *tmp;
 
 	if(access(path, AEXIST) < 0){

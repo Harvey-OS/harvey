@@ -37,7 +37,7 @@ struct Pop {
 char*
 geterrstr(void)
 {
-	static char err[Errlen];
+	static char err[64];
 
 	err[0] = '\0';
 	errstr(err, sizeof(err));

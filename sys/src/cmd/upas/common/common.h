@@ -16,7 +16,7 @@ extern int DATEMATCH;
 enum
 {
 	Elemlen= 28,
-	Errlen=	ERRMAX,
+	Errlen=	128,
 	Pathlen= 256,
 };
 enum { Atnoteunknown, Atnoterecog };
