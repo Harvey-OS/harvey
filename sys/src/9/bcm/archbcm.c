@@ -18,7 +18,6 @@
 
 enum {
 	Wdogfreq	= 65536,
-	Wdogtime	= 5,	/* seconds, ≤ 15 */
 };
 
 /*
@@ -29,7 +28,6 @@ enum {
 		Password	= 0x5A<<24,
 		CfgMask		= 0x03<<4,
 		CfgReset	= 0x02<<4,
-	Rsts		= 0x20>>2,
 	Wdog		= 0x24>>2,
 };
 
@@ -52,25 +50,6 @@ archreboot(void)
 		;
 }
 
-static void
-wdogfeed(void)
-{
-	u32int *r;
-
-	r = (u32int*)POWERREGS;
-	r[Wdog] = Password | (Wdogtime * Wdogfreq);
-	r[Rstc] = Password | (r[Rstc] & ~CfgMask) | CfgReset;
-}
-
-void
-wdogoff(void)
-{
-	u32int *r;
-
-	r = (u32int*)POWERREGS;
-	r[Rstc] = Password | (r[Rstc] & ~CfgMask);
-}
-	
 void
 cpuidprint(void)
 {
@@ -80,7 +59,6 @@ cpuidprint(void)
 void
 archbcmlink(void)
 {
-	addclock0link(wdogfeed, HZ);
 }
 
 int

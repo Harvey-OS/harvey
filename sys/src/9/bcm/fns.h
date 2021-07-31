@@ -73,7 +73,6 @@ extern void uartconsinit(void);
 extern int userureg(Ureg*);
 extern void vectors(void);
 extern void vtable(void);
-extern void wdogoff(void);
 
 /*
  * floating point emulation
