@@ -6,7 +6,6 @@ TARG=exsort\
 	mbr\
 	mkext\
 	mkfs\
-	partfs\
 
 DIRS=\
 	9660\
