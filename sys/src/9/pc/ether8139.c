@@ -235,9 +235,9 @@ rtl8139promiscuous(void* arg, int on)
 }
 
 static void
-rtl8139multicast(void* ether, uchar *addr, int add)
+rtl8139multicast(void* arg, uchar*, int)
 {
-	USED(ether, addr, add);
+	rtl8139promiscuous(arg, 1);
 }
 
 static long
@@ -345,7 +345,7 @@ rtl8139init(Ether* edev)
 	alloc += ctlr->rblen+16;
 	memset(ctlr->rbstart, 0, ctlr->rblen+16);
 	csr32w(ctlr, Rbstart, PCIWADDR(ctlr->rbstart));
-	ctlr->rcr = Rxfth256|Rblen|Mrxdmaunlimited|Ab|Am|Apm;
+	ctlr->rcr = Rxfth256|Rblen|Mrxdmaunlimited|Ab|Apm;
 
 	/*
 	 * Transmitter.

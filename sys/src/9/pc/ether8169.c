@@ -415,9 +415,9 @@ rtl8169promiscuous(void* arg, int on)
 }
 
 static void
-rtl8169multicast(void* ether, uchar *addr, int add)
+rtl8169multicast(void* arg, uchar*, int)
 {
-	USED(ether, addr, add);
+	rtl8169promiscuous(arg, 1);
 }
 
 static long
@@ -621,7 +621,7 @@ rtl8169init(Ether* edev)
 		}
 	}
 	rtl8169replenish(ctlr);
-	ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Am|Apm;
+	ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Apm;
 
 	/*
 	 * Mtps is in units of 128 except for the RTL8169
