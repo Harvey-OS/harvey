@@ -35,8 +35,6 @@ enum {
 	Maxconf	= 4*1024,	/* max length for config */
 	Ndevs	= 32,		/* max. inner devs per command */
 	Nfsdevs = 128,		/* max. created devs, total */
-	Maxretries = 3,		/* max. retries of i/o errors */
-	Retrypause = 5000,	/* ms. to pause between retries */
 };
 
 #define	Cfgstr	"fsdev:\n"
@@ -569,11 +567,7 @@ mread(Chan *c, void *a, long n, vlong off)
 				print("#k/%s: retry %d read for byte %,lld "
 					"count %ld: %s\n", mp->name, retry, off,
 					n, (up && up->errstr? up->errstr: ""));
-				/*
-				 * pause before retrying in case it's due to
-				 * a transient bus or controller problem.
-				 */
-				tsleep(&up->sleep, return0, 0, Retrypause);
+				tsleep(&up->sleep, return0, 0, 2000);
 			}
 			for (i = 0; i < mp->ndevs; i++){
 				if (waserror())
@@ -586,7 +580,7 @@ mread(Chan *c, void *a, long n, vlong off)
 					break;		/* read a good copy */
 				}
 			}
-		} while (i == mp->ndevs && ++retry <= Maxretries);
+		} while (i == mp->ndevs && ++retry < 2);
 		if (i == mp->ndevs) {
 			/* no mirror had a good copy of the block */
 			print("#k/%s: byte %,lld count %ld: CAN'T READ "
@@ -645,11 +639,7 @@ mwrite(Chan *c, void *a, long n, vlong off)
 				print("#k/%s: retry %d write for byte %,lld "
 					"count %ld: %s\n", mp->name, retry, off,
 					n, (up && up->errstr? up->errstr: ""));
-				/*
-				 * pause before retrying in case it's due to
-				 * a transient bus or controller problem.
-				 */
-				tsleep(&up->sleep, return0, 0, Retrypause);
+				tsleep(&up->sleep, return0, 0, 2000);
 			}
 			allbad = 1;
 			anybad = 0;
@@ -668,7 +658,7 @@ mwrite(Chan *c, void *a, long n, vlong off)
 				else
 					anybad = 1;
 			}
-		} while (anybad && ++retry <= Maxretries);
+		} while (anybad && ++retry < 2);
 		if (allbad) {
 			/* no mirror took a good copy of the block */
 			print("#k/%s: byte %,lld count %ld: CAN'T WRITE "
