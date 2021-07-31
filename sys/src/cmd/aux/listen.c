@@ -258,24 +258,10 @@ addannounce(char *fmt, ...)
 	*l = a;
 }
 
-static int
-ignore(char *srvdir, char *name)
-{
-	int rv;
-	char *file = smprint("%s/%s", srvdir, name);
-	Dir *d = dirstat(file);
-
-	rv = !d || d->length <= 0;	/* ignore unless it's non-empty */
-	free(d);
-	free(file);
-	return rv;
-}
-
 void
 scandir(char *proto, char *protodir, char *dname)
 {
 	int fd, i, n, nlen;
-	char *nm;
 	Dir *db;
 
 	fd = open(dname, OREAD);
@@ -285,12 +271,11 @@ scandir(char *proto, char *protodir, char *dname)
 	nlen = strlen(proto);
 	while((n=dirread(fd, &db)) > 0){
 		for(i=0; i<n; i++){
-			nm = db[i].name;
-			if(db[i].qid.type&QTDIR ||
-			    strncmp(nm, proto, nlen) != 0 ||
-			    ignore(dname, nm))
+			if(db[i].qid.type&QTDIR)
 				continue;
-			addannounce("%s!*!%s", protodir, nm+nlen);
+			if(strncmp(db[i].name, proto, nlen) != 0)
+				continue;
+			addannounce("%s!*!%s", protodir, db[i].name+nlen);
 		}
 		free(db);
 	}
@@ -372,7 +357,7 @@ dolisten(char *proto, char *dir, int ctl, char *srvdir, char *dialstr)
  * if the shell script or program is zero-length, ignore it,
  * thus providing a way to disable a service with a bind.
  */
-int
+int 
 findserv(char *proto, char *dir, Service *s, char *srvdir)
 {
 	int rv;
@@ -382,7 +367,7 @@ findserv(char *proto, char *dir, Service *s, char *srvdir)
 		return 0;
 	snprint(s->prog, sizeof s->prog, "%s/%s", srvdir, s->serv);
 	d = dirstat(s->prog);
-	rv = d && d->length > 0;	/* ignore unless it's non-empty */
+	rv = d && d->length > 0;
 	free(d);
 	return rv;
 }

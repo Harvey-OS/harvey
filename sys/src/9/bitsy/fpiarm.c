@@ -185,17 +185,12 @@ static ulong
 fcmp(Internal *n, Internal *m)
 {
 	int i;
-	Internal rm, rn;
 
 	if(IsWeird(m) || IsWeird(n)){
 		/* BUG: should trap if not masked */
 		return V|C;
 	}
-	rn = *n;
-	rm = *m;
-	fpiround(&rn);
-	fpiround(&rm);
-	i = fpicmp(&rn, &rm);
+	i = fpicmp(n, m);
 	if(i > 0)
 		return C;
 	else if(i == 0)

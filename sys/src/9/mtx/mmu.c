@@ -248,10 +248,8 @@ countpagerefs(ulong*, int)
 ulong
 cankaddr(ulong pa)
 {
-	ulong kzero;
-
-	kzero = -KZERO;
-	if(pa >= kzero)
+	if(pa >= -KZERO)
 		return 0;
-	return kzero - pa;
+	return -KZERO - pa;
 }
+
