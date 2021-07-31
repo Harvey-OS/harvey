@@ -625,7 +625,8 @@ execproc(void *v)
 		cmd = estrstrdup("/bin/", av[0]);
 		procexec(cpid, cmd, av);
 	}
-	error("can't exec %s: %r", av[0]);
+	sendul(cpid, 0UL);
+	threadexits("can't exec");
 }
 
 void
@@ -646,6 +647,10 @@ startcmd(char *argv[], int *notepg)
 	do
 		pid = recvul(cpid);
 	while(pid == -1);
+	if(pid == 0){
+		error("can't exec %s: %r", argv[0]);
+		threadexitsall("can't exec");
+	}
 	sprint(buf, "/proc/%d/notepg", pid);
 	*notepg = open(buf, OWRITE);
 }

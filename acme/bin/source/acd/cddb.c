@@ -35,21 +35,6 @@ diskid(Toc *t)
 	return ((n & 0xFF) << 24 | (tmp << 8) | t->ntrack);
 }
 
-static void
-append(char **d, char *s)
-{
-	char *r;
-	if (*d == nil)
-		*d = estrdup(s);
-	else {
-		r = emalloc(strlen(*d) + strlen(s) + 1);
-		strcpy(r, *d);
-		strcat(r, s);
-		free(*d);
-		*d = r;
-	}
-}
-
 static int
 cddbfilltoc(Toc *t)
 {
@@ -61,8 +46,6 @@ cddbfilltoc(Toc *t)
 	char *f[10];
 	int nf;
 	char *id, *categ;
-	char gottrack[MTRACK];
-	int gottitle;
 
 	fd = dial("tcp!freedb.freedb.org!888", 0, 0, 0);
 	if(fd < 0) {
@@ -142,9 +125,6 @@ cddbfilltoc(Toc *t)
 
 	/* fetch results for this cd */
 	fprint(fd, "cddb read %s %s\r\n", categ, id);
-
-	memset(gottrack, 0, sizeof(gottrack));
-	gottitle = 0;
 	do {
 		if((p = Brdline(&bin, '\n')) == nil)
 			goto died;
@@ -152,13 +132,9 @@ cddbfilltoc(Toc *t)
 		while(isspace(*q))
 			*q-- = 0;
 DPRINT(2, "cddb %s\n", p);
-		if(strncmp(p, "DTITLE=", 7) == 0) {
-			if (gottitle)
-				append(&t->title, p + 7);
-			else
-				t->title = estrdup(p+7);
-			gottitle = 1;
-		} else if(strncmp(p, "TTITLE", 6) == 0 && isdigit(p[6])) {
+		if(strncmp(p, "DTITLE=", 7) == 0)
+			t->title = estrdup(p+7);
+		else if(strncmp(p, "TTITLE", 6) == 0 && isdigit(p[6])) {
 			i = atoi(p+6);
 			if(i < t->ntrack) {
 				p += 6;
@@ -167,11 +143,7 @@ DPRINT(2, "cddb %s\n", p);
 				if(*p == '=')
 					p++;
 
-				if (gottrack[i])
-					append(&t->track[i].title, p);
-				else
-					t->track[i].title = estrdup(p);
-				gottrack[i] = 1;
+				t->track[i].title = estrdup(p);
 			}
 		} 
 	} while(*p != '.');
@@ -182,6 +154,7 @@ DPRINT(2, "cddb %s\n", p);
 
 	return 0;
 }
+
 
 void
 cddbproc(void *v)

@@ -21,7 +21,6 @@ dev
 	draw		screen vga vgax
 	mouse		mouse
 	vga
-	kbmap
 
 	sd
 	floppy		dma
@@ -46,12 +45,10 @@ link
 	ether82543gc	pci
 	ether82557	pci
 	ether83815	pci
-	etherdp83820	pci
 	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
-	etherrhine	pci ethermii
 #	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
@@ -59,6 +56,7 @@ link
 	pcmciamodem
 	netdevmedium
 #	usbuhci
+#	usbohci
 
 misc
 #	archmp		mp apic
@@ -68,7 +66,6 @@ misc
 	sdmylex		pci sdscsi
 
 	uarti8250
-#	uartpci		pci
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur
