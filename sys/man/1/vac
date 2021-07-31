@@ -58,16 +58,16 @@ but simply reduce the number of write operations to Venti.
 .PP
 The output of
 .I vac
-is the hexadecimal representation of the SHA1 fingerprint of the root of the archive, in this format:
+is the hexadecimal representation of the Sha1 fingerprint of the root of the archive, in this format:
 .IP
 .EX
 vac:64daefaecc4df4b5cb48a368b361ef56012a4f46
 .EE
 .PP
-The options to 
+Option to 
 .I vac
 are:
-.TF "-d\fI oldvacfile"
+.TF "\fL-d\fI oldvacfile"
 .PD
 .TP
 .BI -b " blocksize

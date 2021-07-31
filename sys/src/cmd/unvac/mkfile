@@ -1,0 +1,33 @@
+</$objtype/mkfile
+
+TARG=unvac
+BIN=/$objtype/bin
+
+LIBFILES=\
+	unvac\
+	error\
+	file\
+	glob\
+	pack\
+
+LIB=${LIBFILES:%=%.$O}
+
+HFILES=\
+	/sys/include/venti.h\
+	stdinc.h\
+	error.h\
+	vac.h\
+	dat.h\
+	fns.h\
+
+CFILES=${TARG:%=%.c} ${LIBFILES:%=%.c}
+
+UPDATE=\
+	mkfile\
+	$CFILES\
+	$HFILES\
+	${TARG:%=/386/bin/%}
+
+default:V: all
+
+</sys/src/cmd/mkone
