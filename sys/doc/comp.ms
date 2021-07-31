@@ -1,4 +1,3 @@
-.HTML "How to Use the Plan 9 C Compiler
 .TL
 How to Use the Plan 9 C Compiler
 .AU

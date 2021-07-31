@@ -1,4 +1,3 @@
-.HTML "The IL Protocol
 .TL
 The IL protocol
 .AU

@@ -1,4 +1,3 @@
-.HTML "Plan 9 Mkfiles
 .TL
 Plan 9 Mkfiles
 .AU

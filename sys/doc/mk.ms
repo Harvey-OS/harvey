@@ -1,4 +1,3 @@
-.HTML "Maintaining Files on Plan 9 with Mk
 .TL
 Maintaining Files on Plan 9 with Mk
 .AU

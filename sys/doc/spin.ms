@@ -1,4 +1,3 @@
-.HTML "Using SPIN
 .\" runoff as:
 .\" eqn file | tbl | troff -ms
 .\"

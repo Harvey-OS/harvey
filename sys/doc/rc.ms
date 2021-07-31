@@ -1,4 +1,3 @@
-.HTML "Rc — The Plan 9 Shell
 .	\" /*% refer -k -e -n -l3,2 -s < % | tbl | troff -ms | lp -dfn
 .Tm shell programming language	g
 .de TP	\" An indented paragraph describing some command, tagged with the command name

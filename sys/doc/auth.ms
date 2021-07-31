@@ -1,4 +1,3 @@
-.HTML "Security in Plan 9
 .de SS
 .NH 2
 ..
@@ -47,7 +46,7 @@ applications.
 has an unusual architecture: it is implemented
 as a Plan 9 file server.
 .FS
-Appeared, in a slightly different form, in
+To appear, in a slightly different form, in
 .I
 Proc. of the 2002 Usenix Security Symposium,
 .R
@@ -156,7 +155,6 @@ Transport Layer Security (TLS)
 [RFC2246];
 and began using encryption for all communications within the system.
 The overall architecture is illustrated in Figure 1a.
-.if h .B1 10 60
 .KF
 .EQ
 gsize 9
@@ -223,7 +221,6 @@ is a shared resource for storing private information such as keys;
 consults it for the user during bootstrap.
 .sp
 .KE
-.if h .B2
 .EQ
 gsize 11
 .EN

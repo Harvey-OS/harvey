@@ -1,4 +1,3 @@
-.HTML "Plan 9 from Bell Labs"
 .TL
 Plan 9 from Bell Labs
 .AU

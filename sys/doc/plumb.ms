@@ -1,4 +1,3 @@
-.HTML "Plumbing and Other Utilities
 .TL
 Plumbing and Other Utilities
 .AU
@@ -92,7 +91,6 @@ For example,
 is by convention the file from which a text editor reads messages requesting it to
 open and display a file for editing.
 (See Figure 1.)
-.if h .B1 10 60
 .KF
 .PS
 down
@@ -137,7 +135,6 @@ Although the figure doesn't illustrate it, some programs may both send and recei
 and some ports are read by multiple applications.
 .sp
 .KE
-.if h .B2
 .LP
 The plumber takes messages from the
 .CW send

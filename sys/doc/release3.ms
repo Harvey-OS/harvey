@@ -1,4 +1,3 @@
-.HTML "Plan 9 — Third Edition Release Notes
 .TL
 Plan 9 From Bell Labs
 .br

@@ -1,4 +1,3 @@
-.HTML "Hello World or Καλημέρα κόσμε or こんにちは 世界
 .TL
 Hello World
 .br

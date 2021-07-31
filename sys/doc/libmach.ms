@@ -1,4 +1,3 @@
-.HTML "Adding Application Support for a New Architecture in Plan 9
 .TL
 Adding Application Support for a New Architecture in Plan 9
 .AU
