@@ -1479,18 +1479,16 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 	io->state = Qinstall;
 
 	c = a;
+	assert(a != nil);
 	ltd = td0 = ed->tds;
 	load = tot = 0;
 	do{
 		n = ep->maxpkt;
 		if(count-tot < n)
 			n = count-tot;
-		if(io->tok != Tdtokin) {
-			if(c == nil)
-				panic("usbohci: epio: io->tok != Tdtokin && "
-					"a == nil");
+		if(io->tok != Tdtokin)
 			td = epgettd(ep, io, &ltd, 0, c+tot, n);
-		} else
+		else
 			td = epgettd(ep, io, &ltd, 0, nil, n);
 		tot += n;
 		load += ep->load;
@@ -1535,9 +1533,6 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 			n = BLEN(td->bp);
 			tot += n;
 			if(tdtok(td) == Tdtokin && n > 0){
-				if(c == nil)
-					panic("usbohci: epio: tdtok(td) == "
-						"Tdtokin && n > 0 && c == nil");
 				memmove(c, td->bp->rp, n);
 				c += n;
 			}
@@ -1743,7 +1738,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 		cio->tok = Tdtokin;
 	}
 	cio->toggle = Tddata1;
-	epio(ep, cio, nil, 0, 0);	/* nil is bad; this can't be right */
+	epio(ep, cio, nil, 0, 0);
 	qunlock(cio);
 	poperror();
 	ddeprint("epctlio cio %#p return %ld\n", cio, count);
@@ -2375,7 +2370,7 @@ scanpci(void)
 			continue;
 		}
 
-		ctlr = smalloc(sizeof(Ctlr));
+		ctlr = mallocz(sizeof(Ctlr), 1);
 		ctlr->pcidev = p;
 		ctlr->ohci = vmap(mem, p->mem[0].size);
 		dprint("scanpci: ctlr %#p, ohci %#p\n", ctlr, ctlr->ohci);
