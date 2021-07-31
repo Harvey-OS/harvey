@@ -585,10 +585,10 @@ sysbrk_(void)
 	}
 	s = &memory.seg[Bss];
 	if(addr > s->end) {
-		osize = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
+		osize = ((s->end-s->base)/BY2PG)*BY2WD;
 		addr = ((addr)+(BY2PG-1))&~(BY2PG-1);
 		s->end = addr;
-		nsize = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
+		nsize = ((s->end-s->base)/BY2PG)*BY2WD;
 		s->table = erealloc(s->table, osize, nsize);
 	}	
 

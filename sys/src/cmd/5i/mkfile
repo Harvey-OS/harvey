@@ -14,12 +14,6 @@ OFILES=	5i.$O\
 HFILES=arm.h\
 
 BIN=/$objtype/bin
-
-UPDATE=\
-	mkfile\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-
 </sys/src/cmd/mkone
 
 acid:	

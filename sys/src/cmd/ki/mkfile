@@ -22,6 +22,3 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 
 </sys/src/cmd/mkone
-
-acid:	
-	$CC -a run.c > acid.def
