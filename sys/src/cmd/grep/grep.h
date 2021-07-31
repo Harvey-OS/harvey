@@ -85,7 +85,6 @@ EXTERN	union
 } u;
 
 EXTERN	char	*filename;
-EXTERN	char	*pattern;
 EXTERN	Biobuf	bout;
 EXTERN	char	flags[256];
 EXTERN	Re**	follow;

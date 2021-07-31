@@ -17,11 +17,8 @@
 %token		LBEGIN LEND LDOT LBAD LNEWLINE
 %%
 
-prog:	/* empty */
-	{
-		yyerror("empty pattern");
-	}
-|	expr newlines
+prog:
+	expr newlines
 	{
 		$$.beg = ral(Tend);
 		$$.end = $$.beg;
@@ -120,17 +117,10 @@ newlines:
 void
 yyerror(char *e, ...)
 {
-	va_list args;
-
-	fprint(2, "grep: ");
 	if(filename)
-		fprint(2, "%s:%ld: ", filename, lineno);
-	else if (pattern)
-		fprint(2, "%s: ", pattern);
-	va_start(args, e);
-	vfprint(2, e, args);
-	va_end(args);
-	fprint(2, "\n");
+		fprint(2, "grep: %s:%ld: %s\n", filename, lineno, e);
+	else
+		fprint(2, "grep: %s\n", e);
 	exits("syntax");
 }
 
