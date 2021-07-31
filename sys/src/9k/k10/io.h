@@ -253,9 +253,6 @@ struct Pcidev
 };
 
 #define PCIWINDOW	0
-#define PCIWADDR64(va)	(PADDR(va)+PCIWINDOW)
-#define	PCIWADDR32(va)	((ulong)PCIWADDR64(va))
+#define PCIWADDR(va)	(PADDR(va)+PCIWINDOW)
 #define ISAWINDOW	0
 #define ISAWADDR(va)	(PADDR(va)+ISAWINDOW)
-#define	PCIWADDRL(va)	((ulong)PCIWADDR64(va))
-#define	PCIWADDRH(va)	((ulong)(PCIWADDR64(va)>>32))
