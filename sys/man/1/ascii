@@ -17,6 +17,9 @@ ascii, unicode \- interpret ASCII, Unicode characters
 ]
 .PP
 .B unicode
+[
+.B -nt
+]
 .IB hexmin - hexmax
 .PP
 .B unicode
