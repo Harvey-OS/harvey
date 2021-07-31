@@ -97,4 +97,3 @@ bootdir
 	/386/bin/srv
 	/386/bin/test
 	/386/bin/usb/usbd
-	/386/bin/disk/partfs
