@@ -833,8 +833,6 @@ aaml1:
 	RET
 
 TEXT hello(SB), $0
-	BYTE $'\r';
-	BYTE $'\n';
 	BYTE $'P'; BYTE $'l'; BYTE $'a'; BYTE $'n';
 	BYTE $' '; BYTE $'9'; BYTE $' '; BYTE $'f';
 	BYTE $'r'; BYTE $'o'; BYTE $'m'; BYTE $' ';

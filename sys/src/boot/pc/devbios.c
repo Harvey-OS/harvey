@@ -129,21 +129,16 @@ biosinit(void)
 	Biosdev *bdp;
 	static int beenhere;
 
+	mask = lastbit = 0;
+
 	/* 9pxeload can't use bios int 13 calls; they wedge the machine */
-	if (pxe || !biosload || onlybios0 || biosinited || beenhere)
-		return 0;
+	if (pxe || getconf("*nobiosload") != nil || onlybios0 || biosinited ||
+	    beenhere)
+		return mask;
 	beenhere = 1;
 
-	mask = lastbit = 0;
 	for (devid = 0; devid < (1 << 8) && bdrive.ndevs < Maxdevs; devid++) {
 		lba = islba(devid);
-		if (lba < 0) {
-			if (devid > 0)
-				continue;
-			print("bios call failed; bios loading disabled\n");	
-			biosload = 0;
-			return 0;
-		}
 		if(!lba /* || devid != Baseid && dreset(devid) < 0 */ )
 			continue;
 		type = Typedisk;		/* HACK */
@@ -275,10 +270,10 @@ static int
 islba(uchar drive)
 {
 	if (biosdiskcall(&regs, Biosckext, 0x55aa, drive, 0) < 0)
-		return -1;
+		return 0;
 	if(regs.bx != 0xaa55){
 		print("islba: buggy bios\n");
-		return -1;
+		return 0;
 	}
 	if (Debug)
 		print("islba: drive 0x%ux extensions version %d.%d cx 0x%lux\n",
