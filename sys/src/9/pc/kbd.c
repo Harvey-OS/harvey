@@ -53,10 +53,6 @@ enum {
 	Scroll=		KF|21,
 
 	Nscan=	128,
-
-	Int=	0,			/* kbscans indices */
-	Ext,
-	Nscans,
 };
 
 /*
@@ -180,7 +176,7 @@ void (*kbdmouse)(int);
 static Lock i8042lock;
 static uchar ccc;
 static void (*auxputc)(int, int);
-static int nokbd = 1;			/* flag: no PS/2 keyboard */
+static int nokbd = 1;
 
 /*
  *  wait for output no longer busy
@@ -320,41 +316,8 @@ struct Kbscan {
 	int	buttons;
 };
 
-Kbscan kbscans[Nscans];	/* kernel and external scan code state */
-
+Kbscan kbscans[2];	/* kernel and external scan code state */
 static int kdebug;
-
-/*
- * set keyboard's leds for lock states (scroll, numeric, caps).
- *
- * at least one keyboard (from Qtronics) also sets its numeric-lock
- * behaviour to match the led state, though it has no numeric keypad,
- * and some BIOSes bring the system up with numeric-lock set and no
- * setting to change that.  this combination steals the keys for these
- * characters and makes it impossible to generate them: uiolkjm&*().
- * thus we'd like to be able to force the numeric-lock led (and behaviour) off.
- */
-static void
-setleds(Kbscan *kbscan)
-{
-	int leds;
-
-	if(nokbd || kbscan != &kbscans[Int])
-		return;
-	leds = 0;
-	if(kbscan->num)
-		leds |= 1<<1;
-	if(0 && kbscan->caps)		/* we don't implement caps lock */
-		leds |= 1<<2;
-	ilock(&i8042lock);
-	outready();
-	outb(Data, 0xed);		/* `reset keyboard lock states' */
-	outready();
-	outb(Data, leds);
-	outready();
-	iunlock(&i8042lock);
-}
-
 /*
  * Scan code processing
  */
@@ -365,9 +328,9 @@ kbdputsc(int c, int external)
 	Kbscan *kbscan;
 
 	if(external)
-		kbscan = &kbscans[Ext];
+		kbscan = &kbscans[1];
 	else
-		kbscan = &kbscans[Int];
+		kbscan = &kbscans[0];
 
 	if(kdebug)
 		print("sc %x ms %d\n", c, mouseshifted);
@@ -421,8 +384,8 @@ kbdputsc(int c, int external)
 		case Shift:
 			kbscan->shift = 0;
 			mouseshifted = 0;
-			if(kdebug)
-				print("shiftclr\n");
+if(kdebug)
+	print("shiftclr\n");
 			break;
 		case Ctrl:
 			kbscan->ctl = 0;
@@ -473,13 +436,11 @@ kbdputsc(int c, int external)
 			return;
 		case Num:
 			kbscan->num ^= 1;
-			if(!external)
-				setleds(kbscan);
 			return;
 		case Shift:
 			kbscan->shift = 1;
-			if(kdebug)
-				print("shift\n");
+if(kdebug)
+	print("shift\n");
 			mouseshifted = 1;
 			return;
 		case Latin:
@@ -515,7 +476,6 @@ kbdputsc(int c, int external)
 				kbdmouse(kbscan->buttons);
 			return;
 		case KF|11:
-			print("kbd debug on, F12 turns it off\n");
 			kdebug = 1;
 			break;
 		case KF|12:
@@ -555,11 +515,11 @@ i8042intr(Ureg*, void*)
 	 */
 	if(s & Minready){
 		if(auxputc != nil)
-			auxputc(c, kbscans[Int].shift);
+			auxputc(c, kbscans[0].shift);	/* internal source */
 		return;
 	}
 
-	kbdputsc(c, Int);
+	kbdputsc(c, 0);			/* internal source */
 }
 
 void
@@ -655,9 +615,6 @@ kbdenable(void)
 	ioalloc(Cmd, 1, 0, "kbd");
 
 	intrenable(IrqKBD, i8042intr, 0, BUSUNKNOWN, "kbd");
-
-	kbscans[Int].num = 0;
-	setleds(&kbscans[Int]);
 }
 
 void
