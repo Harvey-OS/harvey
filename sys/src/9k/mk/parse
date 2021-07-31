@@ -474,14 +474,14 @@ function mkrules(dir, exists, ameta, cmeta, flags,		f, i, s, t){
 		exists[$0] = dir;
 		if(f ~ /\.c$/){
 			if(!($0 in dbgc)){
-				cmeta[cmeta["k"]++] = $0
+				cmeta[$0]++;
 				continue;
 			}
 			t = "$CC $CFLAGS " flags;
 		}
 		else{
 			if(!($0 in dbgc)){
-				ameta[ameta["k"]++] = $0
+				ameta[$0]++;
 				continue;
 			}
 			t = "$AS $AFLAGS " flags;
@@ -539,37 +539,27 @@ function mkdevlist(					a, array, i, j, n, s){
 	return listolate(array, " ");
 }
 
-function listolate(array, sep,				i, n, a, s){
-	n = array["k"]
-	if(n == 0)
-		return ""
-	s = array[0]
-	for(i = 1; i < n; i++)
-		s = s sep array[i]
+function listolate(array, sep,				a, s){
+	s = "";
+	for(a in array){
+		if(s == "")
+			s = a;
+		else
+			s = a sep s;
+	}
+
 	return s;
 }
 
-function unique(array, n, s,					i){
-	for(i = 0; i < n; i++)
-		if(array[i] == s)
-			return 0
-	return 1
-}
-
-function arrayify(array, tag, prefix, suffix, one,	a, i, j, k, n){
-	k = 0;
-	if(array["k"] > k)
-		k = array["k"]
+function arrayify(array, tag, prefix, suffix, one,	a, i, j, n){
 	for(i = 1; i < section[tag]; i++){
 		n = split(line[tag, i], a);
 		if(one)
-			array[k++] = prefix a[1] suffix
+			array[prefix a[1] suffix]++;
 		for(j = 2; j <= n; j++){
 			if(a[$j] ~ /[+=-].*/)
 				continue;
-			if(unique(array, k, a[j] suffix))
-				array[k++] = a[j] suffix
+			array[a[j] suffix]++;
 		}
 	}
-	array["k"] = k
 }
