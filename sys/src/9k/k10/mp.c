@@ -480,7 +480,6 @@ mpsinit(void)
 	 * startup.
 	 */
 	mpparse(pcmp);
-	mpacpi();
 
 	apicdump();
 	ioapicdump();

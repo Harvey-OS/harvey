@@ -218,11 +218,6 @@ extern int i8259isr(int);
 extern void mpsinit(void);
 
 /*
- * mpacpi.c
- */
-extern void mpacpi(void);
-
-/*
  * sipi.c
  */
 extern void sipi(void);
