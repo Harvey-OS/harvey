@@ -53,7 +53,6 @@ extern	int	sprint(char*, char*, ...);
 extern 	int	snprint(char*, int, char*, ...);
 extern	int	fmtinstall(int, int (*)(Fmt*));
 
-#pragma varargck	argpos	addconf 1
 #pragma	varargck	argpos	fmtprint	2
 #pragma	varargck	argpos	print		1
 #pragma	varargck	argpos	seprint		3
