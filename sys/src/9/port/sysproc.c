@@ -754,10 +754,8 @@ syssegdetach(ulong *arg)
 	error(Ebadarg);
 
 found:
-	/*
-	 * Check we are not detaching the initial stack segment.
-	 */
-	if(s == up->seg[SSEG]){
+	/* Check we are not detaching the current stack segment */
+	if((ulong)arg >= s->base && (ulong)arg < s->top) {
 		qunlock(&s->lk);
 		error(Ebadarg);
 	}

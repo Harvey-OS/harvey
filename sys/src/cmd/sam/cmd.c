@@ -3,7 +3,7 @@
 
 static char	linex[]="\n";
 static char	wordx[]=" \t\n";
-Cmdtab cmdtab[]={
+struct cmdtab cmdtab[]={
 /*	cmdc	text	regexp	addr	defcmd	defaddr	count	token	 fn	*/
 	'\n',	0,	0,	0,	0,	aDot,	0,	0,	nl_cmd,
 	'a',	1,	0,	0,	0,	aDot,	0,	0,	a_cmd,
@@ -108,26 +108,15 @@ inputc(void)
 int
 inputline(void)
 {
-	int i, c, start;
+	int i, c;
 
-	/*
-	 * Could set linep = line and i = 0 here and just
-	 * error(Etoolong) below, but this way we keep
-	 * old input buffer history around for a while.
-	 * This is useful only for debugging.
-	 */
-	i = linep - line;
+	linep = line;
+	i = 0;
 	do{
 		if((c = inputc())<=0)
 			return -1;
-		if(i == nelem(line)-1){
-			if(linep == line)
-				error(Etoolong);
-			start = linep - line;
-			runemove(line, linep, i-start);
-			i -= start;
-			linep = line;
-		}
+		if(i == (sizeof line)/RUNESIZE-1)
+			error(Etoolong);
 	}while((line[i++]=c) != '\n');
 	line[i] = 0;
 	return 1;
@@ -197,7 +186,7 @@ termcommand(void)
 	Posn p;
 
 	for(p=cmdpt; p<cmd->nc; p++){
-		if(terminp >= termline+nelem(termline)){
+		if(terminp >= &termline[BLOCKSIZE]){
 			cmdpt = cmd->nc;
 			error(Etoolong);
 		}
@@ -400,7 +389,7 @@ Cmd *
 parsecmd(int nest)
 {
 	int i, c;
-	Cmdtab *ct;
+	struct cmdtab *ct;
 	Cmd *cp, *ncp;
 	Cmd cmd;
 

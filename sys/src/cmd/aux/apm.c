@@ -621,7 +621,7 @@ Dfile dfile[] = {
 };
 
 static int
-fillstat(uvlong path, Dir *d, int doalloc)
+fillstat(ulong path, Dir *d, int doalloc)
 {
 	int i;
 
@@ -713,15 +713,14 @@ fswrite(Req *r)
 static void
 rootread(Req *r)
 {
-	int n;
-	uvlong offset;
+	int n, offset;
 	char *p, *ep;
 	Dir d;
 
 	if(r->ifcall.offset == 0)
 		offset = 0;
 	else
-		offset = (uvlong)r->fid->aux;
+		offset = (int)r->fid->aux;
 
 	p = r->ofcall.data;
 	ep = r->ofcall.data+r->ifcall.count;

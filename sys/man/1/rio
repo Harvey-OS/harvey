@@ -50,10 +50,6 @@ rio, label, window, wloc \- window system
 ] [
 .B -hide
 ] [
-.B -scroll
-] [
-.B -noscroll
-] [
 .I cmd
 .I arg ...
 ]
@@ -124,22 +120,13 @@ and placement
 .RB ( minx ,
 .BR miny ,
 .BR maxx ,
-.BR maxy );
+.BR maxy ;
+.BR hide
+causes the window to be created off-screen); and working directory
+.RB ( cd ).
 the units are pixels with the
 upper left corner of the screen at (0, 0).
-The
-.B hide
-option causes the window to be created off-screen.
-The
-.B scroll
-and
-.B noscroll
-options set the scroll mode.
-The
-.B cd
-option sets the working directory.
-The optional command and arguments 
-define which program to run in the window.
+The optional command and arguments define which program to run in the window.
 .PP
 By default,
 .I window

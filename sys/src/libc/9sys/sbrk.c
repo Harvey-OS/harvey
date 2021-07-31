@@ -13,9 +13,9 @@ enum
 int
 brk(void *p)
 {
-	uintptr bl;
+	ulong bl;
 
-	bl = ((uintptr)p + Round) & ~Round;
+	bl = ((ulong)p + Round) & ~Round;
 	if(brk_((void*)bl) < 0)
 		return -1;
 	bloc = (char*)bl;
@@ -25,9 +25,9 @@ brk(void *p)
 void*
 sbrk(ulong n)
 {
-	uintptr bl;
+	ulong bl;
 
-	bl = ((uintptr)bloc + Round) & ~Round;
+	bl = ((ulong)bloc + Round) & ~Round;
 	if(brk_((void*)(bl+n)) < 0)
 		return (void*)-1;
 	bloc = (char*)bl + n;

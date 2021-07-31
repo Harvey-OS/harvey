@@ -76,8 +76,7 @@ threadmain(int argc, char *argv[])
 	ARGBEGIN{
 	}ARGEND;
 
-	if(newwindow("-hide") < 0)
-		sysfatal("newwindow: %r");
+	newwindow("-hide");
 
 	fmtinstall('A', _attrfmt);
 

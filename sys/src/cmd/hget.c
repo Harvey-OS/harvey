@@ -389,8 +389,6 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 					"Content-length: %d\r\n"
 					"User-agent: Plan9/hget\r\n",
 					u->page, u->host, strlen(u->postbody));
-			if(u->cred)
-				dfprint(fd, "Authorization: Basic %s\r\n", u->cred);
 		}
 		if(r->start != 0){
 			dfprint(fd, "Range: bytes=%d-\n", r->start);

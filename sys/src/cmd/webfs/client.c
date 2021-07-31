@@ -139,24 +139,13 @@ plumburl(char *url, char *base)
 {
 	int i;
 	Client *c;
-	Url *ubase, *uurl;
 
-	ubase = nil;
-	if(base){
-		ubase = parseurl(base, nil);
-		if(ubase == nil)
-			return;
-	}
-	uurl = parseurl(url, ubase);
-	if(uurl == nil){
-		freeurl(ubase);
-		return;
-	}
 	i = newclient(1);
 	c = client[i];
 	c->ref++;
-	c->baseurl = ubase;
-	c->url = uurl;
+	if(base != nil)
+		c->baseurl = parseurl(base, nil);
+	c->url = parseurl(url, c->baseurl);
 	sendp(c->creq, nil);
 }
 
@@ -188,10 +177,6 @@ clientthread(void *a)
 	c = a;
 	if(c->plumbed) {
 		recvp(c->creq);
-		if(c->url == nil){
-			fprint(2, "bad url got plumbed\n");
-			return;
-		}
 		clientbodyopen(c, nil);
 		replumb(c);
 	}

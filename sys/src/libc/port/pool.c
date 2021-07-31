@@ -435,8 +435,6 @@ dsize2bsize(Pool *p, ulong sz)
 	sz += sizeof(Bhdr)+sizeof(Btail);
 	if(sz < p->minblock)
 		sz = p->minblock;
-	if(sz < MINBLOCKSIZE)
-		sz = MINBLOCKSIZE;
 	sz = (sz+p->quantum-1)&~(p->quantum-1);
 	return sz;
 }
@@ -526,7 +524,7 @@ blocksetdsize(Pool *p, Alloc *b, ulong dsize)
 	if(eq > q+4)
 		eq = q+4;
 	for(; q<eq; q++)
-		*q = datamagic[((ulong)(uintptr)q)%nelem(datamagic)];
+		*q = datamagic[((ulong)q)%nelem(datamagic)];
 
 	return b;
 }
@@ -836,7 +834,7 @@ blockcheck(Pool *p, Bhdr *b)
 		if(eq > bq+4)
 			eq = bq+4;
 		for(q=bq; q<eq; q++){
-			if(*q != datamagic[((uintptr)q)%nelem(datamagic)]){
+			if(*q != datamagic[((ulong)q)%nelem(datamagic)]){
 				if(q == bq && *q == 0 && (p->flags & POOL_TOLERANCE)){
 					printblock(p, b, "mem user overflow");
 					continue;
@@ -964,8 +962,8 @@ D2B(Pool *p, void *v)
 	Alloc *a;
 	ulong *u;
 
-	if((uintptr)v&(sizeof(ulong)-1))
-		v = (char*)v - ((uintptr)v&(sizeof(ulong)-1));
+	if((ulong)v&(sizeof(ulong)-1))
+		v = (char*)v - ((ulong)v&(sizeof(ulong)-1));
 	u = v;
 	while(u[-1] == ALIGN_MAGIC)
 		u--;
@@ -1090,7 +1088,7 @@ alignptr(void *v, ulong align, long offset)
 
 	c = v;
 	if(align){
-		off = (uintptr)c%align;
+		off = (ulong)c%align;
 		if(off != offset){
 			c += offset - off;
 			if(off > offset)
@@ -1135,7 +1133,7 @@ poolallocalignl(Pool *p, ulong dsize, ulong align, long offset, ulong span)
 	v = poolallocl(p, asize);
 	if(v == nil)
 		return nil;
-	if(span && (uintptr)v/span != ((uintptr)v+asize)/span){
+	if(span && (ulong)v/span != ((ulong)v+asize)/span){
 		/* try again */
 		poolfreel(p, v);
 		v = poolallocl(p, 2*asize);
@@ -1147,10 +1145,10 @@ poolallocalignl(Pool *p, ulong dsize, ulong align, long offset, ulong span)
 	 * figure out what pointer we want to return
 	 */
 	c = alignptr(v, align, offset);
-	if(span && (uintptr)c/span != (uintptr)(c+dsize-1)/span){
-		c += span - (uintptr)c%span;
+	if(span && (ulong)c/span != (ulong)(c+dsize-1)/span){
+		c += span - (ulong)c%span;
 		c = alignptr(c, align, offset);
-		if((uintptr)c/span != (uintptr)(c+dsize-1)/span){
+		if((ulong)c/span != (ulong)(c+dsize-1)/span){
 			poolfreel(p, v);
 			werrstr("cannot satisfy dsize %lud span %lud with align %lud+%ld", dsize, span, align, offset);
 			return nil;
@@ -1457,7 +1455,7 @@ memmark(void *v, int sig, ulong size)
 	lp = v;
 	elp = lp+size/4;
 	while(lp < elp)
-		*lp++ = (sig<<24) ^ (ulong)(uintptr)v;
+		*lp++ = (sig<<24) ^ (long)v;
 	p = (uchar*)lp;
 	ep = (uchar*)v+size;
 	while(p<ep)
