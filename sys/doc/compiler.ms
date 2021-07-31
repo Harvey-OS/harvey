@@ -22,12 +22,11 @@ is yet to be written.
 Introduction
 .LP
 There are many compilers in the series.
-Six of the compilers
-(Intel 386, AMD64, PowerPC, PowerPC 64-bit, ARM, MIPS R3000)
+Five of the compilers (Intel 386, AMD64, PowerPC, PowerPC 64-bit, ARM)
 are considered active and are used to compile
 current versions of Plan 9.
-One of the compilers (SPARC)
-is maintained but is for older machines
+Two of the compilers (MIPS 3000, SPARC)
+are maintained but are for older machines
 for which we have no current ports of Plan 9;
 we are unlikely to port to any SPARC machines.
 The DEC Alpha and Motorola 68020 compilers have been retired.
@@ -54,7 +53,7 @@ are combined by a loader
 program to produce the executable binary.
 The loader combines the roles of second half
 of the assembler, global optimizer, and loader.
-The names of the compilers, loaders, and assemblers
+The names of the compliers, loaders, and assemblers
 are as follows:
 .DS
 .ta 1.5i
