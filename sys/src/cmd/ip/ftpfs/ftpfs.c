@@ -26,7 +26,6 @@ Fcall	rhdr;
 Fcall	thdr;
 int	debug;
 int	usenlst;
-int	usetls;
 char	*ext;
 int	quiet;
 int	kapid = -1;
@@ -88,7 +87,7 @@ char *keyspec = "";
 void
 usage(void)
 {
-	fprint(2, "ftpfs [-/dqnt] [-a passwd] [-m mountpoint] [-e ext] [-o os] [-r root] [net!]address\n");
+	fprint(2, "ftpfs [-/dqn] [-a passwd] [-m mountpoint] [-e ext] [-o os] [-r root] [net!]address\n");
 	exits("usage");
 }
 
@@ -104,7 +103,6 @@ main(int argc, char *argv[])
 
 	defos = Unix;
 	user = strdup(getuser());
-	usetls = 0;
 
 	ARGBEGIN {
 	case '/':
@@ -130,9 +128,6 @@ main(int argc, char *argv[])
 		break;
 	case 'e':
 		ext = ARGF();
-		break;
-	case 't':
-		usetls = 1;
 		break;
 	case 'o':
 		cp = ARGF();
