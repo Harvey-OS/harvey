@@ -1964,9 +1964,7 @@ igbepci(void)
 				break;
 			case 0x00:
 			case 0xFF:
-				/* bogus value; use a sane default */
-				cls = CACHELINESZ/sizeof(long);
-				pcicfgw8(p, PciCLS, cls);
+				print("igbe: unusable CLS - %d\n", cls*4);
 				continue;
 			case 0x08:
 			case 0x10:

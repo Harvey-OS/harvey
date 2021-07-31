@@ -8,6 +8,7 @@ enum
 };
 
 #define seteisadma(a, b)	dmainit(a, Bufsize);
+#define CACHELINESZ		8
 #define UNCACHED(type, v)	(type*)((ulong)(v))
 
 #define Int0vec
