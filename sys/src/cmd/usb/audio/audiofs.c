@@ -22,7 +22,7 @@ typedef struct Worker Worker;
 struct Audioctldata
 {
 	long		offoff;			// offset of the offset for audioctl
-	long		values[2][Ncontrol][9];	// last values transmitted, K.Okamoto
+	long		values[2][Ncontrol][8];	// last values transmitted
 	char	*	s;
 	int		ns;
 };
@@ -373,7 +373,7 @@ allocaudioctldata(void)
 	a = emallocz(sizeof(Audioctldata), 1);
 	for (i = 0; i < 2; i++)
 		for(j=0; j < Ncontrol; j++)
-			for(k=0; k < 9; k++)		/* K.Okamoto */
+			for(k=0; k < 8; k++)
 			a->values[i][j][k] = Undef;
 	return a;
 }
@@ -450,8 +450,8 @@ makeaudioctldata(Fid *f)
 			c = &controls[rec][ctl];
 			different = 0;
 			if (c->chans){
-				for (i = 1; i < 9; i++)		/* K.Okamoto */
-					if ((c->chans & 1<<(i-1)) && c->value[i] != a->values[rec][ctl][i])	/* K.Okamoto */
+				for (i = 1; i < 8; i++)
+					if ((c->chans & 1<<i) && c->value[i] != a->values[rec][ctl][i])
 						different = 1;
 			}else
 				if (c->value[0] != a->values[rec][ctl][0])

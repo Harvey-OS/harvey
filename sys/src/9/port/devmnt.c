@@ -55,6 +55,7 @@ struct Mntalloc
 	ulong	tagmask[NMASK];
 }mntalloc;
 
+void	mattach(Mnt*, Chan*, char*);
 Mnt*	mntchk(Chan*);
 void	mntdirfix(uchar*, Chan*);
 Mntrpc*	mntflushalloc(Mntrpc*, ulong);

@@ -3,8 +3,6 @@
 
 enum
 {
-	Linktarget = 0x13,
-	Funcid = 0x21,
 	End =	0xff,
 };
 
@@ -12,21 +10,17 @@ int fd;
 int pos;
 
 void	tdevice(int, int);
-void	tlonglnkmfc(int, int);
-void	tfuncid(int, int);
 void	tcfig(int, int);
 void	tentry(int, int);
 void	tvers1(int, int);
 
 void (*parse[256])(int, int) =
 {
-[1]		tdevice,
-[6]		tlonglnkmfc,
-[0x15]		tvers1,
-[0x17]		tdevice,
-[0x1A]		tcfig,
-[0x1B]		tentry,
-[Funcid]	tfuncid,
+[1]	tdevice,
+[0x15]	tvers1,
+[0x17]	tdevice,
+[0x1A]	tcfig,
+[0x1B]	tentry,
 };
 
 int hex;
@@ -58,7 +52,7 @@ readc(void *x)
 }
 
 int
-tuple(int next, int expect)
+tuple(int next)
 {
 	uchar link;
 	uchar type;
@@ -68,14 +62,6 @@ tuple(int next, int expect)
 		return -1;
 	if(type == 0xff)
 		return -1;
-print("type %.2uX\n", type & 0xff);
-
-	if(expect && expect != type){
-		print("expected %.2uX found %.2uX\n", 
-			expect, type);
-		return -1;
-	}
-
 	if(readc(&link) != 1)
 		return -1;
 	if(parse[type])
@@ -108,7 +94,7 @@ main(int argc, char *argv[])
 		fatal("opening %s: %r", file);
 
 	for(next = 0; next >= 0;)
-		next = tuple(next, 0);
+		next = tuple(next);
 }
 
 ulong speedtab[16] =
@@ -238,49 +224,6 @@ tdevice(int ttype, int len)
 			ttname = "attr device";
 		print("%s %ld bytes of %ldns %s\n", ttname, bytes, ns, tname);
 	}
-}
-
-void
-tlonglnkmfc(int, int)
-{
-	int i, opos;
-	uchar nfn, space, expect;
-	int addr;
-
-	readc(&nfn);
-	for(i = 0; i < nfn; i++){
-		readc(&space);
-		addr = getlong(4);
-		opos = pos;
-		expect = Linktarget;
-		while(addr > 0){
-			addr = tuple(addr, expect);
-			expect = 0;
-		}
-		pos = opos;
-	}
-}
-
-static char *funcids[] = {
-	"MULTI",
-	"MEMORY",
-	"SERIAL",
-	"PARALLEL",
-	"FIXED",
-	"VIDEO",
-	"NETWORK",
-	"AIMS",
-	"SCSI",
-};
-
-void
-tfuncid(int, int)
-{
-	uchar func;
-
-	readc(&func);
-	print("Function %s\n", 
-		(func >= nelem(funcids))? "unknown function": funcids[func]);
 }
 
 void

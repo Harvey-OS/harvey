@@ -15,7 +15,7 @@ int	call(char *, char*, char*, char**);
 char	*buildargs(char*[]);
 int	send(int);
 void	error(char*, char*);
-void	sshexec(char*, char*);
+void	sshexec(char *host, char *cmd);
 
 void
 usage(void)
@@ -120,18 +120,17 @@ rex(int fd, char *cmd, char *proto)
 void
 tcpexec(int fd, char *addr, char *cmd)
 {
-	char *cp, *ep, *u, *ru, buf[4096];
+	char *cp, *ep, *u, buf[4096];
 	int kid, n;
+	char *r;
 
 	/*
 	 *  do the ucb authentication and send command
 	 */
 	u = getuser();
-	ru = ruser;
-	if(ru == nil)
-		ru = u;
+	r = ruser ? ruser : u;
 	if(write(fd, "", 1)<0 || write(fd, u, strlen(u)+1)<0
-	|| write(fd, ru, strlen(ru)+1)<0 || write(fd, cmd, strlen(cmd)+1)<0){
+	|| write(fd, r, strlen(r)+1)<0 || write(fd, cmd, strlen(cmd)+1)<0){
 		close(fd);
 		error("can't authenticate to", addr);
 	}
@@ -182,22 +181,7 @@ tcpexec(int fd, char *addr, char *cmd)
 void
 sshexec(char *host, char *cmd)
 {
-	char *argv[10];
-	int n;
-
-	n = 0;
-	argv[n++] = "ssh";
-	argv[n++] = "-iCm";
-	if(!returns)
-		argv[n++] = "-r";
-	if(ruser){
-		argv[n++] = "-l";
-		argv[n++] = ruser;
-	}
-	argv[n++] = host;
-	argv[n++] = cmd;
-	argv[n] = 0;
-	exec("/bin/ssh", argv);
+	execl("/bin/ssh", "ssh", "-iCm", host, cmd, 0);
 }
 
 int

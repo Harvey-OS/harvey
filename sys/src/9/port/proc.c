@@ -780,7 +780,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	splx(s);
 }
 
-static int
+int
 tfn(void *arg)
 {
 	return up->trend == nil || up->tfn(arg);

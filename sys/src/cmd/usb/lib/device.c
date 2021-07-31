@@ -135,17 +135,12 @@ int
 loadconfig(Device *d, int n)
 {
 	byte buf[1023];
-	int nr, len;
+	int nr;
 
 	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR, (CONFIGURATION<<8)|n, 0, sizeof(buf)) < 0 ||
 	   (nr = setupreply(d->ep[0], buf, sizeof(buf))) < 1) {
 		fprint(2, "usb: error reading configuration descriptor\n");
 		return -1;
-	}
-	if (buf[1] == CONFIGURATION) {
-		len = GET2(((DConfig*)buf)->wTotalLength);
-		if (len < nr)
-			nr = len;
 	}
 	/* extract gubbins */
 	pdesc(d, n, -1, buf, nr);
