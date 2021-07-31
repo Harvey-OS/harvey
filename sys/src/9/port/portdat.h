@@ -9,7 +9,6 @@ typedef struct Dirtab	Dirtab;
 typedef struct Edf	Edf;
 typedef struct Egrp	Egrp;
 typedef struct Evalue	Evalue;
-typedef struct Execvals	Execvals;
 typedef struct Fgrp	Fgrp;
 typedef struct DevConf	DevConf;
 typedef struct Image	Image;
@@ -798,12 +797,6 @@ enum
 	READSTR =	4000,		/* temporary buffer size for device reads */
 };
 
-struct Execvals {
-	uvlong	entry;
-	ulong	textsize;
-	ulong	datasize;
-};
-
 extern	Conf	conf;
 extern	char*	conffile;
 extern	int	cpuserver;
@@ -817,7 +810,7 @@ extern	Queue*	kprintoq;
 extern 	Ref	noteidalloc;
 extern	int	nsyscall;
 extern	Palloc	palloc;
-	int	(*parseboothdr)(Chan *, ulong, Execvals *);
+	int	(*parseboothdr)(Chan *, ulong, ulong [3]);
 extern	Queue*	serialoq;
 extern	char*	statename[];
 extern	Image	swapimage;
