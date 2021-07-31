@@ -17,7 +17,7 @@ authpasswordfn(Conn *c)
 	putstring(m, up->passwd);
 	sendmsg(m);
 
-	m = recvmsg(c, -1);
+	m = recvmsg(c, 0);
 	switch(m->type){
 	default:
 		badmsg(m, 0);
