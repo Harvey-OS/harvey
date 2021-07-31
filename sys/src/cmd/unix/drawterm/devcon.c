@@ -333,11 +333,8 @@ conwrite(Chan *c, void *va, long count, ulong offset)
 int
 nrand(int n)
 {
-	static ulong randn = 0;
+	static ulong randn;
 
-	/* ticks() always starts at 0, so we need another seed */
-	if (randn == 0)
-		randn = time(0);
 	randn = randn*1103515245 + 12345 + ticks();
 	return (randn>>16) % n;
 }

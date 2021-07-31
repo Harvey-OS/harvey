@@ -8,7 +8,7 @@ static char *srmsg = "server refused authentication";
 static char *sgmsg = "server gave up";
 
 int
-auth(int fd, uchar *secret)
+auth(int fd)
 {
 	int n, afd;
 	int rv;
@@ -98,10 +98,6 @@ auth(int fd, uchar *secret)
 		else
 			werrstr("server lies");
 		return -1;
-	}
-	if (secret){
-		decrypt(secret, tbuf, TICKETLEN);
-		des56to64((uchar*)(tbuf+TICKETLEN-DESKEYLEN), secret);
 	}
 	return 0;
 }
