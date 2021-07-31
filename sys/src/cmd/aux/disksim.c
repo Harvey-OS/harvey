@@ -23,7 +23,6 @@ enum
 	LOGNPTR = LOGBLKSZ-2,	/* assume sizeof(void*) == 4 */
 	NPTR = 1<<LOGNPTR,
 };
-static uchar zero[BLKSZ];
 
 struct Trip
 {
@@ -240,6 +239,7 @@ allocblk(vlong addr)
 uchar*
 getblock(vlong addr, int alloc)
 {
+	static uchar zero[BLKSZ];
  	Dbl *p2;
 	Ind *p1;
 	uchar *p0;
@@ -356,22 +356,9 @@ evommem(void *a, void *b, ulong n)
 }
 
 int
-isnonzero(void *v, ulong n)
-{
-	uchar *a, *ea;
-	
-	a = v;
-	ea = a+n;
-	for(; a<ea; a++)
-		if(*a)
-			return 1;
-	return 0;
-}
-
-int
 rdwrpart(Req *r)
 {
-	int q, nonzero;
+	int q;
 	Part *p;
 	vlong offset;
 	long count, tot, n, o;
@@ -409,36 +396,34 @@ rdwrpart(Req *r)
 		move = evommem;
 
 	tot = 0;
-	nonzero = 1;
 	if(r->ifcall.type == Tread)
 		dat = (uchar*)r->ofcall.data;
-	else{
+	else
 		dat = (uchar*)r->ifcall.data;
-		nonzero = isnonzero(dat, r->ifcall.count);
-	}
 	o = offset & (BLKSZ-1);
 
 	/* left fringe block */
-	if(o && count){
-		blk = getblock(offset, r->ifcall.type==Twrite && nonzero);
+	if(o && count){	
+		blk = getblock(offset, r->ifcall.type==Twrite);
+		if(blk == nil)
+			abort();
 		n = BLKSZ - o;
 		if(n > count)
 			n = count;
-		if(r->ifcall.type != Twrite || blk != zero)
-			(*move)(dat, blk+o, n);
+		(*move)(dat, blk+o, n);
 		if(r->ifcall.type == Twrite)
 			dirty(offset, blk);
 		tot += n;
 	}
-next:
 	/* full and right fringe blocks */
 	while(tot < count){
-		blk = getblock(offset+tot, r->ifcall.type==Twrite && nonzero);
+		blk = getblock(offset+tot, r->ifcall.type==Twrite);
+		if(blk == nil)
+			abort();
 		n = BLKSZ;
 		if(n > count-tot)
 			n = count-tot;
-		if(r->ifcall.type != Twrite || blk != zero)
-			(*move)(dat+tot, blk, n);
+		(*move)(dat+tot, blk, n);
 		if(r->ifcall.type == Twrite)
 			dirty(offset+tot, blk);
 		tot += n;

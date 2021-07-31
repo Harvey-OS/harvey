@@ -20,11 +20,9 @@
 #define	VSUPERB	1
 #define	VROOT		2	/* root inode */
 #define	VNAMELEN	14
-#define	MAXBLSIZE	1024
-int	BLSIZE;
+#define	BLSIZE	512
 #define	LINOPB	(BLSIZE/sizeof(struct v32dinode))
-#define	LNINDIR	(BLSIZE/4)
-#define	MAXLNINDIR	(MAXBLSIZE/4)
+#define	LNINDIR	(BLSIZE/sizeof(unsigned long))
 
 struct v32dinode {
 	unsigned char flags[2];
@@ -52,15 +50,7 @@ void
 populate(char *name)
 {
 	Fileinf f;
-	uchar buf[MAXBLSIZE];
 
-	BLSIZE = 512;	/* 32v */
-	if(blocksize){
-		/* 1024 for 4.1BSD */
-		if(blocksize != 512 && blocksize != 1024)
-			error("bad block size");
-		BLSIZE = blocksize;
-	}
 	replete = 0;
 	tapefile = open(name, OREAD);
 	if (tapefile<0)
@@ -116,7 +106,7 @@ docreate(Ram *r)
 char *
 doread(Ram *r, vlong off, long cnt)
 {
-	static char buf[Maxbuf+MAXBLSIZE];
+	static char buf[Maxbuf+BLSIZE];
 	int bno, i;
 
 	bno = off/BLSIZE;
@@ -157,7 +147,7 @@ dopermw(Ram *r)
 Fileinf
 iget(int ino)
 {
-	char buf[MAXBLSIZE];
+	char buf[BLSIZE];
 	struct v32dinode *dp;
 	long flags, i;
 	Fileinf f;
@@ -204,7 +194,7 @@ getblk(Ram *r, long bno, char *buf)
 long
 bmap(Ram *r, long bno)
 {
-	unsigned char indbuf[MAXLNINDIR][4];
+	unsigned char indbuf[LNINDIR][sizeof(long)];
 
 	if (bno < VNADDR-3)
 		return ((long*)r->data)[bno];

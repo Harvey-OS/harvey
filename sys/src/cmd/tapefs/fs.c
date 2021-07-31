@@ -16,10 +16,8 @@ ulong	path;
 Idmap	*uidmap;
 Idmap	*gidmap;
 int	replete;
-int	blocksize;		/* for 32v */
 int	verbose;
 int	newtap;		/* tap with time in sec */
-int	blocksize;
 
 Fid *	newfid(int);
 int	ramstat(Ram*, uchar*, int);
@@ -82,22 +80,19 @@ main(int argc, char *argv[])
 	defmnt = "/n/tapefs";
 	ARGBEGIN{
 	case 'm':
-		defmnt = EARGF(usage());
+		defmnt = ARGF();
 		break;
 	case 'p':			/* password file */
-		uidmap = getpass(EARGF(usage()));
+		uidmap = getpass(ARGF());
 		break;
 	case 'g':			/* group file */
-		gidmap = getpass(EARGF(usage()));
+		gidmap = getpass(ARGF());
 		break;
 	case 'v':
 		verbose++;
-		break;
+
 	case 'n':
 		newtap++;
-		break;
-	case 'b':
-		blocksize = atoi(EARGF(usage()));
 		break;
 	default:
 		usage();

@@ -1,10 +1,7 @@
 #define	g2byte(x)	(((x)[1]<<8) + (x)[0])		/* little-endian */
 #define	g3byte(x)	(((x)[2]<<16) + ((x)[1]<<8) + (x)[0])
 #define	g4byte(x)	(((x)[3]<<24) + ((x)[2]<<16) + ((x)[1]<<8) + (x)[0])
-
-/* big endian */
-#define	b4byte(x)	(((x)[0]<<24) + ((x)[1]<<16) + ((x)[2]<<8) + (x)[3])
-#define	b8byte(x)	(((vlong)b4byte(x)<<32) | (u32int)b4byte((x)+4))
+#define	g8byte(x)	(((vlong)g4byte(x)<<32) | (u32int)g4byte(x+4))
 enum
 {
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
@@ -78,7 +75,6 @@ extern	char	*user;
 extern	Idmap	*uidmap;
 extern	Idmap	*gidmap;
 extern	int	replete;
-extern	int	blocksize;
 void	error(char*);
 void	*erealloc(void*, ulong);
 void	*emalloc(ulong);
