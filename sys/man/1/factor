@@ -9,9 +9,11 @@ factor, primes \- factor a number, generate large primes
 ]
 .PP
 .B primes
+[
 .I start
 [
 .I finish
+]
 ]
 .SH DESCRIPTION
 .I Factor

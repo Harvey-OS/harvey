@@ -8,13 +8,6 @@ char *subjectarg;
 char *findbody(char*);
 
 void
-usage(void)
-{
-	fprint(2, "usage: upas/filter [-bh] rcvr mailbox [regexp file] ...\n");
-	exits("usage");
-}
-
-void
 main(int argc, char *argv[])
 {
 	message *mp;
@@ -38,13 +31,13 @@ main(int argc, char *argv[])
 		header = 1;
 		body = 1;
 		break;
-	default:
-		usage();
 	} ARGEND
 
 	Binit(&bin, 0, OREAD);
-	if(argc < 2)
-		usage();
+	if(argc < 2){
+		fprint(2, "usage: filter rcvr mailfile [regexp mailfile ...]\n");
+		exits("usage");
+	}
 	mp = m_read(&bin, 1, 0);
 
 	/* get rid of local system name */
