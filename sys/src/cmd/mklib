@@ -28,12 +28,10 @@ install:VQ:	$LIB
 	~ $LIBDIR '.' || cp $LIB $LIBDIR/$LIB
 
 installall:V:
-	for (objtype in $CPUS)
+	for (objtype in $CPUS) {
+		objtype = $objtype
 		mk install
-
-%.all:V:
-	for (objtype in $CPUS)
-		mk $stem
+	}
 
 nuke:V:
 	rm -f *.[$OS] y.tab.? y.output y.error
