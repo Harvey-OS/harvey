@@ -174,6 +174,7 @@ EXTERN	char	inuxi2[2];
 EXTERN	char	inuxi4[4];
 EXTERN	Prog*	lastp;
 EXTERN	long	lcsize;
+EXTERN	int	maxop;
 EXTERN	long	ncase;
 EXTERN	long	ndata;
 EXTERN	int	nerrors;

@@ -3,18 +3,6 @@
  * need to define N and pieces table before including this
  */
 
-Cursor whitearrow = {
-	{0, 0},
-	{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFC, 
-	 0xFF, 0xF0, 0xFF, 0xF0, 0xFF, 0xF8, 0xFF, 0xFC, 
-	 0xFF, 0xFE, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFC, 
-	 0xF3, 0xF8, 0xF1, 0xF0, 0xE0, 0xE0, 0xC0, 0x40, },
-	{0xFF, 0xFF, 0xFF, 0xFF, 0xC0, 0x06, 0xC0, 0x1C, 
-	 0xC0, 0x30, 0xC0, 0x30, 0xC0, 0x38, 0xC0, 0x1C, 
-	 0xC0, 0x0E, 0xC0, 0x07, 0xCE, 0x0E, 0xDF, 0x1C, 
-	 0xD3, 0xB8, 0xF1, 0xF0, 0xE0, 0xE0, 0xC0, 0x40, }
-};
-
 enum
 {
 	CNone	= 0,
@@ -29,7 +17,7 @@ enum{
 	MOUSE,
 	RESHAPE,
 	KBD,
-	SUSPEND,
+	NONBLOCK,
 	NALT
 };
 
@@ -49,15 +37,10 @@ int		dt;
 int		DY;
 int		DMOUSE;
 int		lastmx;
-Mouse	mouse;
 int		newscreen;
 Channel	*timerc;
-Channel	*suspc;
-Channel	*mousec;
-Channel	*kbdc;
 Mousectl	*mousectl;
-Keyboardctl	*kbdctl;
-int		suspended;
+Keyboardctl	*keyboardctl;
 
 void		redraw(int);
 
@@ -124,28 +107,6 @@ int txpix[NCOL] = {
 };
 
 Image *tx[NCOL];
-
-int
-movemouse(void)
-{
-	mouse.xy = Pt(rboard.min.x + Dx(rboard)/2, rboard.min.y +Dy(rboard)/2);
-	moveto(mousectl, mouse.xy);
-	return mouse.xy.x;
-}
-
-int
-warp(Point p, int x)
-{
-	if (!suspended && piece != nil) {
-		x = pos.x + piece->sz.x*pcsz/2;
-		if (p.y < rboard.min.y)
-			p.y = rboard.min.y;
-		if (p.y >= rboard.max.y)
-			p.y = rboard.max.y - 1;
-		moveto(mousectl, Pt(x, p.y));
-	}
-	return x;
-}
 
 Piece *
 rotr(Piece *p)
@@ -246,8 +207,6 @@ setpiece(Piece *p){
 void
 drawpiece(void){
 	draw(screen, rectaddpt(br, pos), bb, bbmask, bb->r.min);
-	if (suspended)
-		draw(screen, rectaddpt(br, pos), display->white, whitemask, ZP);
 }
 
 void
@@ -337,8 +296,6 @@ drawboard(void)
 			if(board[i][j])
 				drawsq(screen, Pt(rboard.min.x+j*pcsz, rboard.min.y+i*pcsz), board[i][j]-16);
 	score(0);
-	if (suspended)
-		draw(screen, screen->r, display->white, whitemask, ZP);
 }
 
 void
@@ -353,6 +310,7 @@ choosepiece(void)
 		pos.x += nrand(NX)*pcsz;
 	}while(collide(Pt(pos.x, pos.y+pcsz-DY), piece));
 	drawpiece();
+	moveto(mousectl, Pt(rboard.min.x + Dx(rboard)/2, rboard.min.y +Dy(rboard)/2));
 	flushimage(display, 1);
 }
 
@@ -372,65 +330,14 @@ movepiece(void)
 }
 
 void
-suspend(int s)
-{
-	suspended = s;
-	if (suspended)
-		setcursor(mousectl, &whitearrow);
-	else
-		setcursor(mousectl, nil);
-	if (!suspended)
-		drawpiece();
-	drawboard();
-	flushimage(display, 1);
-}
-
-void
 pause(int t)
 {
-	int s;
-	Alt alts[NALT+1];
-
-	alts[TIMER].c = timerc;
-	alts[TIMER].v = nil;
-	alts[TIMER].op = CHANRCV;
-	alts[SUSPEND].c = suspc;
-	alts[SUSPEND].v = &s;
-	alts[SUSPEND].op = CHANRCV;
-	alts[RESHAPE].c = mousectl->resizec;
-	alts[RESHAPE].v = nil;
-	alts[RESHAPE].op = CHANRCV;
-	// avoid hanging up those writing ong mousec and kbdc
-	// so just accept it all and keep mouse up-to-date
-	alts[MOUSE].c = mousec;
-	alts[MOUSE].v = &mouse;
-	alts[MOUSE].op = CHANRCV;
-	alts[KBD].c = kbdc;
-	alts[KBD].v = nil;
-	alts[KBD].op = CHANRCV;
-	alts[NALT].op = CHANEND;
-
 	flushimage(display, 1);
-	for(;;)
-		switch(alt(alts)){
-		case SUSPEND:
-			if (!suspended && s) {
-				suspend(1);
-			} else if (suspended && !s) {
-				suspend(0);
-				lastmx = warp(mouse.xy, lastmx);
-			}
+	while(nbrecv(timerc, nil) == 1)
+		;
+	while(recv(timerc, nil) == 1)
+		if((t -= tsleep) < 0)
 			break;
-		case TIMER:
-			if(suspended)
-				break;
-			if((t -= tsleep) < 0)
-				return;
-			break;
-		case RESHAPE:
-			redraw(1);
-			break;		
-		}
 }
 
 int
@@ -458,8 +365,8 @@ horiz(void)
 		draw(screen, r, display->white, whitemask, ZP);
 		flushimage(display, 1);
 	}
-	for(i=0; i<3; i++){
-		pause(250);
+	for(i=0; i<5; i++){
+		pause(500);
 		if(newscreen){
 			drawboard();
 			break;
@@ -535,6 +442,8 @@ int fusst = 0;
 int
 drop(int f)
 {
+	Mouse mouse;
+
 	if(f){
 		score(5L*(rboard.max.y-pos.y)/pcsz);
 		do; while(movepiece());
@@ -547,7 +456,10 @@ drop(int f)
 	setpiece(0);
 	pause(1500);
 	choosepiece();
-	lastmx = warp(mouse.xy, lastmx);
+	while(nbrecv(mousectl->c, &mouse) == 1)
+		lastmx = mouse.xy.x;
+	while(nbrecv(keyboardctl->c, nil) == 1)
+		;
 	return 0;
 }
 
@@ -555,40 +467,42 @@ int
 play(void)
 {
 	int i;
+	int suspended;
 	Mouse om;
-	int s;
+	Mouse mouse;
 	Rune r;
 	Alt alts[NALT+1];
 
 	alts[TIMER].c = timerc;
 	alts[TIMER].v = nil;
 	alts[TIMER].op = CHANRCV;
-	alts[MOUSE].c = mousec;
+	alts[MOUSE].c = mousectl->c;
 	alts[MOUSE].v = &mouse;
 	alts[MOUSE].op = CHANRCV;
-	alts[SUSPEND].c = suspc;
-	alts[SUSPEND].v = &s;
-	alts[SUSPEND].op = CHANRCV;
 	alts[RESHAPE].c = mousectl->resizec;
 	alts[RESHAPE].v = nil;
 	alts[RESHAPE].op = CHANRCV;
-	alts[KBD].c = kbdc;
+	alts[KBD].c = keyboardctl->c;
 	alts[KBD].v = &r;
 	alts[KBD].op = CHANRCV;
+	alts[NONBLOCK].c = nil;
+	alts[NONBLOCK].v = nil;
+	alts[NONBLOCK].op = CHANNOBLK;
 	alts[NALT].op = CHANEND;
 
+	/* flush the pipe */
+	while(alt(alts) != NONBLOCK)
+		;
+	alts[NONBLOCK].op = CHANEND;
+
 	dt = 64;
-	lastmx = -1;
-	lastmx = movemouse();
+	suspended = 0;
 	choosepiece();
-	lastmx = warp(mouse.xy, lastmx);
 	for(;;)
 	switch(alt(alts)){
 	case MOUSE:
-		if(suspended) {
-			om = mouse;
+		if(suspended)
 			break;
-		}
 		if(lastmx < 0)
 			lastmx = mouse.xy.x;
 		if(mouse.xy.x > lastmx+DMOUSE){
@@ -608,22 +522,19 @@ play(void)
 			rright();
 		om = mouse;
 		break;
-	case SUSPEND:
-		if (!suspended && s)
-			suspend(1);
-		else
-		if (suspended && !s) {
-			suspend(0);
-			lastmx = warp(mouse.xy, lastmx);
-		}
-		break;
 	case RESHAPE:
 		redraw(1);
 		break;		
 	case KBD:
-		if(suspended)
+		if(suspended) {
+			suspended = 0;
 			break;
+		}
 		switch(r){
+		case 'q':
+		case 'Q':
+		case 0x04:
+			return 0;
 		case 'f':
 		case ';':
 			mright();
@@ -643,6 +554,9 @@ play(void)
 		case ' ':
 			if(drop(1))
 				return 1;
+			break;
+		case 'z':
+			suspended = 1;
 			break;
 		}
 		break;
@@ -705,73 +619,6 @@ timerproc(void *v)
 }
 
 void
-suspproc(void *)
-{
-	Mouse mouse;
-	Point lastm;
-	Rune r;
-	int s;
-	Alt alts[NALT+1];
-
-	alts[TIMER].op = CHANNOP;
-	alts[MOUSE].c = mousectl->c;
-	alts[MOUSE].v = &mouse;
-	alts[MOUSE].op = CHANRCV;
-	alts[SUSPEND].op = CHANNOP;
-	alts[RESHAPE].op = CHANNOP;
-	alts[KBD].c = kbdctl->c;
-	alts[KBD].v = &r;
-	alts[KBD].op = CHANRCV;
-	alts[NALT].op = CHANEND;
-
-	s = 0;
-	lastm = Pt(-1,-1);
-	for(;;)
-		switch(alt(alts)){
-		case MOUSE:
-			send(mousec, &mouse);
-			if(lastm.x < 0 || lastm.y < 0)
-				lastm = mouse.xy;
-			if(s && ptinrect(mouse.xy, rboard) && !ptinrect(lastm, rboard)){
-				s = 0;
-				send(suspc, &s);
-			} else
-			if(!s && !ptinrect(mouse.xy,rboard)){
-				s = 1;
-				send(suspc, &s);
-			}
-			lastm = mouse.xy;
-			break;
-		case KBD:
-			switch(r){
-			case 'q':
-			case 'Q':
-			case 0x04:
-			case 0x7F:
-				threadexitsall(nil);
-			default:
-				if(s) {
-					s = 0;
-					send(suspc, &s);
-				} else
-					switch(r){
-					case 'z':
-					case 'Z':
-					case 'p':
-					case 'P':
-					case 0x1B:
-						s = 1;
-						send(suspc, &s);
-						break;
-					default:
-						send(kbdc, &r);
-					}
-				break;
-			}
-		}
-}
-
-void
 redraw(int new)
 {
 	Rectangle r;
@@ -821,7 +668,7 @@ redraw(int new)
 	setpiece(piece);
 	if(piece)
 		drawpiece();
-	lastmx = movemouse();
+	lastmx = -1;
 	newscreen = 1;
 	flushimage(display, 1);
 }
@@ -837,15 +684,14 @@ threadmain(int argc, char *argv[])
 	ARGBEGIN{
 	}ARGEND
 
-	suspended = 0;
 	setparms();
 	snprint(buf, sizeof(buf), "%ds", N);
 	initdraw(0, 0, buf);
 	mousectl = initmouse(nil, display->image);	/* BUG? */
 	if(mousectl == nil)
 		sysfatal("[45]s: mouse init failed: %r");
-	kbdctl = initkeyboard(nil);	/* BUG? */
-	if(kbdctl == nil)
+	keyboardctl = initkeyboard(nil);	/* BUG? */
+	if(keyboardctl == nil)
 		sysfatal("[45]s: keyboard init failed: %r");
 	starttime = time(0);
 	srand(starttime);
@@ -878,10 +724,6 @@ threadmain(int argc, char *argv[])
 	threadsetname("4s-5s");
 	timerc= chancreate(sizeof(int), 0);
 	proccreate(timerproc, timerc, 1024);
-	suspc= chancreate(sizeof(int), 0);
-	mousec= chancreate(sizeof(Mouse), 0);
-	kbdc= chancreate(sizeof(Rune), 0);
-	threadcreate(suspproc, nil, 1024);
 	points = 0;
 	memset(board, 0, sizeof(board));
 	redraw(0);
