@@ -31,7 +31,6 @@ allocinbuf(int in, int out)
 	return b;
 }
 
-/* should only be called at start of file or when b->rp[-1] == '\n' */
 static int
 fill(Inbuf *b, int addspace)
 {
@@ -68,14 +67,14 @@ fill(Inbuf *b, int addspace)
 	return b->wp - b->rp;
 }
 
-enum { Fromlen = sizeof "From " - 1, };
-
 /* code to escape ' '*From' ' at the beginning of a line */
 int
 appendfiletombox(int in, int out)
 {
-	int addspace, n, sol;
+	int addspace;
+	int n;
 	char *p;
+	int sol;
 	Inbuf *b;
 
 	seek(out, 0, 2);
@@ -85,22 +84,14 @@ appendfiletombox(int in, int out)
 	sol = 1;
 
 	for(;;){
-		if(b->wp - b->rp < Fromlen){
-			/*
-			 * not enough unread bytes in buffer to match "From ",
-			 * so get some more.  We must only inject a space at
-			 * the start of a line (one that begins with "From ").
-			 */
-			if (b->rp == b->buf || b->rp[-1] == '\n') {
-				n = fill(b, addspace);
-				addspace = 0;
-			} else
-				n = fill(b, 0);
+		if(b->wp - b->rp < 5){
+			n = fill(b, addspace);
+			addspace = 0;
 			if(n < 0)
 				goto error;
 			if(n == 0)
 				break;
-			if(n < Fromlen){	/* still can't match? */
+			if(n < 5){
 				b->rp = b->wp;
 				continue;
 			}
@@ -117,7 +108,7 @@ appendfiletombox(int in, int out)
 			}
 			continue;
 		} else {
-			if(*b->rp == ' ' || strncmp(b->rp, "From ", Fromlen) != 0){
+			if(*b->rp == ' ' || strncmp(b->rp, "From ", 5) != 0){
 				b->rp++;
 				continue;
 			}

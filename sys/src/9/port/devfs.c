@@ -369,6 +369,7 @@ mgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 static Chan*
 mattach(char *spec)
 {
+	*confstr = 0;
 	return devattach(fsdevtab.dc, spec);
 }
 
@@ -436,19 +437,25 @@ io(Fsdev *mp, Inner *in, int isread, void *a, long l, vlong off)
 	Chan *mc = in->idev;
 
 	if (waserror()) {
-		print("#k: %s byte %,lld count %ld (of #k/%s): %s error: %s\n",
-			in->iname, off, l, mp->name, (isread? "read": "write"),
+		print("#k: %s byte %,lld (of %s): %s error: %s\n",
+			in->iname, off, mp->name, (isread? "read": "write"),
 			(up && up->errstr? up->errstr: ""));
 		nexterror();
 	}
 	if (isread) {
 		wl = devtab[mc->type]->read(mc, a, l, off);
-		if (wl != l)
+		if (wl != l) {
+//			print("#k: %s byte %,lld (of %s): short read\n",
+//				in->iname, off, mp->name);
 			error("#k: short read");
+		}
 	} else {
 		wl = devtab[mc->type]->write(mc, a, l, off);
-		if (wl != l)
+		if (wl != l) {
+//			print("#k: %s byte %,lld (of %s): write error\n",
+//				in->iname, off, mp->name);
 			error("#k: write error");
+		}
 	}
 	poperror();
 	return wl;
