@@ -133,9 +133,6 @@ addwarningtext(Mntdir *md, Rune *r, int nr)
 	}
 	warn = emalloc(sizeof(Warning));
 	warn->next = warnings;
-	warn->md = md;
-	if(md)
-		fsysincid(md);
 	warnings = warn;
 	bufinsert(&warn->buf, 0, r, nr);
 	nbsendp(cwarn, 0);
@@ -192,8 +189,6 @@ flushwarnings(void)
 		winunlock(w);
 		bufclose(&warn->buf);
 		next = warn->next;
-		if(warn->md)
-			fsysdelid(warn->md);
 		free(warn);
 	}
 	warnings = nil;

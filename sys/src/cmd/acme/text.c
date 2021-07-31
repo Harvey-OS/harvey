@@ -188,12 +188,8 @@ textload(Text *t, uint q0, char *file, int setqid)
 	char *tmp;
 	Text *u;
 
-	if(t->ncache!=0 || t->file->nc || t->w==nil || t!=&t->w->body)
+	if(t->ncache!=0 || t->file->nc || t->w==nil || t!=&t->w->body || (t->w->isdir && t->file->nname==0))
 		error("text.load");
-	if(t->w->isdir && t->file->nname==0){
-		warning(nil, "empty directory name\n");
-		return 0;
-	}
 	fd = open(file, OREAD);
 	if(fd < 0){
 		warning(nil, "can't open %s: %r\n", file);
