@@ -1109,12 +1109,6 @@ vgbemulticast(void*, uchar*, int)
 {
 }
 
-static void
-vgbeshutdown(Ether* ether)
-{
-	vgbereset(ether->ctlr);
-}
-
 static int
 vgbepnp(Ether* edev)
 {
@@ -1152,7 +1146,7 @@ vgbepnp(Ether* edev)
 	edev->ifstat = vgbeifstat;
 //	edev->promiscuous = vgbepromiscuous;
 	edev->multicast = vgbemulticast;
-	edev->shutdown = vgbeshutdown;
+//	edev->shutdown = vgbeshutdown;
 	edev->ctl = vgbectl;
 
 	edev->arg = edev;
