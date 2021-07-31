@@ -38,7 +38,7 @@ int divflg;
 int funcflag;
 int pflag;
 int chset;	/* 1 = char set modified */
-Biobuf *fin = 0, *fother;
+Biobuf *fin, *fother;
 int fptr;
 int *name;
 int *left;
@@ -186,8 +186,7 @@ main(int argc, char **argv)
 		debug   ||
 # endif
 			report == 1)statistics();
-	if (fin)
-		Bterm(fin);
+	Bterm(fin);
 	exits(0);	/* success return code */
 }
 

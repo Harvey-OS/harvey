@@ -287,7 +287,6 @@ gch(void){
 	if(c == Beof) {
 		eof = TRUE;
 		Bterm(fin);
-		fin = 0;
 		return(0);
 	}
 	if(c == '\n')yyline++;
