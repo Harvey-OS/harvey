@@ -53,8 +53,6 @@ OFILES=\
 	runevseprint.$O\
 	runevsmprint.$O\
 	runevsnprint.$O\
-	runestrchr.$O\
-	runestrlen.$O\
 	seprint.$O\
 	smprint.$O\
 	snprint.$O\
