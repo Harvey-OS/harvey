@@ -411,8 +411,6 @@ struct Segment
 	Sema	sema;
 };
 
-#define	segpgsize(s)	(1<<(s)->lg2pgsize)
-
 enum
 {
 	RENDLOG	=	5,
