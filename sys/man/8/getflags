@@ -1,5 +1,4 @@
 .TH GETFLAGS 8
-.SH NAME
 getflags, usage \- command-line parsing for shell scripts
 .SH SYNOPSIS
 .B aux/getflags $*
@@ -66,7 +65,7 @@ if(! ifs=() eval `{aux/getflags $*} || ~ $#* 0){
 .EE
 .SH SOURCE
 .B /sys/src/cmd/aux/getflags.c
-.br
+.PP
 .B /sys/src/cmd/aux/usage.c
 .SH SEE ALSO
 .IR arg (2)
