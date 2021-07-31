@@ -23,7 +23,7 @@ TEXT	main(SB), 1, $-4
 	MOVW	R0, CPSR		/* splhi */
 	BARRIERS
 
-PUTC('R')
+WAVE('R')
 	MRC	CpSC, 0, R1, C(CpCONTROL), C(0), CpAuxctl
 	BIC	$CpACasa, R1	/* no speculative I access forwarding to mem */
 	/* slow down */
@@ -39,7 +39,7 @@ PUTC('R')
 	 * turn the MMU off
 	 */
 
-PUTC('e')
+WAVE('e')
 	/* first switch to PHYSDRAM-based addresses */
 	DMB
 
@@ -55,7 +55,7 @@ PUTC('e')
 	 * now running in PHYSDRAM segment, not KZERO.
 	 */
 
-PUTC('b')
+WAVE('b')
 	SUB	$12, SP				/* paranoia */
 	BL	cacheuwbinv(SB)
 	ADD	$12, SP				/* paranoia */
@@ -65,13 +65,13 @@ PUTC('b')
 	MCR	CpSC, 0, R0, C(CpTLB), C(CpTLBinvu), CpTLBinv
 	BARRIERS
 
-PUTC('o')
+WAVE('o')
 	MRC	CpSC, 0, R0, C(CpCONTROL), C(0)
 	BIC	$(CpCmmu|CpCdcache|CpCicache), R0
 	MCR     CpSC, 0, R0, C(CpCONTROL), C(0)	/* mmu off */
 	BARRIERS
 
-PUTC('o')
+WAVE('o')
 	/* copy in arguments from stack frame before moving stack */
 	MOVW	p2+4(FP), R4		/* phys source */
 	MOVW	n+8(FP), R5		/* byte count */
@@ -88,7 +88,7 @@ PUTC('o')
 	MOVW	R6, 44(SP)		/* save dest/entry */
 
 	DELAY(printloop2, 2)
-PUTC('t')
+WAVE('t')
 
 	MOVW	40(SP), R5		/* restore count */
 	MOVW	44(SP), R6		/* restore dest/entry */
@@ -99,17 +99,17 @@ PUTC('t')
 	MOVW	R5, 12(SP)		/* push size */
 	BL	memmove(SB)
 
-PUTC('-')
+WAVE('-')
 	/*
 	 * flush caches
 	 */
 	BL	cacheuwbinv(SB)
 
-PUTC('>')
+WAVE('>')
 	DELAY(printloopret, 1)
-PUTC('\r')
+WAVE('\r')
 	DELAY(printloopnl, 1)
-PUTC('\n')
+WAVE('\n')
 /*
  * jump to kernel entry point.  Note the true kernel entry point is
  * the virtual address KZERO|R6, but this must wait until
@@ -118,7 +118,7 @@ PUTC('\n')
 	MOVW	44(SP), R6		/* restore R6 (dest/entry) */
 	ORR	R6, R6			/* NOP: avoid link bug */
 	B	(R6)
-PUTC('?')
+WAVE('?')
 	B	0(PC)
 
 /*
@@ -201,7 +201,7 @@ TEXT _r15warp(SB), 1, $-4
 	RET
 
 TEXT panic(SB), 1, $-4		/* stub */
-PUTC('?')
+WAVE('?')
 	RET
 TEXT pczeroseg(SB), 1, $-4	/* stub */
 	RET

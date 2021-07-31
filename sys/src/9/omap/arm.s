@@ -30,7 +30,7 @@ label: \
 	BNE	label
 
 /* wave at the user; clobbers R0, R1 & R6; needs R12 (SB) set */
-#define PUTC(c) \
+#define WAVE(c) \
 	BARRIERS; \
 	MOVW	$(c), R1; \
 	MOVW	$PHYSCONS, R6; \

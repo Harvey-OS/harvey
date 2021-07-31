@@ -21,12 +21,12 @@ TEXT	main(SB), 1, $-4
 	MOVW	p2+4(FP), R9		/* source */
 	MOVW	n+8(FP), R10		/* byte count */
 
-PUTC('R')
+WAVE('R')
 	BL	cachesoff(SB)
 	/* now back in 29- or 26-bit addressing, mainly for SB */
 
 	/* turn the MMU off */
-PUTC('e')
+WAVE('e')
 	MOVW	$KSEGM, R7
 	MOVW	$PHYSDRAM, R0
 	BL	_r15warp(SB)
@@ -35,12 +35,12 @@ PUTC('e')
 	BIC	R7, R13			/* SP */
 	/* don't care about R14 */
 
-PUTC('b')
+WAVE('b')
 	BL	mmuinvalidate(SB)
-PUTC('o')
+WAVE('o')
 	BL	mmudisable(SB)
 
-PUTC('o')
+WAVE('o')
 	MOVW	R9, R4			/* restore regs across function calls */
 	MOVW	R10, R5
 	MOVW	R8, R6
@@ -55,7 +55,7 @@ PUTC('o')
 	MOVW	R6, 44(SP)		/* save dest/entry */
 	MOVW	R5, 40(SP)		/* save count */
 
-PUTC('t')
+WAVE('t')
 
 	MOVW	R6, 0(SP)
 	MOVW	R6, 4(SP)		/* push dest */
@@ -66,15 +66,15 @@ PUTC('t')
 
 	MOVW	44(SP), R6		/* restore R6 (dest/entry) */
 	MOVW	40(SP), R5		/* restore R5 (count) */
-PUTC('-')
+WAVE('-')
 	/*
 	 * flush caches
 	 */
 	BL	cacheuwbinv(SB)
 
-PUTC('>')
-PUTC('\r');
-PUTC('\n');
+WAVE('>')
+WAVE('\r');
+WAVE('\n');
 /*
  * jump to kernel entry point.  Note the true kernel entry point is
  * the virtual address KZERO|R6, but this must wait until

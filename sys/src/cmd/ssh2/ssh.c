@@ -63,13 +63,11 @@ bail(char *sts)
 }
 
 int
-handler(void *, char *s)
+handler(void *, char *)
 {
 	char *nf;
 	int fd;
 
-	if (strstr(s, "alarm") != nil)
-		return 0;
 	if (chpid) {
 		nf = esmprint("/proc/%d/note", chpid);
 		fd = open(nf, OWRITE);
@@ -115,10 +113,13 @@ parseargs(void)
 
 }
 
-static int
+static void
 catcher(void *, char *s)
 {
-	return strstr(s, "alarm") != nil;
+	if (strstr(s, "alarm") != nil)
+		noted(NCONT);
+	else
+		noted(NDFLT);
 }
 
 static int
@@ -126,11 +127,10 @@ timedmount(int fd, int afd, char *mntpt, int flag, char *aname)
 {
 	int oalarm, ret;
 
-	atnotify(catcher, 1);
+	notify(catcher);
 	oalarm = alarm(5*1000);		/* don't get stuck here */
 	ret = mount(fd, afd, mntpt, flag, aname);
 	alarm(oalarm);
-	atnotify(catcher, 0);
 	return ret;
 }
 

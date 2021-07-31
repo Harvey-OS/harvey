@@ -202,7 +202,7 @@ inner:
 	RET
 
 buggery:
-PUTC('?')
+WAVE('?')
 	MOVW	PC, R0
 //	B	pczeroseg(SB)
 	RET

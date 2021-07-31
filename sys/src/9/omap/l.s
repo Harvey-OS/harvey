@@ -35,9 +35,9 @@ TEXT _start(SB), 1, $-4
 	BARRIERS
 
 	DELAY(printloopret, 1)
-PUTC('\r')
+WAVE('\r')
 	DELAY(printloopnl, 1)
-PUTC('\n')
+WAVE('\n')
 	/*
 	 * work around errata
 	 */
@@ -64,7 +64,7 @@ PUTC('\n')
 	ISB
 #endif
 	DELAY(printloops, 1)
-PUTC('P')
+WAVE('P')
 	/*
 	 * disable the MMU & caches
 	 */
@@ -80,10 +80,10 @@ PUTC('P')
 	MCR	CpSC, 0, R1, C(CpCONTROL), C(0), CpAuxctl
 	ISB
 
-PUTC('l')
+WAVE('l')
 	DELAY(printloop3, 1)
 
-PUTC('a')
+WAVE('a')
 	/* clear Mach */
 	MOVW	$PADDR(MACHADDR), R4		/* address of Mach */
 	MOVW	$0, R0
@@ -97,7 +97,7 @@ _machZ:
 	 * set up the MMU page table
 	 */
 
-PUTC('n')
+WAVE('n')
 	/* clear all PTEs first, to provide a default */
 //	MOVW	$PADDR(L1+L1X(0)), R4		/* address of PTE for 0 */
 _ptenv0:
@@ -106,7 +106,7 @@ _ptenv0:
 	BNE	_ptenv0
 
 	DELAY(printloop4, 2)
-PUTC(' ')
+WAVE(' ')
 	/*
 	 * set up double map of PHYSDRAM, KZERO to PHYSDRAM for first few MBs,
 	 * but only if KZERO and PHYSDRAM differ.
@@ -129,7 +129,7 @@ no2map:
 	 * igepv2 has 1 bank of 512MB at PHYSDRAM.
 	 * Map the maximum (512MB).
 	 */
-PUTC('9')
+WAVE('9')
 	MOVW	$PTEDRAM, R2			/* PTE bits */
 	MOVW	$PHYSDRAM, R3
 	MOVW	$PADDR(L1+L1X(KZERO)), R4	/* start with PTE for KZERO */
@@ -143,7 +143,7 @@ _ptekrw:					/* set PTEs */
 	 * back up and fill in PTEs for MMIO
 	 * stop somewhere after uarts
 	 */
-PUTC(' ')
+WAVE(' ')
 	MOVW	$PTEIO, R2			/* PTE bits */
 	MOVW	$PHYSIO, R3
 	MOVW	$PADDR(L1+L1X(VIRTIO)), R4	/* start with PTE for VIRTIO */
@@ -167,7 +167,7 @@ _ptenv2:
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
 	BARRIERS
 
-PUTC('f')
+WAVE('f')
 	/*
 	 * turn caches on
 	 */
@@ -181,13 +181,13 @@ PUTC('f')
 	MCR	CpSC, 0, R1, C(CpCONTROL), C(0), CpMainctl
 	BARRIERS
 
-PUTC('r')
+WAVE('r')
 	/* set the domain access control */
 	MOVW	$Client, R0
 	BL	dacput(SB)
 
 	DELAY(printloop5, 2)
-PUTC('o')
+WAVE('o')
 	/* set the translation table base */
 	MOVW	$PADDR(L1), R0
 	BL	ttbput(SB)
@@ -195,7 +195,7 @@ PUTC('o')
 	MOVW	$0, R0
 	BL	pidput(SB)		/* paranoia */
 
-PUTC('m')
+WAVE('m')
 	/*
 	 * the little dance to turn the MMU on
 	 */
@@ -203,7 +203,7 @@ PUTC('m')
 	BL	mmuinvalidate(SB)
 	BL	mmuenable(SB)
 
-PUTC(' ')
+WAVE(' ')
 	/* warp the PC into the virtual map */
 	MOVW	$KZERO, R0
 	BL	_r15warp(SB)
@@ -224,7 +224,7 @@ PUTC(' ')
 
 	BL	cacheuwbinv(SB)
 
-PUTC('B')
+WAVE('B')
 	MOVW	$PHYSDRAM, R3			/* pa */
 	CMP	$KZERO, R3
 	BEQ	no2unmap
@@ -260,7 +260,7 @@ no2unmap:
 	ADD	$(MACHSIZE), R13		/* stack pointer */
 	SUB	$4, R13				/* space for link register */
 	MOVW	R0, R10				/* m = MACHADDR */
-PUTC('e')
+WAVE('e')
 	BL	main(SB)			/* void main(Mach*) */
 	/*FALLTHROUGH*/
 
@@ -274,15 +274,15 @@ TEXT _reset(SB), 1, $-4
 	BARRIERS
 
 	DELAY(printloopr, 2)
-PUTC('!')
-PUTC('r')
-PUTC('e')
-PUTC('s')
-PUTC('e')
-PUTC('t')
-PUTC('!')
-PUTC('\r')
-PUTC('\n')
+WAVE('!')
+WAVE('r')
+WAVE('e')
+WAVE('s')
+WAVE('e')
+WAVE('t')
+WAVE('!')
+WAVE('\r')
+WAVE('\n')
 
 	/* turn the caches off */
 	BL	cacheuwbinv(SB)
