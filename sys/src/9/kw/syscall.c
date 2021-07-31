@@ -163,7 +163,6 @@ notify(Ureg* ureg)
 	memmove(nf->msg, up->note[0].msg, ERRMAX);
 	nf->arg1 = nf->msg;
 	nf->arg0 = &nf->ureg;
-	ureg->r0 = PTR2UINT(nf->arg0);
 	nf->ip = 0;
 
 	ureg->sp = sp;
