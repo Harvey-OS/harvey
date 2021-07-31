@@ -316,7 +316,6 @@ udpport(char *mtpt)
 	return fd;
 }
 
-/* generate a DNS UDP query packet */
 int
 mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 {
@@ -336,6 +335,8 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 	m.qd->owner = dp;
 	m.qd->type = type;
 	len = convDNS2M(&m, &buf[OUdphdrsize], Maxudp);
+	if(len < 0)
+		abort();	/* "can't convert" */
 	rrfree(m.qd);
 	return len;
 }
@@ -381,7 +382,7 @@ readreply(int fd, DN *dp, int type, ushort req, uchar *ibuf, DNSmsg *mp,
 		if(now >= endtime)
 			return -1;	/* timed out */
 
-		/* timed read of UDP reply */
+		/* timed read */
 		alarm((endtime - now) * 1000);
 		len = read(fd, ibuf, OUdphdrsize+Maxudpin);
 		alarm(0);
@@ -392,13 +393,8 @@ readreply(int fd, DN *dp, int type, ushort req, uchar *ibuf, DNSmsg *mp,
 		/* convert into internal format  */
 		memset(mp, 0, sizeof(*mp));
 		err = convM2DNS(&ibuf[OUdphdrsize], len, mp, nil);
-		if (mp->flags & Ftrunc) {
-			dnslog("truncated reply, len %d from %I", len, ibuf);
-			/* TODO: reissue query via tcp, process answer */
-			/* for now, salvage what we can */
-		}
 		if(err){
-			dnslog("input err, len %d: %s: %I", len, err, ibuf);
+			dnslog("input err: %s: %I", err, ibuf);
 			continue;
 		}
 		if(debug)
@@ -619,7 +615,6 @@ setdestoutns(Dest *p, int n)
 /*
  *  query name servers.  If the name server returns a pointer to another
  *  name server, recurse.
- *  BUG: UDP only currently.
  */
 static int
 netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
@@ -642,9 +637,7 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
 
 	/* pack request into a message */
 	req = rand();
-	/* 1. generate UDP DNS query packet */
 	len = mkreq(dp, type, obuf, Frecurse|Oquery, req);
-	/* TODO: convert back and see if m.flags&Ftrunc is set */
 
 	/* no server addresses yet */
 	l = dest;
@@ -700,8 +693,7 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
 				logsend(reqp->id, depth, obuf, p->s->name,
 					dp->name, type);
 
-			/* 2. actually send the UDP packet */
-// TODO or send via TCP & keep fd around for reply */
+			/* actually send the UDP packet */
 			if(write(fd, obuf, len + OUdphdrsize) < 0)
 				warning("sending udp msg %r");
 			p->nx++;
@@ -722,7 +714,6 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
 				(inns? "in": "out"), obuf, dp->name,
 				rrname(type, buf, sizeof buf));
 			memset(&m, 0, sizeof m);
-			/* 3. get UDP reply packet */
 			if(readreply(fd, dp, type, req, ibuf, &m, endtime, reqp)
 			    < 0)
 				break;		/* timed out */
@@ -926,9 +917,8 @@ udpquery(char *mntpt, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
 		reqp->aborttime = time(nil) + (patient? Maxreqtm: Maxreqtm/2);
 //		dnslog("udpquery: %s/udp for %s with %s ns", mntpt, dp->name,
 //			(inns? "inside": "outside"));
-		/* tune; was (patient? 15: 10) */
 		rv = netquery1(fd, dp, type, nsrp, reqp, depth,
-			ibuf, obuf, (patient? 10: 5), inns);
+			ibuf, obuf, (patient? 15: 10), inns);
 		close(fd);
 	} else
 		dnslog("can't get udpport for %s query of name %s: %r",
@@ -966,7 +956,6 @@ dnssetup(int domount, char *dns, char *srv, char *mtpt)
 	return fd;
 }
 
-/* this is unfinished */
 static RR *
 rrparse(char *lines)
 {
@@ -1015,7 +1004,7 @@ rrparse(char *lines)
 			break;
 		case Ta:
 		case Taaaa:
-			// "\t%s", dnname(rp->ip));	// TODO: parseip
+			// "\t%s", dnname(rp->ip));	// TODO parseip
 			break;
 		case Tptr:
 			// "\t%s", dnname(rp->ptr));
@@ -1168,7 +1157,7 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp, int depth)
 		rv = udpquery("/net.alt", dp, type, nsrp, reqp, depth, Patient,
 			Outns);
 	}
-	if (0 && rv == 0)		/* could ask /net.alt/dns directly */
+	if (0 && rv == 0)		/* TODO: ask /net.alt/dns directly */
 		askoutdns(dp, type);
 
 	if(lock)

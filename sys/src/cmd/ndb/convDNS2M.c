@@ -337,7 +337,6 @@ rrloop(RR *rp, int *countp, uchar *p, uchar *ep, Dict *dp, int quest)
 int
 convDNS2M(DNSmsg *m, uchar *buf, int len)
 {
-	ulong trunc = 0;
 	uchar *p, *ep, *np;
 	Dict d;
 
@@ -354,22 +353,21 @@ convDNS2M(DNSmsg *m, uchar *buf, int len)
 	p = rrloop(m->an, &m->ancount, p, ep, &d, 0);
 	p = rrloop(m->ns, &m->nscount, p, ep, &d, 0);
 	p = rrloop(m->ar, &m->arcount, p, ep, &d, 0);
-	if(p > ep) {
-		trunc = Ftrunc;
-		dnslog("udp packet full; truncating my reply");
-		p = ep;
-	}
+	if(p > ep)
+		return -1;
 
 	/* now pack the rest */
 	np = p;
 	p = buf;
 	ep = buf + len;
 	USHORT(m->id);
-	USHORT(m->flags | trunc);
+	USHORT(m->flags);
 	USHORT(m->qdcount);
 	USHORT(m->ancount);
 	USHORT(m->nscount);
 	USHORT(m->arcount);
-	USED(p);
+	if(p > ep)
+		return -1;
+
 	return np - buf;
 }
