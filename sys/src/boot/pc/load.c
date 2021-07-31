@@ -95,22 +95,32 @@ extern SDifc sdiahciifc;
 extern SDifc sdaoeifc;
 extern SDifc sdbiosifc;
 
-#ifndef NOSCSI
-extern SDifc sdmylexifc;
-extern SDifc sd53c8xxifc;
-#endif NOSCSI
+#ifdef NOSCSI
 
 SDifc* sdifc[] = {
 	&sdataifc,
 	&sdiahciifc,
-#ifndef NOSCSI
-	&sdmylexifc,
-	&sd53c8xxifc,
-#endif
 	&sdbiosifc,
 	&sdaoeifc,
 	nil,
 };
+
+#else
+
+extern SDifc sdmylexifc;
+extern SDifc sd53c8xxifc;
+
+SDifc* sdifc[] = {
+	&sdataifc,
+	&sdiahciifc,
+	&sdmylexifc,
+	&sd53c8xxifc,
+	&sdbiosifc,
+	&sdaoeifc,
+	nil,
+};
+
+#endif NOSCSI
 
 typedef struct Mode Mode;
 
