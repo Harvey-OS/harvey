@@ -1,4 +1,5 @@
-#include "sys.h"
+#include <u.h>
+#include <libc.h>
 #include "dat.h"
 
 void
@@ -19,7 +20,6 @@ main(int argc, char **argv)
 	char *deliveredto;
 	char last;
 	char *str;
-	Mlock *l;
 
 	ARGBEGIN{
 	}ARGEND;
@@ -35,10 +35,6 @@ main(int argc, char **argv)
 	a = readaddrs(argv[1], nil);
 	if(a == nil)
 		sysfatal("missing from address");
-
-	l = syslock(argv[2]);
-	if(l == 0)
-		sysfatal("can't grab lock");
 
 	/* append to mbox */
 	fd = open(argv[2], OWRITE);
@@ -69,7 +65,6 @@ main(int argc, char **argv)
 	if(write(fd, str, strlen(str)) < 0)
 		sysfatal("writing mailbox: %r");
 	close(fd);
-	sysunlock(l);
 
 	/* log it */
 	syslog(0, "mail", "delivered %s From %s %s (%s) %d", deliveredto,
