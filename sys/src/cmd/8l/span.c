@@ -1366,7 +1366,7 @@ asmdyn()
 			t++;
 		}
 		else if(c == 1){
-			wput(ra);
+			wputb(ra);
 			t += 2;
 		}
 		else{

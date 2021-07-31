@@ -74,7 +74,6 @@ p9crinit(Proto *p, Fsstate *fss)
 	char *user;
 	State *s;
 	Attr *attr;
-	Keyinfo ki;
 
 	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
@@ -96,7 +95,7 @@ p9crinit(Proto *p, Fsstate *fss)
 			attr = setattr(_copyattr(fss->attr), "proto=p9sk1");
 		else
 			attr = nil;
-		ret = findkey(&s->key, mkkeyinfo(&ki, fss, attr),
+		ret = findkey(&s->key, fss, fss->sysuser, 0, 0, attr ? attr : fss->attr,
 			"role=client %s", p->keyprompt);
 		_freeattr(attr);
 		if(ret != RpcOk){
@@ -291,10 +290,8 @@ p9crwrite(Fsstate *fss, void *va, uint n)
 		/* check ticket */
 		convM2T(tbuf, &s->t, s->key->priv);
 		if(s->t.num != AuthTs
-		|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
-			disablekey(s->key);
+		|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0)
 			return failure(fss, Easproto);
-		}
 		convM2A(tbuf+TICKETLEN, &a, s->t.key);
 		if(a.num != AuthAc
 		|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0

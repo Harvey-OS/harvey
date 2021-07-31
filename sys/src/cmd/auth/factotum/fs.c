@@ -35,6 +35,7 @@ prototab[] =
 	&p9sk2,
 	&pass,
 /*	&srs, */
+	&sshrsa,
 	&rsa,
 	&vnc,
 	&wep,
@@ -111,7 +112,6 @@ main(int argc, char **argv)
 	fmtinstall('H', encodefmt);
 
 	ring = emalloc(sizeof(*ring));
-	notify(notifyf);
 
 	if(gflag){
 		if(argc != 1)
@@ -149,6 +149,7 @@ main(int argc, char **argv)
 	} else if(uflag)
 		promptforhostowner();
 	owner = getuser();
+	notify(notifyf);
 
 	if(trysecstore){
 		if(havesecstore() == 1){
@@ -445,15 +446,10 @@ static int
 keylist(int i, char *a, uint n, Fsstate *fss)
 {
 	char buf[512];
-	Keyinfo ki;
 	Key *k;
 
 	k = nil;
-	mkkeyinfo(&ki, fss, nil);
-	ki.attr = nil;
-	ki.skip = i;
-	ki.usedisabled = 1;
-	if(findkey(&k, &ki, "") != RpcOk)
+	if(findkey(&k, fss, fss->sysuser, 0, i, nil, "") != RpcOk)
 		return 0;
 	snprint(buf, sizeof buf, "key %A %N\n", k->attr, k->privattr);
 	closekey(k);
@@ -550,7 +546,7 @@ fswrite(Req *r)
 			ret = confirmwrite(s);
 			break;
 		case Qctl:
-			ret = ctlwrite(s, 0);
+			ret = ctlwrite(s, r->ifcall.offset==0);
 			break;
 		}
 		free(s);
