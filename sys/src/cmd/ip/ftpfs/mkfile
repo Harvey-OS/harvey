@@ -1,7 +1,6 @@
 </$objtype/mkfile
 
 TARG=ftpfs
-HFILES=ftpfs.h
 OFILES=ftpfs.$O\
 	proto.$O\
 	file.$O\
