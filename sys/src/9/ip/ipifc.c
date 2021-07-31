@@ -305,19 +305,10 @@ ipifckick(void *x)
 		return;
 
 	ifc = (Ipifc*)c->ptcl;
-	if(!canrlock(ifc)){
-		freeb(bp);
-		return;
-	}
-	if(waserror()){
-		runlock(ifc);
-		nexterror();
-	}
 	if(ifc->m == nil || ifc->m->pktin == nil)
 		freeb(bp);
 	else
 		(*ifc->m->pktin)(c->p->f, ifc, bp);
-	runlock(ifc);
 }
 
 /*
