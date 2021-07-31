@@ -9,7 +9,6 @@ char *_IO_sclose(FILE *f){
 	default:	/* ERR CLOSED */
 		if(f->buf && f->flags&BALLOC)
 			free(f->buf);
-		f->state=CLOSED;
 		f->flags=0;
 		return NULL;
 	case OPEN:
