@@ -412,7 +412,7 @@ enum {
 enum {
 	Nrd		= 256,		/* power of two */
 	Ntd		= 128,		/* power of two */
-	Nrb		= 1024,		/* private receive buffers per Ctlr */
+	Nrb		= 512,		/* private receive buffers per Ctlr */
 };
 
 enum {
@@ -450,7 +450,6 @@ struct Ctlr {
 	int	port;
 	Pcidev	*pcidev;
 	Ctlr	*next;
-	Ether	*edev;
 	int	active;
 	int	type;
 	ushort	eeprom[0x40];
@@ -604,8 +603,8 @@ i82563ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
-	p = s = malloc(READSTR);
-	e = p + READSTR;
+	p = s = malloc(2*READSTR);
+	e = p + 2*READSTR;
 
 	for(i = 0; i < Nstatistics; i++){
 		r = csr32r(ctlr, Statistics + i*4);
@@ -925,15 +924,7 @@ i82563replenish(Ctlr* ctlr)
 		}
 		bp = i82563rballoc();
 		if(bp == nil){
-			vlong now;
-			static vlong lasttime;
-
-			/* don't flood the console */
-			now = tk2ms(MACHP(0)->ticks);
-			if (now - lasttime > 2000)
-				iprint("#l%d: 82563: all %d rx buffers in use\n",
-					ctlr->edev->ctlrno, ctlr->nrb);
-			lasttime = now;
+			iprint("82563: no available buffers\n");
 			break;
 		}
 		ctlr->rb[rdt] = bp;
@@ -1222,7 +1213,6 @@ i82563attach(Ether* edev)
 	char name[KNAMELEN];
 
 	ctlr = edev->ctlr;
-	ctlr->edev = edev;			/* point back to Ether* */
 	qlock(&ctlr->alock);
 	if(ctlr->attached){
 		qunlock(&ctlr->alock);
@@ -1546,9 +1536,6 @@ i82563reset(Ctlr *ctlr)
 	csr32w(ctlr, Fct, 0x8808);
 	csr32w(ctlr, Fcttv, 0x0100);
 
-	ctlr->fcrtl = ctlr->fcrth = 0;
-	// ctlr->fcrtl = 0x00002000;
-	// ctlr->fcrth = 0x00004000;
 	csr32w(ctlr, Fcrtl, ctlr->fcrtl);
 	csr32w(ctlr, Fcrth, ctlr->fcrth);
 

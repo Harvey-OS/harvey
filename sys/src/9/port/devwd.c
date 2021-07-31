@@ -1,6 +1,3 @@
-/*
- * watchdog framework
- */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -65,8 +62,8 @@ wdclose(Chan*)
 static long
 wdread(Chan* c, void* a, long n, vlong off)
 {
-	ulong offset = off;
 	char *p;
+	ulong offset = off;
 
 	switch((ulong)c->qid.path){
 	case Qdir:
@@ -84,8 +81,8 @@ wdread(Chan* c, void* a, long n, vlong off)
 
 		wd->stat(p, p + READSTR);
 		n = readstr(offset, a, n, p);
-		free(p);
 		poperror();
+		free(p);
 		return n;
 
 	default:
@@ -95,11 +92,31 @@ wdread(Chan* c, void* a, long n, vlong off)
 	return 0;
 }
 
+static void
+wdctl(char *a)
+{
+	int n;
+	char *field[6];
+
+	n = tokenize(a, field, nelem(field));
+	if(n < 1)
+		error(Ebadarg);
+
+	if(!strcmp(field[0], "enable"))
+		wd->enable();
+	else if(!strcmp(field[0], "disable"))
+		wd->disable();
+	else if(!strcmp(field[0], "restart"))
+		wd->restart();
+	else
+		error(Ebadarg);
+}
+
 static long
 wdwrite(Chan* c, void* a, long n, vlong off)
 {
-	ulong offset = off;
 	char *p;
+	ulong offset = off;
 
 	switch((ulong)c->qid.path){
 	case Qdir:
@@ -112,17 +129,16 @@ wdwrite(Chan* c, void* a, long n, vlong off)
 		if(offset || n >= READSTR)
 			error(Ebadarg);
 
-		if((p = strchr(a, '\n')) != nil)
-			*p = 0;
-
-		if(strncmp(a, "enable", n) == 0)
-			wd->enable();
-		else if(strncmp(a, "disable", n) == 0)
-			wd->disable();
-		else if(strncmp(a, "restart", n) == 0)
-			wd->restart();
-		else
-			error(Ebadarg);
+		p = malloc(READSTR);
+		if(waserror()){
+			free(p);
+			nexterror();
+		}
+		memmove(p, a, n);
+		p[n] = 0;
+		wdctl(p);
+		poperror();
+		free(p);
 		return n;
 
 	default:

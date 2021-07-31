@@ -440,9 +440,9 @@ vt6105Mifstat(Ether* edev, void* a, long n, ulong offset)
 
 	ctlr = edev->ctlr;
 
-	alloc = malloc(READSTR);
+	alloc = malloc(2*READSTR);
 	p = alloc;
-	e = p + READSTR;
+	e = p + 2*READSTR;
 	for(i = 0; i < Nrxstats; i++){
 		p = seprint(p, e, "%s: %ud\n", rxstats[i], ctlr->rxstats[i]);
 	}

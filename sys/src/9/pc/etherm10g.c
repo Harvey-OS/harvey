@@ -1368,19 +1368,20 @@ lstcount(Block *b)
 static long
 m10gifstat(Ether *e, void *v, long n, ulong off)
 {
-	int l;
+	int l, lim;
 	char *p;
 	Ctlr *c;
 	Stats s;
 
 	c = e->ctlr;
-	p = malloc(READSTR+1);
+	lim = 2*READSTR-1;
+	p = malloc(lim+1);
 	l = 0;
 	/* no point in locking this because this is done via dma. */
 	memmove(&s, c->stats, sizeof s);
 
 	// l +=
-	snprint(p+l, READSTR,
+	snprint(p+l, lim,
 		"txcnt = %lud\n"  "linkstat = %lud\n" 	"dlink = %lud\n"
 		"derror = %lud\n" "drunt = %lud\n" 	"doverrun = %lud\n"
 		"dnosm = %lud\n"  "dnobg = %lud\n"	"nrdma = %lud\n"
