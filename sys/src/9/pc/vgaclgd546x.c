@@ -12,14 +12,13 @@
 #include <cursor.h>
 #include "screen.h"
 
-typedef struct Cursor546x Cursor546x;
-struct Cursor546x {
+typedef struct {
 	ushort	x;
 	ushort	y;
 	ushort	preset;
 	ushort	enable;
 	ushort	addr;
-};
+} Cursor546x;
 
 enum {
 	PaletteState	= 0xB0,

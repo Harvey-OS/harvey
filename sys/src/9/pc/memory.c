@@ -25,20 +25,18 @@ enum {
 	NMemBase	= 10,
 };
 
-typedef struct Map Map;
-struct Map {
+typedef struct {
 	int	size;
 	ulong	addr;
-};
+} Map;
 
-typedef struct RMap RMap;
-struct RMap {
+typedef struct {
 	char*	name;
 	Map*	map;
 	Map*	mapend;
 
 	Lock;
-};
+} RMap;
 
 static Map mapupa[16];
 static RMap rmapupa = {

@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <ctype.h>
 
 int
 encodefmt(Fmt *f)
@@ -11,7 +10,6 @@ encodefmt(Fmt *f)
 	int ilen;
 	int rv;
 	uchar *b;
-	char *p;
 	char obuf[64];	// rsc optimization
 
 	if(!(f->flags&FmtPrec) || f->prec < 1)
@@ -56,9 +54,6 @@ encodefmt(Fmt *f)
 		break;
 	case 'H':
 		rv = enc16(out, len, b, ilen);
-		if(rv >= 0 && (f->flags & FmtLong))
-			for(p = buf; *p; p++)
-				*p = tolower(*p);
 		break;
 	default:
 		rv = -1;

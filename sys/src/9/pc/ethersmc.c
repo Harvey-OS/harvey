@@ -210,8 +210,7 @@ enum {
 	PageSize	= 256,		/* page length */
 };
 
-typedef struct Smc91xx Smc91xx;
-struct Smc91xx {
+typedef struct {
 	Lock;
 	ushort rev;
 	int attached;
@@ -225,7 +224,7 @@ struct Smc91xx {
 	ulong mcol;
 	ulong lcol;
 	ulong dfr;
-};
+} Smc91xx;
 
 #define SELECT_BANK(x) outs(port + BankSelect, x)
 

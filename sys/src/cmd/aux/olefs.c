@@ -111,17 +111,13 @@ convM2OD(Odir *f, void *buf, int nbuf)
 int
 oreadblock(Ofile *f, int block, ulong off, char *buf, int nbuf)
 {
-	int n;
-
 	if(block < 0 || block >= f->nblock) {
 		werrstr("attempt to read %x/%lux\n", block, f->nblock);
 		return -1;
 	}
 
-	if(off >= Blocksize){
-		print("offset too far into block\n");
+	if(off >= Blocksize)
 		return 0;
-	}
 
 	if(off+nbuf > Blocksize)
 		nbuf = Blocksize-off;
@@ -129,15 +125,10 @@ oreadblock(Ofile *f, int block, ulong off, char *buf, int nbuf)
 	/* blocks start numbering at -1 [sic] */
 	off += (block+1)*Blocksize;
 
-	if(Bseek(f->b, off, 0) != off){
-		print("seek failed\n");
+	if(Bseek(f->b, off, 0) != off)
 		return -1;
-	}
 
-	n = Bread(f->b, buf, nbuf);
-	if(n < 0)
-		print("Bread failed: %r");
-	return n;
+	return Bread(f->b, buf, nbuf);
 }
 
 int
@@ -247,8 +238,8 @@ oleopen(char *fn)
 	/* the first bytes are magic */
 	if(Bread(b, buf, sizeof magic) != sizeof magic
 	|| memcmp(buf, magic, sizeof magic) != 0) {
-		Bterm(b);
 		werrstr("bad magic: not OLE file");
+		Bterm(b);
 		return nil;
 	}
 
@@ -264,7 +255,6 @@ oleopen(char *fn)
 	if(Bread(b, buf, Blocksize) != Blocksize) {
 		Bterm(b);
 		free(f);
-		print("short read\n");
 		return nil;
 	}
 
@@ -344,10 +334,8 @@ oleopen(char *fn)
 	}
 Break2:;
 
-	if(oreaddir(f, 0, &rootdir) <= 0){
-		print("oreaddir could not read root\n");
+	if(oreaddir(f, 0, &rootdir) <= 0)
 		goto Die;
-	}
 
 	f->smapblock = rootdir.start;
 	return f;
@@ -495,7 +483,7 @@ main(int argc, char **argv)
 
 	f = oleopen(argv[0]);
 	if(f == nil) {
-		print("error opening %s: %r\n", argv[0]);
+		print("error: %r\n");
 		exits("open");
 	}
 

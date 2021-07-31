@@ -138,13 +138,12 @@ enum {					/* Rsr */
 	Dfr		= 0x80,		/* deferring */
 };
 
-typedef struct Hdr Hdr;
-struct Hdr {
+typedef struct {
 	uchar	status;
 	uchar	next;
 	uchar	len0;
 	uchar	len1;
-};
+} Hdr;
 
 void
 dp8390getea(Ether* ether, uchar* ea)

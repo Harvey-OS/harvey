@@ -45,12 +45,11 @@ enum {
 	TI1131xDC = 0x92,		// device control
 };
 
-typedef struct Variant Variant;
-struct Variant {
-	ushort	vid;
-	ushort	did;
-	char		*name;
-};
+typedef struct {
+	ushort	r_vid;
+	ushort	r_did;
+	char		*r_name;
+} Variant;
 
 static Variant variant[] = {
 {	Ricoh_vid,	Ricoh_476_did,	"Ricoh 476 PCI/Cardbus bridge",	},
@@ -197,16 +196,14 @@ enum
  *  important parameters like power
  */
 /* cis memory walking */
-typedef struct Cisdat Cisdat;
-struct Cisdat {
+typedef struct Cisdat {
 	uchar		*cisbase;
 	int			cispos;
 	int			cisskip;
 	int			cislen;
-};
+} Cisdat;
 
-typedef struct Pcminfo Pcminfo;
-struct Pcminfo {
+typedef struct {
 	char			verstr[512];		/* Version string */
 	PCMmap		mmap[4];		/* maps, last is always for the kernel */
 	ulong		conf_addr;		/* Config address */
@@ -217,10 +214,9 @@ struct Pcminfo {
 
 	int			port;			/* Actual port usage */
 	int			irq;			/* Actual IRQ usage */
-};
+} Pcminfo;
 
-typedef struct Cardbus Cardbus;
-struct Cardbus {
+typedef struct {
 	Lock;
 	Variant		*variant;		/* Which CardBus chipset */
 	Pcidev		*pci;			/* The bridge itself */
@@ -238,7 +234,7 @@ struct Cardbus {
 
 	int			refs;			/* Number of refs to slot */
 	Lock		refslock;		/* inc/dev ref lock */
-};
+} Cardbus;
 
 static int managerstarted;
 
@@ -412,14 +408,13 @@ qengine(Cardbus *cb, int message)
 	unlock(cb);
 }
 
-typedef struct Events Events;
-struct Events {
-	Cardbus	*cb;
-	int	message;
-};
+typedef struct {
+	Cardbus	*e_cb;
+	int	e_message;
+} events_t;
 
 static Lock levents;
-static Events events[NUMEVENTS];
+static events_t events[NUMEVENTS];
 static Rendez revents;
 static int nevents;
 
@@ -431,8 +426,8 @@ iengine(Cardbus *cb, int message)
 		return;
 	}
 	ilock(&levents);
-	events[nevents].cb = cb;
-	events[nevents].message = message;
+	events[nevents].e_cb = cb;
+	events[nevents].e_message = message;
 	nevents++;
 	iunlock(&levents);
 	wakeup(&revents);
@@ -457,11 +452,11 @@ processevents(void *)
 		message = 0;
 		ilock(&levents);
 		if (nevents > 0) {
-			cb = events[0].cb;
-			message = events[0].message;
+			cb = events[0].e_cb;
+			message = events[0].e_message;
 			nevents--;
 			if (nevents > 0)
-				memmove(events, &events[1], nevents * sizeof(Events));
+				memmove(events, &events[1], nevents * sizeof(events_t));
 		}
 		iunlock(&levents);
 
@@ -538,7 +533,7 @@ devpccardlink(void)
 		uchar pin;
 
 		for (i = 0; i != nelem(variant); i++)
-			if (pci->vid == variant[i].vid && pci->did == variant[i].did)
+			if (pci->vid == variant[i].r_vid && pci->did == variant[i].r_did)
 				break;
 		if (i == nelem(variant))
 			continue;
@@ -635,7 +630,7 @@ devpccardlink(void)
 		i82365probe(cb, LegacyAddr, LegacyAddr + 1);
 
 		print("#Y%ld: %s, %.8ulX intl %d\n", cb - cbslots, 
-			 variant[i].name, baddr, pci->intl);
+			 variant[i].r_name, baddr, pci->intl);
 	}
 
 	if (nslots == 0){

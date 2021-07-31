@@ -245,15 +245,13 @@ enum {
 
 };
 
-typedef struct Variant Variant;
-struct Variant {
+typedef struct {
 	ushort		vid;
 	ushort		did;
 	char			*name;
-};
+} Variant;
 
-typedef struct Bt848 Bt848;
-struct Bt848 {
+typedef struct {
 	ulong	devstat;		// 000
 	ulong	iform;		// 004
 	ulong	tdec;			// 008
@@ -322,12 +320,11 @@ struct Bt848 {
 	ulong	risccount;		// 120
 	ulong	pad8[55];		// 124-1FC	
 	ulong	gpiodata[64];	// 200-2FC
-};
+} Bt848;
 
 #define packetlen	i2c
 
-typedef struct Tuner Tuner;
-struct Tuner {
+typedef struct {
 	char		*name;
   	ushort	freq_vhfh;	// Start frequency
 	ushort	freq_uhf;  
@@ -336,17 +333,15 @@ struct Tuner {
 	uchar	UHF;
 	uchar	cfg; 
 	ushort	offs;
-};
+} Tuner;
 
-typedef struct Frame Frame;
-struct Frame {
+typedef struct {
 	ulong	*fstart;
 	ulong	*fjmp;
 	uchar	*fbase;
-};
+} Frame;
 
-typedef struct Tv Tv;
-struct Tv {
+typedef struct {
 	Lock;
 	Rendez;
 	Bt848	*bt848;
@@ -382,7 +377,7 @@ struct Tv {
 	uchar	aleft, aright;		// Left and right audio volume
 	ulong	kfirclock;
 	Ref		aref;				// Copying audio?
-};
+} Tv;
 
 enum {
 	TemicPAL = 0,

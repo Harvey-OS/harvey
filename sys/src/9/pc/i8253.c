@@ -57,8 +57,7 @@ enum
 	MinPeriod=Freq/(100*HZ),
 };
 
-typedef struct I8253 I8253;
-struct I8253
+static struct
 {
 	Lock;
 	ulong	period;		/* current clock period */
@@ -69,8 +68,7 @@ struct I8253
 	uvlong	ticks;		/* cumulative ticks of counter 1 */
 
 	ulong	periodset;
-};
-I8253 i8253;
+}i8253;
 
 
 void
@@ -167,6 +165,7 @@ guesscpuhz(int aalcycles)
 	m->loopconst = (cpufreq/1000)/aalcycles;	/* AAM+LOOP's for 1 ms */
 
 	if(m->havetsc){
+
 		/* counter goes up by 2*Freq */
 		b = (b-a)<<1;
 		b *= Freq;

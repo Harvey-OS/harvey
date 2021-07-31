@@ -301,7 +301,7 @@ rwalk(Fid *f)
 	err = nil;
 	nf = nil;
 	rhdr.nwqid = 0;
-	if(thdr.newfid != thdr.fid){
+	if(rhdr.newfid != rhdr.fid){
 		err = clone(f, &nf);
 		if(err)
 			return err;

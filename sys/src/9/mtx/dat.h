@@ -132,8 +132,7 @@ struct Mach
 	int	cputype;
 	ulong	loopconst;
 
-	Proc*	readied;		/* for runproc */
-	ulong	schedticks;	/* next forced context switch */
+	ulong	fairness;		/* for runproc */
 
 	vlong	cpuhz;
 	ulong	bushz;

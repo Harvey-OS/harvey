@@ -12,15 +12,14 @@
 #include <cursor.h>
 #include "screen.h"
 
-typedef struct CursorNM CursorNM;
-struct CursorNM {
+typedef struct {
 	int	enable;
 	int	x;
 	int	y;
 	int	colour1;
 	int	colour2;
 	int	addr;
-};
+} CursorNM;
 
 static ulong
 neomagiclinear(VGAscr* scr, int* size, int* align)

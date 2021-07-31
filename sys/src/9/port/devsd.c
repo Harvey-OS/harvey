@@ -15,12 +15,12 @@
 extern Dev sddevtab;
 extern SDifc* sdifc[];
 
-typedef struct SDevgrp {
-	SDev*	dev;
-	int	nunits;		/* num units in dev */
-} SDevgrp;
+typedef struct {
+	SDev*	dt_dev;
+	int	dt_nunits;		/* num units in dev */
+} dev_t;
 
-static SDevgrp* devs;			/* all devices */
+static dev_t* devs;			/* all devices */
 static QLock devslock;			/* insertion and removal of devices */
 static int ndevs;			/* total number of devices in the system */
 
@@ -229,13 +229,13 @@ sdgetdev(int idno)
 
 	qlock(&devslock);
 	for(i = 0; i != ndevs; i++)
-		if(devs[i].dev->idno == idno)
+		if(devs[i].dt_dev->idno == idno)
 			break;
 	
 	if(i == ndevs)
 		sdev = nil;
 	else{
-		sdev = devs[i].dev;
+		sdev = devs[i].dt_dev;
 		incref(&sdev->r);
 	}
 	qunlock(&devslock);
@@ -359,14 +359,14 @@ sdreset(void)
 	  * The IDs have been set, unlink the sdlist and copy the spec to
 	  * the devtab.
 	  */
-	devs = (SDevgrp*)malloc(ndevs * sizeof(SDevgrp));
-	memset(devs, 0, ndevs * sizeof(SDevgrp));
+	devs = (dev_t*)malloc(ndevs * sizeof(dev_t));
+	memset(devs, 0, ndevs * sizeof(dev_t));
 	i = 0;
 	while(sdlist != nil){
-		devs[i].dev = sdlist;
-		devs[i].nunits = sdlist->nunit;
+		devs[i].dt_dev = sdlist;
+		devs[i].dt_nunits = sdlist->nunit;
 		sdlist = sdlist->next;
-		devs[i].dev->next = nil;
+		devs[i].dt_dev->next = nil;
 		i++;
 	}
 }
@@ -471,9 +471,9 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 
 		qlock(&devslock);
 		for(i = 0; i != ndevs; i++){
-			if(s < devs[i].nunits)
+			if(s < devs[i].dt_nunits)
 				break;
-			s -= devs[i].nunits;
+			s -= devs[i].dt_nunits;
 		}
 		
 		if(i == ndevs){
@@ -482,7 +482,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 			return -1;
 		}
 
-		if((sdev = devs[i].dev) == nil){
+		if((sdev = devs[i].dt_dev) == nil){
 			qunlock(&devslock);
 			return 0;
 		}
@@ -604,7 +604,7 @@ sdattach(char* spec)
 
 	qlock(&devslock);
 	for (sdev = nil, i = 0; i != ndevs; i++)
-		if((sdev = devs[i].dev) != nil && sdev->idno == idno)
+		if((sdev = devs[i].dt_dev) != nil && sdev->idno == idno)
 			break;
 
 	if(i == ndevs || subno >= sdev->nunit || sdgetunit(sdev, subno) == nil){
@@ -887,7 +887,7 @@ sdread(Chan *c, void *a, long n, vlong off)
 		e = p + READSTR;
 		qlock(&devslock);
 		for(i = 0; i != ndevs; i++){
-			SDev *sdev = devs[i].dev;
+			SDev *sdev = devs[i].dt_dev;
 
 			if(sdev->ifc->stat)
 				p = sdev->ifc->stat(sdev, p, e);
@@ -978,40 +978,39 @@ sdread(Chan *c, void *a, long n, vlong off)
 	return 0;
 }
 
-typedef struct Confdata Confdata;
-struct Confdata {
-	int	on;
-	char*	spec;
-	DevConf	cf;
-};
+typedef struct {
+	int	o_on;
+	char*	o_spec;
+	DevConf	o_cf;
+} confdata_t;
 
 static void
-parseswitch(Confdata* cd, char* option)
+parse_switch(confdata_t* cd, char* option)
 {
 	if(!strcmp("on", option))
-		cd->on = 1;
+		cd->o_on = 1;
 	else if(!strcmp("off", option))
-		cd->on = 0;
+		cd->o_on = 0;
 	else
 		error(Ebadarg);
 }
 
 static void
-parsespec(Confdata* cd, char* option)
+parse_spec(confdata_t* cd, char* option)
 {
 	if(strlen(option) > 1) 
 		error(Ebadarg);
-	cd->spec = option;
+	cd->o_spec = option;
 }
 
-static Devport*
+static port_t*
 getnewport(DevConf* dc)
 {
-	Devport *p;
+	port_t *p;
 
-	p = (Devport *)malloc((dc->nports + 1) * sizeof(Devport));
+	p = (port_t *)malloc((dc->nports + 1) * sizeof(port_t));
 	if(dc->nports > 0){
-		memmove(p, dc->ports, dc->nports * sizeof(Devport));
+		memmove(p, dc->ports, dc->nports * sizeof(port_t));
 		free(dc->ports);
 	}
 	dc->ports = p;
@@ -1022,61 +1021,61 @@ getnewport(DevConf* dc)
 }
 
 static void
-parseport(Confdata* cd, char* option)
+parse_port(confdata_t* cd, char* option)
 {
 	char *e;
-	Devport *p;
+	port_t *p;
 
-	if(cd->cf.nports == 0 || cd->cf.ports[cd->cf.nports-1].port != (ulong)-1)
-		p = getnewport(&cd->cf);
+	if(cd->o_cf.nports == 0 || cd->o_cf.ports[cd->o_cf.nports-1].port != (ulong)-1)
+		p = getnewport(&cd->o_cf);
 	else
-		p = &cd->cf.ports[cd->cf.nports-1];
+		p = &cd->o_cf.ports[cd->o_cf.nports-1];
 	p->port = strtol(option, &e, 0);
 	if(e == nil || *e != '\0')
 		error(Ebadarg);
 }
 
 static void
-parsesize(Confdata* cd, char* option)
+parse_size(confdata_t* cd, char* option)
 {
 	char *e;
-	Devport *p;
+	port_t *p;
 
-	if(cd->cf.nports == 0 || cd->cf.ports[cd->cf.nports-1].size != -1)
-		p = getnewport(&cd->cf);
+	if(cd->o_cf.nports == 0 || cd->o_cf.ports[cd->o_cf.nports-1].size != -1)
+		p = getnewport(&cd->o_cf);
 	else
-		p = &cd->cf.ports[cd->cf.nports-1];
+		p = &cd->o_cf.ports[cd->o_cf.nports-1];
 	p->size = (int)strtol(option, &e, 0);
 	if(e == nil || *e != '\0')
 		error(Ebadarg);
 }
 
 static void
-parseirq(Confdata* cd, char* option)
+parse_irq(confdata_t* cd, char* option)
 {
 	char *e;
 
-	cd->cf.intnum = strtoul(option, &e, 0);
+	cd->o_cf.intnum = strtoul(option, &e, 0);
 	if(e == nil || *e != '\0')
 		error(Ebadarg);
 }
 
 static void
-parsetype(Confdata* cd, char* option)
+parse_type(confdata_t* cd, char* option)
 {
-	cd->cf.type = option;
+	cd->o_cf.type = option;
 }
 
 static struct {
 	char	*option;
-	void	(*parse)(Confdata*, char*);
+	void	(*parse)(confdata_t*, char*);
 } options[] = {
-	{ 	"switch",	parseswitch,	},
-	{	"spec",		parsespec,	},
-	{	"port",		parseport,	},
-	{	"size",		parsesize,	},
-	{	"irq",		parseirq,	},
-	{	"type",		parsetype,	},
+	{ 	"switch",	parse_switch,	},
+	{	"spec",		parse_spec,	},
+	{	"port",		parse_port,	},
+	{	"size",		parse_size,	},
+	{	"irq",		parse_irq,	},
+	{	"type",		parse_type,	},
 };
 
 static long
@@ -1092,18 +1091,18 @@ sdwrite(Chan* c, void* a, long n, vlong off)
 	default:
 		error(Eperm);
 	case Qtopctl: {
-		Confdata cd;
+		confdata_t cd;
 		char buf[256], *field[Ncmd];
 		int nf, i, j;
 
-		memset(&cd, 0, sizeof(Confdata));
+		memset(&cd, 0, sizeof(confdata_t));
 		if(n > sizeof(buf)-1) n = sizeof(buf)-1;
 		memmove(buf, a, n);
 		buf[n] = '\0';
 
-		cd.on = -1;
-		cd.spec = '\0';
-		memset(&cd.cf, 0, sizeof(DevConf));
+		cd.o_on = -1;
+		cd.o_spec = '\0';
+		memset(&cd.o_cf, 0, sizeof(DevConf));
 
 		nf = tokenize(buf, field, Ncmd);
 		for(i = 0; i < nf; i++){
@@ -1119,22 +1118,22 @@ sdwrite(Chan* c, void* a, long n, vlong off)
 			options[j].parse(&cd, field[i]);
 		}
 
-		if(cd.on < 0) 
+		if(cd.o_on < 0) 
 			error(Ebadarg);
 
-		if(cd.on){
-			if(cd.spec == '\0' || cd.cf.nports == 0 || 
-			     cd.cf.intnum == 0 || cd.cf.type == nil)
+		if(cd.o_on){
+			if(cd.o_spec == '\0' || cd.o_cf.nports == 0 || 
+			     cd.o_cf.intnum == 0 || cd.o_cf.type == nil)
 				error(Ebadarg);
 		}
 		else{
-			if(cd.spec == '\0')
+			if(cd.o_spec == '\0')
 				error(Ebadarg);
 		}
 
 		if(sddevtab.config == nil)
 			error("No configuration function");
-		sddevtab.config(cd.on, cd.spec, &cd.cf);
+		sddevtab.config(cd.o_on, cd.o_spec, &cd.o_cf);
 		break;
 	}
 	case Qctl:
@@ -1301,7 +1300,7 @@ getspec(char base)
 		SDev *sdev;
 
 		for(i = 0; i != ndevs; i++)
-			if((sdev = devs[i].dev) != nil && (char)sdev->idno == base)
+			if((sdev = devs[i].dt_dev) != nil && (char)sdev->idno == base)
 				break;
 
 		if(i == ndevs)
@@ -1315,10 +1314,10 @@ static int
 configure(char* spec, DevConf* cf)
 {
 	ISAConf isa;
-	SDevgrp *tmpdevs;
+	dev_t *_devs;
 	SDev *tail, *sdev, *(*probe)(DevConf*);
 	char *p, name[32];
-	int i, nnew;
+	int i, added_devs;
 
 	if((p = strchr(cf->type, '/')) != nil)
 		*p++ = '\0';
@@ -1351,7 +1350,7 @@ configure(char* spec, DevConf* cf)
 	}
 	
 	for(i = 0; i != ndevs; i++)
-		if((sdev = devs[i].dev) != nil && sdev->idno == *spec)
+		if((sdev = devs[i].dt_dev) != nil && sdev->idno == *spec)
 			break;
 	if(i != ndevs)
 		error(Eexist);
@@ -1360,17 +1359,17 @@ configure(char* spec, DevConf* cf)
 		error("Cannot probe controller");
 	poperror();
 
-	nnew = 0;
+	added_devs = 0;
 	tail = sdev;
 	while(tail){
-		nnew++;
+		added_devs++;
 		tail = tail->next;
 	}
 	
-	tmpdevs = (SDevgrp*)malloc((ndevs + nnew) * sizeof(SDevgrp));
-	memmove(tmpdevs, devs, ndevs * sizeof(SDevgrp));
+	_devs = (dev_t*)malloc((ndevs + added_devs) * sizeof(dev_t));
+	memmove(_devs, devs, ndevs * sizeof(dev_t));
 	free(devs);
-	devs = tmpdevs;
+	devs = _devs;
 
 	while(sdev){
 		/* Assign `spec' to the device */
@@ -1382,10 +1381,10 @@ configure(char* spec, DevConf* cf)
 		sdev->unitflg = (int *)malloc(sdev->nunit * sizeof(int));
 		assert(sdev->unit && sdev->unitflg);
 
-		devs[ndevs].dev = sdev;
-		devs[ndevs].nunits = sdev->nunit;
+		devs[ndevs].dt_dev = sdev;
+		devs[ndevs].dt_nunits = sdev->nunit;
 		sdev = sdev->next;
-		devs[ndevs].dev->next = nil;
+		devs[ndevs].dt_dev->next = nil;
 		ndevs++;
 	}
 
@@ -1407,7 +1406,7 @@ unconfigure(char* spec)
 
 	sdev = nil;
 	for(i = 0; i != ndevs; i++)
-		if((sdev = devs[i].dev) != nil && sdev->idno == *spec)
+		if((sdev = devs[i].dt_dev) != nil && sdev->idno == *spec)
 			break;
 
 	if(i == ndevs)
@@ -1421,8 +1420,8 @@ unconfigure(char* spec)
 		sdev->ifc->disable(sdev);
 
 	/* we're alone and the device tab is locked; make the device unavailable */
-	memmove(&devs[i], &devs[ndevs - 1], sizeof(SDevgrp));
-	memset(&devs[ndevs - 1], 0, sizeof(SDevgrp));
+	memmove(&devs[i], &devs[ndevs - 1], sizeof(dev_t));
+	memset(&devs[ndevs - 1], 0, sizeof(dev_t));
 	ndevs--;
 
 	qunlock(&devslock);

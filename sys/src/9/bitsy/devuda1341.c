@@ -198,19 +198,18 @@ static	struct
 
 int	zerodma;	/* dma buffer used for sending zero */
 
-typedef struct Iostats Iostats;
-struct Iostats {
+typedef struct {
 	ulong	totaldma;
 	ulong	idledma;
 	ulong	faildma;
 	ulong	samedma;
 	ulong	empties;
-};
+} iostats_t;
 
 static struct
 {
 	ulong	bytes;
-	Iostats	rx, tx;
+	iostats_t	rx, tx;
 } iostats;
 
 static void setaudio(int in, int out, int left, int right, int value);

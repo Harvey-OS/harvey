@@ -145,8 +145,7 @@ struct Mach
 	void	*alarm;			/* alarms bound to this clock */
 	int	inclockintr;
 
-	Proc*	readied;		/* for runproc */
-	ulong	schedticks;	/* next forced context switch */
+	ulong	fairness;		/* for runproc */
 
 	vlong	cpuhz;			/* hwrpb->cfreq */
 	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
@@ -245,12 +244,12 @@ extern register Proc	*up;
 typedef struct {
 	ulong	port;	
 	int	size;
-} Devport;
+} port_t;
 
 struct DevConf
 {
 	ulong	intnum;	/* interrupt number */
 	char	*type;	/* card type, malloced */
 	int	nports;	/* Number of ports */
-	Devport	*ports;	/* The ports themselves */
+	port_t	*ports;	/* The ports themselves */
 };

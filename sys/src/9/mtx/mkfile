@@ -19,6 +19,7 @@ PORT=\
 	fault.$O\
 	latin1.$O\
 	log.$O\
+	mul64fract.$O\
 	rebootcmd.$O\
 	page.$O\
 	parse.$O\
