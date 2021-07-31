@@ -96,9 +96,6 @@ syncclock(void)
 {
 	uvlong x;
 
-	if(arch->fastclock != tscticks)
-		return;
-
 	if(m->machno == 0){
 		wrmsr(0x10, 0);
 		m->tscticks = 0;
@@ -133,6 +130,6 @@ PCArch archmp = {
 .reset=		mpshutdown,
 .intrinit=	mpinit,
 .intrenable=	mpintrenable,
-.fastclock=	i8253read,
+.fastclock=	tscticks,
 .timerset=	lapictimerset,
 };

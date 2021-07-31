@@ -728,7 +728,6 @@ msgUnix(Msg *m, int top)
 		return 1;
 
 	if(!top){
-bogus:
 		m->unixDate = estrdup("");
 		m->unixFrom = unixFrom(nil);
 		return 1;
@@ -740,7 +739,7 @@ bogus:
 	s = strchr(s, ' ');
 	if(s == nil){
 		free(ss);
-		goto bogus;
+		return 0;
 	}
 	s++;
 	m->unixFrom = unixFrom(s);
@@ -763,12 +762,12 @@ unixFrom(char *s)
 	char *e, *t;
 
 	if(s == nil)
-		return nil;
+		s = "UnknownUser";
 	headStr = (uchar*)s;
 	t = emalloc(strlen(s) + 2);
 	e = headAddrSpec(t, nil);
 	if(e == nil)
-		a = nil;
+		a = unixFrom(nil);
 	else{
 		if(*e != '\0')
 			*e++ = '\0';
@@ -897,11 +896,9 @@ msgHeader(Msg *m, Header *h, char *file)
 	if(h == &m->head){
 		if(m->from == nil){
 			m->from = m->unixFrom;
-			if(m->from != nil){
-				s = maddrStr(m->from);
-				msgAddHead(m, "From", s);
-				free(s);
-			}
+			s = maddrStr(m->from);
+			msgAddHead(m, "From", s);
+			free(s);
 		}
 		if(m->sender == nil)
 			m->sender = m->from;
@@ -910,7 +907,7 @@ msgHeader(Msg *m, Header *h, char *file)
 
 		if(infoIsNil(m->info[IDate]))
 			m->info[IDate] = m->unixDate;
-		if(!dated && m->from != nil)
+		if(!dated)
 			msgAddDate(m);
 	}
 	return 1;
@@ -940,10 +937,6 @@ msgAddDate(Msg *m)
 {
 	Tm tm;
 	char buf[64];
-
-	/* don't bother if we don't have a date */
-	if(infoIsNil(m->info[IDate]))
-		return;
 
 	date2tm(&tm, m->info[IDate]);
 	rfc822date(buf, sizeof(buf), &tm);

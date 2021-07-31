@@ -119,8 +119,7 @@ pop3capa(Pop *pop)
 		return nil;
 
 	hastls = 0;
-	for(;;){
-		s = pop3resp(pop);
+	while(s = pop3resp(pop)){
 		if(strcmp(s, ".") == 0 || strcmp(s, "unexpected eof") == 0)
 			break;
 		if(strcmp(s, "STLS") == 0)
@@ -298,7 +297,7 @@ pop3download(Pop *pop, Message *m)
 	s = nil;
 	while(wp <= ep) {
 		s = pop3resp(pop);
-		if(strcmp(s, "unexpected eof") == 0) {
+		if(s == nil) {
 			free(m->start);
 			m->start = nil;
 			return "unexpected end of conversation";
@@ -314,9 +313,8 @@ pop3download(Pop *pop, Message *m)
 		if(wp+l > ep) {
 			free(m->start);
 			m->start = nil;
-			for(;;){
-				s = pop3resp(pop);
-				if(strcmp(s, ".") == 0 || strcmp(s, "unexpected eof") == 0)
+			while(s = pop3resp(pop)) {
+				if(strcmp(s, ".") == 0)
 					break;
 			}
 			return "message larger than expected";
@@ -371,9 +369,8 @@ pop3read(Pop *pop, Mailbox *mb, int doplumb)
 		if(!isokay(s = pop3resp(pop)))
 			return s;
 
-		for(;;){
-			p = pop3resp(pop);
-			if(strcmp(p, ".") == 0 || strcmp(p, "unexpected eof") == 0)
+		while(p = pop3resp(pop)) {
+			if(strcmp(p, ".") == 0)
 				break;
 
 			if(tokenize(p, f, 2) != 2)

@@ -4,12 +4,8 @@ prep, fdisk, format, mbr \- prepare hard and floppy diskettes, flashes
 .SH SYNOPSIS
 .B disk/prep
 [
-.B -bcfnprw
+.B -abcfnprw
 ]
-[
-.B -a
-.I name
-]...
 [
 .B -s 
 .I sectorsize
@@ -95,7 +91,7 @@ do not overlap.
 The Plan 9 partition often contains a number of
 conventionally named subpartitions.
 They include:
-.TF arenas
+.TF cache
 .TP 
 .B 9fat
 A small FAT file system used to hold
@@ -113,37 +109,14 @@ See the discussion of the
 option to
 .IR format .
 .TP
-.B arenas
-A
-.IR venti (8)
-arenas partition.
-.TP
 .B cache
 A
 .IR cfs (4)
 file system cache.
 .TP
-.B fossil
-A
-.IR fossil (4)
-file system.
-.TP
 .B fs
 A
 .IR kfs (4)
-file system.
-.TP
-.B isect
-A
-.IR venti (8)
-index section.
-.TP
-.B nvram
-A one-sector partition used to simulate non-volatile RAM on PCs.
-.TP
-.B other
-A non-archived
-.IR fossil (4)
 file system.
 .TP
 .B swap
@@ -185,16 +158,29 @@ Plan 9 partition already exists.
 If no other partition on the disk is marked active (i.e. marked as the boot partition),
 .I fdisk
 will mark the new partition active.
-.IR Prep 's
-.B -a
-flag takes the name of a partition to create.
-(See the list above for partition names.)
-It can be repeated to specify a list of partitions to create.
-If the disk is currently unpartitioned, 
+.I Prep
+will create 
+.BR 9fat ,
+.BR swap ,
+and
+.B fs
+partitions, doing
+nothing if the disk
+has already been partitioned.
+If the
+.B -c
+option is present, 
 .I prep
-will create the named partitions on the disk,
-attempting to use the entire disk in a sensible manner.
-The partition names must be from the list given above.
+will also create a 
+.B cache
+partition.
+If the
+.B -n
+option is present,
+.I prep
+will create a one-sector
+.B nvram
+partition.
 .TP
 .B -b
 Start with a blank disk, ignoring any extant partition table.
@@ -663,7 +649,7 @@ Initialize the blank hard disk
 .EX
 disk/mbr -m /386/mbr /dev/sdC0/data
 disk/fdisk -baw /dev/sdC0/data
-disk/prep -bw -a^(9fat fs cache swap) /dev/sdC0/plan9
+disk/prep -baw /dev/sdC0/plan9
 disk/format -b /386/pbs -d -r 2 /dev/sdC0/9fat 9load 9pcdisk plan9.ini
 .EE
 .PP

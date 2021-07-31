@@ -89,7 +89,7 @@ int pid = -1;
 int pgppid = -1;
 
 Attach*	mkattach(char*, char*, int);
-int	readheaders(Biobuf*, int*, String**, Addr**, int);
+int	readheaders(Biobuf*, int*, String**, Addr**);
 void	body(Biobuf*, Biobuf*, int);
 char*	mkboundary(void);
 int	printdate(Biobuf*);
@@ -284,7 +284,7 @@ main(int argc, char **argv)
 		// pass through headers, keeping track of which we've seen,
 		// perhaps building to list.
 		holding = holdon();
-		headersrv = readheaders(&in, &flags, &hdrstring, eightflag ? &to : nil, 1);
+		headersrv = readheaders(&in, &flags, &hdrstring, eightflag ? &to : nil);
 		if(rfc822syntaxerror){
 			Bdrain(&in);
 			fatal("rfc822 syntax error, message not sent");
@@ -328,7 +328,7 @@ main(int argc, char **argv)
 		mboxpath("headers", user, file, 0);
 		b = Bopen(s_to_c(file), OREAD);
 		if(b != nil){
-			switch(readheaders(b, &flags, &hdrstring, nil, 0)){
+			switch(readheaders(b, &flags, &hdrstring, nil)){
 			case Error:	// error
 				fatal("reading");
 			}
@@ -432,7 +432,7 @@ pgpopts(char *s)
 // keep track of which headers are there, which addresses we have
 // remove Bcc: line.
 int
-readheaders(Biobuf *in, int *fp, String **sp, Addr **top, int strict)
+readheaders(Biobuf *in, int *fp, String **sp, Addr **top)
 {
 	Addr *to;
 	String *s, *sline;
@@ -496,22 +496,19 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top, int strict)
 		// to let users type headers, I need some way to distinguish.  Therefore,
 		// marshal tries to know all likely headers and will indeed screw up if
 		// the user types an unlikely one. -- presotto
-		if(strict){
-			hdrtype = -1;
-			for(i = 0; i < nelem(hdrs); i++){
-				if(cistrncmp(hdrs[i], p, strlen(hdrs[i])) == 0){
-					*fp |= 1<<i;
-					hdrtype = i;
-					break;
-				}
-			}
-			if(hdrtype == -1){
-				p[Blinelen(in)-1] = '\n';
-				Bseek(in, -Blinelen(in), 1);
+		hdrtype = -1;
+		for(i = 0; i < nelem(hdrs); i++){
+			if(cistrncmp(hdrs[i], p, strlen(hdrs[i])) == 0){
+				*fp |= 1<<i;
+				hdrtype = i;
 				break;
 			}
-		} else
-			hdrtype = 0;
+		}
+		if(hdrtype == -1){
+			p[Blinelen(in)-1] = '\n';
+			Bseek(in, -Blinelen(in), 1);
+			break;
+		}
 		p[Blinelen(in)-1] = '\n';
 	}
 
@@ -1081,7 +1078,7 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 		if(replymsg != nil)
 			putenv("replymsg", replymsg);
 
-		cmd = mboxpath("pipefrom", login, s_new(), 0);
+		cmd = mboxpath("pipefrom", user, s_new(), 0);
 		exec(s_to_c(cmd), av);
 		exec("/bin/myupassend", av);
 		exec("/bin/upas/send", av);
@@ -1292,8 +1289,8 @@ readaliases(void)
 	Alias *a, **l, *first;
 	Addr *addr, **al;
 	String *file, *line, *token;
+	Biobuf *fp;
 	static int already;
-	Sinstack *sp;
 
 	first = nil;
 	file = s_new();
@@ -1302,14 +1299,14 @@ readaliases(void)
 
 	// open and get length
 	mboxpath("names", login, file, 0);
-	sp = s_allocinstack(s_to_c(file));
-	if(sp == nil)
+	fp = Bopen(s_to_c(file), OREAD);
+	if(fp == nil)
 		goto out;
 
 	l = &first;
 
 	// read a line at a time.
-	while(s_rdinstack(sp, s_restart(line))!=nil) {
+	while(s_getline(fp, s_restart(line))!=0) {
 		s_restart(line);
 		a = emalloc(sizeof(Alias));
 		al = &a->addr;
@@ -1330,7 +1327,6 @@ readaliases(void)
 		*l = a;
 		l = &a->next;
 	}
-	s_freeinstack(sp);
 
 out:
 	s_free(file);

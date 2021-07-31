@@ -44,7 +44,6 @@ static char usersDefault[] = {
 	"none:none::\n"
 	"noworld:noworld::\n"
 	"sys:sys::\n"
-	"glenda:glenda:glenda:\n"
 };
 
 static char* usersMandatory[] = {
@@ -560,7 +559,7 @@ uboxInit(char* users, int len)
 		return 0;
 	}
 
-//	fprint(2, "nuser %d\n", nuser);
+	fprint(2, "nuser %d\n", nuser);
 
 	/*
 	 * Everything is updated in a local Ubox until verified.

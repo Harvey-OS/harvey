@@ -198,6 +198,7 @@ typedef struct Ctlr {
 
 	Lock	miilock;
 
+	Rendez	timer;			/* watchdog timer for receive lockup errata */
 	int	tick;
 
 	Lock	rlock;			/* registers */
@@ -348,7 +349,8 @@ watchdog(void* arg)
 
 	ether = arg;
 	for(;;){
-		tsleep(&up->sleep, return0, 0, 4000);
+		ctlr = ether->ctlr;
+		tsleep(&ctlr->timer, return0, 0, 4000);
 
 		/*
 		 * Hmmm. This doesn't seem right. Currently

@@ -227,7 +227,7 @@ panic(char *fmt, ...)
 void
 _assert(char *fmt)
 {
-	panic("assert failed at 0x%lux: %s", getcallerpc(&fmt), fmt);
+	panic("assert failed: %s", fmt);
 }
 
 int
@@ -462,6 +462,7 @@ static void
 kbdputcclock(void)
 {
 	char *iw;
+
 	/* this amortizes cost of qproduce */
 	if(kbd.iw != kbd.ir){
 		iw = kbd.iw;
@@ -657,7 +658,6 @@ consread(Chan *c, void *buf, long n, vlong off)
 
 	if(n <= 0)
 		return n;
-
 	switch((ulong)c->qid.path){
 	case Qdir:
 		return devdirread(c, buf, n, consdir, nelem(consdir), devgen);
@@ -975,7 +975,7 @@ conswrite(Chan *c, void *va, long n, vlong off)
 			kickpager();
 			break;
 		}
-		if(!iseve())
+		if(cpuserver && !iseve())
 			error(Eperm);
 		if(buf[0]<'0' || '9'<buf[0])
 			error(Ebadarg);

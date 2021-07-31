@@ -43,16 +43,13 @@ query, mkhash, mkdb, cs, csquery, dns, dnsquery, ipquery, dnsdebug, mkhosts \- n
 .br
 .B ndb/dns
 [
-.B -rsn
+.B -rs
 ] [
 .B -f
 .I dbfile
 ] [
 .B -x
 .I netmtpt
-] [
-.B -z
-.I program
 ]
 .br
 .B ndb/dnsquery
@@ -195,15 +192,6 @@ network.
 .B -s
 also answer domain requests sent to UDP port 53.
 .TP
-.B -n
-whenever a zone that we serve changes, send UDP NOTIFY
-messages to any dns slaves for that zone.
-.TP
-.B -z
-whenever we receive a UDP NOTIFY message, run
-.I program
-with the domain name of the area as its argument.
-.TP
 .B -r
 defer to other servers to resolve queries.
 .PP
@@ -263,8 +251,6 @@ dom=cs.bell-labs.com soa=
 	mb=presotto@plan9.bell-labs.com
 	mx=mail.research.bell-labs.com pref=20
 	mx=plan9.bell-labs.com pref=10
-	dnsslave=nslocum.cs.bell-labs.com
-	dnsslave=vex.cs.bell-labs.com
 
 .EE
 Here, the
@@ -280,13 +266,6 @@ and
 .B ttl
 define the area refresh interval and the minimum TTL for
 records in this domain.
-The
-.B dnsslave
-entries specify slave DNS servers that should be notified
-when the domain changes.  The notification also requires
-the
-.B -n
-flag.
 .PP
 You can also serve reverse lookups (returning the name that
 goes with an IP address) by adding an
@@ -305,7 +284,7 @@ dom=104.135.in-addr.arpa soa=
 Notice the form of the reverse address, i.e., it's the bytes of the
 address range you are serving reversed and with
 .B .in-addr.arpa
-appended.  This is a standard form for a domain name in an IPv4 PTR record.
+appended.  This is a standard form for an IPv4 PTR record name.
 .PP
 If such an entry exists in the database, reverse addresses will
 automaticly be generated from any IP addresses in the database

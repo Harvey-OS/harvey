@@ -49,7 +49,7 @@ dumpmount(void)		/* DEBUGGING */
 
 
 char*
-channame(Chan *c)		/* DEBUGGING */
+c2name(Chan *c)		/* DEBUGGING */
 {
 	if(c == nil)
 		return "<nil chan>";
@@ -243,7 +243,6 @@ newchan(void)
 	c->ref = 1;
 	c->dev = 0;
 	c->offset = 0;
-	c->devoffset = 0;
 	c->iounit = 0;
 	c->umh = 0;
 	c->uri = 0;
@@ -254,7 +253,6 @@ newchan(void)
 	c->mux = 0;
 	memset(&c->mqid, 0, sizeof(c->mqid));
 	c->name = 0;
-	c->ismtpt = 0;
 	return c;
 }
 
@@ -329,12 +327,6 @@ chanfree(Chan *c)
 {
 	c->flag = CFREE;
 
-	if(c->dirrock != nil){
-		free(c->dirrock);
-		c->dirrock = 0;
-		c->nrock = 0;
-		c->mrock = 0;
-	}
 	if(c->umh != nil){
 		putmhead(c->umh);
 		c->umh = nil;
@@ -663,12 +655,12 @@ findmount(Chan **cp, Mhead **mp, int type, int dev, Qid qid)
 	rlock(&pg->ns);
 	for(m = MOUNTH(pg, qid); m; m = m->hash){
 		rlock(&m->lock);
-		if(m->from == nil){
-			print("m %p m->from 0\n", m);
-			runlock(&m->lock);
-			continue;
-		}
-		if(eqchantdqid(m->from, type, dev, qid, 1)){
+if(m->from == nil){
+	print("m %p m->from 0\n", m);
+	runlock(&m->lock);
+	continue;
+}
+		if(eqchantdqid(m->from, type, dev, qid, 1)) {
 			runlock(&pg->ns);
 			if(mp != nil){
 				incref(m);
@@ -779,7 +771,9 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 			cclose(c);
 			strcpy(up->errstr, Enotdir);
 			if(mh != nil)
+{print("walk 1\n");
 				putmhead(mh);
+}
 			return -1;
 		}
 		ntry = nnames - nhave;
@@ -807,7 +801,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 			/* try a union mount, if any */
 			if(mh && !nomount){
 				/*
-				 * mh->mount->to == c, so start at mh->mount->next
+				 * mh->mount == c, so start at mh->mount->next
 				 */
 				rlock(&mh->lock);
 				for(f = mh->mount->next; f; f = f->next)
@@ -831,14 +825,14 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 		}
 
 		nmh = nil;
-		if(dotdot){
+		if(dotdot) {
 			assert(wq->nqid == 1);
 			assert(wq->clone != nil);
 
 			cname = addelem(cname, "..");
 			nc = undomount(wq->clone, cname);
 			n = 1;
-		}else{
+		} else {
 			nc = nil;
 			if(!nomount)
 				for(i=0; i<wq->nqid && i<ntry-1; i++)
@@ -1029,42 +1023,26 @@ memrchr(void *va, int c, long n)
 	return nil;
 }
 
-void
-nameerror(char *name, char *error)
-{
-	int len;
-	char tmperr[ERRMAX], *p;
-
-	strcpy(tmperr, error);	/* error might be in genbuf or tmperr */
-	len = strlen(name);
-	if(len < ERRMAX/3 || (p=strrchr(name, '/'))==nil || p==name)
-		snprint(up->genbuf, sizeof up->genbuf, "%s", name);
-	else
-		snprint(up->genbuf, sizeof up->genbuf, "...%s", p);
-	snprint(up->errstr, ERRMAX, "%#q %s", up->genbuf, tmperr);
-	nexterror();
-}
-
 /*
  * Turn a name into a channel.
  * &name[0] is known to be a valid address.  It may be a kernel address.
  *
- * Opening with amode Aopen, Acreate, Aremove, or Aaccess guarantees
+ * Opening with amode Aopen, Acreate, or Aremove guarantees
  * that the result will be the only reference to that particular fid.
  * This is necessary since we might pass the result to
  * devtab[]->remove().
  *
- * Opening Atodir or Amount does not guarantee this.
+ * Opening Atodir, Amount, or Aaccess does not guarantee this.
  *
- * Under certain circumstances, opening Aaccess will cause
- * an unnecessary clone in order to get a cunique Chan so it
- * can attach the correct name.  Sysstat and sys_stat need the
- * correct name so they can rewrite the stat info.
+ * Opening Aaccess can, under certain conditions, return a
+ * correct Chan* but with an incorrect Cname attached.
+ * Since the functions that open Aaccess (sysstat, syswstat, sys_stat)
+ * do not use the Cname*, this avoids an unnecessary clone.
  */
 Chan*
 namec(char *aname, int amode, int omode, ulong perm)
 {
-	int n, t, nomount, npath;
+	int n, prefix, len, t, nomount, npath;
 	Chan *c, *cnew;
 	Cname *cname;
 	Elemlist e;
@@ -1129,6 +1107,7 @@ namec(char *aname, int amode, int omode, ulong perm)
 		incref(c);
 		break;
 	}
+	prefix = name - aname;
 
 	e.name = nil;
 	e.elems = nil;
@@ -1155,7 +1134,8 @@ namec(char *aname, int amode, int omode, ulong perm)
 		/* perm must have DMDIR if last element is / or /. */
 		if(e.mustbedir && !(perm&DMDIR)){
 			npath = e.nelems;
-			nameerror(aname, "create without DMDIR");
+			strcpy(tmperrbuf, "create without DMDIR");
+			goto NameError;
 		}
 
 		/* don't try to walk the last path element just yet. */
@@ -1169,12 +1149,21 @@ namec(char *aname, int amode, int omode, ulong perm)
 			print("namec %s walk error npath=%d\n", aname, npath);
 			nexterror();
 		}
-		nameerror(aname, up->errstr);
+		strcpy(tmperrbuf, up->errstr);
+	NameError:
+		len = prefix+e.off[npath];
+		if(len < ERRMAX/3 || (name=memrchr(aname, '/', len))==nil || name==aname)
+			snprint(up->genbuf, sizeof up->genbuf, "%.*s", len, aname);
+		else
+			snprint(up->genbuf, sizeof up->genbuf, "...%.*s", (int)(len-(name-aname)), name);
+		snprint(up->errstr, ERRMAX, "%#q %s", up->genbuf, tmperrbuf);
+		nexterror();
 	}
 
 	if(e.mustbedir && !(c->qid.type&QTDIR)){
 		npath = e.nelems;
-		nameerror(aname, "not a directory");
+		strcpy(tmperrbuf, "not a directory");
+		goto NameError;
 	}
 
 	if(amode == Aopen && (omode&3) == OEXEC && (c->qid.type&QTDIR)){
@@ -1183,6 +1172,11 @@ namec(char *aname, int amode, int omode, ulong perm)
 	}
 
 	switch(amode){
+	case Aaccess:
+		if(!nomount)
+			domount(&c, nil);
+		break;
+
 	case Abind:
 		m = nil;
 		if(!nomount)
@@ -1192,7 +1186,6 @@ namec(char *aname, int amode, int omode, ulong perm)
 		c->umh = m;
 		break;
 
-	case Aaccess:
 	case Aremove:
 	case Aopen:
 	Open:
@@ -1210,11 +1203,7 @@ namec(char *aname, int amode, int omode, ulong perm)
 		cnameclose(c->name);
 		c->name = cname;
 
-		/* record whether c is on a mount point */
-		c->ismtpt = m!=nil;
-
 		switch(amode){
-		case Aaccess:
 		case Aremove:
 			putmhead(m);
 			break;
@@ -1226,6 +1215,7 @@ if(c->umh != nil){
 	putmhead(c->umh);
 	c->umh = nil;
 }
+
 			/* only save the mount head if it's a multiple element union */
 			if(m && m->mount && m->mount->next)
 				c->umh = m;

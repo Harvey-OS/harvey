@@ -66,7 +66,7 @@ static void
 pageunchain(Page *p)
 {
 	if(canlock(&palloc))
-		panic("pageunchain (palloc %p)", &palloc);
+		panic("pageunchain");
 	if(p->prev)
 		p->prev->next = p->next;
 	else

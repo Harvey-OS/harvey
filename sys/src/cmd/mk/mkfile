@@ -28,11 +28,5 @@ HFILES=fns.h\
 	mk.h\
 
 BIN=/$objtype/bin
-
-UPDATE=\
-	mkfile\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-
 </sys/src/cmd/mkone
 

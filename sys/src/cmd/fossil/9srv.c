@@ -119,19 +119,15 @@ static int
 cmdSrv(int argc, char* argv[])
 {
 	Srv *srv;
-	int Aflag, dflag, Pflag, fd[2], mode, pflag, r;
-	char *usage = "usage: srv [-Adp] [service]";
-	Con *con;
+	int dflag, fd[2], mode, pflag, r;
+	char *usage = "usage: srv [-dp] [service]";
 
-	Aflag = dflag = pflag = Pflag = 0;
+	dflag = pflag = 0;
 	mode = 0666;
 
 	ARGBEGIN{
 	default:
 		return cliError(usage);
-	case 'A':
-		Aflag = 1;
-		break;
 	case 'd':
 		dflag = 1;
 		break;
@@ -139,16 +135,7 @@ cmdSrv(int argc, char* argv[])
 		pflag = 1;
 		mode = 0600;
 		break;
-	case 'P':
-		Pflag = 1;
-		mode = 0600;
-		break;
 	}ARGEND
-
-	if(pflag && Pflag){
-		vtSetError("srv: cannot use -P with -p");
-		return 0;
-	}
 
 	switch(argc){
 	default:
@@ -192,16 +179,8 @@ cmdSrv(int argc, char* argv[])
 
 	if(pflag)
 		r = consOpen(fd[1], srv->srvfd, -1);
-	else{
-		con = conAlloc(fd[1], srv->mntpnt);
-		if(con == nil)
-			r = 0;
-		else{
-			r = 1;
-			con->noauth = Aflag;
-			con->noperm = Pflag;
-		}
-	}
+	else
+		r = (conAlloc(fd[1], srv->mntpnt) != nil);
 	if(r == 0){
 		close(fd[1]);
 		vtLock(sbox.lock);

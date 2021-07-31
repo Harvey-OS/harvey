@@ -2,15 +2,14 @@
 #include "dat.h"
 #include "fns.h"
 
-static int fast;
-static int quiet;
+int fast;
 
 VtSession *zsrc, *zdst;
 
 void
 usage(void)
 {
-	fprint(2, "usage: copy [-fq] src-host dst-host score [type]\n");
+	fprint(2, "usage: copy src-host dst-host score [type]\n");
 	exits("usage");
 }
 
@@ -36,7 +35,7 @@ parseScore(uchar *score, char *buf, int n)
 
 		if((i & 1) == 0)
 			c <<= 4;
-
+	
 		score[i>>1] |= c;
 	}
 	return 1;
@@ -55,8 +54,7 @@ walk(uchar score[VtScoreSize], uint type, int base)
 
 	buf = vtMemAllocZ(VtMaxLumpSize);
 	if(fast && vtRead(zdst, score, type, buf, VtMaxLumpSize) >= 0){
-		if(!quiet)
-			fprint(2, "%V already exists on dst server; skipping.\n", score);
+		fprint(2, "%V already exists on dst server; skipping.\n", score);
 		free(buf);
 		return;
 	}
@@ -126,9 +124,6 @@ main(int argc, char *argv[])
 	ARGBEGIN{
 	case 'f':
 		fast = 1;
-		break;
-	case 'q':
-		quiet = 1;
 		break;
 	default:
 		usage();

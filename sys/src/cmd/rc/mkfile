@@ -16,7 +16,6 @@ COMMONOFILES=\
 	trap.$O\
 	tree.$O\
 	var.$O\
-	havefork.$O\
 
 PLAN9OFILES=plan9.$O\
 
@@ -41,14 +40,13 @@ UPDATE=\
 	${UNIXOFILES:%.$O=%.c}\
 	${PLAN9OFILES:%.$O=%.c}\
 	$YFILES\
-	${TARG:%=/386/bin/%}\
 
 </sys/src/cmd/mkone
 
 x.tab.h: y.tab.h
 	cmp -s x.tab.h y.tab.h || cp y.tab.h x.tab.h
 
-clean:V:
+clean nuke:V:
 	rm -f [$OS].out *.[$OS] [xy].tab.? y.debug $TARG
 
 regress: $O.out

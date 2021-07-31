@@ -427,7 +427,6 @@ fileCreate(File *f, char *elem, ulong mode, char *uid)
 	if(ff->boff == NilBlock)
 		goto Err;
 
-	/* committed */
 	sourceUnlock(f->source);
 	sourceUnlock(f->msource);
 
@@ -449,14 +448,10 @@ Err:
 	sourceUnlock(f->source);
 	sourceUnlock(f->msource);
 Err1:
-	if(r){
-		sourceLock(r, -1);
+	if(r)
 		sourceRemove(r);
-	}
-	if(mr){
-		sourceLock(mr, -1);
+	if(mr)
 		sourceRemove(mr);
-	}
 	if(ff)
 		fileDecRef(ff);
 	fileUnlock(f);
@@ -1093,11 +1088,13 @@ Err1:
 	return 0;
 }
 
-static int
-clri(File *f, char *uid)
+int
+fileClri(Fs *fs, char *path, char *uid)
 {
 	int r;
+	File *f;
 
+	f = _fileOpen(fs, path, 1);
 	if(f == nil)
 		return 0;
 	if(f->up->source->mode != OReadWrite){
@@ -1108,18 +1105,6 @@ clri(File *f, char *uid)
 	r = fileMetaRemove(f, uid);
 	fileDecRef(f);
 	return r;
-}
-
-int
-fileClriPath(Fs *fs, char *path, char *uid)
-{
-	return clri(_fileOpen(fs, path, 1), uid);
-}
-
-int
-fileClri(File *dir, char *elem, char *uid)
-{
-	return clri(_fileWalk(dir, elem, 1), uid);
 }
 
 File *

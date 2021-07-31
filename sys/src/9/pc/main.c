@@ -86,7 +86,7 @@ main(void)
 	screeninit();
 	meminit();
 	confinit();
-	archinit();	/* launches other processors on an mp */
+	archinit();
 	xinit();
 	trapinit();
 	printinit();
@@ -102,10 +102,10 @@ main(void)
 	procinit0();
 	initseg();
 	links();
-	conf.monitor = 1;
+conf.monitor = 1;
 	chandevreset();
-	pageinit();
 	i8253link();
+	pageinit();
 	swapinit();
 	userinit();
 	schedinit();
@@ -619,8 +619,7 @@ shutdown(int ispanic)
 		if(cpuserver)
 			delay(10000);
 		else
-			for(;;)
-				halt();
+			for(;;);
 	}
 	else
 		delay(1000);

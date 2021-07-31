@@ -40,7 +40,7 @@ main(int argc, char *argv[])
 		usage();
 
 	vtAttach();
-	if(!initVenti(argv[0], nil))
+	if(!initVenti(argv[0]))
 		fatal("can't init venti: %R");
 
 	if(bcmem < maxBlockSize * (mainIndex->narenas + mainIndex->nsects * 4 + 16))

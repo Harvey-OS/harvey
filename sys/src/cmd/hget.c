@@ -336,9 +336,7 @@ dohttp(URL *u, Range *r, int out, long mtime)
 		if(u->postbody == nil){
 			dfprint(fd,	"GET %s HTTP/1.0\r\n"
 					"Host: %s\r\n"
-					"User-agent: Plan9/hget\r\n"
-					"Cache-Control: no-cache\r\n"
-					"Pragma: no-cache\r\n",
+					"User-agent: Plan9/hget\r\n",
 					u->page, u->host);
 		} else {
 			dfprint(fd,	"POST %s HTTP/1.0\r\n"

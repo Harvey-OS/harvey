@@ -24,7 +24,6 @@ void	(*oldquit)(int);
 int*	addr1;
 int*	addr2;
 int	anymarks;
-Biobuf	bcons;
 int	col;
 long	count;
 int*	dol;
@@ -126,7 +125,6 @@ main(int argc, char *argv[])
 {
 	char *p1, *p2;
 
-	Binit(&bcons, 0, OREAD);
 	notify(notifyf);
 	ARGBEGIN {
 	case 'o':
@@ -699,6 +697,10 @@ notifyf(void *a, char *s)
 int
 getchr(void)
 {
+	char s[UTFmax];
+	int i;
+	Rune r;
+
 	if(lastc = peekc) {
 		peekc = 0;
 		return lastc;
@@ -709,7 +711,16 @@ getchr(void)
 		globp = 0;
 		return EOF;
 	}
-	lastc = Bgetrune(&bcons);
+	for(i=0;;) {
+		if(read(0, s+i, 1) <= 0)
+			return lastc = EOF;
+		i++;
+		if(fullrune(s, i))
+			break;
+		
+	}
+	chartorune(&r, s);
+	lastc = r;
 	return lastc;
 }
 

@@ -9,7 +9,7 @@
 char Rcmain[]="/usr/lib/rcmain";
 char Fdprefix[]="/dev/fd/";
 int execumask(), execfinit();
-struct builtin Builtin[] = {
+struct builtin Builtin[]={
 	"cd",		execcd,
 	"whatis",	execwhatis,
 	"eval",		execeval,
@@ -25,25 +25,23 @@ struct builtin Builtin[] = {
 };
 #define	SEP	'\1'
 char **environp;
-
-struct word*
-enval(s)
+struct word *enval(s)
 register char *s;
 {
-	char *t, c;
-	struct word *v;
-	for(t = s;*t && *t!=SEP;t++);
+	register char *t, c;
+	register struct word *v;
+	for(t=s;*t && *t!=SEP;t++);
 	c=*t;
 	*t='\0';
-	v = newword(s, c=='\0'?(struct word *)0:enval(t+1));
-	*t = c;
+	v=newword(s, c=='\0'?(struct word *)0:enval(t+1));
+	*t=c;
 	return v;
 }
 Vinit(){
 	extern char **environ;
-	char *s;
-	char **env = environ;
-	environp = env;
+	register char *s;
+	register char **env=environ;
+	environp=env;
 	for(;*env;env++){
 		for(s=*env;*s && *s!='(' && *s!='=';s++);
 		switch(*s){
@@ -62,8 +60,8 @@ Vinit(){
 }
 char **envp;
 Xrdfn(){
-	char *s;
-	int len;
+	register char *s;
+	register int len;
 	for(;*envp;envp++){
 		for(s=*envp;*s && *s!='(' && *s!='=';s++);
 		switch(*s){
@@ -75,7 +73,7 @@ Xrdfn(){
 		case '(':		/* Bourne again */
 			s=*envp+3;
 			envp++;
-			len = strlen(s);
+			len=strlen(s);
 			s[len]='\n';
 			execcmds(opencore(s, len+1));
 			s[len]='\0';
@@ -86,16 +84,16 @@ Xrdfn(){
 }
 union code rdfns[4];
 execfinit(){
-	static int first = 1;
+	static int first=1;
 	if(first){
-		rdfns[0].i = 1;
-		rdfns[1].f = Xrdfn;
-		rdfns[2].f = Xjump;
-		rdfns[3].i = 1;
-		first = 0;
+		rdfns[0].i=1;
+		rdfns[1].f=Xrdfn;
+		rdfns[2].f=Xjump;
+		rdfns[3].i=1;
+		first=0;
 	}
 	Xpopm();
-	envp = environp;
+	envp=environp;
 	start(rdfns, 1, runq->local);
 }
 cmpenv(a, b)
@@ -103,22 +101,19 @@ char **a, **b;
 {
 	return strcmp(*a, *b);
 }
-
-char*
-*mkenv()
-{
-	char **env, **ep, *p, *q;
-	struct var **h, *v;
-	struct word *a;
-	int nvar = 0, nchr = 0, sep;
+char **mkenv(){
+	register char **env, **ep, *p, *q;
+	register struct var **h, *v;
+	register struct word *a;
+	register int nvar=0, nchr=0, sep;
 	/*
 	 * Slightly kludgy loops look at locals then globals
 	 */
-	for(h = var-1;h!=&var[NVAR];h++) for(v = h>=var?*h:runq->local;v;v = v->next){
+	for(h=var-1;h!=&var[NVAR];h++) for(v=h>=var?*h:runq->local;v;v=v->next){
 		if((v==vlook(v->name)) && v->val){
 			nvar++;
 			nchr+=strlen(v->name)+1;
-			for(a = v->val;a;a = a->next)
+			for(a=v->val;a;a=a->next)
 				nchr+=strlen(a->word)+1;
 		}
 		if(v->fn){
@@ -126,19 +121,19 @@ char*
 			nchr+=strlen(v->name)+strlen(v->fn[v->pc-1].s)+8;
 		}
 	}
-	env = (char **)emalloc((nvar+1)*sizeof(char *)+nchr);
-	ep = env;
-	p = (char *)&env[nvar+1];
-	for(h = var-1;h!=&var[NVAR];h++) for(v = h>=var?*h:runq->local;v;v = v->next){
+	env=(char **)emalloc((nvar+1)*sizeof(char *)+nchr);
+	ep=env;
+	p=(char *)&env[nvar+1];
+	for(h=var-1;h!=&var[NVAR];h++) for(v=h>=var?*h:runq->local;v;v=v->next){
 		if((v==vlook(v->name)) && v->val){
 			*ep++=p;
-			q = v->name;
+			q=v->name;
 			while(*q) *p++=*q++;
 			sep='=';
-			for(a = v->val;a;a = a->next){
+			for(a=v->val;a;a=a->next){
 				*p++=sep;
-				sep = SEP;
-				q = a->word;
+				sep=SEP;
+				q=a->word;
 				while(*q) *p++=*q++;
 			}
 			*p++='\0';
@@ -147,19 +142,19 @@ char*
 			*ep++=p;
 			*p++='#'; *p++='('; *p++=')';	/* to fool Bourne */
 			*p++='f'; *p++='n'; *p++=' ';
-			q = v->name;
+			q=v->name;
 			while(*q) *p++=*q++;
 			*p++=' ';
-			q = v->fn[v->pc-1].s;
+			q=v->fn[v->pc-1].s;
 			while(*q) *p++=*q++;
 			*p++='\0';
 		}
 	}
-	*ep = 0;
+	*ep=0;
 	qsort((char *)env, nvar, sizeof ep[0], cmpenv);
 	return env;	
 }
-char *sigmsg[] = {
+char *sigmsg[]={
 /*  0 normal  */ 0,
 /*  1 SIGHUP  */ "Hangup",
 /*  2 SIGINT  */ 0,
@@ -183,25 +178,22 @@ char *sigmsg[] = {
 /* 20 SIGCHLD */ "Child death",
 };
 Waitfor(pid, persist){
-	int wpid, sig;
-	struct thread *p;
+	register int wpid, sig;
+	register struct thread *p;
 	int wstat;
 	char wstatstr[12];
 	for(;;){
-		errno = 0;
-		wpid = wait(&wstat);
-		if(errno==EINTR && persist)
-			continue;
-		if(wpid==-1)
-			break;
-		sig = wstat&0177;
+		errno=0;
+		wpid=wait(&wstat);
+		if(errno==EINTR && persist) continue;
+		if(wpid==-1) break;
+		sig=wstat&0177;
 		if(sig==0177){
 			pfmt(err, "trace: ");
-			sig = (wstat>>8)&0177;
+			sig=(wstat>>8)&0177;
 		}
 		if(sig>(sizeof sigmsg/sizeof sigmsg[0]) || sigmsg[sig]){
-			if(pid!=wpid)
-				pfmt(err, "%d: ", wpid);
+			if(pid!=wpid) pfmt(err, "%d: ", wpid);
 			if(sig<=(sizeof sigmsg/sizeof sigmsg[0]))
 				pfmt(err, "%s", sigmsg[sig]);
 			else if(sig==0177) pfmt(err, "stopped by ptrace");
@@ -209,46 +201,43 @@ Waitfor(pid, persist){
 			if(wstat&0200)pfmt(err, " -- core dumped");
 			pfmt(err, "\n");
 		}
-		wstat = sig?sig+1000:(wstat>>8)&0xFF;
+		wstat=sig?sig+1000:(wstat>>8)&0xFF;
 		if(wpid==pid){
-			inttoascii(wstatstr, wstat);
+			itoa(wstatstr, wstat);
 			setstatus(wstatstr);
 			break;
 		}
 		else{
-			for(p = runq->ret;p;p = p->ret)
+			for(p=runq->ret;p;p=p->ret)
 				if(p->pid==wpid){
 					p->pid=-1;
-					inttoascii(p->status, wstat);
+					itoa(p->status, wstat);
 					break;
 				}
 		}
 	}
 }
-
-char*
-*mkargv(a)
+char **mkargv(a)
 register struct word *a;
 {
-	char **argv = (char **)emalloc((count(a)+2)*sizeof(char *));
-	char **argp = argv+1;	/* leave one at front for runcoms */
-	for(;a;a = a->next) *argp++=a->word;
-	*argp = 0;
+	char **argv=(char **)emalloc((count(a)+2)*sizeof(char *));
+	register char **argp=argv+1;	/* leave one at front for runcoms */
+	for(;a;a=a->next) *argp++=a->word;
+	*argp=0;
 	return argv;
 }
 Updenv(){}
 Execute(args, path)
 register struct word *args, *path;
 {
-	char *msg="not found";
-	int txtbusy = 0;
-	char **env = mkenv();
-	char **argv = mkargv(args);
+	register char *msg="not found";
+	register int txtbusy=0;
+	char **env=mkenv();
+	char **argv=mkargv(args);
 	char file[512];
-	for(;path;path = path->next){
+	for(;path;path=path->next){
 		strcpy(file, path->word);
-		if(file[0])
-			strcat(file, "/");
+		if(file[0]) strcat(file, "/");
 		strcat(file, argv[1]);
 	ReExec:
 		execve(file, argv+1, env);
@@ -256,7 +245,7 @@ register struct word *args, *path;
 		case ENOEXEC:
 			pfmt(err, "%s: Bourne again\n", argv[1]);
 			argv[0]="sh";
-			argv[1] = strdup(file);
+			argv[1]=strdup(file);
 			execve("/bin/sh", argv, env);
 			goto Bad;
 		case ETXTBSY:
@@ -265,13 +254,9 @@ register struct word *args, *path;
 				goto ReExec;
 			}
 			msg="text busy"; goto Bad;
-		case EACCES:
-			msg="no access";
-			break;
-		case ENOMEM:
-			msg="not enough memory"; goto Bad;
-		case E2BIG:
-			msg="too big"; goto Bad;
+		case EACCES: msg="no access"; break;
+		case ENOMEM: msg="not enough memory"; goto Bad;
+		case E2BIG: msg="too big"; goto Bad;
 		}
 	}
 Bad:
@@ -283,12 +268,11 @@ Bad:
 Globsize(p)
 register char *p;
 {
-	int isglob = 0, globlen = NDIR+1;
+	int isglob=0, globlen=NDIR+1;
 	for(;*p;p++){
 		if(*p==GLOB){
 			p++;
-			if(*p!=GLOB)
-				isglob++;
+			if(*p!=GLOB) isglob++;
 			globlen+=*p=='*'?NDIR:1;
 		}
 		else
@@ -303,10 +287,10 @@ DIR *dirlist[NDIRLIST];
 Opendir(name)
 char *name;
 {
-	DIR **dp;
-	for(dp = dirlist;dp!=&dirlist[NDIRLIST];dp++)
+	register DIR **dp;
+	for(dp=dirlist;dp!=&dirlist[NDIRLIST];dp++)
 		if(*dp==0){
-			*dp = opendir(name);
+			*dp=opendir(name);
 			return *dp?dp-dirlist:-1;
 		}
 	return -1;
@@ -316,17 +300,16 @@ register int f;
 register char *p;
 register int onlydirs;	/* ignored, just advisory */
 {
-	struct direct *dp = readdir(dirlist[f]);
-	if(dp==0)
-		return 0;
+	struct direct *dp=readdir(dirlist[f]);
+	if(dp==0) return 0;
 	strcpy(p, dp->d_name);
 	return 1;
 }
 Closedir(f){
 	closedir(dirlist[f]);
-	dirlist[f] = 0;
+	dirlist[f]=0;
 }
-char *Signame[] = {
+char *Signame[]={
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigill",	"sigtrap",	"sigiot",	"sigemt",
 	"sigfpe",	"sigkill",	"sigbus",	"sigsegv",
@@ -337,10 +320,7 @@ char *Signame[] = {
 	"sig28",	"sig29",	"sig30",	"sig31",
 	0,
 };
-
-int
-gettrap(sig)
-{
+int gettrap(sig){
 	signal(sig, gettrap);
 	trap[sig]++;
 	ntrap++;
@@ -351,18 +331,16 @@ gettrap(sig)
 	}
 }
 Trapinit(){
-	int i;
-	int (*sig)();
+	register int i;
+	register int (*sig)();
 	if(1 || flag['d']){	/* wrong!!! */
-		sig = signal(SIGINT, gettrap);
-		if(sig==SIG_IGN)
-			signal(SIGINT, SIG_IGN);
+		sig=signal(SIGINT, gettrap);
+		if(sig==SIG_IGN) signal(SIGINT, SIG_IGN);
 	}
 	else{
-		for(i = 1;i<=NSIG;i++) if(i!=SIGCHLD){
-			sig = signal(i, gettrap);
-			if(sig==SIG_IGN)
-				signal(i, SIG_IGN);
+		for(i=1;i<=NSIG;i++) if(i!=SIGCHLD){
+			sig=signal(i, gettrap);
+			if(sig==SIG_IGN) signal(i, SIG_IGN);
 		}
 	}
 }
@@ -408,12 +386,11 @@ Dup1(a){
 Exit(stat)
 register char *stat;
 {
-	int n = 0;
+	register int n=0;
 	while(*stat){
 		if(*stat!='|'){
-			if(*stat<'0' || '9'<*stat)
-				exit(1);
-			else n = n*10+*stat-'0';
+			if(*stat<'0' || '9'<*stat) exit(1);
+			else n=n*10+*stat-'0';
 		}
 		stat++;
 	}
@@ -423,7 +400,7 @@ Eintr(){
 	return errno==EINTR;
 }
 Noerror(){
-	errno = 0;
+	errno=0;
 }
 Isatty(fd){
 	return isatty(fd);
@@ -432,7 +409,7 @@ Abort(){
 	abort();
 }
 execumask(){		/* wrong -- should fork before writing */
-	int m;
+	register int m;
 	struct io out[1];
 	switch(count(runq->argv->words)){
 	default:
@@ -440,15 +417,13 @@ execumask(){		/* wrong -- should fork before writing */
 		setstatus("umask usage");
 		poplist();
 		return;
-	case 2:
-		umask(octal(runq->argv->words->next->word));
-		break;
+	case 2: umask(octal(runq->argv->words->next->word)); break;
 	case 1: 
-		umask(m = umask(0));
-		out->fd = mapfd(1);
-		out->bufp = out->buf;
+		umask(m=umask(0));
+		out->fd=mapfd(1);
+		out->bufp=out->buf;
 		out->ebuf=&out->buf[NBUF];
-		out->strp = 0;
+		out->strp=0;
 		pfmt(out, "%o\n", m);
 		break;
 	}
@@ -460,9 +435,6 @@ char *a, *b;
 {
 	memmove(a, b, n);
 }
-
-void*
-Malloc(n)
-{
+void *Malloc(n){
 	return (void *)malloc(n);
 }

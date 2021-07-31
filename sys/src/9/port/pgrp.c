@@ -180,9 +180,8 @@ dupfgrp(Fgrp *f)
 	if(i != 0)
 		new->nfd += DELTAFD - i;
 	new->fd = malloc(new->nfd*sizeof(Chan*));
-	if(new->fd == nil){
+	if(new->fd == 0){
 		unlock(f);
-		free(new);
 		error("no memory for fgrp");
 	}
 	new->ref = 1;

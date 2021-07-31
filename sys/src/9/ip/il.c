@@ -195,6 +195,8 @@ struct Ilpriv
 	ulong	dup;
 	ulong	dupb;
 
+	Rendez	ilr;
+
 	/* keeping track of the ack kproc */
 	int	ackprocstarted;
 	QLock	apl;
@@ -1125,11 +1127,13 @@ ilackproc(void *x)
 	Ilcb *ic;
 	Conv **s, *p;
 	Proto *il;
+	Ilpriv *ipriv;
 
 	il = x;
+	ipriv = il->priv;
 
 loop:
-	tsleep(&up->sleep, return0, 0, Iltickms);
+	tsleep(&ipriv->ilr, return0, 0, Iltickms);
 	for(s = il->conv; s && *s; s++) {
 		p = *s;
 		ic = (Ilcb*)p->ptcl;

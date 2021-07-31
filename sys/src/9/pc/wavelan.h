@@ -261,6 +261,7 @@ enum {
 struct Ctlr
 {
 	Lock;
+	Rendez	timer;
 
 	int	state;	// Attached | Power
 	int	slot;

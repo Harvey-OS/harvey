@@ -330,7 +330,7 @@ nntpover(Netbuf *n, Group *g, int m)
 	if (g->isgroup == 0)	/* BUG: should check extension capabilities */
 		return nil;
 
-	if(g != xovergroup || m < xoverlo || m >= xoverhi){
+	if(g != xovergroup || xoverlo > m || m >= xoverhi){
 		lo = (m/XoverChunk)*XoverChunk;
 		hi = lo+XoverChunk;
 	
@@ -348,6 +348,7 @@ nntpover(Netbuf *n, Group *g, int m)
 			snprint(cmd, sizeof cmd, "XOVER %d", hi);
 		else
 			snprint(cmd, sizeof cmd, "XOVER %d-%d", lo, hi-1);
+	
 		if(nntpcmd(n, cmd, 224) < 0)
 			return nil;
 
@@ -373,17 +374,15 @@ nntpover(Netbuf *n, Group *g, int m)
 	lo = 0;
 	hi = xovercount;
 	/* search for message */
-	while(lo < hi){
+	while(lo+1 < hi){
 		mid = (lo+hi)/2;
 		msg = atoi(xover[mid]);
-		if(m == msg)
-			return xover[mid];
-		else if(m < msg)
+		if(m < msg)
 			hi = mid;
 		else
-			lo = mid+1;
+			lo = mid;
 	}
-	return nil;
+	return xover[lo];
 }
 
 /*

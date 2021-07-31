@@ -41,11 +41,9 @@ dnsquery(char *net, char *val, char *type)
 		fd = open(rip, ORDWR);
 		if(fd < 0)
 			return nil;
-		if(mount(fd, -1, net, MBEFORE, "") < 0){
-			close(fd);
+		if(mount(fd, -1, net, MBEFORE, "") < 0)
 			return nil;
-		}
-		/* fd is now closed */
+		close(fd);
 		snprint(rip, sizeof(rip), "%s/dns", net);
 		fd = open(rip, ORDWR);
 		if(fd < 0)

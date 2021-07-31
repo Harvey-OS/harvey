@@ -47,6 +47,7 @@ struct SDunit {
 	int	subno;
 	uchar	inquiry[256];		/* format follows SCSI spec */
 	SDperm;
+	Rendez	rendez;
 
 	QLock	ctl;
 	ulong	sectors;

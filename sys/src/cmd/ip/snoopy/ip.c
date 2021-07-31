@@ -140,7 +140,6 @@ static Field p_fields[] =
 	{"s",	Fv4ip,	Os,	"source address",	} ,
 	{"d",	Fv4ip,	Od,	"destination address",	} ,
 	{"a",	Fv4ip,	Osd,	"source|destination address",} ,
-	{"sd",	Fv4ip,	Osd,	"source|destination address",} ,
 	{"t",	Fnum,	Ot,	"sub protocol number",	} ,
 	{0}
 };

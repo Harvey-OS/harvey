@@ -76,7 +76,7 @@ schedinit(void)		/* never returns */
 			break;
 		case Moribund:
 			up->state = Dead;
-			if(edf->isedf(up))
+			if (edf->isedf(up))
 				edf->edfbury(up);
 
 			/*
@@ -362,7 +362,7 @@ runproc(void)
 
 	start = perfticks();
 
-	if((p = edf->edfrunproc()) != nil)
+	if ((p = edf->edfrunproc()) != nil)
 		return p;
 
 	/* 10 is completely arbitrary - it interacts with the comparison in rebalance */
@@ -583,7 +583,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 
 	s = splhi();
 
-	if(up->nlocks)
+	if (up->nlocks)
 		print("process %lud sleeps with %lud locks held, last lock 0x%p locked at pc 0x%lux\n",
 			up->pid, up->nlocks, up->lastlock, up->lastlock->pc);
 	lock(r);
@@ -633,8 +633,9 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			 */
 			unlock(&up->rlock);
 			unlock(r);
+			// Behind unlock, we may call wakeup on ourselves.
 
-			if(edf->isedf(up))
+			if (edf->isedf(up))
 				edf->edfblock(up);
 
 			gotolabel(&m->sched);
@@ -835,7 +836,7 @@ addbroken(Proc *p)
 	broken.p[broken.n++] = p;
 	qunlock(&broken);
 
-	if(edf->isedf(up))
+	if (edf->isedf(up))
 		edf->edfbury(up);
 	p->state = Broken;
 	p->psstate = 0;
@@ -1006,7 +1007,7 @@ pexit(char *exitstr, int freemem)
 	lock(&procalloc);
 	lock(&palloc);
 
-	if(edf->isedf(up))
+	if (edf->isedf(up))
 		edf->edfbury(up);
 	up->state = Moribund;
 	sched();
@@ -1259,7 +1260,7 @@ procctl(Proc *p)
 		qunlock(&p->debug);
 		splhi();
 		p->state = Stopped;
-		if(edf->isedf(up))
+		if (edf->isedf(up))
 			edf->edfblock(up);
 		sched();
 		p->psstate = state;
@@ -1274,8 +1275,6 @@ void
 error(char *err)
 {
 	spllo();
-
-	assert(up->nerrlab < NERR);
 	kstrcpy(up->errstr, err, ERRMAX);
 	setlabel(&up->errlab[NERR-1]);
 	nexterror();

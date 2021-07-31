@@ -391,9 +391,8 @@ dsaalloc(Controller *c, int target, int lun)
 	ilock(&c->dsalist);
 	if ((d = c->dsalist.freechain) == 0) {
 		d = xalloc(sizeof(*d));
-		if (DEBUG(1)) {
+		if (DEBUG(1))
 			KPRINT(PRINTPREFIX "%d/%d: allocated new dsa %lux\n", target, lun, (ulong)d);
-		}
 		lesetl(d->next, 0);
 		lesetl(&d->stateb, A_STATE_ALLOCATED);
 		if (legetl(c->dsalist.head) == 0)
@@ -403,9 +402,8 @@ dsaalloc(Controller *c, int target, int lun)
 		c->dsalist.tail = d;
 	}
 	else {
-		if (DEBUG(1)) {
+		if (DEBUG(1))
 			KPRINT(PRINTPREFIX "%d/%d: reused dsa %lux\n", target, lun, (ulong)d);
-		}
 		c->dsalist.freechain = d->freechain;
 		lesetl(&d->stateb, A_STATE_ALLOCATED);
 	}
@@ -448,12 +446,7 @@ dumpncrregs(Controller *c, int intr)
 	Ncr *n = c->n;
 	int depth = c->v->registers / 4;
 
-	if (intr) {
-		IPRINT("sa = %.8lux\n", c->scriptpa);
-	}
-	else {
-		KPRINT("sa = %.8lux\n", c->scriptpa);
-	}
+	KPRINT("sa = %.8lux\n", c->scriptpa);
 	for (i = 0; i < depth; i++) {
 		int j;
 		for (j = 0; j < 4; j++) {
@@ -462,20 +455,16 @@ dumpncrregs(Controller *c, int intr)
 
 			/* display little-endian to make 32-bit values readable */
 			p = (uchar*)n+k*4;
-			if (intr) {
+			if (intr)
 				IPRINT(" %.2x%.2x%.2x%.2x %.2x %.2x", p[3], p[2], p[1], p[0], k * 4, (k * 4) + 0x80);
-			}
-			else {
+			else
 				KPRINT(" %.2x%.2x%.2x%.2x %.2x %.2x", p[3], p[2], p[1], p[0], k * 4, (k * 4) + 0x80);
-			}
 			USED(p);
 		}
-		if (intr) {
+		if (intr)
 			IPRINT("\n");
-		}
-		else {
+		else
 			KPRINT("\n");
-		}
 	}
 }	
 
@@ -1130,38 +1119,33 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 	Ncr *n = c->n;
 
 	USED(ur);
-	if (DEBUG(1)) {
+	if (DEBUG(1))
 		IPRINT(PRINTPREFIX "int\n");
-	}
 	ilock(c);
 	istat = n->istat;
 	if (istat & Intf) {
 		Dsa *d;
 		int wokesomething = 0;
-		if (DEBUG(1)) {
+		if (DEBUG(1))
 			IPRINT(PRINTPREFIX "Intfly\n");
-		}
 		n->istat = Intf;
 		/* search for structures in A_STATE_DONE */
 		for (d = KPTR(legetl(c->dsalist.head)); d; d = KPTR(legetl(d->next))) {
 			if (d->stateb == A_STATE_DONE) {
 				d->p9status = d->status;
-				if (DEBUG(1)) {
+				if (DEBUG(1))
 					IPRINT(PRINTPREFIX "waking up dsa %lux\n", (ulong)d);
-				}
 				wakeup(d);
 				wokesomething = 1;
 			}
 		}
-		if (!wokesomething) {
+		if (!wokesomething)
 			IPRINT(PRINTPREFIX "nothing to wake up\n");
-		}
 	}
 
 	if ((istat & (Sip | Dip)) == 0) {
-		if (DEBUG(1)) {
+		if (DEBUG(1))
 			IPRINT(PRINTPREFIX "int end %x\n", istat);
-		}
 		iunlock(c);
 		return;
 	}
@@ -1171,9 +1155,8 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 	dsa = (Dsa *)DMASEG_TO_KADDR(legetl(n->dsa));
 	c->running = 0;
 	if (istat & Sip) {
-		if (DEBUG(1)) {
+		if (DEBUG(1))
 			IPRINT("sist = %.4x\n", sist);
-		}
 		if (sist & 0x80) {
 			ulong addr;
 			ulong sa;
@@ -1184,10 +1167,9 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 
 			addr = legetl(n->dsp);
 			sa = addr - c->scriptpa;
-			if (DEBUG(1) || DEBUG(2)) {
+			if (DEBUG(1) || DEBUG(2))
 				IPRINT(PRINTPREFIX "%d/%d: Phase Mismatch sa=%.8lux\n",
 				    dsa->target, dsa->lun, sa);
-			}
 			/*
 			 * now recover
 			 */
@@ -1202,10 +1184,9 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				dsa->dmablks = 0;
 				n->scratcha[2] = 0;
 				advancedata(&dsa->data_buf, tbc);
-				if (DEBUG(1) || DEBUG(2)) {
+				if (DEBUG(1) || DEBUG(2))
 					IPRINT(PRINTPREFIX "%d/%d: transferred = %ld residue = %ld\n",
 					    dsa->target, dsa->lun, tbc, legetl(dsa->data_buf.dbc));
-				}
 				cont = E_data_mismatch_recover;
 			}
 			else if (sa == E_data_in_block_mismatch) {
@@ -1235,10 +1216,9 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				dsa->dmablks = 0;
 				n->scratcha[2] = 0;
 				advancedata(&dsa->data_buf, tbc);
-				if (DEBUG(1) || DEBUG(2)) {
+				if (DEBUG(1) || DEBUG(2))
 					IPRINT(PRINTPREFIX "%d/%d: transferred = %ld residue = %ld\n",
 					    dsa->target, dsa->lun, tbc, legetl(dsa->data_buf.dbc));
-				}
 				cont = E_data_mismatch_recover;
 			}
 			else if (sa == E_data_out_block_mismatch) {
@@ -1310,9 +1290,8 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 			}
 		}
 		/*else*/ if (sist & 0x400) {
-			if (DEBUG(0)) {
+			if (DEBUG(0))
 				IPRINT(PRINTPREFIX "%d/%d Sto\n", dsa->target, dsa->lun);
-			}
 			dsa->p9status = SDtimeout;
 			dsa->stateb = A_STATE_DONE;
 			softreset(c);
@@ -1332,9 +1311,8 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 		}
 	}
 	if (istat & Dip) {
-		if (DEBUG(1)) {
+		if (DEBUG(1))
 			IPRINT("dstat = %.2x\n", dstat);
-		}
 		/*else*/ if (dstat & Ssi) {
 			ulong *p = DMASEG_TO_KADDR(legetl(n->dsp));
 			ulong w = (uchar *)p - (uchar *)c->script;
@@ -1358,10 +1336,9 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				/* back up one in the data transfer */
 				IPRINT(PRINTPREFIX "%d/%d: ignore wide residue %d, WSR = %d\n",
 				    dsa->target, dsa->lun, n->scratcha[1], n->scntl2 & 1);
-				if (dsa->flag == 2) {
+				if (dsa->flag == 2)
 					IPRINT(PRINTPREFIX "%d/%d: transfer over; residue ignored\n",
 					    dsa->target, dsa->lun);
-				}
 				else {
 					calcblockdma(dsa, legetl(dsa->dmaaddr) - 1,
 					    dsa->dmablks * A_BSIZE + legetl(dsa->data_buf.dbc) + 1);
@@ -1450,9 +1427,8 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				ulong *dsp = DMASEG_TO_KADDR(legetl(n->dsp));
 				int x;
 				IPRINT(PRINTPREFIX "code at %lux", dsp - c->script);
-				for (x = 0; x < 6; x++) {
+				for (x = 0; x < 6; x++)
 					IPRINT(" %.8lux", dsp[x]);
-				}
 				IPRINT("\n");
 				USED(dsp);
 				cont = -2;
@@ -1468,18 +1444,15 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_RESELECTED_ON_SELECT:
-				if (DEBUG(2)) {
-					IPRINT(PRINTPREFIX "%d/%d: reselected during select\n",
- 					    dsa->target, dsa->lun);
-				}
+				IPRINT(PRINTPREFIX "%d/%d: reselected during select\n",
+				    dsa->target, dsa->lun);
 				cont = -2;
 				break;
 			case A_error_reselected:		/* dsa isn't valid here */
 				print(PRINTPREFIX "reselection error\n");
 				dumpncrregs(c, 1);
-				for (dsa = KPTR(legetl(c->dsalist.head)); dsa; dsa = KPTR(legetl(dsa->next))) {
+				for (dsa = KPTR(legetl(c->dsalist.head)); dsa; dsa = KPTR(legetl(dsa->next)))
 					IPRINT(PRINTPREFIX "dsa target %d lun %d state %d\n", dsa->target, dsa->lun, dsa->stateb);
-				}
 				break;
 			default:
 				IPRINT(PRINTPREFIX "%d/%d: script error %ld\n",
@@ -1561,9 +1534,8 @@ dumpwritedata(uchar *data, int datalen)
 
 	if (datalen) {
 		KPRINT(PRINTPREFIX "write:");
-		for (i = 0, bp = data; i < 50 && i < datalen; i++, bp++) {
+		for (i = 0, bp = data; i < 50 && i < datalen; i++, bp++)
 			KPRINT("%.2ux", *bp);
-		}
 		if (i < datalen) {
 			KPRINT("...");
 		}
@@ -1583,9 +1555,8 @@ dumpreaddata(uchar *data, int datalen)
 
 	if (datalen) {
 		KPRINT(PRINTPREFIX "read:");
-		for (i = 0, bp = data; i < 50 && i < datalen; i++, bp++) {
+		for (i = 0, bp = data; i < 50 && i < datalen; i++, bp++)
 			KPRINT("%.2ux", *bp);
-		}
 		if (i < datalen) {
 			KPRINT("...");
 		}
@@ -1630,7 +1601,7 @@ sd53c8xxrio(SDreq* r)
 	uchar *bp;
 	Controller *c;
 	uchar target_expo, my_expo;
-	int bc, check, i, status, target;
+	int bc, check, status, target;
 
 	if((target = r->unit->subno) == 0x07)
 		return r->status = SDtimeout;	/* assign */
@@ -1706,14 +1677,12 @@ docheck:
 
 	if (DEBUG(0)) {
 		KPRINT(PRINTPREFIX "%d/%d: exec: ", target, r->lun);
-		for (bp = r->cmd; bp < &r->cmd[r->clen]; bp++) {
+		for (bp = r->cmd; bp < &r->cmd[r->clen]; bp++)
 			KPRINT("%.2ux", *bp);
-		}
 		KPRINT("\n");
-		if (!r->write) {
+		if (!r->write)
 			KPRINT(PRINTPREFIX "%d/%d: exec: limit=(%d)%ld\n",
 			  target, r->lun, d->dmablks, legetl(d->data_buf.dbc));
-		}
 		else
 			dumpwritedata(r->data, r->dlen);
 	}
@@ -1761,10 +1730,9 @@ docheck:
 	 * adjust datalen
 	 */
 	r->rlen = r->dlen;
-	if (DEBUG(0)) {
+	if (DEBUG(0))
 		KPRINT(PRINTPREFIX "%d/%d: exec: before rlen adjust: dmablks %d flag %d dbc %lud\n",
 		    target, r->lun, d->dmablks, d->flag, legetl(d->data_buf.dbc));
-	}
 	r->rlen = r->dlen;
 	if (d->flag != 2) {
 		r->rlen -= d->dmablks * A_BSIZE;
@@ -1772,10 +1740,9 @@ docheck:
 	}
 	if(!r->write)
 		dumpreaddata(r->data, r->rlen);
-	if (DEBUG(0)) {
+	if (DEBUG(0))
 		KPRINT(PRINTPREFIX "%d/%d: exec: p9status=%d status %d rlen %ld\n",
 		    target, r->lun, d->p9status, status, r->rlen);
-	}
 	/*
 	 * spot the identify
 	 */
@@ -1811,17 +1778,8 @@ docheck:
 		status = SDcheck;
 		r->flags |= SDvalidsense;
 	}
-	if(DEBUG(0))
-		KPRINT(PRINTPREFIX "%d: r flags %8.8uX status %d rlen %ld\n",
-			target, r->flags, status, r->rlen);
-	if(r->flags & SDvalidsense){
-		if(!DEBUG(0))
-			KPRINT(PRINTPREFIX "%d: r flags %8.8uX status %d rlen %ld\n",
-				target, r->flags, status, r->rlen);
-		for(i = 0; i < r->rlen; i++)
-			KPRINT(" %2.2uX", r->sense[i]);
-		KPRINT("\n");
-	}
+	KPRINT(PRINTPREFIX "%d: r flags %8.8uX status %d rlen %ld\n",
+		target, r->flags, status, r->rlen);
 	return r->status = status;
 }
 

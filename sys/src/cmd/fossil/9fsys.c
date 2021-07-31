@@ -58,9 +58,10 @@ _fsysGet(char* name)
 			break;
 		}
 	}
-	vtRUnlock(sbox.lock);
 	if(fsys == nil)
 		vtSetError(EFsysNotFound, name);
+	vtRUnlock(sbox.lock);
+
 	return fsys;
 }
 
@@ -350,40 +351,16 @@ fsysSnap(Fsys* fsys, int argc, char* argv[])
 }
 
 static int
-fsysSnapClean(Fsys *fsys, int argc, char* argv[])
-{
-	u32int arch, snap, life;
-	char *usage = "usage: [fsys name] snapclean [maxminutes]\n";
-
-	ARGBEGIN{
-	default:
-		return cliError(usage);
-	}ARGEND
-
-	if(argc > 1)
-		return cliError(usage);
-	if(argc == 1)
-		life = atoi(argv[1]);
-	else
-		snapGetTimes(fsys->fs->snap, &arch, &snap, &life);
-
-	fsSnapshotCleanup(fsys->fs, life);
-	return 1;
-}
-
-static int
 fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 {
-	char buf[128], *x;
-	int hh, mm, changed;
-	u32int arch, snap, life;
-	char *usage = "usage: [fsys name] snaptime [-a hhmm] [-s snapminutes] [-t maxminutes]";
+	char buf[40], *x;
+	int hh, mm;
+	u32int arch, snap;
+	char *usage = "usage: [fsys name] snaptime [-a hhmm] [-s minutes]";
 
-	changed = 0;
-	snapGetTimes(fsys->fs->snap, &arch, &snap, &life);
+	snapGetTimes(fsys->fs->snap, &arch, &snap);
 	ARGBEGIN{
 	case 'a':
-		changed = 1;
 		x = ARGF();
 		if(x == nil)
 			return cliError(usage);
@@ -400,7 +377,6 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		arch = hh*60+mm;
 		break;
 	case 's':
-		changed = 1;
 		x = ARGF();
 		if(x == nil)
 			return cliError(usage);
@@ -410,28 +386,14 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		}
 		snap = atoi(x);
 		break;
-	case 't':
-		changed = 1;
-		x = ARGF();
-		if(x == nil)
-			return cliError(usage);
-		if(strcmp(x, "none") == 0){
-			life = ~(u32int)0;
-			break;
-		}
-		life = atoi(x);
-		break;
 	default:
 		return cliError(usage);
 	}ARGEND
 	if(argc > 0)
 		return cliError(usage);
 
-	if(changed){
-		snapSetTimes(fsys->fs->snap, arch, snap, life);
-		return 1;
-	}
-	snapGetTimes(fsys->fs->snap, &arch, &snap, &life);
+	snapSetTimes(fsys->fs->snap, arch, snap);
+	snapGetTimes(fsys->fs->snap, &arch, &snap);
 	if(arch != ~(u32int)0)
 		sprint(buf, "-a %02d%02d", arch/60, arch%60);
 	else
@@ -440,10 +402,6 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		sprint(buf+strlen(buf), " -s %d", snap);
 	else
 		sprint(buf+strlen(buf), " -s none");
-	if(life != ~(u32int)0)
-		sprint(buf+strlen(buf), " -t %ud", life);
-	else
-		sprint(buf+strlen(buf), " -t none");
 	consPrint("\tsnaptime %s\n", buf);
 	return 1;
 }
@@ -543,7 +501,7 @@ fsysClri(Fsys* fsys, int argc, char* argv[])
 
 	vtRLock(fsys->fs->elk);
 	while(argc > 0){
-		if(!fileClriPath(fsys->fs, argv[0], uidadm))
+		if(!fileClri(fsys->fs, argv[0], uidadm))
 			consPrint("clri %s: %R\n", argv[0]);
 		argc--;
 		argv++;
@@ -784,9 +742,8 @@ fsysDf(Fsys *fsys, int argc, char* argv[])
 
 	fs = fsys->fs;
 	cacheCountUsed(fs->cache, fs->elo, &used, &tot, &bsize);
-	consPrint("\t%s: %,llud used + %,llud free = %,llud (%ud%% used)\n",
-		fsys->name, used*(vlong)bsize, (tot-used)*(vlong)bsize,
-		tot*(vlong)bsize, used*100/tot);
+	consPrint("%lud/%lud blocks used (%,llud/%,llud bytes)\n",
+		used, tot, used*(vlong)bsize, tot*(vlong)bsize);
 	return 1;
 }
 
@@ -960,18 +917,14 @@ static int
 fsysEpoch(Fsys* fsys, int argc, char* argv[])
 {
 	Fs *fs;
-	int force, n, remove;
+	int force, n;
 	u32int low, old;
-	char *usage = "usage: [fsys name] epoch [[-ry] low]";
+	char *usage = "usage: [fsys name] epoch [[-y] low]";
 
 	force = 0;
-	remove = 0;
 	ARGBEGIN{
 	case 'y':
 		force = 1;
-		break;
-	case 'r':
-		remove = 1;
 		break;
 	default:
 		return cliError(usage);
@@ -1011,8 +964,6 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 		consPrint("\tnew: epoch%s %ud\n", force ? " -y" : "", fs->elo);
 		if(fs->elo < low)
 			consPrint("\twarning: new low epoch < old low epoch\n");
-		if(force && remove)
-			fsSnapshotRemove(fs);
 	}
 
 	return 1;
@@ -1353,7 +1304,6 @@ fsysOpen(char* name, int argc, char* argv[])
 			fprint(2, "warning: connecting to venti: %R\n");
 	}
 	if((fsys->fs = fsOpen(fsys->dev, fsys->session, ncache, rflag)) == nil){
-		vtSetError("fsOpen: %R");
 		vtUnlock(fsys->lock);
 		fsysPut(fsys);
 		return 0;
@@ -1475,7 +1425,6 @@ static struct {
 	{ "remove",	fsysRemove, },
 	{ "snap",	fsysSnap, },
 	{ "snaptime",	fsysSnapTime, },
-	{ "snapclean", fsysSnapClean, },
 	{ "stat",	fsysStat, },
 	{ "sync",	fsysSync, },
 	{ "unhalt",	fsysUnhalt, },

@@ -110,13 +110,14 @@ static	void		setphase(PPP*, int);
 static	void		terminate(PPP*, int);
 static	int		validv4(Ipaddr);
 static  void		dmppkt(char *s, uchar *a, int na);
-static	void		getauth(PPP*);
 
 void
 pppopen(PPP *ppp, int mediain, int mediaout, char *net,
 	Ipaddr ipaddr, Ipaddr remip,
 	int mtu, int framing)
 {
+	UserPasswd *up;
+
 	ppp->ipfd = -1;
 	ppp->ipcfd = -1;
 	invalidate(ppp->remote);
@@ -142,6 +143,12 @@ pppopen(PPP *ppp, int mediain, int mediaout, char *net,
 	ppp->mru = mtu;
 	ppp->framing = framing;
 	ppp->net = net;
+
+	up = auth_getuserpasswd(auth_getkey,"proto=pass service=ppp %s", keyspec);
+	if(up != nil){
+		strcpy(ppp->chapname, up->user);
+		strcpy(ppp->secret, up->passwd);
+	}		
 
 	init(ppp);
 	switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
@@ -1545,7 +1552,8 @@ ipopen(PPP *ppp)
 		ppp->ipcfd = cfd;
 
 		/* signal main() that ip is configured */
-		rendezvous(Rmagic, 0);
+		if(primary)
+			rendezvous(Rmagic, 0);
 
 		switch(ipinprocpid = rfork(RFPROC|RFMEM|RFNOWAIT)){
 		case -1:
@@ -1951,8 +1959,6 @@ chapinit(PPP *ppp)
 	int len;
 	char *aproto;
 
-	getauth(ppp);
-
 	c = ppp->chap;
 	c->id++;
 
@@ -2064,8 +2070,6 @@ getchap(PPP *ppp, Block *b)
 
 	switch(m->code){
 	case Cchallenge:
-		getauth(ppp);
-
 		vlen = m->data[0];
 		if(vlen > len - 5) {
 			netlog("PPP: chap: bad challenge len\n");
@@ -2222,8 +2226,6 @@ putpaprequest(PPP *ppp)
 	Lcpmsg *m;
 	Chap *c;
 	int len, nlen, slen;
-
-	getauth(ppp);
 
 	c = ppp->chap;
 	c->id++;
@@ -2785,10 +2787,10 @@ main(int argc, char **argv)
 	ppp = mallocz(sizeof(*ppp), 1);
 	pppopen(ppp, mediain, mediaout, net, ipaddr, remip, mtu, framing);
 
-	/* wait until ip is configured */
-	rendezvous(Rmagic, 0);
-
 	if(primary){
+		/* wait until ip is configured */
+		rendezvous(Rmagic, 0);
+
 		/* create a /net/ndb entry */
 		putndb(ppp, net);
 	}
@@ -2881,19 +2883,4 @@ putndb(PPP *ppp, char *net)
 		return;
 	write(fd, buf, p-buf);
 	close(fd);
-}
-
-static void
-getauth(PPP *ppp)
-{
-	UserPasswd *up;
-
-	if(*ppp->chapname)
-		return;
-
-	up = auth_getuserpasswd(auth_getkey,"proto=pass service=ppp %s", keyspec);
-	if(up != nil){
-		strcpy(ppp->chapname, up->user);
-		strcpy(ppp->secret, up->passwd);
-	}		
 }

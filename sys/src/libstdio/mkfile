@@ -23,10 +23,8 @@ OFILES=\
 	freopen.$O\
 	fscanf.$O\
 	fseek.$O\
-	fseeko.$O\
 	fsetpos.$O\
 	ftell.$O\
-	ftello.$O\
 	fwrite.$O\
 	getc.$O\
 	gets.$O\

@@ -245,7 +245,7 @@ walkup(char *name)
 static char *hmsg = "headers";
 static char *ohmsg = "oldheaders";
 
-int
+static int
 udpport(void)
 {
 	int fd, ctl;
@@ -280,8 +280,8 @@ udpport(void)
 	return fd;
 }
 
-int
-mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
+static int
+mkreq(DN *dp, int type, uchar *buf, ushort reqno)
 {
 	DNSmsg m;
 	int len;
@@ -293,7 +293,8 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 
 	/* make request and convert it to output format */
 	memset(&m, 0, sizeof(m));
-	m.flags = flags;
+	m.flags = Frecurse;
+//	m.flags = resolver ? Frecurse : 0;
 	m.id = reqno;
 	m.qd = rralloc(type);
 	m.qd->owner = dp;
@@ -574,7 +575,7 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 
 	/* pack request into a message */
 	req = rand();
-	len = mkreq(dp, type, obuf, Frecurse|Oquery, req);
+	len = mkreq(dp, type, obuf, req);
 
 	/* no server addresses yet */
 	l = dest;

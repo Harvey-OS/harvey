@@ -659,7 +659,6 @@ generrstr(char *buf, uint nbuf)
 	if(nbuf > sizeof tmp)
 		nbuf = sizeof tmp;
 	memmove(tmp, buf, nbuf);
-
 	/* make sure it's NUL-terminated */
 	tmp[nbuf-1] = '\0';
 	memmove(buf, up->syserrstr, nbuf);
@@ -839,7 +838,7 @@ sysrendezvous(ulong *arg)
 	*l = up;
 	up->state = Rendezvous;
 	unlock(up->rgrp);
-	if(edf->isedf(up))
+	if (edf->isedf(up))
 		edf->edfblock(up);
 
 	sched();

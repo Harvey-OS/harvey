@@ -322,7 +322,6 @@ s3move(VGAscr* scr, Point p)
 	vgaxo(Crtx, 0x4E, xo);
 	vgaxo(Crtx, 0x4F, yo);
 	vgaxo(Crtx, 0x48, (y>>8) & 0x07);
-	s3vsyncactive();
 
 	return 0;
 }

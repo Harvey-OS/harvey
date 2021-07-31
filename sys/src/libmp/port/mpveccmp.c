@@ -2,6 +2,7 @@
 #include <mp.h>
 #include "dat.h"
 
+// prereq: alen >= blen
 int
 mpveccmp(mpdigit *a, int alen, mpdigit *b, int blen)
 {

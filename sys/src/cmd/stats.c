@@ -41,7 +41,6 @@ enum
 	TLBfault,
 	TLBpurge,
 	Load,
-	Idle,
 	/* /net/ether0/0/stats */
 	In		= 0,
 	Out,
@@ -61,8 +60,8 @@ struct Machine
 	int		disable;
 
 	long		devswap[4];
-	long		devsysstat[9];
-	long		prevsysstat[9];
+	long		devsysstat[8];
+	long		prevsysstat[8];
 	int		nproc;
 	long		netetherstats[8];
 	long		prevetherstats[8];
@@ -103,7 +102,6 @@ enum Menu2
 	Mfault,
 	Mintr,
 	Mload,
-	Midle,
 	Mmem,
 	Mswap,
 	Msyscall,
@@ -123,7 +121,6 @@ char	*menu2str[Nmenu2+1] = {
 	"add  fault   ",
 	"add  intr    ",
 	"add  load    ",
-	"add  idle    ",
 	"add  mem     ",
 	"add  swap    ",
 	"add  syscall ",
@@ -143,7 +140,6 @@ void	contextval(Machine*, long*, long*, int),
 	faultval(Machine*, long*, long*, int),
 	intrval(Machine*, long*, long*, int),
 	loadval(Machine*, long*, long*, int),
-	idleval(Machine*, long*, long*, int),
 	memval(Machine*, long*, long*, int),
 	swapval(Machine*, long*, long*, int),
 	syscallval(Machine*, long*, long*, int),
@@ -163,7 +159,6 @@ void		(*newvaluefn[Nmenu2])(Machine*, long*, long*, int init) = {
 	faultval,
 	intrval,
 	loadval,
-	idleval,
 	memval,
 	swapval,
 	syscallval,
@@ -667,7 +662,7 @@ needswap(int init)
 int
 needstat(int init)
 {
-	return init | present[Mcontext]  | present[Mfault] | present[Mintr] | present[Mload] | present[Midle] |
+	return init | present[Mcontext]  | present[Mfault] | present[Mintr] | present[Mload] |
 		present[Msyscall] | present[Mtlbmiss] | present[Mtlbpurge];
 }
 
@@ -815,13 +810,6 @@ loadval(Machine *m, long *v, long *vmax, int init)
 	*vmax = 1000*m->nproc;
 	if(init)
 		*vmax = 1000;
-}
-
-void
-idleval(Machine *m, long *v, long *vmax, int)
-{
-	*v = m->devsysstat[Idle];
-	*vmax = 100;
 }
 
 void
