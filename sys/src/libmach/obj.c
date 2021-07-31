@@ -74,7 +74,7 @@ static	Sym	*names[NNAMES];	/* working set of active names */
 
 static	int	processprog(Prog*,int);	/* decode each symbol reference */
 static	void	objreset(void);
-static	void	objlookup(int, char *, int, uint);
+static	void	objlookup(int, char *, int );
 static	void 	objupdate(int, int);
 
 int
@@ -156,7 +156,7 @@ processprog(Prog *p, int doautos)
 		if (!doautos)
 		if(p->type != 'U' && p->type != 'b')
 			break;
-		objlookup(p->sym, p->id, p->type, p->sig);
+		objlookup(p->sym, p->id, p->type);
 		break;
 	case aText:
 		objupdate(p->sym, 'T');
@@ -175,7 +175,7 @@ processprog(Prog *p, int doautos)
  * make a new entry if it is not already there.
  */
 static void
-objlookup(int id, char *name, int type, uint sig)
+objlookup(int id, char *name, int type)
 {
 	long h;
 	char *cp;
@@ -185,7 +185,6 @@ objlookup(int id, char *name, int type, uint sig)
 	s = names[id];
 	if(s && strcmp(s->name, name) == 0) {
 		s->type = type;
-		s->sig = sig;
 		return;
 	}
 
@@ -230,7 +229,6 @@ objlookup(int id, char *name, int type, uint sig)
 	sp = malloc(sizeof(Symtab));
 	sp->s.name = name;
 	sp->s.type = type;
-	sp->s.sig = sig;
 	sp->s.value = islocal(type) ? MAXOFF : 0;
 	names[id] = &sp->s;
 	sp->next = hash[h];

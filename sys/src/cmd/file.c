@@ -162,8 +162,6 @@ int	istring(void);
 int	iff(void);
 int	long0(void);
 int	istar(void);
-int	isface(void);
-int	isexec(void);
 int	p9bitnum(uchar*);
 int	p9subfont(uchar*);
 void	print_utf(void);
@@ -175,8 +173,6 @@ int	(*call[])(void) =
 {
 	long0,		/* recognizable by first 4 bytes */
 	istring,	/* recognizable by first string */
-	iself,		/* ELF (foreign) executable */
-	isexec,		/* native executables */
 	iff,		/* interchange file format (strings) */
 	isrfc822,	/* email file */
 	ismbox,		/* mail box */
@@ -192,7 +188,7 @@ int	(*call[])(void) =
 	isenglish,	/* char frequency English */
 	isrtf,		/* rich text format */
 	ismsdos,	/* msdos exe (virus file attachement) */
-	isface,		/* ascii face file */
+	iself,		/* ELF (foreign) executable */
 	0
 };
 
@@ -546,27 +542,19 @@ filemagic(Filemagic *tab, int ntab, ulong x)
 int
 long0(void)
 {
-	long x;
-
-	x = LENDIAN(buf);
-	if(filemagic(long0tab, nelem(long0tab), x))
-		return 1;
-	return 0;
-}
-
-int
-isexec(void)
-{
 	Fhdr f;
+	long x;
 
 	seek(fd, 0, 0);		/* reposition to start of file */
 	if(crackhdr(fd, &f)) {
 		print(mime ? OCTET : "%s\n", f.name);
 		return 1;
 	}
+	x = LENDIAN(buf);
+	if(filemagic(long0tab, nelem(long0tab), x))
+		return 1;
 	return 0;
 }
-
 
 /* from tar.c */
 enum { NAMSIZ = 100, TBLOCK = 512 };
@@ -674,9 +662,6 @@ struct	FILE_STRING
 	"\033%-12345X",	"HPJCL file",		9,	"application/hpjcl",
 	"ID3",			"mp3 audio with id3",	3,	"audio/mpeg",
 	"\211PNG",		"PNG image",		4,	"image/png",
-	"P3\n",			"ppm",				3,	"image/ppm",
-	"P6\n",			"ppm",				3,	"image/ppm",
-	"/* XPM */\n",	"xbm",				10,	"image/xbm",
 	0,0,0,0
 };
 
@@ -1176,7 +1161,7 @@ isp9font(void)
 		return 0;
 	if (!getfontnum(cp, &cp))	/* ascent */
 		return 0;
-	for (i = 0;; i++) {
+	for (i = 0; 1; i++) {
 		if (!getfontnum(cp, &cp))	/* min */
 			break;
 		if (!getfontnum(cp, &cp))	/* max */
@@ -1291,42 +1276,3 @@ iself(void)
 
 	return 0;
 }
-
-int
-isface(void)
-{
-	int i, j, ldepth, l;
-	char *p;
-
-	ldepth = -1;
-	for(j = 0; j < 3; j++){
-		for(p = (char*)buf, i=0; i<3; i++){
-			if(p[0] != '0' || p[1] != 'x')
-				return 0;
-			if(buf[2+8] == ',')
-				l = 2;
-			else if(buf[2+4] == ',')
-				l = 1;
-			else
-				return 0;
-			if(ldepth == -1)
-				ldepth = l;
-			if(l != ldepth)
-				return 0;
-			strtoul(p, &p, 16);
-			if(*p++ != ',')
-				return 0;
-			while(*p == ' ' || *p == '\t')
-				p++;
-		}
-		if (*p++ != '\n')
-			return 0;
-	}
-	
-	if(mime)
-		print("application/x-face\n");
-	else
-		print("face image depth %d\n", ldepth);
-	return 1;
-}
-
