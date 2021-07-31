@@ -30,7 +30,6 @@ Point		scoresz;
 int		pcsz = 32;
 Point		pos;
 Image	*bb, *bbmask, *bb2, *bb2mask;
-Image	*whitemask;
 Rectangle	br, br2;
 long		points;
 int		dt;
@@ -240,7 +239,7 @@ canfit(Piece *p)
 	Point z;
 
 	j = N + 1;
-	if(j >= 4){
+	if(N > 4){
 		j = p->sz.x;
 		if(j<p->sz.y)
 			j = p->sz.y;
@@ -310,7 +309,6 @@ choosepiece(void)
 		pos.x += nrand(NX)*pcsz;
 	}while(collide(Pt(pos.x, pos.y+pcsz-DY), piece));
 	drawpiece();
-	moveto(mousectl, Pt(rboard.min.x + Dx(rboard)/2, rboard.min.y +Dy(rboard)/2));
 	flushimage(display, 1);
 }
 
@@ -346,6 +344,7 @@ horiz(void)
 	int lev[N];
 	int i, j, h;
 	Rectangle r;
+	Image *col;
 
 	h = 0;
 	for(i=0; i<NY; i++){
@@ -362,19 +361,20 @@ horiz(void)
 	for(j=0; j<h; j++){
 		r.min.y = rboard.min.y + lev[j]*pcsz;
 		r.max.y = r.min.y + pcsz;
-		draw(screen, r, display->white, whitemask, ZP);
+		draw(screen, r, display->white, nil, ZP);
 		flushimage(display, 1);
 	}
-	for(i=0; i<5; i++){
+	for(i=0; i<6; i++){
 		pause(500);
 		if(newscreen){
 			drawboard();
 			break;
 		}
+		col = (i&1)? display->white : display->black;
 		for(j=0; j<h; j++){
 			r.min.y = rboard.min.y + lev[j]*pcsz;
 			r.max.y = r.min.y + pcsz;
-			draw(screen, r, display->white, whitemask, ZP);
+			draw(screen, r, col, nil, ZP);
 		}
 		flushimage(display, 1);
 	}
@@ -624,8 +624,10 @@ redraw(int new)
 	Rectangle r;
 	long dx, dy;
 
-	if(new && getwindow(display, Refmesg) < 0)
-		sysfatal("can't reattach to window");
+	if(new && getwindow(display, Refmesg) < 0){
+		fprint(2, "can't reattach to window");
+		exits("redraw");
+	}
 	r = screen->r;
 	pos.x = (pos.x - rboard.min.x) / pcsz;
 	pos.y = (pos.y - rboard.min.y) / pcsz;
@@ -639,8 +641,11 @@ redraw(int new)
 		DY = 4;
 	pcsz = DY*8;
 	DMOUSE = pcsz/3;
-	if(pcsz < 8)
-		sysfatal("screen too small: %d", pcsz);
+	if(pcsz < 8){
+		fprint(2, "screen too small: %d\n", pcsz);
+		threadexitsall(nil);
+		exits("too small");
+	}
 	rboard = screen->r;
 	rboard.min.x += (dx-pcsz*NX)/2;
 	rboard.min.y += (dy-pcsz*NY)/2+32;
@@ -661,8 +666,10 @@ redraw(int new)
 	bbmask = allocimage(display, Rect(0,0,N*pcsz,N*pcsz), GREY1, 0, 0);
 	bb2 = allocimage(display, Rect(0,0,N*pcsz,N*pcsz+DY), screen->chan, 0, 0);
 	bb2mask = allocimage(display, bb2->r, GREY1, 0, 0);
-	if(bb==0 || bbmask==0 || bb2==0 || bb2mask==0)
-		sysfatal("allocimage fail (bb)");
+	if(bb==0 || bbmask==0 || bb2==0 || bb2mask==0){
+		fprint(2, "allocimage fail (bb)\n");
+		exits("allocimage");
+	}
 	draw(screen, screen->r, display->white, nil, ZP);
 	drawboard();
 	setpiece(piece);
@@ -688,27 +695,37 @@ threadmain(int argc, char *argv[])
 	snprint(buf, sizeof(buf), "%ds", N);
 	initdraw(0, 0, buf);
 	mousectl = initmouse(nil, display->image);	/* BUG? */
-	if(mousectl == nil)
-		sysfatal("[45]s: mouse init failed: %r");
+	if(mousectl == nil){
+		fprint(2, "[45]s: mouse init failed: %r\n");
+		exits("mouse");
+	}
 	keyboardctl = initkeyboard(nil);	/* BUG? */
-	if(keyboardctl == nil)
-		sysfatal("[45]s: keyboard init failed: %r");
+	if(keyboardctl == nil){
+		fprint(2, "[45]s: keyboard init failed: %r\n");
+		exits("kbd");
+	}
 	starttime = time(0);
 	srand(starttime);
 	snprint(buf, sizeof(buf), "/sys/games/lib/%dscores", N);
 	scores = open(buf, OWRITE);
-	if(scores < 0)
-		sysfatal("can't open %s: %r", buf);
+	if(scores < 0){
+		fprint(2, "can't open %s\n", buf);
+		exits("scores file");
+	}
 	tb = 0;
 	if(screen->depth < 3){
 		tb = allocimage(display, Rect(0,0,16,16), 0, 1, -1);
-		if(tb == 0)
-			sysfatal("allocimage fail (tb)");
+		if(tb == 0){
+			fprint(2, "allocimage fail (tb)\n");
+			exits("allocimage");
+		}
 	}
 	for(i = 0; i<NCOL; i++){
 		tx[i] = allocimage(display, Rect(0, 0, 16, 16), screen->chan, 1, txpix[i]);
-		if(tx[i] == 0)
-			sysfatal("allocimage fail (tx)");
+		if(tx[i] == 0){
+			fprint(2, "allocimage fail (tx)\n");
+			exits("allocimage");
+		}
 		if(screen->depth < 3){
 			loadimage(tb, tb->r, txbits[i], 32);
 			draw(tx[i], tx[i]->r, tb, nil, ZP);
@@ -716,10 +733,6 @@ threadmain(int argc, char *argv[])
 	}
 	if(tb != 0)
 		freeimage(tb);
-
-	whitemask = allocimage(display, Rect(0,0,1,1), CMAP8, 1, setalpha(DWhite, 0x7F));
-	if(whitemask==0)
-		sysfatal("allocimage fail (whitemask)");
 
 	threadsetname("4s-5s");
 	timerc= chancreate(sizeof(int), 0);
