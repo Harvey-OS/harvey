@@ -46,7 +46,7 @@ rregexec1(Reprog *progp,	/* program to run */
 			switch(j->starttype) {
 			case RUNE:
 				while(*s != j->startchar) {
-					if(*s == 0 || s == j->reol)
+					if(*s == 0)
 						return match;
 					s++;
 				}
@@ -55,7 +55,7 @@ rregexec1(Reprog *progp,	/* program to run */
 				if(s == bol)
 					break;
 				while(*s != '\n') {
-					if(*s == 0 || s == j->reol)
+					if(*s == 0)
 						return match;
 					s++;
 				}
