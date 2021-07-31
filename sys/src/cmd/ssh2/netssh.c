@@ -168,7 +168,6 @@ threadmain(int argc, char *argv[])
 {
 	char *p, *srvpt = nil;
 
-	quotefmtinstall();
 	threadsetname("main");
 	nokeyverify = 1;	/* temporary until verification is fixed */
 	ARGBEGIN {
