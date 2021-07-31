@@ -44,7 +44,7 @@ Reprog	RePrOg;
  *  regexec execution lists
  */
 #define LISTSIZE	10
-#define BIGLISTSIZE	(25*LISTSIZE)
+#define BIGLISTSIZE	(10*LISTSIZE)
 typedef struct Relist	Relist;
 struct Relist
 {
