@@ -10,7 +10,7 @@ int chatty;
 int doabort;
 int docolon;
 int mk9660;
-vlong dataoffset;
+int dataoffset;
 int blocksize;
 Conform *map;
 
@@ -29,14 +29,12 @@ usage(void)
 	exits("usage");
 }
 
-void
+int
 main(int argc, char **argv)
 {
 	int fix;
-	ulong block, newnull, cblock;
-	vlong maxsize;
-	uvlong length, clength;
 	char buf[256], *dumpname, *proto, *s, *src, *status;
+	ulong block, length, newnull, cblock, clength, maxsize;
 	Cdimg *cd;
 	Cdinfo info;
 	XDir dir;
@@ -96,10 +94,10 @@ main(int argc, char **argv)
 		now = atoi(EARGF(usage()));
 		break;
 	case 'm':
-		maxsize = strtoull(EARGF(usage()), 0, 0);
+		maxsize = strtoul(EARGF(usage()), 0, 0);
 		break;
 	case 'o':
-		dataoffset = atoll(EARGF(usage()));
+		dataoffset = atoi(EARGF(usage()));
 		blocksize = atoi(EARGF(usage()));
 		if(blocksize%Blocksize)
 			sysfatal("bad block size %d -- must be multiple of 2048", blocksize);
@@ -176,7 +174,7 @@ main(int argc, char **argv)
 			dumpname = nil;
 			cd->nextblock = cd->nulldump+1;
 			cd->nulldump = 0;
-			Cwseek(cd, (vlong)cd->nextblock * Blocksize);
+			Cwseek(cd, cd->nextblock*Blocksize);
 			goto Dofix;
 		}
 	
@@ -196,9 +194,9 @@ main(int argc, char **argv)
  	 * Must be done before creation of the Joliet tree so that
  	 * blocks and lengths are correct.
 	 */
-	if(dataoffset > (vlong)cd->nextblock * Blocksize)
+	if(dataoffset > cd->nextblock*Blocksize)
 		cd->nextblock = (dataoffset+Blocksize-1)/Blocksize;
-	Cwseek(cd, (vlong)cd->nextblock * Blocksize);
+	Cwseek(cd, cd->nextblock*Blocksize);
 	writefiles(dump, cd, &iroot);
 
 	if(cd->bootimage){
@@ -304,11 +302,10 @@ Dofix:
 		 * Patch in root directories.
 		 */
 		setroot(cd, cd->iso9660pvd, iroot.block, iroot.length);
-		setvolsize(cd, cd->iso9660pvd, (vlong)cd->nextblock * Blocksize);
+		setvolsize(cd, cd->iso9660pvd, cd->nextblock*Blocksize);
 		if(cd->flags & CDjoliet){
 			setroot(cd, cd->jolietsvd, jroot.block, jroot.length);
-			setvolsize(cd, cd->jolietsvd,
-				(vlong)cd->nextblock * Blocksize);
+			setvolsize(cd, cd->jolietsvd, cd->nextblock*Blocksize);
 		}
 	}else{
 		/*
@@ -338,11 +335,10 @@ Dofix:
 		 * Patch in new root directory entry.
 		 */
 		setroot(cd, cd->iso9660pvd, idumproot.block, idumproot.length);
-		setvolsize(cd, cd->iso9660pvd, (vlong)cd->nextblock * Blocksize);
+		setvolsize(cd, cd->iso9660pvd, cd->nextblock*Blocksize);
 		if(cd->flags & CDjoliet){
 			setroot(cd, cd->jolietsvd, jdumproot.block, jdumproot.length);
-			setvolsize(cd, cd->jolietsvd,
-				(vlong)cd->nextblock * Blocksize);
+			setvolsize(cd, cd->jolietsvd, cd->nextblock*Blocksize);
 		}
 	}
 	writepathtables(cd);	
@@ -362,7 +358,7 @@ Dofix:
 	
 			cd->nextblock = cd->nulldump+1;
 			cd->nulldump = 0;
-			Cwseek(cd, (vlong)cd->nextblock * Blocksize);
+			Cwseek(cd, cd->nextblock*Blocksize);
 			goto Dofix;
 		}
 	
@@ -370,11 +366,11 @@ Dofix:
 		 * Write old null header block; this commits all our changes.
 		 */
 		if(cd->nulldump){
-			Cwseek(cd, (vlong)cd->nulldump * Blocksize);
+			Cwseek(cd, cd->nulldump*Blocksize);
 			sprint(buf, "plan 9 dump cd\n");
-			sprint(buf+strlen(buf), "%s %lud %lud %lud %llud %lud %lud",
-				dumpname, now, newnull, cblock, clength,
-				iroot.block, iroot.length);
+			sprint(buf+strlen(buf), "%s %lud %lud %lud %lud %lud %lud",
+				dumpname, now, newnull, cblock, clength, iroot.block,
+				iroot.length);
 			if(cd->flags & CDjoliet)
 				sprint(buf+strlen(buf), " %lud %lud",
 					jroot.block, jroot.length);
@@ -384,8 +380,9 @@ Dofix:
 			Cwflush(cd);
 		}
 	}
-	fdtruncate(cd->fd, (vlong)cd->nextblock * Blocksize);
+	fdtruncate(cd->fd, cd->nextblock*Blocksize);
 	exits(status);
+	return 0;
 }
 
 static void
@@ -411,4 +408,6 @@ addprotofile(char *new, char *old, Dir *d, void *a)
 	}
 	if(name)
 		free(name);
+
 }
+

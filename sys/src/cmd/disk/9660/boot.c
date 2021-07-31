@@ -114,7 +114,7 @@ Cputbootvol(Cdimg *cd)
 void
 Cupdatebootvol(Cdimg *cd)
 {
-	uvlong o;
+	ulong o;
 
 	o = Cwoffset(cd);
 	Cwseek(cd, cd->bootcatptr);
@@ -148,7 +148,7 @@ Cputbootcat(Cdimg *cd)
 void
 Cupdatebootcat(Cdimg *cd)
 {
-	uvlong o;
+	ulong o;
 
 	if(cd->bootdirec == nil)
 		return;
