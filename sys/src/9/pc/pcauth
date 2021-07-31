@@ -74,9 +74,10 @@ boot cpu boot #S/sdC0/
 	local
 
 bootdir
-	boot$CONF.out boot
+	bootpcauth.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
 	/386/bin/fossil/fossil
 	/386/bin/venti/venti
 	/386/bin/usb/usbd
+	/386/bin/disk/partfs

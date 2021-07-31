@@ -20,25 +20,21 @@ dev
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
-	kbin
-
 	sd
 	floppy		dma
 	aoe
 
 	uart
 	usb
+	kbin
 
 link
-# order of ethernet drivers should match that in ../pcboot/boot so that
-# devices are detected in the same order by bootstraps and kernels
-# and thus given the same controller numbers.
 	ether82557	pci
 	ether82563	pci
 	etherdp83820	pci
 	etherga620	pci
 	etherigbe	pci ethermii
-	ethervt6105m	pci ethermii
+	ethervt6105m
 	ethersink
 	ethermedium
 	netdevmedium
@@ -49,7 +45,7 @@ link
 
 misc
 	realmode
-	archmp		mp apic mpacpi
+	archmp		mp apic
 	mtrr
 
 	uarti8250
@@ -101,3 +97,4 @@ bootdir
 	/386/bin/srv
 	/386/bin/test
 	/386/bin/usb/usbd
+	/386/bin/disk/partfs
