@@ -57,7 +57,7 @@ mcatread(Device *d, Off b, void *c)
 			return devread(x, b-l, c);
 		l += m;
 	}
-	print("mcatread past end: %Z block %lld, %lld beyond end\n",
+	print("mcatread %Z block %lld beyond end %lld\n",
 		d, (Wideoff)b, (Wideoff)l);
 	return 1;
 }
@@ -79,7 +79,7 @@ mcatwrite(Device *d, Off b, void *c)
 			return devwrite(x, b-l, c);
 		l += m;
 	}
-	print("mcatwrite past end: %Z block %lld, %lld beyond end\n",
+	print("mcatwrite %Z block %lld beyond end %lld\n",
 		d, (Wideoff)b, (Wideoff)l);
 	return 1;
 }
@@ -176,8 +176,7 @@ partread(Device *d, Off b, void *c)
 		size = l*100;
 	if(b < size)
 		return devread(d->part.d, base+b, c);
-	print("partread past end: %Z blk %lld size %lld\n",
-		d, (Wideoff)b, (Wideoff)size);
+	print("partread %lld %lld\n", (Wideoff)b, (Wideoff)size);
 	return 1;
 }
 
@@ -193,8 +192,7 @@ partwrite(Device *d, Off b, void *c)
 		size = l*100;
 	if(b < size)
 		return devwrite(d->part.d, base+b, c);
-	print("partwrite past end: %Z blk %lld size %lld\n",
-		d, (Wideoff)b, (Wideoff)size);
+	print("partwrite %lld %lld\n", (Wideoff)b, (Wideoff)size);
 	return 1;
 }
 
@@ -238,19 +236,14 @@ mirrread(Device *d, Off b, void *c)
 {
 	Device *x;
 
-	if (d->cat.first == nil) {
-		print("mirrread: empty mirror %Z\n", d);
-		return 1;
-	}
 	for(x=d->cat.first; x; x=x->link) {
 		if(x->size == 0)
 			x->size = devsize(x);
 		if (devread(x, b, c) == 0)	/* okay? */
 			return 0;
 	}
-	// DANGER WILL ROBINSON
-	print("mirrread: all mirrors of %Z block %lld are bad\n",
-		d, (Wideoff)b);
+	// DANGER WILL ROBINSON - all copies of this block were bad
+	print("mirrread %Z error at block %lld\n", d, (Wideoff)b);
 	return 1;
 }
 
@@ -268,7 +261,7 @@ ewrite(Device *x, Off b, void *c)
 	if(x->size == 0)
 		x->size = devsize(x);
 	if (devwrite(x, b, c) != 0) {
-		print("mirrwrite: error at %Z block %lld\n", x, (Wideoff)b);
+		print("mirrwrite %Z error at block %lld\n", x, (Wideoff)b);
 		return 1;
 	}
 	return 0;
@@ -288,9 +281,5 @@ wrmirrs1st(Device *x, Off b, void *c)	// write any mirrors of x, then x
 int
 mirrwrite(Device *d, Off b, void *c)
 {
-	if (d->cat.first == nil) {
-		print("mirrwrite: empty mirror %Z\n", d);
-		return 1;
-	}
 	return wrmirrs1st(d->cat.first, b, c);
 }

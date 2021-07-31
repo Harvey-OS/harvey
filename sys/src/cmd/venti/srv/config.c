@@ -245,9 +245,3 @@ configbloom(char *file)
 	return b;
 }
 
-/* for OS X linker, which only resolves functions, not data */
-void
-needmainindex(void)
-{
-}
-

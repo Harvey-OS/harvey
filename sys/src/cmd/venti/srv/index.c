@@ -541,33 +541,20 @@ ZZZ question: should this distinguish between an arena
 filling up and real errors writing the clump?
  */
 u64int
-writeiclump(Index *ix, Clump *c, u8int *clbuf)
+writeiclump(Index *ix, Clump *c, u8int *clbuf, u64int *pa)
 {
 	u64int a;
 	int i;
-	IAddr ia;
-	AState as;
 
 	trace(TraceLump, "writeiclump enter");
-	qlock(&ix->writing);
 	for(i = ix->mapalloc; i < ix->narenas; i++){
-		a = writeaclump(ix->arenas[i], c, clbuf);
+		a = writeaclump(ix->arenas[i], c, clbuf, ix->amap[i].start, pa);
 		if(a != TWID64){
-			ix->mapalloc = i;
-			ia.addr = ix->amap[i].start + a;
-			ia.type = c->info.type;
-			ia.size = c->info.uncsize;
-			ia.blocks = (c->info.size + ClumpSize + (1<<ABlockLog) - 1) >> ABlockLog;
-			as.arena = ix->arenas[i];
-			as.aa = ia.addr;
-			as.stats = as.arena->memstats;
-			insertscore(c->info.score, &ia, IEDirty, &as);
-			qunlock(&ix->writing);
+			ix->mapalloc = i;	/* assuming write is atomic, race is okay */
 			trace(TraceLump, "writeiclump exit");
-			return ia.addr;
+			return a;
 		}
 	}
-	qunlock(&ix->writing);
 
 	seterr(EAdmin, "no space left in arenas");
 	trace(TraceLump, "writeiclump failed");
@@ -607,25 +594,6 @@ print("want arena %d for %llux\n", l, a);
 	}
 	*aa = a - ix->amap[l].start;
 	return ix->arenas[l];
-}
-
-/*
- * convert an arena index to the bounds of the containing arena group.
- */
-Arena*
-amapitoag(Index *ix, u64int a, u64int *gstart, u64int *glimit, int *g)
-{
-	u64int aa;
-	Arena *arena;
-	
-	arena = amapitoa(ix, a, &aa);
-	if(arena == nil)
-		return nil;
-	if(arenatog(arena, aa, gstart, glimit, g) < 0)
-		return nil;
-	*gstart += a - aa;
-	*glimit += a - aa;
-	return arena;
 }
 
 int

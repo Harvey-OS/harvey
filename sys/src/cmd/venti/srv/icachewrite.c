@@ -12,7 +12,7 @@ static void icachewritecoord(void*);
 static IEntry *iesort(IEntry*);
 
 int icachesleeptime = 1000;	/* milliseconds */
-int minicachesleeptime = 0;
+int minicachesleeptime = 50;
 
 enum
 {
@@ -85,7 +85,7 @@ nextchunk(Index *ix, ISect *is, IEntry **pie, u64int *paddr, uint *pnbuf)
 static int
 icachewritesect(Index *ix, ISect *is, u8int *buf)
 {
-	int err, i, werr, h, bsize, t;
+	int err, h, bsize, t;
 	u32int lo, hi;
 	u64int addr, naddr;
 	uint nbuf, off;
@@ -115,8 +115,7 @@ icachewritesect(Index *ix, ISect *is, u8int *buf)
 		}
 		if(t < minicachesleeptime)
 			t = minicachesleeptime;
-		if(t > 0)
-			sleep(t);
+		sleep(t);
 		trace(TraceProc, "icachewritesect nextchunk");
 		chunk = nextchunk(ix, is, &iedirty, &addr, &nbuf);
 
@@ -170,29 +169,33 @@ skipit:
 					break;
 			}
 			packibucket(&ib, buf+off, is->bucketmagic);
+			/*
+			 * XXX This is not quite right - it's good that we 
+			 * update the cached block (if any) here, but
+			 * since the block doesn't get written until writepart
+			 * below, we also need to make sure that the cache 
+			 * doesn't load the stale block before we write it to
+			 * disk below.  We could lock the disk cache during
+			 * the writepart, but that's pretty annoying.
+			 * Another possibility would be never to cache
+			 * index partition blocks.  The hit rate on those is
+			 * miniscule anyway.
+			 */
+			if((b = _getdblock(is->part, naddr, ORDWR, 0)) != nil){
+				memmove(b->data, buf+off, bsize);
+				putdblock(b);
+			}
 		}
 
 		diskaccess(1);
 
 		trace(TraceProc, "icachewritesect writepart", addr, nbuf);
-		werr = 0;
-		if(writepart(is->part, addr, buf, nbuf) < 0 || flushpart(is->part) < 0)
-			werr = -1;
-
-		for(i=0; i<nbuf; i+=bsize){
-			if((b = _getdblock(is->part, addr+i, ORDWR, 0)) != nil){
-				memmove(b->data, buf+i, bsize);
-				putdblock(b);
-			}
-		}
-
-		if(werr < 0){
+		if(writepart(is->part, addr, buf, nbuf) < 0 ||
+		    flushpart(is->part) < 0){
 			fprint(2, "%s: part %s addr 0x%llux: icachewritesect "
 				"writepart: %r\n", argv0, is->part->name, addr);
-			err = -1;
 			continue;
 		}
-		
 		addstat(StatIsectWriteBytes, nbuf);
 		addstat(StatIsectWrite, 1);
 		icacheclean(chunk);
@@ -242,20 +245,18 @@ icachewritecoord(void *v)
 	threadsetname("icachewritecoord");
 
 	ix = mainindex;
-	iwrite.as = icachestate();
+	iwrite.as = diskstate();
 
 	for(;;){
 		trace(TraceProc, "icachewritecoord sleep");
 		waitforkick(&iwrite.round);
 		trace(TraceWork, "start");
-		as = icachestate();
+		as = diskstate();
 		if(as.arena==iwrite.as.arena && as.aa==iwrite.as.aa){
 			/* will not be able to do anything more than last flush - kick disk */
-			fprint(2, "icache: nothing to do - kick dcache\n");
 			trace(TraceProc, "icachewritecoord kick dcache");
 			kickdcache();
 			trace(TraceProc, "icachewritecoord kicked dcache");
-			goto SkipWork;	/* won't do anything; don't bother rewriting bloom filter */
 		}
 		iwrite.as = as;
 
@@ -273,11 +274,9 @@ icachewritecoord(void *v)
 				err |= recvul(ix->bloom->writedonechan);
 
 			trace(TraceProc, "icachewritecoord donewrite err=%d", err);
-			if(err == 0){
+			if(err == 0)
 				setatailstate(&iwrite.as);
-			}
 		}
-	SkipWork:
 		icacheclean(nil);	/* wake up anyone waiting */
 		trace(TraceWork, "finish");
 		addstat(StatIcacheFlush, 1);

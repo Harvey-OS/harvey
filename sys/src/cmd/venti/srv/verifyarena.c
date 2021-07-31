@@ -7,7 +7,6 @@ static int	fd;
 static uchar	*data;
 static int	blocksize;
 static int	sleepms;
-static vlong offset0;
 
 void
 usage(void)
@@ -23,7 +22,7 @@ preadblock(uchar *buf, int n, vlong off)
 
 	for(nr = 0; nr < n; nr += m){
 		m = n - nr;
-		m = pread(fd, &buf[nr], m, offset0+off+nr);
+		m = pread(fd, &buf[nr], m, off+nr);
 		if(m <= 0){
 			if(m == 0)
 				werrstr("early eof");
@@ -176,8 +175,7 @@ threadmain(int argc, char *argv[])
 	char *p, *q, *table, *f[10], line[256];
 	vlong start, stop;
 	ArenaPart ap;
-	Part *part;
-
+	
 	needzeroscore();
 	ventifmtinstall();
 	blocksize = MaxIoSize;
@@ -203,10 +201,8 @@ threadmain(int argc, char *argv[])
 		threadexitsall(nil);
 	}
 	
-	if((part = initpart(argv[0], OREAD)) == nil)
-		sysfatal("open partition %s: %r", argv[0]);
-	fd = part->fd;
-	offset0 = part->offset;
+	if((fd = open(argv[0], OREAD)) < 0)
+		sysfatal("open %s: %r", argv[0]);
 
 	if(preadblock(data, 8192, PartBlank) < 0)
 		sysfatal("read arena part header: %r");
@@ -253,7 +249,7 @@ threadmain(int argc, char *argv[])
 				fprint(2, "%T %s: bad start,stop %lld,%lld\n", f[0], stop, start);
 				continue;
 			}
-			if(seek(fd, offset0+start, 0) < 0)
+			if(seek(fd, start, 0) < 0)
 				fprint(2, "%T %s: seek to start: %r\n", f[0]);
 			verifyarena(f[0], stop - start);
 		}
