@@ -97,6 +97,7 @@ clockinit(void)
 	tm = (Armtimer*)ARMTIMER;
 	tm->load = 0;
 	tm->ctl = TmrPrescale1|CntEnable|CntWidth32;
+	coherence();
 
 	tstart = tn->clo;
 	do{
@@ -171,6 +172,7 @@ armtimerset(int n)
 		tm->ctl &= ~(TmrEnable|TmrIntEnable);
 		tm->irq = 1;
 	}
+	coherence();
 }
 
 ulong

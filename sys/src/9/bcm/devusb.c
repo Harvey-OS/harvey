@@ -53,10 +53,10 @@ enum
 {
 	/* Qid numbers */
 	Qdir = 0,		/* #u */
-	Qusbdir,			/* #u/usb */
+	Qusbdir,		/* #u/usb */
 	Qctl,			/* #u/usb/ctl - control requests */
 
-	Qep0dir,			/* #u/usb/ep0.0 - endpoint 0 dir */
+	Qep0dir,		/* #u/usb/ep0.0 - endpoint 0 dir */
 	Qep0io,			/* #u/usb/ep0.0/data - endpoint 0 I/O */
 	Qep0ctl,		/* #u/usb/ep0.0/ctl - endpoint 0 ctl. */
 	Qep0dummy,		/* give 4 qids to each endpoint */
@@ -143,7 +143,7 @@ static Dirtab usbdir[] =
 char *usbmodename[] =
 {
 	[OREAD]	"r",
-	[OWRITE]	"w",
+	[OWRITE] "w",
 	[ORDWR]	"rw",
 };
 
@@ -237,7 +237,7 @@ name2mode(char *mode)
 static int
 qid2epidx(int q)
 {
-	q = (q-Qep0dir)/4;
+	q = (q - Qep0dir) / 4;
 	if(q < 0 || q >= epmax || eps[q] == nil)
 		return -1;
 	return q;
@@ -267,10 +267,9 @@ addhcitype(char* t, int (*r)(Hci*))
 static char*
 seprintep(char *s, char *se, Ep *ep, int all)
 {
-	static char* dsnames[] = { "config", "enabled", "detached", "reset" };
 	Udev *d;
-	int i;
-	int di;
+	int i, di;
+	static char *dsnames[] = { "config", "enabled", "detached", "reset" };
 
 	d = ep->dev;
 
@@ -347,7 +346,7 @@ epalloc(Hci *hp)
 	ep->hp = hp;
 	ep->maxpkt = 8;
 	ep->ntds = 1;
-	ep->samplesz = ep->pollival = ep->hz = 0; /* make them void */
+	ep->samplesz = ep->pollival = ep->hz = 0;	/* make them void */
 	qunlock(&epslck);
 	return ep;
 }
@@ -401,10 +400,9 @@ static void
 dumpeps(void)
 {
 	int i;
-	static char buf[512];
-	char *s;
-	char *e;
+	char *s, *e;
 	Ep *ep;
+	static char buf[512];
 
 	print("usb dump eps: epmax %d Neps %d (ref=1+ for dump):\n", epmax, Neps);
 	for(i = 0; i < epmax; i++){
@@ -520,7 +518,6 @@ newdevep(Ep *ep, int i, int tt, int mode)
 static int
 epdataperm(int mode)
 {
-
 	switch(mode){
 	case OREAD:
 		return 0440|DMEXCL;
@@ -536,13 +533,11 @@ epdataperm(int mode)
 static int
 usbgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 {
-	Qid q;
-	Dirtab *dir;
-	int perm;
+	int mode, nb, perm;
 	char *se;
+	Dirtab *dir;
 	Ep *ep;
-	int nb;
-	int mode;
+	Qid q;
 
 	if(0)ddprint("usbgen q %#x s %d...", QID(c->qid), s);
 	if(s == DEVDOTDOT){
@@ -778,8 +773,7 @@ static ulong
 usbload(int speed, int maxpkt)
 {
 	enum{ Hostns = 1000, Hubns = 333 };
-	ulong l;
-	ulong bs;
+	ulong l, bs;
 
 	l = 0;
 	bs = 10UL * maxpkt;
@@ -797,15 +791,14 @@ usbload(int speed, int maxpkt)
 		print("usbload: bad speed %d\n", speed);
 		/* let it run */
 	}
-	return l / 1000UL;	/* in µs */
+	return l / 1000UL;		/* in µs */
 }
 
 static Chan*
 usbopen(Chan *c, int omode)
 {
-	int q;
+	int q, mode;
 	Ep *ep;
-	int mode;
 
 	mode = openmode(omode);
 	q = QID(c->qid);
@@ -852,7 +845,7 @@ usbopen(Chan *c, int omode)
 	c->mode = mode;
 	c->flag |= COPEN;
 	c->offset = 0;
-	c->aux = nil;	/* paranoia */
+	c->aux = nil;		/* paranoia */
 	return c;
 }
 
@@ -904,12 +897,9 @@ usbclose(Chan *c)
 static long
 ctlread(Chan *c, void *a, long n, vlong offset)
 {
-	int q;
-	char *s;
-	char *us;
-	char *se;
+	int i, q;
+	char *s, *se, *us;
 	Ep *ep;
-	int i;
 
 	q = QID(c->qid);
 	us = s = smalloc(READSTR);
@@ -926,7 +916,8 @@ ctlread(Chan *c, void *a, long n, vlong offset)
 					putep(ep);
 					nexterror();
 				}
-				s = seprint(s, se, "ep%d.%d ", ep->dev->nb, ep->nb);
+				s = seprint(s, se, "ep%d.%d ",
+					ep->dev->nb, ep->nb);
 				s = seprintep(s, se, ep, 0);
 				poperror();
 			}
@@ -941,7 +932,8 @@ ctlread(Chan *c, void *a, long n, vlong offset)
 			nexterror();
 		}
 		if(c->aux != nil){
-			/* After a new endpoint request we read
+			/*
+			 * After a new endpoint request we read
 			 * the new endpoint name back.
 			 */
 			strecpy(s, se, c->aux);
@@ -981,10 +973,8 @@ rhubread(Ep *ep, void *a, long n)
 static long
 rhubwrite(Ep *ep, void *a, long n)
 {
+	int cmd, feature, port;
 	uchar *s;
-	int cmd;
-	int feature;
-	int port;
 	Hci *hp;
 
 	if(ep->dev == nil || ep->dev->isroot == 0 || ep->nb != 0)
@@ -1013,6 +1003,7 @@ rhubwrite(Ep *ep, void *a, long n)
 		break;
 	default:
 		ep->rhrepl = 0;
+		break;
 	}
 	return n;
 }
@@ -1020,9 +1011,8 @@ rhubwrite(Ep *ep, void *a, long n)
 static long
 usbread(Chan *c, void *a, long n, vlong offset)
 {
-	int q;
+	int q, nr;
 	Ep *ep;
-	int nr;
 
 	q = QID(c->qid);
 
@@ -1052,9 +1042,10 @@ usbread(Chan *c, void *a, long n, vlong offset)
 			n = nr;
 			break;
 		}
-		/* else fall */
+		/* else fall through */
 	default:
-		ddeprint("\nusbread q %#x fid %d cnt %ld off %lld\n",q,c->fid,n,offset);
+		ddeprint("\nusbread q %#x fid %d cnt %ld off %lld\n",
+			q, c->fid, n, offset);
 		n = ep->hp->epread(ep, a, n);
 		break;
 	}
@@ -1072,7 +1063,7 @@ pow2(int n)
 static void
 setmaxpkt(Ep *ep, char* s)
 {
-	long spp;	/* samples per packet */
+	long spp;			/* samples per packet */
 
 	if(ep->dev->speed == Highspeed)
 		spp = (ep->hz * ep->pollival * ep->ntds + 7999) / 8000;
@@ -1090,7 +1081,7 @@ setmaxpkt(Ep *ep, char* s)
 }
 
 /*
- * Many endpoint ctls. simply update the portable representation
+ * Many endpoint ctls.  Simply update the portable representation
  * of the endpoint. The actual controller driver will look
  * at them to setup the endpoints as dictated.
  */
@@ -1149,7 +1140,8 @@ epctl(Ep *ep, Chan *c, void *a, long n)
 			nep->maxpkt = 64;	/* assume full speed */
 		nep->dev->hub = d->nb;
 		nep->dev->port = atoi(cb->f[2]);
-		/* next read request will read
+		/*
+		 * next read request will read
 		 * the name for the new endpoint
 		 */
 		l = sizeof(up->genbuf);
@@ -1412,9 +1404,10 @@ usbwrite(Chan *c, void *a, long n, vlong off)
 			n = nr;
 			break;
 		}
-		/* else fall */
+		/* else fall through */
 	default:
-		ddeprint("\nusbwrite q %#x fid %d cnt %ld off %lld\n",q, c->fid, n, off);
+		ddeprint("\nusbwrite q %#x fid %d cnt %ld off %lld\n",
+			q, c->fid, n, off);
 		ep->hp->epwrite(ep, a, n);
 	}
 	putep(ep);
