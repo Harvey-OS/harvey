@@ -286,10 +286,9 @@ struct pcap_file_header {
 };
 
 struct pcap_pkthdr {
-	ulong	ts_sec;		/* time stamp seconds */
-	ulong	ts_µsec;	/* time stamp microseconds */
-	ulong	caplen;		/* length of portion present */
-	ulong	len;		/* length this packet (off wire) */
+        uvlong	ts;	/* time stamp */
+        ulong	caplen;	/* length of portion present */
+        ulong	len;	/* length this packet (off wire) */
 };
 
 /*
@@ -324,8 +323,7 @@ tracepkt(uchar *ps, int len)
 		len = Mflag;
 	if(pcap){
 		goo = (struct pcap_pkthdr*)(ps-16);
-		goo->ts_sec = (uvlong)pkttime / 1000000000;
-		goo->ts_µsec = ((uvlong)pkttime % 1000000000) / 1000;
+		goo->ts = pkttime;
 		goo->caplen = len;
 		goo->len = len;
 		write(1, goo, len+16);
