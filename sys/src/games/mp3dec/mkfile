@@ -57,8 +57,6 @@ $O.out:	$OFILES
 
 %.$O:	$HFILES
 
-all:V: $O.out
-
 clean:V:
 	rm -f *.[$OS] [$OS].out
 
