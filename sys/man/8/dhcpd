@@ -146,9 +146,7 @@ a POP3 mail server
 an SMTP mail server
 .TP
 .B bootf
-the default boot file;
-see
-.IR ndb (6)
+the default boot file
 .PD
 .PP
 .I Dhcpd
@@ -294,6 +292,4 @@ Restricts access to only those files rooted in the
 .SH SOURCE
 .B /sys/src/cmd/ip
 .SH "SEE ALSO"
-.IR ndb (6),
-.IR 9load (8),
-.IR booting (8)
+.IR ndb (6)
