@@ -29,24 +29,11 @@ which in turn contains a
 .B ctl
 file and one file per configured device.
 .PP
-Most control messages each introduce a new device, here named
+The control messages each introduce a new device, here named
 .IR new .
 The
 .I file
 arguments are interpreted in the name space of the writer.
-.TP
-.BI cat " new files" \fR...
-The device
-.I new
-corresponds to the catenation of
-.IR files .
-.TP
-.BI inter " new files" \fR...
-The device
-.I new
-corresponds to the block interleaving of
-.IR files ;
-an 8192-byte block size is assumed.
 .TP
 .BI mirror " new files" \fR...
 The device
@@ -55,13 +42,11 @@ corresponds to a RAID-1-like mirroring of
 .IR files .
 Writes to
 .BI new
-are handled by sequentially writing the same data to the
+are handled by sequentially writing to the
 .I files
 from right to left (the reverse of
 the order in the control message).
-A failed write causes an eventual error return
-but does not prevent the rest of the writes
-to the other devices of the mirror set.
+If any write fails, the write is aborted.
 Reads from
 .BI new
 are handled by sequentially reading from the
@@ -86,10 +71,18 @@ reaches past the end of
 .I length
 is silently reduced to fit.
 .TP
-.B clear
-Discard all
-.I fs
-device definitions.
+.BI inter " new files" \fR...
+The device
+.I new
+corresponds to the block interleaving of
+.IR files ;
+an 8192-byte block size is assumed.
+.TP
+.BI cat " new files" \fR...
+The device
+.I new
+corresponds to the catenation of
+.IR files .
 .PD
 .LP
 If the variable
@@ -152,9 +145,6 @@ add this to
 fsconfig=/dev/fd0disk
 .EE
 .SH "SEE ALSO"
-.I read
-in
-.IR cat (1),
 .IR dd (1),
 .IR kfs (4),
 .IR fs (8),
@@ -167,9 +157,3 @@ in
 Mirrors are RAID-like but not RAID.
 There is no fancy recovery mechanism and
 no automatic initial copying from a master drive to its mirror drives.
-.PP
-Each
-.I write
-system call on
-.B ctl
-may transmit at most one command.
