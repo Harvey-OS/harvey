@@ -202,8 +202,7 @@ typedef enum State {
 	Allocated, Queued, Active, Done
 } State;
 
-typedef struct Dsa Dsa;
-struct Dsa {
+typedef struct Dsa {
 	uchar stateb;
 	uchar result;
 	uchar dmablks;
@@ -225,7 +224,7 @@ struct Dsa {
 	uchar pad2[2];
 
 	uchar next[4];			/* chaining for SCRIPT (NCR byte order) */
-	Dsa	*freechain;		/* chaining for freelist */
+	struct Dsa *freechain;		/* chaining for freelist */
 	Rendez;
 	uchar scsi_id_buf[4];
 	Movedata msg_out_buf;
@@ -236,7 +235,7 @@ struct Dsa {
 	uchar status;
 	int p9status;
 	uchar parityerror;
-};
+} Dsa;
 
 typedef enum Feature {
 	BigFifo = 1,			/* 536 byte fifo */
@@ -1183,8 +1182,9 @@ write_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 static void
 sd53c8xxinterrupt(Ureg *ur, void *a)
 {
-	uchar istat, dstat;
+	uchar istat;
 	ushort sist;
+	uchar dstat;
 	int wakeme = 0;
 	int cont = -1;
 	Dsa *dsa;
@@ -1406,8 +1406,8 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 			dsa->parityerror = 1;
 		}
 		if (sist & 0x4) {
-			IPRINT(PRINTPREFIX "%s%d lun %d: unexpected disconnect\n",
-				c->sdev->name, dsa->target, dsa->lun);
+			IPRINT(PRINTPREFIX "%d/%d: unexpected disconnect\n",
+			    dsa->target, dsa->lun);
 			dumpncrregs(c, 1);
 			//wakeme = 1;
 			dsa->p9status = SDeio;
@@ -1948,8 +1948,7 @@ cribbios(Controller *c)
 {
 	c->bios.scntl3 = c->n->scntl3;
 	c->bios.stest2 = c->n->stest2;
-	print(PRINTPREFIX "%s: bios scntl3(%.2x) stest2(%.2x)\n",
-		c->sdev->name, c->bios.scntl3, c->bios.stest2);
+	print(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n", c->bios.scntl3, c->bios.stest2);
 }
 
 static int
