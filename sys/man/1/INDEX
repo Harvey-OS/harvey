@@ -93,7 +93,6 @@ xls2txt olefs doc2txt
 doctype doctype
 du du
 echo echo
-ecp ecp
 ed ed
 emacs emacs
 eqn eqn

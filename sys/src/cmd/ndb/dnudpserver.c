@@ -122,7 +122,6 @@ restart:
 		getactivity(&req, 0);
 		req.aborttime = now + Maxreqtm;
 		rcode = 0;
-		stats.qrecvdudp++;
 
 		err = convM2DNS(&buf[Udphdrsize], len, &reqmsg, &rcode);
 		if(err){
@@ -131,6 +130,7 @@ restart:
 			free(err);
 			continue;
 		}
+
 		if (rcode == 0)
 			if(reqmsg.qdcount < 1){
 				dnslog("server: no questions from %I", buf);
@@ -159,17 +159,6 @@ restart:
 			goto freereq;
 		}
 
-		if (0) {
-			RR *rr;
-
-			for (rr = reqmsg.qd; rr; rr = rr->next)
-				syslog(0, "dnsq", "id %d: (%I/%d) %d %s %s",
-					req.id, buf, uh->rport[0]<<8 |
-					uh->rport[1], reqmsg.id,
-					reqmsg.qd->owner->name,
-					rrname(reqmsg.qd->type, tname,
-					sizeof tname));	// DEBUG
-		}
 		/* loop through each question */
 		while(reqmsg.qd){
 			memset(&repmsg, 0, sizeof repmsg);
@@ -183,12 +172,19 @@ restart:
 			}
 			/* send reply on fd to address in buf's udp hdr */
 			reply(fd, buf, &repmsg, &req);
-			freeanswers(&repmsg);
+			rrfreelist(repmsg.qd);
+			rrfreelist(repmsg.an);
+			rrfreelist(repmsg.ns);
+			rrfreelist(repmsg.ar);
 		}
 
 		p->inuse = 0;
 freereq:
-		freeanswers(&reqmsg);
+		rrfreelist(reqmsg.qd);
+		rrfreelist(reqmsg.an);
+		rrfreelist(reqmsg.ns);
+		rrfreelist(reqmsg.ar);
+
 		if(req.isslave){
 			putactivity(0);
 			_exits(0);
@@ -197,7 +193,7 @@ freereq:
 }
 
 /*
- *  announce on well-known dns udp port and set message style interface
+ *  announce on udp port and set message style interface
  */
 static char *hmsg = "headers";
 

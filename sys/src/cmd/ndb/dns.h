@@ -373,11 +373,11 @@ struct Cfg {
 typedef struct {
 	QLock;
 	ulong	slavehiwat;	/* procs */
-	ulong	qrecvd9p;	/* query counts */
-	ulong	qrecvdudp;
+	ulong	qrecvd;		/* query counts */
 	ulong	qsent;
 	/* reply times by count */
-	ulong	under10ths[10*10+2];	/* under n*0.1 seconds, n is index */
+	ulong	under1s;
+	ulong	under5s;
 	ulong	tmout;
 	ulong	tmoutcname;
 	ulong	tmoutv6;
@@ -405,7 +405,6 @@ extern char	mntpt[];
 extern int	needrefresh;
 extern int	norecursion;
 extern ulong	now;		/* time base */
-extern vlong	nowns;
 extern Area	*owned;
 extern int	sendnotifies;
 extern ulong	target;
@@ -444,7 +443,7 @@ void	dnput(void);
 void	dnslog(char*, ...);
 void*	emalloc(int);
 char*	estrdup(char*);
-void	freeanswers(DNSmsg *mp);
+// void	freeanswers(DNSmsg *mp);
 void	freeserverlist(Server*);
 int	getactivity(Request*, int);
 Area*	inmyarea(char*);
