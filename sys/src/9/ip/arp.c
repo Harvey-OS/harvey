@@ -572,7 +572,7 @@ rxmitsols(Arp *arp)
 	if(a == nil) 
 		goto dodrops; 		// return 0;
 
-	if((sflag = ipv6anylocal(ifc, ipsrc)) != SRC_UNSPEC) 
+	if(sflag = ipv6anylocal(ifc, ipsrc)) 
 		icmpns(f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac); 
 
 	runlock(ifc);

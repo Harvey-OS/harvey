@@ -1008,8 +1008,7 @@ rrfmt(Fmt *f)
 		fmtprint(&fstr, "\t%s", rp->ip->name);
 		break;
 	case Tptr:
-//		fmtprint(&fstr, "\t%s(%lud)", rp->ptr->name, rp->ptr->ordinal);
-		fmtprint(&fstr, "\t%s", rp->ptr->name);
+		fmtprint(&fstr, "\t%s(%lud)", rp->ptr->name, rp->ptr->ordinal);
 		break;
 	case Tsoa:
 		fmtprint(&fstr, "\t%s %s %lud %lud %lud %lud %lud", rp->host->name,
