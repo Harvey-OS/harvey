@@ -4,7 +4,6 @@
 #include <bio.h>
 #include <ip.h>
 #include <libsec.h>
-#include <auth.h>
 
 typedef struct URL URL;
 struct URL
@@ -16,7 +15,6 @@ struct URL
 	char	*etag;
 	char	*redirect;
 	char	*postbody;
-	char	*cred;
 	long	mtime;
 };
 
@@ -318,7 +316,7 @@ int
 dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 {
 	int fd, cfd;
-	int redirect, auth, loop;
+	int redirect, loop;
 	int n, rv, code;
 	long tot, vtime;
 	Tm *tm;
@@ -379,9 +377,6 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 						"Pragma: no-cache\r\n",
 						u->host, u->page, u->host);
 			}
-			if(u->cred)
-				dfprint(fd,	"Authorization: Basic %s\r\n",
-						u->cred);
 		} else {
 			dfprint(fd,	"POST %s HTTP/1.0\r\n"
 					"Host: %s\r\n"
@@ -415,10 +410,8 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 				cfd = -1;
 			}
 		}
-			
 		dfprint(fd, "\r\n", u->host);
 
-		auth = 0;
 		redirect = 0;
 		initibuf();
 		code = httprcode(fd);
@@ -456,11 +449,6 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 			sysfatal("Bad Request");
 
 		case 401:	/* Unauthorized */
-			if (auth)
-				sysfatal("Authentication failed");
-			auth = 1;
-			break;
-
 		case 402:	/* ??? */
 			sysfatal("Unauthorized");
 
@@ -469,9 +457,6 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 
 		case 404:	/* Not Found */
 			sysfatal("Not found on server");
-
-		case 407:	/* Proxy Authentication */
-			sysfatal("Proxy authentication required");
 
 		case 500:	/* Internal server error */
 			sysfatal("Server choked");
@@ -501,15 +486,13 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 			return rv;
 		}
 
-		if(!redirect && !auth)
+		if(!redirect)
 			break;
 
-		if (redirect){
-			if(u->redirect == nil)
-				sysfatal("redirect: no URL");
-			if(crackurl(u, u->redirect) < 0)
-				sysfatal("redirect: %r");
-		}
+		if(u->redirect == nil)
+			sysfatal("redirect: no URL");
+		if(crackurl(u, u->redirect) < 0)
+			sysfatal("redirect: %r");
 	}
 
 	/* transfer whatever you get */
@@ -579,7 +562,6 @@ void	hhclen(char*, URL*, Range*);
 void	hhcrange(char*, URL*, Range*);
 void	hhuri(char*, URL*, Range*);
 void	hhlocation(char*, URL*, Range*);
-void	hhauth(char*, URL*, Range*);
 
 struct {
 	char *name;
@@ -591,7 +573,6 @@ struct {
 	{ "content-range:", hhcrange },
 	{ "uri:", hhuri },
 	{ "location:", hhlocation },
-	{ "WWW-Authenticate:", hhauth },
 };
 int
 httpheaders(int fd, int cfd, URL *u, Range *r)
@@ -781,31 +762,6 @@ void
 hhlocation(char *p, URL *u, Range*)
 {
 	u->redirect = strdup(p);
-}
-
-void
-hhauth(char *p, URL *u, Range*)
-{
-	char *f[4];
-	UserPasswd *up;
-	char *s, cred[64];
-
-	if (cistrncmp(p, "basic ", 6) != 0)
-		sysfatal("only Basic authentication supported");
-
-	if (gettokens(p, f, nelem(f), "\"") < 2)
-		sysfatal("garbled auth data");
-
-	if ((up = auth_getuserpasswd(auth_getkey, "proto=pass service=http dom=%q relm=%q",
-	    	u->host, f[1])) == nil)
-			sysfatal("cannot authenticate");
-
-	s = smprint("%s:%s", up->user, up->passwd);
-	if(enc64(cred, sizeof(cred), (uchar *)s, strlen(s)) == -1)
-		sysfatal("enc64");
-  		free(s);
-
-	assert(u->cred = strdup(cred));
 }
 
 enum
@@ -1465,4 +1421,3 @@ output(Out *out, char *buf, int nb)
 	}
 	return n + d;
 }
-

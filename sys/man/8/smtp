@@ -115,8 +115,7 @@ turns on forward DNS validation of non-trusted sender address.
 .B -g
 turns on grey/white list processing.  All mail is rejected (with a
 retry code) unless the sender's IP address is on the whitelist,
-.BR /mail/lib/whitelist ,
-an append only file.
+.BR /mail/lib/whitelist .
 Addresses can be added to the whitelist by the administrator.  However,
 the usual way for addresses to be added is by smtpd itself.  Whenever,
 a message is received and the sender's address isn't on the whitelist,
