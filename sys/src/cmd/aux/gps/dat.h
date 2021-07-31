@@ -8,7 +8,7 @@ struct Place {
 
 enum {
 	Undef		= 0x80000000,
-	Baud=		4800,		/* 4800 is NMEA standard speed */
+	Baud=		9600,
 };
 
 extern Place nowhere;
