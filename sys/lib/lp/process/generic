@@ -31,6 +31,7 @@ case troff
 		case Latin1 post
 			tcs -s -f utf -t latin1 <$temp | $proc/dpost |
 				$proc/gspipe
+
 		case UTF
 			$proc/tr2post <$temp | $proc/gspipe
 		}
@@ -80,16 +81,7 @@ case GIF
 	case *gsijs!*
 		$proc/gifpost <$temp | $proc/gspipeijs
 	}
-case PNG
-	switch ($LPCLASS) {
-	case *post*
-		$proc/pngpost <$temp
-	case *gs!*
-		$proc/pngpost <$temp | $proc/gspipe
-	case *gsijs!*
-		$proc/pngpost <$temp | $proc/gspipeijs
-	}
-case ccitt-g31
+case ccitt-g31;
 	switch ($LPCLASS) {
 	case *post*
 		$proc/g3post <$temp

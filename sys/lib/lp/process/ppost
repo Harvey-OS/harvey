@@ -1,5 +1,5 @@
 #!/bin/rc
-# converts a regular text file to PostScript
+# converts a regular ascii file to PostScript
 if (! ~ $DEBUG '') flag x +
 PATCH='%%Patch from lp'
 switch ($LPCLASS) {
