@@ -735,6 +735,10 @@ postparse_http(Url *u)
 		werrstr("missing authority (hostname, port, etc.)");
 		return -1;
 	}
+	if(u->user || u->passwd){
+		werrstr("user information not valid with http");
+		return -1;
+	}
 	if(u->host == nil){
 		werrstr("missing host specification");
 		return -1;

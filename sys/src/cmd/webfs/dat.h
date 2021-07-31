@@ -31,7 +31,6 @@ struct Client
 	char *contenttype;
 	char *postbody;
 	char *redirect;
-	char *authenticate;
 	char *ext;
 	int npostbody;
 	int havepostbody;

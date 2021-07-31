@@ -49,8 +49,6 @@ threadmain(int argc, char **argv)
 	case 's':
 		service = EARGF(usage());
 		break;
-	default:
-		usage();
 	}ARGEND
 
 	quotefmtinstall();

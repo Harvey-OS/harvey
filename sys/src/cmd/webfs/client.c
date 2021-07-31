@@ -55,8 +55,6 @@ closeclient(Client *c)
 		c->url = nil;
 		free(c->redirect);
 		c->redirect = nil;
-		free(c->authenticate);
-		c->authenticate = nil;
 		c->npostbody = 0;
 		c->havepostbody = 0;
 		c->bodyopened = 0;
@@ -103,8 +101,6 @@ clientbodyopen(Client *c, Req *r)
 				respond(r, e);
 			return;
 		}
-		if (c->authenticate)
-			continue;
 		if(!c->redirect)
 			break;
 		next = c->redirect;
@@ -296,7 +292,7 @@ ctlwrite(Req *r, Ctl *ctl, char *cmd, char *arg)
 
 	if((t = findcmd(cmd, ctltab, nelem(ctltab))) == nil)
 		return 0;
-	a = (void*)((uintptr)ctl+(uintptr)t->offset);
+	a = (void*)((ulong)ctl+(int)t->offset);
 	parseas(r, arg, t->type, a);
 	return 1;
 }
@@ -309,7 +305,7 @@ clientctlwrite(Req *r, Client *c, char *cmd, char *arg)
 
 	if((t = findcmd(cmd, clienttab, nelem(clienttab))) == nil)
 		return 0;
-	a = (void*)((uintptr)c+(uintptr)t->offset);
+	a = (void*)((ulong)c+(int)t->offset);
 	parseas(r, arg, t->type, a);
 	return 1;
 }
@@ -335,7 +331,7 @@ ctlfmt(Ctl *c, char *s)
 	char *t;
 
 	for(i=0; i<nelem(ctltab); i++){
-		a = (void*)((uintptr)c+(uintptr)ctltab[i].offset);
+		a = (void*)((ulong)c+(int)ctltab[i].offset);
 		switch(ctltab[i].type){
 		case Bool:
 			s += sprint(s, "%s %s\n", ctltab[i].name, *(int*)a ? "on" : "off");

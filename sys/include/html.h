@@ -227,7 +227,6 @@ struct Iformfield
 {
 	Item;				// (with tag ==Iformfieldtag)
 	Formfield*	formfield;
-	void*	aux;
 };
 
 
