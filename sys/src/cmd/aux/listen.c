@@ -287,7 +287,7 @@ dolisten(char *proto, char *dir, int ctl, char *srvdir)
 		 */
 		switch(rfork(RFFDG|RFPROC|RFNOWAIT|RFENVG|RFNAMEG|RFNOTEG)){
 		case -1:
-			reject(nctl, ndir, "host overloaded");
+			reject(ctl, ndir, "host overloaded");
 			close(nctl);
 			continue;
 		case 0:
@@ -299,10 +299,10 @@ dolisten(char *proto, char *dir, int ctl, char *srvdir)
 				if(!quiet)
 					syslog(1, listenlog, "%s: unknown service '%s' from '%s': %r",
 						proto, s.serv, s.remote);
-				reject(nctl, ndir, "connection refused");
+				reject(ctl, ndir, "connection refused");
 				exits(0);
 			}
-			data = accept(nctl, ndir);
+			data = accept(ctl, ndir);
 			if(data < 0){
 				syslog(1, listenlog, "can't open %s/data: %r", ndir);
 				exits(0);

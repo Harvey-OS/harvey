@@ -579,21 +579,18 @@ rclunk(Fid *f)
 char *
 rremove(Fid *f)
 {
-	char *e;
-	e = nil;
 	if(QTDIR & f->node->d->qid.type){
 		if(removedir(f->node) < 0)
-			e = errstring;
+			return errstring;
 	} else {
 		if(removefile(f->node) < 0)
-			e = errstring;
+			return errstring;
 	}
 	uncache(f->node->parent);
 	uncache(f->node);
-	if(e == nil)
-		INVALID(f->node);
+	INVALID(f->node);
 	f->busy = 0;
-	return e;
+	return 0;
 }
 
 char *
