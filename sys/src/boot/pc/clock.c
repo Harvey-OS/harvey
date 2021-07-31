@@ -26,7 +26,7 @@ enum
 	Freq=	1193182,	/* Real clock frequency */
 };
 
-static vlong cpufreq = 66000000;
+static int cpufreq = 66000000;
 static int cpumhz = 66;
 static int loopconst = 100;
 int cpuidax, cpuiddx;
@@ -136,10 +136,7 @@ static X86type	*cputype;
 void
 delay(int l)
 {
-	uvlong loops = l * loopconst;
-
-	if (loops != (int)loops)
-		print("delay: int overflow\n");
+	l *= loopconst;
 	if(l <= 0)
 		l = 1;
 	aamloop(l);
@@ -148,10 +145,7 @@ delay(int l)
 void
 microdelay(int l)
 {
-	uvlong loops = l * loopconst;
-
-	if (loops != (int)loops)
-		print("delay: int overflow\n");
+	l *= loopconst;
 	l /= 1000;
 	if(l <= 0)
 		l = 1;
@@ -175,9 +169,6 @@ cpuidentify(void)
 		t = x86intel;
 	family = X86FAMILY(cpuidax);
 	model = X86MODEL(cpuidax);
-	if (0)
-		print("cpuidentify: cpuidax 0x%ux cpuiddx 0x%ux\n",
-			cpuidax, cpuiddx);
 	while(t->name){
 		if((t->family == family && t->model == model)
 		|| (t->family == family && t->model == -1)
@@ -269,13 +260,13 @@ clockinit(void)
 	/*
  	 *  figure out clock frequency and a loop multiplier for delay().
 	 */
-	cpufreq = (vlong)loops*((t->aalcycles*Freq)/x);
+	cpufreq = loops*((t->aalcycles*Freq)/x);
 	loopconst = (cpufreq/1000)/t->aalcycles;	/* AAM+LOOP's for 1 ms */
 
 	/*
 	 *  add in possible .2% error and convert to MHz
 	 */
 	cpumhz = (cpufreq + cpufreq/500)/1000000;
-	if (1)
-		print("%dMHz %s loop %d\n", cpumhz, t->name, loopconst);
+//	print("%dMHz %s loop %d\n", cpumhz, t->name, loopconst);
 }
+
