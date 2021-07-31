@@ -207,7 +207,7 @@ fcmp(Internal *n, Internal *m)
 }
 
 static void
-fld(void (*f)(Internal*, void*), int d, ulong ea, int n, FPsave *ufp)
+fld(void (*f)(Internal*, void*), int d, ulong ea, int n, PFPU *ufp)
 {
 	void *mem;
 
@@ -218,7 +218,7 @@ fld(void (*f)(Internal*, void*), int d, ulong ea, int n, FPsave *ufp)
 }
 
 static void
-fst(void (*f)(void*, Internal*), ulong ea, int s, int n, FPsave *ufp)
+fst(void (*f)(void*, Internal*), ulong ea, int s, int n, PFPU *ufp)
 {
 	Internal tmp;
 	void *mem;
@@ -283,7 +283,7 @@ unimp(ulong pc, ulong op)
 }
 
 static void
-fpemu(ulong pc, ulong op, Ureg *ur, FPsave *ufp)
+fpemu(ulong pc, ulong op, Ureg *ur, PFPU *ufp)
 {
 	int rn, rd, tag, o;
 	long off;
@@ -534,12 +534,12 @@ int
 fpiarm(Ureg *ur)
 {
 	ulong op, o;
-	FPsave *ufp;
+	PFPU *ufp;
 	int i, n;
 
 	if(up == nil)
 		panic("fpiarm not in a process");
-	ufp = &up->fpsave;
+	ufp = &up->PFPU;
 	/* because all the state is in the proc structure,
 	 * it need not be saved/restored
 	 */
