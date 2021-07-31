@@ -92,41 +92,6 @@ prflush(void)
 			break;
 }
 
-struct {
-	Lock lk;
-	char buf[16384];
-	uint n;
-} kmesg;
-
-static void
-kmesgputs(char *str, int n)
-{
-	uint nn, d;
-
-	ilock(&kmesg.lk);
-	/* take the tail of huge writes */
-	if(n > sizeof kmesg.buf){
-		d = n - sizeof kmesg.buf;
-		str += d;
-		n -= d;
-	}
-
-	/* slide the buffer down to make room */
-	nn = kmesg.n;
-	if(nn + n >= sizeof kmesg.buf){
-		d = nn + n - sizeof kmesg.buf;
-		if(d)
-			memmove(kmesg.buf, kmesg.buf+d, sizeof kmesg.buf-d);
-		nn -= d;
-	}
-
-	/* copy the data in */
-	memmove(kmesg.buf+nn, str, n);
-	nn += n;
-	kmesg.n = nn;
-	iunlock(&kmesg.lk);
-}
-
 /*
  *   Print a string on the console.  Convert \n to \r\n for serial
  *   line consoles.  Locking of the queues is left up to the screen
@@ -138,11 +103,6 @@ putstrn0(char *str, int n, int usewrite)
 {
 	int m;
 	char *t;
-
-	/*
-	 *  how many different output devices do we need?
-	 */
-	kmesgputs(str, n);
 
 	/*
 	 *  if someone is reading /dev/kprint,
@@ -433,7 +393,6 @@ echo(char *buf, int n)
 	qproduce(kbdq, buf, n);
 	if(kbd.raw)
 		return;
-	kmesgputs(buf, n);
 	if(screenputs != nil)
 		echoscreen(buf, n);
 	if(serialoq)
@@ -503,7 +462,6 @@ static void
 kbdputcclock(void)
 {
 	char *iw;
-
 	/* this amortizes cost of qproduce */
 	if(kbd.iw != kbd.ir){
 		iw = kbd.iw;
@@ -523,7 +481,6 @@ enum{
 	Qconsctl,
 	Qcputime,
 	Qdrivers,
-	Qkmesg,
 	Qkprint,
 	Qhostdomain,
 	Qhostowner,
@@ -556,7 +513,6 @@ static Dirtab consdir[]={
 	"drivers",	{Qdrivers},	0,		0444,
 	"hostdomain",	{Qhostdomain},	DOMLEN,		0664,
 	"hostowner",	{Qhostowner},	0,	0664,
-	"kmesg",		{Qkmesg},	0,	0440,
 	"kprint",		{Qkprint, 0, QTEXCL},	0,	DMEXCL|0440,
 	"null",		{Qnull},	0,		0666,
 	"osversion",	{Qosversion},	0,		0444,
@@ -701,6 +657,7 @@ consread(Chan *c, void *buf, long n, vlong off)
 
 	if(n <= 0)
 		return n;
+
 	switch((ulong)c->qid.path){
 	case Qdir:
 		return devdirread(c, buf, n, consdir, nelem(consdir), devgen);
@@ -773,22 +730,6 @@ consread(Chan *c, void *buf, long n, vlong off)
 		memmove(buf, tmp+k, n);
 		return n;
 
-	case Qkmesg:
-		/*
-		 * This is unlocked to avoid tying up a process
-		 * that's writing to the buffer.  kmesg.n never 
-		 * gets smaller, so worst case the reader will
-		 * see a slurred buffer.
-		 */
-		if(off >= kmesg.n)
-			n = 0;
-		else{
-			if(off+n > kmesg.n)
-				n = kmesg.n - off;
-			memmove(buf, kmesg.buf+off, n);
-		}
-		return n;
-		
 	case Qkprint:
 		return qread(kprintoq, buf, n);
 
