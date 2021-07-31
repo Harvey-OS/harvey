@@ -210,7 +210,6 @@ void		raspstart(File*);
 void		raspdelete(File*, uint, uint, int);
 void		raspinsert(File*, uint, Rune*, uint, int);
 void		raspdone(File*, int);
-void		raspflush(File*);
 
 /*
  * acme fns
@@ -382,7 +381,7 @@ extern int	bpipeok;
 extern int	panicking;
 extern Rune	empty[];
 extern int	termlocked;
-extern int	outbuffered;
+extern int	noflush;
 
 #include "mesg.h"
 
@@ -397,4 +396,3 @@ void	outTsll(Hmesg, int, long, long);
 void	outTsl(Hmesg, int, long);
 void	outTsv(Hmesg, int, vlong);
 void	outflush(void);
-int needoutflush(void);

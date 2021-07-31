@@ -10,7 +10,7 @@ Posn	cmdpt;
 Posn	cmdptadv;
 Buffer	snarfbuf;
 int	waitack;
-int	outbuffered;
+int	noflush;
 int	tversion;
 
 int	inshort(void);
@@ -807,26 +807,21 @@ outsend(void)
 {
 	int outcount;
 
-	if(outp >= outdata+nelem(outdata))
-		panic("outsend");
 	outcount = outp-outmsg;
 	outcount -= 3;
 	outmsg[1] = outcount;
 	outmsg[2] = outcount>>8;
 	outmsg = outp;
-	if(!outbuffered){
+	if(!noflush){
 		outcount = outmsg-outdata;
 		if (write(1, (char*) outdata, outcount) != outcount)
 			rescue();
 		outmsg = outdata;
 		return;
 	}
-}
-
-int
-needoutflush(void)
-{
-	return outmsg >= outdata+DATASIZE;
+	if(outmsg < outdata+DATASIZE)
+		return;
+	outflush();
 }
 
 void
@@ -834,8 +829,7 @@ outflush(void)
 {
 	if(outmsg == outdata)
 		return;
-	outbuffered = 0;
-	/* flow control */
+	noflush = 0;
 	outT0(Hack);
 	waitack = 1;
 	do
@@ -845,5 +839,5 @@ outflush(void)
 		}
 	while(waitack);
 	outmsg = outdata;
-	outbuffered = 1;
+	noflush = 1;
 }
