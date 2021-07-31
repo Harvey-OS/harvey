@@ -174,14 +174,15 @@ miistatus(Mii* mii)
 	 * (Read status twice as the Ls bit is sticky).
 	 */
 	bmsr = mii->mir(mii, phyno, Bmsr);
-	if(!(bmsr & (BmsrAnc|BmsrAna))) {
-		// print("miistatus: auto-neg incomplete\n");
+	if(!(bmsr & (BmsrAnc|BmsrAna)))
+{
+print("miistatus: auto-neg incomplete\n");
 		return -1;
-	}
+}
 
 	bmsr = mii->mir(mii, phyno, Bmsr);
 	if(!(bmsr & BmsrLs)){
-		// print("miistatus: link down\n");
+print("miistatus: link down\n");
 		phy->link = 0;
 		return -1;
 	}
@@ -213,10 +214,11 @@ miistatus(Mii* mii)
 		else if(r & Ana10HD)
 			phy->speed = 10;
 	}
-	if(phy->speed == 0) {
-		// print("miistatus: phy speed 0\n");
+	if(phy->speed == 0)
+{
+print("miistatus: phy speed 0\n");
 		return -1;
-	}
+}
 
 	if(phy->fd){
 		p = phy->fc;
