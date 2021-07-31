@@ -139,9 +139,8 @@ will be updated.
 These routines set
 .IR errstr .
 .SH BUGS
-.I Atoi,
-.I atol,
+.I Atoi
 and
-.I atoll
+.I atol
 accept octal and hexadecimal numbers in the style of C,
 contrary to the ANSI specification.

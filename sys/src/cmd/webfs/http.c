@@ -11,7 +11,7 @@
 #include "dat.h"
 #include "fns.h"
 
-char PostContentType[] = "application/x-www-form-urlencoded";
+char PostContentType[] = "application/octet-stream";
 int httpdebug;
 
 typedef struct HttpState HttpState;
@@ -446,15 +446,29 @@ httpopen(Client *c, Url *url)
 int
 httpread(Client *c, Req *r)
 {
+	char *dst;
 	HttpState *hs;
-	long n;
+	int n;
+	long rlen, tot, len;
 
 	hs = c->aux;
-	n = readibuf(&hs->b, r->ofcall.data, r->ifcall.count);
-	if(n < 0)
-		return -1;
-
-	r->ofcall.count = n;
+	dst = r->ofcall.data;
+	len = r->ifcall.count;
+	tot = 0;
+	while (tot < len){
+		rlen = len - tot;
+		n = readibuf(&hs->b, dst + tot, rlen);
+		if(n == 0)
+			break;
+		else if(n < 0){
+			if(tot == 0)
+				return -1;
+			else
+				return tot;
+		}
+		tot += n;
+	}
+	r->ofcall.count = tot;
 	return 0;
 }
 

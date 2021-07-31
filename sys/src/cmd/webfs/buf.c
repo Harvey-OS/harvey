@@ -30,7 +30,7 @@ readibuf(Ibuf *b, char *buf, int len)
 		b->rp += n;
 		return n;
 	}
-	return ioreadn(b->io, b->fd, buf, len);
+	return ioread(b->io, b->fd, buf, len);
 }
 
 void

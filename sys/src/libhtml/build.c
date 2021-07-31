@@ -1800,7 +1800,6 @@ getitems(ItemSource* is, uchar* data, int datalen)
 	}
 	outerps = lastps(ps);
 	ans = outerps->items->next;
-	freeitem(outerps->items);
 	// note: ans may be nil and di->kids not nil, if there's a frameset!
 	outerps->items = newispacer(ISPnull);
 	outerps->lastit = outerps->items;
@@ -2564,8 +2563,6 @@ finish_table(Table* t)
 			}
 		}
 	}
-	free(rowspancnt);
-	free(rowspancell);
 }
 
 // Remove tail of cell content until it isn't whitespace.

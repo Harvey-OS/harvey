@@ -85,8 +85,6 @@ smbtrans2setfileinformation(SmbSession *s, SmbHeader *h)
 		if (s->transaction.in.tdcount < 1)
 			goto misc;
 		f->sf->deleteonclose = *s->transaction.in.data;
-		if (!smbbufferputs(s->transaction.out.parameters, 0))
-			goto misc;
 		pr = SmbProcessResultReply;
 		break;
 

@@ -9,9 +9,6 @@
 	- 2001-09-06 : Added Full 2D Accel ! (see drivers in /sys/src/9/pc)
 	- 2001-10-01 : Rid Fix.
 	- 2006-04-01 : Add MGA550 support.
-	- 2006-08-07 : Add support for 16 and 24bits modes.
-				HW accel now works for the G200 cards too (see kernel).
-				by Leonardo Valencia <leoval@anixcorp.com>
 
      Greets and Acknowledgements go to :
      	- Sylvain Chipaux <a.k.a. asle>.
@@ -457,7 +454,7 @@ setpalettedepth(int depth)
 	fd = open("#v/vgactl", OWRITE);
 	if(fd < 0)
 		error("mga: can't open vgactl\n");
-
+	
 	cmd[13] = '0' + depth;
 	if(write(fd, cmd, 14) != 14)
 		error("mga: can't set palette depth to %d\n", depth);
@@ -1070,7 +1067,6 @@ init(Vga* vga, Ctlr* ctlr)
 	Ctlr*	c;
 	int	i;
 	ulong	t;
-	int     bppShift;
 
 	mga = vga->private;
 	mode = vga->mode;
@@ -1079,27 +1075,8 @@ init(Vga* vga, Ctlr* ctlr)
 
 	ctlr->flag |= Ulinear;
 
-	/*
-	 * Set the right bppShitf based on depth
-	 */
-
-	switch(mode->z) {
-	case 8: 
-		bppShift = 0;
-		break;
-	case 16:
-		bppShift = 1;
-		break;
-	case 24:
-		bppShift = 0;
-		break;
-	case 32:
-		bppShift = 2;
-		break;
-	default:
-		bppShift = 0;
+	if ((mode->z != 32) && (mode->z != 8))
 		error("depth %d not supported !\n", mode->z);
-	}
 
 	if (mode->interlace)
 		error("interlaced mode not supported !\n");
@@ -1161,7 +1138,7 @@ init(Vga* vga, Ctlr* ctlr)
 	mga->linecomp =		mode->y;
 	mga->hsyncsel = 		0;					/* Do not double lines ... */
 	mga->startadd =		0;
-	mga->offset =		(mode->z==24) ? (vga->virtx * 3) >> (4 - bppShift) : vga->virtx >> (4-bppShift);
+	mga->offset =			(vga->virtx * mode->z) / 128;
 	/* No Zoom */
 	mga->maxscan = 		0;
 	/* Not used in Power Graphic mode */
@@ -1199,9 +1176,9 @@ init(Vga* vga, Ctlr* ctlr)
 	mga->crtcrstN =		1;
 
 	mga->mgamode = 		1;
-	mga->scale   =		(mode->z == 24) ? ((1 << bppShift)*3)-1 : (1 << bppShift)-1;
+	mga->scale =			(mode->z == 8) ? 0 : 3;	/* 8 or 32 bits mode */
 	
-	mga->crtcprotect =      1;
+	mga->crtcprotect =		1;
 	mga->winsize = 		0;
 	mga->winfreq = 		0;
 
@@ -1546,12 +1523,6 @@ load(Vga* vga, Ctlr* ctlr)
 	case 8:
 		dacset(mga, Dac_Xmulctrl, _8bitsPerPixel, ColorDepth);	
 		break;
-	case 16:
-		dacset(mga, Dac_Xmulctrl, _16bitsPerPixel, ColorDepth);	
-		break;
-	case 24:
-		dacset(mga, Dac_Xmulctrl, _24bitsPerPixel, ColorDepth);	
-		break;
 	case 32:
 		dacset(mga, Dac_Xmulctrl, _32bitsPerPixel, ColorDepth);
 		break;
@@ -1598,11 +1569,10 @@ load(Vga* vga, Ctlr* ctlr)
 	trace("mga: crtcext MgaMode loaded !\n");
 	if (ultradebug) Bflush(&stdout);
 
-	if (mode->z == 32 || mode->z == 24 ) {
+	if (mode->z == 32) {
 		/* Initialize Big Endian Mode ! */
 		mgawrite32(mga, 0x1e54, 0x02 << 16);
 	}
-
 
 	/* Set final misc ... enable mapping ... */
 	miscset(mga, mga->misc | Misc_rammapen, 0);
@@ -1627,13 +1597,7 @@ load(Vga* vga, Ctlr* ctlr)
 
 	trace("mga: Loaded [bis]!\n" );
 
-	/*
-	 * TODO: In 16bpp mode, what is the correct palette ?
-	 *       in the meantime lets use the default one,
-	 *       which has a weird color combination.
-	 */
-
-	if (mode->z != 8 && mode ->z != 16) {
+	if (mode->z != 8) {
 		/* Initialize Palette */
 		mgawrite8(mga, RAMDACIDX, 0);
 		for (i = 0; i < 0x100; i++) {
@@ -1642,7 +1606,6 @@ load(Vga* vga, Ctlr* ctlr)
 			mgawrite8(mga, RAMDACPALDATA, i);
 		}
 	}
-      
 	trace("mga: Palette initialised !\n");
 
 	/* Enable Cursor */
