@@ -3,7 +3,6 @@
 LIB=/$objtype/lib/libip.a
 OFILES=\
 	eipfmt.$O\
-	equivip.$O\
 	parseip.$O\
 	parseether.$O\
 	myetheraddr.$O\
