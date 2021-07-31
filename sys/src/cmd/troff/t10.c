@@ -47,10 +47,8 @@ void t_ptinit(void)
 
 	/* open table for device, */
 	/* read in resolution, size info, font info, etc., set params */
-	if ((p = getenv("TYPESETTER")) != 0){
-		strncpy(devname, p, sizeof devname);
-		devname[sizeof devname-1] = 0;
-	}
+	if ((p = getenv("TYPESETTER")) != 0)
+		strcpy(devname, p);
 	if (termtab[0] == 0)
 		strcpy(termtab, DWBfontdir);
 	if (fontdir[0] == 0)
@@ -60,7 +58,7 @@ void t_ptinit(void)
 	hyf = 1;
 	lg = 1;
 
-	snprintf(buf, sizeof buf, "/dev%s/DESC", devname);
+	sprintf(buf, "/dev%s/DESC", devname);
 	strcat(termtab, buf);
 	if (getdesc(termtab) < 0) {
 		ERROR "can't open DESC file %s", termtab WARN;

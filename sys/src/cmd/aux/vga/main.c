@@ -289,9 +289,9 @@ main(int argc, char** argv)
 
 	if(iflag || lflag){
 		if(getenv(type))
-			snprint(monitordb, sizeof monitordb, "/env/%s", type);
+			sprint(monitordb, "/env/%s", type);
 		else
-			strecpy(monitordb, monitordb+sizeof monitordb, dbname);
+			strcpy(monitordb, dbname);
 
 		if(vga->vesa){
 			strcpy(monitordb, "vesa bios");

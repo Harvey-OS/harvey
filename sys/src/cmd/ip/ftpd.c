@@ -217,7 +217,7 @@ main(int argc, char **argv)
 	/* figure out which binaries to bind in later */
 	arg = getenv("cputype");
 	if(arg)
-		strecpy(cputype, cputype+sizeof cputype, arg);
+		strcpy(cputype, arg);
 	else
 		strcpy(cputype, "mips");
 	snprint(bindir, sizeof(bindir), "/bin/%s/bin", cputype);

@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 	}
 
 child:
-	strecpy(ofile, ofile+sizeof ofile, *argv);
+	strcpy(ofile, *argv);
 	if(p = strrchr(ofile, '/')) {
 		include[0] = ofile;
 		*p++ = 0;

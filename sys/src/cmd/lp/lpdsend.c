@@ -231,15 +231,15 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	if(cp == 0){
 		if(defnet==0){
 			if(defsrv)
-				snprintf(addr, sizeof addr, "net!%s!%s", linear, defsrv);
+				sprintf(addr, "net!%s!%s", linear, defsrv);
 			else
-				snprintf(addr, sizeof addr, "net!%s", linear);
+				sprintf(addr, "net!%s", linear);
 		}
 		else {
 			if(defsrv)
-				snprintf(addr, sizeof addr, "%s!%s!%s", defnet, linear, defsrv);
+				sprintf(addr, "%s!%s!%s", defnet, linear, defsrv);
 			else
-				snprintf(addr, sizeof addr, "%s!%s", defnet, linear);
+				sprintf(addr, "%s!%s", defnet, linear);
 		}
 		return addr;
 	}
