@@ -8,7 +8,6 @@
 
 #include	"../port/edf.h"
 #include	<a.out.h>
-#include	<ptrace.h>
 
 void
 sysr1(Ar0* ar0, va_list list)
@@ -28,8 +27,6 @@ sysrfork(Ar0* ar0, va_list list)
 	Rgrp *org;
 	Egrp *oeg;
 	Mach *wm;
-	void (*pt)(Proc*, int, vlong, vlong);
-	u64int ptarg;
 
 	/*
 	 * int rfork(int);
@@ -202,10 +199,6 @@ sysrfork(Ar0* ar0, va_list list)
 	wm = up->wired;
 	if(wm)
 		procwired(p, wm->machno);
-	if(p->trace && (pt = proctrace) != nil){
-		strncpy((char*)&ptarg, p->text, sizeof ptarg);
-		pt(p, SName, 0, ptarg);
-	}
 	ready(p);
 	sched();
 
@@ -250,8 +243,6 @@ sysexec(Ar0* ar0, va_list list)
 	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
 	long hdrsz, magic, textsz, datasz, bsssz;
 	uintptr textlim, textmin, datalim, bsslim, entry, stack;
-	void (*pt)(Proc*, int, vlong, vlong);
-	u64int ptarg;
 
 	/*
 	 * void* exec(char* name, char* argv[]);
@@ -531,11 +522,6 @@ sysexec(Ar0* ar0, va_list list)
 			putseg(s);
 			up->seg[i] = nil;
 		}
-	}
-
-	if(up->trace && (pt = proctrace) != nil){
-		strncpy((char*)&ptarg, elem, sizeof ptarg);
-		pt(up, SName, 0, ptarg);
 	}
 
 	/* Text.  Shared. Attaches to cache image if possible */
@@ -844,8 +830,7 @@ void
 sysrendezvous(Ar0* ar0, va_list list)
 {
 	Proc *p, **l;
-	uintptr tag, val, pc;
-	void (*pt)(Proc*, int, vlong, vlong);
+	uintptr tag, val;
 
 	/*
 	 * void* rendezvous(void*, void*);
@@ -879,10 +864,6 @@ sysrendezvous(Ar0* ar0, va_list list)
 	up->rendhash = *l;
 	*l = up;
 	up->state = Rendezvous;
-	if(up->trace && (pt = proctrace) != nil){
-		pc = (uintptr)sysrendezvous;
-		pt(up, SSleep, 0, Rendezvous|(pc<<8));
-	}
 	unlock(up->rgrp);
 
 	sched();

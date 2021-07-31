@@ -4,8 +4,6 @@
 #include "dat.h"
 #include "fns.h"
 
-#include <ptrace.h>
-
 struct {
 	ulong rlock;
 	ulong rlockq;
@@ -19,7 +17,6 @@ void
 qlock(QLock *q)
 {
 	Proc *p;
-	void (*pt)(Proc*, int, vlong, vlong);
 
 	if(m->ilockdepth != 0)
 		print("qlock: %#p: ilockdepth %d", getcallerpc(&q), m->ilockdepth);
@@ -46,8 +43,6 @@ qlock(QLock *q)
 	up->qnext = 0;
 	up->state = Queueing;
 	up->qpc = getcallerpc(&q);
-	if(up->trace && (pt = proctrace) != nil)
-		pt(up, SSleep, 0, Queueing | (up->qpc<<8));
 	unlock(&q->use);
 	sched();
 	q->qpc = getcallerpc(&q);
@@ -96,8 +91,6 @@ void
 rlock(RWlock *q)
 {
 	Proc *p;
-	void (*pt)(Proc*, int, vlong, vlong);
-	uintptr pc;
 
 	lock(&q->use);
 	rwstats.rlock++;
@@ -119,10 +112,6 @@ rlock(RWlock *q)
 	q->tail = up;
 	up->qnext = 0;
 	up->state = QueueingR;
-	if(up->trace && (pt = proctrace) != nil){
-		pc = getcallerpc(&q);
-		pt(up, SSleep, 0, QueueingR | (pc<<8));
-	}
 	unlock(&q->use);
 	sched();
 }
@@ -154,8 +143,6 @@ void
 wlock(RWlock *q)
 {
 	Proc *p;
-	uintptr pc;
-	void (*pt)(Proc*, int, vlong, vlong);
 
 	lock(&q->use);
 	rwstats.wlock++;
@@ -180,10 +167,6 @@ wlock(RWlock *q)
 	q->tail = up;
 	up->qnext = 0;
 	up->state = QueueingW;
-	if(up->trace && (pt = proctrace) != nil){
-		pc = getcallerpc(&q);
-		pt(up, SSleep, 0, QueueingW|(pc<<8));
-	}
 	unlock(&q->use);
 	sched();
 }
