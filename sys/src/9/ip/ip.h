@@ -124,8 +124,8 @@ struct Medium
 {
 	char	*name;
 	int	hsize;		/* medium header size */
-	int	mintu;		/* default min mtu */
-	int	maxtu;		/* default max mtu */
+	int	minmtu;		/* default min mtu */
+	int	maxmtu;		/* default max mtu */
 	int	maclen;		/* mac address length  */
 	void	(*bind)(Ipifc*, int, char**);
 	void	(*unbind)(Ipifc*);
@@ -212,9 +212,8 @@ struct Ipifc
 	Conv	*conv;		/* link to its conversation structure */
 	char	dev[64];	/* device we're attached to */
 	Medium	*m;		/* Media pointer */
-	int	maxtu;		/* Maximum transfer unit */
-	int	mintu;		/* Minumum tranfer unit */
-	int	mbps;		/* megabits per second */
+	int	maxmtu;		/* Maximum transfer unit */
+	int	minmtu;		/* Minumum tranfer unit */
 	void	*arg;		/* medium specific */
 	int	reassemble;	/* reassemble IP packets before forwarding */
 

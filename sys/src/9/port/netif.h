@@ -74,7 +74,6 @@ struct Netif
 	/* about net */
 	int	limit;			/* flow control */
 	int	alen;			/* address length */
-	int	mbps;			/* megabits per sec */
 	uchar	addr[Nmaxaddr];
 	uchar	bcast[Nmaxaddr];
 	Netaddr	*maddr;			/* known multicast addresses */

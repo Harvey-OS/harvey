@@ -35,8 +35,8 @@ Medium ethermedium =
 {
 .name=		"ether",
 .hsize=		14,
-.mintu=		60,
-.maxtu=		1514,
+.minmtu=	60,
+.maxmtu=	1514,
 .maclen=	6,
 .bind=		etherbind,
 .unbind=	etherunbind,
@@ -52,8 +52,8 @@ Medium gbemedium =
 {
 .name=		"gbe",
 .hsize=		14,
-.mintu=		60,
-.maxtu=		9014,
+.minmtu=	60,
+.maxmtu=	9014,
 .maclen=	6,
 .bind=		etherbind,
 .unbind=	etherunbind,
@@ -161,7 +161,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	devtab[cchan4->type]->write(cchan4, nbmsg, strlen(nbmsg), 0);
 
 	/*
-	 *  get mac address and speed
+	 *  get mac address
 	 */
 	snprint(addr, sizeof(addr), "%s/stats", dir);
 	buf = smalloc(512);
@@ -179,14 +179,8 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	if(!ptr)
 		error(Eio);
 	ptr += 6;
-	parsemac(ifc->mac, ptr, 6);
 
-	ptr = strstr(buf, "mbps: ");
-	if(ptr){
-		ptr += 6;
-		ifc->mbps = atoi(ptr);
-	} else
-		ifc->mbps = 100;
+	parsemac(ifc->mac, ptr, 6);
 
 	/*
  	 *  open arp conversation
@@ -293,8 +287,8 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 	bp = padblock(bp, ifc->m->hsize);
 	if(bp->next)
 		bp = concatblock(bp);
-	if(BLEN(bp) < ifc->mintu)
-		bp = adjustblock(bp, ifc->mintu);
+	if(BLEN(bp) < ifc->minmtu)
+		bp = adjustblock(bp, ifc->minmtu);
 	eh = (Etherhdr*)bp->rp;
 
 	/* copy in mac addresses and ether type */
@@ -337,7 +331,7 @@ etherread4(void *a)
 		pexit("hangup", 1);
 	}
 	for(;;){
-		bp = devtab[er->mchan4->type]->bread(er->mchan4, ifc->maxtu, 0);
+		bp = devtab[er->mchan4->type]->bread(er->mchan4, ifc->maxmtu, 0);
 		if(!canrlock(ifc)){
 			freeb(bp);
 			continue;
@@ -376,7 +370,7 @@ etherread6(void *a)
 		pexit("hangup", 1);
 	}
 	for(;;){
-		bp = devtab[er->mchan6->type]->bread(er->mchan6, ifc->maxtu, 0);
+		bp = devtab[er->mchan6->type]->bread(er->mchan6, ifc->maxmtu, 0);
 		if(!canrlock(ifc)){
 			freeb(bp);
 			continue;
@@ -471,8 +465,8 @@ sendarp(Ipifc *ifc, Arpent *a)
 	arprelease(er->f->arp, a);
 
 	n = sizeof(Etherarp);
-	if(n < a->type->mintu)
-		n = a->type->mintu;
+	if(n < a->type->minmtu)
+		n = a->type->minmtu;
 	bp = allocb(n);
 	memset(bp->rp, 0, n);
 	e = (Etherarp*)bp->rp;
@@ -548,8 +542,8 @@ sendgarp(Ipifc *ifc, uchar *ip)
 		return;
 
 	n = sizeof(Etherarp);
-	if(n < ifc->m->mintu)
-		n = ifc->m->mintu;
+	if(n < ifc->m->minmtu)
+		n = ifc->m->minmtu;
 	bp = allocb(n);
 	memset(bp->rp, 0, n);
 	e = (Etherarp*)bp->rp;
@@ -582,7 +576,7 @@ recvarp(Ipifc *ifc)
 	static uchar eprinted[4];
 	Etherrock *er = ifc->arg;
 
-	ebp = devtab[er->achan->type]->bread(er->achan, ifc->maxtu, 0);
+	ebp = devtab[er->achan->type]->bread(er->achan, ifc->maxmtu, 0);
 	if(ebp == nil) {
 		print("arp: rcv: %r\n");
 		return;
@@ -639,8 +633,8 @@ recvarp(Ipifc *ifc)
 			break;
 
 		n = sizeof(Etherarp);
-		if(n < ifc->mintu)
-			n = ifc->mintu;
+		if(n < ifc->minmtu)
+			n = ifc->minmtu;
 		rbp = allocb(n);
 		r = (Etherarp*)rbp->rp;
 		memset(r, 0, sizeof(Etherarp));
