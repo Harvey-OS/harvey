@@ -32,7 +32,6 @@ char	*system;
 int	cflag;
 int	dbg;
 char	*user;
-char	*patternfile;
 
 char	*srvname = "ncpu";
 char	*exportfs = "/bin/exportfs";
@@ -70,7 +69,7 @@ int setam(char*);
 void
 usage(void)
 {
-	fprint(2, "usage: cpu [-h system] [-a authmethod] [-e 'crypt hash'] [-k keypattern] [-p patternfile] [-c cmd args ...]\n");
+	fprint(2, "usage: cpu [-h system] [-a authmethod] [-e 'crypt hash'] [-k keypattern] [-c cmd args ...]\n");
 	exits("usage");
 }
 int fdd;
@@ -80,8 +79,6 @@ main(int argc, char **argv)
 {
 	char dat[MaxStr], buf[MaxStr], cmd[MaxStr], *p, *err;
 	int fd, ms, data;
-	char *av[10];
-	int ac;
 
 	/* see if we should use a larger message size */
 	fd = open("/dev/draw", OREAD);
@@ -134,9 +131,6 @@ main(int argc, char **argv)
 	case 'k':
 		keyspec = EARGF(usage());
 		break;
-	case 'p':
-		patternfile = EARGF(usage());
-		break;
 	default:
 		usage();
 	}ARGEND;
@@ -182,16 +176,10 @@ main(int argc, char **argv)
 	dup(data, 0);
 	close(data);
 	sprint(buf, "%d", msgsize);
-	ac = 0;
-	av[ac++] = "-m";
 	if(dbg)
-		av[ac++] = "-d";
-	if(patternfile != nil){
-		av[ac++] = "-p";
-		av[ac++] = patternfile;
-	}
-	av[ac] = 0;
-	exec(exportfs, av);
+		execl(exportfs, exportfs, "-dm", buf, 0);
+	else
+		execl(exportfs, exportfs, "-m", buf, 0);
 	fatal(1, "starting exportfs");
 }
 
