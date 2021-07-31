@@ -452,15 +452,6 @@ ftsetparam(Serialport *p)
 	return res;
 }
 
-static int
-hasjtag(Usbdev *udev)
-{
-	/* no string, for now, by default we detect no jtag */
-	if(udev->product != nil && cistrstr(udev->product, "jtag") != nil)
-		return 1;
-	return 0;
-}
-
 /* ser locked */
 static void
 ftgettype(Serial *ser)
@@ -496,8 +487,7 @@ ftgettype(Serial *ser)
 		} else
 			ser->type = FT2232C;
 
-		if(hasjtag(ser->dev->usb))
-			ser->jtag = 0;
+		ser->jtag = 0;
 
 		/*
 		 * BM-type devices have a bug where dno gets set
