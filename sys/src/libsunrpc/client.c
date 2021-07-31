@@ -248,7 +248,7 @@ if(cli->chatty) print("resend %lux %lud %lud\n", o->xid, t, o->t);
 			for(i=0; i<nout; i++){
 				o = out[i];
 				if(o->tag == tag){
-					out[i--] = out[--nout];
+					o[i--] = o[--nout];
 					strcpy(o->err, "flushed");
 					free(o->p);
 					o->p = nil;
