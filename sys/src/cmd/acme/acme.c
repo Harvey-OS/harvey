@@ -35,7 +35,11 @@ enum{
 };
 Rune	snarfrune[NSnarf+1];
 
-char		*fontnames[2];
+char		*fontnames[2] =
+{
+	"/lib/font/bit/lucidasans/euro.8.font",
+	"/lib/font/bit/lucm/unicode.9.font",
+};
 
 Command *command;
 
@@ -65,8 +69,6 @@ threadmain(int argc, char *argv[])
 	ncol = -1;
 
 	loadfile = nil;
-	fontnames[0] = estrdup("/lib/font/bit/lucidasans/euro.8.font");
-	fontnames[1] = estrdup("/lib/font/bit/lucm/unicode.9.font");
 	ARGBEGIN{
 	case 'a':
 		globalautoindent = TRUE;
@@ -83,18 +85,14 @@ threadmain(int argc, char *argv[])
 			goto Usage;
 		break;
 	case 'f':
-		p = ARGF();
-		if(p == nil)
+		fontnames[0] = ARGF();
+		if(fontnames[0] == nil)
 			goto Usage;
-		free(fontnames[0]);
-		fontnames[0] = estrdup(p);
 		break;
 	case 'F':
-		p = ARGF();
-		if(p == nil)
+		fontnames[1] = ARGF();
+		if(fontnames[1] == nil)
 			goto Usage;
-		free(fontnames[1]);
-		fontnames[1] = estrdup(p);
 		break;
 	case 'l':
 		loadfile = ARGF();
@@ -791,7 +789,7 @@ rfget(int fix, int save, int setfont, char *name)
 		}
 		r = emalloc(sizeof(Reffont));
 		r->f = f;
-		fontcache = erealloc(fontcache, (nfontcache+1)*sizeof(Reffont*));
+		fontcache = realloc(fontcache, (nfontcache+1)*sizeof(Reffont*));
 		fontcache[nfontcache++] = r;
 	}
     Found:
@@ -800,10 +798,8 @@ rfget(int fix, int save, int setfont, char *name)
 		if(reffonts[fix])
 			rfclose(reffonts[fix]);
 		reffonts[fix] = r;
-		if(name != fontnames[fix]){
-			free(fontnames[fix]);
-			fontnames[fix] = estrdup(name);
-		}
+		free(fontnames[fix]);
+		fontnames[fix] = name;
 	}
 	if(setfont){
 		reffont.f = r->f;

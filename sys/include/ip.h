@@ -110,8 +110,7 @@ char*	v4parsecidr(uchar*, uchar*, char*);
 int	parseether(uchar*, char*);
 int	myipaddr(uchar*, char*);
 int	myetheraddr(uchar*, char*);
-int	equivip4(uchar*, uchar*);
-int	equivip6(uchar*, uchar*);
+int	equivip(uchar*, uchar*);
 
 Ipifc*	readipifc(char*, Ipifc*, int);
 
