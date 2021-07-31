@@ -2,7 +2,6 @@
 #include "dat.h"
 #include "fns.h"
 #include "error.h"
-#include "9.h"
 
 static int	sizeToDepth(uvlong s, int psize, int dsize);
 static u32int 	tagGen(void);
@@ -17,10 +16,9 @@ static int	sourceGrowDepth(Source*, Block*, Entry*, int);
 static Source *
 sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot)
 {
+	Source *r;
 	int epb;
 	u32int epoch;
-	char *pname = nil;
-	Source *r;
 	Entry e;
 
 	assert(p==nil || sourceIsLocked(p));
@@ -40,44 +38,36 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot
 	 * get prints.
 	 */
 	if(!entryUnpack(&e, b->data, offset % epb)){
-		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: entryUnpack failed\n",
-			fs->name, pname, b->score);
+		fprint(2, "%s: %V: sourceAlloc: entryUnpack failed\n", argv0,
+			b->score);
 		goto Bad;
 	}
 	if(!(e.flags & VtEntryActive)){
-		pname = sourceName(p);
-		if(0) consPrint("%s: %s %V: sourceAlloc: not active\n",
-			fs->name, pname, e.score);
+		if(0) fprint(2, "%s: %V: sourceAlloc: not active\n",
+			argv0, e.score);
 		goto Bad;
 	}
 	if(e.psize < 256 || e.dsize < 256){
-		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: psize %ud or dsize %ud < 256\n",
-			fs->name, pname, e.score, e.psize, e.dsize);
+		fprint(2, "%s: %V: sourceAlloc: psize %ud dsize %ud\n",
+			argv0, e.score, e.psize, e.dsize);
 		goto Bad;
 	}
 
 	if(e.depth < sizeToDepth(e.size, e.psize, e.dsize)){
-		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: depth %ud size %llud "
-			"psize %ud dsize %ud\n", fs->name, pname,
-			e.score, e.depth, e.size, e.psize, e.dsize);
+		fprint(2, "%s: %V: sourceAlloc: depth %ud size %llud psize %ud dsize %ud\n",
+			argv0, e.score, e.depth, e.size, e.psize, e.dsize);
 		goto Bad;
 	}
 
 	if((e.flags & VtEntryLocal) && e.tag == 0){
-		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: flags %#ux tag %#ux\n",
-			fs->name, pname, e.score, e.flags, e.tag);
+		fprint(2, "%s: %V: sourceAlloc: flags %#ux tag %#ux\n",
+			argv0, e.score, e.flags, e.tag);
 		goto Bad;
 	}
 
 	if(e.dsize > fs->blockSize || e.psize > fs->blockSize){
-		pname = sourceName(p);
-		consPrint("%s: %s %V: sourceAlloc: psize %ud or dsize %ud "
-			"> blocksize %ud\n", fs->name, pname, e.score,
-			e.psize, e.dsize, fs->blockSize);
+		fprint(2, "%s: %V: sourceAlloc: psize %ud dsize %ud blocksize %ud\n",
+			argv0, e.score, e.psize, e.dsize, fs->blockSize);
 		goto Bad;
 	}
 
@@ -114,7 +104,7 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot
 		vtUnlock(p->lk);
 	}
 	r->epoch = epoch;
-//	consPrint("sourceAlloc: have %V be.%d fse.%d %s\n", b->score,
+//	fprint(2, "%s: sourceAlloc: have %V be.%d fse.%d %s\n", argv0, b->score,
 //		b->l.epoch, r->fs->ehi, mode == OReadWrite? "rw": "ro");
 	memmove(r->score, b->score, VtScoreSize);
 	r->scoreEpoch = b->l.epoch;
@@ -122,11 +112,10 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot
 	r->epb = epb;
 	r->tag = b->l.tag;
 
-//	consPrint("%s: sourceAlloc: %p -> %V %d\n", r, r->score, r->offset);
+//	fprint(2, "%s: sourceAlloc: %p -> %V %d\n", r, r->score, r->offset);
 
 	return r;
 Bad:
-	free(pname);
 	vtSetError(EBadEntry);
 	return nil;
 }
@@ -142,8 +131,8 @@ sourceRoot(Fs *fs, u32int addr, int mode)
 		return nil;
 
 	if(mode == OReadWrite && b->l.epoch != fs->ehi){
-		consPrint("sourceRoot: fs->ehi = %ud, b->l = %L\n",
-			fs->ehi, &b->l);
+		fprint(2, "%s: sourceRoot: fs->ehi = %ud, b->l = %L\n",
+			argv0, fs->ehi, &b->l);
 		blockPut(b);
 		vtSetError(EBadRoot);
 		return nil;
@@ -181,10 +170,12 @@ sourceOpen(Source *r, ulong offset, int mode, int issnapshot)
 Source *
 sourceCreate(Source *r, int dsize, int dir, u32int offset)
 {
-	int i, epb, psize;
-	u32int bn, size;
+	int i;
 	Block *b;
+	u32int bn, size;
 	Entry e;
+	int epb;
+	int psize;
 	Source *rr;
 
 	assert(sourceIsLocked(r));
@@ -1060,10 +1051,4 @@ tagGen(void)
 			break;
 	}
 	return tag;
-}
-
-char *
-sourceName(Source *s)
-{
-	return fileName(s->file);
 }

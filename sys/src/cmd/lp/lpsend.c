@@ -227,16 +227,19 @@ void
 main(int argc, char *argv[])
 {
 	char *devdir;
-	int i, rv, netfd, bsize, datafd;
+	int i, rv, netfd, bsize;
+	int datafd;
+
 #ifndef plan9
+
 	void (*oldhandler)();
+
 #endif
 
 	/* make connection */
 	if (argc != 2) {
-		fprint(stderr, "usage: %s network!destination!service\n",
-			argv[0]);
-		exits("usage");
+		fprint(stderr, "usage: %s network!destination!service\n", argv[0]);
+		exits("incorrect number of arguments");
 	}
 
 	/* read options line from stdin into lnbuf */
@@ -247,16 +250,16 @@ main(int argc, char *argv[])
 	bsize = prereadfile(datafd);
 
 	/* network connection is opened after data is in to avoid timeout */
-	if ((netfd = dial(argv[1], 0, 0, 0)) < 0) {
-		fprint(stderr, "dialing ");
-		perror(argv[1]);
+	if ((netfd=dial(argv[1], 0, 0, 0)) < 0) {
+		fprint(stderr, "dialing %s\n", devdir);
+		perror("dial");
 		exits("can't dial");
 	}
 
 	/* write out the options we read above */
 	if (write(netfd, lnbuf, i) != i) {
 		error(0, "write error while sending options\n");
-		exits("write error sending options");
+		exits("write error while sending options");
 	}
 
 	/* send the size of the file to be sent */
@@ -265,7 +268,7 @@ main(int argc, char *argv[])
 	if ((rv=write(netfd, lnbuf, i)) != i) {
 		perror("write error while sending size");
 		error(0, "write returned %d\n", rv);
-		exits("write error sending size");
+		exits("write error while sending size");
 	}
 
 	if (seek(datafd, 0L, 0) < 0) {
@@ -275,9 +278,13 @@ main(int argc, char *argv[])
 	/* mirror performance in readfile() in lpdaemon */
 
 #ifdef plan9
+
 	atnotify(alarmhandler, 1);
+
 #else
+
 	oldhandler = signal(SIGALRM, alarmhandler);
+
 #endif
 
 	dbgstate = 1;
@@ -309,11 +316,16 @@ main(int argc, char *argv[])
 	dbgstate = 5;
 
 #ifdef plan9
+
 	atnotify(alarmhandler, 0);
 	/* close down network connections and go away */
 	exits("");
+
 #else
+
 	signal(SIGALRM, oldhandler);
 	exit(0);
+
 #endif
+
 }

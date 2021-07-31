@@ -1,5 +1,4 @@
 #include "stdinc.h"
-#include "9.h"			/* for consPrint */
 #include "dat.h"
 #include "fns.h"
 #include "error.h"
@@ -17,12 +16,12 @@ struct File {
 
 	int	partial;	/* file was never really open */
 	int	removed;	/* file has been removed */
-	int	dirty;	/* dir is dirty with respect to meta data in block */
-	u32int	boff;	/* block offset within msource for this file's meta data */
+	int	dirty;		/* dir is dirty with respect to meta data in block */
+	u32int	boff;		/* block offset within msource for this file's meta data */
 
-	DirEntry dir;	/* meta data for this file, including component name */
+	DirEntry dir;		/* meta data for this file */
 
-	File	*up;		/* parent file (directory) */
+	File	*up;		/* parent file */
 	File	*next;		/* sibling */
 
 	/* data for file */
@@ -160,7 +159,6 @@ fileRoot(Source *r)
 	root->boff = 0;
 	root->up = mr;
 	root->source = r0;
-	r0->file = root;			/* point back to source */
 	r0 = nil;
 	root->msource = r1;
 	r1 = nil;
@@ -203,10 +201,8 @@ Err:
 }
 
 static Source *
-fileOpenSource(File *f, u32int offset, u32int gen, int dir, uint mode,
-	int issnapshot)
+fileOpenSource(File *f, u32int offset, u32int gen, int dir, uint mode, int issnapshot)
 {
-	char *rname, *fname;
 	Source *r;
 
 	if(!sourceLock(f->source, mode))
@@ -220,15 +216,7 @@ fileOpenSource(File *f, u32int offset, u32int gen, int dir, uint mode,
 		goto Err;
 	}
 	if(r->dir != dir && r->mode != -1){
-		/* this hasn't been as useful as we hoped it would be. */
-		rname = sourceName(r);
-		fname = fileName(f);
-		consPrint("%s: source %s for file %s: fileOpenSource: "
-			"dir mismatch %d %d\n",
-			f->source->fs->name, rname, fname, r->dir, dir);
-		free(rname);
-		free(fname);
-
+fprint(2, "fileOpenSource: dir mismatch %d %d\n", r->dir, dir);
 		vtSetError(EBadMeta);
 		goto Err;
 	}
@@ -295,22 +283,17 @@ _fileWalk(File *f, char *elem, int partial)
 		 */
 		ff->partial = 1;
 	}else if(ff->dir.mode & ModeDir){
-		ff->source = fileOpenSource(f, ff->dir.entry, ff->dir.gen,
-			1, ff->mode, ff->issnapshot);
-		ff->msource = fileOpenSource(f, ff->dir.mentry, ff->dir.mgen,
-			0, ff->mode, ff->issnapshot);
+		ff->source = fileOpenSource(f, ff->dir.entry, ff->dir.gen, 1, ff->mode, ff->issnapshot);
+		ff->msource = fileOpenSource(f, ff->dir.mentry, ff->dir.mgen, 0, ff->mode, ff->issnapshot);
 		if(ff->source == nil || ff->msource == nil)
 			goto Err;
 	}else{
-		ff->source = fileOpenSource(f, ff->dir.entry, ff->dir.gen,
-			0, ff->mode, ff->issnapshot);
+		ff->source = fileOpenSource(f, ff->dir.entry, ff->dir.gen, 0, ff->mode, ff->issnapshot);
 		if(ff->source == nil)
 			goto Err;
 	}
 
 	/* link in and up parent ref count */
-	if (ff->source)
-		ff->source->file = ff;		/* point back */
 	ff->next = f->down;
 	f->down = ff;
 	ff->up = f;
@@ -354,8 +337,7 @@ _fileOpen(Fs *fs, char *path, int partial)
 			elem[n] = 0;
 			ff = _fileWalk(f, elem, partial && *p=='\0');
 			if(ff == nil){
-				vtSetError("%.*s: %R", utfnlen(opath, p-opath),
-					opath);
+				vtSetError("%.*s: %R", utfnlen(opath, p-opath), opath);
 				goto Err;
 			}
 			fileDecRef(f);
@@ -482,7 +464,6 @@ fileCreate(File *f, char *elem, ulong mode, char *uid)
 	sourceUnlock(f->msource);
 
 	ff->source = r;
-	r->file = ff;			/* point back */
 	ff->msource = mr;
 
 	if(mode&ModeTemporary){
@@ -591,7 +572,7 @@ Err1:
 	return -1;
 }
 
-/*
+/* 
  * Changes the file block bn to be the given block score.
  * Very sneaky.  Only used by flfmt.
  */
@@ -1224,7 +1205,6 @@ fileRemove(File *f, char *uid)
 		assert(ff->removed);
 
 	sourceRemove(f->source);
-	f->source->file = nil;		/* erase back pointer */
 	f->source = nil;
 	if(f->msource){
 		sourceRemove(f->msource);
@@ -1790,7 +1770,7 @@ fileGetSources(File *f, Entry *e, Entry *ee)
 	|| !getEntry(f->msource, ee, 0))
 		return 0;
 	return 1;
-}
+}	
 
 /*
  * Walk down to the block(s) containing the Entries
@@ -1810,33 +1790,4 @@ fileWalkSources(File *f)
 	sourceUnlock(f->source);
 	sourceUnlock(f->msource);
 	return 1;
-}
-
-/*
- * convert File* to full path name in malloced string.
- * this hasn't been as useful as we hoped it would be.
- */
-char *
-fileName(File *f)
-{
-	char *name, *pname;
-	File *p;
-	static char root[] = "/";
-
-	if (f == nil)
-		return strdup("/**GOK**");
-
-	p = fileGetParent(f);
-	if (p == f)
-		name = strdup(root);
-	else {
-		pname = fileName(p);
-		if (strcmp(pname, root) == 0)
-			name = smprint("/%s", f->dir.elem);
-		else
-			name = smprint("%s/%s", pname, f->dir.elem);
-		free(pname);
-	}
-	fileDecRef(p);
-	return name;
 }

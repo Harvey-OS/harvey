@@ -382,7 +382,7 @@ queuetd(Ctlr *ctlr, QH *q, TD *t, int vf, char *why)
 		lt->link = PCIWADDR(lt->next) | vf;
 	lt->link = Terminate;
 	ilock(ctlr);
-	XPRINT("usbuhci: queuetd %s: t=%p lt=%p q=%p first=%p last=%p entries=%.8lux\n",
+	XPRINT("queuetd %s: t=%p lt=%p q=%p first=%p last=%p entries=%.8lux\n",
 		why, t, lt, q, q->first, q->last, q->entries);
 	if(q->first != nil){
 		q->last->link = PCIWADDR(t) | vf;
@@ -404,7 +404,7 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 	Block *b;
 	int n, err;
 
-	XPRINT("usbuhci: cleanTD: %#lux %#lux %#lux %#lux\n",
+	XPRINT("cleanTD: %#lux %#lux %#lux %#lux\n",
 		t->link, t->status, t->dev, t->buffer);
 	if(t->ep != nil && t->ep->debug)
 		dumptd(t, 0);
@@ -413,9 +413,9 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 	err = t->status & (AnyError & ~NAKed);
 	/* TO DO: on t->status&AnyError, q->entries will not have advanced */
 	if (err) {
-		XPRINT("usbuhci: cleanTD: Error %#lux %#lux %#lux %#lux\n",
+		XPRINT("cleanTD: Error %#lux %#lux %#lux %#lux\n",
 			t->link, t->status, t->dev, t->buffer);
-		print("usbuhci: cleanTD %d/%d: Error %#lux %#lux %#lux %#lux\n",
+		print("cleanTD %d/%d: Error %#lux %#lux %#lux %#lux\n",
 			t->ep->dev->x, t->ep->x,
 			t->link, t->status, t->dev, t->buffer);
 	}
@@ -445,20 +445,19 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 		wakeup(&t->ep->dir[Dirin].rend);	/* TO DO */
 		break;
 	case Utoksetup:
-		XPRINT("usbuhci: cleanTD: Utoksetup %#p\n", &t->ep);
+		XPRINT("cleanTD: Utoksetup %#p\n", &t->ep);
 		/*
 		 * don't really need to wakeup: subsequent IN or OUT
 		 * gives status./
 		 */
 		if(t->ep != nil) {
 			wakeup(&t->ep->dir[Dirout].rend);	/* TO DO */
-			XPRINT("usbuhci: cleanTD: wakeup %#p\n",
-				&t->ep->dir[Dirout].rend);
+			XPRINT("cleanTD: wakeup %#p\n", &t->ep->dir[Dirout].rend);
 		}
 		break;
 	case Utokout:
 		/* TO DO: mark it done somewhere */
-		XPRINT("usbuhci: cleanTD: TokOut %#p\n", &t->ep);
+		XPRINT("cleanTD: TokOut %#p\n", &t->ep);
 		ilock(ctlr);		/* e->ntd++ is ilocked */
 		if(t->ep != nil){
 			if(t->bp){
@@ -472,8 +471,7 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 			if(--t->ep->ntd < 0)
 				panic("cleantd ntd");
 			wakeup(&t->ep->dir[Dirout].rend);	/* TO DO */
-			XPRINT("usbuhci: cleanTD: wakeup %#p\n",
-				&t->ep->dir[Dirout].rend);
+			XPRINT("cleanTD: wakeup %#p\n", &t->ep->dir[Dirout].rend);
 		}
 		iunlock(ctlr);
 		break;
@@ -489,7 +487,7 @@ cleanq(Ctlr *ctlr, QH *q, int discard, int vf)
 	ilock(ctlr);
 	tp = nil;
 	for(t = q->first; t != nil;){
-		XPRINT("usbuchi: cleanq: %#lux %#lux %#lux %#lux %#lux %#p\n",
+		XPRINT("cleanq: %#lux %#lux %#lux %#lux %#lux %#p\n",
 		    t->link, t->status, t->dev, t->buffer, t->flags, t->next);
 		if(t->status & Active){
 			if(t->status & NAKed){
@@ -500,7 +498,7 @@ cleanq(Ctlr *ctlr, QH *q, int discard, int vf)
 				continue;
 			}
 			if(t->flags & CancelTD){
-				XPRINT("usbuchi: cancelTD: %#p\n", t);
+				XPRINT("cancelTD: %#p\n", t);
 				/* ensure interrupt next frame */
 				t->status = (t->status & ~Active) | IOC;
 				tp = t;
@@ -988,7 +986,7 @@ cleaniso(Endpt *e, int frnum)
 	id = e->x<<7 | (e->dev->x&0x7F);
 	do {
 		if (td->status & AnyError)
-			XPRINT("usbuhci: usbisoerror 0x%lux\n", td->status);
+			XPRINT("usbisoerror 0x%lux\n", td->status);
 		n = (td->status + 1) & 0x3ff;
 		e->nbytes += n;
 		if ((td->flags & IsoClean) == 0)
@@ -1003,8 +1001,7 @@ cleaniso(Endpt *e, int frnum)
 			if ((td->flags & IsoClean) == 0){
 				e->buffered -= n;
 				if (e->buffered < 0){
-//					print("usbuchi: e->buffered %d?\n",
-//						e->buffered);
+//					print("e->buffered %d?\n", e->buffered);
 					e->buffered = 0;
 				}
 			}
@@ -1145,8 +1142,7 @@ isoio(Ctlr *ctlr, Endpt *e, void *a, long n, ulong offset, int w)
 	}
 	p = a;
 	if (offset != 0 && offset != e->foffset){
-		iprint("usbuhci: offset %lud, foffset %llud\n",
-			offset, e->foffset);
+		iprint("offset %lud, foffset %llud\n", offset, e->foffset);
 		/* Seek to a specific position */
 		frnum = (IN(Frnum) + 8) & 0x3ff;
 		td = x->td0 + frnum;
@@ -1159,7 +1155,7 @@ isoio(Ctlr *ctlr, Endpt *e, void *a, long n, ulong offset, int w)
 		    (((w? (td->dev>>21): td->status) + 1) & 0x7ff)){
 			td = td->next;
 			if (td == x->xtd)
-				iprint("usbuhci: trouble\n");
+				iprint("trouble\n");
 		}
 		ilock(&ctlr->activends);
 		isolock = 1;

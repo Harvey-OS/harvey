@@ -577,8 +577,7 @@ bcastmembers(Fs *fs, Console *c, char *msg, Fid *f)
 void
 handler(void*, char *msg)
 {
-	if(strstr(msg, "reopen") != nil ||
-	   strstr(msg, "write on closed pipe") != nil)
+	if(strstr(msg, "reopen"))
 		noted(NCONT);
 	noted(NDFLT);
 }
@@ -672,7 +671,6 @@ fsrun(void *v)
 	fs = a[0];
 	pfd = a[1];
 	fs->fd = pfd[0];
-	notify(handler);
 	for(;;){
 		d = dirstat(consoledb);
 		if(d != nil && d->mtime != dbmtime){

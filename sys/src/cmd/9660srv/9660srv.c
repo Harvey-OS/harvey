@@ -40,14 +40,6 @@ Xfsub	isosub =
 	ireaddir, iread, iwrite, iclunk, iremove, istat, iwstat
 };
 
-static vlong
-fakemax(vlong len)
-{
-	if(len == (1UL << 31) - 1)	/* max. 9660 size? */
-		len = (1ULL << 63) - 1;	/* pretend it's vast */
-	return len;
-}
-
 static void
 ireset(void)
 {}
@@ -370,11 +362,12 @@ static long
 iread(Xfile *f, char *buf, vlong offset, long count)
 {
 	int n, o, rcnt = 0;
-	vlong size, addr;
+	long size;
+	vlong addr;
 	Isofile *ip = f->ptr;
 	Iobuf *p;
 
-	size = fakemax(l32(ip->d.size));
+	size = l32(ip->d.size);
 	if(offset >= size)
 		return 0;
 	if(offset+count > size)
@@ -501,13 +494,13 @@ getdrec(Xfile *f, void *buf)
 {
 	Isofile *ip = f->ptr;
 	int len = 0, boff = 0;
+	ulong size;
 	vlong addr;
-	uvlong size;
 	Iobuf *p = 0;
 
 	if(!ip)
 		return -1;
-	size = fakemax(l32(ip->d.size));
+	size = l32(ip->d.size);
 	while(ip->offset < size){
 		addr = (l32(ip->d.addr)+ip->d.attrlen)*ip->blksize + ip->offset;
 		boff = addr % Sectorsize;
@@ -752,8 +745,8 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 		}
 	}
 	d->length = 0;
-	if((d->mode & DMDIR) == 0)	
-		d->length = fakemax(l32(dp->size));
+	if((d->mode & DMDIR) == 0)
+		d->length = l32(dp->size);
 	d->type = 0;
 	d->dev = 0;
 	d->atime = gtime(dp->date);

@@ -13,6 +13,8 @@ acme
 			*
 	mail
 		readme
+		arm
+			*
 	wiki
 		guide
 adm

@@ -164,7 +164,7 @@ purgedeleted(Mailbox *mb)
 static char*
 _readmbox(Mailbox *mb, int doplumb, Mlock *lk)
 {
-	int fd, n;
+	int fd;
 	String *tmp;
 	Dir *d;
 	static char err[128];
@@ -177,15 +177,10 @@ _readmbox(Mailbox *mb, int doplumb, Mlock *lk)
 	/*
 	 *  open the mailbox.  If it doesn't exist, try the temporary one.
 	 */
-	n = 0;
 retry:
 	fd = open(mb->path, OREAD);
 	if(fd < 0){
-		rerrstr(err, sizeof(err));
-		if(strstr(err, "exclusive lock") != 0 && n++ < 20){
-			sleep(500);	/* wait for lock to go away */
-			goto retry;
-		}
+		errstr(err, sizeof(err));
 		if(strstr(err, "exist") != 0){
 			tmp = s_copy(mb->path);
 			s_append(tmp, ".tmp");

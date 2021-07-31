@@ -449,16 +449,12 @@ readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r, Fsstate *fss)
 	}
 }
 
-enum { Nearend = 2, };			/* at least room for \n and NUL */
-
-/* result in `a', of `n' bytes maximum */
 static int
 keylist(int i, char *a, uint n, Fsstate *fss)
 {
-	int wb;
+	char buf[512];
 	Keyinfo ki;
 	Key *k;
-	static char zero[Nearend];
 
 	k = nil;
 	mkkeyinfo(&ki, fss, nil);
@@ -467,16 +463,14 @@ keylist(int i, char *a, uint n, Fsstate *fss)
 	ki.usedisabled = 1;
 	if(findkey(&k, &ki, "") != RpcOk)
 		return 0;
-
-	memset(a + n - Nearend, 0, Nearend);
-	wb = snprint(a, n, "key %A %N\n", k->attr, k->privattr);
+	snprint(buf, sizeof buf, "key %A %N\n", k->attr, k->privattr);
 	closekey(k);
-	if (wb >= n - 1 && a[n - 2] != '\n' && a[n - 2] != '\0') {
-		/* line won't fit in `a', so just truncate */
-		strcpy(a + n - 2, "\n");
+	strcpy(buf+sizeof buf-2, "\n");	/* if line is really long, just truncate */
+	if(strlen(buf) > n)
 		return 0;
-	}
-	return wb;
+	n = strlen(buf);
+	memmove(a, buf, n);
+	return n;
 }
 
 static int
