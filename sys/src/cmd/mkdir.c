@@ -2,12 +2,11 @@
 #include <libc.h>
 
 char *e;
-ulong mode = 0777L;
 
 void
 usage(void)
 {
-	fprint(2, "usage: mkdir [-p] [-m mode] dir...\n");
+	fprint(2, "usage: mkdir [-p] dir...\n");
 	exits("usage");
 }
 
@@ -21,7 +20,7 @@ makedir(char *s)
 		e = "error";
 		return -1;
 	}
-	f = create(s, OREAD, DMDIR | mode);
+	f = create(s, OREAD, DMDIR | 0777L);
 	if(f < 0){
 		fprint(2, "mkdir: can't create %s: %r\n", s);
 		e = "error";
@@ -51,20 +50,11 @@ void
 main(int argc, char *argv[])
 {
 	int i, pflag;
-	char *m;
 
 	pflag = 0;
 	ARGBEGIN{
 	default:
 		usage();
-	case 'm':
-		m = ARGF();
-		if(m == nil)
-			usage();
-		mode = strtoul(m, &m, 8);
-		if(mode > 0777)
-			usage();
-		break;
 	case 'p':
 		pflag = 1;
 		break;
