@@ -29,7 +29,7 @@ struct Hdr			/* ICMP v4 & v6 header */
 	uchar	type;
 	uchar	code;
 	uchar	cksum[2];	/* Checksum */
-	uchar	data[];
+	uchar	data[1];
 };
 
 char *icmpmsg6[Maxtype6+1] =

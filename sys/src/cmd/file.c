@@ -803,27 +803,23 @@ struct	FILE_STRING
 	".tr",			"troff input",		3,	"text/troff",
 	"vac:",			"venti score",		4,	"text/plain",
 	"-----BEGIN CERTIFICATE-----\n",
-				"pem certificate",	-1,	"text/plain",
+				"pem certificate",	3,	"text/plain",
 	"-----BEGIN TRUSTED CERTIFICATE-----\n",
-				"pem trusted certificate", -1,	"text/plain",
+				"pem trusted certificate", 3,	"text/plain",
 	"-----BEGIN X509 CERTIFICATE-----\n",
-				"pem x.509 certificate", -1,	"text/plain",
-	"subject=/C=",		"pem certificate with header", -1, "text/plain",
-	"process snapshot ",	"process snapshot",	-1,	"application/snapfs",
+				"pem x.509 certificate", 3,	"text/plain",
+	"subject=/C=",		"pem certificate with header", 3, "text/plain",
 	0,0,0,0
 };
 
 int
 istring(void)
 {
-	int i, l;
+	int i;
 	struct FILE_STRING *p;
 
 	for(p = file_string; p->key; p++) {
-		l = p->length;
-		if(l == -1)
-			l = strlen(p->key);
-		if(nbuf >= l && memcmp(buf, p->key, l) == 0) {
+		if(nbuf >= p->length && !memcmp(buf, p->key, p->length)) {
 			if(mime)
 				print("%s\n", p->mime);
 			else

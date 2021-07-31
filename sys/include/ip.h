@@ -125,7 +125,6 @@ struct Ip6hdr {
 	uchar	ttl;		/* hop limit */
 	uchar	src[IPaddrlen];	/* source address */
 	uchar	dst[IPaddrlen];	/* destination address */
-	uchar	payload[];
 };
 
 /*
