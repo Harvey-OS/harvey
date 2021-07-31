@@ -105,17 +105,17 @@ typedef struct {
 	char	name[10];
 	Aport	*port;
 	Aportm	portm;
-	Aportc	portc;		/* redundant ptr to port and portm */
+	Aportc	portc;	/* redundant ptr to port and portm. */
 
 	uchar	mediachange;
 	uchar	state;
 	uchar	smartrs;
 
 	uvlong	sectors;
-	ulong	intick;		/* start tick of current transfer */
+	ulong	intick;
 	ulong	lastseen;
 	int	wait;
-	uchar	mode;		/* DMautoneg, satai or sataii */
+	uchar	mode;	/* DMautoneg, satai or sataii. */
 	uchar	active;
 
 	char	serial[20+1];
@@ -1174,8 +1174,7 @@ enum {
 static void
 westerndigitalhung(Drive *d)
 {
-	if((d->portm.feat&Datapi) == 0 && d->active &&
-	    TK2MS(MACHP(0)->ticks - d->intick) > 5000){
+	if((d->portm.feat&Datapi) == 0 && d->active && TK2MS(d->intick) > 5000){
 		dprint("%s: drive hung; resetting [%lux] ci %lx\n",
 			d->unit->name, d->port->task, d->port->ci);
 		d->state = Dreset;
