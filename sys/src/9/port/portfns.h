@@ -287,7 +287,6 @@ void		rdb(void);
 int		readnum(ulong, char*, ulong, ulong, int);
 int		readstr(ulong, char*, ulong, char*);
 void		ready(Proc*);
-void*		realloc(void *v, ulong size);
 void		rebootcmd(int, char**);
 void		reboot(void*, void*, ulong);
 void		relocateseg(Segment*, ulong);

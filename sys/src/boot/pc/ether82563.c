@@ -640,7 +640,7 @@ toringbuf(Ether *ether, Block *bp)
 			ether->ctlrno, ether->ri);
 }
 
-int	interesting(void*);
+int	interesting(Block *bp);
 
 static void
 i82563interrupt(Ureg*, void* arg)
@@ -676,7 +676,7 @@ i82563interrupt(Ureg*, void* arg)
 						bp->rp+6, rdesc->length);
 				ctlr->rb[rdh] = nil;
 				bp->wp += rdesc->length;
-				if (interesting(bp->rp))
+				if (interesting(bp))
 					toringbuf(edev, bp);
 				freeb(bp);
 			} else if (rdesc->status & Reop && rdesc->errors)
