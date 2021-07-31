@@ -389,5 +389,4 @@ void		_xinc(long*);
 long		_xdec(long*);
 long		lcycles(void);
 
-#pragma varargck argpos iprint	1
-#pragma	varargck argpos	panic	1
+#pragma varargck argpos iprint 1

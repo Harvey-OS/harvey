@@ -68,7 +68,7 @@ putswap(Page *p)
 			swapalloc.last = idx;
 	}
 	if(*idx >= 254)
-		panic("putswap %#p == %ud", p, *idx);
+		panic("putswap %lux == %ud", p, *idx);
 	unlock(&swapalloc);
 }
 
@@ -108,7 +108,7 @@ pager(void *junk)
 	Proc *p, *ep;
 
 	if(waserror())
-		panic("pager: os error");
+		panic("pager: os error\n");
 
 	p = proctab(0);
 	ep = &p[conf.nproc];
@@ -337,7 +337,7 @@ executeio(void)
 
 	for(i = 0; i < ioptr; i++) {
 		if(ioptr > conf.nswppo)
-			panic("executeio: ioptr %d > %d", ioptr, conf.nswppo);
+			panic("executeio: ioptr %d > %d\n", ioptr, conf.nswppo);
 		out = iolist[i];
 		k = kmap(out);
 		kaddr = (char*)VA(k);

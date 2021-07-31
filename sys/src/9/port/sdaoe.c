@@ -23,7 +23,7 @@ enum {
 	Maxpath	= 128,
 
 	Probeintvl	= 100,		/* ms. between probes */
-	Probemax	= 10*1000,	/* max ms. to wait */
+	Probemax	= 8000,		/* max ms. to wait */
 };
 
 enum {
@@ -291,21 +291,24 @@ aoeprobe(char *path, SDev *s)
 	poperror();
 	cclose(c);
 
-	for(i = 0; i <= Probemax; i += Probeintvl){
+	for(i = 0; ; i += Probeintvl){
+		if(i > Probemax || waserror())
+			error(Etimedout);
 		tsleep(&up->sleep, return0, 0, Probeintvl);
+		poperror();
+
 		uprint("%s/ident", path);
-		if(!waserror()) {
-			c = namec(up->genbuf, Aopen, OREAD, 0);
-			poperror();
-			cclose(c);
-			break;
-		}
+		if(waserror())
+			continue;
+		c = namec(up->genbuf, Aopen, OREAD, 0);
+		poperror();
+		cclose(c);
+
+		ctlr = newctlr(path);
+		break;
 	}
-	if(i > Probemax)
-		error(Etimedout);
-	uprint("%s/ident", path);
-	ctlr = newctlr(path);
-	if(ctlr == nil || s == nil && (s = malloc(sizeof *s)) == nil)
+
+	if(s == nil && (s = malloc(sizeof *s)) == nil)
 		return nil;
 	s->ctlr = ctlr;
 	s->ifc = &sdaoeifc;
@@ -376,18 +379,19 @@ pnpprobe(SDev *sd)
 	if(p[1] == '!')
 		p += 2;
 
-	for(j = 0; j <= Probemax; j += Probeintvl){
-		if(!waserror()){
-			sd = aoeprobe(p, sd);
-			poperror();
-			break;
+	for(j = 0; ; j += Probeintvl){
+		if(j > Probemax){
+			print("#æ: pnpprobe failed in %d ms: %s: %s\n",
+				j, probef[i-1], up->errstr);
+			return 0;
 		}
-		tsleep(&up->sleep, return0, 0, Probeintvl);
-	}
-	if(j > Probemax){
-		print("#æ: pnpprobe failed in %d ms: %s: %s\n",
-			j, probef[i-1], up->errstr);
-		return nil;
+		if(waserror()){
+			tsleep(&up->sleep, return0, 0, Probeintvl);
+			continue;
+		}
+		sd = aoeprobe(p, sd);
+		poperror();
+		break;
 	}
 	print("#æ: pnpprobe established %s in %d ms\n", probef[i-1], j);
 	return sd->ctlr;
