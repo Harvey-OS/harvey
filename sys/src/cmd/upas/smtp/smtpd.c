@@ -53,22 +53,20 @@ String*	startcmd(void);
 static int
 catchalarm(void *a, char *msg)
 {
-	int rv;
+	int rv = 1;
 
 	USED(a);
 
 	/* log alarms but continue */
-	if(strstr(msg, "alarm") != nil){
-		if(senders.first && senders.first->p &&
-		    rcvers.first && rcvers.first->p)
+	if(strstr(msg, "alarm")){
+		if(senders.first && rcvers.first)
 			syslog(0, "smtpd", "note: %s->%s: %s",
 				s_to_c(senders.first->p),
 				s_to_c(rcvers.first->p), msg);
 		else
 			syslog(0, "smtpd", "note: %s", msg);
-		rv = Atnoterecog;
-	} else
-		rv = Atnoteunknown;
+		rv = 0;
+	}
 
 	/* kill the children if there are any */
 	if(pp)

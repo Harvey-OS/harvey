@@ -19,7 +19,6 @@ enum
 	Errlen=	128,
 	Pathlen= 256,
 };
-enum { Atnoteunknown, Atnoterecog };
 
 /*
  *  routines in mail.c

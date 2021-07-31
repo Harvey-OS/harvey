@@ -2391,7 +2391,7 @@ switchmb(char *file, char *singleton)
 		strcpy(mbname, "mbox");
 	}
 
-	snprint(root, sizeof root, "/mail/fs/%s", mbname);
+	sprint(root, "/mail/fs/%s", mbname);
 	if(getwd(wd, sizeof(wd)) == 0)
 		wd[0] = 0;
 	if(singleton == nil && chdir(root) >= 0)
