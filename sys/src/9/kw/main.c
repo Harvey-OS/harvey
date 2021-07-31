@@ -19,7 +19,6 @@
 #define BOOTARGS	((char*)CONFADDR)
 #define	BOOTARGSLEN	(16*KiB)		/* limit in devenv.c */
 #define	MAXCONF		64
-#define MAXCONFLINE	160
 
 #define isascii(c) ((uchar)(c) > 0 && (uchar)(c) < 0177)
 
@@ -46,7 +45,7 @@ char debug[256];
 
 /* store plan9.ini contents here at least until we stash them in #ec */
 static char confname[MAXCONF][KNAMELEN];
-static char confval[MAXCONF][MAXCONFLINE];
+static char *confval[MAXCONF];
 static int nconf;
 
 static int
@@ -83,8 +82,7 @@ addconf(char *name, char *val)
 		i = nconf++;
 		strecpy(confname[i], confname[i]+sizeof(confname[i]), name);
 	}
-//	confval[i] = val;
-	strecpy(confval[i], confval[i]+sizeof(confval[i]), val);
+	confval[i] = val;
 }
 
 static void
@@ -117,12 +115,13 @@ writeconf(void)
 
 /*
  * assumes that we have loaded our /cfg/pxe/mac file at 0x1000 with
- * tftp in u-boot.  no longer uses malloc, so can be called early.
+ * tftp in u-boot.
  */
 static void
 plan9iniinit(void)
 {
 	char *k, *v, *next;
+	static char *kd, *vd;
 
 	k = (char *)CONFADDR;
 	if(!isascii(*k))
@@ -142,7 +141,10 @@ plan9iniinit(void)
 			continue;		/* mal-formed line */
 		*v++ = '\0';
 
-		addconf(k, v);
+		kd = vd = nil;
+		kstrdup(&kd, k);
+		kstrdup(&vd, v);
+		addconf(kd, vd);
 	}
 }
 
@@ -268,9 +270,6 @@ wave('9');
 	archconsole();
 wave(' ');
 
-	/* want plan9.ini to be able to affect memory sizing in confinit */
-	plan9iniinit();		/* before we step on plan9.ini in low memory */
-
 	confinit();
 	/* xinit would print if it could */
 	xinit();
@@ -290,6 +289,8 @@ wave(' ');
 	 */
 	trapinit();
 	clockinit();
+
+	plan9iniinit();		/* before we step on plan9.ini in low memory */
 
 	printinit();
 	uartkirkwoodconsole();
