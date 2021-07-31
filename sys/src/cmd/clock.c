@@ -72,8 +72,7 @@ main(int, char**)
 	int key, timer;
 	int t;
 
-	if (initdraw(0, 0, "clock") < 0)
-		sysfatal("initdraw failed");
+	initdraw(0,0,"clock");
 	back = allocimagemix(display, DPalebluegreen, DWhite);
 
 	hrhand = allocimage(display, Rect(0,0,1,1), CMAP8, 1, DDarkblue);

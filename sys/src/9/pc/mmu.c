@@ -646,7 +646,7 @@ vunmap(void *v, int size)
 	
 	if(size < 0 || va < VMAP || va+size > VMAP+VMAPSIZE)
 		panic("vunmap va=%#.8lux size=%#x pc=%#.8lux",
-			va, size, getcallerpc(&v));
+			va, size, getcallerpc(&va));
 
 	pdbunmap(MACHP(0)->pdb, va, size);
 	
