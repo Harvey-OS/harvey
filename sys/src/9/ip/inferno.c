@@ -39,3 +39,8 @@ bootpread(char*, ulong, int)
 {
 	return	0;
 }
+
+Medium tripmedium =
+{
+	"trip",
+};

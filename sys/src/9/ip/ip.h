@@ -34,7 +34,7 @@ enum
 	Addrlen=	64,
 	Maxproto=	20,
 	Nhash=		64,
-	Maxincall=	10,
+	Maxincall=	5,
 	Nchans=		1024,
 	MAClen=		16,		/* longest mac address */
 
@@ -595,6 +595,7 @@ extern uchar IPallbits[IPaddrlen];
 extern Medium	ethermedium;
 extern Medium	nullmedium;
 extern Medium	pktmedium;
+extern Medium	tripmedium;
 
 /*
  *  ipifc.c
