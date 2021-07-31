@@ -1,35 +1,16 @@
-#define NPRIVATES	16
+	TEXT	_mainp(SB), 1, $8
 
-GLOBL	_tos(SB), $4
-GLOBL	_privates(SB), $4
-GLOBL	_nprivates(SB), $4
-
-TEXT	_mainp(SB), 1, $(8+NPRIVATES*4)
-
-	/* _tos = arg */
-	MOVL	AX, _tos(SB)
-	LEAL	8(SP), AX
-	MOVL	AX, _privates(SB)
-	MOVL	$NPRIVATES, _nprivates(SB)
-
-	/* _profmain(); */
+	MOVL	AX, _clock(SB)
 	CALL	_profmain(SB)
-
-	/* _tos->prof.pp = _tos->prof.next; */
-	MOVL	_tos+0(SB),DX
-	MOVL	4(DX),CX
-	MOVL	CX,(DX)
-
+	MOVL	__prof+4(SB), AX
+	MOVL	AX, __prof+0(SB)
 	CALL	_envsetup(SB)
-
-	/* main(argc, argv, environ; */
 	MOVL	inargc-4(FP), AX
 	MOVL	AX, 0(SP)
 	LEAL	inargv+0(FP), AX
 	MOVL	AX, 4(SP)
-	MOVL	environ(SB), AX
-	MOVL	AX, 8(SP)
 	CALL	main(SB)
+
 loop:
 	MOVL	AX, 0(SP)
 	CALL	exit(SB)
