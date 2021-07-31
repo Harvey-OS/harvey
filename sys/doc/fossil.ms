@@ -432,7 +432,7 @@ data structures as well.
 For example,
 .I venti/copy
 (see
-.I venti (1))
+.I ventiaux (8))
 copies a Venti hierarchy from one Venti server to another,
 given the root
 .CW VtEntry .
