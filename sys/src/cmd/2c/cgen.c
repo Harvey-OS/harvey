@@ -26,15 +26,14 @@ cgen(Node *n, int result, Node *nn)
 	o = n->op;
 	if(n->addable >= INDEXED) {
 		if(result == D_NONE) {
-			if(nn == Z)
-				switch(o) {
-				default:
-					nullwarn(Z, Z);
-					break;
-				case OINDEX:
-					nullwarn(l, r);
-					break;
-				}
+			switch(o) {
+			default:
+				nullwarn(Z, Z);
+				break;
+			case OINDEX:
+				nullwarn(l, r);
+				break;
+			}
 			return;
 		}
 		gmove(n->type, nn->type, D_TREE, n, result, nn);

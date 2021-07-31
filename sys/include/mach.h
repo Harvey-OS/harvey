@@ -10,22 +10,23 @@
  *		68020,
  *		i386,
  *		sparc,
+ *		i960 (limited)
+ *		3210DSP (limited)
  *		mips2 (R4000)
- *		arm
- *		power pc
- *		alpha
- */
+ *		arm (limited)
+ *		power pc (limited)
+*/
 enum
 {
 	MMIPS,			/* machine types */
 	MSPARC,
 	M68020,
 	MI386,
-	MI960,			/* retired */
-	M3210,			/* retired */
+	MI960,
+	M3210,
 	MMIPS2,
 	NMIPS2,
-	M29000,			/* retired */
+	M29000,
 	MARM,
 	MPOWER,
 	MALPHA,
@@ -41,17 +42,17 @@ enum
 	FNEXTB,			/* Next bootable */
 	FI386,			/* 8.out */
 	FI386B,			/* I386 bootable */
-	FI960,			/* retired */
-	FI960B,			/* retired */
-	F3210,			/* retired */
-	FMIPS2BE,		/* 4.out */
-	F29000,			/* retired */
+	FI960,			/* 6.out */
+	FI960B,			/* I960 bootable */
+	F3210,			/* x.out */
+	FMIPS2BE,			/* 4.out */
+	F29000,			/* 9.out */
 	FARM,			/* 5.out */
 	FARMB,			/* ARM bootable */
 	FPOWER,			/* q.out */
 	FPOWERB,		/* power pc bootable */
-	FMIPS2LE,		/* 0.out */
-	FALPHA,			/* 7.out */
+	FMIPS2LE,		/* 4k little endian */
+	FALPHA,		/* 7.out */
 	FALPHAB,		/* DEC Alpha bootable */
 	FMIPSLE,		/* 3k little endian */
 
@@ -63,8 +64,8 @@ enum
 	A68020,
 	AI386,
 	AI8086,			/* oh god */
-	AI960,			/* retired */
-	A29000,			/* retired */
+	AI960,
+	A29000,
 	AARM,
 	APOWER,
 	AALPHA,
@@ -73,10 +74,10 @@ enum
 	ObjSparc,		/* .k */
 	ObjMips,		/* .v */
 	Obj386,			/* .8 */
-	Obj960,			/* retired */
-	Obj3210,		/* retired */
+	Obj960,			/* .6 */
+	Obj3210,		/* .x */
 	ObjMips2,		/* .4 */
-	Obj29000,		/* retired */
+	Obj29000,		/* .9 */
 	ObjArm,			/* .5 */
 	ObjPower,		/* .q */
 	ObjMips2le,		/* .0 */
@@ -138,22 +139,23 @@ struct Reglist {
 	char	rformat;		/* print format: 'x', 'X', 'f', '8' */
 };
 
-enum {					/* bits in rflags field */
+enum {				/* bits in rflags field */
 	RINT	= (0<<0),
 	RFLT	= (1<<0),
 	RRDONLY	= (1<<1),
 };
-
 /*
  *	Machine-dependent data is stored in two structures:
  *		Mach  - miscellaneous general parameters
  *		Machdata - jump vector of service functions used by debuggers
  *
- *	Mach is defined in ?.c and set in executable.c
+ *	Mach is defined in 2.c, 4.c, v.c, k.c, 8.c, 6.c and set in executable.c
  *
- *	Machdata is defined in ?db.c
+ *	Machdata is defined in 2db.c, 4db.c, vdb.c, kdb.c, 8db.c, and 6db.c
  *		and set in the debugger startup.
  */
+
+
 struct Mach{
 	char	*name;
 	int	mtype;			/* machine type code */

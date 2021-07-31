@@ -420,5 +420,4 @@ char	*anames[] =
 	"UNLK",
 	"UNPK",
 	"WORD",
-	"SIGNAME",
 };

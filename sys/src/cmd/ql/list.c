@@ -139,16 +139,6 @@ Dconv(Fmt *fp)
 			sprint(str, "%N(SPR-GOK%d)(REG)", a, a->reg);
 		break;
 
-	case D_DCR:
-		if(a->name == D_NONE && a->sym == S) {
-			sprint(str, "DCR(%ld)", a->offset);
-			break;
-		}
-		sprint(str, "DCR-GOK(%d)", a->reg);
-		if(a->name != D_NONE || a->sym != S)
-			sprint(str, "%N(DCR-GOK%d)(REG)", a, a->reg);
-		break;
-
 	case D_OPT:
 		sprint(str, "OPT(%d)", a->reg);
 		break;

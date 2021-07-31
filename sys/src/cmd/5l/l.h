@@ -76,15 +76,9 @@ struct	Sym
 	short	version;
 	short	become;
 	short	frame;
-	uchar	subtype;
-	ushort	file;
 	long	value;
-	long	sig;
 	Sym*	link;
 };
-
-#define SIGNINTERN	(1729*325*1729)
-
 struct	Autom
 {
 	Sym*	asym;
@@ -125,10 +119,6 @@ enum
 	SFILE,
 	SCONST,
 	SSTRING,
-	SUNDEF,
-
-	SIMPORT,
-	SEXPORT,
 
 	LFROM		= 1<<0,
 	LTO		= 1<<1,
@@ -195,9 +185,6 @@ enum
 	NENT		= 100,
 	MAXIO		= 8192,
 	MAXHIST		= 20,	/* limit of path elements for history symbols */
-
-	Roffset	= 22,		/* no. bits for offset in relocation address */
-	Rindex	= 10,		/* no. bits for index in relocation address */
 };
 
 EXTERN union
@@ -270,13 +257,22 @@ EXTERN	Prog	zprg;
 EXTERN	int	dtype;
 EXTERN	int	armv4;
 
-EXTERN	int	doexp, dlm;
-EXTERN	int	imports, nimports;
-EXTERN	int	exports, nexports;
-EXTERN	char*	EXPTAB;
+EXTERN	int	reloc;
+EXTERN	Adr*	reloca;
+EXTERN	long	relocv;
+EXTERN	char*	undefs;
+EXTERN	Sym**	undefv;
+EXTERN	int	undefn;
 EXTERN	Prog	undefp;
 
 #define	UP	(&undefp)
+
+enum
+{
+	UIXSHIFT	= 18,
+	UIXBITS		= 27 - UIXSHIFT,
+	UIXLIM		= 1 << UIXBITS,
+};
 
 extern	char*	anames[];
 extern	Optab	optab[];
@@ -308,7 +304,6 @@ int	aclass(Adr*);
 void	addhist(long, int);
 void	append(Prog*, Prog*);
 void	asmb(void);
-void	asmdyn(void);
 void	asmlc(void);
 void	asmout(Prog*, Optab*);
 void	asmsym(void);
@@ -317,29 +312,24 @@ Prog*	brloop(Prog*);
 void	buildop(void);
 void	buildrep(int, int);
 void	cflush(void);
-void	ckoff(Sym*, long);
 int	chipfloat(Ieee*);
 int	cmp(int, int);
 int	compound(Prog*);
 double	cputime(void);
 void	datblk(long, long, int);
 void	diag(char*, ...);
-void	divsig(void);
 void	dodata(void);
 void	doprof1(void);
 void	doprof2(void);
-void	dynreloc(Sym*, long, int);
 long	entryvalue(void);
 void	errorexit(void);
 void	exchange(Prog*);
-void	export(void);
 int	find1(long, int);
 void	follow(void);
 void	gethunk(void);
 void	histtoauto(void);
 double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
-void	import(void);
 int	isnop(Prog*);
 void	ldobj(int, long, char*);
 void	loadlib(void);
@@ -374,18 +364,17 @@ void	prepend(Prog*, Prog*);
 Prog*	prg(void);
 int	pseudo(Prog*);
 void	putsymb(char*, int, long, int);
-void	readundefs(char*, int);
+void	readundefs(void);
 long	regoff(Adr*);
 int	relinv(int);
 long	rnd(long, long);
 void	span(void);
 void	strnput(char*, int);
 void	undef(void);
+void	undefpc(long);
 void	undefsym(Sym*);
-void	wput(long);
 void	xdefine(char*, int, long);
 void	xfol(Prog*);
-void	zerosig(char*);
 void	noops(void);
 long	immrot(ulong);
 long	immaddr(long);

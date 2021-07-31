@@ -113,6 +113,5 @@ char*	anames[] =
 	"TRUNCFW",
 	"TRUNCDW",
 	"MOVWU",
-	"SIGNAME",
 	"LAST",
 };

@@ -7,14 +7,6 @@ enum
 	E_MEM	= 1<<2,
 	E_MEMSP	= 1<<3,	/* uses offset and size */
 	E_MEMSB	= 1<<4,	/* uses offset and size */
-	E_LR	= 1<<5,
-	E_CR = 1<<6,
-	E_CTR = 1<<7,
-	E_XER = 1<<8,
-
-	E_CR0 = 0xF<<0,
-	E_CR1 = 0xF<<4,
-
 	ANYMEM	= E_MEM|E_MEMSP|E_MEMSB,
 	ALL	= ~0,
 };
@@ -27,15 +19,15 @@ struct	Dep
 	ulong	ireg;
 	ulong	freg;
 	ulong	cc;
-	ulong	cr;
 };
 struct	Sch
 {
 	Prog	p;
 	Dep	set;
 	Dep	used;
-	long	soffset;
+	long	offset;
 	char	size;
+	char	nop;
 	char	comp;
 };
 
@@ -51,8 +43,6 @@ sched(Prog *p0, Prog *pe)
 	Prog *p, *q;
 	Sch sch[NSCHED], *s, *t, *u, *se, stmp;
 
-	if(!debug['Q'])
-		return;
 	/*
 	 * build side structure
 	 */
@@ -83,6 +73,36 @@ sched(Prog *p0, Prog *pe)
 	se = s;
 
 	for(s=se-1; s>=sch; s--) {
+		/*
+		 * branch delay slot
+		 */
+		if(s->p.mark & BRANCH) {
+			/* t is the trial instruction to use */
+			for(t=s-1; t>=sch; t--) {
+				if(t->comp || (t->p.mark & FCMP))
+					goto no1;
+				for(u=t+1; u<=s; u++)
+					if(depend(u, t))
+						goto no1;
+				goto out1;
+			no1:;
+			}
+			if(debug['X'])
+				Bprint(&bso, "?b%P\n", &s->p);
+			s->nop = 1;
+			continue;
+
+		out1:
+			if(debug['X']) {
+				Bprint(&bso, "!b%P\n", &t->p);
+				Bprint(&bso, "%P\n", &s->p);
+			}
+			stmp = *t;
+			memmove(t, t+1, (uchar*)s - (uchar*)t);
+			*s = stmp;
+			s--;
+			continue;
+		}
 
 		/*
 		 * load delay. interlocked.
@@ -130,8 +150,10 @@ sched(Prog *p0, Prog *pe)
 		 * fop2 delay.
 		 */
 		if(s->p.mark & FCMP) {
-			if(s >= se-1)
+			if(s >= se-1) {
+				s->nop = 1;
 				continue;
+			}
 			if(!((s+1)->p.mark & BRANCH))
 				continue;
 			/* t is the trial instruction to use */
@@ -144,6 +166,7 @@ sched(Prog *p0, Prog *pe)
 			}
 			if(debug['X'])
 				Bprint(&bso, "?f%P\n", &s->p);
+			s->nop = 1;
 			continue;
 		out3:
 			if(debug['X']) {
@@ -167,6 +190,8 @@ sched(Prog *p0, Prog *pe)
 			*p = s->p;
 			p->link = q;
 		}
+		if(s->nop)
+			addnop(p);
 	}
 	if(debug['X'])
 		Bprint(&bso, "\n");
@@ -175,12 +200,13 @@ sched(Prog *p0, Prog *pe)
 void
 regused(Sch *s, Prog *realp)
 {
-	int c, ar, ad, ld, sz, nr, upd;
+	int c, ar, ad, ld, sz;
 	ulong m;
 	Prog *p;
 
 	p = &s->p;
 	s->comp = compound(p);
+	s->nop = 0;
 	if(s->comp) {
 		s->set.ireg |= 1<<REGTMP;
 		s->used.ireg |= 1<<REGTMP;
@@ -188,9 +214,7 @@ regused(Sch *s, Prog *realp)
 	ar = 0;		/* dest is really reference */
 	ad = 0;		/* source/dest is really address */
 	ld = 0;		/* opcode is load instruction */
-	sz = 32*4;		/* size of load/store for overlap computation */
-	nr = 0;	/* source/dest is not really reg */
-	upd = 0;	/* move with update; changes reg */
+	sz = 20;		/* size of load/store for overlap computation */
 
 /*
  * flags based on opcode
@@ -202,7 +226,10 @@ regused(Sch *s, Prog *realp)
 		ad = 1;
 		break;
 	case ABL:
-		s->set.cc |= E_LR;
+		c = p->reg;
+		if(c == NREG)
+			c = REGLINK;
+		s->set.ireg |= 1<<c;
 		ar = 1;
 		ad = 1;
 		break;
@@ -212,202 +239,93 @@ regused(Sch *s, Prog *realp)
 		break;
 	case ACMP:
 		s->set.cc |= E_ICC;
-		if(p->reg == 0)
-			s->set.cr |= E_CR0;
-		else
-			s->set.cr |= (0xF<<((p->reg&7)*4));
 		ar = 1;
 		break;
-	case AFCMPO:
-	case AFCMPU:
+	case AFCMPD:
+	case AFCMPED:
+	case AFCMPEF:
+	case AFCMPEX:
+	case AFCMPF:
+	case AFCMPX:
 		s->set.cc |= E_FCC;
-		if(p->reg == 0)
-			s->set.cr |= E_CR0;
-		else
-			s->set.cr |= (0xF<<((p->reg&7)*4));
 		ar = 1;
 		break;
-	case ACRAND:
-	case ACRANDN:
-	case ACREQV:
-	case ACRNAND:
-	case ACRNOR:
-	case ACROR:
-	case ACRORN:
-	case ACRXOR:
-		s->used.cr |= 1<<p->from.reg;
-		s->set.cr |= 1<<p->to.reg;
-		nr = 1;
-		break;
-	case ABCL:	/* tricky */
-		s->used.cc |= E_FCC|E_ICC;
-		s->used.cr = ALL;
-		s->set.cc |= E_LR;
-		ar = 1;
-		break;
-	case ABC:		/* tricky */
-		s->used.cc |= E_FCC|E_ICC;
-		s->used.cr = ALL;
-		ar = 1;
-		break;
-	case ABEQ:
-	case ABGE:
-	case ABGT:
-	case ABLE:
-	case ABLT:
+	case ABE:
 	case ABNE:
+	case ABLE:
+	case ABG:
+	case ABL:
+	case ABGE:
+	case ABLEU:
+	case ABGU:
+	case ABCS:
+	case ABCC:
+	case ABNEG:
+	case ABPOS:
 	case ABVC:
 	case ABVS:
 		s->used.cc |= E_ICC;
-		s->used.cr |= E_CR0;
 		ar = 1;
 		break;
-	case ALSW:
-	case AMOVMW:
-		/* could do better */
-		sz = 32*4;
-		ld = 1;
-		break;
-	case AMOVBU:
-	case AMOVBZU:
-		upd = 1;
-		sz = 1;
-		ld = 1;
+	case AFBE:
+	case AFBLG:
+	case AFBG:
+	case AFBLE:
+	case AFBGE:
+	case AFBL:
+		s->used.cc |= E_FCC;
+		ar = 1;
 		break;
 	case AMOVB:
-	case AMOVBZ:
+	case AMOVBU:
 		sz = 1;
-		ld = 1;
-		break;
-	case AMOVHU:
-	case AMOVHZU:
-		upd = 1;
-		sz = 2;
 		ld = 1;
 		break;
 	case AMOVH:
-	case AMOVHBR:
-	case AMOVHZ:
+	case AMOVHU:
 		sz = 2;
 		ld = 1;
 		break;
-	case AFMOVSU:
-	case AMOVWU:
-		upd = 1;
-		sz = 4;
-		ld = 1;
-		break;
-	case AFMOVS:
+	case AFMOVF:
 	case AMOVW:
-	case AMOVWBR:
-	case ALWAR:
 		sz = 4;
 		ld = 1;
 		break;
-	case AFMOVDU:
-		upd = 1;
-		sz = 8;
-		ld = 1;
-		break;
+	case AMOVD:
 	case AFMOVD:
 		sz = 8;
 		ld = 1;
 		break;
-	case AFMOVDCC:
-		sz = 8;
+	case AFMOVX:	/* gok */
+		sz = 16;
 		ld = 1;
-		s->set.cc |= E_FCC;
-		s->set.cr |= E_CR1;
 		break;
-	case AMOVFL:
-	case AMOVCRFS:
-	case AMTFSB0:
-	case AMTFSB0CC:
-	case AMTFSB1:
-	case AMTFSB1CC:
+	case AADDCC:
+	case AADDXCC:
+	case AANDCC:
+	case AANDNCC:
+	case AORCC:
+	case AORNCC:
+	case ASUBCC:
+	case ASUBXCC:
+	case ATADDCC:
+	case ATADDCCTV:
+	case ATSUBCC:
+	case ATSUBCCTV:
+	case AXNORCC:
+	case AXORCC:
+		s->set.cc |= E_ICC;
+		break;
+	case ADIV:
+	case ADIVL:
+	case AMOD:
+	case AMODL:
+	case AMUL:
+	case AMULSCC:
+	case ATAS:
 		s->set.ireg = ALL;
 		s->set.freg = ALL;
 		s->set.cc = ALL;
-		s->set.cr = ALL;
-		break;
-	case AADDCC:
-	case AADDVCC:
-	case AADDCCC:
-	case AADDCVCC:
-	case AADDMECC:
-	case AADDMEVCC:
-	case AADDECC:
-	case AADDEVCC:
-	case AADDZECC:
-	case AADDZEVCC:
-	case AANDCC:
-	case AANDNCC:
-	case ACNTLZWCC:
-	case ADIVWCC:
-	case ADIVWVCC:
-	case ADIVWUCC:
-	case ADIVWUVCC:
-	case AEQVCC:
-	case AEXTSBCC:
-	case AEXTSHCC:
-	case AMULHWCC:
-	case AMULHWUCC:
-	case AMULLWCC:
-	case AMULLWVCC:
-	case ANANDCC:
-	case ANEGCC:
-	case ANEGVCC:
-	case ANORCC:
-	case AORCC:
-	case AORNCC:
-	case AREMCC:
-	case AREMVCC:
-	case AREMUCC:
-	case AREMUVCC:
-	case ARLWMICC:
-	case ARLWNMCC:
-	case ASLWCC:
-	case ASRAWCC:
-	case ASRWCC:
-	case ASTWCCC:
-	case ASUBCC:
-	case ASUBVCC:
-	case ASUBCCC:
-	case ASUBCVCC:
-	case ASUBMECC:
-	case ASUBMEVCC:
-	case ASUBECC:
-	case ASUBEVCC:
-	case ASUBZECC:
-	case ASUBZEVCC:
-	case AXORCC:
-		s->set.cc |= E_ICC;
-		s->set.cr |= E_CR0;
-		break;
-	case AFABSCC:
-	case AFADDCC:
-	case AFADDSCC:
-	case AFCTIWCC:
-	case AFCTIWZCC:
-	case AFDIVCC:
-	case AFDIVSCC:
-	case AFMADDCC:
-	case AFMADDSCC:
-	case AFMSUBCC:
-	case AFMSUBSCC:
-	case AFMULCC:
-	case AFMULSCC:
-	case AFNABSCC:
-	case AFNEGCC:
-	case AFNMADDCC:
-	case AFNMADDSCC:
-	case AFNMSUBCC:
-	case AFNMSUBSCC:
-	case AFRSPCC:
-	case AFSUBCC:
-	case AFSUBSCC:
-		s->set.cc |= E_FCC;
-		s->set.cr |= E_CR1;
 		break;
 	}
 
@@ -424,51 +342,32 @@ regused(Sch *s, Prog *realp)
 	default:
 		print("unknown class %d %D\n", c, &p->to);
 
-	case C_NONE:
 	case C_ZCON:
 	case C_SCON:
 	case C_UCON:
 	case C_LCON:
-	case C_ADDCON:
-	case C_ANDCON:
+	case C_NONE:
 	case C_SBRA:
 	case C_LBRA:
 		break;
 	case C_CREG:
-		c = p->to.reg;
-		if(c == NREG)
-			s->set.cr = ALL;
-		else
-			s->set.cr |= (0xF << ((p->from.reg&7)*4));
-		s->set.cc = ALL;
-		break;
-	case C_SPR:
-	case C_SREG:
-	case C_FPSCR:
-	case C_MSR:
-	case C_XER:
+	case C_FSR:
+	case C_FQ:
+	case C_PREG:
 		s->set.ireg = ALL;
 		s->set.freg = ALL;
 		s->set.cc = ALL;
-		s->set.cr = ALL;
-		break;
-	case C_LR:
-		s->set.cc |= E_LR;
-		break;
-	case C_CTR:
-		s->set.cc |= E_CTR;
 		break;
 	case C_ZOREG:
 	case C_SOREG:
 	case C_LOREG:
+	case C_ASI:
 		c = p->to.reg;
 		s->used.ireg |= 1<<c;
-		if(upd)
-			s->set.ireg |= 1<<c;
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->to);
+		s->offset = regoff(&p->to);
 
 		m = ANYMEM;
 		if(c == REGSB)
@@ -484,38 +383,38 @@ regused(Sch *s, Prog *realp)
 	case C_SACON:
 	case C_LACON:
 		s->used.ireg |= 1<<REGSP;
-		if(upd)
-			s->set.ireg |= 1<<c;
 		break;
 	case C_SECON:
 	case C_LECON:
 		s->used.ireg |= 1<<REGSB;
-		if(upd)
-			s->set.ireg |= 1<<c;
 		break;
 	case C_REG:
-		if(nr)
-			break;
 		if(ar)
 			s->used.ireg |= 1<<p->to.reg;
 		else
 			s->set.ireg |= 1<<p->to.reg;
 		break;
 	case C_FREG:
-		if(ar)
+		/* do better -- determine double prec */
+		if(ar) {
 			s->used.freg |= 1<<p->to.reg;
-		else
+			s->used.freg |= 1<<(p->to.reg|1);
+		} else {
 			s->set.freg |= 1<<p->to.reg;
+			s->set.freg |= 1<<(p->to.reg|1);
+		}
 		break;
 	case C_SAUTO:
 	case C_LAUTO:
+	case C_ESAUTO:
+	case C_OSAUTO:
+	case C_ELAUTO:
+	case C_OLAUTO:
 		s->used.ireg |= 1<<REGSP;
-		if(upd)
-			s->set.ireg |= 1<<c;
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->to);
+		s->offset = regoff(&p->to);
 
 		if(ar)
 			s->used.cc |= E_MEMSP;
@@ -524,13 +423,15 @@ regused(Sch *s, Prog *realp)
 		break;
 	case C_SEXT:
 	case C_LEXT:
+	case C_ESEXT:
+	case C_OSEXT:
+	case C_ELEXT:
+	case C_OLEXT:
 		s->used.ireg |= 1<<REGSB;
-		if(upd)
-			s->set.ireg |= 1<<c;
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->to);
+		s->offset = regoff(&p->to);
 
 		if(ar)
 			s->used.cc |= E_MEMSB;
@@ -552,13 +453,11 @@ regused(Sch *s, Prog *realp)
 	default:
 		print("unknown class %d %D\n", c, &p->from);
 
-	case C_NONE:
 	case C_ZCON:
 	case C_SCON:
 	case C_UCON:
 	case C_LCON:
-	case C_ADDCON:
-	case C_ANDCON:
+	case C_NONE:
 	case C_SBRA:
 	case C_LBRA:
 		c = p->from.reg;
@@ -566,32 +465,17 @@ regused(Sch *s, Prog *realp)
 			s->used.ireg |= 1<<c;
 		break;
 	case C_CREG:
-		c = p->from.reg;
-		if(c == NREG)
-			s->used.cr = ALL;
-		else
-			s->used.cr |= (0xF << ((p->from.reg&7)*4));
-		s->used.cc = ALL;
-		break;
-	case C_SPR:
-	case C_SREG:
-	case C_FPSCR:
-	case C_MSR:
-	case C_XER:
+	case C_FSR:
+	case C_FQ:
+	case C_PREG:
 		s->set.ireg = ALL;
 		s->set.freg = ALL;
 		s->set.cc = ALL;
-		s->set.cr = ALL;
-		break;
-	case C_LR:
-		s->used.cc |= E_LR;
-		break;
-	case C_CTR:
-		s->used.cc |= E_CTR;
 		break;
 	case C_ZOREG:
 	case C_SOREG:
 	case C_LOREG:
+	case C_ASI:
 		c = p->from.reg;
 		s->used.ireg |= 1<<c;
 		if(ld)
@@ -599,7 +483,7 @@ regused(Sch *s, Prog *realp)
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->from);
+		s->offset = regoff(&p->from);
 
 		m = ANYMEM;
 		if(c == REGSB)
@@ -618,34 +502,42 @@ regused(Sch *s, Prog *realp)
 		s->used.ireg |= 1<<REGSB;
 		break;
 	case C_REG:
-		if(nr)
-			break;
 		s->used.ireg |= 1<<p->from.reg;
 		break;
 	case C_FREG:
+		/* do better -- determine double prec */
 		s->used.freg |= 1<<p->from.reg;
+		s->used.freg |= 1<<(p->from.reg|1);
 		break;
 	case C_SAUTO:
 	case C_LAUTO:
+	case C_ESAUTO:
+	case C_ELAUTO:
+	case C_OSAUTO:
+	case C_OLAUTO:
 		s->used.ireg |= 1<<REGSP;
 		if(ld)
 			p->mark |= LOAD;
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->from);
+		s->offset = regoff(&p->from);
 
 		s->used.cc |= E_MEMSP;
 		break;
 	case C_SEXT:
 	case C_LEXT:
+	case C_ESEXT:
+	case C_ELEXT:
+	case C_OSEXT:
+	case C_OLEXT:
 		s->used.ireg |= 1<<REGSB;
 		if(ld)
 			p->mark |= LOAD;
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->from);
+		s->offset = regoff(&p->from);
 
 		s->used.cc |= E_MEMSB;
 		break;
@@ -653,11 +545,13 @@ regused(Sch *s, Prog *realp)
 	
 	c = p->reg;
 	if(c != NREG) {
-		if(p->from.type == D_FREG || p->to.type == D_FREG)
+		if(p->from.type == D_FREG || p->to.type == D_FREG) {
 			s->used.freg |= 1<<c;
-		else
+			s->used.freg |= 1<<(c|1);
+		} else
 			s->used.ireg |= 1<<c;
 	}
+	s->set.ireg &= ~(1<<0);		/* R0 cant be set */
 }
 
 /*
@@ -678,12 +572,6 @@ depend(Sch *sa, Sch *sb)
 		return 1;
 	if(sb->set.freg & sa->used.freg)
 		return 1;
-
-	if(sa->set.cr & (sb->set.cr|sb->used.cr))
-		return 1;
-	if(sb->set.cr & sa->used.cr)
-		return 1;
-
 
 	x = (sa->set.cc & (sb->set.cc|sb->used.cc)) |
 		(sb->set.cc & sa->used.cc);
@@ -710,12 +598,12 @@ int
 offoverlap(Sch *sa, Sch *sb)
 {
 
-	if(sa->soffset < sb->soffset) {
-		if(sa->soffset+sa->size > sb->soffset)
+	if(sa->offset < sb->offset) {
+		if(sa->offset+sa->size > sb->offset)
 			return 1;
 		return 0;
 	}
-	if(sb->soffset+sb->size > sa->soffset)
+	if(sb->offset+sb->size > sa->offset)
 		return 1;
 	return 0;
 }
@@ -733,8 +621,6 @@ conflict(Sch *sa, Sch *sb)
 	if(sa->set.ireg & sb->used.ireg)
 		return 1;
 	if(sa->set.freg & sb->used.freg)
-		return 1;
-	if(sa->set.cr & sb->used.cr)
 		return 1;
 	return 0;
 }
@@ -764,9 +650,6 @@ dumpbits(Sch *s, Dep *d)
 		if(d->freg & (1<<i))
 			Bprint(&bso, " F%d", i);
 	for(i=0; i<32; i++)
-		if(d->cr & (1<<i))
-			Bprint(&bso, " C%d", i);
-	for(i=0; i<32; i++)
 		switch(d->cc & (1<<i)) {
 		default:
 			break;
@@ -775,18 +658,6 @@ dumpbits(Sch *s, Dep *d)
 			break;
 		case E_FCC:
 			Bprint(&bso, " FCC");
-			break;
-		case E_LR:
-			Bprint(&bso, " LR");
-			break;
-		case E_CR:
-			Bprint(&bso, " CR");
-			break;
-		case E_CTR:
-			Bprint(&bso, " CTR");
-			break;
-		case E_XER:
-			Bprint(&bso, " XER");
 			break;
 		case E_MEM:
 			Bprint(&bso, " MEM%d", s->size);

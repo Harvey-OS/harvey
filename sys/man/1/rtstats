@@ -1,0 +1,117 @@
+.TH RTSTATS 1
+.SH NAME
+rtstats \- show real-time process behavior
+.SH SYNOPSIS
+.B rtstats
+[
+.B \-T
+.I period
+]
+[
+.B \-D
+.I deadline
+]
+[
+.B \-C
+.I cost
+]
+[
+.B \-d
+.I dir
+]
+[
+.B \-t
+.I timedev
+]
+[
+.B \-b
+]
+[
+.B \-v
+]
+[
+.B \-w
+]
+.SH DESCRIPTION
+.I Rtstats
+displays the behavor of the real-time tasks running on a machine.
+In its window it shows a time line for each real-time task with
+black up arrows to indicate releases, black down arrows to indicate
+deadlines, red down arrows to indicate early deadline as a consequence
+of reaching cost, and green down arrows to indicate early deadline as
+a consequence of yielding.  Running tasks are shown as colored blocks,
+while pre-empted ones are shown as very thin colored blocks.
+.PP
+Normally,
+.B rtstats
+itself runs in real time so that one of the bars in the display represents
+.B rtstats
+itself.  The
+.B \-b
+flag makes it run as a best-effort process instead.
+.PP
+The
+.BR \-T ,
+.BR \-D ,
+and
+.BR \-C ,
+flags, respectively, specification a period, deadline or cost other than the
+defaults of 200ms, 80ms and 40ms.
+Times can be specified as a fixed-point decimal number, optionally followed
+by one of the units
+.BR s ,
+.BR ms ,
+.BR µs ,(or
+.BR us ),
+or
+.BR ns .
+Choosing periods, deadlines or costs less than 1ms or so will probably not produce very
+desirable results.
+.PP
+The
+.B \-d
+flag can be used to specify a real-time event file other than the default,
+.BR #R/realtime/nblog
+and the
+.B \-t
+flag can be used to specify another time source than
+.BR #R/realtime/time .
+.PP
+The
+.B \-v
+flag prints out the events as they are received from the event file.
+.PP
+The \-w
+flag makes
+.B rtstats
+open a new window for its display.
+.PP
+The following one-character commands are recognized by
+.BR rtstats :
+.TP
+.B +
+Zoom in by a factor of two,
+.TP
+.B -
+Zoom out by a factor of two,
+.TP
+.B p
+Pause or resume,
+.TP
+.B q
+Quit.
+.SH "SEE ALSO
+.IR realtime (3)
+.SH FILES
+.TF #R/realtime/nblog
+.TP
+.B #R/realtime/task
+Task directory
+.TP
+.B #R/realtime/nblog
+Real-time event log (non-blocking version)
+.TP
+.B #R/realtime/time
+Current real time.
+.SH SOURCE
+.B /sys/src/cmd/rtstats

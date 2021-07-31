@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+TARG=6l
+OFILES=\
+	obj.$O\
+	asm.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	list.$O\
+	noop.$O\
+	enam.$O\
+
+HFILES=\
+	l.h\
+	../6c/6.out.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+enam.$O:	../6c/enam.c
+	$CC $CFLAGS ../6c/enam.c
+
+XX:V:	$O.out
+	6a x.s
+	v.out -la x.6

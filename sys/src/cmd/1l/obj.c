@@ -218,7 +218,7 @@ main(int argc, char *argv[])
 	while(*argv)
 		objfile(*argv++);
 	if(!debug['l'])
-		loadlib();
+		loadlib(0, libraryp);
 	firstp = firstp->link;
 	if(firstp == P)
 		errorexit();
@@ -249,24 +249,18 @@ main(int argc, char *argv[])
 }
 
 void
-loadlib(void)
+loadlib(int beg, int end)
 {
-	int i;
-	long h;
-	Sym *s;
+	int i, t;
 
-loop:
-	xrefresolv = 0;
-	for(i=0; i<libraryp; i++) {
+	for(i=end-1; i>=beg; i--) {
+		t = libraryp;
 		if(debug['v'])
-			Bprint(&bso, "%5.2f autolib: %s (from %s)\n", cputime(), library[i], libraryobj[i]);
+			Bprint(&bso, "%5.2f autolib: %s\n", cputime(), library[i]);
 		objfile(library[i]);
+		if(t != libraryp)
+			loadlib(t, libraryp);
 	}
-	if(xrefresolv)
-	for(h=0; h<nelem(hash); h++)
-	for(s = hash[h]; s != S; s = s->link)
-		if(s->type == SXREF)
-			goto loop;
 }
 
 void
@@ -374,7 +368,6 @@ objfile(char *file)
 				errorexit();
 			}
 			work = 1;
-			xrefresolv = 1;
 		}
 	}
 	return;
@@ -702,11 +695,7 @@ loop:
 		errorexit();
 	}
 
-	if(o == ANAME || o == ASIGNAME) {
-		if(o == ASIGNAME) {
-			bloc += 4;
-			c -= 4;
-		}
+	if(o == ANAME) {
 		stop = memchr(&bloc[4], 0, bsize-&bloc[4]);
 		if(stop == 0){
 			bsize = readsome(f, buf.xbuf, bloc, bsize, c);

@@ -90,9 +90,5 @@ char*	anames[] =
 	"MULAL",
 	"MULLU",
 	"MULALU",
-	"BX",
-	"BXRET",
-	"DWORD",
-	"SIGNAME",
 	"LAST",
 };

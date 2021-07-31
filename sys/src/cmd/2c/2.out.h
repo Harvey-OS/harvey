@@ -430,7 +430,6 @@ enum	as
 	AUNLK,
 	AUNPK,
 	AWORD,
-	ASIGNAME,
 };
 
 enum
@@ -500,7 +499,7 @@ enum
 	T_OFFSET	= 1<<3,
 	T_FCONST	= 1<<4,
 	T_SYM		= 1<<5,
-	T_SCONST	= 1<<6
+	T_SCONST	= 1<<6,
 };
 
 /*

@@ -12,8 +12,6 @@ OFILES=\
 	span.$O\
 	enam.$O\
 	cnam.$O\
-	sched.$O\
-	compat.$O\
 
 HFILES=\
 	l.h\

@@ -30,13 +30,6 @@ pragprofile(void)
 		;
 }
 
-void
-pragincomplete(void)
-{
-	while(getnsc() != '\n')
-		;
-}
-
 /*
  * real allocs
  */
@@ -121,7 +114,7 @@ void
 newio(void)
 {
 	Io *i;
-	static int pushdepth = 0;
+	static pushdepth = 0;
 
 	i = iofree;
 	if(i == I) {

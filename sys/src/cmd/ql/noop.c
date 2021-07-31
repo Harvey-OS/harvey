@@ -4,7 +4,7 @@ void
 noops(void)
 {
 	Prog *p, *p1, *q, *q1;
-	int o, mov, aoffset, curframe, curbecome, maxbecome;
+	int o, curframe, curbecome, maxbecome;
 
 	/*
 	 * find leaf subroutines
@@ -74,32 +74,8 @@ noops(void)
 		case ASYNC:
 		case ATW:
 		case AWORD:
-		case ARFI:
-		case ARFCI:
 			q = p;
 			p->mark |= LABEL|SYNC;
-			continue;
-
-		case AMOVW:
-			q = p;
-			switch(p->from.type) {
-			case D_MSR:
-			case D_SREG:
-			case D_SPR:
-			case D_FPSCR:
-			case D_CREG:
-			case D_DCR:
-				p->mark |= LABEL|SYNC;
-			}
-			switch(p->to.type) {
-			case D_MSR:
-			case D_SREG:
-			case D_SPR:
-			case D_FPSCR:
-			case D_CREG:
-			case D_DCR:
-				p->mark |= LABEL|SYNC;
-			}
 			continue;
 
 		case AFABS:
@@ -243,8 +219,7 @@ noops(void)
 		o = p->as;
 		switch(o) {
 		case ATEXT:
-			mov = AMOVW;
-			aoffset = 0;
+			/* could use MOVWU to save R31, if autosize is not too big */
 			curtext = p;
 			autosize = p->to.offset + 4;
 			if((p->mark & LEAF) && autosize <= 4)
@@ -256,22 +231,16 @@ noops(void)
 
 			q = p;
 			if(autosize) {
-				/* use MOVWU to adjust R1 when saving R31, if autosize is small */
-				if(!(curtext->mark & LEAF) && autosize >= -BIG && autosize <= BIG) {
-					mov = AMOVWU;
-					aoffset = -autosize;
-				} else {
-					q = prg();
-					q->as = AADD;
-					q->line = p->line;
-					q->from.type = D_CONST;
-					q->from.offset = -autosize;
-					q->to.type = D_REG;
-					q->to.reg = REGSP;
+				q = prg();
+				q->as = AADD;
+				q->line = p->line;
+				q->from.type = D_CONST;
+				q->from.offset = -autosize;
+				q->to.type = D_REG;
+				q->to.reg = REGSP;
 
-					q->link = p->link;
-					p->link = q;
-				}
+				q->link = p->link;
+				p->link = q;
 			} else
 			if(!(curtext->mark & LEAF)) {
 				if(debug['v'])
@@ -287,12 +256,12 @@ noops(void)
 			}
 
 			q1 = prg();
-			q1->as = mov;
+			q1->as = AMOVW;
 			q1->line = p->line;
 			q1->from.type = D_REG;
 			q1->from.reg = REGTMP;
 			q1->to.type = D_OREG;
-			q1->to.offset = aoffset;
+			q1->from.offset = 0;
 			q1->to.reg = REGSP;
 
 			q1->link = q->link;
@@ -371,17 +340,19 @@ noops(void)
 
 				q->link = p->link;
 				p->link = q;
+				p = q;
 			}
 
-			q1 = prg();
-			q1->as = ABR;
-			q1->line = p->line;
-			q1->to.type = D_SPR;
-			q1->to.offset = D_LR;
-			q1->mark |= BRANCH;
+			q = prg();
+			q->as = ABR;
+			q->line = p->line;
+			q->to.type = D_SPR;
+			q->to.offset = D_LR;
+			q->mark |= BRANCH;
 
-			q1->link = q->link;
-			q->link = q1;
+			q->link = p->link;
+			p->link = q;
+			p = q;
 			break;
 
 		become:
@@ -407,6 +378,7 @@ noops(void)
 
 				break;
 			}
+			/* BUG: need one more MOVW from REGTMP to LR */
 			q = prg();
 			q->line = p->line;
 			q->as = ABR;
@@ -427,17 +399,6 @@ noops(void)
 			q->link = p->link;
 			p->link = q;
 
-			q = prg();
-			q->line = p->line;
-			q->as = AMOVW;
-			q->line = p->line;
-			q->from.type = D_REG;
-			q->from.reg = REGTMP;
-			q->to.type = D_SPR;
-			q->to.offset = D_LR;
-			q->link = p->link;
-			p->link = q;
-
 			p->as = AMOVW;
 			p->from = zprg.from;
 			p->from.type = D_OREG;
@@ -451,9 +412,8 @@ noops(void)
 		}
 	}
 
-	if(debug['Q'] == 0)
-		return;
-
+	SET(p1); USED(p1);
+#ifdef INSSCHED
 	curtext = P;
 	q = P;		/* p - 1 */
 	q1 = firstp;	/* top of block */
@@ -493,6 +453,7 @@ noops(void)
 		}
 		q = p;
 	}
+#endif
 }
 
 void

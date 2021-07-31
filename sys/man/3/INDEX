@@ -13,7 +13,6 @@ floppy floppy
 fs fs
 i82365 i82365
 ip ip
-kbmap kbmap
 kprof kprof
 loopback loopback
 lpt lpt
@@ -23,6 +22,7 @@ mouse mouse
 pipe pipe
 pnp pnp
 proc proc
+realtime realtime
 root root
 rtc rtc
 sd sd

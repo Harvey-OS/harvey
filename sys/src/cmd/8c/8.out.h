@@ -351,8 +351,6 @@ enum	as
 	ADYNT,
 	AINIT,
 
-	ASIGNAME,
-
 	ALAST
 };
 

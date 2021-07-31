@@ -91,7 +91,6 @@ regopt(Prog *p)
 		case ADATA:
 		case AGLOBL:
 		case ANAME:
-		case ASIGNAME:
 			continue;
 		}
 		r = rega();
@@ -445,7 +444,6 @@ brk:
 			case ADATA:
 			case AGLOBL:
 			case ANAME:
-			case ASIGNAME:
 				break;
 			}
 		}
@@ -746,7 +744,7 @@ rpolca(long *idom, long rpo1, long rpo2)
 		while(rpo1 < rpo2){
 			t = idom[rpo2];
 			if(t >= rpo2)
-				fatal(Z, "bad idom");
+				sysfatal("bad idom");
 			rpo2 = t;
 		}
 	}
@@ -802,7 +800,7 @@ loopit(Reg *r, long nr)
 
 	d = postorder(r, rpo2r, 0);
 	if(d > nr)
-		fatal(Z, "too many reg nodes");
+		sysfatal("too many reg nodes");
 	nr = d;
 	for(i = 0; i < nr / 2; i++){
 		r1 = rpo2r[i];

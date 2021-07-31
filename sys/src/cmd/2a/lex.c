@@ -874,17 +874,12 @@ outhist(void)
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
-		/* on windows skip drive specifier in pathname */
-		if(systemtype(Windows) && p && p[1] == ':'){
-			p += 2;
-			c = *p;
-		}
 		if(p && p[0] != c && h->offset == 0 && pathname){
 			/* on windows skip drive specifier in pathname */
-			if(systemtype(Windows) && pathname[1] == ':') {
+			if(systemtype(Windows) && pathname[2] == c) {
 				op = p;
 				p = pathname+2;
-				c = *p;
+				*p = '/';
 			} else if(pathname[0] == c){
 				op = p;
 				p = pathname;
@@ -894,10 +889,8 @@ outhist(void)
 			q = strchr(p, c);
 			if(q) {
 				n = q-p;
-				if(n == 0){
+				if(n == 0)
 					n = 1;	/* leading "/" */
-					*p = '/';	/* don't emit "\" on windows */
-				}
 				q++;
 			} else {
 				n = strlen(p);

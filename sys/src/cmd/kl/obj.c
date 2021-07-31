@@ -212,7 +212,7 @@ loop:
 	xrefresolv = 0;
 	for(i=0; i<libraryp; i++) {
 		if(debug['v'])
-			Bprint(&bso, "%5.2f autolib: %s (from %s)\n", cputime(), library[i], libraryobj[i]);
+			Bprint(&bso, "%5.2f autolib: %s\n", cputime(), library[i]);
 		objfile(library[i]);
 	}
 	if(xrefresolv)
@@ -636,11 +636,7 @@ loop:
 		print("	probably not a .k file\n");
 		errorexit();
 	}
-	if(o == ANAME || o == ASIGNAME) {
-		if(o == ASIGNAME) {
-			bloc += 4;
-			c -= 4;
-		}
+	if(o == ANAME) {
 		stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
 		if(stop == 0){
 			bsize = readsome(f, buf.xbuf, bloc, bsize, c);

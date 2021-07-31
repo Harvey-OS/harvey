@@ -267,7 +267,7 @@ lockfile(char *s)
 		if(fd >= 0)
 			break;
 		rerrstr(err, sizeof err);
-		if(strstr(err, "file is locked")==nil && strstr(err, "exclusive lock")==nil))
+		if(strstr(err, "file is locked") == nil)
 			break;
 		sleep(w);
 		t += w;

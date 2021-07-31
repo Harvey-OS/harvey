@@ -34,7 +34,6 @@ peep(void)
 		case ADATA:
 		case AGLOBL:
 		case ANAME:
-		case ASIGNAME:
 			p = p->link;
 		}
 	}

@@ -74,6 +74,8 @@ bsStr(int state)
 	sprint(s, "%x", state);
 	if(!(state&BsAlloc))
 		strcat(s, ",Free");	/* should not happen */
+	if(state&BsCopied)
+		strcat(s, ",Copied");
 	if(state&BsVenti)
 		strcat(s, ",Venti");
 	if(state&BsClosed)

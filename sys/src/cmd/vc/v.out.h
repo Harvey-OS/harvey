@@ -153,8 +153,6 @@ enum	as
 	AMOVVF,
 	AMOVVD,
 
-	ASIGNAME,
-
 	ALAST,
 };
 

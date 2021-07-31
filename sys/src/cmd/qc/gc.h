@@ -158,7 +158,7 @@ EXTERN	char	string[NSNAME];
 EXTERN	Sym*	symrathole;
 EXTERN	Node	znode;
 EXTERN	Prog	zprog;
-EXTERN	int	reg[NREG+NREG];
+EXTERN	char	reg[NREG+NREG];
 EXTERN	long	exregoffset;
 EXTERN	long	exfregoffset;
 
@@ -188,7 +188,6 @@ EXTERN	long	regbits;
 EXTERN	long	exregbits;
 
 EXTERN	int	change;
-EXTERN	int	suppress;
 
 EXTERN	Reg*	firstr;
 EXTERN	Reg*	lastr;
@@ -198,8 +197,6 @@ EXTERN	Var	var[NVAR];
 EXTERN	long*	idom;
 EXTERN	Reg**	rpo2r;
 EXTERN	long	maxnr;
-
-#define	R0ISZERO	(debug['0']==0)
 
 extern	char*	anames[];
 extern	Hintab	hintab[];
@@ -212,7 +209,7 @@ void	gen(Node*);
 void	usedset(Node*, int);
 void	noretval(int);
 void	xcom(Node*);
-int	bcomplex(Node*, Node*);
+void	bcomplex(Node*);
 
 /*
  * cgen.c

@@ -49,7 +49,6 @@ allocreq(Reqpool *pool, ulong tag)
 	increqref(r);
 	if(caninsertkey(pool->map, tag, r) == 0){
 		closereq(r);
-		closereq(r);
 		return nil;
 	}
 

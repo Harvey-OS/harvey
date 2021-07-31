@@ -462,7 +462,7 @@ xcom(Node *n)
 			n->op = OASHL;
 			r->vconst = t;
 			r->type = types[TINT];
-			simplifyshift(n);
+			break;
 		}
 		break;
 
@@ -485,7 +485,7 @@ xcom(Node *n)
 			n->op = OLSHR;
 			r->vconst = t;
 			r->type = types[TINT];
-			simplifyshift(n);
+			break;
 		}
 		break;
 
@@ -514,7 +514,6 @@ xcom(Node *n)
 	case OASHR:
 		xcom(l);
 		xcom(r);
-		simplifyshift(n);
 		break;
 
 	default:

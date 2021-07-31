@@ -180,8 +180,6 @@ outstring(char *s, long n)
 {
 	long r;
 
-	if(suppress)
-		return nstring;
 	r = nstring;
 	while(n) {
 		string[mnstring] = *s++;
@@ -207,8 +205,6 @@ outlstring(ushort *s, long n)
 	int c;
 	long r;
 
-	if(suppress)
-		return nstring;
 	while(nstring & 1)
 		outstring("", 1);
 	r = nstring;
@@ -368,7 +364,7 @@ gextern(Sym *s, Node *a, long o, long w)
 		p->to.type = D_CONST;
 }
 
-void	zname(Biobuf*, Sym*, int);
+void	zname(Biobuf*, char*, int, int);
 char*	zaddr(char*, Adr*, int);
 void	zwrite(Biobuf*, Prog*, int, int);
 void	outhist(Biobuf*);
@@ -409,8 +405,8 @@ outcode(void)
 			if(h[sf].type == t)
 			if(h[sf].sym == s)
 				break;
+			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
-			zname(&outbuf, s, t);
 			h[sym].sym = s;
 			h[sym].type = t;
 			sf = sym;
@@ -429,8 +425,8 @@ outcode(void)
 			if(h[st].type == t)
 			if(h[st].sym == s)
 				break;
+			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
-			zname(&outbuf, s, t);
 			h[sym].sym = s;
 			h[sym].type = t;
 			st = sym;
@@ -469,40 +465,25 @@ void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	char *p, *q, *op, c;
+	char *p, *q, *op;
 	Prog pg;
 	int n;
 
 	pg = zprog;
 	pg.as = AHISTORY;
-	c = pathchar();
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
-		/* on windows skip drive specifier in pathname */
-		if(systemtype(Windows) && p && p[1] == ':'){
-			p += 2;
-			c = *p;
-		}
-		if(p && p[0] != c && h->offset == 0 && pathname){
-			/* on windows skip drive specifier in pathname */
-			if(systemtype(Windows) && pathname[1] == ':') {
-				op = p;
-				p = pathname+2;
-				c = *p;
-			} else if(pathname[0] == c){
-				op = p;
-				p = pathname;
-			}
+		if(p && p[0] != '/' && h->offset == 0 && pathname && pathname[0] == '/') {
+			op = p;
+			p = pathname;
 		}
 		while(p) {
-			q = utfrune(p, c);
+			q = utfrune(p, '/');
 			if(q) {
 				n = q-p;
-				if(n == 0){
+				if(n == 0)
 					n = 1;	/* leading "/" */
-					*p = '/';	/* don't emit "\" on windows */
-				}
 				q++;
 			} else {
 				n = strlen(p);
@@ -533,30 +514,14 @@ outhist(Biobuf *b)
 }
 
 void
-zname(Biobuf *b, Sym *s, int t)
+zname(Biobuf *b, char *n, int t, int s)
 {
-	char *n, bf[7];
-	ulong sig;
+	char bf[3];
 
-	n = s->name;
-	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
-		sig = sign(s);
-		bf[0] = ASIGNAME;
-		bf[1] = sig;
-		bf[2] = sig>>8;
-		bf[3] = sig>>16;
-		bf[4] = sig>>24;
-		bf[5] = t;
-		bf[6] = s->sym;
-		Bwrite(b, bf, 7);
-		s->sig = SIGDONE;
-	}
-	else{
-		bf[0] = ANAME;
-		bf[1] = t;	/* type */
-		bf[2] = s->sym;	/* sym */
-		Bwrite(b, bf, 3);
-	}
+	bf[0] = ANAME;
+	bf[1] = t;	/* type */
+	bf[2] = s;	/* sym */
+	Bwrite(b, bf, 3);
 	Bwrite(b, n, strlen(n)+1);
 }
 

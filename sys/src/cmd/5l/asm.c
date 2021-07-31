@@ -21,7 +21,7 @@ entryvalue(void)
 	case SLEAF:
 		break;
 	case SDATA:
-		if(dlm)
+		if(reloc)
 			return s->value+INITDAT;
 	default:
 		diag("entry not text: %s", s->name);
@@ -88,12 +88,6 @@ asmb(void)
 		seek(cout, OFFSET, 0);
 		break;
 	}
-	if(dlm){
-		char buf[8];
-
-		write(cout, buf, INITDAT-textsize);
-		textsize = INITDAT;
-	}
 	for(t = 0; t < datsize; t += sizeof(buf)-100) {
 		if(datsize-t > sizeof(buf)-100)
 			datblk(t, sizeof(buf)-100, 0);
@@ -130,13 +124,6 @@ asmb(void)
 		Bflush(&bso);
 		if(!debug['s'])
 			asmlc();
-		if(dlm)
-			asmdyn();
-		cflush();
-	}
-	else if(dlm){
-		seek(cout, HEADR+textsize+datsize, 0);
-		asmdyn();
 		cflush();
 	}
 
@@ -179,10 +166,7 @@ asmb(void)
 		lputl(0xe1a0f00e);		/* B (R14) - zero init return */
 		break;
 	case 2:	/* plan 9 */
-		if(dlm)
-			lput(0x80000000|0x647);	/* magic */
-		else
-			lput(0x647);			/* magic */
+		lput(0x647);			/* magic */
 		lput(textsize);			/* sizes */
 		lput(datsize);
 		lput(bsssize);
@@ -230,18 +214,6 @@ cput(int c)
 	cbp[0] = c;
 	cbp++;
 	cbc--;
-	if(cbc <= 0)
-		cflush();
-}
-
-void
-wput(long l)
-{
-
-	cbp[0] = l>>8;
-	cbp[1] = l;
-	cbp += 2;
-	cbc -= 2;
 	if(cbc <= 0)
 		cflush();
 }
@@ -564,9 +536,9 @@ datblk(long s, long n, int str)
 			v = p->to.sym;
 			if(v) {
 				switch(v->type) {
-				case SUNDEF:
-					ckoff(v, d);
 				case STEXT:
+					if(v->value == -1)
+						undefsym(v);
 				case SLEAF:
 				case SSTRING:
 					d += p->to.sym->value;
@@ -575,8 +547,8 @@ datblk(long s, long n, int str)
 				case SBSS:
 					d += p->to.sym->value + INITDAT;
 				}
-				if(dlm)
-					dynreloc(v, a+INITDAT, 1);
+				if(reloc)
+					undefpc(a + INITDAT);
 			}
 			cast = (char*)&d;
 			switch(c) {
@@ -685,10 +657,10 @@ PP = p;
 		v = -8;
 		if(p->cond == UP) {
 			s = p->to.sym;
-			if(s->type != SUNDEF)
-				diag("bad branch sym type");
-			v = (ulong)s->value >> (Roffset-2);
-			dynreloc(s, p->pc, 0);
+			if(s->value == -1)
+				undefsym(s);
+			v = s->value;
+			undefpc(p->pc);
 		}
 		else if(p->cond != P)
 			v = (p->cond->pc - pc) - 8;
@@ -749,14 +721,14 @@ PP = p;
 	case 11:	/* word */
 		switch(aclass(&p->to)) {
 		case C_LCON:
-			if(!dlm)
+			if(!reloc)
 				break;
 			if(p->to.name != D_EXTERN && p->to.name != D_STATIC)
 				break;
 		case C_ADDR:
-			if(p->to.sym->type == SUNDEF)
-				ckoff(p->to.sym, p->to.offset);
-			dynreloc(p->to.sym, p->pc, 1);
+			if(p->to.offset < 0 || p->to.offset >= (1 << UIXSHIFT))
+				diag("reloc offset out of range: %s %ld", p->to.sym->name, p->to.offset);
+			undefpc(p->pc);
 		}
 		o1 = instoffset;
 		break;
@@ -1176,9 +1148,9 @@ PP = p;
 
 	case 63:	/* bcase */
 		if(p->cond != P) {
+			if(reloc)
+				undefpc(p->pc);
 			o1 = p->cond->pc;
-			if(dlm)
-				dynreloc(S, p->pc, 1);
 		}
 		break;
 

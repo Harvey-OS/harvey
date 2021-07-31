@@ -680,11 +680,7 @@ loop:
 		print("	probably not a .v file\n");
 		errorexit();
 	}
-	if(o == ANAME || o == ASIGNAME) {
-		if(o == ASIGNAME) {
-			bloc += 4;
-			c -= 4;
-		}
+	if(o == ANAME) {
 		stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
 		if(stop == 0){
 			bsize = readsome(f, buf.xbuf, bloc, bsize, c);

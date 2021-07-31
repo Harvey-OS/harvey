@@ -222,7 +222,6 @@ cmap2rgb color
 cmap2rgba color
 color color
 rgb2cmap color
-complete complete
 Control control
 Controlset control
 activate control
@@ -696,7 +695,6 @@ eipfmt ip
 equivip ip
 hnputl ip
 hnputs ip
-hnputv ip
 ip ip
 isv4 ip
 maskip ip
@@ -704,7 +702,6 @@ myetheraddr ip
 myipaddr ip
 nhgetl ip
 nhgets ip
-nhgetv ip
 parseether ip
 parseip ip
 parseipmask ip
@@ -726,6 +723,7 @@ closekeyboard keyboard
 ctlkeyboard keyboard
 initkeyboard keyboard
 keyboard keyboard
+atomic increment and decrement lock
 canlock lock
 canqlock lock
 canrlock lock
@@ -736,10 +734,7 @@ lock lock
 qlock lock
 qunlock lock
 rlock lock
-rsleep lock
 runlock lock
-rwakeup lock
-rwakeupall lock
 unlock lock
 wlock lock
 wunlock lock
@@ -931,7 +926,6 @@ isInf nan
 isNaN nan
 nan nan
 csgetval ndb
-csgetvalue ndb
 csipinfo ndb
 dnsquery ndb
 ipattr ndb
@@ -939,23 +933,16 @@ ndb ndb
 ndbcat ndb
 ndbchanged ndb
 ndbclose ndb
-ndbconcatenate ndb
-ndbdiscard ndb
-ndbfindattr ndb
 ndbfree ndb
-ndbgetipaddr ndb
 ndbgetval ndb
-ndbgetvalue ndb
 ndbhash ndb
 ndbipinfo ndb
 ndblookval ndb
 ndbopen ndb
 ndbparse ndb
 ndbreopen ndb
-ndbreorder ndb
 ndbsearch ndb
 ndbsnext ndb
-ndbsubstitute ndb
 atnotify notify
 noted notify
 notify notify
@@ -1033,7 +1020,6 @@ initThumbprints pushtls
 okThumbprint pushtls
 pushtls pushtls
 readcert pushtls
-readcertchain pushtls
 tlsClient pushtls
 tlsServer pushtls
 qball qball
@@ -1053,7 +1039,6 @@ quaternion quaternion
 qunit quaternion
 slerp quaternion
 doquote quote
-needsrcquote quote
 quote quote
 quotefmtinstall quote
 quoterunestrdup quote
@@ -1104,7 +1089,7 @@ X509toRSApub rsa
 X509verify rsa
 asn1dump rsa
 asn1toRSApriv rsa
-decodePEM rsa
+decodepem rsa
 rsa rsa
 rsadecrypt rsa
 rsaencrypt rsa

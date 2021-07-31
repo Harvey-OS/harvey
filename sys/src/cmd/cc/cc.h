@@ -85,17 +85,8 @@ struct	Sym
 	char	class;
 	char	sym;
 	char	aused;
-	char	sig;
 };
 #define	S	((Sym*)0)
-
-enum{
-	SIGNONE = 0,
-	SIGDONE = 1,
-	SIGINTERN = 2,
-
-	SIGNINTERN = 1729*325*1729,
-};
 
 struct	Decl
 {
@@ -356,8 +347,6 @@ enum
 	GCONSTNT	= 1<<0,
 	GVOLATILE	= 1<<1,
 	NGTYPES		= 1<<2,
-
-	GINCOMPLETE	= 1<<2,
 };
 enum
 {
@@ -601,8 +590,7 @@ Node*	revertdcl(void);
 long	round(long, int);
 int	rsametype(Type*, Type*, int, int);
 int	sametype(Type*, Type*);
-ulong	sign(Sym*);
-ulong	signature(Type*);
+ulong	signature(Type*, int);
 void	suallign(Type*);
 void	tmerge(Type*, Sym*);
 void	walkparam(Node*, int);
@@ -675,12 +663,10 @@ int	vconst(Node*);
 int	log2(uvlong);
 int	vlog(Node*);
 int	topbit(ulong);
-void	simplifyshift(Node*);
 long	typebitor(long, long);
 void	diag(Node*, char*, ...);
 void	warn(Node*, char*, ...);
 void	yyerror(char*, ...);
-void	fatal(Node*, char*, ...);
 
 /*
  * acid.c
@@ -714,7 +700,6 @@ void	pragvararg(void);
 void	praghjdicks(void);
 void	pragfpround(void);
 void pragprofile(void);
-void	pragincomplete(void);
 
 /*
  * calls to machine depend part
