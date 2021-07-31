@@ -600,8 +600,8 @@ struct Schedq
 
 typedef union Ar0 Ar0;
 union Ar0 {
-	uintptr	i;
-	uintptr	l;
+	int	i;
+	long	l;
 	uintptr	p;
 	usize	u;
 	void*	v;
