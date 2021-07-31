@@ -283,6 +283,9 @@ devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 					error(Ebadarg);
 				return n;
 			}
+			print("%s %s: devstat %C %llux\n",
+				up->text, up->user,
+				devtab[c->type]->dc, c->qid.path);
 
 			error(Enonexist);
 		case 0:
