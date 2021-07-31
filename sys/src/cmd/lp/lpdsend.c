@@ -1,47 +1,41 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <signal.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/param.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <signal.h>
 
 #define	REDIALTIMEOUT	15
 #ifdef PLAN9
 #include <Plan9libnet.h>
 #endif
-
-enum {
-	TIMEOUT = 30*60,
-	SBSIZE = 8192,
-};
+#define TIMEOUT 600
 
 char tmpfilename[L_tmpnam+1];
-unsigned char sendbuf[SBSIZE];
-
 int alarmstate = 0;
 int debugflag = 0;
 int killflag = 0;
 int statflag = 0;
 
 void
-cleanup(void)
-{
+cleanup(void) {
 	unlink(tmpfilename);
 }
 
+#define SBSIZE 8192
+unsigned char sendbuf[SBSIZE];
+
 void
-debug(char *str)
-{
+debug(char *str) {
 	if (debugflag)
 		fprintf(stderr, "%s", str);
 }
 
 void
-alarmhandler(int sig)
-{
+alarmhandler(int sig) {
 	fprintf(stderr, "timeout occurred, check printer.\n");
 	exit(2);
 }
@@ -50,8 +44,7 @@ alarmhandler(int sig)
 #define WARNPC	5
 
 int
-copyfile(int in, int out, long tosend)
-{
+copyfile(int in, int out, long tosend) {
 	int n;
 	int sent = 0;
 	int percent = 0;
@@ -63,8 +56,7 @@ copyfile(int in, int out, long tosend)
 		if (debugflag)
 			fprintf(stderr, "lpdsend: copyfile read %d bytes from %d\n",
 				n, in);
-		alarm(TIMEOUT);
-		alarmstate = 1;
+		alarm(TIMEOUT); alarmstate = 1;
 		if (write(out, sendbuf, n) != n) {
 			alarm(0);
 			fprintf(stderr, "write to fd %d failed\n", out);
@@ -75,7 +67,7 @@ copyfile(int in, int out, long tosend)
 			fprintf(stderr, "lpdsend: copyfile wrote %d bytes to %d\n",
 				n, out);
 		sent += n;
-		if (tosend && sent*100/tosend >= percent+WARNPC) {
+		if (tosend && ((sent*100/tosend)>=(percent+WARNPC))) {
 			percent += WARNPC;
 			fprintf(stderr, ": %5.2f%% sent\n", sent*100.0/tosend);
 		}
@@ -94,10 +86,8 @@ int seqno = 0;
 char *seqfilename;
 
 void
-killjob(int printerfd)
-{
+killjob(int printerfd) {
 	int strlength;
-
 	if (printername==0) {
 		fprintf(stderr, "no printer name\n");
 		exit(1);
@@ -120,8 +110,7 @@ killjob(int printerfd)
 }
 
 void
-checkqueue(int printerfd)
-{
+checkqueue(int printerfd) {
 	int n, strlength;
 	unsigned char sendbuf[1];
 
@@ -140,16 +129,13 @@ checkqueue(int printerfd)
 }
 
 void
-getack(int printerfd, int as)
-{
+getack(int printerfd, int as) {
 	char resp;
 	int rv;
 
-	alarm(TIMEOUT);
-	alarmstate = as;
-	if ((rv = read(printerfd, &resp, 1)) != 1 || resp != '\0') {
-		fprintf(stderr, "getack failed: read returned %d, "
-			"read value (if any) %d, alarmstate=%d\n",
+	alarm(TIMEOUT); alarmstate = as;
+	if ((rv=read(printerfd, &resp, 1)) != 1 || resp != '\0') {
+		fprintf(stderr, "getack failed: read returned %d, read value (if any) %d, alarmstate=%d\n",
 			rv, resp, alarmstate);
 		exit(1);
 	}
@@ -158,8 +144,7 @@ getack(int printerfd, int as)
 
 /* send control file */
 void
-sendctrl(int printerfd)
-{
+sendctrl(int printerfd) {
 	char cntrlstrbuf[256];
 	int strlength, cntrlen;
 
@@ -185,8 +170,7 @@ sendctrl(int printerfd)
 
 /* send data file */
 void
-senddata(int inputfd, int printerfd, long size)
-{
+senddata(int inputfd, int printerfd, long size) {
 	int strlength;
 
 	sprintf(strbuf, "%c%d dfA%3.3d%s\n", '\3', size, seqno, hostname);
@@ -209,8 +193,7 @@ senddata(int inputfd, int printerfd, long size)
 }
 
 void
-sendjob(int inputfd, int printerfd)
-{
+sendjob(int inputfd, int printerfd) {
 	struct stat statbuf;
 	int strlength;
 
@@ -278,10 +261,13 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	return addr;
 }
 
-main(int argc, char *argv[])
-{
-	int c, usgflg = 0, inputfd, printerfd, sendport;
-	char *desthostname, *hnend;
+main(int argc, char *argv[]) {
+	int c, usgflg = 0;
+	char *desthostname;
+	char *hnend;
+	int printerfd;
+	int inputfd;
+	int sendport;
 	char portstr[4];
 
 	if (signal(SIGALRM, alarmhandler) == SIG_ERR) {

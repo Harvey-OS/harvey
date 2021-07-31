@@ -64,11 +64,7 @@ struct Ipfrag
 {
 	ushort	foff;
 	ushort	flen;
-
-	uchar	payload[];
 };
-
-#define IPFRAGSZ offsetof(Ipfrag, payload[0])
 
 /* an instance of IP */
 struct IP
@@ -272,10 +268,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		goto raise;
 
 	/* If we dont need to fragment just send it */
-	if(c && c->maxfragsize && c->maxfragsize < ifc->maxtu)
-		medialen = c->maxfragsize - ifc->m->hsize;
-	else
-		medialen = ifc->maxtu - ifc->m->hsize;
+	medialen = ifc->maxtu - ifc->m->hsize;
 	if(len <= medialen) {
 		if(!gating)
 			hnputs(eh->id, incref(&ip->id4));
@@ -287,7 +280,6 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		eh->cksum[0] = 0;
 		eh->cksum[1] = 0;
 		hnputs(eh->cksum, ipcsum(&eh->vihl));
-		assert(bp->next == nil);
 		ifc->m->bwrite(ifc, bp, V4, gate);
 		runlock(ifc);
 		poperror();
@@ -396,8 +388,6 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 	uchar *dp, v6dst[IPaddrlen];
 	IP *ip;
 	Route *r;
-	Conv conv;
-
 
 	if(BLKIPVER(bp) != IP_VER4) {
 		ipiput6(f, ifc, bp);
@@ -458,8 +448,10 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 
 	/* route */
 	if(notforme) {
+		Conv conv;
+
 		if(!ip->iprouting){
-			freeblist(bp);
+			freeb(bp);
 			return;
 		}
 
@@ -598,9 +590,9 @@ ip4reassemble(IP *ip, int offset, Block *bp, Ip4hdr *ih)
 		return bp;
 	}
 
-	if(bp->base+IPFRAGSZ >= bp->rp){
-		bp = padblock(bp, IPFRAGSZ);
-		bp->rp += IPFRAGSZ;
+	if(bp->base+sizeof(Ipfrag) >= bp->rp){
+		bp = padblock(bp, sizeof(Ipfrag));
+		bp->rp += sizeof(Ipfrag);
 	}
 
 	BKFG(bp)->foff = offset<<3;

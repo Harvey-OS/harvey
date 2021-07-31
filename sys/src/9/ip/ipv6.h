@@ -124,10 +124,9 @@ struct	Ip6hdr {
 	uchar	ttl;		/* hop limit */
 	uchar	src[IPaddrlen];
 	uchar	dst[IPaddrlen];
-	uchar	payload[];
 };
 
-struct	Opthdr {		/* unused */
+struct	Opthdr {
 	uchar	nexthdr;
 	uchar	len;
 };
@@ -138,7 +137,7 @@ struct	Opthdr {		/* unused */
  * Type 1 is unused.  Type 2 is for MIPv6 (mobile IPv6) filtering
  * against type 0 header.
  */
-struct	Routinghdr {		/* unused */
+struct	Routinghdr {
 	uchar	nexthdr;
 	uchar	len;
 	uchar	rtetype;

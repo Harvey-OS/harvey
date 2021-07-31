@@ -194,7 +194,7 @@ udpkick(void *x, Block *bp)
 	upriv = c->p->priv;
 	f = c->p->f;
 
-//	netlog(c->p->f, Logudp, "udp: kick\n");	/* frequent and uninteresting */
+	netlog(c->p->f, Logudp, "udp: kick\n");
 	if(bp == nil)
 		return;
 

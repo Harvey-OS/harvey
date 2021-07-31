@@ -1,7 +1,3 @@
-/*
- * igmp - internet group management protocol
- * unfinished.
- */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -28,27 +24,23 @@ typedef struct IGMPpkt IGMPpkt;
 struct IGMPpkt
 {
 	/* ip header */
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	len[2];		/* packet length (including headers) */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	Unused;	
-	uchar	proto;		/* Protocol */
-	uchar	cksum[2];	/* checksum of ip portion */
-	uchar	src[IPaddrlen];		/* Ip source */
-	uchar	dst[IPaddrlen];		/* Ip destination */
+	byte	vihl;		/* Version and header length */
+	byte	tos;		/* Type of service */
+	byte	len[2];		/* packet length (including headers) */
+	byte	id[2];		/* Identification */
+	byte	frag[2];	/* Fragment information */
+	byte	Unused;	
+	byte	proto;		/* Protocol */
+	byte	cksum[2];	/* checksum of ip portion */
+	byte	src[IPaddrlen];		/* Ip source */
+	byte	dst[IPaddrlen];		/* Ip destination */
 
 	/* igmp header */
-	uchar	vertype;	/* version and type */
-	uchar	unused;
-	uchar	igmpcksum[2];		/* checksum of igmp portion */
-	uchar	group[IPaddrlen];	/* multicast group */
-
-	uchar	payload[];
+	byte	vertype;	/* version and type */
+	byte	unused;
+	byte	igmpcksum[2];		/* checksum of igmp portion */
+	byte	group[IPaddrlen];	/* multicast group */
 };
-
-#define IGMPPKTSZ offsetof(IGMPpkt, payload[0])
 
 /*
  *  lists for group reports
@@ -57,7 +49,7 @@ typedef struct IGMPrep IGMPrep;
 struct IGMPrep
 {
 	IGMPrep		*next;
-	Medium		*m;
+	Media		*m;
 	int		ticks;
 	Multicast	*multi;
 };
@@ -84,7 +76,7 @@ static struct Stats
 } stats;
 
 void
-igmpsendreport(Medium *m, uchar *addr)
+igmpsendreport(Media *m, byte *addr)
 {
 	IGMPpkt *p;
 	Block *bp;
@@ -94,9 +86,9 @@ igmpsendreport(Medium *m, uchar *addr)
 		return;
 	p = (IGMPpkt*)bp->wp;
 	p->vihl = IP_VER4;
-	bp->wp += IGMPPKTSZ;
-	memset(bp->rp, 0, IGMPPKTSZ);
-	hnputl(p->src, Mediumgetaddr(m));
+	bp->wp += sizeof(IGMPpkt);
+	memset(bp->rp, 0, sizeof(IGMPpkt));
+	hnputl(p->src, Mediagetaddr(m));
 	hnputl(p->dst, Ipallsys);
 	p->vertype = (1<<4) | IGMPreport;
 	p->proto = IP_IGMPPROTO;
@@ -120,7 +112,7 @@ igmpproc(void *a)
 {
 	IGMPrep *rp, **lrp;
 	Multicast *mp, **lmp;
-	uchar ip[IPaddrlen];
+	byte ip[IPaddrlen];
 
 	USED(a);
 
@@ -174,7 +166,7 @@ igmpproc(void *a)
 }
 
 void
-igmpiput(Medium *m, Ipifc *, Block *bp)
+igmpiput(Media *m, Ipifc *, Block *bp)
 {
 	int n;
 	IGMPpkt *ghp;
@@ -214,7 +206,7 @@ igmpiput(Medium *m, Ipifc *, Block *bp)
 		if(rp != nil)
 			break;	/* already reporting */
 
-		mp = Mediumcopymulti(m);
+		mp = Mediacopymulti(m);
 		if(mp == nil)
 			break;
 

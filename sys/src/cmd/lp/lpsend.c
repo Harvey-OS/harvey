@@ -2,12 +2,11 @@
 
 #include <u.h>
 #include <libc.h>
+#define 	stderr	2
 
-enum {
-	stderr = 2,
-	RDNETIMEOUT = 30*60*1000,
-	WRNETIMEOUT = RDNETIMEOUT,
-};
+#define RDNETIMEOUT	60000
+#define WRNETIMEOUT	60000
+
 #else
 
 /* not for plan 9 */
