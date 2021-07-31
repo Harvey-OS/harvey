@@ -4,10 +4,9 @@ secstored, secuser \- secstore commands
 .SH SYNOPSIS
 .br
 .B auth/secstored
-[-R]
 [-S servername]
 [-s tcp!*!5356]
-[-x mountpoint]
+[-x]
 .br
 .B auth/secuser
 [-v]
@@ -20,13 +19,10 @@ username
 serves requests from
 .IR secstore (1).
 The
-.B -R
-option supplements the password check with a
-call to a RADIUS server, for checking hardware
-tokens or other validation.
-The
-.BR -x mountpoint
-option specifies an alternative to the default network
+.B -x
+option announces on
+.B /net.alt/tcp!*!5356
+instead of the default
 .BR /net .
 .PP
 .I Secuser
