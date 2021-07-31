@@ -188,7 +188,7 @@ mtrrop(Mtrrop **op)
 	 * wait for all CPUs to sync here, so that the MTRR setup gets
 	 * done at roughly the same time on all processors.
 	 */
-	ainc(&bar1);
+	_xinc(&bar1);
 	while(bar1 < conf.nmach)
 		microdelay(10);
 
@@ -212,14 +212,14 @@ mtrrop(Mtrrop **op)
 	 * wait for all CPUs to sync up again, so that we don't continue
 	 * executing while the MTRRs are still being set up.
 	 */
-	ainc(&bar2);
+	_xinc(&bar2);
 	while(bar2 < conf.nmach)
 		microdelay(10);
 	*op = nil;
-	adec(&bar1);
+	_xdec(&bar1);
 	while(bar1 > 0)
 		microdelay(10);
-	adec(&bar2);
+	_xdec(&bar2);
 	wakeup(&oprend);
 	splx(s);
 }

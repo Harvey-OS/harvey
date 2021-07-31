@@ -711,7 +711,7 @@ athrballoc(void)
 	if((bp = athrbpool) != nil){
 		athrbpool = bp->next;
 		bp->next = nil;
-		ainc(&bp->ref);	/* prevent bp from being freed */
+		_xinc(&bp->ref);	/* prevent bp from being freed */
 	}
 	iunlock(&athrblock);
 	return bp;

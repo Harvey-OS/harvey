@@ -401,8 +401,8 @@ uvlong		nhgetv(void*);
 uint		nhgetl(void*);
 ushort		nhgets(void*);
 ulong		µs(void);
-long		ainc(long*);
-long		adec(long*);
+void		_xinc(long*);
+long		_xdec(long*);
 long		lcycles(void);
 
 #pragma varargck argpos iprint	1

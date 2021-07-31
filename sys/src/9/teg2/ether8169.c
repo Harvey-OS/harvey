@@ -462,7 +462,7 @@ rballoc(void)
 	if((bp = rbpool) != nil){
 		rbpool = bp->next;
 		bp->next = nil;
-		ainc(&bp->ref);	/* prevent bp from being freed */
+		_xinc(&bp->ref);	/* prevent bp from being freed */
 	}
 	iunlock(&rblock);
 	return bp;

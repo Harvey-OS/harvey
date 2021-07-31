@@ -594,7 +594,7 @@ vt6105Mrballoc(void)
 	if((bp = vt6105Mrbpool) != nil){
 		vt6105Mrbpool = bp->next;
 		bp->next = nil;
-		ainc(&bp->ref);	/* prevent bp from being freed */
+		_xinc(&bp->ref);	/* prevent bp from being freed */
 	}
 	iunlock(&vt6105Mrblock);
 

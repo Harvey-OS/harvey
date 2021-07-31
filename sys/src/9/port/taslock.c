@@ -23,7 +23,7 @@ struct
 static void
 inccnt(Ref *r)
 {
-	ainc(&r->ref);
+	_xinc(&r->ref);
 }
 
 static int
@@ -31,7 +31,7 @@ deccnt(Ref *r)
 {
 	int x;
 
-	x = adec(&r->ref);
+	x = _xdec(&r->ref);
 	if(x < 0)
 		panic("deccnt pc=%#p", getcallerpc(&r));
 	return x;
