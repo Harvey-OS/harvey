@@ -1,5 +1,5 @@
 /*
- * ahci serial ata driver
+ * intel/amd ahci sata controller
  * copyright © 2007-8 coraid, inc.
  */
 
@@ -16,9 +16,7 @@
 #define	dprint(...)	if(debug)	iprint(__VA_ARGS__); else USED(debug)
 #define	idprint(...)	if(prid)	iprint(__VA_ARGS__);  else USED(prid)
 #define	aprint(...)	if(datapi)	iprint(__VA_ARGS__);  else USED(datapi)
-
 #define Tname(c)	tname[(c)->type]
-#define Intel(x)	((x)->pci->vid == Vintel)
 
 enum {
 	NCtlr	= 4,
@@ -27,13 +25,6 @@ enum {
 
 	Read	= 0,
 	Write,
-
-	Nms	= 256,
-	Mphywait=  2*1024/Nms - 1,
-	Midwait	= 16*1024/Nms - 1,
-	Mcomrwait= 64*1024/Nms - 1,
-
-	Obs	= 0xa0,			/* obsolete device bits */
 };
 
 /* pci space configuration */
@@ -50,11 +41,13 @@ enum {
 	Tunk,
 };
 
+#define Intel(x)	((x)->pci->vid == 0x8086)
+
 static char *tname[] = {
 	"63xxesb",
 	"ich",
 	"sb600",
-	"unknown",
+	"unk",
 };
 
 enum {
@@ -80,24 +73,19 @@ static char *diskstates[Dlast] = {
 	"portreset",
 };
 
+extern SDifc sdiahciifc;
+typedef struct Ctlr Ctlr;
+
 enum {
 	DMautoneg,
 	DMsatai,
 	DMsataii,
-	DMsata3,
 };
 
-static char *modename[] = {		/* used in control messages */
+static char *modename[] = {
 	"auto",
 	"satai",
 	"sataii",
-	"sata3",
-};
-static char *descmode[] = {		/*  only printed */
-	"auto",
-	"sata 1",
-	"sata 2",
-	"sata 3",
 };
 
 static char *flagname[] = {
@@ -109,11 +97,7 @@ static char *flagname[] = {
 	"atapi16",
 };
 
-typedef struct Asleep Asleep;
-typedef struct Ctlr Ctlr;
-typedef struct Drive Drive;
-
-struct Drive {
+typedef struct {
 	Lock;
 
 	Ctlr	*ctlr;
@@ -144,7 +128,7 @@ struct Drive {
 	int	driveno;	/* ctlr*NCtlrdrv + unit */
 	/* controller port # != driveno when not all ports are enabled */
 	int	portno;
-};
+} Drive;
 
 struct Ctlr {
 	Lock;
@@ -154,26 +138,15 @@ struct Ctlr {
 	SDev	*sdev;
 	Pcidev	*pci;
 
-	/* virtual register addresses */
 	uchar	*mmio;
 	ulong	*lmmio;
 	Ahba	*hba;
-
-	/* phyical register address */
-	uchar	*physio;
 
 	Drive	rawdrive[NCtlrdrv];
 	Drive*	drive[NCtlrdrv];
 	int	ndrive;
 	int	mport;
 };
-
-struct Asleep {
-	Aport	*p;
-	int	i;
-};
-
-extern SDifc sdiahciifc;
 
 static	Ctlr	iactlr[NCtlr];
 static	SDev	sdevs[NCtlr];
@@ -243,6 +216,11 @@ esleep(int ms)
 	poperror();
 }
 
+typedef struct {
+	Aport	*p;
+	int	i;
+}Asleep;
+
 static int
 ahciclear(void *v)
 {
@@ -295,7 +273,7 @@ nop(Aportc *pc)
 	c[0] = 0x27;
 	c[1] = 0x80;
 	c[2] = 0x00;
-	c[7] = Obs;
+	c[7] = 0xa0;		/* obsolete device bits */
 
 	l = pc->m->list;
 	l->flags = Lwrite | 0x5;
@@ -321,7 +299,7 @@ setfeatures(Aportc *pc, uchar f)
 	c[1] = 0x80;
 	c[2] = 0xef;
 	c[3] = f;
-	c[7] = Obs;
+	c[7] = 0xa0;		/* obsolete device bits */
 
 	l = pc->m->list;
 	l->flags = Lwrite | 0x5;
@@ -351,7 +329,7 @@ setudmamode(Aportc *pc, uchar f)
 	c[1] = 0x80;
 	c[2] = 0xef;
 	c[3] = 3;		/* set transfer mode */
-	c[7] = Obs;
+	c[7] = 0xa0;		/* obsolete device bits */
 	c[12] = 0x40 | f;	/* sector count */
 
 	l = pc->m->list;
@@ -412,7 +390,7 @@ smart(Aportc *pc, int n)
 	c[3] = 0xd8 + n;	/* able smart */
 	c[5] = 0x4f;
 	c[6] = 0xc2;
-	c[7] = Obs;
+	c[7] = 0xa0;
 
 	l = pc->m->list;
 	l->flags = Lwrite | 0x5;
@@ -447,7 +425,7 @@ smartrs(Aportc *pc)
 	c[3] = 0xda;		/* return smart status */
 	c[5] = 0x4f;
 	c[6] = 0xc2;
-	c[7] = Obs;
+	c[7] = 0xa0;
 
 	l = pc->m->list;
 	l->flags = Lwrite | 0x5;
@@ -482,7 +460,7 @@ ahciflushcache(Aportc *pc)
 	c[0] = 0x27;
 	c[1] = 0x80;
 	c[2] = tab[llba];
-	c[7] = Obs;
+	c[7] = 0xa0;
 
 	l = pc->m->list;
 	l->flags = Lwrite | 0x5;
@@ -546,7 +524,7 @@ ahciidentify0(Aportc *pc, void *id, int atapi)
 	c[0] = 0x27;
 	c[1] = 0x80;
 	c[2] = tab[atapi];
-	c[7] = Obs;
+	c[7] = 0xa0;		/* obsolete device bits */
 
 	l = pc->m->list;
 	l->flags = 1<<16 | 0x5;
@@ -664,7 +642,7 @@ ahcicomreset(Aportc *pc)
 	memset(c, 0, 0x20);
 	c[0] = 0x27;
 	c[1] = 0x00;
-	c[7] = Obs;
+	c[7] = 0xa0;		/* obsolete device bits */
 	c[15] = 1<<2;		/* srst */
 
 	l = pc->m->list;
@@ -683,7 +661,7 @@ ahcicomreset(Aportc *pc)
 	memset(c, 0, 0x20);
 	c[0] = 0x27;
 	c[1] = 0x00;
-	c[7] = Obs;
+	c[7] = 0xa0;		/* obsolete device bits */
 
 	l = pc->m->list;
 	l->flags = Lwrite | 0x5;
@@ -876,7 +854,7 @@ ahciconf(Ctlr *ctlr)
 	if((u&Hsam) == 0)
 		h->ghc |= Hae;
 
-	dprint("#S/sd%c: type %s port %#p: sss %ld ncs %ld coal %ld "
+	print("#S/sd%c: ahci %s port %#p: sss %ld ncs %ld coal %ld "
 		"mports %ld led %ld clo %ld ems %ld\n",
 		ctlr->sdev->idno, tname[ctlr->type], h,
 		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1, u & 0x1f, (u>>25) & 1,
@@ -1072,7 +1050,7 @@ pstatus(Drive *d, ulong s)
 	case 4:			/* offline */
 		d->state = Doffline;
 		break;
-	case 6:			/* does this make sense? */
+	case 6:			/* ? not sure this makes sense. TODO */
 		d->state = Dnew;
 		break;
 	}
@@ -1182,6 +1160,13 @@ lose:
 	qunlock(c->m);
 	return -1;
 }
+
+enum {
+	Nms		= 256,
+	Mphywait	=  2*1024/Nms - 1,
+	Midwait		= 16*1024/Nms - 1,
+	Mcomrwait	= 64*1024/Nms - 1,
+};
 
 static void
 westerndigitalhung(Drive *d)
@@ -1498,7 +1483,7 @@ ahcibuild(Drive *d, uchar *cmd, void *data, int n, vlong lba)
 	c[4] = lba;		/* sector		lba low	7:0 */
 	c[5] = lba >> 8;	/* cylinder low		lba mid	15:8 */
 	c[6] = lba >> 16;	/* cylinder hi		lba hi	23:16 */
-	c[7] = Obs | 0x40;	/* 0x40 == lba */
+	c[7] = 0xa0 | 0x40;	/* obsolete device bits + lba */
 	if(llba == 0)
 		c[7] |= (lba>>24) & 7;
 
@@ -1562,7 +1547,7 @@ ahcibuildpkt(Aportm *m, SDreq *r, void *data, int n)
 	c[4] = 0;		/* sector		lba low	7:0 */
 	c[5] = n;		/* cylinder low		lba mid	15:8 */
 	c[6] = n >> 8;		/* cylinder hi		lba hi	23:16 */
-	c[7] = Obs;
+	c[7] = 0xa0;		/* obsolete device bits */
 
 	*(ulong*)(c + 8) = 0;
 	*(ulong*)(c + 12) = 0;
@@ -1876,7 +1861,7 @@ static int
 didtype(Pcidev *p)
 {
 	switch(p->vid){
-	case Vintel:
+	case 0x8086:
 		if((p->did & 0xfffc) == 0x2680)
 			return Tesb;
 		/*
@@ -1892,19 +1877,12 @@ didtype(Pcidev *p)
 		    (p->did & 0xfff7) == 0x3b28)	/* pchm */
 			return Tich;
 		break;
-	case Vatiamd:
+	case 0x1002:
 		if(p->did == 0x4380)
 			return Tsb600;
 		break;
-	case Vmarvell:
-		/* can't cope with sata 3 yet; touching sd files will hang */
-		if (p->did == 0x9123) {
-			print("ahci: ignoring sata 3 controller\n");
-			return -1;
-		}
-		break;
 	}
-	if(p->ccrb == Pcibcstore && p->ccru == Pciscsata && p->ccrp == 1)
+	if(p->ccrb == Pcibcstore && p->ccru == 6 && p->ccrp == 1)
 		return Tunk;
 	return -1;
 }
@@ -1941,10 +1919,9 @@ loop:
 		memset(c, 0, sizeof *c);
 		memset(s, 0, sizeof *s);
 		io = p->mem[Abar].bar & ~0xf;
-		c->physio = (uchar *)io;
 		c->mmio = vmap(io, p->mem[Abar].size);
 		if(c->mmio == 0){
-			print("ahci: %s: address %#luX in use did=%x\n",
+			print("ahci: %s: address 0x%luX in use did=%x\n",
 				Tname(c), io, p->did);
 			continue;
 		}
@@ -1970,9 +1947,10 @@ loop:
 		c->ndrive = s->nunit = nunit;
 		c->mport = c->hba->cap & ((1<<5)-1);
 
-		i = (c->hba->cap >> 20) & ((1<<4)-1);		/* iss */
-		print("#S/sd%c: %s: %#p %s, %d ports, irq %d\n", s->idno,
-			Tname(c), c->physio, descmode[i], nunit, c->pci->intl);
+		i = (c->hba->cap >> 21) & 1;
+		print("#S/sd%c: %s: sata-%s with %d ports\n", s->idno,
+			Tname(c), "I\0II" + i*2, nunit);
+
 		/* map the drives -- they don't all need to be enabled. */
 		memset(c->rawdrive, 0, sizeof c->rawdrive);
 		n = 0;
@@ -2237,7 +2215,7 @@ iartopctl(SDev *sdev, char *p, char *e)
 
 	ctlr = sdev->ctlr;
 	hba = ctlr->hba;
-	p = seprint(p, e, "sd%c ahci port %#p: ", sdev->idno, ctlr->physio);
+	p = seprint(p, e, "sd%c ahci port %#p: ", sdev->idno, hba);
 	cap = hba->cap;
 	has(Hs64a, "64a");
 	has(Hsalp, "alp");
