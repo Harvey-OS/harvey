@@ -742,12 +742,14 @@ rrattach1(RR *new, int auth)
 
 //	dnslog("rrattach1: %s", new->owner->name);
 	if(!new->db) {
+		new->expire = new->ttl;		/* ? */
 		/*
 		 * try not to let responses expire before we
 		 * can use them to complete this query, by extending
-		 * past (or nearly past) expiration time.
+		 * past expiration time.
 		 */
-		new->expire = new->ttl > now + Min? new->ttl: now + 10*Min;
+		if(new->expire <= now - 60)
+			new->expire = now + 10*Min;
 	} else
 		new->expire = now + Year;
 	dp = new->owner;
