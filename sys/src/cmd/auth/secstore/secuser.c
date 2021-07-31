@@ -66,9 +66,12 @@ main(int argc, char **argv)
 			print("new user, but directory %s already exists\n", home);
 			exits(home);
 		}
-	}else{
+		if(create(home, OREAD, DMDIR | 0775L) < 0){
+			print("unable to create %s: %r\n", home);
+			exits(home);
+		}
+	}else
 		isnew = 0;
-	}
 
 	/* get main password for id */
 	for(;;){
@@ -197,16 +200,10 @@ main(int argc, char **argv)
 			sysfatal("strdup");
 
 	syslog(0, LOG, "CHANGELOGIN for '%s'", pw->id);
-	if(putPW(pw) < 0){
+	if(putPW(pw) < 0)
 		print("error writing entry: %r\n");
-		exits("can't write password file");
-	}else{
+	else
 		print("change written\n");
-		if(isnew && create(home, OREAD, DMDIR | 0775L) < 0){
-			print("unable to create %s: %r\n", home);
-			exits(home);
-		}
-	}
 
 	exits("");
 }
