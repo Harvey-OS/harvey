@@ -7,10 +7,6 @@
 #include "sd.h"
 #include "fs.h"
 
-enum {
-	Datamagic = 0xcafebabe,
-};
-
 /*
  * "cache" must be in this list so that 9load will pass the definition of
  * the cache partition into the kernel so that the disk named by the `cfs'
@@ -318,7 +314,6 @@ main(void)
 	int flag, i, mode, tried;
 	char def[2*NAMELEN], line[80], *p, *file;
 	Type *tp;
-	static ulong vfy = Datamagic;
 
 	i8042a20();
 	memset(m, 0, sizeof(Mach));
@@ -343,8 +338,6 @@ main(void)
 	if((ulong)&end > (KZERO|(640*1024)))
 		panic("i'm too big");
 
-	if (vfy != Datamagic)
-		panic("data segment incorrectly aligned or loaded");
 	if (!pxe)
 		/* TODO turning off debug and debugload makes loading fail */
 		debug = 1;

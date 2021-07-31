@@ -420,10 +420,8 @@ pcirouting(void)
 		if (p[0] == '$' && p[1] == 'P' && p[2] == 'I' && p[3] == 'R')
 			break;
 
-	if (p >= (uchar *)KADDR(0xfffff)) {
-		print("no pci routing table in bios");
+	if (p >= (uchar *)KADDR(0xfffff))
 		return;
-	}
 
 	r = (router_t *)p;
 
@@ -548,15 +546,9 @@ pcicfginit(void)
 		outb(PciCSE, n);
 	}
 
-	if(pcicfgmode < 0) {
-		static int whined;
-
-		if (!whined) {
-			print("pcicfginit failed!\n");
-			whined = 1;
-		}
+	if(pcicfgmode < 0)
 		goto out;
-	}
+
 
 	if(p = getconf("*pcimaxbno"))
 		pcimaxbno = strtoul(p, 0, 0);
