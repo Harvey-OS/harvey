@@ -855,9 +855,9 @@ lstring:
 	LLSTRING
 	{
 		$$ = new(OLSTRING, Z, Z);
-		$$->type = typ(TARRAY, types[TRUNE]);
-		$$->type->width = $1.l + sizeof(TRune);
-		$$->rstring = (TRune*)$1.s;
+		$$->type = typ(TARRAY, types[TUSHORT]);
+		$$->type->width = $1.l + sizeof(ushort);
+		$$->rstring = (ushort*)$1.s;
 		$$->sym = symstring;
 		$$->etype = TARRAY;
 		$$->class = CSTATIC;
@@ -867,16 +867,16 @@ lstring:
 		char *s;
 		int n;
 
-		n = $1->type->width - sizeof(TRune);
+		n = $1->type->width - sizeof(ushort);
 		s = alloc(n+$2.l+MAXALIGN);
 
 		memcpy(s, $1->rstring, n);
 		memcpy(s+n, $2.s, $2.l);
-		*(TRune*)(s+n+$2.l) = 0;
+		*(ushort*)(s+n+$2.l) = 0;
 
 		$$ = $1;
 		$$->type->width += $2.l;
-		$$->rstring = (TRune*)s;
+		$$->rstring = (ushort*)s;
 	}
 
 zelist:

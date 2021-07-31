@@ -85,10 +85,7 @@ prtree1(Node *n, int d, int f)
 		break;
 
 	case OLSTRING:
-		if(sizeof(TRune) == sizeof(Rune))
-			print(" \"%S\"", (Rune*)n->rstring);
-		else
-			print(" \"...\"");
+		print(" \"%S\"", n->rstring);
 		i = 0;
 		break;
 

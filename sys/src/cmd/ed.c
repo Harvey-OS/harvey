@@ -15,7 +15,7 @@ enum
 	ESIZE	= 256,		/* max size of reg exp */
 	GBSIZE	= 256,		/* max size of global command */
 	MAXSUB	= 9,		/* max number of sub reg exp */
-	ESCFLG	= Runemax,	/* escape Rune - user defined code */
+	ESCFLG	= 0xFFFF,	/* escape Rune - user defined code */
 	EOF	= -1,
 };
 
@@ -54,7 +54,7 @@ Reprog	*pattern;
 int	peekc;
 int	pflag;
 int	rescuing;
-Rune	rhsbuf[LBSIZE/sizeof(Rune)];
+Rune	rhsbuf[LBSIZE/2];
 char	savedfile[FNSIZE];
 jmp_buf	savej;
 int	subnewa;
@@ -735,7 +735,7 @@ gety(void)
 		if(c == 0)
 			continue;
 		*p++ = c;
-		if(p >= &linebuf[LBSIZE-sizeof(Rune)])
+		if(p >= &linebuf[LBSIZE-2])
 			error(Q);
 	}
 }
@@ -988,12 +988,11 @@ getline(int tl)
 	lp = linebuf;
 	bp = getblock(tl, OREAD);
 	nl = nleft;
-	tl &= ~((BLKSIZE/sizeof(Rune)) - 1);
+	tl &= ~((BLKSIZE/2) - 1);
 	while(*lp++ = *bp++) {
 		nl -= sizeof(Rune);
 		if(nl == 0) {
-			tl += BLKSIZE/sizeof(Rune);
-			bp = getblock(tl, OREAD);
+			bp = getblock(tl += BLKSIZE/2, OREAD);
 			nl = nleft;
 		}
 	}
@@ -1011,7 +1010,7 @@ putline(void)
 	tl = tline;
 	bp = getblock(tl, OWRITE);
 	nl = nleft;
-	tl &= ~((BLKSIZE/sizeof(Rune))-1);
+	tl &= ~((BLKSIZE/2)-1);
 	while(*bp = *lp++) {
 		if(*bp++ == '\n') {
 			bp[-1] = 0;
@@ -1020,7 +1019,7 @@ putline(void)
 		}
 		nl -= sizeof(Rune);
 		if(nl == 0) {
-			tl += BLKSIZE/sizeof(Rune);
+			tl += BLKSIZE/2;
 			bp = getblock(tl, OWRITE);
 			nl = nleft;
 		}
@@ -1047,9 +1046,8 @@ getblock(int atl, int iof)
 	static uchar ibuff[BLKSIZE];
 	static uchar obuff[BLKSIZE];
 
-	bno = atl / (BLKSIZE/sizeof(Rune));
-	/* &~3 so the ptr is aligned to 4 (?) */
-	off = (atl*sizeof(Rune)) & (BLKSIZE-1) & ~3;
+	bno = atl / (BLKSIZE/2);
+	off = (atl<<1) & (BLKSIZE-1) & ~03;
 	if(bno >= NBLK) {
 		lastc = '\n';
 		error(T);
@@ -1162,7 +1160,7 @@ join(void)
 	for(a1=addr1; a1<=addr2; a1++) {
 		lp = getline(*a1);
 		while(*gp = *lp++)
-			if(gp++ >= &genbuf[LBSIZE-sizeof(Rune)])
+			if(gp++ >= &genbuf[LBSIZE-2])
 				error(Q);
 	}
 	lp = linebuf;
@@ -1240,7 +1238,7 @@ compsub(void)
 		if(c == '\\') {
 			c = getchr();
 			*p++ = ESCFLG;
-			if(p >= &rhsbuf[LBSIZE/sizeof(Rune)])
+			if(p >= &rhsbuf[LBSIZE/2])
 				error(Q);
 		} else
 		if(c == '\n' && (!globp || !globp[0])) {
@@ -1251,7 +1249,7 @@ compsub(void)
 		if(c == seof)
 			break;
 		*p++ = c;
-		if(p >= &rhsbuf[LBSIZE/sizeof(Rune)])
+		if(p >= &rhsbuf[LBSIZE/2])
 			error(Q);
 	}
 	*p = 0;

@@ -158,7 +158,7 @@ void
 kbdputc(int ch)
 {
 	int n;
-	char buf[UTFmax];
+	char buf[3];
 	Rune r;
 
 	r = ch;

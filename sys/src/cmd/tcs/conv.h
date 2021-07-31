@@ -19,6 +19,6 @@ void tune_in(int fd, long *notused, struct convert *out);
 void tune_out(Rune *base, int n, long *notused);
 
 #define		emit(x)		*(*r)++ = (x)
-#define		NRUNE		(Runemax+1)
+#define		NRUNE		65536
 
 extern long tab[];		/* common table indexed by Runes for reverse mappings */

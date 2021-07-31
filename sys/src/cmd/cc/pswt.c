@@ -132,29 +132,28 @@ casf(void)
 }
 
 long
-outlstring(TRune *s, long n)
+outlstring(ushort *s, long n)
 {
-	char buf[sizeof(TRune)];
-	uint c;
-	int i;
+	char buf[2];
+	int c;
 	long r;
 
 	if(suppress)
 		return nstring;
-	while(nstring & (sizeof(TRune)-1))
+	while(nstring & 1)
 		outstring("", 1);
 	r = nstring;
 	while(n > 0) {
 		c = *s++;
 		if(align(0, types[TCHAR], Aarg1)) {
-			for(i = 0; i < sizeof(TRune); i++)
-				buf[i] = c>>(8*(sizeof(TRune) - i - 1));
+			buf[0] = c>>8;
+			buf[1] = c;
 		} else {
-			for(i = 0; i < sizeof(TRune); i++)
-				buf[i] = c>>(8*i);
+			buf[0] = c;
+			buf[1] = c>>8;
 		}
-		outstring(buf, sizeof(TRune));
-		n -= sizeof(TRune);
+		outstring(buf, 2);
+		n -= sizeof(ushort);
 	}
 	return r;
 }
