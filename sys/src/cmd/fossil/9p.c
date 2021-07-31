@@ -808,8 +808,7 @@ rTwalk(Msg* m)
 	if(t->fid != t->newfid){
 		nfid = fidGet(m->con, t->newfid, FidFWlock|FidFCreate);
 		if(nfid == nil){
-			vtSetError("%s: walk: newfid 0x%ud in use",
-				argv0, t->newfid);
+			vtSetError("walk: newfid 0x%ud in use", t->newfid);
 			fidPut(ofid);
 			return 0;
 		}
