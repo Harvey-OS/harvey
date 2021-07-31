@@ -10,15 +10,6 @@
 #include <pool.h>
 #include "netssh.h"
 
-#undef VERIFYKEYS		/* TODO until it's fixed */
-
-enum {
-	Errnokey = -2,	/* no key on keyring */
-	Errnoverify,	/* factotum found a key, but verification failed */
-	Errfactotum,	/* factotum failure (e.g., no key) */
-	Errnone,	/* key verified */
-};
-
 static int dh_server(Conn *, Packet *, mpint *, int);
 static void genkeys(Conn *, uchar [], mpint *);
 
@@ -639,14 +630,14 @@ verifyhostkey(Conn *c, RSApub *srvkey, Packet *sig)
 		nbsendul(keymbox.mchan, 1);
 		mpfree(srvkey->ek);
 		mpfree(srvkey->n);
-		return Errnokey;
+		return -2;
 	}
 
 	newkey = smprint("key proto=rsa role=verify sys=%s size=%d ek=%M n=%M",
 		c->remote, mpsignif(srvkey->n), srvkey->ek, srvkey->n);
 	if (newkey == nil) {
 		sshlog(c, "out of memory");
-		threadexits("out of memory");
+		exits("out of memory");
 	}
 
 	fd = open("/mnt/factotum/ctl", OWRITE);
@@ -745,25 +736,21 @@ dh_client12(Conn *c, Packet *p)
 	 * not doing it lets us talk to ssh v1 implementations.
 	 */
 	if (nokeyverify)
-		n = Errnone;
+		n = 1;
 	else
 		n = verifyhostkey(c, srvkey, sig);
 	switch (n) {
-#ifdef VERIFYKEYS
-	case Errnokey:
+	case -2:
 		goto out;
-	case Errnoverify:
+	case -1:
 		newkey = "signature verification failed; try netssh -v";
 		keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
 		break;
-	case Errfactotum:
-		newkey = "factotum dialogue failed; try netssh -v";
+	case 0:
+		newkey = "Key verification dialog failed; try netssh -v";
 		keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
 		break;
-	case Errnone:
-#else
-	default:
-#endif
+	case 1:
 		keymbox.msg = smprint("o0000");
 		retval = 0;
 		break;

@@ -1,5 +1,5 @@
 #!/bin/rc
-# boota:
+
 rfork e
 if(! test -f /srv/dos)
 	dossrv >/dev/null </dev/null >[2]/dev/null
@@ -8,7 +8,7 @@ unmount /n/a:>[2]/dev/null
 switch($bootfile) {
 case sd*!cdboot!*
 	# just look for the right file.  bootfile isn''t trustworthy
-	adisk=/dev/sd*/9fat
+	adisk=/dev/sd*/cdboot
 	if(! ~ $#adisk 1)
 		adisk=$adisk(1)
 case sd*
@@ -21,3 +21,4 @@ case *
 }
 
 mount -c /srv/dos /n/a: $adisk
+
