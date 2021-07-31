@@ -364,7 +364,7 @@ fpemu(ulong pc, ulong op, Ureg *ur, FPsave *ufp)
 				break;
 			}
 			if(fpemudebug)
-				print("CMPF	%c%d,F%ld =%#lux\n",
+				print("CMPF	%c%d,F%ld =%#ux\n",
 					tag, rn, op&7, ur->psr>>28);
 			return;
 		}
@@ -555,7 +555,7 @@ fpiarm(Ureg *ur)
 		validaddr(ur->pc, 4, 0);
 		op = *(ulong*)(ur->pc);
 		if(fpemudebug)
-			print("%#lux: %#8.8lux ", ur->pc, op);
+			print("%#ux: %#8.8lux ", ur->pc, op);
 		o = (op>>24) & 0xF;
 		if(condok(ur->psr, op>>28)){
 			for(i = 0; specialopc[i].f; i++)

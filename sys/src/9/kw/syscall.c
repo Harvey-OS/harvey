@@ -123,7 +123,7 @@ notify(Ureg* ureg)
 		l = strlen(n->msg);
 		if(l > ERRMAX-23)	/* " pc=0x0123456789abcdef\0" */
 			l = ERRMAX-23;
-		snprint(n->msg + l, sizeof n->msg - l, " pc=%#lux", ureg->pc);
+		snprint(n->msg + l, sizeof n->msg - l, " pc=%#ux", ureg->pc);
 	}
 
 	if(n->flag != NUser && (up->notified || up->notify == 0)){
@@ -188,7 +188,7 @@ syscall(Ureg* ureg)
 	int i, scallnr;
 
 	if(!userureg(ureg))
-		panic("syscall: from kernel: pc %#lux r14 %#lux psr %#lux",
+		panic("syscall: from kernel: pc %#ux r14 %#ux psr %#ux",
 			ureg->pc, ureg->r14, ureg->psr);
 
 	cycles(&up->kentry);
@@ -214,7 +214,7 @@ syscall(Ureg* ureg)
 	ret = -1;
 	if(!waserror()){
 		if(scallnr >= nsyscall){
-			pprint("bad sys call number %d pc %#lux\n",
+			pprint("bad sys call number %d pc %#ux\n",
 				scallnr, ureg->pc);
 			postnote(up, 1, "sys: bad sys call", NDebug);
 			error(Ebadarg);

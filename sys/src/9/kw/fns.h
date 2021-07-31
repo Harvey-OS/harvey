@@ -120,7 +120,6 @@ uintptr mmukmap(uintptr, uintptr, usize);
 uintptr mmukunmap(uintptr, uintptr, usize);
 extern void* mmuuncache(void*, usize);
 extern void* ucalloc(usize);
-extern void* ucallocalign(usize size, int align, int span);
 extern void ucfree(void*);
 
 /*
