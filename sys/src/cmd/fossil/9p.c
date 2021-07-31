@@ -361,10 +361,6 @@ rTwstat(Msg* m)
 	else
 		retval = 1;
 
-	fid->qid.vers = fileGetMcount(fid->file);
-	m->r.qid = fid->qid;
-	m->r.iounit = m->con->msize-IOHDRSZ;
-
 	if(tsync){
 		/*
 		 * All values were defaulted,

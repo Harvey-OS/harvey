@@ -807,7 +807,6 @@ fileSetDir(File *f, DirEntry *dir, char *uid)
 	char *oelem;
 	u32int mask;
 	u64int size;
-	int changed;
 
 	/* can not set permissions for the root */
 	if(fileIsRoot(f)){
@@ -845,7 +844,6 @@ fileSetDir(File *f, DirEntry *dir, char *uid)
 
 	if(!sourceLock2(f->source, f->msource, -1))
 		goto Err;
-	changed = 0;
 	if(!fileIsDir(f)){
 		size = sourceGetSize(f->source);
 		if(size != dir->size){
@@ -855,7 +853,6 @@ fileSetDir(File *f, DirEntry *dir, char *uid)
 					sourceUnlock(f->msource);
 				goto Err;
 			}
-			changed = 1;
 			/* commited to changing it now */
 		}
 	}
@@ -898,8 +895,6 @@ fileSetDir(File *f, DirEntry *dir, char *uid)
 	fileMetaUnlock(f);
 	fileUnlock(f);
 
-	if(changed)
-		fileWAccess(f, uid);
 	fileWAccess(f->up, uid);
 
 	return 1;
