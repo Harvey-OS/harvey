@@ -101,17 +101,17 @@ Bopen(char *name, int mode)
 
 	switch(mode&~(OCEXEC|ORCLOSE|OTRUNC)) {
 	default:
-		fprint(2, "Bopen: unknown mode %#x\n", mode);
+		fprint(2, "Bopen: unknown mode %d\n", mode);
 		return 0;
 
 	case OREAD:
-		f = open(name, mode);
+		f = open(name, OREAD);
 		if(f < 0)
 			return 0;
 		break;
 
 	case OWRITE:
-		f = create(name, mode, 0666);
+		f = create(name, OWRITE, 0666);
 		if(f < 0)
 			return 0;
 	}

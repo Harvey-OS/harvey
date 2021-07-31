@@ -249,13 +249,11 @@ wikicmd(Wiki *w, char *s)
 	if(iscmd(s, "Diff"))
 		return wikidiff(w);
 	if(iscmd(s, "Get")){
-		if(winisdirty(w->win) && !w->win->warned){
-			w->win->warned = 1;
+		if(w->win->dirtied){
+			w->win->dirtied = 0;
 			fprint(2, "%s/%s modified\n", dir, w->arg);
-		}else{
-			w->win->warned = 0;
+		}else
 			wikiget(w);
-		}
 		return 1;
 	}
 	if(iscmd(s, "Put")){
@@ -345,11 +343,9 @@ acmeevent(Wiki *wiki, Event *e)
 		break;
 
 	case 'E':	/* write to body or tag; can't affect us */
-		break;
-
 	case 'K':	/* type away; we don't care */
 		if(e->c2 == 'I' || e->c2 == 'D')
-			w->warned = 0;
+			w->dirtied = 1;
 		break;
 
 	case 'M':	/* mouse event */
@@ -410,7 +406,7 @@ acmeevent(Wiki *wiki, Event *e)
 
 		case 'I':	/* mouse: text inserted in body */
 		case 'D':	/* mouse: text deleted from body */
-			w->warned = 0;
+			w->dirtied = 1;
 			break;
 
 		default:
@@ -442,9 +438,7 @@ wikithread(void *v)
 		if(w->addr)
 			winselect(w->win, w->addr, 1);
 	}
-	fprint(w->win->ctl, "menu\n");
-	wintagwrite(w->win, "Get History Diff New", 4+8+4+4);
-	winclean(w->win);
+	wintagwrite(w->win, "Get Put History Diff New", 4+4+8+4+4);
 		
 	while(!w->dead && (e = recvp(w->win->cevent)))
 		acmeevent(w, e);
