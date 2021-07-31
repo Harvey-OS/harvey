@@ -38,6 +38,7 @@ link
 
 misc
 	uartsa1110
+	paqfs.root
 	sdata
 
 port
@@ -46,6 +47,3 @@ port
 boot cpu
 boot
 	paq
-bootdir
-	bootbitsy.out	boot
-	/arm/bin/paqfs	paqfs
