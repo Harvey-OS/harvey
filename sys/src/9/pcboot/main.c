@@ -291,8 +291,6 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
-
-	conschan = enamecopen("#c/cons", ORDWR);
 	bootloadproc(0);
 	panic("bootloadproc returned");
 }

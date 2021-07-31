@@ -24,8 +24,6 @@ typedef struct {
 	Mblock*	mb;
 } Mitem;
 
-Chan *conschan;
-
 static Mblock mblock[MAXCONF];
 static int nmblock;
 static Mitem mitem[MAXCONF];
@@ -82,6 +80,8 @@ finditem(char* name, char** residue)
 	return nil;
 }
 
+static Chan *conschan;
+
 /* timeout is in seconds */
 int
 getstr(char *prompt, char *buf, int size, char *def, int timeout)
@@ -90,7 +90,9 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 	static char pbuf[PRINTSIZE];
 
 	if(conschan == nil)
-		panic("getstr: #c/cons not open");
+		conschan = enamecopen("#c/cons", ORDWR);
+	if(conschan == nil)
+		panic("can't open #c/cons");
 	buf[0] = 0;
 	isdefault = (def && *def);
 	if(isdefault == 0){
@@ -106,9 +108,9 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 		print("%s", pbuf);
 		if (timeout > 0) {
 			for(timeout *= 1000; timeout > 0; timeout -= 100) {
+				tsleep(&up->sleep, return0, 0, 100);
 				if (qlen(kbdq) > 0)	/* if input queued */
 					break; 
-				tsleep(&up->sleep, return0, 0, 100);
 			}
 			if (timeout <= 0) {		/* use default */
 				print("\n");
