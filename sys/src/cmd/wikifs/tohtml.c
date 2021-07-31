@@ -401,14 +401,14 @@ s_diff(String *s, Whist *h, int i, int j)
 			if(p[0]=='<' || p[0]=='>' || p[0]=='-')
 				continue;
 			p[Blinelen(&b)-1] = '\0';
-			if((p = strpbrk(p, "acd")) == nil)
+			if((q = strpbrk(p, "acd")) == nil)
 				continue;
-			n1 = atoi(p+1);
-			if(q = strchr(p, ','))
+			n1 = atoi(q+1);
+			if(q = strchr(q, ','))
 				n2 = atoi(q+1);
 			else
 				n2 = n1;
-			switch(*p){
+			switch(*q){
 			case 'a':
 			case 'c':
 				s = s_append(s, "<span class='old_text'>");
