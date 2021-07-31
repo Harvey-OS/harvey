@@ -10,9 +10,9 @@ UPDATE=\
 	mkfile\
 
 none:VQ:
-	echo mk all, install, installall, clean, nuke, or update
+	echo mk all, install, clean, or nuke
 
-all install installall clean nuke:VQ:
+all install clean nuke:VQ:
 	for (i in $DIRS) @{
 		cd $i
 		mk $target
