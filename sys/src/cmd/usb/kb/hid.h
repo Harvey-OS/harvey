@@ -1,12 +1,8 @@
 /*
  * USB keyboard/mouse constants
  */
-
-typedef struct Chain Chain;
-typedef struct HidInterface HidInterface;
-typedef struct HidRepTempl HidRepTempl;
-
 enum {
+
 	Stack = 32 * 1024,
 
 	/* HID class subclass protocol ids */
@@ -15,7 +11,6 @@ enum {
 
 	/* Requests */
 	Getproto	= 0x03,
-	Setidle		= 0x0a,
 	Setproto	= 0x0b,
 
 	/* protocols for SET_PROTO request */
@@ -44,6 +39,7 @@ enum {
 
 	MaxAcc = 3,			/* max. ptr acceleration */
 	PtrMask= 0xf,			/* 4 buttons: should allow for more. */
+
 };
 
 /*
@@ -53,8 +49,8 @@ enum {
 	/* Scan codes (see kbd.c) */
 	SCesc1		= 0xe0,		/* first of a 2-character sequence */
 	SCesc2		= 0xe1,
-	SClshift	= 0x2a,
-	SCrshift	= 0x36,
+	SClshift		= 0x2a,
+	SCrshift		= 0x36,
 	SCctrl		= 0x1d,
 	SCcompose	= 0x38,
 	Keyup		= 0x80,		/* flag bit */
@@ -62,64 +58,3 @@ enum {
 };
 
 int kbmain(Dev *d, int argc, char*argv[]);
-
-enum{
-	MaxChLen	= 16,	/* bytes */
-};
-
-struct Chain {
-	int	b;			/* offset start in bits, (first full) */
-	int	e;			/* offset end in bits (first empty) */
-	uchar	buf[MaxChLen];
-};
-
-#define MSK(nbits)		((1UL << (nbits)) - 1)
-#define IsCut(bbits, ebits)	(((ebits)/8 - (bbits)/8) > 0)
-
-enum {
-	KindPad = 0,
-	KindButtons,
-	KindX,
-	KindY,
-	KindWheel,
-
-	MaxVals	= 8,
-	MaxIfc	= 8,
-};
-
-struct HidInterface {
-	ulong	v[MaxVals];	/* one ulong per val should be enough */
-	int	kind[MaxVals];
-	int	nbits;
-	int	count;
-};
-
-struct HidRepTempl{
-	int	nifcs;
-	HidInterface ifcs[MaxIfc];
-};
-
-enum {
-	/* report types */
-	HidTypeUsgPg	= 0x05,
-	HidPgButts	= 0x09,
-
-	HidTypeRepSz	= 0x75,
-	HidTypeCnt	= 0x95,
-
-	HidTypeUsg	= 0x09,
-	HidPtr		= 0x01,
-	HidX		= 0x30,
-	HidY		= 0x31,
-	HidWheel	= 0x38,
-
-	HidInput	= 0x81,
-	HidReportId	= 0x85,
-
-	HidEnd		= 0x0c,
-};
-
-void	dumpreport(HidRepTempl *templ);
-int	hidifcval(HidRepTempl *templ, int kind, int n);
-int	parsereport(HidRepTempl *templ, Chain *rep);
-int	parsereportdesc(HidRepTempl *temp, uchar *repdesc, int repsz);

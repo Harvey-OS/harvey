@@ -90,8 +90,6 @@ acidinit(void)
 		if(types[TINT]->width != types[TSHORT]->width)
 			warn(Z, "acidmember int not long or short");
 	}
-	if(types[TIND]->width == types[TUVLONG]->width)
-		acidchar[TIND] = 'Y';
 	
 }
 

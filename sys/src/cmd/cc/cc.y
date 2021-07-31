@@ -8,14 +8,12 @@
 	struct
 	{
 		Type*	t;
-		uchar	c;
+		char	c;
 	} tycl;
 	struct
 	{
 		Type*	t1;
 		Type*	t2;
-		Type*	t3;
-		uchar	c;
 	} tyty;
 	struct
 	{
@@ -897,22 +895,16 @@ sbody:
 	{
 		$<tyty>$.t1 = strf;
 		$<tyty>$.t2 = strl;
-		$<tyty>$.t3 = lasttype;
-		$<tyty>$.c = lastclass;
 		strf = T;
 		strl = T;
 		lastbit = 0;
 		firstbit = 1;
-		lastclass = CXXX;
-		lasttype = T;
 	}
 	edecl '}'
 	{
 		$$ = strf;
 		strf = $<tyty>2.t1;
 		strl = $<tyty>2.t2;
-		lasttype = $<tyty>2.t3;
-		lastclass = $<tyty>2.c;
 	}
 
 zctlist:
@@ -1003,7 +995,7 @@ complex:
 		if($$->link != T)
 			diag(Z, "redeclare tag: %s", $2->name);
 		$$->link = $4;
-		sualign($$);
+		suallign($$);
 	}
 |	LSTRUCT sbody
 	{
@@ -1011,7 +1003,7 @@ complex:
 		sprint(symb, "_%d_", taggen);
 		$$ = dotag(lookup(), TSTRUCT, autobn);
 		$$->link = $2;
-		sualign($$);
+		suallign($$);
 	}
 |	LUNION ltag
 	{
@@ -1028,7 +1020,7 @@ complex:
 		if($$->link != T)
 			diag(Z, "redeclare tag: %s", $2->name);
 		$$->link = $4;
-		sualign($$);
+		suallign($$);
 	}
 |	LUNION sbody
 	{
@@ -1036,7 +1028,7 @@ complex:
 		sprint(symb, "_%d_", taggen);
 		$$ = dotag(lookup(), TUNION, autobn);
 		$$->link = $2;
-		sualign($$);
+		suallign($$);
 	}
 |	LENUM ltag
 	{

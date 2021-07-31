@@ -1485,7 +1485,6 @@ Init	onamesinit[] =
 	OINDEX,		0,	"INDEX",
 	OFAS,		0,	"FAS",
 	OREGPAIR,	0,	"REGPAIR",
-	OEXREG,		0,	"EXREG",
 	OEND,		0,	"END",
 	-1,		0,	0,
 };

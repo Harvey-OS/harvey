@@ -119,7 +119,7 @@ regopt(Prog *p)
 			r1->s1 = R;
 		}
 
-		bit = mkvar(r, &p->from, p->as==AMOVL);
+		bit = mkvar(r, &p->from);
 		if(bany(&bit))
 		switch(p->as) {
 		/*
@@ -139,7 +139,7 @@ regopt(Prog *p)
 			break;
 		}
 
-		bit = mkvar(r, &p->to, 0);
+		bit = mkvar(r, &p->to);
 		if(bany(&bit))
 		switch(p->as) {
 		default:
@@ -224,9 +224,7 @@ regopt(Prog *p)
 		 */
 		case AFMOVDP:
 		case AFMOVFP:
-		case AFMOVLP:
 		case AFMOVVP:
-		case AFMOVWP:
 		case ACALL:
 			for(z=0; z<BITS; z++)
 				addrs.b[z] |= bit.b[z];
@@ -639,7 +637,7 @@ doregbits(int r)
 }
 
 Bits
-mkvar(Reg *r, Adr *a, int isro)
+mkvar(Reg *r, Adr *a)
 {
 	Var *v;
 	int i, t, n, et, z;
@@ -653,21 +651,13 @@ mkvar(Reg *r, Adr *a, int isro)
 	t = a->type;
 	r->regu |= doregbits(t);
 	r->regu |= doregbits(a->index);
-	et = a->etype;
 
 	switch(t) {
 	default:
 		goto none;
-	case D_INDIR+D_GS:
-		if(!isro || 1)
-			goto none;
-		n = t;
-		{static Sym er; a->sym = &er;}
-		a->sym->name = "$extreg";
-		break;
 	case D_ADDR:
 		a->type = a->index;
-		bit = mkvar(r, a, 0);
+		bit = mkvar(r, a);
 		for(z=0; z<BITS; z++)
 			addrs.b[z] |= bit.b[z];
 		a->type = t;
@@ -684,6 +674,7 @@ mkvar(Reg *r, Adr *a, int isro)
 		goto none;
 	if(s->name[0] == '.')
 		goto none;
+	et = a->etype;
 	o = a->offset;
 	v = var;
 	for(i=0; i<nvar; i++) {
@@ -1017,7 +1008,7 @@ paint1(Reg *r, int bn)
 
 		if(r->use1.b[z] & bb) {
 			change += CREF * r->loop;
-			if(p->as == AFMOVL || p->as == AFMOVW)
+			if(p->as == AFMOVL)
 				if(BtoR(bb) != D_F0)
 					change = -CINF;
 			if(debug['R'] && debug['v'])
@@ -1027,7 +1018,7 @@ paint1(Reg *r, int bn)
 
 		if((r->use2.b[z]|r->set.b[z]) & bb) {
 			change += CREF * r->loop;
-			if(p->as == AFMOVL || p->as == AFMOVW)
+			if(p->as == AFMOVL)
 				if(BtoR(bb) != D_F0)
 					change = -CINF;
 			if(debug['R'] && debug['v'])
@@ -1037,7 +1028,7 @@ paint1(Reg *r, int bn)
 
 		if(STORE(r) & r->regdiff.b[z] & bb) {
 			change -= CLOAD * r->loop;
-			if(p->as == AFMOVL || p->as == AFMOVW)
+			if(p->as == AFMOVL)
 				if(BtoR(bb) != D_F0)
 					change = -CINF;
 			if(debug['R'] && debug['v'])

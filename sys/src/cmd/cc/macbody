@@ -25,7 +25,7 @@ getsym(void)
 	char *cp;
 
 	c = getnsc();
-	if(!isalpha(c) && c != '_' && c < Runeself) {
+	if(!isalpha(c) && c != '_') {
 		unget(c);
 		return S;
 	}
@@ -33,7 +33,7 @@ getsym(void)
 		if(cp <= symb+NSYMB-4)
 			*cp++ = c;
 		c = getc();
-		if(isalnum(c) || c == '_' || c >= Runeself)
+		if(isalnum(c) || c == '_')
 			continue;
 		unget(c);
 		break;
