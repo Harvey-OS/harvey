@@ -28,25 +28,24 @@ main(int argc, char **argv)
 	}
 	ARGBEGIN {
 	case 'a':
-		printf("%s %s %s %s %s ", u.sysname, u.nodename,
+		printf("%s %s %s %s %s\n", u.sysname, u.nodename,
 			u.release, u.version, u.machine);
 		break;
 	case 'm':
-		printf("%s ", u.machine);
+		printf("%s\n", u.machine);
 		break;
 	case 'n':
-		printf("%s ", u.nodename);
+		printf("%s\n", u.nodename);
 		break;
 	case 'r':
-		printf("%s ", u.release);
+		printf("%s\n", u.release);
 		break;
 	case 's':
-		printf("%s ", u.sysname);
+		printf("%s\n", u.sysname);
 		break;
 	case 'v':
-		printf("%s ", u.version);
+		printf("%s\n", u.version);
 		break;
 	} ARGEND
-	printf("\n");
 	exit(0);
 }
