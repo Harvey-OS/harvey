@@ -23,18 +23,16 @@
  * it's worth worrying about.		-rsc
  */
 
-/* trying a larger value to get greater throughput - geoff */
-#define	BUFPERCLUST	256 /* sectors/cluster; was 64, 64*Sectorsize = 128kb */
+#define	BUFPERCLUST	64	/* 64*Sectorsize = 128kb */
 #define	NCLUST		16
 
 int nclust = NCLUST;
 
 static Ioclust*	iohead;
 static Ioclust*	iotail;
-
 static Ioclust*	getclust(Xdata*, long);
 static void	putclust(Ioclust*);
-static void	xread(Ioclust*);
+static void xread(Ioclust*);
 
 void
 iobuf_init(void)
@@ -166,10 +164,12 @@ static void
 xread(Ioclust *c)
 {
 	int n;
+	vlong addr;
 	Xdata *dev;
 
 	dev = c->dev;
-	seek(dev->dev, (vlong)c->addr * Sectorsize, 0);
+	addr = c->addr;
+	seek(dev->dev, addr*Sectorsize, 0);
 	n = readn(dev->dev, c->iobuf, BUFPERCLUST*Sectorsize);
 	if(n < Sectorsize)
 		error("I/O read error");

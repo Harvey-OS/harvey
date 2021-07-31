@@ -993,12 +993,10 @@ mmcread(Buf *buf, void *v, long nblock, long off)
 
 	/*
 	 * `read cd' only works for CDs; for everybody else,
-	 * we'll try plain `read (12)'.  only use read cd if it's
-	 * a cd drive with a cd in it and we're not reading data
-	 * (e.g., reading audio).
+	 * we'll try plain `read (12)'.
 	 */
 	memset(cmd, 0, sizeof(cmd));
-	if (drive->type == TypeCD && drive->mmctype == Mmccd && bs != BScdrom) {
+	if (drive->type == TypeCD && drive->mmctype == Mmccd) {
 		cmd[0] = ScmdReadcd;
 		cmd[2] = off>>24;
 		cmd[3] = off>>16;
