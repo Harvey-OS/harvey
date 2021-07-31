@@ -13,7 +13,7 @@
 #include	"ureg.h"
 
 #include	"arm.h"
-#include	"../port/fpi.h"
+#include	"fpi.h"
 
 /* undef this if correct kernel r13 isn't in Ureg;
  * check calculation in fpiarm below

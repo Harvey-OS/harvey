@@ -13,7 +13,7 @@
 #include	"ureg.h"
 
 #include	"arm.h"
-#include	"../port/fpi.h"
+#include	"fpi.h"
 
 #define ARM7500			/* emulate old pre-VFP opcodes */
 
