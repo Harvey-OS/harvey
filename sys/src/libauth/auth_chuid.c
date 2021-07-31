@@ -10,7 +10,7 @@ auth_chuid(AuthInfo *ai, char *ns)
 {
 	int rv, fd;
 
-	if(ai == nil || ai->cap == nil || *ai->cap == 0){
+	if(ai == nil || ai->cap == nil){
 		werrstr("no capability");
 		return -1;
 	}
