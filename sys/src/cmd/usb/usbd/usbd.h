@@ -1,7 +1,6 @@
 typedef struct Hub Hub;
 typedef struct Port Port;
 typedef struct DHub DHub;
-typedef struct DSSHub DSSHub;
 typedef struct Devtab Devtab;
 typedef struct Usbfs Usbfs;
 
@@ -11,8 +10,6 @@ enum
 
 	Dhub	= 0x29,		/* hub descriptor type */
 	Dhublen = 9,		/* hub descriptor length */
-	Dsshub		= 0x2A,		/* superspeed hub descriptor type */
-	Dsshublen	= 12,		/* superspeed hub descriptor length */
 
 	/* hub class feature selectors */
 	Fhublocalpower	= 0,
@@ -111,20 +108,6 @@ struct DHub
 	uchar	wHubCharacteristics[2];
 	uchar	bPwrOn2PwrGood;
 	uchar	bHubContrCurrent;
-	uchar	DeviceRemovable[1];	/* variable length */
-};
-
-/* Superspeed HUB descriptor */
-struct DSSHub
-{
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bNbrPorts;
-	uchar	wHubCharacteristics[2];
-	uchar	bPwrOn2PwrGood;
-	uchar	bHubContrCurrent;
-	uchar	bHubHdrDecLat;
-	uchar	wHubDelay[2];
 	uchar	DeviceRemovable[1];	/* variable length */
 };
 
