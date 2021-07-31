@@ -1143,13 +1143,12 @@ dhcprecv(void)
 	uchar buf[8000], vopts[256], taddr[IPaddrlen];
 	Bootp *bp;
 
-	memset(buf, 0, sizeof buf);
 	alarm(1000);
 	n = read(conf.fd, buf, sizeof buf);
 	alarm(0);
 
 	if(n < 0){
-		rerrstr(err, sizeof err);
+		errstr(err, sizeof err);
 		if(strstr(err, "interrupt") == nil)
 			warning("dhcprecv: bad read: %s", err);
 		else
@@ -1612,7 +1611,7 @@ parsebootp(uchar *p, int n)
 		return nil;
 	}
 
-	if(conf.xid != nhgetl(bp->xid))		/* not meant for us */
+	if(conf.xid != nhgetl(bp->xid))
 		return nil;
 
 	if(bp->op != Bootreply) {

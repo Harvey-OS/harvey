@@ -795,12 +795,7 @@ static char *stoplist[] =
 	0
 };
 
-enum {
-	Maxokbytes	= 4096,
-	Maxfolders	= Maxokbytes / 4,
-};
-
-static char *folders[Maxfolders];
+static char *folders[100];
 static char *folderbuff;
 
 static void
@@ -808,21 +803,20 @@ readokfolders(void)
 {
 	int fd, nr;
 
+	folderbuff = malloc(512);
+	if(folderbuff == nil)
+		return;
 	fd = open("imap.ok", OREAD);
-	if(fd < 0)
-		return;
-	folderbuff = malloc(Maxokbytes);
-	if(folderbuff == nil) {
-		close(fd);
-		return;
-	}
-	nr = read(fd, folderbuff, Maxokbytes-1);	/* once is ok */
-	close(fd);
-	if(nr < 0){
+	if(fd < 0){
+Fail:
 		free(folderbuff);
 		folderbuff = nil;
 		return;
 	}
+	nr = read(fd, folderbuff, 512-1);	/* once is ok */
+	close(fd);
+	if(nr < 0)
+		goto Fail;
 	folderbuff[nr] = 0;
 	tokenize(folderbuff, folders, nelem(folders));
 }
@@ -859,5 +853,7 @@ okMbox(char *path)
 	|| strcmp("imap.subscribed", name) == 0
 	|| isdotdot(name) || name[0] == '/')
 		return 0;
+
 	return 1;
+
 }

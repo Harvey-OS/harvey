@@ -16,12 +16,6 @@ struct Node
 	Reinst*	last;
 }Node;
 
-/* max character classes per program is nelem(reprog->class) */
-static Reprog	*reprog;
-
-/* max rune ranges per character class is nelem(classp->spans)/2 */
-#define NCCRUNE	nelem(classp->spans)
-
 #define	NSTACK	20
 static	Node	andstack[NSTACK];
 static	Node	*andp;
@@ -328,8 +322,8 @@ dump(Reprog *pp)
 static	Reclass*
 newclass(void)
 {
-	if(nclass >= nelem(reprog->class))
-		rcerror("too many character classes; increase Reprog.class size");
+	if(nclass >= NCLASS)
+		regerr2("too many character classes; limit", NCLASS+'0');
 	return &(classp[nclass++]);
 }
 
@@ -414,7 +408,7 @@ bldcclass(void)
 	}
 
 	/* parse class into a set of spans */
-	while(ep < &r[NCCRUNE-1]){
+	for(; ep<&r[NCCRUNE];){
 		if(rune == 0){
 			rcerror("malformed '[]'");
 			return 0;
@@ -437,10 +431,6 @@ bldcclass(void)
 			*ep++ = rune;
 		}
 		quoted = nextc(&rune);
-	}
-	if(ep >= &r[NCCRUNE-1]) {
-		rcerror("char class too large; increase Reclass.spans size");
-		return 0;
 	}
 
 	/* sort on span start */
@@ -465,10 +455,9 @@ bldcclass(void)
 		np[0] = *p++;
 		np[1] = *p++;
 		for(; p < ep; p += 2)
-			/* overlapping or adjacent ranges? */
-			if(p[0] <= np[1] + 1){
-				if(p[1] >= np[1])
-					np[1] = p[1];	/* coalesce */
+			if(p[0] <= np[1]){
+				if(p[1] > np[1])
+					np[1] = p[1];
 			} else {
 				np += 2;
 				np[0] = p[0];

@@ -983,18 +983,12 @@ xmitquery(Query *qp, int medium, int depth, uchar *obuf, int inns, int len)
 	destck(p);
 	if (qp->ndest < 0 || qp->ndest > Maxdest)
 		dnslog("qp->ndest %d out of range", qp->ndest);
-	if (qp->ndest > qp->curdest - p) {
-		j = serveraddrs(qp, qp->curdest - p, depth);
-		if (j < 0 || j >= Maxdest) {
-			dnslog("serveraddrs() result %d out of range", j);
-			abort();
-		}
-		qp->curdest = &qp->dest[j];
-	}
+	if (qp->ndest > qp->curdest - p)
+		qp->curdest = &qp->dest[serveraddrs(qp, qp->curdest - p, depth)];
 	destck(qp->curdest);
 
 	/* no servers, punt */
-	if (qp->ndest == 0)
+	if (qp->curdest == qp->dest)
 		if (cfg.straddle && cfg.inside) {
 			/* get ips of "outside-ns-ips" */
 			p = qp->curdest = qp->dest;
@@ -1261,6 +1255,7 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns)
 	char buf[12];
 	uchar srcip[IPaddrlen];
 	Dest *p, *np, *dest;
+//	Dest dest[Maxdest];
 
 	/* pack request into a udp message */
 	req = rand();
