@@ -15,7 +15,6 @@ cache(int fd)
 
 	*partition = 0;
 
-	bind("#S", "/dev", MAFTER);
 	readfile("#e/cfs", buf, sizeof(buf));
 	if(*buf){
 		argc = tokenize(buf, argv, 4);
