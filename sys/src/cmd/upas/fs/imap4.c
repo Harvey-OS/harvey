@@ -329,8 +329,7 @@ imap4resp(Imap *imap)
 			break;
 
 		default:
-			if(imap->debug || *p)
-				fprint(2, "unexpected line: %s\n", p);
+			fprint(2, "unexpected line: %s\n", p);
 		}
 	}
 	snprint(error, sizeof error, "i/o error: %r\n");

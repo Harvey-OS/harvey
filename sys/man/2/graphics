@@ -47,10 +47,10 @@ int	flushimage(Display *d, int vis)
 int	bufimage(Display *d, int n)
 .PP
 .B
-void	lockdisplay(Display *d)
+int	lockdisplay(Display *d)
 .PP
 .B
-void	unlockdisplay(Display *d)
+int	unlockdisplay(Display *d)
 .PP
 .B
 int	getwindow(Display *d, int ref)
