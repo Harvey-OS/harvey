@@ -409,16 +409,17 @@ cistrncmp(char *a, char *b, int n)
 	return 0;
 }
 
-#define PSTART		(12*1024*1024)
-#define PEND		(16*1024*1024)
+extern void diff(char*);
 
-ulong palloc = PSTART;
-
+ulong palloc;
 void*
 ialloc(ulong n, int align)
 {
 	ulong p;
 	int a;
+
+	if(palloc == 0)
+		palloc = 12*1024*1024;
 
 	p = palloc;
 	if(align <= 0)
@@ -428,11 +429,7 @@ ialloc(ulong n, int align)
 	if(a = p % align)
 		p += align - a;
 
-
 	palloc = p+n;
-	if(palloc > PEND)
-		panic("ialloc(%lud, %d) called from 0x%lux\n",
-			n, align, getcallerpc(&n));
 	return memset((void*)(p|KZERO), 0, n);
 }
 
@@ -440,10 +437,6 @@ void*
 xspanalloc(ulong size, int align, ulong span)
 {
 	ulong a, v;
-
-	if((palloc + (size+align+span)) > PEND)
-		panic("xspanalloc(%lud, %d, 0x%lux) called from 0x%lux\n",
-			size, align, span, getcallerpc(&size));
 
 	a = (ulong)ialloc(size+align+span, 0);
 
@@ -475,9 +468,6 @@ allocb(int size)
 		lbp = &bp->next;
 	}
 	if(bp == 0){
-		if((palloc + (sizeof(Block)+size+64)) > PEND)
-			panic("allocb(%d) called from 0x%lux\n",
-				size, getcallerpc(&size));
 		bp = ialloc(sizeof(Block)+size+64, 0);
 		addr = (ulong)bp;
 		addr = ROUNDUP(addr + sizeof(Block), 8);

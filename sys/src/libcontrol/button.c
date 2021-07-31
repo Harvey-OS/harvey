@@ -14,15 +14,12 @@ struct Button
 	CImage	*image;
 	CImage	*mask;
 	CImage	*light;
-	CImage	*pale;
 	CImage	*bordercolor;
 	int		pressed;
 	int		lastbut;
 	int		lastshow;
 	int		border;
 	int		align;
-	int		off;
-	int		prepress;
 };
 
 enum{
@@ -35,7 +32,6 @@ enum{
 	EImage,
 	ELight,
 	EMask,
-	EPale,
 	ERect,
 	EReveal,
 	EShow,
@@ -53,7 +49,6 @@ static char *cmds[] = {
 	[EImage] =	"image",
 	[ELight] =		"light",
 	[EMask] =		"mask",
-	[EPale] =		"pale",
 	[ERect] =		"rect",
 	[EReveal] =	"reveal",
 	[EShow] =		"show",
@@ -71,7 +66,6 @@ buttonfree(Control *c)
 	_putctlimage(b->image);
 	_putctlimage(b->mask);
 	_putctlimage(b->light);
-	_putctlimage(b->pale);
 	_putctlimage(b->bordercolor);
 }
 
@@ -88,9 +82,7 @@ buttonshow(Button *b)
 		r = insetrect(b->rect, b->border);
 	}
 	draw(b->screen, r, b->image->image, nil, b->image->image->r.min);
-	if(b->off)
-		draw(b->screen, r, b->pale->image, b->mask->image, b->mask->image->r.min);
-	else if(b->pressed)
+	if(b->pressed)
 		draw(b->screen, r, b->light->image, b->mask->image, b->mask->image->r.min);
 	b->lastshow = b->pressed;
 	flushimage(display, 1);
@@ -103,35 +95,15 @@ buttonmouse(Control *c, Mouse *m)
 
 	b = (Button*)c;
 
-	if(m->buttons&7) {
-		if (ptinrect(m->xy,b->rect)) {
-			if (b->off) {
-				b->off = 0;
-				buttonshow(b);
-			}
-		} else {
-			if (!b->off) {
-				b->off = 1;
-				buttonshow(b);
-			}
-		}
-	}
 	if((m->buttons&7) != b->lastbut){
 		if(m->buttons & 7){
-			b->prepress = b->pressed;
 			if (b->pressed)
 				b->pressed = 0;
 			else
 				b->pressed = m->buttons & 7;
 			buttonshow(b);
 		}else	/* generate event on button up */
-			if (ptinrect(m->xy,b->rect))
-				chanprint(b->event, b->format, b->name, b->pressed);
-			else {
-				b->off = 0;
-				b->pressed = b->prepress;
-				buttonshow(b);
-			}
+			chanprint(b->event, b->format, b->name, b->pressed);
 	}
 	b->lastbut = m->buttons & 7;
 }
@@ -190,11 +162,6 @@ buttonctl(Control *c, CParse *cp)
 		_setctlimage(b, &b->mask, cp->args[1]);
 		b->lastshow = -1;	/* force redraw */
 		break;
-	case EPale:
-		_ctlargcount(b, cp, 2);
-		_setctlimage(b, &b->pale, cp->args[1]);
-		b->lastshow = -1;	/* force redraw */
-		break;
 	case ERect:
 		_ctlargcount(b, cp, 5);
 		r.min.x = cp->iargs[1];
@@ -248,7 +215,6 @@ createbutton(Controlset *cs, char *name)
 	b->image = _getctlimage("white");
 	b->mask = _getctlimage("opaque");
 	b->light = _getctlimage("yellow");
-	b->pale = _getctlimage("paleyellow");
 	b->bordercolor = _getctlimage("black");
 	b->format = ctlstrdup("%q: value %d");
 	b->lastshow = -1;
@@ -258,7 +224,5 @@ createbutton(Controlset *cs, char *name)
 	b->mouse = buttonmouse;
 	b->key = nil;
 	b->exit = buttonfree;
-	b->off = 0;
-	b->prepress = 0;
 	return (Control*)b;
 }

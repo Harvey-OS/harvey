@@ -8,7 +8,6 @@ struct Group {
 	int		mansize;		/* size was set manually */
 	int		separation;
 	int		selected;
-	int		lastkid;
 	CImage	*bordercolor;
 	CImage	*image;
 	int		nkids;
