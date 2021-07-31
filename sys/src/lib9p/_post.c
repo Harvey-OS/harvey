@@ -33,8 +33,6 @@ _post2(void *v)
 	Srv *s;
 
 	s = v;
-	rfork(RFNOTEG);
-	rendezvous((ulong)s, 0);
 	close(s->srvfd);
 	srv(s);
 }
@@ -42,10 +40,6 @@ _post2(void *v)
 void
 _post3(Postcrud *p)
 {
-	rfork(RFFDG);
-	rendezvous((ulong)p->s, 0);
-	close(p->s->infd);
-
 	if(p->mtpt){
 		if(amount(p->s->srvfd, p->mtpt, p->flag, "") == -1)
 			sysfatal("mount %s: %r", p->mtpt);

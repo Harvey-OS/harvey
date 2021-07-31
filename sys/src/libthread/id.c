@@ -57,8 +57,8 @@ threadgetgrp(void)
 void
 threadsetname(char *name)
 {
-	int fd, n;
-	char buf[128], *s;
+	int fd;
+	char buf[40];
 	Proc *p;
 	Thread *t;
 
@@ -70,12 +70,7 @@ threadsetname(char *name)
 	if(p->nthreads == 1){
 		snprint(buf, sizeof buf, "#p/%d/args", getpid());
 		if((fd = open(buf, OWRITE)) >= 0){
-			snprint(buf, sizeof buf, "%s [%s]", argv0, name);
-			n = strlen(buf)+1;
-			s = strchr(buf, ' ');
-			if(s)
-				*s = '\0';
-			write(fd, buf, n);
+			write(fd, name, strlen(name));
 			close(fd);
 		}
 	}
@@ -90,7 +85,7 @@ threadgetname(void)
 void**
 threaddata(void)
 {
-	return &_threadgetproc()->thread->udata[0];
+	return &_threadgetproc()->thread->udata;
 }
 
 void**
@@ -99,36 +94,3 @@ procdata(void)
 	return &_threadgetproc()->udata;
 }
 
-static Lock privlock;
-static int privmask = 1;
-
-int
-tprivalloc(void)
-{
-	int i;
-
-	lock(&privlock);
-	for(i=0; i<NPRIV; i++)
-		if(!(privmask&(1<<i))){
-			privmask |= 1<<i;
-			unlock(&privlock);
-			return i;
-		}
-	unlock(&privlock);
-	return -1;
-}
-
-void
-tprivfree(int i)
-{
-	if(i < 0 || i >= NPRIV)
-		abort();
-	lock(&privlock);
-	privmask &= ~(1<<i);
-}
-
-void**
-tprivaddr(int i)
-{
-	return &_threadgetproc()->thread->udata[i];
-}

@@ -77,8 +77,6 @@ if(chatty9p > 1)
 			closefid(r->fid);
 		if(r->newfid)
 			closefid(r->newfid);
-		if(r->afid)
-			closefid(r->afid);
 		if(r->oldreq)
 			closereq(r->oldreq);
 		switch(r->ifcall.type){

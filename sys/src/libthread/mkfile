@@ -19,7 +19,6 @@ OFILES=\
 	ioproc.$O\
 	ioread.$O\
 	ioreadn.$O\
-	iosleep.$O\
 	iowrite.$O\
 	kill.$O\
 	lib.$O\
