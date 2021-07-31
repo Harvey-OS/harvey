@@ -387,7 +387,7 @@ drawerror(Display *d, char *s)
 {
 	char err[ERRMAX];
 
-	if(d && d->error)
+	if(d->error)
 		d->error(d, s);
 	else{
 		errstr(err, sizeof err);
