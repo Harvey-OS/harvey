@@ -13,17 +13,16 @@
 static Lock _dtoalk[2];
 #define ACQUIRE_DTOA_LOCK(n)	lock(&_dtoalk[n])
 #define FREE_DTOA_LOCK(n)	unlock(&_dtoalk[n])
-
 #define PRIVATE_mem ((2000+sizeof(double)-1)/sizeof(double))
 static double private_mem[PRIVATE_mem], *pmem_next = private_mem;
-
 #define FLT_ROUNDS	1
 #define DBL_DIG		15
 #define DBL_MAX_10_EXP	308
 #define DBL_MAX_EXP	1024
 #define FLT_RADIX	2
 #define Storeinc(a,b,c) (*a++ = b << 16 | c & 0xffff)
-
+#define fpword0(x) ((FPdbleword*)&x)->hi
+#define fpword1(x) ((FPdbleword*)&x)->lo
 /* Ten_pmax = floor(P*log(2)/log(5)) */
 /* Bletch = (highest power of 2 < DBL_MAX_10_EXP) / 16 */
 /* Quick_max = floor((P-1)*log(FLT_RADIX)/log(10) - 1) */
@@ -63,45 +62,20 @@ static double private_mem[PRIVATE_mem], *pmem_next = private_mem;
 
 #define FFFFFFFF 0xffffffffUL
 
+#undef ULint
+
 #define Kmax 15
 
-typedef struct Bigint Bigint;
-typedef struct Ulongs Ulongs;
-
-struct Bigint {
-	Bigint *next;
+struct
+Bigint {
+	struct Bigint *next;
 	int	k, maxwds, sign, wds;
-	unsigned x[1];
+	unsigned int x[1];
 };
 
-struct Ulongs {
-	ulong	hi;
-	ulong	lo;
-};
+typedef struct Bigint Bigint;
 
 static Bigint *freelist[Kmax+1];
-
-Ulongs
-double2ulongs(double d)
-{
-	FPdbleword dw;
-	Ulongs uls;
-
-	dw.x = d;
-	uls.hi = dw.hi;
-	uls.lo = dw.lo;
-	return uls;
-}
-
-double
-ulongs2double(Ulongs uls)
-{
-	FPdbleword dw;
-
-	dw.hi = uls.hi;
-	dw.lo = uls.lo;
-	return dw.x;
-}
 
 static Bigint *
 Balloc(int k)
@@ -511,18 +485,23 @@ diff(Bigint *a, Bigint *b)
 static double	
 ulp(double x)
 {
-	register ulong L;
+	register int L;
+	double	a;
 
-	L = (double2ulongs(x).hi & Exp_mask) - (P - 1) * Exp_msk1;
-	return ulongs2double((Ulongs){L, 0});
+	L = (fpword0(x) & Exp_mask) - (P - 1) * Exp_msk1;
+	fpword0(a) = L;
+	fpword1(a) = 0;
+	return a;
 }
 
 static double	
 b2d(Bigint *a, int *e)
 {
-	unsigned *xa, *xa0, w, y, z;
+	unsigned int * xa, *xa0, w, y, z;
 	int	k;
-	ulong d0, d1;
+	double	d;
+#define d0 fpword0(d)
+#define d1 fpword1(d)
 
 	xa0 = a->x;
 	xa = xa0 + a->wds;
@@ -530,9 +509,10 @@ b2d(Bigint *a, int *e)
 	k = hi0bits(y);
 	*e = 32 - k;
 	if (k < Ebits) {
+		d0 = Exp_1 | y >> Ebits - k;
 		w = xa > xa0 ? *--xa : 0;
 		d1 = y << (32 - Ebits) + k | w >> Ebits - k;
-		return ulongs2double((Ulongs){Exp_1 | y >> Ebits - k, d1});
+		goto ret_d;
 	}
 	z = xa > xa0 ? *--xa : 0;
 	if (k -= Ebits) {
@@ -543,7 +523,10 @@ b2d(Bigint *a, int *e)
 		d0 = Exp_1 | y;
 		d1 = z;
 	}
-	return ulongs2double((Ulongs){d0, d1});
+ret_d:
+#undef d0
+#undef d1
+	return d;
 }
 
 static Bigint *
@@ -551,18 +534,18 @@ d2b(double d, int *e, int *bits)
 {
 	Bigint * b;
 	int	de, i, k;
-	unsigned *x, y, z;
-	Ulongs uls;
+	unsigned int * x, y, z;
+#define d0 fpword0(d)
+#define d1 fpword1(d)
 
 	b = Balloc(1);
 	x = b->x;
 
-	uls = double2ulongs(d);
-	z = uls.hi & Frac_mask;
-	uls.hi &= 0x7fffffff;		/* clear sign bit, which we ignore */
-	de = (int)(uls.hi >> Exp_shift);
+	z = d0 & Frac_mask;
+	d0 &= 0x7fffffff;	/* clear sign bit, which we ignore */
+	de = (int)(d0 >> Exp_shift);
 	z |= Exp_msk11;
-	if (y = uls.lo) {		/* assignment = */
+	if (y = d1) {
 		if (k = lo0bits(&y)) {
 			x[0] = y | z << 32 - k;
 			z >>= k;
@@ -575,31 +558,28 @@ d2b(double d, int *e, int *bits)
 		i = b->wds = 1;
 		k += 32;
 	}
-	USED(i);
 	*e = de - Bias - (P - 1) + k;
 	*bits = P - k;
 	return b;
 }
+
+#undef d0
+#undef d1
 
 static double	
 ratio(Bigint *a, Bigint *b)
 {
 	double	da, db;
 	int	k, ka, kb;
-	Ulongs uls;
 
 	da = b2d(a, &ka);
 	db = b2d(b, &kb);
 	k = ka - kb + 32 * (a->wds - b->wds);
-	if (k > 0) {
-		uls = double2ulongs(da);
-		uls.hi += k * Exp_msk1;
-		da = ulongs2double(uls);
-	} else {
+	if (k > 0)
+		fpword0(da) += k * Exp_msk1;
+	else {
 		k = -k;
-		uls = double2ulongs(db);
-		uls.hi += k * Exp_msk1;
-		db = ulongs2double(uls);
+		fpword0(db) += k * Exp_msk1;
 	}
 	return da / db;
 }
@@ -684,8 +664,10 @@ gethex(double *rvp, const char **sp)
 			x[0] = (x[0] << 4) | (x[1] >> 28);
 		x[1] = (x[1] << 4) | c;
 	}
-	if ((x[0] &= 0xfffff) || x[1])
-		*rvp = ulongs2double((Ulongs){Exp_mask | x[0], x[1]});
+	if ((x[0] &= 0xfffff) || x[1]) {
+		fpword0(*rvp) = Exp_mask | x[0];
+		fpword1(*rvp) = x[1];
+	}
 }
 
 static int	
@@ -868,42 +850,37 @@ dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve)
 	*/
 
 	int	bbits, b2, b5, be, dig, i, ieps, ilim, ilim0, ilim1,
-		j, j1, k, k0, k_check, L, leftright, m2, m5, s2, s5,
-		spec_case, try_quick;
+	j, j1, k, k0, k_check, leftright, m2, m5, s2, s5,
+	spec_case, try_quick;
+	int L;
 	Bigint * b, *b1, *delta, *mlo=nil, *mhi, *S;
 	double	d2, ds, eps;
 	char	*s, *s0;
-	Ulongs ulsd, ulsd2;
 
-	ulsd = double2ulongs(d);
-	if (ulsd.hi & Sign_bit) {
+	if (fpword0(d) & Sign_bit) {
 		/* set sign for everything, including 0's and NaNs */
 		*sign = 1;
-		ulsd.hi &= ~Sign_bit;	/* clear sign bit */
+		fpword0(d) &= ~Sign_bit;	/* clear sign bit */
 	} else
 		*sign = 0;
 
-	if ((ulsd.hi & Exp_mask) == Exp_mask) {
+	if ((fpword0(d) & Exp_mask) == Exp_mask) {
 		/* Infinity or NaN */
 		*decpt = 9999;
-		if (!ulsd.lo && !(ulsd.hi & 0xfffff))
+		if (!fpword1(d) && !(fpword0(d) & 0xfffff))
 			return nrv_alloc("Infinity", rve, 8);
 		return nrv_alloc("NaN", rve, 3);
 	}
-	d = ulongs2double(ulsd);
-
 	if (!d) {
 		*decpt = 1;
 		return nrv_alloc("0", rve, 1);
 	}
 
 	b = d2b(d, &be, &bbits);
-	i = (int)(ulsd.hi >> Exp_shift1 & (Exp_mask >> Exp_shift1));
-
-	ulsd2 = ulsd;
-	ulsd2.hi &= Frac_mask1;
-	ulsd2.lo |= Exp_11;
-	d2 = ulongs2double(ulsd2);
+	i = (int)(fpword0(d) >> Exp_shift1 & (Exp_mask >> Exp_shift1));
+	d2 = d;
+	fpword0(d2) &= Frac_mask1;
+	fpword0(d2) |= Exp_11;
 
 	/* log(x)	~=~ log(1.5) + (x-1.5)/1.5
 		 * log10(x)	 =  log(x) / log(10)
@@ -966,7 +943,6 @@ dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve)
 	switch (mode) {
 	case 0:
 	case 1:
-	default:
 		ilim = ilim1 = -1;
 		i = 18;
 		ndigits = 0;
@@ -1032,11 +1008,7 @@ dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve)
 			ieps++;
 		}
 		eps = ieps * d + 7.;
-
-		ulsd = double2ulongs(eps);
-		ulsd.hi -= (P - 1) * Exp_msk1;
-		eps = ulongs2double(ulsd);
-
+		fpword0(eps) -= (P - 1) * Exp_msk1;
 		if (ilim == 0) {
 			S = mhi = 0;
 			d -= 5.;
@@ -1158,8 +1130,8 @@ bump_up:
 
 	spec_case = 0;
 	if (mode < 2) {
-		ulsd = double2ulongs(d);
-		if (!ulsd.lo && !(ulsd.hi & Bndry_mask)) {
+		if (!fpword1(d) && !(fpword0(d) & Bndry_mask)
+		    ) {
 			/* The special case */
 			b2 += Log2P;
 			s2 += Log2P;
@@ -1236,8 +1208,7 @@ one_digit:
 			delta = diff(S, mhi);
 			j1 = delta->sign ? 1 : cmp(b, delta);
 			Bfree(delta);
-			ulsd = double2ulongs(d);
-			if (j1 == 0 && !mode && !(ulsd.lo & 1)) {
+			if (j1 == 0 && !mode && !(fpword1(d) & 1)) {
 				if (dig == '9')
 					goto round_9_up;
 				if (j > 0)
@@ -1245,7 +1216,9 @@ one_digit:
 				*s++ = dig;
 				goto ret;
 			}
-			if (j < 0 || j == 0 && !mode && !(ulsd.lo & 1)) {
+			if (j < 0 || j == 0 && !mode
+			     && !(fpword1(d) & 1)
+			    ) {
 				if (j1 > 0) {
 					b = lshift(b, 1);
 					j1 = cmp(b, S);
@@ -1317,3 +1290,4 @@ ret1:
 		*rve = s;
 	return s0;
 }
+
