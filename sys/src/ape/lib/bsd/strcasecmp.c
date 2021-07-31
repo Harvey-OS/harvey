@@ -1,28 +1,26 @@
 #include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
 
-typedef unsigned char uchar;
-
+#include <bsd.h>
 
 int
-strcasecmp(char *s1, char *s2)
+strcasecmp(char *a, char *b)
 {
-	int c1, c2;
+	int i;
+	char *p;
 
-	while(*s1){
-		c1 = *(uchar*)s1++;
-		c2 = *(uchar*)s2++;
+	a = strdup(a);
+	b = strdup(b);
 
-		if(c1 == c2)
-			continue;
-
-		if(c1 >= 'A' && c1 <= 'Z')
-			c1 -= 'A' - 'a';
-
-		if(c2 >= 'A' && c2 <= 'Z')
-			c2 -= 'A' - 'a';
-
-		if(c1 != c2)
-			return c1 - c2;
-	}
-	return -*s2;
+	p = a;
+	while(*p)
+		*p++ = tolower(*p);
+	p = b;
+	while(*p)
+		*p++ = tolower(*p);
+	i = strcmp(a, b);
+	free(a);
+	free(b);
+	return i;
 }
