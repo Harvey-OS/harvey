@@ -24,8 +24,7 @@ struct Dict
 };
 
 #define NAME(x)		p = pname(p, ep, x, dp)
-#define SYMBOL(x)	p = psym(p, ep, x)
-#define STRING(x)	p = pstr(p, ep, x)
+#define STRING(x)	p = pstring(p, ep, x)
 #define BYTES(x, n)	p = pbytes(p, ep, x, n)
 #define USHORT(x)	p = pushort(p, ep, x)
 #define UCHAR(x)	p = puchar(p, ep, x)
@@ -34,22 +33,7 @@ struct Dict
 #define V6ADDR(x)	p = pv6addr(p, ep, x)
 
 static uchar*
-psym(uchar *p, uchar *ep, char *np)
-{
-	int n;
-
-	n = strlen(np);
-	if(n >= Strlen)			/* DNS maximum length string */
-		n = Strlen - 1;
-	if(ep - p < n+1)		/* see if it fits in the buffer */
-		return ep+1;
-	*p++ = n;
-	memcpy(p, np, n);
-	return p + n;
-}
-
-static uchar*
-pstr(uchar *p, uchar *ep, char *np)
+pstring(uchar *p, uchar *ep, char *np)
 {
 	int n;
 
@@ -200,7 +184,6 @@ convRR2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 {
 	uchar *lp, *data;
 	int len, ttl;
-	Txt *t;
 
 	NAME(rp->owner->name);
 	USHORT(rp->type);
@@ -224,8 +207,8 @@ convRR2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 
 	switch(rp->type){
 	case Thinfo:
-		SYMBOL(rp->cpu->name);
-		SYMBOL(rp->os->name);
+		STRING(rp->cpu->name);
+		STRING(rp->os->name);
 		break;
 	case Tcname:
 	case Tmb:
@@ -265,15 +248,14 @@ convRR2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 		ULONG(rp->soa->minttl);
 		break;
 	case Ttxt:
-		for(t = rp->txt; t != nil; t = t->next)
-			STRING(t->p);
+		STRING(rp->txt->name);
 		break;
 	case Tnull:
 		BYTES(rp->null->data, rp->null->dlen);
 		break;
 	case Trp:
 		NAME(rp->rmb->name);
-		NAME(rp->rp->name);
+		NAME(rp->txt->name);
 		break;
 	case Tkey:
 		USHORT(rp->key->flags);

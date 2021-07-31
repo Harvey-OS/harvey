@@ -278,6 +278,7 @@ dnageall(int doit)
 					REF(rp->os);
 					break;
 				case Ttxt:
+					REF(rp->txt);
 					break;
 				case Tcname:
 				case Tmb:
@@ -296,7 +297,7 @@ dnageall(int doit)
 					break;
 				case Trp:
 					REF(rp->rmb);
-					REF(rp->rp);
+					REF(rp->txt);
 					break;
 				case Tmx:
 					REF(rp->host);
@@ -608,7 +609,6 @@ rrfree(RR *rp)
 {
 	DN *dp;
 	RR *nrp;
-	Txt *t;
 
 	assert(!rp->cached);
 
@@ -640,14 +640,6 @@ rrfree(RR *rp)
 		free(rp->null->data);
 		free(rp->null);
 		break;
-	case Ttxt:
-		while(rp->txt != nil){
-			t = rp->txt;
-			rp->txt = t->next;
-			free(t->p);
-			free(t);
-		}
-		break;
 	}
 
 	free(rp);
@@ -676,22 +668,9 @@ rrcopy(RR *rp, RR **last)
 	Cert *cert;
 	Sig *sig;
 	Null *null;
-	Txt *t, *nt, **l;
 
 	nrp = rralloc(rp->type);
 	switch(rp->type){
-	case Ttxt:
-		*nrp = *rp;
-		l = &nrp->txt;
-		*l = nil;
-		for(t = rp->txt; t != nil; t = t->next){
-			nt = emalloc(sizeof(*nt));
-			nt->p = estrdup(t->p);
-			nt->next = nil;
-			*l = nt;
-			l = &nt->next;
-		}
-		break;
 	case Tsoa:
 		soa = nrp->soa;
 		*nrp = *rp;
@@ -962,7 +941,6 @@ rrfmt(Fmt *f)
 	int rv;
 	char buf[Domlen];
 	Server *s;
-	Txt *t;
 
 	fmtstrinit(&fstr);
 
@@ -1019,12 +997,10 @@ rrfmt(Fmt *f)
 		fmtprint(&fstr, "\t%.*H", rp->null->dlen, rp->null->data);
 		break;
 	case Ttxt:
-		fmtprint(&fstr, "\t");
-		for(t = rp->txt; t != nil; t = t->next)
-			fmtprint(&fstr, "%s", t->p);
+		fmtprint(&fstr, "\t%s", rp->txt->name);
 		break;
 	case Trp:
-		fmtprint(&fstr, "\t%s %s", rp->rmb->name, rp->rp->name);
+		fmtprint(&fstr, "\t%s %s", rp->rmb->name, rp->txt->name);
 		break;
 	case Tkey:
 		fmtprint(&fstr, "\t%d %d %d", rp->key->flags, rp->key->proto,
@@ -1060,8 +1036,6 @@ rravfmt(Fmt *f)
 	Fmt fstr;
 	int rv;
 	Server *s;
-	Txt *t;
-	int quote;
 
 	fmtstrinit(&fstr);
 
@@ -1120,20 +1094,10 @@ rravfmt(Fmt *f)
 		fmtprint(&fstr, " null=%.*H", rp->null->dlen, rp->null->data);
 		break;
 	case Ttxt:
-		fmtprint(&fstr, " txt=");
-		quote = 0;
-		for(t = rp->txt; t != nil; t = t->next)
-			if(strchr(t->p, ' '))
-				quote = 1;
-		if(quote)
-			fmtprint(&fstr, "\"");
-		for(t = rp->txt; t != nil; t = t->next)
-			fmtprint(&fstr, "%s", t->p);
-		if(quote)
-			fmtprint(&fstr, "\"");
+		fmtprint(&fstr, " txt=%s", rp->txt->name);
 		break;
 	case Trp:
-		fmtprint(&fstr, " rp=%s txt=%s", rp->rmb->name, rp->rp->name);
+		fmtprint(&fstr, " rp=%s txt=%s", rp->rmb->name, rp->txt->name);
 		break;
 	case Tkey:
 		fmtprint(&fstr, " flags=%d proto=%d alg=%d",

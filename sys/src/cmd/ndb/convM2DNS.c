@@ -13,7 +13,6 @@ struct Scan
 };
 
 #define NAME(x)		gname(x, sp)
-#define SYMBOL(x)	(x = gsym(sp))
 #define STRING(x)	(x = gstr(sp))
 #define USHORT(x)	(x = gshort(sp))
 #define ULONG(x)	(x = glong(sp))
@@ -113,7 +112,7 @@ gv6addr(Scan *sp)
  *  get a string.  make it an internal symbol.
  */
 static DN*
-gsym(Scan *sp)
+gstr(Scan *sp)
 {
 	int n;
 	char sym[Strlen+1];
@@ -135,38 +134,6 @@ gsym(Scan *sp)
 	sp->p += n;
 
 	return dnlookup(sym, Csym, 1);
-}
-
-/*
- *  get a string.  don't make it an internal symbol.
- */
-static Txt*
-gstr(Scan *sp)
-{
-	int n;
-	char sym[Strlen+1];
-	Txt *t;
-
-	if(sp->err)
-		return 0;
-	n = *(sp->p++);
-	if(sp->p+n > sp->ep){
-		sp->err = toolong;
-		return 0;
-	}
-
-	if(n > Strlen){
-		sp->err = "illegal string";
-		return 0;
-	}
-	strncpy(sym, (char*)sp->p, n);
-	sym[n] = 0;
-	sp->p += n;
-
-	t = emalloc(sizeof(*t));
-	t->next = nil;
-	t->p = estrdup(sym);
-	return t;
 }
 
 /*
@@ -264,7 +231,6 @@ convM2RR(Scan *sp)
 	uchar *data;
 	int len;
 	char dname[Domlen+1];
-	Txt *t, **l;
 
 retry:
 	NAME(dname);
@@ -294,8 +260,8 @@ retry:
 		rrfree(rp);
 		goto retry;
 	case Thinfo:
-		SYMBOL(rp->cpu);
-		SYMBOL(rp->os);
+		STRING(rp->cpu);
+		STRING(rp->os);
 		break;
 	case Tcname:
 	case Tmb:
@@ -335,20 +301,16 @@ retry:
 		ULONG(rp->soa->minttl);
 		break;
 	case Ttxt:
-		l = &rp->txt;
-		*l = nil;
-		while(sp->p-data < len){
-			STRING(t);
-			*l = t;
-			l = &t->next;
-		}
+		STRING(rp->txt);
+		if(sp->p - data != len)
+			sp->p = data + len;
 		break;
 	case Tnull:
 		BYTES(rp->null->data, rp->null->dlen);
 		break;
 	case Trp:
 		rp->rmb = dnlookup(NAME(dname), Cin, 1);
-		rp->rp = dnlookup(NAME(dname), Cin, 1);
+		rp->txt = dnlookup(NAME(dname), Cin, 1);
 		break;
 	case Tkey:
 		USHORT(rp->key->flags);

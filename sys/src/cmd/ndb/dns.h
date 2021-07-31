@@ -106,7 +106,6 @@ typedef struct Cert	Cert;
 typedef struct Sig	Sig;
 typedef struct Null	Null;
 typedef struct Server	Server;
-typedef struct Txt	Txt;
 
 /*
  *  a structure to track a request and any slave process handling it
@@ -175,15 +174,6 @@ struct Null
 };
 
 /*
- *  text strings
- */
-struct Txt
-{
-	Txt	*next;
-	char	*p;
-};
-
-/*
  *  an unpacked resource record
  */
 struct RR
@@ -207,7 +197,7 @@ struct RR
 		DN	*cpu;	/* cpu type - hinfo */
 		DN	*mb;	/* mailbox - mg, minfo */
 		DN	*ip;	/* ip addrss - a */
-		DN	*rp;	/* rp arg - rp */
+		DN	*txt;	/* first text string - txt, rp */
 		int	cruftlen;
 		ulong	arg0;
 	};
@@ -226,7 +216,6 @@ struct RR
 		Cert	*cert;
 		Sig	*sig;
 		Null	*null;
-		Txt	*txt;
 	};
 };
 
