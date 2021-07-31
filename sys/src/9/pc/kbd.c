@@ -249,10 +249,7 @@ i8042auxcmd(int cmd)
 {
 	unsigned int c;
 	int tries;
-	static int badkbd;
 
-	if(badkbd)
-		return -1;
 	c = 0;
 	tries = 0;
 
@@ -276,7 +273,6 @@ i8042auxcmd(int cmd)
 
 	if(c != 0xFA){
 		print("i8042: %2.2ux returned to the %2.2ux command\n", c, cmd);
-		badkbd = 1;	/* don't keep trying; there might not be one */
 		return -1;
 	}
 	return 0;

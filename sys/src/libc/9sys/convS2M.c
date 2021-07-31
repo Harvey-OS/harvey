@@ -15,13 +15,10 @@ pstring(uchar *p, char *s)
 	}
 
 	n = strlen(s);
-	/*
-	 * We are moving the string before the length,
-	 * so you can S2M a struct into an existing message
-	 */
-	memmove(p + BIT16SZ, s, n);
 	PBIT16(p, n);
-	p += n + BIT16SZ;
+	p += BIT16SZ;
+	memmove(p, s, n);
+	p += n;
 	return p;
 }
 
