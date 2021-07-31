@@ -1,6 +1,6 @@
 /*
  * PowerPC definition
- *	forsyth@terzarima.net
+ *	forsyth@plan9.cs.york.ac.uk
  */
 #include <u.h>
 #include <bio.h>

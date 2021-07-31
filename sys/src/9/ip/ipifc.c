@@ -26,6 +26,7 @@ Medium *media[Maxmedia] =
 /*
  *  cache of local addresses (addresses we answer to)
  */
+typedef struct Ipself Ipself;
 struct Ipself
 {
 	uchar	a[IPaddrlen];

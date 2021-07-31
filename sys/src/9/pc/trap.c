@@ -152,11 +152,11 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	strncpy(v->name, name, KNAMELEN);
 	v->name[KNAMELEN-1] = 0;
 
-	ilock(&vctllock);
+	lock(&vctllock);
 	if(vctl[vno])
 		v->next = vctl[vno]->next;
 	vctl[vno] = v;
-	iunlock(&vctllock);
+	unlock(&vctllock);
 }
 
 static void

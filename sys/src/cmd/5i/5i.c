@@ -6,7 +6,7 @@
 
 char*	file = "5.out";
 int	datasize;
-ulong	textbase;
+int	textbase;
 Biobuf	bp, bi;
 Fhdr	fhdr;
 

@@ -12,7 +12,6 @@ BOOTFILES=\
 	settime.$O\
 	sac.$O\
 	paq.$O\
-	printstub.$O\
 
 $BOOTLIB(%.$O):N:	%.$O
 
@@ -25,3 +24,4 @@ $BOOTFILES:	$BOOTDIR/boot.h
 
 %.$O:	$BOOTDIR/%.c
 	$CC -I$BOOTDIR $CFLAGS $BOOTDIR/$stem.c
+
