@@ -262,13 +262,10 @@ vfysenderhostok(void)
 
 		if (fd >= 0) {
 			seek(fd, 0, 2);			/* paranoia */
-			fqdn = csgetvalue(nci->root, "ip", nci->rsys, "dom",
-				nil);
-			if (fqdn != nil)
+			if ((fqdn = csgetvalue(nil, "ip", nci->rsys, "dom", nil)) != nil)
 				fprint(fd, "%s %s\n", nci->rsys, fqdn);
 			else
 				fprint(fd, "%s\n", nci->rsys);
-			free(fqdn);
 			close(fd);
 		}
 	} else {

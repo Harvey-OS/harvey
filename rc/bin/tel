@@ -1,8 +1,8 @@
 #!/bin/rc
-rfork e
 for(i){
-	if (test -f $home/lib/tel)
+	if (test -f /usr/$user/lib/tel)
 		grep -i $i $home/lib/tel
-	grep -hi $i /lib/tel /lib/areacodes
+	grep -i $i /lib/tel
+	grep -i $i /lib/areacodes
 }
 exit ''
