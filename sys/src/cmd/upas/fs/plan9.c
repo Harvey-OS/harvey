@@ -23,7 +23,7 @@ addtomessage(Message *m, uchar *p, int n, int done)
 {
 	int i, len;
 
-	// add to message (+1 in malloc is for a trailing NUL)
+	// add to message (+ 1 in malloc is for a trailing null)
 	if(m->lim - m->end < n){
 		if(m->start != nil){
 			i = m->end-m->start;
@@ -46,7 +46,6 @@ addtomessage(Message *m, uchar *p, int n, int done)
 
 	memmove(m->end, p, n);
 	m->end += n;
-	*m->lim = '\0';
 }
 
 //
