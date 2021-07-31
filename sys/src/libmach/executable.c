@@ -68,7 +68,6 @@ extern	Mach	mamd64;
 extern	Mach	marm;
 extern	Mach	mpower;
 extern	Mach	mpower64;
-extern	Mach	malpha;
 
 ExecTable exectab[] =
 {
@@ -234,24 +233,6 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		leswal,
 		armdotout },
-	{ L_MAGIC,			/* alpha 7.out */
-		"alpha plan 9 executable",
-		"alpha plan 9 dlm",
-		FALPHA,
-		1,
-		&malpha,
-		sizeof(Exec),
-		beswal,
-		common },
-	{ 0x0700e0c3,			/* alpha boot image */
-		"alpha plan 9 boot image",
-		nil,
-		FALPHA,
-		0,
-		&malpha,
-		sizeof(Exec),
-		beswal,
-		common },
 	{ 0 },
 };
 
@@ -394,12 +375,6 @@ commonboot(Fhdr *fp)
 		fp->name = "ARM plan 9 boot image";
 		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 		return;
-	case FALPHA:
-		fp->type = FALPHAB;
-		fp->txtaddr = (u32int)fp->entry;
-		fp->name = "alpha plan 9 boot image";
-		fp->dataddr = fp->txtaddr+fp->txtsz;
-		break;
 	case FPOWER:
 		fp->type = FPOWERB;
 		fp->txtaddr = (u32int)fp->entry;
