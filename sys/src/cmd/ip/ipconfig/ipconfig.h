@@ -148,6 +148,7 @@ void	v6paraminit(Conf *);
 
 typedef struct Headers Headers;
 typedef struct Ip4hdr  Ip4hdr;
+typedef struct Ip6hdr  Ip6hdr;
 typedef struct Lladdropt Lladdropt;
 typedef struct Mtuopt Mtuopt;
 typedef struct Prefixopt Prefixopt;

@@ -11,7 +11,7 @@ HFILES=\
 	../dhcp.h\
 	../icmp.h\
 	ipconfig.h\
-	/sys/include/ip.h\
+	/sys/src/9/ip/ipv6.h\
 
 BIN=/$objtype/bin/ip
 

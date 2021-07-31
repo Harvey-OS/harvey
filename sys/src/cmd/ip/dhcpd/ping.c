@@ -17,7 +17,6 @@ catch(void *a, char *msg)
 
 /*
  *  make sure noone is using the address
- *  IPv4 only
  */
 int
 icmpecho(uchar *a)
@@ -47,7 +46,7 @@ icmpecho(uchar *a)
 		strcpy((char*)ip->data, MSG);
 		ip->seq[0] = sseq;
 		ip->seq[1] = sseq>>8;
-		len = IPV4HDR_LEN+ICMP_HDRSIZE+sizeof(MSG);
+		len = ICMP_IPSIZE+ICMP_HDRSIZE+sizeof(MSG);
 
 		/* send a request */
 		if(write(fd, buf, len) < len)
