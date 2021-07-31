@@ -14,7 +14,6 @@ enum
 static int	setenv(char*, char*);
 static char	*expandarg(char*, char*);
 static int	splitargs(char*, char*[], char*, int);
-static void nsfile(Biobuf *, AuthRpc *);
 static void	nsop(int, char*[], AuthRpc*);
 static int	callexport(char*, char*);
 static int	catch(void*, char*);
@@ -22,8 +21,10 @@ static int	catch(void*, char*);
 static int
 buildns(int newns, char *user, char *file)
 {
-	Biobuf *b;
+	Biobuf *spec;
+	char *cmd, *argv[NARG], argbuf[MAXARG*NARG];
 	char home[4*ANAMELEN];
+	int argc;
 	int afd;
 	AuthRpc *rpc;
 
@@ -37,15 +38,16 @@ buildns(int newns, char *user, char *file)
 			afd = -1;
 		}
 	}
-	if(file == nil){
-		if(!newns){
-			werrstr("no namespace file specified");
-			return -1;
-		}
-		file = "/lib/namespace";
+	if(newns && !file){
+		/* first look for a namespace file for this system */
+		snprint(home, sizeof(home), "/lib/namespace.%s", sysname());	
+		if(access(home, 4) == 0)
+			file = home;
+		else
+			file = "/lib/namespace";
 	}
-	b = Bopen(file, OREAD);
-	if(b == 0){
+	spec = Bopen(file, OREAD);
+	if(spec == 0){
 		werrstr("can't open %s: %r", file);
 		close(afd);
 		auth_freerpc(rpc);
@@ -57,24 +59,9 @@ buildns(int newns, char *user, char *file)
 		snprint(home, 2*ANAMELEN, "/usr/%s", user);
 		setenv("home", home);
 	}
-	nsfile(b, rpc);
-	Bterm(b);
-	if(rpc){
-		close(rpc->afd);
-		auth_freerpc(rpc);
-	}
-	return 0;
-}
-
-static void
-nsfile(Biobuf *b, AuthRpc *rpc)
-{
-	int argc;
-	char *cmd, *argv[NARG+1], argbuf[MAXARG*NARG];
-
 	atnotify(catch, 1);
-	while(cmd = Brdline(b, '\n')){
-		cmd[Blinelen(b)-1] = '\0';
+	while(cmd = Brdline(spec, '\n')){
+		cmd[Blinelen(spec)-1] = '\0';
 		while(*cmd==' ' || *cmd=='\t')
 			cmd++;
 		if(*cmd == '#')
@@ -84,6 +71,12 @@ nsfile(Biobuf *b, AuthRpc *rpc)
 			nsop(argc, argv, rpc);
 	}
 	atnotify(catch, 0);
+	Bterm(spec);
+	if(rpc){
+		close(rpc->afd);
+		auth_freerpc(rpc);
+	}
+	return 0;
 }
 
 int
@@ -119,7 +112,6 @@ nsop(int argc, char *argv[], AuthRpc *rpc)
 	char *argv0;
 	ulong flags;
 	int fd;
-	Biobuf *b;
 
 	flags = 0;
 	argv0 = 0;
@@ -141,22 +133,14 @@ nsop(int argc, char *argv[], AuthRpc *rpc)
 	if(!(flags & (MAFTER|MBEFORE)))
 		flags |= MREPL;
 
-	if(strcmp(argv0, ".") == 0 && argc == 1){
-		b = Bopen(argv[0], OREAD);
-		if(b == nil)
-			return;
-		nsfile(b, rpc);
-		Bterm(b);
-	} else if(strcmp(argv0, "clear") == 0 && argc == 0)
-		rfork(RFCNAMEG);
-	else if(strcmp(argv0, "bind") == 0 && argc == 2)
+	if(strcmp(argv0, "bind") == 0 && argc == 2)
 		bind(argv[0], argv[1], flags);
 	else if(strcmp(argv0, "unmount") == 0){
 		if(argc == 1)
 			unmount(nil, argv[0]);
 		else if(argc == 2)
 			unmount(argv[0], argv[1]);
-	} else if(strcmp(argv0, "mount") == 0){
+	}else if(strcmp(argv0, "mount") == 0){
 		fd = open(argv[0], ORDWR);
 		if(argc == 2)
 			famount(fd, rpc, argv[1], flags, "");
@@ -205,22 +189,28 @@ callexport(char *sys, char *tree)
 }
 
 static int
-splitargs(char *p, char *argv[], char *argbuf, int nargv)
+splitargs(char *p, char *argv[], char *argbuf, int maxargs)
 {
 	char *q;
-	int i, n;
+	int i;
 
-	n = getfields(p, argv, nargv, 1, " \t\r");
-	if(n == nargv)
-		return 0;
-	for(i = 0; i < n; i++){
-		q = argv[i];
-		argv[i] = argbuf;
+	i = 0;
+	while(i < maxargs){
+		while(*p==' ' || *p=='\t')
+			p++;
+		if(!*p)
+			return i;
+		q = p;
+		while(*p && *p!=' ' && *p!='\t')
+			p++;
+		if(*p)
+			*p++ = '\0';
+		argv[i++] = argbuf;
 		argbuf = expandarg(q, argbuf);
 		if(!argbuf)
 			return 0;
 	}
-	return n;
+	return 0;
 }
 
 /*
@@ -249,9 +239,6 @@ expandarg(char *arg, char *buf)
 		p++;
 		arg = utfrune(p, L'\0');
 		q = utfrune(p, L'/');
-		if(q && q < arg)
-			arg = q;
-		q = utfrune(p, L'.');
 		if(q && q < arg)
 			arg = q;
 		q = utfrune(p, L'$');

@@ -727,32 +727,24 @@ tlsClient2(int ctl, int hand, uchar *csid, int ncsid, int (*trace)(char*fmt, ...
 	// Cipherchange must occur immediately before Finished to avoid
 	// potential hole;  see section 4.3 of Wagner Schneier 1996.
 	if(tlsSecFinished(c->sec, c->hsmd5, c->hssha1, c->finished.verify, c->finished.n, 1) < 0){
-		tlsError(c, EInternalError, "can't set finished 1: %r");
+		tlsError(c, EInternalError, "can't set finished: %r");
 		goto Err;
 	}
 	m.tag = HFinished;
 	m.u.finished = c->finished;
 
-	if(!msgSend(c, &m, AFlush)) {
-		fprint(2, "tlsClient nepm=%d\n", nepm);
-		tlsError(c, EInternalError, "can't flush after client Finished: %r");
+	if(!msgSend(c, &m, AFlush))
 		goto Err;
-	}
 	msgClear(&m);
 
 	if(tlsSecFinished(c->sec, c->hsmd5, c->hssha1, c->finished.verify, c->finished.n, 0) < 0){
-		fprint(2, "tlsClient nepm=%d\n", nepm);
-		tlsError(c, EInternalError, "can't set finished 0: %r");
+		tlsError(c, EInternalError, "can't set finished: %r");
 		goto Err;
 	}
-	if(!msgRecv(c, &m)) {
-		fprint(2, "tlsClient nepm=%d\n", nepm);
-		tlsError(c, EInternalError, "can't read server Finished: %r");
+	if(!msgRecv(c, &m))
 		goto Err;
-	}
 	if(m.tag != HFinished) {
-		fprint(2, "tlsClient nepm=%d\n", nepm);
-		tlsError(c, EUnexpectedMessage, "expected a Finished msg from server");
+		tlsError(c, EUnexpectedMessage, "expected a finished");
 		goto Err;
 	}
 
@@ -1584,7 +1576,7 @@ factotum_rsa_open(uchar *cert, int certlen)
 		close(afd);
 		return nil;
 	}
-	s = "proto=rsa service=tls role=client";
+	s = "proto=sshrsa role=client";
 	if(auth_rpc(rpc, "start", s, strlen(s)) != ARok){
 		factotum_rsa_close(rpc);
 		return nil;
@@ -1895,10 +1887,8 @@ serverMasterSecret(TlsSec *sec, uchar *epm, int nepm)
 
 	// if the client messed up, just continue as if everything is ok,
 	// to prevent attacks to check for correctly formatted messages.
-	// Hence the fprint(2,) can't be replaced by tlsError(), which sends an Alert msg to the client.
 	if(sec->ok < 0 || pm == nil || get16(pm->data) != sec->clientVers){
-		fprint(2, "serverMasterSecret failed ok=%d pm=%p pmvers=%x cvers=%x nepm=%d\n",
-			sec->ok, pm, pm ? get16(pm->data) : -1, sec->clientVers, nepm);
+		fprint(2, "serverMasterSecret failed ok=%d pm=%p pmvers=%x cvers=%x", sec->ok, pm, pm ? get16(pm->data) : -1, sec->clientVers);
 		sec->ok = -1;
 		if(pm != nil)
 			freebytes(pm);
