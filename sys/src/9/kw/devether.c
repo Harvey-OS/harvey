@@ -9,6 +9,9 @@
 #include "../port/netif.h"
 #include "etherif.h"
 
+#define devno	dev
+#define iq	in
+
 extern int archether(unsigned ctlno, Ether *ether);
 
 static Ether *etherxx[MaxEther];
@@ -36,7 +39,7 @@ etherattach(char* spec)
 		chanfree(chan);
 		nexterror();
 	}
-	chan->dev = ctlrno;
+	chan->devno = ctlrno;
 	if(etherxx[ctlrno]->attach)
 		etherxx[ctlrno]->attach(etherxx[ctlrno]);
 	poperror();
@@ -46,19 +49,19 @@ etherattach(char* spec)
 static Walkqid*
 etherwalk(Chan* chan, Chan* nchan, char** name, int nname)
 {
-	return netifwalk(etherxx[chan->dev], chan, nchan, name, nname);
+	return netifwalk(etherxx[chan->devno], chan, nchan, name, nname);
 }
 
 static int
 etherstat(Chan* chan, uchar* dp, int n)
 {
-	return netifstat(etherxx[chan->dev], chan, dp, n);
+	return netifstat(etherxx[chan->devno], chan, dp, n);
 }
 
 static Chan*
 etheropen(Chan* chan, int omode)
 {
-	return netifopen(etherxx[chan->dev], chan, omode);
+	return netifopen(etherxx[chan->devno], chan, omode);
 }
 
 static void
@@ -69,7 +72,7 @@ ethercreate(Chan*, char*, int, ulong)
 static void
 etherclose(Chan* chan)
 {
-	netifclose(etherxx[chan->dev], chan);
+	netifclose(etherxx[chan->devno], chan);
 }
 
 static long
@@ -78,7 +81,7 @@ etherread(Chan* chan, void* buf, long n, vlong off)
 	Ether *ether;
 	ulong offset = off;
 
-	ether = etherxx[chan->dev];
+	ether = etherxx[chan->devno];
 	if((chan->qid.type & QTDIR) == 0 && ether->ifstat){
 		/*
 		 * With some controllers it is necessary to reach
@@ -96,13 +99,13 @@ etherread(Chan* chan, void* buf, long n, vlong off)
 static Block*
 etherbread(Chan* chan, long n, ulong offset)
 {
-	return netifbread(etherxx[chan->dev], chan, n, offset);
+	return netifbread(etherxx[chan->devno], chan, n, offset);
 }
 
 static int
 etherwstat(Chan* chan, uchar* dp, int n)
 {
-	return netifwstat(etherxx[chan->dev], chan, dp, n);
+	return netifwstat(etherxx[chan->devno], chan, dp, n);
 }
 
 static void
@@ -111,7 +114,7 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 	int i, n;
 	Block *bp;
 
-	if(qwindow(f->in) <= 0)
+	if(qwindow(f->iq) <= 0)
 		return;
 	if(len > 58)
 		n = 58;
@@ -129,7 +132,7 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 	bp->wp[62] = i>>8;
 	bp->wp[63] = i;
 	bp->wp += 64;
-	qpass(f->in, bp);
+	qpass(f->iq, bp);
 }
 
 Block*
@@ -184,7 +187,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 				else if(xbp = iallocb(len)){
 					memmove(xbp->wp, pkt, len);
 					xbp->wp += len;
-					if(qpass(f->in, xbp) < 0)
+					if(qpass(f->iq, xbp) < 0)
 						ether->soverflows++;
 				}
 				else
@@ -196,7 +199,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	}
 
 	if(fx){
-		if(qpass(fx->in, bp) < 0)
+		if(qpass(fx->iq, bp) < 0)
 			ether->soverflows++;
 		return 0;
 	}
@@ -252,7 +255,7 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 	int nn, onoff;
 	Cmdbuf *cb;
 
-	ether = etherxx[chan->dev];
+	ether = etherxx[chan->devno];
 	if(NETTYPE(chan->qid.path) != Ndataqid) {
 		nn = netifwrite(ether, chan, buf, n);
 		if(nn >= 0)
@@ -309,7 +312,7 @@ etherbwrite(Chan* chan, Block* bp, ulong)
 		freeb(bp);
 		return n;
 	}
-	ether = etherxx[chan->dev];
+	ether = etherxx[chan->devno];
 
 	if(n > ether->maxmtu){
 		freeb(bp);
