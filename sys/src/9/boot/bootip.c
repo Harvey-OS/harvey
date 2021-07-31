@@ -73,8 +73,6 @@ configip(int bargc, char **bargv, int needfs)
 	}
 
 	/* wait for ipconfig to finish */
-	if(debugboot)
-		fprint(2, "waiting for dhcp...");
 	for(;;){
 		w = wait();
 		if(w != nil && w->pid == pid){
@@ -86,8 +84,6 @@ configip(int bargc, char **bargv, int needfs)
 			fatal("configuring ip");
 		free(w);
 	}
-	if(debugboot)
-		fprint(2, "\n");
 
 	if(!needfs)
 		return;
