@@ -1,1 +1,0 @@
-#include "../loongson/etherif.h"
