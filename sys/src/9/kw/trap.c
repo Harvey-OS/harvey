@@ -126,7 +126,6 @@ maskallints(void)
 	INTRREG->lo.irqmask = 0;
 	INTRREG->hi.irqmask = 0;
 	CPUCSREG->irqmask = 0;
-	coherence();
 }
 
 void
@@ -242,7 +241,6 @@ trapinit(void)
 	memmove(page0->vectors, vectors, sizeof page0->vectors);
 	memmove(page0->vtable,  vtable,  sizeof page0->vtable);
 	cacheuwbinv();
-	l2cacheuwbinv();
 
 	cpu = CPUCSREG;
 	cpu->cpucfg &= ~Cfgvecinithi;
@@ -260,19 +258,16 @@ trapinit(void)
 	intr->lo.irqmask = intr->hi.irqmask = 0;
 	intr->lo.epmask =  intr->hi.epmask = 0;
 	cpu->irqmask = 0;
-	coherence();
 
 	/* clear interrupts */
 	intr->lo.irq = intr->hi.irq = ~0;
 	cpu->irq = ~0;
-	coherence();
 
 	intrenable(Irqlo, IRQ0hisum, intrhi, nil, "hi");
 	intrenable(Irqlo, IRQ0bridge, intrbridge, nil, "bridge");
 
 	/* enable watchdog & access-error interrupts */
-	cpu->irqmask |= 1 << IRQcputimerwd | 1 << IRQaccesserr;
-	coherence();
+	cpu->irqmask = 1<<IRQcputimerwd | 1<<IRQaccesserr;
 }
 
 static char *trapnames[PsrMask+1] = {
@@ -305,8 +300,6 @@ faultarm(Ureg *ureg, uintptr va, int user, int read)
 {
 	int n, insyscall;
 	char buf[ERRMAX];
-	static int cnt, lastpid;
-	static ulong lastva;
 
 	if(up == nil) {
 		dumpregs(ureg);
@@ -314,20 +307,6 @@ faultarm(Ureg *ureg, uintptr va, int user, int read)
 	}
 	insyscall = up->insyscall;
 	up->insyscall = 1;
-
-	/* this is quite helpful during mmu and cache debugging */
-	if(va == lastva && up->pid == lastpid) {
-		++cnt;
-		if (cnt >= 2)
-			/* fault() isn't fixing the underlying cause */
-			panic("fault: %d consecutive faults for va %#lux",
-				cnt+1, va);
-	} else {
-		cnt = 0;
-		lastva = va;
-		lastpid = up->pid;
-	}
-
 	n = fault(va, read);
 	if(n < 0){
 		if(!user){
@@ -473,7 +452,7 @@ trap(Ureg *ureg)
 			if(rv == 0){
 				ldrexvalid = 0;
 				snprint(buf, sizeof buf,
-					"undefined instruction: pc %#ux",
+					"undefined instruction: pc %#ux\n",
 					ureg->pc);
 				postnote(up, 1, buf, NDebug);
 			}

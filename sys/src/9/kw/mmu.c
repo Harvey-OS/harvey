@@ -3,7 +3,6 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "io.h"
 
 #include "arm.h"
 
@@ -26,7 +25,7 @@ mmudump(PTE *l1)
 	uvlong va, endva;
 	PTE pte;
 
-	iprint("\n");
+	print("\n");
 	endva = startva = startpa = 0;
 	rngtype = 0;
 	/* dump first level of ptes */
@@ -36,7 +35,7 @@ mmudump(PTE *l1)
 		type = pte & (Fine|Section|Coarse);
 		if (ISHOLE(pte)) {
 			if (endva != 0) {	/* open range? close it */
-				iprint("l1 maps va (%#lux-%#llux) -> pa %#lux type %#ux\n",
+				print("l1 maps va (%#lux-%#llux) -> pa %#lux type %#ux\n",
 					startva, endva-1, startpa, rngtype);
 				endva = 0;
 			}
@@ -51,7 +50,7 @@ mmudump(PTE *l1)
 		va += MB;
 	}
 	if (endva != 0)			/* close an open range */
-		iprint("l1 maps va (%#lux-%#llux) -> pa %#lux type %#ux\n",
+		print("l1 maps va (%#lux-%#llux) -> pa %#lux type %#ux\n",
 			startva, endva-1, startpa, rngtype);
 }
 
@@ -59,10 +58,13 @@ void
 mmuinit(void)
 {
 	PTE *l1, *l2;
-	uintptr pa, fpa, i;
+	uintptr pa, fpa;
 
 	pa = ttbget();
 	l1 = KADDR(pa);
+
+	/* identity-map i/o registers */
+	l1[L1X(VIRTIO)] = PHYSIO|Dom0|L1AP(Krw)|Section;
 
 	/* identity-map nand flash */
 	for (fpa = PHYSNAND; fpa < PHYSNAND + FLASHSIZE; fpa += MiB)
@@ -93,24 +95,11 @@ mmuinit(void)
 	l2[L2X(0)] = PHYSDRAM|L2AP(Krw)|Small;
 	l1[L1X(0)] = pa|Dom0|Coarse;
 
-	/*
-	 * set up L2 ptes for PHYSIO (i/o registers), with smaller pages to
-	 * enable user-mode access to a few devices.
-	 */
-	pa -= 1024;
-	l2 = KADDR(pa);
-	/* identity map by default */
-	for (i = 0; i < 1024/4; i++)
-		l2[L2X(VIRTIO + i*BY2PG)] = (PHYSIO + i*BY2PG)|L2AP(Krw)|Small;
-	l1[L1X(VIRTIO)] = pa|Dom0|Coarse;
-	coherence();
-
 	mmuinvalidate();
 	cacheuwbinv();
-	l2cacheuwbinv();
 
 	m->mmul1 = l1;
-//	mmudump(l1);			/* DEBUG.  too early to print */
+//	mmudump(l1);			/* DEBUG */
 }
 
 static void
@@ -171,7 +160,7 @@ mmuswitch(Proc* proc)
 		return;
 	m->mmupid = proc->pid;
 
-	/* write back dirty and invalidate l1 caches */
+	/* write back dirty and invalidate caches */
 	cacheuwbinv();
 
 	if(proc->newtlb){
@@ -196,7 +185,6 @@ mmuswitch(Proc* proc)
 	/* make sure map is in memory */
 	/* could be smarter about how much? */
 	cachedwbse(&l1[L1X(UZERO)], (L1hi - L1lo)*sizeof(PTE));
-	l2cacheuwbse(&l1[L1X(UZERO)], (L1hi - L1lo)*sizeof(PTE));
 
 	/* lose any possible stale tlb entries */
 	mmuinvalidate();
@@ -204,7 +192,6 @@ mmuswitch(Proc* proc)
 //	mmudump(l1);
 	//print("mmuswitch l1lo %d l1hi %d %d\n",
 	//	m->mmul1lo, m->mmul1hi, proc->kp);
-//print("\n");
 }
 
 void
@@ -223,7 +210,7 @@ mmurelease(Proc* proc)
 {
 	Page *page, *next;
 
-	/* write back dirty and invalidate l1 caches */
+	/* write back dirty and invalidate caches */
 	cacheuwbinv();
 
 	mmul2empty(proc, 0);
@@ -242,7 +229,6 @@ mmurelease(Proc* proc)
 	/* make sure map is in memory */
 	/* could be smarter about how much? */
 	cachedwbse(&m->mmul1[L1X(UZERO)], (L1hi - L1lo)*sizeof(PTE));
-	l2cacheuwbse(&m->mmul1[L1X(UZERO)], (L1hi - L1lo)*sizeof(PTE));
 
 	/* lose any possible stale tlb entries */
 	mmuinvalidate();
@@ -276,13 +262,7 @@ putmmu(uintptr va, uintptr pa, Page* page)
 		pg->next = up->mmul2;
 		up->mmul2 = pg;
 
-		/* force l2 page to memory */
-		cachedwbse((void *)pg->va, BY2PG);
-		l2cacheuwbse((void *)pg->va, BY2PG);
-
 		*l1 = PPN(pg->pa)|Dom0|Coarse;
-		cachedwbse(l1, sizeof *l1);
-		l2cacheuwbse(l1, sizeof *l1);
 		//print("l1 %#p *l1 %#ux x %d pid %d\n", l1, *l1, x, up->pid);
 
 		if(x >= m->mmul1lo && x < m->mmul1hi){
@@ -308,17 +288,14 @@ putmmu(uintptr va, uintptr pa, Page* page)
 	else
 		x |= L2AP(Uro);
 	pte[L2X(va)] = PPN(pa)|x;
-	cachedwbse(&pte[L2X(va)], sizeof pte[0]);
-	l2cacheuwbse(&pte[L2X(va)], sizeof pte[0]);
 
 	/* clear out the current entry */
 	mmuinvalidateaddr(PPN(va));
 
-	/*
-	 *  write back dirty entries - we need this because pio() in
+	/*  write back dirty entries - we need this because the pio() in
 	 *  fault.c is writing via a different virt addr and won't clean
 	 *  its changes out of the dcache.  Page coloring doesn't work
-	 *  on this mmu because the l1 virtual cache is set associative
+	 *  on this mmu because the virtual cache is set associative
 	 *  rather than direct mapped.
 	 */
 	cachedwbinv();
@@ -351,8 +328,7 @@ mmuuncache(void* v, usize size)
 		return nil;
 	*pte &= ~(Cached|Buffered);
 	mmuinvalidateaddr(va);
-	cachedwbse(pte, 4);
-	l2cacheuwbse(pte, 4);
+	cachedwbinvse(pte, 4);
 
 	return v;
 }
@@ -374,8 +350,7 @@ mmukmap(uintptr va, uintptr pa, usize size)
 		return 0;
 	*pte = pa|Dom0|L1AP(Krw)|Section;
 	mmuinvalidateaddr(va);
-	cachedwbse(pte, 4);
-	l2cacheuwbse(pte, 4);
+	cachedwbinvse(pte, 4);
 
 	return va;
 }
@@ -397,8 +372,7 @@ mmukunmap(uintptr va, uintptr pa, usize size)
 		return 0;
 	*pte = Fault;
 	mmuinvalidateaddr(va);
-	cachedwbse(pte, 4);
-	l2cacheuwbse(pte, 4);
+	cachedwbinvse(pte, 4);
 
 	return va;
 }
@@ -410,8 +384,16 @@ mmukunmap(uintptr va, uintptr pa, usize size)
 uintptr
 cankaddr(uintptr pa)
 {
-	if(pa < PHYSDRAM + 512*MiB)		/* assumes PHYSDRAM is 0 */
-		return PHYSDRAM + 512*MiB - pa;
+	int i;
+	uintptr bank;
+
+	bank = PHYSDRAM;
+	for(i = 0; i < 1; i++){
+		if(pa >= bank && pa < bank+512*MiB)
+			return bank+512*MiB - pa;
+		bank += 512*MiB;
+	}
+
 	return 0;
 }
 
