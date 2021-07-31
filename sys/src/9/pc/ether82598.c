@@ -23,13 +23,9 @@ enum {
 
 	/* tunable parameters */
 	Goslow	= 0,		/* flag: go slow by throttling intrs, etc. */
-	/*
-	 * these were 256, 1024 & 128, but 30, 47 and 1 are usually ample;
-	 * however cpu servers and terminals can need more receive buffers
-	 * due to bursts of traffic.
-	 */
-	Nrd	= 128,		/* multiple of 8, power of 2 for NEXTPOW2 */
-	Nrb	= 1024,
+	/* were 256, 1024 & 64, but 30, 47 and 1 are ample. */
+	Nrd	= 64,		/* multiple of 8, power of 2 for NEXTPOW2 */
+	Nrb	= 128,
 	Ntd	= 32,		/* multiple of 8, power of 2 for NEXTPOW2 */
 };
 

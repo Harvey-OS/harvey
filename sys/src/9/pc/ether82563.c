@@ -414,13 +414,9 @@ enum {
 };
 
 enum {
-	/*
-	 * these were 512, 1024 & 64, but 52, 253 & 9 are usually ample;
-	 * however cpu servers and terminals can need more receive buffers
-	 * due to bursts of traffic.
-	 */
+	/* were 512, 1024 & 64, but 52, 253 and 9 are ample. */
 	Nrd		= 128,		/* power of two */
-	Nrb		= 1024,		/* private receive buffers per Ctlr */
+	Nrb		= 512,		/* private receive buffers per Ctlr */
 	Ntd		= 32,		/* power of two */
 };
 
