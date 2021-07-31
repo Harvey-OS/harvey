@@ -283,8 +283,7 @@ srberror(Srb *srb, char *s)
 {
 	srb->error = s;
 	srb->nout--;
-	if (srb->nout == 0)
-		wakeup(srb);
+	wakeup(srb);
 }
 
 static void
@@ -1950,22 +1949,16 @@ qcfgrsp(Block *b, Netlink *nl)
 	qunlock(d);
 }
 
-void
-aoeidmove(char *p, ushort *u, unsigned n)
+static void
+idmove(char *p, ushort *a, unsigned n)
 {
 	int i;
-	char *op, *e, *s;
+	char *op, *e;
 
 	op = p;
-	/*
-	 * the ushort `a' is sometimes not aligned on a short boundary,
-	 * so dereferencing a[i] would cause an alignment exception on
-	 * some machines.
-	 */
-	s = (char *)u;
-	for(i = 0; i < n; i += 2){
-		*p++ = s[i + 1];
-		*p++ = s[i];
+	for(i = 0; i < n / 2; i++){
+		*p++ = a[i] >> 8;
+		*p++ = a[i];
 	}
 	*p = 0;
 	while(p > op && *--p == ' ')
@@ -2028,9 +2021,9 @@ identify(Aoedev *d, ushort *id)
 	osectors = d->realbsize;
 	memmove(oserial, d->serial, sizeof d->serial);
 
-	aoeidmove(d->serial, id+10, 20);
-	aoeidmove(d->firmware, id+23, 8);
-	aoeidmove(d->model, id+27, 40);
+	idmove(d->serial, id+10, 20);
+	idmove(d->firmware, id+23, 8);
+	idmove(d->model, id+27, 40);
 
 	s *= Aoesectsz;
 	if((osectors == 0 || osectors != s) &&
