@@ -1,5 +1,3 @@
-#include <thread.h>		/* for Ref */
-
 typedef struct Ndbtuple Ndbtuple;
 
 enum
@@ -181,14 +179,6 @@ struct Request
 	char	*from;		/* who asked us? */
 };
 
-typedef struct Querylck Querylck;
-struct Querylck
-{
-	QLock;
-//	Rendez;
-	Ref;
-};
-
 /*
  *  a domain name
  */
@@ -208,7 +198,7 @@ struct DN
 	uchar	respcode;	/* response code */
 /* was:	char	nonexistent; /* true if we get an authoritative nx for this domain */
 	/* permit only 1 query per (domain name, type) at a time */
-	Querylck querylck[Maxlcks];
+	QLock	querylck[Maxlcks];
 };
 
 /*
@@ -264,7 +254,7 @@ struct RR
 	RR	*next;
 	ulong	magic;
 	DN	*owner;		/* domain that owns this resource record */
-	uintptr	pc;		/* for tracking memory allocation */
+	uintptr	pc;
 	ulong	ttl;		/* time to live to be passed on */
 	ulong	expire;		/* time this entry expires locally */
 	ulong	marker;		/* used locally when scanning rrlists */
@@ -277,7 +267,7 @@ struct RR
 
 	union {			/* discriminated by negative & type */
 		DN	*negsoaowner;	/* soa for cached negative response */
-		DN	*host;	/* hostname - soa, cname, mb, md, mf, mx, ns, srv */
+		DN	*host;	/* hostname - soa, cname, mb, md, mf, mx, ns */
 		DN	*cpu;	/* cpu type - hinfo */
 		DN	*mb;	/* mailbox - mg, minfo */
 		DN	*ip;	/* ip address - a, aaaa */
@@ -291,7 +281,6 @@ struct RR
 		DN	*os;	/* operating system - hinfo */
 		ulong	pref;	/* preference value - mx */
 		ulong	local;	/* ns served from local database - ns */
-		ushort	port;	/* - srv */
 		uintptr	arg1;	/* arg[01] are compared to find dups in dn.c */
 	};
 	union {			/* discriminated by type */
@@ -336,6 +325,8 @@ struct Srv
 {
 	ushort	pri;
 	ushort	weight;
+	ushort	port;
+	DN	*target;
 };
 
 struct Rrlist

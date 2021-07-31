@@ -406,15 +406,8 @@ retry:
 	case Tsrv:
 		USHORT(rp->srv->pri);
 		USHORT(rp->srv->weight);
-		USHORT(rp->port);
-		/*
-		 * rfc2782 sez no name compression but to be
-		 * backward-compatible with rfc2052, we try to expand the name. 
-		 * if the length is under 64 bytes, either interpretation is
-		 * fine; if it's longer, we'll assume it's compressed,
-		 * as recommended by rfc3597.
-		 */
-		rp->host = dnlookup(NAME(dname), Cin, 1);
+		USHORT(rp->srv->port);
+		rp->srv->target = dnlookup(NAME(dname), Cin, 1);
 		break;
 	case Ttxt:
 		l = &rp->txt;
@@ -471,15 +464,13 @@ retry:
 			// dnslog("convM2RR: got %R", rp);
 			return rp;
 		}
-		if (len > sp->p - data){
+		if (len > sp->p - data)
 			dnslog("bad %s RR len (%d bytes nominal, %lud actual): %R",
 				rrname(type, ptype, sizeof ptype), len,
 				sp->p - data, rp);
-			rrfree(rp);
-			rp = nil;
-		}
+		// sp->p = data + len;
 	}
-	// if(rp) dnslog("convM2RR: got %R", rp);
+	// dnslog("convM2RR: got %R", rp);
 	return rp;
 }
 

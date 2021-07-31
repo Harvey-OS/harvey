@@ -376,11 +376,11 @@ flushjob(int tag)
 void
 io(void)
 {
-	volatile long n;
-	volatile uchar mdata[IOHDRSZ + Maxfdata];
-	Job *volatile job;
-	Mfile *volatile mf;
-	volatile Request req;
+	long n;
+	Mfile *mf;
+	uchar mdata[IOHDRSZ + Maxfdata];
+	Request req;
+	Job *job;
 
 	memset(&req, 0, sizeof req);
 	/*

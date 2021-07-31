@@ -97,10 +97,11 @@ struct BAddr {
 
 struct FreeList {
 	VtLock *lk;
-	u32int last;		/* last block allocated */
-	u32int end;		/* end of data partition */
-	u32int nused;		/* number of used blocks */
-	u32int epochLow;	/* low epoch when last updated nused */
+	u32int last;	/* last block allocated */
+	u32int end;	/* end of data partition */
+	u32int nfree;	/* number of free blocks */
+	u32int nused;	/* number of used blocks */
+	u32int epochLow;	/* low epoch when last updated nfree and nused */
 };
 
 static FreeList *flAlloc(u32int end);
@@ -1555,14 +1556,7 @@ doRemoveLink(Cache *c, BList *p)
 	l = b->l;
 	l.state |= BsClosed;
 	l.epochClose = p->epoch;
-	if(l.epochClose == l.epoch){
-		vtLock(c->fl->lk);
-		if(l.epoch == c->fl->epochLow)
-			c->fl->nused--;
-		blockSetLabel(b, &l, 0);
-		vtUnlock(c->fl->lk);
-	}else
-		blockSetLabel(b, &l, 0);
+	blockSetLabel(b, &l, 0);
 	blockPut(b);
 }
 

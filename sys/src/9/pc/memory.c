@@ -697,16 +697,14 @@ e820scan(void)
 		return -1;
 	
 	qsort(emap, nemap, sizeof emap[0], emapcmp);
-
-	if(getconf("*noe820print") == nil){
-		for(i=0; i<nemap; i++){
-			e = &emap[i];
-			print("E820: %.8llux %.8llux ", e->base, e->base+e->len);
-			if(e->type < nelem(etypes))
-				print("%s\n", etypes[e->type]);
-			else
-				print("type=%lud\n", e->type);
-		}
+	
+	for(i=0; i<nemap; i++){
+		e = &emap[i];
+		print("E820: %.8llux %.8llux ", e->base, e->base+e->len);
+		if(e->type < nelem(etypes))
+			print("%s\n", etypes[e->type]);
+		else
+			print("type=%lud\n", e->type);
 	}
 
 	last = 0;

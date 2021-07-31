@@ -6,5 +6,3 @@ emelie.%:V:
 	cd emelie && mk $stem
 fs64.%:V:
 	cd fs64 && mk $stem
-
-cleanall:V: clean emelie.clean fs64.clean

@@ -25,7 +25,6 @@ vtMemAlloc(int size)
 	p = malloc(size);
 	if(p == 0)
 		vtFatal("vtMemAlloc: out of memory");
-	setmalloctag(p, getcallerpc(&size));
 	return p;
 }
 
@@ -34,7 +33,6 @@ vtMemAllocZ(int size)
 {
 	void *p = vtMemAlloc(size);
 	memset(p, 0, size);
-	setmalloctag(p, getcallerpc(&size));
 	return p;
 }
 
@@ -46,7 +44,6 @@ vtMemRealloc(void *p, int size)
 	p = realloc(p, size);
 	if(p == 0)
 		vtFatal("vtRealloc: out of memory");
-	setrealloctag(p, getcallerpc(&size));
 	return p;
 }
 
@@ -72,7 +69,6 @@ vtMemBrk(int n)
 	pad = (align - (uintptr)buf) & (align-1);
 	if(n + pad > nbuf) {
 		buf = vtMemAllocZ(ChunkSize);
-		setmalloctag(buf, getcallerpc(&n));
 		nbuf = ChunkSize;
 		pad = (align - (uintptr)buf) & (align-1);
 		nchunk++;

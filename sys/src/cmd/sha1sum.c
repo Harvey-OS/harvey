@@ -28,10 +28,6 @@ sum(int fd, char *name)
 	s = sha1(nil, 0, nil, nil);
 	while((n = read(fd, buf, sizeof buf)) > 0)
 		sha1(buf, n, nil, s);
-	if(n < 0){
-		fprint(2, "reading %s: %r\n", name ? name : "stdin");
-		return;
-	}
 	sha1(nil, 0, digest, s);
 	if(name == nil)
 		print("%M\n", digest);

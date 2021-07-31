@@ -261,8 +261,8 @@ convRR2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 	case Tsrv:
 		USHORT(rp->srv->pri);
 		USHORT(rp->srv->weight);
-		USHORT(rp->port);
-		STRING(rp->host->name);	/* rfc2782 sez no name compression */
+		USHORT(rp->srv->port);
+		STRING(rp->srv->target->name);
 		break;
 	case Ttxt:
 		for(t = rp->txt; t != nil; t = t->next)

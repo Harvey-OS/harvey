@@ -561,7 +561,6 @@ srvnoauth(int fd, char *user)
 {
 	strecpy(user, user+MaxStr, getuser());
 	ealgs = nil;
-	newns(user, nil);
 	return fd;
 }
 
@@ -752,7 +751,7 @@ fsreply(int fd, Fcall *f)
 	int n;
 
 	if(dbg)
-		fprint(2, "notefs: <-%F\n", f);
+		fprint(2, "<-%F\n", f);
 	n = convS2M(f, buf, sizeof buf);
 	if(n > 0){
 		if(write(fd, buf, n) != n){
@@ -900,9 +899,9 @@ void
 notefs(int fd)
 {
 	uchar buf[IOHDRSZ+Maxfdata];
-	int i, n, ncpunote;
+	int i, j, n, ncpunote;
+	char err[ERRMAX];
 	Fcall f;
-	Qid wqid[MAXWELEM];
 	Fid *fid, *nfid;
 	int doreply;
 
@@ -925,7 +924,7 @@ notefs(int fd)
 		if(convM2S(buf, n, &f) <= BIT16SZ)
 			break;
 		if(dbg)
-			fprint(2, "notefs: ->%F\n", &f);
+			fprint(2, "->%F\n", &f);
 		doreply = 1;
 		fid = getfid(f.fid);
 		if(fid == nil){
@@ -949,7 +948,7 @@ nofids:
 			break;
 		case Tauth:
 			f.type = Rerror;
-			f.ename = "authentication not required";
+			f.ename = "cpu: authentication not required";
 			break;
 		case Tattach:
 			f.qid = fstab[Qdir].qid;
@@ -964,50 +963,64 @@ nofids:
 				nfid->file = fid->file;
 				fid = nfid;
 			}
-			for(i=0; i<f.nwname && i<MAXWELEM; i++){
+
+			f.ename = nil;
+			for(i=0; i<f.nwname; i++){
+				if(i > MAXWELEM){
+					f.type = Rerror;
+					f.ename = "too many name elements";
+					break;
+				}
 				if(fid->file != Qdir){
 					f.type = Rerror;
 					f.ename = Enotdir;
 					break;
 				}
-				if(strcmp(f.wname[i], "..") == 0){
-					wqid[i] = fstab[Qdir].qid;
+				if(strcmp(f.wname[i], "cpunote") == 0){
+					fid->file = Qcpunote;
+					f.wqid[i] = fstab[Qcpunote].qid;
 					continue;
 				}
-				if(strcmp(f.wname[i], "cpunote") != 0){
-					if(i == 0){
-						f.type = Rerror;
-						f.ename = "file does not exist";
-					}
-					break;
+				f.type = Rerror;
+				f.ename = err;
+				strcpy(err, "cpu: file \"");
+				for(j=0; j<=i; j++){
+					if(strlen(err)+1+strlen(f.wname[j])+32 > sizeof err)
+						break;
+					if(j != 0)
+						strcat(err, "/");
+					strcat(err, f.wname[j]);
 				}
-				fid->file = Qcpunote;
-				wqid[i] = fstab[Qcpunote].qid;
+				strcat(err, "\" does not exist");
+				break;
 			}
-			if(nfid != nil && (f.type == Rerror || i < f.nwname))
+			if(nfid != nil && (f.ename != nil || i < f.nwname))
 				nfid ->file = -1;
-			if(f.type != Rerror){
+			if(f.type != Rerror)
 				f.nwqid = i;
-				for(i=0; i<f.nwqid; i++)
-					f.wqid[i] = wqid[i];
-			}
 			break;
 		case Topen:
 			if(f.mode != OREAD){
 				f.type = Rerror;
 				f.ename = Eperm;
-				break;
 			}
 			fid->omode = f.mode;
 			if(fid->file == Qcpunote)
 				ncpunote++;
 			f.qid = fstab[fid->file].qid;
-			f.iounit = 0;
+			break;
+		case Tcreate:
+			f.type = Rerror;
+			f.ename = Eperm;
 			break;
 		case Tread:
 			if(fsread(fd, fid, &f) < 0)
 				goto err;
 			doreply = 0;
+			break;
+		case Twrite:
+			f.type = Rerror;
+			f.ename = Eperm;
 			break;
 		case Tclunk:
 			if(fid->omode != -1 && fid->file == Qcpunote){
@@ -1018,14 +1031,15 @@ nofids:
 			fid->file = -1;
 			fid->omode = -1;
 			break;
+		case Tremove:
+			f.type = Rerror;
+			f.ename = Eperm;
+			break;
 		case Tstat:
 			if(fsstat(fd, fid, &f) < 0)
 				goto err;
 			doreply = 0;
 			break;
-		case Tcreate:
-		case Twrite:
-		case Tremove:
 		case Twstat:
 			f.type = Rerror;
 			f.ename = Eperm;

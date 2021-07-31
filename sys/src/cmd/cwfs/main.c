@@ -3,8 +3,6 @@
 #include "io.h"
 #include "9p1.h"
 
-extern int oldcachefmt;
-
 Map *devmap;
 
 Biobuf bin;
@@ -224,8 +222,7 @@ printsizes(void)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-cf][-a ann-str][-m dev-map] config-dev\n",
-		argv0);
+	fprint(2, "usage: %s [-f][-a ann-str][-m dev-map] config-dev\n", argv0);
 	exits("usage");
 }
 
@@ -241,7 +238,7 @@ main(int argc, char **argv)
 	conf.confdev = "n";		/* Devnone */
 
 	ARGBEGIN{
-	case 'a':			/* announce on this net */
+	case 'a':
 		ann = EARGF(usage());
 		if (nets >= Maxnets) {
 			fprint(2, "%s: too many networks to announce: %s\n",
@@ -250,13 +247,10 @@ main(int argc, char **argv)
 		}
 		annstrs[nets++] = ann;
 		break;
-	case 'c':			/* use new, faster cache layout */
-		oldcachefmt = 0;
-		break;
-	case 'f':			/* enter configuration mode first */
+	case 'f':
 		conf.configfirst++;
 		break;
-	case 'm':			/* name device-map file */
+	case 'm':
 		conf.devmap = EARGF(usage());
 		break;
 	default:
