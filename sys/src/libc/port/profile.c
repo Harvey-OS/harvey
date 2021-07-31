@@ -4,6 +4,8 @@
 
 extern	long	_callpc(void**);
 extern	long	_savearg(void);
+extern	void	_addv(vlong*,vlong,vlong);
+extern	void	_subv(vlong*,vlong,vlong);
 
 ulong	khz;
 uvlong	cyclefreq;
@@ -59,19 +61,19 @@ out:
 	p->count++;
 	switch(_tos->prof.what){
 	case Profkernel:
-		p->time = p->time - _tos->pcycles;
+		_subv(&p->time, p->time, _tos->pcycles);
 		goto proftime;
 	case Profuser:
 		/* Add kernel cycles on proc entry */
-		p->time = p->time + _tos->kcycles;
+		_addv(&p->time, p->time, _tos->kcycles);
 		/* fall through */
 	case Proftime:	
 	proftime:					/* Subtract cycle counter on proc entry */
 		cycles((uvlong*)&t);
-		p->time = p->time - t;
+		_subv(&p->time, p->time, t);
 		break;
 	case Profsample:
-		p->time = p->time - _tos->clock;
+		_subv(&p->time, p->time, (vlong)_tos->clock);
 		break;
 	}
 	return arg;		/* disgusting linkage */
@@ -90,18 +92,18 @@ _profout(void)
 		return arg;	/* Not our process */
 	switch(_tos->prof.what){
 	case Profkernel:		/* Add proc cycles on proc entry */
-		p->time = p->time + _tos->pcycles;
+		_addv(&p->time, p->time, _tos->pcycles);
 		goto proftime;
 	case Profuser:			/* Subtract kernel cycles on proc entry */
-		p->time = p->time - _tos->kcycles;
+		_subv(&p->time, p->time, _tos->kcycles);
 		/* fall through */
 	case Proftime:	
 	proftime:				/* Add cycle counter on proc entry */
 		cycles((uvlong*)&t);
-		p->time = p->time + t;
+		_addv(&p->time, p->time, t);
 		break;
 	case Profsample:
-		p->time = p->time + _tos->clock;
+		_addv(&p->time, p->time, (vlong)_tos->clock);
 		break;
 	}
 	_tos->prof.pp = p->old;
@@ -135,11 +137,11 @@ _profdump(void)
 	switch(_tos->prof.what){
 	case Profkernel:
 		cycles((uvlong*)&_tos->prof.first->time);
-		_tos->prof.first->time = _tos->prof.first->time + _tos->pcycles;
+		_addv(&_tos->prof.first->time, _tos->prof.first->time, _tos->pcycles);
 		break;
 	case Profuser:
 		cycles((uvlong*)&_tos->prof.first->time);
-		_tos->prof.first->time = _tos->prof.first->time + _tos->kcycles;
+		_addv(&_tos->prof.first->time, _tos->prof.first->time, _tos->kcycles);
 		break;
 	case Proftime:
 		cycles((uvlong*)&_tos->prof.first->time);

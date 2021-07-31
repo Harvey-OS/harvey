@@ -540,6 +540,7 @@ enum
 	Kscrollonedown	= KF|0x21,
 };
 
+Channel	*ckeyboard;	/* chan(Rune)[10] */
 Channel	*cplumb;		/* chan(Plumbmsg*) */
 Channel	*cwait;		/* chan(Waitmsg) */
 Channel	*ccommand;	/* chan(Command*) */

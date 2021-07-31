@@ -176,7 +176,7 @@ int	remotefd0 = 0;
 int	remotefd1 = 1;
 
 void
-bootterm(char *machine, char **argv)
+bootterm(char *machine, char **argv, char **end)
 {
 	int ph2t[2], pt2h[2];
 
@@ -186,6 +186,7 @@ bootterm(char *machine, char **argv)
 		close(remotefd0);
 		close(remotefd1);
 		argv[0] = "samterm";
+		*end = 0;
 		exec(samterm, argv);
 		fprint(2, "can't exec: ");
 		perror(samterm);
@@ -202,6 +203,7 @@ bootterm(char *machine, char **argv)
 		close(pt2h[0]);
 		close(pt2h[1]);
 		argv[0] = "samterm";
+		*end = 0;
 		exec(samterm, argv);
 		fprint(2, "can't exec: ");
 		perror(samterm);
@@ -218,28 +220,10 @@ bootterm(char *machine, char **argv)
 }
 
 void
-connectto(char *machine, char **argv)
+connectto(char *machine)
 {
 	int p1[2], p2[2];
-	char **av;
-	int ac;
-	
-	// count args
-	for(av = argv; *av; av++)
-		;
-	av = malloc(sizeof(char*)*((av-argv) + 5));
-	if(av == nil){
-		dprint("out of memory\n");
-		exits("fork/exec");
-	}
-	ac = 0;
-	av[ac++] = RX;
-	av[ac++] = machine;
-	av[ac++] = rsamname;
-	av[ac++] = "-R";
-	while(*argv)
-		av[ac++] = *argv++;
-	av[ac] = 0;
+
 	if(pipe(p1)<0 || pipe(p2)<0){
 		dprint("can't pipe\n");
 		exits("pipe");
@@ -254,7 +238,7 @@ connectto(char *machine, char **argv)
 		close(p1[1]);
 		close(p2[0]);
 		close(p2[1]);
-		exec(RXPATH, av);
+		execl(RXPATH, RX, machine, rsamname, "-R", (char*)0);
 		dprint("can't exec %s\n", RXPATH);
 		exits("exec");
 
@@ -262,18 +246,17 @@ connectto(char *machine, char **argv)
 		dprint("can't fork\n");
 		exits("fork");
 	}
-	free(av);
 	close(p1[1]);
 	close(p2[0]);
 }
 
 void
-startup(char *machine, int Rflag, char **argv, char **files)
+startup(char *machine, int Rflag, char **argv, char **end)
 {
 	if(machine)
-		connectto(machine, files);
+		connectto(machine);
 	if(!Rflag)
-		bootterm(machine, argv);
+		bootterm(machine, argv, end);
 	downloaded = 1;
 	outTs(Hversion, VERSION);
 }

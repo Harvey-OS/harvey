@@ -413,7 +413,7 @@ rread(Worker *w)
 			f->vers = f->file->dir.qid.vers;
 		}
 	}else
-		sysfatal("impossible file: 0x%lux, %ld", f->file, f->file - files);
+		abort();
 	return nil;
 }
 
