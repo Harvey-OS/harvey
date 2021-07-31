@@ -638,9 +638,7 @@ PP = p;
 		r = p->reg;
 		if(p->to.type == D_NONE)
 			rt = 0;
-		if(p->as == AMOVW || p->as == AMVN)
-			r = 0;
-		else if(r == NREG)
+		if(r == NREG)
 			r = rt;
 		o1 |= rf | (r<<16) | (rt<<12);
 		break;
@@ -653,9 +651,7 @@ PP = p;
 		r = p->reg;
 		if(p->to.type == D_NONE)
 			rt = 0;
-		if(p->as == AMOVW || p->as == AMVN)
-			r = 0;
-		else if(r == NREG)
+		if(r == NREG)
 			r = rt;
 		o1 |= (r<<16) | (rt<<12);
 		break;
@@ -669,9 +665,7 @@ PP = p;
 		r = p->reg;
 		if(p->to.type == D_NONE)
 			rt = 0;
-		if(p->as == AMOVW || p->as == AMVN)
-			r = 0;
-		else if(r == NREG)
+		if(r == NREG)
 			r = rt;
 		o1 |= (r<<16) | (rt<<12);
 		break;
@@ -778,9 +772,7 @@ PP = p;
 		o2 = oprrr(p->as, p->scond);
 		o2 |= REGTMP;
 		r = p->reg;
-		if(p->as == AMOVW || p->as == AMVN)
-			r = 0;
-		else if(r == NREG)
+		if(r == NREG)
 			r = p->to.reg;
 		o2 |= r << 16;
 		if(p->to.type != D_NONE)

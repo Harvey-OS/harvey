@@ -132,38 +132,29 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 			hint(&repp->ar, tp);
 	}
 
-	/* hint calls rrlookup which holds dnlock, so don't lock before this. */
-
 	/*
 	 *  add an soa to the authority section to help client
 	 *  with negative caching
 	 */
 	if(repp->an == nil)
 		if(myarea != nil){
-			lock(&dnlock);
 			rrcopy(myarea->soarr, &tp);
 			rrcat(&repp->ns, tp);
-			unlock(&dnlock);
 		} else if(neg != nil) {
-			if(neg->negsoaowner != nil) {
-				tp = rrlookup(neg->negsoaowner, Tsoa, NOneg);
-				lock(&dnlock);
-				rrcat(&repp->ns, tp);
-				unlock(&dnlock);
-			}
+			if(neg->negsoaowner != nil)
+				rrcat(&repp->ns, rrlookup(neg->negsoaowner,
+					Tsoa, NOneg));
 			repp->flags |= neg->negrcode;
 		}
 
 	/*
 	 *  get rid of duplicates
 	 */
-	lock(&dnlock);
 	unique(repp->an);
 	unique(repp->ns);
 	unique(repp->ar);
 
 	rrfreelist(neg);
-	unlock(&dnlock);
 
 	dncheck(nil, 1);
 }
@@ -182,7 +173,6 @@ doextquery(DNSmsg *mp, Request *req, int recurse)
 	type = mp->qd->type;
 	rp = dnresolve(name, Cin, type, req, &mp->an, 0, recurse, 1, 0);
 
-	lock(&dnlock);
 	/* don't return soa hints as answers, it's wrong */
 	if(rp && rp->db && !rp->auth && rp->type == Tsoa) {
 		rrfreelist(rp);
@@ -192,7 +182,6 @@ doextquery(DNSmsg *mp, Request *req, int recurse)
 	/* don't let negative cached entries escape */
 	neg = rrremneg(&rp);
 	rrcat(&mp->an, rp);
-	unlock(&dnlock);
 	return neg;
 }
 

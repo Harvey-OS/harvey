@@ -49,17 +49,14 @@ addarea(DN *dp, RR *rp, Ndbtuple *t)
 	Area *s;
 	Area **l;
 
-	lock(&dnlock);
 	if(t->val[0])
 		l = &delegated;
 	else
 		l = &owned;
 
 	for (s = *l; s != nil; s = s->next)
-		if (strcmp(dp->name, s->soarr->owner->name) == 0) {
-			unlock(&dnlock);
+		if (strcmp(dp->name, s->soarr->owner->name) == 0)
 			return;		/* we've already got one */
-		}
 
 	/*
 	 *  The area contains a copy of the soa rr that created it.
@@ -81,7 +78,6 @@ addarea(DN *dp, RR *rp, Ndbtuple *t)
 
 	s->next = *l;
 	*l = s;
-	unlock(&dnlock);
 }
 
 void

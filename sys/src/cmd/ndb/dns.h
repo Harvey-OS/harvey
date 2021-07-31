@@ -447,7 +447,6 @@ extern char	*rrtname[];
 extern char	*rname[];
 extern unsigned	nrname;
 extern char	*opname[];
-extern Lock	dnlock;
 
 void	abort(); /* char*, ... */;
 void	addserver(Server**, char*);
