@@ -31,7 +31,7 @@ void		getformat(char*);
 int		getnum(int (*)(void));
 void		grab(void);
 void		iclose(int, int);
-ADDR		inkdot(int);
+ADDR		inkdot(WORD);
 int		isfileref(void);
 int		item(int);
 void		killpcs(void);

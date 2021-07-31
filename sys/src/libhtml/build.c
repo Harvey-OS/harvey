@@ -908,8 +908,11 @@ getitems(ItemSource* is, uchar* data, int datalen)
 				ks->kidinfos = kd = newkidinfo(0, ks->kidinfos);
 				kd->src = aurlval(tok, Asrc, nil, di->base);
 				kd->name = aval(tok, Aname);
-				if(kd->name == nil)
-					kd->name = runesmprint("_fr%d", ++is->nframes);
+				if(kd->name == nil) {
+					s = _ltoStr(++is->nframes);
+					kd->name = _Strdup2(L"_fr", s);
+					free(s);
+				}
 				kd->marginw = auintval(tok, Amarginwidth, 0);
 				kd->marginh = auintval(tok, Amarginheight, 0);
 				kd->framebd = auintval(tok, Aframeborder, 1);
@@ -2632,7 +2635,12 @@ listmark(uchar ty, int n)
 		break;
 
 	case LT1:
-		s = runesmprint("%d.", n);
+		t = _ltoStr(n);
+		n2 = _Strlen(t);
+		s = _newstr(n2+1);
+		t = _Stradd(s, t, n2);
+		*t++ = '.';
+		*t = 0;
 		break;
 
 	case LTa:
@@ -3879,12 +3887,9 @@ resetdocinfo(Docinfo* d)
 static void
 targetmapinit(void)
 {
-	int l;
-
 	targetmapsize = 10;
-	l = targetmapsize*sizeof *targetmap;
-	targetmap = emalloc(l);
-	memset(targetmap, 0, l);
+	targetmap = (StringInt*)emalloc(targetmapsize*sizeof(StringInt));
+	memset(targetmap, 0, targetmapsize*sizeof(StringInt));
 	targetmap[0].key = _Strdup(L"_top");
 	targetmap[0].val = FTtop;
 	targetmap[1].key = _Strdup(L"_self");
@@ -3908,11 +3913,12 @@ targetid(Rune* s)
 	for(i = 0; i < ntargets; i++)
 		if(_Strcmp(s, targetmap[i].key) == 0)
 			return targetmap[i].val;
-	if(i == targetmapsize) {
+	if(i >= targetmapsize) {
 		targetmapsize += 10;
-		targetmap = erealloc(targetmap, targetmapsize*sizeof(StringInt));
+		targetmap = (StringInt*)erealloc(targetmap, targetmapsize*sizeof(StringInt));
 	}
-	targetmap[i].key = _Strdup(s);
+	targetmap[i].key = (Rune*)emalloc((n+1)*sizeof(Rune));
+	memmove(targetmap[i].key, s, (n+1)*sizeof(Rune));
 	targetmap[i].val = i;
 	ntargets++;
 	return i;

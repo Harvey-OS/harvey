@@ -374,7 +374,7 @@ printesc(int c)
 }
 
 ADDR
-inkdot(int incr)
+inkdot(WORD incr)
 {
 	ADDR	newdot;
 

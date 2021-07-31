@@ -106,9 +106,8 @@ syserrstr(void)
 void
 sysfd2path(void)
 {
-	int n;
-	uint fd;
 	ulong str;
+	uint fd, n;
 	char buf[1024];
 
 	fd = getmem_w(reg.r[REGSP]+4);

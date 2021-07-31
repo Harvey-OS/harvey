@@ -270,7 +270,7 @@ void
 seekpast(uvlong bytes)
 {
 	char buf[LEN];
-	long n;
+	ulong n;
 	uvlong tot;
 
 	for(tot = 0; tot < bytes; tot += n){
