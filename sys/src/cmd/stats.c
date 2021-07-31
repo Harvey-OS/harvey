@@ -54,7 +54,6 @@ enum
 struct Machine
 {
 	char		*name;
-	char		*shortname;
 	int		remote;
 	int		statsfd;
 	int		swapfd;
@@ -68,7 +67,6 @@ struct Machine
 	ulong		devsysstat[10];
 	ulong		prevsysstat[10];
 	int		nproc;
-	int		lgproc;
 	ulong		netetherstats[8];
 	ulong		prevetherstats[8];
 	ulong		batterystats[2];
@@ -596,28 +594,6 @@ readswap(Machine *m, ulong *a)
 	return readnums(m, nelem(m->devswap), a, 0);
 }
 
-char*
-shortname(char *s)
-{
-	char *p, *e;
-
-	p = estrdup(s);
-	e = strchr(p, '.');
-	if(e)
-		*e = 0;
-	return p;
-}
-
-int
-ilog10(long j)
-{
-	int i;
-
-	for(i = 0; j >= 10; i++)
-		j /= 10;
-	return i;
-}
-	
 int
 initmach(Machine *m, char *name)
 {
@@ -631,7 +607,6 @@ initmach(Machine *m, char *name)
 	else
 		p = name;
 	m->name = estrdup(p);
-	m->shortname = shortname(p);
 	m->remote = (strcmp(p, mysysname) != 0);
 	if(m->remote == 0)
 		strcpy(mpt, "");
@@ -668,7 +643,6 @@ initmach(Machine *m, char *name)
 		m->nproc = n;
 	}else
 		m->nproc = 1;
-	m->lgproc = ilog10(m->nproc);
 
 	snprint(buf, sizeof buf, "%s/net/ether0/stats", mpt);
 	m->etherfd = open(buf, OREAD);
@@ -745,7 +719,7 @@ void
 readmach(Machine *m, int init)
 {
 	int n, i;
-	ulong a[nelem(m->devsysstat)];
+	ulong a[8];
 	char buf[32];
 
 	if(m->remote && (m->disable || setjmp(catchalarm))){
@@ -759,8 +733,6 @@ readmach(Machine *m, int init)
 	if (strcmp(m->name, buf) != 0){
 		free(m->name);
 		m->name = estrdup(buf);
-		free(m->shortname);
-		m->shortname = shortname(buf);
 		if(display != nil)	/* else we're still initializing */
 			eresized(0);
 	}
@@ -1112,13 +1084,13 @@ resize(void)
 		draw(screen, Rect(x-1, starty-1, x, screen->r.max.y), display->black, nil, ZP);
 		j = dx/stringwidth(mediumfont, "0");
 		n = mach[i].nproc;
-		if(n>1 && j>=1+3+mach[i].lgproc){	/* first char of name + (n) */
-			j -= 3+mach[i].lgproc;
+		if(n>1 && j>=1+3+(n>10)+(n>100)){	/* first char of name + (n) */
+			j -= 3+(n>10)+(n>100);
 			if(j <= 0)
 				j = 1;
-			snprint(buf, sizeof buf, "%.*s(%d)", j, mach[i].shortname, n);
+			snprint(buf, sizeof buf, "%.*s(%d)", j, mach[i].name, n);
 		}else
-			snprint(buf, sizeof buf, "%.*s", j, mach[i].shortname);
+			snprint(buf, sizeof buf, "%.*s", j, mach[i].name);
 		string(screen, Pt(x+Labspace, screen->r.min.y + Labspace), display->black, ZP, mediumfont, buf);
 	}
 
@@ -1389,6 +1361,8 @@ main(int argc, char *argv[])
 		parity = 1-parity;
 		for(i=0; i<nmach*ngraph; i++){
 			graph[i].newvalue(graph[i].mach, &v, &vmax, 0);
+			if (v > 1000000)
+				v = 1000000;	/* cap absurd values */
 			graph[i].update(&graph[i], v, vmax);
 		}
 		flushimage(display, 1);
