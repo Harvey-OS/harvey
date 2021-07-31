@@ -1440,16 +1440,6 @@ sndrst(Proto *tcp, uchar *source, uchar *dest, ushort length, Tcp *seg, uchar ve
 }
 
 /*
- * close the conversation
- */
-static char*
-tcpclose2(Conv *s)
-{
-	tcpclose(s);
-	return nil;
-}
-
-/*
  *  send a reset to the remote side and close the conversation
  *  called with s qlocked
  */
@@ -3329,8 +3319,6 @@ tcpporthogdefensectl(char *val)
 static char*
 tcpctl(Conv* c, char** f, int n)
 {
-	if(n == 1 && strcmp(f[0], "close") == 0)
-		return tcpclose2(c);
 	if(n == 1 && strcmp(f[0], "hangup") == 0)
 		return tcphangup(c);
 	if(n == 1 && strcmp(f[0], "hangupxmit") == 0)
