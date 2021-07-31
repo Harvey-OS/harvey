@@ -59,33 +59,45 @@ int	filter(int, char *);
 void
 usage(void)
 {
-	fprint(2, "usage:	%s [-adnsR] [-f dbgfile] [-m msize] [-r root] [-S srvfile] [-e 'crypt hash'] [-A announce-string] [-B address]\n", argv0);
+	fprint(2, "usage:	%s [-ads] [-f dbgfile] [-m msize] [-r root] [-S srvfile] [-e 'crypt hash'] [-A announce-string]\n", argv0);
+	fprint(2, "	%s -B address\n", argv0);
 	fatal("usage");
 }
 
 void
 main(int argc, char **argv)
 {
-	char buf[ERRMAX], ebuf[ERRMAX], *srvfdfile;
+	char buf[ERRMAX], ebuf[ERRMAX];
 	Fsrpc *r;
-	int doauth, n, fd;
-	char *dbfile, *srv, *na, *nsfile, *keyspec;
+	int n, fd;
+	char *dbfile, *srv, *file, *na, *nsfile, *keyspec;
 	AuthInfo *ai;
 	ulong initial;
 
 	dbfile = "/tmp/exportdb";
 	srv = nil;
 	srvfd = -1;
-	srvfdfile = nil;
 	na = nil;
 	nsfile = nil;
 	keyspec = "";
-	doauth = 0;
 
 	ai = nil;
 	ARGBEGIN{
 	case 'a':
-		doauth = 1;
+		/*
+		 * We use p9any so we don't have to visit this code again, with the
+		 * cost that this code is incompatible with the old world, which
+		 * requires p9sk2. (The two differ in who talks first, so compatibility
+		 * is awkward.)
+		 */
+		ai = auth_proxy(0, auth_getkey, "proto=p9any role=server %s", keyspec);
+		if(ai == nil)
+			fatal("auth_proxy: %r");
+		if(nonone && strcmp(ai->cuid, "none") == 0)
+			fatal("exportfs by none disallowed");
+		if(auth_chuid(ai, nsfile) < 0)
+			fatal("auth_chuid: %r");
+		putenv("service", "exportfs");
 		break;
 
 	case 'k':
@@ -93,15 +105,19 @@ main(int argc, char **argv)
 		break;
 
 	case 'e':
-		ealgs = EARGF(usage());
+		ealgs = ARGF();
+		if(ealgs == nil)
+			usage();
 		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
 			ealgs = nil;
 		break;
 
 	case 'S':
-		if(srvfdfile)
+		if(srvfd != -1)
 			usage();
-		srvfdfile = EARGF(usage());
+		file = EARGF(usage());
+		if((srvfd = open(file, ORDWR)) < 0)
+			sysfatal("open '%s': %r", file);
 		break;
 
 	case 'd':
@@ -156,28 +172,6 @@ main(int argc, char **argv)
 		usage();
 	}ARGEND
 	USED(argc, argv);
-
-	if(doauth){
-		/*
-		 * We use p9any so we don't have to visit this code again, with the
-		 * cost that this code is incompatible with the old world, which
-		 * requires p9sk2. (The two differ in who talks first, so compatibility
-		 * is awkward.)
-		 */
-		ai = auth_proxy(0, auth_getkey, "proto=p9any role=server %s", keyspec);
-		if(ai == nil)
-			fatal("auth_proxy: %r");
-		if(nonone && strcmp(ai->cuid, "none") == 0)
-			fatal("exportfs by none disallowed");
-		if(auth_chuid(ai, nsfile) < 0)
-			fatal("auth_chuid: %r");
-		putenv("service", "exportfs");
-	}
-
-	if(srvfdfile){
-		if((srvfd = open(srvfdfile, ORDWR)) < 0)
-			sysfatal("open '%s': %r", srvfdfile);
-	}
 
 	if(na){
 		if(srv == nil)
