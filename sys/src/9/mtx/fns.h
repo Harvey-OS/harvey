@@ -15,6 +15,7 @@ void	delay(int);
 void	dumpregs(Ureg*);
 void	delayloopinit(void);
 void	eieio(void);
+void	evenaddr(ulong);
 void	faultpower(Ureg*, ulong addr, int read);
 void	fprestore(FPsave*);
 void	fpsave(FPsave*);
@@ -102,7 +103,6 @@ void	trapvec(void);
 void	tlbflush(ulong);
 void	tlbflushall(void);
 #define	userureg(ur) (((ur)->status & MSR_PR) != 0)
-void	validalign(uintptr, unsigned);
 void	watchreset(void);
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))

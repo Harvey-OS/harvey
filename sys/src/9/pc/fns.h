@@ -26,6 +26,7 @@ int	dmadone(int);
 void	dmaend(int);
 int	dmainit(int, int);
 long	dmasetup(int, void*, long, int);
+#define	evenaddr(x)				/* x86 doesn't care */
 void	fpclear(void);
 void	fpenv(FPsave*);
 void	fpinit(void);
@@ -181,7 +182,6 @@ ulong	upaalloc(int, int);
 void	upafree(ulong, int);
 void	upareserve(ulong, int);
 #define	userureg(ur) (((ur)->cs & 0xFFFF) == UESEL)
-void	validalign(uintptr, unsigned);
 void	vectortable(void);
 void*	vmap(ulong, int);
 int	vmapsync(ulong);
@@ -189,9 +189,6 @@ void	vunmap(void*, int);
 void	wbinvd(void);
 void	wrmsr(int, vlong);
 int	xchgw(ushort*, int);
-
-#define PTR2UINT(p)	((uintptr)(p))
-#define UINT2PTR(i)	((void*)(i))
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
 #define	KADDR(a)	kaddr(a)

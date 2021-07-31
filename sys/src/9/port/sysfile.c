@@ -190,8 +190,8 @@ syspipe(ulong *arg)
 	Dev *d;
 	static char *datastr[] = {"data", "data1"};
 
-	validaddr(arg[0], sizeof(fd), 1);
-	validalign(arg[0], sizeof(int));
+	validaddr(arg[0], 2*BY2WD, 1);
+	evenaddr(arg[0]);
 	d = devtab[devno('|', 0)];
 	c[0] = namec("#|", Atodir, 0, 0);
 	c[1] = 0;
@@ -215,8 +215,8 @@ syspipe(ulong *arg)
 		error(Enofd);
 	poperror();
 
-	((int*)arg[0])[0] = fd[0];
-	((int*)arg[0])[1] = fd[1];
+	((long*)arg[0])[0] = fd[0];
+	((long*)arg[0])[1] = fd[1];
 	return 0;
 }
 
@@ -859,8 +859,7 @@ sseek(ulong *arg)
 long
 sysseek(ulong *arg)
 {
-	validaddr(arg[0], sizeof(vlong), 1);
-	validalign(arg[0], sizeof(vlong));
+	validaddr(arg[0], BY2V, 1);
 	sseek(arg);
 	return 0;
 }
