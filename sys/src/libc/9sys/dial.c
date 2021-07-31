@@ -191,7 +191,7 @@ _dial_string_parse(char *str, DS *ds)
 		ds->proto = "net";
 		ds->rem = ds->buf;
 	} else {
-		if(*ds->buf != '/'){
+		if(*ds->buf != '/' && *ds->buf != '#'){
 			ds->netdir = 0;
 			ds->proto = ds->buf;
 		} else {

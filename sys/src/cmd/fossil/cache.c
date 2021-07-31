@@ -686,6 +686,7 @@ cacheAllocBlock(Cache *c, int type, u32int tag, u32int epoch, u32int epochLow)
 	fl = c->fl;
 
 	vtLock(fl->lk);
+fl->last = 0;
 	addr = fl->last;
 	b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
 	if(b == nil){
@@ -760,7 +761,7 @@ flAlloc(u32int end)
 
 	fl = vtMemAllocZ(sizeof(*fl));
 	fl->lk = vtLockAlloc();
-	fl->last = 0;
+	fl->last = end;
 	fl->end = end;
 	return fl;
 }
