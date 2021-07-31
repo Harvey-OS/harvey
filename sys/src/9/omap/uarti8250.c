@@ -1,19 +1,17 @@
-/*
- * omap35 8250-like UART
- *
- * we ignore the first 2 uarts on the omap35 (see below) and use the
- * third one but call it 0.
- *
- * TODO: uart output other than from iprint never appears.
- *	are we not getting tx interrupts?
- */
-
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 
+/*
+ * we ignore the first 2 uarts on the omap3530 (see below) and use the
+ * third one but call it 0.
+ */
+
+/*
+ * 8250 UART and compatibles.
+ */
 enum {					/* registers */
 	Rbr		= 0,		/* Receiver Buffer (RO) */
 	Thr		= 0,		/* Transmitter Holding (WO) */
@@ -25,8 +23,7 @@ enum {					/* registers */
 	Lsr		= 5,		/* Line Status */
 	Msr		= 6,		/* Modem Status */
 	Scr		= 7,		/* Scratch Pad */
-	Mdr		= 8,		/* Mode Def'n (omap rw) */
-//	Usr		= 31,		/* Uart Status Register; missing in omap? */
+	Usr		= 31,		/* Uart Status Register */
 	Dll		= 0,		/* Divisor Latch LSB */
 	Dlm		= 1,		/* Divisor Latch MSB */
 };
@@ -57,7 +54,6 @@ enum {					/* Fcr */
 	FIFOena		= 0x01,		/* FIFO enable */
 	FIFOrclr	= 0x02,		/* clear Rx FIFO */
 	FIFOtclr	= 0x04,		/* clear Tx FIFO */
-//	FIFOdma		= 0x08,
 	FIFO1		= 0x00,		/* Rx FIFO trigger level 1 byte */
 	FIFO4		= 0x40,		/*	4 bytes */
 	FIFO8		= 0x80,		/*	8 bytes */
@@ -82,7 +78,7 @@ enum {					/* Mcr */
 	Dtr		= 0x01,		/* Data Terminal Ready */
 	Rts		= 0x02,		/* Ready To Send */
 	Out1		= 0x04,		/* no longer in use */
-//	Ie		= 0x08,		/* IRQ Enable (cd_sts_ch on omap) */
+	Ie		= 0x08,		/* IRQ Enable */
 	Dm		= 0x10,		/* Diagnostic Mode loopback */
 };
 
@@ -93,7 +89,7 @@ enum {					/* Lsr */
 	Fe		= 0x08,		/* Framing Error */
 	Bi		= 0x10,		/* Break Interrupt */
 	Thre		= 0x20,		/* Thr Empty */
-	Temt		= 0x40,		/* Transmitter Empty */
+	Temt		= 0x40,		/* Tramsmitter Empty */
 	FIFOerr		= 0x80,		/* error in receiver FIFO */
 };
 
@@ -105,14 +101,8 @@ enum {					/* Msr */
 	Cts		= 0x10,		/* Clear To Send */
 	Dsr		= 0x20,		/* Data Set Ready */
 	Ri		= 0x40,		/* Ring Indicator */
-	Dcd		= 0x80,		/* Carrier Detect */
+	Dcd		= 0x80,		/* Data Set Ready */
 };
-
-enum {					/* Mdr */
-	Modemask	= 7,
-	Modeuart	= 0,
-};
-
 
 typedef struct Ctlr {
 	u32int*	io;
@@ -121,7 +111,7 @@ typedef struct Ctlr {
 	int	iena;
 	int	poll;
 
-	uchar	sticky[Scr+1];
+	uchar	sticky[8];
 
 	Lock;
 	int	hasfifo;
@@ -133,11 +123,10 @@ extern PhysUart i8250physuart;
 extern int normalprint;
 
 static Ctlr i8250ctlr[] = {
-{	.io	= (u32int*)PHYSCONS,		/* UART3 in TI terminology */
+{	.io	= (u32int*)PHYSCONS,
 	.irq	= 74,
 	.tbdf	= -1,
 	.poll	= 0, },
-
 /* these exist, but I don't think they're connected to anything external */
 //{	.io	= (u32int*)PHYSUART0,
 //	.irq	= 72,
@@ -174,9 +163,9 @@ static Uart i8250uart[] = {
 //	.next	= &i8250uart[2], },
 };
 
-#define csr8r(c, r)	((c)->io[r])
-#define csr8w(c, r, v)	((c)->io[r] = (c)->sticky[r] | (v), coherence())
-#define csr8o(c, r, v)	((c)->io[r] = (v), coherence())
+#define csr8r(c, r)	((c)->io[(r)])
+#define csr8w(c, r, v)	((c)->io[(r)] = (c)->sticky[(r)]|(v))
+#define csr8o(c, r, v)	((c)->io[(r)] = (v))
 
 static long
 i8250status(Uart* uart, void* buf, long n, long offset)
@@ -286,6 +275,7 @@ i8250dtr(Uart* uart, int on)
 	else
 		ctlr->sticky[Mcr] &= ~Dtr;
 	csr8w(ctlr, Mcr, 0);
+	coherence();
 }
 
 static void
@@ -302,6 +292,7 @@ i8250rts(Uart* uart, int on)
 	else
 		ctlr->sticky[Mcr] &= ~Rts;
 	csr8w(ctlr, Mcr, 0);
+	coherence();
 }
 
 static void
@@ -313,13 +304,13 @@ i8250modemctl(Uart* uart, int on)
 	ilock(&uart->tlock);
 	if(on){
 		ctlr->sticky[Ier] |= Ems;
-		csr8w(ctlr, Ier, 0);
+		csr8w(ctlr, Ier, ctlr->sticky[Ier]);
 		uart->modem = 1;
 		uart->cts = csr8r(ctlr, Msr) & Cts;
 	}
 	else{
 		ctlr->sticky[Ier] &= ~Ems;
-		csr8w(ctlr, Ier, 0);
+		csr8w(ctlr, Ier, ctlr->sticky[Ier]);
 		uart->modem = 0;
 		uart->cts = 1;
 	}
@@ -352,6 +343,7 @@ i8250parity(Uart* uart, int parity)
 	}
 	ctlr->sticky[Lcr] = lcr;
 	csr8w(ctlr, Lcr, 0);
+	coherence();
 
 	uart->parity = parity;
 
@@ -378,6 +370,7 @@ i8250stop(Uart* uart, int stop)
 	}
 	ctlr->sticky[Lcr] = lcr;
 	csr8w(ctlr, Lcr, 0);
+	coherence();
 
 	uart->stop = stop;
 
@@ -411,6 +404,7 @@ i8250bits(Uart* uart, int bits)
 	}
 	ctlr->sticky[Lcr] = lcr;
 	csr8w(ctlr, Lcr, 0);
+	coherence();
 
 	uart->bits = bits;
 
@@ -424,7 +418,6 @@ i8250baud(Uart* uart, int baud)
 	ulong bgc;
 	Ctlr *ctlr;
 	extern int i8250freq;	/* In the config file */
-
 	/*
 	 * Set the Baud rate by calculating and setting the Baud rate
 	 * Generator Constant. This will work with fairly non-standard
@@ -437,12 +430,16 @@ i8250baud(Uart* uart, int baud)
 	ctlr = uart->regs;
 	while(csr8r(ctlr, Usr) & Busy)
 		delay(1);
-	csr8w(ctlr, Lcr, Dlab);		/* begin kludge */
+	csr8w(ctlr, Lcr, Dlab);
 	csr8o(ctlr, Dlm, bgc>>8);
 	csr8o(ctlr, Dll, bgc);
 	csr8w(ctlr, Lcr, 0);
-#endif
+	coherence();
+
 	uart->baud = baud;
+#else
+	USED(uart, baud);
+#endif
 	return 0;
 }
 
@@ -451,8 +448,6 @@ i8250break(Uart* uart, int ms)
 {
 	Ctlr *ctlr;
 
-	if (up == nil)
-		panic("i8250break: nil up");
 	/*
 	 * Send a break.
 	 */
@@ -461,15 +456,10 @@ i8250break(Uart* uart, int ms)
 
 	ctlr = uart->regs;
 	csr8w(ctlr, Lcr, Brk);
+	coherence();
 	tsleep(&up->sleep, return0, 0, ms);
 	csr8w(ctlr, Lcr, 0);
-}
-
-static void
-emptyoutstage(Uart *uart, int n)
-{
-	_uartputs((char *)uart->op, n);
-	uart->op = uart->oe = uart->ostage;
+	coherence();
 }
 
 static void
@@ -481,19 +471,12 @@ i8250kick(Uart* uart)
 	if(/* uart->cts == 0 || */ uart->blocked)
 		return;
 
-	if(!normalprint) {
-		if (uart->op < uart->oe)
-			emptyoutstage(uart, uart->oe - uart->op);
-		while ((i = uartstageoutput(uart)) > 0)
-			emptyoutstage(uart, i);
-		return;
-	}
-
 	/* nothing more to send? then disable xmit intr */
 	ctlr = uart->regs;
 	if (uart->op >= uart->oe && csr8r(ctlr, Lsr) & Temt) {
 		ctlr->sticky[Ier] &= ~Ethre;
-		csr8w(ctlr, Ier, 0);
+		csr8w(ctlr, Ier, ctlr->sticky[Ier]);
+		coherence();
 		return;
 	}
 
@@ -508,16 +491,12 @@ i8250kick(Uart* uart)
 			break;
 		if(uart->op >= uart->oe && uartstageoutput(uart) == 0)
 			break;
-		csr8o(ctlr, Thr, *uart->op++);		/* start tx */
+		csr8o(ctlr, Thr, *(uart->op++));
+		coherence();
 		ctlr->sticky[Ier] |= Ethre;
-		csr8w(ctlr, Ier, 0);			/* intr when done */
+		csr8w(ctlr, Ier, ctlr->sticky[Ier]);
+		coherence();
 	}
-}
-
-void
-serialkick(void)
-{
-	uartkick(&i8250uart[CONSOLE]);
 }
 
 static void
@@ -602,7 +581,8 @@ i8250disable(Uart* uart)
 
 	ctlr = uart->regs;
 	ctlr->sticky[Ier] = 0;
-	csr8w(ctlr, Ier, 0);
+	csr8w(ctlr, Ier, ctlr->sticky[Ier]);
+	coherence();
 
 	if(ctlr->iena != 0){
 		if(irqdisable(ctlr->irq, i8250interrupt, uart, uart->name) == 0)
@@ -613,20 +593,9 @@ i8250disable(Uart* uart)
 static void
 i8250enable(Uart* uart, int ie)
 {
-	int mode;
 	Ctlr *ctlr;
 
-	if (up == nil)
-		return;				/* too soon */
-
 	ctlr = uart->regs;
-
-	/* omap only: set uart/irda/cir mode to uart */
-	mode = csr8r(ctlr, Mdr);
-	csr8o(ctlr, Mdr, (mode & ~Modemask) | Modeuart);
-
-	ctlr->sticky[Lcr] = Wls8;		/* no parity */
-	csr8w(ctlr, Lcr, 0);
 
 	/*
 	 * Check if there is a FIFO.
@@ -650,6 +619,7 @@ i8250enable(Uart* uart, int ie)
 		if(csr8r(ctlr, Iir) & Ifena)
 			ctlr->hasfifo = 1;
 		csr8w(ctlr, Fcr, 0);
+		coherence();
 		ctlr->checkfifo = 1;
 	}
 	iunlock(ctlr);
@@ -665,17 +635,16 @@ i8250enable(Uart* uart, int ie)
 			irqenable(ctlr->irq, i8250interrupt, uart, uart->name);
 			ctlr->iena = 1;
 		}
-//		ctlr->sticky[Ier] = Ethre|Erda;		/* tx intr broken */
-		ctlr->sticky[Ier] = Erda;
-//		ctlr->sticky[Mcr] |= Ie;		/* not on omap */
-		ctlr->sticky[Mcr] = 0;
+		ctlr->sticky[Ier] = Ethre|Erda;
+		ctlr->sticky[Mcr] |= Ie;
 	}
 	else{
 		ctlr->sticky[Ier] = 0;
 		ctlr->sticky[Mcr] = 0;
 	}
-	csr8w(ctlr, Ier, 0);
-	csr8w(ctlr, Mcr, 0);
+	csr8w(ctlr, Ier, ctlr->sticky[Ier]);
+	csr8w(ctlr, Mcr, ctlr->sticky[Mcr]);
+	coherence();
 
 	(*uart->phys->dtr)(uart, 1);
 	(*uart->phys->rts)(uart, 1);
@@ -715,7 +684,7 @@ i8250putc(Uart* uart, int c)
 	int i;
 	Ctlr *ctlr;
 
-	if (!normalprint) {		/* too early; use brute force */
+	if (!normalprint) {	/* too early; use brute force */
 		int s = splhi();
 
 		while (!(((ulong *)PHYSCONS)[Lsr] & Thre))
@@ -729,7 +698,8 @@ i8250putc(Uart* uart, int c)
 	ctlr = uart->regs;
 	for(i = 0; !(csr8r(ctlr, Lsr) & Thre) && i < 128; i++)
 		delay(1);
-	csr8o(ctlr, Thr, (uchar)c);
+	csr8o(ctlr, Thr, c);
+	coherence();
 	for(i = 0; !(csr8r(ctlr, Lsr) & Thre) && i < 128; i++)
 		delay(1);
 }
@@ -746,7 +716,6 @@ serialputs(char* s, int n)
 	_uartputs(s, n);
 }
 
-#ifdef notdef
 static void
 i8250poll(Uart* uart)
 {
@@ -767,7 +736,6 @@ i8250poll(Uart* uart)
 		return;
 	i8250interrupt(nil, uart);
 }
-#endif
 
 PhysUart i8250physuart = {
 	.name		= "i8250",
@@ -787,7 +755,7 @@ PhysUart i8250physuart = {
 	.fifo		= i8250fifo,
 	.getc		= i8250getc,
 	.putc		= i8250putc,
-//	.poll		= i8250poll,		/* only in 9k, not 9 */
+//	.poll		= i8250poll,
 };
 
 static void
@@ -797,34 +765,24 @@ i8250dumpregs(Ctlr* ctlr)
 	int _uartprint(char*, ...);
 
 	csr8w(ctlr, Lcr, Dlab);
+	coherence();
 	dlm = csr8r(ctlr, Dlm);
 	dll = csr8r(ctlr, Dll);
 	csr8w(ctlr, Lcr, 0);
+	coherence();
 
 	_uartprint("dlm %#ux dll %#ux\n", dlm, dll);
 }
 
-Uart*	uartenable(Uart *p);
-
-/* must call this from a process's context */
-int
+void
 i8250console(void)
 {
 	Uart *uart = &i8250uart[CONSOLE];
 
-	if (up == nil)
-		return -1;			/* too early */
-
-	if(uartenable(uart) != nil /* && uart->console */){
-iprint("i8250console: enabling console uart\n");
-		kbdq = uart->iq;
-		serialoq = uart->oq;
-		uart->putc = kbdcr2nl;
-		uart->opens++;
-		consuart = uart;
-	}
-	uartctl(uart, "b115200 l8 pn r1 s1 i1");
-	return 0;
+//	(*uart->phys->enable)(uart, 0);
+//	uartctl(uart, "b115200 l8 pn s1 i1");
+//	uart->console = 1;
+	consuart = uart;
 }
 
 void

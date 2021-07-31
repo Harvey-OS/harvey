@@ -1,3 +1,6 @@
+#define LASTRESORT lastresortprint	/* for ./devcons.c */
+#define CRUDEPRINT serialputs		/* for ./devcons.c */
+
 /*
  * Time.
  *

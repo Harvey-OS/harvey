@@ -5,6 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include	"pool.h"
+
 #include	<authsrv.h>
 
 void	(*consdebug)(void) = nil;
@@ -143,6 +144,10 @@ kmesgputs(char *str, int n)
 static void
 putstrn0(char *str, int n, int usewrite)
 {
+#ifdef CRUDEPRINT
+	CRUDEPRINT(str, n);
+	USED(usewrite);
+#else
 	int m;
 	char *t;
 
@@ -197,6 +202,7 @@ putstrn0(char *str, int n, int usewrite)
 			break;
 		}
 	}
+#endif
 }
 
 void
@@ -206,7 +212,6 @@ putstrn(char *str, int n)
 }
 
 int noprint;
-extern int normalprint;
 
 int
 print(char *fmt, ...)
@@ -221,13 +226,7 @@ print(char *fmt, ...)
 	va_start(arg, fmt);
 	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
-
-	if(!normalprint) {
-		if(0) iprint("\nprint called too early from %#lux\n",
-			getcallerpc(&fmt));
-		iprint("%.*s", n, buf);
-	} else
-		putstrn(buf, n);
+	putstrn(buf, n);
 
 	return n;
 }
@@ -268,11 +267,11 @@ iprint(char *fmt, ...)
 	locked = iprintcanlock(&iprintlock);
 	if(screenputs != nil && iprintscreenputs)
 		screenputs(buf, n);
-	if(consuart == nil || consuart->phys == nil ||
-	    consuart->phys->putc == nil)
-		_uartputs(buf, n);
-	else
-		uartputs(buf, n);
+#ifdef CRUDEPRINT
+	CRUDEPRINT(buf, n);
+#else
+	uartputs(buf, n);
+#endif
 	if(locked)
 		unlock(&iprintlock);
 	splx(s);
@@ -368,6 +367,7 @@ echoscreen(char *buf, int n)
 	char ebuf[128];
 	int x;
 
+iprint("echoscreen: wrong for beagle\n");
 	p = ebuf;
 	e = ebuf + sizeof(ebuf) - 4;
 	while(n-- > 0){
@@ -390,6 +390,7 @@ echoscreen(char *buf, int n)
 static void
 echoserialoq(char *buf, int n)
 {
+#ifdef ECHO_WORKS
 	int x;
 	char *e, *p;
 	char ebuf[128];
@@ -414,6 +415,19 @@ echoserialoq(char *buf, int n)
 	}
 	if(p != ebuf)
 		qiwrite(serialoq, ebuf, p - ebuf);
+#else
+	/*
+	 * TODO: something is broken about the above and echoed characters
+	 * don't appear.  until we figure it out, just brute force it.
+	 */
+	while(n-- > 0){
+		if(*buf == ('u' & 037))
+			CRUDEPRINT("^U\r\n", 4);
+		else
+			CRUDEPRINT(buf, 1);
+		buf++;
+	}
+#endif
 }
 
 static void
@@ -947,10 +961,9 @@ consread(Chan *c, void *buf, long n, vlong off)
 		b = malloc(READSTR);
 		if(b == nil)
 			error(Enomem);
-		k = 0;
+		n = 0;
 		for(i = 0; devtab[i] != nil; i++)
-			k += snprint(b+k, READSTR-k, "#%C %s\n",
-				devtab[i]->dc,  devtab[i]->name);
+			n += snprint(b+n, READSTR-n, "#%C %s\n", devtab[i]->dc,  devtab[i]->name);
 		if(waserror()){
 			free(b);
 			nexterror();
