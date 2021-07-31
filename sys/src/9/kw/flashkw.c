@@ -278,11 +278,6 @@ idchip(Flash *f)
 	r->n = f->size / r->erasesize;
 	r->start = 0;
 	r->end = f->size;
-	assert(ispow2(r->pagesize));
-	r->pageshift = log2(r->pagesize);
-	assert(ispow2(r->erasesize));
-	r->eraseshift = log2(r->erasesize);
-	assert(r->eraseshift >= r->pageshift);
 	if (cache.page == nil) {
 		cache.pgsize = r->pagesize;
 		cache.page = smalloc(r->pagesize);
@@ -336,8 +331,8 @@ erasezone(Flash *f, Flashregion *r, ulong offset)
 		print("flashkw: erase offset %lud not block aligned\n", offset);
 		return -1;
 	}
-	page = offset >> r->pageshift;
-	block = page >> (r->eraseshift - r->pageshift);
+	page = offset >> 11;
+	block = page >> 6;
 	if (Debug)
 		print("flashkw: erase: block %#lux\n", block);
 
@@ -402,7 +397,7 @@ write1page(Flash *f, ulong offset, void *buf)
 	if (oob == nil)
 		oob = smalloc(r->spares);
 
-	page = offset >> r->pageshift;
+	page = offset >> 11;
 	if (Debug)
 		print("flashkw: write nand offset %#lux page %#lux\n",
 			offset, page);
@@ -477,7 +472,7 @@ read1page(Flash *f, ulong offset, void *buf)
 
 	assert(r->pagesize != 0);
 	addr = offset & (r->pagesize - 1);
-	page = offset >> r->pageshift;
+	page = offset >> 11;
 	if(addr != 0) {
 		print("flashkw: read1page: read addr %#lux:"
 			" must read aligned page\n", addr);
@@ -511,6 +506,8 @@ read1page(Flash *f, ulong offset, void *buf)
 
 	nandunclaim(f);
 
+	flcachepage(f, page, buf);
+
 	/* verify/correct data. last 8*3 bytes is ecc, per 256 bytes. */
 	p = buf;
 	assert(r->spares >= 24);
@@ -531,8 +528,6 @@ read1page(Flash *f, ulong offset, void *buf)
 		}
 		p += 256;
 	}
-
-	flcachepage(f, page, buf);
 	return 0;
 }
 

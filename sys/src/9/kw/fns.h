@@ -47,7 +47,6 @@ extern u32int dacget(void);
 extern void dacput(u32int);
 extern u32int farget(void);
 extern u32int fsrget(void);
-extern int ispow2(uvlong);
 extern void l1cachesoff(void);
 extern void l1cacheson(void);
 extern void l2cachecfgoff(void);
