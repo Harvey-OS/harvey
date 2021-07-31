@@ -610,14 +610,6 @@ static X86type x86winchip[] =
 	{ -1,	-1,	23,	"unknown", },	/* total default */
 };
 
-/*
- * SiS 55x
- */
-static X86type x86sis[] =
-{
-	{5,	0,	23,	"SiS 55x",},	/* guesswork */
-	{ -1,	-1,	23,	"unknown", },	/* total default */
-};
 
 static X86type *cputype;
 
@@ -660,8 +652,6 @@ cpuidentify(void)
 		tab = x86amd;
 	else if(strncmp(m->cpuidid, "CentaurHauls", 12) == 0)
 		tab = x86winchip;
-	else if(strncmp(m->cpuidid, "SiS SiS SiS ", 12) == 0)
-		tab = x86sis;
 	else
 		tab = x86intel;
 	
@@ -678,11 +668,9 @@ cpuidentify(void)
 	/*
 	 *  if there is one, set tsc to a known value
 	 */
-	if(m->cpuiddx & 0x10){
-		m->havetsc = 1;
-		if(m->cpuiddx & 0x20)
-			wrmsr(0x10, 0);
-	}
+	m->havetsc = t->family >= 5;
+	if(m->havetsc)
+		wrmsr(0x10, 0);
 
 	/*
  	 *  use i8253 to guess our cpu speed
