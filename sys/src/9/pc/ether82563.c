@@ -1106,12 +1106,11 @@ i82563rproc(void* arg)
 					bp->flag |= Bpktck;
 				}
 				etheriq(edev, bp, 1);
-			} else {
-				if (rd->status & Reop && rd->errors)
-					print("%s: input packet error %#ux\n",
-						tname[ctlr->type], rd->errors);
+			} else if (rd->status & Reop && rd->errors)
+				print("%s: input packet error %#ux\n",
+					tname[ctlr->type], rd->errors);
+			else
 				freeb(bp);
-			}
 			ctlr->rb[rdh] = nil;
 
 			rd->status = 0;

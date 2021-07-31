@@ -69,8 +69,8 @@ struct Query {
 
 	/* dest must not be on the stack due to forking in slave() */
 	Dest	*dest;		/* array of destinations */
-	Dest	*curdest;	/* pointer to next to fill */
-	int	ndest;		/* transmit to this many on this round */
+	Dest	*curdest;	/* pointer to one of them */
+	int	ndest;
 
 	int	udpfd;
 
@@ -285,6 +285,12 @@ destck(Dest *p)
 {
 	assert(p);
 	assert(p->magic == Destmagic);
+}
+
+static void
+destdestroy(Dest *p)
+{
+	USED(p);
 }
 
 /*
@@ -586,8 +592,6 @@ initdnsmsg(DNSmsg *mp, RR *rp, int flags, ushort reqno)
 	mp->flags = flags;
 	mp->id = reqno;
 	mp->qd = rp;
-	if(rp != nil)
-		mp->qdcount = 1;
 }
 
 DNSmsg *
@@ -810,7 +814,7 @@ ipisbm(uchar *ip)
 }
 
 /*
- *  Get next server address(es) into qp->dest[nd] and beyond
+ *  Get next server address
  */
 static int
 serveraddrs(Query *qp, int nd, int depth)
@@ -1103,9 +1107,6 @@ xmitquery(Query *qp, int medium, int depth, uchar *obuf, int inns, int len)
 			if((1<<p->nx) > qp->ndest)
 				continue;
 
-			if(memcmp(p->a, IPnoaddr, sizeof IPnoaddr) == 0)
-				continue;		/* mistake */
-
 			procsetname("udp %sside query to %I/%s %s %s",
 				(inns? "in": "out"), p->a, p->s->name,
 				qp->dp->name, rrname(qp->type, buf, sizeof buf));
@@ -1321,8 +1322,7 @@ tcpquery(Query *qp, DNSmsg *mp, int depth, uchar *ibuf, uchar *obuf, int len,
 }
 
 /*
- *  query name servers.  fill in obuf with on-the-wire representation of a
- *  DNSmsg derived from qp.  if the name server returns a pointer to another
+ *  query name servers.  If the name server returns a pointer to another
  *  name server, recurse.
  */
 static int
