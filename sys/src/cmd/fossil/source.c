@@ -14,7 +14,7 @@ static int	sourceGrowDepth(Source*, Block*, Entry*, int);
 #define sourceIsLocked(r)	((r)->b != nil)
 
 static Source *
-sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot)
+sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode)
 {
 	Source *r;
 	int epb;
@@ -84,7 +84,6 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot
 	r = vtMemAllocZ(sizeof(Source));
 	r->fs = fs;
 	r->mode = mode;
-	r->issnapshot = issnapshot;
 	r->dsize = e.dsize;
 	r->gen = e.gen;
 	r->dir = (e.flags & VtEntryDir) != 0;
@@ -131,13 +130,13 @@ sourceRoot(Fs *fs, u32int addr, int mode)
 		return nil;
 	}
 
-	r = sourceAlloc(fs, b, nil, 0, mode, 0);
+	r = sourceAlloc(fs, b, nil, 0, mode);
 	blockPut(b);
 	return r;
 }
 
 Source *
-sourceOpen(Source *r, ulong offset, int mode, int issnapshot)
+sourceOpen(Source *r, ulong offset, int mode)
 {
 	ulong bn;
 	Block *b;
@@ -155,7 +154,7 @@ sourceOpen(Source *r, ulong offset, int mode, int issnapshot)
 	b = sourceBlock(r, bn, mode);
 	if(b == nil)
 		return nil;
-	r = sourceAlloc(r->fs, b, r, offset, mode, issnapshot);
+	r = sourceAlloc(r->fs, b, r, offset, mode);
 	blockPut(b);
 	return r;
 }
@@ -235,7 +234,7 @@ Found:
 		}
 	}
 
-	rr = sourceAlloc(r->fs, b, r, offset, OReadWrite, 0);
+	rr = sourceAlloc(r->fs, b, r, offset, OReadWrite);
 	blockPut(b);
 	return rr;
 }
@@ -744,7 +743,7 @@ _sourceBlock(Source *r, ulong bn, int mode, int early, ulong tag)
 	b = sourceLoad(r, &e);
 	if(b == nil)
 		return nil;
-	if(r->issnapshot && (e.flags & VtEntryNoArchive)){
+	if(r->mode == OReadOnly && (e.flags & VtEntryNoArchive)){
 		blockPut(b);
 		vtSetError(ENotArchived);
 		return nil;

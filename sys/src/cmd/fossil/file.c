@@ -31,7 +31,6 @@ struct File {
 	File	*down;		/* children */
 
 	int	mode;
-	int	issnapshot;
 };
 
 static int fileMetaFlush2(File*, char*);
@@ -107,7 +106,6 @@ dirLookup(File *f, char *elem)
 			blockPut(b);
 			ff->boff = bo;
 			ff->mode = f->mode;
-			ff->issnapshot = f->issnapshot;
 			return ff;
 		}
 
@@ -141,13 +139,13 @@ fileRoot(Source *r)
 	fs = r->fs;
 	if(!sourceLock(r, -1))
 		return nil;
-	r0 = sourceOpen(r, 0, fs->mode, 0);
+	r0 = sourceOpen(r, 0, fs->mode);
 	if(r0 == nil)
 		goto Err;
-	r1 = sourceOpen(r, 1, fs->mode, 0);
+	r1 = sourceOpen(r, 1, fs->mode);
 	if(r1 == nil)
 		goto Err;
-	r2 = sourceOpen(r, 2, fs->mode, 0);
+	r2 = sourceOpen(r, 2, fs->mode);
 	if(r2 == nil)
 		goto Err;
 
@@ -201,13 +199,13 @@ Err:
 }
 
 static Source *
-fileOpenSource(File *f, u32int offset, u32int gen, int dir, uint mode, int issnapshot)
+fileOpenSource(File *f, u32int offset, u32int gen, int dir, uint mode)
 {
 	Source *r;
 
 	if(!sourceLock(f->source, mode))
 		return nil;
-	r = sourceOpen(f->source, offset, mode, issnapshot);
+	r = sourceOpen(f->source, offset, mode);
 	sourceUnlock(f->source);
 	if(r == nil)
 		return nil;
@@ -267,10 +265,8 @@ _fileWalk(File *f, char *elem, int partial)
 	if(ff == nil)
 		goto Err;
 
-	if(ff->dir.mode & ModeSnapshot){
+	if(ff->dir.mode & ModeSnapshot)
 		ff->mode = OReadOnly;
-		ff->issnapshot = 1;
-	}
 
 	if(partial){
 		/*
@@ -283,12 +279,12 @@ _fileWalk(File *f, char *elem, int partial)
 		 */
 		ff->partial = 1;
 	}else if(ff->dir.mode & ModeDir){
-		ff->source = fileOpenSource(f, ff->dir.entry, ff->dir.gen, 1, ff->mode, ff->issnapshot);
-		ff->msource = fileOpenSource(f, ff->dir.mentry, ff->dir.mgen, 0, ff->mode, ff->issnapshot);
+		ff->source = fileOpenSource(f, ff->dir.entry, ff->dir.gen, 1, ff->mode);
+		ff->msource = fileOpenSource(f, ff->dir.mentry, ff->dir.mgen, 0, ff->mode);
 		if(ff->source == nil || ff->msource == nil)
 			goto Err;
 	}else{
-		ff->source = fileOpenSource(f, ff->dir.entry, ff->dir.gen, 0, ff->mode, ff->issnapshot);
+		ff->source = fileOpenSource(f, ff->dir.entry, ff->dir.gen, 0, ff->mode);
 		if(ff->source == nil)
 			goto Err;
 	}

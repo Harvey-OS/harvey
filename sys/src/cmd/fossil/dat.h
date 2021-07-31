@@ -113,7 +113,6 @@ struct Entry {
 struct Source {
 	Fs *fs;		/* immutable */
 	int mode;	/* immutable */
-	int issnapshot;	/* immutable */
 	u32int gen;	/* immutable */
 	int dsize;	/* immutable */
 	int dir;	/* immutable */
