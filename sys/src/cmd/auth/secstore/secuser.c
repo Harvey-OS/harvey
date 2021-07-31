@@ -19,13 +19,15 @@ ensure_exists(char *f, ulong perm)
 	if(verbose)
 		fprint(2,"first time setup for secstore: create %s %lo\n", f, perm);
 	fd = create(f, OREAD, perm);
-	if(fd < 0)
-		sysfatal("unable to create %s: %r", f);
+	if(fd < 0){
+		fprint(2, "secuser: unable to create %s\n", f);
+		exits("secstored directories");
+	}
 	close(fd);
 }
 
 
-void
+int
 main(int argc, char **argv)
 {
 	int isnew;
@@ -42,7 +44,7 @@ main(int argc, char **argv)
 		break;
 	}ARGEND;
 	if(argc!=1){
-		fprint(2, "usage: secuser [-v] <user>\n");
+		print("usage: secuser [-v] <user>\n");
 		exits("usage");
 	}
 
@@ -61,9 +63,10 @@ main(int argc, char **argv)
 		pw = emalloc(sizeof(*pw));
 		pw->id = estrdup(id);
 		snprint(home, sizeof(home), "%s/store/%s", SECSTORE_DIR, id);
-		if(access(home, AEXIST) == 0)
-			sysfatal("new user, but directory %s already exists",
-				home);
+		if(access(home, AEXIST) == 0){
+			print("new user, but directory %s already exists\n", home);
+			exits(home);
+		}
 	}else{
 		isnew = 0;
 	}
@@ -75,8 +78,10 @@ main(int argc, char **argv)
 		else
 			snprint(prompt, sizeof(prompt), "%s password [default = don't change]: ", id);
 		pass = getpassm(prompt);
-		if(pass == nil)
-			sysfatal("getpassm failed");
+		if(pass == nil){
+			print("getpassm failed\n");
+			exits("getpassm failed");
+		}
 		if(verbose)
 			print("%ld characters\n", strlen(pass));
 		if(pass[0] == '\0' && isnew == 0)
@@ -91,10 +96,14 @@ main(int argc, char **argv)
 		if(verbose)
 			print("confirming...\n");
 		passck = getpassm(prompt);
-		if(passck == nil)
-			sysfatal("getpassm failed");
-		if(strcmp(pass, passck) != 0)
-			sysfatal("passwords didn't match");
+		if(passck == nil){
+			print("getpassm failed\n");
+			exits("getpassm failed");
+		}
+		if(strcmp(pass, passck) != 0){
+			print("passwords didn't match\n");
+			exits("no match");
+		}
 		memset(passck, 0, strlen(passck));
 		free(passck);
 		hexHi = PAK_Hi(id, pass, H, Hi);
@@ -114,7 +123,7 @@ main(int argc, char **argv)
 	for(;;){
 		tm = localtime(expsecs);
 		print("expires [DDMMYYYY, default = %2.2d%2.2d%4.4d]: ",
-				tm->mday, tm->mon+1, tm->year+1900);
+				tm->mday, tm->mon, tm->year+1900);
 		userinput(buf, sizeof(buf));
 		if(strlen(buf) == 0)
 			break;
@@ -128,7 +137,7 @@ main(int argc, char **argv)
 			continue;
 		}
 		tm->mon = (buf[2]-'0')*10 + (buf[3]-'0') - 1;
-		if(tm->mon > 11 || tm->mon < 0){
+		if(tm->mon > 11 || tm->mday < 0){
 			print("!bad month: %d\n", tm->mon + 1);
 			continue;
 		}
@@ -195,15 +204,19 @@ main(int argc, char **argv)
 			sysfatal("strdup");
 
 	syslog(0, LOG, "CHANGELOGIN for '%s'", pw->id);
-	if(putPW(pw) < 0)
-		sysfatal("can't write password file: %r");
-	else{
+	if(putPW(pw) < 0){
+		print("error writing entry: %r\n");
+		exits("can't write password file");
+	}else{
 		print("change written\n");
-		if(isnew && create(home, OREAD, DMDIR | 0775L) < 0)
-			sysfatal("unable to create %s: %r", home);
+		if(isnew && create(home, OREAD, DMDIR | 0775L) < 0){
+			print("unable to create %s: %r\n", home);
+			exits(home);
+		}
 	}
 
 	exits("");
+	return 1;  /* keep  other compilers happy */
 }
 
 
@@ -225,3 +238,4 @@ userinput(char *buf, int blen)
 			exits("input too large");
 	}
 }
+
