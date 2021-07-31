@@ -193,8 +193,7 @@ specifies the mount point of the
 network.
 .TP
 .B -s
-also cache DNS answers in memory,
-and answer domain requests sent to UDP port 53.
+also answer domain requests sent to UDP port 53.
 .TP
 .B -n
 whenever a zone that we serve changes, send UDP NOTIFY
