@@ -610,7 +610,7 @@ _gettoks(uchar* data, int datalen, int chset, int mtype, int* plen)
 	a = 0;
 	if(ts->mtype == TextHtml) {
 		for(;;) {
-			if(alen - ai < ToksChunk/32) {
+			if(ai == alen) {
 				alen += ToksChunk;
 				a = erealloc(a, alen*sizeof *a);
 			}
@@ -638,7 +638,7 @@ _gettoks(uchar* data, int datalen, int chset, int mtype, int* plen)
 	else {
 		// plain text (non-html) tokens
 		for(;;) {
-			if(alen - ai < ToksChunk/32) {
+			if(ai == alen) {
 				alen += ToksChunk;
 				a = erealloc(a, alen*sizeof *a);
 			}
@@ -1334,8 +1334,6 @@ getchar(TokenSource* ts)
 			c = -1;
 		}
 		break;
-	default:
-		return -1;
 	}
 	return c;
 }

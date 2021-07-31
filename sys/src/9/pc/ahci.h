@@ -4,7 +4,7 @@
  */
 
 /* ata errors */
-enum {
+enum{
 	Emed	= 1<<0,		/* media error */
 	Enm	= 1<<1,		/* no media */
 	Eabrt	= 1<<2,		/* abort */
@@ -19,7 +19,7 @@ enum {
 };
 
 /* ata status */
-enum {
+enum{
 	ASerr	= 1<<0,		/* error */
 	ASdrq	= 1<<3,		/* request */
 	ASdf	= 1<<5,		/* fault */
@@ -30,7 +30,7 @@ enum {
 };
 
 /* pci configuration */
-enum {
+enum{
 	Abar	= 5,
 };
 
@@ -46,7 +46,7 @@ enum {
  */
 
 /* cap bits: supported features */
-enum {
+enum{
 	Hs64a	= 1<<31,	/* 64-bit addressing */
 	Hsncq	= 1<<30,	/* ncq */
 	Hssntf	= 1<<29,	/* snotification reg. */
@@ -71,13 +71,13 @@ enum {
 };
 
 /* ghc bits */
-enum {
+enum{
 	Hae	= 1<<31,	/* enable ahci */
 	Hie	= 1<<1,		/* " interrupts */
 	Hhr	= 1<<0,		/* hba reset */
 };
 
-typedef struct {
+typedef struct{
 	u32int	cap;
 	u32int	ghc;
 	u32int	isr;
@@ -89,7 +89,7 @@ typedef struct {
 	u32int	emctl;
 } Ahba;
 
-enum {
+enum{
 	Acpds	= 1<<31,	/* cold port detect status */
 	Atfes	= 1<<30,	/* task file error status */
 	Ahbfs	= 1<<29,	/* hba fatal */
@@ -114,7 +114,7 @@ enum {
 };
 
 /* serror bits */
-enum {
+enum{
 	SerrX	= 1<<26,	/* exchanged */
 	SerrF	= 1<<25,	/* unknown fis */
 	SerrT	= 1<<24,	/* transition error */
@@ -141,7 +141,7 @@ enum {
 };
 
 /* cmd register bits */
-enum {
+enum{
 	Aicc	= 1<<28,	/* interface communcations control. 4 bits */
 	Aasp	= 1<<27,	/* agressive slumber & partial sleep */
 	Aalpe 	= 1<<26,	/* agressive link pm enable */
@@ -167,7 +167,7 @@ enum {
 };
 
 /* ctl register bits */
-enum {
+enum{
 	Aipm	= 1<<8,		/* interface power mgmt. 3=off */
 	Aspd	= 1<<4,
 	Adet	= 1<<0,		/* device detection */
@@ -178,7 +178,7 @@ enum {
 #define	serror	scr1
 #define	sactive	scr3
 
-typedef struct {
+typedef struct{
 	u32int	list;		/* PxCLB must be 1kb aligned. */
 	u32int	listhi;
 	u32int	fis;		/* 256-byte aligned */
@@ -197,19 +197,19 @@ typedef struct {
 	u32int	ntf;
 	uchar	res2[8];
 	u32int	vendor;
-} Aport;
+}Aport;
 
 /* in host's memory; not memory mapped */
-typedef struct {
+typedef struct{
 	uchar	*base;
 	uchar	*d;
 	uchar	*p;
 	uchar	*r;
 	uchar	*u;
 	u32int	*devicebits;
-} Afis;
+}Afis;
 
-enum {
+enum{
 	Lprdtl	= 1<<16,	/* physical region descriptor table len */
 	Lpmp	= 1<<12,	/* port multiplier port */
 	Lclear	= 1<<10,	/* clear busy on R_OK */
@@ -222,34 +222,34 @@ enum {
 };
 
 /* in hosts memory; memory mapped */
-typedef struct {
+typedef struct{
 	u32int	flags;
 	u32int	len;
 	u32int	ctab;
 	u32int	ctabhi;
 	uchar	reserved[16];
-} Alist;
+}Alist;
 
-typedef struct {
+typedef struct{
 	u32int	dba;
 	u32int	dbahi;
 	u32int	pad;
 	u32int	count;
-} Aprdt;
+}Aprdt;
 
-typedef struct {
+typedef struct{
 	uchar	cfis[0x40];
 	uchar	atapi[0x10];
 	uchar	pad[0x30];
 	Aprdt	prdt;
-} Actab;
+}Actab;
 
-enum {
+enum{
 	Ferror	= 1,
 	Fdone	= 2,
 };
 
-enum {
+enum{
 	Dllba 	= 1,
 	Dsmart	= 1<<1,
 	Dpower	= 1<<2,
@@ -258,7 +258,7 @@ enum {
 	Datapi16= 1<<5,
 };
 
-typedef struct {
+typedef struct{
 	QLock;
 	Rendez;
 	uchar	flag;
@@ -267,9 +267,9 @@ typedef struct {
 	Afis	fis;
 	Alist	*list;
 	Actab	*ctab;
-} Aportm;
+}Aportm;
 
-typedef struct {
+typedef struct{
 	Aport	*p;
 	Aportm	*m;
-} Aportc;
+}Aportc;
