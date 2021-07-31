@@ -7,7 +7,6 @@ static char *kwd[] =
 	"$local", "$loop", "$return", "$tail", "$then",
 	"$union", "$whatis", "$while",
 };
-static char picklestr[] = "\tbp = pickle(bp, ep, un, ";
 
 static char*
 pmap(char *s)
@@ -113,12 +112,12 @@ picklemember(Type *t, long off)
 	case TIND:
 		if(s == S)
 			Bprint(&outbuf,
-				"%s\"p\", (char*)addr+%ld+_i*%ld);\n",
-				picklestr, t->offset+off, t->width);
+				"\tpickle(bp, un, \"p\", (char*)addr+%ld+_i*%ld);\n",
+				t->offset+off, t->width);
 		else
 			Bprint(&outbuf,
-				"%s\"p\", &addr->%s);\n",
-				picklestr, pmap(s->name));
+				"\tpickle(bp, un, \"p\", &addr->%s);\n",
+				pmap(s->name));
 		break;
 
 	case TINT:
@@ -134,11 +133,11 @@ picklemember(Type *t, long off)
 	case TFLOAT:
 	case TDOUBLE:
 		if(s == S)
-			Bprint(&outbuf, "%s\"%c\", (char*)addr+%ld+_i*%ld);\n",
-				picklestr, picklechar[t->etype], t->offset+off, t->width);
+			Bprint(&outbuf, "\tpickle(bp, un, \"%c\", (char*)addr+%ld+_i*%ld);\n",
+				picklechar[t->etype], t->offset+off, t->width);
 		else
-			Bprint(&outbuf, "%s\"%c\", &addr->%s);\n",
-				picklestr, picklechar[t->etype], pmap(s->name));
+			Bprint(&outbuf, "\tpickle(bp, un, \"%c\", &addr->%s);\n",
+				picklechar[t->etype], pmap(s->name));
 		break;
 	case TARRAY:
 		Bprint(&outbuf, "\tfor(_i = 0; _i < %ld; _i++) {\n\t",
@@ -153,10 +152,10 @@ picklemember(Type *t, long off)
 		if(s1 == S)
 			break;
 		if(s == S) {
-			Bprint(&outbuf, "\tbp = pickle_%s(bp, ep, un, (%s*)((char*)addr+%ld+_i*%ld));\n",
+			Bprint(&outbuf, "\tpickle_%s(bp, un, (%s*)((char*)addr+%ld+_i*%ld));\n",
 				pmap(s1->name), pmap(s1->name), t->offset+off, t->width);
 		} else {
-			Bprint(&outbuf, "\tbp = pickle_%s(bp, ep, un, &addr->%s);\n",
+			Bprint(&outbuf, "\tpickle_%s(bp, un, &addr->%s);\n",
 				pmap(s1->name), pmap(s->name));
 		}
 		break;
@@ -195,10 +194,10 @@ pickletype(Type *t)
 			goto asmstr;
 		an = pmap(s->name);
 
-		Bprint(&outbuf, "char *\npickle_%s(char *bp, char *ep, int un, %s *addr)\n{\n\tint _i = 0;\n\n\tUSED(_i);\n", an, an);
+		Bprint(&outbuf, "void\npickle_%s(char **bp, int un, %s *addr)\n{\n\tint _i = 0;\n\n\tUSED(_i);\n", an, an);
 		for(l = t->link; l != T; l = l->down)
 			picklemember(l, 0);
-		Bprint(&outbuf, "\treturn bp;\n}\n\n");
+		Bprint(&outbuf, "}\n\n");
 		break;
 	asmstr:
 		if(s == S)

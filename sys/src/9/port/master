@@ -1,11 +1,8 @@
-# do not edit; automatically generated
-
 $	pnp
 /	root
 A	audio
 A	uda1341
 B	bridge
-C	ce
 D	ssl
 E	sdp
 F	flash
@@ -21,6 +18,7 @@ T	lm78
 U	usb
 V	lml
 V	tv
+V	tvnew
 X	loopback
 Y	pccard
 a	tls

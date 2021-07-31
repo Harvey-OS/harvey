@@ -21,7 +21,6 @@ struct Pop {
 	int pipeline;
 	int hastls;
 	int needtls;
-	int notls;
 
 	// open network connection
 	Biobuf bin;
@@ -79,14 +78,8 @@ pop3resp(Pop *pop)
 	char *s;
 	char *p;
 
-	alarm(60*1000);
-	if((s = Brdline(&pop->bin, '\n')) == nil){
-		close(pop->fd);
-		pop->fd = -1;
-		alarm(0);
+	if((s = Brdline(&pop->bin, '\n')) == nil)
 		return "unexpected eof";
-	}
-	alarm(0);
 
 	p = s+Blinelen(&pop->bin)-1;
 	while(p >= s && (*p == '\r' || *p == '\n'))
@@ -136,7 +129,7 @@ pop3capa(Pop *pop)
 			pop->pipeline = 1;
 	}
 
-	if(hastls && !pop->notls){
+	if(hastls){
 		pop3cmd(pop, "STLS");
 		if(!isokay(s = pop3resp(pop)))
 			return s;
@@ -493,33 +486,11 @@ pop3purge(Pop *pop, Mailbox *mb)
 {
 	Message *m, *next;
 
-	if(pop->pipeline){
-		switch(rfork(RFPROC|RFMEM)){
-		case -1:
-			fprint(2, "rfork: %r\n");
-			pop->pipeline = 0;
-
-		default:
-			break;
-
-		case 0:
-			for(m = mb->root->part; m != nil; m = next){
-				next = m->next;
-				if(m->deleted && m->refs == 0){
-					if(m->inmbox)
-						Bprint(&pop->bout, "DELE %d\r\n", m->mesgno);
-				}
-			}
-			Bflush(&pop->bout);
-			_exits(nil);
-		}
-	}
 	for(m = mb->root->part; m != nil; m = next) {
 		next = m->next;
 		if(m->deleted && m->refs == 0) {
 			if(m->inmbox) {
-				if(!pop->pipeline)
-					pop3cmd(pop, "DELE %d", m->mesgno);
+				pop3cmd(pop, "DELE %d", m->mesgno);
 				if(isokay(pop3resp(pop)))
 					delmessage(mb, m);
 			} else
@@ -614,16 +585,14 @@ char*
 pop3mbox(Mailbox *mb, char *path)
 {
 	char *f[10];
-	int nf, apop, ppop, apoptls, popnotls, apopnotls, poptls;
+	int nf, apop, ppop, apoptls, poptls;
 	Pop *pop;
 
 	quotefmtinstall();
 	poptls = strncmp(path, "/poptls/", 8) == 0;
-	popnotls = strncmp(path, "/popnotls/", 10) == 0;
-	ppop = poptls || popnotls || strncmp(path, "/pop/", 5) == 0;
+	ppop = poptls || strncmp(path, "/pop/", 5) == 0;
 	apoptls = strncmp(path, "/apoptls/", 9) == 0;
-	apopnotls = strncmp(path, "/apopnotls/", 11) == 0;
-	apop = apoptls || apopnotls || strncmp(path, "/apop/", 6) == 0;
+	apop = apoptls || strncmp(path, "/apop/", 6) == 0;
 	
 	if(!ppop && !apop)
 		return Enotme;
@@ -648,7 +617,6 @@ pop3mbox(Mailbox *mb, char *path)
 	pop->ppop = ppop;
 	pop->needtls = poptls || apoptls;
 	pop->refreshtime = 60;
-	pop->notls = popnotls || apopnotls;
 	pop->thumb = initThumbprints("/sys/lib/tls/mail", "/sys/lib/tls/mail.exclude");
 
 	mb->aux = pop;

@@ -4,23 +4,20 @@
 
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 void
 main(void)
 {
-	char buf[4096];
-	char *p;
-	int n;
+	int c;
+	Biobuf bin, bout;
 
-	while((n = read(0, buf, sizeof(buf))) > 0){
-		p = memchr(buf, 0, n);
-		if(p != nil)
-			n = p-buf;
-		if(n > 0)
-			write(1, buf, n);
-		if(p != nil)
-			break;
+	Binit(&bin, 0, OREAD);
+	Binit(&bout, 1, OWRITE);
+	while((c = Bgetc(&bin)) != Beof && c != 0){
+		Bputc(&bout, c);
 	}
+	Bflush(&bout);
 	exits(0);
 }
 

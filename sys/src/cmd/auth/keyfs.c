@@ -33,6 +33,8 @@ enum{
 	Sdisabled,
 	Stempdisabled,
 	Smax,
+
+	PurgatorySecs=	MAXBAD,		/* averages out to 1 attempt a second */
 };
 
 struct Fid{
@@ -49,7 +51,7 @@ struct User{
 	char	secret[SECRETLEN];
 	ulong	expire;			/* 0 == never */
 	uchar	status;
-	ulong	bad;			/* number of consecutive bad authentication attempts */
+	uchar	bad;			/* number of consecutive bad authentication attempts */
 	int	ref;
 	char	removed;
 	uchar	warnings;
@@ -451,7 +453,7 @@ Read(Fid *f)
 			thdr.count = 0;
 			return 0;
 		}
-		sprint(data, "%lud\n", f->user->bad);
+		sprint(data, "%d\n", f->user->bad);
 		if(n > strlen(data))
 			n = strlen(data);
 		thdr.count = n;
@@ -533,8 +535,10 @@ Write(Fid *f)
 			f->user->bad = 0;
 		else
 			f->user->bad++;
-		if(f->user->bad && ((f->user->bad)%MAXBAD) == 0)
-			f->user->purgatory = time(0) + f->user->bad;
+		if(f->user->bad >= MAXBAD){
+			f->user->purgatory = time(0) + PurgatorySecs;
+			f->user->bad = 0;
+		}
 		return 0;
 	case Qwarnings:
 		data[n] = '\0';

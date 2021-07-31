@@ -12,8 +12,6 @@ enum {
 	PermR		= 4,
 };
 
-int fixFid;	/* clumsy hack to debug fid-in-use problems */
-
 static char EPermission[] = "permission denied";
 
 static int
@@ -802,18 +800,9 @@ rTwalk(Msg* m)
 	 */
 	nfid = nil;
 	if(t->fid != t->newfid){
-again:
 		nfid = fidGet(m->con, t->newfid, FidFWlock|FidFCreate);
 		if(nfid == nil){
-			if(fixFid && fixFid == t->newfid){
-				fixFid = 0;
-				nfid = fidGet(m->con, t->newfid, FidFWlock);
-				if(nfid){
-					fprint(2, "clunking in-use fid %d to appease client\n", t->newfid);
-					_rTclunk(nfid, 0);
-				}
-				goto again;
-			}
+			vtSetError("fid in use");
 			fidPut(ofid);
 			return 0;
 		}

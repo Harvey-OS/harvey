@@ -18,19 +18,19 @@ usage(void)
 void
 buildfmt(void)
 {
+	int i;
 	char *dp;
 	int w, p, maxw, maxp;
 	static char fmt[16];
 	char buf[32];
-	double val;
 
 	format = "%g\n";
 	if(!constant)
 		return;
 	maxw = 0;
 	maxp = 0;
-	for(val = min; val <= max; val += incr){
-		sprint(buf, "%g", val);
+	for(i=0; i<=nsteps; i++){
+		sprint(buf, "%g", min+i*incr);
 		if(strchr(buf, 'e')!=0)
 			return;
 		dp = strchr(buf,'.');
@@ -49,9 +49,8 @@ buildfmt(void)
 
 void
 main(int argc, char *argv[]){
-	int j, n;
+	int i, j, n;
 	char buf[256], ffmt[4096];
-	double val;
 
 	ARGBEGIN{
 	case 'w':
@@ -79,10 +78,11 @@ main(int argc, char *argv[]){
 		fprint(2, "seq: zero increment\n");
 		exits("zero increment");
 	}
+	nsteps = (max-min)/incr+.5;
 	if(!format)
 		buildfmt();
-	for(val = min; val <= max; val += incr){
-		n = sprint(buf, format, val);
+	for(i=0; i<=nsteps; i++){
+		n = sprint(buf, format, min+i*incr);
 		if(constant)
 			for(j=0; buf[j]==' '; j++)
 				buf[j] ='0';

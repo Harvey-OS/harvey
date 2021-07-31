@@ -62,7 +62,7 @@ numOk(char *s)
  *		| "httpaddr" address
  *		| "addr" address
  *
- * '#' and \n delimit comments
+ * '#' and \n delimate comments
  */
 enum
 {

@@ -413,11 +413,6 @@ vtConnect(VtSession *z, char *password)
 		vtUnlock(z->lk);
 		return 0;
 	}
-	if(z->fd < 0){
-		vtSetError("%s", z->fderror);
-		vtUnlock(z->lk);
-		return 0;
-	}
 
 	/* be a little anal */
 	vtLock(z->inLock);

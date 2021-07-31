@@ -632,7 +632,7 @@ freturn(int i)
 		print("now return ");
 		if(i < NCH) allprint(i);
 		else print("%d",i);
-		print("   yylval = ");
+		printf("   yylval = ");
 		switch(i){
 			case STR: case CCL: case NCCL:
 				strpt(yylval.cp);

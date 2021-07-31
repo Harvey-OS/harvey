@@ -193,8 +193,6 @@ msgFlush(Msg* m)
 
 	con = m->con;
 
-fprint(2, "msgFlush %F\n", &m->t);
-
 	/*
 	 * Look for the message to be flushed in the
 	 * queue of all messages still on this connection.
@@ -209,8 +207,6 @@ fprint(2, "msgFlush %F\n", &m->t);
 		vtUnlock(con->mlock);
 		return;
 	}
-
-fprint(2, "\tmsgFlush found %F\n", &old->t);
 
 	/*
 	 * Found it.
@@ -406,7 +402,7 @@ msgRead(void* v)
 			continue;
 		}
 		if(Dflag)
-			fprint(2, "msgRead %p: t %F\n", con, &m->t);
+			fprint(2, "msgRead: t %F\n", &m->t);
 
 		vtLock(con->mlock);
 		if(con->mtail != nil){
@@ -457,7 +453,7 @@ _msgWrite(Msg* m)
 	 * until the 'oldtag' message goes out (see below).
 	 */
 	if(m->r.type == Rflush && m->fprev != nil){
-		fprint(2, "msgWrite %p: delay r %F\n", con, &m->r);
+		fprint(2, "msgWrite: delay r %F\n", &m->r);
 		return 0;
 	}
 
@@ -475,7 +471,7 @@ _msgWrite(Msg* m)
 		eof = 0;
 
 	if(Dflag)
-		fprint(2, "msgWrite %p: r %F\n", con, &m->r);
+		fprint(2, "msgWrite: r %F\n", &m->r);
 
 	/*
 	 * Just wrote a reply. If it has any flushes waiting

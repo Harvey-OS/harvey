@@ -41,7 +41,6 @@ enum {
 	CMpanning,
 	CMsize,
 	CMtype,
-	CMunblank,
 };
 
 static Cmdtab vgactlmsg[] = {
@@ -57,7 +56,6 @@ static Cmdtab vgactlmsg[] = {
 	CMpanning,	"panning",	2,
 	CMsize,		"size",		3,
 	CMtype,		"type",		2,
-	CMunblank,	"unblank",	1,
 };
 
 static void
@@ -348,10 +346,6 @@ vgactl(Cmdbuf *cb)
 
 	case CMblank:
 		drawblankscreen(1);
-		return;
-	
-	case CMunblank:
-		drawblankscreen(0);
 		return;
 	
 	case CMblanktime:

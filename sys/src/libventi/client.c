@@ -22,7 +22,6 @@ vtDial(char *host, int canfail)
 	VtSession *z;
 	int fd;
 	char *na;
-	char e[ERRMAX];
 
 	if(host == nil) 
 		host = getenv("venti");
@@ -31,16 +30,11 @@ vtDial(char *host, int canfail)
 
 	na = netmkaddr(host, 0, "venti");
 	fd = dial(na, 0, 0, 0);
-	if(fd < 0){
-		rerrstr(e, sizeof e);
-		if(!canfail){
-			vtSetError("%s", e);
-			return nil;
-		}
+	if(fd < 0 && !canfail) {
+		vtOSError();
+		return nil;
 	}
 	z = vtClientAlloc();
-	if(fd < 0)
-		strcpy(z->fderror, e);
 	vtSetFd(z, fd);
 	return z;
 }

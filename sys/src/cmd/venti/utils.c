@@ -187,14 +187,19 @@ void
 fatal(char *fmt, ...)
 {
 	Fmt f;
-	va_list arg;
 	char buf[256];
 
-	fmtfdinit(&f, 2, buf, sizeof buf);
+	f.runes = 0;
+	f.start = buf;
+	f.to = buf;
+	f.stop = buf + sizeof(buf);
+	f.flush = fmtfdflush;
+	f.farg = (void*)2;
+	f.nfmt = 0;
 	fmtprint(&f, "fatal %s error:", argv0);
-	va_start(arg, fmt);
-	fmtprint(&f, fmt, arg);
-	va_end(arg);
+	va_start(f.args, fmt);
+	dofmt(&f, fmt);
+	va_end(f.args);
 	fmtprint(&f, "\n");
 	fmtfdflush(&f);
 	if(0)

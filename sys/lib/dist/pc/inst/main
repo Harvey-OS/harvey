@@ -12,10 +12,7 @@ echo -n 'Preparing menu...'
 
 # must be topologically sorted (by prereq)
 tasks=(\
-	configfs\
 	partdisk prepdisk\
-	fmtventi\
-	fmtfossil\
 	mountfs\
 	configdist\
 	confignet\
@@ -27,7 +24,6 @@ tasks=(\
 )
 #	startether startppp stopether stopppp download\
 
-# these don't show up in the menu but still matter
 pseudotasks=(configip havefiles etherup etherdown pppup pppdown)
 
 for(i in $tasks $pseudotasks)

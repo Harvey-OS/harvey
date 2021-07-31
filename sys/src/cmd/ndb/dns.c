@@ -62,7 +62,6 @@ struct {
 
 int	mfd[2];
 int	debug;
-int traceactivity;
 int	cachedb;
 ulong	now;
 int	testing;
@@ -121,7 +120,6 @@ main(int argc, char *argv[])
 	ARGBEGIN{
 	case 'd':
 		debug = 1;
-		traceactivity = 1;
 		break;
 	case 'f':
 		p = ARGF();

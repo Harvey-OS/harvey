@@ -22,7 +22,6 @@ dsapubfree(DSApub *dsa)
 	mpfree(dsa->q);
 	mpfree(dsa->alpha);
 	mpfree(dsa->key);
-	free(dsa);
 }
 
 
@@ -47,7 +46,6 @@ dsaprivfree(DSApriv *dsa)
 	mpfree(dsa->pub.alpha);
 	mpfree(dsa->pub.key);
 	mpfree(dsa->secret);
-	free(dsa);
 }
 
 DSAsig*
@@ -68,5 +66,4 @@ dsasigfree(DSAsig *dsa)
 		return;
 	mpfree(dsa->r);
 	mpfree(dsa->s);
-	free(dsa);
 }
