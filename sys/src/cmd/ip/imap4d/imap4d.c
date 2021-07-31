@@ -76,7 +76,6 @@ static	void	imap4(int);
 static	void	status(int expungeable, int uids);
 static	void	cleaner(void);
 static	void	check(void);
-static	int	catcher(void*, char*);
 
 static	Search	*searchKey(int first);
 static	Search	*searchKeys(int first, Search *tail);
@@ -183,9 +182,6 @@ static	ParseCmd	*imapState;
 static	jmp_buf		parseJmp;
 static	char		*parseMsg;
 static	int		allowPass;
-static	int		exiting;
-static	QLock		imaplock;
-static	int		idlepid = -1;
 
 Biobuf	bout;
 Biobuf	bin;
@@ -257,8 +253,6 @@ main(int argc, char *argv[])
 
 	rfork(RFNOTEG|RFREND);
 
-	atnotify(catcher, 1);
-	qlock(&imaplock);
 	atexit(cleaner);
 	imap4(preauth);
 }
@@ -360,38 +354,15 @@ writeErr(void)
 	_exits("connection closed");
 }
 
-static int
-catcher(void *v, char *msg)
-{
-	USED(v);
-	if(strstr(msg, "closed pipe") != nil)
-		return 1;
-	return 0;
-}
-
 /*
- * wipes out the idleCmd backgroung process if it is around.
- * this can only be called if the current proc has qlocked imaplock.
- * it must be the last piece of imap4d code executed.
+ * kills any other process which might be around,
+ * for example the idleCmd polling process.
  */
 static void
 cleaner(void)
 {
 	int i;
 
-	if(idlepid < 0)
-		return;
-	exiting = 1;
-	close(0);
-	close(1);
-	close(2);
-
-	/*
-	 * the other proc is either stuck in a read, a sleep,
-	 * or is trying to lock imap4lock.
-	 * get him out of it so he can exit cleanly
-	 */
-	qunlock(&imaplock);
 	for(i = 0; i < 4; i++)
 		postnote(PNGROUP, getpid(), "die");
 }
@@ -449,8 +420,6 @@ status(int expungeable, int uids)
 		Bprint(&bout, "* %lud recent\r\n", selected->recent);
 		selected->toldRecent = selected->recent;
 	}
-	if(tell)
-		closeImp(selected, checkBox(selected, 1));
 }
 
 /*
@@ -729,60 +698,35 @@ fetchUCmd(char *tg, char *cmd, int uids)
 static void
 idleCmd(char *tg, char *cmd)
 {
-	int c, pid;
+	static QLock imaplock;
+	int pid;
 
 	crnl();
 	Bprint(&bout, "+ idling, waiting for done\r\n");
 	if(Bflush(&bout) < 0)
 		writeErr();
 
-	if(idlepid < 0){
-		pid = rfork(RFPROC|RFMEM|RFNOWAIT);
-		if(pid == 0){
-			for(;;){
-				qlock(&imaplock);
-				if(exiting)
-					break;
+	memset(&imaplock, 0, sizeof imaplock);
 
-				/*
-				 * parent may have changed curDir, but it doesn't change our .
-				 */
-				resetCurDir();
-
-				check();
-				if(Bflush(&bout) < 0)
-					writeErr();
-				qunlock(&imaplock);
-				sleep(15*1000);
-			}
-			_exits(0);
+	pid = rfork(RFPROC|RFMEM|RFNOWAIT);
+	if(pid == 0){
+		for(;;){
+			qlock(&imaplock);
+			check();
+			if(Bflush(&bout) < 0)
+				writeErr();
+			qunlock(&imaplock);
+			sleep(15*1000);
 		}
-		idlepid = pid;
+		_exits(0);
 	}
 
 	qunlock(&imaplock);
-
-	/*
-	 * clear out the next line, which is supposed to contain (case-insensitive)
-	 * done\n
-	 * this is special code since it has to dance with the idle polling proc
-	 * and handle exiting correctly.
-	 */
-	for(;;){
-		c = getc();
-		if(c < 0){
-			qlock(&imaplock);
-			if(!exiting)
-				cleaner();
-			_exits(0);
-		}
-		if(c == '\n')
-			break;
-	}
-
+	clearcmd();
 	qlock(&imaplock);
-	if(exiting)
-		_exits(0);
+
+	if(pid > 0)
+		postnote(PNPROC, pid, "die");
 
 	/*
 	 * child may have changed curDir, but it doesn't change our .
@@ -2018,7 +1962,7 @@ number(int nonzero)
 			badsyn();
 		c -= '0';
 		first = 0;
-		if(v > UlongMax/10 || v == UlongMax/10 && c > UlongMax%10)
+		if(v > UlongMax/10 || v == UlongMax/10 && c >= UlongMax%10)
 			parseErr("number out of range\r\n");
 		v = v * 10 + c;
 	}

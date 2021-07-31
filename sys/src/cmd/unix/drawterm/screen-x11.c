@@ -59,8 +59,7 @@ int 			plan9tox11[256]; /* Values for mapping between */
 int 			x11toplan9[256]; /* X11 and Plan 9 */
 int				x24bitswap = 0;	/* swap endian for 24bit RGB */
 int				xtblbit;
-extern int mousequeue;
-
+int				mousequeue;
 
 static	XModifierKeymap *modmap;
 static	int		keypermod;

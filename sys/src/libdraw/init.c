@@ -7,7 +7,6 @@ Rectangle ZR;
 Display	*display;
 Font	*font;
 Image	*screen;
-int	_drawdebug;
 
 static char deffontname[] = "*default*";
 Screen	*_screen;
@@ -408,8 +407,7 @@ doflush(Display *d)
 		return 1;
 
 	if(write(d->fd, d->buf, n) != n){
-		if(_drawdebug)
-			_drawprint(2, "flushimage fail: d=%p: %r\n", d); /**/
+/*		_drawprint(2, "flushimage fail: d=%lux: %r\n", d); /**/
 		d->bufp = d->buf;	/* might as well; chance of continuing */
 		return -1;
 	}

@@ -28,7 +28,7 @@ csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 	if(fd < 0)
 		return 0;
 	seek(fd, 0, 0);
-	snprint(line, sizeof(line), "!%s=%s %s=*", attr, val, rattr);
+	snprint(line, sizeof(line), "!%s=%s", attr, val);
 	if(write(fd, line, strlen(line)) < 0){
 		close(fd);
 		return 0;

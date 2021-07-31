@@ -96,17 +96,17 @@ main(int argc, char **argv)
 		p[Blinelen(b)-1] = '\0';
 		if(tokenize(p, f, 2) != 2)
 			sysfatal("error in md5sum file");
-		if(argc != 1 && match(f[0], argv+1, argc-1) == 0)
+		if(argc != 1 && match(p, argv+1, argc-1) == 0)
 			continue;
 
-		q = mkpath(root, f[0]);
+		q = mkpath(root, p);
 		if(dirstat(q, &d) >= 0 && (d.mode & CHDIR)) {
 			free(q);
 			continue;
 		}
 
 		if(md5file(q, digest) < 0) {
-			print("%s removed\n", f[0]);
+			print("%s removed\n", p);
 			free(q);
 			continue;
 		}
@@ -117,8 +117,8 @@ main(int argc, char **argv)
 			continue;
 
 		if(list)
-			print("%s modified\n", f[0]);
+			print("%s modified\n", p);
 		else
-			diff(w, f[0]);
+			diff(w, p);
 	}
 }

@@ -189,7 +189,6 @@ struct Tcpctl
 	int	kacounter;		/* count down for keep alive */
 	uint	sndsyntime;		/* time syn sent */
 	ulong	time;			/* time Finwait2 or Syn_received was sent */
-	int	nochecksum;		/* non-zero means don't send checksums */ 
 
 	Tcphdr	protohdr;		/* prototype header */
 };
@@ -197,46 +196,25 @@ struct Tcpctl
 int	tcp_irtt = DEF_RTT;	/* Initial guess at round trip time */
 ushort	tcp_mss  = DEF_MSS;	/* Maximum segment size to be sent */
 
-enum {
-	/* MIB stats */
-	MaxConn,
-	ActiveOpens,
-	PassiveOpens,
-	EstabResets,
-	CurrEstab,
-	InSegs,
-	OutSegs,
-	RetransSegs,
-	RetransTimeouts,
-	InErrs,
-	OutRsts,
-
-	/* non-MIB stats */
-	CsumErrs,
-	HlenErrs,
-	LenErrs,
-	OutOfOrder,
-
-	Nstats
-};
-
-static char *statnames[] =
+/* MIB II counters */
+typedef struct Tcpstats Tcpstats;
+struct Tcpstats
 {
-[MaxConn]	"MaxConn",
-[ActiveOpens]	"ActiveOpens",
-[PassiveOpens]	"PassiveOpens",
-[EstabResets]	"EstabResets",
-[CurrEstab]	"CurrEstab",
-[InSegs]	"InSegs",
-[OutSegs]	"OutSegs",
-[RetransSegs]	"RetransSegs",
-[RetransTimeouts]	"RetransTimeouts",
-[InErrs]	"InErrs",
-[OutRsts]	"OutRsts",
-[CsumErrs]	"CsumErrs",
-[HlenErrs]	"HlenErrs",
-[LenErrs]	"LenErrs",
-[OutOfOrder]	"OutOfOrder",
+	ulong	tcpRtoAlgorithm;
+	ulong	tcpRtoMin;
+	ulong	tcpRtoMax;
+	ulong	tcpMaxConn;
+	ulong	tcpActiveOpens;
+	ulong	tcpPassiveOpens;
+	ulong	tcpAttemptFails;
+	ulong	tcpEstabResets;
+	ulong	tcpCurrEstab;
+	ulong	tcpInSegs;
+	ulong	tcpOutSegs;
+	ulong	tcpRetransSegs;
+        ulong   tcpRetransTimeouts;
+	ulong	InErrs;
+	ulong	OutRsts;
 };
 
 typedef struct Tcppriv Tcppriv;
@@ -246,7 +224,14 @@ struct Tcppriv
 	QLock 	tl;			/* Protect timer list */
 	Rendez	tcpr;			/* used by tcpackproc */
 
-	ulong	stats[Nstats];
+	/* MIB stats */
+	Tcpstats tstats;
+
+	/* non-MIB stats */
+	ulong		csumerr;		/* checksum errors */
+	ulong		hlenerr;		/* header length error */
+	ulong		lenerr;			/* short packet */
+	ulong		order;			/* out of order */
 
 	/* for keeping track of tcpackproc */
 	int	ackprocstarted;
@@ -285,9 +270,9 @@ tcpsetstate(Conv *s, uchar newstate)
 		return;
 
 	if(oldstate == Established)
-		tpriv->stats[CurrEstab]--;
+		tpriv->tstats.tcpCurrEstab--;
 	if(newstate == Established)
-		tpriv->stats[CurrEstab]++;
+		tpriv->tstats.tcpCurrEstab++;
 
 	/**
 	print( "%d/%d %s->%s CurrEstab=%d\n", s->lport, s->rport,
@@ -706,13 +691,13 @@ tcpstart(Conv *s, int mode, ushort window)
 
 	switch(mode) {
 	case TCP_LISTEN:
-		tpriv->stats[PassiveOpens]++;
+		tpriv->tstats.tcpPassiveOpens++;
 		tcb->flags |= CLONE;
 		tcpsetstate(s, Listen);
 		break;
 
 	case TCP_CONNECT:
-		tpriv->stats[ActiveOpens]++;
+		tpriv->tstats.tcpActiveOpens++;
 		/* Send SYN, go into SYN_SENT state */
 		qlock(s);
 		if(waserror()){
@@ -752,7 +737,7 @@ tcpflag(ushort flag)
 }
 
 Block *
-htontcp(Tcp *tcph, Block *data, Tcphdr *ph, Tcpctl *tcb)
+htontcp(Tcp *tcph, Block *data, Tcphdr *ph)
 {
 	int dlen;
 	Tcphdr *h;
@@ -794,12 +779,8 @@ htontcp(Tcp *tcph, Block *data, Tcphdr *ph, Tcpctl *tcb)
 		h->tcpopt[1] = MSS_LENGTH;
 		hnputs(h->tcpmss, tcph->mss);
 	}
-	if(tcb != nil && tcb->nochecksum){
-		h->tcpcksum[0] = h->tcpcksum[1] = 0;
-	} else {
-		csum = ptclcsum(data, TCP_IPLEN, hdrlen+dlen+TCP_PHDRSIZE);
-		hnputs(h->tcpcksum, csum);
-	}
+	csum = ptclcsum(data, TCP_IPLEN, hdrlen+dlen+TCP_PHDRSIZE);
+	hnputs(h->tcpcksum, csum);
 
 /*	netlog(f, Logtcpmsg, "%d > %d s %l8.8ux a %8.8lux %s w %.4ux l %d\n",
 		tcph->source, tcph->dest,
@@ -914,7 +895,7 @@ sndrst(Proto *tcp, uchar *source, uchar *dest, ushort length, Tcp *seg)
 	hnputs(ph.tcpsport, seg->dest);
 	hnputs(ph.tcpdport, seg->source);
 
-	tpriv->stats[OutRsts]++;
+	tpriv->tstats.OutRsts++;
 	rflags = RST;
 
 	/* convince the other end that this reset is in band */
@@ -936,7 +917,7 @@ sndrst(Proto *tcp, uchar *source, uchar *dest, ushort length, Tcp *seg)
 	seg->wnd = 0;
 	seg->urg = 0;
 	seg->mss = 0;
-	hbp = htontcp(seg, nil, &ph, nil);
+	hbp = htontcp(seg, nil, &ph);
 	if(hbp == nil)
 		return;
 
@@ -969,7 +950,7 @@ tcphangup(Conv *s)
 		seg.mss = 0;
 		tcb->last_ack = tcb->rcv.nxt;
 		hnputs(ph.tcplen, TCP_HDRSIZE);
-		hbp = htontcp(&seg, nil, &tcb->protohdr, tcb);
+		hbp = htontcp(&seg, nil, &tcb->protohdr);
 		ipoput(s->p->f, hbp, 0, s->ttl, s->tos);
 	}
 	localclose(s, nil);
@@ -1226,7 +1207,7 @@ tcpiput(Proto *tcp, uchar*, Block *bp)
 	f = tcp->f;
 	tpriv = tcp->priv;
 	
-	tpriv->stats[InSegs]++;
+	tpriv->tstats.tcpInSegs++;
 
 	h = (Tcphdr*)(bp->rp);
 
@@ -1236,10 +1217,8 @@ tcpiput(Proto *tcp, uchar*, Block *bp)
 
 	h->Unused = 0;
 	hnputs(h->tcplen, length-TCP_PKT);
-	if((h->tcpcksum[0] || h->tcpcksum[0]) && 
-	    ptclcsum(bp, TCP_IPLEN, length-TCP_IPLEN)) {
-		tpriv->stats[CsumErrs]++;
-		tpriv->stats[InErrs]++;
+	if(ptclcsum(bp, TCP_IPLEN, length-TCP_IPLEN)) {
+		tpriv->csumerr++;
 		netlog(f, Logtcp, "bad tcp proto cksum\n");
 		freeblist(bp);
 		return;
@@ -1247,8 +1226,7 @@ tcpiput(Proto *tcp, uchar*, Block *bp)
 
 	hdrlen = ntohtcp(&seg, &bp);
 	if(hdrlen < 0){
-		tpriv->stats[HlenErrs]++;
-		tpriv->stats[InErrs]++;
+		tpriv->hlenerr++;
 		netlog(f, Logtcp, "bad tcp hdr len\n");
 		return;
 	}
@@ -1257,8 +1235,7 @@ tcpiput(Proto *tcp, uchar*, Block *bp)
 	length -= hdrlen+TCP_PKT;
 	bp = trimblock(bp, hdrlen+TCP_PKT, length);
 	if(bp == nil){
-		tpriv->stats[LenErrs]++;
-		tpriv->stats[InErrs]++;
+		tpriv->lenerr++;
 		netlog(f, Logtcp, "tcp len < 0 after trim\n");
 		return;
 	}
@@ -1447,7 +1424,7 @@ tcpiput(Proto *tcp, uchar*, Block *bp)
 	if(seg.seq != tcb->rcv.nxt)
 	if(length != 0 || (seg.flags & (SYN|FIN))) {
 		update(s, &seg);
-		tpriv->stats[OutOfOrder]++;
+		tpriv->order++;
 		if(addreseq(tcb, &seg, bp, length) < 0)
 			print("reseq %I.%d -> %I.%d\n", s->raddr, s->rport, s->laddr, s->lport);
 		tcb->flags |= FORCE;
@@ -1461,7 +1438,7 @@ tcpiput(Proto *tcp, uchar*, Block *bp)
 	for(;;) {
 		if(seg.flags & RST) {
 			if(tcb->state == Established)
-				tpriv->stats[EstabResets]++;
+				tpriv->tstats.tcpEstabResets++;
 			localclose(s, Econrefused);
 			goto raise;
 		}
@@ -1794,7 +1771,7 @@ tcpoutput(Conv *s)
 			if(ssize < n)
 				n = ssize;
 			tcb->resent += n;
-			tpriv->stats[RetransSegs]++;
+			tpriv->tstats.tcpRetransSegs++;
 		}
 
 		tcb->snd.ptr += ssize;
@@ -1806,7 +1783,7 @@ tcpoutput(Conv *s)
 			tcb->snd.nxt = tcb->snd.ptr;
 
 		/* Build header, link data and compute cksum */
-		hbp = htontcp(&seg, bp, &tcb->protohdr, tcb);
+		hbp = htontcp(&seg, bp, &tcb->protohdr);
 		if(hbp == nil) {
 			freeblist(bp);
 			return;
@@ -1819,12 +1796,6 @@ tcpoutput(Conv *s)
 			/* round trip depenency */
 			x = backoff(tcb->backoff) *
 			    (tcb->mdev + (tcb->srtt>>LOGAGAIN) + MSPTICK) / MSPTICK;
-
-			/*  allow for slow initial response
-			 *  (miller@hamnavoe.demon.co.uk)
-			 */
-			if(tcb->state == Syn_sent && x < 500/MSPTICK)
-				x = 500/MSPTICK;
 
 			/* take into account delayed ack */
 			if(sent <= 2*tcb->mss)
@@ -1849,7 +1820,7 @@ tcpoutput(Conv *s)
 			}
 		}
 
-		tpriv->stats[OutSegs]++;
+		tpriv->tstats.tcpOutSegs++;
 		if(tcb->kacounter > 0)
 			tcpgo(tpriv, &tcb->katimer);
 		ipoput(f, hbp, 0, s->ttl, s->tos);
@@ -1887,7 +1858,7 @@ tcpsendka(Conv *s)
 	}
 
 	/* Build header, link data and compute cksum */
-	hbp = htontcp(&seg, dbp, &tcb->protohdr, tcb);
+	hbp = htontcp(&seg, dbp, &tcb->protohdr);
 	if(hbp == nil) {
 		freeblist(dbp);
 		return;
@@ -1953,20 +1924,6 @@ tcpstartka(Conv *s, char **f, int n)
 	return nil;
 }
 
-/*
- *  turn checksums on/off
- */
-char*
-tcpsetchecksum(Conv *s, char **f, int)
-{
-	Tcpctl *tcb;
-
-	tcb = (Tcpctl*)s->ptcl;
-	tcb->nochecksum = !atoi(f[1]);
-
-	return nil;
-}
-
 void
 tcprxmit(Conv *s)
 {
@@ -2025,7 +1982,7 @@ tcptimeout(void *arg)
 			break;
 		}
 		tcprxmit(s);
-		tpriv->stats[RetransTimeouts]++;
+		tpriv->tstats.tcpRetransTimeouts++;
 		tcb->snd.dupacks = 0;
 		break;
 	case Time_wait:
@@ -2256,24 +2213,34 @@ tcpctl(Conv* c, char** f, int n)
 		return tcphangup(c);
 	if(n >= 1 && strcmp(f[0], "keepalive") == 0)
 		return tcpstartka(c, f, n);
-	if(n >= 1 && strcmp(f[0], "checksum") == 0)
-		return tcpsetchecksum(c, f, n);
 	return "unknown control request";
 }
 
 int
 tcpstats(Proto *tcp, char *buf, int len)
 {
-	Tcppriv *priv;
-	char *p, *e;
-	int i;
+	Tcppriv *tpriv;
 
-	priv = tcp->priv;
-	p = buf;
-	e = p+len;
-	for(i = 0; i < Nstats; i++)
-		p = seprint(p, e, "%s: %lud\n", statnames[i], priv->stats[i]);
-	return p - buf;
+	tpriv = tcp->priv;
+
+
+
+	return snprint(buf, len, "%lud %lud %lud %lud %lud %lud %lud %lud %lud %lud %lud %lud %lud %lud %lud",
+		tpriv->tstats.tcpRtoAlgorithm,
+		tpriv->tstats.tcpRtoMin,
+		tpriv->tstats.tcpRtoMax,
+		tpriv->tstats.tcpMaxConn,
+		tpriv->tstats.tcpActiveOpens,
+		tpriv->tstats.tcpPassiveOpens,
+		tpriv->tstats.tcpAttemptFails,
+		tpriv->tstats.tcpEstabResets,
+		tpriv->tstats.tcpCurrEstab,
+		tpriv->tstats.tcpInSegs,
+		tpriv->tstats.tcpOutSegs,
+		tpriv->tstats.tcpRetransSegs,
+		tpriv->tstats.tcpRetransTimeouts,
+		tpriv->tstats.InErrs,
+		tpriv->tstats.OutRsts);
 }
 
 /*
@@ -2345,7 +2312,7 @@ tcpinit(Fs *fs)
 	tcp->ipproto = IP_TCPPROTO;
 	tcp->nc = Nchans;
 	tcp->ptclsize = sizeof(Tcpctl);
-	tpriv->stats[MaxConn] = Nchans;
+	tpriv->tstats.tcpMaxConn = Nchans;
 
 	Fsproto(fs, tcp);
 }

@@ -327,15 +327,11 @@ again:
 		}
 		break;
 	case STcheck:
-		if((sense[2] & 0x0F) == 0x02){
-			if(sense[12] == 0x3A)
+		if((sense[2] & 0x0F) == 0x02 && sense[12] == 0x04 && sense[13] == 0x02){
+			print("%s: starting...\n", tp->id);
+			if(scsistart(tp, d->wren.lun, 1) == STok)
 				break;
-			if(sense[12] == 0x04 && sense[13] == 0x02){
-				print("%s: starting...\n", tp->id);
-				if(scsistart(tp, d->wren.lun, 1) == STok)
-					break;
-				s = scsireqsense(tp, d->wren.lun, &nbytes, 0);
-			}
+			s = scsireqsense(tp, d->wren.lun, &nbytes, 0);
 		}
 		/*FALLTHROUGH*/
 	default:

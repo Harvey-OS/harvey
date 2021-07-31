@@ -77,7 +77,7 @@ threadmain(int argc, char *argv[])
 	c = chancreate(sizeof(void*), 0);
 	mainproc(c);
 	recvp(c);
-	chanfree(c);
+	free(c);
 	threadexits(nil);
 }
 

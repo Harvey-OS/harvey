@@ -92,7 +92,8 @@ void Vinit(void){
 	while(dirread(dir, &ent, sizeof ent)==sizeof ent){
 		len=ent.length;
 		if(len && strncmp(ent.name, "fn#", 3)!=0){
-			snprint(envname, sizeof envname, "#e/%s", ent.name);
+			strcpy(envname, "#e/");
+			strcat(envname, ent.name);
 			if((f=open(envname, 0))>=0){
 				buf=emalloc((int)len+1);
 				read(f, buf, (long)len);
@@ -129,7 +130,8 @@ void Xrdfn(void){
 	while(dirread(envdir, &ent, sizeof ent)==sizeof ent){
 		len=ent.length;
 		if(len && strncmp(ent.name, "fn#", 3)==0){
-			snprint(envname, sizeof envname, "#e/%s", ent.name);
+			strcpy(envname, "#e/");
+			strcat(envname, ent.name);
 			if((f=open(envname, 0))>=0){
 				execcmds(openfd(f));
 				return;
@@ -194,7 +196,8 @@ void addenv(var *v)
 	io *fd;
 	if(v->changed){
 		v->changed=0;
-		snprint(envname, sizeof envname, "#e/%s", v->name);
+		strcpy(envname, "#e/");
+		strcat(envname, v->name);
 		if((f=Creat(envname))<0)
 			pfmt(err, "rc: can't open %s\n", envname);
 		else{
@@ -205,7 +208,8 @@ void addenv(var *v)
 	}
 	if(v->fnchanged){
 		v->fnchanged=0;
-		snprint(envname, sizeof envname, "#e/fn#%s", v->name);
+		strcpy(envname, "#e/fn#");
+		strcat(envname, v->name);
 		if((f=Creat(envname))<0)
 			pfmt(err, "rc: can't open %s\n", envname);
 		else{

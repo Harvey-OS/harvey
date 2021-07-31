@@ -13,6 +13,7 @@ OFILES=\
 	getfcr.$O\
 	memmove.$O\
 	memset.$O\
+	nan.$O\
 	notejmp.$O\
 	_seek.$O\
 	setjmp.$O\

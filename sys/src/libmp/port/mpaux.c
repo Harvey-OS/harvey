@@ -81,8 +81,10 @@ mpbits(mpint *b, int m)
 
 	n = DIGITS(m);
 	if(b->size >= n){
-		if(b->top >= n)
+		if(b->top >= n){
+			b->top = n;
 			return;
+		}
 		memset(&b->p[b->top], 0, Dbytes*(n - b->top));
 		b->top = n;
 		return;
@@ -200,7 +202,6 @@ mpassign(mpint *old, mpint *new)
 {
 	mpbits(new, Dbits*old->top);
 	new->sign = old->sign;
-	new->top = old->top;
 	memmove(new->p, old->p, Dbytes*old->top);
 }
 

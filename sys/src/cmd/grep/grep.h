@@ -54,7 +54,6 @@ enum
 	Caselim		= 7,
 	Nhunk		= 1<<16,
 	Cbegin		= 0x10000,
-	Flshcnt		= (1<<9)-1,
 
 	Cflag		= 1<<0,
 	Hflag		= 1<<1,
@@ -63,8 +62,7 @@ enum
 	LLflag		= 1<<4,
 	Nflag		= 1<<5,
 	Sflag		= 1<<6,
-	Vflag		= 1<<7,
-	Bflag		= 1<<8
+	Vflag		= 1<<7
 };
 
 EXTERN	union

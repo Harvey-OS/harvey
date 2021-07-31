@@ -97,7 +97,6 @@ an SMTP mail server
 .TP
 .B bootf
 the default boot file
-.PD
 .PP
 .I Dhcpd
 will answer
@@ -153,7 +152,6 @@ The default is
 Use
 .I secs
 as the minimum lease time.
-.PD
 .PP
 .I Rarpd
 performs the Reverse Address Resolution Protocol, translating
@@ -172,7 +170,6 @@ The IP stack to use is mounted at
 .IR netmtpt .
 The default is
 .BR /net .
-.PD
 .PP
 .I Tftpd
 transfers files to systems that are booting.
@@ -217,7 +214,6 @@ supports only octet mode.
 .B r
 Restricts access to only those files rooted in the
 .IR homedir .
-.PD
 .SH SOURCE
 .B /sys/src/cmd/ip
 .SH "SEE ALSO"

@@ -20,7 +20,6 @@ rsapubfree(RSApub *rsa)
 		return;
 	mpfree(rsa->ek);
 	mpfree(rsa->n);
-	free(rsa);
 }
 
 
@@ -48,5 +47,4 @@ rsaprivfree(RSApriv *rsa)
 	mpfree(rsa->kp);
 	mpfree(rsa->kq);
 	mpfree(rsa->c2);
-	free(rsa);
 }

@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-#define	EXTERN
+#define Extern extern
 #include "arm.h"
 #undef CHDIR
 
@@ -89,7 +89,7 @@ char*	sysctab[] =
 void
 sys1(void)
 {
-	Bprint(bioout, "no system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
 	exits(0);
 }
 
@@ -357,6 +357,7 @@ syswrite(void)
 	size = getmem_w(reg.r[13]+12);
 	if(sysdbg)
 		itrace("write(%d, %lux, %d)", fd, a, size);
+
 	buf = memio(0, a, size, MemRead);
 	n = write(fd, buf, size);
 	if(n < 0)
@@ -616,11 +617,12 @@ Ssyscall(ulong)
 
 	call = reg.r[0];
 	if(call < 0 || call > UNMOUNT) {
-		Bprint(bioout, "bad system call\n");
+		Bprint(bioout, "Bad system call\n");
 		dumpreg();
 	}
 	if(trace)
 		itrace("SWI\t%s", sysctab[call]);
+
 	(*systab[call])();
 	Bflush(bioout);
 }

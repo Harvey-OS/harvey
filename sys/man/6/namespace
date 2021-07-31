@@ -65,7 +65,6 @@ or everything mounted on
 if
 .I new
 is missing.
-.PD
 .PP
 The options for
 .IR bind ,

@@ -21,29 +21,24 @@ Biobuf bin;
 Biobuf bout;
 
 void
-usage(void)
-{
-	fprint(2, "usage: %s [-j] [-i indent] [-l length] [file...]\n", argv0);
-	exits("usage");
-}
-
-void
 main(int argc, char **argv)
 {
 	int i, f;
 	ARGBEGIN{
 	case 'i':
-		indent = atoi(EARGF(usage()));
+		indent = atoi(ARGF());
 		break;
 	case 'j':
 		join = 0;
 		break;
 	case 'w':
 	case 'l':
-		length = atoi(EARGF(usage()));
+		length = atoi(ARGF());
 		break;
 	default:
-		usage();
+		fprint(2, "Usage: %s [-j] [-i indent] [-l length] [file ...]\n",
+				argv0);
+		exits("usage");
 	}ARGEND
 	if(length<=indent){
 		fprint(2, "%s: line length<=indentation\n", argv0);

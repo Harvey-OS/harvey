@@ -192,20 +192,6 @@ sdindex2unit(int index)
 	return nil;
 }
 
-static void
-_sddetach(void)
-{
-	SDev *sdev;
-
-	for(sdev = sdlist; sdev != nil; sdev = sdev->next){
-		if(sdev->enabled == 0)
-			continue;
-		if(sdev->ifc->disable)
-			sdev->ifc->disable(sdev);
-		sdev->enabled = 0;
-	}
-}
-
 int
 sdinit(void)
 {
@@ -250,7 +236,6 @@ sdinit(void)
 		return 0;
 	if((sdunit = malloc(sdnunit*sizeof(SDunit*))) == nil)
 		return 0;
-	sddetach = _sddetach;
 
 	for(i = 0; sdifc[i] != nil; i++){
 		if(sdifc[i]->id)
@@ -260,8 +245,6 @@ sdinit(void)
 	m = 0;
 	for(i=0; i<sdnunit && i < 32; i++) {
 		unit = sdindex2unit(i);
-		if(unit == nil)
-			continue;
 		sdinitpart(unit);
 		partition(unit);
 		if(unit->npart > 0)	/* BUG */

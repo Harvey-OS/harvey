@@ -3,10 +3,6 @@
 query, mkhash, mkdb, cs, csquery, dns, dnsquery, dnsdebug, mkhosts \- network database
 .SH SYNOPSIS
 .B ndb/query
-[
-.B -f
-.I dbfile
-]
 .I "attr value"
 [
 .I rattr

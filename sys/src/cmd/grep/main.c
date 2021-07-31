@@ -1,7 +1,7 @@
 #define	EXTERN
 #include	"grep.h"
 
-char *validflags = "bchiLlnsv";
+char *validflags = "chiLlnsv";
 void
 usage(void)
 {
@@ -18,6 +18,7 @@ main(int argc, char *argv[])
 	default:
 		if(utfrune(validflags, ARGC()) == nil)
 			usage();
+
 		flags[ARGC()]++;
 		break;
 
@@ -81,7 +82,6 @@ search(char *file, int flag)
 	if(file == 0) {
 		file = "stdin";
 		fid = 0;
-		flag |= Bflag;
 	} else
 		fid = open(file, OREAD);
 
@@ -90,8 +90,6 @@ search(char *file, int flag)
 		return 0;
 	}
 
-	if(flags['b'])
-		flag ^= Bflag;		/* dont buffer output */
 	if(flags['c'])
 		flag |= Cflag;		/* count */
 	if(flags['h'])
@@ -167,11 +165,8 @@ loop:
 			if(flag & Nflag)
 				Bprint(&bout, "%ld: ", lineno);
 			Bwrite(&bout, bol, lp-bol);
-			if(flag & Bflag)
-				Bflush(&bout);
-		}
-		if((lineno & Flshcnt) == 0)
 			Bflush(&bout);
+		}
 	cont:
 		bol = lp;
 	}
@@ -205,11 +200,8 @@ loopi:
 			if(flag & Nflag)
 				Bprint(&bout, "%ld: ", lineno);
 			Bwrite(&bout, bol, lp-bol);
-			if(flag & Bflag)
-				Bflush(&bout);
-		}
-		if((lineno & Flshcnt) == 0)
 			Bflush(&bout);
+		}
 	conti:
 		bol = lp;
 	}

@@ -3,7 +3,7 @@ typedef	struct FDrive FDrive;
 typedef struct FType FType;
 
 static void floppyintr(Ureg*);
-static int floppyon(FDrive*);
+static void floppyon(FDrive*);
 static void floppyoff(FDrive*);
 static void floppysetdef(FDrive*);
 

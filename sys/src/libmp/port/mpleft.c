@@ -20,7 +20,6 @@ mpleft(mpint *b, int shift, mpint *res)
 
 	// shift
 	mpbits(res, otop*Dbits + shift);	// overkill
-	res->top = DIGITS(otop*Dbits + shift);
 	d = shift/Dbits;
 	l = shift - d*Dbits;
 	r = Dbits - l;

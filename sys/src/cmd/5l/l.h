@@ -95,7 +95,7 @@ struct	Optab
 	char	type;
 	char	size;
 	char	param;
-	char	flag;
+	char	lit;
 };
 struct	Oprang
 {
@@ -119,14 +119,12 @@ enum
 	SFILE,
 	SCONST,
 
-	LFROM		= 1<<0,
-	LTO		= 1<<1,
-	LPOOL		= 1<<2,
-	V4		= 1<<3,	/* arm v4 arch */
+	LFROM		= 1,
+	LTO,
+	LPOOL,
 
 	C_NONE		= 0,
 	C_REG,
-	C_REGREG,
 	C_SHIFT,
 	C_FREG,
 	C_PSR,
@@ -147,24 +145,18 @@ enum
 	C_SBRA,
 	C_LBRA,
 
-	C_HAUTO,	/* halfword insn offset (-0xff to 0xff) */
-	C_FAUTO,	/* float insn offset (0 to 0x3fc, word aligned) */
-	C_HFAUTO,	/* both H and F */
-	C_SAUTO,	/* -0xfff to 0xfff */
+	C_FAUTO,
+	C_SAUTO,
 	C_LAUTO,
 
-	C_HEXT,
 	C_FEXT,
-	C_HFEXT,
 	C_SEXT,
 	C_LEXT,
 
-	C_HOREG,
 	C_FOREG,
-	C_HFOREG,
-	C_SOREG,
+	C_BOREG,	/* both */
 	C_ROREG,
-	C_SROREG,	/* both S and R */
+	C_SOREG,
 	C_LOREG,
 
 	C_GOK,
@@ -227,7 +219,6 @@ EXTERN	int	histfrogp;
 EXTERN	int	histgen;
 EXTERN	char*	library[50];
 EXTERN	int	libraryp;
-EXTERN	int	xrefresolv;
 EXTERN	char*	hunk;
 EXTERN	char	inuxi1[1];
 EXTERN	char	inuxi2[2];
@@ -248,10 +239,9 @@ EXTERN	Prog*	textp;
 EXTERN	long	textsize;
 EXTERN	long	thunk;
 EXTERN	int	version;
-EXTERN	char	xcmp[C_GOK+1][C_GOK+1];
+EXTERN	char	xcmp[32][32];
 EXTERN	Prog	zprg;
 EXTERN	int	dtype;
-EXTERN	int	armv4;
 
 extern	char*	anames[];
 extern	Optab	optab[];
@@ -269,8 +259,8 @@ EXTERN	Prog*	prog_modu;
 #pragma	varargck	type	"A"	int
 #pragma	varargck	type	"C"	int
 #pragma	varargck	type	"D"	Adr*
-#pragma	varargck	type	"N"	Adr*
 #pragma	varargck	type	"P"	Prog*
+#pragma	varargck	type	"N"	Adr*
 #pragma	varargck	type	"S"	char*
 
 int	Aconv(va_list*, Fconv*);
@@ -288,6 +278,7 @@ void	asmout(Prog*, Optab*);
 void	asmsym(void);
 long	atolwhex(char*);
 Prog*	brloop(Prog*);
+Biobuf	bso;
 void	buildop(void);
 void	buildrep(int, int);
 void	cflush(void);
@@ -311,10 +302,9 @@ double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
 int	isnop(Prog*);
 void	ldobj(int, long, char*);
-void	loadlib(void);
+void	loadlib(int, int);
 void	listinit(void);
 Sym*	lookup(char*, int);
-void	cput(int);
 void	lput(long);
 void	lputl(long);
 void	mkfwd(void);
@@ -328,15 +318,11 @@ long	opirr(int);
 Optab*	oplook(Prog*);
 long	oprrr(int, int);
 long	olr(long, int, int, int);
-long	olhr(long, int, int, int);
 long	olrr(int, int, int, int);
-long	olhrr(int, int, int, int);
 long	osr(int, int, long, int, int);
-long	oshr(int, long, int, int);
-long	ofsr(int, int, long, int, int, Prog*);
+long	ofsr(int, int, long, int, int);
 long	osrr(int, int, int, int);
 long	oshrr(int, int, int, int);
-long	omvl(Prog*, Adr*, int);
 void	patch(void);
 void	prasm(Prog*);
 void	prepend(Prog*, Prog*);

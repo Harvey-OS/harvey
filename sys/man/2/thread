@@ -2,7 +2,6 @@
 .SH NAME
 alt,
 chancreate,
-chaninit,
 proccreate,
 procdata,
 recv,
@@ -30,6 +29,7 @@ threadkill,
 threadkillgrp,
 threadmain,
 threadprint,
+threadrendezvous,
 threadsetgrp,
 threadsetname,
 threadwaitchan,
@@ -47,8 +47,7 @@ yield \- thread and proc management
 #define	CHANRCV		2
 #define	CHANNOP		3
 #define	CHANNOBLK	4
-.ifn .sp
-.ift .sp 0.5
+.sp 0.2
 typedef struct Alt {
 	Channel	*c;
 	void	*v;
@@ -56,74 +55,71 @@ typedef struct Alt {
 	Channel	**tag;
 	ulong	q;
 } Alt;
-.ifn .sp
-.ift .sp 0.5
+.sp 0.2
 void  threadmain(int argc, char *argv[])
-.ift .sp 0.2
+.sp 0.2
 int   proccreate(void (*f)(void *arg), void *arg,
 			uint stacksize)
-.ift .sp 0.2
+.sp 0.2
 int   threadcreate(void (*f)(void *arg), void *arg,
 			uint stacksize)
-.ift .sp 0.2
+.sp 0.2
 void  yield(void)
-.ift .sp 0.2
+.sp 0.2
+ulong threadrendezvous(ulong tag, ulong value)
+.sp 0.2
 void  threadexits(char *status)
-.ift .sp 0.2
+.sp 0.2
 void  threadexitsall(char *status)
-.ift .sp 0.2
+.sp 0.2
 Channel	*chancreate(int elemsize, int bufsize)
-.ift .sp 0.2
-int chaninit(Channel *c, int elemsize, int elemcnt)
-.ift .sp 0.2
+.sp 0.2
 int   alt(Alt alts[])
-.ift .sp 0.2
+.sp 0.2
 int   recv(Channel *c, void *v)
-.ift .sp 0.2
+.sp 0.2
 ulong recvul(Channel *c)
-.ift .sp 0.2
+.sp 0.2
 void  *recvp(Channel *c)
-.ift .sp 0.2
+.sp 0.2
 int   nbrecv(Channel *c, void *v)
-.ift .sp 0.2
+.sp 0.2
 ulong nbrecvul(Channel *c)
-.ift .sp 0.2
+.sp 0.2
 void  *nbrecvp(Channel *c)
-.ift .sp 0.2
+.sp 0.2
 int   send(Channel *c, void *v)
-.ift .sp 0.2
+.sp 0.2
 int   sendul(Channel *c, ulong v)
-.ift .sp 0.2
+.sp 0.2
 int   sendp(Channel *c, void *v)
-.ift .sp 0.2
+.sp 0.2
 int   nbsend(Channel *c, void *v)
-.ift .sp 0.2
+.sp 0.2
 int   nbsendul(Channel *c, ulong v)
-.ift .sp 0.2
+.sp 0.2
 int   nbsendp(Channel *c, void *v)
-.ift .sp 0.2
+.sp 0.2
 void  chanfree(Channel *c)
-.ift .sp 0.2
+.sp 0.2
 void  threadsetname(char *name)
-.ift .sp 0.2
+.sp 0.2
 char  *threadgetname(void)
-.ift .sp 0.2
+.sp 0.2
 ulong *procdata(void)
-.ift .sp 0.2
+.sp 0.2
 int   threadgetgrp(void)
-.ift .sp 0.2
+.sp 0.2
 int   threadsetgrp(int group)
-.ift .sp 0.2
-void threadkill(int id)
-.ift .sp 0.2
+.sp 0.2
 void  threadkillgrp(int group)
-.ift .sp 0.2
+.sp 0.2
 void  procexecl(Channel *pidc, char *file, ...)
-.ift .sp 0.2
+.sp 0.2
 void  procexec(Channel *pidc, char *file, char *args[])
-.ift .sp 0.2
+.sp 0.2
 Channel	*threadwaitchan(void)
-.ift .sp 0.2
+.sp 0.2
 int   threadprint(int fd, char *format, ...)
 .EE
 .SH DESCRIPTION
@@ -168,6 +164,7 @@ and
 .I recv
 \- see their descriptions further on),
 .IR alt ,
+.IR threadrendezvous ,
 and
 .IR threadexits .
 .PP
@@ -175,9 +172,9 @@ Procs
 are scheduled by the operating system.  Threads in different procs,
 therefore, can preempt one another in arbitrary ways, unless they
 explicitly synchronize their actions using
-.B qlocks
+.B rendezvous
 (see
-.IR lock (2))
+.IR rendezvous (2))
 or channel communication.
 .PP
 Blocking system calls such as
@@ -191,7 +188,11 @@ pointers to stack variables between threads and procs.
 Threads in different procs are scheduled independently and preemptively.
 Data structures shared between threads in different procs need to be
 protected by a
-.IR lock (2).
+.IR lock (2)
+or via explicit synchronization using, for example,
+.I threadrendezvous
+or
+.BR Channel s.
 .PP
 Programs using threads must replace
 .B main
@@ -235,6 +236,15 @@ returns a
 .I Yield
 gives up the processor to another thread in the calling proc.
 .PP
+.I Threadrendezvous
+is the thread library's equivalent of
+.IR rendezvous (2).
+.I Threadrendezvous
+can be used to synchronize threads in the same proc or in different
+procs.  Do not use
+.I rendezvous
+in threaded programs.
+.PP
 .I Threadexits
 causes the calling thread to be destroyed.  If the thread is the only
 remaining thread in its proc, the proc exits too (using the exit status
@@ -258,14 +268,6 @@ or full
 .RI ( send ).
 .I Chancreate
 returns a pointer to the channel created.
-.PP
-.I Chaninit
-initializes an already allocated channel;
-.BR elemsize ,
-and
-.B elemcnt
-are as in
-.B chancreate.
 .PP
 .I Recv
 receives an element from the channel named by its first argument and
@@ -522,7 +524,6 @@ error(char *fmt, ...)
 	int n;
 	va_list arg;
 
-	va_start(arg, fmt);
 	fprint(2, fmt, arg);
 	threadexitsall("error");
 }

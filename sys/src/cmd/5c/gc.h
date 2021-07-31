@@ -25,7 +25,6 @@ typedef	struct	Var	Var;
 typedef	struct	Reg	Reg;
 typedef	struct	Rgn	Rgn;
 
-
 #define	R0ISZERO	0
 
 struct	Adr
@@ -109,7 +108,6 @@ struct	Reg
 
 	long	regu;
 	long	loop;		/* could be shorter */
-
 	
 	Reg*	log5;
 	long	active;
@@ -195,9 +193,6 @@ EXTERN	Reg*	lastr;
 EXTERN	Reg	zreg;
 EXTERN	Reg*	freer;
 EXTERN	Var	var[NVAR];
-EXTERN	long*	idom;
-EXTERN	Reg**	rpo2r;
-EXTERN	long	maxnr;
 
 extern	char*	anames[];
 extern	Hintab	hintab[];
@@ -236,7 +231,6 @@ Node*	nod32const(vlong);
 Node*	nodfconst(double);
 void	nodreg(Node*, Node*, int);
 void	regret(Node*, Node*);
-int	tmpreg(void);
 void	regalloc(Node*, Node*, Node*);
 void	regfree(Node*);
 void	regialloc(Node*, Node*, Node*);
@@ -247,7 +241,6 @@ void	regind(Node*, Node*);
 void	gprep(Node*, Node*);
 void	raddr(Node*, Prog*);
 void	naddr(Node*, Adr*);
-void	gmovm(Node*, Node*, int);
 void	gmove(Node*, Node*);
 void	gins(int a, Node*, Node*);
 void	gopcode(int, Node*, Node*, Node*);
@@ -286,7 +279,6 @@ int	Dconv(va_list*, Fconv*);
 int	Sconv(va_list*, Fconv*);
 int	Nconv(va_list*, Fconv*);
 int	Bconv(va_list*, Fconv*);
-int	Rconv(va_list*, Fconv*);
 
 /*
  * reg.c
@@ -317,8 +309,6 @@ int	regzer(Adr*);
 int	anyvar(Adr*);
 int	subprop(Reg*);
 int	copyprop(Reg*);
-int	shiftprop(Reg*);
-void	constprop(Adr*, Adr*, Reg*);
 int	copy1(Adr*, Adr*, Reg*, int);
 int	copyu(Prog*, Adr*, Adr*);
 
@@ -337,11 +327,13 @@ void predicate(void);
 int	isbranch(Prog *); 
 int	predicable(Prog *p); 
 int	modifiescpsr(Prog *p); 
+Reg *	joinsplit(Reg *r); 
+int	compact(Reg *r, Reg*r1); 
+void	applypred(Reg *r, Reg *r1); 
 
 #pragma	varargck	type	"A"	int
 #pragma	varargck	type	"B"	Bits
 #pragma	varargck	type	"D"	Adr*
 #pragma	varargck	type	"N"	Adr*
-#pragma	varargck	type	"R"	Adr*
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"S"	char*

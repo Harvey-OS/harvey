@@ -253,10 +253,7 @@ opendisk(char *disk, int rdonly, int noctl)
 	char *p, *q;
 	Disk *d;
 
-	d = malloc(sizeof(*d));
-	if(d == nil)
-		return nil;
-
+	d = emalloc(sizeof(*d));
 	d->fd = d->wfd = d->ctlfd = -1;
 	d->rdonly = rdonly;
 
@@ -276,13 +273,7 @@ opendisk(char *disk, int rdonly, int noctl)
 	if(noctl)
 		return openfile(d);
 
-	p = strdup(disk);
-	if(p == nil) {
-		close(d->wfd);
-		close(d->fd);
-		free(d);
-		return nil;
-	}
+	p = estrdup(disk);
 
 	/* check for floppy(3) disk */
 	if(strlen(p) >= 7) {

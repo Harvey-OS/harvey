@@ -1,5 +1,4 @@
 .TH PROTO 2
-.SH NAME
 rdproto \- parse and process a proto file listing
 .SH SYNOPSIS
 .nf

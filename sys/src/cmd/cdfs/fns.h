@@ -6,4 +6,3 @@ long	bread(Buf*, void*, long, long);
 long	bwrite(Buf*, void*, long);
 long bufread(Otrack*, void*, long, long);
 long bufwrite(Otrack*, void*, long);
-void *emalloc(ulong);

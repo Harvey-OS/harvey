@@ -34,15 +34,6 @@
 #define LDBL_MAX	DBL_MAX
 #define LDBL_MAX_10_EXP	DBL_MAX_10_EXP
 
-typedef 	union FPdbleword FPdbleword;
-union FPdbleword
-{
-	double	x;
-	struct {	/* little endian */
-		long lo;
-		long hi;
-	};
-};
 
 #ifdef _RESEARCH_SOURCE
 /* define stuff needed for floating conversion */

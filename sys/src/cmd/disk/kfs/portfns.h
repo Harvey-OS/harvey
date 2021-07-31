@@ -1,6 +1,5 @@
 void	accessdir(Iobuf*, Dentry*, int);
 void	addfree(Device, long, Superb*);
-int	authorize(Chan*, Fcall*, Fcall*);
 long	balloc(Device, int, long);
 void	bfree(Device, long, int);
 int	byname(void*, void*);
@@ -83,8 +82,6 @@ long	indfetch(Iobuf*, Dentry*, long, long , int, int);
 int	ingroup(int, int);
 void	iobufinit(void);
 int	leadgroup(int, int);
-void	mkchallenge(Chan*);
-int	netserve(char*);
 File*	newfp(Chan*);
 Qid	newqid(Device);
 void	newstart(void);

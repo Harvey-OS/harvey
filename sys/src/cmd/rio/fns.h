@@ -1,4 +1,3 @@
-void	freescrtemps(void);
 int	parsewctl(char**, Rectangle, Rectangle*, int*, char**, char*, char*);
 int	writewctl(Xfid*, char*);
 Window *new(Image*, int, char*, char*, char**);
@@ -25,7 +24,6 @@ char* runetobyte(Rune*, int, int*);
 void	putsnarf(void);
 void	getsnarf(void);
 void	timerinit(void);
-int	goodrect(Rectangle);
 
 #define	runemalloc(n)		malloc((n)*sizeof(Rune))
 #define	runerealloc(a, n)	realloc(a, (n)*sizeof(Rune))

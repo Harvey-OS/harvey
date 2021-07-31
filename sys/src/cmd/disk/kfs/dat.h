@@ -16,14 +16,6 @@ struct	Chan
 	File*	flist;			/* base of file structures */
 	Lock	flock;			/* manipulate flist */
 	RWLock	reflock;		/* lock for Tflush */
-
-				/* added for authorisation */
-	uchar   chal[CHALLEN];          /* locally generated challenge */
-	uchar   rchal[CHALLEN];         /* remotely generated challenge */
-	Lock    idlock;
-	ulong   idoffset;               /* offset of id vector */
-	ulong   idvec;                  /* vector of acceptable id's */
-	int	auth;			/* authenticated as someone other than none */
 };
 
 /*
@@ -45,8 +37,7 @@ struct	Cons
 	long	offset;		/* used to read files, c.f. fchar */
 	char*	arg;		/* pointer to remaining line */
 
-	Chan	*chan;	/* console channel */
-	Chan	*srvchan;	/* local server channel */
+	Chan	*chan;
 
 	Filter	work;		/* thruput in messages */
 	Filter	rate;		/* thruput in bytes */
@@ -160,6 +151,3 @@ extern	Hiob	*hiob;
 extern	int	chat;
 extern	int	writeallow;
 extern	int	wstatallow;
-extern	int	noauth;
-extern	int	allownone;
-extern	Nvrsafe	nvr;

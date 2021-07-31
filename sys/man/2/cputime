@@ -27,7 +27,9 @@ returns the real time, in milliseconds used by the process so far.
 .PP
 These functions read
 .BR /dev/cputime ,
-opening that file when they are first called.
+opening that file when
+.I time
+is first called.
 .SH SOURCE
 .B /sys/src/libc/9sys
 .SH SEE ALSO

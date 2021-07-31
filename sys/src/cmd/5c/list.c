@@ -1,4 +1,4 @@
-#define	EXTERN
+#define EXTERN
 #include "gc.h"
 
 void
@@ -11,7 +11,6 @@ listinit(void)
 	fmtinstall('N', Nconv);
 	fmtinstall('B', Bconv);
 	fmtinstall('D', Dconv);
-	fmtinstall('R', Rconv);
 }
 
 int
@@ -51,31 +50,14 @@ char *extra [] = {
 int
 Pconv(va_list *arg, Fconv *fp)
 {
-	char str[STRINGSZ], sc[20];
+	char str[STRINGSZ], *sc;
 	Prog *p;
 	int a, s;
 
 	p = va_arg(*arg, Prog*);
 	a = p->as;
-	s = p->scond; 
-	strcpy(sc, extra[s & C_SCOND]);
-	if(s & C_SBIT)
-		strcat(sc, ".S");
-	if(s & C_PBIT)
-		strcat(sc, ".P");
-	if(s & C_WBIT)
-		strcat(sc, ".W");
-	if(s & C_UBIT)		/* ambiguous with FBIT */
-		strcat(sc, ".U");
-	if(a == AMOVM) {
-		if(p->from.type == D_CONST)
-			sprint(str, "	%A%s	%R,%D", a, sc, &p->from, &p->to);
-		else
-		if(p->to.type == D_CONST)
-			sprint(str, "	%A%s	%D,%R", a, sc, &p->from, &p->to);
-		else
-			sprint(str, "	%A%s	%D,%D", a, sc, &p->from, &p->to);
-	} else
+	s = p->scond & C_SCOND; 
+	sc = extra[s]; 
 	if(a == ADATA)
 		sprint(str, "	%A	%D/%d,%D", a, &p->from, p->reg, &p->to);
 	else
@@ -109,8 +91,6 @@ Dconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
-	char *op;
-	int v;
 
 	a = va_arg(*arg, Adr*);
 	switch(a->type) {
@@ -130,17 +110,6 @@ Dconv(va_list *arg, Fconv *fp)
 			sprint(str, "$%N(R%d)", a, a->reg);
 		else
 			sprint(str, "$%N", a);
-		break;
-
-	case D_SHIFT:
-		v = a->offset;
-		op = "<<>>->@>" + (((v>>5) & 3) << 1);
-		if(v & (1<<4))
-			sprint(str, "R%d%c%cR%d", v&15, op[0], op[1], (v>>8)&15);
-		else
-			sprint(str, "R%d%c%c%d", v&15, op[0], op[1], (v>>7)&31);
-		if(a->reg != NREG)
-			sprint(str+strlen(str), "(R%d)", a->reg);
 		break;
 
 	case D_OREG:
@@ -179,38 +148,6 @@ Dconv(va_list *arg, Fconv *fp)
 	case D_SCONST:
 		sprint(str, "$\"%S\"", a->sval);
 		break;
-	}
-	strconv(str, fp);
-	return 0;
-}
-
-int
-Rconv(va_list *arg, Fconv *fp)
-{
-	char str[STRINGSZ];
-	Adr *a;
-	int i, v;
-
-	a = va_arg(*arg, Adr*);
-	sprint(str, "GOK-reglist");
-	switch(a->type) {
-	case D_CONST:
-		if(a->reg != NREG)
-			break;
-		if(a->sym != S)
-			break;
-		v = a->offset;
-		strcpy(str, "");
-		for(i=0; i<NREG; i++) {
-			if(v & (1<<i)) {
-				if(str[0] == 0)
-					strcat(str, "[R");
-				else
-					strcat(str, ",R");
-				sprint(strchr(str, 0), "%d", i);
-			}
-		}
-		strcat(str, "]");
 	}
 	strconv(str, fp);
 	return 0;

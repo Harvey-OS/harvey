@@ -31,11 +31,10 @@ void
 pcmciamodemlink(void)
 {
 	ISAConf isa;
-	int i, j, slot, com2used;
+	int i, j, slot;
 
 	i = 0;
-	com2used = 0;
-	for(j = 0; modems[j]; j++){
+	for(;;){
 		memset(&isa, 0, sizeof(isa));
 
 		/* look for a configuration line */
@@ -46,20 +45,22 @@ pcmciamodemlink(void)
 			memset(&isa, 0, sizeof(isa));
 		}
 
-		if (isa.irq == 0 && isa.port == 0) {
-			if (com2used == 0) {
-				/* default is COM2 */
-				isa.irq = 3;
-				isa.port = 0x2F8;
-				com2used++;
-			} else
-				break;
-		}
+		/* default is COM2 */
+		if(isa.irq == 0)
+			isa.irq = 3;
+		if(isa.port == 0)
+			isa.port = 0x2F8;
 
-		slot = pcmspecial(modems[j], &isa);
-		if(slot >= 0){
-			print("%s in pcmcia slot %d port 0x%lux irq %lud\n",
-				modems[j], slot, isa.port, isa.irq);
+		slot = -1;
+		for(j = 0; modems[j]; j++){
+			slot = pcmspecial(modems[j], &isa);
+			if(slot >= 0){
+				print("%s in pcmcia slot %d port 0x%lux irq %lud\n",
+					modems[j], slot, isa.port, isa.irq);
+				break;
+			}
 		}
+		if(slot < 0)
+			break;
 	}
 }	

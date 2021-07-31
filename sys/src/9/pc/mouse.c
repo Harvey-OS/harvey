@@ -22,10 +22,6 @@ enum
 	MousePS2=	2,
 };
 static int mousetype;
-static int intellimouse;
-static int packetsize;
-static int resolution;
-static int accelerated;
 
 /*
  *  setup a serial mouse
@@ -47,7 +43,6 @@ serialmouse(int port, char *type, int setspeed)
 	else
 		ns16552special(port, setspeed, 0, 0, mouseputc);
 	mousetype = Mouseserial;
-	packetsize = 3;
 }
 
 /*
@@ -57,39 +52,24 @@ serialmouse(int port, char *type, int setspeed)
  *	byte 1 -	DX
  *	byte 2 -	DY
  *
- *  shift & right button is the same as middle button
- *
- * Intellimouse and AccuPoint with extra buttons deliver
- *	byte 3 -	00 or 01 or FF according to extra button state.
- * extra buttons are mapped in this code to buttons 4 and 5.
- * AccuPoint generates repeated events for these buttons;
-*  it and Intellimouse generate 'down' events only, so
- * user-level code is required to generate button 'up' events
- * if they are needed by the application.
- * Also on laptops with AccuPoint AND external mouse, the
- * controller may deliver 3 or 4 bytes according to the type
- * of the external mouse; code must adapt.
+ *  shift & left button is the same as middle button
  */
 static void
 ps2mouseputc(int c, int shift)
 {
-	static short msg[4];
+	static short msg[3];
 	static int nb;
-	static uchar b[] = {0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 2, 3, 2, 3, 6, 7 };
+	static uchar b[] = {0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 2, 5, 2, 3, 6, 7 };
 	int buttons, dx, dy;
 
 	/* 
 	 *  check byte 0 for consistency
 	 */
 	if(nb==0 && (c&0xc8)!=0x08)
-		if(intellimouse && (c==0x00 || c==0x01 || c==0xFF)){
-			/* last byte of 4-byte packet */
-			packetsize = 4;
-			return;
-		}
+		return;
 
 	msg[nb] = c;
-	if(++nb == packetsize){
+	if(++nb == 3){
 		nb = 0;
 		if(msg[0] & 0x10)
 			msg[1] |= 0xFF00;
@@ -97,22 +77,6 @@ ps2mouseputc(int c, int shift)
 			msg[2] |= 0xFF00;
 
 		buttons = b[(msg[0]&7) | (shift ? 8 : 0)];
-		if(intellimouse && packetsize==4){
-			if((msg[3]&0xc8) == 0x08){
-				/* first byte of 3-byte packet */
-				packetsize = 3;
-				msg[0] = msg[3];
-				nb = 1;
-				/* fall through to emit previous packet */
-			}else{
-				/* the AccuPoint on the Toshiba 34[48]0CT encodes extra buttons as 4 and 5 */
-				/* they repeat and don't release, however, so user-level timing code is required */
-				if(msg[3] == 0xFF) 
-					buttons |= 1<<3;
-				if(msg[3] == 0x01) 
-					buttons |= 1<<4;
-			}
-		}
 		dx = msg[1];
 		dy = -msg[2];
 		mousetrack(buttons, dx, dy);
@@ -135,8 +99,11 @@ ps2mouse(void)
 	i8042auxcmd(0xF4);
 
 	mousetype = MousePS2;
-	packetsize = 3;
 }
+
+static int intellimouse;
+static int resolution;
+static int accelerated;
 
 static void
 setaccelerated(int x)
@@ -182,7 +149,6 @@ static void
 setintellimouse(void)
 {
 	intellimouse = 1;
-	packetsize = 4;
 	switch(mousetype){
 	case MousePS2:
 		i8042auxcmd(0xF3);	/* set sample */
@@ -198,7 +164,6 @@ setintellimouse(void)
 static void
 resetmouse(void)
 {
-	packetsize = 3;
 	switch(mousetype){
 	case MousePS2:
 		i8042auxcmd(0xF6);

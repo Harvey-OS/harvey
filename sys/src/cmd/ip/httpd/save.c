@@ -132,7 +132,7 @@ main(int argc, char **argv)
 	write(datafd, c->xferbuf, n);
 	close(datafd);
 
-	sendfd(c, htmlfd, &dir, mkcontent("text", "html", nil), nil);
+	sendfd(c, htmlfd, &dir);
 
 	exits(nil);
 }

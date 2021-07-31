@@ -10,6 +10,14 @@ usage(void)
 	exits("usage");
 }
 
+char*
+getstr(char *s)
+{
+	if(s == nil)
+		usage();
+	return s;
+}
+
 void
 writeuncompressed(int fd, Memimage *m)
 {
@@ -48,7 +56,7 @@ main(int argc, char *argv[])
 	uncompressed = 0;
 	ARGBEGIN{
 	case 'c':
-		tostr = EARGF(usage());
+		tostr = getstr(ARGF());
 		break;
 	case 'u':
 		uncompressed = 1;

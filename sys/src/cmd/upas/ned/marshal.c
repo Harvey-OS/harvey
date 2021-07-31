@@ -278,9 +278,8 @@ main(int argc, char **argv)
 	}
 
 	if(!nflag){
-		if(!noinput && headersrv == Ok){
+		if(!noinput && headersrv == Ok)
 			body(&in, &out, 1);
-		}
 	} else
 		Bprint(&out, "\n");
 
@@ -468,8 +467,6 @@ attachment(Attach *a, Biobuf *out)
 	if(strcmp(a->type, "mime") == 0){
 		f = Bopen(a->path, OREAD);
 		if(f == nil){
-			/* hack: give marshal time to stdin, before we kill it (for dead.letter) */
-			sleep(500);
 			postnote(PNPROC, pid, "interrupt");
 			sysfatal("opening %s: %r", a->path);
 		}
@@ -495,9 +492,8 @@ attachment(Attach *a, Biobuf *out)
 
 	f = Bopen(a->path, OREAD);
 	if(f == nil){
-		/* hack: give marshal time to stdin, before we kill it (for dead.letter) */
-		sleep(500);
 		postnote(PNPROC, pid, "interrupt");
+sleep(1000);
 		sysfatal("opening %s: %r", a->path);
 	}
 	if(a->ctype->display){

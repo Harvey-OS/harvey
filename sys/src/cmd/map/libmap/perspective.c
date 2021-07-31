@@ -1,5 +1,3 @@
-#include <u.h>
-#include <libc.h>
 #include "map.h"
 
 #define ORTHRAD 1000

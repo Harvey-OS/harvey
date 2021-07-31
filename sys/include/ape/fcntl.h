@@ -5,8 +5,6 @@
 #endif
 #pragma lib "/$M/lib/ape/libap.a"
 
-#include	<sys/types.h>
-
 #define	O_RDONLY 0
 #define	O_WRONLY 1
 #define	O_RDWR	 2

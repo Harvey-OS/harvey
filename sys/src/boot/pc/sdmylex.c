@@ -4,6 +4,7 @@
  * 24-bit mode works for Adaptec AHA-154xx series too.
  *
  * To do:
+ *	tidy the PCI probe and do EISA;
  *	allocate more Ccb's as needed, up to NMbox-1;
  *	add nmbox and nccb to Ctlr struct for the above;
  *	64-bit LUN/explicit wide support necessary?
@@ -24,8 +25,7 @@
 #define poperror()
 typedef struct QLock{ int r; } QLock;
 typedef struct Rendez{ int r; } Rendez;
-#define	intrenable(irq, f, c, tbdf, name)	setvec(VectorPIC+(irq), f, c);\
-						USED(tbdf);
+#define	intrenable(irq, f, c, tbdf, name)	setvec(VectorPIC+(irq), f, c);
 #define ioalloc(p, b, c, d)	(1)
 #define iofree(p)
 
@@ -62,7 +62,7 @@ enum {					/* Rstatus */
 enum {					/* Rcpr */
 	Cinitialise	= 0x01,		/* Initialise Mailbox */
 	Cstart		= 0x02,		/* Start Mailbox Command */
-	Cinquiry	= 0x04,		/* Adapter Inquiry */
+	Cinquiry	= 0x04,		/* Adapter Anquiry */
 	Ceombri		= 0x05,		/* Enable OMBR Interrupt */
 	Cinquire	= 0x0B,		/* Inquire Configuration */
 	Cextbios	= 0x28,		/* AHA-1542: extended BIOS info. */
@@ -232,7 +232,7 @@ enum {
 	NCcb		= NMbox-1,	/* number of Ccb's */
 };
 
-#define PADDR24(a, n)	((PADDR(a)+(n)) <= (1<<24))
+#define PADDR24(a, n)	(PADDR(a)+n <= (1<<24))
 
 static void
 ccbfree(Ctlr* ctlr, Ccb* ccb)
@@ -261,7 +261,7 @@ ccballoc(Ctlr* ctlr)
 
 	for(;;){
 		lock(&ctlr->ccblock);
-		if((ccb = ctlr->ccb) != nil){
+		if(ccb = ctlr->ccb){
 			if(ctlr->bus == 24)
 				 ctlr->ccb = ((Ccb24*)ccb)->ccb;
 			else
@@ -296,7 +296,7 @@ mylex24rio(SDreq* r)
 	ulong p;
 	Ctlr *ctlr;
 	Ccb24 *ccb;
-	Mbox24 *mb;
+	Mbox32 *mb;
 	uchar *data, lun, *sense;
 	int d, n, btstat, sdstat, target;
 
@@ -311,10 +311,10 @@ mylex24rio(SDreq* r)
 	 * from the last completed Ccb, return it immediately.
 	 */
 	lock(&ctlr->cachelock);
-	if((ccb = ctlr->cache[target]) != nil){
+	if(ccb = ctlr->cache[target]){
 		ctlr->cache[target] = nil;
 		if(r->cmd[0] == 0x03
-		&& ccb->sdstat == SDcheck && lun == ((ccb->cs[1]>>5) & 0x07)){
+		  && ccb->sdstat == SDcheck && lun == ((ccb->cs[1]>>5) & 0x07)){
 			unlock(&ctlr->cachelock);
 			if(r->dlen){
 				sense = &ccb->cs[ccb->cdblen];
@@ -339,6 +339,7 @@ mylex24rio(SDreq* r)
 	 */
 	n = r->dlen;
 	if(n && !PADDR24(r->data, n)){
+		ccb->data = r->data;
 		data = mallocz(n, 0);
 		if(data == nil || !PADDR24(data, n)){
 			if(data != nil){
@@ -349,8 +350,7 @@ mylex24rio(SDreq* r)
 			return SDmalloc;
 		}
 		if(r->write)
-			memmove(data, r->data, n);
-		ccb->data = r->data;
+			memmove(data, ccb->data, n);
 	}
 	else
 		data = r->data;
@@ -418,20 +418,8 @@ mylex24rio(SDreq* r)
 	 */
 	while(waserror())
 		;
-	tsleep(ccb, done24, ccb, 30*1000);
+	sleep(ccb, done24, ccb);
 	poperror();
-
-	if(!done24(ccb)){
-		print("%s: %d/%d: sd24rio timeout\n",
-			"sdmylex"/*ctlr->sdev->name*/, target, r->lun);
-		if(ccb->data != nil){
-			free(data);
-			ccb->data = nil;
-		}
-		ccbfree(ctlr, (Ccb*)ccb);
-
-		return SDtimeout;
-	}
 
 	/*
 	 * Save the status and patch up the number of
@@ -454,7 +442,7 @@ mylex24rio(SDreq* r)
 	/*
 	 * Tidy things up if a staging area was used for the data,
 	 */
-	if(ccb->data != nil){
+	if(ccb->data){
 		if(sdstat == SDok && btstat == 0 && !r->write)
 			memmove(ccb->data, data, n);
 		free(data);
@@ -514,10 +502,9 @@ mylex24interrupt(Ureg*, void* arg)
 	rstatus = inb(port+Rstatus);
 	outb(port+Rcontrol, Rint);
 	if((rinterrupt & ~(Cmdc|Imbl)) != Intv && ctlr->spurious++)
-		print("%s: interrupt 0x%2.2ux\n",
-			"sdmylex"/*ctlr->sdev->name*/, rinterrupt);
+		print("sdmylex: interrupt 0x%2.2ux\n", rinterrupt);
 	if((rinterrupt & Cmdc) && (rstatus & Cmdinv))
-		print("%s: command invalid\n", "sdmylex"/*ctlr->sdev->name*/);
+		print("sdmylex: command invalid\n");
 
 	/*
 	 * Look for something in the mail.
@@ -565,10 +552,10 @@ mylex32rio(SDreq* r)
 	 * from the last completed Ccb, return it immediately.
 	 */
 	lock(&ctlr->cachelock);
-	if((ccb = ctlr->cache[target]) != nil){
+	if(ccb = ctlr->cache[target]){
 		ctlr->cache[target] = nil;
 		if(r->cmd[0] == 0x03
-		&& ccb->sdstat == SDcheck && lun == (ccb->luntag & 0x07)){
+		  && ccb->sdstat == SDcheck && lun == (ccb->luntag & 0x07)){
 			unlock(&ctlr->cachelock);
 			if(r->dlen){
 				n = 8+ccb->sense[7];
@@ -592,11 +579,11 @@ mylex32rio(SDreq* r)
 
 	n = r->dlen;
 	if(n == 0)
-		ccb->datadir = CCBdataout|CCBdatain;
+		ccb->datadir |= CCBdataout|CCBdatain;
 	else if(!r->write)
-		ccb->datadir = CCBdatain;
+		ccb->datadir |= CCBdatain;
 	else
-		ccb->datadir = CCBdataout;
+		ccb->datadir |= CCBdataout;
 
 	ccb->cdblen = r->clen;
 
@@ -651,16 +638,8 @@ mylex32rio(SDreq* r)
 	 */
 	while(waserror())
 		;
-	tsleep(ccb, done32, ccb, 30*1000);
+	sleep(ccb, done32, ccb);
 	poperror();
-
-	if(!done32(ccb)){
-		print("%s: %d/%d: sd32rio timeout\n",
-			"sdmylex"/*ctlr->sdev->name*/, target, r->lun);
-		ccbfree(ctlr, (Ccb*)ccb);
-
-		return SDtimeout;
-	}
 
 	/*
 	 * Save the status and patch up the number of
@@ -733,10 +712,9 @@ mylex32interrupt(Ureg*, void* arg)
 	rstatus = inb(port+Rstatus);
 	outb(port+Rcontrol, Rint);
 	if((rinterrupt & ~(Cmdc|Imbl)) != Intv && ctlr->spurious++)
-		print("%s: interrupt 0x%2.2ux\n",
-			"sdmylex"/*ctlr->sdev->name*/, rinterrupt);
+		print("sdmylex: interrupt 0x%2.2ux\n", rinterrupt);
 	if((rinterrupt & Cmdc) && (rstatus & Cmdinv))
-		print("%s: command invalid\n", "sdmylex"/*ctlr->sdev->name*/);
+		print("sdmylex: command invalid\n");
 
 	/*
 	 * Look for something in the mail.
@@ -1000,8 +978,6 @@ buggery:
 			outb(0x0A, 0x00);
 			break;
 		default:
-			if(ctlr->bus == 24)
-				goto buggery;
 			break;
 		}
 	
@@ -1051,8 +1027,7 @@ mylexpnp(void)
 {
 	Pcidev *p;
 	Ctlr *ctlr;
-	ISAConf isa;
-	int cfg, ctlrno, i, x;
+	int cfg, i, x;
 	SDev *sdev, *head, *tail;
 
 	p = nil;
@@ -1071,33 +1046,17 @@ mylexpnp(void)
 		tail = sdev;
 	}
 
-	if(strncmp(KADDR(0xFFFD9), "EISA", 4) == 0){
-		for(cfg = 0x1000; cfg < MaxEISA*0x1000; cfg += 0x1000){
-			x = 0;
-			for(i = 0; i < 4; i++)
-				x |= inb(cfg+CfgEISA+i)<<(i*8);
-			if(x != 0x0142B30A && x != 0x0242B30A)
-				continue;
-	
-			x = inb(cfg+0xC8C);
-			if((sdev = mylexprobe(mylexport[x & 0x07], -1)) == nil)
-				continue;
-	
-			if(head != nil)
-				tail->next = sdev;
-			else
-				head = sdev;
-			tail = sdev;
-		}
-	}
+	if(strncmp(KADDR(0xFFFD9), "EISA", 4))
+		return head;
+	for(cfg = 0x1000; cfg < MaxEISA*0x1000; cfg += 0x1000){
+		x = 0;
+		for(i = 0; i < 4; i++)
+			x |= inb(cfg+CfgEISA+i)<<(i*8);
+		if(x != 0x0142B30A && x != 0x0242B30A)
+			continue;
 
-	for(ctlrno = 0; ctlrno < 4; ctlrno++){
-		memset(&isa, 0, sizeof(isa));
-		if(!isaconfig("scsi", ctlrno, &isa))
-			continue;
-		if(strcmp(isa.type, "aha1542"))
-			continue;
-		if((sdev = mylexprobe(isa.port, -1)) == nil)
+		x = inb(cfg+0xC8C);
+		if((sdev = mylexprobe(mylexport[x & 0x07], -1)) == nil)
 			continue;
 
 		if(head != nil)
@@ -1151,8 +1110,9 @@ mylex24enable(Ctlr* ctlr)
 	cmd[2] = p>>16;
 	cmd[3] = p>>8;
 	cmd[4] = p;
+	len = 5;
 
-	return issue(ctlr, cmd, 5, 0, 0);
+	return issue(ctlr, cmd, len, 0, 0);
 }
 
 static int
@@ -1248,27 +1208,6 @@ mylexenable(SDev* sdev)
 	return 1;
 }
 
-static int
-mylexdisable(SDev* sdev)
-{
-	Ctlr *ctlr;
-	int port, timeo;
-
-	ctlr = sdev->ctlr;
-	port = ctlr->port;
-
-	outb(port+Rcontrol, Rhard|Rsbus);
-	for(timeo = 0; timeo < 100; timeo++){
-		if(inb(port+Rstatus) == (Inreq|Hardy))
-			break;
-		delay(100);
-	}
-	if(inb(port+Rstatus) != (Inreq|Hardy))
-		return 0;
-
-	return 1;
-}
-
 SDifc sdmylexifc = {
 	"mylex",			/* name */
 
@@ -1276,7 +1215,7 @@ SDifc sdmylexifc = {
 	nil,				/* legacy */
 	mylexid,			/* id */
 	mylexenable,			/* enable */
-	mylexdisable,			/* disable */
+	nil,				/* disable */
 
 	scsiverify,			/* verify */
 	scsionline,			/* online */

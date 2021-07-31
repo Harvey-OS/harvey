@@ -5,7 +5,7 @@ deroffargs=()
 fflag=''
 for(x){
 	switch($x){
-	case -[abcvx]
+	case -[bcvx]
 		spellflags=($spellflags $x)
 	case -f
 		fflag=$x

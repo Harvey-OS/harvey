@@ -43,7 +43,6 @@ struct Req
 	Fid*		fid;
 	Fid*		newfid;
 	Req*		oldreq;
-	void*	rbuf;
 };
 
 struct Srv {
@@ -127,9 +126,6 @@ void		postmountsrv(Srv*, char*, char*, int);
 int		lib9p_chatty;
 void		respond(Req*, char*);
 
-/* threadsrv.c */
-int		threadpostmountsrv(Srv*, char*, char*, int);
-
 /* uid.c */
 int		hasperm(File*, char*, int);
 
@@ -141,9 +137,3 @@ char*	_lib9p_estrdup(char*);
 enum {
 	OMASK = 3
 };
-
-void readstr(vlong, void*, long*, char*);
-void readbuf(vlong, void*, long*, void*, long);
-
-/* crummy hack; need to work out better way */
-extern void (*endsrv)(void*);

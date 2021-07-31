@@ -7,9 +7,6 @@ OFILES=acme.$O\
 	buff.$O\
 	cols.$O\
 	disk.$O\
-	ecmd.$O\
-	edit.$O\
-	elog.$O\
 	exec.$O\
 	file.$O\
 	fsys.$O\
@@ -29,9 +26,6 @@ HFILES=dat.h\
 </sys/src/cmd/mkone
 
 $O.out:	/$objtype/lib/libframe.a /$objtype/lib/libdraw.a /$objtype/lib/libthread.a
-
-edit.$O ecmd.$O elog.$O:	edit.h
-
 syms:V:
-	vc -a acme.c > syms
+	vc -a acme.c	>syms
 	for(i in ????.c) vc -aa $i >> syms

@@ -126,16 +126,10 @@ enum	as
 	ACASE,
 
 	AEND,
-
-	AMULL,
-	AMULAL,
-	AMULLU,
-	AMULALU,
-
 	ALAST,
 };
 
-/* scond byte */
+/* second byte */
 #define	C_SCOND	((1<<4)-1)
 #define	C_SBIT	(1<<4)
 #define	C_PBIT	(1<<5)
@@ -162,7 +156,6 @@ enum	as
 
 #define	D_SHIFT		(D_NONE+19)
 #define	D_FPCR		(D_NONE+20)
-#define D_REGREG	(D_NONE+21)
 
 /* name */
 #define	D_EXTERN	(D_NONE+3)

@@ -71,11 +71,6 @@ char *opname[] =
 
 Lock	dnlock;
 
-static void* allocate(int);
-static void checkallocation(void*, int);
-
-#define CHECK(a) checkallocation(a, sizeof(*a))
-
 /*
  *  set up a pipe to use as a lock
  */
@@ -132,7 +127,8 @@ dnlookup(char *name, int class, int enter)
 		return 0;
 	}
 	dnvars.names++;
-	dp = allocate(sizeof(*dp));
+	dp = mallocz(sizeof(DN), 1);
+	assert(dp != 0);
 	dp->magic = DNmagic;
 	dp->name = strdup(name);
 	assert(dp->name != 0);
@@ -142,6 +138,7 @@ dnlookup(char *name, int class, int enter)
 	dp->referenced = now;
 	*l = dp;
 	unlock(&dnlock);
+if(testing)poolcheck(mainmem);
 
 	return dp;
 }
@@ -326,6 +323,7 @@ dnageall(int doit)
 				dnvars.names--;
 				dncheck(dp, 0);
 				free(dp);
+if(testing)poolcheck(mainmem);
 				continue;
 			}
 			l = &dp->next;
@@ -473,7 +471,6 @@ rrattach1(RR *new, int auth)
 	assert(dp->magic == DNmagic);
 	new->auth |= auth;
 	new->next = 0;
-	CHECK(new);
 
 	/*
 	 *  find first rr of the right type, similar types
@@ -493,7 +490,6 @@ rrattach1(RR *new, int auth)
 	 *  newer entries replace older entries with the same fields
 	 */
 	for(rp = *l; rp; rp = *l){
-		CHECK(rp);
 		assert(rp->magic == RRmagic && rp->cached);
 		if(rp->type != new->type)
 			break;
@@ -566,26 +562,32 @@ rralloc(int type)
 {
 	RR *rp;
 
-	rp = allocate(sizeof(*rp));
+	rp = mallocz(sizeof(RR), 1);
+	assert(rp != 0);
 	rp->magic = RRmagic;
 	rp->pc = getcallerpc(&type);
 	rp->type = type;
 	switch(type){
 	case Tsoa:
-		rp->soa = allocate(sizeof(*rp->soa));
+		rp->soa = mallocz(sizeof(SOA), 1);
+		assert(rp->soa != 0);
 		break;
 	case Tkey:
-		rp->key = allocate(sizeof(*rp->key));
+		rp->key = mallocz(sizeof(Key), 1);
+		assert(rp->key != 0);
 		break;
 	case Tcert:
-		rp->cert = allocate(sizeof(*rp->cert));
+		rp->cert = mallocz(sizeof(Cert), 1);
+		assert(rp->cert != 0);
 		break;
 	case Tsig:
-		rp->sig = allocate(sizeof(*rp->sig));
+		rp->sig = mallocz(sizeof(Sig), 1);
+		assert(rp->sig != 0);
 		break;
 	}
 	rp->ttl = 0;
 	rp->expire = 0;
+if(testing)poolcheck(mainmem);
 	return rp;
 }
 
@@ -599,7 +601,6 @@ rrfree(RR *rp)
 	RR *nrp;
 
 	assert(!rp->cached);
-	CHECK(rp);
 
 	dp = rp->owner;
 	if(dp){
@@ -610,44 +611,34 @@ rrfree(RR *rp)
 
 	switch(rp->type){
 	case Tsoa:
-		if(rp->soa){
-			CHECK(rp->soa);
+		if(rp->soa)
 			free(rp->soa);
-		}
 		break;
 	case Tkey:
 		if(rp->key){
-			if(rp->key->data){
-				CHECK(rp->key->data);
+			if(rp->key->data)
 				free(rp->key->data);
-			}
-			CHECK(rp->key);
 			free(rp->key);
 		}
 		break;
 	case Tcert:
 		if(rp->cert){
-			if(rp->cert->data){
-				CHECK(rp->cert->data);
+			if(rp->cert->data)
 				free(rp->cert->data);
-			}
-			CHECK(rp->cert);
 			free(rp->cert);
 		}
 		break;
 	case Tsig:
 		if(rp->sig){
-			if(rp->sig->data){
-				CHECK(rp->sig->data);
+			if(rp->sig->data)
 				free(rp->sig->data);
-			}
-			CHECK(rp->sig);
 			free(rp->sig);
 		}
 		break;
 	}
 
 	free(rp);
+if(testing)poolcheck(mainmem);
 }
 
 /*
@@ -670,7 +661,6 @@ rrcopy(RR *rp, RR **last)
 	RR *nrp;
 	SOA *soa;
 
-	CHECK(rp);
 	nrp = rralloc(rp->type);
 	soa = nrp->soa;
 	*nrp = *rp;
@@ -681,7 +671,6 @@ rrcopy(RR *rp, RR **last)
 	nrp->cached = 0;
 	nrp->next = 0;
 	*last = nrp;
-	CHECK(nrp);
 	return &nrp->next;
 }
 
@@ -711,7 +700,6 @@ rrlookup(DN *dp, int type, int flag)
 
 	/* try for an authoritative db entry */
 	for(rp = dp->rr; rp; rp = rp->next){
-		CHECK(rp);
 		assert(rp->magic == RRmagic && rp->cached);
 		if(rp->db)
 		if(rp->auth)
@@ -1246,27 +1234,4 @@ randomize(RR *rp)
 		n >>= 1;
 	}
 	return first;
-}
-
-uchar allmagic[4] = { 0xb, 0xa, 0xb, 0xe };
-
-static void*
-allocate(int len)
-{
-	uchar *p;
-
-	p = mallocz(len+4, 1);
-	assert(p != nil);
-	memmove(p+len, allmagic, 4);
-	return (void*)p;
-}
-
-static void
-checkallocation(void *x, int len)
-{
-	uchar *p;
-
-	p = x;
-	if(memcmp(&p[len], allmagic, 4) != 0)
-		sysfatal("allocation overrun");
 }

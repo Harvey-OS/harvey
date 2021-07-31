@@ -11,7 +11,6 @@ floppy floppy
 i82365 i82365
 ip ip
 kprof kprof
-loopback loopback
 lpt lpt
 mnt mnt
 cursor mouse
@@ -23,8 +22,6 @@ rtc rtc
 sd sd
 srv srv
 ssl ssl
-astar uart
 duart uart
-eia uart
 uart uart
 vga vga

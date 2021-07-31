@@ -54,7 +54,6 @@ struct Ref
 
 struct Rendez
 {
-	Lock;
 	Proc	*p;
 };
 

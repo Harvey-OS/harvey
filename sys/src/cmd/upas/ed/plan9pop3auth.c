@@ -2,10 +2,8 @@
 #include "print.h"
 #include "pop3.h"
 #include <auth.h>
-#include <libsec.h>
 
 Apopchalstate chs;
-extern int passwordinclear;
 
 extern void
 hello(void)
@@ -29,7 +27,7 @@ usercmd(char *arg)
 }
 
 static int
-dologin(char *user, char *box, char *response)
+dologin(char *user, char *response)
 {
 	int rv;
 	static int tries;
@@ -42,7 +40,7 @@ dologin(char *user, char *box, char *response)
 		loggedin = 1;
 		newns(user, 0);
 		mailfile = s_new();
-		mboxname(box, mailfile);
+		mboxname(user, mailfile);
 		if(P(s_to_c(mailfile))){
 			senderr("file busy");
 			exits(0);
@@ -64,40 +62,18 @@ dologin(char *user, char *box, char *response)
 extern int
 passcmd(char *arg)
 {
-	DigestState *s;
-	uchar digest[MD5dlen];
-	char response[2*MD5dlen];
-	int i;
-
-	if(passwordinclear == 0)
-		senderr("password in the clear disallowed");
-
-	/* use password to encode challenge */
-	if(apopchal(&chs) < 0)
-		senderr("couldn't get apop challenge");
-
-	// hash challenge with secret and convert to ascii
-	s = md5((uchar*)chs.chal, strlen(chs.chal), 0, 0);
-	md5((uchar*)arg, strlen(arg), digest, s);
-	for(i = 0; i < MD5dlen; i++)
-		sprint(response + 2*i, "%2.2ux", digest[i]);
-
-	return dologin(user, user, response);
+	USED(arg);
+	return senderr("No passwords in the clear");
 }
 
 extern int
 apopcmd(char *arg)
 {
-	char *resp, *p;
-	char box[3*NAMELEN];
+	char *resp;
 
 	resp = nextarg(arg);
-	strncpy(box, arg, sizeof(box));
-	box[sizeof(box)-1] = 0;
-	strncpy(user, box, sizeof(user));
+	strncpy(user, arg, sizeof(arg));
 	user[NAMELEN-1] = 0;
-	if(p = strchr(user, '/'))
-		*p = '\0';
-	return dologin(user, box, resp);
+	return dologin(arg, resp);
 }
 

@@ -4,11 +4,10 @@
 char*
 strdup(char *s) 
 {  
-	char *ns;
+	char *os;
 
-	ns = malloc(strlen(s) + 1);
-	if(ns == 0)
+	os = malloc(strlen(s) + 1);
+	if(os == 0)
 		return 0;
-
-	return strcpy(ns, s);
+	return strcpy(os, s);
 }

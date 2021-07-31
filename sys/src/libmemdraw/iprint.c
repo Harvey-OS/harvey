@@ -9,3 +9,4 @@ iprint(char*,...)
 	return -1;
 }
 
+int drawdebug;

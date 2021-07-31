@@ -738,7 +738,6 @@ We'll name the user
 .CW bootes .
 Choose a password for
 .CW bootes .
-(Just keep it in your head for now.)
 Edit
 .CW /adm/users 
 as described above to create
@@ -938,7 +937,6 @@ is not used, except for debugging.
 It is often an internet domain
 like
 .CW moscvax.edu .
-It must not be blank.
 .PP
 Once
 .I rio

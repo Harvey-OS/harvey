@@ -22,7 +22,6 @@ char	Ebadaddr[]	= "bad address syntax";
 char	Eaddr[]		= "address out of range";
 char	Einuse[]		= "already in use";
 char	Ebadevent[]	= "bad event syntax";
-extern char Eperm[];
 
 static
 void
@@ -183,14 +182,6 @@ xfidopen(Xfid *x)
 			cut(t, t, nil, FALSE, TRUE, nil, 0);
 			w->wrselrange = (Range){t->q1, t->q1};
 			w->nomark = TRUE;
-			break;
-		case QWeditout:
-			if(editing == FALSE){
-				winunlock(w);
-				respond(x, &fc, Eperm);
-				return;
-			}
-			w->wrselrange = (Range){t->q1, t->q1};
 			break;
 		}
 		winunlock(w);
@@ -375,7 +366,7 @@ xfidwrite(Xfid *x)
 {
 	Fcall fc;
 	int c, cnt, qid, q, nb, nr, eval;
-	char buf[ERRLEN], *err;
+	char buf[ERRLEN];
 	Window *w;
 	Rune *r;
 	Range a;
@@ -413,7 +404,7 @@ xfidwrite(Xfid *x)
 		t = &w->body;
 		wincommit(w, t);
 		eval = TRUE;
-		a = address(x->f->mntdir, t, w->limit, w->addr, r, 0, nr, rgetc, &eval, (uint*)&nb);
+		a = address(t, w->limit, w->addr, r, 0, nr, rgetc, &eval, (uint*)&nb);
 		free(r);
 		if(nb < nr){
 			respond(x, &fc, Ebadaddr);
@@ -424,22 +415,6 @@ xfidwrite(Xfid *x)
 			break;
 		}
 		w->addr = a;
-		fc.count = x->count;
-		respond(x, &fc, nil);
-		break;
-
-	case Qeditout:
-	case QWeditout:
-		r = bytetorune(x->data, &nr);
-		if(w)
-			err = edittext(w->body.file, w->wrselrange.q1, r, nr);
-		else
-			err = edittext(nil, 0, r, nr);
-		free(r);
-		if(err != nil){
-			respond(x, &fc, err);
-			break;
-		}
 		fc.count = x->count;
 		respond(x, &fc, nil);
 		break;
@@ -804,7 +779,6 @@ xfideventwrite(Xfid *x, Window *w)
 		if(q0>t->file->nc || q1>t->file->nc || q0>q1)
 			goto Rescue;
 
-		qlock(&row);	/* just like mousethread */
 		switch(c){
 		case 'x':
 		case 'X':
@@ -815,10 +789,8 @@ xfideventwrite(Xfid *x, Window *w)
 			look3(t, q0, q1, TRUE);
 			break;
 		default:
-			qunlock(&row);
 			goto Rescue;
 		}
-		qunlock(&row);
 
 	}
 
@@ -986,7 +958,7 @@ xfideventread(Xfid *x, Window *w)
 	fc.data = w->events;
 	respond(x, &fc, nil);
 	b = w->events;
-	w->events = estrdup(w->events+n);
+	w->events = strdup(w->events+n);
 	free(b);
 	w->nevents -= n;
 }

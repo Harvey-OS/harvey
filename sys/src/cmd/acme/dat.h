@@ -5,7 +5,6 @@ enum
 	Qcons,
 	Qconsctl,
 	Qdraw,
-	Qeditout,
 	Qindex,
 	Qlabel,
 	Qnew,
@@ -14,7 +13,6 @@ enum
 	QWbody,
 	QWctl,
 	QWdata,
-	QWeditout,
 	QWevent,
 	QWrdsel,
 	QWwrsel,
@@ -40,7 +38,6 @@ typedef	struct	Disk Disk;
 typedef	struct	Expand Expand;
 typedef	struct	Fid Fid;
 typedef	struct	File File;
-typedef	struct	Elog Elog;
 typedef	struct	Mntdir Mntdir;
 typedef	struct	Range Range;
 typedef	struct	Rangeset Rangeset;
@@ -106,35 +103,17 @@ void		bufread(Buffer*, uint, Rune*, uint);
 void		bufclose(Buffer*);
 void		bufreset(Buffer*);
 
-struct Elog
-{
-	short	type;		/* Delete, Insert, Filename */
-	uint		q0;		/* location of change (unused in f) */
-	uint		nd;		/* number of deleted characters */
-	uint		nr;		/* # runes in string or file name */
-	Rune		*r;
-};
-void	elogterm(File*);
-void	elogclose(File*);
-void	eloginsert(File*, int, Rune*, int);
-void	elogdelete(File*, int, int);
-void	elogreplace(File*, int, int, Rune*, int);
-void	elogapply(File*);
-
 struct File
 {
 	Buffer;			/* the data */
 	Buffer	delta;	/* transcript of changes */
 	Buffer	epsilon;	/* inversion of delta for redo */
-	Buffer	*elogbuf;	/* log of pending editor changes */
-	Elog		elog;		/* current pending change */
 	Rune		*name;	/* name of associated file */
 	int		nname;	/* size of name */
 	uint		qidpath;	/* of file when read */
 	uint		mtime;	/* of file when read */
 	int		dev;		/* of file when read */
 	int		unread;	/* file has not been read from disk */
-	int		editclean;	/* mark clean after edit command */
 
 	int		seq;		/* if seq==0, File acts like Buffer */
 	int		mod;
@@ -156,7 +135,6 @@ void		fileundelete(File*, Buffer*, uint, uint);
 void		fileuninsert(File*, Buffer*, uint, uint);
 void		fileunsetname(File*, Buffer*);
 void		fileundo(File*, int, uint*, uint*);
-uint		fileredoseq(File*);
 
 enum	/* Text.what */
 {
@@ -341,7 +319,6 @@ struct Command
 	int		nname;
 	char		*text;
 	char		**av;
-	int		iseditcmd;
 	Mntdir	*md;
 	Command	*next;
 };
@@ -468,19 +445,10 @@ enum
 
 enum
 {
-	Empty	= 0,
 	Null		= '-',
 	Delete	= 'd',
 	Insert	= 'i',
-	Replace	= 'r',
 	Filename	= 'f',
-};
-
-enum	/* editing */
-{
-	Inactive	= 0,
-	Inserting,
-	Collecting,
 };
 
 uint		seq;
@@ -523,7 +491,6 @@ Image		*textcols[NCOL];
 int			plumbsendfd;
 int			plumbeditfd;
 char			wdir[];
-int			editing;
 
 Channel	*ckeyboard;	/* chan(Rune)[10] */
 Channel	*cplumb;		/* chan(Plumbmsg*) */
@@ -536,6 +503,5 @@ Channel	*mouseexit0;	/* chan(int) */
 Channel	*mouseexit1;	/* chan(int) */
 Channel	*cexit;		/* chan(int) */
 Channel	*cerr;		/* chan(char*) */
-Channel	*cedit;		/* chan(int) */
 
 #define	STACK	8192

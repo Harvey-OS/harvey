@@ -13,6 +13,7 @@ OFILES=\
 	memcmp.$O\
 	memmove.$O\
 	memset.$O\
+	nan.$O\
 	notejmp.$O\
 	setjmp.$O\
 	sqrt.$O\

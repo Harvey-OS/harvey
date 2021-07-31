@@ -223,22 +223,19 @@ bufdelete(Buffer *b, uint q0, uint q1)
 	}
 }
 
-static int
-bufloader(void *v, uint q0, Rune *r, int nr)
-{
-	bufinsert(v, q0, r, nr);
-	return nr;
-}
-
 uint
-loadfile(int fd, uint q0, int *nulls, int(*f)(void*, uint, Rune*, int), void *arg)
+bufload(Buffer *b, uint q0, int fd, int *nulls)
 {
 	char *p;
 	Rune *r;
 	int l, m, n, nb, nr;
 	uint q1;
 
-	p = emalloc((Maxblock+UTFmax+1)*sizeof p[0]);
+	if(q0 > b->nc)
+		error("internal error: bufload");
+	p = malloc((Maxblock+UTFmax+1)*sizeof p[0]);
+	if(p == nil)
+		error("bufload: malloc failed");
 	r = runemalloc(Maxblock);
 	m = 0;
 	n = 1;
@@ -261,19 +258,12 @@ loadfile(int fd, uint q0, int *nulls, int(*f)(void*, uint, Rune*, int), void *ar
 		cvttorunes(p, l, r, &nb, &nr, nulls);
 		runemove(p, p+nb, m-nb);
 		m -= nb;
-		q1 += (*f)(arg, q1, r, nr);
+		bufinsert(b, q1, r, nr);
+		q1 += nr;
 	}
 	free(p);
 	free(r);
 	return q1-q0;
-}
-
-uint
-bufload(Buffer *b, uint q0, int fd, int *nulls)
-{
-	if(q0 > b->nc)
-		error("internal error: bufload");
-	return loadfile(fd, q0, nulls, bufloader, b);
 }
 
 void

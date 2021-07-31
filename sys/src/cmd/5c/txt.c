@@ -301,8 +301,8 @@ regalloc(Node *n, Node *tn, Node *o)
 				goto out;
 		}
 		j = 0*2 + NREG;
-		for(i=NREG; i<NREG+NFREG; i++) {
-			if(j >= NREG+NFREG)
+		for(i=NREG; i<NREG+NREG; i++) {
+			if(j >= NREG+NREG)
 				j = NREG;
 			if(reg[j] == 0) {
 				i = j;
@@ -319,7 +319,7 @@ err:
 	return;
 out:
 	reg[i]++;
-/* 	lasti++;	*** StrongARM does register forwarding */	
+	lasti++;
 	if(lasti >= 5)
 		lasti = 0;
 	nodreg(n, tn, i);
@@ -534,15 +534,6 @@ fop(int as, int f1, int f2, Node *t)
 	gopcode(as, &nod1, &nod2, &nod3);
 	gmove(&nod3, t);
 	regfree(&nod3);
-}
-
-void
-gmovm(Node *f, Node *t, int w)
-{
-	gins(AMOVM, f, t);
-	p->scond |= C_UBIT;
-	if(w)
-		p->scond |= C_WBIT;
 }
 
 void
@@ -961,7 +952,6 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		a = ADIVU;
 		break;
 
-	case OCASE:
 	case OEQ:
 	case ONE:
 	case OLT:
@@ -981,10 +971,6 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		nextpc();
 		p->as = a;
 		naddr(f1, &p->from);
-		if(a == ACMP && f1->op == OCONST && p->from.offset < 0) {
-			p->as = ACMN;
-			p->from.offset = -p->from.offset;
-		}
 		raddr(f2, p);
 		switch(o) {
 		case OEQ:
@@ -1015,13 +1001,6 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 			a = ABHS;
 			break;
 		case OHI:
-			a = ABHI;
-			break;
-		case OCASE:
-			nextpc();
-			p->as = ACASE;
-			p->scond = 0x9;
-			naddr(f2, &p->from);
 			a = ABHI;
 			break;
 		}
@@ -1114,14 +1093,8 @@ sconst(Node *n)
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= (vlong)(-32766) && vv < (vlong)32766)
+			if(vv >= -32766LL && vv < 32766LL)
 				return 1;
-			/*
-			 * should be specialised for constant values which will
-			 * fit in different instructionsl; for now, let 5l
-			 * sort it out
-			 */
-			return 1;
 		}
 	}
 	return 0;
@@ -1130,15 +1103,8 @@ sconst(Node *n)
 int
 sval(long v)
 {
-	int i;
-
-	for(i=0; i<16; i++) {
-		if((v & ~0xff) == 0)
-			return 1;
-		if((~v & ~0xff) == 0)
-			return 1;
-		v = (v<<2) | ((ulong)v>>30);
-	}
+	if(v >= -32766L && v < 32766L)
+		return 1;
 	return 0;
 }
 

@@ -37,7 +37,7 @@ PORT=\
 
 ETHER=\
 	etherif.$O\
-	ether2114x.$O\
+	ether21140.$O\
 	etherelnk3.$O\
 	ether82557.$O\
 
@@ -52,6 +52,7 @@ OBJ=\
 	8253.$O\
 	cga.$O\
 	devata.$O\
+	dma.$O\
 	dosfs.$O\
 	floppy.$O\
 	kbd.$O\
@@ -93,14 +94,16 @@ AFILES=`{builtin cd ../$ARCH; echo *.[sc] | sed 's/ /|/g; s/\.[sc]//g'}
 
 <../port/mkfile
 
-$TARG:	check $OBJ $TARG.$O
-	$LD -o $target -l -T0x80100020 $OBJ $TARG.$O -lauth -lc -lsec
+$TARG:	$OBJ $TARG.$O
+	$LD -o $target -l -T0x80100020 $prereq -lauth -lc -lcrypt
 	size $target
 
 installall:V:	install
 install:V:	$TARG
 	cp $TARG /n/fornax/$objtype/$TARG
 	cp $TARG /$objtype/$TARG
+	import dinar / /n/dinar && cp $TARG /n/dinar/$objtype/$TARG
+	import castro / /n/castro && cp $TARG /n/castro/$objtype/$TARG
 
 $TARG.$O:	$TARG.c
 	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c
@@ -108,10 +111,3 @@ $TARG.$O:	$TARG.c
 $ETHER:	../$ARCH/etherif.h
 
 9pcfs.$O dosfs.$O nvr.$O:	../$ARCH/dosfs.h
-
-check:VQ:
-	if(! cmp -s dat.h ../$ARCH/dat.h){
-		echo dat.h and ../$ARCH/dat.h must be identical
-		exit 'bad dat.h'
-	}
-	exit ''

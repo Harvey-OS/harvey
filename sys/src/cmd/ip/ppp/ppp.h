@@ -366,6 +366,5 @@ extern	Comptype	cthwack;
 extern	Uncomptype	uncthwack;
 
 extern void	netlog(char*, ...);
-#pragma	varargck	argpos	netlog	1
 
 extern char	*LOG;

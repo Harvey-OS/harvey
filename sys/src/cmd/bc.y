@@ -64,7 +64,6 @@
 	int	bdebug = 0;
 	int	lflag;
 	int	cflag;
-	int	sflag;
 
 	int*	bundle(int, ...);
 	void	conout(int*, char*);
@@ -134,21 +133,15 @@ stat:
 	stat1
 |	nase
 	{
-		if(sflag)
-			bundle(2, $1, "s.");
+		bundle(2, $1, "s.");
 	}
 
 pstat:
 	stat1
 	{
-		if(sflag)
-			bundle(2, $1, "0");
+		bundle(2, $1, "0");
 	}
 |	nase
-	{
-		if(!sflag)
-			bundle(2, $1, "ps.");
-	}
 
 stat1:
 	{
@@ -945,9 +938,6 @@ main(int argc, char **argv)
 			break;
 		case 'l':
 			lflag++;
-			break;
-		case 's':
-			sflag++;
 			break;
 		default:
 			fprint(2, "Usage: bc [-l] [-c] [file ...]\n");

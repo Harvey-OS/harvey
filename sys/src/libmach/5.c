@@ -16,6 +16,7 @@
 
 Reglist armreglist[] =
 {
+	{"LINK",	REGOFF(link),		RINT|RRDONLY, 'X'},
 	{"TYPE",	REGOFF(type),		RINT|RRDONLY, 'X'},
 	{"PSR",		REGOFF(psr),		RINT|RRDONLY, 'X'},
 	{"PC",		PC,			RINT, 'X'},
@@ -49,7 +50,7 @@ Mach marm =
 	0,		/* fp register set size */
 	"PC",		/* name of PC */
 	"SP",		/* name of SP */
-	"R14",		/* name of link register */
+	"R15",		/* name of link register */
 	"setR12",	/* static base register name */
 	0,		/* static base register value */
 	0x1000,		/* page size */

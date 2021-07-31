@@ -305,7 +305,8 @@ rfdalloc(ulong link)
 	Msgbuf *mb;
 	Rfd *rfd;
 
-	if(mb = mballoc(sizeof(Rfd), 0, Maeth2)){
+	mb = mballoc(sizeof(Rfd), 0, Maeth2);
+	if(mb) {
 		rfd = (Rfd*)mb->data;
 		rfd->field = 0;
 		rfd->link = link;
@@ -809,7 +810,6 @@ i82557pci(void)
 		 * bar[2] is for the flash ROM (1MB).
 		 */
 		i82557adapter(&adapter, p->mem[1].bar & ~0x01, p->intl, p->tbdf);
-		pcisetbme(p);
 	}
 }
 

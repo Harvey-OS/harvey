@@ -18,6 +18,7 @@ char		 server_host_name[64];
 char *progname;
 
 RSApriv	*client_session_key;
+RSApriv	*client_host_key;
 
 ulong		 protocol_flags;
 ulong		 supported_cipher_mask;
@@ -29,10 +30,11 @@ uchar		 session_cipher;
 
 int		encryption = 0;		/* Initially off */
 int		compression = 0;	/* Initially off */
+int		no_secret_key = 0;
 int		crstrip = 0;		/* Strip cr from crlf */
 int		verbose = 0;
 int		interactive;
-int		requestpty = 0;
+int		alwaysrequestpty = 0;
 int		cooked = 0;
 int		usemenu = 1;
 
@@ -46,6 +48,7 @@ int DEBUG;
 void
 main(int argc, char *argv[]) {
 	int n, fd;
+	FILE *f;
 	char *host;
 	char *p;
 
@@ -76,7 +79,7 @@ main(int argc, char *argv[]) {
 		user = ARGF();
 		break;
 	case 'p':
-		requestpty++;
+		alwaysrequestpty++;
 		break;
 	case 'r':
 		crstrip = 1;
@@ -120,6 +123,22 @@ main(int argc, char *argv[]) {
 	mkcrctab(0xedb88320);
 	srand(time(0));
 
+	client_host_key = rsaprivalloc();
+	if ((f = fopen(HOSTKEYPRIV, "r")) == nil) {
+		no_secret_key = 1;
+		if (verbose)
+			fprint(2, "Ssh will not authenticate local host: no access to its secret key\n");
+	} else {
+		if (readsecretkey(f, client_host_key) == 0)
+			error("%s: bad secret-key file", HOSTKEYPRIV);
+		fclose(f);
+	}
+	if ((f = fopen(HOSTKEYPUB, "r")) == nil)
+		error("%s: %r", HOSTKEYPUB);
+	if (readpublickey(f, &client_host_key->pub) == 0)
+		error("%s: bad secret-key file", HOSTKEYPUB);
+	fclose(f);
+
 	getdomainname(host, server_host_name, sizeof(server_host_name));
 
 	if (verbose)
@@ -135,7 +154,7 @@ main(int argc, char *argv[]) {
 
 static void
 client(char *argv[]) {
-	char *p, servervsn[512];
+	char servervsn[512];
 	int i, r;
 	char userkeyring[64];
 
@@ -150,12 +169,9 @@ client(char *argv[]) {
 	}
 	debug(DBG_PROTO, "Server version: %s", servervsn);
 	fprint(dfdout, "%s%s\n", PROTSTR, PROTVSN);
-
-	/* pick apart the server id: SSH-m.n-comment.  We require m=1, n>=5 */
-	if (strncmp(servervsn, "SSH-", 4) != 0
-	|| strtol(servervsn+4, &p, 10) != 1 || *p != '.' || strtol(p+1, &p, 10) < 5 || *p != '-')
-		error("Protocol mismatch, Client: %s%s, Server: %s",
-			PROTSTR, PROTVSN, servervsn);
+	if (strncmp(PROTSTR, servervsn, strlen(PROTSTR)))
+	    error("%s: Protocol mismatch, Client: %s%s, Server: %s",
+		PROTSTR, PROTVSN, servervsn);
 
 	get_ssh_smsg_public_key();
 	if (verbose)
@@ -175,7 +191,6 @@ client(char *argv[]) {
 		case 'e':
 			exits("Bad key");
 		}
-		break;
 	case key_notfound:
 		if (verify_key(server_host_name, server_host_key, HOSTKEYRING) 
 		    == key_ok)
@@ -240,7 +255,7 @@ client(char *argv[]) {
 		if (verbose)
 			fprint(2, "Using Triple-DES for data encryption\n");
 	} else
-		error("Can't agree on ciphers: 0x%lux", supported_cipher_mask);
+		error("Can't agree on ciphers: 0x%x", supported_cipher_mask);
 
 	put_ssh_cmsg_session_key();
 	encryption = session_cipher;

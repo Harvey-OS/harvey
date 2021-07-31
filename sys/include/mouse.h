@@ -40,6 +40,7 @@ extern void		moveto(Mousectl*, Point);
 extern int			readmouse(Mousectl*);
 extern void		closemouse(Mousectl*);
 extern void		setcursor(Mousectl*, Cursor*);
+extern int			atomouse(Mouse*, char*, int);
 extern void		drawgetrect(Rectangle, int);
 extern Rectangle	getrect(int, Mousectl*);
 extern int	 		menuhit(int, Mousectl*, Menu*, Screen*);

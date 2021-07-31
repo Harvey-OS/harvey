@@ -230,7 +230,6 @@ mail exchanger (for DNS and DHCP)
 .B soa
 start of area (for DNS)
 .sp
-.PD
 .PP
 The file
 .B /lib/ndb/auth

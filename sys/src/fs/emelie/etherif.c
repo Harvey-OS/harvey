@@ -15,7 +15,6 @@ static struct
 } etherctlr[] =
 {
 	{ "21140", ether21140reset, },
-	{ "2114x", ether21140reset, },
 	{ "3C509", etherelnk3reset, },
 	{ "elnk3", etherelnk3reset, },
 	{ "i82557", etheri82557reset, },
@@ -27,11 +26,6 @@ static Ether etherif[MaxEther];
 void
 etheriq(Ether* ether, Msgbuf* mb)
 {
-	if(predawn) {
-		mbfree(mb);
-		return;
-	}
-
 	ilock(&ether->rqlock);
 	if(ether->rqhead)
 		ether->rqtail->next = mb;

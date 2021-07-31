@@ -43,7 +43,6 @@ closereq(Req *r)
 
 	if((n = decref(&r->ref)) == 0){
 		free(r->buf);
-		free(r->rbuf);
 		free(r);
 	}
 //print("closereq %p: %d refs\n", r, n ? r->ref.ref : n);
@@ -59,9 +58,6 @@ freereq(Req *r)
 		return;
 
 	nr = deletekey(r->pool->map, r->tag);
-if(r != nr)
-	fprint(2, "r %p nr %p\n", r, nr);
-
 	assert(r == nr);
 
 	if(closereq(r) == 0)	/* intmap reference */

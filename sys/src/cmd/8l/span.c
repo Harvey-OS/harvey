@@ -125,22 +125,22 @@ putsymb(char *s, int t, long v, int ver)
 	lput(v);
 	if(ver)
 		t += 'a' - 'A';
-	cput(t+0x80);			/* 0x80 is variable length */
+	CPUT(t+0x80);			/* 0x80 is variable length */
 
 	if(t == 'Z' || t == 'z') {
-		cput(s[0]);
+		CPUT(s[0]);
 		for(i=1; s[i] != 0 || s[i+1] != 0; i += 2) {
-			cput(s[i]);
-			cput(s[i+1]);
+			CPUT(s[i]);
+			CPUT(s[i+1]);
 		}
-		cput(0);
-		cput(0);
+		CPUT(0);
+		CPUT(0);
 		i++;
 	}
 	else {
 		for(i=0; s[i]; i++)
-			cput(s[i]);
-		cput(0);
+			CPUT(s[i]);
+		CPUT(0);
 	}
 	symsize += 4 + 1 + i + 1;
 
@@ -248,7 +248,7 @@ asmlc(void)
 			s = 127;
 			if(v < 127)
 				s = v;
-			cput(s+128);	/* 129-255 +pc */
+			CPUT(s+128);	/* 129-255 +pc */
 			if(debug['L'])
 				Bprint(&bso, " pc+%ld*%d(%ld)", s, MINLC, s+128);
 			v -= s;
@@ -258,11 +258,11 @@ asmlc(void)
 		oldlc = p->line;
 		oldpc = p->pc + MINLC;
 		if(s > 64 || s < -64) {
-			cput(0);	/* 0 vv +lc */
-			cput(s>>24);
-			cput(s>>16);
-			cput(s>>8);
-			cput(s);
+			CPUT(0);	/* 0 vv +lc */
+			CPUT(s>>24);
+			CPUT(s>>16);
+			CPUT(s>>8);
+			CPUT(s);
 			if(debug['L']) {
 				if(s > 0)
 					Bprint(&bso, " lc+%ld(%d,%ld)\n",
@@ -277,14 +277,14 @@ asmlc(void)
 			continue;
 		}
 		if(s > 0) {
-			cput(0+s);	/* 1-64 +lc */
+			CPUT(0+s);	/* 1-64 +lc */
 			if(debug['L']) {
 				Bprint(&bso, " lc+%ld(%ld)\n", s, 0+s);
 				Bprint(&bso, "%6lux %P\n",
 					p->pc, p);
 			}
 		} else {
-			cput(64-s);	/* 65-128 -lc */
+			CPUT(64-s);	/* 65-128 -lc */
 			if(debug['L']) {
 				Bprint(&bso, " lc%ld(%ld)\n", s, 64-s);
 				Bprint(&bso, "%6lux %P\n",
@@ -295,7 +295,7 @@ asmlc(void)
 	}
 	while(lcsize & 1) {
 		s = 129;
-		cput(s);
+		CPUT(s);
 		lcsize++;
 	}
 	if(debug['v'] || debug['L'])

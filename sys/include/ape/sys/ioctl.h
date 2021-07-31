@@ -18,5 +18,4 @@ int ioctl(int, unsigned long, void*);
 }
 #endif
 
-
 #endif /* !__IOCTL_H__ */

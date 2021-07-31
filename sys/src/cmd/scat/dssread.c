@@ -17,7 +17,7 @@ dssread(char *file)
 	Img *ip;
 
 	if(debug)
-		Bprint(&bout, "reading %s\n", file);
+		print("reading %s\n", file);
 	bp = Bopen(file, OREAD);
 	if(bp == 0)
 		return 0;

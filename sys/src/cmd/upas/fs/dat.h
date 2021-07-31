@@ -83,7 +83,6 @@ struct Mailbox
 	int	refs;
 	Mailbox	*next;
 	int	id;
-	int	dolock;		// lock when syncing?
 	int	std;
 	char	name[NAMELEN];
 	char	path[256];
@@ -104,7 +103,6 @@ int		newid(void);
 void		mailplumb(Mailbox*, Message*, int);
 char*		newmbox(char*, char*, int);
 void		freembox(char*);
-void		logmsg(char*, Message*);
 void		msgincref(Message*);
 void		msgdecref(Mailbox*, Message*);
 void		mboxincref(Mailbox*);
@@ -124,8 +122,6 @@ int		hashmboxrefs(Mailbox*);
 
 extern int	debug;
 extern int	fflag;
-extern int	logging;
-extern char	user[NAMELEN];
 extern QLock	mbllock;
 extern Mailbox	*mbl;
 extern char	*mntpt;
@@ -186,4 +182,3 @@ void	henter(ulong, char*, Qid, Message*, Mailbox*);
 void	hfree(ulong, char*);
 
 ulong msgallocd, msgfreed;
-

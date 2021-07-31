@@ -49,6 +49,7 @@ main(int argc, char *argv[])
 	char *base;
 	int rv;
 
+	srand(time(0));
 	/* process args */
 	ARGBEGIN{
 	case '#':

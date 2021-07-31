@@ -284,7 +284,6 @@ getRSApublic(Packet *packet) {
 	key = rsapuballoc();
 	key->ek = getBigInt(packet);
 	key->n = getBigInt(packet);
-	setmalloctag(key, getcallerpc(&packet));
 	return key;
 }
 
@@ -331,7 +330,7 @@ getstring(Packet *packet, char *s, int n) {
 
 	l = getlong(packet);
 	if (l >= n) {
-		error("Insufficient length for string, need %lud, have %d", l, n);
+		error("Insufficient length for string, need %d, have %d", l, n);
 		abort();
 	}
 	getbytes(packet, (uchar *)s, l);

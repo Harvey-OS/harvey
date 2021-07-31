@@ -5,11 +5,11 @@
 #include <plumb.h>
 #include "dat.h"
 
-char	*maildir = "/mail/fs/";			/* mountpoint of mail file system */
-char	*mailtermdir = "/mnt/term/mail/fs/";	/* alternate mountpoint */
-char *mboxname = "mbox";			/* mailboxdir/mboxname is mail spool file */
-char	*mailboxdir = nil;				/* nil == /mail/box/$user */
-char *fsname;						/* filesystem for mailboxdir/mboxname is at maildir/fsname */
+char	*maildir = "/mail/fs/";
+char	*mailtermdir = "/mnt/term/mail/fs/";
+char *mboxfile = nil;
+char *mboxname = "mbox";
+char	*mailboxdir = nil;
 
 Window	*wbox;
 Message	mbox;
@@ -48,7 +48,7 @@ removeupasfs(void)
 void
 threadmain(int argc, char *argv[])
 {
-	char *s, *user, *name;
+	char *s, *user, *name, *tname;
 	char err[ERRLEN], cmd[256];
 	int i;
 
@@ -59,10 +59,10 @@ threadmain(int argc, char *argv[])
 
 	ARGBEGIN{
 	}ARGEND
-	name = "mbox";
+	name = "";
 	if(argc > 0){
 		i = strlen(argv[0]);
-		if(argc>2 || i==0)
+		if(argc>1 || i==0)
 			usage();
 		if(argv[0][i-1] == '/')
 			argv[0][i-1] = '\0';
@@ -96,27 +96,29 @@ threadmain(int argc, char *argv[])
 	if(mbox.ctlfd < 0)
 		error("Mail: can't open %s: %r\n", s);
 
-	fsname = estrdup(name);
+	tname = nil;
 	if(argc > 0){
-		s = emalloc(5+strlen(mailboxdir)+strlen(mboxname)+strlen(name)+10+1);
+		s = emalloc(5+strlen(mboxname)+strlen(maildir)+strlen(name)+10+1);
+		sprint(s, "open %s/%s %s", mailboxdir, mboxname, name);
 		for(i=0; i<10; i++){
-			sprint(s, "open %s/%s %s", mailboxdir, mboxname, fsname);
 			if(write(mbox.ctlfd, s, strlen(s)) >= 0)
 				break;
 			err[0] = '\0';
 			errstr(err);
 			if(strcmp(err, "mbox name in use") != 0)
 				error("Mail: can't create directory %s for mail: %s\n", name, err);
-			free(fsname);
-			fsname = emalloc(strlen(name)+10);
-			sprint(fsname, "%s-%d", name, i);
+			free(tname);
+			tname = emalloc(strlen(name)+10);
+			sprint(tname, "%s-%d", name, i);
+			sprint(s, "open %s/%s %s", mailboxdir, mboxname, tname);
 		}
-		free(s);
 	}
+	if(tname != nil)
+		mboxname = tname;
 
-	s = estrstrdup(fsname, "/");
-	mbox.name = estrstrdup(maildir, s);
-	readmbox(&mbox, maildir, s);
+	mboxfile = estrstrdup(mboxname, "/");
+	mbox.name = estrstrdup(maildir, mboxfile);
+	readmbox(&mbox, maildir, mboxfile);
 	home = getenv("home");
 	if(home == nil)
 		home = "/";

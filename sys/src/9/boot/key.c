@@ -85,17 +85,15 @@ key(int islocal, Method *mp)
 
 	/* set host's key */
 	if(writefile("#c/key", safe->machkey, DESKEYLEN) < 0)
-		warning("#c/key");
+		fatal("#c/key");
 
 	/* set host's owner (and uid of current process) */
 	if(writefile("#c/hostowner", safe->authid, strlen(safe->authid)) < 0)
-		warning("#c/hostowner");
+		fatal("#c/hostowner");
 
 	/* set host's domain */
-	if(*safe->authdom == 0)
-		strcpy(safe->authdom, "plan9");
 	if(writefile("#c/hostdomain", safe->authdom, strlen(safe->authdom)) < 0)
-		warning("#c/hostdomain");
+		fatal("#c/hostdomain");
 }
 
 typedef struct Dosboot	Dosboot;

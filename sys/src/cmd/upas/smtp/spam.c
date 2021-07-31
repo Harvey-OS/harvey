@@ -61,16 +61,6 @@ getconf(void)
 	char *cp, *p;
 	String *s;
 	char buf[512];
-/*
-**		let it fail on unix
-**
-**
-**	if(hisaddr && *hisaddr){
-**		sprint(buf, "/mail/ratify/trusted/ip/%s#32\n", hisaddr);
-**		if(access(buf,0) >= 0)
-**			trusted++;
-**	}
-*/
 
 	snprint(buf, sizeof(buf), "%s/smtpd.conf", UPASLIB);
 	bp = sysopen(buf, "r", 0);
@@ -194,7 +184,6 @@ accountmatch(char *spec, List *doms, char *user)
 		if(cp){
 			*cp++ = 0;
 			if(*cp)
-			if(strcmp(cp, "*"))	/* rule out "!*" */
 				p = cp;
 		}
 
@@ -491,7 +480,7 @@ dumpfile(char *sender)
 			sprint(cp, "/%lud", h);
 			if(access(buf, 0) >= 0)
 				continue;
-			fd = syscreate(buf, ORDWR, 0666);
+			fd = syscreate(buf, ORDWR, 0600);
 			if(fd >= 0){
 				if(debug)
 					fprint(2, "saving in %s\n", buf);

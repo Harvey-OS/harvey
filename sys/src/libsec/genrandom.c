@@ -3,7 +3,6 @@
 #include <libsec.h>
 
 typedef struct State{
-	QLock		lock;
 	int		seeded;
 	uvlong		seed;
 	DES3state	des3;
@@ -54,9 +53,7 @@ X917init(void)
 void
 genrandom(uchar *p, int n)
 {
-	qlock(&x917state.lock);
 	if(x917state.seeded == 0)
 		X917init();
 	X917(p, n);
-	qunlock(&x917state.lock);
 }

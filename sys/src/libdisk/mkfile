@@ -2,6 +2,7 @@
 
 OFILES=\
 	disk.$O\
+	emem.$O\
 	proto.$O\
 	scsi.$O\
 

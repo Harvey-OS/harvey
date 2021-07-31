@@ -26,7 +26,7 @@ growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
 	 */
 	if(f->nfd >= 5000){
     Exhausted:
-		print("no free file descriptors\n");
+		exhausted("file descriptors");
 		return -1;
 	}
 	newfd = malloc((f->nfd+DELTAFD)*sizeof(Chan*));
@@ -42,22 +42,6 @@ growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
 	return 1;
 }
 
-/*
- *  this assumes that the fgrp is locked
- */
-int
-findfreefd(Fgrp *f, int start)
-{
-	int fd;
-
-	for(fd=start; fd<f->nfd; fd++)
-		if(f->fd[fd] == 0)
-			break;
-	if(fd >= f->nfd && growfd(f, fd) < 0)
-		return -1;
-	return fd;
-}
-
 int
 newfd(Chan *c)
 {
@@ -66,8 +50,10 @@ newfd(Chan *c)
 
 	f = up->fgrp;
 	lock(f);
-	fd = findfreefd(f, 0);
-	if(fd < 0){
+	for(fd=0; fd<f->nfd; fd++)
+		if(f->fd[fd] == 0)
+			break;
+	if(fd >= f->nfd && growfd(f, fd) < 0){
 		unlock(f);
 		return -1;
 	}
@@ -76,32 +62,6 @@ newfd(Chan *c)
 	f->fd[fd] = c;
 	unlock(f);
 	return fd;
-}
-
-int
-newfd2(int fd[2], Chan *c[2])
-{
-	Fgrp *f;
-
-	f = up->fgrp;
-	lock(f);
-	fd[0] = findfreefd(f, 0);
-	if(fd[0] < 0){
-		unlock(f);
-		return -1;
-	}
-	fd[1] = findfreefd(f, fd[0]+1);
-	if(fd[1] < 0){
-		unlock(f);
-		return -1;
-	}
-	if(fd[1] > f->maxfd)
-		f->maxfd = fd[1];
-	f->fd[fd[0]] = c[0];
-	f->fd[fd[1]] = c[1];
-	unlock(f);
-
-	return 0;
 }
 
 Chan*
@@ -180,6 +140,7 @@ syspipe(ulong *arg)
 	int fd[2];
 	Chan *c[2];
 	Dev *d;
+	Fgrp *f = up->fgrp;
 
 	validaddr(arg[0], 2*BY2WD, 1);
 	evenaddr(arg[0]);
@@ -188,11 +149,14 @@ syspipe(ulong *arg)
 	c[1] = 0;
 	fd[0] = -1;
 	fd[1] = -1;
-
 	if(waserror()){
 		cclose(c[0]);
 		if(c[1])
 			cclose(c[1]);
+		if(fd[0] >= 0)
+			f->fd[fd[0]]=0;
+		if(fd[1] >= 0)
+			f->fd[fd[1]]=0;
 		nexterror();
 	}
 	c[1] = cclone(c[0], 0);
@@ -202,12 +166,13 @@ syspipe(ulong *arg)
 		error(Egreg);
 	c[0] = d->open(c[0], ORDWR);
 	c[1] = d->open(c[1], ORDWR);
-	if(newfd2(fd, c) < 0)
+	fd[0] = newfd(c[0]);
+	fd[1] = newfd(c[1]);
+	if(fd[0] < 0 || fd[1] < 0)
 		error(Enofd);
-	poperror();
-
 	((long*)arg[0])[0] = fd[0];
 	((long*)arg[0])[1] = fd[1];
+	poperror();
 	return 0;
 }
 

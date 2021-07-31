@@ -12,7 +12,6 @@ letomp(uchar *s, uint n, mpint *b)
 	if(b == nil)
 		b = mpnew(0);
 	mpbits(b, 8*n);
-	b->top = DIGITS(8*n);
 	for(; n > 0; n--){
 		x |= ((mpdigit)(*s++)) << i;
 		i += 8;

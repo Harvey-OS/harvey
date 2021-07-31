@@ -448,8 +448,9 @@ localconfinit(void)
 }
 
 void
-lights(int, int)
+lights(int n, int on)
 {
+	USED(n, on);
 }
 
 /* in assembly language

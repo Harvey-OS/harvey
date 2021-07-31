@@ -1,0 +1,3 @@
+#!/bin/rc
+
+dosmnt 2 /n/d:

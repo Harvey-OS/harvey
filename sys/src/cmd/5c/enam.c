@@ -86,9 +86,5 @@ char*	anames[] =
 	"BCASE",
 	"CASE",
 	"END",
-	"MULL",
-	"MULAL",
-	"MULLU",
-	"MULALU",
 	"LAST",
 };

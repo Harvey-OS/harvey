@@ -559,23 +559,6 @@ rcvinform(Req *rp)
 	sendack(rp, b->ip, 0, 0);
 }
 
-int
-setsiaddr(uchar *siaddr, uchar *ip, uchar *laddr)
-{
-	uchar *addrs[2];
-	uchar x[2*IPaddrlen];
-
-	addrs[0] = x;
-	addrs[1] = x+IPaddrlen;
-	if(lookupserver("tftp", addrs, ip) > 0){
-		v6tov4(siaddr, addrs[0]);
-		return 0;
-	} else {
-		v6tov4(siaddr, laddr);
-		return 1;
-	}
-}
-
 void
 sendoffer(Req *rp, uchar *ip, int offer)
 {
@@ -613,7 +596,7 @@ sendoffer(Req *rp, uchar *ip, int offer)
 	memset(bp->ciaddr, 0, sizeof(bp->ciaddr));
 	memset(bp->giaddr, 0, sizeof(bp->giaddr));
 	v6tov4(bp->yiaddr, ip);
-	setsiaddr(bp->siaddr, ip, up->laddr);
+	v6tov4(bp->siaddr, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
 	strncpy(bp->file, rp->ii.bootf, sizeof(bp->file));
 
@@ -680,7 +663,7 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 	hnputs(bp->secs, 0);
 	memset(bp->giaddr, 0, sizeof(bp->giaddr));
 	v6tov4(bp->yiaddr, ip);
-	setsiaddr(bp->siaddr, ip, up->laddr);
+	v6tov4(bp->siaddr, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
 	strncpy(bp->file, rp->ii.bootf, sizeof(bp->file));
 
@@ -772,7 +755,6 @@ bootp(Req *rp)
 	ushort flags;
 	Ipifc *ifc;
 	Info *iip;
-	int servedbyme;
 
 	warning(0, "bootp %I->%I from %s via %I",
 		rp->up->raddr, rp->up->laddr,
@@ -868,14 +850,8 @@ bootp(Req *rp)
 	/*
 	 *  our identity
 	 */
-	servedbyme = setsiaddr(bp->siaddr, iip->ipaddr, up->laddr);
+	v6tov4(bp->siaddr, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
-
-	/* ignore if the file is unreadable */
-	if(servedbyme && access(bp->file, 4) < 0){
-		warning(0, "inaccessible bootfile %s", bp->file);
-		return;
-	}
 
 	/*
 	 * RFC 1048 says that we must pad vendor field with

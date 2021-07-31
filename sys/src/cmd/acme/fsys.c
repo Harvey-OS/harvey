@@ -70,7 +70,6 @@ Dirtab dirtab[]=
 	{ "cons",		Qcons,		0600 },
 	{ "consctl",	Qconsctl,		0000 },
 	{ "draw",		Qdraw|CHDIR,	0000|CHDIR },	/* to suppress graphics progs started in acme */
-	{ "editout",	Qeditout,		0200 },
 	{ "index",		Qindex,		0400 },
 	{ "label",		Qlabel,		0600 },
 	{ "new",		Qnew,		0500|CHDIR },
@@ -84,7 +83,6 @@ Dirtab dirtabw[]=
 	{ "body",		QWbody,		0600|CHAPPEND },
 	{ "ctl",		QWctl,		0600 },
 	{ "data",		QWdata,		0600 },
-	{ "editout",	QWeditout,	0200 },
 	{ "event",		QWevent,		0600 },
 	{ "rdsel",		QWrdsel,		0400 },
 	{ "wrsel",		QWwrsel,		0200 },
@@ -229,7 +227,7 @@ fsysdelid(Mntdir *idm)
 	}
 	qunlock(&mnt);
 	sprint(buf, "fsysdelid: can't find id %d\n", idm->id);
-	sendp(cerr, estrdup(buf));
+	sendp(cerr, strdup(buf));
 }
 
 /*
@@ -347,7 +345,7 @@ fsysattach(Xfid *x, Fid *f)
 			break;
 		}
 	if(m == nil)
-		sendp(cerr, estrdup("unknown id in attach"));
+		sendp(cerr, strdup("unknown id in attach"));
 	qunlock(&mnt);
 	return respond(x, &t, nil);
 }

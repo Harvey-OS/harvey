@@ -124,7 +124,6 @@ near the beginning of your program.
 .SH SOURCE
 .B /sys/src/libdebugmalloc
 .SH SEE ALSO
-.IR leak (1),
 .IR brk (2),
 .IR malloc (2),
 .IR pool (2)

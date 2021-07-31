@@ -7,19 +7,15 @@
 #define USER_REG(x)	(UREGADDR+(ulong)(x))
 #define	REGOFF(x)	(USER_REG(&((struct Ureg *) 0)->x))
 
-#ifndef	EXTERN
-#define	EXTERN	extern
-#endif
-
-typedef	struct	Registers	Registers;
-typedef	struct	Segment		Segment;
-typedef	struct	Memory		Memory;
-typedef	struct	Mul		Mul;
-typedef	struct	Mulu		Mulu;
-typedef	struct	Inst		Inst;
-typedef	struct	Icache		Icache;
-typedef	struct	Tlb		Tlb;
-typedef	struct	Breakpoint	Breakpoint;
+typedef struct Registers Registers;
+typedef struct Segment Segment;
+typedef struct Memory Memory;
+typedef struct Mul Mul;
+typedef struct Mulu Mulu;
+typedef struct Inst Inst;
+typedef struct Icache Icache;
+typedef struct Tlb Tlb;
+typedef struct Breakpoint Breakpoint;
 
 enum
 {
@@ -36,7 +32,7 @@ struct Breakpoint
 	ulong		addr;		/* Place at address */
 	int		count;		/* To execute count times or value */
 	int		done;		/* How many times passed through */
-	Breakpoint*	next;		/* Link to next one */
+	Breakpoint	*next;		/* Link to next one */
 };
 
 enum
@@ -72,15 +68,15 @@ struct Icache
 	int	on;			/* Turned on */
 	int	linesize;		/* Line size in bytes */
 	int	stall;			/* Cache stalls */
-	int*	lines;			/* Tag array */
+	int	*lines;			/* Tag array */
 	int*	(*hash)(ulong);		/* Hash function */
-	char*	hashtext;		/* What the function looks like */
+	char	*hashtext;		/* What the function looks like */
 };
 
 struct Inst
 {
 	void 	(*func)(ulong);
-	char*	name;
+	char	*name;
 	int	type;
 	int	count;
 	int	taken;
@@ -91,11 +87,10 @@ struct Registers
 {
 	ulong	ar;
 	ulong	ir;
-	Inst*	ip;
+	Inst	*ip;
 	long	r[16];
 	long	cc1;
 	long	cc2;
-	int	class;
 	int	cond;
 	int	compare_op; 
 };
@@ -106,6 +101,7 @@ enum
 	FPs,
 	FPmemory,
 };
+#define dreg(r)	((r)>>1)
 
 enum
 {
@@ -117,6 +113,7 @@ enum
 enum
 {
 	CCcmp, 
+	CCcmn,
 	CCtst,
 	CCteq,
 };
@@ -139,7 +136,7 @@ struct Segment
 	ulong	fileend;
 	int	rss;
 	int	refs;
-	uchar**	table;
+	uchar	**table;
 };
 
 struct Memory
@@ -147,98 +144,95 @@ struct Memory
 	Segment	seg[Nseg];
 };
 
-void		Ssyscall(ulong);
-int		armclass(long);
-void		breakpoint(char*, char*);
-void		brkchk(ulong, int);
-void		cmd(void);
-void		delbpt(char*);
-void		dobplist(void);
-void		dumpdreg(void);
-void		dumpfreg(void);
+void		fatal(int, char*, ...);
+void		run(void);
+void		undef(ulong);
 void		dumpreg(void);
+void		dumpfreg(void);
+void		dumpdreg(void);
 void*		emalloc(ulong);
 void*		erealloc(void*, ulong, ulong);
-ulong		expr(char*);
-void		fatal(int, char*, ...);
-ulong		getmem_2(ulong);
-ulong		getmem_4(ulong);
-uchar		getmem_b(ulong);
-ushort		getmem_h(ulong);
-ulong		getmem_w(ulong);
-ulong		ifetch(ulong);
-void		inithdr(int);
-void		initicache(void);
-void		initmap(void);
-void		initstk(int, char**);
-void		iprofile(void);
-void		isum(void);
-void		itrace(char*, ...);
-long		lnrand(long);
+void*		vaddr(ulong);
+void		itrace(char *, ...);
+void		segsum(void);
+void		Ssyscall(ulong);
 char*		memio(char*, ulong, int, int);
-int		_mipscoinst(Map*, ulong, char*, int);
+ulong		ifetch(ulong);
+ulong		getmem_w(ulong);
+ushort		getmem_h(ulong);
+void		putmem_w(ulong, ulong);
+uchar		getmem_b(ulong);
+void		putmem_b(ulong, uchar);
+ulong		getmem_4(ulong);
+ulong		getmem_2(ulong);
+void		putmem_h(ulong, short);
 Mul		mul(long, long);
 Mulu		mulu(ulong, ulong);
-char*		nextc(char*);
-void		printlocals(Symbol*, ulong);
-void		printparams(Symbol*, ulong);
-void		printsource(long);
-void		procinit(int);
-void		putmem_b(ulong, uchar);
-void		putmem_h(ulong, ushort);
-void		putmem_w(ulong, ulong);
-void		randseed(long, long);
-void		reset(void);
-void		run(void);
-void		segsum(void);
-void		stktrace(int);
-void		tlbsum(void);
-void		undef(ulong);
+void		isum(void);
+void		initicache(void);
 void		updateicache(ulong addr);
-void*		vaddr(ulong);
+void		tlbsum(void);
+long		lnrand(long);
+void		randseed(long, long);
+void		cmd(void);
+void		brkchk(ulong, int);
+void		delbpt(char*);
+void		breakpoint(char*, char*);
+char*		nextc(char*);
+ulong		expr(char*);
+void		initmap(void);
+void		inithdr(int);
+void		initstk(int, char**);
+void		reset(void);
+void		dobplist(void);
+int		_mipscoinst(Map*, ulong, char*, int);
+void		procinit(int);
+void		printsource(long);
+void		printparams(Symbol *, ulong);
+void		printlocals(Symbol *, ulong);
+void		stktrace(int);
+void		iprofile(void);
+int		_armclass(int, long);
 
 /* Globals */
-EXTERN	Registers	reg;
-EXTERN	Memory		memory;
-EXTERN	int		text;
-EXTERN	int		trace;
-EXTERN	int		sysdbg;
-EXTERN	int		calltree;
-EXTERN	Inst		itab[];
-EXTERN	Inst		ispec[];
-EXTERN	Icache		icache;
-EXTERN	Tlb		tlb;
-EXTERN	int		count;
-EXTERN	jmp_buf		errjmp;
-EXTERN	Breakpoint*	bplist;
-EXTERN	int		atbpt;
-EXTERN	int		membpt;
-EXTERN	int		cmdcount;
-EXTERN	int		nopcount;
-EXTERN	ulong		dot;
-EXTERN	char*		file;
-EXTERN	Biobuf*		bioout;
-EXTERN	Biobuf*		bin;
-EXTERN	ulong*		iprof;
-EXTERN	int		datasize;
-EXTERN	Map*		symmap;	
+Extern 		Registers reg;
+Extern 		Memory memory;
+Extern		int text;
+Extern		int trace;
+Extern 		int sysdbg;
+Extern 		int calltree;
+Extern		Inst itab[];
+Extern  	Inst ispec[];
+Extern		Icache icache;
+Extern		Tlb tlb;
+Extern		int count;
+Extern		jmp_buf errjmp;
+Extern		Breakpoint *bplist;
+Extern		int atbpt;
+Extern		int membpt;
+Extern		int cmdcount;
+Extern		int nopcount;
+Extern		ulong dot;
+extern		char *file;
+Extern		Biobuf *bioout;
+Extern		Biobuf *bin;
+Extern		ulong *iprof;
+extern		int datasize;
+Extern		Map *symmap;		
 
 /* Plan9 Kernel constants */
-enum
-{
-	BY2PG		= 4096,
-	BY2WD		= 4,
-	UTZERO		= 0x1000,
-	STACKTOP	= 0x80000000,
-	STACKSIZE	= 0x10000,
+#define	BY2PG		4096
+#define BY2WD		4
+#define UTZERO		0x1000
+#define STACKTOP	0x80000000
+#define STACKSIZE	0x10000
 
-	PROFGRAN	= 4,
-	Sbit		= 1<<20,
-	SIGNBIT		= 0x80000000,
+#define PROFGRAN	4
+#define Sbit		(1<<20)
+#define SIGNBIT		0x80000000
 
-	FP_U		= 3,
-	FP_L		= 1,
-	FP_G		= 2,
-	FP_E		= 0,
-	FP_CBIT		= 1<<23,
-};
+#define FP_U		3
+#define FP_L		1
+#define FP_G		2
+#define FP_E		0
+#define FP_CBIT		(1<<23)

@@ -21,17 +21,12 @@ scrtemps(void)
 
 	if(scrtmp)
 		return;
-	h = BIG*Dy(screen->r);
+/*BUG
+	if(screensize(0, &h) == 0)*/
+		h = 2048;
 	scrtmp = allocimage(display, Rect(0, 0, 32, h), display->chan, 0, DWhite);
 	if(scrtmp == nil)
 		error("scrtemps");
-}
-
-void
-freescrtemps(void)
-{
-	freeimage(scrtmp);
-	scrtmp = nil;
 }
 
 static

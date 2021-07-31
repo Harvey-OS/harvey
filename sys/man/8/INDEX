@@ -78,8 +78,6 @@ lp lp
 mk9660 mk9660
 mkext mkfs
 mkfs mkfs
-mksacfs mksacfs
-aux/accupoint mouse
 aux/mouse mouse
 mouse mouse
 na na
@@ -112,7 +110,6 @@ mbr prep
 prep prep
 qer qer
 runq qer
-reboot reboot
 scanmail scanmail
 testscan scanmail
 scuzz scuzz

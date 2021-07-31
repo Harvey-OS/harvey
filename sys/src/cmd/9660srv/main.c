@@ -39,7 +39,6 @@ char	err_msg[ERRLEN];
 int	chatty;
 int	nojoliet;
 int	noplan9;
-int norock;
 
 void
 main(int argc, char **argv)
@@ -63,9 +62,6 @@ main(int argc, char **argv)
 		break;
 	case 'J':
 		nojoliet = 1;
-		break;
-	case 'r':
-		norock = 1;
 		break;
 	default:
 		usage();
@@ -167,7 +163,7 @@ main(int argc, char **argv)
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-v] [-9Jr] [-s] [-f devicefile] [srvname]\n", argv0);
+	fprint(2, "usage: %s [-v] [-s] [-f devicefile] [srvname]\n", argv0);
 	exits("usage");
 }
 

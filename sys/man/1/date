@@ -48,7 +48,6 @@ Default timezone file, copied by
 .IR init (8)
 into
 .BR /env/timezone .
-.PD
 .PP
 .I Clock
 draws a simple analog clock in its window.

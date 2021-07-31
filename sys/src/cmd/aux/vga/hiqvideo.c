@@ -60,7 +60,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 			vga->vmz = 2048*1024;
 			break;
 		case 0x00E0:		/* 65550 HiQV32 */
-		case 0x00E4:		/* 65554 HiQV32 */
 			vga->f[1] = 90000000;
 			vga->vmz = 2048*1024;
 			break;
@@ -87,7 +86,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 		vga->vmz = 2048*1024;
 		break;
 	case 0x00E0:			/* 65550 HiQV32 */
-	case 0x00E4:			/* 65554 HiQV32 */
 		/*
 		 * Check VCC to determine max clock.
 		 * 5V allows a higher rate.

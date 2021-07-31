@@ -15,7 +15,6 @@ int verbose;
 int update;
 int pkgupdate;
 int debug;
-int listonly;
 
 Wrap *w;
 char **prefix;
@@ -23,7 +22,6 @@ int nprefix;
 
 Biobuf bmd5;
 Biobuf barch;
-Biobuf bstdout;
 
 static void
 mkarch(char *new, char *old, Dir *d, void*)
@@ -34,19 +32,13 @@ mkarch(char *new, char *old, Dir *d, void*)
 	if(match(new, prefix, nprefix) == 0)
 		return;
 
-	memset(odigest, 0xFF, MD5dlen);
-	if(getfileinfo(w, new, &t, odigest) >= 0) {
-		if(md5file(old, digest) < 0)
-			sysfatal("cannot open %s: %r", old);
-		if(memcmp(digest, odigest, MD5dlen) == 0)
-			return;
-	}
+	if(md5file(old, digest) < 0)
+		sysfatal("cannot open %s: %r", old);
 
-	if(listonly) {
-		if((d->mode & CHDIR) == 0) 
-			Bprint(&bstdout, "%s\n", new);
+	memset(odigest, 0xFF, MD5dlen);
+	if(getfileinfo(w, new, &t, odigest) >= 0
+	&& memcmp(digest, odigest, MD5dlen) == 0)
 		return;
-	}
 
 	Bputhdr(&barch, new, d);
 	if((d->mode & CHDIR) == 0) {
@@ -59,9 +51,9 @@ mkarch(char *new, char *old, Dir *d, void*)
 void
 usage(void)
 {
-	fprint(2, "usage: wrap/create [-d desc] [-p proto] [-r root] [-t time] [-lv] name\n");
-	fprint(2, "or  wrap/create -u [-d desc] [-p proto] [-r root] [-t time] [-lv] package [prefix...]\n");
-	fprint(2, "or  wrap/create -U [-d desc] [-p proto] [-r root] [-t time] [-lv] package\n");
+	fprint(2, "usage: wrap/create [-d desc] [-p proto] [-r root] [-t time] [-v] name\n");
+	fprint(2, "or  wrap/create -u [-d desc] [-p proto] [-r root] [-t time] [-v] package [prefix...]\n");
+	fprint(2, "or  wrap/create -U [-d desc] [-p proto] [-r root] [-t time] [-v] package\n");
 	exits("usage");
 }
 
@@ -100,9 +92,6 @@ main(int argc, char **argv)
 		break;
 	case 'd':
 		desc = ARGF();
-		break;
-	case 'l':
-		listonly = 1;
 		break;
 	case 'p':
 		proto = ARGF();
@@ -149,6 +138,7 @@ main(int argc, char **argv)
 		while(w->nu > 0 && w->u[w->nu-1].type == UPD)
 			w->nu--;
 
+		w->nu = 1;
 		if(proto == nil)
 			proto = mkpath(w->u->dir, "proto");
 		name = w->name;
@@ -163,14 +153,6 @@ main(int argc, char **argv)
 	if(access(proto, AREAD) < 0)
 		sysfatal("cannot read proto: %r");
 
-	if(listonly) {
-		Binit(&bstdout, 1, OWRITE);
-		if(rdproto(proto, root, mkarch, nil, nil) < 0)
-			sysfatal("rdproto: %r");
-		Bterm(&bstdout);
-		exits(nil);
-	}
-	
 	strcpy(md5file, "/tmp/wrap.md5.XXXXXX");
 	fd = opentemp(md5file);
 	Binit(&bmd5, fd, OWRITE);
@@ -196,8 +178,6 @@ main(int argc, char **argv)
 		fd = opentemp(rmfile);
 		Bseek(w->u->bmd5, 0, 0);
 		while(p = Bgetline(w->u->bmd5)) {
-			if(match(p, prefix, nprefix) == 0)
-				continue;
 			if(q = strchr(p, ' '))
 				*q = 0;
 			q = mkpath(root, p);

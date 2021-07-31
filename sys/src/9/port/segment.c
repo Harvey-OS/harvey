@@ -17,7 +17,7 @@ static Lock physseglock;
 #define NFREECHAN	64
 #define IHASHSIZE	64
 #define ihash(s)	imagealloc.hash[s%IHASHSIZE]
-static struct Imagealloc
+static struct
 {
 	Lock;
 	Image	*free;
@@ -55,6 +55,7 @@ newseg(int type, ulong base, ulong size)
 
 	if(swapfull())
 		error(Enoswap);
+
 	s = smalloc(sizeof(Segment));
 	s->ref = 1;
 	s->type = type;

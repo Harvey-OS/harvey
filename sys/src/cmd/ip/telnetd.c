@@ -24,6 +24,7 @@ int nonone = 1;		/* don't allow none logins */
 Biobuf	netib;
 Biobuf	childib;
 char	remotesys[2*NAMELEN];	/* name of remote system */
+char	*namespace = "/lib/namespace";
 
 int	alnum(int);
 int	conssim(void);
@@ -241,7 +242,7 @@ challuser(char *user)
 	if(strcmp(user, "none") == 0){
 		if(nonone)
 			return -1;
-		newns(user, nil);
+		newns(user, namespace);
 		return 0;
 	}
 	if(getchal(&ch, user) < 0)
@@ -250,7 +251,7 @@ challuser(char *user)
 	prompt(nchall, response, sizeof response, 0);
 	if(chalreply(&ch, response) < 0)
 		return -1;
-	newns(user, nil);
+	newns(user, namespace);
 	return 0;
 }
 /*
@@ -435,7 +436,6 @@ fromnet(char *bp, int len)
 
 		case 0x7f:	/* Del */
 			write(notefd, "interrupt", 9);
-			bp = start;
 			break;
 
 		default:

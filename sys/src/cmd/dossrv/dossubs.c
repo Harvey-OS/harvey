@@ -514,13 +514,12 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longname)
 	Dosbpb *bp;
 	Dosdir *d;
 	char buf[261], *bname;
-	int isect, addr, o, addr1, addr2, prevaddr, prevaddr1, o1, islong, have, need, sum;
+	int isect, addr, o, addr1, addr2, o1, islong, have, need, sum;
 
 	xf = f->xf;
 	bp = xf->ptr;
 	addr1 = -1;
 	addr2 = -1;
-	prevaddr1 = -1;
 	o1 = 0;
 	islong = 0;
 	sum = -1;
@@ -539,7 +538,7 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longname)
 	addr = -1;
 	bname = nil;
 	for(isect=0;; isect++){
-		prevaddr = addr;
+		dp->prevaddr = addr;
 		addr = fileaddr(f, isect, cflag);
 		if(addr < 0)
 			break;
@@ -564,7 +563,6 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longname)
 				 */
 				if(addr1 < 0){
 					addr1 = addr;
-					prevaddr1 = prevaddr;
 					o1 = o;
 				}
 				if(addr2 < 0 && (bp->sectsize-o)/DOSDIRSIZE + have < need){
@@ -577,7 +575,6 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longname)
 					addr2 = -1;
 				dp->addr = addr1;
 				dp->offset = o1;
-				dp->prevaddr = prevaddr1;
 				dp->naddr = addr2;
 				return 0;
 			}
@@ -589,7 +586,6 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longname)
 				if(addr1 == -1){
 					addr1 = addr;
 					o1 = o;
-					prevaddr1 = prevaddr;
 				}
 				if(addr2 == -1 && have >= need)
 					addr2 = addr;
@@ -622,7 +618,6 @@ searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longname)
 				return -1;
 			}
 			dp->addr = addr;
-			dp->prevaddr = prevaddr;
 			dp->offset = o;
 			dp->p = p;
 			dp->d = d;

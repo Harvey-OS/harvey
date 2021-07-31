@@ -171,9 +171,9 @@ mapalloc(RMap* rmap, ulong addr, int size, int align)
 			 */
 			if(maddr > addr)
 				break;
-			if(mp->size < addr - maddr)	/* maddr+mp->size < addr, but no overflow */
+			if(maddr+mp->size < addr)
 				continue;
-			if(addr - maddr > mp->size - size)	/* addr+size > maddr+mp->size, but no overflow */
+			if(addr+size > maddr+mp->size)
 				break;
 			maddr = addr;
 		}
@@ -400,9 +400,9 @@ ramscan(ulong maxmem)
 	if(pa < maxmem)
 		mapfree(&rmapupa, pa, maxmem-pa);
 	if(maxmem < 0xFFE00000)
-		mapfree(&rmapupa, maxmem, 0x00000000-maxmem);
+		mapfree(&rmapupa, maxmem, 0xFFE00000-maxmem);
 	if(MEMDEBUG)
-		print("maxmem %luX %luX\n", maxmem, 0x00000000-maxmem);
+		print("maxmem %luX %luX\n", maxmem, 0xFFE00000-maxmem);
 	*k0 = kzero;
 }
 

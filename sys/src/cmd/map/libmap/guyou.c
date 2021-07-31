@@ -1,5 +1,3 @@
-#include <u.h>
-#include <libc.h>
 #include "map.h"
 
 static struct place gywhem, gyehem;

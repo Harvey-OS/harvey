@@ -274,13 +274,10 @@ should be treated as a seed to
 pseudo-random number generators which can produce a faster
 rate stream.
 .PP
-Writing the string
-.B reboot
-to
+A write to
 .B reboot
 causes the system to shutdown and, if
-possible, restart.   
-Only the host
+possible, restart.   Only the host
 owner has the ability to open this file.
 .PP
 .B Bintime

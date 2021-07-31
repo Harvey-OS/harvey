@@ -1,8 +1,26 @@
 #include	"l.h"
 
 long	OFFSET;
+/*
+long	BADOFFSET	=	-1;
 
-static Prog *PP;
+		if(OFFSET <= BADOFFSET && OFFSET+4 > BADOFFSET)\
+			abort();\
+		OFFSET += 4;\
+
+		if(OFFSET == BADOFFSET)\
+			abort();\
+		OFFSET++;\
+*/
+
+#define	CPUT(c)\
+	{\
+		cbp[0] = (c);\
+		cbp++;\
+		cbc--;\
+		if(cbc <= 0)\
+			cflush();\
+	}
 
 long
 entryvalue(void)
@@ -52,7 +70,7 @@ asmb(void)
 		pc += o->size;
 	}
 	while(pc-INITTEXT < textsize) {
-		cput(0);
+		CPUT(0);
 		pc++;
 	}
 
@@ -63,10 +81,8 @@ asmb(void)
 
 	curtext = P;
 	switch(HEADTYPE) {
-	case 0:
 	case 1:
 	case 2:
-	case 5:
 		OFFSET = HEADR+textsize;
 		seek(cout, OFFSET, 0);
 		break;
@@ -89,10 +105,7 @@ asmb(void)
 			Bprint(&bso, "%5.2f sym\n", cputime());
 		Bflush(&bso);
 		switch(HEADTYPE) {
-		case 0:
 		case 1:
-		case 4:
-		case 5:
 			debug['s'] = 1;
 			break;
 		case 2:
@@ -120,8 +133,6 @@ asmb(void)
 	OFFSET = 0;
 	seek(cout, OFFSET, 0);
 	switch(HEADTYPE) {
-	case 0:	/* no header */
-		break;
 	case 1:	/* aif for risc os */
 		lputl(0xe1a00000);		/* NOP - decompress code */
 		lputl(0xe1a00000);		/* NOP - relocation code */
@@ -172,14 +183,6 @@ asmb(void)
 		lputl(0L);
 		lputl(0L);
 		break;
-	case 4: /* boot for IXP1200 */
-		break;
-	case 5: /* boot for ipaq */
-		lputl(0xe3300000);		/* nop */
-		lputl(0xe3300000);		/* nop */
-		lputl(0xe3300000);		/* nop */
-		lputl(0xe3300000);		/* nop */
-		break;
 	}
 	cflush();
 }
@@ -188,21 +191,11 @@ void
 strnput(char *s, int n)
 {
 	for(; *s; s++){
-		cput(*s);
+		CPUT(*s);
 		n--;
 	}
 	for(; n > 0; n--)
-		cput(0);
-}
-
-void
-cput(int c)
-{
-	cbp[0] = c;
-	cbp++;
-	cbc--;
-	if(cbc <= 0)
-		cflush();
+		CPUT(0);
 }
 
 void
@@ -328,22 +321,22 @@ putsymb(char *s, int t, long v, int ver)
 	lput(v);
 	if(ver)
 		t += 'a' - 'A';
-	cput(t+0x80);			/* 0x80 is variable length */
+	CPUT(t+0x80);			/* 0x80 is variable length */
 
 	if(t == 'Z' || t == 'z') {
-		cput(s[0]);
+		CPUT(s[0]);
 		for(i=1; s[i] != 0 || s[i+1] != 0; i += 2) {
-			cput(s[i]);
-			cput(s[i+1]);
+			CPUT(s[i]);
+			CPUT(s[i+1]);
 		}
-		cput(0);
-		cput(0);
+		CPUT(0);
+		CPUT(0);
 		i++;
 	}
 	else {
 		for(i=0; s[i]; i++)
-			cput(s[i]);
-		cput(0);
+			CPUT(s[i]);
+		CPUT(0);
 	}
 	symsize += 4 + 1 + i + 1;
 
@@ -390,7 +383,7 @@ asmlc(void)
 			s = 127;
 			if(v < 127)
 				s = v;
-			cput(s+128);	/* 129-255 +pc */
+			CPUT(s+128);	/* 129-255 +pc */
 			if(debug['L'])
 				Bprint(&bso, " pc+%ld*%d(%ld)", s, MINLC, s+128);
 			v -= s;
@@ -400,11 +393,11 @@ asmlc(void)
 		oldlc = p->line;
 		oldpc = p->pc + MINLC;
 		if(s > 64 || s < -64) {
-			cput(0);	/* 0 vv +lc */
-			cput(s>>24);
-			cput(s>>16);
-			cput(s>>8);
-			cput(s);
+			CPUT(0);	/* 0 vv +lc */
+			CPUT(s>>24);
+			CPUT(s>>16);
+			CPUT(s>>8);
+			CPUT(s);
 			if(debug['L']) {
 				if(s > 0)
 					Bprint(&bso, " lc+%ld(%d,%ld)\n",
@@ -419,14 +412,14 @@ asmlc(void)
 			continue;
 		}
 		if(s > 0) {
-			cput(0+s);	/* 1-64 +lc */
+			CPUT(0+s);	/* 1-64 +lc */
 			if(debug['L']) {
 				Bprint(&bso, " lc+%ld(%ld)\n", s, 0+s);
 				Bprint(&bso, "%6lux %P\n",
 					p->pc, p);
 			}
 		} else {
-			cput(64-s);	/* 65-128 -lc */
+			CPUT(64-s);	/* 65-128 -lc */
 			if(debug['L']) {
 				Bprint(&bso, " lc%ld(%ld)\n", s, 64-s);
 				Bprint(&bso, "%6lux %P\n",
@@ -437,7 +430,7 @@ asmlc(void)
 	}
 	while(lcsize & 1) {
 		s = 129;
-		cput(s);
+		CPUT(s);
 		lcsize++;
 	}
 	if(debug['v'] || debug['L'])
@@ -554,16 +547,14 @@ datblk(long s, long n)
 void
 asmout(Prog *p, Optab *o)
 {
-	long o1, o2, o3, o4, o5, o6, v;
-	int r, rf, rt, rt2;
+	long o1, o2, o3, o4, o5, v;
+	int r, rf, rt;
 
-PP = p;
 	o1 = 0;
 	o2 = 0;
 	o3 = 0;
 	o4 = 0;
 	o5 = 0;
-	o6 = 0;
 	switch(o->type) {
 	default:
 		diag("unknown asm %d", o->type);
@@ -585,7 +576,7 @@ PP = p;
 		o1 |= rf | (r<<16) | (rt<<12);
 		break;
 
-	case 2:		/* movbu $I,[R],R */
+	case 2:		/* op $I,[R],R */
 		aclass(&p->from);
 		o1 = oprrr(p->as, p->scond);
 		o1 |= immrot(instoffset);
@@ -599,7 +590,6 @@ PP = p;
 		break;
 
 	case 3:		/* add R<<[IR],[R],R */
-	mov:
 		aclass(&p->from);
 		o1 = oprrr(p->as, p->scond);
 		o1 |= p->from.offset;
@@ -687,13 +677,40 @@ PP = p;
 		break;
 
 	case 12:	/* movw $lcon, reg */
-		o1 = omvl(p, &p->from, p->to.reg);
+		if(!p->cond) {
+			aclass(&p->from);
+			v = immrot(~instoffset);
+			if(v == 0) {
+				diag("missing literal");
+				prasm(p);
+				break;
+			}
+			o1 = oprrr(AMVN, p->scond);
+			o1 |= v;
+			o1 |= p->to.reg << 12;
+		} else {
+			v = p->cond->pc - p->pc - 8;
+			o1 = olr(v, REGPC, p->to.reg, p->scond);
+		}
 		break;
 
 	case 13:	/* op $lcon, [R], R */
-		o1 = omvl(p, &p->from, REGTMP);
-		if(!o1)
-			break;
+		if(!p->cond) {
+			aclass(&p->from);
+			v = immrot(~instoffset);
+			if(v == 0) {
+				diag("missing literal");
+				prasm(p);
+				break;
+			}
+			o1 = oprrr(AMVN, p->scond);
+			o1 |= v;
+			o1 |= REGTMP << 12;
+		} else {
+			v = p->cond->pc - p->pc - 8;
+			o1 = olr(v, REGPC, REGTMP, p->scond);
+		}
+
 		o2 = oprrr(p->as, p->scond);
 		o2 |= REGTMP;
 		r = p->reg;
@@ -749,15 +766,6 @@ PP = p;
 		o2 = 0;
 		break;
 
-	case 17:
-		o1 = oprrr(p->as, p->scond);
-		rf = p->from.reg;
-		rt = p->to.reg;
-		rt2 = p->to.offset;
-		r = p->reg;
-		o1 |= (rf<<8) | r | (rt<<16) | (rt2<<12);
-		break;
-
 	case 20:	/* mov/movb/movbu R,O(R) */
 		aclass(&p->to);
 		r = p->to.reg;
@@ -811,9 +819,22 @@ PP = p;
 		break;
 
 	case 30:	/* mov/movb/movbu R,L(R) */
-		o1 = omvl(p, &p->to, REGTMP);
-		if(!o1)
-			break;
+		if(!p->cond) {
+			aclass(&p->from);
+			v = immrot(~instoffset);
+			if(v == 0) {
+				diag("missing literal");
+				prasm(p);
+				break;
+			}
+			o1 = oprrr(AMVN, p->scond);
+			o1 |= v;
+			o1 |= REGTMP << 12;
+		} else {
+			v = p->cond->pc - p->pc - 8;
+			o1 = olr(v, REGPC, REGTMP, p->scond);
+		}
+
 		r = p->to.reg;
 		if(r == NREG)
 			r = o->param;
@@ -824,14 +845,27 @@ PP = p;
 
 	case 31:	/* mov/movbu L(R),R -> lr[b] */
 	case 32:	/* movh/movb L(R),R -> lr[b] */
-		o1 = omvl(p, &p->from, REGTMP);
-		if(!o1)
-			break;
+		if(!p->cond) {
+			aclass(&p->from);
+			v = immrot(~instoffset);
+			if(v == 0) {
+				diag("missing literal");
+				prasm(p);
+				break;
+			}
+			o1 = oprrr(AMVN, p->scond);
+			o1 |= v;
+			o1 |= REGTMP << 12;
+		} else {
+			v = p->cond->pc - p->pc - 8;
+			o1 = olr(v, REGPC, REGTMP, p->scond);
+		}
+
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
 		o2 = olrr(REGTMP,r, p->to.reg, p->scond);
-		if(p->as == AMOVBU || p->as == AMOVB)
+		if(p->as != AMOVW)
 			o2 |= 1<<22;
 		if(o->type == 31)
 			break;
@@ -854,38 +888,46 @@ PP = p;
 			o4 |= (16<<7);
 		}
 		break;
+	
+	case 33:	/* movh/movhu R,L(R) */
+		if(!p->cond) {
+			aclass(&p->from);
+			v = immrot(~instoffset);
+			if(v == 0) {
+				diag("missing literal");
+				prasm(p);
+				break;
+			}
+			o1 = oprrr(AMVN, p->scond);
+			o1 |= v;
+			o1 |= REGTMP << 12;
+		} else {
+			v = p->cond->pc - p->pc - 8;
+			o1 = olr(v, REGPC, REGTMP, p->scond);
+		}
 
-	case 33:	/* movh/movhu R,L(R) -> sb, sb */
-		o1 = omvl(p, &p->to, REGTMP);
-		if(!o1)
-			break;
 		r = p->to.reg;
 		if(r == NREG)
 			r = o->param;
-		o2 = osrr(p->from.reg, REGTMP, r, p->scond);
-		o2 |= (1<<22) ;
-
-		o3 = oprrr(ASRL, p->scond);
-		o3 |= (8<<7)|(p->from.reg)|(p->from.reg<<12);
-		o3 |= (1<<6);	/* ROR 8 */
-
-		o4 = oprrr(AADD, p->scond);
-		o4 |= (REGTMP << 12) | (REGTMP << 16);
-		o4 |= immrot(1);
-
-		o5 = osrr(p->from.reg, REGTMP,r,p->scond);
-		o5 |= (1<<22);
-
-		o6 = oprrr(ASRL, p->scond);
-		o6 |= (24<<7)|(p->from.reg)|(p->from.reg<<12);
-		o6 |= (1<<6);	/* ROL 8 */
-
+		o2 = oshrr(p->from.reg, REGTMP,r, p->scond);
 		break;
-		
+
 	case 34:	/* mov $lacon,R */
-		o1 = omvl(p, &p->from, REGTMP);
-		if(!o1)
-			break;
+		if(!p->cond) {
+			aclass(&p->from);
+			v = immrot(~instoffset);
+			if(v == 0) {
+				diag("missing literal");
+				prasm(p);
+				break;
+			}
+			o1 = oprrr(AMVN, p->scond);
+			o1 |= v;
+			o1 |= REGTMP << 12;
+		} else {
+			v = p->cond->pc - p->pc - 8;
+			o1 = olr(v, REGPC, REGTMP, p->scond);
+		}
 
 		o2 = oprrr(AADD, p->scond);
 		o2 |= REGTMP;
@@ -972,7 +1014,7 @@ PP = p;
 		r = p->to.reg;
 		if(r == NREG)
 			r = o->param;
-		o1 = ofsr(p->as, p->from.reg, v, r, p->scond, p);
+		o1 = ofsr(p->as, p->from.reg, v, r, p->scond);
 		break;
 
 	case 51:	/* floating point load */
@@ -980,29 +1022,53 @@ PP = p;
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
-		o1 = ofsr(p->as, p->to.reg, v, r, p->scond, p) | (1<<20);
+		o1 = ofsr(p->as, p->to.reg, v, r, p->scond) | (1<<20);
 		break;
 
 	case 52:	/* floating point store, long offset UGLY */
-		o1 = omvl(p, &p->to, REGTMP);
-		if(!o1)
-			break;
+		if(!p->cond) {
+			aclass(&p->from);
+			v = immrot(~instoffset);
+			if(v == 0) {
+				diag("missing literal");
+				prasm(p);
+				break;
+			}
+			o1 = oprrr(AMVN, p->scond);
+			o1 |= v;
+			o1 |= REGTMP << 12;
+		} else {
+			v = p->cond->pc - p->pc - 8;
+			o1 = olr(v, REGPC, REGTMP, p->scond);
+		}
 		r = p->to.reg;
 		if(r == NREG)
 			r = o->param;
 		o2 = oprrr(AADD, p->scond) | (REGTMP << 12) | (REGTMP << 16) | r;
-		o3 = ofsr(p->as, p->from.reg, 0, REGTMP, p->scond, p);
+		o3 = ofsr(p->as, p->from.reg, 0, REGTMP, p->scond);
 		break;
 
 	case 53:	/* floating point load, long offset UGLY */
-		o1 = omvl(p, &p->from, REGTMP);
-		if(!o1)
-			break;
+		if(!p->cond) {
+			aclass(&p->from);
+			v = immrot(~instoffset);
+			if(v == 0) {
+				diag("missing literal");
+				prasm(p);
+				break;
+			}
+			o1 = oprrr(AMVN, p->scond);
+			o1 |= v;
+			o1 |= REGTMP << 12;
+		} else {
+			v = p->cond->pc - p->pc - 8;
+			o1 = olr(v, REGPC, REGTMP, p->scond);
+		}
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
 		o2 = oprrr(AADD, p->scond) | (REGTMP << 12) | (REGTMP << 16) | r;
-		o3 = ofsr(p->as, p->to.reg, 0, REGTMP, p->scond, p) | (1<<20);
+		o3 = ofsr(p->as, p->to.reg, 0, REGTMP, p->scond) | (1<<20);
 		break;
 
 	case 54:	/* floating point arith */
@@ -1050,7 +1116,8 @@ PP = p;
 		o1 = ((p->scond & C_SCOND) << 28) | (0xe << 24) | (1<<8) | (1<<4);
 		o1 |= ((p->from.reg+1)<<21) | (p->to.reg<<12) | (1<<20);
 		break;
-	case 58:	/* movbu R,R */
+	case 58:	/* op $I,[R],R */
+		aclass(&p->from);
 		o1 = oprrr(AAND, p->scond);
 		o1 |= immrot(0xff);
 		rt = p->to.reg;
@@ -1060,90 +1127,6 @@ PP = p;
 		if(r == NREG)
 			r = rt;
 		o1 |= (r<<16) | (rt<<12);
-		break;
-
-	case 59:	/* movw/bu R<<I(R),R -> ldr indexed */
-		if(p->from.reg == NREG) {
-			if(p->as != AMOVW)
-				diag("byte MOV from shifter operand");
-			goto mov;
-		}
-		if(p->from.offset&(1<<4))
-			diag("bad shift in LDR");
-		o1 = olrr(p->from.offset, p->from.reg, p->to.reg, p->scond);
-		if(p->as == AMOVBU)
-			o1 |= 1<<22;
-		break;
-
-	case 60:	/* movb R(R),R -> ldrsb indexed */
-		if(p->from.reg == NREG) {
-			diag("byte MOV from shifter operand");
-			goto mov;
-		}
-		if(p->from.offset&(~0xf))
-			diag("bad shift in LDRSB");
-		o1 = olhrr(p->from.offset, p->from.reg, p->to.reg, p->scond);
-		o1 ^= (1<<5)|(1<<6);
-		break;
-
-	case 61:	/* movw/b/bu R,R<<[IR](R) -> str indexed */
-		if(p->to.reg == NREG)
-			diag("MOV to shifter operand");
-		o1 = osrr(p->from.reg, p->to.offset, p->to.reg, p->scond);
-		if(p->as == AMOVB || p->as == AMOVBU)
-			o1 |= 1<<22;
-		break;
-
-	case 62:	/* case R -> movw	R<<2(PC),PC */
-		o1 = olrr(p->from.reg, REGPC, REGPC, p->scond);
-		o1 |= 2<<7;
-		break;
-
-	case 63:	/* bcase */
-		if(p->cond != P)
-			o1 = p->cond->pc;
-		break;
-
-	/* ArmV4 ops: */
-	case 70:	/* movh/movhu R,O(R) -> strh */
-		aclass(&p->to);
-		r = p->to.reg;
-		if(r == NREG)
-			r = o->param;
-		o1 = oshr(p->from.reg, instoffset, r, p->scond);
-		break;	
-	case 71:	/* movb/movh/movhu O(R),R -> ldrsb/ldrsh/ldrh */
-		aclass(&p->from);
-		r = p->from.reg;
-		if(r == NREG)
-			r = o->param;
-		o1 = olhr(instoffset, r, p->to.reg, p->scond);
-		if(p->as == AMOVB)
-			o1 ^= (1<<5)|(1<<6);
-		else if(p->as == AMOVH)
-			o1 ^= (1<<6);
-		break;
-	case 72:	/* movh/movhu R,L(R) -> strh */
-		o1 = omvl(p, &p->to, REGTMP);
-		if(!o1)
-			break;
-		r = p->to.reg;
-		if(r == NREG)
-			r = o->param;
-		o2 = oshrr(p->from.reg, REGTMP,r, p->scond);
-		break;	
-	case 73:	/* movb/movh/movhu L(R),R -> ldrsb/ldrsh/ldrh */
-		o1 = omvl(p, &p->from, REGTMP);
-		if(!o1)
-			break;
-		r = p->from.reg;
-		if(r == NREG)
-			r = o->param;
-		o2 = olhrr(REGTMP, r, p->to.reg, p->scond);
-		if(p->as == AMOVB)
-			o2 ^= (1<<5)|(1<<6);
-		else if(p->as == AMOVH)
-			o2 ^= (1<<6);
 		break;
 	}
 
@@ -1190,17 +1173,6 @@ PP = p;
 		lputl(o4);
 		lputl(o5);
 		break;
-	case 24:
-		if(debug['a'])
-			Bprint(&bso, " %.8lux: %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux%P\n",
-				v, o1, o2, o3, o4, o5, o6, p);
-		lputl(o1);
-		lputl(o2);
-		lputl(o3);
-		lputl(o4);
-		lputl(o5);
-		lputl(o6);
-		break;
 	}
 }
 
@@ -1217,11 +1189,6 @@ oprrr(int a, int sc)
 	switch(a) {
 	case AMULU:
 	case AMUL:	return o | (0x0<<21) | (0x9<<4);
-	case AMULA:	return o | (0x1<<21) | (0x9<<4);
-	case AMULLU:	return o | (0x4<<21) | (0x9<<4);
-	case AMULL:	return o | (0x6<<21) | (0x9<<4);
-	case AMULALU:	return o | (0x5<<21) | (0x9<<4);
-	case AMULAL:	return o | (0x7<<21) | (0x9<<4);
 	case AAND:	return o | (0x0<<21);
 	case AEOR:	return o | (0x1<<21);
 	case ASUB:	return o | (0x2<<21);
@@ -1233,7 +1200,7 @@ oprrr(int a, int sc)
 	case ATST:	return o | (0x8<<21) | (1<<20);
 	case ATEQ:	return o | (0x9<<21) | (1<<20);
 	case ACMP:	return o | (0xa<<21) | (1<<20);
-	case ACMN:	return o | (0xb<<21) | (1<<20);
+	case ACMN:	return o | (0xb<<21);
 	case AORR:	return o | (0xc<<21);
 	case AMOVW:	return o | (0xd<<21);
 	case ABIC:	return o | (0xe<<21);
@@ -1314,43 +1281,16 @@ olr(long v, int b, int r, int sc)
 	o = (sc & C_SCOND) << 28;
 	if(!(sc & C_PBIT))
 		o |= 1 << 24;
-	if(!(sc & C_UBIT))
-		o |= 1 << 23;
 	if(sc & C_WBIT)
 		o |= 1 << 21;
-	o |= (0x1<<26) | (1<<20);
+	o |= (0x1<<26) | (1<<23) | (1<<20);
 	if(v < 0) {
 		v = -v;
 		o ^= 1 << 23;
 	}
 	if(v >= (1<<12))
-		diag("literal span too large: %d (R%d)\n%P", v, b, PP);
+		diag("literal span too large: %d (R%d)\n", v, b);
 	o |= v;
-	o |= b << 16;
-	o |= r << 12;
-	return o;
-}
-
-long
-olhr(long v, int b, int r, int sc)
-{
-	long o;
-
-	if(sc & C_SBIT)
-		diag(".S on LDRH/STRH instruction");
-	o = (sc & C_SCOND) << 28;
-	if(!(sc & C_PBIT))
-		o |= 1 << 24;
-	if(sc & C_WBIT)
-		o |= 1 << 21;
-	o |= (1<<23) | (1<<20)|(0xb<<4);
-	if(v < 0) {
-		v = -v;
-		o ^= 1 << 23;
-	}
-	if(v >= (1<<8))
-		diag("literal span too large: %d (R%d)\n%P", v, b, PP);
-	o |= (v&0xf)|((v>>4)<<8)|(1<<22);
 	o |= b << 16;
 	o |= r << 12;
 	return o;
@@ -1368,16 +1308,6 @@ osr(int a, int r, long v, int b, int sc)
 }
 
 long
-oshr(int r, long v, int b, int sc)
-{
-	long o;
-
-	o = olhr(v, b, r, sc) ^ (1<<20);
-	return o;
-}
-	
-
-long
 osrr(int r, int i, int b, int sc)
 {
 
@@ -1387,7 +1317,8 @@ osrr(int r, int i, int b, int sc)
 long
 oshrr(int r, int i, int b, int sc)
 {
-	return olhr(i, b, r, sc) ^ ((1<<22) | (1<<20));
+
+	return olr(i, b, r, sc) & ~(0xe4<<20); 
 }
 
 long
@@ -1398,13 +1329,7 @@ olrr(int i, int b, int r, int sc)
 }
 
 long
-olhrr(int i, int b, int r, int sc)
-{
-	return olhr(i, b, r, sc) ^ (1<<22);
-}
-
-long
-ofsr(int a, int r, long v, int b, int sc, Prog *p)
+ofsr(int a, int r, long v, int b, int sc)
 {
 	long o;
 
@@ -1421,9 +1346,9 @@ ofsr(int a, int r, long v, int b, int sc, Prog *p)
 		o ^= 1 << 23;
 	}
 	if(v & 3)
-		diag("odd offset for floating point op: %d\n%P", v, p);
+		diag("odd offset for floating point op: %d\n", v);
 	else if(v >= (1<<10))
-		diag("literal span too large: %d\n%P", v, p);
+		diag("literal span too large: %d\n", v);
 	o |= (v>>2) & 0xFF;
 	o |= b << 16;
 	o |= r << 12;
@@ -1438,28 +1363,6 @@ ofsr(int a, int r, long v, int b, int sc, Prog *p)
 		break;
 	}
 	return o;
-}
-
-long
-omvl(Prog *p, Adr *a, int dr)
-{	
-	long v, o1;
-	if(!p->cond) {
-		aclass(a);
-		v = immrot(~instoffset);
-		if(v == 0) {
-			diag("missing literal");
-			prasm(p);
-			return 0;
-		}
-		o1 = oprrr(AMVN, p->scond&C_SCOND);
-		o1 |= v;
-		o1 |= dr << 12;
-	} else {
-		v = p->cond->pc - p->pc - 8;
-		o1 = olr(v, REGPC, dr, p->scond&C_SCOND);
-	}
-	return o1;
 }
 
 static Ieee chipfloats[] = {

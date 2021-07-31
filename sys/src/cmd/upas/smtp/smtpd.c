@@ -12,7 +12,6 @@ int	filterstate = ACCEPT;
 int	trusted;
 int	logged;
 int	rejectcount;
-int	hardreject;
 
 ulong	peerip;
 Biobuf	bin;
@@ -29,7 +28,7 @@ List badguys;
 
 int	pipemsg(int*);
 String*	startcmd(void);
-int	rejectcheck(void);
+void	rejectcheck(void);
 
 static int
 catchalarm(void *a, char *msg)
@@ -197,8 +196,7 @@ reply(char *fmt, ...)
 void
 reset(void)
 {
-	if(rejectcheck())
-		return;
+	rejectcheck();
 	listfree(&rcvers);
 	listfree(&senders);
 	if(filterstate != DIALUP){
@@ -217,8 +215,7 @@ sayhi(void)
 void
 hello(String *himp)
 {
-	if(rejectcheck())
-		return;
+	rejectcheck();
 	him = s_to_c(himp);
 	reply("250 you are %s\r\n", him);
 }
@@ -230,8 +227,7 @@ sender(String *path)
 	char *cp;
 	static char *lastsender;
 
-	if(rejectcheck())
-		return;
+	rejectcheck();
 	if(him == 0 || *him == 0){
 		rejectcount++;
 		reply("503 Start by saying HELO, please.\r\n", s_to_c(path));
@@ -292,8 +288,7 @@ sender(String *path)
 void
 receiver(String *path)
 {
-	if(rejectcheck())
-		return;
+	rejectcheck();
 	if(him == 0 || *him == 0){
 		rejectcount++;
 		reply("503 Start by saying HELO, please\r\n");
@@ -327,24 +322,18 @@ quit(void)
 void
 turn(void)
 {
-	if(rejectcheck())
-		return;
 	reply("502 TURN unimplemented\r\n");
 }
 
 void
 noop(void)
 {
-	if(rejectcheck())
-		return;
 	reply("250 Stop wasting my time!\r\n");
 }
 
 void
 help(String *cmd)
 {
-	if(rejectcheck())
-		return;
 	if(cmd)
 		s_free(cmd);
 	reply("250 Read rfc821 and stop wasting my time\r\n");
@@ -357,8 +346,7 @@ verify(String *path)
 	char *p, *q;
 	char *av[4];
 
-	if(rejectcheck())
-		return;
+	rejectcheck();
 	if(shellchars(s_to_c(path))){
 		reply("503 Bad character in address %s.\r\n", s_to_c(path));
 		return;
@@ -510,10 +498,8 @@ startcmd(void)
 		reply("554 We don't accept mail from dial-up ports.\r\n");
 		/*
 		 * we could exit here, because we're never going to accept mail from this
-		 * ip address, but it's unclear that RFC821 allows that.  Instead we set
-		 * the hardreject flag and go stupid.
+		 * ip address, but it's unclear that RFC821 allows that.
 		 */
-		hardreject = 1;
 		return 0;
 	case DENIED:
 		if(!logged){
@@ -582,7 +568,6 @@ pipemsg(int *byteswritten)
 	char *cp;
 	char buf[4096];
 	int sol, n, nbytes;
-	int sawdot;
 
 	/*
 	 *  read first line.  If it is a 'From ' line, leave it.  Otherwise,
@@ -603,17 +588,14 @@ pipemsg(int *byteswritten)
 	 *  pass message to mailer.  take care of '.' escapes.
 	 */
 	pipesig(&status);	/* set status to 1 on write to closed pipe */
-	sawdot = 0;
 	for(sol = 1; status == 0 && n != 0;){
 		if(n > 0){
 			if(sol && *cp=='.'){
 				/* '.'s at the start of line is an escape */
 				cp++;
 				n--;
-				if(*cp=='\n'){
-					sawdot = 1;
+				if(*cp=='\n')
 					break;
-				}
 			}
 			sol = cp[n-1] == '\n';
 		}
@@ -624,12 +606,6 @@ pipemsg(int *byteswritten)
 		cp = buf;
 	}
 	pipesigoff();
-
-	if(sawdot == 0){
-		/* message did not terminate normally */
-		syskillpg(pp->pid);
-		status = 1;
-	}
 
 	if(Bflush(pp->std[0]->fp) < 0)
 		status = 1;
@@ -647,8 +623,7 @@ data(void)
 	int status, nbytes;
 	char *cp, *ep;
 
-	if(rejectcheck())
-		return;
+	rejectcheck();
 	if(senders.last == 0){
 		reply("503 Data without MAIL FROM:\r\n");
 		rejectcount++;
@@ -723,26 +698,11 @@ data(void)
 	listfree(&rcvers);
 }
 
-/*
- * when we have blocked a transaction based on IP address, there is nothing
- * that the sender can do to convince us to take the message.  after the
- * first rejection, some spammers continually RSET and give a new MAIL FROM:
- * filling our logs with rejections.  rejectcheck() limits the retries and
- * swiftly rejects all further commands after the first 500-series message
- * is issued.
- */
-int
+void
 rejectcheck(void)
 {
-
 	if(rejectcount > MAXREJECTS){
-		syslog(0, "smtpd", "Rejected (%s/%s)", him, hisaddr);
 		reply("554 too many errors.  transaction failed.\r\n");
 		exits("errcount");
 	}
-	if(hardreject){
-		rejectcount++;
-		reply("554 We don't accept mail from dial-up ports.\r\n");
-	}
-	return hardreject;
 }

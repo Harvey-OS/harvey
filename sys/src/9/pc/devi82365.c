@@ -121,7 +121,6 @@ struct I82365
 	int	nslot;
 	int	xreg;		/* index register address */
 	int	dreg;		/* data register address */
-	int	irq;
 };
 static I82365 *controller[4];
 static int ncontroller;
@@ -438,7 +437,6 @@ pcmspecial(char *idstr, ISAConf *isa)
 {
 	Slot *pp;
 	extern char *strstr(char*, char*);
-	static int resetdone;
 
 	i82365reset();
 	for(pp = slot; pp < lastslot; pp++){
@@ -446,14 +444,13 @@ pcmspecial(char *idstr, ISAConf *isa)
 			continue;	/* already taken */
 		increfp(pp);
 
-		if(pp->occupied) {
-			if(strstr(pp->verstr, idstr))
-			if(isa == 0 || pcmio(pp->slotno, isa) == 0){
-				pp->special = 1;
-				return pp->slotno;
-			}
-		} else
+		if(pp->occupied)
+		if(strstr(pp->verstr, idstr))
+		if(isa == 0 || pcmio(pp->slotno, isa) == 0){
 			pp->special = 1;
+			return pp->slotno;
+		}
+
 		decrefp(pp);
 	}
 	return -1;
@@ -534,12 +531,10 @@ static char *chipname[] =
 };
 
 static I82365*
-i82365probe(int x, int d, int dev)
+i82386probe(int x, int d, int dev)
 {
 	uchar c, id;
 	I82365 *cp;
-	ISAConf isa;
-	int i, nslot;
 
 	outb(x, Rid + (dev<<7));
 	id = inb(d);
@@ -597,20 +592,6 @@ i82365probe(int x, int d, int dev)
 	c = inb(d);
 	outb(d, c & ~Flowpow);
 
-	memset(&isa, 0, sizeof(ISAConf));
-	if(isaconfig("pcmcia", ncontroller, &isa) && isa.irq)
-		cp->irq = isa.irq;
-	else
-		cp->irq = IrqPCMCIA;
-
-	for(i = 0; i < isa.nopt; i++){
-		if(cistrncmp(isa.opt[i], "nslot=", 6))
-			continue;
-		nslot = strtol(&isa.opt[i][6], nil, 0);
-		if(nslot > 0 && nslot <= 2)
-			cp->nslot = nslot;
-	}
-
 	controller[ncontroller++] = cp;
 	return cp;
 }
@@ -637,26 +618,31 @@ static void
 i82365reset(void)
 {
 	static int already;
-	int i, j;
+	int i, j, irq;
 	I82365 *cp;
 	Slot *pp;
-	char buf[NAMELEN];
+	ISAConf isa;
 
 	if(already)
 		return;
 	already = 1;
 
+	memset(&isa, 0, sizeof(ISAConf));
+	irq = IrqPCMCIA;
+	if(isaconfig("pcmcia", 0, &isa) && isa.irq)
+		irq = isa.irq;
+
 	/* look for controllers if the ports aren't already taken */
-	if(ioalloc(0x3E0, 2, 0, "i82365.0") >= 0){
-		i82365probe(0x3E0, 0x3E1, 0);
-		i82365probe(0x3E0, 0x3E1, 1);
+	if(ioalloc(0x3E0, 2, 0, "i82386.0") >= 0){
+		i82386probe(0x3E0, 0x3E1, 0);
+		i82386probe(0x3E0, 0x3E1, 1);
 		if(ncontroller == 0)
 			iofree(0x3E0);
 	}
-	if(ioalloc(0x3E2, 2, 0, "i82365.1") >= 0){
+	if(ioalloc(0x3E2, 2, 0, "i82386.1") >= 0){
 		i = ncontroller;
-		i82365probe(0x3E2, 0x3E3, 0);
-		i82365probe(0x3E2, 0x3E3, 1);
+		i82386probe(0x3E2, 0x3E3, 0);
+		i82386probe(0x3E2, 0x3E3, 1);
 		if(ncontroller == i)
 			iofree(0x3E2);
 	}
@@ -669,7 +655,7 @@ i82365reset(void)
 	for(i = 0; i < ncontroller; i++){
 		cp = controller[i];
 		print("#y%d: %d slot %s: port 0x%uX irq %d\n",
-			i, cp->nslot, chipname[cp->type], cp->xreg, cp->irq);
+			i, cp->nslot, chipname[cp->type], cp->xreg, irq);
 		for(j = 0; j < cp->nslot; j++){
 			pp = lastslot++;
 			pp->slotno = pp - slot;
@@ -679,14 +665,14 @@ i82365reset(void)
 			slotdis(pp);
 
 			/* interrupt on status change */
-			wrreg(pp, Rcscic, (cp->irq<<4) | Fchangeena);
+			wrreg(pp, Rcscic, (irq<<4) | Fchangeena);
 			rdreg(pp, Rcsc);
 		}
-
-		/* for card management interrupts */
-		sprint(buf, "i82365.%d", i);
-		intrenable(cp->irq, i82365intr, 0, BUSUNKNOWN, buf);
 	}
+
+	/* for card management interrupts */
+	if(ncontroller)
+		intrenable(irq, i82365intr, 0, BUSUNKNOWN, "i82365");
 }
 
 static Chan*

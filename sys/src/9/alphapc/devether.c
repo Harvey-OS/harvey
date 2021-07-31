@@ -110,12 +110,12 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 
 	if(qwindow(f->in) <= 0)
 		return;
-	if(len > 58)
-		n = 58;
+	if(len > 64)
+		n = 64;
 	else
 		n = len;
-	bp = iallocb(64);
-	if(bp == nil)
+	bp = iallocb(n);
+	if(bp == 0)
 		return;
 	memmove(bp->wp, pkt->d, n);
 	i = TK2MS(MACHP(0)->ticks);

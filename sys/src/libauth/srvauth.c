@@ -1,19 +1,17 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
-#include <libsec.h>
 #include "authlocal.h"
 
 static char *abmsg = "/dev/authenticate: %r";
 static char *cgmsg = "client gave up";
 
 int
-srvauthnonce(int fd, char *user, uchar *nonce)
+srvauth(int fd, char *user)
 {
 	int n, afd;
 	char trbuf[TICKREQLEN];
 	char tbuf[2*TICKETLEN];
-	Ticket *tp;
 
 	/* get ticket request from kernel and pass to client */
 	afd = open("/dev/authenticate", ORDWR);
@@ -48,23 +46,13 @@ srvauthnonce(int fd, char *user, uchar *nonce)
 	}
 
 	/* get authenticator from kernel and pass to client */
-	read(afd, tbuf, AUTHENTLEN+TICKETLEN);
-	tp = (Ticket*)(tbuf+AUTHENTLEN);
+	read(afd, tbuf, AUTHENTLEN);
 	close(afd);
 	if(write(fd, tbuf, AUTHENTLEN) < 0){
 		werrstr("permission denied");
 		return -1;
 	}
 
-	if(nonce != nil)
-		des56to64((uchar*)tp->key, nonce);
-
 	strcpy(user, getuser());
 	return 0;
-}
-
-int
-srvauth(int fd, char *user)
-{
-	return srvauthnonce(fd, user, nil);
 }

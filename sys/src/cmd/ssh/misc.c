@@ -77,17 +77,12 @@ zalloc(int size) {
 
 	if ((x = mallocz(size, 1)) == 0)
 		error("malloc");
-	setmalloctag(x, getcallerpc(&size));
 	return x;
 }
 
 void *
 mmalloc(int size) {
-	void *x;
-
-	x = zalloc(size);
-	setmalloctag(x, getcallerpc(&size));
-	return x;
+	return zalloc(size);
 }
 
 void
@@ -221,7 +216,6 @@ RSAunpad(mpint *bin, int bytes) {
 	mpint *bout;
 
 	bout = mpnew(0);
-	setmalloctag(bout, getcallerpc(&bin));
 	n = mptobe(bin, buf, 256, nil);
 	if (buf[0] != 2)
 		error("RSAunpad");
@@ -245,7 +239,6 @@ RSADecrypt(mpint *in, RSApriv *rsa)
 	mpint *out;
 
 	out = rsadecrypt(rsa, in, nil);
-	setmalloctag(out, getcallerpc(&in));
 	mpfree(in);
 	return out;
 }
@@ -286,18 +279,15 @@ verify_key(char *host, RSApub *received_key, char *keyring) {
 				if (readpublickey(f, file_key) == 0) {
 					debug(DBG_AUTH, "Can't read key\n");	
 					fclose(f);
-					rsapubfree(file_key);
 					return key_file;
 				}
 				if (mpcmp(file_key->n, received_key->n) ||
 				    mpcmp(file_key->ek, received_key->ek)) {
 					debug(DBG_AUTH, "wrong key\n", s);	
 					fclose(f);
-					rsapubfree(file_key);
 					return key_wrong;
 				}
 				fclose(f);
-				rsapubfree(file_key);
 				return key_ok;
 			}
 			*p++ = c;

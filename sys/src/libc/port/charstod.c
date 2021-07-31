@@ -8,73 +8,62 @@
  * necessary to back up the input stream up one byte after calling charstod.
  */
 
-#define ADVANCE *s++ = c; if(s>=e) return NaN(); c = (*f)(vp)
-
 double
 charstod(int(*f)(void*), void *vp)
 {
-	char str[400], *s, *e;
-	int c;
+	double num, dem;
+	int neg, eneg, dig, exp, c;
 
-	s = str;
-	e = str + sizeof str - 1;
+	num = 0;
+	neg = 0;
+	dig = 0;
+	exp = 0;
+	eneg = 0;
+
 	c = (*f)(vp);
 	while(c == ' ' || c == '\t')
 		c = (*f)(vp);
 	if(c == '-' || c == '+'){
-		ADVANCE;
+		if(c == '-')
+			neg = 1;
+		c = (*f)(vp);
 	}
 	while(c >= '0' && c <= '9'){
-		ADVANCE;
+		num = num*10 + c-'0';
+		c = (*f)(vp);
 	}
-	if(c == '.'){
-		ADVANCE;
-		while(c >= '0' && c <= '9'){
-			ADVANCE;
-		}
+	if(c == '.')
+		c = (*f)(vp);
+	while(c >= '0' && c <= '9'){
+		num = num*10 + c-'0';
+		dig++;
+		c = (*f)(vp);
 	}
 	if(c == 'e' || c == 'E'){
-		ADVANCE;
+		c = (*f)(vp);
 		if(c == '-' || c == '+'){
-			ADVANCE;
+			if(c == '-'){
+				dig = -dig;
+				eneg = 1;
+			}
+			c = (*f)(vp);
 		}
 		while(c >= '0' && c <= '9'){
-			ADVANCE;
+			exp = exp*10 + c-'0';
+			c = (*f)(vp);
 		}
-	}else if(c == 'i' || c == 'I'){
-		ADVANCE;
-		if(c != 'n' && c != 'N')
-			return NaN();
-		ADVANCE;
-		if(c != 'f' && c != 'F')
-			return NaN();
-		ADVANCE;
-		if(c != 'i' && c != 'I')
-			return NaN();
-		ADVANCE;
-		if(c != 'n' && c != 'N')
-			return NaN();
-		ADVANCE;
-		if(c != 'i' && c != 'I')
-			return NaN();
-		ADVANCE;
-		if(c != 't' && c != 'T')
-			return NaN();
-		ADVANCE;
-		if(c != 'y' && c != 'Y')
-			return NaN();
-		ADVANCE;  /* so caller can back up uniformly */
-		USED(c);
-	}else if(c == 'n' || c == 'N'){
-		ADVANCE;
-		if(c != 'a' && c != 'A')
-			return NaN();
-		ADVANCE;
-		if(c != 'n' && c != 'N')
-			return NaN();
-		ADVANCE;  /* so caller can back up uniformly */
-		USED(c);
 	}
-	*s = 0;
-	return strtod(str, &s);
+	exp -= dig;
+	if(exp < 0){
+		exp = -exp;
+		eneg = !eneg;
+	}
+	dem = pow10(exp);
+	if(eneg)
+		num /= dem;
+	else
+		num *= dem;
+	if(neg)
+		return -num;
+	return num;
 }

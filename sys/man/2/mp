@@ -228,11 +228,11 @@ grows the allocation of
 .I b
 to fit at least
 .I n
-bits.  If
+bits.  It also sets
 .B b->top
-doesn't cover
+to the cover
 .I n
-bits it increases it to do so.
+bits so the result is unnormalized.
 Unless you are writing new basic operations, you
 can restrict yourself to
 .B mpnew(0)

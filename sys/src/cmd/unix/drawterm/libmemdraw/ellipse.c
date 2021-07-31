@@ -142,8 +142,7 @@ memellipse(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp)
 		outx = step(&out);
 		if(y > inb) {
 			erect(-outx, y, outx, y, &p);
-			if(y != 0)
-				erect(-outx, -y, outx, -y, &p);
+			erect(-outx, -y, outx, -y, &p);
 			continue;
 		}
 		if(t > 0) {
@@ -153,11 +152,9 @@ memellipse(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp)
 		} else if(inx > outx)
 			inx = outx;
 		erect(inx, y, outx, y, &p);
-		if(y != 0)
-			erect(inx, -y, outx, -y, &p);
+		erect(inx, -y, outx, -y, &p);
 		erect(-outx, y, -inx, y, &p);
-		if(y != 0)
-			erect(-outx, -y, -inx, -y, &p);
+		erect(-outx, -y, -inx, -y, &p);
 		inx = outx + 1;
 	}
 }

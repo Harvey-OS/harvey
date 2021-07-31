@@ -46,5 +46,3 @@ char	*addpart(Edit*, Part*);
 char	*delpart(Edit*, Part*);
 char *parseexpr(char *s, vlong xdot, vlong xdollar, vlong xsize, vlong *result);
 int	ctldiff(Edit *edit, int ctlfd);
-void *emalloc(ulong);
-char *estrdup(char*);

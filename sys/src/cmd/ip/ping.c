@@ -104,10 +104,8 @@ clean(ushort seq, vlong now, int ttl)
 			else
 				reply(r);
 			free(r);
-		} else {
-			last = r;
+		} else
 			l = &(r->next);
-		}
 	}
 	unlock(&listlock);
 }
@@ -132,8 +130,6 @@ sender(int fd, int msglen, int interval, int n)
 	ip->code = 0;
 
 	for(i = 0; i < n; i++){
-		if(i != 0)
-			sleep(interval);
 		r = malloc(sizeof *r);
 		if(r != nil){
 			ip->seq[0] = seq;
@@ -154,25 +150,25 @@ sender(int fd, int msglen, int interval, int n)
 			}
 			seq++;
 		}
+		sleep(interval);
 	}
 	done = 1;
 }
 
 void
-rcvr(int fd, int msglen, int interval, int nmsg)
+rcvr(int fd, int msglen, int ms)
 {
 	uchar buf[64*1024+512];
 	Icmp *ip;
 	ushort x;
 	int i, n, munged;
 	vlong now;
-	Req *r;
 
 	ip = (Icmp*)buf;
 	sum = 0;
 
 	while(!done || first != nil){
-		alarm((nmsg-lostmsgs-rcvdmsgs)*interval+5000);
+		alarm(ms+5000);
 		n = read(fd, buf, sizeof(buf));
 		alarm(0);
 		now = nsec();
@@ -196,12 +192,6 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 		}
 		clean(x, now, ip->ttl);
 	}
-	
-	lock(&listlock);
-	for(r = first; r; r = r->next)
-		lostmsgs++;
-	unlock(&listlock);
-
 	if(lostmsgs)
 		print("%d out of %d messages lost\n", lostmsgs, lostmsgs+rcvdmsgs);
 }
@@ -211,7 +201,6 @@ main(int argc, char **argv)
 {
 	int fd;
 	int msglen, interval, nmsg;
-	Waitmsg w;
 
 	nsec();		/* make sure time file is already open */
 
@@ -258,11 +247,10 @@ main(int argc, char **argv)
 	case -1:
 		fprint(2, "%s: can't fork: %r\n", argv0);
 	case 0:
-		rcvr(fd, msglen, interval, nmsg);
+		rcvr(fd, msglen, nmsg);
 		exits(0);
 	default:
 		sender(fd, msglen, interval, nmsg);
-		wait(&w);
 		exits(0);
 	}
 }

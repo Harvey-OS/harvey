@@ -64,7 +64,7 @@ static	int	mtf(uchar*, int);
 
 #define FORWARD 0
 
-static void
+void
 mtflistinit(Mtf *m, uchar *front, int n)
 {
 	int last, me, f, i, comb;
@@ -125,7 +125,7 @@ mtflistinit(Mtf *m, uchar *front, int n)
 	m->maxcomb = comb;
 }
 
-static int
+int
 mtflist(Mtf *m, int pos)
 {
 	uchar *next, *prev, *mycomb;
@@ -361,19 +361,20 @@ fillbits(Decode *dec)
  * decode one symbol
  */
 static int
-hdecsym(Decode *dec, Huff *h, int b)
+hdecsym(Decode *dec, Huff *h)
 {
 	long c;
 	ulong bits;
-	int nbits;
+	int b, nbits;
 
 	bits = dec->bits;
-	nbits = dec->nbits;
-	for(; (c = bits >> (nbits - b)) > h->maxcode[b]; b++)
-		;
+	b = h->flatbits;
+	nbits = dec->nbits - b;
+	for(; (c = bits >> nbits) > h->maxcode[b]; b++)
+		nbits--;
 	if(b > h->maxbits)
 		fatal(dec, "too many bits consumed");
-	dec->nbits = nbits - b;
+	dec->nbits = nbits;
 	return h->decode[h->last[b] - c];
 }
 
@@ -381,19 +382,19 @@ static int
 hdec(Decode *dec)
 {
 	ulong c;
-	int nbits, nb;
+	int nbits;
 
 	if(dec->nbits < dec->tab.maxbits)
 		fillbits(dec);
 	nbits = dec->nbits;
 	dec->bits &= (1 << nbits) - 1;
 	c = dec->tab.flat[dec->bits >> (nbits - dec->tab.flatbits)];
-	nb = c & 0xff;
-	c >>= 8;
-	if(nb == 0xff)
-		c = hdecsym(dec, &dec->tab, c);
-	else
-		dec->nbits = nbits - nb;
+	if(c == ~0)
+		c = hdecsym(dec, &dec->tab);
+	else{
+		dec->nbits = nbits - (c & 0xff);
+		c >>= 8;
+	}
 
 	/*
 	 * reverse funny run-length coding
@@ -412,7 +413,7 @@ hdec(Decode *dec)
 static void
 hufftab(Decode *dec, Huff *h, char *hb, ulong *bitcount, int maxleaf, int maxbits, int flatbits)
 {
-	ulong c, mincode, code, nc[MaxHuffBits];
+	ulong c, code, nc[MaxHuffBits];
 	int i, b, ec;
 
 	h->maxbits = maxbits;
@@ -424,9 +425,8 @@ hufftab(Decode *dec, Huff *h, char *hb, ulong *bitcount, int maxleaf, int maxbit
 	for(b = 0; b <= maxbits; b++){
 		h->last[b] = c;
 		c += bitcount[b];
-		mincode = code << 1;
-		nc[b] = mincode;
-		code = mincode + bitcount[b];
+		nc[b] = code << 1;
+		code = (code << 1) + bitcount[b];
 		if(code > (1 << b))
 			fatal(dec, "corrupted huffman table");
 		h->maxcode[b] = code - 1;
@@ -441,21 +441,6 @@ hufftab(Decode *dec, Huff *h, char *hb, ulong *bitcount, int maxleaf, int maxbit
 	b = 1 << flatbits;
 	for(i = 0; i < b; i++)
 		h->flat[i] = ~0;
-
-	/*
-	 * initialize the flat table to include the minimum possible
-	 * bit length for each code prefix
-	 */
-	for(b = maxbits; b > flatbits; b--){
-		code = h->maxcode[b];
-		if(code == -1)
-			break;
-		mincode = code + 1 - bitcount[b];
-		mincode >>= b - flatbits;
-		code >>= b - flatbits;
-		for(; mincode <= code; mincode++)
-			h->flat[mincode] = (b << 8) | 0xff;
-	}
 
 	for(i = 0; i < maxleaf; i++){
 		b = hb[i];
@@ -584,12 +569,12 @@ recvtab(Decode *dec, Huff *tab, int maxleaf, ushort *map)
 			fillbits(dec);
 		dec->bits &= (1 << dec->nbits) - 1;
 		m = tab->flat[dec->bits >> (dec->nbits - tab->flatbits)];
-		b = m & 0xff;
-		m >>= 8;
-		if(b == 0xff)
-			m = hdecsym(dec, tab, m);
-		else
-			dec->nbits -= b;
+		if(m == ~0)
+			m = hdecsym(dec, tab);
+		else{
+			dec->nbits -= m & 0xff;
+			m >>= 8;
+		}
 		b = tmtf[m];
 		for(; m > 0; m--)
 			tmtf[m] = tmtf[m-1];

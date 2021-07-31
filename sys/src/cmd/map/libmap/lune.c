@@ -1,5 +1,3 @@
-#include <u.h>
-#include <libc.h>
 #include "map.h"
 
 int Xstereographic(struct place *place, double *x, double *y);

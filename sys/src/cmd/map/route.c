@@ -1,5 +1,3 @@
-#include <u.h>
-#include <libc.h>
 #include "map.h"
 
 /* Given two lat-lon pairs, find an orientation for the

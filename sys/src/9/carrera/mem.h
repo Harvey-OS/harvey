@@ -27,7 +27,7 @@
 #define	MS2HZ		(1000/HZ)		/* millisec per clock tick */
 #define	TK2SEC(t)	((t)/HZ)		/* ticks to seconds */
 #define	TK2MS(t)	((t)*MS2HZ)		/* ticks to milliseconds */
-#define	MS2TK(t)	(((t)*HZ+500)/1000)	/* milliseconds to closest tick */
+#define	MS2TK(t)	((t)/MS2HZ)		/* milliseconds to ticks */
 
 /*
  * CP0 registers

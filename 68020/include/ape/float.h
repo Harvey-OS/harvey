@@ -35,16 +35,6 @@
 #define LDBL_MAX_10_EXP	DBL_MAX_10_EXP
 
 
-typedef 	union FPdbleword FPdbleword;
-union FPdbleword
-{
-	double	x;
-	struct {	/* big endian */
-		long hi;
-		long lo;
-	};
-};
-
 #ifdef _RESEARCH_SOURCE
 /* define order of longs in IEEE double: little endian */
 #define IEEE_MC68k	1

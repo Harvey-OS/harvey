@@ -17,7 +17,7 @@ main(void)
 
 	fmtinstall('B', mpconv);
 
-	rsa = rsagen(1024, 16, 0);
+	rsa = rsagen(512, 16);
 	if(rsa == nil)
 		sysfatal("rsagen");
 	Binit(&b, 0, OREAD);
@@ -35,7 +35,7 @@ main(void)
 
 	start = nsec();
 	for(n = 0; n < 10; n++)
-		mpexp(enc, rsa->dk, rsa->pub.n, clr2);
+		mpexp(enc, rsa->d.k, rsa->d.n, clr2);
 	print("%lld\n", nsec()-start);
 
 	if(mpcmp(clr, clr2) != 0)
@@ -50,8 +50,8 @@ main(void)
 		print("enc %B\n", enc);
 		rsadecrypt(rsa, enc, clr);
 		print("clr %B\n", clr);
-		n = mptole(clr, buf, sizeof(buf), nil);
-		write(1, buf, n);
+		e = mptole(clr, buf, sizeof(buf), nil);
+		write(1, buf, e-buf);
 		print("> ");
 	}
 }

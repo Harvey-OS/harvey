@@ -108,11 +108,14 @@ typedef struct Ccb24 {
 	uchar	reserved[2];		/* */
 	uchar	cs[12+0xFF];		/* Command descriptor block + Sense bytes */
 
+	void*	data;			/* buffer if address > 24-bits */
+
 	Rendez;
 	int	done;			/* command completed */
 
 	Ccb*	ccb;			/* link on free list */
 } Ccb24;
+
 
 typedef struct Ccb32 {
 	uchar	opcode;			/* Operation code */
@@ -173,13 +176,6 @@ enum {					/* CCB control */
 	NoIntr		= 0x80,		/* No Interrupts */
 };
 
-typedef struct Bbuf Bbuf;
-struct Bbuf {
-	Bbuf*	next;
-	uchar*	data;			/* original data */
-	uchar*	buf;			/* bounce buffer */
-};
-
 typedef struct {
 	ulong	port;			/* I/O port */
 	int	id;			/* adapter SCSI id */
@@ -201,10 +197,7 @@ typedef struct {
 	Ccb*	ccb;			/* list of free Ccb's */
 	Ccb*	cache[NTarget];		/* last completed Ccb */
 
-	Lock	bblock;
-	Bbuf*	bbuf;			/* list of free 24-bit bounce buffers */
-	QLock	bbq;
-	Rendez	bbr;
+	uchar*	buf[NTarget];		/* 24-bit bounce buffers */
 } Ctlr;
 
 /*
@@ -213,18 +206,13 @@ typedef struct {
  * straddle a cache-line boundary.
  * The number of Ccb's should be less than the number of mailboxes to
  * ensure no queueing is necessary on mailbox allocation.
- * NBbuf should minimally be the actual number of targets plus some
- * slop for queuing. Since 24-bit controllers are never wide and it's
- * unlikely anyone would fully populate the controller, 8 is probably
- * enough.
  */
 enum {
 	NMbox		= 8*8,		/* number of Mbox's */
 	NCcb		= NMbox-1,	/* number of Ccb's */
-	NBbuf		= 8,		/* number of 24-bit bounce buffers */
 };
 
-#define PADDR24(a, n)	((PADDR(a)+(n)) <= (1<<24))
+#define PADDR24(a, n)	(PADDR(a)+n <= (1<<24))
 
 static Ctlr *ctlrxx[MaxScsi];
 static int ctrls;
@@ -277,7 +265,7 @@ ccbfree(Ctlr* ctlr, Ccb* ccb)
 		((Ccb24*)ccb)->ccb = ctlr->ccb;
 	else
 		((Ccb32*)ccb)->ccb = ctlr->ccb;
-	if(ctlr->ccb == nil)
+	if(ctlr->ccb == 0)
 		wakeup(&ctlr->ccbr);
 	ctlr->ccb = ccb;
 	unlock(&ctlr->ccblock);
@@ -286,7 +274,7 @@ ccbfree(Ctlr* ctlr, Ccb* ccb)
 static int
 ccbavailable(void* a)
 {
-	return ((Ctlr*)a)->ccb != nil;
+	return ((Ctlr*)a)->ccb != 0;
 }
 
 static Ccb*
@@ -314,45 +302,6 @@ ccballoc(Ctlr* ctlr)
 	return ccb;
 }
 
-static void
-bbfree(Ctlr* ctlr, Bbuf *bb)
-{
-	lock(&ctlr->bblock);
-	bb->next = ctlr->bbuf;
-	if(ctlr->bbuf == nil)
-		wakeup(&ctlr->bbr);
-	ctlr->bbuf = bb;
-	unlock(&ctlr->bblock);
-}
-
-static int
-bbavailable(void* a)
-{
-	return ((Ctlr*)a)->bbuf != nil;
-}
-
-static Bbuf*
-bballoc(Ctlr* ctlr)
-{
-	Bbuf *bb;
-
-	for(;;){
-		lock(&ctlr->bblock);
-		if(bb = ctlr->bbuf){
-			ctlr->bbuf = bb->next;
-			unlock(&ctlr->bblock);
-			break;
-		}
-
-		unlock(&ctlr->bblock);
-		qlock(&ctlr->bbq);
-		sleep(&ctlr->bbr, bbavailable, ctlr);
-		qunlock(&ctlr->bbq);
-	}
-
-	return bb;
-}
-
 static int
 done24(void* arg)
 {
@@ -365,13 +314,12 @@ scsiio24(Target* t, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 	Ctlr *ctlr;
 	Ccb24 *ccb;
 	Mbox24 *mb;
-	Bbuf *bb;
 	ulong p;
 	int d, id, n, btstat, sdstat;
 	uchar *sense;
 	uchar lun;
 
-	if((ctlr = ctlrxx[t->ctlrno]) == nil || ctlr->port == 0)
+	if((ctlr = ctlrxx[t->ctlrno]) == 0 || ctlr->port == 0)
 		return STharderr;
 	id = t->targetno;
 	if(ctlr->id == id)
@@ -386,7 +334,7 @@ scsiio24(Target* t, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 	 */
 	lock(&ctlr->cachelock);
 	if(ccb = ctlr->cache[id]){
-		ctlr->cache[id] = nil;
+		ctlr->cache[id] = 0;
 		if(cmd[0] == 0x03 && ccb->sdstat == STcheck && lun == ((ccb->cs[1]>>5) & 0x07)){
 			unlock(&ctlr->cachelock);
 			if(dbytes){
@@ -402,7 +350,7 @@ scsiio24(Target* t, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 		}
 	}
 	unlock(&ctlr->cachelock);
-	if(ccb == nil)
+	if(ccb == 0)
 		ccb = ccballoc(ctlr);
 
 	/*
@@ -415,14 +363,11 @@ scsiio24(Target* t, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 	else
 		n = 0;
 	if(n && !PADDR24(data, n)){
-		bb = bballoc(ctlr);
-		bb->data = data;
+		ccb->data = data;
+		data = ctlr->buf[t->targetno];
 		if(rw == SCSIwrite)
-			memmove(bb->buf, data, n);
-		data = bb->buf;
+			memmove(data, ccb->data, n);
 	}
-	else
-		bb = nil;
 
 	/*
 	 * Fill in the ccb.
@@ -509,10 +454,10 @@ scsiio24(Target* t, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 	/*
 	 * Tidy things up if a staging area was used for the data,
 	 */
-	if(bb != nil){
+	if(ccb->data){
 		if(sdstat == STok && btstat == 0 && rw == SCSIread)
-			memmove(bb->data, data, n);
-		bbfree(ctlr, bb);
+			memmove(ccb->data, data, n);
+		ccb->data = 0;
 	}
 
 	/*
@@ -599,7 +544,7 @@ scsiio32(Target* t, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 	int d, id, n, btstat, sdstat;
 	uchar lun;
 
-	if((ctlr = ctlrxx[t->ctlrno]) == nil || ctlr->port == 0)
+	if((ctlr = ctlrxx[t->ctlrno]) == 0 || ctlr->port == 0)
 		return STharderr;
 	id = t->targetno;
 	if(ctlr->id == id)
@@ -614,7 +559,7 @@ scsiio32(Target* t, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 	 */
 	lock(&ctlr->cachelock);
 	if(ccb = ctlr->cache[id]){
-		ctlr->cache[id] = nil;
+		ctlr->cache[id] = 0;
 		if(cmd[0] == 0x03 && ccb->sdstat == STcheck && lun == (ccb->luntag & 0x07)){
 			unlock(&ctlr->cachelock);
 			if(dbytes){
@@ -629,7 +574,7 @@ scsiio32(Target* t, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 		}
 	}
 	unlock(&ctlr->cachelock);
-	if(ccb == nil)
+	if(ccb == 0)
 		ccb = ccballoc(ctlr);
 
 	/*
@@ -874,16 +819,14 @@ buslogic24(Ctlr* ctlr, ISAConf* isa)
 {
 	ulong p;
 	Ccb24 *ccb, *ccbp;
-	Bbuf *bb;
 	uchar cmd[6], *v;
 	int i, len;
 
-	len = (sizeof(Mbox24)*NMbox*2)+(sizeof(Ccb24)*NCcb)+(sizeof(Bbuf)*NBbuf);
+	len = (sizeof(Mbox24)*NMbox*2)+(sizeof(Ccb24)*NCcb)+(RBUFSIZE*NTarget);
 	v = ialloc(len, 0);
 
 	if(!PADDR24(ctlr, sizeof(Ctlr)) || !PADDR24(v, len)){
-		print("scsi#%d: %s: 24-bit allocation failed\n",
-			ctlr->ctlrno, isa->type);
+		print("scsi#%d: %s: 24-bit allocation failed\n", ctlr->ctlrno, isa->type);
 		return 0;
 	}
 
@@ -897,17 +840,9 @@ buslogic24(Ctlr* ctlr, ISAConf* isa)
 	}
 	v += sizeof(Ccb24)*NCcb;
 
-	for(i = 0; i < NBbuf; i++){
-		bb = (Bbuf*)v;
-		bb->buf = ialloc(RBUFSIZE, 32);
-		if(bb->buf == nil || !PADDR24(bb->buf, RBUFSIZE)){
-			print("scsi#%d: %s: 24-bit bb allocation failed (%d)\n",
-				ctlr->ctlrno, isa->type, i);
-			break;
-		}
-		bb->next = ctlr->bbuf;
-		ctlr->bbuf = bb;
-		v += sizeof(Bbuf);
+	for(i = 0; i < NTarget; i++){
+		ctlr->buf[i] = v;
+		v += RBUFSIZE;
 	}
 
 	/*
@@ -1016,6 +951,8 @@ buslogicpci(void)
 		ap = (Adapter*)mb->data;
 		ap->port = p->mem[0].bar & ~0x01;
 		ap->pcidev = p;
+//print("buslogic pci: port 0x%ux irq 0x%d tbdf 0x%ux\n",
+//    ap->port, p->intl, p->tbdf);
 
 		mb->next = adapter;
 		adapter = mb;
@@ -1044,7 +981,7 @@ buslogic(int ctlrno, ISAConf* isa)
 	 * otherwise the ports must match.
 	 */
 	port = 0;
-	pcidev = nil;
+	pcidev = 0;
 	mbb = &adapter;
 	for(mb = *mbb; mb != nil; mb = mb->next){
 		ap = (Adapter*)mb->data;
@@ -1177,6 +1114,11 @@ buslogic(int ctlrno, ISAConf* isa)
 		print("scsi#%d: %s: can't inquire configuration\n", ctlrno, isa->type);
 		return 0;
 	}
+//print("scsi%d: port 0x%ux irq 0x%2.2ux wide %d\n",
+//    ctlrno, port, data[1], wide);
+//if(pcidev)
+//    print("scsi%d: port 0x%ux irq 0x%2.2ux tbdf 0x%ux wide %d\n",
+//	ctlrno, port, pcidev->intl, pcidev->tbdf, wide);
 
 	if(pcidev && pcidev->intl)
 		isa->irq = pcidev->intl;

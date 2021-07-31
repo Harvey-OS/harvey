@@ -142,7 +142,7 @@ mouseopen(Chan *c, int omode)
 		unlock(&mouse);
 		break;
 	case Qmousein:
-	/*	error("disabled");	*/
+		error("disabled");
 		lock(&mouse);
 		if(mouse.inopen){
 			unlock(&mouse);
@@ -199,7 +199,6 @@ mouseread(Chan *c, void *va, long n, vlong off)
 	static int map[8] = {0, 4, 2, 6, 1, 5, 3, 7 };
 	ulong offset = off;
 	Mousestate m;
-	int b;
 
 	p = va;
 	switch(c->qid.path){
@@ -246,12 +245,9 @@ mouseread(Chan *c, void *va, long n, vlong off)
 			unlock(&cursor);
 		}
 
-		b = buttonmap[m.buttons&7];
-		/* put buttons 4 and 5 back in */
-		b |= m.buttons & (3<<3);
 		sprint(buf, "m%11d %11d %11d %11lud",
 			m.xy.x, m.xy.y,
-			b,
+			buttonmap[m.buttons&7],
 			m.msec);
 		mouse.lastcounter = m.counter;
 		if(n > 1+4*12)
@@ -550,7 +546,7 @@ m3mouseputc(Queue*, int c)
 	static uchar msg[3];
 	static int nb;
 	static int middle;
-	static uchar b[] = { 0, 4, 1, 5, 0, 2, 1, 3 };
+	static uchar b[] = { 0, 4, 1, 5, 0, 2, 1, 5 };
 	short x;
 	int dx, dy, newbuttons;
 
@@ -590,7 +586,7 @@ mouseputc(Queue*, int c)
 {
 	static short msg[5];
 	static int nb;
-	static uchar b[] = {0, 4, 2, 6, 1, 5, 3, 7, 0, 2, 2, 6, 1, 3, 3, 7};
+	static uchar b[] = {0, 4, 2, 6, 1, 5, 3, 7, 0, 2, 2, 6, 1, 5, 3, 7};
 	int dx, dy, newbuttons;
 
 	if((c&0xF0) == 0x80)

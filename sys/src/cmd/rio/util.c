@@ -50,7 +50,6 @@ error(char *s)
 	threadprint(2, "rio: %s: %r\n", s);
 	if(errorshouldabort)
 		abort();
-	threadexitsall("error");
 }
 
 void*

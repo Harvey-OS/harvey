@@ -58,7 +58,7 @@ int
 chalreply(Chalstate *c, char *response)
 {
 	char resp[NETCHLEN];
-	char ticket[TICKETLEN+AUTHENTLEN];
+	char ticket[TICKETLEN];
 
 	/* send response to auth server and get ticket */
 	memset(resp, 0, sizeof resp);

@@ -6,7 +6,7 @@ struct Rawimage
 	uchar	*cmap;
 	int		cmaplen;
 	int		nchans;
-	uchar	*chans[4];
+	uchar	*chans[3];
 	int		chandesc;
 	int		chanlen;
 
@@ -26,9 +26,6 @@ enum
 	CRGB1	= 3,  /* one channel, map present */
 	CRGBV	= 4,	/* one channel, map is RGBV, understood */
 	CRGB24	= 5,	/* one channel in correct data order for loadimage(RGB24) */
-	CRGBA32	= 6,	/* one channel in correct data order for loadimage(RGBA32) */
-	CYA16	= 7,	/* one channel in correct data order for loadimage(Grey8+Alpha8) */
-	CRGBVA16= 8,	/* one channel in correct data order for loadimage(CMAP8+Alpha8) */
 
 	/* GIF flags */
 	TRANSP	= 1,

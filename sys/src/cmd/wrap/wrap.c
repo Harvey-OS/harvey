@@ -62,8 +62,6 @@ readupdate(Update *u, char *base, char *elem)
 
 	p = mkpath(u->dir, "md5sum");
 	u->bmd5 = Bopen(p, OREAD);
-if(u->bmd5 == nil)
-	fprint(2, "warning: cannot open %s: %r\n", p);
 	free(p);
 
 	q = mkpath(u->dir, "update");
@@ -123,7 +121,7 @@ updatecmp(void *va, void *vb)
 	b = vb;
 	if(a->utime == b->utime)
 		return 0;
-	if(a->utime > b->utime)
+	if(a->utime < b->utime)
 		return -1;
 	return 1;
 }
@@ -188,8 +186,9 @@ openupdate(Update **up, char *dir, vlong *tpkgp)
 			continue;
 		if(t < tpkg)
 			continue;
-		if(t < tpkgupd && type == UPD)
+		if(t < tpkgupd && t == UPD)
 			continue;
+			
 		if(nu%8 == 0)
 			u = erealloc(u, (nu+8)*sizeof(u[0]));
 		u[nu].type = type;
@@ -197,6 +196,7 @@ openupdate(Update **up, char *dir, vlong *tpkgp)
 			nu++;
 	}
 	close(fd);
+
 	if(nu == 0)
 		return -1;
 
@@ -315,14 +315,13 @@ getfileinfo(Wrap *w, char *file, vlong *t, uchar *digest)
 		return -1;
 
 	p = nil;
-	for(i=w->nu-1; i>=0; i--)
+	for(i=w->nu-1, u=w->u+i; i>=0; i--, u--)
 		if(p=Bsearch(w->u[i].bmd5, file))
 			break;
 
 	if(p == nil)
 		return -1;
 
-	u = &w->u[i];
 	if(t)
 		*t = u->time;
 

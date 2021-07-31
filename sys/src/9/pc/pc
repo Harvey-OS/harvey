@@ -11,7 +11,6 @@ dev
 	rtc
 	ssl
 	bridge
-	loopback
 
 	ether		netif
 	ip		arp dial inferno ip ipaux iproute kio netlog nullmedium pktmedium ptclbsum386
@@ -40,7 +39,6 @@ link
 	etherelnk3	pci
 	ethermedium
 	pcmciamodem
-	netdevmedium
 
 misc
 	archmp		mp apic
@@ -51,20 +49,18 @@ misc
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
 
-	vga3dfx		+cur
 	vgaark2000pv	+cur
 	vgabt485	=cur
 	vgaclgd542x	+cur
 	vgaclgd546x	+cur
 	vgact65545	+cur
 	vgacyber938x	+cur
-	vgaet4000	+cur
 	vgahiqvideo	+cur
 	vgamach64xx	+cur
 	vgamga2164w	+cur
 	vganeomagic	+cur
 	vgargb524	=cur
-	vgas3		+cur vgasavage
+	vgas3		+cur
 	vgat2r4		+cur
 	vgatvp3020	=cur
 	vgatvp3026	=cur

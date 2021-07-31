@@ -19,12 +19,7 @@ getcodes(void)
 	if(dirstat(codefile, &d) < 0 || (fd = open(codefile, OREAD)) < 0)
 		return;
 
-	codes = malloc(d.length+1+1);
-	if(codes == nil) {
-		close(fd);
-		return;
-	}
-
+	codes = emalloc(d.length+1+1);
 	codes[0] = '\n';	/* for searches */
 	n = readn(fd, codes+1, d.length);
 	close(fd);
@@ -217,24 +212,18 @@ openscsi(char *dev)
 	char *name, *p, buf[512];
 
 	l = strlen(dev)+1+3+1;
-	name = malloc(l);
-	if(name == nil)
-		return nil;
+	name = emalloc(l);
 
 	snprint(name, l, "%s/raw", dev);
-	if((rawfd = open(name, ORDWR)) < 0) {
-		free(name);
+	if((rawfd = open(name, ORDWR)) < 0)
 		return nil;
-	}
 
 	snprint(name, l, "%s/ctl", dev);
 	if((ctlfd = open(name, ORDWR)) < 0) {
-		free(name);
 	Error:
 		close(rawfd);
 		return nil;
 	}
-	free(name);
 
 	n = readn(ctlfd, buf, sizeof buf);
 	close(ctlfd);
@@ -248,20 +237,15 @@ openscsi(char *dev)
 	if((p = strdup(buf+8)) == nil)
 		goto Error;
 
-	s = malloc(sizeof(*s));
-	if(s == nil) {
-	Error1:
-		free(p);
-		goto Error;
-	}
-	memset(s, 0, sizeof(*s));
-
+	s = emalloc(sizeof(*s));
 	s->rawfd = rawfd;
 	s->inquire = p;
 	s->changetime = time(0);
 	
-	if(scsiready(s) < 0)
-		goto Error1;
+	if(scsiready(s) < 0){
+		free(p);
+		goto Error;
+	}
 
 	return s;
 }

@@ -8,7 +8,7 @@ static void decode(u32int*, uchar*, ulong);
 
 
 static void
-sha1block(uchar *p, ulong len, SHA1state *s)
+sha1block(uchar *p, ulong len, SHAstate *s)
 {
 	u32int a, b, c, d, e, tmp;
 	uchar *end;
@@ -92,8 +92,8 @@ sha1block(uchar *p, ulong len, SHA1state *s)
  *  the last call.  There must be room in the input buffer
  *  to pad.
  */
-SHA1state*
-sha1(uchar *p, ulong len, uchar *digest, SHA1state *s)
+SHAstate*
+sha1(uchar *p, ulong len, uchar *digest, SHAstate *s)
 {
 	uchar buf[128];
 	u32int x[16];

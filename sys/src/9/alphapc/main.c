@@ -15,8 +15,7 @@ Hwrpb *hwrpb;
 Bootconf *bootconf;
 Conf	conf;
 FPsave	initfp;
-	/* setfcr(FPPDBL|FPRNR|FPINVAL|FPZDIV|FPOVFL) */
-uvlong initfpcr = (1LL<62)|(1LL<61)|(1LL<60)|(2LL<<58)|(1LL<48);
+uvlong initfpcr = 0x2800800000000000LL;
 
 char bootargs[BOOTARGSLEN];
 char *confname[MAXCONF];

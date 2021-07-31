@@ -509,16 +509,12 @@ nvramread(int offset)
 }
 
 void (*etherdetach)(void);
-void (*sddetach)(void);
 
 void
 warp9(ulong entry)
 {
 	if(etherdetach)
 		etherdetach();
-	if(sddetach)
-		sddetach();
-
 	consdrain();
 	(*(void(*)(void))(PADDR(entry)))();
 }

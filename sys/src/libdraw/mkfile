@@ -24,6 +24,7 @@ OFILES=	alloc.$O\
 	getdefont.$O\
 	getrect.$O\
 	getsubfont.$O\
+	greystring.$O\
 	icossin.$O\
 	icossin2.$O\
 	init.$O\

@@ -50,7 +50,7 @@ image(Angle ra, Angle dec, Angle wid, Angle hig)
 	}
 
 	if(debug)
-		Bprint(&bout, "best plate: %s %s disk %d %s\n",
+		print("best plate: %s %s disk %d %s\n",
 			hms(bp->ra), dms(bp->dec),
 			bp->disk, bp->rgn);
 
@@ -85,11 +85,11 @@ image(Angle ra, Angle dec, Angle wid, Angle hig)
 	if(higy > 14000) higy = 14000;
 
 	if(debug)
-		Bprint(&bout, "xy on plate: %d,%d %d,%d\n",
+		print("xy on plate: %d,%d %d,%d\n",
 			lowx,lowy, higx, higy);
 
 	if(lowx >= higx || lowy >=higy) {
-		Bprint(&bout, "no image found\n");
+		print("no image found\n");
 		return 0;
 	}
 

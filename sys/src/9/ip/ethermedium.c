@@ -22,7 +22,7 @@ static void	etherunbind(Ipifc *ifc);
 static void	etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip);
 static void	etheraddmulti(Ipifc *ifc, uchar *a, uchar *ia);
 static void	etherremmulti(Ipifc *ifc, uchar *a, uchar *ia);
-static Block*	multicastarp(Fs *f, Arpent *a, Medium*, uchar *mac);
+static Block*	multicastarp(Fs *f, Arpent *a, uchar *mac);
 static void	sendarp(Ipifc *ifc, Arpent *a);
 static void	sendgarp(Ipifc *ifc, uchar*);
 static int	multicastea(uchar *ea, uchar *ip);
@@ -34,22 +34,6 @@ Medium ethermedium =
 .hsize=		14,
 .minmtu=	60,
 .maxmtu=	1514,
-.maclen=	6,
-.bind=		etherbind,
-.unbind=	etherunbind,
-.bwrite=	etherbwrite,
-.addmulti=	etheraddmulti,
-.remmulti=	etherremmulti,
-.ares=		arpenter,
-.areg=		sendgarp,
-};
-
-Medium gbemedium =
-{
-.name=		"gbe",
-.hsize=		14,
-.minmtu=	60,
-.maxmtu=	9014,
 .maclen=	6,
 .bind=		etherbind,
 .unbind=	etherunbind,
@@ -231,10 +215,10 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 	Etherrock *er = ifc->arg;
 
 	/* get mac address of destination */
-	a = arpget(er->f->arp, bp, version, ifc->m, ip, mac);
+	a = arpget(er->f->arp, bp, version, &ethermedium, ip, mac);
 	if(a){
 		/* check for broadcast or multicast */
-		bp = multicastarp(er->f, a, ifc->m, mac);
+		bp = multicastarp(er->f, a, mac);
 		if(bp == nil){
 			sendarp(ifc, a);
 			return;
@@ -400,8 +384,8 @@ sendgarp(Ipifc *ifc, uchar *ip)
 		return;
 
 	n = sizeof(Etherarp);
-	if(n < ifc->m->minmtu)
-		n = ifc->m->minmtu;
+	if(n < ethermedium.minmtu)
+		n = ethermedium.minmtu;
 	bp = allocb(n);
 	memset(bp->rp, 0, n);
 	e = (Etherarp*)bp->rp;
@@ -549,7 +533,7 @@ multicastea(uchar *ea, uchar *ip)
  *  addresses
  */
 static Block*
-multicastarp(Fs *f, Arpent *a, Medium *medium, uchar *mac)
+multicastarp(Fs *f, Arpent *a, uchar *mac)
 {
 	/* is it broadcast? */
 	switch(ipforme(f, a->ip)){
@@ -557,7 +541,7 @@ multicastarp(Fs *f, Arpent *a, Medium *medium, uchar *mac)
 		return nil;
 	case Rbcast:
 		memset(mac, 0xff, 6);
-		return arpresolve(f->arp, a, medium, mac);
+		return arpresolve(f->arp, a, &ethermedium, mac);
 	default:
 		break;
 	}
@@ -566,7 +550,7 @@ multicastarp(Fs *f, Arpent *a, Medium *medium, uchar *mac)
 	switch(multicastea(mac, a->ip)){
 	case V4:
 	case V6:
-		return arpresolve(f->arp, a, medium, mac);
+		return arpresolve(f->arp, a, &ethermedium, mac);
 	}
 
 	/* let arp take care of it */
@@ -577,5 +561,4 @@ void
 ethermediumlink(void)
 {
 	addipmedium(&ethermedium);
-	addipmedium(&gbemedium);
 }

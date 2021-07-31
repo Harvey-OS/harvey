@@ -7,6 +7,7 @@ listinit(void)
 	fmtinstall('R', Rconv);
 	fmtinstall('A', Aconv);
 	fmtinstall('D', Dconv);
+	fmtinstall('X', Xconv);
 	fmtinstall('S', Sconv);
 	fmtinstall('P', Pconv);
 }
@@ -76,37 +77,27 @@ Dconv(va_list *arg, Fconv *fp)
 		a->displace = 0;
 		switch(i & I_MASK) {
 		default:
-			sprint(str, "???%ld(%D)", d, a);
+			sprint(str, "???%ld(%D)%X", d, a, i, a->scale);
 			break;
 
 		case I_INDEX1:
-			sprint(str, "%D", a);
+			sprint(str, "%D%X", a, i, a->scale);
 			break;
 
 		case I_INDEX2:
 			if(d)
-				sprint(str, "%ld(%D)", d, a);
+				sprint(str, "%ld(%D)%X", d, a, i, a->scale);
 			else
-				sprint(str, "(%D)", a);
+				sprint(str, "(%D)%X", a, i, a->scale);
 			break;
 
 		case I_INDEX3:
 			if(d)
-				sprint(str, "%ld(%D", d, a);
+				sprint(str, "%ld(%D%X)", d, a, i, a->scale);
 			else
-				sprint(str, "(%D", a);
+				sprint(str, "(%D%X)", a, i, a->scale);
 			break;
 		}
-
-		if(i != D_NONE) {
-			j = a->scale & 7;
-			sprint(strchr(str,0), "(%R.", i);
-			sprint(strchr(str,0), "%c*%c)",
-				"WWWWLLLL"[j],
-				"12481248"[j]);
-		}
-		if((i & I_MASK) == I_INDEX3)
-			strcat(str, ")");
 		a->displace = d;
 		a->index = i;
 		goto out;

@@ -32,7 +32,6 @@ ramfs ramfs
 rdbfs rdbfs
 recover recover
 rio rio
-sacfs sacfs
 snap snap
 snapfs snap
 9fs srv

@@ -43,20 +43,19 @@ span(void)
 			diag("zero-width instruction\n%P\n", p);
 			continue;
 		}
-		switch(o->flag & (LFROM|LTO|LPOOL)) {
-		case LFROM:
-			addpool(p, &p->from);
-			break;
-		case LTO:
-			addpool(p, &p->to);
-			break;
-		case LPOOL:
-			if ((p->scond&C_SCOND) == 14)
+		if(o->lit) {
+			switch(o->lit) {
+			case LFROM:
+				addpool(p, &p->from);
+				break;
+			case LTO:
+				addpool(p, &p->to);
+				break;
+			case LPOOL:
 				flushpool(p, 0);
-			break;
+				break;
+			}
 		}
-		if(p->as==AMOVW && p->to.type==D_REG && p->to.reg==REGPC && (p->scond&C_SCOND) == 14)
-			flushpool(p, 0);
 		c += m;
 		if(blitrl)
 			checkpool(p);
@@ -139,8 +138,6 @@ checkpool(Prog *p)
 {
 	if(pool.size >= 0xffc || immaddr((p->pc+4)+4+pool.size - pool.start+8) == 0)
 		flushpool(p, 1);
-	else if(p->link == P)
-		flushpool(p, 2);
 }
 
 void
@@ -150,7 +147,7 @@ flushpool(Prog *p, int skip)
 
 	if(blitrl) {
 		if(skip){
-			if(skip==1)print("note: flush literal pool at %lux: len=%lud ref=%lux\n", p->pc+4, pool.size, pool.start);
+			print("note: flush literal pool at %lux: len=%ld ref=%lux\n", p->pc+4, pool.size, pool.start);
 			q = prg();
 			q->as = AB;
 			q->to.type = D_BRANCH;
@@ -158,8 +155,6 @@ flushpool(Prog *p, int skip)
 			q->link = blitrl;
 			blitrl = q;
 		}
-		else if(p->pc+pool.size-pool.start < 2048)
-			return;
 		elitrl->link = p->link;
 		p->link = blitrl;
 		blitrl = 0;	/* BUG: should refer back to values until out-of-range */
@@ -184,14 +179,8 @@ addpool(Prog *p, Adr *a)
 	default:
 		t.to = *a;
 		break;
-
-	case C_SROREG:
 	case C_LOREG:
 	case C_ROREG:
-	case C_FOREG:
-	case C_SOREG:
-	case C_FAUTO:
-	case C_SAUTO:
 	case C_LAUTO:
 	case C_LACON:
 		t.to.type = D_CONST;
@@ -257,6 +246,7 @@ immrot(ulong v)
 long
 immaddr(long v)
 {
+
 	if(v >= 0 && v <= 0xfff)
 		return (v & 0xfff) |
 			(1<<24) |	/* pre indexing */
@@ -274,19 +264,6 @@ immfloat(long v)
 }
 
 int
-immhalf(long v)
-{
-	if(v >= 0 && v <= 0xff)
-		return v|
-			(1<<24)|	/* pre indexing */
-			(1<<23);	/* pre indexing, up */
-	if(v >= -0xff && v < 0)
-		return (-v & 0xff)|
-			(1<<24);	/* pre indexing */
-	return 0;
-}
-
-int
 aclass(Adr *a)
 {
 	Sym *s;
@@ -298,9 +275,6 @@ aclass(Adr *a)
 
 	case D_REG:
 		return C_REG;
-
-	case D_REGREG:
-		return C_REGREG;
 
 	case D_SHIFT:
 		return C_SHIFT;
@@ -329,8 +303,6 @@ aclass(Adr *a)
 			instoffset = a->sym->value + a->offset - BIG;
 			t = immaddr(instoffset);
 			if(t) {
-				if(immhalf(instoffset))
-					return immfloat(t) ? C_HFEXT : C_HEXT;
 				if(immfloat(t))
 					return C_FEXT;
 				return C_SEXT;
@@ -340,8 +312,6 @@ aclass(Adr *a)
 			instoffset = autosize + a->offset;
 			t = immaddr(instoffset);
 			if(t){
-				if(immhalf(instoffset))
-					return immfloat(t) ? C_HFAUTO : C_HAUTO;
 				if(immfloat(t))
 					return C_FAUTO;
 				return C_SAUTO;
@@ -352,8 +322,6 @@ aclass(Adr *a)
 			instoffset = autosize + a->offset + 4L;
 			t = immaddr(instoffset);
 			if(t){
-				if(immhalf(instoffset))
-					return immfloat(t) ? C_HFAUTO : C_HAUTO;
 				if(immfloat(t))
 					return C_FAUTO;
 				return C_SAUTO;
@@ -363,15 +331,11 @@ aclass(Adr *a)
 			instoffset = a->offset;
 			t = immaddr(instoffset);
 			if(t) {
-				if(immhalf(instoffset))		 /* n.b. that it will also satisfy immrot */
-					return immfloat(t) ? C_HFOREG : C_HOREG;
 				if(immfloat(t))
 					return C_FOREG; /* n.b. that it will also satisfy immrot */
 				t = immrot(instoffset);
 				if(t)
-					return C_SROREG;
-				if(immhalf(instoffset))
-					return C_HOREG;
+					return C_BOREG;
 				return C_SOREG;
 			}
 			t = immrot(instoffset);
@@ -544,40 +508,34 @@ cmp(int a, int b)
 		if(b == C_RECON)
 			return 1;
 		break;
-
-	case C_HFEXT:
-		return b == C_HEXT || b == C_FEXT;
-	case C_FEXT:
-	case C_HEXT:
-		return b == C_HFEXT;
 	case C_SEXT:
-		return cmp(C_HFEXT, b);
+		if(b == C_FEXT)
+			return 1;
+		break;
 	case C_LEXT:
-		return cmp(C_SEXT, b);
-
-	case C_HFAUTO:
-		return b == C_HAUTO || b == C_FAUTO;
-	case C_FAUTO:
-	case C_HAUTO:
-		return b == C_HFAUTO;
+		if(b == C_SEXT || b == C_FEXT)
+			return 1;
+		break;
 	case C_SAUTO:
-		return cmp(C_HFAUTO, b);
+		if(b == C_FAUTO)
+			return 1;
+		break;
 	case C_LAUTO:
-		return cmp(C_SAUTO, b);
-
-	case C_HFOREG:
-		return b == C_HOREG || b == C_FOREG;
-	case C_FOREG:
-	case C_HOREG:
-		return b == C_HFOREG;
-	case C_SROREG:
-		return cmp(C_SOREG, b) || cmp(C_ROREG, b);
-	case C_SOREG:
-	case C_ROREG:
-		return b == C_SROREG || cmp(C_HFOREG, b);
+		if(b == C_SAUTO || b == C_FAUTO)
+			return 1;
+		break;
 	case C_LOREG:
-		return cmp(C_SROREG, b);
-
+		if(b == C_BOREG || b == C_ROREG || b == C_SOREG || b == C_FOREG)
+			return 1;
+		break;
+	case C_SOREG:
+		if(b == C_BOREG || b == C_FOREG)
+			return 1;
+		break;
+	case C_ROREG:
+		if(b == C_BOREG || b == C_FOREG)
+			return 1;
+		break;
 	case C_LBRA:
 		if(b == C_SBRA)
 			return 1;
@@ -597,9 +555,6 @@ ocmp(const void *a1, const void *a2)
 	n = p1->as - p2->as;
 	if(n)
 		return n;
-	n = (p2->flag&V4) - (p1->flag&V4);	/* architecture version */
-	if(n)
-		return n;
 	n = p1->a1 - p2->a1;
 	if(n)
 		return n;
@@ -617,15 +572,11 @@ buildop(void)
 {
 	int i, n, r;
 
-	armv4 = !debug['h'];
-	for(i=0; i<C_GOK; i++)
-		for(n=0; n<C_GOK; n++)
+	for(i=0; i<32; i++)
+		for(n=0; n<32; n++)
 			xcmp[i][n] = cmp(n, i);
 	for(n=0; optab[n].as != AXXX; n++)
-		if((optab[n].flag & V4) && !armv4) {
-			optab[n].as = AXXX;
-			break;
-		}
+		;
 	qsort(optab, n, sizeof(optab[0]), ocmp);
 	for(i=0; i<n; i++) {
 		r = optab[i].as;
@@ -731,17 +682,10 @@ buildop(void)
 			oprange[AMOVWD] = oprange[r];
 			oprange[AMOVDW] = oprange[r];
 			break;
-
-		case AMULL:
-			oprange[AMULAL] = oprange[r];
-			oprange[AMULLU] = oprange[r];
-			oprange[AMULALU] = oprange[r];
-			break;
 		}
 	}
 }
 
-/*
 void
 buildrep(int x, int as)
 {
@@ -777,4 +721,3 @@ buildrep(int x, int as)
 	}
 	oprange[as].start = 0;
 }
-*/

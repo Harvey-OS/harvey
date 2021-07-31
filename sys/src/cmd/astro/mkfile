@@ -29,9 +29,6 @@ OFILES=\
 	venust.$O\
 	cosadd.$O\
 	nutt.$O\
-	uran.$O\
-	nept.$O\
-	plut.$O\
 
 HFILES=astro.h\
 

@@ -63,13 +63,6 @@ error(char *fmt, ...)
 }
 
 void
-usage(void)
-{
-	fprint(2, "usage: g3p9bit [-gy] file\n");
-	exits("usage");
-}
-
-void
 main(int argc, char **argv)
 {
 	int y, fd, n, m;
@@ -78,21 +71,20 @@ main(int argc, char **argv)
 	int gray=0;
 	int yscale=1;
 
-	ARGBEGIN{
-	case 'g':
+	if(argc > 1 && strcmp(argv[1], "-g") == 0) {
 		/* do simulated 2bit gray to compress x */
 		gray++;
-		break;
-	case 'y':
+		argv++, argc--;
+	}
+	if(argc > 1 && strcmp(argv[1], "-y") == 0) {
 		/* double each scan line to double the y resolution */
 		yscale=2;
-		break;
-	default:
-		usage();
-	}ARGEND
-
-	if(argc > 1)
-		usage();
+		argv++, argc--;
+	}
+	if(argc > 2){
+		fprint(2, "usage: g3out file\n");
+		exits("usage");
+	}
 
 	initwbtab();
 	buf = malloc(1024*1024);
@@ -103,8 +95,8 @@ main(int argc, char **argv)
 
 	file = "<stdin>";
 	fd = 0;
-	if(argc > 0){
-		file = argv[0];
+	if(argc > 1){
+		file = argv[1];
 		fd = open(file, OREAD);
 		if(fd < 0)
 			error("can't open %s", file);

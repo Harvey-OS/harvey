@@ -2,6 +2,10 @@
  * Posix generic OS implementation for drawterm.
  */
 
+#include "lib9.h"
+#include "sys.h"
+#include "error.h"
+
 #include	<pthread.h>
 #include	<time.h>
 #include	<signal.h>
@@ -9,9 +13,6 @@
 #include	<errno.h>
 #include	<sys/time.h>
 
-#include "lib9.h"
-#include "sys.h"
-#include "error.h"
 typedef struct Ttbl	Ttbl;
 typedef struct Thread	Thread;
 
@@ -103,7 +104,7 @@ threadinit(void)
 {
 	Thread *t;
 
-	setpgid(getpid(), getpgrp());
+	setpgrp();
 	signal(SIGQUIT, handler);
 	signal(SIGTERM, handler);
 	signal(SIGCHLD, SIG_IGN);

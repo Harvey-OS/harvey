@@ -178,17 +178,15 @@ outch(int base, int c)
 {
 	int status, tries;
 
-	for(tries=0;; tries++) {
+	for(tries = 0;; tries++){
 		status = inb(base+Qpsr);
-		if(status&Fnotbusy)
-			break;
-		if((status&Fpe)==0 && (status&(Fselect|Fnoerror)) != (Fselect|Fnoerror))
+		if(!(status & Fselect) || !(status & Fnoerror))
 			error(Eio);
-		if(tries < 10)
-			tsleep(&lptrendez, return0, nil, 1);
-		else {
+		if(status & Fnotbusy)
+			break;
+		if(tries > 1000){
 			outb(base+Qpcr, Finitbar|Fie);
-			tsleep(&lptrendez, lptready, (void *)base, 100);
+			tsleep(&lptrendez, lptready, (void *)base, MS2HZ);
 		}
 	}
 	outb(base+Qdlr, c);

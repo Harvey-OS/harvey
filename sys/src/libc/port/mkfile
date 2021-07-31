@@ -21,7 +21,6 @@ ALLOFILES=\
 	exp.$O\
 	fabs.$O\
 	fastrand.$O\
-	fltconv.$O\
 	floor.$O\
 	fmod.$O\
 	getcallerpc.$O\
@@ -37,8 +36,6 @@ ALLOFILES=\
 	memmove.$O\
 	memset.$O\
 	mktemp.$O\
-	muldiv.$O\
-	nan.$O\
 	netcrypt.$O\
 	netmkaddr.$O\
 	perror.$O\
@@ -51,18 +48,6 @@ ALLOFILES=\
 	rand.$O\
 	readn.$O\
 	rune.$O\
-	runestrcat.$O\
-	runestrchr.$O\
-	runestrcmp.$O\
-	runestrcpy.$O\
-	runestrecpy.$O\
-	runestrdup.$O\
-	runestrncat.$O\
-	runestrncmp.$O\
-	runestrncpy.$O\
-	runestrrchr.$O\
-	runestrlen.$O\
-	runestrstr.$O\
 	runetype.$O\
 	sin.$O\
 	sinh.$O\
@@ -71,7 +56,6 @@ ALLOFILES=\
 	strchr.$O\
 	strcmp.$O\
 	strcpy.$O\
-	strecpy.$O\
 	strcspn.$O\
 	strdup.$O\
 	strlen.$O\
@@ -93,7 +77,6 @@ ALLOFILES=\
 	tokenize.$O\
 	toupper.$O\
 	utflen.$O\
-	utfnlen.$O\
 	utfrune.$O\
 	utfrrune.$O\
 	utfutf.$O\

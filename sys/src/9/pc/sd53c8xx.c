@@ -77,8 +77,6 @@ extern SDifc sd53c8xxifc;
 /* CPU specific macros            */
 /**********************************/
 
-#define PRINTPREFIX "sd53c8xx: "
-
 #ifdef BOOTDEBUG
 
 #define KPRINT oprint
@@ -317,10 +315,6 @@ static unsigned char cf2[] = { 6, 2, 3, 4, 6, 8, 12, 16 };
 
 typedef struct Controller {
 	Lock;
-	struct {
-		uchar scntl3;
-		uchar stest2;
-	} bios;
 	uchar synctab[NULTRA2SCF - 1][8];/* table of legal tpfs */
 	NegoState s[MAXTARGET];
 	uchar scntl3[MAXTARGET];
@@ -346,7 +340,7 @@ typedef struct Controller {
 		Lock;
 		uchar head[4];		/* head of free list (NCR byte order) */
 		Dsa	*tail;
-		Dsa	*freechain;
+		Dsa	*free;
 	} dsalist;
 
 	QLock q[MAXTARGET];		/* queues for each target */
@@ -365,7 +359,6 @@ enum { DataOut, DataIn, Cmd, Status, ReservedOut, ReservedIn, MessageOut, Messag
 
 static void setmovedata(Movedata*, ulong, ulong);
 static void advancedata(Movedata*, long);
-static int bios_set_differential(Controller *c);
 
 static char *phase[] = {
 	"data out", "data in", "command", "status",
@@ -429,10 +422,10 @@ dsaalloc(Controller *c, int target, int lun)
 	Dsa *d;
 
 	ilock(&c->dsalist);
-	if ((d = c->dsalist.freechain) == 0) {
+	if ((d = c->dsalist.free) == 0) {
 		d = xalloc(sizeof(*d));
 		if (DEBUG(1))
-			KPRINT(PRINTPREFIX "%d/%d: allocated new dsa %lux\n", target, lun, (ulong)d);
+			KPRINT("sd53c8xx: %d/%d: allocated new dsa %lux\n", target, lun, d);
 		lesetl(d->next, 0);
 		lesetl(d->state, A_STATE_ALLOCATED);
 		if (legetl(c->dsalist.head) == 0)
@@ -443,8 +436,8 @@ dsaalloc(Controller *c, int target, int lun)
 	}
 	else {
 		if (DEBUG(1))
-			KPRINT(PRINTPREFIX "%d/%d: reused dsa %lux\n", target, lun, (ulong)d);
-		c->dsalist.freechain = d->freechain;
+			KPRINT("sd53c8xx: %d/%d: reused dsa %lux\n", target, lun, d);
+		c->dsalist.free = d->freechain;
 		lesetl(d->state, A_STATE_ALLOCATED);
 	}
 	iunlock(&c->dsalist);
@@ -457,8 +450,8 @@ static void
 dsafree(Controller *c, Dsa *d)
 {
 	ilock(&c->dsalist);
-	d->freechain = c->dsalist.freechain;
-	c->dsalist.freechain = d;
+	d->freechain = c->dsalist.free;
+	c->dsalist.free = d;
 	lesetl(d->state, A_STATE_FREE);
 	iunlock(&c->dsalist);
 }
@@ -713,7 +706,7 @@ synctabinit(Controller *c)
 		if (chooserate(c, tpf, &scf, &xferp) == tpf) {
 			unsigned tp = tpf == 10 ? 25 : (tpf == 12 ? 50 : tpf * 4);
 			unsigned long khz = (MEGA + tp - 1) / (tp);
-			KPRINT(PRINTPREFIX "tpf=%d scf=%d.%.1d xferp=%d mhz=%ld.%.3ld\n",
+			KPRINT("sd53c8xx: tpf=%d scf=%d.%.1d xferp=%d mhz=%ld.%.3ld\n",
 			    tpf, cf2[scf] / 2, (cf2[scf] & 1) ? 5 : 0,
 			    xferp + 4, khz / 1000, khz % 1000);
 			USED(khz);
@@ -789,7 +782,7 @@ start(Controller *c, long entry)
 	ulong p;
 
 	if (c->running)
-		panic(PRINTPREFIX "start called while running");
+		panic("sd53c8xx: start called while running");
 	c->running = 1;
 	p = c->scriptpa + entry;
 	lesetl(c->n->dsp, p);
@@ -801,7 +794,7 @@ static void
 ncrcontinue(Controller *c)
 {
 	if (c->running)
-		panic(PRINTPREFIX "ncrcontinue called while running");
+		panic("sd53c8xx: ncrcontinue called while running");
 	/* set the start DMA bit to continue execution */
 	c->running = 1;
 	c->n->dcntl |= 0x4;
@@ -845,13 +838,13 @@ softreset(Controller *c)
 		n->dmode |= (1 << 1);	/* burst opcode fetch */
 	if (c->v->feature & Differential) {
 		/* chip capable */
-		if ((c->feature & Differential) || bios_set_differential(c)) {
-			/* user enabled, or some evidence bios set differential */
+		if ((c->feature & Differential) || (n->gpreg & 0x8) == 0) {
+			/* user enabled, or bit 3 of GPREG clear (Symbios cards) */
 			if (n->sstat2 & (1 << 2))
-				print(PRINTPREFIX "can't go differential; wrong cable\n");
+				print("sd53c8xx: can't go differential; wrong cable\n");
 			else {
 				n->stest2 = (1 << 5);
-				print(PRINTPREFIX "differential mode set\n");
+				print("sd53c8xx: differential mode set\n");
 			}
 		}
 	}
@@ -882,7 +875,7 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 			/* reply to my SDTR */
 			histpf = n->scratcha[2];
 			hisreqack = n->scratcha[3];
-			KPRINT(PRINTPREFIX "%d: SDTN response %d %d\n",
+			KPRINT("sd53c8xx: %d: SDTN response %d %d\n",
 			    dsa->target, histpf, hisreqack);
 
 			if (hisreqack == 0)
@@ -890,7 +883,7 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 			else {
 				/* hisreqack should be <= c->v->maxsyncoff */
 				tpf = chooserate(c, histpf, &scf, &xferp);
-				KPRINT(PRINTPREFIX "%d: SDTN: using %d %d\n",
+				KPRINT("sd53c8xx: %d: SDTN: using %d %d\n",
 				    dsa->target, tpf, hisreqack);
 				setsync(dsa, c, dsa->target, tpf < 25, scf, xferp, hisreqack);
 			}
@@ -898,16 +891,16 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 			return;
 		case A_SIR_EV_PHASE_SWITCH_AFTER_ID:
 			/* target ignored ATN for message after IDENTIFY - not SCSI-II */
-			KPRINT(PRINTPREFIX "%d: illegal phase switch after ID message - SCSI-1 device?\n", dsa->target);
-			KPRINT(PRINTPREFIX "%d: SDTN: async\n", dsa->target);
+			KPRINT("sd53c8xx: %d: illegal phase switch after ID message - SCSI-1 device?\n", dsa->target);
+			KPRINT("sd53c8xx: %d: SDTN: async\n", dsa->target);
 			setasync(dsa, c, dsa->target);
 			*cont = E_to_decisions;
 			return;
 		case A_SIR_MSG_REJECT:
 			/* rejection of my SDTR */
-			KPRINT(PRINTPREFIX "%d: SDTN: rejected SDTR\n", dsa->target);
+			KPRINT("sd53c8xx: %d: SDTN: rejected SDTR\n", dsa->target);
 		//async:
-			KPRINT(PRINTPREFIX "%d: SDTN: async\n", dsa->target);
+			KPRINT("sd53c8xx: %d: SDTN: async\n", dsa->target);
 			setasync(dsa, c, dsa->target);
 			*cont = -2;
 			return;
@@ -917,20 +910,20 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 		switch (msg) {
 		case A_SIR_MSG_WDTR:
 			/* reply to my WDTR */
-			KPRINT(PRINTPREFIX "%d: WDTN: response %d\n",
+			KPRINT("sd53c8xx: %d: WDTN: response %d\n",
 			    dsa->target, n->scratcha[2]);
 			setwide(dsa, c, dsa->target, n->scratcha[2]);
 			*cont = -2;
 			return;
 		case A_SIR_EV_PHASE_SWITCH_AFTER_ID:
 			/* target ignored ATN for message after IDENTIFY - not SCSI-II */
-			KPRINT(PRINTPREFIX "%d: illegal phase switch after ID message - SCSI-1 device?\n", dsa->target);
+			KPRINT("sd53c8xx: %d: illegal phase switch after ID message - SCSI-1 device?\n", dsa->target);
 			setwide(dsa, c, dsa->target, 0);
 			*cont = E_to_decisions;
 			return;
 		case A_SIR_MSG_REJECT:
 			/* rejection of my SDTR */
-			KPRINT(PRINTPREFIX "%d: WDTN: rejected WDTR\n", dsa->target);
+			KPRINT("sd53c8xx: %d: WDTN: rejected WDTR\n", dsa->target);
 			setwide(dsa, c, dsa->target, 0);
 			*cont = -2;
 			return;
@@ -945,11 +938,11 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 			uchar hiswide, mywide;
 			hiswide = n->scratcha[2];
 			mywide = (c->v->feature & Wide) != 0;
-			KPRINT(PRINTPREFIX "%d: WDTN: target init %d\n",
+			KPRINT("sd53c8xx: %d: WDTN: target init %d\n",
 			    dsa->target, hiswide);
 			if (hiswide < mywide)
 				mywide = hiswide;
-			KPRINT(PRINTPREFIX "%d: WDTN: responding %d\n",
+			KPRINT("sd53c8xx: %d: WDTN: responding %d\n",
 			    dsa->target, mywide);
 			setwide(dsa, c, dsa->target, mywide);
 			len = buildwdtrmsg(dsa->msg_out, mywide);
@@ -966,7 +959,7 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 			/* target decides to renegotiate */
 			histpf = n->scratcha[2];
 			hisreqack = n->scratcha[3];
-			KPRINT(PRINTPREFIX "%d: SDTN: target init %d %d\n",
+			KPRINT("sd53c8xx: %d: SDTN: target init %d %d\n",
 			    dsa->target, histpf, hisreqack);
 			if (hisreqack == 0) {
 				/* he wants asynchronous */
@@ -978,7 +971,7 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 				tpf = chooserate(c, histpf, &scf, &xferp);
 				if (hisreqack > c->v->maxsyncoff)
 					hisreqack = c->v->maxsyncoff;
-				KPRINT(PRINTPREFIX "%d: using %d %d\n",
+				KPRINT("sd53c8xx: %d: using %d %d\n",
 				    dsa->target, tpf, hisreqack);
 				setsync(dsa, c, dsa->target, tpf < 25, scf, xferp, hisreqack);
 			}
@@ -995,12 +988,12 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 		switch (msg) {
 		case A_SIR_EV_RESPONSE_OK:
 			c->s[dsa->target] = WideDone;
-			KPRINT(PRINTPREFIX "%d: WDTN: response accepted\n", dsa->target);
+			KPRINT("sd53c8xx: %d: WDTN: response accepted\n", dsa->target);
 			*cont = -2;
 			return;
 		case A_SIR_MSG_REJECT:
 			setwide(dsa, c, dsa->target, 0);
-			KPRINT(PRINTPREFIX "%d: WDTN: response REJECTed\n", dsa->target);
+			KPRINT("sd53c8xx: %d: WDTN: response REJECTed\n", dsa->target);
 			*cont = -2;
 			return;
 		}
@@ -1009,19 +1002,19 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 		switch (msg) {
 		case A_SIR_EV_RESPONSE_OK:
 			c->s[dsa->target] = BothDone;
-			KPRINT(PRINTPREFIX "%d: SDTN: response accepted (%s)\n",
+			KPRINT("sd53c8xx: %d: SDTN: response accepted (%s)\n",
 			    dsa->target, phase[n->sstat1 & 7]);
 			*cont = -2;
 			return;	/* chf */
 		case A_SIR_MSG_REJECT:
 			setasync(dsa, c, dsa->target);
-			KPRINT(PRINTPREFIX "%d: SDTN: response REJECTed\n", dsa->target);
+			KPRINT("sd53c8xx: %d: SDTN: response REJECTed\n", dsa->target);
 			*cont = -2;
 			return;
 		}
 		break;
 	}
-	KPRINT(PRINTPREFIX "%d: msgsm: state %d msg %d\n",
+	KPRINT("sd53c8xx: %d: msgsm: state %d msg %d\n",
 	    dsa->target, c->s[dsa->target], msg);
 	*wakeme = 1;
 	return;
@@ -1061,7 +1054,7 @@ read_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 	else
 		inchip = ((dfifo & 0x7f) - (dbc & 0x7f)) & 0x7f;
 	if (inchip) {
-		IPRINT(PRINTPREFIX "%d/%d: read_mismatch_recover: DMA FIFO = %d\n",
+		IPRINT("sd53c8xx: %d/%d: read_mismatch_recover: DMA FIFO = %d\n",
 		    dsa->target, dsa->lun, inchip);
 	}
 	if (n->sxfer & 0xf) {
@@ -1071,19 +1064,19 @@ read_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 			fifo |= (n->sstat2 & (1 << 4));
 		if (fifo) {
 			inchip += fifo;
-			IPRINT(PRINTPREFIX "%d/%d: read_mismatch_recover: SCSI FIFO = %d\n",
+			IPRINT("sd53c8xx: %d/%d: read_mismatch_recover: SCSI FIFO = %d\n",
 			    dsa->target, dsa->lun, fifo);
 		}
 	}
 	else {
 		if (n->sstat0 & (1 << 7)) {
 			inchip++;
-			IPRINT(PRINTPREFIX "%d/%d: read_mismatch_recover: SIDL full\n",
+			IPRINT("sd53c8xx: %d/%d: read_mismatch_recover: SIDL full\n",
 			    dsa->target, dsa->lun);
 		}
 		if (n->sstat2 & (1 << 7)) {
 			inchip++;
-			IPRINT(PRINTPREFIX "%d/%d: read_mismatch_recover: SIDL msb full\n",
+			IPRINT("sd53c8xx: %d/%d: read_mismatch_recover: SIDL msb full\n",
 			    dsa->target, dsa->lun);
 		}
 	}
@@ -1106,20 +1099,20 @@ write_mismatch_recover(Ncr *n, Dsa *dsa)
 		inchip = ((dfifo & 0x7f) - (dbc & 0x7f)) & 0x7f;
 #ifdef WMR_DEBUG
 	if (inchip) {
-		IPRINT(PRINTPREFIX "%d/%d: write_mismatch_recover: DMA FIFO = %d\n",
+		IPRINT("sd53c8xx: %d/%d: write_mismatch_recover: DMA FIFO = %d\n",
 		    dsa->target, dsa->lun, inchip);
 	}
 #endif
 	if (n->sstat0 & (1 << 5)) {
 		inchip++;
 #ifdef WMR_DEBUG
-		IPRINT(PRINTPREFIX "%d/%d: write_mismatch_recover: SODL full\n", dsa->target, dsa->lun);
+		IPRINT("sd53c8xx: %d/%d: write_mismatch_recover: SODL full\n", dsa->target, dsa->lun);
 #endif
 	}
 	if (n->sstat2 & (1 << 5)) {
 		inchip++;
 #ifdef WMR_DEBUG
-		IPRINT(PRINTPREFIX "%d/%d: write_mismatch_recover: SODL msb full\n", dsa->target, dsa->lun);
+		IPRINT("sd53c8xx: %d/%d: write_mismatch_recover: SODL msb full\n", dsa->target, dsa->lun);
 #endif
 	}
 	if (n->sxfer & 0xf) {
@@ -1127,14 +1120,14 @@ write_mismatch_recover(Ncr *n, Dsa *dsa)
 		if (n->sstat0 & (1 << 6)) {
 			inchip++;
 #ifdef WMR_DEBUG
-			IPRINT(PRINTPREFIX "%d/%d: write_mismatch_recover: SODR full\n",
+			IPRINT("sd53c8xx: %d/%d: write_mismatch_recover: SODR full\n",
 			    dsa->target, dsa->lun);
 #endif
 		}
 		if (n->sstat2 & (1 << 6)) {
 			inchip++;
 #ifdef WMR_DEBUG
-			IPRINT(PRINTPREFIX "%d/%d: write_mismatch_recover: SODR msb full\n",
+			IPRINT("sd53c8xx: %d/%d: write_mismatch_recover: SODR msb full\n",
 			    dsa->target, dsa->lun);
 #endif
 		}
@@ -1161,32 +1154,32 @@ interrupt(Ureg *ur, void *a)
 
 	USED(ur);
 	if (DEBUG(1))
-		IPRINT(PRINTPREFIX "int\n");
+		IPRINT("sd53c8xx: int\n");
 	ilock(c);
 	istat = n->istat;
 	if (istat & Intf) {
 		Dsa *d;
 		int wokesomething = 0;
 		if (DEBUG(1))
-			IPRINT(PRINTPREFIX "Intfly\n");
+			IPRINT("sd53c8xx: Intfly\n");
 		n->istat = Intf;
 		/* search for structures in A_STATE_DONE */
 		for (d = KPTR(legetl(c->dsalist.head)); d; d = KPTR(legetl(d->next))) {
 			if (d->stateb == A_STATE_DONE) {
 				d->p9status = d->status;
 				if (DEBUG(1))
-					IPRINT(PRINTPREFIX "waking up dsa %lux\n", (ulong)d);
+					IPRINT("sd53c8xx: waking up dsa %lux\n", d);
 				wakeup(d);
 				wokesomething = 1;
 			}
 		}
 		if (!wokesomething)
-			IPRINT(PRINTPREFIX "nothing to wake up\n");
+			IPRINT("sd53c8xx: nothing to wake up\n");
 	}
 
 	if ((istat & (Sip | Dip)) == 0) {
 		if (DEBUG(1))
-			IPRINT(PRINTPREFIX "int end %x\n", istat);
+			IPRINT("sd53c8xx: int end %x\n", istat);
 		iunlock(c);
 		return;
 	}
@@ -1209,7 +1202,7 @@ interrupt(Ureg *ur, void *a)
 			addr = legetl(n->dsp);
 			sa = addr - c->scriptpa;
 			if (DEBUG(1) || DEBUG(2))
-				IPRINT(PRINTPREFIX "%d/%d: Phase Mismatch sa=%.8lux\n",
+				IPRINT("sd53c8xx: %d/%d: Phase Mismatch sa=%.8lux\n",
 				    dsa->target, dsa->lun, sa);
 			/*
 			 * now recover
@@ -1219,7 +1212,7 @@ interrupt(Ureg *ur, void *a)
 				tbc = legetl(dsa->data_buf.dbc) - dbc;
 				advancedata(&dsa->data_buf, tbc);
 				if (DEBUG(1) || DEBUG(2))
-					IPRINT(PRINTPREFIX "%d/%d: transferred = %ld residue = %ld\n",
+					IPRINT("sd53c8xx: %d/%d: transferred = %ld residue = %ld\n",
 					    dsa->target, dsa->lun, tbc, legetl(dsa->data_buf.dbc));
 				cont = E_to_decisions;
 			}
@@ -1249,7 +1242,7 @@ interrupt(Ureg *ur, void *a)
 				tbc = legetl(dsa->data_buf.dbc) - dbc;
 				advancedata(&dsa->data_buf, tbc);
 				if (DEBUG(1) || DEBUG(2))
-					IPRINT(PRINTPREFIX "%d/%d: transferred = %ld residue = %ld\n",
+					IPRINT("sd53c8xx: %d/%d: transferred = %ld residue = %ld\n",
 					    dsa->target, dsa->lun, tbc, legetl(dsa->data_buf.dbc));
 				cont = E_to_decisions;
 			}
@@ -1290,7 +1283,7 @@ interrupt(Ureg *ur, void *a)
 				uchar p = n->sstat1 & 7;
 				dbc = write_mismatch_recover(n, dsa);
 				tbc = lim - dbc;
-				IPRINT(PRINTPREFIX "%d/%d: msg_out_mismatch: %lud/%lud sent, phase %s\n",
+				IPRINT("sd53c8xx: %d/%d: msg_out_mismatch: %lud/%lud sent, phase %s\n",
 				    dsa->target, dsa->lun, tbc, lim, phase[p]);
 				if (p != MessageIn && tbc == 1) {
 					msgsm(dsa, c, A_SIR_EV_PHASE_SWITCH_AFTER_ID, &cont, &wakeme);
@@ -1306,13 +1299,13 @@ interrupt(Ureg *ur, void *a)
 				uchar p = n->sstat1 & 7;
 				dbc = write_mismatch_recover(n, dsa);
 				tbc = lim - dbc;
-				IPRINT(PRINTPREFIX "%d/%d: cmd_out_mismatch: %lud/%lud sent, phase %s\n",
+				IPRINT("sd53c8xx: %d/%d: cmd_out_mismatch: %lud/%lud sent, phase %s\n",
 				    dsa->target, dsa->lun, tbc, lim, phase[p]);
 				USED(p, tbc);
 				cont = E_to_decisions;
 			}
 			else {
-				IPRINT(PRINTPREFIX "%d/%d: ma sa=%.8lux wanted=%s got=%s\n",
+				IPRINT("sd53c8xx: %d/%d: ma sa=%.8lux wanted=%s got=%s\n",
 				    dsa->target, dsa->lun, sa,
 				    phase[n->dcmd & 7],
 				    phase[n->sstat1 & 7]);
@@ -1323,7 +1316,7 @@ interrupt(Ureg *ur, void *a)
 		}
 		/*else*/ if (sist & 0x400) {
 			if (DEBUG(0))
-				IPRINT(PRINTPREFIX "%d/%d Sto\n", dsa->target, dsa->lun);
+				IPRINT("sd53c8xx: %d/%d Sto\n", dsa->target, dsa->lun);
 			dsa->p9status = SDtimeout;
 			dsa->stateb = A_STATE_DONE;
 			softreset(c);
@@ -1331,11 +1324,11 @@ interrupt(Ureg *ur, void *a)
 			wakeme = 1;
 		}
 		if (sist & 0x1) {
-			IPRINT(PRINTPREFIX "%d/%d: parity error\n", dsa->target, dsa->lun);
+			IPRINT("sd53c8xx: %d/%d: parity error\n", dsa->target, dsa->lun);
 			dsa->parityerror = 1;
 		}
 		if (sist & 0x4) {
-			IPRINT(PRINTPREFIX "%d/%d: unexpected disconnect\n",
+			IPRINT("sd53c8xx: %d/%d: unexpected disconnect\n",
 			    dsa->target, dsa->lun);
 			dumpncrregs(c, 1);
 			//wakeme = 1;
@@ -1366,10 +1359,10 @@ interrupt(Ureg *ur, void *a)
 				break;
 			case A_SIR_MSG_IGNORE_WIDE_RESIDUE:
 				/* back up one in the data transfer */
-				IPRINT(PRINTPREFIX "%d/%d: ignore wide residue %d, WSR = %d\n",
+				IPRINT("sd53c8xx: %d/%d: ignore wide residue %d, WSR = %d\n",
 				    dsa->target, dsa->lun, n->scratcha[1], n->scntl2 & 1);
 				if (dsa->dmablks == 0 && dsa->flag)
-					IPRINT(PRINTPREFIX "%d/%d: transfer over; residue ignored\n",
+					IPRINT("sd53c8xx: %d/%d: transfer over; residue ignored\n",
 					    dsa->target, dsa->lun);
 				else
 					calcblockdma(dsa, legetl(dsa->dmaaddr) - 1,
@@ -1377,69 +1370,69 @@ interrupt(Ureg *ur, void *a)
 				cont = -2;
 				break;
 			case A_SIR_ERROR_NOT_MSG_IN_AFTER_RESELECT:
-				IPRINT(PRINTPREFIX "%d: not msg_in after reselect (%s)",
+				IPRINT("sd53c8xx: %d: not msg_in after reselect (%s)",
 				    n->ssid & 7, phase[n->sstat1 & 7]);
 				dsa = dsafind(c, n->ssid & 7, -1, A_STATE_DISCONNECTED);
 				dumpncrregs(c, 1);
 				wakeme = 1;
 				break;
 			case A_SIR_NOTIFY_MSG_IN:
-				IPRINT(PRINTPREFIX "%d/%d: msg_in %d\n",
+				IPRINT("sd53c8xx: %d/%d: msg_in %d\n",
 				    dsa->target, dsa->lun, n->sfbr);
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_DISC:
-				IPRINT(PRINTPREFIX "%d/%d: disconnect:", dsa->target, dsa->lun);
+				IPRINT("sd53c8xx: %d/%d: disconnect:", dsa->target, dsa->lun);
 				goto dsadump;
 			case A_SIR_NOTIFY_STATUS:
-				IPRINT(PRINTPREFIX "%d/%d: status\n", dsa->target, dsa->lun);
+				IPRINT("sd53c8xx: %d/%d: status\n", dsa->target, dsa->lun);
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_COMMAND:
-				IPRINT(PRINTPREFIX "%d/%d: commands\n", dsa->target, dsa->lun);
+				IPRINT("sd53c8xx: %d/%d: commands\n", dsa->target, dsa->lun);
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_DATA_IN:
-				IPRINT(PRINTPREFIX "%d/%d: data in a %lx b %lx\n",
+				IPRINT("sd53c8xx: %d/%d: data in a %lx b %lx\n",
 				    dsa->target, dsa->lun, legetl(n->scratcha), legetl(n->scratchb));
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_BLOCK_DATA_IN:
-				IPRINT(PRINTPREFIX "%d/%d: block data in: a2 %x b %lx\n",
+				IPRINT("sd53c8xx: %d/%d: block data in: a2 %x b %lx\n",
 				    dsa->target, dsa->lun, n->scratcha[2], legetl(n->scratchb));
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_DATA_OUT:
-				IPRINT(PRINTPREFIX "%d/%d: data out\n", dsa->target, dsa->lun);
+				IPRINT("sd53c8xx: %d/%d: data out\n", dsa->target, dsa->lun);
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_DUMP:
-				IPRINT(PRINTPREFIX "%d/%d: dump\n", dsa->target, dsa->lun);
+				IPRINT("sd53c8xx: %d/%d: dump\n", dsa->target, dsa->lun);
 				dumpncrregs(c, 1);
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_DUMP2:
-				IPRINT(PRINTPREFIX "%d/%d: dump2:", dsa->target, dsa->lun);
+				IPRINT("sd53c8xx: %d/%d: dump2:", dsa->target, dsa->lun);
 				IPRINT(" sa %lux", legetl(n->dsp) - c->scriptpa);
 				IPRINT(" dsa %lux", legetl(n->dsa));
 				IPRINT(" sfbr %ux", n->sfbr);
-				IPRINT(" a %lux", legetl(n->scratcha));
+				IPRINT(" a %lux", n->scratcha);
 				IPRINT(" b %lux", legetl(n->scratchb));
 				IPRINT(" ssid %ux", n->ssid);
 				IPRINT("\n");
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_WAIT_RESELECT:
-				IPRINT(PRINTPREFIX "wait reselect\n");
+				IPRINT("sd53c8xx: wait reselect\n");
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_RESELECT:
-				IPRINT(PRINTPREFIX "reselect: ssid %.2x sfbr %.2x at %ld\n",
+				IPRINT("sd53c8xx: reselect: ssid %.2x sfbr %.2x at %ld\n",
 				    n->ssid, n->sfbr, TK2MS(m->ticks));
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_ISSUE:
-				IPRINT(PRINTPREFIX "%d/%d: issue:", dsa->target, dsa->lun);
+				IPRINT("sd53c8xx: %d/%d: issue:", dsa->target, dsa->lun);
 			dsadump:
 				IPRINT(" tgt=%d", dsa->target);
 				IPRINT(" time=%ld", TK2MS(m->ticks));
@@ -1447,17 +1440,17 @@ interrupt(Ureg *ur, void *a)
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_ISSUE_CHECK:
-				IPRINT(PRINTPREFIX "issue check\n");
+				IPRINT("sd53c8xx: issue check\n");
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_SIGP:
-				IPRINT(PRINTPREFIX "responded to SIGP\n");
+				IPRINT("sd53c8xx: responded to SIGP\n");
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_DUMP_NEXT_CODE: {
 				ulong *dsp = DMASEG_TO_KADDR(legetl(n->dsp));
 				int x;
-				IPRINT(PRINTPREFIX "code at %lux", dsp - c->script);
+				IPRINT("sd53c8xx: code at %lux", dsp - c->script);
 				for (x = 0; x < 6; x++)
 					IPRINT(" %.8lux", dsp[x]);
 				IPRINT("\n");
@@ -1466,21 +1459,21 @@ interrupt(Ureg *ur, void *a)
 				break;
 			}
 			case A_SIR_NOTIFY_WSR:
-				IPRINT(PRINTPREFIX "%d/%d: WSR set\n", dsa->target, dsa->lun);
+				IPRINT("sd53c8xx: %d/%d: WSR set\n", dsa->target, dsa->lun);
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_LOAD_SYNC:
-				IPRINT(PRINTPREFIX "%d/%d: scntl=%.2x sxfer=%.2x\n",
+				IPRINT("sd53c8xx: %d/%d: scntl=%.2x sxfer=%.2x\n",
 				    dsa->target, dsa->lun, n->scntl3, n->sxfer);
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_RESELECTED_ON_SELECT:
-				IPRINT(PRINTPREFIX "%d/%d: reselected during select\n",
+				IPRINT("sd53c8xx: %d/%d: reselected during select\n",
 				    dsa->target, dsa->lun);
 				cont = -2;
 				break;
 			default:
-				IPRINT(PRINTPREFIX "%d/%d: script error %ld\n",
+				IPRINT("sd53c8xx: %d/%d: script error %ld\n",
 					dsa->target, dsa->lun, legetl(n->dsps));
 				dumpncrregs(c, 1);
 				wakeme = 1;
@@ -1489,7 +1482,7 @@ interrupt(Ureg *ur, void *a)
 		/*else*/ if (dstat & Iid) {
 			ulong addr = legetl(n->dsp);
 			ulong dbc = (n->dbc[2]<<16)|(n->dbc[1]<<8)|n->dbc[0];
-			IPRINT(PRINTPREFIX "%d/%d: Iid pa=%.8lux sa=%.8lux dbc=%lux\n",
+			IPRINT("sd53c8xx: %d/%d: Iid pa=%.8lux sa=%.8lux dbc=%lux\n",
 			    dsa->target, dsa->lun,
 			    addr, addr - c->scriptpa, dbc);
 			addr = (ulong)DMASEG_TO_KADDR(addr);
@@ -1500,7 +1493,7 @@ interrupt(Ureg *ur, void *a)
 			wakeme = 1;
 		}
 		/*else*/ if (dstat & Bf) {
-			IPRINT(PRINTPREFIX "%d/%d: Bus Fault\n", dsa->target, dsa->lun);
+			IPRINT("sd53c8xx: %d/%d: Bus Fault\n", dsa->target, dsa->lun);
 			dumpncrregs(c, 1);
 			dsa->p9status = SDeio;
 			wakeme = 1;
@@ -1517,7 +1510,7 @@ interrupt(Ureg *ur, void *a)
 	}
 	iunlock(c);
 	if (DEBUG(1)) {
-		IPRINT(PRINTPREFIX "int end 1\n");
+		IPRINT("sd53c8xx: int end 1\n");
 	}
 }
 
@@ -1558,7 +1551,7 @@ dumpwritedata(uchar *data, int datalen)
 	}
 
 	if (datalen) {
-		KPRINT(PRINTPREFIX "write:");
+		KPRINT("sd53c8xx:write:");
 		for (i = 0, bp = data; i < 50 && i < datalen; i++, bp++)
 			KPRINT("%.2ux", *bp);
 		if (i < datalen) {
@@ -1579,7 +1572,7 @@ dumpreaddata(uchar *data, int datalen)
 	}
 
 	if (datalen) {
-		KPRINT(PRINTPREFIX "read:");
+		KPRINT("sd53c8xx:read:");
 		for (i = 0, bp = data; i < 50 && i < datalen; i++, bp++)
 			KPRINT("%.2ux", *bp);
 		if (i < datalen) {
@@ -1656,7 +1649,7 @@ docheck:
 	/* work out what to do about negotiation */
 	switch (c->s[target]) {
 	default:
-		KPRINT(PRINTPREFIX "%d: strange nego state %d\n", target, c->s[target]);
+		KPRINT("sd53c8xx: %d: strange nego state %d\n", target, c->s[target]);
 		c->s[target] = NeitherDone;
 		/* fall through */
 	case NeitherDone:
@@ -1668,27 +1661,27 @@ docheck:
 			my_expo = target_expo;
 #ifdef ALWAYS_DO_WDTR
 		bc += buildwdtrmsg(d->msg_out + bc, my_expo);
-		KPRINT(PRINTPREFIX "%d: WDTN: initiating expo %d\n", target, my_expo);
+		KPRINT("sd53c8xx: %d: WDTN: initiating expo %d\n", target, my_expo);
 		c->s[target] = WideInit;
 		break;
 #else
 		if (my_expo) {
 			bc += buildwdtrmsg(d->msg_out + bc, (c->v->feature & Wide) ? 1 : 0);
-			KPRINT(PRINTPREFIX "%d: WDTN: initiating expo %d\n", target, my_expo);
+			KPRINT("sd53c8xx: %d: WDTN: initiating expo %d\n", target, my_expo);
 			c->s[target] = WideInit;
 			break;
 		}
-		KPRINT(PRINTPREFIX "%d: WDTN: narrow\n", target);
+		KPRINT("sd53c8xx: %d: WDTN: narrow\n", target);
 		/* fall through */
 #endif
 	case WideDone:
 		if (c->cap[target] & (1 << 4)) {
-			KPRINT(PRINTPREFIX "%d: SDTN: initiating %d %d\n", target, c->tpf, c->v->maxsyncoff);
+			KPRINT("sd53c8xx: %d: SDTN: initiating %d %d\n", target, c->tpf, c->v->maxsyncoff);
 			bc += buildsdtrmsg(d->msg_out + bc, c->tpf, c->v->maxsyncoff);
 			c->s[target] = SyncInit;
 			break;
 		}
-		KPRINT(PRINTPREFIX "%d: SDTN: async only\n", target);
+		KPRINT("sd53c8xx: %d: SDTN: async only\n", target);
 		c->s[target] = BothDone;
 		break;
 
@@ -1701,12 +1694,12 @@ docheck:
 	calcblockdma(d, DMASEG(r->data), r->dlen);
 
 	if (DEBUG(0)) {
-		KPRINT(PRINTPREFIX "%d/%d: exec: ", target, r->lun);
+		KPRINT("sd53c8xx: %d/%d: exec: ", target, r->lun);
 		for (bp = r->cmd; bp < &r->cmd[r->clen]; bp++)
 			KPRINT("%.2ux", *bp);
 		KPRINT("\n");
 		if (!r->write)
-			KPRINT(PRINTPREFIX "%d/%d: exec: limit=(%d)%ld\n",
+			KPRINT("sd53c8xx: %d/%d: exec: limit=(%d)%ld\n",
 			  target, r->lun, d->dmablks, legetl(d->data_buf.dbc));
 		else
 			dumpwritedata(r->data, r->dlen);
@@ -1732,8 +1725,18 @@ docheck:
 
 	while(waserror())
 		;
-	sleep(d, done, d);
+	tsleep(d, done, d, 30 * 1000);
 	poperror();
+
+	if (!done(d)) {
+		KPRINT("sd53c8xx: %d/%d: exec: Timed out\n", target, r->lun);
+		dumpncrregs(c, 0);
+		dsafree(c, d);
+		reset(c);
+		qunlock(&c->q[target]);
+		r->status = SDtimeout;
+		return r->status = SDtimeout;	/* assign */
+	}
 
 	if((status = d->p9status) == SDeio)
 		c->s[target] = NeitherDone;
@@ -1752,7 +1755,7 @@ docheck:
 	if(!r->write)
 		dumpreaddata(r->data, r->rlen);
 	if (DEBUG(0))
-		KPRINT(PRINTPREFIX "%d/%d: exec: p9status=%d status %d rlen %ld\n",
+		KPRINT("53c8xx: %d/%d: exec: p9status=%d status %d rlen %ld\n",
 		    target, r->lun, d->p9status, status, r->rlen);
 	/*
 	 * spot the identify
@@ -1763,7 +1766,7 @@ docheck:
 		c->capvalid |= 1 << target;
 		bp = r->data;
 		c->cap[target] = bp[7];
-		KPRINT(PRINTPREFIX "%d: capabilities %.2x\n", target, bp[7]);
+		KPRINT("sd53c8xx: %d: capabilities %.2x\n", target, bp[7]);
 	}
 	if(!check && status == SDcheck && !(r->flags & SDnosense)){
 		check = 1;
@@ -1789,29 +1792,9 @@ docheck:
 		status = SDcheck;
 		r->flags |= SDvalidsense;
 	}
-	KPRINT(PRINTPREFIX "%d: r flags %8.8uX status %d rlen %ld\n",
+	KPRINT("sd53c8xx: %d: r flags %8.8uX status %d rlen %ld\n",
 		target, r->flags, status, r->rlen);
 	return r->status = status;
-}
-
-static void
-cribbios(Controller *c)
-{
-	c->bios.scntl3 = c->n->scntl3;
-	c->bios.stest2 = c->n->stest2;
-	print(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n",
-		c->bios.scntl3, c->bios.stest2);
-}
-
-static int
-bios_set_differential(Controller *c)
-{
-	/* Concept lifted from FreeBSD - thanks Gerard */
-	/* basically, if clock conversion factors are set, then there is
- 	 * evidence the bios had a go at the chip, and if so, it would
-	 * have set the differential enable bit in stest2
-	 */
-	return (c->bios.scntl3 & 7) != 0 && (c->bios.stest2 & 0x20) != 0;
 }
 
 #define NCR_VID 	0x1000
@@ -1825,7 +1808,6 @@ bios_set_differential(Controller *c)
 #define SYM_895_DID	0x000c
 #define SYM_885_DID	0x000d	/* ditto */
 #define SYM_875_DID	0x000f	/* ditto */
-#define SYM_1010_DID	0x0020
 #define SYM_875J_DID	0x008f
 
 static Variant variant[] = {
@@ -1844,7 +1826,6 @@ static Variant variant[] = {
 { SYM_885_DID,   0xff, "SYM53C885",	Burst128, 16, 24, Prefetch|LocalRAM|BigFifo|Wide|Ultra|ClockDouble },
 { SYM_895_DID,   0xff, "SYM53C895",	Burst128, 16, 24, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 { SYM_896_DID,   0xff, "SYM53C896",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
-{ SYM_1010_DID,  0xff, "SYM53C1010",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 };
 
 #define offsetof(s, t) ((ulong)&((s *)0)->t)
@@ -1947,11 +1928,9 @@ sympnp(void)
 			if(p->did == v->did && p->rid <= v->maxrid)
 				break;
 		}
-		if(v >= &variant[nelem(variant)]) {
-			print(PRINTPREFIX "no match\n");
+		if(v >= &variant[nelem(variant)])
 			continue;
-		}
-		print(PRINTPREFIX "%s rev. 0x%2.2x intr=%d command=%4.4luX\n",
+		print("sd53c8xx: %s rev. 0x%2.2x intr=%d command=%4.4luX\n",
 			v->name, p->rid, p->intl, p->pcr);
 
 		regpa = p->mem[1].bar;
@@ -1962,11 +1941,8 @@ sympnp(void)
 			ba++;
 		}
 		regpa = upamalloc(regpa & ~0x0F, p->mem[1].size, 0);
-		if(regpa == 0){
-			print(PRINTPREFIX "failed to allocate register space (%d bytes at %.8lux)\n",
-				p->mem[1].size, regpa & ~0x0F);
+		if(regpa == 0)
 			continue;
-		}
 
 		script = nil;
 		scriptpa = 0;
@@ -2023,7 +1999,7 @@ buggery:
 		}
 		swabl(ctlr->script, ctlr->script, sizeof(na_script));
 
-		ctlr->dsalist.freechain = 0;
+		ctlr->dsalist.free = 0;
 		lesetl(ctlr->dsalist.head, 0);
 
 		ctlr->pcidev = p;
@@ -2070,7 +2046,6 @@ symenable(SDev* sdev)
 
 	ilock(ctlr);
 	synctabinit(ctlr);
-	cribbios(ctlr);
 	reset(ctlr);
 	iunlock(ctlr);
 
