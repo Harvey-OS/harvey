@@ -372,10 +372,9 @@ void
 bulkmtime(char *dir)
 {
 	char buf[4096];
-	char *ss, *s, *sym;
+	char *ss, *s;
 
 	if(dir){
-		sym = dir;
 		s = dir;
 		if(strcmp(dir, "/") == 0)
 			strcpy(buf, dir);
@@ -383,12 +382,11 @@ bulkmtime(char *dir)
 			sprint(buf, "%s/", dir);
 	}else{
 		s = ".";
-		sym = "";
 		buf[0] = 0;
 	}
-	if(symlook(sym, S_BULKED, 0))
+	if(symlook(s, S_BULKED, 0))
 		return;
-	ss = strdup(sym);
+	ss = strdup(s);
 	symlook(ss, S_BULKED, (void*)ss);
 	dirtime(s, buf);
 }
@@ -400,11 +398,6 @@ mkmtime(char *name, int force)
 	char *s, *ss, carry;
 	ulong t;
 	Symtab *sym;
-	char buf[4096];
-
-	strcpy(buf, name);
-	cleanname(buf);
-	name = buf;
 
 	s = utfrrune(name, '/');
 	if(s == name)

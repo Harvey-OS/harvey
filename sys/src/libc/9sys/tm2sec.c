@@ -51,7 +51,7 @@ long
 tm2sec(Tm *tm)
 {
 	long secs;
-	int i, yday, year, *d2m;
+	int i, year, *d2m;
 
 	if(strcmp(tm->zone, "GMT") != 0 && timezone.stname[0] == 0)
 		readtimezone();
@@ -67,18 +67,24 @@ tm2sec(Tm *tm)
 	}
 
 	/*
-	 *  if mday is set, use mon and mday to compute yday
+	 *  use the day of the year or, if that
+	 *  isn't set, calculate it from the month
+	 *  and day of the month.
 	 */
-	if(tm->mday){
-		yday = 0;
+	if (tm->yday != 0)
+		secs += (tm->yday - 1) * SEC2DAY;
+	else {
+		/*
+		 *  seconds per month
+		 */
 		d2m = yrsize(year);
-		for(i=0; i<tm->mon; i++)
-			yday += d2m[i+1];
-		yday += tm->mday-1;
-	}else{
-		yday = tm->yday;
+		for(i = 0; i < tm->mon; i++)
+			secs += d2m[i+1] * SEC2DAY;
+		/*
+		 * secs in last month
+		 */
+		secs += (tm->mday-1) * SEC2DAY;
 	}
-	secs += yday * SEC2DAY;
 
 	/*
 	 * hours, minutes, seconds

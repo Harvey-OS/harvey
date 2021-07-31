@@ -445,6 +445,7 @@ i8250interrupt(Ureg*, void* arg)
 	Ctlr *ctlr;
 	Uart *uart;
 	int iir, lsr, old, r;
+int nin;
 
 	uart = arg;
 
@@ -486,6 +487,7 @@ i8250interrupt(Ureg*, void* arg)
 			 * overrun is an indication that something has
 			 * already been tossed.
 			 */
+nin = 0;
 			while((lsr = csr8r(ctlr, Lsr)) & Dr){
 				if(lsr & Oe)
 					uart->oerr++;
@@ -496,7 +498,9 @@ i8250interrupt(Ureg*, void* arg)
 				r = csr8r(ctlr, Rbr);
 				if(!(lsr & (Bi|Fe|Pe)))
 					uartrecv(uart, r);
+				nin++;
 			}
+if(nin == 0) print("%ux but no data\n", iir);
 			break;
 
 		default:
@@ -523,8 +527,8 @@ i8250disable(Uart* uart)
 	csr8w(ctlr, Ier, ctlr->sticky[Ier]);
 
 	if(ctlr->iena != 0){
-		if(intrdisable(ctlr->irq, i8250interrupt, uart, ctlr->tbdf, uart->name) == 0)
-			ctlr->iena = 0;
+		intrdisable(ctlr->irq, i8250interrupt, uart, ctlr->tbdf, uart->name);
+		ctlr->iena = 0;
 	}
 }
 
