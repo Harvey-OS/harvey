@@ -712,8 +712,7 @@ reboot(void *entry, void *code, ulong size)
 		active.rebooting = 1;
 		unlock(&active);
 		shutdown(0);
-		if(arch->resetothers)
-			arch->resetothers();
+		mpresetothers();	/* bug: requires archmp */
 		delay(20);
 	}
 

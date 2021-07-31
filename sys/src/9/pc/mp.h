@@ -230,6 +230,7 @@ extern void lapictimerset(uvlong);
 
 extern void mpinit(void);
 extern int mpintrenable(Vctl*);
+extern void mpresetothers(void);
 extern void mpshutdown(void);
 
 extern _MP_ *_mp_;

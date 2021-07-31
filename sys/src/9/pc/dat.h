@@ -270,8 +270,6 @@ struct PCArch
 	void	(*clockenable)(void);
 	uvlong	(*fastclock)(uvlong*);
 	void	(*timerset)(uvlong);
-
-	void	(*resetothers)(void);	/* put other cpus into reset */
 };
 
 /* cpuid instruction result register bits */
