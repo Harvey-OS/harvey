@@ -325,6 +325,7 @@ dnageall(int doit)
 				if(dp->name)
 					free(dp->name);
 				dp->magic = ~dp->magic;
+syslog(0, "dns", "freeing %p\n", dp);
 				dnvars.names--;
 				free(dp);
 				continue;
