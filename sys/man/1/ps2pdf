@@ -2,7 +2,7 @@
 .SH NAME
 ps2pdf, pdf2ps \- convert between PostScript and PDF
 .SH SYNOPSIS
-.B ps2pdf
+.B pdf2ps
 [
 .I gs-options
 ]
