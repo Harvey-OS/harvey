@@ -796,8 +796,7 @@ loop:
 		ln = 0;
 		goto loop;
 	}
-	if(in)
-		Bterm(in);
+	Bterm(in);
 	if((in = Bopen(sargv[ifile], OREAD)) != 0){
 		ln = 0;
 		ss = sargv[ifile];
