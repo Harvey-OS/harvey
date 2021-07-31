@@ -251,7 +251,6 @@ EXTERN	struct
 	Count	mfrom;
 	Count	page;
 	Count	jump;
-	Count	store;
 } nop;
 
 extern	char*	anames[];
