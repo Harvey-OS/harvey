@@ -1,15 +1,9 @@
-#ifndef _PLAN9_SOURCE
-  This header file is an extension to ANSI/POSIX
+#ifndef _RESEARCH_SOURCE
+  This header file is not defined in ANSI or POSIX
 #endif
 
-#ifndef	__DRAW_H_
-#define	__DRAW_H_
 #pragma src "/sys/src/ape/lib/draw"
 #pragma lib "/$M/lib/ape/libdraw.a"
-
-#include <u.h>
-#include <fmt.h>
-#include <qlock.h>
 
 typedef struct	Cachefont Cachefont;
 typedef struct	Cacheinfo Cacheinfo;
@@ -148,10 +142,7 @@ enum {
 	RGB24	= CHAN3(CRed, 8, CGreen, 8, CBlue, 8),
 	RGBA32	= CHAN4(CRed, 8, CGreen, 8, CBlue, 8, CAlpha, 8),
 	ARGB32	= CHAN4(CAlpha, 8, CRed, 8, CGreen, 8, CBlue, 8),	/* stupid VGAs */
-	XRGB32	= CHAN4(CIgnore, 8, CRed, 8, CGreen, 8, CBlue, 8),
-	BGR24	= CHAN3(CBlue, 8, CGreen, 8, CRed, 8),
-	ABGR32	= CHAN4(CAlpha, 8, CBlue, 8, CGreen, 8, CRed, 8),
-	XBGR32	= CHAN4(CIgnore, 8, CBlue, 8, CGreen, 8, CRed, 8),
+	XRGB32  = CHAN4(CIgnore, 8, CRed, 8, CGreen, 8, CBlue, 8),
 };
 
 extern	char*	chantostr(char*, ulong);
@@ -324,10 +315,6 @@ struct Font
 
 #define	Dx(r)	((r).max.x-(r).min.x)
 #define	Dy(r)	((r).max.y-(r).min.y)
-
-#ifdef	__cplusplus
-extern "C" { 
-#endif
 
 /*
  * Image management
@@ -532,9 +519,3 @@ extern	int	_compblocksize(Rectangle, int);
 extern	int		log2[];
 extern	ulong	drawld2chan[];
 extern	void		drawsetdebug(int);
-
-#ifdef	__cplusplus
-}
-#endif
-
-#endif

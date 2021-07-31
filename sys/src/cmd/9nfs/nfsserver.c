@@ -79,9 +79,6 @@ doalarm(void)
 void
 nfsinit(int argc, char **argv)
 {
-	/*
-	 * mntinit will have already parsed our options.
-	 */
 	USED(argc, argv);
 	clog("nfs file server init\n");
 	rpcalarm = doalarm;

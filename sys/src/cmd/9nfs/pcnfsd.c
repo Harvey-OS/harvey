@@ -48,10 +48,6 @@ pcinit(int argc, char **argv)
 	case 'c':
 		config = ARGF();
 		break;
-	default:
-		if(argopt(ARGC()) < 0)
-			sysfatal("usage: %s %s [-c config]", argv0, commonopts);
-		break;
 	}ARGEND;
 	clog("pc init\n");
 

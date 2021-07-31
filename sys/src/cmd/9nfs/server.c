@@ -26,48 +26,11 @@ uchar	buf[9000];
 uchar	rbuf[9000];
 uchar	resultbuf[9000];
 
-static int tcp;
-
-char *commonopts = "[-9CDrtv]";			/* for usage() messages */
-
-/*
- * this recognises common, nominally rcp-related options.
- * they may not take arguments.
- */
-int
-argopt(int c)
-{
-	switch(c){
-	case '9':
-		++p9debug;
-		return 0;
-	case 'C':
-		++nocache;
-		return 0;
-	case 'D':
-		++rpcdebug;
-		return 0;
-	case 'r':
-		++rejectall;
-		return 0;
-	case 't':
-		tcp = 1;
-		return 0;
-	case 'v':
-		++chatty;
-		return 0;
-	default:
-		return -1;
-	}
-}
-
-/*
- * all option parsing is now done in (*pg->init)(), which can call back
- * here to argopt for common options.
- */
 void
 server(int argc, char **argv, int myport, Progmap *progmap)
 {
+	int Argc=argc; char **Argv=argv;
+	int tcp = 0;
 	Progmap *pg;
 
 	fmtinstall('I', Iconv);
@@ -82,6 +45,26 @@ server(int argc, char **argv, int myport, Progmap *progmap)
 	case 0:
 		break;
 	}
+	ARGBEGIN{
+	case '9':
+		++p9debug;
+		break;
+	case 'r':
+		++rejectall;
+		break;
+	case 'v':
+		++chatty;
+		break;
+	case 'D':
+		++rpcdebug;
+		break;
+	case 'C':
+		++nocache;
+		break;
+	case 't':
+		tcp = 1;
+		break;
+	}ARGEND
 
 	switch(rfork(RFMEM|RFPROC)){
 	case 0:
@@ -94,7 +77,7 @@ server(int argc, char **argv, int myport, Progmap *progmap)
 	}
 
 	for(pg=progmap; pg->init; pg++)
-		(*pg->init)(argc, argv);
+		(*pg->init)(Argc, Argv);
 	if(tcp)
 		tcpserver(myport, progmap);
 	else
@@ -172,9 +155,9 @@ tcpserver(int myport, Progmap *progmap)
 			close(lctl);
 			if(data < 0)
 				exits(0);
-
+	
 			getendpoints((OUdphdr*)buf, ldir);
-
+	
 			for(;;){
 				if(servemsg(data, readtcp, writetcp, myport, progmap) < 0)
 					break;
@@ -331,7 +314,7 @@ getendpoint(char *dir, char *file, uchar *addr, uchar *port)
 	n = atoi(serv);
 	hnputs(port, n);
 }
-
+	
 static void
 getendpoints(OUdphdr *ep, char *dir)
 {
@@ -528,7 +511,7 @@ getdom(ulong ip, char *dom, int len)
 			break;
 		}
 	}
-	return 0;
+	return 0;		
 }
 
 #define	MAXCACHE	64
@@ -546,7 +529,7 @@ cachereply(Rpccall *rp, void *buf, int len)
 
 	if(ncache >= MAXCACHE){
 		if(rpcdebug)
-			fprint(2, "%s: drop  %I/%ld, xid %uld, len %d\n",
+			fprint(2, "%s: drop  %I/%ld, xid %uld, len %d\n", 
 				argv0, tail->host,
 				tail->port, tail->xid, tail->n);
 		tail = tail->prev;
@@ -573,7 +556,7 @@ cachereply(Rpccall *rp, void *buf, int len)
 	cp->n = len;
 	memmove(cp->data, buf, len);
 	if(rpcdebug)
-		fprint(2, "%s: cache %I/%ld, xid %uld, len %d\n",
+		fprint(2, "%s: cache %I/%ld, xid %uld, len %d\n", 
 			argv0, cp->host, cp->port, cp->xid, cp->n);
 }
 
@@ -602,7 +585,7 @@ replycache(int fd, Rpccall *rp, long (*writemsg)(int, void*, long))
 	}
 	(*writemsg)(fd, cp->data, cp->n);
 	if(rpcdebug)
-		fprint(2, "%s: reply %I/%ld, xid %uld, len %d\n",
+		fprint(2, "%s: reply %I/%ld, xid %uld, len %d\n", 
 			argv0, cp->host, cp->port, cp->xid, cp->n);
 	return 1;
 }
@@ -614,7 +597,7 @@ Iconv(Fmt *f)
 	ulong h;
 
 	h = va_arg(f->args, ulong);
-	snprint(buf, sizeof buf, "%ld.%ld.%ld.%ld",
+	snprint(buf, sizeof buf, "%ld.%ld.%ld.%ld", 
 		(h>>24)&0xff, (h>>16)&0xff,
 		(h>>8)&0xff, h&0xff);
 	return fmtstrcpy(f, buf);

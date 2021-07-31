@@ -54,12 +54,7 @@ static
 void
 pmapinit(int argc, char **argv)
 {
-	ARGBEGIN{
-	default:
-		if(argopt(ARGC()) < 0)
-			sysfatal("usage: %s %s", argv0, commonopts);
-		break;
-	}ARGEND;
+	USED(argc, argv);
 	clog("portmapper init\n");
 }
 
