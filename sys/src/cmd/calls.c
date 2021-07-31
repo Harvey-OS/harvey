@@ -26,7 +26,7 @@
 
 enum {
 	Printstats =	0,		/* flag */
-	Maxseen =	4000,		/* # of instances w/in a function */
+	Maxseen =	400,		/* # of instances w/in a function */
 	Maxdepth =	300,		/* max func call tree depth */
 	Hashsize =	2048,
 
@@ -94,7 +94,8 @@ struct Root {
 };
 
 char *aseen[Maxseen];		/* names being gathered within a function */
-Rnamehash nameshash[Hashsize];	/* names being tracked */
+Rname *namelist;		/* names being tracked */
+Rnamehash nameshash[Hashsize];
 Rname *activelist[Maxdepth];	/* names being output */
 String *cppopt;
 Root *roots;
@@ -267,7 +268,7 @@ getfree(void)
 }
 
 /*
- * install(np, rp) puts a new instance of a function into the linked list.
+ * install (np,rp) puts a new instance of a function into the linked list.
  * It puts a pointer (np) to its own name (returned by place) into its
  * namepointer, a pointer to the calling routine (rp) into its called-by
  * pointer, and zero into the calls pointer.  It then puts a pointer to
@@ -324,9 +325,8 @@ newproc(char *name)
 	rp = place(name);
 	if (rp == nil)
 		return RINSTERR;
-	/* declaration in a header file is enough to cause this. */
 	if (0 && rp->rnamedefined)
-		warning("function `%s' redeclared", name);
+		warning("function `%s' redefined", name);
 	rp->rnamedefined = 1;
 	return install(rp, nil);
 }
@@ -818,7 +818,6 @@ pushclose(Pushstate *ps)
  *
  * must fork/exec cpp for each input file.
  * otherwise we get macro redefinitions and other problems.
- * also plan 9's cpp can only process one input file per invocation.
  */
 void
 scanfiles(int argc, char **argv)
