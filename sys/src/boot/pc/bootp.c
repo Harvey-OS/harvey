@@ -449,10 +449,7 @@ bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 	char name[128], *filename, *sysname;
 
 	if (debugload)
-		if (file == nil)
-			print("bootpopen: ether%d...", ctlrno);
-		else
-			print("bootpopen: ether%d!%s...", ctlrno, file);
+		print("bootpopen: ether%d!%s...", ctlrno, file);
 	if((ea = etheraddr(ctlrno)) == 0){
 		print("invalid ctlrno %d\n", ctlrno);
 		return -1;
@@ -485,7 +482,7 @@ bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 	memmove(myaddr.ea, ea, Eaddrlen);
 
 	etherrxflush(ctlrno);
-	for(i = 0; i < 20; i++) {
+	for(i = 0; i < 10; i++) {
 		server.ip = Bcastip;
 		server.port = BPportdst;
 		memmove(server.ea, broadcast, sizeof(server.ea));
@@ -499,12 +496,8 @@ bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 		if(sysname == 0 || strcmp(sysname, rep->sname) == 0)
 			break;
 	}
-	if(i >= 20) {
-		if (file == nil)
-			print("bootp on ether%d timed out\n", ctlrno);
-		else
-			print("bootp on ether%d for %s timed out\n",
-				ctlrno, file);
+	if(i >= 10) {
+		print("bootp on ether%d for %s timed out\n", ctlrno, file);
 		return -1;
 	}
 
