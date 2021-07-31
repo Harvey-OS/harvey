@@ -25,8 +25,6 @@ enum
 };
 
 char *delim = "$$";
-char *basename;
-char *title;
 int eqnmode;
 
 int 	quiet;
@@ -40,9 +38,8 @@ int nh[Maxnh];
 int ifwastrue[Maxif];
 
 int list, listnum, example;
-int hangingau, hangingdt, hanginghead, hangingcenter;
+int hangingau, hangingdt, hanginghead;
 int indirective, paragraph, sol, titleseen, ignore_nl, weBref;
-void dohangingcenter(void);
 
 typedef struct Goobie Goobie;
 typedef struct Goobieif Goobieif;
@@ -1366,7 +1363,7 @@ doconvert(void)
 static void
 usage(void)
 {
-	sysfatal("usage: ms2html [-q] [-b basename] [-d '$$'] [-t title]\n");
+	sysfatal("Usage: %s\n", argv0);
 }
 
 void
@@ -1374,12 +1371,6 @@ main(int argc, char **argv)
 {
 	quiet = 1;
 	ARGBEGIN {
-	case 't':
-		title = EARGF(usage());
-		break;
-	case 'b':
-		basename = EARGF(usage());
-		break;
 	case 'q':
 		quiet = 0;
 		break;
@@ -1589,7 +1580,6 @@ void
 g_SH(int, char**)
 {
 	dohanginghead();
-	dohangingcenter();
 	closel();
 	closefont();
 	Bprint(&bout, "<H%d>", HH);
@@ -1604,7 +1594,6 @@ g_NH(int argc, char **argv)
 	closel();
 	closefont();
 
-	dohangingcenter();
 	if(argc == 1)
 		level = 0;
 	else {
@@ -1635,42 +1624,29 @@ g_TL(int, char**)
 	closefont();
 
 	if(!titleseen){
-		if(!title){
-			/* get base part of filename */
-			p = strrchr(ssp->filename, '/');
-			if(p == nil)
-				p = ssp->filename;
-			else
-				p++;
-			strncpy(name, p, sizeof(name));
-			name[sizeof(name)-1] = 0;
-		
-			/* dump any extensions */
-			np = strchr(name, '.');
-			if(np)
-				*np = 0;
-			title = p;
-		}
+		/* get base part of filename */
+		p = strrchr(ssp->filename, '/');
+		if(p == nil)
+			p = ssp->filename;
+		else
+			p++;
+		strncpy(name, p, sizeof(name));
+		name[sizeof(name)-1] = 0;
+	
+		/* dump any extensions */
+		np = strchr(name, '.');
+		if(np)
+			*np = 0;
+	
 		Bprint(&bout, "<title>\n");
-		Bprint(&bout, "%s\n", title);
+		Bprint(&bout, "%s\n", p);
 		Bprint(&bout, "</title>\n");
 		Bprint(&bout, "<body BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#330088\" ALINK=\"#FF0044\">\n");
 		titleseen = 1;
 	}
 
-	Bprint(&bout, "<center>");
-	hangingcenter = 1;
 	Bprint(&bout, "<H%d>", 1);
 	hanginghead = 1;
-}
-
-void
-dohangingcenter(void)
-{
-	if(hangingcenter){
-		Bprint(&bout, "</center>");
-		hangingcenter = 1;
-	}
 }
 
 void
@@ -1919,8 +1895,7 @@ void
 g_AB(int, char**)
 {
 	closel();
-	dohangingcenter();
-	Bprint(&bout, "<center><H4>ABSTRACT</H4></center><DL><DD>\n");
+	Bprint(&bout, "<DL><DD><H4>ABSTRACT</H4>\n");
 }
 
 void
@@ -2096,16 +2071,12 @@ g_startgif(int, char **argv)
 	else
 		return;
 
-	if(basename)
-		p = basename;
-	else{
-		p = strrchr(sstack[0].filename, '/');
-		if(p != nil)
-			p++;
-		else
-			p = sstack[0].filename;
-	}
-	snprint(name, sizeof(name), "%s.%d.gif", p, gif++);
+	p = strrchr(sstack[0].filename, '/');
+	if(p != nil)
+		p++;
+	else
+		p = sstack[0].filename;
+	snprint(name, sizeof(name), "%s.%d%d.gif", p, getpid(), gif++);
 	fd = create(name, OWRITE, 0664);
 	if(fd < 0){
 		fprint(2, "ms2html: can't create %s: %r\n", name);
@@ -2135,8 +2106,8 @@ g_startgif(int, char **argv)
 		close(fd);
 		close(pfd[0]);
 		fprint(pfd[1], ".ll 7i\n");
-	/*	fprint(pfd[1], ".EQ\ndelim %s\n.EN\n", delim); */
-	/*	fprint(pfd[1], ".%s\n", argv[0]); */
+		fprint(pfd[1], ".EQ\ndelim %s\n.EN\n", delim);
+		fprint(pfd[1], ".%s\n", argv[0]);
 		for(;;){
 			p = Brdline(&ssp->in, '\n');
 			if(p == nil)

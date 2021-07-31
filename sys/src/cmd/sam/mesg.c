@@ -13,18 +13,10 @@ int	waitack;
 int	noflush;
 int	tversion;
 
-int	inshort(void);
 long	inlong(void);
-vlong	invlong(void);
+long	invlong(void);
+int	inshort(void);
 int	inmesg(Tmesg);
-
-void	outshort(int);
-void	outlong(long);
-void	outvlong(vlong);
-void	outcopy(int, void*);
-void	outsend(void);
-void	outstart(Hmesg);
-
 void	setgenstr(File*, Posn, Posn);
 
 #ifdef DEBUG
@@ -98,22 +90,12 @@ journaln(int out, long n)
 {
 	char buf[32];
 
-	snprint(buf, sizeof(buf), "%ld", n);
-	journal(out, buf);
-}
-
-void
-journalv(int out, vlong v)
-{
-	char buf[32];
-
-	sprint(buf, sizeof(buf), "%lld", v);
+	sprint(buf, "%ld", n);
 	journal(out, buf);
 }
 #else
 #define	journal(a, b)
 #define journaln(a, b)
-#define journalv(a, b)
 #endif
 
 int
@@ -194,7 +176,6 @@ inmesg(Tmesg type)
 	int i, m;
 	short s;
 	long l, l1;
-	vlong v;
 	File *f;
 	Posn p0, p1, p;
 	Range r;
@@ -223,15 +204,15 @@ inmesg(Tmesg type)
 		break;
 
 	case Tstartcmdfile:
-		v = invlong();		/* for 64-bit pointers */
-		journalv(0, v);
+		l = invlong();		/* for 64-bit pointers */
+		journaln(0, l);
 		Strdupl(&genstr, samname);
 		cmd = newfile();
 		cmd->unread = 0;
-		outTsv(Hbindname, cmd->tag, v);
+		outTsv(Hbindname, cmd->tag, l);
 		outTs(Hcurrent, cmd->tag);
 		logsetname(cmd, &genstr);
-		cmd->rasp = listalloc('P');
+		cmd->rasp = emalloc(sizeof(List));
 		cmd->mod = 0;
 		if(cmdstr.n){
 			loginsert(cmd, 0L, cmdstr.s, cmdstr.n);
@@ -282,7 +263,7 @@ inmesg(Tmesg type)
 		termlocked++;
 		f = whichfile(inshort());
 		if(!f->rasp)	/* this might be a duplicate message */
-			f->rasp = listalloc('P');
+			f->rasp = emalloc(sizeof(List));
 		current(f);
 		outTsv(Hbindname, f->tag, invlong());	/* for 64-bit pointers */
 		outTs(Hcurrent, f->tag);
@@ -372,11 +353,11 @@ inmesg(Tmesg type)
 		break;
 
 	case Tstartnewfile:
-		v = invlong();
+		l = invlong();
 		Strdupl(&genstr, empty);
 		f = newfile();
-		f->rasp = listalloc('P');
-		outTsv(Hbindname, f->tag, v);
+		f->rasp = emalloc(sizeof(List));
+		outTsv(Hbindname, f->tag, l);
 		logsetname(f, &genstr);
 		outTs(Hcurrent, f->tag);
 		current(f);
@@ -612,16 +593,16 @@ inlong(void)
 	return n;
 }
 
-vlong
+long
 invlong(void)
 {
-	vlong v;
+	ulong n;
 	
-	v = (inp[7]<<24) | (inp[6]<<16) | (inp[5]<<8) | inp[4];
-	v = (v<<16) | (inp[3]<<8) | inp[2];
-	v = (v<<16) | (inp[1]<<8) | inp[0];
+	n = (inp[7]<<24) | (inp[6]<<16) | (inp[5]<<8) | inp[4];
+	n = (n<<16) | (inp[3]<<8) | inp[2];
+	n = (n<<16) | (inp[1]<<8) | inp[0];
 	inp += 8;
-	return v;
+	return n;
 }
 
 void
@@ -751,12 +732,12 @@ outTsl(Hmesg type, int s, Posn l)
 }
 
 void
-outTsv(Hmesg type, int s, vlong v)
+outTsv(Hmesg type, int s, Posn l)
 {
 	outstart(type);
 	outshort(s);
-	outvlong(v);
-	journalv(1, v);
+	outvlong((void*)l);
+	journaln(1, l);
 	outsend();
 }
 
@@ -792,14 +773,14 @@ outlong(long l)
 }
 
 void
-outvlong(vlong v)
+outvlong(void *v)
 {
 	int i;
+	ulong l;
 
-	for(i = 0; i < 8; i++){
-		*outp++ = v;
-		v >>= 8;
-	}
+	l = (ulong) v;
+	for(i = 0; i < 8; i++, l >>= 8)
+		*outp++ = l;
 }
 
 void

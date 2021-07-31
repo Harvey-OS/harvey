@@ -289,7 +289,8 @@ consclose(Chan *c)
 static long
 consread(Chan *c, void *buf, long n, vlong off)
 {
-	char ch;
+	char *cbuf, ch;
+	int i, eol;
 	int	send;
 
 	if(n <= 0)

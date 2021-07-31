@@ -502,5 +502,3 @@ extern	int		queueWrites;		/* put all lump writes on a queue and finish later */
 extern	int		readonly;		/* only allowed to read the disk data */
 extern	Stats		stats;
 extern	u8int		zeroScore[VtScoreSize];
-
-extern	int		chattyzero;

@@ -335,7 +335,6 @@ void	gbranch(int);
 void	fpbranch(void);
 void	patch(Prog*, long);
 void	gpseudo(int, Sym*, int, long);
-void	gpseudotree(int, Sym*, Node*);
 
 void	indx(Node*);
 void	bcomplex(Node*);

@@ -307,7 +307,7 @@ Execute(word *args, word *path)
 int
 Globsize(char *p)
 {
-	int isglob = 0, globlen = NDIR+1;
+	ulong isglob = 0, globlen = NDIR+1;
 	for(;*p;p++){
 		if(*p==GLOB){
 			p++;

@@ -421,5 +421,4 @@ char	*anames[] =
 	"UNPK",
 	"WORD",
 	"SIGNAME",
-	"LAST",
 };

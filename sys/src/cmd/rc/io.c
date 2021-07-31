@@ -28,8 +28,7 @@ pfmt(io *f, char *fmt, ...)
 			poct(f, va_arg(ap, unsigned));
 			break;
 		case 'p':
-			pptr(f, va_arg(ap, void*));
-			break;
+			phex(f, (long)va_arg(ap, char *)); break; /*unportable*/
 		case 'Q':
 			pquo(f, va_arg(ap, char *));
 			break;
@@ -95,15 +94,9 @@ pwrd(io *f, char *s)
 }
 
 void
-pptr(io *f, void *v)
+phex(io *f, long p)
 {
 	int n;
-	uintptr p;
-
-	p = (uintptr)v;
-	if(sizeof(uintptr) == sizeof(uvlong) && p>>32)
-		for(n = 60;n>=32;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
-
 	for(n = 28;n>=0;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
 }
 
@@ -116,7 +109,7 @@ pstr(io *f, char *s)
 }
 
 void
-pdec(io *f, int n)
+pdec(io *f, long n)
 {
 	if(n<0){
 		n=-n;
@@ -138,7 +131,7 @@ pdec(io *f, int n)
 }
 
 void
-poct(io *f, unsigned n)
+poct(io *f, ulong n)
 {
 	if(n>7)
 		poct(f, n>>3);

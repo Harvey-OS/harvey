@@ -964,7 +964,7 @@ gextern(Sym *s, Node *a, long o, long w)
 		p->from.displace = 4;
 		return;
 	}
-	gpseudotree(ADATA, s, a);
+	gpseudo(ADATA, s, D_TREE, (long)a);
 	p->from.offset += o;
 	p->from.displace = w;
 }

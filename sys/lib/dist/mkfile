@@ -19,10 +19,7 @@ contrib-cd:V:	/n/fsother/dist/contrib.iso.bz2
 	bind pc/cddisk cdstub/bootdisk.img
 	if(! test -f $d/bootdisk.img)
 		bind -a cdstub $d
-	title=`{date | sed 's/(...) (...) (..) (..:..):.. (...) (....)/Plan 9 - \2 \3 \6 \4/'}
-	title=$"title
-	echo 'CD:' $title
-	disk/mk9660 -9cj -v $title -s $d \
+	disk/mk9660 -9cj -v 'Plan 9 4th Ed.' -s $d \
 		-b bootdisk.img $target
 
 /sys/lib/dist/web.protect/%.iso.bz2:	/n/fsother/dist/%.iso.bz2
@@ -141,4 +138,3 @@ worldwritable-mail:V:
 		mail -s 'non-group-writable files on fs '^$dd 9trouble </sys/lib/dist/writable
 	}
 	status=''
-

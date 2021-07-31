@@ -374,8 +374,9 @@ init1(Sym *s, Type *t, long o, int exflag)
 				a = a->left;
 			}
 			if(!sametype(t, a->type)) {
-				diag(a, "initialization of incompatible pointers: %s\n%T and %T",
-					s->name, t, a->type);
+				diag(a, "initialization of incompatible pointers: %s",
+					s->name);
+				print("%T and %T\n", t, a->type);
 			}
 			if(a->op == OADDR)
 				a = a->left;
@@ -1534,7 +1535,6 @@ contig(Sym *s, Node *n, long v)
 {
 	Node *p, *r, *q, *m;
 	long w;
-	Type *zt;
 
 	if(debug['i']) {
 		print("contig v = %ld; s = %s\n", v, s->name);
@@ -1558,7 +1558,7 @@ contig(Sym *s, Node *n, long v)
 		stkoff = maxround(stkoff, autoffset);
 		symadjust(s, n, v - s->offset);
 	}
-	if(w <= ewidth[TIND])
+	if(w <= 4)
 		goto no;
 	if(n->op == OAS)
 		diag(Z, "oops in contig");
@@ -1572,10 +1572,10 @@ if not, bail
 		if(n->left->type)
 		if(n->left->type->width == w)
 			goto no;
-	while(w & ewidth[TIND])
+	while(w & 3)
 		w++;	/* is this a bug?? */
 /*
- * insert the following code, where long becomes vlong if pointers are fat
+ * insert the following code
  *
 	*(long**)&X = (long*)((char*)X + sizeof(X));
 	do {
@@ -1587,11 +1587,9 @@ if not, bail
 	for(q=n; q->op != ONAME; q=q->left)
 		;
 
-	zt = ewidth[TIND] > ewidth[TLONG]? types[TVLONG]: types[TLONG];
-
 	p = new(ONAME, Z, Z);
 	*p = *q;
-	p->type = typ(TIND, zt);
+	p->type = typ(TIND, types[TLONG]);
 	p->xoffset = s->offset;
 
 	r = new(ONAME, Z, Z);
@@ -1604,7 +1602,7 @@ if not, bail
 
 	m = new(OCONST, Z, Z);
 	m->vconst = 0;
-	m->type = zt;
+	m->type = types[TLONG];
 
 	q = new(OAS, q, m);
 
