@@ -311,7 +311,7 @@ chpasswd(AuthConn *c, char *id)
 	// changing our password is vulnerable to connection failure
 	for(;;){
 		snprint(prompt, sizeof(prompt), "new password for %s: ", id);
-		newpass = getpassm(prompt);
+		newpass = getpass(prompt);
 		if(newpass == nil)
 			goto Out;
 		if(strlen(newpass) >= 7)
@@ -324,9 +324,9 @@ chpasswd(AuthConn *c, char *id)
 	}
 	newpasslen = strlen(newpass);
 	snprint(prompt, sizeof(prompt), "retype password: ");
-	passck = getpassm(prompt);
+	passck = getpass(prompt);
 	if(passck == nil){
-		fprint(2, "getpassm failed\n");
+		fprint(2, "getpasswd failed\n");
 		goto Out;
 	}
 	if(strcmp(passck, newpass) != 0){
@@ -419,7 +419,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 		}
 		ntry++;
 		if(!pass_stdin && !pass_nvram){
-			pass = getpassm("secstore password: ");
+			pass = getpass("secstore password: ");
 			if(strlen(pass) >= sizeof c->pass){
 				fprint(2, "password too long, skipping secstore login\n");
 				exits("password too long");
@@ -460,7 +460,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 				exits("missing PIN+SecureID on standard input");
 			free(PINSTA);
 		}else{
-			pass = getpassm("STA PIN+SecureID: ");
+			pass = getpass("STA PIN+SecureID: ");
 			strncpy(s+3, pass, (sizeof s)-4);
 			memset(pass, 0, strlen(pass));
 			free(pass);

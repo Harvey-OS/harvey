@@ -28,7 +28,7 @@ estrdup(char *s)
 }
 
 char*
-getpassm(char *prompt)
+getpass(char *prompt)
 {
 	char *p, line[4096];
 	int n, nr;

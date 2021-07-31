@@ -77,10 +77,10 @@ main(int argc, char **argv)
 			snprint(prompt, sizeof(prompt), "%s password: ", id);
 		else
 			snprint(prompt, sizeof(prompt), "%s password [default = don't change]: ", id);
-		pass = getpassm(prompt);
+		pass = getpass(prompt);
 		if(pass == nil){
-			print("getpassm failed\n");
-			exits("getpassm failed");
+			print("getpass failed\n");
+			exits("getpass failed");
 		}
 		if(verbose)
 			print("%ld characters\n", strlen(pass));
@@ -95,10 +95,10 @@ main(int argc, char **argv)
 		snprint(prompt, sizeof(prompt), "retype password: ");
 		if(verbose)
 			print("confirming...\n");
-		passck = getpassm(prompt);
+		passck = getpass(prompt);
 		if(passck == nil){
-			print("getpassm failed\n");
-			exits("getpassm failed");
+			print("getpass failed\n");
+			exits("getpass failed");
 		}
 		if(strcmp(pass, passck) != 0){
 			print("passwords didn't match\n");
