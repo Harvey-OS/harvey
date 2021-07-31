@@ -4,7 +4,6 @@
  *	82543GC	Intel PRO/1000 T
  *	82544EI Intel PRO/1000 XT
  *	82540EM Intel PRO/1000 MT
- *	82541GI (unfinished)
  *
  * To Do:
  *	finish autonegotiation code;
@@ -810,7 +809,6 @@ print("lproc status ok\n");
 			break;
 		case (0x100E<<16)|0x8086:	/* 82540EM */
 		case (0x101E<<16)|0x8086:	/* 82540EPLP */
-//check		case (0x1076<<16)|0x8086:	/* 82541GI */
 			break;
 		}
 
@@ -859,7 +857,6 @@ igbetxinit(Ctlr* ctlr)
 	case (0x1008<<16)|0x8086:	/* 82544EI */
 	case (0x100E<<16)|0x8086:	/* 82440EM */
 	case (0x101E<<16)|0x8086:	/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:	/* 82541GI */
 		r = 8;
 		break;
 	}
@@ -892,7 +889,6 @@ igbetxinit(Ctlr* ctlr)
 		break;
 	case (0x100E<<16)|0x8086:	/* 82540EM */
 	case (0x101E<<16)|0x8086:	/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:	/* 82541GI */
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
 		r |= Gran|(4<<WthreshSHIFT);
@@ -1020,7 +1016,6 @@ igberxinit(Ctlr* ctlr)
 	switch(ctlr->id){
 	case (0x100E<<16)|0x8086:		/* 82540EM */
 	case (0x101E<<16)|0x8086:		/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:		/* 82541GI */
 		csr32w(ctlr, Radv, 64);
 		break;
 	}
@@ -1409,7 +1404,6 @@ igbemii(Ctlr* ctlr)
 	case (0x1008<<16)|0x8086:		/* 82544EI*/
 	case (0x100E<<16)|0x8086:		/* 82540EM */
 	case (0x101E<<16)|0x8086:		/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:		/* 82541GI */
 		ctrl &= ~(Frcdplx|Frcspd);
 		csr32w(ctlr, Ctrl, ctrl);
 		ctlr->mii->mir = igbemiimir;
@@ -1560,7 +1554,6 @@ at93c46r(Ctlr* ctlr)
 		break;
 	case (0x100E<<16)|0x8086:		/* 82540EM */
 	case (0x101E<<16)|0x8086:		/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:		/* 82541GI */
 		areq = 1;
 		csr32w(ctlr, Eecd, eecd|Areq);
 		for(i = 0; i < 1000; i++){
@@ -1598,10 +1591,10 @@ release:
 	return sum;
 }
 
-static int
+static void
 igbedetach(Ctlr* ctlr)
 {
-	int r, timeo;
+	int r;
 
 	/*
 	 * Perform a device reset to get the chip back to the
@@ -1615,31 +1608,18 @@ igbedetach(Ctlr* ctlr)
 	delay(10);
 
 	csr32w(ctlr, Ctrl, Devrst);
-	delay(1);
-	for(timeo = 0; timeo < 1000; timeo++){
-		if(!(csr32r(ctlr, Ctrl) & Devrst))
-			break;
-		delay(1);
-	}
-	if(csr32r(ctlr, Ctrl) & Devrst)
-		return -1;
+	while(csr32r(ctlr, Ctrl) & Devrst)
+		;
 
 	csr32w(ctlr, Ctrlext, Eerst);
-	delay(1);
-	for(timeo = 0; timeo < 1000; timeo++){
-		if(!(csr32r(ctlr, Ctrlext) & Eerst))
-			break;
-		delay(1);
-	}
-	if(csr32r(ctlr, Ctrlext) & Eerst)
-		return -1;
+	while(csr32r(ctlr, Ctrlext) & Eerst)
+		;
 
 	switch(ctlr->id){
 	default:
 		break;
 	case (0x100E<<16)|0x8086:		/* 82540EM */
 	case (0x101E<<16)|0x8086:		/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:		/* 82541GI */
 		r = csr32r(ctlr, Manc);
 		r &= ~Arpen;
 		csr32w(ctlr, Manc, r);
@@ -1647,21 +1627,14 @@ igbedetach(Ctlr* ctlr)
 	}
 
 	csr32w(ctlr, Imc, ~0);
-	delay(1);
-	for(timeo = 0; timeo < 1000; timeo++){
-		if(!csr32r(ctlr, Icr))
-			break;
-		delay(1);
-	}
-	if(csr32r(ctlr, Icr))
-		return -1;
-
-	return 0;
+	while(csr32r(ctlr, Icr))
+		;
 }
 
 static void
 igbeshutdown(Ether* ether)
 {
+print("etherigbe shutting down\n");
 	igbedetach(ether->ctlr);
 }
 
@@ -1670,8 +1643,7 @@ igbereset(Ctlr* ctlr)
 {
 	int ctrl, i, pause, r, swdpio, txcw;
 
-	if(igbedetach(ctlr))
-		return -1;
+	igbedetach(ctlr);
 
 	/*
 	 * Read the EEPROM, validate the checksum
@@ -1798,7 +1770,6 @@ igbepci(void)
 		case (0x1008<<16)|0x8086:	/* 82544EI - copper */
 		case (0x100E<<16)|0x8086:	/* 82540EM - copper */
 		case (0x101E<<16)|0x8086:	/* 82540EPLP - copper */
-		case (0x1076<<16)|0x8086:	/* 82541GI */
 			break;
 		}
 
