@@ -317,7 +317,7 @@ pipe_mail(dest *dp, message *mp)
 	dest *next, *list=0;
 	String *cmd;
 	process *pp;
-	int status, r;
+	int status;
 	char *none;
 	String *errstring=s_new();
 
@@ -375,12 +375,8 @@ pipe_mail(dest *dp, message *mp)
 	/*
 	 *  return status
 	 */
-	if (status != 0) {
-		r = refuse(list, mp, s_to_c(errstring), status, 0);
-		s_free(errstring);
-		return r;
-	}
-	s_free(errstring);
+	if (status != 0)
+		return refuse(list, mp, s_to_c(errstring), status, 0);
 	loglist(list, mp, "remote");
 	return 0;
 }
