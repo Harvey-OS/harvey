@@ -21,7 +21,6 @@ SFILES=\
 	vlop.s
 
 CFILES=\
-	cycles.c\
 	notejmp.c\
 	sqrt.c\
 	vlrt.c\

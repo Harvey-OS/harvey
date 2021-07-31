@@ -14,7 +14,7 @@ int	sflag;
 int	tflag;
 int	uflag;
 int	qflag;
-char	*fmt = "%llud\t%q\n";
+char	*fmt = "%llud\t%s\n";
 vlong	blocksize = 1024LL;
 
 void
@@ -22,9 +22,6 @@ main(int argc, char *argv[])
 {
 	int i;
 	char *s, *ss;
-
-	doquote = needsrcquote;
-	quotefmtinstall();
 
 	ARGBEGIN {
 	case 'a':	/* all files */
@@ -47,7 +44,7 @@ main(int argc, char *argv[])
 		uflag = 1;
 		break;
 	case 'q':	/* qid */
-		fmt = "%.16llux\t%q\n";
+		fmt = "%.16llux\t%s\n";
 		qflag = 1;
 		break;
 	case 'b':	/* block size */

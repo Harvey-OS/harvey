@@ -6,7 +6,6 @@
 #include	"io.h"
 #include	"ureg.h"
 #include	"../port/error.h"
-#include	"tos.h"
 
 Intrregs *intrregs;
 
@@ -441,14 +440,9 @@ trap(Ureg *ureg)
 		break;
 	}
 
-	if(user){
-		if(up->delaysched)
-			sched();
-		splhi();
-		if(up->procctl || up->nnote)
-			notify(ureg);
-	}else
-		splhi();
+	splhi();
+	if(user && (up->procctl || up->nnote))
+		notify(ureg);
 }
 
 /*
@@ -575,9 +569,6 @@ syscall(Ureg* ureg)
 
 	if(scallnr == NOTED)
 		noted(ureg, *(ulong*)(sp+BY2WD));
-
-	if(up->delaysched)
-		sched();
 
 	splhi();
 	if(scallnr != RFORK && (up->procctl || up->nnote))
@@ -835,7 +826,7 @@ execregs(ulong entry, ulong ssize, ulong nargs)
 	ureg->r13 = (ulong)sp;
 	ureg->pc = entry;
 //print("%lud: EXECREGS pc 0x%lux sp 0x%lux\n", up->pid, ureg->pc, ureg->r13);
-	return USTKTOP-sizeof(Tos);		/* address of kernel/user shared data */
+	return USTKTOP-BY2WD;		/* address of user-level clock */
 }
 
 /*

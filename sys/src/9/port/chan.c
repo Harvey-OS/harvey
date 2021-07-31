@@ -93,27 +93,27 @@ isdotdot(char *p)
 	return p[0]=='.' && p[1]=='.' && p[2]=='\0';
 }
 
-long
+int
 incref(Ref *r)
 {
-	long x;
+	int x;
 
-	lock(&r->l);
+	lock(r);
 	x = ++r->ref;
-	unlock(&r->l);
+	unlock(r);
 	return x;
 }
 
-long
+int
 decref(Ref *r)
 {
-	long x;
+	int x;
 
-	lock(&r->l);
+	lock(r);
 	x = --r->ref;
-	unlock(&r->l);
+	unlock(r);
 	if(x < 0)
-		panic("deccnt pc=0x%lux", getcallerpc(&r));
+		panic("decref, pc=0x%lux", getcallerpc(&r));
 
 	return x;
 }

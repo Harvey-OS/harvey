@@ -15,7 +15,7 @@ qer, runq \- queue management for spooled files
 .br
 .B runq
 [
-.B -adsER
+.B -adsE
 ]
 [
 .B -f
@@ -138,13 +138,6 @@ The
 .B -E
 flag causes all files to be reprocessed regardless of
 the file times.
-.P
-The
-.B -R
-flag instructs
-.I runq
-never to give up on a failed queue job, instead leaving
-it in the queue to be retried.
 .P
 The
 .B -d

@@ -20,8 +20,8 @@ qlock(QLock *q)
 
 	if(m->ilockdepth != 0)
 		print("qlock: %lux: ilockdepth %d", getcallerpc(&q), m->ilockdepth);
-	if(up != nil && up->nlocks.ref)
-		print("qlock: %lux: nlocks %lud", getcallerpc(&q), up->nlocks.ref);
+	if(up != nil && up->nlocks)
+		print("qlock: %lux: nlocks %lud", getcallerpc(&q), up->nlocks);
 
 	if(q->use.key == 0x55555555)
 		panic("qlock: q %p, key 5*\n", q);
@@ -44,6 +44,8 @@ qlock(QLock *q)
 	up->qnext = 0;
 	up->state = Queueing;
 	up->qpc = getcallerpc(&q);
+	if(edf->isedf(up))
+		edf->edfblock(up);
 	unlock(&q->use);
 	sched();
 }
@@ -106,6 +108,8 @@ rlock(RWlock *q)
 	q->tail = up;
 	up->qnext = 0;
 	up->state = QueueingR;
+	if(edf->isedf(up))
+		edf->edfblock(up);
 	unlock(&q->use);
 	sched();
 }
@@ -161,6 +165,8 @@ wlock(RWlock *q)
 	q->tail = up;
 	up->qnext = 0;
 	up->state = QueueingW;
+	if(edf->isedf(up))
+		edf->edfblock(up);
 	unlock(&q->use);
 	sched();
 }

@@ -309,7 +309,10 @@ long
 devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
 {
 	long m, dsz;
-	Dir dir;
+	struct{
+		Dir;
+		char slop[100];
+	}dir;
 
 	for(m=0; m<n; c->dri++) {
 		switch((*gen)(c, nil, tab, ntab, c->dri, &dir)){

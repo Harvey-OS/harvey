@@ -128,16 +128,12 @@ cmdexec(Text *t, Cmd *cp)
 }
 
 char*
-edittext(Window *w, int q, Rune *r, int nr)
+edittext(File *f, int q, Rune *r, int nr)
 {
-	File *f;
-
-	f = w->body.file;
 	switch(editing){
 	case Inactive:
 		return "permission denied";
 	case Inserting:
-		w->neditwrsel += nr;
 		eloginsert(f, q, r, nr);
 		return nil;
 	case Collecting:
@@ -596,7 +592,6 @@ runpipe(Text *t, int cmd, Rune *cr, int ncr, int state)
 		w = t->w;
 		t->q0 = addr.r.q0;
 		t->q1 = addr.r.q1;
-		w->neditwrsel = 0;
 		if(cmd == '<' || cmd=='|')
 			elogdelete(t->file, t->q0, t->q1);
 	}
@@ -626,10 +621,6 @@ runpipe(Text *t, int cmd, Rune *cr, int ncr, int state)
 	editing = Inactive;
 	if(t!=nil && t->w!=nil)
 		winlock(t->w, 'M');
-	if(state == Inserting){
-		t->q0 = addr.r.q0;
-		t->q1 = addr.r.q0 + t->w->neditwrsel;
-	}
 }
 
 int
@@ -916,15 +907,6 @@ alllooper(Window *w, void *v)
 }
 
 void
-alllocker(Window *w, void *v)
-{
-	if(v)
-		incref(w);
-	else
-		winclose(w);
-}
-
-void
 filelooper(Cmd *cp, int XY)
 {
 	int i;
@@ -940,15 +922,8 @@ filelooper(Cmd *cp, int XY)
 	loopstruct.w = nil;
 	loopstruct.nw = 0;
 	allwindows(alllooper, &loopstruct);
-	/*
-	 * add a ref to all windows to keep safe windows accessed by X
-	 * that would not otherwise have a ref to hold them up during
-	 * the shenanigans.
-	 */
-	allwindows(alllocker, (void*)1);
 	for(i=0; i<loopstruct.nw; i++)
 		cmdexec(&loopstruct.w[i]->body, cp->cmd);
-	allwindows(alllocker, (void*)0);
 	free(loopstruct.w);
 	loopstruct.w = nil;
 

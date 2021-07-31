@@ -5,7 +5,6 @@
 #include "arm.h"
 
 #define Percent(num, max)	((max)?((num)*100)/(max):0)
-#define prof prof5i
 
 extern	Inst	itab[];
 Inst *tables[] = { itab, 0 };

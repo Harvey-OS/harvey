@@ -5,7 +5,6 @@
 #include	"fns.h"
 #include	"ureg.h"
 #include	"io.h"
-#include	"tos.h"
 #include	"../port/error.h"
 
 static Lock vctllock;
@@ -537,7 +536,7 @@ execregs(ulong entry, ulong ssize, ulong nargs)
 	ureg->usp = (ulong)sp;
 	ureg->pc = entry;
 	ureg->srr1 &= ~MSR_FP;
-	return USTKTOP-sizeof(Tos);		/* address of kernel/user shared data */
+	return USTKTOP-BY2WD;		/* address of user-level clock */
 }
 
 void

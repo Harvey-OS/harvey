@@ -23,7 +23,6 @@ SFILES=\
 	strlen.s\
 
 CFILES=\
-	cycles.c\
 	doprint.c\
 	notejmp.c\
 	vlrt.c\

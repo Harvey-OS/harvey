@@ -81,7 +81,6 @@ pushtls(int fd, char *hashalg, char *encalg, int isclient, char *secret, char *d
 	   fprint(ctl, "opened") < 0){
 		close(hand);
 		hand = -1;
-		goto error;
 	}
 	close(ctl);
 	close(hand);

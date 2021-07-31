@@ -148,7 +148,6 @@ struct Mach
 	ulong	fairness;		/* for runproc */
 
 	vlong	cpuhz;			/* hwrpb->cfreq */
-	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
 	ulong	pcclast;
 	uvlong	fastclock;
 	Perf	perf;			/* performance counters */

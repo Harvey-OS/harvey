@@ -7,7 +7,7 @@ typedef struct Cmdtab	Cmdtab;
 typedef struct Cname	Cname;
 typedef struct Dev	Dev;
 typedef struct Dirtab	Dirtab;
-typedef struct Edf	Edf;
+typedef struct Edfinterface	Edfinterface;
 typedef struct Egrp	Egrp;
 typedef struct Evalue	Evalue;
 typedef struct Fgrp	Fgrp;
@@ -46,7 +46,6 @@ typedef struct Session	Session;
 typedef struct Task	Task;
 typedef struct Talarm	Talarm;
 typedef struct Timer	Timer;
-typedef struct Timers	Timers;		/* defined in portdat.h */
 typedef struct Uart	Uart;
 typedef struct Waitq	Waitq;
 typedef struct Walkqid	Walkqid;
@@ -57,7 +56,7 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 struct Ref
 {
-	Lock	l;
+	Lock;
 	long	ref;
 };
 
@@ -69,10 +68,10 @@ struct Rendez
 
 struct QLock
 {
-	Lock	use;		/* to access Qlock structure */
-	Proc	*head;		/* next process waiting for object */
-	Proc	*tail;		/* last process waiting for object */
-	int	locked;		/* flag */
+	Lock	use;			/* to access Qlock structure */
+	Proc	*head;			/* next process waiting for object */
+	Proc	*tail;			/* last process waiting for object */
+	int	locked;			/* flag */
 };
 
 struct RWlock
@@ -109,7 +108,7 @@ struct Sargs
 enum
 {
 	Aaccess,			/* as in stat, wstat */
-	Abind,				/* for left-hand-side of bind */
+	Abind,			/* for left-hand-side of bind */
 	Atodir,				/* as in chdir */
 	Aopen,				/* for i/o */
 	Amount,				/* to be mounted or mounted upon */
@@ -153,25 +152,24 @@ struct Block
 
 struct Chan
 {
-	Lock;
 	Ref;
 	Chan*	next;			/* allocation */
 	Chan*	link;
 	vlong	offset;			/* in fd */
-	vlong	devoffset;		/* in underlying device; see read */
+	vlong	devoffset;			/* in underlying device; see read */
 	ushort	type;
 	ulong	dev;
 	ushort	mode;			/* read/write */
 	ushort	flag;
 	Qid	qid;
 	int	fid;			/* for devmnt */
-	ulong	iounit;			/* chunk size for i/o; 0==default */
+	ulong	iounit;	/* chunk size for i/o; 0==default */
 	Mhead*	umh;			/* mount point that derived Chan; used in unionread */
 	Chan*	umc;			/* channel in union; held for union read */
 	QLock	umqlock;		/* serialize unionreads */
 	int	uri;			/* union read index */
 	int	dri;			/* devdirread index */
-	uchar*	dirrock;		/* directory entry rock for translations */
+	uchar*	dirrock;	/* directory entry rock for translations */
 	int	nrock;
 	int	mrock;
 	QLock	rockqlock;
@@ -207,7 +205,7 @@ struct Dev
 	void	(*init)(void);
 	void	(*shutdown)(void);
 	Chan*	(*attach)(char*);
-	Walkqid*(*walk)(Chan*, Chan*, char**, int);
+	Walkqid*	(*walk)(Chan*, Chan*, char**, int);
 	int	(*stat)(Chan*, uchar*, int);
 	Chan*	(*open)(Chan*, int);
 	void	(*create)(Chan*, char*, int, ulong);
@@ -246,7 +244,7 @@ enum
 
 struct Mntwalk				/* state for /proc/#/ns */
 {
-	int	cddone;
+	int		cddone;
 	ulong	id;
 	Mhead*	mh;
 	Mount*	cm;
@@ -284,7 +282,7 @@ struct Mnt
 	Mnt	*list;		/* Free list */
 	int	flags;		/* cache */
 	int	msize;		/* data + IOHDRSZ */
-	char	*version;	/* 9P version */
+	char	*version;			/* 9P version */
 	Queue	*q;		/* input queue */
 };
 
@@ -343,7 +341,6 @@ struct Swapalloc
 
 struct Image
 {
-	Lock;
 	Ref;
 	Chan	*c;			/* channel to text file */
 	Qid 	qid;			/* Qid for page cache coherence */
@@ -398,7 +395,6 @@ struct Physseg
 
 struct Segment
 {
-	Lock;
 	Ref;
 	QLock	lk;
 	ushort	steal;		/* Page stealer lock */
@@ -420,9 +416,9 @@ struct Segment
 enum
 {
 	RENDLOG	=	5,
-	RENDHASH =	1<<RENDLOG,	/* Hash to lookup rendezvous tags */
+	RENDHASH =	1<<RENDLOG,		/* Hash to lookup rendezvous tags */
 	MNTLOG	=	5,
-	MNTHASH =	1<<MNTLOG,	/* Hash to walk mount table */
+	MNTHASH =	1<<MNTLOG,		/* Hash to walk mount table */
 	NFD =		100,		/* per process file descriptors */
 	PGHLOG  =	9,
 	PGHSIZE	=	1<<PGHLOG,	/* Page hash for image lookup */
@@ -442,7 +438,6 @@ struct Pgrp
 
 struct Rgrp
 {
-	Lock;
 	Ref;
 	Proc	*rendhash[RENDHASH];	/* Rendezvous tag hash */
 };
@@ -469,7 +464,6 @@ struct Evalue
 
 struct Fgrp
 {
-	Lock;
 	Ref;
 	Chan	**fd;
 	int	nfd;			/* number allocated */
@@ -501,28 +495,6 @@ struct Waitq
 {
 	Waitmsg	w;
 	Waitq	*next;
-};
-
-/*
- * fasttick timer interrupts
- */
-enum {
-	/* Mode */
-	Trelative,	/* timer programmed in ns from now */
-	Tabsolute,	/* timer programmed in ns since epoch */
-	Tperiodic,	/* periodic timer, period in ns */
-};
-struct Timer
-{
-	/* Public interface */
-	int	tmode;		/* See above */
-	vlong	tns;		/* meaning defined by mode */
-	void	(*tf)(Ureg*, Timer*);
-	void	*ta;
-	/* Internal */
-	Timers	*tt;		/* Timers queue this timer runs on */
-	uvlong	twhen;		/* ns represented in fastticks */
-	Timer	*tnext;
 };
 
 enum
@@ -563,13 +535,11 @@ enum
 	Broken,
 	Stopped,
 	Rendezvous,
-	Waitrelease,
 
 	Proc_stopme = 1, 	/* devproc requests */
 	Proc_exitme,
 	Proc_traceme,
 	Proc_exitbig,
-	Proc_tracesyscall,
 
 	TUser = 0, 		/* Proc.time */
 	TSys,
@@ -581,15 +551,11 @@ enum
 	NERR = 64,
 	NNOTE = 5,
 
-	Npriq		= 20,		/* number of scheduler priority levels */
-	Nrq		= Npriq+2,	/* number of priority levels including real time */
-	PriRelease	= Npriq,	/* priority of released edf processes */
-	PriEdf		= Npriq+1,	/* priority of active edf processes */
-	PriLock		= 0,		/* priority for processes waiting on a lock */
-	PriExtra	= 1,		/* priority for edf processes in extra time */
-	PriNormal	= 10,		/* base priority for normal processes */
-	PriKproc	= 13,		/* base priority for kernel processes */
-	PriRoot		= 13,		/* base priority for root processes */
+	Nrq		= 20,	/* number of scheduler priority levels */
+	PriLock		= 0,	/* priority for processes waiting on a lock */
+	PriNormal	= 10,	/* base priority for normal processes */
+	PriKproc	= 13,	/* base priority for kernel processes */
+	PriRoot		= 13,	/* base priority for root processes */
 };
 
 typedef uvlong	Ticks;
@@ -605,7 +571,7 @@ struct Schedq
 struct Proc
 {
 	Label	sched;		/* known to l.s */
-	char	*kstack;	/* known to l.s */
+	char	*kstack;			/* known to l.s */
 	Mach	*mach;		/* machine running this proc */
 	char	*text;
 	char	*user;
@@ -637,18 +603,6 @@ struct Proc
 
 	ulong	parentpid;
 	ulong	time[6];	/* User, Sys, Real; child U, S, R */
-
-	uvlong	kentry;		/* Kernel entry time stamp (for profiling) */
-	/*
-	 * pcycles: cycles spent in this process (updated on procsave/restore)
-	 * when this is the current proc and we're in the kernel
-	 * (procrestores outnumber procsaves by one)
-	 * the number of cycles spent in the proc is pcycles + cycles()
-	 * when this is not the current process or we're in user mode
-	 * (procrestores and procsaves balance), it is pcycles.
-	 */
-	vlong	pcycles;
-
 	int	insyscall;
 	int	fpstate;
 
@@ -661,9 +615,9 @@ struct Proc
 	ulong	pc;		/* DEBUG only */
 
 	Lock	rlock;		/* sync sleep/wakeup with postnote */
-	Rendez	*r;			/* rendezvous point slept on */
+	Rendez	*r;		/* rendezvous point slept on */
 	Rendez	sleep;		/* place for syssleep/debug */
-	int	notepending;/* note issued but not acted on */
+	int	notepending;	/* note issued but not acted on */
 	int	kp;		/* true if a kernel process */
 	Proc	*palarm;	/* Next alarm time */
 	ulong	alarm;		/* Time of call */
@@ -674,8 +628,9 @@ struct Proc
 	ulong	rendval;	/* Value for rendezvous */
 	Proc	*rendhash;	/* Hash list for tag values */
 
-	Timer;			/* For tsleep and real-time */
+	ulong	twhen;
 	Rendez	*trend;
+	Proc	*tlink;
 	int	(*tfn)(void*);
 	void	(*kpfun)(void*);
 	void	*kparg;
@@ -705,7 +660,7 @@ struct Proc
 
 	Mach	*wired;
 	Mach	*mp;		/* machine this process last ran on */
-	Ref	nlocks;		/* number of locks held by proc */
+	ulong	nlocks;		/* number of locks held by proc */
 	ulong	delaysched;
 	ulong	priority;	/* priority level */
 	ulong	basepri;	/* base priority level */
@@ -717,8 +672,7 @@ struct Proc
 	int	preempted;	/* true if this process hasn't finished the interrupt
 				 *  that last preempted it
 				 */
-	Edf	*edf;		/* if non-null, real-time proc, edf contains scheduling params */
-	int	trace;		/* process being traced? */
+	Task	*task;		/* if non-null, real-time proc, task contains scheduling params */
 
 	ulong	qpc;		/* pc calling last blocking qlock */
 
@@ -885,7 +839,6 @@ struct Uart
 	uchar	ostage[Stagesize];
 	uchar	*op;
 	uchar	*oe;
-	int	drain;
 
 	int	modem;			/* hardware flow control on */
 	int	xonoff;			/* software flow control on */
@@ -900,21 +853,31 @@ struct Uart
 
 extern	Uart*	consuart;
 
+/*
+ * fasttick timer interrupts
+ */
+struct Timer
+{
+	uvlong	when;			/* fastticks when f should be called */
+	ulong	period;
+	void	(*f)(Ureg*, Timer*);
+	void	*a;
+	Timer	*next;
+};
+
 struct Edfinterface {
-	int		(*isedf)(Proc*);
+	int	(*isedf)(Proc*);
 	void	(*edfbury)(Proc*);
-	int		(*edfanyready)(void);
+	int	(*edfanyready)(void);
 	void	(*edfready)(Proc*);
 	Proc*	(*edfrunproc)(void);
 	void	(*edfblock)(Proc*);
 	void	(*edfinit)(void);
 	void	(*edfexpel)(Task*);
-	char*	(*edfadmit)(Task*);
-	void	(*edfyield)(Proc*);
-	void	(*edfdump)(void);
-	char*	(*edfstatus)(char*, char*);
-	char*	(*edfaddproc)(Task*, Proc*);
-	char*	(*edfremproc)(Task*, Proc*);
+	char *	(*edfadmit)(Task*);
+	void	(*edfdeadline)(Proc*);
+	void	(*resacquire)(Task*, CSN*);
+	void	(*resrelease)(Task*);
 };
 
 /*
@@ -927,7 +890,7 @@ struct Perf
 	ulong	avg_inintr;	/* avg time per clock tick in interrupt handlers */
 	ulong	inidle;		/* time since last clock tick in idle loop */
 	ulong	avg_inidle;	/* avg time per clock tick in idle loop */
-	ulong	last;		/* value of perfticks() at last clock tick */
+	ulong	last;			/* value of perfticks() at last clock tick */
 	ulong	period;		/* perfticks() per clock tick */
 };
 
@@ -943,6 +906,8 @@ enum
 	Qkick		= (1<<5),	/* always call the kick routine after qwrite */
 };
 
+
+extern Edfinterface *edf;
 
 #define DEVDOTDOT -1
 

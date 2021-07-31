@@ -145,7 +145,6 @@ struct Mach
 
 	int	cpumhz;			/* speed of cpu */
 	vlong	cpuhz;			/* ... */
-	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
 
 	/* save areas for exceptions */
 	ulong	sfiq[5];

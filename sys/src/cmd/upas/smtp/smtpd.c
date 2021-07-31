@@ -1,7 +1,7 @@
 #include "common.h"
 #include "smtpd.h"
 #include "smtp.h"
-#include <ip.h>
+#include "ip.h"
 #include <mp.h>
 #include <libsec.h>
 #include <auth.h>
@@ -20,12 +20,12 @@ int	logged;
 int	rejectcount;
 int	hardreject;
 
+ulong	peerip;
 Biobuf	bin;
 
 int	debug;
 int	Dflag;
 int	fflag;
-int	gflag;
 int	rflag;
 int	sflag;
 int	authenticate;
@@ -33,8 +33,10 @@ int	authenticated;
 int	passwordinclear;
 char	*tlscert;
 
-List	senders;
-List	rcvers;
+List senders;
+List rcvers;
+List ourdoms;
+List badguys;
 
 int	pipemsg(int*);
 String*	startcmd(void);
@@ -85,6 +87,9 @@ void
 main(int argc, char **argv)
 {
 	char *p, buf[1024];
+	String *s;
+	Link *l;
+	uchar addr[IPv4addrlen];
 	char *netdir;
 
 	netdir = nil;
@@ -101,16 +106,16 @@ main(int argc, char **argv)
 	case 'f':				/* disallow relaying */
 		fflag = 1;
 		break;
-	case 'g':
-		gflag = 1;
-		break;
 	case 'h':				/* default domain name */
 		dom = ARGF();
 		break;
 	case 'k':				/* prohibited ip address */
 		p = ARGF();
-		if (p)
-			addbadguy(p);
+		if (p){
+			s = s_new();
+			s_append(s, p);
+			listadd(&badguys, s);
+		}
 		break;
 	case 'm':				/* set mail command */
 		p = ARGF();
@@ -147,6 +152,14 @@ main(int argc, char **argv)
 
 	if(mailer == nil)
 		mailer = mailerpath("send");
+
+	v4parseip(addr, nci->rsys);
+	peerip = nhgetl(addr);
+
+	/* check if this IP address is banned */
+	for(l = badguys.first; l; l = l->next)
+		if(cidrcheck(s_to_c(l->p)))
+			exits("banned");
 
 	if(debug){
 		close(2);
@@ -612,13 +625,6 @@ startcmd(void)
 		return 0;
 	case ACCEPT:
 	case TRUSTED:
-		/*
-		 * now that all other filters have been passed,
-		 * do grey-list processing.
-		 */
-		if(gflag)
-			vfysenderhostok();
-
 		/*
 		 *  set up mail command
 		 */

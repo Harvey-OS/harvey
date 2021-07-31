@@ -459,7 +459,6 @@ EXTERN	Term	term[NTERM];
 EXTERN	int	nterm;
 EXTERN	int	hjdickflg;
 EXTERN	int	fproundflg;
-EXTERN	int	profileflg;
 EXTERN	Bits	zbits;
 
 extern	char	*onames[], *tnames[], *gnames[];
@@ -695,7 +694,6 @@ void	arginit(void);
 void	pragvararg(void);
 void	praghjdicks(void);
 void	pragfpround(void);
-void pragprofile(void);
 
 /*
  * calls to machine depend part

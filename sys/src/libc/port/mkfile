@@ -124,4 +124,3 @@ UPDATE=mkfile\
 
 </sys/src/cmd/mksyslib
 
-profile.$O: /sys/include/tos.h

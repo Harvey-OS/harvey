@@ -1311,7 +1311,6 @@ gpseudo(int a, Sym *s, Node *n)
 	p->as = a;
 	p->from.type = D_EXTERN;
 	p->from.sym = s;
-	p->from.scale = (profileflg ? 0 : NOPROF);
 	if(s->class == CSTATIC)
 		p->from.type = D_STATIC;
 	naddr(n, &p->to);

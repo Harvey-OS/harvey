@@ -23,6 +23,8 @@ struct Link
 
 	vlong	delay0ns;	/* nanosec of delay in the link */
 	long	delaynns;	/* nanosec of delay per byte */
+	vlong	delay0;		/* fastticks of delay */
+	long	delayn;
 
 	Block	*tq;		/* transmission queue */
 	Block	*tqtail;
@@ -71,7 +73,7 @@ enum
 	Statelen	= 23*1024,	/* status buffer size */
 
 	Tmsize		= 8,
-	Delayn 		= 10000,	/* default delays in ns */
+	Delayn 		= 10000,	/* default delays */
 	Delay0 		= 2500000,
 
 	Loopqlim	= 32*1024,	/* default size of queues */
@@ -88,9 +90,13 @@ static Dirtab loopdirs[MaxQ];
 
 static Loop	loopbacks[Nloopbacks];
 
+static uvlong	fasthz;
+
 #define TYPE(x) 	(((ulong)(x))&0xff)
 #define ID(x) 		(((ulong)(x))>>8)
 #define QID(x,y) 	((((ulong)(x))<<8)|((ulong)(y)))
+
+#define NS2FASTHZ(t)	((fasthz*(t))/1000000000);
 
 static void	looper(Loop *lb);
 static long	loopoput(Loop *lb, Link *link, Block *bp);
@@ -142,8 +148,8 @@ loopbackattach(char *spec)
 
 	lb->ref++;
 	if(lb->ref == 1){
+		fastticks(&fasthz);
 		for(chan = 0; chan < 2; chan++){
-			lb->link[chan].ci.mode = Tabsolute;
 			lb->link[chan].ci.a = &lb->link[chan];
 			lb->link[chan].ci.f = linkintr;
 			lb->link[chan].limit = Loopqlim;
@@ -161,7 +167,9 @@ loopbackattach(char *spec)
 			}
 			lb->link[chan].indrop = 1;
 
+			lb->link[chan].delayn = NS2FASTHZ(Delayn);
 			lb->link[chan].delaynns = Delayn;
+			lb->link[chan].delay0 = NS2FASTHZ(Delay0);
 			lb->link[chan].delay0ns = Delay0;
 		}
 	}
@@ -500,8 +508,12 @@ loopbackwrite(Chan *c, void *va, long n, vlong off)
 			 * it takes about 20000 cycles on a pentium ii
 			 * to run pushlink; perhaps this should be accounted.
 			 */
+			d0 = NS2FASTHZ(d0ns);
+			dn = NS2FASTHZ(dnns);
 
 			ilock(link);
+			link->delay0 = d0;
+			link->delayn = dn;
 			link->delay0ns = d0ns;
 			link->delaynns = dnns;
 			iunlock(link);
@@ -565,7 +577,7 @@ loopoput(Loop *lb, Link *link, Block *volatile bp)
 	if(BLEN(bp) < lb->minmtu)
 		bp = adjustblock(bp, lb->minmtu);
 	poperror();
-	ptime(bp->rp, todget(nil));
+	ptime(bp->rp, fastticks(nil));
 
 	link->packets++;
 	link->bytes += n;
@@ -582,7 +594,7 @@ looper(Loop *lb)
 	vlong t;
 	int chan;
 
-	t = todget(nil);
+	t = fastticks(nil);
 	for(chan = 0; chan < 2; chan++)
 		pushlink(&lb->link[chan], t);
 }
@@ -593,7 +605,7 @@ linkintr(Ureg*, Timer *ci)
 	Link *link;
 
 	link = ci->a;
-	pushlink(link, ci->ns);
+	pushlink(link, ci->when);
 }
 
 /*
@@ -650,7 +662,7 @@ pushlink(Link *link, vlong now)
 		if(link->droprate && nrand(link->droprate) == 0)
 			link->drops++;
 		else{
-			ptime(bp->rp, tout + link->delay0ns);
+			ptime(bp->rp, tout + link->delay0);
 			if(link->tq == nil)
 				link->tq = bp;
 			else
@@ -690,7 +702,7 @@ pushlink(Link *link, vlong now)
 	if(!tin || tin > tout && tout)
 		tin = tout;
 
-	link->ci.ns = tin;
+	link->ci.when = tin;
 	if(tin){
 		if(tin < now)
 			panic("loopback unfinished business");

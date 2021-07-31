@@ -39,7 +39,6 @@ int	dflag;
 int	rflag;
 Biobuf	bout;
 int	tabstop = 4;
-int	verbose;
 
 void	syms(char*);
 void	datas(char*);
@@ -58,9 +57,6 @@ main(int argc, char *argv[])
 	if(s!=nil && atoi(s)>0)
 		tabstop = atoi(s);
 	ARGBEGIN{
-	case 'v':
-		verbose = 1;
-		break;
 	case 'd':
 		dflag = 1;
 		break;
@@ -250,32 +246,17 @@ ulong
 sum(ulong i)
 {
 	long j, dtime, time;
-	int k;
-	static indent;
 
 	if(i >= ndata){
 		fprint(2, "prof: index out of range %ld [max %ld]\n", i, ndata);
 		return 0;
 	}
-	j = symind(data[i].pc);
 	time = data[i].time;
 	if(time < 0)
 		time += data[0].time;
-	if (verbose){
-		for(k = 0; k < indent; k++)
-			print("	");
-		print("%lud: %ld/%lud", i, data[i].time, data[i].count);
-		if (j >= 0)
-			print("	%s\n", acc[j].name);
-		else
-			print("	0x%lux\n", data[i].pc);
-	}
 	dtime = 0;
-	if(data[i].down != 0xFFFF){
-		indent++;
+	if(data[i].down != 0xFFFF)
 		dtime = sum(data[i].down);
-		indent--;
-	}
 	j = symind(data[i].pc);
 	if (j >= 0) {
 		acc[j].ms += time - dtime;

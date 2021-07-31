@@ -4,7 +4,6 @@
 #include "dat.h"
 #include "fns.h"
 #include "../port/error.h"
-#include "edf.h"
 
 struct
 {
@@ -12,23 +11,6 @@ struct
 	ulong	glare;
 	ulong	inglare;
 } lockstats;
-
-static void
-inccnt(Ref *r)
-{
-	_xinc(&r->ref);
-}
-
-static int
-deccnt(Ref *r)
-{
-	int x;
-
-	x = _xdec(&r->ref);
-	if(x < 0)
-		panic("decref pc=0x%lux", getcallerpc(&r));
-	return x;
-}
 
 static void
 dumplockmem(char *tag, Lock *l)
@@ -66,7 +48,7 @@ lock(Lock *l)
 
 	lockstats.locks++;
 	if(up)
-		inccnt(&up->nlocks);	/* prevent being scheded */
+		up->nlocks++;	/* prevent being scheded */
 	if(tas(&l->key) == 0){
 		if(up)
 			up->lastlock = l;
@@ -76,26 +58,20 @@ lock(Lock *l)
 		return 0;
 	}
 	if(up)
-		deccnt(&up->nlocks);
+		up->nlocks--;	/* didn't get the lock, allow scheding */
 
 	lockstats.glare++;
 	for(;;){
 		lockstats.inglare++;
 		i = 0;
 		while(l->key){
-			if(up && up->edf && (up->edf->flags & Admitted)){
-				/* priority inversion, yield */
-				print("inversion 0x%lux pc 0x%lux proc %lud held by pc 0x%lux proc %lud\n",
-					l, pc, up ? up->pid : 0, l->pc, l->p ? l->p->pid : 0);
-				edfyield();
-			}
 			if(i++ > 100000000){
 				i = 0;
 				lockloop(l, pc);
 			}
 		}
 		if(up)
-			inccnt(&up->nlocks);
+			up->nlocks++;
 		if(tas(&l->key) == 0){
 			if(up)
 				up->lastlock = l;
@@ -105,7 +81,7 @@ lock(Lock *l)
 			return 1;
 		}
 		if(up)
-			deccnt(&up->nlocks);
+			up->nlocks--;
 	}
 	return 0;	/* For the compiler */
 }
@@ -160,10 +136,10 @@ int
 canlock(Lock *l)
 {
 	if(up)
-		inccnt(&up->nlocks);
+		up->nlocks++;
 	if(tas(&l->key)){
 		if(up)
-			deccnt(&up->nlocks);
+			up->nlocks--;
 		return 0;
 	}
 
@@ -188,7 +164,7 @@ unlock(Lock *l)
 	coherence();
 
 	if(up)
-		deccnt(&up->nlocks);
+		--up->nlocks;
 }
 
 void

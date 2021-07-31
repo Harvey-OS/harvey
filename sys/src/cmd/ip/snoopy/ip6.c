@@ -186,6 +186,7 @@ v6hdrlen(Hdr *h)
 		nexthdr = *pkt;
 		plen += len;
 	}
+fprint(2, "hlen0: %d\n", plen);
 	return plen;
 }
 

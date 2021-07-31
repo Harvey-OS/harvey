@@ -11,8 +11,8 @@ main(int argc, char *argv[])
 
 	USED(argc, argv);
 	if(getwd(pathname, sizeof(pathname)) == 0) {
-		fprint(2, "pwd: %r\n");
-		exits("getwd");
+		print("pwd: %r\n");
+		exits(pathname);
 	}
 	print("%s\n", pathname);
 	exits(0);

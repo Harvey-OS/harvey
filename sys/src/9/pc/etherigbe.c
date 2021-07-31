@@ -13,15 +13,6 @@
  *	add tuning control via ctl file;
  *	this driver is little-endian specific.
  */
-
-#ifdef FS
-#include "all.h"
-#include "io.h"
-#include "mem.h"
-#include "../ip/ip.h"
-
-#else
-
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -30,22 +21,10 @@
 #include "io.h"
 #include "../port/error.h"
 #include "../port/netif.h"
-#endif			/* FS */
 
 #include "etherif.h"
 #include "ethermii.h"
-#include "compat.h"
 
-/* from pci.c */
-enum
-{					/* command register (pcidev->pcr) */
-	IOen		= (1<<0),
-	MEMen		= (1<<1),
-	MASen		= (1<<2),
-	MemWrInv	= (1<<4),
-	PErrEn		= (1<<6),
-	SErrEn		= (1<<8),
-};
 enum {
 	Ctrl		= 0x00000000,	/* Device Control */
 	Status		= 0x00000008,	/* Device Status */
@@ -194,8 +173,6 @@ enum {					/* EEPROM content offsets */
 	Ea		= 0x00,		/* Ethernet Address */
 	Cf		= 0x03,		/* Compatibility Field */
 	Pba		= 0x08,		/* Printed Board Assembly number */
-	/* in fs kernel, Icw1 is defined in io.h; changed it here */
-#define Icw1 Igbe_icw1
 	Icw1		= 0x0A,		/* Initialization Control Word 1 */
 	Sid		= 0x0B,		/* Subsystem ID */
 	Svid		= 0x0C,		/* Subsystem Vendor ID */
@@ -580,7 +557,6 @@ static char* statistics[Nstatistics] = {
 	"TCP Segmentation Context Fail",
 };
 
-#ifndef FS
 static long
 igbeifstat(Ether* edev, void* a, long n, ulong offset)
 {
@@ -592,8 +568,6 @@ igbeifstat(Ether* edev, void* a, long n, ulong offset)
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
 	p = malloc(2*READSTR);
-	if (p == nil)
-		panic("igbeifstat: no mem");
 	l = 0;
 	for(i = 0; i < Nstatistics; i++){
 		r = csr32r(ctlr, Statistics+i*4);
@@ -704,7 +678,6 @@ igbectl(Ether* edev, void* buf, long n)
 
 	return n;
 }
-#endif		/* FS */
 
 static void
 igbepromiscuous(void* arg, int on)
@@ -744,7 +717,9 @@ igberballoc(void)
 static void
 igberbfree(Block* bp)
 {
-	BLKRESET(bp);
+	bp->rp = bp->lim - Rbsz;
+	bp->wp = bp->rp;
+
 	ilock(&igberblock);
 	bp->next = igberbpool;
 	igberbpool = bp;
@@ -767,14 +742,14 @@ igbelim(void* ctlr)
 }
 
 static void
-igbelproc(PROCARG(void *arg))
+igbelproc(void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
 	MiiPhy *phy;
 	int ctrl, r;
 
-	edev = GETARG(arg);
+	edev = arg;
 	ctlr = edev->ctlr;
 	for(;;){
 		if(ctlr->mii == nil || ctlr->mii->curphy == nil)
@@ -936,7 +911,7 @@ igbetransmit(Ether* edev)
 	 */
 	tdt = ctlr->tdt;
 	while(NEXT(tdt, ctlr->ntd) != tdh){
-		if((bp = etheroq(edev)) == nil)
+		if((bp = qget(edev->oq)) == nil)
 			break;
 		td = &ctlr->tdba[tdt];
 		td->addr[0] = PCIWADDR(bp->rp);
@@ -1034,7 +1009,7 @@ igberim(void* ctlr)
 }
 
 static void
-igberproc(PROCARG(void *arg))
+igberproc(void* arg)
 {
 	Rd *rd;
 	Block *bp;
@@ -1042,7 +1017,7 @@ igberproc(PROCARG(void *arg))
 	int r, rdh;
 	Ether *edev;
 
-	edev = GETARG(arg);
+	edev = arg;
 	ctlr = edev->ctlr;
 
 	igberxinit(ctlr);
@@ -1073,7 +1048,7 @@ igberproc(PROCARG(void *arg))
 			if((rd->status & Reop) && rd->errors == 0){
 				bp = ctlr->rb[rdh];
 				ctlr->rb[rdh] = nil;
-				INCRPTR(bp, rd->length);
+				bp->wp += rd->length;
 				bp->next = nil;
 				if(!(rd->status & Ixsm)){
 					ctlr->ixsm++;
@@ -1083,9 +1058,7 @@ igberproc(PROCARG(void *arg))
 						 * (and valid as errors == 0).
 						 */
 						ctlr->ipcs++;
-#ifndef FS
 						bp->flag |= Bipck;
-#endif
 					}
 					if(rd->status & Tcpcs){
 						/*
@@ -1093,16 +1066,12 @@ igberproc(PROCARG(void *arg))
 						 * (and valid as errors == 0).
 						 */
 						ctlr->tcpcs++;
-#ifndef FS
 						bp->flag |= Btcpck|Budpck;
-#endif
 					}
-#ifndef FS
 					bp->checksum = rd->checksum;
 					bp->flag |= Bpktck;
-#endif
 				}
-				ETHERIQ(edev, bp, 1);
+				etheriq(edev, bp, 1);
 			}
 			else if(ctlr->rb[rdh] != nil){
 				freeb(ctlr->rb[rdh]);
@@ -1147,8 +1116,6 @@ igbeattach(Ether* edev)
 
 	ctlr->rb = malloc(ctlr->nrd*sizeof(Block*));
 	ctlr->tb = malloc(ctlr->ntd*sizeof(Block*));
-	if (ctlr->tb == nil)
-		panic("igbeattach: no mem");
 
 	if(waserror()){
 		while(ctlr->nrb > 0){
@@ -1600,22 +1567,20 @@ release:
 static void
 igbedetach(Ctlr* ctlr)
 {
-	int r, s;
+	int r;
 
 	/*
 	 * Perform a device reset to get the chip back to the
 	 * power-on state, followed by an EEPROM reset to read
 	 * the defaults for some internal registers.
 	 */
-	s = splhi();		/* in case reset generates an interrupt */
 	csr32w(ctlr, Imc, ~0);
 	csr32w(ctlr, Rctl, 0);
 	csr32w(ctlr, Tctl, 0);
 
-	delay(100);		/* was 10 */
+	delay(10);
 
 	csr32w(ctlr, Ctrl, Devrst);
-	delay(100);		/* new */
 	while(csr32r(ctlr, Ctrl) & Devrst)
 		;
 
@@ -1634,14 +1599,12 @@ igbedetach(Ctlr* ctlr)
 	}
 
 	csr32w(ctlr, Imc, ~0);
-	delay(100);		/* new */
 	while(csr32r(ctlr, Icr))
 		;
-	splx(s);
 }
 
-int
-etherigbereset(Ctlr* ctlr)
+static int
+igbereset(Ctlr* ctlr)
 {
 	int ctrl, i, pause, r, swdpio, txcw;
 
@@ -1778,46 +1741,27 @@ igbepci(void)
 			print("igbe: can't map %8.8luX\n", p->mem[0].bar);
 			continue;
 		}
-
-		/*
-		 * from etherga620.c:
-		 * If PCI Write-and-Invalidate is enabled set the max write DMA
-		 * value to the host cache-line size (32 on Pentium or later).
-		 */
-		if(p->pcr & MemWrInv){
-			cls = pcicfgr8(p, PciCLS) * 4;
-			if(cls != CACHELINESZ)
-				pcicfgw8(p, PciCLS, CACHELINESZ/4);
-		}
-
 		cls = pcicfgr8(p, PciCLS);
 		switch(cls){
 			default:
-				print("igbe: unexpected CLS - %d bytes\n",
-					cls*sizeof(long));
+				print("igbe: unexpected CLS - %d\n", cls*4);
 				break;
 			case 0x00:
 			case 0xFF:
-				/* alphapc 164lx returns 0 */
-				print("igbe: unusable PciCLS: %d, using %d longs\n",
-					cls, CACHELINESZ/sizeof(long));
-				cls = CACHELINESZ/sizeof(long);
-				pcicfgw8(p, PciCLS, cls);
-				break;
+				print("igbe: unusable CLS\n");
+				continue;
 			case 0x08:
 			case 0x10:
 				break;
 		}
 		ctlr = malloc(sizeof(Ctlr));
-		if (ctlr == nil)
-			panic("ibgepci: no mem");
 		ctlr->port = port;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
 		ctlr->cls = cls*4;
 		ctlr->nic = KADDR(ctlr->port);
 
-		if(etherigbereset(ctlr)){
+		if(igbereset(ctlr)){
 			free(ctlr);
 			continue;
 		}
@@ -1867,21 +1811,18 @@ igbepnp(Ether* edev)
 	edev->attach = igbeattach;
 	edev->transmit = igbetransmit;
 	edev->interrupt = igbeinterrupt;
-#ifndef FS
 	edev->ifstat = igbeifstat;
 	edev->ctl = igbectl;
 
 	edev->arg = edev;
 	edev->promiscuous = igbepromiscuous;
-#endif
+
 	return 0;
 }
 
-#ifndef FS
 void
 etherigbelink(void)
 {
 	addethercard("i82543", igbepnp);
 	addethercard("igbe", igbepnp);
 }
-#endif

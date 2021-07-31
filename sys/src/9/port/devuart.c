@@ -287,21 +287,6 @@ uartdrained(void* arg)
 }
 
 static void
-uartdrainoutput(Uart *p)
-{
-	if(!p->enabled)
-		return;
-
-	p->drain = 1;
-	if(waserror()){
-		p->drain = 0;
-		nexterror();
-	}
-	sleep(&p->r, uartdrained, p);
-	poperror();
-}
-
-static void
 uartclose(Chan *c)
 {
 	Uart *p;
@@ -323,7 +308,7 @@ uartclose(Chan *c)
 			 */
 			qhangup(p->oq, nil);
 			if(!waserror()){
-				uartdrainoutput(p);
+				sleep(&p->r, uartdrained, p);
 				poperror();
 			}
 			qclose(p->oq);
@@ -376,7 +361,8 @@ uartctl(Uart *p, char *cmd)
 		switch(*f[i]){
 		case 'B':
 		case 'b':
-			uartdrainoutput(p);
+			if(p->enabled)
+				sleep(&p->r, uartdrained, p);
 			if((*p->phys->baud)(p, n) < 0)
 				return -1;
 			break;
@@ -386,7 +372,8 @@ uartctl(Uart *p, char *cmd)
 			break;
 		case 'D':
 		case 'd':
-			uartdrainoutput(p);
+			if(p->enabled)
+				sleep(&p->r, uartdrained, p);
 			(*p->phys->dtr)(p, n);
 			break;
 		case 'E':
@@ -407,23 +394,27 @@ uartctl(Uart *p, char *cmd)
 			break;
 		case 'i':
 		case 'I':
-			uartdrainoutput(p);
+			if(p->enabled)
+				sleep(&p->r, uartdrained, p);
 			(*p->phys->fifo)(p, n);
 			break;
 		case 'K':
 		case 'k':
-			uartdrainoutput(p);
+			if(p->enabled)
+				sleep(&p->r, uartdrained, p);
 			(*p->phys->dobreak)(p, n);
 			break;
 		case 'L':
 		case 'l':
-			uartdrainoutput(p);
+			if(p->enabled)
+				sleep(&p->r, uartdrained, p);
 			if((*p->phys->bits)(p, n) < 0)
 				return -1;
 			break;
 		case 'm':
 		case 'M':
-			uartdrainoutput(p);
+			if(p->enabled)
+				sleep(&p->r, uartdrained, p);
 			(*p->phys->modemctl)(p, n);
 			break;
 		case 'n':
@@ -433,7 +424,8 @@ uartctl(Uart *p, char *cmd)
 			break;
 		case 'P':
 		case 'p':
-			uartdrainoutput(p);
+			if(p->enabled)
+				sleep(&p->r, uartdrained, p);
 			if((*p->phys->parity)(p, *(f[i]+1)) < 0)
 				return -1;
 			break;
@@ -446,12 +438,14 @@ uartctl(Uart *p, char *cmd)
 			break;
 		case 'R':
 		case 'r':
-			uartdrainoutput(p);
+			if(p->enabled)
+				sleep(&p->r, uartdrained, p);
 			(*p->phys->rts)(p, n);
 			break;
 		case 'S':
 		case 's':
-			uartdrainoutput(p);
+			if(p->enabled)
+				sleep(&p->r, uartdrained, p);
 			if((*p->phys->stop)(p, n) < 0)
 				return -1;
 			break;
@@ -624,10 +618,8 @@ uartkick(void *v)
 	(*p->phys->kick)(p);
 	iunlock(&p->tlock);
 
-	if(p->drain && uartdrained(p)){
-		p->drain = 0;
+	if(qisclosed(p->oq) && uartdrained(p))
 		wakeup(&p->r);
-	}
 }
 
 /*

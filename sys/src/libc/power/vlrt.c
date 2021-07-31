@@ -28,8 +28,6 @@ struct	Vlong
 
 void	abort(void);
 
-#pragma profile off
-
 void
 _addv(Vlong *r, Vlong a, Vlong b)
 {
@@ -55,8 +53,6 @@ _subv(Vlong *r, Vlong a, Vlong b)
 	r->lo = lo;
 	r->hi = hi;
 }
-
-#pragma profile on
 
 void
 _d2v(Vlong *y, double d)

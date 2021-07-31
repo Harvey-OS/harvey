@@ -80,14 +80,14 @@ iallocb(int size)
 
 	if(ialloc.bytes > conf.ialloc){
 		if((m1++%10000)==0)
-			iprint("iallocb: limited %lud/%lud\n",
+			print("iallocb: limited %lud/%lud\n",
 				ialloc.bytes, conf.ialloc);
 		return 0;
 	}
 
 	if((b = _allocb(size)) == nil){
 		if((m2++%10000)==0)
-			iprint("iallocb: no memory %lud/%lud\n",
+			print("iallocb: no memory %lud/%lud\n",
 				ialloc.bytes, conf.ialloc);
 		return nil;
 	}

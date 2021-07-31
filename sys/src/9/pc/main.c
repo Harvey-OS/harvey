@@ -548,21 +548,10 @@ mathinit(void)
  *  set up floating point for a new process
  */
 void
-procsetup(Proc*p)
+procsetup(Proc *p)
 {
 	p->fpstate = FPinit;
 	fpoff();
-}
-
-void
-procrestore(Proc *p)
-{
-	uvlong t;
-
-	if(p->kp || m->havetsc == 0)
-		return;
-	cycles(&t);
-	p->pcycles -= t;
 }
 
 /*
@@ -571,12 +560,6 @@ procrestore(Proc *p)
 void
 procsave(Proc *p)
 {
-	uvlong t;
-
-	if(m->havetsc){
-		cycles(&t);
-		p->pcycles += t;
-	}
 	if(p->fpstate == FPactive){
 		if(p->state == Moribund)
 			fpoff();
