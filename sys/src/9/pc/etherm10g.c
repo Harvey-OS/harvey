@@ -729,13 +729,14 @@ fwtype(ulong type)
 static int
 chkfw(Ctlr *c)
 {
-	ulong off, type;
+	uintptr off;
 	Fwhdr *h;
+	ulong type;
 
 	off = gbit32(c->ram+0x3c);
-	dprint("firmware %lux\n", off);
+	dprint("firmware %llux\n", (uvlong)off);
 	if((off&3) || off + sizeof *h > c->ramsz){
-		print("!m10g: bad firmware %lux\n", off);
+		print("!m10g: bad firmware %llux\n", (uvlong)off);
 		return -1;
 	}
 	h = (Fwhdr*)(c->ram + off);
@@ -1222,7 +1223,7 @@ m10gtransmit(Ether *e)
 		rdma = nseg = nsegments(b, segsz);
 		bus = PCIWADDR(b->rp);
 		for(; len; len -= slen){
-			end = (bus + segsz) & ~(segsz-1);
+			end = bus + segsz & ~(segsz-1);
 			slen = end - bus;
 			if(slen > len)
 				slen = len;
@@ -1238,7 +1239,7 @@ m10gtransmit(Ether *e)
 			flags &= ~SFfirst;
 			rdma = 1;
 		}
-		tx->bring[(i + nseg - 1) & tx->m] = b;
+		tx->bring[i + nseg - 1 & tx->m] = b;
 		if(1 || count > 0){
 			submittx(tx, count);
 			count = 0;
@@ -1564,6 +1565,7 @@ m10gpci(void)
 		c = malloc(sizeof *c);
 		if(c == nil)
 			continue;
+		memset(c, 0, sizeof *c);
 		c->pcidev = p;
 		c->id = p->did<<16 | p->vid;
 		c->boot = pcicap(p, PciCapVND);
