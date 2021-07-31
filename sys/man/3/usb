@@ -515,13 +515,11 @@ Dumps data structures for inspection.
 .B #u/usb
 root of the USB interface
 .SH SOURCE
-.B /sys/src/9/port/usb.h
+.B /sys/src/9/pc/usb.h
 .br
-.B /sys/src/9/*/*usb?hci.h
+.B /sys/src/9/pc/devusb.c
 .br
-.B /sys/src/9/*/devusb.c
-.br
-.B /sys/src/9/*/usb?hci*.c
+.B /sys/src/9/pc/usb?hci.c
 .SH "SEE ALSO"
 .IR usb (2),
 .IR usb (4),
