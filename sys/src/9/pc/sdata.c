@@ -1222,8 +1222,7 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 	qlock(ctlr);
 
 	as = ataready(cmdport, ctlport, drive->dev, Bsy|Drq, 0, 107*1000);
-	/* used to test as&Chk as failure too, but some CD readers use that for media change */
-	if(as < 0){
+	if(as < 0 || (as&Chk)){
 		qunlock(ctlr);
 		return -1;
 	}
