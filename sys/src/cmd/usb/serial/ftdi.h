@@ -7,7 +7,7 @@ enum {
 	FTOpenRDUltDid	= 0x9E90,
 
 	FTSIODid	= 0x8372,	/* Product Id SIO appl'n of 8U100AX */
-	FT8U232AMDid	= 0x6001,	/* Similar device to SIO above */
+	FT8U232AMDid	= 0x6001, 	/* Similar device to SIO above */
 	FT8U232AMALTDid	= 0x6006,	/* FT's alternate Did for above*/
 	FT8U2232CDid	= 0x6010,	/* Dual channel device */
 	FTRELAISDid	= 0xFA10,	/* Relais device */
@@ -385,7 +385,7 @@ enum {
 	 * new high speed devices
 	 */
 	FT4232HDid	= 0x6011,		/* FTDI FT4232H based device */
-
+	
 };
 
 /* Commands */
@@ -393,25 +393,18 @@ enum {
 	FTRESET		= 0,		/* Reset the port */
 	FTSETMODEMCTRL,			/* Set the modem control register */
 	FTSETFLOWCTRL,			/* Set flow control register */
-	FTSETBAUDRATE,			/* Set baud rate */
+	FTSETBaudRate,			/* Set baud rate */
 	FTSETDATA,			/* Set the parameters, parity */
 	FTGETMODEMSTATUS,		/* Retrieve current value of modem ctl */
 	FTSETEVENTCHAR,			/* Set the event character */
 	FTSETERRORCHAR,			/* Set the error character */
-	FTUNKNOWN,
 	FTSETLATENCYTIMER,		/* Set the latency timer */
 	FTGETLATENCYTIMER,		/* Get the latency timer */
-	FTSETBITMODE,			/* Set bit mode */
+	FTSETBITMODE,			/* Set bigbang mode */
 	FTGETPINS,			/* Read pins state */
-	FTGETE2READ	= 0x90,		/* Read address from 128-byte I2C EEPROM */
-	FTSETE2WRITE,			/* Write to address on 128-byte I2C EEPROM */
-	FTSETE2ERASE,			/* Erase address on 128-byte I2C EEPROM */
-};
-
-/* Port Identifier Table, index for interfaces */
-enum {
-	PITDEFAULT = 0,		/* SIOA */
-	PITA,			/* SIOA jtag if there is one */
+	FTGETE2READ	= 0x90,		/* Read an address from EEPROM */
+	FTSETE2WRITE,			/* Write to address on the EEPROM */
+	FTSETE2ERASE,			/* Erase address on the EEPROM */
 };
 
 enum {
@@ -424,31 +417,22 @@ enum {
  * Gets have wValue = 0
  */
 enum {
-	FTMODEMSTATUSSZ	= 1,
-	FTLATENCYTIMERSZ= 1,
-	FTPINSSZ	= 1,
-	FTE2READSZ	= 2,
+	FTGETMODEMSTATUSSZ	= 1,
+	FTGETLATENCYTIMERSZ	= 0,		/* Get the latency timer */
+	FTGETE2READSZ		= 2,		/* Read an address */
 };
 
 /*
  * bRequest: FTGETE2READ
  * wIndex: Address of word to read
- * Data: Will return a word (2 bytes) of data from E2Address
- * Results put in the I2C 128 byte EEPROM string eeprom+(2*index)
+ * Data: Will return a word of data from E2Address
  */
 
-/*
- * bRequest: FTSETE2WRITE
- * wIndex: Address of word to read
- * wValue: Value of the word
- * Data: Will return a word (2 bytes) of data from E2Address
- */
-
-/*
- * bRequest: FTSETE2ERASE
- * Erases the EEPROM
- * wIndex: 0
- */
+/* Port Identifier Table */
+enum {
+	PITDEFAULT = 0,		/* SIOA */
+	PITA,			/* SIOA */
+};
 
 /*
  * bRequest: FTRESET
@@ -463,7 +447,7 @@ enum {
 
 /*
  * BmRequestType: SET
- * bRequest: FTSETBAUDRATE
+ * bRequest: FTSETBaudRate
  * wValue: BaudDivisor value - see below
  * Bits 15 to 0 of the 17-bit divisor are placed in the request value.
  * Bit 16 is placed in bit 0 of the request index.
@@ -496,7 +480,6 @@ enum {
 /*
  * bRequest: FTSETDATA
  * wValue: Data characteristics
- *	bits 0-7 number of data bits
  * wIndex: Port
  */
 enum {
@@ -520,7 +503,7 @@ enum {
 /*
  * bRequest: FTSETFLOWCTRL
  * wValue: Xoff/Xon
- * wIndex: Protocol/Port - hIndex is protocol; lIndex is port
+ * wIndex: Protocol/Port - hIndex is protocl / lIndex is port
  */
 enum {
 	FTDISABLEFLOWCTRL= 0,
@@ -537,60 +520,25 @@ enum {
  */
 
 /*
- * bRequest: FTSETBITMODE
- * wIndex: Port
- * either it is big bang mode, in which case
- * wValue: 1 byte L is the big bang mode BIG*
- *	or BM is
- * wValue: 1 byte bitbang mode H, 1 byte bitmask for lines L
- */
-enum {
-	BMSERIAL	= 0,		/* reset, turn off bit-bang mode */
-
-	BIGBMNORMAL	= 1,		/* normal bit-bang mode */
-	BIGBMSPI	= 2,		/* spi bit-bang mode */
-
-	BMABM		= 1<<8,		/* async mode */
-	BMMPSSE		= 2<<8,
-	BMSYNCBB	= 4<<8,		/* sync bit-bang -- 2232x and R-type */
-	BMMCU		= 8<<8,		/* MCU Host Bus -- 2232x */
-	BMOPTO		= 0x10<<8,	/* opto-isolated<<8, 2232x */
-	BMCBUS		= 0x20<<8,	/* CBUS pins of R-type chips */
-	BMSYNCFF	= 0x40<<8,	/* Single Channel Sync FIFO, 2232H only */
-};
-
-/*
  * bRequest: FTSETLATENCYTIMER
- * wValue: Latency (milliseconds 1-255)
+ * wValue: Latency (milliseconds)
  * wIndex: Port
  */
-enum {
-	FTLATENCYDEFAULT = 2,
-};
 
 /*
  * BmRequestType: SET
  * bRequest: FTSETEVENTCHAR
  * wValue: EventChar
  * wIndex: Port
- * 0-7 lower bits event char
- * 8 enable
  */
-enum {
-	FTEVCHARENAB = 1<<8,
-};
 
 /*
  * BmRequestType: SET
  * bRequest: FTSETERRORCHAR
  * wValue: Error Char
  * wIndex: Port
- * 0-7 lower bits event char
- * 8 enable
  */
-enum {
-	FTERRCHARENAB = 1<<8,
-};
+
 /*
  * BmRequestType: GET
  * bRequest: FTGETMODEMSTATUS

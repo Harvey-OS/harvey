@@ -211,7 +211,7 @@ enum {
 };
 
 static int
-ftdiread(Serialport *p, int index, int req, uchar *buf, int len)
+ftdiread(Serialport *p, int val, int index, int req, uchar *buf)
 {
 	int res;
 	Serial *ser;
@@ -220,9 +220,9 @@ ftdiread(Serialport *p, int index, int req, uchar *buf, int len)
 
 	if(req != FTGETE2READ)
 		index |= p->interfc + 1;
-	dsprint(2, "serial: ftdiread %#p [%d] req: %#x val: %#x idx:%d buf:%p len:%d\n",
-		p, p->interfc, req, 0, index, buf, len);
-	res = usbcmd(ser->dev,  Rd2h | Rftdireq | Rdev, req, 0, index, buf, len);
+	dsprint(2, "serial: ftdiread %#p [%d] req: %#x val: %#x idx:%d buf:%p\n",
+		p, p->interfc, req, val, index, buf);
+	res = usbcmd(ser->dev,  Rd2h | Rftdireq | Rdev, req, val, index, buf, 1);
 	dsprint(2, "serial: ftdiread res:%d\n", res);
 	return res;
 }
@@ -235,8 +235,7 @@ ftdiwrite(Serialport *p, int val, int index, int req)
 
 	ser = p->s;
 
-	if(req != FTGETE2READ || req != FTSETE2ERASE || req != FTSETBAUDRATE)
-		index |= p->interfc + 1;
+	index |= p->interfc + 1;
 	dsprint(2, "serial: ftdiwrite %#p [%d] req: %#x val: %#x idx:%d\n",
 		p, p->interfc, req, val, index);
 	res = usbcmd(ser->dev, Rh2d | Rftdireq | Rdev, req, val, index, nil, 0);
@@ -264,9 +263,9 @@ ft232ambaudbase2div(int baud, int base)
 	ushort divisor;
 
 	divisor3 = (base / 2) / baud;
-	if((divisor3 & 7) == 7)
-		divisor3++;			/* round x.7/8 up to x+1 */
-	divisor = divisor3 >> 3;
+ 	if((divisor3 & 7) == 7)
+		divisor3++; 			/* round x.7/8 up to x+1 */
+ 	divisor = divisor3 >> 3;
 	divisor3 &= 7;
 
 	if(divisor3 == 1)
@@ -275,7 +274,7 @@ ft232ambaudbase2div(int baud, int base)
 		divisor |= 0x4000;		/*	0.5	*/
 	else if(divisor3 != 0)
 		divisor |= 0x8000;		/*	0.25	*/
-	if( divisor == 1)
+ 	if( divisor == 1)
 		divisor = 0;		/* special case for maximum baud rate */
 	return divisor;
 }
@@ -304,9 +303,9 @@ ft232bmbaudbase2div(int baud, int base)
 	divisor3 = (base / 2) / baud;
 	divisor = divisor3 >> 3 | divfrac[divisor3 & 7] << 14;
 
-	/* Deal with special cases for highest baud rates. */
-	if( divisor == 1)
-		divisor = 0;			/* 1.0 */
+ 	/* Deal with special cases for highest baud rates. */
+ 	if( divisor == 1)
+		divisor = 0; 			/* 1.0 */
 	else if( divisor == 0x4001)
 		divisor = 1;			/* 1.5 */
 	return divisor;
@@ -342,8 +341,8 @@ ftbaudcalcdiv(Serial *ser, int baud)
 	if(baud == 0)
 		baud = 9600;
 
-	switch(ser->type) {
-	case SIO:
+ 	switch(ser->type) {
+ 	case SIO:
 		switch(baud) {
 		case 300:
 			divval = FTb300;
@@ -380,12 +379,12 @@ ftbaudcalcdiv(Serial *ser, int baud)
 			break;
 		}
 		break;
-	case FT8U232AM:
-		if(baud <= 3000000)
+ 	case FT8U232AM:
+	 	if(baud <= 3000000)
 			divval = ft232ambaud2div(baud);
 		else
 			divval = ft232ambaud2div(9600);
-		break;
+ 		break;
 	case FT232BM:
 	case FT2232C:
 	case FTKINDR:
@@ -446,7 +445,7 @@ ftsetparam(Serialport *p)
 		return res;
 
 	bauddiv = ftbaudcalcdiv(p->s, p->baud);
-	res = ftdiwrite(p, bauddiv, (bauddiv>>16) & 1, FTSETBAUDRATE);
+	res = ftdiwrite(p, bauddiv, (bauddiv>>16) & 1, FTSETBaudRate);
 
 	dsprint(2, "serial: setparam res: %d\n", res);
 	return res;
@@ -461,7 +460,7 @@ ftgettype(Serial *ser)
 	Conf *cnf;
 
 	pksz = Packsz;
-	/* Assume it is not the original SIO device for now. */
+ 	/* Assume it is not the original SIO device for now. */
 	baudbase = ClockNew / 2;
 	outhdrsz = 0;
 	dno = ser->dev->usb->dno;
@@ -763,11 +762,11 @@ statusreader(void *u)
 		memmove(p->data, pk->b, pk->nb);
 		p->ndata = pk->nb;
 		free(pk);
-		dsprint(2, "serial %p: status reader %d \n", p, p->ndata);
+		dsprint(2, "serial: status reader %d \n", p->ndata);
 		/* consume it all */
 		while(p->ndata != 0){
-			dsprint(2, "serial %p: status reader to consume: %d\n",
-				p, p->ndata);
+			dsprint(2, "serial: status reader to consume: %d\n",
+				p->ndata);
 			cl = recvul(p->w4data);
 			if(cl  < 0)
 				break;
@@ -791,7 +790,7 @@ ftreset(Serial *ser)
 
 	p = ser->p;
 	for(i = 0; i < Maxifc; i++)
-		if(p[i].s != nil)
+		if(!p[i].isjtag && p[i].s != nil)
 			ftdiwrite(&p[i], FTRESETCTLVAL, 0, FTRESET);
 	return 0;
 }
@@ -800,33 +799,8 @@ static int
 ftinit(Serialport *p)
 {
 	Serial *ser;
-	uint timerval;
-	int res;
 
 	ser = p->s;
-	if(p->isjtag){
-		res = ftdiwrite(p, FTSETFLOWCTRL, 0, FTDISABLEFLOWCTRL);
-		if(res < 0)
-			return -1;
-		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uchar *)&timerval,
-			FTLATENCYTIMERSZ);
-		if(res < 0)
-			return -1;
-		dsprint(2, "serial: jtag latency timer is %d\n", timerval);
-		timerval = 2;
-		ftdiwrite(p, FTLATENCYDEFAULT, 0, FTSETLATENCYTIMER);
-		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uchar *)&timerval,
-			FTLATENCYTIMERSZ);
-		if(res < 0)
-			return -1;
-
-		dsprint(2, "serial: jtag latency timer set to %d\n", timerval);
-		/* may be unnecessary */
-		devctl(p->epin,  "timeout 5000");
-		devctl(p->epout, "timeout 5000");
-		/* 0xb is the mask for lines. plug dependant? */
-		ftdiwrite(p, BMMPSSE|0x0b, 0, FTSETBITMODE);
-	}
 	incref(ser->dev);
 	threadcreate(statusreader, p, 8*1024);
 	return 0;
