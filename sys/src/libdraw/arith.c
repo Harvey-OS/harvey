@@ -159,7 +159,8 @@ combinerect(Rectangle *r1, Rectangle r2)
 		r1->max.y = r2.max.y;
 }
 
-ulong drawld2chan[] = {
+extern ulong
+drawld2chan[] = {
 	GREY1,
 	GREY2,
 	GREY4,
