@@ -230,14 +230,11 @@ cmprun(uchar *a, uchar *b, int len)
 int
 countrle(uchar *a)
 {
-	uchar a0;
-	uchar *p;
+	int i;
 
-	p = a;
-	a0 = *p;
-	while(*++p == a0)
+	for(i=0; a[i]==a[0]; i++)
 		;
-	return p - a;
+	return i;
 }
 
 void
