@@ -400,10 +400,9 @@ searches
 .B sd?[0-9]*
 FAT partitions for a kernel
 (any file named
-.BR 9pc* ,
-.B 9k8*
+.B 9pc*
 or
-.BR 9k10* )
+.BR 9k8* )
 and if it finds exactly one kernel in a given FAT partition,
 chooses it.
 .I 9load
