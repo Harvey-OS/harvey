@@ -219,10 +219,8 @@ handleopt(int fd, char *name, char *val)
 					name, val);
 			}
 			*op->valp = n;
-			/* incoming 0 for tsize is uninteresting */
-			if(cistrcmp("tsize", op->name) != 0)
-				syslog(dbg, flog, "tftpd %d setting %s to client's %d",
-					pid, name, n);
+			syslog(dbg, flog, "tftpd %d setting %s to %d",
+				pid, name, n);
 			return op;
 		}
 	return nil;
@@ -236,59 +234,25 @@ filesize(char *file)
 
 	dp = dirstat(file);
 	if (dp == nil)
-		return -1;
+		return 0;
 	size = dp->length;
 	free(dp);
 	return size;
 }
 
-/* copy word into bp iff it fits before ep, returns bytes to advance bp. */
 static int
-emits(char *word, char *bp, char *ep)
+options(int fd, char *buf, char *file, ushort oper, char *p, int dlen)
 {
-	int len;
-
-	len = strlen(word) + 1;
-	if (bp + len >= ep)
-		return -1;
-	strcpy(bp, word);
-	return len;
-}
-
-/* format number into bp iff it fits before ep. */
-static int
-emitn(vlong n, char *bp, char *ep)
-{
-	char numb[32];
-
-	snprint(numb, sizeof numb, "%lld", n);
-	return emits(numb, bp, ep);
-}
-
-/*
- * send an OACK packet to respond to options.  bail early with -1 on error.
- * p is the packet containing the options.
- *
- * hack: bandt (viaducts) uses smaller mtu than ether's
- * (1400 bytes for tcp mss of 1300 bytes),
- * so offer at most bandt's mtu minus headers,
- * to avoid failure of pxe booting via viaduct.
- * there's an exception for the cavium's u-boot.
- */
-static int
-options(int fd, char *buf, int bufsz, char *file, ushort oper, char *p, int dlen)
-{
-	int nmlen, vallen, olen, nopts;
+	int nmlen, vallen, nopts;
 	vlong size;
-	char *val, *bp, *ep;
+	char *val, *bp;
 	Opt *op;
 
 	buf[0] = 0;
 	buf[1] = Tftp_OACK;
 	bp = buf + Opsize;
-	ep = buf + bufsz;
 	nopts = 0;
-	for (; dlen > 0 && *p != '\0'; p = val + vallen, bp += olen) {
+	while (dlen > 0 && *p != '\0') {
 		nmlen = strlen(p) + 1;		/* include NUL */
 		if (nmlen > dlen)
 			break;
@@ -303,49 +267,43 @@ options(int fd, char *buf, int bufsz, char *file, ushort oper, char *p, int dlen
 		dlen -= vallen;
 
 		nopts++;
-		olen = 0;
 		op = handleopt(fd, p, val);
-		if (op == nil)
-			continue;
-
-		/* append OACK response to buf */
-		nmlen = emits(p, bp, ep);	/* option name */
-		if (nmlen < 0)
-			return -1;
-		bp += nmlen;
-
-		if (oper == Tftp_READ && cistrcmp(p, "tsize") == 0) {
-			size = filesize(file);
-			if (size == -1) {
-				nak(fd, Errnotfound, "no such file");
-				syslog(dbg, flog, "tftpd tsize for "
-					"non-existent file %s", file);
-				// *op->valp = 0;
-				// olen = emits("0", bp, ep);
-				return -1;
+		if (op) {
+			/* append OACK response to buf */
+			sprint(bp, "%s", p);
+			bp += nmlen;
+			if (oper == Tftp_READ && cistrcmp(p, "tsize") == 0) {
+				size = filesize(file);
+				sprint(bp, "%lld", size);
+				syslog(dbg, flog, "tftpd %d %s tsize is %,lld",
+					pid, file, size);
 			}
-			*op->valp = size;
-			olen = emitn(size, bp, ep);
-			syslog(dbg, flog, "tftpd %d %s tsize is %,lld",
-				pid, file, size);
-		} else if (oper == Tftp_READ && cistrcmp(p, "blksize") == 0 &&
-		    blksize > Bandtblksz && blksize != Bcavium) {
-			*op->valp = blksize = Bandtblksz;
-			olen = emitn(blksize, bp, ep);
-			syslog(dbg, flog, "tftpd %d overriding blksize to %d",
-				pid, blksize);
-		} else
-			olen = emits(val, bp, ep);  /* use requested value */
+			/*
+			 * hack: bandt (viaducts) uses smaller mtu than ether's
+			 * (1400 bytes for tcp mss of 1300 bytes),
+			 * so offer at most bandt's mtu minus headers,
+			 * to avoid failure of pxe booting via viaduct.
+			 * there's an exception for the cavium's u-boot.
+			 */
+			else if (oper == Tftp_READ &&
+			    cistrcmp(p, "blksize") == 0 &&
+			    blksize > Bandtblksz && blksize != Bcavium) {
+				blksize = Bandtblksz;
+				sprint(bp, "%d", blksize);
+				syslog(dbg, flog,
+					"tftpd %d overriding blksize to %d",
+					pid, blksize);
+			} else
+				strcpy(bp, val);  /* use requested value */
+			bp += strlen(bp) + 1;
+		}
+		p = val + vallen;
 	}
 	if (nopts == 0)
 		return 0;		/* no options actually seen */
-
-	if (bp + 3 >= ep)
-		return -1;
 	*bp++ = '\0';
 	*bp++ = '\0';			/* overkill */
 	*bp++ = '\0';
-
 	if (write(fd, buf, bp - buf) < bp - buf) {
 		syslog(dbg, flog, "tftpd network write error on oack to %s: %r",
 			raddr);
@@ -355,6 +313,25 @@ options(int fd, char *buf, int bufsz, char *file, ushort oper, char *p, int dlen
 		syslog(dbg, flog, "tftpd oack: options to %s", raddr);
 	return nopts;
 }
+
+/* this doesn't stop the cavium from barging ahead */
+//static void
+//sendnoopts(int fd, char *name)
+//{
+//	char buf[64];
+//
+//	memset(buf, 0, sizeof buf);
+//	buf[0] = 0;
+//	buf[1] = Tftp_OACK;
+//
+//	if(write(fd, buf, sizeof buf) < sizeof buf) {
+//		syslog(dbg, flog, "tftpd network write error on %s oack to %s: %r",
+//			name, raddr);
+//		sysfatal("tftpd: network write error: %r");
+//	}
+//	if(Debug)
+//		syslog(dbg, flog, "tftpd oack: no options to %s", raddr);
+//}
 
 static void
 optlog(char *bytes, char *p, int dlen)
@@ -402,8 +379,7 @@ doserve(int fd)
 	if(op != Tftp_READ && op != Tftp_WRITE) {
 		nak(fd, Errbadop, "Illegal TFTP operation");
 		close(fd);
-		syslog(dbg, flog, "tftpd %d bad request %d (%s) %s", pid, op,
-			(op < nelem(opnames)? opnames[op]: "gok"), raddr);
+		syslog(dbg, flog, "tftpd %d bad request %d %s", pid, op, raddr);
 		return;
 	}
 
@@ -432,9 +408,7 @@ doserve(int fd)
 
 		if(Debug)
 			optlog(bytes, p, dlen);
-		opts = options(fd, bytes, sizeof bytes, file, op, p, dlen);
-		if (opts < 0)
-			return;
+		opts = options(fd, bytes, file, op, p, dlen);
 	}
 	if(op == Tftp_READ)
 		sendfile(fd, file, mode, opts);
