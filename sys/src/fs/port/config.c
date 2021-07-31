@@ -483,8 +483,6 @@ cmd_printconf(int, char *[])
 	putbuf(iob);
 }
 
-extern void floppyhalt(void);
-
 void
 sysinit(void)
 {
@@ -619,177 +617,74 @@ loop:
 		devinit(fs->dev);
 	}
 
-	floppyhalt();			/* don't wear out the floppy */
-	if (copyworm) {
-		dowormcopy();		/* can return if user quits early */
-		panic("copyworm bailed out!");
-	}
-}
-
-/* an unfinished idea.  a non-blocking rawchar() would help. */
-static int
-userabort(char *msg)
-{
-#ifdef IdeaIsFinished
-	if (consgetcifany() == 'q') {
-		print("aborting %s\n", msg);
-		return 1;
-	}
-#else
-	USED(msg);
-#endif /* IdeaIsFinished */
-	return 0;
-}
-
-static int
-blockok(Device *d, long a)
-{
-	Iobuf *p = getbuf(d, a, Bread);
-
-	if (p == 0) {
-		print("i/o error reading %Z block %ld\n", d, a);
-		return 0;
-	}
-	putbuf(p);
-	return 1;
-}
-
-/*
- * special case for fake worms only:
- * we need to size the inner cw's worm device.
- * in particular, we want to avoid copying the fake-worm bitmap
- * at the end of the device.
- *
- * N.B.: for real worms (e.g. cw jukes), we need to compute devsize(cw(juke)),
- * *NOT* devsize(juke).
- */
-static Device *
-wormof(Device *dev)
-{
-	Device *worm = dev, *cw;
-
-	if (dev->type == Devfworm) {
-		cw = dev->fw.fw;
-		if (cw != nil && cw->type == Devcw)
-			worm = cw->cw.w;
-	}
-	// print("wormof(%Z)=%Z\n", dev, worm);
-	return worm;
-}
-
-/*
- * return the number of the highest-numbered block actually written, plus 1.
- * 0 indicates an error.
- */
-static long
-writtensize(Device *worm)
-{
-	long lim = devsize(worm);
-	Iobuf *p;
-
-	print("devsize(%Z) = %ld\n", worm, lim);
-	if (!blockok(worm, 0) || !blockok(worm, lim-1))
-		return 0;
-	delay(5*1000);
-	if (userabort("sanity checks"))
-		return 0;
-
-	/* find worm's last valid block in case "worm" is an (f)worm */
-	while (lim > 0) {
-		if (userabort("sizing")) {
-			lim = 0;		/* you lose */
-			break;
-		}
-		--lim;
-		p = getbuf(worm, lim, Bread);
-		if (p != 0) {			/* actually read one okay? */
-			putbuf(p);
-			break;
-		}
-	}
-	print("limit(%Z) = %ld\n", worm, lim);
-	return lim <= 0? 0: lim + 1;
+	if (copyworm)
+		dowormcopy();		/* no return */
 }
 
 extern int devatadebug, devataidedebug;
 
-/* copy worm fs from "main"'s inner worm to "output" */
+/* copy worm fs from "main" to "output" */
 static void
 dowormcopy(void)
 {
 	Filsys *f1, *f2;
-	Device *fdev, *from, *to = nil;
+	Device *from, *to;
 	Iobuf *p;
 	long a, lim;
 
-	/*
-	 * convert file system names into Filsyss and Devices.
-	 */
-
+	/* find source and target file systems */
 	f1 = fsstr("main");
 	if(f1 == nil)
 		panic("main file system missing");
-	fdev = f1->dev;
-	from = wormof(fdev);			/* fake worm special */
-
 	f2 = fsstr("output");
-	if(f2 == nil) {
-		print("no output file system - check only\n\n");
-		print("reading worm from %Z (worm %Z)\n", fdev, from);
-	} else {
+	if(f2 == nil)
+		print("no output file system - check only");
+	from = f1->dev;
+	if(from->type == Devcw)
+		from = from->cw.w;
+	if (f2) {
 		to = f2->dev;
-		print("\ncopying worm from %Z (worm %Z) to %Z, starting in 8 seconds\n",
-			fdev, from, to);
+		print("copying worm from %Z to %Z, starting in 8 seconds\n",
+			from, to);
 		delay(8000);
+	} else {
+		to = nil;
+		print("reading worm from %Z\n", from);
 	}
-	if (userabort("preparing to copy"))
-		return;
 
-	/*
-	 * initialise devices, size them, more sanity checking.
-	 */
-
+	/* ream target file system; initialise both fs's */
 	devinit(from);
-	if (0 && fdev != from) {
-		devinit(fdev);
-		print("debugging, sizing %Z first\n", fdev);
-		writtensize(fdev);
-	}
-	lim = writtensize(from);
-	if(lim == 0)
-		panic("no blocks to copy on %Z", from);
-	if (to) {
+	if(to) {
 		print("reaming %Z in 8 seconds\n", to);
 		delay(8000);
-		if (userabort("preparing to ream & copy"))
-			return;
 		devream(to, 0);
 		devinit(to);
-		print("copying worm: %ld blocks from %Z to %Z\n",
-			lim, from, to);
 	}
-	/* can't read to's blocks in case to is a real WORM device */
 
-	/*
-	 * Copy written fs blocks, a block at a time (or just read
-	 * if no "output" fs).
-	 */
-
-	// devatadebug = 1; devataidedebug = 1;
-	for (a = 0; a < lim; a++) {
-		if (userabort("copy"))
+	/* find last valid block in case fworm */
+	for (lim = devsize(from); lim != 0; lim--) {
+		p = getbuf(from, lim-1, Bread);
+		if (p != 0) {
+			putbuf(p);
 			break;
+		}
+	}
+	if(lim == 0)
+		panic("no blocks to copy on %Z", from);
+	print("limit %ld\n", lim);
+
+	/* copy written fs blocks from source to target */
+	if (to)
+		print("copying worm\n");
+// devatadebug = 1;
+// devataidedebug = 1;
+	for (a = 0; a < lim; a++) {
 		p = getbuf(from, a, Bread);
-		/*
-		 * if from is a real WORM device, we'll get errors trying to
-		 * read unwritten blocks, but the unwritten blocks need not
-		 * be contiguous.
-		 */
 		if (p == 0) {
-			print("%ld not written yet; can't read\n", a);
+			print("%ld not written\n", a);
 			continue;
 		}
-		if (to != 0 && devwrite(to, p->addr, p->iobuf) != 0) {
+		if (to != 0 && devwrite(to, p->addr, p->iobuf)) {
 			print("out block %ld: write error; bailing", a);
 			break;
 		}
@@ -798,12 +693,10 @@ dowormcopy(void)
 			print("block %ld %T\n", a, time());
 	}
 
-	/*
-	 * wrap up: sync target, loop
-	 */
+	/* sync target, loop */
 	print("copied %ld blocks from %Z to %Z\n", a, from, to);
 	sync("wormcopy");
-	delay(2000);
+	delay(1000);
 	print("looping; reset the machine at any time.\n");
 	for (; ; )
 		continue;		/* await reset */

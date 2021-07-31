@@ -571,7 +571,7 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 	c = getcentry(b, addr);
 	if(c == 0) {
 		putbuf(p);
-		print("%Z disk cache bucket %ld is full\n", cw->cdev, a1);
+		print("disk cache bucket %ld is full\n", a1);
 		return Cerror;
 	}
 	a2 += c - b->entry;
@@ -684,8 +684,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 
 	case Ogrow:
 		if(state != Cnone) {
-			print("%Z for block %ld cwgrow with state = %s\n",
-				cw->cdev, addr, cwnames[state]);
+			print("cwgrow with state = %s\n",
+				cwnames[state]);
 			break;
 		}
 		c->state = Cdirty;
@@ -693,8 +693,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 
 	case Odump:
 		if(state != Cdirty) {	/* BOTCH */
-			print("%Z for block %ld cwdump with state = %s\n",
-				cw->cdev, addr, cwnames[state]);
+			print("cwdump with state = %s\n",
+				cwnames[state]);
 			break;
 		}
 		c->state = Cdump;
@@ -704,8 +704,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 	case Orele:
 		if(state != Cwrite) {
 			if(state != Cdump1)
-				print("%Z for block %ld cwrele with state = %s\n",
-					cw->cdev, addr, cwnames[state]);
+				print("cwrele with state = %s\n",
+					cwnames[state]);
 			break;
 		}
 		c->state = Cnone;
@@ -717,8 +717,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 		break;
 	}
 	if(DEBUG)
-		print("cwio: %Z %ld s=%s o=%s ns=%s\n",
-			dev, addr, cwnames[state],
+		print("cwio: %ld s=%s o=%s ns=%s\n",
+			addr, cwnames[state],
 			cwnames[opcode],
 			cwnames[c->state]);
 	putbuf(p);
@@ -732,8 +732,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 	return state;
 
 bad:
-	print("%Z block %ld cw state = %s; cw opcode = %s",
-		dev, addr, cwnames[state], cwnames[opcode]);
+	print("cw state = %s; cw opcode = %s",
+		cwnames[state], cwnames[opcode]);
 	return Cerror;
 }
 
@@ -990,14 +990,14 @@ getstartsb(Device *dev)
 	for(f=filsys; f->name; f++)
 		if(devcmpr(f->dev, dev) == 0)
 			goto found;
-print("getstartsb: no filsys for device %Z\n", dev);
+print("getstartsb: not found 1 %Z\n", dev);
 	return FIRST;
 
 found:
 	for(s=startsb; s->name; s++)
 		if(strcmp(f->name, s->name) == 0)
 			return s->startsb;
-print("getstartsb: no special starting superblock for %Z %s\n", dev, f->name);
+print("getstartsb: not found 2 %Z %s\n", dev, f->name);
 	return FIRST;
 }
 
@@ -1734,10 +1734,9 @@ touchsb(Device *dev)
 	memset(p->iobuf, 0, RBUFSIZE);
 	if(devread(WDEV(dev), m, p->iobuf) ||
 	   checktag(p, Tsuper, QPSUPER))
-		print("%Z block %ld WORM SUPER BLOCK READ FAILED\n",
-			WDEV(dev), m);
+		print("WORM SUPER BLOCK READ FAILED\n");
 	else
-		print("%Z touch superblock %ld\n", WDEV(dev), m);
+		print("touch superblock %ld\n", m);
 	putbuf(p);
 }
 
@@ -1820,8 +1819,7 @@ storesb(Device *dev, long last, int doit)
 
 	if(doit)
 	if(devwrite(WDEV(dev), sbaddr, ps->iobuf))
-		print("%Z block %ld WORM SUPER BLOCK WRITE FAILED\n",
-			WDEV(dev), sbaddr);
+		print("WORM SUPER BLOCK WRITE FAILED\n");
 	ps->flags = 0;
 	putbuf(ps);
 }
