@@ -66,8 +66,6 @@ getre(Biobuf *buf)
 {
 	Reprog	*re;
 	char	*p, *t;
-	char	*bbuf;
-	int	n;
 
 	if (buf == nil)
 		return(nil);
@@ -81,19 +79,9 @@ getre(Biobuf *buf)
 		t = p + strlen(p);
 		while (--t > p && isspace(*t))
 			*t = '\0';
-		n = strlen(p);
-		if (n == 0)
+		if (strlen(p) == 0)
 			continue;
-
-		/* root the regular expresssion */
-		bbuf = malloc(n+2);
-		if(bbuf == nil)
-			sysfatal("out of memory");
-		bbuf[0] = '^';
-		strcpy(bbuf+1, p);
-		re = regcomp(bbuf);
-		free(bbuf);
-
+		re = regcomp(p);
 		if (re == nil)
 			continue;
 		free(p);
@@ -108,27 +96,21 @@ allowed(char *dir)
 	int	okay;
 	Resub	match;
 
-	if (strstr(dir, ".."))
+	if (strcmp(dir, "..") == 0 || strncmp(dir, "../", 3) == 0)
 		return(0);
-	if (aio == nil)
-		return(0);
-
+	if (aio == nil && dio == nil)
+		return(1);
 	if (aio != nil)
 		Bseek(aio, 0, 0);
 	if (dio != nil)
 		Bseek(dio, 0, 0);
 
-	/* if no deny list, assume everything is denied */
 	okay = (dio != nil);
-
-	/* go through denials till we find a match */
 	while (okay && (re = getre(dio)) != nil) {
 		memset(&match, 0, sizeof(match));
 		okay = (regexec(re, dir, &match, 1) != 1);
 		free(re);
 	}
-
-	/* go through accepts till we have a match */
 	if (aio == nil)
 		return(okay);
 	while (!okay && (re = getre(aio)) != nil) {
