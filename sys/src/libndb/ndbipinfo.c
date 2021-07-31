@@ -34,8 +34,8 @@ mkfilter(int argc, char **argv)
 			first = t;
 		last = t;
 		p = *argv++;
-		if(*p == '@'){			/* @attr=val ? */
-			t->ptr |= Faddr;	/* return resolved address(es) */
+		if(*p == '@'){
+			t->ptr |= Faddr;
 			p++;
 		}
 		strncpy(t->attr, p, sizeof(t->attr)-1);

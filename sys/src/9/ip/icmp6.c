@@ -284,10 +284,10 @@ icmpctl6(Conv *c, char **argv, int argc)
 static void
 goticmpkt6(Proto *icmp, Block *bp, int muxkey)
 {
-	ushort recid;
-	uchar *addr;
-	Conv **c, *s;
-	IPICMP *p = (IPICMP *)bp->rp;
+	ushort	recid;
+	uchar 	*addr;
+	Conv	**c, *s;
+	IPICMP	*p = (IPICMP *)bp->rp;
 
 	if(muxkey == 0) {
 		recid = nhgets(p->icmpid);
@@ -609,12 +609,12 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 				goto err;
 			}
 
-			if (p->type == NbrSolicit &&
-			    ipcmp(np->src, v6Unspecified) == 0)
-				if(!issmcast(np->dst) || optexsts(np)) {
-					ipriv->stats[AddrmxpErrs6]++;
-					goto err;
-				}
+			if(p->type == NbrSolicit)
+				if(ipcmp(np->src, v6Unspecified) == 0)
+					if(!issmcast(np->dst) || optexsts(np)) {
+						ipriv->stats[AddrmxpErrs6]++;
+						goto err;
+					}
 
 			if(p->type == NbrAdvert)
 				if(isv6mcast(np->dst) &&
@@ -670,7 +670,9 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 			goto err;
 		}
 	}
+
 	return 1;
+
 err:
 	ipriv->stats[InErrors6]++;
 	return 0;
@@ -690,7 +692,7 @@ targettype(Fs *f, Ipifc *ifc, uchar *target)
 
 	for(lifc = ifc->lifc; lifc; lifc = lifc->next)
 		if(ipcmp(lifc->local, target) == 0) {
-			t = (lifc->tentative)? t_unitent: t_unirany;
+			t = (lifc->tentative) ? t_unitent : t_unirany;
 			runlock(ifc);
 			return t;
 		}
@@ -759,7 +761,7 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 			}
 			p = (IPICMP *)bp->rp;
 			pr = Fsrcvpcolx(icmp->f, p->proto);
-			if(pr && pr->advise) {
+			if(pr != nil && pr->advise != nil) {
 				(*pr->advise)(pr, bp, m2);
 				return;
 			}
@@ -835,6 +837,7 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 		break;
 	}
 	return;
+
 raise:
 	freeblist(bp);
 }
