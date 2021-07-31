@@ -14,7 +14,7 @@ rcargv(char *s)
 	word *p;
 
 	p = vlook("*")->val;
-	argv = emalloc((count(p)+6)*sizeof(char*));
+	argv = malloc((count(p)+6)*sizeof(char*));
 	argc = 0;
 	argv[argc++] = argv0;
 	if(flag['e'])
