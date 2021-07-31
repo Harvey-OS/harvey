@@ -326,7 +326,7 @@ getipv4addr(void)
 
 extern Ndb *db;
 
-/* returns 0 on success, error message on failure */
+/* returns 1 on success, 0 on failure */
 char*
 secureidcheck(char *user, char *response)
 {

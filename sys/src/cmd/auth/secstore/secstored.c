@@ -7,7 +7,7 @@
 #include "SConn.h"
 #include "secstore.h"
 
-char* secureidcheck(char *, char *);   // from /sys/src/cmd/auth/
+int secureidcheck(char *, char *);   // from /sys/src/cmd/auth/
 extern char* dirls(char *path);
 
 int verbose;
@@ -222,7 +222,7 @@ static int
 dologin(int fd, char *S, int forceSTA)
 {
 	int i, n, rv;
-	char *file, *mess;
+	char *file;
 	char msg[Maxmsg+1];
 	PW *pw;
 	SConn *conn;
@@ -251,9 +251,8 @@ dologin(int fd, char *S, int forceSTA)
 			syslog(0, LOG, "no STA from %s", pw->id);
 			goto Out;
 		}
-		mess = secureidcheck(pw->id, msg+3);
-		if(mess != nil){
-			syslog(0, LOG, "secureidcheck denied %s because %s", pw->id, mess);
+		if(secureidcheck(pw->id, msg+3) <= 0){
+			syslog(0, LOG, "secureidcheck denied %s", pw->id);
 			goto Out;
 		}
 	}
