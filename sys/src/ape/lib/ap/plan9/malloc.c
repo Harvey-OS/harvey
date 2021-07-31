@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
 
 typedef unsigned int	uint;
 
@@ -65,7 +64,7 @@ good:
 	if(pow < CUTOFF) {
 		n = (CUTOFF-pow)+2;
 		bp = sbrk(size*n);
-		if((intptr_t)bp == -1)
+		if((int)bp < 0)
 			return nil;
 
 		next = (uint)bp+size;
@@ -81,7 +80,7 @@ good:
 	}
 	else {
 		bp = sbrk(size);
-		if((intptr_t)bp == -1)
+		if((int)bp < 0)
 			return nil;
 	}
 		
