@@ -36,13 +36,7 @@ void
 intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 {
 	int vno;
-	Vctl *v;
-
-	if(f == nil){
-		print("intrenable: nil handler for %d, tbdf 0x%uX for %s\n",
-			irq, tbdf, name);
-		return;
-	}
+	Vctl *v, *p;
 
 	v = xalloc(sizeof(Vctl));
 	v->isintr = 1;
@@ -59,6 +53,12 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 		iunlock(&vctllock);
 		print("intrenable: couldn't enable irq %d, tbdf 0x%uX for %s\n",
 			irq, tbdf, v->name);
+		if(p=vctl[vno]){
+			print("intrenable: irq %d is already used by", irq);
+			for(; p; p=p->next)
+				print(" %s", p->name);
+			print("\n");
+		}
 		xfree(v);
 		return;
 	}
@@ -73,7 +73,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	iunlock(&vctllock);
 }
 
-int
+void
 intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 {
 	Vctl **pv, *v;
@@ -85,23 +85,15 @@ intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 	 * is pretty meaningless.
 	 */
 	if(arch->intrvecno == nil)
-		return -1;
+		return;
 	vno = arch->intrvecno(irq);
 	ilock(&vctllock);
-	for(pv = &vctl[vno]; *pv != nil; pv = &((*pv)->next)){
-		if((*pv)->irq != irq)
-			continue;
-		if((*pv)->tbdf != tbdf)
-			continue;
-		if((*pv)->f != f)
-			continue;
-		if((*pv)->a != a)
-			continue;
-		if(strcmp((*pv)->name, name) != 0)
-			continue;
-		break;
-	}
-	assert(*pv != nil);
+	pv = &vctl[vno];
+	while (*pv && 
+		  ((*pv)->irq != irq || (*pv)->tbdf != tbdf || (*pv)->f != f || (*pv)->a != a ||
+		   strcmp((*pv)->name, name)))
+		pv = &((*pv)->next);
+	assert(*pv);
 
 	v = *pv;
 	*pv = (*pv)->next;	/* Link out the entry */
@@ -110,7 +102,6 @@ intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 		arch->intrdisable(irq);
 	iunlock(&vctllock);
 	xfree(v);
-	return 0;
 }
 
 int
