@@ -190,7 +190,6 @@ enum {					/* Variants */
 	Pnic		= (0x0002<<16)|0x11AD,
 	Pnic2		= (0xC115<<16)|0x11AD,
 	CentaurP	= (0x0985<<16)|0x1317,
-	CentaurPcb	= (0x1985<<16)|0x1317,
 };
 
 typedef struct Ctlr Ctlr;
@@ -1516,7 +1515,7 @@ srom(Ctlr* ctlr)
 			ctlr->srom[20+i+1] = ctlr->srom[i];
 		}
 	}
-	if(ctlr->id == CentaurP || ctlr->id == CentaurPcb){
+	if(ctlr->id == CentaurP){
 		memmove(&ctlr->srom[20], leafpnic, sizeof(leafpnic));
 		for(i = 0; i < Eaddrlen; i += 2){
 			ctlr->srom[20+i] = ctlr->srom[8+i];
@@ -1604,7 +1603,7 @@ srom(Ctlr* ctlr)
 	if(phy){
 		x = 0;
 		for(k = 0; k < nelem(ctlr->phy); k++){
-			if((ctlr->id == CentaurP || ctlr->id == CentaurPcb) && k != 1)
+			if(ctlr->id == CentaurP && k != 1)
 				continue;
 			if((oui = miir(ctlr, k, 2)) == -1 || oui == 0)
 				continue;
@@ -1656,7 +1655,6 @@ dec2114xpci(void)
 		case Pnic:			/* PNIC */
 		case Pnic2:			/* PNIC-II */
 		case CentaurP:			/* ADMtek */
-		case CentaurPcb:		/* ADMtek CardBus */
 			break;
 		}
 
@@ -1700,7 +1698,6 @@ dec2114xpci(void)
 			csr32w(ctlr, 15, 0x00000001);
 			break;
 		case CentaurP:
-		case CentaurPcb:
 			/*
 			 * Nice - the register offsets change from *8 to *4
 			 * for CSR16 and up...
@@ -1826,6 +1823,6 @@ reset(Ether* ether)
 void
 ether2114xlink(void)
 {
-	addethercard("2114x",  reset);
 	addethercard("21140",  reset);
+	addethercard("2114x",  reset);
 }

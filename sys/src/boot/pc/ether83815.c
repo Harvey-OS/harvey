@@ -301,6 +301,11 @@ enum {
 #define csr16w(c, r, l)	(outs((c)->port+(r), (ulong)(l)))
 
 static void
+coherence(void)
+{
+}
+
+static void
 dumpcregs(Ctlr *ctlr)
 {
 	int i;

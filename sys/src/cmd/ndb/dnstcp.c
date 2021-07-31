@@ -31,13 +31,6 @@ static void	getcaller(char*);
 static void	refreshmain(char*);
 
 void
-usage(void)
-{
-	fprint(2, "usage: %s [-rR] [-f ndb-file] [-x netmtpt]\n", argv0);
-	exits("usage");
-}
-
-void
 main(int argc, char *argv[])
 {
 	int len;
@@ -49,23 +42,17 @@ main(int argc, char *argv[])
 	char *ext = "";
 
 	ARGBEGIN{
-	case 'R':
-		norecursion = 1;
-		break;
 	case 'd':
 		debug++;
 		break;
 	case 'f':
-		dbfile = EARGF(usage());
+		dbfile = ARGF();
 		break;
 	case 'r':
 		resolver = 1;
 		break;
 	case 'x':
-		ext = EARGF(usage());
-		break;
-	default:
-		usage();
+		ext = ARGF();
 		break;
 	}ARGEND
 
@@ -88,7 +75,7 @@ main(int argc, char *argv[])
 	req.isslave = 0;
 
 	/* loop on requests */
-	for(;; putactivity(0)){
+	for(;; putactivity()){
 		now = time(0);
 		memset(&repmsg, 0, sizeof(repmsg));
 		alarm(10*60*1000);
@@ -96,7 +83,7 @@ main(int argc, char *argv[])
 		alarm(0);
 		if(len <= 0)
 			break;
-		getactivity(&req, 0);
+		getactivity(&req);
 		req.aborttime = now + 15*Min;
 		err = convM2DNS(buf, len, &reqmsg);
 		if(err){
@@ -117,8 +104,7 @@ main(int argc, char *argv[])
 		}
 
 		if(debug)
-			syslog(0, logfile, "[%d] %d: serve (%s) %d %s %s",
-				getpid(),
+			syslog(0, logfile, "%d: serve (%s) %d %s %s",
 				req.id, caller,
 				reqmsg.id,
 				reqmsg.qd->owner->name,
@@ -144,7 +130,7 @@ main(int argc, char *argv[])
 		rrfreelist(reqmsg.ar);
 
 		if(req.isslave){
-			putactivity(0);
+			putactivity();
 			_exits(0);
 		}
 	}
@@ -197,7 +183,7 @@ reply(int fd, DNSmsg *rep, Request *req)
 	buf[1] = len;
 	rv = write(fd, buf, len+2);
 	if(rv != len+2){
-		syslog(0, logfile, "[%d] sending reply: %d instead of %d", getpid(), rv, len+2);
+		syslog(0, logfile, "sending reply: %d instead of %d", rv, len+2);
 		exits(0);
 	}
 }
@@ -248,12 +234,10 @@ dnzone(DNSmsg *reqp, DNSmsg *repp, Request *req)
 
 	memset(repp, 0, sizeof(*repp));
 	repp->id = reqp->id;
+	repp->flags = Fauth | Fresp | Fcanrec | Oquery;
 	repp->qd = reqp->qd;
 	reqp->qd = reqp->qd->next;
 	repp->qd->next = 0;
-	repp->flags = Fauth | Fresp | Oquery;
-	if(!norecursion)
-		repp->flags |= Fcanrec;
 	dp = repp->qd->owner;
 
 	/* send the soa */

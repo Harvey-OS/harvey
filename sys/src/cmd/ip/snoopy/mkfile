@@ -5,7 +5,6 @@ PROTOS=\
 	arp\
 	bootp\
 	dhcp\
-	dns\
 	dump\
 	eap\
 	eap_identity\
@@ -47,7 +46,6 @@ HFILES=dat.h\
 	protos.h\
 	y.tab.h\
 
-YFILES=filter.y
 
 BIN=/$objtype/bin
 UPDATE=\
@@ -81,3 +79,4 @@ protos.c: mkfile
 		echo '};'
 	} > protos.c
 
+y.tab.c: filter.y

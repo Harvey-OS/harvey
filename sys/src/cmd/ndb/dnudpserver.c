@@ -97,11 +97,11 @@ restart:
 	while((fd = udpannounce(mntpt)) < 0)
 		sleep(5000);
 	if(setjmp(req.mret))
-		putactivity(0);
+		putactivity();
 	req.isslave = 0;
 
 	/* loop on requests */
-	for(;; putactivity(0)){
+	for(;; putactivity()){
 		memset(&repmsg, 0, sizeof(repmsg));
 		memset(&reqmsg, 0, sizeof(reqmsg));
 		alarm(60*1000);
@@ -111,7 +111,7 @@ restart:
 			goto restart;
 		uh = (OUdphdr*)buf;
 		len -= OUdphdrsize;
-		getactivity(&req, 0);
+		getactivity(&req);
 		req.aborttime = now + 30;	/* don't spend more than 30 seconds */
 		err = convM2DNS(&buf[OUdphdrsize], len, &reqmsg);
 		if(err){
@@ -174,7 +174,7 @@ freereq:
 		rrfreelist(reqmsg.ar);
 
 		if(req.isslave){
-			putactivity(0);
+			putactivity();
 			_exits(0);
 		}
 
@@ -190,7 +190,6 @@ static char *ohmsg = "oldheaders";
 static int
 udpannounce(char *mntpt)
 {
-	static int whined;
 	int data, ctl;
 	char dir[64];
 	char datafile[64+6];
@@ -199,8 +198,7 @@ udpannounce(char *mntpt)
 	sprint(datafile, "%s/udp!*!dns", mntpt);
 	ctl = announce(datafile, dir);
 	if(ctl < 0){
-		if(!whined++)
-			warning("can't announce on dns udp port");
+		warning("can't announce on dns udp port");
 		return -1;
 	}
 	snprint(datafile, sizeof(datafile), "%s/data", dir);
@@ -212,8 +210,7 @@ udpannounce(char *mntpt)
 	data = open(datafile, ORDWR);
 	if(data < 0){
 		close(ctl);
-		if(!whined++)
-			warning("can't announce on dns udp port");
+		warning("can't announce on dns udp port");
 		return -1;
 	}
 

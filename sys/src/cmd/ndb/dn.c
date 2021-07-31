@@ -448,17 +448,13 @@ dnauthdb(void)
  *  garbage collect.  block while garbage collecting.
  */
 int
-getactivity(Request *req, int recursive)
+getactivity(Request *req)
 {
 	int rv;
 
-	if(traceactivity) syslog(0, "dns", "get %d by %d from %p", dnvars.active, getpid(), getcallerpc(&req));
+	if(traceactivity) syslog(0, "dns", "get %d by %d", dnvars.active, getpid());
 	lock(&dnvars);
-	/*
-	 * can't block here if we're already holding one
-	 * of the dnvars.active (recursive).  will deadlock.
-	 */
-	while(!recursive && dnvars.mutex){
+	while(dnvars.mutex){
 		unlock(&dnvars);
 		sleep(200);
 		lock(&dnvars);
@@ -471,7 +467,7 @@ getactivity(Request *req, int recursive)
 	return rv;
 }
 void
-putactivity(int recursive)
+putactivity(void)
 {
 	static ulong lastclean;
 
@@ -482,10 +478,8 @@ putactivity(int recursive)
 
 	/*
 	 *  clean out old entries and check for new db periodicly
-	 *  can't block here if being called to let go a "recursive" lock
-	 *  or we'll deadlock waiting for ourselves to give up the dnvars.active.
 	 */
-	if(recursive || dnvars.mutex || (needrefresh == 0 && dnvars.active > 0)){
+	if(dnvars.mutex || (needrefresh == 0 && dnvars.active > 0)){
 		unlock(&dnvars);
 		return;
 	}
@@ -1240,33 +1234,21 @@ void
 slave(Request *req)
 {
 	static int slaveid;
-	int ppid;
 
 	if(req->isslave)
 		return;		/* we're already a slave process */
 
-	/*
-	 * These calls to putactivity cannot block. 
-	 * After getactivity(), the current process is counted
-	 * twice in dnvars.active (one will pass to the child).
-	 * If putactivity tries to wait for dnvars.active == 0,
-	 * it will never happen.
-	 */
-
 	/* limit parallelism */
-	if(getactivity(req, 1) > Maxactive){
-		if(traceactivity) syslog(0, "dns", "[%d] too much activity", getpid());
-		putactivity(1);
+	if(getactivity(req) > Maxactive){
+		putactivity();
 		return;
 	}
 
-	ppid = getpid();
 	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
 	case -1:
-		putactivity(1);
+		putactivity();
 		break;
 	case 0:
-		if(traceactivity) syslog(0, "dns", "[%d] take activity from %d", ppid, getpid());
 		req->isslave = 1;
 		break;
 	default:

@@ -112,7 +112,6 @@ typedef struct  ISAConf {
 
 typedef struct Pcidev Pcidev;
 typedef struct PCMmap PCMmap;
-typedef struct PCMslot PCMslot;
 
 #define BOOTLINE	((char*)CONFADDR)
 

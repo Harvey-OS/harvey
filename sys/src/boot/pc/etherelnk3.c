@@ -49,6 +49,7 @@
 
 #include "etherif.h"
 
+#define coherence()
 #define XCVRDEBUG		if(0)print
 
 enum {
@@ -164,11 +165,12 @@ enum {						/* Window 0 - setup */
 	coaxAvailable9		= 0x1000,
 	auiAvailable9		= 0x2000,
 						/* EepromCommand bits */
-	EepromReadRegister	= 0x0080,
-	EepromReadOffRegister	= 0x00B0,
-	EepromRead8bRegister	= 0x0230,
+	_EepromReadRegister	= 0x0080,
+	_EepromRead8bRegister	= 0x0230,
 	EepromBusy		= 0x8000,
 };
+
+static int EepromReadRegister = _EepromReadRegister;
 
 #define EEPROMCMD(port, cmd, a)	outs((port)+EepromCommand, (cmd)|(a))
 #define EEPROMBUSY(port)	(ins((port)+EepromCommand) & EepromBusy)
@@ -383,8 +385,8 @@ enum {						/* 3C90x extended register set */
 
 	updnLastFrag		= 0x80000000,	/* (dpd->len) */
 
-	Nup			= 16,
-	Ndn			= 8,
+	Nup			= 32,
+	Ndn			= 64,
 };
 
 /*
@@ -400,18 +402,10 @@ typedef struct Pd {
 	ulong	len;
 
 	Pd*	next;
-	void*	vaddr;
+	void *vaddr;
 } Pd;
 
-typedef struct Ctlr Ctlr;
-struct Ctlr {
-	int	port;
-	Pcidev*	pcidev;
-	int	irq;
-	Ctlr*	next;
-	int	active;
-	int	did;
-
+typedef struct {
 	Lock	wlock;				/* window access */
 
 	int	attached;
@@ -449,19 +443,12 @@ struct Ctlr {
 	ulong	dnqueued;
 
 	int	xcvr;				/* transceiver type */
-	int	eepromcmd;			/* EEPROM read command */
 	int	rxstatus9;			/* old-style RxStatus register */
 	int	rxearly;			/* RxEarlyThreshold */
 	int	ts;				/* threshold shift */
 	int	upenabled;
 	int	dnenabled;
-
-	ulong	cbfnpa;				/* CardBus functions */
-	ulong*	cbfn;
-};
-
-static Ctlr* ctlrhead;
-static Ctlr* ctlrtail;
+} Ctlr;
 
 static void
 init905(Ctlr* ctlr)
@@ -555,9 +542,9 @@ startdma(Ether* ether, ulong address)
 
 /* On the 575B and C, interrupts need to be acknowledged in CardBus memory space */
 static void
-intrackcb(ulong *cbfn)
+intrack3c575(ulong *cbfns)
 {
-	cbfn[1] = 0x8000;
+	cbfns[1] = 0x8000;
 }
 
 static void
@@ -575,7 +562,7 @@ attach(Ether* ether)
 
 	port = ether->port;
 
-	COMMAND(port, SetRxFilter, receiveIndividual/*|receiveBroadcast*/);
+	COMMAND(port, SetRxFilter, receiveIndividual|receiveBroadcast);
 	x = interruptMask;
 	if(ctlr->busmaster == 1)
 		x &= ~(rxEarly|rxComplete);
@@ -590,11 +577,9 @@ attach(Ether* ether)
 	COMMAND(port, RxEnable, 0);
 	COMMAND(port, TxEnable, 0);
 
-	/*
-	 * If this is a CardBus card, acknowledge any interrupts.
-	 */
-	if(ctlr->cbfn != nil)
-		intrackcb(ctlr->cbfn);
+	if (ether->mem)
+		/* This must be a cardbus card.  Acknowledge the interrupt */
+		intrack3c575(KADDR(ether->mem));
 		
 	/*
 	 * Prime the busmaster channel for receiving directly into a
@@ -1044,8 +1029,8 @@ interrupt(Ureg*, void* arg)
 			panic("#l%d: interrupt mask 0x%uX\n", ether->ctlrno, status);
 
 		COMMAND(port, AcknowledgeInterrupt, interruptLatch);
-		if(ctlr->cbfn != nil)
-			intrackcb(ctlr->cbfn);
+		if (ether->mem) 
+			intrack3c575((ulong *)KADDR(ether->mem));
 
 	}while((status = STATUS(port)) & (interruptMask|interruptLatch));
 
@@ -1061,6 +1046,7 @@ interrupt(Ureg*, void* arg)
 static void
 txrxreset(int port)
 {
+	COMMAND(port, TxReset, 0);
 	while(STATUS(port) & commandInProgress)
 		;
 	COMMAND(port, RxReset, 0);
@@ -1068,24 +1054,29 @@ txrxreset(int port)
 		;
 }
 
-static Ctlr*
-tcmadapter(int port, int irq, Pcidev* pcidev)
+typedef struct Adapter {
+	int		port;
+	int		irq;
+	int		tbdf;
+	ulong	cbfns;
+} Adapter;
+static Block* adapter;
+
+static void
+tcmadapter(int port, int irq, int tbdf, ulong cbfns)
 {
-	Ctlr *ctlr;
+	Block *bp;
+	Adapter *ap;
 
-	ctlr = malloc(sizeof(Ctlr));
-	ctlr->port = port;
-	ctlr->irq = irq;
-	ctlr->pcidev = pcidev;
-	ctlr->eepromcmd = EepromReadRegister;
+	bp = allocb(sizeof(Adapter));
+	ap = (Adapter*)bp->rp;
+	ap->port = port;
+	ap->irq = irq;
+	ap->tbdf = tbdf;
+	ap->cbfns = cbfns;
 
-	if(ctlrhead != nil)
-		ctlrtail->next = ctlr;
-	else
-		ctlrhead = ctlr;
-	ctlrtail = ctlr;
-
-	return ctlr;
+	bp->next = adapter;
+	adapter = bp;
 }
 
 /*
@@ -1225,7 +1216,7 @@ tcm509isa(void)
 		COMMAND(port, AcknowledgeInterrupt, 0xFF);
 
 		irq = (ins(port+ResourceConfig)>>12) & 0x0F;
-		tcmadapter(port, irq, nil);
+		tcmadapter(port, irq, BUSUNKNOWN, 0);
 	}
 }
 
@@ -1263,21 +1254,29 @@ tcm5XXeisa(void)
 		COMMAND(port, AcknowledgeInterrupt, 0xFF);
 
 		irq = (ins(port+ResourceConfig)>>12) & 0x0F;
-		tcmadapter(port, irq, nil);
+		tcmadapter(port, irq, BUSUNKNOWN, 0);
 	}
 }
 
 static void
-tcm59Xpci(void)
+tcm59Xpci(Ether *ether)
 {
 	Pcidev *p;
-	Ctlr *ctlr;
 	int irq, port;
+	ulong bar;
 
 	p = nil;
 	while(p = pcimatch(p, 0x10B7, 0)){
-		if(p->ccrb != 0x02 || p->ccru != 0)
-			continue;
+		if (p->did == 0x5157) {
+			EepromReadRegister = _EepromRead8bRegister;
+			
+			/* Map the CardBus functions */
+			bar = pcicfgr32(p, PciBAR2);
+			print("ether#%d: CardBus functions at %.8luX\n", ether->ctlrno, bar & ~KZERO);
+		}
+		else
+			bar = 0;
+
 		/*
 		 * Not prepared to deal with memory-mapped
 		 * devices yet.
@@ -1286,25 +1285,11 @@ tcm59Xpci(void)
 			continue;
 		port = p->mem[0].bar & ~0x01;
 		irq = p->intl;
+		COMMAND(port, GlobalReset, 0);
+		while(STATUS(port) & commandInProgress)
+			;
 
-		txrxreset(port);
-		COMMAND(port, AcknowledgeInterrupt, 0xFF);
-
-		ctlr = tcmadapter(port, irq, p);
-		switch(p->did){
-		default:
-			break;
-		case 0x5157:
-			ctlr->eepromcmd = EepromRead8bRegister;
-			ctlr->cbfnpa = p->mem[2].bar&~0x0F;
-			ctlr->cbfn = KADDR(ctlr->cbfnpa);
-			break;
-		case 0x6056:
-			ctlr->eepromcmd = EepromReadOffRegister;
-			ctlr->cbfnpa = p->mem[2].bar&~0x0F;
-			ctlr->cbfn = KADDR(ctlr->cbfnpa);
-			break;
-		}
+		tcmadapter(port, irq, p->tbdf, bar);
 		pcisetbme(p);
 	}
 }
@@ -1316,33 +1301,32 @@ static char* tcmpcmcia[] = {
 	nil,
 };
 
-static Ctlr*
+static int
 tcm5XXpcmcia(Ether* ether)
 {
 	int i;
-	Ctlr *ctlr;
-
-	if(ether->type == nil)
-		return nil;
 
 	for(i = 0; tcmpcmcia[i] != nil; i++){
-		if(cistrcmp(ether->type, tcmpcmcia[i]))
-			continue;
-		ctlr = tcmadapter(ether->port, ether->irq, nil);
-		ctlr->active = 1;
-		return ctlr;
+		if(!cistrcmp(ether->type, tcmpcmcia[i])){
+			/*
+			 * No need for an ioalloc here, the 589 reset
+			 * code deals with it.
+			if(ioalloc(ether->port, 0x10, 0, "tcm5XXpcmcia") < 0)
+				return 0;
+			 */
+			return ether->port;
+		}
 	}
 
-	return nil;
+	return 0;
 }
 
 static void
-setxcvr(Ctlr* ctlr, int xcvr)
+setxcvr(int port, int xcvr, int is9)
 {
-	int port, x;
+	int x;
 
-	port = ctlr->port;
-	if(ctlr->rxstatus9){
+	if(is9){
 		COMMAND(port, SelectRegisterWindow, Wsetup);
 		x = ins(port+AddressConfig) & ~xcvrMask9;
 		x |= (xcvr>>20)<<14;
@@ -1441,7 +1425,7 @@ miir(int port, int phyad, int regad)
 	return data & 0xFFFF;
 }
 
-static int
+static void
 scanphy(int port)
 {
 	int i, x;
@@ -1453,10 +1437,7 @@ scanphy(int port)
 		x |= miir(port, i, 3)>>10;
 		XCVRDEBUG("phy%d: oui %uX reg1 %uX\n", i, x, miir(port, i, 1));
 		USED(x);
-
-		return i;
 	}
-	return 24;
 }
 
 #ifdef notdef
@@ -1489,9 +1470,10 @@ static struct {
 };
 
 static int
-autoselect(Ctlr* ctlr)
+autoselect(int port, int xcvr, int is9)
 {
-	int media, port, x;
+	int media, x;
+	USED(xcvr);
 
 	/*
 	 * Pathetic attempt at automatic media selection.
@@ -1499,8 +1481,7 @@ autoselect(Ctlr* ctlr)
 	 * cards operational.
 	 * It's a bonus if it works for anything else.
 	 */
-	port = ctlr->port;
-	if(ctlr->rxstatus9){
+	if(is9){
 		COMMAND(port, SelectRegisterWindow, Wsetup);
 		x = ins(port+ConfigControl);
 		media = 0;
@@ -1527,7 +1508,7 @@ autoselect(Ctlr* ctlr)
 		/*
 		 * Must have InternalConfig register.
 		 */
-		setxcvr(ctlr, xcvr100BaseTX);
+		setxcvr(port, xcvr100BaseTX, is9);
 
 		COMMAND(port, SelectRegisterWindow, Wdiagnostic);
 		x = ins(port+MediaStatus) & ~(dcConverterEnabled|jabberGuardEnable);
@@ -1540,7 +1521,7 @@ autoselect(Ctlr* ctlr)
 	}
 
 	if(media & base10TAvailable){
-		setxcvr(ctlr, xcvr10BaseT);
+		setxcvr(port, xcvr10BaseT, is9);
 
 		COMMAND(port, SelectRegisterWindow, Wdiagnostic);
 		x = ins(port+MediaStatus) & ~dcConverterEnabled;
@@ -1560,60 +1541,35 @@ autoselect(Ctlr* ctlr)
 }
 
 static int
-eepromdata(Ctlr* ctlr, int offset)
+eepromdata(int port, int offset)
 {
-	int port;
-
-	port = ctlr->port;
-
 	COMMAND(port, SelectRegisterWindow, Wsetup);
 	while(EEPROMBUSY(port))
 		;
-	EEPROMCMD(port, ctlr->eepromcmd, offset);
+	EEPROMCMD(port, EepromReadRegister, offset);
 	while(EEPROMBUSY(port))
 		;
 	return EEPROMDATA(port);
 }
 
-static void
-resetctlr(Ctlr *ctlr)
-{
-	int port, x;
-
-	port = ctlr->port;
-
-	txrxreset(port);
-	x = ins(port+ResetOp905B);
-	XCVRDEBUG("905[BC] reset ops 0x%uX\n", x);
-	x &= ~0x4010;
-	if(ctlr->did == 0x5157){
-		x |= 0x0010;			/* Invert LED */
-		outs(port+ResetOp905B, x);
-	}
-	if(ctlr->did == 0x6056){
-		x |= 0x4000;
-		outs(port+ResetOp905B, x);
-
-		COMMAND(port, SelectRegisterWindow, Wsetup);
-		outs(port, 0x0800);
-	}
-}
-
 int
 elnk3reset(Ether* ether)
 {
-	char *p;
-	Ctlr *ctlr;
+	int anar, anlpar, phyaddr, phystat, timeo, xcvr;
+	int busmaster, did, i, j, port, rxearly, rxstatus9, x;
+	Block *bp, **bpp;
+	Adapter *ap;
 	uchar ea[Eaddrlen];
+	Ctlr *ctlr;
 	static int scandone;
-	int anar, anlpar, i, j, phyaddr, phystat, port, timeo, x;
+	char *p;
 
 	/*
 	 * Scan for adapter on PCI, EISA and finally
 	 * using the little ISA configuration dance.
 	 */
 	if(scandone == 0){
-		tcm59Xpci();
+		tcm59Xpci(ether);
 		tcm5XXeisa();
 		tcm509isa();
 		scandone = 1;
@@ -1623,78 +1579,74 @@ elnk3reset(Ether* ether)
 	 * Any adapter matches if no ether->port is supplied,
 	 * otherwise the ports must match.
 	 */
-	for(ctlr = ctlrhead; ctlr != nil; ctlr = ctlr->next){
-		if(ctlr->active)
-			continue;
-		if(ether->port == 0 || ether->port == ctlr->port){
-			ctlr->active = 1;
+	port = 0;
+	bpp = &adapter;
+	for(bp = *bpp; bp; bp = bp->next){
+		ap = (Adapter*)bp->rp;
+		if(ether->port == 0 || ether->port == ap->port){
+			port = ap->port;
+			ether->irq = ap->irq;
+			ether->tbdf = ap->tbdf;
+			ether->mem = ap->cbfns;	/* Misuse the mem ref for the cardbus functions */
+			*bpp = bp->next;
+			freeb(bp);
 			break;
 		}
+		bpp = &bp->next;
 	}
-	if(ctlr == nil && (ctlr = tcm5XXpcmcia(ether)) == 0)
+	if(port == 0 && (port = tcm5XXpcmcia(ether)) == 0)
 		return -1;
-
-	ether->ctlr = ctlr;
-	port = ctlr->port;
-	ether->port = port;
-	ether->irq = ctlr->irq;
-	if(ctlr->pcidev != nil)
-		ether->tbdf = ctlr->pcidev->tbdf;
-	else
-		ether->tbdf = BUSUNKNOWN;
 
 	/*
 	 * Read the DeviceID from the EEPROM, it's at offset 0x03,
 	 * and do something depending on capabilities.
 	 */
-	switch(ctlr->did = eepromdata(ctlr, 0x03)){
-	case 0x5157:		/* 3C575 Cyclone */
-	case 0x6056:
-		/*FALLTHROUGH*/
+	switch(did = eepromdata(port, 0x03)){
+
+	case 0x9000:
+	case 0x9001:
+	case 0x9005:
+	case 0x9050:
+	case 0x9051:
+	case 0x9055:
 	case 0x4500:		/* 3C450 HomePNA Tornado */
-	case 0x7646:		/* 3CSOHO100-TX */
-	case 0x9055:		/* 3C905B-TX */
+	case 0x6056:
 	case 0x9200:		/* 3C905C-TX */
-	case 0x9201:		/* 3C920 */
-		/*FALLTHROUGH*/
-	case 0x9000:		/* 3C900-TPO */
-	case 0x9001:		/* 3C900-COMBO */
-	case 0x9005:		/* 3C900B-COMBO */
-	case 0x9050:		/* 3C905-TX */
-	case 0x9051:		/* 3C905-T4 */
+	case 0x7646:		/* 3CSOHO100-TX */
+	case 0x5157:		/* 3C575 Cyclone */
 		if(BUSTYPE(ether->tbdf) != BusPCI)
 			goto buggery;
-		ctlr->busmaster = 2;
+		busmaster = 2;
 		goto vortex;
-	case 0x5900:		/* 3C590-[TP|COMBO|TPO] */
-	case 0x5920:		/* 3C592-[TP|COMBO|TPO] */
-	case 0x5950:		/* 3C595-TX */
-	case 0x5951:		/* 3C595-T4 */
-	case 0x5952:		/* 3C595-MII */
-	case 0x5970:		/* 3C597-TX */
-	case 0x5971:		/* 3C597-T4 */
-	case 0x5972:		/* 3C597-MII */
-		ctlr->busmaster = 1;
+
+	case 0x5900:
+	case 0x5920:
+	case 0x5950:
+	case 0x5951:
+	case 0x5952:
+	case 0x5970:
+	case 0x5971:
+	case 0x5972:
+		busmaster = 1;
 	vortex:
 		COMMAND(port, SelectRegisterWindow, Wfifo);
-		ctlr->xcvr = inl(port+InternalConfig) & (autoSelect|xcvrMask);
-		ctlr->rxearly = 8188;
-		ctlr->rxstatus9 = 0;
+		xcvr = inl(port+InternalConfig) & (autoSelect|xcvrMask);
+		rxearly = 8188;
+		rxstatus9 = 0;
 		break;
+
 	buggery:
 	default:
-		ctlr->busmaster = 0;
+		busmaster = 0;
 		COMMAND(port, SelectRegisterWindow, Wsetup);
 		x = ins(port+AddressConfig);
-		ctlr->xcvr = ((x & xcvrMask9)>>14)<<20;
+		xcvr = ((x & xcvrMask9)>>14)<<20;
 		if(x & autoSelect9)
-			ctlr->xcvr |= autoSelect;
-		ctlr->rxearly = 2044;
-		ctlr->rxstatus9 = 1;
+			xcvr |= autoSelect;
+		rxearly = 2044;
+		rxstatus9 = 1;
 		break;
 	}
-	if(ctlr->rxearly >= 2048)
-		ctlr->ts = 2;
 
 	/*
 	 * Check if the adapter's station address is to be overridden.
@@ -1705,7 +1657,7 @@ elnk3reset(Ether* ether)
 	memset(ea, 0, Eaddrlen);
 	if(memcmp(ea, ether->ea, Eaddrlen) == 0){
 		for(i = 0; i < Eaddrlen/2; i++){
-			x = eepromdata(ctlr, i);
+			x = eepromdata(port, i);
 			ether->ea[2*i] = x>>8;
 			ether->ea[2*i+1] = x;
 		}
@@ -1720,7 +1672,7 @@ elnk3reset(Ether* ether)
 	 * busmastering can be used. Due to bugs in the first revision
 	 * of the 3C59[05], don't use busmastering at 10Mbps.
 	 */
-	XCVRDEBUG("reset: xcvr %uX\n", ctlr->xcvr);
+	XCVRDEBUG("reset: xcvr %uX\n", xcvr);
 
 	/*
 	 * Allow user to specify desired media in plan9.ini
@@ -1731,41 +1683,38 @@ elnk3reset(Ether* ether)
 		p = ether->opt[i]+6;
 		for(j = 0; j < nelem(media); j++)
 			if(cistrcmp(p, media[j].name) == 0)
-				ctlr->xcvr = media[j].xcvr;
+				xcvr = media[j].xcvr;
 	}
 	
 	/*
 	 * forgive me, but i am weak
 	 */
-	switch(ctlr->did){
-	default:
-		if(ctlr->xcvr & autoSelect)
-			ctlr->xcvr = autoselect(ctlr);
-		break;
-	case 0x5157:
-	case 0x6056:
-	case 0x4500:
-	case 0x7646:
-	case 0x9055:
-	case 0x9200:
-	case 0x9201:
-		ctlr->xcvr = xcvrMii;
-		resetctlr(ctlr);
-		break;
-	}
-	XCVRDEBUG("xcvr selected: %uX, did 0x%uX\n", ctlr->xcvr, ctlr->did);
+	if(did == 0x9055 || did == 0x7646 || did == 0x9200 || did == 0x5157){
+		xcvr = xcvrMii;
+		txrxreset(port);
+		XCVRDEBUG("905[BC] reset ops 0x%uX\n", ins(port+ResetOp905B));
 
-	switch(ctlr->xcvr){
+		if (did == 0x5157) {
+			ushort reset_opts;
+
+			COMMAND(port, SelectRegisterWindow, Wstation);
+			reset_opts = ins(port + ResetOp905B);
+			reset_opts |= 0x0010;		/* Invert LED */
+			outs(port + ResetOp905B, reset_opts);
+		}
+	}
+	else if(xcvr & autoSelect)
+		xcvr = autoselect(port, xcvr, rxstatus9);
+	XCVRDEBUG("autoselect returns: xcvr %uX, did 0x%uX\n", xcvr, did);
+
+	switch(xcvr){
+
 	case xcvrMii:
 		/*
 		 * Quick hack.
+		scanphy(port);
 		 */
-		if(ctlr->did == 0x5157)
-			phyaddr = 0;
-		else if(ctlr->did == 0x6056)
-			phyaddr = scanphy(port);
-		else
-			phyaddr = 24;
+		phyaddr = (did == 0x5157)? 0: 24;
 		for(i = 0; i < 7; i++)
 			XCVRDEBUG(" %2.2uX", miir(port, phyaddr, i));
 			XCVRDEBUG("\n");
@@ -1797,14 +1746,13 @@ elnk3reset(Ether* ether)
 		}
 		XCVRDEBUG("mii anar: %uX\n", anar);
 		if(anar & 0x0100){		/* 100BASE-TXFD */
-			//ether->mbps = 100;
 			setfullduplex(port);
 		}
 		else if(anar & 0x0200){		/* 100BASE-T4 */
 			/* nothing to do */
 		}
 		else if(anar & 0x0080){		/* 100BASE-TX */
-			//ether->mbps = 100;
+			/* nothing to do */;
 		}
 		else if(anar & 0x0040)		/* 10BASE-TFD */
 			setfullduplex(port);
@@ -1823,9 +1771,6 @@ elnk3reset(Ether* ether)
 		x = ins(port+MediaStatus) & ~(dcConverterEnabled|jabberGuardEnable);
 		x |= linkBeatEnable;
 		outs(port+MediaStatus, x);
-
-		//if(x & dataRate100)
-		//	ether->mbps = 100;
 		break;
 
 	case xcvr10BaseT:
@@ -1838,8 +1783,8 @@ elnk3reset(Ether* ether)
 		x |= linkBeatEnable|jabberGuardEnable;
 		outs(port+MediaStatus, x);
 
-		if((ctlr->did & 0xFF00) == 0x5900)
-			ctlr->busmaster = 0;
+		if((did & 0xFF00) == 0x5900)
+			busmaster = 0;
 		break;
 
 	case xcvr10Base2:
@@ -1864,7 +1809,7 @@ elnk3reset(Ether* ether)
 	 * Clear out any lingering Tx status.
 	 */
 	COMMAND(port, SelectRegisterWindow, Wop);
-	if(ctlr->busmaster == 2)
+	if(busmaster == 2)
 		x = port+TxStatus905;
 	else
 		x = port+TxStatus;
@@ -1872,14 +1817,27 @@ elnk3reset(Ether* ether)
 		outb(x, 0);
 
 	/*
-	 * Clear out the
-	 * adapter statistics, clear the statistics logged into ctlr.
+	 * Allocate a controller structure, clear out the
+	 * adapter statistics, clear the statistics logged into ctlr
+	 * and enable statistics collection. Xcvr is needed in order
+	 * to collect the BadSSD statistics.
 	 */
+	ether->ctlr = malloc(sizeof(Ctlr));
+	ctlr = ether->ctlr;
+
 	ilock(&ctlr->wlock);
+	ctlr->xcvr = xcvr;
 	statistics(ether);
 	memset(ctlr->stats, 0, sizeof(ctlr->stats));
 
-	//COMMAND(port, StatisticsEnable, 0);
+	ctlr->busmaster = busmaster;
+	ctlr->xcvr = xcvr;
+	ctlr->rxstatus9 = rxstatus9;
+	ctlr->rxearly = rxearly;
+	if(rxearly >= 2048)
+		ctlr->ts = 2;
+
+	COMMAND(port, StatisticsEnable, 0);
 
 	/*
 	 * Allocate any receive buffers.
@@ -1897,7 +1855,7 @@ elnk3reset(Ether* ether)
 		 * until the whole packet has been received.
 		 */
 		ctlr->upenabled = 1;
-		x = eepromdata(ctlr, 0x0F);
+		x = eepromdata(port, 0x0F);
 		if(!(x & 0x01))
 			outl(port+PktStatus, upRxEarlyEnable);
 
@@ -1914,13 +1872,14 @@ elnk3reset(Ether* ether)
 	 */
 	ctlr->txthreshold = ETHERMAXTU/2;
 	COMMAND(port, SetTxStartThresh, ctlr->txthreshold>>ctlr->ts);
-	COMMAND(port, SetRxEarlyThresh, ctlr->rxearly>>ctlr->ts);
+	COMMAND(port, SetRxEarlyThresh, rxearly>>ctlr->ts);
 
 	iunlock(&ctlr->wlock);
 
 	/*
 	 * Linkage to the generic ethernet driver.
 	 */
+	ether->port = port;
 	ether->attach = attach;
 	ether->transmit = transmit;
 	ether->interrupt = interrupt;
