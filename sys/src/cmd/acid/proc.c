@@ -261,25 +261,22 @@ msg(int pid, char *msg)
 char *
 getstatus(int pid)
 {
-	int fd, n;
-	char *argv[16], buf[64];
-	static char status[128];
+	int fd;
+	char *p;
+
+	static char buf[128];
 
 	sprint(buf, "/proc/%d/status", pid);
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		error("open %s: %r", buf);
-
-	n = read(fd, status, sizeof(status)-1);
+	read(fd, buf, sizeof(buf));
 	close(fd);
-	if(n <= 0)
-		error("read %s: %r", buf);
-	status[n] = '\0';
-
-	if(tokenize(status, argv, nelem(argv)-1) < 3)
-		error("tokenize %s: %r", buf);
-
-	return argv[2];
+	p = buf+56+12;			/* Do better! */
+	while(*p == ' ')
+		p--;
+	p[1] = '\0';
+	return buf+56;			/* ditto */
 }
 
 Waitmsg*
