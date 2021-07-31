@@ -42,12 +42,11 @@ addtomessage(Message *m, uchar *p, int n, int done)
 			m->end = m->start;
 		}
 		m->lim = m->start + len;
-		*m->lim = '\0';
 	}
 
 	memmove(m->end, p, n);
 	m->end += n;
-	*m->end = '\0';
+	*m->lim = '\0';
 }
 
 //
