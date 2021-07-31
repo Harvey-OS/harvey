@@ -866,7 +866,7 @@ tas1:
 	BEQ		R3, tas1
 	RET
 
-TEXT	ainc(SB), $0
+TEXT	_xinc(SB), $0
 	MOVV	R1, R2		/* address of counter */
 loop:
 	MOVW	$1, R3
@@ -879,7 +879,7 @@ loop:
 	BEQ		R3, loop
 	RET
 
-TEXT	adec(SB), $0
+TEXT	_xdec(SB), $0
 	SYNC
 	NOP
 	NOP
