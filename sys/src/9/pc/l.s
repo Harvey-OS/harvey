@@ -708,12 +708,7 @@ TEXT cpuid(SB), $0
 	JZ	_cpu386				/* can't set this bit on 386 */
 	TESTL	$0x200000, AX			/* Id */
 	JZ	_cpu486				/* can't toggle this bit on some 486 */
-	/* load registers */
-	MOVL	regs+4(FP), BP
-	MOVL	fn+0(FP), AX			/* cpuid function */
-	MOVL	4(BP), BX
-	MOVL	8(BP), CX			/* typically an index */
-	MOVL	12(BP), DX
+	MOVL	fn+0(FP), AX
 	CPUID
 	JMP	_cpuid
 _cpu486:

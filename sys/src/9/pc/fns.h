@@ -184,8 +184,3 @@ int	xchgw(ushort*, int);
 #define PADDR(a)	paddr((void*)(a))
 
 #define	dcflush(a, b)
-
-#define BIOSSEG(a)	KADDR(((uint)(a))<<4)
-
-#define L16GET(p)	(((p)[1]<<8)|(p)[0])
-#define L32GET(p)	(((u32int)L16GET((p)+2)<<16)|L16GET(p))
