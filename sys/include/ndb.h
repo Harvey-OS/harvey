@@ -148,6 +148,7 @@ Ndbtuple*	ndbparse(Ndb*);
 int		ndbreopen(Ndb*);
 Ndbtuple*	ndbreorder(Ndbtuple*, Ndbtuple*);
 Ndbtuple*	ndbsearch(Ndb*, Ndbs*, char*, char*);
+long		ndbseek(Ndb*, long);
 void		ndbsetval(Ndbtuple*, char*, int);
 Ndbtuple*	ndbsnext(Ndbs*, char*, char*);
 Ndbtuple*	ndbsubstitute(Ndbtuple*, Ndbtuple*, Ndbtuple*);
