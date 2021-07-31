@@ -4,9 +4,7 @@ SmbProcessResult
 smbcomrename(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
 {
 	int rv;
-	char *old,     *new;
-	char *oldpath = nil;
-	char *newpath = nil;
+	char *oldpath, *newpath;
 	char *olddir, *newdir;
 	char *oldname, *newname;
 	uchar oldfmt, newfmt;
@@ -15,13 +13,9 @@ smbcomrename(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
 
 	if (h->wordcount != 1)
 		return SmbProcessResultFormat;
-	if (!smbbuffergetb(b, &oldfmt) || oldfmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &old)
-		|| !smbbuffergetb(b, &newfmt) || newfmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &new))
+	if (!smbbuffergetb(b, &oldfmt) || oldfmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &oldpath)
+		|| !smbbuffergetb(b, &newfmt) || newfmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &newpath))
 		return SmbProcessResultFormat;
-
-	smbstringprint(&oldpath, "%s%s", s->serv->path, old);
-	smbstringprint(&newpath, "%s%s", s->serv->path, new);
-
 	smblogprint(h->command, "smbcomrename: %s to %s\n", oldpath, newpath);
 	smbpathsplit(oldpath, &olddir, &oldname);
 	smbpathsplit(newpath, &newdir, &newname);

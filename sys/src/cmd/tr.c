@@ -32,6 +32,7 @@ void	complement(void);
 void	delete(void);
 void	squeeze(void);
 void	translit(void);
+void	error(char*);
 long	canon(Pcb*);
 char	*getrune(char*, Rune*);
 void	Pinit(Pcb*, char*);
@@ -40,13 +41,6 @@ int	readrune(int, long*);
 void	wflush(int);
 void	writerune(int, Rune);
 
-static void
-usage(void)
-{
-	fprint(2, "usage: %s [-cds] [string1 [string2]]\n", argv0);
-	exits("usage");
-}
-
 void
 main(int argc, char **argv)
 {
@@ -54,21 +48,21 @@ main(int argc, char **argv)
 	case 's':	sflag++; break;
 	case 'd':	dflag++; break;
 	case 'c':	cflag++; break;
-	default:	usage();
+	default:	error("bad option");
 	}ARGEND
 	if(argc>0)
 		Pinit(&pfrom, argv[0]);
 	if(argc>1)
 		Pinit(&pto, argv[1]);
 	if(argc>2)
-		usage();
+		error("arg count");
 	if(dflag) {
 		if ((sflag && argc != 2) || (!sflag && argc != 1))
-			usage();
+			error("arg count");
 		delete();
 	} else {
 		if (argc != 2)
-			usage();
+			error("arg count");
 		if (cflag)
 			complement();
 		else translit();
@@ -123,7 +117,7 @@ complement(void)
 	}
 	Prewind(&pto);
 	if ((p = (Rune *) malloc((high+1)*sizeof(Rune))) == 0)
-		sysfatal("no memory");
+		error("can't allocate memory");
 	for (i = 0; i <= high; i++){
 		if (!BITSET(f,i)) {
 			if ((to = canon(&pto)) < 0)
@@ -171,7 +165,7 @@ translit(void)
 		if (from > high) high = from;
 	Prewind(&pfrom);
 	if ((p = (Rune *) malloc((high+1)*sizeof(Rune))) == 0)
-		sysfatal("no memory");
+		error("can't allocate memory");
 	for (i = 0; i <= high; i++)
 		p[i] = i;
 	while ((from = canon(&pfrom)) >= 0) {
@@ -179,7 +173,7 @@ translit(void)
 			to = lastc;
 		else lastc = to;
 		if (BITSET(f,from) && p[from] != to)
-			sysfatal("ambiguous translation");
+			error("ambiguous translation");
 		SETBIT(f,from);
 		p[from] = to;
 		SETBIT(t,to);
@@ -225,7 +219,7 @@ readrune(int fd, long *rp)
 			i = n-j;
 			n = read(fd, &buf[i], sizeof(buf)-i);
 			if (n < 0)
-				sysfatal("read error: %r");
+				error("read error");
 			if (n == 0)
 				return 0;
 			j = 0;
@@ -260,7 +254,7 @@ wflush(int fd)
 {
 	if (wptr && wptr > wbuf)
 		if (write(fd, wbuf, wptr-wbuf) != wptr-wbuf)
-			sysfatal("write error: %r");
+			error("write error");
 	wptr = wbuf;
 }
 
@@ -309,7 +303,7 @@ getrune(char *s, Rune *rp)
 				}
 			}
 			if(n > 0377)
-				sysfatal("character > 0377");
+				error("char>0377");
 		}
 		*rp = n;
 	}
@@ -331,7 +325,7 @@ canon(Pcb *p)
 	if(*p->current == '-' && p->last >= 0 && p->current[1]){
 		p->current = getrune(p->current+1, &r);
 		if (r < p->last)
-			sysfatal("invalid range specification");
+			error ("Invalid range specification");
 		if (r > p->last) {
 			p->final = r;
 			return ++p->last;
@@ -353,4 +347,10 @@ Prewind(Pcb *p)
 {
 	p->current = p->base;
 	p->last = p->final = -1;
+}
+void
+error(char *s)
+{
+	fprint(2, "%s: %s\n", argv0, s);
+	exits(s);
 }
