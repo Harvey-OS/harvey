@@ -116,7 +116,6 @@ struct {
  */
 
 IMM* iomem = (IMM*)IOMEM;
-uchar etheraddr[6] = { 0x90, 0x85, 0x82, 0x32, 0x83, 0x00};
 
 static Lock cpmlock;
 
@@ -234,8 +233,7 @@ machinit(void)
 	 * if PLAN9INI == ~0, it's not stored in flash or there is no flash
 	 * if *cp == 0xff, flash memory is not initialized
 	 */
-	if (PLAN9INI == ~0 ||
-	    (uchar)*(plan9inistr = (char*)(FLASHMEM+PLAN9INI)) == 0xff){
+	if (PLAN9INI == ~0 || *(plan9inistr = (char*)(FLASHMEM+PLAN9INI)) == 0xff){
 		/* No plan9.ini in flash */
 		plan9inistr =
 			"console=0\n"
@@ -399,23 +397,8 @@ fastticks(uvlong *hz)
 	return ticks.val;
 }
 
-ulong multiplier;
-
-ulong
-µs(void)
-{
-	uvlong x;
-
-	if(multiplier == 0){
-		multiplier = (uvlong)(1000000LL << 16) / m->cyclefreq;
-		print("µs: multiplier %ld, cyclefreq %lld, shifter %d\n", multiplier, m->cyclefreq, 16);
-	}
-	cycles(&x);
-	return (x*multiplier) >> 16;
-}
-
 void
-timerset(Tval next)
+timerset(uvlong next)
 {
 	long offset;
 	uvlong now;

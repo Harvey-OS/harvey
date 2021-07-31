@@ -26,21 +26,6 @@ static ulong ticks;
 static Lock tlock;
 static ushort timer_ctl;
 
-ulong multiplier;
-
-ulong
-µs(void)
-{
-	uvlong x;
-
-	if(multiplier == 0){
-		multiplier = (uvlong)(1000000LL << 16) / m->cyclefreq;
-		print("µs: multiplier %ld, cyclefreq %lld, shifter %d\n", multiplier, m->cyclefreq, 16);
-	}
-	cycles(&x);
-	return (x*multiplier) >> 16;
-}
-
 void
 saturntimerintr(Ureg *u, void*)
 {
@@ -87,7 +72,7 @@ fastticks(uvlong *hz)
 }
 
 void
-timerset(Tval next)
+timerset(uvlong next)
 {
 	ulong offset;
 	uvlong now;

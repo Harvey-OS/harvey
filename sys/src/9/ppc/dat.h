@@ -1,5 +1,4 @@
 typedef struct Conf	Conf;
-typedef struct Confmem	Confmem;
 typedef struct FPsave	FPsave;
 typedef struct ISAConf	ISAConf;
 typedef struct Imap	Imap;
@@ -13,13 +12,11 @@ typedef struct Page	Page;
 typedef struct Pcidev	Pcidev;
 typedef struct Proc	Proc;
 typedef struct Sys	Sys;
-typedef vlong		Tval;
 typedef struct Ureg	Ureg;
 typedef struct Vctl	Vctl;
 
 #pragma incomplete Ureg
 #pragma incomplete Imap
-#pragma incomplete Mach
 
 #define MAXSYSARG	5	/* for mount(fd, mpt, flag, arg, srv) */
 
@@ -38,7 +35,6 @@ struct Lock
 	ulong	sr;
 	ulong	pc;
 	Proc	*p;
-	Mach	*m;
 	ulong	pid;
 	ushort	isilock;
 };
@@ -77,19 +73,10 @@ struct FPsave
 	};
 };
 
-struct Confmem
-{
-	ulong	base;
-	ulong	npage;
-	ulong	kbase;
-	ulong	klimit;
-};
-
 struct Conf
 {
 	ulong	nmach;		/* processors */
 	ulong	nproc;		/* processes */
-	Confmem	mem[2];
 	ulong	npage0;		/* total physical pages of memory */
 	ulong	npage1;		/* total physical pages of memory */
 	ulong	npage;		/* total physical pages of memory */
@@ -136,9 +123,6 @@ typedef	void		KMap;
 #define	kmap(p)		(KMap*)((p)->pa|KZERO)
 #define	kunmap(k)
 
-struct IMM;
-typedef struct IMM IMM;
-
 struct Mach
 {
 	/* OFFSETS OF THE FOLLOWING KNOWN BY l.s */
@@ -153,9 +137,7 @@ struct Mach
 	/* ordering from here on irrelevant */
 
 	Imap*	imap;
-#ifndef ucuconf
-	IMM*	immr;
-#endif
+
 	ulong	ticks;		/* of the clock since boot time */
 	Label	sched;		/* scheduler wakeup */
 	Lock	alarmlock;	/* access to alarm list */
