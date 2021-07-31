@@ -1,0 +1,26 @@
+#!/bin/rc
+
+rfork e
+cd /usr/rsc
+. bkup.info
+fn x {
+	echo x $*
+	y=$1
+	if(~ $#$y 0){
+		$y=0
+	}
+	echo venti/wrarena -o $2 $3 $$y
+	end=`{venti/wrarena -o $2 $3 $$y | grep '^end offset ' | sed 's/^end offset //'}
+	if(~ $#end 1 && ! ~ $$y $end){
+		$y=$end
+		echo '#' `{date} >>bkup.info
+		whatis $y >>bkup.info
+	}
+}
+hget http://127.1:8000/index | 
+awk '
+/^index=/ { blockSize=0+substr($3, 11); }
+/^arena=/ { arena=substr($1, 7); }
+/^	arena=/ { start=0+substr($5, 2)-blockSize; printf("x %s %d %s\n", arena, start, $3); }
+' |rc
+

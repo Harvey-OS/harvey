@@ -80,8 +80,7 @@ void
 diskaccess(int level)
 {
 	if(level < 0 || level >= nelem(lasttime)){
-		fprint(2, "bad level in diskaccess; caller=%#p\n",
-			getcallerpc(&level));
+		fprint(2, "bad level in diskaccess; caller=%lux\n", getcallerpc(&level));
 		return;
 	}
 	lasttime[level] = time(0);

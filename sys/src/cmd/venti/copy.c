@@ -1,3 +1,4 @@
+/* venti copy.  this doesn't work very well; see ../oventi/copy.c instead */
 #include <u.h>
 #include <libc.h>
 #include <venti.h>
