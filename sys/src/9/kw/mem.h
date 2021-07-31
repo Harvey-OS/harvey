@@ -107,7 +107,6 @@
 #define BY2WD		4
 #define BY2V		8			/* only used in xalloc.c */
 
-#define CACHELINESZ	32
 #define	PTEMAPMEM	(1024*1024)
 #define	PTEPERTAB	(PTEMAPMEM/BY2PG)
 #define	SEGMAPSIZE	1984
