@@ -10,16 +10,9 @@
  * Always lock child then parent, never parent then child.
  * If holding the free file lock, do not lock any Files.
  */
-struct Filelist
-{
+struct Filelist {
 	File *f;
 	Filelist *link;
-};
-
-struct Readdir
-{
-	File *dir;
-	Filelist *fl;
 };
 
 static QLock filelk;
@@ -72,39 +65,6 @@ freefile(File *f)
 	f->aux = freefilelist;
 	freefilelist = f;
 	qunlock(&filelk);
-}
-
-static void
-cleanfilelist(File *f)
-{
-	Filelist **l;
-	Filelist *fl;
-	
-	/*
-	 * can't delete filelist structures while there
-	 * are open readers of this directory, because
-	 * they might have references to the structures.
-	 * instead, just leave the empty refs in the list
-	 * until there is no activity and then clean up.
-	 */
-	if(f->readers.ref != 0)
-		return;
-	if(f->nxchild == 0)
-		return;
-
-	/*
-	 * no dir readers, file is locked, and
-	 * there are empty entries in the file list.
-	 * clean them out.
-	 */
-	for(l=&f->filelist; fl=*l; ){
-		if(fl->f == nil){
-			*l = (*l)->link;
-			free(fl);
-		}else
-			l = &(*l)->link;
-	}
-	f->nxchild = 0;
 }
 
 void
@@ -165,12 +125,9 @@ removefile(File *f)
 
 	fl->f = nil;
 	fp->nchild--;
-	fp->nxchild++;
 	f->parent = nil;
-	wunlock(f);
-
-	cleanfilelist(fp);
 	wunlock(fp);
+	wunlock(f);
 
 	closefile(fp);	/* reference from child */
 	closefile(f);	/* reference from tree */
@@ -182,7 +139,7 @@ File*
 createfile(File *fp, char *name, char *uid, ulong perm, void *aux)
 {
 	File *f;
-	Filelist **l, *fl;
+	Filelist *fl, *freel;
 	Tree *t;
 
 	if((fp->qid.type&QTDIR) == 0){
@@ -190,25 +147,23 @@ createfile(File *fp, char *name, char *uid, ulong perm, void *aux)
 		return nil;
 	}
 
+	freel = nil;
 	wlock(fp);
-	/*
-	 * We might encounter blank spots along the
-	 * way due to deleted files that have not yet
-	 * been flushed from the file list.  Don't reuse
-	 * those - some apps (e.g., omero) depend on
-	 * the file order reflecting creation order. 
-	 * Always create at the end of the list.
-	 */
-	for(l=&fp->filelist; fl=*l; l=&fl->link){
-		if(fl->f && strcmp(fl->f->name, name) == 0){
+	for(fl=fp->filelist; fl; fl=fl->link){
+		if(fl->f == nil)
+			freel = fl;
+		else if(strcmp(fl->f->name, name) == 0){
 			wunlock(fp);
 			werrstr("file already exists");
 			return nil;
 		}
 	}
-	
-	fl = emalloc9p(sizeof *fl);
-	*l = fl;
+
+	if(freel == nil){
+		freel = emalloc9p(sizeof *freel);
+		freel->link = fp->filelist;
+		fp->filelist = freel;
+	}
 
 	f = allocfile();
 	f->name = estrdup9p(name);
@@ -238,7 +193,7 @@ createfile(File *fp, char *name, char *uid, ulong perm, void *aux)
 
 	incref(f);	/* being returned */
 	incref(f);	/* for the tree */
-	fl->f = f;
+	freel->f = f;
 	fp->nchild++;
 	wunlock(fp);
 
@@ -290,7 +245,7 @@ walkfile(File *f, char *path)
 		else
 			nexts = s+strlen(s);
 		nf = walkfile1(f, s);
-		closefile(f);
+		decref(f);
 		f = nf;
 		if(f == nil)
 			break;
@@ -368,6 +323,10 @@ freetree(Tree *t)
 	free(t);
 }
 
+struct Readdir {
+	Filelist *fl;
+};
+
 Readdir*
 opendirfile(File *dir)
 {
@@ -381,14 +340,10 @@ opendirfile(File *dir)
 	r = emalloc9p(sizeof(*r));
 
 	/*
-	 * This reference won't go away while we're 
-	 * using it because file list entries are not freed
-	 * until the directory is removed and all refs to
-	 * it (our fid is one!) have gone away.
+	 * This reference won't go away while we're using it
+	 * since we are dir->rdir.
 	 */
 	r->fl = dir->filelist;
-	r->dir = dir;
-	incref(&dir->readers);
 	runlock(dir);
 	return r;
 }
@@ -412,10 +367,5 @@ readdirfile(Readdir *r, uchar *buf, long n)
 void
 closedirfile(Readdir *r)
 {
-	if(decref(&r->dir->readers) == 0){
-		wlock(r->dir);
-		cleanfilelist(r->dir);
-		wunlock(r->dir);
-	}
 	free(r);
 }
