@@ -12,8 +12,6 @@ int interrupted;
 int localecho;
 int notkbd;
 
-static char *srv;
-
 typedef struct Comm Comm;
 struct Comm {
 	int returns;
@@ -40,7 +38,7 @@ static int islikeatty(int);
 void
 usage(void)
 {
-	fatal("usage: telnet [-Cdnr] [-s srv] net!host[!service]", 0, 0);
+	fatal("usage: telnet [-Cdnr] net!host[!service]", 0, 0);
 }
 
 void
@@ -61,9 +59,6 @@ main(int argc, char *argv[])
 		break; 
 	case 'r':
 		returns = 0;
-		break;
-	case 's':
-		srv = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -101,21 +96,6 @@ dodial(char *dest)
 	return data;
 }
 
-void
-post(char *srv, int fd)
-{
-	int f;
-	char buf[32];
-
-	f = create(srv, OWRITE, 0666);
-	if(f < 0)
-		sysfatal("create %s: %r", srv);
-	snprint(buf, sizeof buf, "%d", fd);
-	if(write(f, buf, strlen(buf)) != strlen(buf))
-		sysfatal("write %s: %r", srv);
-	close(f);
-}
-
 /*
  *  two processes pass bytes back and forth between the
  *  terminal and the network.
@@ -124,24 +104,8 @@ void
 telnet(int net)
 {
 	int pid;
-	int p[2];
-	char *svc;
 
 	rawoff();
-	svc = nil;
-	if (srv) {
-		if(pipe(p) < 0)
-			sysfatal("pipe: %r");
-		if (srv[0] != '/')
-			svc = smprint("/srv/%s", srv);
-		else
-			svc = srv;
-		post(svc, p[0]);
-		close(p[0]);
-		dup(p[1], 0);
-		dup(p[1], 1);
-		/* pipe is now std in & out */
-	}
 	ttypid = getpid();
 	switch(pid = rfork(RFPROC|RFFDG|RFMEM)){
 	case -1:
@@ -151,8 +115,6 @@ telnet(int net)
 		rawoff();
 		notify(notifyf);
 		fromnet(net);
-		if (svc)
-			remove(svc);
 		sendnote(ttypid, "die");
 		exits(0);
 	default:
@@ -160,10 +122,7 @@ telnet(int net)
 		notify(notifyf);
 		fromkbd(net);
 		if(notkbd)
-			for(;;)
-				sleep(0);
-		if (svc)
-			remove(svc);
+			for(;;)sleep(0);
 		sendnote(netpid, "die");
 		exits(0);
 	}
