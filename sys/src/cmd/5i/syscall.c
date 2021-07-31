@@ -300,7 +300,14 @@ sys_read(void)
 void
 syspread(void)
 {
-	sysread(getmem_v(reg.r[13]+16));
+	union {
+		vlong v;
+		ulong u[2];
+	} o;
+
+	o.u[0] = getmem_w(reg.r[13]+16);
+	o.u[1] = getmem_w(reg.r[13]+20);
+	sysread(o.v);
 }
 
 void
@@ -309,20 +316,24 @@ sysseek(void)
 	int fd;
 	ulong mode;
 	ulong retp;
-	vlong v;
+	union {
+		vlong v;
+		ulong u[2];
+	} o;
 
 	retp = getmem_w(reg.r[13]+4);
 	fd = getmem_w(reg.r[13]+8);
-	v = getmem_v(reg.r[13]+16);
+	o.u[0] = getmem_w(reg.r[13]+12);
+	o.u[1] = getmem_w(reg.r[13]+16);
 	mode = getmem_w(reg.r[13]+20);
 	if(sysdbg)
-		itrace("seek(%d, %lld, %d)", fd, v, mode);
+		itrace("seek(%d, %lld, %d)", fd, o.v, mode);
 
-	v = seek(fd, v, mode);
-	if(v < 0)
+	o.v = seek(fd, o.v, mode);
+	if(o.v < 0)
 		errstr(errbuf, sizeof errbuf);	
 
-	putmem_v(retp, v);
+	memio((char*)o.u, retp, sizeof(vlong), MemWrite);
 }
 
 void
@@ -494,7 +505,14 @@ sys_write(void)
 void
 syspwrite(void)
 {
-	syswrite(getmem_v(reg.r[13]+16));
+	union {
+		vlong v;
+		ulong u[2];
+	} o;
+
+	o.u[0] = getmem_w(reg.r[13]+16);
+	o.u[1] = getmem_w(reg.r[13]+20);
+	syswrite(o.v);
 }
 
 void
@@ -793,11 +811,9 @@ Ssyscall(ulong)
 	int call;
 
 	call = reg.r[REGARG];
-	if(call < 0 || call >= nelem(systab) || systab[call] == nil) {
-		Bprint(bioout, "bad system call %d (%#ux)\n", call, call);
+	if(call < 0 || call > PWRITE || systab[call] == nil) {
+		Bprint(bioout, "bad system call\n");
 		dumpreg();
-		Bflush(bioout);
-		return;
 	}
 
 	if(trace)

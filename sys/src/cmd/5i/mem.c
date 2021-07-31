@@ -109,12 +109,6 @@ getmem_b(ulong addr)
 	return va[0];
 }
 
-uvlong
-getmem_v(ulong addr)
-{
-	return ((uvlong)getmem_w(addr+4) << 32) | getmem_w(addr);
-}
-
 void
 putmem_h(ulong addr, ushort data)
 {
@@ -165,13 +159,6 @@ putmem_b(ulong addr, uchar data)
 	va[0] = data;
 	if(membpt)
 		brkchk(addr, Write);
-}
-
-void
-putmem_v(ulong addr, uvlong data)
-{
-	putmem_w(addr, data);	/* two stages, to catch brkchk */
-	putmem_w(addr+4, data>>32);
 }
 
 char *

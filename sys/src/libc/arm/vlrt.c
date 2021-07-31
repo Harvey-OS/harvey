@@ -46,6 +46,7 @@ _subv(Vlong *r, Vlong a, Vlong b)
 
 #pragma profile on
 
+
 void
 _d2v(Vlong *y, double d)
 {
@@ -139,6 +140,7 @@ dodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
 	numlo = num.lo;
 	denhi = den.hi;
 	denlo = den.lo;
+
 	/*
 	 * get a divide by zero
 	 */
@@ -193,6 +195,7 @@ dodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
 void
 _divvu(Vlong *q, Vlong n, Vlong d)
 {
+
 	if(n.hi == 0 && d.hi == 0) {
 		q->hi = 0;
 		q->lo = n.lo / d.lo;

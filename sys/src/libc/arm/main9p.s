@@ -14,9 +14,8 @@ TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 	MOVW	R1, _nprivates(SB)
 
 	BL	_profmain(SB)
-	MOVW	_tos(SB), R1
-	MOVW	4(R1), R0
-	MOVW	R0, 0(R1)
+	MOVW	__prof+4(SB), R(arg)
+	MOVW	R(arg), __prof+0(SB)
 
 	MOVW	$inargv+0(FP), R(arg)
 	MOVW	R(arg), 8(R(sp))

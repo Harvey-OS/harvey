@@ -1,7 +1,5 @@
 #include "gc.h"
 
-static	char	resvreg[nelem(reg)];
-
 void
 ginit(void)
 {
@@ -82,16 +80,6 @@ ginit(void)
 	com64init();
 
 	memset(reg, 0, sizeof(reg));
-	/* don't allocate */
-	reg[REGTMP] = 1;
-	reg[REGSB] = 1;
-	reg[REGSP] = 1;
-	reg[REGLINK] = 1;
-	reg[REGPC] = 1;
-	/* keep two external registers */
-	reg[REGEXT] = 1;
-	reg[REGEXT-1] = 1;
-	memmove(resvreg, reg, sizeof(reg));
 }
 
 void
@@ -101,10 +89,10 @@ gclean(void)
 	Sym *s;
 
 	for(i=0; i<NREG; i++)
-		if(reg[i] && !resvreg[i])
+		if(reg[i])
 			diag(Z, "reg %d left allocated", i);
 	for(i=NREG; i<NREG+NFREG; i++)
-		if(reg[i] && !resvreg[i])
+		if(reg[i])
 			diag(Z, "freg %d left allocated", i-NREG);
 	while(mnstring)
 		outstring("", 1L);
@@ -295,7 +283,7 @@ regalloc(Node *n, Node *tn, Node *o)
 		for(i=REGRET+1; i<NREG; i++) {
 			if(j >= NREG)
 				j = REGRET+1;
-			if(reg[j] == 0 && resvreg[j] == 0) {
+			if(reg[j] == 0) {
 				i = j;
 				goto out;
 			}
@@ -331,7 +319,7 @@ err:
 	return;
 out:
 	reg[i]++;
-	lasti++;
+/* 	lasti++;	*** StrongARM does register forwarding */	
 	if(lasti >= 5)
 		lasti = 0;
 	nodreg(n, tn, i);
@@ -1196,12 +1184,9 @@ exreg(Type *t)
 	long o;
 
 	if(typechlp[t->etype]) {
-		if(exregoffset <= REGEXT-2)
+		if(exregoffset <= REGEXT-4)
 			return 0;
 		o = exregoffset;
-		if(reg[o] && !resvreg[o])
-			return 0;
-		resvreg[o] = reg[o] = 1;
 		exregoffset--;
 		return o;
 	}
@@ -1209,9 +1194,6 @@ exreg(Type *t)
 		if(exfregoffset <= NFREG-1)
 			return 0;
 		o = exfregoffset + NREG;
-		if(reg[o] && !resvreg[o])
-			return 0;
-		resvreg[o] = reg[o] = 1;
 		exfregoffset--;
 		return o;
 	}
