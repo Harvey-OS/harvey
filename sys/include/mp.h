@@ -125,8 +125,6 @@ typedef struct CRTpre	CRTpre;		/* precomputed values for converting */
 					/*  twixt residues and mpint */
 typedef struct CRTres	CRTres;		/* residue form of an mpint */
 
-#pragma incomplete CRTpre
-
 struct CRTres
 {
 	int	n;		/* number of residues */

@@ -8,6 +8,7 @@ testcrt(mpint **p)
 	CRTpre *crt;
 	CRTres *res;
 	mpint *m, *x, *y;
+	int i;
 
 	fmtinstall('B', mpfmt);
 
@@ -48,6 +49,6 @@ main(void)
 		mpfree(p[0]);
 		mpfree(p[1]);
 	}
-	print("%ld secs with more\n", time(0)-start);
+	print("%d secs with more\n", time(0)-start);
 	exits(0);
 }
