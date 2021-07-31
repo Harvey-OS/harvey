@@ -840,7 +840,6 @@ mylexprobe(int port, int irq)
 	Ctlr *ctlr;
 	uchar cmd[6], data[256];
 	int clen, dlen, timeo;
-	static int count;
 
 	if(ioalloc(port, 0x3, 0, "mylex") < 0)
 		return nil;
@@ -894,18 +893,13 @@ buggery:
 	if(issue(ctlr, cmd, clen, data, dlen)){
 		if(data[0] == 'E')
 			ctlr->bus = 32;
+		print("mylex ctlr @ port 0x%ux: 32-bit ", ctlr->port);
 		ctlr->wide = data[0x0D] & 0x01;
-		/*
-		 * devsd doesn't pass us the `spec' argument, so
-		 * we'll assume that sd0 goes to the first scsi host
-		 * adapter found, etc.
-		 */
-		print("#S/sd%d: mylex SCSI: port 0x%ux: %d-bit, ",
-			count++, ctlr->port, ctlr->bus);
 		if (ctlr->wide)
-			print("wide\n");
+			print("wide ");
 		else
-			print("narrow\n");
+			print("narrow ");
+		print("SCSI host adapter\n");
 	}
 	else{
 		/*
@@ -1187,8 +1181,9 @@ mylex32enable(Ctlr* ctlr)
 		cmd[1] = 1;
 		if(!issue(ctlr, cmd, 2, 0, 0)) {
 			ctlr->wide = 0;
-			print("mylex32enable: port 0x%ux: scsi wide-mode setup "
-				"failed on wide host adapter", ctlr->port);
+			print(
+"mylex32enable: ctlr @ port 0x%ux: scsi wide-mode setup failed on wide host adapter",
+				ctlr->port);
 		}
 	}
 
