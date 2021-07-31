@@ -23,7 +23,6 @@ srvfs exportfs
 factotum factotum
 fgui factotum
 secretpem factotum
-fossil fossil
 fs fs
 ftpfs ftpfs
 import import
