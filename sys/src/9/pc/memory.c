@@ -586,19 +586,21 @@ map(ulong base, ulong len, int type)
 	switch(type){
 	case MemRAM:
 		mapfree(&rmapram, base, len);
-		flags = PTEWRITE|PTEVALID;
+		flags = PTEWRITE;
 		break;
 	case MemUMB:
 		mapfree(&rmapumb, base, len);
-		flags = PTEWRITE|PTEUNCACHED|PTEVALID;
+		flags = PTEWRITE|PTEUNCACHED;
 		break;
 	case MemUPA:
 		mapfree(&rmapupa, base, len);
-		flags = 0;
+		/* don't need to map this but will anyway */
+		flags = PTEWRITE|PTEUNCACHED;
 		break;
 	default:
 	case MemReserved:
-		flags = 0;
+		/* don't put in any pools but still map it. */
+		flags = PTEWRITE|PTEUNCACHED;
 		break;
 	}
 	
@@ -618,14 +620,12 @@ map(ulong base, ulong len, int type)
 	/*
 	 * Only map from KZERO to 2^32.
 	 */
-	if(flags){
-		maxkpa = -KZERO;
-		if(base >= maxkpa)
-			return;
-		if(len > maxkpa-base)
-			len = maxkpa - base;
-		pdbmap(m->pdb, base|flags, base+KZERO, len);
-	}
+	maxkpa = -KZERO;
+	if(base >= maxkpa)
+		return;
+	if(len > maxkpa-base)
+		len = maxkpa - base;
+	pdbmap(m->pdb, base|flags, base+KZERO, len);
 }
 
 static int
