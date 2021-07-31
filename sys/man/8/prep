@@ -122,11 +122,6 @@ A
 .IR venti (8)
 arenas partition.
 .TP
-.B bloom
-A
-.IR venti (8)
-bloom-filter partition.
-.TP
 .B cache
 A
 .IR cfs (4)
