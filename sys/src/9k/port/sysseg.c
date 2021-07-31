@@ -187,7 +187,6 @@ segattach(Proc* p, int attr, char* name, uintptr va, usize len)
 	int sno;
 	Segment *s, *os;
 	Physseg *ps;
-	uintptr pgsize;
 
 	/* BUG: Only ok for now */
 	if((va != 0 && va < UTZERO) || (va & KZERO) == KZERO)
@@ -214,14 +213,7 @@ segattach(Proc* p, int attr, char* name, uintptr va, usize len)
 		}
 	}
 
-	for(ps = physseg; ps->name; ps++)
-		if(strcmp(name, ps->name) == 0)
-			goto found;
-
-	error("segment not found");
-found:
-	pgsize = physsegpgsize(ps);
-	len = ROUNDUP(len, pgsize);
+	len = ROUNDUP(len, PGSZ);
 	if(len == 0)
 		error("length overflow");
 
@@ -246,11 +238,17 @@ found:
 		}
 	}
 
-	va = va&~(pgsize-1);
+	va = va&~(PGSZ-1);
 	if(isoverlap(p, va, len) != nil)
 		error(Esoverlap);
 
-	if((len/pgsize) > ps->size)
+	for(ps = physseg; ps->name; ps++)
+		if(strcmp(name, ps->name) == 0)
+			goto found;
+
+	error("segment not found");
+found:
+	if((len/PGSZ) > ps->size)
 		error("len > segment size");
 
 	attr &= ~SG_TYPE;		/* Turn off what is not allowed */
@@ -340,7 +338,7 @@ void
 syssegfree(Ar0* ar0, va_list list)
 {
 	Segment *s;
-	uintptr from, to, pgsize;
+	uintptr from, to;
 	usize len;
 
 	/*
@@ -353,13 +351,12 @@ syssegfree(Ar0* ar0, va_list list)
 	if(s == nil)
 		error(Ebadarg);
 	len = va_arg(list, usize);
-	pgsize = segpgsize(s);
-	to = (from + len) & ~(pgsize-1);
+	to = (from + len) & ~(PGSZ-1);
 	if(to < from || to > s->top){
 		qunlock(&s->lk);
 		error(Ebadarg);
 	}
-	from = ROUNDUP(from, pgsize);
+	from = ROUNDUP(from, PGSZ);
 
 	mfreeseg(s, from, to);
 	qunlock(&s->lk);
