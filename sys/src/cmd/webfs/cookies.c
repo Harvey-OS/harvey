@@ -584,7 +584,11 @@ cookiesearch(Jar *jar, char *dom, char *path, int issecure)
 			fprint(2, "\ttry %s %s %d %s\n", jar->c[i].dom,
 				jar->c[i].path, jar->c[i].secure,
 				jar->c[i].name);
-		if((issecure || !jar->c[i].secure) &&
+		/*
+		 * fgb says omitting secure checks is necessary to
+		 * get some sites to work, but it seems dubious.
+		 */
+		if((0 || issecure || !jar->c[i].secure) &&
 		    iscookiematch(&jar->c[i], dom, path, now)){
 			if(cookiedebug)
 				fprint(2, "\tmatched\n");
