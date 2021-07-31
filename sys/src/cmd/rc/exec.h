@@ -64,8 +64,7 @@ int trap[NSIG];				/* number of outstanding traps per type */
 struct builtin{
 	char *name;
 	void (*fnc)(void);
-};
-extern struct builtin Builtin[];
+}Builtin[];
 int eflagok;			/* kludge flag so that -e doesn't exit in startup */
 int havefork;
 

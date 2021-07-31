@@ -56,7 +56,7 @@ int
 getnext(void)
 {
 	int c;
-	static int peekc = EOF;
+	static peekc = EOF;
 	if(peekc!=EOF){
 		c = peekc;
 		peekc = EOF;

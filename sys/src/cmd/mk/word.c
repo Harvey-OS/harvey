@@ -97,15 +97,12 @@ nextword(char **s)
 	Word *head, *tail, *w;
 	Rune r;
 	char *cp;
-	int empty;
 
 	cp = *s;
 	b = newbuf();
-restart:
 	head = tail = 0;
 	while(*cp == ' ' || *cp == '\t')		/* leading white space */
 		cp++;
-	empty = 1;
 	while(*cp){
 		cp += chartorune(&r, cp);
 		switch(r)
@@ -117,7 +114,6 @@ restart:
 		case '\\':
 		case '\'':
 		case '"':
-			empty = 0;
 			cp = expandquote(cp, r, b);
 			if(cp == 0){
 				fprint(2, "missing closing quote: %s\n", *s);
@@ -126,12 +122,8 @@ restart:
 			break;
 		case '$':
 			w = varsub(&cp);
-			if(w == 0){
-				if(empty)
-					goto restart;
+			if(w == 0)
 				break;
-			}
-			empty = 0;
 			if(b->current != b->start){
 				bufcpy(b, w->s, strlen(w->s));
 				insert(b, 0);
@@ -155,7 +147,6 @@ restart:
 				tail = tail->next;
 			break;
 		default:
-			empty = 0;
 			rinsert(b, r);
 			break;
 		}

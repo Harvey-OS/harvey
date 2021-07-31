@@ -22,13 +22,11 @@ Xasync(void)
 		Xerror("try again");
 		break;
 	case 0:
-		clearwaitpids();
 		pushredir(ROPEN, null, 0);
 		start(runq->code, runq->pc+1, runq->local);
 		runq->ret = 0;
 		break;
 	default:
-		addwaitpid(pid);
 		close(null);
 		runq->pc = runq->code[runq->pc].i;
 		inttoascii(npid, pid);
@@ -54,14 +52,12 @@ Xpipe(void)
 		Xerror("try again");
 		break;
 	case 0:
-		clearwaitpids();
 		start(p->code, pc+2, runq->local);
 		runq->ret = 0;
 		close(pfd[PRD]);
 		pushredir(ROPEN, pfd[PWR], lfd);
 		break;
 	default:
-		addwaitpid(forkid);
 		start(p->code, p->code[pc].i, runq->local);
 		close(pfd[PWR]);
 		pushredir(ROPEN, pfd[PRD], rfd);
@@ -97,13 +93,11 @@ Xbackq(void)
 		close(pfd[PWR]);
 		return;
 	case 0:
-		clearwaitpids();
 		close(pfd[PRD]);
 		start(runq->code, runq->pc+1, runq->local);
 		pushredir(ROPEN, pfd[PWR], 1);
 		return;
 	default:
-		addwaitpid(pid);
 		close(pfd[PWR]);
 		f = openfd(pfd[PRD]);
 		s = wd;
@@ -140,7 +134,7 @@ void
 Xpipefd(void)
 {
 	struct thread *p = runq;
-	int pc = p->pc, pid;
+	int pc = p->pc;
 	char name[40];
 	int pfd[2];
 	int sidefd, mainfd;
@@ -156,19 +150,17 @@ Xpipefd(void)
 		sidefd = pfd[PRD];
 		mainfd = pfd[PWR];
 	}
-	switch(pid = fork()){
+	switch(fork()){
 	case -1:
 		Xerror("try again");
 		break;
 	case 0:
-		clearwaitpids();
 		start(p->code, pc+2, runq->local);
 		close(mainfd);
 		pushredir(ROPEN, sidefd, p->code[pc].i==READ?1:0);
 		runq->ret = 0;
 		break;
 	default:
-		addwaitpid(pid);
 		close(sidefd);
 		pushredir(ROPEN, mainfd, mainfd);	/* isn't this a noop? */
 		strcpy(name, Fdprefix);
@@ -188,12 +180,10 @@ Xsubshell(void)
 		Xerror("try again");
 		break;
 	case 0:
-		clearwaitpids();
 		start(runq->code, runq->pc+1, runq->local);
 		runq->ret = 0;
 		break;
 	default:
-		addwaitpid(pid);
 		Waitfor(pid, 1);
 		runq->pc = runq->code[runq->pc].i;
 		break;
@@ -211,7 +201,6 @@ execforkexec(void)
 	case -1:
 		return -1;
 	case 0:
-		clearwaitpids();
 		pushword("exec");
 		execexec();
 		strcpy(buf, "can't exec: ");
@@ -219,6 +208,5 @@ execforkexec(void)
 		errstr(buf+n, ERRMAX-n);
 		Exit(buf);
 	}
-	addwaitpid(pid);
 	return pid;
 }

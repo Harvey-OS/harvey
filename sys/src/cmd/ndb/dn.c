@@ -277,8 +277,10 @@ dnage(DN *dp)
 static void
 upref(DN *dp)
 {
-	if (dp != nil)
-		dp->refs++;
+	if (dp == nil)
+		return;
+	dp->refs++;
+	assert(dp->refs < 120);		/* make sure it fits in a signed char */
 }
 
 /*

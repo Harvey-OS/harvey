@@ -5,7 +5,7 @@ static	Word		*expandvar(char**);
 static	Bufblock	*varname(char**);
 static	Word		*extractpat(char*, char**, char*, char*);
 static	int		submatch(char*, Word*, Word*, int*, char**);
-static	Word		*varmatch(char *);
+static	Word		*varmatch(char *, char**);
 
 Word *
 varsub(char **s)
@@ -20,7 +20,7 @@ varsub(char **s)
 	if(b == 0)
 		return 0;
 
-	w = varmatch(b->start);
+	w = varmatch(b->start, s);
 	freebuf(b);
 	return w;
 }
@@ -57,10 +57,11 @@ varname(char **s)
 }
 
 static Word*
-varmatch(char *name)
+varmatch(char *name, char **s)
 {
 	Word *w;
 	Symtab *sym;
+	char *cp;
 	
 	sym = symlook(name, S_VAR, 0);
 	if(sym){
@@ -69,6 +70,9 @@ varmatch(char *name)
 			if(w->s && *w->s)
 				return wdup(w);
 	}
+	for(cp = *s; *cp == ' ' || *cp == '\t'; cp++)	/* skip trailing whitespace */
+			;
+	*s = cp;
 	return 0;
 }
 
@@ -88,7 +92,7 @@ expandvar(char **s)
 	cp = *s;
 	if (*cp == '}') {				/* ${name} variant*/
 		(*s)++;					/* skip the '}' */
-		w = varmatch(buf->start);
+		w = varmatch(buf->start, s);
 		freebuf(buf);
 		return w;
 	}

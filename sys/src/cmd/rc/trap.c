@@ -2,7 +2,7 @@
 #include "exec.h"
 #include "fns.h"
 #include "io.h"
-extern char *Signame[];
+char *Signame[];
 
 void
 dotrap(void)

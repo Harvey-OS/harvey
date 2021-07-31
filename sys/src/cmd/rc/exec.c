@@ -894,7 +894,6 @@ Xerror(char *s)
 	else
 		pfmt(err, "rc (%s): %s: %r\n", argv0, s);
 	flush(err);
-	setstatus("error");
 	while(!runq->iflag) Xreturn();
 }
 
@@ -906,7 +905,6 @@ Xerror1(char *s)
 	else
 		pfmt(err, "rc (%s): %s\n", argv0, s);
 	flush(err);
-	setstatus("error");
 	while(!runq->iflag) Xreturn();
 }
 
