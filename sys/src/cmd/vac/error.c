@@ -5,8 +5,6 @@
 #include "error.h"
 
 char ENoDir[] = "directory entry is not allocated";
-char ENoFile[] = "no such file or directory";
-char EBadPath[] = "bad path";
 char EBadDir[] = "corrupted directory entry";
 char EBadMeta[] = "corrupted meta data";
 char ENotDir[] = "not a directory";

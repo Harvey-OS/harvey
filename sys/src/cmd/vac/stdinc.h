@@ -1,5 +1,8 @@
 #include <u.h>
 #include <libc.h>
-#include <thread.h>
-#include <venti.h>
-#include <libsec.h>
+
+#include "oventi.h"
+
+typedef uvlong	u64int;
+typedef	uchar	u8int;
+typedef ushort	u16int;
