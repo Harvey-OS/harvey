@@ -90,21 +90,18 @@ Qid
 mkqid(char *s, int is_dir, long vers, int subtype, long path)
 {
 	Qid q;
-	union {				/* align digest suitably */
-		uchar	digest[SHA1dlen];
-		uvlong	uvl;
-	} u;
+	uchar digest[SHA1dlen];
 
-	sha1((uchar *)s, strlen(s), u.digest, nil);
+	sha1((uchar *)s, strlen(s), digest, nil);
 	q.type = (is_dir)? QTDIR: 0;
 	q.vers = vers;
 	if(subtype){
-		q.path = *((uvlong *)u.digest) & ~0xfffL;
+		q.path = *((uvlong *)digest) & ~0xfffL;
 		q.path |= ((path & 0xff) << 4);
 		q.path |= (subtype & 0xf);
 	}
 	else
-		q.path = *((uvlong *)u.digest) & ~0xfL;
+		q.path = *((uvlong *)digest) & ~0xfL;
 	return q;
 }
 
