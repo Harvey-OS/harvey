@@ -100,6 +100,7 @@ struct
 
 } language[] =
 {
+	Normal, 0,	0x0080, 0x0080,	"Extended Latin",
 	Normal,	0,	0x0100,	0x01FF,	"Extended Latin",
 	Normal,	0,	0x0370,	0x03FF,	"Greek",
 	Normal,	0,	0x0400,	0x04FF,	"Cyrillic",
@@ -132,7 +133,7 @@ enum
 {
 	Fascii,		/* printable ascii */
 	Flatin,		/* latin 1*/
-	Futf,		/* UTF character set */
+	Futf,		/* UTf character set */
 	Fbinary,	/* binary */
 	Feascii,	/* ASCII with control chars */
 	Fnull,		/* NULL in file */
@@ -266,64 +267,10 @@ type(char *file, int nlen)
 	close(fd);
 }
 
-/*
- * Unicode 4.0 4-byte runes.
- */
-typedef int Rune1;
-
-enum {
-	UTFmax1 = 4,
-};
-
-int
-fullrune1(char *p, int n)
-{
-	int c;
-	
-	if(n >= 1) {
-		c = *(uchar*)p;
-		if(c < 0x80)
-			return 1;
-		if(n >= 2 && c < 0xE0)
-			return 1;
-		if(n >= 3 && c < 0xF0)
-			return 1;
-		if(n >= 4)
-			return 1;
-	}
-	return 0;
-}
-
-int
-chartorune1(Rune1 *rune, char *str)
-{
-	int c, c1, c2, c3, n;
-	Rune r;
-	
-	c = *(uchar*)str;
-	if(c < 0xF0){
-		r = 0;
-		n = chartorune(&r, str);
-		*rune = r;
-		return n;
-	}
-	c &= ~0xF0;
-	c1 = *(uchar*)(str+1) & ~0x80;
-	c2 = *(uchar*)(str+2) & ~0x80;
-	c3 = *(uchar*)(str+3) & ~0x80;
-	n = (c<<18) | (c1<<12) | (c2<<6) | c3;
-	if(n < 0x10000 || n > 0x10FFFF){
-		*rune = Runeerror;
-		return 1;
-	}
-	*rune = n;
-	return 4;
-}
-
 void
 filetype(int fd)
 {
-	Rune1 r;
+	Rune r;
 	int i, f, n;
 	char *p, *eob;
 
@@ -362,22 +309,22 @@ filetype(int fd)
 		language[i].count = 0;
 	eob = (char *)buf+nbuf;
 	for(n = 0, p = (char *)buf; p < eob; n++) {
-		if (!fullrune1(p, eob-p) && eob-p < UTFmax1)
+		if (!fullrune(p, eob-p) && eob-p < UTFmax)
 			break;
-		p += chartorune1(&r, p);
+		p += chartorune(&r, p);
 		if (r == 0)
 			f = Cnull;
 		else if (r <= 0x7f) {
 			if (!isprint(r) && !isspace(r))
 				f = Ceascii;	/* ASCII control char */
 			else f = r;
-		} else if (r == 0x80) {
+		} else if (r == 0x080) {
 			bump_utf_count(r);
 			f = Cutf;
 		} else if (r < 0xA0)
-			f = Cbinary;	/* Invalid Runes */
+				f = Cbinary;	/* Invalid Runes */
 		else if (r <= 0xff)
-			f = Clatin;	/* Latin 1 */
+				f = Clatin;	/* Latin 1 */
 		else {
 			bump_utf_count(r);
 			f = Cutf;		/* UTF extension */
@@ -395,10 +342,18 @@ filetype(int fd)
 		guess = Flatin;
 	else if (cfreq[Ceascii])
 		guess = Feascii;
-	else if (cfreq[Cnull])
+	else if (cfreq[Cnull] == n) {
+		/*
+		 * ISO9660 CDs, venti and fossil partitions start with zeroes or
+		 * unwritten blocks, so this old heuristic is no longer helpful.
+		 */
+	/*
+		print(mime ? OCTET : "first block all null bytes\n");
+		return;
+	 */
 		guess = Fbinary;
-	else
-		guess = Fascii;
+	}
+	else guess = Fascii;
 	/*
 	 * lookup dictionary words
 	 */
@@ -437,7 +392,7 @@ bump_utf_count(Rune r)
 	high = sizeof(language)/sizeof(language[0])-1;
 	for (low = 0; low < high;) {
 		mid = (low+high)/2;
-		if (r >= language[mid].low) {
+		if (r >=language[mid].low) {
 			if (r <= language[mid].high) {
 				language[mid].count++;
 				break;
@@ -1336,12 +1291,11 @@ isp9font(void)
 		return 0;
 	if (!getfontnum(cp, &cp))	/* ascent */
 		return 0;
-	for (i = 0; cp=(uchar*)strchr((char*)cp, '\n'); i++) {
+	for (i = 0;; i++) {
 		if (!getfontnum(cp, &cp))	/* min */
 			break;
 		if (!getfontnum(cp, &cp))	/* max */
 			return 0;
-		getfontnum(cp, &cp);	/* optional offset */
 		while (WHITESPACE(*cp))
 			cp++;
 		for (p = cp; *cp && !WHITESPACE(*cp); cp++)
@@ -1354,15 +1308,12 @@ isp9font(void)
 				memcpy(pathname, fname, n);
 			else n = 0;
 		}
-		if (n+cp-p+4 < sizeof(pathname)) {
+		if (n+cp-p < sizeof(pathname)) {
 			memcpy(pathname+n, p, cp-p);
 			n += cp-p;
 			pathname[n] = 0;
-			if (access(pathname, AEXIST) < 0) {
-				strcpy(pathname+n, ".0");
-				if (access(pathname, AEXIST) < 0)
-					return 0;
-			}
+			if (access(pathname, AEXIST) < 0)
+				return 0;
 		}
 	}
 	if (i) {
@@ -1380,10 +1331,8 @@ getfontnum(uchar *cp, uchar **rp)
 	if (*cp < '0' || *cp > '9')
 		return 0;
 	strtoul((char *)cp, (char **)rp, 0);
-	if (!WHITESPACE(**rp)) {
-		*rp = cp;
+	if (!WHITESPACE(**rp))
 		return 0;
-	}
 	return 1;
 }
 
