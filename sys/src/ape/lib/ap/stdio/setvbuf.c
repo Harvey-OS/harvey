@@ -2,6 +2,7 @@
  * pANS stdio -- setvbuf
  */
 #include "iolib.h"
+#include <stdlib.h>
 int setvbuf(FILE *f, char *buf, int mode, size_t size){
 	if(f->state!=OPEN){
 		f->state=ERR;
@@ -23,11 +24,11 @@ int setvbuf(FILE *f, char *buf, int mode, size_t size){
 		f->bufl=size;
 		break;
 	case _IONBF:
-		buf=(char *)f->unbuf;
+		buf=f->unbuf;
 		f->bufl=0;
 		break;
 	}
-	f->rp=f->wp=f->lp=f->buf=(unsigned char *)buf;
+	f->rp=f->wp=f->lp=f->buf=buf;
 	f->state=RDWR;
 	return 0;
 }

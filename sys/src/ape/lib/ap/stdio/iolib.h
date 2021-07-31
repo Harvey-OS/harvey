@@ -14,12 +14,7 @@
  *	fseek		fsetpos		ftell		rewind		clearerr
  *	feof		ferror		perror	
  */
-#ifndef _SUSV2_SOURCE
-#define _SUSV2_SOURCE	/* for *intptr_t types */
-#endif
-
 #include <stdio.h>
-#include <inttypes.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>

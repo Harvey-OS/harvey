@@ -62,7 +62,8 @@ UPDATE=\
 	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib
-CFLAGS= -FTVw
+# this code really can't handle any flow-analysis warnings
+CFLAGS= -FTV
 
 test:V:	$OFILES
 	ar vu libstdio.a $OFILES

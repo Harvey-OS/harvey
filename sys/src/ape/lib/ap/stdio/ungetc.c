@@ -15,7 +15,12 @@ int ungetc(int c, FILE *f){
 		_IO_setvbuf(f);
 	case RDWR:
 	case END:
-		f->rp=f->wp=f->buf+(f->bufl==0?1:f->bufl);
+		f->wp=f->buf;
+		if(f->bufl==0)
+			f->wp += 1;
+		else
+			f->wp += f->bufl;
+		f->rp = f->wp;
 		f->state=RD;
 	case RD:
 		if(f->rp==f->buf) return EOF;

@@ -2,7 +2,7 @@
  * pANS stdio -- setbuf
  */
 #include "iolib.h"
-void setbuf(FILE *f, void *buf){
+void setbuf(FILE *f, char *buf){
 	if(f->state==OPEN){
 		if(buf)
 			f->bufl=BUFSIZ;

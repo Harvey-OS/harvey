@@ -3,7 +3,7 @@
  */
 #include "iolib.h"
 long ftell(FILE *f){
-	long seekp=lseek(f->fd, 0, SEEK_CUR);
+	long seekp=lseek(f->fd, 0L, 1);
 	if(seekp<0) return -1;		/* enter error state? */
 	switch(f->state){
 	default:

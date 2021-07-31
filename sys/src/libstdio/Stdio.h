@@ -1,8 +1,5 @@
-#pragma	src	"/sys/src/libstdio"
-#pragma	lib	"libstdio.a"
-
 /*
- * pANS astdio.h
+ * pANS stdio.h
  */
 /*
  * According to X3J11, there is only one i/o buffer
@@ -37,7 +34,7 @@ typedef struct{
 }FILE;
 typedef long fpos_t;
 #ifndef NULL
-#define	NULL	((void*)0)
+#define	NULL	0
 #endif
 /*
  * Third arg of setvbuf
@@ -47,14 +44,12 @@ typedef long fpos_t;
 #define	_IONBF	3			/* unbuffered */
 #define	BUFSIZ	4096			/* size of setbuf buffer */
 #define	EOF	(-1)			/* returned on end of file */
-#define	FOPEN_MAX	100		/* max files open */
+#define	FOPEN_MAX	128		/* max files open */
 #define	FILENAME_MAX	BUFSIZ		/* silly filename length */
 #define	L_tmpnam	20		/* sizeof "/tmp/abcdefghij9999 */
-#ifndef SEEK_SET			/* also defined in unistd.h */
 #define	SEEK_CUR	1
 #define	SEEK_END	2
 #define	SEEK_SET	0
-#endif
 #define	TMP_MAX		64		/* very hard to set correctly */
 #define	stderr	(&_IO_stream[2])
 #define	stdin	(&_IO_stream[0])
@@ -65,7 +60,6 @@ char *tmpnam(char *);
 int fclose(FILE *);
 int fflush(FILE *);
 FILE *fopen(const char *, const char *);
-FILE *fdopen(const int, const char *);
 FILE *freopen(const char *, const char *, FILE *);
 void setbuf(FILE *, char *);
 int setvbuf(FILE *, char *, int, long);
@@ -74,12 +68,10 @@ int fscanf(FILE *, const char *, ...);
 int printf(const char *, ...);
 int scanf(const char *, ...);
 int sprintf(char *, const char *, ...);
-int snprintf(char *, int, const char *, ...);
 int sscanf(const char *, const char *, ...);
 int vfprintf(FILE *, const char *, va_list);
 int vprintf(const char *, va_list);
 int vsprintf(char *, const char *, va_list);
-int vsnprintf(char *, int, const char *, va_list);
 int vfscanf(FILE *, const char *, va_list);
 int fgetc(FILE *);
 char *fgets(char *, int, FILE *);
@@ -101,11 +93,9 @@ int ungetc(int, FILE *);
 long fread(void *, long, long, FILE *);
 long fwrite(const void *, long, long, FILE *);
 int fgetpos(FILE *, fpos_t *);
-int fseek(FILE *, long, int);
-int fseeko(FILE *, long long, int);
+int fseek(FILE *, long int, int);
 int fsetpos(FILE *, const fpos_t *);
-long ftell(FILE *);
-long long ftello(FILE *);
+long int ftell(FILE *);
 void rewind(FILE *);
 void clearerr(FILE *);
 int feof(FILE *);
@@ -115,4 +105,5 @@ extern FILE _IO_stream[FOPEN_MAX];
 FILE *sopenr(const char *);
 FILE *sopenw(void);
 char *sclose(FILE *);
-int fileno(FILE *);
+char	*dtoa(double, int, int, int*, int*, char**);
+void	freedtoa(char*);

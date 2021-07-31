@@ -103,7 +103,8 @@ int vfscanf(FILE *f, const char *s, va_list args){
 	return ncvt;	
 }
 static int icvt_n(FILE *f, va_list *args, int store, int width, int type){
-	USED(f, width);
+#pragma ref f
+#pragma ref width
 	if(store){
 		--ncvt;	/* this assignment doesn't count! */
 		switch(type){
@@ -275,10 +276,9 @@ Done:
 	return 1;
 }
 static int icvt_s(FILE *f, va_list *args, int store, int width, int type){
-	USED(type);
+#pragma ref type
 	int c, nn;
 	register char *s;
-	s = nil;				/* silence used and not set */
 	if(store) s=va_arg(*args, char *);
 	do
 		c=ngetc(f);
@@ -304,10 +304,9 @@ Done:
 	return 1;
 }
 static int icvt_c(FILE *f, va_list *args, int store, int width, int type){
-	USED(type);
+#pragma ref type
 	int c;
 	register char *s;
-	s = nil;				/* silence used and not set */
 	if(store) s=va_arg(*args, char *);
 	if(width<0) width=1;
 	for(;;){
@@ -337,7 +336,7 @@ static int match(int c, const char *pat){
 	return !ok;
 }
 static int icvt_sq(FILE *f, va_list *args, int store, int width, int type){
-	USED(type);
+#pragma ref type
 	int c, nn;
 	register char *s;
 	register const char *pat;
@@ -345,7 +344,6 @@ static int icvt_sq(FILE *f, va_list *args, int store, int width, int type){
 	if(*fmtp=='^') fmtp++;
 	if(*fmtp!='\0') fmtp++;
 	while(*fmtp!='\0' && *fmtp!=']') fmtp++;
-	s = nil;				/* silence used and not set */
 	if(store) s=va_arg(*args, char *);
 	nn=0;
 	for(;;){

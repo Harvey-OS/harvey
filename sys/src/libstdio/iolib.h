@@ -19,7 +19,7 @@
 #include <u.h>
 #include <libc.h>
 #undef END
-#include <stdio.h>
+#include "Stdio.h"
 /*
  * Flag bits
  */
@@ -42,7 +42,3 @@ int _IO_setvbuf(FILE *);
 
 /* half hearted attempt to make multi threaded */
 extern QLock _stdiolk;
-
-/* internal functions */
-char	*dtoa(double, int, int, int*, int*, char**);
-void	freedtoa(char*);

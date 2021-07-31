@@ -5,13 +5,9 @@
 #include "iolib.h"
 #include <string.h>
 
-char *rdline(FILE *f, char **aep){
+char *rdline(FILE *f, char **ep){
 	int cnt;
-	void *vp;
-	unsigned char *nlp;
-	unsigned char **ep;
-
-	ep = (unsigned char **)aep;
+	char *nlp, *vp;
 	switch(f->state){
 	default:	/* CLOSED, WR, ERR, EOF */
 		return NULL;
