@@ -11,20 +11,24 @@ int
 utime(const char *path, const struct utimbuf *times)
 {
 	int n;
-	Dir nd;
+	Dir *d;
 	time_t curt;
 
-	_nulldir(&nd);
+	if((d = _dirstat(path)) == nil){
+		_syserrno();
+		return -1;
+	}
 	if(times == 0) {
 		curt = time(0);
-		nd.atime = curt;
-		nd.mtime = curt;
+		d->atime = curt;
+		d->mtime = curt;
 	} else {
-		nd.atime = times->actime;
-		nd.mtime = times->modtime;
+		d->atime = times->actime;
+		d->mtime = times->modtime;
 	}
-	n = _dirwstat(path, &nd);
+	n = _dirwstat(path, d);
 	if(n < 0)
 		_syserrno();
+	free(d);
 	return n;
 }

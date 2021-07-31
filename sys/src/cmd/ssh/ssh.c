@@ -195,10 +195,10 @@ main(int argc, char **argv)
 		m = allocmsg(&c, SSH_CMSG_EXEC_SHELL, 0);
 	sendmsg(m);
 
-	fromstdin(&c);
-	rfork(RFNOTEG);	/* only fromstdin gets notes */
 	if(dowinchange)
 		winchanges(&c);
+
+	fromstdin(&c);
 	fromnet(&c);
 	exits(0);
 }
@@ -516,6 +516,7 @@ fromstdin(Conn *c)
 	case 0:
 		break;
 	default:
+		rfork(RFNOTEG);
 		atexitkill(pid);
 		return;
 	}
@@ -578,6 +579,7 @@ winchanges(Conn *c)
 	case 0:
 		break;
 	default:
+		rfork(RFNOTEG);
 		atexitkill(pid);
 		return;
 	}

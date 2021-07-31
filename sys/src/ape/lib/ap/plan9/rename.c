@@ -12,7 +12,7 @@ rename(const char *from, const char *to)
 {
 	int n, i;
 	char *f, *t;
-	Dir *d, nd;
+	Dir *d;
 	long mode;
 
 	if(access(to, 0) >= 0){
@@ -38,9 +38,8 @@ rename(const char *from, const char *to)
 	if(f-from==t-to && strncmp(from, to, f-from)==0){
 		/* from and to are in same directory (we miss some cases) */
 		i = strlen(t);
-		_nulldir(&nd);
-		nd.name = t;
-		if(_dirwstat(from, &nd) < 0){
+		d->name = t;
+		if(_dirwstat(from, d) < 0){
 			_syserrno();
 			n = -1;
 		}

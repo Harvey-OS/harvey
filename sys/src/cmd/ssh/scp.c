@@ -335,7 +335,6 @@ readhdr(char *p, int n)
 Dir *
 receivedir(char *dir, int exists, Dir *d, int settimes, ulong atime, ulong mtime, ulong mode)
 {
-	Dir nd;
 	int setmodes;
 
 	setmodes = pflag;
@@ -354,22 +353,19 @@ receivedir(char *dir, int exists, Dir *d, int settimes, ulong atime, ulong mtime
 	}
 	receive(dir);
 	if(settimes || setmodes){
-		nulldir(&nd);
+		free(d);
+		if((d = dirstat(dir)) == 0){
+			scperror(0, "can't stat %s: %r", dir);
+			return d;
+		}
 		if(settimes){
-			nd.atime = atime;
-			nd.mtime = mtime;
-			d->atime = nd.atime;
-			d->mtime = nd.mtime;
+			d->atime = atime;
+			d->mtime = mtime;
 		}
-		if(setmodes){
-			nd.mode = DMDIR | (mode & 0777);
-			d->mode = nd.mode;
-		}
-		if(dirwstat(dir, &nd) < 0){
+		if(setmodes)
+			d->mode = (d->mode & ~0777) | (mode & 0777);
+		if(dirwstat(dir, d))
 			scperror(0, "can't wstat %s: %r", dir);
-			free(d);
-			return nil;
-		}
 	}
 	return d;
 }
@@ -384,7 +380,6 @@ receive(char *dest)
 	char buf[8192], *p;
 	char name[1024];
 	Dir *d;
-	Dir nd;
 
 	mtime = 0L;
 	atime = 0L;
@@ -500,14 +495,17 @@ receive(char *dest)
 			if(errors)
 				scperror(0, "%s: write error: %r", name);
 			else if(settimes || (exists && (d->mode&0777) != (mode&0777))){
-				nulldir(&nd);
+				if(!exists && (d = dirfstat(fd)) == nil){
+					scperror(0, "can't stat %s: %r", name);
+					continue;
+				}
 				if(settimes){
 					settimes = 0;
-					nd.atime = atime;
-					nd.mtime = mtime;
+					d->atime = atime;
+					d->mtime = mtime;
 				}
-				nd.mode = (d->mode & ~0777) | (mode&0777);
-				if(dirwstat(name, &nd) < 0)
+				d->mode = (d->mode & ~0777) | (mode & 0777);
+				if(dirwstat(name, d) < 0)
 					scperror(0, "can't wstat %s: %r", name);
 			}
 			free(d);

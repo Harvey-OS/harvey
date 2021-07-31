@@ -345,7 +345,7 @@ xcmd(char *arname, int count, char **files)
 {
 	int fd, f, mode, i;
 	Armember *bp;
-	Dir dx;
+	Dir *dx;
 
 	fd = openar(arname, OREAD, 0);
 	Binit(&bar, fd, OREAD);
@@ -364,11 +364,16 @@ xcmd(char *arname, int count, char **files)
 				if (write(f, bp->member, bp->size) < 0)
 					wrerr();
 				if(oflag) {
-					nulldir(&dx);
-					dx.atime = bp->date;
-					dx.mtime = bp->date;
-					if(dirwstat(file, &dx) < 0)
+					dx = dirfstat(f);
+					if(dx == nil)
 						perror(file);
+					else {
+						dx->atime = bp->date;
+						dx->mtime = bp->date;
+						if(dirwstat(file, dx) < 0)
+							perror(file);
+						free(dx);
+					}
 				}
 				free(bp->member);
 				close(f);

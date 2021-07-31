@@ -62,7 +62,7 @@ logbufflush(Logbuf *lb, Req *r)
 			r->aux = nil;
 			if(*l == nil)
 				lb->waitlast = l;
-			respond(r, "interrupted");
+			closereq(r);
 			break;
 		}
 	}

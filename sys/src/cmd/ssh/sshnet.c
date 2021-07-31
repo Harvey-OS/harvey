@@ -821,7 +821,7 @@ fsflush(Req *r)
 
 	for(i=0; i<nclient; i++)
 		if(findreq(client[i], r->oldreq))
-			respond(r->oldreq, "interrupted");
+			respond(r->oldreq, "flushed");
 	respond(r, nil);
 }
 

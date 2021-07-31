@@ -99,7 +99,6 @@ openlockfile(Mlock *l)
 {
 	int fd;
 	Dir *d;
-	Dir nd;
 	char *p;
 
 	fd = open(s_to_c(l->name), OREAD);
@@ -114,9 +113,12 @@ openlockfile(Mlock *l)
 		/* try creating it */
 		fd = create(s_to_c(l->name), OREAD, DMEXCL|0666);
 		if(fd >= 0){
-			nulldir(&nd);
-			nd.mode = DMEXCL|0666;
-			dirfwstat(fd, &nd);
+			d = dirfstat(fd);
+			if(d != nil){
+				d->mode |= DMEXCL|0666;
+				dirfwstat(fd, d);
+				free(d);
+			}
 			l->fd = fd;
 			return 0;
 		}
@@ -258,7 +260,7 @@ sysopen(char *path, char *mode, ulong perm)
 	int docreate;
 	int append;
 	int truncate;
-	Dir *d, nd;
+	Dir *d;
 	Biobuf *bp;
 
 	/*
@@ -330,9 +332,12 @@ sysopen(char *path, char *mode, ulong perm)
 			fd = create(path, sysmode, sysperm|perm);
 			if(fd < 0)
 				return 0;
-			nulldir(&nd);
-			nd.mode = sysperm|perm;
-			dirfwstat(fd, &nd);
+			d = dirfstat(fd);
+			if(d != nil){
+				d->mode |= sysperm|perm;
+				dirfwstat(fd, d);
+				free(d);
+			}
 		} else {
 			free(d);
 			return 0;
@@ -395,13 +400,18 @@ sysmkdir(char *file, ulong perm)
 int
 syschgrp(char *file, char *group)
 {
-	Dir nd;
+	Dir *d;
+	int rv;
 
 	if(group == 0)
 		return -1;
-	nulldir(&nd);
-	nd.gid = group;
-	return dirwstat(file, &nd);
+	d = dirstat(file);
+	if(d == nil)
+		return -1;
+	strncpy(d->gid, group, sizeof(d->gid));
+	rv = dirwstat(file, d);
+	free(d);
+	return rv;
 }
 
 extern int
@@ -552,7 +562,7 @@ sysremove(char *path)
 extern int
 sysrename(char *old, char *new)
 {
-	Dir d;
+	Dir *d;
 	char *obase;
 	char *nbase;
 	int rv;
@@ -570,9 +580,14 @@ sysrename(char *old, char *new)
 			return -1;
 		nbase = new;
 	}
-	nulldir(&d);
-	d.name = nbase;
-	return dirwstat(old, &d);
+	d = dirstat(old);
+	if(d == nil)
+		return -1;
+	memset(d->name, 0, sizeof(d->name));
+	strcpy(d->name, nbase);
+	rv = dirwstat(old, d);
+	free(d);
+	return rv;
 }
 
 /*

@@ -29,8 +29,6 @@ static struct {
 	"pc", "#S/sdC0/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#S/sd00/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#S/sd00/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sd01/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sd01/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#f/fd0disk", -1, 512,	/* 512: #f requires whole sector reads */
 	"pc", "#f/fd1disk", -1, 512,
 	"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe),
@@ -120,14 +118,13 @@ readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
 int
 readnvram(Nvrsafe *safep, int flag)
 {
-	char buf[1024], in[128], *cputype, *nvrfile, *nvrlen, *nvroff, *v[2];
+	char buf[1024], in[128], *cputype;
 	int fd, err, i, safeoff, safelen;
 	Nvrsafe *safe;
 
 	err = 0;
 	memset(safep, 0, sizeof(*safep));
 
-	nvrfile = getenv("nvram");
 	cputype = getenv("cputype");
 	if(cputype == nil)
 		cputype = "mips";
@@ -139,54 +136,22 @@ readnvram(Nvrsafe *safep, int flag)
 	fd = -1;
 	safeoff = -1;
 	safelen = -1;
-	if(nvrfile != nil){
-		/* accept device and device!file */
-		i = gettokens(nvrfile, v, nelem(v), "!");
-		fd = open(v[0], ORDWR);
-		safelen = sizeof(Nvrsafe);
-		if(strstr(v[0], "/9fat") == nil)
-			safeoff = 0;
-		nvrlen = getenv("nvrlen");
-		if(nvrlen != nil)
-			safelen = atoi(nvrlen);
-		nvroff = getenv("nvroff");
-		if(nvroff != nil){
-			if(strcmp(nvroff, "dos") == 0)
-				safeoff = -1;
-			else
-				safeoff = atoi(nvroff);
-		}
-		if(safeoff < 0 && fd >= 0){
-			safelen = 512;
-			safeoff = finddosfile(fd, i == 2 ? v[1] : "plan9.nvr");
+	for(i=0; i<nelem(nvtab); i++){
+		if(strcmp(cputype, nvtab[i].cputype) != 0)
+			continue;
+		if((fd = open(nvtab[i].file, ORDWR)) < 0)
+			continue;
+		safeoff = nvtab[i].off;
+		safelen = nvtab[i].len;
+		if(safeoff == -1){
+			safeoff = finddosfile(fd, "plan9.nvr");
 			if(safeoff < 0){
 				close(fd);
 				fd = -1;
+				continue;
 			}
 		}
-		free(nvrfile);
-		if(nvrlen != nil)
-			free(nvrlen);
-		if(nvroff != nil)
-			free(nvroff);
-	}else{
-		for(i=0; i<nelem(nvtab); i++){
-			if(strcmp(cputype, nvtab[i].cputype) != 0)
-				continue;
-			if((fd = open(nvtab[i].file, ORDWR)) < 0)
-				continue;
-			safeoff = nvtab[i].off;
-			safelen = nvtab[i].len;
-			if(safeoff == -1){
-				safeoff = finddosfile(fd, "plan9.nvr");
-				if(safeoff < 0){
-					close(fd);
-					fd = -1;
-					continue;
-				}
-			}
-			break;
-		}
+		break;
 	}
 
 	if(fd < 0

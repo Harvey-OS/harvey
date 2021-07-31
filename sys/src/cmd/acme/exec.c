@@ -528,8 +528,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 	name = runetobyte(namer, nname);
 	d = dirstat(name);
 	if(d!=nil && runeeq(namer, nname, f->name, f->nname)){
-		/* f->mtime+1 because when talking over NFS it's often off by a second */
-		if(f->dev!=d->dev || f->qidpath!=d->qid.path || f->mtime+1<d->mtime){
+		if(f->dev!=d->dev || f->qidpath!=d->qid.path || f->mtime<d->mtime){
 			f->dev = d->dev;
 			f->qidpath = d->qid.path;
 			f->mtime = d->mtime;

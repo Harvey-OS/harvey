@@ -14,8 +14,6 @@ enum
 {
 	Facesep = 6,	/* must be even to avoid damaging background stipple */
 	Infolines = 9,
-
-	HhmmTime = 18*60*60,	/* max age of face to display hh:mm time */
 };
 
 enum
@@ -282,7 +280,7 @@ updatetimes(void)
 		f = faces[i];
 		if(f == nil)
 			continue;
-		if(((long)(now - f->time) <= HhmmTime) != f->recent)
+		if(((long)(now - f->time) <= 23*60*60) != f->recent)
 			drawface(f, i);
 	}	
 }

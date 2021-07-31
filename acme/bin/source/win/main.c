@@ -37,7 +37,7 @@ threadmain(int argc, char *argv[])
 	ARGBEGIN{
 	case 'd':
 		debug = 1;
-		chatty9p++;
+		chatty9p =1;
 		break;
 	case 'e':
 		eraseinput = 1;
@@ -283,10 +283,10 @@ fsloop(void*)
 		case 'f':
 			for(l=&q; *l; l=&(*l)->aux){
 				if(*l == r->oldreq){
-					*l = (*l)->aux;
+					*l = r->oldreq->aux;
 					if(*l == nil)
 						eq = l;
-					respond(r->oldreq, "interrupted");
+					closereq(r->oldreq);
 					break;
 				}
 			}
