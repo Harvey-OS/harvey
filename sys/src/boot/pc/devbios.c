@@ -350,10 +350,6 @@ biosread(Fs *fs, void *a, long n)
 	offset = bdp->offset;
 	stuck = 0;
 	for (totnr = 0; totnr < n && stuck < 4; totnr += got) {
-		if (bdp->sectsz == 0) {
-			print("devbios: zero sector size\n");
-			return -1;
-		}
 		want = bdp->sectsz;
 		if (totnr + want > n)
 			want = n - totnr;
