@@ -18,7 +18,6 @@ enum{	IDATSIZE = 	20000,
 
 typedef struct ZlibR{
 	uchar *data;
-	int width;
 	int nrow, ncol;
 	int row, col;	// next pixel to send
 } ZlibR;
@@ -77,7 +76,7 @@ zread(void *va, void *buf, int n)
 		pixels = (e-b)/3;
 		if(pixels > ncol - z->col)
 			pixels = ncol - z->col;
-		img = z->data + z->width * z->row + 3 * z->col;
+		img = z->data + 3 * z->row * ncol + 3 * z->col;
 
 		// Plan 9 image format is BGR?!!!
 		// memmove(b, img, 3*pixels);
@@ -199,7 +198,6 @@ memwritepng(Biobuf *bo, Memimage *r, ImageInfo *II)
 	// image chunks
 	zr.nrow = nrow;
 	zr.ncol = ncol;
-	zr.width = rgb->width * sizeof(ulong);
 	zr.data = rgb->data->bdata;
 	zr.row = zr.col = 0;
 	zw.bo = bo;
