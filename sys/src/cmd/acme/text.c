@@ -45,8 +45,7 @@ textredraw(Text *t, Rectangle r, Font *f, Image *b, int odx)
 	frinit(t, r, f, b, t->Frame.cols);
 	rr = t->r;
 	rr.min.x -= Scrollwid+Scrollgap;	/* back fill to scroll bar */
-	if(!t->noredraw)
-		draw(t->b, rr, t->cols[BACK], nil, ZP);
+	draw(t->b, rr, t->cols[BACK], nil, ZP);
 	/* use no wider than 3-space tabs in a directory */
 	maxt = maxtab;
 	if(t->what == Body){
@@ -69,14 +68,14 @@ textredraw(Text *t, Rectangle r, Font *f, Image *b, int odx)
 }
 
 int
-textresize(Text *t, Rectangle r, int keepextra)
+textresize(Text *t, Rectangle r)
 {
 	int odx;
 
-	if(Dy(r) <= 0)
-		r.max.y = r.min.y;
-	else if(!keepextra)
+	if(Dy(r) > 0)
 		r.max.y -= Dy(r)%t->font->height;
+	else
+		r.max.y = r.min.y;
 	odx = Dx(t->all);
 	t->all = r;
 	t->scrollr = r;
@@ -85,14 +84,7 @@ textresize(Text *t, Rectangle r, int keepextra)
 	r.min.x += Scrollwid+Scrollgap;
 	frclear(t, 0);
 	textredraw(t, r, t->font, t->b, odx);
-	if(keepextra && t->r.max.y < t->all.max.y && !t->noredraw){
-		/* draw background in bottom fringe of window */
-		r.min.x -= Scrollgap;
-		r.min.y = t->r.max.y;
-		r.max.y = t->all.max.y;
-		draw(screen, r, t->cols[BACK], nil, ZP);
-	}
-	return t->all.max.y;
+	return r.max.y;
 }
 
 void
@@ -284,7 +276,7 @@ textload(Text *t, uint q0, char *file, int setqid)
 		if(u != t){
 			if(u->org > u->file->nc)	/* will be 0 because of reset(), but safety first */
 				u->org = 0;
-			textresize(u, u->all, TRUE);
+			textresize(u, u->all);
 			textbacknl(u, u->org, 0);	/* go to beginning of line */
 		}
 		textsetselect(u, q0, q0);
@@ -651,11 +643,8 @@ texttype(Text *t, Rune r)
 	Rune *rp;
 	Text *u;
 
-	if(t->what!=Body && t->what!=Tag && r=='\n')
+	if(t->what!=Body && r=='\n')
 		return;
-	if(t->what == Tag)
-		t->w->tagsafe = FALSE;
-
 	nr = 1;
 	rp = &r;
 	switch(r){
@@ -672,13 +661,9 @@ texttype(Text *t, Rune r)
 		}
 		return;
 	case Kdown:
-		if(t->what == Tag)
-			goto Tagdown;
 		n = t->maxlines/3;
 		goto case_Down;
 	case Kscrollonedown:
-		if(t->what == Tag)
-			goto Tagdown;
 		n = mousescrollsize(t->maxlines);
 		if(n <= 0)
 			n = 1;
@@ -690,13 +675,9 @@ texttype(Text *t, Rune r)
 		textsetorigin(t, q0, TRUE);
 		return;
 	case Kup:
-		if(t->what == Tag)
-			goto Tagup;
 		n = t->maxlines/3;
 		goto case_Up;
 	case Kscrolloneup:
-		if(t->what == Tag)
-			goto Tagup;
 		n = mousescrollsize(t->maxlines);
 		goto case_Up;
 	case Kpgup:
@@ -727,23 +708,6 @@ texttype(Text *t, Rune r)
 		while(q0<t->file->nc && textreadc(t, q0)!='\n')
 			q0++;
 		textshow(t, q0, q0, TRUE);
-		return;
-
-	Tagdown:
-		/* expand tag to show all text */
-		if(!t->w->tagexpand){
-			t->w->tagexpand = TRUE;
-			winresize(t->w, t->w->r, FALSE, TRUE);
-		}
-		return;
-	
-	Tagup:
-		/* shrink tag to single line */
-		if(t->w->tagexpand){
-			t->w->tagexpand = FALSE;
-			t->w->taglines = 1;
-			winresize(t->w, t->w->r, FALSE, TRUE);
-		}
 		return;
 	}
 	if(t->what == Body){
