@@ -160,7 +160,6 @@ error:
 	free(up);
 	free(spec);
 	snprint(hs->autherror, sizeof hs->autherror, "%r");
-	fprint(2, "%s: Authentication failed: %r\n", argv0);
 }
 
 struct {
@@ -283,12 +282,8 @@ httpopen(Client *c, Url *url)
 	Error:
 		if(httpdebug)
 			fprint(2, "iodial: %r\n");
-		free(hs->location);
-		free(hs->setcookie);
 		free(hs->netaddr);
-		free(hs->credentials);
-		if(fd >= 0)
-			ioclose(io, hs->fd);
+		close(hs->fd);
 		hs->fd = -1;
 		free(hs);
 		c->aux = nil;
@@ -479,7 +474,7 @@ httpopen(Client *c, Url *url)
 				werrstr("%s", hs->autherror);
 			else
 				werrstr("unauthorized; no www-authenticate: header");
-			goto Error;
+			return -1;
 		}
 		c->authenticate = hs->credentials;
 		hs->credentials = nil;
@@ -487,7 +482,7 @@ httpopen(Client *c, Url *url)
 	if(redirect){
 		if(!hs->location){
 			werrstr("redirection without Location: header");
-			goto Error;
+			return -1;
 		}
 		c->redirect = hs->location;
 		hs->location = nil;
@@ -518,8 +513,7 @@ httpclose(Client *c)
 	hs = c->aux;
 	if(hs == nil)
 		return;
-	if(hs->fd >= 0)
-		ioclose(c->io, hs->fd);
+	ioclose(c->io, hs->fd);
 	hs->fd = -1;
 	free(hs->location);
 	free(hs->setcookie);
@@ -528,3 +522,4 @@ httpclose(Client *c)
 	free(hs);
 	c->aux = nil;
 }
+

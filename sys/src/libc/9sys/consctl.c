@@ -1,27 +1,28 @@
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
-#include "cons.h"
+
+/*  console state (for consctl) */
+typedef struct Consstate	Consstate;
+struct Consstate{
+	int raw;
+	int hold;
+};
 
 /*
  *  create a shared segment.  Make is start 2 meg higher than the current
  *  end of process memory.
  */
 static void*
-share(ulong len)
+share(int len)
 {
-	uchar *vastart;
+	ulong vastart;
 
-	vastart = sbrk(0);
-	if(vastart == (void*)-1)
+	vastart = ((ulong)sbrk(0)) + 2*1024*1024;
+
+	if(segattach(0, "shared", (void *)vastart, len) < 0)
 		return 0;
-	vastart += 2*1024*1024;
 
-	if(segattach(0, "shared", vastart, len) == (void*)-1)
-		return 0;
-	memset(vastart, 0, len);
-
-	return vastart;
+	return (void*)vastart;
 }
 
 /*
@@ -42,19 +43,9 @@ consctl(void)
 	if(x == 0)
 		return 0;
 
-	/* a pipe to simulate consctl */
-	if(bind("#|", "/mnt/cons/consctl", MBEFORE) < 0
-	|| bind("/mnt/cons/consctl/data1", "/dev/consctl", MREPL) < 0){
-		fprint(2, "error simulating consctl\n");
-		exits("/dev/consctl");
-	}
-
-	/* a pipe to simulate the /dev/cons */
-	if(bind("#|", "/mnt/cons/cons", MREPL) < 0
-	|| bind("/mnt/cons/cons/data1", "/dev/cons", MREPL) < 0){
-		fprint(2, "error simulating cons\n");
-		exits("/dev/cons");
-	}
+	if(bind("#|", "/mnt/term", MBEFORE) < 0
+	|| bind("/mnt/term/data1", "/dev/consctl", MREPL) < 0)
+		return 0;
 
 	switch(fork()){
 	case -1:
@@ -65,21 +56,20 @@ consctl(void)
 		return x;
 	}
 
-	notify(0);
-
+	setfields(" ");
 	for(tries = 0; tries < 100; tries++){
 		x->raw = 0;
 		x->hold = 0;
-		fd = open("/mnt/cons/consctl/data", OREAD);
+		fd = open("/mnt/term/data", OREAD);
 		if(fd < 0)
-			break;
+			continue;
 		tries = 0;
 		for(;;){
 			n = read(fd, buf, sizeof(buf)-1);
 			if(n <= 0)
 				break;
 			buf[n] = 0;
-			n = getfields(buf, field, 10, 1, " ");
+			n = getmfields(buf, field, 10);
 			for(i = 0; i < n; i++){
 				if(strcmp(field[i], "rawon") == 0)
 					x->raw = 1;
@@ -94,5 +84,4 @@ consctl(void)
 		close(fd);
 	}
 	exits(0);
-	return 0;		/* dummy to keep compiler quiet*/
 }

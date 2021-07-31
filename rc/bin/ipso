@@ -1,12 +1,10 @@
 #!/bin/rc
-# ipso - edit secstore files, reload factotum keys
-if(! ~ $service terminal &&
-    ! ~ $user `{ ls -ld /mnt/factotum/ctl | awk '{print $4}' }){
+
+if(! ~ $service terminal){
 	echo >[1=2] ipso should be run only on the terminal
 	exit terminal
 }
 
-rfork e
 path=(/bin)
 home=(/tmp)
 editor = (acme -c1)
@@ -46,10 +44,6 @@ fn editedfiles{
 	if not
 		ls -tr | sed '1,/^_timestamp$/d'
 }
-
-edexp=`{grep '^editor=' /mnt/plumb/rules >[2]/dev/null}
-if(~ $#edexp 1)
-	eval $edexp
 
 while(~ $1 -*){
 	switch($1){
