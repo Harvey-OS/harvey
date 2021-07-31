@@ -41,7 +41,7 @@ strpcmp(const void *va, const void *vb)
 Completion*
 complete(char *dir, char *s)
 {
-	long i, l, n, nfile, len, nbytes;
+	long i, l, n, nmatch, len, nbytes;
 	int fd, minlen;
 	Dir *dirp;
 	char **name, *p;
@@ -78,51 +78,49 @@ complete(char *dir, char *s)
 
 	/* find the matches */
 	len = strlen(s);
-	nfile = 0;
+	nmatch = 0;
 	minlen = 1000000;
 	for(i=0; i<n; i++)
 		if(strncmp(s, dirp[i].name, len) == 0){
-			name[nfile] = dirp[i].name;
-			mode[nfile] = dirp[i].mode;
+			name[nmatch] = dirp[i].name;
+			mode[nmatch] = dirp[i].mode;
 			if(minlen > strlen(dirp[i].name))
 				minlen = strlen(dirp[i].name);
-			nfile++;
+			nmatch++;
 		}
 
-	if(nfile > 0) {
+	if(nmatch > 0) {
 		/* report interesting results */
 		/* trim length back to longest common initial string */
-		for(i=1; i<nfile; i++)
+		for(i=1; i<nmatch; i++)
 			minlen = longestprefixlength(name[0], name[i], minlen);
 
 		/* build the answer */
-		c->complete = (nfile == 1);
+		c->complete = (nmatch == 1);
 		c->advance = c->complete || (minlen > len);
 		c->string = (char*)(c+1);
 		memmove(c->string, name[0]+len, minlen-len);
 		if(c->complete)
 			c->string[minlen++ - len] = (mode[0]&DMDIR)? '/' : ' ';
 		c->string[minlen - len] = '\0';
-		c->nmatch = nfile;
 	} else {
 		/* no match, so return all possible strings */
 		for(i=0; i<n; i++){
 			name[i] = dirp[i].name;
 			mode[i] = dirp[i].mode;
 		}
-		nfile = n;
-		c->nmatch = 0;
+		nmatch = n;
 	}
 
 	/* attach list of names */
-	nbytes = nfile * sizeof(char*);
-	for(i=0; i<nfile; i++)
+	nbytes = nmatch * sizeof(char*);
+	for(i=0; i<nmatch; i++)
 		nbytes += strlen(name[i]) + 1 + 1;
 	c->filename = malloc(nbytes);
 	if(c->filename == nil)
 		goto Return;
-	p = (char*)(c->filename + nfile);
-	for(i=0; i<nfile; i++){
+	p = (char*)(c->filename + nmatch);
+	for(i=0; i<nmatch; i++){
 		c->filename[i] = p;
 		strcpy(p, name[i]);
 		p += strlen(p);
@@ -130,7 +128,7 @@ complete(char *dir, char *s)
 			*p++ = '/';
 		*p++ = '\0';
 	}
-	c->nfile = nfile;
+	c->nfile = nmatch;
 	qsort(c->filename, c->nfile, sizeof(c->filename[0]), strpcmp);
 
   Return:

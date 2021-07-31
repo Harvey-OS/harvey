@@ -467,17 +467,12 @@ showcandidates(Window *w, Completion *c)
 	Fmt f;
 	Rune *rp;
 	uint nr, qline, q0;
-	char *s;
 
 	runefmtstrinit(&f);
-	if (c->nmatch == 0)
-		s = "[no matches in ";
-	else
-		s = "[";
 	if(c->nfile > 32)
-		fmtprint(&f, "%s%d files]\n", s, c->nfile);
+		fmtprint(&f, "[%d files]\n", c->nfile);
 	else{
-		fmtprint(&f, "%s", s);
+		fmtprint(&f, "[");
 		for(i=0; i<c->nfile; i++){
 			if(i > 0)
 				fmtprint(&f, " ");
