@@ -7,11 +7,7 @@ if(! test -d /n/sources/patch){
 }
 
 pref=''
-cd /n/sources/patch || {
-	echo 'can''t cd /n/sources/patch' >[2=1]
-	exit no-sources
-}
-
+cd /n/sources/patch
 if(~ $1 saved sorry applied undecided){
 	pref=$1^'/'
 	shift
