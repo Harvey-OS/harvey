@@ -9,18 +9,14 @@ int	verb;
 int	uflag;
 int	force;
 int	diff;
+int	diffb;
 char*	sflag;
-char*	dargv[20] = {
-	"diff",
-};
-int	ndargv = 1;
 
 void	usage(void);
 void	ysearch(char*, char*);
 long	starttime(char*);
 void	lastbefore(ulong, char*, char*, char*);
 char*	prtime(ulong);
-void	darg(char*);
 
 void
 main(int argc, char *argv[])
@@ -32,44 +28,26 @@ main(int argc, char *argv[])
 	ARGBEGIN {
 	default:
 		usage();
-	case 'a':
-		darg("-a");
+	case 'v':
+		verb = 1;
 		break;
-	case 'b':
-		darg("-b");
-		break;
-	case 'c':
-		darg("-c");
-		break;
-	case 'e':
-		darg("-e");
-		break;
-	case 'm':
-		darg("-m");
-		break;
-	case 'n':
-		darg("-n");
-		break;
-	case 'w':
-		darg("-w");
-		break;
-	case 'D':
-		diff = 1;
+	case 'f':
+		force = 1;
 		break;
 	case 'd':
 		ndump = ARGF();
 		break;
-	case 'f':
-		force = 1;
+	case 'D':
+		diff = 1;
+		break;
+	case 'b':
+		diffb = 1;
 		break;
 	case 's':
 		sflag = ARGF();
 		break;
 	case 'u':
 		uflag = 1;
-		break;
-	case 'v':
-		verb = 1;
 		break;
 	} ARGEND
 
@@ -79,14 +57,6 @@ main(int argc, char *argv[])
 	for(i=0; i<argc; i++)
 		ysearch(argv[i], ndump);
 	exits(0);
-}
-
-void
-darg(char* a)
-{
-	if(ndargv >= nelem(dargv)-3)
-		return;
-	dargv[ndargv++] = a;
 }
 
 void
@@ -197,9 +167,10 @@ ysearch(char *file, char *ndump)
 		if(diff && started){
 			switch(rfork(RFFDG|RFPROC)){
 			case 0:
-				dargv[ndargv] = pair[toggle];
-				dargv[ndargv+1] = pair[toggle ^ 1];
-				exec("/bin/diff", dargv);
+				if(diffb)
+					execl("/bin/diff", "diff", "-nb", pair[toggle ^ 1], pair[toggle], nil);
+				else
+					execl("/bin/diff", "diff", "-n", pair[toggle ^ 1], pair[toggle], nil);
 				fprint(2, "can't exec diff: %r\n");
 				exits(0);
 			case -1:

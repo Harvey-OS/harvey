@@ -4,9 +4,7 @@ history \- print file names from the dump
 .SH SYNOPSIS
 .B history
 [
-.B -Dabcemnw
-] [
-.B -fuv
+.B -bDfuv
 ] [
 .B -d
 .I dumpfilesystem
@@ -54,18 +52,13 @@ The
 .B -D
 option causes
 .IR diff (1)
+.B -n
 to be run for each adjacent pair of dump files.
-The options
-.B -abcemnw
-are passed through to
-.IR diff;
-the little-used
-.I diff option
-.B -f
-is replaced by the functionality described below,
-and the
-.B -r
-option is disallowed.
+Adding
+.B -b
+runs
+.IR diff
+.BR -nb .
 .PP
 The
 .B -u

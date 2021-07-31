@@ -135,19 +135,10 @@ opendevdata(Dev *d, int mode)
 	return d->dfd;
 }
 
-enum
-{
-	/* Max device conf is also limited by max control request size
-	 * as limited by the kernel usb.h.
-	 * (both limits are arbitrary).
-	 */
-	Maxdevconf = 16 * 1024
-};
-
 int
 loaddevconf(Dev *d, int n)
 {
-	uchar *buf;
+	uchar buf[1024];	/* enough room for extra descriptors */
 	int nr;
 	int type;
 
@@ -156,18 +147,13 @@ loaddevconf(Dev *d, int n)
 		fprint(2, "%s: %r\n", argv0);
 		return -1;
 	}
-	buf = emallocz(Maxdevconf, 0);
 	type = Rd2h|Rstd|Rdev;
-	nr = usbcmd(d, type, Rgetdesc, Dconf<<8|n, 0, buf, Maxdevconf);
-	if(nr < Dconflen){
-		free(buf);
+	nr = usbcmd(d, type, Rgetdesc, Dconf<<8|n, 0, buf, 1024);
+	if(nr < Dconflen)
 		return -1;
-	}
 	if(d->usb->conf[n] == nil)
 		d->usb->conf[n] = emallocz(sizeof(Conf), 1);
-	nr = parseconf(d->usb, d->usb->conf[n], buf, nr);
-	free(buf);
-	return nr;
+	return parseconf(d->usb, d->usb->conf[n], buf, nr);
 }
 
 Ep*

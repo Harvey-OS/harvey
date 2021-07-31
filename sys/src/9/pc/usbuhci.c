@@ -964,6 +964,7 @@ interrupt(Ureg*, void *a)
 		else if(qh->state == Qclose)
 			qhlinktd(qh, nil);
 	iunlock(ctlr);
+
 }
 
 /*
@@ -1501,9 +1502,8 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 	}
 
 	/* set the address if unset and out of configuration state */
-	if(ep->dev->state != Dconfig && ep->dev->state != Dreset)
-		if(cio->usbid == 0)
-			cio->usbid = ((ep->nb&Epmax)<<7)|(ep->dev->nb&Devmax);
+	if(ep->dev->state != Dconfig && cio->usbid == 0)
+		cio->usbid = ((ep->nb&Epmax)<<7)|(ep->dev->nb&Devmax);
 	c = a;
 	cio->tok = Tdtoksetup;
 	cio->toggle = Tddata0;
@@ -1869,6 +1869,7 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, ulong load)
 	}
 	free(iso->data);
 	iso->data = nil;
+
 }
 
 static void

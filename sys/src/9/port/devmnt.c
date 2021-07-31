@@ -1094,8 +1094,8 @@ mntfree(Mntrpc *r)
 	lock(&mntalloc);
 	if(mntalloc.nrpcfree >= 10){
 		free(r->rpc);
-		freetag(r->request.tag);
 		free(r);
+		freetag(r->request.tag);
 	}
 	else{
 		r->list = mntalloc.rpcfree;
