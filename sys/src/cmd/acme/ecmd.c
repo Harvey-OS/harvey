@@ -345,16 +345,8 @@ int
 f_cmd(Text *t, Cmd *cp)
 {
 	Rune *name;
-	String *str;
-	String empty;
 
-	if(cp->text == nil){
-		empty.n = 0;
-		empty.r = L"";
-		str = &empty;
-	}else
-		str = cp->text;
-	name = cmdname(t->file, str, TRUE);
+	name = cmdname(t->file, cp->text, TRUE);
 	free(name);
 	pfilename(t->file);
 	return TRUE;

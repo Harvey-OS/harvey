@@ -36,7 +36,6 @@ main(int argc, char **argv)
 		sysfatal("can't announce: %r");
 	if(fprint(cfd, "headers") < 0)
 		sysfatal("can't set header mode: %r");
-	fprint(cfd, "oldheaders");
 
 	sprint(data, "%s/data", devdir);
 

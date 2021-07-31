@@ -87,7 +87,6 @@ sunSrvUdp(SunSrv *srv, char *address)
 		close(acfd);
 		return -1;
 	}
-	write(acfd, "oldheaders", 10);
 	snprint(data, sizeof data, "%s/data", adir);
 	if((fd = open(data, ORDWR)) < 0){
 		werrstr("open %s: %r", data);

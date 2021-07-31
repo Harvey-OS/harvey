@@ -22,7 +22,7 @@ typedef struct Inprogress Inprogress;
 struct Inprogress
 {
 	int	inuse;
-	OUdphdr	uh;
+	Udphdr	uh;
 	DN	*owner;
 	int	type;
 	int	id;
@@ -37,9 +37,9 @@ static Inprogress*
 clientrxmit(DNSmsg *req, uchar *buf)
 {
 	Inprogress *p, *empty;
-	OUdphdr *uh;
+	Udphdr *uh;
 
-	uh = (OUdphdr *)buf;
+	uh = (Udphdr *)buf;
 	empty = 0;
 	for(p = inprog; p < &inprog[Maxactive]; p++){
 		if(p->inuse == 0){
@@ -50,7 +50,7 @@ clientrxmit(DNSmsg *req, uchar *buf)
 		if(req->id == p->id)
 		if(req->qd->owner == p->owner)
 		if(req->qd->type == p->type)
-		if(memcmp(uh, &p->uh, OUdphdrsize) == 0)
+		if(memcmp(uh, &p->uh, Udphdrsize) == 0)
 			return 0;
 	}
 	if(empty == 0)
@@ -59,7 +59,7 @@ clientrxmit(DNSmsg *req, uchar *buf)
 	empty->id = req->id;
 	empty->owner = req->qd->owner;
 	empty->type = req->qd->type;
-	memmove(&empty->uh, uh, OUdphdrsize);
+	memmove(&empty->uh, uh, Udphdrsize);
 	empty->inuse = 1;
 	return empty;
 }
@@ -73,11 +73,11 @@ dnudpserver(char *mntpt)
 	int fd, len;
 	Request req;
 	DNSmsg reqmsg, repmsg;
-	uchar buf[OUdphdrsize + Maxudp + 1024];
+	uchar buf[Udphdrsize + Maxudp + 1024];
 	char *err;
 	Inprogress *p;
 	char tname[32];
-	OUdphdr *uh;
+	Udphdr *uh;
 
 	/* fork sharing text, data, and bss with parent */
 	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
@@ -107,13 +107,13 @@ restart:
 		alarm(60*1000);
 		len = read(fd, buf, sizeof(buf));
 		alarm(0);
-		if(len <= OUdphdrsize)
+		if(len <= Udphdrsize)
 			goto restart;
-		uh = (OUdphdr*)buf;
-		len -= OUdphdrsize;
+		uh = (Udphdr*)buf;
+		len -= Udphdrsize;
 		getactivity(&req);
 		req.aborttime = now + 30;	/* don't spend more than 30 seconds */
-		err = convM2DNS(&buf[OUdphdrsize], len, &reqmsg);
+		err = convM2DNS(&buf[Udphdrsize], len, &reqmsg);
 		if(err){
 			syslog(0, logfile, "server: input error: %s from %I", err, buf);
 			continue;
@@ -177,7 +177,6 @@ freereq:
  *  announce on udp port and set message style interface
  */
 static char *hmsg = "headers";
-static char *ohmsg = "oldheaders";
 
 static int
 udpannounce(char *mntpt)
@@ -198,7 +197,6 @@ udpannounce(char *mntpt)
 	/* turn on header style interface */
 	if(write(ctl, hmsg, strlen(hmsg)) , 0)
 		abort(); /* hmsg */;
-	write(ctl, ohmsg, strlen(ohmsg));
 	data = open(datafile, ORDWR);
 	if(data < 0){
 		close(ctl);
@@ -223,7 +221,7 @@ reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
 			rep->id, rep->qd->owner->name,
 			rrname(rep->qd->type, tname, sizeof tname), rep->an, rep->ns, rep->ar);
 
-	len = convDNS2M(rep, &buf[OUdphdrsize], Maxudp);
+	len = convDNS2M(rep, &buf[Udphdrsize], Maxudp);
 	if(len <= 0){
 		syslog(0, logfile, "error converting reply: %s %d", rep->qd->owner->name,
 			rep->qd->type);
@@ -235,7 +233,7 @@ reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
 			syslog(0, logfile, "ar %R", rp);
 		return;
 	}
-	len += OUdphdrsize;
+	len += Udphdrsize;
 	if(write(fd, buf, len) != len)
 		syslog(0, logfile, "error sending reply: %r");
 }

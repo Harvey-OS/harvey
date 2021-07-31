@@ -63,40 +63,20 @@ struct Ipifc
 };
 
 /*
- *  user level udp headers with cntrol message "oldheaders".
- *  this is now considered obsolete.
+ *  user level udp headers
  */
 enum 
 {
-	OUdphdrsize=	36,	/* size of a OUdphdr */
-};
-
-typedef struct OUdphdr OUdphdr;
-struct OUdphdr
-{
-	uchar	raddr[IPaddrlen];	/* remote address and port */
-	uchar	laddr[IPaddrlen];	/* local address and port */
-	uchar	rport[2];
-	uchar	lport[2];
-};
-
-/*
- *  user level udp headers with cntrol message "headers"
- */
-enum 
-{
-	Udphdrsize=	52,	/* size of a Udphdr */
+	Udphdrsize=	36,	/* size of a Udphdr */
 };
 
 typedef struct Udphdr Udphdr;
 struct Udphdr
 {
-	uchar	raddr[IPaddrlen];	/* remote address */
-	uchar	laddr[IPaddrlen];	/* local address */
-	uchar	ifcaddr[IPaddrlen];	/* address of ifc message was received from
-					   (only useful on reception) */
-	uchar	rport[2];		/* remove port */
-	uchar	lport[2];		/* local port */
+	uchar	raddr[IPaddrlen];	/* remote address and port */
+	uchar	laddr[IPaddrlen];	/* local address and port */
+	uchar	rport[2];
+	uchar	lport[2];
 };
 
 uchar*	defmask(uchar*);

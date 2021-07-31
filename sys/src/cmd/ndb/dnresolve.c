@@ -283,7 +283,7 @@ mkreq(DN *dp, int type, uchar *buf, ushort reqno)
 {
 	DNSmsg m;
 	int len;
-	OUdphdr *uh = (OUdphdr*)buf;
+	Udphdr *uh = (Udphdr*)buf;
 
 	/* stuff port number into output buffer */
 	memset(uh, 0, sizeof(*uh));
@@ -297,7 +297,7 @@ mkreq(DN *dp, int type, uchar *buf, ushort reqno)
 	m.qd = rralloc(type);
 	m.qd->owner = dp;
 	m.qd->type = type;
-	len = convDNS2M(&m, &buf[OUdphdrsize], Maxudp);
+	len = convDNS2M(&m, &buf[Udphdrsize], Maxudp);
 	if(len < 0)
 		abort(); /* "can't convert" */;
 	rrfree(m.qd);
@@ -345,15 +345,15 @@ readreply(int fd, DN *dp, int type, ushort req,
 
 		/* timed read */
 		alarm((endtime - now) * 1000);
-		len = read(fd, ibuf, OUdphdrsize+Maxudpin);
+		len = read(fd, ibuf, Udphdrsize+Maxudpin);
 		alarm(0);
-		len -= OUdphdrsize;
+		len -= Udphdrsize;
 		if(len < 0)
 			return -1;	/* timed out */
 		
 		/* convert into internal format  */
 		memset(mp, 0, sizeof(*mp));
-		err = convM2DNS(&ibuf[OUdphdrsize], len, mp);
+		err = convM2DNS(&ibuf[Udphdrsize], len, mp);
 		if(err){
 			syslog(0, LOG, "input err %s: %I", err, ibuf);
 			continue;
@@ -617,7 +617,7 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 			if(debug)
 				logsend(reqp->id, depth, obuf, p->s->name,
 					dp->name, type);
-			if(write(fd, obuf, len + OUdphdrsize) < 0)
+			if(write(fd, obuf, len + Udphdrsize) < 0)
 				warning("sending udp msg %r");
 			p->nx++;
 		}
@@ -744,8 +744,8 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp, int depth)
 		return 0;
 
 	/* use alloced buffers rather than ones from the stack */
-	ibuf = emalloc(Maxudpin+OUdphdrsize);
-	obuf = emalloc(Maxudp+OUdphdrsize);
+	ibuf = emalloc(Maxudpin+Udphdrsize);
+	obuf = emalloc(Maxudp+Udphdrsize);
 
 	slave(reqp);
 
