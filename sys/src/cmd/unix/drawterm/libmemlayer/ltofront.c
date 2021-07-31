@@ -1,15 +1,15 @@
-#include <u.h>
-#include <libc.h>
-#include <draw.h>
-#include <memdraw.h>
-#include <memlayer.h>
+#include "../lib9.h"
+
+#include "../libdraw/draw.h"
+#include "../libmemdraw/memdraw.h"
+#include "../libmemlayer/memlayer.h"
 
 /*
  * Pull i towards top of screen, just behind front
 */
 static
 void
-_memltofront(Memimage *i, Memimage *front, int fill)
+_memltofront(Memimage *i, Memimage *front)
 {
 	Memlayer *l;
 	Memscreen *s;
@@ -42,23 +42,16 @@ _memltofront(Memimage *i, Memimage *front, int fill)
 		l->rear = f;
 		f->layer->front = i;
 		f->layer->rear = rr;
-		if(overlap && fill)
+		if(overlap)
 			memlexpose(i, x);
 	}
 }
 
 void
-_memltofrontfill(Memimage *i, int fill)
-{
-	_memltofront(i, nil, fill);
-	_memlsetclear(i->layer->screen);
-}
-
-void
 memltofront(Memimage *i)
 {
-	_memltofront(i, nil, 1);
-	_memlsetclear(i->layer->screen);
+	_memltofront(i, nil);
+	memlsetclear(i->layer->screen);
 }
 
 void
@@ -72,9 +65,9 @@ memltofrontn(Memimage **ip, int n)
 	front = nil;
 	while(--n >= 0){
 		i = *ip++;
-		_memltofront(i, front, 1);
+		_memltofront(i, front);
 		front = i;
 	}
 	s = front->layer->screen;
-	_memlsetclear(s);
+	memlsetclear(s);
 }

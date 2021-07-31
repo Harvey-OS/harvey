@@ -1,8 +1,8 @@
-#include <u.h>
-#include <libc.h>
-#include <draw.h>
-#include <memdraw.h>
-#include <memlayer.h>
+#include "../lib9.h"
+
+#include "../libdraw/draw.h"
+#include "../libmemdraw/memdraw.h"
+#include "../libmemlayer/memlayer.h"
 
 struct Lline
 {
@@ -15,14 +15,13 @@ struct Lline
 	Point			sp;
 	Memlayer		*dstlayer;
 	Memimage	*src;
-	int			op;
 };
 
 static void llineop(Memimage*, Rectangle, Rectangle, void*, int);
 
 static
 void
-_memline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memimage *src, Point sp, Rectangle clipr, int op)
+_memline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memimage *src, Point sp, Rectangle clipr)
 {
 	Rectangle r;
 	struct Lline ll;
@@ -39,7 +38,7 @@ _memline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memi
    Top:
 	dl = dst->layer;
 	if(dl == nil){
-		_memimageline(dst, p0, p1, end0, end1, radius, src, sp, clipr, op);
+		_memimageline(dst, p0, p1, end0, end1, radius, src, sp, clipr);
 		return;
 	}
 	if(!srcclipped){
@@ -67,8 +66,10 @@ _memline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memi
 
 	/* XXX */
 	/* this is not the correct set of tests */
-//	if(log2[dst->depth] != log2[src->depth] || log2[dst->depth]!=3)
-//		return;
+/*
+	if(log2[dst->depth] != log2[src->depth] || log2[dst->depth]!=3)
+		return;
+*/
 
 	/* can't use sutherland-cohen clipping because lines are wide */
 	r = memlinebbox(p0, p1, end0, end1, radius);
@@ -87,8 +88,7 @@ _memline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memi
 	ll.src = src;
 	ll.radius = radius;
 	ll.delta = dl->delta;
-	ll.op = op;
-	_memlayerop(llineop, dst, r, r, &ll);
+	memlayerop(llineop, dst, r, r, &ll);
 }
 
 static
@@ -112,11 +112,11 @@ llineop(Memimage *dst, Rectangle screenr, Rectangle clipr, void *etc, int insave
 		p0 = ll->p0;
 		p1 = ll->p1;
 	}
-	_memline(dst, p0, p1, ll->end0, ll->end1, ll->radius, ll->src, ll->sp, clipr, ll->op);
+	_memline(dst, p0, p1, ll->end0, ll->end1, ll->radius, ll->src, ll->sp, clipr);
 }
 
 void
-memline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memimage *src, Point sp, int op)
+memline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memimage *src, Point sp)
 {
-	_memline(dst, p0, p1, end0, end1, radius, src, sp, dst->clipr, op);
+	_memline(dst, p0, p1, end0, end1, radius, src, sp, dst->clipr);
 }

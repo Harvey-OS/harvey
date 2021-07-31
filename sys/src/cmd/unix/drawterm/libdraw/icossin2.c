@@ -1,6 +1,5 @@
-#include	<u.h>
-#include	<libc.h>
-#include	<draw.h>
+#include	"../lib9.h"
+#include	"../libdraw/draw.h"
 
 /*
  * Sine and Cosine of arctangents, calculated by 

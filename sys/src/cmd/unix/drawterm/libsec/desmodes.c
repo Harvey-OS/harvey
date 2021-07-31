@@ -1,5 +1,5 @@
-#include "os.h"
-#include <libsec.h>
+#include "../lib9.h"
+#include "../libsec/libsec.h"
 
 /*
  *  these routines use the 64bit format for

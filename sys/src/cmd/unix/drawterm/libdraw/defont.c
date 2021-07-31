@@ -1,6 +1,6 @@
-#include <u.h>
-#include <libc.h>
-#include <draw.h>
+#include "../lib9.h"
+
+#include "../libdraw/draw.h"
 
 /*
  * lucm/latin1.9, in uncompressed form

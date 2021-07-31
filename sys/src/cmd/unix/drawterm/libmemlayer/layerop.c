@@ -1,8 +1,8 @@
-#include <u.h>
-#include <libc.h>
-#include <draw.h>
-#include <memdraw.h>
-#include <memlayer.h>
+#include "../lib9.h"
+
+#include "../libdraw/draw.h"
+#include "../libmemdraw/memdraw.h"
+#include "../libmemlayer/memlayer.h"
 
 #define	RECUR(a,b,c,d)	_layerop(fn, i, Rect(a.x, b.y, c.x, d.y), clipr, etc, front->layer->rear);
 
@@ -26,7 +26,6 @@ _layerop(
 	fr = front->layer->screenr;
 	if(rectXrect(r, fr) == 0){
 		/* r doesn't touch this window; continue on next rearmost */
-		// assert(front && front->layer && front->layer->screen && front->layer->rear);
 		front = front->layer->rear;
 		goto Top;
 	}
@@ -54,7 +53,7 @@ _layerop(
  * Assumes incoming rectangle has already been clipped to i's logical r and clipr
  */
 void
-_memlayerop(
+memlayerop(
 	void (*fn)(Memimage*, Rectangle, Rectangle, void*, int),
 	Memimage *i,
 	Rectangle screenr,	/* clipped to window boundaries */

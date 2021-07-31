@@ -1,17 +1,18 @@
-#include <u.h>
-#include <libc.h>
-#include <draw.h>
-#include <memdraw.h>
-#include <memlayer.h>
+#include "../lib9.h"
+
+#include "../libdraw/draw.h"
+#include "../libmemdraw/memdraw.h"
+#include "../libmemlayer/memlayer.h"
 
 enum
 {
 	Arrow1 = 8,
 	Arrow2 = 10,
-	Arrow3 = 3,
+	Arrow3 = 3
 };
 
-#ifdef NOT
+/*
+ * not used
 static
 int
 lmin(int a, int b)
@@ -20,7 +21,7 @@ lmin(int a, int b)
 		return a;
 	return b;
 }
-#endif
+*/
 
 static
 int
@@ -31,7 +32,6 @@ lmax(int a, int b)
 	return b;
 }
 
-#ifdef NOTUSED
 /*
  * Rather than line clip, we run the Bresenham loop over the full line,
  * and clip on each pixel.  This is more expensive but means that
@@ -40,6 +40,7 @@ lmax(int a, int b)
  * test easy when possible.
  */
 
+#ifdef NOTUSED
 static
 void
 horline1(Memimage *dst, Point p0, Point p1, int srcval, Rectangle clipr)
@@ -245,7 +246,7 @@ verline(Memimage *dst, Point p0, Point p1, Memimage *src, Point dsrc, Rectangle 
 }
 #endif /* NOTUSED */
 
-static Memimage*
+Memimage*
 membrush(int radius)
 {
 	static Memimage *brush;
@@ -256,7 +257,7 @@ membrush(int radius)
 		brush = allocmemimage(Rect(0, 0, 2*radius+1, 2*radius+1), memopaque->chan);
 		if(brush != nil){
 			memfillcolor(brush, DTransparent);	/* zeros */
-			memellipse(brush, Pt(radius, radius), radius, radius, -1, memopaque, Pt(radius, radius), S);
+			memellipse(brush, Pt(radius, radius), radius, radius, -1, memopaque, Pt(radius, radius));
 		}
 		brushradius = radius;
 	}
@@ -265,7 +266,7 @@ membrush(int radius)
 
 static
 void
-discend(Point p, int radius, Memimage *dst, Memimage *src, Point dsrc, int op)
+discend(Point p, int radius, Memimage *dst, Memimage *src, Point dsrc)
 {
 	Memimage *disc;
 	Rectangle r;
@@ -276,7 +277,7 @@ discend(Point p, int radius, Memimage *dst, Memimage *src, Point dsrc, int op)
 		r.min.y = p.y - radius;
 		r.max.x = p.x + radius+1;
 		r.max.y = p.y + radius+1;
-		memdraw(dst, r, src, addpt(r.min, dsrc), disc, Pt(0,0), op);
+		memdraw(dst, r, src, addpt(r.min, dsrc), disc, Pt(0,0));
 	}
 }
 
@@ -315,7 +316,7 @@ arrowend(Point tip, Point *pp, int end, int sin, int cos, int radius)
 }
 
 void
-_memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memimage *src, Point sp, Rectangle clipr, int op)
+_memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memimage *src, Point sp, Rectangle clipr)
 {
 	/*
 	 * BUG: We should really really pick off purely horizontal and purely
@@ -325,7 +326,7 @@ _memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius,
 
 	int hor;
 	int sin, cos, dx, dy, t;
-	Rectangle oclipr, r;
+	Rectangle oclipr;
 	Point q, pts[10], *pp, d;
 
 	if(radius < 0)
@@ -358,24 +359,6 @@ _memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius,
 		end1 = t;
 	}
 
-	if((p0.x == p1.x || p0.y == p1.y) && (end0&0x1F) == Endsquare && (end1&0x1F) == Endsquare){
-		r.min = p0;
-		r.max = p1;
-		if(p0.x == p1.x){
-			r.min.x -= radius;
-			r.max.x += radius+1;
-		}
-		else{
-			r.min.y -= radius;
-			r.max.y += radius+1;
-		}
-		oclipr = dst->clipr;
-		dst->clipr = clipr;
-		memimagedraw(dst, r, src, sp, memopaque, sp, op);
-		dst->clipr = oclipr;
-		return;
-	}
-
 /*    Hard: */
 	/* draw thick line using polygon fill */
 	icossin2(p1.x-p0.x, p1.y-p0.y, &cos, &sin);
@@ -388,7 +371,7 @@ _memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius,
 	q.y = ICOSSCALE*p0.y+ICOSSCALE/2-sin/2;
 	switch(end0 & 0x1F){
 	case Enddisc:
-		discend(p0, radius, dst, src, d, op);
+		discend(p0, radius, dst, src, d);
 		/* fall through */
 	case Endsquare:
 	default:
@@ -401,7 +384,7 @@ _memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius,
 		break;
 	case Endarrow:
 		arrowend(q, pp, end0, -sin, -cos, radius);
-		_memfillpolysc(dst, pts, 5, ~0, src, addpt(pts[0], mulpt(d, ICOSSCALE)), 1, 10, 1, op);
+		memfillpolysc(dst, pts, 5, ~0, src, addpt(pts[0], mulpt(d, ICOSSCALE)), 1, 10, 1);
 		pp[1] = pp[4];
 		pp += 2;
 	}
@@ -409,7 +392,7 @@ _memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius,
 	q.y = ICOSSCALE*p1.y+ICOSSCALE/2+sin/2;
 	switch(end1 & 0x1F){
 	case Enddisc:
-		discend(p1, radius, dst, src, d, op);
+		discend(p1, radius, dst, src, d);
 		/* fall through */
 	case Endsquare:
 	default:
@@ -422,19 +405,19 @@ _memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius,
 		break;
 	case Endarrow:
 		arrowend(q, pp, end1, sin, cos, radius);
-		_memfillpolysc(dst, pp, 5, ~0, src, addpt(pts[0], mulpt(d, ICOSSCALE)), 1, 10, 1, op);
+		memfillpolysc(dst, pp, 5, ~0, src, addpt(pts[0], mulpt(d, ICOSSCALE)), 1, 10, 1);
 		pp[1] = pp[4];
 		pp += 2;
 	}
-	_memfillpolysc(dst, pts, pp-pts, ~0, src, addpt(pts[0], mulpt(d, ICOSSCALE)), 0, 10, 1, op);
+	memfillpolysc(dst, pts, pp-pts, ~0, src, addpt(pts[0], mulpt(d, ICOSSCALE)), 0, 10, 1);
 	dst->clipr = oclipr;
 	return;
 }
 
 void
-memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memimage *src, Point sp, int op)
+memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius, Memimage *src, Point sp)
 {
-	_memimageline(dst, p0, p1, end0, end1, radius, src, sp, dst->clipr, op);
+	_memimageline(dst, p0, p1, end0, end1, radius, src, sp, dst->clipr);
 }
 
 /*

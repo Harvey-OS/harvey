@@ -1,4 +1,4 @@
-#include "os.h"
+#include "../lib9.h"
 
 void
 _sha1block(uchar *p, ulong len, u32int *s)

@@ -1,8 +1,8 @@
-#include <u.h>
-#include <libc.h>
-#include <draw.h>
-#include <memdraw.h>
-#include <memlayer.h>
+#include "../lib9.h"
+
+#include "../libdraw/draw.h"
+#include "../libmemdraw/memdraw.h"
+#include "../libmemlayer/memlayer.h"
 
 typedef struct Seg	Seg;
 
@@ -20,13 +20,13 @@ struct Seg
 };
 
 static	void	zsort(Seg **seg, Seg **ep);
-static	int	ycompare(const void*, const void*);
-static	int	xcompare(const void*, const void*);
-static	int	zcompare(const void*, const void*);
-static	void	xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int, int, int, int);
-static	void	yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int, int);
+static	int	ycompare(void*, void*);
+static	int	xcompare(void*, void*);
+static	int	zcompare(void*, void*);
+static	void	xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int, int, int);
+static	void	yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int);
 
-#ifdef NOT
+/*
 static void
 fillcolor(Memimage *dst, int left, int right, int y, Memimage *src, Point p)
 {
@@ -38,10 +38,10 @@ fillcolor(Memimage *dst, int left, int right, int y, Memimage *src, Point p)
 	p.y = y;
 	memset(byteaddr(dst, p), srcval, right-left);
 }
-#endif
+*/
 
 static void
-fillline(Memimage *dst, int left, int right, int y, Memimage *src, Point p, int op)
+fillline(Memimage *dst, int left, int right, int y, Memimage *src, Point p)
 {
 	Rectangle r;
 
@@ -51,11 +51,11 @@ fillline(Memimage *dst, int left, int right, int y, Memimage *src, Point p, int 
 	r.max.y = y+1;
 	p.x += left;
 	p.y += y;
-	memdraw(dst, r, src, p, memopaque, p, op);
+	memdraw(dst, r, src, p, memopaque, p);
 }
 
 static void
-fillpoint(Memimage *dst, int x, int y, Memimage *src, Point p, int op)
+fillpoint(Memimage *dst, int x, int y, Memimage *src, Point p)
 {
 	Rectangle r;
 
@@ -65,17 +65,17 @@ fillpoint(Memimage *dst, int x, int y, Memimage *src, Point p, int op)
 	r.max.y = y+1;
 	p.x += x;
 	p.y += y;
-	memdraw(dst, r, src, p, memopaque, p, op);
+	memdraw(dst, r, src, p, memopaque, p);
 }
 
 void
-memfillpoly(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Point sp, int op)
+memfillpoly(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Point sp)
 {
-	_memfillpolysc(dst, vert, nvert, w, src, sp, 0, 0, 0, op);
+	memfillpolysc(dst, vert, nvert, w, src, sp, 0, 0, 0);
 }
 
 void
-_memfillpolysc(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Point sp, int detail, int fixshift, int clipped, int op)
+memfillpolysc(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Point sp, int detail, int fixshift, int clipped)
 {
 	Seg **seg, *segtab;
 	Point p0;
@@ -113,9 +113,9 @@ _memfillpolysc(Memimage *dst, Point *vert, int nvert, int w, Memimage *src, Poin
 	if(!fixshift)
 		fixshift = 1;
 
-	xscan(dst, seg, segtab, nvert, w, src, sp, detail, fixshift, clipped, op);
+	xscan(dst, seg, segtab, nvert, w, src, sp, detail, fixshift, clipped);
 	if(detail)
-		yscan(dst, seg, segtab, nvert, w, src, sp, fixshift, op);
+		yscan(dst, seg, segtab, nvert, w, src, sp, fixshift);
 
 	free(seg);
 	free(segtab);
@@ -161,13 +161,13 @@ smuldivmod(long x, long y, long z, long *mod)
 }
 
 static void
-xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int detail, int fixshift, int clipped, int op)
+xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int detail, int fixshift, int clipped)
 {
 	long y, maxy, x, x2, xerr, xden, onehalf;
 	Seg **ep, **next, **p, **q, *s;
 	long n, i, iy, cnt, ix, ix2, minx, maxx;
 	Point pt;
-	void	(*fill)(Memimage*, int, int, int, Memimage*, Point, int);
+	void	(*fill)(Memimage*, int, int, int, Memimage*, Point);
 
 	fill = fillline;
 /*
@@ -209,7 +209,8 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 	if(n == 0)
 		return;
 	*p = 0;
-	qsort(seg, p-seg , sizeof(Seg*), ycompare);
+	qsort(seg, p-seg , sizeof(Seg*), 
+		(int(*)(const void*, const void*))ycompare);
 
 	onehalf = 0;
 	if(fixshift)
@@ -302,7 +303,7 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 				ix = (x + x2) >> (fixshift+1);
 				ix2 = ix+1;
 			}
-			(*fill)(dst, ix, ix2, iy, src, sp, op);
+			(*fill)(dst, ix, ix2, iy, src, sp);
 		}
 		y += (1<<fixshift);
 		iy++;
@@ -310,7 +311,7 @@ xscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 }
 
 static void
-yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int fixshift, int op)
+yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, Point sp, int fixshift)
 {
 	long x, maxx, y, y2, yerr, yden, onehalf;
 	Seg **ep, **next, **p, **q, *s;
@@ -339,7 +340,8 @@ yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 	if(n == 0)
 		return;
 	*p = 0;
-	qsort(seg, n , sizeof(Seg*), xcompare);
+	qsort(seg, n , sizeof(Seg*), 
+		(int(*)(const void*, const void*))xcompare);
 
 	onehalf = 0;
 	if(fixshift)
@@ -430,7 +432,7 @@ yscan(Memimage *dst, Seg **seg, Seg *segtab, int nseg, int wind, Memimage *src, 
 				if(yerr*p[0]->den + p[0]->zerr*yden > p[0]->den*yden)
 					y++;
 				iy = (y + y2) >> (fixshift+1);
-				fillpoint(dst, ix, iy, src, sp, op);
+				fillpoint(dst, ix, iy, src, sp);
 			}
 		}
 		x += (1<<fixshift);
@@ -463,7 +465,8 @@ zsort(Seg **seg, Seg **ep)
 		q = ep-1;
 		for(p = seg; p < q; p++) {
 			if(p[0]->z > p[1]->z) {
-				qsort(seg, ep-seg, sizeof(Seg*), zcompare);
+				qsort(seg, ep-seg, sizeof(Seg*), 
+					(int(*)(const void*, const void*))zcompare);
 				break;
 			}
 		}
@@ -471,13 +474,13 @@ zsort(Seg **seg, Seg **ep)
 }
 
 static int
-ycompare(const void *a, const void *b)
+ycompare(void *a, void *b)
 {
 	Seg **s0, **s1;
 	long y0, y1;
 
-	s0 = (Seg**)a;
-	s1 = (Seg**)b;
+	s0 = a;
+	s1 = b;
 	y0 = (*s0)->p0.y;
 	y1 = (*s1)->p0.y;
 
@@ -489,13 +492,13 @@ ycompare(const void *a, const void *b)
 }
 
 static int
-xcompare(const void *a, const void *b)
+xcompare(void *a, void *b)
 {
 	Seg **s0, **s1;
 	long x0, x1;
 
-	s0 = (Seg**)a;
-	s1 = (Seg**)b;
+	s0 = a;
+	s1 = b;
 	x0 = (*s0)->p0.x;
 	x1 = (*s1)->p0.x;
 
@@ -507,13 +510,13 @@ xcompare(const void *a, const void *b)
 }
 
 static int
-zcompare(const void *a, const void *b)
+zcompare(void *a, void *b)
 {
 	Seg **s0, **s1;
 	long z0, z1;
 
-	s0 = (Seg**)a;
-	s1 = (Seg**)b;
+	s0 = a;
+	s1 = b;
 	z0 = (*s0)->z;
 	z1 = (*s1)->z;
 

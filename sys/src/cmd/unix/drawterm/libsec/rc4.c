@@ -1,5 +1,5 @@
-#include "os.h"
-#include <libsec.h>
+#include "../lib9.h"
+#include "../libsec/libsec.h"
 
 void
 setupRC4state(RC4state *key, uchar *start, int n)

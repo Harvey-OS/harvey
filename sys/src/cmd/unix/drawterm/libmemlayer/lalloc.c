@@ -1,8 +1,8 @@
-#include <u.h>
-#include <libc.h>
-#include <draw.h>
-#include <memdraw.h>
-#include <memlayer.h>
+#include "../lib9.h"
+
+#include "../libdraw/draw.h"
+#include "../libmemdraw/memdraw.h"
+#include "../libmemlayer/memlayer.h"
 
 Memimage*
 memlalloc(Memscreen *s, Rectangle screenr, Refreshfn refreshfn, void *refreshptr, ulong val)
@@ -63,7 +63,7 @@ memlalloc(Memscreen *s, Rectangle screenr, Refreshfn refreshfn, void *refreshptr
 	l->clear = 0;
 
 	/* now pull new window to front */
-	_memltofrontfill(n, val != DNofill);
+	memltofront(n);
 	l->refreshptr = refreshptr;
 
 	/*
@@ -73,7 +73,7 @@ memlalloc(Memscreen *s, Rectangle screenr, Refreshfn refreshfn, void *refreshptr
 	if(val != DNofill){
 		memsetchan(paint, n->chan);
 		memfillcolor(paint, val);
-		memdraw(n, n->r, paint, n->r.min, nil, n->r.min, S);
+		memdraw(n, n->r, paint, n->r.min, nil, n->r.min);
 	}
 	return n;
 }

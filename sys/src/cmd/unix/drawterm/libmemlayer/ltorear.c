@@ -1,8 +1,8 @@
-#include <u.h>
-#include <libc.h>
-#include <draw.h>
-#include <memdraw.h>
-#include <memlayer.h>
+#include "../lib9.h"
+
+#include "../libdraw/draw.h"
+#include "../libmemdraw/memdraw.h"
+#include "../libmemlayer/memlayer.h"
 
 void
 _memltorear(Memimage *i, Memimage *rear)
@@ -47,7 +47,7 @@ void
 memltorear(Memimage *i)
 {
 	_memltorear(i, nil);
-	_memlsetclear(i->layer->screen);
+	memlsetclear(i->layer->screen);
 }
 
 void
@@ -65,5 +65,5 @@ memltorearn(Memimage **ip, int n)
 		rear = i;
 	}
 	s = rear->layer->screen;
-	_memlsetclear(s);
+	memlsetclear(s);
 }

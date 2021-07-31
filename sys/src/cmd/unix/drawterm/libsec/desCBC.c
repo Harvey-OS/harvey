@@ -1,6 +1,5 @@
-#include "os.h"
-#include <mp.h>
-#include <libsec.h>
+#include "../lib9.h"
+#include "../libsec/libsec.h"
 
 // Because of the way that non multiple of 8
 // buffers are handled, the decryptor must

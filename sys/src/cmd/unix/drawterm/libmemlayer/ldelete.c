@@ -1,8 +1,8 @@
-#include <u.h>
-#include <libc.h>
-#include <draw.h>
-#include <memdraw.h>
-#include <memlayer.h>
+#include "../lib9.h"
+
+#include "../libdraw/draw.h"
+#include "../libmemdraw/memdraw.h"
+#include "../libmemlayer/memlayer.h"
 
 void
 memldelete(Memimage *i)
@@ -21,7 +21,7 @@ memldelete(Memimage *i)
 	s = i->layer->screen;
 	if(s->fill){
 		i->clipr = i->r;
-		memdraw(i, i->r, s->fill, i->r.min, nil, i->r.min, S);
+		memdraw(i, i->r, s->fill, i->r.min, nil, i->r.min);
 	}
 	if(l->front){
 		l->front->layer->rear = nil;
@@ -49,7 +49,7 @@ memlfree(Memimage *i)
 }
 
 void
-_memlsetclear(Memscreen *s)
+memlsetclear(Memscreen *s)
 {
 	Memimage *i, *j;
 	Memlayer *l;

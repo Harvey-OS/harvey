@@ -1,6 +1,5 @@
-#include	<u.h>
-#include	<libc.h>
-#include	<draw.h>
+#include	"../lib9.h"
+#include	"../libdraw/draw.h"
 
 /*
  * Integer sine and cosine for integral degree argument.
