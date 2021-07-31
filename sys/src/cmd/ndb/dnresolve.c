@@ -540,10 +540,7 @@ readnet(Query *qp, int medium, uchar *ibuf, ulong endtime, uchar **replyp,
 		else if (readn(fd, lenbuf, 2) != 2) {
 			dnslog("readnet: short read of tcp size from %I",
 				qp->tcpip);
-			/*
-			 * probably a time-out; demote the ns.
-			 * actually, the problem may be the query, not the ns.
-			 */
+			/* probably a time-out; demote the ns */
 			addslug(qp->tcpip);
 		} else {
 			len = lenbuf[0]<<8 | lenbuf[1];
@@ -1031,13 +1028,13 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	}
 	procsetname("recursive query for %s %s", qp->dp->name,
 		rrname(qp->type, buf, sizeof buf));
-//	qunlock(&qp->dp->querylck);
+	qunlock(&qp->dp->querylck);
 
 	queryinit(&nquery, qp->dp, qp->type, qp->req);
 	nquery.nsrp = tp;
 	rv = netquery(&nquery, depth+1);
 
-//	qlock(&qp->dp->querylck);
+	qlock(&qp->dp->querylck);
 	rrfreelist(tp);
 	memset(&nquery, 0, sizeof nquery); /* prevent accidents */
 	return rv;
@@ -1249,8 +1246,8 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	}
 	if(fd >= 0) {
 		qp->req->aborttime = time(nil) + (patient? Maxreqtm: Maxreqtm/2);
-		qp->udpfd = fd;
 		/* tune; was (patient? 15: 10) */
+		qp->udpfd = fd;
 		rv = netquery1(qp, depth, ibuf, obuf, (patient? 10: 5), inns);
 		close(fd);
 	} else
@@ -1280,20 +1277,13 @@ netquery(Query *qp, int depth)
 	 */
 
 	/* don't lock before call to slave so only children can block */
-	if (0)
-		lock = qp->req->isslave != 0;
-	if(0 && lock) {
+	lock = qp->req->isslave != 0;
+	if(lock) {
 		procsetname("query lock wait for %s", qp->dp->name);
-		/*
-		 * don't make concurrent queries for this name.
-		 *
-		 * this seemed like a good idea, to avoid swamping
-		 * an overloaded ns, but in practice, dns processes
-		 * pile up quickly and dns becomes unresponsive for a while.
-		 */
+		/* don't make concurrent queries for this name */
 		qlock(&qp->dp->querylck);
+		procsetname("netquery: %s", qp->dp->name);
 	}
-	procsetname("netquery: %s", qp->dp->name);
 
 	/* prepare server RR's for incremental lookup */
 	for(rp = qp->nsrp; rp; rp = rp->next)
@@ -1333,8 +1323,9 @@ netquery(Query *qp, int depth)
 //	if (rv == 0)		/* could ask /net.alt/dns directly */
 //		askoutdns(qp->dp, qp->type);
 
-	if(0 && lock)
+	if(lock) {
 		qunlock(&qp->dp->querylck);
+	}
 	return rv;
 }
 
@@ -1348,7 +1339,7 @@ seerootns(void)
 
 	memset(&req, 0, sizeof req);
 	req.isslave = 1;
-	req.aborttime = now + Maxreqtm;
+	req.aborttime = now + Maxreqtm*2;	/* be patient */
 	queryinit(&query, dnlookup(root, Cin, 1), Tns, &req);
 	query.nsrp = dblookup(root, Cin, Tns, 0, 0);
 	rv = netquery(&query, 0);

@@ -28,8 +28,7 @@ sysname=`{cat /dev/sysname}
 if(test -e /net/ipifc/0/ctl)
 	ndb/dns -rf $NDBFILE
 
-if(! ps|grep -s timesync)
-	aux/timesync $TIMESYNCARGS
+aux/timesync $TIMESYNCARGS
 
 # bind all likely devices (#S was bound in boot)
 for(i in f t m v L P U '$' Σ κ)
