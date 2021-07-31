@@ -105,7 +105,7 @@ fetchMsg(Box *, Msg *m, int uids, void *vf)
 	Bprint(&bout, "* %lud FETCH (", m->seq);
 	sep = "";
 	if(uids){
-		Bprint(&bout, "UID %lud", m->uid);
+		Bprint(&bout, "uid %lud", m->uid);
 		sep = " ";
 	}
 	for(f = vf; f != nil; f = f->next){
@@ -114,29 +114,29 @@ fetchMsg(Box *, Msg *m, int uids, void *vf)
 			bye("bad implementation of fetch");
 			break;
 		case FFlags:
-			Bprint(&bout, "%sFLAGS (", sep);
+			Bprint(&bout, "%sflags (", sep);
 			writeFlags(&bout, m, 1);
 			Bprint(&bout, ")");
 			break;
 		case FUid:
 			if(uids)
 				continue;
-			Bprint(&bout, "%sUID %lud", sep, m->uid);
+			Bprint(&bout, "%suid %lud", sep, m->uid);
 			break;
 		case FEnvelope:
-			Bprint(&bout, "%sENVELOPE ", sep);
+			Bprint(&bout, "%senvelope ", sep);
 			fetchEnvelope(m);
 			break;
 		case FInternalDate:
-			Bprint(&bout, "%sINTERNALDATE ", sep);
+			Bprint(&bout, "%sinternaldate ", sep);
 			Bimapdate(&bout, date2tm(&tm, m->unixDate));
 			break;
 		case FBody:
-			Bprint(&bout, "%sBODY ", sep);
+			Bprint(&bout, "%sbody ", sep);
 			fetchBodyStruct(m, &m->head, 0);
 			break;
 		case FBodyStruct:
-			Bprint(&bout, "%sBODYSTRUCTURE ", sep);
+			Bprint(&bout, "%sbodystructure ", sep);
 			fetchBodyStruct(m, &m->head, 1);
 			break;
 		case FRfc822Size:
@@ -149,17 +149,17 @@ fetchMsg(Box *, Msg *m, int uids, void *vf)
 			break;
 		case FRfc822Head:
 			f->part = FPHead;
-			Bprint(&bout, "%sRFC822.HEADER", sep);
+			Bprint(&bout, "%srfc822.header", sep);
 			fetchBody(m, f);
 			break;
 		case FRfc822Text:
 			f->part = FPText;
-			Bprint(&bout, "%sRFC822.TEXT", sep);
+			Bprint(&bout, "%srfc822.text", sep);
 			fetchBody(m, f);
 			break;
 		case FBodySect:
 		case FBodyPeek:
-			Bprint(&bout, "%sBODY", sep);
+			Bprint(&bout, "%sbody", sep);
 			fetchBody(fetchSect(m, f), f);
 			break;
 		}
