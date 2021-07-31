@@ -20,7 +20,7 @@ static Block*
 _allocb(int size)
 {
 	Block *b;
-	uintptr addr;
+	ulong addr;
 
 	if((b = mallocz(sizeof(Block)+size+Hdrspc, 0)) == nil)
 		return nil;
@@ -31,13 +31,13 @@ _allocb(int size)
 	b->flag = 0;
 
 	/* align start of data portion by rounding up */
-	addr = (uintptr)b;
+	addr = (ulong)b;
 	addr = ROUND(addr + sizeof(Block), BLOCKALIGN);
 	b->base = (uchar*)addr;
 
 	/* align end of data portion by rounding down */
 	b->lim = ((uchar*)b) + sizeof(Block)+size+Hdrspc;
-	addr = (uintptr)(b->lim);
+	addr = (ulong)(b->lim);
 	addr = addr & ~(BLOCKALIGN-1);
 	b->lim = (uchar*)addr;
 
@@ -60,7 +60,7 @@ allocb(int size)
 	 * Can still error out of here, though.
 	 */
 	if(up == nil)
-		panic("allocb without up: %p\n", getcallerpc(&size));
+		panic("allocb without up: %luX\n", getcallerpc(&size));
 	if((b = _allocb(size)) == nil){
 		panic("allocb: no memory for %d bytes\n", size);
 	}

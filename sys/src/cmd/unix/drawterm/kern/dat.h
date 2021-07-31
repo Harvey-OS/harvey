@@ -236,7 +236,7 @@ struct Dirtab
 	char	name[KNAMELEN];
 	Qid	qid;
 	vlong length;
-	ulong	perm;
+	long	perm;
 };
 
 struct Walkqid
@@ -401,8 +401,8 @@ struct Proc
 	int	notepending;	/* note issued but not acted on */
 	int	kp;		/* true if a kernel process */
 
-	void*	rendtag;	/* Tag for rendezvous */
-	void*	rendval;	/* Value for rendezvous */
+	ulong	rendtag;	/* Tag for rendezvous */
+	ulong	rendval;	/* Value for rendezvous */
 	Proc	*rendhash;	/* Hash list for tag values */
 
 	int	nerrlab;

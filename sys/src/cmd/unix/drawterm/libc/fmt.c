@@ -61,7 +61,7 @@ static Convfmt knownfmt[] = {
 	'u',	__ifmt,
 #endif
 	'x',	__ifmt,
-	0,	0,
+	0,	nil,
 };
 
 
@@ -116,7 +116,7 @@ fmtfmt(int c)
 	ep = &fmtalloc.fmt[fmtalloc.nfmt];
 	for(p=fmtalloc.fmt; p<ep; p++)
 		if(p->c == c){
-			while(p->fmt == 0)	/* loop until value is updated */
+			while(p->fmt == nil)	/* loop until value is updated */
 				;
 			return p->fmt;
 		}

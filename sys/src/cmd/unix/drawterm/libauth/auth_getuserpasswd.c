@@ -15,7 +15,7 @@ dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
 	for(;;){
 		if((ret = auth_rpc(rpc, verb, val, len)) != ARneedkey && ret != ARbadkey)
 			return ret;
-		if(getkey == 0)
+		if(getkey == nil)
 			return ARgiveup;	/* don't know how */
 		if((*getkey)(rpc->arg) < 0)
 			return ARgiveup;	/* user punted */

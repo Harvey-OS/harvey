@@ -333,11 +333,7 @@ __ifmt(Fmt *f)
 		break;
 	}
 	if(f->r == 'p'){
-		if(sizeof(void*) == sizeof(uvlong)){
-			isv = 1;
-			vu = (uvlong)va_arg(f->args, uvlong);
-		}else
-			u = (ulong)va_arg(f->args, ulong);
+		u = (ulong)va_arg(f->args, void*);
 		f->r = 'x';
 		fl |= FmtUnsigned;
 	}else if(fl & FmtVLong){

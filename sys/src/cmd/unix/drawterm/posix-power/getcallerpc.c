@@ -1,8 +1,8 @@
 #include "u.h"
 #include "libc.h"
 
-uintptr
+ulong
 getcallerpc(void *a)
 {
-	return ((uintptr*)a)[-1];
+	return ((ulong*)a)[-1];
 }

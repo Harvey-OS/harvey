@@ -15,7 +15,7 @@ lfdchan(int fd)
 	
 	c = newchan();
 	c->type = devno('L', 0);
-	c->aux = (void*)(uintptr)fd;
+	c->aux = (void*)fd;
 	c->name = newcname("fd");
 	c->mode = ORDWR;
 	c->qid.type = 0;
@@ -76,14 +76,14 @@ lfdopen(Chan *c, int omode)
 static void
 lfdclose(Chan *c)
 {
-	close((int)(uintptr)c->aux);
+	close((int)c->aux);
 }
 
 static long
 lfdread(Chan *c, void *buf, long n, vlong off)
 {
 	USED(off);	/* can't pread on pipes */
-	n = read((int)(uintptr)c->aux, buf, n);
+	n = read((int)c->aux, buf, n);
 	if(n < 0){
 		iprint("error %d\n", errno);
 		oserror();
@@ -96,7 +96,7 @@ lfdwrite(Chan *c, void *buf, long n, vlong off)
 {
 	USED(off);	/* can't pread on pipes */
 
-	n = write((int)(uintptr)c->aux, buf, n);
+	n = write((int)c->aux, buf, n);
 	if(n < 0){
 		iprint("error %d\n", errno);
 		oserror();

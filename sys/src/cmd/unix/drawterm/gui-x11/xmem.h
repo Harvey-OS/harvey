@@ -31,7 +31,7 @@ struct Xmem
 	int	dirty;
 	Rectangle dirtyr;
 	Rectangle r;
-	uintptr pc;	/* who wrote into xi */
+	ulong pc;	/* who wrote into xi */
 };
 
 extern	int		xtblbit;

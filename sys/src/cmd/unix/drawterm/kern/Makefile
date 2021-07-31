@@ -36,6 +36,7 @@ OFILES=\
 	qio.$O\
 	qlock.$O\
 	term.$O\
+	todo.$O\
 	uart.$O\
 	waserror.$O\
 	$(OS).$O
