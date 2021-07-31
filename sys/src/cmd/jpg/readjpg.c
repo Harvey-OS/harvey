@@ -457,12 +457,10 @@ readsegment(Header *h, int *markerp)
 	n -= 2;
 	if(n > h->nbuf){
 		free(h->buf);
-		/* zero in case of short read later */
-		h->buf = jpgmalloc(h, n+1, 1); /* +1 for sentinel */
+		h->buf = jpgmalloc(h, n+1, 0); /* +1 for sentinel */
 		h->nbuf = n;
 	}
-	/* accept short reads to cope with some real-world jpegs */
-	if(Bread(h->fd, h->buf, n) < 0)
+	if(Bread(h->fd, h->buf, n) != n)
 		goto Readerr;
 	*markerp = m;
 	return n;

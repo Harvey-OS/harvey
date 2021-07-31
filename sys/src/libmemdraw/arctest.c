@@ -8,6 +8,7 @@ extern int drawdebug;
 void
 main(int argc, char **argv)
 {
+	char cc;
 	Memimage *x;
 	Point c = {208,871};
 	int a = 441;
@@ -20,10 +21,6 @@ main(int argc, char **argv)
 	int i, n;
 	vlong del;
 
-	if (argc != 2) {
-		fprint(2, "usage: arctest number\n");
-		exits("usage");
-	}
 	memimageinit();
 
 	x = allocmemimage(Rect(0,0,1000,1000), CMAP8);
@@ -56,7 +53,7 @@ iprint(char *fmt, ...)
 	char buf[1024];
 
 	va_start(va, fmt);
-	n = vseprint(buf, buf+sizeof buf, fmt, va) - buf;
+	n = doprint(buf, buf+sizeof buf, fmt, va) - buf;
 	va_end(va);
 
 	write(1,buf,n);
