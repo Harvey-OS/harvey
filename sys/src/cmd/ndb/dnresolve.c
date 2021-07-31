@@ -11,8 +11,6 @@ enum
 	Maxtrans=	3,	/* maximum transmissions to a server */
 };
 
-int inside, straddle, serve;
-
 static int	netquery(DN*, int, RR*, Request*, int);
 static RR*	dnresolve1(char*, int, int, Request*, int, int);
 
@@ -494,7 +492,7 @@ insideaddr(char *dom)
 	Ndbs s;
 	Ndbtuple *t;
 
-	if (straddle && indoms == nil) {
+	if (0 && indoms == nil) {	/* not ready for prime time */
 		db = ndbopen("/lib/ndb/local");
 		if (db != nil) {
 			qlock(&readlock);
@@ -715,9 +713,9 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
 
 		/* no servers, punt */
 		if(l == dest)
-			if (straddle && inside) {
+			if (0 && inside) {	/* not ready for prime time */
 				/* HACK: use sys=outside ips */
-				if (outsidens() == nil)
+				if (0 && outsidens() == nil)
 					sysfatal("no outside-ns in ndb");
 				p = dest;
 				memmove(p->a, outsidens(), sizeof p->a);
@@ -940,11 +938,10 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp, int depth)
 	rv = 0;				/* pessimism */
 	triedin = 0;
 	/*
-	 * don't bother to query the (broken) inside nameservers for outside
-	 * addresses unless we're just a client.  if we're a server, we'd
-	 * better have a working /net.alt.
+	 * don't bother to query the broken inside nameservers for outside
+	 * addresses.
 	 */
-	if (!serve || !inside || insideaddr(dp->name)) {
+	if (!inside || insideaddr(dp->name)) {
 		rv = udpquery(mntpt, dp, type, nsrp, reqp, depth, Hurry,
 			(inside? Inns: Outns));
 		triedin = 1;

@@ -97,14 +97,14 @@ struct
 	ulong	div;
 } lapictimer;
 
-static ulong
+static int
 lapicr(int r)
 {
 	return *(lapicbase+(r/sizeof(*lapicbase)));
 }
 
 static void
-lapicw(int r, ulong data)
+lapicw(int r, int data)
 {
 	*(lapicbase+(r/sizeof(*lapicbase))) = data;
 	data = *(lapicbase+(LapicID/sizeof(*lapicbase)));
@@ -151,8 +151,7 @@ lapictimerinit(void)
 		lapictimer.min = lapictimer.hz/(100*HZ);
 
 		if(lapictimer.hz > hz)
-			panic("lapic clock faster than cpu clock %lld > %lld",
-				lapictimer.hz, hz);
+			panic("lapic clock faster than cpu clock");
 		lapictimer.div = hz/lapictimer.hz;
 	}
 }
@@ -223,8 +222,7 @@ lapicinit(Apic* apic)
 void
 lapicstartap(Apic* apic, int v)
 {
-	int i;
-	ulong crhi;
+	int crhi, i;
 
 	crhi = apic->apicno<<24;
 	lapicw(LapicICRHI, crhi);
@@ -243,7 +241,7 @@ lapicstartap(Apic* apic, int v)
 void
 lapicerror(Ureg*, void*)
 {
-	ulong esr;
+	int esr;
 
 	lapicw(LapicESR, 0);
 	esr = lapicr(LapicESR);
@@ -253,7 +251,7 @@ lapicerror(Ureg*, void*)
 	case 0x52C:				/* stepping cC0 */
 		return;
 	}
-	print("cpu%d: lapicerror: 0x%8.8luX\n", m->machno, esr);
+	print("cpu%d: lapicerror: 0x%8.8uX\n", m->machno, esr);
 }
 
 void
@@ -265,7 +263,7 @@ lapicspurious(Ureg*, void*)
 int
 lapicisr(int v)
 {
-	ulong isr;
+	int isr;
 
 	isr = lapicr(LapicISR + (v/32));
 
@@ -281,7 +279,7 @@ lapiceoi(int v)
 }
 
 void
-lapicicrw(ulong hi, ulong lo)
+lapicicrw(int hi, int lo)
 {
 	lapicw(LapicICRHI, hi);
 	lapicw(LapicICRLO, lo);

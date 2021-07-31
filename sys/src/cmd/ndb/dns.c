@@ -60,11 +60,10 @@ struct {
 	Mfile	*inuse;		/* active mfile's */
 } mfalloc;
 
-extern int inside, straddle, serve;
-
 int	cachedb;
 int	debug;
 uchar	ipaddr[IPaddrlen];	/* my ip address */
+int	inside;
 int	maxage = Defmaxage;
 int	mfd[2];
 int	needrefresh;
@@ -105,7 +104,7 @@ void	setext(char*, int, char*);
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-norRst] [-a maxage] [-f ndb-file] [-N target] "
+	fprint(2, "usage: %s [-nrRst] [-a maxage] [-f ndb-file] [-N target] "
 		"[-x netmtpt] [-z refreshprog]\n", argv0);
 	exits("usage");
 }
@@ -113,8 +112,10 @@ usage(void)
 void
 main(int argc, char *argv[])
 {
+	int	serve;
 	char	servefile[Maxpath], ext[Maxpath];
 
+	serve = 0;
 	setnetmtpt(mntpt, sizeof mntpt, nil);
 	ext[0] = 0;
 	ARGBEGIN{
@@ -138,9 +139,6 @@ main(int argc, char *argv[])
 		if (target < 100)
 			target = 100;
 		break;
-	case 'o':
-		straddle = 1;		/* straddle inside & outside networks */
-		break;
 	case 'r':
 		resolver = 1;
 		break;
@@ -148,7 +146,7 @@ main(int argc, char *argv[])
 		norecursion = 1;
 		break;
 	case 's':
-		serve = 1;		/* serve network */
+		serve = 1;	/* serve network */
 		cachedb = 1;
 		break;
 	case 't':
