@@ -80,7 +80,6 @@ lock(Lock *l)
 		l->pc = pc;
 		l->p = up;
 		l->isilock = 0;
-		l->m = MACHP(m->machno);
 #ifdef LOCKCYCLES
 		l->lockcycles = -lcycles();
 #endif
@@ -116,7 +115,6 @@ lock(Lock *l)
 			l->pc = pc;
 			l->p = up;
 			l->isilock = 0;
-			l->m = MACHP(m->machno);
 #ifdef LOCKCYCLES
 			l->lockcycles = -lcycles();
 #endif
