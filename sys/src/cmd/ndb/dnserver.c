@@ -77,7 +77,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 		}
 
 	/*
-	 *  get the answer if we can, in *repp
+	 *  get the answer if we can
 	 */
 	if(reqp->flags & Frecurse)
 		neg = doextquery(repp, req, Recurse);
