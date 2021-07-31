@@ -4,13 +4,13 @@ ascii, unicode \- interpret ASCII, Unicode characters
 .SH SYNOPSIS
 .B ascii
 [
-.B -8cnt
+.B -8
 ]
 [
-.B -dox
-|
-.B -b
-.I n
+.BI -oxdb n
+]
+[
+.B -nct
 ]
 [
 .I text

@@ -4,24 +4,13 @@ acme \- control files for text windows
 .SH SYNOPSIS
 .B acme
 [
-.B -ab
-]
-[
-.B -c
-.I ncol
-]
-[
 .B -f
 .I varfont
-]
-[
+] [
 .B -F
 .I fixfont
 ]
 [
-.B -l
-.I file
-|
 .I file
 \&... ]
 .SH DESCRIPTION

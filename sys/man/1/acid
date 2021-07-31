@@ -4,10 +4,10 @@ acid, truss, trump \- debugger
 .SH SYNOPSIS
 .B acid
 [
-.B -kqw
+.BI -l " libfile
 ]
 [
-.BI -l " library
+.B -wq
 ] [
 .B -m
 .I machine
@@ -89,7 +89,7 @@ files.
 Definitions in any file may override previously defined functions.
 If the function
 .IR acidinit ()
-is defined, it will be invoked after all libraries have been loaded.
+is defined, it will be invoked after all modules have been loaded.
 See
 .IR 2c (1)
 for information about creating
