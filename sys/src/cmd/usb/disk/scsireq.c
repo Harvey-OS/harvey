@@ -16,7 +16,6 @@
 #include <u.h>
 #include <libc.h>
 #include <fcall.h>
-#include <disk.h>
 #include "scsireq.h"
 
 enum {

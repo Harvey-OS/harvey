@@ -5,7 +5,6 @@
  *	no luns
  *	and incomplete in many other ways
  */
-#include <disk.h>
 #include "scsireq.h"
 
 enum {
