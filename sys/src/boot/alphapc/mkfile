@@ -1,0 +1,42 @@
+objtype=alpha
+</$objtype/mkfile
+
+TARGET=bootalphapc
+OBJ=\
+	l.$O\
+	main.$O\
+	conf.$O\
+	cons.$O\
+	exec.$O\
+	bootp.$O\
+	memory.$O\
+	mmu.$O\
+	print.$O\
+
+HFILES=\
+	u.h\
+	mem.h\
+	conf.h\
+	dat.h\
+	fns.h\
+	lib.h\
+	ip.h\
+
+loadaddr = 0x20000020
+
+$TARGET:	$OBJ
+	$LD -o $target -l -R8 -H3 -T$loadaddr $prereq -lc
+
+install:V: $TARGET
+	cp $TARGET /$objtype
+
+clean nuke:V:
+	rm -f *.$O $TARGET
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O: $HFILES

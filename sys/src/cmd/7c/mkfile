@@ -1,0 +1,39 @@
+</$objtype/mkfile
+
+TARG=7c
+OFILES=\
+	cgen.$O\
+	enam.$O\
+	list.$O\
+	machcap.$O\
+	peep.$O\
+	pgen.$O\
+	pswt.$O\
+	reg.$O\
+	sgen.$O\
+	swt.$O\
+	txt.$O\
+	mul.$O\
+
+HFILES=\
+	gc.h\
+	7.out.h\
+	../cc/cc.h\
+
+LIB=../cc/cc.a$O
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+$LIB:
+	cd ../cc
+	mk install
+	mk clean
+
+%.$O: ../cc/%.c
+	$CC $CFLAGS ../cc/$stem.c
+
+t:V:	$O.out
+	$O.out -S t
+	$LD -o t.out t.$O
+	t.out

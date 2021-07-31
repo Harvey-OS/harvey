@@ -1,0 +1,60 @@
+dev
+	root
+	cons
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+#	rtc
+	ssl
+	cap
+	kprof
+#	loopback
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+
+	sd
+	floppy		dma
+
+	audio		dma
+	uart
+
+link
+	ether2114x	pci
+	ethermedium
+	loopbackmedium
+
+misc
+	arch164
+
+	sdata		pci sdscsi
+#	sd53c8xx	pci sdscsi
+
+	uarti8250
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	gre
+	ipmux
+
+port
+	int cpuserver = 1;
+
+boot cpu
+	tcp
+
+bootdir
+	bootapccpu.out boot
+	/alpha/bin/ip/ipconfig
+	/alpha/bin/auth/factotum
+
+
