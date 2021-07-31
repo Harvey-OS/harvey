@@ -135,7 +135,6 @@ enum {						/* Window 0 - setup */
 	auiAvailable9		= 0x2000,
 						/* EepromCommand bits */
 	EepromReadRegister	= 0x0080,
-	EepromReadOffRegister	= 0x00B0,
 	EepromRead8bRegister	= 0x0230,
 	EepromBusy		= 0x8000,
 };
@@ -420,14 +419,12 @@ typedef struct Ctlr {
 	ulong	dnqueued;
 
 	int	xcvr;			/* transceiver type */
-	int	eepromcmd;		/* EEPROM read command */
 	int	rxstatus9;		/* old-style RxStatus register */
 	int	rxearly;		/* RxEarlyThreshold */
 	int	ts;			/* threshold shift */
 	int	upenabled;
 	int	dnenabled;
-	ulong	cbfnpa;			/* CardBus functions */
-	ulong*	cbfn;
+	ulong*	cbfns;			/* CardBus functions */
 } Ctlr;
 
 static Ctlr* ctlrhead;
@@ -558,9 +555,9 @@ multicast(void* arg, uchar *addr, int on)
 
 /* On the 575B and C, interrupts need to be acknowledged in CardBus memory space */
 static void
-intrackcb(ulong *cbfn)
+intrack3c575(ulong *cbfns)
 {
-	cbfn[1] = 0x8000;
+	cbfns[1] = 0x8000;
 }
 
 static void
@@ -602,8 +599,8 @@ attach(Ether* ether)
 	/*
 	 * If this is a CardBus card, acknowledge any interrupts.
 	 */
-	if(ctlr->cbfn != nil)
-		intrackcb(ctlr->cbfn);
+	if(ctlr->cbfns != nil)
+		intrack3c575(ctlr->cbfns);
 		
 	/*
 	 * Prime the busmaster channel for receiving directly into a
@@ -1144,8 +1141,8 @@ interrupt(Ureg*, void* arg)
 			panic("#l%d: interrupt mask 0x%uX\n", ether->ctlrno, status);
 
 		COMMAND(port, AcknowledgeInterrupt, interruptLatch);
-		if(ctlr->cbfn != nil)
-			intrackcb(ctlr->cbfn);
+		if(ctlr->cbfns != nil)
+			intrack3c575(ctlr->cbfns);
 
 	}while((status = STATUS(port)) & (interruptMask|interruptLatch));
 
@@ -1246,7 +1243,6 @@ tcmadapter(int port, int irq, Pcidev* pcidev)
 	ctlr->port = port;
 	ctlr->irq = irq;
 	ctlr->pcidev = pcidev;
-	ctlr->eepromcmd = EepromReadRegister;
 
 	if(ctlrhead != nil)
 		ctlrtail->next = ctlr;
@@ -1455,13 +1451,10 @@ static void
 tcm59Xpci(void)
 {
 	Pcidev *p;
-	Ctlr *ctlr;
 	int irq, port;
 
 	p = nil;
 	while(p = pcimatch(p, 0x10B7, 0)){
-		if(p->ccrb != 0x02 || p->ccru != 0)
-			continue;
 		/*
 		 * Not prepared to deal with memory-mapped
 		 * devices yet.
@@ -1475,25 +1468,11 @@ tcm59Xpci(void)
 			continue;
 		}
 		irq = p->intl;
+		COMMAND(port, GlobalReset, 0);
+		while(STATUS(port) & commandInProgress)
+			;
 
-		txrxreset(port);
-		COMMAND(port, AcknowledgeInterrupt, 0xFF);
-
-		ctlr = tcmadapter(port, irq, p);
-		switch(p->did){
-		default:
-			break;
-		case 0x5157:
-			ctlr->eepromcmd = EepromRead8bRegister;
-			ctlr->cbfnpa = upamalloc(p->mem[2].bar, p->mem[2].size, 0);
-			break;
-		case 0x6056:
-			ctlr->eepromcmd = EepromReadOffRegister;
-			ctlr->cbfnpa = upamalloc(p->mem[2].bar, p->mem[2].size, 0);
-			break;
-		}
-		if(ctlr->cbfnpa != 0)
-			ctlr->cbfn = KADDR(ctlr->cbfnpa);
+		tcmadapter(port, irq, p);
 		pcisetbme(p);
 	}
 }
@@ -1629,7 +1608,7 @@ miir(int port, int phyad, int regad)
 	return data & 0xFFFF;
 }
 
-static int
+static void
 scanphy(int port)
 {
 	int i, x;
@@ -1641,10 +1620,7 @@ scanphy(int port)
 		x |= miir(port, i, 3)>>10;
 		XCVRDEBUG("phy%d: oui %uX reg1 %uX\n", i, x, miir(port, i, 1));
 		USED(x);
-
-		return i;
 	}
-	return 24;
 }
 
 static struct {
@@ -1741,7 +1717,10 @@ eepromdata(Ctlr* ctlr, int offset)
 	COMMAND(port, SelectRegisterWindow, Wsetup);
 	while(EEPROMBUSY(port))
 		;
-	EEPROMCMD(port, ctlr->eepromcmd, offset);
+	if(ctlr->pcidev && ctlr->pcidev->did == 0x5157)
+		EEPROMCMD(port, EepromRead8bRegister, offset);
+	else
+		EEPROMCMD(port, EepromReadRegister, offset);
 	while(EEPROMBUSY(port))
 		;
 	return EEPROMDATA(port);
@@ -1797,9 +1776,10 @@ etherelnk3reset(Ether* ether)
 	 */
 	switch(ctlr->did = eepromdata(ctlr, 0x03)){
 	case 0x5157:		/* 3C575 Cyclone */
-	case 0x6056:
+		ctlr->cbfns = KADDR(pcicfgr32(ctlr->pcidev, PciBAR2));
 		/*FALLTHROUGH*/
 	case 0x4500:		/* 3C450 HomePNA Tornado */
+	case 0x6056:
 	case 0x7646:		/* 3CSOHO100-TX */
 	case 0x9055:		/* 3C905B-TX */
 	case 0x9200:		/* 3C905C-TX */
@@ -1889,27 +1869,22 @@ etherelnk3reset(Ether* ether)
 		if(ctlr->xcvr & autoSelect)
 			ctlr->xcvr = autoselect(ctlr);
 		break;
+	case 0x4500:
 	case 0x5157:
 	case 0x6056:
-	case 0x4500:
 	case 0x7646:
 	case 0x9055:
 	case 0x9200:
 		ctlr->xcvr = xcvrMii;
 		txrxreset(port);
-		x = ins(port+ResetOp905B);
-		XCVRDEBUG("905[BC] reset ops 0x%uX\n", x);
-		x &= ~0x4010;
-		if(ctlr->did == 0x5157){
-			x |= 0x0010;			/* Invert LED */
-			outs(port+ResetOp905B, x);
-		}
-		if(ctlr->did == 0x6056){
-			x |= 0x4000;
-			outs(port+ResetOp905B, x);
+		XCVRDEBUG("905[BC] reset ops 0x%uX\n", ins(port+ResetOp905B));
+		if(ctlr->did == 0x5157) {
+			ushort reset_opts;
 
-			COMMAND(port, SelectRegisterWindow, Wsetup);
-			outs(port, 0x0800);
+			COMMAND(port, SelectRegisterWindow, Wstation);
+			reset_opts = ins(port + ResetOp905B);
+			reset_opts |= 0x0010;		/* Invert LED */
+			outs(port + ResetOp905B, reset_opts);
 		}
 		break;
 	}
@@ -1919,11 +1894,10 @@ etherelnk3reset(Ether* ether)
 	case xcvrMii:
 		/*
 		 * Quick hack.
+		scanphy(port);
 		 */
 		if(ctlr->did == 0x5157)
 			phyaddr = 0;
-		else if(ctlr->did == 0x6056)
-			phyaddr = scanphy(port);
 		else
 			phyaddr = 24;
 		for(i = 0; i < 7; i++)
