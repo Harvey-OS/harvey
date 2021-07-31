@@ -304,10 +304,7 @@ mkkeyinfo(Keyinfo *k, Fsstate *fss, Attr *attr)
 	memset(k, 0, sizeof *k);
 	k->fss = fss;
 	k->user = fss->sysuser;
-	if(attr)
-		k->attr = attr;
-	else
-		k->attr = fss->attr;
+	k->attr = attr;
 	return k;
 }
 

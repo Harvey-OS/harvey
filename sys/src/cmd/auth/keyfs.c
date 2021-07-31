@@ -31,6 +31,7 @@ enum{
 enum{
 	Sok,
 	Sdisabled,
+	Stempdisabled,
 	Smax,
 };
 
@@ -148,13 +149,6 @@ main(int argc, char *argv[])
 	if(pipe(p) < 0)
 		error("can't make pipe: %r");
 
-	if(usepass) {
-		getpass(authkey, nil, 0, 0);
-	} else {
-		if(!getauthkey(authkey))
-			print("keyfs: warning: can't read /dev/key\n");
-	}
-
 	switch(rfork(RFPROC|RFNAMEG|RFNOTEG|RFNOWAIT|RFENVG|RFFDG)){
 	case 0:
 		close(p[0]);
@@ -258,11 +252,6 @@ Walk(Fid *f)
 				break;
 
 			case Quser:
-				if(strcmp(name, "..") == 0) {
-					qtype = Qroot;
-					user = 0;
-					goto Accept;
-				}
 				max = Qmax;
 				for(j = Quser + 1; j < Qmax; j++)
 					if(strcmp(name, qinfo[j]) == 0){
@@ -309,10 +298,8 @@ char *
 Clunk(Fid *f)
 {
 	f->busy = 0;
-	if(f->user && --f->user->ref == 0 && f->user->removed) {
-		free(f->user->name);
+	if(f->user && --f->user->ref == 0 && f->user->removed)
 		free(f->user);
-	}
 	f->user = 0;
 	return 0;
 }
@@ -572,10 +559,8 @@ Remove(Fid *f)
 		f->user->warnings = 0;
 	else if(f->qtype == Quser)
 		removeuser(f->user);
-	else {
-		Clunk(f);
+	else
 		return "permission denied";
-	}
 	Clunk(f);
 	writeusers();
 	return 0;
@@ -780,6 +765,15 @@ readusers(void)
 	uchar *p, *buf, *ep;
 	User *u;
 	Dir *d;
+
+	if(usepass) {
+		if(*authkey == 0)
+			getpass(authkey, nil, 0, 0);
+	} else {
+		if(!getauthkey(authkey))
+			print("keyfs: warning: can't read /dev/key\n");
+	}
+
 
 	/* read file into an array */
 	fd = open(userkeys, OREAD);
