@@ -38,8 +38,6 @@ struct Mouseinfo
 	int	track;		/* dx & dy updated */
 	int	redraw;		/* update cursor on screen */
 	ulong	lastcounter;	/* value when /dev/mouse read */
-	ulong	lastresize;
-	ulong	resize;
 	Rendez	r;
 	Ref;
 	QLock;
@@ -72,7 +70,6 @@ static Cmdtab mousectlmsg[] =
 Mouseinfo	mouse;
 Cursorinfo	cursor;
 int		mouseshifted;
-int		kbdbuttons;
 Cursor		curs;
 
 void	Cursortocursor(Cursor*);
@@ -166,7 +163,6 @@ mouseopen(Chan *c, int omode)
 		}
 		mouse.open = 1;
 		mouse.ref++;
-		mouse.lastresize = mouse.resize;
 		unlock(&mouse);
 		break;
 	case Qmousein:
@@ -290,10 +286,6 @@ mouseread(Chan *c, void *va, long n, vlong off)
 		mouse.lastcounter = m.counter;
 		if(n > 1+4*12)
 			n = 1+4*12;
-		if(mouse.lastresize != mouse.resize){
-			mouse.lastresize = mouse.resize;
-			buf[0] = 'r';
-		}
 		memmove(va, buf, n);
 		return n;
 	}
@@ -569,7 +561,7 @@ mousetrack(int dx, int dy, int b, int msec)
 
 	lastb = mouse.buttons;
 	mouse.xy = Pt(x, y);
-	mouse.buttons = b|kbdbuttons;
+	mouse.buttons = b;
 	mouse.redraw = 1;
 	mouse.counter++;
 	mouse.msec = msec;
@@ -727,8 +719,7 @@ mouseputc(Queue*, int c)
 int
 mousechanged(void*)
 {
-	return mouse.lastcounter != mouse.counter || 
-		mouse.lastresize != mouse.resize;
+	return mouse.lastcounter != mouse.counter;
 }
 
 Point
@@ -746,14 +737,3 @@ mouseaccelerate(int x)
 	else
 		mouse.maxacc = mouse.acceleration;
 }
-
-/*
- * notify reader that screen has been resized
- */
-void
-mouseresize(void)
-{
-	mouse.resize++;
-	wakeup(&mouse.r);
-}
-
