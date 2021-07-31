@@ -474,6 +474,7 @@ int
 getdnsdom(ulong ip, char *name, int len)
 {
 	char buf[128];
+	char dom[256];
 	Namecache *nc;
 	char *p;
 

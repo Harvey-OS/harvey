@@ -136,14 +136,7 @@ newfid(Session *s)
 void
 setfid(Session *s, Fid *f)
 {
-	/*
-	 * TOFRONT(&s->list, f);
-	 */
-	if(s->list.next != f){
-		UNLINK(f);
-		LINK(&s->list, f);
-	}
-
+	TOFRONT(&s->list, f);
 	f->tstale = nfstime + staletime;
 	s->f.fid = f - s->fids;
 }
