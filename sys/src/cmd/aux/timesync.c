@@ -31,7 +31,6 @@ int impotent;
 int logging;
 int type;
 int gmtdelta;	// rtc+gmtdelta = gmt
-uvlong avgerr;
 
 // ntp server info
 int stratum = 14;
@@ -96,7 +95,6 @@ enum
 
 static void	addntpserver(char *name);
 static int	adjustperiod(vlong diff, vlong accuracy, int secs);
-static void	background(void);
 static int	caperror(vlong dhz, int tsecs, vlong taccuracy);
 static long	fstime(void);
 static int	gettime(vlong *nsec, uvlong *ticks, uvlong *hz); // returns time, ticks, hz
@@ -132,7 +130,7 @@ main(int argc, char **argv)
 	int t, fd;
 	Sample *s, *x, *first, **l;
 	vlong diff, accuracy, taccuracy;
-	uvlong hz, minhz, maxhz, period, nhz;
+	uvlong hz, minhz, maxhz, avgerr, period, nhz;
 	char *servenet[4];
 	int nservenet;
 	char *a;
@@ -237,10 +235,6 @@ main(int argc, char **argv)
 	fmtinstall('V', eipfmt);
 	sysid = getenv("sysname");
 
-	//  detach from the current namespace
-	if(debug)
-		rfork(RFNAMEG);
-
 	switch(type){
 	case Fs:
 		if(argc > 0)
@@ -259,6 +253,23 @@ main(int argc, char **argv)
 	}
 
 	setpriority();
+
+	//
+	//  detach from the current namespace
+	//
+	if(debug)
+		rfork(RFNAMEG);
+	else {
+		switch(rfork(RFPROC|RFFDG|RFNAMEG|RFNOTEG|RFNOWAIT)){
+		case -1:
+			sysfatal("forking: %r");
+			break;
+		case 0:
+			break;
+		default:
+			exits(0);
+		}
+	}
 
 	// figure out our time interface and initial frequency
 	inittime();
@@ -322,7 +333,7 @@ main(int argc, char **argv)
 	first = nil;
 	l = &first;
 	avgerr = accuracy>>1;
-	for(;; background(),sleep(tsecs*(1000))){
+	for(;; sleep(tsecs*(1000))){
 		s = mallocz(sizeof(*s), 1);
 		diff = 0;
 
@@ -977,9 +988,7 @@ ntpsample(void)
 			x = tns->stratum;
 		x *= SEC;
 		x += (vabs(tns->rootdelay+tns->rtt)>>1) + tns->rootdisp + tns->rtt;
-		if(debug)
-			fprint(2, "ntp %s rootdelay %lld rootdisp %lld metric %lld\n",
-				tns->name, tns->rootdelay, tns->rootdisp, x);
+if(debug) fprint(2, "ntp %s rootdelay %lld rootdisp %lld metric %lld\n", tns->name, tns->rootdelay, tns->rootdisp, x);
 		if(x < metric){
 			metric = x;
 			ns = tns;
@@ -991,10 +1000,14 @@ ntpsample(void)
 
 	// save data for our server
 	rootdisp = ns->rootdisp;
-	rootdelay = ns->rootdelay+ns->rtt;
+	rootdelay = ns->rootdelay;
 	mydelay = ns->rtt;
 	x = vabs(ns->dt);
-	mydisp = ns->disp+avgerr;
+	if(ns->disp == 0LL)
+		ns->disp = x;
+	else
+		ns->disp = (x+3LL*ns->disp)>>2;
+	mydisp = ns->disp;
 	if(ns->stratum == 0)
 		stratum = 0;
 	else
@@ -1263,26 +1276,4 @@ vabs(vlong x)
 		return (uvlong)-x;
 	else
 		return (uvlong)x;
-}
-
-static void
-background(void)
-{
-	static int inbackground;
-
-	if(inbackground)
-		return;
-
-	if(!debug) {
-		switch(rfork(RFPROC|RFFDG|RFNAMEG|RFNOTEG|RFNOWAIT)){
-		case -1:
-			sysfatal("forking: %r");
-			break;
-		case 0:
-			break;
-		default:
-			exits(0);
-		}
-	}
-	inbackground = 1;
 }
