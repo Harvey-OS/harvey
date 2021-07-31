@@ -1,5 +1,3 @@
-#define	offsetof(s, m)	(ulong)(&(((s*)0)->m))
-
 /*
  * functions (possibly) linked in, complete, from libc.
  */
