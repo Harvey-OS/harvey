@@ -182,15 +182,11 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 				else if(xbp = iallocb(len)){
 					memmove(xbp->wp, pkt, len);
 					xbp->wp += len;
-					if(qpass(f->in, xbp) < 0) {
-						print("soverflow for f->in\n");
+					if(qpass(f->in, xbp) < 0)
 						ether->soverflows++;
-					}
 				}
-				else {
-					print("soverflow iallocb\n");
+				else
 					ether->soverflows++;
-				}
 			}
 			else
 				etherrtrace(f, pkt, len);
@@ -198,10 +194,8 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	}
 
 	if(fx){
-		if(qpass(fx->in, bp) < 0) {
-			print("soverflow for fx->in\n");
+		if(qpass(fx->in, bp) < 0)
 			ether->soverflows++;
-		}
 		return 0;
 	}
 	if(fromwire){
@@ -239,8 +233,6 @@ etheroq(Ether* ether, Block* bp)
 	}
 
 	if(!loopback){
-		if(qfull(ether->oq))
-			print("etheroq: WARNING: ether->oq full!\n");
 		qbwrite(ether->oq, bp);
 		if(ether->transmit != nil)
 			ether->transmit(ether);
@@ -453,13 +445,13 @@ etherprobe(int cardno, int ctlrno)
 		bsz /= 2;
 
 	netifinit(ether, name, Ntypes, bsz);
-	if(ether->oq == nil) {
+	while (ether->oq == nil && bsz > 128*1024) {
+		bsz /= 2;
 		ether->oq = qopen(bsz, Qmsg, 0, 0);
 		ether->limit = bsz;
 	}
 	if(ether->oq == nil)
-		panic("etherreset %s: can't allocate output queue of %d bytes",
-			name, bsz);
+		panic("etherreset %s", name);
 	ether->alen = Eaddrlen;
 	memmove(ether->addr, ether->ea, Eaddrlen);
 	memset(ether->bcast, 0xFF, Eaddrlen);
@@ -468,38 +460,11 @@ etherprobe(int cardno, int ctlrno)
 }
 
 static void
-fakeintrs(void)
-{
-	int ctlrno;
-	Ether *ether;
-
-	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++) {
-		ether = etherxx[ctlrno];
-		if (ether && ether->interrupt)
-			ether->interrupt(nil, ether);
-	}
-}
-
-/* terrible temporary hack for 82575 */
-static void
-startfakeintrs(void)
-{
-	static int first = 1;
-
-	if (first) {
-		addclock0link(fakeintrs, 1);
-		first = 0;
-	}
-}
-
-static void
 etherreset(void)
 {
 	Ether *ether;
 	int cardno, ctlrno;
 
-	if (getconf("*fakeintrs") != nil)
-		startfakeintrs();
 	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
 		if((ether = etherprobe(-1, ctlrno)) == nil)
 			continue;
