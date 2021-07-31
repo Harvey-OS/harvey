@@ -99,7 +99,7 @@ as well as the packets
 and
 .IB r ->rx.data \fR.
 .SH EXAMPLE
-.B /sys/src/cmd/venti
+.B /sys/src/venti/cmd
 contains two simple Venti servers 
 .B ro.c
 and
