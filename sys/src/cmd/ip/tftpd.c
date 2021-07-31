@@ -509,7 +509,7 @@ catcher(void *junk, char *msg)
 }
 
 static int
-awaitack(int net, int block)
+awaitack(int fd, int block)
 {
 	int ackblock, al, rxl;
 	ushort op;
@@ -518,7 +518,7 @@ awaitack(int net, int block)
 	for(rxl = 0; rxl < 10; rxl++) {
 		memset(ack, 0, Hdrsize);
 		alarm(1000);
-		al = read(net, ack, sizeof(ack));
+		al = read(fd, ack, sizeof(ack));
 		alarm(0);
 		if(al < 0) {
 			if (Debug)
@@ -557,19 +557,18 @@ awaitack(int net, int block)
 }
 
 void
-sendfile(int net, char *name, char *mode, int opts)
+sendfile(int fd, char *name, char *mode, int opts)
 {
-	int file, block, ret, rexmit, n, txtry, failed;
+	int file, block, ret, rexmit, n, txtry;
 	uchar buf[Maxsegsize+Hdrsize];
 	char errbuf[Maxerr];
 
 	file = -1;
-	failed = 1;
 	syslog(dbg, flog, "tftpd %d send file '%s' %s to %s",
 		pid, name, mode, raddr);
 	name = sunkernel(name);
 	if(name == 0){
-		nak(net, 0, "not in our database");
+		nak(fd, 0, "not in our database");
 		goto error;
 	}
 
@@ -578,7 +577,7 @@ sendfile(int net, char *name, char *mode, int opts)
 	file = open(name, OREAD);
 	if(file < 0) {
 		errstr(errbuf, sizeof errbuf);
-		nak(net, 0, errbuf);
+		nak(fd, 0, errbuf);
 		goto error;
 	}
 	block = 0;
@@ -591,7 +590,7 @@ sendfile(int net, char *name, char *mode, int opts)
 	 * pxe just read-with-tsize to get size, couldn't be bothered to
 	 * ack our oack and has just gone ahead and issued another read.
 	 */
-	if(opts && awaitack(net, 0) != Ackok)
+	if(opts && awaitack(fd, 0) != Ackok)
 		goto error;
 
 	for(txtry = 0; txtry < timeout;) {
@@ -604,7 +603,7 @@ sendfile(int net, char *name, char *mode, int opts)
 			n = read(file, buf+Hdrsize, blksize);
 			if(n < 0) {
 				errstr(errbuf, sizeof errbuf);
-				nak(net, 0, errbuf);
+				nak(fd, 0, errbuf);
 				goto error;
 			}
 			txtry = 0;
@@ -615,7 +614,7 @@ sendfile(int net, char *name, char *mode, int opts)
 			txtry++;
 		}
 
-		ret = write(net, buf, Hdrsize+n);
+		ret = write(fd, buf, Hdrsize+n);
 		if(ret < Hdrsize+n) {
 			syslog(dbg, flog,
 				"tftpd network write error on %s to %s: %r",
@@ -625,23 +624,21 @@ sendfile(int net, char *name, char *mode, int opts)
 		if (Debug)
 			syslog(dbg, flog, "tftpd %d sent block %d", pid, block);
 
-		rexmit = awaitack(net, block);
+		rexmit = awaitack(fd, block);
 		if (rexmit == Ackerr)
 			break;
-		if(ret != blksize+Hdrsize && rexmit == Ackok) {
-			failed = 0;
+		if(ret != blksize+Hdrsize && rexmit == Ackok)
 			break;
-		}
 	}
+	syslog(dbg, flog, "tftpd %d done sending file '%s' %s to %s",
+		pid, name, mode, raddr);
 error:
-	syslog(dbg, flog, "tftpd %d %s file '%s' %s to %s",
-		pid, (failed? "failed to send": "sent"), name, mode, raddr);
-	close(net);
+	close(fd);
 	close(file);
 }
 
 void
-recvfile(int net, char *name, char *mode)
+recvfile(int fd, char *name, char *mode)
 {
 	ushort op, block, inblock;
 	uchar buf[Maxsegsize+8];
@@ -653,18 +650,18 @@ recvfile(int net, char *name, char *mode)
 	file = create(name, OWRITE, 0666);
 	if(file < 0) {
 		errstr(errbuf, sizeof errbuf);
-		nak(net, 0, errbuf);
+		nak(fd, 0, errbuf);
 		syslog(dbg, flog, "can't create %s: %r", name);
 		return;
 	}
 
 	block = 0;
-	ack(net, block);
+	ack(fd, block);
 	block++;
 
 	for (;;) {
 		alarm(15000);
-		n = read(net, buf, blksize+8);
+		n = read(fd, buf, blksize+8);
 		alarm(0);
 		if(n < 0) {
 			syslog(dbg, flog, "tftpd: network error reading %s: %r",
@@ -694,16 +691,16 @@ recvfile(int net, char *name, char *mode)
 				ret = write(file, buf+Hdrsize, n);
 				if(ret != n) {
 					errstr(errbuf, sizeof errbuf);
-					nak(net, 0, errbuf);
+					nak(fd, 0, errbuf);
 					syslog(dbg, flog,
 					    "tftpd: error writing %s: %s",
 						name, errbuf);
 					goto error;
 				}
-				ack(net, block);
+				ack(fd, block);
 				block++;
 			} else
-				ack(net, 0xffff);	/* tell him to resend */
+				ack(fd, 0xffff);	/* tell him to resend */
 		}
 	}
 error:
