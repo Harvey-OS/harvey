@@ -72,14 +72,7 @@ EXTERN	union
 	char	string[16*1024];
 	struct
 	{
-		/*
-		 * if a line requires multiple reads, we keep shifting
-		 * buf down into pre and then do another read into
-		 * buf.  so you'll get the last 16-32k of the matching line.
-		 * if pre were smaller than buf you'd get a suffix of the
-		 * line with a hole cut out.
-		 */
-		uchar	pre[16*1024];	/* to save to previous '\n' */
+		uchar	pre[1*1024];	/* to save to previous '\n' */
 		uchar	buf[16*1024];	/* input buffer */
 	};
 } u;

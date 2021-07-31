@@ -21,7 +21,6 @@ Avl *lookupavl(Avltree *tree, Avl *key);
 void deleteavl(Avltree *tree, Avl *key, Avl **oldp);
 Avlwalk *avlwalk(Avltree *tree);
 Avl *avlnext(Avlwalk *walk);
-Avl	*avlprev(Avlwalk *walk);
 void endwalk(Avlwalk *walk);
 
 /* db.c */

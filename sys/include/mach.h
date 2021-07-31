@@ -108,7 +108,6 @@ struct Map {
 		char	*name;		/* the segment name */
 		int	fd;		/* file descriptor */
 		int	inuse;		/* in use - not in use */
-		int	cache;		/* should cache reads? */
 		ulong	b;		/* base */
 		ulong	e;		/* end */
 		ulong	f;		/* offset within file */
@@ -125,7 +124,6 @@ struct Symbol {
 		long	value;		/* address or stack offset */
 		char	type;		/* as in a.out.h */
 		char	class;		/* as above */
-		int index;		/* in findlocal, globalsym, textsym */
 	};
 };
 

@@ -156,7 +156,7 @@ main(int argc, char **argv)
 
 	if(!changesonly){
 		w = avlwalk(db->avl);
-		while(e = (Entry*)avlprev(w)){
+		while(e = (Entry*)avlnext(w)){
 			if(!ismatch(e->name))
 				continue;
 			if(!e->d.mark){		/* not visited during walk */

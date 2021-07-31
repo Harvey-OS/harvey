@@ -11,8 +11,8 @@ void xmlArena(Hio *hout, Arena *s, char *tag, int indent){
 	xmlU32int(hout, s->version, "version");
 	xmlAName(hout, s->part->name, "partition");
 	xmlU32int(hout, s->blockSize, "blockSize");
-	xmlU64int(hout, s->base-s->blockSize, "start");
-	xmlU64int(hout, s->base+s->size+s->blockSize, "stop");
+	xmlU64int(hout, s->base, "start");
+	xmlU64int(hout, s->base+2*s->blockSize, "stop");
 	xmlU32int(hout, s->ctime, "created");
 	xmlU32int(hout, s->wtime, "modified");
 	xmlSealed(hout, s->sealed, "sealed");
