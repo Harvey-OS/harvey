@@ -2,7 +2,7 @@
 .SH NAME
 asn1dump,
 asn1toRSApriv,
-decodePEM,
+decodepem,
 rsadecrypt,
 rsaencrypt,
 rsagen,

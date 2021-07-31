@@ -139,12 +139,7 @@ main(int argc, char *argv[])
 	conn = (TLSconn*)mallocz(sizeof *conn, 1);
 	if(conn == nil)
 		sysfatal("out of memory");
-	conn->chain = readcertchain(cert);
-	if (conn->chain == nil)
-		sysfatal("can't read certificate");
-	conn->cert = conn->chain->pem;
-	conn->certlen = conn->chain->pemlen;
-	conn->chain = conn->chain->next;
+	conn->cert = readcert(cert, &conn->certlen);
 	if(debug)
 		conn->trace = reporter;
 
