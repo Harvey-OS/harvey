@@ -15,8 +15,6 @@
 #include "fns.h"
 #include "whack.h"
 
-#define ROUNDUP(x,n)		(((x)+(n)-1)&~((n)-1))
-
 #pragma varargck type "z" uvlong
 #pragma varargck type "z" vlong
 #pragma varargck type "t" uint
@@ -796,7 +794,7 @@ guessgeometry(void)
 		ap.arenabase = bestdiff;
 	}
 
-	ap.tabbase = ROUNDUP(PartBlank+HeadSize, ap.blocksize);
+	ap.tabbase = (PartBlank+HeadSize+ap.blocksize-1) & ~(ap.blocksize-1);
 	/*
 	 * XXX pick up table, check arenabase.
 	 * XXX pick up table, record base name.
@@ -808,7 +806,8 @@ guessgeometry(void)
 	 */
 	if(ap.arenabase == 0){
 		for(i=0; i<nelem(tabsizes); i++){
-			ap.arenabase = ROUNDUP(PartBlank+HeadSize, ap.blocksize);
+			ap.arenabase = (PartBlank + HeadSize + tabsizes[i] + 
+				ap.blocksize - 1) & ~(ap.blocksize - 1);
 			p = pagein(ap.arenabase, Block);
 			if(u32(p) == ArenaHeadMagic)
 				break;

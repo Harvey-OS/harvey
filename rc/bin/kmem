@@ -1,6 +1,5 @@
 #!/bin/rc
-# kmem [kernel] - print summary of allocate blocks in running kernel
-rfork e
+
 if(! ~ $#* 0 1){
 	echo 'usage: kmem [kernel]' >[1=2]
 	exit usage
