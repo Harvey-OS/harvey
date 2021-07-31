@@ -1,11 +1,9 @@
 #include "stdinc.h"
-#include <ctype.h>
 
 #include "9.h"
 
 int Dflag;
 char* none = "none";
-
 int stdfd[2];
 
 static void
@@ -23,10 +21,9 @@ static void
 readCmdPart(char *file, char ***pcmd, int *pncmd)
 {
 	char buf[1024+1], *f[1024];
-	char tbuf[1024];
 	int nf;
 	int i, fd, n;
-	char **cmd, *p;
+	char **cmd;
 	int ncmd;
 
 	cmd = *pcmd;
@@ -49,13 +46,6 @@ readCmdPart(char *file, char ***pcmd, int *pncmd)
 		if(f[i][0] == '#')
 			continue;
 		cmd = vtMemRealloc(cmd, (ncmd+1)*sizeof(char*));
-		/* expand argument '*' to mean current file */
-		if((p = strchr(f[i], '*')) && (p==f[i]||isspace(p[-1])) && (p[1]==0||isspace(p[1]))){
-			memmove(tbuf, f[i], p-f[i]);
-			strecpy(tbuf+(p-f[i]), tbuf+sizeof tbuf, file);
-			strecpy(tbuf+strlen(tbuf), tbuf+sizeof tbuf, p+1);
-			f[i] = tbuf;
-		}
 		cmd[ncmd++] = vtStrDup(f[i]);
 	}
 	close(fd);

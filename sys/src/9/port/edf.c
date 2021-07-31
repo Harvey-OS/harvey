@@ -573,6 +573,7 @@ testschedulability(Proc *theproc)
 	}
 	H=0;
 	G=0;
+	ticks = 0;
 	for(steps = 0; steps < Maxsteps; steps++){
 		p = qschedulability;
 		qschedulability = p->edf->testnext;

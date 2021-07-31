@@ -5,7 +5,6 @@
 #include	"fns.h"
 #include	"ureg.h"
 #include	"../port/error.h"
-#include	"tos.h"
 
 static Lock vctllock;
 static Vctl *vctl[256];
@@ -135,20 +134,6 @@ char *regname[]={
 };
 
 void
-kexit(Ureg*)
-{
-	uvlong t;
-	Tos *tos;
-
-	/* precise time accounting, kernel exit */
-	tos = (Tos*)(USTKTOP-sizeof(Tos));
-	cycles(&t);
-	tos->kcycles += t - up->kentry;
-	tos->pcycles = up->pcycles;
-	tos->pid = up->pid;
-}
-
-void
 trap(Ureg *ureg)
 {
 	int ecode, user;
@@ -156,10 +141,9 @@ trap(Ureg *ureg)
 
 	ecode = (ureg->cause >> 8) & 0xff;
 	user = (ureg->srr1 & MSR_PR) != 0;
-	if(user){
-		cycles(&up->kentry);
+	if(user)
 		up->dbgreg = ureg;
-	}
+
 	if(ureg->status & MSR_RI == 0)
 		print("double fault?: ecode = %d\n", ecode);
 
@@ -177,8 +161,12 @@ trap(Ureg *ureg)
 			dumpregs(ureg);
 			panic("kernel fault");
 		}
+		if (up->mmureg)
+			panic("recursing");
 		up->mmureg = ureg;
+		up->mmuinstr = 0;
 		faultpower(ureg, ureg->dar, (ureg->dsisr & BIT(6)) == 0);
+		up->mmureg = nil;
 		break;
 	case CISI:
 		m->pfault++;
@@ -186,41 +174,54 @@ trap(Ureg *ureg)
 			dumpregs(ureg);
 			panic("kernel fault");
 		}
+		if (up->mmureg)
+			panic("recursing");
 		up->mmureg = ureg;
+		up->mmuinstr = 0;
 		faultpower(ureg, ureg->pc, 1);
+		up->mmureg = nil;
 		break;
 	case CIMISS:	/* instruction miss */
 		if (up == nil){
 			dumpregs(ureg);
 			panic("kernel fault");
 		}
+		if (up->mmureg)
+			panic("recursing");
 		up->mmureg = ureg;
+		up->mmuinstr = 0;
 		faultpower(ureg, ureg->imiss, 1);
+		up->mmureg = nil;
 		break;
 	case CLMISS:	/* data load miss */
 		if (up == nil){
 			dumpregs(ureg);
 			panic("kernel fault");
 		}
+		if (up->mmureg)
+			panic("recursing");
 		up->mmureg = ureg;
+		up->mmuinstr = 0;
 		faultpower(ureg, ureg->dmiss, 1);
+		up->mmureg = nil;
 		break;
 	case CSMISS:	/* data store miss */
 		if (up == nil){
 			dumpregs(ureg);
 			panic("kernel fault");
 		}
+		if (up->mmureg)
+			panic("recursing");
 		up->mmureg = ureg;
+		up->mmuinstr = 0;
 		faultpower(ureg, ureg->dmiss, 0);
+		up->mmureg = nil;
 		break;
 
 	case CSYSCALL:
 		if(!user)
 			panic("syscall in kernel: srr1 0x%4.4luX\n", ureg->srr1);
 		syscall(ureg);
-		if (up->delaysched)
-			sched();
-		kexit(ureg);
 		return;		/* syscall() calls notify itself, don't do it again */
 
 	case CFPU:
@@ -295,9 +296,6 @@ trap(Ureg *ureg)
 		notify(ureg);
 		if(up->fpstate != FPactive)
 			ureg->srr1 &= ~MSR_FP;
-		if (up->delaysched)
-			sched();
-		kexit(ureg);
 	}
 }
 
@@ -375,35 +373,21 @@ setmvec(int v, void (*r)(void), void (*t)(void))
 		vp[n] = (18<<26)|(pa&0x3FFFFFC)|3;	/* bla */
 }
 
-int intrstack[5];
-uvlong intrtime[5];
-vlong lastoffset;
-int inintr;
-
 void
 intr(Ureg *ureg)
 {
 	int vno;
 	Vctl *ctl, *v;
+	static int inintr;
 
-#ifdef notdef
-	if (inintr > 4){
-		int i;
-		for(i = 0; i != inintr; i++)
-			iprint("intr[%d] %d %.lld\n", i, intrstack[i], intrtime[i]);
-		iprint("current vector %d, lastoffset %lld, %.lld\n", intvec(), lastoffset,
-				fastticks(nil));
+	if (inintr > 4)
 		panic("recursing");
-	}
 	inintr++;
-#endif
 	vno = intvec();
-
-//	intrstack[inintr - 1] = vno;
 
 	if(vno > nelem(vctl) || (ctl = vctl[vno]) == 0) {
 		iprint("spurious intr %d\n", vno);
-//		inintr--;
+		inintr--;
 		return;
 	}
 
@@ -413,7 +397,9 @@ intr(Ureg *ureg)
 	}
 
 	intend(vno);	/* reenable the interrupt */
-//	inintr--;
+
+	inintr--;
+
 	preempted();
 }
 
@@ -567,7 +553,7 @@ execregs(ulong entry, ulong ssize, ulong nargs)
 	ureg->pc = entry;
 	ureg->srr1 &= ~MSR_FP;		/* disable floating point */
 	up->fpstate = FPinit;
-	return USTKTOP-sizeof(Tos);		/* address of kernel/user shared data */
+	return USTKTOP-BY2WD;		/* address of user-level clock */
 }
 
 void

@@ -165,6 +165,7 @@ timerintr(Ureg *u, uvlong)
 	callhzclock = 0;
 	tt = &timers[m->machno];
 	now = fastticks(nil);
+	when = 0;
 	ilock(tt);
 	while(t = tt->head){
 		when = t->twhen;

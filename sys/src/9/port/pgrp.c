@@ -151,10 +151,10 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 	/*
 	 * Allocate mount ids in the same sequence as the parent group
 	 */
-	lock(&mountid);
+	lock(&mountid.l);
 	for(m = order; m; m = m->order)
 		m->copy->mountid = mountid.ref++;
-	unlock(&mountid);
+	unlock(&mountid.l);
 	wunlock(&from->ns);
 }
 

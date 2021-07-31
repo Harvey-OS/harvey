@@ -363,7 +363,6 @@ struct Qualpkt
 };
 
 extern Block*	compress(Tcpc*, Block*, int*);
-extern void	compress_error(Tcpc*);
 extern Tcpc*	compress_init(Tcpc*);
 extern int	compress_negotiate(Tcpc*, uchar*);
 extern Block*	tcpcompress(Tcpc*, Block*, int*);

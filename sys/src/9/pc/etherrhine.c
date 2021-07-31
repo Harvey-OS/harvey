@@ -25,8 +25,8 @@ typedef struct Desc Desc;
 typedef struct Ctlr Ctlr;
 
 enum {
-	Ntxd = 8,
-	Nrxd = 16,
+	Ntxd = 4,
+	Nrxd = 4,
 	Nwait = 50,
 	Ntxstats = 9,
 	Nrxstats = 8,

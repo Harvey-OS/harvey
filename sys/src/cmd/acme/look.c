@@ -319,7 +319,6 @@ isfilec(Rune r)
 	return FALSE;
 }
 
-/* Runestr wrapper for cleanname */
 Runestr
 cleanrname(Runestr rs)
 {

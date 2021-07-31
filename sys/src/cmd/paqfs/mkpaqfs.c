@@ -138,7 +138,6 @@ PaqDir *
 paqFile(char *name, Dir *dir)
 {
 	int fd, n, nn, nb;
-	vlong tot;
 	uchar *block, *pointer;
 	ulong offset;
 
@@ -152,14 +151,12 @@ paqFile(char *name, Dir *dir)
 	pointer = emallocz(blocksize);
 	nb = 0;
 	n = 0;
-	tot = 0;
 	for(;;) {
 		nn = read(fd, block+n, blocksize-n);
 		if(nn < 0) {
 			warn("read failed: %s: %r", name);
 			goto Err;
 		}
-		tot += nn;
 		if(nn == 0) {	
 			if(n == 0)
 				break;	
@@ -185,7 +182,6 @@ paqFile(char *name, Dir *dir)
 	close(fd);
 	free(pointer);
 	free(block);
-	dir->length = tot;
 	return paqDirAlloc(dir, offset);
 Err:
 	close(fd);
@@ -405,16 +401,9 @@ paqDirSize(PaqDir *d)
 void
 putHeader(uchar *p, PaqHeader *h)
 {
-	if(h->blocksize < 65536){
-		putl(p, h->magic);
-		puts(p+4, h->version);
-		puts(p+6, h->blocksize);
-	}else{
-		assert(h->magic == HeaderMagic);
-		puts(p, BigHeaderMagic);
-		puts(p+2, h->version);
-		putl(p+4, h->blocksize);
-	}
+	putl(p, h->magic);
+	puts(p+4, h->version);
+	puts(p+6, h->blocksize);
 	putl(p+8, h->time);
 	memmove(p+12, h->label, sizeof(h->label));
 }
@@ -430,14 +419,8 @@ putTrailer(uchar *p, PaqTrailer *h)
 void
 putBlock(uchar *p, PaqBlock *b)
 {
-	if(b->size < 65536){
-		putl(p, b->magic);
-		puts(p+4, b->size);
-	}else{
-		assert(b->magic == BlockMagic);
-		puts(p, BigBlockMagic);
-		putl(p+2, b->size);
-	}
+	putl(p, b->magic);
+	puts(p+4, b->size);
 	p[6] = b->type;
 	p[7] = b->encoding;
 	putl(p+8, b->adler32);

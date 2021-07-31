@@ -57,7 +57,6 @@ enum
 	CMhalt,
 	CMreboot,
 	CMpanic,
-	CMcoop, /* RSC */
 };
 
 Cmdtab rebootmsg[] =
@@ -65,7 +64,6 @@ Cmdtab rebootmsg[] =
 	CMhalt,		"halt",		1,
 	CMreboot,	"reboot",	0,
 	CMpanic,	"panic",	0,
-	CMcoop,	"coop",	0, /* RSC */
 };
 
 void
@@ -96,10 +94,6 @@ prflush(void)
 			break;
 }
 
-/*
- * Log console output so it can be retrieved via /dev/kmesg.
- * This is good for catching boot-time messages after the fact.
- */
 struct {
 	Lock lk;
 	char buf[16384];
@@ -1017,11 +1011,6 @@ conswrite(Chan *c, void *va, long n, vlong off)
 		case CMpanic:
 			*(ulong*)0=0;
 			panic("/dev/reboot");
-		case CMcoop: /* RSC */
-			{extern int coopsched; coopsched = !coopsched;
-			print("coopsched %d\n", coopsched);
-			}
-			break;
 		}
 		poperror();
 		free(cb);
