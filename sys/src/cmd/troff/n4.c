@@ -713,19 +713,21 @@ void casenr(void)
 	lgf++;
 	skip();
 	if ((i = findr(getrq())) == -1)
-		return;
+		goto rtn;
 	skip();
 	j = inumb(&numtabp[i].val);
 	if (nonumb)
-		return;
+		goto rtn;
 	numtabp[i].val = j;
 	skip();
 	trace = 0;
 	j = atoi0();		/* BUG??? */
 	trace = savtr;
 	if (nonumb)
-		return;
+		goto rtn;
 	numtabp[i].inc = j;
+rtn:
+	return;
 }
 
 void caseaf(void)
