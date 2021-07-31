@@ -1,6 +1,6 @@
 /*
  * summary.c
- * Copyright (C) 2002-2005 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 2002,2003 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Read the summary information of a Word document
@@ -49,7 +49,7 @@ static USHORT	usLid = (USHORT)-1;
 void
 vDestroySummaryInfo(void)
 {
-	TRACE_MSG("vDestroySummaryInfo");
+	DBG_MSG("vDestroySummaryInfo");
 
 	szTitle = xfree(szTitle);
 	szSubject = xfree(szSubject);
@@ -135,23 +135,47 @@ tConvertDosDate(const char *szDosDate)
 } /* end of tConvertDosDate */
 
 /*
+ * tConvertDTTM - convert Windows Date and Time format
+ *
+ * returns Unix time_t or -1
+ */
+static time_t
+tConvertDTTM(ULONG ulDTTM)
+{
+	struct tm	tTime;
+	time_t		tResult;
+
+	if (ulDTTM == 0) {
+		return (time_t)-1;
+	}
+	memset(&tTime, 0, sizeof(tTime));
+	tTime.tm_min = (int)(ulDTTM & 0x0000003f);
+	tTime.tm_hour = (int)((ulDTTM & 0x000007c0) >> 6);
+	tTime.tm_mday = (int)((ulDTTM & 0x0000f800) >> 11);
+	tTime.tm_mon = (int)((ulDTTM & 0x000f0000) >> 16);
+	tTime.tm_year = (int)((ulDTTM & 0x1ff00000) >> 20);
+	tTime.tm_isdst = -1;
+	tTime.tm_mon--;		/* From 01-12 to 00-11 */
+	tResult = mktime(&tTime);
+	NO_DBG_MSG(ctime(&tResult));
+	return tResult;
+} /* end of tConvertDTTM */
+
+/*
  * szLpstr - get a zero terminate string property
  */
 static char *
 szLpstr(ULONG ulOffset, const UCHAR *aucBuffer)
 {
 	char	*szStart, *szResult, *szTmp;
-	size_t	tSize;
+	size_t	tTmp;
 
-	tSize = (size_t)ulGetLong(ulOffset + 4, aucBuffer);
-	NO_DBG_DEC(tSize);
-	if (tSize == 0) {
-		return NULL;
-	}
+	tTmp = (size_t)ulGetLong(ulOffset + 4, aucBuffer);
+	NO_DBG_DEC(tTmp);
+	NO_DBG_MSG(aucBuffer + ulOffset + 8);
 	/* Remove white space from the start of the string */
 	szStart = (char *)aucBuffer + ulOffset + 8;
-	NO_DBG_MSG(szStart);
-	fail(strlen(szStart) >= tSize);
+	fail(strlen(szStart) >= tTmp);
 	while (isspace(*szStart)) {
 		szStart++;
 	}
@@ -205,7 +229,7 @@ tFiletime(ULONG ulOffset, const UCHAR *aucBuffer)
 } /* end of tFiletime */
 
 /*
- * vAnalyseSummaryInfo - analyse the summary information
+ * vAnalyseSummaryInfo -
  */
 static void
 vAnalyseSummaryInfo(const UCHAR *aucBuffer)
@@ -262,7 +286,7 @@ vAnalyseSummaryInfo(const UCHAR *aucBuffer)
 } /* end of vAnalyseSummaryInfo */
 
 /*
- * vAnalyseDocumentSummaryInfo - analyse the document summary information
+ * vAnalyseDocumentSummaryInfo -
  */
 static void
 vAnalyseDocumentSummaryInfo(const UCHAR *aucBuffer)
@@ -427,8 +451,6 @@ vSet0SummaryInfo(FILE *pFile, const UCHAR *aucHeader)
 	size_t	tLen;
 	USHORT	usCodepage, usOffset;
 
-	TRACE_MSG("vSet0SummaryInfo");
-
 	fail(pFile == NULL || aucHeader == NULL);
 
 	/* First check the header */
@@ -492,8 +514,6 @@ vSet2SummaryInfo(FILE *pFile, int iWordVersion, const UCHAR *aucHeader)
 	ULONG	ulBeginSumdInfo, ulBeginDocpInfo, ulTmp;
 	size_t	tSumdInfoLen, tDocpInfoLen, tLen, tCounter, tStart;
 
-	TRACE_MSG("vSet2SummaryInfo");
-
 	fail(pFile == NULL || aucHeader == NULL);
 	fail(iWordVersion != 1 && iWordVersion != 2);
 
@@ -502,32 +522,19 @@ vSet2SummaryInfo(FILE *pFile, int iWordVersion, const UCHAR *aucHeader)
 	DBG_HEX(usLid);
 	if (usLid < 999 && iWordVersion == 1) {
 		switch (usLid) {
-		case   1: usLid = 0x0409; break;	/* American English */
-		case   2: usLid = 0x0c0c; break;	/* Canadian French */
-		case  31: usLid = 0x0413; break;	/* Dutch */
-		case  33: usLid = 0x040c; break;	/* French */
-		case  34: usLid = 0x040a; break;	/* Spanish */
-		case  36: usLid = 0x040e; break;	/* Hungarian */
-		case  39: usLid = 0x0410; break;	/* Italian */
-		case  44: usLid = 0x0809; break;	/* British English */
-		case  45: usLid = 0x0406; break;	/* Danish */
-		case  46: usLid = 0x041f; break;	/* Swedish */
-		case  47: usLid = 0x0414; break;	/* Norwegian */
-		case  48: usLid = 0x0415; break;	/* Polish */
-		case  49: usLid = 0x0407; break;	/* German */
-		case 351: usLid = 0x0816; break;	/* Portuguese */
-		case 358: usLid = 0x040b; break;	/* Finnish */
+		case  1: usLid = 0x0409; break;	/* American English */
+		case  2: usLid = 0x0c0c; break;	/* Canadian French */
+		case 31: usLid = 0x0413; break;	/* Dutch */
+		case 33: usLid = 0x040c; break;	/* French */
+		case 34: usLid = 0x040a; break;	/* Spanish */
+		case 44: usLid = 0x0809; break;	/* British English */
+		case 49: usLid = 0x0407; break;	/* German */
 		default:
 			DBG_DEC(usLid);
 			DBG_FIXME();
 			usLid = 0x0409;		/* American English */
 			break;
 		}
-	}
-
-	if (iWordVersion != 2) {
-		/* Unknown where to find the associated strings */
-		return;
 	}
 
 	/* Second check the associated strings */
@@ -551,7 +558,7 @@ vSet2SummaryInfo(FILE *pFile, int iWordVersion, const UCHAR *aucHeader)
 	DBG_DEC_C(tSumdInfoLen != tLen, tSumdInfoLen);
 	DBG_DEC_C(tSumdInfoLen != tLen, tLen);
 	tStart = 1;
-	for (tCounter = 0; tCounter < 17; tCounter++) {
+	for (tCounter = 0; tCounter < 18; tCounter++) {
 		if (tStart >= tSumdInfoLen) {
 			break;
 		}
@@ -648,8 +655,6 @@ vSet6SummaryInfo(FILE *pFile, const pps_info_type *pPPS,
 	const ULONG *aulSBD, size_t tSBDLen,
 	const UCHAR *aucHeader)
 {
-	TRACE_MSG("vSet6SummaryInfo");
-
 	/* Header Information */
 	usLid = usGetWord(0x06, aucHeader); /* Language IDentification */
 	DBG_HEX(usLid);
@@ -668,8 +673,6 @@ vSet8SummaryInfo(FILE *pFile, const pps_info_type *pPPS,
 	const UCHAR *aucHeader)
 {
 	USHORT	usTmp;
-
-	TRACE_MSG("vSet8SummaryInfo");
 
 	/* Header Information */
 	usTmp = usGetWord(0x0a, aucHeader);
@@ -733,50 +736,6 @@ szGetLastSaveDtm(void)
 		pTime->tm_year + 1900, pTime->tm_mon + 1, pTime->tm_mday);
 	return szTime;
 } /* end of szGetLastSaveDtm */
-
-/*
- * szGetModDate - get the last save date field
- */
-const char *
-szGetModDate(void)
-{
-	static char	szTime[20];
-	struct tm	*pTime;
-
-	if (tLastSaveDtm == (time_t)-1) {
-		return NULL;
-	}
-	pTime = localtime(&tLastSaveDtm);
-	if (pTime == NULL) {
-		return NULL;
-	}
-	sprintf(szTime, "D:%04d%02d%02d%02d%02d",
-		pTime->tm_year + 1900, pTime->tm_mon + 1, pTime->tm_mday,
-		pTime->tm_hour, pTime->tm_min);
-	return szTime;
-} /* end of szGetModDate */
-
-/*
- * szGetCreationDate - get the last save date field
- */
-const char *
-szGetCreationDate(void)
-{
-	static char	szTime[20];
-	struct tm	*pTime;
-
-	if (tCreateDtm == (time_t)-1) {
-		return NULL;
-	}
-	pTime = localtime(&tCreateDtm);
-	if (pTime == NULL) {
-		return NULL;
-	}
-	sprintf(szTime, "D:%04d%02d%02d%02d%02d",
-		pTime->tm_year + 1900, pTime->tm_mon + 1, pTime->tm_mday,
-		pTime->tm_hour, pTime->tm_min);
-	return szTime;
-} /* end of szGetCreationDate */
 
 /*
  * szGetCompany - get the company field

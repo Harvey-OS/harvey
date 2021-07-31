@@ -1,6 +1,6 @@
 /*
  * worddos.c
- * Copyright (C) 2002-2005 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 2002 A.J. van Os; Released under GPL
  *
  * Description:
  * Deal with the DOS internals of a MS Word file
@@ -96,13 +96,10 @@ iInitDocumentDOS(FILE *pFile, long lFilesize)
 	}
 	bSuccess = bGetDocumentText(pFile, lFilesize, aucHeader);
 	if (bSuccess) {
-		vGetPropertyInfo(pFile, NULL,
-				NULL, 0, NULL, 0,
-				aucHeader, iWordVersion);
 		vSetDefaultTabWidth(pFile, NULL,
 				NULL, 0, NULL, 0,
 				aucHeader, iWordVersion);
-		vGetNotesInfo(pFile, NULL,
+		vGetPropertyInfo(pFile, NULL,
 				NULL, 0, NULL, 0,
 				aucHeader, iWordVersion);
 	}

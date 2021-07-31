@@ -1,6 +1,6 @@
 /*
  * text.c
- * Copyright (C) 1999-2004 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 1999-2003 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Functions to deal with the Text format
@@ -59,13 +59,13 @@ vPrintTXT(FILE *pFile, const char *szString, size_t tStringLength)
 		return;
 	}
 
-	if (eEncoding == encoding_utf_8) {
+	if (eEncoding == encoding_utf8) {
 		fprintf(pFile, "%.*s", (int)tStringLength, szString);
 		return;
 	}
 
 	if (ucNbsp == 0) {
-		ucNbsp = ucGetNbspCharacter();
+		ucNbsp = ucGetNbspValue();
 		DBG_HEX_C(ucNbsp != 0xa0, ucNbsp);
 	}
 
@@ -80,13 +80,13 @@ vPrintTXT(FILE *pFile, const char *szString, size_t tStringLength)
 } /* end of vPrintTXT */
 
 /*
- * vMoveTo - move to the given X,Y coordinates
+ * vMoveToTXT - move to the given X,Y coordinates (Text)
  *
  * Move the current position of the given diagram to its X,Y coordinates,
  * start on a new page if needed
  */
 static void
-vMoveTo(diagram_type *pDiag)
+vMoveToTXT(diagram_type *pDiag)
 {
 	int	iCount, iNbr;
 
@@ -100,7 +100,7 @@ vMoveTo(diagram_type *pDiag)
 		}
 		lYtopCurr = pDiag->lYtop;
 	}
-} /* end of vMoveTo */
+} /* end of vMoveToTXT */
 
 /*
  * vMove2NextLineTXT - move to the next line
@@ -131,7 +131,7 @@ vSubstringTXT(diagram_type *pDiag,
 		return;
 	}
 
-	vMoveTo(pDiag);
+	vMoveToTXT(pDiag);
 	vPrintTXT(pDiag->pOutFile, szString, tStringLength);
 	pDiag->lXleft += lStringWidth;
 } /* end of vSubstringTXT */

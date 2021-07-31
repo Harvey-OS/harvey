@@ -7,40 +7,39 @@
  */
 
 #include <string.h>
-#include "DeskLib:Error.h"
-#include "DeskLib:WimpSWIs.h"
+#include "wimpt.h"
 #include "antiword.h"
 
 void
-vUpdateIcon(window_handle tWindow, icon_block *pIcon)
+vUpdateIcon(wimp_w tWindow, wimp_icon *pIcon)
 {
-	window_redrawblock	tRedraw;
+	wimp_redrawstr	r;
 	BOOL		bMore;
 
-	tRedraw.window = tWindow;
-	tRedraw.rect = pIcon->workarearect;
-	Error_CheckFatal(Wimp_UpdateWindow(&tRedraw, &bMore));
+	r.w = tWindow;
+	r.box = pIcon->box;
+	wimpt_noerr(wimp_update_wind(&r, &bMore));
 	while (bMore) {
-		Error_CheckFatal(Wimp_PlotIcon(pIcon));
-		Error_CheckFatal(Wimp_GetRectangle(&tRedraw, &bMore));
+		(void)wimp_ploticon(pIcon);
+		wimpt_noerr(wimp_get_rectangle(&r, &bMore));
 	}
 } /* end of vUpdateIcon */
 
 void
-vUpdateRadioButton(window_handle tWindow, icon_handle tIconNumber,
-	BOOL bSelected)
+vUpdateRadioButton(wimp_w tWindow, wimp_i tIconNumber, BOOL bSelected)
 {
-	icon_block	tIcon;
+	wimp_icon	tIcon;
 
-	Error_CheckFatal(Wimp_GetIconState(tWindow, tIconNumber, &tIcon));
+	wimpt_noerr(wimp_get_icon_info(tWindow, tIconNumber, &tIcon));
 	DBG_DEC(tIconNumber);
-	DBG_HEX(tIcon.flags.data.selected);
-	if (bSelected == (tIcon.flags.data.selected == 1)) {
+	DBG_HEX(tIcon.flags);
+	if (bSelected ==
+	    ((tIcon.flags & wimp_ISELECTED) == wimp_ISELECTED)) {
 		/* No update needed */
 		return;
 	}
-	Error_CheckFatal(Wimp_SetIconState(tWindow, tIconNumber,
-			bSelected ? 0x00200000 : 0, 0x00200000));
+	wimpt_noerr(wimp_set_icon_state(tWindow, tIconNumber,
+			bSelected ? wimp_ISELECTED : 0, wimp_ISELECTED));
 	vUpdateIcon(tWindow, &tIcon);
 } /* end of vUpdateRadioButton */
 
@@ -48,11 +47,10 @@ vUpdateRadioButton(window_handle tWindow, icon_handle tIconNumber,
  * vUpdateWriteable - update a writeable icon with a string
  */
 void
-vUpdateWriteable(window_handle tWindow, icon_handle tIconNumber,
-	const char *szString)
+vUpdateWriteable(wimp_w tWindow, wimp_i tIconNumber, char *szString)
 {
-	icon_block	tIcon;
-	caret_block	tCaret;
+	wimp_icon	tIcon;
+	wimp_caretstr	tCaret;
 	int		iLen;
 
 	fail(szString == NULL);
@@ -60,9 +58,10 @@ vUpdateWriteable(window_handle tWindow, icon_handle tIconNumber,
 	NO_DBG_DEC(tIconNumber);
 	NO_DBG_MSG(szString);
 
-	Error_CheckFatal(Wimp_GetIconState(tWindow, tIconNumber, &tIcon));
+	wimpt_noerr(wimp_get_icon_info(tWindow, tIconNumber, &tIcon));
 	NO_DBG_HEX(tIcon.flags);
-	if (!tIcon.flags.data.text || !tIcon.flags.data.indirected) {
+	if ((tIcon.flags & (wimp_ITEXT|wimp_INDIRECT)) !=
+	    (wimp_ITEXT|wimp_INDIRECT)) {
 		werr(1, "Icon %d must be indirected text", (int)tIconNumber);
 		return;
 	}
@@ -70,15 +69,15 @@ vUpdateWriteable(window_handle tWindow, icon_handle tIconNumber,
 		szString,
 		tIcon.data.indirecttext.bufflen - 1);
 	/* Ensure the caret is behind the last character of the text */
-	Error_CheckFatal(Wimp_GetCaretPosition(&tCaret));
-	if (tCaret.window == tWindow && tCaret.icon == tIconNumber) {
+	wimpt_noerr(wimp_get_caret_pos(&tCaret));
+	if (tCaret.w == tWindow && tCaret.i == tIconNumber) {
 		iLen = strlen(tIcon.data.indirecttext.buffer);
 		if (tCaret.index != iLen) {
 			tCaret.index = iLen;
-			Error_CheckFatal(Wimp_SetCaretPosition(&tCaret));
+			wimpt_noerr(wimp_set_caret_pos(&tCaret));
 		}
 	}
-	Error_CheckFatal(Wimp_SetIconState(tWindow, tIconNumber, 0, 0));
+	wimpt_noerr(wimp_set_icon_state(tWindow, tIconNumber, 0,0));
 	vUpdateIcon(tWindow, &tIcon);
 } /* end of vUpdateWriteable */
 
@@ -86,10 +85,9 @@ vUpdateWriteable(window_handle tWindow, icon_handle tIconNumber,
  * vUpdateWriteableNumber - update a writeable icon with a number
  */
 void
-vUpdateWriteableNumber(window_handle tWindow, icon_handle tIconNumber,
-	int iNumber)
+vUpdateWriteableNumber(wimp_w tWindow, wimp_i tIconNumber, int iNumber)
 {
-	char	szTmp[1+3*sizeof(int)+1];
+	char	szTmp[12];
 
 	(void)sprintf(szTmp, "%d", iNumber);
 	vUpdateWriteable(tWindow, tIconNumber, szTmp);

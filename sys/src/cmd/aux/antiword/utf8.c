@@ -1,6 +1,6 @@
 /*
  * utf8.c
- * Copyright (C) 2001-2004 A.J. van Os; Released under GPL
+ * Copyright (C) 2001-2003 A.J. van Os; Released under GPL
  *
  *====================================================================
  * This part of the software is based on:
@@ -154,45 +154,42 @@ iWcWidth(ULONG ucs)
  * Fills in the number of bytes in the UTF-8 character
  */
 static ULONG
-utf8_to_ucs(const char *p, int iStrLen, int *piUtfLen)
+utf8_to_ucs(const char *p, int *utflen)
 {
-	ULONG	ulUcs;
-	int	iIndex, iCharLen;
+	ULONG	wc;
+	int	j, charlen;
 
-	fail(p == NULL || piUtfLen == NULL);
-	fail(iStrLen < 1);
+	fail(p == NULL || utflen == NULL);
 
-	ulUcs = (ULONG)(UCHAR)p[0];
+	wc = (ULONG)(UCHAR)p[0];
 
-	if (ulUcs < 0x80) {
-		*piUtfLen = 1;
-		return ulUcs;
+	if (wc < 0x80) {
+		*utflen = 1;
+		return wc;
 	}
 
-	if (ulUcs < 0xe0){
-		iCharLen = 2;
-		ulUcs &= 0x1f;
-	} else if (ulUcs < 0xf0){
-		iCharLen = 3;
-		ulUcs &= 0x0f;
-	} else if (ulUcs < 0xf8){
-		iCharLen = 4;
-		ulUcs &= 0x07;
-	} else if (ulUcs < 0xfc){
-		iCharLen = 5;
-		ulUcs &= 0x03;
+	if (wc < 0xe0){
+		charlen = 2;
+		wc &= 0x1f;
+	} else if (wc < 0xf0){
+		charlen = 3;
+		wc &= 0x0f;
+	} else if (wc < 0xf8){
+		charlen = 4;
+		wc &= 0x07;
+	} else if (wc < 0xfc){
+		charlen = 5;
+		wc &= 0x03;
 	} else {
-		iCharLen = 6;
-		ulUcs &= 0x01;
+		charlen = 6;
+		wc &= 0x01;
 	}
-	for (iIndex = 1; iIndex < iCharLen; iIndex++) {
-		ulUcs <<= 6;
-		if (iIndex < iStrLen) {
-			ulUcs |= (ULONG)(UCHAR)p[iIndex] & 0x3f;
-		}
+	for (j = 1; j < charlen; j++) {
+		wc <<= 6;
+		wc |= (UCHAR)p[j] & 0x3f;
 	}
-	*piUtfLen = iCharLen;
-	return ulUcs;
+	*utflen = charlen;
+	return wc;
 } /* end of utf8_to_ucs */
 
 /*
@@ -201,28 +198,28 @@ utf8_to_ucs(const char *p, int iStrLen, int *piUtfLen)
  * Returns the string width in columns
  */
 long
-utf8_strwidth(const char *pcString, size_t tNumchars)
+utf8_strwidth(const char *p, size_t numchars)
 {
-	ULONG	ulUcs;
-	long	lTotal;
-	int	iToGo, iWidth, iUtflen;
+	const char	*maxp;
+	ULONG	ucs;
+	long	width, totwidth;
+	int	utflen;
 
-	fail(pcString == NULL || tNumchars > (size_t)INT_MAX);
+	fail(p == NULL);
 
-	lTotal = 0;
-	iToGo = (int)tNumchars;
+	totwidth = 0;
+	maxp = p + numchars;
 
-	while (iToGo > 0 && *pcString != '\0') {
-		ulUcs = utf8_to_ucs(pcString, iToGo, &iUtflen);
-		iWidth = iWcWidth(ulUcs);
-		if (iWidth > 0) {
-			lTotal += iWidth;
+	while (*p != '\0' && p < maxp) {
+		ucs = utf8_to_ucs(p, &utflen);
+		width = iWcWidth(ucs);
+		if (width > 0) {
+			totwidth += width;
 		}
-		pcString += iUtflen;
-		iToGo -= iUtflen;
+		p += utflen;
 	}
-	NO_DBG_DEC(lTotal);
-	return lTotal;
+	NO_DBG_DEC(totwidth);
+	return totwidth;
 } /* end of utf8_strwidth */
 
 /*
@@ -233,28 +230,69 @@ utf8_strwidth(const char *pcString, size_t tNumchars)
 int
 utf8_chrlength(const char *p)
 {
-	int	iUtflen;
+	int	utflen;
 
 	fail(p == NULL);
 
-	iUtflen = -1;		/* Just to make sure */
-	(void)utf8_to_ucs(p, INT_MAX, &iUtflen);
-	NO_DBG_DEC(iUtflen);
-	return iUtflen;
+	utflen = -1;		/* Just to make sure */
+	(void)utf8_to_ucs(p, &utflen);
+	NO_DBG_DEC(utflen);
+	return utflen;
 } /* end of utf8_chrlength */
 
 /*
- * is_locale_utf8 - return TRUE if the locale is UTF-8
+ * Original version:
+ * Copyright (C) 1999  Bruno Haible
  */
 BOOL
 is_locale_utf8(void)
 {
-	char	szCodeset[20];
+	const char	*locale, *cp, *encoding;
 
-	szCodeset[0] = '\0';
-	if (!bGetNormalizedCodeset(szCodeset, sizeof(szCodeset), NULL)) {
+	/*
+	 * Determine the current locale the same way as setlocale() does,
+	 * according to POSIX.
+	 */
+	locale = getenv("LC_ALL");
+	if (locale == NULL || locale[0] == '\0') {
+		locale = getenv("LC_CTYPE");
+		if (locale == NULL || locale[0] == '\0') {
+			locale = getenv("LANG");
+		}
+	}
+
+	if (locale == NULL || locale[0] == '\0') {
 		return FALSE;
 	}
-	DBG_MSG(szCodeset);
-	return STREQ(szCodeset, "utf8");
+
+	/* The most general syntax of a locale (not all optional parts
+	 * recognized by all systems) is
+	 * language[_territory][.codeset][@modifier][+special][,[sponsor][_revision]]
+	 * To retrieve the codeset, search the first dot. Stop searching when
+	 * a '@' or '+' or ',' is encountered.
+	 */
+	for (cp = locale;
+	     *cp != '\0' && *cp != '@' && *cp != '+' && *cp != ',';
+	     cp++) {
+		if (*cp != '.') {
+			continue;
+		}
+		encoding = cp + 1;
+		for (cp = encoding;
+		     *cp != '\0' && *cp != '@' && *cp != '+' && *cp != ',';
+		     cp++)
+			;	/* EMPTY */
+		/*
+		 * The encoding is now contained in the part from encoding to
+		 * cp. Check it for "UTF-8", which is the only official IANA
+		 * name of UTF-8. Also check for the lowercase-no-dashes
+		 * version, which is what some SystemV systems use.
+		 */
+		if ((cp - encoding == 5 && STRNEQ(encoding, "UTF-8", 5)) ||
+		    (cp - encoding == 4 && STRNEQ(encoding, "utf8", 4))) {
+			return TRUE;
+		}
+		return FALSE;
+	}
+	return FALSE;
 } /* end of is_locale_utf8 */

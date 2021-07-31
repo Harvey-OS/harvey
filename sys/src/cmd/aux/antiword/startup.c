@@ -9,9 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "DeskLib:Error.h"
-#include "DeskLib:Event.h"
-#include "DeskLib:SWI.h"
+#include "kernel.h"
+#include "swis.h"
+#include "wimp.h"
+#include "wimpt.h"
 #include "antiword.h"
 
 
@@ -44,19 +45,37 @@ bIsMatch(const char *szStr1, const char *szStr2)
  *
  * returns the task handle when found, otherwise 0
  */
-static task_handle
-tGetTaskHandle(const char *szTaskname)
+static wimp_t
+tGetTaskHandle(const char *szTaskname, int iOSVersion)
 {
+	_kernel_swi_regs	regs;
+	_kernel_oserror		*e;
 	const char	*pcTmp;
-	int	iReg0, iIndex;
+	int	iIndex;
 	int	aiBuffer[4];
 	char	szTmp[21];
 
-	iReg0 = 0;
+	if (iOSVersion < 310) {
+		/*
+		 * SWI TaskManager_EnumerateTasks does not
+		 * exist in earlier versions of RISC OS
+		 */
+		return 0;
+	}
+
+	(void)memset((void *)&regs, 0, sizeof(regs));
+	regs.r[0] = 0;
+
 	do {
 		/* Get info on the next task */
-		Error_CheckFatal(SWI(3, 1, TaskManager_EnumerateTasks | XOS_Bit,
-			iReg0, aiBuffer, sizeof(aiBuffer), &iReg0));
+		regs.r[1] = (int)aiBuffer;
+		regs.r[2] = sizeof(aiBuffer);
+		e = _kernel_swi(TaskManager_EnumerateTasks, &regs, &regs);
+		if (e != NULL) {
+			werr(1, "TaskManager_EnumerateTasks error %d: %s",
+				e->errnum, e->errmess);
+			exit(EXIT_FAILURE);
+		}
 		/* Copy the (control character terminated) task name */
 		for (iIndex = 0, pcTmp = (const char *)aiBuffer[1];
 		     iIndex < elementsof(szTmp);
@@ -70,9 +89,9 @@ tGetTaskHandle(const char *szTaskname)
 		szTmp[elementsof(szTmp) - 1] = '\0';
 		if (bIsMatch(szTmp, szTaskname)) {
 			/* Task found */
-			return (task_handle)aiBuffer[0];
+			return (wimp_t)aiBuffer[0];
 		}
-	} while (iReg0 >= 0);
+	} while (regs.r[0] >= 0);
 
 	/* Task not found */
 	return 0;
@@ -81,25 +100,25 @@ tGetTaskHandle(const char *szTaskname)
 int
 main(int argc, char **argv)
 {
-	message_block	tMsg;
-	task_handle	tTaskHandle;
+	wimp_msgstr	tMsg;
+	wimp_t	tTaskHandle;
 	size_t	tArgLen;
-	int	aiMessages[] = {0};
+	int	iVersion;
 	char	szCommand[512];
 
-	Event_Initialise3("StartUp", 310, aiMessages);
+	iVersion = wimpt_init("StartUp");
 
 	if (argc > 1) {
 		tArgLen = strlen(argv[1]);
 	} else {
 		tArgLen = 0;
 	}
-	if (tArgLen >= sizeof(tMsg.data.dataload.filename)) {
+	if (tArgLen >= sizeof(tMsg.data.dataload.name)) {
 		werr(1, "Input filename too long");
 		return EXIT_FAILURE;
 	}
 
-	tTaskHandle = tGetTaskHandle("antiword");
+	tTaskHandle = tGetTaskHandle("antiword", iVersion);
 
 	if (tTaskHandle == 0) {
 		/* Antiword is not active */
@@ -119,23 +138,18 @@ main(int argc, char **argv)
 
 	/* Antiword is active */
 	if (argc > 1) {
-		/*
-		 * Send the argument to Antiword by imitating a
-		 * drag-and-drop to Antiword's iconbar icon
-		 */
-		memset(&tMsg, 0, sizeof(tMsg));
-		tMsg.header.size = ROUND4(offsetof(message_block, data) +
-					offsetof(message_dataload, filename) +
+		/* Send the argument to Antiword */
+		tMsg.hdr.size = ROUND4(sizeof(tMsg) -
+					sizeof(tMsg.data.dataload.name) +
 					1 + tArgLen);
-		tMsg.header.yourref = 0;
-		tMsg.header.action = message_DATALOAD;
-		tMsg.data.dataload.window = window_ICONBAR;
-		tMsg.data.dataload.icon = -1;
+		tMsg.hdr.your_ref = 0;
+		tMsg.hdr.action = wimp_MDATALOAD;
+		tMsg.data.dataload.w = -1;
 		tMsg.data.dataload.size = 0;
-		tMsg.data.dataload.filetype = FILETYPE_MSWORD;
-		strcpy(tMsg.data.dataload.filename, argv[1]);
-		Error_CheckFatal(Wimp_SendMessage(event_SEND,
-						&tMsg, tTaskHandle, 0));
+		tMsg.data.dataload.type = FILETYPE_MSWORD;
+		strcpy(tMsg.data.dataload.name, argv[1]);
+		wimpt_noerr(wimp_sendmessage(wimp_ESEND,
+						&tMsg, tTaskHandle));
 		return EXIT_SUCCESS;
 	} else {
 		/* Give an error message and return */

@@ -1,6 +1,6 @@
 /*
  * fonts_u.c
- * Copyright (C) 1999-2004 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 1999-2002 A.J. van Os; Released under GPL
  *
  * Description:
  * Functions to deal with fonts (Unix version)
@@ -27,12 +27,10 @@ FILE *
 pOpenFontTableFile(void)
 {
 	FILE		*pFile;
-	const char	*szHome, *szAntiword, *szGlobalFile;
+	const char	*szHome, *szAntiword;
+	const char	*szGlobalFile;
 	char		szEnvironmentFile[PATH_MAX+1];
 	char		szLocalFile[PATH_MAX+1];
-
-	szEnvironmentFile[0] = '\0';
-	szLocalFile[0] = '\0';
 
 	/* Try the environment version of the fontnames file */
 	szAntiword = szGetAntiwordDirectory();
@@ -49,7 +47,7 @@ pOpenFontTableFile(void)
 			FILE_SEPARATOR FONTNAMES_FILE);
 		DBG_MSG(szEnvironmentFile);
 
-		pFile = fopen(szEnvironmentFile, "r");
+		pFile = fopen(szLocalFile, "r");
 		if (pFile != NULL) {
 			return pFile;
 		}
@@ -83,18 +81,10 @@ pOpenFontTableFile(void)
 		return pFile;
 	}
 
-	if (szEnvironmentFile[0] != '\0') {
-		werr(0, "I can not open your fontnames file.\n"
-			"Neither '%s' nor\n"
-			"'%s' nor\n"
-			"'%s' can be opened for reading.",
-			szEnvironmentFile, szLocalFile, szGlobalFile);
-	} else {
-		werr(0, "I can not open your fontnames file.\n"
-			"Neither '%s' nor\n"
-			"'%s' can be opened for reading.",
-			szLocalFile, szGlobalFile);
-	}
+	werr(0, "I can not open your fontnames file.\n"
+		"Neither '%s' nor\n"
+		"'%s' can be opened for reading.",
+		szLocalFile, szGlobalFile);
 	return NULL;
 } /* end of pOpenFontTableFile */
 
@@ -106,8 +96,8 @@ vCloseFont(void)
 {
 	NO_DBG_MSG("vCloseFont");
 	/* For safety: to be overwritten at the next call of tOpenfont() */
-	eEncoding = encoding_neutral;
 	bUsePlainText = TRUE;
+	eEncoding = encoding_neutral;
 } /* end of vCloseFont */
 
 /*
@@ -115,13 +105,12 @@ vCloseFont(void)
  *
  * Returns the font reference number
  */
-drawfile_fontref
+draw_fontref
 tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 {
 	options_type	tOptions;
 	const char	*szOurFontname;
-	size_t	tIndex;
-	int	iFontnumber;
+	int	iIndex, iFontnumber;
 
 	NO_DBG_MSG("tOpenFont");
 	NO_DBG_DEC(ucWordFontNumber);
@@ -133,31 +122,30 @@ tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 	NO_DBG_HEX(usFontStyle);
 
 	vGetOptions(&tOptions);
-	eEncoding = tOptions.eEncoding;
 	bUsePlainText = tOptions.eConversionType != conversion_draw &&
-			tOptions.eConversionType != conversion_ps &&
-			tOptions.eConversionType != conversion_pdf;
+			tOptions.eConversionType != conversion_ps;
+	eEncoding = tOptions.eEncoding;
 
 	if (bUsePlainText) {
 		/* Plain text, no fonts */
-		return (drawfile_fontref)0;
+		return (draw_fontref)0;
 	}
 
 	iFontnumber = iGetFontByNumber(ucWordFontNumber, usFontStyle);
 	szOurFontname = szGetOurFontname(iFontnumber);
 	if (szOurFontname == NULL || szOurFontname[0] == '\0') {
 		DBG_DEC(iFontnumber);
-		return (drawfile_fontref)0;
+		return (draw_fontref)0;
 	}
 	NO_DBG_MSG(szOurFontname);
 
-	for (tIndex = 0; tIndex < elementsof(szFontnames); tIndex++) {
-		if (STREQ(szFontnames[tIndex], szOurFontname)) {
-			NO_DBG_DEC(tIndex);
-			return (drawfile_fontref)tIndex;
+	for (iIndex = 0; iIndex < (int)elementsof(szFontnames); iIndex++) {
+		if (STREQ(szFontnames[iIndex], szOurFontname)) {
+			NO_DBG_DEC(iIndex);
+			return (draw_fontref)iIndex;
 		}
 	}
-	return (drawfile_fontref)0;
+	return (draw_fontref)0;
 } /* end of tOpenFont */
 
 /*
@@ -165,7 +153,7 @@ tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
  *
  * Returns the font reference number
  */
-drawfile_fontref
+draw_fontref
 tOpenTableFont(USHORT usWordFontSize)
 {
 	options_type	tOptions;
@@ -174,20 +162,19 @@ tOpenTableFont(USHORT usWordFontSize)
 	NO_DBG_MSG("tOpenTableFont");
 
 	vGetOptions(&tOptions);
-	eEncoding = tOptions.eEncoding;
 	bUsePlainText = tOptions.eConversionType != conversion_draw &&
-			tOptions.eConversionType != conversion_ps &&
-			tOptions.eConversionType != conversion_pdf;
+			tOptions.eConversionType != conversion_ps;
+	eEncoding = tOptions.eEncoding;
 
 	if (bUsePlainText) {
 		/* Plain text, no fonts */
-		return (drawfile_fontref)0;
+		return (draw_fontref)0;
 	}
 
 	iWordFontnumber = iFontname2Fontnumber(TABLE_FONT, FONT_REGULAR);
 	if (iWordFontnumber < 0 || iWordFontnumber > (int)UCHAR_MAX) {
 		DBG_DEC(iWordFontnumber);
-		return (drawfile_fontref)0;
+		return (draw_fontref)0;
 	}
 
 	return tOpenFont((UCHAR)iWordFontnumber, FONT_REGULAR, usWordFontSize);
@@ -197,7 +184,7 @@ tOpenTableFont(USHORT usWordFontSize)
  * szGetFontname - get the fontname
  */
 const char *
-szGetFontname(drawfile_fontref tFontRef)
+szGetFontname(draw_fontref tFontRef)
 {
 	fail((size_t)(UCHAR)tFontRef >= elementsof(szFontnames));
 	return szFontnames[(int)(UCHAR)tFontRef];
@@ -213,7 +200,7 @@ szGetFontname(drawfile_fontref tFontRef)
  */
 long
 lComputeStringWidth(const char *szString, size_t tStringLength,
-	drawfile_fontref tFontRef, USHORT usFontSize)
+		draw_fontref tFontRef, USHORT usFontSize)
 {
 	USHORT	*ausCharWidths;
 	UCHAR	*pucChar;
@@ -229,7 +216,7 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 		return 0;
 	}
 
-	if (eEncoding == encoding_utf_8) {
+	if (eEncoding == encoding_utf8) {
 		fail(!bUsePlainText);
 		return lChar2MilliPoints(
 			utf8_strwidth(szString, tStringLength));
@@ -240,19 +227,14 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 		return lChar2MilliPoints(tStringLength);
 	}
 
-	if (eEncoding == encoding_cyrillic) {
-		/* FIXME: until the character tables are available */
-		return (tStringLength * 600L * (long)usFontSize + 1) / 2;
-	}
-
-	DBG_DEC_C(eEncoding != encoding_latin_1 &&
-		eEncoding != encoding_latin_2, eEncoding);
-	fail(eEncoding != encoding_latin_1 &&
-		eEncoding != encoding_latin_2);
+	DBG_DEC_C(eEncoding != encoding_iso_8859_1 &&
+		eEncoding != encoding_iso_8859_2, eEncoding);
+	fail(eEncoding != encoding_iso_8859_1 &&
+		eEncoding != encoding_iso_8859_2);
 
 	/* Compute the relative string width */
 	iFontRef = (int)(UCHAR)tFontRef;
-	if (eEncoding == encoding_latin_2) {
+	if (eEncoding == encoding_iso_8859_2) {
 		ausCharWidths = ausCharacterWidths2[iFontRef];
 	} else {
 		ausCharWidths = ausCharacterWidths1[iFontRef];
@@ -265,7 +247,7 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 	}
 
 	/* Compute the absolute string width */
-	return (lRelWidth * (long)usFontSize + 1) / 2;
+	return (lRelWidth * usFontSize + 1) / 2;
 } /* end of lComputeStringWidth */
 
 /*
@@ -281,7 +263,7 @@ tCountColumns(const char *szString, size_t tLength)
 {
 	fail(szString == NULL);
 
-	if (eEncoding != encoding_utf_8) {
+	if (eEncoding != encoding_utf8) {
 		/* One byte, one character, one column */
 		return tLength;
 	}
@@ -298,7 +280,7 @@ tGetCharacterLength(const char *szString)
 {
 	fail(szString == NULL);
 
-	if (eEncoding != encoding_utf_8) {
+	if (eEncoding != encoding_utf8) {
 		return 1;
 	}
 	return (size_t)utf8_chrlength(szString);

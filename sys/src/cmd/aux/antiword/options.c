@@ -1,6 +1,6 @@
 /*
  * options.c
- * Copyright (C) 1998-2004 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 1998-2003 A.J. van Os; Released under GPL
  *
  * Description:
  * Read and write the options
@@ -10,11 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 #if defined(__riscos)
-#include "DeskLib:Error.h"
-#include "DeskLib:Wimp.h"
+#include "wimpt.h"
 #else
 #include <stdlib.h>
-#if defined(__dos) || defined(N_PLAT_NLM)
+#if defined(__dos)
 extern int getopt(int, char **, const char *);
 #else
 #include <unistd.h>
@@ -29,8 +28,6 @@ extern int getopt(int, char **, const char *);
 #define SHOW_IMAGES		"set show_images=%d"
 #define HIDE_HIDDEN_TEXT	"set hide_hidden_text=%d"
 #define SCALE_FACTOR_START	"set scale_factor_start=%d"
-#else
-#define LEAFNAME_SIZE		(32+1)
 #endif /* __riscos */
 
 /* Current values for options */
@@ -72,9 +69,8 @@ static const options_type	tOptionsDefault = {
 	conversion_text,
 #endif /* __riscos */
 	TRUE,
-	TRUE,
 	FALSE,
-	encoding_latin_1,
+	encoding_iso_8859_1,
 	INT_MAX,
 	INT_MAX,
 	level_default,
@@ -83,189 +79,6 @@ static const options_type	tOptionsDefault = {
 	DEFAULT_SCALE_FACTOR,
 #endif /* __riscos */
 };
-
-
-#if !defined(__riscos)
-/*
- * bCorrectPapersize - see if the papersize is correct
- *
- * TRUE if the papersize is correct, otherwise FALSE
- */
-static BOOL
-bCorrectPapersize(const char *szName, conversion_type eConversionType)
-{
-	const papersize_type	*pPaperSize;
-
-	for (pPaperSize = atPaperSizes;
-	     pPaperSize->szName[0] != '\0';
-	     pPaperSize++) {
-		if (!STRCEQ(pPaperSize->szName,  szName)) {
-			continue;
-		}
-		DBG_DEC(pPaperSize->usWidth);
-		DBG_DEC(pPaperSize->usHeight);
-		tOptionsCurr.eConversionType = eConversionType;
-		tOptionsCurr.iPageHeight = (int)pPaperSize->usHeight;
-		tOptionsCurr.iPageWidth = (int)pPaperSize->usWidth;
-		return TRUE;
-	}
-	return FALSE;
-} /* end of bCorrectPapersize */
-
-/*
- * szCreateSuffix - create a suffix for the file
- *
- * Returns the suffix
- */
-static const char *
-szCreateSuffix(const char *szLeafname)
-{
-	const char	*pcDot;
-
-	pcDot = strrchr(szLeafname, '.');
-	if (pcDot != NULL && STRCEQ(pcDot, ".txt")) {
-		/* There is already a .txt suffix, no need for another one */
-		return "";
-	}
-	return ".txt";
-} /* end of szCreateSuffix */
-
-/*
- * eMappingFile2Encoding - convert the mapping file to an encoding
- */
-static encoding_type
-eMappingFile2Encoding(const char *szLeafname)
-{
-	char	szMappingFile[LEAFNAME_SIZE+4];
-
-	fail(szLeafname == NULL);
-
-	if (strlen(szLeafname) + 4 >= sizeof(szMappingFile)) {
-		DBG_MSG(szLeafname);
-		return encoding_latin_1;
-	}
-
-	sprintf(szMappingFile, "%s%s", szLeafname, szCreateSuffix(szLeafname));
-
-	DBG_MSG(szMappingFile);
-
-	if (STRCEQ(szMappingFile, MAPPING_FILE_UTF_8)) {
-		return encoding_utf_8;
-	}
-	if (STRCEQ(szMappingFile, MAPPING_FILE_CP852) ||
-	    STRCEQ(szMappingFile, MAPPING_FILE_CP1250) ||
-	    STRCEQ(szMappingFile, MAPPING_FILE_8859_2)) {
-		return encoding_latin_2;
-	}
-	if (STRCEQ(szMappingFile, MAPPING_FILE_KOI8_R) ||
-	    STRCEQ(szMappingFile, MAPPING_FILE_KOI8_U) ||
-	    STRCEQ(szMappingFile, MAPPING_FILE_CP866) ||
-	    STRCEQ(szMappingFile, MAPPING_FILE_CP1251) ||
-	    STRCEQ(szMappingFile, MAPPING_FILE_8859_5)) {
-		return encoding_cyrillic;
-	}
-	return encoding_latin_1;
-} /* end of eMappingFile2Encoding */
-#endif /* !__riscos */
-
-/*
- * pOpenCharacterMappingFile - open the mapping file
- *
- * Returns the file pointer or NULL
- */
-static FILE *
-pOpenCharacterMappingFile(const char *szLeafname)
-{
-#if !defined(__riscos)
-	FILE	*pFile;
-	const char	*szHome, *szAntiword, *szSuffix;
-	size_t	tFilenameLen;
-	char	szMappingFile[PATH_MAX+1];
-#endif /* !__riscos */
-
-	if (szLeafname == NULL || szLeafname[0] == '\0') {
-		return NULL;
-	}
-
-	DBG_MSG(szLeafname);
-
-#if defined(__riscos)
-	return fopen(szLeafname, "r");
-#else
-	/* Set the suffix */
-	szSuffix = szCreateSuffix(szLeafname);
-
-	/* Set length */
-	tFilenameLen = strlen(szLeafname) + strlen(szSuffix);
-
-	/* Try the environment version of the mapping file */
-	szAntiword = szGetAntiwordDirectory();
-	if (szAntiword != NULL && szAntiword[0] != '\0') {
-	    if (strlen(szAntiword) + tFilenameLen <
-		sizeof(szMappingFile) -
-		sizeof(FILE_SEPARATOR)) {
-			sprintf(szMappingFile,
-				"%s" FILE_SEPARATOR "%s%s",
-				szAntiword, szLeafname, szSuffix);
-			DBG_MSG(szMappingFile);
-			pFile = fopen(szMappingFile, "r");
-			if (pFile != NULL) {
-				return pFile;
-			}
-		} else {
-			werr(0, "Environment mappingfilename ignored");
-		}
-	}
-
-	/* Try the local version of the mapping file */
-	szHome = szGetHomeDirectory();
-	if (strlen(szHome) + tFilenameLen <
-	    sizeof(szMappingFile) -
-	    sizeof(ANTIWORD_DIR) -
-	    2 * sizeof(FILE_SEPARATOR)) {
-		sprintf(szMappingFile,
-			"%s" FILE_SEPARATOR ANTIWORD_DIR FILE_SEPARATOR "%s%s",
-			szHome, szLeafname, szSuffix);
-		DBG_MSG(szMappingFile);
-		pFile = fopen(szMappingFile, "r");
-		if (pFile != NULL) {
-			return pFile;
-		}
-	} else {
-		werr(0, "Local mappingfilename too long, ignored");
-	}
-
-	/* Try the global version of the mapping file */
-	if (tFilenameLen <
-	    sizeof(szMappingFile) -
-	    sizeof(GLOBAL_ANTIWORD_DIR) -
-	    sizeof(FILE_SEPARATOR)) {
-		sprintf(szMappingFile,
-			GLOBAL_ANTIWORD_DIR FILE_SEPARATOR "%s%s",
-			szLeafname, szSuffix);
-		DBG_MSG(szMappingFile);
-		pFile = fopen(szMappingFile, "r");
-		if (pFile != NULL) {
-			return pFile;
-		}
-	} else {
-		werr(0, "Global mappingfilename too long, ignored");
-	}
-	werr(0, "I can't open your mapping file (%s%s)\n"
-		"It is not in '%s" FILE_SEPARATOR ANTIWORD_DIR "' nor in '"
-		GLOBAL_ANTIWORD_DIR "'.", szLeafname, szSuffix, szHome);
-	return NULL;
-#endif /* __riscos */
-} /* end of pOpenCharacterMappingFile */
-
-/*
- * vCloseCharacterMappingFile - close the mapping file
- */
-static void
-vCloseCharacterMappingFile(FILE *pFile)
-{
-	(void)fclose(pFile);
-} /* end of pCloseCharacterMappingFile */
 
 
 /*
@@ -286,13 +99,15 @@ iReadOptions(int argc, char **argv)
 #else
 	extern	char	*optarg;
 	extern int	optind;
+	const papersize_type	*pPaperSize;
+	const char	*szHome, *szAntiword;
 	char	*pcChar, *szTmp;
 	int	iChar;
-	char	szLeafname[LEAFNAME_SIZE];
+	BOOL	bFound;
+	char	szLeafname[32+1];
+	char	szMappingFile[PATH_MAX+1];
 #endif /* __riscos */
-	FILE	*pCharacterMappingFile;
 	int	iTmp;
-	BOOL	bSuccess;
 
 	DBG_MSG("iReadOptions");
 
@@ -360,14 +175,10 @@ iReadOptions(int argc, char **argv)
 		werr(0, "Alphabet '%d' is not supported", iAlphabet);
 		return -1;
 	}
-	pCharacterMappingFile = pOpenCharacterMappingFile(szAlphabet);
-	if (pCharacterMappingFile != NULL) {
-		bSuccess = bReadCharacterMappingTable(pCharacterMappingFile);
-		vCloseCharacterMappingFile(pCharacterMappingFile);
-	} else {
-		bSuccess = FALSE;
+	if (bReadCharacterMappingTable(szAlphabet)) {
+		return 1;
 	}
-	return bSuccess ? 1 : -1;
+	return -1;
 #else
 /* Environment */
 	szTmp = getenv("COLUMNS");
@@ -385,22 +196,18 @@ iReadOptions(int argc, char **argv)
 			DBG_DEC(tOptionsCurr.iParagraphBreak);
 		}
 	}
-	strncpy(szLeafname, szGetDefaultMappingFile(), sizeof(szLeafname) - 1);
-	szLeafname[sizeof(szLeafname) - 1] = '\0';
+	if (is_locale_utf8()) {
+		tOptionsCurr.eEncoding = encoding_utf8;
+		strcpy(szLeafname, MAPPING_FILE_DEFAULT_8);
+	} else {
+		tOptionsCurr.eEncoding = encoding_iso_8859_1;
+		strcpy(szLeafname, MAPPING_FILE_DEFAULT_1);
+	}
 /* Command line */
-	while ((iChar = getopt(argc, argv, "La:fhi:m:p:rstw:x:")) != -1) {
+	while ((iChar = getopt(argc, argv, "Lhi:m:p:stw:x:")) != -1) {
 		switch (iChar) {
 		case 'L':
 			tOptionsCurr.bUseLandscape = TRUE;
-			break;
-		case 'a':
-			if (!bCorrectPapersize(optarg, conversion_pdf)) {
-				werr(0, "-a without a valid papersize");
-				return -1;
-			}
-			break;
-		case 'f':
-			tOptionsCurr.eConversionType = conversion_fmt_text;
 			break;
 		case 'h':
 			return 0;
@@ -436,15 +243,37 @@ iReadOptions(int argc, char **argv)
 			strncpy(szLeafname, optarg, sizeof(szLeafname) - 1);
 			szLeafname[sizeof(szLeafname) - 1] = '\0';
 			DBG_MSG(szLeafname);
+			if (STRCEQ(szLeafname, MAPPING_FILE_DEFAULT_8)) {
+				tOptionsCurr.eEncoding = encoding_utf8;
+			} else if (STRCEQ(szLeafname, MAPPING_FILE_DEFAULT_2)) {
+				tOptionsCurr.eEncoding = encoding_iso_8859_2;
+			} else {
+				tOptionsCurr.eEncoding = encoding_iso_8859_1;
+			}
+			DBG_DEC(tOptionsCurr.eEncoding);
 			break;
 		case 'p':
-			if (!bCorrectPapersize(optarg, conversion_ps)) {
+			bFound = FALSE;
+			for (pPaperSize = atPaperSizes;
+			     pPaperSize->szName[0] != '\0';
+			     pPaperSize++) {
+				if (!STREQ(pPaperSize->szName,  optarg)) {
+					continue;
+				}
+				DBG_DEC(pPaperSize->usWidth);
+				DBG_DEC(pPaperSize->usHeight);
+				tOptionsCurr.eConversionType = conversion_ps;
+				tOptionsCurr.iPageHeight =
+						(int)pPaperSize->usHeight;
+				tOptionsCurr.iPageWidth =
+						(int)pPaperSize->usWidth;
+				bFound = TRUE;
+				break;
+			}
+			if (!bFound) {
 				werr(0, "-p without a valid papersize");
 				return -1;
 			}
-			break;
-		case 'r':
-			tOptionsCurr.bRemoveRemovedText = FALSE;
 			break;
 		case 's':
 			tOptionsCurr.bHideHiddenText = FALSE;
@@ -468,7 +297,7 @@ iReadOptions(int argc, char **argv)
 			if (STREQ(optarg, "db")) {
 				tOptionsCurr.iParagraphBreak = 0;
 				tOptionsCurr.eConversionType = conversion_xml;
-				strcpy(szLeafname, MAPPING_FILE_UTF_8);
+				tOptionsCurr.eEncoding = encoding_utf8;
 			} else {
 				werr(0, "-x %s is not supported", optarg);
 				return -1;
@@ -479,33 +308,15 @@ iReadOptions(int argc, char **argv)
 		}
 	}
 
-	tOptionsCurr.eEncoding = eMappingFile2Encoding(szLeafname);
-	DBG_DEC(tOptionsCurr.eEncoding);
-
 	if (tOptionsCurr.eConversionType == conversion_ps &&
-	    tOptionsCurr.eEncoding == encoding_utf_8) {
+	    tOptionsCurr.eEncoding == encoding_utf8) {
 		werr(0,
 		"The combination PostScript and UTF-8 is not supported");
 		return -1;
 	}
 
-	if (tOptionsCurr.eConversionType == conversion_pdf &&
-	    tOptionsCurr.eEncoding == encoding_utf_8) {
-		werr(0,
-		"The combination PDF and UTF-8 is not supported");
-		return -1;
-	}
-
-	if (tOptionsCurr.eConversionType == conversion_pdf &&
-	    tOptionsCurr.eEncoding == encoding_cyrillic) {
-		werr(0,
-		"The combination PDF and Cyrillic is not supported");
-		return -1;
-	}
-
-	if (tOptionsCurr.eConversionType == conversion_ps ||
-	    tOptionsCurr.eConversionType == conversion_pdf) {
-		/* PostScript or PDF mode */
+	if (tOptionsCurr.eConversionType == conversion_ps) {
+		/* PostScript mode */
 		if (tOptionsCurr.bUseLandscape) {
 			/* Swap the page height and width */
 			iTmp = tOptionsCurr.iPageHeight;
@@ -520,14 +331,58 @@ iReadOptions(int argc, char **argv)
 		DBG_DEC(tOptionsCurr.iParagraphBreak);
 	}
 
-	pCharacterMappingFile = pOpenCharacterMappingFile(szLeafname);
-	if (pCharacterMappingFile != NULL) {
-		bSuccess = bReadCharacterMappingTable(pCharacterMappingFile);
-		vCloseCharacterMappingFile(pCharacterMappingFile);
-	} else {
-		bSuccess = FALSE;
+	/* Try the environment version of the mapping file */
+	szAntiword = szGetAntiwordDirectory();
+	if (szAntiword != NULL && szAntiword[0] != '\0') {
+	    if (strlen(szAntiword) + strlen(szLeafname) <
+		sizeof(szMappingFile) -
+		sizeof(FILE_SEPARATOR)) {
+			sprintf(szMappingFile,
+				"%s" FILE_SEPARATOR "%s",
+				szAntiword, szLeafname);
+			DBG_MSG(szMappingFile);
+			if (bReadCharacterMappingTable(szMappingFile)) {
+				return optind;
+			}
+		} else {
+			werr(0, "Environment mappingfilename ignored");
+		}
 	}
-	return bSuccess ? optind : -1;
+	/* Try the local version of the mapping file */
+	szHome = szGetHomeDirectory();
+	if (strlen(szHome) + strlen(szLeafname) <
+	    sizeof(szMappingFile) -
+	    sizeof(ANTIWORD_DIR) -
+	    2 * sizeof(FILE_SEPARATOR)) {
+		sprintf(szMappingFile,
+			"%s" FILE_SEPARATOR ANTIWORD_DIR FILE_SEPARATOR "%s",
+			szHome, szLeafname);
+		DBG_MSG(szMappingFile);
+		if (bReadCharacterMappingTable(szMappingFile)) {
+			return optind;
+		}
+	} else {
+		werr(0, "Local mappingfilename too long, ignored");
+	}
+	/* Try the global version of the mapping file */
+	if (strlen(szLeafname) <
+	    sizeof(szMappingFile) -
+	    sizeof(GLOBAL_ANTIWORD_DIR) -
+	    sizeof(FILE_SEPARATOR)) {
+		sprintf(szMappingFile,
+			GLOBAL_ANTIWORD_DIR FILE_SEPARATOR "%s",
+			szLeafname);
+		DBG_MSG(szMappingFile);
+		if (bReadCharacterMappingTable(szMappingFile)) {
+			return optind;
+		}
+	} else {
+		werr(0, "Global mappingfilename too long, ignored");
+	}
+	werr(0, "I can't open your mapping file (%s)\n"
+		"It is not in '%s" FILE_SEPARATOR ANTIWORD_DIR "' nor in '"
+		GLOBAL_ANTIWORD_DIR "'.", szLeafname, szHome);
+	return -1;
 #endif /* __riscos */
 } /* end of iReadOptions */
 
@@ -552,7 +407,7 @@ vWriteOptions(void)
 	FILE	*pFile;
 	char	*szOptionsFile;
 
-	TRACE_MSG("vWriteOptions");
+	DBG_MSG("vWriteOptions");
 
 	szOptionsFile = getenv("AntiWord$ChoicesSave");
 	if (szOptionsFile == NULL) {
@@ -588,9 +443,9 @@ vWriteOptions(void)
  * vChoicesOpenAction - action to be taken when the Choices window opens
  */
 void
-vChoicesOpenAction(window_handle tWindow)
+vChoicesOpenAction(wimp_w tWindow)
 {
-	TRACE_MSG("vChoicesOpenAction");
+	DBG_MSG("vChoicesOpenAction");
 
 	tOptionsTemp = tOptionsCurr;
 	if (tOptionsTemp.iParagraphBreak == 0) {
@@ -628,16 +483,15 @@ vChoicesOpenAction(window_handle tWindow)
 	}
 	vUpdateWriteableNumber(tWindow,
 		CHOICES_SCALE_WRITEABLE, tOptionsTemp.iScaleFactor);
-	TRACE_MSG("end of vChoicesOpenAction");
 } /* end of vChoicesOpenAction */
 
 /*
  * vDefaultButtonAction - action when the default button is clicked
  */
 static void
-vDefaultButtonAction(window_handle tWindow)
+vDefaultButtonAction(wimp_w tWindow)
 {
-	TRACE_MSG("vDefaultButtonAction");
+	DBG_MSG("vDefaultButtonAction");
 
 	tOptionsTemp = tOptionsDefault;
 	vUpdateRadioButton(tWindow, CHOICES_BREAK_BUTTON, TRUE);
@@ -666,7 +520,7 @@ vDefaultButtonAction(window_handle tWindow)
 static void
 vApplyButtonAction(void)
 {
-	TRACE_MSG("vApplyButtonAction");
+	DBG_MSG("vApplyButtonAction");
 
 	tOptionsCurr = tOptionsTemp;
 } /* end of vApplyButtonAction */
@@ -677,7 +531,7 @@ vApplyButtonAction(void)
 static void
 vSaveButtonAction(void)
 {
-	TRACE_MSG("vSaveButtonAction");
+	DBG_MSG("vSaveButtonAction");
 
 	vApplyButtonAction();
 	vWriteOptions();
@@ -687,7 +541,7 @@ vSaveButtonAction(void)
  * vSetParagraphBreak - set the paragraph break to the given number
  */
 static void
-vSetParagraphBreak(window_handle tWindow, int iNumber)
+vSetParagraphBreak(wimp_w tWindow, int iNumber)
 {
 	tOptionsTemp.iParagraphBreak = iNumber;
 	if (tOptionsTemp.iParagraphBreak == 0) {
@@ -702,7 +556,7 @@ vSetParagraphBreak(window_handle tWindow, int iNumber)
  * vChangeParagraphBreak - change the paragraph break with the given number
  */
 static void
-vChangeParagraphBreak(window_handle tWindow, int iNumber)
+vChangeParagraphBreak(wimp_w tWindow, int iNumber)
 {
 	int	iTmp;
 
@@ -721,7 +575,7 @@ vChangeParagraphBreak(window_handle tWindow, int iNumber)
  * vChangeAutofiletype - invert the permission to autofiletype
  */
 static void
-vChangeAutofiletype(window_handle tWindow)
+vChangeAutofiletype(wimp_w tWindow)
 {
 	tOptionsTemp.bAutofiletypeAllowed =
 				!tOptionsTemp.bAutofiletypeAllowed;
@@ -734,7 +588,7 @@ vChangeAutofiletype(window_handle tWindow)
  * vChangeHiddenText - invert the hide/show hidden text
  */
 static void
-vChangeHiddenText(window_handle tWindow)
+vChangeHiddenText(wimp_w tWindow)
 {
 	tOptionsTemp.bHideHiddenText = !tOptionsTemp.bHideHiddenText;
 	vUpdateRadioButton(tWindow,
@@ -759,7 +613,7 @@ vUseFontsImages(BOOL bUseOutlineFonts, BOOL bShowImages)
  * vSetScaleFactor - set the scale factor to the given number
  */
 static void
-vSetScaleFactor(window_handle tWindow, int iNumber)
+vSetScaleFactor(wimp_w tWindow, int iNumber)
 {
   	tOptionsTemp.iScaleFactor = iNumber;
 	vUpdateWriteableNumber(tWindow,
@@ -771,7 +625,7 @@ vSetScaleFactor(window_handle tWindow, int iNumber)
  * vChangeScaleFactor - change the scale factor with the given number
  */
 static void
-vChangeScaleFactor(window_handle tWindow, int iNumber)
+vChangeScaleFactor(wimp_w tWindow, int iNumber)
 {
 	int	iTmp;
 
@@ -789,30 +643,24 @@ vChangeScaleFactor(window_handle tWindow, int iNumber)
 /*
  * bChoicesMouseClick - handle a mouse click in the Choices window
  */
-BOOL
-bChoicesMouseClick(event_pollblock *pEvent, void *pvReference)
+void
+vChoicesMouseClick(wimp_mousestr *m)
 {
-	icon_handle	tAction;
-	mouse_block	*pMouse;
-	BOOL		bCloseWindow;
+	wimp_i	tAction;
+	BOOL	bCloseWindow, bLeft, bRight;
 
-	TRACE_MSG("bChoicesMouseClick");
-
-	fail(pEvent == NULL);
-	fail(pEvent->type != event_CLICK);
-
-	pMouse = &pEvent->data.mouse;
-	if (!pMouse->button.data.select && !pMouse->button.data.adjust) {
-		/* Not handled here */
-		DBG_HEX(pMouse->button.value);
-		return FALSE;
+	bLeft = (m->bbits & wimp_BLEFT) == wimp_BLEFT;
+	bRight = (m->bbits & wimp_BRIGHT) == wimp_BRIGHT;
+	if (!bLeft && !bRight) {
+		DBG_HEX(m->bbits);
+		return;
 	}
 
 	/* Which action should be taken */
-	tAction = pMouse->icon;
-	if (pMouse->button.data.adjust) {
-	  	/* The adjust button reverses the direction */
-		switch (pMouse->icon) {
+	tAction = m->i;
+	if (bRight) {
+	  	/* The right button reverses the direction */
+		switch (m->i) {
 		case CHOICES_BREAK_UP_BUTTON:
 			tAction = CHOICES_BREAK_DOWN_BUTTON;
 			break;
@@ -834,7 +682,7 @@ bChoicesMouseClick(event_pollblock *pEvent, void *pvReference)
 	bCloseWindow = FALSE;
 	switch (tAction) {
 	case CHOICES_DEFAULT_BUTTON:
-		vDefaultButtonAction(pMouse->window);
+		vDefaultButtonAction(m->w);
 		break;
 	case CHOICES_SAVE_BUTTON:
 		vSaveButtonAction();
@@ -847,22 +695,22 @@ bChoicesMouseClick(event_pollblock *pEvent, void *pvReference)
 		bCloseWindow = TRUE;
 		break;
 	case CHOICES_BREAK_BUTTON:
-		vSetParagraphBreak(pMouse->window, DEFAULT_SCREEN_WIDTH);
+		vSetParagraphBreak(m->w, DEFAULT_SCREEN_WIDTH);
 		break;
 	case CHOICES_BREAK_UP_BUTTON:
-		vChangeParagraphBreak(pMouse->window, 1);
+		vChangeParagraphBreak(m->w, 1);
 		break;
 	case CHOICES_BREAK_DOWN_BUTTON:
-		vChangeParagraphBreak(pMouse->window, -1);
+		vChangeParagraphBreak(m->w, -1);
 		break;
 	case CHOICES_NO_BREAK_BUTTON:
-		vSetParagraphBreak(pMouse->window, 0);
+		vSetParagraphBreak(m->w, 0);
 		break;
 	case CHOICES_AUTOFILETYPE_BUTTON:
-		vChangeAutofiletype(pMouse->window);
+		vChangeAutofiletype(m->w);
 		break;
 	case CHOICES_HIDDEN_TEXT_BUTTON:
-		vChangeHiddenText(pMouse->window);
+		vChangeHiddenText(m->w);
 		break;
 	case CHOICES_WITH_IMAGES_BUTTON:
 		vUseFontsImages(TRUE, TRUE);
@@ -874,51 +722,40 @@ bChoicesMouseClick(event_pollblock *pEvent, void *pvReference)
 		vUseFontsImages(FALSE, FALSE);
 		break;
 	case CHOICES_SCALE_UP_BUTTON:
-		vChangeScaleFactor(pMouse->window, 5);
+		vChangeScaleFactor(m->w, 5);
 		break;
 	case CHOICES_SCALE_DOWN_BUTTON:
-		vChangeScaleFactor(pMouse->window, -5);
+		vChangeScaleFactor(m->w, -5);
 		break;
 	default:
-		DBG_DEC(pMouse->icon);
+		DBG_DEC(m->i);
 		break;
 	}
 	if (bCloseWindow) {
-		Error_CheckFatal(Wimp_CloseWindow(pMouse->window));
+		wimpt_noerr(wimp_close_wind(m->w));
 	}
-	return TRUE;
-} /* end of bChoicesMouseClick */
+} /* end of vChoicesMouseClick */
 
-/*
- * bChoicesKeyPressed - handle a key in the Choices window
- */
-BOOL
-bChoicesKeyPressed(event_pollblock *pEvent, void *pvReference)
+void
+vChoicesKeyPressed(wimp_caretstr *c)
 {
-	icon_block	tIcon;
-	caret_block	*pCaret;
+	wimp_icon	tIcon;
 	char		*pcChar;
 	int		iNumber;
 
-	DBG_MSG("bChoicesKeyPressed");
+	DBG_MSG("vChoicesKeyPressed");
 
-	fail(pEvent == NULL);
-	fail(pEvent->type != event_KEY);
+	fail(c == NULL);
 
-	if (pEvent->data.key.code != '\r') {
-		Error_CheckFatal(Wimp_ProcessKey(pEvent->data.key.code));
-		return TRUE;
-	}
-
-	pCaret = &pEvent->data.key.caret;
-
-	Error_CheckFatal(Wimp_GetIconState(pCaret->window, pCaret->icon, &tIcon));
-	if (!tIcon.flags.data.text || !tIcon.flags.data.indirected) {
-		werr(1, "Icon %d must be indirected text", (int)pCaret->icon);
+	wimpt_noerr(wimp_get_icon_info(c->w, c->i, &tIcon));
+	if ((tIcon.flags & (wimp_ITEXT|wimp_INDIRECT)) !=
+	    (wimp_ITEXT|wimp_INDIRECT)) {
+		werr(1, "Icon %d must be indirected text", (int)c->i);
+		return;
 	}
 	iNumber = (int)strtol(tIcon.data.indirecttext.buffer, &pcChar, 10);
 
-	switch(pCaret->icon) {
+	switch(c->i) {
 	case CHOICES_BREAK_WRITEABLE:
 		if (*pcChar != '\0' && *pcChar != '\r') {
 			DBG_DEC(*pcChar);
@@ -928,7 +765,7 @@ bChoicesKeyPressed(event_pollblock *pEvent, void *pvReference)
 		} else if (iNumber > MAX_SCREEN_WIDTH) {
 			iNumber = MAX_SCREEN_WIDTH;
 		}
-		vSetParagraphBreak(pCaret->window, iNumber);
+		vSetParagraphBreak(c->w, iNumber);
 		break;
 	case CHOICES_SCALE_WRITEABLE:
 		if (*pcChar != '\0' && *pcChar != '\r') {
@@ -939,12 +776,11 @@ bChoicesKeyPressed(event_pollblock *pEvent, void *pvReference)
 		} else if (iNumber > MAX_SCALE_FACTOR) {
 			iNumber = MAX_SCALE_FACTOR;
 		}
-		vSetScaleFactor(pCaret->window, iNumber);
+		vSetScaleFactor(c->w, iNumber);
 		break;
 	default:
-		DBG_DEC(pCaret->icon);
+		DBG_DEC(c->i);
 		break;
 	}
-	return TRUE;
-} /* end of bChoicesKeyPressed */
+} /* end of vChoicesKeyPressed */
 #endif /* __riscos */

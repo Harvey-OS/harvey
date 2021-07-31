@@ -1,6 +1,6 @@
 /*
  * wordwin.c
- * Copyright (C) 2002-2005 A.J. van Os; Released under GPL
+ * Copyright (C) 2002,2003 A.J. van Os; Released under GPL
  *
  * Description:
  * Deal with the WIN internals of a MS Word file
@@ -121,7 +121,6 @@ vGetDocumentData(FILE *pFile, const UCHAR *aucHeader)
 
 	if (!bHasImages ||
 	    tOptions.eConversionType == conversion_text ||
-	    tOptions.eConversionType == conversion_fmt_text ||
 	    tOptions.eConversionType == conversion_xml ||
 	    tOptions.eImageLevel == level_no_images) {
 		/*
@@ -195,13 +194,10 @@ iInitDocumentWIN(FILE *pFile, long lFilesize)
 	bSuccess = bGetDocumentText(pFile, aucHeader);
 	if (bSuccess) {
 		vGetDocumentData(pFile, aucHeader);
-		vGetPropertyInfo(pFile, NULL,
-				NULL, 0, NULL, 0,
-				aucHeader, iWordVersion);
 		vSetDefaultTabWidth(pFile, NULL,
 				NULL, 0, NULL, 0,
 				aucHeader, iWordVersion);
-		vGetNotesInfo(pFile, NULL,
+		vGetPropertyInfo(pFile, NULL,
 				NULL, 0, NULL, 0,
 				aucHeader, iWordVersion);
 	}

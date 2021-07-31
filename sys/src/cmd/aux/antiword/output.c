@@ -1,6 +1,6 @@
 /*
  * output.c
- * Copyright (C) 2002-2004 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 2002,2003 A.J. van Os; Released under GPL
  *
  * Description:
  * Generic output generating functions
@@ -31,17 +31,11 @@ vPrologue1(diagram_type *pDiag, const char *szTask, const char *szFilename)
 	case conversion_text:
 		vPrologueTXT(pDiag, &tOptions);
 		break;
-	case conversion_fmt_text:
-		vPrologueFMT(pDiag, &tOptions);
-		break;
 	case conversion_ps:
 		vProloguePS(pDiag, szTask, szFilename, &tOptions);
 		break;
 	case conversion_xml:
-		vPrologueXML(pDiag, &tOptions);
-		break;
-	case conversion_pdf:
-		vProloguePDF(pDiag, szTask, &tOptions);
+		vPrologueXML(pDiag);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -57,7 +51,6 @@ vEpilogue(diagram_type *pDiag)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		vEpilogueTXT(pDiag->pOutFile);
 		break;
 	case conversion_ps:
@@ -65,9 +58,6 @@ vEpilogue(diagram_type *pDiag)
 		break;
 	case conversion_xml:
 		vEpilogueXML(pDiag);
-		break;
-	case conversion_pdf:
-		vEpiloguePDF(pDiag);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -83,15 +73,11 @@ vImagePrologue(diagram_type *pDiag, const imagedata_type *pImg)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		vImageProloguePS(pDiag, pImg);
 		break;
 	case conversion_xml:
-		break;
-	case conversion_pdf:
-		vImageProloguePDF(pDiag, pImg);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -107,15 +93,11 @@ vImageEpilogue(diagram_type *pDiag)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		vImageEpiloguePS(pDiag);
 		break;
 	case conversion_xml:
-		break;
-	case conversion_pdf:
-		vImageEpiloguePDF(pDiag);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -133,14 +115,11 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		return FALSE;
 	case conversion_ps:
 		return bAddDummyImagePS(pDiag, pImg);
 	case conversion_xml:
 		return FALSE;
-	case conversion_pdf:
-		return bAddDummyImagePDF(pDiag, pImg);
 	default:
 		DBG_DEC(eConversionType);
 		return FALSE;
@@ -194,17 +173,12 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		vAddFontsPS(pDiag);
 		break;
 	case conversion_xml:
-		vCreateBookIntro(pDiag, iWordVersion);
-		break;
-	case conversion_pdf:
-		vCreateInfoDictionary(pDiag, iWordVersion);
-		vAddFontsPDF(pDiag);
+		vCreateBookIntro(pDiag, iWordVersion, eEncoding);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -216,8 +190,7 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
  * vMove2NextLine - move to the next line
  */
 void
-vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
-	USHORT usFontSize)
+vMove2NextLine(diagram_type *pDiag, draw_fontref tFontRef, USHORT usFontSize)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -225,7 +198,6 @@ vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
 
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		vMove2NextLineTXT(pDiag);
 		break;
 	case conversion_ps:
@@ -233,9 +205,6 @@ vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
 		break;
 	case conversion_xml:
 		vMove2NextLineXML(pDiag);
-		break;
-	case conversion_pdf:
-		vMove2NextLinePDF(pDiag, usFontSize);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -249,16 +218,12 @@ vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
 void
 vSubstring2Diagram(diagram_type *pDiag,
 	char *szString, size_t tStringLength, long lStringWidth,
-	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
+	UCHAR ucFontColor, USHORT usFontstyle, draw_fontref tFontRef,
 	USHORT usFontSize, USHORT usMaxFontSize)
 {
 	switch (eConversionType) {
 	case conversion_text:
 		vSubstringTXT(pDiag, szString, tStringLength, lStringWidth);
-		break;
-	case conversion_fmt_text:
-		vSubstringFMT(pDiag, szString, tStringLength, lStringWidth,
-				usFontstyle);
 		break;
 	case conversion_ps:
 		vSubstringPS(pDiag, szString, tStringLength, lStringWidth,
@@ -268,11 +233,6 @@ vSubstring2Diagram(diagram_type *pDiag,
 	case conversion_xml:
 		vSubstringXML(pDiag, szString, tStringLength, lStringWidth,
 				usFontstyle);
-		break;
-	case conversion_pdf:
-		vSubstringPDF(pDiag, szString, tStringLength, lStringWidth,
-				ucFontColor, usFontstyle, tFontRef,
-				usFontSize, usMaxFontSize);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -292,16 +252,12 @@ vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
 
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		vStartOfParagraphTXT(pDiag, lBeforeIndentation);
 		break;
 	case conversion_ps:
 		vStartOfParagraphPS(pDiag, lBeforeIndentation);
 		break;
 	case conversion_xml:
-		break;
-	case conversion_pdf:
-		vStartOfParagraphPDF(pDiag, lBeforeIndentation);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -320,14 +276,11 @@ vStartOfParagraph2(diagram_type *pDiag)
 
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		break;
 	case conversion_xml:
 		vStartOfParagraphXML(pDiag, 1);
-		break;
-	case conversion_pdf:
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -340,7 +293,7 @@ vStartOfParagraph2(diagram_type *pDiag)
  */
 void
 vEndOfParagraph(diagram_type *pDiag,
-	drawfile_fontref tFontRef, USHORT usFontSize, long lAfterIndentation)
+	draw_fontref tFontRef, USHORT usFontSize, long lAfterIndentation)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -349,17 +302,14 @@ vEndOfParagraph(diagram_type *pDiag,
 
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		vEndOfParagraphTXT(pDiag, lAfterIndentation);
 		break;
 	case conversion_ps:
-		vEndOfParagraphPS(pDiag, usFontSize, lAfterIndentation);
+		vEndOfParagraphPS(pDiag,
+				tFontRef, usFontSize, lAfterIndentation);
 		break;
 	case conversion_xml:
 		vEndOfParagraphXML(pDiag, 1);
-		break;
-	case conversion_pdf:
-		vEndOfParagraphPDF(pDiag, usFontSize, lAfterIndentation);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -371,21 +321,17 @@ vEndOfParagraph(diagram_type *pDiag,
  * Create an end of page
  */
 void
-vEndOfPage(diagram_type *pDiag, long lAfterIndentation, BOOL bNewSection)
+vEndOfPage(diagram_type *pDiag, long lAfterIndentation)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		vEndOfPageTXT(pDiag, lAfterIndentation);
 		break;
 	case conversion_ps:
-		vEndOfPagePS(pDiag, bNewSection);
+		vEndOfPagePS(pDiag);
 		break;
 	case conversion_xml:
 		vEndOfPageXML(pDiag);
-		break;
-	case conversion_pdf:
-		vEndOfPagePDF(pDiag, bNewSection);
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -401,14 +347,11 @@ vSetHeaders(diagram_type *pDiag, USHORT usIstd)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		break;
 	case conversion_xml:
 		vSetHeadersXML(pDiag, usIstd);
-		break;
-	case conversion_pdf:
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -424,14 +367,11 @@ vStartOfList(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		break;
 	case conversion_xml:
 		vStartOfListXML(pDiag, ucNFC, bIsEndOfTable);
-		break;
-	case conversion_pdf:
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -447,14 +387,11 @@ vEndOfList(diagram_type *pDiag)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		break;
 	case conversion_xml:
 		vEndOfListXML(pDiag);
-		break;
-	case conversion_pdf:
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -470,14 +407,11 @@ vStartOfListItem(diagram_type *pDiag, BOOL bNoMarks)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		break;
 	case conversion_xml:
 		vStartOfListItemXML(pDiag, bNoMarks);
-		break;
-	case conversion_pdf:
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -493,14 +427,11 @@ vEndOfTable(diagram_type *pDiag)
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		break;
 	case conversion_xml:
 		vEndOfTableXML(pDiag);
-		break;
-	case conversion_pdf:
 		break;
 	default:
 		DBG_DEC(eConversionType);
@@ -519,7 +450,6 @@ bAddTableRow(diagram_type *pDiag, char **aszColTxt,
 {
 	switch (eConversionType) {
 	case conversion_text:
-	case conversion_fmt_text:
 		break;
 	case conversion_ps:
 		break;
@@ -528,8 +458,6 @@ bAddTableRow(diagram_type *pDiag, char **aszColTxt,
 				iNbrOfColumns, asColumnWidth,
 				ucBorderInfo);
 		return TRUE;
-	case conversion_pdf:
-		break;
 	default:
 		DBG_DEC(eConversionType);
 		break;

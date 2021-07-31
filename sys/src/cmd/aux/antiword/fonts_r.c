@@ -8,11 +8,9 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "DeskLib:Font.h"
-#include "drawfile.h"
 #include "antiword.h"
 
-static font_handle	tFontCurr = (font_handle)-1;
+static font		tFontCurr = (font)-1;
 
 /*
  * pOpenFontTableFile - open the Font translation file
@@ -99,14 +97,14 @@ vCloseFont(void)
 
 	NO_DBG_MSG("vCloseFont");
 
-	if (tFontCurr == (font_handle)-1) {
+	if (tFontCurr == (font)-1) {
 		return;
 	}
-	e = Font_LoseFont(tFontCurr);
+	e = font_lose(tFontCurr);
 	if (e != NULL) {
 		werr(0, "Close font error %d: %s", e->errnum, e->errmess);
 	}
-	tFontCurr = (font_handle)-1;
+	tFontCurr = -1;
 } /* end of vCloseFont */
 
 /*
@@ -114,12 +112,12 @@ vCloseFont(void)
  *
  * Returns the font reference number for use in a draw file
  */
-drawfile_fontref
+draw_fontref
 tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 {
 	os_error	*e;
 	const char	*szOurFontname;
-	font_handle	tFont;
+	font	tFont;
 	int	iFontnumber;
 
 	NO_DBG_MSG("tOpenFont");
@@ -134,13 +132,13 @@ tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 	iFontnumber = iGetFontByNumber(ucWordFontNumber, usFontStyle);
 	szOurFontname = szGetOurFontname(iFontnumber);
 	if (szOurFontname == NULL || szOurFontname[0] == '\0') {
-		tFontCurr = (font_handle)-1;
-		return (byte)0;
+		tFontCurr = (font)-1;
+		return (draw_fontref)0;
 	}
 	NO_DBG_MSG(szOurFontname);
-	e = Font_FindFont(&tFont, (char *)szOurFontname,
+	e = font_find((char *)szOurFontname,
 			(int)usWordFontSize * 8, (int)usWordFontSize * 8,
-			0, 0);
+			0, 0, &tFont);
 	if (e != NULL) {
 		switch (e->errnum) {
 		case 523:
@@ -151,12 +149,12 @@ tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 				e->errnum, e->errmess);
 			break;
 		}
-		tFontCurr = (font_handle)-1;
-		return (drawfile_fontref)0;
+		tFontCurr = (font)-1;
+		return (draw_fontref)0;
 	}
 	tFontCurr = tFont;
 	NO_DBG_DEC(tFontCurr);
-	return (drawfile_fontref)(iFontnumber + 1);
+	return (draw_fontref)(iFontnumber + 1);
 } /* end of tOpenFont */
 
 /*
@@ -164,7 +162,7 @@ tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
  *
  * Returns the font reference number for use in a draw file
  */
-drawfile_fontref
+draw_fontref
 tOpenTableFont(USHORT usWordFontSize)
 {
 	int	iWordFontnumber;
@@ -174,8 +172,8 @@ tOpenTableFont(USHORT usWordFontSize)
 	iWordFontnumber = iFontname2Fontnumber(TABLE_FONT, FONT_REGULAR);
 	if (iWordFontnumber < 0 || iWordFontnumber > (int)UCHAR_MAX) {
 		DBG_DEC(iWordFontnumber);
-		tFontCurr = (font_handle)-1;
-		return (drawfile_fontref)0;
+		tFontCurr = (font)-1;
+		return (draw_fontref)0;
 	}
 
 	return tOpenFont((UCHAR)iWordFontnumber, FONT_REGULAR, usWordFontSize);
@@ -188,7 +186,7 @@ tOpenTableFont(USHORT usWordFontSize)
  */
 long
 lComputeStringWidth(const char *szString, size_t tStringLength,
-	drawfile_fontref tFontRef, USHORT usFontSize)
+		draw_fontref tFontRef, USHORT usFontSize)
 {
 	font_string	tStr;
 	os_error	*e;
@@ -204,7 +202,7 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 		/* Font_strwidth doesn't like control characters */
 		return 0;
 	}
-	if (tFontCurr == (font_handle)-1) {
+	if (tFontCurr == (font)-1) {
 		/* No current font, use systemfont */
 		return lChar2MilliPoints(tStringLength);
 	}
@@ -213,7 +211,7 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 	tStr.y = INT_MAX;
 	tStr.split = -1;
 	tStr.term = tStringLength;
-	e = Font_StringWidth(&tStr);
+	e = font_strwidth(&tStr);
 	if (e == NULL) {
 		return (long)tStr.x;
 	}

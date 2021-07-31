@@ -35,11 +35,11 @@ werr(int iFatal, const char *szFormat, ...)
 } /* end of werr */
 
 void
-Hourglass_On(void)
+visdelay_begin(void)
 {
-} /* end of Hourglass_On */
+} /* end of visdelay_begin */
 
 void
-Hourglass_Off(void)
+visdelay_end(void)
 {
-} /* end of Hourglass_Off */
+} /* end of visdelay_end */

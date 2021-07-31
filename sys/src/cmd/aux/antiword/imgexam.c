@@ -1,6 +1,6 @@
 /*
  * imgexam.c
- * Copyright (C) 2000-2004 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 2000-2003 A.J. van Os; Released under GPL
  *
  * Description:
  * Functions to examine image headers
@@ -27,14 +27,6 @@
 #define PNG_CB_PALETTE		0x01
 #define PNG_CB_COLOR		0x02
 #define PNG_CB_ALPHA		0x04
-
-/* Instance signature */
-#define MSOBI_WMF	0x0216
-#define MSOBI_EMF	0x03d4
-#define MSOBI_PICT	0x0542
-#define MSOBI_PNG	0x06e0
-#define MSOBI_JPEG	0x046a
-#define MSOBI_DIB	0x07a8
 
 /* The following enum is stolen from the IJG JPEG library */
 typedef enum {		/* JPEG marker codes			*/
@@ -695,7 +687,7 @@ tFind6Image(FILE *pFile, size_t tPosition, size_t tLength,
 	imagetype_enum *peImageType)
 {
 	ULONG	ulMarker;
-	size_t	tRecordLength, tToSkip;
+	size_t	tElementLen, tToSkip;
 	USHORT	usMarker;
 
 	fail(pFile == NULL);
@@ -725,10 +717,10 @@ tFind6Image(FILE *pFile, size_t tPosition, size_t tLength,
 	tPosition += 18;
 
 	while (tPosition + 6 <= tLength) {
-		tRecordLength = (size_t)ulNextLong(pFile);
+		tElementLen = (size_t)ulNextLong(pFile);
 		usMarker = usNextWord(pFile);
 		tPosition += 6;
-		NO_DBG_DEC(tRecordLength);
+		NO_DBG_DEC(tElementLen);
 		NO_DBG_HEX(usMarker);
 		switch (usMarker) {
 		case 0x0000:
@@ -745,20 +737,20 @@ tFind6Image(FILE *pFile, size_t tPosition, size_t tLength,
 			tPosition += tSkipBytes(pFile, 22);
 			return tPosition;
 		default:
-			if (tRecordLength < 3) {
+			if (tElementLen < 3) {
 				break;
 			}
-			if (tRecordLength > SIZE_T_MAX / 2) {
+			if (tElementLen > SIZE_T_MAX / 2) {
 				/*
 				 * No need to compute the number of bytes
 				 * to skip
 				 */
-				DBG_DEC(tRecordLength);
-				DBG_HEX(tRecordLength);
+				DBG_DEC(tElementLen);
+				DBG_HEX(tElementLen);
 				DBG_FIXME();
 				return (size_t)-1;
 			}
-			tToSkip = tRecordLength * 2 - 6;
+			tToSkip = tElementLen * 2 - 6;
 			if (tToSkip > tLength - tPosition) {
 				/* You can't skip this number of bytes */
 				DBG_DEC(tToSkip);
@@ -784,26 +776,22 @@ static size_t
 tFind8Image(FILE *pFile, size_t tPosition, size_t tLength,
 	imagetype_enum *peImageType)
 {
-	size_t	tRecordLength, tNameLen;
-	USHORT	usRecordVersion, usRecordType, usRecordInstance;
-	USHORT	usTmp;
+	size_t	tElementLen, tNameLen;
+	USHORT	usID, usElementTag;
 
 	fail(pFile == NULL);
 	fail(peImageType == NULL);
 
 	*peImageType = imagetype_is_unknown;
 	while (tPosition + 8 <= tLength) {
-		usTmp = usNextWord(pFile);
-		usRecordVersion = usTmp & 0x000f;
-		usRecordInstance = usTmp >> 4;
-		usRecordType = usNextWord(pFile);
-		tRecordLength = (size_t)ulNextLong(pFile);
+		usID = usNextWord(pFile) >> 4;
+		usElementTag = usNextWord(pFile);
+		tElementLen = (size_t)ulNextLong(pFile);
 		tPosition += 8;
-		NO_DBG_HEX(usRecordVersion);
-		NO_DBG_HEX(usRecordInstance);
-		NO_DBG_HEX(usRecordType);
-		NO_DBG_DEC(tRecordLength);
-		switch (usRecordType) {
+		NO_DBG_HEX(usID);
+		NO_DBG_HEX(usElementTag);
+		NO_DBG_DEC(tElementLen);
+		switch (usElementTag) {
 		case 0xf000: case 0xf001: case 0xf002: case 0xf003:
 		case 0xf004: case 0xf005:
 			break;
@@ -823,61 +811,43 @@ tFind8Image(FILE *pFile, size_t tPosition, size_t tLength,
 		case 0xf006: case 0xf00a: case 0xf00b: case 0xf00d:
 		case 0xf00e: case 0xf00f: case 0xf010: case 0xf011:
 		case 0xf122:
-			tPosition += tSkipBytes(pFile, tRecordLength);
+			tPosition += tSkipBytes(pFile, tElementLen);
 			break;
 		case 0xf01a:
 			DBG_MSG("EMF");
 			*peImageType = imagetype_is_emf;
-			tPosition += tSkipBytes(pFile, 50);
-			if ((usRecordInstance ^ MSOBI_EMF) == 1) {
-				tPosition += tSkipBytes(pFile, 16);
-			}
+			tPosition += tSkipBytes(pFile, usID == 0x3d4 ? 50 : 66);
 			return tPosition;
 		case 0xf01b:
 			DBG_MSG("WMF");
 			*peImageType = imagetype_is_wmf;
-			tPosition += tSkipBytes(pFile, 50);
-			if ((usRecordInstance ^ MSOBI_WMF) == 1) {
-				tPosition += tSkipBytes(pFile, 16);
-			}
+			tPosition += tSkipBytes(pFile, usID == 0x216 ? 50 : 66);
 			return tPosition;
 		case 0xf01c:
 			DBG_MSG("PICT");
 			*peImageType = imagetype_is_pict;
-			tPosition += tSkipBytes(pFile, 50);
-			if ((usRecordInstance ^ MSOBI_PICT) == 1) {
-				tPosition += tSkipBytes(pFile, 16);
-			}
+			tPosition += tSkipBytes(pFile, usID == 0x542 ? 17 : 33);
 			return tPosition;
 		case 0xf01d:
 			DBG_MSG("JPEG");
 			*peImageType = imagetype_is_jpeg;
-			tPosition += tSkipBytes(pFile, 17);
-			if ((usRecordInstance ^ MSOBI_JPEG) == 1) {
-				tPosition += tSkipBytes(pFile, 16);
-			}
+			tPosition += tSkipBytes(pFile, usID == 0x46a ? 17 : 33);
 			return tPosition;
 		case 0xf01e:
 			DBG_MSG("PNG");
 			*peImageType = imagetype_is_png;
-			tPosition += tSkipBytes(pFile, 17);
-			if ((usRecordInstance ^ MSOBI_PNG) == 1) {
-				tPosition += tSkipBytes(pFile, 16);
-			}
+			tPosition += tSkipBytes(pFile, usID == 0x6e0 ? 17 : 33);
 			return tPosition;
 		case 0xf01f:
 			DBG_MSG("DIB");
 			/* DIB is a BMP minus its 14 byte header */
 			*peImageType = imagetype_is_dib;
-			tPosition += tSkipBytes(pFile, 17);
-			if ((usRecordInstance ^ MSOBI_DIB) == 1) {
-				tPosition += tSkipBytes(pFile, 16);
-			}
+			tPosition += tSkipBytes(pFile, usID == 0x7a8 ? 17 : 33);
 			return tPosition;
 		case 0xf00c:
 		default:
-			DBG_HEX(usRecordType);
-			DBG_DEC_C(tRecordLength % 4 != 0, tRecordLength);
+			DBG_HEX(usElementTag);
+			DBG_DEC_C(tElementLen % 4 != 0, tElementLen);
 			DBG_FIXME();
 			return (size_t)-1;
 		}

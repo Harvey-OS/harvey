@@ -1,6 +1,6 @@
 /*
  * tabstops.c
- * Copyright (C) 1999-2004 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 1999-2002 A.J. van Os; Released under GPL
  *
  * Description:
  * Read the tab stop information from a MS Word file
@@ -109,8 +109,9 @@ vSet8DefaultTabWidth(FILE *pFile, const pps_info_type *pPPS,
         const ULONG	*aulBlockDepot;
 	UCHAR	*aucBuffer;
 	ULONG	ulBeginDocpInfo;
+	ULONG	ulTableSize, ulTableStartBlock;
 	size_t	tDocpInfoLen, tBlockDepotLen, tBlockSize;
-	USHORT	usTmp;
+	USHORT	usDocStatus, usTmp;
 
 	ulBeginDocpInfo = ulGetLong(0x192, aucHeader); /* fcDop */
 	DBG_HEX(ulBeginDocpInfo);
@@ -121,14 +122,23 @@ vSet8DefaultTabWidth(FILE *pFile, const pps_info_type *pPPS,
 		return;
 	}
 
-	DBG_DEC(pPPS->tTable.ulSB);
-	DBG_HEX(pPPS->tTable.ulSize);
-	if (pPPS->tTable.ulSize == 0) {
+	/* Use 0Table or 1Table? */
+	usDocStatus = usGetWord(0x0a, aucHeader);
+	if (usDocStatus & BIT(9)) {
+		ulTableStartBlock = pPPS->t1Table.ulSB;
+		ulTableSize = pPPS->t1Table.ulSize;
+	} else {
+		ulTableStartBlock = pPPS->t0Table.ulSB;
+		ulTableSize = pPPS->t0Table.ulSize;
+	}
+	DBG_DEC(ulTableStartBlock);
+	if (ulTableStartBlock == 0) {
+		DBG_DEC(ulTableStartBlock);
 		DBG_MSG("No TAB information");
 		return;
 	}
-
-	if (pPPS->tTable.ulSize < MIN_SIZE_FOR_BBD_USE) {
+	DBG_HEX(ulTableSize);
+	if (ulTableSize < MIN_SIZE_FOR_BBD_USE) {
 		/* Use the Small Block Depot */
 		aulBlockDepot = aulSBD;
 		tBlockDepotLen = tSBDLen;
@@ -140,7 +150,7 @@ vSet8DefaultTabWidth(FILE *pFile, const pps_info_type *pPPS,
 		tBlockSize = BIG_BLOCK_SIZE;
 	}
 	aucBuffer = xmalloc(tDocpInfoLen);
-	if (!bReadBuffer(pFile, pPPS->tTable.ulSB,
+	if (!bReadBuffer(pFile, ulTableStartBlock,
 			aulBlockDepot, tBlockDepotLen, tBlockSize,
 			aucBuffer, ulBeginDocpInfo, tDocpInfoLen)) {
 		aucBuffer = xfree(aucBuffer);
@@ -196,7 +206,6 @@ vSetDefaultTabWidth(FILE *pFile, const pps_info_type *pPPS,
 	}
 } /* end of vSetDefaultTabWidth */
 
-#if 0
 /*
  * lGetDefaultTabWidth - Get the default tabwidth in millipoints
  */
@@ -209,4 +218,3 @@ lGetDefaultTabWidth(void)
 	}
 	return lDefaultTabWidth;
 } /* end of lGetDefaultTabWidth */
-#endif

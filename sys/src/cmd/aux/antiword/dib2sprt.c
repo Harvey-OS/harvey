@@ -8,8 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "DeskLib:Error.h"
-#include "DeskLib:Sprite.h"
+#include "wimpt.h"
 #include "antiword.h"
 
 #if 0 /* defined(DEBUG) */
@@ -38,38 +37,36 @@ iGetByteWidth(const imagedata_type *pImg)
 } /* end of iGetByteWidth */
 
 /*
- * pCreateBlankSprite - Create a blank sprite.
+ * bCreateBlankSprite - Create a blank sprite.
  *
  * Create a blank sprite and add a palette if needed
  *
  * returns a pointer to the sprite when successful, otherwise NULL
  */
-static sprite_areainfo *
-pCreateBlankSprite(const imagedata_type *pImg, size_t *pSize)
+static UCHAR *
+pucCreateBlankSprite(const imagedata_type *pImg, size_t *ptSize)
 {
-	sprite_areainfo	*pArea;
+	sprite_area	*pArea;
 	UCHAR	*pucTmp;
 	size_t	tSize;
-	screen_modeval	uMode;
-	int	iIndex, iPaletteEntries;
+	int	iIndex, iMode, iPaletteEntries, iByteWidth;
 
-	TRACE_MSG("pCreateBlankSprite");
+	DBG_MSG("pCreateBlankSprite");
 
 	fail(pImg == NULL);
-	fail(pSize == NULL);
 
 	switch (pImg->uiBitsPerComponent) {
 	case  1:
-		uMode.screen_mode = 18;
+		iMode = 18;
 		iPaletteEntries = 2;
 		break;
 	case  4:
-		uMode.screen_mode = 20;
+		iMode = 20;
 		iPaletteEntries = 16;
 		break;
 	case  8:
 	case 24:
-		uMode.screen_mode = 21;
+		iMode = 21;
 		iPaletteEntries = 0;
 		break;
 	default:
@@ -78,26 +75,26 @@ pCreateBlankSprite(const imagedata_type *pImg, size_t *pSize)
 	}
 	fail(iPaletteEntries < 0 || iPaletteEntries > 16);
 
-	/* Get memory for the sprite */
-	tSize = sizeof(sprite_areainfo) +
-		Sprite_MemorySize(pImg->iWidth, pImg->iHeight, uMode,
-		iPaletteEntries > 0 ? sprite_HASPAL : sprite_HASNOMASKPAL);
+	/* Create the sprite */
+
+	iByteWidth = iGetByteWidth(pImg);
+
+	tSize = sizeof(sprite_area) +
+		sizeof(sprite_header) +
+		iPaletteEntries * 8 +
+		iByteWidth * pImg->iHeight;
 	DBG_DEC(tSize);
 	pArea = xmalloc(tSize);
+	sprite_area_initialise(pArea, tSize);
 
-	/* Initialise sprite area */
-	pArea->areasize = tSize;
-	pArea->numsprites = 0;
-	pArea->firstoffset = sizeof(sprite_areainfo);
-	pArea->freeoffset = sizeof(sprite_areainfo);
-
-	/* Create a blank sprite */
-	Error_CheckFatal(Sprite_Create(pArea, "wordimage",
-		iPaletteEntries > 0 ? 1 : 0,
-		pImg->iWidth, pImg->iHeight, uMode));
+	wimpt_noerr(sprite_create(pArea, "wordimage",
+		iPaletteEntries > 0 ? sprite_haspalette : sprite_nopalette,
+		pImg->iWidth, pImg->iHeight, iMode));
 
 	/* Add the palette */
-	pucTmp = (UCHAR *)pArea + pArea->firstoffset + sizeof(sprite_header);
+
+	pucTmp = (UCHAR *)pArea +
+		sizeof(sprite_area) + sizeof(sprite_header);
 	for (iIndex = 0; iIndex < iPaletteEntries; iIndex++) {
 		/* First color */
 		*pucTmp++ = 0;
@@ -111,9 +108,11 @@ pCreateBlankSprite(const imagedata_type *pImg, size_t *pSize)
 		*pucTmp++ = pImg->aucPalette[iIndex][2];
 	}
 
-	*pSize = tSize;
-	return pArea;
-} /* end of pCreateBlankSprite */
+	if (ptSize != NULL) {
+		*ptSize = tSize;
+	}
+	return (UCHAR *)pArea;
+} /* end of pucCreateBlankSprite */
 
 /*
  * iReduceColor - reduce from 24 bit to 8 bit color
@@ -506,8 +505,7 @@ vCopy2File(UCHAR *pucSprite, size_t tSpriteSize)
 static void
 vDecodeDIB(diagram_type *pDiag, FILE *pFile, const imagedata_type *pImg)
 {
-	sprite_areainfo	*pSprite;
-	UCHAR	*pucPalette, *pucData;
+	UCHAR	*pucSprite, *pucPalette, *pucData;
 	size_t	tSpriteSize;
 	int	iHeaderSize;
 
@@ -520,10 +518,9 @@ vDecodeDIB(diagram_type *pDiag, FILE *pFile, const imagedata_type *pImg)
 			pImg->iColorsUsed * ((iHeaderSize > 12) ? 4 : 3));
 	}
 
-	/* Create an blank sprite */
-	pSprite = pCreateBlankSprite(pImg, &tSpriteSize);
-	pucPalette = (UCHAR *)pSprite +
-			pSprite->firstoffset + sizeof(sprite_header);
+	/* Create an empty sprite */
+	pucSprite = pucCreateBlankSprite(pImg, &tSpriteSize);
+	pucPalette = pucSprite + sizeof(sprite_area) + sizeof(sprite_header);
 
 	/* Add the pixel information */
 	switch (pImg->uiBitsPerComponent) {
@@ -545,7 +542,7 @@ vDecodeDIB(diagram_type *pDiag, FILE *pFile, const imagedata_type *pImg)
 	case  8:
 		fail(pImg->eCompression != compression_none &&
 				pImg->eCompression != compression_rle8);
-		pucData = pucPalette + 0 * 8;
+		pucData = pucPalette;
 		if (pImg->eCompression == compression_rle8) {
 			vDecodeRle8(pFile, pucData, pImg);
 		} else {
@@ -554,7 +551,7 @@ vDecodeDIB(diagram_type *pDiag, FILE *pFile, const imagedata_type *pImg)
 		break;
 	case 24:
 		fail(pImg->eCompression != compression_none);
-		pucData = pucPalette + 0 * 8;
+		pucData = pucPalette;
 		vDecode24bpp(pFile, pucData, pImg);
 		break;
 	default:
@@ -563,16 +560,16 @@ vDecodeDIB(diagram_type *pDiag, FILE *pFile, const imagedata_type *pImg)
 	}
 
 #if 0 /* defined(DEBUG) */
-	vCopy2File((UCHAR *)pSprite, tSpriteSize);
+	vCopy2File(pucSprite, tSpriteSize);
 #endif /* DEBUG */
 
 	/* Add the sprite to the Draw file */
 	vImage2Diagram(pDiag, pImg,
-		(UCHAR *)pSprite + pSprite->firstoffset,
-		tSpriteSize - pSprite->firstoffset);
+		pucSprite + sizeof(sprite_area),
+		tSpriteSize - sizeof(sprite_area));
 
 	/* Clean up before you leave */
-	pSprite = xfree(pSprite);
+	pucSprite = xfree(pucSprite);
 } /* end of vDecodeDIB */
 
 /*

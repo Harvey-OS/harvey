@@ -8,41 +8,9 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "DeskLib:Menu.h"
-#include "DeskLib:Save.h"
-#include "DeskLib:Template.h"
-#include "DeskLib:Window.h"
-#include "drawfile.h"
+#include "saveas.h"
+#include "event.h"
 #include "antiword.h"
-
-/* The window handle of the save window */
-static window_handle	tSaveWindow = 0;
-
-/* Xfer_send box fields */
-#define DRAG_SPRITE	3
-#define OK_BUTTON	0
-#define CANCEL_BUTTON	(-1)
-#define FILENAME_ICON	2
-
-
-/*
- * saveas - a wrapper around Save_InitSaveWindowhandler
- */
-static void
-saveas(int iFileType, char *szOutfile, size_t tEstSize,
-	save_filesaver save_function, void *pvReference)
-{
-	TRACE_MSG("saveas");
-
-	if (tSaveWindow == 0) {
-		tSaveWindow = Window_Create("xfer_send", template_TITLEMIN);
-	}
-	Icon_SetText(tSaveWindow, FILENAME_ICON, szOutfile);
-	Window_Show(tSaveWindow, open_UNDERPOINTER);
-	(void)Save_InitSaveWindowHandler(tSaveWindow, FALSE, TRUE, TRUE,
-		DRAG_SPRITE, OK_BUTTON, CANCEL_BUTTON, FILENAME_ICON,
-		save_function, NULL, NULL, tEstSize, iFileType, pvReference);
-} /* end of saveas */
 
 static BOOL
 bWrite2File(void *pvBytes, size_t tSize, FILE *pFile, const char *szFilename)
@@ -62,17 +30,15 @@ bText2File(char *szFilename, void *pvHandle)
 {
 	FILE	*pFile;
 	diagram_type	*pDiag;
-	drawfile_object	*pObj;
-	drawfile_text	*pText;
-	const char	*pcTmp;
-	int	iToGo, iX, iYtopPrev, iHeight, iLines;
+	draw_textstrhdr	tText;
+	char	*pcTmp;
+	int	iToGo, iSize, iX, iYtopPrev, iHeight, iLines;
 	BOOL	bFirst, bIndent, bSuccess;
-
-	TRACE_MSG("bText2File");
 
 	fail(szFilename == NULL || szFilename[0] == '\0');
 	fail(pvHandle == NULL);
 
+	DBG_MSG("bText2File");
 	DBG_MSG(szFilename);
 
 	pDiag = (diagram_type *)pvHandle;
@@ -85,21 +51,22 @@ bText2File(char *szFilename, void *pvHandle)
 	iYtopPrev = 0;
 	iHeight = (int)lWord2DrawUnits20(DEFAULT_FONT_SIZE);
 	bSuccess = TRUE;
-	fail(pDiag->tInfo.length < offsetof(drawfile_diagram, objects));
-	iToGo = pDiag->tInfo.length - offsetof(drawfile_diagram, objects);
+	iToGo = pDiag->tInfo.length - sizeof(draw_fileheader);
 	DBG_DEC(iToGo);
-	pcTmp = (const char *)pDiag->tInfo.data +
-				offsetof(drawfile_diagram, objects);
+	pcTmp = pDiag->tInfo.data + sizeof(draw_fileheader);
 	while (iToGo > 0 && bSuccess) {
-		pObj = (drawfile_object *)pcTmp;
-		switch (pObj->type) {
-		case drawfile_TYPE_TEXT:
-			pText = &pObj->data.text;
+		tText = *(draw_textstrhdr *)pcTmp;
+		switch (tText.tag) {
+		case draw_OBJFONTLIST:
+			/* These are not relevant in a textfile */
+			iSize = ((draw_fontliststrhdr *)pcTmp)->size;
+			pcTmp += iSize;
+			iToGo -= iSize;
+			break;
+		case draw_OBJTEXT:
 			/* Compute the number of lines */
-			iLines = (iYtopPrev - pText->bbox.max.y +
-					iHeight / 2) / iHeight;
-			DBG_DEC_C(iLines < 0, iYtopPrev);
-			DBG_DEC_C(iLines < 0, pText->bbox.max.y);
+			iLines =
+			(iYtopPrev - tText.bbox.y1 + iHeight / 2) / iHeight;
 			fail(iLines < 0);
 			bIndent = iLines > 0 || bFirst;
 			bFirst = FALSE;
@@ -111,9 +78,9 @@ bText2File(char *szFilename, void *pvHandle)
 			}
 			/* Print the indentation */
 			if (bIndent && bSuccess) {
-				for (iX = Drawfile_ScreenToDraw(8);
-				     iX <= pText->bbox.min.x && bSuccess;
-				     iX += Drawfile_ScreenToDraw(16)) {
+				for (iX = draw_screenToDraw(8);
+				     iX <= tText.bbox.x0 && bSuccess;
+				     iX += draw_screenToDraw(16)) {
 					bSuccess = bWrite2File(" ",
 						1, pFile, szFilename);
 				}
@@ -122,25 +89,33 @@ bText2File(char *szFilename, void *pvHandle)
 				break;
 			}
 			/* Print the text object */
-			bSuccess = bWrite2File(pText->text,
-				strlen(pText->text), pFile, szFilename);
-			/* Setup for the next object */
-			iYtopPrev = pText->bbox.max.y;
-			iHeight = pText->bbox.max.y - pText->bbox.min.y;
+			pcTmp += sizeof(tText);
+			bSuccess = bWrite2File(pcTmp,
+				strlen(pcTmp), pFile, szFilename);
+			pcTmp += tText.size - sizeof(tText);
+			/* Setup for the next text object */
+			iToGo -= tText.size;
+			iYtopPrev = tText.bbox.y1;
+			iHeight = tText.bbox.y1 - tText.bbox.y0;
 			break;
-		case drawfile_TYPE_FONT_TABLE:
-		case drawfile_TYPE_PATH:
-		case drawfile_TYPE_SPRITE:
-		case drawfile_TYPE_JPEG:
+		case draw_OBJPATH:
 			/* These are not relevant in a textfile */
+			iSize = ((draw_pathstrhdr *)pcTmp)->size;
+			pcTmp += iSize;
+			iToGo -= iSize;
+			break;
+		case draw_OBJSPRITE:
+		case draw_OBJJPEG:
+			/* These are not relevant in a textfile */
+			iSize = ((draw_spristrhdr *)pcTmp)->size;
+			pcTmp += iSize;
+			iToGo -= iSize;
 			break;
 		default:
-			DBG_DEC(pObj->type);
+			DBG_DEC(tText.tag);
 			bSuccess = FALSE;
 			break;
 		}
-		pcTmp += pObj->size;
-		iToGo -= pObj->size;
 	}
 	DBG_DEC_C(iToGo != 0, iToGo);
 	if (bSuccess) {
@@ -157,48 +132,29 @@ bText2File(char *szFilename, void *pvHandle)
 } /* end of bText2File */
 
 /*
- * bSaveTextfile - save the diagram as a text file
+ * vSaveTextfile
  */
-BOOL
-bSaveTextfile(event_pollblock *pEvent, void *pvReference)
+void
+vSaveTextfile(diagram_type *pDiagram)
 {
-	diagram_type	*pDiag;
-	size_t	tRecLen, tNbrRecs, tEstSize;
+	wimp_emask	tMask;
+	int		iRecLen, iNbrRecs, iEstSize;
 
-	TRACE_MSG("bSaveTextfile");
+	fail(pDiagram == NULL);
 
-	fail(pEvent == NULL);
-	fail(pvReference == NULL);
+	DBG_MSG("vSaveTextfile");
+	iRecLen = sizeof(draw_textstrhdr) + DEFAULT_SCREEN_WIDTH * 2 / 3;
+	iNbrRecs = pDiagram->tInfo.length / iRecLen + 1;
+	iEstSize = iNbrRecs * DEFAULT_SCREEN_WIDTH * 2 / 3;
+	DBG_DEC(iEstSize);
 
-	pDiag = (diagram_type *)pvReference;
-
-	switch (pEvent->type) {
-	case event_SEND:	/* From a menu */
-		fail(pEvent->data.message.header.action != message_MENUWARN);
-		if (menu_currentopen != pDiag->pSaveMenu ||
-		    pEvent->data.message.data.menuwarn.selection[0] !=
-							SAVEMENU_SAVETEXT) {
-			return FALSE;
-		}
-		break;
-	case event_KEY:		/* From a key short cut */
-		if (pEvent->data.key.caret.window != pDiag->tMainWindow) {
-			return FALSE;
-		}
-		break;
-	default:
-		DBG_DEC(pEvent->type);
-		return FALSE;
-	}
-
-	tRecLen = sizeof(drawfile_text) + DEFAULT_SCREEN_WIDTH * 2 / 3;
-	tNbrRecs = pDiag->tInfo.length / tRecLen + 1;
-	tEstSize = tNbrRecs * DEFAULT_SCREEN_WIDTH * 2 / 3;
-	DBG_DEC(tEstSize);
-
-	saveas(FILETYPE_TEXT, "WordText", tEstSize, bText2File, pDiag);
-	return TRUE;
-} /* end of bSaveTextfile */
+	tMask = event_getmask();
+	event_setmask(0);
+	saveas(FILETYPE_TEXT, "WordText",
+		iEstSize, bText2File,
+		NULL, NULL, pDiagram);
+	event_setmask(tMask);
+} /* end of vSaveTextfile */
 
 /*
  * bDraw2File - Save the generated draw file to a Draw file
@@ -212,22 +168,20 @@ bDraw2File(char *szFilename, void *pvHandle)
 {
 	FILE		*pFile;
 	diagram_type	*pDiagram;
-	wimp_box	*pBbox;
-	drawfile_object	*pObj;
-	drawfile_text	*pText;
-	drawfile_path	*pPath;
-	drawfile_sprite	*pSprite;
-	drawfile_jpeg	*pJpeg;
+	draw_fileheader tHdr;
+	draw_textstrhdr	tText;
+	draw_pathstrhdr	tPath;
+	draw_spristrhdr	tSprite;
+	draw_jpegstrhdr tJpeg;
 	int	*piPath;
 	char	*pcTmp;
 	int	iYadd, iToGo, iSize;
 	BOOL	bSuccess;
 
-	TRACE_MSG("bDraw2File");
-
 	fail(szFilename == NULL || szFilename[0] == '\0');
 	fail(pvHandle == NULL);
 
+	DBG_MSG("bDraw2File");
 	NO_DBG_MSG(szFilename);
 
 	pDiagram = (diagram_type *)pvHandle;
@@ -239,55 +193,51 @@ bDraw2File(char *szFilename, void *pvHandle)
 	iToGo = pDiagram->tInfo.length;
 	DBG_DEC(iToGo);
 	pcTmp = pDiagram->tInfo.data;
-	bSuccess = bWrite2File(pcTmp,
-			offsetof(drawfile_diagram, bbox), pFile, szFilename);
-	if (bSuccess) {
-	  	pcTmp += offsetof(drawfile_diagram, bbox);
-		iToGo -= offsetof(drawfile_diagram, bbox);
-		pBbox = (wimp_box *)pcTmp;
-		iYadd = -pBbox->min.y;
-		pBbox->min.y += iYadd;
-		pBbox->max.y += iYadd;
-		bSuccess = bWrite2File(pcTmp,
-				sizeof(*pBbox), pFile, szFilename);
-		iToGo -= sizeof(*pBbox);
-		DBG_DEC(iToGo);
-		pcTmp += sizeof(*pBbox);
-	} else {
-		iYadd = 0;
-	}
+	tHdr = *(draw_fileheader *)pcTmp;
+	iYadd = -tHdr.bbox.y0;
+	tHdr.bbox.y0 += iYadd;
+	tHdr.bbox.y1 += iYadd;
+	bSuccess = bWrite2File(&tHdr, sizeof(tHdr), pFile, szFilename);
+	iToGo -= sizeof(tHdr);
+	DBG_DEC(iToGo);
+	pcTmp += sizeof(tHdr);
 	while (iToGo > 0 && bSuccess) {
-		pObj = (drawfile_object *)pcTmp;
-		iSize = pObj->size;
-		switch (pObj->type) {
-		case drawfile_TYPE_FONT_TABLE:
+		tText = *(draw_textstrhdr *)pcTmp;
+		switch (tText.tag) {
+		case draw_OBJFONTLIST:
+			iSize = ((draw_fontliststrhdr *)pcTmp)->size;
 			bSuccess = bWrite2File(pcTmp,
 					iSize, pFile, szFilename);
 			pcTmp += iSize;
 			iToGo -= iSize;
 			break;
-		case drawfile_TYPE_TEXT:
-			pText = &pObj->data.text;
+		case draw_OBJTEXT:
 			/* First correct the coordinates */
-			pText->bbox.min.y += iYadd;
-			pText->bbox.max.y += iYadd;
-			pText->base.y += iYadd;
+			tText.bbox.y0 += iYadd;
+			tText.bbox.y1 += iYadd;
+			tText.coord.y += iYadd;
 			/* Now write the information to file */
-			bSuccess = bWrite2File(pcTmp,
+			bSuccess = bWrite2File(&tText,
+				sizeof(tText), pFile, szFilename);
+			pcTmp += sizeof(tText);
+			iSize = tText.size - sizeof(tText);
+			if (bSuccess) {
+				bSuccess = bWrite2File(pcTmp,
 					iSize, pFile, szFilename);
-			pcTmp += pObj->size;
-			iToGo -= pObj->size;
+				pcTmp += iSize;
+			}
+			iToGo -= tText.size;
 			break;
-		case drawfile_TYPE_PATH:
-			pPath = &pObj->data.path;
+		case draw_OBJPATH:
+			tPath = *(draw_pathstrhdr *)pcTmp;
 			/* First correct the coordinates */
-			pPath->bbox.min.y += iYadd;
-			pPath->bbox.max.y += iYadd;
+			tPath.bbox.y0 += iYadd;
+			tPath.bbox.y1 += iYadd;
 			/* Now write the information to file */
-			bSuccess = bWrite2File(pPath,
-				sizeof(*pPath), pFile, szFilename);
-			pcTmp += sizeof(*pPath);
-			iSize = pObj->size - sizeof(*pPath);
+			bSuccess = bWrite2File(&tPath,
+				sizeof(tPath), pFile, szFilename);
+			pcTmp += sizeof(tPath);
+			iSize = tPath.size - sizeof(tPath);
 			fail(iSize < 14 * sizeof(int));
 			/* Second correct the path coordinates */
 			piPath = xmalloc(iSize);
@@ -302,33 +252,45 @@ bDraw2File(char *szFilename, void *pvHandle)
 				pcTmp += iSize;
 			}
 			piPath = xfree(piPath);
-			iToGo -= pObj->size;
+			iToGo -= tPath.size;
 			break;
-		case drawfile_TYPE_SPRITE:
-			pSprite = &pObj->data.sprite;
+		case draw_OBJSPRITE:
+			tSprite = *(draw_spristrhdr *)pcTmp;
 			/* First correct the coordinates */
-			pSprite->bbox.min.y += iYadd;
-			pSprite->bbox.max.y += iYadd;
+			tSprite.bbox.y0 += iYadd;
+			tSprite.bbox.y1 += iYadd;
 			/* Now write the information to file */
-			bSuccess = bWrite2File(pcTmp,
+			bSuccess = bWrite2File(&tSprite,
+				sizeof(tSprite), pFile, szFilename);
+			pcTmp += sizeof(tSprite);
+			iSize = tSprite.size - sizeof(tSprite);
+			if (bSuccess) {
+				bSuccess = bWrite2File(pcTmp,
 					iSize, pFile, szFilename);
-			pcTmp += pObj->size;
-			iToGo -= pObj->size;
+				pcTmp += iSize;
+			}
+			iToGo -= tSprite.size;
 			break;
-		case drawfile_TYPE_JPEG:
-			pJpeg = &pObj->data.jpeg;
+		case draw_OBJJPEG:
+			tJpeg = *(draw_jpegstrhdr *)pcTmp;
 			/* First correct the coordinates */
-			pJpeg->bbox.min.y += iYadd;
-			pJpeg->bbox.max.y += iYadd;
-			pJpeg->trfm.entries[2][1] += iYadd;
+			tJpeg.bbox.y0 += iYadd;
+			tJpeg.bbox.y1 += iYadd;
+			tJpeg.trfm[5] += iYadd;
 			/* Now write the information to file */
-			bSuccess = bWrite2File(pcTmp,
+			bSuccess = bWrite2File(&tJpeg,
+				sizeof(tJpeg), pFile, szFilename);
+			pcTmp += sizeof(tJpeg);
+			iSize = tJpeg.size - sizeof(tJpeg);
+			if (bSuccess) {
+				bSuccess = bWrite2File(pcTmp,
 					iSize, pFile, szFilename);
-			pcTmp += pObj->size;
-			iToGo -= pObj->size;
+				pcTmp += iSize;
+			}
+			iToGo -= tJpeg.size;
 			break;
 		default:
-			DBG_DEC(pObj->type);
+			DBG_DEC(tText.tag);
 			bSuccess = FALSE;
 			break;
 		}
@@ -345,43 +307,24 @@ bDraw2File(char *szFilename, void *pvHandle)
 } /* end of bDraw2File */
 
 /*
- * bSaveDrawfile - save the diagram as a draw file
+ * vSaveDrawfile
  */
-BOOL
-bSaveDrawfile(event_pollblock *pEvent, void *pvReference)
+void
+vSaveDrawfile(diagram_type *pDiagram)
 {
-	diagram_type	*pDiag;
-	size_t		tEstSize;
+	wimp_emask	tMask;
+	int		iEstSize;
 
-	TRACE_MSG("bSaveDrawfile");
+	fail(pDiagram == NULL);
 
-	fail(pEvent == NULL);
-	fail(pvReference == NULL);
+	DBG_MSG("vSaveDrawfile");
+	iEstSize = pDiagram->tInfo.length;
+	DBG_DEC(iEstSize);
 
-	pDiag = (diagram_type *)pvReference;
-
-	switch (pEvent->type) {
-	case event_SEND:	/* From a menu */
-		fail(pEvent->data.message.header.action != message_MENUWARN);
-		if (menu_currentopen != pDiag->pSaveMenu ||
-		    pEvent->data.message.data.menuwarn.selection[0] !=
-							SAVEMENU_SAVEDRAW) {
-			return FALSE;
-		}
-		break;
-	case event_KEY:		/* From a key short cut */
-		if (pEvent->data.key.caret.window != pDiag->tMainWindow) {
-			return FALSE;
-		}
-		break;
-	default:
-		DBG_DEC(pEvent->type);
-		return FALSE;
-	}
-
-	tEstSize = pDiag->tInfo.length;
-	DBG_DEC(tEstSize);
-
-	saveas(FILETYPE_DRAW, "WordDraw", tEstSize, bDraw2File, pDiag);
-	return TRUE;
-} /* end of bSaveDrawfile */
+	tMask = event_getmask();
+	event_setmask(0);
+	saveas(FILETYPE_DRAW, "WordDraw",
+		iEstSize, bDraw2File,
+		NULL, NULL, pDiagram);
+	event_setmask(tMask);
+} /* end of vSaveDrawfile */
