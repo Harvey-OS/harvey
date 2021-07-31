@@ -48,31 +48,21 @@ Menu	menu3;
 char	*histp;
 char	hist[HISTSIZ];
 int	yscrmin, yscrmax;
-int	bckcolor, frgcolor, bckdefault, frgdefault;
-int	attribute, attdefault;
-int	wctlout;
-int	wflag;
+int	bckcolor, frgcolor;
+int	attribute;
 
 Image	*bordercol;
 Image	*cursback;
 Image	*black;
+Image	*white;
 Image	*red;
 Image	*green;
 Image	*blue;
 Image	*cyan;
-Image	*purple;
-Image	*brown;
+Image	*magenta;
+Image	*yellow;
 Image	*grey;
-Image	*hiblack;
-Image	*hired;
-Image	*higreen;
-Image	*hiblue;
-Image	*hicyan;
-Image	*hipurple;
-Image	*hibrown;
-Image	*higrey;
 Image	*colortab[8];
-Image	*hicolortab[8];
 
 /* terminal control */
 struct ttystate ttystate[2] = { {0, 1}, {0, 1} };
@@ -85,7 +75,6 @@ Mouse	mouse;
 int	outfd = -1;
 Biobuf	*snarffp = 0;
 
-Font	*fnt;
 char	*host_buf;
 char	*hostp;			/* input from host */
 int	host_bsize = 2*BSIZE;
@@ -133,16 +122,12 @@ initialize(int argc, char **argv)
 {
 	int dayglo = 1;
 	char *p;
-	char *fname = 0;
 
 	rfork(RFENVG|RFNAMEG|RFNOTEG);
 
 	term = "vt100";
 	fk = vt100fk;
 	ARGBEGIN{
-	case 'f':
-		fname = EARGF(useage());
-		break;
 	case 'a':
 		term = "ansi";
 		fk = ansifk;
@@ -150,10 +135,6 @@ initialize(int argc, char **argv)
 	case '2':
 		term = "vt220";
 		fk = vt220fk;
-		break;
-	case 'x':
-		fk = xtermfk;
-		term = "xterm";
 		break;
 	case 's': /* for sape */
 		dayglo = 0;
@@ -165,9 +146,6 @@ initialize(int argc, char **argv)
 		logfd = create(p, OWRITE, 0666);
 		if(logfd < 0)
 			sysfatal("could not create log file: %s: %r", p);
-		break;
-	case 'w':
-		wflag = 1;
 		break;
 	}ARGEND;
 
@@ -181,77 +159,42 @@ initialize(int argc, char **argv)
 	}
 	ebegin(Ehost);
 
-	if(fname)
-		fnt = openfont(display, fname);
-	if(fnt == nil)
-		fnt = font;
-
 	histp = hist;
 	menu2.item = menutext2;
 	menu3.item = menutext3;
 	pagemode = 0;
 	blocked = 0;
-	NS = fnt->height;
-	CW = stringwidth(fnt, "m");
-
+	NS = font->height ;
+	CW = stringwidth(font, "m");
 	bordercol = allocimage(display, Rect(0,0,1,1), screen->chan, 1, 0xCCCCCCCC);
 	cursback = allocimage(display, Rect(0, 0, CW+1, NS+1), screen->chan, 0, DNofill);
+	black =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DBlack);
+	white =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DWhite);
+	red =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DRed);
+	green =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DGreen);
+	yellow =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DYellow);
+	blue =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DBlue);
+	magenta =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DMagenta);
+	cyan =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DCyan);
+	grey =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, DPalegreygreen);
 
-	black =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, 0x000000FF);
-	red =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,   0xAA0000FF);
-	green =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, 0x00AA00FF);
-	blue =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,  0x0000FFFF);
-	cyan =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,  0x00AAAAFF);
-	purple = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, 0xAA00AAFF);
-	brown = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,  0xFF5500FF);
-	grey =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,  0x7F7F7FFF);
+	colortab[0] = black;
+	colortab[1] = red;
+	colortab[2] = green;
+	colortab[3] = yellow;
+	colortab[4] = blue;
+	colortab[5] = magenta;
+	colortab[6] = cyan;
+	colortab[7] = grey;
 
-	hiblack =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, 0x555555FF);
-	hired =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,   0xff5555FF);
-	higreen =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, 0x55ff55FF);
-	hiblue =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,  0x5555ffFF);
-	hicyan =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,  0x55ffffFF);
-	hipurple = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, 0xff55ffFF);
-	hibrown = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,  0xffff55FF);
-	higrey =  allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1,  0xffffffFF);
-
-	bckdefault = bckcolor = 0;
-	frgdefault = frgcolor = 7;
-	if(dayglo){
-		colortab[0] = black;
-		colortab[1] = red;
-		colortab[2] = green;
-		colortab[3] = brown;
-		colortab[4] = blue;
-		colortab[5] = purple;
-		colortab[6] = cyan;
-		colortab[7] = grey;
-		hicolortab[0] = hiblack;
-		hicolortab[1] = hired;
-		hicolortab[2] = higreen;
-		hicolortab[3] = hibrown;
-		hicolortab[4] = hiblue;
-		hicolortab[5] = hipurple;
-		hicolortab[6] = hicyan;
-		hicolortab[7] = higrey;
+	if(dayglo) {
+		bckcolor = 0;
+		frgcolor = 7;
 	} else {
-		hicolortab[0] = grey;
-		hicolortab[1] = red;
-		hicolortab[2] = green;
-		hicolortab[3] = brown;
-		hicolortab[4] = blue;
-		hicolortab[5] = purple;
-		hicolortab[6] = cyan;
-		hicolortab[7] = black;
-		colortab[0] = higrey;
-		colortab[1] = hired;
-		colortab[2] = higreen;
-		colortab[3] = hibrown;
-		colortab[4] = hiblue;
-		colortab[5] = hipurple;
-		colortab[6] = hicyan;
-		colortab[7] = hiblack;
-	}
+		bckcolor = 7;
+		frgcolor = 0;
+		colortab[7] = white;
+	}	
 
 	eresized(0);
 
@@ -286,7 +229,8 @@ newline(void)
 void
 cursoff(void)
 {
-	draw(screen, Rpt(pt(x, y), addpt(pt(x, y), Pt(CW,NS))), cursback, nil, cursback->r.min);
+	draw(screen, Rpt(pt(x, y), addpt(pt(x, y), Pt(CW,NS))),
+		cursback, nil, cursback->r.min);
 }
 
 void
@@ -294,11 +238,12 @@ curson(int bl)
 {
 	Image *col;
 
-	draw(cursback, cursback->r, screen, nil, pt(x, y));
-
-	if(!cursoron)
+	if(!cursoron){
+		cursoff();
 		return;
+	}
 
+	draw(cursback, cursback->r, screen, nil, pt(x, y));
 	if(bl)
 		col = red;
 	else
@@ -476,12 +421,6 @@ waitchar(void)
 				case Kright:
 					sendfk("right key");
 					break;
-				case Kpgup:
-					sendfk("page up");
-					break;
-				case Kpgdown:
-					sendfk("page down");
-					break;
 				case KF|1:
 					sendfk("F1");
 					break;
@@ -601,8 +540,6 @@ exportsize(void)
 void
 resize(void)
 {
-	static int oldwt;
-	static int oldht;
 	if(resize_flag > 1 && getwindow(display, Refnone) < 0){
 		fprint(2, "can't reattach to window: %r\n");
 		exits("can't reattach to window");
@@ -618,11 +555,6 @@ resize(void)
 	olines = 0;
 	exportsize();
 	clear(screen->r);
-	fprint(wctlout, " %11d %11d %11d %11d",
-		screen->r.min.x, screen->r.min.y,
-		screen->r.max.x, screen->r.max.y);
-	oldwt = Dx(screen->r);
-	oldht = Dy(screen->r);
 	resize_flag = 0;
 }
 
@@ -758,7 +690,6 @@ scroll(int sy, int ly, int dy, int cy)	/* source, limit, dest, which line to cle
 {
 	draw(screen, Rpt(pt(0, dy), pt(xmax+1, dy+ly-sy)), screen, nil, pt(0, sy));
 	clear(Rpt(pt(0, cy), pt(xmax+1, cy+1)));
-	flushimage(display,1);
 }
 
 void
@@ -778,7 +709,6 @@ bigscroll(void)			/* scroll up half a page */
 	y -= half;
 	if(olines)
 		olines -= half;
-	flushimage(display, 1);
 }
 
 int
@@ -897,35 +827,17 @@ void
 drawstring(Point p, char *str, int attribute)
 {
 	Image *txt, *bg;
-	Rune *rstr;
-	int i, n;
 	
 	if(!(attribute & TReverse)) {
-		if(attribute & THighIntensity || bckcolor){
-			txt = hicolortab[frgcolor];
-			bg = colortab[bckcolor];
-		}else{
-			txt = colortab[frgcolor];
-			bg = colortab[bckcolor];
-		}
+		txt = colortab[frgcolor];
+		bg = colortab[bckcolor];
 	} else {
-		if(attribute & THighIntensity || bckcolor){
-			txt = colortab[bckcolor];
-			bg = colortab[frgcolor];
-		}else{
-			txt = colortab[bckcolor];
-			bg = colortab[frgcolor];
-		}
+		txt = colortab[bckcolor];
+		bg = colortab[frgcolor];
 	}
+	if(attribute & THighIntensity)
+		txt = white;
 
-	n = strlen(str) + 1;
-	rstr = malloc(n * sizeof(rstr[0]));
-
-	for(i = 0; i < n; ++i)
-		rstr[i] = (uchar)str[i];
-
-	draw(screen, Rpt(p, addpt(p, runestringsize(fnt, rstr))), bg, nil, p);
-	runestring(screen, p, txt, ZP, fnt, rstr);
-
-	free(rstr);
+	draw(screen, Rpt(p, addpt(p, stringsize(font, str))), bg, nil, p);
+	string(screen, p, txt, ZP, font, str);
 }
