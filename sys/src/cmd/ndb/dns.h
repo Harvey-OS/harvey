@@ -338,7 +338,6 @@ struct Srv
 	ushort	weight;
 };
 
-typedef struct Rrlist Rrlist;
 struct Rrlist
 {
 	int	count;
