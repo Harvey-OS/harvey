@@ -79,41 +79,31 @@ hello(char *dest)
 	/* wait for hello from other side */
 	if(getreply(&ctlin, msg, sizeof(msg), 1) != Success)
 		fatal("bad hello");
-	if(strstr(msg, "Plan 9"))
-		os = Plan9;
 }
 
 /*
  *  login to remote system
  */
 void
-rlogin(char *rsys)
+rlogin(void)
 {
 	char *line;
 	char pass[128];
-	UserPasswd *up;
 
-	up = nil;
 	for(;;){
-		if(up == nil && os != Plan9)
-			up = auth_getuserpasswd(auth_getkey, "proto=pass server=%s", rsys);
-		if(up != nil){
-			sendrequest("USER", up->user);
-		} else {
-			print("User[default = %s]: ", user);
-			line = Brdline(&stdin, '\n');
-			if(line == 0)
-				exits(0);
-			line[Blinelen(&stdin)-1] = 0;
-			if(*line){
-				free(user);
-				user = strdup(line);
-			}
-			sendrequest("USER", user);
+		print("User[default = %s]: ", user);
+		line = Brdline(&stdin, '\n');
+		if(line == 0)
+			exits(0);
+		line[Blinelen(&stdin)-1] = 0;
+		if(*line){
+			free(user);
+			user = strdup(line);
 		}
+		sendrequest("USER", user);
 		switch(getreply(&ctlin, msg, sizeof(msg), 1)){
 		case Success:
-			goto out;
+			return;
 		case Incomplete:
 			break;
 		case TempFail:
@@ -121,23 +111,14 @@ rlogin(char *rsys)
 			continue;
 		}
 
-		if(up != nil){
-			sendrequest("PASS", up->passwd);
-		} else {
-			if(getpassword(pass, pass+sizeof(pass)) < 0)
-				exits(0);
-			sendrequest("PASS", pass);
-		}
+		if(getpassword(pass, pass+sizeof(pass)) < 0)
+			exits(0);
+		sendrequest("PASS", pass);
 		if(getreply(&ctlin, msg, sizeof(msg), 1) == Success){
 			if(strstr(msg, "Sess#"))
 				defos = MVS;
-			break;
+			return;
 		}
-	}
-out:
-	if(up != nil){
-		memset(up, 0, sizeof(*up));
-		free(up);
 	}
 }
 
@@ -1073,7 +1054,6 @@ static int
 getreply(Biobuf *bp, char *msg, int len, int printreply)
 {
 	char *line;
-	char *p;
 	int rv;
 	int i, n;
 
@@ -1100,8 +1080,8 @@ getreply(Biobuf *bp, char *msg, int len, int printreply)
 		}
 
 		/* stop if not a continuation */
-		rv = strtol(line, &p, 10);
-		if(rv >= 100 && rv < 600 && p==line+3 && *p != '-')
+		rv = atoi(line);
+		if(rv >= 100 && rv < 600 && (n == 4 || (n > 4 && line[3] == ' ')))
 			return rv/100;
 
 		/* tell user about continuations */

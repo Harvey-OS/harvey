@@ -1123,9 +1123,6 @@ initcookies(char *file)
 void
 httpsetcookie(char *hdr, char *dom, char *path)
 {
-	if(path == nil)
-		path = "/";
-
 	parsehttp(jar, hdr, dom, path);
 	syncjar(jar);
 }

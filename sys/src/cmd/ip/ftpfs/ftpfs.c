@@ -151,7 +151,7 @@ main(int argc, char *argv[])
 	/* initial handshakes with remote side */
 	hello(*argv);
 	if (cpassword == 0)
-		rlogin(*argv);
+		rlogin();
 	else
 		clogin("anonymous", cpassword);
 	preamble(mountroot);

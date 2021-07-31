@@ -1,17 +1,20 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libplumb.a
-OFILES=\
-	event.$O\
-	mesg.$O\
-	plumbsendtext.$O\
+FILES=\
+	event\
+	mesg\
+	plumbsendtext\
 
 HFILES=/sys/include/plumb.h
 
-UPDATE=\
-	mkfile\
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libplumb.a\
 	$HFILES\
-	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	$CFILES\
 
 </sys/src/cmd/mksyslib

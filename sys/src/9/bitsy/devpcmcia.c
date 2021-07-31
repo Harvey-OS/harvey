@@ -6,20 +6,11 @@
 #include "../port/error.h"
 #include "io.h"
 
-/*
- * BUG: insertion events are detected by polling.
- *      Should look into the compaq docs to see if
- *      there's an interrupt for card insertion
- *      there's probably one.
- */
-
 static PCMslot	slot[2];
 int nslot = 2;
 
 struct {
 	Ref;
-	Rendez	event;		// where to wait for card events
-	int	evreader;	// there's a reader for events
 } pcmcia;
 
 enum
@@ -28,7 +19,6 @@ enum
 	Qmem,
 	Qattr,
 	Qctl,
-	Qevs,
 
 	Nents = 3,
 };
@@ -76,14 +66,8 @@ pcmgen(Chan *c, char *, Dirtab * , int, int i, Dir *dp)
 		return 1;
 	}
 
-	if(i >= Nents*nslot + 1)
+	if(i >= Nents*nslot)
 		return -1;
-	if(i == Nents*nslot){
-		len = 0;
-		qid.path = PATH(0, Qevs);
-		snprint(up->genbuf, sizeof up->genbuf, "pcmevs");
-		goto found;
-	}
 
 	slotno = i/Nents;
 	sp = slot + slotno;
@@ -104,7 +88,6 @@ pcmgen(Chan *c, char *, Dirtab * , int, int i, Dir *dp)
 		snprint(up->genbuf, sizeof up->genbuf, "pcm%dctl", slotno);
 		break;
 	}
-found:
 	qid.vers = 0;
 	qid.type = QTFILE;
 	devdir(c, qid, up->genbuf, len, eve, 0660, dp);
@@ -259,48 +242,6 @@ pcmctlread(void *a, long n, ulong off, PCMslot *sp)
 	return n;
 }
 
-static int
-inserted(void *)
-{
-	if (slot[0].inserted)
-		return 1;
-	if (slot[1].inserted)
-		return 2;
-	return 0;
-}
-
-static long
-pcmevsread(void *a, long n, ulong off)
-{
-	int i;
-	char *buf = nil;
-	char *e;
-
-	if (pcmcia.evreader)
-		error("At most one reader");
-	off = 0;
-	pcmcia.evreader++;
-	if (waserror()){
-		free(buf);
-		pcmcia.evreader--;
-		nexterror();
-	}
-	while((i = inserted(nil)) == 0){
-		slotinfo(nil, nil);
-		tsleep(&pcmcia.event, inserted, nil, 500);
-	}
-	pcmcia.evreader--;
-	slot[i-1].inserted = 0;
-	buf = malloc(READSTR);
-	e = buf + READSTR;
-	buf[0] = 0;
-	seprint(buf, e, "#y/pcm%dctl\n", i-1);
-	n = readstr(off, a, n, buf);
-	free(buf);
-	poperror();
-	return n;
-}
-
 static long
 pcmciaread(Chan *c, void *a, long n, vlong off)
 {
@@ -320,8 +261,6 @@ pcmciaread(Chan *c, void *a, long n, vlong off)
 		if(!sp->occupied)
 			error(Eio);
 		return pcmread(a, n, offset, sp, sp->attr, OneMeg);
-	case Qevs:
-		return pcmevsread(a, n, offset);
 	case Qctl:
 		return pcmctlread(a, n, offset, sp);
 	}
@@ -355,7 +294,6 @@ pcmctlwrite(char *p, long n, ulong, PCMslot *sp)
 	int index, i, dtx;
 	Rune r;
 	DevConf cf;
-	port_t port;
 
 	cmd = parsecmd(p, n);
 	if(strcmp(cmd->f[0], "configure") == 0){
@@ -398,12 +336,9 @@ pcmctlwrite(char *p, long n, ulong, PCMslot *sp)
 		memset(&cf, 0, sizeof cf);
 		kstrdup(&cf.type, cmd->f[2]);
 		cf.mem = (ulong)sp->mem;
-		cf.ports = &port;
-		cf.ports[0].port = (ulong)sp->regs;
-		cf.ports[0].size = 0;
-		cf.nports = 1;
+		cf.port = (ulong)sp->regs;
 		cf.itype = GPIOfalling;
-		cf.intnum = bitno(sp == slot ? GPIO_CARD_IRQ0_i : GPIO_CARD_IRQ1_i);
+		cf.irq = bitno(sp == slot ? GPIO_CARD_IRQ0_i : GPIO_CARD_IRQ1_i);
 		if(devtab[dtx]->config(1, p, &cf) < 0)
 			error("couldn't configure device");
 		sp->dev = devtab[dtx];
@@ -453,8 +388,6 @@ pcmciawrite(Chan *c, void *a, long n, vlong off)
 		if(!sp->occupied)
 			error(Eio);
 		return pcmwrite(a, n, offset, sp, sp->attr, OneMeg);
-	case Qevs:
-		break;
 	case Qctl:
 		if(!sp->occupied)
 			error(Eio);
@@ -544,31 +477,25 @@ slotinfo(Ureg*, void*)
 
 	if(x & GPIO_OPT_IND_i){
 		/* no expansion pack */
-		slot[0].occupied = slot[0].inserted = 0;
-		slot[1].occupied = slot[1].inserted = 0;
+		slot[0].occupied = 0;
+		slot[1].occupied = 0;
 	} else {
 		if(x & GPIO_CARD_IND0_i){
-			slot[0].occupied = slot[0].inserted = 0;
+			slot[0].occupied = 0;
 			slot[0].cisread = 0;
 		} else {
-			if(slot[0].occupied == 0){
-				slot[0].inserted = 1;
+			if(slot[0].occupied == 0)
 				slot[0].cisread = 0;
-			}
 			slot[0].occupied = 1;
 		}
 		if(x & GPIO_CARD_IND1_i){
-			slot[1].occupied = slot[1].inserted = 0;
+			slot[1].occupied = 0;
 			slot[1].cisread = 0;
 		} else {
-			if(slot[1].occupied == 0){
-				slot[1].inserted = 1;
+			if(slot[1].occupied == 0)
 				slot[1].cisread = 0;
-			}
 			slot[1].occupied = 1;
 		}
-		if (inserted(nil))
-			wakeup(&pcmcia.event);
 	}
 }
 
@@ -701,12 +628,4 @@ slottiming(int slotno, int tio, int tattr, int tmem, int fast)
 		x |= memconfregs->mecr & 0xffff;
 	}
 	memconfregs->mecr = x;
-}
-
-/* For compat with ../pc devices. Don't use it for the bitsy 
- */
-int
-pcmspecial(char*, ISAConf*)
-{
-	return -1;
 }

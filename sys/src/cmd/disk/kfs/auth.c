@@ -58,7 +58,7 @@ authorize(Chan *cp, Oldfcall *in, Oldfcall *ou)
 		return 0;
 
 	/* decrypt and unpack ticket */
-	convM2T(in->ticket, &t, nvr.machkey);
+	convM2T(in->ticket, &t, nvr.authkey);
 	if(t.num != AuthTs){
 print("bad AuthTs num\n");
 		return 0;

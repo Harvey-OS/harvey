@@ -3,6 +3,7 @@
 TARG=vncs vncv
 BIN=/$objtype/bin
 
+
 OFILES=\
 	proto.$O\
 	auth.$O\
@@ -38,8 +39,6 @@ HFILES=\
 	region.h\
 	vncv.h\
 	vncs.h\
-
-UPDATE=`{echo *.[ch] mkfile} `{echo $TARG |sed 's/([^ $]*)( |$)/\/386\/bin\/\1 /g'}
 
 default:V:	all
 

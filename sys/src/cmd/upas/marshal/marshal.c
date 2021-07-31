@@ -18,7 +18,7 @@ struct Alias
 {
 	Alias	*next;
 	int	n;
-	Addr	*addr;
+	char	**v;
 };
 
 struct Addr
@@ -78,10 +78,16 @@ Ctype ctype[] = {
 	{ "text/tab-separated-values",	"tsv",	1,	},
 	{ "text/richtext",		"rtx",	1,	},
 	{ "message/rfc822",		"txt",	1,	},
+	{ "image/jpeg",			"jpg",	0,	},
+	{ "image/jpeg",			"jpeg",	0,	},
+	{ "image/gif",			"gif",	0,	},
+	{ "application/pdf",		"pdf",	0,	},
+	{ "application/postscript",	"ps",	0,	},
+	{ "text/plain",			"c",	1,	},	// c language
+	{ "text/plain",			"s",	1,	},	// asm
+	{ "text/plain",			"b",	1,	},	// limbo language
 	{ "", 				0,	0,	},
 };
-
-Ctype *mimetypes;
 
 int pid = -1;
 int pgppid = -1;
@@ -108,15 +114,6 @@ void	Bdrain(Biobuf*);
 void	freeaddr(Addr *);
 int	pgpopts(char*);
 int	pgpfilter(int*, int, int);
-void	readmimetypes(void);
-char*	estrdup(char*);
-void*	emalloc(int);
-void*	erealloc(void*, int);
-void	freeaddr(Addr*);
-void	freeaddrs(Addr*);
-void	freealias(Alias*);
-void	freealiases(Alias*);
-int	doublequote(Fmt*);
 
 int rflag, lbflag, xflag, holding, nflag, Fflag, eightflag;
 int pgpflag = 0;
@@ -133,8 +130,6 @@ enum
 	Nobody = 2,
 	Error = -1,
 };
-
-#pragma varargck	type	"Z"	char*
 
 void
 usage(void)
@@ -184,9 +179,6 @@ main(int argc, char **argv)
 	type = nil;
 	hdrstring = nil;
 	ccargc = 0;
-
-	quotefmtinstall();
-	fmtinstall('Z', doublequote);
 
 	ARGBEGIN{
 	case 't':
@@ -509,17 +501,17 @@ body(Biobuf *in, Biobuf *out, int docontenttype)
 
 	n = 0;
 	len = 16*1024;
-	buf = emalloc(len);
+	buf = malloc(len);
+	if(buf == nil)
+		fatal("%r");
 
 	// first char must be newline
 	i = Bgetc(in);
-	if(i > 0){
-		if(i != '\n')
-			buf[n++] = '\n';
-		buf[n++] = i;
-	} else {
+	if(i < 0)
+		fatal("input error1");
+	if(i != '\n')
 		buf[n++] = '\n';
-	}
+	buf[n++] = i;
 
 	// read into memory
 	if(docontenttype){
@@ -652,7 +644,7 @@ attachment(Attach *a, Biobuf *out)
 			p = a->path;
 		else
 			p++;
-		Bprint(out, "Content-Disposition: attachment; filename=%Z\n", p);
+		Bprint(out, "Content-Disposition: attachment; filename=%s\n", p);
 	}
 
 	f = Bopen(a->path, OREAD);
@@ -661,13 +653,6 @@ attachment(Attach *a, Biobuf *out)
 		sleep(500);
 		postnote(PNPROC, pid, "interrupt");
 		sysfatal("opening %s: %r", a->path);
-	}
-
-	/* dump our local 'From ' line when passing along mail messages */
-	if(strcmp(a->type, "message/rfc822") == 0){
-		p = Brdline(f, '\n');
-		if(strncmp(p, "From ", 5) != 0)
-			Bseek(f, 0, 0);
 	}
 	if(a->ctype->display){
 		body(f, out, strcmp(a->type, "text/plain") == 0);
@@ -754,7 +739,9 @@ mkattach(char *file, char *type, int inline)
 
 	if(file == nil)
 		return nil;
-	a = emalloc(sizeof(*a));
+	a = malloc(sizeof(*a));
+	if(a == nil)
+		return nil;
 	a->path = file;
 	a->next = nil;
 	a->type = type;
@@ -771,24 +758,9 @@ mkattach(char *file, char *type, int inline)
 
 	// pick a type depending on extension
 	p = strchr(file, '.');
-	if(p != nil)
+	if(p != nil){
 		p++;
-
-	// check the builtin extensions
-	if(p != nil){
 		for(c = ctype; c->ext != nil; c++)
-			if(strcmp(p, c->ext) == 0){
-				a->type = c->type;
-				a->ctype = c;
-				return a;
-			}
-	}
-
-	// try the mime types file
-	if(p != nil){
-		if(mimetypes == nil)
-			readmimetypes();
-		for(c = mimetypes; c != nil && c->ext != nil; c++)
 			if(strcmp(p, c->ext) == 0){
 				a->type = c->type;
 				a->ctype = c;
@@ -816,7 +788,7 @@ mkattach(char *file, char *type, int inline)
 		n = read(pfd[1], ftype, sizeof(ftype));
 		if(n > 0){
 			ftype[n-1] = 0;
-			a->type = estrdup(ftype);
+			a->type = strdup(ftype);
 		}
 		close(pfd[1]);
 		waitpid();
@@ -843,7 +815,7 @@ mkboundary(void)
 	for(i = 5; i < sizeof(buf)-1; i++)
 		buf[i] = 'a' + nrand(26);
 	buf[i] = 0;
-	return estrdup(buf);
+	return strdup(buf);
 }
 
 // copy types to two fd's
@@ -920,7 +892,9 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 		ac++;
 	for(a = cc; a != nil; a = a->next)
 		ac++;
-	v = av = emalloc(sizeof(char*)*(ac+8));
+	v = av = malloc(sizeof(char*)*(ac+8));
+	if(av == nil)
+		fatal("%r");
 	ac = 0;
 	v[ac++] = "sendmail";
 	if(xflag)
@@ -992,7 +966,9 @@ pgpfilter(int *pid, int fd, int pgpflag)
 	int ac;
 	int pfd[2];
 
-	v = av = emalloc(sizeof(char*)*8);
+	v = av = malloc(sizeof(char*)*8);
+	if(av == nil)
+		fatal("%r");
 	ac = 0;
 	v[ac++] = "pgp";
 	if(pgpflag & PGPsign)
@@ -1036,7 +1012,7 @@ waitforsubprocs(void)
 	while((w = wait()) != nil){
 		if(w->pid == pid || w->pid == pgppid){
 			if(w->msg[0] != 0)
-				err = estrdup(w->msg);
+				err = strdup(w->msg);
 		}
 		free(w);
 	}
@@ -1151,25 +1127,6 @@ exhausted:
 	return out - start;
 }
 
-void
-freealias(Alias *a)
-{
-	freeaddrs(a->addr);
-	free(a);
-}
-
-void
-freealiases(Alias *a)
-{
-	Alias *next;
-
-	while(a != nil){
-		next = a->next;
-		freealias(a);
-		a = next;
-	}
-}
-
 //
 //  read alias file
 //
@@ -1177,51 +1134,73 @@ Alias*
 readaliases(void)
 {
 	Alias *a, **l, *first;
-	Addr *addr, **al;
-	String *file, *line, *token;
-	Biobuf *fp;
+	char *p, *e, *nl;
+	char *token[1024];
+	String *file;
+	Dir *d;
+	int fd, n, len;
 	static int already;
 
-	first = nil;
-	file = s_new();
-	line = s_new();
-	token = s_new();
-
 	// open and get length
+	file = s_new();
 	mboxpath("names", login, file, 0);
-	fp = Bopen(s_to_c(file), OREAD);
-	if(fp == nil)
-		goto out;
+	fd = open(s_to_c(file), OREAD);
+	if(fd < 0)
+		return nil;
+	d = dirfstat(fd);
+	if(d == nil){
+		close(fd);
+		return nil;
+	}
+	len = d->length;
+	free(d);
 
+	// read in file in one go
+	p = malloc(len+1);
+	if(p == nil){
+		close(fd);
+		return nil;
+	}
+	n = read(fd, p, len);
+	close(fd);
+	if(n <= 0){
+		free(p);
+		return nil;
+	}
+
+	// parse alias file
+	first = nil;
 	l = &first;
-
-	// read a line at a time.
-	while(s_getline(fp, s_restart(line))!=0) {
-		s_restart(line);
-		a = emalloc(sizeof(Alias));
-		al = &a->addr;
+	p[n] = '\0';
+	for(e = p + n; p < e; p = nl){
 		for(;;){
-			if(s_parse(line, s_restart(token))==0)
+			nl = strchr(p, '\n');
+			if(nl == nil){
+				nl = e;
 				break;
-			addr = emalloc(sizeof(Addr));
-			addr->v = strdup(s_to_c(token));
-			addr->next = 0;
-			*al = addr;
-			al = &addr->next;
-		} 
-		if(a->addr == nil || a->addr->next == nil){
-			freealias(a);
-			continue;
+			}
+			if(nl == p || *(nl-1) != '\\')
+				break;
+			*(nl-1) = ' ';
+			*nl = ' ';
 		}
+		*nl++ = 0;
+		n = tokenize(p, token, nelem(token));
+		if(n < 2)
+			continue;
+		if(*token[0] == '#')
+			continue;
+		a = malloc(sizeof(*a) + n*sizeof(char*));
+		if(a == nil)
+			return nil;
+		a->v = (char**)((int)a + sizeof(*a));
+		memmove(a->v, token, n*sizeof(char*));
+		a->n = n;
 		a->next = nil;
 		*l = a;
 		l = &a->next;
 	}
 
-out:
-	s_free(file);
-	s_free(line);
-	s_free(token);
 	return first;
 }
 
@@ -1230,9 +1209,11 @@ newaddr(char *name)
 {
 	Addr *a;
 
-	a = emalloc(sizeof(*a));
+	a = malloc(sizeof(*a));
+	if(a == nil)
+		sysfatal("%r");
 	a->next = nil;
-	a->v = estrdup(name);
+	a->v = strdup(name);
 	if(a->v == nil)
 		sysfatal("%r");
 	return a;
@@ -1246,7 +1227,8 @@ Addr*
 _expand(Addr *old, int *changedp)
 {
 	Alias *al;
-	Addr *first, *next, **l, *a;
+	Addr *first, *next, **l;
+	int j;
 
 	*changedp = 0;
 	first = nil;
@@ -1254,9 +1236,9 @@ _expand(Addr *old, int *changedp)
 	for(;old != nil; old = next){
 		next = old->next;
 		for(al = aliases; al != nil; al = al->next){
-			if(strcmp(al->addr->v, old->v) == 0){
-				for(a = al->addr->next; a != nil; a = a->next){
-					*l = newaddr(a->v);
+			if(strcmp(al->v[0], old->v) == 0){
+				for(j = 1; j < al->n; j++){
+					*l = newaddr(al->v[j]);
 					if(*l == nil)
 						sysfatal("%r");
 					l = &(*l)->next;
@@ -1594,128 +1576,4 @@ Bdrain(Biobuf *b)
 
 	while(Bread(b, buf, sizeof buf) > 0)
 		;
-}
-
-void
-readmimetypes(void)
-{
-	Biobuf *b;
-	char *p;
-	char *f[6];
-	char type[256];
-	static int alloced, inuse;
-
-	if(mimetypes == 0){
-		alloced = 256;
-		mimetypes = emalloc(alloced*sizeof(Ctype));
-		mimetypes[0].ext = "";
-	}
-
-	b = Bopen("/sys/lib/mimetype", OREAD);
-	if(b == nil)
-		return;
-	for(;;){
-		p = Brdline(b, '\n');
-		if(p == nil)
-			break;
-		p[Blinelen(b)-1] = 0;
-		if(tokenize(p, f, 6) < 4)
-			continue;
-		if(strcmp(f[0], "-") == 0 || strcmp(f[1], "-") == 0 || strcmp(f[2], "-") == 0)
-			continue;
-		if(inuse + 1 >= alloced){
-			alloced += 256;
-			mimetypes = erealloc(mimetypes, alloced*sizeof(Ctype));
-		}
-		snprint(type, sizeof(type), "%s/%s", f[1], f[2]);
-		mimetypes[inuse].type = estrdup(type);
-		mimetypes[inuse].ext = estrdup(f[0]+1);
-		mimetypes[inuse].display = !strcmp(type, "text/plain");
-		inuse++;
-
-		// always make sure there's a terminator
-		mimetypes[inuse].ext = 0;
-	}
-	Bterm(b);
-}
-
-char*
-estrdup(char *x)
-{
-	x = strdup(x);
-	if(x == nil)
-		fatal("memory");
-	return x;
-}
-
-void*
-emalloc(int n)
-{
-	void *x;
-
-	x = malloc(n);
-	if(x == nil)
-		fatal("%r");
-	return x;
-}
-
-void*
-erealloc(void *x, int n)
-{
-	x = realloc(x, n);
-	if(x == nil)
-		fatal("%r");
-	return x;
-}
-
-//
-// Formatter for %"
-// Use double quotes to protect white space, frogs, \ and "
-//
-enum
-{
-	Qok = 0,
-	Qquote,
-	Qbackslash,
-};
-
-static int
-needtoquote(Rune r)
-{
-	if(r >= Runeself)
-		return Qquote;
-	if(r <= ' ')
-		return Qquote;
-	if(r=='\\' || r=='"')
-		return Qbackslash;
-	return Qok;
-}
-
-int
-doublequote(Fmt *f)
-{
-	char *s, *t;
-	int w, quotes;
-	Rune r;
-
-	s = va_arg(f->args, char*);
-	if(s == nil || *s == '\0')
-		return fmtstrcpy(f, "\"\"");
-
-	quotes = 0;
-	for(t=s; *t; t+=w){
-		w = chartorune(&r, t);
-		quotes |= needtoquote(r);
-	}
-	if(quotes == 0)
-		return fmtstrcpy(f, s);
-
-	fmtrune(f, '"');
-	for(t=s; *t; t+=w){
-		w = chartorune(&r, t);
-		if(needtoquote(r) == Qbackslash)
-			fmtrune(f, '\\');
-		fmtrune(f, r);
-	}
-	return fmtrune(f, '"');
 }

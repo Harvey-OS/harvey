@@ -24,7 +24,6 @@ void	writestr(int, char*, char*, int);
 int	readstr(int, char*, int);
 char	*rexcall(int*, char*, char*);
 int	setamalg(char*);
-char *keyspec = "";
 
 int 	notechan;
 char	system[32];
@@ -69,7 +68,7 @@ int setam(char*);
 void
 usage(void)
 {
-	fprint(2, "usage: cpu [-h system] [-a authmethod] [-e 'crypt hash'] [-k keypattern] [-c cmd args ...]\n");
+	fprint(2, "usage: cpu [-h system] [-a authmethod] [-e 'crypt hash'] [-c cmd args ...]\n");
 	exits("usage");
 }
 int fdd;
@@ -129,9 +128,6 @@ main(int argc, char **argv)
 			strcat(cmd, " ");
 			strcat(cmd, p);
 		}
-		break;
-	case 'k':
-		keyspec = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -503,7 +499,7 @@ p9auth(int fd)
 	int i;
 	AuthInfo *ai;
 
-	ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s", p9authproto, keyspec);
+	ai = auth_proxy(fd, auth_getkey, "proto=%q role=client", p9authproto);
 	if(ai == nil)
 		return -1;
 	memmove(key+4, ai->secret, ai->nsecret);
@@ -567,7 +563,7 @@ srvp9auth(int fd, char *user)
 	int i;
 	AuthInfo *ai;
 
-	ai = auth_proxy(0, nil, "proto=%q role=server %s", p9authproto, keyspec);
+	ai = auth_proxy(0, nil, "proto=%q role=server", p9authproto);
 	if(ai == nil)
 		return -1;
 	if(auth_chuid(ai, nil) < 0)

@@ -84,7 +84,7 @@ randomclock(void)
 void
 randominit(void)
 {
-	addclock0link(randomclock, 1000/HZ);
+	addclock0link(randomclock);
 	rb.ep = rb.buf + sizeof(rb.buf);
 	rb.rp = rb.wp = rb.buf;
 	kproc("genrandom", genrandom, 0);

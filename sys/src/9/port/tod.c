@@ -50,7 +50,7 @@ todinit(void)
 	tod.last = fastticks((uvlong*)&tod.hz);
 	iunlock(&tod);
 	todsetfreq(tod.hz);
-	addclock0link(todfix, 100);
+	addclock0link(todfix);
 }
 
 //
@@ -145,7 +145,7 @@ todget(vlong *ticksp)
 }
 
 //
-//  called regularly to avoid calculation overflows
+//  called every clock tick to avoid calculation overflows
 //
 void
 todfix(void)

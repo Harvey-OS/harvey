@@ -140,8 +140,6 @@ readAhead(u64int a, Arena *arena, u64int aa, int n)
 	IAddr ia;
 
 	while(n > 0) {
-		if (aa >= arena->used)
-			break;
 		if(readArena(arena, aa, buf, ClumpSize) < ClumpSize)
 			break;
 		if(!unpackClump(&cl, buf))

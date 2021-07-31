@@ -520,8 +520,8 @@ floppyrecal(Floppy *dp)
 	return 0;
 }
 
-vlong
-floppyseek(int dev, vlong off)
+long
+floppyseek(int dev, long off)
 {
 	Floppy *dp;
 
@@ -703,7 +703,7 @@ floppyread(int dev, void *a, long n)
 	}
 	if(rv != nn){
 		dp->confused = 1;
-		return -1;	// ?!!? no qunlock(&fl)? no "goto out"?
+		return -1;
 	}
 	fl.ccyl = dp->tcyl;
 out:

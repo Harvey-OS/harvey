@@ -381,7 +381,7 @@ void
 machinit(void)
 {
 	/* set direction of SA1110 io pins and select alternate functions for some */
-	gpioregs = mapspecial(GPIOREGS, sizeof(GPIOregs));
+	gpioregs = mapspecial(GPIOREGS, 32);
 	gpioregs->direction = 
 		GPIO_LDD8_o|GPIO_LDD9_o|GPIO_LDD10_o|GPIO_LDD11_o
 		|GPIO_LDD12_o|GPIO_LDD13_o|GPIO_LDD14_o|GPIO_LDD15_o
@@ -396,19 +396,19 @@ machinit(void)
 		|GPIO_SSP_CLK_i;
 
 	/* map in special H3650 io pins */
-	egpioreg = mapspecial(EGPIOREGS, sizeof(ulong));
+	egpioreg = mapspecial(EGPIOREGS, 4);
 
 	/* map in peripheral pin controller (ssp will need it) */
-	ppcregs = mapspecial(PPCREGS, sizeof(PPCregs));
+	ppcregs = mapspecial(PPCREGS, 32);
 
 	/* SA1110 power management */
-	powerregs = mapspecial(POWERREGS, sizeof(PowerRegs));
+	powerregs = mapspecial(POWERREGS, 32);
 
 	/* memory configuraton */
-	memconfregs = mapspecial(MEMCONFREGS, sizeof(MemConfRegs));
+	memconfregs = mapspecial(MEMCONFREGS, 32);
 
 	/* reset controller */
-	resetregs = mapspecial(RESETREGS, sizeof(ResetRegs));
+	resetregs = mapspecial(RESETREGS, 32);
 }
 
 
@@ -522,10 +522,4 @@ ulong
 inl(ulong a)
 {
 	return *(ulong*)a;
-}
-
-char*
-getconf(char*)
-{
-	return nil;
 }

@@ -198,8 +198,7 @@ static struct
 	short	dsttime;	/* dst correction */
 } timezone =
 {
-//	5*60, 1			// East Coast North America time zone
-	8*60, 1			// West Coast North America time zone
+	5*60, 1
 };
 
 static

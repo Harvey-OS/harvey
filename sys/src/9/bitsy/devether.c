@@ -82,7 +82,7 @@ etherconfig(int on, char *spec, DevConf *cf)
 	ether = malloc(sizeof(Ether));
 	if(ether == nil)
 		panic("etherconfig");
-	ether->DevConf = *cf;
+	*(DevConf*)ether = *cf;
 
 	for(n = 0; cards[n].type; n++){
 		if(strcmp(cards[n].type, ether->type) != 0)
@@ -110,16 +110,16 @@ etherconfig(int on, char *spec, DevConf *cf)
 		ether->maxmtu = ETHERMAXTU;
 
 		if(ether->interrupt != nil)
-			intrenable(cf->itype, cf->intnum, ether->interrupt, ether, name);
+			intrenable(cf->itype, cf->irq, ether->interrupt, ether, name);
 
 		p = buf;
 		e = buf+sizeof(buf);
 		p = seprint(p, e, "#l%d: %s: %dMbps port 0x%luX",
-			ctlrno, ether->type, ether->mbps, ether->ports[0].port);
+			ctlrno, ether->type, ether->mbps, ether->port);
 		if(ether->mem)
 			p = seprint(p, e, " addr 0x%luX", PADDR(ether->mem));
-		if(ether->ports[0].size)
-			p = seprint(p, e, " size 0x%X", ether->ports[0].size);
+		if(ether->size)
+			p = seprint(p, e, " size 0x%X", ether->size);
 		p = seprint(p, e, ": %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX",
 			ether->ea[0], ether->ea[1], ether->ea[2],
 			ether->ea[3], ether->ea[4], ether->ea[5]);

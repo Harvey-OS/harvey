@@ -93,7 +93,7 @@ enum
 	/*
 	 * marker for corrupted data on disk
 	 */
-	VtTypeCorrupt		= VtMaxType,
+	VtTypeCorrupt		= VtPrivateTypes,
 
 	/*
 	 * sizes in bytes on disk

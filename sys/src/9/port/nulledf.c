@@ -4,7 +4,6 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
-#include	"realtime.h"
 #include	"../port/edf.h"
 
 static int

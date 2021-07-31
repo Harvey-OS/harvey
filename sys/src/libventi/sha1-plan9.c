@@ -69,9 +69,5 @@ int vtSha1Check(uchar score[VtScoreSize], uchar *p, int n)
 	vtSha1Update(&s, p, n);
 	vtSha1Final(&s, score2);
 
-	if(memcmp(score, score2, VtScoreSize) != 0) {
-		vtSetError("vtSha1Check failed");
-		return 0;
-	}
-	return 1;
+	return memcmp(score, score2, VtScoreSize) == 0;
 }

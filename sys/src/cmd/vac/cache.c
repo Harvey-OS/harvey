@@ -16,6 +16,10 @@ enum {
  * that the block fits within psize or dsize as the case may be.
  */
 
+/*
+ * the tag for a block is hash(index, parent tag)
+ */
+
 struct Cache
 {
 	VtLock	*lk;
@@ -32,10 +36,6 @@ struct Cache
 
 	long hashSize;
 };
-
-/*
- * the tag for a block is hash(index, parent tag)
- */
 
 struct Label {
 	uchar gen[4];
@@ -314,7 +314,7 @@ cacheBumpLump(Cache *c)
 	 * the new block has no last use, so assume it happens sometime in the middle
 	 */
 	b->used = (b->used2 + c->now) / 2;
-	b->asize = 0;
+	b->size = 0;
 
 	return b;
 }
@@ -332,8 +332,6 @@ again:
 	b = cacheBumpLump(c);
 	if(b == nil) {
 		vtUnlock(c->lk);
-fprint(2, "cache is full\n");
-		/* XXX should be better */
 		sleep(100);
 		goto again;
 	}
@@ -355,7 +353,7 @@ fprint(2, "cache is full\n");
 	b->dir = dir;
 	b->type = type;
 	b->gen = 0;
-	b->asize = size;
+	b->size = size;
 	b->state = LumpFree;
 
 	h = hash(c, b->score, b->type);
@@ -458,7 +456,7 @@ fprint(2, "vtRead failed: %V %d %d: %R\n", score, type, size);
 		return nil;
 	}
 
-	b->asize = n;
+	b->size = n;
 	lumpSetState(b, LumpVenti);
 
 	return b;
@@ -495,8 +493,8 @@ int
 lumpGetScore(Lump *u, int offset, uchar score[VtScoreSize])
 {
 	uchar *sp;
-	VtRoot root;
-	VtEntry dir;
+	VtRootLump *root;
+	VtDirEntry2 *dir;
 
 	vtLock(u->lk);
 
@@ -511,32 +509,30 @@ lumpGetScore(Lump *u, int offset, uchar score[VtScoreSize])
 	case VtPointerType4:
 	case VtPointerType5:
 	case VtPointerType6:
-		if((offset+1)*VtScoreSize > u->asize)
+		if((offset+1)*VtScoreSize > u->size)
 			sp = nil;
 		else
 			sp = u->data + offset*VtScoreSize;
 		break;
 	case VtRootType:
-		if(u->asize < VtRootSize) {
+		if(u->size < VtRootSize) {
 			vtSetError("runt root block");
 			goto Err;
 		}
-		if(!vtRootUnpack(&root, u->data))
-			goto Err;
-		sp = root.score;
+		root = (VtRootLump*)(u->data);
+		sp = root->score;
 		break;
 	case VtDirType:
-		if((offset+1)*VtEntrySize > u->asize) {
+		if((offset+1)*VtDirEntrySize2 > u->size) {
 			vtSetError(ENoDir);
 			goto Err;
 		}
-		if(!vtEntryUnpack(&dir, u->data, offset))
-			goto Err;
-		if(!dir.flags & VtEntryActive) {
+		dir = (VtDirEntry2*)(u->data + offset*VtDirEntrySize2);
+		if(!dir->flag & VtDirEntryActive) {
 			vtSetError(ENoDir);
 			goto Err;
 		}
-		sp = dir.score;
+		sp = dir->score;
 		break;
 	}
 
@@ -558,8 +554,8 @@ lumpWalk(Lump *u, int offset, int type, int size, int readOnly, int lock)
 	Lump *v, *vv;
 	Cache *c;
 	uchar score[VtScoreSize], *sp;
-	VtRoot root;
-	VtEntry dir;
+	VtRootLump *root;
+	VtDirEntry2 *dir;
 	int split, isdir;
 
 	c = u->c;
@@ -581,34 +577,31 @@ Again:
 	case VtPointerType4:
 	case VtPointerType5:
 	case VtPointerType6:
-		if((offset+1)*VtScoreSize > u->asize)
+		if((offset+1)*VtScoreSize > u->size)
 			sp = nil;
 		else
 			sp = u->data + offset*VtScoreSize;
 		break;
 	case VtRootType:
-		if(u->asize < VtRootSize) {
+		if(u->size < VtRootSize) {
 			vtSetError("runt root block");
 			goto Err;
 		}
-		if(!vtRootUnpack(&root, u->data))
-			goto Err;
-		sp = root.score;
+		root = (VtRootLump*)(u->data);
+		sp = root->score;
 		break;
 	case VtDirType:
-		if((offset+1)*VtEntrySize > u->asize) {
+		if((offset+1)*VtDirEntrySize2 > u->size) {
 			vtSetError(ENoDir);
 			goto Err;
 		}
-		if(!vtEntryUnpack(&dir, u->data, offset))
-			goto Err;
-		if(!(dir.flags & VtEntryActive)) {
+		dir = (VtDirEntry2*)(u->data + offset*VtDirEntrySize2);
+		if(!dir->flag & VtDirEntryActive) {
 			vtSetError(ENoDir);
 			goto Err;
 		}
-		isdir = (dir.flags & VtEntryDir) != 0;
-//		sp = dir.score;
-		sp = u->data + offset*VtEntrySize + 20;
+		isdir = (dir->flag & VtDirEntryDir) != 0;
+		sp = dir->score;
 		break;
 	}
 
@@ -638,7 +631,6 @@ fprint(2, "block is free %V!\n", v->score);
 		goto Err2;
 	case LumpActive:	
 		if(v->gen < u->gen) {
-print("LumpActive gen\n");
 			lumpSetState(v, LumpSnap);
 			v->gen = u->gen;
 		} else
@@ -662,10 +654,10 @@ print("LumpActive gen\n");
 	}
 
 	vv = cacheAllocLump(c, v->type, size, isdir);
-	/* vv is locked */
+	/* not locked but we have the only reference */
 	vv->gen = u->gen;
-	memmove(vv->data, v->data, v->asize);
-if(0)fprint(2, "split %V into %V\n", v->score, vv->score);
+	memmove(vv->data, v->data, v->size);
+//fprint(2, "split %V into %V\n", v->score, vv->score);
 
 	lumpDecRef(v, 1);
 	v = nil;
@@ -709,9 +701,9 @@ void
 lumpFreeEntry(Lump *u, int entry)
 {
 	uchar score[VtScoreSize];
-	int type;
+	int type, depth;
 	ulong gen;
-	VtEntry dir;
+	VtDirEntry *dir;
 	Cache *c;
 
 	c = u->c;
@@ -724,7 +716,7 @@ lumpFreeEntry(Lump *u, int entry)
 		fprint(2, "freeing bad lump type: %d\n", u->type);
 		return;
 	case VtPointerType0:
-		if((entry+1)*VtScoreSize > u->asize)
+		if((entry+1)*VtScoreSize > u->size)
 			goto Exit;
 		memmove(score, u->data + entry*VtScoreSize, VtScoreSize);
 		memmove(u->data + entry*VtScoreSize, vtZeroScore, VtScoreSize);
@@ -736,30 +728,29 @@ lumpFreeEntry(Lump *u, int entry)
 	case VtPointerType4:
 	case VtPointerType5:
 	case VtPointerType6:
-		if((entry+1)*VtScoreSize > u->asize)
+		if((entry+1)*VtScoreSize > u->size)
 			goto Exit;
 		memmove(score, u->data + entry*VtScoreSize, VtScoreSize);
 		memmove(u->data + entry*VtScoreSize, vtZeroScore, VtScoreSize);
 		type = u->type-1;
 		break;
 	case VtDirType:
-		if((entry+1)*VtEntrySize > u->asize)
+		if((entry+1)*VtDirEntrySize > u->size)
 			goto Exit;
-		if(!vtEntryUnpack(&dir, u->data, entry))
+		dir = (VtDirEntry2*)(u->data + entry*VtDirEntrySize2);
+		if(!dir->flag & VtDirEntryActive)
 			goto Exit;
-		if(!dir.flags & VtEntryActive)
-			goto Exit;
-		gen = dir.gen;
+		depth = (dir->flag&VtDirEntryDepthMask) >> VtDirEntryDepthShift;
+		gen = vtGetUint32(dir->gen);
+		if(depth == 0)
+			type = (dir->flag&VtDirEntryDir)?VtDirType:VtDataType;
+		else
+			type = VtPointerType0 + depth - 1;
 		if(gen != ~0)
 			gen++;
-		if(dir.depth == 0)
-			type = (dir.flags&VtEntryDir)?VtDirType:VtDataType;
-		else
-			type = VtPointerType0 + dir.depth - 1;
-		memmove(score, dir.score, VtScoreSize);
-		memset(&dir, 0, sizeof(dir));
-		dir.gen = gen;
-		vtEntryPack(&dir, u->data, entry);
+		memmove(score, dir->score, VtScoreSize);
+		memset(dir, 0, VtDirEntrySize);
+		vtPutUint32(dir->gen, gen);
 		break;
 	case VtDataType:
 		type = VtErrType;
@@ -797,10 +788,10 @@ lumpCleanup(Lump *u)
 	case VtPointerType4:
 	case VtPointerType5:
 	case VtPointerType6:
-		n = u->asize/VtScoreSize;
+		n = u->size/VtScoreSize;
 		break;	
 	case VtDirType:
-		n = u->asize/VtEntrySize;
+		n = u->size/VtDirEntrySize;
 		break;
 	}
 

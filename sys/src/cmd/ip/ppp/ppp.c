@@ -110,7 +110,7 @@ static	void		terminate(PPP*, int);
 static	int		validv4(Ipaddr);
 
 void
-pppopen(PPP *ppp, int mediain, int mediaout, char *net,
+pppopen(PPP *ppp, int mediafd, char *net,
 	Ipaddr ipaddr, Ipaddr remip,
 	int mtu, int framing,
 	char *secret)
@@ -126,8 +126,7 @@ pppopen(PPP *ppp, int mediain, int mediaout, char *net,
 	invalidate(ppp->wins[0]);
 	invalidate(ppp->wins[1]);
 
-	ppp->mediain = mediain;
-	ppp->mediaout = mediaout;
+	ppp->mediafd = mediafd;
 	if(validv4(remip)){
 		ipmove(ppp->remote, remip);
 		ppp->remotefrozen = 1;
@@ -387,7 +386,7 @@ getframe(PPP *ppp, int *protop)
 		/* assume data is already framed */
 		b = allocb(2000);
 		len = b->lim - b->wptr;
-		n = read(ppp->mediain, b->wptr, len);
+		n = read(ppp->mediafd, b->wptr, len);
 		if(n <= 0 || n == len){
 			freeb(b);
 
@@ -426,7 +425,7 @@ getframe(PPP *ppp, int *protop)
 				break;
 
 			len = buf->lim - buf->wptr;
-			n = read(ppp->mediain, buf->wptr, len);
+			n = read(ppp->mediafd, buf->wptr, len);
 			if(n <= 0){
 				syslog(0, LOG, "medium read returns %d: %r", n);
 				buf->wptr = buf->rptr;
@@ -571,7 +570,7 @@ putframe(PPP *ppp, int proto, Block *b)
 
 	/* send */
 	buf->wptr = to;
-	if(write(ppp->mediaout, buf->rptr, BLEN(buf)) < 0){
+	if(write(ppp->mediafd, buf->rptr, BLEN(buf)) < 0){
 		qunlock(&ppp->outlock);
 		return -1;
 	}
@@ -1587,10 +1586,8 @@ terminate(PPP *ppp, int kill)
 	ppp->ipfd = -1;
 	close(ppp->ipcfd);
 	ppp->ipcfd = -1;
-	close(ppp->mediain);
-	close(ppp->mediaout);
-	ppp->mediain = -1;
-	ppp->mediaout = -1;
+	close(ppp->mediafd);
+	ppp->mediafd = -1;
 	dying = 1;
 
 	if(kill)
@@ -2489,7 +2486,7 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	int mtu, baud, framing, user, mediain, mediaout, cfd;
+	int mtu, baud, framing, user, mediafd, cfd;
 	Ipaddr ipaddr, remip;
 	char *dev, *secret, *modemcmd, *p;
 	char net[128];
@@ -2600,10 +2597,10 @@ main(int argc, char **argv)
 		primary = 1;
 
 	if(dev != nil){
-		mediain = open(dev, ORDWR);
-		if(mediain < 0){
+		mediafd = open(dev, ORDWR);
+		if(mediafd < 0){
 			if(strchr(dev, '!')){
-				if((mediain = dial(dev, 0, 0, &cfd)) == -1){
+				if((mediafd = dial(dev, 0, 0, &cfd)) == -1){
 					fprint(2, "ppp: couldn't dial %s: %r\n", dev);
 					exits(dev);
 				}
@@ -2625,31 +2622,25 @@ main(int argc, char **argv)
 			fprint(cfd, "d1");	/* dtr on */
 			fprint(cfd, "c1");	/* dcdhup on */
 			if(user)
-				connect(mediain, cfd);
+				connect(mediafd, cfd);
 			close(cfd);
 		} else {
 			if(user)
-				connect(mediain, -1);
+				connect(mediafd, -1);
 		}
-		mediaout = mediain;
 	} else {
-		mediain = open("/fd/0", OREAD);
-		if(mediain < 0){
+		mediafd = open("/fd/0", ORDWR);
+		if(mediafd < 0){
 			fprint(2, "ppp: couldn't open /fd/0\n");
 			exits("/fd/0");
 		}
-		mediaout = open("/fd/1", OWRITE);
-		if(mediaout < 0){
-			fprint(2, "ppp: couldn't open /fd/0\n");
-			exits("/fd/1");
-		}
 	}
 
-	if(modemcmd != nil && mediaout >= 0)
-		fprint(mediaout, "%s\r", modemcmd);
+	if(modemcmd != nil && mediafd >= 0)
+		fprint(mediafd, "%s\r", modemcmd);
 
 	ppp = mallocz(sizeof(*ppp), 1);
-	pppopen(ppp, mediain, mediaout, net, ipaddr, remip, mtu, framing, secret);
+	pppopen(ppp, mediafd, net, ipaddr, remip, mtu, framing, secret);
 
 	if(primary){
 		/* wait until ip is configured */

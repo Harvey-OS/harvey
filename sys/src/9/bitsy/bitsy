@@ -14,13 +14,11 @@ dev
 	penmouse
 	pipe
 	proc
-	realtime	realtimesub edf
-	cap
+	realtime
 	srv
 	ssl
 	uart
 	uda1341
-	sd
 
 ip
 	il
@@ -39,7 +37,6 @@ link
 misc
 	uartsa1110
 	paqfs.root
-	sdata
 
 port
 	int cpuserver = 1;

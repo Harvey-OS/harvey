@@ -8,7 +8,7 @@ bindnetcs(void)
 {
 	int srvfd;
 
-	if(access("/net/tcp", AEXIST) < 0)
+	if(access("/net/il", AEXIST) < 0)
 		bind("#I", "/net", MBEFORE);
 
 	if(access("/net/cs", AEXIST) < 0){
@@ -194,8 +194,6 @@ closekey(Key *k)
 		return;
 	if(--k->ref != 0)
 		return;
-	if(k->proto && k->proto->closekey)
-		(*k->proto->closekey)(k);
 	_freeattr(k->attr);
 	_freeattr(k->privattr);
 	k->attr = (void*)~1;
@@ -315,8 +313,7 @@ findkey(Key **ret, Fsstate *fss, int who, int skip, Attr *attr0, char *fmt, ...)
 	case Kowner:
 		break;
 	case Kuser:
-		if(strcmp(fss->sysuser, owner) != 0
-		&& strcmp(fss->sysuser, invoker) != 0){
+		if(strcmp(fss->sysuser, owner) != 0){
 			werrstr("%q can't use %q's keys", fss->sysuser, owner);
 			return failure(fss, nil);
 		}
@@ -544,8 +541,8 @@ void
 initcap(void)
 {
 	caphashfd = open("#¤/caphash", OWRITE);
-//	if(caphashfd < 0)
-//		fprint(2, "%s: opening #¤/caphash: %r\n", argv0);
+	if(caphashfd < 0)
+		fprint(2, "%s: opening #¤/caphash: %r", argv0);
 }
 
 /*
@@ -640,10 +637,8 @@ promptforhostowner(void)
 	/* hack for bitsy; can't prompt during boot */
 	if(p = getenv("user")){
 		writehostowner(p);
-		free(p);
 		return;
 	}
-	free(p);
 
 	strcpy(owner, "none");
 	do{

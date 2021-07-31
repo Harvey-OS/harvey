@@ -15,7 +15,7 @@ void	timercancel(Timer*);
 Timer*	timerstart(int);
 void	error(char*);
 void	killprocs(void);
-int	shutdown(void*, char*);
+void	shutdown(void*, char*);
 void	iconinit(void);
 void	*erealloc(void*, uint);
 void *emalloc(uint);

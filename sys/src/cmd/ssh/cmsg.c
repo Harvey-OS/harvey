@@ -392,7 +392,6 @@ requestpty(Conn *c)
 	switch(m->type){
 	case SSH_SMSG_SUCCESS:
 		debug(DBG_IO, "PTY allocated\n");
-		break;
 	case SSH_SMSG_FAILURE:
 		debug(DBG_IO, "PTY allocation failed\n");
 		break;

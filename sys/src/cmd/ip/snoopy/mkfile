@@ -23,8 +23,6 @@ PROTOS=\
 	ppp_lcp\
 	ppp_chap\
 	ppp_ipcp\
-	pppoe_sess\
-	pppoe_disc\
 
 POBJS=${PROTOS:%=%.$O}
 
@@ -41,9 +39,8 @@ HFILES=dat.h\
 BIN=/$objtype/bin
 UPDATE=\
 	mkfile\
-	dat.h\
-	main.c\
-	${POBJS:%.$O=%.c}\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
 	${TARG:%=/386/bin/%}\
 
 </sys/src/cmd/mkone

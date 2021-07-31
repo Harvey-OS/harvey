@@ -405,10 +405,10 @@ qget(Queue *q)
 	ilock(q);
 
 	b = q->bfirst;
-	if(b == nil){
+	if(b == 0){
 		q->state |= Qstarve;
 		iunlock(q);
-		return nil;
+		return 0;
 	}
 	q->bfirst = b->next;
 	b->next = 0;
@@ -522,12 +522,13 @@ qconsume(Queue *q, void *vp, int len)
 		len = n;
 	memmove(p, b->rp, len);
 	consumecnt += n;
+	if((q->state & Qmsg) || len == n)
+		q->bfirst = b->next;
 	b->rp += len;
 	q->dlen -= len;
 
 	/* discard the block if we're done with it */
 	if((q->state & Qmsg) || len == n){
-		q->bfirst = b->next;
 		b->next = 0;
 		q->len -= BALLOC(b);
 		q->dlen -= BLEN(b);

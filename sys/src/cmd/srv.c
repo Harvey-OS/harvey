@@ -15,67 +15,34 @@ void
 usage(void)
 {
 	fprint(2, "usage: %s [-abcCm] [net!]host [srvname [mtpt]]\n", argv0);
-	fprint(2, "    or %s -e [-abcCm] command [srvname [mtpt]]\n", argv0);
-
-	exits("usage");
+		exits("usage");
 }
 
 void
 ignore(void *a, char *c)
 {
 	USED(a);
-fprint(2, "%s\n", c);
 	if(strcmp(c, "alarm") == 0){
 		fprint(2, "srv: timeout establishing connection to %s\n", dest);
 		exits("timeout");
 	}
-	if(strstr(c, "write on closed pipe") == 0){
-		fprint(2, "write on closed pipe\n");
-		noted(NCONT);
-	}
 	noted(NDFLT);
-}
-
-int
-connectcmd(char *cmd)
-{
-	int p[2];
-
-	if(pipe(p) < 0)
-		return -1;
-	switch(fork()){
-	case -1:
-		fprint(2, "fork failed: %r\n");
-		_exits("exec");
-	case 0:
-		dup(p[0], 0);
-		dup(p[0], 1);
-		close(p[1]);
-		execl("/bin/rc", "rc", "-c", cmd, nil);
-		fprint(2, "exec failed: %r\n");
-		_exits("exec");
-	default:
-		close(p[0]);
-		return p[1];
-	}
 }
 
 void
 main(int argc, char *argv[])
 {
-	int fd, doexec;
+	int fd;
 	char srv[64], mtpt[64];
 	char dir[1024];
 	char err[ERRMAX];
 	char *p, *p2;
-	int domount, reallymount, try, sleeptime;
+	int domount, reallymount, try;
 
 	notify(ignore);
 
 	domount = 0;
 	reallymount = 0;
-	doexec = 0;
-	sleeptime = 0;
 
 	ARGBEGIN{
 	case 'a':
@@ -98,9 +65,6 @@ main(int argc, char *argv[])
 		domount = 1;
 		reallymount = 1;
 		break;
-	case 'e':
-		doexec = 1;
-		break;
 	case 'm':
 		domount = 1;
 		reallymount = 1;
@@ -111,9 +75,6 @@ main(int argc, char *argv[])
 		break;
 	case 'r':
 		/* deprecated -r flag; ignored for compatibility */
-		break;
-	case 's':
-		sleeptime = atoi(EARGF(usage()));
 		break;
 	default:
 		usage();
@@ -169,22 +130,13 @@ Again:
 	}
 
 	alarm(10000);
-	if(doexec)
-		fd = connectcmd(dest);
-	else{
-		dest = netmkaddr(dest, 0, "9fs");
-		fd = dial(dest, 0, dir, 0);
-	}
+	dest = netmkaddr(dest, 0, "9fs");
+	fd = dial(dest, 0, dir, 0);
 	if(fd < 0) {
 		fprint(2, "srv: dial %s: %r\n", dest);
 		exits("dial");
 	}
 	alarm(0);
-
-	if(sleeptime){
-		fprint(2, "sleep...");
-		sleep(sleeptime*1000);
-	}
 
 	post(srv, fd);
 

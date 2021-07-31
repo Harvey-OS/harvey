@@ -7,12 +7,6 @@ OFILES=syscall.$O\
 HFILES=tab.h\
 
 BIN=/$objtype/bin
-
-UPDATE=\
-	mkfile\
-	${OFILES:%.$O=%.c}\
-	${TARG:%=/386/bin/%}\
-
 </sys/src/cmd/mkone
 
 SYSCALL=/sys/src/libc/9syscall/sys.h

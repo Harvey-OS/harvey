@@ -9,40 +9,34 @@
 static int	replyid;
 
 int
-quote(Message *m, Biobuf *b, char *dir, char *quotetext)
+quote(Message *m, Biobuf *b, char *dir)
 {
 	char *body, *type;
 	int i, n, nlines;
 	char **lines;
 
-	if(quotetext){
-		body = quotetext;
-		n = strlen(body);
-		type = nil;
-	}else{
-		/* look for first textual component to quote */
-		type = readfile(dir, "type", &n);
-		if(type == nil){
-			print("no type in %s\n", dir);
-			return 0;
-		}
-		if(strncmp(type, "multipart/", 10)==0 || strncmp(type, "message/", 8)==0){
-			dir = estrstrdup(dir, "1/");
-			if(quote(m, b, dir, nil)){
-				free(type);
-				free(dir);
-				return 1;
-			}
-			free(dir);
-		}
-		if(strncmp(type, "text", 4) != 0){
-			free(type);
-			return 0;
-		}
-		body = readbody(m->type, dir, &n);
-		if(body == nil)
-			return 0;
+	/* look for first textual component to quote */
+	type = readfile(dir, "type", &n);
+	if(type == nil){
+		print("no type in %s\n", dir);
+		return 0;
 	}
+	if(strncmp(type, "multipart/", 10)==0 || strncmp(type, "message/", 8)==0){
+		dir = estrstrdup(dir, "1/");
+		if(quote(m, b, dir)){
+			free(type);
+			free(dir);
+			return 1;
+		}
+		free(dir);
+	}
+	if(strncmp(type, "text", 4) != 0){
+		free(type);
+		return 0;
+	}
+	body = readbody(m->type, dir, &n);
+	if(body == nil)
+		return 0;
 	nlines = 0;
 	for(i=0; i<n; i++)
 		if(body[i] == '\n')
@@ -61,13 +55,13 @@ quote(Message *m, Biobuf *b, char *dir, char *quotetext)
 		i++;
 	}
 	free(lines);
-	free(body);	/* will free quotetext if non-nil */
+	free(body);
 	free(type);
 	return 1;
 }
 
 void
-mkreply(Message *m, char *label, char *to, Plumbattr *attr, char *quotetext)
+mkreply(Message *m, char *label, char *to, Plumbattr *attr)
 {
 	Message *r;
 	char *dir, *t;
@@ -130,7 +124,7 @@ mkreply(Message *m, char *label, char *to, Plumbattr *attr, char *quotetext)
 	if(m == nil)
 		Bprint(r->w->body, "\n");
 	else if(quotereply){
-		quote(m, r->w->body, dir, quotetext);
+		quote(m, r->w->body, dir);
 		free(dir);
 	}
 	winclosebody(r->w);
@@ -341,38 +335,11 @@ print2(int fd, int ofd, char *fmt, ...)
 }
 
 void
-write2(int fd, int ofd, char *buf, int n, int nofrom)
+write2(int fd, int ofd, char *buf, int n)
 {
-	char *from, *p;
-	int m;
-
 	write(fd, buf, n);
-
-	if(ofd <= 0)
-		return;
-
-	if(nofrom == 0){
+	if(ofd > 0)
 		write(ofd, buf, n);
-		return;
-	}
-
-	/* need to escape leading From lines to avoid corrupting 'outgoing' mailbox */
-	for(p=buf; *p; p+=m){
-		from = cistrstr(p, "from");
-		if(from == nil)
-			m = n;
-		else
-			m = from - p;
-		if(m > 0)
-			write(ofd, p, m);
-		if(from){
-			if(p==buf || from[-1]=='\n')
-				write(ofd, " ", 1);	/* escape with space if From is at start of line */
-			write(ofd, from, 4);
-			m += 4;
-		}
-		n -= m;
-	}
 }
 
 void
@@ -522,13 +489,13 @@ mesgsend(Message *m)
 
 	i = strlen(body);
 	if(i > 0)
-		write2(p[1], ofd, body, i, 1);
+		write2(p[1], ofd, body, i);
 
 	/* guarantee a blank line, to ensure attachments are separated from body */
 	if(i==0 || body[i-1]!='\n')
-		write2(p[1], ofd, "\n\n", 2, 0);
+		write2(p[1], ofd, "\n\n", 2);
 	else if(i>1 && body[i-2]!='\n')
-		write2(p[1], ofd, "\n", 1, 0);
+		write2(p[1], ofd, "\n", 1);
 
 	/* these look like pseudo-attachments in the "outgoing" box */
 	if(ofd>0 && natt>0){

@@ -8,7 +8,6 @@ OFILES=\
 HFILES=exportfs.h\
 
 BIN=/$objtype/bin
-
 UPDATE=\
 	mkfile\
 	$HFILES\

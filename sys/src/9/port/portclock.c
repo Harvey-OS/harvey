@@ -27,14 +27,11 @@ tadd(Timers *tt, Timer *nt)
 	pt = nil;
 	for(last = &tt->head; t = *last; last = &t->next){
 		if(t == nt){
-			/* timer's changing, remove it before putting it back on */
 			*last = t->next;
 			break;
 		}
-		if (t->period == nt->period){
-			/* look for another timer at same frequency for combining */
+		if (t->period == nt->period)
 			pt = t;
-		}
 	}
 
 	if(nt->when == 0){
@@ -198,16 +195,16 @@ timersinit(void)
 }
 
 void
-addclock0link(void (*f)(void), int ms)
+addclock0link(void (*f)(void))
 {
 	Timer *nt;
 
 	/* Synchronize this to hztimer: reduces # of interrupts */
 	nt = malloc(sizeof(Timer));
 	nt->when = 0;
-	if (ms == 0)
-		ms = 1000/HZ;
-	nt->period = ms2fastticks(ms);
+	if (hzperiod == 0)
+		hzperiod = ms2fastticks(1000/HZ);
+	nt->period = hzperiod;
 	nt->f = (void (*)(Ureg*, Timer*))f;
 
 	ilock(&timers[0]);

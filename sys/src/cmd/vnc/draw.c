@@ -282,7 +282,6 @@ dorectangle(Vnc *v)
 		dohextile(v, r, stride);
 		updatescreen(r);
 		break;
-
 	case EncMouseWarp:
 		mousewarp(r.min);
 		break;
@@ -333,20 +332,12 @@ readfromserver(Vnc *v)
 	vpixb = calcpixb(v->bpp);
 	pixb = calcpixb(screen->depth);
 	switch(pixb){
-	case 1:
-		pixcp = pixcp8;
-		break;
-	case 2:
-		pixcp = pixcp16;
-		break;
-	case 3:
-		pixcp = pixcp24;
-		break;
-	case 4:
-		pixcp = pixcp32;
-		break;
+	case 1:		pixcp = pixcp8;		break;
+	case 2:		pixcp = pixcp16;	break;
+	case 3:		pixcp = pixcp24;	break;
+	case 4:		pixcp = pixcp32;	break;
 	default:
-		sysfatal("can't handle your screen: bad depth %d", pixb);
+		sysfatal("can't handle your screen");
 	}
 	linebuf = malloc(v->dim.x * vpixb);
 	pixbuf = malloc(v->dim.x * pixb * v->dim.y);

@@ -1,0 +1,30 @@
+.TH RDARENA 8
+.SH NAME
+rdarena \- extract a Venti arena
+.SH SYNOPSIS
+.B venti/rdarena
+[
+.B -v
+]
+.I venti.config
+.I arena
+.SH DESCRIPTION
+.I Rdarena
+extracts the named
+.I arena
+from the Venti system described by the
+.IR venti.conf (6)
+file
+.I venti.config
+and writes this arena to standard output.
+This command is typically used to back up an arena to external media.
+The
+.B -v
+option generates more verbose output on standard error.
+.SH SOURCE
+.B /sys/src/cmd/venti
+.SH "SEE ALSO"
+.IR venti (8)
+.SH BUGS
+There is currently no way to restore a Venti system from a collection of extracted
+arenas.

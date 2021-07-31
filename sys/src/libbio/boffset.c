@@ -5,7 +5,7 @@
 vlong
 Boffset(Biobufhdr *bp)
 {
-	vlong n;
+	long n;
 
 	switch(bp->state) {
 	default:

@@ -320,7 +320,6 @@ winselection(Window *w)
 {
 	int fd, m, n;
 	char *buf;
-	char tmp[256];
 
 	fd = winopenfile1(w, "rdsel", OREAD);
 	if(fd < 0)
@@ -328,14 +327,14 @@ winselection(Window *w)
 	n = 0;
 	buf = nil;
 	for(;;){
-		m = read(fd, tmp, sizeof tmp);
+		buf = erealloc(buf, n+1024+1);
+		m = read(fd, buf+n, 	1024);
 		if(m <= 0)
 			break;
-		buf = erealloc(buf, n+m+1);
-		memmove(buf+n, tmp, m);
-		n += m;
+		n += 1024;
 		buf[n] = '\0';
 	}
 	close(fd);
 	return buf;
 }
+

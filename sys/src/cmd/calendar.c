@@ -50,7 +50,6 @@ main(int argc, char *argv[])
 	/* make a list of dates */
 	now = time(0);
 	tm = localtime(now);
-	last = nil;
 	first = dates(&last, tm);
 	now += Secondsperday;
 	tm = localtime(now);

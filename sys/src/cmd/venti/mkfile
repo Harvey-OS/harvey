@@ -25,7 +25,7 @@ FILES=\
 	sortientry\
 	stats\
 	syncarena\
-	syncindex0\
+	syncindex\
 	unwhack\
 	utils\
 	unittoull\
@@ -55,12 +55,8 @@ TARG=\
 	clumpstats\
 	findscore\
 	rdarena\
-	wrarena\
-	syncindex\
-	verifyarena\
 	sync\
-	read\
-	write\
+	verifyarena\
 #	dumparena\
 
 CFILES=${TARG:%=%.c} $LIBCFILES
@@ -90,4 +86,4 @@ $SLIB(%.$O):N: %.$O
 $SLIB:	${LIBOFILES:%=$SLIB(%)}
 	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$SLIB'\(([^)]+)\)/\1/gp'}
 	ar vu $SLIB $names
-#	rm $names
+	rm $names

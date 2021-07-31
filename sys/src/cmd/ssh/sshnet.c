@@ -140,7 +140,7 @@ newclient(void)
 	Client *c;
 
 	for(i=0; i<nclient; i++)
-		if(client[i]->ref==0 && client[i]->state == Closed)
+		if(client[i]->ref==0)
 			return i;
 
 	if(nclient%16 == 0)
@@ -235,17 +235,6 @@ dialedclient(Client *c)
 }
 
 void
-teardownclient(Client *c)
-{
-	Msg *m;
-
-	c->state = Teardown;
-	m = allocmsg(conn, SSH_MSG_CHANNEL_INPUT_EOF, 4);
-	putlong(m, c->servernum);
-	sendmsg(m);
-}
-
-void
 hangupclient(Client *c)
 {
 	Req *r, *next;
@@ -280,9 +269,6 @@ closeclient(Client *c)
 		free(m);
 	}
 	c->mq = nil;
-
-	if(c->state != Closed)
-		teardownclient(c);
 }
 
 	
@@ -593,25 +579,25 @@ ctlwrite(Req *r, Client *c)
 			goto Badarg;
 		if(nf != 1)
 			goto Badarg;
+		c->state = Teardown;
+		m = allocmsg(conn, SSH_MSG_CHANNEL_CLOSE, 4);
+		putlong(m, c->servernum);
 		queuereq(c, r);
-		teardownclient(c);
+		sendmsg(m);
 	}else if(strcmp(f[0], "connect") == 0){
 		if(c->state != Closed)
 			goto Badarg;
 		if(nf != 2)
 			goto Badarg;
-		c->connect = estrdup9p(f[1]);
 		nf = getfields(f[1], f, nelem(f), 0, "!");
-		if(nf != 2){
-			free(c->connect);
-			c->connect = nil;
+		if(nf != 2)
 			goto Badarg;
-		}
+		c->connect = estrdup9p(f[1]);
 		c->state = Dialing;
 		m = allocmsg(conn, SSH_MSG_PORT_OPEN, 4+4+strlen(f[0])+4+4+strlen("localhost"));
 		putlong(m, c->num);
 		putstring(m, f[0]);
-		putlong(m, ndbfindport(f[1]));
+		putlong(m, atoi(f[1]));
 		putstring(m, "localhost");
 		queuereq(c, r);
 		sendmsg(m);
@@ -658,7 +644,7 @@ localread(Req *r)
 {
 	char buf[128];
 
-	snprint(buf, sizeof buf, "%s!%d\n", remoteip, 0);
+	snprint(buf, sizeof buf, "%s!%d", remoteip, 0);
 	readstr(r, buf);
 	respond(r, nil);
 }
@@ -667,13 +653,11 @@ static void
 remoteread(Req *r, Client *c)
 {
 	char *s;
-	char buf[128];
 
 	s = c->connect;
 	if(s == nil)
 		s = "::!0";
-	snprint(buf, sizeof buf, "%s\n", s);
-	readstr(r, buf);
+	readstr(r, s);
 	respond(r, nil);
 }
 
@@ -817,13 +801,10 @@ fsopen(Req *r)
 static void
 fsflush(Req *r)
 {
-	int i;
-
-	for(i=0; i<nclient; i++)
-		if(findreq(client[i], r->oldreq)){
-			closereq(r->oldreq);
-			respond(r, nil);
-		}
+	if(findreq(r->oldreq->fid->aux, r->oldreq)){
+		closereq(r->oldreq);
+		respond(r, nil);
+	}
 }
 
 static void
@@ -856,20 +837,20 @@ handlemsg(Msg *m)
 			free(m);
 		break;
 
-	case SSH_MSG_CHANNEL_INPUT_EOF:
+	case SSH_MSG_CHANNEL_CLOSE:
 		chan = getlong(m);
 		free(m);
 		if(chan<nclient){
 			c = client[chan];
 			chan = c->servernum;
 			hangupclient(c);
-			m = allocmsg(conn, SSH_MSG_CHANNEL_OUTPUT_CLOSED, 4);
+			m = allocmsg(conn, SSH_MSG_CHANNEL_CLOSE_CONFIRMATION, 4);
 			putlong(m, chan);
 			sendmsg(m);
 		}
 		break;
 
-	case SSH_MSG_CHANNEL_OUTPUT_CLOSED:
+	case SSH_MSG_CHANNEL_CLOSE_CONFIRMATION:
 		chan = getlong(m);
 		if(chan<nclient)
 			hangupclient(client[chan]);
@@ -894,9 +875,8 @@ handlemsg(Msg *m)
 		chan = getlong(m);
 		c = nil;
 		if(chan>=nclient || (c=client[chan])->state != Dialing)
-			sysfatal("got unexpected open failure");
-		if(m->rp+4 <= m->ep)
-			c->servernum = getlong(m);
+			sysfatal("got unexpected open confirmation");
+		c->servernum = getlong(m);
 		c->state = Closed;
 		dialedclient(c);
 		free(m);
@@ -1044,9 +1024,6 @@ threadmain(int argc, char **argv)
 		break;
 	case 'm':
 		mtpt = EARGF(usage());
-		break;
-	case 's':
-		service = EARGF(usage());
 		break;
 	default:
 		usage();

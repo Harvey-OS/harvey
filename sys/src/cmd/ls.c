@@ -35,6 +35,7 @@ void	growto(long);
 void	dowidths(Dir*);
 void	format(Dir*, char*);
 void	output(void);
+int	lsquote(int);
 ulong	clk;
 int	swidth;			/* max width of -s size */
 int	qwidth;			/* max width of -q version */
@@ -68,7 +69,7 @@ main(int argc, char *argv[])
 			exits("usage");
 	}ARGEND
 
-	doquote = needsrcquote;
+	doquote = lsquote;
 	quotefmtinstall();
 	fmtinstall('M', dirmodefmt);
 
@@ -310,3 +311,12 @@ asciitime(long l)
 	return buf;
 }
 
+int
+lsquote(int c)
+{
+	if(c <= ' ')
+		return 1;
+	if(strchr("`^#*[]=|\?${}()'", c))
+		return 1;
+	return 0;
+}

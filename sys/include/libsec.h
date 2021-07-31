@@ -158,8 +158,6 @@ SHA1state* sha1unpickle(char*);
 /////////////////////////////////////////////////////////
 void	genrandom(uchar *buf, int nbytes);
 void	prng(uchar *buf, int nbytes);
-ulong	fastrand(void);
-ulong	nfastrand(ulong);
 
 /////////////////////////////////////////////////////////
 // primes
@@ -226,7 +224,6 @@ RSApub*		rsaprivtopub(RSApriv*);
 RSApub*		X509toRSApub(uchar*, int, char*, int);
 RSApriv*	asn1toRSApriv(uchar*, int);
 uchar*		decodepem(char *s, char *type, int *len);
-uchar*		X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
 
 /////////////////////////////////////////////////////////
 // elgamal

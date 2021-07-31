@@ -2,7 +2,7 @@
  * fundamental constants
  */
 #define SUPER_ADDR	2		/* address of superblock */
-#define ROOT_ADDR	3		/* address of root directory */
+#define ROOT_ADDR	3		/* address of superblock */
 #define	NAMELEN		28		/* size of names */
 #define	NDBLOCK		6		/* number of direct blocks in Dentry */
 #define	MAXDAT		8192		/* max allowable data message */
@@ -144,19 +144,19 @@ struct	Device
 {
 	uchar	type;
 	uchar	init;
-	Device*	link;			/* link for mcat/mlev/mirror */
+	Device*	link;			/* link for mcat/mlev */
 	Device*	dlink;			/* link all devices */
 	void*	private;
 	long	size;
 	union
 	{
-		struct			/* wren, ide, (l)worm in targ */
+		struct			/* worm wren */
 		{
-			int	ctrl;	/* disks only */
+			int	ctrl;
 			int	targ;
-			int	lun;	/* wren only */
+			int	lun;
 		} wren;
-		struct			/* mcat mlev mirror */
+		struct			/* mcat mlev */
 		{
 			Device*	first;
 			Device*	last;
@@ -170,8 +170,8 @@ struct	Device
 		} cw;
 		struct			/* juke */
 		{
-			Device*	j;	/* (robotics, worm drives) - wrens */
-			Device*	m;	/* (sides) - r or l devices */
+			Device*	j;
+			Device*	m;
 		} j;
 		struct			/* ro */
 		{
@@ -187,17 +187,12 @@ struct	Device
 			long	base;
 			long	size;
 		} part;
-		struct			/* byte-swapped */
+		struct			/* part */
 		{
 			Device*	d;
 		} swab;
 	};
 };
-
-typedef struct Sidestarts {
-	long	sstart;			/* blocks before start of side */
-	long	s1start;		/* blocks before start of next side */
-} Sidestarts;
 
 struct	Rabuf
 {
@@ -484,6 +479,7 @@ struct	Conf
 	ulong	gidspace;	/* space for gid names -- derrived from nuid */
 	ulong	nlgmsg;		/* number of large message buffers */
 	ulong	nsmmsg;		/* number of small message buffers */
+	ulong	wcpsize;	/* memory for worm copies */
 	ulong	recovcw;	/* recover addresses */
 	ulong	recovro;
 	ulong	firstsb;
@@ -511,15 +507,12 @@ struct	Msgbuf
 		#define	FREE	(1<<1)
 		#define BFREE	(1<<2)
 		#define BTRACE	(1<<7)
-		#define Mbrcvbuf (1<<15) /* to free, call (*free)(this) */
 	Chan*	chan;
 	Msgbuf*	next;
 	ulong	param;
 	int	category;
-	uchar*	data;		/* rp or wp: current processing point */
-	uchar*	xdata;		/* base of allocation */
-	/* added for cpu kernel compatibility - geoff */
-	void	(*free)(Msgbuf *);
+	uchar*	data;
+	uchar*	xdata;
 };
 
 /*
@@ -815,7 +808,6 @@ enum
 	Devfloppy,		/* floppy drive */
 	Devide,			/* IDE drive */
 	Devswab,		/* swab data between mem and device */
-	Devmirr,		/* mirror devices */
 	MAXDEV
 };
 

@@ -16,7 +16,6 @@ int
 unlink(const char *path)
 {
 	int n, i, fd;
-	long long nn;
 	Dir *db1, *db2, nd;
 	Fdinfo *f;
  	char *p, newname[PATH_MAX], newelem[32];
@@ -55,10 +54,10 @@ unlink(const char *path)
 					free(db2);
 					continue;
 				}
-				nn = _SEEK(i, 0, 1);
-				if(nn < 0)
-					nn = 0;
-				_SEEK(fd, nn, 0);
+				n = _OSEEK(i, 0, 1);
+				if(n < 0)
+					n = 0;
+				_OSEEK(fd, n, 0);
 				_DUP(fd, i);
 				_CLOSE(fd);
 				free(db1);

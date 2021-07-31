@@ -185,7 +185,5 @@ iunlock(Lock *l)
 
 	m->splpc = getcallerpc(&l);
 	m->ilockdepth--;
-	if(up)
-		up->lastilock = nil;
 	splxpc(sr);
 }

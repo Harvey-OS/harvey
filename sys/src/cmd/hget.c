@@ -407,7 +407,7 @@ dohttp(URL *u, Range *r, int out, long mtime)
 			sysfatal("Service unavailable");
 		
 		default:
-			sysfatal("Unknown response code %d", code);
+			sysfatal("Unknown response code");
 		}
 
 		if(u->redirect != nil){
@@ -837,7 +837,6 @@ ftprcode(int ctl, char *msg, int len)
 {
 	int rv;
 	int i;
-	char *p;
 
 	len--;	/* room for terminating null */
 	for(;;){
@@ -849,8 +848,8 @@ ftprcode(int ctl, char *msg, int len)
 			fprint(2, "%d <- %s\n", ctl, msg);
 
 		/* stop if not a continuation */
-		rv = strtol(msg, &p, 10);
-		if(rv >= 100 && rv < 600 && p==msg+3 && *p == ' ')
+		rv = atoi(msg);
+		if(rv >= 100 && rv < 600 && (i > 3 && msg[3] == ' '))
 			return rv/100;
 	}
 	*msg = 0;

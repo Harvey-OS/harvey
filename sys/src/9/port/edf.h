@@ -9,10 +9,18 @@ enum {
 	/* Edf.flags field */
 	Verbose = 0x1,
 	Useblocking = 0x2,
-
-	Infinity = 0xffffffffffffffffULL,
-
 };
+
+typedef vlong				Time;
+typedef uvlong				Ticks;
+
+typedef struct Task			Task;
+typedef struct Resource		Resource;
+typedef struct ResourceItem	ResourceItem;
+typedef struct Edf			Edf;
+typedef struct Taskq			Taskq;
+typedef struct List			List;
+typedef struct Head			Head;
 
 enum Edfstate {
 	EdfUnused,		/* task structure not in use */
@@ -28,16 +36,7 @@ enum Edfstate {
 	EdfBlocked,		/* none of the procs are runnable as a result of sleeping */
 	EdfDeadline,		/* none of the procs are runnable as a result of scheduling */
 };
-
-typedef enum Edfstate		Edfstate;
-typedef struct Edf			Edf;
-typedef struct Head			Head;
-typedef struct List			List;
-typedef struct Resource		Resource;
-typedef struct Task			Task;
-typedef struct Taskq			Taskq;
-typedef struct CSN			CSN;
-typedef struct TaskLink		TaskLink;
+typedef enum Edfstate	Edfstate;
 
 struct List {
 	List	*	next;		/* next in list */
@@ -83,8 +82,7 @@ struct Task {
 	Ticks	scheduled;
 	Schedq	runq;		/* Queue of runnable member procs */
 	Head	procs;		/* List of member procs */
-	Head	csns;			/* List of resources */
-	CSN		*curcsn;		/* Position in CSN tree or nil */
+	Head	res;			/* List of resources */
 	char		*user;		/* mallocated */
 	Dirtab	dir;
 	int		flags;		/* e.g., Verbose */
@@ -108,21 +106,11 @@ struct Resource
 	Ticks	testDelta;
 };
 
-struct CSN {
-	List;					/* links and identifies the resource (must be first) */
-	Task			*t;		/* task the CSN belongs to */
-	Ticks		C;		/* cost */
-	int			R;		/* read-only access (as opposed to exclusive access) */
-	Ticks		Delta;	/* of the Tasks critical section */
-	Ticks		testDelta;
-	Ticks		S;		/* Remaining slice */
-	CSN*		p;		/* parent resource items */
-};
-
-struct TaskLink {
-	List;				/* links and identifies the task (must be first) */
-	Ticks		C;	/* cost */
-	int			R;	/* read-only access (as opposed to exclusive access) */
+struct ResourceItem {
+	List;			/* links and identifies the resource (must be first) */
+	Ticks	C;	/* cost */
+	int		x;	/* exclusive access (as opposed to shared-read access) */
+	Head	h;	/* sub resource items */
 };
 
 extern QLock		edfschedlock;
@@ -146,21 +134,3 @@ Ticks	time2ticks(Time);
 int		putlist(Head*, List*);
 int		enlist(Head*, void*);
 int		delist(Head*, void*);
-char *	parsetime(Time*, char*);
-void *	findlist(Head*, void*);
-Task *	findtask(int);
-List *		onlist(Head*, void*);
-int		timeconv(Fmt*);
-void		resourcefree(Resource*);
-Resource*	resource(char*, int);
-void		removetask(Task*);
-void		taskfree(Task*);
-char *	parseresource(Head*, CSN*, char*);
-char *	seprintresources(char*, char*);
-char *	seprintcsn(char*, char*, Head*);
-void		resourcetimes(Task*, Head*);
-char*	dumpq(char*, char*, Taskq*, Ticks);
-char*	seprinttask(char*, char*, Task*, Ticks);
-char*	dumpq(char*, char*, Taskq*, Ticks);
-
-#define	DEBUG	if(1){}else iprint

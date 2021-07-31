@@ -1,6 +1,5 @@
 typedef struct Alarms	Alarms;
 typedef struct Block	Block;
-typedef struct CSN	CSN;
 typedef struct Chan	Chan;
 typedef struct Cmdbuf	Cmdbuf;
 typedef struct Cmdtab	Cmdtab;
@@ -662,8 +661,6 @@ struct Proc
 
 	ulong	qpc;		/* pc calling last blocking qlock */
 
-	int	setargs;
-
 	void	*ureg;		/* User registers for notes */
 	void	*dbgreg;	/* User registers for devproc */
 	Notsave;
@@ -840,7 +837,7 @@ struct Uart
 extern	Uart*	consuart;
 
 /*
- * fasttick timer interrupts
+ * fasttick timer interrupts (Dummy for now)
  */
 struct Timer
 {
@@ -859,11 +856,9 @@ struct Edfinterface {
 	Proc*	(*edfrunproc)(void);
 	void		(*edfblock)(Proc*);
 	void		(*edfinit)(void);
-	void		(*edfexpel)(Task*);
-	char *	(*edfadmit)(Task*);
-	void		(*edfdeadline)(Proc*);
-	void		(*resacquire)(Task*, CSN*);
-	void		(*resrelease)(Task*);
+	void		(*edfexpel)(Task *t);
+	char *	(*edfadmit)(Task *t);
+	void		(*edfdeadline)(Proc *p);
 };
 
 /*

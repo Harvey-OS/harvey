@@ -28,12 +28,10 @@ struct URLwin
 extern	char*	url;
 extern	int		aflag;
 extern	int		width;
-extern	int		defcharset;
 
 extern	char*	loadhtml(int);
 
 extern	char*	readfile(char*, char*, int*);
-extern	int	charset(char*);
 extern	void*	emalloc(ulong);
 extern	char*	estrdup(char*);
 extern	char*	estrstrdup(char*, char*);

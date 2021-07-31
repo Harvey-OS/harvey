@@ -1,6 +1,7 @@
 enum	/* face strings */
 {
 	Suser,
+	Stime,
 	Sdomain,
 	Sshow,
 	Sdigest,
@@ -20,9 +21,7 @@ struct Face
 	Image	*bit;		/* unless there's an error, this is file->image */
 	Image	*mask;	/* unless there's an error, this is file->mask */
 	char		*str[Nstring];
-	int		recent;
-	ulong	time;
-	Tm		tm;
+	int		ntimes;
 	int		unknown;
 	Facefile	*file;
 };
@@ -44,6 +43,7 @@ struct Facefile
 char		date[];
 char		*maildir;
 
+Face*	faceunpack(Plumbmsg*);
 Face*	nextface(void);
 void		findbit(Face*);
 void		freeface(Face*);
@@ -54,7 +54,7 @@ void		delete(char*, char*);
 void		freefacefile(Facefile*);
 Face*	dirface(char*, char*);
 void		resized(void);
-int		alreadyseen(char*);
+int		alreadyseen(char*, char*, char*);
 ulong	dirlen(char*);
 
 void		*emalloc(ulong);

@@ -13,7 +13,6 @@ HFILES=dat.h
 LIB=
 
 BIN=../$objtype
-
 UPDATE=\
 	mkfile\
 	$HFILES\

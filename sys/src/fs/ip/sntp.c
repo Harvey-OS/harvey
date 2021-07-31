@@ -143,24 +143,15 @@ sntpsend(void)
 	uchar tmp[Pasize];
 	Ifc *ifc;
 
-	/* find an interface on the same subnet as sntpip, if any */
 	for(ifc = enets; ifc; ifc = ifc->next) {
-		if(isvalidip(ifc->ipa) &&
-		   (nhgetl(ifc->ipa)&ifc->mask) == (nhgetl(sntpip)&ifc->mask))
+		if(isvalidip(ifc->ipa))
 			break;
 	}
-	/* if none, find an interface with a default gateway */
 	if(ifc == nil)
-		for(ifc = enets; ifc; ifc = ifc->next)
-			if(isvalidip(ifc->ipa) && isvalidip(ifc->netgate))
-				break;
-	if(ifc == nil) {
-		DEBUG("sntp: can't send to %I; no ifc on same subnet or with default route\n", sntpip);
 		return;
-	}
 
 	/* compose a UDP sntp request */
-	DEBUG("sntp: sending to %I on ifc %I\n", sntpip, ifc->ipa);
+	DEBUG("sntp: sending\n");
 	mb = mballoc(Ensize+Ipsize+Udpsize+Sntpsize, 0, Mbsntp);
 	s = (Sntppkt *)mb->data;
 	/* IP fields */	
@@ -185,6 +176,7 @@ sntpsend(void)
 	hnputs(s->udpsum, sum);
 	/*
 	  * now try to send it - cribbed from icmp.c
+	  * send to interface 0
 	  */
 	memmove(tmp, s->dst, Pasize);
 	if((nhgetl(ifc->ipa)&ifc->mask) != (nhgetl(s->dst)&ifc->mask))

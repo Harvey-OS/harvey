@@ -8,8 +8,10 @@
 #include <mouse.h>
 #include <cursor.h>
 #include <keyboard.h>
-#include "realtime.h"
 #include "time.h"
+#include "devrealtime.h"
+
+typedef uvlong	Ticks;
 
 char *T = "200ms";
 char *Dl = "80ms";
@@ -67,18 +69,13 @@ static Task *tasks;
 static Image *cols[Ncolor][3];
 static Font *mediumfont, *tinyfont;
 static Image *grey, *red, *green, *bg, *fg;
-char missstr[] = "sys: deadline miss: runtime";
-
 
 int schedfd;
 
 int
-rthandler(void*, char *s)
+rthandler(void*, char*)
 {
-	if (strncmp(missstr, s, strlen(missstr)) == 0)
-		return 1;
-
-	/* On any other note */
+	/* On any note */
 	if (fprint(schedfd, "remove") < 0)
 		sysfatal("Could not remove task: %r");
 	sysfatal("Removed task");
@@ -513,18 +510,16 @@ drawrt(void)
 					assert(tasks);
 
 					t = &tasks[ntasks++];
-					t->events = nil;
-					t->settings = nil;
 					t->nevents = 0;
 					t->events = nil;
 					t->tid = event->tid;
 					snprint(line, sizeof line, "%s/%ud", taskdir, event->tid);
 					if ((fd = open(line, OREAD)) < 0)
-						goto expel;
+						sysfatal("%s: %r", line);
 					m = read(fd, line, sizeof line - 1);
 					close(fd);
 					if (m < 0)
-						goto expel;
+						sysfatal("%s/%ud: %r", taskdir, event->tid);
 					line[m] = 0;
 					if (m && line[--m] == '\n')
 						line[m] = 0;
@@ -539,7 +534,6 @@ drawrt(void)
 					t = &tasks[i];
 				
 				if (event->etype == SExpel){
-		expel:
 					free(t->events);
 					free(t->settings);
 					ntasks--;

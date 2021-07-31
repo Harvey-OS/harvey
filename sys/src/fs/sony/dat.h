@@ -1,5 +1,4 @@
 #define RBUFSIZE	(16*1024)	/* raw buffer size */
-/* this kernel still uses DSIZE because it uses sony.c instead of juke.c */
 #define	DSIZE		157933
 
 #include "../port/portdat.h"

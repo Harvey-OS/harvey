@@ -1,5 +1,6 @@
 #include "../port/portfns.h"
 
+void	addclock0link(void (*)(void));
 void	audiopower(int);
 void	audioamppower(int);
 void	audioicpower(int);
@@ -13,7 +14,7 @@ void	dcacheinvalidate(void);
 int	cistrcmp(char*, char*);
 int	cistrncmp(char*, char*, int);
 void	clockinit(void);
-ulong	clockpower(int);
+void	clockpower(int);
 #define	coherence()
 #define	dcflush(a, b)
 void	delay(int);
@@ -92,9 +93,7 @@ void	putdac(ulong);
 void	putttb(ulong);
 void	putpid(ulong);
 void	qpanic(char *, ...);
-void	resetsuspendtimer(void);
 void	rs232power(int);
-void	rtcalarm(ulong);
 void	uartspecial(Uart*, int, Queue**, Queue**, int (*)(Queue*, int));
 void	sa1110_uartsetup(int);
 void	screeninit(void);

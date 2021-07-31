@@ -1,9 +1,9 @@
 </$objtype/mkfile
 
 none:VQ:
-	echo mk all, install, clean, nuke, installall, update
+	echo mk all, install, clean, nuke, installall
 
-all install clean nuke installall update:V:
+all install clean nuke installall:V:
 	@{cd bin/source; mk $target}
 	@{cd mail/src; mk $target}
 	@{cd news/src; mk $target}

@@ -50,7 +50,7 @@ yrsize(int y)
 long
 tm2sec(Tm *tm)
 {
-	long secs;
+	long secs, *p;
 	int i, year, *d2m;
 
 	if(strcmp(tm->zone, "GMT") != 0 && timezone.stname[0] == 0)
@@ -86,16 +86,18 @@ tm2sec(Tm *tm)
 	secs += tm->sec;
 
 	/*
-	 * Only handles zones mentioned in /env/timezone,
-	 * but things get too ambiguous otherwise.
+	 * the daylight time array
+	 * is pairs of standard times
+	 * that daylight turns on and off
 	 */
-	if(strcmp(tm->zone, timezone.stname) == 0)
-		secs -= timezone.stdiff;
-	else if(strcmp(tm->zone, timezone.dlname) == 0)
-		secs -= timezone.dldiff;
-	if(secs < 0)
-		secs = 0;
-	return secs;
+	if(strcmp(tm->zone, "GMT") == 0)
+		return secs;
+	if(secs - timezone.stdiff < 0)
+		return 0;
+	for(p = timezone.dlpairs; *p; p += 2)
+		if(secs >= p[0] && secs < p[1])
+			return secs - timezone.dldiff;
+	return secs - timezone.stdiff;
 }
 
 static

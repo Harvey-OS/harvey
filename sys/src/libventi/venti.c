@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <stdio.h>
 #include <venti.h>
 #include "session.h"
 
@@ -26,11 +27,9 @@ static char ELumpSize[] = "illegal lump size";
 static char EAuthState[] = "bad authentication state";
 static char EVersion[] = "incorrect version number";
 static char ENotServer[] = "not a server session";
-static char ENotConnected[] = "not connected to venti server";
 
 static Packet *vtRPC(VtSession *z, int op, Packet *p);
 static int vtSendPacket(VtSession *z, Packet *p);
-static void vtReset(VtSession*);
 
 static VtSession *
 vtAlloc(void)
@@ -50,18 +49,6 @@ vtAlloc(void)
 	return z;
 }
 
-static void
-vtReset(VtSession *z)
-{
-	vtLock(z->lk);
-	z->cstate = VtStateAlloc;
-	if(z->fd >= 0){
-		vtFdClose(z->fd);
-		z->fd = -1;
-	}
-	vtUnlock(z->lk);
-}
-
 VtSession *
 vtClientAlloc(void)
 {
@@ -79,7 +66,7 @@ vtServerAlloc(VtServerVtbl *vtbl)
 }
 
 VtSession *
-vtDial(char *host, int canfail)
+vtDial(char *host)
 {
 	VtSession *z;
 	int fd;
@@ -92,41 +79,13 @@ vtDial(char *host, int canfail)
 
 	na = netmkaddr(host, 0, "venti");
 	fd = dial(na, 0, 0, 0);
-	if(fd < 0 && !canfail) {
+	if(fd < 0) {
 		vtOSError();
 		return nil;
 	}
 	z = vtClientAlloc();
 	vtSetFd(z, fd);
 	return z;
-}
-
-int
-vtRedial(VtSession *z, char *host)
-{
-	int fd;
-	char *na;
-
-	if(host == nil) 
-		host = getenv("venti");
-	if(host == nil)
-		host = "$venti";
-
-	na = netmkaddr(host, 0, "venti");
-	fd = dial(na, 0, 0, 0);
-	if(fd < 0){
-		vtOSError();
-		return 0;
-	}
-	vtReset(z);
-	vtSetFd(z, fd);
-	return 1;
-}
-
-int
-vtConnected(VtSession *z)
-{
-	return z->cstate == VtStateConnected;
 }
 
 VtSession *
@@ -500,7 +459,7 @@ Err:
 int
 vtConnect(VtSession *z, char *password)
 {
-	char buf[VtMaxStringSize], *p, *ep, *prefix;
+	char buf[VtMaxStringSize], *p, *prefix;
 	int i;
 
 	USED(password);
@@ -517,15 +476,14 @@ vtConnect(VtSession *z, char *password)
 
 	prefix = "venti-";
 	p = buf;
-	ep = buf + sizeof(buf);
-	p = seprint(p, ep, "%s", prefix);
+	p += sprintf(p, "%s", prefix);
 	p += strlen(p);
 	for(i=0; vtVersions[i].version; i++) {
 		if(i != 0)
 			*p++ = ':';
-		p = seprint(p, ep, "%s", vtVersions[i].s);
+		p += sprintf(p, "%s", vtVersions[i].s);
 	}
-	p = seprint(p, ep, "-libventi\n");
+	p += sprintf(p, "-libventi\n");
 	assert(p-buf < sizeof(buf));
 	if(z->outHash)
 		vtSha1Update(z->outHash, (uchar*)buf, p-buf);
@@ -559,26 +517,6 @@ Err:
 	z->cstate = VtStateClosed;
 	vtUnlock(z->lk);
 	return 0;	
-}
-
-int
-vtSync(VtSession *z)
-{
-	Packet *p = packetAlloc();
-
-	p = vtRPC(z, VtQSync, p);
-	if(p == nil)
-		return 0;
-	if(packetSize(p) != 0){
-		vtSetError(EProtocolBotch);
-		goto Err;
-	}
-	packetFree(p);
-	return 1;
-
-Err:
-	packetFree(p);
-	return 0;
 }
 
 int
@@ -680,6 +618,11 @@ vtRecvPacket(VtSession *z)
 	}
 
 	vtLock(z->inLock);
+	if(z->eof) {
+		vtUnlock(z->lk);
+		return nil;
+	}
+
 	p = z->part;
 	/* get enough for head size */
 	size = packetSize(p);
@@ -842,17 +785,6 @@ dispatchWrite(VtSession *z, Packet **pkt)
 	return 1;
 }
 
-static int
-dispatchSync(VtSession *z, Packet **pkt)
-{
-	(z->vtbl->sync)(z);
-	if(packetSize(*pkt) != 0) {
-		vtSetError(EProtocolBotch);
-		return 0;
-	}
-	return 1;
-}
-
 int
 vtExport(VtSession *z)
 {
@@ -919,10 +851,6 @@ if(0)	vtSetDebug(z, 1);
 			break;
 		case VtQWrite:
 			if(!dispatchWrite(z, &p))
-				goto Exit;
-			break;
-		case VtQSync:
-			if(!dispatchSync(z, &p))
 				goto Exit;
 			break;
 		}
@@ -999,19 +927,12 @@ vtRPC(VtSession *z, int op, Packet *p)
 	uchar *hdr, buf[2];
 	char *err;
 
-	if(z == nil){
-		vtSetError(ENotConnected);
-		return nil;
-	}
-
 	/*
 	 * single threaded for the momment
 	 */
 	vtLock(z->lk);
-	if(z->cstate != VtStateConnected){
-		vtSetError(ENotConnected);
+	if(z->cstate != VtStateConnected)
 		goto Err;
-	}
 	hdr = packetHeader(p, 2);
 	hdr[0] = op;	/* op */
 	hdr[1] = 0;	/* tid */
@@ -1060,9 +981,10 @@ vtFatal(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	fprint(2, "fatal error: ");
-	vfprint(2, fmt, arg);
-	fprint(2, "\n");
+	fprintf(stderr, "fatal error: ");
+	vfprintf(stderr, fmt, arg);
+	fprintf(stderr, "\n");
+	fflush(stderr);
 	va_end(arg);
 	exits("vtFatal");
 }
@@ -1076,7 +998,8 @@ vtDebug(VtSession *s, char *fmt, ...)
 		return;
 
 	va_start(arg, fmt);
-	vfprint(2, fmt, arg);
+	vfprintf(stderr, fmt, arg);
+	fflush(stderr);
 	va_end(arg);
 }
 
@@ -1085,14 +1008,13 @@ vtDumpSome(Packet *pkt)
 {
 	int printable;
 	int i, n;
-	char buf[200], *q, *eq;
+	char buf[200], *q;
 	uchar data[32], *p;
 
 	n = packetSize(pkt);
 	printable = 1;
 	q = buf;
-	eq = buf + sizeof(buf);
-	q = seprint(q, eq, "(%d) '", n);
+	q += sprintf(q, "(%d) '", n);
 
 	if(n > sizeof(data))
 		n = sizeof(data);
@@ -1102,16 +1024,25 @@ vtDumpSome(Packet *pkt)
 				printable = 0;
 	if(printable) {
 		for(i=0; i<n; i++)
-			q = seprint(q, eq, "%c", p[i]);
+			q += sprintf(q, "%c", p[i]);
 	} else {
 		for(i=0; i<n; i++) {
 			if(i>0 && i%4==0)
-				q = seprint(q, eq, " ");
-			q = seprint(q, eq, "%.2X", p[i]);
+				q += sprintf(q, " ");
+			q += sprintf(q, "%.2X", p[i]);
 		}
 	}
-	seprint(q, eq, "'");
-	fprint(2, "%s", buf);
+	sprintf(q, "'");
+	fprintf(stderr, "%s", buf);
+}
+
+void
+vtDebugScore(uchar score[VtScoreSize])
+{
+	int i;
+
+	for(i=0; i<VtScoreSize; i++)
+		fprintf(stderr, "%.2x", score[i]);
 }
 
 void
@@ -1127,16 +1058,18 @@ vtDebugMesg(VtSession *z, Packet *p, char *s)
 		return;
 	n = packetSize(p);
 	if(n < 2) {
-		fprint(2, "runt packet%s", s);
+		fprintf(stderr, "runt packet%s", s);
+		fflush(stderr);
 		return;
 	}
 	b = packetPeek(p, buf, 0, 2);
 	op = b[0];
 	tid = b[1];
 
-	fprint(2, "%c%d[%d] %d", ((op&1)==0)?'R':'Q', op, tid, n);
+	fprintf(stderr, "%c%d[%d] %d", ((op&1)==0)?'R':'Q', op, tid, n);
 	vtDumpSome(p);
-	fprint(2, "%s", s);
+	fprintf(stderr, "%s", s);
+	fflush(stderr);
 }
 
 char*
@@ -1145,8 +1078,8 @@ vtStrDup(char *s)
 	int n;
 	char *ss;
 
-	if(s == nil)
-		return nil;
+	if(s == NULL)
+		return NULL;
 	n = strlen(s) + 1;
 	ss = vtMemAlloc(n);
 	memmove(ss, s, n);
@@ -1160,7 +1093,7 @@ vtFdReadFully(int fd, uchar *p, int n)
 
 	while(n > 0) {
 		nn = vtFdRead(fd, p, n);
-		if(nn <= 0)
+		if(n <= 0)
 			return 0;
 		n -= nn;
 		p += nn;
@@ -1200,7 +1133,7 @@ vtZeroExtend(int type, uchar *buf, int n, int nn)
 }
 
 int 
-vtZeroTruncate(int type, uchar *buf, int n)
+vtZeroRetract(int type, uchar *buf, int n)
 {
 	uchar *p;
 

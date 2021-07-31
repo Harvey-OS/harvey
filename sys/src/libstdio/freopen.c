@@ -17,8 +17,7 @@ FILE *freopen(const char *name, const char *mode, FILE *f){
 
 	if(f->state!=CLOSED){
 		fclose(f);
-/* premature; fall through and see what happens */
-/*		f->state=OPEN; */
+		f->state=OPEN;
 	}
 
 	m = *mode++;
@@ -30,17 +29,22 @@ FILE *freopen(const char *name, const char *mode, FILE *f){
 	default:
 		return NULL;
 	case 'r':
-		f->fd=open(name, (*mode == '+'? ORDWR: OREAD));
+		m = 0;
+		if(*mode == '+') m = 2;
+		f->fd=open(name, m);
 		break;
 	case 'w':
-		f->fd=create(name, (*mode == '+'? ORDWR: OWRITE), 0666);
+		m = 1;
+		if(*mode == '+') m = 2;
+		f->fd=create(name, m, 0666);
 		break;
 	case 'a':
-		m = (*mode == '+'? ORDWR: OWRITE);
+		m = 1;
+		if(*mode == '+') m = 2;
 		f->fd=open(name, m);
 		if(f->fd<0)
 			f->fd=create(name, m, 0666);
-		seek(f->fd, 0LL, 2);
+		seek(f->fd, 0L, 2);
 		break;
 	}
 

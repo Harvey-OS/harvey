@@ -30,17 +30,11 @@ venti \- an archival block storage server
 .B -I
 .I icachesize
 ]
-.PP
-.B venti/sync
-[
-.B -h
-.I host
-]
 .SH DESCRIPTION
 .I Venti
 is a block storage server intended for archival data.
 In a Venti server,
-the SHA1 hash of a block's contents acts as the block
+the Sha1 hash of a block's contents acts as the block
 identifier for read and write operations.
 This approach enforces a write-once policy, preventing accidental or
 malicious destruction of data.  In addition, duplicate copies of a
@@ -71,12 +65,10 @@ index accross multiple disks.
 The storage for
 .I venti
 is initialized using
-.IR fmtarenas ,
-.IR fmtisect ,
+.IR fmtarenas (8),
+.IR fmtisect (8),
 and
-.I fmtindex
-(see
-.IR ventiaux (8)).
+.IR fmtindex (8).
 A configuration file,
 .IR venti.conf (6),
 ties the index sections and data arenas together.
@@ -114,28 +106,25 @@ A summary of the state of the data log.
 .B xindex
 An enumeration of the index sections and all non empty arenas, in XML format.
 .PP
-Several auxiliary utilities (see
-.IR ventiaux (8))
-aid in maintaining the storage for Venti.
+Several auxiliary utilities aid in maintaining the storage for Venti.
 With the exception of
-.I rdarena ,
+.IR rdarena (8),
 these utilities should generally be run after killing the
 .I venti
 server.
 The utilities are:
 .TP
-.I checkarenas
+.IR checkarenas (8)
 Check the integrity, and optionally fix, Venti arenas.
 .TP
-.I checkindex
-Check the integrity, and optionally fix, a Venti index.
+.IR checkindex (8)
+Check the integrity, and optionally fix, a Venti index
 .TP
-.I buildindex
-Rebuild a Venti index from scratch.
+.IR buildindex (8)
+Rebuild a Venti index.
 .TP
-.I rdarena
+.IR rdarena (8)
 Extract a Venti arena and write to standard output.
-.PD
 .PP
 Options to 
 .I venti
@@ -181,41 +170,27 @@ data log.
 Enable write buffering.  This option increase the performance of writes to
 .I venti
 at the cost of returning success to the client application before the
-data has been written to disk.
-The server implements a
-.I sync
-rpc that waits for completion of all the writes buffered at the time
-the rpc was received.
-Applications such as
-.IR vac (1)
-and the
-.I sync
-command described below
-use this rpc to make sure that the data is correctly written to disk.
-Use of this option is recommended.
-.PD
+data has been written to disk.  Use of this option is recommended.
 .PP
-The units for the various cache sizes above can be specified by appending a
+Note, the units for the various cache sizes above can be specified by appending a
 .LR k ,
 .LR m ,
 or
 .LR g
 to indicate kilobytes, megabytes, or gigabytes respectively.
-.PP
-.I Sync
-connects to a running Venti server and executes a sync rpc
-(described with the
-.B -w
-option above). 
-If sync exits successfully, it means that all writes buffered at the
-time the command was issued are now on disk.
 .SH SOURCE
 .B /sys/src/cmd/venti
 .SH "SEE ALSO"
 .IR venti.conf (6),
-.IR ventiaux (8),
+.IR fmtarenas (8),
+.IR fmtisect (8),
+.IR fmtindex (8),
 .IR vac (1),
 .IR vacfs (4).
+.IR checkarenas (8),
+.IR checkindex (8),
+.IR buildindex (8),
+.IR rdarena (8)
 .br
 Sean Quinlan and Sean Dorward,
 ``Venti: a new approach to archival storage''.

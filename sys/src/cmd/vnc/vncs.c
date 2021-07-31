@@ -217,17 +217,15 @@ void flushmemscreen(Rectangle r)
 
 // do lazy mouse warp. without it, we would cause
 // a warp message in each update.
-void
-mousewarpnote(Point p)
+void mousewarpnote()
 {
 	Vncs *v;
 
 	vnclock(&clients);
 	for(v = (Vncs*)clients.next; v; v = (Vncs*)v->next) {
-		if(v->canwarp){
+		if( v->canmousewarp ) {
 			vnclock(v);
-			v->needwarp = 1;
-			v->warppt = p;
+			v->mousewarpneeded = 1;
 			vncunlock(v);
 		}
 	}
@@ -241,14 +239,17 @@ sendcopyrect(Vncs *v, Rectangle r)
 }
 
 static int
-sendupdate(Vncs *v, int dowarp, Point warppt)
+sendupdate(Vncs *v)
 {
-	int nrects, i, snrects, docursor;
+	int nrects, i, snrects, docursor, dowarp;
 	Rectangle nr, cr;
 	Region updateregion;
 	vlong t1;
+	Point mpt;
 
 	drawlock();
+
+	dowarp = v->mousewarpneeded; // cleared in vnc_update with lock
 
 	/* we make a snapshot so that new screen updates can overlap with us */
 	region_init(&updateregion);
@@ -279,28 +280,30 @@ sendupdate(Vncs *v, int dowarp, Point warppt)
 		v->cursorr = cr;
 	}
 	drawunlock();
-	if(REGION_EMPTY(&updateregion) && dowarp == 0){
+	if( REGION_EMPTY(&updateregion) && dowarp == 0 ) {
 		region_reset(&updateregion);
 		return 1;
 	}
 
 	if(v->preferredencoding == EncCorre) {
 		nrects = 0;
-		for(i = 0; i < updateregion.nrects; i++)
+		for(i = 0; i < updateregion.nrects; i ++ ) {
 			nrects += rrerects(updateregion.rects[i], MaxCorreDim);
+		}
 	} else if(v->preferredencoding == EncRre) {
 		nrects = 0;
-		for(i = 0; i < updateregion.nrects; i ++)
+		for(i = 0; i < updateregion.nrects; i ++ ) {
 			nrects += rrerects(updateregion.rects[i], MaxRreDim);
+		}
 	} else
 		nrects = updateregion.nrects;
 
-	if(verbose > 1)
+	if( verbose > 1 )
 		fprint(2, "sendupdate: %d rects, %d region rects..", nrects, updateregion.nrects);
 	t1 = nsec();
 	vncwrchar(v, MFrameUpdate);
 	vncwrchar(v, 0);
-	if(v->canwarp)
+	if( v->canmousewarp )
 		vncwrshort(v, nrects+dowarp);
 	else
 		vncwrshort(v, nrects);
@@ -332,12 +335,13 @@ sendupdate(Vncs *v, int dowarp, Point warppt)
 	if(snrects != nrects)
 		sysfatal("bad number of rectangles sent; %d expexted %d\n", snrects, nrects);
 	region_reset(&updateregion);
-	if(dowarp){
+	if( dowarp) {
 		// four shorts and an int (x, y, w, h, enctype)
-		vncwrrect(v, rectaddpt(Rect(0,0,1,1), warppt));
+		mpt = mousexy();
+		vncwrrect(v, Rpt(mpt, Pt(mpt.x+1, mpt.y+1)));
 		vncwrlong(v, EncMouseWarp);
 	}
-	if(verbose > 1) 
+	if( verbose > 1 ) 
 		fprint(2, " in %lld msecs\n", (nsec()-t1)/(1000*1000LL));
 
 	return 0;
@@ -347,9 +351,11 @@ static void
 vnc_update(Vncs *v)
 {
 	char *buf;
-	int n, notsent, needwarp;
-	Point p;
+	int n, notsent;
 
+	qlock(&snarf);
+	v->snarfvers = snarf.vers;
+	qunlock(&snarf);
 	while(1) {
 		vnclock(v);
 		if( v->ndeadprocs )
@@ -376,19 +382,14 @@ vnc_update(Vncs *v)
 				}
 			}else
 				qunlock(&snarf);
-			vnclock(v);
-			needwarp = v->needwarp;
-			v->needwarp = 0;
-			p = v->warppt;
-			vncunlock(v);
-			notsent = sendupdate(v, needwarp, p);
+			notsent = sendupdate(v);
 			vnclock(v);
 			v->updaterequested |= notsent;
+			v->mousewarpneeded = 0;
 		}
 		vncunlock(v);
 		vncflush(v);
-		if(notsent)
-			sleep(40);
+		if( notsent ) sleep(40);
 	}
 	vncunlock(v);
 	vnchungup(v);
@@ -554,7 +555,7 @@ vnc_srv(Vncs *v, int dfd, int cfd)
 	vncinit(dfd, cfd, v);
 	v->preferredencoding = -1;
 	v->usecopyrect = 0;
-	v->canwarp = 0;
+	v->canmousewarp = 0;
 	v->ndeadprocs = 0;
 	v->nprocs = 1;
 
@@ -566,12 +567,22 @@ vnc_srv(Vncs *v, int dfd, int cfd)
 		vnchungup(v);
 	}
 
-	if(verbose)
-		fprint(2, "auth...");
-	if(vncauth_srv(v) < 0){
+	if(v->extended){
 		if(verbose)
-			fprint(2, "vnc authentication failed\n");
-		vnchungup(v);
+			fprint(2, "negotiate...");
+		if(vncnegotiate_srv(v) < 0){
+			if(verbose)
+				fprint(2, "vnc negotiation failed\n");
+			vnchungup(v);
+		}
+	}else{
+		if(verbose)
+			fprint(2, "auth...");
+		if(vncauth_srv(v) < 0){
+			if(verbose)
+				fprint(2, "vnc authentication failed\n");
+			vnchungup(v);
+		}
 	}
 
 	shared = vncrdchar(v);
@@ -587,7 +598,7 @@ vnc_srv(Vncs *v, int dfd, int cfd)
 	vncwrbytes(v, "Plan9 Desktop", 14);
 	vncflush(v);
 
-	if(verbose)
+	if( verbose )
 		fprint(2, "handshaking done\n");
 
 	/* start the update process */
@@ -609,9 +620,9 @@ vnc_srv(Vncs *v, int dfd, int cfd)
 
 	region_init(&v->updateregion);
 
-	for(;;){
+	while(1) {
 		type = vncrdchar(v);
-		switch(type){
+		switch(type) {
 		default:
 			sysfatal("unknown vnc message type=%d\n", type);
 			break;
@@ -631,18 +642,18 @@ vnc_srv(Vncs *v, int dfd, int cfd)
 		case MSetEnc:
 			vncrdchar(v);
 			n = vncrdshort(v);
-			while(n--){
+			while( n-- ) {
 				x = vncrdlong(v);
-				if(x == EncCopyRect)
+				if( x == EncCopyRect )
 					v->usecopyrect = 1;
-				else if (x == EncMouseWarp)
-					v->canwarp = 1;
-				else if(v->preferredencoding == -1)
+				else if ( x == EncMouseWarp )
+					v->canmousewarp = 1;
+				else if( v->preferredencoding == -1 )
 					v->preferredencoding = x;
 			}
-			if(v->preferredencoding == -1)
+			if( v->preferredencoding == -1 )
 				v->preferredencoding = EncRaw;
-			if(verbose)
+			if( verbose )
 				fprint(2, "encoding is %s %s copyrect\n", encname[v->preferredencoding], v->usecopyrect?"with":"without");
 			break;
 
@@ -652,7 +663,7 @@ vnc_srv(Vncs *v, int dfd, int cfd)
 			drawlock();  // must hold drawlock first
 			vnclock(v);
 			v->updaterequested = 1;
-			if(!incremental) 
+			if( !incremental ) 
 				region_union(&v->updateregion, r, Rpt(ZP, v->dim));
 			vncunlock(v);
 			drawunlock();
@@ -681,7 +692,7 @@ vnc_srv(Vncs *v, int dfd, int cfd)
 			else{
 				vncrdbytes(v, sn, x);
 				sn[x] = '\0';
-				setsnarf(sn, x, &v->snarfvers);
+				setsnarf(sn, x);
 			}
 			break;
 		}
@@ -689,7 +700,7 @@ vnc_srv(Vncs *v, int dfd, int cfd)
 }
 
 void
-vnc_newclient(int dfd, int cfd)
+vnc_newclient(int dfd, int cfd, int extended)
 {
 	Vncs * v;
 
@@ -710,6 +721,7 @@ vnc_newclient(int dfd, int cfd)
 	v->next = clients.next;
 	clients.next = v;
 	vncunlock(&clients);
+	v->extended = extended;
 	*vncpriv = v;
 	if(!atexit(vnccsexiting)){
 		vnccsexiting();
@@ -925,19 +937,23 @@ main(int argc, char * argv[])
 {
 	static char *defargv[] = { "/bin/rc", "-i", nil };
 	char *addr, netmt[NETPATHLEN], adir[NETPATHLEN], ldir[NETPATHLEN], *p, *darg, *karg;
-	int cfd, s, n, fd, w, h;
+	int cfd, s, n, fd, w, h, extended;
 
 	w = 1024;
 	h = 768;
 	addr = nil;
 	darg = nil;
 	karg = nil;
+	extended = 0;
 	setnetmtpt(netmt, NETPATHLEN, nil);
 	ARGBEGIN{
 	case 'd':
 		darg = ARGF();
 		if(darg == nil || *darg != ':')
 			usage();
+		break;
+	case 'e':
+		extended = 1;
 		break;
 	case 'g':
 		p = ARGF();
@@ -958,7 +974,8 @@ main(int argc, char * argv[])
 		p = ARGF();
 		if(p == nil)
 			usage();
-		usage();	/* NO /net.alt LISTENERS */
+		if(!extended)
+			usage();
 		setnetmtpt(netmt, NETPATHLEN, p);
 		break;
 	default:
@@ -967,7 +984,7 @@ main(int argc, char * argv[])
 	}ARGEND
 
 	
-	if(karg != nil){
+	if( karg != nil ) {
 		if(argc ||  darg != nil )
 			usage();
 		vnckillsrv(netmt, &karg[1]);
@@ -1068,7 +1085,7 @@ main(int argc, char * argv[])
 			continue;
 		}
 
-		vnc_newclient(s, cfd);
+		vnc_newclient(s, cfd, extended);
 	}
 	exits(0);
 }

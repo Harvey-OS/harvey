@@ -2,27 +2,18 @@
 #include <libc.h>
 #include <venti.h>
 
-enum
-{
-	QueuingW,	/* queuing for write lock */
-	QueuingR,	/* queuing for read lock */
-};
-
-
 typedef struct Thread Thread;
 
 struct Thread {
 	int pid;
 	int ref;
 	char *error;
-	int state;
 	Thread *next;
 };
 
 struct VtLock {
 	Lock lk;
-	Thread *writer;		/* thread writering write lock */
-	int readers;		/* number writering read lock */
+	Thread *hold;
 	Thread *qfirst;
 	Thread *qlast;
 };
@@ -65,7 +56,6 @@ vtThread(void (*f)(void*), void *rock)
 	}
 	vtAttach();
 	(*f)(rock);
-	vtDetach();
 	_exits(0);
 	return 0;
 }
@@ -132,21 +122,16 @@ vtGetError(void)
 	return s;
 }
 
-char*
-vtSetError(char* fmt, ...)
+char *
+vtSetError(char *s)
 {
-	Thread *p;
-	va_list args;
+	Thread *p = threadLookup();
 
-	p = threadLookup();
-
-	va_start(args, fmt);
 	vtMemFree(p->error);
-	p->error = vsmprint(fmt, args);
-	va_end(args);
+	p->error = vtStrDup(s);
 	if(ERROR)
 		fprint(2, "vtSetError: %s\n", p->error);
-	werrstr("%s", p->error);
+	werrstr("%s", s);
 	return p->error;
 }
 
@@ -224,7 +209,6 @@ vtLockAlloc(void)
 {
 	return vtMemAllocZ(sizeof(VtLock));
 }
-
 void
 vtLockInit(VtLock **p)
 {
@@ -241,8 +225,7 @@ vtLockFree(VtLock *p)
 {
 	if(p == nil)
 		return;
-	assert(p->writer == nil);
-	assert(p->readers == 0);
+	assert(p->hold == nil);
 	assert(p->qfirst == nil);
 	vtMemFree(p);
 }
@@ -266,22 +249,6 @@ vtRendezFree(VtRendez *q)
 	vtMemFree(q);
 }
 
-int
-vtCanLock(VtLock *p)
-{
-	Thread *t;
-
-	lock(&p->lk);
-	t = *vtRock;
-	if(p->writer == nil && p->readers == 0) {
-		p->writer = t;
-		unlock(&p->lk);
-		return 1;
-	}
-	unlock(&p->lk);
-	return 0;
-}
-
 
 void
 vtLock(VtLock *p)
@@ -290,16 +257,11 @@ vtLock(VtLock *p)
 
 	lock(&p->lk);
 	t = *vtRock;
-	if(p->writer == nil && p->readers == 0) {
-		p->writer = t;
+	if(p->hold == nil) {
+		p->hold = t;
 		unlock(&p->lk);
 		return;
 	}
-
-	/*
-	 * venti currently contains code that assume locks can be passed between threads :-(
-	 * assert(p->writer != t);
-	 */
 
 	if(p->qfirst == nil)
 		p->qfirst = t;
@@ -307,157 +269,65 @@ vtLock(VtLock *p)
 		p->qlast->next = t;
 	p->qlast = t;
 	t->next = nil;
-	t->state = QueuingW;
 	unlock(&p->lk);
 
 	threadSleep(t);
-	assert(p->writer == t && p->readers == 0);
-}
-
-int
-vtCanRLock(VtLock *p)
-{
-	lock(&p->lk);
-	if(p->writer == nil && p->qfirst == nil) {
-		p->readers++;
-		unlock(&p->lk);
-		return 1;
-	}
-	unlock(&p->lk);
-	return 0;
-}
-
-void
-vtRLock(VtLock *p)
-{
-	Thread *t;
-
-	lock(&p->lk);
-	t = *vtRock;
-	if(p->writer == nil && p->qfirst == nil) {
-		p->readers++;
-		unlock(&p->lk);
-		return;
-	}
-
-	/*
-	 * venti currently contains code that assumes locks can be passed between threads
-	 * assert(p->writer != t);
-	 */
-	if(p->qfirst == nil)
-		p->qfirst = t;
-	else
-		p->qlast->next = t;
-	p->qlast = t;
-	t->next = nil;
-	t->state = QueuingR;
-	unlock(&p->lk);
-
-	threadSleep(t);
-	assert(p->writer == nil && p->readers > 0);
+	assert(p->hold == t);
 }
 
 void
 vtUnlock(VtLock *p)
 {
-	Thread *t, *tt;
+	Thread *tt;
 
 	lock(&p->lk);
-	/*
-	 * venti currently has code that assumes lock can be passed between threads :-)
- 	 * assert(p->writer == *vtRock);
-	 */
- 	assert(p->writer != nil);   
-	assert(p->readers == 0);
-	t = p->qfirst;
-	if(t == nil) {
-		p->writer = nil;
+	assert(p->hold != nil);
+	tt = p->qfirst;
+	if(tt == nil) {
+		p->hold = nil;
 		unlock(&p->lk);
 		return;
 	}
-	if(t->state == QueuingW) {
-		p->qfirst = t->next;
-		p->writer = t;
-		unlock(&p->lk);
-		threadWakeup(t);
-		return;
-	}
 
-	p->writer = nil;
-	while(t != nil && t->state == QueuingR) {
-		tt = t;
-		t = t->next;
-		p->readers++;
-		threadWakeup(tt);
-	}
-	p->qfirst = t;
-	unlock(&p->lk);
-}
-
-void
-vtRUnlock(VtLock *p)
-{
-	Thread *t;
-
-	lock(&p->lk);
-	assert(p->writer == nil && p->readers > 0);
-	p->readers--;
-	t = p->qfirst;
-	if(p->readers > 0 || t == nil) {
-		unlock(&p->lk);
-		return;
-	}
-	assert(t->state == QueuingW);
-	
-	p->qfirst = t->next;
-	p->writer = t;
+	p->qfirst = tt->next;
+	p->hold = tt;
+	tt->next = nil;
 	unlock(&p->lk);
 
-	threadWakeup(t);
+	threadWakeup(tt);
 }
 
 int
 vtSleep(VtRendez *q)
 {
-	Thread *s, *t, *tt;
+	Thread *t, *tt;
 	VtLock *p;
 
 	p = q->lk;
 	lock(&p->lk);
-	s = *vtRock;
-	/*
-	 * venti currently contains code that assume locks can be passed between threads :-(
-	 * assert(p->writer != s);
-	 */
-	assert(p->writer != nil);
-	assert(p->readers == 0);
-	t = p->qfirst;
-	if(t == nil) {
-		p->writer = nil;
-	} else if(t->state == QueuingW) {
-		p->qfirst = t->next;
-		p->writer = t;
-		threadWakeup(t);
-	} else {
-		p->writer = nil;
-		while(t != nil && t->state == QueuingR) {
-			tt = t;
-			t = t->next;
-			p->readers++;
-			threadWakeup(tt);
-		}
+	t = *vtRock;
+	assert(p->hold != nil);
+	tt = p->qfirst;
+	if(tt == nil)
+		p->hold = nil;
+	else {
+		p->hold = tt;
+		p->qfirst = tt->next;
+		tt->next = nil;
 	}
-
 	if(q->wfirst == nil)
-		q->wfirst = s;
+		q->wfirst = t;
 	else
-		q->wlast->next = s;
-	q->wlast = s;
-	s->next = nil;
+		q->wlast->next = t;
+	q->wlast = t;
+	t->next = nil;
 	unlock(&p->lk);
 
-	threadSleep(s);
-	assert(p->writer == s);
+	if(tt != nil)
+		threadWakeup(tt);
+
+	threadSleep(t);
+	assert(p->hold == t);
 	return 1;
 }
 
@@ -473,11 +343,7 @@ vtWakeup(VtRendez *q)
 	 */
 	p = q->lk;
 	lock(&p->lk);	
-	/*
-	 * venti currently has code that assumes lock can be passed between threads :-)
- 	 * assert(p->writer == *vtRock);
-	 */
-	assert(p->writer != nil);
+	assert(p->hold != nil);
 	t = q->wfirst;
 	if(t == nil) {
 		unlock(&p->lk);
@@ -488,7 +354,6 @@ vtWakeup(VtRendez *q)
 		p->qlast = t;
 	t->next = p->qfirst;
 	p->qfirst = t;
-	t->state = QueuingW;
 	unlock(&p->lk);
 
 	return 1;
@@ -592,17 +457,4 @@ vtMemBrk(int n)
 	unlock(&lk);
 
 	return p;
-}
-
-void
-vtThreadSetName(char *name)
-{
-	int fd;
-	char buf[32];
-
-	sprint(buf, "/proc/%d/args", getpid());
-	if((fd = open(buf, OWRITE)) >= 0){
-		write(fd, name, strlen(name));
-		close(fd);
-	}
 }

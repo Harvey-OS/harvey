@@ -482,10 +482,10 @@ static void
 audioinit(void)
 {
 	/* Turn MCP operations off */
-	mcpregs = mapspecial(MCPREGS, sizeof(MCPregs));
+	mcpregs = mapspecial(MCPREGS, 0x34);
 	mcpregs->status &= ~(1<<16);
 
-	sspregs = mapspecial(SSPREGS, sizeof(SSPregs));
+	sspregs = mapspecial(SSPREGS, 32);
 
 }
 

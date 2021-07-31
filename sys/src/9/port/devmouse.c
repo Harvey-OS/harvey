@@ -97,8 +97,7 @@ mousereset(void)
 
 	curs = arrow;
 	Cursortocursor(&arrow);
-	/* redraw cursor about 30 times per second */
-	addclock0link(mouseclock, 33);
+	addclock0link(mouseclock);
 }
 
 static void
@@ -124,7 +123,7 @@ mousewalk(Chan *c, Chan *nc, char **name, int nname)
 	Walkqid *wq;
 
 	wq = devwalk(c, nc, name, nname, mousedir, nelem(mousedir), devgen);
-	if(wq != nil && wq->clone != c && wq->clone != nil && (wq->clone->qid.type&QTDIR)==0)
+	if(wq != nil && wq->clone != c && (wq->clone->qid.type&QTDIR)==0)
 		incref(&mouse);
 	return wq;
 }

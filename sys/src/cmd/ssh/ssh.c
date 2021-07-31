@@ -6,7 +6,6 @@ int interactive = -1;
 int usemenu = 1;
 int isatty(int);
 int rawhack;
-int forwardagent = 0;
 char *buildcmd(int, char**);
 void fromnet(Conn*);
 void fromstdin(Conn*);
@@ -103,9 +102,6 @@ main(int argc, char **argv)
 	case 'c':
 		cipherlist = EARGF(usage());
 		break;
-	case 'f':
-		forwardagent = 1;
-		break;
 	case 'I':
 		interactive = 0;
 		break;
@@ -179,10 +175,6 @@ main(int argc, char **argv)
 
 	sshclienthandshake(&c);
 
-	if(forwardagent){
-		if(startagent(&c) < 0)
-			forwardagent = 0;
-	}
 	if(usepty == -1)
 		usepty = cmd==nil;
 	if(usepty)
@@ -261,32 +253,6 @@ fromnet(Conn *c)
 		case SSH_MSG_DISCONNECT:
 			s = getstring(m);
 			error("disconnect: %s", s);
-
-		/*
-		 * If we ever add reverse port forwarding, we'll have to
-		 * revisit this.  It assumes that the agent connections are
-		 * the only ones.
-		 */
-		case SSH_SMSG_AGENT_OPEN:
-			if(!forwardagent)
-				error("server tried to use agent forwarding");
-			handleagentopen(m);
-			break;
-		case SSH_MSG_CHANNEL_INPUT_EOF:
-			if(!forwardagent)
-				error("server tried to use agent forwarding");
-			handleagentieof(m);
-			break;
-		case SSH_MSG_CHANNEL_OUTPUT_CLOSED:
-			if(!forwardagent)
-				error("server tried to use agent forwarding");
-			handleagentoclose(m);
-			break;
-		case SSH_MSG_CHANNEL_DATA:
-			if(!forwardagent)
-				error("server tried to use agent forwarding");
-			handleagentmsg(m);
-			break;
 
 		case SSH_SMSG_STDOUT_DATA:
 			fd = 1;
@@ -521,7 +487,8 @@ fromstdin(Conn *c)
 
 	atexit(atexitkiller);
 	if(interactive){
-		consctl = open("/dev/consctl", OWRITE);
+		if((consctl=open("/dev/consctl", OWRITE)) < 0)
+			error("Can't turn off echo");
 		if(cooked==0)
 			rawon();
 	}else

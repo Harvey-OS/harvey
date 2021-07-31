@@ -6,7 +6,7 @@
 static char EBadVacFormat[] = "bad format for vac file";
 
 static VacFS *
-vfsAlloc(VtSession *z, int bsize, long ncache)
+vacFSAlloc(VtSession *z, int bsize, long ncache)
 {
 	VacFS *fs;
 
@@ -54,12 +54,13 @@ readScore(int fd, uchar score[VtScoreSize])
 }
 
 VacFS *
-vfsOpen(VtSession *z, char *file, int readOnly, long ncache)
+vacFSOpen(VtSession *z, char *file, int readOnly, long ncache)
 {
 	VacFS *fs;
 	int n, fd;
-	VtRoot rt;
-	uchar score[VtScoreSize], buf[VtRootSize];
+	VtRootLump rt;
+	uchar score[VtScoreSize];
+	int bsize;
 	VacFile *root;
 
 	fd = open(file, OREAD);
@@ -74,7 +75,7 @@ vfsOpen(VtSession *z, char *file, int readOnly, long ncache)
 	}
 	close(fd);
 
-	n = vtRead(z, score, VtRootType, buf, VtRootSize);
+	n = vtRead(z, score, VtRootType, (uchar*)&rt, VtRootSize);
 	if(n < 0)
 		return nil;
 	if(n != VtRootSize) {
@@ -82,23 +83,31 @@ vfsOpen(VtSession *z, char *file, int readOnly, long ncache)
 		return nil;
 	}
 
-	if(!vtSha1Check(score, buf, VtRootSize)) {
+	if(!vtSha1Check(score, (uchar*)&rt, VtRootSize)) {
 		vtSetError("vtSha1Check failed on root block");	
 		return nil;
 	}
 
-	if(!vtRootUnpack(&rt, buf))
+	rt.name[sizeof(rt.name)-1] = 0;
+	rt.type[sizeof(rt.type)-1] = 0;
+	bsize = (rt.blockSize[0]<<8) | rt.blockSize[1];
+if(0) fprint(2, "name=%s type=%s size=%d\n", rt.name, rt.type, bsize);
+
+	if(((rt.version[0]<<8)|rt.version[1]) != VtRootVersion2) {
+		vtSetError("unknown root block version");
 		return nil;
+	}
+		
 
 	if(strcmp(rt.type, "vac") != 0) {
 		vtSetError("not a vac root");
 		return nil;
 	}
 
-	fs = vfsAlloc(z, rt.blockSize, ncache);
+	fs = vacFSAlloc(z, bsize, ncache);
 	memmove(fs->score, score, VtScoreSize);
 	fs->readOnly = readOnly;
-	root = vfRoot(fs, rt.score);
+	root = vacFileRoot(fs, rt.score);
 	if(root == nil)
 		goto Err;
 	fs->root = root;
@@ -106,8 +115,8 @@ vfsOpen(VtSession *z, char *file, int readOnly, long ncache)
 	return fs;
 Err:
 	if(root)
-		vfDecRef(root);
-	vfsClose(fs);
+		vacFileDecRef(root);
+	vacFSClose(fs);
 	return nil;
 }
 
@@ -116,49 +125,37 @@ vacFsCreate(VtSession *z, int bsize, long ncache)
 {
 	VacFS *fs;
 
-	fs = vfsAlloc(z, bsize, ncache);
+	fs = vacFSAlloc(z, bsize, ncache);
 	return fs;
 }
 
 int
-vfsIsReadOnly(VacFS *fs)
-{
-	return fs->readOnly != 0;
-}
-
-VacFile *
-vfsGetRoot(VacFS *fs)
-{
-	return vfIncRef(fs->root);
-}
-
-int
-vfsGetBlockSize(VacFS *fs)
+vacFSGetBlockSize(VacFS *fs)
 {
 	return fs->bsize;
 }
 
 int
-vfsGetScore(VacFS *fs, uchar score[VtScoreSize])
+vacFSGetScore(VacFS *fs, uchar score[VtScoreSize])
 {
 	memmove(fs, score, VtScoreSize);
 	return 1;
 }
 
 long
-vfsGetCacheSize(VacFS *fs)
+vacFSGetCacheSize(VacFS *fs)
 {
 	return cacheGetSize(fs->cache);
 }
 
 int
-vfsSetCacheSize(VacFS *fs, long size)
+vacFSSetCacheSize(VacFS *fs, long size)
 {
 	return cacheSetSize(fs->cache, size);
 }
 
 int
-vfsSnapshot(VacFS *fs, char *src, char *dst)
+vacFSSnapshot(VacFS *fs, char *src, char *dst)
 {
 	USED(fs);
 	USED(src);
@@ -167,16 +164,16 @@ vfsSnapshot(VacFS *fs, char *src, char *dst)
 }
 
 int
-vfsSync(VacFS*)
+vacFSSync(VacFS*)
 {
 	return 1;
 }
 
 int
-vfsClose(VacFS *fs)
+vacFSClose(VacFS *fs)
 {
 	if(fs->root)
-		vfDecRef(fs->root);
+		vacFileDecRef(fs->root);
 	fs->root = nil;
 	cacheCheck(fs->cache);
 	cacheFree(fs->cache);

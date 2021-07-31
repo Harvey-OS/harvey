@@ -1,14 +1,6 @@
 #include	"all.h"
 #include	"io.h"
 
-enum {
-	/*
-	 * set to non-0 to prevent all writes;
-	 * mainly for trying dangerous experiments.
-	 */
-	Readonly = 0,
-};
-
 Filsys*
 fsstr(char *p)
 {
@@ -16,17 +8,6 @@ fsstr(char *p)
 
 	for(fs=filsys; fs->name; fs++)
 		if(strcmp(fs->name, p) == 0)
-			return fs;
-	return 0;
-}
-
-Filsys*
-dev2fs(Device *dev)
-{
-	Filsys *fs;
-
-	for(fs=filsys; fs->name; fs++)
-		if(fs->dev == dev)
 			return fs;
 	return 0;
 }
@@ -451,7 +432,7 @@ loop:
 	n = --sb->fbuf.nfree;
 	sb->tfree--;
 	if(n < 0 || n >= FEPERBUF) {
-		print("bufalloc: %Z: bad freelist\n", dev);
+		print("bufalloc: bad freelist\n");
 		n = 0;
 		sb->fbuf.free[0] = 0;
 	}
@@ -469,7 +450,7 @@ loop:
 					goto loop;
 			}
 			putbuf(p);
-			print("fs %Z full uid=%d\n", dev, uid);
+			print("fs full uid=%d\n", uid);
 			return 0;
 		}
 		bp = getbuf(dev, a, Bread);
@@ -575,9 +556,6 @@ Zfmt(Fmt* fmt)
 	case Devwren:
 		c = 'w';
 		goto d1;
-	case Devide:
-		c = 'h';
-		goto d1;
 	case Devworm:
 		c = 'r';
 		goto d1;
@@ -597,10 +575,6 @@ Zfmt(Fmt* fmt)
 	case Devmlev:
 		c = '[';
 		c1 = ']';
-		goto d2;
-	case Devmirr:
-		c = '{';
-		c1 = '}';
 	d2:
 		if(d->cat.first == d->cat.last)
 			sprint(s, "%c%Z%c", c, d->cat.first, c1);
@@ -619,18 +593,11 @@ Zfmt(Fmt* fmt)
 	case Devjuke:
 		sprint(s, "j%Z%Z", d->j.j, d->j.m);
 		break;
-	case Devfworm:
-		sprint(s, "f%Z", d->fw.fw);
-		break;
 	case Devpart:
-		sprint(s, "p(%Z)%ld.%ld",
-			d->part.d, d->part.base, d->part.size);
+		sprint(s, "p%ld.%ld", d->part.base, d->part.size);
 		break;
 	case Devswab:
 		sprint(s, "x%Z", d->swab.d);
-		break;
-	case Devnone:
-		sprint(s, "n");
 		break;
 	}
 out:
@@ -752,10 +719,6 @@ struct
 	Msgbuf	*lmsgbuf;
 } msgalloc;
 
-/*
- * pre-allocate some message buffers at boot time.
- * if this supply is exhausted, more will be allocated as needed.
- */
 void
 mbinit(void)
 {
@@ -774,7 +737,6 @@ mbinit(void)
 		else
 			mb->xdata = ialloc(LARGEBUF+OFFMSG, LINESIZE);
 		mb->flags = LARGE;
-		mb->free = 0;
 		mbfree(mb);
 		cons.nlarge++;
 	}
@@ -785,7 +747,6 @@ mbinit(void)
 		else
 			mb->xdata = ialloc(SMALLBUF+OFFMSG, LINESIZE);
 		mb->flags = 0;
-		mb->free = 0;
 		mbfree(mb);
 		cons.nsmall++;
 	}
@@ -817,7 +778,6 @@ mballoc(int count, Chan *cp, int category)
 				mb->xdata = ialloc(LARGEBUF+256, 256);
 			else
 				mb->xdata = ialloc(LARGEBUF+OFFMSG, LINESIZE);
-			mb->free = 0;
 			cons.nlarge++;
 		} else
 			msgalloc.lmsgbuf = mb->next;
@@ -830,7 +790,6 @@ mballoc(int count, Chan *cp, int category)
 				mb->xdata = ialloc(SMALLBUF+256, 256);
 			else
 				mb->xdata = ialloc(SMALLBUF+OFFMSG, LINESIZE);
-			mb->free = 0;
 			cons.nsmall++;
 		} else
 			msgalloc.smsgbuf = mb->next;
@@ -847,30 +806,15 @@ mballoc(int count, Chan *cp, int category)
 		mb->data = mb->xdata+256;
 	else
 		mb->data = mb->xdata+OFFMSG;
-	mb->free = 0;
 	return mb;
 }
 
 void
 mbfree(Msgbuf *mb)
 {
-	if(mb == nil)
-		return;
 	if(mb->flags & BTRACE)
 		print("mbfree: BTRACE cat=%d flags=%ux, caller 0x%lux\n",
 			mb->category, mb->flags, getcallerpc(&mb));
-
-	/*
-	 * drivers which perform non cache coherent DMA manage their own buffer
-	 * pool of uncached buffers and provide their own free routine.
-	 * this is provided mainly for ethernet drivers ported from cpu kernel.
-	 */
-	if(mb->flags&Mbrcvbuf) {
-		if (mb->free == nil)
-			panic("freeb: nil mb->free");
-		(*mb->free)(mb);
-		return;
-	}
 	if(mb->flags & FREE)
 		panic("mbfree already free");
 
@@ -885,7 +829,6 @@ mbfree(Msgbuf *mb)
 		msgalloc.smsgbuf = mb;
 	}
 	mb->data = 0;
-	mb->free = 0;
 	iunlock(&msgalloc);
 }
 
@@ -1076,8 +1019,6 @@ loop:
 
 	case Devwren:
 		return wrenread(d, b, c);
-	case Devide:
-		return ideread(d, b, c);
 
 	case Devworm:
 	case Devlworm:
@@ -1092,9 +1033,6 @@ loop:
 	case Devmlev:
 		return mlevread(d, b, c);
 
-	case Devmirr:
-		return mirrread(d, b, c);
-
 	case Devpart:
 		return partread(d, b, c);
 
@@ -1103,10 +1041,6 @@ loop:
 		if(e == 0)
 			swab(c, 0);
 		return e;
-
-	case Devnone:
-		print("read from device none(%ld)\n", b);
-		return 1;
 	}
 	panic("illegal device in read: %Z %ld", d, b);
 	return 1;
@@ -1117,8 +1051,6 @@ devwrite(Device *d, long b, void *c)
 {
 	int e;
 
-	if (Readonly)
-		return 0;
 loop:
 	switch(d->type)
 	{
@@ -1135,8 +1067,6 @@ loop:
 
 	case Devwren:
 		return wrenwrite(d, b, c);
-	case Devide:
-		return idewrite(d, b, c);
 
 	case Devworm:
 	case Devlworm:
@@ -1151,9 +1081,6 @@ loop:
 	case Devmlev:
 		return mlevwrite(d, b, c);
 
-	case Devmirr:
-		return mirrwrite(d, b, c);
-
 	case Devpart:
 		return partwrite(d, b, c);
 
@@ -1162,14 +1089,6 @@ loop:
 		e = devwrite(d->swab.d, b, c);
 		swab(c, 0);
 		return e;
-
-	case Devnone:
-		/* checktag() can generate blocks with type devnone */
-		if (0) {
-			print("write to device none(%ld)\n", b);
-			return 1;
-		}
-		return 0;
 	}
 	panic("illegal device in write: %Z %ld", d, b);
 	return 1;
@@ -1192,8 +1111,6 @@ loop:
 
 	case Devwren:
 		return wrensize(d);
-	case Devide:
-		return atasize(d);
 
 	case Devworm:
 	case Devlworm:
@@ -1207,9 +1124,6 @@ loop:
 
 	case Devmlev:
 		return mlevsize(d);
-
-	case Devmirr:
-		return mirrsize(d);
 
 	case Devpart:
 		return partsize(d);
@@ -1294,7 +1208,6 @@ loop:
 
 	case Devmlev:
 	case Devmcat:
-	case Devmirr:
 		for(l=d->cat.first; l; l=l->link)
 			devream(l, 0);
 		break;
@@ -1303,7 +1216,6 @@ loop:
 	case Devworm:
 	case Devlworm:
 	case Devwren:
-	case Devide:
 		break;
 
 	case Devswab:
@@ -1372,10 +1284,6 @@ loop:
 		wreninit(d);
 		break;
 
-	case Devide:
-		ideinit(d);
-		break;
-
 	case Devworm:
 	case Devlworm:
 		break;
@@ -1392,10 +1300,6 @@ loop:
 		mlevinit(d);
 		break;
 
-	case Devmirr:
-		mirrinit(d);
-		break;
-
 	case Devpart:
 		partinit(d);
 		break;
@@ -1403,10 +1307,6 @@ loop:
 	case Devswab:
 		d = d->swab.d;
 		goto loop;
-
-	case Devnone:
-		print("devinit of Devnone\n");
-		break;
 	}
 }
 

@@ -495,20 +495,21 @@ PCArch* arch;
 extern PCArch* knownarch[];
 
 PCArch archgeneric = {
-.id=		"generic",
-.ident=		0,
-.reset=		i8042reset,
-.serialpower=	unimplemented,
-.modempower=	unimplemented,
+	"generic",				/* id */
+	0,					/* ident */
+	i8042reset,				/* reset */
+	unimplemented,				/* serialpower */
+	unimplemented,				/* modempower */
 
-.intrinit=	i8259init,
-.intrenable=	i8259enable,
-.intrvecno=	i8259vecno,
-.intrdisable=	i8259disable,
+	i8259init,				/* intrinit */
+	i8259enable,				/* intrenable */
+	i8259vecno,				/* vector number */
+	i8259disable,				/* intrdisable */
 
-.clockenable=	i8253enable,
-.fastclock=	i8253read,
-.timerset=	i8253timerset,
+	i8253enable,				/* clockenable */
+
+	i8253read,				/* read the standard timer */
+	i8253timerset,
 };
 
 typedef struct {

@@ -17,9 +17,7 @@
 
 /* Define one or the other ... */
 //#define CPU
-#ifndef FS
 #define FS
-#endif
 
 #include "u.h"
 #include "../port/lib.h"

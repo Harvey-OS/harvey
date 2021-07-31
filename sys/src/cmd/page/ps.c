@@ -143,7 +143,6 @@ initps(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 	int trailer=0;
 	int nesting=0;
 	int dumb=0;
-	int landscape=0;
 	long psoff;
 	long npage, mpage;
 	Page *page;
@@ -239,9 +238,6 @@ Keepreading:
 			page[npage].offset = Boffset(b)-Blinelen(b);
 			trailer = 1;
 			continue;
-		} else if(incomments && prefix(p, "%%Orientation")) {
-			if(strstr(p, "Landscape"))
-				landscape = 1;
 		} else if(incomments && Dx(bbox)==0 && prefix(p, q="%%BoundingBox")) {
 			bbox = rdbbox(p+strlen(q)+1);
 			if(chatty)
@@ -353,7 +349,7 @@ Keepreading:
 
 	if(!cantranslate)
 		bbox.min = ZP;
-	setdim(ps, bbox, ppi, landscape);
+	setdim(ps, bbox, ppi);
 
 	if(goodps){
 		/*

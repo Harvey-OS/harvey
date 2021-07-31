@@ -57,7 +57,7 @@ main(int argc, char **argv)
 	case 'c':
 		certificate = readcert(ARGF(), &certlen);
 		if(certificate == nil)
-			sysfatal("reading certificate: %r");
+			sysfatal("reading certificat: %r");
 		break;
 	case 'n':
 		namespace = ARGF();

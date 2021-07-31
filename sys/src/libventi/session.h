@@ -17,8 +17,6 @@ enum {
 	VtRRead,
 	VtQWrite,
 	VtRWrite,
-	VtQSync,
-	VtRSync,
 
 	VtMaxOp
 };
@@ -55,6 +53,7 @@ struct VtSession {
 
 	VtSha1 *inHash;
 	VtLock *inLock;
+	int eof;
 	Packet *part;		/* partial packet */
 
 	VtSha1 *outHash;

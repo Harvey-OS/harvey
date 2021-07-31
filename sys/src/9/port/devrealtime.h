@@ -1,14 +1,12 @@
-typedef vlong				Time;
-typedef uvlong				Ticks;
-typedef struct Schedevent	Schedevent;
 
-enum {
-	Onemicrosecond =	1000ULL,
-	Onemillisecond =	1000000ULL,
-	Onesecond =		1000000000ULL,
-};
+typedef vlong	Time;
+typedef struct	Schedevent Schedevent;
 
-typedef enum SEvent {
+#define Onemicrosecond			((Time)1000ULL)
+#define Onemillisecond			((Time)1000*Onemicrosecond)
+#define Onesecond				((Time)1000*Onemillisecond)
+
+enum SEvent {
 	SAdmit,		/* new proc arrives*/
 	SRelease,		/* released, but not yet scheduled (on qreleased) */
 	SRun,		/* one of this task's procs started running */
@@ -19,12 +17,12 @@ typedef enum SEvent {
 	SYield,		/* proc reached voluntary early deadline */
 	SSlice,		/* slice exhausted */
 	SExpel,		/* proc is gone */
-	SResacq,		/* acquire resource */
-	SResrel,		/* release resource */
-} SEvent;
+};
+typedef enum SEvent	SEvent;
 
 struct Schedevent {
 	ushort	tid;		/* Task ID */
 	SEvent	etype;	/* Event type */
 	Time		ts;		/* Event time */
 };
+
