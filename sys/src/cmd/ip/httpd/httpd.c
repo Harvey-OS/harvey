@@ -38,8 +38,7 @@ PEMChain *certchain;
 void
 usage(void)
 {
-	fprint(2, "usage: httpd [-c certificate] [-C CAchain] [-a srvaddress] "
-		"[-d domain] [-n namespace] [-w webroot]\n");
+	fprint(2, "usage: httpd [-c certificate] [-C CAchain] [-a srvaddress] [-d domain] [-n namespace] [-w webroot]\n");
 	exits("usage");
 }
 
@@ -57,26 +56,26 @@ main(int argc, char **argv)
 	fmtinstall('U', hurlfmt);
 	ARGBEGIN{
 	case 'c':
-		certificate = readcert(EARGF(usage()), &certlen);
+		certificate = readcert(ARGF(), &certlen);
 		if(certificate == nil)
 			sysfatal("reading certificate: %r");
 		break;
 	case 'C':
-		certchain = readcertchain(EARGF(usage()));
+		certchain = readcertchain(ARGF());
 		if (certchain == nil)
 			sysfatal("reading certificate chain: %r");
 		break;
 	case 'n':
-		namespace = EARGF(usage());
+		namespace = ARGF();
 		break;
 	case 'a':
-		address = EARGF(usage());
+		address = ARGF();
 		break;
 	case 'd':
-		hmydomain = EARGF(usage());
+		hmydomain = ARGF();
 		break;
 	case 'w':
-		webroot = EARGF(usage());
+		webroot = ARGF();
 		break;
 	default:
 		usage();
@@ -293,7 +292,6 @@ doreq(HConnect *c)
 	 */
 	uri = c->req.uri;
 	nredirect = 0;
-	werrstr("");
 top:
 	if(++nredirect > 10){
 		if(hparseheaders(c, 15*60*1000) < 0)
@@ -326,22 +324,21 @@ top:
 		newuri = redirect(c, origuri, &flags);
 
 	if(newuri != nil){
-		if(flags & Redirsilent) {
-			c->req.uri = uri = newuri;
-			logit(c, "%s: silent replacement %s", origuri, uri);
-			goto top;
-		}
-		if(hparseheaders(c, 15*60*1000) < 0)
-			exits("failed");
 		if(flags & Redirperm) {
 			logit(c, "%s: permanently moved to %s", origuri, newuri);
 			return hmoved(c, newuri);
+		} else if(flags & Redirsilent) {
+			c->req.uri = uri = newuri;
+			logit(c, "%s: silent replacement %s", origuri, uri);
+			goto top;
 		} else if (flags & (Redironly | Redirsubord))
 			logit(c, "%s: top-level or many-to-one replacement %s",
 				origuri, uri);
 
+		if(hparseheaders(c, 15*60*1000) < 0)
+			exits("failed");
 		/*
-		 * try temporary redirect instead of permanent
+		 * try temporary redirect instead of permanent,
 		 */
 		if (http11(c))
 			return hredirected(c, "307 Temporary Redirect", newuri);
@@ -364,8 +361,7 @@ magic:
 			return -1;
 		}
 		hp = c->private;
-		execl(c->xferbuf, magic, "-d", hmydomain, "-w", webroot,
-			"-r", hp->remotesys, "-N", netdir, "-b", hb,
+		execl(c->xferbuf, magic, "-d", hmydomain, "-w", webroot, "-r", hp->remotesys, "-N", netdir, "-b", hb,
 			"-L", logfd0, logfd1, "-R", c->header,
 			c->req.meth, vers, uri, c->req.search, nil);
 		logit(c, "no magic %s uri %s", magic, uri);
