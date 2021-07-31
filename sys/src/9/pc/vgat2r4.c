@@ -56,12 +56,63 @@ enum {						/* index registers */
 	CursorMode	= CursorMode32x32,
 };
 
+static ulong
+t2r4linear(VGAscr* scr, int* size, int* align)
+{
+	ulong aperture, oaperture;
+	int oapsize, wasupamem;
+	Pcidev *p;
+
+	oaperture = scr->aperture;
+	oapsize = scr->apsize;
+	wasupamem = scr->isupamem;
+
+	aperture = 0;
+	if(p = pcimatch(nil, 0x105D, 0)){
+		switch(p->did){
+		case 0x5348:
+			aperture = p->mem[0].bar & ~0x0F;
+			*size = p->mem[0].size;
+			break;
+		default:
+			break;
+		}
+	}
+
+	if(wasupamem){
+		if(oaperture == aperture)
+			return oaperture;
+		upafree(oaperture, oapsize);
+	}
+	scr->isupamem = 0;
+
+	aperture = upamalloc(aperture, *size, *align);
+	if(aperture == 0){
+		if(wasupamem && upamalloc(oaperture, oapsize, 0)){
+			aperture = oaperture;
+			scr->isupamem = 1;
+		}
+		else
+			scr->isupamem = 0;
+	}
+	else
+		scr->isupamem = 1;
+
+	return aperture;
+}
+
 static void
 t2r4enable(VGAscr* scr)
 {
 	Pcidev *p;
-	void *mmio;
+	int size, align;
+	ulong aperture, mmio;
 
+	/*
+	 * Only once, can't be disabled for now.
+	 * scr->mmio holds the virtual address of
+	 * the MMIO registers.
+	 */
 	if(scr->mmio)
 		return;
 	if(p = pcimatch(nil, 0x105D, 0)){
@@ -74,17 +125,21 @@ t2r4enable(VGAscr* scr)
 	}
 	else
 		return;
-	scr->pci = p;
-	
-	mmio = vmap(p->mem[4].bar & ~0x0F, p->mem[4].size);
-	if(mmio == nil)
+	mmio = upamalloc(p->mem[4].bar & ~0x0F, p->mem[4].size, 0);
+	if(mmio == 0)
 		return;
-	addvgaseg("t2r4mmio", p->mem[4].bar & ~0x0F, p->mem[4].size);
+	addvgaseg("t2r4mmio", mmio, p->mem[4].size);
 
-	scr->mmio = mmio;
-	vgalinearpci(scr);
-	if(scr->paddr)
-		addvgaseg("t2r4screen", scr->paddr, scr->apsize);
+	scr->mmio = KADDR(mmio);
+
+	size = p->mem[0].size;
+	align = 0;
+	aperture = t2r4linear(scr, &size, &align);
+	if(aperture){
+		scr->aperture = aperture;
+		scr->apsize = size;
+		addvgaseg("t2r4screen", aperture, size);
+	}
 }
 
 static uchar
@@ -516,7 +571,7 @@ VGAdev vgat2r4dev = {
 	t2r4enable,
 	nil,
 	nil,
-	nil,
+	t2r4linear,
 	t2r4drawinit,
 };
 

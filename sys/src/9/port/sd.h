@@ -26,7 +26,6 @@ struct SDunit {
 	SDev*	dev;
 	int	subno;
 	uchar	inquiry[256];		/* format follows SCSI spec */
-	uchar	sense[18];		/* format follows SCSI spec */
 	SDperm;
 
 	QLock	ctl;
@@ -46,13 +45,15 @@ struct SDunit {
 
 /* 
  * Each controller is represented by a SDev.
+ * Each controller is responsible for allocating its unit structures.
+ * Each controller has at least one unit.
  */ 
 struct SDev {
 	Ref	r;			/* Number of callers using device */
 	SDifc*	ifc;			/* pnp/legacy */
 	void*	ctlr;
 	int	idno;
-	char	name[8];
+	char*	name;
 	SDev*	next;
 
 	QLock;				/* enable/disable */
@@ -68,6 +69,7 @@ struct SDifc {
 
 	SDev*	(*pnp)(void);
 	SDev*	(*legacy)(int, int);
+	SDev*	(*id)(SDev*);
 	int	(*enable)(SDev*);
 	int	(*disable)(SDev*);
 
@@ -80,8 +82,7 @@ struct SDifc {
 	long	(*bio)(SDunit*, int, int, void*, long, long);
 	SDev*	(*probe)(DevConf*);
 	void	(*clear)(SDev*);
-	char*	(*rtopctl)(SDev*, char*, char*);
-	int	(*wtopctl)(SDev*, Cmdbuf*);
+	char*	(*stat)(SDev*, char*, char*);
 };
 
 struct SDreq {
@@ -123,12 +124,6 @@ enum {
 
 #define sdmalloc(n)	malloc(n)
 #define sdfree(p)	free(p)
-
-/* devsd.c */
-extern void sdadddevs(SDev*);
-extern int sdsetsense(SDreq*, int, int, int, int);
-extern int sdmodesense(SDreq*, uchar*, void*, int);
-extern int sdfakescsi(SDreq*, void*, int);
 
 /* sdscsi.c */
 extern int scsiverify(SDunit*);

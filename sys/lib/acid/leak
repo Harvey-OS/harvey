@@ -83,44 +83,28 @@ dumprange(s, e, type)
 	print("range ", type, " ", s\X, " ", e\X, "\n");
 	x = s;
 	while x < e do {
-		y = *(x\X);
+		y = *x;
 		if isptr(y) then print("data ", x\X, " ", y\X, " ", type, "\n");
 		x = x + 4;
 	}
 }
 
 defn
-stacktop()
-{
-	local e, m;
-	
-	m = map();
-	while m != {} do {
-		e = head m;
-		if e[0] == "*data" then
-			return e[2];
-		m = tail m;
-	}
-	return 0x7ffff000;
-}
-			
-defn
 dumpmem()
 {
-	local s, top;
+	local s;
 
 	xbloc = *bloc;
 	// assume map()[1] is "data" 
 	dumprange(map()[1][1], end, "bss");	// bss
 	dumprange(end, xbloc, "alloc");	// allocated
 
-	top = stacktop() - 8;
-	if top-0x01000000 < *SP && *SP < top then
+	if 0x7efff000 < *SP && *SP < 0x7ffff000 then 
 		s = *SP;
 	else
-		s = top-32*1024;
+		s = 0x7fff7000;	// 32 k
 
-	dumprange(s, top, "stack");
+	dumprange(s, 0x7ffff000, "stack");
 }
 
 defn

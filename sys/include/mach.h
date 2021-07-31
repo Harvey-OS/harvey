@@ -119,9 +119,9 @@ struct Map {
 		int	fd;		/* file descriptor */
 		int	inuse;		/* in use - not in use */
 		int	cache;		/* should cache reads? */
-		uvlong	b;		/* base */
-		uvlong	e;		/* end */
-		vlong	f;		/* offset within file */
+		ulong	b;		/* base */
+		ulong	e;		/* end */
+		ulong	f;		/* offset within file */
 	} seg[1];			/* actually n of these */
 };
 
@@ -169,8 +169,8 @@ struct Mach{
 	char	*name;
 	int	mtype;			/* machine type code */
 	Reglist *reglist;		/* register set */
-	long	regsize;		/* sizeof registers in bytes */
-	long	fpregsize;		/* sizeof fp registers in bytes */
+	ulong	regsize;		/* sizeof registers in bytes*/
+	ulong	fpregsize;		/* sizeof fp registers in bytes*/
 	char	*pc;			/* pc name */
 	char	*sp;			/* sp name */
 	char	*link;			/* link register name */
@@ -179,7 +179,6 @@ struct Mach{
 	int	pgsize;			/* page size */
 	uvlong	kbase;			/* kernel base address */
 	uvlong	ktmask;			/* ktzero = kbase & ~ktmask */
-	uvlong	utop;			/* user stack top */
 	int	pcquant;		/* quantization of pc */
 	int	szaddr;			/* sizeof(void*) */
 	int	szreg;			/* sizeof(register) */
@@ -189,26 +188,26 @@ struct Mach{
 
 extern	Mach	*mach;			/* Current machine */
 
-typedef uvlong	(*Rgetter)(Map*, char*);
-typedef	void	(*Tracer)(Map*, uvlong, uvlong, Symbol*);
+typedef vlong	(*Rgetter)(Map*, char*);
+typedef	void	(*Tracer)(Map*, ulong, ulong, Symbol*);
 
 struct	Machdata {		/* Machine-dependent debugger support */
 	uchar	bpinst[4];			/* break point instr. */
 	short	bpsize;				/* size of break point instr. */
 
-	ushort	(*swab)(ushort);		/* ushort to local byte order */
-	ulong	(*swal)(ulong);			/* ulong to local byte order */
-	uvlong	(*swav)(uvlong);		/* uvlong to local byte order */
-	int	(*ctrace)(Map*, uvlong, uvlong, uvlong, Tracer); /* C traceback */
-	uvlong	(*findframe)(Map*, uvlong, uvlong, uvlong, uvlong);/* frame finder */
+	ushort	(*swab)(ushort);		/* short to local byte order */
+	long	(*swal)(long);			/* long to local byte order */
+	vlong	(*swav)(vlong);			/* vlong to local byte order */
+	int	(*ctrace)(Map*, ulong, ulong, ulong, Tracer); /* C traceback */
+	ulong	(*findframe)(Map*, ulong, ulong, ulong, ulong);/* frame finder */
 	char*	(*excep)(Map*, Rgetter);	/* last exception */
-	ulong	(*bpfix)(uvlong);		/* breakpoint fixup */
+	ulong	(*bpfix)(ulong);		/* breakpoint fixup */
 	int	(*sftos)(char*, int, void*);	/* single precision float */
 	int	(*dftos)(char*, int, void*);	/* double precision float */
-	int	(*foll)(Map*, uvlong, Rgetter, uvlong*);/* follow set */
-	int	(*das)(Map*, uvlong, char, char*, int);	/* symbolic disassembly */
-	int	(*hexinst)(Map*, uvlong, char*, int); 	/* hex disassembly */
-	int	(*instsize)(Map*, uvlong);	/* instruction size */
+	int	(*foll)(Map*, ulong, Rgetter, ulong*);	/* follow set */
+	int	(*das)(Map*, ulong, char, char*, int);	/* symbolic disassembly */
+	int	(*hexinst)(Map*, ulong, char*, int); 	/* hex disassembly */
+	int	(*instsize)(Map*, ulong);	/* instruction size */
 };
 
 /*
@@ -217,24 +216,23 @@ struct	Machdata {		/* Machine-dependent debugger support */
 typedef struct Fhdr
 {
 	char	*name;		/* identifier of executable */
-	uchar	type;		/* file type - see codes above*/
-	uchar	hdrsz;		/* header size */
-	uchar	spare[2];
+	short	type;		/* file type - see codes above*/
+	short	hdrsz;		/* size of this header */
 	long	magic;		/* magic number */
-	uvlong	txtaddr;	/* text address */
-	vlong	txtoff;		/* start of text in file */
-	uvlong	dataddr;	/* start of data segment */
-	vlong	datoff;		/* offset to data seg in file */
-	vlong	symoff;		/* offset of symbol table in file */
-	uvlong	entry;		/* entry point */
-	vlong	sppcoff;	/* offset of sp-pc table in file */
-	vlong	lnpcoff;	/* offset of line number-pc table in file */
+	long	txtaddr;	/* text address */
+	long	entry;		/* entry point */
 	long	txtsz;		/* text size */
+	long	txtoff;		/* start of text in file */
+	long	dataddr;	/* start of data segment */
 	long	datsz;		/* size of data seg */
+	long	datoff;		/* offset to data seg in file */
 	long	bsssz;		/* size of bss */
 	long	symsz;		/* size of symbol table */
+	long	symoff;		/* offset of symbol table in file */
 	long	sppcsz;		/* size of sp-pc table */
+	long	sppcoff;	/* offset of sp-pc table in file */
 	long	lnpcsz;		/* size of line number-pc table */
+	long	lnpcoff;	/* size of line number-pc table */
 } Fhdr;
 
 extern	int	asstype;	/* dissembler type - machdata.c */
@@ -245,25 +243,24 @@ int		beieee80ftos(char*, int, void*);
 int		beieeesftos(char*, int, void*);
 int		beieeedftos(char*, int, void*);
 ushort		beswab(ushort);
-ulong		beswal(ulong);
-uvlong		beswav(uvlong);
-uvlong		ciscframe(Map*, uvlong, uvlong, uvlong, uvlong);
-int		cisctrace(Map*, uvlong, uvlong, uvlong, Tracer);
+long		beswal(long);
+vlong		beswav(vlong);
+int		cisctrace(Map*, ulong, ulong, ulong, Tracer);
+ulong		ciscframe(Map*, ulong, ulong, ulong, ulong);
 int		crackhdr(int fd, Fhdr*);
-uvlong		file2pc(char*, long);
+long		file2pc(char*, ulong);
 int		fileelem(Sym**, uchar *, char*, int);
-long		fileline(char*, int, uvlong);
+int		fileline(char*, int, ulong);
 int		filesym(int, char*, int);
 int		findlocal(Symbol*, char*, Symbol*);
 int		findseg(Map*, char*);
-int		findsym(uvlong, int, Symbol *);
-int		fnbound(uvlong, uvlong*);
+int		findsym(long, int, Symbol *);
+int		fnbound(long, ulong*);
 int		fpformat(Map*, Reglist*, char*, int, int);
-int		get1(Map*, uvlong, uchar*, int);
-int		get2(Map*, uvlong, ushort*);
-int		get4(Map*, uvlong, ulong*);
-int		get8(Map*, uvlong, uvlong*);
-int		geta(Map*, uvlong, uvlong*);
+int		get1(Map*, ulong, uchar*, int);
+int		get2(Map*, ulong, ushort*);
+int		get4(Map*, ulong, long*);
+int		get8(Map*, ulong, vlong*);
 int		getauto(Symbol*, int, int, Symbol*);
 Sym*		getsym(int);
 int		globalsym(Symbol *, int);
@@ -275,11 +272,11 @@ int		leieee80ftos(char*, int, void*);
 int		leieeesftos(char*, int, void*);
 int		leieeedftos(char*, int, void*);
 ushort		leswab(ushort);
-ulong		leswal(ulong);
-uvlong		leswav(uvlong);
-uvlong		line2addr(long, uvlong, uvlong);
+long		leswal(long);
+vlong		leswav(vlong);
+long		line2addr(ulong, ulong, ulong);
 Map*		loadmap(Map*, int, Fhdr*);
-int		localaddr(Map*, char*, char*, uvlong*, Rgetter);
+int		localaddr(Map*, char*, char*, long*, Rgetter);
 int		localsym(Symbol*, int);
 int		lookup(char*, char*, Symbol*);
 void		machbytype(int);
@@ -288,21 +285,20 @@ int		nextar(Biobuf*, int, char*);
 Map*		newmap(Map*, int);
 void		objtraverse(void(*)(Sym*, void*), void*);
 int		objtype(Biobuf*, char**);
-uvlong		pc2sp(uvlong);
-long		pc2line(uvlong);
-int		put1(Map*, uvlong, uchar*, int);
-int		put2(Map*, uvlong, ushort);
-int		put4(Map*, uvlong, ulong);
-int		put8(Map*, uvlong, uvlong);
-int		puta(Map*, uvlong, uvlong);
-int		readar(Biobuf*, int, vlong, int);
+long		pc2sp(ulong);
+long		pc2line(ulong);
+int		put1(Map*, ulong, uchar*, int);
+int		put2(Map*, ulong, ushort);
+int		put4(Map*, ulong, long);
+int		put8(Map*, ulong, vlong);
+int		readar(Biobuf*, int, int, int);
 int		readobj(Biobuf*, int);
-uvlong		riscframe(Map*, uvlong, uvlong, uvlong, uvlong);
-int		risctrace(Map*, uvlong, uvlong, uvlong, Tracer);
-int		setmap(Map*, int, uvlong, uvlong, vlong, char*);
+ulong		riscframe(Map*, ulong, ulong, ulong, ulong);
+int		risctrace(Map*, ulong, ulong, ulong, Tracer);
+int		setmap(Map*, int, ulong, ulong, ulong, char*);
 Sym*		symbase(long*);
 int		syminit(int, Fhdr*);
-int		symoff(char*, int, uvlong, int);
-void		textseg(uvlong, Fhdr*);
+int		symoff(char*, int, long, int);
+void		textseg(ulong, Fhdr*);
 int		textsym(Symbol*, int);
 void		unusemap(Map*, int);

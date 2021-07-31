@@ -18,21 +18,21 @@ atimeof(int force, char *name)
 	t = mtime(archive);
 	sym = symlook(archive, S_AGG, 0);
 	if(sym){
-		if(force || t > sym->u.value){
+		if(force || (t > (long)sym->value)){
 			atimes(archive);
-			sym->u.value = t;
+			sym->value = (void *)t;
 		}
 	}
 	else{
 		atimes(archive);
 		/* mark the aggegate as having been done */
-		symlook(strdup(archive), S_AGG, "")->u.value = t;
+		symlook(strdup(archive), S_AGG, "")->value = (void *)t;
 	}
 		/* truncate long member name to sizeof of name field in archive header */
 	snprint(buf, sizeof(buf), "%s(%.*s)", archive, utfnlen(member, SARNAME), member);
 	sym = symlook(buf, S_TIME, 0);
 	if (sym)
-		return sym->u.value;
+		return (long)sym->value;	/* uggh */
 	return 0;
 }
 
@@ -82,11 +82,10 @@ static void
 atimes(char *ar)
 {
 	struct ar_hdr h;
-	long at, t;
+	long t;
 	int fd, i;
 	char buf[BIGBLOCK];
-	Dir *d;
-	
+
 	fd = open(ar, OREAD);
 	if(fd < 0)
 		return;
@@ -95,17 +94,9 @@ atimes(char *ar)
 		close(fd);
 		return;
 	}
-	if((d = dirfstat(fd)) == nil){
-		close(fd);
-		return;
-	}
-	at = d->mtime;
-	free(d);
 	while(read(fd, (char *)&h, sizeof(h)) == sizeof(h)){
 		t = atol(h.date);
-		if(t >= at)	/* new things in old archives confuses mk */
-			t = at-1;
-		if(t <= 0)	/* as it sometimes happens; thanks ken */
+		if(t == 0)	/* as it sometimes happens; thanks ken */
 			t = 1;
 		for(i = sizeof(h.name)-1; i > 0 && h.name[i] == ' '; i--)
 				;
@@ -113,7 +104,7 @@ atimes(char *ar)
 			i--;
 		h.name[i+1]=0;		/* can stomp on date field */
 		sprint(buf, "%s(%s)", ar, h.name);
-		symlook(strdup(buf), S_TIME, (void*)t)->u.value = t;
+		symlook(strdup(buf), S_TIME, (void *)t)->value = (void *)t;
 		t = atol(h.size);
 		if(t&01) t++;
 		LSEEK(fd, t, 1);

@@ -62,8 +62,6 @@ PCArch archmp = {
 .reset=		mpshutdown,
 .intrinit=	mpinit,
 .intrenable=	mpintrenable,
-.intron=	lapicintron,
-.introff=	lapicintroff,
 .fastclock=	i8253read,
 .timerset=	lapictimerset,
 };

@@ -54,10 +54,12 @@ choochar(void)
 	return;
 }
 
-int
-point(char *ss)
-{
-	int s = (int)(uintptr)ss;
 
-	return(s >= 128 || s < 0);
+int
+point(char *s)
+{
+	int	ss = (int)s;
+	return(ss >= 128 || ss < 0);
 }
+
+

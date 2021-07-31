@@ -144,11 +144,18 @@ vmwait(Vmware *vm)
 		;
 }
 
-static void
-vmwarelinear(VGAscr* scr, int, int)
+static ulong
+vmwarelinear(VGAscr* scr, int* size, int* align)
 {
 	char err[64];
+	ulong aperture, oaperture;
+	int osize, oapsize, wasupamem;
 	Pcidev *p;
+
+	osize = *size;
+	oaperture = scr->aperture;
+	oapsize = scr->apsize;
+	wasupamem = scr->isupamem;
 
 	p = pcimatch(nil, PCIVMWARE, 0);
 	if(p == nil)
@@ -169,9 +176,25 @@ vmwarelinear(VGAscr* scr, int, int)
 		vm->rd = vm->ra + 1;
 	}
 
-	vgalinearaddr(scr, vmrd(vm, Rfbstart), vmrd(vm, Rfbsize));
-	if(scr->apsize)
-		addvgaseg("vmwarescreen", scr->paddr, scr->apsize);
+	aperture = (ulong)(vmrd(vm, Rfbstart));
+	*size = vmrd(vm, Rfbsize);
+
+	if(wasupamem)
+		upafree(oaperture, oapsize);
+	scr->isupamem = 0;
+
+	aperture = upamalloc(aperture, *size, *align);
+	if(aperture == 0){
+		if(wasupamem && upamalloc(oaperture, oapsize, 0))
+			scr->isupamem = 1;
+	}else
+		scr->isupamem = 1;
+
+	if(oaperture && aperture != oaperture)
+		print("warning (BUG): redefinition of aperture does not change vmwarescreen segment\n");
+	addvgaseg("vmwarescreen", aperture, osize);
+
+	return aperture;
 }
 
 static void
@@ -318,11 +341,11 @@ vmwaredrawinit(VGAscr *scr)
 		if(mmiobase == 0)
 			return;
 		mmiosize = vmrd(vm, Rmemsize);
-		scr->mmio = vmap(mmiobase, mmiosize);
-		if(scr->mmio == nil)
-			return;
+		scr->mmio = KADDR(upamalloc(mmiobase, mmiosize, 0));
 		vm->mmio = scr->mmio;
 		vm->mmiosize = mmiosize;
+		if(scr->mmio == nil)
+			return;
 		addvgaseg("vmwaremmio", mmiobase, mmiosize);
 	}
 

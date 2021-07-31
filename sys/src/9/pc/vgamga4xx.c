@@ -23,6 +23,9 @@ enum {
 	MGA4xx			= 0x0525,
 	MGA200			= 0x0521,
 
+	Kilo				= 1024,
+	Meg				= 1024*1024,
+
 	FCOL			= 0x1c24,
 	FXRIGHT			= 0x1cac,	
 	FXLEFT			= 0x1ca8,
@@ -88,17 +91,59 @@ mgapcimatch(void)
 	return p;
 }
 
+static ulong
+mga4xxlinear(VGAscr* scr, int* size, int* align)
+{
+	ulong 	aperture, oaperture;
+	int 		oapsize, wasupamem;
+	Pcidev *	p;
+
+	oaperture = scr->aperture;
+	oapsize = scr->apsize;
+	wasupamem = scr->isupamem;
+
+	if(p = mgapcimatch()){
+		aperture = p->mem[0].bar & ~0x0F;
+		if(p->did == MGA4xx)
+			*size = 32*Meg;
+		else
+			*size = 8*Meg;
+	}
+	else
+		aperture = 0;
+
+	if(wasupamem) {
+		if(oaperture == aperture)
+			return oaperture;
+		upafree(oaperture, oapsize);
+	}
+	scr->isupamem = 0;
+
+	aperture = upamalloc(aperture, *size, *align);
+	if(aperture == 0){
+		if(wasupamem && upamalloc(oaperture, oapsize, 0)) {
+			aperture = oaperture;
+			scr->isupamem = 1;
+		}
+		else
+			scr->isupamem = 0;
+	}
+	else
+		scr->isupamem = 1;
+
+	return aperture;
+}
 
 static void
 mgawrite8(VGAscr* scr, int index, uchar val)
 {
-	((uchar*)scr->mmio)[index] = val;
+	((uchar*)scr->io)[index] = val;
 }
 
 static uchar
 mgaread8(VGAscr* scr, int index)
 {
-	return ((uchar*)scr->mmio)[index];
+	return ((uchar*)scr->io)[index];
 }
 
 static uchar
@@ -118,53 +163,60 @@ static void
 mga4xxenable(VGAscr* scr)
 {
 	Pcidev *	pci;
-	int 		size;
+	int 		size, align;
+	ulong 	aperture;
 	int 		i, n, k;
 	uchar *	p;
 	uchar	x[16];
 	uchar	crtcext3;
 
-	if(scr->mmio)
+	/*
+	 * Only once, can't be disabled for now.
+	 * scr->io holds the virtual address of
+	 * the MMIO registers.
+	 */
+	if(scr->io)
 		return;
 
 	pci = mgapcimatch();
 	if(pci == nil)
 		return;
 
-	scr->mmio = vmap(pci->mem[1].bar&~0x0F, 16*1024);
-	if(scr->mmio == nil)
+	scr->io = upamalloc(pci->mem[1].bar & ~0x0F, 16*1024, 0);
+	if(scr->io == 0)
 		return;
-	
-	addvgaseg("mga4xxmmio", pci->mem[1].bar&~0x0F, pci->mem[1].size);
+
+	addvgaseg("mga4xxmmio", scr->io, pci->mem[1].size);
+
+	scr->io = (ulong)KADDR(scr->io);
 
 	/* need to map frame buffer here too, so vga can find memory size */
-	if(pci->did == MGA4xx)
-		size = 32*MB;
-	else
-		size = 8*MB;
-	vgalinearaddr(scr, pci->mem[0].bar&~0x0F, size);
+	size = 8*Meg;
+	align = 0;
+	aperture = mga4xxlinear(scr, &size, &align);
+	if(aperture) {
+		scr->aperture = aperture;
+		addvgaseg("mga4xxscreen", aperture, size);
 
-	if(scr->paddr){
-
-		/* Find out how much memory is here, some multiple of 2 MB */
+		/* Find out how much memory is here, some multiple of 2 Meg */
 
 		/* First Set MGA Mode ... */
 		crtcext3 = crtcextset(scr, 3, 0x80, 0x00);
 
-		p = scr->vaddr;
-		n = (size / MB) / 2;
+		p = (uchar*)aperture;
+		n = (size / Meg) / 2;
 		for (i = 0; i < n; i++) {
-			k = (2*i+1)*MB;
+			k = (2*i+1)*Meg;
 			p[k] = 0;
 			p[k] = i+1;
-			*((uchar*)scr->mmio + CACHEFLUSH) = 0;
+			*((uchar*)(scr->io + CACHEFLUSH)) = 0;
 			x[i] = p[k];
  		}
 		for(i = 1; i < n; i++)
 			if(x[i] != i+1)
 				break;
-		scr->apsize = 2*i*MB;	/* sketchy */
-		addvgaseg("mga4xxscreen", scr->paddr, scr->apsize);
+  		scr->apsize = 2*i*Meg;
+
 		crtcextset(scr, 3, crtcext3, 0xff);
 	}
 }
@@ -188,10 +240,10 @@ dac4xxdisable(VGAscr* scr)
 {
 	uchar * 	dac4xx;
 	
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return;
 
-	dac4xx = (uchar*)scr->mmio+0x3C00;
+	dac4xx = KADDR(scr->io+0x3C00);
 	
 	*(dac4xx+Index) = Icctl;
 	*(dac4xx+Data) = 0x00;
@@ -204,14 +256,14 @@ dac4xxload(VGAscr* scr, Cursor* curs)
 	uchar *	p;
 	uchar * 	dac4xx;
 
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return;
 
-	dac4xx = (uchar*)scr->mmio+0x3C00;
+	dac4xx = KADDR(scr->io+0x3C00);
 	
 	dac4xxdisable(scr);
 
-	p = scr->vaddr;
+	p = KADDR(scr->storage);
 	for(y = 0; y < 64; y++){
 		*p++ = 0; *p++ = 0; *p++ = 0;
 		*p++ = 0; *p++ = 0; *p++ = 0;
@@ -244,10 +296,10 @@ dac4xxmove(VGAscr* scr, Point p)
 	int 		x, y;
 	uchar *	dac4xx;
 
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return 1;
 
-	dac4xx = (uchar*)scr->mmio + 0x3C00;
+	dac4xx = KADDR(scr->io + 0x3C00);
 
 	x = p.x + scr->offset.x;
 	y = p.y + scr->offset.y;
@@ -267,9 +319,9 @@ dac4xxenable(VGAscr* scr)
 	uchar *	dac4xx;
 	ulong	storage;
 	
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return;
-	dac4xx = (uchar*)scr->mmio+0x3C00;
+	dac4xx = KADDR(scr->io+0x3C00);
 
 	dac4xxdisable(scr);
 
@@ -280,7 +332,7 @@ dac4xxenable(VGAscr* scr)
 	*(dac4xx+Index) = Icuradrh;
 	*(dac4xx+Data) = 0xff & (storage >> 18);		
 
-	scr->storage = (ulong)scr->vaddr + storage;
+	scr->storage = (ulong) KADDR((ulong)scr->aperture + (ulong)storage);
 
 	/* Show X11-Like Cursor */
 	*(dac4xx+Index) = Icctl;
@@ -328,9 +380,9 @@ mga4xxblank(VGAscr* scr, int blank)
 	/* blank = 0 -> turn screen on */
 	/* blank = 1 -> turn screen off */
 
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return;
-	mga = (uchar*)scr->mmio;	
+	mga = KADDR(scr->io);	
 
 	if (blank == 0) {
 		seq1 = 0x00;
@@ -380,9 +432,9 @@ mga4xxfill(VGAscr* scr, Rectangle r, ulong color)
 	uchar * 		mga;
  
 	/* Constant Shaded Trapezoids / Rectangle Fills */
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return 0;
-	mga = (uchar*)scr->mmio;
+	mga = KADDR(scr->io);
 
 	mgawrite32(mga, DWGCTL, 0);
 	mgawrite32(mga, FCOL, color);
@@ -408,10 +460,10 @@ mga4xxscroll(VGAscr* scr, Rectangle r_dst, Rectangle r_src)
 	int 		ydir;
  
 	/* Two-operand Bitblts */
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return 0;
 
-	mga = (uchar*)scr->mmio;
+	mga = KADDR(scr->io);
 
 	pitch = Dx(scr->gscreen->r);
 
@@ -504,9 +556,9 @@ mga4xxdrawinit(VGAscr* scr)
 	if (p == nil)
 		return ;
 
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return;
-	mga = (uchar*)scr->mmio;
+	mga = KADDR(scr->io);
 
 	mgawrite32(mga, SRCORG, 0);
 	mgawrite32(mga, DSTORG, 0);
@@ -538,7 +590,7 @@ VGAdev vgamga4xxdev = {
 	mga4xxenable,		/* enable */
 	0,					/* disable */
 	0,					/* page */
-	0,					/* linear */
+	mga4xxlinear,			/* linear */
 	mga4xxdrawinit,
 };
 

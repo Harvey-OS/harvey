@@ -36,7 +36,7 @@ symlook(char *sym, int space, void *install)
 	s = (Symtab *)Malloc(sizeof(Symtab));
 	s->space = space;
 	s->name = sym;
-	s->u.ptr = install;
+	s->value = install;
 	s->next = hash[h];
 	hash[h] = s;
 	return(s);

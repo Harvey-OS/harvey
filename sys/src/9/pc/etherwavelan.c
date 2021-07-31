@@ -87,7 +87,6 @@ static struct {
 	int did;
 } wavelanpci[] = {
 	0x1260, 0x3873,	/* Intersil Prism2.5 */
-	0x1737,	0x0019,	/* Linksys WPC-11 untested */
 };
 
 static Ctlr *ctlrhead, *ctlrtail;
@@ -96,7 +95,7 @@ static void
 wavelanpciscan(void)
 {
 	int i;
-	void *mem;
+	ulong pa;
 	Pcidev *p;
 	Ctlr *ctlr;
 
@@ -118,13 +117,13 @@ wavelanpciscan(void)
 
 		ctlr = malloc(sizeof(Ctlr));
 		ctlr->pcidev = p;
-		mem = vmap(p->mem[0].bar&~0xF, p->mem[0].size);
-		if(mem == nil){
-			print("wavelanpci: %.4ux %.4ux: vmap 0x%.8lux %d failed\n", p->vid, p->did, p->mem[0].bar&~0xF, p->mem[0].size);
+		pa = upamalloc(p->mem[0].bar&~0xF, p->mem[0].size, 0);
+		if(pa == 0){
+			print("wavelanpci: %.4ux %.4ux: upamalloc 0x%.8lux %d failed\n", p->vid, p->did, p->mem[0].bar&~0xF, p->mem[0].size);
 			free(ctlr);
 			continue;
 		}
-		ctlr->mmb = mem;
+		ctlr->mmb = (ushort*)KADDR(pa);
 		if(ctlrhead != nil)
 			ctlrtail->next = ctlr;
 		else

@@ -15,8 +15,8 @@ beswab(ushort s)
 /*
  * big-endian long
  */
-ulong
-beswal(ulong l)
+long
+beswal(long l)
 {
 	uchar *p;
 
@@ -27,16 +27,16 @@ beswal(ulong l)
 /*
  * big-endian vlong
  */
-uvlong
-beswav(uvlong v)
+vlong
+beswav(vlong v)
 {
 	uchar *p;
 
 	p = (uchar*)&v;
-	return ((uvlong)p[0]<<56) | ((uvlong)p[1]<<48) | ((uvlong)p[2]<<40)
-				  | ((uvlong)p[3]<<32) | ((uvlong)p[4]<<24)
-				  | ((uvlong)p[5]<<16) | ((uvlong)p[6]<<8)
-				  | (uvlong)p[7];
+	return ((vlong)p[0]<<56) | ((vlong)p[1]<<48) | ((vlong)p[2]<<40)
+				 | ((vlong)p[3]<<32) | ((vlong)p[4]<<24)
+				 | ((vlong)p[5]<<16) | ((vlong)p[6]<<8)
+				 | (vlong)p[7];
 }
 
 /*
@@ -54,8 +54,8 @@ leswab(ushort s)
 /*
  * little-endian long
  */
-ulong
-leswal(ulong l)
+long
+leswal(long l)
 {
 	uchar *p;
 
@@ -66,14 +66,14 @@ leswal(ulong l)
 /*
  * little-endian vlong
  */
-uvlong
-leswav(uvlong v)
+vlong
+leswav(vlong v)
 {
 	uchar *p;
 
 	p = (uchar*)&v;
-	return ((uvlong)p[7]<<56) | ((uvlong)p[6]<<48) | ((uvlong)p[5]<<40)
-				  | ((uvlong)p[4]<<32) | ((uvlong)p[3]<<24)
-				  | ((uvlong)p[2]<<16) | ((uvlong)p[1]<<8)
-				  | (uvlong)p[0];
+	return ((vlong)p[7]<<56) | ((vlong)p[6]<<48) | ((vlong)p[5]<<40)
+				 | ((vlong)p[4]<<32) | ((vlong)p[3]<<24)
+				 | ((vlong)p[2]<<16) | ((vlong)p[1]<<8)
+				 | (vlong)p[0];
 }

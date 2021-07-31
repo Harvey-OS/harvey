@@ -29,7 +29,6 @@ char *confname[MAXCONF];
 char *confval[MAXCONF];
 int nconf;
 uchar *sp;	/* user stack of init proc */
-int delaylink;
 
 static void
 options(void)
@@ -70,7 +69,6 @@ options(void)
 	}
 }
 
-void mmuinit0(void);
 void
 main(void)
 {
@@ -82,9 +80,6 @@ main(void)
 	screeninit();
 
 	print("\nPlan 9\n");
-
-	trapinit0();
-	mmuinit0();
 
 	kbdinit();
 	i8253init();
@@ -106,11 +101,7 @@ main(void)
 		arch->clockenable();
 	procinit0();
 	initseg();
-	if(delaylink){
-		bootlinks();
-		pcimatch(0, 0, 0);
-	}else
-		links();
+	links();
 	conf.monitor = 1;
 	chandevreset();
 	pageinit();
@@ -203,9 +194,9 @@ init0(void)
 void
 userinit(void)
 {
-	void *v;
 	Proc *p;
 	Segment *s;
+	KMap *k;
 	Page *pg;
 
 	p = newproc();
@@ -235,18 +226,14 @@ userinit(void)
 
 	/*
 	 * User Stack
-	 *
-	 * N.B. cannot call newpage() with clear=1, because pc kmap
-	 * requires up != nil.  use tmpmap instead.
 	 */
 	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/BY2PG);
 	p->seg[SSEG] = s;
-	pg = newpage(0, 0, USTKTOP-BY2PG);
-	v = tmpmap(pg);
-	memset(v, 0, BY2PG);
+	pg = newpage(1, 0, USTKTOP-BY2PG);
 	segpage(s, pg);
-	bootargs(v);
-	tmpunmap(v);
+	k = kmap(pg);
+	bootargs(VA(k));
+	kunmap(k);
 
 	/*
 	 * Text
@@ -254,13 +241,12 @@ userinit(void)
 	s = newseg(SG_TEXT, UTZERO, 1);
 	s->flushme++;
 	p->seg[TSEG] = s;
-	pg = newpage(0, 0, UTZERO);
+	pg = newpage(1, 0, UTZERO);
 	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 	segpage(s, pg);
-	v = tmpmap(pg);
-	memset(v, 0, BY2PG);
-	memmove(v, initcode, sizeof initcode);
-	tmpunmap(v);
+	k = kmap(s->map[0]->pages[0]);
+	memmove((ulong*)VA(k), initcode, sizeof initcode);
+	kunmap(k);
 
 	ready(p);
 }
@@ -277,7 +263,7 @@ pusharg(char *p)
 }
 
 void
-bootargs(void *base)
+bootargs(ulong base)
 {
  	int i, ac;
 	uchar *av[32];
@@ -309,9 +295,9 @@ bootargs(void *base)
 	sp -= (ac+1)*sizeof(sp);
 	lsp = (uchar**)sp;
 	for(i = 0; i < ac; i++)
-		*lsp++ = av[i] + ((USTKTOP - BY2PG) - (ulong)base);
+		*lsp++ = av[i] + ((USTKTOP - BY2PG) - base);
 	*lsp = 0;
-	sp += (USTKTOP - BY2PG) - (ulong)base - sizeof(ulong);
+	sp += (USTKTOP - BY2PG) - base - sizeof(ulong);
 }
 
 char*
@@ -358,7 +344,7 @@ void
 confinit(void)
 {
 	char *p;
-	int i, userpcnt;
+	int userpcnt;
 	ulong kpages;
 
 	if(p = getconf("*kernelpercent"))
@@ -366,9 +352,7 @@ confinit(void)
 	else
 		userpcnt = 0;
 
-	conf.npage = 0;
-	for(i=0; i<nelem(conf.mem); i++)
-		conf.npage += conf.mem[i].npage;
+	conf.npage = conf.npage0 + conf.npage1;
 
 	conf.nproc = 100 + ((conf.npage*BY2PG)/MB)*5;
 	if(cpuserver)
@@ -413,14 +397,6 @@ confinit(void)
 		if(conf.npage*BY2PG < 16*MB)
 			imagmem->minarena = 4*1024*1024;
 	}
-
-	/*
-	 * can't go past the end of virtual memory
-	 * (ulong)-KZERO is 2^32 - KZERO
-	 */
-	if(kpages > ((ulong)-KZERO)/BY2PG)
-		kpages = ((ulong)-KZERO)/BY2PG;
-
 	conf.upages = conf.npage - kpages;
 	conf.ialloc = (kpages/2)*BY2PG;
 
@@ -517,7 +493,7 @@ matherror(Ureg *ur, void*)
  *  math coprocessor emulation fault
  */
 static void
-mathemu(Ureg *ureg, void*)
+mathemu(Ureg*, void*)
 {
 	if(up->fpstate & FPillegal){
 		/* someone did floating point in a note handler */
@@ -545,8 +521,7 @@ mathemu(Ureg *ureg, void*)
 		up->fpstate = FPactive;
 		break;
 	case FPactive:
-		panic("math emu pid %ld %s pc 0x%lux", 
-			up->pid, up->text, ureg->pc);
+		panic("math emu");
 		break;
 	}
 }

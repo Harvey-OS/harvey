@@ -41,42 +41,33 @@ sendmsg(Channel *q, Wmsg *m)
 {
 	Worker *w;
 
-	while(w = nbrecvp(q)){
-		/* Test for markerdom (see bcastmsg) */
-		if(w->eventc){
-			send(w->eventc, m);
-			return 1;
-		}
-		sendp(q, w);	/* put back */
-	}
-	return 0;
+	if(w = nbrecvp(q))
+		send(w->eventc, m);
+	return w != nil;
 }
 
 void
 bcastmsg(Channel *q, Wmsg *m)
 {
-	Worker *w, marker;
+	Worker *w;
+	Channel *c;
 	void *a;
 
 	a = m->arg;
 	/*
-	 * Use a marker to mark the end of the queue.
-	 * This prevents workers from getting the
-	 * broadcast and putting themselves back on the
+	 * Allocate a temp chan to prevent workers from getting the
+	 * broadcast and putting themselves back on the workers
 	 * queue before the broadcast has finished
 	 */
-	marker.eventc = nil;
-	sendp(q, &marker);
-	while((w = recvp(q)) != &marker){
-		if(w->eventc == nil){
-			/* somebody else's marker, put it back */
-			sendp(q, w);
-		}else{
-			if(a) m->arg = strdup(a);
-			send(w->eventc, m);
-		}
+	c = chancreate(sizeof(Worker*), 256);
+	while(w = nbrecvp(q))
+		sendp(c, w);
+	while(w = nbrecvp(c)){
+		if(a) m->arg = strdup(a);
+		send(w->eventc, m);
 	}
 	free(a);
+	chanfree(c);
 	m->arg = nil;
 }
 

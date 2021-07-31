@@ -3,7 +3,6 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "io.h"
 #include "../port/error.h"
 
 #define	Image	IMAGE
@@ -91,7 +90,7 @@ ark2000pvload(VGAscr* scr, Cursor* curs)
 	 */
 	seq10 = vgaxi(Seqx, 0x10);
 	opage = 0;
-	p = scr->vaddr;
+	p = KADDR(scr->aperture);
 	if(!(seq10 & 0x10)){
 		lock(&scr->devlock);
 		opage = ark2000pvpageset(scr, scr->storage>>16);

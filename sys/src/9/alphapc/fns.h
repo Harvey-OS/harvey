@@ -98,13 +98,11 @@ void	tlbflush(int, ulong);
 void	touser(void*);
 void	trapinit(void);
 void	unaligned(void);
-ulong	upaalloc(int, int);
+ulong	upamalloc(ulong, int, int);
 void	upafree(ulong, int);
 #define	userureg(ur) ((ur)->status & UMODE)
-void*	vmap(ulong, int);
 void	wrent(int, void*);
 void	wrvptptr(uvlong);
-void	vunmap(void*, int);
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
 #define KADDR(a)	((void*)((ulong)(a)|KZERO))

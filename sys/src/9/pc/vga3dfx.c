@@ -28,13 +28,66 @@ enum {
 	hwCur		= 0x5C,
 };
 
+static ulong
+tdfxlinear(VGAscr* scr, int* size, int* align)
+{
+	Pcidev *p;
+	int oapsize, wasupamem;
+	ulong aperture, oaperture;
+
+	oaperture = scr->aperture;
+	oapsize = scr->apsize;
+	wasupamem = scr->isupamem;
+
+	aperture = 0;
+	if(p = pcimatch(nil, 0x121A, 0)){
+		switch(p->did){
+		case 0x0003:		/* Banshee */
+		case 0x0005:		/* Avenger (a.k.a. Voodoo3) */
+		case 0x0009:		/* Voodoo5 */
+			aperture = p->mem[1].bar & ~0x0F;
+			*size = p->mem[1].size;
+			break;
+		default:
+			break;
+		}
+	}
+
+	if(wasupamem){
+		if(oaperture == aperture)
+			return oaperture;
+		upafree(oaperture, oapsize);
+	}
+	scr->isupamem = 0;
+
+	aperture = upamalloc(aperture, *size, *align);
+	if(aperture == 0){
+		if(wasupamem && upamalloc(oaperture, oapsize, 0)){
+			aperture = oaperture;
+			scr->isupamem = 1;
+		}
+		else
+			scr->isupamem = 0;
+	}
+	else
+		scr->isupamem = 1;
+
+	return aperture;
+}
+
 static void
 tdfxenable(VGAscr* scr)
 {
 	Pcidev *p;
-	int i, *mmio;
+	ulong aperture;
+	int align, i, *mmio, size;
 
-	if(scr->mmio)
+	/*
+	 * Only once, can't be disabled for now.
+	 * scr->io holds the physical address of
+	 * the MMIO registers.
+	 */
+	if(scr->io)
 		return;
 	if(p = pcimatch(nil, 0x121A, 0)){
 		switch(p->did){
@@ -47,16 +100,20 @@ tdfxenable(VGAscr* scr)
 	}
 	else
 		return;
-	
-	scr->mmio = vmap(p->mem[0].bar&~0x0F, p->mem[0].size);
-	if(scr->mmio == nil)
+	scr->io = upamalloc(p->mem[0].bar & ~0x0F, p->mem[0].size, 0);
+	if(scr->io == 0)
 		return;
-	scr->pci = p;
-	
-	addvgaseg("3dfxmmio", p->mem[0].bar&~0x0F, p->mem[0].size);
-	vgalinearpci(scr);
-	if(scr->apsize)
-		addvgaseg("3dfxscreen", scr->paddr, scr->apsize);
+
+	addvgaseg("3dfxmmio", (ulong)scr->io, p->mem[0].size);
+
+	size = p->mem[1].size;
+	align = 0;
+	aperture = tdfxlinear(scr, &size, &align);
+	if(aperture){
+		scr->aperture = aperture;
+		scr->apsize = size;
+		addvgaseg("3dfxscreen", aperture, size);
+	}
 
 	/*
 	 * Find a place for the cursor data in display memory.
@@ -66,7 +123,7 @@ tdfxenable(VGAscr* scr)
 	 * 8 of them.
 	 * Use the last 1KB of the framebuffer.
 	 */
-	mmio = (void*)((uchar*)scr->mmio+dramInit0);
+	mmio = KADDR(scr->io + dramInit0);
 	if(*(mmio+1) & 0x40000000)
 		i = 16*1024*1024;
 	else{
@@ -87,9 +144,9 @@ tdfxcurdisable(VGAscr* scr)
 {
 	Cursor3dfx *cursor3dfx;
 
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return;
-	cursor3dfx = (void*)((uchar*)scr->mmio+hwCur);
+	cursor3dfx = KADDR(scr->io+hwCur);
 	cursor3dfx->vidProcCfg &= ~0x08000000;
 }
 
@@ -100,9 +157,9 @@ tdfxcurload(VGAscr* scr, Cursor* curs)
 	uchar *p;
 	Cursor3dfx *cursor3dfx;
 
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return;
-	cursor3dfx = (void*)((uchar*)scr->mmio+hwCur);
+	cursor3dfx = KADDR(scr->io+hwCur);
 
 	/*
 	 * Disable the cursor then load the new image in
@@ -120,7 +177,7 @@ tdfxcurload(VGAscr* scr, Cursor* curs)
 	 * transparent.
 	 */
 	cursor3dfx->vidProcCfg &= ~0x08000000;
-	p = (uchar*)scr->vaddr + scr->storage;
+	p = KADDR(scr->aperture + scr->storage);
 	for(y = 0; y < 16; y++){
 		*p++ = curs->clr[2*y]|curs->set[2*y];
 		*p++ = curs->clr[2*y+1]|curs->set[2*y+1];
@@ -144,9 +201,9 @@ tdfxcurmove(VGAscr* scr, Point p)
 {
 	Cursor3dfx *cursor3dfx;
 
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return 1;
-	cursor3dfx = (void*)((uchar*)scr->mmio+hwCur);
+	cursor3dfx = KADDR(scr->io+hwCur);
 
 	cursor3dfx->hwCurLoc = ((p.y+scr->offset.y)<<16)|(p.x+scr->offset.x);
 
@@ -159,9 +216,9 @@ tdfxcurenable(VGAscr* scr)
 	Cursor3dfx *cursor3dfx;
 
 	tdfxenable(scr);
-	if(scr->mmio == 0)
+	if(scr->io == 0)
 		return;
-	cursor3dfx = (void*)((uchar*)scr->mmio+hwCur);
+	cursor3dfx = KADDR(scr->io+hwCur);
 
 	/*
 	 * Cursor colours.
@@ -173,7 +230,7 @@ tdfxcurenable(VGAscr* scr)
 	 * Initialise the 64x64 cursor to be transparent (X11 mode).
 	 */
 	cursor3dfx->hwCurPatAddr = scr->storage;
-	memset((uchar*)scr->vaddr + scr->storage, 0, 64*16);
+	memset(KADDR(scr->aperture + scr->storage), 0, 64*16);
 
 	/*
 	 * Load, locate and enable the 64x64 cursor in X11 mode.
@@ -189,7 +246,7 @@ VGAdev vga3dfxdev = {
 	tdfxenable,
 	nil,
 	nil,
-	nil,
+	tdfxlinear,
 };
 
 VGAcur vga3dfxcur = {

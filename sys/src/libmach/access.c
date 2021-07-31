@@ -7,35 +7,16 @@
 #include <bio.h>
 #include <mach.h>
 
-static	int	mget(Map*, uvlong, void*, int);
-static	int	mput(Map*, uvlong, void*, int);
-static	struct	segment*	reloc(Map*, uvlong, vlong*);
+static	int	mget(Map*, ulong, char*, int);
+static	int	mput(Map*, ulong, char*, int);
+static	struct	segment*	reloc(Map*, ulong, long*);
 
 /*
  * routines to get/put various types
  */
-int
-geta(Map *map, uvlong addr, uvlong *x)
-{
-	ulong l;
-	uvlong vl;
-
-	if (mach->szaddr == 8){
-		if (get8(map, addr, &vl) < 0)
-			return -1;
-		*x = vl;
-		return 1;
-	}
-
-	if (get4(map, addr, &l) < 0)
-		return -1;
-	*x = l;
-
-	return 1;
-}
 
 int
-get8(Map *map, uvlong addr, uvlong *x)
+get8(Map *map, ulong addr, vlong *x)
 {
 	if (!map) {
 		werrstr("get8: invalid map");
@@ -43,17 +24,17 @@ get8(Map *map, uvlong addr, uvlong *x)
 	}
 
 	if (map->nsegs == 1 && map->seg[0].fd < 0) {
-		*x = addr;
+		*x = (vlong)addr;
 		return 1;
 	}
-	if (mget(map, addr, x, 8) < 0)
+	if (mget(map, addr, (char *)x, 8) < 0)
 		return -1;
 	*x = machdata->swav(*x);
-	return 1;
+	return (1);
 }
 
 int
-get4(Map *map, uvlong addr, ulong *x)
+get4(Map *map, ulong addr, long *x)
 {
 	if (!map) {
 		werrstr("get4: invalid map");
@@ -64,14 +45,14 @@ get4(Map *map, uvlong addr, ulong *x)
 		*x = addr;
 		return 1;
 	}
-	if (mget(map, addr, x, 4) < 0)
+	if (mget(map, addr, (char *)x, 4) < 0)
 		return -1;
 	*x = machdata->swal(*x);
-	return 1;
+	return (1);
 }
 
 int
-get2(Map *map, uvlong addr, ushort *x)
+get2(Map *map, ulong addr, ushort *x)
 {
 	if (!map) {
 		werrstr("get2: invalid map");
@@ -82,14 +63,14 @@ get2(Map *map, uvlong addr, ushort *x)
 		*x = addr;
 		return 1;
 	}
-	if (mget(map, addr, x, 2) < 0)
+	if (mget(map, addr, (char *)x, 2) < 0)
 		return -1;
 	*x = machdata->swab(*x);
-	return 1;
+	return (1);
 }
 
 int
-get1(Map *map, uvlong addr, uchar *x, int size)
+get1(Map *map, ulong addr, uchar *x, int size)
 {
 	uchar *cp;
 
@@ -105,71 +86,62 @@ get1(Map *map, uvlong addr, uchar *x, int size)
 		while (size-- > 0)
 			*x++ = 0;
 	} else
-		return mget(map, addr, x, size);
+		return mget(map, addr, (char*)x, size);
 	return 1;
 }
 
 int
-puta(Map *map, uvlong addr, uvlong v)
-{
-	if (mach->szaddr == 8)
-		return put8(map, addr, v);
-
-	return put4(map, addr, v);
-}
-
-int
-put8(Map *map, uvlong addr, uvlong v)
+put8(Map *map, ulong addr, vlong v)
 {
 	if (!map) {
 		werrstr("put8: invalid map");
 		return -1;
 	}
 	v = machdata->swav(v);
-	return mput(map, addr, &v, 8);
+	return mput(map, addr, (char *)&v, 8);
 }
 
 int
-put4(Map *map, uvlong addr, ulong v)
+put4(Map *map, ulong addr, long v)
 {
 	if (!map) {
 		werrstr("put4: invalid map");
 		return -1;
 	}
 	v = machdata->swal(v);
-	return mput(map, addr, &v, 4);
+	return mput(map, addr, (char *)&v, 4);
 }
 
 int
-put2(Map *map, uvlong addr, ushort v)
+put2(Map *map, ulong addr, ushort v)
 {
 	if (!map) {
 		werrstr("put2: invalid map");
 		return -1;
 	}
 	v = machdata->swab(v);
-	return mput(map, addr, &v, 2);
+	return mput(map, addr, (char *)&v, 2);
 }
 
 int
-put1(Map *map, uvlong addr, uchar *v, int size)
+put1(Map *map, ulong addr, uchar *v, int size)
 {
 	if (!map) {
 		werrstr("put1: invalid map");
 		return -1;
 	}
-	return mput(map, addr, v, size);
+	return mput(map, addr, (char *)v, size);
 }
 
 static int
-spread(struct segment *s, void *buf, int n, uvlong off)
+spread(struct segment *s, char *buf, int n, ulong off)
 {
-	uvlong base;
+	ulong base;
 
 	static struct {
 		struct segment *s;
 		char a[8192];
-		uvlong off;
+		ulong off;
 	} cache;
 
 	if(s->cache){
@@ -195,37 +167,40 @@ spread(struct segment *s, void *buf, int n, uvlong off)
 }
 
 static int
-mget(Map *map, uvlong addr, void *buf, int size)
+mget(Map *map, ulong addr, char *buf, int size)
 {
-	uvlong off;
+	long off;
+	uvlong voff;
 	int i, j, k;
 	struct segment *s;
 
-	s = reloc(map, addr, (vlong*)&off);
+	s = reloc(map, addr, &off);
 	if (!s)
 		return -1;
 	if (s->fd < 0) {
 		werrstr("unreadable map");
 		return -1;
 	}
+	voff = (ulong)off;
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
-		k = spread(s, buf, size-j, off+j);
+		k = spread(s, buf, size-j, voff+j);
 		if (k < 0) {
-			werrstr("can't read address %llux: %r", addr);
+			werrstr("can't read address %lux: %r", addr);
 			return -1;
 		}
 		j += k;
 		if (j == size)
 			return j;
 	}
-	werrstr("partial read at address %llux (size %d j %d)", addr, size, j);
+	werrstr("partial read at address %lux", addr);
 	return -1;
 }
 
 static int
-mput(Map *map, uvlong addr, void *buf, int size)
+mput(Map *map, ulong addr, char *buf, int size)
 {
-	vlong off;
+	long off;
+	vlong voff;
 	int i, j, k;
 	struct segment *s;
 
@@ -237,18 +212,19 @@ mput(Map *map, uvlong addr, void *buf, int size)
 		return -1;
 	}
 
-	seek(s->fd, off, 0);
+	voff = (ulong)off;
+	seek(s->fd, voff, 0);
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
 		k = write(s->fd, buf, size-j);
 		if (k < 0) {
-			werrstr("can't write address %llux: %r", addr);
+			werrstr("can't write address %lux: %r", addr);
 			return -1;
 		}
 		j += k;
 		if (j == size)
 			return j;
 	}
-	werrstr("partial write at address %llux", addr);
+	werrstr("partial write at address %lux", addr);
 	return -1;
 }
 
@@ -256,7 +232,7 @@ mput(Map *map, uvlong addr, void *buf, int size)
  *	convert address to file offset; returns nonzero if ok
  */
 static struct segment*
-reloc(Map *map, uvlong addr, vlong *offp)
+reloc(Map *map, ulong addr, long *offp)
 {
 	int i;
 
@@ -267,6 +243,6 @@ reloc(Map *map, uvlong addr, vlong *offp)
 			return &map->seg[i];
 		}
 	}
-	werrstr("can't translate address %llux", addr);
+	werrstr("can't translate address %lux", addr);
 	return 0;
 }

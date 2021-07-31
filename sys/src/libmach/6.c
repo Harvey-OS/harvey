@@ -2,12 +2,15 @@
  * amd64 definition
  */
 #include <u.h>
-#include <libc.h>
 #include <bio.h>
 #include "/amd64/include/ureg.h"
 #include <mach.h>
 
-#define	REGOFF(x)	offsetof(struct Ureg, x)
+#define	REGOFF(x)	(uvlong)(&((struct Ureg *) 0)->x)
+
+#define PC		REGOFF(ip)
+#define SP		REGOFF(sp)
+#define	AX		REGOFF(ax)
 
 #define	REGSIZE		sizeof(struct Ureg)
 #define FP_CTLS(x)	(REGSIZE+2*(x))
@@ -23,7 +26,7 @@ Reglist amd64reglist[] = {
 	{"CX",		REGOFF(cx),	RINT, 'Y'},
 	{"DX",		REGOFF(dx),	RINT, 'Y'},
 	{"SI",		REGOFF(si),	RINT, 'Y'},
-	{"DI",		REGOFF(di),	RINT, 'Y'},
+	{"DI",		REGOFF(di),	RINT, 'X'},
 	{"BP",		REGOFF(bp),	RINT, 'Y'},
 	{"R8",		REGOFF(r8),	RINT, 'Y'},
 	{"R9",		REGOFF(r9),	RINT, 'Y'},
@@ -38,23 +41,21 @@ Reglist amd64reglist[] = {
 	{"FS",		REGOFF(fs),	RINT, 'x'},
 	{"GS",		REGOFF(gs),	RINT, 'x'},
 	{"TYPE",	REGOFF(type), 	RINT, 'Y'},
-	{"TRAP",	REGOFF(type), 	RINT, 'Y'},	/* alias for acid */
 	{"ERROR",	REGOFF(error),	RINT, 'Y'},
-	{"IP",		REGOFF(ip),	RINT, 'Y'},
-	{"PC",		REGOFF(ip),	RINT, 'Y'},	/* alias for acid */
+	{"PC",		PC,		RINT, 'Y'},
 	{"CS",		REGOFF(cs),	RINT, 'Y'},
 	{"FLAGS",	REGOFF(flags),	RINT, 'Y'},
-	{"SP",		REGOFF(sp),	RINT, 'Y'},
+	{"SP",		SP,		RINT, 'Y'},
 	{"SS",		REGOFF(ss),	RINT, 'Y'},
 
 	{"FCW",		FP_CTLS(0),	RFLT, 'x'},
 	{"FSW",		FP_CTLS(1),	RFLT, 'x'},
-	{"FTW",		FP_CTLS(2),	RFLT, 'b'},
+	{"FTW",		FP_CTLS(2),	RFLT, 'x'},
 	{"FOP",		FP_CTLS(3),	RFLT, 'x'},
-	{"RIP",		FP_CTL(2),	RFLT, 'Y'},
+	{"FPC",		FP_CTL(2),	RFLT, 'Y'},
 	{"RDP",		FP_CTL(4),	RFLT, 'Y'},
 	{"MXCSR",	FP_CTL(6),	RFLT, 'X'},
-	{"MXCSRMASK",	FP_CTL(7),	RFLT, 'X'},
+	{"MXCSRMSK",	FP_CTL(7),	RFLT, 'X'},
 	{"M0",		FP_REG(0),	RFLT, 'F'},	/* assumes double */
 	{"M1",		FP_REG(1),	RFLT, 'F'},
 	{"M2",		FP_REG(2),	RFLT, 'F'},
@@ -96,22 +97,21 @@ Reglist amd64reglist[] = {
 Mach mamd64=
 {
 	"amd64",
-	MAMD64,			/* machine type */
-	amd64reglist,		/* register list */
-	REGSIZE,		/* size of registers in bytes */
-	FPREGSIZE,		/* size of fp registers in bytes */
-	"PC",			/* name of PC */
-	"SP",			/* name of SP */
-	0,			/* link register */
-	"setSB",		/* static base register name (bogus anyways) */
-	0,			/* static base register value */
-	0x1000,			/* page size */
-	0xFFFFFFFF80110000ULL,	/* kernel base */
-	0,			/* kernel text mask */
-	0x00007FFFFFFFF000ULL,	/* user stack top */
-	1,			/* quantization of pc */
-	8,			/* szaddr */
-	4,			/* szreg */
-	4,			/* szfloat */
-	8,			/* szdouble */
+	MI386,		/* machine type */	/* TO DO */
+	amd64reglist,	/* register list */
+	REGSIZE,	/* size of registers in bytes */
+	FPREGSIZE,	/* size of fp registers in bytes */
+	"PC",		/* name of PC */
+	"SP",		/* name of SP */
+	0,		/* link register */
+	"setSB",	/* static base register name (bogus anyways) */
+	0,		/* static base register value */
+	0x1000,		/* page size */
+	0x80110000,	/* kernel base */	/* TO DO: uvlong or vlong */
+	0,		/* kernel text mask */
+	1,		/* quantization of pc */
+	8,		/* szaddr */
+	4,		/* szreg */
+	4,		/* szfloat */
+	8,		/* szdouble */
 };

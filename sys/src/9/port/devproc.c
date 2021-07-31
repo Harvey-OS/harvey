@@ -669,20 +669,18 @@ eventsavailable(void *)
 static long
 procread(Chan *c, void *va, long n, vlong off)
 {
-	char *a, flag[10], *sps, *srv, statbuf[NSEG*32];
-	int i, j, m, navail, ne, pid, rsize;
+	int m, navail, ne;
 	long l;
-	uchar *rptr;
-	ulong offset;
-	Confmem *cm;
-	Mntwalk *mw;
 	Proc *p;
-	Segment *sg, *s;
-	Ureg kur;
 	Waitq *wq;
-	
-	a = va;
-	offset = off;
+	Ureg kur;
+	uchar *rptr;
+	Mntwalk *mw;
+	Segment *sg, *s;
+	char *a = va, *sps;
+	int i, j, rsize, pid;
+	char statbuf[NSEG*32], *srv, flag[10];
+	ulong offset = off;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, procgen);
@@ -725,7 +723,8 @@ procread(Chan *c, void *va, long n, vlong off)
 		return n;
 
 	case Qmem:
-		if(offset < KZERO)
+		if(offset < KZERO
+		|| (offset >= USTKTOP-USTKSIZE && offset < USTKTOP))
 			return procctlmemio(p, offset, n, va, 1);
 
 		if(!iseve())
@@ -738,14 +737,18 @@ procread(Chan *c, void *va, long n, vlong off)
 			memmove(a, (char*)offset, n);
 			return n;
 		}
-		for(i=0; i<nelem(conf.mem); i++){
-			cm = &conf.mem[i];
-			if(cm->kbase <= offset && offset < cm->klimit){
-				if(offset+n > cm->klimit)
-					n = cm->klimit - offset;
-				memmove(a, (char*)offset, n);
-				return n;
-			}
+		/* conf.base* and conf.npage* are set by xinit to refer to kernel allocation, not user pages */
+		if(offset >= conf.base0 && offset < conf.npage0){
+			if(offset+n > conf.npage0)
+				n = conf.npage0 - offset;
+			memmove(a, (char*)offset, n);
+			return n;
+		}
+		if(offset >= conf.base1 && offset < conf.npage1){
+			if(offset+n > conf.npage1)
+				n = conf.npage1 - offset;
+			memmove(a, (char*)offset, n);
+			return n;
 		}
 		error(Ebadarg);
 

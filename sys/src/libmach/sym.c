@@ -16,20 +16,20 @@ struct txtsym {				/* Text Symbol table */
 	Sym	*sym;			/* function symbol entry */
 };
 
-struct hist {				/* Stack of include files & #line directives */
+struct hist {		/* Stack of include files & #line directives */
 	char	*name;			/* Assumes names Null terminated in file */
 	long	line;			/* line # where it was included */
 	long	offset;			/* line # of #line directive */
 };
 
 struct file {				/* Per input file header to history stack */
-	uvlong	addr;			/* address of first text sym */
+	long		addr;		/* address of first text sym */
 	union {
-		Txtsym	*txt;		/* first text symbol */
-		Sym	*sym;		/* only during initilization */
+		Txtsym		*txt;	/* first text symbol */
+		Sym		*sym;	/* only during initilization */
 	};
-	int	n;			/* size of history stack */
-	Hist	*hist;			/* history stack */
+	int		n;		/* size of history stack */
+	Hist		*hist;		/* history stack */
 };
 
 static	int	debug = 0;
@@ -53,11 +53,11 @@ static	uchar	*spoff;			/* start of pc-sp state table */
 static	uchar	*spoffend;		/* end of pc-sp offset table */
 static	Sym	*symbols;		/* symbol table */
 static	Txtsym	*txt;			/* Base of text symbol table */
-static	uvlong	txtstart;		/* start of text segment */
-static	uvlong	txtend;			/* end of text segment */
+static	long	txtstart;		/* start of text segment */
+static	long	txtend;			/* end of text segment */
 
 static void	cleansyms(void);
-static long	decodename(Biobuf*, Sym*);
+static int	decodename(Biobuf*, Sym*);
 static short	*encfname(char*);
 static int 	fline(char*, int, long, Hist*, Hist**);
 static void	fillsym(Sym*, Symbol*);
@@ -65,7 +65,7 @@ static int	findglobal(char*, Symbol*);
 static int	findlocvar(Symbol*, char *, Symbol*);
 static int	findtext(char*, Symbol*);
 static int	hcomp(Hist*, short*);
-static int	hline(File*, short*, long*);
+static int	hline(File*, short*, ulong*);
 static void	printhist(char*, Hist*, int);
 static int	buildtbls(void);
 static int	symcomp(void*, void*);
@@ -80,10 +80,8 @@ int
 syminit(int fd, Fhdr *fp)
 {
 	Sym *p;
-	long i, l, size;
-	vlong vl;
+	int i, size;
 	Biobuf b;
-	int svalsz;
 
 	if(fp->symsz == 0)
 		return 0;
@@ -103,25 +101,16 @@ syminit(int fd, Fhdr *fp)
 	nsym = 0;
 	size = 0;
 	for(p = symbols; size < fp->symsz; p++, nsym++) {
-		if(fp->magic & HDR_MAGIC){
-			svalsz = 8;
-			if(Bread(&b, &vl, 8) != 8)
-				return symerrmsg(8, "symbol");
-			p->value = beswav(vl);
-		}
-		else{
-			svalsz = 4;
-			if(Bread(&b, &l, 4) != 4)
-				return symerrmsg(4, "symbol");
-			p->value = (u32int)beswal(l);
-		}
+		if(Bread(&b, &p->value, sizeof(p->value)) != sizeof(p->value))
+			return symerrmsg(sizeof(p->value), "symbol");
+		p->value = beswal(p->value);
 		if(Bread(&b, &p->type, sizeof(p->type)) != sizeof(p->type))
 			return symerrmsg(sizeof(p->value), "symbol");
 
 		i = decodename(&b, p);
 		if(i < 0)
 			return -1;
-		size += i+svalsz+sizeof(p->type);
+		size += i+sizeof(p->value)+sizeof(p->type);
 
 		/* count global & auto vars, text symbols, and file names */
 		switch (p->type) {
@@ -170,7 +159,8 @@ syminit(int fd, Fhdr *fp)
 			return -1;
 		}
 		Bseek(&b, fp->sppcoff, 0);
-		if(Bread(&b, spoff, fp->sppcsz) != fp->sppcsz){
+		i = Bread(&b, spoff, fp->sppcsz);
+		if(i != fp->sppcsz){
 			spoff = 0;
 			return symerrmsg(fp->sppcsz, "sp-pc");
 		}
@@ -183,7 +173,8 @@ syminit(int fd, Fhdr *fp)
 			return -1;
 		}
 		Bseek(&b, fp->lnpcoff, 0);
-		if(Bread(&b, pcline, fp->lnpcsz) != fp->lnpcsz){
+		i = Bread(&b, pcline, fp->lnpcsz);
+		if(i != fp->lnpcsz){
 			pcline = 0;
 			return symerrmsg(fp->lnpcsz, "pc-line");
 		}
@@ -199,13 +190,12 @@ symerrmsg(int n, char *table)
 	return -1;
 }
 
-static long
+static int
 decodename(Biobuf *bp, Sym *p)
 {
 	char *cp;
 	int c1, c2;
-	long n;
-	vlong o;
+	int n;
 
 	if((p->type & 0x80) == 0) {		/* old-style, fixed length names */
 		p->name = malloc(NNAME);
@@ -221,7 +211,7 @@ decodename(Biobuf *bp, Sym *p)
 
 	p->type &= ~0x80;
 	if(p->type == 'z' || p->type == 'Z') {
-		o = Bseek(bp, 0, 1);
+		n = Bseek(bp, 0, 1);
 		if(Bgetc(bp) < 0) {
 			werrstr("can't read symbol name");
 			return -1;
@@ -236,15 +226,15 @@ decodename(Biobuf *bp, Sym *p)
 			if(c1 == 0 && c2 == 0)
 				break;
 		}
-		n = Bseek(bp, 0, 1)-o;
+		n = Bseek(bp, 0, 1)-n;
 		p->name = malloc(n);
 		if(p->name == 0) {
-			werrstr("can't malloc %ld bytes", n);
+			werrstr("can't malloc %d bytes", n);
 			return -1;
 		}
 		Bseek(bp, -n, 1);
 		if(Bread(bp, p->name, n) != n) {
-			werrstr("can't read %ld bytes of symbol name", n);
+			werrstr("can't read %d bytes of symbol name", n);
 			return -1;
 		}
 	} else {
@@ -256,14 +246,13 @@ decodename(Biobuf *bp, Sym *p)
 		n = Blinelen(bp);
 		p->name = malloc(n);
 		if(p->name == 0) {
-			werrstr("can't malloc %ld bytes", n);
+			werrstr("can't malloc %d bytes", n);
 			return -1;
 		}
 		strcpy(p->name, cp);
 	}
 	return n;
 }
-
 /*
  *	free any previously loaded symbol tables
  */
@@ -307,17 +296,15 @@ cleansyms(void)
 		free(pcline);
 	pcline = 0;
 }
-
 /*
  *	delimit the text segment
  */
 void
-textseg(uvlong base, Fhdr *fp)
+textseg(ulong base, Fhdr *fp)
 {
 	txtstart = base;
 	txtend = base+fp->txtsz;
 }
-
 /*
  *	symbase: return base and size of raw symbol table
  *		(special hack for high access rate operations)
@@ -328,7 +315,6 @@ symbase(long *n)
 	*n = nsym;
 	return symbols;
 }
-
 /*
  *	Get the ith symbol table entry
  */
@@ -346,8 +332,7 @@ getsym(int index)
 static int
 buildtbls(void)
 {
-	long i;
-	int j, nh, ng, nt;
+	int i, j, nh, ng, nt;
 	File *f;
 	Txtsym *tp;
 	Hist *hp;
@@ -406,7 +391,7 @@ buildtbls(void)
 		case 'B':
 		case 'b':
 			if(debug)
-				print("Global: %s %llux\n", p->name, p->value);
+				print("Global: %s %lux\n", p->name, p->value);
 			globals[ng++] = p;
 			break;
 		case 'z':
@@ -445,7 +430,7 @@ buildtbls(void)
 			tp->sym = p;
 			tp->locals = ap;
 			if(debug)
-				print("TEXT: %s at %llux\n", p->name, p->value);
+				print("TEXT: %s at %lux\n", p->name, p->value);
 			if(f && !f->sym) {			/* first  */
 				f->sym = p;
 				f->addr = p->value;
@@ -459,7 +444,7 @@ buildtbls(void)
 					p->name);
 			else {
 				if(debug)
-					print("Local: %s %llux\n", p->name, p->value);
+					print("Local: %s %lux\n", p->name, p->value);
 				tp->locals[tp->n] = p;
 				tp->n++;
 				ap++;
@@ -483,7 +468,7 @@ buildtbls(void)
 		for(j = 0; j < ntxt; j++) {
 			if(f->sym == tp->sym) {
 				if(debug) {
-					print("LINK: %s to at %llux", f->sym->name, f->addr);
+					print("LINK: %s to at %lux", f->sym->name, f->addr);
 					printhist("... ", f->hist, 1);
 				}
 				f->txt = tp++;
@@ -526,7 +511,6 @@ lookup(char *fn, char *var, Symbol *s)
 	return findglobal(var, s);		/* case 3: var not found */
 
 }
-
 /*
  * find a function by name
  */
@@ -551,7 +535,7 @@ findtext(char *name, Symbol *s)
 static int
 findglobal(char *name, Symbol *s)
 {
-	long i;
+	int i;
 
 	for(i = 0; i < nglob; i++) {
 		if(strcmp(globals[i]->name, name) == 0) {
@@ -562,7 +546,6 @@ findglobal(char *name, Symbol *s)
 	}
 	return 0;
 }
-
 /*
  *	find the local variable by name within a given function
  */
@@ -575,7 +558,6 @@ findlocal(Symbol *s1, char *name, Symbol *s2)
 		return 0;
 	return findlocvar(s1, name, s2);
 }
-
 /*
  *	find the local variable by name within a given function
  *		(internal function - does no parameter validation)
@@ -598,7 +580,6 @@ findlocvar(Symbol *s1, char *name, Symbol *s2)
 	}
 	return 0;
 }
-
 /*
  *	Get ith text symbol
  */
@@ -615,7 +596,6 @@ textsym(Symbol *s, int index)
 	s->index = index;
 	return 1;
 }
-
 /*	
  *	Get ith file name
  */
@@ -633,7 +613,6 @@ filesym(int index, char *buf, int n)
 		return 0;
 	return fileelem(fnames, (uchar*)hp->name, buf, n);
 }
-
 /*
  *	Lookup name of local variable located at an offset into the frame.
  *	The type selects either a parameter or automatic.
@@ -674,9 +653,9 @@ getauto(Symbol *s1, int off, int type, Symbol *s2)
  * Find text symbol containing addr; binary search assumes text array is sorted by addr
  */
 static int
-srchtext(uvlong addr)
+srchtext(long addr)
 {
-	uvlong val;
+	ulong val;
 	int top, bot, mid;
 	Sym *sp;
 
@@ -685,9 +664,9 @@ srchtext(uvlong addr)
 	top = ntxt;
 	for (mid = (bot+top)/2; mid < top; mid = (bot+top)/2) {
 		sp = txt[mid].sym;
-		if(val < sp->value)
+		if(val < (ulong)sp->value)
 			top = mid;
-		else if(mid != ntxt-1 && val >= txt[mid+1].sym->value)
+		else if(mid != ntxt-1 && val >= (ulong)txt[mid+1].sym->value)
 			bot = mid;
 		else
 			return mid;
@@ -698,10 +677,10 @@ srchtext(uvlong addr)
 /*
  * Find data symbol containing addr; binary search assumes data array is sorted by addr
  */
-static int
-srchdata(uvlong addr)
+static
+int srchdata(long addr)
 {
-	uvlong val;
+	ulong val;
 	int top, bot, mid;
 	Sym *sp;
 
@@ -710,16 +689,15 @@ srchdata(uvlong addr)
 	val = addr;
 	for(mid = (bot+top)/2; mid < top; mid = (bot+top)/2) {
 		sp = globals[mid];
-		if(val < sp->value)
+		if(val < (ulong)sp->value)
 			top = mid;
-		else if(mid < nglob-1 && val >= globals[mid+1]->value)
+		else if(mid < nglob-1 && val >= (ulong)globals[mid+1]->value)
 			bot = mid;
 		else
 			return mid;
 	}
 	return -1;
 }
-
 /*
  * Find symbol containing val in specified search space
  * There is a special case when a value falls beyond the end
@@ -728,7 +706,7 @@ srchdata(uvlong addr)
  * data space are searched for a match.
  */
 int
-findsym(uvlong val, int type, Symbol *s)
+findsym(long w, int type, Symbol *s)
 {
 	int i;
 
@@ -736,7 +714,7 @@ findsym(uvlong val, int type, Symbol *s)
 		return 0;
 
 	if(type == CTEXT || type == CANY) {
-		i = srchtext(val);
+		i = srchtext(w);
 		if(i >= 0) {
 			if(type == CTEXT || i != ntxt-1) {
 				fillsym(txt[i].sym, s);
@@ -747,7 +725,7 @@ findsym(uvlong val, int type, Symbol *s)
 		}
 	}
 	if(type == CDATA || type == CANY) {
-		i = srchdata(val);
+		i = srchdata(w);
 		if(i >= 0) {
 			fillsym(globals[i], s);
 			s->index = i;
@@ -761,7 +739,7 @@ findsym(uvlong val, int type, Symbol *s)
  *	Find the start and end address of the function containing addr
  */
 int
-fnbound(uvlong addr, uvlong *bounds)
+fnbound(long addr, ulong *bounds)
 {
 	int i;
 
@@ -801,7 +779,6 @@ localsym(Symbol *s, int index)
 	}
 	return 0;
 }
-
 /*
  * get the ith global symbol
  */
@@ -820,24 +797,24 @@ globalsym(Symbol *s, int index)
 	}
 	return 0;
 }
-
 /*
  *	find the pc given a file name and line offset into it.
  */
-uvlong
-file2pc(char *file, long line)
+long
+file2pc(char *file, ulong line)
 {
 	File *fp;
-	long i;
-	uvlong pc, start, end;
+	int i;
+	long pc;
+	ulong start, end;
 	short *name;
 
 	if(buildtbls() == 0 || files == 0)
-		return ~0;
+		return -1;
 	name = encfname(file);
 	if(name == 0) {			/* encode the file name */
 		werrstr("file %s not found", file);
-		return ~0;
+		return -1;
 	} 
 		/* find this history stack */
 	for(i = 0, fp = files; i < nfiles; i++, fp++)
@@ -846,7 +823,7 @@ file2pc(char *file, long line)
 	free(name);
 	if(i >= nfiles) {
 		werrstr("line %ld in file %s not found", line, file);
-		return ~0;
+		return -1;
 	}
 	start = fp->addr;		/* first text addr this file */
 	if(i < nfiles-1)
@@ -858,15 +835,14 @@ file2pc(char *file, long line)
 	 * run the state machine to locate the pc closest to that value.
 	 */
 	if(debug)
-		print("find pc for %ld - between: %llux and %llux\n", line, start, end);
+		print("find pc for %ld - between: %lux and %lux\n", line, start, end);
 	pc = line2addr(line, start, end);
-	if(pc == ~0) {
+	if(pc == -1) {
 		werrstr("line %ld not in file %s", line, file);
-		return ~0;
+		return -1;
 	}
 	return pc;
 }
-
 /*
  *	search for a path component index
  */
@@ -880,7 +856,6 @@ pathcomp(char *s, int n)
 			return i;
 	return -1;
 }
-
 /*
  *	Encode a char file name as a sequence of short indices
  *	into the file name dictionary.
@@ -918,13 +893,12 @@ encfname(char *file)
 	dest[i] = 0;
 	return dest;
 }
-
 /*
  *	Search a history stack for a matching file name accumulating
  *	the size of intervening files in the stack.
  */
 static int
-hline(File *fp, short *name, long *line)
+hline(File *fp, short *name, ulong *line)
 {
 	Hist *hp;
 	int offset, depth;
@@ -968,7 +942,6 @@ hline(File *fp, short *name, long *line)
 	*line = ln+offset;
 	return 1;
 }
-
 /*
  *	compare two encoded file names
  */
@@ -993,14 +966,14 @@ hcomp(Hist *hp, short *sp)
 	}
 	return *s == 0;
 }
-
 /*
  *	Convert a pc to a "file:line {file:line}" string.
  */
-long
-fileline(char *str, int n, uvlong dot)
+int
+fileline(char *str, int n, ulong dot)
 {
-	long line, top, bot, mid;
+	long line;
+	int top, bot, mid;
 	File *f;
 
 	*str = 0;
@@ -1035,7 +1008,7 @@ fline(char *str, int n, long line, Hist *base, Hist **ret)
 {
 	Hist *start;			/* start of current level */
 	Hist *h;			/* current entry */
-	long delta;			/* sum of size of files this level */
+	int delta;			/* sum of size of files this level */
 	int k;
 
 	start = base;
@@ -1094,7 +1067,6 @@ fline(char *str, int n, long line, Hist *base, Hist **ret)
  ********************/
 	return 0;
 }
-
 /*
  *	convert an encoded file name to a string.
  */
@@ -1121,7 +1093,6 @@ fileelem(Sym **fp, uchar *cp, char *buf, int n)
 	}
 	return i;
 }
-
 /*
  *	compare the values of two symbol table entries.
  */
@@ -1135,7 +1106,6 @@ symcomp(void *a, void *b)
 		return i;
 	return strcmp((*(Sym**)a)->name, (*(Sym**)b)->name);
 }
-
 /*
  *	compare the values of the symbols referenced by two text table entries
  */
@@ -1144,7 +1114,6 @@ txtcomp(void *a, void *b)
 {
 	return ((Txtsym*)a)->sym->value - ((Txtsym*)b)->sym->value;
 }
-
 /*
  *	compare the values of the symbols referenced by two file table entries
  */
@@ -1153,7 +1122,6 @@ filecomp(void *a, void *b)
 {
 	return ((File*)a)->addr - ((File*)b)->addr;
 }
-
 /*
  *	fill an interface Symbol structure from a symbol table entry
  */
@@ -1192,23 +1160,24 @@ fillsym(Sym *sp, Symbol *s)
 	}
 	s->handle = 0;
 }
-
 /*
  *	find the stack frame, given the pc
  */
-uvlong
-pc2sp(uvlong pc)
+long
+pc2sp(ulong pc)
 {
-	uchar *c, u;
-	uvlong currpc, currsp;
+	uchar *c;
+	uchar u;
+	ulong currpc;
+	long currsp;
 
 	if(spoff == 0)
-		return ~0;
+		return -1;
 	currsp = 0;
 	currpc = txtstart - mach->pcquant;
 
 	if(pc<currpc || pc>txtend)
-		return ~0;
+		return -1;
 	for(c = spoff; c < spoffend; c++) {
 		if (currpc >= pc)
 			return currsp;
@@ -1225,17 +1194,17 @@ pc2sp(uvlong pc)
 			currpc += mach->pcquant*(u-129);
 		currpc += mach->pcquant;
 	}
-	return ~0;
+	return -1;
 }
-
 /*
  *	find the source file line number for a given value of the pc
  */
 long
-pc2line(uvlong pc)
+pc2line(ulong pc)
 {
-	uchar *c, u;
-	uvlong currpc;
+	uchar *c;
+	uchar u;
+	ulong currpc;
 	long currline;
 
 	if(pcline == 0)
@@ -1243,7 +1212,7 @@ pc2line(uvlong pc)
 	currline = 0;
 	currpc = txtstart-mach->pcquant;
 	if(pc<currpc || pc>txtend)
-		return ~0;
+		return -1;
 
 	for(c = pcline; c < pclineend; c++) {
 		if(currpc >= pc)
@@ -1261,9 +1230,8 @@ pc2line(uvlong pc)
 			currpc += mach->pcquant*(u-129);
 		currpc += mach->pcquant;
 	}
-	return ~0;
+	return -1;
 }
-
 /*
  *	find the pc associated with a line number
  *	basepc and endpc are text addresses bounding the search.
@@ -1271,21 +1239,22 @@ pc2line(uvlong pc)
  *	usually, basepc and endpc contain the first text address in
  *	a file and the first text address in the following file, respectively.
  */
-uvlong
-line2addr(long line, uvlong basepc, uvlong endpc)
+long
+line2addr(ulong line, ulong basepc, ulong endpc)
 {
-	uchar *c,  u;
-	uvlong currpc, pc;
+	uchar *c;
+	uchar u;
+	ulong currpc;
 	long currline;
 	long delta, d;
-	int found;
+	long pc, found;
 
 	if(pcline == 0 || line == 0)
-		return ~0;
+		return -1;
 
 	currline = 0;
 	currpc = txtstart-mach->pcquant;
-	pc = ~0;
+	pc = -1;
 	found = 0;
 	delta = HUGEINT;
 
@@ -1318,9 +1287,8 @@ line2addr(long line, uvlong basepc, uvlong endpc)
 	}
 	if(found)
 		return pc;
-	return ~0;
+	return -1;
 }
-
 /*
  *	Print a history stack (debug). if count is 0, prints the whole stack
  */

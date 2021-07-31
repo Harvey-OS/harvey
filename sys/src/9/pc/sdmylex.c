@@ -1012,7 +1012,6 @@ buggery:
 		goto buggery;
 	sdev->ifc = &sdmylexifc;
 	sdev->ctlr = ctlr;
-	sdev->idno = '0';
 	ctlr->sdev = sdev;
 	if(!ctlr->wide)
 		sdev->nunit = 8;
@@ -1088,6 +1087,12 @@ mylexpnp(void)
 	}
 
 	return head;
+}
+
+static SDev*
+mylexid(SDev* sdev)
+{
+	return scsiid(sdev, &sdmylexifc);
 }
 
 static int
@@ -1227,6 +1232,7 @@ SDifc sdmylexifc = {
 
 	mylexpnp,			/* pnp */
 	nil,				/* legacy */
+	mylexid,			/* id */
 	mylexenable,			/* enable */
 	nil,				/* disable */
 

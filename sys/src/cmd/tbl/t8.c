@@ -9,9 +9,9 @@ putline(int i, int nl)
 				/* i is line number for deciding format */
 				/* nl is line number for finding data   usually identical */
 {
-	int	c, s, lf, ct, form, lwid, vspf, ip, cmidx, exvspen, vforml;
+	int	c, lf, ct, form, lwid, vspf, ip, cmidx, exvspen, vforml;
 	int	vct, chfont, uphalf;
-	char	*ss, *size, *fn, *rct;
+	char	*s, *size, *fn, *rct;
 
 	cmidx = watchout = vspf = exvspen = 0;
 	if (i == 0) 
@@ -20,24 +20,20 @@ putline(int i, int nl)
 		fullwide(0,   dboxflg ? '=' : '-');
 	if (instead[nl] == 0 && fullbot[nl] == 0)
 		for (c = 0; c < ncol; c++) {
-			ss = table[nl][c].col;
-			if (ss == 0) 
+			s = table[nl][c].col;
+			if (s == 0) 
 				continue;
-			if (vspen(ss)) {
-				for (ip = nl; ip < nlin; ip = next(ip)){
-					ss = table[ip][c].col;
-					if (!vspen(ss)) 
+			if (vspen(s)) {
+				for (ip = nl; ip < nlin; ip = next(ip))
+					if (!vspen(s = table[ip][c].col)) 
 						break;
-				}
-				s = (int)(uintptr)ss;
-				if (s > 0 && s < 128)
-					Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", s);
+				if ((int)s > 0 && (int)s < 128)
+					Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", (int)s);
 				continue;
 			}
-			if (point(ss)) 
+			if (point(s)) 
 				continue;
-			s = (int)(uintptr)ss;
-			Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", s);
+			Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", (int)s);
 			watchout = 1;
 		}
 	if (linestop[nl])
@@ -70,23 +66,21 @@ putline(int i, int nl)
 	vspf = 0;
 	chfont = 0;
 	for (c = 0; c < ncol; c++) {
-		ss = table[nl][c].col;
-		if (ss == 0) 
+		s = table[nl][c].col;
+		if (s == 0) 
 			continue;
-		if(font[c][stynum[nl]])
-			chfont = 1;
-		if (point(ss) ) 
+		chfont |= (int)(font[c][stynum[nl]]);
+		if (point(s) ) 
 			continue;
-		s = (int)(uintptr)ss;
 		lf = prev(nl);
 		if (lf >= 0 && vspen(table[lf][c].col))
 			Bprint(&tabout,
 			   ".if (\\n(%c|+\\n(^%c-1v)>\\n(#- .nr #- +(\\n(%c|+\\n(^%c-\\n(#--1v)\n",
-			    s, 'a' + c, s, 'a' + c);
+			    (int)s, 'a' + c, (int)s, 'a' + c);
 		else
 			Bprint(&tabout,
 			    ".if (\\n(%c|+\\n(#^-1v)>\\n(#- .nr #- +(\\n(%c|+\\n(#^-\\n(#--1v)\n",
-			    s, s);
+			    (int)s, (int)s);
 	}
 	if (allflg && once > 0 )
 		fullwide(i, '-');
@@ -123,7 +117,7 @@ putline(int i, int nl)
 				rct = reg(c, CMID);
 			Bprint(&tabout, "\\h'|\\n(%2su'", rct);
 		}
-		ss = table[nl][c].col;
+		s = table[nl][c].col;
 		fn = font[c][stynum[vforml]];
 		size = csize[c][stynum[vforml]];
 		if (*size == 0)
@@ -156,12 +150,12 @@ putline(int i, int nl)
 					Bprint(&tabout, "%c%c", F1, F2);
 					if (uphalf) 
 						Bprint(&tabout, "\\u");
-					puttext(ss, fn, size);
+					puttext(s, fn, size);
 					if (uphalf) 
 						Bprint(&tabout, "\\d");
 					Bprint(&tabout, "%c", F1);
 				}
-				ss = table[nl][c].rcol;
+				s = table[nl][c].rcol;
 				form = 1;
 				break;
 			}
@@ -185,12 +179,12 @@ putline(int i, int nl)
 		}
 		if (realsplit ? rused[c] : used[c]) /*Zero field width*/ {
 			/* form: 1 left, 2 right, 3 center adjust */
-			if (ifline(ss)) {
-				makeline(i, c, ifline(ss));
+			if (ifline(s)) {
+				makeline(i, c, ifline(s));
 				continue;
 			}
-			if (filler(ss)) {
-				Bprint(&tabout, "\\l'|\\n(%2su\\&%s'", reg(c, CRIGHT), ss + 2);
+			if (filler(s)) {
+				Bprint(&tabout, "\\l'|\\n(%2su\\&%s'", reg(c, CRIGHT), s + 2);
 				continue;
 			}
 			ip = prev(nl);
@@ -210,13 +204,13 @@ putline(int i, int nl)
 			Bprint(&tabout, "%c", F1);
 			if (form != 1)
 				Bprint(&tabout, "%c", F2);
-			if (vspen(ss))
+			if (vspen(s))
 				vspf = 1;
 			else
 			 {
 				if (uphalf) 
 					Bprint(&tabout, "\\u");
-				puttext(ss, fn, size);
+				puttext(s, fn, size);
 				if (uphalf) 
 					Bprint(&tabout, "\\d");
 			}
@@ -295,7 +289,7 @@ funnies(int stl, int lin)
 			continue;
 		if (ss == 0) 
 			continue;
-		s = (int)(uintptr)ss;
+		s = (int)ss;
 		Bprint(&tabout, ".sp |\\n(##u-1v\n");
 		Bprint(&tabout, ".nr %d ", SIND);
 		ct = 0;

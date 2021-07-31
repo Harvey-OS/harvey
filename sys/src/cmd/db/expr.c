@@ -10,7 +10,7 @@
 static long	round(long, long);
 
 extern	ADDR	ditto;
-uvlong	expv;
+vlong	expv;
 
 static WORD
 ascval(void)
@@ -119,20 +119,20 @@ expr(int a)
 
 term(int a)
 {	/* item | monadic item | (expr) | */
-	ADDR e;
+	WORD e;
 
 	switch ((int)readchar()) {
 
 	case '*':
 		term(a|1);
-		if (geta(cormap, expv, &e) < 0)
+		if (get4(cormap, (ADDR)expv, &e) < 0)
 			error("%r");
 		expv = e;
 		return(1);
 
 	case '@':
 		term(a|1);
-		if (geta(symmap, expv, &e) < 0)
+		if (get4(symmap, (ADDR)expv, &e) < 0)
 			error("%r");
 		expv = e;
 		return(1);
@@ -163,7 +163,7 @@ item(int a)
 {	/* name [ . local ] | number | . | ^  | <register | 'x | | */
 	char	*base;
 	char	savc;
-	uvlong e;
+	WORD e;
 	Symbol s;
 	char gsym[MAXSYM], lsym[MAXSYM];
 

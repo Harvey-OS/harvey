@@ -1114,7 +1114,7 @@ print("cfg %8.8uX pcicfg %8.8uX\n", ctlr->cfg, pcicfgr32(ctlr->pcidev, PciPCR));
 static void
 dp83820pci(void)
 {
-	void *mem;
+	int port;
 	Pcidev *p;
 	Ctlr *ctlr;
 
@@ -1130,18 +1130,18 @@ dp83820pci(void)
 			break;
 		}
 
-		mem = vmap(p->mem[1].bar & ~0x0F, p->mem[1].size);
-		if(mem == 0){
+		port = upamalloc(p->mem[1].bar & ~0x0F, p->mem[1].size, 0);
+		if(port == 0){
 			print("DP83820: can't map %8.8luX\n", p->mem[1].bar);
 			continue;
 		}
 
 		ctlr = malloc(sizeof(Ctlr));
-		ctlr->port = p->mem[1].bar & ~0x0F;
+		ctlr->port = port;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
 
-		ctlr->nic = mem;
+		ctlr->nic = KADDR(ctlr->port);
 		if(dp83820reset(ctlr)){
 			free(ctlr);
 			continue;

@@ -1,5 +1,4 @@
 typedef struct Conf	Conf;
-typedef struct Confmem	Confmem;
 typedef struct FPsave	FPsave;
 typedef struct ISAConf	ISAConf;
 typedef struct Label	Label;
@@ -34,7 +33,7 @@ struct Lock
 	ulong	sr;
 	ulong	pc;
 	Proc	*p;
-	Mach	*m;
+	ulong	pid;
 	ushort	isilock;
 };
 
@@ -69,20 +68,15 @@ struct	FPsave
 	};
 };
 
-struct Confmem
-{
-	ulong	base;
-	ulong	npage;
-	ulong	kbase;
-	ulong	klimit;
-};
-
 struct Conf
 {
 	ulong	nmach;		/* processors */
 	ulong	nproc;		/* processes */
-	Confmem	mem[1];
+	ulong	npage0;		/* total physical pages of memory */
+	ulong	npage1;		/* total physical pages of memory */
 	ulong	npage;		/* total physical pages of memory */
+	ulong	base0;		/* base of bank 0 */
+	ulong	base1;		/* base of bank 1 */
 	ulong	upages;		/* user page pool */
 	ulong	nimage;		/* number of page cache image headers */
 	ulong	nswap;		/* number of swap pages */

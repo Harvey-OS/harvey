@@ -38,28 +38,50 @@ cyber938xpage(VGAscr* scr, int page)
 	unlock(&scr->devlock);
 }
 
-static void
-cyber938xlinear(VGAscr* scr, int, int)
+static ulong
+cyber938xlinear(VGAscr* scr, int* size, int* align)
 {
+	ulong aperture, oaperture;
+	int oapsize, wasupamem;
+	int osize;
 	Pcidev *p;
 
-	if(scr->vaddr)
-		return;
-	
-	vgalinearpciid(scr, 0x1023, 0);
-	p = scr->pci;
+	osize = *size;
+	oaperture = scr->aperture;
+	oapsize = scr->apsize;
+	wasupamem = scr->isupamem;
+	if(wasupamem)
+		upafree(oaperture, oapsize);
+	scr->isupamem = 0;
+	scr->mmio = 0;
 
-	/*
-	 * Heuristic to detect the MMIO space.  We're flying blind
-	 * here, with only the XFree86 source to guide us.
-	 */
-	if(p->mem[1].size == 0x20000)
-		scr->mmio = vmap(p->mem[1].bar & ~0x0F, p->mem[1].size);
+	if(p = pcimatch(nil, 0x1023, 0)){
+		aperture = p->mem[0].bar & ~0x0F;
+		*size = p->mem[0].size;
+		/*
+		 * Heuristic to detect the MMIO space.  We're flying blind
+		 * here, with only the XFree86 source to guide us.
+		 */
+		if(p->mem[1].size == 0x20000)
+			scr->mmio = (ulong*)(p->mem[1].bar & ~0x0F);
+	}
+	else
+		aperture = 0;
 
-	if(scr->apsize)
-		addvgaseg("cyber938xscreen", scr->paddr, scr->apsize);
+	aperture = upamalloc(aperture, *size, *align);
+	if(aperture == 0){
+		if(wasupamem && upamalloc(oaperture, oapsize, 0))
+			scr->isupamem = 1;
+	}
+	else
+		scr->isupamem = 1;
+
+	if(aperture)
+		addvgaseg("cyber938xscreen", aperture, osize);
 	if(scr->mmio)
-		addvgaseg("cyber938xmmio", p->mem[1].bar&~0x0F, 0x20000);
+		addvgaseg("cyber938xmmio", (ulong)scr->mmio, 0x20000);
+
+	return aperture;
 }
 
 static void
@@ -77,7 +99,7 @@ cyber938xcurload(VGAscr* scr, Cursor* curs)
 	cyber938xcurdisable(scr);
 
 	opage = 0;
-	p = scr->vaddr;
+	p = KADDR(scr->aperture);
 	islinear = vgaxi(Crtx, 0x21) & 0x20;
 	if(!islinear){
 		lock(&scr->devlock);

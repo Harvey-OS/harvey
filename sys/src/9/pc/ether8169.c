@@ -357,8 +357,7 @@ rtl8169mii(Ctlr* ctlr)
 		ctlr->mii = nil;
 		return -1;
 	}
-	USED(phy);
-	// print("oui %X phyno %d\n", phy->oui, phy->phyno);
+	print("oui %X phyno %d\n", phy->oui, phy->phyno);
 
 	miiane(ctlr->mii, ~0, ~0, ~0);
 
@@ -452,8 +451,8 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 	l += snprint(p+l, READSTR-l, "punlc: %ud\n", ctlr->punlc);
 	l += snprint(p+l, READSTR-l, "fovw: %ud\n", ctlr->fovw);
 
-	l += snprint(p+l, READSTR-l, "tcr: %#8.8ux\n", ctlr->tcr);
-	l += snprint(p+l, READSTR-l, "rcr: %#8.8ux\n", ctlr->rcr);
+	l += snprint(p+l, READSTR-l, "tcr: %8.8uX\n", ctlr->tcr);
+	l += snprint(p+l, READSTR-l, "rcr: %8.8uX\n", ctlr->rcr);
 
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
 		l += snprint(p+l, READSTR, "phy:   ");
@@ -461,7 +460,7 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 			if(i && ((i & 0x07) == 0))
 				l += snprint(p+l, READSTR-l, "\n       ");
 			r = miimir(ctlr->mii, i);
-			l += snprint(p+l, READSTR-l, " %4.4ux", r);
+			l += snprint(p+l, READSTR-l, " %4.4uX", r);
 		}
 		snprint(p+l, READSTR-l, "\n");
 	}
@@ -812,7 +811,7 @@ rtl8169receive(Ether* edev)
 		else{
 			/*
 			 * Error stuff here.
-			print("control %#8.8ux\n", control);
+			print("control %8.8uX\n", control);
 			 */
 		}
 		d->control &= Eor;
@@ -866,7 +865,7 @@ rtl8169interrupt(Ureg*, void* arg)
 		 * Some of the reserved bits get set sometimes...
 		 */
 		if(isr & (Serr|Timeout|Tdu|Fovw|Punlc|Rdu|Ter|Tok|Rer|Rok))
-			panic("rtl8169interrupt: imr %#4.4ux isr %#4.4ux\n",
+			panic("rtl8169interrupt: imr %4.4uX isr %4.4uX\n",
 				csr16r(ctlr, Imr), isr);
 	}
 }
@@ -893,7 +892,7 @@ rtl8169match(Ether* edev, int id)
 			continue;
 
 		if(ioalloc(port, p->mem[0].size, 0, "rtl8169") < 0){
-			print("rtl8169: port %#ux in use\n", port);
+			print("rtl8169: port 0x%uX in use\n", port);
 			continue;
 		}
 

@@ -205,10 +205,10 @@ startpcs(void)
 }
 
 void
-runstep(uvlong loc, int keepnote)
+runstep(ulong loc, int keepnote)
 {
 	int nfoll;
-	uvlong foll[3];
+	ulong foll[3];
 	BKPT bkpt[3];
 	int i;
 
@@ -264,7 +264,7 @@ void
 bkput(BKPT *bp, int install)
 {
 	char buf[256];
-	ADDR loc;
+	ulong loc;
 	int ret;
 
 	errstr(buf, sizeof buf);

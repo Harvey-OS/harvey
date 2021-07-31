@@ -62,7 +62,7 @@ execute(Node *n)
 	Value *v;
 	Lsym *sl;
 	Node *l, *r;
-	vlong i, s, e;
+	int i, s, e;
 	Node res, xx;
 	static int stmnt;
 
@@ -203,11 +203,11 @@ convflt(Node *r, char *flt)
 }
 
 void
-indir(Map *m, uvlong addr, char fmt, Node *r)
+indir(Map *m, ulong addr, char fmt, Node *r)
 {
 	int i;
-	ulong lval;
-	uvlong uvval;
+	long ival;
+	vlong vval;
 	int ret;
 	uchar cval;
 	ushort sval;
@@ -241,12 +241,6 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 		break;
 	case 'a':
 	case 'A':
-		r->type = TINT;
-		ret = geta(m, addr, &uvval);
-		if (ret < 0)
-			error("indir: %r");
-		r->ival = uvval;
-		break;
 	case 'B':
 	case 'X':
 	case 'D':
@@ -254,20 +248,20 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 	case 'O':
 	case 'Q':
 		r->type = TINT;
-		ret = get4(m, addr, &lval);
+		ret = get4(m, addr, &ival);
 		if (ret < 0)
 			error("indir: %r");
-		r->ival = lval;
+		r->ival = ival;
 		break;
 	case 'V':
 	case 'W':
 	case 'Y':
 	case 'Z':
 		r->type = TINT;
-		ret = get8(m, addr, &uvval);
+		ret = get8(m, addr, &vval);
 		if (ret < 0)
 			error("indir: %r");
-		r->ival = uvval;
+		r->ival = vval;
 		break;
 	case 's':
 		r->type = TSTRING;
@@ -360,7 +354,6 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 {
 	uchar cval;
 	ushort sval;
-	long lval;
 	Node res, aes;
 	int ret;
 
@@ -400,15 +393,12 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 		break;
 	case 'a':
 	case 'A':
-		ret = puta(m, aes.ival, res.ival);
-		break;
 	case 'B':
 	case 'X':
 	case 'D':
 	case 'U':
 	case 'O':
-		lval = res.ival;
-		ret = put4(m, aes.ival, lval);
+		ret = put4(m, aes.ival, res.ival);
 		break;
 	case 'V':
 	case 'W':

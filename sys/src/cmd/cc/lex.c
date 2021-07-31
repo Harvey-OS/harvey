@@ -188,7 +188,6 @@ compile(char *file, char **defs, int ndef)
 		}
 		Binit(&outbuf, c, OWRITE);
 	}
-	Binit(&diagbuf, 1, OWRITE);
 	newio();
 
 	/* Use an ANSI preprocessor */
@@ -233,7 +232,7 @@ compile(char *file, char **defs, int ndef)
 			if(debug['p'] > 1) {
 				for(c = 0; c < i; c++)
 					fprint(2, "%s ", av[c]);
-				fprint(2, "\n");
+				print("\n");
 			}
 			myexec(av[0], av);
 			fprint(2, "can't exec C preprocessor %s: %r\n", CPP);
@@ -1459,7 +1458,7 @@ alloc(long n)
 {
 	void *p;
 
-	while((uintptr)hunk & MAXALIGN) {
+	while((ulong)hunk & MAXALIGN) {
 		hunk++;
 		nhunk--;
 	}

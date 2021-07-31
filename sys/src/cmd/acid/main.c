@@ -31,7 +31,7 @@ main(int argc, char *argv[])
 {
 	Lsym *l;
 	Node *n;
-	char *s;
+	char buf[128], *s;
 	int pid, i;
 
 	argv0 = argv[0];
@@ -73,8 +73,8 @@ main(int argc, char *argv[])
 			aout = argv[0];
 		else
 		if(isnumeric(argv[0])) {
-			pid = strtol(argv[0], 0, 0);
-			snprint(prog, sizeof(prog), "/proc/%d/text", pid);
+			pid = atoi(argv[0]);
+			sprint(prog, "/proc/%d/text", pid);
 			aout = prog;
 			if(argc > 1)
 				aout = argv[1];
@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 		}
 	} else
 	if(remote)
-		aout = "/mips/9ch";
+		aout = "/mips/bcarrera";
 
 	fmtinstall('x', xfmt);
 	fmtinstall('L', Lfmt);
@@ -114,9 +114,8 @@ main(int argc, char *argv[])
 		if(access(lm[i], AREAD) >= 0)
 			loadmodule(lm[i]);
 		else {
-			s = smprint("/sys/lib/acid/%s", lm[i]);
-			loadmodule(s);
-			free(s);
+			sprint(buf, "/sys/lib/acid/%s", lm[i]);
+			loadmodule(buf);
 		}
 	}
 
@@ -199,17 +198,15 @@ userinit(void)
 {
 	Lsym *l;
 	Node *n;
-	char *buf, *p;
+	char buf[128], *p;
 
-	buf = smprint("/sys/lib/acid/%s", mach->name);
+	sprint(buf, "/sys/lib/acid/%s", mach->name);
 	loadmodule(buf);
-	free(buf);
 	p = getenv("home");
 	if(p != 0) {
-		buf = smprint("%s/lib/acid", p);
+		sprint(buf, "%s/lib/acid", p);
 		silent = 1;
 		loadmodule(buf);
-		free(buf);
 	}
 
 	interactive = 0;
@@ -247,7 +244,7 @@ readtext(char *s)
 	Dir *d;
 	Lsym *l;
 	Value *v;
-	uvlong length;
+	ulong length;
 	Symbol sym;
 	extern Machdata mipsmach;
 
@@ -338,13 +335,13 @@ al(int t)
 }
 
 Node*
-con(vlong v)
+con(int v)
 {
 	Node *n;
 
 	n = an(OCONST, ZN, ZN);
 	n->ival = v;
-	n->fmt = 'W';
+	n->fmt = 'X';
 	n->type = TINT;
 	return n;
 }
@@ -504,7 +501,7 @@ checkqid(int f1, int pid)
 		return;
 	}
 
-	snprint(buf, sizeof(buf), "/proc/%d/text", pid);
+	sprint(buf, "/proc/%d/text", pid);
 	fd = open(buf, OREAD);
 	if(fd < 0 || (d2 = dirfstat(fd)) == nil){
 		print("checkqid: (qid not checked) dirstat %s: %r\n", buf);
@@ -541,7 +538,7 @@ char*
 system(void)
 {
 	char *cpu, *p, *q;
-	static char *kernel;
+	static char kernel[128];
 
 	cpu = getenv("cputype");
 	if(cpu == 0) {
@@ -550,7 +547,7 @@ system(void)
 	}
 	p = getenv("terminal");
 	if(p == 0 || (p=strchr(p, ' ')) == 0 || p[1] == ' ' || p[1] == 0) {
-		p = "ch";
+		p = "9power";
 		print("missing or bad $terminal; assuming %s\n", p);
 	}
 	else{
@@ -558,12 +555,8 @@ system(void)
 		q = strchr(p, ' ');
 		if(q)
 			*q = 0;
+		sprint(kernel, "/%s/9%s", cpu, p);
 	}
-
-	if(kernel != nil)
-		free(kernel);
-	kernel = smprint("/%s/9%s", cpu, p);
-
 	return kernel;
 }
 

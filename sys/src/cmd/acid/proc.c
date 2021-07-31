@@ -29,17 +29,35 @@ sproc(int pid)
 {
 	Lsym *s;
 	char buf[64];
-	int i, fcor;
+	ulong proctab;
+	int fd, i, fcor;
 
 	if(symmap == 0)
 		error("no map");
 
-	snprint(buf, sizeof(buf), "/proc/%d/mem", pid);
+	sprint(buf, "/proc/%d/mem", pid);
 	fcor = open(buf, ORDWR);
 	if(fcor < 0)
 		error("setproc: open %s: %r", buf);
 
 	checkqid(symmap->seg[0].fd, pid);
+
+	if(kernel) {
+		proctab = 0;
+		sprint(buf, "/proc/%d/proc", pid);
+		fd = open(buf, OREAD);
+		if(fd >= 0) {
+			i = read(fd, buf, sizeof(buf));
+			if(i >= 0) {
+				buf[i] = '\0';
+				proctab = strtoul(buf, 0, 0);
+			}
+			close(fd);
+		}
+		s = look("proc");
+		if(s != 0)
+			s->v->ival = proctab;
+	}
 
 	s = look("pid");
 	s->v->ival = pid;
@@ -70,7 +88,7 @@ nproc(char **argv)
 	case 0:
 		rfork(RFNAMEG|RFNOTEG);
 
-		snprint(buf, sizeof(buf), "/proc/%d/ctl", getpid());
+		sprint(buf, "/proc/%d/ctl", getpid());
 		fd = open(buf, ORDWR);
 		if(fd < 0)
 			fatal("new: open %s: %r", buf);
@@ -114,7 +132,7 @@ notes(int pid)
 		return;
 	v = s->v;
 
-	snprint(buf, sizeof(buf), "/proc/%d/note", pid);
+	sprint(buf, "/proc/%d/note", pid);
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		error("pid=%d: open note: %r", pid);
@@ -175,7 +193,7 @@ install(int pid)
 	if(new == -1)
 		error("no free process slots");
 
-	snprint(buf, sizeof(buf), "/proc/%d/ctl", pid);
+	sprint(buf, "/proc/%d/ctl", pid);
 	fd = open(buf, OWRITE);
 	if(fd < 0)
 		error("pid=%d: open ctl: %r", pid);
@@ -247,7 +265,7 @@ getstatus(int pid)
 	char *argv[16], buf[64];
 	static char status[128];
 
-	snprint(buf, sizeof(buf), "/proc/%d/status", pid);
+	sprint(buf, "/proc/%d/status", pid);
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		error("open %s: %r", buf);

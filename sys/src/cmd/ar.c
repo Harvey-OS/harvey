@@ -22,7 +22,7 @@ typedef struct	Arsymref
 	char	*name;
 	int	type;
 	int	len;
-	vlong	offset;
+	long	offset;
 	struct	Arsymref *next;
 } Arsymref;
 
@@ -40,7 +40,7 @@ typedef	struct Arfile		/* Temp file control block - one per tempfile */
 	int	paged;		/* set when some data paged to disk */
 	char	*fname;		/* paging file name */
 	int	fd;		/* paging file descriptor */
-	vlong	size;
+	long	size;
 	Armember *head;		/* head of member chain */
 	Armember *tail;		/* tail of member chain */
 	Arsymref *sym;		/* head of defined symbol chain */
@@ -118,15 +118,15 @@ int	openar(char*, int, int);
 int	page(Arfile*);
 void	pmode(long);
 void	rl(int);
-void	scanobj(Biobuf*, Arfile*, long);
+void	scanobj(Biobuf*, Arfile*, int);
 void	select(int*, long);
 void	setcom(void(*)(char*, int, char**));
-void	skip(Biobuf*, vlong);
+void	skip(Biobuf*, long);
 int	symcomp(void*, void*);
 void	trim(char*, char*, int);
 void	usage(void);
 void	wrerr(void);
-void	wrsym(Biobuf*, long, Arsymref*);
+void	wrsym(Biobuf*, int, Arsymref*);
 
 void	rcmd(char*, int, char**);		/* command processing */
 void	dcmd(char*, int, char**);
@@ -315,6 +315,7 @@ dcmd(char *arname, int count, char **files)
 {
 	Armember *bp;
 	int fd, i;
+
 
 	if (!count)
 		return;
@@ -516,10 +517,10 @@ qcmd(char *arname, int count, char **files)
  *	extract the symbol references from an object file
  */
 void
-scanobj(Biobuf *b, Arfile *ap, long size)
+scanobj(Biobuf *b, Arfile *ap, int size)
 {
 	int obj;
-	vlong offset;
+	long offset;
 	Dir *d;
 	static int lastobj = -1;
 
@@ -633,7 +634,6 @@ openar(char *arname, int mode, int errok)
 	}
 	return fd;
 }
-
 /*
  *	create an archive and set its header
  */
@@ -651,7 +651,6 @@ arcreate(char *arname)
 		wrerr();
 	return fd;
 }
-
 /*
  *		error handling
  */
@@ -682,7 +681,6 @@ usage(void)
 	fprint(2, "usage: ar [%s][%s] archive files ...\n", opt, man);
 	exits("error");
 }
-
 /*
  *	read the header for the next archive member
  */
@@ -706,11 +704,10 @@ getdir(Biobuf *b)
 		;
 	cp[1] = '\0';
 	file = name;
-	bp->date = strtol(bp->hdr.date, 0, 0);
-	bp->size = strtol(bp->hdr.size, 0, 0);
+	bp->date = atol(bp->hdr.date);
+	bp->size = atol(bp->hdr.size);
 	return bp;
 }
-
 /*
  *	Copy the file referenced by fd to the temp file
  */
@@ -745,14 +742,13 @@ armove(Biobuf *b, Arfile *ap, Armember *bp)
 	}
 	free(d);
 }
-
 /*
  *	Copy the archive member at the current offset into the temp file.
  */
 void
 arcopy(Biobuf *b, Arfile *ap, Armember *bp)
 {
-	long n;
+	int n;
 
 	n = bp->size;
 	if (n & 01)
@@ -763,18 +759,16 @@ arcopy(Biobuf *b, Arfile *ap, Armember *bp)
 		ap->size += n+SAR_HDR;
 	}
 }
-
 /*
  *	Skip an archive member
  */
 void
-skip(Biobuf *bp, vlong len)
+skip(Biobuf *bp, long len)
 {
 	if (len & 01)
 		len++;
 	Bseek(bp, len, 1);
 }
-
 /*
  *	Stream the three temp files to an archive
  */
@@ -856,12 +850,11 @@ rl(int fd)
 		Bputc(&b, 0);
 	Bterm(&b);
 }
-
 /*
  *	Write the defined symbols to the symdef file
  */
 void
-wrsym(Biobuf *bp, long offset, Arsymref *as)
+wrsym(Biobuf *bp, int offset, Arsymref *as)
 {
 	int off;
 
@@ -877,7 +870,6 @@ wrsym(Biobuf *bp, long offset, Arsymref *as)
 		as = as->next;
 	}
 }
-
 /*
  *	Check if the archive member matches an entry on the command line.
  */
@@ -899,7 +891,6 @@ match(int count, char **files)
 	}
 	return 0;
 }
-
 /*
  *	compare the current member to the name of the pivot member
  */
@@ -929,7 +920,6 @@ bamatch(char *file, char *pivot)
 	}
 	return 0;
 }
-
 /*
  *	output a message, if 'v' option was specified
  */
@@ -940,7 +930,6 @@ mesg(int c, char *file)
 	if(vflag)
 		Bprint(&bout, "%c - %s\n", c, file);
 }
-
 /*
  *	isolate file name by stripping leading directories and trailing slashes
  */
@@ -962,7 +951,6 @@ trim(char *s, char *buf, int n)
 		*p = 0;			/* strip trailing slash */
 	}
 }
-
 /*
  *	utilities for printing long form of 't' command
  */
@@ -985,7 +973,7 @@ longt(Armember *bp)
 	char *cp;
 
 	pmode(strtoul(bp->hdr.mode, 0, 8));
-	Bprint(&bout, "%3ld/%1ld", strtol(bp->hdr.uid, 0, 0), strtol(bp->hdr.gid, 0, 0));
+	Bprint(&bout, "%3ld/%1ld", atol(bp->hdr.uid), atol(bp->hdr.gid));
 	Bprint(&bout, "%7ld", bp->size);
 	cp = ctime(bp->date);
 	Bprint(&bout, " %-12.12s %-4.4s ", cp+4, cp+24);
@@ -1022,7 +1010,6 @@ select(int *ap, long mode)
 		ap++;
 	Bputc(&bout, *ap);
 }
-
 /*
  *	Temp file I/O subsystem.  We attempt to cache all three temp files in
  *	core.  When we run out of memory we spill to disk.
@@ -1062,7 +1049,6 @@ arread(Biobuf *b, Armember *bp, int n)	/* read an image into a member buffer */
 		rderr();
 	}
 }
-
 /*
  * insert a member buffer into the member chain
  */
@@ -1076,7 +1062,6 @@ arinsert(Arfile *ap, Armember *bp)
 		ap->tail->next = bp;
 	ap->tail = bp;
 }
-
 /*
  *	stream the members in a temp file to the file referenced by 'fd'.
  */
@@ -1107,7 +1092,6 @@ arstream(int fd, Arfile *ap)
 			wrerr();
 	}
 }
-
 /*
  *	write a member to 'fd'.
  */
@@ -1125,7 +1109,6 @@ arwrite(int fd, Armember *bp)
 		return 0;
 	return 1;
 }
-
 /*
  *	Spill a member to a disk copy of a temp file
  */
@@ -1153,7 +1136,6 @@ page(Arfile *ap)
 	free(bp);
 	return 1;
 }
-
 /*
  *	try to reclaim space by paging.  we try to spill the start, middle,
  *	and end files, in that order.  there is no particular reason for the
@@ -1184,7 +1166,6 @@ arfree(Arfile *ap)		/* free a member buffer */
 	}
 	free(ap);
 }
-
 /*
  *	allocate space for a control block or member buffer.  if the malloc
  *	fails we try to reclaim space by spilling previously allocated

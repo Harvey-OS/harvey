@@ -173,7 +173,7 @@ delete(List *l, int n, Node *res)
 }
 
 List*
-listvar(char *s, vlong v)
+listvar(char *s, long v)
 {
 	List *l, *tl;
 
@@ -192,10 +192,10 @@ listvar(char *s, vlong v)
 }
 
 static List*
-listlocals(Map *map, Symbol *fn, uvlong fp)
+listlocals(Map *map, Symbol *fn, ulong fp)
 {
 	int i;
-	uvlong val;
+	long val;
 	Symbol s;
 	List **tail, *l2;
 
@@ -209,7 +209,7 @@ listlocals(Map *map, Symbol *fn, uvlong fp)
 		if(s.name[0] == '.')
 			continue;
 
-		if(geta(map, fp-s.value, &val) > 0) {
+		if(get4(map, fp-s.value, &val) > 0) {
 			*tail = listvar(s.name, val);
 			tail = &(*tail)->next;
 		}
@@ -218,11 +218,11 @@ listlocals(Map *map, Symbol *fn, uvlong fp)
 }
 
 static List*
-listparams(Map *map, Symbol *fn, uvlong fp)
+listparams(Map *map, Symbol *fn, ulong fp)
 {
 	int i;
 	Symbol s;
-	uvlong v;
+	long v;
 	List **tail, *l2;
 
 	l2 = 0;
@@ -233,7 +233,7 @@ listparams(Map *map, Symbol *fn, uvlong fp)
 		if (s.class != CPARAM)
 			continue;
 
-		if(geta(map, fp+s.value, &v) > 0) {
+		if(get4(map, fp+s.value, &v) > 0) {
 			*tail = listvar(s.name, v);
 			tail = &(*tail)->next;
 		}
@@ -242,7 +242,7 @@ listparams(Map *map, Symbol *fn, uvlong fp)
 }
 
 void
-trlist(Map *map, uvlong pc, uvlong sp, Symbol *sym)
+trlist(Map *map, ulong pc, ulong sp, Symbol *sym)
 {
 	List *q, *l;
 
@@ -265,7 +265,7 @@ trlist(Map *map, uvlong pc, uvlong sp, Symbol *sym)
 	l->next = al(TINT);		/* called from address */
 	l = l->next;
 	l->ival = pc;
-	l->fmt = 'Y';
+	l->fmt = 'X';
 
 	l->next = al(TLIST);		/* make list of params */
 	l = l->next;

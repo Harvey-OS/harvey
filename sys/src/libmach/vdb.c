@@ -7,10 +7,10 @@
  */
 
 static	char	*mipsexcep(Map*, Rgetter);
-static	int	mipsfoll(Map*, uvlong, Rgetter, uvlong*);
-static	int	mipsinst(Map*, uvlong, char, char*, int);
-static	int	mipsdas(Map*, uvlong, char*, int);
-static	int	mipsinstlen(Map*, uvlong);
+static	int	mipsfoll(Map*, ulong, Rgetter, ulong*);
+static	int	mipsinst(Map*, ulong, char, char*, int);
+static	int	mipsdas(Map*, ulong, char*, int);
+static	int	mipsinstlen(Map*, ulong);
 
 /*
  *	Debugger interface
@@ -123,7 +123,7 @@ mipsexcep(Map *map, Rgetter rget)
 static	char FRAMENAME[] = ".frame";
 
 typedef struct {
-	uvlong addr;
+	ulong addr;
 	uchar op;			/* bits 31-26 */
 	uchar rs;			/* bits 25-21 */
 	uchar rt;			/* bits 20-16 */
@@ -144,9 +144,9 @@ typedef struct {
 static Map *mymap;
 
 static int
-decode(uvlong pc, Instr *i)
+decode(ulong pc, Instr *i)
 {
-	ulong w;
+	long w;
 	extern Mach mmips2le;
 
 	if (get4(mymap, pc, &w) < 0) {
@@ -172,7 +172,7 @@ decode(uvlong pc, Instr *i)
 }
 
 static int
-mkinstr(uvlong pc, Instr *i)
+mkinstr(ulong pc, Instr *i)
 {
 	Instr x;
 
@@ -993,7 +993,7 @@ cop1(Instr *i)
 }
 
 static int
-printins(Map *map, uvlong pc, char *buf, int n)
+printins(Map *map, ulong pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
@@ -1046,11 +1046,11 @@ printins(Map *map, uvlong pc, char *buf, int n)
 	return i.size*4;
 }
 
-extern	int	_mipscoinst(Map *, uvlong, char*, int);
+extern	int	_mipscoinst(Map *, ulong, char*, int);
 
 	/* modifier 'I' toggles the default disassembler type */
 static int
-mipsinst(Map *map, uvlong pc, char modifier, char *buf, int n)
+mipsinst(Map *map, ulong pc, char modifier, char *buf, int n)
 {
 	if ((asstype == AMIPSCO && modifier == 'i')
 		|| (asstype == AMIPS && modifier == 'I'))
@@ -1060,7 +1060,7 @@ mipsinst(Map *map, uvlong pc, char modifier, char *buf, int n)
 }
 
 static int
-mipsdas(Map *map, uvlong pc, char *buf, int n)
+mipsdas(Map *map, ulong pc, char *buf, int n)
 {
 	Instr i;
 
@@ -1080,7 +1080,7 @@ mipsdas(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-mipsinstlen(Map *map, uvlong pc)
+mipsinstlen(Map *map, ulong pc)
 {
 	Instr i;
 
@@ -1091,7 +1091,7 @@ mipsinstlen(Map *map, uvlong pc)
 }
 
 static int
-mipsfoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+mipsfoll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 {
 	ulong w, l;
 	char buf[8];

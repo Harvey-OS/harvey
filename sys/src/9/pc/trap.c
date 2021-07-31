@@ -9,8 +9,6 @@
 #include	"../port/error.h"
 #include	<trace.h>
 
-static int trapinited;
-
 void	noted(Ureg*, ulong);
 
 static void debugbpt(Ureg*, void*);
@@ -177,13 +175,8 @@ nmienable(void)
 	outb(0x61, x);
 }
 
-/*
- * Minimal trap setup.  Just enough so that we can panic
- * on traps (bugs) during kernel initialization.  
- * Called very early - malloc is not yet available.
- */
 void
-trapinit0(void)
+trapinit(void)
 {
 	int d1, v;
 	ulong vaddr;
@@ -211,11 +204,7 @@ trapinit0(void)
 		idt[v].d1 = d1;
 		vaddr += 6;
 	}
-}
 
-void
-trapinit(void)
-{
 	/*
 	 * Special traps.
 	 * Syscall() is called directly without going through trap().
@@ -227,7 +216,6 @@ trapinit(void)
 	nmienable();
 
 	addarchfile("irqalloc", 0444, irqallocread, nil);
-	trapinited = 1;
 }
 
 static char* excname[32] = {
@@ -317,13 +305,6 @@ trap(Ureg* ureg)
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 	Mach *mach;
-
-	if(!trapinited){
-		/* fault386 can give a better error message */
-		if(ureg->trap == VectorPF)
-			fault386(ureg, nil);
-		panic("trap %lud: not ready", ureg->trap);
-	}
 
 	m->perf.intrts = perfticks();
 	user = (ureg->cs & 0xFFFF) == UESEL;
@@ -526,7 +507,7 @@ _dumpstack(Ureg *ureg)
 	iprint("dumpstack\n");
 
 	x = 0;
-	x += print("ktrace /kernel/path %.8lux %.8lux <<EOF\n", ureg->pc, ureg->sp);
+	x += print("ktrace /kernel/path %.8lux %.8lux\n", ureg->pc, ureg->sp);
 	i = 0;
 	if(up
 	&& (ulong)&l >= (ulong)up->kstack
@@ -541,7 +522,7 @@ _dumpstack(Ureg *ureg)
 
 	for(l=(ulong)&l; l<estack; l+=4){
 		v = *(ulong*)l;
-		if((KTZERO < v && v < (ulong)&etext) || estack-l<32){
+		if((KTZERO < v && v < (ulong)&etext) || estack-l<256){
 			/*
 			 * we could Pick off general CALL (((uchar*)v)[-5] == 0xE8)
 			 * and CALL indirect through AX (((uchar*)v)[-2] == 0xFF && ((uchar*)v)[-2] == 0xD0),
@@ -557,7 +538,6 @@ _dumpstack(Ureg *ureg)
 	}
 	if(i)
 		print("\n");
-	print("EOF\n");
 }
 
 void
@@ -591,6 +571,8 @@ unexpected(Ureg* ureg, void*)
 	print("unexpected trap %lud; ignoring\n", ureg->trap);
 }
 
+extern void checkpages(void);
+
 static void
 fault386(Ureg* ureg, void*)
 {
@@ -599,20 +581,12 @@ fault386(Ureg* ureg, void*)
 	char buf[ERRMAX];
 
 	addr = getcr2();
-	read = !(ureg->ecode & 2);
-
 	user = (ureg->cs & 0xFFFF) == UESEL;
-	if(!user){
-		if(vmapsync(addr))
-			return;
-		if(addr >= USTKTOP)
-			panic("kernel fault: bad address pc=0x%.8lux addr=0x%.8lux", ureg->pc, addr);
-		if(up == nil)
-			panic("kernel fault: no user process pc=0x%.8lux addr=0x%.8lux", ureg->pc, addr);
-	}
+	if(!user && mmukmapsync(addr))
+		return;
+	read = !(ureg->ecode & 2);
 	if(up == nil)
-		panic("user fault: up=0 pc=0x%.8lux addr=0x%.8lux", ureg->pc, addr);
-
+		panic("fault but up is zero; pc 0x%8.8lux addr 0x%8.8lux\n", ureg->pc, addr);
 	insyscall = up->insyscall;
 	up->insyscall = 1;
 	n = fault(addr, read);
@@ -623,7 +597,7 @@ fault386(Ureg* ureg, void*)
 		}
 		checkpages();
 		sprint(buf, "sys: trap: fault %s addr=0x%lux",
-			read ? "read" : "write", addr);
+			read? "read" : "write", addr);
 		postnote(up, 1, buf, NDebug);
 	}
 	up->insyscall = insyscall;
@@ -913,9 +887,6 @@ execregs(ulong entry, ulong ssize, ulong nargs)
 {
 	ulong *sp;
 	Ureg *ureg;
-
-	up->fpstate = FPinit;
-	fpoff();
 
 	sp = (ulong*)(USTKTOP - ssize);
 	*--sp = nargs;

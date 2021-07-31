@@ -1,17 +1,10 @@
 CONF=pc
 CONFLIST=pc pccpu pcf pccpuf pcdisk pcauth
-CRAPLIST=pccd pcflop pcmartha
-EXTRACOPIES=
-#EXTRACOPIES=lookout boundary	# copy to these servers on install
+CRAPLIST=pccd pccpud pccpusape pcext pcf pcflop pcglenda pcgr pclml pcmartha pcsape pcblast
 
 objtype=386
 </$objtype/mkfile
 p=9
-
-# must match mem.h
-
-APBOOTSTRAP=0xF0003000
-KTZERO=0xF0100020
 
 DEVS=`{rc ../port/mkdevlist $CONF}
 
@@ -23,9 +16,9 @@ PORT=\
 	cache.$O\
 	chan.$O\
 	dev.$O\
-	edf.$O\
 	fault.$O\
 	latin1.$O\
+	edf.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
@@ -34,7 +27,6 @@ PORT=\
 	proc.$O\
 	qio.$O\
 	qlock.$O\
-	rdb.$O\
 	rebootcmd.$O\
 	segment.$O\
 	swap.$O\
@@ -55,6 +47,7 @@ OBJ=\
 	memory.$O\
 	mmu.$O\
 	random.$O\
+	rdb.$O\
 	trap.$O\
 	$CONF.root.$O\
 	$CONF.rootc.$O\
@@ -74,16 +67,15 @@ SDEV=`{echo devsd.c sd*.c | sed 's/\.c/.'$O'/g'}
 
 $p$CONF:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
-	$LD -o $target -T$KTZERO -l $OBJ $CONF.$O $LIB
+	$LD -o $target -T0x80100020 -l $OBJ $CONF.$O $LIB
 	size $target
 
-$p$CONF.gz:	$p$CONF
-	strip -o /fd/1 $p$CONF | gzip -9 > $p$CONF.gz
+$p$CONF.gz: $p$CONF
+	strip < $p$CONF | gzip -9 > $p$CONF.gz
 
-install:V:	$p$CONF $p$CONF.gz
+install:V: $p$CONF $p$CONF.gz
 	cp $p$CONF $p$CONF.gz /$objtype/
-	for(i in $EXTRACOPIES)
-		import $i / /n/$i && cp $p$CONF $p$CONF.gz /n/$i/$objtype/
+	# import lookout / /n/lookout && cp $p$CONF $p$CONF.gz /n/lookout/$objtype/
 
 <../boot/bootmkfile
 <../port/portmkfile
@@ -98,21 +90,20 @@ apic.$O archmp.$O mp.$O:	mp.h
 $SDEV:				../port/sd.h
 sd53c8xx.$O:			sd53c8xx.i
 main.$O:			init.h reboot.h
-wavelan.$O:			wavelan.c ../pc/wavelan.c ../pc/wavelan.h
-etherwavelan.$O:		etherwavelan.c ../pc/wavelan.h
-devusb.$O usbuhci.$O usbohci.$O: usb.h
-trap.$O:			/sys/include/tos.h
+wavelan.$O:	wavelan.c ../pc/wavelan.c ../pc/wavelan.h
+etherwavelan.$O:	etherwavelan.c  ../pc/wavelan.h
+devusb.$O usbuhci.$O usbohci.$O:	usb.h
+trap.$O:	/sys/include/tos.h
 
 sd53c8xx.i:	sd53c8xx.n
 	aux/na $prereq > $target
 
-init.h:		../port/initcode.c init9.c
+init.h:	../port/initcode.c init9.c
 	$CC ../port/initcode.c
 	$CC init9.c
 	$LD -l -R1 -o init.out init9.$O initcode.$O /386/lib/libc.a
-	strip init.out
 	{echo 'uchar initcode[]={'
-	 cat init.out | xd -1x |
+	 strip < init.out | xd -1x |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 
@@ -126,14 +117,14 @@ reboot.h:	rebootcode.s
 
 apbootstrap.h:	apbootstrap.s mem.h
 	$AS $prereq
-	$LD -o apbootstrap.out -T$APBOOTSTRAP -R4 -l -s apbootstrap.$O
+	$LD -o apbootstrap.out -T0x80001000 -R4 -l -s apbootstrap.$O
 	{echo 'uchar apbootstrap[]={'
 	 xd -1x apbootstrap.out |
 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > $target
 
 acid:V:
-	8c -a -w -I. i8253.c>acid
+	8c -a -w -I. ../port/qio.c>acid
 
 %.checkether:VQ:
 	for (i in ether*.c){
@@ -157,16 +148,4 @@ checkdist:VQ:
 		mk $i.$j
 
 %.clean:V:
-	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.* reboot.h apbootstrap.h init.h
-
-# testing
-9load:D: /usr/rsc/boot/$O.load 9pcload
-	cat $prereq >$target
-
-9load.flp: 9load
-	disk/format -b /386/pbs -df $target $prereq
-
-$p$CONF.flp: /386/9load plan9.ini $p$CONF.gz
-	disk/format -b /386/pbs -df $target $prereq
-
-
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.*

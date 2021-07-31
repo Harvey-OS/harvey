@@ -103,8 +103,6 @@ apmlink(void)
 	if(isaconfig("apm", 0, &isa) == 0)
 		return;
 
-/* XXX use realmode() */
-
 	/*
 	 * APM info passed from boot loader.
 	 * Now we need to set up the GDT entries for APM.

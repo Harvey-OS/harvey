@@ -4,15 +4,16 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
-#include "imm.h"
+#include "m8260.h"
 #include "../port/error.h"
-#include "../ppc/uartsmc.h"
 
 /*
  * PowerPC 8260 SMC UART
  */
 
 enum {
+	Nuart	= 1,		/* Number of SMC Uarts */
+
 	/* SMC Mode Registers */
 	Clen		= 0x7800,	/* Character length */
 	Sl		= 0x0400,	/* Stop length, 0: one stop bit, 1: two */
@@ -35,9 +36,9 @@ enum {
 	BDContin=	1<<9,
 	BDIdle=		1<<8,
 	BDPreamble=	1<<8,
-	BDBreak=	1<<5,
+	BDBreak=		1<<5,
 	BDFrame=	1<<4,
-	BDParity=	1<<3,
+	BDParity=		1<<3,
 	BDOverrun=	1<<1,
 
 	/* Tx and Rx buffer sizes (32 bytes) */
@@ -70,12 +71,26 @@ Uart smcuart[Nuart] = {
 */
 };
 
+typedef struct UartData UartData;
+struct UartData
+{
+	int		smcno;	/* smc number: 0 or 1 */
+	SMC		*smc;
+	Uartsmc	*usmc;
+	char		*rxbuf;
+	char		*txbuf;
+	BD*		rxb;
+	BD*		txb;
+	int		initialized;
+	int		enabled;
+} uartdata[Nuart];
+
 int uartinited = 0;
 
 static void smcinterrupt(Ureg*, void*);
 static void smcputc(Uart *uart, int c);
 
-int
+static int
 baudgen(int baud)
 {
 	int d;
@@ -96,7 +111,7 @@ smcpnp(void)
 	return smcuart;
 }
 
-void
+static void
 smcinit(Uart *uart)
 {
 	Uartsmc *p;
@@ -110,19 +125,55 @@ smcinit(Uart *uart)
 	if (ud->initialized)
 		return;
 
-	smcsetup(uart);	/* Steps 1 through 4, PPC-dependent */
-	p = ud->usmc;
-	smc = ud->smc;
+	/* magic addresses */
+	p = m->imap->uartsmc + ud->smcno;
+	smc = iomem->smc + ud->smcno;	/* SMC1 */
+	ud->smc = smc;
+	ud->usmc = p;
 
-	/* step 5: set up buffer descriptors */
 	/* setup my uart structure */
 	if (ud->rxb == nil)
 		ud->rxb = bdalloc(1);
 	if (ud->txb == nil)
 		ud->txb = bdalloc(1);
 
-	p->rbase = ((ulong)ud->rxb) - (ulong)IMMR;
-	p->tbase = ((ulong)ud->txb) - (ulong)IMMR;
+	/* step 0: disable rx/tx */
+	smc->smcmr &= ~3;
+
+	ioplock();
+
+	/* step 1, Using Port D */
+	if (ud->smcno != 0)
+		panic("Don't know how to set Port D bits");
+	iomem->port[SMC1PORT].ppar |= SMRXD1|SMTXD1;
+	iomem->port[SMC1PORT].pdir |= SMTXD1;
+	iomem->port[SMC1PORT].pdir &= ~SMRXD1;
+	iomem->port[SMC1PORT].psor &= ~(SMRXD1|SMTXD1);
+
+	/* step 2: set up brgc1 */
+	iomem->brgc[ud->smcno]  = baudgen(uart->baud) | 0x10000;
+
+	/* step 3: route clock to SMC1 */
+	iomem->cmxsmr &= (ud->smcno == 0) ? ~0xb0 : ~0xb;	/* clear smcx and smcxcs */
+
+	iopunlock();
+
+	/* step 4: assign a pointer to the SMCparameter RAM */
+	m->imap->param[ud->smcno].smcbase = (ulong)p - INTMEM;
+
+	/* step 5: set up buffer descriptors */
+	p->rbase = ((ulong)ud->rxb) - (ulong)INTMEM;
+	p->tbase = ((ulong)ud->txb) - (ulong)INTMEM;
+
+	/* step 6: issue command to CP */
+	if (ud->smcno == 0)
+		cpmop(InitRxTx, SMC1ID, 0);
+	else
+		cpmop(InitRxTx, SMC2ID, 0);
+
+	/* step 7: protocol parameters */
+	p->rfcr = 0x30;
+	p->tfcr = 0x30;
 
 	/* step 8: receive buffer size */
 	p->mrblr = Rxsize;
@@ -155,6 +206,8 @@ smcinit(Uart *uart)
 	/* 
 	 * step 15: enable interrupts (done later)
 	 * smc->smcm = ce_Brke | ce_Br | ce_Bsy | ce_Txb | ce_Rxb;
+
+	 * intrenable(4 + ud->smcno, smcinterrupt, up, 0, uart->name);
 	 */
 
 	/* step 17: set parity, no of bits, UART mode, ... */
@@ -208,7 +261,7 @@ smcenable(Uart *uart, int intenb)
 	smc->smce = ce_Brke | ce_Br | ce_Bsy | ce_Txb | ce_Rxb;
 	/* enable interrupts */
 	smc->smcm = ce_Brke | ce_Br | ce_Bsy | ce_Txb | ce_Rxb;
-	intrenable(VecSMC1 + ud->smcno, smcinterrupt, uart, uart->name);
+	intrenable(4 + ud->smcno, smcinterrupt, uart, uart->name);
 	ud->enabled = 1;
 }
 
@@ -373,8 +426,8 @@ smcbaud(Uart* uart, int baud)
 		if(uart->freq == 0 || baud <= 0)
 			return -1;
 	
-		i = sp - imm->smc;
-		imm->brgc[i] = (((m->brghz >> 4) / baud) << 1) | 0x00010000;
+		i = sp - iomem->smc;
+		iomem->brgc[i] = (((m->brghz >> 4) / baud) << 1) | 0x00010000;
 	}
 	uart->baud = baud;
 
@@ -583,3 +636,34 @@ console(void)
 	consuart = uart;
 	uart->console = 1;
 } 
+
+void
+dbgputc(int c)
+{
+	Uartsmc *su;
+	BD *tbdf;
+	Imap *imap;
+	char *addr;
+
+	/* Should work as long as Imap is mapped at 0xf0000000 (INTMEM) */
+
+	imap = (Imap*)INTMEM;
+	su = (Uartsmc *)(INTMEM | imap->param[0].smcbase);
+	tbdf = (BD *)(INTMEM | su->tbase);
+
+	/* Wait for last character to go.
+	*/
+	while (tbdf->status & BDReady)
+		;
+
+	addr = KADDR(tbdf->addr);
+	*addr = c;
+	tbdf->length = 1;
+	sync();
+	tbdf->status |= BDReady;
+
+	while (tbdf->status & BDReady)
+		;
+
+	delay(300);
+}

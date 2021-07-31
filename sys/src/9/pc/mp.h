@@ -217,8 +217,6 @@ extern void lapicspurious(Ureg*, void*);
 extern int lapicisr(int);
 extern int lapiceoi(int);
 extern void lapicicrw(int, int);
-extern void lapicintron(void);
-extern void lapicintroff(void);
 
 extern void mpinit(void);
 extern void mpshutdown(void);

@@ -9,8 +9,8 @@
 void
 maktab(void)			/* define the tab stops of the table */
 {
-	int	icol, ilin, tsep, k, ik, vforml, il, s, text;
-	char	*ss;
+	int	icol, ilin, tsep, k, ik, vforml, il, text;
+	char	*s;
 
 	for (icol = 0; icol < ncol; icol++) {
 		doubled[icol] = acase[icol] = 0;
@@ -34,15 +34,14 @@ maktab(void)			/* define the tab stops of the table */
 				switch (ctype(vforml, icol)) {
 				case 'a':
 					acase[icol] = 1;
-					ss = table[ilin][icol].col;
-					s = (int)(uintptr)ss;
-					if (s > 0 && s < 128 && text) {
+					s = table[ilin][icol].col;
+					if ((int)s > 0 && (int)s < 128 && text) {
 						if (doubled[icol] == 0)
 							Bprint(&tabout, ".nr %d 0\n.nr %d 0\n",
 							    S1, S2);
 						doubled[icol] = 1;
 						Bprint(&tabout, ".if \\n(%c->\\n(%d .nr %d \\n(%c-\n",
-						    s, S2, S2, (int)s);
+						    (int)s, S2, S2, (int)s);
 					}
 				case 'n':
 					if (table[ilin][icol].rcol != 0) {
@@ -50,19 +49,18 @@ maktab(void)			/* define the tab stops of the table */
 							Bprint(&tabout, ".nr %d 0\n.nr %d 0\n",
 							    S1, S2);
 						doubled[icol] = 1;
-						if (real(ss = table[ilin][icol].col) && !vspen(ss)) {
-							s = (int)(uintptr)ss;
-							if (tx(s) != text) 
+						if (real(s = table[ilin][icol].col) && !vspen(s)) {
+							if (tx((int)s) != text) 
 								continue;
 							Bprint(&tabout, ".nr %d ", TMP);
-							wide(ss, FN(vforml, icol), SZ(vforml, icol)); 
+							wide(s, FN(vforml, icol), SZ(vforml, icol)); 
 							Bprint(&tabout, "\n");
 							Bprint(&tabout, ".if \\n(%d<\\n(%d .nr %d \\n(%d\n",
 							    S1, TMP, S1, TMP);
 						}
-						if (text == 0 && real(ss = table[ilin][icol].rcol) && !vspen(ss) && !barent(ss)) {
+						if (text == 0 && real(s = table[ilin][icol].rcol) && !vspen(s) && !barent(s)) {
 							Bprint(&tabout, ".nr %d \\w%c%s%c\n",
-							    TMP, F1, ss, F1);
+							    TMP, F1, s, F1);
 							Bprint(&tabout, ".if \\n(%d<\\n(%d .nr %d \\n(%d\n", S2, TMP, S2,
 							     TMP);
 						}
@@ -71,12 +69,11 @@ maktab(void)			/* define the tab stops of the table */
 				case 'r':
 				case 'c':
 				case 'l':
-					if (real(ss = table[ilin][icol].col) && !vspen(ss)) {
-						s = (int)(uintptr)ss;
-						if (tx(s) != text) 
+					if (real(s = table[ilin][icol].col) && !vspen(s)) {
+						if (tx((int)s) != text) 
 							continue;
 						Bprint(&tabout, ".nr %d ", TMP);
-						wide(ss, FN(vforml, icol), SZ(vforml, icol)); 
+						wide(s, FN(vforml, icol), SZ(vforml, icol)); 
 						Bprint(&tabout, "\n");
 						Bprint(&tabout, ".if \\n(%2s<\\n(%d .nr %2s \\n(%d\n",
 						     reg(icol, CRIGHT), TMP, reg(icol, CRIGHT), TMP);
@@ -103,8 +100,8 @@ maktab(void)			/* define the tab stops of the table */
 		}
 		for (ilin = 0; ilin < nlin; ilin++)
 			if (k = lspan(ilin, icol)) {
-				ss = table[ilin][icol-k].col;
-				if (!real(ss) || barent(ss) || vspen(ss) ) 
+				s = table[ilin][icol-k].col;
+				if (!real(s) || barent(s) || vspen(s) ) 
 					continue;
 				Bprint(&tabout, ".nr %d ", TMP);
 				wide(table[ilin][icol-k].col, FN(ilin, icol - k), SZ(ilin, icol - k));
@@ -213,7 +210,7 @@ wide(char *s, char *fn, char *size)
 			putsize("0");
 		Bprint(&tabout, "%c", F1);
 	} else
-		Bprint(&tabout, "\\n(%c-", (int)(uintptr)s);
+		Bprint(&tabout, "\\n(%c-", (int)s);
 }
 
 

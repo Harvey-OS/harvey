@@ -41,7 +41,7 @@ nrep(void)
 
 	sym = symlook("NREP", S_VAR, 0);
 	if(sym){
-		w = sym->u.ptr;
+		w = (Word *) sym->value;
 		if (w && w->s && *w->s)
 			nreps = atoi(w->s);
 	}
