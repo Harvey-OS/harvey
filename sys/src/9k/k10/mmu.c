@@ -538,7 +538,7 @@ pte[PTLX(KSEG1PML4, 3)] = m->pml4->pa|PteRW|PteP;
 		r |= Nxe;
 		wrmsr(Efer, r);
 		cr3put(m->pml4->pa);
-		DBG("mach%d: %#p pml4 %#p\n", m->machno, m, m->pml4);
+		print("mach%d: %#p pml4 %#p\n", m->machno, m, m->pml4);
 		return;
 	}
 
