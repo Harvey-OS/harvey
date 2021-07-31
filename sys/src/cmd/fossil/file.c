@@ -314,28 +314,25 @@ File *
 _fileOpen(Fs *fs, char *path, int partial)
 {
 	File *f, *ff;
-	char *p, elem[VtMaxStringSize], *opath;
+	char *p, elem[VtMaxStringSize];
 	int n;
 
 	f = fs->file;
 	fileIncRef(f);
-	opath = path;
 	while(*path != 0){
 		for(p = path; *p && *p != '/'; p++)
 			;
 		n = p - path;
 		if(n > 0){
 			if(n > VtMaxStringSize){
-				vtSetError("%s: element too long", EBadPath);
+				vtSetError(EBadPath);
 				goto Err;
 			}
 			memmove(elem, path, n);
 			elem[n] = 0;
 			ff = _fileWalk(f, elem, partial && *p=='\0');
-			if(ff == nil){
-				vtSetError("%.*s: %R", utfnlen(opath, p-opath), opath);
+			if(ff == nil)
 				goto Err;
-			}
 			fileDecRef(f);
 			f = ff;
 		}

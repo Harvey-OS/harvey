@@ -10,29 +10,26 @@ int	uflag;
 int	force;
 int	diff;
 int	diffb;
-int	slashnhack = 1;
+char*	ndump;
 char*	sflag;
 
-void	ysearch(char*, char*);
+void	ysearch(char*);
 long	starttime(char*);
-void	lastbefore(ulong, char*, char*, char*);
+void	lastbefore(ulong, char*, char*);
 char*	prtime(ulong);
 
 void
 main(int argc, char *argv[])
 {
+	char buf[100];
+	Tm *tm;
+	Waitmsg *w;
 	int i;
-	char *ndump;
 
-	ndump = nil;
+	ndump = "dump";
 	ARGBEGIN {
 	default:
 		goto usage;
-/* The slashnhack is always right.
-	case 'N':
-		slashnhack = 0;
-		break;
-*/
 	case 'v':
 		verb = 1;
 		break;
@@ -62,43 +59,11 @@ main(int argc, char *argv[])
 		exits(0);
 	}
 
-	for(i=0; i<argc; i++)
-		ysearch(argv[i], ndump);
-	exits(0);
-}
-
-void
-ysearch(char *file, char *ndump)
-{
-	char fil[400], buf[500], nbuf[100], pair[2][500], *p;
-	Tm *tm;
-	Waitmsg *w;
-	Dir *dir, *d;
-	ulong otime, dt;
-	int toggle, started, missing;
-
-	if(ndump == nil){
-		if(slashnhack && memcmp(file, "/n/", 3) == 0){
-			p = strchr(file+3, '/');
-			if(p == nil)
-				p = file+strlen(file);
-			if(p-file >= sizeof nbuf-10){
-				fprint(2, "%s: dump name too long", file);
-				return;
-			}
-			memmove(nbuf, file+3, p-(file+3));
-			nbuf[p-(file+3)] = 0;
-			strcat(nbuf, "dump");
-			ndump = nbuf;
-		}else
-			ndump = "dump";
-	}
-
 	tm = localtime(time(0));
 	sprint(buf, "/n/%s/%.4d/", ndump, tm->year+1900);
 	if(access(buf, AREAD) < 0) {
 		if(verb)
-			print("mounting dump %s\n", ndump);
+			print("mounting dump\n");
 		if(rfork(RFFDG|RFPROC) == 0) {
 			execl("/bin/rc", "rc", "9fs", ndump, 0);
 			exits(0);
@@ -114,6 +79,19 @@ ysearch(char *file, char *ndump)
 		}
 		free(w);
 	}
+
+	for(i=0; i<argc; i++)
+		ysearch(argv[i]);
+	exits(0);
+}
+
+void
+ysearch(char *file)
+{
+	char fil[400], buf[500], pair[2][500];
+	Dir *dir, *d;
+	ulong otime, dt;
+	int toggle, started, missing;
 
 	started = 0;
 	dir = dirstat(file);
@@ -131,15 +109,10 @@ ysearch(char *file, char *ndump)
 		strcat(fil, "/");
 	}
 	strcat(fil, file);
-	if(slashnhack && memcmp(fil, "/n/", 3) == 0){
-		p = strchr(fil+3, '/');
-		if(p)
-			memmove(fil, p, strlen(p)+1);
-	}
 	otime = starttime(sflag);
 	toggle = 0;
 	for(;;) {
-		lastbefore(otime, fil, buf, ndump);
+		lastbefore(otime, fil, buf);
 		dir = dirstat(buf);
 		if(dir == nil) {
 			if(!force)
@@ -153,7 +126,7 @@ ysearch(char *file, char *ndump)
 		while(otime <= dir->mtime){
 			if(verb)
 				print("backup %ld, %ld\n", dir->mtime, otime-dt);
-			lastbefore(otime-dt, fil, buf, ndump);
+			lastbefore(otime-dt, fil, buf);
 			d = dirstat(buf);
 			if(d == nil){
 				if(!force)
@@ -195,7 +168,7 @@ ysearch(char *file, char *ndump)
 }
 
 void
-lastbefore(ulong t, char *f, char *b, char *ndump)
+lastbefore(ulong t, char *f, char *b)
 {
 	Tm *tm;
 	Dir *dir;

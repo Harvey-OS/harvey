@@ -279,9 +279,6 @@ consclose(Chan *c)
 		if(t == nil)
 			break;
 		setsnarf(t->buf, t->n, 0);
-		free(t->buf);
-		free(t);
-		c->aux = nil;
 		break;
 	}
 }
@@ -311,11 +308,11 @@ consread(Chan *c, void *buf, long n, vlong off)
 
 	case Qcons:
 		qlock(&kbd);
-		if(waserror()){
+		if(waserror()) {
 			qunlock(&kbd);
 			nexterror();
 		}
-		if(kbd.raw){
+		if(kbd.raw) {
 			cbuf = buf;
 			if(qcanread(lineq))
 				n = qread(lineq, buf, n);
@@ -329,7 +326,7 @@ consread(Chan *c, void *buf, long n, vlong off)
 				n = cbuf - (char*)buf;
 			}
 		} else {
-			while(!qcanread(lineq)){
+			while(!qcanread(lineq)) {
 				qread(kbdq, &kbd.line[kbd.x], 1);
 				ch = kbd.line[kbd.x];
 				eol = 0;

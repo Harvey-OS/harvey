@@ -58,7 +58,6 @@ screeninit(int x, int y, char *chanstr)
 {
 	Point p, q;
 	char *greet;
-	char buf[128];
 	Memimage *grey;
 	Rectangle r;
 	int chan;
@@ -72,10 +71,8 @@ screeninit(int x, int y, char *chanstr)
 
 	r = Rect(0, 0, x, y);
 	gscreen = allocmemimage(r, chan);
-	if(gscreen == nil){
-		snprint(buf, sizeof buf, "can't allocate screen image: %r");
-		error(buf);
-	}
+	if(gscreen == nil)
+		error("can't allocate screen image: %r");
 
 	offscreen = Pt(x + 100, y + 100);
 	cursorr = Rect(0, 0, CURSORDIM, CURSORDIM);
@@ -88,8 +85,7 @@ screeninit(int x, int y, char *chanstr)
 		gscreen = nil;
 		cursorset = nil;
 		cursorclear = nil;
-		snprint(buf, sizeof buf, "can't allocate cursor images: %r");
-		error(buf);
+		error("can't allocate cursor images: %r");
 	}
 
 	drawlock();
@@ -205,7 +201,7 @@ cursordraw(Memimage *dst, Rectangle r)
 }
 
 /*
- * called with cursor locked, drawlock possibly unlocked
+ * called with cursor locked, drawlock unlocked
  */
 Rectangle
 cursorrect(void)
@@ -220,7 +216,7 @@ cursorrect(void)
 }
 
 /*
- * called with cursor locked, drawlock possibly unlocked
+ * called with cursor locked, drawlock unlocked
  */
 void
 setcursor(Cursor* curs)
@@ -304,7 +300,7 @@ screenputc(char *buf)
 	if(xp < xbuf || xp >= &xbuf[sizeof(xbuf)])
 		xp = xbuf;
 
-	switch(buf[0]){
+	switch(buf[0]) {
 	case '\n':
 		if(curpos.y+h >= window.max.y)
 			scroll();

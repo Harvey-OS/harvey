@@ -2171,10 +2171,6 @@ reset:
 						panic("tcp packblock");
 					qpassnolim(s->rq, bp);
 					bp = nil;
-
- 					/* force an ack every 2 data messages */
- 					if(++(tcb->rcv.una) >= 2)
- 						tcb->flags |= FORCE;
 				}
 				tcb->rcv.nxt += length;
 

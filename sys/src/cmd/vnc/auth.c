@@ -28,10 +28,10 @@ mktab(void)
 		return;
 	once = 1;
 
-	for(i=0; i<256; i++){
+	for(i=0; i<256; i++) {
 		j=i;
 		tab[i] = 0;
-		for(k=0; k<8; k++){
+		for(k=0; k<8; k++) {
 			tab[i] = (tab[i]<<1) | (j&1);
 			j >>= 1;
 		}
@@ -108,13 +108,13 @@ readln(char *prompt, char *line, int len)
 }
 
 int
-vncsrvhandshake(Vnc *v)
+vnchandshake_srv(Vnc *v)
 {
 	char msg[VerLen+1];
 
-	strecpy(msg, msg+sizeof msg, version);
+	strcpy(msg, version);
 	if(verbose)
-		fprint(2, "server version: %s", msg);
+		fprint(2, "server version: %s\n", msg);
 	vncwrbytes(v, msg, VerLen);
 	vncflush(v);
 
@@ -129,14 +129,13 @@ vnchandshake(Vnc *v)
 {
 	char msg[VerLen+1];
 
-	msg[VerLen] = 0;
 	vncrdbytes(v, msg, VerLen);
 	if(strncmp(msg, "RFB ", 4) != 0){
 		werrstr("bad rfb version \"%s\"", msg);
 		return -1;
 	}
 	if(verbose)
-		fprint(2, "server version: %s", msg);
+		fprint(2, "server version %s\n", msg);
 	strcpy(msg, version);
 	vncwrbytes(v, msg, VerLen);
 	vncflush(v);
@@ -152,7 +151,7 @@ vncauth(Vnc *v)
 	char *p, *server;
 
 	auth = vncrdlong(v);
-	switch(auth){
+	switch(auth) {
 	default:
 		werrstr("unknown auth type 0x%lux", auth);
 		if(verbose)
@@ -179,7 +178,7 @@ vncauth(Vnc *v)
 			*p = 0;
 		if(auth_respond(chal, VncChalLen, nil, 0, chal, VncChalLen, auth_getkey,
 			"proto=vnc role=client server=%s", server) != VncChalLen){
-			/* BUG This is for drawterm users who don't start their own factotums */
+			/* BUG: rip this out once people have new kernels */
 			readln("password: ", pw, sizeof(pw));
 			vncencrypt(chal, VncChalLen, pw);
 			memset(pw, 0, sizeof pw);
@@ -189,15 +188,15 @@ vncauth(Vnc *v)
 		vncflush(v);
 
 		auth = vncrdlong(v);
-		switch(auth){
+		switch(auth) {
 		default:
-			werrstr("unknown server response 0x%lux", auth);
+			werrstr("unknown auth response 0x%lux", auth);
 			return -1;
 		case VncAuthFailed:
-			werrstr("server says authentication failed");
+			werrstr("authentication failed");
 			return -1;
 		case VncAuthTooMany:
-			werrstr("server says too many tries");
+			werrstr("authentication failed - too many tries");
 			return -1;
 		case VncAuthOK:
 			break;
@@ -208,15 +207,13 @@ vncauth(Vnc *v)
 }
 
 int
-vncsrvauth(Vnc *v)
+vncauth_srv(Vnc *v)
 {
 	Chalstate *c;
-	AuthInfo *ai;
+	struct AuthInfo * ai;
 
-	if((c = auth_challenge("proto=vnc role=server user=%q", getuser()))==nil)
-		sysfatal("vncchal: %r");
-	if(c->nchal != VncChalLen)
-		sysfatal("vncchal got %d bytes wanted %d", c->nchal, VncChalLen);
+	if((c = auth_challenge("proto=vnc role=server user=%q", getuser()))==nil || c->nchal != VncChalLen)
+		sysfatal("vncchal returned with error\n");
 	vncwrlong(v, AVncAuth);
 	vncwrbytes(v, c->chal, VncChalLen);
 	vncflush(v);
@@ -227,9 +224,8 @@ vncsrvauth(Vnc *v)
 	ai = auth_response(c);
 	auth_freechal(c);
 	if(ai == nil){
-		fprint(2, "vnc auth failed: server factotum: %r\n");
-		vncwrlong(v, VncAuthFailed);
-		vncflush(v);
+		if(verbose)
+			fprint(2, "VNC auth failed\n");
 		return -1;
 	}
 	auth_freeAI(ai);
