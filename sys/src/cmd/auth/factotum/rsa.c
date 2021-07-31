@@ -155,7 +155,7 @@ rsaclose(Fsstate *fss)
 }
 
 static int
-rsaaddkey(Key *k, int before)
+rsaaddkey(Key *k)
 {
 	fmtinstall('B', mpfmt);
 
@@ -163,7 +163,7 @@ rsaaddkey(Key *k, int before)
 		werrstr("malformed key data");
 		return -1;
 	}
-	return replacekey(k, before);
+	return replacekey(k);
 }
 
 static void

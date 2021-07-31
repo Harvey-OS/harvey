@@ -16,7 +16,7 @@ timesync \- synchronize the system clock to a time source
 .I netroot
 ]
 [
-.B -frnDdLilG
+.B -frnDdLil
 ]
 [
 .I timeserver
@@ -73,13 +73,6 @@ specifies the
 in nanoseconds to which the
 clock should be synchronized.  This determines
 how often the reference clock is accessed.
-.TP
-.B -G
-causes
-.I timesync
-to use a gps server (see
-.IR gpsfs (8))
-as a time source.
 .TP
 .B -s
 causes

@@ -103,7 +103,7 @@ struct Proto
 {
 	char *name;
 	int (*init)(Proto*, Fsstate*);
-	int (*addkey)(Key*, int);
+	int (*addkey)(Key*);
 	void (*closekey)(Key*);
 	int (*write)(Fsstate*, void*, uint);
 	int (*read)(Fsstate*, void*, uint*);
@@ -161,7 +161,7 @@ int needkeywrite(char*);
 int needkeyqueue(Req*, Fsstate*);
 
 /* rpc.c */
-int ctlwrite(char*, int);
+int ctlwrite(char*);
 void rpcrdwrlog(Fsstate*, char*, uint, int, int);
 void rpcstartlog(Attr*, Fsstate*, int);
 void rpcread(Req*);
@@ -185,6 +185,7 @@ int		attrnamefmt(Fmt *fmt);
 int		canusekey(Fsstate*, Key*);
 void		closekey(Key*);
 uchar	*convAI2M(AuthInfo*, uchar*, int);
+int		ctlwrite(char*);
 char		*estrappend(char*, char*, ...);
 #pragma varargck argpos estrappend 2
 int		failure(Fsstate*, char*, ...);
@@ -201,7 +202,7 @@ int 		phaseerror(Fsstate*, char*);
 char		*phasename(Fsstate*, int, char*);
 void 		promptforhostowner(void);
 char		*readcons(char*, char*, int);
-int		replacekey(Key*, int before);
+int		replacekey(Key*);
 char		*safecpy(char*, char*, int);
 int		secdial(void);
 Attr		*setattr(Attr*, char*, ...);
