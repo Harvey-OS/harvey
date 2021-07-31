@@ -224,7 +224,6 @@ srvremove(Chan *c)
 
 	if(sp->chan)
 		cclose(sp->chan);
-	free(sp->owner);
 	free(sp->name);
 	free(sp);
 }
