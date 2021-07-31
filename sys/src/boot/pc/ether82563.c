@@ -415,7 +415,6 @@ enum {
 enum {
 	i82563,
 	i82566,
-	i82567,
 	i82571,
 	i82572,
 	i82573,
@@ -425,7 +424,6 @@ enum {
 static char *tname[] = {
 	"i82563",
 	"i82566",
-	"i82567",
 	"i82571",
 	"i82572",
 	"i82573",
@@ -735,7 +733,7 @@ i82563init(Ether* edev)
 
 	if(ctlr->type == i82573)
 		csr32w(ctlr, Ert, 1024/8);
-	if(ctlr->type == i82566 || ctlr->type == i82567)
+	if(ctlr->type == i82566)
 		csr32w(ctlr, Pbs, 16);
 	i82563im(ctlr, Rxt0 | Rxo | Rxdmt0 | Rxseq | Ack);
 
@@ -811,7 +809,7 @@ detach(Ctlr *ctlr)
 	delay(10);
 
 	r = csr32r(ctlr, Ctrl);
-	if(ctlr->type == i82566 || ctlr->type == i82567)
+	if(ctlr->type == i82566)
 		r |= Phy_rst;
 	csr32w(ctlr, Ctrl, Devrst | r);
 	/* apparently needed on multi-GHz processors to avoid infinite loops */
@@ -906,7 +904,7 @@ fload(Ctlr *c)
 	p = c->pcidev;
 	io = upamalloc(p->mem[1].bar & ~0x0F, p->mem[1].size, 0);
 	if(io == 0){
-		print("igbepcie: can't map flash @ 0x%8.8lux\n", p->mem[1].bar);
+		print("i82566: can't map flash @ 0x%8.8lux\n", p->mem[1].bar);
 		return -1;
 	}
 	f.reg = KADDR(io);
@@ -937,7 +935,7 @@ i82563reset(Ctlr* ctlr)
 
 	detach(ctlr);
 
-	if(ctlr->type == i82566 || ctlr->type == i82567)
+	if(ctlr->type == i82566)
 		r = fload(ctlr);
 	else
 		r = eeload(ctlr);
@@ -1011,9 +1009,6 @@ i82563pci(void)
 		case 0x104d:		/* v */
 		case 0x10bd:		/* dm */
 			type = i82566;
-			break;
-		case 0x10cd:		/* lf */
-			type = i82567;
 			break;
 		case 0x10a4:
 		case 0x105e:
