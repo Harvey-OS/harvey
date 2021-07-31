@@ -273,9 +273,7 @@ findehcis(void)		/* actually just use fixed addresses on sheeva */
 		return;
 	already = 1;
 
-	ctlr = malloc(sizeof(Ctlr));
-	if (ctlr == nil)
-		panic("ehci: out of memory");
+	ctlr = smalloc(sizeof(Ctlr));
 	/* the sheeva's usb 2.0 otg uses a superset of the ehci registers */
 	ctlr->capio = (Ecapio *)(soc.ehci + 0x100);
 	ctlr->opio  = (Eopio *) (soc.ehci + 0x140);
