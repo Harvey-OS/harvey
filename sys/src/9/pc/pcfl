@@ -1,7 +1,7 @@
+# pcfl - no longer builds because /sys/lib/sysconfig/fl is gone
 dev
 	root
 	cons
-
 	arch
 	pnp		pci
 	env
@@ -15,7 +15,6 @@ dev
 	tls
 	cap
 	kprof
-	fs
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -23,8 +22,6 @@ dev
 	draw		screen vga vgax
 	mouse		mouse
 	vga
-	kbmap
-	kbin
 
 	sd
 	floppy		dma
@@ -34,57 +31,45 @@ dev
 	pccard
 	i82365		cis
 	uart
-	usb
-
-	tv
+#	usb
+#	kbin
 
 link
-	realmode
 	devpccard
 	devi82365
+	apm		apmjump
 	ether2000	ether8390
 	ether2114x	pci
 	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
-	ether8139	pci
+	ether8139
 	ether8169	pci ethermii
-	ether82543gc	pci
-	ether82563	pci
 	ether82557	pci
+	ether82543gc	pci
 	ether83815	pci
-	etherdp83820	pci
 	etherec2t	ether8390
-	etherelnk3	pci
 	etherga620	pci
-	etherigbe	pci ethermii
-	ethervgbe	pci ethermii
-	ethervt6102	pci ethermii
-	ethervt6105m	pci ethermii
+	etherelnk3	pci
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
-#	etherm10g
-	ether82598	pci
 	pcmciamodem
 	netdevmedium
 	loopbackmedium
-	usbuhci
-	usbohci
-	usbehci
+#	usbohci
+#	usbuhci
+#	usbehci
 
 misc
 	archmp		mp apic
 
 	sdata		pci sdscsi
-	sd53c8xx	pci sdscsi
+	sd53c8xx		pci sdscsi
 	sdmylex		pci sdscsi
-	sdiahci		pci sdscsi
 
 	uarti8250
-	uartpci		pci
-	uartisa
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur
@@ -106,7 +91,6 @@ misc
 	vgat2r4		+cur
 	vgatvp3020	=cur
 	vgatvp3026	=cur
-	vgavesa
 	vgavmware	+cur
 
 ip
@@ -115,18 +99,28 @@ ip
 	ipifc
 	icmp
 	icmp6
-	gre
-	ipmux
-	esp
 
 port
 	int cpuserver = 0;
 
-boot
+boot boot #S/sdC0/
 	tcp
+	local
 
 bootdir
-	bootpc.out boot
-	/386/bin/ip/ipconfig
+	/386/bin/rc
+	/rc/lib/rcmain
+	/386/bin/bind
+	/386/bin/cat
+	/386/bin/cp
+	/386/bin/echo
+	/386/bin/mount
+	/386/bin/sleep
 	/386/bin/auth/factotum
+	/386/bin/fossil/fossil
+	/386/bin/ip/ipconfig
 	/386/bin/usb/usbd
+	/386/bin/venti/venti
+	/sys/lib/sysconfig/fl/boot
+	/sys/lib/sysconfig/fl/flproto
+	/sys/lib/sysconfig/fl/venti.conf
