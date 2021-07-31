@@ -363,7 +363,6 @@ do_in(int fd, void (*procfn)(int, Rune **, long), struct convert *out)
 	(*procfn)(-1, &r, nin);
 	if(r > ob)
 		OUT(out, ob, r-ob);
-	OUT(out, ob, 0);
 }
 
 void

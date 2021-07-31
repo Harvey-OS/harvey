@@ -188,7 +188,7 @@ rpc(char *dest, Secret *shared, Packet *req)
 	b += 16;
 	a = &resp->first;
 	a->type = 0;
-	for(;;){
+	while(1){
 		if(b >= e){
 			a->next = nil;
 			break;			// exit loop

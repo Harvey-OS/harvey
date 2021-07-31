@@ -68,4 +68,5 @@ s_getline(Biobuf *fp, String *to)
 		}
 		c = Bgetc(fp);
 	}
+	return 0;
 }

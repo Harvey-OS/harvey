@@ -561,7 +561,6 @@ mmcsetbs(Drive *drive, int bs)
 
 	if(mmcsetpage(drive, 0x05, p) < 0)
 		return -1;
-	return 0;
 }
 
 static long

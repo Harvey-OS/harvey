@@ -424,7 +424,6 @@ html_in(int fd, long *x, struct convert *out)
 	}
 	if(r > rbuf)
 		OUT(out, rbuf, r-rbuf);
-	OUT(out, rbuf, 0);
 }
 
 /*

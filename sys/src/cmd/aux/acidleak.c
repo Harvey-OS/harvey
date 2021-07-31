@@ -102,7 +102,6 @@ finddata(ulong addr)
 	}
 	if(0 <= lo && lo < ndata)
 		return &data[lo];
-	return nil;
 }
 
 int nmark;

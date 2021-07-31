@@ -109,7 +109,6 @@ uksc_in(int fd, long *notused, struct convert *out)
 	ukscproc(-1, &r, nin);
 	if(r > ob)
 		OUT(out, ob, r-ob);
-	OUT(out, ob, 0);
 }
 
 void

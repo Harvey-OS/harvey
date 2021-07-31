@@ -11,8 +11,7 @@ OFILES=tcs.$O\
 	kuten208.$O\
 	gb.$O\
 	ksc.$O\
-	big5.$O\
-	tune.$O
+	big5.$O
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
