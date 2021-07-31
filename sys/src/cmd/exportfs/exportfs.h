@@ -14,10 +14,12 @@ typedef struct Qidtab Qidtab;
 
 struct Fsrpc
 {
-	Fsrpc	*next;		/* freelist */
+	int	busy;		/* Work buffer has pending rpc to service */
+	uintptr	pid;		/* Pid of slave process executing the rpc */
+	int	canint;		/* Interrupt gate */
 	int	flushtag;	/* Tag on which to reply to flush */
 	Fcall	work;		/* Plan 9 incoming Fcall */
-	uchar	buf[];		/* Data buffer */
+	uchar	*buf;		/* Data buffer */
 };
 
 struct Fid
@@ -51,10 +53,9 @@ struct File
 
 struct Proc
 {
-	Lock;
-	Fsrpc	*busy;
+	uintptr	pid;
+	int	busy;
 	Proc	*next;
-	int	pid;
 };
 
 struct Qidtab
@@ -69,7 +70,9 @@ struct Qidtab
 
 enum
 {
+	MAXPROC		= 50,
 	FHASHSIZE	= 64,
+	Nr_workbufs 	= 50,
 	Fidchunk	= 1000,
 	Npsmpt		= 32,
 	Nqidbits		= 5,
@@ -80,10 +83,12 @@ char Ebadfid[];
 char Enotdir[];
 char Edupfid[];
 char Eopen[];
+char Exmnt[];
 char Enomem[];
 char Emip[];
 char Enopsmt[];
 
+Extern Fsrpc	*Workq;
 Extern int  	dbg;
 Extern File	*root;
 Extern File	*psmpt;
@@ -116,7 +121,6 @@ Fid 	*getfid(int);
 int	freefid(int);
 Fid	*newfid(int);
 Fsrpc	*getsbuf(void);
-void	putsbuf(Fsrpc*);
 void	initroot(void);
 void	fatal(char*, ...);
 char*	makepath(File*, char*);
@@ -125,7 +129,7 @@ void	freefile(File*);
 void	slaveopen(Fsrpc*);
 void	slaveread(Fsrpc*);
 void	slavewrite(Fsrpc*);
-void	blockingslave(Proc*);
+void	blockingslave(void);
 void	reopen(Fid *f);
 void	noteproc(int, char*);
 void	flushaction(void*, char*);
