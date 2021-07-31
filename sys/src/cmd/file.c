@@ -1235,16 +1235,7 @@ iself(void)
 	if (memcmp(buf, "\x7fELF", 4) == 0){
 		if (!mime){
 			int n = (buf[19] << 8) | buf[18];
-			char *p = "unknown";
-
-			if (n > 0 && n < nelem(cpu) && cpu[n])
-				p = cpu[n];
-			else {
-				/* try the other byte order */
-				n = (buf[18] << 8) | buf[19];
-				if (n > 0 && n < nelem(cpu) && cpu[n])
-					p = cpu[n];
-			}
+			char *p = (n > 0 && n < nelem(cpu) && cpu[n])? cpu[n]: "unknown";
 			print("%s ELF executable\n", p);
 		}
 		else

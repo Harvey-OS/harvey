@@ -283,7 +283,7 @@ void	winevent(Window*, char*, ...);
 void	winmousebut(Window*);
 void	winaddincl(Window*, Rune*, int);
 void	wincleartag(Window*);
-char	*winctlprint(Window*, char*, int);
+void	winctlprint(Window*, char*, int);
 
 struct Column
 {

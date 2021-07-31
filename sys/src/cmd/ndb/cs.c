@@ -1747,22 +1747,15 @@ ipinfoquery(Mfile *mf, char **list, int n)
 	/* skip 'ipinfo' */
 	list++; n--;
 
-	if(n < 1)
+	if(n < 2)
 		return "bad query";
 
-	/* get search attribute=value, or assume ip=myipaddr */
-	attr = *list;
-	if((val = strchr(attr, '=')) != nil){
-		*val++ = 0;
-		list++;
-		n--;
-	}else{
-		attr = "ip";
-		val = ipaddr;
-	}
-
-	if(n < 1)
+	/* get search attribute=value */
+	attr = *list++; n--;
+	val = strchr(attr, '=');
+	if(val == nil)
 		return "bad query";
+	*val++ = 0;
 
 	/*
 	 *  don't let ndbipinfo resolve the addresses, we're

@@ -298,22 +298,18 @@ xfidread(Xfid *x)
 		break;
 
 	case QWctl:
-		b = winctlprint(w, buf, 1);
-		goto Readb;
+		winctlprint(w, buf, 1);
+		goto Readbuf;
 
 	Readbuf:
-		b = buf;
-	Readb:
-		n = strlen(b);
+		n = strlen(buf);
 		if(off > n)
 			off = n;
 		if(off+x->count > n)
 			x->count = n-off;
 		fc.count = x->count;
-		fc.data = b+off;
+		fc.data = buf+off;
 		respond(x, &fc, nil);
-		if(b != buf)
-			free(b);
 		break;
 
 	case QWevent:

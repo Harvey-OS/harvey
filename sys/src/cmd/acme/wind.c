@@ -526,15 +526,15 @@ winclean(Window *w, int conservative)	/* as it stands, conservative is always TR
 	return TRUE;
 }
 
-char*
+void
 winctlprint(Window *w, char *buf, int fonts)
 {
-	sprint(buf, "%11d %11d %11d %11d %11d ", w->id, w->tag.file->nc,
+	int n;
+
+	n = sprint(buf, "%11d %11d %11d %11d %11d ", w->id, w->tag.file->nc,
 		w->body.file->nc, w->isdir, w->dirty);
 	if(fonts)
-		return smprint("%s%11d %q %11d " , buf, Dx(w->body.r), 
-			w->body.reffont->f->name, w->body.maxtab);
-	return buf;
+		sprint(buf+n, "%11d %q %11d" , Dx(w->body.r), w->body.reffont->f->name, w->body.maxtab);
 }
 
 void
