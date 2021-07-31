@@ -504,14 +504,10 @@ devpccardlink(void)
 	Pcidev *pci;
 	int i;
 	uchar intl;
-	char *p;
 
 	if (initialized) 
 		return;
 	initialized = 1;
-
-	if((p=getconf("pccard0")) && strncmp(p, "disabled", 8)==0)
-		return;
 
 	if(_pcmspecial)
 		return;

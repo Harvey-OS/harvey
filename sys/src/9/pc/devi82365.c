@@ -575,14 +575,11 @@ devi82365link(void)
 	int i, j;
 	I82365 *cp;
 	PCMslot *pp;
-	char buf[32], *p;
+	char buf[32];
 
 	if(already)
 		return;
 	already = 1;
-
-	if((p=getconf("pcmcia0")) && strncmp(p, "disabled", 8)==0)
-		return;
 
 	if(_pcmspecial)
 		return;

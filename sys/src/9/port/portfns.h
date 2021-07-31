@@ -340,7 +340,6 @@ void		tsleep(Rendez*, int (*)(void*), void*, int);
 int		uartctl(Uart*, char*);
 int		uartgetc(void);
 void		uartkick(void*);
-void		uartmouse(Uart*, int (*)(Queue*, int), int);
 void		uartputc(int);
 void		uartputs(char*, int);
 void		uartrecv(Uart*, char);

@@ -36,7 +36,6 @@ enum
 	CMhang,
 	CMkill,
 	CMnohang,
-	CMnoswap,
 	CMpri,
 	CMprivate,
 	CMprofile,
@@ -81,7 +80,6 @@ Cmdtab proccmd[] = {
 	CMfixedpri,	"fixedpri",		2,
 	CMhang,		"hang",		1,
 	CMnohang,	"nohang",		1,
-	CMnoswap,	"noswap",		1,
 	CMkill,		"kill",		1,
 	CMpri,		"pri",			2,
 	CMprivate,	"private",		1,
@@ -557,9 +555,6 @@ procread(Chan *c, void *va, long n, vlong off)
 		if(offset < KZERO
 		|| (offset >= USTKTOP-USTKSIZE && offset < USTKTOP))
 			return procctlmemio(p, offset, n, va, 1);
-
-		if(!iseve())
-			error(Eperm);
 
 		/* validate kernel addresses */
 		if(offset < (ulong)end) {
@@ -1117,9 +1112,6 @@ procctlreq(Proc *p, char *va, int n)
 		break;
 	case CMnohang:
 		p->hang = 0;
-		break;
-	case CMnoswap:
-		p->noswap = 1;
 		break;
 	case CMpri:
 		i = atoi(cb->f[1]);

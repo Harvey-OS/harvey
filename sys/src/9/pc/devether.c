@@ -444,9 +444,6 @@ etherreset(void)
 		etherxx[ctlrno] = ether;
 	}
 
-	if(getconf("*noetherprobe"))
-		return;
-
 	cardno = ctlrno = 0;
 	while(cards[cardno].type != nil && ctlrno < MaxEther){
 		if(etherxx[ctlrno] != nil){

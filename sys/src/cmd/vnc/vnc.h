@@ -133,4 +133,3 @@ extern	void		hexdump(void*, int);
 extern	void		vnchungup(Vnc*);
 
 extern	int		verbose;
-extern	char*	serveraddr;

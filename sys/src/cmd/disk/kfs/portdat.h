@@ -27,7 +27,6 @@ typedef	struct	Tlock	Tlock;
 // typedef	struct	Tm	Tm;
 typedef	struct	Uid	Uid;
 typedef	struct	Wpath	Wpath;
-typedef struct	AuthRpc	AuthRpc;
 
 /*
  * DONT TOUCH -- data structures stored on disk
@@ -161,8 +160,9 @@ struct	File
 	long	dslot;
 
 	/* for network authentication */
-	AuthRpc	*rpc;
-	short	cuid;
+	int ffd;
+	int authokay;
+
 };
 
 struct	Filsys

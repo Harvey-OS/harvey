@@ -53,7 +53,6 @@ main(int argc, char **argv)
 	info.flags = CDdump;
 	maxsize = 0;
 	mk9660 = 0;
-	fmtinstall('H', encodefmt);
 
 	ARGBEGIN{
 	case 'D':

@@ -1,5 +1,4 @@
 void	accessdir(Iobuf*, Dentry*, int);
-void	authfree(File*);
 void	addfree(Device, long, Superb*);
 long	balloc(Device, int, long);
 void	bfree(Device, long, int);

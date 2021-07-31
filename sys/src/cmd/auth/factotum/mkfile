@@ -2,7 +2,6 @@
 
 TARG=factotum\
 	secretpem\
-	fgui\
 
 PROTO=\
 	apop.$O\

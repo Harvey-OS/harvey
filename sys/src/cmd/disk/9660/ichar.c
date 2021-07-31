@@ -135,8 +135,6 @@ mkisostring(char *isobuf, int n, char *s)
 	for(p=s, q=isobuf; *p && q < eq; p++)
 		if('a' <= *p && *p <= 'z')
 			*q++ = *p+'A'-'a';
-		else
-			*q++ = *p;
 
 	while(q < eq)
 		*q++ = ' ';

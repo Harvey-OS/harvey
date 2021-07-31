@@ -607,8 +607,6 @@ addarea(DN *dp, RR *rp, Ndbtuple *t)
 	s->len = strlen(dp->name);
 	rrcopy(rp, &s->soarr);
 	s->soarr->owner = dp;
-	s->soarr->db = 1;
-	s->soarr->ttl = Hour;
 
 	s->next = *l;
 	*l = s;

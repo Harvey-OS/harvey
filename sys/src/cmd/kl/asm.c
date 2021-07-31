@@ -78,7 +78,6 @@ asmb(void)
 	curtext = P;
 	switch(HEADTYPE) {
 	case 0:
-	case 3:
 		seek(cout, HEADR+textsize, 0);
 		break;
 	case 1:
@@ -101,7 +100,6 @@ asmb(void)
 		Bflush(&bso);
 		switch(HEADTYPE) {
 		case 0:
-		case 3:
 			seek(cout, HEADR+textsize+datsize, 0);
 			break;
 		case 2:
@@ -116,8 +114,7 @@ asmb(void)
 		Bflush(&bso);
 		if(!debug['s'])
 			asmlc();
-		 /* round up file length for boot image */
-		if(HEADTYPE == 0 || HEADTYPE == 3)
+		if(HEADTYPE == 0)	/* round up file length for boot image */
 			if((symsize+lcsize) & 1)
 				CPUT(0);
 		cflush();
@@ -146,17 +143,6 @@ asmb(void)
 		lput(entryvalue());		/* va of entry */
 		lput(0L);
 		lput(lcsize);
-		break;
-	case 3:
-		lput(0x1030107);		/* magic and sections */
-		lput(0x90100000);
-#define SPARC_NOOP 0x01000000
-		lput(SPARC_NOOP);
-		lput(SPARC_NOOP);
-		lput(SPARC_NOOP);
-		lput(SPARC_NOOP);
-		lput(SPARC_NOOP);
-		lput(SPARC_NOOP);
 		break;
 	}
 	cflush();
