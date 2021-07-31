@@ -4,11 +4,6 @@
 #include <draw.h>
 #include <event.h>
 
-enum { 
-	Facesize = 48 
-};
-
-
 void memoinit(void);
 void redraw(void);
 void eresized(int);
@@ -185,19 +180,10 @@ memoinit(void)
 void
 eresized(int new)
 {
-	double sq;
-	Point p;
-
 	if(new && getwindow(display, Refnone) < 0){
 		fprint(2, "can't reattach to window");
 		exits("resized");
 	}
-
-	sq = sqrt(level);
-	p = Pt(Dx(screen->r)+8, Dy(screen->r)+8);
-	if(!new || !eqpt(p, Pt(Facesize*sq+sq*4+17, Facesize*sq+sq*4+17)))
-		resize(Facesize*sq+sq*4+17);
-
 	allocblocks();
 	draw(screen, screen->r, back, nil, ZP);
 	redraw();
@@ -206,7 +192,7 @@ eresized(int new)
 void
 redraw(void)
 {
-	int i;
+	int i, nx, ny;
 	Rectangle r;
 	Point p;
 
@@ -304,6 +290,9 @@ openimage(char *path)
 	return i;
 }
 
+enum { 
+	Facesize = 48 };
+
 void
 allocblocks(void)
 {
@@ -311,6 +300,7 @@ allocblocks(void)
 	ushort i, x, y, sq;
 
 	sq = sqrt(level);
+	resize(Facesize*sq+sq*4+17);
 	r = insetrect(screen->r, 5);
 	r.max.x = r.min.x+Facesize*sq+sq*4-1;
 	r.max.y = r.min.y+Facesize*sq+sq*4-1;

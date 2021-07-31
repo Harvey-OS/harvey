@@ -73,13 +73,11 @@ Mouseinfo	mouse;
 Cursorinfo	cursor;
 int		mouseshifted;
 int		kbdbuttons;
-void		(*kbdmouse)(int);
 Cursor		curs;
 
 void	Cursortocursor(Cursor*);
 int	mousechanged(void*);
 static void mouseclock(void);
-static void xkbdmouse(int);
 
 enum{
 	Qdir,
@@ -117,13 +115,6 @@ mousereset(void)
 }
 
 static void
-mousefromkbd(int buttons)
-{
-	kbdbuttons = buttons;
-	mousetrack(0, 0, 0, TK2MS(MACHP(0)->ticks));
-}
-
-static void
 mouseinit(void)
 {
 	if(!conf.monitor)
@@ -132,7 +123,6 @@ mouseinit(void)
 	curs = arrow;
 	Cursortocursor(&arrow);
 	cursoron(1);
-	kbdmouse = mousefromkbd;
 }
 
 static Chan*
