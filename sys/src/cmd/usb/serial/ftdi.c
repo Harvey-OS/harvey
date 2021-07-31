@@ -474,8 +474,7 @@ ftgettype(Serial *ser)
 		 * to 0x200 when serial is 0.
 		 */
 		if(dno < 0x500)
-			fprint(2, "serial: warning: dno too low for "
-				"multi-interface device\n");
+			fprint(2, "serial: warning: dno too low for multi-interfacedevice\n");
 	} else if(dno < 0x200) {
 		/* Old device.  Assume it is the original SIO. */
 		ser->type = SIO;
@@ -570,8 +569,6 @@ wait4data(Serial *ser, uchar *data, int count)
 		count = ser->ndata;
 		ser->ndata = 0;
 	}
-	assert(count >= 0);
-	assert(ser->ndata >= 0);
 	memmove(data, ser->data, count);
 	if(ser->ndata != 0)
 		memmove(ser->data, ser->data+count, ser->ndata);
@@ -657,7 +654,7 @@ epreader(void *u)
 	} while(rcount >= 0 || (rcount < 0 && strstr(err, "timed out") != nil));
 
 	if(rcount < 0)
-		fprint(2, "%s: error reading %s: %r\n", argv0, ser->fs.name);
+		fprint(2, "error reading: %r\n");
 	free(p);
 	sendp(c, nil);
 	closedev(ser->dev);
@@ -694,7 +691,7 @@ statusreader(void *u)
 			recvul(ser->gotdata);
 		}
 	}
-	/* don't free a; epreader may still be using it. */
+	free(a);
 	free(c);
 	closedev(ser->dev);
 }
