@@ -70,8 +70,6 @@ enum
 
 	DefByteRate	= 100,		/* assume a megabit link */
 	DefRtt		= 50,		/* cross country on a great day */
-
-	Maxrq		= 64*1024,
 };
 
 enum
@@ -165,7 +163,6 @@ enum
 	Retrans,		/* retransmissions */
 	DupMsg,
 	DupBytes,
-	DroppedMsgs,
 
 	Nstats,
 };
@@ -181,7 +178,6 @@ static char *statnames[] =
 [Retrans]	"Retrans",
 [DupMsg]	"DupMsg",
 [DupBytes]	"DupBytes",
-[DroppedMsgs]	"DroppedMsgs",
 };
 
 typedef struct Ilpriv Ilpriv;
@@ -419,7 +415,7 @@ ilkick(void *x, Block *bp)
 static void
 ilcreate(Conv *c)
 {
-	c->rq = qopen(Maxrq, 0, 0, c);
+	c->rq = qopen(64*1024, 0, 0, c);
 	c->wq = qbypass(ilkick, c);
 }
 
@@ -726,17 +722,6 @@ _ilprocess(Conv *s, Ilhdr *h, Block *bp)
 			freeblist(bp);	
 			break;
 		case Ildata:
-			/*
-			 * avoid consuming all the mount rpc buffers in the
-			 * system.  if the input queue is too long, drop this
-			 * packet.
-			 */
-			if (s->rq && qlen(s->rq) >= Maxrq) {
-				priv->stats[DroppedMsgs]++;
-				freeblist(bp);
-				break;
-			}
-
 			ilackto(ic, ack, bp);
 			iloutoforder(s, h, bp);
 			ilpullup(s);
@@ -927,7 +912,7 @@ ilpullup(Conv *s)
 		bp = packblock(bp);
 		if(bp == 0)
 			panic("ilpullup2");
-		qpass(s->rq, bp);
+		qpassnolim(s->rq, bp);
 	}
 	qunlock(&ic->outo);
 }

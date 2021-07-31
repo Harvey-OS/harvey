@@ -96,7 +96,6 @@ reporter(char *fmt, ...)
 	}else{
 		fprint(2, "%s: %s tls reports ", argv0, remotesys);
 		vfprint(2, fmt, ap);
-		fprint(2, "\n");
 	}
 	va_end(ap);
 	return 0;
@@ -155,7 +154,7 @@ main(int argc, char *argv[])
 		fd = dumper(fd);
 	fd = tlsServer(fd, conn);
 	if(fd < 0){
-		reporter("failed: %r");
+		reporter("failed: %r\n");
 		exits(0);
 	}
 	reporter("open\n");
@@ -171,7 +170,7 @@ main(int argc, char *argv[])
 			close(p[1]);
 			close(p[0]);
 			exec(argv[0], argv);
-			reporter("can't exec %s: %r", argv[0]);
+			reporter("can't exec %s: %r\n", argv[0]);
 			_exits("exec");
 		case -1:
 			exits("fork");
