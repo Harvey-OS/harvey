@@ -1,4 +1,3 @@
-#include	<stdio.h>
 #include	<unistd.h>
 #include	<limits.h>
 #include	<time.h>
@@ -34,8 +33,6 @@ sysconf(int name)
 #endif
 	case _SC_VERSION:
 		return _POSIX_VERSION;
-	case _SC_LOGIN_NAME_MAX:
-		return L_cuserid;
 	}
 	errno = EINVAL;
 	return -1;
