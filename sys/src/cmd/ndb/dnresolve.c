@@ -1503,9 +1503,10 @@ netquery(Query *qp, int depth)
 			decref(qlp);
 			if (!whined) {
 				whined = 1;
-				dnslog("too many outstanding queries for %s;"
-					" dropping this one; no further logging"
-					" of drops", dp->name);
+				dnslog("too many outstanding queries for %s; "
+					"dropping this one; "
+					"no further logging of drops",
+					dp->name);
 			}
 			return 0;
 		}
