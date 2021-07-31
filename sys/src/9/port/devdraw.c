@@ -876,12 +876,11 @@ drawpoint(Point *p, uchar *a)
 }
 
 Point
-drawchar(Memimage *dst, Memimage *rdst, Point p, Memimage *src, Point *sp, DImage *font, int index, int op)
+drawchar(Memimage *dst, Point p, Memimage *src, Point *sp, DImage *font, int index, int op)
 {
 	FChar *fc;
 	Rectangle r;
 	Point sp1;
-	static Memimage *tmp;
 
 	fc = &font->fchar[index];
 	r.min.x = p.x+fc->left;
@@ -890,31 +889,7 @@ drawchar(Memimage *dst, Memimage *rdst, Point p, Memimage *src, Point *sp, DImag
 	r.max.y = r.min.y+(fc->maxy-fc->miny);
 	sp1.x = sp->x+fc->left;
 	sp1.y = sp->y+fc->miny;
-
-	/*
-	 * If we're drawing greyscale fonts onto a VGA screen,
-	 * it's very costly to read the screen memory to do the
-	 * alpha blending inside memdraw.  If this is really a stringbg,
-	 * then rdst is the bg image (in main memory) which we can
-	 * refer to for the underlying dst pixels instead of reading dst
-	 * directly.
-	 */
-	if(ishwimage(dst) && !ishwimage(rdst) && font->image->depth > 1){
-		if(tmp == nil || tmp->chan != dst->chan || Dx(tmp->r) < Dx(r) || Dy(tmp->r) < Dy(r)){
-			if(tmp)
-				freememimage(tmp);
-			tmp = allocmemimage(Rect(0,0,Dx(r),Dy(r)), dst->chan);
-			if(tmp == nil)
-				goto fallback;
-		}
-		memdraw(tmp, Rect(0,0,Dx(r),Dy(r)), rdst, r.min, memopaque, ZP, S);
-		memdraw(tmp, Rect(0,0,Dx(r),Dy(r)), src, sp1, font->image, Pt(fc->minx, fc->miny), op);
-		memdraw(dst, r, tmp, ZP, memopaque, ZP, S);
-	}else{
-	fallback:
-		memdraw(dst, r, src, sp1, font->image, Pt(fc->minx, fc->miny), op);
-	}
-
+	memdraw(dst, r, src, sp1, font->image, Pt(fc->minx, fc->miny), op);
 	p.x += fc->width;
 	sp->x += fc->width;
 	return p;
@@ -1424,7 +1399,7 @@ drawmesg(Client *client, void *av, int n)
 	ulong value, chan;
 	Rectangle r, clipr;
 	Point p, q, *pp, sp;
-	Memimage *i, *bg, *dst, *src, *mask;
+	Memimage *i, *dst, *src, *mask;
 	Memimage *l, **lp;
 	Memscreen *scrn;
 	DImage *font, *ll, *di, *ddst, *dsrc;
@@ -1961,10 +1936,9 @@ drawmesg(Client *client, void *av, int n)
 			clipr = dst->clipr;
 			dst->clipr = r;
 			op = drawclientop(client);
-			bg = dst;
 			if(*a == 'x'){
 				/* paint background */
-				bg = drawimage(client, a+47);
+				l = drawimage(client, a+47);
 				drawpoint(&q, a+51);
 				r.min.x = p.x;
 				r.min.y = p.y-font->ascent;
@@ -1980,7 +1954,7 @@ drawmesg(Client *client, void *av, int n)
 					r.max.x += font->fchar[ci].width;
 					u += 2;
 				}
-				memdraw(dst, r, bg, q, memopaque, ZP, op);
+				memdraw(dst, r, l, q, memopaque, ZP, op);
 				u -= 2*ni;
 			}
 			q = p;
@@ -1990,7 +1964,7 @@ drawmesg(Client *client, void *av, int n)
 					dst->clipr = clipr;
 					error(Eindex);
 				}
-				q = drawchar(dst, bg, q, src, &sp, font, ci, op);
+				q = drawchar(dst, q, src, &sp, font, ci, op);
 				u += 2;
 			}
 			dst->clipr = clipr;
