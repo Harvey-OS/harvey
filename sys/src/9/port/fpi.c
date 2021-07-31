@@ -1,9 +1,6 @@
 /*
  * Floating Point Interpreter.
  * shamelessly stolen from an original by ark.
- *
- * NB: the Internal arguments to fpisub and fpidiv are reversed from
- * what you might naively expect: they compute y-x and y/x, respectively.
  */
 #include "fpi.h"
 

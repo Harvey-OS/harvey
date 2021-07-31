@@ -228,10 +228,9 @@ drawgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 		case Q3rd:
 			cl = drawclientofpath(c->qid.path);
 			if(cl == nil)
-				strncpy(up->genbuf, "??", sizeof up->genbuf);
+				strcpy(up->genbuf, "??");
 			else
-				snprint(up->genbuf, sizeof up->genbuf,
-					"%d", cl->clientid);
+				sprint(up->genbuf, "%d", cl->clientid);
 			mkqid(&q, Q2nd, 0, QTDIR);
 			devdir(c, q, up->genbuf, 0, eve, 0500, dp);
 			break;
@@ -273,8 +272,7 @@ drawgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 			cl = sdraw.client[s-1];
 			if(cl == 0)
 				return 0;
-			snprint(up->genbuf, sizeof up->genbuf, "%d",
-				cl->clientid);
+			sprint(up->genbuf, "%d", cl->clientid);
 			mkqid(&q, (s<<QSHIFT)|Q3rd, 0, QTDIR);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
@@ -1188,13 +1186,10 @@ drawread(Chan *c, void *a, long n, vlong off)
 				error(Enodrawimage);
 			i = di->image;
 		}
-		n = snprint(a, n,
-			"%11d %11d %11s %11d %11d %11d %11d %11d %11d %11d %11d %11d ",
-			cl->clientid, cl->infoid, chantostr(buf, i->chan),
-			(i->flags&Frepl)==Frepl,
+		n = sprint(a, "%11d %11d %11s %11d %11d %11d %11d %11d %11d %11d %11d %11d ",
+			cl->clientid, cl->infoid, chantostr(buf, i->chan), (i->flags&Frepl)==Frepl,
 			i->r.min.x, i->r.min.y, i->r.max.x, i->r.max.y,
-			i->clipr.min.x, i->clipr.min.y, i->clipr.max.x,
-			i->clipr.max.y);
+			i->clipr.min.x, i->clipr.min.y, i->clipr.max.x, i->clipr.max.y);
 		cl->infoid = -1;
 		break;
 
@@ -1206,9 +1201,7 @@ drawread(Chan *c, void *a, long n, vlong off)
 		m = 0;
 		for(index = 0; index < 256; index++){
 			getcolor(index, &red, &green, &blue);
-			m += snprint((char*)p+m, 4*12*256+1 - m,
-				"%11d %11lud %11lud %11lud\n", index,
-				red>>24, green>>24, blue>>24);
+			m += sprint((char*)p+m, "%11d %11lud %11lud %11lud\n", index, red>>24, green>>24, blue>>24);
 		}
 		n = readstr(offset, a, n, (char*)p);
 		free(p);
@@ -1377,7 +1370,7 @@ printmesg(char *fmt, uchar *a, int plsprnt)
 {
 	char buf[256];
 	char *p, *q;
-	int s, left;
+	int s;
 
 	if(1|| plsprnt==0){
 		SET(s,q,p);
@@ -1387,34 +1380,32 @@ printmesg(char *fmt, uchar *a, int plsprnt)
 	q = buf;
 	*q++ = *a++;
 	for(p=fmt; *p; p++){
-		left = sizeof buf - 2 - (q - buf);	/* 2 for \n\0 */
 		switch(*p){
 		case 'l':
-			q += snprint(q, left, " %ld", (long)BGLONG(a));
+			q += sprint(q, " %ld", (long)BGLONG(a));
 			a += 4;
 			break;
 		case 'L':
-			q += snprint(q, left, " %.8lux", (ulong)BGLONG(a));
+			q += sprint(q, " %.8lux", (ulong)BGLONG(a));
 			a += 4;
 			break;
 		case 'R':
-			q += snprint(q, left, " [%d %d %d %d]", BGLONG(a),
-				BGLONG(a+4), BGLONG(a+8), BGLONG(a+12));
+			q += sprint(q, " [%d %d %d %d]", BGLONG(a), BGLONG(a+4), BGLONG(a+8), BGLONG(a+12));
 			a += 16;
 			break;
 		case 'P':
-			q += snprint(q, left, " [%d %d]", BGLONG(a), BGLONG(a+4));
+			q += sprint(q, " [%d %d]", BGLONG(a), BGLONG(a+4));
 			a += 8;
 			break;
 		case 'b':
-			q += snprint(q, left, " %d", *a++);
+			q += sprint(q, " %d", *a++);
 			break;
 		case 's':
-			q += snprint(q, left, " %d", BGSHORT(a));
+			q += sprint(q, " %d", BGSHORT(a));
 			a += 2;
 			break;
 		case 'S':
-			q += snprint(q, left, " %.4ux", BGSHORT(a));
+			q += sprint(q, " %.4ux", BGSHORT(a));
 			a += 2;
 			break;
 		}

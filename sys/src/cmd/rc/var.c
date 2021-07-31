@@ -2,19 +2,14 @@
 #include "exec.h"
 #include "fns.h"
 
-unsigned
-hash(char *as, int n)
+int
+hash(char *s, int n)
 {
-	int i = 1;
-	unsigned h = 0;
-	uchar *s;
-
-	s = (uchar *)as;
-	while (*s)
-		h += *s++ * i++;
-	return h % n;
+	int h = 0, i = 1;
+	while(*s) h+=*s++*i++;
+	h%=n;
+	return h<0?h+n:h;
 }
-
 #define	NKW	30
 struct kw{
 	char *name;

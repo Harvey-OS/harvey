@@ -202,8 +202,7 @@ rudpstartackproc(Proto *rudp)
 	if(rpriv->ackprocstarted == 0){
 		qlock(&rpriv->apl);
 		if(rpriv->ackprocstarted == 0){
-			snprint(kpname, sizeof kpname, "#I%drudpack",
-				rudp->f->dev);
+			sprint(kpname, "#I%drudpack", rudp->f->dev);
 			kproc(kpname, relackproc, rudp);
 			rpriv->ackprocstarted = 1;
 		}

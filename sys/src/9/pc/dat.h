@@ -19,7 +19,6 @@ typedef struct Page	Page;
 typedef struct PMMU	PMMU;
 typedef struct Proc	Proc;
 typedef struct Segdesc	Segdesc;
-typedef struct SFPssestate SFPssestate;
 typedef vlong		Tval;
 typedef struct Ureg	Ureg;
 typedef struct Vctl	Vctl;
@@ -102,13 +101,7 @@ struct	FPssestate		/* SSE fp state */
 	ulong	mxcsr;		/* MXCSR register state */
 	ulong	mxcsr_mask;	/* MXCSR mask register */
 	uchar	xregs[480];	/* extended registers */
-};
-
-struct	SFPssestate		/* SSE fp state with alignment slop */
-{
-	FPssestate;
-	uchar	alignpad[FPalign]; /* slop to allow copying to aligned addr */
-	ulong	magic;		/* debugging: check for overrun */
+	uchar	alignpad[FPalign];
 };
 
 /*
@@ -117,7 +110,7 @@ struct	SFPssestate		/* SSE fp state with alignment slop */
  */
 union FPsave {
 	FPstate;
-	SFPssestate;
+	FPssestate;
 };
 
 struct Confmem

@@ -366,7 +366,8 @@ yylex(void)
 		return c;
 	}
 	for(;;){
-		if(c=='*' || c=='[' || c=='?' || c==GLOB)
+		/* next line should have (char)c==GLOB, but ken's compiler is broken */
+		if(c=='*' || c=='[' || c=='?' || c==(unsigned char)GLOB)
 			w = addtok(w, GLOB);
 		w = addutf(w, c);
 		c = nextc();

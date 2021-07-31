@@ -131,8 +131,7 @@ mipsexcep(Map *map, Rgetter rget)
 	long c;
 
 	c = (*rget)(map, "CAUSE");
-	/* i don't think this applies to any current machines */
-	if(0 && c & 0x00002000)	/* INTR3 */
+	if(c & 0x00002000)	/* INTR3 */
 		e = 16;		/* Floating point exception */
 	else
 		e = (c>>2)&0x0F;
