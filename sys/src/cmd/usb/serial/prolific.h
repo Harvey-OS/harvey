@@ -165,6 +165,3 @@ enum {
 	HPVid =		0x03f0,
 	HPLD220Did =	0x3524,
 };
-
-extern Serialops plops;
-int	plmatch(char *info);
