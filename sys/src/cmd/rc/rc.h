@@ -1,7 +1,9 @@
 /*
  * Plan9 is defined for plan 9
- * Unix is defined for Unix
- * Please don't litter the code with ifdefs.  The six below should be enough.
+ * V9 is defined for 9th edition
+ * Sun is defined for sun-os
+ * Please don't litter the code with ifdefs.  The three below (and one in
+ * getflags) should be enough.
  */
 #define	Plan9
 #ifdef	Plan9
@@ -11,34 +13,13 @@
 #define	SIGINT	2
 #define	SIGQUIT	3
 #endif
-
-#ifdef Unix
-#define _BSD_EXTENSION
-#define _PLAN9_SOURCE
-#define _POSIX_SOURCE
-#define _RESEARCH_SOURCE
-#define _SUSV2_SOURCE
-
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <lib9.h>
+#ifdef	V9
 #include <signal.h>
-#include <inttypes.h>
-
-#ifndef NSIG
-#define NSIG 32
+#include <libc.h>
 #endif
-
-#define uintptr uintptr_t
+#ifdef Sun
+#include <signal.h>
 #endif
-
-#ifndef ERRMAX
-#define ERRMAX 128
-#endif
-
 #define	YYMAXDEPTH	500
 #ifndef PAREN
 #include "x.tab.h"
@@ -53,14 +34,12 @@ typedef struct redir redir;
 typedef struct thread thread;
 typedef struct builtin builtin;
 
-#ifdef Plan9
 #pragma incomplete word
 #pragma incomplete io
-#endif
 
 struct tree{
 	int	type;
-	int	rtype, fd0, fd1;		/* details of REDIR PIPE DUP tokens */
+	int	rtype, fd0, fd1;	/* details of REDIR PIPE DUP tokens */
 	char	*str;
 	int	quoted;
 	int	iskw;
@@ -75,7 +54,6 @@ tree *mung3(tree*, tree*, tree*, tree*), *epimung(tree*, tree*);
 tree *simplemung(tree*), *heredoc(tree*);
 void freetree(tree*);
 tree *cmdtree;
-
 /*
  * The first word of any code vector is a reference count.
  * Always create a new reference to a code vector by calling codecopy(.).
@@ -115,7 +93,7 @@ var *vlook(char*), *gvlook(char*), *newvar(char*, var*);
 
 #define	NVAR	521
 
-var *gvar[NVAR];		/* hash for globals */
+var *gvar[NVAR];				/* hash for globals */
 
 #define	new(type)	((type *)emalloc(sizeof(type)))
 
