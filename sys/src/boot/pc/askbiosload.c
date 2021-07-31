@@ -1,1 +1,0 @@
-int askbiosload = 1;
