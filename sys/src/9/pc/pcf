@@ -34,7 +34,6 @@ dev
 	usb
 
 link
-	realmode
 	devpccard
 	devi82365
 	apm		apmjump
@@ -63,6 +62,7 @@ link
 	usbuhci
 
 misc
+	realmode
 	archmp		mp apic
 
 	sdata		pci sdscsi

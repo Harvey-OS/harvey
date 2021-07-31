@@ -962,13 +962,12 @@ bandsize(Window *w)
 	p = mouse->xy;
 	
 	which = whichcorner(w, p);
-	p = cornerpt(w->screenr, p, which);
-	wmovemouse(w, p);
+	startp = cornerpt(w->screenr, p, which);
+	wmovemouse(w, startp);
 	readmouse(mousectl);
 	r = whichrect(w->screenr, p, which);
 	drawborder(r, 1);
 	or = r;
-	startp = p;
 	but = mouse->buttons;
 	while(mouse->buttons == but){
 		p = onscreen(mouse->xy);

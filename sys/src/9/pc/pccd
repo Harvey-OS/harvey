@@ -34,7 +34,6 @@ dev
 	usb
 
 link
-	realmode
 	devpccard
 	devi82365
 	apm		apmjump
@@ -62,6 +61,7 @@ link
 	usbuhci
 
 misc
+	realmode
 	archmp		mp apic
 
 	sdata		pci sdscsi
@@ -91,7 +91,6 @@ misc
 	vgat2r4		+cur
 	vgatvp3020	=cur
 	vgatvp3026	=cur
-	vgavesa
 	vgavmware	+cur
 
 ip

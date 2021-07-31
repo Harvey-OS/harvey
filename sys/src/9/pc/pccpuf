@@ -32,7 +32,6 @@ dev
 	usb
 
 link
-	realmode
 	devpccard
 	devi82365
 	ether2000	ether8390
@@ -59,6 +58,7 @@ link
 	usbuhci
 
 misc
+	realmode
 	archmp		mp apic
 
 	uarti8250

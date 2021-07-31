@@ -25,8 +25,8 @@ struct Data {
 
 struct Seg {
 	char*	name;
-	uvlong	offset;
-	uvlong	 len;
+	ulong	offset;
+	ulong	 len;
 	Page**	pg;
 	int	npg;
 };
@@ -40,7 +40,7 @@ struct Page {
 	int	written;
 	int	type;
 	ulong	pid;
-	uvlong	offset;
+	ulong	offset;
 };
 
 struct Proc {
@@ -61,6 +61,6 @@ char*	estrdup(char*);
 void	writesnap(Biobuf*, Proc*);
 Page*	datapage(char *p, long len);
 Proc*	readsnap(Biobuf *b);
-Page*	findpage(Proc *plist, long pid, int type, uvlong off);
+Page*	findpage(Proc *plist, long pid, int type, ulong off);
 
 int	debug;
