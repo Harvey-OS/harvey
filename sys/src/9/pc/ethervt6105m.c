@@ -1029,8 +1029,7 @@ vt6105Mdetach(Ctlr* ctlr)
 	 */
 	csr16w(ctlr, Cr, Stop);
 	csr16w(ctlr, Cr, Stop|Sfrst);
-	/* limit used to be 10000, but that wasn't enough for our Soekris 5501s */
-	for(timeo = 0; timeo < 100000; timeo++){
+	for(timeo = 0; timeo < 10000; timeo++){
 		if(!(csr16r(ctlr, Cr) & Sfrst))
 			break;
 		microdelay(1);
@@ -1064,8 +1063,7 @@ vt6105Mreset(Ctlr* ctlr)
 	 */
 	r = csr8r(ctlr, Eecsr);
 	csr8w(ctlr, Eecsr, Autold|r);
-	/* limit used to be 100, but that wasn't enough for our Soekris 5501s */
-	for(timeo = 0; timeo < 100000; timeo++){
+	for(timeo = 0; timeo < 100; timeo++){
 		if(!(csr8r(ctlr, Cr) & Autold))
 			break;
 		microdelay(1);
