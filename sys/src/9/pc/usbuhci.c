@@ -801,9 +801,9 @@ epopen(Usbhost *uh, Endpt *e)
 		error("already open");
 	if(schedendpt(ctlr, e) < 0){
 		if(e->active)
-			error("cannot schedule USB endpoint, active");
+			error("can't schedule USB endpoint, active");
 		else
-			error("cannot schedule USB endpoint");
+			error("can't schedule USB endpoint");
 	}
 	eptactivate(ctlr, e);
 }
