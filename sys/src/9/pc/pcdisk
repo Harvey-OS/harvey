@@ -1,4 +1,3 @@
-# pcdisk - pc terminal with kfs or cfs root
 dev
 	root
 	cons
@@ -23,8 +22,6 @@ dev
 	draw		screen vga vgax
 	mouse		mouse
 	vga
-	kbmap
-	kbin
 
 	sd
 	floppy		dma

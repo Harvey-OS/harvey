@@ -2749,11 +2749,9 @@ main(int argc, char **argv)
 
 	switch(argc){
 	case 2:
-		if (parseip(remip, argv[1]) == -1)
-			sysfatal("bad remote ip %s", argv[1]);
+		parseip(remip, argv[1]);
 	case 1:
-		if (parseip(ipaddr, argv[0]) == -1)
-			sysfatal("bad ip %s", argv[0]);
+		parseip(ipaddr, argv[0]);
 	case 0:
 		break;
 	default:

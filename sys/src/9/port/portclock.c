@@ -160,7 +160,7 @@ hzclock(Ureg *ur)
 }
 
 void
-timerintr(Ureg *u, Tval)
+timerintr(Ureg *u, uvlong)
 {
 	Timer *t;
 	Timers *tt;

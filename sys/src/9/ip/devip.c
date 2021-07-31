@@ -851,8 +851,7 @@ setladdrport(Conv* c, char* str, int announcing)
 		if(strcmp(str, "*") == 0)
 			ipmove(c->laddr, IPnoaddr);
 		else {
-			if(parseip(addr, str) == -1)
-				return Ebadip;
+			parseip(addr, str);
 			if(ipforme(c->p->f, addr))
 				ipmove(c->laddr, addr);
 			else
@@ -884,8 +883,7 @@ setraddrport(Conv* c, char* str)
 	if(p == nil)
 		return "malformed address";
 	*p++ = 0;
-	if (parseip(c->raddr, str) == -1)
-		return Ebadip;
+	parseip(c->raddr, str);
 	c->rport = atoi(p);
 	p = strchr(p, '!');
 	if(p){
@@ -1134,15 +1132,13 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 			if(cb->nf == 2){
 				if(!ipismulticast(c->raddr))
 					error("addmulti for a non multicast address");
-				if (parseip(ia, cb->f[1]) == -1)
-					error(Ebadip);
+				parseip(ia, cb->f[1]);
 				ipifcaddmulti(c, c->raddr, ia);
 			} else {
-				if (parseip(ia, cb->f[1]) == -1 ||
-				    parseip(ma, cb->f[2]) == -1)
-					error(Ebadip);
+				parseip(ma, cb->f[2]);
 				if(!ipismulticast(ma))
 					error("addmulti for a non multicast address");
+				parseip(ia, cb->f[1]);
 				ipifcaddmulti(c, ma, ia);
 			}
 		} else if(strcmp(cb->f[0], "remmulti") == 0){
@@ -1150,8 +1146,7 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 				error("remmulti needs interface address");
 			if(!ipismulticast(c->raddr))
 				error("remmulti for a non multicast address");
-			if (parseip(ia, cb->f[1]) == -1)
-				error(Ebadip);
+			parseip(ia, cb->f[1]);
 			ipifcremmulti(c, c->raddr, ia);
 		} else if(x->ctl != nil) {
 			p = x->ctl(c, cb->f, cb->nf);

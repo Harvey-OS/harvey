@@ -328,7 +328,7 @@ getendpoint(char *dir, char *file, uchar *addr, uchar *port)
 	hnputs(port, n);
 }
 
-/* set Udphdr values from protocol dir local & remote files */
+/* set Udhphdr values from protocol dir local & remote files */
 static void
 getendpoints(Udphdr *ep, char *dir)
 {

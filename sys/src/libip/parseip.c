@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <ctype.h>
 #include <ip.h>
 
 char*
@@ -37,31 +36,7 @@ v4parseip(uchar *to, char *from)
 	return p;
 }
 
-static int
-ipcharok(int c)
-{
-	return c == '.' || c == ':' || isascii(c) && isxdigit(c);
-}
-
-static int
-delimchar(int c)
-{
-	if(c == '\0')
-		return 1;
-	if(c == '.' || c == ':' || isascii(c) && isalnum(c))
-		return 0;
-	return 1;
-}
-
-/*
- * `from' may contain an address followed by other characters,
- * at least in /boot, so we permit whitespace (and more) after the address.
- * we do ensure that "delete" cannot be parsed as "de::".
- *
- * some callers don't check the return value for errors, so
- * set `to' to something distinctive in the case of a parse error.
- */
-vlong
+ulong
 parseip(uchar *to, char *from)
 {
 	int i, elipsis = 0, v4 = 1;
@@ -70,45 +45,31 @@ parseip(uchar *to, char *from)
 
 	memset(to, 0, IPaddrlen);
 	p = from;
-	for(i = 0; i < IPaddrlen && ipcharok(*p); i+=2){
+	for(i = 0; i < 16 && *p; i+=2){
 		op = p;
 		x = strtoul(p, &p, 16);
-		if(*p == '.' || (*p == 0 && i == 0)){	/* ends with v4? */
+		if(*p == '.' || (*p == 0 && i == 0)){
 			p = v4parseip(to+i, op);
 			i += 4;
 			break;
-		}
-		/* v6: at most 4 hex digits, followed by colon or delim */
-		if(x != (ushort)x || *p != ':' && !delimchar(*p)) {
-			memset(to, 0, IPaddrlen);
-			return -1;			/* parse error */
 		}
 		to[i] = x>>8;
 		to[i+1] = x;
 		if(*p == ':'){
 			v4 = 0;
-			if(*++p == ':'){	/* :: is elided zero short(s) */
-				if (elipsis) {
-					memset(to, 0, IPaddrlen);
-					return -1;	/* second :: */
-				}
+			if(*++p == ':'){
 				elipsis = i+2;
 				p++;
 			}
-		} else if (p == op)		/* strtoul made no progress? */
-			break;
+		}
 	}
-	if (p == from || !delimchar(*p)) {
-		memset(to, 0, IPaddrlen);
-		return -1;				/* parse error */
-	}
-	if(i < IPaddrlen){
-		memmove(&to[elipsis+IPaddrlen-i], &to[elipsis], i-elipsis);
-		memset(&to[elipsis], 0, IPaddrlen-i);
+	if(i < 16){
+		memmove(&to[elipsis+16-i], &to[elipsis], i-elipsis);
+		memset(&to[elipsis], 0, 16-i);
 	}
 	if(v4){
 		to[10] = to[11] = 0xff;
-		return nhgetl(to + IPv4off);
+		return nhgetl(to+12);
 	} else
 		return 6;
 }
@@ -117,11 +78,11 @@ parseip(uchar *to, char *from)
  *  hack to allow ip v4 masks to be entered in the old
  *  style
  */
-vlong
+ulong
 parseipmask(uchar *to, char *from)
 {
+	ulong x;
 	int i, w;
-	vlong x;
 	uchar *p;
 
 	if(*from == '/'){
@@ -140,16 +101,15 @@ parseipmask(uchar *to, char *from)
 		x = nhgetl(to+IPv4off);
 		/*
 		 * identify as ipv6 if the mask is inexpressible as a v4 mask
-		 * (because it has too few mask bits).  Arguably, we could
+		 * (because it has too few mask bits) or indistinguishable
+		 * from the error value (all ones, -1)?  Arguably, we could
 		 * always return 6 here.
 		 */
-		if (w < 8*(IPaddrlen-IPv4addrlen))
+		if (w < 8*(IPaddrlen-IPv4addrlen) || w == 128)
 			return 6;
 	} else {
-		/* as a straight v4 bit mask */
+		/* as a straight bit mask */
 		x = parseip(to, from);
-		if (x != -1)
-			x = (ulong)nhgetl(to + IPv4off);
 		if(memcmp(to, v4prefix, IPv4off) == 0)
 			memset(to, 0xff, IPv4off);
 	}

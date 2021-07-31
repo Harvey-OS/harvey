@@ -145,7 +145,6 @@ struct Block
 	ushort	flag;
 	ushort	checksum;		/* IP checksum of complete packet (minus media header) */
 };
-
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)
 
@@ -217,7 +216,7 @@ struct Dev
 	void	(*remove)(Chan*);
 	int	(*wstat)(Chan*, uchar*, int);
 	void	(*power)(int);	/* power mgt: power(1) => on, power (0) => off */
-	int	(*config)(int, char*, DevConf*);	/* returns nil on error */
+	int	(*config)(int, char*, DevConf*);	// returns nil on error
 };
 
 struct Dirtab
@@ -532,8 +531,7 @@ struct Timer
 	/* Internal */
 	Lock;
 	Timers	*tt;		/* Timers queue this timer runs on */
-	Tval	tticks;		/* tns converted to ticks */
-	Tval	twhen;		/* ns represented in fastticks */
+	vlong	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
 };
 
@@ -597,8 +595,8 @@ enum
 	Nrq		= Npriq+2,	/* number of priority levels including real time */
 	PriRelease	= Npriq,	/* released edf processes */
 	PriEdf		= Npriq+1,	/* active edf processes */
+	PriExtra	= 0,		/* edf processes we don't care about */
 	PriNormal	= 10,		/* base priority for normal processes */
-	PriExtra	= Npriq-1,	/* edf processes at high best-effort pri */
 	PriKproc	= 13,		/* base priority for kernel processes */
 	PriRoot		= 13,		/* base priority for root processes */
 };

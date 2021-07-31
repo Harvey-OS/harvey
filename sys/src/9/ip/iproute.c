@@ -12,10 +12,10 @@ static void	addnode(Fs*, Route**, Route*);
 static void	calcd(Route*);
 
 /* these are used for all instances of IP */
-static Route*	v4freelist;
-static Route*	v6freelist;
-static RWlock	routelock;
-static ulong	v4routegeneration, v6routegeneration;
+Route*	v4freelist;
+Route*	v6freelist;
+RWlock	routelock;
+ulong	v4routegeneration, v6routegeneration;
 
 static void
 freeroute(Route *r)
@@ -617,7 +617,7 @@ routetype(int type, char *p)
 		*p = 'p';
 }
 
-static char *rformat = "%-15I %-4M %-15I %4.4s %4.4s %3s\n";
+char *rformat = "%-15I %-4M %-15I %4.4s %4.4s %3s\n";
 
 void
 convroute(Route *r, uchar *addr, uchar *mask, uchar *gate, char *t, int *nifc)
@@ -815,8 +815,7 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 	} else if(strcmp(cb->f[0], "remove") == 0){
 		if(cb->nf < 3)
 			error(Ebadarg);
-		if (parseip(addr, cb->f[1]) == -1)
-			error(Ebadip);
+		parseip(addr, cb->f[1]);
 		parseipmask(mask, cb->f[2]);
 		if(memcmp(addr, v4prefix, IPv4off) == 0)
 			v4delroute(f, addr+IPv4off, mask+IPv4off, 1);
@@ -825,10 +824,9 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 	} else if(strcmp(cb->f[0], "add") == 0){
 		if(cb->nf < 4)
 			error(Ebadarg);
-		if(parseip(addr, cb->f[1]) == -1 ||
-		    parseip(gate, cb->f[3]) == -1)
-			error(Ebadip);
+		parseip(addr, cb->f[1]);
 		parseipmask(mask, cb->f[2]);
+		parseip(gate, cb->f[3]);
 		tag = "none";
 		if(c != nil){
 			a = c->aux;

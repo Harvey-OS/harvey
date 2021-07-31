@@ -59,7 +59,6 @@ LIB=\
 	/$objtype/lib/libmemlayer.a\
 	/$objtype/lib/libmemdraw.a\
 	/$objtype/lib/libdraw.a\
-	/$objtype/lib/libip.a\
 	/$objtype/lib/libc.a\
 	/$objtype/lib/libsec.a\
 	/$objtype/lib/libip.a\

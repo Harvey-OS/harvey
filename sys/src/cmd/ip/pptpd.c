@@ -187,16 +187,17 @@ void	greack(Call *c);
 
 void	timeoutthread(void*);
 
+ulong	parseip(uchar *ato, char *from);
 int	argatoi(char *p);
 void	usage(void);
 int	ipaddralloc(Call *c);
 
-void	*emallocz(int size);
-void	esignal(Event *e);
-void	ewait(Event *e);
-int	proc(char **argv, int fd0, int fd1, int fd2);
-double	realtime(void);
+void esignal(Event *e);
+void ewait(Event *e);
 ulong	thread(void(*f)(void*), void *a);
+double realtime(void);
+void *emallocz(int size);
+int proc(char **argv, int fd0, int fd1, int fd2);
 
 void
 main(int argc, char *argv[])

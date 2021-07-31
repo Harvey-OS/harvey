@@ -15,7 +15,7 @@ OFILES=\
 	ptclbsum.$O\
 
 HFILES=\
-	/sys/include/ip.h
+	ip.h
 
 UPDATE=\
 	mkfile\
