@@ -18,8 +18,6 @@ struct Debug
 	Fmt *fmt;
 	int pid;
 	char *stkprefix;
-	int pcoff;
-	int spoff;
 };
 
 static Debug debug = { -1 };
@@ -169,11 +167,13 @@ printmap(char *s, Map *map)
 	}
 }
 
+#define ADDR ulong
+
 static void
-printlocals(Map *map, Symbol *fn, uintptr fp)
+printlocals(Map *map, Symbol *fn, ADDR fp)
 {
 	int i;
-	uintptr w;
+	ulong w;
 	Symbol s;
 	char buf[100];
 
@@ -182,19 +182,19 @@ printlocals(Map *map, Symbol *fn, uintptr fp)
 		if (s.class != CAUTO)
 			continue;
 		snprint(buf, sizeof buf, "%s%s/", debug.stkprefix, s.name);
-		if (geta(map, fp - s.value, (uvlong*)&w) > 0)
-			dprint("\t%-10s %10#p %ld\n", buf, w, w);
+		if (get4(map, fp-s.value, &w) > 0)
+			dprint("\t%-10s %10#lux %ld\n", buf, w, w);
 		else
 			dprint("\t%-10s ?\n", buf);
 	}
 }
 
 static void
-printparams(Map *map, Symbol *fn, uintptr fp)
+printparams(Map *map, Symbol *fn, ADDR fp)
 {
 	int i;
 	Symbol s;
-	uintptr w;
+	ulong w;
 	int first = 0;
 
 	fp += mach->szaddr;			/* skip saved pc */
@@ -204,13 +204,13 @@ printparams(Map *map, Symbol *fn, uintptr fp)
 			continue;
 		if (first++)
 			dprint(", ");
-		if (geta(map, fp + s.value, (uvlong *)&w) > 0)
-			dprint("%s=%#p", s.name, w);
+		if (get4(map, fp+s.value, &w) > 0)
+			dprint("%s=%#lux", s.name, w);
 	}
 }
 
 static void
-printsource(uintptr dot)
+printsource(ADDR dot)
 {
 	char str[100];
 
@@ -222,8 +222,7 @@ printsource(uintptr dot)
 /*
  *	callback on stack trace
  */
-static uintptr nextpc;
-
+static ulong nextpc;
 static void
 ptrace(Map *map, uvlong pc, uvlong sp, Symbol *sym)
 {
@@ -235,7 +234,7 @@ ptrace(Map *map, uvlong pc, uvlong sp, Symbol *sym)
 	printparams(map, sym, sp);
 	dprint(")");
 	if(nextpc != sym->value)
-		dprint("+%#llux ", nextpc - sym->value);
+		dprint("+%#lx ", nextpc - sym->value);
 	printsource(nextpc);
 	dprint("\n");
 	printlocals(map, sym, sp);
@@ -243,47 +242,35 @@ ptrace(Map *map, uvlong pc, uvlong sp, Symbol *sym)
 }
 
 static void
-stacktracepcsp(Map *m, uintptr pc, uintptr sp)
+stacktracepcsp(Map *m, ulong pc, ulong sp)
 {
 	nextpc = 0;
 	if(machdata->ctrace==nil)
 		dprint("no machdata->ctrace\n");
 	else if(machdata->ctrace(m, pc, sp, 0, ptrace) <= 0)
-		dprint("no stack frame: pc=%#p sp=%#p\n", pc, sp);
-}
-
-static void
-ureginit(void)
-{
-	Reglist *r;
-
-	for(r = mach->reglist; r->rname; r++)
-		if (strcmp(r->rname, "PC") == 0)
-			debug.pcoff = r->roffs;
-		else if (strcmp(r->rname, "SP") == 0)
-			debug.spoff = r->roffs;
+		dprint("no stack frame: pc=%#lux sp=%#lux\n", pc, sp);
 }
 
 static void
 stacktrace(Map *m)
 {
-	uintptr pc, sp;
+	ulong pc, sp;
 	
-	if(geta(m, debug.pcoff, (uvlong *)&pc) < 0){
-		dprint("geta pc: %r");
+	if(get4(m, offsetof(Ureg, pc), &pc) < 0){
+		dprint("get4 pc: %r");
 		return;
 	}
-	if(geta(m, debug.spoff, (uvlong *)&sp) < 0){
-		dprint("geta sp: %r");
+	if(get4(m, offsetof(Ureg, sp), &sp) < 0){
+		dprint("get4 sp: %r");
 		return;
 	}
 	stacktracepcsp(m, pc, sp);
 }
 
-static uintptr
-star(uintptr addr)
+static ulong
+star(ulong addr)
 {
-	uintptr x;
+	ulong x;
 	static int warned;
 
 	if(addr == 0)
@@ -294,14 +281,14 @@ star(uintptr addr)
 			dprint("no debug.map\n");
 		return 0;
 	}
-	if(geta(debug.map, addr, (uvlong *)&x) < 0){
-		dprint("geta %#p (pid=%d): %r\n", addr, debug.pid);
+	if(get4(debug.map, addr, &x) < 0){
+		dprint("get4 %#lux (pid=%d): %r\n", addr, debug.pid);
 		return 0;
 	}
 	return x;
 }
 
-static uintptr
+static ulong
 resolvev(char *name)
 {
 	Symbol s;
@@ -311,7 +298,7 @@ resolvev(char *name)
 	return s.value;
 }
 
-static uintptr
+static ulong
 resolvef(char *name)
 {
 	Symbol s;
@@ -324,7 +311,7 @@ resolvef(char *name)
 #define FADDR(type, p, name) ((p) + offsetof(type, name))
 #define FIELD(type, p, name) star(FADDR(type, p, name))
 
-static uintptr threadpc;
+static ulong threadpc;
 
 static int
 strprefix(char *big, char *pre)
@@ -348,18 +335,20 @@ tptrace(Map *map, uvlong pc, uvlong sp, Symbol *sym)
 		return;
 	if(strprefix(buf, "/sys/src/libthread/") == 0)
 		return;
+	if(strprefix(buf, "/sys/src/libthread/") == 0)
+		return;
 	threadpc = pc;
 }
 
 static char*
-threadstkline(uintptr t)
+threadstkline(ulong t)
 {
-	uintptr pc, sp;
+	ulong pc, sp;
 	static char buf[500];
 
 	if(FIELD(Thread, t, state) == Running){
-		geta(debug.map, debug.pcoff, (uvlong *)&pc);
-		geta(debug.map, debug.spoff, (uvlong *)&sp);
+		get4(debug.map, offsetof(Ureg, pc), &pc);
+		get4(debug.map, offsetof(Ureg, sp), &sp);
 	}else{
 		// pc = FIELD(Thread, t, sched[JMPBUFPC]);
 		pc = resolvef("longjmp");
@@ -375,9 +364,9 @@ threadstkline(uintptr t)
 }
 
 static void
-proc(uintptr p)
+proc(ulong p)
 {
-	dprint("p=(Proc)%#p pid %d ", p, FIELD(Proc, p, pid));
+	dprint("p=(Proc)%#lux pid %d ", p, FIELD(Proc, p, pid));
 	if(FIELD(Proc, p, thread) == 0)
 		dprint(" Sched\n");
 	else
@@ -405,7 +394,7 @@ fmtbufflush(Fmt *f)
 }
 
 static char*
-debugstr(uintptr s)
+debugstr(ulong s)
 {
 	static char buf[4096];
 	char *p, *e;
@@ -424,7 +413,7 @@ debugstr(uintptr s)
 }
 
 static char*
-threadfmt(uintptr t)
+threadfmt(ulong t)
 {
 	static char buf[4096];
 	Fmt fmt;
@@ -432,7 +421,7 @@ threadfmt(uintptr t)
 
 	fmtbufinit(&fmt, buf, sizeof buf);
 	
-	fmtprint(&fmt, "t=(Thread)%#p ", t);
+	fmtprint(&fmt, "t=(Thread)%#lux ", t);
 	switch(s = FIELD(Thread, t, state)){
 	case Running:
 		fmtprint(&fmt, " Running   ");
@@ -462,16 +451,16 @@ threadfmt(uintptr t)
 
 
 static void
-thread(uintptr t)
+thread(ulong t)
 {
 	dprint("%s\n", threadfmt(t));
 }
 
 static void
-threadapply(uintptr p, void (*fn)(uintptr))
+threadapply(ulong p, void (*fn)(ulong))
 {
 	int oldpid, pid;
-	uintptr tq, t;
+	ulong tq, t;
 	
 	oldpid = debug.pid;
 	pid = FIELD(Proc, p, pid);
@@ -487,29 +476,30 @@ threadapply(uintptr p, void (*fn)(uintptr))
 }
 
 static void
-pthreads1(uintptr t)
+pthreads1(ulong t)
 {
 	dprint("\t");
 	thread(t);
 }
 
 static void
-pthreads(uintptr p)
+pthreads(ulong p)
 {
 	threadapply(p, pthreads1);
 }
 
 static void
-lproc(uintptr p)
+lproc(ulong p)
 {
 	proc(p);
 	pthreads(p);
 }
 
 static void
-procapply(void (*fn)(uintptr))
+procapply(void (*fn)(ulong))
 {
-	uintptr proc, pq;
+	ulong proc;
+	ulong pq;
 	
 	pq = resolvev("_threadpq");
 	if(pq == 0){
@@ -539,9 +529,9 @@ procs(HConnect *c)
 }
 
 static void
-threadstack(uintptr t)
+threadstack(ulong t)
 {
-	uintptr pc, sp;
+	ulong pc, sp;
 
 	if(FIELD(Thread, t, state) == Running){
 		stacktrace(debug.map);
@@ -555,7 +545,7 @@ threadstack(uintptr t)
 
 
 static void
-tstacks(uintptr t)
+tstacks(ulong t)
 {
 	dprint("\t");
 	thread(t);
@@ -564,7 +554,7 @@ tstacks(uintptr t)
 }
 
 static void
-pstacks(uintptr p)
+pstacks(ulong p)
 {
 	proc(p);
 	threadapply(p, tstacks);
@@ -621,14 +611,9 @@ int
 hproc(HConnect *c)
 {
 	void (*fn)(HConnect*);
-	Fmt fmt;
-	static int beenhere;
 	static char buf[65536];
+	Fmt fmt;
 
-	if (!beenhere) {
-		beenhere = 1;
-		ureginit();
-	}
 	if(strcmp(c->req.uri, "/proc/all") == 0)
 		fn = all;
 	else if(strcmp(c->req.uri, "/proc/segment") == 0)
