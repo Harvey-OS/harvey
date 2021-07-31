@@ -1,11 +1,7 @@
 #!/bin/rc
 
-if(test -r '#U'/usb0) {
-	if(! test -r /dev/usb0)
-		bind -a '#U' /dev
+if (test -r '#U'/usb0) {
 	usb/usbd
 	usb/usbmouse -a 2
-	usb/kb -k
 	usb/usbaudio
-	# usb/print
 }

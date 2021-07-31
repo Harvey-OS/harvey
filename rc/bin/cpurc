@@ -69,7 +69,6 @@ if(! ps|grep -s timesync) {
 if(test -e /cfg/$sysname/cpustart)
 	. /cfg/$sysname/cpustart
 
-dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|listen|reboot)$'
-
 # echo `{date} $sysname >>/sys/log/boot
+
 exit ''
