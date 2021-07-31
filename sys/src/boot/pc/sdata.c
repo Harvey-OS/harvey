@@ -902,12 +902,11 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 	if((drive->info[Iconfig] & 0x0060) != 0x0020){
 		microdelay(1);
 		as = ataready(cmdport, ctlport, 0, Bsy, Drq|Chk, 4*1000);
-		if(as < 0 || (as & (Bsy|Chk))){
-			drive->status = as<0 ? 0 : as;
-			ctlr->curdrive = nil;
-			ctlr->done = 1;
+		if(as < 0)
 			r = SDtimeout;
-		}else
+		else if(as & Chk)
+			r = SDcheck;
+		else
 			atapktinterrupt(drive);
 	}
 	iunlock(ctlr);

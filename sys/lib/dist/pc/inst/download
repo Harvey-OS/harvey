@@ -30,25 +30,24 @@ case go
 
 	# BUG make restartable
 	echo 'Downloading distribution package...'
-	baropt='-w 145,129,445,168'
-	if(~ textinst 1)
-		baropt=-t
-	if(! hget -vo /n/newfs/dist/_plan9.iso.bz2 $installurl/plan9.iso.bz2 |[2] bargraph $baropt 'downloading '^plan9.iso.bz2)
-			exit
-	mv /n/newfs/dist/_plan9.iso.bz2 /n/newfs/dist/plan9.iso.bz2
+	if(! hget -vo /n/kfs/dist/_plan9.iso.bz2 $installurl/plan9.iso.bz2 |[2] bargraph -w 145,129,445,168 'downloading '^plan9.iso.bz2)
+		exit
+	mv /n/kfs/dist/_plan9.iso.bz2 /n/kfs/dist/plan9.iso.bz2
 	if(~ $fstype fossil){
 		echo fsys main sync >>/srv/fscons
 	}
+	kname=`{kfsname $fs}
+	disk/kfscmd -n$kname sync
 
 	echo 'The distribution is downloaded.'
 
-	srvmedia=()
-	mountmedia=(mount /srv/fossil /n/distmedia)
+	srvmedia=(disk/kfs -f $fs -n $kname)
+	mountmedia=(mount /srv/kfs.$kname /n/distmedia)
 	distmediadir=/dist
-	export distmediadir mountmedia distmedia
+	export srvmedia mountmedia distmediadir
 	
 case checkdone
-	if(! test -f /n/newfs/dist/plan9.iso.bz2) {
+	if(! test -f /n/kfs/dist/plan9.iso.bz2) {
 		download=notdone
 		export download
 	}

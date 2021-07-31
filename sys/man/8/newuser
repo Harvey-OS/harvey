@@ -4,18 +4,20 @@ newuser \- adding a new user
 .SH SYNOPSIS
 .B /sys/lib/newuser
 .SH DESCRIPTION
-To establish a new user on Plan 9, add the user to
+To establish a new user on Plan 9,
+add the user's name to
 .B /adm/users
 by running the
-.I uname
+.B newuser
 command on the console of the file server
 (see
 .IR users (6)
 and
-.IR fossilcons (4)).
-Next, give the user a password using
-.I auth/changeuser
-on the console of the authentication server (see
+.IR fs (8)).
+Next, give the user a password using the
+.B changeuser
+command on the console of the authentication server
+(see
 .IR auth (8)).
 At this point, the user can bootstrap a terminal using the new name and
 password.
@@ -39,11 +41,8 @@ type
 .EE
 .PP
 to build the necessary directories in
-.BR /usr/$user ,
-create
-.BR /mail/box/$user/mbox ,
-.BR /cron/$user/cron ,
-a reasonable initial profile in
+.B /usr/$user
+and create a reasonable initial profile in
 .BR /usr/$user/lib/profile
 and
 plumbing rules in
@@ -81,7 +80,6 @@ case terminal
 case cpu
 	if (test -e /mnt/term/mnt/wsys) {
 		# rio already running
-		wsys = /mnt/term^`{cat /mnt/term/env/wsys}
 		bind -a /mnt/term/mnt/wsys /dev
 		echo -n $sysname > /dev/label
 	}
@@ -95,8 +93,6 @@ case cpu
 	if (! test -e /mnt/term/mnt/wsys) {
 		# cpu call from drawterm
 		font=/lib/font/bit/pelm/latin1.8.font
-		auth/factotum
-		plumber
 		exec rio
 	}
 case con
@@ -108,11 +104,16 @@ case con
 Sites may make changes to
 .B /sys/lib/newuser
 that reflect the properties of the local environment.
+.PP
+Use the
+.B -c
+option of
+.IR mail (1)
+to create a mailbox.
 .SH "SEE ALSO"
 .IR passwd (1),
 .IR rio (1),
 .IR namespace (4),
-.IR fossil (4),
 .IR users (6),
 .IR auth (8),
-.IR fossilcons (8).
+.IR fs (8)

@@ -4,7 +4,7 @@
 
 switch($1){
 case checkdone
-	if(! ~ $fstype fossil fossil+venti){
+	if(! ~ $fstype kfs fossil){
 		configfs=ready
 		export configfs
 	}
@@ -12,13 +12,13 @@ case checkdone
 case go
 	echo 'You can install the following types of file systems:'
 	echo
-	echo '	fossil			the new Plan9 fileserver'
-	echo '	fossil+venti	fossil + a archival dump server'
+	echo '	fossil			an archival (dump) file server'
+	echo '	kfs				the old Plan 9 on-disk file server'
 	echo
-	echo '(fossil+venti only reserves and formats the partitions'
-	echo ' venti will need, but it will be started on the first'
-	echo ' boot.)'
-	prompt -d fossil 'File system' fossil fossil+venti
+	echo 'If you choose to install fossil, you can add Venti later,'
+	echo 'assuming you leave enough disk space for it.'
+	echo 
+	prompt -d fossil 'File system' fossil kfs
 	fstype=$rd
 	export fstype
 }

@@ -257,7 +257,6 @@ dp8390write(Dp8390* ctlr, ulong to, void* from, ulong len)
 	uchar cr;
 	int timo, width;
 
-top:
 	/*
 	 * Write some data to offset 'to' in the card's memory
 	 * using the DP8390 remote DMA facility, reading it at
@@ -288,12 +287,7 @@ top:
 		regw(ctlr, Rsar1, (crda>>8) & 0xFF);
 		regw(ctlr, Cr, Page0|RdREAD|Sta);
 	
-		for(timo=0;; timo++){
-			if(timo > 10000){
-				print("ether8390: dummyrr timeout; assuming nodummyrr\n");
-				ctlr->dummyrr = 0;
-				goto top;
-			}
+		for(;;){
 			crda = regr(ctlr, Crda0);
 			crda |= regr(ctlr, Crda1)<<8;
 			if(crda == to){

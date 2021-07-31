@@ -12,14 +12,13 @@ echo -n 'Preparing menu...'
 
 # must be topologically sorted (by prereq)
 tasks=(\
-	configfs\
 	partdisk prepdisk\
+	fmtventi\
 	fmtfossil\
 	mountfs\
 	configdist\
 	confignet\
 	mountdist\
-	fmtventi\
 	download\
 	copydist\
 	bootsetup finish stop\
