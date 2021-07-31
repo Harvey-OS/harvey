@@ -4,7 +4,6 @@
 #include "dat.h"
 #include "fns.h"
 
-#include "io.h"
 #include "apic.h"
 #include "mp.h"
 
@@ -180,7 +179,7 @@ mpparse(PCMP* pcmp)
 {
 	u32int lo;
 	u8int *e, *p;
-	int i, n, bustype;
+	int devno, i, n;
 
 	p = pcmp->entries;
 	e = ((uchar*)pcmp)+l16get(pcmp->length);
@@ -276,13 +275,10 @@ mpparse(PCMP* pcmp)
 		 * May need to handle other buses here in the future
 		 * (but unlikely).
 		 */
-		bustype = -1;
-		if(memcmp(mpbus[p[4]]->type, "PCI   ", 6) == 0)
-			bustype = BusPCI;
-		else if(memcmp(mpbus[p[4]]->type, "ISA   ", 6) == 0)
-			bustype = BusISA;
-		if(bustype != -1)
-			ioapicintrinit(bustype, p[4], p[6], p[7], p[5], lo);
+		devno = p[5];
+		if(memcmp(mpbus[p[4]]->type, "PCI   ", 6) != 0)
+			devno <<= 2;
+		ioapicintrinit(p[4], p[6], p[7], devno, lo);
 
 		p += 8;
 		break;
