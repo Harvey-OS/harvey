@@ -4,7 +4,6 @@
 #include <ctype.h>
 
 char *server = "freedb.freedb.org";
-
 int debug;
 #define DPRINT if(debug)fprint
 int tflag;
@@ -19,7 +18,6 @@ struct Track {
 enum {
 	MTRACK = 64,
 };
-
 typedef struct Toc Toc;
 struct Toc {
 	ulong diskid;
@@ -97,7 +95,7 @@ cddbfilltoc(Toc *t)
 
 	fd = dial(netmkaddr(server, "tcp", "888"), 0, 0, 0);
 	if(fd < 0) {
-		fprint(2, "%s: %s: cannot dial: %r\n", argv0, server);
+		fprint(2, "cannot dial: %r\n");
 		return -1;
 	}
 	Binit(&bin, fd, OREAD);
@@ -106,11 +104,10 @@ cddbfilltoc(Toc *t)
 	died:
 		close(fd);
 		Bterm(&bin);
-		fprint(2, "%s: error talking to cddb server %s\n",
-			argv0, server);
+		fprint(2, "error talking to server\n");
 		if(p) {
 			p[Blinelen(&bin)-1] = 0;
-			fprint(2, "%s: server says: %s\n", argv0, p);
+			fprint(2, "server says: %s\n", p);
 		}
 		return -1;
 	}
