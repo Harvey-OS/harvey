@@ -5,7 +5,6 @@
 #define Extern extern
 #include "sparc.h"
 
-#define prof profki
 #define Percent(num, max)	(((num)*100)/(max))
 
 extern Inst op0[], op2[], op3[];

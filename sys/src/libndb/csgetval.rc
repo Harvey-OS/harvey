@@ -1,0 +1,106 @@
+#!/bin/rc
+#
+# command: /bin/boddle /n/juke/plan_9/sys/src/libndb/csgetval.c /sys/src/libndb/csgetval.c
+# srcdir: /n/juke/plan_9/sys/src/libndb
+# version: 827758307
+# date: Mon Mar 25 07:51:47 EST 1996
+#
+myname=$0
+doextract=no
+
+fn usage{
+	echo $myname: usage: $myname '[-X] [src-directory]' >[1=2]
+	exit usage
+}
+
+fn sigint{
+	rm -rf 827758307
+	exit interrupt
+}
+
+while(~ $1 -*){
+	switch($1){
+	case -X
+		doextract=yes
+	case -*
+		usage
+	}
+	shift
+}
+
+switch($#*){
+case 0
+	srcdir=/sys/src/libndb
+case 1
+	srcdir=$1
+case *
+	usage
+}
+
+if(! ~ $doextract yes){
+	echo This shell file contains a bundle of diffs representing changes
+	echo to original source files in the Plan 9 distribution. It will run
+	echo against the files in
+	echo ' ' $srcdir
+	echo '(unless overridden by the optional source directory argument)'
+	echo and create a directory 827758307 containing the updated files.
+	echo It will NOT automatically update the original files.
+	echo
+	echo Invoke with argument -X to perform the actual extraction.
+	exit 0
+}
+
+rm -rf 827758307
+mkdir 827758307
+
+target=827758307/csgetval.c
+echo -n '827758307/csgetval.c: '
+if(! test -f $srcdir/csgetval.c || ! test -r $srcdir/csgetval.c){
+	echo $srcdir/csgetval.c unreadable
+	exit unreadable
+}
+sum=`{sum < $srcdir/csgetval.c}
+if(! ~ dd3f66a31051  $sum(1)^$sum(2)){
+	echo $srcdir/csgetval.c is not the original distribution file
+	exit original
+}
+cp $srcdir/csgetval.c 827758307/csgetval.c
+ed 827758307/csgetval.c >/dev/null >[2=1] <<'//GO.SYSIN DD VADIM csgetval.c'
+57a
+
+.
+25a
+	snprint(line, sizeof(line), "!%s=%s", attr, val);
+	if(write(fd, line, strlen(line)) < 0){
+		close(fd);
+		return 0;
+	}
+	seek(fd, 0, 0);
+.
+24d
+21c
+
+	if(netroot)
+		snprint(line, sizeof(line), "%s/cs", netroot);
+	else
+		strcpy(line, "/net/cs");
+	fd = open(line, ORDWR);
+.
+18a
+	int fd;
+.
+17c
+	int n, linefound;
+.
+14c
+csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
+.
+wq
+//GO.SYSIN DD VADIM csgetval.c
+sum=`{sum < 827758307/csgetval.c}
+if(~ 6ccfa6031265  $sum(1)^$sum(2))
+	echo
+if not{
+	echo 827758307/csgetval.c checksum error creating updated file
+	exit checksum
+}
