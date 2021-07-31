@@ -28,7 +28,6 @@ LIBS=\
 	libscribble\
 	libsec\
 	libstdio\
-	libsunrpc\
 	libthread\
 	libventi\
 

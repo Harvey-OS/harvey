@@ -77,7 +77,6 @@ fidAlloc(void)
 	fid->ref = 0;
 	fid->flags = 0;
 	fid->open = FidOCreate;
-	assert(fid->fsys == nil);
 	assert(fid->file == nil);
 	fid->qid = (Qid){0, 0, 0};
 	assert(fid->uid == nil);
@@ -85,6 +84,7 @@ fidAlloc(void)
 	assert(fid->db == nil);
 	assert(fid->excl == nil);
 	assert(fid->rpc == nil);
+	assert(fid->fsys == nil);
 	assert(fid->cuname == nil);
 	fid->hash = fid->next = fid->prev = nil;
 
@@ -277,23 +277,6 @@ fidClunk(Fid* fid)
 		return;
 	}
 	fidFree(fid);
-}
-
-void
-fidClunkAll(Con* con)
-{
-	Fid *fid;
-	u32int fidno;
-
-	vtLock(con->fidlock);
-	while(con->fhead != nil){
-		fidno = con->fhead->fidno;
-		vtUnlock(con->fidlock);
-		if((fid = fidGet(con, fidno, FidFWlock)) != nil)
-			fidClunk(fid);
-		vtLock(con->fidlock);
-	}
-	vtUnlock(con->fidlock);
 }
 
 void

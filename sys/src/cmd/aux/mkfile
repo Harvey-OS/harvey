@@ -19,10 +19,8 @@ TARG=\
 	ms2\
 	mswordstrings\
 	mouse\
-	nfsmount\
 	olefs\
 	pcmcia\
-	portmap\
 	rdwr\
 	reboot\
 	searchfs\
@@ -40,6 +38,7 @@ UPDATE=\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
+	${TARG:%=/386/bin/aux/%}\
 
 </sys/src/cmd/mkmany
 

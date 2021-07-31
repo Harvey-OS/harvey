@@ -21,23 +21,21 @@ static struct {
 } sbox;
 
 static int
-srvFd(char* name, int mode, int fd, char** mntpnt)
+srvFd(char* name, int mode, int fd)
 {
 	int n, srvfd;
-	char *p, buf[10];
+	char buf[10], srv[VtMaxStringSize];
 
 	/*
 	 * Drop a file descriptor with given name and mode into /srv.
 	 * Create with ORCLOSE and don't close srvfd so it will be removed
 	 * automatically on process exit.
 	 */
-	p = smprint("/srv/%s", name);
-	if((srvfd = create(p, ORCLOSE|OWRITE, mode)) < 0){
-		vtMemFree(p);
-		p = smprint("#s/%s", name);
-		if((srvfd = create(p, ORCLOSE|OWRITE, mode)) < 0){
-			vtSetError("create %s: %r", p);
-			vtMemFree(p);
+	snprint(srv, sizeof(srv), "/srv/%s", name);
+	if((srvfd = create(srv, ORCLOSE|OWRITE, mode)) < 0){
+		snprint(srv, sizeof(srv), "#s/%s", name);
+		if((srvfd = create(srv, ORCLOSE|OWRITE, mode)) < 0){
+			vtSetError("create %s: %r", srv);
 			return -1;
 		}
 	}
@@ -45,12 +43,9 @@ srvFd(char* name, int mode, int fd, char** mntpnt)
 	n = snprint(buf, sizeof(buf), "%d", fd);
 	if(write(srvfd, buf, n) < 0){
 		close(srvfd);
-		vtSetError("write %s: %r", p);
-		vtMemFree(p);
+		vtSetError("write %s: %r", srv);
 		return -1;
 	}
-
-	*mntpnt = p;
 
 	return srvfd;
 }
@@ -79,7 +74,6 @@ srvAlloc(char* service, int mode, int fd)
 {
 	Srv *srv;
 	int srvfd;
-	char *mntpnt;
 
 	vtLock(sbox.lock);
 	for(srv = sbox.head; srv != nil; srv = srv->next){
@@ -90,7 +84,7 @@ srvAlloc(char* service, int mode, int fd)
 		return nil;
 	}
 
-	if((srvfd = srvFd(service, mode, fd, &mntpnt)) < 0){
+	if((srvfd = srvFd(service, mode, fd)) < 0){
 		vtUnlock(sbox.lock);
 		return nil;
 	}
@@ -99,7 +93,6 @@ srvAlloc(char* service, int mode, int fd)
 	srv = vtMemAllocZ(sizeof(Srv));
 	srv->srvfd = srvfd;
 	srv->service = vtStrDup(service);
-	srv->mntpnt = mntpnt;
 
 	if(sbox.tail != nil){
 		srv->prev = sbox.tail;
@@ -180,7 +173,7 @@ cmdSrv(int argc, char* argv[])
 	if(pflag)
 		r = consOpen(fd[1], srv->srvfd, -1);
 	else
-		r = (conAlloc(fd[1], srv->mntpnt) != nil);
+		r = (conAlloc(fd[1], argv[0]) != nil);
 	if(r == 0){
 		close(fd[1]);
 		vtLock(sbox.lock);

@@ -70,8 +70,7 @@ main(int argc, char* argv[])
 
 	consInit();
 	cliInit();
-	msgInit();
-	conInit();
+	procInit();
 	cmdInit();
 	fsysInit();
 	exclInit();
