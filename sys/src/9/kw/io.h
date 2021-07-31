@@ -195,7 +195,7 @@ struct Pcidev
 #define ISAWADDR(va)	(PADDR(va)+ISAWINDOW)
 
 /*
- * Kirkwood stuff
+ * Sheevaplug stuff
  */
 
 /* weird padding macro */
@@ -241,6 +241,18 @@ enum {
 
 	PciINTL		= Addrpci + 0x3c,	/* interrupt line */
 	PciINTP		= PciINTL + 1,	/* interrupt pin */
+};
+enum {
+	/* rstout bits */
+	RstoutPex	= 1<<0,
+	RstoutWatchdog	= 1<<1,
+	RstoutSoft	= 1<<2,
+
+	/* softreset bits */
+	ResetSystem	= 1<<0,
+
+	/* cpucsr bits */
+	Reset		= 1<<1,
 };
 
 /*
@@ -335,7 +347,7 @@ struct IntrReg
 
 
 /*
- * CPU control & status (archkw.c and trap.c)
+ * CPU control & status (archkirkwood.c and trap.c)
  */
 #define CPUCSREG	((CpucsReg*)AddrCpucsr)
 
@@ -346,10 +358,10 @@ struct CpucsReg
 	ulong	cpucsr;
 	ulong	rstout;
 	ulong	softreset;
-	ulong	irq;		/* mbus(-l) bridge interrupt cause */
-	ulong	irqmask;	/* ⋯ mask */
-	ulong	mempm;		/* memory power mgmt. control */
-	ulong	clockgate;	/* clock enable bits */
+	ulong	irq;
+	ulong	irqmask;
+	ulong	mempm;
+	ulong	clockgate;
 	ulong	biu;
 	ulong	pad0;
 	ulong	l2cfg;		/* turn l2 cache on or off, set coherency */
@@ -369,17 +381,6 @@ enum {
 	Cfgvecinithi	= 1<<1,	/* boot at 0xffff0000, not 0; default 1 */
 	Cfgbigendreset	= 3<<1,	/* init. as big-endian at reset; default 0 */
 
-	/* cpucsr bits */
-	Reset		= 1<<1,
-
-	/* rstout bits */
-	RstoutPex	= 1<<0,
-	RstoutWatchdog	= 1<<1,
-	RstoutSoft	= 1<<2,
-
-	/* softreset bits */
-	ResetSystem	= 1<<0,
-
 	/* l2cfg bits */
 	L2ecc		= 1<<2,
 	L2on		= 1<<3,
@@ -387,7 +388,7 @@ enum {
 };
 
 /*
- * clocks (clock.c and archkw.c)
+ * clocks (clock.c and archkirkwood.c)
  */
 
 enum {

@@ -22,7 +22,7 @@ CFLAGS=-c -D_POSIX_SOURCE
 
 all:V:	$DIRS
 
-install:V:	install.dir install.rc
+install:V:	install.dir
 
 installall:V:	installall.dir
 
@@ -49,8 +49,3 @@ cc.$O: cc.c
 
 $O.cc: cc.$O
 	mk -f /sys/src/cmd/mkfile $O.cc
-
-install.rc:V: $BIN/psh
-
-$BIN/%: %.rc
-	cp -x $stem.rc $BIN/$stem

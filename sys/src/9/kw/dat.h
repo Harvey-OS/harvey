@@ -80,7 +80,6 @@ struct Conf
 {
 	ulong	nmach;		/* processors */
 	ulong	nproc;		/* processes */
-	ulong	monitor;	/* has monitor? */
 	Confmem	mem[1];		/* physical memory */
 	ulong	npage;		/* total physical pages of memory */
 	usize	upages;		/* user page pool */

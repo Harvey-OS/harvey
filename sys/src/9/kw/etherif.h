@@ -28,6 +28,7 @@ struct Ether {
 	int	pcmslot;		/* PCMCIA */
 	int	fullduplex;		/* non-zero if full duplex */
 	int	linkchg;		/* link status changed? */
+	int	mcaston;		/* multicast ever enabled? */
 	uvlong	starttime;		/* last activity time */
 
 	Queue*	oq;
