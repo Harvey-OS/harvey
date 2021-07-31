@@ -113,7 +113,7 @@ as a recipient.
 tells marshal what message this one is in reply to.
 .I Replymsg
 is an
-.IR upasfs (4)
+.IR upas/fs (1)
 directory containing the message.
 .I Marshal
 uses any message id in this message in its
