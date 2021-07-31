@@ -11,7 +11,7 @@ system(const char *s)
 	pid_t pid;
 	char cmd[30], *oty;
 
-	oty = getenv("cputype");
+	oty = getenv("objtype");
 	if(!oty)
 		return -1;
 	if(!s)
