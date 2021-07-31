@@ -133,7 +133,6 @@ void run(Node *a)	/* execution of parse tree starts here */
 
 Cell *execute(Node *u)	/* execute a node of the parse tree */
 {
-	int nobj;
 	Cell *(*proc)(Node **, int);
 	Cell *x;
 	Node *a;
@@ -150,11 +149,10 @@ Cell *execute(Node *u)	/* execute a node of the parse tree */
 				recbld();
 			return(x);
 		}
-		nobj = a->nobj;
-		if (notlegal(nobj))	/* probably a Cell* but too risky to print */
+		if (notlegal(a->nobj))	/* probably a Cell* but too risky to print */
 			FATAL("illegal statement");
-		proc = proctab[nobj-FIRSTTOKEN];
-		x = (*proc)(a->narg, nobj);
+		proc = proctab[a->nobj-FIRSTTOKEN];
+		x = (*proc)(a->narg, a->nobj);
 		if (isfld(x) && !donefld)
 			fldbld();
 		else if (isrec(x) && !donerec)
@@ -1542,7 +1540,6 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 
 Cell *printstat(Node **a, int n)	/* print a[0] */
 {
-	int r;
 	Node *x;
 	Cell *y;
 	FILE *fp;
@@ -1556,15 +1553,14 @@ Cell *printstat(Node **a, int n)	/* print a[0] */
 		fputs(getsval(y), fp);
 		tempfree(y);
 		if (x->nnext == NULL)
-			r = fputs(*ORS, fp);
+			fputs(*ORS, fp);
 		else
-			r = fputs(*OFS, fp);
-		if (r == EOF)
-			FATAL("write error on %s", filename(fp));
+			fputs(*OFS, fp);
 	}
 	if (a[1] != 0)
-		if (fflush(fp) == EOF)
-			FATAL("write error on %s", filename(fp));
+		fflush(fp);
+	if (ferror(fp))
+		FATAL("write error on %s", filename(fp));
 	return(True);
 }
 
