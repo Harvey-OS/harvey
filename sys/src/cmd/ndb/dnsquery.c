@@ -65,8 +65,8 @@ static void
 query(int fd)
 {
 	int n, len;
-	char *lp, *p, *np;
-	char buf[1024], line[1024];
+	char line[1024], *lp, *p, *np;
+	char buf[1024];
 	Biobuf in;
 
 	Binit(&in, 0, OREAD);
@@ -95,8 +95,7 @@ query(int fd)
 
 		/* inverse queries may need to be permuted */
 		if(n > 4 && strcmp("ptr", &line[n-3]) == 0 &&
-		    cistrstr(line, ".arpa") == nil){
-			/* TODO: reversing v6 addrs is harder */
+		    cistrstr(line, "in-addr") == 0){
 			for(p = line; *p; p++)
 				if(*p == ' '){
 					*p = '.';
@@ -115,7 +114,7 @@ query(int fd)
 			}
 			memmove(np, p+1, len);
 			np += len;
-			strcpy(np, "in-addr.arpa ptr");	/* TODO: ip6.arpa for v6 */
+			strcpy(np, "in-addr.arpa ptr");
 			strcpy(line, buf);
 			n = strlen(line);
 		}

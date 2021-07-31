@@ -390,8 +390,9 @@ doquery(char *name, char *tstr)
 
 	/* inverse queries may need to be permuted */
 	strncpy(buf, name, sizeof buf);
-	if(strcmp("ptr", tstr) == 0 && cistrstr(name, ".arpa") == nil){
-		/* TODO: reversing v6 addrs is harder */
+	if(strcmp("ptr", tstr) == 0
+	&& strstr(name, "IN-ADDR") == 0
+	&& strstr(name, "in-addr") == 0){
 		for(p = name; *p; p++)
 			;
 		*p = '.';
@@ -408,7 +409,7 @@ doquery(char *name, char *tstr)
 		}
 		memmove(np, p+1, len);
 		np += len;
-		strcpy(np, "in-addr.arpa");	/* TODO: ip6.arpa for v6 */
+		strcpy(np, "in-addr.arpa");
 	}
 
 	/* look it up */
