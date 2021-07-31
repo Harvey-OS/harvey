@@ -21,7 +21,7 @@ printerr(char *type, char *fmt, va_list argl)
 {
 	char buf[1024];
 
-	if(!eof)fprint(errorf,"%s:%d  ", yyfile, yyline);
+	if(!eof)fprint(errorf,"%d: ",yyline);
 	fprint(errorf,"(%s) ", type);
 	vseprint(buf, buf+sizeof(buf), fmt, argl);
 	fprint(errorf, "%s\n", buf);
@@ -71,7 +71,7 @@ lgate(void)
 	if(foutopen == 0){
 		fd = create("lex.yy.c", OWRITE, 0666);
 		if(fd < 0)
-			error("Can't open lex.yy.c: %r");
+			error("Can't open lex.yy.c");
 		Binit(&fout, fd, OWRITE);
 		foutopen = 1;
 		}
@@ -174,12 +174,10 @@ cpyact(void)
 { /* copy C action to the next ; or closing } */
 	int brac, c, mth;
 	int savline, sw;
-	char *savfile;
 
 	brac = 0;
 	sw = TRUE;
 	savline = 0;
-	savfile = "?";
 
 while(!eof){
 	c = gch();
@@ -203,7 +201,6 @@ case ';':
 case '{':
 		brac++;
 		savline=yyline;
-		savfile=yyfile;
 		break;
 
 case '}':
@@ -224,7 +221,6 @@ case '/':	/* look for comments */
 
 		Bputc(&fout, c);
 		savline=yyline;
-		savfile=yyfile;
 		while( c=gch() ){
 			if( c=='*' ){
 				Bputc(&fout, c);
@@ -233,7 +229,6 @@ case '/':	/* look for comments */
 			Bputc(&fout, c);
 		}
 		yyline=savline;
-		yyfile=savfile;
 		error( "EOF inside comment" );
 
 case '\'':	/* character constant */
@@ -262,7 +257,6 @@ case '"':	/* character string */
 
 case '\0':
 		yyline = savline;
-		yyfile = savfile;
 		error("Action does not terminate");
 default:
 		break;		/* usual character */
@@ -283,10 +277,9 @@ gch(void){
 	peek = pushptr > pushc ? *--pushptr : Bgetc(fin);
 	if(peek == Beof && sargc > 1){
 		Bterm(fin);
-		yyfile = sargv[fptr++];
-		fin = Bopen(yyfile,OREAD);
+		fin = Bopen(sargv[fptr++],OREAD);
 		if(fin == 0)
-			error("%s - cannot open file: %r",yyfile);
+			error("Cannot open file %s",sargv[fptr-1]);
 		peek = Bgetc(fin);
 		sargc--;
 		sargv++;

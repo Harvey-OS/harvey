@@ -32,7 +32,6 @@ int sargc;
 char **sargv;
 uchar buf[520];
 int yyline;		/* line number of file */
-char *yyfile;		/* filename for error messages */
 int eof;
 int lgatflg;
 int divflg;
@@ -120,15 +119,13 @@ main(int argc, char **argv)
 	sargc = argc;
 	sargv = argv;
 	if (argc > 0){
-		yyfile = argv[fptr++];
-		fin = Bopen(yyfile, OREAD);
+		fin = Bopen(argv[fptr++], OREAD);
 		if(fin == 0)
-			error ("%s - can't open file: %r", yyfile);
+			error ("Can't read input file %s",argv[0]);
 		sargc--;
 		sargv++;
 	}
 	else {
-		yyfile = "/fd/0";
 		fin = myalloc(sizeof(Biobuf), 1);
 		if(fin == 0)
 			exits("core");
@@ -179,7 +176,7 @@ main(int argc, char **argv)
 # endif
 	fother = Bopen(cname,OREAD);
 	if(fother == 0)
-		error("Lex driver missing, file %s: %r",cname);
+		error("Lex driver missing, file %s",cname);
 	while ( (i=Bgetc(fother)) != Beof)
 		Bputc(&fout, i);
 
@@ -292,5 +289,5 @@ myalloc(int a, int b)
 void
 yyerror(char *s)
 {
-	fprint(2, "%s:%d %s\n", yyfile, yyline, s);
+	fprint(2, "line %d: %s\n", yyline, s);
 }
