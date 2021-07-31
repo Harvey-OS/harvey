@@ -62,6 +62,7 @@ vbecall(Ureg *u)
 		nexterror();
 	}
 	pa = PADDR(RMBUF);
+	/* TODO: check read and write return values */
 	devtab[cmem->type]->write(cmem, modebuf, sizeof modebuf, pa);
 	u->trap = 0x10;
 	devtab[creg->type]->write(creg, u, sizeof *u, 0);
