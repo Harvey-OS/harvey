@@ -8,7 +8,6 @@
 #include	"init.h"
 #include	"pool.h"
 #include	"reboot.h"
-#include	"mp.h"
 
 Mach *m;
 
@@ -702,21 +701,15 @@ reboot(void *entry, void *code, ulong size)
 		sched();
 	}
 
-	/*
-	 * shutdown is too drastic on the pc, it starts a system reset.
-	 * just reset the other cpus, if any.
-	 */
-	if(conf.nmach > 1) {
-		mpresetothers();	/* bug: requires archmp */
-		delay(20);
-	}
+	shutdown(0);
 
 	/*
 	 * should be the only processor running now
 	 */
-	active.machs = 0;
 	if (m->machno != 0)
 		print("on cpu%d (not 0)!\n", m->machno);
+	if (active.machs)
+		print("still have active ap processors!\n");
 
 	print("shutting down...\n");
 	delay(200);
