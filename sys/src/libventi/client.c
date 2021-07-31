@@ -29,19 +29,12 @@ vtDial(char *host, int canfail)
 	if(host == nil)
 		host = "$venti";
 
-	if (host == nil) {
-		if (!canfail)
-			werrstr("no venti host set");
-		na = "";
-		fd = -1;
-	} else {
-		na = netmkaddr(host, 0, "venti");
-		fd = dial(na, 0, 0, 0);
-	}
+	na = netmkaddr(host, 0, "venti");
+	fd = dial(na, 0, 0, 0);
 	if(fd < 0){
 		rerrstr(e, sizeof e);
 		if(!canfail){
-			vtSetError("venti dialstring %s: %s", na, e);
+			vtSetError("%s", e);
 			return nil;
 		}
 	}

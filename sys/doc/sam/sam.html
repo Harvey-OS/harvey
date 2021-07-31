@@ -1,0 +1,3291 @@
+<html>
+<title>
+-
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>The Text Editor <TT>sam</TT>
+</H1>
+<DL><DD><I>Rob Pike<br>
+rob@plan9.bell-labs.com<br>
+</I></DL>
+<DL><DD><H4>ABSTRACT</H4>
+<br>&#32;<br>
+<TT>Sam</TT>
+is an interactive multi-file text editor intended for
+bitmap displays.
+A textual command language
+supplements the mouse-driven, cut-and-paste interface
+to make complex or
+repetitive editing tasks easy to specify.
+The language is characterized by the composition of regular expressions
+to describe the structure of the text being modified.
+The treatment of files as a database, with changes logged
+as atomic transactions, guides the implementation and
+makes a general `undo' mechanism straightforward.
+<P>
+<TT>Sam</TT>
+is implemented as two processes connected by a low-bandwidth stream,
+one process handling the display and the other the editing
+algorithms.  Therefore it can run with the display process
+in a bitmap terminal and the editor on a local host,
+with both processes on a bitmap-equipped host, or with
+the display process in the terminal and the editor in a
+remote host.
+By suppressing the display process,
+it can even run without a bitmap terminal.
+</P>
+<P>
+This paper is reprinted from Software&#173;Practice and Experience,
+Vol 17, number 11, pp. 813-845, November 1987.
+The paper has not been updated for the Plan 9 manuals.  Although
+<TT>Sam</TT>
+has not changed much since the paper was written, the system around it certainly has.
+Nonetheless, the description here still stands as the best introduction to the editor.
+</DL>
+</P>
+<H4>Introduction
+</H4>
+<br>&#32;<br>
+<TT>Sam</TT>
+is an interactive text editor that combines cut-and-paste interactive editing with
+an unusual command language based on the composition of regular expressions.
+It is written as two programs: one, the `host part,' runs on a UNIX system
+and implements the command language and provides file access; the other, the
+`terminal part,' runs asynchronously
+on a machine with a mouse and bitmap display
+and supports the display and interactive editing.
+The host part may be even run in isolation on an ordinary terminal
+to edit text using the command
+language, much like a traditional line editor,
+without assistance from a mouse or display.
+Most often,
+the terminal part runs on a Blit<sup>1</sup> terminal
+(actually on a Teletype DMD 5620, the production version of the Blit), whose
+host connection is an ordinary 9600 bps RS232 link;
+on the SUN computer the host and display processes run on a single machine,
+connected by a pipe.
+<P>
+<TT>Sam</TT>
+edits uninterpreted
+ASCII text.
+It has no facilities for multiple fonts, graphics or tables,
+unlike MacWrite,<sup>2</sup> Bravo,<sup>3</sup> Tioga<sup>4</sup>
+or Lara.<sup>5</sup>
+Also unlike them, it has a rich command language.
+(Throughout this paper, the phrase
+command language
+refers to
+textual commands; commands activated from the mouse form the
+<I>mouse</I>
+<I>language.</I>)
+<TT>Sam</TT>
+developed as an editor for use by programmers, and tries to join
+the styles of the UNIX text editor
+<TT>ed</TT><sup>6,7</sup>
+with that of interactive cut-and-paste editors by
+providing a comfortable mouse-driven interface
+to a program with a solid command language driven by regular expressions.
+The command language developed more than the mouse language, and
+acquired a notation for describing the structure of files
+more richly than as a sequence of lines,
+using a dataflow-like syntax for specifying changes.
+</P>
+<P>
+The interactive style was influenced by
+<TT>jim</TT>,<sup>1</sup>
+an early cut-and-paste editor for the Blit, and by
+<TT>mux</TT>,<sup>8</sup>
+the Blit window system.
+<TT>Mux</TT>
+merges the original Blit window system,
+<TT>mpx</TT>,<sup>1</sup>
+with cut-and-paste editing, forming something like a
+multiplexed version of
+<TT>jim</TT>
+that edits the output of (and input to) command sessions rather than files.
+</P>
+<P>
+The first part of this paper describes the command language, then the mouse
+language, and explains how they interact.
+That is followed by a description of the implementation,
+first of the host part, then of the terminal part.
+A principle that influenced the design of
+<TT>sam</TT>
+is that it should have no explicit limits, such as upper limits on
+file size or line length.
+A secondary consideration is that it be efficient.
+To honor these two goals together requires a method for efficiently
+manipulating
+huge strings (files) without breaking them into lines,
+perhaps while making thousands of changes
+under control of the command language.
+<TT>Sam</TT>'s
+method is to
+treat the file as a transaction database, implementing changes as atomic
+updates.  These updates may be unwound easily to `undo' changes.
+Efficiency is achieved through a collection of caches that minimizes
+disc traffic and data motion, both within the two parts of the program
+and between them.
+</P>
+<P>
+The terminal part of
+<TT>sam</TT>
+is fairly straightforward.
+More interesting is how the two halves of the editor stay
+synchronized when either half may initiate a change.
+This is achieved through a data structure that organizes the
+communications and is maintained in parallel by both halves.
+</P>
+<P>
+The last part of the paper chronicles the writing of
+<TT>sam</TT>
+and discusses the lessons that were learned through its development and use.
+</P>
+<P>
+The paper is long, but is composed largely of two papers of reasonable length:
+a description of the user interface of
+<TT>sam</TT>
+and a discussion of its implementation.
+They are combined because the implementation is strongly influenced by
+the user interface, and vice versa.
+</P>
+<H4>The Interface
+</H4>
+<br>&#32;<br>
+<TT>Sam</TT>
+is a text editor for multiple files.
+File names may be provided when it is invoked:
+<DL><DT><DD><TT><PRE>
+sam file1 file2 ...
+</PRE></TT></DL>
+and there are commands
+to add new files and discard unneeded ones.
+Files are not read until necessary
+to complete some command.
+Editing operations apply to an internal copy
+made when the file is read; the UNIX file associated with the copy
+is changed only by an explicit command.
+To simplify the discussion, the internal copy is here called a
+<I>file</I>,
+while the disc-resident original is called a
+disc file.
+<P>
+<TT>Sam</TT>
+is usually connected to a bitmap display that presents a cut-and-paste
+editor driven by the mouse.
+In this mode, the command language is still available:
+text typed in a special window, called the
+<TT>sam</TT>
+<I>window,</I>
+is interpreted
+as commands to be executed in the current file.
+Cut-and-paste editing may be used in any window &#173; even in the
+<TT>sam</TT>
+window to construct commands.
+The other mode of operation, invoked by starting
+<TT>sam</TT>
+with the option
+<TT>-d</TT>
+(for `no download'),
+does not use the mouse or bitmap display, but still permits
+editing using the textual command language, even on an ordinary terminal,
+interactively or from a script.
+</P>
+<P>
+The following sections describe first the command language (under
+<TT>sam -d</TT>
+and in the
+<TT>sam</TT>
+window), and then the mouse interface.
+These two languages are nearly independent, but connect through the
+<I>current</I>
+<I>text,</I>
+described below.
+</P>
+<H4>The Command Language
+</H4>
+<br>&#32;<br>
+A file consists of its contents, which are an array of characters
+(that is, a string); the
+<I>name</I>
+of the associated disc file; the
+modified bit
+that states whether the contents match those of
+the disc file;
+and a substring of the contents, called the
+current text
+or
+<I>dot</I>
+(see Figures 1 and 2).
+If the current text is a null string, dot falls between characters.
+The
+<I>value</I>
+of dot is the location of the current text; the
+<I>contents</I>
+of dot are the characters it contains.
+<TT>Sam</TT>
+imparts to the text no two-dimensional interpretation such as columns
+or fields; text is always one-dimensional.
+Even the idea of a `line' of text as understood by most UNIX programs
+&#173; a sequence of characters terminated by a newline character &#173;
+is only weakly supported.
+<P>
+The
+current file
+is the file to which editing commands refer.
+The current text is therefore dot in the current file.
+If a command doesn't explicitly name a particular file or piece of text,
+the command is assumed to apply to the current text.
+For the moment, ignore the presence of multiple files and consider
+editing a single file.
+<br><img src="fig1.ps.11760.gif"><br>
+<br>
+<I>Figure 1. A typical
+</I><TT>sam</TT><I>
+screen, with the editing menu presented.
+The
+</I><TT>sam</TT><I>
+(command language) window is in the middle, with file windows above and below.
+(The user interface makes it easy to create these abutting windows.)
+The partially obscured window is a third file window.
+The uppermost window is that to which typing and mouse operations apply,
+as indicated by its heavy border.
+Each window has its current text highlighted in reverse video.
+The
+</I><TT>sam</TT><I>
+window's current text is the null string on the last visible line,
+indicated by a vertical bar.
+See also Figure 2.
+<br>
+<DL><DT><DD><TT><PRE>
+</I><br>&#32;<br>
+</PRE></TT></DL>
+</P>
+<P>
+Commands have one-letter names.
+Except for non-editing commands such as writing
+the file to disc, most commands make some change
+to the text in dot and leave dot set to the text resulting from the change.
+For example, the delete command,
+<TT>d</TT>,
+deletes the text in dot, replacing it by the null string and setting dot
+to the result.
+The change command,
+<TT>c</TT>,
+replaces dot by text delimited by an arbitrary punctuation character,
+conventionally
+a slash.  Thus,
+<DL><DT><DD><TT><PRE>
+c/Peter/
+</PRE></TT></DL>
+replaces the text in dot by the string
+<TT>Peter</TT>.
+Similarly,
+<DL><DT><DD><TT><PRE>
+a/Peter/
+</PRE></TT></DL>
+(append) adds the string after dot, and
+<DL><DT><DD><TT><PRE>
+i/Peter/
+</PRE></TT></DL>
+(insert) inserts before dot.
+All three leave dot set to the new text,
+<TT>Peter</TT>.
+</P>
+<P>
+Newlines are part of the syntax of commands:
+the newline character lexically terminates a command.
+Within the inserted text, however, newlines are never implicit.
+But since it is often convenient to insert multiple lines of text,
+<TT>sam</TT>
+has a special
+syntax for that case:
+<DL><DT><DD><TT><PRE>
+a
+some lines of text
+to be inserted in the file,
+terminated by a period
+on a line by itself
+.
+</PRE></TT></DL>
+In the one-line syntax, a newline character may be specified by a C-like
+escape, so
+<DL><DT><DD><TT><PRE>
+c/\n/
+</PRE></TT></DL>
+replaces dot by a single newline character.
+</P>
+<P>
+<TT>Sam</TT>
+also has a substitute command,
+<TT>s</TT>:
+<DL><DT><DD><TT><PRE>
+s/<I>expression</I>/<I>replacement</I>/
+</PRE></TT></DL>
+substitutes the replacement text for the first match, in dot,
+of the regular expression.
+Thus, if dot is the string
+<TT>Peter</TT>,
+the command
+<DL><DT><DD><TT><PRE>
+s/t/st/
+</PRE></TT></DL>
+changes it to
+<TT>Pester</TT>.
+In general,
+<TT>s</TT>
+is unnecessary, but it was inherited from
+<TT>ed</TT>
+and it has some convenient variations.
+For instance, the replacement text may include the matched text,
+specified by
+<TT>&</TT>:
+<DL><DT><DD><TT><PRE>
+s/Peter/Oh, &amp;, &amp;, &amp;, &amp;!/
+</PRE></TT></DL>
+</P>
+<P>
+There are also three commands that apply programs
+to text:
+<DL><DT><DD><TT><PRE>
+&#60; <I>UNIX program</I>
+</PRE></TT></DL>
+replaces dot by the output of the UNIX program.
+Similarly, the
+<TT>></TT>
+command
+runs the program with dot as its standard input, and
+<TT>|</TT>
+does both.  For example,
+<DL><DT><DD><TT><PRE>
+| sort
+</PRE></TT></DL>
+replaces dot by the result of applying the standard sorting utility to it.
+Again, newlines have no special significance for these
+<TT>sam</TT>
+commands.
+The text acted upon and resulting from these commands is not necessarily
+bounded by newlines, although for connection with UNIX programs,
+newlines may be necessary to obey conventions.
+</P>
+<P>
+One more command:
+<TT>p</TT>
+prints the contents of dot.
+Table I summarizes
+<TT>sam</TT>'s
+commands.
+<br><img src="-.11761.gif"><br>
+<br>&#32;<br>
+</P>
+<P>
+The value of dot may be changed by
+specifying an
+<I>address</I>
+for the command.
+The simplest address is a line number:
+<DL><DT><DD><TT><PRE>
+3
+</PRE></TT></DL>
+refers to the third line of the file, so
+<DL><DT><DD><TT><PRE>
+3d
+</PRE></TT></DL>
+deletes the third line of the file, and implicitly renumbers
+the lines so the old line 4 is now numbered 3.
+(This is one of the few places where
+<TT>sam</TT>
+deals with lines directly.)
+Line
+<TT>0</TT>
+is the null string at the beginning of the file.
+If a command consists of only an address, a
+<TT>p</TT>
+command is assumed, so typing an unadorned
+<TT>3</TT>
+prints line 3 on the terminal.
+There are a couple of other basic addresses:
+a period addresses dot itself; and
+a dollar sign
+(<TT>$</TT>)
+addresses the null string at the end of the file.
+</P>
+<P>
+An address is always a single substring of the file.
+Thus, the address
+<TT>3</TT>
+addresses the characters
+after the second newline of
+the file through the third newline of the file.
+A
+compound address
+is constructed by the comma operator
+<DL><DT><DD><TT><PRE>
+<I>address1</I>,<I>address2</I>
+</PRE></TT></DL>
+and addresses the substring of the file from the beginning of
+<I>address1</I>
+to the end of
+<I>address2</I>.
+For example, the command
+<TT>3,5p</TT>
+prints the third through fifth lines of the file and
+<TT>.,$d</TT>
+deletes the text from the beginning of dot to the end of the file.
+</P>
+<P>
+These addresses are all absolute positions in the file, but
+<TT>sam</TT>
+also has relative addresses, indicated by
+<TT>+</TT>
+or
+<TT>-</TT>.
+For example,
+<DL><DT><DD><TT><PRE>
+$-3
+</PRE></TT></DL>
+is the third line before the end of the file and
+<DL><DT><DD><TT><PRE>
+.+1
+</PRE></TT></DL>
+is the line after dot.
+If no address appears to the left of the
+<TT>+</TT>
+or
+<TT>-</TT>,
+dot is assumed;
+if nothing appears to the right,
+<TT>1</TT>
+is assumed.
+Therefore,
+<TT>.+1</TT>
+may be abbreviated to just a plus sign.
+</P>
+<P>
+The
+<TT>+</TT>
+operator acts relative to the end of its first argument, while the
+<TT>-</TT>
+operator acts relative to the beginning.  Thus
+<TT>.+1</TT>
+addresses the first line after dot,
+<TT>.-</TT>
+addresses the first line before dot, and
+<TT>+-</TT>
+refers to the line containing the end of dot.  (Dot may span multiple lines, and
+<TT>+</TT>
+selects the line after the end of dot, then
+<TT>-</TT>
+backs up one line.)
+</P>
+<P>
+The final type of address is a regular expression, which addresses the
+text matched by the expression.  The expression is enclosed in slashes, as in
+<DL><DT><DD><TT><PRE>
+/<I>expression</I>/
+</PRE></TT></DL>
+The expressions are the same as those in the UNIX program
+<TT>egrep</TT>,<sup>6,7</sup>
+and include closures, alternations, and so on.
+They find the
+leftmost longest
+string that matches the expression, that is,
+the first match after the point where the search is started,
+and if more than one match begins at the same spot, the longest such match.
+(I assume familiarity with the syntax for regular expressions in UNIX programs.<sup>9</sup>)
+For example,
+<DL><DT><DD><TT><PRE>
+/x/
+</PRE></TT></DL>
+matches the next
+<TT>x</TT>
+character in the file,
+<DL><DT><DD><TT><PRE>
+/xx*/
+</PRE></TT></DL>
+matches the next run of one or more
+<TT>x</TT>'s,
+and
+<DL><DT><DD><TT><PRE>
+/x|Peter/
+</PRE></TT></DL>
+matches the next
+<TT>x</TT>
+or
+<TT>Peter</TT>.
+For compatibility with other UNIX programs, the `any character' operator,
+a period,
+does not match a newline, so
+<DL><DT><DD><TT><PRE>
+/.*/
+</PRE></TT></DL>
+matches the text from dot to the end of the line, but excludes the newline
+and so will not match across
+the line boundary.
+</P>
+<P>
+Regular expressions are always relative addresses.
+The direction is forwards by default,
+so
+<TT>/Peter/</TT>
+is really an abbreviation for
+<TT>+/Peter/</TT>.
+The search can be reversed with a minus sign, so
+<DL><DT><DD><TT><PRE>
+<TT>-/Peter/</TT>
+</PRE></TT></DL>
+finds the first
+<TT>Peter</TT>
+before dot.
+Regular expressions may be used with other address forms, so
+<TT>0+/Peter/</TT>
+finds the first
+<TT>Peter</TT>
+in the file and
+<TT>$-/Peter/</TT>
+finds the last.
+Table II summarizes
+<TT>sam</TT>'s
+addresses.
+<br><img src="-.11762.gif"><br>
+<br>&#32;<br>
+</P>
+<P>
+The language discussed so far will not seem novel
+to people who use UNIX text editors
+such as
+<TT>ed</TT>
+or
+<TT>vi</TT>.<sup>9</sup>
+Moreover, the kinds of editing operations these commands allow, with the exception
+of regular expressions and line numbers,
+are clearly more conveniently handled by a mouse-based interface.
+Indeed,
+<TT>sam</TT>'s
+mouse language (discussed at length below) is the means by which
+simple changes are usually made.
+For large or repetitive changes, however, a textual language
+outperforms a manual interface.
+</P>
+<P>
+Imagine that, instead of deleting just one occurrence of the string
+<TT>Peter</TT>,
+we wanted to eliminate every
+<TT>Peter</TT>.
+What's needed is an iterator that runs a command for each occurrence of some
+text.
+<TT>Sam</TT>'s
+iterator is called
+<TT>x</TT>,
+for extract:
+<DL><DT><DD><TT><PRE>
+x/<I>expression</I>/ <I>command</I>
+</PRE></TT></DL>
+finds all matches in dot of the specified expression, and for each
+such match, sets dot to the text matched and runs the command.
+So to delete all the
+<TT>Peters:</TT>
+<DL><DT><DD><TT><PRE>
+0,$ x/Peter/ d
+</PRE></TT></DL>
+(Blanks in these examples are to improve readability;
+<TT>sam</TT>
+neither requires nor interprets them.)
+This searches the entire file
+(<TT>0,$</TT>)
+for occurrences of the string
+<TT>Peter</TT>,
+and runs the
+<TT>d</TT>
+command with dot set to each such occurrence.
+(By contrast, the comparable
+<TT>ed</TT>
+command would delete all
+<I>lines</I>
+containing
+<TT>Peter</TT>;
+<TT>sam</TT>
+deletes only the
+<TT>Peters</TT>.)
+The address
+<TT>0,$</TT>
+is commonly used, and may be abbreviated to just a comma.
+As another example,
+<DL><DT><DD><TT><PRE>
+, x/Peter/ p
+</PRE></TT></DL>
+prints a list of
+<TT>Peters,</TT>
+one for each appearance in the file, with no intervening text (not even newlines
+to separate the instances).
+</P>
+<P>
+Of course, the text extracted by
+<TT>x</TT>
+may be selected by a regular expression,
+which complicates deciding what set of matches is chosen &#173;
+matches may overlap.  This is resolved by generating the matches
+starting from the beginning of dot using the leftmost-longest rule,
+and searching for each match starting from the end of the previous one.
+Regular expressions may also match null strings, but a null match
+adjacent to a non-null match is never selected; at least one character
+must intervene.
+For example,
+<DL><DT><DD><TT><PRE>
+, c/AAA/
+x/B*/ c/-/
+, p
+</PRE></TT></DL>
+produces as output
+<DL><DT><DD><TT><PRE>
+-A-A-A-
+</PRE></TT></DL>
+because the pattern
+<TT>B*</TT>
+matches the null strings separating the
+<TT>A</TT>'s.
+</P>
+<P>
+The
+<TT>x</TT>
+command has a complement,
+<TT>y</TT>,
+with similar syntax, that executes the command with dot set to the text
+<I>between</I>
+the matches of the expression.
+For example,
+<DL><DT><DD><TT><PRE>
+, c/AAA/
+y/A/ c/-/
+, p
+</PRE></TT></DL>
+produces the same result as the example above.
+</P>
+<P>
+The
+<TT>x</TT>
+and
+<TT>y</TT>
+commands are looping constructs, and
+<TT>sam</TT>
+has a pair of conditional commands to go with them.
+They have similar syntax:
+<DL><DT><DD><TT><PRE>
+g/<I>expression</I>/ <I>command</I>
+</PRE></TT></DL>
+(guard)
+runs the command exactly once if dot contains a match of the expression.
+This is different from
+<TT>x</TT>,
+which runs the command for
+<I>each</I>
+match:
+<TT>x</TT>
+loops;
+<TT>g</TT>
+merely tests, without changing the value of dot.
+Thus,
+<DL><DT><DD><TT><PRE>
+, x/Peter/ d
+</PRE></TT></DL>
+deletes all occurrences of
+<TT>Peter</TT>,
+but
+<DL><DT><DD><TT><PRE>
+, g/Peter/ d
+</PRE></TT></DL>
+deletes the whole file (reduces it to a null string) if
+<TT>Peter</TT>
+occurs anywhere in the text.
+The complementary conditional is
+<TT>v</TT>,
+which runs the command if there is
+<I>no</I>
+match of the expression.
+</P>
+<P>
+These control-structure-like commands may be composed to construct more
+involved operations.  For example, to print those lines of text that
+contain the string
+<TT>Peter</TT>:
+<DL><DT><DD><TT><PRE>
+, x/.*\n/ g/Peter/ p
+</PRE></TT></DL>
+The
+<TT>x</TT>
+breaks the file into lines, the
+<TT>g</TT>
+selects those lines containing
+<TT>Peter</TT>,
+and the
+<TT>p</TT>
+prints them.
+This command gives an address for the
+<TT>x</TT>
+command (the whole file), but because
+<TT>g</TT>
+does not have an explicit address, it applies to the value of
+dot produced by the
+<TT>x</TT>
+command, that is, to each line.
+All commands in
+<TT>sam</TT>
+except for the command to write a file to disc use dot for the
+default address.
+</P>
+<P>
+Composition may be continued indefinitely.
+<DL><DT><DD><TT><PRE>
+, x/.*\n/ g/Peter/ v/SaltPeter/ p
+</PRE></TT></DL>
+prints those lines containing
+<TT>Peter</TT>
+but
+<I>not</I>
+those containing
+<TT>SaltPeter</TT>.
+</P>
+<H4>Structural Regular Expressions
+</H4>
+<br>&#32;<br>
+Unlike other UNIX text editors,
+including the non-interactive ones such as
+<TT>sed</TT>
+and
+<TT>awk</TT>,<sup>7</sup>
+<TT>sam</TT>
+is good for manipulating files with multi-line `records.'
+An example is an on-line phone book composed of records,
+separated by blank lines, of the form
+<DL><DT><DD><TT><PRE>
+Herbert Tic
+44 Turnip Ave., Endive, NJ
+201-5555642
+
+Norbert Twinge
+16 Potato St., Cabbagetown, NJ
+201-5553145
+
+...
+</PRE></TT></DL>
+The format may be encoded as a regular expression:
+<DL><DT><DD><TT><PRE>
+(.+\n)+
+</PRE></TT></DL>
+that is, a sequence of one or more non-blank lines.
+The command to print Mr. Tic's entire record is then
+<DL><DT><DD><TT><PRE>
+, x/(.+\n)+/ g/^Herbert Tic$/ p
+</PRE></TT></DL>
+and that to extract just the phone number is
+<DL><DT><DD><TT><PRE>
+, x/(.+\n)+/ g/^Herbert Tic$/ x/^[0-9]*-[0-9]*\n/ p
+</PRE></TT></DL>
+The latter command breaks the file into records,
+chooses Mr. Tic's record,
+extracts the phone number from the record,
+and finally prints the number.
+<P>
+A more involved problem is that of
+renaming a particular variable, say
+<TT>n</TT>,
+to
+<TT>num</TT>
+in a C program.
+The obvious first attempt,
+<DL><DT><DD><TT><PRE>
+, x/n/ c/num/
+</PRE></TT></DL>
+is badly flawed: it changes not only the variable
+<TT>n</TT>
+but any letter
+<TT>n</TT>
+that appears.
+We need to extract all the variables, and select those that match
+<TT>n</TT>
+and only
+<TT>n</TT>:
+<DL><DT><DD><TT><PRE>
+, x/[A-Za-z_][A-Za-z_0-9]*/ g/n/ v/../ c/num/
+</PRE></TT></DL>
+The pattern
+<TT>[A-Za-z_][A-Za-z_0-9]*</TT>
+matches C identifiers.
+Next
+<TT>g/n/</TT>
+selects those containing an
+<TT>n</TT>.
+Then
+<TT>v/../</TT>
+rejects those containing two (or more) characters, and finally
+<TT>c/num/</TT>
+changes the remainder (identifiers
+<TT>n</TT>)
+to
+<TT>num</TT>.
+This version clearly works much better, but there may still be problems.
+For example, in C character and string constants, the sequence
+<TT>0fP
+is interpreted as a newline character, and we don't want to change it to
+</TT><TT>0m.</TT><TT>
+This problem can be forestalled with a
+</TT><TT>y</TT><TT>
+command:
+<DL><DT><DD><TT><PRE>
+, y/\\n/ x/[A-Za-z_][A-Za-z_0-9]*/ g/n/ v/../ c/num/
+</PRE></TT></DL>
+(the second
+</TT><TT>\fP
+is necessary because of lexical conventions in regular expressions),
+or we could even reject character constants and strings outright:
+<DL><DT><DD><TT><PRE>
+,y/'[^']*'/ y/"[^"]*"/ x/[A-Za-z_][A-Za-z_0-9]*/ g/n/ v/../ c/num/
+</PRE></TT></DL>
+The
+</TT><TT>y</TT><TT>
+commands in this version exclude from consideration all character constants
+and strings.
+The only remaining problem is to deal with the possible occurrence of
+</TT><TT>'</TT><TT>
+or
+</TT><TT>
+within these sequences, but it's easy to see how to resolve this difficulty.
+</P>
+</TT><P>
+The point of these composed commands is successive refinement.
+A simple version of the command is tried, and if it's not good enough,
+it can be honed by adding a clause or two.
+(Mistakes can be undone; see below.
+Also, the mouse language makes it unnecessary to retype the command each time.)
+The resulting chains of commands are somewhat reminiscent of
+shell pipelines.<sup>7</sup>
+Unlike pipelines, though, which pass along modified
+<I>data</I>,
+<TT>sam</TT>
+commands pass a
+<I>view</I>
+of the data.
+The text at each step of the command is the same, but which pieces
+are selected is refined step by step until the correct piece is
+available to the final step of the command line, which ultimately makes the change.
+</P>
+<P>
+In other UNIX programs, regular expressions are used only for selection,
+as in the
+<TT>sam</TT>
+<TT>g</TT>
+command, never for extraction as in the
+<TT>x</TT>
+or
+<TT>y</TT>
+command.
+For example, patterns in
+<TT>awk</TT><sup>7</sup>
+are used to select lines to be operated on, but cannot be used
+to describe the format of the input text, or to handle newline-free text.
+The use of regular expressions to describe the structure of a piece
+of text rather than its contents, as in the
+<TT>x</TT>
+command, 
+has been given a name:
+structural regular expressions.
+When they are composed, as in the above example,
+they are pleasantly expressive.
+Their use is discussed at greater length elsewhere.<sup>10</sup>
+</P>
+<P>
+</P>
+<H4>Multiple files
+</H4>
+<br>&#32;<br>
+<TT>Sam</TT>
+has a few other commands, mostly relating to input and output.
+<DL><DT><DD><TT><PRE>
+e discfilename
+</PRE></TT></DL>
+replaces the contents and name of the current file with those of the named
+disc file;
+<DL><DT><DD><TT><PRE>
+w discfilename
+</PRE></TT></DL>
+writes the contents to the named disc file; and
+<DL><DT><DD><TT><PRE>
+r discfilename
+</PRE></TT></DL>
+replaces dot with the contents of the named disc file.
+All these commands use the current file's name if none is specified.
+Finally,
+<DL><DT><DD><TT><PRE>
+f discfilename
+</PRE></TT></DL>
+changes the name associated with the file and displays the result:
+<DL><DT><DD><TT><PRE>
+'-. discfilename
+</PRE></TT></DL>
+This output is called the file's
+menu line,
+because it is the contents of the file's line in the button 3 menu (described
+in the
+next section).
+The first three characters are a concise notation for the state of the file.
+The apostrophe signifies that the file is modified.
+The minus sign indicates the number of windows
+open on the file (see the next section):
+<TT>-</TT>
+means none,
+<TT>+</TT>
+means one, and
+<TT>*</TT>
+means more than one.
+Finally, the period indicates that this is the current file.
+These characters are useful for controlling the
+<TT>X</TT>
+command, described shortly.
+<P>
+<TT>Sam</TT>
+may be started with a set of disc files (such as all the source for
+a program) by invoking it with a list of file names as arguments, and
+more may be added or deleted on demand.
+<DL><DT><DD><TT><PRE>
+B discfile1 discfile2 ...
+</PRE></TT></DL>
+adds the named files to
+<TT>sam</TT>'s
+list, and
+<DL><DT><DD><TT><PRE>
+D discfile1 discfile2 ...
+</PRE></TT></DL>
+removes them from
+<TT>sam</TT>'s
+memory (without effect on associated disc files).
+Both these commands have a syntax for using the shell<sup>7</sup>
+(the UNIX command interpreter) to generate the lists:
+<DL><DT><DD><TT><PRE>
+B &#60;echo *.c
+</PRE></TT></DL>
+will add all C source files, and
+<DL><DT><DD><TT><PRE>
+B &#60;grep -l variable *.c
+</PRE></TT></DL>
+will add all C source files referencing a particular variable
+(the UNIX command
+<TT>grep -l</TT>
+lists all files in its arguments that contain matches of
+the specified regular expression).
+Finally,
+<TT>D</TT>
+without arguments deletes the current file.
+</P>
+<P>
+There are two ways to change which file is current:
+<DL><DT><DD><TT><PRE>
+b filename
+</PRE></TT></DL>
+makes the named file current.
+The
+<TT>B</TT>
+command
+does the same, but also adds any new files to
+<TT>sam</TT>'s
+list.
+(In practice, of course, the current file
+is usually chosen by mouse actions, not by textual commands.)
+The other way is to use a form of address that refers to files:
+<DL><DT><DD><TT><PRE>
+"<I>expression</I>" <I>address</I>
+</PRE></TT></DL>
+refers to the address evaluated in the file whose menu line
+matches the expression (there must be exactly one match).
+For example,
+<DL><DT><DD><TT><PRE>
+"peter.c" 3
+</PRE></TT></DL>
+refers to the third line of the file whose name matches
+<TT>peter.c</TT>.
+This is most useful in the move
+(<TT>m</TT>)
+and copy
+(<TT>t</TT>)
+commands:
+<DL><DT><DD><TT><PRE>
+0,$ t "peter.c" 0
+</PRE></TT></DL>
+makes a copy of the current file at the beginning of
+<TT>peter.c</TT>.
+</P>
+<P>
+The
+<TT>X</TT>
+command
+is a looping construct, like
+<TT>x</TT>,
+that refers to files instead of strings:
+<DL><DT><DD><TT><PRE>
+X/<I>expression</I>/ <I>command</I>
+</PRE></TT></DL>
+runs the command in all
+files whose menu lines match the expression.  The best example is
+<DL><DT><DD><TT><PRE>
+X/'/ w
+</PRE></TT></DL>
+which writes to disc all modified files.
+<TT>Y</TT>
+is the complement of
+<TT>X</TT>:
+it runs the command on all files whose menu lines don't match the expression:
+<DL><DT><DD><TT><PRE>
+Y/\.c/ D
+</PRE></TT></DL>
+deletes all files that don't have
+<TT>.c</TT>
+in their names, that is, it keeps all C source files and deletes the rest.
+</P>
+<P>
+Braces allow commands to be grouped, so
+<DL><DT><DD><TT><PRE>
+{
+	<I>command1</I>
+	<I>command2</I>
+}
+</PRE></TT></DL>
+is syntactically a single command that runs two commands.
+Thus,
+<DL><DT><DD><TT><PRE>
+X/\.c/ ,g/variable/ {
+	f
+	, x/.*\n/ g/variable/ p
+}
+</PRE></TT></DL>
+finds all occurrences of
+<TT>variable</TT>
+in C source files, and prints
+out the file names and lines of each match.
+The precise semantics of compound operations is discussed in the implementation
+sections below.
+</P>
+<P>
+Finally,
+the undo command,
+<TT>u</TT>,
+undoes the last command,
+no matter how many files were affected.
+Multiple undo operations move further back in time, so
+<DL><DT><DD><TT><PRE>
+u
+u
+</PRE></TT></DL>
+(which may be abbreviated
+<TT>u2</TT>)
+undoes the last two commands.  An undo may not be undone, however, nor
+may any command that adds or deletes files.
+Everything else is undoable, though, including for example
+<TT>e</TT>
+commands:
+<DL><DT><DD><TT><PRE>
+e filename
+u
+</PRE></TT></DL>
+restores the state of the file completely, including its name, dot,
+and modified bit.  Because of the undo, potentially dangerous commands
+are not guarded by confirmations.  Only
+<TT>D</TT>,
+which destroys the information necessary to restore itself, is protected.
+It will not delete a modified file, but a second
+<TT>D</TT>
+of the same file will succeed regardless.
+The
+<TT>q</TT>
+command, which exits
+<TT>sam</TT>,
+is similarly guarded.
+</P>
+<H4>Mouse Interface
+</H4>
+<br>&#32;<br>
+<TT>Sam</TT>
+is most commonly run
+connected to a bitmap display and mouse for interactive editing.
+The only difference in the command language
+between regular, mouse-driven
+<TT>sam</TT>
+and
+<TT>sam -d</TT>
+is that if an address
+is provided without a command,
+<TT>sam -d</TT>
+will print the text referenced by the address, but
+regular
+<TT>sam</TT>
+will highlight it on the screen &#173; in fact,
+dot is always highlighted (see Figure 2).
+<br><img src="fig3.ps.11763.gif"><br>
+<br>
+<I>Figure 2. A
+</I><TT>sam</TT><I>
+window.  The scroll bar down the left
+represents the file, with the bubble showing the fraction
+visible in the window.
+The scroll bar may be manipulated by the mouse for convenient browsing.
+The current text,
+which is highlighted, need not fit on a line.  Here it consists of one partial
+line, one complete line, and final partial line.
+<br>
+<DL><DT><DD><TT><PRE>
+</I><br>&#32;<br>
+</PRE></TT></DL>
+<P>
+Each file may have zero or more windows open on the display.
+At any time, only one window in all of
+<TT>sam</TT>
+is the
+current window,
+that is, the window to which typing and mouse actions refer;
+this may be the
+<TT>sam</TT>
+window (that in which commands may be typed)
+or one of the file windows.
+When a file has multiple windows, the image of the file in each window
+is always kept up to date.
+The current file is the last file affected by a command,
+so if the
+<TT>sam</TT>
+window is current,
+the current window is not a window on the current file.
+However, each window on a file has its own value of dot,
+and when switching between windows on a single file,
+the file's value of dot is changed to that of the window.
+Thus, flipping between windows behaves in the obvious, convenient way.
+</P>
+<P>
+The mouse on the Blit has three buttons, numbered left to right.
+Button 3 has a list of commands to manipulate windows,
+followed by a list of `menu lines' exactly as printed by the
+<TT>f</TT>
+command, one per file (not one per window).
+These menu lines are sorted by file name.
+If the list is long, the Blit menu software will make it more manageable
+by generating a scrolling menu instead of an unwieldy long list.
+Using the menu to select a file from the list makes that file the current
+file, and the most recently current window in that file the current window.
+But if that file is already current, selecting it in the menu cycles through
+the windows on the file; this simple trick avoids a special menu to
+choose windows on a file.
+If there is no window open on the file,
+<TT>sam</TT>
+changes the mouse cursor to prompt the user to create one.
+</P>
+<P>
+The commands on the button 3 menu are straightforward (see Figure 3), and
+are like the commands to manipulate windows in
+<TT>mux</TT>,<sup>8</sup>
+the Blit's window system.
+<TT>New</TT>
+makes a new file, and gives it one empty window, whose size is determined
+by a rectangle swept by the mouse.
+<TT>Zerox</TT>
+prompts for a window to be selected, and
+makes a clone of that window; this is how multiple windows are created on one file.
+<TT>Reshape</TT>
+changes the size of the indicated window, and
+<TT>close</TT>
+deletes it.  If that is the last window open on the file,
+<TT>close</TT>
+first does a
+<TT>D</TT>
+command on the file.
+<TT>Write</TT>
+is identical to a
+<TT>w</TT>
+command on the file; it is in the menu purely for convenience.
+Finally,
+<TT>~~sam~~</TT>
+is a menu item that appears between the commands and the file names.
+Selecting it makes the
+<TT>sam</TT>
+window the current window,
+causing subsequent typing to be interpreted as commands.
+<br><img src="fig2.ps.11764.gif"><br>
+<br>
+<I>Figure 3. The menu on button 3.
+The black rectangle on the left is a scroll bar; the menu is limited to
+the length shown to prevent its becoming unwieldy.
+Above the
+</I><TT>~~sam~~</TT><I>
+line is a list of commands;
+beneath it is a list of files, presented exactly as with the
+</I><TT>f</TT><I>
+command.
+<br>
+<DL><DT><DD><TT><PRE>
+</I><br>&#32;<br>
+</PRE></TT></DL>
+</P>
+<P>
+When
+<TT>sam</TT>
+requests that a window be swept, in response to
+<TT>new</TT>,
+<TT>zerox</TT>
+or
+<TT>reshape</TT>,
+it changes the mouse cursor from the usual arrow to a box with
+a small arrow.
+In this state, the mouse may be used to indicate an arbitrary rectangle by
+pressing button 3 at one corner and releasing it at the opposite corner.
+More conveniently,
+button 3 may simply be clicked,
+whereupon
+<TT>sam</TT>
+creates the maximal rectangle that contains the cursor
+and abuts the
+<TT>sam</TT>
+window.
+By placing the
+<TT>sam</TT>
+window in the middle of the screen, the user can define two regions (one above,
+one below) in which stacked fully-overlapping
+windows can be created with minimal fuss (see Figure 1).
+This simple user interface trick makes window creation noticeably easier.
+</P>
+<P>
+The cut-and-paste editor is essentially the same as that in Smalltalk-80.<sup>11</sup>
+The text in dot is always highlighted on the screen.
+When a character is typed it replaces dot, and sets dot to the null
+string after the character.  Thus, ordinary typing inserts text.
+Button 1 is used for selection:
+pressing the button, moving the mouse, and lifting the button
+selects (sets dot to) the text between the points where the
+button was pressed and released.
+Pressing and releasing at the same point selects a null string; this
+is called clicking.  Clicking twice quickly, or
+double clicking,
+selects larger objects;
+for example, double clicking in a word selects the word,
+double clicking just inside an opening bracket selects the text
+contained in the brackets (handling nested brackets correctly),
+and similarly for
+parentheses, quotes, and so on.
+The double-clicking rules reflect a bias toward
+programmers.
+If
+<TT>sam</TT>
+were intended more for word processing, double-clicks would probably
+select linguistic structures such as sentences.
+</P>
+<P>
+If button 1 is pressed outside the current window, it makes the indicated
+window current.
+This is the easiest way to switch between windows and files.
+</P>
+<P>
+Pressing button 2 brings up a menu of editing functions (see Figure 4).
+These mostly apply to the selected text:
+<TT>cut</TT>
+deletes the selected text, and remembers it in a hidden buffer called the
+snarf buffer,
+<TT>paste</TT>
+replaces the selected text by the contents of the snarf buffer,
+<TT>snarf</TT>
+just copies the selected text to the snarf buffer,
+<TT>look</TT>
+searches forward for the next literal occurrence of the selected text, and
+<TT><mux></TT>
+exchanges snarf buffers with the window system in which
+<TT>sam</TT>
+is running.
+Finally, the last regular expression used appears as a menu entry
+to search
+forward for the next occurrence of a match for the expression.
+<br><img src="fig4.ps.11765.gif"><br>
+<br>
+<I>Figure 4. The menu on button 2.
+The bottom entry tracks the most recently used regular expression, which may
+be literal text.
+<br>
+<DL><DT><DD><TT><PRE>
+</I><br>&#32;<br>
+</PRE></TT></DL>
+</P>
+<P>
+The relationship between the command language and the mouse language is
+entirely due to the equality of dot and the selected text chosen
+with button 1 on the mouse.
+For example, to make a set of changes in a C subroutine, dot can be
+set by double clicking on the left brace that begins the subroutine,
+which sets dot for the command language.
+An address-free command then typed in the
+<TT>sam</TT>
+window will apply only to the text between the opening and closing
+braces of the function.
+The idea is to select what you want, and then say what you want
+to do with it, whether invoked by a menu selection or by a typed command.
+And of course, the value of dot is highlighted on
+the display after the command completes.
+This relationship between mouse interface and command language
+is clumsy to explain, but comfortable, even natural, in practice.
+</P>
+<H4>The Implementation
+</H4>
+<br>&#32;<br>
+The next few sections describe how
+<TT>sam</TT>
+is put together, first the host part,
+then the inter-component communication,
+then the terminal part.
+After explaining how the command language is implemented,
+the discussion follows (roughly) the path of a character
+from the temporary file on disc to the screen.
+The presentation centers on the data structures,
+because that is how the program was designed and because
+the algorithms are easy to provide, given the right data
+structures.
+<H4>Parsing and execution
+</H4>
+<br>&#32;<br>
+The command language is interpreted by parsing each command with a
+table-driven recursive
+descent parser, and when a complete command is assembled, invoking a top-down
+executor.
+Most editors instead employ a simple character-at-a-time
+lexical scanner.
+Use of a parser makes it
+easy and unambiguous to detect when a command is complete,
+which has two advantages.
+First, escape conventions such as backslashes to quote
+multiple-line commands are unnecessary;  if the command isn't finished,
+the parser keeps reading.  For example, a multiple-line append driven by an
+<TT>x</TT>
+command is straightforward:
+<DL><DT><DD><TT><PRE>
+x/.*\n/ g/Peter/ a
+one line about Peter
+another line about Peter
+.
+</PRE></TT></DL>
+Other UNIX editors would require a backslash after all but the last line.
+<P>
+The other advantage is specific to the two-process structure of
+<TT>sam</TT>.
+The host process must decide when a command is completed so the
+command interpreter can be called.  This problem is easily resolved
+by having the lexical analyzer read the single stream of events from the
+terminal, directly executing all typing and mouse commands,
+but passing to the parser characters typed to the
+<TT>sam</TT>
+command window.
+This scheme is slightly complicated by the availability of cut-and-paste
+editing in the
+<TT>sam</TT>
+window, but that difficulty is resolved by applying the rules
+used in
+<TT>mux</TT>:
+when a newline is typed to the
+<TT>sam</TT>
+window, all text between the newline and the previously typed newline
+is made available to the parser.
+This permits arbitrary editing to be done to a command before
+typing newline and thereby requesting execution.
+</P>
+<P>
+The parser is driven by a table because the syntax of addresses
+and commands is regular enough
+to be encoded compactly.  There are few special cases, such as the
+replacement text in a substitution, so the syntax of almost all commands
+can be encoded with a few flags.
+These include whether the command allows an address (for example,
+<TT>e</TT>
+does not), whether it takes a regular expression (as in
+<TT>x</TT>
+and
+<TT>s</TT>),
+whether it takes replacement text (as in
+<TT>c</TT>
+or
+<TT>i</TT>),
+which may be multi-line, and so on.
+The internal syntax of regular expressions is handled by a separate
+parser; a regular expression is a leaf of the command parse tree.
+Regular expressions are discussed fully in the next section.
+</P>
+<P>
+The parser table also has information about defaults, so the interpreter
+is always called with a complete tree.  For example, the parser fills in
+the implicit
+<TT>0</TT>
+and
+<TT>$</TT>
+in the abbreviated address
+<TT>,</TT>
+(comma),
+inserts a
+<TT>+</TT>
+to the left of an unadorned regular expression in an address,
+and provides the usual default address
+<TT>.</TT>
+(dot) for commands that expect an address but are not given one.
+</P>
+<P>
+Once a complete command is parsed, the evaluation is easy.
+The address is evaluated left-to-right starting from the value of dot,
+with a mostly ordinary expression evaluator.
+Addresses, like many of the data structures in
+<TT>sam</TT>,
+are held in a C structure and passed around by value:
+<DL><DT><DD><TT><PRE>
+typedef long Posn;    /* Position in a file */
+typedef struct Range{
+        Posn    p1, p2;
+}Range;
+typedef struct Address{
+        Range   r;
+        File    *f;
+}Address;
+</PRE></TT></DL>
+An address is encoded as a substring (character positions
+<TT>p1</TT>
+to
+<TT>p2</TT>)
+in a file
+<TT>f</TT>.
+(The data type
+<TT>File</TT>
+is described in detail below.)
+</P>
+<P>
+The address interpreter is an
+<TT>Address</TT>-valued
+function that traverses the parse tree describing an address (the
+parse tree for the address has type
+<TT>Addrtree</TT>):
+<DL><DT><DD><TT><PRE>
+Address
+address(ap, a, sign)
+	Addrtree *ap;
+	Address a;
+	int sign;
+{
+	Address a2;
+	do
+		switch(ap-&#62;type){
+		case '.':
+			a=a.f-&#62;dot;
+			break;
+		case '$':
+			a.r.p1=a.r.p2=a.f-&#62;nbytes;
+			break;
+		case '"':	
+			a=matchfile(a, ap-&#62;aregexp)-&#62;dot; 
+			break;
+		case ',':
+			a2=address(ap-&#62;right, a, 0);
+			a=address(ap-&#62;left, a, 0);
+			if(a.f!=a2.f || a2.r.p2&#60;a.r.p1)
+				error(Eorder);
+			a.r.p2=a2.r.p2;
+			return a;
+		/* and so on */
+		}
+	while((ap=ap-&#62;right)!=0);
+	return a;
+}
+</PRE></TT></DL>
+</P>
+<P>
+Throughout, errors are handled by a non-local
+<TT>goto</TT>
+(a
+<TT>setjmp/longjmp</TT>
+in C terminology)
+hidden in a routine called
+<TT>error</TT>
+that immediately aborts the execution, retracts any
+partially made changes (see the section below on `undoing'), and
+returns to the top level of the parser.
+The argument to
+<TT>error</TT>
+is an enumeration type that
+is translated to a terse but possibly helpful
+message such as `?addresses out of order.'
+Very common messages are kept short; for example the message for
+a failed regular expression search is `?search.'
+</P>
+<P>
+Character addresses such as
+<TT>#3</TT>
+are trivial to implement, as the
+<TT>File</TT>
+data structure is accessible by character number.
+However,
+<TT>sam</TT>
+keeps no information about the position of newlines &#173; it is too
+expensive to track dynamically &#173; so line addresses are computed by reading
+the file, counting newlines.  Except in very large files, this has proven
+acceptable: file access is fast enough to make the technique practical,
+and lines are not central to the structure of the command language.
+</P>
+<P>
+The command interpreter, called
+<TT>cmdexec</TT>,
+is also straightforward.  The parse table includes a
+function to call to interpret a particular command.  That function
+receives as arguments
+the calculated address
+for the command
+and the command tree (of type
+<TT>Cmdtree</TT>),
+which may contain information such as the subtree for compound commands.
+Here, for example, is the function for the
+<TT>g</TT>
+and
+<TT>v</TT>
+commands:
+<DL><DT><DD><TT><PRE>
+int
+g_cmd(a, cp)
+	Address a;
+	Cmdtree *cp;
+{
+	compile(cp-&#62;regexp);
+	if(execute(a.f, a.r.p1, a.r.p2)!=(cp-&#62;cmdchar=='v')){
+		a.f-&#62;dot=a;
+		return cmdexec(a, cp-&#62;subcmd);
+	}
+	return TRUE;	/* cause execution to continue */
+}
+</PRE></TT></DL>
+(<TT>Compile</TT>
+and
+<TT>execute</TT>
+are part of the regular expression code, described in the next section.)
+Because the parser and the
+<TT>File</TT>
+data structure do most of the work, most commands
+are similarly brief.
+</P>
+<H4>Regular expressions
+</H4>
+<br>&#32;<br>
+The regular expression code in
+<TT>sam</TT>
+is an interpreted, rather than compiled on-the-fly, implementation of Thompson's
+non-deterministic finite automaton algorithm.<sup>12</sup>
+The syntax and semantics of the expressions are as in the UNIX program
+<TT>egrep</TT>,
+including alternation, closures, character classes, and so on.
+The only changes in the notation are two additions:
+<TT>0fP
+is translated to, and matches, a newline character, and
+</TT><TT>@</TT><TT>
+matches any character.  In
+</TT><TT>egrep</TT><TT>,
+the character
+</TT><TT>.</TT><TT>
+matches any character except newline, and in
+</TT><TT>sam</TT><TT>
+the same rule seemed safest, to prevent idioms like
+</TT><TT>.*</TT><TT>
+from spanning newlines.
+</TT><TT>Egrep</TT><TT>
+expressions are arguably too complicated for an interactive editor &#173;
+certainly it would make sense if all the special characters were two-character
+sequences, so that most of the punctuation characters wouldn't have
+peculiar meanings &#173; but for an interesting command language, full
+regular expressions are necessary, and
+</TT><TT>egrep</TT><TT>
+defines the full regular expression syntax for UNIX programs.
+Also, it seemed superfluous to define a new syntax, since various UNIX programs
+(</TT><TT>ed</TT><TT>,
+</TT><TT>egrep</TT><TT>
+and
+</TT><TT>vi</TT><TT>)
+define too many already.
+</TT><P>
+The expressions are compiled by a routine,
+<TT>compile</TT>,
+that generates the description of the non-deterministic finite state machine.
+A second routine,
+<TT>execute</TT>,
+interprets the machine to generate the leftmost-longest match of the
+expression in a substring of the file.
+The algorithm is described elsewhere.<sup>12,13</sup>
+<TT>Execute</TT>
+reports
+whether a match was found, and sets a global variable,
+of type
+<TT>Range</TT>,
+to the substring matched.
+</P>
+<P>
+A trick is required to evaluate the expression in reverse, such as when
+searching backwards for an expression.
+For example,
+<DL><DT><DD><TT><PRE>
+-/P.*r/
+</PRE></TT></DL>
+looks backwards through the file for a match of the expression.
+The expression, however, is defined for a forward search.
+The solution is to construct a machine identical to the machine
+for a forward search except for a reversal of all the concatenation
+operators (the other operators are symmetric under direction reversal),
+to exchange the meaning of the operators
+<TT>^</TT>
+and
+<TT>$</TT>,
+and then to read the file backwards, looking for the
+usual earliest longest match.
+</P>
+<P>
+<TT>Execute</TT>
+generates only one match each time it is called.
+To interpret looping constructs such as the
+<TT>x</TT>
+command,
+<TT>sam</TT>
+must therefore synchronize between
+calls of
+<TT>execute</TT>
+to avoid
+problems with null matches.
+For example, even given the leftmost-longest rule,
+the expression
+<TT>a*</TT>
+matches three times in the string
+<TT>ab</TT>
+(the character
+<TT>a</TT>,
+the null string between the
+<TT>a</TT>
+and
+<TT>b</TT>,
+and the final null string).
+After returning a match for the
+<TT>a</TT>,
+<TT>sam</TT>
+must not match the null string before the
+<TT>b</TT>.
+The algorithm starts
+<TT>execute</TT>
+at the end of its previous match, and
+if the match it returns
+is null and abuts the previous match, rejects the match and advances
+the initial position one character.
+</P>
+<H4>Memory allocation
+</H4>
+<br>&#32;<br>
+The C language has no memory allocation primitives, although a standard
+library routine,
+<TT>malloc</TT>,
+provides adequate service for simple programs.
+For specific uses, however,
+it can be better to write a custom allocator.
+The allocator (or rather, pair of allocators) described here
+work in both the terminal and host parts of
+<TT>sam</TT>.
+They are designed for efficient manipulation of strings,
+which are allocated and freed frequently and vary in length from essentially
+zero to 32 Kbytes (very large strings are written to disc).
+More important, strings may be large and change size often,
+so to minimize memory usage it is helpful to reclaim and to coalesce the
+unused portions of strings when they are truncated.
+<P>
+Objects to be allocated in
+<TT>sam</TT>
+are of two flavors:
+the first is C
+<TT>structs</TT>,
+which are small and often addressed by pointer variables;
+the second is variable-sized arrays of characters
+or integers whose
+base pointer is always used to access them.
+The memory allocator in
+<TT>sam</TT>
+is therefore in two parts:
+first, a traditional first-fit allocator that provides fixed storage for
+<TT>structs</TT>;
+and second, a garbage-compacting allocator that reduces storage
+overhead for variable-sized objects, at the cost of some bookkeeping.
+The two types of objects are allocated from adjoining arenas, with
+the garbage-compacting allocator controlling the arena with higher addresses.
+Separating into two arenas simplifies compaction and prevents fragmentation due
+to immovable objects.
+The access rules for garbage-compactable objects
+(discussed in the next paragraph) allow them to be relocated, so when
+the first-fit arena needs space, it moves the garbage-compacted arena
+to higher addresses to make room.  Storage is therefore created only
+at successively higher addresses, either when more garbage-compacted
+space is needed or when the first-fit arena pushes up the other arena.
+</P>
+<P>
+Objects that may be compacted declare to the
+allocator a cell that is guaranteed to be the sole repository of the
+address of the object whenever a compaction can occur.
+The compactor can then update the address when the object is moved.
+For example, the implementation of type
+<TT>List</TT>
+(really a variable-length array)
+is:
+<DL><DT><DD><TT><PRE>
+typedef struct List{
+        int     nused;
+        long    *ptr;
+}List;
+</PRE></TT></DL>
+The
+<TT>ptr</TT>
+cell must always be used directly, and never copied.  When a
+<TT>List</TT>
+is to be created the
+<TT>List</TT>
+structure is allocated in the ordinary first-fit arena
+and its
+<TT>ptr</TT>
+is allocated in the garbage-compacted arena.
+A similar data type for strings, called
+<TT>String</TT>,
+stores variable-length character arrays of up to 32767 elements.
+</P>
+<P>
+A related matter of programming style:
+<TT>sam</TT>
+frequently passes structures by value, which
+simplifies the code.
+Traditionally, C programs have
+passed structures by reference, but implicit allocation on
+the stack is easier to use.
+Structure passing is a relatively new feature of C
+(it is not in the 
+standard reference manual for C<sup>14</sup>), and is poorly supported in most
+commercial C compilers.
+It's convenient and expressive, though,
+and simplifies memory management by
+avoiding the allocator altogether
+and eliminating pointer aliases.
+</P>
+<H4>Data structures for manipulating files
+</H4>
+<br>&#32;<br>
+Experience with
+<TT>jim</TT>
+showed that the requirements
+of the file data structure were few, but strict.
+First, files need to be read and written quickly;
+adding a fresh file must be painless.
+Second, the implementation must place no arbitrary upper limit on
+the number or sizes of files.  (It should be practical to edit many files,
+and files up to megabytes in length should be handled gracefully.)
+This implies that files be stored on disc, not in main memory.
+(Aficionados of virtual memory may argue otherwise, but the
+implementation of virtual
+memory in our system is not something to depend on
+for good performance.)
+Third, changes to files need be made by only two primitives:
+deletion and insertion.
+These are inverses of each other,
+which simplifies the implementation of the undo operation.
+Finally,
+it must be easy and efficient to access the file, either
+forwards or backwards, a byte at a time.
+<P>
+The
+<TT>File</TT>
+data type is constructed from three simpler data structures that hold arrays
+of characters.
+Each of these types has an insertion and deletion operator, and the
+insertion and deletion operators of the
+<TT>File</TT>
+type itself are constructed from them.
+</P>
+<P>
+The simplest type is the
+<TT>String</TT>,
+which is used to hold strings in main memory.
+The code that manages
+<TT>Strings</TT>
+guarantees that they will never be longer
+than some moderate size, and in practice they are rarely larger than 8 Kbytes.
+<TT>Strings</TT>
+have two purposes: they hold short strings like file names with little overhead,
+and because they are deliberately small, they are efficient to modify.
+They are therefore used as the data structure for in-memory caches.
+</P>
+<P>
+The disc copy of the file is managed by a data structure called a
+<TT>Disc</TT>,
+which corresponds to a temporary file.  A
+<TT>Disc</TT>
+has no storage in main memory other than bookkeeping information;
+the actual data being held is all on the disc.
+To reduce the number of open files needed,
+<TT>sam</TT>
+opens a dozen temporary UNIX files and multiplexes the
+<TT>Discs</TT>
+upon them.
+This permits many files to
+be edited; the entire
+<TT>sam</TT>
+source (48 files) may be edited comfortably with a single
+instance of
+<TT>sam</TT>.
+Allocating one temporary file per
+<TT>Disc</TT>
+would strain the operating system's limit on the number of open files.
+Also, spreading the traffic among temporary files keeps the files shorter,
+and shorter files are more efficiently implemented by the UNIX
+I/O subsystem.
+</P>
+<P>
+A
+<TT>Disc</TT>
+is an array of fixed-length blocks, each of which contains
+between 1 and 4096 characters of active data.
+(The block size of our UNIX file system is 4096 bytes.)
+The block addresses within the temporary file and the length of each
+block are stored in a
+<TT>List</TT>.
+When changes are made the live part of blocks may change size.
+Blocks are created and coalesced when necessary to try to keep the sizes
+between 2048 and 4096 bytes.
+An actively changing part of the
+<TT>Disc</TT>
+therefore typically has about a kilobyte of slop that can be
+inserted or deleted
+without changing more than one block or affecting the block order.
+When an insertion would overflow a block, the block is split, a new one
+is allocated to receive the overflow, and the memory-resident list of blocks
+is rearranged to reflect the insertion of the new block.
+</P>
+<P>
+Obviously, going to the disc for every modification to the file is
+prohibitively expensive.
+The data type
+<TT>Buffer</TT>
+consists of a
+<TT>Disc</TT>
+to hold the data and a
+<TT>String</TT>
+that acts as a cache.
+This is the first of a series of caches throughout the data structures in
+<TT>sam.</TT>
+The caches not only improve performance, they provide a way to organize
+the flow of data, particularly in the communication between the host
+and terminal.
+This idea is developed below, in the section on communications.
+</P>
+<P>
+To reduce disc traffic, changes to a
+<TT>Buffer</TT>
+are mediated by a variable-length string, in memory, that acts as a cache.
+When an insertion or deletion is made to a
+<TT>Buffer</TT>,
+if the change can be accommodated by the cache, it is done there.
+If the cache becomes bigger than a block because of an insertion,
+some of it is written to the
+<TT>Disc</TT>
+and deleted from the cache.
+If the change does not intersect the cache, the cache is flushed.
+The cache is only loaded at the new position if the change is smaller than a block;
+otherwise, it is sent directly to the
+<TT>Disc</TT>.
+This is because
+large changes are typically sequential,
+whereupon the next change is unlikely to overlap the current one.
+</P>
+<P>
+A
+<TT>File</TT>
+comprises a
+<TT>String</TT>
+to hold the file name and some ancillary data such as dot and the modified bit.
+The most important components, though, are a pair of
+<TT>Buffers</TT>,
+one called the transcript and the other the contents.
+Their use is described in the next section.
+</P>
+<P>
+The overall structure is shown in Figure 5.
+Although it may seem that the data is touched many times on its
+way from the
+<TT>Disc</TT>,
+it is read (by one UNIX system call) directly into the cache of the
+associated
+<TT>Buffer</TT>;
+no extra copy is done.
+Similarly, when flushing the cache, the text is written
+directly from the cache to disc.
+Most operations act directly on the text in the cache.
+A principle applied throughout
+<TT>sam</TT>
+is that the fewer times the data is copied, the faster the program will run
+(see also the paper by Waite<sup>15</sup>).
+<DL><DT><DD><TT><PRE>
+<br><img src="-.11766.gif"><br>
+<br>
+</PRE></TT></DL>
+<I>Figure 5. File data structures.
+The temporary files are stored in the standard repository for such files
+on the host system.
+<br>
+<DL><DT><DD><TT><PRE>
+</I><br>&#32;<br>
+</PRE></TT></DL>
+</P>
+<P>
+The contents of a
+<TT>File</TT>
+are accessed by a routine that
+copies to a buffer a substring of a file starting at a specified offset.
+To read a byte at a time, a
+per-<TT>File</TT>
+array is loaded starting from a specified initial position,
+and bytes may then be read from the array.
+The implementation is done by a macro similar to the C standard I/O
+<TT>getc</TT>
+macro.<sup>14</sup>
+Because the reading may be done at any address, a minor change to the
+macro allows the file to be read backwards.
+This array is read-only; there is no
+<TT>putc</TT>.
+</P>
+<H4>Doing and undoing
+</H4>
+<br>&#32;<br>
+<TT>Sam</TT>
+has an unusual method for managing changes to files.
+The command language makes it easy to specify multiple variable-length changes
+to a file millions of bytes long, and such changes
+must be made efficiently if the editor is to be practical.
+The usual techniques for inserting and deleting strings
+are inadequate under these conditions.
+The
+<TT>Buffer</TT>
+and
+<TT>Disc</TT>
+data structures are designed for efficient random access to long strings,
+but care must be taken to avoid super-linear behavior when making
+many changes simultaneously.
+<P>
+<TT>Sam</TT>
+uses a two-pass algorithm for making changes, and treats each file as a database
+against which transactions are registered.
+Changes are not made directly to the contents.
+Instead, when a command is started, a `mark' containing
+a sequence number is placed in the transcript
+<TT>Buffer</TT>,
+and each change made to the file, either an insertion or deletion
+or a change to the file name,
+is appended to the end of the transcript.
+When the command is complete, the transcript is rewound to the
+mark and applied to the contents.
+</P>
+<P>
+One reason for separating evaluation from
+application in this way is to simplify tracking the addresses of changes
+made in the middle of a long sequence.
+The two-pass algorithm also allows all changes to apply to the
+<I>original</I>
+data: no change can affect another change made in the same command.
+This is particularly important when evaluating an
+<TT>x</TT>
+command because it prevents regular expression matches
+from stumbling over changes made earlier in the execution.
+Also, the two-pass
+algorithm is cleaner than the way other UNIX editors allow changes to
+affect each other;
+for example,
+<TT>ed</TT>'s
+idioms to do things like delete every other line
+depend critically on the implementation.
+Instead,
+<TT>sam</TT>'s
+simple model, in which all changes in a command occur effectively
+simultaneously, is easy to explain and to understand.
+</P>
+<P>
+The records in the transcript are of the form ``delete substring from
+locations
+123 to 456'' and ``insert 11 characters `hello there' at location 789.''
+(It is an error if the changes are not at monotonically greater
+positions through the file.)
+While the update is occurring, these numbers must be
+offset by earlier changes, but that is straightforward and
+local to the update routine;
+moreover, all the numbers have been computed
+before the first is examined.
+</P>
+<P>
+Treating the file as a transaction system has another advantage:
+undo is trivial.
+All it takes is to invert the transcript after it has been
+implemented, converting insertions
+into deletions and vice versa, and saving them in a holding
+<TT>Buffer</TT>.
+The `do' transcript can then be deleted from
+the transcript
+<TT>Buffer</TT>
+and replaced by the `undo' transcript.
+If an undo is requested, the transcript is rewound and the undo transcript
+executed.
+Because the transcript
+<TT>Buffer</TT>
+is not truncated after each command, it accumulates
+successive changes.
+A sequence of undo commands
+can therefore back up the file arbitrarily,
+which is more helpful than the more commonly implemented self-inverse form of undo.
+(<TT>Sam</TT>
+provides no way to undo an undo, but if it were desired,
+it would be easy to provide by re-interpreting the `do' transcript.)
+Each mark in the transcript contains a sequence number and the offset into
+the transcript of the previous mark, to aid in unwinding the transcript.
+Marks also contain the value of dot and the modified bit so these can be
+restored easily.
+Undoing multiple files is easy; it merely demands undoing all files whose
+latest change has the same sequence number as the current file.
+</P>
+<P>
+Another benefit of having a transcript is that errors encountered in the middle
+of a complicated command need not leave the files in an intermediate state.
+By rewinding the transcript to the mark beginning the command,
+the partial command can be trivially undone.
+</P>
+<P>
+When the update algorithm was first implemented, it was unacceptably slow,
+so a cache was added to coalesce nearby changes,
+replacing multiple small changes by a single larger one.
+This reduced the number
+of insertions into the transaction
+<TT>Buffer</TT>,
+and made a dramatic improvement in performance,
+but made it impossible
+to handle changes in non-monotonic order in the file; the caching method
+only works if changes don't overlap.
+Before the cache was added, the transaction could in principle be sorted
+if the changes were out of order, although
+this was never done.
+The current status is therefore acceptable performance with a minor
+restriction on global changes, which is sometimes, but rarely, an annoyance.
+</P>
+<P>
+The update algorithm obviously paws the data more than simpler
+algorithms, but it is not prohibitively expensive;
+the caches help.
+(The principle of avoiding copying the data is still honored here,
+although not as piously:
+the data is moved from contents' cache to
+the transcript's all at once and through only one internal buffer.)
+Performance figures confirm the efficiency.
+To read from a dead start a hundred kilobyte file on a VAX-11/750
+takes 1.4 seconds of user time, 2.5 seconds of system time,
+and 5 seconds of real time.
+Reading the same file in
+<TT>ed</TT>
+takes 6.0 seconds of user time, 1.7 seconds of system time,
+and 8 seconds of real time.
+<TT>Sam</TT>
+uses about half the CPU time.
+A more interesting example is the one stated above:
+inserting a character between every pair of characters in the file.
+The
+<TT>sam</TT>
+command is
+<DL><DT><DD><TT><PRE>
+,y/@/ a/x/
+</PRE></TT></DL>
+and takes 3 CPU seconds per kilobyte of input file, of which
+about a third is spent in the regular expression code.
+This translates to about 500 changes per second.
+<TT>Ed</TT>
+takes 1.5 seconds per kilobyte to make a similar change (ignoring newlines),
+but cannot undo it.
+The same example in
+<TT>ex</TT>,<sup>9</sup>
+a variant of
+<TT>ed</TT>
+done at the University of California at Berkeley,
+which allows one level of undoing, again takes 3 seconds.
+In summary,
+<TT>sam</TT>'s
+performance is comparable to that of other UNIX editors, although it solves
+a harder problem.
+</P>
+<H4>Communications
+</H4>
+<br>&#32;<br>
+The discussion so far has described the implementation of the host part of
+<TT>sam</TT>;
+the next few sections explain how a machine with mouse and bitmap display
+can be engaged to improve interaction.
+<TT>Sam</TT>
+is not the first editor to be written as two processes,<sup>16</sup>
+but its implementation
+has some unusual aspects.
+<P>
+There are several ways
+<TT>sam</TT>'s
+host and terminal parts may be connected.
+The first and simplest is to forgo the terminal part and use the host
+part's command language to edit text on an ordinary terminal.
+This mode is invoked by starting
+<TT>sam</TT>
+with the
+<TT>-d</TT>
+option.
+With no options,
+<TT>sam</TT>
+runs separate host and terminal programs,
+communicating with a message protocol over the physical
+connection that joins them.
+Typically, the connection is an RS-232 link between a Blit
+(the prototypical display for
+<TT>sam</TT>)
+and a host running
+the Ninth Edition of the UNIX operating system.<sup>8</sup>
+(This is the version of the system used in the Computing Sciences Research
+Center at AT&amp;T Bell Laboratories [now Lucent Technologies, Bell Labs], where I work.  Its relevant
+aspects are discussed in the Blit paper.<sup>1</sup>)
+The implementation of
+<TT>sam</TT>
+for the SUN computer runs both processes on the same machine and
+connects them by a pipe.
+</P>
+<P>
+The low bandwidth of an RS-232 link
+necessitated the split between
+the two programs.
+The division is a mixed blessing:
+a program in two parts is much harder to write and to debug
+than a self-contained one,
+but the split makes several unusual configurations possible.
+The terminal may be physically separated from the host, allowing the conveniences
+of a mouse and bitmap display to be taken home while leaving the files at work.
+It is also possible to run the host part on a remote machine:
+<DL><DT><DD><TT><PRE>
+sam -r host
+</PRE></TT></DL>
+connects to the terminal in the usual way, and then makes a call
+across the network to establish the host part of
+<TT>sam</TT>
+on the named machine.
+Finally, it cross-connects the I/O to join the two parts.
+This allows
+<TT>sam</TT>
+to be run on machines that do not support bitmap displays;
+for example,
+<TT>sam</TT>
+is the editor of choice on our Cray X-MP/24.
+<TT>Sam</TT>
+<TT>-r</TT>
+involves
+<I>three</I>
+machines: the remote host, the terminal, and the local host.
+The local host's job is simple but vital: it passes the data
+between the remote host and terminal.
+</P>
+<P>
+The host and terminal exchange messages asynchronously
+(rather than, say, as remote procedure calls) but there is no
+error detection or correction
+because, whatever the configuration, the connection is reliable.
+Because the terminal handles mundane interaction tasks such as
+popping up menus and interpreting the responses, the messages are about
+data, not actions.
+For example, the host knows nothing about what is displayed on the screen,
+and when the user types a character, the message sent to the host says
+``insert a one-byte string at location 123 in file 7,'' not ``a character
+was typed at the current position in the current file.''
+In other words, the messages look very much like the transaction records
+in the transcripts.
+</P>
+<P>
+Either the host or terminal part of
+<TT>sam</TT>
+may initiate a change to a file.
+The command language operates on the host, while typing and some
+mouse operations are executed directly in the terminal to optimize response.
+Changes initiated by the host program must be transmitted to the terminal,
+and
+vice versa.
+(A token is exchanged to determine which end is in control,
+which means that characters typed while a time-consuming command runs
+must be buffered and do not appear until the command is complete.)
+To maintain consistent information,
+the host and terminal track changes through a per-file
+data structure that records what portions of the file
+the terminal has received.
+The data structure, called a
+<TT>Rasp</TT>
+(a weak pun: it's a file with holes)
+is held and updated by both the host and terminal.
+A
+<TT>Rasp</TT>
+is a list of
+<TT>Strings</TT>
+holding those parts of the file known to the terminal,
+separated by counts of the number of bytes in the interstices.
+Of course, the host doesn't keep a separate copy of the data (it only needs
+the lengths of the various pieces),
+but the structure is the same on both ends.
+</P>
+<P>
+The
+<TT>Rasp</TT>
+in the terminal doubles as a cache.
+Since the terminal keeps the text for portions of the file it has displayed,
+it need not request data from the host when revisiting old parts of the file
+or redrawing obscured windows, which speeds things up considerably
+over low-speed links.
+</P>
+<P>
+It's trivial for the terminal to maintain its
+<TT>Rasp</TT>,
+because all changes made on the terminal apply to parts of the file
+already loaded there.
+Changes made by the host are compared against the
+<TT>Rasp</TT>
+during the update sequence after each command.
+Small changes to pieces of the file loaded in the terminal
+are sent in their entirety.
+Larger changes, and changes that fall entirely in the holes,
+are transmitted as messages without literal data:
+only the lengths of the deleted and inserted strings are transmitted.
+When a command is completed, the terminal examines its visible
+windows to see if any holes in their
+<TT>Rasps</TT>
+intersect the visible portion of the file.
+It then requests the missing data from the host,
+along with up to 512 bytes of surrounding data, to minimize
+the number of messages when visiting a new portion of the file.
+This technique provides a kind of two-level lazy evaluation for the terminal.
+The first level sends a minimum of information about
+parts of the file not being edited interactively;
+the second level waits until a change is displayed before
+transmitting the new data.
+Of course,
+performance is also helped by having the terminal respond immediately to typing
+and simple mouse requests.
+Except for small changes to active pieces of the file, which are
+transmitted to the terminal without negotiation,
+the terminal is wholly responsible for deciding what is displayed;
+the host uses the
+<TT>Rasp</TT>
+only to tell the terminal what might be relevant.
+</P>
+<P>
+When a change is initiated by the host,
+the messages to the terminal describing the change
+are generated by the routine that applies the transcript of the changes
+to the contents of the
+<TT>File</TT>.
+Since changes are undone by the same update routine,
+undoing requires
+no extra code in the communications;
+the usual messages describing changes to the file are sufficient
+to back up the screen image.
+</P>
+<P>
+The
+<TT>Rasp</TT>
+is a particularly good example of the way caches are used in
+<TT>sam</TT>.
+First, it facilitates access to the active portion of the text by placing
+the busy text in main memory.
+In so doing, it provides efficient access
+to a large data structure that does not fit in memory.
+Since the form of data is to be imposed by the user, not by the program,
+and because characters will frequently be scanned sequentially,
+files are stored as flat objects.
+Caches help keep performance good and linear when working with such
+data.
+</P>
+<P>
+Second, the
+<TT>Rasp</TT>
+and several of the other caches have some
+<I>read-ahead;</I>
+that is, the cache is loaded with more information than is needed for
+the job immediately at hand.
+When manipulating linear structures, the accesses are usually sequential,
+and read-ahead can significantly reduce the average time to access the
+next element of the object.
+Sequential access is a common mode for people as well as programs;
+consider scrolling through a document while looking for something.
+</P>
+<P>
+Finally, like any good data structure,
+the cache guides the algorithm, or at least the implementation.
+The
+<TT>Rasp</TT>
+was actually invented to control the communications between the host and
+terminal parts, but I realized very early that it was also a form of
+cache.  Other caches were more explicitly intended to serve a double
+purpose: for example, the caches in
+<TT>Files</TT>
+that coalesce updates not only reduce traffic to the
+transcript and contents
+<TT>Buffers</TT>,
+they also clump screen updates so that complicated changes to the
+screen are achieved in
+just a few messages to the terminal.
+This saved me considerable work: I did not need to write special
+code to optimize the message traffic to the
+terminal.
+Caches pay off in surprising ways.
+Also, they tend to be independent, so their performance improvements
+are multiplicative.
+</P>
+<H4>Data structures in the terminal
+</H4>
+<br>&#32;<br>
+The terminal's job is to display and to maintain a consistent image of
+pieces of the files being edited.
+Because the text is always in memory, the data structures are
+considerably simpler than those in the host part.
+<P>
+<TT>Sam</TT>
+typically has far more windows than does
+<TT>mux</TT>,
+the window system within which its Blit implementation runs.
+<TT>Mux</TT>
+has a fairly small number of asynchronously updated windows;
+<TT>sam</TT>
+needs a large number of synchronously updated windows that are
+usually static and often fully obscured.
+The different tradeoffs guided
+<TT>sam</TT>
+away from the memory-intensive implementation of windows, called
+<TT>Layers</TT>,<sup>17</sup>
+used in
+<TT>mux.</TT>
+Rather than depending on a complete bitmap image of the display for each window,
+<TT>sam</TT>
+regenerates the image from its in-memory text
+(stored in the
+<TT>Rasp</TT>)
+when necessary, although it will use such an image if it is available.
+Like
+<TT>Layers</TT>,
+though,
+<TT>sam</TT>
+uses the screen bitmap as active storage in which to update the image using
+<TT>bitblt</TT>.<sup>18,19</sup>
+The resulting organization, pictured in Figure 6,
+has a global array of windows, called
+<TT>Flayers</TT>,
+each of which holds an image of a piece of text held in a data structure
+called a
+<TT>Frame</TT>,
+which in turn represents
+a rectangular window full of text displayed in some
+<TT>Bitmap</TT>.
+Each
+<TT>Flayer</TT>
+appears in a global list that orders them all front-to-back
+on the display, and simultaneously as an element of a per-file array
+that holds all the open windows for that file.
+The complement in the terminal of the
+<TT>File</TT>
+on the host is called a
+<TT>Text</TT>;
+each connects its
+<TT>Flayers</TT>
+to the associated
+<TT>Rasp</TT>.
+<DL><DT><DD><TT><PRE>
+<br><img src="-.11767.gif"><br>
+<br>
+</PRE></TT></DL>
+<I>Figure 6. Data structures in the terminal.
+</I><TT>Flayers</TT><I>
+are also linked together into a front-to-back list.
+</I><TT>Boxes</TT><I>
+are discussed in the next section.
+<br>
+<DL><DT><DD><TT><PRE>
+</I><br>&#32;<br>
+</PRE></TT></DL>
+</P>
+<P>
+The
+<TT>Bitmap</TT>
+for a
+<TT>Frame</TT>
+contains the image of the text.
+For a fully visible window, the
+<TT>Bitmap</TT>
+will be the screen (or at least the
+<TT>Layer</TT>
+in which
+<TT>sam</TT>
+is being run),
+while for partially obscured windows the
+<TT>Bitmap</TT>
+will be off-screen.
+If the window is fully obscured, the
+<TT>Bitmap</TT>
+will be null.
+</P>
+<P>
+The
+<TT>Bitmap</TT>
+is a kind of cache.
+When making changes to the display, most of the original image will
+look the same in the final image, and the update algorithms exploit this.
+The
+<TT>Frame</TT>
+software updates the image in the
+<TT>Bitmap</TT>
+incrementally; the
+<TT>Bitmap</TT>
+is not just an image, it is a data structure.<sup>18,19</sup>
+The job of the software that updates the display is therefore
+to use as much as possible of the existing image (converting the
+text from ASCII characters to pixels is expensive) in a sort of two-dimensional
+string insertion algorithm.
+The details of this process are described in the next section.
+</P>
+<P>
+The
+<TT>Frame</TT>
+software has no code to support overlapping windows;
+its job is to keep a single
+<TT>Bitmap</TT>
+up to date.
+It falls to the
+<TT>Flayer</TT>
+software to multiplex the various
+<TT>Bitmaps</TT>
+onto the screen.
+The problem of maintaining overlapping
+<TT>Flayers</TT>
+is easier than for
+<TT>Layers</TT><sup>17</sup>
+because changes are made synchronously and because the contents of the window
+can be reconstructed from the data stored in the
+<TT>Frame</TT>;
+the
+<TT>Layers</TT>
+software
+makes no such assumptions.
+In
+<TT>sam</TT>,
+the window being changed is almost always fully visible, because the current
+window is always fully visible, by construction.
+However, when multi-file changes are being made, or when
+more than one window is open on a file,
+it may be necessary to update partially obscured windows.
+</P>
+<P>
+There are three cases: the window is 
+fully visible, invisible (fully obscured), or partially visible.
+If fully visible, the
+<TT>Bitmap</TT>
+is part of the screen, so when the
+<TT>Flayer</TT>
+update routine calls the
+<TT>Frame</TT>
+update routine, the screen will be updated directly.
+If the window is invisible,
+there is no associated
+<TT>Bitmap</TT>,
+and all that is necessary is to update the
+<TT>Frame</TT>
+data structure, not the image.
+If the window is partially visible, the
+<TT>Frame</TT>
+routine is called to update the image in the off-screen
+<TT>Bitmap</TT>,
+which may require regenerating it from the text of the window.
+The
+<TT>Flayer</TT>
+code then clips this
+<TT>Bitmap</TT>
+against the
+<TT>Bitmaps</TT>
+of all
+<TT>Frames</TT>
+in front of the
+<TT>Frame</TT>
+being modified, and the remainder is copied to the display.
+</P>
+<P>
+This is much faster than recreating the image off-screen
+for every change, or clipping all the changes made to the image
+during its update.
+Unfortunately, these caches can also consume prohibitive amounts of
+memory, so they are freed fairly liberally &#173; after every change to the
+front-to-back order of the
+<TT>Flayers</TT>.
+The result is that
+the off-screen
+<TT>Bitmaps</TT>
+exist only while multi-window changes are occurring,
+which is the only time the performance improvement they provide is needed.
+Also, the user interface causes fully-obscured windows to be the
+easiest to make &#173;
+creating a canonically sized and placed window requires only a button click
+&#173; which reduces the need for caching still further.
+</P>
+<P>
+</P>
+<H4>Screen update
+</H4>
+<br>&#32;<br>
+Only two low-level primitives are needed for incremental update:
+<TT>bitblt</TT>,
+which copies rectangles of pixels, and
+<TT>string</TT>
+(which in turn calls
+<TT>bitblt</TT>),
+which draws a null-terminated character string in a
+<TT>Bitmap</TT>.
+A
+<TT>Frame</TT>
+contains a list of
+<TT>Boxes</TT>,
+each of which defines a horizontal strip of text in the window
+(see Figure 7).
+A
+<TT>Box</TT>
+has a character string
+<TT>str</TT>,
+and a
+<TT>Rectangle</TT>
+<TT>rect</TT>
+that defines the location of the strip in the window.
+(The text in
+<TT>str</TT>
+is stored in the
+<TT>Box</TT>
+separately from the
+<TT>Rasp</TT>
+associated with the window's file, so
+<TT>Boxes</TT>
+are self-contained.)
+The invariant is that
+the image of the
+<TT>Box</TT>
+can be reproduced by calling
+<TT>string</TT>
+with argument
+<TT>str</TT>
+to draw the string in
+<TT>rect</TT>,
+and the resulting picture fits perfectly within
+<TT>rect</TT>.
+In other words, the
+<TT>Boxes</TT>
+define the tiling of the window.
+The tiling may be complicated by long lines of text, which
+are folded onto the next line.
+Some editors use horizontal scrolling to avoid this complication,
+but to be comfortable this technique requires that lines not be
+<I>too</I>
+long;
+<TT>sam</TT>
+has no such restriction.
+Also, and perhaps more importantly, UNIX programs and terminals traditionally fold
+long lines to make their contents fully visible.
+<P>
+Two special kinds of
+<TT>Boxes</TT>
+contain a single
+character: either a newline or a tab.
+Newlines and tabs are white space.
+A newline
+<TT>Box</TT>
+always extends to the right edge of the window,
+forcing the following
+<TT>Box</TT>
+to the next line.
+The width of a tab depends on where it is located:
+it forces the next
+<TT>Box</TT>
+to begin at a tab location.
+Tabs also
+have a minimum width equivalent to a blank (blanks are
+drawn by
+<TT>string</TT>
+and are not treated specially); newlines have a minimum width of zero.
+<DL><DT><DD><TT><PRE>
+<br><img src="-.11768.gif"><br>
+<br>&#32;<br>
+<br>
+</PRE></TT></DL>
+<I>Figure 7. A line of text showing its
+</I><TT>Boxes</TT><I>.
+The first two blank
+</I><TT>Boxes</TT><I>
+contain tabs; the last contains a newline.
+Spaces are handled as ordinary characters.
+<br>
+<DL><DT><DD><TT><PRE>
+</I><br>&#32;<br>
+</PRE></TT></DL>
+</P>
+<P>
+The update algorithms always use the
+<TT>Bitmap</TT>
+image of the text (either the display or cache
+<TT>Bitmap</TT>);
+they never examine the characters within a
+<TT>Box</TT>
+except when the
+<TT>Box</TT>
+needs to be split in two.
+Before a change, the window consists of a tiling of
+<TT>Boxes</TT>;
+after the change the window is tiled differently.
+The update algorithms rearrange the tiles in place, without
+backup storage.
+The algorithms are not strictly optimal &#173; for example, they can
+clear a pixel that is later going to be written upon &#173;
+but they never move a tile that doesn't need to be moved,
+and they move each tile at most once.
+<TT>Frinsert</TT>
+on a Blit can absorb over a thousand characters a second if the strings
+being inserted are a few tens of characters long.
+</P>
+<P>
+Consider
+<TT>frdelete</TT>.
+Its job is to delete a substring from a
+<TT>Frame</TT>
+and restore the image of the
+<TT>Frame</TT>.
+The image of a substring has a peculiar shape (see Figure 2) comprising
+possibly a partial line,
+zero or more full lines,
+and possibly a final partial line.
+For reference, call this the
+Z-shape.
+<TT>Frdelete</TT>
+begins by splitting, if necessary, the
+<TT>Boxes</TT>
+containing the ends of
+the substring so the substring begins and ends on
+<TT>Box</TT>
+boundaries.
+Because the substring is being deleted, its image is not needed,
+so the Z-shape is then cleared.
+Then, tiles (that is, the images of
+<TT>Boxes</TT>)
+are copied, using
+<TT>bitblt</TT>,
+from immediately after the Z-shape to
+the beginning of the Z-shape,
+resulting in a new Z-shape.
+(<TT>Boxes</TT>
+whose contents would span two lines in the new position must first be split.)
+</P>
+<P>
+Copying the remainder of the
+<TT>Frame</TT>
+tile by tile
+this way will clearly accomplish the deletion but eventually,
+typically when the copying algorithm encounters a tab or newline,
+the old and new
+<TT>x</TT>
+coordinates of the tile
+to be copied are the same.
+This correspondence implies
+that the Z-shape has its beginning and ending edges aligned
+vertically, and a sequence of at most two
+<TT>bitblts</TT>
+can be used to copy the remaining tiles.
+The last step is to clear out the resulting empty space at the bottom
+of the window;
+the number of lines to be cleared is the number of complete lines in the
+Z-shape closed by the final
+<TT>bitblts.</TT>
+The final step is to merge horizontally adjacent
+<TT>Boxes</TT>
+of plain text.
+The complete source to
+<TT>frdelete</TT>
+is less than 100 lines of C.
+</P>
+<P>
+<TT>frinsert</TT>
+is more complicated because it must do four passes:
+one to construct the
+<TT>Box</TT>
+list for the inserted string,
+one to reconnoitre,
+one to copy (in opposite order to
+<TT>frdelete</TT>)
+the
+<TT>Boxes</TT>
+to make the hole for the new text,
+and finally one to copy the new text into place.
+Overall, though,
+<TT>frinsert</TT>
+has a similar flavor to
+<TT>frdelete</TT>,
+and needn't be described further.
+<TT>Frinsert</TT>
+and its subsidiary routines comprise 211 lines of C.
+</P>
+<P>
+The terminal source code is 3024 lines of C,
+and the host source is 5797 lines.
+</P>
+<H4>Discussion
+</H4>
+<H4>History
+</H4>
+<br>&#32;<br>
+The immediate ancestor of
+<TT>sam</TT>
+was the original text editor for the Blit, called
+<TT>jim</TT>.
+<TT>Sam</TT>
+inherited
+<TT>jim</TT>'s
+two-process structure and mouse language almost unchanged, but
+<TT>jim</TT>
+suffered from several drawbacks that were addressed in the design of
+<TT>sam</TT>.
+The most important of these was the lack of a command language.
+Although
+<TT>jim</TT>
+was easy to use for simple editing, it provided no direct help with
+large or repetitive editing tasks.  Instead, it provided a command to pass
+selected text through a shell pipeline,
+but this was no more satisfactory than could be expected of a stopgap measure.
+<P>
+<TT>Jim</TT>
+was written primarily as a vehicle for experimenting with a mouse-based
+interface to text, and the experiment was successful.
+<TT>Jim</TT>
+had some spin-offs:
+<TT>mux</TT>,
+the second window system for the Blit, is essentially a multiplexed
+version of the terminal part of
+<TT>jim</TT>;
+and the debugger
+<TT>pi</TT>'s
+user interface<sup>20</sup> was closely modeled on
+<TT>jim</TT>'s.
+But after a couple of years,
+<TT>jim</TT>
+had become difficult to maintain and limiting to use,
+and its replacement was overdue.
+</P>
+<P>
+I began the design of
+<TT>sam</TT>
+by asking
+<TT>jim</TT>
+customers what they wanted.
+This was probably a mistake; the answers were essentially a list of features
+to be found in other editors, which did not provide any of the
+guiding principles I was seeking.
+For instance, one common request was for a ``global substitute,''
+but no one suggested how to provide it within a cut-and-paste editor.
+I was looking for a scheme that would
+support such specialized features comfortably in the context of some
+general command language.
+Ideas were not forthcoming, though, particularly given my insistence
+on removing all limits on file sizes, line lengths and so on.
+Even worse, I recognized that, since the mouse could easily
+indicate a region of the screen that was not an integral number of lines,
+the command language would best forget about newlines altogether,
+and that meant the command language had to treat the file as a single
+string, not an array of lines.
+</P>
+<P>
+Eventually, I decided that thinking was not getting me very far and it was
+time to try building.
+I knew that the terminal part could be built easily &#173;
+that part of
+<TT>jim</TT>
+behaved acceptably well &#173; and that most of the hard work was going
+to be in the host part: the file interface, command interpreter and so on.
+Moreover, I had some ideas about how the architecture of
+<TT>jim</TT>
+could be improved without destroying its basic structure, which I liked
+in principle but which hadn't worked out as well as I had hoped.
+So I began by designing the file data structure,
+starting with the way
+<TT>jim</TT>
+worked &#173; comparable to a single structure merging
+<TT>Disc</TT>
+and
+<TT>Buffer</TT>,
+which I split to make the cache more general
+&#173; and thinking about how global substitute could be implemented.
+The answer was clearly that it had to be done in two passes,
+and the transcript-oriented implementation fell out naturally.
+</P>
+<P>
+<TT>Sam</TT>
+was written bottom-up,
+starting from the data structures and algorithms for manipulating text,
+through the command language and up to the code for maintaining
+the display.
+In retrospect, it turned out well, but this implementation method is
+not recommended in general.
+There were several times when I had a large body of interesting code
+assembled and no clue how to proceed with it.
+The command language, in particular, took almost a year to figure out,
+but can be implemented (given what was there at the beginning of that year)
+in a day or two.  Similarly, inventing the
+<TT>Rasp</TT>
+data structure delayed the
+connection of the host and terminal pieces by another few months.
+<TT>Sam</TT>
+took about two years to write, although only about four months were
+spent actually working on it.
+</P>
+<P>
+Part of the design process was unusual:
+the subset of the protocol that maintains the
+<TT>Rasp</TT>
+was simulated, debugged
+and verified by an automatic protocol analyzer,<sup>21</sup> and was bug-free
+from the start.
+The rest of the protocol, concerned mostly
+with keeping menus up to date,
+was unfortunately too unwieldy for such analysis,
+and was debugged by more traditional methods, primarily
+by logging in a file all messages in and out of the host.
+</P>
+<H4>Reflections
+</H4>
+<br>&#32;<br>
+<TT>Sam</TT>
+is essentially the only interactive editor used by the sixty or so members of
+the computing science research center in which I work.
+The same could not be said of
+<TT>jim</TT>;
+the lack of a command language kept some people from adopting it.
+The union of a user interface as comfortable as
+<TT>jim</TT>'s
+with a command language as powerful as
+<TT>ed</TT>'s&#191;
+<DL>
+<DT><DT>&#32;<DD>
+NOTE:<I> &#191;The people who criticize
+<TT>ed</TT>
+as an interactive program often forget that it and its close relative
+<TT>sed</TT><sup>7</sup>
+still thrive as programmable editors.  The strength of these programs is
+independent of their convenience for interactive editing.
+<br>
+</I><DT>&#32;<DD></dl>
+<br>
+is essential to
+<TT>sam</TT>'s
+success.
+When
+<TT>sam</TT>
+was first made available to the
+<TT>jim</TT>
+community,
+almost everyone switched to it within two or three days.
+In the months that followed, even people who had never adopted
+<TT>jim</TT>
+started using
+<TT>sam</TT>
+exclusively.
+<P>
+To be honest,
+<TT>ed</TT>
+still gets occasional use, but usually when
+something quick needs to be done and the overhead of
+downloading the terminal part of
+<TT>sam</TT>
+isn't worth the trouble.
+Also, as a `line' editor,
+<TT>sam</TT>
+<TT>-d</TT>
+is a bit odd;
+when using a good old ASCII terminal, it's comforting to have
+a true line editor.
+But it is fair to say that
+<TT>sam</TT>'s
+command language has displaced
+<TT>ed</TT>'s
+for most of the complicated editing that has kept line editors
+(that is, command-driven editors) with us.
+</P>
+<P>
+<TT>Sam</TT>'s
+command language is even fancier than
+<TT>ed</TT>'s,
+and most
+<TT>sam</TT>
+customers don't come near to using all its capabilities.
+Does it need to be so sophisticated?
+I think the answer is yes, for two reasons.
+</P>
+<P>
+First, the
+<I>model</I>
+for
+<TT>sam</TT>'s
+command language is really relatively simple, and certainly simpler than that of
+<TT>ed</TT>.
+For instance, there is only one kind of textual loop in
+<TT>sam</TT>
+&#173; the
+<TT>x</TT>
+command &#173;
+while
+<TT>ed</TT>
+has three (the
+<TT>g</TT>
+command, the global flag on substitutions, and the implicit loop over
+lines in multi-line substitutions).
+Also,
+<TT>ed</TT>'s
+substitute command is necessary to make changes within lines, but in
+<TT>sam</TT>
+the
+<TT>s</TT>
+command is more of a familiar convenience than a necessity;
+<TT>c</TT>
+and
+<TT>t</TT>
+can do all the work.
+</P>
+<P>
+Second,
+given a community that expects an editor to be about as powerful as
+<TT>ed</TT>,
+it's hard to see how
+<TT>sam</TT>
+could really be much simpler and still satisfy that expectation.
+People want to do ``global substitutes,'' and most are content
+to have the recipe for that and a few other fancy changes.
+The sophistication of the command language is really just a veneer
+over a design that makes it possible to do global substitutes
+in a screen editor.
+Some people will always want something more, however, and it's gratifying to
+be able to provide it.
+The real power of
+<TT>sam</TT>'s
+command language comes from composability of the operators, which is by
+nature orthogonal to the underlying model.
+In other words,
+<TT>sam</TT>
+is not itself complex, but it makes complex things possible.
+If you don't want to do anything complex, you can ignore the
+complexity altogether, and many people do so.
+</P>
+<P>
+Sometimes I am asked the opposite question: why didn't I just make
+<TT>sam</TT>
+a real programmable editor, with macros and variables and so on?
+The main reason is a matter of taste: I like the editor
+to be the same every time I use it.
+There is one technical reason, though:
+programmability in editors is largely a workaround for insufficient
+interactivity.
+Programmable editors are used to make particular, usually short-term,
+things easy to do, such as by providing shorthands for common actions.
+If things are generally easy to do in the first place,
+shorthands are not as helpful.
+<TT>Sam</TT>
+makes common editing operations very easy, and the solutions to
+complex editing problems seem commensurate with the problems themselves.
+Also, the ability to edit the
+<TT>sam</TT>
+window makes it easy to repeat commands &#173; it only takes a mouse button click
+to execute a command again.
+</P>
+<H4>Pros and cons
+</H4>
+<br>&#32;<br>
+<TT>Sam</TT>
+has several other good points,
+and its share of problems.
+Among the good things is the idea of
+structural regular expressions,
+whose usefulness has only begun to be explored.
+They were arrived at serendipitously when I attempted to distill the essence of
+<TT>ed</TT>'s
+way of doing global substitution and recognized that the looping command in
+<TT>ed</TT>
+was implicitly imposing a structure (an array of lines) on the file.
+<P>
+Another of
+<TT>sam</TT>'s
+good things is its undo capability.
+I had never before used an editor with a true undo,
+but I would never go back now.
+Undo
+<I>must</I>
+be done well, but if it is, it can be relied on.
+For example,
+it's safe to experiment if you're not sure how to write some intricate command,
+because if you make a mistake, it can be fixed simply and reliably.
+I learned two things about undo from writing
+<TT>sam</TT>:
+first, it's easy to provide if you design it in from the beginning, and
+second, it's necessary, particularly if the system has some subtle
+properties that may be unfamiliar or error-prone for users.
+</P>
+<P>
+<TT>Sam</TT>'s
+lack of internal limits and sizes is a virtue.
+Because it avoids all fixed-size tables and data structures,
+<TT>sam</TT>
+is able to make global changes to files that some of our other
+tools cannot even read.
+Moreover, the design keeps the performance linear when doing such
+operations, although I must admit
+<TT>sam</TT>
+does get slow when editing a huge file.
+</P>
+<P>
+Now, the problems.
+Externally, the most obvious is that it is poorly integrated into the
+surrounding window system.
+By design, the user interface in
+<TT>sam</TT>
+feels almost identical to that of
+<TT>mux</TT>,
+but a thick wall separates text in
+<TT>sam</TT>
+from the programs running in
+<TT>mux</TT>.
+For instance, the `snarf buffer' in
+<TT>sam</TT>
+must be maintained separately from that in
+<TT>mux</TT>.
+This is regrettable, but probably necessary given the unusual configuration
+of the system, with a programmable terminal on the far end of an RS-232 link.
+</P>
+<P>
+<TT>Sam</TT>
+is reliable; otherwise, people wouldn't use it.
+But it was written over such a long time, and has so many new (to me)
+ideas in it, that I would like to see it done over again to clean
+up the code and remove many of the lingering problems in the implementation.
+The worst part is in the interconnection of the host and terminal parts,
+which might even be able to go away in a redesign for a more
+conventional window system.
+The program must be split in two to use the terminal effectively,
+but the low bandwidth of the connection forces the separation to
+occur in an inconvenient part of the design if performance is to be acceptable.
+A simple remote procedure call
+protocol driven by the host, emitting only graphics
+commands, would be easy to write but wouldn't have nearly the
+necessary responsiveness.  On the other hand, if the terminal were in control
+and requested much simpler file services from the host, regular expression
+searches would require that the terminal read the entire file over its RS-232
+link, which would be unreasonably slow.
+A compromise in which either end can take control is necessary.
+In retrospect, the communications protocol should have been
+designed and verified formally, although I do not know of any tool
+that can adequately relate the protocol to
+its implementation.
+</P>
+<P>
+Not all of
+<TT>sam</TT>'s
+users are comfortable with its command language, and few are adept.
+Some (venerable) people use a sort of
+<TT>ed</TT>
+``
+subset'' of
+<TT>sam</TT>'s
+command language,
+and even ask why
+<TT>sam</TT>'s
+command language is not exactly
+<TT>ed</TT>'s.
+(The reason, of course, is that
+<TT>sam</TT>'s
+model for text does not include newlines, which are central to
+<TT>ed</TT>.
+Making the text an array of newlines to the command language would
+be too much of a break from the seamless model provided by the mouse.
+Some editors, such as
+<TT>vi</TT>,
+are willing to make this break, though.)
+The difficulty is that
+<TT>sam</TT>'s
+syntax is so close to
+<TT>ed</TT>'s
+that people believe it
+<I>should</I>
+be the same.
+I thought, with some justification in hindsight,
+that making
+<TT>sam</TT>
+similar to
+<TT>ed</TT>
+would make it easier to learn and to accept.
+But I may have overstepped and raised the users'
+expectations too much.
+It's hard to decide which way to resolve this problem.
+</P>
+<P>
+Finally, there is a tradeoff in
+<TT>sam</TT>
+that was decided by the environment in which it runs:
+<TT>sam</TT>
+is a multi-file editor, although in a different system there might instead be
+multiple single-file editors.
+The decision was made primarily because starting a new program in a Blit is
+time-consuming.
+If the choice could be made freely, however, I would
+still choose the multi-file architecture, because it allows
+groups of files to be handled as a unit;
+the usefulness of the multi-file commands is incontrovertible.
+It is delightful to have the source to an entire program
+available at your fingertips.
+</P>
+<H4>Acknowledgements
+</H4>
+<br>&#32;<br>
+Tom Cargill suggested the idea behind the
+<TT>Rasp</TT>
+data structure.
+Norman Wilson and Ken Thompson influenced the command language.
+This paper was improved by comments from
+Al Aho,
+Jon Bentley,
+Chris Fraser,
+Gerard Holzmann,
+Brian Kernighan,
+Ted Kowalski,
+Doug McIlroy
+and
+Dennis Ritchie.
+<H4>REFERENCES
+</H4>
+<P>
+</P>
+<DL COMPACT>
+<DT> 1.<DD>
+R. Pike,
+`The Blit: a multiplexed graphics terminal,'
+AT&amp;T Bell Labs. Tech. J.,
+<B>63</B>,
+(8),
+1607-1631 (1984).
+<DT> 2.<DD>
+L. Johnson,
+<I>MacWrite,</I>
+Apple Computer Inc., Cupertino, Calif. 1983.
+<DT> 3.<DD>
+B. Lampson,
+`Bravo Manual,'
+in
+Alto User's Handbook,
+pp. 31-62,
+Xerox Palo Alto Research Center,
+Palo Alto, Calif.
+1979.
+<DT> 4.<DD>
+W. Teitelman,
+`A tour through Cedar,'
+IEEE Software,
+<B>1</B>
+(2), 44-73 (1984).
+<DT> 5.<DD>
+J. Gutknecht,
+`Concepts of the text editor Lara,'
+Comm. ACM,
+<B>28</B>,
+(9),
+942-960 (1985).
+<DT> 6.<DD>
+Bell Telephone Laboratories,
+UNIX Programmer's Manual,
+Holt, Rinehart and Winston, New York 1983.
+<DT> 7.<DD>
+B. W. Kernighan and R. Pike,
+The Unix Programming Environment,
+Prentice-Hall, Englewood Cliffs, New Jersey 1984.
+<DT> 8.<DD>
+Unix Time-Sharing System Programmer's Manual, Research Version, Ninth Edition,
+Volume 1,
+AT&amp;T Bell Laboratories, Murray Hill, New Jersey 1986.
+<DT> 9.<DD>
+Unix Time-Sharing System Programmer's Manual, 4.1 Berkeley Software Distribution,
+Volumes 1 and 2C,
+University of California, Berkeley, Calif. 1981.
+<DT>10.<DD>
+R. Pike,
+`Structural Regular Expressions,'
+Proc. EUUG Spring Conf., Helsinki 1987,
+Eur. Unix User's Group, Buntingford, Herts, UK 1987.
+<DT>11.<DD>
+A. Goldberg,
+Smalltalk-80 &#191; The Interactive Programming Environment,
+Addison-Wesley, Reading, Mass. 1984.
+<DT>12.<DD>
+K. Thompson,
+`Regular expression search algorithm,'
+Comm. ACM,
+<B>11</B>,
+(6),
+419-422 (1968).
+<DT>13.<DD>
+A. V. Aho, J. E. Hopcroft and J. D. Ullman,
+The Design and Analysis of Computer Algorithms,
+Addison-Wesley, Reading, Mass. 1974.
+<DT>14.<DD>
+B. W. Kernighan and D. M. Ritchie,
+The C Programming Language,
+Prentice-Hall, Englewood Cliffs, New Jersey 1978.
+<DT>15.<DD>
+W. M. Waite,
+`The cost of lexical analysis,'
+Softw. Pract. Exp.,
+<B>16</B>,
+(5),
+473-488 (1986).
+<DT>16.<DD>
+C. W. Fraser,
+`A generalized text editor,'
+Comm. ACM,
+<B>23</B>,
+(3),
+154-158 (1980).
+<DT>17.<DD>
+R. Pike,
+`Graphics in overlapping bitmap layers,'
+ACM Trans. on Graph.,
+<B>2</B>,
+(2)
+135-160 (1983).
+<DT>18.<DD>
+L. J. Guibas and J. Stolfi,
+`A language for bitmap manipulation,'
+ACM Trans. on Graph.,
+<B>1</B>,
+(3),
+191-214 (1982).
+<DT>19.<DD>
+R. Pike, B. Locanthi and J. Reiser,
+`Hardware/software trade-offs for bitmap graphics on the Blit,'
+Softw. Pract. Exp.,
+<B>15</B>,
+(2),
+131-151 (1985).
+<DT>20.<DD>
+T. A. Cargill,
+`The feel of Pi,'
+Winter USENIX Conference Proceedings,
+Denver 1986,
+62-71,
+USENIX Assoc., El Cerrito, CA.
+<DT>21.<DD>
+G. J. Holzmann,
+`Tracing protocols,'
+AT&amp;T Tech. J.,
+<B>64</B>,
+(10),
+2413-2434 (1985).
+
+</dl>
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>
