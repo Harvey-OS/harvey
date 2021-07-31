@@ -136,8 +136,6 @@ rsawrite(Fsstate *fss, void *va, uint)
 			break;
 		}
 		m = strtomp(va, nil, 16, nil);
-		if(m == nil)
-			return failure(fss, "invalid challenge value");
 		m = rsadecrypt(s->key->priv, m, m);
 		s->resp = m;
 		fss->phase = CHaveResp;

@@ -99,7 +99,6 @@ extern	int	atoi(char*);
 extern	uintptr	getcallerpc(void*);
 extern	long	strtol(char*, char**, int);
 extern	ulong	strtoul(char*, char**, int);
-extern	uvlong	strtoull(char*, char**, int);
 extern	long	end;
 
 #define	NAMELEN	28
