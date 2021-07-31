@@ -186,8 +186,7 @@ struct DN
 	ulong	lookuptime;	/* last time we tried to get a better value */
 	ushort	class;		/* RR class */
 	char	refs;		/* for mark and sweep */
-	uchar	respcode;	/* response code */
-/* was:	char	nonexistent; /* true if we get an authoritative nx for this domain */
+	char	nonexistent;	/* true if we get an authoritative nx for this domain */
 	ulong	ordinal;
 	QLock	querylck;	/* permit only 1 query per domain name at a time */
 };

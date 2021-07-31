@@ -178,8 +178,7 @@ main(int argc, char *argv[])
 	if(myipaddr(ipaddr, mntpt) < 0)
 		sysfatal("can't read my ip address");
 
-	syslog(0, logfile, "starting %sdns on %I's %s",
-		(straddle? "straddling ": ""), ipaddr, mntpt);
+	syslog(0, logfile, "starting dns on %I's %s", ipaddr, mntpt);
 
 	opendatabase();
 
@@ -598,20 +597,17 @@ rcreate(Job *job, Mfile *mf)
 void
 rread(Job *job, Mfile *mf)
 {
-	int i, n;
+	int i, n, cnt;
 	long clock;
-	ulong cnt;
 	vlong off;
 	char *err;
 	uchar buf[Maxfdata];
 	Dir dir;
 
 	n = 0;
-	err = nil;
+	err = 0;
 	off = job->request.offset;
 	cnt = job->request.count;
-	*buf = '\0';
-	job->reply.data = (char*)buf;
 	if(mf->qid.type & QTDIR){
 		clock = time(0);
 		if(off == 0){
@@ -622,13 +618,11 @@ rread(Job *job, Mfile *mf)
 			dir.mode = 0666;
 			dir.length = 0;
 			dir.uid = dir.gid = dir.muid = mf->user;
-			dir.atime = dir.mtime = clock;		/* wrong */
+			dir.atime = dir.mtime = clock;	/* wrong */
 			n = convD2M(&dir, buf, sizeof buf);
 		}
-	} else if (off < 0)
-		err = "negative read offset";
-	else {
-		/* first offset will always be zero */
+		job->reply.data = (char*)buf;
+	} else {
 		for(i = 1; i <= mf->nrr; i++)
 			if(mf->rr[i] > off)
 				break;
@@ -637,7 +631,6 @@ rread(Job *job, Mfile *mf)
 				n = mf->rr[i] - off;
 			else
 				n = cnt;
-			assert(n >= 0);
 			job->reply.data = mf->reply + off;
 		}
 	}
@@ -648,20 +641,15 @@ rread(Job *job, Mfile *mf)
 void
 rwrite(Job *job, Mfile *mf, Request *req)
 {
-	int rooted, status, wantsav;
+	int cnt, rooted, status, wantsav;
 	long n;
-	ulong cnt;
 	char *err, *p, *atype;
 	RR *rp, *tp, *neg;
 
-	err = nil;
+	err = 0;
 	cnt = job->request.count;
 	if(mf->qid.type & QTDIR){
 		err = "can't write directory";
-		goto send;
-	}
-	if (job->request.offset != 0) {
-		err = "writing at non-zero offset";
 		goto send;
 	}
 	if(cnt >= Maxrequest){
@@ -675,16 +663,20 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	/*
 	 *  special commands
 	 */
-	if(strcmp(job->request.data, "debug")==0){
+	if(strncmp(job->request.data, "debug", 5)==0 &&
+	    job->request.data[5] == 0){
 		debug ^= 1;
 		goto send;
-	} else if(strcmp(job->request.data, "dump")==0){
+	} else if(strncmp(job->request.data, "dump", 4)==0 &&
+	    job->request.data[4] == 0){
 		dndump("/lib/ndb/dnsdump");
 		goto send;
-	} else if(strcmp(job->request.data, "refresh")==0){
+	} else if(strncmp(job->request.data, "refresh", 7)==0 &&
+	    job->request.data[7] == 0){
 		needrefresh = 1;
 		goto send;
-	} else if(strcmp(job->request.data, "poolcheck")==0){
+	} else if(strncmp(job->request.data, "poolcheck", 9)==0 &&
+	    job->request.data[9] == 0){
 		poolcheck(mainmem);
 		goto send;
 	}
@@ -718,7 +710,6 @@ rwrite(Job *job, Mfile *mf, Request *req)
 		goto send;
 	}
 
-	/* normal request: domain [type] */
 	mf->type = rrtype(atype);
 	if(mf->type < 0){
 		err = "unknown type";
@@ -738,18 +729,15 @@ rwrite(Job *job, Mfile *mf, Request *req)
 		p++;
 	} else
 		wantsav = 0;
-
 	dncheck(0, 1);
 	rp = dnresolve(p, Cin, mf->type, req, 0, 0, Recurse, rooted, &status);
-
 	dncheck(0, 1);
 	neg = rrremneg(&rp);
 	if(neg){
 		status = neg->negrcode;
 		rrfreelist(neg);
 	}
-
-	if(rp == nil)
+	if(rp == 0)
 		switch(status){
 		case Rname:
 			err = "name does not exist";

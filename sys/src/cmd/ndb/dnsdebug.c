@@ -10,8 +10,6 @@ enum {
 	Maxrequest=		128,
 };
 
-extern int inside;
-
 static char *servername;
 static RR *serverrr;
 static RR *serveraddrs;
@@ -54,7 +52,6 @@ main(int argc, char *argv[])
 	char *f[4];
 
 	strcpy(mntpt, "/net");
-	inside = 1;
 
 	ARGBEGIN{
 	case 'f':

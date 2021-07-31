@@ -15,7 +15,7 @@ int	norecursion;		/* don't allow recursive requests */
  *  answer a dns request
  */
 void
-dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
+dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int errflags)
 {
 	int recursionflag;
 	char *cp, *errmsg;
@@ -37,14 +37,14 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 	tp->next = 0;
 	repp->qd = tp;
 
-	if (rcode) {
+	if (errflags) {
 		errmsg = "";
-		if (rcode >= 0 && rcode < nrname)
-			errmsg = rname[rcode];
-		syslog(0, logfile, "server: response code 0%o (%s), req from %I",
-			rcode, errmsg, srcip);
+		if (errflags >= 0 && errflags < nrname)
+			errmsg = rname[errflags];
+		syslog(0, logfile, "server: error flags 0%o (%s), req from %I",
+			errflags, errmsg, srcip);
 		/* provide feedback to clients who send us trash */
-		repp->flags = (rcode&Rmask) | Fresp | Fcanrec | Oquery;
+		repp->flags = (errflags&Rmask) | Fresp | Fcanrec | Oquery;
 		return;
 	}
 	if(!rrsupported(repp->qd->type)){
@@ -94,9 +94,9 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 	/* pass on error codes */
 	if(repp->an == 0){
 		dp = dnlookup(repp->qd->owner->name, repp->qd->owner->class, 0);
-		if(dp->rr == nil)
+		if(dp->rr == 0)
 			if(reqp->flags & Frecurse)
-				repp->flags |= dp->respcode | Fauth;
+				repp->flags |= dp->nonexistent|Fauth;
 	}
 
 	if(myarea == nil)

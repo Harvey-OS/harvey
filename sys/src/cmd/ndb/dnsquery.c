@@ -106,7 +106,7 @@ main(int argc, char *argv[])
 		}
 
 		seek(fd, 0, 0);
-		if(write(fd, line, n) != n) {
+		if(write(fd, line, n) < 0) {
 			print("!%r\n");
 			continue;
 		}
