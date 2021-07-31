@@ -5,10 +5,10 @@
 
 struct Periodic {
 	VtLock *lk;
-	int die;		/* flag: quit if set */
-	void (*f)(void*);	/* call this each period */
-	void *a;		/* argument to f */
-	int msec;		/* period */
+	int die;
+	void (*f)(void*);
+	void *a;
+	int msec;
 };
 
 static void periodicThread(void *a);
@@ -51,31 +51,31 @@ static void
 periodicThread(void *a)
 {
 	Periodic *p = a;
-	vlong t, ct, ts;		/* times in ms. */
+	double t, ct, ts;
 
 	vtThreadSetName("periodic");
 
-	ct = nsec() / 1000000;
-	t = ct + p->msec;		/* call p->f at or after this time */
+	ct = nsec()*1e-6;
+	t = ct + p->msec;
 
 	for(;;){
-		ts = t - ct;		/* ms. to next cycle's start */
-		if(ts > 1000)
-			ts = 1000;	/* bound sleep duration */
-		if(ts > 0)
-			sleep(ts);	/* wait for cycle's start */
+		/* skip missed */
+		while(t <= ct)
+			t += p->msec;
 
+		ts = t - ct;
+		if(ts > 1000)
+			ts = 1000;
+		sleep(ts);
+		ct = nsec()*1e-6;
 		vtLock(p->lk);
 		if(p->die){
 			vtUnlock(p->lk);
 			break;
 		}
-		ct = nsec() / 1000000;
-		if(t <= ct){		/* due to call p->f? */
+		if(t <= ct){
 			p->f(p->a);
-			ct = nsec() / 1000000;
-			while(t <= ct)	/* advance t to future cycle start */
-				t += p->msec;
+			t += p->msec;
 		}
 		vtUnlock(p->lk);
 	}

@@ -67,13 +67,6 @@ void	rcanon(Rune*, Rune*);
 int	ncomp(Rune*, Rune*);
 
 void
-usage(void)
-{
-	fprint(2, "usage: %s [-dfinx] [-t c] [string] [file]\n", argv0);
-	exits("usage");
-}
-
-void
 main(int argc, char *argv[])
 {
 	int n;
@@ -95,14 +88,15 @@ main(int argc, char *argv[])
 		compare = ncomp;
 		break;
 	case 't':
-		chartorune(&tab, EARGF(usage()));
+		chartorune(&tab,ARGF());
 		break;
 	case 'x':
 		exact++;
 		break;
 	default:
 		fprint(2, "%s: bad option %c\n", argv0, ARGC());
-		usage();
+		fprint(2, "usage: %s -[dfinx] [-t c] [string] [file]\n", argv0);
+		exits("usage");
 	} ARGEND
 	if(!iflag){
 		if(argc >= 1) {
@@ -159,12 +153,12 @@ main(int argc, char *argv[])
 int
 locate(void)
 {
-	vlong top, bot, mid;
+	long top, bot, mid;
 	long c;
 	int n;
 
 	bot = 0;
-	top = Bseek(dfile, 0, 2);
+	top = Bseek(dfile, 0L, 2);
 	for(;;) {
 		mid = (top+bot) / 2;
 		Bseek(dfile, mid, 0);
