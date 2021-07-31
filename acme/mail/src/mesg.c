@@ -26,7 +26,6 @@ struct{
 	"image/gif",		"image",	".gif",
 	"image/jpeg",		"image",	".jpg",
 	"image/jpeg",		"image",	".jpeg",
-	"image/png",		"image",	".png",
 	"application/postscript",	"postscript",	".ps",
 	"application/pdf",	"postscript",	".pdf",
 	"application/msword",	"msword",	".doc",
