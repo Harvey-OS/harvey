@@ -42,7 +42,6 @@ misc
 	uartpci
 
 	vgamach64xx	+cur
-	vgas3  +cur vgasavage
 
 ip
 	il
