@@ -1,3 +1,0 @@
-#!/bin/rc
-# ssh host arg... - invoke ssh v1
-exec /$cputype/bin/ssh1 $*
