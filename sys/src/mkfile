@@ -8,7 +8,6 @@ LIBS=\
 	libbin\
 	libbio\
 	libc\
-	libcomplete\
 	libcontrol\
 	libdisk\
 	libdraw\
