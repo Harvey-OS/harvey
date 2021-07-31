@@ -11,11 +11,9 @@ typedef struct {
 	uchar alpha;
 } Rgb;
 
-#define Filehdrsz	14
-
 typedef struct {
         short	type;
-        long	size;		/* file size, not structure size */
+        long	size;
         short	reserved1;
         short	reserved2;
         long	offbits;
