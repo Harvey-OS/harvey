@@ -8,9 +8,11 @@ and groups, in
 by convention.
 Each line in the file has the format
 .IP
-.IB id : name : leader :\fImembers\fP
+.IB num : name : leader :\fImembers\fP
 .PP
 where
+.I num
+is a decimal integer,
 .I name
 and
 .I leader
@@ -44,32 +46,24 @@ Lines beginning with
 are ignored.
 .PP
 The
-.I id
-in a line is an identifier used in the on-disk structures maintained
-by a file server; there should be no duplicate
-.IR id s
+.I num
+in a line is a number used internally by a file server;
+there should be no duplicate
+.IR num s
 in the file.
-In
-.IR fossil (4),
-.IR id s
-are arbitrary text strings, typically the same as
-.IR name .
-In older Plan 9 file servers,
-.IR id s
-are small decimal numbers.
-In those, 
-a negative
-.I id
+A negative
+.I num
 is special: a user with a negative
-.I id
+.I num
 cannot attach to the file server.
 The file
 .B /adm/users
 itself is owned by user
-.I adm
+.IR adm ,
+having a negative
+.IR num ,
 and write protected to others,
 so it can only be changed via console commands.
 .SH "SEE ALSO"
 .IR intro (5),
-.IR stat (5),
-.IR fossilcons (8)
+.IR stat (5)
