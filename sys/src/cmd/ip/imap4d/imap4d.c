@@ -93,7 +93,7 @@ static	int	getc(void);
 static	char	*listmbox(void);
 static	char	*literal(void);
 static	ulong	litlen(void);
-static	MsgSet	*msgSet(int);
+static	MsgSet	*msgSet(void);
 static	void	mustBe(int c);
 static	ulong	number(int nonzero);
 static	int	peekc(void);
@@ -102,7 +102,6 @@ static	void	sectText(Fetch *f, int mimeOk);
 static	ulong	seqNo(void);
 static	Store	*storeWhat(void);
 static	char	*tag(void);
-static	ulong	uidNo(void);
 static	void	ungetc(void);
 
 static	ParseCmd	SNonAuthed[] =
@@ -589,7 +588,7 @@ copyUCmd(char *tg, char *cmd, int uids)
 	int ok;
 
 	mustBe(' ');
-	ms = msgSet(uids);
+	ms = msgSet();
 	mustBe(' ');
 	mbox = astring();
 	crnl();
@@ -714,7 +713,7 @@ fetchUCmd(char *tg, char *cmd, int uids)
 	int ok;
 
 	mustBe(' ');
-	ms = msgSet(uids);
+	ms = msgSet();
 	mustBe(' ');
 	f = fetchWhat();
 	crnl();
@@ -1257,7 +1256,7 @@ storeUCmd(char *tg, char *cmd, int uids)
 	int ok;
 
 	mustBe(' ');
-	ms = msgSet(uids);
+	ms = msgSet();
 	mustBe(' ');
 	st = storeWhat();
 	crnl();
@@ -1749,7 +1748,7 @@ searchKey(int first)
 	c = peekc();
 	if(c >= '0' && c <= '9'){
 		sr->key = SKSet;
-		sr->set = msgSet(0);
+		sr->set = msgSet();
 		return sr;
 	}
 
@@ -1802,7 +1801,7 @@ searchKey(int first)
 	}else if(cistrcmp(a, "UID") == 0){
 		sr->key = SKUid;
 		mustBe(' ');
-		sr->set = msgSet(0);
+		sr->set = msgSet();
 	}else if(cistrcmp(a, "NOT") == 0){
 		sr->key = SKNot;
 		mustBe(' ');
@@ -1833,7 +1832,7 @@ searchKey(int first)
  *
  */
 static MsgSet*
-msgSet(int uids)
+msgSet(void)
 {
 	MsgSet head, *last, *ms;
 	ulong from, to;
@@ -1841,11 +1840,11 @@ msgSet(int uids)
 	last = &head;
 	head.next = nil;
 	for(;;){
-		from = uids ? uidNo() : seqNo();
+		from = seqNo();
 		to = from;
 		if(peekc() == ':'){
 			getc();
-			to = uids ? uidNo() : seqNo();
+			to = seqNo();
 		}
 		ms = binalloc(&parseBin, sizeof(MsgSet), 0);
 		if(ms == nil)
@@ -1870,16 +1869,6 @@ seqNo(void)
 		return ~0UL;
 	}
 	return number(1);
-}
-
-static ulong
-uidNo(void)
-{
-	if(peekc() == '*'){
-		getc();
-		return ~0UL;
-	}
-	return number(0);
 }
 
 /*

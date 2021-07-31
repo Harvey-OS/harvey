@@ -744,20 +744,17 @@ static void
 pcicfginit(void)
 {
 	char *p;
+	int bno;
 	Pcidev **list;
 	ulong mema, ioa;
-	int bno, n, pcibios;
 
 	lock(&pcicfginitlock);
 	if(pcicfgmode != -1)
 		goto out;
 
-	pcibios = 0;
-	if(getconf("*nobios"))
+	if (getconf("*nobios"))
 		nobios = 1;
-	else if(getconf("*pcibios"))
-		pcibios = 1;
-	if(getconf("*nopcirouting"))
+	if (getconf("*nopcirouting"))
 		nopcirouting = 1;
 
 	/*
@@ -768,35 +765,16 @@ pcicfginit(void)
 	 * a device behind these addresses so if Mode1 accesses fail try
 	 * for Mode2 (Mode2 is deprecated).
 	 */
-	if(!pcibios){
-		/*
-		 * Bits [30:24] of PciADDR must be 0,
-		 * according to the spec.
-		 */
-		n = inl(PciADDR);
-		if(!(n & 0x7FF00000)){
-			outl(PciADDR, 0x80000000);
-			outb(PciADDR+3, 0);
-			if(inl(PciADDR) & 0x80000000){
-				pcicfgmode = 1;
-				pcimaxdno = 31;
-			}
-		}
-		outl(PciADDR, n);
-
-		if(pcicfgmode < 0){
-			/*
-			 * The 'key' part of PciCSE should be 0.
-			 */
-			n = inb(PciCSE);
-			if(!(n & 0xF0)){
-				outb(PciCSE, 0x0E);
-				if(inb(PciCSE) == 0x0E){
-					pcicfgmode = 2;
-					pcimaxdno = 15;
-				}
-			}
-			outb(PciCSE, n);
+	outl(PciADDR, 0);
+	if(inl(PciADDR) == 0){
+		pcicfgmode = 1;
+		pcimaxdno = 31;
+	}
+	else{
+		outb(PciCSE, 0);
+		if(inb(PciCSE) == 0){
+			pcicfgmode = 2;
+			pcimaxdno = 15;
 		}
 	}
 	
@@ -805,16 +783,10 @@ pcicfginit(void)
 
 	fmtinstall('T', tbdffmt);
 
-	if(p = getconf("*pcimaxbno")){
-		n = strtoul(p, 0, 0);
-		if(n < pcimaxbno)
-			pcimaxbno = n;
-	}
-	if(p = getconf("*pcimaxdno")){
-		n = strtoul(p, 0, 0);
-		if(n < pcimaxdno)
-			pcimaxdno = n;
-	}
+	if(p = getconf("*pcimaxbno"))
+		pcimaxbno = strtoul(p, 0, 0);
+	if(p = getconf("*pcimaxdno"))
+		pcimaxdno = strtoul(p, 0, 0);
 
 	list = &pciroot;
 	for(bno = 0; bno <= pcimaxbno; bno++) {
