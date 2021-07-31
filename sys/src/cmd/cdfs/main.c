@@ -99,8 +99,8 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 			return nil;
 		}
 		if(strcmp(name, "wa") == 0 && drive->writeok &&
-		    (drive->mmctype == Mmcnone ||
-		     drive->mmctype == Mmccd)) {
+		    (drive->subtype == Subtypenone ||
+		     drive->subtype == Subtypecd)) {
 			*qid = (Qid){Qwa, drive->nchange, QTDIR};
 			return nil;
 		}
@@ -151,8 +151,8 @@ fscreate(Req *r)
 		return;
 
 	case Qwa:
-		if (drive->mmctype != Mmcnone &&
-		    drive->mmctype != Mmccd) {
+		if (drive->subtype != Subtypenone &&
+		    drive->subtype != Subtypecd) {
 			respond(r, "audio supported only on cd");
 			return;
 		}
@@ -233,8 +233,8 @@ fillstat(ulong qid, Dir *d)
 
 	case Qwa:
 		if(drive->writeok == 0 ||
-		    drive->mmctype != Mmcnone &&
-		    drive->mmctype != Mmccd)
+		    drive->subtype != Subtypenone &&
+		    drive->subtype != Subtypecd)
 			return 0;
 		d->name = "wa";
 		d->qid.type = QTDIR;
@@ -324,10 +324,8 @@ readctl(Req *r)
 	if(drive->readspeed == drive->writespeed)
 		sprint(s+strlen(s), "speed %d\n", drive->readspeed);
 	else
-		sprint(s+strlen(s), "speed read %d write %d\n",
-			drive->readspeed, drive->writespeed);
-	sprint(s+strlen(s), "maxspeed read %d write %d\n",
-		drive->maxreadspeed, drive->maxwritespeed);
+		sprint(s+strlen(s), "speed read %d write %d\n", drive->readspeed, drive->writespeed);
+	sprint(s+strlen(s), "maxspeed read %d write %d\n", drive->maxreadspeed, drive->maxwritespeed);
 	readstr(r, s);
 }
 
@@ -368,26 +366,30 @@ fsread(Req *r)
 		}
 		a->doff = j;
 
-		r->ofcall.count = p - (uchar*)buf;
-		break;
+		r->ofcall.count = p-(uchar*)buf;
+		respond(r, nil);
+		return;
+
 	case Qwa:
 	case Qwd:
 		r->ofcall.count = 0;
-		break;
+		respond(r, nil);
+		return;
+
 	case Qctl:
 		readctl(r);
-		break;
-	default:
-		/* a disk track; we can only call read for whole blocks */
-		o = ((Aux*)fid->aux)->o;
-		if((count = o->drive->read(o, buf, count, offset)) < 0) {
-			respond(r, geterrstr());
-			return;
-		}
-		r->ofcall.count = count;
-		break;
+		respond(r, nil);
+		return;
 	}
-	respond(r, nil);
+
+	/* a disk track; we can only call read for whole blocks */
+	o = ((Aux*)fid->aux)->o;
+	if((count = o->drive->read(o, buf, count, offset)) < 0)
+		respond(r, geterrstr());
+	else{
+		r->ofcall.count = count;
+		respond(r, nil);
+	}
 }
 
 static char *Ebadmsg = "bad cdfs control message";
@@ -427,21 +429,23 @@ writectl(void *v, long count)
 					if(r >= 0 || w >= 0)
 						return Ebadmsg;
 					r = w = n;
+					what = '?';
 					break;
 				case 'r':
 					if(r >= 0)
 						return Ebadmsg;
 					r = n;
+					what = '?';
 					break;
 				case 'w':
 					if(w >= 0)
 						return Ebadmsg;
 					w = n;
+					what = '?';
 					break;
 				default:
 					return Ebadmsg;
 				}
-				what = '?';
 			}
 		}
 		if(what != '?')
@@ -502,17 +506,19 @@ fsopen(Req *r)
 	case Qdir:
 	case Qwa:
 	case Qwd:
-		if(omode != OREAD) {
+		if(omode == OREAD)
+			respond(r, nil);
+		else
 			respond(r, "permission denied");
-			return;
-		}
-		break;
+		return;
+
 	case Qctl:
-		if(omode & ~(OTRUNC|OREAD|OWRITE|ORDWR)) {
+		if(omode&~(OTRUNC|OREAD|OWRITE|ORDWR))
 			respond(r, "permission denied");
-			return;
-		}
-		break;
+		else
+			respond(r, nil);
+		return;
+
 	default:
 		if(fid->qid.path >= Qtrack+drive->ntrack) {
 			respond(r, "file no longer exists");
@@ -531,9 +537,9 @@ fsopen(Req *r)
 
 		o->nref = 1;
 		((Aux*)fid->aux)->o = o;
+		respond(r, nil);
 		break;
 	}
-	respond(r, nil);
 }
 
 static void

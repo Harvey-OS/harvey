@@ -104,6 +104,7 @@ pv4addr(uchar *p, uchar *ep, char *name)
 	parseip(ip, name);
 	v6tov4(p, ip);
 	return p + 4;
+
 }
 
 static uchar*
@@ -113,6 +114,7 @@ pv6addr(uchar *p, uchar *ep, char *name)
 		return ep+1;
 	parseip(p, name);
 	return p + IPaddrlen;
+
 }
 
 static uchar*
