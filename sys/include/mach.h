@@ -9,9 +9,7 @@
  *		mips,
  *		68020,
  *		i386,
- *		amd64,
  *		sparc,
- *		sparc64,
  *		mips2 (R4000)
  *		arm
  *		power pc
@@ -32,8 +30,6 @@ enum
 	MPOWER,
 	MALPHA,
 	NMIPS,
-	MSPARC64,
-	MAMD64,
 				/* types of executables */
 	FNONE = 0,		/* unidentified */
 	FMIPS,			/* v.out */
@@ -58,8 +54,6 @@ enum
 	FALPHA,			/* 7.out */
 	FALPHAB,		/* DEC Alpha bootable */
 	FMIPSLE,		/* 3k little endian */
-	FSPARC64,		/* u.out */
-	FAMD64,			/* 6.out */
 
 	ANONE = 0,		/* dissembler types */
 	AMIPS,
@@ -74,8 +68,6 @@ enum
 	AARM,
 	APOWER,
 	AALPHA,
-	ASPARC64,
-	AAMD64,
 				/* object file types */
 	Obj68020 = 0,		/* .2 */
 	ObjSparc,		/* .k */
@@ -89,8 +81,6 @@ enum
 	ObjPower,		/* .q */
 	ObjMips2le,		/* .0 */
 	ObjAlpha,		/* .7 */
-	ObjSparc64,		/* .u */
-	ObjAmd64,		/* .6 */
 	Maxobjtype,
 
 	CNONE  = 0,		/* symbol table classes */
@@ -131,10 +121,10 @@ struct Symbol {
 	void 	*handle;		/* used internally - owning func */
 	struct {
 		char	*name;
-		vlong	value;		/* address or stack offset */
+		long	value;		/* address or stack offset */
 		char	type;		/* as in a.out.h */
 		char	class;		/* as above */
-		int	index;		/* in findlocal, globalsym, textsym */
+		int index;		/* in findlocal, globalsym, textsym */
 	};
 };
 
@@ -145,7 +135,7 @@ struct Reglist {
 	char	*rname;			/* register name */
 	short	roffs;			/* offset in u-block */
 	char	rflags;			/* INTEGER/FLOAT, WRITABLE */
-	char	rformat;		/* print format: 'x', 'X', 'f', '8', '3', 'Y', 'W' */
+	char	rformat;		/* print format: 'x', 'X', 'f', '8' */
 };
 
 enum {					/* bits in rflags field */
@@ -174,10 +164,10 @@ struct Mach{
 	char	*sp;			/* sp name */
 	char	*link;			/* link register name */
 	char	*sbreg;			/* static base register name */
-	uvlong	sb;			/* static base register value */
+	ulong	sb;			/* static base register value */
 	int	pgsize;			/* page size */
-	uvlong	kbase;			/* kernel base address */
-	uvlong	ktmask;			/* ktzero = kbase & ~ktmask */
+	ulong	kbase;			/* kernel base address */
+	ulong	ktmask;			/* ktzero = kbase & ~ktmask */
 	int	pcquant;		/* quantization of pc */
 	int	szaddr;			/* sizeof(void*) */
 	int	szreg;			/* sizeof(register) */
@@ -234,8 +224,8 @@ typedef struct Fhdr
 	long	lnpcoff;	/* size of line number-pc table */
 } Fhdr;
 
-extern	int	asstype;	/* dissembler type - machdata.c */
-extern	Machdata *machdata;	/* jump vector - machdata.c */
+extern	int	asstype;		/* dissembler type - machdata.c */
+extern	Machdata *machdata;		/* jump vector - machdata.c */
 
 Map*		attachproc(int, int, int, Fhdr*);
 int		beieee80ftos(char*, int, void*);
