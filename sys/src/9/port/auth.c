@@ -66,11 +66,8 @@ sysfauth(ulong *arg)
 	int fd;
 
 	validaddr(arg[1], 1, 0);
-	aname = validnamedup((char*)arg[1], 1);
-	if(waserror()){
-		free(aname);
-		nexterror();
-	}
+	aname = (char*)arg[1];
+	validname(aname, 1);
 	c = fdtochan(arg[0], ORDWR, 0, 1);
 	if(waserror()){
 		cclose(c);
@@ -81,8 +78,6 @@ sysfauth(ulong *arg)
 	/* at this point ac is responsible for keeping c alive */
 	cclose(c);
 	poperror();	/* c */
-	free(aname);
-	poperror();	/* aname */
 
 	if(waserror()){
 		cclose(ac);

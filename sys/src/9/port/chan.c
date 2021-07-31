@@ -1076,11 +1076,7 @@ namec(char *aname, int amode, int omode, ulong perm)
 	name = aname;
 	if(name[0] == '\0')
 		error("empty file name");
-	name = validnamedup(name, 1);
-	if(waserror()){
-		free(name);
-		nexterror();
-	}
+	validname(name, 1);
 
 	/*
 	 * Find the starting off point (the current slash, the root of
@@ -1380,6 +1376,8 @@ if(c->umh != nil){
 		panic("unknown namec access %d\n", amode);
 	}
 
+	poperror();
+
 	/* place final element in genbuf for e.g. exec */
 	if(e.nelems > 0)
 		kstrcpy(up->genbuf, e.elems[e.nelems-1], sizeof up->genbuf);
@@ -1388,9 +1386,6 @@ if(c->umh != nil){
 	free(e.name);
 	free(e.elems);
 	free(e.off);
-	poperror();	/* e c */
-	free(name);
-	poperror();	/* name */
 
 	return c;
 }
@@ -1424,24 +1419,17 @@ char isfrog[256]={
  * routine works for kernel and user memory both.
  * The parameter slashok flags whether a slash character is an error
  * or a valid character.
- *
- * The parameter dup flags whether the string should be copied
- * out of user space before being scanned the second time.
- * (Otherwise a malicious thread could remove the NUL, causing us
- * to access unchecked addresses.) 
  */
-static char*
-validname0(char *aname, int slashok, int dup, ulong pc)
+void
+validname(char *aname, int slashok)
 {
-	char *p, *ename, *name, *s;
+	char *p, *ename, *name;
 	uint t;
-	int c, n;
+	int c;
 	Rune r;
 
 	name = aname;
 	if(((ulong)name & KZERO) != KZERO) {
-		if(!dup)
-			print("warning: validname called from %lux with user pointer", pc);
 		p = name;
 		t = BY2PG-((ulong)p&(BY2PG-1));
 		while((ename=vmemchr(p, 0, t)) == nil) {
@@ -1454,16 +1442,6 @@ validname0(char *aname, int slashok, int dup, ulong pc)
 	if(ename==nil || ename-name>=(1<<16))
 		error("name too long");
 
-	s = nil;
-	if(dup){
-		n = ename-name;
-		s = smalloc(n+1);
-		memmove(s, name, n);
-		s[n] = 0;
-		aname = s;
-		name = s;
-	}
-	
 	while(*name){
 		/* all characters above '~' are ok */
 		c = *(uchar*)name;
@@ -1473,25 +1451,11 @@ validname0(char *aname, int slashok, int dup, ulong pc)
 			if(isfrog[c])
 				if(!slashok || c!='/'){
 					snprint(up->genbuf, sizeof(up->genbuf), "%s: %q", Ebadchar, aname);
-					free(s);
 					error(up->genbuf);
 			}
 			name++;
 		}
 	}
-	return s;
-}
-
-void
-validname(char *aname, int slashok)
-{
-	validname0(aname, slashok, 0, getcallerpc(&aname));
-}
-
-char*
-validnamedup(char *aname, int slashok)
-{
-	return validname0(aname, slashok, 1, 0);
 }
 
 void

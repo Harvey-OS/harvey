@@ -221,15 +221,10 @@ outofdate(Node *node, Arc *arc, int eval)
 			else
 				symlook(str, S_OUTOFDATE, (void *)ret);
 		} else
-			ret = (int)(uintptr)sym->value;
+			ret = (int)sym->value;
 		return(ret-1);
 	} else if(strchr(arc->n->name, '(') && arc->n->time == 0)  /* missing archive member */
 		return 1;
 	else
-		/*
-		 * Treat equal times as out-of-date.
-		 * It's a race, and the safer option is to do
-		 * extra building rather than not enough.
-	 	 */
-		return node->time <= arc->n->time;
+		return node->time < arc->n->time;
 }
