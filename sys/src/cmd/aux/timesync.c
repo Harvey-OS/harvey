@@ -94,9 +94,6 @@ enum
 	NTPDIGESTSIZE=	20,		// key and digest
 };
 
-// error bound of last sample
-ulong	ε;
-
 static void	addntpserver(char *name);
 static int	adjustperiod(vlong diff, vlong accuracy, int secs);
 static void	background(void);
@@ -332,7 +329,6 @@ main(int argc, char **argv)
 		diff = 0;
 
 		// get times for this sample
-		ε = ~0;
 		switch(type){
 		case Fs:
 			s->stime = sample(fstime);
@@ -394,16 +390,7 @@ main(int argc, char **argv)
 			// second (or so) the kernel will add diff/(4*secs*100)
 			// to the clock.  we only do 1/4 of the difference per
 			// period to dampen any measurement noise.
-			//
-			// any difference greater than ε we work off during the
-			// sampling period.
-			if(abs(diff) > ε){
-				if(diff > 0)
-					settime(-1, 0, diff-((3*ε)/4), secs);
-				else
-					settime(-1, 0, diff+((3*ε)/4), secs);
-			} else
-				settime(-1, 0, diff, 4*secs);
+			settime(-1, 0, diff, 4*secs);
 
 		}
 		if(debug)
@@ -1009,7 +996,6 @@ ntpsample(void)
 	else
 		stratum = ns->stratum + 1;
 
-	ε = abs(ns->rtt/2);
 	return ns->dt;
 }
 

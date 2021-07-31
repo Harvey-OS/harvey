@@ -1856,7 +1856,8 @@ update(Conv *s, Tcp *seg)
 			expand = tcb->snd.wnd - tcb->cwind;
 		if(tcb->cwind + expand > tcb->snd.wnd)
 			expand = tcb->snd.wnd - tcb->cwind;
-		tcb->cwind += expand;
+		if(expand != 0)
+			tcb->cwind += expand;
 	}
 
 	/* Adjust the timers according to the round trip time */
@@ -2136,7 +2137,7 @@ reset:
 
 	/* Cut the data to fit the receive window */
 	if(tcptrim(tcb, &seg, &bp, &length) == -1) {
-		netlog(f, Logtcp, "tcp len < 0, %lud %d\n", seg.seq, length);
+		netlog(f, Logtcp, "tcp len < 0, %lux\n", seg.seq);
 		update(s, &seg);
 		if(qlen(s->wq)+tcb->flgcnt == 0 && tcb->state == Closing) {
 			tcphalt(tpriv, &tcb->rtt_timer);

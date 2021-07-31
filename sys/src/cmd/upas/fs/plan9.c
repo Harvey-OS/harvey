@@ -365,7 +365,7 @@ plan9syncmbox(Mailbox *mb, int doplumb)
 
 	lk = nil;
 	if(mb->dolock){
-		lk = syslock(mb->path);
+		lk = syslock(stdmbox);
 		if(lk == nil)
 			return "can't lock mailbox";
 	}
